@@ -1,6 +1,5 @@
 {
   "name": "@openbot/supervisor",
-  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

@@ -1,6 +1,5 @@
 {
   "name": "@openbot/agent-computer",
-  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

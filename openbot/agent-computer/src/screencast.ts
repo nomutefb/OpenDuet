@@ -4,10 +4,6 @@
  * Chrome pushes frames as the page changes, which supports human takeover better than polling a PNG
  * once a second.
  *
- * This follows permissively-licensed references: `steel-dev/steel-browser`'s `casting.handler.ts`
- * (Apache-2.0) for the server loop and Chrome DevTools' `InputModel.ts` (BSD-3) for key event
- * translation.
- *
  * noVNC is not used because it requires Xvfb, x11vnc and websockify, while this container runs
  * headless. This implementation streams the page and forwards input through the Chrome DevTools
  * Protocol.

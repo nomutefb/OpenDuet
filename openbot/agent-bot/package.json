@@ -1,6 +1,5 @@
 {
   "name": "@openbot/agent-bot",
-  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

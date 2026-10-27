@@ -1,7 +1,6 @@
 {
   "name": "openduet",
   "version": "0.1.0",
-  "license": "MIT",
   "private": true,
   "description": "The open-source proactive agent, built on OpenBot. The platform lives in openbot/.",
   "scripts": {

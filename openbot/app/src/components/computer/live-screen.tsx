@@ -14,10 +14,6 @@ import { pageCoordinates } from "./take-the-wheel";
  *
  * The inline card keeps using cheap polling for passive watching. This view uses Chrome's
  * screencast socket so input and visual feedback stay synchronized during takeover.
- *
- * Follows Chrome DevTools' own `InputModel.ts` (BSD-3) for the event translation and
- * `steel-dev/steel-browser`'s casting handler (Apache-2.0) for the frame loop, because no maintained
- * library publishes this and every real implementation is one app-internal file.
  */
 
 /**

@@ -1,6 +1,5 @@
 {
   "name": "@openbot/toolkit",
-  "license": "MIT",
   "private": true,
   "type": "module",
   "exports": {
