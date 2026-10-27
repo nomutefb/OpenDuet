@@ -307,7 +307,7 @@ function Line({ m, c }: { m: Msg; c: Ctx }) {
         <MessageContent className="items-end">
           <Quote m={m} c={c} />
           <StatePill m={m} />
-          <div className="flex items-end gap-1.5">
+          <div className="flex w-full items-end justify-end gap-1.5">
             {dmUnread ? <b className="pb-1 text-xs font-semibold tabular-nums text-primary" aria-label={`${c.r?.with} 아직 안 읽음`}>1</b> : null}
             <Bubble align="end" variant="muted" onClick={toggle}>
               <BubbleContent>{m.files?.length ? <Files m={m} /> : <span className="whitespace-pre-wrap">{String(m.text || "").replace(QUOTE, "")}</span>}</BubbleContent>
