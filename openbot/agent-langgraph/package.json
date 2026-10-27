@@ -1,6 +1,5 @@
 {
   "name": "@openbot/agent-langgraph",
-  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

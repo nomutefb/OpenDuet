@@ -7,7 +7,6 @@
 Built on [OpenBot](https://github.com/CopilotKit/openbot) and [CopilotKit](https://docs.copilotkit.ai) · [Quick start](#quick-start) · [Overview](#overview) · [Features and Capabilities](#features-and-capabilities) · [How it works](#how-it-works) · [Contributing](#contributing)
 
 [![Built on OpenBot](https://img.shields.io/badge/built%20on-OpenBot-6430AB)](https://github.com/CopilotKit/openbot)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 ![Status: early development](https://img.shields.io/badge/status-early%20development-orange.svg)
 
  **Each agent has a computer of its own. Use it on the web, on mobile, in Slack, or in Microsoft Teams.**
@@ -260,7 +259,3 @@ It is CopilotKit's open-source take on the proactive-agent category: assistants 
 - [Discord](https://discord.gg/6dffbvGU3D): ask a question or share what you are building
 - [@copilotkit on X](https://x.com/copilotkit): releases and what is shipping
 - [docs.copilotkit.ai](https://docs.copilotkit.ai): CopilotKit documentation
-
-## License
-
-[MIT](./LICENSE) © CopilotKit
