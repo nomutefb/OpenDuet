@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>우리 사무실</title>
+    <meta name="theme-color" content="#f8f8f8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
+    <!-- use-credentials = Access 로그인 쿠키를 실어야 앱 설명서를 받음(없으면 로그인 창으로 튕겨 설치 불가) -->
+    <link rel="manifest" href="/office-app/manifest.webmanifest" crossorigin="use-credentials" />
+    <link rel="icon" href="/office-app/icon-192.png" />
+    <link rel="apple-touch-icon" href="/office-app/icon-192.png" />
+    <!-- 첫 그림 전 밝음·어두움(원본 index.html 그대로 · 규칙 = upstream/app/src/lib/theme.ts) -->
+    <script>
+      (() => {
+        let choice = null;
+        try {
+          choice = window.localStorage.getItem("openduet-theme");
+          if (choice === null && window.localStorage.getItem("openbot-theme") === "dark") choice = "dark";
+        } catch {}
+        const dark =
+          choice === "dark" ||
+          (choice !== "light" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/main.tsx"></script>
+  </body>
+</html>
