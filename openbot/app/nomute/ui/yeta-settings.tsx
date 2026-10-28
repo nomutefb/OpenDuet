@@ -12,6 +12,7 @@ import { office } from "../data/office";
 import { usePeople } from "./faces";
 import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
+import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { NomuteBots, NomuteLink, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
 import { YICO, type YIcon } from "./yeta-icons";
 
@@ -63,6 +64,7 @@ export function YetaSettings() {
           <div className="yset-sec">화면</div>
           <Act ic="screen" t="테마" d="탭 = 폰 따라 → 밝게 → 어둡게" v={theme.t} vt mod={theme.v !== "system"}
             onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
+          <PushRow />
           <div className="yset-sec">글꼴</div>
           <ChatFontRows />
           <div className="yset-sec">상태</div>

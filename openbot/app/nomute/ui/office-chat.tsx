@@ -1,7 +1,7 @@
 // 우리 대화창 — 원본 부품(말풍선·글 줄·입력칸·마크다운) 그대로 쓰고, 형 대화창 규칙·옛 화면 기능은 우리 것(옛 = viewer/office.html)
 //   형 보기(형 10-27 16:33·21:16) = 형 글 + 형에게 온 글만 펼침 · 봇끼리·클로드 글 = 그 자리 한 줄 「(얼굴 셋) 외 N · 메시지 M개」(형 10-28 05:12)
 //   말풍선 = YETA 꼴(./yeta-chat.css · 형 10-28 10:19) · 말풍선 위 읽음 얼굴 0 · 러너 깸 줄 안 보임 · 시스템 일 = 가운데 흐린 알약
-//   시간 = 말풍선 안 오른쪽 아래 작게(형 10-28 15:36 「시간을 대화상자의 우하단으로 … 최대한 대화를 길게」 · 마지막 줄에 자리가 있으면 그 줄 끝 · 말풍선 폭 늘림)
+//   시간 = 말풍선 밖 오른쪽 아래 모서리 바로 아래 작게(형 10-28 15:36 「시간을 대화상자의 우하단으로 … 최대한 대화를 길게」 · 16:5x 「위치는 좋고, 바깥에 위치」 = 말풍선은 말만 감쌈 · 말풍선 폭 늘림)
 //   가져감 = 카톡 「1」 자리에 「가져감」 글자 하나(1:1 방 형 글만 · 형 10:20) · 그 밖 이름 줄 0
 //   이름 = 같은 사람 글이 이어지면 첫 글만(YETA .cont) · 날짜가 바뀌는 곳 = 가는 줄 + 「10-28 수」(형 10:23)
 //   줄기 = ⏳·✅ 상태 답(reply_to)은 원 글 바로 아래 · 답장 = 글 첫 줄 「↩ 이름: 그 글 첫 줄」(서버 0 · 옛 화면과 같은 꼴) · 반응 · 파일 · 긴 글 = 접기 0(형 15:33 「더보기 말고 줄글 풀로 다 나오게」)
@@ -11,7 +11,7 @@
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type CSSProperties, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Composer, toAgentOptions } from "@/components/channels/composer";
 import { useReportChatPresence } from "@/components/shell/chat-presence";
@@ -273,33 +273,13 @@ function Body({ m }: { m: Msg }) {
   return <Streamdown components={markdownComponents}>{text}</Streamdown>;
 }
 
-/** 상대 말풍선 안 = 글 전부(접기 0) + 시각 — 시각은 마지막 글 줄 끝(그 줄에 자리가 없으면 다음 줄 오른쪽 · ./yeta-chat.css [data-yt]) ·
- *  마지막 칸이 코드·표면 글 아래 따로 한 줄(.ytin) */
-function Said({ m }: { m: Msg }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  useLayoutEffect(() => {
-    const box = ref.current;
-    if (!box) return;
-    for (const e of box.querySelectorAll("[data-yt]")) e.removeAttribute("data-yt");
-    const all = box.querySelectorAll("p,li,h1,h2,h3,h4,h5,h6,blockquote,pre,table"), last = all[all.length - 1];
-    const ok = !!last && !/^(PRE|TABLE)$/.test(last.tagName);
-    if (ok) last.setAttribute("data-yt", "");
-    box.dataset.ytin = ok ? "1" : "";
-  });
-  return (
-    <>
-      <div ref={ref} className="ymd"><Body m={m} /></div>
-      <time className="ytin" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>
-    </>
-  );
-}
-
-/** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선(시각 안 오른쪽 아래)] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선(시각 안 오른쪽 아래)] · cont = 바로 앞이 같은 사람(얼굴·이름 접음) · fresh = 열어 둔 뒤 새로 온 글(올라옴) */
+/** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선 / 시각] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 / 시각] · 시각 = 말풍선 밖 오른쪽 아래 모서리 바로 아래(.ybw) ·
+ *  cont = 바로 앞이 같은 사람(얼굴·이름 접음) · fresh = 열어 둔 뒤 새로 온 글(올라옴) */
 function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean }) {
   const p = c.list.find((x) => x.who === m.who);
   const selected = c.sel === m.id;
   const toggle = () => c.setSel(selected ? "" : m.id);
-  const time = <time className="ytin" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
+  const time = <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
   if (m.kind === "human") {
     return (
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
@@ -307,7 +287,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : String(m.text || "").replace(QUOTE, "")}{time}</div>
+          <div className="ybw"><div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : String(m.text || "").replace(QUOTE, "")}</div>{time}</div>
         </div>
         <Reactions m={m} c={c} mine />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -322,8 +302,9 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <Quote m={m} c={c} />
         <StatePill m={m} />
         <div className="ybrow">
-          <div className="yb ai" onClick={toggle} style={{ "--yt": JSON.stringify(t12(m.ts)) } as CSSProperties}>
-            <Said m={m} />
+          <div className="ybw">
+            <div className="yb ai" onClick={toggle}><div className="ymd"><Body m={m} /></div></div>
+            {time}
           </div>
         </div>
         <Reactions m={m} c={c} mine={false} />

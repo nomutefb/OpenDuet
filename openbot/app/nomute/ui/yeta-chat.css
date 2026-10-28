@@ -3,7 +3,7 @@
    셀렉터·수치·시간·곡선·색 = 원본 그대로(형 10-28 11:20 「채팅이 원래 이런스타일이 아니거든? 예타스타일로」 · 11:26 「YETA 글래스 그대로」) — 토큰 = 원본 :root(48~84줄) 값
    어둡게 = 원본 값 그대로 · 밝게(원본에 없음) = 같은 알파를 검은 바탕으로 뒤집고 글자만 진하게 · 배경 그림 = 새 사무실 것 그대로(YETA 마을 그림 0)
    더한 것(원본에 없음): .ydate(날짜 바뀌는 곳 · 형 10:23) · .yb.ai .ymd(말풍선 안 글 꾸밈 = 줄바꿈은 꾸밈이 맡음) ·
-   .ytin(시각 = 말풍선 안 오른쪽 아래 · 형 15:36) · .yjump(「↑ 글 처음」 · 형 15:33) · 말풍선 폭 넓힘(86·78% → 94·92% · 형 15:36 「최대한 대화를 길게」) ·
+   .ybw·.ytout(시각 = 말풍선 밖 오른쪽 아래 모서리 바로 아래 · 형 15:36 · 16:5x 「바깥에 위치」) · .yjump(「↑ 글 처음」 · 형 15:33) · 말풍선 폭 넓힘(86·78% → 94·92% · 형 15:36 「최대한 대화를 길게」) ·
    글꼴 = YETA 「글꼴」 설정 그대로(--app-font · ./chat-font.tsx · @font-face = YETA viewer/index.html 22~35줄 값 그대로 · 파일 = 그 viewer/fonts 에서 쓰는 굵기만) */
 @font-face{font-family:'LEMONMILK';font-weight:700;font-style:normal;src:url('./fonts/LEMONMILK-Bold.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 @font-face{font-family:'LEMONMILK';font-weight:400;font-style:normal;src:url('./fonts/LEMONMILK-Regular.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
@@ -62,19 +62,15 @@
   backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1);
   box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); transition:border-color .45s var(--ease); }
 .ychat-in form:focus-within { border-color:color-mix(in srgb, var(--accent) 35%, transparent); }
-.ychat-in .duet-composer-editor { font-size:var(--fs-body); text-align:center; color:var(--fg); }
+.ychat-in .duet-composer-editor { font-size:var(--fs-body); text-align:left; color:var(--fg); }   /* 왼쪽부터(형 16:5x 「입력할때 좌측부터 시작하게」 · YETA 원본 = 가운데) */
 .ychat-in form button[type="button"] { color:var(--fg-2); }
 .ychat-in form button[type="submit"] { width:var(--btn); height:var(--btn); align-self:center; border:none; background:none; box-shadow:none; color:var(--accent); }
 .ychat-in form button[type="submit"]:active { transform:scale(var(--press-m)); }
 .ychat-in form button[type="submit"]:disabled { opacity:.4; pointer-events:none; }
-/* 시각 = 말풍선 안 오른쪽 아래 작게 — 마지막 글 줄 끝에 떠 붙음(자리가 없으면 다음 줄 오른쪽 · 말풍선 = 흐름 상자라 떠 있는 것까지 감쌈) ·
-   상대 글 = 마지막 글 칸 뒤 ::after(--yt · office-chat.tsx Said) · 마지막 칸이 코드·표면 글 아래 .ytin 한 줄 · 형 글 = 글 끝 .ytin */
-.ychat .yb .ytin, .ychat .yb.ai .ymd [data-yt]::after { float:right; margin:6px -3px -4px 10px; font-size:10px; line-height:1.5; font-weight:400; font-style:normal;
-  color:var(--mut); font-variant-numeric:tabular-nums; white-space:nowrap; letter-spacing:0; }
-.ychat .yb.ai .ymd [data-yt]::after { content:var(--yt); }
-.ychat .yb.ai .ymd[data-ytin="1"] + .ytin { display:none; }
-.ychat .yb.ai .ytin { display:block; float:none; text-align:right; margin:2px -3px -4px 0; }
-.ychat .yb.me .ytin { color:color-mix(in srgb, var(--bg) 55%, transparent); }
+/* 시각 = 말풍선 밖 오른쪽 아래 모서리 바로 아래 작게(형 16:5x 「위치는 좋고, 바깥에 위치」) — 말풍선은 말만 감쌈 · 형 글·상대 글 같은 꼴 */
+.ychat .ybw { display:flex; flex-direction:column; align-items:flex-end; gap:2px; min-width:0; max-width:100%; }   /* 말풍선 + 그 아래 시각 = 한 묶음(묶음 폭 = 말풍선 폭 · 시각 = 오른쪽 끝) */
+.ychat .ybw > .yb { max-width:100%; }
+.ychat .ytout { font-size:10px; line-height:1.3; color:var(--mut); font-variant-numeric:tabular-nums; white-space:nowrap; padding-right:4px; }
 /* 「↑ 글 처음」 = 위에 걸친 글의 시작으로(떠 있는 머리 동그라미 바로 아래 · 표면 = .yb.sys 글래스 알약 꼴 · 바탕만 판 색을 거의 불투명(96%)하게 깔아 글 위에 겹쳐도 읽힘 · PM 16:35 · 누름 = YETA press) */
 .ychat .yjump { position:absolute; top:84px; left:0; right:0; margin-inline:auto; width:max-content; z-index:5; display:inline-flex; align-items:center; gap:4px; padding:5px 13px;
   background:color-mix(in srgb, var(--duet-surface, var(--bg)) 96%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-pill); color:var(--fg); font-size:var(--fs-sm); font-weight:var(--fw-b);
