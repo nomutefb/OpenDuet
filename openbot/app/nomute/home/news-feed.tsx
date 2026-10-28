@@ -3,11 +3,13 @@
 //   카드 재료 = 에디터 viewer/modern-data.js project()(같은 주소에서 불러 씀 · 사본 0) 에 에디터 홈과 같은 원천(순위 api/trends?f=overlap → overlap_latest.json ·
 //   수집함 api/candidates · 요약 articles.json · 사진 api/trends?f=images → rss_images.json · 피드 알파 = 같은 기기 설정 nm_home_alpha + feed_alpha.json) ·
 //   부모 몫(에디터 modern-workspace.js 홈 부분과 같은 글 꼴 · 채널 nomute-modern-home: connect → ready → snapshot · refresh/reload = 다시 받기 · suspend = 숨으면 쉼).
-//   간소 = 팔로워 띠(IG·FB)·PICK 단추 뺌(PICK 은 에디터에서) · 톤 = YETA 토큰을 품은 화면에 덧씌움(어둡게·밝게 = 앱 따라) · 맨 위 = 실검 키워드 띠(에디터 .tkr 꼴 · news-feed.css).
+//   간소 = 팔로워 띠(IG·FB)·PICK 단추 뺌(PICK 은 에디터에서) · 톤 = YETA 토큰을 품은 화면에 덧씌움(어둡게·밝게 = 앱 따라) ·
+//   실검 키워드 띠 = 뺌(형 12:21 「키워드 빼도 될거같아 카드에 그만큼 사진이 더 보이면 됨」) · 카드 높이 = 품은 칸 전부(원본은 에디터 아래 독 몫을 빼서 칸 아래가 비었음 → 독 몫 0) ·
+//   사진 자르기·비율 = 원본 그대로(황금비 상한 · cover) = 카드가 길어진 만큼 사진이 덜 잘리고 아래 출처 줄이 더 보임.
 //   보이는 후보 = 에디터 scHomeCandidates 와 같은 거름(home-pool.ts · 서버 트리아지·병합 + 이 기기 기록 · 같은 기사 접기·자동 묶음) · PICK 상태 = 안 보임.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { homePool } from "./home-pool";
-import "./news-feed.css";
+import { SummaryButton } from "./summary-button";
 
 const CHANNEL = "nomute-modern-home";
 const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
@@ -55,11 +57,11 @@ const TONE = (dark: boolean) => `:root{color-scheme:${dark ? "dark" : "light"};-
 --modern-modal-head-bg:${dark ? "rgba(22,23,22,.85)" : "rgba(255,255,255,.85)"};--modern-action-symbol:${dark ? "#fff" : "#161716"};
 --modern-silk-glass:${dark ? "rgba(255,255,255,.005)" : "rgba(0,0,0,.02)"};--modern-panel-shadow:inset 0 1px 0 ${dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.09)"},0 24px 60px rgba(0,0,0,${dark ? ".42" : ".08"})}
 .deck{--card-solid:${dark ? "#1b1c1b" : "#f4f5f3"}}
+.practical-main{--reader-top-gap:0px;--reader-dock-clear:0px;--menu-dock-gap:0px;--modern-menu-height:0px;--home-pulse-h:0px!important}
 html,body{background:transparent!important}#home-pulse{display:none!important}.reader-actions .pick-control{display:none!important}`;
 
 export function NewsFeed() {
   const frame = useRef<HTMLIFrameElement>(null);
-  const [words, setWords] = useState<string[]>([]);
   useEffect(() => {
     let live = true, ready = false, version = 0, snap: { rows: unknown[]; status: Record<string, unknown> } | null = null;
     let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null;
@@ -88,10 +90,6 @@ export function NewsFeed() {
       if (alpha == null) alpha = (await firstJson(["/feed_alpha.json"])) || {};
       await rebuild();
     };
-    const trends = async () => {   // 실검 띠 = 에디터 loadTrends 와 같은 원천 · gtrends 상위 10 검색어(renderSnsTrends _tkQ)
-      const t = await firstJson<{ updated?: string; gtrends?: { query?: string }[] }>(["/api/trends", "/sns_trends.json"], (v) => !!v && !!v.updated);
-      if (live && t) setWords((Array.isArray(t.gtrends) ? t.gtrends : []).map((x) => (x && x.query) || "").filter(Boolean).slice(0, 10));
-    };
     const onMsg = (e: MessageEvent) => {
       if (e.origin !== location.origin || e.source !== frame.current?.contentWindow) return;
       const m = e.data as { channel?: string; type?: string };
@@ -102,9 +100,9 @@ export function NewsFeed() {
     const onVis = () => post("suspend", { hidden: document.hidden });
     window.addEventListener("message", onMsg);
     document.addEventListener("visibilitychange", onVis);
-    void load(); void trends();
-    const t1 = setInterval(() => { if (!document.hidden) void load(); }, OVERLAP_EVERY), t2 = setInterval(() => { if (!document.hidden) void trends(); }, 5 * 60_000);
-    return () => { live = false; clearInterval(t1); clearInterval(t2); window.removeEventListener("message", onMsg); document.removeEventListener("visibilitychange", onVis); };
+    void load();
+    const t1 = setInterval(() => { if (!document.hidden) void load(); }, OVERLAP_EVERY);
+    return () => { live = false; clearInterval(t1); window.removeEventListener("message", onMsg); document.removeEventListener("visibilitychange", onVis); };
   }, []);
   useEffect(() => {   // 품은 화면 톤 = 앱의 어둡게·밝게를 따라 덧씌움(바뀌면 다시)
     const el = frame.current;
@@ -124,11 +122,9 @@ export function NewsFeed() {
   }, []);
   const onLoad = () => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type: "connect" }, location.origin);
   return (
-    <section aria-label="뉴스 피드" className="flex min-h-0 flex-col">
-      {words.length ? (
-        <div className="nm-tkr" aria-hidden="true"><div className="nm-tkr-track">{[...words, ...words].map((q, i) => <span key={i} className="nm-tkr-i">{q}</span>)}</div></div>
-      ) : null}
-      <iframe ref={frame} src="/modern-home.html" title="뉴스 피드" onLoad={onLoad} className="min-h-0 w-full flex-1 border-0 bg-transparent"/>
+    <section aria-label="뉴스 피드" className="relative flex min-h-0 flex-col">
+      <iframe ref={frame} src="/modern-home.html" title="뉴스 피드" onLoad={onLoad} className="min-h-0 w-full flex-1 border-0 bg-transparent" />
+      <SummaryButton />
     </section>
   );
 }
