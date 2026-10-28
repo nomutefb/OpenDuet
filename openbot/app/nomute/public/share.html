@@ -1,0 +1,102 @@
+<!doctype html>
+<!-- 공유 받기(안드로이드 「공유 → 사무실」 · 형 10-28 16:32 「웹앱으로 일단 해」 · 장부 claude-state assign/2026-10-28/office-webpush-share.md)
+     서비스 워커(sw.js takeShare)가 받은 글·링크·그림을 이 앱 기록 칸에 적고 여기로(GET /office-app/share) → 형이 방 고름
+     · 글·링크만 = 그 방 입력칸에 채우고 그 방으로(보내기는 형이 누름 · 입력칸 쓰던 글 자리 = ui/office-chat.tsx nm-draft:<방> 같은 탭)
+     · 그림 있음 = 1:1 방만(단체방 첨부는 받을 봇 @ 필요 = 대화창 규칙) · 「보내기」 누르면 그 방에 올림(POST /api/office/files · 대화창과 같은 길)
+     꼴 = 설정 판 YETA 값 그대로(ui/yeta-settings.css .yeta-set · 밝게/어둡게 = 앱 테마 기억 openduet-theme) -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>사무실 · 공유 받기</title>
+<style>
+:root { --glass: rgba(0,0,0,.02); --glass-line: rgba(0,0,0,.09); --fg: #161716; --fg-2: #2b2e2b; --mut: #6f736e; --accent: #4f7a00; --accent-rgb: 79,122,0; --bg: #ffffff;
+  --shadow-card: 0 24px 60px rgba(0,0,0,.08); --r-l: 16px; --r-modal: 22px; --r-pill: 999px; --blur-l: 11px; --fs-body: 15px; --fs-xs: 11px; --fs-label: 13px; --fs-h2: 15px;
+  --fw-b: 700; --fw-x: 800; --sp-3: 18px; --press-l: .95; --ease: cubic-bezier(.2,.7,.3,1); color-scheme: light; }
+:root.dark { --glass: rgba(255,255,255,.005); --glass-line: rgba(255,255,255,.08); --fg: #FFFFFF; --fg-2: #E7ECE7; --mut: #8B8F8A; --accent: #CFFF40; --accent-rgb: 207,255,64; --bg: #161716;
+  --shadow-card: 0 24px 60px rgba(0,0,0,.42); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100svh; background: var(--bg); color: var(--fg); font: var(--fs-body)/1.5 "Pretendard Variable", Pretendard, system-ui, sans-serif; }
+main { max-width: 640px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+.ycd-card { display: flex; flex-direction: column; gap: 10px; padding: var(--sp-3); background: var(--glass); border: 1px solid var(--glass-line); border-radius: var(--r-modal);
+  backdrop-filter: blur(var(--blur-l)); -webkit-backdrop-filter: blur(var(--blur-l)); box-shadow: inset 0 1px 0 var(--glass-line), var(--shadow-card); }
+.ycd-nm { font-size: var(--fs-h2); font-weight: var(--fw-x); }
+.yset-sec { font-size: var(--fs-label); font-weight: var(--fw-b); padding: 8px 4px 2px; }
+.got { white-space: pre-wrap; word-break: break-word; font-size: var(--fs-label); color: var(--fg-2); max-height: 30vh; overflow: auto; }
+.pics { display: flex; gap: 8px; overflow-x: auto; }
+.pics img { height: 88px; border-radius: 11px; border: 1px solid var(--glass-line); }
+.yset-item { display: flex; align-items: center; gap: 11px; width: 100%; padding: 13px 14px; background: var(--glass); border: 1px solid var(--glass-line); border-radius: var(--r-l);
+  color: var(--fg); font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; box-shadow: inset 0 1px 0 var(--glass-line); transition: transform .2s var(--ease); }
+.yset-item:active { transform: scale(var(--press-l)); }
+.yset-item.on { border-color: rgba(var(--accent-rgb), .6); }
+.si-lbl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.si-t { font-weight: var(--fw-b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.si-d { font-size: var(--fs-xs); color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.foot { display: flex; gap: 8px; }
+.btn { flex: 1; padding: 12px; border-radius: var(--r-pill); border: 1px solid var(--glass-line); background: var(--glass); color: var(--fg); font: inherit; font-weight: var(--fw-b); cursor: pointer; }
+.btn.go { background: var(--accent); color: var(--bg); border-color: transparent; }
+.btn:disabled { opacity: .4; }
+.msg { font-size: var(--fs-label); color: var(--mut); text-align: center; }
+@media (prefers-reduced-motion: reduce) { .yset-item { transition: none; } }
+</style>
+<script>
+  try { const t = localStorage.getItem("openduet-theme") || "system"; if (t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark"); } catch {}
+</script>
+</head>
+<body>
+<main>
+  <div class="ycd-card"><span class="ycd-nm">공유 받음</span><div class="got" id="got"></div><div class="pics" id="pics"></div></div>
+  <div class="yset-sec" id="where">어느 방에 넣을까?</div>
+  <div class="rows" id="rooms"><p class="msg">방 읽는 중…</p></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="foot"><button class="btn" id="no" type="button">닫기</button><button class="btn go" id="go" type="button" hidden disabled>보내기</button></div>
+</main>
+<script>
+(async () => {
+  const META = "office-app-meta", KEY = "/office-app/__nm-share", $ = (id) => document.getElementById(id);
+  const roomUrl = (id) => "/office-app/#" + (id === "all" ? "/group/all" : "/channels/" + encodeURIComponent(id));
+  const say = (t) => { $("msg").textContent = t; };
+  let c = null, got = null, files = [];
+  try { c = await caches.open(META); const r = await c.match(KEY); got = r ? await r.json() : null; } catch {}
+  const clear = async () => { try { for (const k of await c.keys()) if (new URL(k.url).pathname.startsWith(KEY)) await c.delete(k); } catch {} };
+  $("no").onclick = async () => { await clear(); location.replace("/office-app/"); };
+  if (!got) { $("got").textContent = "받은 것이 없어 — 다른 앱에서 「공유 → 사무실」로 다시 보내 줘"; $("where").hidden = true; $("rooms").replaceChildren(); return; }
+  for (let i = 0; i < (got.files || 0); i++) { const r = await c.match(KEY + "/" + i); if (r) { const b = await r.blob(); files.push(new File([b], decodeURIComponent(r.headers.get("x-name") || "그림" + (i + 1)), { type: b.type })); } }
+  const text = [...new Set([got.title, got.text, got.url].map((x) => String(x || "").trim()).filter(Boolean))].filter((x, _, a) => !a.some((y) => y !== x && y.includes(x))).join("\n");
+  $("got").textContent = text || (files.length ? "" : "(빈 글)");
+  for (const f of files) { const im = document.createElement("img"); im.src = URL.createObjectURL(f); im.alt = f.name; $("pics").append(im); }
+  let rooms = [];
+  try { const r = await fetch("/api/office/rooms", { credentials: "same-origin", cache: "no-store" }); rooms = ((await r.json()).rooms || []).filter((x) => x.id !== "notice"); } catch {}
+  if (files.length) rooms = rooms.filter((x) => x.with);   // 그림 = 1:1 방만(단체방 첨부는 받을 봇 @ 필요)
+  if (!rooms.length) { $("rooms").innerHTML = '<p class="msg">방 목록을 못 읽었어 — 사무실 앱을 한 번 연 뒤(로그인) 다시 공유해 줘</p>'; return; }
+  let pick = null;
+  const rows = rooms.map((x) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "yset-item";
+    b.innerHTML = '<span class="si-lbl"><span class="si-t"></span><span class="si-d"></span></span>';
+    b.querySelector(".si-t").textContent = x.name || x.id;
+    b.querySelector(".si-d").textContent = x.last ? (x.last.who + " · " + String(x.last.text || "").replace(/\s+/g, " ")).slice(0, 60) : "";
+    b.onclick = async () => {
+      if (!files.length) {   // 글·링크만 = 그 방 입력칸에 채우고 그 방으로
+        try { sessionStorage.setItem("nm-draft:" + x.id, text); } catch {}
+        await clear(); location.replace(roomUrl(x.id)); return;
+      }
+      pick = x.id; rows.forEach((y) => y.classList.toggle("on", y === b)); $("go").hidden = false; $("go").disabled = false; say((x.name || x.id) + " 방에 그림 " + files.length + "장" + (text ? " + 글" : ""));
+    };
+    return b;
+  });
+  $("rooms").replaceChildren(...rows);
+  $("go").onclick = async () => {
+    if (!pick) return;
+    $("go").disabled = true; say("보내는 중…");
+    try {
+      const fd = new FormData(); for (const f of files) fd.append("file", f); fd.set("room", pick); if (text) fd.set("text", text);
+      const r = await fetch("/api/office/files", { method: "POST", body: fd, credentials: "same-origin" }), j = await r.json().catch(() => ({}));
+      if (!r.ok || j.ok === false) throw new Error(j.why || "파일 올리기 " + r.status);
+      await clear(); location.replace(roomUrl(pick));
+    } catch (e) { say("못 보냄 — " + String(e && e.message || e).slice(0, 80)); $("go").disabled = false; }
+  };
+})();
+</script>
+</body>
+</html>

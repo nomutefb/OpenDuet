@@ -69,11 +69,58 @@ self.addEventListener("message", (e) => {   // 새 판 코드 화면의 답 = �
   }));
 });
 
+/* 형 폰 알림(앱이 꺼져 있어도 · 형 10-28 16:32 「웹앱으로 일단 해」) — 에디터 알림 길 그대로(VAPID 공개 열쇠 = editor viewer-src/28-flagShellUpdate.part VAPID_PUB 같은 값 ·
+   보냄 = 사무실 서버 functions/api/office/_phone.js → 배달 입구 bot-send mode phone → push_send.py · 받는 기기 = 이 앱이 구독한 것만(app office))
+   앱을 보고 있으면 안 띄움(YETA sw.js 규칙 · 매번 건너뛰면 브라우저가 구독을 거둘 수 있어 「보이는 앱 창이 실제로 있을 때만」) · 누르면 그 방(열린 앱 창이 있으면 그 창으로) */
+const VAPID_PUB = "BORNTh3cNd05vsxi2fZ-BykxM0NwKGTvIETz81g757RVFL6cDu29aAv5I7uit0WbGOmiZ4hlyMOEvb8B2HptU-I";
+const appWins = async () => (await self.clients.matchAll({ type: "window", includeUncontrolled: true })).filter((c) => new URL(c.url).pathname.startsWith("/office-app/"));
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : "" }; }
+  e.waitUntil((async () => {
+    if ((await appWins()).some((c) => c.focused && c.visibilityState === "visible")) return;
+    return self.registration.showNotification(d.title || "사무실", { body: d.body || "", icon: "/office-app/icon-192.png", tag: d.tag || "office",
+      renotify: !!d.renotify, ...(d.vibrate ? { vibrate: d.vibrate } : {}), data: { url: d.url || "/office-app/" }, lang: "ko" });
+  })());
+});
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const target = new URL((e.notification.data && e.notification.data.url) || "/office-app/", location.origin).href;
+  e.waitUntil((async () => {
+    const w = (await appWins())[0];
+    if (w && "navigate" in w) { try { const c = await w.navigate(target); return (c || w).focus(); } catch { /* 못 옮기면 새 창 */ } }
+    return self.clients.openWindow(target);
+  })());
+});
+self.addEventListener("pushsubscriptionchange", (e) => {   // 구독이 바뀜(브라우저가 갈아 끼움) = 새로 구독해 서버에 다시 적음(에디터 sw.js 와 같은 길)
+  e.waitUntil((async () => {
+    const pad = "=".repeat((4 - (VAPID_PUB.length % 4)) % 4), raw = atob((VAPID_PUB + pad).replace(/-/g, "+").replace(/_/g, "/"));
+    const sub = await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: Uint8Array.from(raw, (ch) => ch.charCodeAt(0)) });
+    await fetch("/api/push", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "subscribe", subscription: sub.toJSON(), app: "office" }) });
+  })().catch(() => {}));
+});
+
+/* 공유 받기(안드로이드 「공유 → 사무실」 · manifest share_target · POST /office-app/share) — 받은 글·링크·그림을 이 앱 기록 칸(META)에 적고 고르는 판(public/share.html · GET /office-app/share)으로.
+   방 고르기·보내기는 형이 함(share.html) · 그림은 10장까지 */
+const SHARE_KEY = "/office-app/__nm-share";
+async function takeShare(req) {
+  try {
+    const fd = await req.formData(), c = await caches.open(META);
+    for (const k of await c.keys()) if (new URL(k.url).pathname.startsWith(SHARE_KEY)) await c.delete(k);
+    const files = fd.getAll("files").filter((f) => f && typeof f === "object" && f.size).slice(0, 10);
+    for (const [i, f] of files.entries()) await c.put(`${SHARE_KEY}/${i}`, new Response(f, { headers: { "content-type": f.type || "application/octet-stream", "x-name": encodeURIComponent(f.name || `그림${i + 1}`) } }));
+    await c.put(SHARE_KEY, new Response(JSON.stringify({ at: Date.now(), title: String(fd.get("title") || ""), text: String(fd.get("text") || ""), url: String(fd.get("url") || ""), files: files.length })));
+  } catch { /* 못 적음 = 고르는 판이 「받은 것 없음」 */ }
+  return Response.redirect(new URL("/office-app/share", location.origin).href, 303);   // GET = public/share.html(Pages 가 .html 을 뗀 주소)
+}
+
 self.addEventListener("fetch", (e) => {
   sweepSoon(e);
   const req = e.request;
+  if (req.method === "POST" && new URL(req.url).pathname === "/office-app/share") { e.respondWith(takeShare(req)); return; }
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+  if (url.pathname === "/office-app/share" || url.pathname === "/office-app/share.html") return;   // 공유 고르는 판(GET · Pages 가 .html 을 뗌) = 껍데기 캐시(「/office-app/」 자리)에 안 담음
   if (url.origin === location.origin && url.pathname.startsWith("/api/attachments/")) {   // 입력칸 첨부 미리보기 = 화면이 넣어 둔 캐시(shim/attachments.ts)
     e.respondWith(caches.open("office-app-att").then((c) => c.match(url.pathname)).then((r) => r || new Response("", { status: 404 })));
     return;
