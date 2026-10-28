@@ -32,7 +32,7 @@ export function NomuteBots() {
   const list = usePeople();
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 });
   const sched = useSched();
-  const rows = list.filter((p) => p.kind !== "human");
+  const rows = list.filter((p) => p.kind === "bot");   // 윈터(클로드) 따로 온라인 줄 0 = 윈터 상태는 머리 등불 구슬(형 10-28 09:24)
   const awake = (bots.data || []).filter((b) => b.state === "awake").length;
   return (
     <PageSection title="지금 봇">
