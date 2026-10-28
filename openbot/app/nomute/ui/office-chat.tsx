@@ -42,6 +42,7 @@ const HEAD = 64;   // 위에 떠 있는 머리(대화 상대 동그라미) 높�
 
 type Msg = OfficeMsg & { alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean };
 type Page = { messages: Msg[]; more: boolean };
+type Draft = { who: string; ts: number; text: string };   // 쓰는 중 초안(그 방에서 지금 자라는 답 · 서버 _watch.js · 거울 = 그록봇 앱 방 streaming 줄)
 type Reads = { got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>> };
 type Bot = { who: string; state: string; why?: string };
 
@@ -113,8 +114,11 @@ export function useOfficeRoom(room: string) {
   const reactsQ = useQuery({ queryKey: officeKeys.reacts(room), queryFn: () => office<{ reactions: Record<string, Record<string, string[]>>; quick?: string[] }>(`rooms/${enc(room)}/reactions`), staleTime: 15_000, refetchInterval: 60_000 });
   const botsQ = useQuery({ queryKey: officeKeys.bots, queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 });
 
-  useEffect(() => {   // 기다리기 고리 = 새 글이 오면 바로(옛 화면과 같은 길 · 탭이 숨으면 쉼)
-    let stop = false;
+  const [draft, setDraftS] = useState<Draft | null>(null), draftRef = useRef<Draft | null>(null);
+  const setDraft = (d: Draft | null) => { draftRef.current = d; setDraftS(d); };
+  useEffect(() => { setDraft(null); }, [room]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {   // 기다리기 고리 = YETA watch 꼴(형 10-28 17:34 「거기걸 가지고 와서 여기에」 · 서버 _watch.js = 1초마다 방 머리·초안 표식만 봄 → 새 글·쓰는 중 초안이 오면 바로) · 탭이 숨으면 쉼 · watch 가 없는 서버 = 옛 wait
+    let stop = false, de = "", old = false;
     let ctl: AbortController | null = null;
     (async () => {
       while (!stop) {
@@ -122,19 +126,25 @@ export function useOfficeRoom(room: string) {
         if (document.hidden || !cur) { await sleep(1500); continue; }
         ctl = new AbortController();
         try {
-          const j = await office<Page>(`rooms/${enc(room)}/wait?after=${cur.messages.at(-1)?.ts ?? 0}&max_s=25`, { signal: ctl.signal });
+          const after = cur.messages.at(-1)?.ts ?? 0;
+          const j = await office<Page & { detag?: string; draft?: Draft | null }>(old ? `rooms/${enc(room)}/wait?after=${after}&max_s=25` : `rooms/${enc(room)}/watch?after=${after}&de=${encodeURIComponent(de)}&max_s=15`, { signal: ctl.signal });
           if (stop) break;
+          if (typeof j.detag === "string") de = j.detag;
+          if (j.draft !== undefined) setDraft(j.draft);
           if (j.messages?.length) {
+            const d = draftRef.current;
+            if (d && j.messages.some((m) => m.who === d.who && m.ts >= d.ts - 2000)) setDraft(null);   // 끝난 답이 올라옴 = 그 쓴 이의 초안 지움
             qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, j.messages));
             for (const k of [officeKeys.reads(room), officeKeys.rooms, officeKeys.bots, ["channels"], ["duet-channels"]]) void qc.invalidateQueries({ queryKey: k });
           }
-        } catch {
+        } catch (e) {
+          if (!stop && !old && e instanceof Error && e.message.includes("없는 길")) { old = true; continue; }   // 서버에 watch 가 아직 없음 = 옛 wait
           if (!stop) await sleep(3000);
         }
       }
     })();
     return () => { stop = true; ctl?.abort(); };
-  }, [room, qc]);
+  }, [room, qc]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const older = async () => {   // 앞 글 = 하루치(서버 day=1 · 그날이 비면 글 나올 때까지 앞날 · DAY_MIN 넘을 때까지)
     const cur = qc.getQueryData<Page>(officeKeys.msgs(room));
@@ -145,7 +155,7 @@ export function useOfficeRoom(room: string) {
     return (j.messages || []).length;   // 받은 앞 글 수(0 = 저절로 받기 그만)
   };
   const r = roomsQ.data?.find((x) => x.id === room);
-  return { r, list: peopleQ.data || [], msgs: msgsQ, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older };
+  return { r, list: peopleQ.data || [], msgs: msgsQ, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older, draft };
 }
 
 type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] };
@@ -351,7 +361,7 @@ const MODES: [string, string][] = [["", "보통"], ["suggest", "💡 제안"], [
 
 export function OfficeChat({ room, lead, active = true }: { room: string; lead?: ReactNode; active?: boolean }) {   // active = 이 판이 보임(껍데기에서 숨은 판이면 본 데까지 안 올림 = 안 읽은 수 그대로)
   const qc = useQueryClient();
-  const { r, list, msgs, reads, reacts, bots, older } = useOfficeRoom(room);
+  const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
   const [err, setErr] = useState("");
   const [sel, setSel] = useState("");
   const [reply, setReply] = useState<{ id: string; who: string; line: string } | null>(null);
@@ -363,7 +373,7 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
   const setWant = (id: string) => { wantTry.current = 0; setWantS((w) => ({ id, n: w.n + 1 })); };
   const all = msgs.data?.messages || [];
   const items = useMemo(() => hyungView(all, r), [all, r]);
-  const typing = useMemo(() => typingOf(all, r, bots, list), [all, r, bots, list]);
+  const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who]);   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
   // 머리 등불 구슬(보조 02 PR 1489) = 원본 useChatOrb 재료 · 듣는 중 = 형이 글칸에 씀 · 일하는 중 = 윈터에게 보낸 형 글 뒤 윈터 답 전(30분 안) · 서버 「깸」 칸은 뜻이 달라 안 씀(office-orb.md)
   const winterWorking = useMemo(() => {
     const toW = (m: Msg) => m.kind === "human" && (r?.with === WINTER_WHO || (m.mention || []).includes(WINTER_WHO) || Object.values(m.alias || {}).some((v) => Array.isArray(v) && v.includes(WINTER_WHO)));
@@ -397,6 +407,10 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
     const ts = [150, 500, 1200, 2500].map((t) => window.setTimeout(() => poke.current(), t));   // 마크다운·사진·글꼴이 늦게 그려져 길어져도 다시 맞춤(크기 알림이 안 오는 숨은 화면 포함)
     return () => ts.forEach(clearTimeout);
   }, [lastId, msgs.isPending]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {   // 초안이 자람 = 맨 아래에 붙어 있으면 따라 내려감
+    const box = boxRef.current;
+    if (box && draft && stuck.current) box.scrollTop = box.scrollHeight;
+  }, [draft?.text]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const box = boxRef.current;
     if (!box) return;
@@ -536,6 +550,15 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
               </div>
             );
           })}
+          {draft ? (   /* 쓰는 중 초안 = YETA _yDraft 꼴(문장이 자라는 대로 그 봇 말풍선 · 끝에 점 셋 · 끝난 답 글이 오면 사라짐) */
+            <div className="ymsg ytyp" aria-live="polite">
+              <div className="yava"><FaceImg id={idOf(draft.who, list)} size={32} /></div>
+              <div className="ycol">
+                <div className="yname">{nmOf(list, draft.who)} · 쓰는 중</div>
+                <div className="yb ai"><Streamdown components={markdownComponents}>{draft.text}</Streamdown><span className="ytdots"><i /><i /><i /></span></div>
+              </div>
+            </div>
+          ) : null}
           {typing.length ? (   /* YETA 타이핑 = 얼굴 + 점 셋 말풍선 · 이름 칸 = 「결 작업 중 · 고민하는 중…」(옛 규칙) */
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><FaceImg id={idOf(typing[0], list)} size={32} /></div>

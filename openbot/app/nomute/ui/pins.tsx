@@ -43,7 +43,7 @@ export function PinBar({ room, onJump }: { room: string; onJump?: (id: string, t
   const q = usePins(room), cur = q.data?.cur || null;
   const [fold, setFold] = useState(() => loadFold(room));
   const [open, setOpen] = useState(false);
-  const jump = (p: Pin) => { setOpen(false); if (onJump) onJump(p.id, p.ts); else document.querySelector(`[data-id="${CSS.escape(p.id)}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" }); };
+  const jump = (p: Pin) => { setOpen(false); if (onJump) onJump(p.id, p.ts); else window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id: p.id } })); };   // 대화창(office-chat.tsx)이 받아 그 글로(묶음 펼침 포함)
   if (!cur && !open) return null;
   const folded = !!cur && fold === cur.id;
   const toggle = () => { const v = folded ? "" : cur?.id || ""; setFold(v); saveFold(room, v); };
