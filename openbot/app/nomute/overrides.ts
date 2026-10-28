@@ -42,8 +42,11 @@ export const PATCH: Record<string, [string, string][]> = {
     ['className={floating ? "mt-2" : undefined}', 'className={cn("invisible", floating && "mt-2")}'],
     ['cn(DISC, "pointer-events-auto", floating && "mt-2")', 'cn(DISC, "invisible", floating && "mt-2")'],
     // 동그라미 = 지금 대화 상대(형 10:18 · ui/top.tsx) · 윈터 방·방 밖 = 원래 구슬
-    ['import { usePageChromeState } from "./page-chrome";', 'import { usePageChromeState } from "./page-chrome";\nimport { NomuteTop } from "@nomute/ui/top";'],
+    ['import { usePageChromeState } from "./page-chrome";', 'import { usePageChromeState } from "./page-chrome";\nimport { NomuteName, NomuteTop } from "@nomute/ui/top";'],
     ["<ChatOrb size={centre - 2} />", "<NomuteTop orb={<ChatOrb size={centre - 2} />} size={centre - 2} />"],
+    // 사진 밑 = 그 방 이름 · 가림막 = 사진+이름까지 · 사진 조금 위로(형 10-28 22:04 · 꼴 = ui/shell.css .nm-head)
+    ["{floating ? <ChatStep /> : null}", "{floating ? <NomuteName /> : null}{floating ? <ChatStep /> : null}"],
+    ['"duet-face z-20 flex items-start justify-between px-4"', '"duet-face nm-head z-20 flex items-start justify-between px-4"'],
   ],
   "app/src/components/shell/app-shell.tsx": [
     ["nav[aria-label=\"Main\"]", "nav[aria-label=\"큰 탭\"]"],   // 탭 높이 재기 = 우리 탭 이름과 같게(swap/tab-bar.tsx)

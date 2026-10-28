@@ -8,13 +8,26 @@ import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, WINTER_ID, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg, FaceStack } from "./faces";
 
-export function NomuteTop({ size, orb }: { size: number; orb: ReactNode }) {
+/** 지금 대화 판의 방(주소 #/channels/<방> · #/group/<방>) · 명부 */
+function useTopRoom() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const m = path.match(/^\/(?:channels|group)\/([^/]+)/);
   const room = m ? decodeURIComponent(m[1]) : "";   // 첫 화면("/") = 홈 · 회의실 = #/group/all
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 }).data || [];
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-  const r = rooms.find((x) => x.id === room);
+  return { r: rooms.find((x) => x.id === room), list };
+}
+
+/** 사진 밑 이름(형 10-28 22:04 「그 아래에 각자 이름 나오면 좋겠어」) — 1:1 = 상대 이름 · 단체방 = 방 이름 · 방 밖 = 없음 */
+export function NomuteName() {
+  const { r, list } = useTopRoom();
+  if (!r) return null;
+  const name = r.with ? list.find((p) => p.who === r.with)?.name || r.with : r.name;
+  return <span className="nm-top-name">{name}</span>;
+}
+
+export function NomuteTop({ size, orb }: { size: number; orb: ReactNode }) {
+  const { r, list } = useTopRoom();
   if (!r) return <>{orb}</>;
   const ring = "grid shrink-0 place-items-center overflow-hidden rounded-full shadow-duet-glass";
   if (r.with) {

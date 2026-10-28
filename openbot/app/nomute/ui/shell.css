@@ -3,6 +3,10 @@
 @keyframes ypickIn { from { opacity:0; transform:translateY(12px) scale(.985); } }
 .nm-pane { position:absolute; inset:0; display:flex; flex-direction:column; visibility:hidden; pointer-events:none; }
 .nm-pane.on { visibility:visible; pointer-events:auto; animation:ypickIn .3s var(--ease) both; }
+/* 대화 판 머리(원본 ShellHeader floating = header.nm-head.absolute) — 사진 조금 위로(위 12→4px) · 사진 밑 이름 · 가림막 = 사진+이름까지 판 색(형 10-28 22:04 「거기까지가 가려지개」)
+   사진 4 + 62 + 사이 4 + 이름 16 = 86px → 판 색 96px 까지 · 그 뒤 흐려짐 · 글 목록 위 여백·「보이는 위」·고정 띠 자리 = 같이 내림(office-chat HEAD·pt · pins.css) */
+header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradient(var(--duet-surface) 96px, transparent); }
+.nm-top-name { max-width:60vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; line-height:16px; font-weight:600; color:var(--fg, currentColor); pointer-events:none; }
 .nm-pane.nm-over { z-index:20; background:var(--duet-surface); }   /* 판 위에 덮는 쪽(할 일 하나 보기 등 · 원본 머리 = 뒤로) */
 .nm-col { position:relative; margin-inline:auto; display:flex; min-height:0; width:100%; max-width:430px; flex:1; flex-direction:column; }   /* 대화·목록·할 일 = 원본 폰 폭 칸 그대로(TabColumn 430px) */
 .nm-scroll { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; padding-bottom:var(--duet-tab-space,86px); }   /* 러너·설정 = 넓은 판(PageShell) · 네비에 안 가리게 아래 여백 */

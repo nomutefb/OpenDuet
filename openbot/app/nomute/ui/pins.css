@@ -1,6 +1,6 @@
 /* 고정 띠·고정 이력 판(./pins.tsx) — 띠 = YETA 챗 머리 알약(.yeta-h · 껍데기 .nm-modal-h)과 같은 유리 · 판 = 껍데기 모달(.nm-modal)과 같은 바탕·머리 · 값 = 토큰만(새 색 0) */
 /* 자리 = 대화 판 머리(원본 ShellHeader floating · 구슬 아래 끝 ≈ 82px) 바로 아래 · 머리 페이드(z-20) 위 · 글 목록 위에 겹침(카톡 공지 꼴) */
-.nm-pin-slot { position:absolute; top:calc(84px + env(safe-area-inset-top)); left:0; right:0; z-index:21; display:flex; flex-direction:column; pointer-events:none; }
+.nm-pin-slot { position:absolute; top:calc(98px + env(safe-area-inset-top)); left:0; right:0; z-index:21; display:flex; flex-direction:column; pointer-events:none; }
 .nm-pin-slot > * { pointer-events:auto; }
 .nm-pinbar { display:flex; align-items:center; gap:4px; margin:0 10px; padding:4px 4px 4px 12px; border-radius:var(--r-l); border:1px solid var(--glass-line);
   background:linear-gradient(var(--glass), var(--glass)), color-mix(in srgb, var(--duet-surface) 75%, transparent);

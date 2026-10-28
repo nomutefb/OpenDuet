@@ -40,7 +40,7 @@ const WORK = ["고민하는 중", "정리하는 중", "처리하는 중"];
 const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // 글 속 주소(형 글 = 꾸밈 없는 글 · 봇 글은 Streamdown 이 링크로)
 const RECENT_N = 40;   // 다시 받기 = 최근 40 글을 통째로(거울이 반응·글을 같은 글에 고쳐 씀 = since 로는 못 받음 · 맞물림 21:3x)
 const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;   // 저장 없이 처음 = 최근 100(봇끼리 글은 한 줄로 접혀 40 이면 형 글이 안 들어와 위로 하루치를 한 번 더 기다렸음 · PM 17:20 · 서버 = 같은 한 장 한 번) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
-const HEAD = 64;   // 위에 떠 있는 머리(대화 상대 동그라미) 높이 — 그 아래부터 「보이는 위」
+const HEAD = 92;   // 위에 떠 있는 머리(대화 상대 동그라미 + 이름 · ui/shell.css .nm-head) 높이 — 그 아래부터 「보이는 위」
 
 type Msg = OfficeMsg & { alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
@@ -165,6 +165,13 @@ export function useOfficeRoom(room: string) {
 }
 
 type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] };
+const MEET = "all";   // 회의실(서버 ROOMS id · 형 10-28 22:02 「회의실은 대화가 안접혀도 될거같아 그냥 최신순으로 … 내가 안본거부터 위로 보기 그 버튼만」)
+const wakeM = (m: Msg) => m.kind === "system" && /러너/.test(m.who) && /^깸:/.test(m.text || "");
+
+/** 회의실 보기 = 접기 0 · 묶음 0 · 줄기 0 — 받은 순서 그대로 한 줄씩(러너 깸 줄만 뺌 · 시스템 일 = 그 자리 흐린 알약 하나) */
+function flatView(list: Msg[]): Item[] {
+  return list.filter((m) => !wakeM(m)).map((m): Item => (m.kind === "system" ? { t: "sys", msgs: [m] } : { t: "msg", m }));
+}
 
 /** 줄기(상태 답을 원 글 아래) + 형 보기 묶음(옛 office.html 23차 규칙 그대로) */
 function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
@@ -176,7 +183,6 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   const meIds = new Set(all.filter((m) => m.kind === "human").map((m) => m.id));
   const toMe = (m: Msg) => meIds.has(m.reply_to || "") || meIds.has(m.origin || "") || (m.mention || []).includes("형");
   const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin);
-  const wakeM = (m: Msg) => m.kind === "system" && /러너/.test(m.who) && /^깸:/.test(m.text || "");
   const sysM = (m: Msg) => m.kind === "system";
   const out: Item[] = [];
   for (let i = 0; i < all.length; i++) {
@@ -290,7 +296,7 @@ function Files({ m }: { m: Msg }) {
 function Quote({ m, c }: { m: Msg; c: Ctx }) {
   const q = String(m.text || "").match(QUOTE);
   if (q) return <button type="button" className="mb-1 block max-w-full truncate rounded-md border-l-2 border-primary bg-muted px-2 py-1 text-left text-xs" title="그 글로" onClick={() => c.onJump(q[1], q[2])}><b>{q[1]}</b> · {q[2]}</button>;
-  if (m.reply_to && !m._thr) return <button type="button" className="mb-1 block rounded-md border-l-2 border-primary bg-muted px-2 py-1 text-xs" onClick={() => c.onJump("", "", m.reply_to)}>↩ 원 글로</button>;
+  //   「↩ 원 글로」 칩(reply_to 만 있는 글) = 뺌(형 10-28 22:03 「원글로 라고 나오는거 안나와도 될듯」) · 「↩ 이름: 첫 줄」 인용은 그대로
   return null;
 }
 
@@ -413,7 +419,8 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
   const [want, setWantS] = useState<{ id: string; n: number }>({ id: "", n: 0 }), wantTry = useRef(0), wantDone = useRef(0);
   const setWant = (id: string) => { wantTry.current = 0; setWantS((w) => ({ id, n: w.n + 1 })); };
   const all = msgs.data?.messages || [];
-  const items = useMemo(() => hyungView(all, r), [all, r]);
+  const meet = room === MEET;
+  const items = useMemo(() => (meet ? flatView(all) : hyungView(all, r)), [all, r, meet]);
   const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who]);   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
   // 머리 등불 구슬(보조 02 PR 1489) = 원본 useChatOrb 재료 · 듣는 중 = 형이 글칸에 씀 · 일하는 중 = 윈터에게 보낸 형 글 뒤 윈터 답 전(30분 안) · 서버 「깸」 칸은 뜻이 달라 안 씀(office-orb.md)
   const winterWorking = useMemo(() => {
@@ -529,10 +536,29 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
     box.scrollTo({ top: box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - HEAD - 8, behavior: document.hidden ? "auto" : "smooth" });   // 숨은 화면 = 부드러운 이동이 안 움직임
     for (const t of [80, 700]) window.setTimeout(() => poke.current(), t);   // 이동 뒤 단추 다시 셈(스크롤 알림이 늦거나 안 오는 화면 포함)
   };
-  useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen) — 보이는 때만
+  const seenQ = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 });
+  const seenOpen = useRef<{ room: string; ts: number } | null>(null);   // 방을 연 때 본 데까지(그 뒤 = 안 본 글) — 이 방에서 한 번만 잡음
+  if ((seenQ.data || seenQ.isError) && (!seenOpen.current || seenOpen.current.room !== room)) seenOpen.current = { room, ts: Number(seenQ.data?.[room]?.ts) || 0 };   // 못 받음 = 0(단추 없음 · 본 데까지 올리기는 그대로)
+  const seenReady = seenOpen.current?.room === room;
+  const [unseenUsed, setUnseenUsed] = useState("");   // 누른 방 = 단추 내림
+  const unseen = useMemo(() => {
+    const t = seenOpen.current?.room === room ? seenOpen.current.ts : 0;
+    return meet && t ? all.filter((m) => m.ts > t && m.kind !== "human" && !wakeM(m)) : [];
+  }, [all, meet, room, seenReady]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const toUnseen = async () => {   // 안 본 첫 글로(받은 글 안에 없으면 하루치씩 앞 글을 받으며 · AUTO_MAX 번까지)
+    setUnseenUsed(room);
+    const t = seenOpen.current?.ts || 0;
+    for (let i = 0; i <= AUTO_MAX; i++) {
+      const cur = qc.getQueryData<Page>(officeKeys.msgs(room))?.messages || [];
+      const first = cur.find((m) => m.ts > t && m.kind !== "human" && !wakeM(m));
+      if (first && (cur[0]?.ts ?? Infinity) <= t) { setWant(first.id); return; }   // 본 데까지가 받은 글 안 = 첫 안 본 글이 맞음
+      if (!moreRef.current || !(await olderRef.current().catch(() => 0))) { if (first) setWant(first.id); return; }
+    }
+  };
+  useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen) — 보이는 때만 · 연 때 본 데까지를 먼저 잡은 뒤(안 본 것부터 단추)
     const ts = all.at(-1)?.ts;
-    if (ts && active) void office("seen", { method: "POST", body: JSON.stringify({ seen: { [room]: { ts, at: Date.now() } } }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "seen"] })).catch(() => {});
-  }, [room, lastId, active]);
+    if (ts && active && seenReady) void office("seen", { method: "POST", body: JSON.stringify({ seen: { [room]: { ts, at: Date.now() } } }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "seen"] })).catch(() => {});
+  }, [room, lastId, active, seenReady]);
 
   const react = useMutation({
     mutationFn: ({ id, emoji }: { id: string; emoji: string }) => office<{ reactions: Record<string, Record<string, string[]>> }>(`rooms/${enc(room)}/reactions`, { method: "POST", body: JSON.stringify({ id, emoji }) }),
@@ -564,11 +590,12 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
-      {jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
+      {meet ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)
+        : jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
-        <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[76px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
+        <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[100px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {lead}
-          {msgs.data?.more ? (
+          {msgs.data?.more && !meet ? (
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
           ) : null}
           {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">아직 글 없음 — {r?.with ? `${nmOf(list, r.with)}에게 인사해 봐 · 보내면 예약(다음에 깰 때 봄) · !${nmOf(list, r.with)} = 바로 깨움` : "첫 글을 써 줘 · @이름 = 예약 · !이름 = 바로 깨움"}</p> : null}
