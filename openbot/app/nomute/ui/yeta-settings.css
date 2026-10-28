@@ -1,5 +1,6 @@
 /* 설정 = YETA 설정 화면 꼴 거의 그대로(형 10-28 10:19 「yeta에서 구현한 부분이 … 거의 코드 그대로」 · 10:22 「그 예타에도 설정이 있거든? 그쪽을 가져와서」)
-   원본 = nomutefb/YETA viewer/index.html(SHA 5a25d87) .ycd-card · .card-left · .ycd-nm.yset-ttl · .yset-sec · .yset-item · .si-* · .si-sw · .ro · ypickIn 계단 등장
+   원본 = nomutefb/YETA viewer/index.html(SHA 5a25d87) .ycd-card · .card-left · .ycd-nm.yset-ttl · .yset-sec · .yset-item · .si-* · .si-sw · .ro
+   화면 들어오는 움직임(YETA .ycd 시트 · 카드 안 계단 등장)은 뺌 = 보조 01 의 YETA 껍데기가 맡음(형 10-28 11:22 「네비게이션은 그대로 유지 … 동일하게 모션이 이동」 · 이 판이 따로 움직이지 않게)
    — 규칙·수치·움직임 그대로 · 바꾼 것 = 범위(.yeta-set 안) · 토큰 값(어둡게 = YETA 값 그대로 · 밝게 = 같은 규칙에 밝은 바탕 값) · 펼침 행(우리 칸이 그 아래 열림) */
 .yeta-set {
   --glass: rgba(0,0,0,.02); --glass-line: rgba(0,0,0,.09);
@@ -23,12 +24,6 @@
   background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-modal);
   backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1);
   box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
-.yeta-set .ycd-card > * { animation:ypickIn .38s cubic-bezier(.22,.61,.36,1) both; }
-.yeta-set .ycd-card > *:nth-child(2){animation-delay:.05s} .yeta-set .ycd-card > *:nth-child(3){animation-delay:.1s}
-.yeta-set .ycd-card > *:nth-child(4){animation-delay:.15s} .yeta-set .ycd-card > *:nth-child(5){animation-delay:.2s}
-.yeta-set .ycd-card > *:nth-child(6){animation-delay:.25s} .yeta-set .ycd-card > *:nth-child(7){animation-delay:.3s}
-.yeta-set .ycd-card > *:nth-child(8){animation-delay:.35s} .yeta-set .ycd-card > *:nth-child(9){animation-delay:.4s}
-.yeta-set .ycd-card > *:nth-child(n+10){animation-delay:.44s}
 .yeta-set .ycd-nm { font-size:var(--fs-h2); font-weight:var(--fw-x); margin-top:2px; }
 .yeta-set .ycd-card.card-left { align-items:stretch; text-align:left; gap:10px; }
 .yeta-set .yset-sec { font-size:var(--fs-label); font-weight:var(--fw-b); color:var(--fg); padding:8px 4px 2px; }
@@ -62,4 +57,4 @@
 .yeta-set .yset-open { padding:2px 4px 6px; animation:ypickIn .3s var(--ease) both; }
 .yeta-set .yset-open > section { margin-top:0; }                                   /* 지금 칸(PageSection) = 머리 줄은 행이 맡음 */
 .yeta-set .yset-open > section > div:first-child:has(> h2) { display:none; }
-@media (prefers-reduced-motion:reduce) { .yeta-set .ycd-card > *, .yeta-set .yset-open { animation:none; } }
+@media (prefers-reduced-motion:reduce) { .yeta-set .yset-open { animation:none; } }
