@@ -4,15 +4,16 @@
 //   수집함 api/candidates · 요약 articles.json · 사진 api/trends?f=images → rss_images.json · 피드 알파 = 같은 기기 설정 nm_home_alpha + feed_alpha.json) ·
 //   부모 몫(에디터 modern-workspace.js 홈 부분과 같은 글 꼴 · 채널 nomute-modern-home: connect → ready → snapshot · refresh/reload = 다시 받기 · suspend = 숨으면 쉼).
 //   간소 = 팔로워 띠(IG·FB)·PICK 단추 뺌(PICK 은 에디터에서) · 톤 = YETA 토큰을 품은 화면에 덧씌움(어둡게·밝게 = 앱 따라) · 맨 위 = 실검 키워드 띠(에디터 .tkr 꼴 · news-feed.css).
-//   다른 점(에디터 홈과): 보이는 후보 = 수집함 전부(에디터는 그 기기 PASS·병합으로 거름 · 순위 카드 차례는 같음) · PICK 상태 = 안 보임.
+//   보이는 후보 = 에디터 scHomeCandidates 와 같은 거름(home-pool.ts · 서버 트리아지·병합 + 이 기기 기록 · 같은 기사 접기·자동 묶음) · PICK 상태 = 안 보임.
 import { useEffect, useRef, useState } from "react";
+import { homePool } from "./home-pool";
 import "./news-feed.css";
 
 const CHANNEL = "nomute-modern-home";
 const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
 const OVERLAP_EVERY = 60_000, IMAGES_EVERY = 5 * 60_000;
 
-type Cand = { id?: string; url?: string; title?: string; title_ko?: string; title_ko_of?: string; media?: string; published?: string; hp?: string; breaking_pick?: { url?: string } };
+type Cand = { id?: string; url?: string; title?: string; title_ko?: string; title_ko_of?: string; media?: string; published?: string; hp?: string; breaking_pick?: { url?: string }; _disp?: Cand };
 type Modern = { project: (o: unknown, c: Cand[], a: unknown[], s: () => null, opt: Record<string, unknown>) => { rows: unknown[] }; validOverlap: (o: unknown) => boolean };
 declare global { interface Window { ModernData?: Modern } }
 
@@ -39,8 +40,9 @@ const modernData = () => (modernP ||= new Promise((res) => {   // 에디터 원�
 }));
 // 에디터 scPickUrl · scHomeMetadata 와 같은 셈(viewer-src 34-checkFreshLane · 35-applyAutoGroups) — 묶음 기사(hp)는 그 픽 기사 주소·시각
 const hpOk = (c: Cand) => !!c.hp && Date.parse(c.hp) <= Date.now() + 60000;
-const pickUrl = (c: Cand) => (hpOk(c) && c.breaking_pick && /^https?:\/\//i.test(c.breaking_pick.url || "") ? c.breaking_pick.url! : c.url || "");
-const homeMeta = (c: Cand) => ({ title: (c.title_ko && c.title_ko_of === c.title ? c.title_ko : "") || c.title || "", published: { at: hpOk(c) ? c.hp : c.published, sourceUrl: pickUrl(c), sourceName: c.media } });
+const pickUrl = (c: Cand): string => (c._disp ? pickUrl(c._disp) : hpOk(c) && c.breaking_pick && /^https?:\/\//i.test(c.breaking_pick.url || "") ? c.breaking_pick.url! : c.url || "");
+const pubIso = (c: Cand): string | undefined => (c._disp ? pubIso(c._disp) : hpOk(c) ? c.hp : c.published);
+const homeMeta = (c: Cand) => { let d = c; while (d._disp) d = d._disp; return { title: (d.title_ko && d.title_ko_of === d.title ? d.title_ko : "") || d.title || "", published: { at: pubIso(c), sourceUrl: pickUrl(c), sourceName: d.media } }; };   // 묶음 = 따라간 형제의 제목·시각(scHomeMetadata)
 
 /** 품은 화면 톤 = YETA(ui/yeta-settings.css 값과 같음) · 간소 = 팔로워 띠·PICK 뺌 · 바탕 = 비움(앱 바탕이 비침). */
 const TONE = (dark: boolean) => `:root{color-scheme:${dark ? "dark" : "light"};--modern-space-bg:transparent;--modern-page:transparent;--modern-stage:transparent;
@@ -60,26 +62,28 @@ export function NewsFeed() {
   const [words, setWords] = useState<string[]>([]);
   useEffect(() => {
     let live = true, ready = false, version = 0, snap: { rows: unknown[]; status: Record<string, unknown> } | null = null;
-    let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0;
+    let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null;
     const post = (type: string, detail: Record<string, unknown> = {}) => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type, ...detail }, location.origin);
     const send = () => { if (ready && snap) post("snapshot", { version, ...snap }); };
     const rebuild = async () => {
       const md = await modernData();
       if (!live || !md) return;
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
-      const { rows } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: cands, urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: (images as { images?: unknown } | null)?.images });
+      const { rows } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: (images as { images?: unknown } | null)?.images });
       const generated = (overlap as { generated?: string } | null)?.generated || null;
       snap = { rows, status: { state: rows.length ? "ready" : overlap ? "empty" : "error", message: rows.length ? "" : overlap ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어.", generated, source: "live" } };
       version++; send();
     };
     const load = async (force = false) => {
       const md = await modernData();
-      const [o, c, ar] = await Promise.all([
+      const [o, c, ar, tr, mg] = await Promise.all([
         firstJson<unknown>(["/api/trends?f=overlap", "/overlap_latest.json"], (v) => !!md && md.validOverlap(v)),
         firstJson<Cand[]>(["/api/candidates", "/candidates.json"], Array.isArray),
         articles.length && !force ? Promise.resolve(articles) : firstJson<unknown[]>(["/articles.json"], Array.isArray),
+        firstJson<unknown[]>(["/triage-state.json"], Array.isArray),   // 서버 트리아지 장부(전 기기 PASS·👎·확인 · 에디터 loadTriage 와 같은 파일)
+        firstJson<unknown>(["/merges.json"], (v) => !!v && typeof v === "object" && !Array.isArray(v)),   // 서버 손 병합(에디터 loadMergesSrv 와 같은 파일)
       ]);
-      if (o) overlap = o; if (c) cands = c; if (ar) articles = ar;
+      if (o) overlap = o; if (c) cands = c; if (ar) articles = ar; if (tr) triage = tr; if (mg) merges = mg;
       if (!imagesAt || Date.now() - imagesAt > IMAGES_EVERY) { imagesAt = Date.now(); images = (await firstJson(["/api/trends?f=images", "/rss_images.json"])) || images; }
       if (alpha == null) alpha = (await firstJson(["/feed_alpha.json"])) || {};
       await rebuild();
