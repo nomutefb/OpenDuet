@@ -348,12 +348,16 @@ export function NomuteOld() {
 
 /** 지금 판 = 이 화면이 도는 빌드 · 올라간 판(version.json)과 다르면 「새 판 있음」(글칸이 비면 저절로 다시 읽음 · main.tsx) */
 declare const __NM_BUILD__: string;
-export function NomuteBuild() {
+export function useBuildLine() {   // → {now: 지금 판 때, fresh: 새 판 때(없으면 "")} · 설정 「지금 판」 행(yeta-settings.tsx)도 같이 씀
   const live = useQuery({ queryKey: ["nomute", "build"], queryFn: () => fetch(`/office-app/version.json?t=${Date.now()}`, { cache: "no-store" }).then((r) => r.json() as Promise<{ build?: string }>), staleTime: 30_000 }).data?.build;
   const at = (b: string) => { const t = Date.parse(b); return Number.isFinite(t) ? `${kst(t).toISOString().slice(5, 10)} ${t12(t)}` : b; };
+  return { now: at(__NM_BUILD__), fresh: live && live !== __NM_BUILD__ ? at(live) : "" };
+}
+export function NomuteBuild() {
+  const b = useBuildLine();
   return (
     <p className="mt-6 text-center text-xs tabular-nums text-muted-foreground">
-      지금 판 {at(__NM_BUILD__)}{live && live !== __NM_BUILD__ ? ` · 새 판 있음(${at(live)}) — 곧 저절로 바뀜` : ""}
+      지금 판 {b.now}{b.fresh ? ` · 새 판 있음(${b.fresh}) — 곧 저절로 바뀜` : ""}
     </p>
   );
 }

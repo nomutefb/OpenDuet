@@ -96,19 +96,10 @@ export const PATCH: Record<string, [string, string][]> = {
     ["Nothing active right now.", "지금 진행 중인 일 없음."],
     ["Add a task with +, or start one from Up next.", "봇이 형에게 묻는 것·형 결정 필요는 여기 모여."],
   ],
-  "app/src/routes/_authed/settings/index.tsx": [   // 설정 = 밝음·어두움 + 점검표(원본 칸 = 봇·연결·기능·루틴·승인 규칙·알림·비밀번호·관리자 = 우리 자료 없음)
-    ['import { StandingInstructions } from "@/components/settings/standing-instructions";', 'import { NomuteHealth } from "@nomute/ui/health";\nimport { NomuteBots, NomuteBuild, NomuteLink, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule } from "@nomute/ui/settings-extra";'],
-    ['{ value: "system", label: "Match phone" },', '{ value: "system", label: "폰 따라" },'],
-    ['{ value: "light", label: "Light" },', '{ value: "light", label: "밝게" },'],
-    ['{ value: "dark", label: "Dark" },', '{ value: "dark", label: "어둡게" },'],
-    ["description={`How ${product} looks and works for you.`}", 'description={`${product} 화면과 상태`}'],
-    ['title="Settings"', 'title="설정"'],
-    ['<PageSection title="Appearance">', '<PageSection title="화면">'],
-    ['label="Appearance"', 'label="화면"'],
-    ['aria-label="Settings"', 'aria-label="설정 목록"'],
-    ['title="Keyboard shortcuts"', 'title="단축키"'],
-    ["{PLACES.filter(", "{PLACES.slice(0, 0).filter("],
-    ["<StandingInstructions />", "<NomuteHealth />\n      <NomuteBots />\n      <NomuteLink />\n      <NomuteSchedule />\n      <NomuteRoomset />\n      <NomuteNotice />\n      <NomuteOld />\n      <NomuteBuild />"],
+  // 설정 = YETA 설정 꼴(nomute/ui/yeta-settings.tsx · 형 10-28 10:22 「그 예타에도 설정이 있거든? 그쪽을 가져와서」) — 원본 화면(봇·연결·기능·루틴·승인 규칙·알림·비밀번호·관리자 = 우리 자료 없음) 대신 우리 판
+  "app/src/routes/_authed/settings/index.tsx": [
+    ['import { StandingInstructions } from "@/components/settings/standing-instructions";', 'import { StandingInstructions } from "@/components/settings/standing-instructions";\nimport { YetaSettings } from "@nomute/ui/yeta-settings";'],
+    ["function RouteComponent() {", "function RouteComponent() {\n  return <YetaSettings />;\n}\n\nfunction UpstreamSettings() {"],
   ],
 };
 

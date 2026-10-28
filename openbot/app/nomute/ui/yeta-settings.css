@@ -1,0 +1,65 @@
+/* 설정 = YETA 설정 화면 꼴 거의 그대로(형 10-28 10:19 「yeta에서 구현한 부분이 … 거의 코드 그대로」 · 10:22 「그 예타에도 설정이 있거든? 그쪽을 가져와서」)
+   원본 = nomutefb/YETA viewer/index.html(SHA 5a25d87) .ycd-card · .card-left · .ycd-nm.yset-ttl · .yset-sec · .yset-item · .si-* · .si-sw · .ro · ypickIn 계단 등장
+   — 규칙·수치·움직임 그대로 · 바꾼 것 = 범위(.yeta-set 안) · 토큰 값(어둡게 = YETA 값 그대로 · 밝게 = 같은 규칙에 밝은 바탕 값) · 펼침 행(우리 칸이 그 아래 열림) */
+.yeta-set {
+  --glass: rgba(0,0,0,.02); --glass-line: rgba(0,0,0,.09);
+  --fg: #161716; --fg-2: #2b2e2b; --mut: #6f736e;
+  --accent: #4f7a00; --accent-rgb: 79,122,0; --think: #0e8f7d; --bg: #ffffff;
+  --shadow-card: 0 24px 60px rgba(0,0,0,.08);
+  --r-l: 16px; --r-modal: 22px; --r-pill: 999px; --blur-m: 29px; --blur-l: 11px;
+  --fs-body: 15px; --fs-xs: 11px; --fs-label: 13px; --fs-h2: 15px; --fw-b: 700; --fw-x: 800;
+  --sp-2: 12px; --sp-3: 18px; --press-l: .95; --press-m: .9; --ease: cubic-bezier(.2,.7,.3,1);
+  color: var(--fg);
+}
+.dark .yeta-set {   /* YETA 토큰 값 그대로(viewer/tokens.css) */
+  --glass: rgba(255,255,255,.005); --glass-line: rgba(255,255,255,.08);
+  --fg: #FFFFFF; --fg-2: #E7ECE7; --mut: #8B8F8A;
+  --accent: #CFFF40; --accent-rgb: 207,255,64; --think: #3EE0C8; --bg: #161716;
+  --shadow-card: 0 24px 60px rgba(0,0,0,.42);
+}
+@keyframes ypickIn { from { opacity:0; transform:translateY(12px) scale(.985); } }
+
+.yeta-set .ycd-card { display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; padding:var(--sp-3);
+  background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-modal);
+  backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1);
+  box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
+.yeta-set .ycd-card > * { animation:ypickIn .38s cubic-bezier(.22,.61,.36,1) both; }
+.yeta-set .ycd-card > *:nth-child(2){animation-delay:.05s} .yeta-set .ycd-card > *:nth-child(3){animation-delay:.1s}
+.yeta-set .ycd-card > *:nth-child(4){animation-delay:.15s} .yeta-set .ycd-card > *:nth-child(5){animation-delay:.2s}
+.yeta-set .ycd-card > *:nth-child(6){animation-delay:.25s} .yeta-set .ycd-card > *:nth-child(7){animation-delay:.3s}
+.yeta-set .ycd-card > *:nth-child(8){animation-delay:.35s} .yeta-set .ycd-card > *:nth-child(9){animation-delay:.4s}
+.yeta-set .ycd-card > *:nth-child(n+10){animation-delay:.44s}
+.yeta-set .ycd-nm { font-size:var(--fs-h2); font-weight:var(--fw-x); margin-top:2px; }
+.yeta-set .ycd-card.card-left { align-items:stretch; text-align:left; gap:10px; }
+.yeta-set .yset-sec { font-size:var(--fs-label); font-weight:var(--fw-b); color:var(--fg); padding:8px 4px 2px; }
+.yeta-set .yset-item { display:flex; align-items:center; gap:11px; width:100%; padding:13px 14px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-l);
+  color:var(--fg); font:inherit; text-align:left; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; box-shadow:inset 0 1px 0 var(--glass-line);
+  backdrop-filter:blur(var(--blur-m)); -webkit-backdrop-filter:blur(var(--blur-m)); }
+.yeta-set .yset-item:active { transform:scale(var(--press-l,.95)); }
+.yeta-set .yset-item .si-ic { flex:none; width:22px; height:22px; color:var(--fg-2); display:grid; place-items:center; }
+.yeta-set .yset-item .si-ic svg { width:21px; height:21px; }
+.yeta-set .yset-item .si-lbl { flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.yeta-set .yset-item .si-t { font-size:var(--fs-body); font-weight:var(--fw-b); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.yeta-set .yset-item .si-d { font-size:var(--fs-xs); color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.yeta-set .yset-item .si-v { flex:none; display:flex; align-items:center; gap:3px; max-width:50%; font-size:var(--fs-xs); color:var(--mut); }
+.yeta-set .yset-item .si-v .si-vv { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-style:normal; }
+.yeta-set .yset-item .si-v svg { flex:none; width:17px; height:17px; }
+.yeta-set .yset-item .si-v .si-vt { color:var(--accent); font-weight:var(--fw-b); }
+.yeta-set .yset-item .si-v .si-vt.mod { color:var(--think); }
+.yeta-set .si-sw { flex:none; width:40px; height:24px; border-radius:var(--r-pill); background:var(--glass); border:1px solid var(--glass-line); position:relative; transition:background .2s var(--ease); }
+.yeta-set .si-sw::after { content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--fg-2); transition:transform .2s var(--ease), background .2s var(--ease); }
+.yeta-set .yset-item.on .si-sw { background:rgba(var(--accent-rgb),.9); border-color:transparent; }
+.yeta-set .yset-item.on .si-sw::after { transform:translateX(16px); background:var(--bg); }
+.yeta-set .ycd-nm.yset-ttl { display:flex; align-items:center; gap:8px; }
+.yeta-set .ycd-nm.yset-ttl svg { width:19px; height:19px; flex:none; }
+.yeta-set .yset-item.ro { cursor:default; }
+.yeta-set .yset-item.ro .si-v { color:var(--mut); }
+.yeta-set .yset-item.ro:active { transform:none; }
+
+/* ── 우리 보탬: 펼침 행(누르면 지금 칸이 그 아래 열림 · 꺾쇠 90° · 같은 ease) ── */
+.yeta-set .yset-item .si-v svg { transition:transform .2s var(--ease); }
+.yeta-set .yset-item[aria-expanded="true"] .si-v svg { transform:rotate(90deg); }
+.yeta-set .yset-open { padding:2px 4px 6px; animation:ypickIn .3s var(--ease) both; }
+.yeta-set .yset-open > section { margin-top:0; }                                   /* 지금 칸(PageSection) = 머리 줄은 행이 맡음 */
+.yeta-set .yset-open > section > div:first-child:has(> h2) { display:none; }
+@media (prefers-reduced-motion:reduce) { .yeta-set .ycd-card > *, .yeta-set .yset-open { animation:none; } }
