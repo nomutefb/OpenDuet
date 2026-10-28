@@ -24,6 +24,7 @@ import { TabBar } from "../swap/tab-bar";
 import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
 import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
+import { IssueView } from "./issue";
 import { OfficeChat } from "./office-chat";
 import { RoomList, useRoomOrder } from "./room-list";
 import { useWide } from "./side";
@@ -42,7 +43,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
 ];
 const FRAME: Partial<Record<Modal, string>> = { gyeol: "/gyeol-room.html", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트)
 
-type Where = { pane: Pane } | { modal: Modal } | { web: true } | { page: true } | { bare: true };
+type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
 export function whereFor(pathname: string): Where {
   const p = pathname.replace(/\/+$/, "") || "/";
@@ -53,6 +54,8 @@ export function whereFor(pathname: string): Where {
   const m = MODALS.find((x) => x.to === p);
   if (m) return { modal: m.id };
   if (p === "/web") return { web: true };   // 앱 밖 주소 = 앱 안 한 겹(#/web?u=…)
+  const iss = p.match(/^\/issue\/(\d+)$/);
+  if (iss) return { issue: iss[1] };   // 우리 저장소 이슈 = 앱 안 「< 이슈 N」 한 겹(./issue.tsx)
   if (/^\/(onboarding|sign)/.test(p)) return { bare: true };
   return { page: true };
 }
@@ -78,7 +81,9 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const pane = "pane" in where ? where.pane : base;
   const web = "web" in where ? new URLSearchParams(searchStr).get("u") || "" : null;
   const [under, setUnder] = useState<Modal | null>(null);   // #/web 아래에 깔린 앞 모달(돌아오면 그대로)
-  const modal = "modal" in where ? where.modal : web != null ? under : null;
+  const issue = "issue" in where ? where.issue : null;
+  const layer = web != null || issue != null;   // #/web · #/issue = 앞 모달 위 한 겹
+  const modal = "modal" in where ? where.modal : layer ? under : null;
   useEffect(() => listenAppLinks(), []);
   useEffect(() => {
     if ("modal" in where) setUnder(where.modal);
@@ -131,7 +136,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           ) : null}
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
-            <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label} inert={web != null || undefined}>
+            <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>
@@ -145,6 +150,15 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             </div>
           ) : null}
           {web != null ? <WebLayer u={web} onClose={closeWeb} /> : null}
+          {issue != null ? (
+            <div className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={`이슈 ${issue}`}>
+              <div className="nm-modal-h">
+                <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeWeb}><DuetIcon name="chevronLeft" size={20} /></button>
+                <b>이슈 {issue}</b>
+              </div>
+              <div className="nm-modal-b flush"><div className="nm-scroll"><IssueView key={issue} no={issue} /></div></div>
+            </div>
+          ) : null}
         </div>
       </div>
     </ChatPresenceProvider>

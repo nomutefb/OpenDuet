@@ -55,6 +55,13 @@
 .nm-modal-b .nm-scroll { padding-bottom:var(--duet-tab-space,86px); }   /* 네비 = 모달 위(형 「네비게이션은 유지」 · office-inapp.md) → 끝 줄이 네비에 안 가리게 */
 .nm-modal-b.frame { padding-bottom:var(--duet-tab-space,86px); }   /* 품은 화면 = 네비 위에서 끝남(남의 사이트는 안에 여백을 못 넣음) */
 .nm-modal.nm-web { z-index:52; }   /* #/web = 앞 모달 위 한 겹 · 네비(60)·서랍 아래 */
+/* 이슈 한 장(./issue.tsx) — 카드 = .yeta-set .ycd-card(설정 판과 같음) · 상태 알약 = 네비 켠 칸과 같은 라임(열림) · 본문 = 대화창 마크다운 */
+.nm-issue-st { padding:2px 9px; border-radius:var(--r-pill); border:1px solid var(--glass-line); color:var(--fg-2); font-weight:var(--fw-b); }
+.nm-issue-st.on { background:rgba(var(--accent-rgb),.16); border-color:rgba(var(--accent-rgb),.38); color:var(--accent); }
+:root:not(.dark) .nm-issue-st.on { color:var(--fg); }
+.nm-issue-tag { padding:2px 8px; border-radius:var(--r-pill); background:var(--glass); border:1px solid var(--glass-line); }
+.nm-issue-md { font-size:14px; line-height:1.6; color:var(--fg); overflow-wrap:anywhere; }
+.nm-issue-md pre { overflow-x:auto; }
 .nm-modal-b.flush { padding-top:0; }   /* 할 일·러너·설정 = 판이 유리 알약 밑으로 지나감(YETA) · 할 일은 원본 ScreenScroll 윗여백(100px)이 곧 알약 자리 — 전엔 64+100 두 겹이라 위가 텅 빔 */
 .nm-modal-b.flush > .nm-scroll { padding-top:calc(64px + env(safe-area-inset-top)); }
 .nm-modal-frame { flex:1; width:100%; border:0; background:transparent; }

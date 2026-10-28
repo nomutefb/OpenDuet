@@ -3,6 +3,8 @@
 //   이름·꼴 = claude-state assign/2026-10-28/office-inapp.md 「바뀜」 15:5x(보조 02 대화창 · 03 에디터 판이 받아 씀)
 const APP = "/office-app/";
 
+/** 우리 저장소 이슈·반영 요청 = 앱 안 「< 이슈 N」 판(GitHub 은 품기를 막고 저장소가 비공개 → 서버가 대신 읽음 · PM 16:09) */
+const ISSUE = /^https?:\/\/github\.com\/nomutefb\/editor\/(?:issues|pull)\/(\d+)\/?(?:[?#].*)?$/i;
 /** 품기를 막는 사이트(X-Frame-Options·frame-ancestors 실측 10-28) — 앱 안에 띄우면 빈 막힘 화면뿐이라 원래대로 둠(까닭 = 그 사이트가 막음) */
 const NO_FRAME = /(^|\.)(github\.com|naver\.com|instagram\.com|facebook\.com|x\.com|twitter\.com)$/i;
 /** 보는 주소는 막아도 퍼가기 주소는 여는 사이트 → 퍼가기 주소로 바꿔 품음(실측 10-28 = 유튜브 /embed · Suno /embed 허용) */
@@ -21,6 +23,8 @@ export function inAppHref(raw: string, base: string = location.href): string | n
     if (u.pathname.startsWith(APP)) return u.hash.replace(/^#/, "") || "/";
     return `/web?u=${encodeURIComponent(u.pathname + u.search + u.hash)}`;
   }
+  const iss = u.href.match(ISSUE);
+  if (iss) return `/issue/${iss[1]}`;
   if (NO_FRAME.test(u.hostname)) return null;
   return `/web?u=${encodeURIComponent(u.href)}`;
 }
