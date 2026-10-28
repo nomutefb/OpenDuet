@@ -301,14 +301,12 @@ function Line({ m, c }: { m: Msg; c: Ctx }) {
   const selected = c.sel === m.id;
   const toggle = () => c.setSel(selected ? "" : m.id);
   if (m.kind === "human") {
-    const dmUnread = !!c.r?.with && !(c.looks[m.id] || []).some((x) => x.who === c.r?.with) && !(c.reads?.got?.[c.r.with] || []).includes(m.id);   // 형 23:39 = 개인방 형 글 카톡 「1」
     return (
       <MessageRow align="end" className={`group ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
         <MessageContent className="items-end">
           <Quote m={m} c={c} />
           <StatePill m={m} />
           <div className="flex w-full items-end justify-end gap-1.5">
-            {dmUnread ? <b className="pb-1 text-xs font-semibold tabular-nums text-primary" aria-label={`${c.r?.with} 아직 안 읽음`}>1</b> : null}
             <Bubble align="end" variant="muted" onClick={toggle}>
               <BubbleContent>{m.files?.length ? <Files m={m} /> : <span className="whitespace-pre-wrap">{String(m.text || "").replace(QUOTE, "")}</span>}</BubbleContent>
             </Bubble>

@@ -1,0 +1,17 @@
+/* 아래 탭 전환 = YETA 「UI 메뉴킷」 포터블 v3 menu.css ① 하단 플로팅 알약 네비(.ynav)의 전환 규칙 그대로
+   출처 = nomutefb/YETA docs/portable/20260717_063156_UI메뉴킷_포터블_v3/menu.css(추출 2026-07-17 06:31 KST · YETA main 8c05e61 · 원본 = YETA viewer/index.html .ynav 블록)
+   형 10-28 09:36 「디자인을 가져오라는건 아니고 … 메뉴가 전환되는? 그거를 여기에 접목」 = 전환(안 고른 탭 = 그림만 · 고르면 알약이 늘어나며 이름이 살짝 늦게 · 눌림)은 원본 그대로
+   값만 우리 것: 시간·늦춤·곡선(--ease)·눌림(--press-s) = 원본 tokens.css 값 그대로 · 색·바탕 = 새 사무실 토큰(duet) · 셀렉터 이름(.ynav · .on · span) = 원본 그대로(킷 규율 2) */
+.ynav { --ease:cubic-bezier(.2,.7,.3,1); --press-s:.9; padding:6px 10px; gap:8px; }   /* 원본 tokens.css --ease · --press-s · 원본 .ynav 안쪽 여백·간격 */
+  .ynav button { flex:none; display:flex; align-items:center; height:40px; padding:0 17px; border-radius:9999px; color:var(--duet-ink-2); font-size:.8125rem; font-weight:600; background:transparent; border:1px solid transparent; cursor:pointer; position:relative; -webkit-tap-highlight-color:transparent;
+    transition:transform .28s var(--ease), color .2s, background-color .34s var(--ease), border-color .34s var(--ease), opacity .3s; touch-action:manipulation; }   /* 원본 그대로 · 색 = 우리 흐린 글자 */
+  .ynav button:active { transform:scale(var(--press-s)); }
+  .ynav button span { max-width:0; opacity:0; overflow:hidden; white-space:nowrap; transform:translateX(-6px);
+    transition:max-width .34s var(--ease), margin-left .34s var(--ease), transform .34s var(--ease), opacity .16s var(--ease); }   /* 접힘 = max-width 0(퇴장은 이름 먼저 사라짐) */
+  .ynav button.on { background:var(--duet-tile); border-color:color-mix(in srgb, var(--duet-ink) 8%, transparent); color:var(--duet-ink); }   /* 고른 탭 = 우리 타일 바탕(원본 = 라임 유리 · 형 「디자인은 아니고」) */
+  .ynav button.on span { max-width:4.5em; margin-left:6px; transform:none; opacity:1;
+    transition:max-width .34s var(--ease), margin-left .34s var(--ease), transform .34s var(--ease), opacity .22s .1s var(--ease); }   /* 등장 = 알약 늘어난 뒤 이름 살짝 늦게 */
+  .ynav button svg { width:20px; height:20px; flex:none; }
+
+/* 움직임 줄이기 = 멈춤(원본 reduce 블록의 메뉴 축 그대로) */
+@media (prefers-reduced-motion:reduce){ .ynav button, .ynav button span { transition:none; } }
