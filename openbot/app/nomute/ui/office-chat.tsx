@@ -1,23 +1,24 @@
 // 우리 대화창 — 원본 부품(말풍선·글 줄·입력칸·마크다운) 그대로 쓰고, 형 대화창 규칙·옛 화면 기능은 우리 것(옛 = viewer/office.html)
 //   형 보기(형 10-27 16:33·21:16) = 형 글 + 형에게 온 글만 펼침 · 봇끼리·클로드 글 = 그 자리 한 줄 「(얼굴 셋) 외 N · 메시지 M개」(형 10-28 05:12)
-//   말풍선 위 읽음 얼굴 0 · 형 글 시간 = 말풍선 아래 · 가져감 = 말풍선 아래 「가져감 결 04:42」(없으면 줄 0) · 러너 깸 줄 안 보임 · 시스템 일 = 가운데 흐린 한 줄
-//   줄기 = ⏳·✅ 상태 답(reply_to)은 원 글 바로 아래 · 답장 = 글 첫 줄 「↩ 이름: 그 글 첫 줄」(서버 0 · 옛 화면과 같은 꼴) · 반응 · 체크(맡음) 줄 · 파일 · 긴 글 접기
+//   말풍선 = YETA 꼴(./yeta-chat.css · 형 10-28 10:19) · 말풍선 위 읽음 얼굴 0 · 러너 깸 줄 안 보임 · 시스템 일 = 가운데 흐린 알약
+//   시간 = 말풍선 옆(형 글 = 왼쪽 · 상대 글 = 오른쪽 · 「3:50 PM」) · 가져감 = 카톡 「1」 자리에 「가져감」 글자 하나(1:1 방 형 글만 · 형 10:20) · 그 밖 이름 줄 0
+//   이름 = 같은 사람 글이 이어지면 첫 글만(YETA .cont) · 날짜가 바뀌는 곳 = 가는 줄 + 「10-28 수」(형 10:23)
+//   줄기 = ⏳·✅ 상태 답(reply_to)은 원 글 바로 아래 · 답장 = 글 첫 줄 「↩ 이름: 그 글 첫 줄」(서버 0 · 옛 화면과 같은 꼴) · 반응 · 파일 · 긴 글 접기
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Composer, toAgentOptions } from "@/components/channels/composer";
 import { useReportChatPresence } from "@/components/shell/chat-presence";
-import { Bubble, BubbleContent } from "@/components/ui/bubble";
-import { MessageContent, MessageHeader, Message as MessageRow } from "@/components/ui/message";
 import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
 import { FaceImg, FaceStack } from "./faces";
+import { t12 } from "./when";
+import "./yeta-chat.css";
 
 const enc = encodeURIComponent;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const SEP_MS = 30 * 60e3;
 const CALL_FRESH = 45 * 60e3;   // 회의실 「작업 중」 = 부른 글이 45분 안일 때만(옛 화면 PR 1478 실측 · 답의 90% = 41분)
 const QUOTE = /^↩ ([^:\n]{1,24}): ([^\n]*)(?:\n|$)/;
 const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_Pictographic})*$/u;
@@ -28,7 +29,6 @@ const WORK = ["고민하는 중", "정리하는 중", "처리하는 중"];
 type Msg = OfficeMsg & { alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean };
 type Page = { messages: Msg[]; more: boolean };
 type Reads = { got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>> };
-type Look = { who: string; at: string | number; how: string };
 type Bot = { who: string; state: string; why?: string };
 
 export const officeKeys = {
@@ -37,7 +37,6 @@ export const officeKeys = {
   msgs: (room: string) => ["nomute", "msgs", room] as const,
   reads: (room: string) => ["nomute", "reads", room] as const,
   reacts: (room: string) => ["nomute", "reacts", room] as const,
-  looks: (room: string) => ["nomute", "looks", room] as const,
   bots: ["nomute", "bots"] as const,
 };
 
@@ -48,14 +47,8 @@ const merge = (old: Page | undefined, add: Msg[]): Page => {
 };
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
-const hm = (ts: number) => kst(ts).toISOString().slice(11, 16);
 const dayKey = (ts: number) => kst(ts).toISOString().slice(0, 10);
-function sepLabel(ts: number) {
-  const d = dayKey(ts), today = dayKey(Date.now()), yest = dayKey(Date.now() - 864e5);
-  const h = kst(ts).getUTCHours(), mi = kst(ts).getUTCMinutes();
-  const t = `${h < 12 ? "오전" : "오후"} ${h % 12 || 12}:${String(mi).padStart(2, "0")}`;
-  return d === today ? `오늘 ${t}` : d === yest ? `어제 ${t}` : `${Number(d.slice(5, 7))}월 ${Number(d.slice(8, 10))}일 ${t}`;
-}
+const dateLabel = (ts: number) => `${dayKey(ts).slice(5)} ${"일월화수목금토"[kst(ts).getUTCDay()]}`;   // 「10-28 수」(요일 = 실제)
 const fileName = (p: string) => String(p).split("/").pop()?.replace(/^\d{8}_\d{4}_/, "") || p;
 const fileUrl = (p: string, dl = false) => `/api/office/file?${new URLSearchParams({ path: p, ...(dl ? { dl: "1" } : {}) })}`;
 const size = (b: number) => (b > 1e6 ? `${(b / 1e6).toFixed(1)}MB` : `${Math.max(1, Math.round(b / 1e3))}KB`);
@@ -64,13 +57,6 @@ const firstLine = (m: Msg) => {   // 답장 인용·복사 한 줄(인용 줄 �
   const l = (t.split("\n").find((x) => x.trim()) || "").replace(/[@!](?=\S)/g, "").replace(/\s+/g, " ").trim();
   return l.length > 40 ? `${l.slice(0, 40)}…` : l;
 };
-const afterTxt = (a: string | number, b: number) => {
-  const at = typeof a === "string" ? Date.parse(a) : Number(a);
-  if (!Number.isFinite(at)) return "";
-  const n = Math.max(0, Math.round((at - b) / 60e3));
-  return n < 1 ? "바로" : n < 60 ? `${n}분 후` : `${Math.floor(n / 60)}시간${n % 60 ? ` ${n % 60}분` : ""} 후`;
-};
-
 export function useOfficeRoom(room: string) {
   const qc = useQueryClient();
   const roomsQ = useQuery({ queryKey: officeKeys.rooms, queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 });
@@ -86,14 +72,8 @@ export function useOfficeRoom(room: string) {
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
-  const ids = (msgsQ.data?.messages || []).slice(-100).map((m) => m.id);
   const readsQ = useQuery({ queryKey: officeKeys.reads(room), queryFn: () => office<Reads>(`rooms/${enc(room)}/reads`), staleTime: 15_000, refetchInterval: 60_000 });
   const reactsQ = useQuery({ queryKey: officeKeys.reacts(room), queryFn: () => office<{ reactions: Record<string, Record<string, string[]>>; quick?: string[] }>(`rooms/${enc(room)}/reactions`), staleTime: 15_000, refetchInterval: 60_000 });
-  const looksQ = useQuery({
-    queryKey: [...officeKeys.looks(room), ids.at(-1) || ""],
-    queryFn: () => office<{ looks: Record<string, Look[]> }>(`rooms/${enc(room)}/looks?${new URLSearchParams({ ids: ids.join(",") })}`),
-    enabled: ids.length > 0, staleTime: 15_000, refetchInterval: 60_000,
-  });
   const botsQ = useQuery({ queryKey: officeKeys.bots, queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 });
 
   useEffect(() => {   // 기다리기 고리 = 새 글이 오면 바로(옛 화면과 같은 길 · 탭이 숨으면 쉼)
@@ -109,7 +89,7 @@ export function useOfficeRoom(room: string) {
           if (stop) break;
           if (j.messages?.length) {
             qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, j.messages));
-            for (const k of [officeKeys.reads(room), officeKeys.looks(room), officeKeys.rooms, officeKeys.bots, ["channels"], ["duet-channels"]]) void qc.invalidateQueries({ queryKey: k });
+            for (const k of [officeKeys.reads(room), officeKeys.rooms, officeKeys.bots, ["channels"], ["duet-channels"]]) void qc.invalidateQueries({ queryKey: k });
           }
         } catch {
           if (!stop) await sleep(3000);
@@ -127,7 +107,7 @@ export function useOfficeRoom(room: string) {
     qc.setQueryData<Page>(officeKeys.msgs(room), (old) => ({ ...merge(old, j.messages || []), more: !!j.more }));
   };
   const r = roomsQ.data?.find((x) => x.id === room);
-  return { r, list: peopleQ.data || [], msgs: msgsQ, reads: readsQ.data, reacts: reactsQ.data, looks: looksQ.data?.looks || {}, bots: botsQ.data || [], older };
+  return { r, list: peopleQ.data || [], msgs: msgsQ, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older };
 }
 
 type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] };
@@ -158,7 +138,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
 }
 
 type Ctx = {
-  room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; looks: Record<string, Look[]>; rx: Record<string, Record<string, string[]>>; quick: string[];
+  room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
   sel: string; setSel: (id: string) => void; onReact: (id: string, e: string) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
 };
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
@@ -176,39 +156,16 @@ function StatePill({ m }: { m: Msg }) {
   return (
     <span className="mb-1 flex flex-wrap items-center gap-1.5">
       <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${ST[k][1]}`}>{ST[k][0]}</span>
-      {e ? <span className="text-xs text-muted-foreground">{[e.target, e.result, e.checked_at ? hm(Date.parse(e.checked_at)) : ""].filter(Boolean).join(" · ")}</span> : null}
+      {e ? <span className="text-xs text-muted-foreground">{[e.target, e.result, e.checked_at ? t12(Date.parse(e.checked_at)) : ""].filter(Boolean).join(" · ")}</span> : null}
     </span>
   );
 }
 
-function GotLine({ m, c }: { m: Msg; c: Ctx }) {
-  if (!c.r?.with) return null;   // 단체방(회의실·지정방·수리) = 가져감 줄 0(봇이 방을 읽기만 해도 잡혀 사실상 읽은 목록 · 형 10-28 09:44 「회의실도 … 읽은 사람 표시되는거 없애줘」) · 1:1 방 = 그 봇이 맡음(05:12)
-  const got = c.reads?.got || {}, at = c.reads?.got_at || {};
-  const l = Object.keys(got).filter((n) => n !== m.who && (got[n] || []).includes(m.id)).map((n) => ({ who: n, at: at[n]?.[m.id] }));
-  if (!l.length) return null;
-  l.sort((a, b) => (a.at || Infinity) - (b.at || Infinity));
-  return (
-    <p className="mt-0.5 px-1 text-xs text-muted-foreground">
-      가져감{" "}
-      {l.map((x, i) => (
-        <span key={x.who}>{i ? " · " : ""}<b className="font-medium text-foreground/80">{nmOf(c.list, x.who)}</b>{x.at ? <span className="tabular-nums"> {hm(x.at)}</span> : null}</span>
-      ))}
-    </p>
-  );
-}
-
-function CheckLine({ m, c }: { m: Msg; c: Ctx }) {   // 형 21:19 = 말풍선 아래 「✓ (얼굴) 깃 3분 후」(체크 = 이 글을 맡아 책임짐)
-  const l = (c.looks[m.id] || []).filter((x) => x && x.how === "check" && x.who !== m.who);
-  if (!l.length) return null;
-  return (
-    <div className="mt-1 flex flex-col items-end gap-0.5">
-      {l.map((x) => (
-        <p key={x.who} className="inline-flex items-center gap-1 text-xs text-primary" title="체크 = 이 글을 맡아 책임짐">
-          ✓ <FaceImg id={idOf(x.who, c.list)} size={16} /><b className="font-semibold">{nmOf(c.list, x.who)}</b><span className="tabular-nums text-muted-foreground">{afterTxt(x.at, m.ts)}</span>
-        </p>
-      ))}
-    </div>
-  );
+/** 가져감 = 1:1 방에서 형 글을 그 봇이 가져갔나(누가·몇 시 0 · 형 10-28 10:20 「가져감만 … 카톡처럼」) · 단체방 = 0(형 09:44 「회의실도 … 읽은 사람 표시되는거 없애줘」) */
+function gotBy(m: Msg, c: Ctx) {
+  if (!c.r?.with || m.kind !== "human") return false;
+  const got = c.reads?.got || {};
+  return Object.keys(got).some((n) => n !== m.who && (got[n] || []).includes(m.id));
 }
 
 function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
@@ -297,52 +254,44 @@ function Body({ m }: { m: Msg }) {
   return <Streamdown components={markdownComponents}>{text}</Streamdown>;
 }
 
-function Line({ m, c }: { m: Msg; c: Ctx }) {
+/** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][시각][말풍선] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 시각] · cont = 바로 앞이 같은 사람(얼굴·이름 접음) · fresh = 열어 둔 뒤 새로 온 글(올라옴) */
+function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean }) {
   const p = c.list.find((x) => x.who === m.who);
   const selected = c.sel === m.id;
   const toggle = () => c.setSel(selected ? "" : m.id);
+  const time = <time className="ytime" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
   if (m.kind === "human") {
     return (
-      <MessageRow align="end" className={`group ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
-        <MessageContent className="items-end">
-          <Quote m={m} c={c} />
-          <StatePill m={m} />
-          <div className="flex w-full items-end justify-end gap-1.5">
-            <Bubble align="end" variant="muted" onClick={toggle}>
-              <BubbleContent>{m.files?.length ? <Files m={m} /> : <span className="whitespace-pre-wrap">{String(m.text || "").replace(QUOTE, "")}</span>}</BubbleContent>
-            </Bubble>
-          </div>
-          <time className="px-1 text-xs tabular-nums text-muted-foreground" dateTime={new Date(m.ts).toISOString()}>{hm(m.ts)}</time>
-          <GotLine m={m} c={c} />
-          <Reactions m={m} c={c} mine />
-          <CheckLine m={m} c={c} />
-          {selected ? <Actions m={m} c={c} mine /> : null}
-        </MessageContent>
-      </MessageRow>
+      <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
+        <Quote m={m} c={c} />
+        <StatePill m={m} />
+        <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
+          {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
+          {time}
+          <div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : String(m.text || "").replace(QUOTE, "")}</div>
+        </div>
+        <Reactions m={m} c={c} mine />
+        {selected ? <Actions m={m} c={c} mine /> : null}
+      </div>
     );
   }
   return (
-    <MessageRow align="start" className={`group ${m._thr ? "pl-6" : ""}`} data-id={m.id}>
-      <div className="shrink-0 pt-0.5"><FaceImg id={idOf(m.who, c.list)} size={28} /></div>
-      <MessageContent>
-        <MessageHeader className="text-xs font-medium text-muted-foreground">
-          {p?.name || m.who}
-          {p?.role ? <span className="font-normal"> · {p.role}</span> : null}
-          <span className="font-normal tabular-nums"> · {hm(m.ts)}</span>
-        </MessageHeader>
+    <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
+      <div className="yava"><FaceImg id={idOf(m.who, c.list)} size={32} /></div>
+      <div className="ycol">
+        <div className="yname">{p?.name || m.who}</div>
         <Quote m={m} c={c} />
         <StatePill m={m} />
-        <Bubble align="start" variant="ghost" className="w-full" onClick={toggle}>
-          <BubbleContent className="flex w-full flex-col">
-            <Fold on={!m.files?.length}><Body m={m} /></Fold>
-          </BubbleContent>
-        </Bubble>
-        <GotLine m={m} c={c} />
+        <div className="ybrow">
+          <div className="yb ai" onClick={toggle}>
+            <div className="ymd flex flex-col"><Fold on={!m.files?.length}><Body m={m} /></Fold></div>
+          </div>
+          {time}
+        </div>
         <Reactions m={m} c={c} mine={false} />
-        <CheckLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine={false} /> : null}
-      </MessageContent>
-    </MessageRow>
+      </div>
+    </div>
   );
 }
 
@@ -357,7 +306,7 @@ function Band({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
         {ws.length > 3 ? <b className="font-semibold text-foreground">외 {ws.length - 3}</b> : null}
         {ws.length > 3 ? " · " : ""}메시지 {msgs.length}개
       </button>
-      {open ? <div className="flex w-full flex-col gap-5 border-l-2 border-border pl-3 opacity-90">{msgs.map((m) => <Line key={m.id} m={m} c={c} />)}</div> : null}
+      {open ? <div className="flex w-full flex-col gap-[10px] border-l-2 border-border pl-3 opacity-90">{msgs.map((m, i) => <Line key={m.id} m={m} c={c} cont={i > 0 && msgs[i - 1].who === m.who} />)}</div> : null}
     </div>
   );
 }
@@ -378,7 +327,7 @@ const MODES: [string, string][] = [["", "보통"], ["suggest", "💡 제안"], [
 
 export function OfficeChat({ room, lead }: { room: string; lead?: ReactNode }) {
   const qc = useQueryClient();
-  const { r, list, msgs, reads, reacts, looks, bots, older } = useOfficeRoom(room);
+  const { r, list, msgs, reads, reacts, bots, older } = useOfficeRoom(room);
   const [err, setErr] = useState("");
   const [sel, setSel] = useState("");
   const [reply, setReply] = useState<{ id: string; who: string; line: string } | null>(null);
@@ -403,6 +352,8 @@ export function OfficeChat({ room, lead }: { room: string; lead?: ReactNode }) {
     return ids.map((id) => { const p = list.find((x) => idOf(x.who, list) === id); return { id, name: p?.name || p?.who || id, title: p?.role }; });
   }, [r, list]);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const baseTs = useRef<number | null>(null);   // 방을 연 때 마지막 글 — 그 뒤에 온 글만 올라오는 움직임(YETA .in · 옛 글 다시 그림 = 0)
+  if (baseTs.current === null && msgs.data) baseTs.current = all.at(-1)?.ts ?? 0;
   const lastId = all.at(-1)?.id;
   useEffect(() => { if (lastId) endRef.current?.scrollIntoView({ block: "end" }); }, [lastId]);
   useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen)
@@ -422,7 +373,7 @@ export function OfficeChat({ room, lead }: { room: string; lead?: ReactNode }) {
   });
 
   const c: Ctx = {
-    room, r, list, reads, looks, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
+    room, r, list, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     sel, setSel,
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); },
@@ -437,11 +388,11 @@ export function OfficeChat({ room, lead }: { room: string; lead?: ReactNode }) {
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
 
-  let prevTs = 0;
+  let prevTs = 0, prev: Item | undefined;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-3 py-6">
+        <div className="ychat mx-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 py-6">
           {lead}
           {msgs.data?.more ? (
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => void older()}>옛 글 더 보기</button>
@@ -449,25 +400,30 @@ export function OfficeChat({ room, lead }: { room: string; lead?: ReactNode }) {
           {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">아직 글 없음 — {r?.with ? `${nmOf(list, r.with)}에게 인사해 봐 · 보내면 예약(다음에 깰 때 봄) · !${nmOf(list, r.with)} = 바로 깨움` : "첫 글을 써 줘 · @이름 = 예약 · !이름 = 바로 깨움"}</p> : null}
           {items.map((it) => {
             const first = it.t === "msg" ? it.m : it.msgs[0];
-            const sep = !first._thr && (!prevTs || dayKey(prevTs) !== dayKey(first.ts) || first.ts - prevTs >= SEP_MS);
+            const newDay = !first._thr && (!prevTs || dayKey(prevTs) !== dayKey(first.ts));
+            const cont = !newDay && it.t === "msg" && prev?.t === "msg" && prev.m.who === it.m.who && prev.m.kind === it.m.kind;
             prevTs = (it.t === "msg" ? it.m : it.msgs[it.msgs.length - 1]).ts;
+            prev = it;
             const key = it.t === "msg" ? it.m.id : `${it.t}-${first.id}`;
             return (
-              <div key={key} className="flex flex-col gap-5">
-                {sep ? <p className="text-center text-xs font-medium text-muted-foreground">{sepLabel(first.ts)}</p> : null}
-                {it.t === "msg" ? <Line m={it.m} c={c} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
-                  <p className="text-center text-xs text-muted-foreground" title={it.msgs.map((y) => `${hm(y.ts)} ${y.who} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
+              <div key={key} className="flex flex-col gap-[10px]">
+                {newDay ? <p className="ydate">{dateLabel(first.ts)}</p> : null}
+                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
+                  <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${y.who} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
                     {it.msgs.at(-1)?.who} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
-                    {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{hm(it.msgs.at(-1)?.ts || 0)}</span>
+                    {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>
                   </p>
                 )}
               </div>
             );
           })}
-          {typing.length ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
-              <FaceImg id={idOf(typing[0], list)} size={24} />
-              <span className="animate-pulse">{typing.map((n) => nmOf(list, n)).join("·")} 작업 중 · {WORK[Math.floor(Date.now() / 60e3) % WORK.length]}…</span>
+          {typing.length ? (   /* YETA 타이핑 = 얼굴 + 점 셋 말풍선 · 이름 칸 = 「결 작업 중 · 고민하는 중…」(옛 규칙) */
+            <div className="ymsg ytyp" aria-live="polite">
+              <div className="yava"><FaceImg id={idOf(typing[0], list)} size={32} /></div>
+              <div className="ycol">
+                <div className="yname">{typing.map((n) => nmOf(list, n)).join("·")} 작업 중 · {WORK[Math.floor(Date.now() / 60e3) % WORK.length]}…</div>
+                <div className="yb ai"><span className="ytdots"><i /><i /><i /></span></div>
+              </div>
             </div>
           ) : null}
           <div ref={endRef} />

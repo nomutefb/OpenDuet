@@ -37,9 +37,19 @@ export const PATCH: Record<string, [string, string][]> = {
     ['aria-label="Your settings"', 'aria-label="내 설정"'],
     ['aria-label="Back"', 'aria-label="뒤로"'],
     ['aria-label="More"', 'aria-label="더 보기"'],
+    // 맨 위 = 가운데 동그라미만(형 10-28 10:22 「좌상단, 우상단을 네비로 일단 보내보자」) — 왼쪽 ≡ · 오른쪽 「형」 = 안 보임(자리는 남겨 가운데 그대로) · 목록·설정 = 아래 네비(swap/tab-bar.tsx)
+    ['className={floating ? "mt-2" : undefined}', 'className={cn("invisible", floating && "mt-2")}'],
+    ['cn(DISC, "pointer-events-auto", floating && "mt-2")', 'cn(DISC, "invisible", floating && "mt-2")'],
+    // 동그라미 = 지금 대화 상대(형 10:18 · ui/top.tsx) · 윈터 방·방 밖 = 원래 구슬
+    ['import { usePageChromeState } from "./page-chrome";', 'import { usePageChromeState } from "./page-chrome";\nimport { NomuteTop } from "@nomute/ui/top";'],
+    ["<ChatOrb size={centre - 2} />", "<NomuteTop orb={<ChatOrb size={centre - 2} />} size={centre - 2} />"],
   ],
   "app/src/components/shell/app-shell.tsx": [
     ["nav[aria-label=\"Main\"]", "nav[aria-label=\"큰 탭\"]"],   // 탭 높이 재기 = 우리 탭 이름과 같게(swap/tab-bar.tsx)
+    // PC = 왼쪽에 늘 열린 대화 목록 칸(형 10-28 09:48 「그록.컴 처럼」 · ui/side.tsx · 폰 = 칸 없음) — 바깥 틀을 가로로 · 원본 세로 틀은 그 안 오른쪽에 그대로
+    ['import { TabBar, tabForPath } from "./tab-bar";', 'import { TabBar, tabForPath } from "./tab-bar";\nimport { NomuteSide } from "@nomute/ui/side";'],
+    ['<div className="duet-touch flex h-svh flex-col overflow-hidden bg-duet-surface">', '<div className="duet-touch flex h-svh overflow-hidden bg-duet-surface"><NomuteSide /><div className="flex min-w-0 flex-1 flex-col overflow-hidden">'],
+    ["        ) : null}\n      </div>\n    </ChatPresenceProvider>", "        ) : null}\n      </div></div>\n    </ChatPresenceProvider>"],
   ],
   "app/src/components/channels/composer/composer.tsx": [
     ['aria-label="Stop the Bot"', 'aria-label="봇 멈추기"'],
@@ -63,6 +73,7 @@ export const PATCH: Record<string, [string, string][]> = {
   ],
   "app/src/routes/_authed/_app/group/$channelId.tsx": [
     ['"Group"', '"단체방"'],
+    ['<div className="sticky top-0 flex min-h-12 flex-row', '<div className="sticky top-0 hidden min-h-12 flex-row'],   // 단체방 머리 줄 = 안 보임(맨 위 = 가운데 동그라미만 · 형 10:22 · 단체방도 대화 칸 = swap/tab-bar.tsx)
     ["        <GroupPeopleButton channelId={channelId} />\n", "        <span className=\"ml-auto shrink-0 text-xs text-muted-foreground\">{(channel.data?.agentIds ?? []).length}명</span>\n"],   // 사람 넣기·빼기(이메일) = 우리 길 없음 → 멤버 수만(지정방 멤버 고르기 = 설정)
   ],
   "app/src/components/shell/tasks-screen.tsx": [
@@ -86,7 +97,7 @@ export const PATCH: Record<string, [string, string][]> = {
     ["Add a task with +, or start one from Up next.", "봇이 형에게 묻는 것·형 결정 필요는 여기 모여."],
   ],
   "app/src/routes/_authed/settings/index.tsx": [   // 설정 = 밝음·어두움 + 점검표(원본 칸 = 봇·연결·기능·루틴·승인 규칙·알림·비밀번호·관리자 = 우리 자료 없음)
-    ['import { StandingInstructions } from "@/components/settings/standing-instructions";', 'import { NomuteHealth } from "@nomute/ui/health";\nimport { NomuteBots, NomuteLink, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule } from "@nomute/ui/settings-extra";'],
+    ['import { StandingInstructions } from "@/components/settings/standing-instructions";', 'import { NomuteHealth } from "@nomute/ui/health";\nimport { NomuteBots, NomuteBuild, NomuteLink, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule } from "@nomute/ui/settings-extra";'],
     ['{ value: "system", label: "Match phone" },', '{ value: "system", label: "폰 따라" },'],
     ['{ value: "light", label: "Light" },', '{ value: "light", label: "밝게" },'],
     ['{ value: "dark", label: "Dark" },', '{ value: "dark", label: "어둡게" },'],
@@ -97,7 +108,7 @@ export const PATCH: Record<string, [string, string][]> = {
     ['aria-label="Settings"', 'aria-label="설정 목록"'],
     ['title="Keyboard shortcuts"', 'title="단축키"'],
     ["{PLACES.filter(", "{PLACES.slice(0, 0).filter("],
-    ["<StandingInstructions />", "<NomuteHealth />\n      <NomuteBots />\n      <NomuteLink />\n      <NomuteSchedule />\n      <NomuteRoomset />\n      <NomuteNotice />\n      <NomuteOld />"],
+    ["<StandingInstructions />", "<NomuteHealth />\n      <NomuteBots />\n      <NomuteLink />\n      <NomuteSchedule />\n      <NomuteRoomset />\n      <NomuteNotice />\n      <NomuteOld />\n      <NomuteBuild />"],
   ],
 };
 

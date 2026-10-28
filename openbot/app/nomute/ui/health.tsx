@@ -2,12 +2,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageSection } from "@/components/layout/page-shell";
 import { office } from "../data/office";
+import { t12 } from "./when";
 
 type Row = { id: string; name: string; state: "ready" | "unchecked" | "fix"; label: string; why: string; fix?: string; seen_at?: string };
 type Health = { at: number; rows: Row[]; counts: { ready: number; unchecked: number; fix: number }; recheck?: { at: string; by: string } | null };
 
 const DOT: Record<Row["state"], string> = { ready: "bg-emerald-500", unchecked: "bg-amber-400", fix: "bg-red-500" };
-const hm = (s?: string | number) => (s ? new Date(new Date(s).getTime() + 9 * 3600e3).toISOString().slice(11, 16) : "");
+const hm = (s?: string | number) => (s ? t12(new Date(s).getTime()) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
 
 export function NomuteHealth() {
   const qc = useQueryClient();

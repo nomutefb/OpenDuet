@@ -1,5 +1,6 @@
 // 원본 대화 화면 셋 자리 — 우리 방은 1:1 이든 단체든 다 「서버 대화록」이라 한 대화창(OfficeChat)으로
 //   components/channels/channel-chat.tsx(ChannelChat · 원본 = CopilotKit 실시간 실행) · components/channels/group-chat.tsx(GroupChat) · components/shell/chat-screen.tsx(ChatScreen = 첫 화면 = 회의실)
+//   첫 화면 = 대화창(형 10-28 10:17 「대화창이 항상 떠있어야 가장 편하거든」) · 목록 = PC 왼쪽 칸(ui/side.tsx) · 폰 = 아래 네비 「목록」
 import type { ReactNode } from "react";
 import { OfficeChat } from "../ui/office-chat";
 

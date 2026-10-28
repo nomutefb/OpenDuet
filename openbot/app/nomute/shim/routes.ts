@@ -21,11 +21,12 @@ async function channels() {
   return (j.rooms || []).map((r) => toChannel(r, list, seen[r.id]));
 }
 
-/** 메뉴 방 목록(원본 DuetChannel 꼴) — 우리 메뉴(ui/menu.tsx)로 바꿔 끼웠지만 1:1 화면(channel-screen)이 같은 목록을 읽음 · 회의실 = everythingId */
+/** 메뉴 방 목록(원본 DuetChannel 꼴) — 우리 메뉴(ui/menu.tsx)로 바꿔 끼웠지만 1:1 화면(channel-screen)이 같은 목록을 읽음
+ *  everythingId = 없음: 원본은 그 방을 첫 화면("/")으로 돌리는데 첫 화면은 이제 대화 목록 → 회의실도 단체방 화면(/group/all)에서 엶 */
 async function duetChannels() {
   const [list, j] = await Promise.all([people(), office<{ rooms: OfficeRoom[] }>("rooms")]);
   return {
-    everythingId: "all",
+    everythingId: null,
     channels: (j.rooms || []).filter((r) => r.id !== "all").map((r, i) => ({
       ...toChannel(r, list), purpose: null, icon: r.with ? "people" : "folder", colour: "sky", dressed: true, archivedAt: null, createdAt: new Date(i).toISOString(),
     })),

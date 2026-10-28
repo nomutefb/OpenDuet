@@ -1,15 +1,16 @@
 // 설정 판 — 옛 화면(viewer/office.html) 설정 판과 같은 서버 길 · 같은 규칙
 //   지금 봇(GET bots · 다음 깸 = GET schedule) · 지정방 멤버(GET/POST roomset · 형) · 공지 설정 한 장(GET/POST noticeset · 형)
 //   스케줄러 연결(GET schedule/link) · 바꾸기(루틴 상태·언제·할 일 없어도 깨움 · 봇 하루 최대·급한 일 몫 · 사건 모아서 기다림 = POST schedule/set · 먼저 dry 미리 보기 → 확인)
-//   옛 그록 대화(GET old · 봇 → 날 → 글 · 읽기만)
+//   옛 그록 대화(GET old · 봇 → 날 → 글 · 읽기만) · 맨 아래 「지금 판」(형이 새 판인지 눈으로 · 10-28 10:51 「웹앱이 자동으로 버전업이 안되네」)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
 import { PageSection } from "@/components/layout/page-shell";
 import { idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
+import { t12 } from "./when";
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
-const hm = (ts?: number | string) => (ts ? kst(typeof ts === "string" ? Date.parse(ts) : ts).toISOString().slice(11, 16) : "");
+const hm = (ts?: number | string) => (ts ? t12(typeof ts === "string" ? Date.parse(ts) : ts) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
 function nextShort(ts: number) {
   const d = kst(ts), n = kst(Date.now());
   const dd = Math.round((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate())) / 864e5);
@@ -342,5 +343,17 @@ export function NomuteOld() {
         </Card>
       ) : null}
     </PageSection>
+  );
+}
+
+/** 지금 판 = 이 화면이 도는 빌드 · 올라간 판(version.json)과 다르면 「새 판 있음」(글칸이 비면 저절로 다시 읽음 · main.tsx) */
+declare const __NM_BUILD__: string;
+export function NomuteBuild() {
+  const live = useQuery({ queryKey: ["nomute", "build"], queryFn: () => fetch(`/office-app/version.json?t=${Date.now()}`, { cache: "no-store" }).then((r) => r.json() as Promise<{ build?: string }>), staleTime: 30_000 }).data?.build;
+  const at = (b: string) => { const t = Date.parse(b); return Number.isFinite(t) ? `${kst(t).toISOString().slice(5, 10)} ${t12(t)}` : b; };
+  return (
+    <p className="mt-6 text-center text-xs tabular-nums text-muted-foreground">
+      지금 판 {at(__NM_BUILD__)}{live && live !== __NM_BUILD__ ? ` · 새 판 있음(${at(live)}) — 곧 저절로 바뀜` : ""}
+    </p>
   );
 }

@@ -48,7 +48,7 @@ function DecisionCard({ x, can, always }: { x: BriefItem; can: boolean; always: 
         <div className="mt-2 flex flex-wrap gap-1">
           {(x.refs || []).map((r, i) => (
             <button key={`${r.label}-${i}`} type="button" className="rounded-full border border-border px-2 py-0.5 text-xs" disabled={!r.room && !x.room}
-              onClick={() => void nav({ to: (r.room || x.room) === "all" ? "/" : "/channels/$channelId", params: { channelId: r.room || x.room || "all" } })}>
+              onClick={() => void nav({ to: (r.room || x.room || "all") === "all" ? "/group/$channelId" : "/channels/$channelId", params: { channelId: r.room || x.room || "all" } })}>
               {r.label || "근거"}
             </button>
           ))}

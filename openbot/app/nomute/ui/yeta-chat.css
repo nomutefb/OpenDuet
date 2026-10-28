@@ -1,0 +1,44 @@
+/* 대화창(채팅 부) = YETA 말풍선 규칙 그대로(형 10-28 10:19 「yeta에서 구현한 부분이 … 거의 코드 그대로 가져오면」)
+   출처 = nomutefb/YETA viewer/index.html(main 5a25d8764c · 2026-08-18) 305~407줄 .ymsg·.yava·.ycol·.yname·.yb·.yb.ai·.yb.me·.yb.sys·.ymsg.cont·.ybrow·.ytime·.ymrow.me·.yb-un·.ytyp·.ytdots·ybIn/ybOut
+   셀렉터·수치·시간·곡선 = 원본 그대로 · 바뀐 것 = 아래 .ychat 토큰 자리만(원본 :root 값 = 구조 토큰 그대로 · 색 = 새 사무실 duet 토큰 · 밝게·어둡게 둘 다)
+   더한 것 둘(원본에 없음): .ydate(날짜 바뀌는 곳 · 형 10:23) · .yb.ai .ymd(말풍선 안 글 꾸밈 = 줄바꿈은 꾸밈이 맡음) */
+.ychat {
+  --r-s:9px; --r-l:16px; --r-pill:999px;
+  --fs-body:15px; --fs-sm:12px; --fs-xs:11px; --fw-x:800; --fw-b:700; --lh-base:1.6;
+  --ease:cubic-bezier(.2,.7,.3,1); --blur-m:29px;
+  --fg:var(--duet-ink); --fg-2:var(--duet-ink-2); --mut:var(--duet-ink-3);
+  --glass:var(--duet-card); --glass-2:var(--duet-card); --glass-line:var(--duet-hair);
+  --accent:var(--duet-accent); --bubble-me:var(--duet-accent); --bg:var(--duet-on-accent);
+}
+.ychat .ymsg { display:flex; gap:8px; align-items:flex-start; max-width:86%; }
+.ychat .ymsg .yava { flex:none; width:32px; height:32px; border-radius:50%; display:grid; place-items:center; overflow:hidden; margin-top:2px; }
+.ychat .ymsg .ycol { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.ychat .ymsg .yname { font-size:var(--fs-xs); color:var(--fg); font-weight:var(--fw-b); padding-left:2px; }
+.ychat .yb { padding:10px 13px; border-radius:var(--r-l); font-size:var(--fs-body); line-height:var(--lh-base); white-space:pre-wrap; word-break:break-word; }
+.ychat .yb.ai { background:var(--glass-2); border:1px solid var(--glass-line); border-top-left-radius:var(--r-s);
+  backdrop-filter:blur(var(--blur-m)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-m)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line); }
+.ychat .yb.ai .ymd { white-space:normal; }
+.ychat .yb.me { align-self:flex-end; max-width:78%; background:var(--bubble-me); color:var(--bg); border-top-right-radius:var(--r-s); }
+.ychat .yb.sys { align-self:center; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-pill); color:var(--fg-2); font-size:var(--fs-sm); padding:3px 12px;
+  backdrop-filter:blur(var(--blur-m)); -webkit-backdrop-filter:blur(var(--blur-m)); }
+.ychat .ymsg.cont { margin-top:-6px; }
+.ychat .ymsg.cont .yava { visibility:hidden; }
+.ychat .ymsg.cont .yname { display:none; }
+.ychat .ymrow.me.cont { margin-top:-6px; }
+.ychat .ybrow { display:flex; align-items:flex-end; gap:6px; min-width:0; }
+.ychat .ytime { flex:none; font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; white-space:nowrap; padding-bottom:2px; }
+.ychat .ymrow.me { display:flex; align-items:flex-end; gap:6px; align-self:flex-end; justify-content:flex-end; max-width:86%; }
+.ychat .yb-un { flex:none; align-self:flex-end; margin-bottom:3px; font-size:var(--fs-xs); font-weight:var(--fw-x); color:var(--accent); line-height:1; transition:opacity .3s var(--ease); }
+.ychat .ymsg.ytyp .yb.ai { padding:13px 16px; }
+.ychat .ytdots { display:inline-flex; gap:5px; align-items:center; height:1.2em; }
+.ychat .ytdots i { width:6px; height:6px; border-radius:50%; background:var(--fg-2); animation:ytdot 1.15s ease-in-out infinite; }
+.ychat .ytdots i:nth-child(2) { animation-delay:.14s; } .ychat .ytdots i:nth-child(3) { animation-delay:.28s; }
+@keyframes ytdot { 0%,55%,100% { transform:none; opacity:.4; } 25% { transform:translateY(-4px); opacity:1; } }
+@keyframes ybIn { from { opacity:0; transform:translateY(10px) scale(.92); } }
+@keyframes ybOut { to { opacity:0; transform:translateY(8px) scale(.92); } }
+.ychat .in { animation:ybIn .3s cubic-bezier(.22,.61,.36,1) both; transform-origin:bottom left; }
+.ychat .ymrow.me.in { transform-origin:bottom right; }
+/* 날짜 바뀌는 곳(형 10-28 10:23 「심플한 이어진 구분선에 위에 … 10-28 화」) = 가는 이어진 줄 하나 + 가운데 「10-28 수」 · 색·크기 = 위 .ytime 축 */
+.ychat .ydate { display:flex; align-items:center; gap:10px; color:var(--mut); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; white-space:nowrap; margin:6px 0; }
+.ychat .ydate::before, .ychat .ydate::after { content:''; flex:1; height:1px; background:var(--glass-line); }
+@media (prefers-reduced-motion:reduce) { .ychat .in, .ychat .ytdots i { animation:none; } }
