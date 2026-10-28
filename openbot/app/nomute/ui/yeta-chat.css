@@ -1,15 +1,23 @@
 /* 대화창(채팅 부) = YETA 말풍선 규칙 그대로(형 10-28 10:19 「yeta에서 구현한 부분이 … 거의 코드 그대로 가져오면」)
    출처 = nomutefb/YETA viewer/index.html(main 5a25d8764c · 2026-08-18) 305~407줄 .ymsg·.yava·.ycol·.yname·.yb·.yb.ai·.yb.me·.yb.sys·.ymsg.cont·.ybrow·.ytime·.ymrow.me·.yb-un·.ytyp·.ytdots·ybIn/ybOut
-   셀렉터·수치·시간·곡선 = 원본 그대로 · 바뀐 것 = 아래 .ychat 토큰 자리만(원본 :root 값 = 구조 토큰 그대로 · 색 = 새 사무실 duet 토큰 · 밝게·어둡게 둘 다)
+   셀렉터·수치·시간·곡선·색 = 원본 그대로(형 10-28 11:20 「채팅이 원래 이런스타일이 아니거든? 예타스타일로」 · 11:26 「YETA 글래스 그대로」) — 토큰 = 원본 :root(48~84줄) 값
+   어둡게 = 원본 값 그대로 · 밝게(원본에 없음) = 같은 알파를 검은 바탕으로 뒤집고 글자만 진하게 · 배경 그림 = 새 사무실 것 그대로(YETA 마을 그림 0)
    더한 것 둘(원본에 없음): .ydate(날짜 바뀌는 곳 · 형 10:23) · .yb.ai .ymd(말풍선 안 글 꾸밈 = 줄바꿈은 꾸밈이 맡음) */
-.ychat {
-  --r-s:9px; --r-l:16px; --r-pill:999px;
-  --fs-body:15px; --fs-sm:12px; --fs-xs:11px; --fw-x:800; --fw-b:700; --lh-base:1.6;
-  --ease:cubic-bezier(.2,.7,.3,1); --blur-m:29px;
-  --fg:var(--duet-ink); --fg-2:var(--duet-ink-2); --mut:var(--duet-ink-3);
-  --glass:var(--duet-card); --glass-2:var(--duet-card); --glass-line:var(--duet-hair);
-  --accent:var(--duet-accent); --bubble-me:var(--duet-accent); --bg:var(--duet-on-accent);
+.ychat, .ynav, .nm-yeta {
+  --r-s:9px; --r-m:11px; --r-l:16px; --r-modal:22px; --r-pill:999px; --sp-2:12px; --sp-3:18px; --btn:34px;
+  --fs-h2:15px; --fs-h3:14px; --fs-body:15px; --fs-label:13px; --fs-sm:12px; --fs-xs:11px; --fw-x:800; --fw-b:700; --lh-base:1.6;
+  --ease:cubic-bezier(.2,.7,.3,1); --blur-m:29px; --blur-l:11px; --press-m:.9; --press-l:.95; --press-s:.9;
+  --accent:#CFFF40; --accent-rgb:207,255,64; --bubble-me:var(--accent); --bubble-ai:#1e2023;
+  --fg:#161716; --fg-2:#3a3d3a; --mut:#8B8F8A; --bg:#161716;
+  --glass:rgba(0,0,0,.005); --glass-2:rgba(0,0,0,0); --glass-line:rgba(0,0,0,.08);
+  --shadow-card:0 24px 60px rgba(0,0,0,.12);
 }
+.dark .ychat, .dark .ynav, .dark .nm-yeta {
+  --fg:#FFFFFF; --fg-2:#E7ECE7; --mut:#8B8F8A; --bg:#161716;
+  --glass:rgba(255,255,255,.005); --glass-2:rgba(255,255,255,0); --glass-line:rgba(255,255,255,.08);
+  --shadow-card:0 24px 60px rgba(0,0,0,.42);
+}
+.ychat { color:var(--fg); }
 .ychat .ymsg { display:flex; gap:8px; align-items:flex-start; max-width:86%; }
 .ychat .ymsg .yava { flex:none; width:32px; height:32px; border-radius:50%; display:grid; place-items:center; overflow:hidden; margin-top:2px; }
 .ychat .ymsg .ycol { display:flex; flex-direction:column; gap:3px; min-width:0; }
@@ -43,12 +51,12 @@
 .ychat .ydate::before, .ychat .ydate::after { content:''; flex:1; height:1px; background:var(--glass-line); }
 /* 입력칸 = YETA .yeta-in 알약(index.html 421~438 · 표면·테두리·모서리·안쪽 여백·초점 테두리·.45s 전환 · 보내기 = 동그라미 없이 강조색 그림만 · 글 가운데)
    원본 입력칸(첨부 · @부르기 · 받아쓰기) 기능은 그대로 두고 겉만 — 원본 Composer 의 form · 보내기(type=submit) · 글칸(.duet-composer-editor) 에 씌움 */
-.ychat-in { --btn:34px; --press-m:.9; --blur-l:11px; --shadow-card:var(--duet-shadow-float); }
 .ychat-in form { min-height:0; padding:5px 6px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-pill);
   backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1);
   box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); transition:border-color .45s var(--ease); }
 .ychat-in form:focus-within { border-color:color-mix(in srgb, var(--accent) 35%, transparent); }
-.ychat-in .duet-composer-editor { font-size:var(--fs-body); text-align:center; }
+.ychat-in .duet-composer-editor { font-size:var(--fs-body); text-align:center; color:var(--fg); }
+.ychat-in form button[type="button"] { color:var(--fg-2); }
 .ychat-in form button[type="submit"] { width:var(--btn); height:var(--btn); align-self:center; border:none; background:none; box-shadow:none; color:var(--accent); }
 .ychat-in form button[type="submit"]:active { transform:scale(var(--press-m)); }
 .ychat-in form button[type="submit"]:disabled { opacity:.4; pointer-events:none; }

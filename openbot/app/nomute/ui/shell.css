@@ -1,0 +1,27 @@
+/* 껍데기(ui/shell.tsx) — 판 옮김 = YETA 원본 그대로(viewer/index.html main 5a25d8764c 603줄 @keyframes ypickIn · 821·1352줄 「.ymain.tab-* … animation:ypickIn .3s var(--ease) both」 = 탭 전환 = 즉발 금지 · 패널 진입 페이드)
+   다른 점 = 원본은 숨긴 판을 display:none(다시 그림)으로 두지만, 여기선 「옮겨도 뒤 그대로」(형 11:22) 라 판을 겹쳐 두고 안 보이게만(visibility) = 스크롤·쓰던 글 그대로 */
+@keyframes ypickIn { from { opacity:0; transform:translateY(12px) scale(.985); } }
+.nm-pane { position:absolute; inset:0; display:flex; flex-direction:column; visibility:hidden; pointer-events:none; }
+.nm-pane.on { visibility:visible; pointer-events:auto; animation:ypickIn .3s var(--ease) both; }
+.nm-pane.nm-over { z-index:20; background:var(--duet-surface); }   /* 판 위에 덮는 쪽(할 일 하나 보기 등 · 원본 머리 = 뒤로) */
+.nm-col { position:relative; margin-inline:auto; display:flex; min-height:0; width:100%; max-width:430px; flex:1; flex-direction:column; }   /* 대화·목록·할 일 = 원본 폰 폭 칸 그대로(TabColumn 430px) */
+.nm-scroll { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; padding-bottom:var(--duet-tab-space,86px); }   /* 러너·설정 = 넓은 판(PageShell) · 네비에 안 가리게 아래 여백 */
+@media (prefers-reduced-motion:reduce){ .nm-pane.on { animation:none; } }
+
+/* PC 왼쪽 끝 얼굴 띠(형 11:21 「창 맨 왼쪽 끝에 붙은 세로 띠 · 얼굴 동그라미만」 · 11:23 그록봇 앱 접힌 띠 그림 · 11:24 「스크롤로 위아래」)
+   표면 = YETA 글래스 토큰(.nm-yeta · ./yeta-chat.css) · 배지 = 얼굴 오른쪽 위에 반쯤 걸친 숫자 동그라미(앱 아이콘 배지 꼴 · 99+) · 지금 방 = 테두리 */
+.nm-strip { flex:none; width:64px; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 0;
+  background:var(--glass); border-right:1px solid var(--glass-line); backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); }
+.nm-strip-faces { flex:1; min-height:0; width:100%; overflow-y:auto; scrollbar-width:none; display:flex; flex-direction:column; align-items:center; gap:8px; padding:6px 0; }
+.nm-strip-faces::-webkit-scrollbar { display:none; }
+.nm-strip-foot { display:flex; flex-direction:column; align-items:center; gap:8px; padding-top:6px; border-top:1px solid var(--glass-line); width:100%; }
+.nm-strip-btn { width:44px; height:44px; display:grid; place-items:center; border-radius:50%; color:var(--fg-2); background:none; border:none; cursor:pointer; transition:transform .28s var(--ease); }
+.nm-strip-btn:active { transform:scale(var(--press-m)); }
+.nm-face { position:relative; flex:none; width:44px; height:44px; display:grid; place-items:center; border-radius:50%; background:none; border:2px solid transparent; cursor:pointer; padding:0; transition:transform .28s var(--ease), border-color .2s; }
+.nm-face:active { transform:scale(var(--press-m)); }
+.nm-face.on { border-color:var(--accent); }
+.nm-face > img, .nm-face > span { border-radius:50%; }
+.nm-face-group { width:40px; height:40px; display:grid; place-items:center; background:var(--glass); border:1px solid var(--glass-line); }
+.nm-badge { position:absolute; top:-4px; right:-6px; min-width:18px; height:18px; padding:0 5px; display:grid; place-items:center; border-radius:var(--r-pill);
+  background:var(--accent); color:var(--bg); font-size:var(--fs-xs); font-weight:var(--fw-x); line-height:1; font-variant-numeric:tabular-nums; box-shadow:0 0 0 2px var(--duet-surface); }
+.nm-dot { position:absolute; top:0; right:0; width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 2px var(--duet-surface); }

@@ -1,17 +1,21 @@
-/* 아래 탭 전환 = YETA 「UI 메뉴킷」 포터블 v3 menu.css ① 하단 플로팅 알약 네비(.ynav)의 전환 규칙 그대로
-   출처 = nomutefb/YETA docs/portable/20260717_063156_UI메뉴킷_포터블_v3/menu.css(추출 2026-07-17 06:31 KST · YETA main 8c05e61 · 원본 = YETA viewer/index.html .ynav 블록)
-   형 10-28 09:36 「디자인을 가져오라는건 아니고 … 메뉴가 전환되는? 그거를 여기에 접목」 = 전환(안 고른 탭 = 그림만 · 고르면 알약이 늘어나며 이름이 살짝 늦게 · 눌림)은 원본 그대로
-   값만 우리 것: 시간·늦춤·곡선(--ease)·눌림(--press-s) = 원본 tokens.css 값 그대로 · 색·바탕 = 새 사무실 토큰(duet) · 셀렉터 이름(.ynav · .on · span) = 원본 그대로(킷 규율 2) */
-.ynav { --ease:cubic-bezier(.2,.7,.3,1); --press-s:.9; padding:6px 10px; gap:8px; }   /* 원본 tokens.css --ease · --press-s · 원본 .ynav 안쪽 여백·간격 */
-  .ynav button { flex:none; display:flex; align-items:center; height:40px; padding:0 17px; border-radius:9999px; color:var(--duet-ink-2); font-size:.8125rem; font-weight:600; background:transparent; border:1px solid transparent; cursor:pointer; position:relative; -webkit-tap-highlight-color:transparent;
-    transition:transform .28s var(--ease), color .2s, background-color .34s var(--ease), border-color .34s var(--ease), opacity .3s; touch-action:manipulation; }   /* 원본 그대로 · 색 = 우리 흐린 글자 */
-  .ynav button:active { transform:scale(var(--press-s)); }
-  .ynav button span { max-width:0; opacity:0; overflow:hidden; white-space:nowrap; transform:translateX(-6px);
-    transition:max-width .34s var(--ease), margin-left .34s var(--ease), transform .34s var(--ease), opacity .16s var(--ease); }   /* 접힘 = max-width 0(퇴장은 이름 먼저 사라짐) */
-  .ynav button.on { background:var(--duet-tile); border-color:color-mix(in srgb, var(--duet-ink) 8%, transparent); color:var(--duet-ink); }   /* 고른 탭 = 우리 타일 바탕(원본 = 라임 유리 · 형 「디자인은 아니고」) */
-  .ynav button.on span { max-width:4.5em; margin-left:6px; transform:none; opacity:1;
-    transition:max-width .34s var(--ease), margin-left .34s var(--ease), transform .34s var(--ease), opacity .22s .1s var(--ease); }   /* 등장 = 알약 늘어난 뒤 이름 살짝 늦게 */
-  .ynav button svg { width:20px; height:20px; flex:none; }
+/* 아래 네비 = YETA .ynav 원본 그대로(형 10-28 11:20 「예타스타일로」 · 11:26 「겉·껍데기·움직임 = YETA」 · 10:21 「네비 액티브 하게 펼쳐지는건 좋아!」)
+   출처 = nomutefb/YETA viewer/index.html(main 5a25d8764c) 795~809줄 — 셀렉터·수치·시간·곡선·색 그대로(초투명 유리 · 라임 활성 알약 · 안 고른 칸 = 그림만 · 고르면 알약이 늘며 이름이 살짝 늦게)
+   토큰 = ../ui/yeta-chat.css 의 .ynav 칸(원본 :root 값) · 자리 = 껍데기(ui/shell.tsx) 맨 위층 · 바뀐 것 = display(원본은 잠금 풀림 뒤 보임) · 가운데 자리(우리 = left/right auto) */
+.ynav { position:absolute; left:0; right:0; margin-inline:auto; width:fit-content; max-width:calc(100% - 32px); bottom:calc(14px + env(safe-area-inset-bottom)); z-index:60; display:flex; align-items:center;
+  background:var(--glass); background:color-mix(in srgb, var(--glass) 50%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-pill); padding:6px 10px; gap:8px;
+  backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1);
+  box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
+.ynav button { flex:none; display:flex; align-items:center; height:40px; padding:0 17px; border-radius:var(--r-pill); color:var(--mut); font-size:var(--fs-xs); font-weight:var(--fw-b); background:transparent; border:1px solid transparent; cursor:pointer; position:relative; -webkit-tap-highlight-color:transparent;
+  transition:transform .28s var(--ease), color .2s, background-color .34s var(--ease), border-color .34s var(--ease), opacity .3s; touch-action:manipulation; }
+.ynav button:active { transform:scale(var(--press-s)); }
+.ynav button span { max-width:0; opacity:0; overflow:hidden; white-space:nowrap; transform:translateX(-6px);
+  transition:max-width .34s var(--ease), margin-left .34s var(--ease), transform .34s var(--ease), opacity .16s var(--ease); }
+.ynav button.on { background:rgba(var(--accent-rgb),.16); border-color:rgba(var(--accent-rgb),.38); color:var(--accent);
+  box-shadow:inset 0 1px 0 var(--glass-line), 0 0 18px rgba(var(--accent-rgb),.14); }
+.ynav button.on span { max-width:4.5em; margin-left:6px; transform:none; opacity:1;
+  transition:max-width .34s var(--ease), margin-left .34s var(--ease), transform .34s var(--ease), opacity .22s .1s var(--ease); }
+.ynav button svg { width:20px; height:20px; flex:none; }
+:root:not(.dark) .ynav button.on { color:var(--fg); }   /* 밝게(원본에 없음) = 라임 글자는 흰 바탕에서 안 읽혀 글자만 진하게 · 알약 = 원본 라임 그대로 */
 
 /* 움직임 줄이기 = 멈춤(원본 reduce 블록의 메뉴 축 그대로) */
 @media (prefers-reduced-motion:reduce){ .ynav button, .ynav button span { transition:none; } }

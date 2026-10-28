@@ -24,6 +24,7 @@ export const SWAP: Record<string, string> = {
   "app/src/components/shell/chat-screen.tsx": "swap/chats.tsx",
   "app/src/components/shell/tab-bar.tsx": "swap/tab-bar.tsx",   // 「Make」 탭 뺌 · 한국어 · 할 일 수 = 결정 필요 더함
   "app/src/components/shell/menu-sheet.tsx": "ui/menu.tsx",   // 서랍 = 원본 틀 + 우리 방 목록(공지 핀·고정·안 읽음·숨기기)
+  "app/src/components/shell/app-shell.tsx": "swap/app-shell.tsx",   // 겉틀 = 우리 껍데기(ui/shell.tsx)가 로그인 뒤 공통 자리에 한 번만 · 여기 AppShell 은 지나감(형 11:22 「옮겨도 뒤 그대로」)
 };
 
 /** 원본 파일 글자 고치기(정확히 그 글자 · 못 찾으면 빌드 멈춤 = 원본 새 판에서 바뀐 곳이 바로 드러남) — 한국어 · 우리에게 없는 메뉴 숨김 */
@@ -46,10 +47,11 @@ export const PATCH: Record<string, [string, string][]> = {
   ],
   "app/src/components/shell/app-shell.tsx": [
     ["nav[aria-label=\"Main\"]", "nav[aria-label=\"큰 탭\"]"],   // 탭 높이 재기 = 우리 탭 이름과 같게(swap/tab-bar.tsx)
-    // PC = 왼쪽에 늘 열린 대화 목록 칸(형 10-28 09:48 「그록.컴 처럼」 · ui/side.tsx · 폰 = 칸 없음) — 바깥 틀을 가로로 · 원본 세로 틀은 그 안 오른쪽에 그대로
-    ['import { TabBar, tabForPath } from "./tab-bar";', 'import { TabBar, tabForPath } from "./tab-bar";\nimport { NomuteSide } from "@nomute/ui/side";'],
-    ['<div className="duet-touch flex h-svh flex-col overflow-hidden bg-duet-surface">', '<div className="duet-touch flex h-svh overflow-hidden bg-duet-surface"><NomuteSide /><div className="flex min-w-0 flex-1 flex-col overflow-hidden">'],
-    ["        ) : null}\n      </div>\n    </ChatPresenceProvider>", "        ) : null}\n      </div></div>\n    </ChatPresenceProvider>"],
+  ],
+  // 껍데기 자리 = 로그인 뒤 공통 자리(대화·설정 두 갈래 위) 한 번 — ui/shell.tsx
+  "app/src/routes/_authed.tsx": [
+    ['import { AppHotkeys } from "../lib/hotkeys/app-hotkeys";', 'import { AppHotkeys } from "../lib/hotkeys/app-hotkeys";\nimport { NomuteShell } from "@nomute/ui/shell";'],
+    ["      <Outlet />", "      <NomuteShell>\n        <Outlet />\n      </NomuteShell>"],
   ],
   "app/src/components/channels/composer/composer.tsx": [
     ['aria-label="Stop the Bot"', 'aria-label="봇 멈추기"'],

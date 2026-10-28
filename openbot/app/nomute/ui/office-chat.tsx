@@ -325,7 +325,7 @@ function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: O
 
 const MODES: [string, string][] = [["", "보통"], ["suggest", "💡 제안"], ["decide", "⏳ 결정 필요"], ["verified", "✅ 검증"]];
 
-export function OfficeChat({ room, lead }: { room: string; lead?: ReactNode }) {
+export function OfficeChat({ room, lead, active = true }: { room: string; lead?: ReactNode; active?: boolean }) {   // active = 이 판이 보임(껍데기에서 숨은 판이면 본 데까지 안 올림 = 안 읽은 수 그대로)
   const qc = useQueryClient();
   const { r, list, msgs, reads, reacts, bots, older } = useOfficeRoom(room);
   const [err, setErr] = useState("");
@@ -356,10 +356,10 @@ export function OfficeChat({ room, lead }: { room: string; lead?: ReactNode }) {
   if (baseTs.current === null && msgs.data) baseTs.current = all.at(-1)?.ts ?? 0;
   const lastId = all.at(-1)?.id;
   useEffect(() => { if (lastId) endRef.current?.scrollIntoView({ block: "end" }); }, [lastId]);
-  useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen)
+  useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen) — 보이는 때만
     const ts = all.at(-1)?.ts;
-    if (ts) void office("seen", { method: "POST", body: JSON.stringify({ seen: { [room]: { ts, at: Date.now() } } }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "seen"] })).catch(() => {});
-  }, [room, lastId]);
+    if (ts && active) void office("seen", { method: "POST", body: JSON.stringify({ seen: { [room]: { ts, at: Date.now() } } }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "seen"] })).catch(() => {});
+  }, [room, lastId, active]);
 
   const react = useMutation({
     mutationFn: ({ id, emoji }: { id: string; emoji: string }) => office<{ reactions: Record<string, Record<string, string[]>> }>(`rooms/${enc(room)}/reactions`, { method: "POST", body: JSON.stringify({ id, emoji }) }),

@@ -5,11 +5,12 @@ import { parseSearchText } from "@/lib/search-text";
 import type { RouterContext } from "@/router-context";
 import { Route as AppRoute } from "@/routes/_authed/_app";
 import { routeTree } from "./gen/routeTree.gen";
-import { RunnerScreen } from "./runner/runner-screen";
 
 /* 우리 길(원본 routes 폴더 밖) = 앱 틀(_app) 아래에 더함 · #/runner = 러너 화면(보조 02 nomute/runner · office-runner.md) */
-const runnerRoute = createRoute({ getParentRoute: () => AppRoute, path: "/runner", component: RunnerScreen });
-AppRoute.addChildren([...((AppRoute.children as AnyRoute[] | undefined) ?? []), runnerRoute]);
+/*   #/rooms = 목록 화면(형 11:26 「대화랑 그냥 분리하자」) · 둘 다 화면은 껍데기 판(ui/shell.tsx)이 그림 = 길은 자리만 */
+const runnerRoute = createRoute({ getParentRoute: () => AppRoute, path: "/runner", component: () => null });
+const roomsRoute = createRoute({ getParentRoute: () => AppRoute, path: "/rooms", component: () => null });
+AppRoute.addChildren([...((AppRoute.children as AnyRoute[] | undefined) ?? []), runnerRoute, roomsRoute]);
 
 export const router = createRouter({
   routeTree,
