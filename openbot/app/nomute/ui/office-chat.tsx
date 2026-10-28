@@ -18,6 +18,10 @@ import { t12 } from "./when";
 import "./yeta-chat.css";
 
 const enc = encodeURIComponent;
+/** 쓰던 글 = 방마다 이 탭 안에 바로 적어 둠(sessionStorage) → 새 판으로 다시 읽혀도 글칸에 되살림(뒤에 숨어 얼어 있던 탭은 서비스 워커에 「글 있음」을 못 알려 · 10-28 11:21 실측) */
+const DRAFT = (room: string) => `nm-draft:${room}`;
+const loadDraft = (room: string) => { try { return sessionStorage.getItem(DRAFT(room)) || ""; } catch { return ""; } };
+const saveDraft = (room: string, t: string) => { try { if (t.trim()) sessionStorage.setItem(DRAFT(room), t); else sessionStorage.removeItem(DRAFT(room)); } catch { /* 이 탭만 · 못 쓰면 이번만 */ } };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const CALL_FRESH = 45 * 60e3;   // 회의실 「작업 중」 = 부른 글이 45분 안일 때만(옛 화면 PR 1478 실측 · 답의 90% = 41분)
 const QUOTE = /^↩ ([^:\n]{1,24}): ([^\n]*)(?:\n|$)/;
@@ -456,7 +460,8 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
         <Composer
           agents={toAgentOptions(bots4)}
           channelId={room}
-          onTextChange={presence?.onTextChange}
+          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); }}
+          initialValue={loadDraft(room)}
           className="mt-auto w-full"
           commands={[]}
           compact
@@ -489,7 +494,7 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
                 const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) });
                 if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
               }
-              setReply(null); setMode(""); setStOpen(false); setEvT(""); setEvR("");
+              setReply(null); setMode(""); setStOpen(false); setEvT(""); setEvR(""); saveDraft(room, "");
               void qc.invalidateQueries({ queryKey: officeKeys.rooms });
             } catch (e) {
               setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 글은 입력칸에 그대로`);
