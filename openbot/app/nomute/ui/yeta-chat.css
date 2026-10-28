@@ -75,9 +75,9 @@
 .ychat .yb.ai .ymd[data-ytin="1"] + .ytin { display:none; }
 .ychat .yb.ai .ytin { display:block; float:none; text-align:right; margin:2px -3px -4px 0; }
 .ychat .yb.me .ytin { color:color-mix(in srgb, var(--bg) 55%, transparent); }
-/* 「↑ 글 처음」 = 위에 걸친 글의 시작으로(떠 있는 머리 동그라미 바로 아래 · 표면 = .yb.sys 글래스 알약 꼴 · 바탕만 판 색을 짙게 깔아 글 위에서도 읽힘 · 누름 = YETA press) */
+/* 「↑ 글 처음」 = 위에 걸친 글의 시작으로(떠 있는 머리 동그라미 바로 아래 · 표면 = .yb.sys 글래스 알약 꼴 · 바탕만 판 색을 거의 불투명(96%)하게 깔아 글 위에 겹쳐도 읽힘 · PM 16:35 · 누름 = YETA press) */
 .ychat .yjump { position:absolute; top:84px; left:0; right:0; margin-inline:auto; width:max-content; z-index:5; display:inline-flex; align-items:center; gap:4px; padding:5px 13px;
-  background:color-mix(in srgb, var(--duet-surface, var(--bg)) 86%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-pill); color:var(--fg); font-size:var(--fs-sm); font-weight:var(--fw-b);
+  background:color-mix(in srgb, var(--duet-surface, var(--bg)) 96%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-pill); color:var(--fg); font-size:var(--fs-sm); font-weight:var(--fw-b);
   backdrop-filter:blur(var(--blur-m)); -webkit-backdrop-filter:blur(var(--blur-m)); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card);
   animation:ybIn .3s cubic-bezier(.22,.61,.36,1) both; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
 .ychat .yjump:active { transform:scale(var(--press-m)); }
