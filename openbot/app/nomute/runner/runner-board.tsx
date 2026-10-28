@@ -2,8 +2,9 @@
 //   PC 줄마다: 머리(단계 점 · 이름 · 받은 때 · 도는 Claude · 잡/자리 · 부하 %) → 계기 셋(CPU·RAM(+캐시)·GPU · 쓴 양/전체) → 60분 추세(CPU·RAM 선) →
 //   도는 잡(제목 · 수신 → 발신 · 걸린 시간 · 예상 대비 진행 · 큰/작은 자리 · 자리 이름 · 시작) → 디버그 세션 줄 · 맥 = 머리 + 줄 글 · 아래 = 출력 신선도·자리 감시.
 import { type ReactNode, useEffect, useState } from "react";
+import { MicOrb } from "../swap/mic-orb";   // 생각 구슬 = 등불 구슬 그대로(새 얼굴 0 · PM 11:08)
 import {
-  agentsOf, type Agent, debugRows, type Level, levelOf, lookOf, num, type RunnerData, type RunnerJob, type RunnerRow, runningJobs, useOpen, useRunner,
+  agentsOf, type Agent, debugRows, type Level, levelOf, lookOf, num, type OutItem, type RunnerData, type RunnerJob, type RunnerRow, runningJobs, useOpen, useRunner,
 } from "./runner-data";
 
 const INK: Record<Level, string> = { green: "text-emerald-500", yellow: "text-amber-400", orange: "text-orange-500", red: "text-red-500", off: "text-muted-foreground/50" };
@@ -36,7 +37,7 @@ export function RunnerBoard({ data: given }: { data?: RunnerData }) {
         {PCS.map(([pc, name]) => <PcCard key={pc} name={name} d={data.rows[pc] ?? null} why={data.why[pc] || ""} now={now} open={open[pc] !== false} onFlip={() => flip(pc)} />)}
       </div>
       <MacCard d={data.rows.M ?? null} why={data.why.M || ""} now={now} />
-      <Footer data={data} />
+      <Footer data={data} now={now} open={open.O === true} onFlip={() => flip("O")} />
     </div>
   );
 }
@@ -62,6 +63,7 @@ function PcCard({ name, d, why, now, open, onFlip }: { name: string; d: RunnerRo
       ) : null}
       {jobs.length || dbg.length ? (   /* 접기 = 도는 잡 + 디버그 줄 같이(웹판 체브론 · 기억 = useOpen) */
         <button type="button" className="mt-3 flex w-full items-center gap-2 text-left text-xs text-muted-foreground" aria-expanded={open} onClick={onFlip}>
+          {lk.running ? <MicOrb size={18} state="thinking" /> : null}   {/* 도는 잡이 있으면 = 일하는 중 구슬(웹판 Working 생각 구슬 자리) */}
           <span>{[jobs.length ? `도는 잡 ${jobs.length}` : "", dbg.length ? `디버그 ${dbg.length}` : ""].filter(Boolean).join(" · ")}</span>
           <svg viewBox="0 0 24 24" className={`ml-auto size-4 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
         </button>
@@ -220,18 +222,48 @@ function Claudes({ list }: { list: Agent[] }) {
   );
 }
 
-/** 아래 줄 = 출력 신선도(워치독 ⑪ 판정 한 줄) · 자리 감시(형 10-25 · 문제 줄만). */
-function Footer({ data }: { data: RunnerData }) {
-  const o = data.out, items = o?.items ? Object.values(o.items) : [], bad = items.filter((x) => x.st && x.st !== "ok");
+/** 출력 신선도 단계(웹판 OST 그대로) — 이름 · 차례 · 색. */
+const OST: Record<string, [string, number, Level]> = { alert: ["경보", 0, "red"], sus: ["의심", 1, "yellow"], up: ["윗단 멈춤", 2, "orange"], ok: ["정상", 3, "green"] };
+const mins = (m: number | null | undefined) => (m == null || !Number.isFinite(m) ? "-" : m < 60 ? `${Math.round(m)}분` : m < 2880 ? `${Math.floor(m / 60)}시간 ${Math.round(m % 60)}분` : `${Math.floor(m / 1440)}일`);
+
+/** 아래 = 출력 신선도(워치독 ⑪ · 문제 줄 늘 + 나이 = 상태 바뀐 때부터 · 체브론 = 정상 줄까지 펼침 · 기억 O) · 자리 감시(형 10-25 · 문제 줄만). */
+function Footer({ data, now, open, onFlip }: { data: RunnerData; now: number; open: boolean; onFlip: () => void }) {
+  const o = data.out, rank = (x: OutItem) => (OST[x.st || "ok"] || OST.ok)[1];
+  const items = Object.entries(o?.items ?? {}).map(([id, x]) => ({ id, ...x })).sort((a, b) => rank(a) - rank(b) || String(a.ko || a.id).localeCompare(String(b.ko || b.id), "ko"));
+  const cnt = (k: string) => items.filter((x) => x.st === k).length, bad = cnt("alert"), sus = cnt("sus"), up = cnt("up"), prob = bad + sus + up;
+  const lv: Level = !o ? "off" : bad ? "red" : sus ? "yellow" : up ? "orange" : "green", shown = open ? items : items.filter((x) => x.st && x.st !== "ok");
+  const label = !o ? data.outWhy || "못 받음" : prob ? [bad && `경보 ${bad}`, sus && `의심 ${sus}`, up && `윗단 멈춤 ${up}`].filter(Boolean).join(" · ") : "모두 정상";
   const seat = data.seat?.items ?? [];
   return (
     <section className="rounded-2xl border border-border bg-card px-4 py-3 text-sm" aria-label="출력 신선도·자리 감시">
-      <p className="flex items-center gap-2">
-        <span aria-hidden className={`size-2 shrink-0 rounded-full ${!o ? BG.off : bad.length ? BG.red : BG.green}`} />
+      <button type="button" className="flex w-full items-center gap-2 text-left" aria-expanded={open} onClick={onFlip} disabled={!o}>
+        <span aria-hidden className={`size-2 shrink-0 rounded-full ${BG[lv]}`} />
         <span className="font-medium">출력 신선도</span>
-        <span className="ml-auto text-xs text-muted-foreground">{!o ? data.outWhy || "못 받음" : `정상 ${items.length - bad.length} · 문제 ${bad.length}`}</span>
-      </p>
-      {bad.length ? <p className="mt-1 text-xs text-muted-foreground">{bad.map((x) => `${x.ko} ${x.verdict || x.st}`).join(" · ")}</p> : null}
+        <span className="truncate text-xs text-muted-foreground">· {label}</span>
+        <span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground">{items.length - prob}<span className="mx-0.5 opacity-50">/</span>{items.length}</span>
+        {o ? <svg viewBox="0 0 24 24" className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 9l6 6 6-6" /></svg> : null}
+      </button>
+      {shown.length ? (
+        <ol className="mt-2 flex flex-col divide-y divide-border" aria-label="출력 줄">
+          {shown.map((x) => {
+            const st = OST[x.st || "ok"] || OST.ok, bad1 = !!x.st && x.st !== "ok", t = x.last ? Date.parse(x.last) : NaN;
+            const tail = x.class || (bad1 && Array.isArray(x.why) ? x.why.join(" · ") : "");   // 꼴(경보) · 까닭(의심·윗단)
+            return (
+              <li key={x.id} className="flex items-start gap-2 py-2">
+                <span aria-hidden className={`mt-1.5 size-1.5 shrink-0 rounded-full ${BG[st[2]]}`} />
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-baseline gap-2"><span className="truncate text-sm">{x.ko || x.id}</span>{bad1 && !Number.isNaN(t) ? <span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground" title="상태 바뀐 때부터">{mins((now * 1000 - t) / 60000)}</span> : null}</p>
+                  <p className="truncate text-xs text-muted-foreground">{x.path || ""}{tail ? ` → ${tail}` : ""}</p>
+                  <p className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span className={`rounded px-1 font-semibold ${bad1 ? `${INK[st[2]]} bg-foreground/10` : "bg-foreground/10"}`}>{st[0]}</span>
+                    <span>임계 {mins(x.max)}{x.dup_of ? ` · 이슈는 손 감시 ${x.dup_of}` : ""}{x.issue ? ` · #${x.issue}` : ""}</span>
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      ) : null}
       {seat.length ? (
         <ul className="mt-2 flex flex-col gap-1 border-t border-border pt-2">
           {seat.map((x) => <li key={x.code} className="flex gap-2 text-xs"><span aria-hidden className={`mt-1 size-1.5 shrink-0 rounded-full ${BG.orange}`} /><span>{x.text}</span><span className="ml-auto shrink-0 tabular-nums text-muted-foreground">{x.since?.slice(11, 16)}</span></li>)}

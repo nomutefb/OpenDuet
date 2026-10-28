@@ -18,7 +18,9 @@ export type RunnerRow = {
   cache?: { cap?: number; end?: number; gb?: (number | null)[]; clr?: string; rest?: string };   // 60분 캐시(분마다 GB · 비운 분 clr · 쉼 rest)
   trend?: { step?: number; end?: number; cpu?: (number | null)[]; ram?: (number | null)[] };
 };
-export type RunnerOut = { summary?: string; verdict?: string; broken?: string[]; checked?: string; items?: Record<string, { ko?: string; st?: string; verdict?: string }> };
+/** 출력 신선도 줄(워치독 ⑪ · 정본 = editor scraper/output_watch.py) · st = alert 경보 · sus 의심 · up 윗단 멈춤 · ok 정상 · last = 상태 바뀐 때 · max = 임계 분. */
+export type OutItem = { ko?: string; path?: string; st?: string; verdict?: string; last?: string; max?: number; class?: string; why?: string[]; dup_of?: string | null; issue?: string | number };
+export type RunnerOut = { summary?: string; verdict?: string; broken?: string[]; checked?: string; at?: string; items?: Record<string, OutItem> };
 export type RunnerData = {
   ok?: boolean; now?: number; rows: Record<string, RunnerRow | null>; why: Record<string, string>;
   out?: RunnerOut | null; outWhy?: string; seat?: { ok?: boolean; items?: { code: string; pc: string; text: string; since?: string }[] } | null;
@@ -79,12 +81,12 @@ export function agentsOf(d: RunnerRow | null, problem: boolean): Agent[] {
 export const debugRows = (d: RunnerRow | null) =>
   (d?.dbg ?? []).map(String).map((x) => { const [name = "", st = "", v = ""] = x.split("|"); const s = st === "on" || st === "login" ? st : "off"; return { name, st: s, value: s === "off" ? `꺼짐${v ? " · " + v : ""}` : v }; });
 
-/** 펼침 기억(PC 마다 · 웹판 runner.html 과 같은 열쇠 = 같은 주소라 같이 감 · 보조 03 초안에서 옮김) · 기억 못 하면 펼침. */
+/** 펼침 기억(PC 마다 + O = 출력 신선도 정상 줄 · 웹판 runner.html 과 같은 열쇠 = 같은 주소라 같이 감 · 보조 03 초안에서 옮김) · 기억 못 하면 PC 펼침 · 정상 줄 접힘. */
 const OPEN_KEY = "nm_runner_open";
 export function useOpen(): [Record<string, boolean>, (pc: string) => void] {
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
-    try { const o = JSON.parse(localStorage.getItem(OPEN_KEY) || "null"); if (o && typeof o === "object") return { A: o.A !== false, B: o.B !== false }; } catch { /* 저장소 없음 = 펼침 */ }
-    return { A: true, B: true };
+    try { const o = JSON.parse(localStorage.getItem(OPEN_KEY) || "null"); if (o && typeof o === "object") return { A: o.A !== false, B: o.B !== false, O: o.O === true }; } catch { /* 저장소 없음 = 펼침 */ }
+    return { A: true, B: true, O: false };
   });
   const flip = (pc: string) => setOpen((o) => {
     const n = { ...o, [pc]: !o[pc] };
