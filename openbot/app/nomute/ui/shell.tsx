@@ -25,6 +25,7 @@ import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
 import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { IssueView } from "./issue";
+import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
 import { RoomList, useRoomOrder } from "./room-list";
 import { useWide } from "./side";
@@ -120,6 +121,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           {show("chat", (
             <div className="nm-col">
               <ShellHeader floating menuOpen={false} onMenu={() => {}} />
+              <PinBar room={room} key={"pin:" + room} />   {/* 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) */}
               <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && !modal && !("page" in where)} /></main>
             </div>
           ))}

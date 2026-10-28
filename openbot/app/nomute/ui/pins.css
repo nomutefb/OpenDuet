@@ -1,0 +1,28 @@
+/* 고정 띠·고정 이력 판(./pins.tsx) — 띠 = YETA 챗 머리 알약(.yeta-h · 껍데기 .nm-modal-h)과 같은 유리 · 판 = 껍데기 모달(.nm-modal)과 같은 바탕·머리 · 값 = 토큰만(새 색 0) */
+/* 자리 = 대화 판 머리(원본 ShellHeader floating · 구슬 아래 끝 ≈ 82px) 바로 아래 · 머리 페이드(z-20) 위 · 글 목록 위에 겹침(카톡 공지 꼴) */
+.nm-pin-slot { position:absolute; top:calc(84px + env(safe-area-inset-top)); left:0; right:0; z-index:21; display:flex; flex-direction:column; pointer-events:none; }
+.nm-pin-slot > * { pointer-events:auto; }
+.nm-pinbar { display:flex; align-items:center; gap:4px; margin:0 10px; padding:4px 4px 4px 12px; border-radius:var(--r-l); border:1px solid var(--glass-line);
+  background:linear-gradient(var(--glass), var(--glass)), color-mix(in srgb, var(--duet-surface) 75%, transparent);
+  backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); animation:ypickIn .3s var(--ease) both; }
+.nm-pinbar-main { display:flex; flex:1; min-width:0; align-items:center; gap:10px; padding:4px 0; background:none; border:none; color:var(--fg); text-align:left; cursor:pointer; }
+.nm-pinbar-main > svg { flex:none; color:var(--accent); }
+:root:not(.dark) .nm-pinbar-main > svg { color:var(--fg); }
+.nm-pinbar-t { display:flex; min-width:0; flex-direction:column; }
+.nm-pinbar-t b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-label); font-weight:var(--fw-b); }
+.nm-pinbar-t small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-xs); color:var(--mut); }
+.nm-pinbar-fold { flex:none; width:var(--btn); height:var(--btn); display:grid; place-items:center; background:none; border:none; color:var(--fg-2); cursor:pointer; transform:rotate(90deg); transition:transform .28s var(--ease); }
+.nm-pinbar-fold:active, .nm-pin-mini:active, .nm-pinbar-main:active { transform:scale(var(--press-m)); }
+.nm-pinbar-fold:active { transform:rotate(90deg) scale(var(--press-m)); }
+.nm-pin-mini { align-self:flex-end; margin:0 12px; width:var(--btn); height:var(--btn); display:grid; place-items:center; border-radius:50%; border:1px solid var(--glass-line); color:var(--accent);
+  background:linear-gradient(var(--glass), var(--glass)), color-mix(in srgb, var(--duet-surface) 75%, transparent); backdrop-filter:blur(var(--blur-l)); -webkit-backdrop-filter:blur(var(--blur-l)); cursor:pointer; }
+:root:not(.dark) .nm-pin-mini { color:var(--fg); }
+.nm-pinsheet { position:absolute; inset:0; z-index:40; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), var(--duet-surface); animation:ypickIn .3s var(--ease) both; }
+.nm-pinsheet-b { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:10px; padding:calc(70px + env(safe-area-inset-top)) 14px var(--duet-tab-space,86px); }
+.nm-pin-card { gap:8px; }
+.nm-pin-now { padding:2px 9px; border-radius:var(--r-pill); background:rgba(var(--accent-rgb),.16); border:1px solid rgba(var(--accent-rgb),.38); color:var(--accent); font-weight:var(--fw-b); }
+:root:not(.dark) .nm-pin-now { color:var(--fg); }
+.nm-pin-body { display:block; width:100%; padding:0; background:none; border:none; color:var(--fg); font-size:14px; line-height:1.6; text-align:left; overflow-wrap:anywhere; cursor:pointer; }
+.nm-pin-act { padding:5px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg-2); font-size:var(--fs-xs); font-weight:var(--fw-b); cursor:pointer; }
+.nm-pin-act:disabled { opacity:.5; }
+@media (prefers-reduced-motion:reduce){ .nm-pinbar, .nm-pinsheet { animation:none; } }
