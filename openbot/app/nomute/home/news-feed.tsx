@@ -8,6 +8,7 @@
 //   사진 자르기·비율 = 원본 그대로(황금비 상한 · cover) = 카드가 길어진 만큼 사진이 덜 잘리고 아래 출처 줄이 더 보임.
 //   보이는 후보 = 에디터 scHomeCandidates 와 같은 거름(home-pool.ts · 서버 트리아지·병합 + 이 기기 기록 · 같은 기사 접기·자동 묶음) · PICK 상태 = 안 보임.
 import { useEffect, useRef } from "react";
+import { hookFrame, toneFrame } from "../ui/inapp";
 import { homePool } from "./home-pool";
 import { SummaryButton } from "./summary-button";
 
@@ -46,19 +47,10 @@ const pickUrl = (c: Cand): string => (c._disp ? pickUrl(c._disp) : hpOk(c) && c.
 const pubIso = (c: Cand): string | undefined => (c._disp ? pubIso(c._disp) : hpOk(c) ? c.hp : c.published);
 const homeMeta = (c: Cand) => { let d = c; while (d._disp) d = d._disp; return { title: (d.title_ko && d.title_ko_of === d.title ? d.title_ko : "") || d.title || "", published: { at: pubIso(c), sourceUrl: pickUrl(c), sourceName: d.media } }; };   // 묶음 = 따라간 형제의 제목·시각(scHomeMetadata)
 
-/** 품은 화면 톤 = YETA(ui/yeta-settings.css 값과 같음) · 간소 = 팔로워 띠·PICK 뺌 · 바탕 = 비움(앱 바탕이 비침). */
-const TONE = (dark: boolean) => `:root{color-scheme:${dark ? "dark" : "light"};--modern-space-bg:transparent;--modern-page:transparent;--modern-stage:transparent;
---modern-fg:${dark ? "#FFFFFF" : "#161716"};--modern-ink:${dark ? "#FFFFFF" : "#161716"};--modern-mut:${dark ? "#8B8F8A" : "#6f736e"};--modern-muted:${dark ? "#8B8F8A" : "#6f736e"};
---modern-accent:${dark ? "#CFFF40" : "#4f7a00"};--modern-accent-rgb:${dark ? "207,255,64" : "79,122,0"};--modern-on-accent:${dark ? "#161716" : "#ffffff"};
---modern-line:${dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.09)"};--modern-line2:${dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)"};
---modern-glass-edge:${dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.09)"};--modern-glass-highlight:${dark ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.6)"};
---modern-card:${dark ? "rgba(255,255,255,.005)" : "rgba(0,0,0,.02)"};--modern-glass2:${dark ? "rgba(255,255,255,.005)" : "rgba(0,0,0,.02)"};
---modern-well:${dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.03)"};--modern-control-glass:${dark ? "rgba(255,255,255,.05)" : "rgba(0,0,0,.04)"};
---modern-modal-head-bg:${dark ? "rgba(22,23,22,.85)" : "rgba(255,255,255,.85)"};--modern-action-symbol:${dark ? "#fff" : "#161716"};
---modern-silk-glass:${dark ? "rgba(255,255,255,.005)" : "rgba(0,0,0,.02)"};--modern-panel-shadow:inset 0 1px 0 ${dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.09)"},0 24px 60px rgba(0,0,0,${dark ? ".42" : ".08"})}
-.deck{--card-solid:${dark ? "#1b1c1b" : "#f4f5f3"}}
+/** 품은 화면 톤 = YETA(ui/inapp.ts yetaTone · 결의 방·토큰·피드백과 같은 값)에 덱만의 덧줄 · 간소 = 팔로워 띠·PICK 뺌 */
+const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--card-solid:${dark ? "#1b1c1b" : "#f4f5f3"}}
 .practical-main{--reader-top-gap:0px;--reader-dock-clear:0px;--menu-dock-gap:0px;--modern-menu-height:0px;--home-pulse-h:0px!important}
-html,body{background:transparent!important}#home-pulse{display:none!important}.reader-actions .pick-control{display:none!important}`;
+#home-pulse{display:none!important}.reader-actions .pick-control{display:none!important}`;
 
 export function NewsFeed() {
   const frame = useRef<HTMLIFrameElement>(null);
@@ -104,21 +96,11 @@ export function NewsFeed() {
     const t1 = setInterval(() => { if (!document.hidden) void load(); }, OVERLAP_EVERY);
     return () => { live = false; clearInterval(t1); window.removeEventListener("message", onMsg); document.removeEventListener("visibilitychange", onVis); };
   }, []);
-  useEffect(() => {   // 품은 화면 톤 = 앱의 어둡게·밝게를 따라 덧씌움(바뀌면 다시)
+  useEffect(() => {   // 품은 화면 톤 = 앱의 어둡게·밝게를 따라 덧씌움 · 카드 출처 링크(원본 target=_blank) = 앱 안 #/web(ui/inapp.ts · 형 15:32)
     const el = frame.current;
-    if (!el) return;
-    const paint = () => {
-      const doc = el.contentDocument;
-      if (!doc || !doc.head) return;
-      let s = doc.getElementById("nm-yeta-tone") as HTMLStyleElement | null;
-      if (!s) { s = doc.createElement("style"); s.id = "nm-yeta-tone"; doc.head.appendChild(s); }
-      s.textContent = TONE(document.documentElement.classList.contains("dark"));
-    };
-    el.addEventListener("load", paint);
-    paint();
-    const mo = new MutationObserver(paint);
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => { el.removeEventListener("load", paint); mo.disconnect(); };
+    const offTone = toneFrame(el, DECK);
+    const offLinks = hookFrame(el);
+    return () => { offTone(); offLinks(); };
   }, []);
   const onLoad = () => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type: "connect" }, location.origin);
   return (

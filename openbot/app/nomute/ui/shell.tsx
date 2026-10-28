@@ -5,6 +5,7 @@
 //     결의 방·토큰·피드백 = 에디터 원본 화면(viewer/gyeol-room.html · tokens.html · feedback.html) 그대로 띄움(위젯 탭과 같은 원본 · 새로 짜기 0) · 설정 = 원본 settings 화면(보조 03 YETA 설정)
 //   에디터 판 = 보조 03 `nomute/editor-menu/screen.tsx` 의 EditorMenuScreen(그 자리·이름이면 저절로 끼움 · 없으면 「준비 중」 · office-editor-menu.md)
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
+//   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ComponentType, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
 import { AttentionNotifier } from "@/components/bot-profile/attention";
@@ -22,6 +23,7 @@ import { RunnerScreen } from "../runner/runner-screen";
 import { TabBar } from "../swap/tab-bar";
 import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
 import { FaceImg, FaceStack } from "./faces";
+import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { OfficeChat } from "./office-chat";
 import { RoomList, useRoomOrder } from "./room-list";
 import { useWide } from "./side";
@@ -40,7 +42,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
 ];
 const FRAME: Partial<Record<Modal, string>> = { gyeol: "/gyeol-room.html", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트)
 
-type Where = { pane: Pane } | { modal: Modal } | { page: true } | { bare: true };
+type Where = { pane: Pane } | { modal: Modal } | { web: true } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
 export function whereFor(pathname: string): Where {
   const p = pathname.replace(/\/+$/, "") || "/";
@@ -50,6 +52,7 @@ export function whereFor(pathname: string): Where {
   if (p === "/editor") return { pane: "editor" };
   const m = MODALS.find((x) => x.to === p);
   if (m) return { modal: m.id };
+  if (p === "/web") return { web: true };   // 앱 밖 주소 = 앱 안 한 겹(#/web?u=…)
   if (/^\/(onboarding|sign)/.test(p)) return { bare: true };
   return { page: true };
 }
@@ -65,6 +68,7 @@ const EditorMenu = editorMods["../editor-menu/screen.tsx"]
 
 export function NomuteShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const nav = useNavigate();
   const where = whereFor(pathname);
   const wide = useWide();
@@ -72,8 +76,13 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const [base, setBase] = useState<Pane>(() => ("pane" in where ? where.pane : "chat"));   // 모달·덮는 쪽 아래에 깔린 판
   const [open, setOpen] = useState<Set<Pane>>(() => new Set(["pane" in where ? where.pane : "chat"]));
   const pane = "pane" in where ? where.pane : base;
-  const modal = "modal" in where ? where.modal : null;
+  const web = "web" in where ? new URLSearchParams(searchStr).get("u") || "" : null;
+  const [under, setUnder] = useState<Modal | null>(null);   // #/web 아래에 깔린 앞 모달(돌아오면 그대로)
+  const modal = "modal" in where ? where.modal : web != null ? under : null;
+  useEffect(() => listenAppLinks(), []);
   useEffect(() => {
+    if ("modal" in where) setUnder(where.modal);
+    else if ("pane" in where) setUnder(null);
     if (!("pane" in where)) return;
     if (where.pane === "chat") setRoom(roomOf(pathname));
     setBase(where.pane);
@@ -89,6 +98,10 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const show = (id: Pane, node: ReactNode) =>
     open.has(id) ? <section key={id} className={`nm-pane ${pane === id ? "on" : ""}`} aria-hidden={pane !== id} inert={pane !== id || undefined}>{node}</section> : null;
   const closeModal = () => void nav({ to: paneHref(base, room) });
+  const closeWeb = () => {   // 앞 길이 앱 안이면 뒤로(앞 판·모달 그대로) · 처음부터 #/web 이면 깔린 판으로
+    if (((history.state as { __TSR_index?: number } | null)?.__TSR_index ?? 0) > 0) history.back();
+    else void nav({ to: under ? MODALS.find((x) => x.id === under)!.to : paneHref(base, room) });
+  };
   const M = modal ? MODALS.find((x) => x.id === modal) : undefined;
   return (
     <ChatPresenceProvider serverWork={serverWork}>
@@ -118,22 +131,55 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           ) : null}
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
-            <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label}>
+            <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label} inert={web != null || undefined}>
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>
               </div>
-              <div className={FRAME[M.id] ? "nm-modal-b" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
-                {FRAME[M.id] ? <iframe title={M.label} src={FRAME[M.id]} className="nm-modal-frame" />
+              <div className={FRAME[M.id] ? "nm-modal-b frame" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
+                {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><RunnerScreen /></div>
                   : <div className="nm-scroll"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
               </div>
             </div>
           ) : null}
+          {web != null ? <WebLayer u={web} onClose={closeWeb} /> : null}
         </div>
       </div>
     </ChatPresenceProvider>
+  );
+}
+
+/** 품은 원본 화면(같은 사이트 에디터 화면 · 남의 사이트) — 안 링크·새 창 = 앱 안(hookFrame) · 겉 = YETA 톤(toneFrame · --modern-* 쓰는 화면만) · 남의 사이트는 손 못 댐 = 그대로 */
+function FramePage({ src, title, onTitle }: { src: string; title: string; onTitle?: (t: string) => void }) {
+  const ref = useRef<HTMLIFrameElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    const offs = [hookFrame(el), toneFrame(el)];
+    const name = () => { try { const t = el?.contentDocument?.title; if (t && onTitle) onTitle(t); } catch { /* 남의 사이트 = 못 읽음 */ } };
+    el?.addEventListener("load", name);
+    return () => { offs.forEach((f) => f()); el?.removeEventListener("load", name); };
+  }, [src]);   // eslint-disable-line react-hooks/exhaustive-deps
+  return <iframe ref={ref} title={title} src={src} className="nm-modal-frame" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" />;
+}
+
+/** #/web 한 겹 — 머리 = 「< 이름」(같은 사이트 = 그 화면 제목 · 남의 사이트 = 사이트 이름) · 남의 사이트가 품기를 막아 빈 화면이면 오른쪽 지구 단추 = 밖에서 열기(그때만 쓰는 비상구) */
+function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
+  const [title, setTitle] = useState<[string, string]>(["", ""]);
+  const ext = /^https?:\/\//i.test(u);
+  let host = "";
+  try { host = ext ? new URL(u).hostname.replace(/^(www|m)\./, "") : ""; } catch { /* 이름 없음 */ }
+  const name = ext ? host : title[0] === u && title[1] ? title[1] : "에디터";
+  return (
+    <div className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={name}>
+      <div className="nm-modal-h">
+        <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
+        <b className="min-w-0 flex-1 truncate">{name}</b>
+        {ext ? <a data-nm-out href={u} target="_blank" rel="noopener" className="nm-modal-back" aria-label="밖에서 열기(이 사이트가 앱 안 보기를 막을 때)"><DuetIcon name="globe" size={19} /></a> : null}
+      </div>
+      <div className="nm-modal-b frame"><FramePage key={u} src={frameUrl(u)} title={name} onTitle={(t) => setTitle([u, t])} /></div>
+    </div>
   );
 }
 

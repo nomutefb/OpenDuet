@@ -3,8 +3,11 @@
 //   라디얼 단추 .raditem[data-act="ask"] 를 누름 → 에디터 #tooldlg 가 그 도구를 엶 · 그 창이 닫히면(에디터 X · 뒤로) 모달도 닫힘(홈 그대로).
 //   중첩 셸 차단(에디터 01 part) = 부모에 #tooldlg 가 있을 때만 걸림 = 이 앱엔 없음 → 안 걸림 · 품은 에디터는 처음 연 뒤 그대로 둠(다시 열 때 빠름) ·
 //   모달 = body 로 띄움(껍데기 판 옮김 움직임 transform 안에 갇히지 않게) · 토큰 범위 .yeta-set 같이.
+//   안 링크·새 창 = 앱 안 #/web(ui/inapp.ts hookFrame · 형 15:32) — 그동안 이 창은 잠깐 비켜 있다가 「<」로 돌아오면 그대로 다시 뜸 · 네비 = 창 위(아래 칸 = 네비 자리)
+import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { hookFrame } from "../ui/inapp";
 
 const SRC = "/?ui=classic";
 const BOOT_MS = 20_000;
@@ -12,6 +15,13 @@ const BOOT_MS = 20_000;
 export function SummaryButton() {
   const [open, setOpen] = useState(false), [mounted, setMounted] = useState(false), [ready, setReady] = useState(false), [err, setErr] = useState("");
   const frame = useRef<HTMLIFrameElement>(null);
+  const onWeb = useRouterState({ select: (s) => s.location.pathname === "/web" });
+  const [parked, setParked] = useState(false);
+  useEffect(() => {
+    if (onWeb && open) { setParked(true); setOpen(false); }
+    else if (!onWeb && parked) { setParked(false); setOpen(true); }
+  }, [onWeb]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => (mounted ? hookFrame(frame.current) : undefined), [mounted]);
   useEffect(() => {
     if (!open || !mounted) return;
     let live = true, mo: MutationObserver | null = null;
@@ -46,8 +56,8 @@ export function SummaryButton() {
       </button>
       {mounted ? createPortal(
         <div role="dialog" aria-modal="true" aria-label="뉴스 요약" hidden={!open}
-          className="yeta-set fixed inset-0 z-[60] grid place-items-center bg-black/50 md:p-6" onClick={(e) => { if (e.target === e.currentTarget) hide(); }}>
-          <div className="relative h-svh w-full overflow-hidden bg-[var(--bg)] md:h-[90svh] md:max-w-3xl md:rounded-[22px]">
+          className="yeta-set fixed inset-0 z-[55] grid place-items-center bg-black/50 pb-[calc(86px+env(safe-area-inset-bottom))] md:p-6 md:pb-[96px]" onClick={(e) => { if (e.target === e.currentTarget) hide(); }}>
+          <div className="relative h-full w-full overflow-hidden bg-[var(--bg)] md:max-h-[90svh] md:max-w-3xl md:rounded-[22px]">
             {!ready ? <p className="absolute inset-0 grid place-items-center text-[13px] text-[var(--mut)]" role={err ? "alert" : undefined}>{err || "뉴스 요약 여는 중…"}</p> : null}
             <iframe ref={frame} src={SRC} title="뉴스 요약" className={`size-full border-0 ${ready ? "" : "opacity-0"}`} />
           </div>

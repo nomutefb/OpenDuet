@@ -11,8 +11,8 @@ import { routeTree } from "./gen/routeTree.gen";
 const runnerRoute = createRoute({ getParentRoute: () => AppRoute, path: "/runner", component: () => null });
 const roomsRoute = createRoute({ getParentRoute: () => AppRoute, path: "/rooms", component: () => null });
 const homeRoute = createRoute({ getParentRoute: () => AppRoute, path: "/home", component: () => null });   // #/home = 홈 판(보조 02 nomute/home)
-/* 네비 다섯 칸·서랍(형 12:24~12:26) = #/editor(에디터 판) · #/gyeol·#/tokens·#/feedback(서랍 모달 · 에디터 원본 화면) */
-const more = ["/editor", "/gyeol", "/tokens", "/feedback"].map((path) => createRoute({ getParentRoute: () => AppRoute, path, component: () => null }));
+/* 네비 다섯 칸·서랍(형 12:24~12:26) = #/editor(에디터 판) · #/gyeol·#/tokens·#/feedback(서랍 모달 · 에디터 원본 화면) · #/web?u=(앱 밖 주소 = 앱 안 한 겹 · ui/inapp.ts) */
+const more = ["/editor", "/gyeol", "/tokens", "/feedback", "/web"].map((path) => createRoute({ getParentRoute: () => AppRoute, path, component: () => null }));
 AppRoute.addChildren([...((AppRoute.children as AnyRoute[] | undefined) ?? []), runnerRoute, roomsRoute, homeRoute, ...more]);
 
 export const router = createRouter({

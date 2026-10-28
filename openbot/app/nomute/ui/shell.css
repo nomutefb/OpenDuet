@@ -44,7 +44,7 @@
 
 /* 모달(서랍 항목) = YETA 시트(.ycd · index.html 1104~1106줄 「position:fixed; inset:0; z-index:6 … animation:ypickIn .3s」) 꼴 — 판 위에 덮고 닫으면 아래 판 그대로 · 네비는 모달 아래(형 12:24 PM 풀이)
    머리 = YETA 챗 머리 알약(.yeta-h · 207~214줄 · 뒤로 = .yeta-back) · 결의 방·토큰·피드백 = 에디터 원본 화면을 안에 그대로 */
-.nm-modal { position:absolute; inset:0; z-index:70; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), var(--duet-surface); animation:ypickIn .3s var(--ease) both; }
+.nm-modal { position:absolute; inset:0; z-index:50; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), var(--duet-surface); animation:ypickIn .3s var(--ease) both; }
 .nm-modal-h { position:absolute; top:calc(10px + env(safe-area-inset-top)); left:10px; right:10px; z-index:3; display:flex; align-items:center; gap:8px; padding:7px 9px;
   background:linear-gradient(var(--glass), var(--glass)), color-mix(in srgb, var(--duet-surface) 75%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-pill);
   backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
@@ -52,7 +52,9 @@
 .nm-modal-back { flex:none; width:var(--btn); height:var(--btn); display:grid; place-items:center; background:none; border:none; color:var(--fg-2); cursor:pointer; transition:transform .28s var(--ease); }
 .nm-modal-back:active { transform:scale(var(--press-m)); }
 .nm-modal-b { position:relative; display:flex; min-height:0; flex:1; flex-direction:column; padding-top:calc(64px + env(safe-area-inset-top)); }
-.nm-modal-b .nm-scroll { padding-bottom:24px; }
+.nm-modal-b .nm-scroll { padding-bottom:var(--duet-tab-space,86px); }   /* 네비 = 모달 위(형 「네비게이션은 유지」 · office-inapp.md) → 끝 줄이 네비에 안 가리게 */
+.nm-modal-b.frame { padding-bottom:var(--duet-tab-space,86px); }   /* 품은 화면 = 네비 위에서 끝남(남의 사이트는 안에 여백을 못 넣음) */
+.nm-modal.nm-web { z-index:52; }   /* #/web = 앞 모달 위 한 겹 · 네비(60)·서랍 아래 */
 .nm-modal-b.flush { padding-top:0; }   /* 할 일·러너·설정 = 판이 유리 알약 밑으로 지나감(YETA) · 할 일은 원본 ScreenScroll 윗여백(100px)이 곧 알약 자리 — 전엔 64+100 두 겹이라 위가 텅 빔 */
 .nm-modal-b.flush > .nm-scroll { padding-top:calc(64px + env(safe-area-inset-top)); }
 .nm-modal-frame { flex:1; width:100%; border:0; background:transparent; }
