@@ -123,7 +123,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>
               </div>
-              <div className="nm-modal-b">
+              <div className={FRAME[M.id] ? "nm-modal-b" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
                 {FRAME[M.id] ? <iframe title={M.label} src={FRAME[M.id]} className="nm-modal-frame" />
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><RunnerScreen /></div>
@@ -140,8 +140,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
 /** 목록 화면(카톡식 · 형 11:26 「대화랑 그냥 분리하자」) — 방 누르면 그 대화 판으로 */
 function RoomsPane() {
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-6 pb-[var(--duet-tab-space,86px)]">
-      <h1 className="px-3 pb-3 text-[22px] font-bold">대화</h1>
+    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-4 pb-[var(--duet-tab-space,86px)]">
+      <h1 className="sr-only">대화방</h1>   {/* 판 위 큰 제목 0(PM 13:04 · 형 「공간」 · 지금 판 = 네비 「대화방」 칸) */}
       <RoomList big />
     </div>
   );

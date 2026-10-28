@@ -53,5 +53,7 @@
 .nm-modal-back:active { transform:scale(var(--press-m)); }
 .nm-modal-b { position:relative; display:flex; min-height:0; flex:1; flex-direction:column; padding-top:calc(64px + env(safe-area-inset-top)); }
 .nm-modal-b .nm-scroll { padding-bottom:24px; }
+.nm-modal-b.flush { padding-top:0; }   /* 할 일·러너·설정 = 판이 유리 알약 밑으로 지나감(YETA) · 할 일은 원본 ScreenScroll 윗여백(100px)이 곧 알약 자리 — 전엔 64+100 두 겹이라 위가 텅 빔 */
+.nm-modal-b.flush > .nm-scroll { padding-top:calc(64px + env(safe-area-inset-top)); }
 .nm-modal-frame { flex:1; width:100%; border:0; background:transparent; }
 @media (prefers-reduced-motion:reduce){ .nm-drawer, .nm-modal { animation:none; } }

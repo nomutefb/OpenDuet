@@ -1,4 +1,4 @@
-// 러너 화면 몸통(새 사무실 꼴 · 토큰·카드·점 = 이 앱 것 · 숫자·칸 = 웹판 runner.html 그대로) — 틀(PageShell)은 runner-screen.tsx.
+// 러너 화면 몸통(새 사무실 꼴 · 토큰·카드·점 = 이 앱 것 · 숫자·칸 = 웹판 runner.html 그대로) — 틀은 runner-screen.tsx.
 //   PC 줄마다: 머리(단계 점 · 이름 · 받은 때 · 도는 Claude · 잡/자리 · 부하 %) → 계기 셋(CPU·RAM(+캐시)·GPU · 쓴 양/전체) → 60분 추세(CPU·RAM 선) →
 //   도는 잡(제목 · 수신 → 발신 · 걸린 시간 · 예상 대비 진행 · 큰/작은 자리 · 자리 이름 · 시작) → 디버그 세션 줄 · 맥 = 머리 + 줄 글 · 아래 = 출력 신선도·자리 감시.
 import { type ReactNode, useEffect, useState } from "react";
