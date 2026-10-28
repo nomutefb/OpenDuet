@@ -1,5 +1,5 @@
 // 원본 components/shell/tab-bar.tsx 자리 — 아래 네비 = YETA .ynav 원본 그대로(./ynav.css · 형 10-28 11:20 「예타스타일로」 · 10:21 「네비 액티브 하게 펼쳐지는건 좋아!」)
-// 칸 = 홈(맨 앞 · 형 11:27 「메인 대시보드」 · 보조 02 nomute/home) · 대화 · 목록(폰만 · 따로 화면 · PC 는 왼쪽 얼굴 띠) · 할 일 · 러너 · 설정(오른쪽 끝) — 맨 위 ≡·「형」을 여기로(형 10:22) · 자리 = 껍데기(ui/shell.tsx) 맨 위층
+// 칸 = 홈(맨 앞 · 형 11:27 「메인 대시보드」 · 보조 02 nomute/home) · 목록(대화방 · 폰만 · 따로 화면 · PC 는 왼쪽 얼굴 띠) · 대화 · 할 일 · 러너 · 설정(오른쪽 끝) — 맨 위 ≡·「형」을 여기로(형 10:22) · 자리 = 껍데기(ui/shell.tsx) 맨 위층
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { DuetIcon, type DuetIconName } from "@/components/duet/icons";
@@ -16,8 +16,8 @@ export type ShellTab = "chat" | "tasks" | "make";
 
 const TABS: { id: Pane; to: "/home" | "/" | "/rooms" | "/tasks" | "/runner" | "/settings"; icon: DuetIconName; label: string }[] = [
   { id: "home", to: "/home", icon: "dashboard", label: "홈" },
+  { id: "rooms", to: "/rooms", icon: "menu", label: "목록" },   // 대화방 목록 = 홈 바로 옆(형 12:22 「대화방이 일반적으로 더 우선 메뉴라 더 좌측으로」)
   { id: "chat", to: "/", icon: "chat", label: "대화" },
-  { id: "rooms", to: "/rooms", icon: "menu", label: "목록" },
   { id: "tasks", to: "/tasks", icon: "tasks", label: "할 일" },
   { id: "runner", to: "/runner", icon: "activity", label: "러너" },
   { id: "settings", to: "/settings", icon: "settings", label: "설정" },
