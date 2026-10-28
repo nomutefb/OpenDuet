@@ -25,3 +25,33 @@
 .nm-badge { position:absolute; top:-4px; right:-6px; min-width:18px; height:18px; padding:0 5px; display:grid; place-items:center; border-radius:var(--r-pill);
   background:var(--accent); color:var(--bg); font-size:var(--fs-xs); font-weight:var(--fw-x); line-height:1; font-variant-numeric:tabular-nums; box-shadow:0 0 0 2px var(--duet-surface); }
 .nm-dot { position:absolute; top:0; right:0; width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 2px var(--duet-surface); }
+
+/* ≡ 서랍(형 12:24 「서랍형 메뉴 접힌 토글」 · 12:25 「덜 중요한걸 좀 더 세부로 모으려는 의도」) — 네비 위로 펼쳐지는 유리 판 · 표면·알약·움직임 = 네비(YETA .ynav)와 같은 값 · 들어옴 = ypickIn */
+.nm-drawer-veil { position:absolute; inset:0; z-index:59; background:transparent; border:none; cursor:default; }
+.nm-drawer { position:absolute; z-index:61; bottom:calc(14px + env(safe-area-inset-bottom) + 64px); display:flex; flex-direction:column; gap:4px; padding:8px; min-width:180px;
+  background:var(--glass); background:color-mix(in srgb, var(--glass) 50%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-modal);
+  backdrop-filter:blur(var(--blur-m)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-m)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card);
+  animation:ypickIn .3s var(--ease) both; transform-origin:bottom right; }
+.dark .nm-drawer { background:rgba(22,23,22,.82); }   /* 어둡게 = 뒤 대화가 비쳐 글이 안 읽혀 YETA 머리 알약(.yeta-h)의 밑칠 꼴(.75 블랙)로 */
+:root:not(.dark) .nm-drawer { background:rgba(255,255,255,.86); }
+.nm-drawer button { position:relative; display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:var(--r-pill); color:var(--fg-2); font-size:var(--fs-label); font-weight:var(--fw-b);
+  background:transparent; border:1px solid transparent; cursor:pointer; text-align:left; transition:transform .28s var(--ease), background-color .34s var(--ease), border-color .34s var(--ease); }
+.nm-drawer button:active { transform:scale(var(--press-s)); }
+.nm-drawer button:hover, .nm-drawer button.on { background:rgba(var(--accent-rgb),.16); border-color:rgba(var(--accent-rgb),.38); }
+.nm-drawer button .nm-nav-badge { position:static; margin-left:auto; }
+.nm-nav-badge { position:absolute; top:-2px; right:2px; min-width:18px; height:18px; padding:0 5px; display:grid; place-items:center; border-radius:var(--r-pill);
+  background:var(--accent); color:var(--bg); font-size:var(--fs-xs); font-weight:var(--fw-x); line-height:1; font-variant-numeric:tabular-nums; }
+
+/* 모달(서랍 항목) = YETA 시트(.ycd · index.html 1104~1106줄 「position:fixed; inset:0; z-index:6 … animation:ypickIn .3s」) 꼴 — 판 위에 덮고 닫으면 아래 판 그대로 · 네비는 모달 아래(형 12:24 PM 풀이)
+   머리 = YETA 챗 머리 알약(.yeta-h · 207~214줄 · 뒤로 = .yeta-back) · 결의 방·토큰·피드백 = 에디터 원본 화면을 안에 그대로 */
+.nm-modal { position:absolute; inset:0; z-index:70; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), var(--duet-surface); animation:ypickIn .3s var(--ease) both; }
+.nm-modal-h { position:absolute; top:calc(10px + env(safe-area-inset-top)); left:10px; right:10px; z-index:3; display:flex; align-items:center; gap:8px; padding:7px 9px;
+  background:linear-gradient(var(--glass), var(--glass)), color-mix(in srgb, var(--duet-surface) 75%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-pill);
+  backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
+.nm-modal-h b { font-size:var(--fs-h2); font-weight:var(--fw-x); color:var(--fg); }
+.nm-modal-back { flex:none; width:var(--btn); height:var(--btn); display:grid; place-items:center; background:none; border:none; color:var(--fg-2); cursor:pointer; transition:transform .28s var(--ease); }
+.nm-modal-back:active { transform:scale(var(--press-m)); }
+.nm-modal-b { position:relative; display:flex; min-height:0; flex:1; flex-direction:column; padding-top:calc(64px + env(safe-area-inset-top)); }
+.nm-modal-b .nm-scroll { padding-bottom:24px; }
+.nm-modal-frame { flex:1; width:100%; border:0; background:transparent; }
+@media (prefers-reduced-motion:reduce){ .nm-drawer, .nm-modal { animation:none; } }
