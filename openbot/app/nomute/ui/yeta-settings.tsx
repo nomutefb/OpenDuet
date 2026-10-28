@@ -5,7 +5,7 @@
 import "./yeta-settings.css";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
-import { PageShell } from "@/components/layout/page-shell";
+import { Pane } from "./pane";
 import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
 import { office } from "../data/office";
@@ -55,7 +55,7 @@ export function YetaSettings() {
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
   ];
   return (
-    <PageShell title="설정">
+    <Pane title="설정">
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left">
           <span className="ycd-nm yset-ttl"><Svg k="gear" />설정</span>
@@ -77,6 +77,6 @@ export function YetaSettings() {
           <Info ic="info" t="지금 판" d={build.fresh ? `새 판 있음(${build.fresh}) — 곧 저절로 바뀜` : "새 판이 나오면 저절로 바뀜"} v={build.now} />
         </div>
       </div>
-    </PageShell>
+    </Pane>
   );
 }

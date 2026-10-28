@@ -3,7 +3,7 @@
 //   꼴 = ui/yeta-settings.css 의 .yeta-set 규칙 그대로(카드·섹션·행·꺾쇠) · 아래 네비·옮기는 움직임 = 보조 01 껍데기
 import "../ui/yeta-settings.css";
 import { useQuery } from "@tanstack/react-query";
-import { PageShell } from "@/components/layout/page-shell";
+import { Pane } from "../ui/pane";
 import { YICO } from "../ui/yeta-icons";
 import { type EdItem, cachedMenu, linkOf, menuFresh, readMenu } from "./read";
 
@@ -22,7 +22,7 @@ export function NomuteEditorMenu() {
   const q = useQuery({ queryKey: ["nomute", "editor-menu"], queryFn: readMenu, initialData: init, initialDataUpdatedAt: init?.at, staleTime: menuFresh(init) ? 864e5 : 0, gcTime: Infinity });
   const m = q.data;
   return (
-    <PageShell title="에디터">
+    <Pane title="에디터">
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left">
           <span className="ycd-nm yset-ttl"><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.screen }} />에디터</span>
@@ -39,6 +39,6 @@ export function NomuteEditorMenu() {
           {q.isError && m ? <p className="px-1 text-xs text-muted-foreground" role="alert">새로 못 읽어 이 기기에 적어 둔 메뉴로 보여 줘 — {q.error.message}</p> : null}
         </div>
       </div>
-    </PageShell>
+    </Pane>
   );
 }
