@@ -394,7 +394,8 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
   const lastId = all.at(-1)?.id, firstId = all[0]?.id;
   // 스크롤 = 대화 칸 하나만 움직임(바깥 판 0) · stuck = 맨 아래에 붙어 있음(처음 열 때 · 새 글·사진·글꼴이 늦게 와서 길어져도 그대로 맨 아래)
   const boxRef = useRef<HTMLDivElement | null>(null), stuck = useRef(true), keepTop = useRef<{ h: number; top: number } | null>(null);
-  const loadingOld = useRef(false), moreRef = useRef(false), olderRef = useRef(older), autoN = useRef(0), poke = useRef<() => void>(() => {});   // autoN = 손 안 대고 저절로 받은 앞 글 횟수(화면 채우기 · AUTO_MAX 까지 · 손으로 밀면 다시 0)
+  const loadingOld = useRef(false), moreRef = useRef(false), olderRef = useRef(older), autoN = useRef(0), poke = useRef<() => void>(() => {});
+  const hold = useRef(0);   // 이때까지 = 맨 아래로 안 당김(손으로 미는 중 · 「↑ 글 처음」 이동 중 · 형 16:47 「벅벅벅 거리면서 안올라가져」)   // autoN = 손 안 대고 저절로 받은 앞 글 횟수(화면 채우기 · AUTO_MAX 까지 · 손으로 밀면 다시 0)
   moreRef.current = !!msgs.data?.more; olderRef.current = older;
   const [jump, setJump] = useState("");   // 화면 위로 시작이 넘어간 글(「↑ 글 처음」)
   useLayoutEffect(() => {   // 위로 받은 앞 글 = 보던 자리 그대로(늘어난 높이만큼 내림)
@@ -413,7 +414,6 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
     let tm = 0;
     const look = () => {
       tm = 0;
-      if (stuck.current && box.scrollHeight - box.scrollTop - box.clientHeight > 1) box.scrollTop = box.scrollHeight;   // 사진·글꼴이 늦게 와서 길어져도 맨 아래 그대로
       const top = box.getBoundingClientRect().top + HEAD;   // 보이는 위 = 떠 있는 머리 아래
       let hit = "";
       for (const el of box.querySelectorAll<HTMLElement>("[data-id]")) {
@@ -433,29 +433,34 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
       }
     };
     const on = () => { if (!tm) tm = window.setTimeout(look, 50); };   // 묶어 보기(그림 틀 알림 rAF 는 숨은 화면에서 안 와서 시계로)
-    poke.current = on;
+    // 맨 아래 다시 붙이기 = 내용이 길어질 때만(사진·글꼴·마크다운이 늦게 그려짐 · 크기 알림·시계) · 손이 닿는 동안·이동 중엔 안 당김 · 스크롤 셈 자리에서는 안 함(16:46 고장 = 위로 미는 첫 80px 을 「붙음」으로 보고 맨 아래로 되당김)
+    const grow = () => { if (stuck.current && Date.now() > hold.current && box.scrollHeight - box.scrollTop - box.clientHeight > 1) box.scrollTop = box.scrollHeight; on(); };
+    poke.current = grow;
     // 맨 아래에 붙음 = 스크롤이 움직일 때만 다시 셈(길이가 늘어나는 동안 셈하면 「붙음」이 먼저 꺼져 맨 아래를 놓침)
-    const onScroll = () => { stuck.current = box.scrollHeight - box.scrollTop - box.clientHeight < 80; on(); };
-    const hand = () => { autoN.current = 0; };   // 손으로 밀면 = 저절로 받기 다시 셈
-    const ro = new ResizeObserver(on);
+    const onScroll = () => { stuck.current = box.scrollHeight - box.scrollTop - box.clientHeight < 4; on(); };   // 붙음 = 정말 맨 아래(4px 안)
+    const hand = () => { autoN.current = 0; hold.current = Date.now() + 900; };   // 손으로 밀면 = 저절로 받기 다시 셈 · 잠깐 안 당김
+    const wheel = (e: WheelEvent) => { hand(); if (e.deltaY < 0) stuck.current = false; };   // 위로 굴림 = 바로 떨어짐
+    const ro = new ResizeObserver(grow);
     box.addEventListener("scroll", onScroll, { passive: true });
-    box.addEventListener("load", on, true);   // 사진이 와서 길어짐
+    box.addEventListener("load", grow, true);   // 사진이 와서 길어짐
     box.addEventListener("touchstart", hand, { passive: true });
-    box.addEventListener("wheel", hand, { passive: true });
-    document.fonts?.addEventListener?.("loadingdone", on);   // 글꼴이 와서 길어짐
+    box.addEventListener("touchmove", hand, { passive: true });
+    box.addEventListener("wheel", wheel, { passive: true });
+    document.fonts?.addEventListener?.("loadingdone", grow);   // 글꼴이 와서 길어짐
     ro.observe(box);
     if (box.firstElementChild) ro.observe(box.firstElementChild);
     on();
     return () => {
-      box.removeEventListener("scroll", onScroll); box.removeEventListener("load", on, true); box.removeEventListener("touchstart", hand); box.removeEventListener("wheel", hand);
-      document.fonts?.removeEventListener?.("loadingdone", on); ro.disconnect(); if (tm) clearTimeout(tm);
+      box.removeEventListener("scroll", onScroll); box.removeEventListener("load", grow, true); box.removeEventListener("touchstart", hand); box.removeEventListener("touchmove", hand); box.removeEventListener("wheel", wheel);
+      document.fonts?.removeEventListener?.("loadingdone", grow); ro.disconnect(); if (tm) clearTimeout(tm);
     };
   }, [msgs.isPending, room]);
   const toStart = () => {   // 「↑ 글 처음」 = 그 글 시작이 머리 바로 아래로
     const box = boxRef.current, el = box?.querySelector<HTMLElement>(`[data-id="${CSS.escape(jump)}"]`);
     if (!box || !el) return;
-    stuck.current = false;
+    stuck.current = false; hold.current = Date.now() + 1500;   // 이동 중엔 맨 아래로 안 당김(16:47 「눌러도 반응이 없고」 = 당기기가 이동을 되돌렸음)
     box.scrollTo({ top: box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - HEAD - 8, behavior: document.hidden ? "auto" : "smooth" });   // 숨은 화면 = 부드러운 이동이 안 움직임
+    for (const t of [80, 700]) window.setTimeout(() => poke.current(), t);   // 이동 뒤 단추 다시 셈(스크롤 알림이 늦거나 안 오는 화면 포함)
   };
   useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen) — 보이는 때만
     const ts = all.at(-1)?.ts;
@@ -494,8 +499,8 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
       {jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
-      <div ref={boxRef} className="min-h-0 flex-1 overflow-y-auto">
-        <div className="ychat mx-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 py-6">
+      <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
+        <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[76px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {lead}
           {msgs.data?.more ? (
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
