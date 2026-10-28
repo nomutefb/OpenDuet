@@ -9,7 +9,7 @@ import { office, peopleSync } from "../data/office";
 type Answer = { v: string; by?: string; at?: string };
 type BriefItem = { id: string; key: string; col: string; what: string; impact?: string; next?: string; at?: string; room?: string; refs?: { label?: string; id?: string; room?: string }[]; runs?: number; raw?: string[]; answer?: Answer | null };
 type Brief = { label: string; counts: { decide: number; unchecked: number; resolved: number }; cols: { decide: BriefItem[]; unchecked: BriefItem[]; resolved: BriefItem[] }; can_answer?: boolean; can_always?: boolean };
-type RepairItem = { no: number; id?: string; room?: string; from?: string; at?: string; kind?: string; title?: string; state: string; urgent?: boolean; issue?: number | null; url?: string; history?: { state: string; by?: string; at?: string; why?: string }[] };
+export type RepairItem = { no: number; ts?: number; id?: string; room?: string; from?: string; at?: string; kind?: string; title?: string; state: string; urgent?: boolean; issue?: number | null; url?: string; history?: { state: string; by?: string; at?: string; why?: string }[] };
 
 const ANS: Record<string, string> = { yes: "이번만 허락함", no: "거절함", later: "나중에", always: "늘 허락함" };
 const hmOf = (s?: string) => (s ? String(s).replace(/^\d{4}-(\d\d)-(\d\d)T(\d\d:\d\d).*$/, "$3") : "");
@@ -88,7 +88,8 @@ const RP_G: [string, string, (s: string) => boolean][] = [
   ["반려", "까닭 보고 고쳐서 다시", (s) => s === "반려"],
 ];
 
-function RepairRow({ x, arc }: { x: RepairItem; arc?: boolean }) {
+/** 수리 접수 줄 — desk = 수리 접수 방 목록(./repair-desk.tsx · [구분]·명세서·이슈를 줄에 바로) */
+export function RepairRow({ x, arc, desk, spec }: { x: RepairItem; arc?: boolean; desk?: boolean; spec?: { path: string; name: string } }) {
   const qc = useQueryClient();
   const nav = useNavigate();
   const [open, setOpen] = useState(false), [why, setWhy] = useState<string | null>(null);
@@ -100,9 +101,16 @@ function RepairRow({ x, arc }: { x: RepairItem; arc?: boolean }) {
     <li className="py-2">
       <button type="button" className="flex w-full items-center gap-3 text-left text-sm" aria-expanded={open} disabled={arc} onClick={() => setOpen((v) => !v)}>
         <span className="shrink-0 tabular-nums text-muted-foreground">No.{x.no}</span>
-        <span data-content className="min-w-0 flex-1 truncate">{x.urgent ? "🔥 " : ""}{x.title || x.kind}<span className="text-xs text-muted-foreground"> · {nm(x.from)} · {atOf(x.at)}</span></span>
+        <span data-content className="min-w-0 flex-1 truncate">{x.urgent ? "🔥 " : ""}{desk && x.kind && x.kind !== "없음" ? <b className="font-medium">[{x.kind}] </b> : null}{x.title || x.kind}<span className="text-xs text-muted-foreground"> · {nm(x.from)} · {atOf(x.at)}</span></span>
         <span className={`shrink-0 text-xs font-medium ${x.state === "진행" ? "animate-pulse" : ""}`}>{rpName(x.state)}</span>
       </button>
+      {desk && (spec || x.issue) ? (
+        <div className="mt-1 flex flex-wrap gap-1.5 pl-12 text-xs">
+          {spec ? <a className="rounded-full border border-border px-2 py-0.5 hover:bg-foreground/5" href={`/api/office/file?${new URLSearchParams({ path: spec.path })}`} target="_blank" rel="noopener" title={spec.name}>📄 명세서</a> : null}
+          {x.issue ? (x.url ? <a className="rounded-full border border-border px-2 py-0.5 hover:bg-foreground/5" href={x.url} target="_blank" rel="noopener">이슈 #{x.issue}</a>
+            : <span className="rounded-full border border-border px-2 py-0.5">이슈 #{x.issue}</span>) : null}
+        </div>
+      ) : null}
       {open && !arc ? (
         <div className="mt-2 flex flex-col gap-2 rounded-xl bg-muted/60 p-2">
           {x.kind ? <p className="text-xs text-muted-foreground">구분: {x.kind}</p> : null}

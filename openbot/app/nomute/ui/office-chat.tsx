@@ -21,7 +21,8 @@ import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
-import { usePinActions } from "./pins";   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
+import { usePinActions } from "./pins";
+import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
 import { t12 } from "./when";
 import "./yeta-chat.css";
 
@@ -406,7 +407,11 @@ function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: O
 
 const MODES: [string, string][] = [["", "보통"], ["suggest", "💡 제안"], ["decide", "⏳ 결정 필요"], ["verified", "✅ 검증"]];
 
-export function OfficeChat({ room, lead, active = true }: { room: string; lead?: ReactNode; active?: boolean }) {   // active = 이 판이 보임(껍데기에서 숨은 판이면 본 데까지 안 올림 = 안 읽은 수 그대로)
+export function OfficeChat(p: { room: string; lead?: ReactNode; active?: boolean }) {
+  return p.room === REPAIR_ROOM ? <RepairDesk lead={p.lead} active={p.active ?? true} /> : <OfficeChatRoom {...p} />;
+}
+
+function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: ReactNode; active?: boolean }) {   // active = 이 판이 보임(껍데기에서 숨은 판이면 본 데까지 안 올림 = 안 읽은 수 그대로)
   const qc = useQueryClient();
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
   const [err, setErr] = useState("");
