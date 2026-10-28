@@ -1,5 +1,14 @@
 // 우리 사무실 서버(/api/office/*) 읽기·쓰기 + 원본 앱 꼴로 바꾸기 — 화면 문(Cloudflare Access 쿠키) 그대로
-export type OfficePerson = { who: string; name?: string; role?: string; kind: "human" | "winter" | "bot"; face?: string; bot?: string; slug?: string; mark?: string; aka?: string[] };
+/** 받는 이 기억 칸(평의회 2 ⑧ · 서버 _meetfix.js memoryOf) = 백지(웹훅 깸마다 새 회차) | 이어짐 | nowake(바로 깸 길 없음) | 모름 */
+export type Memory = "백지" | "이어짐" | "nowake" | "모름";
+export type OfficePerson = { who: string; name?: string; role?: string; kind: "human" | "winter" | "bot"; face?: string; bot?: string; slug?: string; mark?: string; aka?: string[]; memory?: Memory };
+/** 방 카드(⑨ · GET rooms/<방>/card) — 열린 부름(open) · 형 원문(hyung) · 결정 표지(decide) · 10줄 */
+export type CardLine = { kind: "open" | "hyung" | "decide"; id: string; from?: string; to?: string; text: string };
+export type RoomCard = { room: string; lines: CardLine[]; open_n: number };
+/** 계기판(⑩ · GET metrics?day=YYYYMMDD) — 받는 이 기억 종류별 셈 + 비율(%) · 부름 넘침(봇 → 넘친 수) */
+export type MeterRow = { posts?: number; src?: number; relay_nosrc?: number; asks_back?: number; answered_calls?: number; wakes?: number;
+  헛깸률: number | null; 형말출처율: number | null; 바꿔전하기율: number | null; 되묻기율: number | null };
+export type Meter = { day: string; by: Record<string, MeterRow>; calls_over: Record<string, number> };
 export type OfficeMsg = {
   id: string; room: string; ts: number; at?: string; who: string; kind: "human" | "winter" | "bot" | "system"; text: string;
   mention?: string[]; urgent?: string[]; reply_to?: string; origin?: string; state?: "suggest" | "decide" | "verified"; files?: string[]; seq?: Record<string, number>;

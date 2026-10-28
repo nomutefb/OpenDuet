@@ -13,7 +13,7 @@ import { usePeople } from "./faces";
 import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
-import { NomuteBots, NomuteLink, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
+import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
 import { YICO, type YIcon } from "./yeta-icons";
 
 const Svg = ({ k, className }: { k: YIcon; className?: string }) => <span className={className} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
@@ -72,6 +72,7 @@ export function YetaSettings() {
             health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}
           {row("bots", "user", "지금 봇", "온라인 · 하는 일 · 다음 깸", <NomuteBots />, bots ? `온라인 ${awake}/${nBots}` : undefined)}
           {row("link", "radio", "스케줄러 연결", "일정 → 호출 → 깨움 · 오늘 깬 수", <NomuteLink />)}
+          {row("meter", "data", "회의실 계기판", "헛깸 · 형 말 출처 · 바꿔 전하기 · 되묻기 · 하루 한 장", <NomuteMeter />)}
           <div className="yset-sec">사무실</div>
           {row("sched", "gear", "스케줄러 바꾸기", "루틴 · 봇 하루 최대 · 사건 모아 깨우기", <NomuteSchedule />)}
           {row("roomset", "user", "지정방 멤버", "@모두 = 이 멤버만 받음", <NomuteRoomset />)}

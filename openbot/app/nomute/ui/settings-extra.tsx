@@ -5,7 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
 import { PageSection } from "@/components/layout/page-shell";
-import { idOf, office, people } from "../data/office";
+import { idOf, type Meter, type MeterRow, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 import { t12 } from "./when";
 
@@ -47,7 +47,8 @@ export function NomuteBots() {
               <li key={p.who} className="flex items-center gap-3 px-4 py-2.5">
                 <span className="relative"><FaceImg id={idOf(p.who, list)} size={32} />{on ? <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-background" /> : null}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{p.name || p.who} {p.mark || ""}{p.role ? <span data-content className="ml-1 text-xs font-normal text-muted-foreground">{p.role}</span> : null}</p>
+                  <p className="text-sm font-medium">{p.name || p.who} {p.mark || ""}{p.role ? <span data-content className="ml-1 text-xs font-normal text-muted-foreground">{p.role}</span> : null}
+                    {p.memory ? <span className="ml-1.5 rounded-full border border-border px-1.5 py-px text-[10px] font-normal text-muted-foreground" title={MEMORY_T[p.memory]}>기억 {p.memory}</span> : null}</p>
                   <p className={`text-xs ${work ? "animate-pulse text-foreground" : "text-muted-foreground"}`}>{work ? "작업 중 · 고민하는 중…" : on ? "온라인" : ago(b?.last_turn_ts)}</p>
                 </div>
                 {s?.next_ts ? <span className="shrink-0 text-xs tabular-nums text-muted-foreground">다음 {nextShort(s.next_ts)}</span> : null}
@@ -56,6 +57,59 @@ export function NomuteBots() {
           })}
         </ul>
       </Card>
+    </PageSection>
+  );
+}
+
+// 받는 이 기억 칸(평의회 2 ⑧ · 서버 _meetfix.js memoryOf) — 「지금 봇」 줄 꼬리 · 계기판 묶음 이름
+const MEMORY_T: Record<string, string> = { 백지: "백지 — 깸마다 새 회차(앞 대화 기억 없음)", 이어짐: "이어짐 — 앞 깸 대화가 이어짐", nowake: "nowake — 바로 깨우는 길 없음(제 때 와서 읽음)", 모름: "모름 — 이어지는지 모름" };
+const kday = (ts: number) => kst(ts).toISOString().slice(0, 10).replace(/-/g, "");
+const pct = (v: number | null | undefined) => (v == null ? "–" : `${v}%`);
+// 계기판 비율 넷(서버 metricsView) — [칸, 이름, 무슨 뜻]
+const RATES: [keyof MeterRow, string, string][] = [
+  ["헛깸률", "헛깸", "깼는데 부름에 답 안 한 비율(낮을수록 좋음)"],
+  ["형말출처율", "형 말 출처", "형 말을 옮길 때 형 글 id(src)를 단 비율(높을수록 좋음)"],
+  ["바꿔전하기율", "바꿔 전하기", "출처 없이 「형이 …래」로 옮긴 글 비율(낮을수록 좋음)"],
+  ["되묻기율", "되묻기", "부름에 답한 글이 물음으로 끝난 비율"],
+];
+
+/** 회의실 계기판(평의회 2 ⑩ · GET metrics?day=) — 하루 한 장 · 받는 이 기억 종류별 · 3일·깸 50번 잰 뒤 꾸러미를 정하는 기준값(decision2.md) · LLM 0 */
+export function NomuteMeter() {
+  const [back, setBack] = useState(0);   // 0 = 오늘 · 1 = 어제 …
+  const day = kday(Date.now() - back * 864e5);
+  const q = useQuery({ queryKey: ["nomute", "metrics", day], queryFn: () => office<Meter>(`metrics?day=${day}`), staleTime: 30_000, refetchInterval: back ? false : 60_000 });
+  const list = usePeople();
+  const kinds = Object.entries(q.data?.by || {}).sort(([, a], [, b]) => (b.wakes || 0) + (b.posts || 0) - (a.wakes || 0) - (a.posts || 0));
+  const over = Object.entries(q.data?.calls_over || {});
+  const who = (k: string) => list.filter((p) => p.kind === "bot" && p.memory === k).map((p) => p.name || p.who).join("·");
+  return (
+    <PageSection title="회의실 계기판">
+      <div className="mt-1 flex items-center gap-2 text-sm">
+        <button type="button" className={btn} onClick={() => setBack((b) => b + 1)} aria-label="하루 앞">‹</button>
+        <span className="tabular-nums">{`${+day.slice(4, 6)}/${+day.slice(6)}`}{back ? "" : " 오늘"}</span>
+        <button type="button" className={btn} disabled={!back} onClick={() => setBack((b) => Math.max(0, b - 1))} aria-label="하루 뒤">›</button>
+        <span className="ml-auto text-xs text-muted-foreground">받는 이 기억 종류별 · 하루 한 장</span>
+      </div>
+      {q.isError ? <p className="mt-3 text-sm text-destructive" role="alert">계기판을 못 받았어 — {q.error instanceof Error ? q.error.message : String(q.error)}</p>
+        : q.isPending ? null
+        : !kinds.length ? <p className="mt-3 text-sm text-muted-foreground">이날 셈 없음 — 봇 글·깸이 생기면 채워져</p>
+        : kinds.map(([k, b]) => (
+          <Card key={k}>
+            <div className="px-4 pt-3">
+              <p className="text-sm font-medium" title={MEMORY_T[k]}>{k}{who(k) ? <span className="ml-1.5 text-xs font-normal text-muted-foreground">{who(k)}</span> : null}</p>
+              <p className="text-xs tabular-nums text-muted-foreground">깸 {b.wakes || 0} · 답한 부름 {b.answered_calls || 0} · 글 {b.posts || 0} · 형 글 id {b.src || 0} · 출처 없이 옮김 {b.relay_nosrc || 0} · 되물음 {b.asks_back || 0}</p>
+            </div>
+            <div className="grid grid-cols-4 gap-1 px-2 pb-3 pt-2">
+              {RATES.map(([f, t, d]) => (
+                <div key={f} className="flex flex-col items-center rounded-xl px-1 py-1.5" title={d}>
+                  <span className="text-base font-semibold tabular-nums">{pct(b[f] as number | null)}</span>
+                  <span className="text-[11px] text-muted-foreground">{t}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        ))}
+      <p className="mt-3 text-xs text-muted-foreground">부름 넘침(방마다 50 넘어 밀린 부름) {over.length ? over.map(([w, n]) => `${w} ${n}`).join(" · ") : "0"}</p>
     </PageSection>
   );
 }

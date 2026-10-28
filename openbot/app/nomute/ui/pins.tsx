@@ -6,7 +6,7 @@
 import "./yeta-settings.css";
 import "./pins.css";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Streamdown } from "streamdown";
 import { DuetIcon } from "@/components/duet/icons";
 import { markdownComponents } from "@/lib/markdown";
@@ -39,17 +39,17 @@ export function usePinActions(room: string) {
 }
 
 /** 방 맨 위 고정 띠 — 고정 없으면 0 · onJump = 그 글로(대화창 몫 · 없으면 화면에 있는 글로 굴림) */
-export function PinBar({ room, onJump }: { room: string; onJump?: (id: string, ts: number) => void }) {
+export function PinBar({ room, onJump, children }: { room: string; onJump?: (id: string, ts: number) => void; children?: ReactNode }) {   // children = 띠 밑에 같이 뜨는 것(방 카드 ./meet-card.tsx)
   const q = usePins(room), cur = q.data?.cur || null;
   const [fold, setFold] = useState(() => loadFold(room));
   const [open, setOpen] = useState(false);
   const jump = (p: Pin) => { setOpen(false); if (onJump) onJump(p.id, p.ts); else window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id: p.id } })); };   // 대화창(office-chat.tsx)이 받아 그 글로(묶음 펼침 포함)
-  if (!cur && !open) return null;
+  if (!cur && !open && !children) return null;
   const folded = !!cur && fold === cur.id;
   const toggle = () => { const v = folded ? "" : cur?.id || ""; setFold(v); saveFold(room, v); };
   return (
     <>
-      {cur ? <div className="nm-pin-slot">{
+      {cur || children ? <div className="nm-pin-slot">{!cur ? null :
         folded ? (
           <button type="button" className="nm-pin-mini" aria-label={`고정된 글 펼치기 — ${firstLine(cur.text)}`} onClick={toggle}><DuetIcon name="pin" size={16} /></button>
         ) : (
@@ -64,7 +64,7 @@ export function PinBar({ room, onJump }: { room: string; onJump?: (id: string, t
             <button type="button" className="nm-pinbar-fold" aria-label="고정 띠 접기" onClick={toggle}><DuetIcon name="chevronRight" size={16} /></button>
           </div>
         )
-      }</div> : null}
+      }{children}</div> : null}
       {open ? <PinHistory room={room} pins={q.data || { cur: null, history: [] }} onClose={() => setOpen(false)} onJump={jump} /> : null}
     </>
   );
