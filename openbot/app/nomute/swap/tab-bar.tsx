@@ -1,6 +1,6 @@
 // 원본 components/shell/tab-bar.tsx 자리 — 「Make」 탭 뺌(우리 자료 없음) · 글자 = 한국어
 // 전환 = YETA UI 메뉴킷 .ynav(형 10-28 09:36 · 규칙 원본 그대로 = ./ynav.css): 안 고른 탭 = 그림만 · 고르면 알약이 늘어나며 이름 · 알약 바탕·색 = 우리 것(형 10:21 「네비 액티브 하게 펼쳐지는건 좋아!」 = 그대로)
-// 칸 = 대화 · 목록(폰만 · 방 목록 서랍 · PC 는 왼쪽 칸이 늘 있음) · 할 일 · 설정(오른쪽 끝) — 맨 위 왼쪽 ≡ · 오른쪽 「형」을 여기로(형 10:22 「좌상단, 우상단을 네비로 일단 보내보자」)
+// 칸 = 대화 · 목록(폰만 · 방 목록 서랍 · PC 는 왼쪽 칸이 늘 있음) · 할 일 · 러너 · 설정(오른쪽 끝) — 맨 위 왼쪽 ≡ · 오른쪽 「형」을 여기로(형 10:22 「좌상단, 우상단을 네비로 일단 보내보자」)
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { DuetIcon, type DuetIconName } from "@/components/duet/icons";
@@ -14,11 +14,12 @@ import "./ynav.css";
 
 export type ShellTab = "chat" | "tasks" | "make";
 
-type Tab = { id: ShellTab | "rooms" | "settings"; to?: "/" | "/tasks" | "/settings"; icon: DuetIconName; label: string };
+type Tab = { id: ShellTab | "rooms" | "runner" | "settings"; to?: "/" | "/tasks" | "/runner" | "/settings"; icon: DuetIconName; label: string };
 const TABS: Tab[] = [
   { id: "chat", to: "/", icon: "chat", label: "대화" },
   { id: "rooms", icon: "menu", label: "목록" },
   { id: "tasks", to: "/tasks", icon: "tasks", label: "할 일" },
+  { id: "runner", to: "/runner", icon: "activity", label: "러너" },   // 러너 화면(PM 10:5x · 보조 02 부품)
   { id: "settings", to: "/settings", icon: "settings", label: "설정" },
 ];
 

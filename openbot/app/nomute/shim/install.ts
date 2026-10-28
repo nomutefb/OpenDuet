@@ -7,6 +7,6 @@ const realFetch = window.fetch.bind(window);
 
 window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url, location.href);
-  if (url.origin !== location.origin || !url.pathname.startsWith("/api/") || url.pathname.startsWith("/api/office/")) return realFetch(input, init);
+  if (url.origin !== location.origin || !url.pathname.startsWith("/api/") || url.pathname.startsWith("/api/office/") || url.pathname.startsWith("/api/runner")) return realFetch(input, init);   // /api/runner = 러너 화면 자료(서버 그대로)
   return route(url, init ?? {}, realFetch);
 };
