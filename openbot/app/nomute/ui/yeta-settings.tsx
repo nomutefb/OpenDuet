@@ -1,6 +1,6 @@
 // 설정 = YETA 설정 화면(yShowSettings) 꼴 거의 그대로 — 글래스 카드 하나에 [기어]제목 · 섹션 라벨 · 행(act·info 꼴 그대로)
 //   원본 = nomutefb/YETA viewer/index.html yShowSettings · YICO · CSS .ycd-card·.yset-*(SHA 5a25d87) · 형 10-28 10:19 「거의 코드 그대로」 · 10:22 「그 예타에도 설정이 있거든? 그쪽을 가져와서」
-//   항목 = 지금 새 사무실 설정에 있던 것만(가짜 0): 화면(테마) · 상태(점검표·지금 봇·스케줄러 연결) · 사무실(스케줄러 바꾸기·지정방 멤버·공지 설정) · 기록(옛 그록 대화) · 정보(지금 판)
+//   항목 = 지금 새 사무실 설정에 있던 것만(가짜 0): 화면(테마) · 글꼴(대화 · YETA 「글꼴」 칸 그대로 = ./chat-font.tsx · 형 10-28 15:36) · 상태(점검표·지금 봇·스케줄러 연결) · 사무실(스케줄러 바꾸기·지정방 멤버·공지 설정) · 기록(옛 그록 대화) · 정보(지금 판)
 //   테마 = YETA 「화면 어둡기」 행처럼 누를 때마다 다음 값 · 나머지 행 = 누르면 그 칸(settings-extra·health 그대로)이 행 아래 펼쳐짐(한 번에 하나)
 import "./yeta-settings.css";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import type { ThemePreference } from "@/lib/theme";
 import { office } from "../data/office";
 import { usePeople } from "./faces";
 import { NomuteHealth } from "./health";
+import { ChatFontRows } from "./chat-font";
 import { NomuteBots, NomuteLink, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
 import { YICO, type YIcon } from "./yeta-icons";
 
@@ -62,6 +63,8 @@ export function YetaSettings() {
           <div className="yset-sec">화면</div>
           <Act ic="screen" t="테마" d="탭 = 폰 따라 → 밝게 → 어둡게" v={theme.t} vt mod={theme.v !== "system"}
             onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
+          <div className="yset-sec">글꼴</div>
+          <ChatFontRows />
           <div className="yset-sec">상태</div>
           {row("health", "data", "점검표", "서버 문·지킴이 연결·박동", <NomuteHealth />,
             health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}

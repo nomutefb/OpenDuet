@@ -1,18 +1,25 @@
 // 우리 대화창 — 원본 부품(말풍선·글 줄·입력칸·마크다운) 그대로 쓰고, 형 대화창 규칙·옛 화면 기능은 우리 것(옛 = viewer/office.html)
 //   형 보기(형 10-27 16:33·21:16) = 형 글 + 형에게 온 글만 펼침 · 봇끼리·클로드 글 = 그 자리 한 줄 「(얼굴 셋) 외 N · 메시지 M개」(형 10-28 05:12)
 //   말풍선 = YETA 꼴(./yeta-chat.css · 형 10-28 10:19) · 말풍선 위 읽음 얼굴 0 · 러너 깸 줄 안 보임 · 시스템 일 = 가운데 흐린 알약
-//   시간 = 말풍선 옆(형 글 = 왼쪽 · 상대 글 = 오른쪽 · 「3:50 PM」) · 가져감 = 카톡 「1」 자리에 「가져감」 글자 하나(1:1 방 형 글만 · 형 10:20) · 그 밖 이름 줄 0
+//   시간 = 말풍선 안 오른쪽 아래 작게(형 10-28 15:36 「시간을 대화상자의 우하단으로 … 최대한 대화를 길게」 · 마지막 줄에 자리가 있으면 그 줄 끝 · 말풍선 폭 늘림)
+//   가져감 = 카톡 「1」 자리에 「가져감」 글자 하나(1:1 방 형 글만 · 형 10:20) · 그 밖 이름 줄 0
 //   이름 = 같은 사람 글이 이어지면 첫 글만(YETA .cont) · 날짜가 바뀌는 곳 = 가는 줄 + 「10-28 수」(형 10:23)
-//   줄기 = ⏳·✅ 상태 답(reply_to)은 원 글 바로 아래 · 답장 = 글 첫 줄 「↩ 이름: 그 글 첫 줄」(서버 0 · 옛 화면과 같은 꼴) · 반응 · 파일 · 긴 글 접기
+//   줄기 = ⏳·✅ 상태 답(reply_to)은 원 글 바로 아래 · 답장 = 글 첫 줄 「↩ 이름: 그 글 첫 줄」(서버 0 · 옛 화면과 같은 꼴) · 반응 · 파일 · 긴 글 = 접기 0(형 15:33 「더보기 말고 줄글 풀로 다 나오게」)
+//   열기(형 15:33 「대화창 열면 … 글쓰기로 되어서. 그러지 않게」 · 「가장 최근거부터 … 위에 토글 하나하면 올라갈 수 있게」 · 장부 office-chat-read.md) =
+//     글칸 저절로 커서 0(자판 안 올라옴 · 누를 때만) · 맨 아래(가장 최근 글)에서 시작 · 화면 위로 시작이 넘어간 글이 있으면 위에 「↑ 글 처음」 단추 하나(누르면 그 글 시작)
+//   빠르게 열기(형 15:34 「프사먼저 나오고 넘 늦게 대화가 나와」 · 15:38 「캐시화 하고 뒤늦게 받아오는거로 동기화를」) = 이 기기 저장(data/room-cache.ts)을 먼저 그림 →
+//     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Composer, toAgentOptions } from "@/components/channels/composer";
 import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
+import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
+import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
 import { t12 } from "./when";
 import "./yeta-chat.css";
@@ -29,6 +36,8 @@ const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif)$/i;
 const WINTER_WHO = "윈터 PM";
 const WORK = ["고민하는 중", "정리하는 중", "처리하는 중"];
+const FIRST_N = 40, DAY_MIN = 15, AUTO_MAX = 8;   // 저장 없이 처음 = 최근 한 화면치(봇끼리 글은 한 줄로 접혀 넉넉히) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
+const HEAD = 64;   // 위에 떠 있는 머리(대화 상대 동그라미) 높이 — 그 아래부터 「보이는 위」
 
 type Msg = OfficeMsg & { alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean };
 type Page = { messages: Msg[]; more: boolean };
@@ -63,19 +72,42 @@ const firstLine = (m: Msg) => {   // 답장 인용·복사 한 줄(인용 줄 �
 };
 export function useOfficeRoom(room: string) {
   const qc = useQueryClient();
+  // 방 목록·사람표 = 이 기기에 둔 것으로 먼저 채움(누구와의 방인지 바로 앎 · 다른 화면이 같은 것을 먼저 받기 시작했어도 · 낡음 = 바로 새로 받음) → 받을 때마다 둠
+  useLayoutEffect(() => {
+    for (const [k, key] of [["rooms", officeKeys.rooms], ["people", officeKeys.people]] as const) {
+      if (qc.getQueryData(key) === undefined) { const v = listGet<unknown[]>(k); if (v?.length) qc.setQueryData(key, v, { updatedAt: 0 }); }
+    }
+  }, [qc]);
   const roomsQ = useQuery({ queryKey: officeKeys.rooms, queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 });
   const peopleQ = useQuery({ queryKey: officeKeys.people, queryFn: () => people(), staleTime: 60_000 });
+  useEffect(() => { if (roomsQ.data?.length) listPut("rooms", roomsQ.data); }, [roomsQ.data]);
+  useEffect(() => { if (peopleQ.data?.length) listPut("people", peopleQ.data); }, [peopleQ.data]);
   const msgsQ = useQuery({
     queryKey: officeKeys.msgs(room),
-    queryFn: async () => {   // 최근 100 · 「옛 글 더 보기」로 받아 둔 앞 글은 지킴
-      const j = await office<Page>(`rooms/${enc(room)}/messages?n=100`);
-      const old = qc.getQueryData<Page>(officeKeys.msgs(room)), fresh = j.messages || [];
-      const keep = !!old?.messages.length && !!fresh.length && old.messages[0].ts < fresh[0].ts;
-      return { messages: merge(keep ? old : undefined, fresh).messages, more: keep && old ? old.more : !!j.more };
+    queryFn: async () => {   // 받아 둔 글(이 탭 → 이 기기 저장 · 먼저 그림) 뒤 새 글만(since) · 받아 둔 게 없거나 사이가 비면(since 가 100 넘음) 최근 한 화면치
+      const key = officeKeys.msgs(room);
+      let old = qc.getQueryData<Page>(key);
+      if (!old?.messages.length) {
+        const c = await loadRoom<Msg>(room);
+        if (c?.messages.length && !qc.getQueryData<Page>(key)?.messages.length) { old = { messages: c.messages, more: c.more }; qc.setQueryData<Page>(key, old); }
+      }
+      const last = old?.messages.at(-1)?.ts;
+      if (old && last) {
+        const j = await office<Page>(`rooms/${enc(room)}/messages?since=${last}&n=100`);
+        if (!j.more) return merge(qc.getQueryData<Page>(key) || old, j.messages || []);   // 기다리기 고리가 그새 붙인 글도 지킴
+      }
+      const j = await office<Page>(`rooms/${enc(room)}/messages?n=${FIRST_N}`);
+      return { messages: merge(undefined, j.messages || []).messages, more: !!j.more };
     },
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
+  useEffect(() => {   // 받은 글 = 이 기기에 둠(다음에 열면 바로 그림 · 잦은 붙임은 묶어서)
+    const d = msgsQ.data;
+    if (!d?.messages.length) return;
+    const t = setTimeout(() => void saveRoom(room, d), 400);
+    return () => clearTimeout(t);
+  }, [room, msgsQ.data]);
   const readsQ = useQuery({ queryKey: officeKeys.reads(room), queryFn: () => office<Reads>(`rooms/${enc(room)}/reads`), staleTime: 15_000, refetchInterval: 60_000 });
   const reactsQ = useQuery({ queryKey: officeKeys.reacts(room), queryFn: () => office<{ reactions: Record<string, Record<string, string[]>>; quick?: string[] }>(`rooms/${enc(room)}/reactions`), staleTime: 15_000, refetchInterval: 60_000 });
   const botsQ = useQuery({ queryKey: officeKeys.bots, queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 });
@@ -103,12 +135,13 @@ export function useOfficeRoom(room: string) {
     return () => { stop = true; ctl?.abort(); };
   }, [room, qc]);
 
-  const older = async () => {
+  const older = async () => {   // 앞 글 = 하루치(서버 day=1 · 그날이 비면 글 나올 때까지 앞날 · DAY_MIN 넘을 때까지)
     const cur = qc.getQueryData<Page>(officeKeys.msgs(room));
     const first = cur?.messages[0]?.ts;
-    if (!first) return;
-    const j = await office<Page>(`rooms/${enc(room)}/messages?n=100&before=${first}`);
+    if (!first) return 0;
+    const j = await office<Page>(`rooms/${enc(room)}/messages?before=${first}&day=1&n=${DAY_MIN}`);
     qc.setQueryData<Page>(officeKeys.msgs(room), (old) => ({ ...merge(old, j.messages || []), more: !!j.more }));
+    return (j.messages || []).length;   // 받은 앞 글 수(0 = 저절로 받기 그만)
   };
   const r = roomsQ.data?.find((x) => x.id === room);
   return { r, list: peopleQ.data || [], msgs: msgsQ, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older };
@@ -226,24 +259,6 @@ function Files({ m }: { m: Msg }) {
   );
 }
 
-/** 긴 글 접기 — 그려 보고 8줄 넘으면 접고 「더 보기」(ux 20:2x · 형 글·연 글 = 그대로) */
-function Fold({ children, on }: { children: ReactNode; on: boolean }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [long, setLong] = useState(false), [open, setOpen] = useState(false);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el || !on) return;
-    const lh = parseFloat(getComputedStyle(el).lineHeight) || 24;
-    setLong(el.scrollHeight > lh * 8 + 4);
-  }, [on, children]);
-  return (
-    <>
-      <div ref={ref} className={long && !open ? "relative max-h-[12.5em] overflow-hidden [mask-image:linear-gradient(to_bottom,#000_70%,transparent)]" : ""}>{children}</div>
-      {long ? <button type="button" className="mt-1 self-start rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => setOpen((v) => !v)}>{open ? "접기" : "더 보기"}</button> : null}
-    </>
-  );
-}
-
 function Quote({ m, c }: { m: Msg; c: Ctx }) {
   const q = String(m.text || "").match(QUOTE);
   if (q) return <button type="button" className="mb-1 block max-w-full truncate rounded-md border-l-2 border-primary bg-muted px-2 py-1 text-left text-xs" title="그 글로" onClick={() => c.onJump(q[1], q[2])}><b>{q[1]}</b> · {q[2]}</button>;
@@ -258,12 +273,33 @@ function Body({ m }: { m: Msg }) {
   return <Streamdown components={markdownComponents}>{text}</Streamdown>;
 }
 
-/** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][시각][말풍선] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 시각] · cont = 바로 앞이 같은 사람(얼굴·이름 접음) · fresh = 열어 둔 뒤 새로 온 글(올라옴) */
+/** 상대 말풍선 안 = 글 전부(접기 0) + 시각 — 시각은 마지막 글 줄 끝(그 줄에 자리가 없으면 다음 줄 오른쪽 · ./yeta-chat.css [data-yt]) ·
+ *  마지막 칸이 코드·표면 글 아래 따로 한 줄(.ytin) */
+function Said({ m }: { m: Msg }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    const box = ref.current;
+    if (!box) return;
+    for (const e of box.querySelectorAll("[data-yt]")) e.removeAttribute("data-yt");
+    const all = box.querySelectorAll("p,li,h1,h2,h3,h4,h5,h6,blockquote,pre,table"), last = all[all.length - 1];
+    const ok = !!last && !/^(PRE|TABLE)$/.test(last.tagName);
+    if (ok) last.setAttribute("data-yt", "");
+    box.dataset.ytin = ok ? "1" : "";
+  });
+  return (
+    <>
+      <div ref={ref} className="ymd"><Body m={m} /></div>
+      <time className="ytin" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>
+    </>
+  );
+}
+
+/** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선(시각 안 오른쪽 아래)] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선(시각 안 오른쪽 아래)] · cont = 바로 앞이 같은 사람(얼굴·이름 접음) · fresh = 열어 둔 뒤 새로 온 글(올라옴) */
 function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean }) {
   const p = c.list.find((x) => x.who === m.who);
   const selected = c.sel === m.id;
   const toggle = () => c.setSel(selected ? "" : m.id);
-  const time = <time className="ytime" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
+  const time = <time className="ytin" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
   if (m.kind === "human") {
     return (
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
@@ -271,8 +307,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          {time}
-          <div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : String(m.text || "").replace(QUOTE, "")}</div>
+          <div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : String(m.text || "").replace(QUOTE, "")}{time}</div>
         </div>
         <Reactions m={m} c={c} mine />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -287,10 +322,9 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <Quote m={m} c={c} />
         <StatePill m={m} />
         <div className="ybrow">
-          <div className="yb ai" onClick={toggle}>
-            <div className="ymd flex flex-col"><Fold on={!m.files?.length}><Body m={m} /></Fold></div>
+          <div className="yb ai" onClick={toggle} style={{ "--yt": JSON.stringify(t12(m.ts)) } as CSSProperties}>
+            <Said m={m} />
           </div>
-          {time}
         </div>
         <Reactions m={m} c={c} mine={false} />
         {selected ? <Actions m={m} c={c} mine={false} /> : null}
@@ -355,11 +389,74 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
     const ids = r ? roomAgentIds(r, list) : [];
     return ids.map((id) => { const p = list.find((x) => idOf(x.who, list) === id); return { id, name: p?.name || p?.who || id, title: p?.role }; });
   }, [r, list]);
-  const endRef = useRef<HTMLDivElement | null>(null);
   const baseTs = useRef<number | null>(null);   // 방을 연 때 마지막 글 — 그 뒤에 온 글만 올라오는 움직임(YETA .in · 옛 글 다시 그림 = 0)
   if (baseTs.current === null && msgs.data) baseTs.current = all.at(-1)?.ts ?? 0;
-  const lastId = all.at(-1)?.id;
-  useEffect(() => { if (lastId) endRef.current?.scrollIntoView({ block: "end" }); }, [lastId]);
+  const lastId = all.at(-1)?.id, firstId = all[0]?.id;
+  // 스크롤 = 대화 칸 하나만 움직임(바깥 판 0) · stuck = 맨 아래에 붙어 있음(처음 열 때 · 새 글·사진·글꼴이 늦게 와서 길어져도 그대로 맨 아래)
+  const boxRef = useRef<HTMLDivElement | null>(null), stuck = useRef(true), keepTop = useRef<{ h: number; top: number } | null>(null);
+  const loadingOld = useRef(false), moreRef = useRef(false), olderRef = useRef(older), autoN = useRef(0), poke = useRef<() => void>(() => {});   // autoN = 손 안 대고 저절로 받은 앞 글 횟수(화면 채우기 · AUTO_MAX 까지 · 손으로 밀면 다시 0)
+  moreRef.current = !!msgs.data?.more; olderRef.current = older;
+  const [jump, setJump] = useState("");   // 화면 위로 시작이 넘어간 글(「↑ 글 처음」)
+  useLayoutEffect(() => {   // 위로 받은 앞 글 = 보던 자리 그대로(늘어난 높이만큼 내림)
+    const box = boxRef.current, k = keepTop.current;
+    if (box && k) { box.scrollTop = k.top + (box.scrollHeight - k.h); keepTop.current = null; }
+  }, [firstId]);
+  useLayoutEffect(() => {   // 맨 아래 = 처음 열 때 · 새 글(맨 아래에 붙어 있었을 때 · 형이 쓴 글)
+    const box = boxRef.current;
+    if (box && lastId && (stuck.current || all.at(-1)?.kind === "human")) { box.scrollTop = box.scrollHeight; stuck.current = true; }
+    const ts = [150, 500, 1200, 2500].map((t) => window.setTimeout(() => poke.current(), t));   // 마크다운·사진·글꼴이 늦게 그려져 길어져도 다시 맞춤(크기 알림이 안 오는 숨은 화면 포함)
+    return () => ts.forEach(clearTimeout);
+  }, [lastId, msgs.isPending]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    let tm = 0;
+    const look = () => {
+      tm = 0;
+      if (stuck.current && box.scrollHeight - box.scrollTop - box.clientHeight > 1) box.scrollTop = box.scrollHeight;   // 사진·글꼴이 늦게 와서 길어져도 맨 아래 그대로
+      const top = box.getBoundingClientRect().top + HEAD;   // 보이는 위 = 떠 있는 머리 아래
+      let hit = "";
+      for (const el of box.querySelectorAll<HTMLElement>("[data-id]")) {
+        const b = el.getBoundingClientRect();
+        if (b.bottom <= top + 48) continue;   // 이미 위로 다 지나간 글
+        if (b.top < top - 24) hit = el.dataset.id || "";   // 위에 걸친 글 = 시작이 안 보임
+        break;
+      }
+      setJump(hit);
+      // 앞 글 하루치 = 위 끝 가까이 왔을 때 · 화면이 아직 안 찼을 때(봇끼리 글이 한 줄로 접혀 짧음) — 저절로는 AUTO_MAX 번까지 · 받은 게 0 이면 그만
+      const short = box.scrollHeight - box.clientHeight < 240 || box.scrollTop < 240;
+      if (short && moreRef.current && !loadingOld.current && autoN.current < AUTO_MAX) {
+        loadingOld.current = true; autoN.current++;
+        keepTop.current = { h: box.scrollHeight, top: box.scrollTop };
+        void olderRef.current().then((k) => { if (!k) autoN.current = AUTO_MAX; }).catch(() => { keepTop.current = null; autoN.current = AUTO_MAX; })
+          .finally(() => { loadingOld.current = false; on(); });
+      }
+    };
+    const on = () => { if (!tm) tm = window.setTimeout(look, 50); };   // 묶어 보기(그림 틀 알림 rAF 는 숨은 화면에서 안 와서 시계로)
+    poke.current = on;
+    // 맨 아래에 붙음 = 스크롤이 움직일 때만 다시 셈(길이가 늘어나는 동안 셈하면 「붙음」이 먼저 꺼져 맨 아래를 놓침)
+    const onScroll = () => { stuck.current = box.scrollHeight - box.scrollTop - box.clientHeight < 80; on(); };
+    const hand = () => { autoN.current = 0; };   // 손으로 밀면 = 저절로 받기 다시 셈
+    const ro = new ResizeObserver(on);
+    box.addEventListener("scroll", onScroll, { passive: true });
+    box.addEventListener("load", on, true);   // 사진이 와서 길어짐
+    box.addEventListener("touchstart", hand, { passive: true });
+    box.addEventListener("wheel", hand, { passive: true });
+    document.fonts?.addEventListener?.("loadingdone", on);   // 글꼴이 와서 길어짐
+    ro.observe(box);
+    if (box.firstElementChild) ro.observe(box.firstElementChild);
+    on();
+    return () => {
+      box.removeEventListener("scroll", onScroll); box.removeEventListener("load", on, true); box.removeEventListener("touchstart", hand); box.removeEventListener("wheel", hand);
+      document.fonts?.removeEventListener?.("loadingdone", on); ro.disconnect(); if (tm) clearTimeout(tm);
+    };
+  }, [msgs.isPending, room]);
+  const toStart = () => {   // 「↑ 글 처음」 = 그 글 시작이 머리 바로 아래로
+    const box = boxRef.current, el = box?.querySelector<HTMLElement>(`[data-id="${CSS.escape(jump)}"]`);
+    if (!box || !el) return;
+    stuck.current = false;
+    box.scrollTo({ top: box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - HEAD - 8, behavior: document.hidden ? "auto" : "smooth" });   // 숨은 화면 = 부드러운 이동이 안 움직임
+  };
   useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen) — 보이는 때만
     const ts = all.at(-1)?.ts;
     if (ts && active) void office("seen", { method: "POST", body: JSON.stringify({ seen: { [room]: { ts, at: Date.now() } } }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "seen"] })).catch(() => {});
@@ -395,11 +492,13 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
   let prevTs = 0, prev: Item | undefined;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="ychat relative flex min-h-0 flex-1 flex-col">
+      {jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
+      <div ref={boxRef} className="min-h-0 flex-1 overflow-y-auto">
         <div className="ychat mx-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 py-6">
           {lead}
           {msgs.data?.more ? (
-            <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => void older()}>옛 글 더 보기</button>
+            <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
           ) : null}
           {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">아직 글 없음 — {r?.with ? `${nmOf(list, r.with)}에게 인사해 봐 · 보내면 예약(다음에 깰 때 봄) · !${nmOf(list, r.with)} = 바로 깨움` : "첫 글을 써 줘 · @이름 = 예약 · !이름 = 바로 깨움"}</p> : null}
           {items.map((it) => {
@@ -430,8 +529,8 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
               </div>
             </div>
           ) : null}
-          <div ref={endRef} />
         </div>
+      </div>
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
@@ -466,7 +565,6 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
           commands={[]}
           compact
           placeholder={r ? `${r.with ? `${nmOf(list, r.with)}에게` : `${r.name}에`} 메시지 보내기` : "메시지 보내기"}
-          autoFocus
           onSubmit={async (draft) => {
             const raw = draft.text.trim();
             const ids = (draft.attachments || []).map((a) => (a.metadata as { attachmentId?: string } | undefined)?.attachmentId).filter((x): x is string => !!x);
