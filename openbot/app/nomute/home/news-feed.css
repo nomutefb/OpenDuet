@@ -1,0 +1,10 @@
+/* 홈 뉴스 칸 맨 위 = 실검 키워드 띠 — 에디터 viewer/index.html 「실검 키워드 티커」 .tkr 꼴 그대로(트랙 2벌 → -50% 순환 · 가장자리 페이드 · 28초 · 호버 쉼 · 움직임 줄이기 = 멈춤)
+   색 = YETA 토큰(.yeta-set 안 --fg · --accent · --glass-line) · 장식(누름 0 · aria-hidden) */
+.nm-tkr { margin:0 0 8px; padding:8px 0; overflow:hidden; border-top:1px solid var(--glass-line); border-bottom:1px solid var(--glass-line); pointer-events:none;
+  -webkit-mask:linear-gradient(90deg, transparent, rgba(0,0,0,1) 8%, rgba(0,0,0,1) 92%, transparent); mask:linear-gradient(90deg, transparent, rgba(0,0,0,1) 8%, rgba(0,0,0,1) 92%, transparent); }
+.nm-tkr-track { display:inline-flex; white-space:nowrap; will-change:transform; animation:nmTkrLoop 28s linear infinite; }
+.nm-tkr:hover .nm-tkr-track { animation-play-state:paused; }
+.nm-tkr-i { display:inline-flex; align-items:center; gap:16px; padding:0 16px 0 0; font-size:13px; color:var(--fg); }
+.nm-tkr-i::after { content:''; width:5px; height:5px; border-radius:50%; background:var(--accent); opacity:.8; }
+@keyframes nmTkrLoop { to { transform:translateX(-50%); } }
+@media (prefers-reduced-motion:reduce) { .nm-tkr-track { animation:none; } }
