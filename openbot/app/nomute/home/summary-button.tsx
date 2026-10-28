@@ -14,25 +14,27 @@ export function SummaryButton() {
   const frame = useRef<HTMLIFrameElement>(null);
   useEffect(() => {
     if (!open || !mounted) return;
-    let live = true, dlg: HTMLDialogElement | null = null;
+    let live = true, mo: MutationObserver | null = null;
     const onClose = () => { if (live) { setOpen(false); setReady(false); } };
+    //   닫힘 = 에디터 #tooldlg 의 open 표시가 꺼질 때(MutationObserver) — 'close' 알림은 크로미움이 다음 그림 때 보내 숨은 화면에선 안 옴(에디터 modern-workspace.js 654줄 주석과 같은 함정)
     const t0 = Date.now();
+    let ready0 = false;   // 열린 뒤에만 닫힘을 셈(처음 누르기 전 = 닫힌 상태)
     const tick = () => {
       if (!live) return;
       const doc = frame.current?.contentDocument;
       const btn = doc?.querySelector<HTMLElement>('.raditem[data-act="ask"]'), d = doc?.getElementById("tooldlg") as HTMLDialogElement | null;
       if (btn && d && doc?.body.classList.contains("booted")) {
-        dlg = d;
-        d.addEventListener("close", onClose);
+        mo = new MutationObserver(() => { if (!d.open && ready0) onClose(); });
+        mo.observe(d, { attributes: true, attributeFilter: ["open"] });
         if (!d.open) btn.click();
-        const wait = () => { if (!live) return; if (d.open) setReady(true); else if (Date.now() - t0 < BOOT_MS) setTimeout(wait, 150); else setErr("뉴스 요약 창이 안 열렸어 — 다시 눌러 줘"); };
+        const wait = () => { if (!live) return; if (d.open) { ready0 = true; setReady(true); } else if (Date.now() - t0 < BOOT_MS) setTimeout(wait, 150); else setErr("뉴스 요약 창이 안 열렸어 — 다시 눌러 줘"); };
         wait();
         return;
       }
       if (Date.now() - t0 < BOOT_MS) setTimeout(tick, 200); else setErr("에디터를 못 불러왔어 — 다시 눌러 줘");
     };
     tick();
-    return () => { live = false; if (dlg) dlg.removeEventListener("close", onClose); };
+    return () => { live = false; if (mo) mo.disconnect(); };
   }, [open, mounted]);
   const show = () => { setErr(""); setReady(false); setMounted(true); setOpen(true); };
   const hide = () => { const d = frame.current?.contentDocument?.getElementById("tooldlg") as HTMLDialogElement | null; if (d && d.open) d.close(); setOpen(false); setReady(false); };
