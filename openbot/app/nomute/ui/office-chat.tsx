@@ -429,7 +429,7 @@ export function OfficeChat({ room, lead }: { room: string; lead?: ReactNode }) {
           <div ref={endRef} />
         </div>
       </div>
-      <div className="mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
+      <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
         {reply ? (
           <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">

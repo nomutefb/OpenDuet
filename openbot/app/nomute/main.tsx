@@ -12,10 +12,11 @@ startSync();
 declare const __NM_BUILD__: string;
 const BUILD = __NM_BUILD__;
 
+/** 쓰던 글이 있나 = 글칸에 글자가 있음(커서만 있고 비었으면 아님 — 대화창 글칸은 열리자마자 커서를 잡아서 「커서 = 쓰는 중」이면 영영 안 읽혔음 · 10-28 11:17 실측) */
 function busyTyping() {
-  const a = document.activeElement as HTMLElement | null;
-  if (a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return true;
-  return [...document.querySelectorAll<HTMLElement>('[contenteditable="true"]')].some((e) => (e.textContent || "").trim() !== "");
+  if ([...document.querySelectorAll<HTMLElement>('[contenteditable="true"]')].some((e) => (e.textContent || "").trim() !== "")) return true;
+  const a = document.activeElement;
+  return (a instanceof HTMLInputElement || a instanceof HTMLTextAreaElement) && a.value.trim() !== "";
 }
 
 let pending = false;
@@ -42,10 +43,11 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) void
 window.addEventListener("focus", () => void checkBuild());
 
 if ("serviceWorker" in navigator) {
-  // 새 서비스 워커가 켜지며 「새 판」을 알리면 = 「나는 스스로 읽음」 답(서비스 워커가 이 화면을 억지로 다시 열지 않게 · 쓰던 글 지킴) + 글칸이 빌 때 다시 읽기
+  // 새 서비스 워커가 켜지며 「새 판」을 알리면 = 「쓰던 글이 있음/없음」 답 + 글칸이 빌 때 다시 읽기
+  //   글 있음 = 서비스 워커가 억지로 다시 열지 않음(쓰던 글 지킴) · 글 없음 = 여기서 바로 다시 읽음(sw.js 머리)
   navigator.serviceWorker.addEventListener("message", (e) => {
     if ((e.data as { type?: string } | null)?.type !== "nm-build") return;
-    (e.source as ServiceWorker | null)?.postMessage({ type: "nm-self" });
+    (e.source as ServiceWorker | null)?.postMessage({ type: "nm-self", build: BUILD, draft: busyTyping() });
     if ((e.data as { build?: string }).build !== BUILD) reloadWhenFree();
   });
   window.addEventListener("load", async () => {

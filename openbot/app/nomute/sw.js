@@ -7,15 +7,16 @@ const ASSETS = "office-app-assets-v1";
 const META = "office-app-meta";   // 한 번 밀기 장부(아래)
 
 /* 새 판이 켜지면 맡은 화면 전부 한 번 새로 읽기(형 10-28 10:15 「반영이 된 이후에 강제로 모든 피시에서 새로고침 한번 시켜줘」)
-   · 새 판 코드가 도는 화면(main.tsx) = 「nm-self」로 답하고 글칸이 빌 때 스스로 다시 읽음 → 여기선 손대지 않음
-   · 답이 없는 화면(스스로 못 읽는 옛 판) = 여기서 다시 엶 — 뒤에 있거나(안 보임) 눌려 있지 않으면 바로,
-     앞에서 눌린 채면(쓰는 중일 수 있음) 그 화면이 뒤로 가거나 90초가 지나면(옛 판은 글칸을 볼 길이 없음) */
-const GRACE_MS = 90e3;
-let pend = null;   // { at: 켜진 때, ids: 아직 안 읽힌 화면 id }
+   · 새 판 코드가 도는 화면(main.tsx) = 「nm-self · 쓰던 글 있음/없음」으로 답함 — 없음 = 그 화면이 바로 스스로 다시 읽음 · 있음 = 글칸이 빌 때 스스로(여기선 손대지 않음 = 쓰던 글 지킴)
+   · 그 밖(답이 없거나 「있음/없음」을 모르는 옛 판 · 10-28 11:17 실측 = 9f3efbb 판은 글칸 커서만으로 「쓰는 중」이라 영영 안 읽힘) = 여기서 다시 엶 —
+     8초 뒤(새 판 코드가 스스로 읽을 틈) 뒤에 있거나(안 보임) 눌려 있지 않으면 바로 · 앞에서 눌린 채면(쓰는 중일 수 있음) 뒤로 가거나 90초가 지나면 */
+const WAIT_MS = 8e3, GRACE_MS = 90e3;
+let pend = null;   // { at: 켜진 때, ids: 아직 안 읽힌 화면 id, draft: { id: true } = 쓰던 글이 있다고 답한 화면 }
 const PEND_URL = "/office-app/__nm-pend";
 async function loadPend() {
   if (pend) return pend;
   try { const r = await (await caches.open(META)).match(PEND_URL); pend = r ? await r.json() : { at: 0, ids: [] }; } catch { pend = { at: 0, ids: [] }; }
+  pend.draft = pend.draft || {};
   return pend;
 }
 async function savePend() { try { await (await caches.open(META)).put(PEND_URL, new Response(JSON.stringify(pend))); } catch { /* 이번만 */ } }
@@ -23,14 +24,15 @@ let sweptAt = 0;
 async function sweep() {
   const p = await loadPend();
   if (!p.ids.length) return;
-  const late = Date.now() - p.at > GRACE_MS, left = [];
+  const age = Date.now() - p.at, left = [];
   for (const id of p.ids) {
     const c = await self.clients.get(id);
     if (!c) continue;   // 닫힘·이미 다시 읽음
-    if (late || c.visibilityState !== "visible" || !c.focused) { await c.navigate(c.url).catch(() => {}); continue; }
+    if (p.draft[id]) { left.push(id); continue; }   // 쓰던 글 있음 = 그 화면 몫
+    if (age > GRACE_MS || (age > WAIT_MS && (c.visibilityState !== "visible" || !c.focused))) { await c.navigate(c.url).catch(() => {}); continue; }
     left.push(id);
   }
-  if (left.length !== p.ids.length) { pend = { at: p.at, ids: left }; await savePend(); }
+  if (left.length !== p.ids.length) { pend = { ...p, ids: left }; await savePend(); }
 }
 function sweepSoon(e) {   // 화면이 무엇을 받으러 올 때마다(3초에 한 번까지) 남은 옛 화면을 다시 봄
   if (pend && !pend.ids.length) return;
@@ -50,17 +52,21 @@ self.addEventListener("activate", (e) => {
     for (const k of await caches.keys()) if (k !== SHELL && k !== ASSETS && k !== META && k !== "office-app-att") await caches.delete(k);
     await self.clients.claim();
     const wins = await self.clients.matchAll({ type: "window" });
-    pend = { at: Date.now(), ids: wins.map((c) => c.id) };
+    pend = { at: Date.now(), ids: wins.map((c) => c.id), draft: {} };
     await savePend();
     for (const c of wins) c.postMessage({ type: "nm-build", build: BUILD });
-    setTimeout(() => { sweptAt = Date.now(); void sweep(); }, 3000);   // 새 판 코드 화면이 답할 틈
+    for (const t of [WAIT_MS + 500, GRACE_MS + 500]) setTimeout(() => { sweptAt = Date.now(); void sweep(); }, t);   // 그 사이엔 화면이 무엇을 받으러 올 때마다(sweepSoon)
   })());
 });
 
-self.addEventListener("message", (e) => {
-  if (e.data?.type !== "nm-self" || !e.source) return;
-  const id = e.source.id;
-  e.waitUntil(loadPend().then((p) => { if (p.ids.includes(id)) { pend = { at: p.at, ids: p.ids.filter((x) => x !== id) }; return savePend(); } }));
+self.addEventListener("message", (e) => {   // 새 판 코드 화면의 답 = 쓰던 글 있음 → 기다림 · 없음 → 그 화면이 스스로 다시 읽음(장부에서 뺌)
+  if (e.data?.type !== "nm-self" || !e.source || typeof e.data.draft !== "boolean") return;   // 「있음/없음」이 없는 답(9f3efbb·a2f1b05 판) = 모르는 화면으로 둠
+  const id = e.source.id, draft = e.data.draft;
+  e.waitUntil(loadPend().then((p) => {
+    if (!p.ids.includes(id)) return;
+    pend = draft ? { ...p, draft: { ...p.draft, [id]: true } } : { ...p, ids: p.ids.filter((x) => x !== id) };
+    return savePend();
+  }));
 });
 
 self.addEventListener("fetch", (e) => {
