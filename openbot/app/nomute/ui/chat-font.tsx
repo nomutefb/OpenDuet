@@ -9,9 +9,12 @@ type K = "latin" | "hangul";
 const fontGet = (k: K) => { const d = k === "latin" ? "lemonmilk" : "paperlogy"; try { return localStorage.getItem(`yeta_font_${k}`) || d; } catch { return d; } };
 const fontSet = (k: K, v: string) => { try { localStorage.setItem(`yeta_font_${k}`, v); } catch { /* 이번만 */ } };
 export function applyChatFont() {
-  const stack = [fontGet("latin") === "lemonmilk" ? "'LEMONMILK'" : null, fontGet("hangul") === "paperlogy" ? "'Paperlogy'" : null,
-    "Pretendard", "-apple-system", "system-ui", "sans-serif"].filter(Boolean).join(",");
+  const rest = [fontGet("hangul") === "paperlogy" ? "'Paperlogy'" : null, "Pretendard", "-apple-system", "system-ui", "sans-serif"].filter(Boolean);
+  const stack = [fontGet("latin") === "lemonmilk" ? "'LEMONMILK'" : null, ...rest].filter(Boolean).join(",");
   document.documentElement.style.setProperty("--app-font", stack);
+  //   글 본문(말풍선·입력칸) = 영문 글꼴 뺀 스택 — LEMONMILK 는 소문자 모양이 없는 대문자 글꼴이라 「vm」·주소가 「VM」·「HTTPS://…」로 보였다
+  //   (저장 글자는 소문자 그대로 · 차이 기록 D9 · 형 10-28 21:16) · 이름·제목 같은 꾸밈 글자는 그대로 --app-font
+  document.documentElement.style.setProperty("--app-font-text", rest.join(","));
 }
 applyChatFont();   // 앱이 이 파일을 읽을 때 한 번(YETA 와 같음 · 설정 판을 안 열어도 먹음)
 

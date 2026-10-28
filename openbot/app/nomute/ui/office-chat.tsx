@@ -37,10 +37,14 @@ const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif)$/i;
 const WINTER_WHO = "윈터 PM";
 const WORK = ["고민하는 중", "정리하는 중", "처리하는 중"];
+const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // 글 속 주소(형 글 = 꾸밈 없는 글 · 봇 글은 Streamdown 이 링크로)
+const RECENT_N = 40;   // 다시 받기 = 최근 40 글을 통째로(거울이 반응·글을 같은 글에 고쳐 씀 = since 로는 못 받음 · 맞물림 21:3x)
 const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;   // 저장 없이 처음 = 최근 100(봇끼리 글은 한 줄로 접혀 40 이면 형 글이 안 들어와 위로 하루치를 한 번 더 기다렸음 · PM 17:20 · 서버 = 같은 한 장 한 번) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
 const HEAD = 64;   // 위에 떠 있는 머리(대화 상대 동그라미) 높이 — 그 아래부터 「보이는 위」
 
-type Msg = OfficeMsg & { alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean };
+type Msg = OfficeMsg & { alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
+  //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
+  app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
 type Page = { messages: Msg[]; more: boolean };
 type Draft = { who: string; ts: number; text: string };   // 쓰는 중 초안(그 방에서 지금 자라는 답 · 서버 _watch.js · 거울 = 그록봇 앱 방 streaming 줄)
 type Reads = { got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>> };
@@ -95,6 +99,8 @@ export function useOfficeRoom(room: string) {
       }
       const last = old?.messages.at(-1)?.ts;
       if (old && last) {
+        const r = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`);   // 최근 40 통째 = 새 글 + 거울이 고친 글(반응·카드)을 같이
+        if ((r.messages?.[0]?.ts ?? Infinity) <= last || !r.more) return merge(qc.getQueryData<Page>(key) || old, r.messages || []);   // 사이 빔 없음
         const j = await office<Page>(`rooms/${enc(room)}/messages?since=${last}&n=100`);
         if (!j.more) return merge(qc.getQueryData<Page>(key) || old, j.messages || []);   // 기다리기 고리가 그새 붙인 글도 지킴
       }
@@ -219,9 +225,17 @@ function gotBy(m: Msg, c: Ctx) {
 
 function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
   const e = Object.entries(c.rx[m.id] || {}).filter(([, w]) => w && w.length);
-  if (!e.length) return null;
+  const app = new Map<string, string[]>();   // 그록 앱 반응(D14 · 거울 칸 app_reactions) = 같은 그림끼리 묶음
+  for (const x of m.app_reactions || []) if (x?.emoji) app.set(x.emoji, [...(app.get(x.emoji) || []), x.who]);
+  if (!e.length && !app.size) return null;
   return (
     <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : ""}`}>
+      {[...app].map(([k, w]) => (
+        <span key={`app-${k}`} title={`그록 앱 반응 · ${w.map((x) => nmOf(c.list, x)).join(" · ")}`}
+          className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-1.5 py-0 text-[11px] text-muted-foreground">
+          {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
+        </span>
+      ))}
       {e.map(([k, w]) => (
         <button key={k} type="button" title={w.map((x) => nmOf(c.list, x)).join(" · ")} onClick={() => c.onReact(m.id, k)}
           className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${w.includes("형") ? "border-primary/50 bg-primary/10" : "border-border"}`}>
@@ -280,6 +294,29 @@ function Quote({ m, c }: { m: Msg; c: Ctx }) {
   return null;
 }
 
+/** 꾸밈 없는 글(형 글) 속 주소 → 누르면 새 창 링크(말풍선 누름 = 글 동작 줄은 안 열림) */
+function linked(text: string): ReactNode {
+  const parts = text.split(URL_RE);
+  if (parts.length === 1) return text;
+  return parts.map((x, i) => (i % 2 ? <a key={i} href={x} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{x}</a> : x));
+}
+
+/** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)
+ *  짐작: 앱 단추는 가상 데스크톱 넘기기 화면을 연다(사무실에서 그 화면 주소는 실측 못 함 · 맞물림 21:3x) → 그 봇 방을 열어 거기서 누르게 */
+function BoxCard({ m }: { m: Msg }) {
+  const b = m.box;
+  if (!b) return null;
+  const extra = b.instruction && b.instruction.trim() !== String(m.text || "").trim() ? b.instruction : "";
+  return (
+    <>
+      {extra ? <p className="mt-2 whitespace-pre-wrap text-sm">{extra}</p> : null}
+      {m.app_agent ? (
+        <a className="ybox-go" href={`https://grok.com/bot/${enc(m.app_agent)}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>컴퓨터 열기</a>
+      ) : null}
+    </>
+  );
+}
+
 function Body({ m }: { m: Msg }) {
   const text = String(m.text || "").replace(QUOTE, "");
   if (m.files?.length) return <Files m={m} />;
@@ -301,7 +338,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : String(m.text || "").replace(QUOTE, "")}</div>{time}</div>
+          <div className="ybw"><div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""))}</div>{time}</div>
         </div>
         <Reactions m={m} c={c} mine />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -317,7 +354,11 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className="ybrow">
           <div className="ybw">
-            <div className="yb ai" onClick={toggle}><div className="ymd"><Body m={m} /></div></div>
+            <div className="yb ai" onClick={toggle}>
+              {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
+              <div className="ymd"><Body m={m} /></div>
+              <BoxCard m={m} />
+            </div>
             {time}
           </div>
         </div>
