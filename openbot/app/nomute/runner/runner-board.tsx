@@ -3,7 +3,7 @@
 //   도는 잡(제목 · 수신 → 발신 · 걸린 시간 · 예상 대비 진행 · 큰/작은 자리 · 자리 이름 · 시작) → 디버그 세션 줄 · 맥 = 머리 + 줄 글 · 아래 = 출력 신선도·자리 감시.
 import { type ReactNode, useEffect, useState } from "react";
 import {
-  agentsOf, type Agent, debugRows, type Level, levelOf, lookOf, num, type RunnerData, type RunnerJob, type RunnerRow, runningJobs, useRunner,
+  agentsOf, type Agent, debugRows, type Level, levelOf, lookOf, num, type RunnerData, type RunnerJob, type RunnerRow, runningJobs, useOpen, useRunner,
 } from "./runner-data";
 
 const INK: Record<Level, string> = { green: "text-emerald-500", yellow: "text-amber-400", orange: "text-orange-500", red: "text-red-500", off: "text-muted-foreground/50" };
@@ -26,13 +26,14 @@ export function RunnerBoard({ data: given }: { data?: RunnerData }) {
   const q = useRunner();
   const now = useNowS();
   const data = given ?? q.data;
+  const [open, flip] = useOpen();
   if (!data) {
     return <p className="mt-6 text-sm text-muted-foreground" role={q.isError ? "alert" : undefined}>{q.isError ? `러너 소식을 못 받았어 — ${q.error.message}` : "러너 소식 받는 중…"}</p>;
   }
   return (
     <div className="mt-6 flex flex-col gap-4">
       <div className="grid gap-4 lg:grid-cols-2">
-        {PCS.map(([pc, name]) => <PcCard key={pc} name={name} d={data.rows[pc] ?? null} why={data.why[pc] || ""} now={now} />)}
+        {PCS.map(([pc, name]) => <PcCard key={pc} name={name} d={data.rows[pc] ?? null} why={data.why[pc] || ""} now={now} open={open[pc] !== false} onFlip={() => flip(pc)} />)}
       </div>
       <MacCard d={data.rows.M ?? null} why={data.why.M || ""} now={now} />
       <Footer data={data} />
@@ -40,12 +41,12 @@ export function RunnerBoard({ data: given }: { data?: RunnerData }) {
   );
 }
 
-function PcCard({ name, d, why, now }: { name: string; d: RunnerRow | null; why: string; now: number }) {
+function PcCard({ name, d, why, now, open, onFlip }: { name: string; d: RunnerRow | null; why: string; now: number; open: boolean; onFlip: () => void }) {
   const lk = lookOf(d, why, now), lv = levelOf(lk.load, lk.problem), jobs = runningJobs(d), dbg = debugRows(d);
   const busy = d && num(d.busy) != null && d.busy! >= 0 ? d.busy : null, total = d && num(d.total) != null && d.total! >= 0 ? d.total : null;
   return (
     <section className="rounded-2xl border border-border bg-card p-4" aria-label={`${name} 러너`}>
-      <Head name={name} lv={lv} when={lk.when} agents={agentsOf(d, lk.problem)}
+      <Head name={name} lv={lv} when={lk.when} agents={agentsOf(d, lk.problem)} seats={d?.seats}
         right={<><span className="text-xs tabular-nums text-muted-foreground" title="도는 잡 / 자리">{lk.problem || busy == null ? "-" : busy}<span className="mx-0.5 opacity-50">/</span>{total ?? "-"}</span>
           <b className={`text-sm font-semibold tabular-nums ${INK[lv]}`} title="부하(자리·CPU·잡 램 중 큰 값)">{lk.load == null ? "-" : `${Math.round(lk.load)}%`}</b></>} />
       {why && !d ? <p className="mt-2 text-xs text-muted-foreground">{why}</p> : null}
@@ -56,17 +57,24 @@ function PcCard({ name, d, why, now }: { name: string; d: RunnerRow | null; why:
         <Meter label="GPU" pct={d ? num(d.gpu) : null} used={`${f1(d ? num(d.gpuUsed) : null)}/${f1(d ? num(d.gpuTotal) : null)}`} problem={lk.problem} />
       </div>
       <Trend d={d} problem={lk.problem} />
-      {jobs.length ? (
+      {!jobs.length ? (
+        <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><span aria-hidden className={`size-1.5 rounded-full ${BG.off}`} />{lk.problem ? lk.note : "쉼 · 도는 잡 없음"}</p>
+      ) : null}
+      {jobs.length || dbg.length ? (   /* 접기 = 도는 잡 + 디버그 줄 같이(웹판 체브론 · 기억 = useOpen) */
+        <button type="button" className="mt-3 flex w-full items-center gap-2 text-left text-xs text-muted-foreground" aria-expanded={open} onClick={onFlip}>
+          <span>{[jobs.length ? `도는 잡 ${jobs.length}` : "", dbg.length ? `디버그 ${dbg.length}` : ""].filter(Boolean).join(" · ")}</span>
+          <svg viewBox="0 0 24 24" className={`ml-auto size-4 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+      ) : null}
+      {open && jobs.length ? (
         <>
           {lk.problem ? <p className="mt-3 text-xs text-muted-foreground">{lk.note} · 아래 = 마지막으로 받은 잡</p> : null}
           <ol className="mt-3 flex flex-col divide-y divide-border rounded-xl border border-border" aria-label="도는 잡">
             {jobs.map((j) => <JobRow key={j.id} j={j} now={now} problem={lk.problem} />)}
           </ol>
         </>
-      ) : (
-        <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><span aria-hidden className={`size-1.5 rounded-full ${BG.off}`} />{lk.problem ? lk.note : "쉼 · 도는 잡 없음"}</p>
-      )}
-      {dbg.length ? (
+      ) : null}
+      {open && dbg.length ? (
         <ul className="mt-3 flex flex-col gap-1" aria-label="디버그 브라우저">
           {dbg.map((x) => (
             <li key={x.name} className="flex items-center gap-2 text-xs">
@@ -91,13 +99,19 @@ function MacCard({ d, why, now }: { d: RunnerRow | null; why: string; now: numbe
   );
 }
 
-function Head({ name, lv, when, agents, right }: { name: string; lv: Level; when: string; agents: Agent[]; right: ReactNode }) {
+function Head({ name, lv, when, agents, right, seats }: { name: string; lv: Level; when: string; agents: Agent[]; right: ReactNode; seats?: RunnerRow["seats"] }) {
+  const ss = Array.isArray(seats) ? [...seats].sort((a, b) => (b.L || 0) - (a.L || 0)) : [];   // 자리 점 = 큰 자리 먼저 · 바쁨 진하게 · 멈춤 빨강(보조 03 초안 꼴)
   return (
     <div className="flex min-w-0 items-center gap-2">
       <span aria-hidden className={`size-2 shrink-0 rounded-full ${BG[lv]}`} />
       <b className="shrink-0 text-sm font-semibold tracking-wide">{name}</b>
       <span className="shrink-0 text-xs tabular-nums text-muted-foreground">· {when}</span>
       <Claudes list={agents} />
+      {ss.length ? (
+        <span className="hidden shrink-0 items-center gap-[3px] sm:flex" aria-label={`자리 ${ss.length} · 바쁨 ${ss.filter((s) => s.b).length}`} role="img">
+          {ss.map((s) => <i key={s.n} className={`size-1.5 rounded-full ${s.b ? "bg-foreground" : s.d ? "bg-red-500" : "bg-foreground/20"} ${s.L ? "ring-1 ring-foreground/50" : ""}`} />)}
+        </span>
+      ) : null}
       <span className="ml-auto flex min-w-0 items-center gap-3">{right}</span>
     </div>
   );
@@ -136,10 +150,25 @@ function Trend({ d, problem }: { d: RunnerRow | null; problem: boolean }) {
   return (
     <svg className="mt-3 h-10 w-full" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="60분 추세 · CPU 진한 선 · RAM 옅은 선">
       <line x1="0" y1={H - 0.5} x2={W} y2={H - 0.5} className="stroke-border" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+      <g className={`${INK[levelOf(num(d.ram), problem)]} opacity-30`}>{cacheDots(d, X).map((p, i) => (p.ring ? <circle key={i} cx={p.x} cy={H / 2} r={p.r} fill="none" stroke="currentColor" strokeWidth="0.8" /> : <circle key={i} cx={p.x} cy={H / 2} r={p.r} fill="currentColor" opacity={p.faint ? 0.45 : 1} />))}</g>
       <path d={path(tr.ram)} fill="none" className={`stroke-current ${INK[levelOf(num(d.ram), problem)]} opacity-40`} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
       <path d={path(tr.cpu)} fill="none" className={`stroke-current ${INK[levelOf(num(d.cpu), problem)]}`} strokeWidth="1.75" vectorEffect="non-scaling-stroke" />
     </svg>
   );
+}
+
+/** 추세 뒤 캐시 점(웹판 TrendView.DrawCache 뜻 · 보조 03 초안) — 1분 한 칸 · 크기 = 캐시 GB / 용량 · 비운 분 = 빈 고리 · 0GB·쉼 = 아주 작은 점. */
+function cacheDots(d: RunnerRow, X: (t: number) => number) {
+  const ca = d.cache, out: { x: number; r: number; ring?: boolean; faint?: boolean }[] = [];
+  if (!ca || !num(ca.end) || !Array.isArray(ca.gb)) return out;
+  const cap = Math.max(1, num(ca.cap) ?? 8), clr = String(ca.clr || ""), rest = String(ca.rest || "");
+  for (let i = 0; i < 60; i++) {
+    const x = X((ca.end! - 59 + i) * 60 + 30), v = num(ca.gb[i]);
+    if (clr[i] === "1") out.push({ x, r: 2.4, ring: true });
+    else if (v != null && v >= 0.05) out.push({ x, r: 1.5 + Math.min(1, v / cap) * 1.4 });
+    else if (v != null || rest[i] === "1") out.push({ x, r: 0.8, faint: true });
+  }
+  return out;
 }
 
 function JobRow({ j, now, problem }: { j: RunnerJob; now: number; problem: boolean }) {

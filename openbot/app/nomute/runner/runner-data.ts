@@ -2,6 +2,7 @@
 //   원천 = 지금 웹판(nomutefb/editor viewer/runner.html)과 같은 GET /api/runner(위젯이 30초마다 올리는 저장소 변수 NM_TRAY_A·B · 맥 NM_TRAY_M ·
 //   출력 신선도 out · 자리 감시 seat) — 새로 재지 않고 그대로 읽음. 숫자 규칙(단계 색·낡음·도는 잡 고르기·도는 Claude)은 웹판 규칙 그대로(정본 = 위젯 Model.cs·RowViews.cs).
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 export type RunnerJob = {
   id: string; kind?: "L" | "S"; seat?: string; start?: number; workflow?: string; running?: boolean;
@@ -13,6 +14,8 @@ export type RunnerRow = {
   cpuUsed?: number; cpuTotal?: number; ramUsed?: number; ramTotal?: number; gpuUsed?: number; gpuTotal?: number; cacheGB?: number;
   busy?: number; total?: number; down?: number; unread?: number;
   ag?: number; sub?: number; ags?: string[]; dbg?: string[]; jobs?: RunnerJob[];
+  seats?: { n: string; L?: number; b?: number; d?: number }[];   // 자리마다 = 큰 자리(L) · 바쁨(b) · 멈춤(d)
+  cache?: { cap?: number; end?: number; gb?: (number | null)[]; clr?: string; rest?: string };   // 60분 캐시(분마다 GB · 비운 분 clr · 쉼 rest)
   trend?: { step?: number; end?: number; cpu?: (number | null)[]; ram?: (number | null)[] };
 };
 export type RunnerOut = { summary?: string; verdict?: string; broken?: string[]; checked?: string; items?: Record<string, { ko?: string; st?: string; verdict?: string }> };
@@ -75,6 +78,21 @@ export function agentsOf(d: RunnerRow | null, problem: boolean): Agent[] {
 /** 디버그 세션 한 줄(윈A 위젯 Collector.SetDebug · 「이름|상태|값」). */
 export const debugRows = (d: RunnerRow | null) =>
   (d?.dbg ?? []).map(String).map((x) => { const [name = "", st = "", v = ""] = x.split("|"); const s = st === "on" || st === "login" ? st : "off"; return { name, st: s, value: s === "off" ? `꺼짐${v ? " · " + v : ""}` : v }; });
+
+/** 펼침 기억(PC 마다 · 웹판 runner.html 과 같은 열쇠 = 같은 주소라 같이 감 · 보조 03 초안에서 옮김) · 기억 못 하면 펼침. */
+const OPEN_KEY = "nm_runner_open";
+export function useOpen(): [Record<string, boolean>, (pc: string) => void] {
+  const [open, setOpen] = useState<Record<string, boolean>>(() => {
+    try { const o = JSON.parse(localStorage.getItem(OPEN_KEY) || "null"); if (o && typeof o === "object") return { A: o.A !== false, B: o.B !== false }; } catch { /* 저장소 없음 = 펼침 */ }
+    return { A: true, B: true };
+  });
+  const flip = (pc: string) => setOpen((o) => {
+    const n = { ...o, [pc]: !o[pc] };
+    try { localStorage.setItem(OPEN_KEY, JSON.stringify({ ...JSON.parse(localStorage.getItem(OPEN_KEY) || "{}"), ...n })); } catch { /* 기억 못 해도 지금 화면은 바뀜 */ }
+    return n;
+  });
+  return [open, flip];
+}
 
 /** GET /api/runner — 30초마다(위젯이 올리는 박자) · 화면이 숨으면 쉼(react-query 기본). */
 export function useRunner() {
