@@ -42,6 +42,12 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) void
 window.addEventListener("focus", () => void checkBuild());
 
 if ("serviceWorker" in navigator) {
+  // 새 서비스 워커가 켜지며 「새 판」을 알리면 = 「나는 스스로 읽음」 답(서비스 워커가 이 화면을 억지로 다시 열지 않게 · 쓰던 글 지킴) + 글칸이 빌 때 다시 읽기
+  navigator.serviceWorker.addEventListener("message", (e) => {
+    if ((e.data as { type?: string } | null)?.type !== "nm-build") return;
+    (e.source as ServiceWorker | null)?.postMessage({ type: "nm-self" });
+    if ((e.data as { build?: string }).build !== BUILD) reloadWhenFree();
+  });
   window.addEventListener("load", async () => {
     const had = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener("controllerchange", () => { if (had) reloadWhenFree(); });   // 새 서비스 워커 = 새 판이 올라옴
