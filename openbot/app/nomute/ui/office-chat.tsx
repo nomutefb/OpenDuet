@@ -21,6 +21,7 @@ import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
+import { usePinActions } from "./pins";   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
 import { t12 } from "./when";
 import "./yeta-chat.css";
 
@@ -36,7 +37,7 @@ const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif)$/i;
 const WINTER_WHO = "윈터 PM";
 const WORK = ["고민하는 중", "정리하는 중", "처리하는 중"];
-const FIRST_N = 40, DAY_MIN = 15, AUTO_MAX = 8;   // 저장 없이 처음 = 최근 한 화면치(봇끼리 글은 한 줄로 접혀 넉넉히) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
+const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;   // 저장 없이 처음 = 최근 100(봇끼리 글은 한 줄로 접혀 40 이면 형 글이 안 들어와 위로 하루치를 한 번 더 기다렸음 · PM 17:20 · 서버 = 같은 한 장 한 번) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
 const HEAD = 64;   // 위에 떠 있는 머리(대화 상대 동그라미) 높이 — 그 아래부터 「보이는 위」
 
 type Msg = OfficeMsg & { alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean };
@@ -177,6 +178,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
 type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
   sel: string; setSel: (id: string) => void; onReact: (id: string, e: string) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
+  want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
 };
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
 
@@ -220,8 +222,9 @@ function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
   );
 }
 
-function Actions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {   // 글 위 동작(마우스 올림 · 폰 = 글 누름) = 빠른 반응 · 답장 · 복사
+function Actions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {   // 글 위 동작(마우스 올림 · 폰 = 글 누름) = 빠른 반응 · 답장 · 복사 · 고정(형 화면만 · ./pins.tsx)
   const [copied, setCopied] = useState(false);
+  const pins = usePinActions(c.room);
   return (
     <div className={`mt-1 flex flex-wrap items-center gap-0.5 rounded-full border border-border bg-background/95 p-0.5 shadow-sm ${mine ? "self-end" : "self-start"}`} role="group" aria-label="글 동작">
       {c.quick.map((q) => (
@@ -229,6 +232,7 @@ function Actions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {   // 글 �
       ))}
       <button type="button" className="rounded-full px-2.5 py-1 text-xs hover:bg-foreground/5" onClick={() => c.onReply(m)}>답장</button>
       <button type="button" className="rounded-full px-2.5 py-1 text-xs hover:bg-foreground/5" onClick={() => { void navigator.clipboard?.writeText(String(m.text || "").replace(QUOTE, "")).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1200); }); }}>{copied ? "복사함" : "복사"}</button>
+      {pins.can ? <button type="button" className="rounded-full px-2.5 py-1 text-xs hover:bg-foreground/5" disabled={pins.busy} onClick={() => { pins.pin({ id: m.id, ts: m.ts }); c.setSel(""); }}>고정</button> : null}
     </div>
   );
 }
@@ -315,7 +319,8 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
 }
 
 function Band({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
-  const [open, setOpen] = useState(false);
+  const [open0, setOpen] = useState(false);
+  const open = open0 || (!!c.want && msgs.some((x) => x.id === c.want));   // 그 글로 가는 중 = 펼침
   const ws = [...new Set(msgs.map((x) => x.who))];
   return (
     <div className="flex flex-col items-center gap-3">
@@ -353,6 +358,9 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
   const [mode, setMode] = useState(""), [stOpen, setStOpen] = useState(false);   // 글 상태(💡·⏳·✅) = 평소엔 접힘(옛 화면 = 입력칸 옆 단추)
   const [evT, setEvT] = useState(""), [evR, setEvR] = useState("");
   const [rxOver, setRxOver] = useState<Record<string, Record<string, string[]>> | null>(null);
+  // 그 글로(답장 인용 · 고정 띠 이력 = window 「nm-jump」 {room, id}) — want.id = 간 글(그 묶음은 펼친 채 둠) · n = 부를 때마다 하나씩(같은 글로 또 가기) · done = 다 간 n
+  const [want, setWantS] = useState<{ id: string; n: number }>({ id: "", n: 0 }), wantTry = useRef(0), wantDone = useRef(0);
+  const setWant = (id: string) => { wantTry.current = 0; setWantS((w) => ({ id, n: w.n + 1 })); };
   const all = msgs.data?.messages || [];
   const items = useMemo(() => hyungView(all, r), [all, r]);
   const typing = useMemo(() => typingOf(all, r, bots, list), [all, r, bots, list]);
@@ -436,6 +444,29 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
       document.fonts?.removeEventListener?.("loadingdone", grow); ro.disconnect(); if (tm) clearTimeout(tm);
     };
   }, [msgs.isPending, room]);
+  useEffect(() => {   // 밖에서 그 글로(보조 01 고정 띠·이력 판 = window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id } })))
+    const on = (e: Event) => { const d = (e as CustomEvent<{ room?: string; id?: string }>).detail || {}; if (d.room === room && d.id) setWant(String(d.id)); };
+    window.addEventListener("nm-jump", on);
+    return () => window.removeEventListener("nm-jump", on);
+  }, [room]);
+  useEffect(() => {   // 그 글로 = 그려졌으면 가운데로 굴리고 반짝 · 묶음 안 = 묶음이 펼쳐진 다음 그림에서 · 아직 안 받은 앞 글 = 하루치씩 받으며 찾음(8번까지)
+    if (!want.id || wantDone.current === want.n) return;
+    const t = window.setTimeout(() => {
+      const el = boxRef.current?.querySelector<HTMLElement>(`[data-id="${CSS.escape(want.id)}"]`);
+      if (el) {
+        wantDone.current = want.n; stuck.current = false; hold.current = Date.now() + 1500;
+        el.scrollIntoView({ block: "center", behavior: document.hidden ? "auto" : "smooth" });
+        el.animate?.([{ backgroundColor: "color-mix(in srgb, currentColor 12%, transparent)" }, { backgroundColor: "transparent" }], { duration: 1200 });
+        for (const d of [80, 700]) window.setTimeout(() => poke.current(), d);   // 이동 뒤 「↑ 글 처음」 다시 셈
+      } else if (!all.some((x) => x.id === want.id)) {
+        if (moreRef.current && wantTry.current < AUTO_MAX && !loadingOld.current) {
+          wantTry.current++; loadingOld.current = true;
+          void olderRef.current().then((k) => { if (!k) wantTry.current = AUTO_MAX; }).catch(() => { wantTry.current = AUTO_MAX; }).finally(() => { loadingOld.current = false; });
+        } else if (!loadingOld.current) { wantDone.current = want.n; setErr("그 글을 못 찾았어 — 받은 글 안에 없음"); }
+      }
+    }, 60);
+    return () => clearTimeout(t);
+  }, [want, all]);   // eslint-disable-line react-hooks/exhaustive-deps
   const toStart = () => {   // 「↑ 글 처음」 = 그 글 시작이 머리 바로 아래로
     const box = boxRef.current, el = box?.querySelector<HTMLElement>(`[data-id="${CSS.escape(jump)}"]`);
     if (!box || !el) return;
@@ -461,13 +492,12 @@ export function OfficeChat({ room, lead, active = true }: { room: string; lead?:
 
   const c: Ctx = {
     room, r, list, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
-    sel, setSel,
+    sel, setSel, want: want.id,
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); },
     onJump: (who, line, id) => {
       const hit = id ? all.find((x) => x.id === id) : [...all].reverse().find((x) => nmOf(list, x.who) === who && firstLine(x).startsWith(line.replace(/…$/, "").slice(0, 20)));
-      const el = hit && document.querySelector(`[data-id="${CSS.escape(hit.id)}"]`);
-      if (el) { el.scrollIntoView({ block: "center", behavior: "smooth" }); (el as HTMLElement).animate?.([{ backgroundColor: "color-mix(in srgb, currentColor 12%, transparent)" }, { backgroundColor: "transparent" }], { duration: 1200 }); }
+      if (hit || id) setWant(hit ? hit.id : String(id));   // 묶음 안이면 펼치고 · 안 받은 앞 글이면 받으며 찾음(위 효과)
       else setErr("그 글이 지금 받은 글 안에 없어 — 위 「옛 글 더 보기」로");
     },
   };
