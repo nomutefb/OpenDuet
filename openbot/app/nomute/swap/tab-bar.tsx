@@ -14,10 +14,10 @@ import "./ynav.css";
 
 export type ShellTab = "chat" | "tasks" | "make";
 
-const TABS: { id: Pane; to: "/home" | "/rooms" | "/" | "/editor"; icon: DuetIconName; label: string }[] = [
+const TABS: { id: Pane; to: string; icon: DuetIconName; label: string }[] = [
   { id: "home", to: "/home", icon: "dashboard", label: "홈" },
   { id: "rooms", to: "/rooms", icon: "inbox", label: "대화방" },   // 형 12:22 「대화방이 일반적으로 더 우선 메뉴라 더 좌측으로」
-  { id: "chat", to: "/", icon: "chat", label: "대화" },
+  { id: "chat", to: "", icon: "chat", label: "대화" },   // 대화 = 마지막에 보던 방(chatTo · 처음 = 회의실 #/group/all)
   { id: "editor", to: "/editor", icon: "page", label: "에디터" },   // 보조 03 에디터 메뉴 판(형 12:24)
 ];
 
@@ -29,7 +29,7 @@ export function tabForPath(pathname: string): ShellTab | null {
   return null;
 }
 
-export function TabBar({ pane, modal = null }: { pane: Pane | null; modal?: Modal | null; current?: ShellTab }) {
+export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pane | null; modal?: Modal | null; chatTo?: string; current?: ShellTab }) {
   const navigate = useNavigate();
   const [drawer, setDrawer] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -65,7 +65,7 @@ export function TabBar({ pane, modal = null }: { pane: Pane | null; modal?: Moda
         {TABS.map((tab) => {
           const on = tab.id === pane && !modal && !drawer;
           return (
-            <button aria-current={on ? "page" : undefined} aria-label={tab.label} className={on ? "on" : undefined} key={tab.id} onClick={() => void navigate({ to: tab.to })} type="button">
+            <button aria-current={on ? "page" : undefined} aria-label={tab.label} className={on ? "on" : undefined} key={tab.id} onClick={() => void navigate({ to: tab.id === "chat" ? chatTo : tab.to })} type="button">
               <DuetIcon name={tab.icon} size={20} stroke={on ? 2.1 : 1.9} />
               <span>{tab.label}</span>
             </button>

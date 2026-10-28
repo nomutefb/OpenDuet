@@ -44,8 +44,8 @@ type Where = { pane: Pane } | { modal: Modal } | { page: true } | { bare: true }
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
 export function whereFor(pathname: string): Where {
   const p = pathname.replace(/\/+$/, "") || "/";
-  if (p === "/" || /^\/(channels|group)\/[^/]+$/.test(p)) return { pane: "chat" };
-  if (p === "/home") return { pane: "home" };
+  if (p === "/" || p === "/home") return { pane: "home" };   // 앱 열면 = 홈(형 12:21 「홈이 뜨는 지금이 맞고」 · PM 12:55)
+  if (/^\/(channels|group)\/[^/]+$/.test(p)) return { pane: "chat" };   // 회의실 = #/group/all
   if (p === "/rooms") return { pane: "rooms" };
   if (p === "/editor") return { pane: "editor" };
   const m = MODALS.find((x) => x.to === p);
@@ -54,7 +54,8 @@ export function whereFor(pathname: string): Where {
   return { page: true };
 }
 const roomOf = (pathname: string) => { const m = pathname.match(/^\/(?:channels|group)\/([^/]+)/); return m ? decodeURIComponent(m[1]) : "all"; };
-const paneHref = (pane: Pane, room: string) => (pane === "chat" ? (room === "all" ? "/" : `/channels/${encodeURIComponent(room)}`) : `/${pane}`);
+export const chatHref = (room: string) => (room === "all" ? "/group/all" : `/channels/${encodeURIComponent(room)}`);
+const paneHref = (pane: Pane, room: string) => (pane === "chat" ? chatHref(room) : `/${pane}`);
 
 const SettingsPage = SettingsIndex.options.component as () => ReactNode;
 const editorMods = import.meta.glob("../editor-menu/screen.tsx");
@@ -115,7 +116,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               </PageChromeProvider>
             </section>
           ) : null}
-          <TabBar pane={"pane" in where ? where.pane : null} modal={modal} />
+          <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
             <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label}>
               <div className="nm-modal-h">
@@ -150,7 +151,7 @@ function RoomsPane() {
 function FaceStrip({ current }: { current: string }) {
   const nav = useNavigate();
   const { list, ordered, count } = useRoomOrder();
-  const go = (id: string) => void (id === "all" ? nav({ to: "/" }) : nav({ to: "/channels/$channelId", params: { channelId: id } }));
+  const go = (id: string) => void nav({ to: chatHref(id) });
   return (
     <aside aria-label="방 얼굴 띠" className="nm-strip">
       <button type="button" className="nm-strip-btn" aria-label="대화 목록" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="menu" size={21} /></button>

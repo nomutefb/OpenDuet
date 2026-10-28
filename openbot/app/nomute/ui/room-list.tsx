@@ -63,7 +63,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     const n = count(r), u = n !== 0, on = current === r.id, tall = big;
     return (
       <li className="group/row relative" onContextMenu={(e) => { e.preventDefault(); setMenu(menu === r.id ? "" : r.id); }}>
-        <Link to={r.id === "all" ? "/" : "/channels/$channelId"} params={r.id === "all" ? undefined : { channelId: r.id }} onClick={onOpen}   // 회의실 = 첫 화면("/")
+        <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={onOpen}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 rounded-2xl px-3 ${tall ? "py-3" : "py-2"} pr-10 hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
           {r.with ? <FaceImg id={idOf(r.with, list)} size={big ? 44 : 36} /> : ids.length ? <span className={`grid place-items-center ${big ? "size-11" : "size-9"}`}><FaceStack ids={ids.slice(0, 3)} size={big ? 24 : 20} /></span> : <span className="grid size-9 place-items-center"><DuetIcon name="chat" size={20} /></span>}
           <span className="min-w-0 flex-1">

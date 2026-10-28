@@ -11,7 +11,7 @@ import { FaceImg, FaceStack } from "./faces";
 export function NomuteTop({ size, orb }: { size: number; orb: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const m = path.match(/^\/(?:channels|group)\/([^/]+)/);
-  const room = m ? decodeURIComponent(m[1]) : path.replace(/\/+$/, "") === "" ? "all" : "";
+  const room = m ? decodeURIComponent(m[1]) : "";   // 첫 화면("/") = 홈 · 회의실 = #/group/all
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 }).data || [];
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const r = rooms.find((x) => x.id === room);
