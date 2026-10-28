@@ -10,7 +10,8 @@ import { routeTree } from "./gen/routeTree.gen";
 /*   #/rooms = 목록 화면(형 11:26 「대화랑 그냥 분리하자」) · 둘 다 화면은 껍데기 판(ui/shell.tsx)이 그림 = 길은 자리만 */
 const runnerRoute = createRoute({ getParentRoute: () => AppRoute, path: "/runner", component: () => null });
 const roomsRoute = createRoute({ getParentRoute: () => AppRoute, path: "/rooms", component: () => null });
-AppRoute.addChildren([...((AppRoute.children as AnyRoute[] | undefined) ?? []), runnerRoute, roomsRoute]);
+const homeRoute = createRoute({ getParentRoute: () => AppRoute, path: "/home", component: () => null });   // #/home = 홈 판(보조 02 nomute/home)
+AppRoute.addChildren([...((AppRoute.children as AnyRoute[] | undefined) ?? []), runnerRoute, roomsRoute, homeRoute]);
 
 export const router = createRouter({
   routeTree,

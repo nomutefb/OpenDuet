@@ -1,7 +1,7 @@
 // 새 사무실 껍데기 = YETA 껍데기 꼴(형 10-28 11:22 「네비는 늘 위 · 옮겨도 뒤 그대로」 · 11:26 「뼈대 그대로로 yeta로」 · 장부 office-yeta-chat.md 「껍데기 이음 꼴」)
 //   로그인 뒤 공통 자리(원본 _authed 라우트 Outlet 둘레 · overrides.ts PATCH)에 한 번만 섬 → 대화·목록·할 일·러너·설정 어디로 가도 껍데기는 그대로
 //   판 = 처음 갈 때 한 번 그리고 계속 살려 둠(숨김만 = 스크롤·쓰던 글 그대로) · 들어오는 판 = YETA ypickIn(./shell.css) · 네비 = 맨 위층(swap/tab-bar.tsx)
-//   설정 판 = 원본 settings 화면(보조 03 PATCH 그대로) · 러너 판 = 보조 02 nomute/runner · 그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로)
+//   설정 판 = 원본 settings 화면(보조 03 PATCH 그대로) · 러너 판 = 보조 02 nomute/runner · 홈 판 = 보조 02 nomute/home(형 11:27 「메인 대시보드」 · #/home) · 그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로)
 //   PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26 · 얼굴만 · 안 읽은 방 먼저 · 숫자 배지 · 지금 방 = 테두리 · 맨 위 ≡ = 목록 화면 · 맨 아래 붙박이 「+」·형 얼굴)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, Suspense, useEffect, useRef, useState } from "react";
@@ -15,6 +15,7 @@ import { PageChromeProvider } from "@/components/shell/page-chrome";
 import { TasksScreen } from "@/components/shell/tasks-screen";
 import { useChannelEvents } from "@/lib/channels/use-channel-events";
 import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
+import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
 import { TabBar } from "../swap/tab-bar";
 import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
@@ -24,12 +25,13 @@ import { RoomList, useRoomOrder } from "./room-list";
 import { useWide } from "./side";
 import "./shell.css";
 
-export type Pane = "chat" | "rooms" | "tasks" | "runner" | "settings";
+export type Pane = "home" | "chat" | "rooms" | "tasks" | "runner" | "settings";
 
 /** 길 → 판 · null = 판 위에 덮는 쪽(원본 화면 그대로) · "bare" = 껍데기 없이(가입 안내 등) */
 export function paneFor(pathname: string): Pane | null | "bare" {
   const p = pathname.replace(/\/+$/, "") || "/";
   if (p === "/" || /^\/(channels|group)\/[^/]+$/.test(p)) return "chat";
+  if (p === "/home") return "home";
   if (p === "/rooms") return "rooms";
   if (p === "/tasks") return "tasks";
   if (p === "/runner") return "runner";
@@ -73,6 +75,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat"} /></main>
             </div>
           ))}
+          {show("home", <HomeScreen />)}
           {show("rooms", <div className="nm-col"><RoomsPane /></div>)}
           {show("tasks", <div className="nm-col"><TasksScreen /></div>)}
           {show("runner", <div className="nm-scroll"><RunnerScreen /></div>)}
