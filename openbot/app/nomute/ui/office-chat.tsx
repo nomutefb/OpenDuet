@@ -182,6 +182,7 @@ function StatePill({ m }: { m: Msg }) {
 }
 
 function GotLine({ m, c }: { m: Msg; c: Ctx }) {
+  if (!c.r?.with) return null;   // 단체방(회의실·지정방·수리) = 가져감 줄 0(봇이 방을 읽기만 해도 잡혀 사실상 읽은 목록 · 형 10-28 09:44 「회의실도 … 읽은 사람 표시되는거 없애줘」) · 1:1 방 = 그 봇이 맡음(05:12)
   const got = c.reads?.got || {}, at = c.reads?.got_at || {};
   const l = Object.keys(got).filter((n) => n !== m.who && (got[n] || []).includes(m.id)).map((n) => ({ who: n, at: at[n]?.[m.id] }));
   if (!l.length) return null;

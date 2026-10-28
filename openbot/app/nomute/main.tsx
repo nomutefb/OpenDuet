@@ -1,30 +1,54 @@
-// 진입점 — 원본 main.tsx 보다 먼저 우리 서버 잇기(shim)를 깐다 · 동기화(pulse) · 홈 화면 앱(PWA) 서비스 워커 · 새 판 알림
+// 진입점 — 원본 main.tsx 보다 먼저 우리 서버 잇기(shim)를 깐다 · 동기화(pulse) · 홈 화면 앱(PWA) 서비스 워커 · 새 판 저절로 다시 읽기
 import "./shim/install";
 import "@/main";
 import { startSync } from "./data/sync";
 
 startSync();
 
-/** 「새 판 나왔어 · 눌러서 새로 고침」(옛 화면 17차와 같은 말) — 새 서비스 워커가 자리를 잡으면 한 번 */
-function newVersionPill() {
-  if (document.getElementById("nm-ver")) return;
-  const b = document.createElement("button");
-  b.id = "nm-ver";
-  b.type = "button";
-  b.textContent = "새 판 나왔어 · 눌러서 새로 고침";
-  b.className = "fixed left-1/2 top-3 z-50 -translate-x-1/2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background shadow-lg";
-  b.addEventListener("click", () => location.reload());
-  document.body.append(b);
+/* 새 판 저절로 다시 읽기(형 10-28 09:44 「새판 나오면 설치되어있는 웹앱이라도 자동으로 강제새로고침되서 고쳐지게」)
+   · 이 판 번호 = 빌드 때 박은 __NM_BUILD__ · 지금 올라간 판 = /office-app/version.json(빌드 때 같이 나옴 · 캐시 0)
+   · 묻는 때 = 1분마다(화면이 보일 때) · 다시 앞으로 올 때 · 서비스 워커가 새 판을 받았을 때
+   · 다르면 다시 읽기 — 단, 형이 글칸에 쓰는 중(글이 있음)·입력칸에 커서가 있으면 빌 때까지 미룸(쓰던 글 날림 0 · 5초마다 다시 봄) */
+declare const __NM_BUILD__: string;
+const BUILD = __NM_BUILD__;
+
+function busyTyping() {
+  const a = document.activeElement as HTMLElement | null;
+  if (a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return true;
+  return [...document.querySelectorAll<HTMLElement>('[contenteditable="true"]')].some((e) => (e.textContent || "").trim() !== "");
 }
+
+let pending = false;
+function reloadWhenFree() {
+  if (pending) return;
+  pending = true;
+  const go = () => { if (busyTyping()) { setTimeout(go, 5000); return; } location.reload(); };
+  go();
+}
+
+async function checkBuild() {
+  if (document.hidden || pending) return;
+  try {
+    const r = await fetch(`/office-app/version.json?t=${Date.now()}`, { cache: "no-store", credentials: "same-origin" });
+    if (!r.ok) return;
+    const j = (await r.json()) as { build?: string };
+    if (j.build && j.build !== BUILD) reloadWhenFree();
+  } catch { /* 끊김 = 다음 차례 */ }
+}
+
+(window as unknown as { __nmBuild: string }).__nmBuild = BUILD;   // 지금 이 화면 판(확인용)
+setInterval(() => void checkBuild(), 60_000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) void checkBuild(); });
+window.addEventListener("focus", () => void checkBuild());
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
     const had = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.addEventListener("controllerchange", () => { if (had) newVersionPill(); });
+    navigator.serviceWorker.addEventListener("controllerchange", () => { if (had) reloadWhenFree(); });   // 새 서비스 워커 = 새 판이 올라옴
     try {
       const reg = await navigator.serviceWorker.register("/office-app/sw.js", { scope: "/office-app/" });
       document.addEventListener("visibilitychange", () => { if (!document.hidden) void reg.update().catch(() => {}); });
-      setInterval(() => void reg.update().catch(() => {}), 10 * 60e3);
+      setInterval(() => void reg.update().catch(() => {}), 5 * 60e3);
     } catch { /* 설치 앱만 빠짐 · 화면은 그대로 */ }
   });
 }

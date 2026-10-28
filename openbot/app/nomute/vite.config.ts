@@ -5,16 +5,22 @@ import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import { DROP_ROUTES, nomuteOverrides } from "./overrides";
 
 const here = (p: string) => path.resolve(__dirname, p);
+
+/** 판 번호 = 빌드한 때(같은 커밋을 캐시로 다시 쓰면 같은 번호) · 화면 안 __NM_BUILD__ 와 /office-app/version.json 이 같은 값 = 새 판 저절로 다시 읽기(main.tsx) */
+const BUILD = process.env.NM_BUILD || new Date().toISOString();
+const versionFile = (): Plugin => ({ name: "nomute-version", generateBundle() { this.emitFile({ type: "asset", fileName: "version.json", source: JSON.stringify({ build: BUILD }) }); } });
 
 export default defineConfig({
   root: here("."),
   base: "/office-app/",
   publicDir: here("public"),   // 앱 설명서·서비스 워커·아이콘(우리 것)
+  define: { __NM_BUILD__: JSON.stringify(BUILD) },
   plugins: [
+    versionFile(),
     nomuteOverrides(here("../.."), here(".")),
     tanstackRouter({
       routesDirectory: here("../src/routes"),
