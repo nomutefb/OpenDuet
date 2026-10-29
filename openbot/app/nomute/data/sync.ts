@@ -24,7 +24,7 @@ function apply(prev: PulseMap | null, next: PulseMap) {
   }
   if (prev.brief !== next.brief || prev.answers !== next.answers) { inv(["nomute", "brief"]); inv(["approvals"]); bus.dispatchEvent(new Event("brief")); }
   if (prev.repair !== next.repair) { inv(["nomute", "repair"]); bus.dispatchEvent(new Event("repair")); }
-  if (prev.seen !== next.seen) { inv(["nomute", "seen"]); inv(["duet-channels"]); }
+  if (prev.seen !== next.seen) { inv(["nomute", "seen"]); inv(["nomute", "rooms"]); inv(["duet-channels"]); }   // 안 읽은 수(rooms[].unread)도 본 데까지로 셈(형 10-30 「읽고나면 1 안없어지는거」)
   if (prev.notice !== next.notice) inv(["nomute", "notice"]);
   if (prev.roomset !== next.roomset) { inv(["nomute", "roomset"]); inv(["nomute", "rooms"]); inv(["duet-channels"]); }
 }

@@ -66,6 +66,11 @@ export const PATCH: Record<string, [string, string][]> = {
     ['aria-label="Message"', 'aria-label="글"'],
     ['aria-label="Message"', 'aria-label="글"'],
   ],
+  // 입력칸 부름 목록 = 「@」(예약) + 「!」(바로 깨움 · 사무실 말 · 형 10-30 「호출시 대화에 쓰면 리스트 안뜨는 것」) — 같은 이 목록 · 고르면 「!이름」 글
+  "app/src/components/channels/composer/triggers.ts": [
+    ["  return [agentTrigger(agents), slashCommandTrigger(commands)];", "  return [agentTrigger(agents), { ...agentTrigger(agents), char: \"!\", accessibilityLabel: \"바로 깨움\" }, slashCommandTrigger(commands)];"],
+    ['emptyMessage: "No Bots in this conversation"', 'emptyMessage: "이 방엔 부를 이가 없어"'],
+  ],
   "app/src/components/channels/composer/attachment-strip.tsx": [
     ['aria-label="Attachments"', 'aria-label="붙인 파일"'],
   ],
