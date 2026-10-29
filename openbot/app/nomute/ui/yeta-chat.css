@@ -35,6 +35,8 @@
   backdrop-filter:blur(var(--blur-m)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-m)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line); }
 .ychat .yb.ai .ymd { white-space:normal; }
 .ychat .yb a { text-decoration:underline; text-underline-offset:2px; word-break:break-all; }   /* 글 속 주소 = 누르면 새 창(D9) */
+.ychat .ycall { font-weight:700; color:var(--accent); background:rgba(var(--accent-rgb),.14); border-radius:6px; padding:0 3px; white-space:nowrap; }   /* 글 속 부름 「@이름」·「!이름」 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) */
+.ychat .yb.me .ycall { color:inherit; background:rgba(255,255,255,.22); text-decoration:underline; text-underline-offset:2px; }
 .ychat .ybox-h { display:flex; align-items:center; gap:6px; font-size:var(--fs-xs); font-weight:var(--fw-b); color:var(--fg-2); margin-bottom:6px; }
 .ychat .ybox-go { display:inline-flex; align-items:center; margin-top:8px; padding:5px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); font-size:var(--fs-sm); text-decoration:none !important; }
 .ychat .ybox-go:active { transform:scale(var(--press-m)); }

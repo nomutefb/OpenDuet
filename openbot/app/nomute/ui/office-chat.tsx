@@ -11,7 +11,7 @@
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type ComponentProps, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Composer, toAgentOptions } from "@/components/channels/composer";
 import { useReportChatPresence } from "@/components/shell/chat-presence";
@@ -301,12 +301,35 @@ function Quote({ m, c }: { m: Msg; c: Ctx }) {
   return null;
 }
 
-/** 꾸밈 없는 글(형 글) 속 주소 → 누르면 새 창 링크(말풍선 누름 = 글 동작 줄은 안 열림) */
-function linked(text: string): ReactNode {
-  const parts = text.split(URL_RE);
-  if (parts.length === 1) return text;
-  return parts.map((x, i) => (i % 2 ? <a key={i} href={x} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{x}</a> : x));
+/** 글 속 부름(「@이름」·「!이름」) — 서버가 알아들은 이름만(mention · urgent · alias 칸 = 부름이 실제로 걸린 것만 칩) · 긴 이름 먼저(「@윈터」보다 「@윈터 PM」) */
+const reEsc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function callRe(m: Msg): RegExp | null {
+  const names = [...new Set([...(m.mention || []), ...(m.urgent || []), ...Object.keys(m.alias || {}).map((k) => k.replace(/^[@!]/, ""))])].filter(Boolean);
+  return names.length ? new RegExp(`([@!](?:${names.sort((a, b) => b.length - a.length).map(reEsc).join("|")}))`, "g") : null;
 }
+function called(text: string, re: RegExp | null, key: string): ReactNode {
+  if (!re) return text;
+  const parts = text.split(re);
+  return parts.length === 1 ? text : parts.map((x, i) => (i % 2 ? <span key={`${key}-${i}`} className="ycall">{x}</span> : x));
+}
+
+/** 꾸밈 없는 글(형 글) 속 주소 → 누르면 새 창 링크(말풍선 누름 = 글 동작 줄은 안 열림) · 부름 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) */
+function linked(text: string, re: RegExp | null = null): ReactNode {
+  const parts = text.split(URL_RE);
+  if (parts.length === 1) return called(text, re, "t");
+  return parts.map((x, i) => (i % 2 ? <a key={i} href={x} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{x}</a> : called(x, re, `t${i}`)));
+}
+
+/** 봇 글(마크다운) 속 부름 → 「#nm-call」 링크로 바꿔 Streamdown 이 칩으로 그림 · 코드(``` · `) 안은 그대로 */
+const CALL_HREF = "#nm-call";
+function calledMd(text: string, re: RegExp | null): string {
+  if (!re) return text;
+  return text.split(/(```[\s\S]*?```|`[^`\n]*`)/).map((x, i) => (i % 2 ? x : x.replace(re, `[$1](${CALL_HREF})`))).join("");
+}
+const mdWithCalls = {
+  ...markdownComponents,
+  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : markdownComponents.a(p)),
+};
 
 /** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)
  *  짐작: 앱 단추는 가상 데스크톱 넘기기 화면을 연다(사무실에서 그 화면 주소는 실측 못 함 · 맞물림 21:3x) → 그 봇 방을 열어 거기서 누르게 */
@@ -328,7 +351,7 @@ function Body({ m }: { m: Msg }) {
   const text = String(m.text || "").replace(QUOTE, "");
   if (m.files?.length) return <Files m={m} />;
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
-  return <Streamdown components={markdownComponents}>{text}</Streamdown>;
+  return <Streamdown components={mdWithCalls}>{calledMd(text, callRe(m))}</Streamdown>;
 }
 
 /** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선 / 시각] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 / 시각] · 시각 = 말풍선 밖 오른쪽 아래 모서리 바로 아래(.ybw) ·
@@ -345,7 +368,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""))}</div>{time}</div>
+          <div className="ybw"><div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m))}</div>{time}</div>
         </div>
         <Reactions m={m} c={c} mine />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -437,8 +460,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     return false;
   }, [all, r]);
   const presence = useReportChatPresence(true, { working: winterWorking, failed: false });
-  const bots4 = useMemo(() => {
+  const bots4 = useMemo(() => {   // 입력칸 「@」·「!」 목록 = 이 방에서 부를 수 있는 이(정한 사람 없는 방 = 봇 + 윈터·봄 같은 존재 · 형 10-30 「호출시 … 리스트 안뜨는 것」)
     const ids = r ? roomAgentIds(r, list) : [];
+    if (r && !r.with && !r.members?.length) for (const p of list) { const id = idOf(p.who, list); if (p.kind !== "human" && p.who !== "형" && !ids.includes(id)) ids.push(id); }
     return ids.map((id) => { const p = list.find((x) => idOf(x.who, list) === id); return { id, name: p?.name || p?.who || id, title: p?.role }; });
   }, [r, list]);
   const baseTs = useRef<number | null>(null);   // 방을 연 때 마지막 글 — 그 뒤에 온 글만 올라오는 움직임(YETA .in · 옛 글 다시 그림 = 0)
@@ -562,7 +586,12 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   };
   useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen) — 보이는 때만 · 연 때 본 데까지를 먼저 잡은 뒤(안 본 것부터 단추)
     const ts = all.at(-1)?.ts;
-    if (ts && active && seenReady) void office("seen", { method: "POST", body: JSON.stringify({ seen: { [room]: { ts, at: Date.now() } } }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "seen"] })).catch(() => {});
+    if (!ts || !active || !seenReady) return;
+    // 읽은 방 「1」 = 바로 지움(서버 답 기다리지 않음) → 서버 seen 뒤 방 목록 다시(형 10-30 「톡방 읽고나면 1 안없어지는거」 · 전엔 seen 만 다시 읽어 rooms[].unread 가 남았음)
+    qc.setQueryData<(OfficeRoom & { unread?: number })[]>(["nomute", "rooms"], (old) => old?.map((x) => (x.id === room && x.unread ? { ...x, unread: 0 } : x)));
+    void office("seen", { method: "POST", body: JSON.stringify({ seen: { [room]: { ts, at: Date.now() } } }) })
+      .then(() => { void qc.invalidateQueries({ queryKey: ["nomute", "seen"] }); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); void qc.invalidateQueries({ queryKey: ["duet-channels"] }); })
+      .catch(() => {});
   }, [room, lastId, active, seenReady]);
 
   const react = useMutation({
