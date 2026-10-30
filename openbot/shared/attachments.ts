@@ -7,7 +7,7 @@
  * composer accepted and the server threw away with no explanation.
  */
 
-export const MAX_ATTACHMENTS_PER_MESSAGE = 8;
+export const MAX_ATTACHMENTS_PER_MESSAGE = 10;   // 형 10-31 「한번에 최대 10장까지」
 
 /**
  * A hard ceiling, not a downscaling threshold: nothing in this path resizes
