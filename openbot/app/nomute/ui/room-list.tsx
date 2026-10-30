@@ -17,6 +17,8 @@ const readSet = (k: string): Set<string> => { try { return new Set(JSON.parse(lo
 const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, JSON.stringify([...s])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } };
 
 
+import { readLocally } from "../data/read-local";   // 연 방 = 이 기기 안 바로 「봤음」(형 10-30 15:4x)
+
 export type Room = OfficeRoom & { unread?: number };
 
 /** 방 차례 하나(목록 화면 · PC 얼굴 띠) — 안 읽은 수 = 서버 rooms[].unread(없으면 점 = -1) */
@@ -28,6 +30,7 @@ export function useRoomOrder() {
   const all = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.with !== "형");
   const lastOf = (r: Room) => (r.last_talk !== undefined ? r.last_talk : r.last);
   const count = (r: Room) => {
+    if (readLocally(r.id, r.last_ts)) return 0;   // 이 기기에서 방금 연 방 = 서버 숫자보다 먼저 0(형 10-30 15:4x)
     if (typeof r.unread === "number") return r.unread;
     const l = lastOf(r);
     return l && l.kind !== "human" && (seen[r.id]?.ts || 0) < (r.last_ts || 0) ? -1 : 0;

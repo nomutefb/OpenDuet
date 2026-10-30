@@ -12,6 +12,7 @@
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ComponentProps, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { markReadLocal } from "../data/read-local";   // 연 방 = 이 기기 안 바로 「봤음」(형 10-30 15:4x 목록 「1」 늦게 지워짐)
 import { Streamdown } from "streamdown";
 import { Composer, toAgentOptions } from "@/components/channels/composer";
 import { useReportChatPresence } from "@/components/shell/chat-presence";
@@ -586,6 +587,11 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       if (!moreRef.current || !(await olderRef.current().catch(() => 0))) { if (first) setWant(first.id); return; }
     }
   };
+  useEffect(() => {   // 방을 여는 순간 = 이 기기 안 「봤음」 + 목록 숫자 0(서버 답 안 기다림 · 형 10-30 15:4x 「금방 안없어지는 느낌」)
+    if (!active) return;
+    markReadLocal(room, all.at(-1)?.ts);
+    qc.setQueryData<(OfficeRoom & { unread?: number })[]>(["nomute", "rooms"], (old) => old?.map((x) => (x.id === room && x.unread ? { ...x, unread: 0 } : x)));
+  }, [room, active, lastId]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen) — 보이는 때만 · 연 때 본 데까지를 먼저 잡은 뒤(안 본 것부터 단추)
     const ts = all.at(-1)?.ts;
     if (!ts || !active || !seenReady) return;
