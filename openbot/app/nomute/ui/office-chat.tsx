@@ -22,6 +22,7 @@ import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
+import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
 import { usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
 import { t12 } from "./when";
@@ -217,6 +218,7 @@ type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
   sel: string; setSel: (id: string) => void; onReact: (id: string, e: string) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
+  onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
 };
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
@@ -423,7 +425,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
   }
   return (
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
-      <div className="yava"><FaceImg id={idOf(m.who, c.list)} size={32} /></div>
+      <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><FaceImg id={idOf(m.who, c.list)} size={32} /></button>
       <div className="ycol">
         <div className="yname">{p?.name || m.who}</div>
         <Quote m={m} c={c} />
@@ -485,6 +487,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
   const [err, setErr] = useState("");
   const [sel, setSel] = useState("");
+  const [prof, setProf] = useState("");   // 프로필 카드를 연 사람(who · 빈 값 = 닫힘)
   const [reply, setReply] = useState<{ id: string; who: string; line: string } | null>(null);
   const [mode, setMode] = useState(""), [stOpen, setStOpen] = useState(false);   // 글 상태(💡·⏳·✅) = 평소엔 접힘(옛 화면 = 입력칸 옆 단추)
   const [evT, setEvT] = useState(""), [evR, setEvR] = useState("");
@@ -658,7 +661,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
 
   const nre = useMemo(() => nameRe(list), [list]);
   const c: Ctx = {
-    room, r, list, nre, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
+    room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     sel, setSel, want: want.id,
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); },
@@ -794,6 +797,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           }}
         />
       </div>
+      <ProfileCard who={prof} list={list} onClose={() => setProf("")} />
     </div>
   );
 }
