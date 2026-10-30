@@ -22,6 +22,7 @@ import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
+import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
 import { usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
@@ -254,17 +255,17 @@ function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
   for (const x of m.app_reactions || []) if (x?.emoji) app.set(x.emoji, [...(app.get(x.emoji) || []), x.who]);
   if (!e.length && !app.size) return null;
   return (
-    <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : ""}`}>
+    <div className="yrxs" onClick={(e) => e.stopPropagation()}>   {/* 말풍선 모서리에 겹침(형 10-31 「이모지는 칸을 아껴야되니까」) */}
       {[...app].map(([k, w]) => (
         <span key={`app-${k}`} title={`그록 앱 반응 · ${w.map((x) => nmOf(c.list, x)).join(" · ")}`}
-          className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-1.5 py-0 text-[11px] text-muted-foreground">
+          className="yrx">
           {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
         </span>
       ))}
       {e.map(([k, w]) => (
         <button key={k} type="button" title={w.map((x) => nmOf(c.list, x)).join(" · ")} onClick={() => c.onReact(m.id, k)}
-          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${w.includes("형") ? "border-primary/50 bg-primary/10" : "border-border"}`}>
-          {k}<span className="tabular-nums">{w.length}</span>
+          className={`yrx${w.includes("형") ? " on" : ""}`}>
+          {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
         </button>
       ))}
     </div>
@@ -434,9 +435,8 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</div>{time}</div>
+          <div className="ybw"><div className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Reactions m={m} c={c} mine /></div>{time}</div>
         </div>
-        <Reactions m={m} c={c} mine />
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
     );
@@ -450,15 +450,15 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className="ybrow">
           <div className="ybw">
-            <div className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle}>
+            <div className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} style={p?.bubble ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               <div className="ymd"><Body m={m} nre={c.nre} /></div>
               <BoxCard m={m} />
+              <Reactions m={m} c={c} mine={false} />
             </div>
             {time}
           </div>
         </div>
-        <Reactions m={m} c={c} mine={false} />
         {selected ? <Actions m={m} c={c} mine={false} /> : null}
       </div>
     </div>

@@ -32,6 +32,24 @@
 .ychat .yb, .ychat-in .duet-composer-editor { font-family:var(--app-font-text, var(--app-font, Pretendard,-apple-system,system-ui,sans-serif)); }   /* 글 본문 = 영문 대문자 글꼴 뺌(./chat-font.tsx · D9) */
 .ychat .yb { padding:10px 13px; border-radius:var(--r-l); font-size:var(--fs-body); line-height:var(--lh-base); white-space:pre-wrap; word-break:break-word; }
 .ychat .yb.ai { background:var(--glass-2); border:1px solid var(--glass-line); border-top-left-radius:var(--r-s); box-shadow:inset 0 1px 0 var(--glass-line); }   /* 뒤 흐림 뺌(형 10-31 「메세지 하단부가 번쩍번쩍」) */
+.ychat .yb { position:relative; }
+.ychat .yb:has(> .yrxs) { margin-bottom:13px; }
+.yrxs { position:absolute; right:8px; bottom:-14px; z-index:2; display:flex; gap:3px; white-space:nowrap; }
+.yrx { display:inline-flex; align-items:center; gap:2px; height:24px; padding:0 6px; border-radius:999px; font-size:13px; line-height:1; background:var(--bubble-ai); border:2px solid var(--bg); color:var(--fg); }
+.yrx.on { border-color:rgba(var(--accent-rgb),.55); }
+.yrx .tabular-nums { font-size:11px; }
+.ypc-ava { position:relative; }
+.ypc-orb { position:absolute; right:-4px; bottom:-4px; width:34px; height:34px; padding:0; border:0; border-radius:50%; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.45), inset -3px -4px 8px rgba(0,0,0,.25), inset 3px 4px 8px rgba(255,255,255,.35);
+  background:radial-gradient(circle at 34% 30%, rgba(255,255,255,.7), transparent 34%), conic-gradient(from 210deg, #4b7bff, #5ad1ff, #f7a8c4, #ffd27a, #ff8a4c, #ff5f8a, #9a7bff, #4b7bff); }
+.ncp { width:100%; display:flex; flex-direction:column; gap:10px; padding:12px; border-radius:16px; background:#1e2023; border:1px solid rgba(255,255,255,.1); text-align:left; }
+.ncp-f { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; font-size:11px; color:#8B8F8A; }
+.ncp-f input { width:100%; min-width:0; padding:6px 8px; border:0; border-radius:8px; background:#2a2d31; color:#fff; font-size:14px; outline:none; }
+.ncp-box { position:relative; height:132px; border-radius:10px; touch-action:none; cursor:crosshair; }
+.ncp-box i { position:absolute; width:18px; height:18px; margin:-9px 0 0 -9px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.5); pointer-events:none; }
+.ncp-hue { width:100%; height:12px; border-radius:6px; appearance:none; -webkit-appearance:none; background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00); outline:none; }
+.ncp-hue::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:2px solid rgba(0,0,0,.25); }
+.ncp-rgb { display:flex; gap:8px; }
+.ncp-acts { display:flex; gap:8px; justify-content:flex-end; }
 .ychat .yb.ph { background:none; border:none; padding:0; box-shadow:none; }   /* 사진만 든 글 = 말풍선 없이 */
 .ychat .yb.ai .ymd { white-space:normal; }
 .ychat .yb a { text-decoration:underline; text-underline-offset:2px; word-break:break-all; }   /* 글 속 주소 = 누르면 새 창(D9) */

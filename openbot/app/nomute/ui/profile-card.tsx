@@ -4,14 +4,17 @@
 //   어두운 유리 카드(.yeta-pick 결) · 가운데 큰 프사 → 이름 → 직무(연두 .ycd-tag) → 소개(.ypp-desc) → 단추 · 바깥 누름·Esc = 닫기
 //   「1:1 대화」 = 그 사람과 형의 1:1 방(rooms[].with)으로 · 없으면 단추 없음 · 소개 = 명부 intro(본인이 채움 · 비면 「아직」)
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { type OfficePerson, type OfficeRoom, idOf } from "../data/office";
+import { useEffect, useState } from "react";
+import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../data/office";
+import { ColorPick } from "./color-pick";
 import { FaceImg } from "./faces";
 
 const ROOMS_KEY = ["nomute", "rooms"] as const;   // office-chat.tsx officeKeys.rooms 와 같은 열쇠(받아 둔 방 목록을 그대로 씀 · 읽기 0)
 
 export function ProfileCard({ who, list, onClose }: { who: string; list: OfficePerson[]; onClose: () => void }) {
   const qc = useQueryClient();
+  const [pick, setPick] = useState(false);
+  useEffect(() => { setPick(false); }, [who]);
   useEffect(() => {
     if (!who) return;
     const on = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -23,11 +26,17 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const name = p?.name || who;
   const rooms = qc.getQueryData<OfficeRoom[]>(ROOMS_KEY) || [];
   const dm = rooms.find((r) => r.with === who);
+  const save = async (color: string) => {   // 말풍선 색(형 10-31 · 서버 office/bubbles.json · 형만)
+    await office("bubble", { method: "POST", body: JSON.stringify({ who, color }) });
+    qc.setQueryData(["nomute", "people"], await people(true));
+    setPick(false);
+  };
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   return (
     <div className="ypc-veil nm-yeta" role="presentation" onClick={onClose}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
       <div className="ypc" role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
-        <div className="ypc-ava"><FaceImg id={idOf(who, list)} size={104} /></div>
+        <div className="ypc-ava"><FaceImg id={idOf(who, list)} size={104} /><button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} /></div>
+        {pick ? <ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /> : null}
         <span className="ycd-nm">{name}{p?.mark ? <span className="ypc-mark" aria-hidden>{p.mark}</span> : null}</span>
         {p?.role ? <span className="ycd-tag">{p.role}</span> : null}
         {p?.intro ? <span className="ypp-desc">{p.intro}</span> : <span className="ycd-quote">자기소개는 아직이야</span>}
