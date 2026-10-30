@@ -11,7 +11,7 @@
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ComponentProps, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { markReadLocal } from "../data/read-local";   // 연 방 = 이 기기 안 바로 「봤음」(형 10-30 15:4x 목록 「1」 늦게 지워짐)
 import { Streamdown } from "streamdown";
 import { Composer, toAgentOptions } from "@/components/channels/composer";
@@ -185,7 +185,9 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   for (const m of list) { if (hung(m)) continue; all.push(m); for (const k of kids.get(m.id) || []) all.push({ ...k, _thr: true }); }
   const meIds = new Set(all.filter((m) => m.kind === "human").map((m) => m.id));
   const toMe = (m: Msg) => meIds.has(m.reply_to || "") || meIds.has(m.origin || "") || (m.mention || []).includes("형");
-  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin);
+  // 1:1 방 주인 글이라도 남만 부른 글(「@빚 …」)은 형 없는 대화 = 묶음으로(형 10-30 18:4x 「이렇게 내가 없는 대화 안보이면 댐」)
+  const toOthers = (m: Msg) => { const n = [...(m.mention || []), ...(m.urgent || [])]; return n.length > 0 && !n.includes("형"); };
+  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && !toOthers(m));
   const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m);
   const out: Item[] = [];
   for (let i = 0; i < all.length; i++) {
@@ -203,6 +205,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
 type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
   sel: string; setSel: (id: string) => void; onReact: (id: string, e: string) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
+  nre: RegExp | null;   // 봇 이름(시안 · nameRe)
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
 };
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
@@ -309,28 +312,57 @@ function callRe(m: Msg): RegExp | null {
   const names = [...new Set([...(m.mention || []), ...(m.urgent || []), ...Object.keys(m.alias || {}).map((k) => k.replace(/^[@!]/, ""))])].filter(Boolean);
   return names.length ? new RegExp(`([@!](?:${names.sort((a, b) => b.length - a.length).map(reEsc).join("|")}))`, "g") : null;
 }
-function called(text: string, re: RegExp | null, key: string): ReactNode {
-  if (!re) return text;
+/** 글 속 봇 이름(부름 아닌 그냥 이름 · 형 10-30 18:4x 「호출은 그대로 두고 그냥 명칭일라도 색을 다르게 … 시안색으로」) = 시안 글자 —
+ *  앞 = 글 처음·한글/영문/숫자/@/! 아닌 자리 · 뒤 = 토씨 하나까지만 붙고 낱말 끝(「결과」·「온도」·「감사」 안의 한 글자는 안 칠함 · 한 글자 이름은 「과·와·도」 토씨 뺌) */
+const NAME_TAIL = "(?:야|아|님|씨|에게|한테|께|이|가|은|는|을|를|랑|이랑|의|이야|이가)";
+function nameRe(list: OfficePerson[]): RegExp | null {
+  const ns = [...new Set(list.filter((p) => p.kind === "bot").map((p) => p.name || p.who))].filter(Boolean).sort((a, b) => b.length - a.length);
+  if (!ns.length) return null;
+  const one = ns.filter((n) => n.length === 1), more = ns.filter((n) => n.length > 1);
+  const alt = [...(more.length ? [`(?:${more.map(reEsc).join("|")})(?=(?:${NAME_TAIL.slice(3, -1)}|와|과|도)?(?![0-9A-Za-z가-힣_]))`] : []),
+    ...(one.length ? [`(?:${one.map(reEsc).join("|")})(?=${NAME_TAIL}?(?![0-9A-Za-z가-힣_]))`] : [])];
+  return new RegExp(`(^|[^0-9A-Za-z가-힣_@!\\[])(${alt.join("|")})`, "g");
+}
+function named(text: string, nre: RegExp | null, key: string): ReactNode {
+  if (!nre) return text;
+  const out: ReactNode[] = [];
+  let last = 0, k = 0;
+  for (const mm of text.matchAll(nre)) {
+    const at = (mm.index || 0) + mm[1].length;
+    if (at > last) out.push(text.slice(last, at));
+    out.push(<span key={`${key}-n${k++}`} className="yname-c">{mm[2]}</span>);
+    last = at + mm[2].length;
+  }
+  if (!out.length) return text;
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+function called(text: string, re: RegExp | null, key: string, nre: RegExp | null = null): ReactNode {
+  if (!re) return named(text, nre, key);
   const parts = text.split(re);
-  return parts.length === 1 ? text : parts.map((x, i) => (i % 2 ? <span key={`${key}-${i}`} className="ycall">{x}</span> : x));
+  return parts.length === 1 ? named(text, nre, key) : parts.map((x, i) => (i % 2 ? <span key={`${key}-${i}`} className="ycall">{x}</span> : <Fragment key={`${key}-${i}`}>{named(x, nre, `${key}-${i}`)}</Fragment>));
 }
 
-/** 꾸밈 없는 글(형 글) 속 주소 → 누르면 새 창 링크(말풍선 누름 = 글 동작 줄은 안 열림) · 부름 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) */
-function linked(text: string, re: RegExp | null = null): ReactNode {
+/** 꾸밈 없는 글(형 글) 속 주소 → 누르면 새 창 링크(말풍선 누름 = 글 동작 줄은 안 열림) · 부름 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) · 봇 이름 = 시안 */
+function linked(text: string, re: RegExp | null = null, nre: RegExp | null = null): ReactNode {
   const parts = text.split(URL_RE);
-  if (parts.length === 1) return called(text, re, "t");
-  return parts.map((x, i) => (i % 2 ? <a key={i} href={x} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{x}</a> : called(x, re, `t${i}`)));
+  if (parts.length === 1) return called(text, re, "t", nre);
+  return parts.map((x, i) => (i % 2 ? <a key={i} href={x} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{x}</a> : <Fragment key={i}>{called(x, re, `t${i}`, nre)}</Fragment>));
 }
 
-/** 봇 글(마크다운) 속 부름 → 「#nm-call」 링크로 바꿔 Streamdown 이 칩으로 그림 · 코드(``` · `) 안은 그대로 */
-const CALL_HREF = "#nm-call";
-function calledMd(text: string, re: RegExp | null): string {
-  if (!re) return text;
-  return text.split(/(```[\s\S]*?```|`[^`\n]*`)/).map((x, i) => (i % 2 ? x : x.replace(re, `[$1](${CALL_HREF})`))).join("");
+/** 봇 글(마크다운) 속 부름 → 「#nm-call」 링크로 바꿔 Streamdown 이 칩으로 그림 · 봇 이름 → 「#nm-name」(시안 글자) · 코드(``` · `) 안은 그대로 */
+const CALL_HREF = "#nm-call", NAME_HREF = "#nm-name";
+function calledMd(text: string, re: RegExp | null, nre: RegExp | null = null): string {
+  if (!re && !nre) return text;
+  return text.split(/(```[\s\S]*?```|`[^`\n]*`)/).map((x, i) => {
+    if (i % 2) return x;
+    const y = re ? x.replace(re, `[$1](${CALL_HREF})`) : x;
+    return nre ? y.replace(nre, (_all, pre: string, n: string) => `${pre}[${n}](${NAME_HREF})`) : y;
+  }).join("");
 }
 const mdWithCalls = {
   ...markdownComponents,
-  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : markdownComponents.a(p)),
+  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href === NAME_HREF ? <span className="yname-c">{p.children}</span> : markdownComponents.a(p)),
 };
 
 /** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)
@@ -349,11 +381,11 @@ function BoxCard({ m }: { m: Msg }) {
   );
 }
 
-function Body({ m }: { m: Msg }) {
+function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
   if (m.files?.length) return <Files m={m} />;
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
-  return <Streamdown components={mdWithCalls}>{calledMd(text, callRe(m))}</Streamdown>;
+  return <Streamdown components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
 }
 
 /** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선 / 시각] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 / 시각] · 시각 = 말풍선 밖 오른쪽 아래 모서리 바로 아래(.ybw) ·
@@ -371,7 +403,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div className={`yb me${app ? " app" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m))}</div>{time}</div>
+          <div className="ybw"><div className={`yb me${app ? " app" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</div>{time}</div>
         </div>
         <Reactions m={m} c={c} mine />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -389,7 +421,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
           <div className="ybw">
             <div className="yb ai" onClick={toggle}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
-              <div className="ymd"><Body m={m} /></div>
+              <div className="ymd"><Body m={m} nre={c.nre} /></div>
               <BoxCard m={m} />
             </div>
             {time}
@@ -613,8 +645,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     onError: (e) => { setRxOver(null); setErr(`반응 못 남김 — ${e instanceof Error ? e.message : String(e)}`); },
   });
 
+  const nre = useMemo(() => nameRe(list), [list]);
   const c: Ctx = {
-    room, r, list, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
+    room, r, list, nre, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     sel, setSel, want: want.id,
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); },

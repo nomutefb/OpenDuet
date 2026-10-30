@@ -43,6 +43,11 @@
 .ychat .yb.me { align-self:flex-end; max-width:100%; background:var(--bubble-me); color:var(--bg); border-top-right-radius:var(--r-s); }
 .ychat .yb.me.app { background:#000; color:#fff; }   /* 형이 그록봇 앱에서 친 글(형 10-30 「검정색 말풍선 위에 흰색 글씨」) */
 .ychat .yb.me.app .ycall { background:rgba(255,255,255,.18); }
+/* 글 속 봇 이름(부름 아닌 그냥 이름) = 시안(형 10-30 18:4x 「그냥 명칭일라도 색을 다르게 … 시안색으로」) · 바탕마다 읽히게: 밝은 판 cyan-600 · 어두운 판 cyan-400 · 형 연두 말풍선 cyan-800 · 검정 말풍선 cyan-300 */
+.ychat .yname-c { color:#0891b2; }
+.dark .ychat .yname-c { color:#22d3ee; }
+.ychat .yb.me .yname-c { color:#155e75; }
+.ychat .yb.me.app .yname-c { color:#67e8f9; }
 .ychat .yb.sys { align-self:center; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-pill); color:var(--fg-2); font-size:var(--fs-sm); padding:3px 12px;
   backdrop-filter:blur(var(--blur-m)); -webkit-backdrop-filter:blur(var(--blur-m)); }
 .ychat .ymsg.cont { margin-top:-6px; }
