@@ -286,6 +286,14 @@ function Actions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {   // 글 �
   );
 }
 
+/** 사진 크게 보기(형 10-31 「누르면 확대할 수 있고」) · 입력칸 미리보기도 씀 · 아무 데나 누르면 닫힘 */
+function zoomImage(src: string, alt = "") {
+  const v = document.createElement("div"), i = new Image();
+  v.className = "nm-zoom"; i.src = src; i.alt = alt; v.append(i); v.onclick = () => v.remove();
+  document.body.append(v);
+}
+(window as unknown as { nmZoom?: typeof zoomImage }).nmZoom = zoomImage;
+const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.test(String(p)));   // 사진만 든 글 = 말풍선 없이(형 10-31 「사진 주변 테두리 없애줘」)
 function Files({ m }: { m: Msg }) {
   const meta = new Map((m.file_meta || []).filter((x) => x?.path).map((x) => [x.path, x]));
   const ps = [...new Set((m.files || []).map(String))];
@@ -296,7 +304,7 @@ function Files({ m }: { m: Msg }) {
       {imgs.length ? (
         <div className="flex flex-wrap gap-2">
           {imgs.map((f) => (
-            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl border border-border">
+            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); zoomImage(fileUrl(f.p), f.n); }}>
               <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" />
             </a>
           ))}
@@ -426,7 +434,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div className={`yb me${app ? " app" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</div>{time}</div>
+          <div className="ybw"><div className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</div>{time}</div>
         </div>
         <Reactions m={m} c={c} mine />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -442,7 +450,7 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
         <StatePill m={m} />
         <div className="ybrow">
           <div className="ybw">
-            <div className="yb ai" onClick={toggle}>
+            <div className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               <div className="ymd"><Body m={m} nre={c.nre} /></div>
               <BoxCard m={m} />
@@ -516,6 +524,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     return false;
   }, [all, r]);
   const presence = useReportChatPresence(true, { working: winterWorking, failed: false });
+  const busyWho = draft?.who || typing[0] || "";   // 머리 얼굴 도는 테(형 10-31 「상대가 호출에 응답중일 때 위에 동글 도는거 표시」) = top.tsx 가 받음
+  useEffect(() => { qc.setQueryData(["nomute", "busy", room], busyWho); return () => { qc.setQueryData(["nomute", "busy", room], ""); }; }, [qc, room, busyWho]);
   const bots4 = useMemo(() => {   // 입력칸 「@」·「!」 목록 = 이 방에서 부를 수 있는 이(정한 사람 없는 방 = 봇 + 윈터·봄 같은 존재 · 형 10-30 「호출시 … 리스트 안뜨는 것」)
     const ids = r ? roomAgentIds(r, list) : [];
     if (r && !r.with && !r.members?.length) for (const p of list) { const id = idOf(p.who, list); if (p.kind !== "human" && p.who !== "형" && !ids.includes(id)) ids.push(id); }
@@ -749,7 +759,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           channelId={room}
           onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); }}
           initialValue={loadDraft(room)}
-          className="mt-auto w-full"
+          className="relative mt-auto w-full"
           commands={[]}
           compact
           placeholder={r ? `${r.with ? `${nmOf(list, r.with)}에게` : `${r.name}에`} 메시지 보내기` : "메시지 보내기"}

@@ -12,10 +12,10 @@ export const FINISH_MS = FINISH_S * 1000;
 
 const LOOK: Record<MicOrbState, string> = { idle: "rest", listening: "listen", thinking: "work", done: "done", finished: "done" };   // 쉼 · 듣는 중 · 일하는 중 · 끝남
 
-export function MicOrb({ className, size, state = "idle", still = false }: { className?: string; colour?: OrbColour; keystrokes?: number; size: number; state?: MicOrbState; still?: boolean }) {
+export function MicOrb({ className, size, state = "idle", still = false, id = WINTER_ID, tint }: { className?: string; colour?: OrbColour; keystrokes?: number; size: number; state?: MicOrbState; still?: boolean; id?: string; tint?: string }) {
   const look = LOOK[state] || "rest";
   return (
-    <span aria-hidden="true" className={`nm-orb nm-${look}${still ? " nm-still" : ""} ${className || ""}`} style={{ width: size, height: size, "--s": `${size}px` } as CSSProperties}>
+    <span aria-hidden="true" className={`nm-orb nm-${look}${still ? " nm-still" : ""} ${className || ""}`} style={{ width: size, height: size, "--s": `${size}px`, ...(tint ? { "--c": tint } : {}) } as CSSProperties}>
       <i className="nm-ring" />
       {look === "work" ? (
         <i className="nm-arc">
@@ -25,7 +25,7 @@ export function MicOrb({ className, size, state = "idle", still = false }: { cla
           </svg>
         </i>
       ) : null}
-      <FaceImg id={WINTER_ID} size={Math.round(size * 0.8)} className="nm-orb-face" />
+      <FaceImg id={id} size={Math.round(size * 0.8)} className="nm-orb-face" />
       {look === "done" ? (
         <i className="nm-tick">
           <svg viewBox="0 0 24 24" fill="none" stroke="#070a12" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">

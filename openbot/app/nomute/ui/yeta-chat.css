@@ -31,8 +31,8 @@
 .ychat .ymsg .yname { font-size:var(--fs-xs); color:var(--fg); font-weight:var(--fw-b); padding-left:2px; }
 .ychat .yb, .ychat-in .duet-composer-editor { font-family:var(--app-font-text, var(--app-font, Pretendard,-apple-system,system-ui,sans-serif)); }   /* 글 본문 = 영문 대문자 글꼴 뺌(./chat-font.tsx · D9) */
 .ychat .yb { padding:10px 13px; border-radius:var(--r-l); font-size:var(--fs-body); line-height:var(--lh-base); white-space:pre-wrap; word-break:break-word; }
-.ychat .yb.ai { background:var(--glass-2); border:1px solid var(--glass-line); border-top-left-radius:var(--r-s);
-  backdrop-filter:blur(var(--blur-m)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-m)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line); }
+.ychat .yb.ai { background:var(--glass-2); border:1px solid var(--glass-line); border-top-left-radius:var(--r-s); box-shadow:inset 0 1px 0 var(--glass-line); }   /* 뒤 흐림 뺌(형 10-31 「메세지 하단부가 번쩍번쩍」) */
+.ychat .yb.ph { background:none; border:none; padding:0; box-shadow:none; }   /* 사진만 든 글 = 말풍선 없이 */
 .ychat .yb.ai .ymd { white-space:normal; }
 .ychat .yb a { text-decoration:underline; text-underline-offset:2px; word-break:break-all; }   /* 글 속 주소 = 누르면 새 창(D9) */
 .ychat .ycall { font-weight:700; color:var(--accent); background:rgba(var(--accent-rgb),.14); border-radius:6px; padding:0 3px; white-space:nowrap; }   /* 글 속 부름 「@이름」·「!이름」 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) */
@@ -48,6 +48,11 @@
 .dark .ychat .yname-c { color:#22d3ee; }
 .ychat .yb.me .yname-c { color:#155e75; }
 .ychat .yb.me.app .yname-c { color:#67e8f9; }
+.nm-strip { position:absolute; left:0; right:0; bottom:100%; margin-bottom:8px; z-index:5; display:flex; flex-wrap:nowrap; align-items:flex-start; justify-content:flex-start; gap:8px; overflow-x:auto; padding:0 4px; list-style:none; }
+.nm-strip:empty { display:none; }
+.nm-strip > li { flex:none; }
+.nm-zoom { position:fixed; inset:0; z-index:90; display:grid; place-items:center; padding:12px; background:rgba(0,0,0,.86); cursor:zoom-out; }
+.nm-zoom img { max-width:100%; max-height:100%; object-fit:contain; border-radius:12px; }
 /* 글 속 이름 색(형 10-31) = 클로드 주황네온 · 지피티 연보라네온 · 형 노뮤트색(에디터 --accent-5) · 그록은 위 시안 */
 .ychat .yname-c.cl { color:#c2570c; } .dark .ychat .yname-c.cl, .ychat .yb.me.app .yname-c.cl { color:#FFAA4D; } .ychat .yb.me:not(.app) .yname-c.cl { color:#9a3412; }
 .ychat .yname-c.gp { color:#7c3aed; } .dark .ychat .yname-c.gp, .ychat .yb.me.app .yname-c.gp { color:#C9A7FF; } .ychat .yb.me:not(.app) .yname-c.gp { color:#5b21b6; }

@@ -3,8 +3,8 @@
 .nm-pin-slot { position:absolute; top:calc(98px + env(safe-area-inset-top)); left:0; right:0; z-index:21; display:flex; flex-direction:column; pointer-events:none; }
 .nm-pin-slot > * { pointer-events:auto; }
 .nm-pinbar { display:flex; align-items:center; gap:4px; margin:0 10px; padding:4px 4px 4px 12px; border-radius:var(--r-l); border:1px solid var(--glass-line);
-  background:linear-gradient(var(--glass), var(--glass)), color-mix(in srgb, var(--duet-surface) 75%, transparent);
-  backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); animation:ypickIn .3s var(--ease) both; }
+  background:var(--duet-surface);   /* 뒤 글자 안 비치게(형 10-31) */
+  box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); animation:ypickIn .3s var(--ease) both; }
 .nm-pinbar-main { display:flex; flex:1; min-width:0; align-items:center; gap:10px; padding:4px 0; background:none; border:none; color:var(--fg); text-align:left; cursor:pointer; }
 .nm-pinbar-main > svg { flex:none; color:var(--accent); }
 :root:not(.dark) .nm-pinbar-main > svg { color:var(--fg); }
@@ -15,7 +15,7 @@
 .nm-pinbar-fold:active, .nm-pin-mini:active, .nm-pinbar-main:active { transform:scale(var(--press-m)); }
 .nm-pinbar-fold:active { transform:rotate(90deg) scale(var(--press-m)); }
 .nm-pin-mini { align-self:flex-end; margin:0 12px; width:var(--btn); height:var(--btn); display:grid; place-items:center; border-radius:50%; border:1px solid var(--glass-line); color:var(--accent);
-  background:linear-gradient(var(--glass), var(--glass)), color-mix(in srgb, var(--duet-surface) 75%, transparent); backdrop-filter:blur(var(--blur-l)); -webkit-backdrop-filter:blur(var(--blur-l)); cursor:pointer; }
+  background:var(--duet-surface); cursor:pointer; }
 :root:not(.dark) .nm-pin-mini { color:var(--fg); }
 .nm-pinsheet { position:absolute; inset:0; z-index:40; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), var(--duet-surface); animation:ypickIn .3s var(--ease) both; }
 .nm-pinsheet-b { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:10px; padding:calc(70px + env(safe-area-inset-top)) 14px var(--duet-tab-space,86px); }

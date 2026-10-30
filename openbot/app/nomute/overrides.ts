@@ -73,6 +73,11 @@ export const PATCH: Record<string, [string, string][]> = {
   ],
   "app/src/components/channels/composer/attachment-strip.tsx": [
     ['aria-label="Attachments"', 'aria-label="붙인 파일"'],
+    // 입력칸 안에서 칸을 키우지 않고 입력칸 위에 둥근 네모로 · 여러 장 = 좌측부터 한 줄(형 10-31) · 누르면 확대
+    ['<Collapse open={occupied}>', '<>'],
+    ['</Collapse>', '</>'],
+    ['className="flex flex-wrap items-start gap-2 pb-3"', 'className="nm-strip"'],
+    ['className="size-20 rounded-xl border border-border object-cover"', 'className="size-20 cursor-zoom-in rounded-xl border border-border object-cover" onClick={() => (window as unknown as { nmZoom?: (s: string) => void }).nmZoom?.(image.url)}'],
   ],
   "app/src/components/shell/channel-screen.tsx": [
     [">Couldn't find this channel.<", ">그 방을 못 찾았어.<"],

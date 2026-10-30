@@ -7,6 +7,11 @@ import type { ReactNode } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, WINTER_ID, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg, FaceStack } from "./faces";
+import { MicOrb } from "../swap/mic-orb";
+
+// 응답 중 테 색(형 10-31 「그 캐릭터 고유 색에 맞춰서 색은 내가 정해줄게」) = RING 에 이름별로 · 없으면 분류색
+const RING: Record<string, string> = {};
+const RING_CLS: Record<string, string> = { 그록봇: "#22d3ee", 클로드: "#FFAA4D", 닷: "#C9A7FF", 부름: "#C9A7FF" };
 
 /** 지금 대화 판의 방(주소 #/channels/<방> · #/group/<방>) · 명부 */
 function useTopRoom() {
@@ -28,11 +33,13 @@ export function NomuteName() {
 
 export function NomuteTop({ size, orb }: { size: number; orb: ReactNode }) {
   const { r, list } = useTopRoom();
+  const busy = useQuery<string>({ queryKey: ["nomute", "busy", r?.id || ""], queryFn: () => "", enabled: false, initialData: "" }).data || "";
   if (!r) return <>{orb}</>;
   const ring = "grid shrink-0 place-items-center overflow-hidden rounded-full shadow-duet-glass";
   if (r.with) {
     const id = idOf(r.with, list);
     if (id === WINTER_ID) return <>{orb}</>;
+    if (busy === r.with) { const p = list.find((x) => x.who === r.with); return <MicOrb size={size} state="thinking" id={id} tint={RING[r.with] || RING_CLS[p?.cls || ""]} />; }
     return <span aria-hidden className={ring} style={{ width: size, height: size }}><FaceImg id={id} size={size} /></span>;
   }
   const ids = roomAgentIds(r, list).slice(0, 3);
