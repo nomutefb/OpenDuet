@@ -328,8 +328,18 @@ function callRe(m: Msg): RegExp | null {
 /** 글 속 봇 이름(부름 아닌 그냥 이름 · 형 10-30 18:4x 「호출은 그대로 두고 그냥 명칭일라도 색을 다르게 … 시안색으로」) = 시안 글자 —
  *  앞 = 글 처음·한글/영문/숫자/@/! 아닌 자리 · 뒤 = 토씨 하나까지만 붙고 낱말 끝(「결과」·「온도」·「감사」 안의 한 글자는 안 칠함 · 한 글자 이름은 「과·와·도」 토씨 뺌) */
 const NAME_TAIL = "(?:야|아|님|씨|에게|한테|께|이|가|은|는|을|를|랑|이랑|의|이야|이가)";
+const NAME_TONE = new Map<string, string>();   // 형 10-31 「그록봇은 시안 · 클로드봇은 주황네온 · 지피티 봇은 연보라네온」 · 「형 또는 세웅 은 노뮤트색」 = 이름 → 색 칸(gk·cl·gp·hy · 호출 칩 ycall 은 그대로)
+const TONE_OF: Record<string, string> = { 그록봇: "gk", 클로드: "cl", 닷: "gp", 부름: "gp" };
+const TONE_WORDS: [string, string][] = [["그록", "gk"], ["그록봇", "gk"], ["클로드", "cl"], ["클로드봇", "cl"], ["지피티", "gp"], ["지피티봇", "gp"]];
+const GROUP_PICK = [{ id: "group-all", name: "모두", title: "전원" }, { id: "group-grok", name: "그록", title: "그록봇" }, { id: "group-claude", name: "클로드", title: "클로드" }, { id: "group-gpt", name: "지피티", title: "지피티" }];   // 입력칸 「@」·「!」 목록 맨 위 = 묶음 부르기(형 10-31 · 서버 _names.js)
 function nameRe(list: OfficePerson[]): RegExp | null {
-  const ns = [...new Set(list.filter((p) => p.kind === "bot").map((p) => p.name || p.who))].filter(Boolean).sort((a, b) => b.length - a.length);
+  NAME_TONE.clear();
+  for (const [w, tone] of TONE_WORDS) NAME_TONE.set(w, tone);
+  for (const p of list) {
+    const tone = p.kind === "human" ? "hy" : TONE_OF[p.cls || ""];
+    if (tone) for (const n of [p.who, p.name]) if (n) NAME_TONE.set(n, tone);
+  }
+  const ns = [...NAME_TONE.keys()].sort((a, b) => b.length - a.length);
   if (!ns.length) return null;
   const one = ns.filter((n) => n.length === 1), more = ns.filter((n) => n.length > 1);
   const alt = [...(more.length ? [`(?:${more.map(reEsc).join("|")})(?=(?:${NAME_TAIL.slice(3, -1)}|와|과|도)?(?![0-9A-Za-z가-힣_]))`] : []),
@@ -343,7 +353,7 @@ function named(text: string, nre: RegExp | null, key: string): ReactNode {
   for (const mm of text.matchAll(nre)) {
     const at = (mm.index || 0) + mm[1].length;
     if (at > last) out.push(text.slice(last, at));
-    out.push(<span key={`${key}-n${k++}`} className="yname-c">{mm[2]}</span>);
+    out.push(<span key={`${key}-n${k++}`} className={`yname-c ${NAME_TONE.get(mm[2]) || ""}`}>{mm[2]}</span>);
     last = at + mm[2].length;
   }
   if (!out.length) return text;
@@ -370,12 +380,12 @@ function calledMd(text: string, re: RegExp | null, nre: RegExp | null = null): s
   return text.split(/(```[\s\S]*?```|`[^`\n]*`)/).map((x, i) => {
     if (i % 2) return x;
     const y = re ? x.replace(re, `[$1](${CALL_HREF})`) : x;
-    return nre ? y.replace(nre, (_all, pre: string, n: string) => `${pre}[${n}](${NAME_HREF})`) : y;
+    return nre ? y.replace(nre, (_all, pre: string, n: string) => `${pre}[${n}](${NAME_HREF}-${NAME_TONE.get(n) || "gk"})`) : y;
   }).join("");
 }
 const mdWithCalls = {
   ...markdownComponents,
-  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href === NAME_HREF ? <span className="yname-c">{p.children}</span> : markdownComponents.a(p)),
+  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a(p)),
 };
 
 /** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)
@@ -476,7 +486,6 @@ function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: O
   });
 }
 
-const MODES: [string, string][] = [["", "보통"], ["suggest", "💡 제안"], ["decide", "⏳ 결정 필요"], ["verified", "✅ 검증"]];
 
 export function OfficeChat(p: { room: string; lead?: ReactNode; active?: boolean }) {
   return p.room === REPAIR_ROOM ? <RepairDesk lead={p.lead} active={p.active ?? true} /> : <OfficeChatRoom {...p} />;
@@ -489,8 +498,6 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const [sel, setSel] = useState("");
   const [prof, setProf] = useState("");   // 프로필 카드를 연 사람(who · 빈 값 = 닫힘)
   const [reply, setReply] = useState<{ id: string; who: string; line: string } | null>(null);
-  const [mode, setMode] = useState(""), [stOpen, setStOpen] = useState(false);   // 글 상태(💡·⏳·✅) = 평소엔 접힘(옛 화면 = 입력칸 옆 단추)
-  const [evT, setEvT] = useState(""), [evR, setEvR] = useState("");
   const [rxOver, setRxOver] = useState<Record<string, Record<string, string[]>> | null>(null);
   // 그 글로(답장 인용 · 고정 띠 이력 = window 「nm-jump」 {room, id}) — want.id = 간 글(그 묶음은 펼친 채 둠) · n = 부를 때마다 하나씩(같은 글로 또 가기) · done = 다 간 n
   const [want, setWantS] = useState<{ id: string; n: number }>({ id: "", n: 0 }), wantTry = useRef(0), wantDone = useRef(0);
@@ -512,7 +519,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const bots4 = useMemo(() => {   // 입력칸 「@」·「!」 목록 = 이 방에서 부를 수 있는 이(정한 사람 없는 방 = 봇 + 윈터·봄 같은 존재 · 형 10-30 「호출시 … 리스트 안뜨는 것」)
     const ids = r ? roomAgentIds(r, list) : [];
     if (r && !r.with && !r.members?.length) for (const p of list) { const id = idOf(p.who, list); if (p.kind !== "human" && p.who !== "형" && !ids.includes(id)) ids.push(id); }
-    return ids.map((id) => { const p = list.find((x) => idOf(x.who, list) === id); return { id, name: p?.name || p?.who || id, title: p?.role }; });
+    const people = ids.map((id) => { const p = list.find((x) => idOf(x.who, list) === id); return { id, name: p?.name || p?.who || id, title: p?.role }; });
+    return r?.with ? people : [...GROUP_PICK, ...people];
   }, [r, list]);
   const baseTs = useRef<number | null>(null);   // 방을 연 때 마지막 글 — 그 뒤에 온 글만 올라오는 움직임(YETA .in · 옛 글 다시 그림 = 0)
   if (baseTs.current === null && msgs.data) baseTs.current = all.at(-1)?.ts ?? 0;
@@ -687,7 +695,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           {msgs.data?.more && !meet ? (
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
           ) : null}
-          {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">아직 글 없음 — {r?.with ? `${nmOf(list, r.with)}에게 인사해 봐 · 보내면 예약(다음에 깰 때 봄) · !${nmOf(list, r.with)} = 바로 깨움` : "첫 글을 써 줘 · @이름 = 예약 · !이름 = 바로 깨움"}</p> : null}
+          {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">첫 대화를 시작해보세요</p> : null}
           {items.map((it) => {
             const first = it.t === "msg" ? it.m : it.msgs[0];
             const newDay = !first._thr && (!prevTs || dayKey(prevTs) !== dayKey(first.ts));
@@ -736,22 +744,6 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <button type="button" aria-label="답장 그만" className="px-1" onClick={() => setReply(null)}>×</button>
           </div>
         ) : null}
-        {stOpen || mode ? (
-          <div className="mb-2 flex flex-wrap items-center gap-1" role="radiogroup" aria-label="글 상태">
-            {MODES.map(([v, label]) => (
-              <button key={v || "plain"} type="button" role="radio" aria-checked={mode === v} onClick={() => { setMode(v); if (!v) setStOpen(false); }}
-                className={`rounded-full border px-2.5 py-1 text-xs ${mode === v ? "border-primary bg-primary/10 font-semibold" : "border-border text-muted-foreground"}`}>{label}</button>
-            ))}
-          </div>
-        ) : (
-          <button type="button" className="mb-1 rounded-full px-2 py-0.5 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => setStOpen(true)}>글 상태 ▾</button>
-        )}
-        {mode === "verified" ? (
-          <div className="mb-2 grid grid-cols-2 gap-2">
-            <input className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm" placeholder="증거 대상(예: 라이브 회차)" value={evT} onChange={(e) => setEvT(e.target.value)} />
-            <input className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm" placeholder="결과(예: 통과 · 2초)" value={evR} onChange={(e) => setEvR(e.target.value)} />
-          </div>
-        ) : null}
         <Composer
           agents={toAgentOptions(bots4)}
           channelId={room}
@@ -765,7 +757,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             const raw = draft.text.trim();
             const ids = (draft.attachments || []).map((a) => (a.metadata as { attachmentId?: string } | undefined)?.attachmentId).filter((x): x is string => !!x);
             if (!raw && !ids.length) return;
-            const text = raw && reply && !mode ? `↩ ${reply.who}: ${reply.line}\n${raw}` : raw;
+            const text = raw && reply ? `↩ ${reply.who}: ${reply.line}\n${raw}` : raw;
             if (text.length > 8000) { setErr("8,000자 넘음 — 나눠서 보내 줘"); throw new Error("too long"); }
             if (ids.length && !r?.with && !list.some((p) => p.kind === "bot" && (text.includes(`@${p.who}`) || text.includes(`!${p.who}`)))) { setErr("단체방 첨부 = 받을 봇을 @ 로 골라 줘(1:1 방은 그 봇)"); throw new Error("no bot"); }
             setErr("");
@@ -784,11 +776,10 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
               }
               if (text) {
                 const body: Record<string, unknown> = { text };
-                if (mode) { body.state = mode; if (reply?.id) body.reply_to = reply.id; if (mode === "verified" && (evT || evR)) body.evidence = { target: evT, result: evR, checked_at: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 19) + "+09:00" }; }
                 const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) });
                 if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
               }
-              setReply(null); setMode(""); setStOpen(false); setEvT(""); setEvR(""); saveDraft(room, "");
+              setReply(null); saveDraft(room, "");
               void qc.invalidateQueries({ queryKey: officeKeys.rooms });
             } catch (e) {
               setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 글은 입력칸에 그대로`);

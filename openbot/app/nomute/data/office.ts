@@ -1,7 +1,7 @@
 // 우리 사무실 서버(/api/office/*) 읽기·쓰기 + 원본 앱 꼴로 바꾸기 — 화면 문(Cloudflare Access 쿠키) 그대로
 /** 받는 이 기억 칸(평의회 2 ⑧ · 서버 _meetfix.js memoryOf) = 백지(웹훅 깸마다 새 회차) | 이어짐 | nowake(바로 깸 길 없음) | 모름 */
 export type Memory = "백지" | "이어짐" | "nowake" | "모름";
-export type OfficePerson = { who: string; name?: string; role?: string; kind: "human" | "winter" | "bot"; face?: string; bot?: string; slug?: string; mark?: string; aka?: string[]; memory?: Memory; intro?: string };   // intro = 자기소개(본인이 채움 · 프로필 카드)
+export type OfficePerson = { who: string; name?: string; role?: string; kind: "human" | "winter" | "bot"; face?: string; bot?: string; slug?: string; mark?: string; aka?: string[]; memory?: Memory; intro?: string; cls?: string };   // intro = 자기소개(본인이 채움 · 프로필 카드)
 /** 방 카드(⑨ · GET rooms/<방>/card) — 열린 부름(open) · 형 원문(hyung) · 결정 표지(decide) · 10줄 */
 export type CardLine = { kind: "open" | "hyung" | "decide"; id: string; from?: string; to?: string; text: string };
 export type RoomCard = { room: string; lines: CardLine[]; open_n: number };

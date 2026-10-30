@@ -48,6 +48,10 @@
 .dark .ychat .yname-c { color:#22d3ee; }
 .ychat .yb.me .yname-c { color:#155e75; }
 .ychat .yb.me.app .yname-c { color:#67e8f9; }
+/* 글 속 이름 색(형 10-31) = 클로드 주황네온 · 지피티 연보라네온 · 형 노뮤트색(에디터 --accent-5) · 그록은 위 시안 */
+.ychat .yname-c.cl { color:#c2570c; } .dark .ychat .yname-c.cl, .ychat .yb.me.app .yname-c.cl { color:#FFAA4D; } .ychat .yb.me:not(.app) .yname-c.cl { color:#9a3412; }
+.ychat .yname-c.gp { color:#7c3aed; } .dark .ychat .yname-c.gp, .ychat .yb.me.app .yname-c.gp { color:#C9A7FF; } .ychat .yb.me:not(.app) .yname-c.gp { color:#5b21b6; }
+.ychat .yname-c.hy { color:#0a8f02; } .dark .ychat .yname-c.hy, .ychat .yb.me.app .yname-c.hy { color:#0FFD02; } .ychat .yb.me:not(.app) .yname-c.hy { color:#14532d; }
 .ychat .yb.sys { align-self:center; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-pill); color:var(--fg-2); font-size:var(--fs-sm); padding:3px 12px;
   backdrop-filter:blur(var(--blur-m)); -webkit-backdrop-filter:blur(var(--blur-m)); }
 .ychat .ymsg.cont { margin-top:-6px; }
