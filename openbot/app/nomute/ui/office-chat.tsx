@@ -43,7 +43,8 @@ const RECENT_N = 40;   // 다시 받기 = 최근 40 글을 통째로(거울이 �
 const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;   // 저장 없이 처음 = 최근 100(봇끼리 글은 한 줄로 접혀 40 이면 형 글이 안 들어와 위로 하루치를 한 번 더 기다렸음 · PM 17:20 · 서버 = 같은 한 장 한 번) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
 const HEAD = 92;   // 위에 떠 있는 머리(대화 상대 동그라미 + 이름 · ui/shell.css .nm-head) 높이 — 그 아래부터 「보이는 위」
 
-type Msg = OfficeMsg & { alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
+const hyungApp = (m: { mirror_by?: string; who?: string }) => m.mirror_by === "형" || String(m.who || "").startsWith("형(앱");   // 형이 그록봇 앱에서 친 글(서버 mirror_by · 형 10-30 「검정 말풍선 흰 글씨」)
+type Msg = OfficeMsg & { mirror_by?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
   app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
 type Page = { messages: Msg[]; more: boolean };
@@ -171,7 +172,7 @@ const wakeM = (m: Msg) => m.kind === "system" && /러너/.test(m.who) && /^깸:/
 
 /** 회의실 보기 = 접기 0 · 묶음 0 · 줄기 0 — 받은 순서 그대로 한 줄씩(러너 깸 줄만 뺌 · 시스템 일 = 그 자리 흐린 알약 하나) */
 function flatView(list: Msg[]): Item[] {
-  return list.filter((m) => !wakeM(m)).map((m): Item => (m.kind === "system" ? { t: "sys", msgs: [m] } : { t: "msg", m }));
+  return list.filter((m) => !wakeM(m)).map((m): Item => (m.kind === "system" && !hyungApp(m) ? { t: "sys", msgs: [m] } : { t: "msg", m }));
 }
 
 /** 줄기(상태 답을 원 글 아래) + 형 보기 묶음(옛 office.html 23차 규칙 그대로) */
@@ -183,8 +184,8 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   for (const m of list) { if (hung(m)) continue; all.push(m); for (const k of kids.get(m.id) || []) all.push({ ...k, _thr: true }); }
   const meIds = new Set(all.filter((m) => m.kind === "human").map((m) => m.id));
   const toMe = (m: Msg) => meIds.has(m.reply_to || "") || meIds.has(m.origin || "") || (m.mention || []).includes("형");
-  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin);
-  const sysM = (m: Msg) => m.kind === "system";
+  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin);
+  const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m);
   const out: Item[] = [];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -361,14 +362,15 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
   const selected = c.sel === m.id;
   const toggle = () => c.setSel(selected ? "" : m.id);
   const time = <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
-  if (m.kind === "human") {
+  if (m.kind === "human" || hyungApp(m)) {
+    const app = hyungApp(m) && m.kind !== "human";   // 그록봇 앱에서 친 형 글 = 검정 말풍선 흰 글씨(형 10-30)
     return (
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
         <Quote m={m} c={c} />
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div className="yb me" onClick={toggle}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m))}</div>{time}</div>
+          <div className="ybw"><div className={`yb me${app ? " app" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m))}</div>{time}</div>
         </div>
         <Reactions m={m} c={c} mine />
         {selected ? <Actions m={m} c={c} mine /> : null}

@@ -41,6 +41,8 @@
 .ychat .ybox-go { display:inline-flex; align-items:center; margin-top:8px; padding:5px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); font-size:var(--fs-sm); text-decoration:none !important; }
 .ychat .ybox-go:active { transform:scale(var(--press-m)); }
 .ychat .yb.me { align-self:flex-end; max-width:100%; background:var(--bubble-me); color:var(--bg); border-top-right-radius:var(--r-s); }
+.ychat .yb.me.app { background:#000; color:#fff; }   /* 형이 그록봇 앱에서 친 글(형 10-30 「검정색 말풍선 위에 흰색 글씨」) */
+.ychat .yb.me.app .ycall { background:rgba(255,255,255,.18); }
 .ychat .yb.sys { align-self:center; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-pill); color:var(--fg-2); font-size:var(--fs-sm); padding:3px 12px;
   backdrop-filter:blur(var(--blur-m)); -webkit-backdrop-filter:blur(var(--blur-m)); }
 .ychat .ymsg.cont { margin-top:-6px; }
