@@ -187,7 +187,18 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   const toMe = (m: Msg) => meIds.has(m.reply_to || "") || meIds.has(m.origin || "") || (m.mention || []).includes("형");
   // 1:1 방 주인 글이라도 남만 부른 글(「@빚 …」)은 형 없는 대화 = 묶음으로(형 10-30 18:4x 「이렇게 내가 없는 대화 안보이면 댐」)
   const toOthers = (m: Msg) => { const n = [...(m.mention || []), ...(m.urgent || [])]; return n.length > 0 && !n.includes("형"); };
-  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && !toOthers(m));
+  // 1:1 방 주인이 형 아닌 이에게 한 답(답표 없음 · 바로 앞 다른 이 글이 형 아니고 30분 안) = 형이 안 낀 대화 → 양쪽 다 묶음
+  //   (형 10-30 19:2x 「이렇게 내가 하는대화 아니면 가려지고 클릭 시 보이먄 돼」 · 솔 방: 봄 「!솔」 → 솔 답이 그대로 보였음)
+  const answersOther = new Set<string>();
+  if (r?.with) {
+    let prev: Msg | null = null;
+    for (const m of all) {
+      if (wakeM(m) || (m.kind === "system" && !hyungApp(m))) continue;
+      if (m.who !== r.with) { prev = m; continue; }
+      if (prev && prev.kind !== "human" && !hyungApp(prev) && m.ts - prev.ts < 30 * 60e3) answersOther.add(m.id);
+    }
+  }
+  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && !toOthers(m) && !answersOther.has(m.id));
   const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m);
   const out: Item[] = [];
   for (let i = 0; i < all.length; i++) {
