@@ -13,7 +13,7 @@ import { FaceImg } from "./faces";
 import { TempDeleteDialog, TempRoomButton, TempRoomDialog, TempSwipe } from "./temp-room";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
-import { RainbowOrb, RoomColorPick } from "./room-color";
+import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
 
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
 const PINS = "nm-office-pins", HIDE = "nm-office-hidden";
@@ -69,6 +69,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const notice = useQuery({ queryKey: ["nomute", "notice"], queryFn: () => office<{ notice?: { text: string; at?: string } }>("noticeset").then((j) => j.notice), staleTime: 60_000 }).data;
   const [menu, setMenu] = useState(""), [noticeOpen, setNoticeOpen] = useState(false), [hiddenOpen, setHiddenOpen] = useState(false);
   const [tinting, setTinting] = useState<Room | null>(null), [peek, setPeek] = useState<{ id: string; hex: string } | null>(null);   // 표지 색 판(./room-color.tsx) · peek = 끄는 동안 줄에 먼저 보임
+  const [naming, setNaming] = useState<Room | null>(null);   // 방 이름(./room-color.tsx) · 임시방 = 「수정」 길
   const press = useRef<{ t: number; x: number; y: number; hit: boolean }>({ t: 0, x: 0, y: 0, hit: false });   // 길게 누르기(형 10-31 「길게 누르면 변경 하는 거기서 수정」) = 터치만 · 오른쪽 클릭은 onContextMenu
   useEffect(() => {   // 줄 메뉴 = 밖을 누르면 닫힘(형 10-31 「다른거 클릭하면 없어져야 되는데 안없어진더」)
     if (!menu) return undefined;
@@ -131,6 +132,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
             {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(PINS, pins, setPins, r.id)}>{pins.has(r.id) ? "고정 풀기" : "고정"}</button> : null}
             <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void markRead(r, u)}>{u ? "읽음으로" : "안 읽음으로"}</button>
             {!r.with ? <button type="button" role="menuitem" className="flex items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setTinting(r); }}><RainbowOrb />표지 색</button> : null}
+            {!r.with && !r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setNaming(r); }}>이름 바꾸기</button> : null}
             {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setEditing(r); }}>수정</button> : null}
             {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" onClick={() => { setMenu(""); setDeleting(r); }}>삭제</button> : null}
             {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(HIDE, hidden, setHidden, r.id)}>{hidden.has(r.id) ? "보이기" : "숨기기"}</button> : null}
@@ -149,6 +151,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         </button>
       ) : null; })()}
       {tinting ? <RoomColorPick room={tinting} onPeek={(hex) => setPeek({ id: tinting.id, hex })} onClose={() => { setTinting(null); setPeek(null); }} /> : null}
+      {naming ? <RoomNamePick room={naming} onClose={() => setNaming(null)} /> : null}
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {notice?.text ? (

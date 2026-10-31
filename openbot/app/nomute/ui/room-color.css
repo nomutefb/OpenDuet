@@ -12,6 +12,8 @@
 .nrc-pad i { position:absolute; z-index:1; width:26px; height:26px; margin:-13px 0 0 -13px; border:3px solid #fff; border-radius:50%; pointer-events:none; box-shadow:0 3px 9px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.55); }
 .nrc-acts { display:flex; justify-content:flex-end; gap:8px; }
 .nrc-x { padding:8px 14px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background:none; color:inherit; font-size:13px; cursor:pointer; }
+.nrc-in { width:100%; min-width:0; padding:10px 12px; border:1px solid rgba(255,255,255,.14); border-radius:12px; background:rgba(255,255,255,.04); color:inherit; font-size:16px; outline:none; }   /* 16px = 폰에서 눌렀을 때 화면이 확대되지 않게 */
+.nrc-in:focus { border-color:rgba(255,255,255,.34); }
 /* 방 줄 = 표지 색이 있으면 왼쪽 띠와 옅은 바탕 · 회의실 기본 색도 이 값이 이김 · 길게 누를 때 글자 선택·꾹 메뉴 막음 */
 .nm-rrow { -webkit-touch-callout:none; }
 .nm-rrow.grp[data-rc] { background:color-mix(in srgb, var(--rc) 11%, transparent); box-shadow:inset 3px 0 0 var(--rc); }
