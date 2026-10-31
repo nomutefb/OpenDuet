@@ -21,10 +21,11 @@ const Card = ({ children }: { children: ReactNode }) => <div className="mt-3 rou
 const btn = "rounded-full border border-border px-3 py-1 text-xs hover:bg-foreground/5 disabled:opacity-50";
 
 type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
-type SchedBot = { bot: string; who: string; wakes: number[]; next_ts?: number; daily_cap?: number; urgent_reserve?: number };
-type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean };
+export type SchedBot = { bot: string; who: string; wakes: number[]; next_ts?: number; daily_cap?: number; urgent_reserve?: number; on?: boolean };
+export type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean; fork?: string; task?: string };
+export type SchedFork = { id: string; name: string; on?: boolean; common?: string };
 type Kind = { kind: string; delay_max?: number; ttl?: number };
-type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean };
+type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean; forks?: SchedFork[]; clock_got?: { got?: boolean } };
 
 const usePeople = () => useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
 export const useSched = () => useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), staleTime: 30_000, refetchInterval: 120_000 });
@@ -230,13 +231,13 @@ export function NomuteLink() {
 }
 
 export const ST_KO: Record<string, string> = { shadow: "기록만", dry: "시험", live: "켬", off: "꺼짐", "grok-stay": "그록에 둠" };
-export const CF_KO: Record<string, string> = { state: "상태", when: "언제", fire_empty: "할 일 없어도 깨움", delay_max: "모아서 기다림", daily_cap: "하루 최대", urgent_reserve: "급한 일 몫" };
+export const CF_KO: Record<string, string> = { state: "상태", when: "언제", fire_empty: "할 일 없어도 깨움", delay_max: "모아서 기다림", daily_cap: "하루 최대", urgent_reserve: "급한 일 몫", on: "차단기", task: "할 일", common: "공통 내용", fork: "포크", bot: "어떤 봇" };
 const CRON_H = "CRON_TZ=Asia/Seoul ";
 export const cronShow = (l?: string[]) => (l || []).map((c) => String(c).replace(CRON_H, "")).join(" ; ");
-export const cfVal = (f: string, v: unknown) => (f === "when" ? cronShow(v as string[]) || "—" : f === "fire_empty" ? (v === true ? "켬" : v === false ? "끔" : "—") : f === "state" ? ST_KO[String(v)] || String(v) : v == null ? "—" : String(v));
+export const cfVal = (f: string, v: unknown) => (f === "when" ? cronShow(v as string[]) || "—" : f === "fire_empty" ? (v === true ? "켬" : v === false ? "끔" : "—") : f === "state" ? ST_KO[String(v)] || String(v) : f === "on" ? (v === false ? "내림" : "올림") : f === "task" || f === "common" ? `${String(v ?? "").slice(0, 24)}…` : v == null ? "—" : String(v));
 export type SchedQ = Q;
 export type SchedSetRes = SetRes;
-type Q = { at: "routine" | "bot" | "kind"; key: string; field: string; value: unknown; label: string };
+type Q = { at: "routine" | "bot" | "kind" | "fork"; key: string; field: string; value: unknown; label: string };
 type SetRes = { same?: boolean; from?: unknown; to?: unknown; commit?: string; checked?: boolean; preview?: { next_at?: number; day_max: number; reserve: number; total: number; cap?: number } };
 
 export function NomuteSchedule() {
