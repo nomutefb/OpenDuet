@@ -52,6 +52,7 @@ const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif)$/i;
 const WINTER_WHO = "윈터 PM";
 const WORK = ["고민하는 중", "정리하는 중", "처리하는 중"];
+const MOUSE = typeof matchMedia === "function" && matchMedia("(hover:hover)").matches;
 const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // 글 속 주소(형 글 = 꾸밈 없는 글 · 봇 글은 Streamdown 이 링크로)
 const RECENT_N = 40;   // 다시 받기 = 최근 40 글을 통째로(거울이 반응·글을 같은 글에 고쳐 씀 = since 로는 못 받음 · 맞물림 21:3x)
 const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;   // 저장 없이 처음 = 최근 100(봇끼리 글은 한 줄로 접혀 40 이면 형 글이 안 들어와 위로 하루치를 한 번 더 기다렸음 · PM 17:20 · 서버 = 같은 한 장 한 번) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
@@ -478,7 +479,7 @@ function Line({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c
   const p = c.list.find((x) => x.who === m.who);
   const selected = c.sel === m.id;
   const press = useLongPress(() => c.onMenu(m));
-  const toggle = () => { if (!press.fired()) c.setSel(selected ? "" : m.id); };
+  const toggle = () => { if (!press.fired() && MOUSE) c.setSel(selected ? "" : m.id); };   // 폰 = 그냥 누르면 아무 일 없음 · 길게 눌러야 메뉴(형 10-31 「터치만 해도 … 메뉴 … 생겨 적어도 0.5초」)
   const time = noTime ? null : <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
   if (mineOf(m)) {
     const app = hyungApp(m) && m.kind !== "human";   // 그록봇 앱에서 친 형 글 = 검정 말풍선 흰 글씨(형 10-30)
@@ -756,7 +757,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
-      {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} onClose={() => setMenuOf(null)} /> : null}
+      {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} onClose={() => setMenuOf(null)} /> : null}
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}

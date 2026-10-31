@@ -245,6 +245,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-msgm-i:active { background:rgba(255,255,255,.08); }
 @media (hover:hover) { .nm-msgm-i:hover { background:rgba(255,255,255,.08); } }
 .nm-msgm-i:disabled { opacity:.5; }
+.nm-msgm-q { display:flex; justify-content:space-around; padding:4px 14px 10px; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:4px; } .nm-msgm-q button { width:40px; height:40px; border:0; border-radius:50%; background:none; font-size:22px; cursor:pointer; } .nm-msgm-q button:active { background:rgba(255,255,255,.1); }
 .nm-msgm-h { padding:8px 26px 6px; font-size:13px; color:#8B8F8A; }
 .nm-msgm-n { padding:14px 26px; font-size:15px; }
 .nm-msgm-n.err { color:#ff8a8a; }

@@ -9,7 +9,7 @@ import { type OfficePerson, type OfficeRoom, idOf, office } from "../data/office
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { usePinActions } from "./pins";
 
-const HOLD_MS = 450, SLIP = 10, ORIGIN_MAX = 2000;
+const HOLD_MS = 500, SLIP = 10, ORIGIN_MAX = 2000;   // 0.5초(형 10-31 「적어도 0.5초 터치는 해야함」)
 
 /** 길게 누르기 · 손이 움직이면 취소(스크롤) · fired() = 이 눌림이 길게였나(뒤따르는 눌림 말풍선 동작을 막음). */
 export function useLongPress(open: () => void) {
@@ -32,7 +32,7 @@ export function useLongPress(open: () => void) {
 
 const short = (n: string) => n.replace(" PM", "");
 
-export function MsgMenu({ m, who, text: raw, line, room, r, list, onClose }: { m: { id: string; ts: number }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
+export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, onClose }: { quick: string[]; onReact: (e: string) => void; onReply: () => void; m: { id: string; ts: number }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
   const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
   const [asking, setAsking] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
@@ -84,6 +84,8 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, onClose }: { m
           </>
         ) : (
           <>
+            <div className="nm-msgm-q" role="group" aria-label="반응">{quick.map((q) => <button key={q} type="button" aria-label={`반응 ${q}`} onClick={() => { onReact(q); onClose(); }}>{q}</button>)}</div>
+            {item("답장", () => { onReply(); onClose(); })}
             {pins.can ? item("고정", () => { pins.pin({ id: m.id, ts: m.ts }); onClose(); }) : null}
             {item("복사", () => { void navigator.clipboard?.writeText(text); done("복사했어"); })}
             {item("확인 요청", () => setAsking(true))}
