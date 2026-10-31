@@ -385,3 +385,10 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 @media (prefers-reduced-motion:reduce) { .nm-sched-go.firing { animation-duration:.2s; } .nm-sched-go .gck { animation:none; } .nm-sched-spin { animation-duration:2s; } }
 .nm-sched-go { padding:6px 14px; border:0; border-radius:999px; background:var(--accent, #CFFF40); color:#161716; font-size:13px; font-weight:700; cursor:pointer; }
 @media (max-width:480px) { .nm-sched-rt { padding-left:0; } .nm-sched-tines { margin-left:12px; padding-left:10px; } .nm-sched-tine::before { left:-10px; width:8px; } }
+/* 복사 창 = 그록 앱 꼴(형 11-01 「이렇게 보일수없을까? 글자는 작아도 돼.」) · 둥근 회색 판 · 글은 줄바꿈 · 오른쪽 위 복사 하나 */
+.ychat [data-streamdown="code-block"] { position:relative; margin:8px 0; padding:0; overflow:hidden; border:0; border-radius:14px; background:color-mix(in srgb, var(--fg) 9%, transparent); }
+.ychat [data-streamdown="code-block-header"] { display:none; }
+.ychat [data-streamdown="code-block-actions"] { position:absolute; top:-4px; right:-4px; z-index:1; margin:0; padding:0; border:0; background:none; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+.ychat [data-streamdown="code-block-body"] { max-height:none !important; margin:0; padding:10px 34px 10px 12px; overflow:visible; border:0; border-radius:0; background:none; color:var(--fg-2); font-size:var(--fs-xs); line-height:1.55; white-space:pre-wrap; word-break:break-word; }
+.ychat [data-streamdown="code-block-body"] pre, .ychat [data-streamdown="code-block-body"] code, .ychat [data-streamdown="code-block-body"] code span { background:none; white-space:pre-wrap; word-break:break-word; }
+.ychat [data-streamdown="code-block-copy-button"] { width:32px; height:32px; min-width:0; min-height:0; }

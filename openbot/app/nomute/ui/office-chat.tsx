@@ -451,6 +451,7 @@ function calledMd(text: string, re: RegExp | null, nre: RegExp | null = null): s
     return nre ? y.replace(nre, (_all, pre: string, n: string) => `${pre}[${n}](${NAME_HREF}-${NAME_TONE.get(n) || "gk"})`) : y;
   }).join("");
 }
+const MD_BOX = { lineNumbers: false, controls: { code: { copy: true, download: false } } } as const;   // 복사 창 = 줄 번호·받기 뺌(형 11-01 「복사가능한 창이 이리나오는데」 · 그록 앱 꼴 · 모양 = yeta-chat.css)
 const mdWithCalls = {
   ...markdownComponents,
   a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a(p)),
@@ -485,9 +486,9 @@ function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
 
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
-  if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
+  if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
-  return <Streamdown components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
+  return <Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
 }
 
 /** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선 / 시각] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 / 시각] · 시각 = 말풍선 밖 아래(.ybw · 형 글 왼쪽 · 상대 글 오른쪽) ·
@@ -826,7 +827,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
               <div className="yava"><Ava who={draft.who} list={list} work /></div>
               <div className="ycol">
                 <div className="yname">{nmOf(list, draft.who)} · 쓰는 중</div>
-                <div className="yb ai"><Streamdown components={markdownComponents}>{draft.text}</Streamdown><span className="ytdots"><i /><i /><i /></span></div>
+                <div className="yb ai"><Streamdown {...MD_BOX} components={markdownComponents}>{draft.text}</Streamdown><span className="ytdots"><i /><i /><i /></span></div>
               </div>
             </div>
           ) : null}
@@ -834,7 +835,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className="yname">{typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}{typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각중…</div>
+                <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={{ color: ringOf(list.find((x) => x.who === n)) }}>{nmOf(list, n)}</span></Fragment>)}{typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각중…</div>
                 <div className="yb ai"><span className="ytdots"><i /><i /><i /></span></div>
               </div>
             </div>
