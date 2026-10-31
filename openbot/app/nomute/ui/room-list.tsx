@@ -109,7 +109,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
             : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
-              <b className={`min-w-[1.2em] shrink truncate text-[15px] ${u ? "font-bold" : "font-semibold"}`}>{p?.name || r.name}</b>
+              <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`}>{p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}

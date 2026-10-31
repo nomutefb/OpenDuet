@@ -20,6 +20,12 @@ export function useCloseCallMenu() {
   }, []);
 }
 
+/** 부름 목록 이름 옆 표지(형 10-31 「너가 수정한거 대화창 안에서도 적용되어야해 이모지 말한거야 ! 호출 포함」) · 원본 칸은 글자꼴이지만 받은 대로 그림 · 칩 글자는 이름만(overrides.ts onSelect) */
+export function markLabel(id: string, name: string): string {
+  const list = peopleSync(), m = list.find((x) => idOf(x.who, list) === id)?.mark;
+  return (m ? <>{name}<span className="ymark" aria-hidden>{m}</span></> : name) as unknown as string;
+}
+
 export function faceIcon(id: string) {
   const list = peopleSync(), p = list.find((x) => idOf(x.who, list) === id);
   return p ? <MicOrb size={24} id={id} tint={ringOf(p)} /> : undefined;

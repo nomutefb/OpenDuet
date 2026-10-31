@@ -76,8 +76,10 @@ export const PATCH: Record<string, [string, string][]> = {
   "app/src/components/channels/composer/triggers.ts": [
     ["  return [agentTrigger(agents), slashCommandTrigger(commands)];", "  return [agentTrigger(agents), { ...agentTrigger(agents), char: \"!\", accessibilityLabel: \"바로 깨움\" }, slashCommandTrigger(commands)];"],
     ['emptyMessage: "No Bots in this conversation"', 'emptyMessage: "이 방엔 부를 이가 없어"'],
-    ['import { commandTrigger, mentionTrigger } from "prompt-area/helpers";', 'import { commandTrigger, mentionTrigger } from "prompt-area/helpers";\nimport { faceIcon } from "@nomute/ui/call-face";'],
+    ['import { commandTrigger, mentionTrigger } from "prompt-area/helpers";', 'import { commandTrigger, mentionTrigger } from "prompt-area/helpers";\nimport { faceIcon, markLabel } from "@nomute/ui/call-face";'],
     ["          description: agent.description,", "          description: agent.description,\n          icon: faceIcon(agent.id),"],   // 부름 목록 얼굴(./ui/call-face.tsx)
+    ["          label: agent.name,", "          label: markLabel(agent.id, agent.name),"],   // 부름 목록 이름 옆 표지(./ui/call-face.tsx)
+    ["    onSelect: (suggestion) => suggestion.label,", "    onSelect: (suggestion) => agents.find((agent) => agent.id === suggestion.value)?.name ?? suggestion.value,"],   // 칩·글 = 이름만(「!이름」 문법 그대로)
   ],
   // 「+」 = 카메라 말고 파일·갤러리(형 10-31) · 그림 꼴만 적힌 accept 는 폰 브라우저가 카메라·갤러리 고르기로 받음 · 거름은 screenPickedFiles 가 이미 함(빠르 판)
   "app/src/components/channels/composer/attachments.ts": [

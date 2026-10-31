@@ -30,7 +30,7 @@
 :root { --font-sans:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif); }
 body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif); }
 /* 이름 옆 표지(대화 이름 · 1:1 머리 · 프로필 .ypc-mark 와 같은 자리) */
-.ymark { margin-left:4px; font-size:.95em; }
+.ymark, .nm-rmark { display:inline-flex; align-items:center; line-height:1; font-size:.95em; transform:translateY(-1px); margin-left:5px; }   /* 형 10-31 「이모지가 지금 이름 우측에 좀 동떨어져있고 조금 수평이 아니라 좀 아래에 쏠려잇아」 · 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」 · 「너가 수정한거 대화창 안에서도 적용되어야해 이모지 말한거야 ! 호출 포함」 */
 .ychat .ymsg { display:flex; gap:8px; align-items:flex-start; max-width:94%; }
 .ychat .ytyp .yb { align-self:flex-start; width:fit-content; }   /* 작업 중 말풍선 = 점 셋 크기(형 10-31 「모션 까지만 말풍선이 있으면 될듯」) */
 .ychat .ymsg .yava { flex:none; width:32px; height:32px; border-radius:50%; display:grid; place-items:center; overflow:visible; margin-top:2px; }
@@ -205,7 +205,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rorb { flex:none; display:inline-grid; }
 .nm-rstk { flex:none; display:flex; align-items:center; }
 .nm-rstk > span { border-radius:50%; }
-.nm-rmark { display:inline-flex; align-items:center; margin-left:-6px; line-height:1; font-size:.95em; transform:translateY(-1px); }   /* 형 10-31 「이모지가 지금 이름 우측에 좀 동떨어져있고 조금 수평이 아니라 좀 아래에 쏠려잇아」 */
+.nm-rmark { margin-left:-1px; }   /* 줄 안 틈 6px(gap-1.5) 뒤라 빼서 대화·머리의 5px 와 같게 */
 .nm-rempty { flex:none; border-radius:50%; border:1.5px solid var(--glass-line, rgba(255,255,255,.18)); }
 .nm-rstk > span + span { box-shadow:0 0 0 2px var(--duet-surface), 0 0 6px rgba(var(--accent-rgb),.21); }
 .nm-rcrew { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-xs); line-height:1.5; color:color-mix(in srgb, var(--accent) 72%, var(--mut)); }
