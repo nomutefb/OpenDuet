@@ -13,7 +13,8 @@
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { markReadLocal } from "../data/read-local";   // 연 방 = 이 기기 안 바로 「봤음」(형 10-30 15:4x 목록 「1」 늦게 지워짐)
+import { roomReadState } from "../data/read-state";
+import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
 import { Composer, toAgentOptions } from "@/components/channels/composer";
 import { useReportChatPresence } from "@/components/shell/chat-presence";
@@ -676,20 +677,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       if (!moreRef.current || !(await olderRef.current().catch(() => 0))) { if (first) setWant(first.id); return; }
     }
   };
-  useEffect(() => {   // 방을 여는 순간 = 이 기기 안 「봤음」 + 목록 숫자 0(서버 답 안 기다림 · 형 10-30 15:4x 「금방 안없어지는 느낌」)
-    if (!active) return;
-    markReadLocal(room, all.at(-1)?.ts);
-    qc.setQueryData<(OfficeRoom & { unread?: number })[]>(["nomute", "rooms"], (old) => old?.map((x) => (x.id === room && x.unread ? { ...x, unread: 0 } : x)));
-  }, [room, active, lastId]);   // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {   // 본 데까지(안 읽음 점 · 기기끼리 · 서버 seen) — 보이는 때만 · 연 때 본 데까지를 먼저 잡은 뒤(안 본 것부터 단추)
-    const ts = all.at(-1)?.ts;
-    if (!ts || !active || !seenReady) return;
-    // 읽은 방 「1」 = 바로 지움(서버 답 기다리지 않음) → 서버 seen 뒤 방 목록 다시(형 10-30 「톡방 읽고나면 1 안없어지는거」 · 전엔 seen 만 다시 읽어 rooms[].unread 가 남았음)
-    qc.setQueryData<(OfficeRoom & { unread?: number })[]>(["nomute", "rooms"], (old) => old?.map((x) => (x.id === room && x.unread ? { ...x, unread: 0 } : x)));
-    void office("seen", { method: "POST", body: JSON.stringify({ seen: { [room]: { ts, at: Date.now() } } }) })
-      .then(() => { void qc.invalidateQueries({ queryKey: ["nomute", "seen"] }); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); void qc.invalidateQueries({ queryKey: ["duet-channels"] }); })
-      .catch(() => {});
-  }, [room, lastId, active, seenReady]);
+  useRoomRead(roomReadState, room, active, !!msgs.data && seenReady, msgs.isError, all.at(-1)?.ts || 0, setErr);
 
   const react = useMutation({
     mutationFn: ({ id, emoji }: { id: string; emoji: string }) => office<{ reactions: Record<string, Record<string, string[]>> }>(`rooms/${enc(room)}/reactions`, { method: "POST", body: JSON.stringify({ id, emoji }) }),

@@ -3,9 +3,9 @@
 //   같은 차례를 PC 얼굴 띠(ui/shell.tsx)가 씀 = useRoomOrder
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 숨기기/보이기
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -19,7 +19,7 @@ const readSet = (k: string): Set<string> => { try { return new Set(JSON.parse(lo
 const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, JSON.stringify([...s])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } };
 
 
-import { readLocally } from "../data/read-local";   // 연 방 = 이 기기 안 바로 「봤음」(형 10-30 15:4x)
+import { enterRoom, roomReadState } from "../data/read-state";
 
 export type Room = OfficeRoom & { unread?: number };
 
@@ -33,6 +33,7 @@ export function previewLine(text: string) {
 
 /** 방 차례 하나(목록 화면 · PC 얼굴 띠) — 안 읽은 수 = 서버 rooms[].unread(없으면 점 = -1) */
 export function useRoomOrder() {
+  useSyncExternalStore(roomReadState.subscribe, roomReadState.getSnapshot, roomReadState.getSnapshot);
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: Room[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 });
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const seen = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 }).data || {};
@@ -40,10 +41,9 @@ export function useRoomOrder() {
   const all = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.with !== "형");
   const lastOf = (r: Room) => (r.last_talk !== undefined ? r.last_talk : r.last);
   const count = (r: Room) => {
-    if (readLocally(r.id, r.last_ts)) return 0;   // 이 기기에서 방금 연 방 = 서버 숫자보다 먼저 0(형 10-30 15:4x)
-    if (typeof r.unread === "number") return r.unread;
     const l = lastOf(r);
-    return l && l.kind !== "human" && (seen[r.id]?.ts || 0) < (r.last_ts || 0) ? -1 : 0;
+    const serverCount = typeof r.unread === "number" ? r.unread : l && l.kind !== "human" && (seen[r.id]?.ts || 0) < (r.last_ts || 0) ? -1 : 0;
+    return roomReadState.count(r.id, r.last_ts, serverCount);
   };
   const pinned = (id: string) => id === "all" || pins.has(id);
   const recent = (a: Room, b: Room) => (b.last_ts || 0) - (a.last_ts || 0);
@@ -56,7 +56,6 @@ export function useRoomOrder() {
 }
 
 export function RoomList({ onOpen, big = false, slim = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; current?: string }) {   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
-  const qc = useQueryClient();
   const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
   const notice = useQuery({ queryKey: ["nomute", "notice"], queryFn: () => office<{ notice?: { text: string; at?: string } }>("noticeset").then((j) => j.notice), staleTime: 60_000 }).data;
   const [menu, setMenu] = useState(""), [noticeOpen, setNoticeOpen] = useState(false), [hiddenOpen, setHiddenOpen] = useState(false);
@@ -64,10 +63,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const toggle = (k: string, s: Set<string>, set: (s: Set<string>) => void, id: string) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); writeSet(k, n); set(n); setMenu(""); };
   const markRead = async (r: Room, read: boolean) => {
     setMenu("");
-    const ts = read ? r.last_ts || Date.now() : Math.max(0, (r.last_ts || 1) - 1);
-    try { await office("seen", { method: "POST", body: JSON.stringify({ seen: { [r.id]: { ts, at: Date.now() } } }) }); } catch { /* 다음 pulse 가 맞춤 */ }
-    void qc.invalidateQueries({ queryKey: ["nomute", "seen"] });
-    void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+    try { await (read ? roomReadState.read(r.id, r.last_ts, true) : roomReadState.unread(r.id, r.last_ts)); } catch { /* 표는 되돌리고 아래 오류를 보인다. */ }
   };
 
   const Row = ({ r }: { r: Room }) => {
@@ -79,7 +75,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
       <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}`} onContextMenu={(e) => { e.preventDefault(); setMenu(menu === r.id ? "" : r.id); }}>
-        <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={onOpen}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
+        <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} pr-10 hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
           {r.with ? <span className="nm-rorb" style={{ margin: -Math.round(size / 8) }}><MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span>
             : ids.length ? <span className="nm-rstk">{front.slice(0, 2).map((id, i) => <span key={id} style={{ marginLeft: i ? -Math.round(size * 0.35) : 0 }}><FaceImg id={id} size={size} /></span>)}</span>
@@ -126,6 +122,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         {ordered.map((r) => <Row key={r.id} r={r} />)}
       </ul>
       {rooms.isError ? <p className="px-3 py-2 text-sm text-destructive" role="alert">방 목록을 못 받았어. 새로 고쳐 줘.</p> : null}
+      {roomReadState.error() ? <p className="px-3 py-2 text-sm text-destructive" role="alert">{roomReadState.error()}</p> : null}
       {hid.length ? (
         <>
           <button type="button" className="mt-2 flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground" aria-expanded={hiddenOpen} onClick={() => setHiddenOpen((v) => !v)}>
