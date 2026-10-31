@@ -3,6 +3,7 @@ import type {
   createAttachmentSender,
   OriginalAttachment,
   SendAttempt,
+  WaitingText,
 } from "../data/attachment-send";
 
 function Original({ original }: { original: OriginalAttachment }) {
@@ -39,6 +40,16 @@ function Sending({ attempt }: { attempt: SendAttempt }) {
       {attempt.originals.map((original) => <Preview key={original.id} file={original.file} />)}
       {attempt.text ? <p className="nac-text">{attempt.text}</p> : null}
       <span className="nac-bar" role="progressbar" aria-valuenow={Math.round(attempt.progress * 100)}><i style={{ width: `${Math.max(6, Math.min(94, attempt.progress * 94))}%` }} /></span>
+    </div>
+  );
+}
+
+/** 앞 첨부를 기다리는 글 = 내 말풍선 자리 · 차례가 오면 나감(형 11-01 「보냄 대기로 올라가있다가」) */
+function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) {
+  return (
+    <div className="nac-up" aria-label="보냄 대기">
+      <p className="nac-text">{item.text}</p>
+      {item.failed ? <button type="button" className="nac-again" onClick={onRetry}>못 보냈어 · 다시 보내기</button> : <span className="nac-wait">보냄 대기</span>}
     </div>
   );
 }
@@ -141,6 +152,7 @@ export function AttachmentRecovery({
           ) : null}
         </section>
       ))}
+      {state.waitingFor(room).map((item) => <Waiting key={`w${item.id}`} item={item} onRetry={() => state.retryText(item.id)} />)}
     </div>
   );
 }

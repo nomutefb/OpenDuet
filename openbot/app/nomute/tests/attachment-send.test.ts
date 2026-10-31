@@ -159,17 +159,45 @@ test("a second click while an upload is pending cannot start another request", a
   await first;
 });
 
-test("a different attachment in the same room starts while the first is uploading", async () => {
-  const pending = deferred();
-  const f = fixture([() => pending.promise, () => pending.promise]);
-  const first = f.state.submit(input());
+test("the next attachment in the same room waits its turn, in order", async () => {
+  const first = deferred(), second = deferred();
+  const f = fixture([() => first.promise, () => second.promise]);
+  const one = f.state.submit(input());
   const other = { ...input(), originals: [{ id: "next", file: input().originals[0].file }] };
-  const second = f.state.submit(other);
+  const two = f.state.submit(other);
+  await Promise.resolve();
+  assert.equal(f.uploadCalls.length, 1);
+  assert.equal(f.state.forRoom(input().room).length, 2);
+  assert.equal(f.state.busy(input().room), true);
+  first.resolve(partial);
+  await one;
   await Promise.resolve();
   assert.equal(f.uploadCalls.length, 2);
-  assert.equal(f.state.forRoom(input().room).length, 2);
+  second.resolve(partial);
+  await two;
+  await new Promise((go) => setTimeout(go));
+  assert.equal(f.state.busy(input().room), false);
+});
+
+test("text sent during an upload goes after it, and a failure stays to retry", async () => {
+  const pending = deferred();
+  const f = fixture([() => pending.promise]);
+  const room = input().room, log: string[] = [];
+  const one = f.state.submit(input());
+  f.state.later(room, "다음 글", async () => { log.push("글"); throw new Error("x"); });
+  await Promise.resolve();
+  assert.deepEqual(log, []);
+  assert.equal(f.state.waitingFor(room).length, 1);
   pending.resolve(partial);
-  await Promise.all([first, second]);
+  await one;
+  await new Promise((go) => setTimeout(go));
+  assert.deepEqual(log, ["글"]);
+  const [item] = f.state.waitingFor(room);
+  assert.equal(item.failed, true);
+  f.state.retryText(item.id);
+  assert.equal(f.state.waitingFor(room)[0].failed, false);
+  await new Promise((go) => setTimeout(go));
+  assert.deepEqual(log, ["글", "글"]);
 });
 
 test("start hands over at once and refuses before taking the originals", async () => {

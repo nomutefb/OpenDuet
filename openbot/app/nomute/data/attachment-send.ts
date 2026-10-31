@@ -15,6 +15,8 @@ export type SendAttempt = SendInput & {
   detail: string;
   progress: number;
 };
+/** 앞 첨부가 올라가는 동안 보낸 글 = 차례를 기다림 · failed = 차례가 와서 보냈는데 실패(글은 여기 남음). */
+export type WaitingText = { id: number; room: string; text: string; failed: boolean };
 export type SendReply = { status: number; data: unknown };
 type Transport = {
   upload: (input: SendInput, onProgress?: (ratio: number) => void) => Promise<SendReply>;
@@ -68,6 +70,9 @@ export function createAttachmentSender(transport: Transport) {
   const attempts = new Map<number, SendAttempt>();
   const attemptedIds = new Set<string>();
   const retrying = new Set<number>();
+  const waiting = new Map<number, WaitingText>();
+  const textJobs = new Map<number, () => Promise<void>>();
+  const tails = new Map<string, Promise<void>>();
   const listeners = new Set<() => void>();
   let sequence = 0,
     version = 0;
@@ -150,6 +155,17 @@ export function createAttachmentSender(transport: Transport) {
     } finally {
       refresh(attempt.room);
     }
+  };
+
+  // 한 방 = 한 줄 · 보낸 차례대로 나감(형 11-01 「뒤에 보내는게 보냄 대기로 올라가있다가 앞에 메세지랑 쪼르륵 타고 같이 가야할듯」) · 줄에 서는 일은 reject 안 함(결과는 전송 기록이 맡음)
+  const inLine = (room: string, job: () => Promise<void>) => {
+    const next = (tails.get(room) ?? Promise.resolve()).then(job);
+    tails.set(room, next);
+    const leave = () => {
+      if (tails.get(room) === next) tails.delete(room);
+    };
+    next.then(leave, leave);
+    return next;
   };
 
   // 소유권을 옮기기 전의 오류만 throw한다. 그러면 Composer가 원래 입력을 복원한다.
@@ -247,11 +263,42 @@ export function createAttachmentSender(transport: Transport) {
     forRoom: (room: string) =>
       [...attempts.values()].filter((attempt) => attempt.room === room),
     async submit(input: SendInput) {
-      await run(begin(input));
+      const attempt = begin(input);
+      await inLine(attempt.room, () => run(attempt));
     },
     /** 소유권만 받고 바로 돌아옴 = 올리는 동안 입력칸이 안 묶임(형 11-01 「이미지가 업로드가 되는 도중에는 내가 다음 채팅을 못 써」 · 「그거랑 내 다음 채팅은 별건임」) · 뒤 결과는 전송 기록이 맡음 */
     start(input: SendInput) {
-      void run(begin(input));
+      const attempt = begin(input);
+      void inLine(attempt.room, () => run(attempt));
+    },
+    /** 이 방에 올라가는 중이거나 줄 선 것이 있나 */
+    busy: (room: string) => tails.has(room),
+    waitingFor: (room: string) =>
+      [...waiting.values()].filter((item) => item.room === room),
+    /** 줄 끝에 글 하나 · send = 그 글을 실제로 보내는 일 */
+    later(room: string, text: string, send: () => Promise<void>) {
+      const id = ++sequence;
+      const job = async () => {
+        try {
+          await send();
+          waiting.delete(id);
+          textJobs.delete(id);
+        } catch {
+          waiting.set(id, { id, room, text, failed: true });
+        }
+        emit();
+      };
+      waiting.set(id, { id, room, text, failed: false });
+      textJobs.set(id, job);
+      emit();
+      void inLine(room, job);
+    },
+    retryText(id: number) {
+      const item = waiting.get(id), job = textJobs.get(id);
+      if (!item?.failed || !job) return;
+      waiting.set(id, { ...item, failed: false });
+      emit();
+      void inLine(item.room, job);
     },
     async retryBody(id: number) {
       const attempt = attempts.get(id);

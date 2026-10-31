@@ -879,9 +879,13 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
                 // 전송을 시작한 원본/본문은 기록이 맡는다. 일부 실패해도 새 입력과 섞지 않는다.
                 attachmentSender.start({ room, text, originals });
               } else if (text) {
-                const body: Record<string, unknown> = { text };
-                const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) });
-                if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
+                const post = async () => {
+                  const body: Record<string, unknown> = { text };
+                  const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) });
+                  if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
+                };
+                if (attachmentSender.busy(room)) attachmentSender.later(room, text, post);   // 앞 사진이 가는 중 = 그 뒤를 따라감
+                else await post();
               }
               setReply((current) => current === submittedReply ? null : current);
               // Composer가 보낸 부분만 비우며 onTextChange로 저장한다. 기다리는 동안 쓴 새 글은 보존한다.
