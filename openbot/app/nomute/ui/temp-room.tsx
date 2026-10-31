@@ -5,6 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useRef, useState } from "react";
 import { type OfficeRoom, idOf, office, peopleSync } from "../data/office";
 import { FaceImg } from "./faces";
+import { dropSearchCache } from "./room-search";
 
 const HOURS: [number, string][] = [[1, "1시간"], [24, "하루"], [72, "사흘"], [168, "일주일"], [0, "영구"]];
 // 묶음(형 10-31 「클로드 눌러서 선택 그록 눌러서 선택 지피티 눌러서 선택」) = 서버 clsOf 분류 · 명부에 없는 이 = 클로드 칸
@@ -112,6 +113,7 @@ export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClos
     setBusy(true); setWhy("");
     try {
       await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "DELETE" });
+      await dropSearchCache(r.id);
       await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
       onClose(); onGone();
     } catch (e) { setWhy(e instanceof Error ? e.message : "못 지웠어"); setBusy(false); }
