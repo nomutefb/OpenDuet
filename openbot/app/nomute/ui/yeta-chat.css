@@ -179,9 +179,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 /* 방 목록 = YETA .ylist-group 꼴(viewer/index.html · 공통 YETA-목록 · 형 10-31 「톡방이 다 단색으로만쭉이어져서 구분감이 없어」 · 「예타의 그걸 좀 가져오던지」)
    한 판 + 줄 사이 머리카락 줄 · 단톡 줄 = 살짝 밝게 · 얼굴 겹침 = 35%(YETA 50:-18 비율) · 참여자 줄 = YETA 생각줄 자리 · 차례(안 읽은 방 → 고정 → 나머지)는 그대로라 구역으로 안 가름
    판 값 = YETA 원본은 배경 그림 위 값이라 민 어둠에선 안 보여서 올림 · overflow 는 안 씀(줄 메뉴가 판 밖으로 나옴) */
-.nm-rooms { --rm-panel:rgba(0,0,0,.025); --rm-grp:rgba(0,0,0,.03); }
-.dark .nm-rooms { --rm-panel:rgba(255,255,255,.035); --rm-grp:rgba(255,255,255,.035); }
-.nm-rgroup { background:var(--rm-panel); border:1px solid var(--glass-line); border-radius:var(--r-l); }
+.nm-rooms { --rm-panel:rgba(0,0,0,.025); --rm-grp:rgba(0,0,0,.03); --rm-line:rgba(0,0,0,.17); }
+.dark .nm-rooms { --rm-panel:rgba(255,255,255,.035); --rm-grp:rgba(255,255,255,.035); --rm-line:rgba(255,255,255,.2); }   /* 바깥 테두리 = 형 10-31 「외부 대화 목록 테두리가 좀 많이 연하거든? 좀더 진해도 됨」 */
+.nm-rgroup { background:var(--rm-panel); border:1px solid var(--rm-line, var(--glass-line)); border-radius:var(--r-l); }
 /* 방 줄 오른쪽 = 시각 위 · 안 읽은 수 아래(형 10-31) · 숫자 = 앱 글꼴(LEMONMILK)은 동그라미에 세서 기기 고딕 · text-box 로 숫자 높이 기준 가운데 */
 .nm-rside { flex:none; align-self:stretch; display:flex; flex-direction:column; align-items:flex-end; gap:6px; min-width:40px; padding-top:1px; }
 .nm-rcount { display:grid; place-items:center; box-sizing:border-box; min-width:18px; height:18px; padding:0 4px; border-radius:999px; background:var(--accent, var(--primary)); color:var(--bg, var(--primary-foreground)); font:700 10.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-variant-numeric:tabular-nums; text-box:trim-both cap alphabetic; }
