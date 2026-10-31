@@ -61,7 +61,7 @@ export function useRoomOrder() {
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => (a.id === "all" ? -1 : b.id === "all" ? 1 : recent(a, b)));
   const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
-  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR), hid, count, lastOf, pinned, pins, setPins, hidden, setHidden };
+  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo"), hid, count, lastOf, pinned, pins, setPins, hidden, setHidden };
 }
 
 export function RoomList({ onOpen, big = false, slim = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; current?: string }) {   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
