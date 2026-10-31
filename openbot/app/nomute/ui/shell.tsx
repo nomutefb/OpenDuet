@@ -100,7 +100,11 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   //   해시 기록은 「바로 앞 주소」(앞 방·홈)로 돌아가므로, 대화 판이 맨 위에 있을 때 popstate 가 오면 그 자리를 /rooms 로 바꿔 끼움(replace · 기록 한 칸만 씀) · 모달·#/web·이슈 한 겹이 위에 있으면 그쪽 「<」 가 맡음
   useEffect(() => {
     if (pane !== "chat" || modal || layer || "page" in where) return;
-    const onPop = () => { const at = location.hash.replace(/^#/, "") || "/"; if (at !== "/rooms") void nav({ to: "/rooms", replace: true }); };
+    const onPop = (e: PopStateEvent) => {
+      if (!e.state) return;   // location.hash = 로 옮길 때도 popstate 가 옴(state 없음 · 프로필 「대화」·앱 안 링크) = 뒤로가기 아님
+      const at = location.hash.replace(/^#/, "") || "/";
+      if (at !== "/rooms") void nav({ to: "/rooms", replace: true });
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [pane, modal, layer, where, nav]);
