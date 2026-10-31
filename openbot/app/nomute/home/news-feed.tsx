@@ -54,7 +54,9 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 .article-signals{display:none!important}
 .publish-elapsed,.publish-elapsed[data-age-band]{color:var(--accent)!important}
 .article-publisher .pub-more{transform:translateY(.08em)!important;font-variant-numeric:tabular-nums}
-.article-lead>.article-media{flex:1 1 auto!important;aspect-ratio:auto!important}`;
+.article-lead>.article-media{flex:1 1 auto!important;aspect-ratio:auto!important}
+.practical-main .score-lead strong{color:var(--accent)!important;text-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)!important}`;
+// 점수 = 단계 색(modern-score.css) 대신 시그니처 색 한 가지(형 10-31 「점수, 시그니처 색으로 점수 나오게해주라」) · 홈 안에서만
 // 위 덧줄 넷(형 10-31 12:2x 홈 사진) = ① 「이슈 근거 : …」 줄 안 보임(.article-signals · 화제 유발 원인·내용 줄은 그대로) ② 시각 줄 둘 다 형광(time 은 원래 --accent · 「n시간 전」 .publish-elapsed 는 나이 띠 색이던 것 → --accent · 윈터 12:31 「둘 다 형광」)
 //   ③ 사진 = 카드 남는 높이를 다 차지(.article-media flex 1 · 황금비 상한 풀기 · 원본은 clamp(120px,20svh,180px) 최소 + 1.618 비율) ④ 「외 +3」 광학 보정(형 「+3 이거 수평을 광학 잉크 단위로 맞춰주고」 · 원본 .05em 아래 → .08em · 화면 못 봐서 ±.03em 은 윈터가 보고)
 

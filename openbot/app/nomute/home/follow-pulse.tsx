@@ -3,7 +3,7 @@
 //   데이터 = `/api/chan?f=ig` → 안 되면 `/insta_data.json` · FB = `/api/chan?f=fb` → `/fb_data.json`(원본 get() 차례 그대로 · 같은 출처 edit.nomute.kr · 쿠키 그대로 · Access 벽 안 · read.ts 가 "/" 를 same-origin 으로 받는 것과 같은 길)
 //   꼴 = IG · FB 총수 한 줄 + 「갱신 N분 전」 + 10일 증가율(%) 꺾은선 둘(IG 위 선 · FB 아래 선 · 0% 점선) + 날마다 ±명수 두 줄(IG 위 · FB 아래) · 색 = 오름 강조색 · 내림 금색 · 없음 회색(원본 규칙)
 //   누르면 = 채널 요약(원본 «일단 홈 팔로워로» → 우리 앱은 #/web?u=/?tab=chan 한 겹) · 10분마다 다시 읽음(원본과 같음) · 접수사항(CheckOne)은 이 자리에서 뺌(파일은 그대로 · 안 부름)
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null };
 type Chan = { profile: { followers_count: number }; generated_kst: string; daily_series?: Row[] };
@@ -46,6 +46,14 @@ const smooth = (pts: [number, number][]) => pts.map((p, i) => { if (!i) return `
 
 export function FollowPulse() {
   const [ig, setIg] = useState<Chan | null>(null), [fb, setFb] = useState<Chan | null>(null), [, tick] = useState(0);
+  // 그림 폭 = 화면 실제 폭(형 10-31 「이거 위에 찌그러지는거 좀 수정해줄래?」 · 300칸을 가로로 늘려서 글자·점이 찌그러졌음)
+  const [wide, setWide] = useState(300), seen = useRef<ResizeObserver | null>(null);
+  const chart = useCallback((el: SVGSVGElement | null) => {
+    seen.current?.disconnect();
+    if (!el) return;
+    seen.current = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width); if (w > 0) setWide(w); });
+    seen.current.observe(el);
+  }, []);
   useEffect(() => {
     let live = true;
     const load = () => Promise.all([get("ig", "insta_data.json"), get("fb", "fb_data.json")]).then(([a, b]) => { if (!live) return; if (a) setIg(a); setFb(b); }).catch(() => {});
@@ -55,14 +63,14 @@ export function FollowPulse() {
   }, []);
   const view = useMemo(() => {
     if (!ig) return null;
-    const W = 300, H = 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, FBY = H - RH, IGY = FBY - RG - RH, TOP = 4, BOT = IGY - 6;
+    const W = wide, H = 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, FBY = H - RH, IGY = FBY - RG - RH, TOP = 4, BOT = IGY - 6;
     const lines: ["ig" | "fb", Pt[]][] = [["ig", series(ig, "ig")], ...(fb ? [["fb", series(fb, "fb")] as ["fb", Pt[]]] : [])];
     const all = lines.flatMap(([, s]) => s.map((p) => p.pct));
     const span = Math.max(0.5, ...all.map(Math.abs)), lo = Math.min(0, ...all), hi = Math.max(0, ...all);
     const top = hi - lo < span * 0.1 ? hi + span * 0.05 : hi, bot = hi - lo < span * 0.1 ? lo - span * 0.05 : lo;
     const Y = (v: number) => BOT - ((v - bot) / (top - bot || 1)) * (BOT - TOP);
     return { W, H, P, FS, RH, FBY, IGY, Y, lines };
-  }, [ig, fb]);
+  }, [ig, fb, wide]);
   if (!ig || !view) return null;   // 못 읽으면 자리 비움(홈이 그 자리만큼 올라옴)
   const { W, H, P, FS, RH, FBY, IGY, Y, lines } = view;
   const go = () => { window.location.hash = "#/web?u=" + encodeURIComponent("/?tab=chan"); };   // 원본 = 채널 요약로
@@ -74,7 +82,7 @@ export function FollowPulse() {
         <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v">{fb ? nf.format(fb.profile.followers_count) : "–"}</b>
         <span className="nm-pulse-at">{ago(ig.generated_kst)}</span>
       </div>
-      <svg className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`} preserveAspectRatio="none">
+      <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
         <rect className="nm-pulse-rowbg" x="0" y={IGY} width={W} height={RH} fill="url(#nm-pulse-fade)" />
         <line className="nm-pulse-base" x1="0" x2={W} y1={Y(0).toFixed(1)} y2={Y(0).toFixed(1)} strokeWidth="1" strokeDasharray="2 3" />
