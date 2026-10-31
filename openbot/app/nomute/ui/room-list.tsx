@@ -110,7 +110,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
               <b className={`min-w-[1.2em] shrink truncate text-[15px] ${u ? "font-bold" : "font-semibold"}`}>{p?.name || r.name}</b>
-              {p?.mark ? <span aria-hidden className="shrink-0">{p.mark}</span> : null}
+              {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
             </span>
