@@ -1,6 +1,6 @@
 // 설정 판 — 옛 화면(viewer/office.html) 설정 판과 같은 서버 길 · 같은 규칙
 //   지금 봇(GET bots · 다음 깸 = GET schedule) · 지정방 멤버(GET/POST roomset · 형) · 공지 설정 한 장(GET/POST noticeset · 형)
-//   스케줄러 연결(GET schedule/link) · 바꾸기(루틴 상태·언제·할 일 없어도 깨움 · 봇 하루 최대·급한 일 몫 · 사건 모아서 기다림 = POST schedule/set · 먼저 dry 미리 보기 → 확인)
+//   스케줄러 연결(GET schedule/link) · 바꾸기(루틴 상태·언제·할 일 없어도 깨움 · 사건 모아서 기다림 = POST schedule/set · 먼저 dry 미리 보기 → 확인)
 //   옛 그록 대화(GET old · 봇 → 날 → 글 · 읽기만) · 맨 아래 「지금 판」(형이 새 판인지 눈으로 · 10-28 10:51 「웹앱이 자동으로 버전업이 안되네」)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
@@ -21,7 +21,7 @@ const Card = ({ children }: { children: ReactNode }) => <div className="mt-3 rou
 const btn = "rounded-full border border-border px-3 py-1 text-xs hover:bg-foreground/5 disabled:opacity-50";
 
 type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
-export type SchedBot = { bot: string; who: string; wakes: number[]; next_ts?: number; daily_cap?: number; urgent_reserve?: number; on?: boolean };
+export type SchedBot = { bot: string; who: string; wakes: number[]; next_ts?: number; on?: boolean };
 export type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean; fork?: string; task?: string; marks?: string[] };
 export type SchedFork = { id: string; name: string; on?: boolean; common?: string };
 type Kind = { kind: string; delay_max?: number; ttl?: number };
@@ -209,7 +209,7 @@ export function NomuteLink() {
   return (
     <PageSection title="스케줄러 연결">
       <p className={`mt-1 text-sm ${beat == null || beat > 130 ? "text-destructive" : "text-muted-foreground"}`}>{!q.data ? (q.isError ? q.error.message : "읽는 중…") : !k ? "아직 한 장 없음 — 윈A 지킴이가 올리면 보임" : `시계 마지막 신호 ${beat == null ? "모름" : `${beat}초 전`} · 읽은 때 ${hm(q.data.at)}`}</p>
-      <p className="mt-1 text-xs text-muted-foreground">한 줄 = 일정 → 호출 연결 → 깨움 보냄 → 일 시작 · 자동 = 일정·사건으로 깨운 수(하루 최대에 셈) · 직접 = 형·윈터가 바로 깨운 수(하루 최대에 안 셈) · 밤 12시에 0부터</p>
+      <p className="mt-1 text-xs text-muted-foreground">한 줄 = 일정 → 호출 연결 → 깨움 보냄 → 일 시작 · 자동 = 일정·사건으로 깨운 수 · 직접 = 형·윈터가 바로 깨운 수 · 밤 12시에 0부터</p>
       {k?.bots ? (
         <Card>
           <ul className="divide-y divide-border">
@@ -219,7 +219,7 @@ export function NomuteLink() {
                 <li key={id} className="px-4 py-2.5">
                   <p className="flex items-center justify-between text-sm"><b>{x.name}</b><span className={`text-xs ${x.hook01?.enabled === false || x.hook01_why ? "text-destructive" : "text-muted-foreground"}`}>{x.hook01_why || (x.hook01?.enabled ? "호출 연결 켜짐" : "호출 연결 꺼짐")}</span></p>
                   <p className="text-xs text-muted-foreground">
-                    {x.today ? `오늘 자동 ${x.today.clock}/하루 최대 ${x.today.cap} · 직접 ${x.today.manual}${x.today.lost ? ` · 놓침 ${x.today.lost}` : ""} · ` : ""}켠 루틴 {on} · 돎 {ran}{x.hook01?.last_run ? ` · 마지막 ${hm(x.hook01.last_run)}` : ""}
+                    {x.today ? `오늘 자동 ${x.today.clock} · 직접 ${x.today.manual}${x.today.lost ? ` · 놓침 ${x.today.lost}` : ""} · ` : ""}켠 루틴 {on} · 돎 {ran}{x.hook01?.last_run ? ` · 마지막 ${hm(x.hook01.last_run)}` : ""}
                   </p>
                   {x.routines.some((r) => r.alert) ? <p data-content className="text-xs text-destructive">{x.routines.filter((r) => r.alert).map((r) => `${r.id}: ${r.alert}`).join(" · ")}</p> : null}
                 </li>
@@ -233,14 +233,14 @@ export function NomuteLink() {
 }
 
 export const ST_KO: Record<string, string> = { shadow: "기록만", dry: "시험", live: "켬", off: "꺼짐", "grok-stay": "그록에 둠" };
-export const CF_KO: Record<string, string> = { state: "상태", when: "언제", fire_empty: "할 일 없어도 깨움", delay_max: "모아서 기다림", daily_cap: "하루 최대", urgent_reserve: "급한 일 몫", on: "차단기", task: "할 일", common: "공통 내용", fork: "포크", bot: "어떤 봇" };
+export const CF_KO: Record<string, string> = { state: "상태", when: "언제", fire_empty: "할 일 없어도 깨움", delay_max: "모아서 기다림", on: "차단기", task: "할 일", common: "공통 내용", fork: "포크", bot: "어떤 봇" };
 const CRON_H = "CRON_TZ=Asia/Seoul ";
 export const cronShow = (l?: string[]) => (l || []).map((c) => String(c).replace(CRON_H, "")).join(" ; ");
 export const cfVal = (f: string, v: unknown) => (f === "when" ? cronShow(v as string[]) || "—" : f === "fire_empty" ? (v === true ? "켬" : v === false ? "끔" : "—") : f === "state" ? ST_KO[String(v)] || String(v) : f === "on" ? (v === false ? "내림" : "올림") : f === "task" || f === "common" ? `${String(v ?? "").slice(0, 24)}…` : v == null ? "—" : String(v));
 export type SchedQ = Q;
 export type SchedSetRes = SetRes;
 type Q = { at: "routine" | "bot" | "kind" | "fork"; key: string; field: string; value: unknown; label: string };
-type SetRes = { same?: boolean; from?: unknown; to?: unknown; commit?: string; checked?: boolean; preview?: { next_at?: number; day_max: number; reserve: number; total: number; cap?: number } };
+type SetRes = { same?: boolean; from?: unknown; to?: unknown; commit?: string; checked?: boolean; preview?: { next_at?: number; day_max: number } };
 
 export function NomuteSchedule() {
   const qc = useQueryClient();
@@ -283,7 +283,7 @@ export function NomuteSchedule() {
       {ask ? (
         <div className="sticky top-2 z-10 mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-primary/40 bg-background p-3 text-sm shadow">
           <span className="min-w-0 flex-1">{ask.q.label} {CF_KO[ask.q.field]}: {cfVal(ask.q.field, ask.r.from)} → <b>{cfVal(ask.q.field, ask.r.to)}</b>
-            {ask.r.preview ? <small className="block text-xs text-muted-foreground">다음 깸 {ask.r.preview.next_at ? nextShort(ask.r.preview.next_at) : "없음"} · 하루 정해진 {ask.r.preview.day_max}번 + 급함 몫 {ask.r.preview.reserve} = {ask.r.preview.total}{Number.isFinite(ask.r.preview.cap) ? `/${ask.r.preview.cap}` : ""}</small> : null}
+            {ask.r.preview ? <small className="block text-xs text-muted-foreground">다음 깸 {ask.r.preview.next_at ? nextShort(ask.r.preview.next_at) : "없음"} · 하루 정해진 {ask.r.preview.day_max}번</small> : null}
           </span>
           <button type="button" className={btn} disabled={go.isPending} onClick={() => go.mutate({ q: ask.q, dry: false })}>바꾸기</button>
           <button type="button" className={btn} onClick={() => setAsk(null)}>취소</button>
@@ -318,15 +318,13 @@ export function NomuteSchedule() {
               ))}
             </ul>
           </Card>
-          <h3 className="mt-4 text-sm font-semibold">봇 <span className="text-xs font-normal text-muted-foreground">하루 최대 1~60 · 급한 일 몫 0~5(하루 최대 안에서 급한 깸에 남겨 둠)</span></h3>
+          <h3 className="mt-4 text-sm font-semibold">봇</h3>
           <Card>
             <ul className="divide-y divide-border">
               {d.bots.map((b) => (
                 <li key={b.bot} data-content className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm">
                   <b className="min-w-12">{b.who}</b>
                   <span className="flex-1 text-xs text-muted-foreground">하루 정해진 깸 {b.wakes.length}번{b.next_ts ? ` · 다음 ${nextShort(b.next_ts)}` : ""}</span>
-                  {num({ at: "bot", key: b.bot, field: "daily_cap", label: b.who }, b.daily_cap, 1, 60)}
-                  {num({ at: "bot", key: b.bot, field: "urgent_reserve", label: b.who }, b.urgent_reserve, 0, 5)}
                 </li>
               ))}
             </ul>

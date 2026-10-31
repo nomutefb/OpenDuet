@@ -146,14 +146,6 @@ export function SchedDesk() {
         <div className="nm-sched-bot">
           <Breaker big on={sel.on !== false} label={`${nameOf(sel)} 차단기`} disabled={!can || !hasForks || go.isPending} onFlip={() => prep({ at: "bot", key: sel.bot, field: "on", value: sel.on === false, label: nameOf(sel) })} />
           <span className="min-w-0 flex-1"><b>{nameOf(sel)}</b><small>{sel.next_ts ? `다음 ${nextShort(sel.next_ts)}` : "다음 깸 없음"} · 하루 {sel.wakes.length}번</small></span>
-          <div className="nm-sched-cap">
-            {(["daily_cap", "urgent_reserve"] as const).map((f) => (
-              <label key={f}>{CF_KO[f]}
-                <input type="number" disabled={!can} value={vals[`${sel.bot}|${f}`] ?? String(sel[f] ?? "")} aria-label={`${sel.who} ${CF_KO[f]}`} onChange={(e) => setVals((v) => ({ ...v, [`${sel.bot}|${f}`]: e.target.value }))}
-                  onBlur={() => { const v = vals[`${sel.bot}|${f}`]; if (v !== undefined && Number(v) !== sel[f]) prep({ at: "bot", key: sel.bot, field: f, value: Number(v), label: sel.who }); }} />
-              </label>
-            ))}
-          </div>
         </div>
       ) : null}
       {sel ? bar(sel.bot) : null}
