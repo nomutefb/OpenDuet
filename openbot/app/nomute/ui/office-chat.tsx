@@ -21,7 +21,9 @@ import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
-import { dropAttachments, peekAttachments } from "../shim/attachments";
+import { peekAttachments } from "../shim/attachments";
+import { attachmentSender } from "../data/attachment-state";
+import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
 import { useCloseCallMenu } from "./call-face";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
@@ -773,6 +775,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
+        <AttachmentRecovery state={attachmentSender} room={room} />
         {reply ? (
           <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">
             <span className="min-w-0 flex-1 truncate">↩ <b>{reply.who}</b> · {reply.line}</span>
@@ -790,31 +793,30 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           placeholder={r ? `${r.with ? `${nmOf(list, r.with)}에게` : `${r.name}에`} 메시지 보내기` : "메시지 보내기"}
           onSubmit={async (draft) => {
             const raw = draft.text.trim();
-            const ids = (draft.attachments || []).map((a) => (a.metadata as { attachmentId?: string } | undefined)?.attachmentId).filter((x): x is string => !!x);
-            if (!raw && !ids.length) return;
-            const text = raw && reply ? `↩ ${reply.who}: ${reply.line}\n${raw}` : raw;
+            const attached = draft.attachments || [];
+            if (!raw && !attached.length) return;
+            const submittedReply = reply;
+            const text = raw && submittedReply ? `↩ ${submittedReply.who}: ${submittedReply.line}\n${raw}` : raw;
             if (text.length > 8000) { setErr("8,000자 넘음 — 나눠서 보내 줘"); throw new Error("too long"); }
-            if (ids.length && !r?.with && !r?.temp && !list.some((p) => p.kind === "bot" && (text.includes(`@${p.who}`) || text.includes(`!${p.who}`)))) { setErr("단체방 첨부 = 받을 봇을 @ 로 골라 줘(1:1 방은 그 봇)"); throw new Error("no bot"); }
+            if (attached.length && !r?.with && !r?.temp && !list.some((p) => p.kind === "bot" && (text.includes(`@${p.who}`) || text.includes(`!${p.who}`)))) { setErr("단체방 첨부 = 받을 봇을 @ 로 골라 줘(1:1 방은 그 봇)"); throw new Error("no bot"); }
             setErr("");
             try {
-              if (ids.length) {   // 파일 먼저(「파일:」 줄 = 서버) → 글이 있으면 그 뒤 보통 글로(옛 화면과 같은 차례)
-                const fd = new FormData();
-                for (const f of peekAttachments(ids)) fd.append("file", f);
-                fd.set("room", room);
-                if (text) fd.set("text", text);
-                const res = await fetch("/api/office/files", { method: "POST", body: fd, credentials: "same-origin" });
-                const j = (await res.json().catch(() => ({}))) as { ok?: boolean; why?: string; message?: Msg; failed?: { name: string }[] };
-                if (!res.ok || j.ok === false) throw new Error(j.why || `파일 올리기 ${res.status}`);
-                if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
-                dropAttachments(ids);
-                if (j.failed?.length) setErr(`못 올린 파일 ${j.failed.length} — ${j.failed.map((x) => x.name).join(", ")}`);
-              }
-              if (text) {
+              if (attached.length) {
+                const originals = attached.map((attachment) => {
+                  const id = (attachment.metadata as { attachmentId?: string } | undefined)?.attachmentId;
+                  const file = id ? peekAttachments([id])[0] : undefined;
+                  if (!id || !file) throw new Error("첨부 원본을 찾지 못했어. 파일을 다시 골라 줘.");
+                  return { id, file };
+                });
+                // 전송을 시작한 원본/본문은 기록이 맡는다. 일부 실패해도 새 입력과 섞지 않는다.
+                await attachmentSender.submit({ room, text, originals });
+              } else if (text) {
                 const body: Record<string, unknown> = { text };
                 const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) });
                 if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
               }
-              setReply(null); saveDraft(room, "");
+              setReply((current) => current === submittedReply ? null : current);
+              // Composer가 보낸 부분만 비우며 onTextChange로 저장한다. 기다리는 동안 쓴 새 글은 보존한다.
               void qc.invalidateQueries({ queryKey: officeKeys.rooms });
             } catch (e) {
               setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 글은 입력칸에 그대로`);

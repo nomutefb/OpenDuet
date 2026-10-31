@@ -18,5 +18,5 @@ export function peekAttachments(ids: string[]): File[] {
 
 /** 보낸 뒤에만 비움 */
 export function dropAttachments(ids: string[]) {
-  for (const id of ids) { files.delete(id); void caches.open(CACHE).then((c) => c.delete(`/api/attachments/${id}`)).catch(() => {}); }
+  for (const id of ids) { files.delete(id); if (typeof caches !== "undefined") void caches.open(CACHE).then((c) => c.delete(`/api/attachments/${id}`)).catch(() => {}); }
 }
