@@ -5,6 +5,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { type RefObject, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { RoomHeadMenu } from "./room-menu";
 import { type OfficeRoom, office } from "../data/office";
 
 type Row = { id: string; ts: number; text: string };
@@ -93,7 +94,7 @@ function useKeyboardGap() {
 
 function SearchToX({ on }: { on: boolean }) {
   return (
-    <svg className={`nm-sx${on ? " on" : ""}`} viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+    <svg className={`nm-sx${on ? " on" : ""}`} viewBox="0 0 32 32" width="20" height="20" aria-hidden="true">
       <circle className="c" cx="14" cy="14" r="7.5" />
       <path className="h" d="M19.4 19.4 24.6 24.6" />
       <path className="x" d="M10 10 22 22" />
@@ -147,7 +148,8 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
   const count = hits.length ? `${Math.min(idx, hits.length - 1) + 1}/${hits.length}` : done ? "찾는 글 없음" : "찾는 중";
   return createPortal(
     <>
-      <div className={`nm-find${open ? " open" : ""}`} style={{ right: pane.right + 10, width: open ? pane.width - 20 : 40 }}>
+      <RoomHeadMenu room={room} right={pane.right + 6} />   {/* 검색 오른쪽 햄버거(./room-menu.tsx · 형 11-01 08:46) */}
+      <div className={`nm-find${open ? " open" : ""}`} style={{ right: pane.right + 46, width: open ? Math.max(120, pane.width - 92) : 40 }}>   {/* 닫힘 = 햄버거 왼쪽 그림 하나 · 열림 = 「<」 와 햄버거 사이(형 08:46 「범위 높이 등 만 조정」) */}
         {open ? <input ref={input} value={q} placeholder="대화내용 검색" aria-label="대화내용 검색" enterKeyHint="search" onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Escape") close(); if (e.key === "Enter") setIdx((i) => Math.min(i + 1, Math.max(0, hits.length - 1))); }} /> : null}
         <button type="button" className="nm-find-btn" aria-label={open ? "검색 닫기" : "대화내용 검색"} aria-expanded={open} onClick={() => (open ? close() : setOpen(true))}><SearchToX on={open} /></button>
