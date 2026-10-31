@@ -5,14 +5,15 @@
 //   PC = 같은 차례를 가운데 기둥 하나로(폭 = 폰 꼴) · 꼴·토큰 = YETA 설정 판과 같은 범위(.yeta-set · ui/yeta-settings.css 그대로 씀) · 머리 로고·프로필 0 = 맨 위가 바로 1/6.
 //   길(라우트)·네비 「홈」 칸 = 이 폴더 밖(보조 01 · claude-state assign/2026-10-28/office-home.md 「바뀜」).
 import "../ui/yeta-settings.css";
+import "./follow-pulse.css";
 import { Arrived } from "./arrived";
-import { CheckOne } from "./check-one";
+import { FollowPulse } from "./follow-pulse";   // 1/6 = 팔로워 띠(형 10-31 09:5x 「인스타 맨 위에 뜨는거 … 웹앱 맨 상단에」 · 접수사항 CheckOne 은 안 부름 「어짜피 다른데서 볼 수 있으니까」 · 파일은 그대로)
 import { NewsFeed } from "./news-feed";
 
 export function HomeScreen() {
   return (
     <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,3fr)_minmax(0,2fr)] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))]">
-      <CheckOne />
+      <FollowPulse />
       <NewsFeed />
       <Arrived />
     </div>
