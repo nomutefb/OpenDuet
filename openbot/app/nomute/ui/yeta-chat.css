@@ -185,6 +185,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rcount { display:grid; place-items:center; box-sizing:border-box; min-width:18px; height:18px; padding:0 4px; border-radius:999px; background:var(--accent, var(--primary)); color:var(--bg, var(--primary-foreground)); font:700 10.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-variant-numeric:tabular-nums; text-box:trim-both cap alphabetic; }
 .nm-rdot { width:8px; height:8px; margin-right:5px; border-radius:50%; background:var(--accent, var(--primary)); }
 .nm-rmore { right:52px; }
+.nm-rooms { position:relative; } .nm-repair { position:absolute; top:2px; right:4px; z-index:1; display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 12px; border:1px solid var(--glass-line); border-radius:999px; background:none; color:var(--mut); font-size:13px; cursor:pointer; }
+@media (hover:hover) { .nm-repair:hover { background:rgba(207,255,64,.13); color:var(--fg); } }
 .nm-rrow { border-top:1px solid var(--glass-line); }
 .nm-rrow:first-child { border-top:none; border-radius:var(--r-l) var(--r-l) 0 0; }
 .nm-rrow:last-child { border-radius:0 0 var(--r-l) var(--r-l); }

@@ -24,6 +24,8 @@ const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, 
 import { enterRoom, roomReadState } from "../data/read-state";
 
 export type Room = OfficeRoom & { unread?: number };
+// 수리 접수 = 단톡방이 아니라 접수처(형 10-31 「회의실 개념 이 아니니까, 따로 위에 뺴줄래?」) · 방은 그대로라 애들 접수는 같음 · 화면만 목록 밖 오른쪽 위 단추
+const REPAIR = "repair";
 
 /** 미리보기 한 줄 = 글꼴 기호·부름·파일 경로 뺌(형 사진 10-31 09:12 「**[정치]」 · 「파일: … → 윈터 PM (cl…」) · 원문은 대화창에 그대로 */
 export function previewLine(text: string) {
@@ -59,7 +61,7 @@ export function useRoomOrder() {
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => (a.id === "all" ? -1 : b.id === "all" ? 1 : recent(a, b)));
   const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
-  return { rooms, list, ordered: [...pin, ...rest], hid, count, lastOf, pinned, pins, setPins, hidden, setHidden };
+  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR), hid, count, lastOf, pinned, pins, setPins, hidden, setHidden };
 }
 
 export function RoomList({ onOpen, big = false, slim = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; current?: string }) {   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
@@ -135,6 +137,11 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   return (
     <nav aria-label="대화 목록" className="nm-yeta nm-rooms flex flex-col">
       <TempRoomButton />
+      {(() => { const rp = ((rooms.data || []) as Room[]).find((x) => x.id === REPAIR), n = rp ? Math.max(0, count(rp)) : 0; return rp ? (
+        <button type="button" className="nm-repair" aria-label={n ? `수리 접수 · 안 읽은 글 ${n}개` : "수리 접수"} onClick={() => { enterRoom(REPAIR); onOpen?.(); void nav({ to: "/channels/$channelId", params: { channelId: REPAIR } }); }}>
+          <DuetIcon name="wrench" size={15} /><span>수리 접수</span>{n > 0 ? <b className="nm-rcount">{n > 99 ? "99+" : n}</b> : null}
+        </button>
+      ) : null; })()}
       {tinting ? <RoomColorPick room={tinting} onPeek={(hex) => setPeek({ id: tinting.id, hex })} onClose={() => { setTinting(null); setPeek(null); }} /> : null}
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}

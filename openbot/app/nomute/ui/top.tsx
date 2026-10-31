@@ -27,7 +27,7 @@ export function NomuteName() {
   if (!r) return null;
   const p = r.with ? list.find((x) => x.who === r.with) : undefined;
   const name = r.with ? p?.name || r.with : r.name;
-  const ids = r.with ? [] : roomAgentIds(r, list);
+  const ids = r.with || r.id === "repair" ? [] : roomAgentIds(r, list);   // 수리 접수 = 접수처라 인원 없음(형 10-31 「여기에 10명은 머야?」)
   const can = routineRoom(r);
   if (ids.length || can) return (   // 단톡 = 이름 옆 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」)
     <span className="nm-top-wrap">
