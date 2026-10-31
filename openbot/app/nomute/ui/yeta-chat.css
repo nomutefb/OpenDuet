@@ -129,7 +129,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
   box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); transition:border-color .45s var(--ease); }
 .ychat-in form:focus-within { border-color:color-mix(in srgb, var(--accent) 35%, transparent); }
 .ychat-in .duet-composer-editor { font-size:var(--fs-body); text-align:left; color:var(--fg); }   /* 왼쪽부터(형 16:5x 「입력할때 좌측부터 시작하게」 · YETA 원본 = 가운데) */
-.ychat-in form button[type="button"] { color:var(--fg-2); }
+.ychat-in form button[type="button"] { color:var(--fg-2); align-self:center; }   /* 형 10-31 「+ 는 말풍선 크기에 따라서 커지는 높이를 중앙에 따라가지지가 않네」 · 원본 self-end */
 .ychat-in form button[type="submit"] { width:var(--btn); height:var(--btn); align-self:center; border:none; background:none; box-shadow:none; color:var(--accent); transition:transform .24s cubic-bezier(.3,1.7,.5,1); }
 .ychat-in form button[type="submit"]:active { transform:translateY(-4px) scale(var(--press-m)); transition-duration:.06s; }   /* 형 10-31 「누르면 살짝 위로 움직이는 액티브」 · 놓으면 튕겨 돌아옴 */
 @media (prefers-reduced-motion:reduce){ .ychat-in form button[type="submit"] { transition:none; } .ychat-in form button[type="submit"]:active { transform:scale(var(--press-m)); } }
