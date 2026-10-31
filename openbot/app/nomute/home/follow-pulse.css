@@ -1,18 +1,18 @@
 /* 홈 팔로워 띠(./follow-pulse.tsx) — 꼴 = 에디터 #home-pulse(modern-home.css hp-*) · 토큰 = YETA(.yeta-set 안) · 색 = IG 선 흰(--fg) · FB 선 하늘 · 오름 강조색 · 내림 금색 · 없음 회색(원본 규칙 「증감 색 동일하게」) */
-.nm-pulse { display:flex; flex-direction:column; gap:4px; width:100%; padding:8px 10px 4px; border:0; background:none; color:var(--fg); font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform .2s var(--ease); }
+.nm-pulse { position:relative; display:flex; flex-direction:column; gap:4px; width:100%; padding:8px 10px 4px; border:0; background:none; color:var(--fg); font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform .2s var(--ease); }
 .nm-pulse:active { transform:scale(.985); }
 .nm-pulse-row { display:flex; align-items:baseline; gap:8px; font-variant-numeric:tabular-nums; }
 .nm-pulse-k { font-size:var(--fs-xs); font-weight:var(--fw-x); letter-spacing:.02em; }
-.nm-pulse-k.ig { color:#7fb2ff; } .nm-pulse-k.fb { color:var(--mut); }
+.nm-pulse-k.ig { color:var(--accent); } .nm-pulse-k.fb { color:var(--mut); }   /* 팔레트 통일(형 10-31 12:2x 「메인 화면 팔레트 색 통일 좀 할게 위에 인스타 라인부터」 · 「n시간 전 이거 형광색 통일」) = 앱 형광색(--accent) 하나 + 흰·회색 · 파랑·금색 뺌 */
 .nm-pulse-v { font-size:var(--fs-h2); font-weight:var(--fw-x); font-style:italic; }
 .nm-pulse-sep { width:1px; height:14px; background:var(--glass-line); align-self:center; }
-.nm-pulse-at { margin-left:auto; font-size:var(--fs-xs); color:var(--mut); }
+.nm-pulse-at { position:absolute; top:2px; right:10px; font-size:calc(var(--fs-xs) * .8); color:var(--mut); }   /* 형 10-31 12:3x 「갱신 0분전은 좀 더 우상단 20% 더 작게」 = 줄 밖 우상단 모서리 · 11px→8.8px */
 .nm-pulse-chart { display:block; width:100%; height:64px; overflow:visible; }
 .nm-pulse-rowbg { fill:rgba(255,255,255,.07); }
 :root:not(.dark) .nm-pulse-rowbg { fill:rgba(0,0,0,.05); }
 .nm-pulse-base { stroke:var(--glass-line); }
-.nm-pulse-chart .ig path { stroke:var(--fg); } .nm-pulse-chart .ig circle { fill:var(--fg); }
-.nm-pulse-chart .fb path { stroke:#7fb2ff; } .nm-pulse-chart .fb circle { fill:#7fb2ff; }
+.nm-pulse-chart .ig path { stroke:var(--accent); } .nm-pulse-chart .ig circle { fill:var(--accent); }
+.nm-pulse-chart .fb path { stroke:var(--fg); stroke-opacity:.55; } .nm-pulse-chart .fb circle { fill:var(--fg); fill-opacity:.55; }
 .nm-pulse-chart circle.x { stroke:var(--mut); }
 .nm-pulse-chart text { fill:var(--mut); font-family:inherit; }
-.nm-pulse-chart text.up { fill:var(--accent); } .nm-pulse-chart text.dn { fill:#ffd27a; } .nm-pulse-chart text.now { font-weight:var(--fw-x); }
+.nm-pulse-chart text.up { fill:var(--accent); } .nm-pulse-chart text.dn { fill:var(--fg); fill-opacity:.7; } .nm-pulse-chart text.now { font-weight:var(--fw-x); }   /* 내림 = 금색 대신 흰(흐림) · 오름만 형광 */

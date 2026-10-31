@@ -1,0 +1,14 @@
+/* 홈 「전송」 단추(./send-button.tsx) — 꼴 = 옛 「뉴스 요약」 자리(카드 우하단 알약) · 애니메이트 = 에디터 #askSend 그대로(게이지 바 0→90% 차오름 .glive/.grun → 열리면 100% .gdone + ✓ goTick · 출처 nomutefb/editor viewer/index.html 1895·3094·20065줄) · 색 = 앱 형광 하나 */
+.nm-send { position:absolute; right:8px; bottom:4px; z-index:10; display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 14px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--bg); color:var(--fg); font:inherit; font-size:13px; font-weight:var(--fw-b); cursor:pointer; overflow:hidden; isolation:isolate;
+  box-shadow:0 2px 8px rgba(0,0,0,.25); backdrop-filter:blur(var(--blur-l)); -webkit-backdrop-filter:blur(var(--blur-l)); -webkit-tap-highlight-color:transparent; transition:transform .2s var(--ease), border-color .3s var(--ease); }
+.nm-send:active { transform:scale(var(--press-m, .9)); }
+.nm-send::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg, rgba(var(--accent-rgb),.95), var(--accent)); transform-origin:left; transform:scaleX(0); }   /* 게이지 바 */
+.nm-send.run { border-color:var(--accent); pointer-events:none; }
+.nm-send.run::before { transform:scaleX(.9); transition:transform 1.2s cubic-bezier(.2,.7,.3,1); }   /* 0→90% 차오름(에디터 .grun · 응답 기다리는 동안) */
+.nm-send.done::before { transform:scaleX(1); transition:transform .3s linear; }   /* 열림 = 100% 급속 마무리(.gdone) */
+.nm-send.run, .nm-send.done { color:var(--bg); }
+.nm-send-ic { display:inline-grid; place-items:center; width:16px; height:16px; } .nm-send-ic svg { width:16px; height:16px; }
+.nm-send-ck { display:none; width:16px; height:16px; } .nm-send-ck svg { width:16px; height:16px; } .nm-send-ck path { fill:none; stroke:currentColor; stroke-width:2.7; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:24; stroke-dashoffset:24; }
+.nm-send.done .nm-send-ic { display:none; } .nm-send.done .nm-send-ck { display:inline-grid; } .nm-send.done .nm-send-ck path { animation:nmGoTick .38s .04s ease forwards; }   /* ✓ 그어짐(에디터 goTick) */
+@keyframes nmGoTick { to { stroke-dashoffset:0; } }
+@media (prefers-reduced-motion:reduce) { .nm-send::before, .nm-send.run::before, .nm-send.done::before { transition:none; } .nm-send.done .nm-send-ck path { animation:none; stroke-dashoffset:0; } }

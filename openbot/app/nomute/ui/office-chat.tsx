@@ -510,15 +510,16 @@ function Band({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
 /** 「작업 중」 점 셋(형 10-31 「너가 응답하면서 ... 이런게 움직이기라도 해야되는데」) — 형 글 뒤 그 이 답 전에 ① 서버가 깸이라 하거나(존재 = 턴 신호 · why turn · 서버 #1832) ② 쓴 지 2분 안(신호가 오기 전 공백) · 2분 뒤에도 안 깨면 멈춤 = 안 깬 이를 일하는 척 안 함 */
 function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: OfficePerson[]): string[] {
   const doing = (n: string) => bots.some((b) => b.who === n && b.state === "awake" && b.why !== "read");
+  const woke = (m: Msg, n: string) => (m.urgent || []).includes(n);   // 2분 = 바로 깨운 부름만 · 「@」 예약 = 다음 깸이라 점 안 돎(형 10-31 「@는 나중에 봐놔라.」)
   if (!r) return [];
   const now = Date.now();
   if (r.with) {
     const n = r.with, m = list.at(-1);
     if (!m || m.who === n || m.kind !== "human") return [];
-    return doing(n) || now - m.ts < PICKUP_WAIT ? [n] : [];
+    return doing(n) || (woke(m, n) && now - m.ts < PICKUP_WAIT) ? [n] : [];
   }
   return people.map((p) => p.who).filter((n) => n !== "형").filter((n) => {
-    for (let i = list.length - 1; i >= 0 && list[i].who !== n; i--) if ((list[i].mention || []).includes(n) || (list[i].urgent || []).includes(n)) return now - list[i].ts < (doing(n) ? CALL_FRESH : PICKUP_WAIT);   // urgent = 「!모두」·임시방 형 글(이름 없이 전원)도 작업 중으로
+    for (let i = list.length - 1; i >= 0 && list[i].who !== n; i--) if ((list[i].mention || []).includes(n) || (list[i].urgent || []).includes(n)) return doing(n) ? now - list[i].ts < CALL_FRESH : woke(list[i], n) && now - list[i].ts < PICKUP_WAIT;   // urgent = 「!모두」·임시방 형 글(이름 없이 전원)도 작업 중으로
     return false;
   });
 }

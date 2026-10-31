@@ -20,7 +20,9 @@ const IMG_MAX = 4, IMG_BYTES = 6 * 1024 * 1024;
 const readAsDataUrl = (f: File) => new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(f); });
 
 export function AskModal() {
-  const [text, setText] = useState(""), [link, setLink] = useState(""), [force, setForce] = useState(false);
+  // 홈 카드 「전송」 단추가 채워 둔 것(sessionStorage nm_ask_prefill · home/send-button.tsx) = 글·링크 미리 채움 · 한 번 읽고 지움 · 접수는 형이 「보내기」 눌러야
+  const [pre] = useState(() => { try { const j = JSON.parse(sessionStorage.getItem("nm_ask_prefill") || "null") as { text?: string; link?: string } | null; sessionStorage.removeItem("nm_ask_prefill"); return j; } catch { return null; } });
+  const [text, setText] = useState(pre?.text || ""), [link, setLink] = useState(pre?.link || ""), [force, setForce] = useState(false);
   const [imgs, setImgs] = useState<{ name: string; dataUrl: string }[]>([]);
   const [preset, setPreset] = useState<Preset>({ ...DEF });
   const [busy, setBusy] = useState(false), [note, setNote] = useState<{ kind: "ok" | "err"; text: string } | null>(null);

@@ -3,6 +3,7 @@
 //   세로 6칸 = 1/6 확인할 일(check-one · 12:22 납작하게 = 제 높이만) · 2~4/6 뉴스 피드(news-feed) · 5/6 도착한 메시지(arrived · 12:22 「시작점 조금 위로」 = 남는 높이 3:2) ·
 //   6/6 = 네비(껍데기 · 이 화면 밖 · 아래쪽 메시지는 네비 뒤로 가려져도 됨).
 //   PC = 같은 차례를 가운데 기둥 하나로(폭 = 폰 꼴) · 꼴·토큰 = YETA 설정 판과 같은 범위(.yeta-set · ui/yeta-settings.css 그대로 씀) · 머리 로고·프로필 0 = 맨 위가 바로 1/6.
+//   10-31 12:2x 형(홈 사진) 「도착한 메세지 좀 더 내리고 한 메세지만 보이게 하게 가정, 그리고 카드 더 많이 그만큼 보이게.」 → 줄 셋 = 띠(auto) · 카드(남는 높이 전부 1fr) · 도착한 메시지(auto · 한 방만 · arrived.tsx) — 옛 3fr:2fr 폐지
 //   길(라우트)·네비 「홈」 칸 = 이 폴더 밖(보조 01 · claude-state assign/2026-10-28/office-home.md 「바뀜」).
 import "../ui/yeta-settings.css";
 import "./follow-pulse.css";
@@ -12,7 +13,7 @@ import { NewsFeed } from "./news-feed";
 
 export function HomeScreen() {
   return (
-    <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,3fr)_minmax(0,2fr)] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))]">
+    <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))]">
       <FollowPulse />
       <NewsFeed />
       <Arrived />

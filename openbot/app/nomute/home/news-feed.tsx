@@ -10,7 +10,7 @@
 import { useEffect, useRef } from "react";
 import { hookFrame, toneFrame } from "../ui/inapp";
 import { homePool } from "./home-pool";
-import { SummaryButton } from "./summary-button";
+import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
 
 const CHANNEL = "nomute-modern-home";
 const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
@@ -50,7 +50,13 @@ const homeMeta = (c: Cand) => { let d = c; while (d._disp) d = d._disp; return {
 /** 품은 화면 톤 = YETA(ui/inapp.ts yetaTone · 결의 방·토큰·피드백과 같은 값)에 덱만의 덧줄 · 간소 = 팔로워 띠·PICK 뺌 */
 const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--card-solid:${dark ? "#1b1c1b" : "#f4f5f3"}}
 .practical-main{--reader-top-gap:0px;--reader-dock-clear:0px;--menu-dock-gap:0px;--modern-menu-height:0px;--home-pulse-h:0px!important}
-#home-pulse{display:none!important}.reader-actions .pick-control{display:none!important}`;
+#home-pulse{display:none!important}.reader-actions .pick-control{display:none!important}
+.article-signals{display:none!important}
+.publish-elapsed,.publish-elapsed[data-age-band]{color:var(--accent)!important}
+.article-publisher .pub-more{transform:translateY(.08em)!important;font-variant-numeric:tabular-nums}
+.article-lead>.article-media{flex:1 1 auto!important;aspect-ratio:auto!important}`;
+// 위 덧줄 넷(형 10-31 12:2x 홈 사진) = ① 「이슈 근거 : …」 줄 안 보임(.article-signals · 화제 유발 원인·내용 줄은 그대로) ② 시각 줄 둘 다 형광(time 은 원래 --accent · 「n시간 전」 .publish-elapsed 는 나이 띠 색이던 것 → --accent · 윈터 12:31 「둘 다 형광」)
+//   ③ 사진 = 카드 남는 높이를 다 차지(.article-media flex 1 · 황금비 상한 풀기 · 원본은 clamp(120px,20svh,180px) 최소 + 1.618 비율) ④ 「외 +3」 광학 보정(형 「+3 이거 수평을 광학 잉크 단위로 맞춰주고」 · 원본 .05em 아래 → .08em · 화면 못 봐서 ±.03em 은 윈터가 보고)
 
 export function NewsFeed() {
   const frame = useRef<HTMLIFrameElement>(null);
@@ -106,7 +112,7 @@ export function NewsFeed() {
   return (
     <section aria-label="뉴스 피드" className="relative flex min-h-0 flex-col">
       <iframe ref={frame} src="/modern-home.html" title="뉴스 피드" onLoad={onLoad} className="min-h-0 w-full flex-1 border-0 bg-transparent" />
-      <SummaryButton />
+      <SendButton frame={frame} />
     </section>
   );
 }
