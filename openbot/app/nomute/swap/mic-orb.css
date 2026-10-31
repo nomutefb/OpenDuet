@@ -1,7 +1,7 @@
-/* 등불 테(형 10-28 07:35 「등불」 = 시안 A · claude-state assign/2026-10-28/office-orb/) — 윈터 얼굴 둘레 고리 하나 · 색 = 흰은색(형 10-31 「윈터는 흰은색」 · 다른 이는 tint)
+/* 등불 테(형 10-28 07:35 「등불」 = 시안 A · claude-state assign/2026-10-28/office-orb/) — 윈터 얼굴 둘레 고리 하나 · 색 = 노뮤트색(형 10-31 「너가 노뮤트색을 해주고」 · 다른 이는 tint)
    쉼 = 옅은 고리 · 듣는 중 = 고리가 숨 쉼(빛 번짐) · 일하는 중 = 고리 위 빛 호가 돎 · 끝남 = 고리 채움 + ✓ · 움직임 줄이기·still = 멈춘 모양 그대로
    크기 = 칸 --s · 얼굴 = 0.8s(가운데) · 고리 지름 = 얼굴 × 1.2 */
-.nm-orb{--c:#DDE3EA;position:relative;display:inline-grid;place-items:center;flex:none}
+.nm-orb{--c:#0FFD02;position:relative;display:inline-grid;place-items:center;flex:none}
 .nm-orb .nm-orb-face{position:relative;z-index:1}
 .nm-orb>i{position:absolute;pointer-events:none;border-radius:50%}
 .nm-orb .nm-ring{inset:calc(var(--s)*.02);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c) 38%,transparent)}
