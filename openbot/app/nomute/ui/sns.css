@@ -1,0 +1,13 @@
+/* 서랍 「SNS」(./sns.tsx) — 채널 요약 판(.nm-chan*) 위에 목록 둘만 더함 · 순위 숫자 = 강조색 · 행 = 유리 없이 가는 선(목록 길이가 있어 유리 타일 겹침 피함) */
+.nm-sns .nm-sns-sec { display:flex; flex-direction:column; gap:4px; }
+.nm-sns .nm-sns-gt, .nm-sns .nm-sns-yt { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.nm-sns .nm-sns-gt li, .nm-sns .nm-sns-yt li > *, .nm-sns .nm-sns-yt li { display:flex; align-items:center; gap:10px; min-width:0; }
+.nm-sns .nm-sns-gt li, .nm-sns .nm-sns-yt li { padding:7px 4px; border-bottom:1px solid var(--glass-line); font-size:var(--fs-sm, 12px); color:var(--fg); }
+.nm-sns .nm-sns-gt li:last-child, .nm-sns .nm-sns-yt li:last-child { border-bottom:0; }
+.nm-sns .nm-sns-yt li a { flex:1; color:inherit; text-decoration:none; -webkit-tap-highlight-color:transparent; }
+.nm-sns .n { flex:none; width:18px; font-size:var(--fs-xs); font-weight:var(--fw-x); color:var(--accent); font-variant-numeric:tabular-nums; text-align:center; }
+.nm-sns .t { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:var(--fw-b); }
+.nm-sns .tt { flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.nm-sns .tt .t { white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.35; }
+.nm-sns .d { font-size:var(--fs-xs); color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-sns .v { flex:none; font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; }

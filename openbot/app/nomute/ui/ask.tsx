@@ -4,6 +4,7 @@
 //   꼴 = YETA 설정 카드(.yeta-set .ycd-card.card-left · 행 .yset-item · 칩 .yset-chip) · 접수 뒤 = 「접수됨 · 대기열 N」(GET /api/pending items 중 processing·retry 수 · 원본 loadPending 셈)
 //   같은 출처(edit.nomute.kr) 라 쿠키 그대로 · 로그인 벽이면 HTML 이 와서 「다시 로그인」 안내
 import "./yeta-settings.css";
+import "./ask.css";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";

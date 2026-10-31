@@ -170,3 +170,21 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 @keyframes ypcIn { from { opacity:0; } to { opacity:1; } }
 @keyframes ypcUp { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion:reduce) { .ypc-veil, .ypc { animation:none; } }
+/* 방 목록 = YETA .ylist-group 꼴(viewer/index.html · 공통 YETA-목록 · 형 10-31 「톡방이 다 단색으로만쭉이어져서 구분감이 없어」 · 「예타의 그걸 좀 가져오던지」)
+   한 판 + 줄 사이 머리카락 줄 · 단톡 줄 = 살짝 밝게 · 얼굴 겹침 = 35%(YETA 50:-18 비율) · 참여자 줄 = YETA 생각줄 자리 · 차례(안 읽은 방 → 고정 → 나머지)는 그대로라 구역으로 안 가름
+   판 값 = YETA 원본은 배경 그림 위 값이라 민 어둠에선 안 보여서 올림 · overflow 는 안 씀(줄 메뉴가 판 밖으로 나옴) */
+.nm-rooms { --rm-panel:rgba(0,0,0,.025); --rm-grp:rgba(0,0,0,.03); }
+.dark .nm-rooms { --rm-panel:rgba(255,255,255,.035); --rm-grp:rgba(255,255,255,.035); }
+.nm-rgroup { background:var(--rm-panel); border:1px solid var(--glass-line); border-radius:var(--r-l); }
+.nm-rrow { border-top:1px solid var(--glass-line); }
+.nm-rrow:first-child { border-top:none; border-radius:var(--r-l) var(--r-l) 0 0; }
+.nm-rrow:last-child { border-radius:0 0 var(--r-l) var(--r-l); }
+.nm-rrow:only-child { border-radius:var(--r-l); }
+.nm-rrow > a { border-radius:inherit; }
+.nm-rrow.grp { background:var(--rm-grp); }
+.nm-rorb { flex:none; display:inline-grid; }
+.nm-rstk { flex:none; display:flex; align-items:center; }
+.nm-rstk > span { border-radius:50%; }
+.nm-rstk > span + span { box-shadow:0 0 0 2px var(--duet-surface), 0 0 6px rgba(var(--accent-rgb),.21); }
+.nm-rcrew { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-xs); line-height:1.5; color:color-mix(in srgb, var(--accent) 72%, var(--mut)); }
+:root:not(.dark) .nm-rcrew { color:var(--fg-2); }

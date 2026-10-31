@@ -1,0 +1,22 @@
+/* 서랍 「채널 요약」(./chan.tsx) — 타일 = 에디터 .ch-st 꼴(라벨 우상단 → 값 중앙 → 하단 증감) 을 YETA 유리로 · 2열 격자 · 팔로워 = 세로 2칸 */
+.nm-chan { gap:10px; }
+.nm-chan .nm-chan-at { margin-left:auto; font-size:var(--fs-xs); font-weight:400; font-style:normal; color:var(--mut); font-variant-numeric:tabular-nums; }
+.nm-chan .nm-chan-src { justify-content:flex-start; margin:0; }
+.nm-chan .nm-chan-msg { font-size:var(--fs-sm, 12px); color:var(--mut); padding:6px 2px; }
+.nm-chan .nm-chan-tiles { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); grid-auto-rows:minmax(72px, auto); gap:8px; }
+.nm-chan .nm-chan-tile { position:relative; display:flex; flex-direction:column; justify-content:center; gap:2px; padding:22px 10px 10px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-l); box-shadow:inset 0 1px 0 var(--glass-line); min-width:0; }
+.nm-chan .nm-chan-tile.tall { grid-row:span 2; }
+.nm-chan .nm-chan-tile .k { position:absolute; top:7px; right:10px; font-size:var(--fs-xs); font-weight:var(--fw-b); color:var(--mut); }
+.nm-chan .nm-chan-tile b { font-size:var(--fs-h2); font-weight:var(--fw-x); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-chan .nm-chan-tile.tall b { font-size:20px; }
+.nm-chan .nm-chan-tile b i { font-size:var(--fs-xs); font-weight:400; font-style:normal; color:var(--mut); margin-left:3px; }
+.nm-chan .nm-chan-tile .sub { font-size:var(--fs-xs); color:var(--mut); }
+.nm-chan .nm-chan-tile .sub.up { color:var(--accent); } .nm-chan .nm-chan-tile .sub.dn { color:#ffd27a; }
+.nm-chan .nm-chan-brief { display:flex; flex-direction:column; gap:6px; }
+.nm-chan .nm-chan-brief .yset-sec { display:flex; align-items:center; padding:4px 2px 0; }
+.nm-chan .nm-chan-brief p { margin:0; font-size:var(--fs-sm, 12px); line-height:1.55; color:var(--fg-2); }
+.nm-chan .nm-chan-props { margin:4px 0 0; padding:8px 10px 8px 24px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-m, 11px); font-size:var(--fs-sm, 12px); color:var(--fg); }
+.nm-chan .nm-chan-props li { margin:2px 0; }
+.nm-chan .nm-chan-acts { margin-top:2px; justify-content:flex-end; }
+.nm-chan .ypc-go span svg { width:14px; height:14px; vertical-align:-2px; }
+@media (max-width:360px) { .nm-chan .nm-chan-tiles { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
