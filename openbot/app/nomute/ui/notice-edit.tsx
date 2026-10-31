@@ -3,9 +3,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { office } from "../data/office";
 
+const appliedAt = (ts?: number) => (ts ? new Date(ts).toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).slice(0, 16) : "-");
+
 export function NoticeDialog({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
-  const now = useQuery({ queryKey: ["nomute", "notice-edit"], queryFn: () => office<{ notice: { ver: number; text: string } }>("noticeset").then((j) => j.notice), staleTime: 0, gcTime: 0 });
+  const now = useQuery({ queryKey: ["nomute", "notice-edit"], queryFn: () => office<{ notice: { ver: number; text: string; ts?: number } }>("noticeset").then((j) => j.notice), staleTime: 0, gcTime: 0 });
   const [text, setText] = useState<string | null>(null);
   useEffect(() => { if (now.data && text === null) setText(now.data.text); }, [now.data, text]);
   const save = useMutation({
@@ -18,7 +20,7 @@ export function NoticeDialog({ onClose }: { onClose: () => void }) {
       <div className="flex max-h-full w-full max-w-lg flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">공지{now.data ? ` · 판 ${now.data.ver}` : ""}</b>
         <textarea aria-label="공지 글" value={text ?? ""} rows={14} onChange={(e) => setText(e.target.value)} className="min-h-0 flex-1 resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
-        <p className="text-xs text-muted-foreground">고치면 애들이 다음에 사무실 글을 읽을 때 새 공지가 들어가.</p>
+        <ul className="list-disc pl-4 text-xs text-muted-foreground"><li>적용 시점: {appliedAt(now.data?.ts)}</li></ul>   {/* 형 11-01 「아래에 설명 대신에 블릿 하고 적용 시점 : yyyy 해가지고 분단위까지」 */}
         {save.error ? <p role="alert" className="text-destructive">{save.error.message}</p> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>닫기</button>
