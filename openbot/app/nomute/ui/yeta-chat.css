@@ -203,7 +203,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rdot { width:8px; height:8px; margin-right:5px; border-radius:50%; background:var(--accent, var(--primary)); }
 .nm-rmore { right:52px; }
 @media (hover:none) { .nm-rmore { display:none; } }   /* 폰 = 줄을 길게 눌러 메뉴 · ⋯ 없음(형 10-31 「터치만 해도 … 메뉴」) */
-.nm-room-back { position:absolute; top:calc(env(safe-area-inset-top, 0px) + 6px); left:6px; z-index:54; display:grid; place-items:center; width:40px; height:40px; border:0; background:none; color:var(--fg); cursor:pointer; filter:drop-shadow(0 1px 4px rgba(0,0,0,.7)); }
+.nm-room-back { position:absolute; top:calc(env(safe-area-inset-top, 0px) + 0px);   /* 「<」 가운데 = 방 이름 가운데(20px) · 전엔 26px 로 6px 아래(형 11-01 07:4x 「좌측 꺽쇠 뒤로가기를 가운디 글자를 수평으로」) */ left:6px; z-index:54; display:grid; place-items:center; width:40px; height:40px; border:0; background:none; color:var(--fg); cursor:pointer; filter:drop-shadow(0 1px 4px rgba(0,0,0,.7)); }
 /* 대화방 우하단 스피드 다이얼(./room-fab.tsx · 형 11-01 · 움직임 = kinetics speed-dial-fab 값 그대로 · 유리 = 살짝 투명 · 탭 하이라이트 끔 = 눌러도 네모 없음) */
 .nm-fab { --sp:cubic-bezier(.34,1.56,.64,1); position:absolute; right:14px; bottom:calc(var(--duet-tab-space,86px) + 8px); z-index:5; width:46px; height:46px; }
 .nm-fab-main, .nm-fab-i { background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); -webkit-tap-highlight-color:transparent; user-select:none; cursor:pointer; }
