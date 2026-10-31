@@ -3,10 +3,10 @@
 //   원본 header.tsx 의 구슬 자리에 PATCH 로 끼움(overrides.ts) · 누르면 첫 화면(회의실) = 원본 그대로
 import { useQuery } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, WINTER_ID, idOf, office, people, roomAgentIds } from "../data/office";
-import { FaceStack } from "./faces";
+import { FaceImg, FaceStack } from "./faces";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 
 /** 지금 대화 판의 방(주소 #/channels/<방> · #/group/<방>) · 명부 */
@@ -22,9 +22,22 @@ function useTopRoom() {
 /** 사진 밑 이름(형 10-28 22:04 「그 아래에 각자 이름 나오면 좋겠어」) — 1:1 = 상대 이름 · 단체방 = 방 이름 · 방 밖 = 없음 */
 export function NomuteName() {
   const { r, list } = useTopRoom();
+  const [open, setOpen] = useState(false);
+  useEffect(() => { setOpen(false); }, [r?.id]);
   if (!r) return null;
   const p = r.with ? list.find((x) => x.who === r.with) : undefined;
   const name = r.with ? p?.name || r.with : r.name;
+  const ids = r.with ? [] : roomAgentIds(r, list);
+  if (ids.length) return (   // 단톡 = 이름 옆 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」)
+    <span className="nm-top-wrap">
+      <button type="button" className="nm-top-name nm-top-btn" aria-expanded={open} aria-label={`${name} 사람 ${ids.length}명 보기`} onClick={() => setOpen((v) => !v)}>{name} <i>{ids.length}</i></button>
+      {open ? (
+        <span className="nm-top-crew nm-yeta">
+          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} />{x?.name || x?.who || id}</span>; })}
+        </span>
+      ) : null}
+    </span>
+  );
   return <span className="nm-top-name">{name}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</span>;   // 1:1 머리 = 이름 옆 표지(형 10-31 09:12)
 }
 
