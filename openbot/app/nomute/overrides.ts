@@ -70,6 +70,8 @@ export const PATCH: Record<string, [string, string][]> = {
   "app/src/components/channels/composer/triggers.ts": [
     ["  return [agentTrigger(agents), slashCommandTrigger(commands)];", "  return [agentTrigger(agents), { ...agentTrigger(agents), char: \"!\", accessibilityLabel: \"바로 깨움\" }, slashCommandTrigger(commands)];"],
     ['emptyMessage: "No Bots in this conversation"', 'emptyMessage: "이 방엔 부를 이가 없어"'],
+    ['import { commandTrigger, mentionTrigger } from "prompt-area/helpers";', 'import { commandTrigger, mentionTrigger } from "prompt-area/helpers";\nimport { faceIcon } from "@nomute/ui/call-face";'],
+    ["          description: agent.description,", "          description: agent.description,\n          icon: faceIcon(agent.id),"],   // 부름 목록 얼굴(./ui/call-face.tsx)
   ],
   "app/src/components/channels/composer/attachment-strip.tsx": [
     ['aria-label="Attachments"', 'aria-label="붙인 파일"'],
