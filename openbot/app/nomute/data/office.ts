@@ -70,7 +70,7 @@ export function toAgent(p: OfficePerson, list: OfficePerson[]) {
 /** 방에 든 봇 id(1:1 = 그 봇 · 단체 = 지정 멤버 · 회의실 = 봇 전부) */
 export function roomAgentIds(r: OfficeRoom, list: OfficePerson[]): string[] {
   if (r.with) return r.with === "형" ? [] : [idOf(r.with, list)];
-  const names = r.members?.length ? r.members : list.filter((p) => p.kind === "bot").map((p) => p.who);
+  const names = r.members ? r.members : list.filter((p) => p.kind === "bot").map((p) => p.who);   // 빈 목록 = 아무도 없음(회의실 멤버 0 · 지정방 형만)
   return names.map((n) => idOf(n, list));
 }
 
