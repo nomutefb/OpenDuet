@@ -1,5 +1,6 @@
 // 원본 components/shell/tab-bar.tsx 자리 — 아래 네비 = YETA .ynav 원본 그대로(./ynav.css · 형 10-28 11:20 「예타스타일로」 · 10:21 「네비 액티브 하게 펼쳐지는건 좋아!」)
-// 칸 다섯(형 12:22·12:24) = 홈 · 대화방(목록) · 대화 · 에디터 · ≡(서랍 · 접힌 토글) — 서랍 = 덜 중요한 것 모음(형 12:25) · 누르면 네비 위로 펼쳐지고 항목 = 모달(ui/shell.tsx MODALS)
+// 칸 넷(형 12:22·12:24 → 10-31 15:1x 「에디터는 그냥 서랍 누르면 뜨면 될듯.」) = 홈 · 대화방(목록) · 대화 · ≡(서랍 · 접힌 토글) — 서랍 = 덜 중요한 것 모음(형 12:25) + 에디터 칸 전부(LEGACY·뉴스 요약·채널 요약·SNS·요약 요청·에디터) · 누르면 네비 위로 펼쳐지고 항목 = 모달(ui/shell.tsx MODALS)
+//   짐작(빠르): 형 말을 「에디터 네비 칸을 없애고 에디터는 서랍에서」로 읽음 · 「에디터 칸을 누르면 서랍이 열림」으로 읽으면 TABS 에 editor 줄을 되살리고 onClick 을 setDrawer 로(아래 EDITOR_OPENS_DRAWER 주석 줄) — 한 줄 차이
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -18,7 +19,7 @@ const TABS: { id: Pane; to: string; icon: DuetIconName; label: string }[] = [
   { id: "home", to: "/home", icon: "dashboard", label: "홈" },
   { id: "rooms", to: "/rooms", icon: "inbox", label: "대화방" },   // 형 12:22 「대화방이 일반적으로 더 우선 메뉴라 더 좌측으로」
   { id: "chat", to: "", icon: "chat", label: "대화" },   // 대화 = 마지막에 보던 방(chatTo · 처음 = 회의실 #/group/all)
-  { id: "editor", to: "/editor", icon: "page", label: "에디터" },   // 보조 03 에디터 메뉴 판(형 12:24)
+  // EDITOR_OPENS_DRAWER: { id: "editor" as Pane, to: "", icon: "page", label: "에디터" } — 형이 「에디터」 글자가 네비에 남길 바라면 이 줄 살리고, 아래 onClick 에서 tab.id === "editor" ? setDrawer((v) => !v) : navigate(…)
 ];
 
 /** 원본 app-shell 이 부르는 이름(겉틀은 이제 ui/shell.tsx) — 그대로 둠 */

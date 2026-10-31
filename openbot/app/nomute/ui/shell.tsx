@@ -1,13 +1,13 @@
 // 새 사무실 껍데기 = YETA 껍데기 꼴(형 10-28 11:22 「네비는 늘 위 · 옮겨도 뒤 그대로」 · 11:26 「뼈대 그대로로 yeta로」 · 장부 office-yeta-chat.md 「껍데기 이음 꼴」)
 //   로그인 뒤 공통 자리(원본 _authed 라우트 Outlet 둘레 · overrides.ts PATCH)에 한 번만 섬 → 어디로 가도 껍데기는 그대로
-//   판(네비 칸 · 형 12:24) = 홈 · 대화방(목록) · 대화 · 에디터 — 처음 갈 때 한 번 그리고 계속 살려 둠(숨김만 = 스크롤·쓰던 글 그대로) · 들어오는 판 = YETA ypickIn(./shell.css)
-//   모달(≡ 서랍 · 형 12:24~12:26 「덜 중요한걸 좀 더 세부로 모으려는 의도」) = 할 일 · 러너 · 결의 방 · 토큰 · 피드백 · 설정 — 판 위에 덮고 닫으면 아래 판 그대로
+//   판(네비 칸 · 형 12:24 · 10-31 15:1x 「에디터랑 겹칠 필요는없는거같아」 · 「에디터는 그냥 서랍 누르면 뜨면 될듯.」 = 에디터 판 뺌) = 홈 · 대화방(목록) · 대화 — 처음 갈 때 한 번 그리고 계속 살려 둠(숨김만 = 스크롤·쓰던 글 그대로) · 들어오는 판 = YETA ypickIn(./shell.css)
+//   모달(≡ 서랍 · 형 12:24~12:26 「덜 중요한걸 좀 더 세부로 모으려는 의도」) = 할 일 · 러너 · LEGACY · 뉴스 요약 · 채널 요약 · SNS · 요약 요청 · 에디터 · 결의 방 · 토큰 · 피드백 · 설정 — 판 위에 덮고 닫으면 아래 판 그대로
+//     에디터 판(editor-menu 패널)에만 있던 LEGACY·에디터(카드 제작·영상·유튜브)는 서랍 칸으로 옮겨 잃지 않음(형 10-31 15:1x · 빠르 판) · 나머지 네 칸은 이미 서랍 것(겹침 = 에디터 판 쪽을 뺌)
 //     결의 방·토큰·피드백 = 에디터 원본 화면(viewer/gyeol-room.html · tokens.html · feedback.html) 그대로 띄움(위젯 탭과 같은 원본 · 새로 짜기 0) · 설정 = 원본 settings 화면(보조 03 YETA 설정)
-//   에디터 판 = 보조 03 `nomute/editor-menu/screen.tsx` 의 EditorMenuScreen(그 자리·이름이면 저절로 끼움 · 없으면 「준비 중」 · office-editor-menu.md)
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { type ComponentType, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
+import { type ReactNode, Suspense, useEffect, useRef, useState } from "react";
 import { AttentionNotifier } from "@/components/bot-profile/attention";
 import { DuetIcon } from "@/components/duet/icons";
 import { useTabSpace } from "@/components/shell/app-shell";
@@ -36,22 +36,24 @@ import { RoomList, useRoomOrder } from "./room-list";
 import { useWide } from "./side";
 import "./shell.css";
 
-export type Pane = "home" | "rooms" | "chat" | "editor";
-export type Modal = "tasks" | "runner" | "ask" | "news" | "chan" | "sns" | "gyeol" | "tokens" | "feedback" | "settings";
+export type Pane = "home" | "rooms" | "chat";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "gyeol" | "tokens" | "feedback" | "settings";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
-export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page"; to: string }[] = [
+export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus"; to: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
+  { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy" },   // 에디터 「LEGACY(레거시)」 = 수집함(에디터 /?tab=scrap 그대로 품음 · 옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
   { id: "news", label: "뉴스 요약", icon: "page", to: "/news" },   // 에디터 「뉴스 요약」 목록(누르면 그 기사 요약 = #/web)
   { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
   { id: "sns", label: "SNS", icon: "globe", to: "/sns" },   // 에디터 「SNS」 한눈(전체 보기 = #/web)
+  { id: "edtool", label: "에디터", icon: "plus", to: "/edtool" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
   { id: "gyeol", label: "결의 방", icon: "sparkle", to: "/gyeol" },
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
   { id: "feedback", label: "피드백", icon: "reply", to: "/feedback" },
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
 ];
-const FRAME: Partial<Record<Modal, string>> = { gyeol: "/gyeol-room.html", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트)
+const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap", edtool: "/?tool=thumb", gyeol: "/gyeol-room.html", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -60,7 +62,7 @@ export function whereFor(pathname: string): Where {
   if (p === "/" || p === "/home") return { pane: "home" };   // 앱 열면 = 홈(형 12:21 「홈이 뜨는 지금이 맞고」 · PM 12:55)
   if (/^\/(channels|group)\/[^/]+$/.test(p)) return { pane: "chat" };   // 회의실 = #/group/all
   if (p === "/rooms") return { pane: "rooms" };
-  if (p === "/editor") return { pane: "editor" };
+  if (p === "/editor") return { pane: "home" };   // 옛 에디터 판 주소(즐겨찾기·옛 링크) = 홈으로(판 없음 · 칸은 서랍에)
   const m = MODALS.find((x) => x.to === p);
   if (m) return { modal: m.id };
   if (p === "/web") return { web: true };   // 앱 밖 주소 = 앱 안 한 겹(#/web?u=…)
@@ -74,10 +76,6 @@ export const chatHref = (room: string) => (room === "all" ? "/group/all" : `/cha
 const paneHref = (pane: Pane, room: string) => (pane === "chat" ? chatHref(room) : `/${pane}`);
 
 const SettingsPage = SettingsIndex.options.component as () => ReactNode;
-const editorMods = import.meta.glob("../editor-menu/screen.tsx");
-const EditorMenu = editorMods["../editor-menu/screen.tsx"]
-  ? lazy(() => (editorMods["../editor-menu/screen.tsx"]() as Promise<{ EditorMenuScreen: ComponentType }>).then((m) => ({ default: m.EditorMenuScreen })))
-  : null;
 
 export function NomuteShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -150,7 +148,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && roomOf(pathname) === room && !modal && !layer && !("page" in where)} /></main>
             </div>
           ))}
-          {show("editor", EditorMenu ? <div className="nm-scroll"><Suspense fallback={null}><EditorMenu /></Suspense></div> : <p className="m-auto text-sm" style={{ color: "var(--mut)" }}>에디터 메뉴 판 준비 중</p>)}
           {"page" in where ? (
             <section className="nm-pane nm-over on">
               <PageChromeProvider>
