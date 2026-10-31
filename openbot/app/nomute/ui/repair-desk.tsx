@@ -3,8 +3,10 @@
 //   아래 = 접수 목록(서버 GET /api/office/repair · 먼저 접수된 게 위) — 줄마다 No · [구분] 항목 · 상태 · 신청자 · 명세서 · 이슈 #N · 줄 누름 = 처리 이력·상태 바꾸기(할 일 화면 RepairRow 그대로)
 //   대화 말풍선·얼굴 줄 0 · 종료(완료) = 보관 보기 · 명세서 = 그 신청자가 그 접수 글 뒤(2분 앞까지) 같은 방에 올린 첫 파일
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 import { type OfficeMsg, office } from "../data/office";
+import { roomReadState } from "../data/read-state";
+import { useRoomRead } from "../data/use-room-read";
 import { RepairRow, type RepairItem } from "./today";
 
 export const REPAIR_ROOM = "repair";
@@ -43,9 +45,7 @@ export function RepairDesk({ lead, active = true }: { lead?: ReactNode; active?:
   const items = repair.data || [];
   const specs = useMemo(() => specsOf(items, msgs.data || []), [items, msgs.data]);
   const last = (msgs.data || []).at(-1)?.ts;
-  useEffect(() => {   // 본 데까지(안 읽음 점) — 대화창과 같은 길 · 보이는 때만
-    if (last && active) void office("seen", { method: "POST", body: JSON.stringify({ seen: { [REPAIR_ROOM]: { ts: last, at: Date.now() } } }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "seen"] })).catch(() => {});
-  }, [last, active]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useRoomRead(roomReadState, REPAIR_ROOM, active, !!msgs.data, msgs.isError, last || 0, setErr);
 
   const send = async () => {   // 글 먼저(서버가 접수 줄 · No) → 명세서 파일(「파일:」 줄 · 받는 이 = 윈터 PM)
     const raw = text.trim();

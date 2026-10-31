@@ -22,6 +22,7 @@ import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
 import { TabBar } from "../swap/tab-bar";
 import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
+import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { IssueView } from "./issue";
@@ -99,7 +100,11 @@ export function NomuteShell({ children }: { children: ReactNode }) {
     if ("modal" in where) setUnder(where.modal);
     else if ("pane" in where) setUnder(null);
     if (!("pane" in where)) return;
-    if (where.pane === "chat") setRoom(roomOf(pathname));
+    if (where.pane === "chat") {
+      const nextRoom = roomOf(pathname);
+      if (base !== "chat" || room !== nextRoom) enterRoom(nextRoom);
+      setRoom(nextRoom);
+    }
     setBase(where.pane);
     if (!open.has(where.pane)) setOpen((s) => new Set(s).add(where.pane));
   }, [pathname]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -143,7 +148,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             <div className="nm-col">
               <ShellHeader floating menuOpen={false} onMenu={() => {}} />
               <PinBar room={room} key={"pin:" + room}><MeetCard room={room} /></PinBar>   {/* 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 그 밑 방 카드(평의회 2 ⑨ · ./meet-card.tsx) */}
-              <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && !modal && !("page" in where)} /></main>
+              <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && roomOf(pathname) === room && !modal && !layer && !("page" in where)} /></main>
             </div>
           ))}
           {show("editor", EditorMenu ? <div className="nm-scroll"><Suspense fallback={null}><EditorMenu /></Suspense></div> : <p className="m-auto text-sm" style={{ color: "var(--mut)" }}>에디터 메뉴 판 준비 중</p>)}
@@ -238,7 +243,7 @@ function RoomsPane() {
 function FaceStrip({ current }: { current: string }) {
   const nav = useNavigate();
   const { list, ordered, count } = useRoomOrder();
-  const go = (id: string) => void nav({ to: chatHref(id) });
+  const go = (id: string) => { enterRoom(id); void nav({ to: chatHref(id) }); };
   return (
     <aside aria-label="방 얼굴 띠" className="nm-strip">
       <button type="button" className="nm-strip-btn" aria-label="대화 목록" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="menu" size={21} /></button>
