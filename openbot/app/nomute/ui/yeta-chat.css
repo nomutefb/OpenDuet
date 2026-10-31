@@ -213,3 +213,15 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-fam-tab[aria-selected="true"] { border-color:rgba(207,255,64,.55); background:rgba(207,255,64,.14); }
 .nm-pick { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; background:none; }
 .nm-pick[aria-pressed="true"] { border-color:rgba(207,255,64,.55); background:rgba(207,255,64,.14); }
+
+/* 글 길게 누르기 = 카톡 글 메뉴 톤(./msg-menu.tsx) · 터치 = 글자 고르기 대신 메뉴의 복사 */
+@media (hover:none) { .ychat .yb { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; } }
+.nm-msgm { position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:24px; background:rgba(0,0,0,.5); }
+.nm-msgm-p { width:min(320px,100%); max-height:80dvh; overflow-y:auto; padding:10px 0; border-radius:26px; background:#232325; color:#fff; box-shadow:0 24px 60px rgba(0,0,0,.42); }
+.nm-msgm-i { display:flex; align-items:center; gap:10px; width:100%; padding:14px 26px; border:0; background:none; color:inherit; font-size:16px; text-align:left; cursor:pointer; }
+.nm-msgm-i:active { background:rgba(255,255,255,.08); }
+@media (hover:hover) { .nm-msgm-i:hover { background:rgba(255,255,255,.08); } }
+.nm-msgm-i:disabled { opacity:.5; }
+.nm-msgm-h { padding:8px 26px 6px; font-size:13px; color:#8B8F8A; }
+.nm-msgm-n { padding:14px 26px; font-size:15px; }
+.nm-msgm-n.err { color:#ff8a8a; }

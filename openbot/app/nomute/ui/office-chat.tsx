@@ -26,6 +26,7 @@ import { attachmentSender } from "../data/attachment-state";
 import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
 import { useCloseCallMenu } from "./call-face";
+import { MsgMenu, useLongPress } from "./msg-menu";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceStack } from "./faces";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -228,7 +229,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
 
 type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
-  sel: string; setSel: (id: string) => void; onReact: (id: string, e: string) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
+  sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
   onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
@@ -436,7 +437,8 @@ function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
 function Line({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean; noTime?: boolean }) {
   const p = c.list.find((x) => x.who === m.who);
   const selected = c.sel === m.id;
-  const toggle = () => c.setSel(selected ? "" : m.id);
+  const press = useLongPress(() => c.onMenu(m));
+  const toggle = () => { if (!press.fired()) c.setSel(selected ? "" : m.id); };
   const time = noTime ? null : <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
   if (mineOf(m)) {
     const app = hyungApp(m) && m.kind !== "human";   // 그록봇 앱에서 친 형 글 = 검정 말풍선 흰 글씨(형 10-30)
@@ -446,7 +448,7 @@ function Line({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Reactions m={m} c={c} mine /></div>{time}</div>
+          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Reactions m={m} c={c} mine /></div>{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
@@ -461,7 +463,7 @@ function Line({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c
         <StatePill m={m} />
         <div className="ybrow">
           <div className="ybw">
-            <div className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
+            <div {...press.bind} className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               <div className="ymd"><Body m={m} nre={c.nre} /></div>
               <BoxCard m={m} />
@@ -529,7 +531,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const qc = useQueryClient();
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
   const [err, setErr] = useState("");
-  const [sel, setSel] = useState("");
+  const [sel, setSel] = useState(""), [menuOf, setMenuOf] = useState<Msg | null>(null);   // 글 길게 누르기(./msg-menu.tsx)
   const [prof, setProf] = useState("");   // 프로필 카드를 연 사람(who · 빈 값 = 닫힘)
   const [reply, setReply] = useState<{ id: string; who: string; line: string } | null>(null);
   const [rxOver, setRxOver] = useState<Record<string, Record<string, string[]>> | null>(null);
@@ -700,7 +702,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const nre = useMemo(() => nameRe(list), [list]);
   const c: Ctx = {
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
-    sel, setSel, want: want.id,
+    sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuOf(m); },
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); },
     onJump: (who, line, id) => {
@@ -716,6 +718,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   let prevTs = 0, prev: Item | undefined;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} onClose={() => setMenuOf(null)} /> : null}
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
