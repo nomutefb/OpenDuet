@@ -22,6 +22,7 @@ import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
+import { TempRoomHead } from "./temp-room";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceStack } from "./faces";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -558,7 +559,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     const ids = r ? roomAgentIds(r, list) : [];
     if (r && !r.with && !r.members?.length) for (const p of list) { const id = idOf(p.who, list); if (p.kind !== "human" && p.who !== "형" && !ids.includes(id)) ids.push(id); }
     const people = ids.map((id) => { const p = list.find((x) => idOf(x.who, list) === id); return { id, name: p?.name || p?.who || id, title: p?.role }; });
-    return r?.with ? people : [...GROUP_PICK, ...people];
+    return r?.with ? people : r?.members?.length ? [GROUP_PICK[0], ...people] : [...GROUP_PICK, ...people];   // 멤버를 정한 단톡 = 모두 + 멤버만(형 10-31 「그록 클로드 지피티 이거는 없어도 됨」)
   }, [r, list]);
   const baseTs = useRef<number | null>(null);   // 방을 연 때 마지막 글 — 그 뒤에 온 글만 올라오는 움직임(YETA .in · 옛 글 다시 그림 = 0)
   if (baseTs.current === null && msgs.data) baseTs.current = all.at(-1)?.ts ?? 0;
@@ -716,6 +717,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         : jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
         <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[100px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
+          {r?.temp ? <TempRoomHead r={r} /> : null}
           {lead}
           {msgs.data?.more && !flat ? (
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
@@ -787,7 +789,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             if (!raw && !ids.length) return;
             const text = raw && reply ? `↩ ${reply.who}: ${reply.line}\n${raw}` : raw;
             if (text.length > 8000) { setErr("8,000자 넘음 — 나눠서 보내 줘"); throw new Error("too long"); }
-            if (ids.length && !r?.with && !list.some((p) => p.kind === "bot" && (text.includes(`@${p.who}`) || text.includes(`!${p.who}`)))) { setErr("단체방 첨부 = 받을 봇을 @ 로 골라 줘(1:1 방은 그 봇)"); throw new Error("no bot"); }
+            if (ids.length && !r?.with && !r?.temp && !list.some((p) => p.kind === "bot" && (text.includes(`@${p.who}`) || text.includes(`!${p.who}`)))) { setErr("단체방 첨부 = 받을 봇을 @ 로 골라 줘(1:1 방은 그 봇)"); throw new Error("no bot"); }
             setErr("");
             try {
               if (ids.length) {   // 파일 먼저(「파일:」 줄 = 서버) → 글이 있으면 그 뒤 보통 글로(옛 화면과 같은 차례)

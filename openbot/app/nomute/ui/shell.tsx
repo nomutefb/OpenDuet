@@ -27,7 +27,6 @@ import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { IssueView } from "./issue";
 import { PinBar } from "./pins";
-import { MeetCard } from "./meet-card";
 import { OfficeChat } from "./office-chat";
 import { NewsModal } from "./news";
 import { ChanModal } from "./chan";
@@ -147,7 +146,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           {show("chat", (
             <div className="nm-col">
               <ShellHeader floating menuOpen={false} onMenu={() => {}} />
-              <PinBar room={room} key={"pin:" + room}><MeetCard room={room} /></PinBar>   {/* 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 그 밑 방 카드(평의회 2 ⑨ · ./meet-card.tsx) */}
+              <PinBar room={room} key={"pin:" + room} />   {/* 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 그 밑 방 카드(평의회 2 ⑨ · ./meet-card.tsx) */}
               <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && roomOf(pathname) === room && !modal && !layer && !("page" in where)} /></main>
             </div>
           ))}

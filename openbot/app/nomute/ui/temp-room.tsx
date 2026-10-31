@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { office } from "../data/office";
+import { office, type OfficeRoom } from "../data/office";
 
 const HOURS: [number, string][] = [[1, "1시간"], [24, "하루"], [72, "사흘"], [168, "일주일"]];
 
@@ -11,6 +11,21 @@ const HOURS: [number, string][] = [[1, "1시간"], [24, "하루"], [72, "사흘"
 export function tempLeft(exp: number, now = Date.now()) {
   const h = Math.ceil((exp - now) / 3600e3);
   return h >= 24 ? `${Math.ceil(h / 24)}일 남음` : `${Math.max(1, h)}시간 남음`;
+}
+
+const short = (n: string) => n.replace(" PM", "");
+
+/** 방 맨 위 = 목적 · 남은 시간 · 목적을 받아 간 이(형 10-31 「목적을 듣고 온건지 확인 되어야하고」). */
+export function TempRoomHead({ r }: { r: OfficeRoom }) {
+  const members = r.members || [], heard = members.filter((n) => (r.heard || []).includes(n)), wait = members.filter((n) => !heard.includes(n));
+  return (
+    <div className="mb-2 rounded-2xl border border-border px-3 py-2 text-sm">
+      <p className="whitespace-pre-wrap">{r.purpose}</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {r.exp ? `${tempLeft(r.exp)} · ` : ""}목적 받음 {heard.map(short).join("·") || "아직 없음"}{wait.length ? ` · 안 온 이 ${wait.map(short).join("·")}` : ""}
+      </p>
+    </div>
+  );
 }
 
 export function TempRoomButton() {
