@@ -204,6 +204,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 /* 부름 목록 선택 줄(형 10-31 「잘 안보이는 선택되엇을때」) = 원본 bg-accent 가 형광이라 흰 글자가 묻힘 → 어두운 판 위 옅은 띠 */
 .bg-popover[role="listbox"] [role="option"][aria-selected="true"] { background:rgba(207,255,64,.14); box-shadow:inset 0 0 0 1px rgba(207,255,64,.38); }
 .bg-popover[role="listbox"] [role="option"]:hover { background:rgba(207,255,64,.07); box-shadow:inset 0 0 0 1px rgba(207,255,64,.19); }
+/* 호출 목록(prompt-area = position:fixed · 화면 좌표) — 입력칸 유리(backdrop-filter)·안쪽 translate·판(transform)이 기준 상자를 뺏어서 PC 에서 입력칸과 먼 데 뜸(형 10-31 「호출하는 텍스트지점위에떠야돼」) → 목록이 떠 있는 동안만 기준을 풀어 줌 */
+form:has(.bg-popover[role="listbox"]) { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pane:has(.bg-popover[role="listbox"]) { transform:none !important; translate:none !important; }
 /* 긴 말풍선 = 화면을 넘어가도 얼굴·이름이 머리 밑에 남음(형 10-31 「화면 넘어가면 화자가 나와야함」) */
 .ychat .ymsg .yava { position:sticky; top:46px; z-index:1; }
 .ychat .ymsg .yname { position:sticky; top:46px; z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
