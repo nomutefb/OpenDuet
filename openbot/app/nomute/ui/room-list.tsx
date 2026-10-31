@@ -4,13 +4,13 @@
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 숨기기/보이기
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { useState, useSyncExternalStore } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Fragment, type ReactNode, useState, useSyncExternalStore } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
-import { TempRoomButton, tempLeft } from "./temp-room";
+import { TempDeleteDialog, TempRoomButton, TempRoomDialog, TempSwipe, tempLeft } from "./temp-room";
 import { listWhen } from "./when";
 
 export const EVERYTHING_LINE = "형 · 윈터 · 봇 다 같이";
@@ -59,6 +59,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
   const notice = useQuery({ queryKey: ["nomute", "notice"], queryFn: () => office<{ notice?: { text: string; at?: string } }>("noticeset").then((j) => j.notice), staleTime: 60_000 }).data;
   const [menu, setMenu] = useState(""), [noticeOpen, setNoticeOpen] = useState(false), [hiddenOpen, setHiddenOpen] = useState(false);
+  const nav = useNavigate(), [swiped, setSwiped] = useState(""), [editing, setEditing] = useState<Room | null>(null), [deleting, setDeleting] = useState<Room | null>(null);   // 임시방 줄 왼쪽 끌기 = 수정·삭제
 
   const toggle = (k: string, s: Set<string>, set: (s: Set<string>) => void, id: string) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); writeSet(k, n); set(n); setMenu(""); };
   const markRead = async (r: Room, read: boolean) => {
@@ -66,6 +67,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     try { await (read ? roomReadState.read(r.id, r.last_ts, true) : roomReadState.unread(r.id, r.last_ts)); } catch { /* 표는 되돌리고 아래 오류를 보인다. */ }
   };
 
+  const wrapTemp = (r: Room, row: ReactNode) => (r.temp ? <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} onEdit={() => { setSwiped(""); setEditing(r); }} onDelete={() => { setSwiped(""); setDeleting(r); }}>{row}</TempSwipe> : row);
   const Row = ({ r }: { r: Room }) => {
     const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;
     const preview = l ? `${r.with || l.kind === "human" ? "" : `${list.find((x) => x.who === l.who)?.name || l.who}: `}${previewLine(l.text || "")}` : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";
@@ -75,6 +77,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
       <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}`} onContextMenu={(e) => { e.preventDefault(); setMenu(menu === r.id ? "" : r.id); }}>
+        {wrapTemp(r, <>
         <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} pr-10 hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
           {r.with ? <span className="nm-rorb" style={{ margin: -Math.round(size / 8) }}><MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span>
@@ -86,7 +89,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
               {p?.mark ? <span aria-hidden className="shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">단톡 {crew.length}</span> : null}
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
-              {r.temp && r.exp ? <span className="shrink-0 text-[11px] text-muted-foreground">{tempLeft(r.exp)}</span> : null}
+              {r.temp ? <span className="shrink-0 text-[11px] text-muted-foreground">{r.exp ? tempLeft(r.exp) : "영구"}</span> : null}
               <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">{listWhen(r.last_ts)}</span>
             </span>
             {!r.with && !slim && crew.length ? <span className="nm-rcrew">{crew.join(" · ")}</span> : null}
@@ -98,10 +101,13 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
           </span>
         </Link>
         <button type="button" aria-label={`${p?.name || r.name} 줄 메뉴`} aria-expanded={menu === r.id} className={`absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-foreground/5 ${menu === r.id ? "" : "md:opacity-0 md:group-hover/row:opacity-100 md:focus-visible:opacity-100"}`} onClick={() => setMenu(menu === r.id ? "" : r.id)}>⋯</button>
+        </>)}
         {menu === r.id ? (
           <div role="menu" className="absolute right-2 top-full z-10 flex min-w-36 flex-col rounded-xl border border-border bg-popover p-1 text-sm shadow-lg">
             {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(PINS, pins, setPins, r.id)}>{pins.has(r.id) ? "고정 풀기" : "고정"}</button> : null}
             <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void markRead(r, u)}>{u ? "읽음으로" : "안 읽음으로"}</button>
+            {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setEditing(r); }}>수정</button> : null}
+            {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" onClick={() => { setMenu(""); setDeleting(r); }}>삭제</button> : null}
             {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(HIDE, hidden, setHidden, r.id)}>{hidden.has(r.id) ? "보이기" : "숨기기"}</button> : null}
           </div>
         ) : null}
@@ -112,6 +118,8 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   return (
     <nav aria-label="대화 목록" className="nm-yeta nm-rooms flex flex-col">
       <TempRoomButton />
+      {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
+      {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {notice?.text ? (
         <button type="button" className="mb-1 flex items-start gap-2 rounded-2xl bg-amber-500/10 px-3 py-2 text-left text-sm" aria-expanded={noticeOpen} onClick={() => setNoticeOpen((v) => !v)}>
           <span aria-hidden>📌</span>
@@ -119,7 +127,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         </button>
       ) : null}
       <ul className="nm-rgroup flex flex-col">
-        {ordered.map((r) => <Row key={r.id} r={r} />)}
+        {ordered.map((r) => <Fragment key={r.id}>{Row({ r })}</Fragment>)}
       </ul>
       {rooms.isError ? <p className="px-3 py-2 text-sm text-destructive" role="alert">방 목록을 못 받았어. 새로 고쳐 줘.</p> : null}
       {roomReadState.error() ? <p className="px-3 py-2 text-sm text-destructive" role="alert">{roomReadState.error()}</p> : null}
@@ -128,7 +136,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
           <button type="button" className="mt-2 flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground" aria-expanded={hiddenOpen} onClick={() => setHiddenOpen((v) => !v)}>
             <DuetIcon name="chevronRight" size={18} className={hiddenOpen ? "rotate-90" : ""} />숨긴 방 {hid.length}
           </button>
-          {hiddenOpen ? <ul className="nm-rgroup flex flex-col opacity-80">{hid.map((r) => <Row key={r.id} r={r} />)}</ul> : null}
+          {hiddenOpen ? <ul className="nm-rgroup flex flex-col opacity-80">{hid.map((r) => <Fragment key={r.id}>{Row({ r })}</Fragment>)}</ul> : null}
         </>
       ) : null}
     </nav>

@@ -23,6 +23,7 @@ import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, peopl
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
 import { TempRoomHead } from "./temp-room";
+import { useCloseCallMenu } from "./call-face";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceStack } from "./faces";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -554,6 +555,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const presence = useReportChatPresence(true, { working: winterWorking, failed: false });
   const busyWho = draft?.who || typing[0] || "";   // 머리 얼굴 도는 테(형 10-31 「상대가 호출에 응답중일 때 위에 동글 도는거 표시」) = top.tsx 가 받음
   useEffect(() => { qc.setQueryData(["nomute", "busy", room], busyWho); return () => { qc.setQueryData(["nomute", "busy", room], ""); }; }, [qc, room, busyWho]);
+  const busyNames = [...new Set([draft?.who, ...typing].filter(Boolean))].join("\n");   // 임시방 머리 = 응답 중인 이 전부(top.tsx · 형 10-31 「얘기할때 테두리에 불 로딩 들어오면」)
+  useEffect(() => { qc.setQueryData(["nomute", "busyAll", room], busyNames); return () => { qc.setQueryData(["nomute", "busyAll", room], ""); }; }, [qc, room, busyNames]);
+  useCloseCallMenu();
   const bots4 = useMemo(() => {   // 입력칸 「@」·「!」 목록 = 이 방에서 부를 수 있는 이(정한 사람 없는 방 = 봇 + 윈터·봄 같은 존재 · 형 10-30 「호출시 … 리스트 안뜨는 것」)
     const ids = r ? roomAgentIds(r, list) : [];
     if (r && !r.with && !r.members?.length) for (const p of list) { const id = idOf(p.who, list); if (p.kind !== "human" && p.who !== "형" && !ids.includes(id)) ids.push(id); }

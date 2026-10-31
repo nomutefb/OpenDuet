@@ -188,3 +188,28 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rstk > span + span { box-shadow:0 0 0 2px var(--duet-surface), 0 0 6px rgba(var(--accent-rgb),.21); }
 .nm-rcrew { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-xs); line-height:1.5; color:color-mix(in srgb, var(--accent) 72%, var(--mut)); }
 :root:not(.dark) .nm-rcrew { color:var(--fg-2); }
+
+/* 부름 목록 선택 줄(형 10-31 「잘 안보이는 선택되엇을때」) = 원본 bg-accent 가 형광이라 흰 글자가 묻힘 → 어두운 판 위 옅은 띠 */
+.bg-popover[role="listbox"] [role="option"][aria-selected="true"], .bg-popover[role="listbox"] [role="option"]:hover { background:rgba(207,255,64,.14); box-shadow:inset 0 0 0 1px rgba(207,255,64,.38); }
+/* 긴 말풍선 = 화면을 넘어가도 얼굴·이름이 머리 밑에 남음(형 10-31 「화면 넘어가면 화자가 나와야함」) */
+.ychat .ymsg .yava { position:sticky; top:84px; z-index:1; }
+.ychat .ymsg .yname { position:sticky; top:84px; z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
+/* 임시방 머리 = 인원을 펼쳐 얼굴 하나씩 */
+.nm-top-crew { position:relative; left:50%; transform:translateX(-50%); display:inline-flex; gap:4px; width:max-content; max-width:92vw; }
+/* 임시방 줄 왼쪽 끌기 = 예타 .ylr 그대로 · 폭만 칸 둘 */
+.nm-sw { position:relative; overflow:hidden; border-radius:inherit; }
+.nm-sw-row { position:relative; z-index:1; touch-action:pan-y; user-select:none; -webkit-touch-callout:none; transition:transform .3s var(--ease, cubic-bezier(.2,.7,.3,1)); will-change:transform; }
+.nm-sw.open .nm-sw-row { transform:translateX(-132px); }
+.nm-sw.drag .nm-sw-row, .nm-sw.drag .nm-sw-tray { transition:none; }
+.nm-sw-tray { position:absolute; top:0; right:0; bottom:0; z-index:2; display:flex; width:132px; transform:translateX(100%); transition:transform .3s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+.nm-sw.open .nm-sw-tray { transform:translateX(0); }
+.nm-sw-act { flex:1; border:0; color:#fff; font-size:13px; font-weight:700; cursor:pointer; touch-action:manipulation; }
+.nm-sw-act.edit { background:rgba(255,255,255,.14); }
+.nm-sw-act.del { background:rgba(224,64,64,.72); }
+@media (prefers-reduced-motion:reduce) { .nm-sw-row, .nm-sw-tray { transition:none; } }
+/* 임시방 창 = 묶음 눌러 고르기 · 얼굴·이름 표지 */
+.nm-fam { display:flex; gap:6px; }
+.nm-fam-tab { flex:1; padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:none; font-weight:600; }
+.nm-fam-tab[aria-selected="true"] { border-color:rgba(207,255,64,.55); background:rgba(207,255,64,.14); }
+.nm-pick { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; background:none; }
+.nm-pick[aria-pressed="true"] { border-color:rgba(207,255,64,.55); background:rgba(207,255,64,.14); }
