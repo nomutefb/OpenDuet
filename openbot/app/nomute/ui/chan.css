@@ -12,11 +12,6 @@
 .nm-chan .nm-chan-tile b i { font-size:var(--fs-xs); font-weight:400; font-style:normal; color:var(--mut); margin-left:3px; }
 .nm-chan .nm-chan-tile .sub { font-size:var(--fs-xs); color:var(--mut); }
 .nm-chan .nm-chan-tile .sub.up { color:var(--accent); } .nm-chan .nm-chan-tile .sub.dn { color:#ffd27a; }
-.nm-chan .nm-chan-brief { display:flex; flex-direction:column; gap:6px; }
-.nm-chan .nm-chan-brief .yset-sec { display:flex; align-items:center; padding:4px 2px 0; }
-.nm-chan .nm-chan-brief p { margin:0; font-size:var(--fs-sm, 12px); line-height:1.55; color:var(--fg-2); }
-.nm-chan .nm-chan-props { margin:4px 0 0; padding:8px 10px 8px 24px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-m, 11px); font-size:var(--fs-sm, 12px); color:var(--fg); }
-.nm-chan .nm-chan-props li { margin:2px 0; }
 .nm-chan .nm-chan-acts { margin-top:2px; justify-content:flex-end; }
 .nm-chan .ypc-go span svg { width:14px; height:14px; vertical-align:-2px; }
 @media (max-width:360px) { .nm-chan .nm-chan-tiles { grid-template-columns:repeat(2, minmax(0, 1fr)); } }

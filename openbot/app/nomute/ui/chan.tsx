@@ -1,6 +1,6 @@
 // 서랍 「채널 요약」(서랍 차례 ② · 윈터 10:12) — 에디터 넷째 탭 「채널 요약」(viewer/index.html loadChan 16842 · renderChan 17168 · 수백 줄: 타일·인구통계·차트·최근 게시물·결과 함께)을 통째 옮기지 않고
-//   「한눈 요약」 한 장만 네이티브로: 소스(IG · FB · TH) · 팔로워(+창 신규) · 조회·도달·게시·상호작용 일평균(7일) · AI 요약(chan_brief 총론 또는 첫 기간 · 「→」 줄 = 클로신의 제안) · 수집 시각 · 「전체 보기」= 원본 화면(#/web?u=/?tab=chan)
-//   데이터 = 원본 chanGet 차례 그대로: `/api/chan?f=ig|brief|fb|brieffb|th` → 안 되면 `/insta_data.json`·`/chan_brief.json`·`/fb_data.json`·`/chan_brief_fb.json`·`/threads_data.json`(유효 판별 키 = generated_kst / updated · HTML 응답 = 건너뜀) · 같은 출처라 쿠키 그대로
+//   「한눈 요약」 한 장만 네이티브로: 소스(IG · FB · TH) · 팔로워(+창 신규) · 조회·도달·게시·상호작용 일평균(7일) · (AI 요약 뺌 · 형 10-31 「끄자!」 · 지표만) · 옛 AI 요약(chan_brief 총론 또는 첫 기간 · 「→」 줄 = 클로신의 제안) · 수집 시각 · 「전체 보기」= 원본 화면(#/web?u=/?tab=chan)
+//   데이터 = 원본 chanGet 차례 그대로: `/api/chan?f=ig|fb|th` → 안 되면 `/insta_data.json`·`/fb_data.json`·`/threads_data.json`(유효 판별 키 = generated_kst / updated · HTML 응답 = 건너뜀) · 같은 출처라 쿠키 그대로
 //   셈 = 원본 winAvg(마지막 실측일 앵커 · 결측 제외 · 7일 창) · winSum('follows' · 스레드 = follower_net) · 지표 사전 = CH_MET(ig·fb) / CH_MET_TH(th) 16233줄 · 5분 TTL 은 react-query 가 맡음
 import "./yeta-settings.css";
 import "./chan.css";
@@ -11,11 +11,10 @@ import { YICO } from "./yeta-icons";
 
 type Row = Record<string, number | null | undefined> & { date: string };
 type Chan = { profile?: { followers_count?: number | null; username?: string; name?: string }; generated_kst?: string; daily_series?: Row[]; src?: string; avg?: Record<string, { avg_7d?: number }> };
-type Brief = { updated?: string; text?: string; sections?: { k: string; label?: string; text?: string }[] };
 type Src = "ig" | "fb" | "th";
-const SRC: { id: Src; t: string; file: string; brief?: [string, string] }[] = [
-  { id: "ig", t: "인스타", file: "insta_data.json", brief: ["brief", "chan_brief.json"] },
-  { id: "fb", t: "페이스북", file: "fb_data.json", brief: ["brieffb", "chan_brief_fb.json"] },
+const SRC: { id: Src; t: string; file: string }[] = [
+  { id: "ig", t: "인스타", file: "insta_data.json" },
+  { id: "fb", t: "페이스북", file: "fb_data.json" },
   { id: "th", t: "스레드", file: "threads_data.json" },
 ];
 const MET: Record<Src, [string, string, string][]> = {   // [키, 라벨, 단위] = 원본 CH_MET·CH_MET_TH 어휘(일평균 타일 넷)
@@ -60,24 +59,18 @@ export function ChanModal() {
   const q = useQuery({
     queryKey: ["nomute", "chan-brief"], staleTime: 300_000, refetchInterval: 300_000,   // 원본 TTL 5분
     queryFn: async () => {
-      const [ig, b, fb, bf, th] = await Promise.all([
-        getJ<Chan>("ig", "insta_data.json", "generated_kst"), getJ<Brief>("brief", "chan_brief.json", "updated"),
-        getJ<Chan>("fb", "fb_data.json", "generated_kst"), getJ<Brief>("brieffb", "chan_brief_fb.json", "updated"), getJ<Chan>("th", "threads_data.json", "generated_kst"),
+      const [ig, fb, th] = await Promise.all([
+        getJ<Chan>("ig", "insta_data.json", "generated_kst"), getJ<Chan>("fb", "fb_data.json", "generated_kst"), getJ<Chan>("th", "threads_data.json", "generated_kst"),
       ]);
-      return { ig, fb, th, brief: { ig: b, fb: bf, th: null as Brief | null } };
+      return { ig, fb, th };
     },
   });
   const Svg = ({ k }: { k: keyof typeof YICO }) => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
   const go = () => { window.location.hash = "#/web?u=" + encodeURIComponent("/?tab=chan"); };
-  const d = q.data?.[src] ?? null, cb = q.data?.brief[src] ?? null;
+  const d = q.data?.[src] ?? null;
   const have = SRC.filter((s) => q.data?.[s.id]);
   const series = (d?.daily_series || []).filter((r) => r && r.date);
   const flw = d?.profile?.followers_count, fsum = d ? winSum(series, src === "th" ? "follower_net" : "follows") : null;
-  // 브리프 = overview(총론) 우선 · 없으면 sections 첫 칸 · 없으면 text · 「→」 줄 = 제안(원본 17458)
-  const secs = cb && Array.isArray(cb.sections) && cb.sections.length >= 2 ? cb.sections : null;
-  const raw = (secs ? (secs.find((s) => s.k === "overview") || secs.find((s) => s.k === "all") || secs[0])?.text : cb?.text) || "";
-  const body: string[] = [], props: string[] = [];
-  raw.split("\n").forEach((ln) => { const t = ln.trim(); if (!t) return; if (/^→/.test(t)) props.push(t.replace(/^→\s*/, "")); else body.push(t); });
   return (
     <Pane title="채널 요약">
       <div className="yeta-set mt-2">
@@ -90,13 +83,6 @@ export function ChanModal() {
                 <div className="nm-chan-tile tall"><span className="k">팔로워</span><b>{flw != null ? flw.toLocaleString("ko-KR") : "—"}</b>{fsum != null ? <span className={`sub ${fsum > 0 ? "up" : fsum < 0 ? "dn" : ""}`}>{WIN}일 {signed(fsum, "명")}</span> : null}</div>
                 {MET[src].map(([key, lb, u]) => { const a = winAvg(series, key); return <div key={key} className="nm-chan-tile"><span className="k">{lb}</span><b>{a == null ? "—" : fmtK(rnd(a))}<i>{u}/일</i></b><span className="sub">{WIN}일 평균</span></div>; })}
               </div>
-              {body.length ? (
-                <div className="nm-chan-brief">
-                  <span className="yset-sec">AI 요약{cb?.updated ? <i className="nm-chan-at">{k12(cb.updated)}</i> : null}</span>
-                  {body.slice(0, 8).map((t, i) => <p key={i}>{t}</p>)}
-                  {props.length ? <ul className="nm-chan-props" aria-label="클로신의 제안">{props.slice(0, 5).map((t, i) => <li key={i}>{t}</li>)}</ul> : null}
-                </div>
-              ) : null}
             </>
           )}
           <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={go}>전체 보기 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
