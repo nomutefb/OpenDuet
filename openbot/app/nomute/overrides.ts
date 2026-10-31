@@ -15,8 +15,8 @@ export const DROP_ROUTES = [
 
 /** node_modules 글자 고치기 = 깔린 자리가 달라도 끝 경로로 맞춤 · 글자가 없으면 경고만(빌드가 멈추면 그 회차 앱이 빠짐) */
 const PATCH_LIB: Record<string, [string, string][]> = {
-  // 「!」 뒤 한글 = 조합 중에도 트리거 감지(형 10-31 「느낌표 쓰고 봄 쓰고 띄어쓰기 했다가 백스페이스 해야 타겟팅이됨」 · prompt-area 0.6.3 입력 처리가 조합 중 감지를 건너뜀 · 글 재그리기는 그대로 건너뜀 · 빠르 판)
-  "prompt-area/dist/chunk-O73VWL5Y.js": [["if(L.isComposing.current){let i=M();z.current=i,t(i);return}", "if(L.isComposing.current){let i=M();z.current=i,t(i),F();return}"]],
+  // 「!」 뒤 한글 = 조합 중에도 트리거 감지(형 10-31 「느낌표 쓰고 봄 쓰고 띄어쓰기 했다가 백스페이스 해야 타겟팅이됨」 · prompt-area 입력 처리가 조합 중 감지를 건너뜀 · 글 재그리기는 그대로 건너뜀 · 빠르 판 · 0.6.8 = 파일 이름·글자가 바뀌어 옮김 · se() = 감지 · F() 는 이제 재그리기)
+  "prompt-area/dist/chunk-QKZPGBZK.js": [["if(R.isComposing.current){ue.current=true;let N=L();G.current=N,t(N);return}", "if(R.isComposing.current){ue.current=true;let N=L();G.current=N,t(N),se();return}"]],
 };
 
 /** 원본 파일(openbot/ 뒤 경로) → 우리 파일(nomute/ 뒤 경로). 우리 파일 안에서 원본을 부르면 그대로 원본(바꿔 끼우기 0). */
@@ -95,7 +95,7 @@ export const PATCH: Record<string, [string, string][]> = {
     // 입력칸 안에서 칸을 키우지 않고 입력칸 위에 둥근 네모로 · 여러 장 = 좌측부터 한 줄(형 10-31) · 누르면 확대
     ['<Collapse open={occupied}>', '<>'],
     ['</Collapse>', '</>'],
-    ['className="flex flex-wrap items-start gap-2 pb-3"', 'className="nm-strip"'],
+    ['className="flex flex-wrap items-start gap-2 pb-3"', 'className="nm-att-strip"'],
     ['className="size-20 rounded-xl border border-border object-cover"', 'className="size-20 cursor-zoom-in rounded-xl border border-border object-cover" onClick={() => (window as unknown as { nmZoom?: (s: string) => void }).nmZoom?.(image.url)}'],
   ],
   "app/src/components/shell/channel-screen.tsx": [
@@ -141,9 +141,13 @@ export const PATCH: Record<string, [string, string][]> = {
 export function nomuteOverrides(openbot: string, nomute: string): Plugin {
   const up = `${norm(openbot)}/`;
   const ours = (f: string) => path.join(nomute, f);
+  const libSeen = new Set<string>();   // 고칠 파일이 빌드에 들어왔나(판이 바뀌면 파일 이름이 달라져 아무 말 없이 지나감)
   return {
     name: "nomute-overrides",
     enforce: "pre",
+    buildEnd() {
+      for (const lib of Object.keys(PATCH_LIB)) if (!libSeen.has(lib)) this.warn(`nomute 라이브러리 고치기: ${lib} 파일이 빌드에 없음(판이 바뀜)`);
+    },
     async resolveId(source, importer, options) {
       if (source.endsWith("lib/generated/application-config")) return ours("app-config.ts");   // 원본은 빌드 전에 만드는 파일(scripts/generate-app-config.ts)
       if (!importer || norm(importer).includes("/nomute/")) return null;
@@ -157,6 +161,7 @@ export function nomuteOverrides(openbot: string, nomute: string): Plugin {
       const f = norm(id).split("?")[0];
       const lib = Object.keys(PATCH_LIB).find((k) => f.endsWith(`/${k}`));
       if (lib) {
+        libSeen.add(lib);
         let out = code;
         for (const [from, to] of PATCH_LIB[lib]) {
           if (!out.includes(from)) this.warn(`nomute 라이브러리 고치기: ${lib} 에 글자 없음(판이 바뀜)`);

@@ -554,7 +554,7 @@ function Band({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
       </button>
       {open ? <div className="flex w-full flex-col gap-[10px] border-l-2 border-border pl-3 opacity-90">{msgs.map((m, i) => {
         const cont = i > 0 && msgs[i - 1].who === m.who, next = msgs[i + 1];
-        const noTime = !!next && next.who === m.who && dayKey(next.ts) === dayKey(m.ts) && next.ts - m.ts < TIME_GAP;   // 시각 = 1분 안 이어 쓴 묶음의 **마지막** 글에 · 같은 날만(뎅 11:4x · 자정 넘김 묶음에서 23:59 글 시각이 빠지던 것)(형 10-31 11:27 「최신 시각의 가장 마지막 대화에 이어져야된다는 거임 화자가 동일하자는 전제에는」 · 앞 판은 첫 글에 붙었음)
+        const noTime = !!next && dayKey(next.ts) === dayKey(m.ts) && ((next.who === m.who && next.ts - m.ts < TIME_GAP) || t12(next.ts) === t12(m.ts));   // 시각 = 1분 안 이어 쓴 묶음의 **마지막** 글에 · 다른 사람도 같은 시각이면 맨 아래만(형 10-31 「대화자의 시간대가 같으면 맨 아랫사람만 시간이 나오게해줘」) · 같은 날만(뎅 11:4x · 자정 넘김 묶음에서 23:59 글 시각이 빠지던 것)(형 10-31 11:27 「최신 시각의 가장 마지막 대화에 이어져야된다는 거임 화자가 동일하자는 전제에는」 · 앞 판은 첫 글에 붙었음)
         return <Line key={m.id} m={m} c={c} cont={cont} noTime={noTime} />;
       })}</div> : null}
     </div>
@@ -791,7 +791,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             // 시각 = 같은 사람이 1분 안에 이어 쓴 묶음의 **마지막** 글 아래에(형 10-31 11:27 「항상 마지막 말에 최신 시각이 내려와서 붙어야해 … 최신 시각의 가장 마지막 대화에 이어져야된다는 거임 화자가 동일하자는 전제에는」)
             //   = 다음 글이 같은 사람·같은 종류·같은 날·1분 안이면 이 글은 시각 없음(앞 판 = 첫 글에 붙고 뒤 글 생략 → 뒤집음)
             const next = items[idx + 1];
-            const noTime = it.t === "msg" && !!next && next.t === "msg" && next.m.who === it.m.who && next.m.kind === it.m.kind && !next.m._thr && dayKey(next.m.ts) === dayKey(it.m.ts) && next.m.ts - it.m.ts < TIME_GAP;
+            //   · 다른 사람도 같은 시각이면 맨 아래만(형 10-31 「대화자의 시간대가 같으면 맨 아랫사람만 시간이 나오게해줘」)
+            const noTime = it.t === "msg" && !!next && next.t === "msg" && !next.m._thr && dayKey(next.m.ts) === dayKey(it.m.ts) && ((next.m.who === it.m.who && next.m.kind === it.m.kind && next.m.ts - it.m.ts < TIME_GAP) || t12(next.m.ts) === t12(it.m.ts));
             const turn = !newDay && !first._thr && !!sideOf(prev) && !!sideOf(it) && sideOf(prev) !== sideOf(it);
             prevTs = (it.t === "msg" ? it.m : it.msgs[it.msgs.length - 1]).ts;
             prev = it;
