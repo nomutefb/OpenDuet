@@ -42,7 +42,7 @@ const DRAFT = (room: string) => `nm-draft:${room}`;
 const loadDraft = (room: string) => { try { return sessionStorage.getItem(DRAFT(room)) || ""; } catch { return ""; } };
 const saveDraft = (room: string, t: string) => { try { if (t.trim()) sessionStorage.setItem(DRAFT(room), t); else sessionStorage.removeItem(DRAFT(room)); } catch { /* 이 탭만 · 못 쓰면 이번만 */ } };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const PICKUP_WAIT = 2 * 60e3, ANSWER_FRESH = 30 * 60e3;   // 점 셋 = 안 가져가도 2분 · 가져간 뒤 30분(윈터 구슬 규칙과 같은 30분)
+const PICKUP_WAIT = 2 * 60e3;   // 점 셋 = 턴 신호가 오기 전 2분(감시 60초 + bots 조회 60초 · 형 「멍하고 기다리고」 자리)
 const CALL_FRESH = 45 * 60e3;   // 회의실 「작업 중」 = 부른 글이 45분 안일 때만(옛 화면 PR 1478 실측 · 답의 90% = 41분)
 const QUOTE = /^↩ ([^:\n]{1,24}): ([^\n]*)(?:\n|$)/;
 const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_Pictographic})*$/u;
@@ -504,16 +504,15 @@ function Band({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
 }
 
 /** 「결 작업 중 · 고민하는 중…」 — 1:1 = 그 봇이 깨 있고 마지막 글이 그 봇 글이 아님 · 회의실 = 그 봇을 부른 가장 새 글이 45분 안 · 깬 = 서버 bots(읽기만 깸 = 뺌) */
-/** 「작업 중」 점 셋(형 10-31 「너가 응답하면서 ... 이런게 움직이기라도 해야되는데」) — 형 글 뒤 그 이 답 전에 ① 서버가 깸이라 하거나 ② 그 이가 글을 가져갔거나(1:1 · 존재는 서버 깸 칸이 없음) ③ 쓴 지 2분 안이면 돈다
-    2분 뒤에도 안 가져갔으면 멈춤 = 안 깬 이를 일하는 척 안 함 · 방 = 1:1 · 회의실 · 지정방 다(전엔 지정방 0) */
-function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: OfficePerson[], reads?: Reads): string[] {
+/** 「작업 중」 점 셋(형 10-31 「너가 응답하면서 ... 이런게 움직이기라도 해야되는데」) — 형 글 뒤 그 이 답 전에 ① 서버가 깸이라 하거나(존재 = 턴 신호 · why turn · 서버 #1832) ② 쓴 지 2분 안(신호가 오기 전 공백) · 2분 뒤에도 안 깨면 멈춤 = 안 깬 이를 일하는 척 안 함 */
+function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: OfficePerson[]): string[] {
   const doing = (n: string) => bots.some((b) => b.who === n && b.state === "awake" && b.why !== "read");
   if (!r) return [];
   const now = Date.now();
   if (r.with) {
     const n = r.with, m = list.at(-1);
     if (!m || m.who === n || m.kind !== "human") return [];
-    return doing(n) || now - m.ts < PICKUP_WAIT || ((reads?.got?.[n] || []).includes(m.id) && now - m.ts < ANSWER_FRESH) ? [n] : [];
+    return doing(n) || now - m.ts < PICKUP_WAIT ? [n] : [];
   }
   return people.map((p) => p.who).filter((n) => n !== "형").filter((n) => {
     for (let i = list.length - 1; i >= 0 && list[i].who !== n; i--) if ((list[i].mention || []).includes(n) || (list[i].urgent || []).includes(n)) return now - list[i].ts < (doing(n) ? CALL_FRESH : PICKUP_WAIT);   // urgent = 「!모두」·임시방 형 글(이름 없이 전원)도 작업 중으로
@@ -542,8 +541,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   // 형이 낀 단톡(임시방 · 지정방 · 회의실) = 다 보이게(형 10-31 「단톡은 전체메세지로 보여야되는데 왜 봄메세지는 저렇게보여」) · 접는 보기(hyungView)는 1:1 방만
   const flat = meet || (!!r && !r.with);
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
-  const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 30분)은 시각으로 정해져서 새 글이 없어도 다시 셈
-  const typing = useMemo(() => typingOf(all, r, bots, list, reads).filter((n) => n !== draft?.who), [all, r, bots, list, reads, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
+  const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 45분)은 시각으로 정해져서 새 글이 없어도 다시 셈
+  const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
   useEffect(() => { if (!typing.length) return; const t = setInterval(() => setTick((x) => x + 1), 20e3); return () => clearInterval(t); }, [typing.length]);
   // 머리 등불 구슬(보조 02 PR 1489) = 원본 useChatOrb 재료 · 듣는 중 = 형이 글칸에 씀 · 일하는 중 = 윈터에게 보낸 형 글 뒤 윈터 답 전(30분 안) · 서버 「깸」 칸은 뜻이 달라 안 씀(office-orb.md)
   const winterWorking = useMemo(() => {
