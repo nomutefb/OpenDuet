@@ -36,6 +36,7 @@ import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
 import { usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
+import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
 import { t12 } from "./when";
 import "./yeta-chat.css";
 
@@ -776,6 +777,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
+      <ScrollDate box={boxRef} />
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
         <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {r?.temp ? <TempRoomHead r={r} /> : null}
@@ -799,7 +801,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             const key = it.t === "msg" ? it.m.id : `${it.t}-${first.id}`;
             return (
               <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
-                {newDay ? <p className="ydate">{dateLabel(first.ts)}</p> : null}
+                {newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null}
                 {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
                   <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${y.who} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
                     {it.msgs.at(-1)?.who} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
