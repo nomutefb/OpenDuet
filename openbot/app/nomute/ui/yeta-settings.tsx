@@ -14,6 +14,8 @@ import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
+import { StandingInstructions } from "@/components/settings/standing-instructions";   // 원본 설정의 「공통 지시」(routes/_authed/settings/index.tsx) — 빠뜨리지 않기(윈터 10-31 「지금 SettingsIndex 항목을 그대로 옮겨 담기」)
+import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
 
 const Svg = ({ k, className }: { k: YIcon; className?: string }) => <span className={className} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
@@ -56,31 +58,40 @@ export function YetaSettings() {
     <Act key={id} ic={ic} t={t} d={d} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
   ];
+  // 묶음 = YETA details.yset-grp(접힘/펼침 · index.html 1035줄 꼴 · 형 10-31 「스크롤 내리면서 하나씩 다 설정하는거. 펼치면서. 접힐건 접히고, 고정된거는 고정되어있고」) · 처음 = 화면·글꼴만 펼침 · 제목 줄은 스크롤에 붙음(.yset-pin)
+  const grp = (id: string, name: string, body: ReactNode, open = false) => (
+    <details key={id} className="yset-grp" open={open}><summary>{name}</summary>{body}</details>
+  );
   return (
     <Pane title="설정">
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left">
-          <span className="ycd-nm yset-ttl"><Svg k="gear" />설정</span>
-          <div className="yset-sec">화면</div>
+          <span className="ycd-nm yset-ttl yset-pin"><Svg k="gear" />설정</span>
+          {grp("screen", "화면", <>
           <Act ic="screen" t="테마" d="탭 = 폰 따라 → 밝게 → 어둡게" v={theme.t} vt mod={theme.v !== "system"}
             onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
           <PushRow />
-          <div className="yset-sec">글꼴</div>
-          <ChatFontRows />
-          <div className="yset-sec">상태</div>
+          </>, true)}
+          {grp("font", "글꼴", <ChatFontRows />, true)}
+          {grp("status", "상태", <>
           {row("health", "data", "점검표", "서버 문·지킴이 연결·박동", <NomuteHealth />,
             health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}
           {row("bots", "user", "지금 봇", "온라인 · 하는 일 · 다음 깸", <NomuteBots />, bots ? `온라인 ${awake}/${nBots}` : undefined)}
           {row("link", "radio", "스케줄러 연결", "일정 → 호출 → 깨움 · 오늘 깬 수", <NomuteLink />)}
           {row("meter", "data", "회의실 계기판", "헛깸 · 형 말 출처 · 바꿔 전하기 · 되묻기 · 하루 한 장", <NomuteMeter />)}
-          <div className="yset-sec">사무실</div>
+          </>)}
+          {grp("office", "사무실", <>
           {row("sched", "gear", "스케줄러 바꾸기", "루틴 · 봇 하루 최대 · 사건 모아 깨우기", <NomuteSchedule />)}
           {row("roomset", "user", "지정방 멤버", "@모두 = 이 멤버만 받음", <NomuteRoomset />)}
           {row("notice", "bell", "공지 설정", "봇이 깰 때마다 보는 한 장", <NomuteNotice />)}
-          <div className="yset-sec">기록</div>
-          {row("old", "chat", "옛 그록 대화", "그록 앱 시절 · 읽기만", <NomuteOld />)}
-          <div className="yset-sec">정보</div>
+          {row("instr", "type", "공통 지시", "모든 봇이 따르는 글(원본 설정 Standing instructions)", <StandingInstructions />)}
+          </>)}
+          {grp("log", "기록", row("old", "chat", "옛 그록 대화", "그록 앱 시절 · 읽기만", <NomuteOld />))}
+          {grp("info", "정보", <>
           <Info ic="info" t="지금 판" d={build.fresh ? `새 판 있음(${build.fresh}) — 곧 저절로 바뀜` : "새 판이 나오면 저절로 바뀜"} v={build.now} />
+          {/* 원본 「키보드 단축키」 = 키보드 있는 화면(md~)만 · 읽기만(원본 그대로 · 바꿀 수 없음) */}
+          <div className="hidden md:block">{HOTKEYS.map((h) => <Info key={h.id} ic="type" t={h.label} d={h.description} v={formatHotkey(h.combo).join(" ")} />)}</div>
+          </>)}
         </div>
       </div>
     </Pane>

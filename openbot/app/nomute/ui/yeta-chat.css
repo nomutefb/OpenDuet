@@ -16,12 +16,12 @@
   --ease:cubic-bezier(.2,.7,.3,1); --blur-m:29px; --blur-l:11px; --press-m:.9; --press-l:.95; --press-s:.9;
   --accent:#CFFF40; --accent-rgb:207,255,64; --bubble-me:var(--accent); --bubble-ai:#1e2023;
   --fg:#161716; --fg-2:#3a3d3a; --mut:#8B8F8A; --bg:#161716;
-  --glass:rgba(0,0,0,.005); --glass-2:rgba(0,0,0,0); --glass-line:rgba(0,0,0,.08);
+  --glass:rgba(0,0,0,.04); --glass-2:rgba(0,0,0,.025); --glass-line:rgba(0,0,0,.08);   /* 유리 밑칠(형 10-31 「글래스모피즘의 느낌을 아직 더 가져와야해. 덜가져왔어」 · YETA 원값 .005 는 마을 그림 위 값 · 우리 민 바탕에선 0 과 같음 · 실제 화면 나란히 봄) */
   --shadow-card:0 24px 60px rgba(0,0,0,.12);
 }
 .dark .ychat, .dark .ynav, .dark .nm-yeta {
   --fg:#FFFFFF; --fg-2:#E7ECE7; --mut:#8B8F8A; --bg:#161716;
-  --glass:rgba(255,255,255,.005); --glass-2:rgba(255,255,255,0); --glass-line:rgba(255,255,255,.08);
+  --glass:rgba(255,255,255,.06); --glass-2:rgba(255,255,255,.035); --glass-line:rgba(255,255,255,.08);
   --shadow-card:0 24px 60px rgba(0,0,0,.42);
 }
 .ychat { color:var(--fg); font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif); }
@@ -57,7 +57,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ncp-hue::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:2px solid rgba(0,0,0,.25); }
 .ncp-rgb { display:flex; gap:8px; }
 .ncp-acts { display:flex; gap:8px; justify-content:flex-end; }
-.ychat .yb.ph { background:none; border:none; padding:0; box-shadow:none; }   /* 사진만 든 글 = 말풍선 없이 */
+.ychat .yb.ph, .ychat .yb.me.ph { background:none; border:none; padding:0; box-shadow:none; }   /* 사진만 든 글 = 말풍선 없이(.yb.me 뒤에 와도 지게 같은 무게로 · 사진 모서리 라임 삐져나옴) */
 .ychat .yb.ai .ymd { white-space:normal; }
 .ychat .yb a { text-decoration:underline; text-underline-offset:2px; word-break:break-all; }   /* 글 속 주소 = 누르면 새 창(D9) */
 .ychat .ycall { font-weight:700; color:var(--accent); background:rgba(var(--accent-rgb),.14); border-radius:6px; padding:0 3px; white-space:nowrap; }   /* 글 속 부름 「@이름」·「!이름」 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) */

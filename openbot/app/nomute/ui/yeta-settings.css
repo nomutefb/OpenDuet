@@ -59,3 +59,16 @@
 .yeta-set .yset-open > section { margin-top:0; }                                   /* 지금 칸(PageSection) = 머리 줄은 행이 맡음 */
 .yeta-set .yset-open > section > div:first-child:has(> h2) { display:none; }
 @media (prefers-reduced-motion:reduce) { .yeta-set .yset-open { animation:none; } }
+
+/* ── 우리 보탬 2(형 10-31 「접힐건 접히고, 고정된거는 고정되어있고」) : 묶음 = YETA details.yset-grp(viewer/index.html 1035~1039 그대로 · 꺾쇠만 더함) · 고정 = 제목 줄 sticky(YETA .yterms-top 꼴) ── */
+.yeta-set details.yset-grp { align-self:stretch; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-m, 11px); padding:0 14px; margin-bottom:11px; backdrop-filter:blur(var(--blur-m)); -webkit-backdrop-filter:blur(var(--blur-m)); }
+.yeta-set details.yset-grp > summary { cursor:pointer; list-style:none; padding:12px 2px; font-size:var(--fs-label); font-weight:var(--fw-x); color:var(--fg); display:flex; align-items:center; gap:8px; -webkit-tap-highlight-color:transparent; }
+.yeta-set details.yset-grp > summary::-webkit-details-marker { display:none; }
+.yeta-set details.yset-grp > summary::after { content:""; width:7px; height:7px; margin-left:auto; margin-right:4px; border-right:1.5px solid var(--mut); border-bottom:1.5px solid var(--mut); transform:rotate(45deg); transition:transform .2s var(--ease); }
+.yeta-set details.yset-grp[open] > summary::after { transform:rotate(-135deg); }
+.yeta-set details.yset-grp[open] { padding-bottom:10px; }
+.yeta-set details.yset-grp > .yset-item, .yeta-set details.yset-grp > .yset-open { margin-bottom:6px; }
+.yeta-set details.yset-grp .yset-sec { display:none; }   /* 묶음 머리가 섹션 라벨을 맡음(ChatFontRows 같은 안쪽 라벨은 숨김) */
+.yeta-set .ycd-nm.yset-ttl.yset-pin { position:sticky; top:calc(64px + env(safe-area-inset-top)); z-index:2; margin:-6px -6px 0; padding:6px; border-radius:var(--r-m, 11px);
+  background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(var(--blur-l)); -webkit-backdrop-filter:blur(var(--blur-l)); }
+.nm-modal .yeta-set .ycd-nm.yset-ttl.yset-pin { display:none; }   /* 모달 안에선 껍데기 머리 「< 설정」이 이미 고정이라 숨김(기존 규칙 그대로) */

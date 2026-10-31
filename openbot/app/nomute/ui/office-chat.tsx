@@ -456,7 +456,7 @@ function Line({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c
         <StatePill m={m} />
         <div className="ybrow">
           <div className="ybw">
-            <div className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} style={p?.bubble ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
+            <div className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               <div className="ymd"><Body m={m} nre={c.nre} /></div>
               <BoxCard m={m} />
