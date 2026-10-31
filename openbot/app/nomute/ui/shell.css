@@ -59,6 +59,7 @@ header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradi
 .nm-modal-b { position:relative; display:flex; min-height:0; flex:1; flex-direction:column; padding-top:calc(64px + env(safe-area-inset-top)); }
 .nm-modal-b .nm-scroll { padding-bottom:var(--duet-tab-space,86px); }   /* 네비 = 모달 위(형 「네비게이션은 유지」 · office-inapp.md) → 끝 줄이 네비에 안 가리게 */
 .nm-modal-b.frame { padding-bottom:var(--duet-tab-space,86px); }   /* 품은 화면 = 네비 위에서 끝남(남의 사이트는 안에 여백을 못 넣음) */
+.nm-wave { position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; }   /* 설정·서랍 뒤 물결(./wave-bg.tsx · 형 11-01) · 머리·판은 뒤따라 그려져서 위에 옴 */
 .nm-modal.nm-web { z-index:52; }   /* #/web = 앞 모달 위 한 겹 · 네비(60)·서랍 아래 */
 /* 이슈 한 장(./issue.tsx) — 카드 = .yeta-set .ycd-card(설정 판과 같음) · 상태 알약 = 네비 켠 칸과 같은 라임(열림) · 본문 = 대화창 마크다운 */
 .nm-issue-st { padding:2px 9px; border-radius:var(--r-pill); border:1px solid var(--glass-line); color:var(--fg-2); font-weight:var(--fw-b); }

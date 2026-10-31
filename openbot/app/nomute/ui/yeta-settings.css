@@ -74,4 +74,5 @@
 .yeta-set .yset-grp > .yset-item:active, .yeta-set .yset-grp > div:not(.yset-open) > .yset-item:active { transform:none; background:var(--glass-line); }
 .yeta-set .yset-grp > .yset-item.ro:active { background:none; }
 .yeta-set .yset-grp > .yset-open { padding:2px 14px 12px; }
+.yeta-set.yset-short .yset-grp > .yset-item { min-height:65px; }   /* 서랍 = 설명 없는 한 줄 · 높이는 설정 행과 같게 */
 /* 10-31 15:1x: 「보탬 2」(details.yset-grp 접힘 묶음 · yset-pin 고정 제목) 뺌 — 형 「설정 예전 예타 모습으로」 = 섹션 라벨 + 행 평면(09:41 꼴) · 되살릴 땐 git 이력 dac3f2b */

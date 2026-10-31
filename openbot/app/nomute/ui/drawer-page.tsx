@@ -21,7 +21,7 @@ export function DrawerPage() {
   const nav = useNavigate(), inbox = useQuery(approvalInboxOptions()), tasks = useQuery(taskListQueryOptions());
   const waiting = needsInputCount(tasks.data, inbox.data) + (useBrief().data?.cols.decide.filter((x) => !x.answer).length || 0);
   return (
-    <div className="yeta-set nm-yeta mx-auto flex w-full max-w-3xl flex-col px-4 pb-28 pt-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col px-4 pb-12 pt-4"><div className="yeta-set yset-short mt-2">
       {PARTS.map((p) => (
         <section key={p.name} className="yset-part" aria-label={p.name}>
           <div className="yset-sec">{p.name}</div>
@@ -39,6 +39,6 @@ export function DrawerPage() {
           </div>
         </section>
       ))}
-    </div>
+    </div></div>
   );
 }

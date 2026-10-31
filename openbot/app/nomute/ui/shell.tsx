@@ -22,6 +22,7 @@ import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
 import { SchedDesk } from "./sched-desk";
 import { DrawerPage } from "./drawer-page";
+import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
 import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
@@ -168,6 +169,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
             <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>
+              {M.id === "settings" || M.id === "drawer" ? <WaveBg /> : null}
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>
