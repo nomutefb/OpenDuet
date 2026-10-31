@@ -13,7 +13,6 @@ import { FaceImg } from "./faces";
 import { TempDeleteDialog, TempRoomButton, TempRoomDialog, TempSwipe } from "./temp-room";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
-import { openInApp } from "./inapp";
 import { RainbowOrb, RoomColorPick } from "./room-color";
 
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
@@ -85,7 +84,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     const preview = l ? previewLine(l.text || "") : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";
     const n = count(r), u = n !== 0, on = current === r.id, tall = big, size = big ? 44 : 36;
     // 단톡 = YETA 꼴(YETA-목록 · 운영자 260725 「단톡환경에서도 프로필이 겹치게」) · 얼굴 둘 겹침 · 마지막에 말한 이가 앞 · 인원 숫자만 · 누구인지 = 방 상단(형 10-31 「인원이 저기 누군지 나올 필욘 없는듯 들가면 확인할 수 잇으면 됨 방 상단에서」)
-    const lastId = l ? idOf(l.who, list) : "", front = ids.includes(lastId) ? [lastId, ...ids.filter((x) => x !== lastId)] : ids;
+    const talk = (r.faces || []).map((n) => idOf(n, list)).filter((x) => ids.includes(x)), pair = [...new Set([...talk, ...ids])].slice(0, 2).reverse();   // 형 10-31 「가장최근말한사람이 단톡에 맨 앞, 그리고 그 전에 말한사람이 그 전 이렇게 2개」 · 서버 faces · 뒤에 그린 얼굴이 위 = 뒤집음
     const rc = r.with ? "" : peek?.id === r.id ? peek.hex : r.color || "";
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
@@ -98,8 +97,8 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
           {r.with ? <span className="nm-rorb" style={{ margin: -Math.round(size / 8) }}><MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span>
-            : ids.length ? <span className="nm-rstk">{front.slice(0, 2).map((id, i) => <span key={id} style={{ marginLeft: i ? -Math.round(size * 0.35) : 0 }}><FaceImg id={id} size={size} /></span>)}</span>
-            : <span className="grid size-9 place-items-center"><DuetIcon name="chat" size={20} /></span>}
+            : ids.length ? <span className="nm-rstk">{pair.map((id, i) => <span key={id} style={{ marginLeft: i ? -Math.round(size * 0.35) : 0 }}><FaceImg id={id} size={size} /></span>)}</span>
+            : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
               <b className={`min-w-[1.2em] shrink truncate text-[15px] ${u ? "font-bold" : "font-semibold"}`}>{p?.name || r.name}</b>
@@ -134,9 +133,6 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   return (
     <nav aria-label="대화 목록" className="nm-yeta nm-rooms flex flex-col">
       <TempRoomButton />
-      <button type="button" className="mb-1 flex items-center gap-2 rounded-2xl px-3 py-2 text-left text-sm text-muted-foreground hover:bg-duet-tile" onClick={() => openInApp("/play/")}>   {/* 놀이터(형 10-31 「대신 내가 볼수잇게 연결성있게 우리 사무실에 연결만해줭」 · 주소 = viewer/play) */}
-        <span aria-hidden className="grid size-5 place-items-center text-base">✿</span>놀이터
-      </button>
       {tinting ? <RoomColorPick room={tinting} onPeek={(hex) => setPeek({ id: tinting.id, hex })} onClose={() => { setTinting(null); setPeek(null); }} /> : null}
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}

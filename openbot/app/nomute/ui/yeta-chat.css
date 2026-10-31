@@ -69,9 +69,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .yb.me.app { background:#000; color:#fff; }   /* 형이 그록봇 앱에서 친 글(형 10-30 「검정색 말풍선 위에 흰색 글씨」) */
 .ychat .yb.me.app .ycall { background:rgba(255,255,255,.18); }
 /* 글 속 봇 이름(부름 아닌 그냥 이름) = 시안(형 10-30 18:4x 「그냥 명칭일라도 색을 다르게 … 시안색으로」) · 바탕마다 읽히게: 밝은 판 cyan-600 · 어두운 판 cyan-400 · 형 연두 말풍선 cyan-800 · 검정 말풍선 cyan-300 */
-/* 글 속 말 색(형 10-31) = 은회색(파일)·보라네온(PR·#번호·시간) · 규칙 = office-chat TOK_RE */
+/* 글 속 말 색(형 10-31) = 은회색(파일·커밋 번호)·연보라(PR·#번호·시간) · 형 「살짝 더 네온을 가미하면서 강조가 덜되게」 = 채도 낮추고 옅은 빛 · 규칙 = office-chat TOK_RE */
 .ychat .ytok.fl { color:#6b7280; } .dark .ychat .ytok.fl, .ychat .yb.me.app .ytok.fl { color:#c3cad3; }
-.ychat .ytok.gh, .ychat .ytok.tm { color:#7c3aed; } .dark .ychat .ytok.gh, .dark .ychat .ytok.tm, .ychat .yb.me.app .ytok.gh, .ychat .yb.me.app .ytok.tm { color:#b76bff; }
+.ychat .ytok.gh, .ychat .ytok.tm { color:#7560b8; } .dark .ychat .ytok.gh, .dark .ychat .ytok.tm, .ychat .yb.me.app .ytok.gh, .ychat .yb.me.app .ytok.tm { color:#b8a8ec; text-shadow:0 0 8px rgba(184,168,236,.32); }
 .ychat .yb.me:not(.app) .ytok.gh, .ychat .yb.me:not(.app) .ytok.tm { color:#4c1d95; } .ychat .yb.me:not(.app) .ytok.fl, .ychat .yb.me:not(.app) a { color:#374151; }
 .ychat .yname-c { color:#0891b2; }
 .dark .ychat .yname-c { color:#22d3ee; }
@@ -189,12 +189,14 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rorb { flex:none; display:inline-grid; }
 .nm-rstk { flex:none; display:flex; align-items:center; }
 .nm-rstk > span { border-radius:50%; }
+.nm-rempty { flex:none; border-radius:50%; border:1.5px solid var(--glass-line, rgba(255,255,255,.18)); }
 .nm-rstk > span + span { box-shadow:0 0 0 2px var(--duet-surface), 0 0 6px rgba(var(--accent-rgb),.21); }
 .nm-rcrew { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-xs); line-height:1.5; color:color-mix(in srgb, var(--accent) 72%, var(--mut)); }
 :root:not(.dark) .nm-rcrew { color:var(--fg-2); }
 
 /* 부름 목록 선택 줄(형 10-31 「잘 안보이는 선택되엇을때」) = 원본 bg-accent 가 형광이라 흰 글자가 묻힘 → 어두운 판 위 옅은 띠 */
-.bg-popover[role="listbox"] [role="option"][aria-selected="true"], .bg-popover[role="listbox"] [role="option"]:hover { background:rgba(207,255,64,.14); box-shadow:inset 0 0 0 1px rgba(207,255,64,.38); }
+.bg-popover[role="listbox"] [role="option"][aria-selected="true"] { background:rgba(207,255,64,.14); box-shadow:inset 0 0 0 1px rgba(207,255,64,.38); }
+.bg-popover[role="listbox"] [role="option"]:hover { background:rgba(207,255,64,.07); box-shadow:inset 0 0 0 1px rgba(207,255,64,.19); }
 /* 긴 말풍선 = 화면을 넘어가도 얼굴·이름이 머리 밑에 남음(형 10-31 「화면 넘어가면 화자가 나와야함」) */
 .ychat .ymsg .yava { position:sticky; top:46px; z-index:1; }
 .ychat .ymsg .yname { position:sticky; top:46px; z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
@@ -267,8 +269,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 :root:not(.dark) .nm-rnotice b { color:inherit; } :root:not(.dark) .nm-rnotice svg { stroke:currentColor; }
 .nm-rrow.grp.meet { background:rgba(207,255,64,.1); }
 @media (hover:hover) {
-  .nm-rnotice:hover { background:rgba(207,255,64,.16); }
-  .nm-rrow > a:hover, .nm-rrow .nm-sw-row > a:hover { background:rgba(207,255,64,.13); -webkit-backdrop-filter:blur(12px) saturate(1.3); backdrop-filter:blur(12px) saturate(1.3); box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+  .nm-rnotice:hover { background:rgba(207,255,64,.13); }   /* 형 10-31 「두배는 투명하게」 · 바탕 .1 위로 더하는 만큼 절반 */
+  .nm-rrow > a:hover, .nm-rrow .nm-sw-row > a:hover { background:rgba(207,255,64,.065); -webkit-backdrop-filter:blur(12px) saturate(1.3); backdrop-filter:blur(12px) saturate(1.3); box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
 }
 /* 말풍선 글자 사이(형 10-31 「글 간 간격을 조금 더 벌려줘」) */
 .ychat .yb { letter-spacing:.012em; word-spacing:.04em; }

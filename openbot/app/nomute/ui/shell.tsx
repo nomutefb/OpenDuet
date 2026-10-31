@@ -38,7 +38,7 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "gyeol" | "tokens" | "feedback" | "settings" | "sched";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus"; to: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
@@ -51,11 +51,12 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "sns", label: "SNS", icon: "globe", to: "/sns" },   // 에디터 「SNS」 한눈(전체 보기 = #/web)
   { id: "edtool", label: "에디터", icon: "plus", to: "/edtool" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
   { id: "gyeol", label: "결의 방", icon: "sparkle", to: "/gyeol" },
+  { id: "play", label: "놀이터", icon: "sparkle", to: "/play" },   // 형 10-31 「놀이터를 … 서랍메뉴로 아예 빼줘」 · 주소 = viewer/play
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
   { id: "feedback", label: "피드백", icon: "reply", to: "/feedback" },
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
 ];
-const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap", edtool: "/?tool=thumb", gyeol: "/gyeol-room.html", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap", edtool: "/?tool=thumb", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */

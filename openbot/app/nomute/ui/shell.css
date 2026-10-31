@@ -41,7 +41,8 @@ header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradi
 .nm-drawer button { position:relative; display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:var(--r-pill); color:var(--fg-2); font-size:var(--fs-label); font-weight:var(--fw-b);
   background:transparent; border:1px solid transparent; cursor:pointer; text-align:left; transition:transform .28s var(--ease), background-color .34s var(--ease), border-color .34s var(--ease); }
 .nm-drawer button:active { transform:scale(var(--press-s)); }
-.nm-drawer button:hover, .nm-drawer button.on { background:rgba(var(--accent-rgb),.16); border-color:rgba(var(--accent-rgb),.38); }
+.nm-drawer button.on { background:rgba(var(--accent-rgb),.16); border-color:rgba(var(--accent-rgb),.38); }
+.nm-drawer button:hover { background:rgba(var(--accent-rgb),.08); border-color:rgba(var(--accent-rgb),.19); }
 .nm-drawer button .nm-nav-badge { position:static; margin-left:auto; }
 .nm-nav-badge { position:absolute; top:-2px; right:2px; min-width:18px; height:18px; padding:0 5px; display:grid; place-items:center; border-radius:var(--r-pill);
   background:var(--accent); color:var(--bg); font-size:var(--fs-xs); font-weight:var(--fw-x); line-height:1; font-variant-numeric:tabular-nums; }
