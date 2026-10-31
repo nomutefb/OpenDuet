@@ -1,0 +1,17 @@
+/* 서랍 「요약 요청」(./ask.tsx) — YETA 설정 카드 안 · 입력칸 = 입력칸 알약(.ychat-in form) 결 · 칩 = .yset-chip · 보내기 = .ypc-go(프로필 카드 단추) */
+.nm-ask { gap:10px; }
+.nm-ask .nm-ask-badge { margin-left:6px; min-width:18px; height:18px; padding:0 5px; border-radius:var(--r-pill); background:var(--accent); color:var(--bg); font-size:var(--fs-xs); font-weight:var(--fw-x); font-style:normal; display:inline-grid; place-items:center; }
+.nm-ask .nm-ask-ta, .nm-ask .nm-ask-in { width:100%; font:inherit; font-size:var(--fs-body); line-height:var(--lh-base, 1.6); color:var(--fg); background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-l); padding:10px 13px; outline:none; resize:vertical;
+  box-shadow:inset 0 1px 0 var(--glass-line); transition:border-color .45s var(--ease); }
+.nm-ask .nm-ask-in { min-width:0; flex:1; }
+.nm-ask .nm-ask-ta:focus, .nm-ask .nm-ask-in:focus { border-color:color-mix(in srgb, var(--accent) 35%, transparent); }
+.nm-ask .nm-ask-ta::placeholder, .nm-ask .nm-ask-in::placeholder { color:var(--mut); }
+.nm-ask .nm-ask-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.nm-ask .nm-ask-chips { justify-content:flex-start; margin:0; }
+.nm-ask .nm-ask-img { position:relative; width:44px; height:44px; border-radius:var(--r-s, 9px); overflow:hidden; border:1px solid var(--glass-line); }
+.nm-ask .nm-ask-img img { width:100%; height:100%; object-fit:cover; display:block; }
+.nm-ask .nm-ask-img button { position:absolute; top:-2px; right:-2px; width:18px; height:18px; border-radius:50%; border:0; background:rgba(0,0,0,.6); color:#fff; font-size:12px; line-height:1; cursor:pointer; }
+.nm-ask .nm-ask-note { font-size:var(--fs-sm, 12px); padding:6px 10px; border-radius:var(--r-s, 9px); border:1px solid var(--glass-line); background:var(--glass); }
+.nm-ask .nm-ask-note.ok { color:var(--accent); } .nm-ask .nm-ask-note.err { color:#ff8a8a; }
+.nm-ask .nm-ask-acts { margin-top:2px; justify-content:flex-end; }
+.nm-ask .ypc-go:disabled { opacity:.5; }

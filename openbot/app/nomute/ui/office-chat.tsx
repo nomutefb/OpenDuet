@@ -536,7 +536,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const all = msgs.data?.messages || [];
   const meet = room === MEET;
   const items = useMemo(() => (meet ? flatView(all) : hyungView(all, r)), [all, r, meet]);
-  const typing = useMemo(() => typingOf(all, r, bots, list, reads).filter((n) => n !== draft?.who), [all, r, bots, list, reads, draft?.who]);   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
+  const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 30분)은 시각으로 정해져서 새 글이 없어도 다시 셈
+  const typing = useMemo(() => typingOf(all, r, bots, list, reads).filter((n) => n !== draft?.who), [all, r, bots, list, reads, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
+  useEffect(() => { if (!typing.length) return; const t = setInterval(() => setTick((x) => x + 1), 20e3); return () => clearInterval(t); }, [typing.length]);
   // 머리 등불 구슬(보조 02 PR 1489) = 원본 useChatOrb 재료 · 듣는 중 = 형이 글칸에 씀 · 일하는 중 = 윈터에게 보낸 형 글 뒤 윈터 답 전(30분 안) · 서버 「깸」 칸은 뜻이 달라 안 씀(office-orb.md)
   const winterWorking = useMemo(() => {
     const toW = (m: Msg) => m.kind === "human" && (r?.with === WINTER_WHO || (m.mention || []).includes(WINTER_WHO) || Object.values(m.alias || {}).some((v) => Array.isArray(v) && v.includes(WINTER_WHO)));
@@ -764,7 +766,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className="yname">{typing.map((n) => nmOf(list, n)).join("·")} 작업 중 · {WORK[Math.floor(Date.now() / 60e3) % WORK.length]}…</div>
+                <div className="yname">{typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}{typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 작업 중 · {WORK[Math.floor(Date.now() / 60e3) % WORK.length]}…</div>
                 <div className="yb ai"><span className="ytdots"><i /><i /><i /></span></div>
               </div>
             </div>
