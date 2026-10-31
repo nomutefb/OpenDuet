@@ -13,6 +13,7 @@ import { office } from "../data/office";
 import { usePeople } from "./faces";
 import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
+import { EnterKeyRow } from "./enter-key";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
 import { StandingInstructions } from "@/components/settings/standing-instructions";   // 원본 설정의 「공통 지시」(routes/_authed/settings/index.tsx) — 빠뜨리지 않기(윈터 10-31 「지금 SettingsIndex 항목을 그대로 옮겨 담기」)
@@ -70,6 +71,8 @@ export function YetaSettings() {
           <PushRow />
           <div className="yset-sec">글꼴</div>
           <ChatFontRows />
+          <div className="yset-sec">입력</div>
+          <EnterKeyRow />
           <div className="yset-sec">상태</div>
           {row("health", "data", "점검표", "서버 문·지킴이 연결·박동", <NomuteHealth />,
             health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}

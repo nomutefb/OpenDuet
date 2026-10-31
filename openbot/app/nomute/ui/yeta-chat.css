@@ -198,8 +198,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rmore { right:52px; }
 @media (hover:none) { .nm-rmore { display:none; } }   /* 폰 = 줄을 길게 눌러 메뉴 · ⋯ 없음(형 10-31 「터치만 해도 … 메뉴」) */
 .nm-room-back { position:absolute; top:calc(env(safe-area-inset-top, 0px) + 6px); left:6px; z-index:54; display:grid; place-items:center; width:40px; height:40px; border:0; background:none; color:var(--fg); cursor:pointer; filter:drop-shadow(0 1px 4px rgba(0,0,0,.7)); }
-.nm-rooms { position:relative; } .nm-repair { position:absolute; top:2px; right:4px; z-index:1; display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 12px; border:1px solid var(--glass-line); border-radius:999px; background:none; color:var(--mut); font-size:13px; cursor:pointer; }
-@media (hover:hover) { .nm-repair:hover { background:rgba(207,255,64,.13); color:var(--fg); } }
+.nm-rooms { position:relative; } .nm-repair { position:absolute; top:0; right:0; z-index:1; display:inline-flex; align-items:center; gap:6px; border:0; background:none; cursor:pointer; }   /* 형 10-31 「도형 없애고 글만」 · 왼쪽 임시 단톡방과 같은 글자 */
 .nm-rrow { border-top:1px solid var(--glass-line); }
 .nm-rrow:first-child { border-top:none; border-radius:var(--r-l) var(--r-l) 0 0; }
 .nm-rrow:last-child { border-radius:0 0 var(--r-l) var(--r-l); }
@@ -288,7 +287,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 
 
 /* 목록 시그니처 색(형 10-31) · 공지 = 시그니처 색 · 회의실 = 공용 공간이라 시그니처 색에 투명도 · 호버 = 시그니처 색 유리 */
-.nm-rnotice { display:flex; align-items:center; gap:8px; width:100%; margin-bottom:4px; padding:8px 12px; border:1px solid rgba(207,255,64,.28); border-radius:16px; background:rgba(207,255,64,.1); font-size:14px; text-align:left; cursor:pointer; }
+.nm-rnotice { display:flex; align-items:center; gap:8px; width:100%; margin-bottom:6px; padding:8px 12px; border:1px solid rgba(207,255,64,.28); border-radius:16px; background:rgba(207,255,64,.1); font-size:14px; text-align:left; cursor:pointer; }
 .nm-rnotice svg { flex:none; fill:none; stroke:var(--accent, #CFFF40); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .nm-rnotice b { color:var(--accent, #CFFF40); }
 :root:not(.dark) .nm-rnotice b { color:inherit; } :root:not(.dark) .nm-rnotice svg { stroke:currentColor; }

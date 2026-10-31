@@ -71,6 +71,11 @@ export const PATCH: Record<string, [string, string][]> = {
     ['aria-label="More message options unavailable"', 'aria-label="글 꾸미기 없음"'],
     ['aria-label="Message"', 'aria-label="글"'],
     ['aria-label="Message"', 'aria-label="글"'],
+    // 엔터 = 줄바꿈이 기본 · 설정에서 보내기로(형 10-31 · ./ui/enter-key.tsx) · 입력칸 둘 · 앞에 줄바꿈까지 넣어 서로 안 겹침
+    ['import { PromptArea, type PromptAreaHandle } from "prompt-area";', 'import { PromptArea, type PromptAreaHandle } from "prompt-area";\nimport { shiftSend, useEnterSends } from "@nomute/ui/enter-key";'],
+    ['  const promptAreaRef = useRef<PromptAreaHandle>(null);', '  const promptAreaRef = useRef<PromptAreaHandle>(null);\n  const enterSends = useEnterSends();'],
+    ['\n                  onSubmit={submitDraft}', '\n                  onKeyDown={(e) => shiftSend(e, enterSends, () => void submitDraft(value))}\n                  submitOnEnter={enterSends}\n                  onSubmit={submitDraft}'],
+    ['\n              onSubmit={submitDraft}', '\n              onKeyDown={(e) => shiftSend(e, enterSends, () => void submitDraft(value))}\n              submitOnEnter={enterSends}\n              onSubmit={submitDraft}'],
   ],
   // 입력칸 부름 목록 = 「@」(예약) + 「!」(바로 깨움 · 사무실 말 · 형 10-30 「호출시 대화에 쓰면 리스트 안뜨는 것」) — 같은 이 목록 · 고르면 「!이름」 글
   "app/src/components/channels/composer/triggers.ts": [

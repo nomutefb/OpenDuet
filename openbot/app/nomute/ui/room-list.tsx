@@ -146,8 +146,8 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     <nav aria-label="대화 목록" className="nm-yeta nm-rooms flex flex-col">
       <TempRoomButton />
       {(() => { const rp = ((rooms.data || []) as Room[]).find((x) => x.id === REPAIR), n = rp ? Math.max(0, count(rp)) : 0; return rp ? (
-        <button type="button" className="nm-repair" aria-label={n ? `수리 접수 · 안 읽은 글 ${n}개` : "수리 접수"} onClick={() => { enterRoom(REPAIR); onOpen?.(); void nav({ to: "/channels/$channelId", params: { channelId: REPAIR } }); }}>
-          <DuetIcon name="wrench" size={15} /><span>수리 접수</span>{n > 0 ? <b className="nm-rcount">{n > 99 ? "99+" : n}</b> : null}
+        <button type="button" className="nm-repair rounded-2xl px-3 py-2 text-sm text-muted-foreground hover:bg-duet-tile" aria-label={n ? `수리 접수 · 안 읽은 글 ${n}개` : "수리 접수"} onClick={() => { enterRoom(REPAIR); onOpen?.(); void nav({ to: "/channels/$channelId", params: { channelId: REPAIR } }); }}>
+          <span>수리 접수</span>{n > 0 ? <b className="nm-rcount">{n > 99 ? "99+" : n}</b> : null}
         </button>
       ) : null; })()}
       {tinting ? <RoomColorPick room={tinting} onPeek={(hex) => setPeek({ id: tinting.id, hex })} onClose={() => { setTinting(null); setPeek(null); }} /> : null}
