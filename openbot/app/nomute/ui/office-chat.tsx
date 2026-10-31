@@ -826,7 +826,6 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             const submittedReply = reply;
             const text = raw && submittedReply ? `↩ ${submittedReply.who}: ${submittedReply.line}\n${raw}` : raw;
             if (text.length > 8000) { setErr("8,000자 넘음 — 나눠서 보내 줘"); throw new Error("too long"); }
-            if (attached.length && !r?.with && !r?.temp && !list.some((p) => p.kind === "bot" && (text.includes(`@${p.who}`) || text.includes(`!${p.who}`)))) { setErr("단체방 첨부 = 받을 봇을 @ 로 골라 줘(1:1 방은 그 봇)"); throw new Error("no bot"); }
             setErr("");
             try {
               if (attached.length) {
