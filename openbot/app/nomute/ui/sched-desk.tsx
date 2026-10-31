@@ -57,25 +57,40 @@ export function SchedDesk() {
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const [who, setWho] = useState(""), [openF, setOpenF] = useState(""), [openR, setOpenR] = useState(""), [tab, setTab] = useState("bot");
   const [ask, setAsk] = useState<{ q: SchedQ; r: SchedSetRes } | null>(null), [msg, setMsg] = useState("");
+  // 바꾸기 진행(형 10-31 「전송 게이지 차고 체크 된 다음 버튼이 있고, 그 다음에 빙글빙글 쭉 하다가 체크 뜨면」) = 옛 에디터 .go 상태 계승 — fill 전송 · ok ✓ · wait 시계 기다림 · done ✓ · late 2분 넘음
+  const [save, setSave] = useState<{ q: SchedQ; stage: "fill" | "ok" | "wait" | "done" | "late"; sha: string } | null>(null);
   const [vals, setVals] = useState<Record<string, string>>({});
   useEffect(() => { setVals({}); }, [d?.sha]);
   const go = useMutation({
     mutationFn: ({ q, dry }: { q: SchedQ; dry: boolean }) => office<SchedSetRes>("schedule/set", { method: "POST", body: JSON.stringify({ at: q.at, key: q.key, field: q.field, value: q.value, sha: d?.sha, dry }) }),
+    onMutate: ({ q, dry }) => { if (!dry) setSave({ q, stage: "fill", sha: "" }); },
     onSuccess: (r, { q, dry }) => {
-      if (r.same) { setAsk(null); setMsg(`이미 ${cfVal(q.field, q.value)}이야`); return; }
+      if (r.same) { setAsk(null); setSave(null); setMsg(`이미 ${cfVal(q.field, q.value)}이야`); return; }
       if (dry) { setAsk({ q, r }); setMsg(""); return; }
-      setAsk(null);
-      setMsg(`바뀜 · ${q.label} ${cfVal(q.field, r.from)} → ${cfVal(q.field, r.to)} · 시계가 받으면 여기 뜰게`);
+      setSave({ q, stage: "ok", sha: String((r as { sha?: string }).sha || "") });
+      setMsg("");
       void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] });
     },
     onError: (e) => {
       setAsk(null);
+      setSave(null);
       const m = e instanceof Error ? e.message : String(e);
       setMsg(/changed/.test(m) ? "다른 데서 바뀌었어. 새 표를 읽었으니 다시 골라 줘" : m);
       if (/changed/.test(m)) void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] });
     },
   });
-  const prep = (q: SchedQ) => go.mutate({ q, dry: true });
+  const prep = (q: SchedQ) => { setSave(null); go.mutate({ q, dry: true }); };
+  const got = d?.clock_got as { got?: boolean; sha?: string } | undefined;
+  useEffect(() => {
+    if (save?.stage === "ok") { const t = setTimeout(() => setSave((s) => s && { ...s, stage: "wait" }), 700); return () => clearTimeout(t); }
+    if (save?.stage === "wait") {
+      const poll = setInterval(() => void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] }), 3000), late = setTimeout(() => setSave((s) => s && { ...s, stage: "late" }), 120_000);
+      return () => { clearInterval(poll); clearTimeout(late); };
+    }
+    if (save?.stage === "done") { const t = setTimeout(() => { setSave(null); setAsk(null); }, 2600); return () => clearTimeout(t); }
+    return undefined;
+  }, [save?.stage, qc]);
+  useEffect(() => { if (save?.stage === "wait" && got?.got && (!save.sha || got.sha === save.sha)) setSave((s) => s && { ...s, stage: "done" }); }, [save?.stage, save?.sha, got?.got, got?.sha]);
   if (!d) return <p className="p-6 text-sm text-muted-foreground">{s.isError ? s.error.message : "표 읽는 중"}</p>;
   const hasForks = !!d.forks?.length;
   const forks: SchedFork[] = hasForks ? d.forks! : [{ id: "", name: "아직 안 나눔", on: true }];
@@ -84,18 +99,32 @@ export function SchedDesk() {
   const sel = botOf(who);
   const face = (b?: { who: string }, size = 28) => { const p = list.find((x) => x.who === b?.who); return <MicOrb size={size} id={idOf(b?.who || "", list)} tint={ringOf(p)} />; };
   const nameOf = (b?: { who: string }) => list.find((x) => x.who === b?.who)?.name || b?.who || "";
+  const say = (f: SchedQ["field"], v: unknown) => (f === "when" && Array.isArray(v) ? cronKo(v.map(String)) : cfVal(f, v as never));   // 언제 = 사람 말(cron 글자 안 보임)
+  /** 바꾸기 확인·진행 = 누른 그 줄 바로 아래(형 10-31 「바로 그 창 아래에 떠야 안헷갈려가까이에」) */
+  const bar = (key: string) => {
+    const a = ask && ask.q.key === key ? ask : null, sv = save && save.q.key === key ? save : null;
+    if (!a && !sv) return null;
+    const tick = <svg className="gck" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 13l4 4 10-10" /></svg>;
+    return (
+      <div className="nm-sched-ask" role={sv ? "status" : "alertdialog"} aria-label="바꾸기 전 확인">
+        {a ? (
+          <span className="min-w-0 flex-1">{a.q.label} {CF_KO[a.q.field]}: {say(a.q.field, a.r.from)} → <b>{say(a.q.field, a.r.to)}</b>
+            {a.r.preview ? <small>다음 깸 {a.r.preview.next_at ? nextShort(a.r.preview.next_at) : "없음"} · 하루 {a.r.preview.day_max}번</small> : null}
+          </span>
+        ) : <span className="min-w-0 flex-1">{sv?.q.label}</span>}
+        {!sv ? <button type="button" className="nm-sched-go" disabled={go.isPending} onClick={() => go.mutate({ q: a!.q, dry: false })}>바꾸기</button> : null}
+        {!sv ? <button type="button" className="nm-sched-chip" onClick={() => setAsk(null)}>취소</button> : null}
+        {sv?.stage === "fill" ? <span className="nm-sched-go firing">보내는 중</span> : null}
+        {sv?.stage === "ok" ? <span className="nm-sched-go okdone" aria-label="저장됨">{tick}</span> : null}
+        {sv?.stage === "wait" ? <span className="nm-sched-wait"><i className="nm-sched-spin" aria-hidden />시계 기다리는 중</span> : null}
+        {sv?.stage === "done" ? <span className="nm-sched-go okdone">{tick}시계 받음</span> : null}
+        {sv?.stage === "late" ? <button type="button" className="nm-sched-chip" onClick={() => { setSave(null); setAsk(null); }}>시계가 아직 안 받았어 · 닫기</button> : null}
+      </div>
+    );
+  };
   return (
     <div className="nm-sched nm-yeta mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-28 pt-1">
-      {ask ? (
-        <div className="nm-sched-ask" role="alertdialog" aria-label="바꾸기 전 확인">
-          <span className="min-w-0 flex-1">{ask.q.label} {CF_KO[ask.q.field]}: {cfVal(ask.q.field, ask.r.from)} → <b>{cfVal(ask.q.field, ask.r.to)}</b>
-            {ask.r.preview ? <small>다음 깸 {ask.r.preview.next_at ? nextShort(ask.r.preview.next_at) : "없음"} · 하루 {ask.r.preview.day_max}번</small> : null}
-          </span>
-          <button type="button" className="nm-sched-go" disabled={go.isPending} onClick={() => go.mutate({ q: ask.q, dry: false })}>바꾸기</button>
-          <button type="button" className="nm-sched-chip" onClick={() => setAsk(null)}>취소</button>
-        </div>
-      ) : null}
-      {msg ? <p className="text-sm" role="status">{msg}{d.clock_got?.got ? " · 시계 받음" : ""}</p> : null}
+      {msg ? <p className="text-sm" role="status">{msg}</p> : null}
       {d.runners?.jobs.length ? (
         <div className="flex flex-wrap gap-1" role="group" aria-label="갈래">
           {[{ id: "bot", name: "봇" }, ...d.runners.groups].map((g) => {
@@ -127,6 +156,7 @@ export function SchedDesk() {
           </div>
         </div>
       ) : null}
+      {sel ? bar(sel.bot) : null}
       <ul className="nm-sched-tree">
         {forks.map((f) => {
           const rs = rsOf(f);
@@ -141,6 +171,7 @@ export function SchedDesk() {
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d={on ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} /></svg>
                 </button>
               </div>
+              {bar(f.id)}
               {on ? (
                 <ul className="nm-sched-tines">
                   {hasForks && can && !f.common && vals[`fork|${f.id}`] === undefined ? (
@@ -164,6 +195,7 @@ export function SchedDesk() {
                           </button>
                           <span className="nm-sched-end" title={`끝 = ${nameOf(b)} ! 훅 하나`}>{face(b)}<i>!</i></span>
                         </div>
+                        {bar(r.id)}
                         {wide ? (
                           <div className="nm-sched-rt">
                             <WhenPick r={r} can={can} busy={go.isPending} send={(v) => prep({ at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` })} />
