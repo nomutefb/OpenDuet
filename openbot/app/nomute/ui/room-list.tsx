@@ -10,6 +10,7 @@ import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
+import { TempRoomButton, tempLeft } from "./temp-room";
 import { listWhen } from "./when";
 
 export const EVERYTHING_LINE = "형 · 윈터 · 봇 다 같이";
@@ -89,6 +90,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
               {p?.mark ? <span aria-hidden className="shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">단톡 {crew.length}</span> : null}
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
+              {r.temp && r.exp ? <span className="shrink-0 text-[11px] text-muted-foreground">{tempLeft(r.exp)}</span> : null}
               <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">{listWhen(r.last_ts)}</span>
             </span>
             {!r.with && !slim && crew.length ? <span className="nm-rcrew">{crew.join(" · ")}</span> : null}
@@ -113,6 +115,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
 
   return (
     <nav aria-label="대화 목록" className="nm-yeta nm-rooms flex flex-col">
+      <TempRoomButton />
       {notice?.text ? (
         <button type="button" className="mb-1 flex items-start gap-2 rounded-2xl bg-amber-500/10 px-3 py-2 text-left text-sm" aria-expanded={noticeOpen} onClick={() => setNoticeOpen((v) => !v)}>
           <span aria-hidden>📌</span>
