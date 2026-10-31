@@ -485,11 +485,39 @@ function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   return <><Said m={m} nre={nre} /><Missed m={m} /></>;
 }
 
+/** 글 속 같은 출처 그림 주소(https://edit.nomute.kr/…png · /cards/…jpg) → 말풍선 위 사진(형 11-01 08:48 「뉴스 요약한게 섬네일같은거 여기 올리면 내가 사진을 못보더라」 ·
+ *  「그게 나한테 그리고 너희끼리 잘 보이게」) · 다른 출처 = 링크 그대로(로그인·추적 0) · 누르면 크게(zoomImage) */
+const PATH_IMG_RE = /(?:^|[\s(「])(\/(?:cards|office|viewer|api\/office)\/[^\s<>"'「」()]+\.(?:png|jpe?g|gif|webp|avif))(?=$|[\s)」.,])/gi;
+function textPhotos(text: string): string[] {
+  const out: string[] = [];
+  for (const u of text.match(URL_RE) || []) {
+    try { const x = new URL(u); if ((x.origin === location.origin || x.hostname === "edit.nomute.kr") && IMG_RE.test(x.pathname)) out.push(x.pathname + x.search); } catch { /* 주소 아님 */ }
+  }
+  for (const mm of text.matchAll(PATH_IMG_RE)) out.push(mm[1]);
+  return [...new Set(out)].slice(0, 4);
+}
+function TextPhotos({ urls }: { urls: string[] }) {
+  return (
+    <div className="yfiles flex flex-col items-start gap-2">
+      {urls.map((u) => (
+        <a key={u} href={u} target="_blank" rel="noopener" title="누르면 크게" className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); zoomImage(u, u.split("/").pop() || ""); }}>
+          <img src={u} alt="" loading="lazy" className="block max-h-60 max-w-[240px] object-cover" onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }} />
+        </a>
+      ))}
+    </div>
+  );
+}
+/** 그록봇이 붙인 그림 = 사무실엔 「[user-attachment] ""」 글자만 옴(파일 0 · 빠르 11-01 08:5x 잼) → 빈 글 대신 「그림이 안 넘어옴」을 보여 형이 묻게 */
+const LOST_ATTACH_RE = /^\s*\[user-attachment\]\s*(?:""|“”)?\s*$/;
+
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
+  if (LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">🖼 그림을 붙였는데 사무실로 안 넘어왔어</span>;
+  const pics = m.files?.length ? [] : textPhotos(text);
   if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
-  return <Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
+  const said = <Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
+  return pics.length ? <><TextPhotos urls={pics} />{said}</> : said;
 }
 
 /** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선 / 시각] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 / 시각] · 시각 = 말풍선 밖 아래(.ybw · 형 글 왼쪽 · 상대 글 오른쪽) ·
