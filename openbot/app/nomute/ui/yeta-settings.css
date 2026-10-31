@@ -76,3 +76,11 @@
 .yeta-set .yset-grp > .yset-open { padding:2px 14px 12px; }
 .yeta-set.yset-short .yset-grp > .yset-item { min-height:65px; }   /* 서랍 = 설명 없는 한 줄 · 높이는 설정 행과 같게 */
 /* 10-31 15:1x: 「보탬 2」(details.yset-grp 접힘 묶음 · yset-pin 고정 제목) 뺌 — 형 「설정 예전 예타 모습으로」 = 섹션 라벨 + 행 평면(09:41 꼴) · 되살릴 땐 git 이력 dac3f2b */
+
+/* 칩(요약 요청 프리셋 · 링크 우선 · 사진) — 쓰는 곳은 있는데 꼴이 어디에도 없었음(봄 11-01) · 유리 알약 · 켬 = 강조색 */
+.yeta-set .yset-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.yeta-set .yset-chip { appearance:none; border:1px solid var(--glass-line); background:var(--glass); color:var(--fg, inherit); border-radius:var(--r-pill); padding:5px 11px; font-size:var(--fs-xs); font-weight:var(--fw-b); line-height:1.2; cursor:pointer; transition:transform .2s var(--ease), background .2s var(--ease), color .2s var(--ease); }
+.yeta-set .yset-chip:active { transform:scale(var(--press-m, .92)); }
+.yeta-set .yset-chip.on { background:rgba(var(--accent-rgb),.9); color:var(--bg); border-color:transparent; }
+.yeta-set .yset-chip:disabled { opacity:.45; cursor:default; }
+@media (prefers-reduced-motion: reduce) { .yeta-set .yset-chip { transition:none; } }

@@ -41,18 +41,23 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
-export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu"; to: string }[] = [
+export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar"; to: string; desc?: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 네비 4번(서랍 목록엔 안 넣음 · swap/tab-bar.tsx)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
-  { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy" },   // 에디터 「LEGACY(레거시)」 = 수집함(에디터 /?tab=scrap 그대로 품음 · 옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x)
-  { id: "ask", label: "요약 요청", icon: "chat", to: "/ask" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
-  { id: "news", label: "뉴스 요약", icon: "page", to: "/news" },   // 에디터 「뉴스 요약」 목록(누르면 그 기사 요약 = #/web)
-  { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
-  { id: "sns", label: "SNS", icon: "globe", to: "/sns" },   // 에디터 「SNS」 한눈(전체 보기 = #/web)
-  { id: "edtool", label: "에디터", icon: "plus", to: "/edtool" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
+  { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(에디터 /?tab=scrap 그대로 품음 · 옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x)
+  { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 보내기" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
+  { id: "news", label: "뉴스 요약", icon: "page", to: "/news", desc: "최신 목록" },   // 에디터 「뉴스 요약」 목록(누르면 그 기사 요약 = #/web)
+  { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan", desc: "한눈" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
+  { id: "sns", label: "SNS", icon: "globe", to: "/sns", desc: "한눈" },   // 에디터 「SNS」 한눈(전체 보기 = #/web)
+  { id: "edtool", label: "에디터", icon: "plus", to: "/edtool", desc: "카드 제작·영상 편집·유튜브" },
+  // 에디터 첫 화면 탭·도구를 서랍 칸마다 바로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘 / 지금 저 기능이 완전히 유지되어야해」 · 공통/문서/2026-11-01-서랍-에디터-이식/안.md)
+  { id: "feed", label: "뉴스 전체", icon: "page", to: "/feed", desc: "필터·검색·대기열·기사 상세" },
+  { id: "askfull", label: "요약 요청 · 에디터 판", icon: "chat", to: "/askfull", desc: "링크 판별·초안 보존" },
+  { id: "trend", label: "SNS 전체", icon: "globe", to: "/trend", desc: "섹션 전부·구독 채널·새로 수집" },
+  { id: "chanfull", label: "채널 전체", icon: "dashboard", to: "/chanfull", desc: "차트·게시물·결의 보드" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
   { id: "gyeol", label: "결의 방", icon: "sparkle", to: "/gyeol" },
   { id: "play", label: "놀이터", icon: "sparkle", to: "/play" },   // 형 10-31 「놀이터를 … 서랍메뉴로 아예 빼줘」 · 주소 = viewer/play
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
@@ -60,7 +65,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
-const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap", edtool: "/?tool=thumb", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap", edtool: "/?tool=thumb", feed: "/?tab=feed", askfull: "/?tool=ask", trend: "/?tab=trend", chanfull: "/?tab=chan", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -134,7 +139,11 @@ export function NomuteShell({ children }: { children: ReactNode }) {
 
   const show = (id: Pane, node: ReactNode) =>
     open.has(id) ? <section key={id} className={`nm-pane ${pane === id ? "on" : ""}`} aria-hidden={pane !== id} inert={pane !== id || undefined}>{node}</section> : null;
-  const closeModal = () => void nav({ to: paneHref(base, room) });
+  const closeModal = () => {   // 서랍에서 연 칸의 「<」 = 서랍으로(봄 11-01 · 전엔 아래 판(홈·대화방)으로 갔음) · 표지 = drawer-page 가 누를 때 남김
+    let back = false;
+    try { back = !!modal && modal !== "drawer" && sessionStorage.getItem("nm-from-drawer") === modal; sessionStorage.removeItem("nm-from-drawer"); } catch { /* 저장 못 쓰면 옛 길 */ }
+    void nav({ to: back ? "/drawer" : paneHref(base, room) });
+  };
   const closeWeb = () => {   // 앞 길이 앱 안이면 뒤로(앞 판·모달 그대로) · 처음부터 #/web 이면 깔린 판으로
     if (((history.state as { __TSR_index?: number } | null)?.__TSR_index ?? 0) > 0) history.back();
     else void nav({ to: under ? MODALS.find((x) => x.id === under)!.to : paneHref(base, room) });

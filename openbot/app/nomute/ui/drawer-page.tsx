@@ -13,11 +13,15 @@ import { useBrief } from "./today";
 import { YICO } from "./yeta-icons";
 import "./yeta-settings.css";   // 설정과 같은 판(형 11-01 「톤이 맞아야되거든」 · .yset-part · .yset-grp · .yset-item)
 
+// 묶음 = 에디터 독 차례(뉴스 → 모으기 → 만들기)를 서랍으로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘」 · 한눈 = 앱 네이티브 · 전체 = 에디터 화면 그대로라 기능이 안 빠짐)
 const PARTS: { name: string; ids: Modal[] }[] = [
-  { name: "일", ids: ["tasks", "runner", "edtool"] },
-  { name: "뉴스·채널", ids: ["legacy", "ask", "news", "chan", "sns"] },
+  { name: "일", ids: ["tasks", "runner"] },
+  { name: "뉴스", ids: ["news", "feed", "ask", "askfull"] },
+  { name: "모으기", ids: ["legacy", "sns", "trend", "chan", "chanfull"] },
+  { name: "만들기", ids: ["edtool"] },
   { name: "놀기·살피기", ids: ["play", "tokens", "feedback"] },
 ];
+const go = (id: Modal) => { try { sessionStorage.setItem("nm-from-drawer", id); } catch { /* 못 쓰면 「<」 = 옛 길 */ } };
 
 export function DrawerPage() {
   const nav = useNavigate(), inbox = useQuery(approvalInboxOptions()), tasks = useQuery(taskListQueryOptions());
@@ -40,9 +44,9 @@ export function DrawerPage() {
               </button>
             ) : null}
             {p.ids.map((id) => { const m = MODALS.find((x) => x.id === id)!; return (
-              <button key={id} type="button" className="yset-item" onClick={() => void nav({ to: m.to })}>
+              <button key={id} type="button" className="yset-item" onClick={() => { go(id); void nav({ to: m.to }); }}>
                 <span className="si-ic" aria-hidden><DuetIcon name={m.icon} size={21} /></span>
-                <span className="si-lbl"><span className="si-t">{m.label}</span></span>
+                <span className="si-lbl"><span className="si-t">{m.label}</span>{m.desc ? <span className="si-d">{m.desc}</span> : null}</span>
                 <span className="si-v">
                   {id === "tasks" && waiting > 0 ? <b className="nm-rcount">{waiting > 99 ? "99+" : waiting}</b> : null}
                   <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />
