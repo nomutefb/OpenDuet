@@ -53,7 +53,7 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
       {drawer ? <button type="button" aria-label="서랍 닫기" className="nm-drawer-veil" onClick={() => setDrawer(false)} /> : null}
       {drawer ? (
         <div className="nm-drawer" role="menu" aria-label="서랍" style={{ right }}>
-          {MODALS.map((m) => (
+          {MODALS.filter((m) => m.id !== "sched").map((m) => (
             <button key={m.id} type="button" role="menuitem" className={modal === m.id ? "on" : undefined} onClick={() => { setDrawer(false); void navigate({ to: m.to }); }}>
               <DuetIcon name={m.icon} size={19} />
               <span>{m.label}</span>
@@ -72,9 +72,13 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
             </button>
           );
         })}
-        <button aria-expanded={drawer} aria-label={waiting ? `서랍, 할 일 ${waiting}개 기다림` : "서랍"} className={drawer || modal ? "on" : undefined} onClick={() => setDrawer((v) => !v)} type="button">
-          <DuetIcon name="menu" size={20} stroke={drawer || modal ? 2.1 : 1.9} />
-          <span>{modal ? MODALS.find((m) => m.id === modal)?.label : "서랍"}</span>
+        <button aria-current={modal === "sched" && !drawer ? "page" : undefined} aria-label="스케줄" className={modal === "sched" && !drawer ? "on" : undefined} onClick={() => void navigate({ to: "/sched" })} type="button">
+          <DuetIcon name="calendar" size={20} stroke={modal === "sched" ? 2.1 : 1.9} />
+          <span>스케줄</span>
+        </button>
+        <button aria-expanded={drawer} aria-label={waiting ? `서랍, 할 일 ${waiting}개 기다림` : "서랍"} className={drawer || (modal && modal !== "sched") ? "on" : undefined} onClick={() => setDrawer((v) => !v)} type="button">
+          <DuetIcon name="menu" size={20} stroke={drawer || (modal && modal !== "sched") ? 2.1 : 1.9} />
+          <span>{modal && modal !== "sched" ? MODALS.find((m) => m.id === modal)?.label : "서랍"}</span>
           {badge(waiting)}
         </button>
       </nav>

@@ -20,6 +20,7 @@ import { useChannelEvents } from "@/lib/channels/use-channel-events";
 import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
+import { SchedDesk } from "./sched-desk";
 import { TabBar } from "../swap/tab-bar";
 import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
@@ -37,10 +38,11 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "gyeol" | "tokens" | "feedback" | "settings";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "gyeol" | "tokens" | "feedback" | "settings" | "sched";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus"; to: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
+  { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 네비 4번(서랍 목록엔 안 넣음 · swap/tab-bar.tsx)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy" },   // 에디터 「LEGACY(레거시)」 = 수집함(에디터 /?tab=scrap 그대로 품음 · 옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
@@ -169,6 +171,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><RunnerScreen /></div>
+                  : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
                   : M.id === "ask" ? <div className="nm-scroll"><AskModal /></div>
                   : M.id === "news" ? <div className="nm-scroll"><NewsModal /></div>
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>

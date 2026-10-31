@@ -270,3 +270,22 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 }
 /* 말풍선 글자 사이(형 10-31 「글 간 간격을 조금 더 벌려줘」) */
 .ychat .yb { letter-spacing:.012em; word-spacing:.04em; }
+
+/* 스케줄(./sched-desk.tsx) = 대화방 목록 꼴 · 켠 칸 = 시그니처 색 */
+.nm-sched-row { display:flex; align-items:center; gap:12px; width:100%; padding:12px; border:0; background:none; color:inherit; text-align:left; cursor:pointer; }
+@media (hover:hover) { .nm-sched-row:hover { background:rgba(207,255,64,.13); } }
+.nm-sched-open { display:flex; flex-direction:column; gap:10px; padding:0 12px 14px 68px; }
+.nm-sched-rt { display:flex; flex-direction:column; gap:6px; padding:10px 0; border-top:1px solid var(--glass-line); }
+.nm-sched-rt b { font-size:14px; } .nm-sched-rt small { font-size:12px; color:var(--mut); }
+.nm-sched-chip { padding:4px 11px; border:1px solid var(--glass-line); border-radius:999px; background:none; color:inherit; font-size:12px; cursor:pointer; }
+.nm-sched-chip[aria-pressed="true"] { border-color:rgba(207,255,64,.55); background:rgba(207,255,64,.16); font-weight:700; }
+.nm-sched-chip:disabled { cursor:default; }
+.nm-sched-when, .nm-sched-cap label { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--mut); }
+.nm-sched-when input { flex:1; min-width:0; }
+.nm-sched-when input, .nm-sched-cap input { padding:5px 9px; border:1px solid var(--glass-line); border-radius:9px; background:none; color:var(--fg); font-size:12px; font-variant-numeric:tabular-nums; }
+.nm-sched-cap { display:flex; flex-wrap:wrap; gap:14px; padding-top:8px; border-top:1px solid var(--glass-line); }
+.nm-sched-cap input { width:58px; }
+.nm-sched-ask { position:sticky; top:8px; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 12px; border:1px solid rgba(207,255,64,.4); border-radius:16px; background:#232325; color:#fff; font-size:14px; }
+.nm-sched-ask small { display:block; font-size:12px; color:#8B8F8A; }
+.nm-sched-go { padding:6px 14px; border:0; border-radius:999px; background:var(--accent, #CFFF40); color:#161716; font-size:13px; font-weight:700; cursor:pointer; }
+@media (max-width:480px) { .nm-sched-open { padding-left:12px; } }

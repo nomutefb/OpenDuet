@@ -11,7 +11,7 @@ import { t12 } from "./when";
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const hm = (ts?: number | string) => (ts ? t12(typeof ts === "string" ? Date.parse(ts) : ts) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
-function nextShort(ts: number) {
+export function nextShort(ts: number) {
   const d = kst(ts), n = kst(Date.now());
   const dd = Math.round((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate())) / 864e5);
   return dd === 0 ? hm(ts) : dd === 1 ? `내일 ${hm(ts)}` : `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${hm(ts)}`;
@@ -27,7 +27,7 @@ type Kind = { kind: string; delay_max?: number; ttl?: number };
 type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean };
 
 const usePeople = () => useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-const useSched = () => useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), staleTime: 30_000, refetchInterval: 120_000 });
+export const useSched = () => useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), staleTime: 30_000, refetchInterval: 120_000 });
 
 export function NomuteBots() {
   const list = usePeople();
@@ -229,11 +229,13 @@ export function NomuteLink() {
   );
 }
 
-const ST_KO: Record<string, string> = { shadow: "기록만", dry: "시험", live: "켬", off: "꺼짐", "grok-stay": "그록에 둠" };
-const CF_KO: Record<string, string> = { state: "상태", when: "언제", fire_empty: "할 일 없어도 깨움", delay_max: "모아서 기다림", daily_cap: "하루 최대", urgent_reserve: "급한 일 몫" };
+export const ST_KO: Record<string, string> = { shadow: "기록만", dry: "시험", live: "켬", off: "꺼짐", "grok-stay": "그록에 둠" };
+export const CF_KO: Record<string, string> = { state: "상태", when: "언제", fire_empty: "할 일 없어도 깨움", delay_max: "모아서 기다림", daily_cap: "하루 최대", urgent_reserve: "급한 일 몫" };
 const CRON_H = "CRON_TZ=Asia/Seoul ";
-const cronShow = (l?: string[]) => (l || []).map((c) => String(c).replace(CRON_H, "")).join(" ; ");
-const cfVal = (f: string, v: unknown) => (f === "when" ? cronShow(v as string[]) || "—" : f === "fire_empty" ? (v === true ? "켬" : v === false ? "끔" : "—") : f === "state" ? ST_KO[String(v)] || String(v) : v == null ? "—" : String(v));
+export const cronShow = (l?: string[]) => (l || []).map((c) => String(c).replace(CRON_H, "")).join(" ; ");
+export const cfVal = (f: string, v: unknown) => (f === "when" ? cronShow(v as string[]) || "—" : f === "fire_empty" ? (v === true ? "켬" : v === false ? "끔" : "—") : f === "state" ? ST_KO[String(v)] || String(v) : v == null ? "—" : String(v));
+export type SchedQ = Q;
+export type SchedSetRes = SetRes;
 type Q = { at: "routine" | "bot" | "kind"; key: string; field: string; value: unknown; label: string };
 type SetRes = { same?: boolean; from?: unknown; to?: unknown; commit?: string; checked?: boolean; preview?: { next_at?: number; day_max: number; reserve: number; total: number; cap?: number } };
 
