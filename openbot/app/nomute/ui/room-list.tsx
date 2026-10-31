@@ -2,8 +2,8 @@
 //   차례(형 10-31 「대화 목록창에 최신 메세지 도착한 순으로 떠야되고」 · 「그 거보다 우선 기준은 고정핀 순」 · 앞 판 = 안 읽은 방 맨 위) = 고정한 방(회의실 = 늘 고정·맨 위 · 이 기기) → 나머지(최신 글 순) → 숨긴 방(접힘)
 //   같은 차례를 PC 얼굴 띠(ui/shell.tsx)가 씀 = useRoomOrder
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
-//   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 숨기기/보이기
-import { useQuery } from "@tanstack/react-query";
+//   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 알림 켬/끔 · (단톡) 알림 그림 · 숨기기/보이기
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { DuetIcon } from "@/components/duet/icons";
@@ -14,6 +14,7 @@ import { TempDeleteDialog, TempRoomDialog, TempSwipe } from "./temp-room";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
+import { type NotifyState, notifyImage, notifyOn, notifyState } from "../data/notify";
 
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
 const PINS = "nm-office-pins", HIDE = "nm-office-hidden";
@@ -24,6 +25,19 @@ const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, 
 import { enterRoom, roomReadState } from "../data/read-state";
 
 export type Room = OfficeRoom & { unread?: number };
+
+/** 단톡 알림 그림 = 고른 사진 가운데를 192px 네모로(봄 11-01 07:34 「앱이 192px 로 줄인 png/webp dataURL」) · 못 읽는 꼴(HEIC 등)은 img 로 한 번 더 */
+async function shrink192(f: File): Promise<string> {
+  const c = document.createElement("canvas"); c.width = c.height = 192;
+  const draw = (src: CanvasImageSource, w: number, h: number) => { const s = Math.min(w, h); c.getContext("2d")?.drawImage(src, (w - s) / 2, (h - s) / 2, s, s, 0, 0, 192, 192); };
+  try { const b = await createImageBitmap(f); draw(b, b.width, b.height); b.close(); }
+  catch {
+    const url = URL.createObjectURL(f);
+    try { const im = new Image(); im.src = url; await im.decode(); draw(im, im.naturalWidth, im.naturalHeight); } finally { URL.revokeObjectURL(url); }
+  }
+  const webp = c.toDataURL("image/webp", 0.85);
+  return webp.startsWith("data:image/webp") ? webp : c.toDataURL("image/png");
+}
 // 수리 접수 = 단톡방이 아니라 접수처(형 10-31 「회의실 개념 이 아니니까, 따로 위에 뺴줄래?」) · 방은 그대로라 애들 접수는 같음 · 화면만 목록 밖 오른쪽 위 단추
 const REPAIR = "repair";
 
@@ -77,6 +91,19 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, [menu]);
+  // 방 알림(./data/notify.ts · 서버 = 봄) — 서버 답이 없으면(아직 안 올라감 · 못 받음) 메뉴에 알림 칸을 안 보인다(누르면 깨지는 단추 0)
+  const qc = useQueryClient(), notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
+  const [notifyErr, setNotifyErr] = useState(""), pick = useRef<HTMLInputElement>(null), [picking, setPicking] = useState("");
+  const setNotify = async (body: { room: string; on?: boolean | null; image?: string }) => {
+    setMenu(""); setNotifyErr("");
+    try { qc.setQueryData(["nomute", "notify"], notifyState(await office<Partial<NotifyState>>("notify", { method: "POST", body: JSON.stringify(body) }))); }
+    catch (e) { setNotifyErr(`알림 설정을 못 바꿨어 · ${(e as Error).message}`); }
+  };
+  const onPick = async (f?: File) => {
+    const room = picking; setPicking(""); if (pick.current) pick.current.value = "";
+    if (!f || !room) return;
+    try { await setNotify({ room, image: await shrink192(f) }); } catch (e) { setNotifyErr(`사진을 못 읽었어 · ${(e as Error).message}`); }
+  };
   const nav = useNavigate(), [swiped, setSwiped] = useState(""), [editing, setEditing] = useState<Room | null>(null), [deleting, setDeleting] = useState<Room | null>(null);   // 임시방 줄 왼쪽 끌기 = 수정·삭제
 
   const toggle = (k: string, s: Set<string>, set: (s: Set<string>) => void, id: string) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); writeSet(k, n); set(n); setMenu(""); };
@@ -95,6 +122,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     // 단톡 = YETA 꼴(YETA-목록 · 운영자 260725 「단톡환경에서도 프로필이 겹치게」) · 얼굴 둘 겹침 · 마지막에 말한 이가 앞 · 인원 숫자만 · 누구인지 = 방 상단(형 10-31 「인원이 저기 누군지 나올 필욘 없는듯 들가면 확인할 수 잇으면 됨 방 상단에서」)
     const talk = (r.faces || []).map((n) => idOf(n, list)).filter((x) => ids.includes(x)), pair = [...new Set([...talk, ...ids])].slice(0, 2).reverse();   // 형 10-31 「가장최근말한사람이 단톡에 맨 앞, 그리고 그 전에 말한사람이 그 전 이렇게 2개」 · 서버 faces · 뒤에 그린 얼굴이 위 = 뒤집음
     const rc = r.with ? "" : peek?.id === r.id ? peek.hex : r.color || "";
+    const nOn = notifyOn(notify.data, r.id, !!r.with), nImg = r.with ? "" : notifyImage(notify.data, r.id);
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
       <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} data-rc={rc ? "" : undefined} style={rc ? ({ "--rc": rc } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); if (press.current.hit) return; press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」)
@@ -135,6 +163,9 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
             {!r.with && !r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setNaming(r); }}>이름 바꾸기</button> : null}
             {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setEditing(r); }}>수정</button> : null}
             {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" onClick={() => { setMenu(""); setDeleting(r); }}>삭제</button> : null}
+            {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void setNotify({ room: r.id, on: !nOn })}>알림<span className="text-xs text-muted-foreground">{nOn ? "켬" : "끔"}</span></button> : null}   {/* 지금 상태 = 오른쪽 켬/끔 · 누르면 바뀜 */}
+            {notify.data && !r.with ? <button type="button" role="menuitem" className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setPicking(r.id); pick.current?.click(); }}>알림 그림{nImg ? <img src={nImg} alt="" className="size-5 rounded" /> : null}</button> : null}
+            {notify.data && nImg ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void setNotify({ room: r.id, image: "" })}>알림 그림 지우기</button> : null}
             {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(HIDE, hidden, setHidden, r.id)}>{hidden.has(r.id) ? "보이기" : "숨기기"}</button> : null}
           </div>
         ) : null}
@@ -160,6 +191,8 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
       </ul>
       {rooms.isError ? <p className="px-3 py-2 text-sm text-destructive" role="alert">방 목록을 못 받았어. 새로 고쳐 줘.</p> : null}
       {roomReadState.error() ? <p className="px-3 py-2 text-sm text-destructive" role="alert">{roomReadState.error()}</p> : null}
+      {notifyErr ? <p className="px-3 py-2 text-sm text-destructive" role="alert">{notifyErr}</p> : null}
+      <input ref={pick} type="file" accept="image/*" hidden onChange={(e) => void onPick(e.target.files?.[0])} />
       {hid.length ? (
         <>
           <button type="button" className="mt-2 flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground" aria-expanded={hiddenOpen} onClick={() => setHiddenOpen((v) => !v)}>

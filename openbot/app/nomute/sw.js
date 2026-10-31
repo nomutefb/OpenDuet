@@ -79,7 +79,8 @@ self.addEventListener("push", (e) => {
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : "" }; }
   e.waitUntil((async () => {
     if ((await appWins()).some((c) => c.focused && c.visibilityState === "visible")) return;
-    return self.registration.showNotification(d.title || "사무실", { body: d.body || "", icon: "/office-app/icon-192.png", tag: d.tag || "office",
+    // 아이콘 = 서버가 준 d.icon(단톡 알림 그림 · 없으면 보낸 이 얼굴 · 형 11-01 「애들 얼굴 붙여서 각각 오게하고 싶네」 · 봄 서버) · 없으면 앱 아이콘
+    return self.registration.showNotification(d.title || "사무실", { body: d.body || "", icon: d.icon || "/office-app/icon-192.png", tag: d.tag || "office",
       renotify: !!d.renotify, ...(d.vibrate ? { vibrate: d.vibrate } : {}), data: { url: d.url || "/office-app/" }, lang: "ko" });
   })());
 });
