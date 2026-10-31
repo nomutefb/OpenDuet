@@ -219,6 +219,38 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-fab.on .nm-fab-i.at9 { transform:translate(-56px,0) scale(1); transition-delay:.02s; }
 .nm-fab.on .nm-fab-i.at12 { transform:translate(0,-52px) scale(1); transition-delay:.07s; }
 @media (prefers-reduced-motion:reduce) { .nm-fab-main, .nm-fab-main svg, .nm-fab-i { transition:none; } }
+/* 형 결정 단추·모달(./decide-pop.tsx · 형 11-01 08:36 「대화 못록 우하단에 네비게이션 처럼 노트 픽토그램으로 버튼에 개수 … 그 버튼 방향으로 부터의 팝업 모달」) — 꼴 = 위 스피드 다이얼 유리 그대로 · + 단추 바로 위 · 다이얼이 펼쳐지면 비킴 */
+.nm-dec { --sp:cubic-bezier(.34,1.56,.64,1); position:absolute; right:14px; bottom:calc(var(--duet-tab-space,86px) + 8px + 56px); z-index:5; display:grid; place-items:center; width:46px; height:46px; border-radius:50%; background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); color:var(--accent,#CFFF40); box-shadow:0 8px 20px -8px rgba(0,0,0,.6); transition:transform .3s var(--sp), opacity .2s; -webkit-tap-highlight-color:transparent; }
+:root:not(.dark) .nm-dec { background:rgba(255,255,255,.66); border-color:rgba(0,0,0,.1); color:var(--fg); }
+.nm-dec svg { width:20px; height:20px; }
+.nm-dec .nm-rcount { position:absolute; top:-4px; right:-4px; }
+.nm-dec:active { transform:scale(.92); }
+.nm-fab.on ~ .nm-dec { opacity:0; pointer-events:none; transform:scale(.6); }
+.nm-dec-scrim { position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.28); animation:nmDecFade .2s ease-out; }
+.nm-decpop { --sp:cubic-bezier(.34,1.56,.64,1); position:fixed; z-index:41; right:12px; bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 52px); width:min(380px, calc(100vw - 24px)); max-height:min(70vh, 560px); display:flex; flex-direction:column; border-radius:var(--r-l,18px); background:var(--glass-bg, rgba(26,27,26,.86)); border:1px solid var(--glass-line, rgba(255,255,255,.14)); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); box-shadow:0 18px 40px -12px rgba(0,0,0,.6); transform-origin:100% 100%; animation:nmDecIn .36s var(--sp); overflow:hidden; }
+:root:not(.dark) .nm-decpop { background:rgba(255,255,255,.92); border-color:rgba(0,0,0,.1); }
+.nm-decpop header { display:flex; align-items:baseline; gap:8px; padding:12px 12px 8px 14px; border-bottom:1px solid var(--glass-line, rgba(255,255,255,.1)); }
+.nm-decpop header b { font-size:15px; }
+.nm-decpop header span { flex:1; min-width:0; font-size:11px; color:var(--mut, var(--muted-foreground)); }
+.nm-decpop header button { width:28px; height:28px; border-radius:50%; color:var(--mut, var(--muted-foreground)); }
+.nm-decpop ul { overflow-y:auto; overscroll-behavior:contain; padding:4px 0; }
+.nm-decpop li { padding:10px 14px; border-top:1px solid var(--glass-line, rgba(255,255,255,.08)); }
+.nm-decpop li:first-child { border-top:none; }
+.nm-decpop li.ok { opacity:.72; }
+.nm-dec-who { display:flex; align-items:center; gap:6px; font-size:12px; }
+.nm-dec-who span { color:var(--mut, var(--muted-foreground)); font-size:11px; }
+.nm-dec-q { margin:6px 0 8px; font-size:14px; line-height:1.45; font-weight:600; white-space:pre-wrap; }
+.nm-dec-ch { display:flex; flex-wrap:wrap; gap:6px; }
+.nm-dec-ch button { min-height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.18)); font-size:13px; text-align:left; text-transform:none; }   /* 고를 것 글자 그대로(경로·영문이 대문자로 바뀌던 것) */
+.nm-dec-ch button[aria-pressed="true"] { background:var(--accent,#CFFF40); border-color:transparent; color:#111; font-weight:700; }
+.nm-dec-etc { display:flex; gap:6px; margin-top:8px; }
+.nm-dec-etc input { flex:1; min-width:0; height:34px; padding:0 10px; border-radius:10px; border:1px solid var(--glass-line, rgba(255,255,255,.18)); background:transparent; font-size:16px; }
+.nm-dec-etc button { padding:0 12px; border-radius:10px; background:var(--accent,#CFFF40); color:#111; font-weight:700; font-size:13px; }
+.nm-dec-said { margin-top:6px; font-size:12px; color:var(--mut, var(--muted-foreground)); }
+.nm-dec-err { padding:8px 14px; font-size:12px; color:var(--destructive,#f87171); }
+@keyframes nmDecIn { from { opacity:0; transform:scale(.4); } to { opacity:1; transform:scale(1); } }
+@keyframes nmDecFade { from { opacity:0; } }
+@media (prefers-reduced-motion:reduce) { .nm-dec, .nm-decpop, .nm-dec-scrim { animation:none; transition:none; } }
 .nm-rrow { border-top:1px solid var(--glass-line); }
 .nm-rrow:first-child { border-top:none; border-radius:var(--r-l) var(--r-l) 0 0; }
 .nm-rrow:last-child { border-radius:0 0 var(--r-l) var(--r-l); }

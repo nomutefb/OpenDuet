@@ -37,6 +37,7 @@ import { SnsModal } from "./sns";
 import { AskModal } from "./ask";   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomList, useRoomOrder } from "./room-list";
 import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
+import { DecideFab } from "./decide-pop";   // 대화방 우하단 + 위 = 형 결정 노트 단추(형 11-01 08:36)
 import { useWide } from "./side";
 import "./shell.css";
 
@@ -270,6 +271,7 @@ function RoomsPane() {
         <RoomList big />
       </div>
       <RoomFab />
+      <DecideFab />
     </>
   );
 }
