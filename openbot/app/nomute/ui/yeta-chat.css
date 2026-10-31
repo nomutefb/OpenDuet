@@ -182,6 +182,11 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rooms { --rm-panel:rgba(0,0,0,.025); --rm-grp:rgba(0,0,0,.03); --rm-line:rgba(0,0,0,.17); }
 .dark .nm-rooms { --rm-panel:rgba(255,255,255,.035); --rm-grp:rgba(255,255,255,.035); --rm-line:rgba(255,255,255,.2); }   /* 바깥 테두리 = 형 10-31 「외부 대화 목록 테두리가 좀 많이 연하거든? 좀더 진해도 됨」 */
 .nm-rgroup { background:var(--rm-panel); border:1px solid var(--rm-line, var(--glass-line)); border-radius:var(--r-l); }
+/* 서랍 한 화면(./drawer-page.tsx) */
+.nm-dr h2 { margin:0 0 6px 4px; font-size:12px; font-weight:600; color:var(--mut); }
+.nm-dr-i { display:flex; align-items:center; gap:12px; width:100%; min-height:50px; padding:0 14px; border:0; background:none; color:inherit; font-size:15px; text-align:left; cursor:pointer; }
+.nm-dr-i > span { flex:1; min-width:0; } .nm-dr-i > svg:last-child { color:var(--mut); }
+@media (hover:hover) { .nm-dr-i:hover { background:rgba(207,255,64,.065); } }
 /* 방 줄 오른쪽 = 시각 위 · 안 읽은 수 아래(형 10-31) · 숫자 = 앱 글꼴(LEMONMILK)은 동그라미에 세서 기기 고딕 · text-box 로 숫자 높이 기준 가운데 */
 .nm-rside { flex:none; align-self:stretch; display:flex; flex-direction:column; align-items:flex-end; gap:6px; min-width:40px; padding-top:1px; }
 .nm-rcount { display:grid; place-items:center; box-sizing:border-box; min-width:18px; height:18px; padding:0 4px; border-radius:999px; background:var(--accent, var(--primary)); color:var(--bg, var(--primary-foreground)); font:700 10.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-variant-numeric:tabular-nums; text-box:trim-both cap alphabetic; }

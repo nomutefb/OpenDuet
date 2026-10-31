@@ -3,7 +3,6 @@
 //   짐작(빠르): 형 말을 「에디터 네비 칸을 없애고 에디터는 서랍에서」로 읽음 · 「에디터 칸을 누르면 서랍이 열림」으로 읽으면 TABS 에 editor 줄을 되살리고 onClick 을 setDrawer 로(아래 EDITOR_OPENS_DRAWER 주석 줄) — 한 줄 차이
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DuetIcon, type DuetIconName } from "@/components/duet/icons";
 import { approvalInboxOptions } from "@/lib/approvals";
 import { needsInputCount } from "@/lib/tasks/groups";
@@ -32,39 +31,17 @@ export function tabForPath(pathname: string): ShellTab | null {
 
 export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pane | null; modal?: Modal | null; chatTo?: string; current?: ShellTab }) {
   const navigate = useNavigate();
-  const [drawer, setDrawer] = useState(false);
-  const navRef = useRef<HTMLElement>(null);
-  const [right, setRight] = useState(16);   // 서랍 = ≡ 칸 바로 위(네비 오른쪽 끝에 맞춤 · PC 는 네비가 가운데라 화면 끝이 아님)
-  useLayoutEffect(() => { const n = navRef.current, p = n?.offsetParent as HTMLElement | null; if (drawer && n && p) setRight(Math.max(8, p.clientWidth - (n.offsetLeft + n.offsetWidth))); }, [drawer]);
   const inbox = useQuery(approvalInboxOptions());
   const tasks = useQuery(taskListQueryOptions());
   const decide = useBrief().data?.cols.decide.filter((x) => !x.answer).length || 0;   // 형 결정 필요(답 안 한 것) = 할 일 숫자(서랍 안 · ≡ 칸에도)
   const waiting = needsInputCount(tasks.data, inbox.data) + decide;
-  useEffect(() => { setDrawer(false); }, [pane, modal]);
-  useEffect(() => {
-    if (!drawer) return;
-    const off = (e: KeyboardEvent) => { if (e.key === "Escape") setDrawer(false); };
-    window.addEventListener("keydown", off);
-    return () => window.removeEventListener("keydown", off);
-  }, [drawer]);
+  const inDrawer = !!modal && modal !== "sched" && modal !== "settings";   // 서랍 안 화면 = 5번 켜짐
   const badge = (n: number) => (n > 0 ? <b aria-hidden className="nm-nav-badge">{n > 99 ? "99+" : n}</b> : null);
   return (
     <>
-      {drawer ? <button type="button" aria-label="서랍 닫기" className="nm-drawer-veil" onClick={() => setDrawer(false)} /> : null}
-      {drawer ? (
-        <div className="nm-drawer" role="menu" aria-label="서랍" style={{ right }}>
-          {MODALS.filter((m) => m.id !== "sched").map((m) => (
-            <button key={m.id} type="button" role="menuitem" className={modal === m.id ? "on" : undefined} onClick={() => { setDrawer(false); void navigate({ to: m.to }); }}>
-              <DuetIcon name={m.icon} size={19} />
-              <span>{m.label}</span>
-              {m.id === "tasks" ? badge(waiting) : null}
-            </button>
-          ))}
-        </div>
-      ) : null}
-      <nav aria-label="큰 탭" className="ynav" ref={navRef}>
+      <nav aria-label="큰 탭" className="ynav">
         {TABS.map((tab) => {
-          const on = tab.id === pane && !modal && !drawer;
+          const on = tab.id === pane && !modal;
           return (
             <button aria-current={on ? "page" : undefined} aria-label={tab.label} className={on ? "on" : undefined} key={tab.id} onClick={() => void navigate({ to: tab.id === "chat" ? chatTo : tab.to })} type="button">
               <DuetIcon name={tab.icon} size={20} stroke={on ? 2.1 : 1.9} />
@@ -72,14 +49,18 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
             </button>
           );
         })}
-        <button aria-current={modal === "sched" && !drawer ? "page" : undefined} aria-label="스케줄" className={modal === "sched" && !drawer ? "on" : undefined} onClick={() => void navigate({ to: "/sched" })} type="button">
+        <button aria-current={modal === "sched" ? "page" : undefined} aria-label="스케줄" className={modal === "sched" ? "on" : undefined} onClick={() => void navigate({ to: "/sched" })} type="button">
           <DuetIcon name="calendar" size={20} stroke={modal === "sched" ? 2.1 : 1.9} />
           <span>스케줄</span>
         </button>
-        <button aria-expanded={drawer} aria-label={waiting ? `서랍, 할 일 ${waiting}개 기다림` : "서랍"} className={drawer || (modal && modal !== "sched") ? "on" : undefined} onClick={() => setDrawer((v) => !v)} type="button">
-          <DuetIcon name="menu" size={20} stroke={drawer || (modal && modal !== "sched") ? 2.1 : 1.9} />
-          <span>{modal && modal !== "sched" ? MODALS.find((m) => m.id === modal)?.label : "서랍"}</span>
+        <button aria-current={inDrawer ? "page" : undefined} aria-label={waiting ? `서랍, 할 일 ${waiting}개 기다림` : "서랍"} className={inDrawer ? "on" : undefined} onClick={() => void navigate({ to: "/drawer" })} type="button">
+          <DuetIcon name="menu" size={20} stroke={inDrawer ? 2.1 : 1.9} />
+          <span>서랍</span>
           {badge(waiting)}
+        </button>
+        <button aria-current={modal === "settings" ? "page" : undefined} aria-label="설정" className={modal === "settings" ? "on" : undefined} onClick={() => void navigate({ to: "/settings" })} type="button">
+          <DuetIcon name="settings" size={20} stroke={modal === "settings" ? 2.1 : 1.9} />
+          <span>설정</span>
         </button>
       </nav>
     </>

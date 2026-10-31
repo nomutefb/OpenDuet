@@ -17,7 +17,7 @@
 .ynav button svg { width:20px; height:20px; flex:none; }
 :root:not(.dark) .ynav button.on { color:var(--fg); }
 /* 좁은 폰(440px 아래) = 칸 여섯(홈·대화·목록·할 일·러너·설정 · 원본은 셋~넷)이 한 줄에 들어가게 칸 안쪽 여백·사이만 좁힘(원본에 없음 · 높이·알약·움직임 그대로) — 390px 에서 「설정」이 잘리던 것(10-28 12:0x 그림) */
-@media (max-width:440px) { .ynav { gap:4px; padding:6px 8px; } .ynav button { padding:0 12px; } }   /* 밝게(원본에 없음) = 라임 글자는 흰 바탕에서 안 읽혀 글자만 진하게 · 알약 = 원본 라임 그대로 */
+@media (max-width:440px) { .ynav { gap:3px; padding:6px 7px; } .ynav button { padding:0 9px; } }   /* 밝게(원본에 없음) = 라임 글자는 흰 바탕에서 안 읽혀 글자만 진하게 · 알약 = 원본 라임 그대로 */
 
 /* 움직임 줄이기 = 멈춤(원본 reduce 블록의 메뉴 축 그대로) */
 @media (prefers-reduced-motion:reduce){ .ynav button, .ynav button span { transition:none; } }

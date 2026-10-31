@@ -21,6 +21,7 @@ import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
 import { SchedDesk } from "./sched-desk";
+import { DrawerPage } from "./drawer-page";
 import { TabBar } from "../swap/tab-bar";
 import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
@@ -38,9 +39,9 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
-export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus"; to: string }[] = [
+export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu"; to: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 네비 4번(서랍 목록엔 안 넣음 · swap/tab-bar.tsx)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
@@ -55,6 +56,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
   { id: "feedback", label: "피드백", icon: "reply", to: "/feedback" },
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
+  { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap", edtool: "/?tool=thumb", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
@@ -173,6 +175,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><RunnerScreen /></div>
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
+                  : M.id === "drawer" ? <div className="nm-scroll"><DrawerPage /></div>
                   : M.id === "ask" ? <div className="nm-scroll"><AskModal /></div>
                   : M.id === "news" ? <div className="nm-scroll"><NewsModal /></div>
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>
