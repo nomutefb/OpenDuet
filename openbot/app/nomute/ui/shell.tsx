@@ -36,6 +36,7 @@ import { ChanModal } from "./chan";
 import { SnsModal } from "./sns";
 import { AskModal } from "./ask";   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomList, useRoomOrder } from "./room-list";
+import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
 import { useWide } from "./side";
 import "./shell.css";
 
@@ -239,10 +240,13 @@ function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
 /** 목록 화면(카톡식 · 형 11:26 「대화랑 그냥 분리하자」) — 방 누르면 그 대화 판으로 */
 function RoomsPane() {
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-4 pb-[var(--duet-tab-space,86px)]">
-      <h1 className="sr-only">대화방</h1>   {/* 판 위 큰 제목 0(PM 13:04 · 형 「공간」 · 지금 판 = 네비 「대화방」 칸) */}
-      <RoomList big />
-    </div>
+    <>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-4 pb-[calc(var(--duet-tab-space,86px)+56px)]">   {/* 끝 줄이 우하단 단추에 안 가리게 */}
+        <h1 className="sr-only">대화방</h1>   {/* 판 위 큰 제목 0(PM 13:04 · 형 「공간」 · 지금 판 = 네비 「대화방」 칸) */}
+        <RoomList big />
+      </div>
+      <RoomFab />
+    </>
   );
 }
 

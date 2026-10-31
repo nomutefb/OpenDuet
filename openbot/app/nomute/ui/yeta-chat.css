@@ -204,7 +204,21 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rmore { right:52px; }
 @media (hover:none) { .nm-rmore { display:none; } }   /* 폰 = 줄을 길게 눌러 메뉴 · ⋯ 없음(형 10-31 「터치만 해도 … 메뉴」) */
 .nm-room-back { position:absolute; top:calc(env(safe-area-inset-top, 0px) + 6px); left:6px; z-index:54; display:grid; place-items:center; width:40px; height:40px; border:0; background:none; color:var(--fg); cursor:pointer; filter:drop-shadow(0 1px 4px rgba(0,0,0,.7)); }
-.nm-rooms { position:relative; } .nm-repair { position:absolute; top:0; right:0; z-index:1; display:inline-flex; align-items:center; gap:6px; border:0; background:none; cursor:pointer; }   /* 형 10-31 「도형 없애고 글만」 · 왼쪽 임시 단톡방과 같은 글자 */
+/* 대화방 우하단 스피드 다이얼(./room-fab.tsx · 형 11-01 · 움직임 = kinetics speed-dial-fab 값 그대로 · 유리 = 살짝 투명 · 탭 하이라이트 끔 = 눌러도 네모 없음) */
+.nm-fab { --sp:cubic-bezier(.34,1.56,.64,1); position:absolute; right:14px; bottom:calc(var(--duet-tab-space,86px) + 8px); z-index:5; width:46px; height:46px; }
+.nm-fab-main, .nm-fab-i { background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); -webkit-tap-highlight-color:transparent; user-select:none; cursor:pointer; }
+:root:not(.dark) .nm-fab-main, :root:not(.dark) .nm-fab-i { background:rgba(255,255,255,.66); border-color:rgba(0,0,0,.1); }
+.nm-fab-main { position:absolute; inset:0; z-index:2; display:grid; place-items:center; border-radius:50%; color:var(--accent,#CFFF40); box-shadow:0 8px 20px -8px rgba(0,0,0,.6); transition:transform .4s var(--sp); }
+:root:not(.dark) .nm-fab-main { color:var(--fg); }
+.nm-fab-main:active { transform:scale(.92); }
+.nm-fab-main svg { width:20px; height:20px; transition:transform .45s var(--sp); }
+.nm-fab.on .nm-fab-main svg { transform:rotate(135deg); }
+.nm-fab-main .nm-rcount { position:absolute; top:-4px; right:-4px; }
+.nm-fab-i { position:absolute; right:0; bottom:5px; display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 14px; border-radius:999px; color:var(--fg); font-size:13px; white-space:nowrap; opacity:0; pointer-events:none; transform:translate(0,0) scale(.4); transform-origin:100% 50%; transition:transform .5s var(--sp), opacity .3s ease; }
+.nm-fab.on .nm-fab-i { opacity:1; pointer-events:auto; }
+.nm-fab.on .nm-fab-i.at9 { transform:translate(-56px,0) scale(1); transition-delay:.02s; }
+.nm-fab.on .nm-fab-i.at12 { transform:translate(0,-52px) scale(1); transition-delay:.07s; }
+@media (prefers-reduced-motion:reduce) { .nm-fab-main, .nm-fab-main svg, .nm-fab-i { transition:none; } }
 .nm-rrow { border-top:1px solid var(--glass-line); }
 .nm-rrow:first-child { border-top:none; border-radius:var(--r-l) var(--r-l) 0 0; }
 .nm-rrow:last-child { border-radius:0 0 var(--r-l) var(--r-l); }

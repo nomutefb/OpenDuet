@@ -32,18 +32,6 @@ export function TempRoomHead({ r }: { r: OfficeRoom }) {
   );
 }
 
-export function TempRoomButton() {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <button type="button" aria-label="임시 단톡방 만들기" className="mb-2 flex items-center gap-2 rounded-2xl px-3 py-2 text-left text-sm text-muted-foreground hover:bg-duet-tile" onClick={() => setOpen(true)}>
-        <span aria-hidden className="grid size-5 place-items-center text-base">+</span>임시 단톡방
-      </button>
-      {open ? <TempRoomDialog onClose={() => setOpen(false)} /> : null}
-    </>
-  );
-}
-
 export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: () => void }) {
   const qc = useQueryClient(), nav = useNavigate();
   const cand = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 }).data || [];
