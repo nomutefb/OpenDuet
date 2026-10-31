@@ -104,9 +104,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .ymsg.cont .yava { visibility:hidden; }
 .ychat .ymsg.cont .yname { display:none; }
 .ychat .ymrow.me.cont { margin-top:-6px; }
-.ychat .ybrow { display:flex; align-items:flex-end; gap:10px; min-width:0; }
+.ychat .ybrow { display:flex; align-items:flex-end; gap:6px; min-width:0; }
 .ychat .ytime { flex:none; font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; white-space:nowrap; padding-bottom:2px; }
-.ychat .ymrow.me { display:flex; align-items:flex-end; gap:10px; align-self:flex-end; justify-content:flex-end; max-width:92%; }
+.ychat .ymrow.me { display:flex; align-items:flex-end; gap:6px; align-self:flex-end; justify-content:flex-end; max-width:92%; }
 .ychat .yb-un { flex:none; align-self:flex-end; margin-bottom:3px; font-size:var(--fs-xs); font-weight:var(--fw-x); color:var(--accent); line-height:1; transition:opacity .3s var(--ease); }
 .ychat .ymsg.ytyp .yb.ai { padding:13px 16px; }
 .ychat .ytdots { display:inline-flex; gap:5px; align-items:center; height:1.2em; }
@@ -134,7 +134,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat-in form button[type="submit"]:active { transform:scale(var(--press-m)); }
 .ychat-in form button[type="submit"]:disabled { opacity:.4; pointer-events:none; }
 /* 시각 = 말풍선 밖 아래 작게(형 16:5x 「위치는 좋고, 바깥에 위치」) — 말풍선은 말만 감쌈 · 자리 = 아래 형 10-31 줄 */
-.ychat .ybw { display:flex; flex-direction:column; align-items:flex-end; gap:2px; min-width:0; max-width:100%; }   /* 말풍선 + 그 아래 시각 = 한 묶음(묶음 폭 = 말풍선 폭 · 시각 = 오른쪽 끝) */
+.ychat .ybw { display:flex; flex-direction:column; align-items:flex-end; gap:6px; min-width:0; max-width:100%; }   /* 말풍선 + 그 아래 시각 = 한 묶음(묶음 폭 = 말풍선 폭 · 시각 = 오른쪽 끝) */
 .ychat .ybw > .yb { max-width:100%; }
 .ychat .ytout { font-size:10px; line-height:1.3; color:var(--mut); font-variant-numeric:tabular-nums; white-space:nowrap; padding-right:4px; }
 /* 시각 자리(형 10-31 09:15 「자기글은 우측에서 시작해서 좌측 아래 시간이」 · 「상대 글은 좌측에서 시작해서 우측 아래 시간이」) = 내 글 왼쪽 아래 · 상대 글 오른쪽 아래 · 시각보다 짧은 말풍선도 제 쪽 벽에 붙음 */
@@ -180,6 +180,11 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-rooms { --rm-panel:rgba(0,0,0,.025); --rm-grp:rgba(0,0,0,.03); }
 .dark .nm-rooms { --rm-panel:rgba(255,255,255,.035); --rm-grp:rgba(255,255,255,.035); }
 .nm-rgroup { background:var(--rm-panel); border:1px solid var(--glass-line); border-radius:var(--r-l); }
+/* 방 줄 오른쪽 = 시각 위 · 안 읽은 수 아래(형 10-31) · 숫자 = 앱 글꼴(LEMONMILK)은 동그라미에 세서 기기 고딕 · text-box 로 숫자 높이 기준 가운데 */
+.nm-rside { flex:none; align-self:stretch; display:flex; flex-direction:column; align-items:flex-end; gap:6px; min-width:40px; padding-top:1px; }
+.nm-rcount { display:grid; place-items:center; box-sizing:border-box; min-width:18px; height:18px; padding:0 4px; border-radius:999px; background:var(--accent, var(--primary)); color:var(--bg, var(--primary-foreground)); font:700 10.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-variant-numeric:tabular-nums; text-box:trim-both cap alphabetic; }
+.nm-rdot { width:8px; height:8px; margin-right:5px; border-radius:50%; background:var(--accent, var(--primary)); }
+.nm-rmore { right:52px; }
 .nm-rrow { border-top:1px solid var(--glass-line); }
 .nm-rrow:first-child { border-top:none; border-radius:var(--r-l) var(--r-l) 0 0; }
 .nm-rrow:last-child { border-radius:0 0 var(--r-l) var(--r-l); }

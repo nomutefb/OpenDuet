@@ -105,16 +105,18 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
               {p?.mark ? <span aria-hidden className="shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
-              <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">{listTime(r.last_ts)}</span>
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
               <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{senderName ? <span className="nm-rsend" style={{ "--rs": ringOf(sender) } as CSSProperties}>{senderName}: </span> : null}{preview}</span>
-              {n > 0 ? <b aria-label={`안 읽은 글 ${n}개`} className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums" style={{ background: "var(--accent, var(--primary))", color: "var(--bg, var(--primary-foreground))" }}>{n > 99 ? "99+" : n}</b>
-                : n < 0 ? <span aria-label="안 읽음" className="size-2 shrink-0 rounded-full" style={{ background: "var(--accent, var(--primary))" }} /> : null}
             </span>
           </span>
+          <span className="nm-rside">   {/* 시각 = 오른쪽 위 · 안 읽은 수 = 그 아래(형 10-31 「저게 시간 아래로 가게 해줘」) */}
+            <span className="text-[11px] tabular-nums text-muted-foreground">{listTime(r.last_ts)}</span>
+            {n > 0 ? <b aria-label={`안 읽은 글 ${n}개`} className="nm-rcount">{n > 99 ? "99+" : n}</b>
+              : n < 0 ? <span aria-label="안 읽음" className="nm-rdot" /> : null}
+          </span>
         </Link>
-        <button type="button" aria-label={`${p?.name || r.name} 줄 메뉴`} aria-expanded={menu === r.id} className={`absolute bottom-1 right-1 grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-foreground/5 ${menu === r.id ? "" : "md:opacity-0 md:group-hover/row:opacity-100 md:focus-visible:opacity-100"}`} onClick={() => setMenu(menu === r.id ? "" : r.id)}>⋯</button>
+        <button type="button" aria-label={`${p?.name || r.name} 줄 메뉴`} aria-expanded={menu === r.id} className={`nm-rmore absolute bottom-1 grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-foreground/5 ${menu === r.id ? "" : "md:opacity-0 md:group-hover/row:opacity-100 md:focus-visible:opacity-100"}`} onClick={() => setMenu(menu === r.id ? "" : r.id)}>⋯</button>
         </>)}
         {menu === r.id ? (
           <div role="menu" className="absolute right-2 top-full z-10 flex min-w-36 flex-col rounded-xl border border-border bg-popover p-1 text-sm shadow-lg">

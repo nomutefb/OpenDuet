@@ -85,8 +85,7 @@ export function SchedDesk() {
   const face = (b?: { who: string }, size = 28) => { const p = list.find((x) => x.who === b?.who); return <MicOrb size={size} id={idOf(b?.who || "", list)} tint={ringOf(p)} />; };
   const nameOf = (b?: { who: string }) => list.find((x) => x.who === b?.who)?.name || b?.who || "";
   return (
-    <div className="nm-sched nm-yeta mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-28 pt-4">
-      <h1 className="text-lg font-bold">스케줄</h1>
+    <div className="nm-sched nm-yeta mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-28 pt-1">
       {ask ? (
         <div className="nm-sched-ask" role="alertdialog" aria-label="바꾸기 전 확인">
           <span className="min-w-0 flex-1">{ask.q.label} {CF_KO[ask.q.field]}: {cfVal(ask.q.field, ask.r.from)} → <b>{cfVal(ask.q.field, ask.r.to)}</b>
