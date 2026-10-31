@@ -20,7 +20,7 @@ const LOOK: Record<MicOrbState, string> = { idle: "rest", listening: "listen", t
 export function MicOrb({ className, size, state = "idle", still = false, id = WINTER_ID, tint }: { className?: string; colour?: OrbColour; keystrokes?: number; size: number; state?: MicOrbState; still?: boolean; id?: string; tint?: string }) {
   const look = LOOK[state] || "rest";
   return (
-    <span aria-hidden="true" className={`nm-orb nm-${look}${still ? " nm-still" : ""} ${className || ""}`} style={{ width: size, height: size, "--s": `${size}px`, ...(tint ? { "--c": tint } : {}) } as CSSProperties}>
+    <span aria-hidden="true" className={`nm-orb nm-${look}${still ? " nm-still" : ""}${tint === RING.시아 ? " nm-silver" : ""} ${className || ""}`} style={{ width: size, height: size, "--s": `${size}px`, ...(tint ? { "--c": tint } : {}) } as CSSProperties}>
       <i className="nm-ring" />
       {look === "work" ? (
         <i className="nm-arc">
