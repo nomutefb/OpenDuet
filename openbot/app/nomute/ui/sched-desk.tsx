@@ -152,7 +152,9 @@ export function SchedDesk() {
               </div>
               {on ? (
                 <ul className="nm-sched-tines">
-                  {f.common || (hasForks && can) ? (
+                  {hasForks && can && !f.common && vals[`fork|${f.id}`] === undefined ? (
+                    <li className="nm-sched-common"><button type="button" className="nm-sched-chip" onClick={() => setVals((v) => ({ ...v, [`fork|${f.id}`]: "" }))}>공통 내용 넣기</button></li>
+                  ) : f.common || vals[`fork|${f.id}`] !== undefined ? (
                     <li className="nm-sched-common">
                       <label>공통 내용 · 이 포크 꼬챙이 모두에 붙어
                         <textarea rows={2} disabled={!can} value={vals[`fork|${f.id}`] ?? f.common ?? ""} onChange={(e) => setVals((v) => ({ ...v, [`fork|${f.id}`]: e.target.value }))}
