@@ -536,7 +536,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const setWant = (id: string) => { wantTry.current = 0; setWantS((w) => ({ id, n: w.n + 1 })); };
   const all = msgs.data?.messages || [];
   const meet = room === MEET;
-  const items = useMemo(() => (meet ? flatView(all) : hyungView(all, r)), [all, r, meet]);
+  // 형이 낀 단톡(임시방 · 지정방 · 회의실) = 다 보이게(형 10-31 「단톡은 전체메세지로 보여야되는데 왜 봄메세지는 저렇게보여」) · 접는 보기(hyungView)는 1:1 방만
+  const flat = meet || (!!r && !r.with);
+  const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
   const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 30분)은 시각으로 정해져서 새 글이 없어도 다시 셈
   const typing = useMemo(() => typingOf(all, r, bots, list, reads).filter((n) => n !== draft?.who), [all, r, bots, list, reads, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
   useEffect(() => { if (!typing.length) return; const t = setInterval(() => setTick((x) => x + 1), 20e3); return () => clearInterval(t); }, [typing.length]);
@@ -665,8 +667,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const [unseenUsed, setUnseenUsed] = useState("");   // 누른 방 = 단추 내림
   const unseen = useMemo(() => {
     const t = seenOpen.current?.room === room ? seenOpen.current.ts : 0;
-    return meet && t ? all.filter((m) => m.ts > t && m.kind !== "human" && !wakeM(m)) : [];
-  }, [all, meet, room, seenReady]);   // eslint-disable-line react-hooks/exhaustive-deps
+    return flat && t ? all.filter((m) => m.ts > t && m.kind !== "human" && !wakeM(m)) : [];   // 「안 본 것부터」 = 평면 보기 방 전부(형 10-31 「내가 안읽은거가 위로 누르면 거기로 가게끔하고」)
+  }, [all, flat, room, seenReady]);   // eslint-disable-line react-hooks/exhaustive-deps
   const toUnseen = async () => {   // 안 본 첫 글로(받은 글 안에 없으면 하루치씩 앞 글을 받으며 · AUTO_MAX 번까지)
     setUnseenUsed(room);
     const t = seenOpen.current?.ts || 0;
@@ -710,12 +712,12 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
-      {meet ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)
+      {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
         <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[100px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {lead}
-          {msgs.data?.more && !meet ? (
+          {msgs.data?.more && !flat ? (
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
           ) : null}
           {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">첫 대화를 시작해보세요</p> : null}
