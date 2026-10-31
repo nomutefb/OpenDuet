@@ -15,6 +15,7 @@ import { usePeople } from "./faces";
 import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { EnterKeyRow } from "./enter-key";
+import { WakeDepthRow } from "./wake-depth";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
 import { StandingInstructions } from "@/components/settings/standing-instructions";   // 원본 설정의 「공통 지시」(routes/_authed/settings/index.tsx) — 빠뜨리지 않기(윈터 10-31 「지금 SettingsIndex 항목을 그대로 옮겨 담기」)
@@ -81,6 +82,7 @@ export function YetaSettings() {
             {row("sched", "gear", "스케줄러 바꾸기", "루틴 · 봇 하루 최대 · 사건 모아 깨우기", <NomuteSchedule />)}
             {row("roomset", "user", "지정방 멤버", "@모두 = 이 멤버만 받음", <NomuteRoomset />)}
             {row("notice", "bell", "공지 설정", "봇이 깰 때마다 보는 한 장", <NomuteNotice />)}
+            <WakeDepthRow />
             {row("instr", "type", "공통 지시", "모든 봇이 따르는 글(원본 설정 Standing instructions)", <StandingInstructions />)}
           </div>
         </section>
