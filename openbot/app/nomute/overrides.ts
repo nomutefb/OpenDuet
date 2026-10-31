@@ -71,6 +71,7 @@ export const PATCH: Record<string, [string, string][]> = {
     ['import { AttachmentStrip } from "./attachment-strip";', 'import { AttachmentStrip } from "./attachment-strip";\nimport { openAttach } from "@nomute/ui/attach-sheet";'],
     ["onClick={() => fileInputRef.current?.click()}", "onClick={() => openAttach(fileInputRef.current)}"],
     ["onClick={() => fileInputRef.current?.click()}", "onClick={() => openAttach(fileInputRef.current)}"],
+    ['          alt: attachment.filename,\n', '          alt: attachment.filename,\n          size: attachment.size,\n'],
     ['const sendLabel = parking ? "Queue message" : "Send message";', 'const sendLabel = parking ? "줄 세워 보내기" : "보내기";'],
     ['aria-label="More message options unavailable"', 'aria-label="글 꾸미기 없음"'],
     ['aria-label="Message"', 'aria-label="글"'],
@@ -100,6 +101,8 @@ export const PATCH: Record<string, [string, string][]> = {
     ['<Collapse open={occupied}>', '<>'],
     ['</Collapse>', '</>'],
     ['className="flex flex-wrap items-start gap-2 pb-3"', 'className="nm-att-strip"'],
+    ['  url: string;\n  alt?: string;', '  url: string;\n  alt?: string;\n  size?: number;'],
+    ['            <RemoveButton\n              name={image.alt ?? "attachment"}', '            {image.size ? <span className="nm-att-size">{formatBytes(image.size)}</span> : null}\n            <RemoveButton\n              name={image.alt ?? "attachment"}'],   // 사진 칸 크기 글자(형 11-01 사진 보기)
     ['className="size-20 rounded-xl border border-border object-cover"', 'className="size-20 cursor-zoom-in rounded-xl border border-border object-cover" onClick={() => (window as unknown as { nmZoom?: (s: string) => void }).nmZoom?.(image.url)}'],
   ],
   "app/src/components/shell/channel-screen.tsx": [
