@@ -81,10 +81,7 @@ export const PATCH: Record<string, [string, string][]> = {
   ],
   // 「+」 = 카메라 말고 파일·갤러리(형 10-31) · 그림 꼴만 적힌 accept 는 폰 브라우저가 카메라·갤러리 고르기로 받음 · 거름은 screenPickedFiles 가 이미 함(빠르 판)
   "app/src/components/channels/composer/attachments.ts": [
-    ['export const FILE_PICKER_ACCEPT = [
-', 'export const FILE_PICKER_ACCEPT = [
-  "*/*",
-'],
+    ['export const FILE_PICKER_ACCEPT = [\n', 'export const FILE_PICKER_ACCEPT = [\n  "*/*",\n'],
   ],
   "app/src/components/channels/composer/attachment-strip.tsx": [
     ['aria-label="Attachments"', 'aria-label="붙인 파일"'],
