@@ -28,7 +28,6 @@ import { TempRoomHead } from "./temp-room";
 import { useCloseCallMenu } from "./call-face";
 import { MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
-import { OrbFlight } from "./orb-flight";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceStack } from "./faces";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -714,12 +713,10 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
 
-  const flyWho = [...all].reverse().find((m) => !mineOf(m) && m.kind !== "system")?.who || "";   // 들어올 때 머리 원이 내려갈 얼굴 = 마지막 상대
   let prevTs = 0, prev: Item | undefined;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
-      {active && flyWho ? <OrbFlight box={boxRef} id={idOf(flyWho, list)} tint={ringOf(list.find((x) => x.who === flyWho))} /> : null}
       {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} onClose={() => setMenuOf(null)} /> : null}
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)

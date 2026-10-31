@@ -100,9 +100,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .ymsg.cont .yava { visibility:hidden; }
 .ychat .ymsg.cont .yname { display:none; }
 .ychat .ymrow.me.cont { margin-top:-6px; }
-.ychat .ybrow { display:flex; align-items:flex-end; gap:6px; min-width:0; }
+.ychat .ybrow { display:flex; align-items:flex-end; gap:10px; min-width:0; }
 .ychat .ytime { flex:none; font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; white-space:nowrap; padding-bottom:2px; }
-.ychat .ymrow.me { display:flex; align-items:flex-end; gap:6px; align-self:flex-end; justify-content:flex-end; max-width:92%; }
+.ychat .ymrow.me { display:flex; align-items:flex-end; gap:10px; align-self:flex-end; justify-content:flex-end; max-width:92%; }
 .ychat .yb-un { flex:none; align-self:flex-end; margin-bottom:3px; font-size:var(--fs-xs); font-weight:var(--fw-x); color:var(--accent); line-height:1; transition:opacity .3s var(--ease); }
 .ychat .ymsg.ytyp .yb.ai { padding:13px 16px; }
 .ychat .ytdots { display:inline-flex; gap:5px; align-items:center; height:1.2em; }
@@ -255,8 +255,6 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 ::highlight(nm-find) { background-color:#234a82; color:#fff; }
 @media (prefers-reduced-motion:reduce) { .nm-find, .nm-sx .c, .nm-sx .h, .nm-sx .x { transition:none; } }
 
-/* 머리 원이 대화 얼굴 자리로 내려갈 때(./orb-flight.tsx) */
-.nm-fly { position:fixed; top:0; left:0; z-index:40; pointer-events:none; transform-origin:0 0; }
 
 /* 목록 시그니처 색(형 10-31) · 공지 = 시그니처 색 · 회의실 = 공용 공간이라 시그니처 색에 투명도 · 호버 = 시그니처 색 유리 */
 .nm-rnotice { display:flex; align-items:center; gap:8px; width:100%; margin-bottom:4px; padding:8px 12px; border:1px solid rgba(207,255,64,.28); border-radius:16px; background:rgba(207,255,64,.1); font-size:14px; text-align:left; cursor:pointer; }

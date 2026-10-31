@@ -46,6 +46,6 @@ export function NomuteName() {
 
 export function NomuteTop({ orb }: { size: number; orb: ReactNode }) {
   const { r } = useTopRoom();
-  // 방 안 = 큰 원 없음(형 10-31 「위에를 전면 다 활용 가능하거든」) · 원은 대화 속 얼굴로(./orb-flight.tsx) · 표식 = 머리 꼴을 CSS 가 바꾸는 자리(shell.css)
+  // 방 안 = 큰 원 없음(형 10-31 「위에를 전면 다 활용 가능하거든」) · 원은 안 움직임(형 10-31 「프로필 사진이 휙하고 내려가는데 그거 없어도 됨」) · 표식 = 머리 꼴을 CSS 가 바꾸는 자리(shell.css)
   return r ? <span aria-hidden className="nm-room-mark" /> : <>{orb}</>;
 }

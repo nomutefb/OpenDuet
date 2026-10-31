@@ -72,7 +72,10 @@ header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradi
 @media (prefers-reduced-motion:reduce){ .nm-drawer, .nm-modal { animation:none; } }
 
 /* 방 안 머리(형 10-31 「톡방 이름과 구성원 수(더 작은 크기와 어두운 지금 같은 컬러) 맨 위에 투명에 살짝 그림자 줘서 보이게만. 그 뒤로 살짝 미리 없어지게.」) = 큰 원 접음 · 글이 맨 위 조금 앞에서 스러짐 · 방 밖 머리는 그대로 */
-header.nm-head.absolute:has(.nm-room-mark) { height:calc(50px + env(safe-area-inset-top, 0px)); padding-top:calc(8px + env(safe-area-inset-top, 0px)); background:linear-gradient(var(--duet-surface) 14%, color-mix(in srgb, var(--duet-surface) 62%, transparent) 55%, transparent); }
+header.nm-head.absolute:has(.nm-room-mark) { isolation:isolate; height:calc(50px + env(safe-area-inset-top, 0px)); padding-top:calc(8px + env(safe-area-inset-top, 0px)); background:none; }
+/* 위 흐림(형 10-31 「그라데이션 흐림 좀 더 훨씬 세게해서 대화방 이름 잘보이게」) = 머리 아래로 28px 더 내려가며 스러짐 */
+header.nm-head.absolute:has(.nm-room-mark)::before { content:""; position:absolute; inset:0 0 -28px 0; z-index:-1; pointer-events:none; background:linear-gradient(var(--duet-surface) 34%, color-mix(in srgb, var(--duet-surface) 78%, transparent) 62%, transparent); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); -webkit-mask-image:linear-gradient(#000 58%, transparent); mask-image:linear-gradient(#000 58%, transparent); }
 header.nm-head a:has(> .nm-room-mark) { width:0 !important; height:0 !important; }
-header.nm-head:has(.nm-room-mark) .nm-top-name { font-size:11px; line-height:14px; font-weight:600; color:var(--mut, #8B8F8A); text-shadow:0 1px 6px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.5); }
+header.nm-head:has(.nm-room-mark) .nm-top-name { font-size:13px; line-height:16px; font-weight:700; color:var(--accent); text-shadow:0 1px 6px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.5); }
+header.nm-head:has(.nm-room-mark) .nm-top-name i { color:#fff; }
 .nm-col:has(.nm-room-mark) .nm-pin-slot { top:calc(40px + env(safe-area-inset-top, 0px)); }
