@@ -41,9 +41,9 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edfilter" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
-export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar"; to: string; desc?: string }[] = [
+export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key"; to: string; desc?: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 네비 4번(서랍 목록엔 안 넣음 · swap/tab-bar.tsx)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
@@ -57,7 +57,21 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "feed", label: "뉴스 전체", icon: "page", to: "/feed", desc: "필터·검색·대기열·기사 상세" },
   { id: "askfull", label: "요약 요청 · 에디터 판", icon: "chat", to: "/askfull", desc: "링크 판별·초안 보존" },
   { id: "trend", label: "SNS 전체", icon: "globe", to: "/trend", desc: "섹션 전부·구독 채널·새로 수집" },
-  { id: "chanfull", label: "채널 전체", icon: "dashboard", to: "/chanfull", desc: "차트·게시물·결의 보드" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
+  { id: "chanfull", label: "채널 전체", icon: "dashboard", to: "/chanfull", desc: "차트·게시물·결의 보드" },
+  // 에디터 설정 메뉴 안 칸들(전엔 러너 톱니로만 열림) = 에디터 /?pop=<이름> 딥링크(빠르 11-01 04:23 · 이름 = 봄 안 표)
+  { id: "edq", label: "대기열", icon: "tasks", to: "/edq", desc: "재시도·취소" },
+  { id: "edsearch", label: "검색", icon: "search", to: "/edsearch", desc: "뉴스 제목·요약에서 찾기" },
+  { id: "eddl", label: "다운로드", icon: "box", to: "/eddl", desc: "주소 → 사진·영상·파일" },
+  { id: "edmsgs", label: "알림메세지", icon: "bell", to: "/edmsgs", desc: "24시간 알림·조치" },
+  { id: "edmemo", label: "에디터 메모", icon: "file", to: "/edmemo", desc: "작업 기록" },
+  { id: "edsensor", label: "센서", icon: "activity", to: "/edsensor", desc: "키워드 센서" },
+  { id: "edkw", label: "키워드 알림", icon: "bell", to: "/edkw", desc: "키워드 켜기·목록" },
+  { id: "edsnsacc", label: "구독 채널", icon: "globe", to: "/edsnsacc", desc: "X·틱톡·인스타·유튜브 계정" },
+  { id: "edpush", label: "구독 기기", icon: "phone", to: "/edpush", desc: "알림 받는 기기" },
+  { id: "edfilter", label: "필터", icon: "sort", to: "/edfilter", desc: "카테고리·이슈·카드만" },
+  { id: "edgenopt", label: "AI 썸네일·이미지", icon: "sparkle", to: "/edgenopt", desc: "엔진·모델·크기·화풍" },
+  { id: "edlock", label: "화면 잠금", icon: "lock", to: "/edlock", desc: "잠금·PIN·자동 잠금" },
+  { id: "edacct", label: "계정 전환", icon: "key", to: "/edacct", desc: "관리자 · 러너 Claude 계정" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
   { id: "gyeol", label: "결의 방", icon: "sparkle", to: "/gyeol" },
   { id: "play", label: "놀이터", icon: "sparkle", to: "/play" },   // 형 10-31 「놀이터를 … 서랍메뉴로 아예 빼줘」 · 주소 = viewer/play
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
@@ -65,7 +79,8 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
-const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap", edtool: "/?tool=thumb", feed: "/?tab=feed", askfull: "/?tool=ask", trend: "/?tab=trend", chanfull: "/?tab=chan", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1", feed: "/?tab=feed&inapp=1", askfull: "/?tool=ask&inapp=1", trend: "/?tab=trend&inapp=1", chanfull: "/?tab=chan&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
+  edq: "/?pop=queue&inapp=1", edsearch: "/?pop=search&inapp=1", eddl: "/?pop=dlgrab&inapp=1", edmsgs: "/?pop=msgs&inapp=1", edmemo: "/?pop=memo&inapp=1", edsensor: "/?pop=sensor&inapp=1", edkw: "/?pop=kw&inapp=1", edsnsacc: "/?pop=snsacc&inapp=1", edpush: "/?pop=push&inapp=1", edfilter: "/?pop=filter&inapp=1", edgenopt: "/?pop=genopt&inapp=1", edlock: "/?pop=lock&inapp=1", edacct: "/?pop=account&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
