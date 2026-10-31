@@ -117,6 +117,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
     if (pane !== "chat" || modal || layer || "page" in where) return;
     const onPop = (e: PopStateEvent) => {
       if (!e.state) return;   // location.hash = 로 옮길 때도 popstate 가 옴(state 없음 · 프로필 「대화」·앱 안 링크) = 뒤로가기 아님
+      if (document.querySelector(".nm-zoom")) return;   // 사진 크게 보기를 닫는 뒤로 = 대화 판 그대로(ui/office-chat.tsx zoomImage)
       const at = location.hash.replace(/^#/, "") || "/";
       if (at !== "/rooms") void nav({ to: "/rooms", replace: true });
     };

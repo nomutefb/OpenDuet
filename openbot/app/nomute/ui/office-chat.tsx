@@ -51,7 +51,6 @@ const QUOTE = /^↩ ([^:\n]{1,24}): ([^\n]*)(?:\n|$)/;
 const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_Pictographic})*$/u;
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif)$/i;
 const WINTER_WHO = "윈터 PM";
-const WORK = ["고민하는 중", "정리하는 중", "처리하는 중"];
 const MOUSE = typeof matchMedia === "function" && matchMedia("(hover:hover)").matches;
 const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // 글 속 주소(형 글 = 꾸밈 없는 글 · 봇 글은 Streamdown 이 링크로)
 const RECENT_N = 40;   // 다시 받기 = 최근 40 글을 통째로(거울이 반응·글을 같은 글에 고쳐 씀 = since 로는 못 받음 · 맞물림 21:3x)
@@ -302,15 +301,31 @@ function Actions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {   // 글 �
   );
 }
 
-/** 사진 크게 보기(형 10-31 「누르면 확대할 수 있고」) · 입력칸 미리보기도 씀 · 아무 데나 누르면 닫힘 */
-function zoomImage(src: string, alt = "") {
-  const v = document.createElement("div"), i = new Image();
-  v.className = "nm-zoom"; i.src = src; i.alt = alt; v.append(i); v.onclick = () => v.remove();
+/** 사진 크게 보기(형 10-31 「누르면 확대할 수 있고」 · 「뒤로가기 버튼도 있어야 하고 보낸사람과 시각이 위에 떠야해」 · 「뒤로 가기 폰 자체의 버튼도 작동해야함」) · 입력칸 미리보기도 씀
+ *  닫는 길 넷(아무 데나 누름 · 위 꺽쇠 · Esc · 폰 뒤로) = 하나 — 기록 한 칸을 얹어 두고 되돌림 · popstate 에서 닫힘 · ui/shell.tsx 는 .nm-zoom 이 있으면 판을 안 옮김 */
+function zoomImage(src: string, alt = "", who = "", when = "") {
+  const v = document.createElement("div"), bar = document.createElement("div"), back = document.createElement("button"), i = new Image();
+  v.className = "nm-zoom"; bar.className = "nm-zoom-bar"; i.src = src; i.alt = alt;
+  back.type = "button"; back.setAttribute("aria-label", "뒤로");
+  back.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>';
+  bar.append(back);
+  if (who) { const b = document.createElement("b"); b.textContent = who; bar.append(b); }
+  if (when) { const s = document.createElement("small"); s.textContent = when; bar.append(s); }
+  v.append(bar, i);
+  let closing = false;
+  const close = () => { if (closing) return; closing = true; history.back(); };
+  const key = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+  const off = () => { v.remove(); window.removeEventListener("popstate", off); window.removeEventListener("keydown", key); };
+  v.onclick = close;
+  window.addEventListener("popstate", off); window.addEventListener("keydown", key);
+  history.pushState({ ...history.state, nmZoom: 1 }, "");
   document.body.append(v);
 }
+const zoomWhen = (ts: number) => { const d = new Date(ts); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 (window as unknown as { nmZoom?: typeof zoomImage }).nmZoom = zoomImage;
 const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.test(String(p)));   // 사진만 든 글 = 말풍선 없이(형 10-31 「사진 주변 테두리 없애줘」)
 function Files({ m }: { m: Msg }) {
+  const qc = useQueryClient();
   const meta = new Map((m.file_meta || []).filter((x) => x?.path).map((x) => [x.path, x]));
   const ps = [...new Set((m.files || []).map(String))];
   const one = (p: string) => ({ p, n: meta.get(p)?.name || fileName(p), b: meta.get(p)?.bytes || 0 });
@@ -320,7 +335,7 @@ function Files({ m }: { m: Msg }) {
       {imgs.length ? (
         <div className="flex flex-wrap gap-2">
           {imgs.map((f) => (
-            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); zoomImage(fileUrl(f.p), f.n); }}>
+            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
               <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" />
             </a>
           ))}
@@ -806,7 +821,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className="yname">{typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}{typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 작업 중 · {WORK[Math.floor(Date.now() / 60e3) % WORK.length]}…</div>
+                <div className="yname">{typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}{typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각중…</div>
                 <div className="yb ai"><span className="ytdots"><i /><i /><i /></span></div>
               </div>
             </div>

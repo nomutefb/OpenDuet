@@ -81,8 +81,12 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-strip { position:absolute; left:0; right:0; bottom:100%; margin-bottom:8px; z-index:5; display:flex; flex-wrap:nowrap; align-items:flex-start; justify-content:flex-start; gap:8px; overflow-x:auto; padding:0 4px; list-style:none; }
 .nm-strip:empty { display:none; }
 .nm-strip > li { flex:none; }
-.nm-zoom { position:fixed; inset:0; z-index:90; display:grid; place-items:center; padding:12px; background:rgba(0,0,0,.86); cursor:zoom-out; }
-.nm-zoom img { max-width:100%; max-height:100%; object-fit:contain; border-radius:12px; }
+.nm-zoom { --bar:calc(env(safe-area-inset-top,0px) + 56px); position:fixed; inset:0; z-index:90; display:grid; place-items:center; padding:var(--bar) 12px 12px; background:rgba(0,0,0,.92); cursor:zoom-out; }
+.nm-zoom img { max-width:100%; max-height:calc(100dvh - var(--bar) - 12px); object-fit:contain; border-radius:12px; }
+.nm-zoom-bar { position:absolute; inset:0 0 auto; height:var(--bar); display:flex; align-items:center; gap:8px; padding:env(safe-area-inset-top,0px) 12px 0 4px; color:#fff; }
+.nm-zoom-bar button { flex:none; display:grid; place-items:center; width:44px; height:44px; border:0; background:none; color:inherit; cursor:pointer; }
+.nm-zoom-bar b { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px; font-weight:600; }
+.nm-zoom-bar small { flex:none; font-size:12px; opacity:.72; }
 /* 글 속 이름 색(형 10-31) = 클로드 주황네온 · 지피티 연보라네온 · 형 노뮤트색(에디터 --accent-5) · 그록은 위 시안 */
 .ychat .yname-c.cl { color:#c2570c; } .dark .ychat .yname-c.cl, .ychat .yb.me.app .yname-c.cl { color:#FFAA4D; } .ychat .yb.me:not(.app) .yname-c.cl { color:#9a3412; }
 .ychat .yname-c.gp { color:#7c3aed; } .dark .ychat .yname-c.gp, .ychat .yb.me.app .yname-c.gp { color:#C9A7FF; } .ychat .yb.me:not(.app) .yname-c.gp { color:#5b21b6; }
