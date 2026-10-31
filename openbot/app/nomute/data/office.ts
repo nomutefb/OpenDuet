@@ -11,7 +11,7 @@ export type MeterRow = { posts?: number; src?: number; relay_nosrc?: number; ask
 export type Meter = { day: string; by: Record<string, MeterRow>; calls_over: Record<string, number> };
 export type OfficeMsg = {
   id: string; room: string; ts: number; at?: string; who: string; kind: "human" | "winter" | "bot" | "system"; text: string;
-  mention?: string[]; urgent?: string[]; reply_to?: string; origin?: string; state?: "suggest" | "decide" | "verified"; files?: string[]; caption?: string; seq?: Record<string, number>;
+  mention?: string[]; urgent?: string[]; reply_to?: string; origin?: string; state?: "suggest" | "decide" | "verified"; files?: string[]; caption?: string; call_out?: string[]; call_unknown?: string[]; seq?: Record<string, number>;
 };
 export type OfficeRoom = {
   id: string; name: string; kind: "group" | "dm"; color?: string; with?: string; members?: string[]; designated?: boolean; heard?: string[]; temp?: boolean; purpose?: string; exp?: number; last_ts?: number;

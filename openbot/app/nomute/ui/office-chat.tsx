@@ -454,7 +454,18 @@ function BoxCard({ m }: { m: Msg }) {
   );
 }
 
+/** 안 닿은 부름 = 글 아래 한 줄(형 10-31 「태그안된 @ 가 된줄알고 써버리지 않게 하자는거임」) · 칩은 서버가 알아들은 이름만(callRe) */
+function Missed({ m }: { m: Msg }) {
+  const out = m.call_out || [], lost = m.call_unknown || [];
+  if (!out.length && !lost.length) return null;
+  return <small className="ymiss">{[out.length ? `${out.join("·")} 안 닿음 · 이 방 멤버 아님` : "", lost.length ? `${lost.join("·")} 안 닿음 · 없는 이름` : ""].filter(Boolean).join(" / ")}</small>;
+}
+
 function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
+  return <><Said m={m} nre={nre} /><Missed m={m} /></>;
+}
+
+function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
   if (m.files?.length) return <>{m.caption ? <Streamdown components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown> : null}<Files m={m} /></>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
@@ -477,7 +488,7 @@ function Line({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <Files m={m} /> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Reactions m={m} c={c} mine /></div>{time}</div>
+          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <>{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}<Files m={m} /></> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Missed m={m} /><Reactions m={m} c={c} mine /></div>{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
