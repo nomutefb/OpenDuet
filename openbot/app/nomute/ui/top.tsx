@@ -31,7 +31,7 @@ export function NomuteName() {
   const can = routineRoom(r);
   if (ids.length || can) return (   // 단톡 = 이름 옆 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」)
     <span className="nm-top-wrap">
-      <button type="button" className="nm-top-name nm-top-btn" aria-expanded={open} aria-label={`${name} 사람 ${ids.length}명 보기`} onClick={() => setOpen((v) => !v)}>{name}{ids.length ? <> <i>{ids.length}</i></> : null}</button>
+      <button type="button" className="nm-top-name nm-top-btn" style={r.color ? { color: r.color } : undefined} aria-expanded={open} aria-label={`${name} 사람 ${ids.length}명 보기`} onClick={() => setOpen((v) => !v)}>{name}{ids.length ? <> <i>{ids.length}</i></> : null}</button>
       {open ? (
         <span className="nm-top-crew nm-yeta">
           {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} />{x?.name || x?.who || id}</span>; })}

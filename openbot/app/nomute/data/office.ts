@@ -14,7 +14,7 @@ export type OfficeMsg = {
   mention?: string[]; urgent?: string[]; reply_to?: string; origin?: string; state?: "suggest" | "decide" | "verified"; files?: string[]; seq?: Record<string, number>;
 };
 export type OfficeRoom = {
-  id: string; name: string; kind: "group" | "dm"; with?: string; members?: string[]; designated?: boolean; heard?: string[]; temp?: boolean; purpose?: string; exp?: number; last_ts?: number;
+  id: string; name: string; kind: "group" | "dm"; color?: string; with?: string; members?: string[]; designated?: boolean; heard?: string[]; temp?: boolean; purpose?: string; exp?: number; last_ts?: number;
   last?: { who: string; kind: string; text: string; ts: number } | null; last_talk?: { who: string; kind: string; text: string; ts: number } | null;
   states?: Record<string, number>;
 };

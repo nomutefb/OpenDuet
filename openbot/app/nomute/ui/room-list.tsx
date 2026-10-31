@@ -5,7 +5,7 @@
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 숨기기/보이기
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { type CSSProperties, Fragment, type ReactNode, useState, useSyncExternalStore } from "react";
+import { type CSSProperties, Fragment, type ReactNode, useRef, useState, useSyncExternalStore } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -14,6 +14,7 @@ import { TempDeleteDialog, TempRoomButton, TempRoomDialog, TempSwipe } from "./t
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
 import { openInApp } from "./inapp";
+import { RainbowOrb, RoomColorPick } from "./room-color";
 
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
 const PINS = "nm-office-pins", HIDE = "nm-office-hidden";
@@ -66,6 +67,8 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
   const notice = useQuery({ queryKey: ["nomute", "notice"], queryFn: () => office<{ notice?: { text: string; at?: string } }>("noticeset").then((j) => j.notice), staleTime: 60_000 }).data;
   const [menu, setMenu] = useState(""), [noticeOpen, setNoticeOpen] = useState(false), [hiddenOpen, setHiddenOpen] = useState(false);
+  const [tinting, setTinting] = useState<Room | null>(null), [peek, setPeek] = useState<{ id: string; hex: string } | null>(null);   // 표지 색 판(./room-color.tsx) · peek = 끄는 동안 줄에 먼저 보임
+  const press = useRef<{ t: number; x: number; y: number; hit: boolean }>({ t: 0, x: 0, y: 0, hit: false });   // 길게 누르기(형 10-31 「길게 누르면 변경 하는 거기서 수정」) = 터치만 · 오른쪽 클릭은 onContextMenu
   const nav = useNavigate(), [swiped, setSwiped] = useState(""), [editing, setEditing] = useState<Room | null>(null), [deleting, setDeleting] = useState<Room | null>(null);   // 임시방 줄 왼쪽 끌기 = 수정·삭제
 
   const toggle = (k: string, s: Set<string>, set: (s: Set<string>) => void, id: string) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); writeSet(k, n); set(n); setMenu(""); };
@@ -83,9 +86,14 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     const n = count(r), u = n !== 0, on = current === r.id, tall = big, size = big ? 44 : 36;
     // 단톡 = YETA 꼴(YETA-목록 · 운영자 260725 「단톡환경에서도 프로필이 겹치게」) · 얼굴 둘 겹침 · 마지막에 말한 이가 앞 · 인원 숫자만 · 누구인지 = 방 상단(형 10-31 「인원이 저기 누군지 나올 필욘 없는듯 들가면 확인할 수 잇으면 됨 방 상단에서」)
     const lastId = l ? idOf(l.who, list) : "", front = ids.includes(lastId) ? [lastId, ...ids.filter((x) => x !== lastId)] : ids;
+    const rc = r.with ? "" : peek?.id === r.id ? peek.hex : r.color || "";
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
-      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} onContextMenu={(e) => { e.preventDefault(); setMenu(menu === r.id ? "" : r.id); }}>
+      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} data-rc={rc ? "" : undefined} style={rc ? ({ "--rc": rc } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); setMenu(menu === r.id ? "" : r.id); }}
+        onPointerDown={(e) => { if (e.pointerType !== "touch") return; clearTimeout(press.current.t); press.current = { x: e.clientX, y: e.clientY, hit: false, t: window.setTimeout(() => { press.current.hit = true; navigator.vibrate?.(8); setMenu(r.id); }, 480) }; }}
+        onPointerMove={(e) => { if (Math.hypot(e.clientX - press.current.x, e.clientY - press.current.y) > 8) clearTimeout(press.current.t); }}
+        onPointerUp={() => clearTimeout(press.current.t)} onPointerCancel={() => clearTimeout(press.current.t)}
+        onClickCapture={(e) => { if (press.current.hit) { press.current.hit = false; e.preventDefault(); e.stopPropagation(); } }}>
         {wrapTemp(r, <>
         <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
@@ -113,6 +121,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
           <div role="menu" className="absolute right-2 top-full z-10 flex min-w-36 flex-col rounded-xl border border-border bg-popover p-1 text-sm shadow-lg">
             {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(PINS, pins, setPins, r.id)}>{pins.has(r.id) ? "고정 풀기" : "고정"}</button> : null}
             <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void markRead(r, u)}>{u ? "읽음으로" : "안 읽음으로"}</button>
+            {!r.with ? <button type="button" role="menuitem" className="flex items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setTinting(r); }}><RainbowOrb />표지 색</button> : null}
             {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setEditing(r); }}>수정</button> : null}
             {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" onClick={() => { setMenu(""); setDeleting(r); }}>삭제</button> : null}
             {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(HIDE, hidden, setHidden, r.id)}>{hidden.has(r.id) ? "보이기" : "숨기기"}</button> : null}
@@ -128,6 +137,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
       <button type="button" className="mb-1 flex items-center gap-2 rounded-2xl px-3 py-2 text-left text-sm text-muted-foreground hover:bg-duet-tile" onClick={() => openInApp("/play/")}>   {/* 놀이터(형 10-31 「대신 내가 볼수잇게 연결성있게 우리 사무실에 연결만해줭」 · 주소 = viewer/play) */}
         <span aria-hidden className="grid size-5 place-items-center text-base">✿</span>놀이터
       </button>
+      {tinting ? <RoomColorPick room={tinting} onPeek={(hex) => setPeek({ id: tinting.id, hex })} onClose={() => { setTinting(null); setPeek(null); }} /> : null}
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {notice?.text ? (
