@@ -13,6 +13,12 @@ export const DROP_ROUTES = [
   "^onboarding\\.tsx$", "^start\\.tsx$", "^approvals\\.tsx$", "^notifications\\.tsx$", "^passwords\\.tsx$", "^setup\\.tsx$",
 ].join("|");
 
+/** node_modules 글자 고치기 = 깔린 자리가 달라도 끝 경로로 맞춤 · 글자가 없으면 경고만(빌드가 멈추면 그 회차 앱이 빠짐) */
+const PATCH_LIB: Record<string, [string, string][]> = {
+  // 「!」 뒤 한글 = 조합 중에도 트리거 감지(형 10-31 「느낌표 쓰고 봄 쓰고 띄어쓰기 했다가 백스페이스 해야 타겟팅이됨」 · prompt-area 0.6.3 입력 처리가 조합 중 감지를 건너뜀 · 글 재그리기는 그대로 건너뜀 · 빠르 판)
+  "prompt-area/dist/chunk-O73VWL5Y.js": [["if(L.isComposing.current){let i=M();z.current=i,t(i);return}", "if(L.isComposing.current){let i=M();z.current=i,t(i),F();return}"]],
+};
+
 /** 원본 파일(openbot/ 뒤 경로) → 우리 파일(nomute/ 뒤 경로). 우리 파일 안에서 원본을 부르면 그대로 원본(바꿔 끼우기 0). */
 export const SWAP: Record<string, string> = {
   "app/src/router.tsx": "router.tsx",   // 해시 주소 · 우리 라우트 나무(빼는 화면 뺀 것)
@@ -72,6 +78,13 @@ export const PATCH: Record<string, [string, string][]> = {
     ['emptyMessage: "No Bots in this conversation"', 'emptyMessage: "이 방엔 부를 이가 없어"'],
     ['import { commandTrigger, mentionTrigger } from "prompt-area/helpers";', 'import { commandTrigger, mentionTrigger } from "prompt-area/helpers";\nimport { faceIcon } from "@nomute/ui/call-face";'],
     ["          description: agent.description,", "          description: agent.description,\n          icon: faceIcon(agent.id),"],   // 부름 목록 얼굴(./ui/call-face.tsx)
+  ],
+  // 「+」 = 카메라 말고 파일·갤러리(형 10-31) · 그림 꼴만 적힌 accept 는 폰 브라우저가 카메라·갤러리 고르기로 받음 · 거름은 screenPickedFiles 가 이미 함(빠르 판)
+  "app/src/components/channels/composer/attachments.ts": [
+    ['export const FILE_PICKER_ACCEPT = [
+', 'export const FILE_PICKER_ACCEPT = [
+  "*/*",
+'],
   ],
   "app/src/components/channels/composer/attachment-strip.tsx": [
     ['aria-label="Attachments"', 'aria-label="붙인 파일"'],
@@ -138,6 +151,15 @@ export function nomuteOverrides(openbot: string, nomute: string): Plugin {
     },
     transform(code, id) {
       const f = norm(id).split("?")[0];
+      const lib = Object.keys(PATCH_LIB).find((k) => f.endsWith(`/${k}`));
+      if (lib) {
+        let out = code;
+        for (const [from, to] of PATCH_LIB[lib]) {
+          if (!out.includes(from)) this.warn(`nomute 라이브러리 고치기: ${lib} 에 글자 없음(판이 바뀜)`);
+          out = out.replace(from, to);
+        }
+        return out;
+      }
       const fix = f.startsWith(up) ? PATCH[f.slice(up.length)] : undefined;
       if (!fix) return null;
       let out = code.replaceAll("\r\n", "\n");
