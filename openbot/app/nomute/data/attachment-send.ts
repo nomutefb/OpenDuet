@@ -67,7 +67,7 @@ const failedCopy = (value: unknown): value is FailedCopy => {
 export function createAttachmentSender(transport: Transport) {
   const attempts = new Map<number, SendAttempt>();
   const attemptedIds = new Set<string>();
-  const busyRooms = new Set<string>();
+  const retrying = new Set<number>();
   const listeners = new Set<() => void>();
   let sequence = 0,
     version = 0;
@@ -152,6 +152,90 @@ export function createAttachmentSender(transport: Transport) {
     }
   };
 
+  // 소유권을 옮기기 전의 오류만 throw한다. 그러면 Composer가 원래 입력을 복원한다.
+  const begin = (input: SendInput) => {
+    const ids = input.originals.map((original) => original.id);
+    if (
+      !ids.length ||
+      ids.some((id) => !id) ||
+      new Set(ids).size !== ids.length ||
+      input.originals.some((original) => !original.file)
+    ) {
+      throw new Error("첨부 원본을 찾지 못했어. 파일을 다시 골라 줘.");
+    }
+    if (ids.some((id) => attemptedIds.has(id)))
+      throw new Error(
+        "이미 전송을 시도한 첨부야. 아래 전송 기록에서 결과를 확인해 줘.",
+      );
+    const attempt: SendAttempt = {
+      id: ++sequence,
+      room: input.room,
+      text: input.text,
+      originals: input.originals.map((original) => ({ ...original })),
+      phase: "uploading",
+      saved: [],
+      failed: [],
+      announcement: false,
+      detail: "",
+      progress: 0,
+    };
+    for (const id of ids) attemptedIds.add(id);
+    attempts.set(attempt.id, attempt);
+    emit();
+    return attempt;
+  };
+
+  const run = async (attempt: SendAttempt) => {
+    try {
+      const reply = await transport.upload(attempt, (ratio) => update(attempt.id, { progress: ratio }));
+      const data = object(reply.data);
+      const saved = Array.isArray(data?.files)
+        ? data.files.filter(savedCopy)
+        : [];
+      const failed = Array.isArray(data?.failed)
+        ? data.failed.filter(failedCopy)
+        : [];
+      const announcement = messageFor(data?.message, attempt.room);
+      if (announcement) publish(attempt.room, data?.message);
+      update(attempt.id, { saved, failed, announcement });
+      const allCopies =
+        Array.isArray(data?.files) &&
+        data.files.length >= attempt.originals.length &&
+        data.files.every(savedCopy);
+      const noFailures =
+        data?.failed === undefined ||
+        (Array.isArray(data.failed) && data.failed.length === 0);
+      if (
+        reply.status !== 200 ||
+        data?.ok !== true ||
+        !allCopies ||
+        !noFailures ||
+        !announcement
+      ) {
+        const detail =
+          failed.length || reply.status === 207
+            ? "일부 복사본만 저장됐어. 받는 곳별 결과를 확인해 줘. 원본은 보관 중이고 다시 올리지 않았어."
+            : "첨부 저장이나 대화 알림을 모두 확인하지 못했어. 원본은 보관 중이고 다시 올리지 않았어.";
+        update(attempt.id, {
+          phase: "needs-check",
+          detail:
+            typeof data?.why === "string" ? `${detail} ${data.why}` : detail,
+        });
+        return;
+      }
+      if (attempt.text && data?.together !== true) await sendBody(attempt);   // 서버가 글과 첨부를 한 글로 받았으면 끝(형 10-31 「말한거랑 한꺼번에 가자」)
+      else complete(attempt);
+    } catch {
+      update(attempt.id, {
+        phase: "needs-check",
+        detail:
+          "첨부 응답을 받지 못했어. 일부가 이미 저장됐을 수 있어 확인이 필요해. 원본은 보관 중이야.",
+      });
+    } finally {
+      refresh(attempt.room);
+    }
+  };
+
   return {
     subscribe(listener: () => void) {
       listeners.add(listener);
@@ -163,97 +247,20 @@ export function createAttachmentSender(transport: Transport) {
     forRoom: (room: string) =>
       [...attempts.values()].filter((attempt) => attempt.room === room),
     async submit(input: SendInput) {
-      // 소유권을 옮기기 전의 오류만 throw한다. 그러면 Composer가 원래 입력을 복원한다.
-      if (busyRooms.has(input.room))
-        throw new Error("이 방의 첨부 전송이 아직 진행 중이야.");
-      const ids = input.originals.map((original) => original.id);
-      if (
-        !ids.length ||
-        ids.some((id) => !id) ||
-        new Set(ids).size !== ids.length ||
-        input.originals.some((original) => !original.file)
-      ) {
-        throw new Error("첨부 원본을 찾지 못했어. 파일을 다시 골라 줘.");
-      }
-      if (ids.some((id) => attemptedIds.has(id)))
-        throw new Error(
-          "이미 전송을 시도한 첨부야. 아래 전송 기록에서 결과를 확인해 줘.",
-        );
-      const attempt: SendAttempt = {
-        id: ++sequence,
-        room: input.room,
-        text: input.text,
-        originals: input.originals.map((original) => ({ ...original })),
-        phase: "uploading",
-        saved: [],
-        failed: [],
-        announcement: false,
-        detail: "",
-        progress: 0,
-      };
-      busyRooms.add(attempt.room);
-      for (const id of ids) attemptedIds.add(id);
-      attempts.set(attempt.id, attempt);
-      emit();
-      try {
-        const reply = await transport.upload(attempt, (ratio) => update(attempt.id, { progress: ratio }));
-        const data = object(reply.data);
-        const saved = Array.isArray(data?.files)
-          ? data.files.filter(savedCopy)
-          : [];
-        const failed = Array.isArray(data?.failed)
-          ? data.failed.filter(failedCopy)
-          : [];
-        const announcement = messageFor(data?.message, attempt.room);
-        if (announcement) publish(attempt.room, data?.message);
-        update(attempt.id, { saved, failed, announcement });
-        const allCopies =
-          Array.isArray(data?.files) &&
-          data.files.length >= attempt.originals.length &&
-          data.files.every(savedCopy);
-        const noFailures =
-          data?.failed === undefined ||
-          (Array.isArray(data.failed) && data.failed.length === 0);
-        if (
-          reply.status !== 200 ||
-          data?.ok !== true ||
-          !allCopies ||
-          !noFailures ||
-          !announcement
-        ) {
-          const detail =
-            failed.length || reply.status === 207
-              ? "일부 복사본만 저장됐어. 받는 곳별 결과를 확인해 줘. 원본은 보관 중이고 다시 올리지 않았어."
-              : "첨부 저장이나 대화 알림을 모두 확인하지 못했어. 원본은 보관 중이고 다시 올리지 않았어.";
-          update(attempt.id, {
-            phase: "needs-check",
-            detail:
-              typeof data?.why === "string" ? `${detail} ${data.why}` : detail,
-          });
-          return;
-        }
-        if (attempt.text && data?.together !== true) await sendBody(attempt);   // 서버가 글과 첨부를 한 글로 받았으면 끝(형 10-31 「말한거랑 한꺼번에 가자」)
-        else complete(attempt);
-      } catch {
-        update(attempt.id, {
-          phase: "needs-check",
-          detail:
-            "첨부 응답을 받지 못했어. 일부가 이미 저장됐을 수 있어 확인이 필요해. 원본은 보관 중이야.",
-        });
-      } finally {
-        busyRooms.delete(attempt.room);
-        refresh(attempt.room);
-      }
+      await run(begin(input));
+    },
+    /** 소유권만 받고 바로 돌아옴 = 올리는 동안 입력칸이 안 묶임(형 11-01 「이미지가 업로드가 되는 도중에는 내가 다음 채팅을 못 써」 · 「그거랑 내 다음 채팅은 별건임」) · 뒤 결과는 전송 기록이 맡음 */
+    start(input: SendInput) {
+      void run(begin(input));
     },
     async retryBody(id: number) {
       const attempt = attempts.get(id);
-      if (attempt?.phase !== "body-retry" || busyRooms.has(attempt.room))
-        return;
-      busyRooms.add(attempt.room);
+      if (attempt?.phase !== "body-retry" || retrying.has(id)) return;
+      retrying.add(id);
       try {
         await sendBody(attempt);
       } finally {
-        busyRooms.delete(attempt.room);
+        retrying.delete(id);
       }
     },
   };

@@ -153,10 +153,33 @@ test("a second click while an upload is pending cannot start another request", a
   const pending = deferred();
   const f = fixture([() => pending.promise]);
   const first = f.state.submit(input());
-  await assert.rejects(f.state.submit(input()), /진행 중/);
+  await assert.rejects(f.state.submit(input()), /이미 전송을/);
   assert.equal(f.uploadCalls.length, 1);
   pending.resolve(partial);
   await first;
+});
+
+test("a different attachment in the same room starts while the first is uploading", async () => {
+  const pending = deferred();
+  const f = fixture([() => pending.promise, () => pending.promise]);
+  const first = f.state.submit(input());
+  const other = { ...input(), originals: [{ id: "next", file: input().originals[0].file }] };
+  const second = f.state.submit(other);
+  await Promise.resolve();
+  assert.equal(f.uploadCalls.length, 2);
+  assert.equal(f.state.forRoom(input().room).length, 2);
+  pending.resolve(partial);
+  await Promise.all([first, second]);
+});
+
+test("start hands over at once and refuses before taking the originals", async () => {
+  const pending = deferred();
+  const f = fixture([() => pending.promise]);
+  f.state.start(input());
+  assert.equal(f.state.forRoom(input().room).length, 1);
+  assert.throws(() => f.state.start(input()), /이미 전송을/);
+  assert.throws(() => f.state.start({ ...input(), originals: [] }), /원본을 찾지/);
+  pending.resolve(partial);
 });
 
 test("two body retry clicks use one request and preserve room and captured text", async () => {

@@ -869,7 +869,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
                   return { id, file };
                 });
                 // 전송을 시작한 원본/본문은 기록이 맡는다. 일부 실패해도 새 입력과 섞지 않는다.
-                await attachmentSender.submit({ room, text, originals });
+                attachmentSender.start({ room, text, originals });
               } else if (text) {
                 const body: Record<string, unknown> = { text };
                 const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) });
