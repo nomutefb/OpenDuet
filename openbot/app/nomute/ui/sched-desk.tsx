@@ -177,20 +177,22 @@ export function SchedDesk() {
                     </li>
                   ) : null}
                   {rs.map((r) => {
-                    const b = botOf(r.bot), live2 = r.state === "live", wide = openR === r.id, blocked = !fOn || b?.on === false;
+                    const room = r.fork === "room" || r.id.startsWith("room.");   // 방 루틴(뎅 11-01 08:46 · 봇 없음 · 「종」이 그 방에 씀 · 시각은 방 「루틴 만들기」에서만)
+                    const b = botOf(r.bot) || (room ? { who: r.who } as ReturnType<typeof botOf> : undefined), live2 = r.state === "live", wide = openR === r.id, blocked = !fOn || b?.on === false;
                     return (
                       <li key={r.id} className="nm-sched-tine" data-off={!live2 || blocked || undefined}>
                         <div className="nm-sched-tinehead">
                           <Breaker on={live2} dim={blocked} label={`${r.name} 차단기`} disabled={!can || go.isPending || r.state === "grok-stay"} onFlip={() => prep({ at: "routine", key: r.id, field: "state", value: live2 ? "off" : "live", label: `${b?.who} ${r.name}` })} />
                           <button type="button" aria-expanded={wide} onClick={() => setOpenR(wide ? "" : r.id)}>
-                            <b>{r.name}</b><small>{r.cron?.length ? cronKo(r.cron) : "부를 때만"}{blocked ? " · 위 차단기 내려감" : ""}</small>
+                            <b>{r.name}</b><small>{r.cron?.length ? cronKo(r.cron) : r.when?.length ? r.when.join(" · ") : "부를 때만"}{blocked ? " · 위 차단기 내려감" : ""}</small>
                           </button>
                           <span className="nm-sched-end" title={`끝 = ${nameOf(b)} ! 훅 하나`}>{face(b)}<i>!</i></span>
                         </div>
                         {bar(r.id)}
                         {wide ? (
                           <div className="nm-sched-rt">
-                            <WhenPick r={r} can={can} busy={go.isPending} send={(v) => prep({ at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` })} />
+                            {room ? <small>시각·요일은 그 방 「루틴 만들기」에서 바꿔. 여기선 켜고 끄기와 글만.</small>
+                              : <WhenPick r={r} can={can} busy={go.isPending} send={(v) => prep({ at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` })} />}
                             {r.marks?.includes("time_in_text") ? <small className="nm-sched-warn">할 일 글 안에도 시각이 적혀 있어. 시간을 바꾸면 글도 같이 봐 줘</small> : null}
                             {r.task !== undefined ? (
                               <label className="nm-sched-text">할 일

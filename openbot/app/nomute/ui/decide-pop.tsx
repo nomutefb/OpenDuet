@@ -35,7 +35,9 @@ export function DecideFab() {
     const out = ready.current();
     if (!dirty.current || !out.length) return;
     dirty.current = false;
-    void office("decisions", { method: "POST", body: JSON.stringify({ picks: out, send: true }) }).catch(() => beacon(out)).finally(() => { setPicks({}); void qc.invalidateQueries({ queryKey: KEY }); });
+    void office<{ items?: Decision[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: out, send: true }) })
+      .then((j) => { if (j.items) qc.setQueryData(KEY, j.items); })   // 보낸 뒤 남은 목록이 바로 옴 = 개수 바로 고침(봄 08:44)
+      .catch(() => beacon(out)).finally(() => { setPicks({}); void qc.invalidateQueries({ queryKey: KEY }); });
   };
   const close = () => { if (closing.current) return; closing.current = true; history.back(); };   // 뒤로가기와 같은 길(폰 뒤로가기 = 닫기 · 형 10-31)
   useEffect(() => {
@@ -52,7 +54,12 @@ export function DecideFab() {
 
   const pick = async (d: Decision, p: Pick) => {   // 고르면 바로 서버에 적음(send 없음 = 안 깨움) · 보내기는 떠날 때
     setPicks((m) => ({ ...m, [d.id]: p })); setEtc(""); setErr("");
-    try { await office("decisions", { method: "POST", body: JSON.stringify({ picks: [{ id: d.id, room: d.room, ...p }] }) }); dirty.current = true; }
+    try {
+      const j = await office<{ bad?: { id: string; why?: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: [{ id: d.id, room: d.room, ...p }] }) });
+      const bad = (j.bad || []).find((x) => x.id === d.id);   // 봄 08:44 「둘 이상이거나 빈 기타·틀린 번호면 그 줄만 bad」 = 안 적힘
+      if (bad) throw new Error(bad.why || "서버가 안 받았어");
+      dirty.current = true;
+    }
     catch (e) { setPicks((m) => { const n = { ...m }; delete n[d.id]; return n; }); setErr(`못 적었어 · ${(e as Error).message}`); }
   };
   const etcSubmit = (d: Decision) => (e: FormEvent<HTMLFormElement>) => {
