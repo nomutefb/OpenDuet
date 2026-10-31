@@ -78,7 +78,7 @@ const merge = (old: Page | undefined, add: Msg[]): Page => {
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const dayKey = (ts: number) => kst(ts).toISOString().slice(0, 10);
 const dateLabel = (ts: number) => `${dayKey(ts).slice(5).replace("-", "/")}(${"일월화수목금토"[kst(ts).getUTCDay()]})`;   // 「10/31(토)」(요일 = 실제 · 형 10-31 09:15)
-const TIME_GAP = 60_000;   // 같은 사람이 마지막 찍은 시각에서 이 안에 이어 쓰면 시각 안 찍음(형 10-31 「1분 안에 … 시간이 재나열 될 필요없음.」)
+const TIME_GAP = 60_000;   // 같은 사람의 다음 글이 이 안에 이어지면 이 글엔 시각 안 찍음 = 묶음 마지막 글에만(형 10-31 「1분 안에 … 시간이 재나열 될 필요없음.」)
 const fileName = (p: string) => String(p).split("/").pop()?.replace(/^\d{8}_\d{4}_/, "") || p;
 const fileUrl = (p: string, dl = false) => `/api/office/file?${new URLSearchParams({ path: p, ...(dl ? { dl: "1" } : {}) })}`;
 const size = (b: number) => (b > 1e6 ? `${(b / 1e6).toFixed(1)}MB` : `${Math.max(1, Math.round(b / 1e3))}KB`);
@@ -482,7 +482,6 @@ function Band({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
   const [open0, setOpen] = useState(false);
   const open = open0 || (!!c.want && msgs.some((x) => x.id === c.want));   // 그 글로 가는 중 = 펼침
   const ws = [...new Set(msgs.map((x) => x.who))];
-  let shown = 0;   // 마지막으로 찍은 시각
   return (
     <div className="flex flex-col items-center gap-3">
       {/* 묶음 칩 겉 = ./yeta-chat.css .ygrp(YETA 유리 알약 + 차콜 · 형 10-31 09:16) · 테일윈드 겉 뺌 */}
@@ -493,8 +492,8 @@ function Band({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
         {ws.length > 3 ? " · " : ""}메시지 {msgs.length}개
       </button>
       {open ? <div className="flex w-full flex-col gap-[10px] border-l-2 border-border pl-3 opacity-90">{msgs.map((m, i) => {
-        const cont = i > 0 && msgs[i - 1].who === m.who, noTime = cont && Math.abs(m.ts - shown) < TIME_GAP;
-        if (!noTime) shown = m.ts;
+        const cont = i > 0 && msgs[i - 1].who === m.who, next = msgs[i + 1];
+        const noTime = !!next && next.who === m.who && dayKey(next.ts) === dayKey(m.ts) && next.ts - m.ts < TIME_GAP;   // 시각 = 1분 안 이어 쓴 묶음의 **마지막** 글에 · 같은 날만(뎅 11:4x · 자정 넘김 묶음에서 23:59 글 시각이 빠지던 것)(형 10-31 11:27 「최신 시각의 가장 마지막 대화에 이어져야된다는 거임 화자가 동일하자는 전제에는」 · 앞 판은 첫 글에 붙었음)
         return <Line key={m.id} m={m} c={c} cont={cont} noTime={noTime} />;
       })}</div> : null}
     </div>
@@ -709,7 +708,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
 
-  let prevTs = 0, shownTs = 0, prev: Item | undefined;
+  let prevTs = 0, prev: Item | undefined;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
@@ -723,12 +722,14 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
           ) : null}
           {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">첫 대화를 시작해보세요</p> : null}
-          {items.map((it) => {
+          {items.map((it, idx) => {
             const first = it.t === "msg" ? it.m : it.msgs[0];
             const newDay = !first._thr && (!prevTs || dayKey(prevTs) !== dayKey(first.ts));
             const cont = !newDay && it.t === "msg" && prev?.t === "msg" && prev.m.who === it.m.who && prev.m.kind === it.m.kind;
-            const noTime = cont && it.t === "msg" && Math.abs(it.m.ts - shownTs) < TIME_GAP;
-            if (it.t === "msg" && !noTime) shownTs = it.m.ts;
+            // 시각 = 같은 사람이 1분 안에 이어 쓴 묶음의 **마지막** 글 아래에(형 10-31 11:27 「항상 마지막 말에 최신 시각이 내려와서 붙어야해 … 최신 시각의 가장 마지막 대화에 이어져야된다는 거임 화자가 동일하자는 전제에는」)
+            //   = 다음 글이 같은 사람·같은 종류·같은 날·1분 안이면 이 글은 시각 없음(앞 판 = 첫 글에 붙고 뒤 글 생략 → 뒤집음)
+            const next = items[idx + 1];
+            const noTime = it.t === "msg" && !!next && next.t === "msg" && next.m.who === it.m.who && next.m.kind === it.m.kind && !next.m._thr && dayKey(next.m.ts) === dayKey(it.m.ts) && next.m.ts - it.m.ts < TIME_GAP;
             const turn = !newDay && !first._thr && !!sideOf(prev) && !!sideOf(it) && sideOf(prev) !== sideOf(it);
             prevTs = (it.t === "msg" ? it.m : it.msgs[it.msgs.length - 1]).ts;
             prev = it;
