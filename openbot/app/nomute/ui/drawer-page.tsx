@@ -8,6 +8,8 @@ import { taskListQueryOptions } from "@/lib/tasks/queries";
 import { needsInputCount } from "@/lib/tasks/groups";
 import { MODALS, type Modal } from "./shell";
 import { useBrief } from "./today";
+import { YICO } from "./yeta-icons";
+import "./yeta-settings.css";   // 설정과 같은 판(형 11-01 「톤이 맞아야되거든」 · .yset-part · .yset-grp · .yset-item)
 
 const PARTS: { name: string; ids: Modal[] }[] = [
   { name: "일", ids: ["tasks", "runner", "edtool"] },
@@ -19,21 +21,22 @@ export function DrawerPage() {
   const nav = useNavigate(), inbox = useQuery(approvalInboxOptions()), tasks = useQuery(taskListQueryOptions());
   const waiting = needsInputCount(tasks.data, inbox.data) + (useBrief().data?.cols.decide.filter((x) => !x.answer).length || 0);
   return (
-    <div className="nm-yeta nm-dr mx-auto flex w-full max-w-2xl flex-col gap-4 px-3 pb-28 pt-1">
+    <div className="yeta-set nm-yeta mx-auto flex w-full max-w-3xl flex-col px-4 pb-28 pt-4">
       {PARTS.map((p) => (
-        <section key={p.name} aria-label={p.name}>
-          <h2>{p.name}</h2>
-          <ul className="nm-rgroup flex flex-col">
+        <section key={p.name} className="yset-part" aria-label={p.name}>
+          <div className="yset-sec">{p.name}</div>
+          <div className="yset-grp">
             {p.ids.map((id) => { const m = MODALS.find((x) => x.id === id)!; return (
-              <li key={id} className="nm-rrow">
-                <button type="button" className="nm-dr-i" onClick={() => void nav({ to: m.to })}>
-                  <DuetIcon name={m.icon} size={19} /><span>{m.label}</span>
+              <button key={id} type="button" className="yset-item" onClick={() => void nav({ to: m.to })}>
+                <span className="si-ic" aria-hidden><DuetIcon name={m.icon} size={21} /></span>
+                <span className="si-lbl"><span className="si-t">{m.label}</span></span>
+                <span className="si-v">
                   {id === "tasks" && waiting > 0 ? <b className="nm-rcount">{waiting > 99 ? "99+" : waiting}</b> : null}
-                  <DuetIcon name="chevronRight" size={16} />
-                </button>
-              </li>
+                  <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />
+                </span>
+              </button>
             ); })}
-          </ul>
+          </div>
         </section>
       ))}
     </div>
