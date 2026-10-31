@@ -115,7 +115,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
-              <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{senderName ? <span className="nm-rsend" style={{ "--rs": ringOf(sender) } as CSSProperties}>{senderName}: </span> : null}{preview}</span>
+              <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{r.id === "all" && !ids.length ? "사용자가 없습니다" : <>{senderName ? <span className="nm-rsend" style={{ "--rs": ringOf(sender) } as CSSProperties}>{senderName}: </span> : null}{preview}</>}</span>
             </span>
           </span>
           <span className="nm-rside">   {/* 시각 = 오른쪽 위 · 안 읽은 수 = 그 아래(형 10-31 「저게 시간 아래로 가게 해줘」) */}
