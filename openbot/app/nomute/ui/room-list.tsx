@@ -12,6 +12,7 @@ import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
 import { TempDeleteDialog, TempRoomButton, TempRoomDialog, TempSwipe } from "./temp-room";
 import { listWhen } from "./when";
+import { NoticeDialog } from "./notice-edit";
 
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
 const PINS = "nm-office-pins", HIDE = "nm-office-hidden";
@@ -83,7 +84,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     const lastId = l ? idOf(l.who, list) : "", front = ids.includes(lastId) ? [lastId, ...ids.filter((x) => x !== lastId)] : ids;
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
-      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}`} onContextMenu={(e) => { e.preventDefault(); setMenu(menu === r.id ? "" : r.id); }}>
+      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} onContextMenu={(e) => { e.preventDefault(); setMenu(menu === r.id ? "" : r.id); }}>
         {wrapTemp(r, <>
         <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
@@ -126,11 +127,12 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {notice?.text ? (
-        <button type="button" className="mb-1 flex items-start gap-2 rounded-2xl bg-amber-500/10 px-3 py-2 text-left text-sm" aria-expanded={noticeOpen} onClick={() => setNoticeOpen((v) => !v)}>
-          <span aria-hidden>📌</span>
-          <span data-content className={`min-w-0 flex-1 ${noticeOpen ? "whitespace-pre-wrap" : "truncate"}`}><b>공지</b> · {noticeOpen ? notice.text : notice.text.split("\n")[0].replace(/^공지\s*[—·:-]\s*/, "")}</span>
+        <button type="button" className="nm-rnotice" aria-label="공지 보기·고치기" onClick={() => setNoticeOpen(true)}>
+          <svg aria-hidden viewBox="0 0 24 24" width="16" height="16"><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
+          <span data-content className="min-w-0 flex-1 truncate"><b>공지</b> · {notice.text.split("\n")[0].replace(/^공지\s*[—·:-]\s*/, "")}</span>
         </button>
       ) : null}
+      {noticeOpen ? <NoticeDialog onClose={() => setNoticeOpen(false)} /> : null}
       <ul className="nm-rgroup flex flex-col">
         {ordered.map((r) => <Fragment key={r.id}>{Row({ r })}</Fragment>)}
       </ul>

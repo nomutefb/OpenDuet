@@ -257,3 +257,16 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 
 /* 머리 원이 대화 얼굴 자리로 내려갈 때(./orb-flight.tsx) */
 .nm-fly { position:fixed; top:0; left:0; z-index:40; pointer-events:none; transform-origin:0 0; }
+
+/* 목록 시그니처 색(형 10-31) · 공지 = 시그니처 색 · 회의실 = 공용 공간이라 시그니처 색에 투명도 · 호버 = 시그니처 색 유리 */
+.nm-rnotice { display:flex; align-items:center; gap:8px; width:100%; margin-bottom:4px; padding:8px 12px; border:1px solid rgba(207,255,64,.28); border-radius:16px; background:rgba(207,255,64,.1); font-size:14px; text-align:left; cursor:pointer; }
+.nm-rnotice svg { flex:none; fill:none; stroke:var(--accent, #CFFF40); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.nm-rnotice b { color:var(--accent, #CFFF40); }
+:root:not(.dark) .nm-rnotice b { color:inherit; } :root:not(.dark) .nm-rnotice svg { stroke:currentColor; }
+.nm-rrow.grp.meet { background:rgba(207,255,64,.1); }
+@media (hover:hover) {
+  .nm-rnotice:hover { background:rgba(207,255,64,.16); }
+  .nm-rrow > a:hover, .nm-rrow .nm-sw-row > a:hover { background:rgba(207,255,64,.13); -webkit-backdrop-filter:blur(12px) saturate(1.3); backdrop-filter:blur(12px) saturate(1.3); box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+}
+/* 말풍선 글자 사이(형 10-31 「글 간 간격을 조금 더 벌려줘」) */
+.ychat .yb { letter-spacing:.012em; word-spacing:.04em; }
