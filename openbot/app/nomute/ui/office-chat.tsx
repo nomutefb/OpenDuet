@@ -345,7 +345,7 @@ function callRe(m: Msg): RegExp | null {
 const NAME_TAIL = "(?:야|아|님|씨|에게|한테|께|이|가|은|는|을|를|랑|이랑|의|이야|이가)";
 const NAME_TONE = new Map<string, string>();   // 형 10-31 「그록봇은 시안 · 클로드봇은 주황네온 · 지피티 봇은 연보라네온」 · 「형 또는 세웅 은 노뮤트색」 = 이름 → 색 칸(gk·cl·gp·hy · 호출 칩 ycall 은 그대로)
 const TONE_OF: Record<string, string> = { 그록봇: "gk", 클로드: "cl", 닷: "gp", 부름: "gp" };
-const TONE_WORDS: [string, string][] = [["그록", "gk"], ["그록봇", "gk"], ["클로드", "cl"], ["클로드봇", "cl"], ["지피티", "gp"], ["지피티봇", "gp"]];
+const TONE_WORDS: [string, string][] = [["그록", "gk"], ["그록봇", "gk"], ["클로드", "cl"], ["클로드봇", "cl"], ["지피티", "gp"], ["지피티봇", "gp"], ["세웅", "hy"]];   // 세웅 = 명부 이름이 「형」이라 따로(형 10-31 「세웅 키워드도 노뮤트색으로 형 키워드처럼」 · 호출 !세웅·@세웅 은 그대로)
 const GROUP_PICK = [{ id: "group-all", name: "모두", title: "전원" }, { id: "group-grok", name: "그록", title: "그록봇" }, { id: "group-claude", name: "클로드", title: "클로드" }, { id: "group-gpt", name: "지피티", title: "지피티" }];   // 입력칸 「@」·「!」 목록 맨 위 = 묶음 부르기(형 10-31 · 서버 _names.js)
 function nameRe(list: OfficePerson[]): RegExp | null {
   NAME_TONE.clear();
