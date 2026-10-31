@@ -331,9 +331,9 @@ function Files({ m }: { m: Msg }) {
   const one = (p: string) => ({ p, n: meta.get(p)?.name || fileName(p), b: meta.get(p)?.bytes || 0 });
   const imgs = ps.filter((p) => IMG_RE.test(p)).map(one), rest = ps.filter((p) => !IMG_RE.test(p)).map(one);
   return (
-    <div className="flex flex-col gap-2">
+    <div className="yfiles flex flex-col gap-2">
       {imgs.length ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="yfiles flex flex-col items-start gap-2">   {/* 두 장 이상 = 세로(형 10-31 「그리고 2개 이상은 세로로.」) */}
           {imgs.map((f) => (
             <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
               <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" />
@@ -483,7 +483,7 @@ function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
 
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
-  if (m.files?.length) return <>{m.caption ? <Streamdown components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown> : null}<Files m={m} /></>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
+  if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
   return <Streamdown components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
 }
@@ -504,7 +504,7 @@ function Line({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <>{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}<Files m={m} /></> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Missed m={m} /><Reactions m={m} c={c} mine /></div>{time}</div>
+          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Missed m={m} /><Reactions m={m} c={c} mine /></div>{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>

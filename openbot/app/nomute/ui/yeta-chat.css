@@ -58,7 +58,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ncp-hue::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:2px solid rgba(0,0,0,.25); }
 .ncp-rgb { display:flex; gap:8px; }
 .ncp-acts { display:flex; gap:8px; justify-content:flex-end; }
-.ychat .yb.ph, .ychat .yb.me.ph { background:none; border:none; padding:0; box-shadow:none; }   /* 사진만 든 글 = 말풍선 없이(.yb.me 뒤에 와도 지게 같은 무게로 · 사진 모서리 라임 삐져나옴) */
+.ychat .yb.ph, .ychat .yb.me.ph { background:none; border:none; padding:0; box-shadow:none; }
+.ychat .yb.me .yfiles, .ychat .yb.me.ph { display:flex; flex-direction:column; align-items:flex-end; }   /* 내가 올린 사진 = 말 위 · 오른쪽(형 10-31 「이렇게 올린거는 일반적으로 말보다 위쪽에 배치되 우측정렬로」) */   /* 사진만 든 글 = 말풍선 없이(.yb.me 뒤에 와도 지게 같은 무게로 · 사진 모서리 라임 삐져나옴) */
 .ychat .yb.ai .ymd { white-space:normal; }
 .ychat .yb a { text-decoration:underline; text-underline-offset:2px; word-break:break-all; font-style:italic; color:#6b7280; } .dark .ychat .yb a, .ychat .yb.me.app a { color:#c3cad3; }   /* 글 속 주소 = 누르면 새 창(D9) */
 .ychat .ycall { font-weight:700; color:var(--accent); background:rgba(var(--accent-rgb),.14); border-radius:6px; padding:0 3px; white-space:nowrap; }   /* 글 속 부름 「@이름」·「!이름」 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) */
@@ -223,8 +224,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 form:has(.bg-popover[role="listbox"]) { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
 form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pane:has(.bg-popover[role="listbox"]) { transform:none !important; translate:none !important; }
 /* 긴 말풍선 = 화면을 넘어가도 얼굴·이름이 머리 밑에 남음(형 10-31 「화면 넘어가면 화자가 나와야함」) */
-.ychat .ymsg .yava { position:sticky; top:46px; z-index:1; }
-.ychat .ymsg .yname { position:sticky; top:46px; z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
+.ychat .ymsg .yava { position:sticky; top:var(--ytop, 84px); z-index:1; }   /* 머리 흐림 아래(형 10-31 「이게 좀 더 아래로 내랴와야해. 가려지거든? 그래서 화자가 좀 안보여.」) */
+.ychat .ymsg .yname { position:sticky; top:var(--ytop, 84px); z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
 /* 임시방 머리 = 인원을 펼쳐 얼굴 하나씩 */
 /* 임시방 줄 왼쪽 끌기 = 예타 .ylr 그대로 · 폭만 칸 둘 */
 .nm-sw { position:relative; overflow:hidden; border-radius:inherit; }

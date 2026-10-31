@@ -36,8 +36,8 @@ function Original({ original }: { original: OriginalAttachment }) {
 function Sending({ attempt }: { attempt: SendAttempt }) {
   return (
     <div className="nac-up" aria-label="첨부 보내는 중">
-      {attempt.text ? <p className="nac-text">{attempt.text}</p> : null}
       {attempt.originals.map((original) => <Preview key={original.id} file={original.file} />)}
+      {attempt.text ? <p className="nac-text">{attempt.text}</p> : null}
       <span className="nac-bar" role="progressbar" aria-valuenow={Math.round(attempt.progress * 100)}><i style={{ width: `${Math.max(6, Math.min(94, attempt.progress * 94))}%` }} /></span>
     </div>
   );

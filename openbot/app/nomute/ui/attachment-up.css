@@ -7,5 +7,6 @@
 .nac-bar i { display:block; height:100%; border-radius:2px; background:var(--accent, #CFFF40); transition:width .18s linear; }
 /* 안 닿은 부름(office-chat Missed) */
 .ymiss { display:block; margin-top:4px; font-size:11px; line-height:1.3; opacity:.72; }
-.ycap { margin:0 0 6px; white-space:pre-wrap; word-break:break-word; }
+.ycap-ai { margin-top:6px; }
+.ycap { margin:6px 0 0; white-space:pre-wrap; word-break:break-word; }
 .ychat .yb.ph .ycap { padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; }
