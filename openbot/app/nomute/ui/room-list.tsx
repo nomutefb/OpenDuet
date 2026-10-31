@@ -13,6 +13,7 @@ import { FaceImg } from "./faces";
 import { TempDeleteDialog, TempRoomButton, TempRoomDialog, TempSwipe } from "./temp-room";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
+import { openInApp } from "./inapp";
 
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
 const PINS = "nm-office-pins", HIDE = "nm-office-hidden";
@@ -124,6 +125,9 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   return (
     <nav aria-label="대화 목록" className="nm-yeta nm-rooms flex flex-col">
       <TempRoomButton />
+      <button type="button" className="mb-1 flex items-center gap-2 rounded-2xl px-3 py-2 text-left text-sm text-muted-foreground hover:bg-duet-tile" onClick={() => openInApp("/play/")}>   {/* 놀이터(형 10-31 「대신 내가 볼수잇게 연결성있게 우리 사무실에 연결만해줭」 · 주소 = viewer/play) */}
+        <span aria-hidden className="grid size-5 place-items-center text-base">✿</span>놀이터
+      </button>
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {notice?.text ? (
