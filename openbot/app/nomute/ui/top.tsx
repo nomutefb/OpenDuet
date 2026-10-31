@@ -24,6 +24,12 @@ export function NomuteName() {
   const [open, setOpen] = useState(false), [sheet, setSheet] = useState(false);
   const timers = useRoomTimers(open).data;
   useEffect(() => { setOpen(false); setSheet(false); }, [r?.id]);
+  useEffect(() => {   // 사람 목록 = 밖을 누르면 닫힘(형 10-31 「사진 위 클릭하고 다른 곳 누르면 닫혀야되는데 안닫혀」)
+    if (!open) return undefined;
+    const close = (e: PointerEvent) => { if (!(e.target as Element | null)?.closest?.(".nm-top-wrap")) setOpen(false); };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
   if (!r) return null;
   const p = r.with ? list.find((x) => x.who === r.with) : undefined;
   const name = r.with ? p?.name || r.with : r.name;
