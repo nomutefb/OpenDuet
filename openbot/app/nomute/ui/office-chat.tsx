@@ -23,6 +23,7 @@ import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, peopl
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { peekAttachments } from "../shim/attachments";
 import { attachmentSender } from "../data/attachment-state";
+import "./attachment-up.css";
 import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
 import { useCloseCallMenu } from "./call-face";
@@ -455,7 +456,7 @@ function BoxCard({ m }: { m: Msg }) {
 
 function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
-  if (m.files?.length) return <Files m={m} />;
+  if (m.files?.length) return <>{m.caption ? <Streamdown components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown> : null}<Files m={m} /></>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
   return <Streamdown components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
 }

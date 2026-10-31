@@ -203,8 +203,8 @@ test("the persistent recovery card owns originals before a delayed upload settle
   const f = fixture([() => pending.promise]);
   const sending = f.state.submit(input());
   const view = await mount(f.state);
-  assert.match(view.container.textContent || "", /보내는 중/);
-  assert.equal(view.container.querySelectorAll("a[download]").length, 1);
+  assert.equal(view.container.querySelectorAll("[role=progressbar]").length, 1);   // 보내는 중 = 말풍선 자리 + 게이지(글 0 · 형 10-31)
+  assert.doesNotMatch(view.container.textContent || "", /보내는 중/);
   await view.render("b");
   await act(async () => {
     pending.resolve(partial);

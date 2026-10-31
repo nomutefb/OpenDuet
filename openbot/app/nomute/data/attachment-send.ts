@@ -13,10 +13,11 @@ export type SendAttempt = SendInput & {
   failed: readonly FailedCopy[];
   announcement: boolean;
   detail: string;
+  progress: number;
 };
 export type SendReply = { status: number; data: unknown };
 type Transport = {
-  upload: (input: SendInput) => Promise<SendReply>;
+  upload: (input: SendInput, onProgress?: (ratio: number) => void) => Promise<SendReply>;
   body: (input: SendInput) => Promise<SendReply>;
   release: (ids: string[]) => void;
   refresh: (room: string) => void;
@@ -187,14 +188,15 @@ export function createAttachmentSender(transport: Transport) {
         saved: [],
         failed: [],
         announcement: false,
-        detail: "첨부를 보내는 중이야.",
+        detail: "",
+        progress: 0,
       };
       busyRooms.add(attempt.room);
       for (const id of ids) attemptedIds.add(id);
       attempts.set(attempt.id, attempt);
       emit();
       try {
-        const reply = await transport.upload(attempt);
+        const reply = await transport.upload(attempt, (ratio) => update(attempt.id, { progress: ratio }));
         const data = object(reply.data);
         const saved = Array.isArray(data?.files)
           ? data.files.filter(savedCopy)
@@ -230,7 +232,7 @@ export function createAttachmentSender(transport: Transport) {
           });
           return;
         }
-        if (attempt.text) await sendBody(attempt);
+        if (attempt.text && data?.together !== true) await sendBody(attempt);   // 서버가 글과 첨부를 한 글로 받았으면 끝(형 10-31 「말한거랑 한꺼번에 가자」)
         else complete(attempt);
       } catch {
         update(attempt.id, {

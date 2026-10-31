@@ -1,0 +1,7 @@
+/* 첨부 보내는 중(./attachment-recovery.tsx) = 내 말풍선 자리 · 사진 아래 가로 게이지 · 긴 글 없음 */
+.nac-up { align-self:flex-end; display:flex; flex-direction:column; align-items:flex-end; gap:6px; max-width:min(78%, 260px); margin-bottom:8px; }
+.nac-text { margin:0; padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; font-size:14px; white-space:pre-wrap; word-break:break-word; }
+.nac-img { display:block; max-height:180px; max-width:100%; border-radius:16px; object-fit:cover; opacity:.82; }
+.nac-file { max-width:100%; padding:8px 12px; border-radius:14px; background:var(--duet-tile, rgba(255,255,255,.08)); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nac-bar { display:block; width:100%; height:3px; border-radius:2px; overflow:hidden; background:rgba(255,255,255,.14); }
+.nac-bar i { display:block; height:100%; border-radius:2px; background:var(--accent, #CFFF40); transition:width .18s linear; }

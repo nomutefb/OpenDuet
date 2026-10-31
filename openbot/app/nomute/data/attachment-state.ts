@@ -16,14 +16,30 @@ async function post(path: string, body: FormData | string) {
   return { status: response.status, data: await response.json() };
 }
 
+// fetch 는 올리는 진행률을 못 줘서 첨부만 XHR(형 10-31 「이미지 아래에 전송 게이지가 가로로 차면 될듯」)
+function upload(form: FormData, onProgress?: (ratio: number) => void) {
+  return new Promise<{ status: number; data: unknown }>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/office/files");
+    xhr.withCredentials = true;
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(e.loaded / e.total); };
+    xhr.onload = () => {
+      try { resolve({ status: xhr.status, data: JSON.parse(xhr.responseText) }); } catch (e) { reject(e); }
+    };
+    xhr.onerror = () => reject(new Error("첨부 응답을 받지 못했어"));
+    xhr.send(form);
+  });
+}
+
 export const attachmentSender = createAttachmentSender({
-  upload: (attempt) => {
+  upload: (attempt, onProgress) => {
     const form = new FormData();
     for (const original of attempt.originals)
       form.append("file", original.file);
     form.set("room", attempt.room);
     if (attempt.text) form.set("text", attempt.text);
-    return post("files", form);
+    form.set("together", "1");
+    return upload(form, onProgress);
   },
   body: (attempt) =>
     post(

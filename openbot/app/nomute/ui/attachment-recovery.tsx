@@ -2,6 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import type {
   createAttachmentSender,
   OriginalAttachment,
+  SendAttempt,
 } from "../data/attachment-send";
 
 function Original({ original }: { original: OriginalAttachment }) {
@@ -31,6 +32,27 @@ function Original({ original }: { original: OriginalAttachment }) {
   );
 }
 
+/** 보내는 중 = 내 말풍선 자리에 먼저 올리고 아래 가로 게이지(형 10-31 「대화창에 올라가고. 그 이미지 아래에 전송 게이지가 가로로 차면 될듯」) · 글은 안 띄움 */
+function Sending({ attempt }: { attempt: SendAttempt }) {
+  return (
+    <div className="nac-up" aria-label="첨부 보내는 중">
+      {attempt.text ? <p className="nac-text">{attempt.text}</p> : null}
+      {attempt.originals.map((original) => <Preview key={original.id} file={original.file} />)}
+      <span className="nac-bar" role="progressbar" aria-valuenow={Math.round(attempt.progress * 100)}><i style={{ width: `${Math.max(6, Math.min(94, attempt.progress * 94))}%` }} /></span>
+    </div>
+  );
+}
+
+function Preview({ file }: { file: File }) {
+  const [url, setUrl] = useState("");
+  useEffect(() => {
+    const next = URL.createObjectURL(file);
+    setUrl(next);
+    return () => URL.revokeObjectURL(next);
+  }, [file]);
+  return url && file.type.startsWith("image/") ? <img src={url} alt={file.name} className="nac-img" /> : <span className="nac-file">{file.name}</span>;
+}
+
 /** 입력칸에서 넘겨받은 전송 기록. 새로 쓰는 글/첨부와 별개로 원본과 결과를 보관한다. */
 export function AttachmentRecovery({
   state,
@@ -42,7 +64,7 @@ export function AttachmentRecovery({
   useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot);
   return (
     <div className="flex max-h-64 flex-col gap-2 overflow-y-auto">
-      {state.forRoom(room).map((attempt) => (
+      {state.forRoom(room).map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : (
         <section
           key={attempt.id}
           aria-label="첨부 전송 기록"
