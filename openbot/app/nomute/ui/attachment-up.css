@@ -10,3 +10,13 @@
 .ycap-ai { margin-top:6px; }
 .ycap { margin:6px 0 0; white-space:pre-wrap; word-break:break-word; }
 .ychat .yb.ph .ycap { padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; }
+/* 「+」 판(./attach-sheet.tsx) = 폰 · 글래스 톤 그대로 */
+.nm-atts-back { position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.34); animation:nmAttsFade .16s ease-out; }
+.nm-atts { position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom, 0px)); z-index:61; display:flex; flex-direction:column; gap:2px; padding:8px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); border-radius:var(--r-l, 24px); background:rgba(24,25,28,.95); -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px); box-shadow:0 8px 32px rgba(0,0,0,.4); animation:nmAttsUp .22s cubic-bezier(.2,.8,.2,1); }
+:root:not(.dark) .nm-atts { background:rgba(255,255,255,.95); }
+.nm-atts button { display:flex; align-items:center; gap:14px; width:100%; min-height:52px; padding:0 14px; border:0; border-radius:16px; background:none; color:var(--fg, inherit); font-size:var(--fs-body, 15px); text-align:left; -webkit-tap-highlight-color:transparent; }
+.nm-atts button svg { color:rgb(var(--accent-rgb, 207,255,64)); }
+.nm-atts button:active { background:rgba(var(--accent-rgb, 207,255,64), .12); }
+@keyframes nmAttsFade { from { opacity:0; } }
+@keyframes nmAttsUp { from { opacity:0; transform:translateY(16px); } }
+@media (prefers-reduced-motion:reduce){ .nm-atts, .nm-atts-back { animation:none; } }

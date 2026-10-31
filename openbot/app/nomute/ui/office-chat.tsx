@@ -26,6 +26,7 @@ import { attachmentSender } from "../data/attachment-state";
 import "./attachment-up.css";
 import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
+import { AttachSheet } from "./attach-sheet";
 import { useCloseCallMenu } from "./call-face";
 import { MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
@@ -772,6 +773,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   let prevTs = 0, prev: Item | undefined;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <AttachSheet />
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
       {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} onClose={() => setMenuOf(null)} /> : null}
       <div className="ychat relative flex min-h-0 flex-1 flex-col">

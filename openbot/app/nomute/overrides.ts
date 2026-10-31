@@ -67,6 +67,10 @@ export const PATCH: Record<string, [string, string][]> = {
     ['aria-label="Speak a message"', 'aria-label="말로 보내기"'],
     ['aria-label="Attach a file"', 'aria-label="파일 붙이기"'],
     ['aria-label="Attach a file"', 'aria-label="파일 붙이기"'],
+    // 「+」 = 폰은 사진·파일 판 · PC 는 파일 창 바로(./ui/attach-sheet.tsx)
+    ['import { AttachmentStrip } from "./attachment-strip";', 'import { AttachmentStrip } from "./attachment-strip";\nimport { openAttach } from "@nomute/ui/attach-sheet";'],
+    ["onClick={() => fileInputRef.current?.click()}", "onClick={() => openAttach(fileInputRef.current)}"],
+    ["onClick={() => fileInputRef.current?.click()}", "onClick={() => openAttach(fileInputRef.current)}"],
     ['const sendLabel = parking ? "Queue message" : "Send message";', 'const sendLabel = parking ? "줄 세워 보내기" : "보내기";'],
     ['aria-label="More message options unavailable"', 'aria-label="글 꾸미기 없음"'],
     ['aria-label="Message"', 'aria-label="글"'],
