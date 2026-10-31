@@ -73,7 +73,7 @@ export function RepairDesk({ lead, active = true }: { lead?: ReactNode; active?:
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-8 pt-[100px]">   {/* 위 여백 = 떠 있는 머리(사진+이름 · ui/shell.css .nm-head) */}
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-8 pt-[48px]">   {/* 위 여백 = 떠 있는 머리(사진+이름 · ui/shell.css .nm-head) */}
         {lead}
         <form className="rounded-3xl border border-border bg-card p-3" onSubmit={(e) => { e.preventDefault(); void send(); }}>
           <p className="text-sm font-semibold">수리 접수</p>

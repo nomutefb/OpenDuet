@@ -28,6 +28,7 @@ import { TempRoomHead } from "./temp-room";
 import { useCloseCallMenu } from "./call-face";
 import { MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
+import { OrbFlight } from "./orb-flight";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceStack } from "./faces";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -558,10 +559,6 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     return false;
   }, [all, r]);
   const presence = useReportChatPresence(true, { working: winterWorking, failed: false });
-  const busyWho = draft?.who || typing[0] || "";   // 머리 얼굴 도는 테(형 10-31 「상대가 호출에 응답중일 때 위에 동글 도는거 표시」) = top.tsx 가 받음
-  useEffect(() => { qc.setQueryData(["nomute", "busy", room], busyWho); return () => { qc.setQueryData(["nomute", "busy", room], ""); }; }, [qc, room, busyWho]);
-  const busyNames = [...new Set([draft?.who, ...typing].filter(Boolean))].join("\n");   // 임시방 머리 = 응답 중인 이 전부(top.tsx · 형 10-31 「얘기할때 테두리에 불 로딩 들어오면」)
-  useEffect(() => { qc.setQueryData(["nomute", "busyAll", room], busyNames); return () => { qc.setQueryData(["nomute", "busyAll", room], ""); }; }, [qc, room, busyNames]);
   useCloseCallMenu();
   const bots4 = useMemo(() => {   // 입력칸 「@」·「!」 목록 = 이 방에서 부를 수 있는 이(정한 사람 없는 방 = 봇 + 윈터·봄 같은 존재 · 형 10-30 「호출시 … 리스트 안뜨는 것」)
     const ids = r ? roomAgentIds(r, list) : [];
@@ -717,16 +714,18 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
 
+  const flyWho = [...all].reverse().find((m) => !mineOf(m) && m.kind !== "system")?.who || "";   // 들어올 때 머리 원이 내려갈 얼굴 = 마지막 상대
   let prevTs = 0, prev: Item | undefined;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
+      {active && flyWho ? <OrbFlight box={boxRef} id={idOf(flyWho, list)} tint={ringOf(list.find((x) => x.who === flyWho))} /> : null}
       {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} onClose={() => setMenuOf(null)} /> : null}
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
-        <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[100px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
+        <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {r?.temp ? <TempRoomHead r={r} /> : null}
           {lead}
           {msgs.data?.more && !flat ? (

@@ -140,7 +140,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 /* 내 글 ↔ 상대 글 사이(형 10-31 「상대 게시글과 내 게시글 간 간격 이 좀 더 벌어져야함.」) = 글 사이 10px 의 2배 */
 .ychat .yturn { margin-top:10px; }
 /* 「↑ 글 처음」 = 위에 걸친 글의 시작으로(떠 있는 머리 동그라미 바로 아래 · 표면 = .yb.sys 글래스 알약 꼴 · 바탕만 판 색을 거의 불투명(96%)하게 깔아 글 위에 겹쳐도 읽힘 · PM 16:35 · 누름 = YETA press) */
-.ychat .yjump { position:absolute; top:84px; left:0; right:0; margin-inline:auto; width:max-content; z-index:5; display:inline-flex; align-items:center; gap:4px; padding:5px 13px;
+.ychat .yjump { position:absolute; top:46px; left:0; right:0; margin-inline:auto; width:max-content; z-index:5; display:inline-flex; align-items:center; gap:4px; padding:5px 13px;
   background:color-mix(in srgb, var(--duet-surface, var(--bg)) 96%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-pill); color:var(--fg); font-size:var(--fs-sm); font-weight:var(--fw-b);
   backdrop-filter:blur(var(--blur-m)); -webkit-backdrop-filter:blur(var(--blur-m)); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card);
   animation:ybIn .3s cubic-bezier(.22,.61,.36,1) both; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
@@ -192,10 +192,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 /* 부름 목록 선택 줄(형 10-31 「잘 안보이는 선택되엇을때」) = 원본 bg-accent 가 형광이라 흰 글자가 묻힘 → 어두운 판 위 옅은 띠 */
 .bg-popover[role="listbox"] [role="option"][aria-selected="true"], .bg-popover[role="listbox"] [role="option"]:hover { background:rgba(207,255,64,.14); box-shadow:inset 0 0 0 1px rgba(207,255,64,.38); }
 /* 긴 말풍선 = 화면을 넘어가도 얼굴·이름이 머리 밑에 남음(형 10-31 「화면 넘어가면 화자가 나와야함」) */
-.ychat .ymsg .yava { position:sticky; top:84px; z-index:1; }
-.ychat .ymsg .yname { position:sticky; top:84px; z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
+.ychat .ymsg .yava { position:sticky; top:46px; z-index:1; }
+.ychat .ymsg .yname { position:sticky; top:46px; z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
 /* 임시방 머리 = 인원을 펼쳐 얼굴 하나씩 */
-.nm-top-crew { position:relative; left:50%; transform:translateX(-50%); display:inline-flex; gap:4px; width:max-content; max-width:92vw; }
 /* 임시방 줄 왼쪽 끌기 = 예타 .ylr 그대로 · 폭만 칸 둘 */
 .nm-sw { position:relative; overflow:hidden; border-radius:inherit; }
 .nm-sw-row { position:relative; z-index:1; touch-action:pan-y; user-select:none; -webkit-touch-callout:none; transition:transform .3s var(--ease, cubic-bezier(.2,.7,.3,1)); will-change:transform; }
@@ -238,7 +237,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-top-one { display:flex; align-items:center; gap:8px; font-size:var(--fs-label); color:var(--fg); white-space:nowrap; }
 @media (prefers-reduced-motion:reduce){ .nm-top-crew { animation:none; } }
 /* 대화 검색(./room-search.tsx) · 버튼 모션 = react-useanimations searchToX(32칸 · 돋보기 → X · .33초) · 열면 버튼에서 왼쪽으로 펼침 */
-.nm-find { position:fixed; top:calc(env(safe-area-inset-top, 0px) + 10px); z-index:55; display:flex; align-items:center; height:40px; overflow:hidden; border-radius:20px; background:#232325; color:#fff; box-shadow:0 6px 20px rgba(0,0,0,.3); transition:width .32s cubic-bezier(.2,.7,.3,1); }
+.nm-find { position:fixed; top:calc(env(safe-area-inset-top, 0px) + 6px); z-index:55; display:flex; align-items:center; height:40px; overflow:hidden; border-radius:20px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.07); -webkit-backdrop-filter:blur(18px) saturate(1.3); backdrop-filter:blur(18px) saturate(1.3); color:#fff; box-shadow:0 6px 20px rgba(0,0,0,.22); transition:width .32s cubic-bezier(.2,.7,.3,1); }   /* 창 위에 떠 있는 유리(형 10-31 「검색은 창 위에 떠잇는 느낌으로 하면되구 투명하게」) */
 .nm-find input { flex:1; min-width:0; height:100%; padding:0 4px 0 16px; border:0; outline:0; background:none; color:inherit; font-size:15px; }
 .nm-find input::placeholder { color:#8B8F8A; }
 .nm-find-btn { flex:none; display:grid; place-items:center; width:40px; height:40px; border:0; background:none; color:inherit; cursor:pointer; }
@@ -255,3 +254,6 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-find-bar path { fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
 ::highlight(nm-find) { background-color:#234a82; color:#fff; }
 @media (prefers-reduced-motion:reduce) { .nm-find, .nm-sx .c, .nm-sx .h, .nm-sx .x { transition:none; } }
+
+/* 머리 원이 대화 얼굴 자리로 내려갈 때(./orb-flight.tsx) */
+.nm-fly { position:fixed; top:0; left:0; z-index:40; pointer-events:none; transform-origin:0 0; }

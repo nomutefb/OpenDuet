@@ -4,10 +4,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
-import { DuetIcon } from "@/components/duet/icons";
-import { type OfficeRoom, WINTER_ID, idOf, office, people, roomAgentIds } from "../data/office";
-import { FaceImg, FaceStack } from "./faces";
-import { MicOrb, ringOf } from "../swap/mic-orb";
+import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
+import { FaceImg } from "./faces";
 
 /** 지금 대화 판의 방(주소 #/channels/<방> · #/group/<방>) · 명부 */
 function useTopRoom() {
@@ -41,25 +39,8 @@ export function NomuteName() {
   return <span className="nm-top-name">{name}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</span>;   // 1:1 머리 = 이름 옆 표지(형 10-31 09:12)
 }
 
-export function NomuteTop({ size, orb }: { size: number; orb: ReactNode }) {
-  const { r, list } = useTopRoom();
-  const busy = useQuery<string>({ queryKey: ["nomute", "busy", r?.id || ""], queryFn: () => "", enabled: false, initialData: "" }).data || "";
-  const busyAll = useQuery<string>({ queryKey: ["nomute", "busyAll", r?.id || ""], queryFn: () => "", enabled: false, initialData: "" }).data || "";
-  if (!r) return <>{orb}</>;
-  const ring = "grid shrink-0 place-items-center overflow-hidden rounded-full shadow-duet-glass";
-  if (r.with) {
-    const id = idOf(r.with, list);
-    if (id === WINTER_ID) return <>{orb}</>;
-    return <MicOrb size={size} state={busy === r.with ? "thinking" : "idle"} id={id} tint={ringOf(list.find((x) => x.who === r.with))} />;   // 테 = 모두(형 10-31 「윈터만잇고 다른애들없는거같은데」) · 전엔 응답 중에만
-  }
-  if (r.temp && r.members?.length) {   // 임시방 머리 = 인원을 펼쳐 얼굴 하나씩 · 말하는 이 테두리에 불(형 10-31 「상단에는 인원이 펼쳐져서 동그라미 원 하나씩 잇어서 얘기할때 테두리에 불 로딩 들어오면 좋을긋」)
-    const on = busyAll.split("\n");
-    return <span className="nm-top-crew">{r.members.map((w) => <MicOrb key={w} size={Math.round(size * 0.62)} state={on.includes(w) ? "thinking" : "idle"} id={idOf(w, list)} tint={ringOf(list.find((x) => x.who === w))} />)}</span>;
-  }
-  const ids = roomAgentIds(r, list).slice(0, 3);
-  return (
-    <span aria-hidden className={`duet-glass ${ring}`} style={{ width: size, height: size }}>
-      {ids.length ? <FaceStack ids={ids} size={Math.round(size * 0.42)} /> : <DuetIcon name="chat" size={Math.round(size * 0.4)} />}
-    </span>
-  );
+export function NomuteTop({ orb }: { size: number; orb: ReactNode }) {
+  const { r } = useTopRoom();
+  // 방 안 = 큰 원 없음(형 10-31 「위에를 전면 다 활용 가능하거든」) · 원은 대화 속 얼굴로(./orb-flight.tsx) · 표식 = 머리 꼴을 CSS 가 바꾸는 자리(shell.css)
+  return r ? <span aria-hidden className="nm-room-mark" /> : <>{orb}</>;
 }
