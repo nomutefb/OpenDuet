@@ -11,6 +11,7 @@
 //   빠르게 열기(형 15:34 「프사먼저 나오고 넘 늦게 대화가 나와」 · 15:38 「캐시화 하고 뒤늦게 받아오는거로 동기화를」) = 이 기기 저장(data/room-cache.ts)을 먼저 그림 →
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
+import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Component, type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { roomReadState } from "../data/read-state";
@@ -753,13 +754,13 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   useRoomRead(roomReadState, room, active, !!msgs.data && seenReady, msgs.isError, all.at(-1)?.ts || 0, setErr);
 
   const react = useMutation({
-    mutationFn: ({ id, emoji }: { id: string; emoji: string }) => office<{ reactions: Record<string, Record<string, string[]>> }>(`rooms/${enc(room)}/reactions`, { method: "POST", body: JSON.stringify({ id, emoji }) }),
+    mutationFn: ({ id, emoji }: { id: string; emoji: string }) => office<{ reactions?: Record<string, string[]>; on?: boolean }>(`rooms/${enc(room)}/reactions`, { method: "POST", body: JSON.stringify({ id, emoji }) }),
     onMutate: ({ id, emoji }) => {   // 먼저 화면(형) · 서버 답으로 맞춤 · 실패 = 되돌림
       const base = rxOver || reacts?.reactions || {};
       const w = base[id]?.[emoji] || [], on = !w.includes("형");
       setRxOver({ ...base, [id]: { ...base[id], [emoji]: on ? [...w, "형"] : w.filter((x) => x !== "형") } });
     },
-    onSuccess: (j) => { setRxOver(null); qc.setQueryData(officeKeys.reacts(room), (old: object | undefined) => ({ ...(old || {}), reactions: j.reactions || {} })); },
+    onSuccess: (j, v) => { setRxOver(null); qc.setQueryData(officeKeys.reacts(room), (old: { reactions?: RoomReacts } | undefined) => mergeReact(old, v.id, j.reactions)); },   // 그 글 칸만(수리 No.22 · data/react-merge.ts)
     onError: (e) => { setRxOver(null); setErr(`반응 못 남김 — ${e instanceof Error ? e.message : String(e)}`); },
   });
 
