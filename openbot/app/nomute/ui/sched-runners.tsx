@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Breaker, cronKo } from "./sched-bits";
 import type { RunnerJob, SchedRunners } from "./settings-extra";
 
-const CLOCK_KO: Record<string, string> = { yml: "시간표", beat: "윈A 박자", phone: "폰 커밋", "runner-watch": "메우기", "cron-job": "바깥 타이머", after: "앞 일 뒤따름" };
+const CLOCK_KO: Record<string, string> = { yml: "시간표", beat: "윈A 박자", phone: "폰 커밋", "runner-watch": "메우기", "cron-job": "바깥 타이머", after: "앞 일 뒤따름", launchd: "맥 예약" };
 const KIND_KO: Record<string, string> = { llm: "LLM 닿음", script: "스크립트", unknown: "못 정함" };
 const whenOf = (j: RunnerJob) => j.when || cronKo(j.cron_kst) || "부를 때만";
 
@@ -53,7 +53,7 @@ export function RunnerTree({ map, group, go }: { map: SchedRunners; group: strin
                             <li><small>앞에서 받음</small>
                               <span>{(j.clock || []).map((c) => <em key={c}>{CLOCK_KO[c] || c}</em>)}{(j.in?.paths || []).map((p) => <em key={p}>파일 {p}</em>)}{(j.in?.after || []).map((a) => <Link key={a} file={a} />)}{from.map((x) => <Link key={x.file} file={x.file} />)}{!j.clock?.length && !j.in?.paths?.length && !j.in?.after?.length && !from.length ? <em>손·앱으로 시작</em> : null}</span>
                             </li>
-                            <li><small>이 일</small><span><b>{j.name}</b><em>{j.file}</em></span></li>
+                            <li><small>이 일</small><span><b>{j.name}</b>{j.file ? <em>{j.file}</em> : null}</span></li>
                             <li><small>뒤로 넘김</small><span>{(j.out?.calls || []).filter((c) => c !== j.file).map((c) => <Link key={c} file={c} />)}{(j.out?.calls || []).filter((c) => c !== j.file).length ? null : <em>없음</em>}</span></li>
                             <li><small>알림</small><span>{(j.notify || []).map((n) => <em key={n}>{n}</em>)}{j.notify?.length ? null : <em>없음</em>}</span></li>
                           </ol>
