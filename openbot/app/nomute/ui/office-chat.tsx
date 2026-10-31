@@ -369,14 +369,35 @@ function nameRe(list: OfficePerson[]): RegExp | null {
   return new RegExp(`(^|[^0-9A-Za-z가-힣_@!\\[])(${alt.join("|")})`, "g");
 }
 function named(text: string, nre: RegExp | null, key: string): ReactNode {
-  if (!nre) return text;
+  if (!nre) return tokened(text, key);
   const out: ReactNode[] = [];
   let last = 0, k = 0;
   for (const mm of text.matchAll(nre)) {
     const at = (mm.index || 0) + mm[1].length;
-    if (at > last) out.push(text.slice(last, at));
+    if (at > last) out.push(tokened(text.slice(last, at), `${key}-s${k}`));
     out.push(<span key={`${key}-n${k++}`} className={`yname-c ${NAME_TONE.get(mm[2]) || ""}`}>{mm[2]}</span>);
     last = at + mm[2].length;
+  }
+  if (!out.length) return tokened(text, key);
+  if (last < text.length) out.push(tokened(text.slice(last), `${key}-e`));
+  return out;
+}
+/** 글 속 말 색(형 10-31 「노력이 들어가면안돼. 로직이여야해.」) — 파일 이름·PR/#번호/커밋·시간(숫자 있는 꼴만 · 「2개」·「3→2」는 안 칠함) → 규칙 하나로 글마다 저절로 · 코드·주소 안은 안 칠함 */
+const TOK_B = "(?<![0-9A-Za-z_./#-])";
+const TOK_RE = new RegExp([
+  "(?<fl>(?<![\\w가-힣/.-])[\\w가-힣][\\w가-힣./\\[\\]-]*\\.(?:jsonl?|md|mjs|js|tsx?|py|ya?ml|sh|css|html?|csv|txt|png|jpe?g|webp|mp4|patch)(?![\\w가-힣]))",
+  `(?<gh>${TOK_B}#\\d{2,}|(?<![0-9A-Za-z_])PR(?![0-9A-Za-z_])|${TOK_B}(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\\d)[0-9a-f]{7,40}(?![0-9A-Za-z_]))`,
+  `(?<tm>${TOK_B}\\d{1,2}:\\d{2}(?::\\d{2})?(?:\\s?[AaPp][Mm])?|${TOK_B}\\d{4}-\\d{2}-\\d{2}|${TOK_B}(?:0?[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])(?![\\d-])|${TOK_B}\\d{1,2}월(?:\\s?\\d{1,2}일)?|${TOK_B}\\d{1,2}(?:[·,~-]\\d{1,2})*시(?!간)|${TOK_B}\\d+(?:시간|분|초|일|개월|년|주일)(?![0-9A-Za-z]))`,
+].join("|"), "gu");
+const tokOf = (m: RegExpMatchArray) => (m.groups?.fl ? "fl" : m.groups?.gh ? "gh" : "tm");
+function tokened(text: string, key: string): ReactNode {
+  const out: ReactNode[] = [];
+  let last = 0, k = 0;
+  for (const mm of text.matchAll(TOK_RE)) {
+    const at = mm.index || 0;
+    if (at > last) out.push(text.slice(last, at));
+    out.push(<span key={`${key}-k${k++}`} className={`ytok ${tokOf(mm)}`}>{mm[0]}</span>);
+    last = at + mm[0].length;
   }
   if (!out.length) return text;
   if (last < text.length) out.push(text.slice(last));
@@ -396,18 +417,23 @@ function linked(text: string, re: RegExp | null = null, nre: RegExp | null = nul
 }
 
 /** 봇 글(마크다운) 속 부름 → 「#nm-call」 링크로 바꿔 Streamdown 이 칩으로 그림 · 봇 이름 → 「#nm-name」(시안 글자) · 코드(``` · `) 안은 그대로 */
-const CALL_HREF = "#nm-call", NAME_HREF = "#nm-name";
+const CALL_HREF = "#nm-call", NAME_HREF = "#nm-name", TOK_HREF = "#nm-tok";
+const MD_SKIP = /(\[[^\]\n]*\]\([^)\n]*\)|https?:\/\/[^\s<>]+)/;   // 마크다운 링크·주소 안은 안 칠함
+const tokMd = (x: string) => x.split(MD_SKIP).map((s, i) => (i % 2 ? s : s.replace(TOK_RE, (...a) => {
+  const g = a[a.length - 1] as Record<string, string | undefined>;
+  return `[${a[0]}](${TOK_HREF}-${g.fl ? "fl" : g.gh ? "gh" : "tm"})`;
+}))).join("");
 function calledMd(text: string, re: RegExp | null, nre: RegExp | null = null): string {
-  if (!re && !nre) return text;
   return text.split(/(```[\s\S]*?```|`[^`\n]*`)/).map((x, i) => {
     if (i % 2) return x;
-    const y = re ? x.replace(re, `[$1](${CALL_HREF})`) : x;
+    const t0 = tokMd(x);
+    const y = re ? t0.replace(re, `[$1](${CALL_HREF})`) : t0;
     return nre ? y.replace(nre, (_all, pre: string, n: string) => `${pre}[${n}](${NAME_HREF}-${NAME_TONE.get(n) || "gk"})`) : y;
   }).join("");
 }
 const mdWithCalls = {
   ...markdownComponents,
-  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a(p)),
+  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a(p)),
 };
 
 /** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)
