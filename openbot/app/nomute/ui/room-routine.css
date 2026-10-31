@@ -1,0 +1,37 @@
+/* 단체방 루틴 시트(형 10-31 「n일 몇회, 모든 주기를 효율적으로 커버가능하도록 uiux를 구성해줘.」) — 고정 이력 시트와 같은 꼴 · 방 상단 안에서 열려서 body 로 띄움 */
+.nm-rr { position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); animation:ypickIn .2s var(--ease) both; }
+.nm-rr-b { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:10px; padding:calc(70px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); }
+.nm-rr-quick, .nm-rr-times, .nm-rr-wd, .nm-rr-crew { display:flex; flex-wrap:wrap; gap:6px; }
+.nm-rr-chip { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg-2); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
+.nm-rr-chip.on { background:rgba(var(--accent-rgb),.16); border-color:rgba(var(--accent-rgb),.38); color:var(--accent); }
+:root:not(.dark) .nm-rr-chip.on { color:var(--fg); }
+.nm-rr-chip i { font-style:normal; opacity:.7; }
+.nm-rr-chip:disabled { opacity:.6; }
+.nm-rr-wd .nm-rr-chip { flex:1; min-width:40px; justify-content:center; padding:8px 0; }
+.nm-rr-one { padding:4px 12px 4px 4px; }
+.nm-rr-one:not(.on) { opacity:.55; }
+.nm-rr-seg { display:flex; gap:2px; padding:3px; border-radius:var(--r-pill); background:var(--glass); border:1px solid var(--glass-line); }
+.nm-rr-seg button { flex:1; min-width:0; padding:8px 4px; border:0; border-radius:var(--r-pill); background:none; color:var(--mut); font-size:var(--fs-xs); white-space:nowrap; }
+.nm-rr-seg button[aria-pressed="true"] { background:rgba(var(--accent-rgb),.9); color:var(--bg); font-weight:var(--fw-b); }
+.nm-rr-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:var(--fs-label); color:var(--fg-2); }
+.nm-rr-num { display:inline-flex; align-items:center; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); }
+.nm-rr-num button { width:34px; height:34px; border:0; background:none; color:var(--fg); font-size:16px; }
+.nm-rr-num button:disabled { opacity:.35; }
+.nm-rr-num input { width:38px; border:0; background:none; color:var(--fg); text-align:center; font-size:var(--fs-label); font-variant-numeric:tabular-nums; -moz-appearance:textfield; appearance:textfield; }
+.nm-rr-num input::-webkit-outer-spin-button, .nm-rr-num input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.nm-rr-add { display:inline-flex; align-items:center; gap:4px; padding:2px 4px 2px 10px; border-radius:var(--r-pill); border:1px dashed var(--glass-line); }
+.nm-rr-add input { border:0; background:none; color:var(--fg); font-size:var(--fs-xs); }
+.nm-rr-add button { padding:5px 10px; border:0; border-radius:var(--r-pill); background:var(--glass); color:var(--fg-2); font-size:var(--fs-xs); }
+.nm-rr-add button:disabled { opacity:.5; }
+.nm-rr-field { display:flex; flex-direction:column; gap:4px; font-size:var(--fs-xs); color:var(--mut); }
+.nm-rr-field textarea { resize:none; padding:10px 12px; border-radius:var(--r-l); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg); font-size:16px; line-height:1.5; }   /* 16px = iOS 입력 때 화면 커짐 막기 */
+.nm-rr-note { padding:0 4px; font-size:var(--fs-xs); color:var(--mut); }
+.nm-rr-save { margin-top:6px; padding:12px; border:0; border-radius:var(--r-pill); background:rgba(var(--accent-rgb),.9); color:var(--bg); font-size:var(--fs-body); font-weight:var(--fw-b); }
+.nm-rr-save:disabled { opacity:.4; }
+.nm-rr-del { align-self:center; padding:6px 12px; border:0; background:none; color:var(--mut); font-size:var(--fs-xs); }
+.nm-rr-sure { display:flex; align-items:center; justify-content:flex-end; gap:8px; font-size:var(--fs-xs); color:var(--fg-2); }
+.nm-rr-sure span { flex:1; }
+.nm-rr-sure button { padding:6px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg); font-size:var(--fs-xs); }
+.nm-top-routine { margin-top:2px; padding:6px 0 0; border:0; border-top:1px solid var(--glass-line); background:none; color:var(--accent); font-size:var(--fs-label); text-align:left; white-space:nowrap; cursor:pointer; pointer-events:auto; }
+:root:not(.dark) .nm-top-routine { color:var(--fg); }
+@media (prefers-reduced-motion:reduce){ .nm-rr { animation:none; } }
