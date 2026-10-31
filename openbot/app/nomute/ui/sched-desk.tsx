@@ -5,24 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { idOf, office, people } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
+import { Breaker, cronKo } from "./sched-bits";
+import { RunnerTree } from "./sched-runners";
 import { CF_KO, type Routine, ST_KO, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
 
 const CRON_H = "CRON_TZ=Asia/Seoul ";
-const hoursKo = (h: string) => {
-  if (h === "*") return "매시";
-  const m = h.match(/^(\d+)-(\d+)(?:\/(\d+))?$/);
-  if (m) return `${m[1]}~${m[2]}시${m[3] ? ` ${m[3]}시간마다` : ""}`;
-  return `${h.split(",").join("·")}시`;
-};
-const oneCron = (c: string) => {   // 「0 11,15,19 * * *」 → 「매일 11·15·19시」 · 못 풀면 글자 그대로
-  const p = c.replace(CRON_H, "").trim().split(/\s+/);
-  if (p.length !== 5) return c;
-  const [mi, h, dom, mon, dow] = p;
-  const day = dom !== "*" && mon !== "*" ? `${mon}월 ${dom}일` : dow === "1-5" ? "평일" : dow === "0,6" || dow === "6,0" ? "주말" : dow === "*" ? "매일" : `요일 ${dow}`;
-  if (/^\*\/\d+$/.test(mi)) return `${day} ${mi.slice(2)}분마다`;
-  return `${day} ${hoursKo(h)}${mi === "0" ? "" : ` ${mi}분`}`;
-};
-const cronKo = (l?: string[]) => (l || []).map(oneCron).join(" · ");
 type TimePick = { day: "*" | "1-5" | "0,6"; hours: number[]; min: number };
 const readPick = (l?: string[]): TimePick | null => {   // 고르기로 다 그릴 수 있는 줄만(시간표 한 줄 · 분 숫자 · 날짜 없음)
   if (l?.length !== 1) return null;
@@ -38,11 +25,6 @@ const readPick = (l?: string[]): TimePick | null => {   // 고르기로 다 그�
 };
 const pickCron = (k: TimePick) => [`${CRON_H}${k.min} ${[...k.hours].sort((a, b) => a - b).join(",")} * * ${k.day}`];
 const DAYS: [TimePick["day"], string][] = [["*", "매일"], ["1-5", "평일"], ["0,6", "주말"]];
-
-// 차단기(형 「차단기로 내리고 키는」) = 위로 올림 켬 · 아래로 내림 끊김 · 위 칸이 내려가면 흐리게
-function Breaker({ on, big, dim, label, disabled, onFlip }: { on: boolean; big?: boolean; dim?: boolean; label: string; disabled?: boolean; onFlip: () => void }) {
-  return <button type="button" role="switch" aria-checked={on} aria-label={label} className={`nm-brk${big ? " big" : ""}${dim ? " dim" : ""}`} disabled={disabled} onClick={(e) => { e.stopPropagation(); onFlip(); }}><i /></button>;
-}
 
 function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: boolean; send: (v: string[]) => void }) {
   const first = useMemo(() => readPick(r.cron), [r.cron]);
@@ -73,7 +55,7 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
 export function SchedDesk() {
   const qc = useQueryClient(), s = useSched(), d = s.data, can = !!d?.can_set;
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-  const [who, setWho] = useState(""), [openF, setOpenF] = useState(""), [openR, setOpenR] = useState("");
+  const [who, setWho] = useState(""), [openF, setOpenF] = useState(""), [openR, setOpenR] = useState(""), [tab, setTab] = useState("bot");
   const [ask, setAsk] = useState<{ q: SchedQ; r: SchedSetRes } | null>(null), [msg, setMsg] = useState("");
   const [vals, setVals] = useState<Record<string, string>>({});
   useEffect(() => { setVals({}); }, [d?.sha]);
@@ -115,6 +97,16 @@ export function SchedDesk() {
         </div>
       ) : null}
       {msg ? <p className="text-sm" role="status">{msg}{d.clock_got?.got ? " · 시계 받음" : ""}</p> : null}
+      {d.runners?.jobs.length ? (
+        <div className="flex flex-wrap gap-1" role="group" aria-label="갈래">
+          {[{ id: "bot", name: "봇" }, ...d.runners.groups].map((g) => {
+            const n = g.id === "bot" ? d.routines.length : d.runners!.jobs.filter((j) => d.runners!.forks.find((f) => f.id === j.fork)?.group === g.id).length;
+            return <button key={g.id} type="button" className="nm-sched-chip" aria-pressed={tab === g.id} onClick={() => setTab(g.id)}>{g.name} {n}</button>;
+          })}
+        </div>
+      ) : null}
+      {tab !== "bot" && d.runners ? <RunnerTree map={d.runners} group={tab} go={setTab} /> : null}
+      {tab === "bot" ? <>
       <div className="nm-sched-faces" role="group" aria-label="봇 고르기">
         {d.bots.map((b) => (
           <button key={b.bot} type="button" aria-pressed={who === b.bot} data-off={b.on === false || undefined} onClick={() => setWho(who === b.bot ? "" : b.bot)}>
@@ -203,6 +195,7 @@ export function SchedDesk() {
           );
         })}
       </ul>
+      </> : null}
       {can ? null : <p className="text-xs text-muted-foreground">바꾸기는 형 자리에서만 돼.</p>}
     </div>
   );
