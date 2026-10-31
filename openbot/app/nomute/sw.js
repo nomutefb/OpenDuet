@@ -74,13 +74,39 @@ self.addEventListener("message", (e) => {   // 새 판 코드 화면의 답 = �
    앱을 보고 있으면 안 띄움(YETA sw.js 규칙 · 매번 건너뛰면 브라우저가 구독을 거둘 수 있어 「보이는 앱 창이 실제로 있을 때만」) · 누르면 그 방(열린 앱 창이 있으면 그 창으로) */
 const VAPID_PUB = "BORNTh3cNd05vsxi2fZ-BykxM0NwKGTvIETz81g757RVFL6cDu29aAv5I7uit0WbGOmiZ4hlyMOEvb8B2HptU-I";
 const appWins = async () => (await self.clients.matchAll({ type: "window", includeUncontrolled: true })).filter((c) => new URL(c.url).pathname.startsWith("/office-app/"));
+/* 알림 그림 = 그림 글(data URL)로 넘김 — 주소로 주면 폰이 Access 벽 때문에 못 받아 안드로이드가 사이트 첫 글자 「A」 를 그림
+   (에디터 .github/scripts/push_send.py notif_icon 260727 실측 · 봄 11-01) · 서비스 워커는 같은 출처 쿠키로 받을 수 있으니 여기서 받아 바꿈
+   차례 = 서버가 준 d.icon(단톡 그림 · 보낸 이 얼굴) → 앱 아이콘(셸 캐시) · 받은 그림은 office-notif-icons 캐시에 둠(쿠키가 끝나도 다음에 그려짐) · 3초 안에 못 받으면 다음 */
+const ICONS = "office-notif-icons";
+const toDataUrl = async (res) => {
+  const b = await res.blob(), buf = new Uint8Array(await b.arrayBuffer());
+  let s = "";
+  for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  return `data:${b.type || "image/png"};base64,${btoa(s)}`;
+};
+const isImg = (res) => !!res && res.ok && (res.headers.get("content-type") || "").startsWith("image/");
+async function iconData(u) {
+  for (const x of [u, "/office-app/icon-192.png"]) {
+    if (!x) continue;
+    try {
+      let res = await caches.match(x);
+      if (!isImg(res)) {
+        res = await Promise.race([fetch(x, { credentials: "include" }), new Promise((_, no) => setTimeout(() => no(new Error("느림")), 3000))]);
+        if (isImg(res)) await (await caches.open(ICONS)).put(x, res.clone()).catch(() => {});
+      }
+      if (isImg(res)) return await toDataUrl(res);
+    } catch { /* 다음 그림 */ }
+  }
+  return "/office-app/icon-192.png";
+}
 self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : "" }; }
   e.waitUntil((async () => {
     if ((await appWins()).some((c) => c.focused && c.visibilityState === "visible")) return;
     // 아이콘 = 서버가 준 d.icon(단톡 알림 그림 · 없으면 보낸 이 얼굴 · 형 11-01 「애들 얼굴 붙여서 각각 오게하고 싶네」 · 봄 서버) · 없으면 앱 아이콘
-    return self.registration.showNotification(d.title || "사무실", { body: d.body || "", icon: d.icon || "/office-app/icon-192.png", tag: d.tag || "office",
+    const icon = await iconData(d.icon);   // 그림 글(data URL) — 주소 그대로면 「A」 로 그려짐(위 iconData)
+    return self.registration.showNotification(d.title || "사무실", { body: d.body || "", icon, tag: d.tag || "office",
       renotify: !!d.renotify, ...(d.vibrate ? { vibrate: d.vibrate } : {}), data: { url: d.url || "/office-app/" }, lang: "ko" });
   })());
 });
