@@ -174,6 +174,7 @@ export function SchedDesk() {
                         {wide ? (
                           <div className="nm-sched-rt">
                             <WhenPick r={r} can={can} busy={go.isPending} send={(v) => prep({ at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` })} />
+                            {r.marks?.includes("time_in_text") ? <small className="nm-sched-warn">할 일 글 안에도 시각이 적혀 있어. 시간을 바꾸면 글도 같이 봐 줘</small> : null}
                             {r.task !== undefined ? (
                               <label className="nm-sched-text">할 일
                                 <textarea rows={5} disabled={!can} value={vals[`task|${r.id}`] ?? r.task} onChange={(e) => setVals((v) => ({ ...v, [`task|${r.id}`]: e.target.value }))}
@@ -182,7 +183,7 @@ export function SchedDesk() {
                             ) : <small>할 일 글은 아직 그록 앱에 있어. 표로 옮기면 여기서 고쳐.</small>}
                             {hasForks ? (
                               <div className="nm-sched-sel">
-                                <label>어떤 봇<select disabled={!can} value={r.bot} onChange={(e) => prep({ at: "routine", key: r.id, field: "bot", value: e.target.value, label: r.name })}>{d.bots.map((x) => <option key={x.bot} value={x.bot}>{nameOf(x)}</option>)}</select></label>
+                                {r.marks?.includes("bot_bound") ? <small>이 봇 몸의 파일을 쓰는 일이라 다른 봇으로 못 옮겨</small> : r.cron?.length ? <label>어떤 봇<select disabled={!can} value={r.bot} onChange={(e) => prep({ at: "routine", key: r.id, field: "bot", value: e.target.value, label: r.name })}>{d.bots.map((x) => <option key={x.bot} value={x.bot}>{nameOf(x)}</option>)}</select></label> : <small>받는 봇은 사건 길이 정해 · 여기서 안 바뀌어</small>}
                                 <label>포크<select disabled={!can} value={r.fork} onChange={(e) => prep({ at: "routine", key: r.id, field: "fork", value: e.target.value, label: r.name })}>{d.forks!.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
                               </div>
                             ) : null}

@@ -22,7 +22,7 @@ const btn = "rounded-full border border-border px-3 py-1 text-xs hover:bg-foregr
 
 type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
 export type SchedBot = { bot: string; who: string; wakes: number[]; next_ts?: number; daily_cap?: number; urgent_reserve?: number; on?: boolean };
-export type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean; fork?: string; task?: string };
+export type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean; fork?: string; task?: string; marks?: string[] };
 export type SchedFork = { id: string; name: string; on?: boolean; common?: string };
 type Kind = { kind: string; delay_max?: number; ttl?: number };
 type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean; forks?: SchedFork[]; clock_got?: { got?: boolean } };
