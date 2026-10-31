@@ -1,0 +1,14 @@
+/* 서랍 「뉴스 요약」 목록(./news.tsx) — 줄 = 머리(분류·긴급/이슈·매체·시각) → 제목 → 요약 한 줄 · 유리 없이 가는 선(.nm-sns 목록 꼴) · 긴급 = 네온핑크 · 이슈 = 강조색(원본 .urg.brk/.iss 결) */
+.nm-news .nm-news-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.nm-news .nm-news-list li { border-bottom:1px solid var(--glass-line); }
+.nm-news .nm-news-list li:last-child { border-bottom:0; }
+.nm-news .nm-news-list button { display:flex; flex-direction:column; gap:3px; width:100%; padding:9px 4px; background:none; border:0; color:var(--fg); font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-news .nm-news-list button:active { opacity:.8; }
+.nm-news .nm-news-top { display:flex; align-items:center; gap:6px; font-size:var(--fs-xs); color:var(--mut); min-width:0; }
+.nm-news .nm-news-top .cat { font-weight:var(--fw-x); color:var(--fg-2); }
+.nm-news .nm-news-top .urg { padding:0 6px; border-radius:var(--r-pill); font-weight:var(--fw-x); font-size:10px; line-height:16px; }
+.nm-news .nm-news-top .urg.brk { background:rgba(255,95,138,.18); color:#ff5f8a; } .nm-news .nm-news-top .urg.iss { background:rgba(var(--accent-rgb),.16); color:var(--accent); }
+.nm-news .nm-news-top .meta { margin-left:auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; }
+.nm-news .nm-news-t { font-size:var(--fs-body); font-weight:var(--fw-b); line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.nm-news .nm-news-s { font-size:var(--fs-sm, 12px); color:var(--mut); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.nm-news .nm-news-more { align-self:center; }

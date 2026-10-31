@@ -28,6 +28,7 @@ import { IssueView } from "./issue";
 import { PinBar } from "./pins";
 import { MeetCard } from "./meet-card";
 import { OfficeChat } from "./office-chat";
+import { NewsModal } from "./news";
 import { ChanModal } from "./chan";
 import { SnsModal } from "./sns";
 import { AskModal } from "./ask";   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
@@ -36,12 +37,13 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat" | "editor";
-export type Modal = "tasks" | "runner" | "ask" | "chan" | "sns" | "gyeol" | "tokens" | "feedback" | "settings";
+export type Modal = "tasks" | "runner" | "ask" | "news" | "chan" | "sns" | "gyeol" | "tokens" | "feedback" | "settings";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
-export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe"; to: string }[] = [
+export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page"; to: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
+  { id: "news", label: "뉴스 요약", icon: "page", to: "/news" },   // 에디터 「뉴스 요약」 목록(누르면 그 기사 요약 = #/web)
   { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
   { id: "sns", label: "SNS", icon: "globe", to: "/sns" },   // 에디터 「SNS」 한눈(전체 보기 = #/web)
   { id: "gyeol", label: "결의 방", icon: "sparkle", to: "/gyeol" },
@@ -167,6 +169,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><RunnerScreen /></div>
                   : M.id === "ask" ? <div className="nm-scroll"><AskModal /></div>
+                  : M.id === "news" ? <div className="nm-scroll"><NewsModal /></div>
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>
                   : M.id === "sns" ? <div className="nm-scroll"><SnsModal /></div>
                   : <div className="nm-scroll"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
