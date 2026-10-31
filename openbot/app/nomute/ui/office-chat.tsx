@@ -514,7 +514,7 @@ function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: O
     return doing(n) || now - m.ts < PICKUP_WAIT || ((reads?.got?.[n] || []).includes(m.id) && now - m.ts < ANSWER_FRESH) ? [n] : [];
   }
   return people.map((p) => p.who).filter((n) => n !== "형").filter((n) => {
-    for (let i = list.length - 1; i >= 0 && list[i].who !== n; i--) if ((list[i].mention || []).includes(n)) return now - list[i].ts < (doing(n) ? CALL_FRESH : PICKUP_WAIT);
+    for (let i = list.length - 1; i >= 0 && list[i].who !== n; i--) if ((list[i].mention || []).includes(n) || (list[i].urgent || []).includes(n)) return now - list[i].ts < (doing(n) ? CALL_FRESH : PICKUP_WAIT);   // urgent = 「!모두」·임시방 형 글(이름 없이 전원)도 작업 중으로
     return false;
   });
 }
