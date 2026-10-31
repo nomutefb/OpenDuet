@@ -10,6 +10,11 @@ import "./mic-orb.css";
 export type MicOrbState = "idle" | "listening" | "thinking" | "done" | "finished";
 export const FINISH_MS = FINISH_S * 1000;
 
+// 테 색(형 10-31 「그 캐릭터 고유 색에 맞춰서 색은 내가 정해줄게」 · 「봄은 분홍, 시아는 노뮤트색, 윈터는 흰은색, 빠르는 로얄블루네온, 뎅은 갈색+네온」) = 이름별 · 윈터 = 흰은색(.nm-orb 기본과 같은 값) · 없으면 말풍선 색 → 분류색
+const RING: Record<string, string> = { "윈터 PM": "#E6EBF2", 봄: "#FF8FB3", 시아: "#CFFF40", 빠르: "#2F6BFF", 뎅: "#C8843C" };
+const RING_CLS: Record<string, string> = { 그록봇: "#22d3ee", 클로드: "#FFAA4D", 닷: "#C9A7FF", 부름: "#C9A7FF" };
+export const ringOf = (p?: { who: string; cls?: string; bubble?: string }) => (p ? RING[p.who] || p.bubble || RING_CLS[p.cls || ""] : undefined);
+
 const LOOK: Record<MicOrbState, string> = { idle: "rest", listening: "listen", thinking: "work", done: "done", finished: "done" };   // 쉼 · 듣는 중 · 일하는 중 · 끝남
 
 export function MicOrb({ className, size, state = "idle", still = false, id = WINTER_ID, tint }: { className?: string; colour?: OrbColour; keystrokes?: number; size: number; state?: MicOrbState; still?: boolean; id?: string; tint?: string }) {

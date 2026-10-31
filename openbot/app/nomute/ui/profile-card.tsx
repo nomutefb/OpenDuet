@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../data/office";
 import { ColorPick } from "./color-pick";
-import { FaceImg } from "./faces";
+import { MicOrb, ringOf } from "../swap/mic-orb";
 
 const ROOMS_KEY = ["nomute", "rooms"] as const;   // office-chat.tsx officeKeys.rooms 와 같은 열쇠(받아 둔 방 목록을 그대로 씀 · 읽기 0)
 
@@ -35,7 +35,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   return (
     <div className="ypc-veil nm-yeta" role="presentation" onClick={onClose}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
       <div className="ypc" role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
-        <div className="ypc-ava"><FaceImg id={idOf(who, list)} size={104} /><button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} /></div>
+        <div className="ypc-ava"><MicOrb size={130} id={idOf(who, list)} tint={ringOf(p)} /><button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} /></div>
         {pick ? <ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /> : null}
         <span className="ycd-nm">{name}{p?.mark ? <span className="ypc-mark" aria-hidden>{p.mark}</span> : null}</span>
         {p?.role ? <span className="ycd-tag">{p.role}</span> : null}

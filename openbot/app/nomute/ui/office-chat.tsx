@@ -3,7 +3,8 @@
 //   말풍선 = YETA 꼴(./yeta-chat.css · 형 10-28 10:19) · 말풍선 위 읽음 얼굴 0 · 러너 깸 줄 안 보임 · 시스템 일 = 가운데 흐린 알약
 //   시간 = 말풍선 밖 오른쪽 아래 모서리 바로 아래 작게(형 10-28 15:36 「시간을 대화상자의 우하단으로 … 최대한 대화를 길게」 · 16:5x 「위치는 좋고, 바깥에 위치」 = 말풍선은 말만 감쌈 · 말풍선 폭 늘림)
 //   가져감 = 카톡 「1」 자리에 「가져감」 글자 하나(1:1 방 형 글만 · 형 10:20) · 그 밖 이름 줄 0
-//   이름 = 같은 사람 글이 이어지면 첫 글만(YETA .cont) · 날짜가 바뀌는 곳 = 가는 줄 + 「10-28 수」(형 10:23)
+//   이름 = 같은 사람 글이 이어지면 첫 글만(YETA .cont) · 날짜가 바뀌는 곳 = 가는 줄 + 「10/31(토)」(형 10:23 · 10-31 꼴)
+//   시각 자리·간격(형 10-31 09:15 「자기글은 우측에서 시작해서 좌측 아래 시간이」 · 「상대 글은 좌측에서 시작해서 우측 아래 시간이」 · 「1분 안에 재 작성된 내용에 대해서는 시간이 재나열 될 필요없음.」 · 「상대 게시글과 내 게시글 간 간격 이 좀 더 벌어져야함.」) = 내 글 왼쪽 아래 · 상대 글 오른쪽 아래 · 같은 사람이 마지막 찍은 시각에서 1분 안에 이어 쓰면 안 찍음 · 내 글↔상대 글 사이 .yturn
 //   줄기 = ⏳·✅ 상태 답(reply_to)은 원 글 바로 아래 · 답장 = 글 첫 줄 「↩ 이름: 그 글 첫 줄」(서버 0 · 옛 화면과 같은 꼴) · 반응 · 파일 · 긴 글 = 접기 0(형 15:33 「더보기 말고 줄글 풀로 다 나오게」)
 //   열기(형 15:33 「대화창 열면 … 글쓰기로 되어서. 그러지 않게」 · 「가장 최근거부터 … 위에 토글 하나하면 올라갈 수 있게」 · 장부 office-chat-read.md) =
 //     글칸 저절로 커서 0(자판 안 올라옴 · 누를 때만) · 맨 아래(가장 최근 글)에서 시작 · 화면 위로 시작이 넘어간 글이 있으면 위에 「↑ 글 처음」 단추 하나(누르면 그 글 시작)
@@ -21,7 +22,8 @@ import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, peopl
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropAttachments, peekAttachments } from "../shim/attachments";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
-import { FaceImg, FaceStack } from "./faces";
+import { FaceStack } from "./faces";
+import { MicOrb, ringOf } from "../swap/mic-orb";
 import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
 import { usePinActions } from "./pins";
@@ -35,6 +37,7 @@ const DRAFT = (room: string) => `nm-draft:${room}`;
 const loadDraft = (room: string) => { try { return sessionStorage.getItem(DRAFT(room)) || ""; } catch { return ""; } };
 const saveDraft = (room: string, t: string) => { try { if (t.trim()) sessionStorage.setItem(DRAFT(room), t); else sessionStorage.removeItem(DRAFT(room)); } catch { /* 이 탭만 · 못 쓰면 이번만 */ } };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const PICKUP_WAIT = 2 * 60e3, ANSWER_FRESH = 30 * 60e3;   // 점 셋 = 안 가져가도 2분 · 가져간 뒤 30분(윈터 구슬 규칙과 같은 30분)
 const CALL_FRESH = 45 * 60e3;   // 회의실 「작업 중」 = 부른 글이 45분 안일 때만(옛 화면 PR 1478 실측 · 답의 90% = 41분)
 const QUOTE = /^↩ ([^:\n]{1,24}): ([^\n]*)(?:\n|$)/;
 const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_Pictographic})*$/u;
@@ -72,7 +75,8 @@ const merge = (old: Page | undefined, add: Msg[]): Page => {
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const dayKey = (ts: number) => kst(ts).toISOString().slice(0, 10);
-const dateLabel = (ts: number) => `${dayKey(ts).slice(5)} ${"일월화수목금토"[kst(ts).getUTCDay()]}`;   // 「10-28 수」(요일 = 실제)
+const dateLabel = (ts: number) => `${dayKey(ts).slice(5).replace("-", "/")}(${"일월화수목금토"[kst(ts).getUTCDay()]})`;   // 「10/31(토)」(요일 = 실제 · 형 10-31 09:15)
+const TIME_GAP = 60_000;   // 같은 사람이 마지막 찍은 시각에서 이 안에 이어 쓰면 시각 안 찍음(형 10-31 「1분 안에 … 시간이 재나열 될 필요없음.」)
 const fileName = (p: string) => String(p).split("/").pop()?.replace(/^\d{8}_\d{4}_/, "") || p;
 const fileUrl = (p: string, dl = false) => `/api/office/file?${new URLSearchParams({ path: p, ...(dl ? { dl: "1" } : {}) })}`;
 const size = (b: number) => (b > 1e6 ? `${(b / 1e6).toFixed(1)}MB` : `${Math.max(1, Math.round(b / 1e3))}KB`);
@@ -170,6 +174,8 @@ export function useOfficeRoom(room: string) {
 }
 
 type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] };
+const mineOf = (m: Msg) => m.kind === "human" || hyungApp(m);
+const sideOf = (x?: Item) => (!x || x.t === "sys" ? "" : x.t === "msg" && mineOf(x.m) ? "me" : "them");   // 간격 = 내 글 쪽 · 상대 글 쪽(묶음 포함) · 시스템 줄은 어느 쪽도 아님
 const MEET = "all";   // 회의실(서버 ROOMS id · 형 10-28 22:02 「회의실은 대화가 안접혀도 될거같아 그냥 최신순으로 … 내가 안본거부터 위로 보기 그 버튼만」)
 const wakeM = (m: Msg) => m.kind === "system" && /러너/.test(m.who) && /^깸:/.test(m.text || "");
 
@@ -420,14 +426,14 @@ function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   return <Streamdown components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
 }
 
-/** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선 / 시각] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 / 시각] · 시각 = 말풍선 밖 오른쪽 아래 모서리 바로 아래(.ybw) ·
- *  cont = 바로 앞이 같은 사람(얼굴·이름 접음) · fresh = 열어 둔 뒤 새로 온 글(올라옴) */
-function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean }) {
+/** 글 한 줄 = YETA 꼴 — 형 글 = 오른쪽 [가져감][말풍선 / 시각] · 상대 글 = 왼쪽 [얼굴][이름 / 말풍선 / 시각] · 시각 = 말풍선 밖 아래(.ybw · 형 글 왼쪽 · 상대 글 오른쪽) ·
+ *  cont = 바로 앞이 같은 사람(얼굴·이름 접음) · fresh = 열어 둔 뒤 새로 온 글(올라옴) · noTime = 1분 안에 이어 쓴 글(시각 안 찍음) */
+function Line({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean; noTime?: boolean }) {
   const p = c.list.find((x) => x.who === m.who);
   const selected = c.sel === m.id;
   const toggle = () => c.setSel(selected ? "" : m.id);
-  const time = <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
-  if (m.kind === "human" || hyungApp(m)) {
+  const time = noTime ? null : <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
+  if (mineOf(m)) {
     const app = hyungApp(m) && m.kind !== "human";   // 그록봇 앱에서 친 형 글 = 검정 말풍선 흰 글씨(형 10-30)
     return (
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
@@ -443,9 +449,9 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
   }
   return (
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
-      <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><FaceImg id={idOf(m.who, c.list)} size={32} /></button>
+      <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <div className="yname">{p?.name || m.who}</div>
+        <div className="yname">{p?.name || m.who}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
         <Quote m={m} c={c} />
         <StatePill m={m} />
         <div className="ybrow">
@@ -465,31 +471,48 @@ function Line({ m, c, cont = false, fresh = false }: { m: Msg; c: Ctx; cont?: bo
   );
 }
 
+/** 말 옆 얼굴 = 등불 테 + 얼굴(형 10-31 「대화창 내부에도 있어야해」) · 40칸 = 얼굴 32 그대로(테는 .yava 밖으로) · 일하는 중 = 테 위 빛 호 */
+function Ava({ who, list, work }: { who: string; list: OfficePerson[]; work?: boolean }) {
+  return <MicOrb size={40} state={work ? "thinking" : "idle"} id={idOf(who, list)} tint={ringOf(list.find((x) => x.who === who))} />;
+}
+
 function Band({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
   const [open0, setOpen] = useState(false);
   const open = open0 || (!!c.want && msgs.some((x) => x.id === c.want));   // 그 글로 가는 중 = 펼침
   const ws = [...new Set(msgs.map((x) => x.who))];
+  let shown = 0;   // 마지막으로 찍은 시각
   return (
     <div className="flex flex-col items-center gap-3">
-      <button type="button" className="inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-xs text-muted-foreground hover:bg-foreground/5" aria-expanded={open}
+      {/* 묶음 칩 겉 = ./yeta-chat.css .ygrp(YETA 유리 알약 + 차콜 · 형 10-31 09:16) · 테일윈드 겉 뺌 */}
+      <button type="button" className="ygrp" aria-expanded={open}
         aria-label={`${ws.map((w) => nmOf(c.list, w)).join(", ")} 이 포함된 메시지 ${msgs.length}개`} onClick={() => setOpen((v) => !v)}>
         <FaceStack ids={ws.slice(0, 3).map((w) => idOf(w, c.list))} size={18} />
-        {ws.length > 3 ? <b className="font-semibold text-foreground">외 {ws.length - 3}</b> : null}
+        {ws.length > 3 ? <b>외 {ws.length - 3}</b> : null}
         {ws.length > 3 ? " · " : ""}메시지 {msgs.length}개
       </button>
-      {open ? <div className="flex w-full flex-col gap-[10px] border-l-2 border-border pl-3 opacity-90">{msgs.map((m, i) => <Line key={m.id} m={m} c={c} cont={i > 0 && msgs[i - 1].who === m.who} />)}</div> : null}
+      {open ? <div className="flex w-full flex-col gap-[10px] border-l-2 border-border pl-3 opacity-90">{msgs.map((m, i) => {
+        const cont = i > 0 && msgs[i - 1].who === m.who, noTime = cont && Math.abs(m.ts - shown) < TIME_GAP;
+        if (!noTime) shown = m.ts;
+        return <Line key={m.id} m={m} c={c} cont={cont} noTime={noTime} />;
+      })}</div> : null}
     </div>
   );
 }
 
 /** 「결 작업 중 · 고민하는 중…」 — 1:1 = 그 봇이 깨 있고 마지막 글이 그 봇 글이 아님 · 회의실 = 그 봇을 부른 가장 새 글이 45분 안 · 깬 = 서버 bots(읽기만 깸 = 뺌) */
-function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: OfficePerson[]): string[] {
+/** 「작업 중」 점 셋(형 10-31 「너가 응답하면서 ... 이런게 움직이기라도 해야되는데」) — 형 글 뒤 그 이 답 전에 ① 서버가 깸이라 하거나 ② 그 이가 글을 가져갔거나(1:1 · 존재는 서버 깸 칸이 없음) ③ 쓴 지 2분 안이면 돈다
+    2분 뒤에도 안 가져갔으면 멈춤 = 안 깬 이를 일하는 척 안 함 · 방 = 1:1 · 회의실 · 지정방 다(전엔 지정방 0) */
+function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: OfficePerson[], reads?: Reads): string[] {
   const doing = (n: string) => bots.some((b) => b.who === n && b.state === "awake" && b.why !== "read");
   if (!r) return [];
-  if (r.with) return doing(r.with) && list.length && list.at(-1)?.who !== r.with ? [r.with] : [];
-  if (r.id !== "all") return [];
-  return people.filter((p) => p.kind === "bot" && doing(p.who)).map((p) => p.who).filter((n) => {
-    for (let i = list.length - 1; i >= 0 && list[i].who !== n; i--) if ((list[i].mention || []).includes(n)) return Date.now() - list[i].ts < CALL_FRESH;
+  const now = Date.now();
+  if (r.with) {
+    const n = r.with, m = list.at(-1);
+    if (!m || m.who === n || m.kind !== "human") return [];
+    return doing(n) || now - m.ts < PICKUP_WAIT || ((reads?.got?.[n] || []).includes(m.id) && now - m.ts < ANSWER_FRESH) ? [n] : [];
+  }
+  return people.map((p) => p.who).filter((n) => n !== "형").filter((n) => {
+    for (let i = list.length - 1; i >= 0 && list[i].who !== n; i--) if ((list[i].mention || []).includes(n)) return now - list[i].ts < (doing(n) ? CALL_FRESH : PICKUP_WAIT);
     return false;
   });
 }
@@ -513,7 +536,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const all = msgs.data?.messages || [];
   const meet = room === MEET;
   const items = useMemo(() => (meet ? flatView(all) : hyungView(all, r)), [all, r, meet]);
-  const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who]);   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
+  const typing = useMemo(() => typingOf(all, r, bots, list, reads).filter((n) => n !== draft?.who), [all, r, bots, list, reads, draft?.who]);   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
   // 머리 등불 구슬(보조 02 PR 1489) = 원본 useChatOrb 재료 · 듣는 중 = 형이 글칸에 씀 · 일하는 중 = 윈터에게 보낸 형 글 뒤 윈터 답 전(30분 안) · 서버 「깸」 칸은 뜻이 달라 안 씀(office-orb.md)
   const winterWorking = useMemo(() => {
     const toW = (m: Msg) => m.kind === "human" && (r?.with === WINTER_WHO || (m.mention || []).includes(WINTER_WHO) || Object.values(m.alias || {}).some((v) => Array.isArray(v) && v.includes(WINTER_WHO)));
@@ -693,7 +716,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
 
-  let prevTs = 0, prev: Item | undefined;
+  let prevTs = 0, shownTs = 0, prev: Item | undefined;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
@@ -710,13 +733,16 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             const first = it.t === "msg" ? it.m : it.msgs[0];
             const newDay = !first._thr && (!prevTs || dayKey(prevTs) !== dayKey(first.ts));
             const cont = !newDay && it.t === "msg" && prev?.t === "msg" && prev.m.who === it.m.who && prev.m.kind === it.m.kind;
+            const noTime = cont && it.t === "msg" && Math.abs(it.m.ts - shownTs) < TIME_GAP;
+            if (it.t === "msg" && !noTime) shownTs = it.m.ts;
+            const turn = !newDay && !first._thr && !!sideOf(prev) && !!sideOf(it) && sideOf(prev) !== sideOf(it);
             prevTs = (it.t === "msg" ? it.m : it.msgs[it.msgs.length - 1]).ts;
             prev = it;
             const key = it.t === "msg" ? it.m.id : `${it.t}-${first.id}`;
             return (
-              <div key={key} className="flex flex-col gap-[10px]">
+              <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
                 {newDay ? <p className="ydate">{dateLabel(first.ts)}</p> : null}
-                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
+                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
                   <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${y.who} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
                     {it.msgs.at(-1)?.who} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
                     {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>
@@ -727,7 +753,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           })}
           {draft ? (   /* 쓰는 중 초안 = YETA _yDraft 꼴(문장이 자라는 대로 그 봇 말풍선 · 끝에 점 셋 · 끝난 답 글이 오면 사라짐) */
             <div className="ymsg ytyp" aria-live="polite">
-              <div className="yava"><FaceImg id={idOf(draft.who, list)} size={32} /></div>
+              <div className="yava"><Ava who={draft.who} list={list} work /></div>
               <div className="ycol">
                 <div className="yname">{nmOf(list, draft.who)} · 쓰는 중</div>
                 <div className="yb ai"><Streamdown components={markdownComponents}>{draft.text}</Streamdown><span className="ytdots"><i /><i /><i /></span></div>
@@ -736,7 +762,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           ) : null}
           {typing.length ? (   /* YETA 타이핑 = 얼굴 + 점 셋 말풍선 · 이름 칸 = 「결 작업 중 · 고민하는 중…」(옛 규칙) */
             <div className="ymsg ytyp" aria-live="polite">
-              <div className="yava"><FaceImg id={idOf(typing[0], list)} size={32} /></div>
+              <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
                 <div className="yname">{typing.map((n) => nmOf(list, n)).join("·")} 작업 중 · {WORK[Math.floor(Date.now() / 60e3) % WORK.length]}…</div>
                 <div className="yb ai"><span className="ytdots"><i /><i /><i /></span></div>

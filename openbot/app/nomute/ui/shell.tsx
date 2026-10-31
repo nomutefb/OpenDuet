@@ -96,6 +96,14 @@ export function NomuteShell({ children }: { children: ReactNode }) {
     if (!open.has(where.pane)) setOpen((s) => new Set(s).add(where.pane));
   }, [pathname]);   // eslint-disable-line react-hooks/exhaustive-deps
   useChannelEvents();
+  // 대화 판에서 뒤로가기 = 늘 대화방 목록으로(형 10-31 09:4x 「3번째 대화창에서 뒤로가기하면 바로 2번으로 가게해주고」 · 셋째 칸 대화 → 둘째 칸 대화방)
+  //   해시 기록은 「바로 앞 주소」(앞 방·홈)로 돌아가므로, 대화 판이 맨 위에 있을 때 popstate 가 오면 그 자리를 /rooms 로 바꿔 끼움(replace · 기록 한 칸만 씀) · 모달·#/web·이슈 한 겹이 위에 있으면 그쪽 「<」 가 맡음
+  useEffect(() => {
+    if (pane !== "chat" || modal || layer || "page" in where) return;
+    const onPop = () => { const at = location.hash.replace(/^#/, "") || "/"; if (at !== "/rooms") void nav({ to: "/rooms", replace: true }); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [pane, modal, layer, where, nav]);
   const chat = useChatServerBusy(pane === "chat" && !modal);
   const serverWork = useServerWork(chat.busy, chat.threadId);
   const stage = useRef<HTMLDivElement>(null);

@@ -6,12 +6,8 @@ import { useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, WINTER_ID, idOf, office, people, roomAgentIds } from "../data/office";
-import { FaceImg, FaceStack } from "./faces";
-import { MicOrb } from "../swap/mic-orb";
-
-// 응답 중 테 색(형 10-31 「그 캐릭터 고유 색에 맞춰서 색은 내가 정해줄게」) = RING 에 이름별로 · 없으면 분류색
-const RING: Record<string, string> = {};
-const RING_CLS: Record<string, string> = { 그록봇: "#22d3ee", 클로드: "#FFAA4D", 닷: "#C9A7FF", 부름: "#C9A7FF" };
+import { FaceStack } from "./faces";
+import { MicOrb, ringOf } from "../swap/mic-orb";
 
 /** 지금 대화 판의 방(주소 #/channels/<방> · #/group/<방>) · 명부 */
 function useTopRoom() {
@@ -27,8 +23,9 @@ function useTopRoom() {
 export function NomuteName() {
   const { r, list } = useTopRoom();
   if (!r) return null;
-  const name = r.with ? list.find((p) => p.who === r.with)?.name || r.with : r.name;
-  return <span className="nm-top-name">{name}</span>;
+  const p = r.with ? list.find((x) => x.who === r.with) : undefined;
+  const name = r.with ? p?.name || r.with : r.name;
+  return <span className="nm-top-name">{name}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</span>;   // 1:1 머리 = 이름 옆 표지(형 10-31 09:12)
 }
 
 export function NomuteTop({ size, orb }: { size: number; orb: ReactNode }) {
@@ -39,8 +36,7 @@ export function NomuteTop({ size, orb }: { size: number; orb: ReactNode }) {
   if (r.with) {
     const id = idOf(r.with, list);
     if (id === WINTER_ID) return <>{orb}</>;
-    if (busy === r.with) { const p = list.find((x) => x.who === r.with); return <MicOrb size={size} state="thinking" id={id} tint={RING[r.with] || RING_CLS[p?.cls || ""]} />; }
-    return <span aria-hidden className={ring} style={{ width: size, height: size }}><FaceImg id={id} size={size} /></span>;
+    return <MicOrb size={size} state={busy === r.with ? "thinking" : "idle"} id={id} tint={ringOf(list.find((x) => x.who === r.with))} />;   // 테 = 모두(형 10-31 「윈터만잇고 다른애들없는거같은데」) · 전엔 응답 중에만
   }
   const ids = roomAgentIds(r, list).slice(0, 3);
   return (
