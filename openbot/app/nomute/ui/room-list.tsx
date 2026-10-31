@@ -96,7 +96,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     const rc = r.with ? "" : peek?.id === r.id ? peek.hex : r.color || "";
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
-      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} data-rc={rc ? "" : undefined} style={rc ? ({ "--rc": rc } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); setMenu(menu === r.id ? "" : r.id); }}
+      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} data-rc={rc ? "" : undefined} style={rc ? ({ "--rc": rc } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); if (press.current.hit) return; press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」)
         onPointerDown={(e) => { if (e.pointerType !== "touch") return; clearTimeout(press.current.t); press.current = { x: e.clientX, y: e.clientY, hit: false, t: window.setTimeout(() => { press.current.hit = true; navigator.vibrate?.(8); setMenu(r.id); }, 480) }; }}
         onPointerMove={(e) => { if (Math.hypot(e.clientX - press.current.x, e.clientY - press.current.y) > 8) clearTimeout(press.current.t); }}
         onPointerUp={() => clearTimeout(press.current.t)} onPointerCancel={() => clearTimeout(press.current.t)}

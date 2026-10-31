@@ -34,7 +34,7 @@ const short = (n: string) => n.replace(" PM", "");
 
 export function MsgMenu({ m, who, text: raw, line, room, r, list, onClose }: { m: { id: string; ts: number }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
-  const qc = useQueryClient(), pins = usePinActions(room), opened = useRef(Date.now());
+  const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
   const [asking, setAsking] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
   const others = list.filter((p) => p.who !== "형" && p.kind !== "human");
   const targets = r?.with || !r?.members?.length ? others : r.members.map((n) => list.find((p) => p.who === n)).filter((p): p is OfficePerson => !!p);
@@ -69,7 +69,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, onClose }: { m
   };
   const item = (label: string, on: () => void) => <button key={label} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={on}>{label}</button>;
   return createPortal(
-    <div className="nm-msgm" role="presentation" onClick={(e) => { if (e.target === e.currentTarget && Date.now() - opened.current > 350) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
+    <div className="nm-msgm" role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
       <div className="nm-msgm-p" role="menu" aria-label={asking ? "확인 요청할 봇" : "글 메뉴"}>
         {note ? <p className="nm-msgm-n" role="status">{note}</p> : asking ? (
           <>
