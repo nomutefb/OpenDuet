@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type {
   createAttachmentSender,
   OriginalAttachment,
@@ -72,9 +72,11 @@ export function AttachmentRecovery({
   state: ReturnType<typeof createAttachmentSender>;
   room: string;
 }) {
-  useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot);
+  const version = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot);
+  const box = useRef<HTMLDivElement | null>(null);
+  useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [version]);   // 칸이 차면 마지막 대기 글이 보이게
   return (
-    <div className="flex max-h-64 flex-col gap-2 overflow-y-auto">
+    <div ref={box} className="flex max-h-64 flex-col gap-2 overflow-y-auto">
       {state.forRoom(room).map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : (
         <section
           key={attempt.id}
