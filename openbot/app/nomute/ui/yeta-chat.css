@@ -318,9 +318,6 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-msgm-n { padding:14px 26px; font-size:15px; }
 .nm-msgm-n.err { color:#ff8a8a; }
 
-/* 단톡 미리보기 보낸 이 = 제 색(형 10-31 「모루: 는 색이 다르게 표기되게」) · 밝은 화면은 네온이 안 읽혀서 진한 글자 */
-.nm-rsend { font-weight:600; color:var(--fg-2); }
-.dark .nm-rsend { color:var(--rs, var(--accent)); }
 /* 방 상단 = 단톡 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」) */
 .nm-top-wrap { position:relative; display:inline-flex; justify-content:center; pointer-events:auto; }
 .nm-top-name.nm-top-btn { background:none; border:0; padding:0; cursor:pointer; pointer-events:auto; }

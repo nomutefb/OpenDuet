@@ -120,9 +120,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const wrapTemp = (r: Room, row: ReactNode) => (r.temp ? <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} onEdit={() => { setSwiped(""); setEditing(r); }} onDelete={() => { setSwiped(""); setDeleting(r); }}>{row}</TempSwipe> : row);
   const Row = ({ r }: { r: Room }) => {
     const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;
-    const sender = l && !r.with && l.kind !== "human" ? list.find((x) => x.who === l.who) : undefined;   // 단톡 미리보기 보낸 이 = 제 색(형 10-31 「모루: 는 색이 다르게 표기되게」)
-    const senderName = l && !r.with && l.kind !== "human" ? sender?.name || l.who : "";
-    const preview = l ? previewLine(l.text || "") : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";
+    const preview = l ? previewLine(l.text || "") : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";   // 단톡 미리보기 = 글만(형 11-01 14:06 「대화만 나오면 되 문자열만 누가 나오는지 안보여도 됨」 · 옛 「깃:」 머리 뺌)
     const n = count(r), u = n !== 0, on = current === r.id, tall = big, size = big ? 44 : 36;
     // 단톡 = YETA 꼴(YETA-목록 · 운영자 260725 「단톡환경에서도 프로필이 겹치게」) · 얼굴 둘 겹침 · 마지막에 말한 이가 앞 · 인원 숫자만 · 누구인지 = 방 상단(형 10-31 「인원이 저기 누군지 나올 필욘 없는듯 들가면 확인할 수 잇으면 됨 방 상단에서」)
     const talk = (r.faces || []).map((n) => idOf(n, list)).filter((x) => ids.includes(x)), pair = [...new Set([...talk, ...ids])].slice(0, 2).reverse();   // 형 10-31 「가장최근말한사람이 단톡에 맨 앞, 그리고 그 전에 말한사람이 그 전 이렇게 2개」 · 서버 faces · 뒤에 그린 얼굴이 위 = 뒤집음
@@ -150,7 +148,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
-              <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{r.id === "all" && !ids.length ? "사용자가 없습니다" : <>{senderName ? <span className="nm-rsend" style={{ "--rs": ringOf(sender) } as CSSProperties}>{senderName}: </span> : null}{preview}</>}</span>
+              <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{r.id === "all" && !ids.length ? "사용자가 없습니다" : preview}</span>
             </span>
           </span>
           <span className="nm-rside">   {/* 시각 = 오른쪽 위 · 안 읽은 수 = 그 아래(형 10-31 「저게 시간 아래로 가게 해줘」) */}
