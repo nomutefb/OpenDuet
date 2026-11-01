@@ -1,0 +1,13 @@
+/* 폐기 → 검토(./sched-review.tsx) — 폐기는 지우는 게 아니라 요청이라 빨강은 옅게 · 검토 칸 = 줄 아래 작은 판(검토 중 = 노랑 · 없애기 확정 = 빨강 · 바꾼 뒤 원복 = 하늘) */
+.nm-rv { display:flex; flex-direction:column; gap:6px; padding:10px 12px; border:1px solid rgba(255,210,122,.35); border-radius:14px; background:rgba(255,210,122,.06); }
+.nm-rv[data-step="remove"] { border-color:rgba(255,95,109,.4); background:rgba(255,95,109,.06); }
+.nm-rv[data-step="change"] { border-color:rgba(113,197,232,.4); background:rgba(113,197,232,.06); }
+.nm-rv > b { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; font-weight:600; }
+.nm-rv input { min-width:0; flex:1; padding:6px 10px; border:1px solid var(--glass-line); border-radius:9px; background:none; color:var(--fg); font-size:13px; }
+.nm-rv-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.nm-rv-del { padding:4px 12px; border:1px solid rgba(255,95,109,.4); border-radius:999px; background:none; color:#ff8a8a; font-size:12px; cursor:pointer; }
+.nm-rv-badge { margin-left:6px; padding:0 6px; border-radius:999px; background:rgba(255,210,122,.14); font-size:11px; font-style:normal; font-weight:600; color:#ffd27a; }
+.nm-rv-badge[data-step="remove"] { background:rgba(255,95,109,.14); color:#ff8a8a; }
+.nm-rv-badge[data-step="change"] { background:rgba(113,197,232,.14); color:#71C5E8; }
+.nm-rv > b .nm-rv-badge { margin-left:0; }
+.nm-sched-tinehead .nm-rv-badge { margin:0 6px 0 0; }   /* 줄 머리 = 이름 앞(긴 이름 말줄임에 안 가림) */

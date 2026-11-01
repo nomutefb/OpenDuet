@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Breaker, cronKo } from "./sched-bits";
 import type { RunnerJob, SchedRunners } from "./settings-extra";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
+import { type Review, ReviewBadge, ReviewBox } from "./sched-review";   // 폐기 → 검토(형 11-02 02:1x · 러너 줄도 같은 길)
 
 const CLOCK_KO: Record<string, string> = { yml: "시간표", beat: "윈A 박자", phone: "폰 커밋", "runner-watch": "메우기", "cron-job": "바깥 타이머", after: "앞 일 뒤따름", launchd: "맥 예약" };
 const KIND_KO: Record<string, string> = { llm: "LLM 닿음", script: "스크립트", unknown: "못 정함" };
 const whenOf = (j: RunnerJob) => j.when || cronKo(j.cron_kst) || "부를 때만";
 
-export function RunnerTree({ map, group, go }: { map: SchedRunners; group: string; go: (group: string) => void }) {
+export function RunnerTree({ map, group, go, review = {}, can = false, who = (w) => w }: { map: SchedRunners; group: string; go: (group: string) => void; review?: Record<string, Review>; can?: boolean; who?: (w: string) => string }) {
   const [openF, setOpenF] = useState(""), [openJ, setOpenJ] = useState("");
   const byFile = useMemo(() => Object.fromEntries(map.jobs.map((j) => [j.file, j])), [map.jobs]);
   const groupOf = (j: RunnerJob) => map.forks.find((f) => f.id === j.fork)?.group || "";
@@ -44,7 +45,7 @@ export function RunnerTree({ map, group, go }: { map: SchedRunners; group: strin
                       <div className="nm-sched-tinehead">
                         <Breaker on={j.on !== false} label={`${j.name} 차단기`} disabled onFlip={() => {}} />
                         <button type="button" aria-expanded={wide} onClick={() => setOpenJ(wide ? "" : j.id)}>
-                          <b>{j.name}</b><small>{whenOf(j)}</small>
+                          <b><ReviewBadge r={review[j.id]} />{j.name}</b><small>{whenOf(j)}</small>
                         </button>
                         <span className="nm-sched-tags">{j.gpu?.length ? <i>GPU</i> : null}<i data-k={j.kind}>{KIND_KO[j.kind] || j.kind}</i></span>
                       </div>
@@ -63,6 +64,7 @@ export function RunnerTree({ map, group, go }: { map: SchedRunners; group: strin
                             <div><dt>돌 자리</dt><dd>{(j.res || []).length ? (j.res || []).map((r, i) => <span key={i}>{i ? <> <Chev dir="right" size={11} /> </> : null}{`${i + 1}. ${r.at}${r.gpu ? " (GPU)" : ""}`}</span>) : "모름"}</dd></div>
                             <div><dt>책임자</dt><dd>{j.owner || "모름"}{j.checked ? "" : " · 확인 전"}</dd></div>
                           </dl>
+                          <ReviewBox id={j.id} r={review[j.id]} can={can} who={who} />
                         </div>
                       ) : null}
                     </li>

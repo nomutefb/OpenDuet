@@ -10,6 +10,8 @@ import { RunnerTree } from "./sched-runners";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { Num, Times } from "./room-routine";   // 시간 고르기 부품 = 방 「루틴 만들기」와 같은 것
 import "./room-routine.css";
+import { BotPick } from "./bot-pick";   // 「어떤 봇」 = 부름 목록 꼴(형 11-02 02:24)
+import { ReviewBadge, ReviewBox } from "./sched-review";   // 폐기 → 검토(형 11-02 02:1x · 봄 #2092)
 import { CF_KO, type Routine, ST_KO, type SchedChange, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
 
 // 조직도(형 11-01 17:4x 「스케줄러 있지. 그 내용이 지금 좀 투박해. 버튼 눌러도 동작하는지도 잘 모르겠구 … 엔터프라이즈급으로 동작했으면 좋겠어. 트리구조 조직도로」 · 「각 대화방하고 연동도 잘 되어야하고」)
@@ -141,9 +143,10 @@ export function SchedDesk() {
   const sel = botOf(who);
   const face = (b?: { who: string }, size = 28) => { const p = list.find((x) => x.who === b?.who); return <MicOrb size={size} id={idOf(b?.who || "", list)} tint={ringOf(p)} />; };
   const nameOf = (b?: { who: string }) => list.find((x) => x.who === b?.who)?.name || b?.who || "";
+  const rv = d.review || {}, whoKo = (w: string) => nameOf(botOf(w) || { who: w });   // 검토 칸 · 요청·책임자 이름(봇 id·사람 이름 둘 다)
   const nextAll = d.bots.reduce((m, b) => (b.on !== false && b.next_ts && (!m || b.next_ts < m) ? b.next_ts : m), 0);
   const labelOf = (c: SchedChange) => { const r = d.routines.find((x) => x.id === c.id), f = d.forks?.find((x) => x.id === c.id), b = botOf(c.id); return r ? `${r.bot ? nameOf(botOf(r.bot)) + " · " : ""}${r.name}` : f ? `포크 ${f.name}` : b ? nameOf(b) : c.id; };
-  const say = (f: SchedQ["field"], v: unknown) => (f === "when" && Array.isArray(v) ? cronKo(v.map(String)) : cfVal(f, v as never));   // 언제 = 사람 말(cron 글자 안 보임)
+  const say = (f: SchedQ["field"], v: unknown) => (f === "when" && Array.isArray(v) ? cronKo(v.map(String)) : f === "bot" ? nameOf(botOf(String(v)) || { who: String(v) }) : cfVal(f, v as never));   // 어떤 봇 = 이름(「gik」 아니라 「깃」)   // 언제 = 사람 말(cron 글자 안 보임)
   /** 바꾸기 확인·진행 = 누른 그 줄 바로 아래(형 10-31 「바로 그 창 아래에 떠야 안헷갈려가까이에」) */
   const bar = (key: string) => {
     const a = ask && ask.q.key === key ? ask : null, sv = save && save.q.key === key ? save : null;
@@ -177,7 +180,7 @@ export function SchedDesk() {
           })}
         </div>
       ) : null}
-      {tab !== "bot" && d.runners ? <RunnerTree map={d.runners} group={tab} go={setTab} /> : null}
+      {tab !== "bot" && d.runners ? <RunnerTree map={d.runners} group={tab} go={setTab} review={rv} can={can} who={whoKo} /> : null}
       {tab === "bot" ? <>
       <div className="nm-sched-faces" role="group" aria-label="봇 고르기">
         {d.bots.map((b) => (
@@ -235,7 +238,7 @@ export function SchedDesk() {
                         <div className="nm-sched-tinehead">
                           <Breaker on={live2} dim={blocked} label={`${r.name} 차단기`} disabled={!can || go.isPending || r.state === "grok-stay"} onFlip={() => prep({ at: "routine", key: r.id, field: "state", value: live2 ? "off" : "live", label: `${b?.who} ${r.name}` })} />
                           <button type="button" aria-expanded={wide} onClick={() => setOpenR(wide ? "" : r.id)}>
-                            <b><i className={`nm-dot ${blocked ? "off" : DOT[r.state] || "dim"}`} aria-hidden />{r.name}{r.state !== "live" ? <em className="nm-org-st">{ST_KO[r.state] || r.state}</em> : null}</b><small>{r.cron?.length ? cronKo(r.cron) : r.when?.length ? r.when.join(" · ") : "부를 때만"}{blocked ? " · 위 차단기 내려감" : ""}</small>
+                            <b><i className={`nm-dot ${blocked ? "off" : DOT[r.state] || "dim"}`} aria-hidden /><ReviewBadge r={rv[r.id]} />{r.name}{r.state !== "live" ? <em className="nm-org-st">{ST_KO[r.state] || r.state}</em> : null}</b><small>{r.cron?.length ? cronKo(r.cron) : r.when?.length ? r.when.join(" · ") : "부를 때만"}{blocked ? " · 위 차단기 내려감" : ""}</small>
                           </button>
                           <span className="nm-sched-end" title={`끝 = ${nameOf(b)}를 깨우는 훅 하나`}>{face(b)}</span>   {/* 「!」 글자 뺌(형 11-02 02:23 「그리구 ! 로 스케줄러에 표시떠있는 애들있는데 다 그러거든. 안뜨게 하던지 조치해야랄듯.」 · 줄마다 경고처럼 보였음) · 뜻은 title 에만 */}
                         </div>
@@ -255,13 +258,15 @@ export function SchedDesk() {
                             ) : <small>할 일 글은 아직 그록 앱에 있어. 표로 옮기면 여기서 고쳐.</small>}
                             {hasForks && !bell && !room ? (
                               <div className="nm-sched-sel">
-                                {r.marks?.includes("bot_bound") ? <small>이 봇 몸의 파일을 쓰는 일이라 다른 봇으로 못 옮겨</small> : r.cron?.length ? <label>어떤 봇<select disabled={!can} value={r.bot} onChange={(e) => prep({ at: "routine", key: r.id, field: "bot", value: e.target.value, label: r.name })}>{d.bots.map((x) => <option key={x.bot} value={x.bot}>{nameOf(x)}</option>)}</select></label> : <small>받는 봇은 사건 길이 정해 · 여기서 안 바뀌어</small>}
+                                {r.marks?.includes("bot_bound") ? <small>이 봇 몸의 파일을 쓰는 일이라 다른 봇으로 못 옮겨</small> : r.cron?.length ? <div className="nm-sched-lbl">어떤 봇<BotPick label="어떤 봇" value={r.bot} disabled={!can} onPick={(v) => prep({ at: "routine", key: r.id, field: "bot", value: v, label: r.name })}
+                                  opts={d.bots.map((x) => ({ id: x.bot, name: nameOf(x), mark: list.find((p) => p.who === x.who)?.mark, face: face(x, 24), note: x.on === false ? "차단기 내려감" : x.next_ts ? `다음 깸 ${nextShort(x.next_ts)}` : "깰 일 없음" }))} /></div> : <small>받는 봇은 사건 길이 정해 · 여기서 안 바뀌어</small>}
                                 <label>포크<select disabled={!can} value={r.fork} onChange={(e) => prep({ at: "routine", key: r.id, field: "fork", value: e.target.value, label: r.name })}>{d.forks!.filter((x) => !VIRTUAL.has(x.id)).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
                               </div>
                             ) : null}
                             {bell ? null : <div className="flex flex-wrap gap-1" role="group" aria-label={`${r.name} 상태`}>
                               {Object.keys(ST_KO).filter((k) => (room ? k === "live" || k === "off" : k !== "grok-stay" || r.state === k)).map((k) => <button key={k} type="button" className="nm-sched-chip" aria-pressed={r.state === k} disabled={!can || go.isPending} onClick={() => prep({ at: "routine", key: r.id, field: "state", value: k, label: `${b?.who} ${r.name}` })}>{ST_KO[k]}</button>)}
                             </div>}
+                            <ReviewBox id={r.id} r={rv[r.id]} can={can} who={whoKo} />
                           </div>
                         ) : null}
                       </li>
@@ -280,6 +285,7 @@ export function SchedDesk() {
   );
 }
 
+const RV_KO: Record<string, string> = { "": "없음", review: "검토 중", remove: "없애기 확정", change: "바꾼 뒤 원복", restore: "원복", done: "끝냄" };   // 검토 걸음(봄 _schedreview.js change.from·to)
 /** 최근 바뀜 = 누른 단추가 실제로 먹었는지(형 「버튼 눌러도 동작하는지도 잘 모르겠구」) — 표 커밋 ✓(서버가 쓴 뒤 다시 읽어 그 칸 확인) · 맨 위 표 바꿈은 시계 받음까지 · 방 루틴·6마디 종 = 바로 먹음 */
 function Changes({ list, got, labelOf }: { list: SchedChange[]; got?: { got?: boolean; sha?: string }; labelOf: (c: SchedChange) => string }) {
   if (!list.length) return null;
@@ -291,7 +297,7 @@ function Changes({ list, got, labelOf }: { list: SchedChange[]; got?: { got?: bo
       <ol>
         {list.slice(0, 8).map((c, i) => (
           <li key={`${c.at}-${i}`}>
-            <span className="min-w-0 flex-1"><b>{labelOf(c)}</b><small>{CF_KO[c.field as SchedQ["field"]] || c.field || "상태"} {v(c.from)} <Chev dir="right" size={11} /> {v(c.to)} · {c.who} · {agoKo(c.at)}</small></span>
+            <span className="min-w-0 flex-1"><b>{labelOf(c)}</b><small>{c.review === "note" ? <>같이 멈추는 것 「{c.note}」</> : c.review ? <>검토 {RV_KO[String(c.from ?? "")] ?? String(c.from)} <Chev dir="right" size={11} /> {RV_KO[String(c.to ?? "")] ?? String(c.to)}</> : <>{CF_KO[c.field as SchedQ["field"]] || c.field || "상태"} {v(c.from)} <Chev dir="right" size={11} /> {v(c.to)}</>} · {c.who} · {agoKo(c.at)}</small></span>
             <em data-k={c.live ? "live" : c === head ? (got?.got ? "got" : "wait") : "ok"}>{c.live ? "바로 먹음" : c === head ? (got?.got ? "시계 받음" : "시계 기다림") : "표에 들어감"}</em>
           </li>
         ))}
