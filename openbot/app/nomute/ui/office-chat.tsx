@@ -40,6 +40,8 @@ import { usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
 import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
 import { t12 } from "./when";
+import ShinyText from "./shiny-text";
+import { LIVE_SHINE } from "./live-shine";
 import "./yeta-chat.css";
 
 const enc = encodeURIComponent;
@@ -877,7 +879,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={nameInk(ringOf(list.find((x) => x.who === n)))}>{nmOf(list, n)}</span></Fragment>)}{typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각중…</div>
+                <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={nameInk(ringOf(list.find((x) => x.who === n)))}>{nmOf(list, n)}</span></Fragment>)}<ShinyText text={`${typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각중…`} {...LIVE_SHINE} /></div>   {/* 형 11-01 11:36 「외 2 생각중 ... 여기 이 생각중에도 적용해버리자」 · 이름 색칠 칸은 그대로 */}
                 <div className="yb ai"><span className="ytdots"><i /><i /><i /></span></div>
               </div>
             </div>
