@@ -42,6 +42,7 @@ import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽
 import { t12 } from "./when";
 import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
+import { LinkCard } from "./link-card";   // 글 속 첫 주소 = 말풍선 아래 미리보기 카드(형 11-02 07:13 「채팅에는 일반적인 채팅 앱처럼 보이면 됨」)
 import "./yeta-chat.css";
 
 const enc = encodeURIComponent;
@@ -551,7 +552,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Missed m={m} /><Reactions m={m} c={c} mine /></div>{time}</div>
+          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Missed m={m} /><Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
@@ -572,6 +573,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
               <BoxCard m={m} />
               <Reactions m={m} c={c} mine={false} />
             </div>
+            <LinkCard m={m} />
             {time}
           </div>
         </div>
