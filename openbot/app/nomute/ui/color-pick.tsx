@@ -31,6 +31,7 @@ export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: 
   const setRgb = (i: number, n: number) => { const c = [...rgb]; c[i] = Math.max(0, Math.min(255, n || 0)); setHsv(toHsv(c[0], c[1], c[2])); };
   return (
     <div className="ncp" role="dialog" aria-label="말풍선 색 고르기" onClick={(e) => e.stopPropagation()}>
+      <PickTop label="말풍선 색" onUndo={() => onSave("")} onSave={() => onSave(hex)} onClose={onClose} />
       <label className="ncp-f"><span>HEX</span>
         <input value={typed || hex} onChange={(e) => { setTyped(e.target.value); const c = fromHex(e.target.value); if (c) setHsv(toHsv(c[0], c[1], c[2])); }} onBlur={() => setTyped("")} />
       </label>
@@ -44,10 +45,23 @@ export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: 
           <label key={l} className="ncp-f"><span>{l}</span><input inputMode="numeric" value={rgb[i]} onChange={(e) => setRgb(i, +e.target.value)} /></label>
         ))}
       </div>
-      <div className="ncp-acts">
-        <button type="button" className="ypc-x" onClick={() => onSave("")}>기본으로</button>
-        <button type="button" className="ypc-x" onClick={onClose}>닫기</button>
-        <button type="button" className="ypc-go" onClick={() => onSave(hex)}>저장</button>
+    </div>
+  );
+}
+
+const UNDO = <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>;
+const SAVE = <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>;
+const CLOSE = <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>;
+
+/** 색 고르기 창 머리 = 왼쪽 이름 · 우상단 그림 단추 나란히(형 11-01 10:5x 「되돌리기 픽토그램, 저장 닫기 이 3개 버튼을 이 모달창의 우상단으로 보내버려」 · 「픽토그램은 동그라미로 또 덮을 필요는 없어 수평으로 나란히 작게 3개면됨」) · 저장 없는 판(표지 색 = 떼면 저장)은 둘 */
+export function PickTop({ label, onUndo, onSave, onClose }: { label: string; onUndo: () => void; onSave?: () => void; onClose: () => void }) {
+  return (
+    <div className="ncp-top">
+      <span>{label}</span>
+      <div className="ncp-ico">
+        <button type="button" aria-label="기본으로 되돌리기" title="기본으로" onClick={onUndo}>{UNDO}</button>
+        {onSave ? <button type="button" aria-label="저장" title="저장" onClick={onSave}>{SAVE}</button> : null}
+        <button type="button" aria-label="닫기" title="닫기" onClick={onClose}>{CLOSE}</button>
       </div>
     </div>
   );

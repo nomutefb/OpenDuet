@@ -47,7 +47,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .yrx.on { border-color:rgba(var(--accent-rgb),.55); }
 .yrx .tabular-nums { font-size:11px; }
 .ypc-ava { position:relative; }
-.ypc-orb { position:absolute; right:-4px; bottom:-4px; width:34px; height:34px; padding:0; border:0; border-radius:50%; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.45), inset -3px -4px 8px rgba(0,0,0,.25), inset 3px 4px 8px rgba(255,255,255,.35);
+.ypc-orb { position:absolute; right:-4px; top:-4px; width:34px; height:34px; padding:0; border:0; border-radius:50%; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.45), inset -3px -4px 8px rgba(0,0,0,.25), inset 3px 4px 8px rgba(255,255,255,.35);
   background:radial-gradient(circle at 34% 30%, rgba(255,255,255,.7), transparent 34%), conic-gradient(from 210deg, #4b7bff, #5ad1ff, #f7a8c4, #ffd27a, #ff8a4c, #ff5f8a, #9a7bff, #4b7bff); }
 .ncp { width:100%; display:flex; flex-direction:column; gap:10px; padding:12px; border-radius:16px; background:#1e2023; border:1px solid rgba(255,255,255,.1); text-align:left; }
 .ncp-f { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; font-size:11px; color:#8B8F8A; }
@@ -58,6 +58,14 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ncp-hue::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:2px solid rgba(0,0,0,.25); }
 .ncp-rgb { display:flex; gap:8px; }
 .ncp-acts { display:flex; gap:8px; justify-content:flex-end; }
+.ncp-top { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:24px; font-size:13px; font-weight:700; }   /* 색 판 머리 = 이름 · 우상단 그림 셋(형 11-01 10:5x) */
+.ncp-ico { display:flex; align-items:center; gap:2px; margin-left:auto; }
+.ncp-ico button { display:grid; place-items:center; width:30px; height:30px; padding:0; border:0; background:none; color:inherit; opacity:.82; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.ncp-ico button:active { transform:scale(var(--press-m, .92)); opacity:1; }
+.ncp-ico svg { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.ypc { position:relative; }
+.ypc-pop { position:absolute; top:10px; left:10px; right:10px; z-index:3; }   /* 프사 위에 뜨는 말풍선 색 판 */
+.ypc:has(.ypc-pop) { min-height:min(80dvh, 372px); }   /* 판(약 343px)이 카드 스크롤에 잘리지 않게 그동안만 카드를 늘림 · 이름 자리는 그대로 */
 .ychat .yb.ph, .ychat .yb.me.ph { background:none; border:none; padding:0; box-shadow:none; }
 .ychat .yb.me .yfiles, .ychat .yb.me.ph { display:flex; flex-direction:column; align-items:flex-end; }   /* 내가 올린 사진 = 말 위 · 오른쪽(형 10-31 「이렇게 올린거는 일반적으로 말보다 위쪽에 배치되 우측정렬로」) */   /* 사진만 든 글 = 말풍선 없이(.yb.me 뒤에 와도 지게 같은 무게로 · 사진 모서리 라임 삐져나옴) */
 .ychat .yb.ai .ymd { white-space:normal; }

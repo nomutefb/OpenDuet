@@ -36,7 +36,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     <div className="ypc-veil nm-yeta" role="presentation" onClick={onClose}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
       <div className="ypc" role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
         <div className="ypc-ava"><MicOrb size={130} id={idOf(who, list)} tint={ringOf(p)} /><button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} /></div>
-        {pick ? <ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /> : null}
+        {pick ? <div className="ypc-pop"><ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /></div> : null}   {/* 프사 위에 뜨는 판 = 이름이 안 밀림(형 11-01 10:5x 「애초에 모달느낌으로 프사 위에 뜨면되니까」) */}
         <span className="ycd-nm">{name}{p?.mark ? <span className="ypc-mark" aria-hidden>{p.mark}</span> : null}</span>
         {p?.role ? <span className="ycd-tag">{p.role}</span> : null}
         {p?.intro ? <span className="ypp-desc">{p.intro}</span> : <span className="ycd-quote">자기소개는 아직이야</span>}

@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
+import { PickTop } from "./color-pick";
 
 const TONE = { top: { l: 0.76, c: 0.19 }, low: { l: 0.86, c: 0.1 } };   // 위 = 뎅·봄 쪽 · 아래 = 그록·닷보다 조금 차분
 const HUE0 = 25;   // 판 왼쪽 끝 = 빨강
@@ -81,17 +82,14 @@ export function RoomColorPick({ room, onPeek, onClose }: { room: OfficeRoom; onP
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
       <div className="nrc" role="dialog" aria-label={`${room.name} 표지 색`} onClick={(e) => e.stopPropagation()}>
-        <div className="nrc-head"><span className="nrc-dot" style={{ background: hex || "var(--accent)" }} /><b>{room.name}</b><small>{note || "끌다가 손을 떼면 저장돼"}</small></div>
+        <div className="nrc-head"><span className="nrc-dot" style={{ background: hex || "var(--accent)" }} /><b>{room.name}</b><small>{note || "끌다가 손을 떼면 저장돼"}</small>
+          <PickTop label="" onUndo={() => { setHex(""); onPeek(""); void save(""); }} onClose={onClose} /></div>   {/* 기본으로·닫기 = 우상단 그림(./color-pick.tsx PickTop · 떼면 저장이라 저장 단추 없음) */}
         <div className="nrc-pad">
           <canvas ref={box} width={W} height={H} aria-label="표지 색 판" style={{ touchAction: "none" }}
             onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); move(e); }}
             onPointerMove={(e) => { if (e.buttons) move(e); }}
             onPointerUp={(e) => { const h = move(e); if (h) void save(h); }} />
           <i style={{ left: `${spot.x * 100}%`, top: `${spot.y * 100}%`, background: hex || undefined }} />
-        </div>
-        <div className="nrc-acts">
-          <button type="button" className="nrc-x" onClick={() => { setHex(""); onPeek(""); void save(""); }}>기본으로</button>
-          <button type="button" className="nrc-x" onClick={onClose}>닫기</button>
         </div>
       </div>
     </div>,
