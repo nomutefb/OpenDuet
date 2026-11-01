@@ -37,6 +37,7 @@ import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 
 import { ChanModal } from "./chan";
 import { QueueModal } from "./queue";
 import { MsgsModal } from "./msgs";
+import { PushDevsModal } from "./push-devs";   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
 import { SensorModal } from "./sensor";   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
 import { MemoModal } from "./memo";   // 서랍 「메모」 = 에디터 설정 ▸ 메모를 앱 안으로(봄 11-01)   // 서랍 「알림메세지」 = 에디터 알림함을 앱 안으로(봄 11-01)   // 서랍 「대기열」 = 에디터 대기열 창을 앱 안으로(봄 11-01)
 import { SnsModal } from "./sns";
@@ -87,7 +88,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1", trend: "/?tab=trend&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
-  eddl: "/?pop=dlgrab&inapp=1", edkw: "/?pop=kw&inapp=1", edsnsacc: "/?pop=snsacc&inapp=1", edpush: "/?pop=push&inapp=1", edfilter: "/?pop=filter&inapp=1", edgenopt: "/?pop=genopt&inapp=1", edlock: "/?pop=lock&inapp=1", edacct: "/?pop=account&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+  eddl: "/?pop=dlgrab&inapp=1", edkw: "/?pop=kw&inapp=1", edsnsacc: "/?pop=snsacc&inapp=1", edfilter: "/?pop=filter&inapp=1", edgenopt: "/?pop=genopt&inapp=1", edlock: "/?pop=lock&inapp=1", edacct: "/?pop=account&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -225,6 +226,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "edsearch" ? <div className="nm-scroll"><FeedModal search /></div>   // 검색 = 뉴스 전체 검색 칸(에디터 검색 창은 피드 목록을 거르는 칸 · 봄 11-01)
                   : M.id === "edq" ? <div className="nm-scroll"><QueueModal /></div>
                   : M.id === "edmsgs" ? <div className="nm-scroll"><MsgsModal /></div>
+                  : M.id === "edpush" ? <div className="nm-scroll"><PushDevsModal /></div>   // 구독 기기 = 앱 안(봄 11-01 · 같은 길 api/push list·toggle·remove)
                   : M.id === "edsensor" ? <div className="nm-scroll"><SensorModal /></div>   // 센서 = 앱 안(봄 11-01 · 같은 길 api/sensors · 형이 바꾸면 그 봇에게 알림)
                   : M.id === "edmemo" ? <div className="nm-scroll"><MemoModal /></div>   // 메모 = 앱 안(봄 11-01 · 서버 설정 한 장 = 에디터와 같은 메모)   // 알림메세지 = 앱 안(봄 11-01)   // 대기열 = 앱 안(봄 11-01 · 재시도만 에디터 한 겹)
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>
