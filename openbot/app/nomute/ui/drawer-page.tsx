@@ -16,7 +16,7 @@ import "./yeta-settings.css";   // 설정과 같은 판(형 11-01 「톤이 맞�
 // 묶음 = 에디터 독 차례(뉴스 → 모으기 → 만들기)를 서랍으로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘」 · 한눈 = 앱 네이티브 · 전체 = 에디터 화면 그대로라 기능이 안 빠짐)
 const PARTS: { name: string; ids: Modal[] }[] = [
   { name: "일", ids: ["tasks", "runner"] },
-  { name: "뉴스", ids: ["news", "thumbhist", "feed", "edq", "edsearch", "ask"] },   // 「요약 요청 · 에디터 판」 = 앱 「요약 요청」에 합침(빠르 11-01 · 링크 판별·초안 보존)
+  { name: "뉴스", ids: ["feed", "thumbhist", "edq", "edsearch", "ask"] },   // 「요약 요청 · 에디터 판」 = 앱 「요약 요청」에 합침(빠르 11-01 · 링크 판별·초안 보존)
   { name: "모으기", ids: ["legacy", "sns", "trend", "chan", "chanfull"] },
   { name: "만들기", ids: ["edtool", "eddl"] },
   { name: "알림·기록", ids: ["edmsgs", "edkw", "edsensor", "edmemo"] },
