@@ -119,7 +119,9 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     try { await (read ? roomReadState.read(r.id, r.last_ts, true) : roomReadState.unread(r.id, r.last_ts)); } catch { /* 표는 되돌리고 아래 오류를 보인다. */ }
   };
 
-  const wrapTemp = (r: Room, row: ReactNode) => (r.temp ? <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} onEdit={() => { setSwiped(""); setEditing(r); }} onDelete={() => { setSwiped(""); setDeleting(r); }}>{row}</TempSwipe> : row);
+  const wrapTemp = (r: Room, row: ReactNode) => (r.temp ? <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} onEdit={() => { setSwiped(""); setEditing(r); }} onDelete={() => { setSwiped(""); setDeleting(r); }}>{row}</TempSwipe>
+    // 다른 방 = 왼쪽으로 밀면 설정 칸 하나(형 11-02 02:20 「여기 톡방 좌측으로 밀면 설정 버튼이 뜨게 해줘 그 액션은 예타 리포지토리에 있어」 · 예타 yLrBind 끌기 · 누르면 길게 누르기·⋯ 와 같은 줄 메뉴)
+    : <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} width={64} acts={[{ key: "set", cls: "set", aria: "설정", label: <DuetIcon name="settings" size={20} />, on: () => { setSwiped(""); setMenu(r.id); } }]}>{row}</TempSwipe>);
   const Row = ({ r }: { r: Room }) => {
     const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;
     const preview = l ? previewLine(l.text || "") : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";   // 단톡 미리보기 = 글만(형 11-01 14:06 「대화만 나오면 되 문자열만 누가 나오는지 안보여도 됨」 · 옛 「깃:」 머리 뺌)

@@ -2,7 +2,7 @@
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useRef, useState } from "react";
 import { type OfficeRoom, idOf, office, peopleSync } from "../data/office";
 import { FaceImg } from "./faces";
 import { dropSearchCache } from "./room-search";
@@ -125,18 +125,21 @@ export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClos
 const TRAY = 132, THRESH = 44, RUB = 0.55;   // 예타 목록 끌기(viewer/index.html yLrBind · 임계·고무줄 그대로 · 칸이 둘이라 폭만 두 배)
 
 /** 줄을 왼쪽으로 끌면 수정·삭제(형 10-31 「단체방은 방 좌측으로 끌면 이름 수정 이나 삭제 있어야 하고」) = 손가락 1:1 · 놓으면 이징 복귀 · 세로 = 스크롤 양보. */
-export function TempSwipe({ open, onOpen, onClose, onEdit, onDelete, children }: { open: boolean; onOpen: () => void; onClose: () => void; onEdit: () => void; onDelete: () => void; children: ReactNode }) {
+export type SwipeAct = { key: string; label: ReactNode; cls: string; aria: string; on: () => void };
+/** 줄을 왼쪽으로 끌면 오른쪽 칸이 나옴(예타 yLrBind) · 임시방 = 수정·삭제(기본) · 다른 방 = acts 로 칸을 줌(빠르 11-02 · 형 02:20 「여기 톡방 좌측으로 밀면 설정 버튼이 뜨게 해줘」) */
+export function TempSwipe({ open, onOpen, onClose, onEdit, onDelete, acts, width = TRAY, children }: { open: boolean; onOpen: () => void; onClose: () => void; onEdit?: () => void; onDelete?: () => void; acts?: SwipeAct[]; width?: number; children: ReactNode }) {
+  const list: SwipeAct[] = acts || [{ key: "edit", label: "수정", cls: "edit", aria: "수정", on: () => onEdit?.() }, { key: "del", label: "삭제", cls: "del", aria: "삭제", on: () => onDelete?.() }];
   const wrap = useRef<HTMLDivElement>(null), row = useRef<HTMLDivElement>(null), tray = useRef<HTMLDivElement>(null);
   const d = useRef({ on: false, decided: false, horiz: false, x0: 0, y0: 0, start: 0 }), just = useRef(false);
   const place = (x: number | null) => {
     if (row.current) row.current.style.transform = x === null ? "" : `translateX(${x}px)`;
-    if (tray.current) tray.current.style.transform = x === null ? "" : `translateX(${(1 - Math.min(1, -x / TRAY)) * 100}%)`;
+    if (tray.current) tray.current.style.transform = x === null ? "" : `translateX(${(1 - Math.min(1, -x / width)) * 100}%)`;
   };
   const cancel = () => { d.current.on = false; wrap.current?.classList.remove("drag"); place(null); };
   return (
-    <div ref={wrap} className={`nm-sw${open ? " open" : ""}`}>
+    <div ref={wrap} className={`nm-sw${open ? " open" : ""}`} style={{ "--sw-w": `${width}px` } as CSSProperties}>
       <div ref={row} className="nm-sw-row" onDragStart={(e) => e.preventDefault()}
-        onPointerDown={(e) => { if (e.isPrimary) d.current = { on: true, decided: false, horiz: false, x0: e.clientX, y0: e.clientY, start: open ? -TRAY : 0 }; }}
+        onPointerDown={(e) => { if (e.isPrimary) d.current = { on: true, decided: false, horiz: false, x0: e.clientX, y0: e.clientY, start: open ? -width : 0 }; }}
         onPointerMove={(e) => {
           const s = d.current;
           if (!s.on) return;
@@ -149,7 +152,7 @@ export function TempSwipe({ open, onOpen, onClose, onEdit, onDelete, children }:
           }
           if (!s.horiz) return;
           let x = Math.min(0, s.start + dx);
-          if (x < -TRAY) x = -TRAY - (-TRAY - x) * (1 - RUB * 0.86);
+          if (x < -width) x = -width - (-width - x) * (1 - RUB * 0.86);
           place(x);
         }}
         onPointerUp={(e) => {
@@ -168,8 +171,7 @@ export function TempSwipe({ open, onOpen, onClose, onEdit, onDelete, children }:
         {children}
       </div>
       <div ref={tray} className="nm-sw-tray" aria-hidden={!open}>
-        <button type="button" tabIndex={open ? 0 : -1} className="nm-sw-act edit" onClick={onEdit}>수정</button>
-        <button type="button" tabIndex={open ? 0 : -1} className="nm-sw-act del" onClick={onDelete}>삭제</button>
+        {list.map((a) => <button key={a.key} type="button" tabIndex={open ? 0 : -1} aria-label={a.aria} className={`nm-sw-act ${a.cls}`} onClick={a.on}>{a.label}</button>)}
       </div>
     </div>
   );

@@ -295,13 +295,16 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 /* 임시방 줄 왼쪽 끌기 = 예타 .ylr 그대로 · 폭만 칸 둘 */
 .nm-sw { position:relative; overflow:hidden; border-radius:inherit; }
 .nm-sw-row { position:relative; z-index:1; touch-action:pan-y; user-select:none; -webkit-touch-callout:none; transition:transform .3s var(--ease, cubic-bezier(.2,.7,.3,1)); will-change:transform; }
-.nm-sw.open .nm-sw-row { transform:translateX(-132px); }
+.nm-sw.open .nm-sw-row { transform:translateX(calc(-1 * var(--sw-w, 132px))); }
 .nm-sw.drag .nm-sw-row, .nm-sw.drag .nm-sw-tray { transition:none; }
-.nm-sw-tray { position:absolute; top:0; right:0; bottom:0; z-index:2; display:flex; width:132px; transform:translateX(100%); transition:transform .3s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+.nm-sw-tray { position:absolute; top:0; right:0; bottom:0; z-index:2; display:flex; width:var(--sw-w, 132px); transform:translateX(100%); transition:transform .3s var(--ease, cubic-bezier(.2,.7,.3,1)); }
 .nm-sw.open .nm-sw-tray { transform:translateX(0); }
 .nm-sw-act { flex:1; border:0; color:#fff; font-size:13px; font-weight:700; cursor:pointer; touch-action:manipulation; }
 .nm-sw-act.edit { background:rgba(255,255,255,.14); }
 .nm-sw-act.del { background:rgba(224,64,64,.72); }
+.nm-sw-act.set { display:grid; place-items:center; color:var(--accent); background:rgba(18,18,18,.5); }   /* 대화방 줄 설정 칸(예타 고정 칸 꼴 · 블랙 50 유리 · 픽토 = 연두 · 빠르 11-02) */
+.nm-sw-act.set svg { width:20px; height:20px; transition:transform .2s; }
+.nm-sw-act.set:active svg { transform:scale(.9); }
 @media (prefers-reduced-motion:reduce) { .nm-sw-row, .nm-sw-tray { transition:none; } }
 /* 임시방 창 = 묶음 눌러 고르기 · 얼굴·이름 표지 */
 .nm-fam { display:flex; gap:6px; }
