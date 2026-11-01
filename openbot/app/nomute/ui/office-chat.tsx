@@ -210,16 +210,17 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   const toOthers = (m: Msg) => { const n = [...(m.mention || []), ...(m.urgent || [])]; return n.length > 0 && !n.includes("형"); };
   // 1:1 방 주인이 형 아닌 이에게 한 답(답표 없음 · 바로 앞 다른 이 글이 형 아니고 30분 안) = 형이 안 낀 대화 → 양쪽 다 묶음
   //   (형 10-30 19:2x 「이렇게 내가 하는대화 아니면 가려지고 클릭 시 보이먄 돼」 · 솔 방: 봄 「!솔」 → 솔 답이 그대로 보였음)
-  const answersOther = new Set<string>();
+  const answersOther = new Set<string>(), hyAnswer = new Set<string>();   // hyAnswer = 형 글 바로 뒤(30분 안) 주인 글 = 형한테 한 답 · 끝에 남 부름(「!봄 …」)이 섞여도 보임(형 11-01 「누리 대화가 계속 나랑 대화하는데 숨겨져 확인해주고」 · 서버 _unread.js hyAnswer 와 같은 술어)
   if (r?.with) {
     let prev: Msg | null = null;
     for (const m of all) {
       if (wakeM(m) || (m.kind === "system" && !hyungApp(m))) continue;
       if (m.who !== r.with) { prev = m; continue; }
       if (prev && prev.kind !== "human" && !hyungApp(prev) && m.ts - prev.ts < 30 * 60e3) answersOther.add(m.id);
+      if (prev && (prev.kind === "human" || hyungApp(prev)) && m.ts - prev.ts < 30 * 60e3) hyAnswer.add(m.id);
     }
   }
-  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && !toOthers(m) && !answersOther.has(m.id));
+  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && (!toOthers(m) || hyAnswer.has(m.id)) && !answersOther.has(m.id));
   const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m);
   const out: Item[] = [];
   for (let i = 0; i < all.length; i++) {
