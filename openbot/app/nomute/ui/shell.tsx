@@ -36,6 +36,7 @@ import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형
 import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
 import { ChanModal } from "./chan";
 import { TrendModal } from "./trend";   // 서랍 「SNS 전체」 = 에디터 트렌드 탭 네이티브(전엔 FRAME 으로 품음)
+import { ScrapModal } from "./scrap";   // 서랍 「LEGACY」 = 에디터 수집함 탭 네이티브(전엔 FRAME 으로 품음)
 import { QueueModal } from "./queue";
 import { MsgsModal } from "./msgs";
 import { AcctModal } from "./acct";   // 서랍 「계정 전환」 = 에디터 설정 ▸ 계정 전환을 앱 안으로(봄 11-01)
@@ -62,7 +63,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 네비 4번(서랍 목록엔 안 넣음 · swap/tab-bar.tsx)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
-  { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(에디터 /?tab=scrap 그대로 품음 · 옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x)
+  { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x) · 앱 안(./scrap.tsx · 전엔 /?tab=scrap 품음)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 · 링크 판별·초안 보존" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
   { id: "thumbhist", label: "썸네일 이력", icon: "layout", to: "/thumbhist", desc: "만든 썸네일 보기·저장" },   // 에디터 썸네일 「이전 제작」(thumb-hist.json · ./thumb-hist.tsx)
   { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan", desc: "한눈" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
@@ -93,7 +94,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
-const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
+const FRAME: Partial<Record<Modal, string>> = { edtool: "/?tool=thumb&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
   gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
@@ -214,7 +215,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
             <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>
-              {M.id === "settings" || M.id === "drawer" || M.id === "feed" || M.id === "trend" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
+              {M.id === "settings" || M.id === "drawer" || M.id === "feed" || M.id === "trend" || M.id === "legacy" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>
@@ -245,6 +246,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "chanfull" ? <div className="nm-scroll"><ChanModal full /></div>   // 채널 전체 = 앱 안 조각(빠르 11-01 · 나머지 칸은 맨 아래 단추로 에디터)
                   : M.id === "sns" ? <div className="nm-scroll"><SnsModal /></div>
                   : M.id === "trend" ? <div className="nm-scroll"><TrendModal /></div>
+                  : M.id === "legacy" ? <div className="nm-scroll"><ScrapModal /></div>
                   : <div className="nm-scroll"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
               </div>
             </div>
