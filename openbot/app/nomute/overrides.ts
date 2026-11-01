@@ -94,7 +94,19 @@ export const PATCH: Record<string, [string, string][]> = {
   // 「+」 = 카메라 말고 파일·갤러리(형 10-31) · 그림 꼴만 적힌 accept 는 폰 브라우저가 카메라·갤러리 고르기로 받음 · 거름은 screenPickedFiles 가 이미 함(빠르 판)
   // 영상 = 사무실 첨부로 받음(시아 11-02 형 02:32 「여가에 영상도 올릴 수 있게 해줘」) · 원본 거름은 영상을 「못 붙이는 꼴」로 막음 → 영상만 통과 · 영상 상한 50MB(봄 #2096 서버 VIDEO_MAX · 영상은 R2) 넘으면 여기서 먼저 막음
   "app/src/components/channels/composer/picked-files.ts": [
-    ['    if (kind === "unsupported" && !unnamed) {', '    const video = mediaType.startsWith("video/");\n    if (video && file.size > 50 * 1024 * 1024) {\n      rejected.push(reject(file, `\'${file.name}\' 은 50MB 가 넘어서 못 붙여(영상은 50MB 까지).`));\n      continue;\n    }\n    if (kind === "unsupported" && !unnamed && !video) {'],
+    ['    if (kind === "unsupported" && !unnamed) {', '    const video = mediaType.startsWith("video/");\n    if (video && file.size > 50 * 1024 * 1024) {\n      rejected.push(reject(file, "50MB까지 업로드 가능합니다."));\n      continue;\n    }\n    if (kind === "unsupported" && !unnamed && !video) {'],
+    ['    if (kind === "image" && file.size > MAX_IMAGE_BYTES) {', '    if (kind === "image" && file.size > 20 * 1024 * 1024) {'],   // 사진 고르는 문턱 = 서버 첨부 20MB(사진은 원본 + 작은 판 · data/attachment-state.ts smallImage)
+    ["          `'${file.name}' is too large for an image. The limit is ${formatBytes(MAX_IMAGE_BYTES)}.`,", '          "20MB까지 업로드 가능합니다.",'],
+    ["          `'${file.name}' is too large for a text file. The limit is ${formatBytes(MAX_FILE_BYTES)}.`,", "          `${formatBytes(MAX_FILE_BYTES)}까지 업로드 가능합니다.`,"],
+    ["          `'${file.name}' is too large. The limit is ${formatBytes(MAX_IMAGE_BYTES)}.`,", "          `${formatBytes(MAX_IMAGE_BYTES)}까지 업로드 가능합니다.`,"],
+  ],
+  // 첨부 막힘 안내 = 라임(형 11-02 06:53 「이거 안내 시그니처 색 앞으로 라임이라 할게. 라임으로 8MB까지 업로드 가능합니다. 라고 해줘」) · 빨간 점선 → 라임 점선 · 글 = 「N MB까지 업로드 가능합니다.」(./ui/attachment-up.css .nm-rej)
+  "app/src/components/channels/composer/rejected-files.tsx": [
+    ['className="flex items-start gap-2 rounded-lg border border-destructive border-dashed p-2"', 'className="nm-rej flex items-start gap-2 rounded-lg border border-dashed p-2"'],
+    ['<p className="text-destructive text-sm" key={file.id}>', '<p className="nm-rej-t text-sm" key={file.id}>'],
+    ['className="-m-1 shrink-0 rounded p-1 text-destructive/70 transition-colors hover:text-destructive"', 'className="nm-rej-x -m-1 shrink-0 rounded p-1 transition-colors"'],
+    ['? "Dismiss this refusal"', '? "안내 닫기"'],
+    [': `Dismiss these ${rejected.length} refusals`', ': `안내 ${rejected.length}개 닫기`'],
   ],
   "app/src/components/channels/composer/attachments.ts": [
     ['export const FILE_PICKER_ACCEPT = [\n', 'export const FILE_PICKER_ACCEPT = [\n  "*/*",\n'],

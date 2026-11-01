@@ -39,3 +39,9 @@
 @keyframes nmAttsFade { from { opacity:0; } }
 @keyframes nmAttsUp { from { opacity:0; transform:translateY(16px); } }
 @media (prefers-reduced-motion:reduce){ .nm-atts, .nm-atts-back { animation:none; } }
+/* 첨부 막힘 안내(원본 rejected-files · overrides.ts) = 라임(형 11-02 06:53 「안내 시그니처 색 앞으로 라임」) · 대문자 안 씀 */
+.nm-rej { border-color:rgba(var(--accent-rgb, 207,255,64), .7); background:rgba(var(--accent-rgb, 207,255,64), .06); }
+.nm-rej-t { color:rgb(var(--accent-rgb, 207,255,64)); text-transform:none; letter-spacing:0; }
+.nm-rej-t .font-medium { font-family:Pretendard, -apple-system, system-ui, sans-serif; }
+.nm-rej-x { color:rgba(var(--accent-rgb, 207,255,64), .7); }
+.nm-rej-x:hover { color:rgb(var(--accent-rgb, 207,255,64)); }

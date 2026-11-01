@@ -37,11 +37,37 @@ function upload(form: FormData, onProgress?: (ratio: number) => void) {
   });
 }
 
+// 사진 = 원본 + 보기용 작은 판을 같이(형 11-02 06:55 「사진도 혹시 마찬가지 원본일 필요는 없음. 소스로 쓰라고 주는거면 너네가 압축 전을 재요청 하면 되는거고. 이미지를 확인하는 거면 시스템이 내가 올리는 즉시 압축 시켜서 내용만 확인할 수 있게 하면 너네가 앞으로 계속 편할거야」 · 06:53 「나한테는 그대로임」)
+//   작은 판 = 긴 변 1600 · webp(못 만들면 jpeg) 0.82 · 폼 칸 small_<차례> · 원본이 이미 작으면(긴 변 1600 안 · 400KB 아래) 안 만듦 · GIF·SVG 는 안 만듦 · 못 만들면 원본만(보내기는 안 막음)
+//   서버(봄)가 원본 옆에 두고 photo·m/file 이 작은 판을 먼저 줌 · 형 화면 = 원본 그대로
+const SMALL_EDGE = 1600, SMALL_SKIP = 400 * 1024;
+async function smallImage(file: File): Promise<File | null> {
+  if (!/^image\/(jpeg|png|webp|heic|heif|avif|bmp)$/i.test(file.type)) return null;
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const k = Math.min(1, SMALL_EDGE / Math.max(bmp.width, bmp.height));
+    if (k === 1 && file.size <= SMALL_SKIP) { bmp.close(); return null; }
+    const w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k));
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const g = c.getContext("2d"); if (!g) { bmp.close(); return null; }
+    g.fillStyle = "#fff"; g.fillRect(0, 0, w, h); g.drawImage(bmp, 0, 0, w, h); bmp.close();
+    const to = (type: string) => new Promise<Blob | null>((r) => c.toBlob(r, type, 0.82));
+    let blob = await to("image/webp");
+    if (!blob || blob.type !== "image/webp") blob = await to("image/jpeg");   // 사파리 = webp 로 못 구우면 png 로 줌 → jpeg
+    if (!blob || blob.size >= file.size) return null;
+    const ext = blob.type === "image/webp" ? ".webp" : ".jpg";
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".small" + ext, { type: blob.type, lastModified: file.lastModified });
+  } catch { return null; }
+}
+
 export const attachmentSender = createAttachmentSender({
-  upload: (attempt, onProgress) => {
+  upload: async (attempt, onProgress) => {
     const form = new FormData();
-    for (const original of attempt.originals)
+    for (const [i, original] of attempt.originals.entries()) {
       form.append("file", original.file);
+      const small = await smallImage(original.file);
+      if (small) form.append(`small_${i}`, small);
+    }
     form.set("room", attempt.room);
     if (attempt.text) form.set("text", attempt.text);
     form.set("together", "1");
