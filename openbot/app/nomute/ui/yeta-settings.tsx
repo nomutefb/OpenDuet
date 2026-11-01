@@ -19,7 +19,6 @@ import { ThinkMarkRow } from "./live-shine";
 import { WakeDepthRow } from "./wake-depth";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
-import { StandingInstructions } from "@/components/settings/standing-instructions";   // 원본 설정의 「공통 지시」(routes/_authed/settings/index.tsx) — 빠뜨리지 않기(윈터 10-31 「지금 SettingsIndex 항목을 그대로 옮겨 담기」)
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
@@ -84,9 +83,8 @@ export function YetaSettings() {
           <div className="yset-grp">
             {row("sched", "gear", "스케줄러 바꾸기", "루틴 · 봇 하루 최대 · 사건 모아 깨우기", <NomuteSchedule />)}
             {row("roomset", "user", "지정방 멤버", "@모두 = 이 멤버만 받음", <NomuteRoomset />)}
-            {row("notice", "bell", "공지 설정", "봇이 깰 때마다 보는 한 장", <NomuteNotice />)}
+            {row("notice", "bell", "공지 설정", "봇이 깰 때마다 보는 한 장 · 공통 지시", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
             <WakeDepthRow />
-            {row("instr", "type", "공통 지시", "모든 봇이 따르는 글(원본 설정 Standing instructions)", <StandingInstructions />)}
           </div>
         </section>
         <section className="yset-part" aria-label="살펴보기">
