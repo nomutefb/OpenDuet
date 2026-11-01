@@ -4,7 +4,8 @@
 //   셈 = 원본 winAvg(마지막 실측일 앵커 · 결측 제외 · 7일 창) · winSum('follows' · 스레드 = follower_net) · 지표 사전 = CH_MET(ig·fb) / CH_MET_TH(th) 16233줄 · 5분 TTL 은 react-query 가 맡음
 //   채널 전체(서랍 「채널 전체」 · full) = 에디터 /?tab=chan 통째 대신 조각으로 옮김(형 11-01 17:4x 「시아 도와가지구, 좀 더 많은게 들어올수잇게」 · 시아 2차 안 · 빠르 몫)
 //     1조각 = 일일 추이(원본 39-chLiftChart 869줄 · 지표 칩 + 7·30·90일·전체 + 선 그래프 + 최근일 값) · 최근 게시물(936줄 · thumbs 12칸 · 릴스 ▶ · 조회수 = posts[permalink] · 경과 = iso+date_kst 시각 · relAge 사다리)
-//     아직 에디터 몫 = 주제별 반응 · 시간대별 반응 · 잘 되는 조건 · TOP 게시물 · 인구통계 · 결과 함께 → 맨 아래 「나머지는 에디터에서」 한 단추
+//     2조각 = TOP 게시물(926줄 · 최신 게시일 앵커 기간 · 같은 포맷 중앙값 대비 ×배수 순 · 조회 = views 없으면 eng) · 인구통계(776줄 audience_sample · 성별 남:여 정규화 · 나이 age_full 상위 4 · 도시·나라 상위 4 · 이어 쓴 값 = 「M/D 기준」)
+//     아직 에디터 몫 = 주제별 반응 · 시간대별 반응 · 잘 되는 조건(그림 둘 = 봄) · 결과 함께 → 맨 아래 「나머지는 에디터에서」 한 단추
 import "./yeta-settings.css";
 import "./chan.css";
 import { useQuery } from "@tanstack/react-query";
@@ -14,8 +15,10 @@ import { YICO } from "./yeta-icons";
 
 type Row = Record<string, number | null | undefined> & { date: string };
 type Thumb = { th?: string; u?: string; t?: string; r?: boolean };
-type Post = { permalink?: string; views?: number; iso?: string; date_kst?: string; format?: string };
-type Chan = { profile?: { followers_count?: number | null; username?: string; name?: string }; generated_kst?: string; daily_series?: Row[]; src?: string; avg?: Record<string, { avg_7d?: number }>; thumbs?: Thumb[]; posts?: Post[] };
+type Post = { permalink?: string; views?: number | null; eng?: number | null; iso?: string; date_kst?: string; format?: string; name?: string };
+type Pct = { k?: string; pct?: number | string };
+type Aud = { gender?: { M?: number; F?: number; M_norm?: number; F_norm?: number }; age_full?: Pct[]; age_gender_top?: Pct[]; city_top?: Pct[]; country_top?: Pct[]; carried_kst?: string; as_of?: string };
+type Chan = { profile?: { followers_count?: number | null; username?: string; name?: string }; generated_kst?: string; daily_series?: Row[]; src?: string; avg?: Record<string, { avg_7d?: number }>; thumbs?: Thumb[]; posts?: Post[]; posts_view_avg?: number; audience_sample?: Aud };
 type Src = "ig" | "fb" | "th";
 const SRC: { id: Src; t: string; file: string }[] = [
   { id: "ig", t: "인스타", file: "insta_data.json" },
@@ -73,6 +76,34 @@ const relAge = (h: number) => {
   const d = Math.floor(h / 24); if (d < 7) return `${d}일 전`; if (d < 30) return `${Math.floor(d / 7)}주일 전`; if (d < 365) return `${Math.floor(d / 30)}달 전`; return `${Math.floor(d / 365)}년 전`;
 };
 const webOf = (u: string) => "#/web?u=" + encodeURIComponent(u);
+const mv = (x: Post) => (x.views != null ? x.views : x.eng != null ? x.eng : null);   // 원본 _mv = views(IG) 없으면 eng(FB 반응)
+const vwR = (n: number | null) => (n == null ? "—" : n >= 1e8 ? `${(n / 1e8).toFixed(1).replace(/\.0$/, "")}억` : n >= 1e4 ? `${Math.round(n / 1e4)}만` : String(Math.round(n)));   // 원본 chVwR
+/** 원본 TOP 게시물 — 최신 게시일 앵커로 기간 거름 · 포맷별(릴스끼리·포스트끼리) 중앙값 대비 ×배수 내림차순 · 동률 = 지표 순 · 다섯 */
+function topPosts(all: Post[], avgV: number | undefined, r: Range) {
+  const anc = all.reduce((m, x) => { const i = String(x.iso || "").slice(0, 10); return i > m ? i : m; }, "");
+  let cut = ""; if (r !== "all" && anc) { const dt = new Date(`${anc}T00:00:00Z`); dt.setUTCDate(dt.getUTCDate() - (Number(r) - 1)); cut = dt.toISOString().slice(0, 10); }
+  const pf = cut ? all.filter((x) => String(x.iso || "") >= cut) : all;
+  const mix = avgV || (all.length ? all.reduce((t, x) => t + (mv(x) || 0), 0) / all.length : 0);
+  const med = (reel: boolean) => { const v = pf.filter((x) => (x.format === "릴스") === reel).map((x) => mv(x) || 0).sort((a, b) => a - b); if (!v.length) return 0; const h = v.length >> 1; return v.length % 2 ? v[h] : (v[h - 1] + v[h]) / 2; };
+  const mR = med(true), mP = med(false), dev = (x: Post) => { const b = (x.format === "릴스" ? mR : mP) || mix, v = mv(x); return b > 0 && v ? v / b : 0; };
+  return pf.slice().sort((a, b) => dev(b) - dev(a) || (mv(b) || 0) - (mv(a) || 0)).slice(0, 5).map((x) => ({ x, dev: dev(x) }));
+}
+const KCITY: Record<string, string> = { Seoul: "서울", Busan: "부산", Incheon: "인천", Daegu: "대구", Daejeon: "대전", Gwangju: "광주", Ulsan: "울산", Sejong: "세종", Suwon: "수원", Yongin: "용인", Hwaseong: "화성", Goyang: "고양", Changwon: "창원", Seongnam: "성남", Cheongju: "청주", Cheonan: "천안", Jeonju: "전주", Gimhae: "김해", Pohang: "포항", Jeju: "제주", Paju: "파주", Pyeongtaek: "평택", Anyang: "안양", Bucheon: "부천", Namyangju: "남양주", Ansan: "안산" };
+const cityLab = (k?: string) => { const c = String(k || "").split(",")[0].trim(); return KCITY[c] || c; };
+const ctryLab = (k?: string) => { const c = String(k || "").trim(); try { return new Intl.DisplayNames(["ko"], { type: "region" }).of(c) || c; } catch { return c; } };
+/** 원본 demoTile — 성별 = 남:여 정규화(미지정 뺌) · 나이 = age_full 상위 4(없으면 age_gender_top 합산) · 지역 = city_top·country_top 상위 4 */
+function demo(a?: Aud) {
+  if (!a) return null;
+  const G = a.gender, gN = G ? { M: G.M_norm != null ? +G.M_norm : (G.M || 0) + (G.F || 0) ? ((G.M || 0) / ((G.M || 0) + (G.F || 0))) * 100 : 0, F: G.F_norm != null ? +G.F_norm : (G.M || 0) + (G.F || 0) ? ((G.F || 0) / ((G.M || 0) + (G.F || 0))) * 100 : 0 } : null;
+  let age: { lb: string; pct: number }[] = [];
+  if (Array.isArray(a.age_full) && a.age_full.length) age = a.age_full.slice(0, 4).map((x) => ({ lb: String(x.k), pct: +(x.pct || 0) }));
+  else { const am: Record<string, number> = {}; (a.age_gender_top || []).forEach((x) => { const m = /^(.+?)·[MFU]$/.exec(String(x.k || "")); if (m) am[m[1]] = (am[m[1]] || 0) + +(x.pct || 0); }); age = Object.keys(am).sort((p, q) => am[q] - am[p]).slice(0, 4).map((k) => ({ lb: k, pct: am[k] })); }
+  const city = (a.city_top || []).slice(0, 4).map((x) => ({ lb: cityLab(x.k), pct: +(x.pct || 0) })), ctry = (a.country_top || []).slice(0, 4).map((x) => ({ lb: ctryLab(x.k), pct: +(x.pct || 0) }));
+  return gN || age.length || city.length || ctry.length ? { gN, age, city, ctry, carried: a.carried_kst } : null;
+}
+const Bars = ({ t, rows }: { t: string; rows: { lb: string; pct: number }[] }) => (rows.length ? (
+  <div className="nm-chan-bars"><span className="t">{t}</span>{rows.map((r) => <div key={r.lb} className="row"><span className="lb">{r.lb}</span><span className="bar"><i style={{ width: `${Math.max(2, Math.min(100, r.pct))}%` }} /></span><span className="v">{r.pct.toFixed(1)}%</span></div>)}</div>
+) : null);
 
 /** 일일 추이 = 고른 지표의 기간 선 그래프(원본 chChart 의 간단판 · 결측 = 끊김 없이 건너뜀) */
 function DailyChart({ series, metric, unit }: { series: Row[]; metric: string; unit: string }) {
@@ -98,7 +129,7 @@ function DailyChart({ series, metric, unit }: { series: Row[]; metric: string; u
 const signed = (v: number, u: string) => (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toLocaleString("ko-KR") + u;
 
 export function ChanModal({ full = false }: { full?: boolean }) {
-  const [src, setSrc] = useState<Src>("ig"), [met, setMet] = useState("views"), [range, setRange] = useState<Range>("30");
+  const [src, setSrc] = useState<Src>("ig"), [met, setMet] = useState("views"), [range, setRange] = useState<Range>("30"), [tpr, setTpr] = useState<Range>("7");
   const q = useQuery({
     queryKey: ["nomute", "chan-brief"], staleTime: 300_000, refetchInterval: 300_000,   // 원본 TTL 5분
     queryFn: async () => {
@@ -115,6 +146,7 @@ export function ChanModal({ full = false }: { full?: boolean }) {
   const series = (d?.daily_series || []).filter((r) => r && r.date);
   const flw = d?.profile?.followers_count, fsum = d ? winSum(series, src === "th" ? "follower_net" : "follows") : null;
   const mets = MET[src], m = mets.find((x) => x[0] === met) || mets[0], view = range === "all" ? series : series.slice(-Number(range));
+  const tops = full && d ? topPosts(d.posts || [], d.posts_view_avg, tpr) : [], dm = full ? demo(d?.audience_sample) : null;
   const postOf = new Map((d?.posts || []).filter((p) => p.permalink).map((p) => [String(p.permalink), p])), thumbs = (d?.thumbs || []).slice(0, 12);
   return (
     <Pane title={full ? "채널 전체" : "채널 요약"}>
@@ -148,6 +180,28 @@ export function ChanModal({ full = false }: { full?: boolean }) {
                       {p && (p.views || age) ? <span className="meta">{p.views ? <span>{fmtK(p.views)}</span> : null}{age ? <span className={ageH(p) < 24 ? "fresh" : ""}>{age}</span> : null}</span> : null}
                     </a>
                   ); })}</div>
+                </section>
+              ) : null}
+              {full && tops.length ? (
+                <section className="nm-chan-sec" aria-label="TOP 게시물">
+                  <div className="yset-sec"><b>TOP 게시물</b>
+                    <span className="nm-chan-seg" role="tablist">{RANGES.map(([k, t]) => <button key={k} type="button" role="tab" aria-selected={tpr === k} className={tpr === k ? "on" : ""} onClick={() => setTpr(k)}>{t}</button>)}</span>
+                  </div>
+                  <ol className="nm-chan-top">{tops.map(({ x, dev }, i) => { const rl = x.format === "릴스"; return (
+                    <li key={(x.permalink || "") + i}><a href={x.permalink ? webOf(x.permalink) : undefined}>
+                      <span className="rk">{i + 1}</span><span className={`fm ${rl ? "reels" : "post"}`}>{rl ? "릴스" : "포스트"}</span>
+                      <span className="nm">{x.name || "(제목 없음)"}</span><span className={`dv ${rl ? "reels" : "post"}`}>{dev ? `×${dev.toFixed(1)}` : "—"}</span><span className="vw">{vwR(mv(x))}</span>
+                    </a></li>
+                  ); })}</ol>
+                </section>
+              ) : null}
+              {dm ? (
+                <section className="nm-chan-sec" aria-label="팔로워 구성">
+                  <div className="yset-sec"><b>팔로워 구성</b>{dm.carried ? <i className="nm-chan-at">{k12(dm.carried)} 기준</i> : null}</div>
+                  <div className="nm-chan-demo">
+                    {dm.gN ? <div className="nm-chan-bars"><span className="t">성별</span><div className="gbar"><i className="m" style={{ width: `${dm.gN.M}%` }}>남 {dm.gN.M.toFixed(1)}%</i><i className="f" style={{ width: `${dm.gN.F}%` }}>여 {dm.gN.F.toFixed(1)}%</i></div></div> : null}
+                    <Bars t="나이" rows={dm.age} /><Bars t="도시" rows={dm.city} /><Bars t="나라" rows={dm.ctry} />
+                  </div>
                 </section>
               ) : null}
             </>
