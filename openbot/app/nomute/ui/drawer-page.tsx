@@ -20,7 +20,7 @@ const PARTS: { name: string; ids: Modal[] }[] = [
   { name: "모으기", ids: ["legacy", "sns", "trend", "chan", "chanfull"] },
   { name: "만들기", ids: ["edtool", "eddl"] },
   { name: "알림·기록", ids: ["edmsgs", "edkw", "edsensor", "edmemo"] },
-  { name: "에디터 설정", ids: ["edsnsacc", "edpush", "edfilter", "edgenopt", "edlock", "edacct"] },
+  { name: "에디터 설정", ids: ["edsnsacc", "edpush", "edgenopt", "edlock", "edacct"] },
   { name: "놀기·살피기", ids: ["play", "tokens", "feedback"] },
 ];
 const go = (id: Modal) => { try { sessionStorage.setItem("nm-from-drawer", id); } catch { /* 못 쓰면 「<」 = 옛 길 */ } };
