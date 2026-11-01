@@ -19,4 +19,29 @@
 .nm-chan .nm-chan-props li { margin:2px 0; }
 .nm-chan .nm-chan-acts { margin-top:2px; justify-content:flex-end; }
 .nm-chan .ypc-go span svg { width:14px; height:14px; vertical-align:-2px; }
+.nm-chan .ypc-go { white-space:nowrap; }   /* 「나머지는 에디터에서 ›」 꺽쇠가 줄을 안 넘게 */
+/* 채널 전체(full) — 일일 추이 · 최근 게시물(원본 .ch-chartwrap · .ch-grid 꼴을 YETA 유리로) */
+.nm-chan .nm-chan-sec { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+.nm-chan .nm-chan-sec .yset-sec { display:flex; align-items:center; gap:8px; padding:2px 2px 0; }
+.nm-chan .nm-chan-seg { margin-left:auto; display:inline-flex; gap:2px; padding:2px; border-radius:var(--r-pill); background:var(--glass); border:1px solid var(--glass-line); }
+.nm-chan .nm-chan-seg button { border:0; background:none; color:var(--mut); font-size:var(--fs-xs); padding:3px 9px; border-radius:var(--r-pill); }
+.nm-chan .nm-chan-seg button.on { background:color-mix(in srgb, var(--accent) 22%, transparent); color:var(--fg); }
+.nm-chan .nm-chan-mets { justify-content:flex-start; margin:0; }
+.nm-chan .nm-chan-chart { margin:0; padding:10px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-m, 11px); }
+.nm-chan .nm-chan-chart .top { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.nm-chan .nm-chan-chart .top b { font-size:var(--fs-h2); font-weight:var(--fw-x); font-variant-numeric:tabular-nums; }
+.nm-chan .nm-chan-chart .top span { font-size:var(--fs-xs); color:var(--mut); } .nm-chan .nm-chan-chart .top .rng { margin-left:auto; }
+.nm-chan .nm-chan-chart svg { display:block; width:100%; height:120px; margin-top:6px; }
+.nm-chan .nm-chan-chart .ln { fill:none; stroke:var(--accent); stroke-width:2; stroke-linejoin:round; }
+.nm-chan .nm-chan-chart .ar { fill:color-mix(in srgb, var(--accent) 14%, transparent); stroke:none; }
+.nm-chan .nm-chan-chart .pt { fill:var(--accent); }
+.nm-chan .nm-chan-chart .ax { display:flex; justify-content:space-between; font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; }
+.nm-chan .nm-chan-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; }
+.nm-chan .nm-chan-th { position:relative; aspect-ratio:4/5; overflow:hidden; border-radius:var(--r-s, 9px); background:var(--glass); border:1px solid var(--glass-line); color:inherit; text-decoration:none; }
+.nm-chan .nm-chan-th img { width:100%; height:100%; object-fit:cover; display:block; }
+.nm-chan .nm-chan-th .cap { display:none; }
+.nm-chan .nm-chan-th.txt .cap { display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden; padding:8px; font-size:11px; line-height:1.4; color:var(--fg-2); font-family:var(--app-font-text, inherit); }
+.nm-chan .nm-chan-th .rl { position:absolute; top:5px; right:6px; font-size:10px; font-style:normal; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.6); }
+.nm-chan .nm-chan-th .meta { position:absolute; left:0; right:0; bottom:0; display:flex; gap:6px; justify-content:space-between; padding:14px 6px 4px; font-size:10px; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.6)); font-variant-numeric:tabular-nums; }
+.nm-chan .nm-chan-th .meta .fresh { color:var(--accent); }
 @media (max-width:360px) { .nm-chan .nm-chan-tiles { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
