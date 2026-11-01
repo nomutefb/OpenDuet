@@ -43,7 +43,7 @@ export function SnsModal() {
     },
   });
   const Svg = ({ k }: { k: keyof typeof YICO }) => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
-  const go = () => { window.location.hash = "#/web?u=" + encodeURIComponent("/?tab=trend"); };
+  const go = () => { window.location.hash = "#/trend"; };   // 전체 = 서랍 「SNS 전체」 칸(지금 에디터 트렌드 탭 · 시아가 앱 판으로 옮기면 그 판 그대로 · 봄 11-01)
   const tr = q.data?.tr ?? null, br = q.data?.br ?? null;
   const gt = (tr?.gtrends || []).filter((g) => g && g.query).slice(0, 10);
   const yt = (tr?.youtube || []).filter((v) => v && v.title && String(v.cat || "") !== "20").slice(0, 5);

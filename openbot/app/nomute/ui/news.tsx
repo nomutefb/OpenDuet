@@ -37,7 +37,7 @@ export function NewsModal() {
     return () => { live = false; clearInterval(t); };
   }, []);
   const Svg = ({ k }: { k: keyof typeof YICO }) => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
-  const goAll = () => { go("/web?u=" + encodeURIComponent("/?tab=feed")); };
+  const goAll = () => { go("/feed"); };   // 전체 = 앱 안 뉴스 전체(./feed.tsx · 시아 2c92a1c) — 옛 에디터 피드 탭 한 겹 대신(봄 11-01 · 형 「눌렀을때 웹으로 연결된 부분이 많아서 불편했어..」)
   const goOne = (a: Art) => { listTop.current = root.current?.closest(".nm-scroll")?.scrollTop || 0; go(`/news?a=${encodeURIComponent(a.file)}`); };
   const arts = q.data?.arts || [], shown = arts.slice(0, n);
   return (

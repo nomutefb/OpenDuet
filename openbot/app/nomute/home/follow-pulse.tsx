@@ -2,7 +2,7 @@
 //   원본 = 에디터 첫 화면 #home-pulse(modern-home.js 885~990 · 운영자 261022 «카드 위에 인스타 팔로워 현재 수 · 메타 앱으로 자주 들어가서 확인») — 같은 데이터·같은 셈·같은 그림을 React+svg 로(그래프 라이브러리 0)
 //   데이터 = `/api/chan?f=ig` → 안 되면 `/insta_data.json` · FB = `/api/chan?f=fb` → `/fb_data.json`(원본 get() 차례 그대로 · 같은 출처 edit.nomute.kr · 쿠키 그대로 · Access 벽 안 · read.ts 가 "/" 를 same-origin 으로 받는 것과 같은 길)
 //   꼴 = IG · FB 총수 한 줄 + 「갱신 N분 전」 + 10일 증가율(%) 꺾은선 둘(IG 위 선 · FB 아래 선 · 0% 점선) + 날마다 ±명수 두 줄(IG 위 · FB 아래) · 색 = 오름 강조색 · 내림 금색 · 없음 회색(원본 규칙)
-//   누르면 = 채널 요약(원본 «일단 홈 팔로워로» → 우리 앱은 #/web?u=/?tab=chan 한 겹) · 10분마다 다시 읽음(원본과 같음) · 접수사항(CheckOne)은 이 자리에서 뺌(파일은 그대로 · 안 부름)
+//   누르면 = 채널 요약(원본 «일단 홈 팔로워로» → 우리 앱은 앱 안 채널 요약 판 #/chan · 11-01 전엔 #/web?u=/?tab=chan 한 겹) · 10분마다 다시 읽음(원본과 같음) · 접수사항(CheckOne)은 이 자리에서 뺌(파일은 그대로 · 안 부름)
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null };
@@ -73,7 +73,7 @@ export function FollowPulse() {
   }, [ig, fb, wide]);
   if (!ig || !view) return null;   // 못 읽으면 자리 비움(홈이 그 자리만큼 올라옴)
   const { W, H, P, FS, RH, FBY, IGY, Y, lines } = view;
-  const go = () => { window.location.hash = "#/web?u=" + encodeURIComponent("/?tab=chan"); };   // 원본 = 채널 요약로
+  const go = () => { window.location.hash = "#/chan"; };   // 원본 = 채널 요약로 → 앱 안 채널 요약 판(봄 11-01 · 형 「눌렀을때 웹으로 연결된 부분이 많아서 불편했어..」)
   return (
     <button type="button" className="nm-pulse" aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
       <div className="nm-pulse-row">
