@@ -74,7 +74,6 @@ export function PushDevsModal() {
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-devs">
           <span className="ycd-nm yset-ttl">구독 기기</span>
-          <div className="nm-bar"><p className="nm-devs-help">알림을 켠 기기 · 멈춤 = 그 기기만 안 보냄 · 지움 = 명단에서 뺌(다시 켜면 새로)</p></div>
           {note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
           {q.isLoading ? <p className="nm-chan-msg">불러오는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">목록을 못 불러왔어 — 잠시 뒤 다시 열어 줘</p> : !items.length ? <p className="nm-chan-msg">알림을 켠 기기 없음</p> : (
             <div className="nm-q-list" role="list">

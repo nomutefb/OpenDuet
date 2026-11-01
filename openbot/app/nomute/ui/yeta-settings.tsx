@@ -21,7 +21,6 @@ import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
-import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 
 const Svg = ({ k, className }: { k: YIcon; className?: string }) => <span className={className} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
 const THEME: { v: ThemePreference; t: string }[] = [{ v: "system", t: "폰 따라" }, { v: "light", t: "밝게" }, { v: "dark", t: "어둡게" }];
@@ -59,8 +58,8 @@ export function YetaSettings() {
   const build = useBuildLine();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
   const nBots = list.filter((p) => p.kind === "bot").length, awake = (bots || []).filter((b) => b.state === "awake").length;
-  const row = (id: string, ic: YIcon, t: string, d: ReactNode, body: ReactNode, v?: string) => [
-    <Act key={id} ic={ic} t={t} d={d} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
+  const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
+    <Act key={id} ic={ic} t={t} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
   ];
   return (
@@ -70,7 +69,7 @@ export function YetaSettings() {
         <section className="yset-part" aria-label="화면·입력">
           <div className="yset-sec">화면·입력</div>
           <div className="yset-grp">
-            <Act ic="screen" t="테마" d={<>탭 = 폰 따라 <Chev dir="right" size={11} /> 밝게 <Chev dir="right" size={11} /> 어둡게</>} v={theme.t} vt mod={theme.v !== "system"}
+            <Act ic="screen" t="테마" v={theme.t} vt mod={theme.v !== "system"}
               onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
             <PushRow />
             <ChatFontRows />
@@ -81,29 +80,29 @@ export function YetaSettings() {
         <section className="yset-part" aria-label="사무실">
           <div className="yset-sec">사무실</div>
           <div className="yset-grp">
-            {row("sched", "gear", "스케줄러 바꾸기", "루틴 · 봇 하루 최대 · 사건 모아 깨우기", <NomuteSchedule />)}
-            {row("roomset", "user", "지정방 멤버", "@모두 = 이 멤버만 받음", <NomuteRoomset />)}
-            {row("notice", "bell", "공지 설정", "봇이 깰 때마다 보는 한 장 · 공통 지시", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
+            {row("sched", "gear", "스케줄러 바꾸기", <NomuteSchedule />)}
+            {row("roomset", "user", "지정방 멤버", <NomuteRoomset />)}
+            {row("notice", "bell", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
             <WakeDepthRow />
           </div>
         </section>
         <section className="yset-part" aria-label="살펴보기">
           <div className="yset-sec">살펴보기</div>
           <div className="yset-grp">
-            {row("health", "data", "점검표", "서버 문·지킴이 연결·박동", <NomuteHealth />,
+            {row("health", "data", "점검표", <NomuteHealth />,
               health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}
-            {row("bots", "user", "지금 봇", "온라인 · 하는 일 · 다음 깸", <NomuteBots />, bots ? `온라인 ${awake}/${nBots}` : undefined)}
-            {row("link", "radio", "스케줄러 연결", <>일정 <Chev dir="right" size={11} /> 호출 <Chev dir="right" size={11} /> 깨움 · 오늘 깬 수</>, <NomuteLink />)}
-            {row("meter", "data", "회의실 계기판", "헛깸 · 형 말 출처 · 바꿔 전하기 · 되묻기 · 하루 한 장", <NomuteMeter />)}
+            {row("bots", "user", "지금 봇", <NomuteBots />, bots ? `온라인 ${awake}/${nBots}` : undefined)}
+            {row("link", "radio", "스케줄러 연결", <NomuteLink />)}
+            {row("meter", "data", "회의실 계기판", <NomuteMeter />)}
           </div>
         </section>
         <section className="yset-part" aria-label="기록·정보">
           <div className="yset-sec">기록·정보</div>
           <div className="yset-grp">
-            {row("old", "chat", "옛 그록 대화", "그록 앱 시절 · 읽기만", <NomuteOld />)}
-            <Info ic="info" t="지금 판" d={build.fresh ? `새 판 있음(${build.fresh}) — 곧 저절로 바뀜` : "새 판이 나오면 저절로 바뀜"} v={build.now} />
+            {row("old", "chat", "옛 그록 대화", <NomuteOld />)}
+            <Info ic="info" t="지금 판" d={build.fresh ? `새 판 있음(${build.fresh})` : undefined} v={build.now} />   {/* 설명 꼬리 뺌 · 판이 저절로 안 바뀜(새 판 알약 누름) — 새 판 때만 남김(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
             {/* 원본 「키보드 단축키」 = 키보드 있는 화면(md~)만 · 읽기만(원본 그대로 · 바꿀 수 없음) */}
-            <div className="hidden md:block">{HOTKEYS.map((h) => <Info key={h.id} ic="type" t={h.label} d={h.description} v={formatHotkey(h.combo).join(" ")} />)}</div>
+            <div className="hidden md:block">{HOTKEYS.map((h) => <Info key={h.id} ic="type" t={h.label} v={formatHotkey(h.combo).join(" ")} />)}</div>
           </div>
         </section>
       </div>

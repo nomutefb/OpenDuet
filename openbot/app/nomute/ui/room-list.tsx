@@ -226,7 +226,7 @@ function NotifyPicPick({ name, url, save, onClose }: { name: string; url: string
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
       <div className="nrc" role="dialog" aria-label={`${name} 알림 그림`} onClick={(e) => e.stopPropagation()}>
-        <div className="nrc-head"><b>알림 그림</b><small>{name} 알림에 뜰 그림</small></div>
+        <div className="nrc-head"><b>알림 그림</b></div>
         <img src={url} alt="" className="nm-npic" />
         <div className="nrc-acts">
           <button type="button" className="nrc-x" onClick={onClose}>닫기</button>

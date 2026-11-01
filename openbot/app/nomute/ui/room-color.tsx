@@ -83,7 +83,7 @@ export function RoomColorPick({ room, onPeek, onClose }: { room: OfficeRoom; onP
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
       <div className="nrc" role="dialog" aria-label={`${room.name} 표지 색`} onClick={(e) => e.stopPropagation()}>
-        <div className="nrc-head"><span className="nrc-dot" style={{ background: hex || "var(--accent)" }} /><b>{room.name}</b><small>{note || "끌다가 손을 떼면 저장돼"}</small>
+        <div className="nrc-head"><span className="nrc-dot" style={{ background: hex || "var(--accent)" }} /><b>{room.name}</b>{note ? <small>{note}</small> : null}
           <PickTop label="" onUndo={() => { setHex(""); onPeek(""); void save(""); }} onClose={onClose} /></div>   {/* 기본으로·닫기 = 우상단 그림(./color-pick.tsx PickTop · 떼면 저장이라 저장 단추 없음) */}
         <div className="nrc-pad">
           <canvas ref={box} width={W} height={H} aria-label="표지 색 판" style={{ touchAction: "none" }}
@@ -118,7 +118,7 @@ export function RoomNamePick({ room, onClose }: { room: OfficeRoom; onClose: () 
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
       <form className="nrc" role="dialog" aria-label={`${room.name} 이름 바꾸기`} onClick={(e) => e.stopPropagation()} onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 저장 단추 누름(게이지 단추가 받음) */}
-        <div className="nrc-head"><b>이름 바꾸기</b><small>{note || (room.base ? `원래 이름 ${room.base}` : "방 안 글은 그대로야")}</small></div>
+        <div className="nrc-head"><b>이름 바꾸기</b>{note || room.base ? <small>{note || `원래 이름 ${room.base}`}</small> : null}</div>   {/* 안내 줄 뺌 · 저장 글·원래 이름만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
         <input className="nrc-in" value={name} maxLength={20} autoFocus enterKeyHint="done" aria-label="방 이름" onChange={(e) => setName(e.target.value)} />
         <div className="nrc-acts">
           {room.base ? <button type="button" className="nrc-x" onClick={() => void save("")}>원래대로</button> : null}

@@ -61,15 +61,15 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
       <div className="flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">{edit ? "단톡방 고치기" : "임시 단톡방"}</b>
         <label className="flex flex-col gap-1">
-          <span className="text-muted-foreground">방 이름(비우면 목적 앞부분)</span>
+          <span className="text-muted-foreground">방 이름</span>
           <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="rounded-xl border border-border bg-transparent px-3 py-2" />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-muted-foreground">목적 · 초대된 이에게 지침으로 들어가</span>
+          <span className="text-muted-foreground">목적</span>
           <textarea value={purpose} maxLength={500} rows={3} onChange={(e) => setPurpose(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
         </label>
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1 text-muted-foreground">초대할 사람 · {picked.length}명{edit ? " · 빠진 이는 방에서 나가고 1:1 에 정중히 알려" : ""}</legend>
+          <legend className="mb-1 text-muted-foreground">초대할 사람 · {picked.length}명</legend>
           <div role="tablist" className="nm-fam">
             {FAMS.map((f) => { const n = namesOf(f.cls).filter((x) => picked.includes(x)).length; return <button key={f.key} type="button" role="tab" aria-selected={fam === f.key} className="nm-fam-tab" onClick={() => setFam(f.key)}>{f.label}{n ? ` ${n}` : ""}</button>; })}
           </div>
@@ -79,7 +79,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
           </div>
         </fieldset>
         <fieldset className="flex flex-col gap-1">
-          <legend className="mb-1 text-muted-foreground">유지 시간{edit ? " · 안 누르면 그대로" : " · 지나면 글까지 지워져"}</legend>
+          <legend className="mb-1 text-muted-foreground">유지 시간</legend>   {/* 라벨 옆 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           <div className="flex gap-1.5">
             {HOURS.map(([h, label]) => <button key={h} type="button" aria-pressed={hours === h} onClick={() => setHours(h)} className="nm-pick flex-1 justify-center">{label}</button>)}
           </div>

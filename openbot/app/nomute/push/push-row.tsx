@@ -48,8 +48,8 @@ export function PushRow() {
       await read().catch(() => setSt("none"));
     }
   };
-  const d = st === "on" ? "켜짐 · 1:1 새 글·「!형」·⏳ = 앱이 꺼져 있어도 옴" : st === "blocked" ? "막힘 — 앱 아이콘 꾹 → 앱 정보 → 알림 → 허용"
-    : st === "none" ? "이 브라우저는 알림을 못 받아" : st === "busy" ? "바꾸는 중…" : "꺼짐 · 누르면 켬";
+  const d = st === "on" ? "켜짐" : st === "blocked" ? "막힘 — 앱 아이콘 꾹 → 앱 정보 → 알림 → 허용"
+    : st === "none" ? "이 브라우저는 알림을 못 받아" : st === "busy" ? "바꾸는 중…" : "꺼짐";   // 설명 꼬리 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」 · 막힘 고치는 길은 그대로)
   return (
     <button type="button" className={`yset-item${st === "on" ? " on" : ""}`} onClick={() => void flip()} aria-pressed={st === "on"} aria-busy={st === "busy" || undefined}>
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.bell }} />

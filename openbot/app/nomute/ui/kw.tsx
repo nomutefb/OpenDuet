@@ -90,7 +90,7 @@ export function KwModal() {
           <span className="ycd-nm yset-ttl">키워드 알림</span>
           <div className="nm-bar">
             <button type="button" className={`nm-kw-on${on ? " on" : ""}`} aria-pressed={on} disabled={busy || q.isLoading} onClick={() => void toggle()}>{on ? "ON" : "OFF"}</button>
-            <p className="nm-kw-help">{on ? "커뮤니티에 뜨면 첫 1회 + 하루 동안 3시간마다 알림" : "꺼져 있음 — 목록은 그대로"}</p>
+            {on ? null : <p className="nm-kw-help">꺼져 있음</p>}   {/* 설명 뺌 · 꺼짐 상태만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
             <button type="button" className="nm-memo-plus" aria-expanded={box} onClick={() => openBox(!box)}>{box ? "닫기" : "＋ 추가"}</button>
           </div>
           {box ? (

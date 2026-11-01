@@ -263,7 +263,7 @@ export function DownloadModal() {
 
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo">
           <span className="ycd-nm yset-ttl">이전 받기</span>
-          <button type="button" className="nm-dl-fold" aria-expanded={vdOpen} onClick={() => setVdOpen(!vdOpen)}><span>이전 받기 <i>({done.length})</i></span><small>이 기기 · 7일 뒤 지워짐</small></button>
+          <button type="button" className="nm-dl-fold" aria-expanded={vdOpen} onClick={() => setVdOpen(!vdOpen)}><span>이전 받기 <i>({done.length})</i></span></button>
           {vdOpen ? (!done.length ? <p className="nm-chan-msg">아직 받은 게 없습니다</p> : (
             <div className="nm-q-list" role="list">
               {done.map((e: { id: string; url: string; plat: string; mode: string; t: number; sec?: number; res: Res }, i: number) => {

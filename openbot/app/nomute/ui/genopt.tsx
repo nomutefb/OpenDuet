@@ -81,7 +81,6 @@ export function GenOptModal() {
                   <button type="button" className={`chip${gen ? " on" : ""}`} aria-pressed={gen} disabled={pin || !!busy} title={pin ? "켜고 끄기 = 잠금 PIN 확인이 필요 — 에디터 설정 줄에서" : "요약할 때 썸네일 그림을 만들지"} onClick={() => void save("gen", { genImgOn: !gen })}>{gen ? "ON" : "OFF"}</button>
                 </span>
               </div>
-              {pin ? <p className="hint">AI 썸네일 켜고 끄기는 잠금 PIN 확인이 필요해서 에디터 설정 줄에서 해(그림 값 고르기는 여기서 바로)</p> : null}
               {ROWS.map((r) => (
                 <div key={r.k} className="row">
                   <span className="lab">{r.lab}</span>

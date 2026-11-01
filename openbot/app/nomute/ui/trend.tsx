@@ -542,13 +542,13 @@ export function TrendModal() {
   const subEmpty = (key: string, lbl: string, plat: string) => {
     const xa = hs.xauth || "off";
     if (plat === "x" && xa !== "err" && ((cover("x").reg || 0) > 0 || V.subStale.has("x")))
-      return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t={xa === "ok" ? "18시간 안에 올라온 글이 없어요" : xa === "fail" ? "X 로그인 쿠키가 거절됐어요" : "18시간 안 새 글을 못 받았어요"} s={xa === "ok" ? "구독 계정이 새 글을 올리면 조회수 순으로 떠요" : xa === "fail" ? "만료·로그아웃 — 가계정 쿠키를 새로 뽑아 저장소 시크릿 X_SUBS_AUTH_TOKEN·X_SUBS_CT0를 갈아 주세요" : "로그인 없이는 X가 옛 인기글만 줘요 — 저장소 시크릿 X_SUBS_AUTH_TOKEN·X_SUBS_CT0(가계정 쿠키)를 넣으면 최신 글이 조회수 순으로 떠요"} /></Sec>;
-    if (!V.subStale.has(plat)) return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t="구독 비움 상태" s="서랍 → 구독 채널에서 계정을 추가하면 여기에 쌓여요" /></Sec>;
+      return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t={xa === "ok" ? "18시간 안에 올라온 글이 없어요" : xa === "fail" ? "X 로그인 쿠키가 거절됐어요" : "18시간 안 새 글을 못 받았어요"} /></Sec>;   // 빈 칸 밑 안내 줄 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」 · 큰 줄만)
+    if (!V.subStale.has(plat)) return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t="구독 비움 상태" /></Sec>;
     const PH = plat === "insta" || plat === "threads", why0 = Object.values(cover(plat).why || {}).map(String).filter((v) => v !== "rotate" && v !== "budget");
     const waiting = !why0.length || why0.filter((v) => v === "cooldown" || v === "gap" || v === "429").length * 2 > why0.length;
     const rs = subRunState(cover(plat)), fk = rs === "fail" ? subFailKo(plat, Object.values(cover(plat).run_fail || {})) : null, ph = V.health.phone;
     const why = PH && ph && ph.ok === false ? "폰 수집기가 멈춰서 못 걷고 있어요" : PH ? (waiting ? "차례를 기다리는 중이에요 — 자동으로 다시 걷혀요" : "지금은 막혀서 못 걷고 있어요") : rs === "quiet" ? "조회는 정상인데 새로 올라온 글이 없어요" : fk ? fk + " — 자동으로 다시 시도해요" : "이번 수집에서 0건이에요 — 자동으로 다시 시도해요";
-    return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t={why} s="자세한 원인과 조치는 서랍 → 알림메세지에" /></Sec>;
+    return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t={why} /></Sec>;
   };
   const subUnit = (plat: string, arr: J[]): ReactNode => {
     if (!V.subStale.has(plat)) return null;
@@ -568,7 +568,7 @@ export function TrendModal() {
   const xMul = (it: J) => { const s = +it.spike; if (Number.isFinite(s) && s > 0) return (s >= 10 ? String(Math.round(s)) : String(Math.round(s * 10) / 10)) + "배"; const p = +it.posts_1h; return Number.isFinite(p) && p > 0 ? Math.round(p).toLocaleString("ko-KR") + "건" : ""; };
   const xUrl = (it: J) => { const u = String(it.source_url || ""); return /^https:\/\/(x|twitter)\.com\//.test(u) ? u : "https://x.com/search?q=" + encodeURIComponent(String(it.keyword || "").replace(/^#/, "")); };
   const xUnit = V.xState === "stale" ? <Badge t={`${V.xK ? V.xK + " 이후 " : ""}수집 끊김`} title="X 급상승 수집이 60분 넘게 끊겼다 — 지금 보이는 건 마지막 수집분이다(30분마다 자동 갱신)" /> : V.xState === "empty" ? <Badge t="데이터 없음" /> : <>{V.xState === "example" ? "예제" : ""}{V.xK ? <Badge warn={false} t={V.xK + " 수집"} /> : null}</>;
-  const xspSec = <Sec id="xsp" lbl="X 급상승" unit={xUnit} n={V.xRows.length}>{V.xRows.length ? V.xRows.map((it, i) => <BRow key={i} i={i} url={xUrl(it)} t={String(it.keyword || "")} right={xMul(it)} />) : <Empty t="아직 들어온 급상승이 없어요" s="30분마다 갱신" />}</Sec>;
+  const xspSec = <Sec id="xsp" lbl="X 급상승" unit={xUnit} n={V.xRows.length}>{V.xRows.length ? V.xRows.map((it, i) => <BRow key={i} i={i} url={xUrl(it)} t={String(it.keyword || "")} right={xMul(it)} />) : <Empty t="아직 들어온 급상승이 없어요" />}</Sec>;
   const btrL: J[] = (d.bsky_trends || []).slice(0, 10);
   const btrSec = btrL.length ? <Sec id="btr" lbl="블루스카이 실시간 트렌드" n={btrL.length}>{btrL.map((g, i) => <Row key={i} i={i} url={"https://bsky.app/search?q=" + encodeURIComponent(g.query || "")} t={g.ko || g.query || ""} right={mag(g.posts)} x={g} />)}</Sec> : null;
   const pair = (a: ReactNode, b: ReactNode, k: string) => (a && b ? <div className="rt2" key={k}>{a}{b}</div> : <>{a}{b}</>);

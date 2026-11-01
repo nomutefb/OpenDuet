@@ -48,7 +48,7 @@ export function DrawerPage() {
             {p.ids.map((id) => { const m = MODALS.find((x) => x.id === id)!; return (
               <button key={id} type="button" className="yset-item" onClick={() => { go(id); void nav({ to: m.to }); }}>
                 <span className="si-ic" aria-hidden><DuetIcon name={m.icon} size={21} /></span>
-                <span className="si-lbl"><span className="si-t">{m.label}</span>{m.desc ? <span className="si-d">{m.desc}</span> : null}</span>
+                <span className="si-lbl"><span className="si-t">{m.label}</span></span>   {/* 부제(desc) 줄 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」 · 칸 값은 shell.tsx 에 남음) */}
                 <span className="si-v">
                   {id === "tasks" && waiting > 0 ? <b className="nm-rcount">{waiting > 99 ? "99+" : waiting}</b> : null}
                   <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />

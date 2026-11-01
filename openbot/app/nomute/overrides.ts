@@ -152,7 +152,7 @@ export const PATCH: Record<string, [string, string][]> = {
   ],
   "app/src/components/shell/tasks-active.tsx": [
     ["Nothing active right now.", "지금 진행 중인 일 없음."],
-    ["Add a task with +, or start one from Up next.", "봇이 형에게 묻는 것·형 결정 필요는 여기 모여."],
+    ['      <p className="type-sub mt-0.5 text-duet-ink-2">\n        Add a task with +, or start one from Up next.\n      </p>\n', ""],   // 둘째 줄(안내) 통째 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
   ],
   // 설정 = YETA 설정 꼴(nomute/ui/yeta-settings.tsx · 형 10-28 10:22 「그 예타에도 설정이 있거든? 그쪽을 가져와서」) — 원본 화면(봇·연결·기능·루틴·승인 규칙·알림·비밀번호·관리자 = 우리 자료 없음) 대신 우리 판
   "app/src/routes/_authed/settings/index.tsx": [

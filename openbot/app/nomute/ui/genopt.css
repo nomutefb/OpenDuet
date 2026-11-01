@@ -6,4 +6,3 @@
 .nm-gopt .chip { border:1px solid var(--glass-line); background:none; color:var(--mut); font-size:var(--fs-xs, 11px); padding:4px 10px; border-radius:var(--r-pill); font-family:var(--app-font-text, inherit); }
 .nm-gopt .chip.on { color:var(--bg); background:var(--accent); border-color:var(--accent); font-weight:600; }
 .nm-gopt .chip:disabled { opacity:.6; }
-.nm-gopt .hint { margin:0; font-size:var(--fs-xs, 11px); color:var(--mut); }

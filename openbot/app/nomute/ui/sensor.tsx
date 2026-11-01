@@ -94,7 +94,7 @@ export function SensorModal() {
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-sensor">
           <span className="ycd-nm yset-ttl">센서</span>
           <div className="nm-bar">   {/* 단추 = 카드 머리 밖(모달 안은 카드 머리 숨김 · yeta-settings.css) */}
-            {cur ? <button type="button" className="nm-msg-back" onClick={() => setOpen(-1)} aria-label="목록으로"><Chev />목록</button> : <p className="nm-sensor-help">봇이 건 키워드 · 5분마다 보고 걸리면 그 봇을 깨워</p>}
+            {cur ? <button type="button" className="nm-msg-back" onClick={() => setOpen(-1)} aria-label="목록으로"><Chev />목록</button> : null}   {/* 설명 줄 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
             {!cur ? <button type="button" className="nm-memo-plus" aria-expanded={box} aria-label={box ? "입력칸 접기" : "센서 추가"} onClick={() => openBox(!box)}>{box ? "닫기" : "＋ 추가"}</button> : null}
           </div>
           {box && !cur ? (

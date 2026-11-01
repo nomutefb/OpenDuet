@@ -125,7 +125,7 @@ function Usage({ agg, labels, seg }: { agg: Agg; labels?: Record<string, string>
         {say ? <p className="tk-say">{say}</p> : null}
       </div>
       <section className="tk-sec">
-        <h2 className="tk-name">시간대 × 분류<small>칸 = 토큰 · 진할수록 많음</small></h2>
+        <h2 className="tk-name">시간대 × 분류</h2>
         <div className="tk-card tk-heat">
           <span />
           {BANDS.map(([n, a, z]) => <span key={n} className="ch">{n}<small className="num">{a}–{z}</small></span>)}

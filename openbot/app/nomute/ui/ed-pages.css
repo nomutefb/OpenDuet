@@ -18,7 +18,6 @@
 .nm-tk .tk-sec { display:grid; gap:6px; margin-top:24px; }
 .nm-tk .tk-name { display:flex; align-items:center; gap:6px; min-height:var(--btn-sm); margin:0; padding:0 4px; color:var(--fg); font-size:var(--fs-label); font-weight:var(--fw-x); letter-spacing:.04em; line-height:1; }
 .nm-tk .tk-name::before { content:'•'; color:var(--accent); font-weight:var(--fw-b); }
-.nm-tk .tk-name small { margin-left:auto; color:var(--t3); font-size:var(--fs-xs); font-weight:500; letter-spacing:0; }
 /* 합계 — 큰 수 하나 + 결론 한 줄(골드 = 결론만) · 창 고르기 */
 .nm-tk .tk-sum { display:grid; grid-template-columns:1fr auto; align-items:start; gap:8px 12px; padding:16px; }
 .nm-tk .tk-big { color:var(--accent); font-size:var(--title); font-weight:var(--fw-x); line-height:1; letter-spacing:-.02em; }

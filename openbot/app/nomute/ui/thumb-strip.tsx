@@ -128,7 +128,7 @@ function Prompts({ url, gen }: { url: string; gen: Thumb[] }) {
       <button type="button" className="yset-chip" aria-expanded={open} onClick={() => setOpen((o) => !o)}>프롬프트 4종 {open ? "접기" : "보기"}</button>
       {!open ? null : q.isPending ? <p className="nm-news-msg">프롬프트 읽는 중…</p> : q.isError ? <p className="nm-news-msg" role="alert">프롬프트를 못 읽었어{q.error instanceof Error && !(q.error.message === "404" || q.error.message === "html") ? ` — ${q.error.message}` : ""}</p> : !order.length ? <p className="nm-news-msg">아직 프롬프트가 없어 — 에디터에서 뽑을 수 있어</p> : (
         <div className="nm-th-pr-list">
-          <div className="nm-th-pr-h"><b>{order.length}개</b><small>글 누르면 펼침</small><CopyBtn text={all} label="프롬프트 전체" /></div>
+          <div className="nm-th-pr-h"><b>{order.length}개</b><CopyBtn text={all} label="프롬프트 전체" /></div>
           {order.map((s) => { const t = pm[s] as string, lb = prLabel(s, gen); return (
             <div key={s} className="nm-th-pr-row">
               <div className="nm-th-pr-h"><b>{lb}</b><small>{t.length.toLocaleString("ko-KR")}자</small><CopyBtn text={t} label={lb} /></div>

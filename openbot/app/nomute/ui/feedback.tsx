@@ -124,7 +124,7 @@ function Board({ d }: { d: Doc }) {
 function FbCard({ c, labs, hidden, onFirst, onLeave }: { c: Card; labs: string[]; hidden: boolean; onFirst: () => void; onLeave: (label: string) => void }) {
   const mine = c.mine || {};
   const said = (s: string) => [mine.pass ? "패스" : mine.score5 ? mine.score5 + "점" : "", mine.option != null ? "보기 " + ABCD[mine.option] : ""].filter(Boolean).join(" · ") || s;
-  const [msg, setMsg] = useState<Msg>(() => ({ t: c.answered ? "답함 — " + said("") + (mine.at ? " · " + hm(mine.at) : "") + " · 다시 끌면 덮어씀" : "끌어서 고르고 손을 떼면 바로 저장" }));
+  const [msg, setMsg] = useState<Msg>(() => ({ t: c.answered ? "답함 — " + said("") + (mine.at ? " · " + hm(mine.at) : "") : "" }));   // 안내 꼬리 뺌 · 답한 상태만(형 11-02 08:1x 「옆에 설명글은 빼줘」)
   const [done, setDone] = useState(!!c.answered), [ask, setAsk] = useState(!!c.ask && !c.answered);
   const [rev, setRev] = useState<{ r: Reveal; diff: number | null | undefined } | null>(null), [addon, setAddon] = useState(false);
   const [opt, setOpt] = useState<number | null>(mine.option ?? null);
@@ -199,7 +199,7 @@ function FbCard({ c, labs, hidden, onFirst, onLeave }: { c: Card; labs: string[]
         </div>
         <button type="button" className="fb-g p" onClick={pass}>패스</button>
       </div>
-      <p className={"fb-msg fb-note" + (msg.err ? " err" : "")} aria-live="polite">{msg.t}</p>
+      <p className={"fb-msg" + (msg.t ? " fb-note" : "") + (msg.err ? " err" : "")} aria-live="polite">{msg.t}</p>
       {rev ? (
         <div className="fb-rev num">
           <span><b>시스템 점수</b>{String(rev.r.system_score ?? "—")}</span><span><b>고른 봇</b>{rev.r.picked_by || "—"}</span><span><b>통</b>{rev.r.bucket_ko || "—"}</span>
@@ -227,7 +227,7 @@ function Addon({ cid }: { cid: string }) {
     <div className="fb-form">
       <div className="fb-row"><label>태그</label>{TAGS.map((t) => <button key={t} type="button" className={"fb-chip" + (tags.includes(t) ? " on" : "")} aria-pressed={tags.includes(t)} onClick={() => setTags((a) => (a.includes(t) ? a.filter((x) => x !== t) : [...a, t]))}>{t}</button>)}</div>
       <div className="fb-row"><label>이유</label><input className="fb-in w" type="text" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} maxLength={200} name="why" placeholder="한 줄(선택)" value={why} onChange={(e) => setWhy(e.target.value)} /></div>
-      <details className="fb-more"><summary>처음 안 시각 · 비우면 저장한 시각</summary><div className="fb-row"><label>시각</label><input className="fb-in n num" type="time" name="known" aria-label="처음 안 시각(선택)" value={known} onChange={(e) => setKnown(e.target.value)} /></div></details>
+      <details className="fb-more"><summary>처음 안 시각</summary><div className="fb-row"><label>시각</label><input className="fb-in n num" type="time" name="known" aria-label="처음 안 시각(선택)" value={known} onChange={(e) => setKnown(e.target.value)} /></div></details>
       <div className="fb-act"><span className={"fb-msg" + (m.err ? " err" : "")} aria-live="polite">{m.t}</span><GoButton className="fb-save" go={go} done={() => setOk(true)} busy="저장 중">덧붙이기</GoButton></div>
     </div>
   );

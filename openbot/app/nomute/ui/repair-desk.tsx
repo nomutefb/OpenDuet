@@ -77,7 +77,6 @@ export function RepairDesk({ lead, active = true }: { lead?: ReactNode; active?:
         {lead}
         <form className="rounded-3xl border border-border bg-card p-3" onSubmit={(e) => { e.preventDefault(); void send(); }}>
           <p className="text-sm font-semibold">수리 접수</p>
-          <p className="text-xs text-muted-foreground">「[구분] 항목」 한 줄 + 명세서(docs/spec-template.md 꼴) · 받으면 러너가 이슈로 올리고 「접수 #N」</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <input className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm" placeholder="[화면] 회의실 단추가 안 눌림" aria-label="[구분] 항목 한 줄"
               value={text} onChange={(e) => setText(e.target.value)} disabled={busy} autoComplete="off" />
@@ -92,7 +91,7 @@ export function RepairDesk({ lead, active = true }: { lead?: ReactNode; active?:
         <div className="rounded-3xl border border-border bg-card p-3">
           <div className="flex items-baseline justify-between gap-2">
             <p className="text-sm font-semibold">접수 목록 <span className="tabular-nums text-muted-foreground">{items.length}</span></p>
-            <span className="text-xs text-muted-foreground">{repair.isError ? `못 받았어 — ${repair.error.message}` : repair.isPending ? "받는 중…" : "먼저 접수된 게 위 · 줄 누르면 이력·상태"}</span>
+            {repair.isError || repair.isPending ? <span className="text-xs text-muted-foreground">{repair.isError ? `못 받았어 — ${repair.error.message}` : "받는 중…"}</span> : null}   {/* 안내 줄 뺌 · 오류·받는 중만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           </div>
           {items.length ? <ul className="mt-1 flex flex-col divide-y divide-border">{items.map((x) => <RepairRow key={x.no} x={x} desk spec={specs.get(x.no)} />)}</ul>
             : repair.isPending ? null : <p className="mt-2 text-sm text-muted-foreground">지금 걸린 요청 없음 — 종료된 건 「보관 보기」</p>}

@@ -49,7 +49,7 @@ export function LockModal() {
                 <span className={`chip${active ? " on" : ""}`}>{active ? "잠금 켜짐" : "잠금 꺼짐"}</span>
                 <span className="chip">{pin ? "PIN 있음" : "PIN 없음"}</span>
               </div>
-              {!active ? <p className="nm-chan-msg">{!pin ? "PIN 을 먼저 정해야 잠글 수 있어" : "잠금이 꺼져 있어"} — 켜기·PIN 은 에디터 설정 줄에서(PIN 확인이 필요해서 여기선 안 바꿔)</p> : null}
+              {!active ? <p className="nm-chan-msg">{!pin ? "PIN 을 먼저 정해야 잠글 수 있어" : "잠금이 꺼져 있어"}</p> : null}   {/* 설명 꼬리 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
               <div className={`nm-lock-row${active ? "" : " off"}`}><span>자동 잠금(분)</span><b aria-live="polite">{shown}</b></div>
               <div className={`nm-lock-sld${active ? "" : " off"}`}>
                 <span className="cap">1</span>

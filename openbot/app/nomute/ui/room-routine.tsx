@@ -115,7 +115,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
       </div>
       <div className="nm-rr-b">
         <button type="button" role="switch" aria-checked={f.on} className={`yset-item${f.on ? " on" : ""}`} onClick={() => set({ on: !f.on })}>
-          <span className="si-lbl"><span className="si-t">루틴 켜기</span><span className="si-d">{f.on ? cycleLine(f) : "꺼 두면 안 울려"}</span></span>
+          <span className="si-lbl"><span className="si-t">루틴 켜기</span>{f.on ? <span className="si-d">{cycleLine(f)}</span> : null}</span>   {/* 꺼짐 안내 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           <span className="si-sw" aria-hidden />
         </button>
 
@@ -140,8 +140,8 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
         {f.mode !== "hours" ? <Times times={f.times} onChange={(times) => set({ times })} /> : null}
 
         <h2 className="yset-sec">뭐라고</h2>
-        <label className="nm-rr-field"><span>글 · 방에 올라가는 말</span><textarea rows={3} maxLength={2000} value={f.text} onChange={(e) => set({ text: e.target.value })} /></label>
-        <label className="nm-rr-field"><span>지침 · 울릴 때 글 뒤에 같이 나감</span><textarea rows={3} maxLength={2000} value={f.rule} onChange={(e) => set({ rule: e.target.value })} /></label>
+        <label className="nm-rr-field"><span>글</span><textarea rows={3} maxLength={2000} value={f.text} onChange={(e) => set({ text: e.target.value })} /></label>
+        <label className="nm-rr-field"><span>지침</span><textarea rows={3} maxLength={2000} value={f.rule} onChange={(e) => set({ rule: e.target.value })} /></label>
 
         {crew.length ? (
           <>

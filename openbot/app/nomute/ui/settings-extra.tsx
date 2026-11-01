@@ -97,7 +97,6 @@ export function NomuteMeter() {
         <button type="button" className={btn} onClick={() => setBack((b) => b + 1)} aria-label="하루 앞"><Chev dir="left" size={16} /></button>
         <span className="tabular-nums">{`${+day.slice(4, 6)}/${+day.slice(6)}`}{back ? "" : " 오늘"}</span>
         <button type="button" className={btn} disabled={!back} onClick={() => setBack((b) => Math.max(0, b - 1))} aria-label="하루 뒤"><Chev dir="right" size={16} /></button>
-        <span className="ml-auto text-xs text-muted-foreground">받는 이 기억 종류별 · 하루 한 장</span>
       </div>
       {q.isError ? <p className="mt-3 text-sm text-destructive" role="alert">계기판을 못 받았어 — {q.error instanceof Error ? q.error.message : String(q.error)}</p>
         : q.isPending ? null
@@ -136,7 +135,7 @@ export function NomuteRoomset() {
   const d = q.data;
   return (
     <PageSection title="지정방 멤버">
-      <p className="mt-1 text-sm text-muted-foreground">{d ? `판 ${d.roomset.ver} · ${d.roomset.by || ""} · @모두 = 이 멤버만 받음` : q.isError ? q.error.message : "읽는 중…"}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{d ? `판 ${d.roomset.ver} · ${d.roomset.by || ""}` : q.isError ? q.error.message : "읽는 중…"}</p>
       {d ? d.designated.map((rid) => {
         const cur = edit[rid] || d.roomset.rooms[rid] || [];
         const changed = !!edit[rid];
@@ -181,7 +180,7 @@ export function NomuteNotice() {
   const n = q.data?.notice;
   return (
     <PageSection title="공지 설정">
-      <p data-content className="mt-1 text-sm text-muted-foreground">{n ? `판 ${n.ver} · ${n.by || ""} · ${String(n.at || "").slice(5, 16).replace("T", " ")} · 봇이 깰 때마다 봄(안 깨움)` : q.isError ? q.error.message : "읽는 중…"}</p>
+      <p data-content className="mt-1 text-sm text-muted-foreground">{n ? `판 ${n.ver} · ${n.by || ""} · ${String(n.at || "").slice(5, 16).replace("T", " ")}` : q.isError ? q.error.message : "읽는 중…"}</p>
       {n ? (
         <Card>
           <div className="p-4">
@@ -215,7 +214,6 @@ export function NomuteLink() {
   return (
     <PageSection title="스케줄러 연결">
       <p className={`mt-1 text-sm ${beat == null || beat > 130 ? "text-destructive" : "text-muted-foreground"}`}>{!q.data ? (q.isError ? q.error.message : "읽는 중…") : !k ? "아직 한 장 없음 — 윈A 지킴이가 올리면 보임" : `시계 마지막 신호 ${beat == null ? "모름" : `${beat}초 전`} · 읽은 때 ${hm(q.data.at)}`}</p>
-      <p className="mt-1 text-xs text-muted-foreground">한 줄 = 일정 <Chev dir="right" size={11} /> 호출 연결 <Chev dir="right" size={11} /> 깨움 보냄 <Chev dir="right" size={11} /> 일 시작 · 자동 = 일정·사건으로 깨운 수 · 직접 = 형·윈터가 바로 깨운 수 · 밤 12시에 0부터</p>
       {k?.bots ? (
         <Card>
           <ul className="divide-y divide-border">
@@ -285,7 +283,7 @@ export function NomuteSchedule() {
   };
   return (
     <PageSection title="스케줄러 바꾸기">
-      <p className="mt-1 text-xs text-muted-foreground">상태 = 기록만(언제 깰지 셈만 적고 안 보냄) · 시험(보낼 글까지 만들어 적고 안 보냄) · 켬(진짜로 깨움) · 꺼짐 · 고르면 먼저 미리 보기 → 확인하면 봇 일정 표 한 칸만 바꾸는 한 커밋(시계는 다음 분 회차부터){can ? "" : " · 바꾸기 = 형 자리만"}</p>
+      {d && !can ? <p className="mt-1 text-xs text-muted-foreground">바꾸기 = 형 자리만</p> : null}   {/* 상태 설명 줄 뺌 · 권한 줄만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
       {ask ? (
         <div className="sticky top-2 z-10 mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-primary/40 bg-background p-3 text-sm shadow">
           <span className="min-w-0 flex-1">{ask.q.label} {CF_KO[ask.q.field]}: {cfVal(ask.q.field, ask.r.from)} <Chev dir="right" size={12} /> <b>{cfVal(ask.q.field, ask.r.to)}</b>
@@ -337,7 +335,7 @@ export function NomuteSchedule() {
           </Card>
           {d.kinds.length ? (
             <>
-              <h3 className="mt-4 text-sm font-semibold">사건 모아 깨우기 <span className="text-xs font-normal text-muted-foreground">모아서 기다림 2~240분(그동안 온 사건을 한 번에) · 5분 이하 = 바로</span></h3>
+              <h3 className="mt-4 text-sm font-semibold">사건 모아 깨우기</h3>
               <Card>
                 <ul className="divide-y divide-border">
                   {d.kinds.map((x) => (
@@ -374,8 +372,7 @@ export function NomuteOld() {
   const days = idx.data?.find((b) => b.who === who)?.days || [];
   return (
     <PageSection title="옛 그록 대화">
-      <p className="mt-1 text-sm text-muted-foreground">그록 앱 시절 대화(읽기만) · 봇 <Chev dir="right" size={12} /> 날</p>
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      <div className="mt-1 flex flex-wrap gap-1.5">   {/* 머리 밑 설명 줄 뺀 자리 = 첫 줄(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
         {(idx.data || []).map((b) => (
           <button key={b.who} type="button" aria-pressed={who === b.who} className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${who === b.who ? "border-primary bg-primary/10 font-semibold" : "border-border"}`}
             onClick={() => { setWho(b.who); setDay(""); setMsgs([]); }}>

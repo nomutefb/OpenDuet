@@ -32,7 +32,7 @@ export function ThinkMarkRow() {
   return (
     <button type="button" className="yset-item" onClick={() => set(!orb)}>
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chat }} />
-      <span className="si-lbl"><span className="si-t">생각중 표시</span><span className="si-d">답 기다릴 때 말풍선 · 탭 = 바꿈</span></span>
+      <span className="si-lbl"><span className="si-t">생각중 표시</span></span>
       <span className="si-v"><span className={`si-vt${orb ? " mod" : ""}`}>{orb ? "구슬" : "점 셋"}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
     </button>
   );

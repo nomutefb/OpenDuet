@@ -28,7 +28,7 @@ export function EnterKeyRow() {
   return (
     <button type="button" className="yset-item" onClick={() => set(!on)}>
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.type }} />
-      <span className="si-lbl"><span className="si-t">엔터 키</span><span className="si-d">{on ? "Shift+Enter = 줄바꿈" : "Shift+Enter = 보내기"}</span></span>
+      <span className="si-lbl"><span className="si-t">엔터 키</span></span>
       <span className="si-v"><span className={`si-vt${on ? " mod" : ""}`}>{on ? "보내기" : "줄바꿈"}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
     </button>
   );

@@ -356,7 +356,7 @@ function Files({ m }: { m: Msg }) {
       {rest.map((f) => (
         <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 hover:bg-foreground/5">
           <span aria-hidden className="text-lg">📄</span>
-          <span className="min-w-0"><span className="block truncate text-sm font-medium">{f.n}</span><small className="text-xs text-muted-foreground">{f.b ? `${size(f.b)} · ` : ""}누르면 열기·받기</small></span>
+          <span className="min-w-0"><span className="block truncate text-sm font-medium">{f.n}</span>{f.b ? <small className="text-xs text-muted-foreground">{size(f.b)}</small> : null}</span>
         </a>
       ))}
     </div>

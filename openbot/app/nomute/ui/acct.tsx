@@ -45,7 +45,6 @@ export function AcctModal() {
             <span className="lab" aria-live="polite">{now}</span>
             <span className="opts">{ACCTS.map(([v, tip]) => <button key={v} type="button" className={`chip${id === v ? " on" : ""}`} aria-pressed={id === v} title={tip} disabled={busy} onClick={() => void pick(v)}>{v}</button>)}</span>
           </div>
-          <p className="hint">러너 잡이 쓰는 Claude 계정 · 누르면 1분 안쪽에 러너가 바꾸고 20초 뒤 실제 값으로 다시 보여 줘</p>
         </div>
       </div>
     </Pane>
