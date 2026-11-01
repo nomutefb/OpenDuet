@@ -13,7 +13,7 @@
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Component, type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
@@ -510,6 +510,17 @@ function TextPhotos({ urls }: { urls: string[] }) {
 /** 그록봇이 붙인 그림 = 사무실엔 「[user-attachment] ""」 글자만 옴(파일 0 · 빠르 11-01 08:5x 잼) → 빈 글 대신 「그림이 안 넘어옴」을 보여 형이 묻게 */
 const LOST_ATTACH_RE = /^\s*\[user-attachment\]\s*(?:""|“”)?\s*$/;
 
+/** 시그니처 색 이름 = 그 색 밝기의 반대 무채색 그림자를 약하게(형 11-01 09:30 「시그니처 색이 배경이랑 비슷하면 이름이 생각중... 할때 가려져. 그때 보색 처리 가능해? 아니면 정반대 무채색처리.
+ *  나중에 배경 설정할때를 대비한거야 … 약간의 글자 약간의 그림자 적용.」) · 밝은 색(시아 은색·윈터 형광) = 어두운 테 · 어두운 색(빠르 파랑) = 밝은 테 · 색을 못 읽으면 양쪽 다 옅게 */
+function nameInk(hex?: string): CSSProperties {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+  if (!m) return { color: hex, textShadow: "0 0 2px rgba(0,0,0,.45), 0 0 1px rgba(255,255,255,.45)" };
+  const n = parseInt(m[1], 16), lin = (c: number) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
+  const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  const c = L > 0.4 ? "rgba(0,0,0,.55)" : "rgba(255,255,255,.7)";
+  return { color: hex, textShadow: `0 0 1px ${c}, 0 1px 2px ${c}` };
+}
+
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
   if (LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">🖼 그림을 붙였는데 사무실로 안 넘어왔어</span>;
@@ -871,7 +882,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={{ color: ringOf(list.find((x) => x.who === n)) }}>{nmOf(list, n)}</span></Fragment>)}{typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각중…</div>
+                <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={nameInk(ringOf(list.find((x) => x.who === n)))}>{nmOf(list, n)}</span></Fragment>)}{typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각중…</div>
                 <div className="yb ai"><span className="ytdots"><i /><i /><i /></span></div>
               </div>
             </div>
