@@ -100,6 +100,7 @@ export function AskModal() {
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left nm-ask">
           <span className="ycd-nm yset-ttl"><Svg k="chat" />요약 요청{pending != null ? <i className="nm-ask-badge" title="대기열 처리 중">{pending}</i> : null}</span>
+          {pending != null ? <i className="nm-ask-badge nm-in-modal" title="대기열 처리 중">대기 {pending}</i> : null}
           <textarea className="nm-ask-ta" rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder="요약할 글을 붙이거나 할 말을 써 줘 (사진·링크만 보내도 돼)" aria-label="요약할 글" disabled={busy} />
           <div className="nm-ask-row">
             <input className="nm-ask-in" type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="링크(선택) — 기사면 원문 · 영상이면 받아쓰기" aria-label="링크" disabled={busy} />

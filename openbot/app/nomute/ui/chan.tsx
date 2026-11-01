@@ -160,6 +160,7 @@ export function ChanModal({ full = false }: { full?: boolean }) {
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left nm-chan">
           <span className="ycd-nm yset-ttl"><Svg k="data" />{full ? "채널 전체" : "채널 요약"}{d?.generated_kst ? <i className="nm-chan-at">{k12(d.generated_kst)}</i> : null}</span>
+          {d?.generated_kst ? <i className="nm-chan-at nm-in-modal">{k12(d.generated_kst)} 기준</i> : null}
           {have.length > 1 ? <div className="yset-chips nm-chan-src" role="tablist">{have.map((s) => <button key={s.id} type="button" role="tab" aria-selected={src === s.id} className={`yset-chip${src === s.id ? " on" : ""}`} onClick={() => setSrc(s.id)}>{s.t}</button>)}</div> : null}
           {q.isLoading ? <p className="nm-chan-msg">채널 읽는 중…</p> : !d ? <p className="nm-chan-msg">{q.isError ? "채널 요약을 못 읽었어" : "이 소스는 지금 데이터가 없어"}</p> : (
             <>

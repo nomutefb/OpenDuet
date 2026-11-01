@@ -20,3 +20,7 @@
 .nm-ask .nm-ask-probe.subs { color:var(--accent); }
 .nm-ask .nm-ask-probe b { font-weight:var(--fw-m, 500); color:var(--fg); }
 .nm-ask .nm-ask-in, .nm-ask .nm-ask-ta, .nm-ask .nm-ask-probe { font-family:var(--app-font-text, inherit); }   /* 주소·글 = 본문 글꼴(LEMONMILK 대문자 꼴이면 youtu.be/abc 가 대문자로 보여 헷갈림 · 시아 nm-nd-orig 와 같은 줄) */
+/* 창 안(.nm-modal)에선 카드 머리(.yset-ttl)가 숨어서 대기열 배지를 머리 밖 줄로(빠르 11-01 · 봄 19:46 「창 안에선 카드 머리 숨김」) */
+.nm-ask > .nm-ask-badge.nm-in-modal { display:none; }
+.nm-modal .nm-ask > .nm-ask-badge.nm-in-modal { display:inline-grid; align-self:flex-start; margin-left:0; }
+

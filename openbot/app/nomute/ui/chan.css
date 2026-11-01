@@ -71,3 +71,7 @@
 .nm-chan .nm-chan-bars.topic .row.few { opacity:.55; }
 .nm-chan .nm-chan-bars.topic .v b { font-weight:400; color:var(--mut); }
 @media (max-width:360px) { .nm-chan .nm-chan-tiles { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+/* 창 안(.nm-modal)에선 카드 머리(.yset-ttl)가 숨어서 갱신 시각을 머리 밖 줄로(빠르 11-01 · 봄 19:46) */
+.nm-chan > .nm-chan-at.nm-in-modal { display:none; }
+.nm-modal .nm-chan > .nm-chan-at.nm-in-modal { display:block; align-self:flex-end; margin:0 0 -4px; }
+
