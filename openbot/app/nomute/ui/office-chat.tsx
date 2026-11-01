@@ -13,7 +13,7 @@
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Component, type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
@@ -512,13 +512,6 @@ function TextPhotos({ urls }: { urls: string[] }) {
 /** 그록봇이 붙인 그림 = 사무실엔 「[user-attachment] ""」 글자만 옴(파일 0 · 빠르 11-01 08:5x 잼) → 빈 글 대신 「그림이 안 넘어옴」을 보여 형이 묻게 */
 const LOST_ATTACH_RE = /^\s*\[user-attachment\]\s*(?:""|“”)?\s*$/;
 
-/** (이름과 「생각중…」 사이 = 여백 .35em · 빛 글자가 앞 빈칸을 먹어 붙어 보였음 · 형 12:28 「봄 생각중 이거 딱 달라붙게 보인다」)
- *  시그니처 색 이름 = 검정 번짐 한 겹만 아주 얇게(형 11-01 11:26 「아 그리고 지금 보니까 배경색에 따라 생각중 옆에 그림자가들어가는데 이름에 흰색 그림자는 안넣는거로 할게 널을거면 검정색만. 아주 더얇게 번짐느낌이라」 ·
- *  앞 판 09:30 = 밝기 따라 흑·백 두 겹 → 흰 테 뺌) */
-function nameInk(hex?: string): CSSProperties {
-  return { color: hex, textShadow: "0 0 2px rgba(0,0,0,.28)" };
-}
-
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
   if (LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">🖼 그림을 붙였는데 사무실로 안 넘어왔어</span>;
@@ -880,7 +873,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={nameInk(ringOf(list.find((x) => x.who === n)))}>{nmOf(list, n)}</span></Fragment>)}<span className="ml-[.35em] inline-block"><LiveShine text={`${typing.length > 3 ? `외 ${typing.length - 3} ` : ""}생각중…`} /></span></div>   {/* 형 11-01 11:36 「외 2 생각중 ... 여기 이 생각중에도 적용해버리자」 · 이름 색칠 칸은 그대로 */}
+                <div className="yname"><LiveShine text={`${typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}${typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각 중…`} /></div>   {/* 이름까지 한 줄 통째로 은색 빛(형 11-01 13:40 「좌측 아래 생각중 이거 그냥 지금 은색 지나가는 걸로 이름에 관계 없이 쭉 나오게 해줘. 색마다 안보이는게 있어서」) · 「생각 중」 띄어 씀(의존 명사 · 형 13:40 「생각 중. 생각중 띄어쓰기 뭐가 맞나봐주고」) */}
                 <div className="yb ai"><ThinkMark /></div>   {/* 점 셋(기본) · 구슬 = 설정 「생각중 표시」(형 11-01 12:5x 「내 취향따라 심심할때 바꾸게」) */}
               </div>
             </div>
