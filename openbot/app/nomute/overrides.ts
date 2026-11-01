@@ -98,6 +98,7 @@ export const PATCH: Record<string, [string, string][]> = {
   ],
   "app/src/components/channels/composer/attachments.ts": [
     ['export const FILE_PICKER_ACCEPT = [\n', 'export const FILE_PICKER_ACCEPT = [\n  "*/*",\n'],
+    ['    maxSize: MAX_IMAGE_BYTES,', '    maxSize: 50 * 1024 * 1024,'],   // SDK 거름 한 숫자 = 그림 8MB 라 영상이 8MB 에서 막힘(형 11-02 06:51 「아 영상은 8메가 까지가 최대군 ㅋㅋ」) → 영상 한도 50MB · 그림·글 한도는 screenPickedFiles 가 따로 막음
   ],
   "app/src/components/channels/composer/attachment-strip.tsx": [
     ['aria-label="Attachments"', 'aria-label="붙인 파일"'],
