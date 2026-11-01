@@ -1,0 +1,24 @@
+/* 저장·전송 단추 하나(./go-button.tsx) — 원본 = viewer/nm-shared.css .go.firing·.checking·.gck · edit.html .okdone·.err·.shake · 색 = 시그니처(--accent) ·
+   단추마다 제 모양(둥글기·크기)은 그대로 두고 단계 색만 덮음 */
+.nm-go { position:relative; transition:transform .12s; }
+.nm-go[data-stage="fill"], .nm-go[data-stage="ok"], .nm-go[data-stage="wait"] { pointer-events:none; opacity:1; }
+.nm-go[data-stage="fill"] { color:#161716; border-color:var(--accent, #CFFF40);
+  background:linear-gradient(var(--accent, #CFFF40), var(--accent, #CFFF40)) left/0% 100% no-repeat, linear-gradient(rgba(207,255,64,.18), rgba(207,255,64,.18));
+  animation:nmGoFill .72s cubic-bezier(.22,.61,.36,1) forwards; }
+.nm-go[data-stage="ok"] { display:inline-grid; place-items:center; background:var(--accent, #CFFF40); color:#161716; border-color:var(--accent, #CFFF40); transition:none; }   /* transition 0 = 게이지 끝과 ✓ 사이 빈 프레임 0(옛 260807) */
+.nm-go[data-stage="wait"] { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:rgba(207,255,64,.18); color:var(--accent, #CFFF40); }
+.nm-go[data-stage="err"] { color:#ff5f6d; border-color:rgba(255,95,109,.5); background:rgba(255,95,109,.1); animation:nmGoShake .32s; }
+.nm-go-ck { width:20px; height:20px; margin:-4px 0; animation:nmGoPop .44s cubic-bezier(.18,1.5,.4,1) forwards; }
+.nm-go-ck path { fill:none; stroke:currentColor; stroke-width:2.7; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:24; stroke-dashoffset:24; animation:nmGoTick .38s .04s ease forwards; }
+.nm-go-spin { width:14px; height:14px; border:2px solid rgba(207,255,64,.25); border-top-color:var(--accent, #CFFF40); border-radius:50%; animation:nmGoSpin .9s linear infinite; }
+@keyframes nmGoFill { from { background-size:0% 100%, 100% 100%; } to { background-size:100% 100%, 100% 100%; } }
+@keyframes nmGoTick { to { stroke-dashoffset:0; } }
+@keyframes nmGoPop { 0% { transform:scale(0); } 60% { transform:scale(1.15); } 100% { transform:scale(1); } }
+@keyframes nmGoShake { 20% { transform:translateX(-5px); } 45% { transform:translateX(4px); } 70% { transform:translateX(-3px); } 90% { transform:translateX(2px); } }
+@keyframes nmGoSpin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) {
+  .nm-go[data-stage="fill"] { animation-duration:.2s; }
+  .nm-go[data-stage="err"] { animation:none; }
+  .nm-go-ck { animation:none; transform:scale(1); } .nm-go-ck path { animation:none; stroke-dashoffset:0; }
+  .nm-go-spin { animation-duration:2s; }
+}

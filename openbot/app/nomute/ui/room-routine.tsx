@@ -8,6 +8,7 @@ import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg } from "./faces";
 import { t12 } from "./when";
+import { GoButton } from "./go-button";
 import "./room-routine.css";
 
 type Mode = "hours" | "days" | "week";
@@ -103,7 +104,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
   });
   const save = () => {
     const cycle = f.mode === "hours" ? { every: f.every, min: f.min } : f.mode === "days" ? { days: f.days, times: f.times } : { wd: f.wd, times: f.times };
-    go.mutate({ mode: f.mode, ...cycle, text: f.text.trim(), rule: f.rule.trim(), skip, on: f.on });
+    return go.mutateAsync({ mode: f.mode, ...cycle, text: f.text.trim(), rule: f.rule.trim(), skip, on: f.on });
   };
   const next = saved ? nextLine(timer?.next_ts) : "";
   return (
@@ -156,7 +157,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
 
         {go.error ? <p className="nm-rr-note" role="alert">못 바꿈 — {go.error instanceof Error ? go.error.message : "다시 해 줘"}</p> : null}
         {saved ? <p className="nm-rr-note" role="status">{!f.on ? "저장했어 · 꺼 둠" : next ? `저장했어 · 다음 울림 ${next}` : "저장했어"}</p> : null}
-        <button type="button" className="nm-rr-save" disabled={!ready || go.isPending} onClick={save}>{go.isPending ? "저장하는 중" : "저장"}</button>
+        <GoButton className="nm-rr-save" disabled={!ready || go.isPending} go={save} busy="저장하는 중">저장</GoButton>   {/* 게이지 → ✓(./go-button.tsx · 형 11-01 14:12) */}
         {timer ? (
           sure ? (
             <div className="nm-rr-sure">

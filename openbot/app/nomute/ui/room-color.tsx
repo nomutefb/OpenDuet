@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
 import { PickTop } from "./color-pick";
+import { GoButton } from "./go-button";
 
 const TONE = { top: { l: 0.76, c: 0.19 }, low: { l: 0.86, c: 0.1 } };   // 위 = 뎅·봄 쪽 · 아래 = 그록·닷보다 조금 차분
 const HUE0 = 25;   // 판 왼쪽 끝 = 빨강
@@ -106,23 +107,23 @@ export function RoomNamePick({ room, onClose }: { room: OfficeRoom; onClose: () 
     window.addEventListener("keydown", off);
     return () => window.removeEventListener("keydown", off);
   }, [onClose]);
-  const save = async (raw: string) => {
-    setNote("저장 중");
+  const send = async (raw: string) => {
+    setNote("");
     try {
       await office("roomname", { method: "POST", body: JSON.stringify({ room: room.id, name: raw }) });
       await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
-      onClose();
-    } catch (e) { setNote(e instanceof Error ? e.message : "저장을 못 했어"); }
+    } catch (e) { setNote(e instanceof Error ? e.message : "저장을 못 했어"); throw e; }
   };
+  const save = async (raw: string) => { setNote("저장 중"); try { await send(raw); onClose(); } catch { /* 글은 send 가 남김 */ } };
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
-      <form className="nrc" role="dialog" aria-label={`${room.name} 이름 바꾸기`} onClick={(e) => e.stopPropagation()} onSubmit={(e) => { e.preventDefault(); void save(name); }}>
+      <form className="nrc" role="dialog" aria-label={`${room.name} 이름 바꾸기`} onClick={(e) => e.stopPropagation()} onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 저장 단추 누름(게이지 단추가 받음) */}
         <div className="nrc-head"><b>이름 바꾸기</b><small>{note || (room.base ? `원래 이름 ${room.base}` : "방 안 글은 그대로야")}</small></div>
         <input className="nrc-in" value={name} maxLength={20} autoFocus enterKeyHint="done" aria-label="방 이름" onChange={(e) => setName(e.target.value)} />
         <div className="nrc-acts">
           {room.base ? <button type="button" className="nrc-x" onClick={() => void save("")}>원래대로</button> : null}
           <button type="button" className="nrc-x" onClick={onClose}>닫기</button>
-          <button type="submit" className="nrc-x">저장</button>
+          <GoButton type="submit" className="nrc-x" go={() => send(name)} done={onClose} busy="저장 중">저장</GoButton>
         </div>
       </form>
     </div>,

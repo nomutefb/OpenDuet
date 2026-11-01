@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { office } from "../data/office";
+import { GoButton } from "./go-button";
 
 const appliedAt = (ts?: number) => (ts ? new Date(ts).toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).slice(0, 16) : "-");
 
@@ -12,7 +13,7 @@ export function NoticeDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => { if (now.data && text === null) setText(now.data.text); }, [now.data, text]);
   const save = useMutation({
     mutationFn: () => office("noticeset", { method: "POST", body: JSON.stringify({ text, base: now.data?.ver }) }),
-    onSuccess: async () => { await qc.invalidateQueries({ queryKey: ["nomute", "notice"] }); onClose(); },
+    onSuccess: async () => { await qc.invalidateQueries({ queryKey: ["nomute", "notice"] }); },   // 닫기 = ✓ 뒤(GoButton done)
   });
   const same = text === null || text === now.data?.text || !text.trim();
   return (
@@ -24,7 +25,7 @@ export function NoticeDialog({ onClose }: { onClose: () => void }) {
         {save.error ? <p role="alert" className="text-destructive">{save.error.message}</p> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>닫기</button>
-          <button type="button" disabled={same || save.isPending} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" onClick={() => save.mutate()}>{save.isPending ? "고치는 중" : "고치기"}</button>
+          <GoButton disabled={same || save.isPending} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={() => save.mutateAsync()} done={onClose} busy="고치는 중">고치기</GoButton>
         </div>
       </div>
     </div>

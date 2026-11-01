@@ -6,6 +6,7 @@ import { type ReactNode, useRef, useState } from "react";
 import { type OfficeRoom, idOf, office, peopleSync } from "../data/office";
 import { FaceImg } from "./faces";
 import { dropSearchCache } from "./room-search";
+import { GoButton } from "./go-button";
 
 const HOURS: [number, string][] = [[1, "1시간"], [24, "하루"], [72, "사흘"], [168, "일주일"], [0, "영구"]];
 // 묶음(형 10-31 「클로드 눌러서 선택 그록 눌러서 선택 지피티 눌러서 선택」) = 서버 clsOf 분류 · 명부에 없는 이 = 클로드 칸
@@ -51,10 +52,10 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
       const body = JSON.stringify({ name, purpose, members: picked, ...(hours === null ? {} : { hours }) });
       const j = await office<{ room: { id: string } }>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body });
       await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
-      onClose();
-      if (!edit) void nav({ to: "/channels/$channelId", params: { channelId: j.room.id } });
-    } catch (e) { setWhy(e instanceof Error ? e.message : "못 만들었어"); setBusy(false); }
+      return j;
+    } catch (e) { setWhy(e instanceof Error ? e.message : "못 만들었어"); setBusy(false); throw e; }
   };
+  const made = (j: { room: { id: string } }) => { onClose(); if (!edit) void nav({ to: "/channels/$channelId", params: { channelId: j.room.id } }); };   // 닫고 옮기기 = ✓ 뒤(GoButton done)
   return (
     <div role="dialog" aria-modal="true" aria-label={edit ? "단톡방 고치기" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
@@ -86,7 +87,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>닫기</button>
-          <button type="button" disabled={!ready} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" onClick={() => void make()}>{busy ? "보내는 중" : edit ? "고치기" : "만들기"}</button>
+          <GoButton disabled={!ready} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={make} done={made}>{edit ? "고치기" : "만들기"}</GoButton>
         </div>
       </div>
     </div>

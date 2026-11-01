@@ -9,6 +9,7 @@ import { idOf, type Meter, type MeterRow, office, people } from "../data/office"
 import { FaceImg } from "./faces";
 import { t12 } from "./when";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
+import { GoButton } from "./go-button";
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const hm = (ts?: number | string) => (ts ? t12(typeof ts === "string" ? Date.parse(ts) : ts) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
@@ -127,7 +128,7 @@ export function NomuteRoomset() {
   const [edit, setEdit] = useState<Record<string, string[]>>({});
   const save = useMutation({
     mutationFn: ({ room, members }: { room: string; members: string[] }) => office("roomset", { method: "POST", body: JSON.stringify({ room, members, base: q.data?.roomset.ver }) }),
-    onSuccess: (_j, v) => { setEdit((e) => { const n = { ...e }; delete n[v.room]; return n; }); void qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); },   // 고친 칸 접기 = ✓ 뒤(GoButton done)
   });
   const d = q.data;
   return (
@@ -153,7 +154,7 @@ export function NomuteRoomset() {
               </div>
               {changed ? (
                 <div className="mt-3 flex gap-2">
-                  <button type="button" className={btn} disabled={save.isPending || !cur.length} onClick={() => save.mutate({ room: rid, members: cur })}>저장</button>
+                  <GoButton className={btn} disabled={save.isPending || !cur.length} go={() => save.mutateAsync({ room: rid, members: cur })} done={() => setEdit((e) => { const n = { ...e }; delete n[rid]; return n; })}>저장</GoButton>
                   <button type="button" className={btn} onClick={() => setEdit((e) => { const n = { ...e }; delete n[rid]; return n; })}>취소</button>
                 </div>
               ) : null}
@@ -172,7 +173,7 @@ export function NomuteNotice() {
   const [text, setText] = useState<string | null>(null);
   const save = useMutation({
     mutationFn: (t: string) => office("noticeset", { method: "POST", body: JSON.stringify({ text: t, base: q.data?.notice.ver }) }),
-    onSuccess: () => { setText(null); void qc.invalidateQueries({ queryKey: ["nomute", "notice"] }); },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["nomute", "notice"] }); },   // 글 칸 접기 = ✓ 뒤(GoButton done)
   });
   const n = q.data?.notice;
   return (
@@ -190,7 +191,7 @@ export function NomuteNotice() {
               <>
                 <textarea className="min-h-48 w-full rounded-xl border border-border bg-background p-3 text-sm" value={text} onChange={(e) => setText(e.target.value)} aria-label="공지 글" />
                 <div className="mt-2 flex gap-2">
-                  <button type="button" className={btn} disabled={save.isPending || !text.trim() || text === n.text} onClick={() => save.mutate(text)}>저장(새 판)</button>
+                  <GoButton className={btn} disabled={save.isPending || !text.trim() || text === n.text} go={() => save.mutateAsync(text)} done={() => setText(null)}>저장(새 판)</GoButton>
                   <button type="button" className={btn} onClick={() => setText(null)}>취소</button>
                 </div>
               </>
