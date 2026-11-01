@@ -684,7 +684,7 @@ export function TrendModal() {
             <Group id="brief" ttl="AI 요약" pic={SPARK} hstale={V.stale}>
               <div className="tbrief"><BriefText text={String(BRIEF!.text)} refs={Array.isArray(BRIEF!.refs) ? BRIEF!.refs : []} /><Ledger issues={Array.isArray(BRIEF!.issues) ? BRIEF!.issues : []} /></div>
             </Group>
-          ) : BRIEF?.updated && V.top.length && Number.isFinite(briefAgeH) ? <p className="nm-chan-msg">AI 요약이 {Math.floor(briefAgeH / 24)}일 전({fmtK12(BRIEF.updated)})에 멈춰 있어 — 숨김</p> : null}
+          ) : null}   {/* 48시간 넘은 요약 = 말 없이 숨김(요약 러너는 형 09-09 꺼 둠 · sns-trends.yml SNS_BRIEF 기본 0 · 「멈춰 있어」 줄은 제목 밑 자리만 먹어서 뺌) */}
           {V.top.length ? (
             <Group id="top" ttl={<>실시간 TOP 10{d.updated ? <Badge warn={V.stale} t={fmtK12(d.updated)} title={V.stale ? "수집이 65분 넘게 밀렸다" : "수집 시각"} /> : null}</>} pic={TRENDUP} hstale={V.stale} extra={seg}>
               <div className="tlist">{V.topShow.map((it, i) => (
