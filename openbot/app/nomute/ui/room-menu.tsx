@@ -18,6 +18,12 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
   const notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
   const [hist, setHist] = useState(false), [files, setFiles] = useState(false);
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: open || hist, staleTime: 30_000, retry: false });   // 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
+  const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: open, staleTime: 15_000, retry: false });   // 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
+  const setBell = async (on: boolean) => {
+    setOpen(false); setErr("");
+    try { const j = await office<{ on?: boolean }>("bell6", { method: "POST", body: JSON.stringify({ room, on }) }); qc.setQueryData(["nomute", "bell6", room], { ...(bell.data || {}), on: typeof j.on === "boolean" ? j.on : on }); }
+    catch (e) { setErr(`종을 못 바꿨어 · ${(e as Error).message}`); }
+  };
   const r = (qc.getQueryData<OfficeRoom[]>(["nomute", "rooms"]) || []).find((x) => x.id === room);
   useEffect(() => { setOpen(false); }, [room]);
   useEffect(() => {   // 밖을 누르면 닫힘(줄 메뉴와 같음)
@@ -42,6 +48,7 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
           {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setNaming(r); }}>대화방 이름 바꾸기</button> : null}
           {asks.data ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setHist(true); }}>대화방 질문 이력<small>{asks.data.length}</small></button> : null}
           <button type="button" role="menuitem" onClick={() => { setOpen(false); setFiles(true); }}>파일 기록</button>
+          {bell.data ? <button type="button" role="menuitemcheckbox" aria-checked={!!bell.data.on} onClick={() => void setBell(!bell.data?.on)}>대화방 종<small>{bell.data.on ? "켬" : "멈춤"}</small></button> : null}   {/* 6마디 연장 종(형 11-01 13:5x · 시아 13:54 D) */}
           {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} onClick={() => void setNotify(!nOn)}>대화방 알림<small>{nOn ? "켬" : "끔"}</small></button> : null}
         </div>
       ) : null}
