@@ -510,15 +510,10 @@ function TextPhotos({ urls }: { urls: string[] }) {
 /** 그록봇이 붙인 그림 = 사무실엔 「[user-attachment] ""」 글자만 옴(파일 0 · 빠르 11-01 08:5x 잼) → 빈 글 대신 「그림이 안 넘어옴」을 보여 형이 묻게 */
 const LOST_ATTACH_RE = /^\s*\[user-attachment\]\s*(?:""|“”)?\s*$/;
 
-/** 시그니처 색 이름 = 그 색 밝기의 반대 무채색 그림자를 약하게(형 11-01 09:30 「시그니처 색이 배경이랑 비슷하면 이름이 생각중... 할때 가려져. 그때 보색 처리 가능해? 아니면 정반대 무채색처리.
- *  나중에 배경 설정할때를 대비한거야 … 약간의 글자 약간의 그림자 적용.」) · 밝은 색(시아 은색·윈터 형광) = 어두운 테 · 어두운 색(빠르 파랑) = 밝은 테 · 색을 못 읽으면 양쪽 다 옅게 */
+/** 시그니처 색 이름 = 검정 번짐 한 겹만 아주 얇게(형 11-01 11:26 「아 그리고 지금 보니까 배경색에 따라 생각중 옆에 그림자가들어가는데 이름에 흰색 그림자는 안넣는거로 할게 널을거면 검정색만. 아주 더얇게 번짐느낌이라」 ·
+ *  앞 판 09:30 = 밝기 따라 흑·백 두 겹 → 흰 테 뺌) */
 function nameInk(hex?: string): CSSProperties {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
-  if (!m) return { color: hex, textShadow: "0 0 2px rgba(0,0,0,.45), 0 0 1px rgba(255,255,255,.45)" };
-  const n = parseInt(m[1], 16), lin = (c: number) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
-  const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
-  const c = L > 0.4 ? "rgba(0,0,0,.55)" : "rgba(255,255,255,.7)";
-  return { color: hex, textShadow: `0 0 1px ${c}, 0 1px 2px ${c}` };
+  return { color: hex, textShadow: "0 0 2px rgba(0,0,0,.28)" };
 }
 
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
