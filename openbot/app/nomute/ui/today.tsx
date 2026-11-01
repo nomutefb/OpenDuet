@@ -1,6 +1,7 @@
 // 할 일 맨 위 — 결정 카드(밤 요약 brief 「결정 필요」 · 답 = POST /api/office/brief/answer {key, v}) · 밤 요약 · 수리 접수 표(GET/POST /api/office/repair)
 // 원본 OpenDuet 아침 카드·승인 카드 자리를 우리 서버 자료로(옛 화면 = viewer/office.html 밤 요약 판·수리 접수 판과 같은 규칙)
 //   결정 카드 = 거절 · 이번만 허락 · (조용히) 나중에 → 「이번만 허락함 · 형 · 02:52」 확인 줄 · 1분 안 = 바꾸기 · 「늘 허락」 = 서버 can_always 가 올 때만(형 결정 대기 · 지금 0)
+import { DecideFab, openDecide, useDecisions } from "./decide-pop";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -148,11 +149,25 @@ export function NomuteToday() {
   const archive = useQuery({ queryKey: ["nomute", "repair", "archive", ym], queryFn: () => office<{ items: RepairItem[] }>(`repair?archive=${ym}`).then((j) => j.items || []), enabled: arcOn });
   const [open, setOpen] = useState<string | null>(null);
   const b = brief.data;
-  const decide = b?.cols.decide || [];
+  const dec = useDecisions();   // 형 결정 = 대화방 노트 모달과 같은 목록·같은 물음 글 · 같은 창(형 11-01 09:04 「내가 답변햇는데 할일에 또 나오더라고 … 질문이 할일이 더 퀄리티가 떨어지거든? 내용이 달라」 · 봄 09:04 나눔)
+  const decs = (dec.data || []).filter((d) => !d.pick);
+  const decide = dec.isSuccess ? [] : b?.cols.decide || [];   // 결정 서버가 있으면 그 목록이 정본 · 없을 때만 밤 요약 결정(옛 꼴)
   const reps = repair.data || [];
   const groups = RP_G.map(([t, sub, f]) => [t, sub, reps.filter((x) => f(x.state))] as const).concat([["그 밖", "", reps.filter((x) => !RP_G.some((g) => g[2](x.state)))] as const]);
   return (
     <section aria-label="오늘" className="mb-6 flex flex-col gap-3">
+      <DecideFab fab={false} where="today" />
+      {decs.length ? (
+        <div className="rounded-3xl border border-border bg-card p-4">
+          <h2 className="text-base font-semibold">형 결정 필요 <span className="tabular-nums text-amber-600">{decs.length}</span></h2>
+          <ul className="mt-2 flex flex-col gap-2">{decs.map((d) => (
+            <li key={d.id} className="flex items-center gap-2 border-b border-border py-2 text-sm last:border-b-0">
+              <span className="min-w-0 flex-1"><small className="block text-xs text-muted-foreground">{d.who} · {d.room_name || d.room}</small><span data-content className="block truncate font-medium">{d.q}</span></span>
+            </li>
+          ))}</ul>
+          <button type="button" className="mt-3 w-full rounded-full border border-border py-2 text-sm font-semibold" onClick={() => openDecide("today")}>열어서 고르기</button>
+        </div>
+      ) : null}
       {decide.length ? (
         <div className="rounded-3xl border border-border bg-card p-4">
           <h2 className="text-base font-semibold">형 결정 필요 <span className="tabular-nums text-amber-600">{decide.length}</span></h2>

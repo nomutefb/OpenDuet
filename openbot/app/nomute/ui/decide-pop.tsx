@@ -6,8 +6,10 @@
 //   (시아 08:37 「폰에선 앱이 그냥 꺼지거나 다른 앱으로 넘어가는 이탈도 있어」 · 그것도 못 받으면 서버 받침 2분) · 서버 답이 없으면 단추 0
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
+import "../home/send-button.css";   // 전송 게이지·✓ = 홈 전송 단추 꼴 그대로(에디터 #askSend 옮김)
 
 type Pick = { i?: number; pass?: boolean; text?: string };
 export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null };
@@ -18,12 +20,18 @@ type Sent = { id: string; room: string } & Pick;
 /** 화면 숨김 때 보내기 한 번 — sendBeacon 이 안 되면 보통 POST · 둘 다 못 하면 서버 받침(2분 · 봄) */
 const beacon = (picks: Sent[]) => { const b = JSON.stringify({ picks, send: true }); try { if (navigator.sendBeacon?.("/api/office/decisions", new Blob([b], { type: "application/json" }))) return; } catch { /* 아래 길 */ } void office("decisions", { method: "POST", body: b }).catch(() => undefined); };
 
-export function DecideFab() {
+/** 홈 「할 일」 결정 카드가 같은 창을 연다(봄 11-01 09:04 나눔 · 형 09:04 「내가 답변햇는데 할일에 또 나오더라고 … 질문이 할일이 더 퀄리티가 떨어지거든? 내용이 달라」) */
+export const DECIDE_OPEN = "nm-decide-open";
+export const openDecide = (where: string) => window.dispatchEvent(new CustomEvent(DECIDE_OPEN, { detail: where }));
+export const useDecisions = () => useQuery({ queryKey: KEY, queryFn: () => office<{ items?: Decision[] }>("decisions").then((j) => j.items || []), refetchInterval: 60_000, retry: false });
+
+/** fab = 대화방 우하단 노트 단추 + 모달 · fab=false = 단추 없이 모달만(where 로 부르면 열림 · 홈) */
+export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; where?: string }) {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: KEY, queryFn: () => office<{ items?: Decision[] }>("decisions").then((j) => j.items || []), refetchInterval: 60_000, retry: false });
+  const q = useDecisions();
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const [open, setOpen] = useState(false), [picks, setPicks] = useState<Record<string, Pick>>({}), [etc, setEtc] = useState(""), [err, setErr] = useState("");
-  const dirty = useRef(false), closing = useRef(false);
+  const dirty = useRef(false), closing = useRef(false), [sendSt, setSendSt] = useState<"" | "run" | "done">("");
   const items = q.data || [];
   const pickOf = (d: Decision) => picks[d.id] || d.pick || null;
   const ready = useRef<() => Sent[]>(() => []);
@@ -40,6 +48,11 @@ export function DecideFab() {
       .catch(() => beacon(out)).finally(() => { setPicks({}); void qc.invalidateQueries({ queryKey: KEY }); });
   };
   const close = () => { if (closing.current) return; closing.current = true; history.back(); };   // 뒤로가기와 같은 길(폰 뒤로가기 = 닫기 · 형 10-31)
+  useEffect(() => {   // 다른 화면(홈 할 일)이 부르면 이 자리 모달이 열림
+    const on = (e: Event) => { if ((e as CustomEvent).detail === where) setOpen(true); };
+    window.addEventListener(DECIDE_OPEN, on);
+    return () => window.removeEventListener(DECIDE_OPEN, on);
+  }, [where]);
   useEffect(() => {
     if (!open) return undefined;
     closing.current = false;
@@ -62,6 +75,19 @@ export function DecideFab() {
     }
     catch (e) { setPicks((m) => { const n = { ...m }; delete n[d.id]; return n; }); setErr(`못 적었어 · ${(e as Error).message}`); }
   };
+  // 맨 아래 ✓ 전송(형 11-01 09:02 사진 속 글 「대답했구 확인 후 최종 답변 후 마지막에 전송 만들어서 체크 전송버튼잇지 게이지 전송 그거로 전송되는 느낌만 들면 될듯 좋당 체크」) ·
+  //   누르면 게이지 차오름 → 보냄 → ✓ → 닫힘 · 안 누르고 떠나도 다 고른 건 그대로 감(08:36 「이탈할때 훅」 받침)
+  const sendNow = async () => {
+    const out = ready.current();
+    if (!out.length || sendSt) return;
+    setSendSt("run"); setErr("");
+    try {
+      const j = await office<{ items?: Decision[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: out, send: true }) });
+      dirty.current = false; setSendSt("done");
+      if (j.items) qc.setQueryData(KEY, j.items);
+      setTimeout(() => { setPicks({}); setSendSt(""); close(); void qc.invalidateQueries({ queryKey: KEY }); }, 700);
+    } catch (e) { setSendSt(""); setErr(`못 보냈어 · ${(e as Error).message}`); }
+  };
   const etcSubmit = (d: Decision) => (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const t = String(new FormData(e.currentTarget).get("t") || "").trim();
@@ -71,15 +97,15 @@ export function DecideFab() {
   if (q.isError || !items.length) return null;
   return (
     <>
-      <button type="button" className={`nm-dec${open ? " on" : ""}`} aria-expanded={open} aria-label={`형 결정 ${left}개`} onClick={() => (open ? close() : setOpen(true))}>
+      {fab ? <button type="button" className={`nm-dec${open ? " on" : ""}`} aria-expanded={open} aria-label={`형 결정 ${left}개`} onClick={() => (open ? close() : setOpen(true))}>
         <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h6" /><path d="m8.5 14 2.2 2.2L15.5 11.5" /></svg>
         {left ? <b className="nm-rcount">{left > 99 ? "99+" : left}</b> : null}
-      </button>
-      {open ? (
+      </button> : null}
+      {open ? createPortal(   // body 로 뺌 = 유리 카드(backdrop-filter) 안에서 불러도 화면 기준 자리(홈 할 일 카드)
         <>
           <div className="nm-dec-scrim" aria-hidden onClick={close} />
           <section role="dialog" aria-modal="true" aria-label="형 결정" className="nm-decpop">
-            <header><b>형 결정</b><span>{left ? `남은 것 ${left}` : "다 골랐어"} · 닫으면 고른 것만 가</span><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
+            <header><b>형 결정</b><span>{left ? `남은 것 ${left}` : "다 골랐어"} · 고르고 전송</span><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
             <ul>
               {items.map((d) => {
                 const p = pickOf(d), name = list.find((x) => x.who === d.who)?.name || d.who;
@@ -103,8 +129,16 @@ export function DecideFab() {
               })}
             </ul>
             {err ? <p role="alert" className="nm-dec-err">{err}</p> : null}
+            <footer className="nm-dec-foot">
+              <span>{ready.current().length ? `고른 것 ${ready.current().length}개` : "고르면 전송이 켜져"}</span>
+              <button type="button" className={`nm-send nm-dec-send${sendSt ? " " + sendSt : ""}`} aria-label="고른 것 전송" disabled={!ready.current().length || !!sendSt} onClick={() => void sendNow()}>
+                <span className="nm-send-ic" aria-hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V6M6 12l6-6 6 6" /></svg></span>
+                <span className="nm-send-tx">전송</span>
+                <span className="nm-send-ck" aria-hidden><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg></span>
+              </button>
+            </footer>
           </section>
-        </>
+        </>, document.body,
       ) : null}
     </>
   );

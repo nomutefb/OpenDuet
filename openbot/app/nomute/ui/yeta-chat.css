@@ -241,13 +241,18 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-dec-who span { color:var(--mut, var(--muted-foreground)); font-size:11px; }
 .nm-dec-q { margin:6px 0 8px; font-size:14px; line-height:1.45; font-weight:600; white-space:pre-wrap; }
 .nm-dec-ch { display:flex; flex-wrap:wrap; gap:6px; }
-.nm-dec-ch button { min-height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.18)); font-size:13px; text-align:left; text-transform:none; }   /* 고를 것 글자 그대로(경로·영문이 대문자로 바뀌던 것) */
+.nm-dec-ch button { min-height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.18)); font-size:13px; text-align:left; text-transform:none; }   /* 영문이 대문자로 보이는 건 앱 글꼴 모양(CSS 아님) */
 .nm-dec-ch button[aria-pressed="true"] { background:var(--accent,#CFFF40); border-color:transparent; color:#111; font-weight:700; }
 .nm-dec-etc { display:flex; gap:6px; margin-top:8px; }
 .nm-dec-etc input { flex:1; min-width:0; height:34px; padding:0 10px; border-radius:10px; border:1px solid var(--glass-line, rgba(255,255,255,.18)); background:transparent; font-size:16px; }
 .nm-dec-etc button { padding:0 12px; border-radius:10px; background:var(--accent,#CFFF40); color:#111; font-weight:700; font-size:13px; }
 .nm-dec-said { margin-top:6px; font-size:12px; color:var(--mut, var(--muted-foreground)); }
 .nm-dec-err { padding:8px 14px; font-size:12px; color:var(--destructive,#f87171); }
+.nm-dec-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px 12px 14px; border-top:1px solid var(--glass-line, rgba(255,255,255,.1)); }
+.nm-dec-foot > span { font-size:12px; color:var(--mut, var(--muted-foreground)); }
+.nm-send.nm-dec-send { position:relative; right:auto; bottom:auto; --accent-rgb:207,255,64; background:transparent; color:inherit; border-color:var(--accent,#CFFF40); box-shadow:none; }   /* 홈 카드 자리(absolute)·홈 색 토큰을 풀고 모달 아래 줄에 · 게이지 = 앱 형광 */
+.nm-send.nm-dec-send.run, .nm-send.nm-dec-send.done { color:#111; }
+.nm-send.nm-dec-send:disabled:not(.run):not(.done) { opacity:.4; }
 @keyframes nmDecIn { from { opacity:0; transform:scale(.4); } to { opacity:1; transform:scale(1); } }
 @keyframes nmDecFade { from { opacity:0; } }
 @media (prefers-reduced-motion:reduce) { .nm-dec, .nm-decpop, .nm-dec-scrim { animation:none; transition:none; } }
