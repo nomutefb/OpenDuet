@@ -33,16 +33,27 @@ function Original({ original }: { original: OriginalAttachment }) {
   );
 }
 
-/** 보내는 중 = 내 말풍선 자리에 먼저 올리고 아래 가로 게이지(형 10-31 「대화창에 올라가고. 그 이미지 아래에 전송 게이지가 가로로 차면 될듯」) · 글은 안 띄움 */
+/** 보내는 중 = 내 말풍선 자리에 먼저 올리고 그림 안 가운데 둥근 게이지(형 11-02 02:21 「이미지 안에서 로딩 동그랗게 차게헤줘 퍼센트로 다 차면 체크 뜨면서 뜨고 항상 채팅 보다 위」) · 그림 = 글 말풍선 위 · 글은 안 띄움
+ *   차례 = 그림 흐리게 + 고리가 % 로 참 → 100% = ✓ 그려지고 그림이 또렷해짐(고리는 걷힘) → 서버 답이 오면 진짜 글로 바뀜 · 못 받으면 「전송 확인 필요」 칸 */
 function Sending({ attempt }: { attempt: SendAttempt }) {
   return (
     <div className="nac-up" aria-label="첨부 보내는 중">
-      <div className="nac-shots">   {/* 게이지 = 그림 바로 아래 · 그림 폭 1/3 · 글 말풍선 앞(형 11-01 09:03 「게이지는 이미지 아래에 저 이미지 크기의 1/3 정도로 게이지만 잇으면 됨 위치는 이미지 아래로. 대화 사이.」) */}
-        {attempt.originals.map((original) => <Preview key={original.id} file={original.file} />)}
-        <span className="nac-bar" role="progressbar" aria-valuenow={Math.round(attempt.progress * 100)}><i style={{ width: `${Math.max(6, Math.min(94, attempt.progress * 94))}%` }} /></span>
+      <div className="nac-shots">
+        {attempt.originals.map((original) => <Preview key={original.id} file={original.file} p={attempt.progress} />)}
       </div>
       {attempt.text ? <p className="nac-text">{attempt.text}</p> : null}
     </div>
+  );
+}
+
+const RING_C = 2 * Math.PI * 18;
+function Ring({ p }: { p: number }) {
+  const pct = Math.max(0, Math.min(100, Math.round(p * 100))), done = pct >= 100;
+  return (
+    <span className="nac-ring" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={done ? "다 올라감" : `올리는 중 ${pct}%`}>
+      <svg className="nac-ring-o" viewBox="0 0 44 44" aria-hidden="true"><circle className="t" cx="22" cy="22" r="18" /><circle className="f" cx="22" cy="22" r="18" style={{ strokeDasharray: RING_C, strokeDashoffset: RING_C * (1 - pct / 100) }} /></svg>
+      {done ? <svg className="nac-ring-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg> : <b>{pct}%</b>}
+    </span>
   );
 }
 
@@ -56,14 +67,20 @@ function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) 
   );
 }
 
-function Preview({ file }: { file: File }) {
+function Preview({ file, p }: { file: File; p: number }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
     const next = URL.createObjectURL(file);
     setUrl(next);
     return () => URL.revokeObjectURL(next);
   }, [file]);
-  return url && file.type.startsWith("image/") ? <img src={url} alt={file.name} className="nac-img" /> : <span className="nac-file">{file.name}</span>;
+  const img = !!url && file.type.startsWith("image/");
+  return (
+    <span className={`nac-shot${img ? "" : " file"}${p >= 1 ? " ok" : ""}`}>
+      {img ? <img src={url} alt={file.name} className="nac-img" /> : <span className="nac-file">{file.name}</span>}
+      <Ring p={p} />
+    </span>
+  );
 }
 
 /** 입력칸에서 넘겨받은 전송 기록. 새로 쓰는 글/첨부와 별개로 원본과 결과를 보관한다. */

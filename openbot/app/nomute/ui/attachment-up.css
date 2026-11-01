@@ -1,13 +1,29 @@
 /* 첨부 보내는 중(./attachment-recovery.tsx) = 내 말풍선 자리 · 사진 아래 가로 게이지 · 긴 글 없음 */
 .nac-up { align-self:flex-end; display:flex; flex-direction:column; align-items:flex-end; gap:6px; max-width:min(78%, 260px); margin-bottom:8px; }
 .nac-text { margin:0; padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; font-size:14px; white-space:pre-wrap; word-break:break-word; }
-.nac-img { display:block; max-height:120px; max-width:100%; border-radius:16px; object-fit:cover; opacity:.82; }
+.nac-img { display:block; max-height:120px; max-width:100%; border-radius:16px; object-fit:cover; opacity:.55; transition:opacity .28s ease; }
 .nac-file { max-width:100%; padding:8px 12px; border-radius:14px; background:var(--duet-tile, rgba(255,255,255,.08)); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nac-wait { font-size:11px; line-height:1; color:var(--mut, currentColor); opacity:.8; }
 .nac-again { padding:0; border:0; background:none; font-size:12px; color:var(--destructive, #ff6b6b); cursor:pointer; }
-.nac-shots { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:max-content; max-width:100%; }   /* 그림 묶음 폭 = 그림 폭 → 게이지 33% 가 그림의 1/3 */
-.nac-bar { display:block; width:33%; min-width:28px; height:3px; border-radius:2px; overflow:hidden; background:rgba(255,255,255,.14); }
-.nac-bar i { display:block; height:100%; border-radius:2px; background:var(--accent, #CFFF40); transition:width .18s linear; }
+.nac-shots { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:max-content; max-width:100%; }
+/* 둥근 게이지 = 그림 안 가운데(형 11-02 02:21) · % 로 참 → ✓ 그려지고 그림 또렷 · 고리는 걷힘 · 원본 리듬 = go-button(✓ 0.38초 그리기) */
+.nac-shot { position:relative; display:block; max-width:100%; }
+.nac-shot.ok .nac-img { opacity:1; }
+.nac-ring { position:absolute; left:50%; top:50%; width:46px; height:46px; margin:-23px 0 0 -23px; display:grid; place-items:center; border-radius:50%; background:rgba(0,0,0,.42); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); transition:opacity .3s ease .55s, transform .3s ease .55s; pointer-events:none; }
+.nac-shot.ok .nac-ring { opacity:0; transform:scale(.86); }
+.nac-ring-o { position:absolute; inset:2px; transform:rotate(-90deg); }
+.nac-ring-o circle { fill:none; stroke-width:3; }
+.nac-ring-o .t { stroke:rgba(255,255,255,.22); }
+.nac-ring-o .f { stroke:var(--accent, #CFFF40); stroke-linecap:round; transition:stroke-dashoffset .18s linear; }
+.nac-ring b { position:relative; font:700 11px/1 Pretendard, -apple-system, system-ui, sans-serif; color:#fff; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+.nac-ring-ck { position:relative; width:20px; height:20px; }
+.nac-ring-ck path { fill:none; stroke:var(--accent, #CFFF40); stroke-width:2.8; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:24; stroke-dashoffset:24; animation:nacTick .38s ease forwards; }
+@keyframes nacTick { to { stroke-dashoffset:0; } }
+.nac-shot.file { display:flex; align-items:center; gap:8px; }   /* 그림 아닌 파일 = 이름 옆 작은 고리 */
+.nac-shot.file .nac-ring { position:relative; left:auto; top:auto; margin:0; width:30px; height:30px; flex:none; }
+.nac-shot.file .nac-ring b { font-size:9px; }
+.nac-shot.file .nac-ring-ck { width:15px; height:15px; }
+@media (prefers-reduced-motion:reduce) { .nac-ring, .nac-img { transition:none; } .nac-ring-ck path { animation:none; stroke-dashoffset:0; } }
 /* 안 닿은 부름(office-chat Missed) */
 .ymiss { display:block; margin-top:4px; font-size:11px; line-height:1.3; opacity:.72; }
 .ycap-ai { margin-top:6px; }
