@@ -179,7 +179,8 @@ export function SchedDesk() {
                   ) : null}
                   {rs.map((r) => {
                     const room = r.fork === "room" || r.id.startsWith("room.");   // 방 루틴(뎅 11-01 08:46 · 봇 없음 · 「종」이 그 방에 씀 · 시각은 방 「루틴 만들기」에서만)
-                    const b = botOf(r.bot) || (room ? { who: r.who } as ReturnType<typeof botOf> : undefined), live2 = r.state === "live", wide = openR === r.id, blocked = !fOn || b?.on === false;
+                    const bell = r.fork === "bell6" || r.id.startsWith("bell6.");   // 6마디 종(뎅 11-01 · 봄 서버 #2005 · 글 6개마다 형 키 · 표에선 켜고 끄기만)
+                    const b = botOf(r.bot) || (room || bell ? { who: r.who } as ReturnType<typeof botOf> : undefined), live2 = r.state === "live", wide = openR === r.id, blocked = !fOn || b?.on === false;
                     return (
                       <li key={r.id} className="nm-sched-tine" data-off={!live2 || blocked || undefined}>
                         <div className="nm-sched-tinehead">
@@ -192,24 +193,25 @@ export function SchedDesk() {
                         {bar(r.id)}
                         {wide ? (
                           <div className="nm-sched-rt">
-                            {room ? <small>시각·요일은 그 방 「루틴 만들기」에서 바꿔. 여기선 켜고 끄기와 글만.</small>
+                            {bell ? <small>단톡방에 글이 {r.bell6?.of ?? 6}개 쌓일 때마다 형 키로 {r.bell6?.ring.length ? r.bell6.ring.join("·") : "그 방 그록"}을 깨워. 멤버가 방에 「!종료」 쓰면 멈추고, 형이 그 방에 새로 쓰면 다시 켜져. 여기선 켜고 끄기만.</small>
+                              : room ? <small>시각·요일은 그 방 「루틴 만들기」에서 바꿔. 여기선 켜고 끄기와 글만.</small>
                               : <WhenPick r={r} can={can} busy={go.isPending} send={(v) => prep({ at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` })} />}
                             {r.marks?.includes("time_in_text") ? <small className="nm-sched-warn">할 일 글 안에도 시각이 적혀 있어. 시간을 바꾸면 글도 같이 봐 줘</small> : null}
-                            {r.task !== undefined ? (
+                            {bell ? null : r.task !== undefined ? (
                               <label className="nm-sched-text">할 일
                                 <textarea rows={5} disabled={!can} value={vals[`task|${r.id}`] ?? r.task} onChange={(e) => setVals((v) => ({ ...v, [`task|${r.id}`]: e.target.value }))}
                                   onBlur={() => { const v = vals[`task|${r.id}`]; if (v !== undefined && v !== r.task) prep({ at: "routine", key: r.id, field: "task", value: v, label: `${b?.who} ${r.name}` }); }} />
                               </label>
                             ) : <small>할 일 글은 아직 그록 앱에 있어. 표로 옮기면 여기서 고쳐.</small>}
-                            {hasForks ? (
+                            {hasForks && !bell ? (
                               <div className="nm-sched-sel">
                                 {r.marks?.includes("bot_bound") ? <small>이 봇 몸의 파일을 쓰는 일이라 다른 봇으로 못 옮겨</small> : r.cron?.length ? <label>어떤 봇<select disabled={!can} value={r.bot} onChange={(e) => prep({ at: "routine", key: r.id, field: "bot", value: e.target.value, label: r.name })}>{d.bots.map((x) => <option key={x.bot} value={x.bot}>{nameOf(x)}</option>)}</select></label> : <small>받는 봇은 사건 길이 정해 · 여기서 안 바뀌어</small>}
                                 <label>포크<select disabled={!can} value={r.fork} onChange={(e) => prep({ at: "routine", key: r.id, field: "fork", value: e.target.value, label: r.name })}>{d.forks!.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
                               </div>
                             ) : null}
-                            <div className="flex flex-wrap gap-1" role="group" aria-label={`${r.name} 상태`}>
+                            {bell ? null : <div className="flex flex-wrap gap-1" role="group" aria-label={`${r.name} 상태`}>
                               {Object.keys(ST_KO).filter((k) => k !== "grok-stay" || r.state === k).map((k) => <button key={k} type="button" className="nm-sched-chip" aria-pressed={r.state === k} disabled={!can || go.isPending} onClick={() => prep({ at: "routine", key: r.id, field: "state", value: k, label: `${b?.who} ${r.name}` })}>{ST_KO[k]}</button>)}
-                            </div>
+                            </div>}
                           </div>
                         ) : null}
                       </li>
