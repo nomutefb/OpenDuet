@@ -67,3 +67,5 @@ html:not(.dark) .nm-dl .nm-dl-all { color:#a77400; border-color:color-mix(in srg
 .nm-dl .nm-dl-hist .qm > * { display:block; width:100%; max-width:100%; }
 .nm-dl .nm-dl-hist .qm small { font-size:var(--fs-xs); color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nm-dl .ycd-card { display:flex; flex-direction:column; gap:8px; }
+.nm-dl .nm-dl-url input, .nm-dl .nm-dl-peek .t, .nm-dl .nm-dl-peek .m, .nm-dl .nm-dl-job .lab, .nm-dl .nm-dl-job .f .tx, .nm-dl .nm-dl-why, .nm-dl .nm-dl-card .pl, .nm-dl .nm-dl-hist .qm small, .nm-dl .nm-dl-q { font-family:var(--app-font-text, inherit); }   /* 주소·제목·파일 이름 = 쓴 그대로(앱 기본 글꼴 LEMONMILK 는 영문을 대문자 꼴로만 그림) */
+.nm-dl .nm-dl-url input::placeholder { font-family:var(--app-font-text, inherit); }

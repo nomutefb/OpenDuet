@@ -1,0 +1,25 @@
+/* 서랍 「구독 채널」(./snsacc.tsx) — 차례 = 원본 구독 채널 창(플랫폼 탭 → 계정 칩 → 추가 줄 → 구독 끄기 · 저장) · 단추·입력 꼴 = 메모·다운로드 */
+.nm-acc { display:flex; flex-direction:column; gap:10px; }
+.nm-acc .nm-acc-chip, .nm-acc .nm-acc-add input, .nm-acc .nm-acc-err { font-family:var(--app-font-text, inherit); }   /* 계정 이름 = 쓴 그대로 · 앱 기본 글꼴(LEMONMILK)은 영문을 대문자 꼴로만 그림 = 본문 글꼴(대기열 .qm i 와 같음) */
+.nm-acc .nm-acc-tabs { display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; }
+.nm-acc .nm-acc-tabs::-webkit-scrollbar { display:none; }
+.nm-acc .nm-acc-tabs button { flex:none; border:1px solid var(--glass-line); background:none; color:var(--mut); font-size:var(--fs-xs, 11px); padding:5px 12px; border-radius:var(--r-pill); }
+.nm-acc .nm-acc-tabs button.on { color:var(--bg); background:var(--fg); border-color:var(--fg); }
+.nm-acc .nm-acc-tabs button i { font-style:normal; margin-left:3px; color:var(--accent); }
+.nm-acc .nm-acc-tabs button.on i { color:var(--bg); }
+.nm-acc .nm-acc-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.nm-acc .nm-acc-chip { display:inline-flex; align-items:center; gap:2px; max-width:100%; border:1px solid var(--glass-line); background:var(--glass); color:var(--fg); font-size:var(--fs-xs, 11px); padding:4px 7px 4px 9px; border-radius:var(--r-pill); }
+.nm-acc .nm-acc-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-acc .nm-acc-chip svg { width:11px; height:11px; margin-left:3px; color:var(--mut); flex:none; }
+.nm-acc .nm-acc-add { display:flex; gap:8px; align-items:center; }
+.nm-acc .nm-acc-add input { flex:1; min-width:0; height:34px; padding:0 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg); font:inherit; font-family:var(--app-font-text, inherit); font-size:var(--fs-sm, 13px); }
+.nm-acc .nm-acc-add input:focus { outline:none; border-color:color-mix(in srgb, var(--accent) 60%, transparent); }
+.nm-acc .go { flex:none; border:1px solid var(--glass-line); background:none; color:var(--fg); font-size:var(--fs-xs); padding:6px 12px; border-radius:var(--r-pill); }
+.nm-acc .go:disabled { opacity:.5; }
+.nm-acc .nm-acc-save { flex:none; border:1px solid var(--accent); background:var(--accent); color:var(--bg); font-size:var(--fs-xs, 12px); font-weight:600; padding:7px 16px; border-radius:var(--r-pill); }
+.nm-acc .nm-acc-save:disabled { background:none; color:var(--mut); border-color:var(--glass-line); }
+.nm-acc .nm-acc-err { margin:0; font-size:var(--fs-xs, 11px); color:#ff8a8a; }
+.nm-acc .nm-acc-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.nm-acc .nm-acc-off { display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-xs, 11px); color:var(--mut); }
+.nm-acc .nm-acc-off input { accent-color:var(--accent); }
+.nm-acc .nm-acc-add input::placeholder { font-family:var(--app-font-text, inherit); }
