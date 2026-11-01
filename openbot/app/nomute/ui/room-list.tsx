@@ -133,7 +133,8 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         {wrapTemp(r, <>
         <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
-          {r.with ? <span className="nm-rorb" style={{ margin: -Math.round(size / 8) }}><MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span>
+          {r.with ? <span className="nm-rorb" style={{ margin: -Math.round(size / 8), marginRight: 4 - Math.round(size / 8) }}>   {/* 이름 4px 오른쪽(형 11-01 「이름을 조금만 우측으로 … 테두리가 두터워지면 좁아보여서」) */}
+            <MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span>
             : ids.length ? <span className="nm-rstk">{pair.map((id, i) => <span key={id} style={{ marginLeft: i ? -Math.round(size * 0.35) : 0 }}><FaceImg id={id} size={size} /></span>)}</span>
             : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
           <span className="min-w-0 flex-1">
