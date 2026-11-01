@@ -449,7 +449,30 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 @keyframes nmSpin { to { transform:rotate(360deg); } }
 @media (prefers-reduced-motion:reduce) { .nm-sched-go.firing { animation-duration:.2s; } .nm-sched-go .gck { animation:none; } .nm-sched-spin { animation-duration:2s; } }
 .nm-sched-go { padding:6px 14px; border:0; border-radius:999px; background:var(--accent, #CFFF40); color:#161716; font-size:13px; font-weight:700; cursor:pointer; }
+/* 스케줄 조직도(형 11-01 17:4x 「트리구조 조직도로」 · 「엔터프라이즈급」) — 뿌리 칸 → 줄기 → 포크 칸 → 꼬챙이 · 상태 점 · 켠 비율 막대 · 최근 바뀜 */
+.nm-org-root { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; padding:12px 14px; border:1px solid rgba(207,255,64,.45); border-radius:16px; background:rgba(207,255,64,.06); font-size:12px; color:var(--mut); }
+.nm-org-root b { width:100%; font-size:15px; color:var(--fg); letter-spacing:.02em; }
+.nm-org-root span { display:inline-flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums; }
+.nm-org { position:relative; margin-top:-2px; padding:10px 0 0 18px; }
+.nm-org::before { content:""; position:absolute; left:8px; top:0; bottom:26px; border-left:1px solid var(--glass-line); }
+.nm-org > .nm-sched-fork { position:relative; }
+.nm-org > .nm-sched-fork::before { content:""; position:absolute; left:-10px; top:26px; width:10px; border-top:1px solid var(--glass-line); }
+.nm-dot { display:inline-block; flex:none; width:7px; height:7px; margin-right:7px; border-radius:50%; vertical-align:1px; background:#6B6F6A; }
+.nm-dot.on { background:var(--accent, #CFFF40); box-shadow:0 0 6px rgba(207,255,64,.55); } .nm-dot.dim { background:#ffd27a; } .nm-dot.off { background:#5a5d59; }
+.nm-org-tag { margin-right:6px; padding:1px 7px; border:1px solid var(--glass-line); border-radius:999px; font-size:11px; font-style:normal; font-weight:600; color:var(--mut); vertical-align:2px; }
+.nm-org-st { margin-left:6px; padding:0 6px; border-radius:999px; background:rgba(255,210,122,.14); font-size:11px; font-style:normal; font-weight:600; color:#ffd27a; }
+.nm-org-meter { display:inline-block; position:relative; width:52px; height:4px; margin-left:8px; border-radius:2px; background:rgba(255,255,255,.08); vertical-align:2px; overflow:hidden; }
+.nm-org-meter > i { position:absolute; left:0; top:0; bottom:0; border-radius:2px; background:var(--accent, #CFFF40); }
+.nm-org-log { margin-top:6px; padding:10px 12px; border:1px solid var(--glass-line); border-radius:16px; }
+.nm-org-log h3 { margin:0 0 6px; font-size:13px; font-weight:700; }
+.nm-org-log ol { display:flex; flex-direction:column; gap:6px; list-style:none; margin:0; padding:0; }
+.nm-org-log li { display:flex; align-items:center; gap:10px; } .nm-org-log b { display:block; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-org-log small { display:block; font-size:12px; color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-org-log em { flex:none; padding:2px 8px; border-radius:999px; font-size:11px; font-style:normal; font-weight:600; border:1px solid var(--glass-line); color:var(--mut); }
+.nm-org-log em[data-k="got"], .nm-org-log em[data-k="live"], .nm-org-log em[data-k="ok"] { border-color:rgba(207,255,64,.45); color:var(--accent, #CFFF40); }
+.nm-org-log em[data-k="wait"] { border-color:rgba(255,210,122,.45); color:#ffd27a; }
 @media (max-width:480px) { .nm-sched-rt { padding-left:0; } .nm-sched-tines { margin-left:12px; padding-left:10px; } .nm-sched-tine::before { left:-10px; width:8px; } }
+@media (max-width:480px) { .nm-org { padding-left:14px; } .nm-org::before { left:6px; } .nm-org > .nm-sched-fork::before { left:-8px; width:8px; } }
 /* 복사 창 = 그록 앱 꼴(형 11-01 「이렇게 보일수없을까? 글자는 작아도 돼.」) · 둥근 회색 판 · 글은 줄바꿈 · 오른쪽 위 복사 하나 */
 .ychat [data-streamdown="code-block"] { position:relative; margin:8px 0; padding:0; overflow:hidden; border:0; border-radius:14px; background:color-mix(in srgb, var(--fg) 9%, transparent); }
 .ychat [data-streamdown="code-block-header"] { display:none; }

@@ -8,7 +8,15 @@ import { MicOrb, ringOf } from "../swap/mic-orb";
 import { Breaker, cronKo } from "./sched-bits";
 import { RunnerTree } from "./sched-runners";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
-import { CF_KO, type Routine, ST_KO, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
+import { CF_KO, type Routine, ST_KO, type SchedChange, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
+
+// 조직도(형 11-01 17:4x 「스케줄러 있지. 그 내용이 지금 좀 투박해. 버튼 눌러도 동작하는지도 잘 모르겠구 … 엔터프라이즈급으로 동작했으면 좋겠어. 트리구조 조직도로」 · 「각 대화방하고 연동도 잘 되어야하고」)
+//   뿌리 칸(켠 것 · 다음 깸 · 시계) → 포크 칸(켠 비율 막대) → 꼬챙이(상태 점) → 끝 ! 얼굴 · 맨 아래 「최근 바뀜」 = 누른 단추가 실제로 먹었는지(표에 들어감 ✓ · 시계 받음 · 바로 먹음)
+//   대화방 포크 둘(roomtimer 방 루틴 · bell6 6마디 종) = 서버가 붙이는 가짜 포크 → 꼬챙이를 옮겨 넣는 칸에서 뺌
+const VIRTUAL = new Set(["roomtimer", "bell6"]);
+const ROOMISH: Record<string, string> = { roomtimer: "대화방", bell6: "대화방" };
+const DOT: Record<string, string> = { live: "on", off: "off", shadow: "dim", dry: "dim", "grok-stay": "dim" };
+const agoKo = (ts: number) => { const m = Math.round((Date.now() - ts) / 60e3); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
 
 const CRON_H = "CRON_TZ=Asia/Seoul ";
 type TimePick = { day: "*" | "1-5" | "0,6"; hours: number[]; min: number };
@@ -100,6 +108,8 @@ export function SchedDesk() {
   const sel = botOf(who);
   const face = (b?: { who: string }, size = 28) => { const p = list.find((x) => x.who === b?.who); return <MicOrb size={size} id={idOf(b?.who || "", list)} tint={ringOf(p)} />; };
   const nameOf = (b?: { who: string }) => list.find((x) => x.who === b?.who)?.name || b?.who || "";
+  const nextAll = d.bots.reduce((m, b) => (b.on !== false && b.next_ts && (!m || b.next_ts < m) ? b.next_ts : m), 0);
+  const labelOf = (c: SchedChange) => { const r = d.routines.find((x) => x.id === c.id), f = d.forks?.find((x) => x.id === c.id), b = botOf(c.id); return r ? `${r.bot ? nameOf(botOf(r.bot)) + " · " : ""}${r.name}` : f ? `포크 ${f.name}` : b ? nameOf(b) : c.id; };
   const say = (f: SchedQ["field"], v: unknown) => (f === "when" && Array.isArray(v) ? cronKo(v.map(String)) : cfVal(f, v as never));   // 언제 = 사람 말(cron 글자 안 보임)
   /** 바꾸기 확인·진행 = 누른 그 줄 바로 아래(형 10-31 「바로 그 창 아래에 떠야 안헷갈려가까이에」) */
   const bar = (key: string) => {
@@ -109,7 +119,7 @@ export function SchedDesk() {
     return (
       <div className="nm-sched-ask" role={sv ? "status" : "alertdialog"} aria-label="바꾸기 전 확인">
         {a ? (
-          <span className="min-w-0 flex-1">{a.q.label} {CF_KO[a.q.field]}: {say(a.q.field, a.r.from)} <Chev dir="right" size={12} /> <b>{say(a.q.field, a.r.to)}</b>
+          <span className="min-w-0 flex-1">{a.q.label} {CF_KO[a.q.field]}: {a.r.from !== undefined ? <>{say(a.q.field, a.r.from)} <Chev dir="right" size={12} /> </> : null}<b>{say(a.q.field, a.r.to ?? a.q.value)}</b>
             {a.r.preview ? <small>다음 깸 {a.r.preview.next_at ? nextShort(a.r.preview.next_at) : "없음"} · 하루 {a.r.preview.day_max}번</small> : null}
           </span>
         ) : <span className="min-w-0 flex-1">{sv?.q.label}</span>}
@@ -150,7 +160,13 @@ export function SchedDesk() {
         </div>
       ) : null}
       {sel ? bar(sel.bot) : null}
-      <ul className="nm-sched-tree">
+      <div className="nm-org-root" role="status" aria-label="스케줄 요약">
+        <b>스케줄</b>
+        <span><i className="nm-dot on" />켠 꼬챙이 {d.routines.filter((r) => r.state === "live").length} / {d.routines.length}</span>
+        <span>다음 깸 {nextAll ? nextShort(nextAll) : "없음"}</span>
+        <span title="시계(윈A)가 마지막으로 바꾼 표를 읽었나">{got ? (got.got ? "시계 = 새 표 받음" : "시계 = 새 표 기다리는 중") : "시계 = 바뀐 것 없음"}</span>
+      </div>
+      <ul className="nm-sched-tree nm-org">
         {forks.map((f) => {
           const rs = rsOf(f);
           if (who && !rs.length) return null;
@@ -160,7 +176,7 @@ export function SchedDesk() {
               <div className="nm-sched-forkhead">
                 <Breaker big on={fOn} label={`${f.name} 차단기`} disabled={!can || !hasForks || go.isPending} onFlip={() => prep({ at: "fork", key: f.id, field: "on", value: !fOn, label: f.name })} />
                 <button type="button" aria-expanded={on} onClick={() => setOpenF(on ? "" : f.id)}>
-                  <b>{f.name}</b><small>꼬챙이 {rs.length} · 켠 것 {live}</small>
+                  <b>{ROOMISH[f.id] ? <em className="nm-org-tag">{ROOMISH[f.id]}</em> : null}{f.name}</b><small>꼬챙이 {rs.length} · 켠 것 {live}<i className="nm-org-meter" aria-hidden><i style={{ width: `${rs.length ? Math.round((live / rs.length) * 100) : 0}%` }} /></i></small>
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d={on ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} /></svg>
                 </button>
               </div>
@@ -178,15 +194,15 @@ export function SchedDesk() {
                     </li>
                   ) : null}
                   {rs.map((r) => {
-                    const room = r.fork === "room" || r.id.startsWith("room.");   // 방 루틴(뎅 11-01 08:46 · 봇 없음 · 「종」이 그 방에 씀 · 시각은 방 「루틴 만들기」에서만)
-                    const bell = r.fork === "bell6" || r.id.startsWith("bell6.");   // 6마디 종(뎅 11-01 · 봄 서버 #2005 · 글 6개마다 형 키 · 표에선 켜고 끄기만)
+                    const room = r.id.startsWith("room.");   // 방 루틴(뎅 11-01 08:46 · 봇 없음 · 「종」이 그 방에 씀 · 시각은 방 「루틴 만들기」에서만) · 포크 이름으로 안 봄 = 표 「방 열기」(room · 결) 줄이 방 루틴으로 잘못 그려져 시간 칸이 숨던 것(뎅 11-01 17:5x)
+                    const bell = r.id.startsWith("bell6.");   // 6마디 종(뎅 11-01 · 봄 서버 #2005 · 글 6개마다 형 키 · 표에선 켜고 끄기만)
                     const b = botOf(r.bot) || (room || bell ? { who: r.who } as ReturnType<typeof botOf> : undefined), live2 = r.state === "live", wide = openR === r.id, blocked = !fOn || b?.on === false;
                     return (
                       <li key={r.id} className="nm-sched-tine" data-off={!live2 || blocked || undefined}>
                         <div className="nm-sched-tinehead">
                           <Breaker on={live2} dim={blocked} label={`${r.name} 차단기`} disabled={!can || go.isPending || r.state === "grok-stay"} onFlip={() => prep({ at: "routine", key: r.id, field: "state", value: live2 ? "off" : "live", label: `${b?.who} ${r.name}` })} />
                           <button type="button" aria-expanded={wide} onClick={() => setOpenR(wide ? "" : r.id)}>
-                            <b>{r.name}</b><small>{r.cron?.length ? cronKo(r.cron) : r.when?.length ? r.when.join(" · ") : "부를 때만"}{blocked ? " · 위 차단기 내려감" : ""}</small>
+                            <b><i className={`nm-dot ${blocked ? "off" : DOT[r.state] || "dim"}`} aria-hidden />{r.name}{r.state !== "live" ? <em className="nm-org-st">{ST_KO[r.state] || r.state}</em> : null}</b><small>{r.cron?.length ? cronKo(r.cron) : r.when?.length ? r.when.join(" · ") : "부를 때만"}{blocked ? " · 위 차단기 내려감" : ""}</small>
                           </button>
                           <span className="nm-sched-end" title={`끝 = ${nameOf(b)} ! 훅 하나`}>{face(b)}<i>!</i></span>
                         </div>
@@ -197,20 +213,21 @@ export function SchedDesk() {
                               : room ? <small>시각·요일은 그 방 「루틴 만들기」에서 바꿔. 여기선 켜고 끄기와 글만.</small>
                               : <WhenPick r={r} can={can} busy={go.isPending} send={(v) => prep({ at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` })} />}
                             {r.marks?.includes("time_in_text") ? <small className="nm-sched-warn">할 일 글 안에도 시각이 적혀 있어. 시간을 바꾸면 글도 같이 봐 줘</small> : null}
+                            {r.marks?.includes("date_in_text") ? <small className="nm-sched-warn">할 일 글 안에 날짜가 있어. 지침엔 날짜를 빼 줘</small> : null}
                             {bell ? null : r.task !== undefined ? (
                               <label className="nm-sched-text">할 일
                                 <textarea rows={5} disabled={!can} value={vals[`task|${r.id}`] ?? r.task} onChange={(e) => setVals((v) => ({ ...v, [`task|${r.id}`]: e.target.value }))}
                                   onBlur={() => { const v = vals[`task|${r.id}`]; if (v !== undefined && v !== r.task) prep({ at: "routine", key: r.id, field: "task", value: v, label: `${b?.who} ${r.name}` }); }} />
                               </label>
                             ) : <small>할 일 글은 아직 그록 앱에 있어. 표로 옮기면 여기서 고쳐.</small>}
-                            {hasForks && !bell ? (
+                            {hasForks && !bell && !room ? (
                               <div className="nm-sched-sel">
                                 {r.marks?.includes("bot_bound") ? <small>이 봇 몸의 파일을 쓰는 일이라 다른 봇으로 못 옮겨</small> : r.cron?.length ? <label>어떤 봇<select disabled={!can} value={r.bot} onChange={(e) => prep({ at: "routine", key: r.id, field: "bot", value: e.target.value, label: r.name })}>{d.bots.map((x) => <option key={x.bot} value={x.bot}>{nameOf(x)}</option>)}</select></label> : <small>받는 봇은 사건 길이 정해 · 여기서 안 바뀌어</small>}
-                                <label>포크<select disabled={!can} value={r.fork} onChange={(e) => prep({ at: "routine", key: r.id, field: "fork", value: e.target.value, label: r.name })}>{d.forks!.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+                                <label>포크<select disabled={!can} value={r.fork} onChange={(e) => prep({ at: "routine", key: r.id, field: "fork", value: e.target.value, label: r.name })}>{d.forks!.filter((x) => !VIRTUAL.has(x.id)).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
                               </div>
                             ) : null}
                             {bell ? null : <div className="flex flex-wrap gap-1" role="group" aria-label={`${r.name} 상태`}>
-                              {Object.keys(ST_KO).filter((k) => k !== "grok-stay" || r.state === k).map((k) => <button key={k} type="button" className="nm-sched-chip" aria-pressed={r.state === k} disabled={!can || go.isPending} onClick={() => prep({ at: "routine", key: r.id, field: "state", value: k, label: `${b?.who} ${r.name}` })}>{ST_KO[k]}</button>)}
+                              {Object.keys(ST_KO).filter((k) => (room ? k === "live" || k === "off" : k !== "grok-stay" || r.state === k)).map((k) => <button key={k} type="button" className="nm-sched-chip" aria-pressed={r.state === k} disabled={!can || go.isPending} onClick={() => prep({ at: "routine", key: r.id, field: "state", value: k, label: `${b?.who} ${r.name}` })}>{ST_KO[k]}</button>)}
                             </div>}
                           </div>
                         ) : null}
@@ -223,8 +240,29 @@ export function SchedDesk() {
           );
         })}
       </ul>
+      <Changes list={d.changes || []} got={got} labelOf={labelOf} />
       </> : null}
       {can ? null : <p className="text-xs text-muted-foreground">바꾸기는 형 자리에서만 돼.</p>}
     </div>
+  );
+}
+
+/** 최근 바뀜 = 누른 단추가 실제로 먹었는지(형 「버튼 눌러도 동작하는지도 잘 모르겠구」) — 표 커밋 ✓(서버가 쓴 뒤 다시 읽어 그 칸 확인) · 맨 위 표 바꿈은 시계 받음까지 · 방 루틴·6마디 종 = 바로 먹음 */
+function Changes({ list, got, labelOf }: { list: SchedChange[]; got?: { got?: boolean; sha?: string }; labelOf: (c: SchedChange) => string }) {
+  if (!list.length) return null;
+  const head = list.find((c) => !c.live);
+  const v = (x: unknown) => (Array.isArray(x) ? cronKo(x.map(String)) || "없음" : typeof x === "boolean" ? (x ? "켬" : "끔") : typeof x === "string" ? (ST_KO[x] || (x.length > 24 ? x.slice(0, 24) + "…" : x)) : x == null ? "없음" : String(x));
+  return (
+    <section className="nm-org-log" aria-label="최근 바뀜">
+      <h3>최근 바뀜</h3>
+      <ol>
+        {list.slice(0, 8).map((c, i) => (
+          <li key={`${c.at}-${i}`}>
+            <span className="min-w-0 flex-1"><b>{labelOf(c)}</b><small>{CF_KO[c.field as SchedQ["field"]] || c.field} {v(c.from)} <Chev dir="right" size={11} /> {v(c.to)} · {c.who} · {agoKo(c.at)}</small></span>
+            <em data-k={c.live ? "live" : c === head ? (got?.got ? "got" : "wait") : "ok"}>{c.live ? "바로 먹음" : c === head ? (got?.got ? "시계 받음" : "시계 기다림") : "표에 들어감"}</em>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
