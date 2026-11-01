@@ -15,6 +15,7 @@ import { usePeople } from "./faces";
 import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { EnterKeyRow } from "./enter-key";
+import { ThinkMarkRow } from "./live-shine";
 import { WakeDepthRow } from "./wake-depth";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteRoomset, NomuteSchedule, useBuildLine } from "./settings-extra";
@@ -75,6 +76,7 @@ export function YetaSettings() {
             <PushRow />
             <ChatFontRows />
             <EnterKeyRow />
+            <ThinkMarkRow />
           </div>
         </section>
         <section className="yset-part" aria-label="사무실">

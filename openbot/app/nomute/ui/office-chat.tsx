@@ -40,7 +40,7 @@ import { usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
 import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
 import { t12 } from "./when";
-import { LiveShine, ThinkOrb } from "./live-shine";   // 빛 글자 · 생각 중 구슬 = libraries.dev/orbs 그대로(형 11-01 12:28)
+import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import "./yeta-chat.css";
 
@@ -881,7 +881,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
                 <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={nameInk(ringOf(list.find((x) => x.who === n)))}>{nmOf(list, n)}</span></Fragment>)}<span className="ml-[.35em] inline-block"><LiveShine text={`${typing.length > 3 ? `외 ${typing.length - 3} ` : ""}생각중…`} /></span></div>   {/* 형 11-01 11:36 「외 2 생각중 ... 여기 이 생각중에도 적용해버리자」 · 이름 색칠 칸은 그대로 */}
-                <div className="yb ai"><ThinkOrb /></div>   {/* 점 셋 → 생각 중 구슬(형 11-01 12:28 「여기에 나온 걸 프레임을 그대로」 · 데모 「Agent thinking…」 칩) */}
+                <div className="yb ai"><ThinkMark /></div>   {/* 점 셋(기본) · 구슬 = 설정 「생각중 표시」(형 11-01 12:5x 「내 취향따라 심심할때 바꾸게」) */}
               </div>
             </div>
           ) : null}
