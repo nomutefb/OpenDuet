@@ -99,16 +99,17 @@ export function SchedDesk() {
   const [who, setWho] = useState(""), [openF, setOpenF] = useState(""), [openR, setOpenR] = useState(""), [tab, setTab] = useState("bot");
   const [ask, setAsk] = useState<{ q: SchedQ; r: SchedSetRes } | null>(null), [msg, setMsg] = useState("");
   // 바꾸기 진행(형 10-31 「전송 게이지 차고 체크 된 다음 버튼이 있고, 그 다음에 빙글빙글 쭉 하다가 체크 뜨면」) = 옛 에디터 .go 상태 계승 — fill 전송 · ok ✓ · wait 시계 기다림 · done ✓ · late 2분 넘음
-  const [save, setSave] = useState<{ q: SchedQ; stage: "fill" | "ok" | "wait" | "done" | "late"; sha: string } | null>(null);
+  const [save, setSave] = useState<{ q: SchedQ; stage: "fill" | "ok" | "wait" | "done" | "late"; sha: string; t0?: number } | null>(null);
   const [vals, setVals] = useState<Record<string, string>>({});
   useEffect(() => { setVals({}); }, [d?.sha]);
   const go = useMutation({
     mutationFn: ({ q, dry }: { q: SchedQ; dry: boolean }) => office<SchedSetRes>("schedule/set", { method: "POST", body: JSON.stringify({ at: q.at, key: q.key, field: q.field, value: q.value, sha: d?.sha, dry }) }),
-    onMutate: ({ q, dry }) => { if (!dry) setSave({ q, stage: "fill", sha: "" }); },
+    onMutate: ({ q, dry }) => { if (!dry) setSave({ q, stage: "fill", sha: "", t0: Date.now() }); },
     onSuccess: (r, { q, dry }) => {
       if (r.same) { setAsk(null); setSave(null); setMsg(`이미 ${cfVal(q.field, q.value)}이야`); return; }
       if (dry) { setAsk({ q, r }); setMsg(""); return; }
-      setSave({ q, stage: "ok", sha: String((r as { sha?: string }).sha || "") });
+      const sha = String((r as { sha?: string }).sha || ""), wait = Math.max(0, 900 - (Date.now() - (save?.t0 || 0)));   // 게이지는 응답이 빨라도 끝까지 참(옛 에디터 900ms 리듬)
+      setTimeout(() => setSave((s) => s && s.q.key === q.key ? { ...s, stage: "ok", sha } : s), wait);
       setMsg("");
       void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] });
     },
