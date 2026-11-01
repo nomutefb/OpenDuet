@@ -1,0 +1,7 @@
+/* 서랍 「메모」(./memo.tsx) — 줄 꼴 = 알림메세지(./msgs.css) · 칸 차례 = 원본 메모함(날짜 | 내용 | 고치기 | 지우기) */
+.nm-memo .nm-memo-row { grid-template-columns:44px minmax(0, 1fr) auto auto; cursor:pointer; }
+.nm-memo .nm-memo-plus { margin-left:auto; border:1px solid var(--glass-line); background:var(--glass); color:var(--fg); font-size:var(--fs-xs); padding:3px 10px; border-radius:var(--r-pill); }
+.nm-memo .nm-memo-add { display:flex; flex-direction:column; gap:6px; }
+.nm-memo .nm-memo-add textarea { width:100%; resize:vertical; min-height:64px; padding:8px 10px; border-radius:var(--r-m, 11px); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg); font:inherit; font-size:var(--fs-sm, 12px); line-height:1.5; font-family:var(--app-font-text, inherit); }
+.nm-memo .nm-memo-add textarea:focus { outline:none; border-color:color-mix(in srgb, var(--accent) 60%, transparent); }
+.nm-memo .nm-memo-add .ypc-go { align-self:flex-end; }
