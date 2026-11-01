@@ -1,0 +1,16 @@
+/* 러너 = 윈A·맥 위젯 꼴(형 11-01 17:4x 「러너 대시보드도 윈a나 맥에 깔린 모양이 들어와야해」) — 원본 = editor scripts/win/check-runner/dashboard(Views.cs 카드 · RowViews.cs 줄) · 맥판 같은 값
+   카드 = 제목 줄(RUNNER DASHBOARD · LEMONMILK 기울임 · 배경 없음) + 판 하나(둥글기 14 · 안쪽 6) · 줄 = WIN A · WIN B · MAC PRO(사이 머리카락 줄)
+   판은 밝게·어둡게 둘 다 위젯처럼 늘 어두움(게이지 색·글 색이 위젯 값 그대로 읽히게) */
+.nm-rg-card { width:100%; max-width:560px; margin:0 auto; }
+.nm-rg-title { margin:0 0 10px 4px; font-family:'LEMONMILK', var(--app-font-text, sans-serif); font-weight:400; font-style:italic; font-size:17px; letter-spacing:.06em; color:#D0D0D0; }
+.nm-rg-panel { display:flex; flex-direction:column; padding:6px; border-radius:14px; background:rgba(18,18,18,.94); color:#F2F2F2; box-shadow:0 0 0 1px rgba(255,255,255,.05); }
+.nm-rg-row { padding:12px 10px 10px; } .nm-rg-row + .nm-rg-row { border-top:1px solid rgba(255,255,255,.07); }
+.nm-rg-row.mac { padding-bottom:12px; }
+.nm-rg-panel .text-muted-foreground { color:#8A8A8A; }
+.nm-rg-name { font-family:'LEMONMILK', var(--app-font-text, sans-serif); font-weight:400; font-size:13px; letter-spacing:.06em; color:#F2F2F2; }
+.nm-rg-gauges { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:4px; margin-top:6px; }
+.nm-rg-gauge { display:block; width:100%; height:auto; overflow:visible; }
+.nm-rg-gauge path { fill:none; stroke-linecap:round; }
+.nm-rg-num { font-family:'LEMONMILK', var(--app-font-text, sans-serif); font-weight:400; font-variant-numeric:tabular-nums; }
+.nm-rg-lab { font-family:var(--app-font-text, sans-serif); font-weight:700; }
+.nm-rg-panel ol { border-color:rgba(255,255,255,.08); } .nm-rg-panel .divide-border > * + * { border-color:rgba(255,255,255,.08); }

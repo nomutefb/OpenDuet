@@ -2,14 +2,16 @@
 //   PC 줄마다: 머리(단계 점 · 이름 · 받은 때 · 도는 Claude · 잡/자리 · 부하 %) → 계기 셋(CPU·RAM(+캐시)·GPU · 쓴 양/전체) → 60분 추세(CPU·RAM 선) →
 //   도는 잡(제목 · 수신 → 발신 · 걸린 시간 · 예상 대비 진행 · 큰/작은 자리 · 자리 이름 · 시작) → 디버그 세션 줄 · 맥 = 머리 + 줄 글 · 아래 = 출력 신선도·자리 감시.
 import { type ReactNode, useEffect, useState } from "react";
-import { MicOrb } from "../swap/mic-orb";   // 생각 구슬 = 등불 구슬 그대로(새 얼굴 0 · PM 11:08)
+import { MicOrb } from "../swap/mic-orb";
+import { TickGauge } from "./tick-gauge";   // 위젯 틱 게이지(형 11-01 17:4x 「러너 대시보드도 윈a나 맥에 깔린 모양이 들어와야해」)
+import "./runner-board.css";   // 생각 구슬 = 등불 구슬 그대로(새 얼굴 0 · PM 11:08)
 import { Chev } from "../ui/chev";   // 꺽쇠 하나(형 11-01)
 import {
   agentsOf, type Agent, debugRows, type Level, levelOf, lookOf, num, type OutItem, type RunnerData, type RunnerJob, type RunnerRow, runningJobs, useOpen, useRunner,
 } from "./runner-data";
 
-const INK: Record<Level, string> = { green: "text-emerald-500", yellow: "text-amber-400", orange: "text-orange-500", red: "text-red-500", off: "text-muted-foreground/50" };
-const BG: Record<Level, string> = { green: "bg-emerald-500", yellow: "bg-amber-400", orange: "bg-orange-500", red: "bg-red-500", off: "bg-muted-foreground/40" };
+const INK: Record<Level, string> = { green: "text-[#71C5E8]", yellow: "text-[#FFD23F]", orange: "text-[#FF9F43]", red: "text-[#FF5A5F]", off: "text-muted-foreground/50" };   // 단계 색 = 위젯 Theme(./tick-gauge LV)
+const BG: Record<Level, string> = { green: "bg-[#71C5E8]", yellow: "bg-[#FFD23F]", orange: "bg-[#FF9F43]", red: "bg-[#FF5A5F]", off: "bg-muted-foreground/40" };
 const PCS = [["A", "WIN A"], ["B", "WIN B"]] as const;
 const f0 = (v: number | null) => (v == null ? "-" : String(Math.round(v)));
 const f1 = (v: number | null) => (v == null ? "-" : v.toFixed(1));
@@ -33,11 +35,14 @@ export function RunnerBoard({ data: given }: { data?: RunnerData }) {
     return <p className="mt-6 text-sm text-muted-foreground" role={q.isError ? "alert" : undefined}>{q.isError ? `러너 소식을 못 받았어 — ${q.error.message}` : "러너 소식 받는 중…"}</p>;
   }
   return (
-    <div className="mt-6 flex flex-col gap-4">
-      <div className="grid gap-4 lg:grid-cols-2">
-        {PCS.map(([pc, name]) => <PcCard key={pc} name={name} d={data.rows[pc] ?? null} why={data.why[pc] || ""} now={now} open={open[pc] !== false} onFlip={() => flip(pc)} />)}
+    <div className="nm-rg mt-4 flex flex-col gap-4">
+      <div className="nm-rg-card">   {/* 위젯 카드 = 제목 줄(배경 없음) + 판 하나(WIN A · WIN B · MAC PRO 줄 · design-preview 카드 440 · 판 둥글기 14) */}
+        <h2 className="nm-rg-title">RUNNER DASHBOARD</h2>
+        <div className="nm-rg-panel">
+          {PCS.map(([pc, name]) => <PcCard key={pc} name={name} d={data.rows[pc] ?? null} why={data.why[pc] || ""} now={now} open={open[pc] !== false} onFlip={() => flip(pc)} />)}
+          <MacCard d={data.rows.M ?? null} why={data.why.M || ""} now={now} />
+        </div>
       </div>
-      <MacCard d={data.rows.M ?? null} why={data.why.M || ""} now={now} />
       <Footer data={data} now={now} open={open.O === true} onFlip={() => flip("O")} />
     </div>
   );
@@ -47,16 +52,16 @@ function PcCard({ name, d, why, now, open, onFlip }: { name: string; d: RunnerRo
   const lk = lookOf(d, why, now), lv = levelOf(lk.load, lk.problem), jobs = runningJobs(d), dbg = debugRows(d);
   const busy = d && num(d.busy) != null && d.busy! >= 0 ? d.busy : null, total = d && num(d.total) != null && d.total! >= 0 ? d.total : null;
   return (
-    <section className="rounded-2xl border border-border bg-card p-4" aria-label={`${name} 러너`}>
+    <section className="nm-rg-row" aria-label={`${name} 러너`}>
       <Head name={name} lv={lv} when={lk.when} agents={agentsOf(d, lk.problem)} seats={d?.seats}
         right={<><span className="text-xs tabular-nums text-muted-foreground" title="도는 잡 / 자리">{lk.problem || busy == null ? "-" : busy}<span className="mx-0.5 opacity-50">/</span>{total ?? "-"}</span>
           <b className={`text-sm font-semibold tabular-nums ${INK[lv]}`} title="부하(자리·CPU·잡 램 중 큰 값)">{lk.load == null ? "-" : `${Math.round(lk.load)}%`}</b></>} />
       {why && !d ? <p className="mt-2 text-xs text-muted-foreground">{why}</p> : null}
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <Meter label="CPU" pct={d ? num(d.cpu) : null} used={`${f0(d ? num(d.cpuUsed) : null)}/${f0(d ? num(d.cpuTotal) : null)}`} problem={lk.problem} />
-        <Meter label="RAM" pct={d ? num(d.ram) : null} used={`${f1(d ? num(d.ramUsed) : null)}/${f1(d ? num(d.ramTotal) : null)}`} problem={lk.problem}
-          cache={!lk.problem && d && num(d.cacheGB) != null && (d.ramTotal ?? 0) > 0 ? (100 * d.cacheGB!) / d.ramTotal! : null} cacheGB={d ? num(d.cacheGB) : null} />
-        <Meter label="GPU" pct={d ? num(d.gpu) : null} used={`${f1(d ? num(d.gpuUsed) : null)}/${f1(d ? num(d.gpuTotal) : null)}`} problem={lk.problem} />
+      <div className="nm-rg-gauges">   {/* 틱 게이지 셋(위젯 GaugeView · 간격 균등) */}
+        <TickGauge label="CPU" pct={d ? num(d.cpu) : null} lv={levelOf(d ? num(d.cpu) : null, lk.problem)} used={`${f0(d ? num(d.cpuUsed) : null)}/${f0(d ? num(d.cpuTotal) : null)}`} />
+        <TickGauge label="RAM" pct={d ? num(d.ram) : null} lv={levelOf(d ? num(d.ram) : null, lk.problem)} used={`${f1(d ? num(d.ramUsed) : null)}/${f1(d ? num(d.ramTotal) : null)}`}
+          cache={!lk.problem && d && num(d.cacheGB) != null && (d.ramTotal ?? 0) > 0 ? (100 * d.cacheGB!) / d.ramTotal! : null} />
+        <TickGauge label="GPU" pct={d ? num(d.gpu) : null} lv={levelOf(d ? num(d.gpu) : null, lk.problem)} used={`${f1(d ? num(d.gpuUsed) : null)}/${f1(d ? num(d.gpuTotal) : null)}`} />
       </div>
       <Trend d={d} problem={lk.problem} />
       {!jobs.length ? (
@@ -95,7 +100,7 @@ function PcCard({ name, d, why, now, open, onFlip }: { name: string; d: RunnerRo
 function MacCard({ d, why, now }: { d: RunnerRow | null; why: string; now: number }) {
   const lk = lookOf(d, why, now);
   return (
-    <section className="rounded-2xl border border-border bg-card px-4 py-3" aria-label="MAC PRO">
+    <section className="nm-rg-row mac" aria-label="MAC PRO">
       <Head name="MAC PRO" lv={lk.problem ? "off" : "green"} when={lk.when} agents={agentsOf(d, lk.problem)}
         right={<span className="truncate text-xs text-muted-foreground">{d?.line || why || ""}</span>} />
     </section>
@@ -107,7 +112,7 @@ function Head({ name, lv, when, agents, right, seats }: { name: string; lv: Leve
   return (
     <div className="flex min-w-0 items-center gap-2">
       <span aria-hidden className={`size-2 shrink-0 rounded-full ${BG[lv]}`} />
-      <b className="shrink-0 text-sm font-semibold tracking-wide">{name}</b>
+      <b className="nm-rg-name shrink-0">{name}</b>
       <span className="shrink-0 text-xs tabular-nums text-muted-foreground">· {when}</span>
       <Claudes list={agents} />
       {ss.length ? (
@@ -121,22 +126,6 @@ function Head({ name, lv, when, agents, right, seats }: { name: string; lv: Leve
 }
 
 /** 계기 하나 = 큰 % · 쓴 양/전체 · 막대(단계 색) · RAM = 막대 뒤에 캐시 몫(옅게). */
-function Meter({ label, pct, used, problem, cache, cacheGB }: { label: string; pct: number | null; used: string; problem: boolean; cache?: number | null; cacheGB?: number | null }) {
-  const lv = levelOf(pct, problem), v = Math.max(0, Math.min(100, pct ?? 0)), c = cache == null ? 0 : Math.max(0, Math.min(100 - v, cache));
-  return (
-    <div className="min-w-0" role="img" aria-label={`${label} ${pct == null ? "-" : Math.round(v)}% · ${used}`}>
-      <div className="flex items-baseline gap-1">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <span className={`ml-auto text-lg font-semibold tabular-nums leading-none ${INK[lv]}`}>{pct == null ? "-" : Math.round(v)}<small className="text-xs">%</small></span>
-      </div>
-      <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-foreground/10">
-        <span className={`h-full ${BG[lv]}`} style={{ width: `${v}%` }} />
-        {c > 0 ? <span className={`h-full ${BG[lv]} opacity-30`} style={{ width: `${c}%` }} title="캐시(비울 수 있는 램)" /> : null}
-      </div>
-      <p className="mt-1 truncate text-[11px] tabular-nums text-muted-foreground">{used}{c > 0 && cacheGB != null ? ` · 캐시 ${f1(cacheGB)}` : ""}</p>
-    </div>
-  );
-}
 
 /** 60분 추세 = CPU(단계 색 선) · RAM(옅은 선) · 오른쪽 끝 = 지금. 값 없는 분 = 끊음. */
 function Trend({ d, problem }: { d: RunnerRow | null; problem: boolean }) {
