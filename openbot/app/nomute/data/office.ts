@@ -22,8 +22,11 @@ export type OfficeRoom = {
 export const HYUNG_ID = "hyung";
 export const WINTER_ID = "winter";
 
+/** 쓰기(글 보내기 등 · 몸이 작은 글자)는 keepalive — 보내는 도중 화면이 다시 읽혀도(형이 새로고침 · 옛 판 저절로) 서버까지 감(형 11-02 07:20 「내 ㅁㅔ세지는 정확히 가고」) · 브라우저 keepalive 몸 한도 64KB 라 60KB 아래만 */
+const keep = (init: RequestInit) => typeof init.body === "string" && init.body.length < 60_000 && !!init.method && init.method.toUpperCase() !== "GET";
+
 export async function office<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`/api/office/${path}`, { credentials: "same-origin", cache: "no-store", ...init, headers: { ...(init.body ? { "content-type": "application/json" } : {}), ...(init.headers || {}) } });
+  const res = await fetch(`/api/office/${path}`, { credentials: "same-origin", cache: "no-store", ...(keep(init) ? { keepalive: true } : {}), ...init, headers: { ...(init.body ? { "content-type": "application/json" } : {}), ...(init.headers || {}) } });
   const j = (await res.json().catch(() => ({}))) as T & { ok?: boolean; why?: string; error?: string };
   if (!res.ok || j.ok === false) throw new Error(j.why || j.error || `사무실 서버 ${res.status}`);
   return j;
