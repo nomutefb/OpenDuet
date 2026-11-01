@@ -15,3 +15,8 @@
 .nm-ask .nm-ask-note.ok { color:var(--accent); } .nm-ask .nm-ask-note.err { color:#ff8a8a; }
 .nm-ask .nm-ask-acts { margin-top:2px; justify-content:flex-end; }
 .nm-ask .ypc-go:disabled { opacity:.5; }
+/* 링크 판별 한 줄(원본 askLinkSt · 영상일 때만) · 강조 = 길이 상한 안내 */
+.nm-ask .nm-ask-probe { margin:-2px 2px 0; font-size:var(--fs-sm, 12px); color:var(--fg-2, var(--mut)); }
+.nm-ask .nm-ask-probe.subs { color:var(--accent); }
+.nm-ask .nm-ask-probe b { font-weight:var(--fw-m, 500); color:var(--fg); }
+.nm-ask .nm-ask-in, .nm-ask .nm-ask-ta, .nm-ask .nm-ask-probe { font-family:var(--app-font-text, inherit); }   /* 주소·글 = 본문 글꼴(LEMONMILK 대문자 꼴이면 youtu.be/abc 가 대문자로 보여 헷갈림 · 시아 nm-nd-orig 와 같은 줄) */

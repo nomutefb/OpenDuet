@@ -50,7 +50,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 네비 4번(서랍 목록엔 안 넣음 · swap/tab-bar.tsx)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(에디터 /?tab=scrap 그대로 품음 · 옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x)
-  { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 보내기" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
+  { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 · 링크 판별·초안 보존" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
   { id: "news", label: "뉴스 요약", icon: "page", to: "/news", desc: "최신 목록·기사 요약" },   // 에디터 「뉴스 요약」 목록(누르면 앱 안 기사 한 장 = #/news?a=<file> · 썸네일·본문·카드 · 고치기만 에디터)
   { id: "thumbhist", label: "썸네일 이력", icon: "layout", to: "/thumbhist", desc: "만든 썸네일 보기·저장" },   // 에디터 썸네일 「이전 제작」(thumb-hist.json · ./thumb-hist.tsx)
   { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan", desc: "한눈" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
@@ -58,7 +58,6 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "edtool", label: "에디터", icon: "plus", to: "/edtool", desc: "카드 제작·영상 편집·유튜브" },
   // 에디터 첫 화면 탭·도구를 서랍 칸마다 바로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘 / 지금 저 기능이 완전히 유지되어야해」 · 공통/문서/2026-11-01-서랍-에디터-이식/안.md)
   { id: "feed", label: "뉴스 전체", icon: "page", to: "/feed", desc: "필터·검색·대기열·기사 상세" },
-  { id: "askfull", label: "요약 요청 · 에디터 판", icon: "chat", to: "/askfull", desc: "링크 판별·초안 보존" },
   { id: "trend", label: "SNS 전체", icon: "globe", to: "/trend", desc: "섹션 전부·구독 채널·새로 수집" },
   { id: "chanfull", label: "채널 전체", icon: "dashboard", to: "/chanfull", desc: "차트·게시물·결의 보드" },
   // 에디터 설정 메뉴 안 칸들(전엔 러너 톱니로만 열림) = 에디터 /?pop=<이름> 딥링크(빠르 11-01 04:23 · 이름 = 봄 안 표)
@@ -82,7 +81,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
-const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1", feed: "/?tab=feed&inapp=1", askfull: "/?tool=ask&inapp=1", trend: "/?tab=trend&inapp=1", chanfull: "/?tab=chan&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
+const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1", feed: "/?tab=feed&inapp=1", trend: "/?tab=trend&inapp=1", chanfull: "/?tab=chan&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
   edq: "/?pop=queue&inapp=1", edsearch: "/?pop=search&inapp=1", eddl: "/?pop=dlgrab&inapp=1", edmsgs: "/?pop=msgs&inapp=1", edmemo: "/?pop=memo&inapp=1", edsensor: "/?pop=sensor&inapp=1", edkw: "/?pop=kw&inapp=1", edsnsacc: "/?pop=snsacc&inapp=1", edpush: "/?pop=push&inapp=1", edfilter: "/?pop=filter&inapp=1", edgenopt: "/?pop=genopt&inapp=1", edlock: "/?pop=lock&inapp=1", edacct: "/?pop=account&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
@@ -92,7 +91,8 @@ export function whereFor(pathname: string): Where {
   if (p === "/" || p === "/home") return { pane: "home" };   // 앱 열면 = 홈(형 12:21 「홈이 뜨는 지금이 맞고」 · PM 12:55)
   if (/^\/(channels|group)\/[^/]+$/.test(p)) return { pane: "chat" };   // 회의실 = #/group/all
   if (p === "/rooms") return { pane: "rooms" };
-  if (p === "/editor") return { pane: "home" };   // 옛 에디터 판 주소(즐겨찾기·옛 링크) = 홈으로(판 없음 · 칸은 서랍에)
+  if (p === "/editor") return { pane: "home" };
+  if (p === "/askfull") return { modal: "ask" };   // 옛 「요약 요청 · 에디터 판」 주소 = 앱 요약 요청(빠르 11-01 · 합침)   // 옛 에디터 판 주소(즐겨찾기·옛 링크) = 홈으로(판 없음 · 칸은 서랍에)
   const m = MODALS.find((x) => x.to === p);
   if (m) return { modal: m.id };
   if (p === "/web") return { web: true };   // 앱 밖 주소 = 앱 안 한 겹(#/web?u=…)
