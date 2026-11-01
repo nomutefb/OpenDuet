@@ -1,0 +1,15 @@
+/* 서랍 「알림메세지」(./msgs.tsx) — 대기열 줄(./queue.css) 꼴 그대로 · 칸 차례만 원본 메시지함(시간 | 구분 | 내용 | 지움) */
+.nm-msg .nm-msg-row { grid-template-columns:52px 40px minmax(0, 1fr) auto; cursor:pointer; transition:opacity .24s ease, transform .24s ease; }
+.nm-msg .nm-msg-row.warn { border-color:color-mix(in srgb, #ffb347 45%, transparent); }
+.nm-msg .nm-msg-row.out { opacity:0; transform:translateX(12px); }   /* 원본 animateRowOut .24s */
+@media (prefers-reduced-motion:reduce) { .nm-msg .nm-msg-row { transition:none; } }
+.nm-msg .mk { font-size:var(--fs-xs); font-weight:var(--fw-b); font-style:normal; white-space:nowrap; }
+.nm-msg .mk.sys { color:#c9a7ff; } .nm-msg .mk.warn { color:#ffb347; } .nm-msg .mk.info { color:var(--mut); }   /* 원본 mk-sys · mk-warn · mk-info */
+.nm-msg .nm-msg-back { display:inline-flex; margin-right:4px; padding:0; border:0; background:none; color:var(--fg); transform:scaleX(-1); }
+.nm-msg .nm-msg-back svg { width:16px; height:16px; }
+.nm-msg .nm-msg-detail { display:flex; flex-direction:column; gap:10px; padding:4px 2px; }
+.nm-msg .nm-msg-detail .hd { display:flex; align-items:baseline; gap:8px; }
+.nm-msg .nm-msg-detail .bd { margin:0; font-size:var(--fs-sm, 12px); line-height:1.6; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; color:var(--fg); font-family:var(--app-font-text, inherit); }
+.nm-msg .nm-msg-act { align-self:flex-start; }
+.nm-msg .nm-msg-act.ok { opacity:.8; }
+html:not(.dark) .nm-msg .mk.sys { color:#6a33c2; } html:not(.dark) .nm-msg .mk.warn { color:#b86200; }
