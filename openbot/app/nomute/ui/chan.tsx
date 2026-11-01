@@ -6,7 +6,8 @@
 //     1조각 = 일일 추이(원본 39-chLiftChart 869줄 · 지표 칩 + 7·30·90일·전체 + 선 그래프 + 최근일 값) · 최근 게시물(936줄 · thumbs 12칸 · 릴스 ▶ · 조회수 = posts[permalink] · 경과 = iso+date_kst 시각 · relAge 사다리)
 //     2조각 = TOP 게시물(926줄 · 최신 게시일 앵커 기간 · 같은 포맷 중앙값 대비 ×배수 순 · 조회 = views 없으면 eng) · 인구통계(776줄 audience_sample · 성별 남:여 정규화 · 나이 age_full 상위 4 · 도시·나라 상위 4 · 이어 쓴 값 = 「M/D 기준」)
 //     3조각 = 잘 되는 조건 · 시간대별 반응(봄 · ./chan-charts.tsx)
-//     아직 에디터 몫 = 주제별 반응 · 결과 함께 → 맨 아래 「나머지는 에디터에서」 한 단추
+//     4조각 = 주제별 반응(원본 884줄 · topics / topics_90d · 「기타」 뺌 · 표본 5개 미만 = 「표본부족」 맨 뒤 · 막대 = 조회 중앙값 · 믿을 칸 평균 대비 ×배수 · 위 둘 강조 · 90일 창 = signals.win_90d 있을 때만)
+//     아직 에디터 몫 = 결과 함께(형 11-01 「그건 내가 따로얘기할게」) → 맨 아래 「나머지는 에디터에서」 한 단추
 import "./yeta-settings.css";
 import "./chan.css";
 import { useQuery } from "@tanstack/react-query";
@@ -20,7 +21,8 @@ type Thumb = { th?: string; u?: string; t?: string; r?: boolean };
 type Post = { permalink?: string; views?: number | null; eng?: number | null; iso?: string; date_kst?: string; format?: string; name?: string };
 type Pct = { k?: string; pct?: number | string };
 type Aud = { gender?: { M?: number; F?: number; M_norm?: number; F_norm?: number }; age_full?: Pct[]; age_gender_top?: Pct[]; city_top?: Pct[]; country_top?: Pct[]; carried_kst?: string; as_of?: string };
-type Chan = { profile?: { followers_count?: number | null; username?: string; name?: string }; generated_kst?: string; daily_series?: Row[]; src?: string; avg?: Record<string, { avg_7d?: number }>; thumbs?: Thumb[]; posts?: Post[]; posts_view_avg?: number; audience_sample?: Aud };
+type Chan = { profile?: { followers_count?: number | null; username?: string; name?: string }; generated_kst?: string; daily_series?: Row[]; src?: string; avg?: Record<string, { avg_7d?: number }>; thumbs?: Thumb[]; posts?: Post[]; posts_view_avg?: number; audience_sample?: Aud; topics?: Record<string, Topic>; topics_90d?: Record<string, Topic>; signals?: { win_90d?: { n?: number; from?: string; to?: string }; axes_90d?: unknown; n_posts?: number } };
+type Topic = { n?: number; views_med?: number };
 type Src = "ig" | "fb" | "th";
 const SRC: { id: Src; t: string; file: string }[] = [
   { id: "ig", t: "인스타", file: "insta_data.json" },
@@ -131,7 +133,7 @@ function DailyChart({ series, metric, unit }: { series: Row[]; metric: string; u
 const signed = (v: number, u: string) => (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toLocaleString("ko-KR") + u;
 
 export function ChanModal({ full = false }: { full?: boolean }) {
-  const [src, setSrc] = useState<Src>("ig"), [met, setMet] = useState("views"), [range, setRange] = useState<Range>("30"), [tpr, setTpr] = useState<Range>("7");
+  const [src, setSrc] = useState<Src>("ig"), [met, setMet] = useState("views"), [range, setRange] = useState<Range>("30"), [tpr, setTpr] = useState<Range>("7"), [rr, setRr] = useState<"90" | "all">("90");
   const q = useQuery({
     queryKey: ["nomute", "chan-brief"], staleTime: 300_000, refetchInterval: 300_000,   // 원본 TTL 5분
     queryFn: async () => {
@@ -148,6 +150,9 @@ export function ChanModal({ full = false }: { full?: boolean }) {
   const series = (d?.daily_series || []).filter((r) => r && r.date);
   const flw = d?.profile?.followers_count, fsum = d ? winSum(series, src === "th" ? "follower_net" : "follows") : null;
   const mets = MET[src], m = mets.find((x) => x[0] === met) || mets[0], view = range === "all" ? series : series.slice(-Number(range));
+  const rw = d?.signals?.win_90d, rrOk = !!(d?.topics_90d && d?.signals?.axes_90d && rw?.n), topics = (rrOk && rr === "90" ? d?.topics_90d : d?.topics) || {};
+  const tok = (k: string) => (topics[k].n || 0) >= 5, tkeys = Object.keys(topics).filter((k) => k !== "기타" && (topics[k].n || 0) > 0).sort((x, y) => Number(tok(y)) - Number(tok(x)) || (topics[y].views_med || 0) - (topics[x].views_med || 0));
+  const tsure = tkeys.filter(tok), tmax = tsure.length ? topics[tsure[0]].views_med || 1 : 1, tavg = tsure.length ? tsure.reduce((t, k) => t + (topics[k].views_med || 0), 0) / tsure.length : 0;
   const tops = full && d ? topPosts(d.posts || [], d.posts_view_avg, tpr) : [], dm = full ? demo(d?.audience_sample) : null;
   const postOf = new Map((d?.posts || []).filter((p) => p.permalink).map((p) => [String(p.permalink), p])), thumbs = (d?.thumbs || []).slice(0, 12);
   return (
@@ -185,6 +190,16 @@ export function ChanModal({ full = false }: { full?: boolean }) {
                 </section>
               ) : null}
               {full && d ? <ChanCharts d={d} src={src} /> : null}   {/* 잘 되는 조건 · 시간대별 반응 = 봄 그래픽 손(./chan-charts.tsx · 그리는 몸 = 에디터 원본 줄 그대로) */}
+              {full && tsure.length ? (
+                <section className="nm-chan-sec" aria-label="주제별 반응">
+                  <div className="yset-sec"><b>주제별 반응</b>
+                    {rrOk ? <span className="nm-chan-seg" role="tablist">{([["90", "90일", `최근 90일 게시물 ${rw?.n || 0}개 안에서 비교`], ["all", "전체", `전 기간(표본 ${d?.signals?.n_posts || "—"}개)`]] as const).map(([k, t, tt]) => <button key={k} type="button" role="tab" title={tt} aria-selected={rr === k} className={rr === k ? "on" : ""} onClick={() => setRr(k)}>{t}</button>)}</span> : null}
+                  </div>
+                  <div className="nm-chan-bars topic">{tkeys.map((k, i) => { const v = topics[k], ok = tok(k); return (
+                    <div key={k} className={`row${ok && i < 2 ? " top2" : ""}${ok ? "" : " few"}`}><span className="lb">{k}</span><span className="bar"><i style={{ width: `${Math.max(4, Math.min(100, Math.round(((v.views_med || 0) / tmax) * 100)))}%` }} /></span><span className="v">{vwR(v.views_med ?? null)} <b>({ok ? (tavg ? `×${((v.views_med || 0) / tavg).toFixed(1)}` : "—") : "표본부족"})</b></span></div>
+                  ); })}</div>
+                </section>
+              ) : null}
               {full && tops.length ? (
                 <section className="nm-chan-sec" aria-label="TOP 게시물">
                   <div className="yset-sec"><b>TOP 게시물</b>

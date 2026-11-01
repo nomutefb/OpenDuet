@@ -63,4 +63,11 @@
 .nm-chan .nm-chan-bars .gbar { display:flex; height:22px; border-radius:6px; overflow:hidden; font-size:10px; font-style:normal; }
 .nm-chan .nm-chan-bars .gbar i { display:flex; align-items:center; justify-content:center; font-style:normal; white-space:nowrap; overflow:hidden; color:#111; }
 .nm-chan .nm-chan-bars .gbar .m { background:var(--accent); } .nm-chan .nm-chan-bars .gbar .f { background:#FFB300; }
+/* 주제별 반응(원본 .ch-tgrid · 위 둘 = 연두 · 표본부족 = 흐림) */
+.nm-chan .nm-chan-bars.topic { font-size:12px; gap:6px; }
+.nm-chan .nm-chan-bars.topic .row { grid-template-columns:minmax(0,78px) 1fr auto; }
+.nm-chan .nm-chan-bars.topic .bar i { background:color-mix(in srgb, var(--accent) 45%, var(--glass-line)); }
+.nm-chan .nm-chan-bars.topic .row.top2 .bar i { background:var(--accent); } .nm-chan .nm-chan-bars.topic .row.top2 .lb { color:var(--fg); font-weight:var(--fw-b); }
+.nm-chan .nm-chan-bars.topic .row.few { opacity:.55; }
+.nm-chan .nm-chan-bars.topic .v b { font-weight:400; color:var(--mut); }
 @media (max-width:360px) { .nm-chan .nm-chan-tiles { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
