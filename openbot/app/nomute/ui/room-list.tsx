@@ -10,6 +10,7 @@ import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
+import ShinyText from "./shiny-text";
 import { TempDeleteDialog, TempRoomDialog, TempSwipe } from "./temp-room";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
@@ -23,6 +24,7 @@ const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, 
 
 
 import { enterRoom, roomReadState } from "../data/read-state";
+const LIVE_MS = 3 * 60_000, NAME_INK = "#f4f4f5", SHINE_DEFAULT = "#CFFF40";   // 이름 글자색(어두운 판 text-foreground 잰 값 · 빛 원본은 색값을 캔버스로 읽어서 변수 못 씀) · 빛 = 1:1 그 이 테 색 · 단톡 방 표지 색 · 없으면 노뮤트색
 
 export type Room = OfficeRoom & { unread?: number };
 
@@ -80,6 +82,9 @@ export function useRoomOrder() {
 
 export function RoomList({ onOpen, big = false, slim = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; current?: string }) {   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
   const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
+  // 활발한 방 = 이름에 빛(형 11-01 「현재 활발한 방(누군가라도 활동중인 방개인포함)은 이름에 빚지나가게」) — 마지막 글이 3분 안 · 또는 1:1 에서 형 글 뒤 그 이가 일하는 중(대화 칸 점 셋과 같은 깸 표 · 같은 bots 캐시)
+  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string; why?: string }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
+  const live = (r: Room) => { const l = lastOf(r); return Date.now() - (r.last_ts || 0) < LIVE_MS || (!!r.with && l?.kind === "human" && bots.some((b) => b.who === r.with && b.state === "awake" && b.why !== "read")); };
   const notice = useQuery({ queryKey: ["nomute", "notice"], queryFn: () => office<{ notice?: { text: string; at?: string } }>("noticeset").then((j) => j.notice), staleTime: 60_000 }).data;
   const [menu, setMenu] = useState(""), [noticeOpen, setNoticeOpen] = useState(false), [hiddenOpen, setHiddenOpen] = useState(false);
   const [tinting, setTinting] = useState<Room | null>(null), [peek, setPeek] = useState<{ id: string; hex: string } | null>(null);   // 표지 색 판(./room-color.tsx) · peek = 끄는 동안 줄에 먼저 보임
@@ -139,7 +144,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
             : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
-              <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`}>{p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
+              <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`}>{live(r) ? <ShinyText text={p?.name || r.name} color={NAME_INK} shineColor={(r.with ? ringOf(p) : rc) || SHINE_DEFAULT} speed={2.2} delay={1.2} shineWidth={60} glow={0.5} /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
