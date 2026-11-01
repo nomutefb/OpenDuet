@@ -22,7 +22,6 @@ export function RunnerTree({ map, group, go, review = {}, can = false, who = (w)
   const Link = ({ file }: { file: string }) => <button type="button" className="nm-sched-chip" disabled={!byFile[file]} onClick={() => jump(file)}>{byFile[file]?.name || file}</button>;
   return (
     <>
-    <p className="text-xs text-muted-foreground">러너는 보기만 돼. 끄기 길이 열리면 줄마다 스위치가 생겨.</p>
     <ul className="nm-sched-tree">
       {map.forks.filter((f) => f.group === group).map((f) => {
         const js = map.jobs.filter((j) => j.fork === f.id), on = openF === f.id, fs = sumOf(js.map((j) => stOf(j.health, f.on === false || j.on === false)));
@@ -31,7 +30,7 @@ export function RunnerTree({ map, group, go, review = {}, can = false, who = (w)
             <div className="nm-sched-forkhead">
               <StatusDot st={worstOf(fs)} />   {/* 꺼진 차단기(눌리지 않음) 대신 이 포크에서 제일 나쁜 상태 하나(뜸 11-02 「차단기가 화면에서 제일 밝은데 러너 102개는 전부 disabled」) */}
               <button type="button" aria-expanded={on} onClick={() => setOpenF(on ? "" : f.id)}>
-                <b>{f.name}</b><small>꼬챙이 {js.length}{fs.miss ? ` · 놓침 ${fs.miss}` : ""}{fs.late ? ` · 지연 ${fs.late}` : ""}{f.note ? ` · ${f.note}` : ""}</small>
+                <b>{f.name}</b><small>꼬챙이 {js.length}{fs.miss ? ` · 놓침 ${fs.miss}` : ""}{fs.late ? ` · 지연 ${fs.late}` : ""}</small>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d={on ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} /></svg>
               </button>
             </div>
@@ -60,7 +59,7 @@ export function RunnerTree({ map, group, go, review = {}, can = false, who = (w)
                           </div>
                           {j.notify?.length ? <small>알림 {j.notify.join(" · ")}</small> : null}
                           <small>{[(j.res || []).map((r) => `${r.at}${r.gpu ? "(GPU)" : ""}`).join(" › ") || "돌 자리 모름", j.model?.length ? j.model.join(" · ") : j.providers?.length ? j.providers.join(" · ") : "LLM 없음", `${j.owner || "책임 모름"}${j.checked ? "" : " · 확인 전"}`].join(" · ")}</small>
-                          <small className="nm-row1-h" data-st={st}>{HEALTH_KO[st]}{j.health?.last_at ? ` · 마지막 실제 ${nextShort(j.health.last_at)}` : st === "unknown" ? " · 실제로 돌았는지 아직 볼 길이 없어" : ""}{j.health?.drift_min ? ` · 예정보다 ${j.health.drift_min}분 늦음` : ""}</small>
+                          {j.health ? <small className="nm-row1-h" data-st={st}>{HEALTH_KO[st]}{j.health?.last_at ? ` · 마지막 실제 ${nextShort(j.health.last_at)}` : ""}{j.health?.drift_min ? ` · 예정보다 ${j.health.drift_min}분 늦음` : ""}</small> : null}
                           <ReviewBox id={j.id} r={review[j.id]} can={can} who={who} />
                         </div>
                       ) : null}

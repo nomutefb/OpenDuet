@@ -11,7 +11,7 @@ import "./sched-review.css";
 
 export type Review = { step: "review" | "remove" | "change"; name: string; owner: string; by: string; at: number; why?: string; note?: string; note_by?: string; note_at?: number; decided_by?: string; decided_at?: number };
 const STEP_KO: Record<string, string> = { review: "검토 중", remove: "없애기 확정", change: "바꾼 뒤 원복" };
-const NEXT_KO: Record<string, string> = { review: "형 확인을 기다려 · 그전엔 아무것도 안 지워져", remove: "책임자가 실제로 내리고 표에서 빼면 끝나", change: "책임자가 바꾸고 나면 끝나" };
+const NEXT_KO: Record<string, string> = { review: "형 확인 기다림", remove: "책임자 내림 기다림", change: "책임자 바꿈 기다림" };
 const agoKo = (ts: number) => { const m = Math.round((Date.now() - ts) / 60e3); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
 
 export function ReviewBadge({ r }: { r?: Review }) {
@@ -27,7 +27,6 @@ export function ReviewBox({ id, r, can, who }: { id: string; r?: Review; can: bo
     return sure ? (
       <div className="nm-rv" role="alertdialog" aria-label="폐기 확인">
         <b>정말 폐기할까?</b>
-        <small>바로 지우지 않고 검토 요청으로 넘어가. 책임자가 같이 멈추는 걸 적고, 형이 확인해야 없어지거나 원복돼.</small>
         <input value={why} maxLength={300} placeholder="까닭 한 줄(안 써도 돼)" onChange={(e) => setWhy(e.target.value)} />
         <div className="nm-rv-row">
           <GoButton className="nm-sched-go" go={() => post({ act: "ask", ...(why.trim() ? { why: why.trim() } : {}) })} done={fresh}>검토 요청</GoButton>

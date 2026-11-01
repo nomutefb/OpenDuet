@@ -67,9 +67,9 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
   const first = useMemo(() => readPick(r.cron), [r.cron]);
   const [k, setK] = useState<Pick | null>(first), [raw, setRaw] = useState(cronShow(r.cron));
   useEffect(() => { setK(first); setRaw(cronShow(r.cron)); }, [first, r.cron]);
-  if (!r.cron?.length) return <small>부를 때만 깨어나</small>;
+  if (!r.cron?.length) return <small>부를 때만</small>;
   const dated = r.cron.some((c) => { const p = c.replace(CRON_H, "").trim().split(/\s+/); return p[2] !== "*" && p[3] !== "*"; });
-  if (dated) return <small>{cronKo(r.cron)} 한 번 · 시간은 못 고쳐</small>;
+  if (dated) return <small>{cronKo(r.cron)} 한 번</small>;
   if (!k) return (
     <label className="nm-sched-when">직접
       <input disabled={!can} value={raw} aria-label={`${r.name} 언제`} onChange={(e) => setRaw(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(raw.split(";").map((x) => x.trim()).filter(Boolean).map((x) => CRON_H + x)); }} />
@@ -231,7 +231,7 @@ export function SchedDesk() {
                     <li className="nm-sched-common"><button type="button" className="nm-sched-chip" onClick={() => setVals((v) => ({ ...v, [`fork|${f.id}`]: "" }))}>공통 내용 넣기</button></li>
                   ) : f.common || vals[`fork|${f.id}`] !== undefined ? (
                     <li className="nm-sched-common">
-                      <label>공통 내용 · 이 포크 꼬챙이 모두에 붙어
+                      <label>공통 내용
                         <textarea rows={2} disabled={!can} value={vals[`fork|${f.id}`] ?? f.common ?? ""} onChange={(e) => setVals((v) => ({ ...v, [`fork|${f.id}`]: e.target.value }))}
                           onBlur={() => { const v = vals[`fork|${f.id}`]; if (v !== undefined && v !== (f.common ?? "")) prep({ at: "fork", key: f.id, field: "common", value: v, label: f.name }); }} />
                       </label>
@@ -254,9 +254,8 @@ export function SchedDesk() {
                         {bar(r.id)}
                         {wide ? (
                           <div className="nm-sched-rt">
-                            {bell || room ? null : <small className="nm-row1-h" data-st={rSt(r)}>{HEALTH_KO[rSt(r)]}{r.health?.last_at ? ` · 마지막 실제 ${nextShort(r.health.last_at)}` : rSt(r) === "unknown" ? " · 시계가 깨운 건 알지만 실제로 돌았는지는 아직 볼 길이 없어" : ""}{r.health?.drift_min ? ` · 예정보다 ${r.health.drift_min}분 늦음` : ""}{r.health?.missed ? ` · 놓침 ${r.health.missed}` : ""}</small>}
-                            {bell ? <small>단톡방에 글이 {r.bell6?.of ?? 6}개 쌓일 때마다 형 키로 {r.bell6?.ring.length ? r.bell6.ring.join("·") : "그 방 그록"}을 깨워. 멤버가 방에 「!종료」 쓰면 멈추고, 형이 그 방에 새로 쓰면 다시 켜져. 여기선 켜고 끄기만.</small>
-                              : room ? <small>시각·요일은 그 방 「루틴 만들기」에서 바꿔. 여기선 켜고 끄기와 글만.</small>
+                            {bell || room || !r.health ? null : <small className="nm-row1-h" data-st={rSt(r)}>{HEALTH_KO[rSt(r)]}{r.health?.last_at ? ` · 마지막 실제 ${nextShort(r.health.last_at)}` : ""}{r.health?.drift_min ? ` · 예정보다 ${r.health.drift_min}분 늦음` : ""}{r.health?.missed ? ` · 놓침 ${r.health.missed}` : ""}</small>}
+                            {bell || room ? null
                               : <WhenPick r={r} can={can} busy={go.isPending} send={(v) => prep({ at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` })} />}
                             {r.marks?.includes("time_in_text") ? <small className="nm-sched-warn">할 일 글 안에도 시각이 적혀 있어. 시간을 바꾸면 글도 같이 봐 줘</small> : null}
                             {r.marks?.includes("date_in_text") ? <small className="nm-sched-warn">할 일 글 안에 날짜가 있어. 지침엔 날짜를 빼 줘</small> : null}
@@ -265,11 +264,11 @@ export function SchedDesk() {
                                 <textarea rows={5} disabled={!can} value={vals[`task|${r.id}`] ?? r.task} onChange={(e) => setVals((v) => ({ ...v, [`task|${r.id}`]: e.target.value }))}
                                   onBlur={() => { const v = vals[`task|${r.id}`]; if (v !== undefined && v !== r.task) prep({ at: "routine", key: r.id, field: "task", value: v, label: `${b?.who} ${r.name}` }); }} />
                               </label>
-                            ) : <small>할 일 글은 아직 그록 앱에 있어. 표로 옮기면 여기서 고쳐.</small>}
+                            ) : null}
                             {hasForks && !bell && !room ? (
                               <div className="nm-sched-sel">
-                                {r.marks?.includes("bot_bound") ? <small>이 봇 몸의 파일을 쓰는 일이라 다른 봇으로 못 옮겨</small> : r.cron?.length ? <div className="nm-sched-lbl">어떤 봇<BotPick label="어떤 봇" value={r.bot} disabled={!can} onPick={(v) => prep({ at: "routine", key: r.id, field: "bot", value: v, label: r.name })}
-                                  opts={d.bots.map((x) => ({ id: x.bot, name: nameOf(x), mark: list.find((p) => p.who === x.who)?.mark, face: face(x, 24), note: x.on === false ? "차단기 내려감" : x.next_ts ? `다음 깸 ${nextShort(x.next_ts)}` : "깰 일 없음" }))} /></div> : <small>받는 봇은 사건 길이 정해 · 여기서 안 바뀌어</small>}
+                                {r.marks?.includes("bot_bound") ? <div className="nm-sched-lbl">어떤 봇<b>{nameOf(b)}</b></div> : r.cron?.length ? <div className="nm-sched-lbl">어떤 봇<BotPick label="어떤 봇" value={r.bot} disabled={!can} onPick={(v) => prep({ at: "routine", key: r.id, field: "bot", value: v, label: r.name })}
+                                  opts={d.bots.map((x) => ({ id: x.bot, name: nameOf(x), mark: list.find((p) => p.who === x.who)?.mark, face: face(x, 24), note: x.on === false ? "차단기 내려감" : x.next_ts ? `다음 깸 ${nextShort(x.next_ts)}` : "깰 일 없음" }))} /></div> : <div className="nm-sched-lbl">어떤 봇<b>{nameOf(b)}</b></div>}
                                 <label>포크<select disabled={!can} value={r.fork} onChange={(e) => prep({ at: "routine", key: r.id, field: "fork", value: e.target.value, label: r.name })}>{d.forks!.filter((x) => !VIRTUAL.has(x.id)).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
                               </div>
                             ) : null}
