@@ -43,11 +43,11 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .yb { position:relative; }
 .ychat .yb:has(> .yrxs) { margin-bottom:13px; }
 .yrxs { position:absolute; right:8px; bottom:-14px; z-index:2; display:flex; gap:3px; white-space:nowrap; }
-.yrx { display:inline-flex; align-items:center; gap:2px; height:24px; padding:0 6px; border-radius:999px; font-size:13px; line-height:1; background:var(--bubble-ai); border:2px solid var(--bg); color:var(--fg); }
-.yrx.on { border-color:rgba(var(--accent-rgb),.55); }
+.yrx { display:inline-flex; align-items:center; gap:2px; height:24px; padding:0 6px; border-radius:999px; font-size:13px; line-height:1; background:var(--bubble-ai); border:0; color:var(--fg); box-shadow:0 1px 4px rgba(0,0,0,.35); }   /* 단 곳에 테두리 0(형 11-01 14:03 「이모지 저거 달아도 단 곳에 테두리 안생기게해줘」) · 말풍선과는 그림자로만 떨어짐 */
+.yrx.on { background:color-mix(in srgb, rgb(var(--accent-rgb)) 22%, var(--bubble-ai)); }   /* 내가 단 것 = 테 대신 바탕 살짝 */
 .yrx .tabular-nums { font-size:11px; }
 .ypc-ava { position:relative; }
-.ypc-orb { position:absolute; right:-4px; top:-4px; width:34px; height:34px; padding:0; border:0; border-radius:50%; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.45), inset -3px -4px 8px rgba(0,0,0,.25), inset 3px 4px 8px rgba(255,255,255,.35);
+.ypc-orb { position:absolute; right:12px; top:12px; z-index:4; width:30px; height:30px; padding:0; border:0; border-radius:50%; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.45), inset -3px -4px 8px rgba(0,0,0,.25), inset 3px 4px 8px rgba(255,255,255,.35);
   background:radial-gradient(circle at 34% 30%, rgba(255,255,255,.7), transparent 34%), conic-gradient(from 210deg, #4b7bff, #5ad1ff, #f7a8c4, #ffd27a, #ff8a4c, #ff5f8a, #9a7bff, #4b7bff); }
 .ncp { width:100%; display:flex; flex-direction:column; gap:10px; padding:12px; border-radius:16px; background:#1e2023; border:1px solid rgba(255,255,255,.1); text-align:left; }
 .ncp-f { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; font-size:11px; color:#8B8F8A; }
