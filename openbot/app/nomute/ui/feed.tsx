@@ -179,10 +179,17 @@ export function FeedModal({ search = false }: { search?: boolean }) {   // searc
     go(a._live ? editorPath(a.file) : `/news?a=${encodeURIComponent(a.file)}`);
   };
   return (
-    <Pane title="뉴스 요약">
+    <Pane title={search ? "검색" : "뉴스 요약"}>
       <div ref={root} />
       <div className="yeta-set mt-2">
         <div className="nm-chan nm-news nm-feed nm-feed-bare">   {/* 박스 한 겹 뺌 · 머리(오늘/대기열)·검색 뺌 = 제목 바로 밑부터 기사(형 11-01 18:0x 「바로 제목에서 검색도 사실 필요없어. 그냥 바로 요약한 애들 쭉쭉쭉 나오자.」) · 진행 중 카드는 그대로(누르면 대기열) */}
+          {search ? (   /* 검색 칸 = 서랍 「검색」으로 열 때만(뉴스 요약 화면은 형 18:0x 대로 칸 없음 · 서랍 「검색」이 칸 없는 목록만 열던 것 · 봄 11-01) */
+            <label className="nm-feed-find">
+              <DuetIcon name="search" size={16} />
+              <input type="search" autoFocus value={q} onChange={(e) => { setQ(e.target.value); reset(); }} placeholder="제목·매체 검색" aria-label="뉴스 검색" enterKeyHint="search" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
+              {q ? <button type="button" aria-label="검색어 지우기" onClick={() => { setQ(""); reset(); }}><DuetIcon name="x" size={14} /></button> : null}
+            </label>
+          ) : null}
           {/* 분류 칩 뺌(형 11-01 17:5x 「필터는 없어도될것같아!」) */}
           {pend.isError ? <p className="nm-chan-msg" role="status">대기열을 못 읽었어</p> : qs.length ? <div className="nm-feed-qs">{qs.map((c) => <QCard key={`${c.it.id || c.it.t}`} c={c} eta={pend.data?.eta || null} onOpen={() => go(ED_QUEUE)} />)}</div> : null}
           {list.isPending ? <p className="nm-chan-msg">기사 읽는 중…</p> : list.isError ? <p className="nm-chan-msg" role="alert">{(list.error as Error).message || "뉴스 요약을 못 읽었어"}</p> : !rows.length ? <p className="nm-chan-msg">{filtered ? "결과 없음" : "기사가 없어"}</p> : (

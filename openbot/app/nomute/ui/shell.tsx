@@ -38,6 +38,7 @@ import { ChanModal } from "./chan";
 import { TrendModal } from "./trend";   // 서랍 「SNS 전체」 = 에디터 트렌드 탭 네이티브(전엔 FRAME 으로 품음)
 import { QueueModal } from "./queue";
 import { MsgsModal } from "./msgs";
+import { AcctModal } from "./acct";   // 서랍 「계정 전환」 = 에디터 설정 ▸ 계정 전환을 앱 안으로(봄 11-01)
 import { GenOptModal } from "./genopt";   // 서랍 「생성 옵션」 = 에디터 설정 ▸ 기본값 그림 줄을 앱 안으로(봄 11-01)
 import { LockModal } from "./lock";   // 서랍 「잠금」 = 에디터 설정 ▸ 자동 잠금을 앱 안으로(봄 11-01)
 import { KwModal } from "./kw";   // 서랍 「키워드 알림」 = 에디터 설정 ▸ 키워드 알림을 앱 안으로(봄 11-01)
@@ -94,7 +95,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
-  edfilter: "/?pop=filter&inapp=1", edacct: "/?pop=account&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+  edfilter: "/?pop=filter&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -232,6 +233,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "edsearch" ? <div className="nm-scroll"><FeedModal search /></div>   // 검색 = 뉴스 전체 검색 칸(에디터 검색 창은 피드 목록을 거르는 칸 · 봄 11-01)
                   : M.id === "edq" ? <div className="nm-scroll"><QueueModal /></div>
                   : M.id === "edmsgs" ? <div className="nm-scroll"><MsgsModal /></div>
+                  : M.id === "edacct" ? <div className="nm-scroll"><AcctModal /></div>   // 계정 전환 = 앱 안(봄 11-01 · api/account · 20초 뒤 실제 값)
                   : M.id === "edgenopt" ? <div className="nm-scroll"><GenOptModal /></div>   // 생성 옵션 = 앱 안(봄 11-01 · imgProvider·imgOpt 바뀐 칸만 · AI 썸네일 켜기는 PIN 없을 때만)
                   : M.id === "edlock" ? <div className="nm-scroll"><LockModal /></div>   // 잠금 = 앱 안(봄 11-01 · 자동 잠금 분 · 켜기·PIN 은 에디터 설정 줄)
                   : M.id === "edkw" ? <div className="nm-scroll"><KwModal /></div>   // 키워드 알림 = 앱 안(봄 11-01 · 설정 한 장 kwItems·kwAlertOn · 발견 판정은 에디터·서버 그대로)
