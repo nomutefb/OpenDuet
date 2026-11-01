@@ -56,10 +56,11 @@ export function MemoModal() {
     <Pane title="메모">
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo">
-          <span className="ycd-nm yset-ttl">
-            {cur ? <button type="button" className="nm-msg-back" onClick={() => setOpen(-1)} aria-label="목록으로"><Chev /></button> : null}메모
+          <span className="ycd-nm yset-ttl">메모</span>
+          <div className="nm-bar">   {/* 단추 = 카드 머리 밖(모달 안은 카드 머리 숨김 · yeta-settings.css) */}
+            {cur ? <button type="button" className="nm-msg-back" onClick={() => setOpen(-1)} aria-label="목록으로"><Chev />목록</button> : null}
             {!cur ? <button type="button" className="nm-memo-plus" aria-expanded={box} aria-label={box ? "입력칸 접기" : "메모 쓰기"} onClick={() => openBox(!box)}>{box ? "닫기" : "＋ 쓰기"}</button> : null}
-          </span>
+          </div>
           {box && !cur ? (
             <div className="nm-memo-add">
               <textarea ref={inp} value={text} maxLength={LEN} rows={3} placeholder="할 일 · 적어 둘 것" onChange={(e) => setText(e.target.value)} />

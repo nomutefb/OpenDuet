@@ -93,7 +93,8 @@ export function MsgsModal() {
     <Pane title="알림메세지">
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left nm-chan nm-q nm-msg">
-          <span className="ycd-nm yset-ttl">{open ? <button type="button" className="nm-msg-back" onClick={() => setOpen(null)} aria-label="목록으로"><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button> : null}알림메세지{!open && unread ? <i className="nm-q-busy">새 {unread}</i> : null}</span>
+          <span className="ycd-nm yset-ttl">알림메세지</span>
+          {open || unread ? <div className="nm-bar">{open ? <button type="button" className="nm-msg-back" onClick={() => setOpen(null)} aria-label="목록으로"><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />목록</button> : <i className="nm-q-busy">새 {unread}</i>}</div> : null}   {/* 단추·새 수 = 카드 머리 밖(모달 안은 카드 머리 숨김 · yeta-settings.css) */}
           {open ? (
             <div className="nm-msg-detail">
               <div className="hd"><b className={`mk ${kindOf(open).c}`}>{kindOf(open).t}</b><span className="qt">{ago(open)}</span></div>
