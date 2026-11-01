@@ -332,6 +332,15 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-room-menu-list { position:fixed; z-index:56; display:flex; flex-direction:column; min-width:168px; padding:4px; border-radius:12px; border:1px solid var(--glass-line); background:var(--popover, #1c1c1e); color:var(--fg); font-size:14px; box-shadow:var(--shadow-card); }
 .nm-room-menu-list button { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px; border:0; border-radius:8px; background:none; color:inherit; text-align:left; cursor:pointer; }
 .nm-room-menu-list button:hover, .nm-room-menu-list button:focus-visible { background:rgba(255,255,255,.06); }
+.nm-file-log { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; max-height:min(60vh, 460px); margin:0; padding:0; overflow-y:auto; list-style:none; }   /* 파일 기록(./room-menu.tsx) · 세 칸 */
+.nm-file-log li { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.nm-file-log a { display:block; aspect-ratio:1; border-radius:12px; overflow:hidden; background:rgba(255,255,255,.05); color:inherit; text-decoration:none; }
+.nm-file-log img { width:100%; height:100%; object-fit:cover; }
+.nm-file-log .ph { display:block; width:100%; height:100%; }
+.nm-file-log a.doc { display:grid; place-items:center; padding:8px; }
+.nm-file-log .nm { font-family:var(--app-font-text, inherit); font-size:12px; line-height:1.3; text-align:center; word-break:break-all; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.nm-file-log small { font-size:11px; color:var(--mut, #8B8F8A); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-file-empty { margin:0; font-size:13px; color:var(--mut, #8B8F8A); }
 .nm-ask-hist { display:flex; flex-direction:column; gap:8px; max-height:min(60vh, 460px); margin:0; padding:0; overflow-y:auto; list-style:none; }   /* 질문 이력(./room-menu.tsx) */
 .nm-ask-hist li { padding:10px 12px; border-radius:14px; background:rgba(255,255,255,.04); }
 .nm-ask-hist .q { margin:0; font-family:var(--app-font-text, inherit); font-size:14px; line-height:1.4; white-space:pre-wrap; word-break:break-word; }
