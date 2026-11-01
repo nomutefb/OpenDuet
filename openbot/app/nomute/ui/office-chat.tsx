@@ -38,6 +38,7 @@ import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
 import { usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
+import { Folded } from "./fold";   // 긴 글 접기 · 전체 보기(형 11-02 07:19)
 import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
 import { t12 } from "./when";
 import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
@@ -552,7 +553,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}<Missed m={m} /><Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Missed m={m} /><Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
@@ -569,7 +570,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
           <div className="ybw">
             <div {...press.bind} className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
-              <div className="ymd"><Body m={m} nre={c.nre} /></div>
+              {m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || m.who} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
               <BoxCard m={m} />
               <Reactions m={m} c={c} mine={false} />
             </div>

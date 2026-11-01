@@ -1,0 +1,18 @@
+/* 긴 글 접기 · 전체 보기(./fold.tsx · 형 11-02 07:19 · 카톡 꼴) */
+.yfold { max-height:calc(var(--fs-body, 15px) * var(--lh-base, 1.6) * 14); overflow:hidden; }   /* 14줄 = 폰 대화칸 반쯤 */
+.yfold.long { -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 3.2em), transparent); mask-image:linear-gradient(to bottom, #000 calc(100% - 3.2em), transparent); }
+.yfold-more { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin:8px 0 0; padding:8px 0 0; border:0; border-top:1px solid color-mix(in srgb, currentColor 22%, transparent); background:none; color:inherit; font:600 13px/1.2 var(--app-font-text, Pretendard, -apple-system, system-ui, sans-serif); text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.yfold-more span { opacity:.88; }
+.yfold-more svg { flex:none; opacity:.7; }
+.yfold-more:active { opacity:.6; }
+/* 글만 보는 창 = 사진 크게 보기(.nm-zoom)와 같은 닫는 길 · 겉은 앱 바탕(밝게·어둡게 따라) */
+.nm-zoom.nm-full { display:flex; flex-direction:column; place-items:stretch; padding:0; cursor:default; background:#161716; color:#fff; font-family:var(--app-font-text, Pretendard, -apple-system, system-ui, sans-serif); }
+:root:not(.dark) .nm-zoom.nm-full { background:#fff; color:#161716; }
+.nm-full .nm-zoom-bar { position:static; flex:none; color:inherit; border-bottom:1px solid var(--glass-line, rgba(127,127,127,.18)); }
+.nm-full-sp { flex:1; }
+.nm-full .nm-zoom-bar .nm-full-act { display:flex; align-items:baseline; justify-content:center; width:auto; min-width:44px; padding:0 6px; white-space:nowrap; font:600 14px/1 var(--app-font-text, Pretendard, -apple-system, system-ui, sans-serif); }
+.nm-full-act span { font-size:18px; margin-left:1px; }
+.nm-full-body { font-family:var(--app-font-text, Pretendard, -apple-system, system-ui, sans-serif); flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding:18px 20px calc(28px + env(safe-area-inset-bottom, 0px)); line-height:1.72; white-space:pre-wrap; word-break:break-word; -webkit-user-select:text; user-select:text; }
+.nm-full-body.md { white-space:normal; }
+.nm-full-body a { color:rgb(var(--accent-rgb, 207,255,64)); text-decoration:underline; text-underline-offset:2px; }
+:root:not(.dark) .nm-full-body a { color:#2f6fd6; }
