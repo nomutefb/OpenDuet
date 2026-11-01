@@ -12,6 +12,7 @@
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { mergeReact, type RoomReacts } from "../data/react-merge";
+import { ThumbCard, type ThumbRef } from "./thumb-card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Component, type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { roomReadState } from "../data/read-state";
@@ -67,7 +68,7 @@ const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;   // 저장 없이 처음 = 최
 const HEAD = 92;   // 위에 떠 있는 머리(대화 상대 동그라미 + 이름 · ui/shell.css .nm-head) 높이 — 그 아래부터 「보이는 위」
 
 const hyungApp = (m: { mirror_by?: string; who?: string }) => m.mirror_by === "형" || String(m.who || "").startsWith("형(앱");   // 형이 그록봇 앱에서 친 글(서버 mirror_by · 형 10-30 「검정 말풍선 흰 글씨」)
-type Msg = OfficeMsg & { mirror_by?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
+type Msg = OfficeMsg & { card?: ThumbRef; mirror_by?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
   app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
 type Page = { messages: Msg[]; more: boolean };
@@ -576,6 +577,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
               <Reactions m={m} c={c} mine={false} />
             </div>
             <LinkCard m={m} />
+            {m.card?.kind === "thumb" ? <ThumbCard card={m.card} /> : null}
             {time}
           </div>
         </div>
