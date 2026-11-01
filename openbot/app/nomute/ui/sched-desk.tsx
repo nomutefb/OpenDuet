@@ -258,7 +258,7 @@ function Changes({ list, got, labelOf }: { list: SchedChange[]; got?: { got?: bo
       <ol>
         {list.slice(0, 8).map((c, i) => (
           <li key={`${c.at}-${i}`}>
-            <span className="min-w-0 flex-1"><b>{labelOf(c)}</b><small>{CF_KO[c.field as SchedQ["field"]] || c.field} {v(c.from)} <Chev dir="right" size={11} /> {v(c.to)} · {c.who} · {agoKo(c.at)}</small></span>
+            <span className="min-w-0 flex-1"><b>{labelOf(c)}</b><small>{CF_KO[c.field as SchedQ["field"]] || c.field || "상태"} {v(c.from)} <Chev dir="right" size={11} /> {v(c.to)} · {c.who} · {agoKo(c.at)}</small></span>
             <em data-k={c.live ? "live" : c === head ? (got?.got ? "got" : "wait") : "ok"}>{c.live ? "바로 먹음" : c === head ? (got?.got ? "시계 받음" : "시계 기다림") : "표에 들어감"}</em>
           </li>
         ))}

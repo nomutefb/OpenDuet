@@ -39,7 +39,7 @@ export function RunnerBoard({ data: given }: { data?: RunnerData }) {
       <div className="nm-rg-card">   {/* 위젯 카드 = 제목 줄(배경 없음) + 판 하나(WIN A · WIN B · MAC PRO 줄 · design-preview 카드 440 · 판 둥글기 14) */}
         <h2 className="nm-rg-title">RUNNER DASHBOARD</h2>
         <div className="nm-rg-panel">
-          {PCS.map(([pc, name]) => <PcCard key={pc} name={name} d={data.rows[pc] ?? null} why={data.why[pc] || ""} now={now} open={open[pc] !== false} onFlip={() => flip(pc)} />)}
+          {PCS.filter(([pc]) => pc === "A" || data.rows[pc]).map(([pc, name]) => <PcCard key={pc} name={name} d={data.rows[pc] ?? null} why={data.why[pc] || ""} now={now} open={open[pc] !== false} onFlip={() => flip(pc)} />)}   {/* WIN B = 소식 있을 때만(위젯 = WIN A · MAC PRO 두 줄 · 뎅 11-01 9222 라이브에서 빈 게이지 셋 봄) */}
           <MacCard d={data.rows.M ?? null} why={data.why.M || ""} now={now} />
         </div>
       </div>
