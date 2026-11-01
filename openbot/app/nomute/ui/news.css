@@ -106,3 +106,5 @@
 /* 단추 글 + 꺽쇠 한 줄(꺽쇠 svg 가 블록이라 줄이 갈라졌음 · 목록 「전체 보기」 포함) */
 :is(.nm-news, .nm-nd, .nm-th-hist) .ypc-go { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 :is(.nm-news, .nm-th-hist) .ypc-go span svg { width:14px; height:14px; }
+
+.nm-nd-orig { font-family:var(--app-font-text, inherit); }   /* 원문 제목 = 본문 글꼴(LEMONMILK 대문자 꼴 안 씀 · D9) */
