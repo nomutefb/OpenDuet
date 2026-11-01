@@ -54,13 +54,12 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(에디터 /?tab=scrap 그대로 품음 · 옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 · 링크 판별·초안 보존" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
-  { id: "news", label: "뉴스 요약", icon: "page", to: "/news", desc: "최신 목록·기사 요약" },   // 에디터 「뉴스 요약」 목록(누르면 앱 안 기사 한 장 = #/news?a=<file> · 썸네일·본문·카드 · 고치기만 에디터)
   { id: "thumbhist", label: "썸네일 이력", icon: "layout", to: "/thumbhist", desc: "만든 썸네일 보기·저장" },   // 에디터 썸네일 「이전 제작」(thumb-hist.json · ./thumb-hist.tsx)
   { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan", desc: "한눈" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
   { id: "sns", label: "SNS", icon: "globe", to: "/sns", desc: "한눈" },   // 에디터 「SNS」 한눈(전체 보기 = #/web)
   { id: "edtool", label: "에디터", icon: "plus", to: "/edtool", desc: "카드 제작·영상 편집·유튜브" },
   // 에디터 첫 화면 탭·도구를 서랍 칸마다 바로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘 / 지금 저 기능이 완전히 유지되어야해」 · 공통/문서/2026-11-01-서랍-에디터-이식/안.md)
-  { id: "feed", label: "뉴스 전체", icon: "page", to: "/feed", desc: "필터·검색·대기열·기사 상세" },   // 에디터 피드 탭(/?tab=feed)을 앱 네이티브로(./feed.tsx · 전엔 FRAME 으로 품음 · 쓰기만 에디터 한 겹)
+  { id: "feed", label: "뉴스 요약", icon: "page", to: "/feed", desc: "요약한 기사 · 기사 한 장" },   // 용어 = 뉴스 요약(형 11-01 18:0x 「뉴스 요약 < 뉴스 전체는 용어 변경」) · 옛 「뉴스 요약」 짧은 목록 칸은 이 칸과 겹쳐 뺌(#/news 주소는 기사 한 장으로 그대로)   // 에디터 피드 탭(/?tab=feed)을 앱 네이티브로(./feed.tsx · 전엔 FRAME 으로 품음 · 쓰기만 에디터 한 겹)
   { id: "trend", label: "SNS 전체", icon: "globe", to: "/trend", desc: "섹션 전부·구독 채널·새로 수집" },
   { id: "chanfull", label: "채널 전체", icon: "dashboard", to: "/chanfull", desc: "차트·게시물·결의 보드" },
   // 에디터 설정 메뉴 안 칸들(전엔 러너 톱니로만 열림) = 에디터 /?pop=<이름> 딥링크(빠르 11-01 04:23 · 이름 = 봄 안 표)
@@ -205,7 +204,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
             <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>
-              {M.id === "settings" || M.id === "drawer" ? <WaveBg /> : null}
+              {M.id === "settings" || M.id === "drawer" || M.id === "feed" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>

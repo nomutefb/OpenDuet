@@ -39,8 +39,8 @@
 
 /* 기사 줄 */
 .nm-feed .nm-feed-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-.nm-feed .nm-feed-it { position:relative; border-bottom:1px solid var(--glass-line); }
-.nm-feed .nm-feed-it:last-child { border-bottom:0; }
+.nm-feed .nm-feed-it { position:relative; margin-bottom:12px; border:1px solid var(--glass-line); border-radius:var(--r-l, 18px); background:var(--glass, rgba(255,255,255,.06)); -webkit-backdrop-filter:blur(16px) saturate(1.2); backdrop-filter:blur(16px) saturate(1.2); box-shadow:inset 0 1px 0 var(--glass-line); }   /* 기사 한 장 = 유리 카드 · 사이 12px(형 11-01 18:0x 「기본적으로 글래스모피즘 이야. 저거 이제 뒤에 배경깔리면 그거 받쳐줘야해」 · 「아주 조 금만 지금보다 게시물 간 간격이 벌어지면」) */
+.nm-feed .nm-feed-it:last-child { margin-bottom:0; }
 .nm-feed .nm-feed-hit { position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0; border:0; border-radius:10px; background:none; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .nm-feed .nm-feed-hit:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
 .nm-feed .nm-feed-body { position:relative; display:flex; align-items:flex-start; gap:10px; padding:10px 4px; pointer-events:none; }
@@ -70,3 +70,4 @@
 @media (prefers-reduced-motion:reduce) { .nm-feed .qc-s.run i, .nm-feed .nm-feed-prog i.cur { animation:none; } }
 
 .nm-feed .nm-feed-src, .nm-feed .nm-feed-it span > b { font-family:Pretendard, -apple-system, system-ui, sans-serif; }   /* 매체 이름(영문) = Pretendard 고정(형 11-01 17:5x 「매체 뒤에 나오는 영문은 pretendard로 고정해줘!」) */
+.nm-feed.nm-feed-bare { padding:0 6px; background:none; border:0; box-shadow:none; }   /* 박스 없이 기사만(형 11-01 18:0x) */
