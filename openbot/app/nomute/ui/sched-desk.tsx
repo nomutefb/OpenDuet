@@ -8,6 +8,8 @@ import { MicOrb, ringOf } from "../swap/mic-orb";
 import { Breaker, cronKo } from "./sched-bits";
 import { RunnerTree } from "./sched-runners";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
+import { Num, Times } from "./room-routine";   // 시간 고르기 부품 = 방 「루틴 만들기」와 같은 것
+import "./room-routine.css";
 import { CF_KO, type Routine, ST_KO, type SchedChange, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
 
 // 조직도(형 11-01 17:4x 「스케줄러 있지. 그 내용이 지금 좀 투박해. 버튼 눌러도 동작하는지도 잘 모르겠구 … 엔터프라이즈급으로 동작했으면 좋겠어. 트리구조 조직도로」 · 「각 대화방하고 연동도 잘 되어야하고」)
@@ -19,25 +21,50 @@ const DOT: Record<string, string> = { live: "on", off: "off", shadow: "dim", dry
 const agoKo = (ts: number) => { const m = Math.round((Date.now() - ts) / 60e3); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
 
 const CRON_H = "CRON_TZ=Asia/Seoul ";
-type TimePick = { day: "*" | "1-5" | "0,6"; hours: number[]; min: number };
-const readPick = (l?: string[]): TimePick | null => {   // 고르기로 다 그릴 수 있는 줄만(시간표 한 줄 · 분 숫자 · 날짜 없음)
-  if (l?.length !== 1) return null;
-  const p = l[0].replace(CRON_H, "").trim().split(/\s+/);
-  if (p.length !== 5 || !/^\d+$/.test(p[0]) || p[2] !== "*" || p[3] !== "*" || !["*", "1-5", "0,6"].includes(p[4])) return null;
-  const hours: number[] = [];
-  for (const t of p[1].split(",")) {
-    const m = t.match(/^(\d+)(?:-(\d+)(?:\/(\d+))?)?$/);
-    if (!m) return null;
-    for (let i = +m[1], e = m[2] ? +m[2] : i, st = m[3] ? +m[3] : 1; i <= e; i += st) hours.push(i);
-  }
-  return { day: p[4] as TimePick["day"], hours, min: +p[0] };
+// 시간 고르기(형 11-02 02:23 「시간고르는게 저게 최선인가? 주기랑 시간 고르는 방식이 조금 선택 방식이 비효율이야 인터페이스가」) =
+//   방 「루틴 만들기」(./room-routine.tsx)와 같은 꼴 — 요일 칩 + 「시각 고르기(목록)」 | 「몇 시간마다(시작~끝 · 분)」 · 빠른 칩 · 보낼 땐 cron 줄로(분이 다른 시각은 줄을 나눔)
+//   그림으로 못 그리는 줄(날짜 박힌 한 번짜리 · 분마다 등)은 예전처럼 글자로
+type Pick = { wd: number[]; mode: "times" | "every"; times: string[]; every: number; from: number; to: number; min: number };
+const WDK = ["일", "월", "화", "수", "목", "금", "토"];
+const two = (n: number) => String(n).padStart(2, "0");
+const dowOf = (wd: number[]) => { const w = [...new Set(wd)].sort((a, b) => a - b); return w.length === 7 || !w.length ? "*" : w.join(",") === "1,2,3,4,5" ? "1-5" : w.join(",") === "0,6" ? "0,6" : w.join(","); };
+const wdOf = (d: string): number[] | null => {
+  if (d === "*") return [0, 1, 2, 3, 4, 5, 6];
+  const out: number[] = [];
+  for (const t of d.split(",")) { const m = t.match(/^(\d)(?:-(\d))?$/); if (!m) return null; for (let i = +m[1]; i <= (m[2] ? +m[2] : +m[1]); i++) out.push(i % 7); }
+  return [...new Set(out)];
 };
-const pickCron = (k: TimePick) => [`${CRON_H}${k.min} ${[...k.hours].sort((a, b) => a - b).join(",")} * * ${k.day}`];
-const DAYS: [TimePick["day"], string][] = [["*", "매일"], ["1-5", "평일"], ["0,6", "주말"]];
+const readPick = (l?: string[]): Pick | null => {   // 고르기로 다 그릴 수 있는 줄만(같은 요일 · 날짜 없음 · 분 숫자)
+  if (!l?.length) return null;
+  let wd: number[] | null = null; const times: string[] = []; let every: Pick | null = null;
+  for (const c of l) {
+    const p = c.replace(CRON_H, "").trim().split(/\s+/);
+    if (p.length !== 5 || !/^\d+$/.test(p[0]) || p[2] !== "*" || p[3] !== "*") return null;
+    const w = wdOf(p[4]); if (!w || (wd && dowOf(wd) !== dowOf(w))) return null; wd = w;
+    const st = p[1].match(/^(\d+)-(\d+)(?:\/(\d+))?$/);
+    if (st && l.length === 1) { every = { wd: w, mode: "every", times: [], every: st[3] ? +st[3] : 1, from: +st[1], to: +st[2], min: +p[0] }; continue; }
+    for (const h of p[1].split(",")) { if (!/^\d+$/.test(h)) return null; times.push(`${two(+h)}:${two(+p[0])}`); }
+  }
+  if (every) return every;
+  return { wd: wd!, mode: "times", times: [...new Set(times)].sort(), every: 3, from: 9, to: 21, min: 0 };
+};
+const pickCron = (k: Pick): string[] => {
+  const d = dowOf(k.wd);
+  if (k.mode === "every") return [`${CRON_H}${k.min} ${k.from}-${k.to}${k.every > 1 ? "/" + k.every : ""} * * ${d}`];
+  const byMin = new Map<number, number[]>();
+  for (const t of k.times) { const [h, m] = t.split(":").map(Number); byMin.set(m, [...(byMin.get(m) || []), h]); }
+  return [...byMin.entries()].sort((a, b) => a[0] - b[0]).map(([m, hs]) => `${CRON_H}${m} ${[...new Set(hs)].sort((a, b) => a - b).join(",")} * * ${d}`);
+};
+const QUICK: { label: string; set: Partial<Pick> }[] = [
+  { label: "매일 9시", set: { wd: [0, 1, 2, 3, 4, 5, 6], mode: "times", times: ["09:00"] } },
+  { label: "평일 9시", set: { wd: [1, 2, 3, 4, 5], mode: "times", times: ["09:00"] } },
+  { label: "하루 세 번", set: { wd: [0, 1, 2, 3, 4, 5, 6], mode: "times", times: ["11:00", "15:00", "19:00"] } },
+  { label: "낮 3시간마다", set: { wd: [0, 1, 2, 3, 4, 5, 6], mode: "every", every: 3, from: 9, to: 21, min: 0 } },
+];
 
 function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: boolean; send: (v: string[]) => void }) {
   const first = useMemo(() => readPick(r.cron), [r.cron]);
-  const [k, setK] = useState<TimePick | null>(first), [raw, setRaw] = useState(cronShow(r.cron));
+  const [k, setK] = useState<Pick | null>(first), [raw, setRaw] = useState(cronShow(r.cron));
   useEffect(() => { setK(first); setRaw(cronShow(r.cron)); }, [first, r.cron]);
   if (!r.cron?.length) return <small>부를 때만 깨어나</small>;
   const dated = r.cron.some((c) => { const p = c.replace(CRON_H, "").trim().split(/\s+/); return p[2] !== "*" && p[3] !== "*"; });
@@ -47,16 +74,21 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
       <input disabled={!can} value={raw} aria-label={`${r.name} 언제`} onChange={(e) => setRaw(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(raw.split(";").map((x) => x.trim()).filter(Boolean).map((x) => CRON_H + x)); }} />
     </label>
   );
-  const changed = JSON.stringify(pickCron(k)) !== JSON.stringify(pickCron(first || k));
+  const set = (x: Partial<Pick>) => setK({ ...k, ...x });
+  const next = pickCron(k), changed = JSON.stringify(next) !== JSON.stringify(first ? pickCron(first) : r.cron), ok = k.wd.length > 0 && (k.mode === "every" ? k.from <= k.to : k.times.length > 0);
   return (
     <div className="nm-sched-pick">
-      <div className="flex flex-wrap gap-1" role="group" aria-label={`${r.name} 날`}>{DAYS.map(([v, t]) => <button key={v} type="button" className="nm-sched-chip" aria-pressed={k.day === v} disabled={!can} onClick={() => setK({ ...k, day: v })}>{t}</button>)}</div>
-      <div className="nm-sched-hours" role="group" aria-label={`${r.name} 시`}>
-        {Array.from({ length: 24 }, (_, h) => <button key={h} type="button" aria-pressed={k.hours.includes(h)} disabled={!can} onClick={() => setK({ ...k, hours: k.hours.includes(h) ? k.hours.filter((x) => x !== h) : [...k.hours, h] })}>{h}</button>)}
+      <div className="nm-rr-quick">{QUICK.map((q) => <button key={q.label} type="button" className="nm-rr-chip" disabled={!can} onClick={() => set(q.set)}>{q.label}</button>)}</div>
+      <div className="nm-rr-wd" role="group" aria-label={`${r.name} 요일`}>
+        {WDK.map((w, i) => <button key={w} type="button" aria-pressed={k.wd.includes(i)} className={`nm-rr-chip${k.wd.includes(i) ? " on" : ""}`} disabled={!can} onClick={() => set({ wd: k.wd.includes(i) ? k.wd.filter((x) => x !== i) : [...k.wd, i] })}>{w}</button>)}
       </div>
-      <label className="nm-sched-when">분<input type="number" min={0} max={59} disabled={!can} value={k.min} aria-label={`${r.name} 분`} onChange={(e) => setK({ ...k, min: Math.min(59, Math.max(0, Number(e.target.value) || 0)) })} />
-        {changed ? <button type="button" className="nm-sched-go" disabled={busy || !k.hours.length} onClick={() => send(pickCron(k))}>미리 보기</button> : null}
-      </label>
+      <div className="nm-rr-seg" role="group" aria-label="주기">
+        <button type="button" aria-pressed={k.mode === "times"} disabled={!can} onClick={() => set({ mode: "times", times: k.times.length ? k.times : ["09:00"] })}>시각 고르기</button>
+        <button type="button" aria-pressed={k.mode === "every"} disabled={!can} onClick={() => set({ mode: "every" })}>몇 시간마다</button>
+      </div>
+      {k.mode === "times" ? <Times times={k.times} onChange={(times) => set({ times })} />
+        : <div className="nm-rr-row"><Num label="몇 시간마다" value={k.every} lo={1} hi={12} onChange={(every) => set({ every })} /><span>시간마다 ·</span><Num label="시작 시" value={k.from} lo={0} hi={23} onChange={(from) => set({ from })} /><span>~</span><Num label="끝 시" value={k.to} lo={0} hi={23} onChange={(to) => set({ to })} /><span>시 ·</span><Num label="분" value={k.min} lo={0} hi={59} onChange={(min) => set({ min })} /><span>분</span></div>}
+      {changed ? <div><small>{cronKo(next)}</small> <button type="button" className="nm-sched-go" disabled={busy || !ok || !can} onClick={() => send(next)}>미리 보기</button></div> : null}
     </div>
   );
 }
@@ -204,7 +236,7 @@ export function SchedDesk() {
                           <button type="button" aria-expanded={wide} onClick={() => setOpenR(wide ? "" : r.id)}>
                             <b><i className={`nm-dot ${blocked ? "off" : DOT[r.state] || "dim"}`} aria-hidden />{r.name}{r.state !== "live" ? <em className="nm-org-st">{ST_KO[r.state] || r.state}</em> : null}</b><small>{r.cron?.length ? cronKo(r.cron) : r.when?.length ? r.when.join(" · ") : "부를 때만"}{blocked ? " · 위 차단기 내려감" : ""}</small>
                           </button>
-                          <span className="nm-sched-end" title={`끝 = ${nameOf(b)} ! 훅 하나`}>{face(b)}<i>!</i></span>
+                          <span className="nm-sched-end" title={`끝 = ${nameOf(b)}를 깨우는 훅 하나`}>{face(b)}</span>   {/* 「!」 글자 뺌(형 11-02 02:23 「그리구 ! 로 스케줄러에 표시떠있는 애들있는데 다 그러거든. 안뜨게 하던지 조치해야랄듯.」 · 줄마다 경고처럼 보였음) · 뜻은 title 에만 */}
                         </div>
                         {bar(r.id)}
                         {wide ? (

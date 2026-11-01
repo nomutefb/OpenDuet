@@ -55,7 +55,7 @@ export function useRoomTimers(enabled = true) {
   return useQuery({ queryKey: ["nomute", "room-timers"], queryFn: () => office<{ timers: Record<string, RoomTimer> }>("room-timers").then((j) => j.timers || {}), staleTime: 15_000, enabled });
 }
 
-function Num({ value, lo, hi, onChange, label }: { value: number; lo: number; hi: number; onChange: (n: number) => void; label: string }) {
+export function Num({ value, lo, hi, onChange, label }: { value: number; lo: number; hi: number; onChange: (n: number) => void; label: string }) {
   return (
     <span className="nm-rr-num">
       <button type="button" aria-label={`${label} 줄이기`} disabled={value <= lo} onClick={() => onChange(value - 1)}>−</button>
@@ -65,7 +65,7 @@ function Num({ value, lo, hi, onChange, label }: { value: number; lo: number; hi
   );
 }
 
-function Times({ times, onChange }: { times: string[]; onChange: (t: string[]) => void }) {
+export function Times({ times, onChange }: { times: string[]; onChange: (t: string[]) => void }) {
   const [draft, setDraft] = useState("18:00");
   const add = () => { if (draft && !times.includes(draft) && times.length < MAX_TIMES) onChange([...times, draft].sort()); };
   return (
