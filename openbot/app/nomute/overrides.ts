@@ -92,6 +92,10 @@ export const PATCH: Record<string, [string, string][]> = {
     ["    onSelect: (suggestion) => suggestion.label,", "    onSelect: (suggestion) => agents.find((agent) => agent.id === suggestion.value)?.name ?? suggestion.value,"],   // 칩·글 = 이름만(「!이름」 문법 그대로)
   ],
   // 「+」 = 카메라 말고 파일·갤러리(형 10-31) · 그림 꼴만 적힌 accept 는 폰 브라우저가 카메라·갤러리 고르기로 받음 · 거름은 screenPickedFiles 가 이미 함(빠르 판)
+  // 영상 = 사무실 첨부로 받음(시아 11-02 형 02:32 「여가에 영상도 올릴 수 있게 해줘」) · 원본 거름은 영상을 「못 붙이는 꼴」로 막음 → 영상만 통과 · 서버 첨부 상한 20MB(_files.js MAX_BYTES) 넘으면 여기서 먼저 막음
+  "app/src/components/channels/composer/picked-files.ts": [
+    ['    if (kind === "unsupported" && !unnamed) {', '    const video = mediaType.startsWith("video/");\n    if (video && file.size > 20 * 1024 * 1024) {\n      rejected.push(reject(file, `\'${file.name}\' 은 20MB 가 넘어서 못 붙여(영상은 20MB 까지).`));\n      continue;\n    }\n    if (kind === "unsupported" && !unnamed && !video) {'],
+  ],
   "app/src/components/channels/composer/attachments.ts": [
     ['export const FILE_PICKER_ACCEPT = [\n', 'export const FILE_PICKER_ACCEPT = [\n  "*/*",\n'],
   ],

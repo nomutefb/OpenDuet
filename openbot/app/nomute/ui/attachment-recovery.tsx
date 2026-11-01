@@ -74,10 +74,12 @@ function Preview({ file, p }: { file: File; p: number }) {
     setUrl(next);
     return () => URL.revokeObjectURL(next);
   }, [file]);
-  const img = !!url && file.type.startsWith("image/");
+  const img = !!url && file.type.startsWith("image/"), vid = !!url && file.type.startsWith("video/");
   return (
-    <span className={`nac-shot${img ? "" : " file"}${p >= 1 ? " ok" : ""}`}>
-      {img ? <img src={url} alt={file.name} className="nac-img" /> : <span className="nac-file">{file.name}</span>}
+    <span className={`nac-shot${img || vid ? "" : " file"}${p >= 1 ? " ok" : ""}`}>
+      {img ? <img src={url} alt={file.name} className="nac-img" />
+        : vid ? <video src={url} className="nac-img" muted playsInline preload="metadata" aria-label={file.name} />   /* 영상 = 첫 장면만(소리 없음) */
+        : <span className="nac-file">{file.name}</span>}
       <Ring p={p} />
     </span>
   );

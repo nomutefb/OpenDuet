@@ -55,6 +55,7 @@ const CALL_FRESH = 45 * 60e3;   // 회의실 「작업 중」 = 부른 글이 45
 const QUOTE = /^↩ ([^:\n]{1,24}): ([^\n]*)(?:\n|$)/;
 const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_Pictographic})*$/u;
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif)$/i;
+const VID_RE = /\.(mp4|webm|mov|m4v)$/i;   // 영상 첨부 = 대화창에서 바로 재생(시아 11-02 형 02:32 「여가에 영상도 올릴 수 있게 해줘」 · 서버 Range 206 = 아이폰 사파리)
 const WINTER_WHO = "윈터 PM";
 const MOUSE = typeof matchMedia === "function" && matchMedia("(hover:hover)").matches;
 const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // 글 속 주소(형 글 = 꾸밈 없는 글 · 봇 글은 Streamdown 이 링크로)
@@ -329,13 +330,13 @@ function zoomImage(src: string, alt = "", who = "", when = "") {
 }
 const zoomWhen = (ts: number) => { const d = new Date(ts); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 (window as unknown as { nmZoom?: typeof zoomImage }).nmZoom = zoomImage;
-const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.test(String(p)));   // 사진만 든 글 = 말풍선 없이(형 10-31 「사진 주변 테두리 없애줘」)
+const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.test(String(p)) || VID_RE.test(String(p)));   // 사진(·영상)만 든 글 = 말풍선 없이(형 10-31 「사진 주변 테두리 없애줘」)
 function Files({ m }: { m: Msg }) {
   const qc = useQueryClient();
   const meta = new Map((m.file_meta || []).filter((x) => x?.path).map((x) => [x.path, x]));
   const ps = [...new Set((m.files || []).map(String))];
   const one = (p: string) => ({ p, n: meta.get(p)?.name || fileName(p), b: meta.get(p)?.bytes || 0 });
-  const imgs = ps.filter((p) => IMG_RE.test(p)).map(one), rest = ps.filter((p) => !IMG_RE.test(p)).map(one);
+  const imgs = ps.filter((p) => IMG_RE.test(p)).map(one), vids = ps.filter((p) => VID_RE.test(p)).map(one), rest = ps.filter((p) => !IMG_RE.test(p) && !VID_RE.test(p)).map(one);
   return (
     <div className="yfiles flex flex-col gap-2">
       {imgs.length ? (
@@ -347,6 +348,9 @@ function Files({ m }: { m: Msg }) {
           ))}
         </div>
       ) : null}
+      {vids.map((f) => (
+        <video key={f.p} src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" />
+      ))}
       {rest.map((f) => (
         <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 hover:bg-foreground/5">
           <span aria-hidden className="text-lg">📄</span>
