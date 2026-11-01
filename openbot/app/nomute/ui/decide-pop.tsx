@@ -35,17 +35,19 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
   const items = q.data || [];
   const pickOf = (d: Decision) => picks[d.id] || d.pick || null;
   const ready = useRef<() => Sent[]>(() => []);
-  ready.current = () => items.flatMap((d) => { const p = pickOf(d); return done(p) ? [{ id: d.id, room: d.room, ...p }] : []; });   // 다 고른 항목만(안 고른 건 남음)
+  // 한 결정은 한 번만 보냄(시아 11-01 10:55 「같은 답이 세 번 왔어」 · 10:54:53 1ms·444ms 차) = 보낸 id 기억 · 보내는 중 다시 안 쏨 · id 겹침 뺌 · 실패 뒤 다시 쏘기 0(받침 = 서버 2분)
+  const sent = useRef(new Set<string>()), sending = useRef(false);
+  ready.current = () => [...new Map(items.flatMap((d) => { const p = pickOf(d); return done(p) && !sent.current.has(d.id) ? [[d.id, { id: d.id, room: d.room, ...p }] as const] : []; })).values()];   // 다 고른 항목만(안 고른 건 남음)
   const left = items.filter((d) => !done(pickOf(d))).length;
 
   const shut = () => {   // 떠날 때 = 고른 게 있으면 그때만 깨움(안 고른 항목은 남음)
     setOpen(false); setEtc("");
     const out = ready.current();
-    if (!dirty.current || !out.length) return;
-    dirty.current = false;
+    if (sending.current || !dirty.current || !out.length) return;
+    dirty.current = false; sending.current = true; out.forEach((x) => sent.current.add(x.id));
     void office<{ items?: Decision[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: out, send: true }) })
       .then((j) => { if (j.items) qc.setQueryData(KEY, j.items); })   // 보낸 뒤 남은 목록이 바로 옴 = 개수 바로 고침(봄 08:44)
-      .catch(() => beacon(out)).finally(() => { setPicks({}); void qc.invalidateQueries({ queryKey: KEY }); });
+      .catch(() => undefined).finally(() => { sending.current = false; setPicks({}); void qc.invalidateQueries({ queryKey: KEY }); });
   };
   const close = () => { if (closing.current) return; closing.current = true; history.back(); };   // 뒤로가기와 같은 길(폰 뒤로가기 = 닫기 · 형 10-31)
   useEffect(() => {   // 다른 화면(홈 할 일)이 부르면 이 자리 모달이 열림
@@ -59,7 +61,7 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
     history.pushState({ ...history.state, nmDecide: 1 }, "");
     const pop = () => shut();
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
-    const hide = () => { const out = ready.current(); if (document.visibilityState === "hidden" && dirty.current && out.length) { dirty.current = false; beacon(out); } };
+    const hide = () => { if (sending.current) return; const out = ready.current(); if (document.visibilityState === "hidden" && dirty.current && out.length) { dirty.current = false; out.forEach((x) => sent.current.add(x.id)); beacon(out); } };
     window.addEventListener("popstate", pop); window.addEventListener("keydown", key);
     document.addEventListener("visibilitychange", hide); window.addEventListener("pagehide", hide);
     return () => { window.removeEventListener("popstate", pop); window.removeEventListener("keydown", key); document.removeEventListener("visibilitychange", hide); window.removeEventListener("pagehide", hide); };
