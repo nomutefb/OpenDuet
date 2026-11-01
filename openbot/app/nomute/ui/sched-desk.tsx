@@ -7,6 +7,7 @@ import { idOf, office, people } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { Breaker, cronKo } from "./sched-bits";
 import { RunnerTree } from "./sched-runners";
+import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { CF_KO, type Routine, ST_KO, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
 
 const CRON_H = "CRON_TZ=Asia/Seoul ";
@@ -108,7 +109,7 @@ export function SchedDesk() {
     return (
       <div className="nm-sched-ask" role={sv ? "status" : "alertdialog"} aria-label="바꾸기 전 확인">
         {a ? (
-          <span className="min-w-0 flex-1">{a.q.label} {CF_KO[a.q.field]}: {say(a.q.field, a.r.from)} → <b>{say(a.q.field, a.r.to)}</b>
+          <span className="min-w-0 flex-1">{a.q.label} {CF_KO[a.q.field]}: {say(a.q.field, a.r.from)} <Chev dir="right" size={12} /> <b>{say(a.q.field, a.r.to)}</b>
             {a.r.preview ? <small>다음 깸 {a.r.preview.next_at ? nextShort(a.r.preview.next_at) : "없음"} · 하루 {a.r.preview.day_max}번</small> : null}
           </span>
         ) : <span className="min-w-0 flex-1">{sv?.q.label}</span>}

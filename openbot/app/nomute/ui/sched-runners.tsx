@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Breaker, cronKo } from "./sched-bits";
 import type { RunnerJob, SchedRunners } from "./settings-extra";
+import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 
 const CLOCK_KO: Record<string, string> = { yml: "시간표", beat: "윈A 박자", phone: "폰 커밋", "runner-watch": "메우기", "cron-job": "바깥 타이머", after: "앞 일 뒤따름", launchd: "맥 예약" };
 const KIND_KO: Record<string, string> = { llm: "LLM 닿음", script: "스크립트", unknown: "못 정함" };
@@ -59,7 +60,7 @@ export function RunnerTree({ map, group, go }: { map: SchedRunners; group: strin
                           </ol>
                           <dl className="nm-sched-facts">
                             <div><dt>모델</dt><dd>{j.model?.length ? j.model.join(" · ") : j.providers?.length ? j.providers.join(" · ") : "없음"}</dd></div>
-                            <div><dt>돌 자리</dt><dd>{(j.res || []).map((r, i) => `${i + 1}. ${r.at}${r.gpu ? " (GPU)" : ""}`).join(" → ") || "모름"}</dd></div>
+                            <div><dt>돌 자리</dt><dd>{(j.res || []).length ? (j.res || []).map((r, i) => <span key={i}>{i ? <> <Chev dir="right" size={11} /> </> : null}{`${i + 1}. ${r.at}${r.gpu ? " (GPU)" : ""}`}</span>) : "모름"}</dd></div>
                             <div><dt>책임자</dt><dd>{j.owner || "모름"}{j.checked ? "" : " · 확인 전"}</dd></div>
                           </dl>
                         </div>

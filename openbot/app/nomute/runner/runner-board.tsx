@@ -3,6 +3,7 @@
 //   도는 잡(제목 · 수신 → 발신 · 걸린 시간 · 예상 대비 진행 · 큰/작은 자리 · 자리 이름 · 시작) → 디버그 세션 줄 · 맥 = 머리 + 줄 글 · 아래 = 출력 신선도·자리 감시.
 import { type ReactNode, useEffect, useState } from "react";
 import { MicOrb } from "../swap/mic-orb";   // 생각 구슬 = 등불 구슬 그대로(새 얼굴 0 · PM 11:08)
+import { Chev } from "../ui/chev";   // 꺽쇠 하나(형 11-01)
 import {
   agentsOf, type Agent, debugRows, type Level, levelOf, lookOf, num, type OutItem, type RunnerData, type RunnerJob, type RunnerRow, runningJobs, useOpen, useRunner,
 } from "./runner-data";
@@ -182,7 +183,7 @@ function JobRow({ j, now, problem }: { j: RunnerJob; now: number; problem: boole
       </span>
       <div className="min-w-0 flex-1">
         <p className="flex items-baseline gap-2"><span className="truncate text-sm font-medium">{j.title || j.workflow || "이름 확인 중"}</span><span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground">{dur(el)}</span></p>
-        {j.rx || j.tx ? <p className="truncate text-xs text-muted-foreground"><Bots s={j.rx || "-"} /> → <Bots s={j.tx || "-"} /></p> : null}
+        {j.rx || j.tx ? <p className="truncate text-xs text-muted-foreground"><Bots s={j.rx || "-"} /> <Chev dir="right" size={11} /> <Bots s={j.tx || "-"} /></p> : null}
         <p className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
           <span className={`rounded px-1 font-semibold ${L ? "bg-orange-500/15 text-orange-500" : "bg-foreground/10"}`}>{L ? "큰 자리" : "작은 자리"}</span>
           <span className="tabular-nums">{String(j.seat || "-").toUpperCase()}</span>

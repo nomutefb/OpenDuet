@@ -21,6 +21,7 @@ import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteRoo
 import { StandingInstructions } from "@/components/settings/standing-instructions";   // 원본 설정의 「공통 지시」(routes/_authed/settings/index.tsx) — 빠뜨리지 않기(윈터 10-31 「지금 SettingsIndex 항목을 그대로 옮겨 담기」)
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
+import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 
 const Svg = ({ k, className }: { k: YIcon; className?: string }) => <span className={className} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
 const THEME: { v: ThemePreference; t: string }[] = [{ v: "system", t: "폰 따라" }, { v: "light", t: "밝게" }, { v: "dark", t: "어둡게" }];
@@ -28,7 +29,7 @@ const THEME: { v: ThemePreference; t: string }[] = [{ v: "system", t: "폰 따�
 type Health = { counts: { ready: number; unchecked: number; fix: number } };
 
 /** YETA act 행 — [픽토][제목·설명][값·꺾쇠] · 펼침 칸이 있으면 aria-expanded */
-function Act({ ic, t, d, v, vt, mod, open, onClick }: { ic: YIcon; t: string; d?: string; v?: string; vt?: boolean; mod?: boolean; open?: boolean; onClick: () => void }) {
+function Act({ ic, t, d, v, vt, mod, open, onClick }: { ic: YIcon; t: string; d?: ReactNode; v?: string; vt?: boolean; mod?: boolean; open?: boolean; onClick: () => void }) {
   return (
     <button type="button" className="yset-item" aria-expanded={open} onClick={onClick}>
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO[ic] }} />
@@ -58,7 +59,7 @@ export function YetaSettings() {
   const build = useBuildLine();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
   const nBots = list.filter((p) => p.kind === "bot").length, awake = (bots || []).filter((b) => b.state === "awake").length;
-  const row = (id: string, ic: YIcon, t: string, d: string, body: ReactNode, v?: string) => [
+  const row = (id: string, ic: YIcon, t: string, d: ReactNode, body: ReactNode, v?: string) => [
     <Act key={id} ic={ic} t={t} d={d} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
   ];
@@ -69,7 +70,7 @@ export function YetaSettings() {
         <section className="yset-part" aria-label="화면·입력">
           <div className="yset-sec">화면·입력</div>
           <div className="yset-grp">
-            <Act ic="screen" t="테마" d="탭 = 폰 따라 → 밝게 → 어둡게" v={theme.t} vt mod={theme.v !== "system"}
+            <Act ic="screen" t="테마" d={<>탭 = 폰 따라 <Chev dir="right" size={11} /> 밝게 <Chev dir="right" size={11} /> 어둡게</>} v={theme.t} vt mod={theme.v !== "system"}
               onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
             <PushRow />
             <ChatFontRows />
@@ -92,7 +93,7 @@ export function YetaSettings() {
             {row("health", "data", "점검표", "서버 문·지킴이 연결·박동", <NomuteHealth />,
               health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}
             {row("bots", "user", "지금 봇", "온라인 · 하는 일 · 다음 깸", <NomuteBots />, bots ? `온라인 ${awake}/${nBots}` : undefined)}
-            {row("link", "radio", "스케줄러 연결", "일정 → 호출 → 깨움 · 오늘 깬 수", <NomuteLink />)}
+            {row("link", "radio", "스케줄러 연결", <>일정 <Chev dir="right" size={11} /> 호출 <Chev dir="right" size={11} /> 깨움 · 오늘 깬 수</>, <NomuteLink />)}
             {row("meter", "data", "회의실 계기판", "헛깸 · 형 말 출처 · 바꿔 전하기 · 되묻기 · 하루 한 장", <NomuteMeter />)}
           </div>
         </section>

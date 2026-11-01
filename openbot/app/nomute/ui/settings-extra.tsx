@@ -8,6 +8,7 @@ import { PageSection } from "@/components/layout/page-shell";
 import { idOf, type Meter, type MeterRow, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 import { t12 } from "./when";
+import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const hm = (ts?: number | string) => (ts ? t12(typeof ts === "string" ? Date.parse(ts) : ts) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
@@ -88,9 +89,9 @@ export function NomuteMeter() {
   return (
     <PageSection title="회의실 계기판">
       <div className="mt-1 flex items-center gap-2 text-sm">
-        <button type="button" className={btn} onClick={() => setBack((b) => b + 1)} aria-label="하루 앞">‹</button>
+        <button type="button" className={btn} onClick={() => setBack((b) => b + 1)} aria-label="하루 앞"><Chev dir="left" size={16} /></button>
         <span className="tabular-nums">{`${+day.slice(4, 6)}/${+day.slice(6)}`}{back ? "" : " 오늘"}</span>
-        <button type="button" className={btn} disabled={!back} onClick={() => setBack((b) => Math.max(0, b - 1))} aria-label="하루 뒤">›</button>
+        <button type="button" className={btn} disabled={!back} onClick={() => setBack((b) => Math.max(0, b - 1))} aria-label="하루 뒤"><Chev dir="right" size={16} /></button>
         <span className="ml-auto text-xs text-muted-foreground">받는 이 기억 종류별 · 하루 한 장</span>
       </div>
       {q.isError ? <p className="mt-3 text-sm text-destructive" role="alert">계기판을 못 받았어 — {q.error instanceof Error ? q.error.message : String(q.error)}</p>
@@ -209,7 +210,7 @@ export function NomuteLink() {
   return (
     <PageSection title="스케줄러 연결">
       <p className={`mt-1 text-sm ${beat == null || beat > 130 ? "text-destructive" : "text-muted-foreground"}`}>{!q.data ? (q.isError ? q.error.message : "읽는 중…") : !k ? "아직 한 장 없음 — 윈A 지킴이가 올리면 보임" : `시계 마지막 신호 ${beat == null ? "모름" : `${beat}초 전`} · 읽은 때 ${hm(q.data.at)}`}</p>
-      <p className="mt-1 text-xs text-muted-foreground">한 줄 = 일정 → 호출 연결 → 깨움 보냄 → 일 시작 · 자동 = 일정·사건으로 깨운 수 · 직접 = 형·윈터가 바로 깨운 수 · 밤 12시에 0부터</p>
+      <p className="mt-1 text-xs text-muted-foreground">한 줄 = 일정 <Chev dir="right" size={11} /> 호출 연결 <Chev dir="right" size={11} /> 깨움 보냄 <Chev dir="right" size={11} /> 일 시작 · 자동 = 일정·사건으로 깨운 수 · 직접 = 형·윈터가 바로 깨운 수 · 밤 12시에 0부터</p>
       {k?.bots ? (
         <Card>
           <ul className="divide-y divide-border">
@@ -282,7 +283,7 @@ export function NomuteSchedule() {
       <p className="mt-1 text-xs text-muted-foreground">상태 = 기록만(언제 깰지 셈만 적고 안 보냄) · 시험(보낼 글까지 만들어 적고 안 보냄) · 켬(진짜로 깨움) · 꺼짐 · 고르면 먼저 미리 보기 → 확인하면 봇 일정 표 한 칸만 바꾸는 한 커밋(시계는 다음 분 회차부터){can ? "" : " · 바꾸기 = 형 자리만"}</p>
       {ask ? (
         <div className="sticky top-2 z-10 mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-primary/40 bg-background p-3 text-sm shadow">
-          <span className="min-w-0 flex-1">{ask.q.label} {CF_KO[ask.q.field]}: {cfVal(ask.q.field, ask.r.from)} → <b>{cfVal(ask.q.field, ask.r.to)}</b>
+          <span className="min-w-0 flex-1">{ask.q.label} {CF_KO[ask.q.field]}: {cfVal(ask.q.field, ask.r.from)} <Chev dir="right" size={12} /> <b>{cfVal(ask.q.field, ask.r.to)}</b>
             {ask.r.preview ? <small className="block text-xs text-muted-foreground">다음 깸 {ask.r.preview.next_at ? nextShort(ask.r.preview.next_at) : "없음"} · 하루 정해진 {ask.r.preview.day_max}번</small> : null}
           </span>
           <button type="button" className={btn} disabled={go.isPending} onClick={() => go.mutate({ q: ask.q, dry: false })}>바꾸기</button>
@@ -368,7 +369,7 @@ export function NomuteOld() {
   const days = idx.data?.find((b) => b.who === who)?.days || [];
   return (
     <PageSection title="옛 그록 대화">
-      <p className="mt-1 text-sm text-muted-foreground">그록 앱 시절 대화(읽기만) · 봇 → 날</p>
+      <p className="mt-1 text-sm text-muted-foreground">그록 앱 시절 대화(읽기만) · 봇 <Chev dir="right" size={12} /> 날</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {(idx.data || []).map((b) => (
           <button key={b.who} type="button" aria-pressed={who === b.who} className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${who === b.who ? "border-primary bg-primary/10 font-semibold" : "border-border"}`}
@@ -391,7 +392,7 @@ export function NomuteOld() {
             <ol className="mt-2 flex flex-col gap-2">
               {msgs.map((m) => (
                 <li key={m.id} className="text-sm">
-                  <span className="text-xs text-muted-foreground"><b className="text-foreground">{m.who}</b>{m.to ? ` → ${m.to}` : ""} · <span className="tabular-nums">{hm(m.ts)}</span>{m.tag ? ` · ${m.tag}` : ""}</span>
+                  <span className="text-xs text-muted-foreground"><b className="text-foreground">{m.who}</b>{m.to ? <> <Chev dir="right" size={11} /> {m.to}</> : ""} · <span className="tabular-nums">{hm(m.ts)}</span>{m.tag ? ` · ${m.tag}` : ""}</span>
                   <p className="whitespace-pre-wrap">{m.text}</p>
                 </li>
               ))}
