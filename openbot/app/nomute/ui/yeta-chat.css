@@ -153,7 +153,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat-in form { min-height:0; padding:5px 6px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-in);
   backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1);
   box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); transition:border-color .45s var(--ease); }
-.ychat-in form:focus-within { border-color:var(--accent); }   /* 입력 중 = 강조색(형 11-01 「내가 채팅을 입력하는 동안에는 내 채팅 이 입력 란 테두리는 강조색으로 감싸져야 함」) */
+.ychat-in form:focus-within { border-color:var(--accent); }
+.dark .ychat-in form:not(:focus-within) { background:color-mix(in srgb, #3a3a3c 82%, transparent); }   /* 안 쓸 때 = 「글 처음」 칩과 같은 차콜 유리(조금 더 비침) · 쓰면 지금처럼(형 11-02 07:14 「아래에 채팅 입력창도 투명도를 좀 줘 입력 안하고 잇을때 … 첫글. 그거랑 동일하게 … 조금 이게 더 연하ㄴ 차콜일 수잇음」 · 빠르) */   /* 입력 중 = 강조색(형 11-01 「내가 채팅을 입력하는 동안에는 내 채팅 이 입력 란 테두리는 강조색으로 감싸져야 함」) */
 .ychat-in .duet-composer-editor { font-size:var(--fs-body); text-align:left; color:var(--fg); }   /* 왼쪽부터(형 16:5x 「입력할때 좌측부터 시작하게」 · YETA 원본 = 가운데) */
 .ychat-in form button[type="button"] { color:var(--fg-2); align-self:center; }   /* 형 10-31 「+ 는 말풍선 크기에 따라서 커지는 높이를 중앙에 따라가지지가 않네」 · 원본 self-end */
 .ychat-in form button[type="submit"] { width:var(--btn); height:var(--btn); align-self:center; border:none; background:none; box-shadow:none; color:var(--accent); transition:transform .24s cubic-bezier(.3,1.7,.5,1); }
