@@ -332,6 +332,12 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-room-menu-list { position:fixed; z-index:56; display:flex; flex-direction:column; min-width:168px; padding:4px; border-radius:12px; border:1px solid var(--glass-line); background:var(--popover, #1c1c1e); color:var(--fg); font-size:14px; box-shadow:var(--shadow-card); }
 .nm-room-menu-list button { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px; border:0; border-radius:8px; background:none; color:inherit; text-align:left; cursor:pointer; }
 .nm-room-menu-list button:hover, .nm-room-menu-list button:focus-visible { background:rgba(255,255,255,.06); }
+.nm-ask-hist { display:flex; flex-direction:column; gap:8px; max-height:min(60vh, 460px); margin:0; padding:0; overflow-y:auto; list-style:none; }   /* 질문 이력(./room-menu.tsx) */
+.nm-ask-hist li { padding:10px 12px; border-radius:14px; background:rgba(255,255,255,.04); }
+.nm-ask-hist .q { margin:0; font-family:var(--app-font-text, inherit); font-size:14px; line-height:1.4; white-space:pre-wrap; word-break:break-word; }
+.nm-ask-hist .m { display:flex; justify-content:space-between; gap:8px; margin:6px 0 0; font-size:12px; color:var(--mut, #8B8F8A); }
+.nm-ask-hist .m b { flex:none; font-weight:600; }
+.nm-ask-hist .m b.on { color:var(--accent, #CFFF40); }
 .nm-room-menu-list small { color:var(--mut, #8B8F8A); font-size:12px; }
 .nm-sx circle, .nm-sx path { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
 .nm-sx .c, .nm-sx .h { transform-origin:14px 14px; transition:transform .33s ease, opacity .33s ease; }
