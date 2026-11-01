@@ -669,6 +669,11 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const hold = useRef(0);   // 이때까지 = 맨 아래로 안 당김(손으로 미는 중 · 「↑ 글 처음」 이동 중 · 형 16:47 「벅벅벅 거리면서 안올라가져」)   // autoN = 손 안 대고 저절로 받은 앞 글 횟수(화면 채우기 · AUTO_MAX 까지 · 손으로 밀면 다시 0)
   moreRef.current = !!msgs.data?.more; olderRef.current = older;
   const [jump, setJump] = useState("");   // 화면 위로 시작이 넘어간 글(「↑ 글 처음」)
+  // 「↓ 최근 글」 = 맨 아래에서 한 화면쯤 떨어져 있으면 오른쪽 아래 단추 · 떨어진 뒤 새로 온 글 수(형 11-01 09:09 「그리구 채팅을 띄워놓고 자리를 비우면 채팅이 밀리는데 그럴경우 최근 채팅으로 가는 아래 버튼 같은게 있어야함」 · 「안그러면 죽죽죽 스크롤 내리거나 채팅을 쳐서 내려야되거듬」)
+  const [far, setFar] = useState(false), seenEnd = useRef(0);
+  if (stuck.current || !far) seenEnd.current = all.length;
+  const newBelow = far ? Math.max(0, all.length - seenEnd.current) : 0;
+  const toEnd = () => { const box = boxRef.current; if (!box) return; hold.current = 0; stuck.current = true; box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); setFar(false); };
   useLayoutEffect(() => {   // 위로 받은 앞 글 = 보던 자리 그대로(늘어난 높이만큼 내림)
     const box = boxRef.current, k = keepTop.current;
     if (box && k) { box.scrollTop = k.top + (box.scrollHeight - k.h); keepTop.current = null; }
@@ -698,6 +703,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         break;
       }
       setJump(hit);
+      setFar(box.scrollHeight - box.scrollTop - box.clientHeight > Math.max(320, box.clientHeight * 0.6));
       // 앞 글 하루치 = 위 끝 가까이 왔을 때 · 화면이 아직 안 찼을 때(봇끼리 글이 한 줄로 접혀 짧음) — 저절로는 AUTO_MAX 번까지 · 받은 게 0 이면 그만
       const short = box.scrollHeight - box.clientHeight < 240 || box.scrollTop < 240;
       if (short && moreRef.current && !loadingOld.current && autoN.current < AUTO_MAX) {
@@ -817,6 +823,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()}>안 본 것부터 · {unseen.length}</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}>↑ 글 처음</button> : null}
+      {far ? <button type="button" className="ydown" aria-label={newBelow ? `최근 글로 · 새 글 ${newBelow}개` : "최근 글로"} onClick={toEnd}>↓{newBelow ? <b>{newBelow > 99 ? "99+" : newBelow}</b> : null}</button> : null}
       <ScrollDate box={boxRef} />
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
         <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
