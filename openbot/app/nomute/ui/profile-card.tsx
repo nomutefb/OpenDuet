@@ -28,8 +28,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const dm = rooms.find((r) => r.with === who);
   const save = async (color: string) => {   // 말풍선 색(형 10-31 · 서버 office/bubbles.json · 형만)
     await office("bubble", { method: "POST", body: JSON.stringify({ who, color }) });
-    qc.setQueryData(["nomute", "people"], await people(true));
-    setPick(false);
+    qc.setQueryData(["nomute", "people"], await people(true));   // 창 닫기 = 저장 그림 ✓ 뒤(ColorPick onClose)
   };
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   return (

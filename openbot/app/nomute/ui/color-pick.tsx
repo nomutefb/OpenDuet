@@ -1,5 +1,6 @@
 // 말풍선 색 고르기(형 10-31 「프로필 눌러서 rgb 고르는 거로 정할 수 있으면 함」 · 「2 누르면 3창이 뜨는 느낌」) = HEX · 판(밝기·진하기) · 색띠 · R G B
 import { useRef, useState } from "react";
+import { GoButton } from "./go-button";
 
 type Hsv = { h: number; s: number; v: number };
 
@@ -17,7 +18,7 @@ const fromHex = (t: string) => (/^#?[0-9a-f]{6}$/i.test(t) ? [0, 2, 4].map((i) =
 /** 말풍선 글자색 = 배경 밝기로 저절로 */
 export const inkOn = (hex: string) => { const c = fromHex(hex); return c && 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2] > 150 ? "#161716" : "#FFFFFF"; };
 
-export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: (hex: string) => void; onClose: () => void }) {
+export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: (hex: string) => Promise<unknown> | void; onClose: () => void }) {
   const first = fromHex(value || "") || [30, 32, 35];
   const [hsv, setHsv] = useState<Hsv>(() => toHsv(first[0], first[1], first[2]));
   const rgb = fromHsv(hsv), hex = toHex(rgb);
@@ -31,7 +32,7 @@ export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: 
   const setRgb = (i: number, n: number) => { const c = [...rgb]; c[i] = Math.max(0, Math.min(255, n || 0)); setHsv(toHsv(c[0], c[1], c[2])); };
   return (
     <div className="ncp" role="dialog" aria-label="말풍선 색 고르기" onClick={(e) => e.stopPropagation()}>
-      <PickTop label="말풍선 색" onUndo={() => onSave("")} onSave={() => onSave(hex)} onClose={onClose} />
+      <PickTop label="말풍선 색" onUndo={() => void Promise.resolve(onSave("")).then(onClose, () => {})} onSave={() => onSave(hex)} onDone={onClose} onClose={onClose} />
       <label className="ncp-f"><span>HEX</span>
         <input value={typed || hex} onChange={(e) => { setTyped(e.target.value); const c = fromHex(e.target.value); if (c) setHsv(toHsv(c[0], c[1], c[2])); }} onBlur={() => setTyped("")} />
       </label>
@@ -54,13 +55,14 @@ const SAVE = <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
 const CLOSE = <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>;
 
 /** 색 고르기 창 머리 = 왼쪽 이름 · 우상단 그림 단추 나란히(형 11-01 10:5x 「되돌리기 픽토그램, 저장 닫기 이 3개 버튼을 이 모달창의 우상단으로 보내버려」 · 「픽토그램은 동그라미로 또 덮을 필요는 없어 수평으로 나란히 작게 3개면됨」) · 저장 없는 판(표지 색 = 떼면 저장)은 둘 */
-export function PickTop({ label, onUndo, onSave, onClose }: { label: string; onUndo: () => void; onSave?: () => void; onClose: () => void }) {
+//   저장 그림 = GoButton(./go-button.tsx · 형 11-01 14:12 「전송에 게이지 차오르고 체크되는 버튼」) — 누르면 그림 동그라미에 게이지 → ✓ → onDone(창 닫기 = ✓ 를 본 뒤)
+export function PickTop({ label, onUndo, onSave, onDone, onClose }: { label: string; onUndo: () => void; onSave?: () => Promise<unknown> | void; onDone?: () => void; onClose: () => void }) {
   return (
     <div className="ncp-top">
       <span>{label}</span>
       <div className="ncp-ico">
         <button type="button" aria-label="기본으로 되돌리기" title="기본으로" onClick={onUndo}>{UNDO}</button>
-        {onSave ? <button type="button" aria-label="저장" title="저장" onClick={onSave}>{SAVE}</button> : null}
+        {onSave ? <GoButton className="ncp-go" label="저장" busy="" go={async () => onSave()} done={() => onDone?.()}>{SAVE}</GoButton> : null}
         <button type="button" aria-label="닫기" title="닫기" onClick={onClose}>{CLOSE}</button>
       </div>
     </div>

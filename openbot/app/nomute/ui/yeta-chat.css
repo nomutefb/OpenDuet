@@ -49,6 +49,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ypc-ava { position:relative; }
 .ypc-orb { position:absolute; right:12px; top:12px; z-index:4; width:30px; height:30px; padding:0; border:0; border-radius:50%; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.45), inset -3px -4px 8px rgba(0,0,0,.25), inset 3px 4px 8px rgba(255,255,255,.35);
   background:radial-gradient(circle at 34% 30%, rgba(255,255,255,.7), transparent 34%), conic-gradient(from 210deg, #4b7bff, #5ad1ff, #f7a8c4, #ffd27a, #ff8a4c, #ff5f8a, #9a7bff, #4b7bff); }
+.ypc:has(.ypc-pop) .ypc-orb { opacity:0; pointer-events:none; }   /* 판이 열리면 원 숨김 = 판 우상단 ✕ 를 안 가림(닫기는 판의 ✕) */
 .ncp { width:100%; display:flex; flex-direction:column; gap:10px; padding:12px; border-radius:16px; background:#1e2023; border:1px solid rgba(255,255,255,.1); text-align:left; }
 .ncp-f { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; font-size:11px; color:#8B8F8A; }
 .ncp-f input { width:100%; min-width:0; padding:6px 8px; border:0; border-radius:8px; background:#2a2d31; color:#fff; font-size:14px; outline:none; }
@@ -63,6 +64,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ncp-ico button { display:grid; place-items:center; width:30px; height:30px; padding:0; border:0; background:none; color:inherit; opacity:.82; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .ncp-ico button:active { transform:scale(var(--press-m, .92)); opacity:1; }
 .ncp-ico svg { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.ncp-ico .nm-go { border-radius:50%; overflow:hidden; }   /* 저장 그림 = 게이지 단추(동그라미 안에서 차오름 → ✓) · 못 보냄 글자는 숨기고 빨강·흔들림만(까닭 = title) */
+.ncp-ico .nm-go[data-stage="err"] { font-size:0; }
 .ypc { position:relative; }
 .ypc-pop { position:absolute; top:10px; left:10px; right:10px; z-index:3; }   /* 프사 위에 뜨는 말풍선 색 판 */
 .ypc:has(.ypc-pop) { min-height:min(80dvh, 372px); }   /* 판(약 343px)이 카드 스크롤에 잘리지 않게 그동안만 카드를 늘림 · 이름 자리는 그대로 */
