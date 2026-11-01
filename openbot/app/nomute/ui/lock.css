@@ -1,0 +1,16 @@
+/* 서랍 「잠금」(./lock.tsx) — 원본 자동 잠금 창(자동 잠금(분) 값 + 1~60 슬라이더 · 꺼져 있으면 흐림) */
+.nm-lock { display:flex; flex-direction:column; gap:10px; }
+.nm-lock .nm-lock-state { display:flex; gap:6px; }
+.nm-lock .chip { border:1px solid var(--glass-line); color:var(--mut); font-size:var(--fs-xs, 11px); padding:3px 10px; border-radius:var(--r-pill); }
+.nm-lock .chip.on { color:var(--bg); background:var(--accent); border-color:var(--accent); }
+.nm-lock .nm-lock-row { display:flex; justify-content:space-between; align-items:baseline; font-size:var(--fs-sm, 13px); color:var(--fg); }
+.nm-lock .nm-lock-row b { font-size:18px; font-weight:700; }
+.nm-lock .nm-lock-sld { display:flex; align-items:center; gap:10px; }
+.nm-lock .nm-lock-sld .cap { font-size:var(--fs-xs, 11px); color:var(--mut); }
+.nm-lock .nm-lock-sld input { flex:1; -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:linear-gradient(90deg, var(--accent) 0 var(--p, 0%), var(--glass-line) var(--p, 0%) 100%); outline:none; }
+.nm-lock .nm-lock-sld input::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--fg); border:2px solid var(--accent); }
+.nm-lock .nm-lock-sld input::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:var(--fg); border:2px solid var(--accent); }
+.nm-lock .off { opacity:.45; }
+.nm-lock .nm-lock-steps { display:flex; justify-content:space-between; padding:0 22px; }
+.nm-lock .nm-lock-steps i { font-style:normal; font-size:9px; color:var(--mut); }
+.nm-lock .nm-lock-steps i.on { color:var(--accent); font-weight:700; }
