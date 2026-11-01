@@ -140,7 +140,7 @@ function Row({ a, go, onOpen }: { a: FArt; go: (p: string) => void; onOpen: (a: 
 /** 기사 한 장(#/news)에 갔다 돌아오면 보던 그대로(검색·칩·개수·스크롤) — 열 때 남기고 다음 그림에서 한 번 씀 */
 let keep: { q: string; cats: string[]; issue: boolean; n: number; top: number } | null = null;
 
-export function FeedModal() {
+export function FeedModal({ search = false }: { search?: boolean }) {   // search = 서랍 「검색」으로 열림 → 검색 칸에 바로 커서(에디터 검색 창 /?pop=search 대신 · 봄 11-01)
   const go = useGo();
   const [init] = useState(() => keep || { q: "", cats: [], issue: false, n: CAP, top: 0 });
   useEffect(() => { keep = null; }, []);
@@ -189,7 +189,7 @@ export function FeedModal() {
           </div>
           <label className="nm-feed-find">
             <DuetIcon name="search" size={16} />
-            <input type="search" value={q} onChange={(e) => { setQ(e.target.value); reset(); }} placeholder="제목·매체 검색" aria-label="뉴스 검색" enterKeyHint="search" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
+            <input type="search" autoFocus={search} value={q} onChange={(e) => { setQ(e.target.value); reset(); }} placeholder="제목·매체 검색" aria-label="뉴스 검색" enterKeyHint="search" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
             {q ? <button type="button" aria-label="검색어 지우기" onClick={() => { setQ(""); reset(); }}><DuetIcon name="x" size={14} /></button> : null}
           </label>
           {/* 분류 칩 뺌(형 11-01 17:5x 「필터는 없어도될것같아!」) */}
