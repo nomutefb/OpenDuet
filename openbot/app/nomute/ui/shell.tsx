@@ -31,7 +31,8 @@ import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { IssueView } from "./issue";
 import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
-import { NewsModal } from "./news";
+import { NewsModal, newsFileOf } from "./news";
+import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 import { ChanModal } from "./chan";
 import { SnsModal } from "./sns";
 import { AskModal } from "./ask";   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
@@ -42,15 +43,16 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edfilter" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edfilter" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
-export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key"; to: string; desc?: string }[] = [
+export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 네비 4번(서랍 목록엔 안 넣음 · swap/tab-bar.tsx)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(에디터 /?tab=scrap 그대로 품음 · 옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 보내기" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
-  { id: "news", label: "뉴스 요약", icon: "page", to: "/news", desc: "최신 목록" },   // 에디터 「뉴스 요약」 목록(누르면 그 기사 요약 = #/web)
+  { id: "news", label: "뉴스 요약", icon: "page", to: "/news", desc: "최신 목록·기사 요약" },   // 에디터 「뉴스 요약」 목록(누르면 앱 안 기사 한 장 = #/news?a=<file> · 썸네일·본문·카드 · 고치기만 에디터)
+  { id: "thumbhist", label: "썸네일 이력", icon: "layout", to: "/thumbhist", desc: "만든 썸네일 보기·저장" },   // 에디터 썸네일 「이전 제작」(thumb-hist.json · ./thumb-hist.tsx)
   { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan", desc: "한눈" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
   { id: "sns", label: "SNS", icon: "globe", to: "/sns", desc: "한눈" },   // 에디터 「SNS」 한눈(전체 보기 = #/web)
   { id: "edtool", label: "에디터", icon: "plus", to: "/edtool", desc: "카드 제작·영상 편집·유튜브" },
@@ -156,6 +158,11 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const show = (id: Pane, node: ReactNode) =>
     open.has(id) ? <section key={id} className={`nm-pane ${pane === id ? "on" : ""}`} aria-hidden={pane !== id} inert={pane !== id || undefined}>{node}</section> : null;
   const closeModal = () => {   // 서랍에서 연 칸의 「<」 = 서랍으로(봄 11-01 · 전엔 아래 판(홈·대화방)으로 갔음) · 표지 = drawer-page 가 누를 때 남김
+    if (modal === "news" && newsFileOf(searchStr)) {   // 뉴스 기사 한 장의 「<」 = 목록으로(앞 길이 앱 안이면 뒤로 = 보던 자리 · 처음부터 한 장이면 목록 길로)
+      if (((history.state as { __TSR_index?: number } | null)?.__TSR_index ?? 0) > 0) history.back();
+      else void nav({ to: "/news", replace: true });
+      return;
+    }
     let back = false;
     try { back = !!modal && modal !== "drawer" && sessionStorage.getItem("nm-from-drawer") === modal; sessionStorage.removeItem("nm-from-drawer"); } catch { /* 저장 못 쓰면 옛 길 */ }
     void nav({ to: back ? "/drawer" : paneHref(base, room) });
@@ -208,6 +215,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "drawer" ? <div className="nm-scroll"><DrawerPage /></div>
                   : M.id === "ask" ? <div className="nm-scroll"><AskModal /></div>
                   : M.id === "news" ? <div className="nm-scroll"><NewsModal /></div>
+                  : M.id === "thumbhist" ? <div className="nm-scroll"><ThumbHist /></div>
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>
                   : M.id === "sns" ? <div className="nm-scroll"><SnsModal /></div>
                   : <div className="nm-scroll"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
