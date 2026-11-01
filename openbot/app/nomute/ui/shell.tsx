@@ -35,6 +35,7 @@ import { NewsModal, newsFileOf } from "./news";
 import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
 import { ChanModal } from "./chan";
+import { TrendModal } from "./trend";   // 서랍 「SNS 전체」 = 에디터 트렌드 탭 네이티브(전엔 FRAME 으로 품음)
 import { QueueModal } from "./queue";
 import { MsgsModal } from "./msgs";
 import { PushDevsModal } from "./push-devs";   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
@@ -64,7 +65,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   // 에디터 첫 화면 탭·도구를 서랍 칸마다 바로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘 / 지금 저 기능이 완전히 유지되어야해」 · 공통/문서/2026-11-01-서랍-에디터-이식/안.md)
   { id: "news", label: "뉴스 기사", icon: "page", to: "/news", desc: "최신 목록·기사 요약" },   // 에디터 「뉴스 요약」 목록(누르면 앱 안 기사 한 장 = #/news?a=<file> · 썸네일·본문·카드 · 고치기만 에디터)
   { id: "feed", label: "뉴스 요약", icon: "page", to: "/feed", desc: "요약한 기사 · 기사 한 장" },   // 용어 = 뉴스 요약(형 11-01 18:0x 「뉴스 요약 < 뉴스 전체는 용어 변경」) · 옛 「뉴스 요약」 짧은 목록 칸은 이 칸과 겹쳐 뺌(#/news 주소는 기사 한 장으로 그대로)   // 에디터 피드 탭(/?tab=feed)을 앱 네이티브로(./feed.tsx · 전엔 FRAME 으로 품음 · 쓰기만 에디터 한 겹)
-  { id: "trend", label: "SNS 전체", icon: "globe", to: "/trend", desc: "섹션 전부·구독 채널·새로 수집" },
+  { id: "trend", label: "SNS 전체", icon: "globe", to: "/trend", desc: "섹션 전부·구독 채널" },   // 앱 안(./trend.tsx) · 새로 수집·커뮤니티 전송만 「에디터에서」
   { id: "chanfull", label: "채널 전체", icon: "dashboard", to: "/chanfull", desc: "차트·게시물·결의 보드" },
   // 에디터 설정 메뉴 안 칸들(전엔 러너 톱니로만 열림) = 에디터 /?pop=<이름> 딥링크(빠르 11-01 04:23 · 이름 = 봄 안 표)
   { id: "edq", label: "대기열", icon: "tasks", to: "/edq", desc: "재시도·취소" },
@@ -87,7 +88,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
-const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1", trend: "/?tab=trend&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
+const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
   eddl: "/?pop=dlgrab&inapp=1", edkw: "/?pop=kw&inapp=1", edsnsacc: "/?pop=snsacc&inapp=1", edfilter: "/?pop=filter&inapp=1", edgenopt: "/?pop=genopt&inapp=1", edlock: "/?pop=lock&inapp=1", edacct: "/?pop=account&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
@@ -208,7 +209,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
             <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>
-              {M.id === "settings" || M.id === "drawer" || M.id === "feed" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
+              {M.id === "settings" || M.id === "drawer" || M.id === "feed" || M.id === "trend" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>
@@ -232,6 +233,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>
                   : M.id === "chanfull" ? <div className="nm-scroll"><ChanModal full /></div>   // 채널 전체 = 앱 안 조각(빠르 11-01 · 나머지 칸은 맨 아래 단추로 에디터)
                   : M.id === "sns" ? <div className="nm-scroll"><SnsModal /></div>
+                  : M.id === "trend" ? <div className="nm-scroll"><TrendModal /></div>
                   : <div className="nm-scroll"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
               </div>
             </div>

@@ -1,0 +1,224 @@
+/* 서랍 「SNS 전체」(./trend.tsx) — 에디터 트렌드 탭 꼴(viewer-src/06-document.part .tgroup · .trend-sec · .trend-row · .tlr · .tcard · .xcard · .fin-row · .soc-item · .tstk · .trail)을 YETA 유리로
+   대분류 = 유리 카드(뉴스 요약 .nm-feed-it 와 같은 유리 · 사이 12px) · 소분류 = 가는 선으로 나눔 · 좌우 2열(.rt2 · .fin-split) = 폰(560 미만)에선 한 줄로 쌓음 · 숫자·영문 = Pretendard */
+.nm-trend { --line:var(--glass-line); --line2:color-mix(in srgb, var(--glass-line) 70%, transparent); --fs-sm:12.5px; --r-m:12px; --r-s:9px;
+  --accent-4:#9a7400; --accent-3:#e23b2a; --bias-l1:#1a9fd6; --bias-l2:#3a6ddb; --purple:#7b2fd6;
+  --cat-eco:#9a7400; --cat-intl:#d4503f; --cat-soc:#0f9e6a; --cat-cul:#c4318f; --cat-pol:#1a8fc6;
+  --num:Pretendard, -apple-system, system-ui, sans-serif;
+  position:relative; margin-left:12px; font-family:var(--app-font-text, var(--num)); }
+.dark .nm-trend { --accent-4:#FFE13D; --accent-3:#ff6a5a; --bias-l1:#38C6FF; --bias-l2:#5b8cff; --purple:#AC5CFF;
+  --cat-eco:#FFE13D; --cat-intl:#ff7a6b; --cat-soc:#2CF5A5; --cat-cul:#FF5EC8; --cat-pol:#38C6FF; }   /* 플랫폼·편향 색 = 에디터 팔레트 값(어둡게 그대로 · 밝게 = 같은 색조를 진하게) */
+.nm-trend .rk, .nm-trend .tf, .nm-trend .tm, .nm-trend .tlr-v, .nm-trend .tlr-tm, .nm-trend .tlr-p, .nm-trend .tcard-m, .nm-trend .tcard-rank, .nm-trend .tpc-m, .nm-trend .tpc-rank, .nm-trend .tpc-cat, .nm-trend .tdash-time,
+.nm-trend .fin-v, .nm-trend .fin-chg, .nm-trend .fin-ico, .nm-trend .ts-n, .nm-trend .soc-top, .nm-trend .soc-chip, .nm-trend .tb-seg, .nm-trend .tstk-cnt, .nm-trend .tg-h i, .nm-trend .tb-led-h b, .nm-trend .tb-led-l .m { font-family:var(--num); font-variant-numeric:tabular-nums; }   /* 숫자·영문 = Pretendard(형 11-01 17:5x 「영문은 pretendard로 고정」 · 뉴스 요약 매체 칸과 같은 줄) */
+.nm-trend-msg { padding:6px 4px; }
+.nm-trend-acts { margin-top:4px; justify-content:flex-end; }
+.nm-trend .ypc-go { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.nm-trend .ypc-go span svg { width:14px; height:14px; }
+
+/* 왼쪽 책갈피(원본 .trailwrap · 화면 왼쪽 끝 세로 · 판과 같이 안 흐름) — 판 위 붙박이 = 높이 0 sticky 상자 안 절대 위치 */
+.nm-trend-railbox { position:sticky; top:calc(80px + env(safe-area-inset-top)); height:0; z-index:6; }
+.nm-trend-rail { position:absolute; left:-14px; top:calc(50svh - 230px); display:flex; flex-direction:column; align-items:center; gap:8px; }
+.nm-trend-rail .trail { display:flex; flex-direction:column; align-items:center; gap:4px; padding:4px 1px; border-radius:var(--r-pill, 999px); background:color-mix(in srgb, var(--duet-surface, #161716) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+.nm-trend-rail .trail-i { position:relative; display:grid; place-items:center; width:22px; height:22px; padding:0; border:0; background:none; border-radius:50%; color:var(--mut, #8B8F8A); font:inherit; font-size:10.5px; font-weight:800; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-trend-rail .trail-i::after { content:''; position:absolute; inset:-5px -4px; }
+.nm-trend-rail .trail-i span, .nm-trend-rail .trail-i svg { display:block; width:12px; height:12px; }
+.nm-trend-rail .trail-i.rg span, .nm-trend-rail .trail-i.rg svg { width:15px; height:15px; }
+.nm-trend-rail .trail-i.rg:not(.on) svg { opacity:.5; filter:grayscale(1); }
+.nm-trend-rail .trail-i.on { color:var(--accent, #CFFF40); }
+.nm-trend-rail .trail-i:active { transform:scale(.9); }
+.nm-trend-rail .trail-div { width:14px; height:1px; margin:1px 0; background:color-mix(in srgb, currentColor 16%, transparent); color:var(--mut, #8B8F8A); }
+
+/* 대분류 = 유리 카드(원본 .tgroup) */
+.nm-trend .tg { margin:0 0 12px; padding:12px 14px; border:1px solid var(--glass-line); border-radius:var(--r-l); background:var(--glass); -webkit-backdrop-filter:blur(16px) saturate(1.2); backdrop-filter:blur(16px) saturate(1.2); box-shadow:inset 0 1px 0 var(--glass-line); scroll-margin-top:calc(72px + env(safe-area-inset-top)); }
+.nm-trend .tg-h { display:flex; align-items:center; gap:6px; list-style:none; margin:0 0 10px; font-size:var(--fs-label); font-weight:var(--fw-x); color:var(--fg); white-space:nowrap; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; }
+.nm-trend .tg-h::-webkit-details-marker, .nm-trend .ts-h::-webkit-details-marker { display:none; }
+.nm-trend .tg-h::after, .nm-trend .ts-h::after { content:''; flex:none; width:7px; height:7px; margin:0 3px 3px 8px; border-right:1.6px solid var(--mut); border-bottom:1.6px solid var(--mut); transform:rotate(45deg); transition:transform .25s var(--ease); }
+.nm-trend details:not([open]) > .tg-h::after, .nm-trend details:not([open]) > .ts-h::after { transform:rotate(-45deg); margin-bottom:0; }
+.nm-trend .tg:not([open]) > .tg-h { margin-bottom:0; }
+.nm-trend .tg-h > i { flex:none; display:inline-grid; place-items:center; width:22px; height:22px; font-style:normal; font-size:var(--fs-sm); font-weight:var(--fw-b); color:var(--accent); }
+.nm-trend .tg-h .gpic { flex:none; display:inline-grid; place-items:center; width:22px; height:22px; color:var(--accent); }
+.nm-trend .tg-h .gpic svg { width:16px; height:16px; display:block; }
+.nm-trend .tg-h.hdr-stale .gpic { opacity:.35; }   /* 수집 65분+ 밀림 = 그림 빛 꺼짐(원본 hdr-stale) */
+.nm-trend .tg-h .ttl { flex:1; min-width:0; display:flex; align-items:center; gap:6px; overflow:hidden; }
+.nm-trend .tg-h .ttl > .tdash-time:first-of-type { margin-left:auto; }
+.nm-trend .tg-x { margin:-2px 0 10px; }
+.nm-trend .tdash-time { flex:none; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--mut); font-size:var(--fs-xs); font-weight:400; line-height:1; }
+.nm-trend .tdash-time.stale { color:var(--accent-4); }
+.nm-trend .fin-hotdot { flex:none; width:7px; height:7px; border-radius:50%; background:var(--accent-4); box-shadow:0 0 8px color-mix(in srgb, var(--accent-4) 70%, transparent); }
+.nm-trend .fin-upd { margin-left:auto; color:var(--fg); } .nm-trend .fin-chk { color:var(--purple); }
+
+/* 소분류(원본 .trend-sec) — • 이름 · 단위 · (접혔을 때만) 개수 */
+.nm-trend .ts + .ts, .nm-trend .ts + .rt2, .nm-trend .rt2 + .ts, .nm-trend .rt2 + .rt2, .nm-trend .fin-split > .ts:nth-child(n+3) { margin-top:18px; padding-top:16px; border-top:1px solid var(--line2); }
+.nm-trend .ts-h { display:flex; align-items:center; gap:6px; list-style:none; margin:2px 0 8px; font-size:var(--fs-label); font-weight:var(--fw-x); color:var(--fg); cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; }
+.nm-trend .ts-h::before { content:'•'; flex:none; width:12px; text-align:center; color:var(--accent); font-weight:var(--fw-b); }
+.nm-trend .ts-l { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-trend .ts-u { display:inline-flex; align-items:center; gap:6px; min-width:0; color:var(--mut); font-size:var(--fs-xs); font-weight:400; }
+.nm-trend .ts-n { display:none; color:var(--mut); font-size:var(--fs-xs); font-weight:400; }
+.nm-trend .ts:not([open]) .ts-n { display:inline; }
+.nm-trend .ts-h::after { margin-left:auto; }
+.nm-trend .rt2, .nm-trend .fin-split { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:16px; align-items:start; }
+.nm-trend .rt2 > .ts + .ts, .nm-trend .fin-split > .ts:nth-child(2) { margin-top:0; padding-top:0; border-top:0; }
+@media (max-width:559px) {   /* 폰 = 좌우 2열을 한 줄로 쌓음(원본 rt2col 미디어) */
+  .nm-trend .rt2, .nm-trend .fin-split { grid-template-columns:minmax(0,1fr); }
+  .nm-trend .rt2 > .ts + .ts, .nm-trend .fin-split > .ts + .ts { margin-top:18px; padding-top:16px; border-top:1px solid var(--line2); }
+}
+.nm-trend .qempty { display:flex; flex-direction:column; gap:3px; padding:8px 10px; border:1px dashed var(--glass-line); border-radius:var(--r-m); font-size:var(--fs-sm); color:var(--fg-2); }
+.nm-trend .qempty small { font-size:var(--fs-xs); color:var(--mut); line-height:1.45; }
+
+/* 순위 줄(원본 .trend-row) — 순위 · 제목 · 값 · 시각 */
+.nm-trend .tr-row { display:flex; align-items:baseline; gap:8px; padding:4px 0; color:var(--fg); text-decoration:none; font-size:var(--fs-sm); -webkit-tap-highlight-color:transparent; }
+.nm-trend .tr-row:active { opacity:.7; }
+.nm-trend .rk { flex:none; width:20px; text-align:center; color:var(--accent); font-weight:var(--fw-x); }
+.nm-trend .tr-row .q { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-trend .q.cnhot, .nm-trend .q.top3, .nm-trend .q.dis-crit { color:var(--accent-4); }   /* 두 곳에 뜬 검색어 · 박스오피스 3위 · 지진·화재급 = 골드 */
+.nm-trend .q.cnhot.cn3 { color:var(--bias-l1); }   /* 세 곳 = 하늘 */
+.nm-trend .tr-row .tf { flex:none; display:inline-flex; align-items:center; gap:4px; max-width:50%; color:var(--mut); font-size:var(--fs-xs); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-trend .tr-row .tf.bo-w { color:var(--fg); } .nm-trend .tr-row .tf.bo-y { color:var(--accent-4); } .nm-trend .tr-row .tf.bo-t { color:var(--accent); }
+.nm-trend .tr-row .tm { flex:none; min-width:46px; text-align:right; color:var(--mut); font-size:var(--fs-xs); white-space:nowrap; }
+.nm-trend .tr-row .tm:empty { min-width:0; }
+.nm-trend .dis-area { overflow:hidden; text-overflow:ellipsis; }
+.nm-trend .fw-chip { flex:none; padding:0 6px; border-radius:var(--r-pill); font-size:10px; line-height:16px; color:var(--accent-4); background:color-mix(in srgb, var(--accent-4) 15%, transparent); }
+.nm-trend .fw-chip.on { color:var(--accent); background:color-mix(in srgb, var(--accent) 15%, transparent); }
+.nm-trend .tag-dim { color:var(--mut); }
+.nm-trend .tr-tags { display:flex; flex-wrap:wrap; gap:4px 8px; padding-top:2px; }
+.nm-trend .tr-tag { font-size:var(--fs-sm); color:var(--fg-2); }
+
+/* AI 요약(원본 .tbrief) — 본문 그대로 펼침 · *강조* = 강조색 굵게 · **굵게** = 굵게만 · 참고 기사 링크 = 골드 기울임 */
+.nm-trend .tbrief { margin:0; }
+.nm-trend .tb-t { margin:0; font-size:var(--fs-body); line-height:1.8; color:var(--fg); white-space:pre-line; word-break:break-word; }
+.nm-trend .tb-t b { color:var(--accent); font-weight:var(--fw-x); }
+.nm-trend .tb-t b.tb-em { color:inherit; }
+.nm-trend .tb-t a { color:var(--fg); text-decoration:underline; text-decoration-color:color-mix(in srgb, var(--fg) 30%, transparent); text-underline-offset:3px; }
+.nm-trend .tb-t a.tb-ref { color:var(--accent-4); font-style:italic; text-decoration-color:color-mix(in srgb, var(--accent-4) 40%, transparent); }
+.nm-trend .tb-starwarn { color:#ff5f8a; font-weight:var(--fw-x); }
+.nm-trend .tb-led { margin-top:12px; padding-top:6px; border-top:1px solid var(--line2); }
+.nm-trend .tb-led-h { display:flex; align-items:center; gap:4px; padding:2px 0; margin:0; border:0; background:none; color:var(--mut); font:inherit; font-size:var(--fs-xs); font-weight:var(--fw-b); cursor:pointer; }
+.nm-trend .tb-led-h b { font-weight:var(--fw-x); }
+.nm-trend .tb-led-h > span:last-child svg { width:12px; height:12px; display:block; transform:rotate(90deg); transition:transform .25s var(--ease); }
+.nm-trend .tb-led-h[aria-expanded="true"] > span:last-child svg { transform:rotate(-90deg); }
+.nm-trend .tb-led-l { margin:0; padding:0; list-style:none; }
+.nm-trend .tb-led-l li { display:flex; justify-content:space-between; gap:12px; margin:6px 0; font-size:var(--fs-xs); line-height:1.45; color:var(--mut); word-break:break-word; }
+.nm-trend .tb-led-l .m { flex:none; }
+
+/* 실시간 TOP 10(원본 .tlist .tlr · 칩 .tb-seg) — 폰 = 시각 칸 뺌(원본 그대로) */
+.nm-trend .tb-seg { display:flex; gap:2px; width:max-content; max-width:100%; overflow-x:auto; scrollbar-width:none; padding:2px; border-radius:var(--r-pill); background:var(--glass); border:1px solid var(--glass-line); }
+.nm-trend .tb-seg::-webkit-scrollbar { display:none; }
+.nm-trend .tb-seg button { flex:none; border:0; background:none; color:var(--mut); font:inherit; font-size:var(--fs-xs); font-weight:var(--fw-b); padding:3px 10px; border-radius:var(--r-pill); cursor:pointer; }
+.nm-trend .tb-seg button.on { background:color-mix(in srgb, var(--accent) 22%, transparent); color:var(--fg); }
+.nm-trend .tlist { display:flex; flex-direction:column; margin:0 0 12px; }
+.nm-trend .tlr { display:grid; grid-template-columns:20px minmax(0,1fr) 40px 56px 52px; column-gap:8px; align-items:baseline; padding:4px 0; color:var(--fg); text-decoration:none; font-size:var(--fs-sm); -webkit-tap-highlight-color:transparent; }
+.nm-trend .tlr:active { opacity:.7; }
+.nm-trend .tlr-t { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-trend .tlr-p { font-size:var(--fs-xs); font-weight:var(--fw-x); white-space:nowrap; }
+.nm-trend .tlr-v, .nm-trend .tlr-tm { color:var(--mut); font-size:var(--fs-xs); white-space:nowrap; }
+.nm-trend .tlr-tm.old, .nm-trend .tpc-tm.old { opacity:.45; }
+@media (max-width:559px) { .nm-trend .tlr { grid-template-columns:20px minmax(0,1fr) 40px 56px; } .nm-trend .tlr-tm { display:none; } }
+
+/* 넘김 카드(원본 .tstk — 큰 카드 + 작은 셋 · 좌우 단추 · 10위부터 순위/전체 · 10·15·20위 = 처음으로) */
+.nm-trend .tstk { position:relative; touch-action:pan-y; }
+.nm-trend .tstk-g { display:flex; flex-direction:column; gap:10px; }
+.nm-trend .tsk { position:relative; display:block; min-width:0; color:var(--fg); text-decoration:none; -webkit-tap-highlight-color:transparent; animation:nmTskIn .34s var(--ease) backwards; }
+.nm-trend .tstk-mini .tsk:nth-child(1) { animation-delay:.05s; } .nm-trend .tstk-mini .tsk:nth-child(2) { animation-delay:.1s; } .nm-trend .tstk-mini .tsk:nth-child(3) { animation-delay:.15s; }
+@keyframes nmTskIn { from { opacity:0; transform:translateY(6px); } }
+.nm-trend .tsk-empty { visibility:hidden; pointer-events:none; }
+.nm-trend .tsk-cov { position:relative; display:grid; place-items:center; overflow:hidden; border-radius:var(--r-s); background:var(--line); }
+.nm-trend .tsk-cov .lg { color:var(--mut); } .nm-trend .tsk-cov .lg svg { width:18px; height:18px; display:block; }
+.nm-trend .tsk-cov img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.nm-trend .tsk.mag .tsk-cov { aspect-ratio:16/10; border-radius:var(--r-l); }
+.nm-trend .tsk.mag .tsk-cov::after { content:''; position:absolute; inset:0; z-index:2; background:linear-gradient(90deg, rgba(0,0,0,.8) 12%, rgba(0,0,0,.22) 56%, transparent 82%); }
+.nm-trend .tsk .mag-ov { position:absolute; left:13px; right:32%; bottom:11px; z-index:3; display:flex; flex-direction:column; gap:2px; text-align:left; }
+.nm-trend .tsk .mag-ov .tpc-cat { opacity:.95; filter:brightness(1.4); }
+.nm-trend .tsk .mag-ov .tsk-t { color:#fff; font-size:var(--fs-h2); font-weight:var(--fw-x); -webkit-line-clamp:3; }
+.nm-trend .tsk .mag-ov .tpc-m, .nm-trend .tsk .mag-ov .tpc-tm { color:rgba(255,255,255,.9); }
+.nm-trend .tsk .mag-ov .tag-dim { color:rgba(255,255,255,.6); }
+.nm-trend .tstk-mini { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+.nm-trend .tsk.mini .tsk-cov { aspect-ratio:1; }
+.nm-trend .tpc-rank { position:absolute; top:5px; left:5px; z-index:3; display:inline-flex; align-items:center; height:15px; padding:0 5px 1px; border-radius:var(--r-pill); background:rgba(0,0,0,.55); color:#fff; font-size:10px; font-weight:var(--fw-x); }
+.nm-trend .tpc-rank.top { color:#CFFF40; }
+.nm-trend .tpc-bd { display:flex; flex-direction:column; gap:1px; margin-top:5px; min-width:0; }
+.nm-trend .tpc-cat { display:block; font-size:var(--fs-xs); font-weight:var(--fw-x); }
+.nm-trend .tsk-t { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:var(--fs-xs); line-height:1.35; word-break:break-word; }
+.nm-trend .tsk-t.one { -webkit-line-clamp:1; }
+.nm-trend .tpc-m { display:flex; flex-wrap:wrap; align-items:baseline; gap:1px 6px; margin-top:2px; color:var(--mut); font-size:var(--fs-xs); }
+.nm-trend .tpc-m > span { white-space:nowrap; } .nm-trend .tpc-tm { margin-left:auto; }
+.nm-trend .tstk-nav { position:absolute; z-index:4; display:grid; place-items:center; width:30px; height:30px; padding:0; border:1px solid rgba(255,255,255,.18); border-radius:50%; background:rgba(0,0,0,.45); color:#fff; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); cursor:pointer; }
+.nm-trend .tstk { container-type:inline-size; }
+.nm-trend .tstk-nav { top:calc(31.25cqw - 37px); }   /* 큰 카드 가운데보다 조금 위 = 아래 왼쪽 겹글(플랫폼·제목)과 안 겹침 */
+.nm-trend .tstk-nav span svg { width:15px; height:15px; display:block; }
+.nm-trend .tstk-nav.prev { left:6px; } .nm-trend .tstk-nav.prev span svg { transform:rotate(180deg); }
+.nm-trend .tstk-nav.next { right:6px; }
+.nm-trend .tstk-nav.rst { right:8px; top:calc(31.25cqw - 74px); width:26px; height:26px; }
+.nm-trend .tstk-nav.rst span svg { width:13px; height:13px; }
+.nm-trend .tstk-nav:active { transform:scale(.9); }
+.nm-trend .tstk-cnt { position:absolute; z-index:4; right:6px; top:calc(31.25cqw - 2px); width:30px; text-align:center; font-size:var(--fs-xs); font-weight:var(--fw-b); color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.6); pointer-events:none; }
+@media (prefers-reduced-motion:reduce) { .nm-trend .tsk { animation:none; } }
+
+/* 카드 격자(원본 .trend-grid · .tcard) — 16:9 커버 + 순위 · 제목 두 줄 · 조회수 · 나이 */
+.nm-trend .tr-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(145px, calc(50% - 4px)), 1fr)); gap:12px 8px; }
+.nm-trend .tcard { display:block; min-width:0; color:var(--fg); text-decoration:none; -webkit-tap-highlight-color:transparent; }
+.nm-trend .tcard:active { opacity:.7; }
+.nm-trend .tcard-cw { position:relative; display:block; }
+.nm-trend .tcard-cov { position:relative; display:block; aspect-ratio:3/4; overflow:hidden; border-radius:var(--r-l); background:var(--line); }
+.nm-trend .tcard-cov.wd { aspect-ratio:16/9; border-radius:var(--r-m); }
+.nm-trend .tcard-cov img, .nm-trend .xcard-cv img { width:100%; height:100%; object-fit:cover; display:block; }
+.nm-trend .tcard-rank { position:absolute; top:6px; left:6px; z-index:2; padding:1px 6px; border-radius:var(--r-pill); background:rgba(0,0,0,.55); color:#fff; font-size:10px; font-weight:var(--fw-x); }
+.nm-trend .tcard-rank.top { color:#CFFF40; }
+.nm-trend .xcard-h .tcard-rank { position:static; flex:none; background:none; padding:0; color:var(--mut); } .nm-trend .xcard-h .tcard-rank.top { color:var(--accent); }
+.nm-trend .tcard-t { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top:6px; min-height:calc(1.35em * 2); font-size:var(--fs-sm); line-height:1.35; word-break:break-word; }
+.nm-trend .tcard-m { display:flex; flex-wrap:wrap; align-items:center; gap:2px 8px; margin-top:3px; color:var(--mut); font-size:var(--fs-xs); }
+.nm-trend .tcard-m i { display:inline-flex; align-items:center; gap:3px; font-style:normal; }
+.nm-trend .tcard-m i > span:first-child svg { width:11px; height:11px; display:block; opacity:.85; }
+.nm-trend .tcard-ago { margin-left:auto; white-space:nowrap; }
+.nm-trend .tcard-ago.fresh24 { padding:0 5px; border-radius:var(--r-pill); color:var(--accent-4); background:color-mix(in srgb, var(--accent-4) 15%, transparent); }
+.nm-trend .noc { container-type:inline-size; display:grid; place-items:center; background:#676767; }   /* 커버 못 받음 = 플랫폼 글자 판(원본 noc) */
+.nm-trend .noc::after { color:#fff; font-family:var(--num); font-size:19cqw; font-weight:var(--fw-x); letter-spacing:-.02em; }
+.nm-trend .noc.ytfb::after { content:'YouTube'; } .nm-trend .noc.tkfb::after { content:'TikTok'; } .nm-trend .noc.igfb::after { content:'Instagram'; font-size:13cqw; } .nm-trend .noc.thfb::after { content:'Threads'; font-size:16cqw; } .nm-trend .noc.xfb::after { content:'X'; }
+
+/* X·스레드 글 카드(원본 .xcard) */
+.nm-trend .xgrid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap:8px; }
+.nm-trend .xcard { display:flex; flex-direction:column; min-width:0; padding:10px 12px; border:1px solid var(--glass-line); border-radius:var(--r-m); background:color-mix(in srgb, var(--fg) 3%, transparent); color:var(--fg); text-decoration:none; -webkit-tap-highlight-color:transparent; }
+.nm-trend .xcard:active { opacity:.7; }
+.nm-trend .xcard-h { display:flex; align-items:center; gap:7px; margin-bottom:5px; min-width:0; }
+.nm-trend .xcard-h b { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px; }
+.nm-trend .xcard.r3 .xcard-h b { color:var(--accent); }
+.nm-trend .xcard-tx { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; height:calc(3 * 1.5em); font-size:var(--fs-sm); line-height:1.5; white-space:pre-line; word-break:break-word; }
+.nm-trend .xcard-lk { color:var(--mut); }
+.nm-trend .xcard-cv { display:block; margin-top:7px; aspect-ratio:16/9; overflow:hidden; border-radius:var(--r-s); background:var(--line); }
+.nm-trend .xcard .tcard-m { margin-top:auto; padding-top:7px; }
+
+/* 금융(원본 .fin-row — 그림 · 이름 · 값 · 등락) */
+.nm-trend .fin-rows { display:flex; flex-direction:column; gap:2px; }
+.nm-trend .fin-row { display:grid; grid-template-columns:18px minmax(0,1fr) auto 62px; align-items:center; column-gap:6px; padding:3px 0; font-size:var(--fs-sm); color:var(--fg); }
+.nm-trend .fin-ico { display:inline-grid; place-items:center; width:18px; height:18px; border-radius:50%; background:var(--line2); font-size:9.5px; font-weight:var(--fw-b); }
+.nm-trend .fin-nm { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-trend .fin-v { text-align:right; font-weight:var(--fw-b); white-space:nowrap; }
+.nm-trend .fin-v i { margin-left:3px; font-style:normal; font-size:var(--fs-xs); font-weight:400; color:var(--mut); }
+.nm-trend .fin-chg { display:grid; grid-template-columns:10px 1fr; align-items:center; column-gap:3px; font-size:var(--fs-xs); color:var(--mut); }
+.nm-trend .fin-ar svg { width:8px; height:8px; display:block; }
+.nm-trend .fin-pct { text-align:right; }
+.nm-trend .fin-chg.up { color:var(--accent-3); } .nm-trend .fin-chg.dn { color:var(--bias-l2); }
+.nm-trend .fin-row.fin-hot .fin-nm, .nm-trend .fin-row.fin-hot .fin-v, .nm-trend .fin-row.fin-hot .fin-chg { color:var(--accent-4); }
+.nm-trend .fin-rot-st { color:var(--accent); font-weight:var(--fw-b); }
+
+/* 국내 커뮤니티(원본 .soc-item — 🔥 버스트 · 소스 수 · 글 수 · 나이 · 제목 · 소스 칩(성향 색) · 출처성향 점) */
+.nm-trend .kc { display:flex; flex-direction:column; gap:8px; }
+.nm-trend .soc { display:block; padding:10px 12px; border:1px solid var(--glass-line); border-radius:var(--r-m); background:color-mix(in srgb, var(--fg) 3%, transparent); color:var(--fg); text-decoration:none; -webkit-tap-highlight-color:transparent; }
+.nm-trend .soc:active { opacity:.75; }
+.nm-trend .soc-top { display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:11px; font-weight:800; }
+.nm-trend .soc-top > span > span:first-child svg { width:13px; height:13px; display:inline-block; vertical-align:-2px; }
+.nm-trend .soc-top > span > span:first-child { display:inline; }
+.nm-trend .soc-burst { min-width:40px; color:color-mix(in srgb, var(--accent) 62%, transparent); } .nm-trend .soc-burst.hot30 { color:var(--accent); } .nm-trend .soc-burst.hot10 { color:var(--purple); }
+.nm-trend .soc-src { color:var(--accent); } .nm-trend .soc-posts { min-width:26px; color:var(--mut); font-weight:700; }
+.nm-trend .soc-age { margin-left:auto; color:var(--mut); font-weight:700; }
+.nm-trend .soc-pk { padding:1px 7px; border:1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius:var(--r-pill); color:var(--accent); }
+.nm-trend .soc-title { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:14.5px; font-weight:700; line-height:1.42; }
+.nm-trend .soc-srcs { display:flex; flex-wrap:nowrap; gap:5px; margin-top:9px; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, #000 85%, transparent); mask-image:linear-gradient(90deg, #000 85%, transparent); }   /* 폰 = 한 줄(원본 260729) · 넘침 = 흐림 */
+@media (min-width:560px) { .nm-trend .soc-srcs { flex-wrap:wrap; max-height:46px; } }
+.nm-trend .soc-chip { flex:none; display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border:1px solid color-mix(in srgb, var(--fg) 18%, transparent); border-radius:var(--r-pill); background:color-mix(in srgb, var(--fg) 6%, transparent); font-size:10.5px; font-weight:700; color:var(--fg); }
+.nm-trend .soc-chip.ico svg { width:11px; height:11px; display:block; }
+.nm-trend .soc-chip.lean-ll { background:color-mix(in srgb, var(--bias-l2) 20%, transparent); border-color:color-mix(in srgb, var(--bias-l2) 55%, transparent); }
+.nm-trend .soc-chip.lean-l { background:color-mix(in srgb, var(--bias-l1) 14%, transparent); border-color:color-mix(in srgb, var(--bias-l1) 42%, transparent); }
+.nm-trend .soc-chip.lean-mid { background:color-mix(in srgb, var(--fg) 10%, transparent); border-color:color-mix(in srgb, var(--fg) 34%, transparent); }
+.nm-trend .soc-chip.lean-r { background:color-mix(in srgb, #ff7a6b 15%, transparent); border-color:color-mix(in srgb, #ff7a6b 44%, transparent); }
+.nm-trend .soc-chip.lean-rr { background:color-mix(in srgb, #e23b2a 17%, transparent); border-color:color-mix(in srgb, #e23b2a 50%, transparent); }
+.nm-trend .soc-gauge { position:relative; display:block; height:4px; margin:10px 2px 2px; border-radius:var(--r-pill); background:linear-gradient(90deg, #3a6ddb, #38C6FF 25%, color-mix(in srgb, var(--fg) 30%, transparent) 50%, #ff7a6b 75%, #e23b2a); opacity:.7; }
+.nm-trend .soc-dot { position:absolute; top:50%; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; border-radius:50%; background:#fff; box-shadow:0 0 0 1.5px rgba(0,0,0,.35); }
