@@ -1,10 +1,10 @@
 /* 등불 테(형 10-28 07:35 「등불」 = 시안 A · claude-state assign/2026-10-28/office-orb/) — 윈터 얼굴 둘레 고리 하나 · 색 = 노뮤트색(형 10-31 「너가 노뮤트색을 해주고」 · 다른 이는 tint)
    쉼 = 옅은 고리 · 듣는 중 = 고리가 숨 쉼(빛 번짐) · 일하는 중 = 고리 위 빛 호가 돎 · 끝남 = 고리 채움 + ✓ · 움직임 줄이기·still = 멈춘 모양 그대로
    크기 = 칸 --s · 얼굴 = 0.8s(가운데) · 고리 지름 = 얼굴 × 1.2 */
-.nm-orb{--c:#0FFD02;--ring:color-mix(in srgb,var(--c) 85%,transparent);position:relative;display:inline-grid;place-items:center;flex:none}
+.nm-orb{--c:#0FFD02;--ring:color-mix(in srgb,var(--c) 50%,transparent);position:relative;display:inline-grid;place-items:center;flex:none}
 /* 테 색 = 밝기 하나 · 색조만 바뀜 · 채도 상한(형 11-01 「명도가 조금 어둡게 나오는 경향성이 있는 애들이있거든? … 명도가 일정하게 유지되고 색조만 바껴야되는건지 … 너무 쨍하면안돼」) —
    OKLCH 밝기 0.80 · 채도 0.15 까지(잰 값: 빠르 0.58 · 봄 0.74 · 시아 0.91 · 윈터 채도 0.29) · 이 문법을 못 읽는 옛 브라우저 = 위 85% 섞기 */
-@supports (color:oklch(from red l c h)){.nm-orb{--ring:oklch(from var(--c) .8 min(c,.15) h)}}
+@supports (color:oklch(from red l c h)){.nm-orb{--ring:oklch(from var(--c) .8 min(c,.15) h / .5)}}   /* 투명도 50%(형 11-01 「지금 테드리에 투명도 50% 만 주면 될거같아!」) */
 .nm-orb .nm-orb-face{position:relative;z-index:1}
 .nm-orb>i{position:absolute;pointer-events:none;border-radius:50%}
 .nm-orb .nm-ring{inset:calc(var(--s)*.02);box-shadow:0 0 0 1.4px var(--ring)}   /* 다 같은 두께 · 번짐 0(형 11-01 「테두리, 다 일정한 두께 … 누구는 테두리가 두텁고 누구는 좁아서」 · 「저거보다 한 70% 얇기면」 = 2px × 0.7 · 옛 은색·로얄 따로 꼴은 거둠) */
