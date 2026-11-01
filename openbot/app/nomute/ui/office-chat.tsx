@@ -659,10 +659,11 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   useCloseCallMenu();
   const bots4 = useMemo(() => {   // 입력칸 「@」·「!」 목록 = 이 방에서 부를 수 있는 이(정한 사람 없는 방 = 봇 + 윈터·봄 같은 존재 · 형 10-30 「호출시 … 리스트 안뜨는 것」)
     const ids = r ? roomAgentIds(r, list) : [];
-    if (r && !r.with && !r.members?.length) for (const p of list) { const id = idOf(p.who, list); if (p.kind !== "human" && p.who !== "형" && !ids.includes(id)) ids.push(id); }
+    if (r && !r.with && (meet || !r.members?.length)) for (const p of list) { const id = idOf(p.who, list); if (p.kind !== "human" && p.who !== "형" && !ids.includes(id)) ids.push(id); }
     const people = ids.map((id) => { const p = list.find((x) => idOf(x.who, list) === id); return { id, name: p?.name || p?.who || id, title: p?.role }; });
+    // 회의실 = 그때 멤버 먼저 + 나머지 전부(형 11-01 22:21 「회의실에는 아무나 호출 가능하게 해주라 봇이든 누구든 부르면 올 수 있게」 · 22:31 사진 = 결이 목록에 없음 · 서버는 이미 누구든 부름)
     return r?.with ? people : r?.members?.length ? [GROUP_PICK[0], ...people] : [...GROUP_PICK, ...people];   // 멤버를 정한 단톡 = 모두 + 멤버만(형 10-31 「그록 클로드 지피티 이거는 없어도 됨」)
-  }, [r, list]);
+  }, [r, list, meet]);
   const baseTs = useRef<number | null>(null);   // 방을 연 때 마지막 글 — 그 뒤에 온 글만 올라오는 움직임(YETA .in · 옛 글 다시 그림 = 0)
   if (baseTs.current === null && msgs.data) baseTs.current = all.at(-1)?.ts ?? 0;
   const lastId = all.at(-1)?.id, firstId = all[0]?.id;
