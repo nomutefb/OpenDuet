@@ -513,7 +513,8 @@ function TextPhotos({ urls }: { urls: string[] }) {
 /** 그록봇이 붙인 그림 = 사무실엔 「[user-attachment] ""」 글자만 옴(파일 0 · 빠르 11-01 08:5x 잼) → 빈 글 대신 「그림이 안 넘어옴」을 보여 형이 묻게 */
 const LOST_ATTACH_RE = /^\s*\[user-attachment\]\s*(?:""|“”)?\s*$/;
 
-/** 시그니처 색 이름 = 검정 번짐 한 겹만 아주 얇게(형 11-01 11:26 「아 그리고 지금 보니까 배경색에 따라 생각중 옆에 그림자가들어가는데 이름에 흰색 그림자는 안넣는거로 할게 널을거면 검정색만. 아주 더얇게 번짐느낌이라」 ·
+/** (이름과 「생각중…」 사이 = 여백 .35em · 빛 글자가 앞 빈칸을 먹어 붙어 보였음 · 형 12:28 「봄 생각중 이거 딱 달라붙게 보인다」)
+ *  시그니처 색 이름 = 검정 번짐 한 겹만 아주 얇게(형 11-01 11:26 「아 그리고 지금 보니까 배경색에 따라 생각중 옆에 그림자가들어가는데 이름에 흰색 그림자는 안넣는거로 할게 널을거면 검정색만. 아주 더얇게 번짐느낌이라」 ·
  *  앞 판 09:30 = 밝기 따라 흑·백 두 겹 → 흰 테 뺌) */
 function nameInk(hex?: string): CSSProperties {
   return { color: hex, textShadow: "0 0 2px rgba(0,0,0,.28)" };
@@ -880,7 +881,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={nameInk(ringOf(list.find((x) => x.who === n)))}>{nmOf(list, n)}</span></Fragment>)}<ShinyText text={`${typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각중…`} {...LIVE_SHINE} /></div>   {/* 형 11-01 11:36 「외 2 생각중 ... 여기 이 생각중에도 적용해버리자」 · 이름 색칠 칸은 그대로 */}
+                <div className="yname">{typing.slice(0, 3).map((n, i) => <Fragment key={n}>{i ? "·" : ""}<span style={nameInk(ringOf(list.find((x) => x.who === n)))}>{nmOf(list, n)}</span></Fragment>)}<span className="ml-[.35em] inline-block"><ShinyText text={`${typing.length > 3 ? `외 ${typing.length - 3} ` : ""}생각중…`} {...LIVE_SHINE} /></span></div>   {/* 형 11-01 11:36 「외 2 생각중 ... 여기 이 생각중에도 적용해버리자」 · 이름 색칠 칸은 그대로 */}
                 <div className="yb ai"><span className="ytdots"><i /><i /><i /></span></div>
               </div>
             </div>
