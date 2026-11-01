@@ -37,9 +37,11 @@ function Original({ original }: { original: OriginalAttachment }) {
 function Sending({ attempt }: { attempt: SendAttempt }) {
   return (
     <div className="nac-up" aria-label="첨부 보내는 중">
-      {attempt.originals.map((original) => <Preview key={original.id} file={original.file} />)}
+      <div className="nac-shots">   {/* 게이지 = 그림 바로 아래 · 그림 폭 1/3 · 글 말풍선 앞(형 11-01 09:03 「게이지는 이미지 아래에 저 이미지 크기의 1/3 정도로 게이지만 잇으면 됨 위치는 이미지 아래로. 대화 사이.」) */}
+        {attempt.originals.map((original) => <Preview key={original.id} file={original.file} />)}
+        <span className="nac-bar" role="progressbar" aria-valuenow={Math.round(attempt.progress * 100)}><i style={{ width: `${Math.max(6, Math.min(94, attempt.progress * 94))}%` }} /></span>
+      </div>
       {attempt.text ? <p className="nac-text">{attempt.text}</p> : null}
-      <span className="nac-bar" role="progressbar" aria-valuenow={Math.round(attempt.progress * 100)}><i style={{ width: `${Math.max(6, Math.min(94, attempt.progress * 94))}%` }} /></span>
     </div>
   );
 }
