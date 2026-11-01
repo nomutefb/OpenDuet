@@ -244,30 +244,57 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-dec:active { transform:scale(.92); }
 .nm-fab.on ~ .nm-dec { opacity:0; pointer-events:none; transform:scale(.6); }
 .nm-dec-scrim { position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.28); animation:nmDecFade .2s ease-out; }
-.nm-decpop { --sp:cubic-bezier(.34,1.56,.64,1); position:fixed; z-index:41; right:12px; bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 52px); width:min(380px, calc(100vw - 24px)); max-height:min(70vh, 560px); display:flex; flex-direction:column; border-radius:var(--r-l,18px); background:var(--glass-bg, rgba(26,27,26,.86)); border:1px solid var(--glass-line, rgba(255,255,255,.14)); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); box-shadow:0 18px 40px -12px rgba(0,0,0,.6); transform-origin:100% 100%; animation:nmDecIn .36s var(--sp); overflow:hidden; }
+.nm-decpop { --accent:#CFFF40; --accent-rgb:207,255,64;   /* 라임 = 대화창 칸(.ychat)과 같은 값 · body 로 빠진 창이라 안 걸면 원본 앱 --accent(회색 oklch 26.9%)를 받아 단추가 꺼진 것처럼 보였음(형 11-02 07:32 「비활성 처리가 기본값이라」 · 시아 실측) */
+  --sp:cubic-bezier(.34,1.56,.64,1); position:fixed; z-index:41; right:12px; bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 52px); width:min(380px, calc(100vw - 24px)); max-height:min(70vh, 560px); display:flex; flex-direction:column; border-radius:var(--r-l,18px); background:var(--glass-bg, rgba(26,27,26,.86)); border:1px solid var(--glass-line, rgba(255,255,255,.14)); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); box-shadow:0 18px 40px -12px rgba(0,0,0,.6); transform-origin:100% 100%; animation:nmDecIn .36s var(--sp); overflow:hidden; }
 :root:not(.dark) .nm-decpop { background:rgba(255,255,255,.92); border-color:rgba(0,0,0,.1); }
 .nm-decpop header { display:flex; align-items:baseline; gap:8px; padding:12px 12px 8px 14px; border-bottom:1px solid var(--glass-line, rgba(255,255,255,.1)); }
 .nm-decpop header b { font-size:15px; }
 .nm-decpop header span { flex:1; min-width:0; font-size:11px; color:var(--mut, var(--muted-foreground)); }
 .nm-decpop header button { width:28px; height:28px; border-radius:50%; color:var(--mut, var(--muted-foreground)); }
 .nm-decpop ul { overflow-y:auto; overscroll-behavior:contain; padding:4px 0; }
-.nm-decpop li { padding:10px 14px; border-top:1px solid var(--glass-line, rgba(255,255,255,.08)); }
+.nm-decpop li { display:grid; grid-template-rows:1fr; padding:10px 14px; border-top:1px solid var(--glass-line, rgba(255,255,255,.08)); transition:grid-template-rows .48s cubic-bezier(.4,0,.2,1), padding .48s cubic-bezier(.4,0,.2,1), opacity .36s ease, transform .48s cubic-bezier(.4,0,.2,1); }
+.nm-decpop li > .nm-dec-in { min-height:0; overflow:hidden; }
+.nm-decpop li.bye { grid-template-rows:0fr; padding-top:0; padding-bottom:0; opacity:0; transform:translateY(-6px); }   /* 고른 질문 = 스르륵 접힘(형 11-02 「확 그 질문이 없어진다기보다는 자연스럽게 사라지는 느낌」) */
+.nm-decpop li.nm-dec-all { display:block; padding:18px 14px; text-align:center; font-size:13px; color:var(--mut, var(--muted-foreground)); animation:nmDecFade .4s ease-out; }
 .nm-decpop li:first-child { border-top:none; }
-.nm-decpop li.ok { opacity:.72; }
 .nm-dec-who { display:flex; align-items:center; gap:6px; font-size:12px; }
 .nm-dec-who span { color:var(--mut, var(--muted-foreground)); font-size:11px; }
 .nm-dec-q { margin:6px 0 8px; font-size:14px; line-height:1.45; font-weight:600; white-space:pre-wrap; }
-.nm-dec-ch { display:flex; flex-wrap:wrap; gap:6px; }
-.nm-dec-ch button { min-height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.18)); font-size:13px; text-align:left; text-transform:none; }   /* 영문이 대문자로 보이는 건 앱 글꼴 모양(CSS 아님) */
-.nm-dec-ch button[aria-pressed="true"] { background:var(--accent,#CFFF40); border-color:transparent; color:#111; font-weight:700; }
+/* 고를 것 = 뉴스 요약 「프롬프트 생성」 .mkbtn 그대로(editor viewer/index.html 3063~ · 큰 유리 · 라임 글자·테 · 쉴 때 빛줄기 mkBeam 3.6초) · 누름 차례 = 썸네일 전송 .go(thumb.html 260~ · goFill .72s → ✓ dlChkPop .42s) */
+.nm-dec-ch { display:flex; flex-direction:column; gap:8px; }
+.nm-dec-big { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; width:100%; min-height:46px; padding:10px 16px; border-radius:999px; border:1px solid rgba(207,255,64,.36); background:rgba(0,0,0,.34); color:var(--accent,#CFFF40); font-size:14px; font-weight:800; line-height:1.35; text-align:center; text-transform:none; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); transition:transform .12s ease, background .15s ease, border-color .15s ease, box-shadow .3s ease; }
+:root:not(.dark) .nm-dec-big[data-stage="idle"]:not([aria-pressed="true"]) { background:rgba(79,122,0,.06); border-color:rgba(79,122,0,.4); color:#4f7a00; }   /* 밝게 = 쉴 때만(게이지·✓ 단계는 라임 그대로) */
+.nm-dec-big:active { transform:scale(.955); }
+.nm-dec-big[data-stage="idle"]:not([aria-pressed="true"]):active { box-shadow:0 0 30px rgba(207,255,64,.5); }
+.nm-dec-big[data-stage="idle"]:not([aria-pressed="true"])::after { content:""; position:absolute; top:0; bottom:0; left:-70%; width:45%; background:linear-gradient(105deg, transparent, rgba(255,255,255,.28), transparent); transform:skewX(-18deg); pointer-events:none; animation:nmDecBeam 3.6s cubic-bezier(.4,0,.2,1) infinite; }
+@keyframes nmDecBeam { 0%,66% { left:-70%; } 90%,100% { left:130%; } }
+.nm-dec-big[aria-pressed="true"][data-stage="idle"] { background:var(--accent,#CFFF40); border-color:var(--accent,#CFFF40); color:#161716; }   /* 고른 것 = 불 들어옴(형 「결정이 불이 들어와있어야되는데」) */
+.nm-dec-sub { display:flex; gap:6px; margin-top:8px; }
+.nm-dec-sub button { position:relative; overflow:hidden; min-height:32px; padding:0 14px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.18)); font-size:13px; text-transform:none; }
+.nm-dec-sub button[aria-pressed="true"][data-stage="idle"] { background:var(--accent,#CFFF40); border-color:transparent; color:#111; font-weight:700; }
+.nm-dec-go { position:relative; overflow:hidden; flex:none; min-width:76px; height:34px; padding:0 16px; border-radius:999px; border:1px solid rgba(207,255,64,.45); background:rgba(207,255,64,.08); color:var(--accent,#CFFF40); font-weight:800; font-size:13px; transition:transform .12s ease; }   /* 확인 = 썸네일 전송 .go(불 켜진 유리 · 라임 글자) */
+:root:not(.dark) .nm-dec-go[data-stage="idle"] { border-color:rgba(79,122,0,.45); background:rgba(79,122,0,.08); color:#4f7a00; }
+:root:not(.dark) :is(.nm-dec-sub button, .nm-dec-etc input) { border-color:rgba(0,0,0,.14); }
+.nm-dec-go:active { transform:scale(.955); }
+:is(.nm-dec-big, .nm-dec-sub button, .nm-dec-go)[data-stage="fill"] { pointer-events:none; color:#161716; border-color:var(--accent,#CFFF40);
+  background:linear-gradient(var(--accent,#CFFF40), var(--accent,#CFFF40)) left/0% 100% no-repeat, linear-gradient(rgba(207,255,64,.18), rgba(207,255,64,.18)) left/100% 100% no-repeat;
+  animation:nmDecFill .72s cubic-bezier(.22,.61,.36,1) forwards; }
+:is(.nm-dec-big, .nm-dec-sub button, .nm-dec-go):is([data-stage="ok"], [data-stage="bye"]) { pointer-events:none; background:var(--accent,#CFFF40); border-color:var(--accent,#CFFF40); color:#161716; transition:none; }   /* transition 0 = 게이지 끝과 ✓ 사이 빈 프레임 0(옛 thumb 260807) */
+:is(.nm-dec-big, .nm-dec-sub button, .nm-dec-go):is([data-stage="ok"], [data-stage="bye"]) > .t { visibility:hidden; }   /* 글자 자리는 그대로(단추 높이 안 튐) · ✓ 만 가운데 */
+:is(.nm-dec-big, .nm-dec-sub button, .nm-dec-go)[data-stage="err"] { color:#ff5f6d; border-color:rgba(255,95,109,.5); background:rgba(255,95,109,.1); animation:nmDecShake .32s; }
+.nm-dec-ck { position:absolute; left:50%; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; animation:nmDecPop .42s cubic-bezier(.2,.8,.2,1) both; }
+.nm-dec-sub .nm-dec-ck, .nm-dec-go .nm-dec-ck { width:18px; height:18px; margin:-9px 0 0 -9px; }
+.nm-dec-ck path { fill:none; stroke:currentColor; stroke-width:2.7; stroke-linecap:round; stroke-linejoin:round; }
+@keyframes nmDecFill { from { background-size:0% 100%, 100% 100%; } to { background-size:100% 100%, 100% 100%; } }
+@keyframes nmDecPop { 0% { transform:scale(.3); opacity:0; } 58% { transform:scale(1.3); opacity:1; } 100% { transform:scale(1); opacity:1; } }   /* = thumb.html dlChkPop(커졌다 작아짐 · 운영자 260807) */
+@keyframes nmDecShake { 20% { transform:translateX(-5px); } 45% { transform:translateX(4px); } 70% { transform:translateX(-3px); } 90% { transform:translateX(2px); } }
 .nm-dec-etc { display:flex; gap:6px; margin-top:8px; }
 .nm-dec-etc input { flex:1; min-width:0; height:34px; padding:0 10px; border-radius:10px; border:1px solid var(--glass-line, rgba(255,255,255,.18)); background:transparent; font-size:16px; }
-.nm-dec-etc button { padding:0 12px; border-radius:10px; background:var(--accent,#CFFF40); color:#111; font-weight:700; font-size:13px; }
 .nm-dec-said { margin-top:6px; font-size:12px; color:var(--mut, var(--muted-foreground)); }
 .nm-dec-err { padding:8px 14px; font-size:12px; color:var(--destructive,#f87171); }
 @keyframes nmDecIn { from { opacity:0; transform:scale(.4); } to { opacity:1; transform:scale(1); } }
 @keyframes nmDecFade { from { opacity:0; } }
-@media (prefers-reduced-motion:reduce) { .nm-dec, .nm-decpop, .nm-dec-scrim { animation:none; transition:none; } }
+@media (prefers-reduced-motion:reduce) { .nm-dec, .nm-decpop, .nm-dec-scrim { animation:none; transition:none; } .nm-dec-big::after { animation:none; display:none; } :is(.nm-dec-big, .nm-dec-sub button, .nm-dec-go)[data-stage="fill"] { animation-duration:.2s; } .nm-dec-ck, .nm-decpop li { animation:none; transition:none; } }
 .nm-rrow { border-top:1px solid var(--glass-line); }
 .nm-rrow:first-child { border-top:none; border-radius:var(--r-l) var(--r-l) 0 0; }
 .nm-rrow:last-child { border-radius:0 0 var(--r-l) var(--r-l); }
