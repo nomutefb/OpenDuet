@@ -1,0 +1,34 @@
+/* 채널 전체 그림 둘(./chan-charts.tsx) — 에디터 viewer-src/06-document.part 1243~1273 · 1311 꼴 그대로 · 판(카드)만 앱 유리(.nm-chan-tile 과 같은 glass)
+   색 = 앱 판: accent(팔로워 선) = 앱 연두 · 나머지는 원본 값(보라 --cat-tech #AC5CFF · 빨강 --danger = 원본 --accent-3 #e23b2a · 주황 #FFAA4D) · 밝은 판 = 같은 색조를 진하게
+   노랑(--accent-4 · 앱 사용자 이용 선 · 결론 줄) 만 원본 #FFE13D → #FFC83D(황금 쪽) = 원본은 팔로워 선이 터콰이즈라 노랑과 갈렸는데 앱은 연두라 폰에서 두 선이 붙어 보여서(봄 11-01 가짜 화면 실측) */
+.nm-cc { --line: var(--glass-line, rgba(255, 255, 255, .08)); --accent-4: #FFC83D; --accent-bright: color-mix(in srgb, var(--accent) 72%, #fff); --cat-tech: #AC5CFF; --danger: #e23b2a; --modern-neon-orange: #FFAA4D; --glass2: rgba(18, 19, 22, .55); --blur-s: 8px; --sp-2: 12px; --dur-fast: .12s; --trend-indent: 0px; }
+html:not(.dark) .nm-cc { --accent-4: #9a7400; --accent-bright: color-mix(in srgb, var(--accent) 80%, #000); --cat-tech: #7b2fd6; --danger: #c4271a; --modern-neon-orange: #b86200; --glass2: rgba(255, 255, 255, .82); }
+.nm-cc .nm-cc-box { padding: 10px; background: var(--glass); border: 1px solid var(--glass-line); border-radius: var(--r-m, 11px); }
+.nm-cc .ch-chartwrap { position: relative; }
+.nm-cc .ch-chartwrap svg { display: block; width: 100%; height: auto; }
+.nm-cc .ch-tip { position: absolute; pointer-events: none; background: var(--glass2); backdrop-filter: blur(var(--blur-s)); -webkit-backdrop-filter: blur(var(--blur-s)); border: 1px solid var(--line); border-radius: var(--r-s, 9px); padding: 6px 8px; font-size: var(--fs-xs); color: var(--fg); white-space: nowrap; opacity: 0; transition: opacity var(--dur-fast); z-index: 5; transform: translate(-50%, -118%); }
+.nm-cc .ch-tip b { font-weight: var(--fw-x); font-variant-numeric: tabular-nums; }
+.nm-cc .ch-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--fg); border: 1.5px solid var(--accent); transform: translate(-50%, -50%); opacity: 0; pointer-events: none; transition: opacity var(--dur-fast); z-index: 4; }
+.nm-cc .sig-cap { display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; margin: 2px 0 4px; padding-left: var(--sig-pl, 7.667%); padding-right: var(--trend-indent); }
+.nm-cc .sig-cap .sig-t { font-size: var(--fs-sm); font-weight: var(--fw-b); }
+.nm-cc .sig-cap .sig-pk { color: var(--accent); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+.nm-cc .sig-lgd { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-left: auto; color: var(--mut); font-size: var(--fs-xs); }
+.nm-cc .sig-lgd i { display: inline-flex; align-items: center; gap: 4px; font-style: normal; white-space: nowrap; }
+.nm-cc .sig-lgd i::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.nm-cc .sig-lgd .lg-sh::before { background: var(--accent); }
+.nm-cc .sig-lgd .lg-ring::before { background: none; box-shadow: inset 0 0 0 1.3px var(--fg); }
+.nm-cc .sig-lgd .lg-bead::before { display: none; }
+.nm-cc .sig-lgd .lg-gen::before { width: 11px; height: 0; border-radius: 0; background: none; border-top: 2px solid var(--accent-4); }
+.nm-cc .sig-lgd .lg-pk::before { background: var(--mut); border-radius: 2px; }
+.nm-cc .sig-lgd .lg-core::before { background: linear-gradient(var(--cat-tech), var(--cat-tech)); }
+.nm-cc .sig-lgd .lg-fix::before { background: linear-gradient(var(--danger), var(--danger)); }
+.nm-cc .sig-cap .sig-live { display: inline-flex; align-items: center; gap: 4px; color: var(--mut); font-size: var(--fs-xs); font-style: normal; }
+.nm-cc .sig-cap .sig-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .45; }
+.nm-cc .sig-chartwrap { margin-bottom: var(--sp-2); }
+.nm-cc .sig-chartwrap:last-child { margin-bottom: 0; }
+.nm-cc .cond-grid { display: flex; flex-direction: column; gap: var(--sp-2); }
+.nm-cc .cond-card { padding: 10px 12px; border-radius: var(--r-m, 11px); background: var(--glass); border: 1px solid var(--glass-line); }
+.nm-cc .cond-h { display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; }
+.nm-cc .cond-t { font-size: var(--fs-sm); font-weight: var(--fw-b); }
+.nm-cc .cond-viz svg { display: block; }
+.nm-cc .cond-c { margin-top: 2px; color: var(--accent-4); font-size: var(--fs-xs); }
