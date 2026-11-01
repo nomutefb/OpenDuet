@@ -1,0 +1,32 @@
+/* 서랍 「대기열」(./queue.tsx) — 에디터 .qrow 꼴(시간 | 제목 | 상태 | 바로가기 · 한 줄 30px · 좌측 정렬)을 YETA 유리로 */
+.nm-q .nm-q-busy { margin-left:auto; font-size:var(--fs-xs); font-weight:var(--fw-b); font-style:normal; color:var(--accent); }
+.nm-q .nm-q-list { display:flex; flex-direction:column; gap:4px; }
+.nm-q .nm-q-row { display:grid; grid-template-columns:52px minmax(0, 1fr) 30px auto; align-items:center; gap:8px; min-height:36px; padding:4px 8px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-m, 11px); font-size:var(--fs-sm, 12px); }
+.nm-q .qt { font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.nm-q .qt.new { color:var(--accent); font-weight:var(--fw-b); }   /* 원본 qt-new = 1시간 안 */
+.nm-q .qt.mid { color:#ffd27a; }   /* 원본 qt-mid = 1~4시간 노랑(채널 타일 dn 과 같은 값) */
+.nm-q .qm { display:flex; align-items:baseline; gap:6px; min-width:0; }
+.nm-q .qm i { font-style:normal; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; font-family:var(--app-font-text, inherit); }   /* 본문 글꼴 = 영어 제목이 대문자 꼴로 안 보이게(빠르 요약 요청 링크 칸과 같은 까닭) */
+.nm-q .qm .pp { flex:none; font-size:10px; color:var(--mut); }
+.nm-q .qs { display:flex; justify-content:center; }
+.nm-q .qs b { font-size:var(--fs-xs); font-weight:var(--fw-b); white-space:nowrap; }
+.nm-q .qs .ok { color:var(--accent); } .nm-q .qs .bad { color:#ff6b5a; } .nm-q .qs .lag, .nm-q .qs .cxl { color:var(--mut); }
+.nm-q .qs .spin { width:14px; height:14px; border-radius:50%; border:2px solid color-mix(in srgb, var(--accent) 30%, transparent); border-top-color:var(--accent); animation:nm-q-spin .9s linear infinite; }
+.nm-q .qs .spin.re { border-color:color-mix(in srgb, #ffb347 30%, transparent); border-top-color:#ffb347; }
+@keyframes nm-q-spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .nm-q .qs .spin { animation:none; } }
+.nm-q .qa { display:flex; justify-content:flex-end; }
+.nm-q .qa .go { border:1px solid var(--glass-line); background:none; color:var(--fg); font-size:var(--fs-xs); padding:3px 9px; border-radius:var(--r-pill); white-space:nowrap; }
+.nm-q .qa .go.ok { color:var(--accent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
+.nm-q .qa .go.src { color:#ffb347; border-color:color-mix(in srgb, #ffb347 40%, transparent); }   /* 원본 go-amber = 원문 */
+.nm-q .qa .go.arm { color:var(--bg); background:#e8ff6b; border-color:#e8ff6b; }   /* 원본 go-arm = 레몬(재시도 · 취소 확정 대기) */
+.nm-q .qa .go.gray { color:var(--mut); }
+.nm-q .qa .ok { color:var(--accent); font-weight:var(--fw-b); }
+.nm-q .q-cxl { opacity:.6; }
+.nm-q .nm-q-pg { display:flex; justify-content:center; gap:4px; }
+.nm-q .nm-q-pg button { min-width:28px; height:28px; border:1px solid var(--glass-line); background:var(--glass); color:var(--mut); border-radius:var(--r-pill); font-size:var(--fs-xs); }
+.nm-q .nm-q-pg button.on { color:var(--fg); background:color-mix(in srgb, var(--accent) 22%, transparent); }
+.nm-q .nm-q-pg button:disabled { opacity:.35; }
+html:not(.dark) .nm-q .qt.mid { color:#9a6a00; }
+html:not(.dark) .nm-q .qa .go.src { color:#b86200; }
+html:not(.dark) .nm-q .qa .go.arm { color:#161716; background:#d8f04a; border-color:#d8f04a; }

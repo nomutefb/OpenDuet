@@ -22,7 +22,7 @@ type Eta = Partial<Record<"url" | "ask", { p50?: number; p90?: number }>>;
 const CAP = 10;
 const CATS = ["정치", "사회", "경제", "문화", "국제", "테크"];   // 원본 CHIP_CATS 차례
 const ED_FEED = "/web?u=" + encodeURIComponent("/?tab=feed&inapp=1");
-const ED_QUEUE = "/web?u=" + encodeURIComponent("/?pop=queue&inapp=1");
+const ED_QUEUE = "/edq";   // 대기열 = 앱 안(./queue.tsx · 봄 11-01 · 전엔 에디터 대기열 한 겹)
 const HR = 36e5;
 const byFile = (a: FArt, b: FArt) => (a.file < b.file ? 1 : a.file > b.file ? -1 : 0);
 

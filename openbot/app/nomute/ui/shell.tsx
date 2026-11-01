@@ -35,6 +35,7 @@ import { NewsModal, newsFileOf } from "./news";
 import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
 import { ChanModal } from "./chan";
+import { QueueModal } from "./queue";   // 서랍 「대기열」 = 에디터 대기열 창을 앱 안으로(봄 11-01)
 import { SnsModal } from "./sns";
 import { AskModal } from "./ask";   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomList, useRoomOrder } from "./room-list";
@@ -83,7 +84,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 const FRAME: Partial<Record<Modal, string>> = { legacy: "/?tab=scrap&inapp=1", edtool: "/?tool=thumb&inapp=1", trend: "/?tab=trend&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
-  edq: "/?pop=queue&inapp=1", edsearch: "/?pop=search&inapp=1", eddl: "/?pop=dlgrab&inapp=1", edmsgs: "/?pop=msgs&inapp=1", edmemo: "/?pop=memo&inapp=1", edsensor: "/?pop=sensor&inapp=1", edkw: "/?pop=kw&inapp=1", edsnsacc: "/?pop=snsacc&inapp=1", edpush: "/?pop=push&inapp=1", edfilter: "/?pop=filter&inapp=1", edgenopt: "/?pop=genopt&inapp=1", edlock: "/?pop=lock&inapp=1", edacct: "/?pop=account&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+  edsearch: "/?pop=search&inapp=1", eddl: "/?pop=dlgrab&inapp=1", edmsgs: "/?pop=msgs&inapp=1", edmemo: "/?pop=memo&inapp=1", edsensor: "/?pop=sensor&inapp=1", edkw: "/?pop=kw&inapp=1", edsnsacc: "/?pop=snsacc&inapp=1", edpush: "/?pop=push&inapp=1", edfilter: "/?pop=filter&inapp=1", edgenopt: "/?pop=genopt&inapp=1", edlock: "/?pop=lock&inapp=1", edacct: "/?pop=account&inapp=1", gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -218,6 +219,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "news" ? <div className="nm-scroll"><NewsModal /></div>
                   : M.id === "thumbhist" ? <div className="nm-scroll"><ThumbHist /></div>
                   : M.id === "feed" ? <div className="nm-scroll"><FeedModal /></div>
+                  : M.id === "edq" ? <div className="nm-scroll"><QueueModal /></div>   // 대기열 = 앱 안(봄 11-01 · 재시도만 에디터 한 겹)
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>
                   : M.id === "chanfull" ? <div className="nm-scroll"><ChanModal full /></div>   // 채널 전체 = 앱 안 조각(빠르 11-01 · 나머지 칸은 맨 아래 단추로 에디터)
                   : M.id === "sns" ? <div className="nm-scroll"><SnsModal /></div>
