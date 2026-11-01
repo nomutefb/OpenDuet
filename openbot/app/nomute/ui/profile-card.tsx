@@ -8,13 +8,14 @@ import { useEffect, useState } from "react";
 import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../data/office";
 import { ColorPick } from "./color-pick";
 import { MicOrb, ringOf } from "../swap/mic-orb";
+import "./profile-intro.css";
 
 const ROOMS_KEY = ["nomute", "rooms"] as const;   // office-chat.tsx officeKeys.rooms 와 같은 열쇠(받아 둔 방 목록을 그대로 씀 · 읽기 0)
 
 export function ProfileCard({ who, list, onClose }: { who: string; list: OfficePerson[]; onClose: () => void }) {
   const qc = useQueryClient();
-  const [pick, setPick] = useState(false);
-  useEffect(() => { setPick(false); }, [who]);
+  const [pick, setPick] = useState(false), [edit, setEdit] = useState(false), [draft, setDraft] = useState(""), [busy, setBusy] = useState(false), [note, setNote] = useState("");
+  useEffect(() => { setPick(false); setEdit(false); setNote(""); }, [who]);
   useEffect(() => {
     if (!who) return;
     const on = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -30,6 +31,17 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     await office("bubble", { method: "POST", body: JSON.stringify({ who, color }) });
     qc.setQueryData(["nomute", "people"], await people(true));   // 창 닫기 = 저장 그림 ✓ 뒤(ColorPick onClose)
   };
+  const saveIntro = async () => {   // 소개 고치기(형 11-01 「봇이 본인의 프로필 소개 변경을 본인이 할 수 있게해줘. 나랑.」 · 서버 office/profile · 빈 글 = 기본으로 · 봇은 MCP intro 도구로 자기 것)
+    if (busy) return;
+    setBusy(true); setNote("");
+    try {
+      const r = await office<{ ok?: boolean; error?: string }>("profile", { method: "POST", body: JSON.stringify({ who, intro: draft }) });
+      if (r && r.ok === false) throw new Error(r.error || "저장 못 함");
+      qc.setQueryData(["nomute", "people"], await people(true));
+      setEdit(false);
+    } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); }
+    finally { setBusy(false); }
+  };
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   return (
     <div className="ypc-veil nm-yeta" role="presentation" onClick={onClose}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
@@ -39,7 +51,20 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
         {pick ? <div className="ypc-pop"><ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /></div> : null}   {/* 프사 위에 뜨는 판 = 이름이 안 밀림(형 11-01 10:5x 「애초에 모달느낌으로 프사 위에 뜨면되니까」) */}
         <span className="ycd-nm">{name}{p?.mark ? <span className="ypc-mark" aria-hidden>{p.mark}</span> : null}</span>
         {p?.role ? <span className="ycd-tag">{p.role}</span> : null}
-        {p?.intro ? <span className="ypp-desc">{p.intro}</span> : <span className="ycd-quote">자기소개는 아직이야</span>}
+        {edit ? (
+          <div className="ypc-intro-edit">
+            <textarea value={draft} maxLength={300} rows={4} autoFocus placeholder="소개 · 비우면 기본으로" aria-label={`${name} 소개`} onChange={(e) => setDraft(e.target.value)} />
+            <div className="row"><small>{[...draft].length}/300</small><button type="button" className="ypc-x" disabled={busy} onClick={() => { setEdit(false); setNote(""); }}>취소</button><button type="button" className="ypc-go" disabled={busy} onClick={() => void saveIntro()}>{busy ? "저장 중…" : "저장"}</button></div>
+            {note ? <small className="err" role="alert">{note}</small> : null}
+          </div>
+        ) : (
+          <span className="ypc-intro">
+            {p?.intro ? <span className="ypp-desc">{p.intro}</span> : <span className="ycd-quote">자기소개는 아직이야</span>}
+            <button type="button" className="ypc-pen" aria-label={`${name} 소개 고치기`} title="소개 고치기" onClick={() => { setDraft(p?.intro || ""); setEdit(true); }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            </button>
+          </span>
+        )}
         <div className="ypc-acts">
           {dm ? <button type="button" className="ypc-go" onClick={go}>1:1 대화</button> : null}
           <button type="button" className="ypc-x" onClick={onClose}>닫기</button>

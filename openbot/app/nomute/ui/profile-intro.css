@@ -1,0 +1,12 @@
+/* 프로필 카드 소개 고치기(./profile-card.tsx) — 소개 옆 연필 픽토(형 11-01 「옆에 연필 아이콘 하나있으면될듯 수정에 보통 쓰이는 픽토그램있음」) · 누르면 그 자리 입력칸 */
+.ypc .ypc-intro { display:inline-flex; align-items:flex-start; gap:6px; max-width:36ch; }
+.ypc .ypc-pen { flex:none; width:24px; height:24px; display:grid; place-items:center; padding:0; border:0; border-radius:50%; background:none; color:rgba(231,236,231,.55); cursor:pointer; }
+.ypc .ypc-pen:hover, .ypc .ypc-pen:focus-visible { color:#E7ECE7; background:rgba(255,255,255,.08); }
+.ypc .ypc-pen svg { width:14px; height:14px; }
+.ypc .ypc-intro-edit { display:flex; flex-direction:column; gap:6px; width:min(100%, 34ch); }
+.ypc .ypc-intro-edit textarea { width:100%; resize:vertical; min-height:72px; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:#E7ECE7; font:inherit; font-size:var(--fs-sm); line-height:var(--lh-base); font-family:var(--app-font-text, inherit); }
+.ypc .ypc-intro-edit textarea:focus { outline:none; border-color:color-mix(in srgb, var(--accent) 60%, transparent); }
+.ypc .ypc-intro-edit .row { display:flex; align-items:center; gap:8px; }
+.ypc .ypc-intro-edit .row small { margin-right:auto; color:rgba(231,236,231,.55); font-size:11px; }
+.ypc .ypc-intro-edit .row button { border-radius:var(--r-pill); padding:5px 14px; font:inherit; font-size:var(--fs-sm); font-weight:var(--fw-b); cursor:pointer; }
+.ypc .ypc-intro-edit .err { color:#ff8a8a; font-size:11px; }
