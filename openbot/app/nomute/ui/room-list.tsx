@@ -84,7 +84,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
   // 활발한 방 = 이름에 빛(형 11-01 「현재 활발한 방(누군가라도 활동중인 방개인포함)은 이름에 빚지나가게」) — 마지막 글이 3분 안 · 또는 1:1 에서 형 글 뒤 그 이가 일하는 중(대화 칸 점 셋과 같은 깸 표 · 같은 bots 캐시)
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string; why?: string }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
-  const live = (r: Room) => { const l = lastOf(r); return Date.now() - (r.last_ts || 0) < LIVE_MS || (!!r.with && l?.kind === "human" && bots.some((b) => b.who === r.with && b.state === "awake" && b.why !== "read")); };
+  const live = (r: Room) => { const l = lastOf(r); return Date.now() - (r.act_ts || r.last_ts || 0) < LIVE_MS ||   /* act_ts = 1:1 방 우리끼리 글까지 든 진짜 마지막(미리보기는 형 낀 글 · 서버 #1990) */ (!!r.with && l?.kind === "human" && bots.some((b) => b.who === r.with && b.state === "awake" && b.why !== "read")); };
   const notice = useQuery({ queryKey: ["nomute", "notice"], queryFn: () => office<{ notice?: { text: string; at?: string } }>("noticeset").then((j) => j.notice), staleTime: 60_000 }).data;
   const [menu, setMenu] = useState(""), [noticeOpen, setNoticeOpen] = useState(false), [hiddenOpen, setHiddenOpen] = useState(false);
   const [tinting, setTinting] = useState<Room | null>(null), [peek, setPeek] = useState<{ id: string; hex: string } | null>(null);   // 표지 색 판(./room-color.tsx) · peek = 끄는 동안 줄에 먼저 보임
