@@ -26,4 +26,7 @@ html:not(.dark) .t-shimmer { --shimmer-base: rgba(23, 23, 23, 0.5); --shimmer-hi
 @media (prefers-reduced-motion: reduce) {
   .t-shimmer::before { animation: none !important; }
 }
+/* 방 목록 활발한 방 이름 = 은색 바탕 대신 시그니처 색(노뮤트 연두)을 살짝 섞음 · 흰 빛 지나감은 그대로(형 11-01 14:07 「오히려지금 활성화된 대화창이 은색이 되다보니까 더 안보여. 활성화된 대화창을 시그니처 색으로 아주 살짝만 입혀줘 투명도로 살짝 활성화중안거를 효과는 유지하면서 개인방도 마찬가지야」) */
+.t-shimmer.sig { --shimmer-base: color-mix(in srgb, #CFFF40 45%, rgba(251, 251, 251, 0.9)); }
+html:not(.dark) .t-shimmer.sig { --shimmer-base: color-mix(in srgb, #4f7a00 55%, rgba(23, 23, 23, 0.85)); }
 .t-shimmer.trunc, .t-shimmer.trunc::before { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }

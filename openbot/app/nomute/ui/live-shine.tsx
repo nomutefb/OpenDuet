@@ -9,8 +9,8 @@ import { useTheme } from "@/components/theme-provider";
 import { YICO } from "./yeta-icons";
 import "./live-shine.css";
 
-export function LiveShine({ text, trunc }: { text: string; trunc?: boolean }) {
-  return <span className={trunc ? "t-shimmer trunc" : "t-shimmer"} data-text={text}>{text}</span>;
+export function LiveShine({ text, trunc, sig }: { text: string; trunc?: boolean; sig?: boolean }) {   // sig = 바탕에 시그니처 색 살짝(방 목록 활발한 방 · 형 11-01 14:07)
+  return <span className={`t-shimmer${trunc ? " trunc" : ""}${sig ? " sig" : ""}`} data-text={text}>{text}</span>;
 }
 
 const KEY = "yeta_think_orb";
