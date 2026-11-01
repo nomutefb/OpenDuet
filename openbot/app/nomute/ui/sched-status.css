@@ -1,0 +1,27 @@
+/* 스케줄 상태(./sched-bits.tsx StatusDot · 뜸 11-02 「● 정상 · ▲ 지연 · ✕ 놓침 · ○ 확인 안 됨 · – 꺼짐」) — 꼴로도 갈리게(색만 보고 못 가리는 눈도) · 요약 띠 · 갈래 건강 · 한 줄 줄 · 가로 체인 */
+.nm-st { flex:none; display:inline-block; width:8px; height:8px; margin-right:6px; vertical-align:1px; border-radius:50%; background:var(--accent, #CFFF40); }
+.nm-st[data-st="late"] { width:9px; border-radius:0; background:#FFD23F; clip-path:polygon(50% 0, 100% 100%, 0 100%); }
+.nm-st[data-st="miss"] { width:9px; height:9px; border-radius:0; background:#FF5A5F; clip-path:polygon(20% 0, 50% 30%, 80% 0, 100% 20%, 70% 50%, 100% 80%, 80% 100%, 50% 70%, 20% 100%, 0 80%, 30% 50%, 0 20%); }
+.nm-st[data-st="unknown"] { background:none; box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45); }
+.nm-st[data-st="off"] { width:8px; height:2px; border-radius:1px; vertical-align:3px; background:#6B6F6A; }
+
+.nm-sum { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 12px; padding:10px 12px; border:1px solid var(--glass-line); border-radius:14px; background:rgba(255,255,255,.03); }
+.nm-sum-n { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+.nm-sum-n span { display:inline-flex; align-items:center; }
+.nm-sum-n span[data-zero] { opacity:.35; }
+.nm-sum small { font-size:12px; color:var(--mut); }
+
+.nm-gchip span { display:inline-flex; align-items:center; margin-left:6px; font-variant-numeric:tabular-nums; }
+.nm-gchip .nm-st { margin-right:3px; }
+.nm-gchip span[data-st="miss"] { color:#ff8a8a; } .nm-gchip span[data-st="late"] { color:#ffd27a; }
+
+.nm-row1 > .nm-st { margin:0 3px; }   /* 러너 줄 = 차단기 칸 자리에 점 */
+.nm-sched-tinehead small.nm-row1-last { flex:none; display:block; font-size:11px; font-variant-numeric:tabular-nums; }
+.nm-sched-tinehead small.nm-row1-last:empty { display:none; }
+.nm-sched-rt small.nm-row1-h[data-st="miss"] { color:#ff8a8a; } .nm-sched-rt small.nm-row1-h[data-st="late"] { color:#ffd27a; }
+
+.nm-chain { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; }
+.nm-chain > span { display:inline-flex; flex-wrap:wrap; align-items:center; gap:5px; }
+.nm-chain em { padding:2px 8px; border:1px solid var(--glass-line); border-radius:999px; font-size:12px; font-style:normal; color:var(--fg); overflow-wrap:anywhere; }
+.nm-chain > b { padding:2px 9px; border-radius:999px; background:rgba(207,255,64,.14); color:var(--accent, #CFFF40); font-size:12px; }
+.nm-chain > svg { flex:none; color:var(--mut); }

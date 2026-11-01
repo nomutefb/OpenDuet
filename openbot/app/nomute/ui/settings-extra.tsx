@@ -11,6 +11,7 @@ import { t12 } from "./when";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { GoButton } from "./go-button";
 import type { Review } from "./sched-review";
+import type { Health, HealthSum } from "./sched-bits";   // 상태 점 칸(뜸 서버 healthOf · 없으면 ○ 확인 안 됨)
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const hm = (ts?: number | string) => (ts ? t12(typeof ts === "string" ? Date.parse(ts) : ts) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
@@ -26,13 +27,13 @@ const btn = "rounded-full border border-border px-3 py-1 text-xs hover:bg-foregr
 type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
 export type SchedBot = { bot: string; who: string; wakes: number[]; next_ts?: number; on?: boolean };
 export type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean; fork?: string; task?: string; marks?: string[];
-  room?: string; bell6?: { n: number; of: number; today: number; cap: number; ring: string[]; stop?: { who: string; ts: number }; mirror?: boolean } };   // bell6 = 6마디 종 줄(뎅 11-01 · 서버 bell6.<방>)
+  room?: string; health?: Health; bell6?: { n: number; of: number; today: number; cap: number; ring: string[]; stop?: { who: string; ts: number }; mirror?: boolean } };   // bell6 = 6마디 종 줄(뎅 11-01 · 서버 bell6.<방>)
 export type SchedFork = { id: string; name: string; on?: boolean; common?: string };
 type Kind = { kind: string; delay_max?: number; ttl?: number };
-export type RunnerJob = { id: string; name: string; file: string; host?: string; kind: string; fork: string; on?: boolean; when?: string; cron_kst?: string[]; clock?: string[]; starts?: string[]; providers?: string[]; model?: string[]; owner?: string; checked?: boolean; res?: { at: string; gpu?: boolean }[]; gpu?: string[]; in?: { paths?: string[]; after?: string[] }; out?: { calls?: string[] }; notify?: string[] };
+export type RunnerJob = { id: string; name: string; file: string; host?: string; kind: string; fork: string; on?: boolean; when?: string; cron_kst?: string[]; clock?: string[]; starts?: string[]; providers?: string[]; model?: string[]; owner?: string; checked?: boolean; res?: { at: string; gpu?: boolean }[]; gpu?: string[]; in?: { paths?: string[]; after?: string[] }; out?: { calls?: string[]; to?: string }; notify?: string[]; health?: Health };   // out.to = 잡이 내놓는 곳(저장소·화면 · 뜸 11-02 「out.to 6줄이 안 그려지고」)
 export type SchedRunners = { groups: { id: string; name: string }[]; forks: { id: string; name: string; group: string; on?: boolean; note?: string }[]; jobs: RunnerJob[] };
 export type SchedChange = { at: number; who: string; id: string; scope?: string; field?: string; from?: unknown; to?: unknown; commit?: string; sha?: string; live?: boolean; review?: string; note?: string };   // 최근 바뀜(서버 R2 · 최근 20 · live = 방 루틴·6마디 종 = 표 커밋 없이 바로 먹음)
-type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean; forks?: SchedFork[]; clock_got?: { got?: boolean; sha?: string }; runners?: SchedRunners; changes?: SchedChange[]; review?: Record<string, Review> };   // review = 폐기 → 검토 칸(봄 #2092 · ./sched-review.tsx)
+type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean; forks?: SchedFork[]; clock_got?: { got?: boolean; sha?: string }; runners?: SchedRunners; changes?: SchedChange[]; review?: Record<string, Review>; health_sum?: HealthSum; at?: number };   // review = 폐기 → 검토 칸(봄 #2092 · ./sched-review.tsx)
 
 const usePeople = () => useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
 export const useSched = () => useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), staleTime: 30_000, refetchInterval: 120_000 });
