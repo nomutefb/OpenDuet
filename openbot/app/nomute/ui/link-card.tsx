@@ -54,7 +54,8 @@ export function LinkCard({ m }: { m: { text?: string; caption?: string; files?: 
   const site = c.site || hostPath(url).split("/")[0];
   const yt = c.kind === "youtube";
   const img = yt ? c.yt?.thumb || c.image || (c.yt?.id ? `https://i.ytimg.com/vi/${c.yt.id}/hqdefault.jpg` : "") : c.image || "";
-  if (c.kind === "blocked" || (!yt && !c.title && !img)) {
+  const bare = !yt && !img && !c.desc && !!c.title && c.title.trim().toLowerCase() === String(c.site || "").replace(/^www\./, "").split(".")[0].toLowerCase();   // 그림·설명 없이 제목 = 사이트 이름뿐(인스타 로그인 벽 등 · 봄 서버 실측 「Instagram」) = 칩
+  if (c.kind === "blocked" || bare || (!yt && !c.title && !img)) {
     const hp = hostPath(url);
     return (
       <a className="ylink-chip" href={url} target="_blank" rel="noopener noreferrer" onClick={open} title={url}>

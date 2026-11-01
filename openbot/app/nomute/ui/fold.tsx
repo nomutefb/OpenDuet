@@ -49,8 +49,9 @@ function FullText({ children, text, who, when, md, onClose }: { children: ReactN
   useEffect(() => {
     if (!pushed.current) { pushed.current = true; history.pushState({ ...history.state, nmZoom: 1 }, ""); }
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") back(); };
-    window.addEventListener("popstate", onClose); window.addEventListener("keydown", key);
-    return () => { window.removeEventListener("popstate", onClose); window.removeEventListener("keydown", key); };
+    const pop = () => { window.setTimeout(onClose, 0); };   // 한 박자 늦게 닫음 = 같은 뒤로 신호를 받는 ui/shell.tsx 가 .nm-zoom 을 보고 판을 안 옮기게(먼저 닫으면 #/rooms 로 튕김 · 라이브 9222 11-02 07:4x)
+    window.addEventListener("popstate", pop); window.addEventListener("keydown", key);
+    return () => { window.removeEventListener("popstate", pop); window.removeEventListener("keydown", key); };
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   const bigger = () => { const n = SIZES[(SIZES.indexOf(sz) + 1) % SIZES.length]; setSz(n); try { localStorage.setItem(SZ_KEY, String(n)); } catch { /* 못 적어도 이번만 */ } };
   const copy = () => { void navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1200); }); };

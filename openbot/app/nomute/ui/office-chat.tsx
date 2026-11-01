@@ -324,7 +324,7 @@ function zoomImage(src: string, alt = "", who = "", when = "") {
   let closing = false;
   const close = () => { if (closing) return; closing = true; history.back(); };
   const key = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
-  const off = () => { v.remove(); window.removeEventListener("popstate", off); window.removeEventListener("keydown", key); };
+  const off = () => { window.setTimeout(() => v.remove(), 0); window.removeEventListener("popstate", off); window.removeEventListener("keydown", key); };   // 지우기는 한 박자 늦게 = shell.tsx 뒤로 처리기가 .nm-zoom 을 먼저 봄(듣는 차례가 바뀌어도 대화 판 그대로)
   v.onclick = close;
   window.addEventListener("popstate", off); window.addEventListener("keydown", key);
   history.pushState({ ...history.state, nmZoom: 1 }, "");
