@@ -6,6 +6,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -15,6 +16,7 @@ import { TempDeleteDialog, TempRoomDialog, TempSwipe } from "./temp-room";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
+import { GoButton } from "./go-button";
 import { type NotifyState, notifyImage, notifyOn, notifyState } from "../data/notify";
 
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
@@ -89,7 +91,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const [menu, setMenu] = useState(""), [noticeOpen, setNoticeOpen] = useState(false), [hiddenOpen, setHiddenOpen] = useState(false);
   const [tinting, setTinting] = useState<Room | null>(null), [peek, setPeek] = useState<{ id: string; hex: string } | null>(null);   // 표지 색 판(./room-color.tsx) · peek = 끄는 동안 줄에 먼저 보임
   const [naming, setNaming] = useState<Room | null>(null);   // 방 이름(./room-color.tsx) · 임시방 = 「수정」 길
-  const press = useRef<{ t: number; x: number; y: number; hit: boolean }>({ t: 0, x: 0, y: 0, hit: false });   // 길게 누르기(형 10-31 「길게 누르면 변경 하는 거기서 수정」) = 터치만 · 오른쪽 클릭은 onContextMenu
+  const press = useRef<{ t: number; x: number; y: number; hit: boolean; touch?: boolean }>({ t: 0, x: 0, y: 0, hit: false });   // 길게 누르기(형 10-31 「길게 누르면 변경 하는 거기서 수정」) = 터치만 · 오른쪽 클릭은 onContextMenu
   useEffect(() => {   // 줄 메뉴 = 밖을 누르면 닫힘(형 10-31 「다른거 클릭하면 없어져야 되는데 안없어진더」)
     if (!menu) return undefined;
     const close = (e: PointerEvent) => { if (!(e.target as Element | null)?.closest?.('[role="menu"], .nm-rmore')) setMenu(""); };
@@ -98,7 +100,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   }, [menu]);
   // 방 알림(./data/notify.ts · 서버 = 봄) — 서버 답이 없으면(아직 안 올라감 · 못 받음) 메뉴에 알림 칸을 안 보인다(누르면 깨지는 단추 0)
   const qc = useQueryClient(), notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
-  const [notifyErr, setNotifyErr] = useState(""), pick = useRef<HTMLInputElement>(null), [picking, setPicking] = useState("");
+  const [notifyErr, setNotifyErr] = useState(""), pick = useRef<HTMLInputElement>(null), [picking, setPicking] = useState(""), [pendPic, setPendPic] = useState<{ room: string; url: string } | null>(null);
   const setNotify = async (body: { room: string; on?: boolean | null; image?: string }) => {
     setMenu(""); setNotifyErr("");
     try { qc.setQueryData(["nomute", "notify"], notifyState(await office<Partial<NotifyState>>("notify", { method: "POST", body: JSON.stringify(body) }))); }
@@ -107,7 +109,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const onPick = async (f?: File) => {
     const room = picking; setPicking(""); if (pick.current) pick.current.value = "";
     if (!f || !room) return;
-    try { await setNotify({ room, image: await shrink192(f) }); } catch (e) { setNotifyErr(`사진을 못 읽었어 · ${(e as Error).message}`); }
+    try { setPendPic({ room, url: await shrink192(f) }); } catch (e) { setNotifyErr(`사진을 못 읽었어 · ${(e as Error).message}`); }   // 바로 안 올림 = 보여 주고 「저장」(NotifyPicPick)
   };
   const nav = useNavigate(), [swiped, setSwiped] = useState(""), [editing, setEditing] = useState<Room | null>(null), [deleting, setDeleting] = useState<Room | null>(null);   // 임시방 줄 왼쪽 끌기 = 수정·삭제
 
@@ -129,8 +131,8 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     const nOn = notifyOn(notify.data, r.id, !!r.with), nImg = r.with ? "" : notifyImage(notify.data, r.id);
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
-      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} data-rc={rc ? "" : undefined} style={rc ? ({ "--rc": rc } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); if (press.current.hit) return; press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」)
-        onPointerDown={(e) => { if (e.pointerType !== "touch") return; clearTimeout(press.current.t); press.current = { x: e.clientX, y: e.clientY, hit: false, t: window.setTimeout(() => { press.current.hit = true; navigator.vibrate?.(8); setMenu(r.id); }, 480) }; }}
+      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} data-rc={rc ? "" : undefined} style={rc ? ({ "--rc": rc } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); if (press.current.hit) return; if (press.current.touch) press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」) · 손 뗄 때 오는 클릭 삼키기(hit)는 터치만 = PC 오른쪽 클릭엔 뒤따르는 클릭이 없어 메뉴 첫 누름이 먹히던 것(빠르 11-01 15:5x)
+        onPointerDown={(e) => { press.current.touch = e.pointerType === "touch"; if (e.pointerType !== "touch") return; clearTimeout(press.current.t); press.current = { x: e.clientX, y: e.clientY, hit: false, touch: true, t: window.setTimeout(() => { press.current.hit = true; navigator.vibrate?.(8); setMenu(r.id); }, 480) }; }}
         onPointerMove={(e) => { if (Math.hypot(e.clientX - press.current.x, e.clientY - press.current.y) > 8) clearTimeout(press.current.t); }}
         onPointerUp={() => clearTimeout(press.current.t)} onPointerCancel={() => clearTimeout(press.current.t)}
         onClickCapture={(e) => { if (press.current.hit) { press.current.hit = false; e.preventDefault(); e.stopPropagation(); } }}>
@@ -182,6 +184,8 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     <nav aria-label="대화 목록" className="nm-yeta nm-rooms flex flex-col">
       {tinting ? <RoomColorPick room={tinting} onPeek={(hex) => setPeek({ id: tinting.id, hex })} onClose={() => { setTinting(null); setPeek(null); }} /> : null}
       {naming ? <RoomNamePick room={naming} onClose={() => setNaming(null)} /> : null}
+      {pendPic ? <NotifyPicPick name={(rooms.data || []).find((x) => x.id === pendPic.room)?.name || pendPic.room} url={pendPic.url} onClose={() => setPendPic(null)}
+        save={() => office<Partial<NotifyState>>("notify", { method: "POST", body: JSON.stringify({ room: pendPic.room, image: pendPic.url }) }).then((j) => qc.setQueryData(["nomute", "notify"], notifyState(j)))} /> : null}
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {notice?.text ? (
@@ -207,5 +211,27 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         </>
       ) : null}
     </nav>
+  );
+}
+
+/** 알림 그림 = 고른 그림을 먼저 보여 주고 「저장」 게이지 → ✓(형 11-01 14:12 「저장 눌러도 반응이 없다보니까 적용이 되엇는지 내가 안누른지를 몰라」 · 뎅 GoButton) · 못 올리면 단추가 「못 보냄」 */
+function NotifyPicPick({ name, url, save, onClose }: { name: string; url: string; save: () => Promise<unknown>; onClose: () => void }) {
+  useEffect(() => {
+    const off = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", off);
+    return () => window.removeEventListener("keydown", off);
+  }, [onClose]);
+  return createPortal(
+    <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
+      <div className="nrc" role="dialog" aria-label={`${name} 알림 그림`} onClick={(e) => e.stopPropagation()}>
+        <div className="nrc-head"><b>알림 그림</b><small>{name} 알림에 뜰 그림</small></div>
+        <img src={url} alt="" className="nm-npic" />
+        <div className="nrc-acts">
+          <button type="button" className="nrc-x" onClick={onClose}>닫기</button>
+          <GoButton className="nrc-x" go={save} done={onClose} busy="저장 중">저장</GoButton>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
