@@ -3,7 +3,7 @@
 //   판(네비 칸 · 형 12:24 · 10-31 15:1x 「에디터랑 겹칠 필요는없는거같아」 · 「에디터는 그냥 서랍 누르면 뜨면 될듯.」 = 에디터 판 뺌) = 홈 · 대화방(목록) · 대화 — 처음 갈 때 한 번 그리고 계속 살려 둠(숨김만 = 스크롤·쓰던 글 그대로) · 들어오는 판 = YETA ypickIn(./shell.css)
 //   모달(≡ 서랍 · 형 12:24~12:26 「덜 중요한걸 좀 더 세부로 모으려는 의도」) = 할 일 · 러너 · LEGACY · 뉴스 요약 · 채널 요약 · SNS · 요약 요청 · 에디터 · 결의 방 · 토큰 · 피드백 · 설정 — 판 위에 덮고 닫으면 아래 판 그대로
 //     에디터 판(editor-menu 패널)에만 있던 LEGACY·에디터(카드 제작·영상·유튜브)는 서랍 칸으로 옮겨 잃지 않음(형 10-31 15:1x · 빠르 판) · 나머지 네 칸은 이미 서랍 것(겹침 = 에디터 판 쪽을 뺌)
-//     결의 방·토큰·피드백 = 에디터 원본 화면(viewer/gyeol-room.html · tokens.html · feedback.html) 그대로 띄움(위젯 탭과 같은 원본 · 새로 짜기 0) · 설정 = 원본 settings 화면(보조 03 YETA 설정)
+//     결의 방·토큰·피드백 = 앱 안(./gyeol-room.tsx · tokens.tsx · feedback.tsx · 전엔 에디터 원본 화면 viewer/gyeol-room.html · tokens.html · feedback.html 을 품음) · 설정 = 원본 settings 화면(보조 03 YETA 설정)
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
@@ -37,6 +37,9 @@ import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 
 import { ChanModal } from "./chan";
 import { TrendModal } from "./trend";   // 서랍 「SNS 전체」 = 에디터 트렌드 탭 네이티브(전엔 FRAME 으로 품음)
 import { ScrapModal } from "./scrap";   // 서랍 「LEGACY」 = 에디터 수집함 탭 네이티브(전엔 FRAME 으로 품음)
+import { TokensModal } from "./tokens";   // 서랍 「토큰」·「결의 방」·「피드백」 = 에디터 페이지 네이티브(전엔 FRAME 으로 품음)
+import { GyeolModal } from "./gyeol-room";
+import { FeedbackModal } from "./feedback";
 import { QueueModal } from "./queue";
 import { MsgsModal } from "./msgs";
 import { AcctModal } from "./acct";   // 서랍 「계정 전환」 = 에디터 설정 ▸ 계정 전환을 앱 안으로(봄 11-01)
@@ -95,7 +98,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 const FRAME: Partial<Record<Modal, string>> = { edtool: "/?tool=thumb&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
-  gyeol: "/gyeol-room.html", play: "/play/", tokens: "/tokens.html", feedback: "/feedback.html" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+  play: "/play/" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -215,7 +218,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
             <div className="nm-modal" role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>
-              {M.id === "settings" || M.id === "drawer" || M.id === "feed" || M.id === "trend" || M.id === "legacy" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
+              {M.id === "settings" || M.id === "drawer" || M.id === "feed" || M.id === "trend" || M.id === "legacy" || M.id === "tokens" || M.id === "gyeol" || M.id === "feedback" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>
@@ -247,6 +250,9 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "sns" ? <div className="nm-scroll"><SnsModal /></div>
                   : M.id === "trend" ? <div className="nm-scroll"><TrendModal /></div>
                   : M.id === "legacy" ? <div className="nm-scroll"><ScrapModal /></div>
+                  : M.id === "tokens" ? <div className="nm-scroll"><TokensModal /></div>
+                  : M.id === "gyeol" ? <div className="nm-scroll"><GyeolModal /></div>
+                  : M.id === "feedback" ? <div className="nm-scroll"><FeedbackModal /></div>
                   : <div className="nm-scroll"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
               </div>
             </div>
