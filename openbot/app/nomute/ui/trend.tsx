@@ -542,7 +542,7 @@ export function TrendModal() {
   const subEmpty = (key: string, lbl: string, plat: string) => {
     const xa = hs.xauth || "off";
     if (plat === "x" && xa !== "err" && ((cover("x").reg || 0) > 0 || V.subStale.has("x")))
-      return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t={xa === "ok" ? "18시간 안에 올라온 글이 없어요" : xa === "fail" ? "X 로그인 쿠키가 거절됐어요" : "18시간 안 새 글을 못 받았어요"} /></Sec>;   // 빈 칸 밑 안내 줄 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」 · 큰 줄만)
+      return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t={xa === "ok" ? "18시간 안에 올라온 글이 없어요" : xa === "fail" ? "X 로그인 쿠키가 거절됐어요" : "18시간 안 새 글을 못 받았어요"} s={xa === "fail" ? "만료·로그아웃 — 가계정 쿠키를 새로 뽑아 저장소 시크릿 X_SUBS_AUTH_TOKEN·X_SUBS_CT0를 갈아 주세요" : undefined} /></Sec>;   // 빈 칸 밑 안내 줄 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」 · 큰 줄만)
     if (!V.subStale.has(plat)) return <Sec key={key} id={key} lbl={lbl} n={0}><Empty t="구독 비움 상태" /></Sec>;
     const PH = plat === "insta" || plat === "threads", why0 = Object.values(cover(plat).why || {}).map(String).filter((v) => v !== "rotate" && v !== "budget");
     const waiting = !why0.length || why0.filter((v) => v === "cooldown" || v === "gap" || v === "429").length * 2 > why0.length;
