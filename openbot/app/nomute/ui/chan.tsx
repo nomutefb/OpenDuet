@@ -5,11 +5,13 @@
 //   채널 전체(서랍 「채널 전체」 · full) = 에디터 /?tab=chan 통째 대신 조각으로 옮김(형 11-01 17:4x 「시아 도와가지구, 좀 더 많은게 들어올수잇게」 · 시아 2차 안 · 빠르 몫)
 //     1조각 = 일일 추이(원본 39-chLiftChart 869줄 · 지표 칩 + 7·30·90일·전체 + 선 그래프 + 최근일 값) · 최근 게시물(936줄 · thumbs 12칸 · 릴스 ▶ · 조회수 = posts[permalink] · 경과 = iso+date_kst 시각 · relAge 사다리)
 //     2조각 = TOP 게시물(926줄 · 최신 게시일 앵커 기간 · 같은 포맷 중앙값 대비 ×배수 순 · 조회 = views 없으면 eng) · 인구통계(776줄 audience_sample · 성별 남:여 정규화 · 나이 age_full 상위 4 · 도시·나라 상위 4 · 이어 쓴 값 = 「M/D 기준」)
-//     아직 에디터 몫 = 주제별 반응 · 시간대별 반응 · 잘 되는 조건(그림 둘 = 봄) · 결과 함께 → 맨 아래 「나머지는 에디터에서」 한 단추
+//     3조각 = 잘 되는 조건 · 시간대별 반응(봄 · ./chan-charts.tsx)
+//     아직 에디터 몫 = 주제별 반응 · 결과 함께 → 맨 아래 「나머지는 에디터에서」 한 단추
 import "./yeta-settings.css";
 import "./chan.css";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { ChanCharts } from "./chan-charts";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
 
@@ -182,6 +184,7 @@ export function ChanModal({ full = false }: { full?: boolean }) {
                   ); })}</div>
                 </section>
               ) : null}
+              {full && d ? <ChanCharts d={d} src={src} /> : null}   {/* 잘 되는 조건 · 시간대별 반응 = 봄 그래픽 손(./chan-charts.tsx · 그리는 몸 = 에디터 원본 줄 그대로) */}
               {full && tops.length ? (
                 <section className="nm-chan-sec" aria-label="TOP 게시물">
                   <div className="yset-sec"><b>TOP 게시물</b>
