@@ -125,6 +125,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     // 단톡 = YETA 꼴(YETA-목록 · 운영자 260725 「단톡환경에서도 프로필이 겹치게」) · 얼굴 둘 겹침 · 마지막에 말한 이가 앞 · 인원 숫자만 · 누구인지 = 방 상단(형 10-31 「인원이 저기 누군지 나올 필욘 없는듯 들가면 확인할 수 잇으면 됨 방 상단에서」)
     const talk = (r.faces || []).map((n) => idOf(n, list)).filter((x) => ids.includes(x)), pair = [...new Set([...talk, ...ids])].slice(0, 2).reverse();   // 형 10-31 「가장최근말한사람이 단톡에 맨 앞, 그리고 그 전에 말한사람이 그 전 이렇게 2개」 · 서버 faces · 뒤에 그린 얼굴이 위 = 뒤집음
     const rc = r.with ? "" : peek?.id === r.id ? peek.hex : r.color || "";
+    const sig = r.with ? ringOf(p) || "" : rc;   // 활발한 방 이름 빛 바탕 = 그 사람 테 색 · 단톡 = 방 표지 색 · 없으면 노뮤트 연두(live-shine.css .sig · 형 11-01 14:07 「개인방도 마찬가지야」)
     const nOn = notifyOn(notify.data, r.id, !!r.with), nImg = r.with ? "" : notifyImage(notify.data, r.id);
     const crew = ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
@@ -142,7 +143,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
             : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
-              <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`}>{live(r) ? <LiveShine text={p?.name || r.name} trunc sig /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
+              <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`} style={live(r) && sig ? ({ "--sig": sig } as CSSProperties) : undefined}>{live(r) ? <LiveShine text={p?.name || r.name} trunc sig /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
               {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
