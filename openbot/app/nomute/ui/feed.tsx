@@ -116,10 +116,9 @@ function Row({ a, go, onOpen }: { a: FArt; go: (p: string) => void; onOpen: (a: 
         <span className="nm-news-txt">
           <span className="nm-news-top">
             {cat ? <b className={`cat ${cat[1]}`}>{cat[0]}</b> : null}
-            {rep ? <span className={`when${dh < 7 ? " hot" : dh < 12 ? " mid" : ""}`}>보도 {rep}</span> : a.date ? <span className="when">보도 {repDate(a.date)}</span> : null}
+            {/* 보도·스크랩 몇 시간 전 뺌(형 11-01 17:5x 「스크랩 00 분 전의 스크랩도 없고 웅! 보도 00시간 전 이것도 없어도 됑.」) */}
             {kind ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
             {a._live ? <b className="urg iss">방금 요약</b> : null}
-            {scrap ? <span className={`meta${scrap === "NEW" ? " nw" : ""}`}>{scrap === "NEW" ? "NEW" : `스크랩 ${scrap}`}</span> : null}
           </span>
           <span className="nm-news-t">{title}</span>
           {a.summary ? <span className="nm-news-s">{a.summary}</span> : null}
@@ -193,11 +192,7 @@ export function FeedModal() {
             <input type="search" value={q} onChange={(e) => { setQ(e.target.value); reset(); }} placeholder="제목·매체 검색" aria-label="뉴스 검색" enterKeyHint="search" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
             {q ? <button type="button" aria-label="검색어 지우기" onClick={() => { setQ(""); reset(); }}><DuetIcon name="x" size={14} /></button> : null}
           </label>
-          <div className="yset-chips nm-feed-chips" role="group" aria-label="거르기">
-            <button type="button" className={`yset-chip${!cats.size && !issue ? " on" : ""}`} aria-pressed={!cats.size && !issue} onClick={() => { setCats(new Set()); setIssue(false); reset(); }}>전체</button>
-            <button type="button" className={`yset-chip${issue ? " on" : ""}`} aria-pressed={issue} onClick={() => { setIssue((v) => !v); reset(); }}>이슈</button>
-            {CATS.map((c) => <button key={c} type="button" className={`yset-chip${cats.has(c) ? " on" : ""}`} aria-pressed={cats.has(c)} onClick={() => tog(c)}>{c}</button>)}
-          </div>
+          {/* 분류 칩 뺌(형 11-01 17:5x 「필터는 없어도될것같아!」) */}
           {pend.isError ? <p className="nm-chan-msg" role="status">대기열을 못 읽었어</p> : qs.length ? <div className="nm-feed-qs">{qs.map((c) => <QCard key={`${c.it.id || c.it.t}`} c={c} eta={pend.data?.eta || null} onOpen={() => go(ED_QUEUE)} />)}</div> : null}
           {list.isPending ? <p className="nm-chan-msg">기사 읽는 중…</p> : list.isError ? <p className="nm-chan-msg" role="alert">{(list.error as Error).message || "뉴스 요약을 못 읽었어"}</p> : !rows.length ? <p className="nm-chan-msg">{filtered ? "결과 없음" : "기사가 없어"}</p> : (
             <ul className="nm-feed-list">{shown.map((a) => <Row key={a.file} a={a} go={go} onOpen={open} />)}</ul>

@@ -46,7 +46,7 @@
 .nm-feed .nm-feed-body { position:relative; display:flex; align-items:flex-start; gap:10px; padding:10px 4px; pointer-events:none; }
 .nm-feed .nm-feed-hit:active + .nm-feed-body { opacity:.8; }
 .nm-feed .nm-feed-it.k-brk .nm-feed-body, .nm-feed .nm-feed-it.k-iss .nm-feed-body { padding-left:10px; }
-.nm-feed .nm-feed-it.k-brk .nm-feed-body { box-shadow:inset 2px 0 0 #ff5f8a; } .nm-feed .nm-feed-it.k-iss .nm-feed-body { box-shadow:inset 2px 0 0 var(--accent); }
+/* 긴급·이슈 왼쪽 선 뺌(형 11-01 17:5x 「좌측에 | 구분자도 없어도돼」) · 표시는 머리 표(긴급/이슈) 그대로 */
 .nm-feed .nm-news-top .when { white-space:nowrap; font-variant-numeric:tabular-nums; } .nm-feed .nm-news-top .when.hot { color:var(--accent); } .nm-feed .nm-news-top .when.mid { color:var(--fg-2); }
 .nm-feed .nm-news-top .meta.nw { font-weight:var(--fw-x); color:var(--accent); }
 .nm-feed .nm-feed-kv { display:flex; flex-wrap:wrap; align-items:center; gap:3px 12px; margin-top:2px; font-size:var(--fs-xs); color:var(--mut); }
@@ -68,3 +68,5 @@
 .nm-feed .ypc-go { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 .nm-feed .ypc-go span svg { width:14px; height:14px; }
 @media (prefers-reduced-motion:reduce) { .nm-feed .qc-s.run i, .nm-feed .nm-feed-prog i.cur { animation:none; } }
+
+.nm-feed .nm-feed-src, .nm-feed .nm-feed-it span > b { font-family:Pretendard, -apple-system, system-ui, sans-serif; }   /* 매체 이름(영문) = Pretendard 고정(형 11-01 17:5x 「매체 뒤에 나오는 영문은 pretendard로 고정해줘!」) */
