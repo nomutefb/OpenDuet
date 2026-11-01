@@ -8,9 +8,12 @@
 //   고르는 손맛(형 11-02 07:4x 시아 창 「그 결정창에서, 내용을 입력한 다음에 이제 확인을 눌러야되는데 확인이 비활성화된거같아서 누르면 또 결정이됫대. … 결정이 불이 들어와있어야되는데,
 //   그래서 아예 그거를 전송버튼을 가져다가 쓰고, 전송대신 확인 으로 눌러서 게이지 차서 그냥 체크되게 하라는거지 후딱 안없어져도되니까 사용감이」 · 「그리고 창이 확 그 질문이 없어진다기보다는 자연스럽게 사라지는 느낌을 줘서」 ·
 //   「응 전송버튼 edit.nomute.kr에 썸네일 만드는 부분보면, 사진 섬넹일 조건 다 통과하고 전송 누르면 가는거잇잖아? 그거 쓰면돼」 · 「그리고 대형 버튼 은, 그 뉴스 요약부에 프롬프트 생성 이런 버튼들 있어, 생성 안할때는 빛이 지나가는 광원효과도 넣었었는데 그거 그대로 가져다 쓰면되고,」)
-//   = 고를 것 ①② = 뉴스 요약 .mkbtn(큰 유리 · 쉴 때 빛줄기 mkBeam) · 누름 = 썸네일 .go 차례(라임 게이지 0.9초 → ✓ 커졌다 작아짐 dlChkPop) → ✓ 1초 남김 → 그 질문이 접히며 사라짐(목록에서만 · 고른 건 닫을 때 감)
+//   다듬음(형 11-02 08:1x 시아 창 「저 게이지 ㅊ ㅔ크 버튼은 근데 좀 과하긴해, 효과만 빼면 좋을거같애 저 둥그런거를 모서리둥근효과를 거의 없애서 끝에만 살짝 둥글게 하고, 좌측정렬로빼고, 내가 누르면 형광이 돌게해주고, 빛 지나가는건 없어도 돼, (저기서는)」 ·
+//   「그리고 지금 배경보다 좀 더 패인느낌을 주려면 어떻게해야하지? 적당히해보고, ㅣ누르면 바로 반영되게, 그리고 저기에 애초에 기타를 넣어. 패스는 없어도 돼 기타로 갈음할거야. 그리고 질문시작점을 도형 변 시작점으로 해. … 질문 누르면 그냥 질문에 불이 들어온다음에 사라져도 돼. 기타를 누르면 대신 창이 흔들리지않고 입력칸이 뜨고」 ·
+//   「형 결정 > 의사 결정」 · 「옆에 설명글은 빼줘」)
+//   = 고를 줄 = 배경보다 패인 홈(안 그림자) · 모서리 살짝 · 왼쪽 정렬 · 누르면 바로 라임 형광 → 0.9초 뒤 그 질문 접혀 사라짐 · 게이지·✓·빛줄기 없음 · pass 뺌 · 기타 = 마지막 줄 · 누르면 그 줄이 같은 높이로 입력칸이 됨(창 높이 안 바뀜)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
@@ -18,12 +21,21 @@ import { FaceImg } from "./faces";
 type Pick = { i?: number; pass?: boolean; text?: string };
 export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null };
 const KEY = ["nomute", "decisions"];
-const NUM = ["①", "②", "③", "④", "⑤", "⑥"];
 const done = (p?: Pick | null) => !!p && (typeof p.i === "number" || !!p.pass || !!p.text);
-type Fx = { k: string; st: "fill" | "ok" | "bye" | "err" };
-const HOLD = 900, SHOW = 1000, FADE = 480, ERR = 1700;   // 게이지 = 옛 goFire 0.9초 · ✓ 1초 남김(「후딱 안없어져도되니까」) · 접힘 0.48초 · 실패 흔들림 뒤 원래대로
+type Fx = { k: string; st: "on" | "bye" };
+const SHOW = 900, FADE = 480;   // 형광 0.9초 남김(「후딱 안없어져도되니까」) · 접힘 0.48초
 const later = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const Ck = () => <svg className="nm-dec-ck" viewBox="0 0 24 24" role="img" aria-label="골랐어"><path d="M5 13l4 4L19 7" /></svg>;
+/** 기타 줄 = 같은 자리에서 입력칸으로(창 높이 안 바뀜) · 열면 바로 글자 칸에(화면 안 밀림) */
+function EtcRow({ text, on, onSubmit }: { text: string; on: boolean; onSubmit: (e: FormEvent<HTMLFormElement>) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { ref.current?.focus({ preventScroll: true }); }, []);
+  return (
+    <form className="nm-dec-row nm-dec-etc" data-on={on || undefined} onSubmit={onSubmit}>
+      <input ref={ref} name="t" defaultValue={text} placeholder="직접 입력" aria-label="기타 답" enterKeyHint="done" />
+      <button type="submit" className="nm-dec-ok">확인</button>
+    </form>
+  );
+}
 type Sent = { id: string; room: string } & Pick;
 /** 화면 숨김 때 보내기 한 번 — sendBeacon 이 안 되면 보통 POST · 둘 다 못 하면 서버 받침(2분 · 봄) */
 const beacon = (picks: Sent[]) => { const b = JSON.stringify({ picks, send: true }); try { if (navigator.sendBeacon?.("/api/office/decisions", new Blob([b], { type: "application/json" }))) return; } catch { /* 아래 길 */ } void office("decisions", { method: "POST", body: b }).catch(() => undefined); };
@@ -39,7 +51,7 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
   const q = useDecisions();
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const [open, setOpen] = useState(false), [picks, setPicks] = useState<Record<string, Pick>>({}), [etc, setEtc] = useState(""), [err, setErr] = useState("");
-  const [fx, setFx] = useState<Record<string, Fx>>({}), [gone, setGone] = useState<Set<string>>(() => new Set());   // fx = 누른 단추 차례 · gone = 접혀 사라진 질문(이 창에서만)
+  const [fx, setFx] = useState<Record<string, Fx>>({}), [gone, setGone] = useState<Set<string>>(() => new Set());   // fx = 불 들어온 줄 · gone = 접혀 사라진 질문(이 창에서만)
   const dirty = useRef(false), closing = useRef(false);
   const items = q.data || [];
   const pickOf = (d: Decision) => picks[d.id] || d.pick || null;
@@ -88,22 +100,19 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
     catch (e) { setPicks((m) => { const n = { ...m }; delete n[d.id]; return n; }); setErr(`못 적었어 · ${(e as Error).message}`); return false; }
   };
   const put = (id: string, f: Fx | null) => setFx((m) => { const n = { ...m }; if (f) n[id] = f; else delete n[id]; return n; });
-  const choose = async (d: Decision, p: Pick, k: string) => {   // 누름 → 게이지(적는 동안 · 빨라도 0.9초) → ✓ 1초 → 접힘 → 목록에서 뺌
-    if (fx[d.id] && fx[d.id].st !== "err") return;
+  const choose = async (d: Decision, p: Pick, k: string) => {   // 누름 = 바로 형광(「누르면 바로 반영되게」) · 적기는 뒤에서 · 0.9초 뒤 접힘 → 목록에서 뺌 · 못 적으면 불 끔
+    if (fx[d.id]) return;
     if (k !== "etc") setEtc("");
-    put(d.id, { k, st: "fill" });
+    put(d.id, { k, st: "on" });
     const t0 = Date.now(), ok = await pick(d, p);
-    await later(Math.max(0, HOLD - (Date.now() - t0)));
-    if (!ok) { put(d.id, { k, st: "err" }); await later(ERR); setFx((m) => (m[d.id]?.st === "err" ? (({ [d.id]: _x, ...r }) => r)(m) : m)); return; }
-    put(d.id, { k, st: "ok" });
-    await later(SHOW);
+    if (!ok) { put(d.id, null); return; }
+    await later(Math.max(0, SHOW - (Date.now() - t0)));
     put(d.id, { k, st: "bye" });
     await later(FADE);
     setGone((g) => new Set(g).add(d.id));
     if (k === "etc") setEtc((e) => (e === d.id ? "" : e));
   };
-  const stOf = (d: Decision, k: string) => (fx[d.id]?.k === k ? fx[d.id].st : "idle");
-  const face = (st: string, label: ReactNode) => <><span className="t">{label}</span>{st === "ok" || st === "bye" ? <Ck /> : null}</>;
+  const isOn = (d: Decision, k: string) => fx[d.id]?.k === k;
   const etcSubmit = (d: Decision) => (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const t = String(new FormData(e.currentTarget).get("t") || "").trim();
@@ -113,17 +122,17 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
   if (q.isError || !items.length) return null;
   return (
     <>
-      {fab ? <button type="button" className={`nm-dec${open ? " on" : ""}`} aria-expanded={open} aria-label={`형 결정 ${left}개`} onClick={() => (open ? close() : setOpen(true))}>
+      {fab ? <button type="button" className={`nm-dec${open ? " on" : ""}`} aria-expanded={open} aria-label={`의사 결정 ${left}개`} onClick={() => (open ? close() : setOpen(true))}>
         <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h6" /><path d="m8.5 14 2.2 2.2L15.5 11.5" /></svg>
         {left ? <b className="nm-rcount">{left > 99 ? "99+" : left}</b> : null}
       </button> : null}
       {open ? createPortal(   // body 로 뺌 = 유리 카드(backdrop-filter) 안에서 불러도 화면 기준 자리(홈 할 일 카드)
         <>
           <div className="nm-dec-scrim" aria-hidden onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="형 결정" className="nm-decpop">
-            <header><b>형 결정</b><span>{left ? `남은 것 ${left}` : "다 골랐어"} · 닫으면 고른 것만 가</span><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
+          <section role="dialog" aria-modal="true" aria-label="의사 결정" className="nm-decpop">
+            <header><b>의사 결정</b><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
             <ul>
-              {items.every((d) => gone.has(d.id)) ? <li className="nm-dec-all">다 골랐어 · 닫으면 고른 게 가</li> : null}
+              {items.every((d) => gone.has(d.id)) ? <li className="nm-dec-all">다 골랐어</li> : null}
               {items.filter((d) => !gone.has(d.id)).map((d) => {
                 const p = pickOf(d), name = list.find((x) => x.who === d.who)?.name || d.who;
                 return (
@@ -131,18 +140,11 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
                     <p className="nm-dec-who"><FaceImg id={idOf(d.who, list)} size={22} /><b>{name}</b><span>{d.room_name || d.room}</span></p>
                     <p className="nm-dec-q" data-content>{d.q}</p>
                     <div className="nm-dec-ch">
-                      {d.choices.map((c, i) => { const st = stOf(d, `c${i}`); return <button key={i} type="button" className="nm-dec-big" data-stage={st} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}>{face(st, `${NUM[i] || `${i + 1}.`} ${c}`)}</button>; })}
+                      {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}>{c}</button>)}
+                      {etc === d.id
+                        ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} onSubmit={etcSubmit(d)} />
+                        : <button type="button" className="nm-dec-row" aria-pressed={!!p?.text} onClick={() => setEtc(d.id)}>{p?.text ? `기타 · ${p.text}` : "기타"}</button>}
                     </div>
-                    <div className="nm-dec-sub">
-                      <button type="button" data-stage={stOf(d, "pass")} aria-pressed={!!p?.pass} onClick={() => void choose(d, { pass: true }, "pass")}>{face(stOf(d, "pass"), "pass")}</button>
-                      <button type="button" data-stage="idle" aria-pressed={!!p?.text || etc === d.id} onClick={() => setEtc(etc === d.id ? "" : d.id)}>기타</button>
-                    </div>
-                    {etc === d.id ? (
-                      <form className="nm-dec-etc" onSubmit={etcSubmit(d)}>
-                        <input name="t" autoFocus defaultValue={p?.text || ""} placeholder="형 말로 한 줄" aria-label="기타 답" />
-                        <button type="submit" className="nm-dec-go" data-stage={stOf(d, "etc")}>{face(stOf(d, "etc"), "확인")}</button>
-                      </form>
-                    ) : p?.text ? <p className="nm-dec-said">기타 · {p.text}</p> : null}
                   </div></li>
                 );
               })}

@@ -9,7 +9,7 @@ startSync();
 /* 새 판 = 위에 단추(형 11-02 07:20 「글고 업데이트 강제로 될때내 메시지 하나씩 휘발되서 다시 써야되는 이슈가 있어. 강제로 화면 쌔로고침 하지말고. 내 ㅁㅔ세지는 정확히 가고. (확인) 새로고침은  내가특정 그 새로운 버전이 잇다는 화면에 버튼 누르면 갱신하게」)
    · 옛 판(형 10-28 09:44 「새판 나오면 … 자동으로 강제새로고침」)은 글칸이 비면 저절로 다시 읽었다 — 보내기 누른 직후 글칸이 비는 순간에 걸리면 서버에 닿기 전 글이 같이 날아감 → 뺌
    · 이 판 번호 = 빌드 때 박은 __NM_BUILD__ · 지금 올라간 판 = /office-app/version.json(캐시 0) · 묻는 때 = 1분마다(보일 때) · 앞으로 올 때 · 서비스 워커가 새 판을 알릴 때
-   · 다르면 위에 「새 버전이 있어요 · 새로고침」 → 누르면 보내는 중인 글(쓰기 요청)이 다 끝난 뒤 다시 읽음 · 글칸에 글이 있으면 한 번 더 눌러야(쓰던 글은 이 탭에 저장돼 다시 열어도 남음) */
+   · 다르면 위에 「새 버전이 있어요」 알약 하나(형 11-02 08:2x · 「새로고침」 글자 뺌) → 누르면 보내는 중인 글(쓰기 요청)이 다 끝난 뒤 다시 읽음 · 글칸에 글이 있으면 한 번 더 눌러야(쓰던 글은 이 탭에 저장돼 다시 열어도 남음) */
 declare const __NM_BUILD__: string;
 const BUILD = __NM_BUILD__;
 
@@ -39,14 +39,15 @@ XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, body?: Document 
 let bar: HTMLElement | null = null;
 function showUpdate() {
   if (bar) return;
-  bar = document.createElement("div");
-  bar.className = "nm-yeta nm-upd";
-  bar.setAttribute("role", "status");
-  bar.innerHTML = '<span>새 버전이 있어요</span><button type="button">새로고침</button>';
-  const btn = bar.querySelector("button") as HTMLButtonElement;
+  const btn = document.createElement("button");   // 알약 하나 = 누르면 갱신(형 11-02 08:2x 「새 버전이 있어요 라고만 뜨면됨 새로고침은 없어도 되고 그냥 그거 누르면 갱신되게.」)
+  bar = btn;
+  btn.type = "button";
+  btn.className = "nm-yeta nm-upd";
+  btn.setAttribute("role", "status");
+  btn.textContent = "새 버전이 있어요";
   let armed = 0;
   btn.addEventListener("click", () => {
-    if (busyTyping() && Date.now() - armed > 4000) { armed = Date.now(); btn.textContent = "쓰던 글 있음 · 한 번 더"; setTimeout(() => { if (btn.textContent !== "보내는 중…") btn.textContent = "새로고침"; }, 4000); return; }
+    if (busyTyping() && Date.now() - armed > 4000) { armed = Date.now(); btn.textContent = "쓰던 글 있음 · 한 번 더"; setTimeout(() => { if (btn.textContent !== "보내는 중…") btn.textContent = "새 버전이 있어요"; }, 4000); return; }
     btn.disabled = true;
     btn.textContent = "보내는 중…";
     const t0 = Date.now();
