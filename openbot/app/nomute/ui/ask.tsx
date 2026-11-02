@@ -7,7 +7,7 @@
 //     링크 판별 = 원본 probeAskLink(41-toolRfVis 790줄) · GET /api/linkprobe?u= → {kind, subs, dur} · 영상만 한 줄(자막 그대로 / large-v3 받아쓰기 / 미리 못 봄) · 기사 = 줄 없음
 //     전사 강행 = 원본 alkForce(자막 없고 30분 넘을 때만 · 켜면 55분까지 · 55분 넘으면 못 함) · 옛 「링크 우선」 칩은 뜻이 틀려서 뺌(linkForce = 전사 상한 올리기)
 //     초안 보존 = 글·링크를 이 기기에(nm_ask_draft) · 창을 닫았다 열어도 남고 보내면 비움(형 260727 「다른 페이지 갔다오면 휘발」) · 사진은 크기 때문에 안 남김
-//     보내기 = 공용 게이지 단추(./go-button.tsx · 형 11-01 14:12)
+//     보내기 = 공용 게이지 단추(./go-button.tsx · 형 11-01 14:12) · 접수되면 ✓ 뒤 창이 저절로 닫힘(형 11-02 09:22 「이거 보내고 나면 창 자동으로 닫히면 됨 전손 후에」 · 닫는 길 = 껍데기 「<」 와 같은 closeModal)
 import "./yeta-settings.css";
 import "./ask.css";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
@@ -30,7 +30,7 @@ const mins = (sec: number) => (sec >= 60 ? `${Math.round(sec / 60)}분` : `${Mat
 
 const readAsDataUrl = (f: File) => new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(f); });
 
-export function AskModal() {
+export function AskModal({ onClose }: { onClose?: () => void } = {}) {
   // 홈 카드 「전송」 단추가 채워 둔 것(sessionStorage nm_ask_prefill · home/send-button.tsx) = 글·링크 미리 채움 · 한 번 읽고 지움 · 접수는 형이 「보내기」 눌러야
   const [pre] = useState(() => { try { const j = JSON.parse(sessionStorage.getItem("nm_ask_prefill") || "null") as { text?: string; link?: string } | null; sessionStorage.removeItem("nm_ask_prefill"); return j; } catch { return null; } });
   const [draft] = useState(() => (pre ? null : readDraft()));   // 미리 채움이 있으면 그게 먼저
@@ -124,7 +124,7 @@ export function AskModal() {
           {note ? <p className={`nm-ask-note ${note.kind}`} role={note.kind === "err" ? "alert" : "status"}>{note.text}</p> : null}
           <div className="ypc-acts nm-ask-acts">
             {draft && (text || link) ? <button type="button" className="yset-chip" onClick={() => { setText(""); setLink(""); setNote(null); }} disabled={busy}>초안 비우기</button> : null}
-            <GoButton className="ypc-go" go={send} busy="보내는 중">보내기</GoButton>
+            <GoButton className="ypc-go" go={send} busy="보내는 중" done={() => onClose?.()}>보내기</GoButton>
           </div>
         </div>
       </div>

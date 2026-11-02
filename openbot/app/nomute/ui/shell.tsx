@@ -229,7 +229,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "runner" ? <div className="nm-scroll"><RunnerScreen /></div>
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
                   : M.id === "drawer" ? <div className="nm-scroll"><DrawerPage /></div>
-                  : M.id === "ask" ? <div className="nm-scroll"><AskModal /></div>
+                  : M.id === "ask" ? <div className="nm-scroll"><AskModal onClose={closeModal} /></div>
                   : M.id === "news" ? <div className="nm-scroll"><NewsModal /></div>
                   : M.id === "thumbhist" ? <div className="nm-scroll"><ThumbHist /></div>
                   : M.id === "feed" ? <div className="nm-scroll"><FeedModal /></div>
