@@ -65,12 +65,13 @@ function Ring({ p }: { p: number }) {
   );
 }
 
-/** 앞 첨부를 기다리는 글 = 내 말풍선 자리 · 차례가 오면 나감(형 11-01 「보냄 대기로 올라가있다가」) */
+/** 앞 글·사진을 기다리는 글 = 보통 내 말풍선 그대로(자르지 않음) · 「보냄 대기」 = 말풍선 왼쪽 아래 꼭지점 옆(시각 자리처럼 · 겹침 0)
+ *   (형 11-02 11:36 「이거 보냄 대기 뜰거면 위에 내가 보낸 채팅 일반 채팅 처럼 뜨게 똑같이 해. 그 다음에 채팅 좌측에 보냄 대기 라고 채팅이 직사각형이면 직사각형 좌하단 꼭지점을 기준으로 우측 정렬로 보냄 대기 라고 써지면 돼」 · 앞 판 = 6줄로 잘리고 흐려진 채 아래 오른쪽에 「보냄 대기」) */
 function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) {
   return (
-    <div className="nac-up" aria-label="보냄 대기">
-      <NacText text={item.text} />
+    <div className="nac-wrow" aria-label="보냄 대기">
       {item.failed ? <button type="button" className="nac-again" onClick={onRetry}>못 보냈어 · 다시 보내기</button> : <span className="nac-wait">보냄 대기</span>}   {/* 「보냄 대기」 = 1.2초 넘게 걸릴 때만 보임(./attachment-up.css · 글마다 깜빡이지 않게) */}
+      <div className="yb me nac-wb">{item.text}</div>
     </div>
   );
 }
