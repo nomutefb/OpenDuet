@@ -1,0 +1,8 @@
+/* 썸네일 카드(읽기만 · ① 판) = 별 요약 말풍선 바로 위 그림(글 속 사진과 같은 결 · 둥근 16px · 바탕 상자 없음) + 아래 작은 칩(형 11-02 11:32 · 11:44 「요약 바로 위에 오면 됨 이미지로」) */
+.ychat .nm-thumb { margin:2px 0 6px; width:min(100%, 220px); display:flex; flex-direction:column; gap:6px; }
+.ychat .nm-thumb-img { display:block; border-radius:16px; overflow:hidden; }   /* 글 속 사진 rounded-2xl 과 같음 · 세로 썸네일은 자르지 않음 */
+.ychat .nm-thumb-img img { display:block; width:100%; height:auto; }
+.ychat .nm-thumb-h { display:flex; align-items:center; flex-wrap:wrap; gap:4px 6px; font-size:var(--fs-xs); color:var(--mut); }
+.ychat .nm-thumb-h i { font-style:normal; padding:0 7px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); }
+.ychat .nm-thumb-h .warn { display:inline-flex; align-items:center; gap:4px; color:color-mix(in srgb, #F5C542 65%, var(--fg)); }   /* 노랑 그대로면 밝은 판에서 안 읽힘 = 글자색과 섞음 */
+.ychat .nm-thumb-h .dot { width:6px; height:6px; border-radius:50%; background:#F5C542; flex:none; }
