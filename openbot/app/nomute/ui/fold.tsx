@@ -1,5 +1,5 @@
 // 긴 글 접기 · 전체 보기(형 11-02 07:19 「긴 텍스트는 더 보기 / 전체 보기 라는 말로 축약해서 별도의 창에서 확인하고 돌아오게 해서 한 텍스트가 채팅창을 점령하는걸 막자는거임」 · 카톡 사진 97115·97117)
-//   말풍선 = 14줄까지 · 넘치면 끝을 흐리고 아래 구분선 + 「전체 보기 ›」 · 누르면 글만 보는 창(위 꺽쇠 · 보낸 이·시각 · 가가 · 복사)
+//   말풍선 = 17줄까지(11-02 21:34 14 → 17) · 넘치면 끝을 흐리고 아래 구분선 + 「전체 보기 ›」 · 누르면 글만 보는 창(위 꺽쇠 · 보낸 이·시각 · 가가 · 복사)
 //   닫는 길 = 꺽쇠 · Esc · 폰 뒤로 = 하나(기록 한 칸 · 사진 크게 보기 zoomImage 와 같은 길 · .nm-zoom 이라 ui/shell.tsx 가 판을 안 옮김)
 import { type ReactNode, type SyntheticEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";

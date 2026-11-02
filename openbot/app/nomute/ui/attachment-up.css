@@ -1,5 +1,5 @@
 /* 첨부 보내는 중(./attachment-recovery.tsx) = 내 말풍선 자리 · 사진 아래 가로 게이지 · 긴 글 없음 */
-/* 칸 = 화면 반까지(256px 로 묶어 긴 글 윗부분이 평평하게 잘리던 것 · 형 11-02 07:18 사진 97119) · 긴 글은 말풍선 안에서 6줄로 접힘(보내지면 진짜 글 = 14줄 + 「전체 보기」 · ./fold.tsx) */
+/* 칸 = 화면 반까지(256px 로 묶어 긴 글 윗부분이 평평하게 잘리던 것 · 형 11-02 07:18 사진 97119) · 긴 글은 말풍선 안에서 6줄로 접힘(보내지면 진짜 글 = 17줄 + 「전체 보기」 · ./fold.tsx) */
 .nac-box { max-height:50dvh; }
 .nac-up { align-self:flex-end; display:flex; flex-direction:column; align-items:flex-end; gap:6px; max-width:min(78%, 260px); margin-bottom:8px; }
 .nac-text { max-height:calc(14px * 1.5 * 6 + 16px); overflow:hidden; line-height:1.5; margin:0; padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; font-size:14px; white-space:pre-wrap; word-break:break-word; }
