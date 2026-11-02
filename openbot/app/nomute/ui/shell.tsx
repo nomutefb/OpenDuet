@@ -7,7 +7,7 @@
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { type ReactNode, Suspense, useEffect, useRef, useState } from "react";
+import { type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
 import { AttentionNotifier } from "@/components/bot-profile/attention";
 import { DuetIcon } from "@/components/duet/icons";
 import { useTabSpace } from "@/components/shell/app-shell";
@@ -52,6 +52,7 @@ import { PushDevsModal } from "./push-devs";   // 서랍 「구독 기기」 = �
 import { SensorModal } from "./sensor";   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
 import { MemoModal } from "./memo";   // 서랍 「메모」 = 에디터 설정 ▸ 메모를 앱 안으로(봄 11-01)   // 서랍 「알림메세지」 = 에디터 알림함을 앱 안으로(봄 11-01)   // 서랍 「대기열」 = 에디터 대기열 창을 앱 안으로(봄 11-01)
 import { SnsModal } from "./sns";
+const ThumbMaker = lazy(() => import("./thumb-maker"));   // 서랍 「에디터」 = 썸네일 생성기 앱 안(형 11-02 09:28 「이거 아예 이 디자인하고 배경 살려서 인앱 안으로 넣어줘」 · 원본 엔진·CSS 가 커서 열 때만 받음)
 import { AskModal } from "./ask";   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomList, useRoomOrder } from "./room-list";
 import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
@@ -97,8 +98,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
-const FRAME: Partial<Record<Modal, string>> = { edtool: "/?tool=thumb&inapp=1",   // inapp=1 = 앱 안이면 에디터 독·머리·시계 숨김(빠르 11-01)
-  play: "/play/" };   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -223,8 +223,9 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>{M.label}</b>
               </div>
-              <div className={FRAME[M.id] ? "nm-modal-b frame" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
+              <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
+                  : M.id === "edtool" ? <Suspense fallback={null}><ThumbMaker /></Suspense>   // 썸네일 생성기 = 원본 판·엔진·배경 그대로(./thumb-maker · 머리 「✧ 에디터 · 카드 제작」 = 옛 index 도구 창 꼴)
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><RunnerScreen /></div>
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
