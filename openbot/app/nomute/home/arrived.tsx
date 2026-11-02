@@ -30,7 +30,7 @@ export function Arrived() {
     <section aria-label="도착한 메시지" className="flex min-h-0 flex-col">
       <h2 className="yset-sec">도착한 메시지</h2>   {/* 「방 N」 뺌(형 10-31 12:3x 「방1 이런거 없고 신규 메세지 n 만 뜨면 됨」) — 수는 아래 타일 말머리 배지로 */}
       {!arrived.length ? <p className="px-1 text-[13px] text-[var(--mut)]">{error ? "못 받았어" : pending ? "받는 중…" : "새로 온 글 없음"}</p> : (
-        <ul className="flex min-h-0 flex-col gap-2 pb-[calc(86px+env(safe-area-inset-bottom))]">   {/* 한 방만(형 10-31 12:2x 「한 메세지만 보이게」) · 스크롤 0 · 아래 여백 = 네비 자리 · 나머지 방 수는 머리 「방 N」 이 말함 */}
+        <ul className="flex min-h-0 flex-col gap-2">   {/* 한 방만(형 10-31 12:2x 「한 메세지만 보이게」) · 스크롤 0 · 네비 자리 여백 = 홈 바닥(home-screen · 글 없을 때도) · 나머지 방 수는 머리 「방 N」 이 말함 */}
           {arrived.slice(0, 1).map((r) => {
             const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined, n = count(r);
             const total = arrived.reduce((a, x) => a + Math.max(0, count(x)), 0);   // 신규 메시지 수 = 안 읽은 방 전부 합(점만 있는 방 = 0 으로 셈)
