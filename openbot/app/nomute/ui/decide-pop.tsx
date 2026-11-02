@@ -22,17 +22,21 @@ type Pick = { i?: number; pass?: boolean; text?: string };
 export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null };
 const KEY = ["nomute", "decisions"];
 const done = (p?: Pick | null) => !!p && (typeof p.i === "number" || !!p.pass || !!p.text);
-type Fx = { k: string; st: "on" | "bye" };
-const SHOW = 900, FADE = 480;   // 형광 0.9초 남김(「후딱 안없어져도되니까」) · 접힘 0.48초
+type Fx = { k: string; st: "on0" | "run" | "done" | "ck" | "bye" };
+// 차오름 = 뉴스 요약 「프롬프트 생성」 .mkbtn.glive 그대로(editor viewer/index.html 3092~ · 답 기다리는 동안 0→90% 3.6초 gauge-ease · 답 오면 100% 0.3초 linear · ✓ = goTick .38s .04s ease)
+//   (형 11-02 10:37 「누르면 차는 모션 그 프롬프트 생성 그거 가져와서 진하개는 말고 지금 톤 유지하면서 채워지고 체크뜨는거 그 코드의 이징 속도 그대로 적용 해주면 될듯. 완료된 내역은 안보여도돼.」)
+const FULL = 300, TICK = 380 + 40, HOLD = 520, FADE = 480;   // 100% 마무리 · ✓ 그리기 · ✓ 남김 · 접힘
+const Ck = () => <svg className="nm-dec-ck" viewBox="0 0 24 24" role="img" aria-label="골랐어"><path d="M5 13l4 4L19 7" /></svg>;
+const drawn = (st?: Fx["st"]) => st === "ck" || st === "bye";
 const later = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** 기타 줄 = 같은 자리에서 입력칸으로(창 높이 안 바뀜) · 열면 바로 글자 칸에(화면 안 밀림) */
-function EtcRow({ text, on, onSubmit }: { text: string; on: boolean; onSubmit: (e: FormEvent<HTMLFormElement>) => void }) {
+function EtcRow({ text, on, fill, onSubmit }: { text: string; on: boolean; fill?: Fx["st"]; onSubmit: (e: FormEvent<HTMLFormElement>) => void }) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => { ref.current?.focus({ preventScroll: true }); }, []);
   return (
-    <form className="nm-dec-row nm-dec-etc" data-on={on || undefined} onSubmit={onSubmit}>
+    <form className="nm-dec-row nm-dec-etc" data-on={on || undefined} data-fill={fill} onSubmit={onSubmit}>
       <input ref={ref} name="t" defaultValue={text} placeholder="직접 입력" aria-label="기타 답" enterKeyHint="done" />
-      <button type="submit" className="nm-dec-ok">확인</button>
+      <button type="submit" className="nm-dec-ok">{drawn(fill) ? <Ck /> : "확인"}</button>
     </form>
   );
 }
@@ -100,19 +104,28 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
     catch (e) { setPicks((m) => { const n = { ...m }; delete n[d.id]; return n; }); setErr(`못 적었어 · ${(e as Error).message}`); return false; }
   };
   const put = (id: string, f: Fx | null) => setFx((m) => { const n = { ...m }; if (f) n[id] = f; else delete n[id]; return n; });
-  const choose = async (d: Decision, p: Pick, k: string) => {   // 누름 = 바로 형광(「누르면 바로 반영되게」) · 적기는 뒤에서 · 0.9초 뒤 접힘 → 목록에서 뺌 · 못 적으면 불 끔
+  const choose = async (d: Decision, p: Pick, k: string) => {   // 누름 = 바로 형광 + 차오름(적는 동안 90% 까지) → 답 오면 100% → ✓ → 접힘 → 목록에서 뺌 · 못 적으면 불 끔
     if (fx[d.id]) return;
     if (k !== "etc") setEtc("");
-    put(d.id, { k, st: "on" });
-    const t0 = Date.now(), ok = await pick(d, p);
+    put(d.id, { k, st: "on0" });
+    await later(34);   // 0% 를 한 번 그린 뒤 90% 로 = 차오름이 보임(원본 rAF grun 자리)
+    put(d.id, { k, st: "run" });
+    const ok = await pick(d, p);
     if (!ok) { put(d.id, null); return; }
-    await later(Math.max(0, SHOW - (Date.now() - t0)));
+    put(d.id, { k, st: "done" });
+    await later(FULL);
+    put(d.id, { k, st: "ck" });
+    await later(TICK + HOLD);
     put(d.id, { k, st: "bye" });
     await later(FADE);
     setGone((g) => new Set(g).add(d.id));
     if (k === "etc") setEtc((e) => (e === d.id ? "" : e));
   };
   const isOn = (d: Decision, k: string) => fx[d.id]?.k === k;
+  const fillOf = (d: Decision, k: string) => (fx[d.id]?.k === k ? fx[d.id].st : undefined);
+  useEffect(() => {   // 다 고르면 창이 저절로 닫힘(「완료된 내역은 안보여도돼」)
+    if (open && items.length > 0 && items.every((d) => gone.has(d.id))) close();
+  }, [gone]);   // eslint-disable-line react-hooks/exhaustive-deps
   const etcSubmit = (d: Decision) => (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const t = String(new FormData(e.currentTarget).get("t") || "").trim();
@@ -132,7 +145,6 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
           <section role="dialog" aria-modal="true" aria-label="의사 결정" className="nm-decpop">
             <header><b>의사 결정</b><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
             <ul>
-              {items.every((d) => gone.has(d.id)) ? <li className="nm-dec-all">다 골랐어</li> : null}
               {items.filter((d) => !gone.has(d.id)).map((d) => {
                 const p = pickOf(d), name = list.find((x) => x.who === d.who)?.name || d.who;
                 return (
@@ -140,9 +152,9 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
                     <p className="nm-dec-who"><FaceImg id={idOf(d.who, list)} size={22} /><b>{name}</b><span>{d.room_name || d.room}</span></p>
                     <p className="nm-dec-q" data-content>{d.q}</p>
                     <div className="nm-dec-ch">
-                      {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}>{c}</button>)}
+                      {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} data-fill={fillOf(d, `c${i}`)} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}><span className="t">{c}</span>{drawn(fillOf(d, `c${i}`)) ? <Ck /> : null}</button>)}
                       {etc === d.id
-                        ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} onSubmit={etcSubmit(d)} />
+                        ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} fill={fillOf(d, "etc")} onSubmit={etcSubmit(d)} />
                         : <button type="button" className="nm-dec-row" aria-pressed={!!p?.text} onClick={() => setEtc(d.id)}>{p?.text ? `기타 · ${p.text}` : "기타"}</button>}
                     </div>
                   </div></li>
