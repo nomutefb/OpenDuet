@@ -519,3 +519,11 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat [data-streamdown="code-block-body"] { max-height:none !important; margin:0; padding:10px 34px 10px 12px; overflow:visible; border:0; border-radius:0; background:none; color:var(--fg-2); font-size:var(--fs-xs); line-height:1.55; white-space:pre-wrap; word-break:break-word; }
 .ychat [data-streamdown="code-block-body"] pre, .ychat [data-streamdown="code-block-body"] code, .ychat [data-streamdown="code-block-body"] code span { background:none; white-space:pre-wrap; word-break:break-word; }
 .ychat [data-streamdown="code-block-copy-button"] { width:32px; height:32px; min-width:0; min-height:0; }
+/* 반응 단 이 보기(office-chat Reactions · 형 11-02 12:00) = 칩 위 작은 유리 말풍선 · 이름 · 「나도」/「빼기」 */
+.ychat .yrxs { position:relative; }
+.ychat .yrx-who { position:absolute; bottom:calc(100% + 6px); left:0; z-index:6; display:flex; align-items:center; gap:8px; max-width:min(260px, 70vw); padding:6px 8px 6px 10px; border-radius:12px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); background:rgba(24,25,28,.94); color:#fff; font-size:12px; line-height:1.35; box-shadow:0 8px 20px rgba(0,0,0,.4); white-space:normal; }
+.ychat .yrx-who.me { left:auto; right:0; }
+:root:not(.dark) .ychat .yrx-who { background:rgba(255,255,255,.97); color:#161716; border-color:rgba(0,0,0,.1); }
+.ychat .yrx-who button { flex:none; padding:3px 9px; border-radius:999px; border:1px solid rgba(207,255,64,.5); background:rgba(207,255,64,.12); color:#CFFF40; font-size:11px; font-weight:800; }
+:root:not(.dark) .ychat .yrx-who button { color:#3d5e00; border-color:rgba(79,122,0,.45); background:rgba(79,122,0,.08); }
+

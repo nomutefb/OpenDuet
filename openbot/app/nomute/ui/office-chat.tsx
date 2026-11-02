@@ -277,17 +277,31 @@ function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
   const e = Object.entries(c.rx[m.id] || {}).filter(([, w]) => w && w.length);
   const app = new Map<string, string[]>();   // 그록 앱 반응(D14 · 거울 칸 app_reactions) = 같은 그림끼리 묶음
   for (const x of m.app_reactions || []) if (x?.emoji) app.set(x.emoji, [...(app.get(x.emoji) || []), x.who]);
+  const [open, setOpen] = useState("");   // 누가 달았나 보기(형 11-02 12:00 「단체톡에서는 내 이모지 누르면 누가 달앗는지 알 수 있어야 함. 내가 너희들 말풍선에 달린 이모디 눌러도 누가 달앗는지 알아야함.」)
+  useEffect(() => {
+    if (!open) return undefined;
+    const off = (ev: PointerEvent) => { if (!(ev.target as Element | null)?.closest?.(".yrxs")) setOpen(""); };
+    document.addEventListener("pointerdown", off);
+    return () => document.removeEventListener("pointerdown", off);
+  }, [open]);
   if (!e.length && !app.size) return null;
+  const shown = open ? (e.find(([k]) => k === open)?.[1] || app.get(open.replace(/^app:/, "")) || []) : [];
   return (
     <div className="yrxs" onClick={(e) => e.stopPropagation()}>   {/* 말풍선 모서리에 겹침(형 10-31 「이모지는 칸을 아껴야되니까」) */}
+      {open ? (
+        <div className={`yrx-who${mine ? " me" : ""}`} role="dialog" aria-label="반응 단 이">
+          <span>{open.replace(/^app:/, "")} {shown.map((x) => nmOf(c.list, x)).join(" · ")}</span>
+          {!open.startsWith("app:") ? <button type="button" onClick={() => { c.onReact(m.id, open); setOpen(""); }}>{shown.includes("형") ? "빼기" : "나도"}</button> : null}
+        </div>
+      ) : null}
       {[...app].map(([k, w]) => (
-        <span key={`app-${k}`} title={`그록 앱 반응 · ${w.map((x) => nmOf(c.list, x)).join(" · ")}`}
+        <span key={`app-${k}`} title={`그록 앱 반응 · ${w.map((x) => nmOf(c.list, x)).join(" · ")}`} role="button" tabIndex={0} onClick={() => setOpen(open === `app:${k}` ? "" : `app:${k}`)}
           className="yrx">
           {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
         </span>
       ))}
       {e.map(([k, w]) => (
-        <button key={k} type="button" title={w.map((x) => nmOf(c.list, x)).join(" · ")} onClick={() => c.onReact(m.id, k)}
+        <button key={k} type="button" title={w.map((x) => nmOf(c.list, x)).join(" · ")} aria-expanded={open === k} onClick={() => setOpen(open === k ? "" : k)}   // 누름 = 단 이 보기 · 달기·빼기는 그 안 단추
           className={`yrx${w.includes("형") ? " on" : ""}`}>
           {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
         </button>
