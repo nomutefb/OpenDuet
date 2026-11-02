@@ -1,0 +1,2 @@
+/* 홈 「다 깸」 띠(ddk-band.tsx) — 원본 640×360 에서 해·얼굴 열여섯·이름·끝 글(형 말)만 가로로 자른 판(640×204) · 폭 따라 같은 비율 · 모서리·테 = 홈 줄(.yset-item)과 같음 */
+.yeta-set .nm-ddk { display:block; width:100%; aspect-ratio:640 / 204; object-fit:cover; border-radius:var(--r-l); border:1px solid var(--glass-line); background:#0b0d1c; pointer-events:none; }

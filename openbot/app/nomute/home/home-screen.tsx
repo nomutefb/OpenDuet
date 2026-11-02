@@ -8,14 +8,16 @@
 import "../ui/yeta-settings.css";
 import "./follow-pulse.css";
 import { Arrived } from "./arrived";
+import { DdkBand } from "./ddk-band";   // 카드 밖 맨 아래 「다 깸」 띠 한 번(형 11-02 14:46 결정 ③ · 뉴스 카드와 도착한 메시지 사이)
 import { FollowPulse } from "./follow-pulse";   // 1/6 = 팔로워 띠(형 10-31 09:5x 「인스타 맨 위에 뜨는거 … 웹앱 맨 상단에」 · 접수사항 CheckOne 은 안 부름 「어짜피 다른데서 볼 수 있으니까」 · 파일은 그대로)
 import { NewsFeed } from "./news-feed";
 
 export function HomeScreen() {
   return (
-    <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))]">
+    <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))]">
       <FollowPulse />
       <NewsFeed />
+      <DdkBand />
       <Arrived />
     </div>
   );
