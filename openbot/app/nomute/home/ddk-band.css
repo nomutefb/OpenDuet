@@ -1,3 +1,6 @@
 /* 홈 「다 깸」 띠(ddk-band.tsx) — 640×170 = 해·얼굴 열여섯·이름(원본 y146~282) + 아래 갈색 34줄(네비 뒤) · 폭 따라 같은 비율 · 모서리·테 = 홈 줄(.yset-item)과 같음
    자리 = 홈 맨 아래 · 이름 아래가 네비에 반쯤 걸침(형 11-02 19:16) — 홈 바닥 여백 86px(네비 자리) 안으로 48px 내려감 = 띠 바닥이 네비(바닥 14px · 높이 54px) 가운데쯤 · 이름 줄이 네비 바로 위(폰 폭 기준 · 넓은 화면은 갈색이 조금 더 보임) · 네비(z 60)가 위 */
-.yeta-set .nm-ddk { display:block; width:100%; aspect-ratio:640 / 170; object-fit:cover; border-radius:var(--r-l); border:1px solid var(--glass-line); background:#2a2224; pointer-events:none; margin-bottom:-48px; }
+.yeta-set .nm-ddk { display:block; width:100%; aspect-ratio:640 / 170; object-fit:cover; border-radius:var(--r-l); border:1px solid var(--glass-line); background:#2a2224; pointer-events:none; margin-bottom:-48px; opacity:0; transform:translateY(6px); transition:opacity .9s ease, transform .9s ease; }
+/* 23:17 형 「영상이 좀 더 늦게 떠야해」 — 카드가 뜬 뒤 첫 장면이 그려지면 스르륵(ddk-band.tsx · 자리는 처음부터 잡혀 있어 카드가 안 밀림) */
+.yeta-set .nm-ddk.is-lit { opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce) { .yeta-set .nm-ddk { transition:none; transform:none; } }

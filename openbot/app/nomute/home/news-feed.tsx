@@ -60,13 +60,19 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 // 위 덧줄 넷(형 10-31 12:2x 홈 사진) = ① 「이슈 근거 : …」 줄 안 보임(.article-signals · 화제 유발 원인·내용 줄은 그대로) ② 시각 줄 둘 다 형광(time 은 원래 --accent · 「n시간 전」 .publish-elapsed 는 나이 띠 색이던 것 → --accent · 윈터 12:31 「둘 다 형광」)
 //   ③ 사진 = 카드 남는 높이를 다 차지(.article-media flex 1 · 황금비 상한 풀기 · 원본은 clamp(120px,20svh,180px) 최소 + 1.618 비율) ④ 「외 +3」 광학 보정(형 「+3 이거 수평을 광학 잉크 단위로 맞춰주고」 · 원본 .05em 아래 → .08em · 화면 못 봐서 ±.03em 은 윈터가 보고)
 
-export function NewsFeed() {
+export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onShown = 카드 첫 판이 품은 화면에 간 때 한 번(홈 「다 깸」 띠가 그 뒤에 뜸 · 형 11-02 23:17)
   const frame = useRef<HTMLIFrameElement>(null);
+  const shownCb = useRef(onShown);
+  shownCb.current = onShown;
   useEffect(() => {
-    let live = true, ready = false, version = 0, snap: { rows: unknown[]; status: Record<string, unknown> } | null = null;
+    let live = true, ready = false, shown = false, version = 0, snap: { rows: unknown[]; status: Record<string, unknown> } | null = null;
     let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null;
     const post = (type: string, detail: Record<string, unknown> = {}) => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type, ...detail }, location.origin);
-    const send = () => { if (ready && snap) post("snapshot", { version, ...snap }); };
+    const send = () => {
+      if (!ready || !snap) return;
+      post("snapshot", { version, ...snap });
+      if (!shown) { shown = true; shownCb.current?.(); }
+    };
     const rebuild = async () => {
       const md = await modernData();
       if (!live || !md) return;

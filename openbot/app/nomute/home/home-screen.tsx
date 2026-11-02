@@ -7,6 +7,7 @@
 //   11-02 네비 자리 여백(86px)을 도착한 메시지 목록 → 홈 바닥으로 옮김 = 새 글 없을 때 「다 깸」 띠 아래쪽·「새로 온 글 없음」이 네비 뒤로 숨던 것.
 //   11-02 19:16 형 「1의 하단부분 새로온 메세지 안보여도 되니까 그 부분 날리고 카드 더 많이 나오게 하고 네비게이션에 이름 아래가 반쯤 걸치도록 영상이 나오게」 · 「전면 부 메세지는 솔직히 안보는거 같고」 → 도착한 메시지 칸 뺌(arrived.tsx 는 그대로) · 줄 셋 = 띠 · 카드(1fr) · 「다 깸」(맨 아래 · 네비에 걸침 · ddk-band.css).
 //   길(라우트)·네비 「홈」 칸 = 이 폴더 밖(보조 01 · claude-state assign/2026-10-28/office-home.md 「바뀜」).
+import { useState } from "react";
 import "../ui/yeta-settings.css";
 import "./follow-pulse.css";
 import { DdkBand } from "./ddk-band";   // 카드 밖 맨 아래 「다 깸」 띠 한 번(형 11-02 14:46 결정 ③ · 19:16 네비에 반쯤 걸침)
@@ -14,11 +15,12 @@ import { FollowPulse } from "./follow-pulse";   // 1/6 = 팔로워 띠(형 10-31
 import { NewsFeed } from "./news-feed";
 
 export function HomeScreen() {
+  const [feedUp, setFeedUp] = useState(false);   // 뉴스 카드 첫 판이 뜸 → 「다 깸」 띠는 그 뒤에(형 11-02 23:17 「영상이 좀 더 늦게 떠야해」)
   return (
     <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))] pb-[calc(86px+env(safe-area-inset-bottom))]">
       <FollowPulse />
-      <NewsFeed />
-      <DdkBand />
+      <NewsFeed onShown={() => setFeedUp(true)} />
+      <DdkBand show={feedUp} />
     </div>
   );
 }
