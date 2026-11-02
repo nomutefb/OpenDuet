@@ -80,16 +80,16 @@ export const PATCH: Record<string, [string, string][]> = {
     ['aria-label="Message"', 'aria-label="글"'],
     ['aria-label="Message"', 'aria-label="글"'],
     // 엔터 = 줄바꿈이 기본 · 설정에서 보내기로(형 10-31 · ./ui/enter-key.tsx) · 입력칸 둘 · 앞에 줄바꿈까지 넣어 서로 안 겹침
-    ['import { PromptArea, type PromptAreaHandle } from "prompt-area";', 'import { PromptArea, type PromptAreaHandle } from "prompt-area";\nimport { shiftSend, useEnterSends } from "@nomute/ui/enter-key";'],
-    ['  const promptAreaRef = useRef<PromptAreaHandle>(null);', '  const promptAreaRef = useRef<PromptAreaHandle>(null);\n  const enterSends = useEnterSends();'],
+    ['import { PromptArea, type PromptAreaHandle } from "prompt-area";', 'import { PromptArea, type PromptAreaHandle } from "prompt-area";\nimport { shiftSend, useEnterSends } from "@nomute/ui/enter-key";\nimport { registerComposer } from "@nomute/ui/call-sheet";'],
+    ['  const promptAreaRef = useRef<PromptAreaHandle>(null);', '  const promptAreaRef = useRef<PromptAreaHandle>(null);\n  const enterSends = useEnterSends();\n  useEffect(() => registerComposer(promptAreaRef), []);'],   // 「@」·「!」 시트가 칩을 넣을 손잡이(./ui/call-sheet.tsx)
     ['\n                  onSubmit={submitDraft}', '\n                  onKeyDown={(e) => shiftSend(e, enterSends, () => void submitDraft(value))}\n                  submitOnEnter={enterSends}\n                  onSubmit={submitDraft}'],
     ['\n              onSubmit={submitDraft}', '\n              onKeyDown={(e) => shiftSend(e, enterSends, () => void submitDraft(value))}\n              submitOnEnter={enterSends}\n              onSubmit={submitDraft}'],
   ],
   // 입력칸 부름 목록 = 「@」(예약) + 「!」(바로 깨움 · 사무실 말 · 형 10-30 「호출시 대화에 쓰면 리스트 안뜨는 것」) — 같은 이 목록 · 고르면 「!이름」 글
   "app/src/components/channels/composer/triggers.ts": [
-    ["  return [agentTrigger(agents), slashCommandTrigger(commands)];", "  return [agentTrigger(agents), { ...agentTrigger(agents), char: \"!\", accessibilityLabel: \"바로 깨움\" }, slashCommandTrigger(commands)];"],
+    ["  return [agentTrigger(agents), slashCommandTrigger(commands)];", "  return [{ char: \"@\", position: \"any\", mode: \"launch\", accessibilityLabel: \"부르기\", onActivate: () => openCallSheet(\"@\", agents) }, { char: \"!\", position: \"any\", mode: \"launch\", accessibilityLabel: \"바로 깨움\", onActivate: () => openCallSheet(\"!\", agents) }, slashCommandTrigger(commands)];"],   // 「@」·「!」 = 여러 명 고르기 시트(./ui/call-sheet.tsx · 형 11-02 11:34 · 11:37) · 옛 드롭다운 = 하나 고르면 닫힘
     ['emptyMessage: "No Bots in this conversation"', 'emptyMessage: "이 방엔 부를 이가 없어"'],
-    ['import { commandTrigger, mentionTrigger } from "prompt-area/helpers";', 'import { commandTrigger, mentionTrigger } from "prompt-area/helpers";\nimport { faceIcon, markLabel } from "@nomute/ui/call-face";'],
+    ['import { commandTrigger, mentionTrigger } from "prompt-area/helpers";', 'import { commandTrigger, mentionTrigger } from "prompt-area/helpers";\nimport { faceIcon, markLabel } from "@nomute/ui/call-face";\nimport { openCallSheet } from "@nomute/ui/call-sheet";'],
     ["          description: agent.description,", "          description: agent.description,\n          icon: faceIcon(agent.id),"],   // 부름 목록 얼굴(./ui/call-face.tsx)
     ["          label: agent.name,", "          label: markLabel(agent.id, agent.name),"],   // 부름 목록 이름 옆 표지(./ui/call-face.tsx)
     ["    onSelect: (suggestion) => suggestion.label,", "    onSelect: (suggestion) => agents.find((agent) => agent.id === suggestion.value)?.name ?? suggestion.value,"],   // 칩·글 = 이름만(「!이름」 문법 그대로)
