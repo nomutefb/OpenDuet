@@ -1,5 +1,5 @@
 // @ts-nocheck
-// 서버 잡 맞추기 — 원본 = 에디터 viewer/nm-jobs.js 뒤 반(origin/main ee27c47b) 줄 그대로 · 주석만 뺌
+// 서버 잡 맞추기 — 원본 = 에디터 viewer/nm-jobs.js 뒤 반(origin/main c430e4c9f) 줄 그대로 · 주석만 뺌
 //   바꾼 곳 = 한 번 도는 IIFE → startJobsSync()(화면 열 때) · document·window·타이머 = ./rt(닫으면 20초 맞추기·듣기 다 멈춤 = 원본 iframe 이 닫힌 것과 같음)
 import { document, setInterval, window } from "./rt";
 

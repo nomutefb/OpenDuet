@@ -1,5 +1,5 @@
 // @ts-nocheck
-// 모던 겉옷 셋 — 원본 = 에디터 viewer/modern-ui.js · modern-fold.js · modern-copy.js(origin/main ee27c47b) · 줄 그대로 · 주석만 뺌
+// 모던 겉옷 셋 — 원본 = 에디터 viewer/modern-ui.js · modern-fold.js · modern-copy.js(origin/main c430e4c9f) · 줄 그대로 · 주석만 뺌
 //   원본에선 썸네일 iframe 이 모던 부모(index) 안에 열리면 modern-ui.js 가 스스로 붙고 fold·copy 를 불러 붙였다(앱 「에디터」 칸이 보여 주던 그 꼴)
 //   바꾼 곳 = modern-ui 머리(부모 검사·스타일시트·스크립트 불러오기 → 겉옷 클래스·data-nm-skin 만 · CSS 는 ../thumb-maker.css 에 이미) · nm-gauge.js 불러오기 뺌
 //            세 IIFE → start 함수(화면 열 때) · document·window·타이머 = ./rt(닫으면 듣기·관찰 다 걷고 window 표식도 지움 = 다음에 열면 다시 붙음)

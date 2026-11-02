@@ -1,4 +1,4 @@
-// 썸네일 생성기 판 — 원본 = 에디터 viewer/thumb.html <body> 1010~1295줄 + 6461~6469줄(origin/main ee27c47b) · 줄 그대로 · 주석만 뺌
+// 썸네일 생성기 판 — 원본 = 에디터 viewer/thumb.html <body> 1010~1295줄 + 6461~6469줄(origin/main c430e4c9f) · 줄 그대로 · 주석만 뺌
 //   React 가 손대지 않는 판(엔진 ./engine 이 원본처럼 직접 고침 · 클래스·id·aria 그대로 = 원본 CSS·엔진이 그대로 맞물림)
 export const THUMB_HTML = `
 <div class="wrap">

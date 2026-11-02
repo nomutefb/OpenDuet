@@ -1,8 +1,8 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 자간 자동(estTracking·estHeaderTr)·잉크 글자·초과 끊기·축약·발사
-//   원본 = 에디터 viewer/thumb.html 5328~5812줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 5328~5812줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { clearTimeout, document, fetch, setTimeout } from "./rt";
 import { WARN_SVG } from "./svg";
@@ -245,6 +245,7 @@ export function bindOverClamp(sel) {
   });
   el.addEventListener('compositionend', () => { composing = false; clamp(); });
 }
+export const cTpl = 'nomute';
 export function syncCTpl() {
   const t = $('#cTplTog'); if (!t) return;
   const _mut = S.cLogoOff;
@@ -264,7 +265,8 @@ export function jobLabel() {
 export const ABBR_BUILTIN = [['...', '⋯'], ['•', '·'], ['이,', '李,'], ['윤,', '尹,'], ['미,', '美,'], ['중,', '中,'], ['북,', '北,']];
 export const ABBR_STANDALONE = new Set(['이,', '윤,', '미,']);
 export const ABBR_LINESTART = new Set(['중,', '북,']);
-export function abbrCustom() { try { const a = JSON.parse(localStorage.getItem(S.ABBR_KEY) || '[]'); return Array.isArray(a) ? a.filter(p => p && p.from) : []; } catch { return []; } }
+export const ABBR_KEY = 'nomute_thumb_abbr';
+export function abbrCustom() { try { const a = JSON.parse(localStorage.getItem(ABBR_KEY) || '[]'); return Array.isArray(a) ? a.filter(p => p && p.from) : []; } catch { return []; } }
 export const _abbrEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 export function abbrStandalone(s, from, to) {
   const re = new RegExp('(^|[^가-힣])' + _abbrEsc(from), 'g'), rep = '$1' + to;
@@ -378,8 +380,6 @@ $('#cLines').addEventListener('input', updateComboTrk);
   t.addEventListener('click', tog);
   t.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } });
 })();
-S.cTpl = 'nomute';
 S.cLogoOff = false;
 S._goLock = false;
-S.ABBR_KEY = 'nomute_thumb_abbr';
 }

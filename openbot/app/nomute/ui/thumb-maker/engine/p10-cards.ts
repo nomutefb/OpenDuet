@@ -1,17 +1,18 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 카드뉴스 칩 편집기
-//   원본 = 에디터 viewer/thumb.html 4912~5327줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 4912~5327줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { clearTimeout, document, requestAnimationFrame, setTimeout, window } from "./rt";
 import { COPY_SVG, ERASE_SVG, PASTE_SVG, UNDO_SVG } from "./svg";
 import { $ } from "./p01-core";
 import { CP_PREV_FONT } from "./p02-preview";
-import { clipCopy, clipPasteText } from "./p04-media";
+import { ERASE_UNDO_MS, clipCopy, clipPasteText } from "./p04-media";
 import { curlyQ } from "./p05-text";
 import { _inkChars, _ovCharW } from "./p11-fit";
 
+export const MAX_LINES = 4;
 export const EDLINE_HANGUL = 18;
 export const EDLINE_WIDTH = 19.5;
 export const EDLINE_SOFT = 14;
@@ -38,7 +39,7 @@ export function parseEmphLines(s) {
     else cur.push({ text, on: false, em });
     i = j;
   }
-  return lines.slice(0, S.MAX_LINES);
+  return lines.slice(0, MAX_LINES);
 }
 export function edMarkWarn() {
   for (const line of S.edLines) {
@@ -119,7 +120,7 @@ export function renderEditChips() {
     }
   });
   edMarkWarn();
-  const full = S.edLines.length >= S.MAX_LINES;
+  const full = S.edLines.length >= MAX_LINES;
   S.edLines.forEach((line, li) => {
     const row = document.createElement('div'); row.className = 'ed-line'; row.dataset.li = li;
     if (line.length === 0) {
@@ -238,7 +239,7 @@ export function renderEditChips() {
   if (S.cardIo) S.cardIo();
 }
 export function addLineAfter(li) {
-  if (S.edLines.length >= S.MAX_LINES) return;
+  if (S.edLines.length >= MAX_LINES) return;
   S.edLines.splice(li + 1, 0, []);
   S.PENDING_FOCUS = li + 1;
   renderEditChips();
@@ -333,7 +334,6 @@ S.edLines = [];
 S.PENDING_FOCUS = null;
 S.PENDING_EDIT = null;
 S._edRendering = false;
-S.MAX_LINES = 4;
 (function () {
   const wrap = $('#cardBox .edwrap'); if (!wrap) return;
   const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'iobtn iobtn-edge iobtn-pp'; wrap.appendChild(btn);
@@ -362,7 +362,7 @@ S.MAX_LINES = 4;
     try { undoLines = JSON.parse(JSON.stringify(S.edLines)); } catch { undoLines = null; }
     S.edLines = [[]]; renderEditChips();
     eraser.classList.remove('iobtn-off'); eraser.classList.add('iobtn-undo'); eraser.innerHTML = UNDO_SVG; eraser.setAttribute('aria-label', '되돌리기'); eraser.title = '되돌리기 (직전 입력 복원)';
-    if (undoTimer) clearTimeout(undoTimer); undoTimer = setTimeout(exitUndo, S.ERASE_UNDO_MS);
+    if (undoTimer) clearTimeout(undoTimer); undoTimer = setTimeout(exitUndo, ERASE_UNDO_MS);
   };
   S.cardIo();
 })();

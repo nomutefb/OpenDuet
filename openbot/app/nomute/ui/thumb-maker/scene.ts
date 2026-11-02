@@ -1,6 +1,6 @@
 // @ts-nocheck
 // 썸네일 생성기 뒤 장면 — 에디터 모던 화면의 3D 판(유리 판들 사이 홈에 시안·파랑 빛이 흐르는 「X」 이음) = 앱 「에디터」 칸이 보여 주던 그 배경(형 11-02 09:28 「이 디자인하고 배경 살려서」)
-//   원본 = 에디터 viewer/modern-spatial.js(origin/main ee27c47b) 줄 그대로 · 주석만 뺌 · Three.js = 에디터와 같은 파일(/vendor/three/three.module.js)을 열 때 불러옴(앱 꾸러미 안 늘림)
+//   원본 = 에디터 viewer/modern-spatial.js(origin/main c430e4c9f) 줄 그대로 · 주석만 뺌 · Three.js = 에디터와 같은 파일(/vendor/three/three.module.js)을 열 때 불러옴(앱 꾸러미 안 늘림)
 //   바꾼 곳 = 받침(#ambient)·THREE 를 인자로 · 색 토큰·표식(dataset) = 받침 요소에서(앱 html 안 건드림) · 아래 메뉴 유리(#menu)·독 베일(#nmDockVeil) = index 전용이라 뺌 · window.__modernSpatial 대신 손잡이 돌려줌
 //            DOM 지켜보기 = 이 화면 안만(scope) · 시작 = 부른 쪽(./scene-bg.tsx)이 쉴 틈에
 /* eslint-disable */

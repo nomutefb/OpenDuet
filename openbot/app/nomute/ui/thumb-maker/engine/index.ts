@@ -3,6 +3,8 @@
 //   원본 차례 = nm-svg·nm-sync·nm-loader·nm-seq·nm-jobs(서버 잡 맞추기 시작)·draft → 본 스크립트(p01~p13) → 빠른 메뉴·접기 단추·nmTabReset(p14)
 //              → 문서 다 읽힘(로더 구슬 채움) → 모던 겉옷(modern-ui → fold → copy · 부모가 모던 index 일 때 붙던 것 = 앱 「에디터」 칸 그 꼴)
 //   끄기 = 타이머·듣기·관찰·window 표식 다 걷고 상태 비움(원본 iframe 이 닫힌 것과 같음) · 진행 중 잡은 원본처럼 localStorage(nm_thumb_pend)에 남아 다시 열면 이어 봄
+//   원본이 바뀌면 = 앱 폴더에서 node ui/thumb-maker/tools/codemod.mjs <에디터 저장소> (p01~p14) · node ui/thumb-maker/tools/scope-css.mjs <에디터 저장소> (../thumb-maker.css)
+//     그 밖 조각(markup·svg·libs·jobs-sync·modern·scene)은 머리 주석의 원본 줄을 다시 떼어 같은 자리만 바꿈
 import "./libs";
 import { bindRuntime } from "./rt";
 import { resetState } from "./state";

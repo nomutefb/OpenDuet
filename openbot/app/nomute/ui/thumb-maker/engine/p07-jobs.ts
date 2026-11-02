@@ -1,27 +1,29 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 대기열(JOBS)·진행 타일·잡 카드·폴링
-//   원본 = 에디터 viewer/thumb.html 3768~4243줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 3768~4243줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { Image, MutationObserver, clearInterval, clearTimeout, document, fetch, parent, requestAnimationFrame, setTimeout, window } from "./rt";
 import { CHECK_SVG, DOWNLOAD_SVG, EDIT_SVG, RETRY_SVG, TRASH_SVG, WARN_SVG } from "./svg";
 import { $, upsRefire } from "./p01-core";
-import { PLUS_SVG, dlAllSeq, dlMark, dlSeen, genJob, genRefire, rszRefire, rszRunning, rszWait } from "./p04-media";
+import { PLUS_SVG, XCLOSE_SVG, dlAllSeq, dlMark, dlSeen, genJob, genRefire, rszRefire, rszRunning, rszWait } from "./p04-media";
 import { canEditSrc, editOpenSrc } from "./p06-draft";
 import { JFMT, carAppend, carJump, dlBlob, dlSlug, histTime, jobFace, jobNo, jobNo3, jobShowCar, pad3, srvSrcOf, stripOpa } from "./p08-results";
 import { carHSync, saveLastResult } from "./p09-restore";
 import { esc } from "./p10-cards";
 import { dispatchBatch, dispatchJob, goFire } from "./p11-fit";
 
+export const JOBSEQ_KEY = 'nomute_jobseq';
 export function jobSeqIssue() {
   if (window.nmSeq && nmSeq.issue) { S.JOBSEQ = nmSeq.issue(); return S.JOBSEQ; }
-  let v = 0; try { v = parseInt(localStorage.getItem(S.JOBSEQ_KEY), 10) || 0; } catch (e) {}
+  let v = 0; try { v = parseInt(localStorage.getItem(JOBSEQ_KEY), 10) || 0; } catch (e) {}
   if (v < S.JOBSEQ) v = S.JOBSEQ;
   S.JOBSEQ = v + 1;
-  try { localStorage.setItem(S.JOBSEQ_KEY, String(S.JOBSEQ)); } catch (e) {}
+  try { localStorage.setItem(JOBSEQ_KEY, String(S.JOBSEQ)); } catch (e) {}
   return S.JOBSEQ;
 }
+export const PEND_KEY = 'nm_thumb_pend';
 export function jobIds(job) { const s = []; if (job && job.thid) s.push(job.thid); if (job && Array.isArray(job.thids)) job.thids.forEach(id => { if (id && !s.includes(id)) s.push(id); }); return s; }
 export function jobHasId(job, id) { return !!(id && job && (job.thid === id || (Array.isArray(job.thids) && job.thids.includes(id)))); }
 export function jobBid(job) { if (!job) return ''; if (typeof job.bid === 'string' && job.bid) return job.bid; const s = job.src; return (s && typeof s === 'object' && typeof s.bid === 'string') ? s.bid : ''; }
@@ -43,8 +45,8 @@ export function joinLbl(a, b) {
   return (fmt ? fmt + ' ' : '') + pieces.join('·');
 }
 export const pendSnap = job => ({ id: job.thid || '', n: job.n, label: job.label, t0: job.t0, outs: job.outs || [], endpoint: job.endpoint, payload: job.payload, src: job.src, ...(job.gfree ? { mode: 'gfree' } : {}), ...(Array.isArray(job.thids) && job.thids.length > 1 ? { thids: job.thids.slice() } : {}), ...(jobBid(job) ? { bid: jobBid(job) } : {}) });
-export const pendPut = job => { try { if (job && job.thid && job.status === 'run') { nmJobs.add(S.PEND_KEY, pendSnap(job)); const sib = jobIds(job).filter(id => id !== job.thid); if (sib.length && typeof nmJobs.absorb === 'function') nmJobs.absorb(S.PEND_KEY, sib); } } catch (e) {} };
-export const pendCut = job => { try { jobIds(job).forEach(id => { nmJobs.drop(S.PEND_KEY, id); nmJobs.free(S.PEND_KEY, id); }); } catch (e) {} };
+export const pendPut = job => { try { if (job && job.thid && job.status === 'run') { nmJobs.add(PEND_KEY, pendSnap(job)); const sib = jobIds(job).filter(id => id !== job.thid); if (sib.length && typeof nmJobs.absorb === 'function') nmJobs.absorb(PEND_KEY, sib); } } catch (e) {} };
+export const pendCut = job => { try { jobIds(job).forEach(id => { nmJobs.drop(PEND_KEY, id); nmJobs.free(PEND_KEY, id); }); } catch (e) {} };
 export function jobStatKey(job) {
   const ep = job && job.endpoint || '';
   if (ep.indexOf('genimg') >= 0) return 'imggen/gen';
@@ -53,11 +55,13 @@ export function jobStatKey(job) {
   const lb = String(job && job.label || '').split(' (')[0].trim();
   return lb ? 'local/' + lb : null;
 }
-export function jobDurLoad() { try { return JSON.parse(localStorage.getItem(S.JOB_DUR_KEY) || '{}') || {}; } catch (e) { return {}; } }
+export const JOB_DUR_KEY = 'NM_JOB_DUR';
+export const JOB_DUR_CAP = 20;
+export function jobDurLoad() { try { return JSON.parse(localStorage.getItem(JOB_DUR_KEY) || '{}') || {}; } catch (e) { return {}; } }
 export function jobDurPush(job) {
   const k = jobStatKey(job), sec = Math.round((Date.now() - job.t0) / 1000);
   if (!k || !(sec > 0) || sec > 3600) return;
-  try { const m = jobDurLoad(); (m[k] ||= []).push(sec); m[k] = m[k].slice(-S.JOB_DUR_CAP); localStorage.setItem(S.JOB_DUR_KEY, JSON.stringify(m)); } catch (e) {}
+  try { const m = jobDurLoad(); (m[k] ||= []).push(sec); m[k] = m[k].slice(-JOB_DUR_CAP); localStorage.setItem(JOB_DUR_KEY, JSON.stringify(m)); } catch (e) {}
 }
 export function jobDurMed(job) {
   const k = jobStatKey(job); if (!k) return 0;
@@ -69,8 +73,9 @@ export function estJobTok(job) { const v = jobStat(job); return v ? (v.tok || 0)
 export function fmtTok(n) { return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : String(n); }
 export function estJobEtaSec(job) { const v = jobStat(job); return (v && v.dur) ? v.dur : jobDurMed(job); }
 export function fmtMMSS(sec) { const s = Math.max(0, sec | 0); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+export const WIP_TILE_OFF = true;
 export function wipSync(job, sec) {
-  if (S.WIP_TILE_OFF) { if (job._wip) { job._wip.remove(); job._wip = null; wipEmptySync(); } return; }
+  if (WIP_TILE_OFF) { if (job._wip) { job._wip.remove(); job._wip = null; wipEmptySync(); } return; }
   const box = $('#wips'); if (!box) return;
   if (job.status === 'done' || job.status === 'err') { if (job._wip) { job._wip.remove(); job._wip = null; wipEmptySync(); } return; }
   let el = job._wip;
@@ -245,7 +250,7 @@ export function renderJob(job) {
   if (job.status === 'run') {
     const cx = document.createElement('button'); cx.type = 'button'; cx.className = 'jdel jcancel';
     if (job._cxArm) { cx.classList.add('arm'); cx.innerHTML = CHECK_SVG; cx.title = '한 번 더 누르면 취소'; cx.setAttribute('aria-label', '취소 확정'); }
-    else { cx.innerHTML = S.XCLOSE_SVG; cx.title = '이 제작 취소'; cx.setAttribute('aria-label', '제작 취소'); }
+    else { cx.innerHTML = XCLOSE_SVG; cx.title = '이 제작 취소'; cx.setAttribute('aria-label', '제작 취소'); }
     cx.onclick = () => jobCancelTap(job, row, cx);
     row.append(cx);
   }
@@ -279,10 +284,11 @@ export function renderJob(job) {
   if (dsc && !svRow) { const dl = document.createElement('div'); dl.className = 'jvars'; dl.appendChild(dsc); row.append(dl); }
   if (tasks.length) row.append(jobTasksEl(job, tasks));
 }
+export const TASK_ROLE = /^(헤더|자막|오버레이|저작권|안내문)(?=\s|$)/;
 export function taskLbl(o, i, job) {
   const raw = String((o && o.label) || '').trim();
   const f = String((o && o.path) || '').split('?')[0].split('/').pop();
-  const tg = S.TASK_ROLE.exec(raw);
+  const tg = TASK_ROLE.exec(raw);
   let m;
   if (/^(box|nobg)\.(jpe?g|png)$/.test(f)) return '헤더';
   if ((m = /^opa(\d+)\.(jpe?g|png)$/.exec(f))) return stripOpa('오버레이(OPA' + m[1] + ')');
@@ -290,7 +296,7 @@ export function taskLbl(o, i, job) {
     const L = String((job && job.label) || ''), c = /저작권/.test(L), g = /안내문/.test(L);
     return c && !g ? '저작권' : g && !c ? '안내문' : raw ? '저작권' : '안내문';
   }
-  if (tg) return stripOpa(tg[1] === '자막' ? '오버레이' : tg[1]) + (/^(자막|오버레이)\s+(OPA[\d·]+)$/.test(raw) ? '(' + stripOpa(raw.replace(S.TASK_ROLE, '').trim()) + ')' : '');
+  if (tg) return stripOpa(tg[1] === '자막' ? '오버레이' : tg[1]) + (/^(자막|오버레이)\s+(OPA[\d·]+)$/.test(raw) ? '(' + stripOpa(raw.replace(TASK_ROLE, '').trim()) + ')' : '');
   if (!raw) return '이미지 ' + (i + 1);
   return stripOpa(/^OPA[\d·]+$/.test(raw) ? '오버레이(' + raw + ')' : raw);
 }
@@ -298,7 +304,7 @@ export function jobTasks(job) {
   if (job.status !== 'run') return [];
   if (job._tkT0 !== job.t0) { job._tkT0 = job.t0; job._tkPop = {}; job._tkSig = ''; }
   const outs = job.outs || [], t = [];
-  if (outs.length) outs.forEach((o, i) => t.push({ lb: taskLbl(o, i, job), v: String((o && o.label) || '').replace(S.TASK_ROLE, '').trim(), st: job.done[i] ? 'ok' : 'run', k: i }));
+  if (outs.length) outs.forEach((o, i) => t.push({ lb: taskLbl(o, i, job), v: String((o && o.label) || '').replace(TASK_ROLE, '').trim(), st: job.done[i] ? 'ok' : 'run', k: i }));
   else if (job.batch && job.batch.length > 1) job.batch.forEach((it, i) => t.push({ lb: taskLbl({ label: it && (it.tag || it.label) }, i, job), st: 'wait' }));
   (job.errTags || []).forEach((tg, i) => t.push({ lb: taskLbl({ label: tg }, i, job), st: 'err' }));
   const cnt = {}; t.forEach(x => { cnt[x.lb] = (cnt[x.lb] || 0) + 1; });
@@ -347,7 +353,7 @@ export function jobsMirror() {
 }
 export function pollJob(job) {
 
-  try { jobIds(job).forEach(id => nmJobs.hold(S.PEND_KEY, id, () => { job.status = 'cancel'; if (job._timer) { clearTimeout(job._timer); job._timer = null; } })); } catch (e) {}
+  try { jobIds(job).forEach(id => nmJobs.hold(PEND_KEY, id, () => { job.status = 'cancel'; if (job._timer) { clearTimeout(job._timer); job._timer = null; } })); } catch (e) {}
   const SOFT_S = 150, HARD_S = 720;
   const tick = () => {
     if (job._timer) { clearTimeout(job._timer); job._timer = null; }
@@ -385,24 +391,18 @@ export function dlStamp(ts) {
 
 export function start() {
 S.JOBS = [];
-S.JOBSEQ_KEY = 'nomute_jobseq';
 S.JOBSEQ = 0;
-try { S.JOBSEQ = parseInt(localStorage.getItem(S.JOBSEQ_KEY), 10) || 0; } catch (e) {}
+try { S.JOBSEQ = parseInt(localStorage.getItem(JOBSEQ_KEY), 10) || 0; } catch (e) {}
 S.JOBUID = 0;
-S.PEND_KEY = 'nm_thumb_pend';
 S.CARSLIDES = [];
 S._pendRefThumb = '';
 S.JOB_STATS = null;
 (async () => { try { const r = await fetch('job_stats.json?t=' + Date.now()); if (r.ok) S.JOB_STATS = (await r.json()).stats || null; } catch (e) {} })();
-S.JOB_DUR_KEY = 'NM_JOB_DUR';
-S.JOB_DUR_CAP = 20;
-S.WIP_TILE_OFF = true;
 (function () {
   if (!window.MutationObserver) return;
   const mo = new MutationObserver(() => carEmptySync());
   ['#jobs', '#wips'].forEach(sel => { const el = $(sel); if (el) mo.observe(el, { childList: true }); });
 })();
-S.TASK_ROLE = /^(헤더|자막|오버레이|저작권|안내문)(?=\s|$)/;
 (function jobsMirrorWatch() {
   const host = $('#jobs'); if (!host || typeof MutationObserver !== 'function') return;
   let t = 0;

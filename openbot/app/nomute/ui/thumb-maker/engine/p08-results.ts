@@ -1,15 +1,15 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 라벨·결과 박스·캐러셀·섹션 접기·이전 제작·동기화
-//   원본 = 에디터 viewer/thumb.html 4244~4710줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 4244~4710줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { clearTimeout, document, fetch, matchMedia, requestAnimationFrame, setTimeout, window } from "./rt";
 import { CHEV_L_SVG, CHEV_R_SVG, DOWNLOAD_SVG, EDIT_SVG } from "./svg";
 import { $ } from "./p01-core";
 import { cpPrevWait, renderCpPrev } from "./p02-preview";
 import { imgPendBegin } from "./p03-options";
-import { dlMark, dlSeen, rszApply } from "./p04-media";
+import { REUSE_SVG, dlMark, dlSeen, rszApply } from "./p04-media";
 import { canEditSrc, editOpenSrc } from "./p06-draft";
 import { renderJob } from "./p07-jobs";
 import { carHSync, directPick, doRestore, findResultById, followNewestRestored, localLastResult, reconcileRestoredBatch, restoreById, rmRestoredRow } from "./p09-restore";
@@ -98,7 +98,7 @@ export function carAppend(url, dlname, cap, job, varStr, o, restore, histCap, no
     slide.appendChild(_sed);
   }
   if (job && (job.rid || job.gfree)) {
-    const _sus = document.createElement('button'); _sus.type = 'button'; _sus.className = 'imgdl caruse'; _sus.title = '이 결과를 소스로 재첨부'; _sus.setAttribute('aria-label', '소스로 재첨부'); _sus.innerHTML = S.REUSE_SVG;
+    const _sus = document.createElement('button'); _sus.type = 'button'; _sus.className = 'imgdl caruse'; _sus.title = '이 결과를 소스로 재첨부'; _sus.setAttribute('aria-label', '소스로 재첨부'); _sus.innerHTML = REUSE_SVG;
     _sus.addEventListener('click', ev => { ev.preventDefault(); ev.stopPropagation(); reattachSrc(url, dlname || '', _sus); });
     slide.appendChild(_sus);
   }
@@ -111,7 +111,7 @@ export function carAppend(url, dlname, cap, job, varStr, o, restore, histCap, no
     const s = S.CARSLIDES[slideIdx]; if (s) s.dead = true;
     if (restore && S.CARSLIDES.length && S.CARSLIDES.every(x => x.dead)) {
       const gone = new Set(S.CARSLIDES.map(x => histKey(x.url)));
-      try { localStorage.removeItem(S.THUMB_LAST_KEY); } catch {}
+      try { localStorage.removeItem(THUMB_LAST_KEY); } catch {}
       histSave(histPrune(histLoad()).filter(e => !gone.has(histKey(e.url))));
 
       S.RESTORED = false; S.RESTORED_URLS.clear();
@@ -146,9 +146,12 @@ export function carJump(slideIdx) {
   const slide = track.querySelector('.carslide[data-slide="' + slideIdx + '"]');
   if (slide) { $('#carwrap').hidden = false; track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' }); }
 }
+export const THUMB_HKEY = 'nomute_thumb_hist';
 export const THUMB_HMS = 12 * 3600e3;
 export const THUMB_HMAX = 240;
-export function histClearedCut() { try { return +localStorage.getItem(S.THUMB_HCLEAR_KEY) || 0; } catch { return 0; } }
+export const THUMB_HCLEAR_KEY = 'nomute_thumb_hist_cleared';
+export function histClearedCut() { try { return +localStorage.getItem(THUMB_HCLEAR_KEY) || 0; } catch { return 0; } }
+export const THUMB_LAST_KEY = 'nomute_thumb_last';
 export const baseUrl = u => String(u || '').split('?')[0];
 export const histKey = u => baseUrl(u).replace(/^https?:\/\/[^/]+\//, '');
 export const batchId = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
@@ -286,8 +289,8 @@ export function maybeOpenHist(tries = 0) {
   const fb = (cb && !cb.hidden) ? cb : (($('#jobs') && $('#jobs').firstElementChild) || (hist && !hist.hidden ? hist : null));
   land(fb);
 }
-export function histLoad() { try { const a = JSON.parse(localStorage.getItem(S.THUMB_HKEY) || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } }
-export function histSave(a) { try { localStorage.setItem(S.THUMB_HKEY, JSON.stringify(a)); } catch {} }
+export function histLoad() { try { const a = JSON.parse(localStorage.getItem(THUMB_HKEY) || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } }
+export function histSave(a) { try { localStorage.setItem(THUMB_HKEY, JSON.stringify(a)); } catch {} }
 export function histPrune(a) { const cut = Date.now() - THUMB_HMS; return a.filter(e => e && e.ts && e.ts >= cut); }
 export function histAdd(e) { let a = histPrune(histLoad()); a.push(e); while (a.length > THUMB_HMAX) a.shift(); histSave(a); renderHist(); }
 export function srvSrcOf(url) {
@@ -417,9 +420,6 @@ $('#carPrev').innerHTML = CHEV_L_SVG;
 $('#carNext').innerHTML = CHEV_R_SVG;
 $('#carPrev').onclick = () => { $('#cartrack').scrollBy({ left: -2 * carStride(), behavior: 'smooth' }); };
 $('#carNext').onclick = () => { $('#cartrack').scrollBy({ left: 2 * carStride(), behavior: 'smooth' }); };
-S.THUMB_HKEY = 'nomute_thumb_hist';
-S.THUMB_HCLEAR_KEY = 'nomute_thumb_hist_cleared';
-S.THUMB_LAST_KEY = 'nomute_thumb_last';
 S.SRV_HIST = [];
 S.SRV_CLEAR = 0;
 S._syncOkTs = 0;

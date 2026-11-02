@@ -1,8 +1,8 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 뼈대 — 확인 창·앱 전환(selApp)·해상도·채움·모자이크 토글·줄 수 한도·저작권·합성
-//   원본 = 에디터 viewer/thumb.html 1304~1725줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 1304~1725줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { clearTimeout, document, fetch, requestAnimationFrame, setTimeout, window } from "./rt";
 import { renderCpPrev } from "./p02-preview";
@@ -37,7 +37,9 @@ export function askConfirm(msg) {
     dlg.showModal();
   });
 }
-export function appHidden(a) { return S.EDIT_TAB_OFF && ['6', '7', '9', 'sp'].includes(String(a || '')); }
+export const OPA_STEP = 10;
+export const EDIT_TAB_OFF = true;
+export function appHidden(a) { return EDIT_TAB_OFF && ['6', '7', '9', 'sp'].includes(String(a || '')); }
 export const isFam2 = a => a === '2' || a === '7' || a === '8' || a === '9';
 export const isEditApp = a => a === '7' || a === '8' || a === '9';
 export const UPS_ORDER = ['720p', 'FHD', '2K', '4K'];
@@ -195,7 +197,7 @@ export function ieSrcSync0(has) {
   if (has && S.CIMG.b64) { rszMeasure(S.CIMG.b64); if (S.NEED && S.NEED.t.classList.contains('cpprev-box')) needClear();
     if (S.PENDACT && Date.now() - S.PENDACT.at < PEND_TTL && (isEditApp(S.APP) || S.PENDACT.app === S.APP)) { const run = S.PENDACT.run; S.PENDACT = null; if (run) run(); }
   }
-  else { editResetDefaults(); if (isEditApp(S.APP)) { S.selApp(S.EDIT_TAB_OFF ? '2' : '7'); return; }
+  else { editResetDefaults(); if (isEditApp(S.APP)) { S.selApp(EDIT_TAB_OFF ? '2' : '7'); return; }
   }
   iePrevSync();
   if (S.APP === '8' && typeof ieRender === 'function') ieRender();
@@ -335,7 +337,6 @@ export function hoist() {
 export function start() {
 S.APP = '1';
 S.FMT = 'post';
-S.OPA_STEP = 10;
 S.cOpaSel = [60];
 S.ovOnly = false;
 S.ovFmt = 'post';
@@ -344,7 +345,6 @@ S._spellApplied = false;
 S._applyingSpell = false;
 S.IMG = { b64: '', name: '' };
 S.CIMG = { b64: '', name: '' };
-S.EDIT_TAB_OFF = true;
 S.PIMG = { b64: '', name: '' };
 S.upsV = 'FHD';
 (function () {
@@ -372,7 +372,7 @@ S._rszHintKey = '';
 (function () {
   const t = $('#ieTog'); if (!t) return;
   const flip = () => {
-    if (S.APP === '8') { S.selApp(S.EDIT_TAB_OFF ? '2' : '7'); return; }
+    if (S.APP === '8') { S.selApp(EDIT_TAB_OFF ? '2' : '7'); return; }
 
     if (armAfterAttach(() => { rszApply('orig'); S.selApp('8'); })) return;
     rszApply('orig');

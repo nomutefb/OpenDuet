@@ -1,8 +1,8 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 합성 미리보기(renderCpPrev)·사진 자리 잡기(끌기·확대)
-//   원본 = 에디터 viewer/thumb.html 1726~2166줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 1726~2166줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { Image, ResizeObserver, clearInterval, document, fetch, innerHeight, requestAnimationFrame, setInterval, setTimeout, window } from "./rt";
 import { $, cpMergeOn, getName, getPlatform, getYear, isEditApp, rszPickHint } from "./p01-core";
@@ -11,7 +11,7 @@ import { rszJob, rszPreview, rszWait } from "./p04-media";
 import { normEmph, renderEmph2, sensMask, stripStrayStars } from "./p05-text";
 import { snapForm, studioRouteFn } from "./p06-draft";
 import { TRK, buildEmphText, estTracking, prevLetterSpace } from "./p10-cards";
-import { HDR, abbrOn, effOvFmt, estHeaderTr, goFire, hdrFit, ovFit, ovTrkKey } from "./p11-fit";
+import { HDR, abbrOn, cTpl, effOvFmt, estHeaderTr, goFire, hdrFit, ovFit, ovTrkKey } from "./p11-fit";
 import { a2Build, errStatus } from "./p13-fire";
 
 export const CPV_WHITE = 'rgb(255,255,255)';
@@ -31,6 +31,8 @@ export function cpPrevVariants() {
   else if (gpvOn && !v.some(x => cpMergeOn(x, gpvFmt))) v.push({ k: 'cr', lbl: '안내문', fmt: gpvFmt });
   return { v, csub, ctitle, lines };
 }
+export const CPAN_MIN = 0.3;
+export const CPAN_MAX = 4;
 export const CPAN_STEP = 0.1;
 export function cpPanOn() { return S.CPAN.s !== 1 || S.CPAN.x !== 0 || S.CPAN.y !== 0; }
 export function cpPanGeo(fmt) {
@@ -73,10 +75,10 @@ export function cpPanRailSync() {
 export function cpPanReset() { S.CPAN.s = 1; S.CPAN.x = 0; S.CPAN.y = 0; cpPanApply(); }
 export function cpPanFit() {
   const g = cpPanGeo(S.cpPanFmt); if (!g) return;
-  S.CPAN.s = Math.max(S.CPAN_MIN, 1 / g.f); S.CPAN.x = 0; S.CPAN.y = 0; cpPanApply();
+  S.CPAN.s = Math.max(CPAN_MIN, 1 / g.f); S.CPAN.x = 0; S.CPAN.y = 0; cpPanApply();
 }
 export function cpPanZoom(mul, cx, cy) {
-  const s0 = S.CPAN.s, s1 = Math.max(S.CPAN_MIN, Math.min(S.CPAN_MAX, s0 * mul));
+  const s0 = S.CPAN.s, s1 = Math.max(CPAN_MIN, Math.min(CPAN_MAX, s0 * mul));
   if (s1 === s0) return;
   if (Number.isFinite(cx)) { S.CPAN.x = cx - (cx - S.CPAN.x) * (s1 / s0); S.CPAN.y = cy - (cy - S.CPAN.y) * (s1 / s0); }
   S.CPAN.s = s1; cpPanApply();
@@ -140,7 +142,7 @@ export async function cpFillGap() {
     const rq = await fetch('/api/resize', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
     const j = await rq.json().catch(() => ({}));
     if (!rq.ok || j.error) return errStatus('재시도');
-    rszWait(true); rszJob(j.id, payload, true, { tpl: S.cTpl, chain: _chain });
+    rszWait(true); rszJob(j.id, payload, true, { tpl: cTpl, chain: _chain });
     { const jb = $('#jobs'); if (jb) { const r = jb.getBoundingClientRect(); if (r.bottom < 40 || r.top > innerHeight - 40) jb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }
   } catch { return errStatus('재시도'); }
 }
@@ -217,7 +219,7 @@ export function renderCpPrev() {
     h += `<div class="cpv" style="left:0;right:0;top:${py(270)};margin-top:${px(9)};text-align:center;color:${CPV_WHITE};font-size:${px(66)};font-weight:700;line-height:1.15;white-space:pre;letter-spacing:${(trS / 1000).toFixed(4)}em">${esc(fs2)}</div>`;
     h += `<div class="cpv" style="left:0;right:0;top:${py(385)};margin-top:${px(15)};text-align:center;color:${CPV_GREEN};font-size:${px(90)};font-weight:800;line-height:1.15;white-space:pre;letter-spacing:${(trT / 1000).toFixed(4)}em">${esc(ft2)}</div>`;
   } else if (cur.k === 'ov') {
-    if (S.CIMG.b64 && !S.ovOnly) h += S.CPV_PANSLOT;
+    if (S.CIMG.b64 && !S.ovOnly) h += CPV_PANSLOT;
     h += `<div class="cpv-scrim ${cur.fmt === 'reels' ? 'g-reels' : 'g-post'}" style="opacity:${(((v0 => Number.isFinite(v0) ? v0 : 60)(opaHi())) / 100).toFixed(2)}"></div>`;
     const lg = cur.fmt === 'reels' ? { x: 104, y: 1008, w: 139, h: 102 } : { x: 98, y: 720, w: 127, h: 93 };
     if (!S.cLogoOff) h += `<img class="cpv-logo" data-logo src="assets/brand/overlay_logo_preview.webp" alt="" style="left:${px(lg.x)};top:${py(lg.y)};width:${px(lg.w)};height:${py(lg.h)}">`;
@@ -232,7 +234,7 @@ export function renderCpPrev() {
       h += `<div class="cpv" style="${ovClip}left:${px(sp.lm)};right:${px(40)};top:${py(sp.ty)};margin-top:${px(cur.fmt === 'reels' ? 8 : 11)};color:${CPV_WHITE};font-size:${px(sp.fs)};font-weight:800;line-height:${(sp.lh / sp.fs).toFixed(3)};white-space:pre;letter-spacing:${(trO / 1000).toFixed(4)}em">${fitLines.map(l => { const ls = prevLetterSpace(l, trO, sp.fs, TRK[ovTrkKey()] ? TRK[ovTrkKey()].basis : 'adv'); return ls == null ? emph(l) : `<span style="letter-spacing:${px(ls)}">${emph(l)}</span>`; }).join('<br>')}</div>`;
     }
   } else if (cur.k === 'card') {
-    if (S.CIMG.b64) h += S.CPV_PANSLOT;
+    if (S.CIMG.b64) h += CPV_PANSLOT;
     h += `<div class="cpv-scrim g-card"></div>`;
     const cl = cur.cl || [];
     if (cl.length) h += `<div class="cpv" style="left:${px(87)};right:${px(56)};top:${py(888)};color:${CPV_WHITE};font-size:${px(54)};font-weight:700;line-height:${(88 / 54).toFixed(3)};white-space:pre">${cl.map(emph).join('<br>')}</div>`;
@@ -258,6 +260,7 @@ export function renderCpPrev() {
 }
 export const CPSW_ADD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="M21 16l-5-5L5 20"></path></svg>';
 export const CPSW_SWAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+export const CPV_PANSLOT = '<i data-panslot hidden></i>';
 export function cpvPanSrc() { return S.CIMG.b64.startsWith('data:') ? S.CIMG.b64 : 'data:image/jpeg;base64,' + S.CIMG.b64; }
 export function cpvPanNode() {
   const url = cpvPanSrc();
@@ -269,8 +272,8 @@ export function cpvPanNode() {
   return S._cpvPanEl;
 }
 export function cpvStagePaint(st, h) {
-  const wantPan = h.startsWith(S.CPV_PANSLOT);
-  const rest = wantPan ? h.slice(S.CPV_PANSLOT.length) : h;
+  const wantPan = h.startsWith(CPV_PANSLOT);
+  const rest = wantPan ? h.slice(CPV_PANSLOT.length) : h;
   const keep = wantPan && S._cpvPanEl && S._cpvPanEl.parentNode === st && S._cpvPanSrc === cpvPanSrc();
   if (!keep) {
     st.innerHTML = '';
@@ -330,8 +333,6 @@ export function start() {
 S.cpPrevSel = 0;
 S.cpFocus = null;
 S.CPAN = { s: 1, x: 0, y: 0 };
-S.CPAN_MIN = 0.3;
-S.CPAN_MAX = 4;
 S.cpPanFmt = 'post';
 S.cpFillWant = false;
 (function cpPanBind() {
@@ -371,7 +372,6 @@ S.cpFillWant = false;
     cpPanZoom(e.deltaY < 0 ? 1.1 : 1 / 1.1, (e.clientX - rc.left) / rc.width - .5, (e.clientY - rc.top) / rc.height - .5); }, { passive: false });
   st.addEventListener('dblclick', e => { if (!live()) return; e.preventDefault(); cpPanReset(); });
 })();
-S.CPV_PANSLOT = '<i data-panslot hidden></i>';
 S._cpvPanEl = null;
 S._cpvPanSrc = '';
 S._cpvRest = null;

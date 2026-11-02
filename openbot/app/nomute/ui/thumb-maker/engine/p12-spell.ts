@@ -1,13 +1,14 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 맞춤법 자동 교정·자가 학습·모자이크(편집)
-//   원본 = 에디터 viewer/thumb.html 5813~6096줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 5813~6096줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { clearInterval, clearTimeout, document, fetch, setInterval, setTimeout, window } from "./rt";
 import { DOWNLOAD_SVG } from "./svg";
 import { $, iePrevSync } from "./p01-core";
 import { renderCpPrev } from "./p02-preview";
+import { REUSE_SVG } from "./p04-media";
 import { reattachSrc } from "./p08-results";
 import { errStatus } from "./p13-fire";
 
@@ -57,12 +58,14 @@ export const _termQuoted = (str, off, len) => { if ((str.match(/"/g) || []).leng
 export const TERM_SWAP_ON = false;
 export const termSwap = (s, t) => String(s).replace(t.re, (m, p, off, str) => { const at = off + p.length; return (t.keep(str.slice(0, at), str.slice(off + m.length)) || _termQuoted(str, at, m.length - p.length)) ? m : p + t.to; });
 export const termGuard = s => /조류\s?인플루엔자|조류\s?독감|고병원성\s?(?:AI|조류)|avian\s+influenza|bird\s+flu|H[57]N\d|초지능|[슈수]퍼\s?(?:지능|인텔리전스)|초인공지능|super\s*-?\s*intelligence/i.test(s) || /(^|[^A-Za-z0-9_.@/#\-])SI(?![A-Za-z0-9_@]|\.[A-Za-z0-9])(?![)）\]]?[ \t]*(?:업체|사업|기업|계열|단위|시스템))/.test(s.replace(/시스템\s?통합\s?[(（]SI[)）]|system\s+integration\s*[(（]SI[)）]/gi, ' '));
+export const _LEARN_KEY = 'nomute_spell_learned';
 export const _LEARN_CAP = 400;
 export const _SPELL_FIELDS = ['lines', 'cSub', 'cTitle', 'cLines', 'warnLines'];
-export function loadLearned() { try { const o = JSON.parse(localStorage.getItem(S._LEARN_KEY) || '{}'); return (o && typeof o === 'object') ? o : {}; } catch { return {}; } }
-export function saveLearned(m, delta) { try { const e = Object.entries(m); localStorage.setItem(S._LEARN_KEY, JSON.stringify(e.length > _LEARN_CAP ? Object.fromEntries(e.slice(e.length - _LEARN_CAP)) : m)); } catch {} if (delta && Object.keys(delta).length) { const p = learnPend(); Object.keys(delta).forEach(k => { delete p[k]; p[k] = delta[k]; }); const ks = Object.keys(p); if (ks.length > _LEARN_CAP) ks.slice(0, ks.length - _LEARN_CAP).forEach(k => { delete p[k]; }); if (learnPendSave(p)) flushLearned(); else fetch('api/mapsync', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: 'spell', set: delta }) }).catch(() => {}); } }
-export function learnPend() { try { const o = JSON.parse(localStorage.getItem(S._LEARN_PEND_KEY) || '{}'); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch { return {}; } }
-export function learnPendSave(p) { try { localStorage.setItem(S._LEARN_PEND_KEY, JSON.stringify(p)); return true; } catch { return false; } }
+export function loadLearned() { try { const o = JSON.parse(localStorage.getItem(_LEARN_KEY) || '{}'); return (o && typeof o === 'object') ? o : {}; } catch { return {}; } }
+export function saveLearned(m, delta) { try { const e = Object.entries(m); localStorage.setItem(_LEARN_KEY, JSON.stringify(e.length > _LEARN_CAP ? Object.fromEntries(e.slice(e.length - _LEARN_CAP)) : m)); } catch {} if (delta && Object.keys(delta).length) { const p = learnPend(); Object.keys(delta).forEach(k => { delete p[k]; p[k] = delta[k]; }); const ks = Object.keys(p); if (ks.length > _LEARN_CAP) ks.slice(0, ks.length - _LEARN_CAP).forEach(k => { delete p[k]; }); if (learnPendSave(p)) flushLearned(); else fetch('api/mapsync', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: 'spell', set: delta }) }).catch(() => {}); } }
+export const _LEARN_PEND_KEY = 'nomute_spell_pend';
+export function learnPend() { try { const o = JSON.parse(localStorage.getItem(_LEARN_PEND_KEY) || '{}'); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch { return {}; } }
+export function learnPendSave(p) { try { localStorage.setItem(_LEARN_PEND_KEY, JSON.stringify(p)); return true; } catch { return false; } }
 export async function flushLearned() {
   if (S._learnFlushing) return; S._learnFlushing = true;
   try {
@@ -255,7 +258,7 @@ export function iePoll(kind) {
 export function ieShowResult(url) {
   const u = /^https?:/.test(url) ? url : (url + '?t=' + Date.now());
   const nm = S.IE.op === 'cutout' ? '누끼.png' : '모자이크.jpg', alt = S.IE.op === 'cutout' ? '누끼 결과' : '모자이크 결과';
-  $('#ieResult').innerHTML = '<img class="ie-res-img" src="' + u + '" alt="' + alt + '"><button type="button" class="imgdl ie-res-use" aria-label="소스로 재첨부" title="이 결과를 소스로 재첨부">' + S.REUSE_SVG + '</button><a class="dlbtn imgdl ie-res-dl" href="' + u + '" download="' + nm + '" target="_blank" rel="noopener" aria-label="저장">' + DOWNLOAD_SVG + '</a>';
+  $('#ieResult').innerHTML = '<img class="ie-res-img" src="' + u + '" alt="' + alt + '"><button type="button" class="imgdl ie-res-use" aria-label="소스로 재첨부" title="이 결과를 소스로 재첨부">' + REUSE_SVG + '</button><a class="dlbtn imgdl ie-res-dl" href="' + u + '" download="' + nm + '" target="_blank" rel="noopener" aria-label="저장">' + DOWNLOAD_SVG + '</a>';
   const ub = $('#ieResult .ie-res-use'); if (ub) ub.onclick = e => { e.preventDefault(); e.stopPropagation(); reattachSrc(u, nm, ub); };
   $('#ieResult').classList.remove('none');
   $('#ieResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -266,8 +269,6 @@ S.TERM_PAIRS = [
   { from: 'AI', to: 'SI', re: /(^|[^A-Za-z0-9_.@/#\-])AI(?![A-Za-z0-9_@]|\.[A-Za-z0-9]|타임스)/g, keep: (b, a) => _TERM_KEEP_B.test(b) || /(^|[^A-Za-z0-9])[A-Z][a-z]+[ \t]$/.test(b) || (/LG ?$/.test(b) && /^ ?연구원/.test(a)) || _TERM_TAIL.test(a) },
   { from: '인공지능', to: '초지능', re: /()인공지능/g, keep: (b, a) => /[초강약용#]$/.test(b) || _TERM_TAIL.test(a) },
 ];
-S._LEARN_KEY = 'nomute_spell_learned';
-S._LEARN_PEND_KEY = 'nomute_spell_pend';
 S._learnFlushing = false;
 window.addEventListener('online', () => flushLearned());
 (async () => { try { const r = await fetch('spell-learned.json?_=' + Date.now()); if (!r.ok) return; const srv = await r.json(); if (!srv || typeof srv !== 'object' || Array.isArray(srv)) return; const local = loadLearned(); const merged = { ...srv, ...local }; if (JSON.stringify(merged) !== JSON.stringify(local)) saveLearned(merged); } catch {   } finally { flushLearned(); } })();

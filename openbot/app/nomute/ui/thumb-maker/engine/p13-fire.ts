@@ -1,20 +1,20 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 카드 제작 발사 짐·막힌 자리 표시·재개·부팅
-//   원본 = 에디터 viewer/thumb.html 6097~6470줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 6097~6470줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { clearTimeout, document, fetch, parent, requestAnimationFrame, setInterval, setTimeout, window } from "./rt";
-import { $, appHidden, getName, getPlatform, getYear, spGo, upsJob, upsScale } from "./p01-core";
+import { $, EDIT_TAB_OFF, appHidden, getName, getPlatform, getYear, spGo, upsJob, upsScale } from "./p01-core";
 import { cpBake, cpFillGap, cpPanGap } from "./p02-preview";
 import { getComboOpas, imgPendWait } from "./p03-options";
 import { genJob, rszAspect, rszJob, rszWait } from "./p04-media";
 import { buildParams, hasEmph2, normEmph, stripStrayStars } from "./p05-text";
 import { draftRestore, idbPrune, snapForm } from "./p06-draft";
-import { jobBid, jobHasId, joinLbl, pendPut, pollJob, renderJob } from "./p07-jobs";
+import { PEND_KEY, jobBid, jobHasId, joinLbl, pendPut, pollJob, renderJob } from "./p07-jobs";
 import { THUMB_HMS, _syncCheck, loadServerHist, maybeOpenHist, pollR2Recent, pollServerHist, renderHist } from "./p08-results";
 import { buildEmphText, edAnyOver, estTracking } from "./p10-cards";
-import { HDR, abbr, dispatchBatch, dispatchJob, effOvFmt, estHeaderTr, goFire, jobLabel, ovTrkKey } from "./p11-fit";
+import { HDR, abbr, cTpl, dispatchBatch, dispatchJob, effOvFmt, estHeaderTr, goFire, jobLabel, ovTrkKey } from "./p11-fit";
 import { applySpellReview, clearSpellReview, flushLearned, ieGo, paintGoReview, renderSpellChips, runSpellCheck, spellTargets } from "./p12-spell";
 
 export async function a2Build(defer) {
@@ -36,7 +36,7 @@ export async function a2Build(defer) {
   if (_trkOver.length) return E('자간 초과', 'warn', _trkOver[0] === '자막' ? '#cLines' : (_trkOver[0] === '부제' ? '#cSub' : '#cTitle'));
   const items = [];
   const _nolg = S.cLogoOff;
-  if (hasHeader) items.push({ endpoint: '/api/thumb', payload: { app: '2', params: { mode: 'header', sub: csub, title: ctitle, bothBg: $('#cBg').checked, tpl: S.cTpl, ...(_nolg ? { nologo: 1 } : {}) } }, label: '릴스 헤더', tag: '헤더' });
+  if (hasHeader) items.push({ endpoint: '/api/thumb', payload: { app: '2', params: { mode: 'header', sub: csub, title: ctitle, bothBg: $('#cBg').checked, tpl: cTpl, ...(_nolg ? { nologo: 1 } : {}) } }, label: '릴스 헤더', tag: '헤더' });
   const _opas = getComboOpas();
   if (hasOverlay) {
 
@@ -137,13 +137,13 @@ export function errStatus(m, cls, at, hint, also) {
   g.classList.add(cls); g.classList.remove('shake'); void g.offsetWidth; g.classList.add('shake');
   g._errT = setTimeout(() => { g.classList.remove('err', 'warn', 'shake'); g.textContent = g.dataset.label || '생성'; }, 1700); }
 export function restorePending() {
-  let a = []; try { a = nmJobs.list(S.PEND_KEY) || []; } catch (e) { return; }
+  let a = []; try { a = nmJobs.list(PEND_KEY) || []; } catch (e) { return; }
   a.slice().sort((x, y) => (Number(x && x.bi) || 0) - (Number(y && y.bi) || 0)).forEach(p => {
     if (!p || !p.id) return;
     if (S.JOBS.some(j => jobHasId(j, p.id))) return;
-    try { if (nmJobs.busy(S.PEND_KEY, p.id)) return; } catch (e) {}
+    try { if (nmJobs.busy(PEND_KEY, p.id)) return; } catch (e) {}
 
-    if (Date.now() - (p.t0 || 0) > 720 * 1000) { try { nmJobs.drop(S.PEND_KEY, p.id); } catch (e) {} return; }
+    if (Date.now() - (p.t0 || 0) > 720 * 1000) { try { nmJobs.drop(PEND_KEY, p.id); } catch (e) {} return; }
 
     if (p.mode === 'gfree') { genJob((p.outs || []).length || 1, (p.payload && p.payload.opts) || null, '', { jid: p.id, n: p.n, t0: p.t0 }); return; }
     if (!Array.isArray(p.outs) || !p.outs.length) return;
@@ -157,7 +157,7 @@ export function restorePending() {
         if (!Array.isArray(host.thids)) host.thids = host.thid ? [host.thid] : [];
         if (!host.thids.includes(p.id)) host.thids.push(p.id);
         host.label = joinLbl(host.label, p.lbl || p.label || '');
-        try { nmJobs.hold(S.PEND_KEY, p.id, () => { host.status = 'cancel'; if (host._timer) { clearTimeout(host._timer); host._timer = null; } }); } catch (e) {}
+        try { nmJobs.hold(PEND_KEY, p.id, () => { host.status = 'cancel'; if (host._timer) { clearTimeout(host._timer); host._timer = null; } }); } catch (e) {}
         pendPut(host); renderJob(host); return;
       }
     }
@@ -270,7 +270,7 @@ document.addEventListener('click', e => {
   b.appendChild(o); setTimeout(() => o.remove(), 700);
 }, true);
 ['#lines', '#warnLines', '#cSub', '#cTitle', '#cLines'].forEach(id => { const el = $(id); if (el) el.addEventListener('input', () => { if (!S._applyingSpell && S._spellReview) clearSpellReview(); }); });
-document.querySelectorAll('#tabs .tab').forEach(t => { if (appHidden(t.dataset.app)) t.hidden = true; if (S.EDIT_TAB_OFF && t.dataset.app === '7') t.textContent = '모자이크'; });
+document.querySelectorAll('#tabs .tab').forEach(t => { if (appHidden(t.dataset.app)) t.hidden = true; if (EDIT_TAB_OFF && t.dataset.app === '7') t.textContent = '모자이크'; });
 S.selApp('2');
 draftRestore();
 S._draftReady = true;
@@ -279,7 +279,7 @@ idbPrune(Date.now() - THUMB_HMS);
 restorePending();
 maybeOpenHist();
 loadServerHist();
-window.addEventListener('storage', e => { if (e && e.key === S.PEND_KEY) restorePending(); });
+window.addEventListener('storage', e => { if (e && e.key === PEND_KEY) restorePending(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) restorePending(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) S._syncFails = 0; pollServerHist(); pollR2Recent(); });
 window.addEventListener('focus', () => { pollServerHist(); pollR2Recent(); });

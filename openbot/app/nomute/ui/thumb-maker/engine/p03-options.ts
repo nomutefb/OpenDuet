@@ -1,17 +1,17 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 카드뉴스 세그·헤더 잠금·안내문·옵션 줄·미리보기 확대·축약어 창·OPA 칩·사진 받기
-//   원본 = 에디터 viewer/thumb.html 2167~2795줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 2167~2795줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { Image, clearTimeout, document, setTimeout, window } from "./rt";
 import { ERR_SVG, TRASH_SVG } from "./svg";
-import { $, WARN_PRESETS, armAfterAttach, fillLabel, ieSrcSync, isEditApp, setPlat, syncCopyTog, syncCpFmt, syncGuide, updCphDef, upsLabel } from "./p01-core";
+import { $, EDIT_TAB_OFF, OPA_STEP, WARN_PRESETS, armAfterAttach, fillLabel, ieSrcSync, isEditApp, setPlat, syncCopyTog, syncCpFmt, syncGuide, updCphDef, upsLabel } from "./p01-core";
 import { cpPanFit, cpPanRailSync, cpPanReset, cpPanStep, renderCpPrev } from "./p02-preview";
 import { rszAspect, rszPreview } from "./p04-media";
 import { studioRouteFn, trHandoff, trRouter } from "./p06-draft";
 import { esc, renderEditChips } from "./p10-cards";
-import { ABBR_BUILTIN, abbrCustom, headerActive, ovLayerActive } from "./p11-fit";
+import { ABBR_BUILTIN, ABBR_KEY, abbrCustom, headerActive, ovLayerActive } from "./p11-fit";
 
 export function a2TextWrap() { const t = $('#cLines'); return (t && t.parentElement && t.parentElement !== t.closest('.covrow')) ? t.parentElement : t; }
 export function updateA2Mount() {
@@ -97,9 +97,9 @@ function updateGoSpec() {
         const order = S.cOpaSel.map((v, i) => ({ v: v, i: i })).sort((a, b) => b.v - a.v || a.i - b.i);
         ops.innerHTML = (peek ? order : order.slice(0, 1)).map(s =>
           '<span class="opa-slot" data-i="' + s.i + '">'
-          + '<span class="gs-v gs-tog gsop-step" role="button" tabindex="0" data-d="-' + S.OPA_STEP + '" title="탭=−' + S.OPA_STEP + '">−</span>'
-          + '<span class="gs-v on gs-tog gs-opav" role="button" tabindex="0" data-v="' + s.v + '" title="휠·상하드래그·방향키=값 조절(' + S.OPA_STEP + '단위) · 낮은 짝과 겹치면 단일 · 더 낮추면 다시 2개 · 길게(0.55초)/우클릭=낮은 짝 ' + (peek ? '접기' : '펼치기') + ' · 탭=이 OPA 끄기(최소 1개)">' + s.v + '</span>'
-          + '<span class="gs-v gs-tog gsop-step" role="button" tabindex="0" data-d="' + S.OPA_STEP + '" title="탭=+' + S.OPA_STEP + '">+</span>'
+          + '<span class="gs-v gs-tog gsop-step" role="button" tabindex="0" data-d="-' + OPA_STEP + '" title="탭=−' + OPA_STEP + '">−</span>'
+          + '<span class="gs-v on gs-tog gs-opav" role="button" tabindex="0" data-v="' + s.v + '" title="휠·상하드래그·방향키=값 조절(' + OPA_STEP + '단위) · 낮은 짝과 겹치면 단일 · 더 낮추면 다시 2개 · 길게(0.55초)/우클릭=낮은 짝 ' + (peek ? '접기' : '펼치기') + ' · 탭=이 OPA 끄기(최소 1개)">' + s.v + '</span>'
+          + '<span class="gs-v gs-tog gsop-step" role="button" tabindex="0" data-d="' + OPA_STEP + '" title="탭=+' + OPA_STEP + '">+</span>'
           + '</span>').join('');
       }
       syncAbbrSpec('#gsAbbr');
@@ -109,7 +109,7 @@ function updateGoSpec() {
   if (esp) {
     esp.classList.toggle('none', !showE);
     if (showE) {
-      if (S.EDIT_TAB_OFF) ['#esRsz', '#esUps', '#esLock'].forEach(sel => { const c = $(sel) && $(sel).closest('.scard'); if (c) c.classList.add('none'); });
+      if (EDIT_TAB_OFF) ['#esRsz', '#esUps', '#esLock'].forEach(sel => { const c = $(sel) && $(sel).closest('.scard'); if (c) c.classList.add('none'); });
       const setv = (el, t) => { const v = el && el.querySelector('.vv'); if (v) v.textContent = t; };
       const mosOn = S.APP === '8';
       const ie = $('#esIe'); if (ie) { ie.classList.toggle('on', mosOn); ie.setAttribute('aria-pressed', mosOn ? 'true' : 'false'); }
@@ -158,7 +158,7 @@ export function abbrRenumber() { document.querySelectorAll('#abbrTbl .abrow:not(
 export function abbrSaveRows() {
   const pairs = [];
   document.querySelectorAll('#abbrTbl .abrow:not(.abhd):not(.abfix)').forEach(r => { const f = r.querySelector('.abfrom').value, to = r.querySelector('.abto').value; if (f) pairs.push({ from: f, to: to }); });
-  try { localStorage.setItem(S.ABBR_KEY, JSON.stringify(pairs)); } catch {}
+  try { localStorage.setItem(ABBR_KEY, JSON.stringify(pairs)); } catch {}
 }
 export function abbrAddRow(from, to, fixed) {
   const tbl = $('#abbrTbl'); if (!tbl) return null;
@@ -516,11 +516,11 @@ window.addEventListener('keydown', e => {
     ops.addEventListener('keydown', e => {
       const st = e.target.closest('.gsop-step'); if (st && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); adj(+st.dataset.d, tgt(st)); return; }
       const v = e.target.closest('.gs-opav'); if (!v) return; const i = tgt(v);
-      if (e.key === 'ArrowUp') { e.preventDefault(); adj(S.OPA_STEP, i); }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); adj(-S.OPA_STEP, i); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); adj(OPA_STEP, i); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); adj(-OPA_STEP, i); }
       else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); off(i); }
     });
-    ops.addEventListener('wheel', e => { const v = e.target.closest('.gs-opav'); if (!v) return; e.preventDefault(); adj(e.deltaY < 0 ? S.OPA_STEP : -S.OPA_STEP, tgt(v)); }, { passive: false });
+    ops.addEventListener('wheel', e => { const v = e.target.closest('.gs-opav'); if (!v) return; e.preventDefault(); adj(e.deltaY < 0 ? OPA_STEP : -OPA_STEP, tgt(v)); }, { passive: false });
     let py = null, acc = 0, di = NaN;
     ops.addEventListener('pointerdown', e => {
       longed = false; clrLp();
@@ -532,8 +532,8 @@ window.addEventListener('keydown', e => {
     ops.addEventListener('pointermove', e => {
       if (py === null) return; acc += (py - e.clientY); py = e.clientY;
       const v = ops.querySelector('.opa-slot[data-i="' + di + '"] .gs-opav') || ops.querySelector('.gs-opav');
-      while (acc >= 12) { clrLp(); if (adj(S.OPA_STEP, di) && v) v._moved = true; acc -= 12; }
-      while (acc <= -12) { clrLp(); if (adj(-S.OPA_STEP, di) && v) v._moved = true; acc += 12; }
+      while (acc >= 12) { clrLp(); if (adj(OPA_STEP, di) && v) v._moved = true; acc -= 12; }
+      while (acc <= -12) { clrLp(); if (adj(-OPA_STEP, di) && v) v._moved = true; acc += 12; }
     });
     const end = () => { py = null; di = NaN; clrLp(); };
     ops.addEventListener('pointerup', end); ops.addEventListener('pointercancel', end); ops.addEventListener('pointerleave', end);

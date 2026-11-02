@@ -1,0 +1,21 @@
+/* 앱 바탕 CSS 되돌림 — 원본은 제 iframe 문서(UA 기본값) 위에서 그려졌다 → 앱 preflight(Tailwind base)·앱 글꼴·자간이 안 새어 들게
+   :where = 특이도 0 · 맨 앞 = 원본 규칙이 하나라도 있으면 원본이 이김(되돌림은 원본이 손대지 않은 칸만) */
+:where(.nm-tm) { all:initial; display:block; }
+:where(.nm-tm) :where(*), :where(.nm-tm) *::before, :where(.nm-tm) *::after, :where(.nm-tm) *::backdrop, :where(.nm-tm) *::file-selector-button { margin:revert; padding:revert; border:revert; }
+:where(.nm-tm) :where(h1, h2, h3, h4, h5, h6) { font-size:revert; font-weight:revert; }
+:where(.nm-tm) :where(a) { color:revert; text-decoration:revert; }
+:where(.nm-tm) :where(b, strong) { font-weight:revert; }
+:where(.nm-tm) :where(ol, ul, menu) { list-style:revert; }
+:where(.nm-tm) :where(img, svg, video, canvas, audio, iframe, embed, object) { display:revert; vertical-align:revert; }
+:where(.nm-tm) :where(img, video) { max-width:revert; height:revert; }
+:where(.nm-tm) :where(button, input, select, optgroup, textarea) { font:revert; font-feature-settings:revert; font-variation-settings:revert; letter-spacing:revert; color:revert; border-radius:revert; background-color:revert; opacity:revert; appearance:revert; }
+:where(.nm-tm) *::placeholder { opacity:revert; color:revert; }
+:where(.nm-tm) :where(textarea) { resize:revert; }
+:where(.nm-tm) :where(table) { text-indent:revert; border-color:revert; border-collapse:revert; }
+:where(.nm-tm) :where(hr) { height:revert; color:revert; border-top-width:revert; }
+:where(.nm-tm) :where(summary) { display:revert; }
+:where(.nm-tm) :where(code, kbd, samp, pre) { font-family:revert; font-size:revert; }
+:where(.nm-tm) :where(small) { font-size:revert; }
+:where(.nm-tm) :where([hidden]:not([hidden="until-found"])) { display:none; }
+/* 앱 이름과 겹치는 클래스 = 앱 규칙만 되돌림(.nm-dot = 앱 안 읽음 점·상태 점 ↔ 원본 로더 구슬 점) */
+:where(.nm-tm) .nm-orb .nm-dot { position:revert; top:revert; right:revert; display:revert; flex:revert; width:revert; height:revert; margin-right:revert; border-radius:revert; vertical-align:revert; background:revert; box-shadow:revert; }

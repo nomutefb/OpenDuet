@@ -1,8 +1,8 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 붙여넣기·복사·다운로드·AI 생성 잡·확장 미리보기(리사이즈)
-//   원본 = 에디터 viewer/thumb.html 2796~3300줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 2796~3300줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { Image, ResizeObserver, clearInterval, clearTimeout, document, fetch, requestAnimationFrame, setInterval, setTimeout, window } from "./rt";
 import { CHECK_SVG, COPY_SVG, DOWNLOAD_SVG, ERASE_SVG, PASTE_SVG, UNDO_SVG } from "./svg";
@@ -14,6 +14,7 @@ import { clearRestored } from "./p09-restore";
 import { dispatchBatch, goFire } from "./p11-fit";
 import { ieBindBoxes, ieBoxesHTML } from "./p12-spell";
 
+export const REUSE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 16v-6M9 12.5 12 9.5l3 3"/></svg>';
 export const _dlPersist = () => { try { localStorage.setItem('nomute_thumb_dled', JSON.stringify([...S.DLED].slice(-800))); } catch {} };
 export const _dlKey = u => (u || '').split('?')[0].split('#')[0];
 export const dlSeen = u => !!u && S.DLED.has(_dlKey(u));
@@ -325,6 +326,8 @@ export async function dlAllSeq(btn, urls, namer) {
   }, 1050);
 }
 export const PLUS_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';
+export const XCLOSE_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6 18 18M18 6 6 18"/></svg>';
+export const ERASE_UNDO_MS = 10000;
 export async function clipCopy(text, btn, after) {
   try { await navigator.clipboard.writeText(text || ''); } catch {}
   btn.innerHTML = CHECK_SVG; btn._icon = 'check'; btn.classList.add('ok');
@@ -399,7 +402,7 @@ export function attachCopyPaste(el, withErase) {
       try { el.focus(); } catch {}
       eraser.classList.remove('iobtn-off'); eraser.classList.add('iobtn-undo');
       eraser.innerHTML = UNDO_SVG; eraser.setAttribute('aria-label', '되돌리기'); eraser.title = '되돌리기 (직전 입력 복원)';
-      if (undoTimer) clearTimeout(undoTimer); undoTimer = setTimeout(exitUndo, S.ERASE_UNDO_MS);
+      if (undoTimer) clearTimeout(undoTimer); undoTimer = setTimeout(exitUndo, ERASE_UNDO_MS);
     };
     el.addEventListener('input', () => { if (!prog && undoTimer) exitUndo(); });
     wrap.appendChild(eraser);
@@ -421,7 +424,6 @@ export function attachCopyPaste(el, withErase) {
 
 export function start() {
 S.SPIN_SVG = window.nmOrbHTML?nmOrbHTML('solving',14):'…';
-S.REUSE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 16v-6M9 12.5 12 9.5l3 3"/></svg>';
 S.DLSEQ_IC = '<span class="dlseq-ic">' + DOWNLOAD_SVG.replace('<svg ', '<svg class="dn" ') + CHECK_SVG.replace('<svg ', '<svg class="chk" ') + '</span>';
 S.DLED = new Set();
 try { const _dl = JSON.parse(localStorage.getItem('nomute_thumb_dled') || '[]'); if (Array.isArray(_dl)) _dl.forEach(u => S.DLED.add(u)); } catch {}
@@ -473,6 +475,4 @@ S.RSZ = { w: 0, h: 0 };
 $('#rszLock').onclick = () => { if (isEditApp(S.APP) && armAfterAttach(() => { const t = $('#rszLock'); if (t) t.click(); })) return;
   const b = $('#rszLock'); const on = !b.classList.contains('on'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); rszPreview(); if (typeof S.updateGoSpec === 'function') S.updateGoSpec(); };
 window.addEventListener('resize', () => { if (isEditApp(S.APP) || S.SPX) rszPreview(); });
-S.XCLOSE_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6 18 18M18 6 6 18"/></svg>';
-S.ERASE_UNDO_MS = 10000;
 }

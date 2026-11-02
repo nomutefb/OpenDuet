@@ -1,20 +1,20 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 최근 결과 복원·최신 추종
-//   원본 = 에디터 viewer/thumb.html 4711~4911줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 4711~4911줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { clearTimeout, document, fetch, matchMedia, requestAnimationFrame, setInterval, setTimeout, window } from "./rt";
 import { $ } from "./p01-core";
 import { idbClear } from "./p06-draft";
 import { carEmptySync, renderJob } from "./p07-jobs";
-import { THUMB_HMS, _twoCol, baseUrl, biOf, bidOf, carAppend, carStride, carUpdate, doneReq, histClearedCut, histKey, histLoad, histPrune, maybeOpenHist, renderCarGrid, renderHist, thIdOf } from "./p08-results";
+import { THUMB_HCLEAR_KEY, THUMB_HKEY, THUMB_HMS, THUMB_LAST_KEY, _twoCol, baseUrl, biOf, bidOf, carAppend, carStride, carUpdate, doneReq, histClearedCut, histKey, histLoad, histPrune, maybeOpenHist, renderCarGrid, renderHist, thIdOf } from "./p08-results";
 
 export function saveLastResult(job) {
   try { if (!job || !(job.saves || []).length) return;
-    let prev; try { prev = JSON.parse(localStorage.getItem(S.THUMB_LAST_KEY) || 'null'); } catch {}
+    let prev; try { prev = JSON.parse(localStorage.getItem(THUMB_LAST_KEY) || 'null'); } catch {}
     if (prev && (prev.ts || 0) > (job.t0 || 0)) return;
-    localStorage.setItem(S.THUMB_LAST_KEY, JSON.stringify({ label: job.label, ts: job.t0, src: job.src,
+    localStorage.setItem(THUMB_LAST_KEY, JSON.stringify({ label: job.label, ts: job.t0, src: job.src,
       items: job.saves.map(s => ({ url: baseUrl(s.url), dlname: s.dlname, cap: s.cap || '', varStr: s.varStr || '' })) })); } catch {}
 }
 export function rmRestoredRow() { document.querySelectorAll('#jobs .job[data-rj]').forEach(r => r.remove()); }
@@ -25,7 +25,7 @@ export function clearRestored() {
   $('#carwrap').hidden = true; $('#carbar').hidden = true; carUpdate(); carHSync(); renderHist();
 }
 export function localLastResult() {
-  let rec; try { rec = JSON.parse(localStorage.getItem(S.THUMB_LAST_KEY) || 'null'); } catch {}
+  let rec; try { rec = JSON.parse(localStorage.getItem(THUMB_LAST_KEY) || 'null'); } catch {}
   if (!rec || !Array.isArray(rec.items) || !rec.items.length) return null;
   return rec;
 }
@@ -121,7 +121,7 @@ S.RESTORED = false;
 S.RESTORED_TS = 0;
 S.RESTORED_BID = '';
 S.RESTORED_URLS = new Set();
-window.addEventListener('storage', e => { if (e && (e.key === S.THUMB_HKEY || e.key === S.THUMB_HCLEAR_KEY)) { if (!reconcileRestoredBatch() && !followNewestRestored()) renderHist(); } });
+window.addEventListener('storage', e => { if (e && (e.key === THUMB_HKEY || e.key === THUMB_HCLEAR_KEY)) { if (!reconcileRestoredBatch() && !followNewestRestored()) renderHist(); } });
 S._histCloseT = null;
 $('#histH').addEventListener('click', () => { const b = $('#histBody'), open = b.hidden;
   clearTimeout(S._histCloseT); b.classList.remove('closing');
@@ -162,10 +162,10 @@ $('#histClr').addEventListener('click', () => {
   clearTimeout(S._histArmT); S._histArm = false; b.classList.remove('arm'); b.classList.add('firing'); b.textContent = '지우는 중';
   setTimeout(() => {
     const now = Date.now();
-    try { localStorage.setItem(S.THUMB_HCLEAR_KEY, String(now)); } catch {}
+    try { localStorage.setItem(THUMB_HCLEAR_KEY, String(now)); } catch {}
     S.SRV_CLEAR = Math.max(S.SRV_CLEAR, now);
     fetch('/api/thumb-clear', { method: 'POST' }).then(r => r.json()).then(d => { if (d && +d.ts) { S.SRV_CLEAR = Math.max(S.SRV_CLEAR, +d.ts); try { localStorage.setItem('nomute_thumb_srvclr', String(S.SRV_CLEAR)); } catch {} renderHist(); } }).catch(() => {});
-    localStorage.removeItem(S.THUMB_HKEY); try { localStorage.removeItem(S.THUMB_LAST_KEY); } catch {}
+    localStorage.removeItem(THUMB_HKEY); try { localStorage.removeItem(THUMB_LAST_KEY); } catch {}
     idbClear();
     resetHistClr(); clearRestored(); renderHist();
   }, 480);

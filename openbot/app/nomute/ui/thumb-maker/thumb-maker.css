@@ -1,6 +1,6 @@
-/* 썸네일 생성기 옷 — 원본 = 에디터 viewer/(origin/main ee27c47b) thumb.html 이 읽던 CSS 차례 그대로(tokens·nm-shared·nm-clip·nm-cards·nm-job·nm-hist·thumb 본 스타일·nm-scene·모던 겉옷 넷·빠른 메뉴)
-   만든 길 = 시아 scope-css.mjs(postcss) — :root·html → .nm-tm · body → .nm-tm-body · 그 밖 = .nm-tm 아래 · 폭 @media → @container tm · vh·vw → cqh·cqw · @keyframes = tm- · url(assets/…) → /assets/… · 주석 뺌
-   다시 맞출 땐 원본 CSS 를 다시 떼어 같은 길로(손으로 고친 줄 0 · 이 화면만의 덧줄 = ./frame.css) */
+/* 썸네일 생성기 옷 — 원본 = 에디터 viewer/(origin/main c430e4c9f) thumb.html 이 읽던 CSS 차례 그대로(tokens·nm-shared·nm-clip·nm-cards·nm-job·nm-hist·thumb 본 스타일·nm-scene·모던 겉옷 넷·빠른 메뉴)
+   만든 길 = ./tools/scope-css.mjs(postcss) — :root·html → .nm-tm · body → .nm-tm-body · 그 밖 = .nm-tm 아래 · 폭 @media → @container tm · vh·vw → cqh·cqw · @keyframes = tm- · url(assets/…) → /assets/… · 주석 뺌
+   다시 맞출 땐 같은 도구로 다시 뗌(손으로 고친 줄 0 · 앞머리 되돌림 = ./tools/reset.css · 이 화면만의 덧줄 = ./frame.css) */
 /* 앱 바탕 CSS 되돌림 — 원본은 제 iframe 문서(UA 기본값) 위에서 그려졌다 → 앱 preflight(Tailwind base)·앱 글꼴·자간이 안 새어 들게
    :where = 특이도 0 · 맨 앞 = 원본 규칙이 하나라도 있으면 원본이 이김(되돌림은 원본이 손대지 않은 칸만) */
 :where(.nm-tm) { all:initial; display:block; }

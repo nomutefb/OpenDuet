@@ -1,22 +1,24 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 수정(이전 제작 → 작성기 복원)·드래프트 자동 보관
-//   원본 = 에디터 viewer/thumb.html 3525~3767줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 3525~3767줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { clearTimeout, document, fetch, setTimeout, window } from "./rt";
 import { $, appHidden, getName, getYear, setName, setPlat, setYear, syncCopyTog, syncCpFmt, syncCpThumb, syncGuide, updCphDef } from "./p01-core";
 import { OPA_CHIPS, getOpas, imgPendBegin, opaSet, setA2Mode } from "./p03-options";
 import { thIdOf } from "./p08-results";
 import { renderEditChips } from "./p10-cards";
-import { syncCTpl, updateComboTrk, updateTrkHint } from "./p11-fit";
+import { cTpl, syncCTpl, updateComboTrk, updateTrkHint } from "./p11-fit";
 import { errStatus } from "./p13-fire";
 
-export function idbOpen() { return new Promise((res, rej) => { let r; try { r = indexedDB.open(S.IDB_NAME, 1); } catch (e) { return rej(e); } r.onupgradeneeded = () => { const db = r.result; if (!db.objectStoreNames.contains(S.IDB_STORE)) db.createObjectStore(S.IDB_STORE); }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
-export async function idbPut(key, b64) { try { const db = await idbOpen(); await new Promise((res, rej) => { const tx = db.transaction(S.IDB_STORE, 'readwrite'); tx.objectStore(S.IDB_STORE).put({ b64, ts: Date.now() }, key); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); return true; } catch { return false; } }
-export async function idbGet(key) { try { const db = await idbOpen(); return await new Promise(res => { const tx = db.transaction(S.IDB_STORE, 'readonly'); const rq = tx.objectStore(S.IDB_STORE).get(key); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); }); } catch { return null; } }
-export function idbPrune(cut) { idbOpen().then(db => { const tx = db.transaction(S.IDB_STORE, 'readwrite'); const st = tx.objectStore(S.IDB_STORE); const rq = st.openCursor(); rq.onsuccess = e => { const c = e.target.result; if (!c) return; if (!c.value || (c.value.ts || 0) < cut) st.delete(c.key); c.continue(); }; }).catch(() => {}); }
-export function idbClear() { idbOpen().then(db => { db.transaction(S.IDB_STORE, 'readwrite').objectStore(S.IDB_STORE).clear(); }).catch(() => {}); }
+export const IDB_NAME = 'nomute_thumb_img';
+export const IDB_STORE = 'imgs';
+export function idbOpen() { return new Promise((res, rej) => { let r; try { r = indexedDB.open(IDB_NAME, 1); } catch (e) { return rej(e); } r.onupgradeneeded = () => { const db = r.result; if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE); }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+export async function idbPut(key, b64) { try { const db = await idbOpen(); await new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, 'readwrite'); tx.objectStore(IDB_STORE).put({ b64, ts: Date.now() }, key); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); return true; } catch { return false; } }
+export async function idbGet(key) { try { const db = await idbOpen(); return await new Promise(res => { const tx = db.transaction(IDB_STORE, 'readonly'); const rq = tx.objectStore(IDB_STORE).get(key); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); }); } catch { return null; } }
+export function idbPrune(cut) { idbOpen().then(db => { const tx = db.transaction(IDB_STORE, 'readwrite'); const st = tx.objectStore(IDB_STORE); const rq = st.openCursor(); rq.onsuccess = e => { const c = e.target.result; if (!c) return; if (!c.value || (c.value.ts || 0) < cut) st.delete(c.key); c.continue(); }; }).catch(() => {}); }
+export function idbClear() { idbOpen().then(db => { db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).clear(); }).catch(() => {}); }
 export function snapForm(draftKey) {
   const _opAlt = S.cOpaSel.find(v => v !== 60);
   const s = { app: S.APP, fmt: S.FMT, abbr: $('#abbr').checked, cBg: $('#cBg').checked, opaSel: [...S.cOpaSel], ovOnly: S.ovOnly, opa1: S.cOpaSel.includes(60), opa2: S.cOpaSel.some(v => v !== 60), opa2v: Number.isFinite(_opAlt) ? _opAlt : 30 };
@@ -26,7 +28,7 @@ export function snapForm(draftKey) {
     s.cpThumb = S.cpThumb; s.cpMerge = S.cpMerge;
     if (S.cpThumb !== 'off') { s.cyear = getYear(); s.cname = getName(); s.plat = $('#cphPlat').dataset.plat; s.cplat = $('#cplat').value; }
     s.guideMode = S.guideMode; s.warnLines = $('#warnLines').value;
-    s.tpl = S.cTpl;
+    s.tpl = cTpl;
     s.nologo = S.cLogoOff;
   }
   else if (S.APP === '3') {
@@ -172,6 +174,7 @@ export function setImportRef(src, url) {
   const w = src.app === '1' ? $('#pImgSlot') : src.app === '2' ? $('#cImgSlot') : src.app === '5' ? $('#fileLab') : null;
   if (w && w._setRef) w._setRef(url);
 }
+export const DRAFT_KEY = 'nomute_thumb_draft';
 export const _DRAFT_TXT = ['#lines', '#cSub', '#cTitle', '#cLines', '#warnLines'];
 export function draftIdleArm(ms) {
   clearTimeout(S._draftIdleT);
@@ -187,7 +190,7 @@ export function draftIdleWipe() {
 }
 export function draftSave() {
   if (!S._draftReady) return;
-  let d; try { d = JSON.parse(localStorage.getItem(S.DRAFT_KEY) || 'null'); } catch { d = null; }
+  let d; try { d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { d = null; }
   if (!d || !d.apps) d = { apps: {}, at: {} };
   if (!d.at) d.at = {};
   const now = Date.now();
@@ -198,19 +201,19 @@ export function draftSave() {
   d.apps[S.APP] = snap;
   if (!same || !d.at[S.APP]) { d.at[S.APP] = now; if (!S._draftWiping) draftIdleArm(S.DRAFT_MS); }
   d.app = S.APP; d.ts = now;
-  try { localStorage.setItem(S.DRAFT_KEY, JSON.stringify(d)); } catch {}
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch {}
 }
 export function draftQueue() { clearTimeout(S._draftT); S._draftT = setTimeout(draftSave, 800); }
 export function draftRestore() {
-  let d; try { d = JSON.parse(localStorage.getItem(S.DRAFT_KEY) || 'null'); } catch { d = null; }
-  if (!d || !d.apps) { try { localStorage.removeItem(S.DRAFT_KEY); } catch {} return; }
+  let d; try { d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { d = null; }
+  if (!d || !d.apps) { try { localStorage.removeItem(DRAFT_KEY); } catch {} return; }
   const now = Date.now(), at = d.at || {};
   const live = Object.keys(d.apps).filter(a => d.apps[a] && now - (at[a] || d.ts || 0) <= S.DRAFT_MS);
-  if (!live.length) { try { localStorage.removeItem(S.DRAFT_KEY); } catch {} return; }
+  if (!live.length) { try { localStorage.removeItem(DRAFT_KEY); } catch {} return; }
   if (live.length !== Object.keys(d.apps).length) {
     const na = {}, nt = {};
     live.forEach(a => { na[a] = d.apps[a]; nt[a] = at[a] || d.ts || now; });
-    try { localStorage.setItem(S.DRAFT_KEY, JSON.stringify({ apps: na, at: nt, app: live.includes(d.app) ? d.app : live[0], ts: d.ts || now })); } catch {}
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ apps: na, at: nt, app: live.includes(d.app) ? d.app : live[0], ts: d.ts || now })); } catch {}
   }
   live.filter(a => a !== d.app).concat(live.includes(d.app) ? [d.app] : []).forEach(a => { try { importToEditor(d.apps[a], undefined, true); } catch {} });
   const newest = Math.max(...live.map(a => at[a] || d.ts || 0));
@@ -218,9 +221,6 @@ export function draftRestore() {
 }
 
 export function start() {
-S.IDB_NAME = 'nomute_thumb_img';
-S.IDB_STORE = 'imgs';
-S.DRAFT_KEY = 'nomute_thumb_draft';
 S.DRAFT_MS = window.NM_DRAFT_MS;
 S._draftImgSaved = {};
 S._draftT = 0;

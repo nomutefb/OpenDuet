@@ -1,11 +1,11 @@
 // @ts-nocheck
 // 썸네일 생성기 엔진 · 빠른 메뉴·이전 제작 접기 단추·nmTabReset
-//   원본 = 에디터 viewer/thumb.html 6471~6557줄(origin/main ee27c47b) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
+//   원본 = 에디터 viewer/thumb.html 6471~6557줄(origin/main c430e4c9f) — 줄 그대로 옮김 · 주석만 뺌(까닭·형 말은 원본 주석에 그대로)
 //   바꾼 곳 = 화면 전역 let·var·표 const → S.<이름>(./state · 창 열 때마다 새로) · document·window·타이머 = ./rt(이 화면 뿌리 안으로 · 닫으면 다 걷음) · 함수는 그대로 내보내고 서로 가져옴
-//   다시 맞출 땐 원본 줄을 통째로 다시 떼어 같은 codemod 로(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
+//   다시 맞출 땐 ../tools/codemod.mjs 로 원본 줄을 통째로 다시 뗌(손으로 고친 줄 0 · 원본 갈아 끼우는 함수 selApp·updateGoSpec = S 에 올림 · hoist())
 import { S } from "./state";
 import { MutationObserver, document, parent, setTimeout, window } from "./rt";
-import { isEditApp } from "./p01-core";
+import { EDIT_TAB_OFF, isEditApp } from "./p01-core";
 import { renderCpPrev } from "./p02-preview";
 import { draftQueue } from "./p06-draft";
 import { renderEditChips } from "./p10-cards";
@@ -56,7 +56,7 @@ export function start() {
     if (S.APP === '5') { var fi = slot && slot.querySelector('input[type=file]'); if (fi) fi.click(); }
     else { var f = imgInput(); if (f) f.click(); } });
   if (gen) gen.addEventListener('click', function(e){ e.stopPropagation(); keepFab(); var g = document.getElementById('go'); if (g) g.click(); });
-  b4.addEventListener('click', function(e){ e.stopPropagation(); keepFab(); var o = S.EDIT_TAB_OFF ? ['2'] : ['2','7','6'], i = o.indexOf(S.APP === '8' ? '7' : S.APP === '5' ? '2' : S.APP); S.selApp(o[(i + 1 + o.length) % o.length]); refresh();
+  b4.addEventListener('click', function(e){ e.stopPropagation(); keepFab(); var o = EDIT_TAB_OFF ? ['2'] : ['2','7','6'], i = o.indexOf(S.APP === '8' ? '7' : S.APP === '5' ? '2' : S.APP); S.selApp(o[(i + 1 + o.length) % o.length]); refresh();
     window.scrollTo({ top: 0, behavior: 'smooth' }); });
   document.querySelectorAll('.tab').forEach(function(t){ t.addEventListener('click', function(){ setTimeout(refresh, 0); }); });
   refresh();
