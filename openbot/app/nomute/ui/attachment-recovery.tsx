@@ -99,11 +99,14 @@ export function AttachmentRecovery({
   state,
   room,
   landed,
+  landedText,
 }: {
   state: ReturnType<typeof createAttachmentSender>;
   room: string;
   /** 서버가 글을 방에 먼저 뿌리고 답은 나중에 줌(작은 사본까지 저장한 뒤) = 그 사이 진짜 글과 보내는 중 말풍선이 둘 다 보였음 → 진짜 글이 뜨면 보내는 중 말풍선만 숨김(올리기는 끝까지) */
   landed?: (attempt: SendAttempt) => boolean;
+  /** 글만 보낸 것도 같은 꼴 = 회의실처럼 서버 답이 늦으면 글은 새 글 기다림으로 먼저 뜨고 대기 말풍선이 남았음(형 11-02 11:58 「이거 아직 해결 되다가 말앗어 이렇게 아직 보임」) → 방에 내 같은 글이 뜨면 대기 말풍선 숨김(못 보냄 표시여도 · 실제로 갔으니) */
+  landedText?: (item: WaitingText) => boolean;
 }) {
   const version = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot);
   const box = useRef<HTMLDivElement | null>(null);
@@ -187,7 +190,7 @@ export function AttachmentRecovery({
           ) : null}
         </section>
       ))}
-      {state.waitingFor(room).map((item) => <Waiting key={`w${item.id}`} item={item} onRetry={() => state.retryText(item.id)} />)}
+      {state.waitingFor(room).filter((item) => !landedText?.(item)).map((item) => <Waiting key={`w${item.id}`} item={item} onRetry={() => state.retryText(item.id)} />)}
     </div>
   );
 }

@@ -17,7 +17,7 @@ export type SendAttempt = SendInput & {
   at?: number;   // 시작 시각(이 기기 시계) · 방에 진짜 글이 먼저 뜨면 보내는 중 말풍선을 숨기는 데 씀(형 11-02 09:22 「이미지 업로드 직전에 이렇게 2개로 겹쳣다가 정상되는 이슈」)
 };
 /** 앞 첨부가 올라가는 동안 보낸 글 = 차례를 기다림 · failed = 차례가 와서 보냈는데 실패(글은 여기 남음). */
-export type WaitingText = { id: number; room: string; text: string; failed: boolean };
+export type WaitingText = { id: number; room: string; text: string; failed: boolean; at: number };   // at = 줄에 든 때(방에 같은 글이 먼저 뜨면 숨김 · ui/office-chat.tsx landedText)
 export type SendReply = { status: number; data: unknown };
 type Transport = {
   upload: (input: SendInput, onProgress?: (ratio: number) => void) => Promise<SendReply>;
@@ -279,18 +279,18 @@ export function createAttachmentSender(transport: Transport) {
       [...waiting.values()].filter((item) => item.room === room),
     /** 줄 끝에 글 하나 · send = 그 글을 실제로 보내는 일 */
     later(room: string, text: string, send: () => Promise<void>) {
-      const id = ++sequence;
+      const id = ++sequence, at = Date.now();
       const job = async () => {
         try {
           await send();
           waiting.delete(id);
           textJobs.delete(id);
         } catch {
-          waiting.set(id, { id, room, text, failed: true });
+          waiting.set(id, { id, room, text, failed: true, at });
         }
         emit();
       };
-      waiting.set(id, { id, room, text, failed: false });
+      waiting.set(id, { id, room, text, failed: false, at });
       textJobs.set(id, job);
       emit();
       void inLine(room, job);

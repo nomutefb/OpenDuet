@@ -24,7 +24,7 @@ import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, peopl
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { peekAttachments } from "../shim/attachments";
 import { attachmentSender } from "../data/attachment-state";
-import type { SendAttempt } from "../data/attachment-send";
+import type { SendAttempt, WaitingText } from "../data/attachment-send";
 import "./attachment-up.css";
 import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
@@ -653,6 +653,10 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       (names.length > 0 && !!m.files?.length && names.every((n) => (m as Msg).file_meta?.some((f) => f.name === n) || m.files!.some((p) => String(p).endsWith(n))))
       || (!!text && String(m.caption || "").trim() === text)));
   };
+  const landedText = (w: WaitingText) => {   // 줄 선 글이 방에 진짜로 떴나(내 글 · 줄에 든 10초 앞부터 · 같은 글) = 보냄 대기 말풍선 숨김(형 11-02 11:58)
+    const since = w.at - 10_000, text = w.text.trim();
+    return !!text && all.some((m) => mineOf(m) && m.ts >= since && String(m.text || "").trim() === text);
+  };
   const meet = room === MEET;
   // 형이 낀 단톡(임시방 · 지정방 · 회의실) = 다 보이게(형 10-31 「단톡은 전체메세지로 보여야되는데 왜 봄메세지는 저렇게보여」) · 접는 보기(hyungView)는 1:1 방만
   const flat = meet || (!!r && !r.with);
@@ -902,7 +906,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
-        <AttachmentRecovery state={attachmentSender} room={room} landed={landed} />
+        <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} />
         {reply ? (
           <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">
             <span className="min-w-0 flex-1 truncate">↩ <b>{reply.who}</b> · {reply.line}</span>
