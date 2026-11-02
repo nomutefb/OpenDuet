@@ -19,7 +19,21 @@ import { idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 
 type Pick = { i?: number; pass?: boolean; text?: string };
-export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null };
+export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null; _dups?: string[] };
+// 같은 질문 또 뜸 막기(형 11-02 11:15 「의사결정 받는 판 같은 질문이면 같은 거 또 못올리게 해줘 왠진 모르겠는데 또 올라오네」)
+//   = 묻는 이가 형인 것 뺌(형 글에 「결정」이 들어가 형한테 묻는 결정으로 잡힌 것 · 11-02 01:25 회의실 글 · 서버 막기는 봄) · 같은 방·같은 질문은 하나만(나머지 id 는 _dups = 고르면 같은 답을 같이 보냄 → 다시 안 떠오름)
+const HYUNG = new Set(["형", "세웅"]);
+const tidy = (list: Decision[]) => {
+  const seen = new Map<string, Decision>();
+  for (const d of list) {
+    if (HYUNG.has(d.who)) continue;
+    const k = `${d.room}|${String(d.q || "").replace(/\s+/g, " ").trim()}`, first = seen.get(k);
+    if (first) first._dups = [...(first._dups || []), d.id];
+    else seen.set(k, { ...d });
+  }
+  return [...seen.values()];
+};
+const withDups = (d: Decision, p: Pick) => [{ id: d.id, room: d.room, ...p }, ...(d._dups || []).map((id) => ({ id, room: d.room, ...p }))];
 const KEY = ["nomute", "decisions"];
 const done = (p?: Pick | null) => !!p && (typeof p.i === "number" || !!p.pass || !!p.text);
 type Fx = { k: string; st: "on0" | "run" | "done" | "ck" | "bye" };
@@ -47,7 +61,7 @@ const beacon = (picks: Sent[]) => { const b = JSON.stringify({ picks, send: true
 /** 홈 「할 일」 결정 카드가 같은 창을 연다(봄 11-01 09:04 나눔 · 형 09:04 「내가 답변햇는데 할일에 또 나오더라고 … 질문이 할일이 더 퀄리티가 떨어지거든? 내용이 달라」) */
 export const DECIDE_OPEN = "nm-decide-open";
 export const openDecide = (where: string) => window.dispatchEvent(new CustomEvent(DECIDE_OPEN, { detail: where }));
-export const useDecisions = () => useQuery({ queryKey: KEY, queryFn: () => office<{ items?: Decision[] }>("decisions").then((j) => j.items || []), refetchInterval: 60_000, retry: false });
+export const useDecisions = () => useQuery({ queryKey: KEY, queryFn: () => office<{ items?: Decision[] }>("decisions").then((j) => tidy(j.items || [])), refetchInterval: 60_000, retry: false });
 
 /** fab = 대화방 우하단 노트 단추 + 모달 · fab=false = 단추 없이 모달만(where 로 부르면 열림 · 홈) */
 export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; where?: string }) {
@@ -62,7 +76,7 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
   const ready = useRef<() => Sent[]>(() => []);
   // 한 결정은 한 번만 보냄(시아 11-01 10:55 「같은 답이 세 번 왔어」 · 10:54:53 1ms·444ms 차) = 보낸 id 기억 · 보내는 중 다시 안 쏨 · id 겹침 뺌 · 실패 뒤 다시 쏘기 0(받침 = 서버 2분)
   const sent = useRef(new Set<string>()), sending = useRef(false);
-  ready.current = () => [...new Map(items.flatMap((d) => { const p = pickOf(d); return done(p) && !sent.current.has(d.id) ? [[d.id, { id: d.id, room: d.room, ...p }] as const] : []; })).values()];   // 다 고른 항목만(안 고른 건 남음)
+  ready.current = () => [...new Map(items.flatMap((d) => { const p = pickOf(d); return done(p) && !sent.current.has(d.id) ? withDups(d, p!).map((x) => [x.id, x] as const) : []; })).values()];   // 다 고른 항목만(안 고른 건 남음)
   const left = items.filter((d) => !done(pickOf(d))).length;
 
   const shut = () => {   // 떠날 때 = 고른 게 있으면 그때만 깨움(안 고른 항목은 남음)
@@ -71,7 +85,7 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
     if (sending.current || !dirty.current || !out.length) return;
     dirty.current = false; sending.current = true; out.forEach((x) => sent.current.add(x.id));
     void office<{ items?: Decision[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: out, send: true }) })
-      .then((j) => { if (j.items) qc.setQueryData(KEY, j.items); })   // 보낸 뒤 남은 목록이 바로 옴 = 개수 바로 고침(봄 08:44)
+      .then((j) => { if (j.items) qc.setQueryData(KEY, tidy(j.items)); })   // 보낸 뒤 남은 목록이 바로 옴 = 개수 바로 고침(봄 08:44) · 같은 거르기
       .catch(() => undefined).finally(() => { sending.current = false; setPicks({}); void qc.invalidateQueries({ queryKey: KEY }); });
   };
   const close = () => { if (closing.current) return; closing.current = true; history.back(); };   // 뒤로가기와 같은 길(폰 뒤로가기 = 닫기 · 형 10-31)
@@ -95,7 +109,7 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
   const pick = async (d: Decision, p: Pick): Promise<boolean> => {   // 고르면 바로 서버에 적음(send 없음 = 안 깨움) · 보내기는 떠날 때
     setPicks((m) => ({ ...m, [d.id]: p })); setErr("");
     try {
-      const j = await office<{ bad?: { id: string; why?: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: [{ id: d.id, room: d.room, ...p }] }) });
+      const j = await office<{ bad?: { id: string; why?: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: withDups(d, p) }) });
       const bad = (j.bad || []).find((x) => x.id === d.id);   // 봄 08:44 「둘 이상이거나 빈 기타·틀린 번호면 그 줄만 bad」 = 안 적힘
       if (bad) throw new Error(bad.why || "서버가 안 받았어");
       dirty.current = true;
