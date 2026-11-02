@@ -6,7 +6,7 @@
 //   원본이 바뀌면 = 앱 폴더에서 node ui/thumb-maker/tools/codemod.mjs <에디터 저장소> (p01~p14) · node ui/thumb-maker/tools/scope-css.mjs <에디터 저장소> (../thumb-maker.css)
 //     그 밖 조각(markup·svg·libs·jobs-sync·modern·scene)은 머리 주석의 원본 줄을 다시 떼어 같은 자리만 바꿈
 import "./libs";
-import { bindRuntime } from "./rt";
+import { bindRuntime, document as rtDoc, window as rtWin } from "./rt";
 import { resetState } from "./state";
 import { startJobsSync } from "./jobs-sync";
 import { startModernCopy, startModernFold, startModernUI } from "./modern";
@@ -39,5 +39,11 @@ export function startEngine(root, body, frame, scroller) {
   run("modern-ui", startModernUI);
   run("modern-fold", startModernFold);
   run("modern-copy", startModernCopy);
+  run("resume", () => {   // nm-sync.js resumeNow 의 다시 맞추기 몫만(돌아오면 이력·R2 최근 다시 읽기 · 5초에 한 번) — 새 배포 다시 읽기·로그인 자가치유는 앱 몫이라 뺌
+    let last = Date.now();
+    const kick = () => { const t = Date.now(); if (t - last < 5e3) return; last = t; try { if (typeof rtWin.nmRefresh === "function") rtWin.nmRefresh(); } catch (_) {} };
+    rtDoc.addEventListener("visibilitychange", () => { if (!rtDoc.hidden) kick(); });
+    rtWin.addEventListener("focus", kick);
+  });
   return () => { off(); resetState(); };
 }
