@@ -30,7 +30,7 @@ export const ST_ORDER: HealthSt[] = ["ok", "late", "miss", "unknown", "off"];
 export const stOf = (h: Health | undefined, off: boolean): HealthSt => (off ? "off" : h?.st || "unknown");
 export const agoKo = (ts: number) => { const m = Math.round((Date.now() - ts) / 60e3); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
 /** 줄 오른쪽 한마디 = 놓침 n · n분 늦음 · 마지막 실제 실행 */
-export const lastKo = (h?: Health) => (!h ? "" : h.st === "miss" ? `놓침 ${h.missed || 1}` : h.st === "late" && h.drift_min ? `${h.drift_min}분 늦음` : h.last_at ? agoKo(h.last_at) : "");
+export const lastKo = (h?: Health) => (!h ? "" : h.st === "miss" ? `놓침 ${h.missed || 1}` : h.st === "late" && h.drift_min ? `${h.drift_min}분 늦음` : h.last_at ? `${h.st === "unknown" ? "마지막 " : ""}${agoKo(h.last_at)}` : "");   // ○ 줄 = 「마지막 3일 전」(사건으로만 도는 잡 · 뜸 11-02 「「안 돎 = 고장」으로 안 읽혀」)
 export function StatusDot({ st }: { st: HealthSt }) {
   return <i className="nm-st" data-st={st} role="img" aria-label={HEALTH_KO[st]} title={HEALTH_KO[st]} />;
 }
