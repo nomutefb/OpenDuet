@@ -6,3 +6,5 @@
 .ychat .nm-thumb-h i { font-style:normal; padding:0 7px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); }
 .ychat .nm-thumb-h .warn { display:inline-flex; align-items:center; gap:4px; color:color-mix(in srgb, #F5C542 65%, var(--fg)); }   /* 노랑 그대로면 밝은 판에서 안 읽힘 = 글자색과 섞음 */
 .ychat .nm-thumb-h .dot { width:6px; height:6px; border-radius:50%; background:#F5C542; flex:none; }
+.ychat .nm-thumb-notes { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; font-size:var(--fs-xs); line-height:1.35; color:var(--mut); }
+.ychat .nm-thumb-notes li { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
