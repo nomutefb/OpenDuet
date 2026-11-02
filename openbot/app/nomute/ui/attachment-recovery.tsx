@@ -69,8 +69,8 @@ function Ring({ p }: { p: number }) {
 function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) {
   return (
     <div className="nac-up" aria-label="보냄 대기">
-      <p className="nac-text">{item.text}</p>
-      {item.failed ? <button type="button" className="nac-again" onClick={onRetry}>못 보냈어 · 다시 보내기</button> : <span className="nac-wait">보냄 대기</span>}
+      <NacText text={item.text} />
+      {item.failed ? <button type="button" className="nac-again" onClick={onRetry}>못 보냈어 · 다시 보내기</button> : <span className="nac-wait">보냄 대기</span>}   {/* 「보냄 대기」 = 1.2초 넘게 걸릴 때만 보임(./attachment-up.css · 글마다 깜빡이지 않게) */}
     </div>
   );
 }

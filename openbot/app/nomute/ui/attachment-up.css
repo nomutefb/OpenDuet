@@ -6,7 +6,9 @@
 .nac-text.long { -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 2.6em), transparent); mask-image:linear-gradient(to bottom, #000 calc(100% - 2.6em), transparent); }   /* 흐림 = 6줄 넘는 긴 글만(형 11-02 10:05 · 짧은 글이 띠에 묻히던 것) */
 .nac-img { display:block; max-height:120px; max-width:100%; border-radius:16px; object-fit:cover; opacity:.55; transition:opacity .28s ease; }
 .nac-file { max-width:100%; padding:8px 12px; border-radius:14px; background:var(--duet-tile, rgba(255,255,255,.08)); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.nac-wait { font-size:11px; line-height:1; color:var(--mut, currentColor); opacity:.8; }
+.nac-wait { font-size:11px; line-height:1; color:var(--mut, currentColor); opacity:0; animation:nacLate .2s ease 1.2s forwards; }   /* 글도 줄로 가니(형 11-02 11:17) 빨리 가는 글엔 안 보이게 · 1.2초 넘게 걸리면 「보냄 대기」 */
+@keyframes nacLate { to { opacity:.8; } }
+@media (prefers-reduced-motion:reduce){ .nac-wait { animation-duration:0s; } }
 .nac-again { padding:0; border:0; background:none; font-size:12px; color:var(--destructive, #ff6b6b); cursor:pointer; }
 .nac-shots { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:max-content; max-width:100%; }
 /* 둥근 게이지 = 그림 안 가운데(형 11-02 02:21) · % 로 참 → ✓ 그려지고 그림 또렷 · 고리는 걷힘 · 원본 리듬 = go-button(✓ 0.38초 그리기) */

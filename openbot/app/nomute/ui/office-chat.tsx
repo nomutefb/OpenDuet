@@ -942,8 +942,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
                   const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) });
                   if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
                 };
-                if (attachmentSender.busy(room)) attachmentSender.later(room, text, post);   // 앞 사진이 가는 중 = 그 뒤를 따라감
-                else await post();
+                // 글도 방마다 하나인 보냄 줄로 = 기다리지 않고 바로 돌아옴 → 입력칸이 안 묶여 다음 글을 바로 씀 · 순서는 줄이 지킴 · 실패 = 그 자리 「다시 보내기」
+                //   (형 11-02 11:17 「그리거 아직 전에 메세지 올리면 그 메세지 올라가는 도중이면 내 메세지 못올라가는 버그 안해결됨」 · 입력칸 부품은 onSubmit 이 끝날 때까지 다음 보내기를 거절함 = 앞 글 서버 답 1~2초 동안 막혔음)
+                attachmentSender.later(room, text, post);
               }
               setReply((current) => current === submittedReply ? null : current);
               // Composer가 보낸 부분만 비우며 onTextChange로 저장한다. 기다리는 동안 쓴 새 글은 보존한다.
