@@ -74,7 +74,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .yb.ai .ymd { white-space:normal; }
 .ychat .yb a { text-decoration:underline; text-underline-offset:2px; word-break:break-all; font-style:italic; color:#6b7280; } .dark .ychat .yb a, .ychat .yb.me.app a { color:#c3cad3; }   /* 글 속 주소 = 누르면 새 창(D9) */
 .ychat .ycall { font-weight:700; color:var(--accent); background:rgba(var(--accent-rgb),.14); border-radius:6px; padding:0 3px; white-space:nowrap; }   /* 글 속 부름 「@이름」·「!이름」 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) */
-.ychat .yb.me .ycall { color:inherit; background:rgba(255,255,255,.22); text-decoration:underline; text-underline-offset:2px; }
+.ychat .yb.me .ycall { color:var(--accent, #CFFF40); background:#1d1e1b; text-decoration:none; padding:0 5px; }   /* 형 라임 말풍선 안 부름 = 차콜로 감싸고 라임 글자(형 11-02 11:34 「내 화면은 기본이 라임이니 챠콜로 감싸지거 라임 글자가 보이면 될듯」 · 앞 판 = 흰 덧칠 + 밑줄이라 라임에 묻힘) */
 .ychat .ybox-h { display:flex; align-items:center; gap:6px; font-size:var(--fs-xs); font-weight:var(--fw-b); color:var(--fg-2); margin-bottom:6px; }
 .ychat .ybox-go { display:inline-flex; align-items:center; margin-top:8px; padding:5px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); font-size:var(--fs-sm); text-decoration:none !important; }
 .ychat .ybox-go:active { transform:scale(var(--press-m)); }

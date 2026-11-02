@@ -63,6 +63,9 @@ export const PATCH: Record<string, [string, string][]> = {
     ["      <Outlet />", "      <NomuteShell>\n        <Outlet />\n      </NomuteShell>"],
   ],
   "app/src/components/channels/composer/composer.tsx": [
+    // 한 글에 「@」·「!」 여럿(형 11-02 11:34 「한번에 두명 태그가 안되거든. @ 는 하나로 밖에 안돼」 · 11:37 「긴급도 골뱅이와 마찬가지로 한번에 선택」) — 원본은 봇 하나만 남김(enforceSingleAgent) · 서버는 여럿 다 부름(_store.js calls)
+    ["  enforceSingleAgent,\n", ""],
+    ["        enforceSingleAgent(next),", "        next,"],
     ['aria-label="Stop the Bot"', 'aria-label="봇 멈추기"'],
     ['aria-label="Speak a message"', 'aria-label="말로 보내기"'],
     ['aria-label="Attach a file"', 'aria-label="파일 붙이기"'],
