@@ -49,7 +49,7 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
           {asks.data ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setHist(true); }}>대화방 질문 이력<small>{asks.data.length}</small></button> : null}
           <button type="button" role="menuitem" onClick={() => { setOpen(false); setFiles(true); }}>파일 기록</button>
           {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setKick(true); }}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」 · 11:57 「우상단 메뉴 버튼에서 잠시 내보내기」) */}
-          {bell.data ? <button type="button" role="menuitemcheckbox" aria-checked={!!bell.data.on} onClick={() => void setBell(!bell.data?.on)}>대화방 종<small>{bell.data.on ? "켬" : "멈춤"}</small></button> : null}   {/* 6마디 연장 종(형 11-01 13:5x · 시아 13:54 D) */}
+          {bell.data ? <button type="button" role="menuitemcheckbox" aria-checked={!!bell.data.on} onClick={() => void setBell(!bell.data?.on)}>5마디 알림<small>{bell.data.on ? "켬" : "멈춤"}</small></button> : null}   {/* 마디 연장 알림(형 11-01 13:5x · 시아 13:54 D) · 이름 = 형 11-02 23:21 「그리고 톡방 6마디 알림 5마디 알림으로 변경해줘. 그리고 대화방 종이 그걸 의미하면 용어 통일해줘.」(셈 6 → 5 는 서버 bell6) */}
           {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} onClick={() => void setNotify(!nOn)}>대화방 알림<small>{nOn ? "켬" : "끔"}</small></button> : null}
         </div>
       ) : null}
