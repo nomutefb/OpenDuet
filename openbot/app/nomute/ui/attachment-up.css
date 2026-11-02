@@ -53,3 +53,4 @@
 .nac-wrow { align-self:flex-end; display:flex; align-items:flex-end; justify-content:flex-end; gap:6px; max-width:min(85%, 560px); margin-bottom:8px; }   /* 보냄 대기 글 = [보냄 대기][내 말풍선] · 글자는 말풍선 왼쪽 아래 꼭지점에 붙음(형 11-02 11:36) */
 .nac-wrow .nac-wait, .nac-wrow .nac-again { flex:none; white-space:nowrap; padding-bottom:2px; }
 .ychat .nac-wrow .yb.nac-wb { min-width:0; }
+.nac-list { align-self:stretch; }   /* 대화 줄 안 보내는 중·보냄 대기 묶음(형 11-02 12:02) · 말풍선은 오른쪽(.nac-up · .nac-wrow 가 align-self:flex-end) */

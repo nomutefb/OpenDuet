@@ -100,6 +100,7 @@ export function AttachmentRecovery({
   room,
   landed,
   landedText,
+  part,
 }: {
   state: ReturnType<typeof createAttachmentSender>;
   room: string;
@@ -107,13 +108,19 @@ export function AttachmentRecovery({
   landed?: (attempt: SendAttempt) => boolean;
   /** 글만 보낸 것도 같은 꼴 = 회의실처럼 서버 답이 늦으면 글은 새 글 기다림으로 먼저 뜨고 대기 말풍선이 남았음(형 11-02 11:58 「이거 아직 해결 되다가 말앗어 이렇게 아직 보임」) → 방에 내 같은 글이 뜨면 대기 말풍선 숨김(못 보냄 표시여도 · 실제로 갔으니) */
   landedText?: (item: WaitingText) => boolean;
+  /** pending = 보내는 중·보냄 대기 말풍선만(대화 줄 맨 아래 · 형 11-02 12:02 「그냥 이 챗을 보내는 순간 채팅창으로 나가버리고 챗은 거기서 대기를 하던 뭐를 하던 하면 됨 내 대기줄에서 달라붙어서 대기하다가 나가지말고」) · records = 확인 필요·다시 보내기 기록만(입력칸 위) · 없음 = 둘 다(시험·옛 자리) */
+  part?: "pending" | "records";
 }) {
   const version = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot);
   const box = useRef<HTMLDivElement | null>(null);
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [version]);   // 칸이 차면 마지막 대기 글이 보이게
+  const pend = part !== "records", recs = part !== "pending";
+  const shown = state.forRoom(room).filter((attempt) => (attempt.phase === "uploading" ? pend && !landed?.(attempt) : recs));
+  const waits = pend ? state.waitingFor(room).filter((item) => !landedText?.(item)) : [];
+  if (part && !shown.length && !waits.length) return null;
   return (
-    <div ref={box} className="nac-box flex flex-col gap-2 overflow-y-auto">
-      {state.forRoom(room).filter((attempt) => !(attempt.phase === "uploading" && landed?.(attempt))).map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : (
+    <div ref={box} className={part === "pending" ? "nac-list flex flex-col gap-2" : "nac-box flex flex-col gap-2 overflow-y-auto"}>
+      {shown.map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : (
         <section
           key={attempt.id}
           aria-label="첨부 전송 기록"
@@ -190,7 +197,7 @@ export function AttachmentRecovery({
           ) : null}
         </section>
       ))}
-      {state.waitingFor(room).filter((item) => !landedText?.(item)).map((item) => <Waiting key={`w${item.id}`} item={item} onRetry={() => state.retryText(item.id)} />)}
+      {waits.map((item) => <Waiting key={`w${item.id}`} item={item} onRetry={() => state.retryText(item.id)} />)}
     </div>
   );
 }

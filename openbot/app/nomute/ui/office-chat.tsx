@@ -13,7 +13,7 @@
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Component, type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Component, type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
@@ -701,6 +701,15 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const lastId = all.at(-1)?.id, firstId = all[0]?.id;
   // 스크롤 = 대화 칸 하나만 움직임(바깥 판 0) · stuck = 맨 아래에 붙어 있음(처음 열 때 · 새 글·사진·글꼴이 늦게 와서 길어져도 그대로 맨 아래)
   const boxRef = useRef<HTMLDivElement | null>(null), stuck = useRef(true), keepTop = useRef<{ h: number; top: number } | null>(null);
+  // 내가 보낸 글·사진이 대화 줄 맨 아래 말풍선으로 새로 생기면 맨 아래로 붙임(형 11-02 12:02 「그냥 이 챗을 보내는 순간 채팅창으로 나가버리고」 · 보낸 이는 늘 제 글을 봐야 함)
+  useSyncExternalStore(attachmentSender.subscribe, attachmentSender.getSnapshot, attachmentSender.getSnapshot);
+  const pendN = attachmentSender.waitingFor(room).length + attachmentSender.forRoom(room).filter((a) => a.phase === "uploading").length, pendWas = useRef(pendN);
+  useEffect(() => {
+    const more = pendN > pendWas.current;
+    pendWas.current = pendN;
+    if (!more) return;
+    requestAnimationFrame(() => { const box = boxRef.current; if (box) { box.scrollTop = box.scrollHeight; stuck.current = true; } });
+  }, [pendN]);
   const loadingOld = useRef(false), moreRef = useRef(false), olderRef = useRef(older), autoN = useRef(0), poke = useRef<() => void>(() => {});
   const hold = useRef(0);   // 이때까지 = 맨 아래로 안 당김(손으로 미는 중 · 「↑ 글 처음」 이동 중 · 형 16:47 「벅벅벅 거리면서 안올라가져」)   // autoN = 손 안 대고 저절로 받은 앞 글 횟수(화면 채우기 · AUTO_MAX 까지 · 손으로 밀면 다시 0)
   moreRef.current = !!msgs.data?.more; olderRef.current = older;
@@ -906,6 +915,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
               </div>
             </div>
           ) : null}
+          <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="pending" />   {/* 보내는 중·보냄 대기 = 대화 줄 맨 아래 내 말풍선 자리(형 11-02 12:02 · 전엔 입력칸 위 따로 된 칸) */}
           {typing.length ? (   /* YETA 타이핑 = 얼굴 + 점 셋 말풍선 · 이름 칸 = 「결 작업 중 · 고민하는 중…」(옛 규칙) */
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
@@ -920,7 +930,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
-        <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} />
+        <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         {reply ? (
           <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">
             <span className="min-w-0 flex-1 truncate">↩ <b>{reply.who}</b> · {reply.line}</span>
