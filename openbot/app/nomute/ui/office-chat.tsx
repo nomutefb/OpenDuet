@@ -832,7 +832,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
 
-  let prevTs = 0, prev: Item | undefined;
+  let prevTs = 0, prev: Item | undefined, lastMsg: Msg | undefined;   // lastMsg = 바로 앞 글(가운데 알약 줄 = 종·시스템은 건너뜀 · 묶음 띠·날짜 줄에서 끊김)
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <AttachSheet />
@@ -854,7 +854,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           {items.map((it, idx) => {
             const first = it.t === "msg" ? it.m : it.msgs[0];
             const newDay = !first._thr && (!prevTs || dayKey(prevTs) !== dayKey(first.ts));
-            const cont = !newDay && it.t === "msg" && prev?.t === "msg" && prev.m.who === it.m.who && prev.m.kind === it.m.kind;
+            if (newDay || it.t === "band") lastMsg = undefined;
+            // 같은 사람이 이어 쓰면 얼굴·이름 접음 — 사이에 종·시스템 알약 줄이 끼어도 그대로 이어짐(형 11-02 10:04 「좌상단 동일 인물 보일때는 또 노출 안되조 되뎃다 이거 확인 좀」 · 사진 = 시아 9:35 · 종 9:40 · 시아 9:40 에 얼굴 두 번)
+            const cont = !newDay && it.t === "msg" && !!lastMsg && lastMsg.who === it.m.who && lastMsg.kind === it.m.kind;
             // 시각 = 같은 사람이 1분 안에 이어 쓴 묶음의 **마지막** 글 아래에(형 10-31 11:27 「항상 마지막 말에 최신 시각이 내려와서 붙어야해 … 최신 시각의 가장 마지막 대화에 이어져야된다는 거임 화자가 동일하자는 전제에는」)
             //   = 다음 글이 같은 사람·같은 종류·같은 날·1분 안이면 이 글은 시각 없음(앞 판 = 첫 글에 붙고 뒤 글 생략 → 뒤집음)
             const next = items[idx + 1];
@@ -863,6 +865,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             const turn = !newDay && !first._thr && !!sideOf(prev) && !!sideOf(it) && sideOf(prev) !== sideOf(it);
             prevTs = (it.t === "msg" ? it.m : it.msgs[it.msgs.length - 1]).ts;
             prev = it;
+            if (it.t === "msg") lastMsg = it.m;
             const key = it.t === "msg" ? it.m.id : `${it.t}-${first.id}`;
             return (
               <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
