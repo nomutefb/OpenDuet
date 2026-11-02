@@ -376,6 +376,17 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-file-log .nm { font-family:var(--app-font-text, inherit); font-size:12px; line-height:1.3; text-align:center; word-break:break-all; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .nm-file-log small { font-size:11px; color:var(--mut, #8B8F8A); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-file-empty { margin:0; font-size:13px; color:var(--mut, #8B8F8A); }
+/* 회의실 잠시 내보내기(./room-menu.tsx MeetOut · 형 11-02 11:57 「복수 선택 가능하게」) = 의사 결정 줄과 같은 패인 줄 · 고르면 라임 테 */
+.nm-meet-out { display:flex; flex-direction:column; gap:6px; max-height:min(60vh, 420px); overflow-y:auto; }
+.nm-meet-out .row { display:flex; align-items:center; width:100%; min-height:42px; padding:10px 12px; border-radius:5px; border:1px solid transparent; background:rgba(0,0,0,.32); box-shadow:inset 0 2px 4px rgba(0,0,0,.5), inset 0 -1px 0 rgba(255,255,255,.05); color:inherit; font-size:14px; font-weight:600; text-align:left; }
+:root:not(.dark) .nm-meet-out .row { background:rgba(0,0,0,.055); box-shadow:inset 0 2px 4px rgba(0,0,0,.12), inset 0 -1px 0 rgba(255,255,255,.8); }
+.nm-meet-out .row[aria-pressed="true"] { border-color:#CFFF40; color:#CFFF40; background:rgba(207,255,64,.1); box-shadow:inset 0 2px 4px rgba(0,0,0,.4), 0 0 0 1px rgba(207,255,64,.35), 0 0 14px rgba(207,255,64,.35); }
+:root:not(.dark) .nm-meet-out .row[aria-pressed="true"] { color:#2f4a00; background:rgba(207,255,64,.45); }
+.nm-meet-out .row.all { font-weight:800; }
+.nm-meet-err { margin:8px 0 0; font-size:12px; color:#ff5f6d; }
+.nrc-ok { padding:8px 16px; border:1px solid rgba(207,255,64,.5); border-radius:999px; background:rgba(207,255,64,.14); color:#CFFF40; font-size:13px; font-weight:800; cursor:pointer; }
+.nrc-ok:disabled { opacity:.4; cursor:default; }
+:root:not(.dark) .nrc-ok { color:#3d5e00; border-color:rgba(79,122,0,.45); background:rgba(79,122,0,.08); }
 .nm-ask-hist { display:flex; flex-direction:column; gap:8px; max-height:min(60vh, 460px); margin:0; padding:0; overflow-y:auto; list-style:none; }   /* 질문 이력(./room-menu.tsx) */
 .nm-ask-hist li { padding:10px 12px; border-radius:14px; background:rgba(255,255,255,.04); }
 .nm-ask-hist .q { margin:0; font-family:var(--app-font-text, inherit); font-size:14px; line-height:1.4; white-space:pre-wrap; word-break:break-word; }

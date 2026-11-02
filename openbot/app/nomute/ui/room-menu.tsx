@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DuetIcon } from "@/components/duet/icons";
-import { type OfficeMsg, type OfficeRoom, office } from "../data/office";
+import { type OfficeMsg, type OfficeRoom, office, people } from "../data/office";
 import { loadRoom } from "../data/room-cache";
 import { cachedFile, fileUrl, filesHeld, pruneFiles } from "../data/file-cache";
 import { type NotifyState, notifyOn, notifyState } from "../data/notify";
@@ -16,7 +16,7 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
   const qc = useQueryClient(), btn = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false), [tinting, setTinting] = useState<OfficeRoom | null>(null), [naming, setNaming] = useState<OfficeRoom | null>(null), [err, setErr] = useState("");
   const notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
-  const [hist, setHist] = useState(false), [files, setFiles] = useState(false);
+  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false);
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: open || hist, staleTime: 30_000, retry: false });   // 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
   const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: open, staleTime: 15_000, retry: false });   // 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
   const setBell = async (on: boolean) => {
@@ -48,6 +48,7 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
           {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setNaming(r); }}>대화방 이름 바꾸기</button> : null}
           {asks.data ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setHist(true); }}>대화방 질문 이력<small>{asks.data.length}</small></button> : null}
           <button type="button" role="menuitem" onClick={() => { setOpen(false); setFiles(true); }}>파일 기록</button>
+          {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setKick(true); }}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」 · 11:57 「우상단 메뉴 버튼에서 잠시 내보내기」) */}
           {bell.data ? <button type="button" role="menuitemcheckbox" aria-checked={!!bell.data.on} onClick={() => void setBell(!bell.data?.on)}>대화방 종<small>{bell.data.on ? "켬" : "멈춤"}</small></button> : null}   {/* 6마디 연장 종(형 11-01 13:5x · 시아 13:54 D) */}
           {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} onClick={() => void setNotify(!nOn)}>대화방 알림<small>{nOn ? "켬" : "끔"}</small></button> : null}
         </div>
@@ -57,9 +58,52 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
       {naming ? <RoomNamePick room={naming} onClose={() => setNaming(null)} /> : null}
       {files && r ? <FileLog room={room} name={r.name} onClose={() => setFiles(false)} /> : null}
       {hist && r ? <AskHistory name={r.name} items={asks.data || []} onClose={() => setHist(false)} /> : null}
+      {kick && r ? <MeetOut room={r} onClose={() => setKick(false)} /> : null}
     </>
   );
 }
+
+const MEET = "all";   // 회의실 방 id
+
+/** 회의실 잠시 내보내기(형 11-02 11:56 「회의실에서 내가 쓸때마다 다깨서」 · 11:57 「복수 선택 가능하게. 그리고 자율적으로 다시 들어올수잇어 제약없이」)
+ *  = 지금 들어와 있는 이를 여럿 골라(또는 모두) 내보냄 · 내보낸 이는 다시 쓰거나 불리면 그냥 들어옴 · 서버 길 = 봄(형 자리만) */
+function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
+  const qc = useQueryClient();
+  const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
+  const members = room.members || [];
+  const [pick, setPick] = useState<Set<string>>(() => new Set()), [busy, setBusy] = useState(false), [err, setErr] = useState("");
+  useEffect(() => {
+    const off = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", off);
+    return () => window.removeEventListener("keydown", off);
+  }, [onClose]);
+  const all = members.length > 0 && members.every((w) => pick.has(w));
+  const flip = (w: string) => setPick((s) => { const n = new Set(s); if (n.has(w)) n.delete(w); else n.add(w); return n; });
+  const go = async () => {
+    if (!pick.size || busy) return;
+    setBusy(true); setErr("");
+    try {
+      await office(MEET_OUT, { method: "POST", body: JSON.stringify({ who: all ? "all" : [...pick] }) });   // 봄 11:58 꼴 = {who: [...] | "all"} → {ok, out, members} · 멤버 표만 지움(글·기록 그대로 = 다시 들어와도 앞 대화 읽음)
+      void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+      onClose();
+    } catch (e) { setErr(`못 내보냈어 · ${(e as Error).message}`); setBusy(false); }
+  };
+  return createPortal(
+    <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
+      <div className="nrc" role="dialog" aria-label="회의실 잠시 내보내기" onClick={(e) => e.stopPropagation()}>
+        <div className="nrc-head"><b>잠시 내보내기</b><small>{pick.size ? `${pick.size}명` : ""}</small></div>
+        <div className="nm-meet-out">
+          <button type="button" className="row all" aria-pressed={all} onClick={() => setPick(all ? new Set() : new Set(members))}>모두</button>
+          {members.map((w) => <button key={w} type="button" className="row" aria-pressed={pick.has(w)} onClick={() => flip(w)}>{list.find((p) => p.who === w)?.name || w}</button>)}
+        </div>
+        {err ? <p role="alert" className="nm-meet-err">{err}</p> : null}
+        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button><button type="button" className="nrc-ok" disabled={!pick.size || busy} onClick={() => void go()}>내보내기</button></div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+const MEET_OUT = "meet/kick";   // 봄 서버 길(형 자리만 · 봇·우리 열쇠 = 403)
 
 type Ask = { id: string; who?: string; q?: string; choices?: string[]; at?: string; ts?: number; choice?: { i?: number; label?: string; pass?: boolean; text?: string; at?: string } };
 
