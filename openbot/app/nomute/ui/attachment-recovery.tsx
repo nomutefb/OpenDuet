@@ -20,6 +20,7 @@ function Original({ original }: { original: OriginalAttachment }) {
           src={url}
           alt={original.file.name}
           className="mb-1 size-16 rounded-lg object-cover"
+          decoding="async"
         />
       ) : null}
       <a
@@ -41,9 +42,16 @@ function Sending({ attempt }: { attempt: SendAttempt }) {
       <div className="nac-shots">
         {attempt.originals.map((original) => <Preview key={original.id} file={original.file} p={attempt.progress} />)}
       </div>
-      {attempt.text ? <p className="nac-text">{attempt.text}</p> : null}
+      {attempt.text ? <NacText text={attempt.text} /> : null}
     </div>
   );
+}
+
+/** 보내는 중 글 = 6줄 넘을 때만 아래를 흐리게 접음 · 짧은 글은 흐림 0(형 11-02 10:05 「사진 업로드할때 그라데이션 라인 아래에 박히는데, 그 위로 가야하고」 · 두 줄 글도 흐림 띠에 묻혔음) */
+function NacText({ text }: { text: string }) {
+  const ref = useRef<HTMLParagraphElement>(null), [long, setLong] = useState(false);
+  useEffect(() => { const el = ref.current; if (el) setLong(el.scrollHeight > el.clientHeight + 1); }, [text]);
+  return <p ref={ref} className={`nac-text${long ? " long" : ""}`}>{text}</p>;
 }
 
 const RING_C = 2 * Math.PI * 18;
@@ -77,7 +85,7 @@ function Preview({ file, p }: { file: File; p: number }) {
   const img = !!url && file.type.startsWith("image/"), vid = !!url && file.type.startsWith("video/");
   return (
     <span className={`nac-shot${img || vid ? "" : " file"}${p >= 1 ? " ok" : ""}`}>
-      {img ? <img src={url} alt={file.name} className="nac-img" />
+      {img ? <img src={url} alt={file.name} className="nac-img" decoding="async" />
         : vid ? <video src={url} className="nac-img" muted playsInline preload="metadata" aria-label={file.name} />   /* 영상 = 첫 장면만(소리 없음) */
         : <span className="nac-file">{file.name}</span>}
       <Ring p={p} />
