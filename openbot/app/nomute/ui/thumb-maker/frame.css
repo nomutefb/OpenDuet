@@ -1,0 +1,41 @@
+/* 썸네일 생성기 겉틀 — 앱 「에디터」 칸이 품던 에디터 index 도구 창(#tooldlg.tool-glass.hdr-tabs.tool-full) 그대로(9222 라이브 실측 11-02)
+   창 = 위 12 · 아래 70 비움(옛 index 아래 메뉴 자리 = 지금 보이는 꼴 그대로) · 머리 「✧ 에디터 · 카드 제작」 + ⟳ 입력 초기화 · 판(옛 iframe) = 아래 32px 흐려짐
+   장면 받침 색 = 앱이 에디터에 덧씌우던 YETA 톤(ui/inapp.ts yetaTone · 바탕·글자) + 에디터 시안·파랑(modern-tokens) */
+.nm-modal-b.tm-host { padding-top:calc(64px + env(safe-area-inset-top)); padding-bottom:var(--duet-tab-space,86px); }
+.tm-stage { position:relative; display:flex; flex:1; min-height:0; flex-direction:column; padding:12px 0 70px; overflow:hidden; isolation:isolate;
+  color:#fff; font:15px/24px 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing:-.2px; }
+.tm-ambient { position:absolute; inset:0; z-index:0; pointer-events:none;
+  --modern-space-bg:#ffffff; --modern-fg:#161716; --modern-bias-l1:#41B6E7; --modern-bias-l2:#0762C8; --modern-space-hi-rgb:26,47,102;
+  background:radial-gradient(ellipse at 20% 15%, rgba(var(--modern-space-hi-rgb),.42), transparent 65%), var(--modern-space-bg); }
+html.dark .tm-ambient { --modern-space-bg:#161716; --modern-fg:#FFFFFF; }
+.tm-ambient canvas { display:block; width:100%; height:100%; }
+
+/* 머리(.tool-h) — 좁은 창(760 밑) = 양옆 13px 안으로 · 위 모서리 15 둥긂 */
+.tm-head { position:relative; z-index:1; flex:none; display:flex; align-items:center; padding:11px 16px; color:#161716; background:rgba(0,0,0,.03); border-bottom:.5px solid rgba(0,0,0,.09);
+  clip-path:inset(1px calc(1px + clamp(0px, (760px - 100%) * 1000, 12px)) -800px round 15px 15px 0 0); }
+html.dark .tm-head { color:#fff; background:rgba(255,255,255,.04); border-bottom-color:rgba(255,255,255,.08); }
+.tm-title { display:inline-flex; align-items:center; gap:6px; margin-left:10.6px; font-weight:800; font-size:15px; line-height:24px; color:#eef7f0; }
+.tm-title svg { width:16px; height:16px; color:#4f7a00; }
+html.dark .tm-title svg { color:#CFFF40; }
+.tm-menu { display:inline-flex; align-items:center; gap:6px; height:30px; margin-left:12px; padding:0 2px; font-weight:800; font-size:13px; color:#4f7a00; }
+html.dark .tm-menu { color:#CFFF40; }
+.tm-rf { flex:none; display:grid; place-items:center; width:16px; height:16px; margin-left:auto; margin-right:12px; padding:0; border:0; background:none; color:#6f736e; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+html.dark .tm-rf { color:#8B8F8A; }
+.tm-rf:active { transform:scale(.9); }
+
+/* 판 = 옛 iframe 자리 — 폭·높이 질의·고정 위치의 기준(container) · 스크롤은 그 안 한 칸 */
+.tm-frame { position:relative; z-index:1; flex:1; min-height:0; container:tm / size; -webkit-mask-image:linear-gradient(#000 calc(100% - 32px), transparent); mask-image:linear-gradient(#000 calc(100% - 32px), transparent); }
+.tm-scroll { position:absolute; inset:0; overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.tm-scroll::-webkit-scrollbar { display:none; }
+.nm-tm { min-height:100%; }
+
+/* index thumbTabBridge 가 thumb 문서에 꽂던 것 = 안 탭바 숨김(머리 「카드 제작」이 그 자리) + 첫 소머리 −18px */
+.nm-tm #tabs { display:none !important; }
+.nm-tm .panel { margin-top:-18px; }
+
+/* 고친 것 하나(형 11-02 「깨져 보임」) — 작은 화면에서 스크롤하면 붙박이 미리보기 도크(.topdock) 뒤로 옵션 줄이 그대로 비쳐 보였다
+   (원본 도크 = 반투명 유리 rgba(17,18,20,.64) · 뒤 흐림 0) → 내용이 도크 밑으로 들어간 동안만(data-stuck = ./index.tsx) 바탕을 불투명하게(원본 유리색 rgba(17,18,20) 그대로 · 알파만 1) + 뒤 흐림
+   흐림만으론 못 막음 = 판(.tm-frame)의 아래 흐려짐 mask 가 Chrome 에서 안쪽 backdrop-filter 를 끔(9222·headless 실측) → 막는 건 바탕 짙기 · 흐림은 되는 곳에서 덤
+   쉴 때(맨 위) 모양 = 원본 그대로 · 도크는 그대로 붙박이(끝 기준 13) */
+.nm-tm[data-stuck] .topdock { background:linear-gradient(var(--modern-control-glass), var(--modern-control-glass)), linear-gradient(var(--modern-control-glass), var(--modern-control-glass)), rgb(17,18,20);
+  -webkit-backdrop-filter:blur(20px) saturate(1.3); backdrop-filter:blur(20px) saturate(1.3); }
