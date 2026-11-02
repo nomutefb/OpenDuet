@@ -89,16 +89,19 @@ function Preview({ file, p }: { file: File; p: number }) {
 export function AttachmentRecovery({
   state,
   room,
+  landed,
 }: {
   state: ReturnType<typeof createAttachmentSender>;
   room: string;
+  /** 서버가 글을 방에 먼저 뿌리고 답은 나중에 줌(작은 사본까지 저장한 뒤) = 그 사이 진짜 글과 보내는 중 말풍선이 둘 다 보였음 → 진짜 글이 뜨면 보내는 중 말풍선만 숨김(올리기는 끝까지) */
+  landed?: (attempt: SendAttempt) => boolean;
 }) {
   const version = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot);
   const box = useRef<HTMLDivElement | null>(null);
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [version]);   // 칸이 차면 마지막 대기 글이 보이게
   return (
     <div ref={box} className="nac-box flex flex-col gap-2 overflow-y-auto">
-      {state.forRoom(room).map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : (
+      {state.forRoom(room).filter((attempt) => !(attempt.phase === "uploading" && landed?.(attempt))).map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : (
         <section
           key={attempt.id}
           aria-label="첨부 전송 기록"

@@ -81,6 +81,7 @@ afterEach(async () => {
 async function mount(
   state: ReturnType<typeof createAttachmentSender>,
   room = "a",
+  landed?: (attempt: unknown) => boolean,
 ) {
   const container = document.createElement("div");
   document.body.append(container);
@@ -92,7 +93,7 @@ async function mount(
         createElement(
           Fragment,
           null,
-          createElement(AttachmentRecovery, { state, room: nextRoom }),
+          createElement(AttachmentRecovery, { state, room: nextRoom, landed }),
           createElement("textarea", {
             "aria-label": "다음 글",
             defaultValue: "기다리는 동안 쓴 새 글",
@@ -120,7 +121,7 @@ test("partial copy outcomes keep original preview/download and explain confirmat
   );
   assert.equal(view.container.querySelector("button"), null);
   assert.ok(
-    view.container.querySelector(".max-h-64.overflow-y-auto"),
+    view.container.querySelector(".nac-box.overflow-y-auto"),   // 칸 높이 = 화면 반(.nac-box · 11-02 07:19 256px 잘림 고침)
     "records are bounded above the composer",
   );
   assert.deepEqual(f.released, []);
@@ -214,4 +215,21 @@ test("the persistent recovery card owns originals before a delayed upload settle
   await view.render("a");
   assert.match(view.container.textContent || "", /전송 확인 필요/);
   assert.equal(view.container.querySelectorAll("a[download]").length, 1);
+});
+
+test("a sending bubble hides once the real message has landed, while the upload still settles", async () => {   // 형 11-02 09:22 「이미지 업로드 직전에 이렇게 2개로 겹쳣다가 정상되는 이슈」
+  const pending = deferred();
+  const f = fixture([() => pending.promise]);
+  const sending = f.state.submit(input());
+  let landed = false;
+  const view = await mount(f.state, "a", (attempt) => landed && typeof (attempt as { at?: number }).at === "number");
+  assert.equal(view.container.querySelectorAll("[role=progressbar]").length, 1);   // 아직 방에 없음 = 고리 보임
+  landed = true;
+  await view.render("a");
+  assert.equal(view.container.querySelectorAll("[role=progressbar]").length, 0);   // 진짜 글이 떴음 = 보내는 중 말풍선 숨김(겹침 0)
+  await act(async () => {
+    pending.resolve(uploadOK());
+    await sending;
+  });
+  assert.equal(view.container.querySelectorAll("[role=progressbar]").length, 0);   // 올리기는 끝까지 돌고(숨긴 건 보이는 것뿐) 다시 고리가 안 살아남
 });

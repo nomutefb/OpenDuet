@@ -14,6 +14,7 @@ export type SendAttempt = SendInput & {
   announcement: boolean;
   detail: string;
   progress: number;
+  at?: number;   // 시작 시각(이 기기 시계) · 방에 진짜 글이 먼저 뜨면 보내는 중 말풍선을 숨기는 데 씀(형 11-02 09:22 「이미지 업로드 직전에 이렇게 2개로 겹쳣다가 정상되는 이슈」)
 };
 /** 앞 첨부가 올라가는 동안 보낸 글 = 차례를 기다림 · failed = 차례가 와서 보냈는데 실패(글은 여기 남음). */
 export type WaitingText = { id: number; room: string; text: string; failed: boolean };
@@ -194,6 +195,7 @@ export function createAttachmentSender(transport: Transport) {
       announcement: false,
       detail: "",
       progress: 0,
+      at: Date.now(),
     };
     for (const id of ids) attemptedIds.add(id);
     attempts.set(attempt.id, attempt);
