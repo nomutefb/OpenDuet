@@ -1,5 +1,5 @@
 // 썸네일 카드(읽기만 · ① 판) — 에디터 녹기 「썸네일부터」(형 11-01 10:17 결정 단추) · 안 = claude-state 공통/문서/2026-11-02-썸네일-녹기/안.md(윈터)
-//   글에 card: {kind:'thumb', day, stem} 칸이 있으면 그 글 말풍선 바로 아래에 붙음(방 상관없음 · 칸은 서버가 박음 = 봄)
+//   글에 card: {kind:'thumb', day, stem} 칸이 있으면 그 글 말풍선 밖 바로 아래에 그림으로 붙음(형 11-02 11:32 「섬네일카드는 요약 대화 밖 이미지 처럼 주면 좋음」 · 자리 = 별 방 요약 글 · 칸은 서버가 박음)
 //   데이터 = GET /api/office/thumb?day=&stem=(봄 · 길 이름은 봄이 정함 · thumb_draft.json 그대로 + 그림 공개 주소) · 그림 = 가로 480 판 있으면 그것(윈터 · draft/thumbnail-480.webp) · 없으면 원본
 //   고치기·2안 전환·배경 고르기·다시 그리기·이걸로 = 다음 판들(②~⑤)
 import { useQuery } from "@tanstack/react-query";
@@ -34,8 +34,8 @@ export function ThumbCard({ card }: { card: ThumbRef }) {
   const src = d.image_small || d.image;
   return (
     <div className="nm-thumb" role="group" aria-label="썸네일 초안">
+      {src ? <a className="nm-thumb-img" href={d.image || src} target="_blank" rel="noopener"><img src={src} alt="썸네일 초안" loading="lazy" decoding="async" /></a> : null}
       <div className="nm-thumb-h"><span>썸네일 초안</span><i>1안</i></div>
-      {src ? <a className="nm-thumb-img" href={d.image || src} target="_blank" rel="noopener"><img src={src} alt="썸네일 초안" loading="lazy" /></a> : null}
       <ul className="nm-thumb-lines">
         {lines.map((t, i) => <li key={i} className={bad.has(i) ? "warn" : undefined}>{bad.has(i) ? <span className="dot" title={bad.get(i)} aria-label={bad.get(i)} /> : null}<Line t={t} />{bad.has(i) ? <em>{bad.get(i)}</em> : null}</li>)}
       </ul>

@@ -1,9 +1,9 @@
-/* 썸네일 카드(읽기만 · ① 판) = 말풍선 바로 아래 · 말풍선과 같은 유리 · 폰 폭 = 그림이 카드 폭 */
-.ychat .nm-thumb { margin-top:6px; width:min(100%, 300px); padding:10px; border-radius:var(--r-l); background:var(--glass-2); border:1px solid var(--glass-line); box-shadow:inset 0 1px 0 var(--glass-line); display:flex; flex-direction:column; gap:8px; }
+/* 썸네일 카드(읽기만 · ① 판) = 말풍선 밖 그림(글 속 사진과 같은 결 · 둥근 16px · 바탕 상자 없음) + 그 아래 작은 줄 칩(형 11-02 11:32 「섬네일카드는 요약 대화 밖 이미지 처럼 주면 좋음」) */
+.ychat .nm-thumb { margin-top:8px; width:min(100%, 220px); display:flex; flex-direction:column; gap:6px; }
 .ychat .nm-thumb.is-wait { color:var(--mut); font-size:var(--fs-sm); }
-.ychat .nm-thumb-h { display:flex; align-items:center; gap:6px; font-size:var(--fs-sm); color:var(--fg-2); }
+.ychat .nm-thumb-h { display:flex; align-items:center; gap:6px; font-size:var(--fs-xs); color:var(--mut); }
 .ychat .nm-thumb-h i { font-style:normal; font-size:var(--fs-xs); padding:0 7px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); }
-.ychat .nm-thumb-img { display:block; border-radius:var(--r-m, 10px); overflow:hidden; }
+.ychat .nm-thumb-img { display:block; border-radius:16px; overflow:hidden; }   /* 글 속 사진 rounded-2xl 과 같음 · 세로 썸네일은 자르지 않음 */
 .ychat .nm-thumb-img img { display:block; width:100%; height:auto; }
 .ychat .nm-thumb-lines { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
 .ychat .nm-thumb-lines li { display:flex; align-items:center; flex-wrap:wrap; gap:6px; padding:5px 10px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); font-size:var(--fs-sm); line-height:1.35; }
