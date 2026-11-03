@@ -8,8 +8,9 @@
 //   11-02 19:16 형 「1의 하단부분 새로온 메세지 안보여도 되니까 그 부분 날리고 카드 더 많이 나오게 하고 네비게이션에 이름 아래가 반쯤 걸치도록 영상이 나오게」 · 「전면 부 메세지는 솔직히 안보는거 같고」 → 도착한 메시지 칸 뺌(arrived.tsx 는 그대로) · 줄 셋 = 띠 · 카드(1fr) · 「다 깸」(맨 아래 · 네비에 걸침 · ddk-band.css).
 //   11-03 15:4x 형 「사무실 아래에 있는 영상 쪽 있잖아. 거기 최근 온 메세지로 다시 변경해줘. 영상 없애구.」 → 셋째 줄 = 도착한 메시지(arrived.tsx · 한 방만) 되살림 · 「다 깸」 띠 뺌(ddk-band.tsx 는 그대로).
 //   11-03 16:48 형 「일단 도착한 메세지랑 우측 버튼, 네비는 나중에 나오는게 맞는거같고」 · 「상단에 그래프도 마찬가지야,」 → 앱 처음 열 때 한 번 = 카드 첫 판이 덱에 간 뒤(news-feed onShown · 한 박자 LAG) 그래프·오른쪽 단추·도착한 메시지·네비가 같이 스르륵(html[data-home-wait] → [data-home-in] · home-scene.css) · 못 받아도 SLOW 뒤엔 나옴 · 홈 칸 다시 누를 땐 안 숨김(네비 깜빡임 0).
+//   그 다음 = 형 16:48 「차라리 로딩이 완료된 상태에서 저 창이 열리는건 어때? 그 전에 아예 메인 로고 창이나 그런거로 덮는게 어떤지.」 · 「그 다음에 내가 방금말한걸 조치해보자」 → 같은 기다림 동안 앱 아이콘(설치 아이콘 = 앱 켤 때 그림) 덮개 · 카드 첫 판 뒤 걷힘(.nm-home-splash · home-scene.css).
 //   길(라우트)·네비 「홈」 칸 = 이 폴더 밖(보조 01 · claude-state assign/2026-10-28/office-home.md 「바뀜」).
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import "../ui/yeta-settings.css";
 import "./follow-pulse.css";
 import { Arrived } from "./arrived";   // 맨 아래 = 도착한 메시지 한 방(형 11-03 「거기 최근 온 메세지로 다시 변경해줘. 영상 없애구.」)
@@ -20,9 +21,9 @@ const LAG = 300, SLOW = 8000;   // 카드 첫 판 뒤 한 박자(덱이 그릴 �
 let firstHome = true;   // 앱 처음 열 때 한 번만
 
 export function HomeScreen() {
+  const [first] = useState(() => firstHome && performance.now() < 10_000);   // 앱을 다른 화면으로 열고 나중에 홈에 온 때 = 안 숨김
   const shown = useRef<() => void>(() => {});
-  useEffect(() => {
-    const first = firstHome && performance.now() < 10_000;   // 앱을 다른 화면으로 열고 나중에 홈에 온 때 = 안 숨김
+  useLayoutEffect(() => {   // 그리기 전에 = 뼈대 카드가 한 번도 안 비침
     firstHome = false;
     if (!first) return;
     const html = document.documentElement;
@@ -32,12 +33,13 @@ export function HomeScreen() {
     shown.current = () => { setTimeout(reveal, LAG); };
     const t = setTimeout(reveal, SLOW);
     return () => { clearTimeout(t); done = true; html.removeAttribute("data-home-wait"); };
-  }, []);
+  }, [first]);
   return (
     <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))] pb-[calc(86px+env(safe-area-inset-bottom))]">
       <FollowPulse />
       <NewsFeed onShown={() => shown.current()} />
       <Arrived />
+      {first ? <div className="nm-home-splash" aria-hidden><img src="/office-app/icon-192.png" alt="" width={88} height={88} decoding="async" /></div> : null}
     </div>
   );
 }

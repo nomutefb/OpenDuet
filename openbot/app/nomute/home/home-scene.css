@@ -17,3 +17,9 @@ html[data-home-in] .nm-send-dock { animation:nmHomeInFade .6s cubic-bezier(.2,.7
 @keyframes nmHomeInFade { from { opacity:0; } }
 html[data-home-in] .ynav { animation-delay:.15s; }
 @media (prefers-reduced-motion:reduce) { html[data-home-in] .nm-pulse, html[data-home-in] .nm-arrived, html[data-home-in] .ynav, html[data-home-in] .nm-send-dock { animation:none; } }
+/* 앱 처음 열 때 덮개(형 16:48 「그 전에 아예 메인 로고 창이나 그런거로 덮는게 어떤지」) = 화면 전체(네비 위) 바탕색 + 가운데 앱 아이콘 · 카드 첫 판 뒤 스르륵 걷힘 · 걷힌 뒤 안 눌림 */
+.nm-home-splash { position:fixed; inset:0; z-index:80; display:grid; place-items:center; background:var(--background); opacity:0; visibility:hidden; pointer-events:none; transition:opacity .5s cubic-bezier(.2,.7,.3,1), visibility 0s linear .5s; }
+.nm-home-splash img { width:88px; height:88px; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,.28); animation:nmSplashBreath 2.4s ease-in-out infinite; }
+@keyframes nmSplashBreath { 50% { transform:scale(1.04); } }
+html[data-home-wait] .nm-home-splash { opacity:1; visibility:visible; pointer-events:auto; transition:none; }
+@media (prefers-reduced-motion:reduce) { .nm-home-splash, .nm-home-splash img { transition:none; animation:none; } }
