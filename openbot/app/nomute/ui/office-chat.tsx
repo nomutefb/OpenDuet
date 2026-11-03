@@ -67,7 +67,7 @@ const MOUSE = typeof matchMedia === "function" && matchMedia("(hover:hover)").ma
 const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // 글 속 주소(형 글 = 꾸밈 없는 글 · 봇 글은 Streamdown 이 링크로)
 const RECENT_N = 40;   // 다시 받기 = 최근 40 글을 통째로(거울이 반응·글을 같은 글에 고쳐 씀 = since 로는 못 받음 · 맞물림 21:3x)
 const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;
-const OPEN_PIN_MS = 4000, OPEN_PIN_MAX = 15000;   // 방을 연 뒤 = 손이 안 닿으면 맨 아래에 붙잡음(글이 처음 오거나 바뀐 때부터 4초 · 연 뒤 15초까지 · 기기에 둔 옛 글 → 새 글 · 앞 글 자동 받기 · 사진·글꼴이 늦게 길어짐)
+const OPEN_PIN_MS = 4000, OPEN_PIN_MAX = 15000, AWAY_PIN_MS = 20000;   // 방을 연 뒤 = 손이 안 닿으면 맨 아래에 붙잡음(글이 처음 오거나 바뀐 때부터 4초 · 연 뒤 15초까지 · 기기에 둔 옛 글 → 새 글 · 앞 글 자동 받기 · 사진·글꼴이 늦게 길어짐)
 // 맨 아래 「가까이」 = 이 안이면 새 글을 따라 내려감 · 밖이면 「↓ 최근 글」 단추(형 11-03 10:05 「그리고 내가 채팅에 들어와있으면, 그 채팅이 알아서 계속 트래킹 (새로 들어온 채팅이) 되게 할 수 있나?」 — 4px 안에 딱 붙어 있을 때만 따라가서, 조금만 올라가 있어도 새 글이 아래로 쌓이기만 하고 단추도 320px 넘어야 떴음)
 const nearPx = (box: HTMLElement) => Math.max(160, box.clientHeight / 4);   // 저장 없이 처음 = 최근 100(봇끼리 글은 한 줄로 접혀 40 이면 형 글이 안 들어와 위로 하루치를 한 번 더 기다렸음 · PM 17:20 · 서버 = 같은 한 장 한 번) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
 const HEAD = 92;   // 위에 떠 있는 머리(대화 상대 동그라미 + 이름 · ui/shell.css .nm-head) 높이 — 그 아래부터 「보이는 위」
@@ -771,8 +771,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   }, [r, list, meet]);
   const baseTs = useRef<number | null>(null);   // 방을 연 때 마지막 글 — 그 뒤에 온 글만 올라오는 움직임(YETA .in · 옛 글 다시 그림 = 0)
   if (baseTs.current === null && msgs.data) baseTs.current = all.at(-1)?.ts ?? 0;
-  const lastId = all.at(-1)?.id, firstId = all[0]?.id, firstRef = useRef(firstId);
-  firstRef.current = firstId;
+  const lastId = all.at(-1)?.id, firstId = all[0]?.id, firstRef = useRef(firstId), lastIdRef = useRef(lastId);
+  firstRef.current = firstId; lastIdRef.current = lastId;
   // 스크롤 = 대화 칸 하나만 움직임(바깥 판 0) · stuck = 맨 아래에 붙어 있음(처음 열 때 · 새 글·사진·글꼴이 늦게 와서 길어져도 그대로 맨 아래)
   const boxRef = useRef<HTMLDivElement | null>(null), stuck = useRef(true), near = useRef(true), keepTop = useRef<{ h: number; top: number; first?: string } | null>(null);   // near = 맨 아래 가까이(nearPx 안 · 스크롤이 움직일 때 셈)
   // 연 뒤 OPEN_PIN_MS 동안 손이 안 닿으면 = 맨 아래에 붙은 채(형 11-04 08:10 「채팅 들가면 가장 최근 채팅으로 들가져야되는데 올드채팅으로 들어가져」 · 기기에 둔 옛 글 → 새 글 통째 바꿔 끼움 · 앞 글 자동 받기가 그 사이 스크롤을 옮겨 붙음이 풀리던 것)
@@ -811,6 +811,26 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     const ts = [150, 500, 1200, 2500].map((t) => window.setTimeout(() => poke.current(), t));   // 마크다운·사진·글꼴이 늦게 그려져 길어져도 다시 맞춤(크기 알림이 안 오는 숨은 화면 포함)
     return () => ts.forEach(clearTimeout);
   }, [lastId, msgs.isPending]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // 다른 화면 갔다 돌아옴(껍데기가 판을 지우지 않고 숨김 · 폰 앱이 뒤로 갔다 옴) = 다시 맨 아래로 붙잡음(형 11-04 08:19 「폰. 근데 음 맨 아래로 촥 안붙어 안드로이드 웹엡」 · 「다른 화면 갓다가 오면.」)
+  //   단 떠날 때 맨 아래 가까이였거나 · 비운 사이 새 글이 왔거나 · AWAY_PIN_MS 넘게 비웠을 때만(프로필 창을 잠깐 열었다 닫음 = 보던 자리 그대로)
+  const away = useRef<{ at: number; near: boolean; last?: string } | null>(null);
+  useEffect(() => {
+    const leave = () => { if (!away.current) away.current = { at: Date.now(), near: near.current || stuck.current, last: lastIdRef.current }; };
+    const back = () => {
+      const a = away.current;
+      away.current = null;
+      const box = boxRef.current;
+      if (!a || !box || !(a.near || a.last !== lastIdRef.current || Date.now() - a.at > AWAY_PIN_MS)) return;
+      touched.current = false; mountAt.current = Date.now(); pinFrom.current = Date.now(); hold.current = 0; stuck.current = true; near.current = true;
+      box.scrollTop = box.scrollHeight;
+      requestAnimationFrame(() => { const b = boxRef.current; if (b) b.scrollTop = b.scrollHeight; });   // 숨었다 보이는 첫 그림 뒤에 한 번 더(높이가 그때 잡힘)
+      for (const t of [150, 500, 1200]) window.setTimeout(() => poke.current(), t);
+    };
+    if (!active) leave(); else back();
+    const vis = () => { if (document.hidden) leave(); else if (active) back(); };
+    document.addEventListener("visibilitychange", vis);
+    return () => document.removeEventListener("visibilitychange", vis);
+  }, [active]);   // eslint-disable-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {   // 초안이 자람 = 맨 아래에 붙어 있으면 따라 내려감
     const box = boxRef.current;
     if (box && draft && stuck.current) box.scrollTop = box.scrollHeight;
