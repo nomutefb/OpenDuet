@@ -29,9 +29,13 @@ export function usePins(room: string) {
 }
 
 /** 고정·풀기(형 화면만 · 서버도 형·윈터 PM 자리만 받음) — 대화창 글 동작 줄 「고정」 = pin(글) */
+/** 나(형 자리인가) — 「고정」 단추가 이걸 보고 생김 · 대화창이 방을 열 때 미리 받아 둠(office-chat.tsx · 형 11-03 10:49 「고정하려고 대화를 누르면 … 탁-탁 뭔가 다른창 나왔다가 고정하는 그 창이 나와」 = 처음 길게 누를 때 me 가 아직 없어 고정 없는 메뉴가 먼저 그려졌다가 고정이 끼어듦) */
+export function useMe() {
+  return useQuery({ queryKey: ["nomute", "me"], queryFn: () => office<{ me: { who: string; kind?: string; can_write?: boolean } }>("me").then((j) => j.me), staleTime: Infinity }).data;
+}
 export function usePinActions(room: string) {
   const qc = useQueryClient();
-  const me = useQuery({ queryKey: ["nomute", "me"], queryFn: () => office<{ me: { who: string; kind?: string; can_write?: boolean } }>("me").then((j) => j.me), staleTime: Infinity }).data;
+  const me = useMe();
   const done = (p: Pins) => qc.setQueryData(key(room), p);
   const pin = useMutation({ mutationFn: (m: { id: string; ts?: number }) => office<Pins>(`pins/${encodeURIComponent(room)}`, { method: "POST", body: JSON.stringify({ id: m.id, ts: m.ts }) }), onSuccess: done });
   const unpin = useMutation({ mutationFn: () => office<Pins>(`pins/${encodeURIComponent(room)}`, { method: "DELETE" }), onSuccess: done });

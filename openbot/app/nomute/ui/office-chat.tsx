@@ -38,7 +38,7 @@ import { FaceStack } from "./faces";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
-import { usePinActions } from "./pins";
+import { useMe, usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
 import { Folded } from "./fold";   // 긴 글 접기 · 전체 보기(형 11-02 07:19)
 import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
@@ -659,6 +659,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
   const [err, setErr] = useState("");
   const [sel, setSel] = useState(""), [menuOf, setMenuOf] = useState<Msg | null>(null);   // 글 길게 누르기(./msg-menu.tsx)
+  useMe();   // 메뉴 「고정」이 보는 나 = 방을 열 때 미리 받아 둠(첫 길게 누르기에 메뉴가 두 번 그려지던 것 · 형 11-03 10:49)
   const [prof, setProf] = useState("");   // 프로필 카드를 연 사람(who · 빈 값 = 닫힘)
   const [reply, setReply] = useState<{ id: string; who: string; line: string } | null>(null);
   const [rxOver, setRxOver] = useState<Record<string, Record<string, string[]>> | null>(null);
