@@ -310,8 +310,11 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 form:has(.bg-popover[role="listbox"]) { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
 form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pane:has(.bg-popover[role="listbox"]) { transform:none !important; translate:none !important; }
 /* 긴 말풍선 = 화면을 넘어가도 얼굴·이름이 머리 밑에 남음(형 10-31 「화면 넘어가면 화자가 나와야함」) */
-.ychat .ymsg .yava { position:sticky; top:var(--ytop, 84px); z-index:1; }   /* 머리 흐림 아래(형 10-31 「이게 좀 더 아래로 내랴와야해. 가려지거든? 그래서 화자가 좀 안보여.」) */
+.ychat .ymsg .yava { position:sticky; top:var(--ytop, 84px); z-index:2; }   /* 머리 흐림 아래(형 10-31 「이게 좀 더 아래로 내랴와야해. 가려지거든? 그래서 화자가 좀 안보여.」) */
 .ychat .ymsg .yname { position:sticky; top:var(--ytop, 84px); z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
+/* 이름표 = 프로필 테에서 이어져 나온 둥근 표 · 각자 테 색(형 11-03 10:51 「프로필 테두리에서 이어져서 이름 뒤 검정색색 을 대신할 수 있나? 그라벨을, 각자 시그니처 색으로, 테두리에서 조금 나와서 둥글게 모서리해서 구성하면될듯」)
+   = 왼쪽 22px 를 얼굴 밑으로 넣어(얼굴 z 2 위) 테 밖으로 나온 만큼만 보임 · 글자 자리는 그대로 · 테 색 없는 이(--yn 없음)는 옛 바탕 */
+.ychat .ymsg .yname.tab { margin-left:-22px; padding:1px 8px 1px 24px; border-radius:999px; background:var(--yn); color:var(--yn-ink); }
 /* 임시방 머리 = 인원을 펼쳐 얼굴 하나씩 */
 /* 임시방 줄 왼쪽 끌기 = 예타 .ylr 그대로 · 폭만 칸 둘 */
 .nm-sw { position:relative; overflow:hidden; border-radius:inherit; }

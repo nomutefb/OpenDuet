@@ -14,7 +14,7 @@
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { CallSheet } from "./call-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Component, type ComponentProps, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
@@ -559,7 +559,7 @@ class LineGuard extends Component<{ m: Msg; children: ReactNode }, { bad: boolea
 }
 function Line(p: ComponentProps<typeof LineBody>) { return <LineGuard m={p.m}><LineBody {...p} /></LineGuard>; }
 function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean; noTime?: boolean }) {
-  const p = c.list.find((x) => x.who === m.who);
+  const p = c.list.find((x) => x.who === m.who), ring = ringOf(p);   // ring = 이름표 바탕(테 색 · yeta-chat.css .yname.tab)
   const selected = c.sel === m.id;
   const press = useLongPress(() => c.onMenu(m));
   const toggle = () => { if (!press.fired() && MOUSE) c.setSel(selected ? "" : m.id); };   // 폰 = 그냥 누르면 아무 일 없음 · 길게 눌러야 메뉴(형 10-31 「터치만 해도 … 메뉴 … 생겨 적어도 0.5초」)
@@ -582,7 +582,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <div className="yname">{p?.name || m.who}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
+        <div className={ring ? "yname tab" : "yname"} style={ring ? ({ "--yn": ring, "--yn-ink": inkOn(ring) } as CSSProperties) : undefined}>{p?.name || m.who}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
         <Quote m={m} c={c} />
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}
