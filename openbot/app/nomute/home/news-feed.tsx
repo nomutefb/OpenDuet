@@ -122,7 +122,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
   }, []);
   const onLoad = () => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type: "connect" }, location.origin);
   return (
-    <section aria-label="뉴스 피드" className="relative flex min-h-0 flex-col">
+    <section aria-label="뉴스 피드" className="relative flex min-h-0 flex-col" style={{ gridRow: 2 }}>   {/* 줄 자리 못 박음 = 띠(1줄)가 늦게 생겨도 이 칸이 1줄(높이 자동)로 끌려가지 않음(형 11-03 12:45) */}
       <iframe ref={frame} src="/modern-home.html" title="뉴스 피드" onLoad={onLoad} className="min-h-0 w-full flex-1 border-0 bg-transparent" />
       <SendButton frame={frame} />
     </section>

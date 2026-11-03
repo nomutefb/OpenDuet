@@ -4,3 +4,4 @@
 /* 23:17 형 「영상이 좀 더 늦게 떠야해」 — 카드가 뜬 뒤 첫 장면이 그려지면 스르륵(ddk-band.tsx · 자리는 처음부터 잡혀 있어 카드가 안 밀림) */
 .yeta-set .nm-ddk.is-lit { opacity:1; transform:none; }
 @media (prefers-reduced-motion: reduce) { .yeta-set .nm-ddk { transition:none; transform:none; } }
+.yeta-set .nm-ddk { grid-row:3; }   /* 줄 자리 못 박음(형 11-03 12:45 · news-feed 2줄 · 띠 3줄) */
