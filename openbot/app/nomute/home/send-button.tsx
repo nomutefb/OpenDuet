@@ -7,6 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 
 const CHANNEL = "nomute-modern-home", PREFILL_KEY = "nm_ask_prefill";
+const FINE = typeof matchMedia === "function" && matchMedia("(hover: hover) and (pointer: fine)").matches;   // 마우스 = PC·확장(꺽쇠 같이) · 손가락 = 폰(밀어서 넘김)
 // PROTO(덱 쪽 · 에디터 modern-workspace.js): 부모가 {channel, type:"current"} 를 보내면 {channel, type:"current", card:{title, url, media?}} 로 답(지금 보이는 카드) — 없으면 부모는 1초 뒤 빈 폼
 export function askCurrent(frame: HTMLIFrameElement | null): Promise<{ title?: string; url?: string; media?: string } | null> {
   return new Promise((res) => {
@@ -29,11 +30,15 @@ export function SendButton({ frame }: { frame: React.RefObject<HTMLIFrameElement
     setSt("done");
     setTimeout(() => { void nav({ to: "/ask" }); setTimeout(() => { setSt(""); busy.current = false; }, 400); }, 320);   // ✓ 그어진 뒤 폼으로(에디터 리듬 .3s)
   };
+  // 꼴(형 11-03 12:56 「그리고 이 전송버튼, 그냥 전송만 있어도 돼. 화살표가 위일 필요는 없음 … 카드 정 중앙 기준 우측으로 동그라미 반쯤 걸쳐서 …」 · 12:57 「음 비행기 말고 그냥 체크가, 원으로 테두리를 감싼다음에 가운데가 체크 표식으로 모션하는게 더 나을수도있겠다 살짝 이미지 업로드 모션과 비슷」)
+  //   = 카드 세로 가운데 · 오른쪽 끝에 반쯤 걸친 반투명 동그라미 · 누르면 원 테가 차오름 → 가운데 ✓ · PC·확장(마우스) = 그 위에 반투명 꺽쇠(다음 카드 · 덱 key next)
   return (
-    <button type="button" className={`nm-send${st ? " " + st : ""}`} aria-label="이 기사 요약 요청" title="이 기사로 요약 요청(폼이 열려 · 보내기는 거기서)" onClick={() => void go()} disabled={!!st}>
-      <span className="nm-send-ic" aria-hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V6M6 12l6-6 6 6" /></svg></span>
-      <span className="nm-send-tx">전송</span>
-      <span className="nm-send-ck" aria-hidden><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg></span>
-    </button>
+    <div className="nm-send-dock">
+      {FINE ? <button type="button" className="nm-send-nx" aria-label="다음 카드" title="다음 카드" onClick={() => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type: "key", action: "next" }, location.origin)}><svg viewBox="0 0 24 24" aria-hidden><path d="M9 6l6 6-6 6" /></svg></button> : null}
+      <button type="button" className={`nm-send${st ? " " + st : ""}`} aria-label="이 기사 요약 요청" title="이 기사로 요약 요청(폼이 열려 · 보내기는 거기서)" onClick={() => void go()} disabled={st !== ""}>
+        <svg className="nm-send-ring" viewBox="0 0 44 44" aria-hidden><circle className="bg" cx="22" cy="22" r="19" /><circle className="fg" cx="22" cy="22" r="19" /></svg>
+        <svg className="nm-send-ck" viewBox="0 0 24 24" aria-hidden><path d="M6 12.5l4 4L18 8" /></svg>
+      </button>
+    </div>
   );
 }
