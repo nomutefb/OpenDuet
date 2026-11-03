@@ -31,7 +31,7 @@ export function ChatFontRows() {
     return (
       <button key={k} type="button" className="yset-item" data-font={k}
         onClick={() => { fontSet(k, k === "latin" ? (fontGet("latin") === "lemonmilk" ? "sys" : "lemonmilk") : (fontGet("hangul") === "paperlogy" ? "sys" : "paperlogy")); applyChatFont(); bump((x) => x + 1); }}>
-        <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.type }} />
+        <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k === "latin" ? "latin" : "hangul"] }} />
         <span className="si-lbl"><span className="si-t">{t}</span></span>
         <span className="si-v"><span className={`si-vt${mod ? " mod" : ""}`}>{v}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
       </button>

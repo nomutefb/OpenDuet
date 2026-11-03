@@ -20,7 +20,7 @@ export function WakeDepthRow() {
   const next = () => { if (now !== undefined) go.mutate(STEPS.find((n) => n > now) ?? STEPS[0]); };
   return (
     <button type="button" className="yset-item" disabled={now === undefined || go.isPending} onClick={next}>
-      <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chat }} />
+      <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.layers }} />
       <span className="si-lbl"><span className="si-t">호출 맥락</span>{go.isError ? <span className="si-d">저장을 못 했어 · 다시 눌러 줘</span> : null}</span>   {/* 설명 줄 뺌 · 오류만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
       <span className="si-v"><span className="si-vt">{now === undefined ? "…" : `${now}개`}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
     </button>

@@ -84,3 +84,11 @@
 .yeta-set .yset-chip.on { background:rgba(var(--accent-rgb),.9); color:var(--bg); border-color:transparent; }
 .yeta-set .yset-chip:disabled { opacity:.45; cursor:default; }
 @media (prefers-reduced-motion: reduce) { .yeta-set .yset-chip { transition:none; } }
+
+/* 우리 보탬 — 형 11-03 15:17 「혹시 설정, 개선하면 더 이쁘겠다 싶은 부분있으면 한번 살펴보고 개선해줘」
+   ① 고른 값 = 라임 하나로(원본 .mod 청록 = 기본에서 바꾼 표시 → 같은 라임 + 앞 작은 점) · 상태 값(.si-vv · 고칠 것·온라인)은 회색 그대로 = 고르는 값과 갈림
+   ③ 묶음 머리(화면·입력 · 사무실 …) 앞 라임 작은 점 = 라임 3D 바탕 위에서 묶음이 갈려 보이게(서랍도 같은 부품이라 같이) */
+.yeta-set .yset-item .si-v .si-vt.mod { color:var(--accent); }
+.yeta-set .yset-item .si-v .si-vt.mod::before { content:""; display:inline-block; width:5px; height:5px; margin-right:5px; border-radius:50%; background:currentColor; vertical-align:middle; transform:translateY(-1px); }
+.yeta-set .yset-part > .yset-sec { display:flex; align-items:center; gap:7px; }
+.yeta-set .yset-part > .yset-sec::before { content:""; flex:none; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px rgba(var(--accent-rgb),.16); }

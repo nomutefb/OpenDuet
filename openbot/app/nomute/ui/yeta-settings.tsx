@@ -69,7 +69,7 @@ export function YetaSettings() {
         <section className="yset-part" aria-label="화면·입력">
           <div className="yset-sec">화면·입력</div>
           <div className="yset-grp">
-            <Act ic="screen" t="테마" v={theme.t} vt mod={theme.v !== "system"}
+            <Act ic="contrast" t="테마" v={theme.t} vt mod={theme.v !== "system"}
               onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
             <PushRow />
             <ChatFontRows />
@@ -80,20 +80,20 @@ export function YetaSettings() {
         <section className="yset-part" aria-label="사무실">
           <div className="yset-sec">사무실</div>
           <div className="yset-grp">
-            {row("sched", "gear", "스케줄러 바꾸기", <NomuteSchedule />)}
-            {row("roomset", "user", "지정방 멤버", <NomuteRoomset />)}
-            {row("notice", "bell", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
+            {row("sched", "clock", "스케줄러 바꾸기", <NomuteSchedule />)}
+            {row("roomset", "users", "지정방 멤버", <NomuteRoomset />)}
+            {row("notice", "speaker", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
             <WakeDepthRow />
           </div>
         </section>
         <section className="yset-part" aria-label="살펴보기">
           <div className="yset-sec">살펴보기</div>
           <div className="yset-grp">
-            {row("health", "data", "점검표", <NomuteHealth />,
+            {row("health", "check", "점검표", <NomuteHealth />,
               health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}
-            {row("bots", "user", "지금 봇", <NomuteBots />, bots ? `온라인 ${awake}/${nBots}` : undefined)}
-            {row("link", "radio", "스케줄러 연결", <NomuteLink />)}
-            {row("meter", "data", "회의실 계기판", <NomuteMeter />)}
+            {row("bots", "bot", "지금 봇", <NomuteBots />, bots ? `온라인 ${awake}/${nBots}` : undefined)}
+            {row("link", "link", "스케줄러 연결", <NomuteLink />)}
+            {row("meter", "gauge", "회의실 계기판", <NomuteMeter />)}
           </div>
         </section>
         <section className="yset-part" aria-label="기록·정보">
@@ -102,7 +102,7 @@ export function YetaSettings() {
             {row("old", "chat", "옛 그록 대화", <NomuteOld />)}
             <Info ic="info" t="지금 판" d={build.fresh ? `새 판 있음(${build.fresh})` : undefined} v={build.now} />   {/* 설명 꼬리 뺌 · 판이 저절로 안 바뀜(새 판 알약 누름) — 새 판 때만 남김(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
             {/* 원본 「키보드 단축키」 = 키보드 있는 화면(md~)만 · 읽기만(원본 그대로 · 바꿀 수 없음) */}
-            <div className="hidden md:block">{HOTKEYS.map((h) => <Info key={h.id} ic="type" t={h.label} v={formatHotkey(h.combo).join(" ")} />)}</div>
+            <div className="hidden md:block">{HOTKEYS.map((h) => <Info key={h.id} ic="keys" t={h.label} v={formatHotkey(h.combo).join(" ")} />)}</div>
           </div>
         </section>
       </div>
