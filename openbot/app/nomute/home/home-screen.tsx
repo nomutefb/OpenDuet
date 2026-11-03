@@ -13,19 +13,14 @@ import "./follow-pulse.css";
 import { DdkBand } from "./ddk-band";   // 카드 밖 맨 아래 「다 깸」 띠 한 번(형 11-02 14:46 결정 ③ · 19:16 네비에 반쯤 걸침)
 import { FollowPulse } from "./follow-pulse";   // 1/6 = 팔로워 띠(형 10-31 09:5x 「인스타 맨 위에 뜨는거 … 웹앱 맨 상단에」 · 접수사항 CheckOne 은 안 부름 「어짜피 다른데서 볼 수 있으니까」 · 파일은 그대로)
 import { NewsFeed } from "./news-feed";
-import { SceneBg } from "../ui/thumb-maker/scene-bg";   // 홈 바탕 = 에디터 웹 메인 3D 장면(modern-spatial 그대로) · 라임 입힘(형 11-03 12:45 「그리고 이제 그 웹 메인 페이지에 있는 배경. 그거 라임 적용해서 여기에 이제 가져올수 있나?」)
-import "./home-scene.css";
 
 export function HomeScreen() {
   const [feedUp, setFeedUp] = useState(false);   // 뉴스 카드 첫 판이 뜸 → 「다 깸」 띠는 그 뒤에(형 11-02 23:17 「영상이 좀 더 늦게 떠야해」)
   return (
-    <>
-    <SceneBg className="nm-home-ambient" />
-    <div style={{ position: "relative", zIndex: 1 }} className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))] pb-[calc(86px+env(safe-area-inset-bottom))]">
+    <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))] pb-[calc(86px+env(safe-area-inset-bottom))]">
       <FollowPulse />
       <NewsFeed onShown={() => setFeedUp(true)} />
       <DdkBand show={feedUp} />
     </div>
-    </>
   );
 }

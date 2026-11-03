@@ -24,6 +24,8 @@ import { SchedDesk } from "./sched-desk";
 import { DrawerPage } from "./drawer-page";
 import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
+import { SceneBg } from "./thumb-maker/scene-bg";
+import "../home/home-scene.css";
 import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
@@ -194,7 +196,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <AttentionNotifier />
         <FinishedForYou />
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} /> : null}
-        <div ref={stage} className="duet-face relative min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]">
+        <div ref={stage} className="duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]">
+          <SceneBg className="nm-app-ambient" />   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
           {show("rooms", <div className="nm-col"><RoomsPane /></div>)}
           {show("chat", (

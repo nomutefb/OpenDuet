@@ -1,7 +1,9 @@
 /* 홈 바탕 = 에디터 웹 메인 3D 장면(../ui/thumb-maker/scene.ts = modern-spatial.js 그대로) — 받침 색 토큰만 라임으로(형 11-03 12:45 「그 웹 메인 페이지에 있는 배경. 그거 라임 적용해서 여기에」)
    카드 제작 받침(.tm-ambient)은 시안·파랑 그대로 · 여기는 l1 = 안내 라임 · l2 = 짙은 라임 · 빛 번짐도 라임 쪽 · 장면 못 띄우면 이 그라데이션만(원본 css-fallback 꼴) · 홈 판(z 1)이 위 */
-.nm-home-ambient { position:fixed; inset:0; z-index:0; pointer-events:none;
+.nm-home-ambient, .nm-app-ambient { position:absolute; inset:0; z-index:-1; pointer-events:none;
   --modern-space-bg:#F4F5F3; --modern-fg:#161716; --modern-bias-l1:#CFFF40; --modern-bias-l2:#5E8C00; --modern-space-hi-rgb:150,190,40;
   background:radial-gradient(ellipse at 20% 15%, rgba(var(--modern-space-hi-rgb),.30), transparent 65%), var(--modern-space-bg); }
-html.dark .nm-home-ambient { --modern-space-bg:#161716; --modern-fg:#FFFFFF; --modern-space-hi-rgb:70,100,10; }
-.nm-home-ambient canvas { display:block; width:100%; height:100%; }
+html.dark .nm-home-ambient, html.dark .nm-app-ambient { --modern-space-bg:#161716; --modern-fg:#FFFFFF; --modern-space-hi-rgb:70,100,10; }
+.nm-home-ambient canvas, .nm-app-ambient canvas { display:block; width:100%; height:100%; }
+/* 껍데기 판(shell.tsx · 모든 화면 뒤 · isolate 안 z -1) = 옅은 막을 덮어 글자가 먼저(형 14:5x 「단 너무 강조되면안돼. 글자가 잘보여야되니까」) */
+.nm-app-ambient::after { content:""; position:absolute; inset:0; background:color-mix(in srgb, var(--background) 62%, transparent); pointer-events:none; }
