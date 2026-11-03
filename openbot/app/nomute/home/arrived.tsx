@@ -30,7 +30,7 @@ export function Arrived() {
   return (
     <section aria-label="도착한 메시지" className="nm-arrived flex min-h-0 flex-col" style={{ gridRow: 3 }}>   {/* 줄 자리 못 박음(news-feed 2줄과 같은 꼴) · 높이는 한 방 꼴로 미리 잡음 = 받는 중·없음·한 방 사이에 카드가 안 밀림(follow-pulse.css .nm-arrived) */}
       <h2 className="yset-sec flex items-center gap-1.5">도착한 메시지{total > 0 ? <b aria-label={`신규 메시지 ${total}개`} className="grid h-5 min-w-5 place-items-center rounded-full bg-[var(--accent)] px-1.5 text-[11px] font-bold leading-none tabular-nums text-black">{total > 99 ? "99+" : total}</b> : null}</h2>   {/* 수 = 머리 글자 옆 동그라미 안 숫자만(형 11-03 16:26 「도착한 메세지 옆에 숫자만 있으면 될거같아. 동그라미 안에」 · 옛 타일 말머리 「신규 메시지 N」 알약 뺌) */}
-      {!arrived.length ? <p className="px-1 text-[13px] text-[var(--mut)]">{error ? "못 받았어" : pending ? "받는 중…" : "새로 온 글 없음"}</p> : (
+      {!arrived.length ? (pending ? null : <p className="px-1 text-[13px] text-[var(--mut)]">{error ? "못 받았어" : "새로 온 글 없음"}</p>) : (   /* 받는 동안 = 글자 없이 자리만(형 11-03 16:48 「이거 로딩때. 받는 중... 이거 안나와도돼.」) */
         <ul className="flex min-h-0 flex-col gap-2">   {/* 한 방만(형 10-31 12:2x 「한 메세지만 보이게」) · 스크롤 0 · 네비 자리 여백 = 홈 바닥(home-screen · 글 없을 때도) · 나머지 방 수는 머리 「방 N」 이 말함 */}
           {arrived.slice(0, 1).map((r) => {
             const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;

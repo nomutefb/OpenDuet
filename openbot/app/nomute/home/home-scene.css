@@ -7,3 +7,13 @@ html.dark .nm-home-ambient, html.dark .nm-app-ambient { --modern-space-bg:#16171
 .nm-home-ambient canvas, .nm-app-ambient canvas { display:block; width:100%; height:100%; }
 /* 껍데기 판(shell.tsx · 모든 화면 뒤 · isolate 안 z -1) = 옅은 막을 덮어 글자가 먼저(형 14:5x 「단 너무 강조되면안돼. 글자가 잘보여야되니까」) */
 .nm-app-ambient::after { content:""; position:absolute; inset:0; background:color-mix(in srgb, var(--background) 62%, transparent); pointer-events:none; }
+
+/* 앱 처음 열 때 = 카드 첫 판 뒤에 같이(형 11-03 16:48 「일단 도착한 메세지랑 우측 버튼, 네비는 나중에 나오는게 맞는거같고」 · 「상단에 그래프도 마찬가지야,」 · home-screen.tsx)
+   기다림 = 안 보임·안 눌림(자리는 그대로 = 카드 안 밀림) · 들어옴 = 스르륵(네비만 한 박자 늦게) · 움직임 줄이기 = 바로 */
+html[data-home-wait] .nm-pulse, html[data-home-wait] .nm-pulse-wait, html[data-home-wait] .nm-send-dock, html[data-home-wait] .nm-arrived, html[data-home-wait] .ynav { opacity:0; pointer-events:none; }
+@keyframes nmHomeIn { from { opacity:0; transform:translateY(4px); } }
+html[data-home-in] .nm-pulse, html[data-home-in] .nm-arrived, html[data-home-in] .ynav { animation:nmHomeIn .6s cubic-bezier(.2,.7,.3,1) both; }
+html[data-home-in] .nm-send-dock { animation:nmHomeInFade .6s cubic-bezier(.2,.7,.3,1) both; }   /* 단추 = 자리 transform(가운데 맞춤) 그대로 · 빛만 */
+@keyframes nmHomeInFade { from { opacity:0; } }
+html[data-home-in] .ynav { animation-delay:.15s; }
+@media (prefers-reduced-motion:reduce) { html[data-home-in] .nm-pulse, html[data-home-in] .nm-arrived, html[data-home-in] .ynav, html[data-home-in] .nm-send-dock { animation:none; } }
