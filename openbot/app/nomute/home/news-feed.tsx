@@ -17,7 +17,8 @@ const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 mo
 const OVERLAP_EVERY = 60_000, IMAGES_EVERY = 5 * 60_000, PICKS_EVERY = 2 * 60_000;   // 틈·촉 픽 = 판이 40분마다라 2분에 한 번만(에디터 modern-workspace.js loadPicks 와 같음)
 
 type Cand = { id?: string; url?: string; title?: string; title_ko?: string; title_ko_of?: string; media?: string; published?: string; hp?: string; breaking_pick?: { url?: string }; _disp?: Cand };
-type Modern = { project: (o: unknown, c: Cand[], a: unknown[], s: () => null, opt: Record<string, unknown>) => { rows: unknown[] }; validOverlap: (o: unknown) => boolean };
+type Modern = { project: (o: unknown, c: Cand[], a: unknown[], s: () => null, opt: Record<string, unknown>) => { rows: unknown[] }; validOverlap: (o: unknown) => boolean;
+  imageAsks?: (rows: unknown[], tried: Set<string>, limit?: number) => string[]; mergeImages?: (base: unknown, extra: Record<string, string>) => unknown; url?: (u: unknown) => string };
 declare global { interface Window { ModernData?: Modern } }
 
 async function firstJson<T>(urls: string[], ok: (v: T) => boolean = () => true): Promise<T | null> {   // 에디터와 같은 차례(api 먼저 → 정적) · HTML 폴백(200) 거름
@@ -67,6 +68,9 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
   useEffect(() => {
     let live = true, ready = false, shown = false, version = 0, snap: { rows: unknown[]; status: Record<string, unknown> } | null = null;
     let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null, picks: unknown[] = [], picksAt = 0;
+    // 사진 없는 카드 채우기(형 11-03 12:46 「그리고 메인에 사진 없는 이슈는 없게 하고픈데 …」 · 뜸 에디터 홈 #2253 과 같은 꼴) = 다 그린 뒤 사진 없는 행의 기사 주소를 사무실 링크 카드(/api/office/linkcard · og:image · R2 7일)로 읽어 사진 지도에 더하고 다시 그림 · 동시 4 · 한 바퀴 24 · 물은 주소는 다시 안 물음
+    const linkImages: Record<string, string> = {}, linkTried = new Set<string>();
+    let linkCount = 0, linkTask: Promise<void> | null = null, lastRows: unknown[] = [];
     const post = (type: string, detail: Record<string, unknown> = {}) => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type, ...detail }, location.origin);
     const send = () => {
       if (!ready || !snap) return;
@@ -77,10 +81,36 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       const md = await modernData();
       if (!live || !md) return;
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
-      const { rows } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: (images as { images?: unknown } | null)?.images, picks });
+      const { rows } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: linkCount && md.mergeImages ? md.mergeImages((images as { images?: unknown } | null)?.images, linkImages) : (images as { images?: unknown } | null)?.images, picks });
+      lastRows = rows;
       const generated = (overlap as { generated?: string } | null)?.generated || null;
       snap = { rows, status: { state: rows.length ? "ready" : overlap ? "empty" : "error", message: rows.length ? "" : overlap ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어.", generated, source: "live" } };
       version++; send();
+      void fillImages(md);
+    };
+    const fillImages = (md: Modern): Promise<void> | null => {
+      if (linkTask || !md.imageAsks) return linkTask;
+      const queue = md.imageAsks(lastRows, linkTried, 24);
+      if (!queue.length) return null;
+      queue.forEach((u) => linkTried.add(u));
+      linkTask = (async () => {
+        let got = 0;
+        const worker = async () => {
+          for (let u = queue.shift(); u; u = queue.shift()) {
+            const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 15000);
+            try {
+              const r = await fetch("/api/office/linkcard?url=" + encodeURIComponent(u), { credentials: "same-origin", signal: ctl.signal });
+              if (!r.ok) continue;
+              const v = (await r.json()) as { ok?: boolean; card?: { kind?: string; image?: string } };
+              const img = v?.ok && v.card?.kind === "page" ? (md.url ? md.url(v.card.image) : String(v.card.image || "")) : "";
+              if (img) { linkImages[u] = img; got++; }
+            } catch { /* 이 주소는 사진 없이 */ } finally { clearTimeout(t); }
+          }
+        };
+        await Promise.all(Array.from({ length: 4 }, worker));
+        if (live && got) { linkCount += got; await rebuild(); }
+      })().finally(() => { linkTask = null; if (live) setTimeout(() => void fillImages(md), 0); });
+      return linkTask;
     };
     const load = async (force = false) => {
       const md = await modernData();
