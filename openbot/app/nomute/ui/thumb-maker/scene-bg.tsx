@@ -7,7 +7,7 @@ import { bootSpatialScene } from "./scene";
 const THREE_URL = "/vendor/three/three.module.js";
 type Handle = { dispose: () => void } | null;
 
-export function SceneBg() {
+export function SceneBg({ className = "tm-ambient" }: { className?: string } = {}) {   // className = 받침 색 토큰 자리(카드 제작 = tm-ambient · 홈 = nm-home-ambient 라임)
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = host.current;
@@ -38,5 +38,5 @@ export function SceneBg() {
       h?.dispose(); h = null;
     };
   }, []);
-  return <div ref={host} className="tm-ambient" aria-hidden />;
+  return <div ref={host} className={className} aria-hidden />;
 }
