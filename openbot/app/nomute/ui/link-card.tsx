@@ -7,6 +7,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { type MouseEvent, useState } from "react";
 import { inAppClick, useGo } from "./news-data";
+import { siteIcon } from "./site-icon";
 import "./link-card.css";
 
 const pc = () => { try { return matchMedia("(hover: hover) and (pointer: fine)").matches; } catch { return false; } };   // 마우스 = PC·확장(enter-key.tsx 와 같은 셈)
@@ -47,11 +48,12 @@ function LinkIcon() {
 /** 말풍선 아래 카드 한 장(글 = 첨부 있으면 caption · 없으면 text) */
 export function LinkCard({ m }: { m: { text?: string; caption?: string; files?: unknown[] } }) {
   const url = cardUrl(String((m.files?.length ? m.caption : m.text) || ""));
-  const q = useQuery({ queryKey: ["nomute", "linkcard", url], queryFn: () => getCard(url), enabled: !!url, staleTime: 864e5, gcTime: 864e5, retry: false, retryOnMount: false, refetchOnWindowFocus: false });
+  const iconOnly = !!siteIcon(url);   // GitHub·Cloudflare·Suno = 카드 대신 글 속 아이콘만(./site-icon.tsx · 형 11-04 08:07)
+  const q = useQuery({ queryKey: ["nomute", "linkcard", url], queryFn: () => getCard(url), enabled: !!url && !iconOnly, staleTime: 864e5, gcTime: 864e5, retry: false, retryOnMount: false, refetchOnWindowFocus: false });
   const go = useGo();
   const [noImg, setNoImg] = useState(false);   // 그림 못 불러옴(핫링크 막힘 등) = 그림 칸만 숨김
   const c = q.data;
-  if (!url || !c) return null;
+  if (!url || !c || iconOnly) return null;
   const open = (e: MouseEvent<HTMLAnchorElement>) => { e.stopPropagation(); if (!pc()) inAppClick(go)(e); };   // 폰 = 앱 안 한 겹(못 들이면 a 기본 새 창) · PC = 늘 a 기본 새 창(형 11-03 16:05 「링크줄때 내가 누르면 새창에서 항상 올리게 가능하니? 모바일은 아마 앱을 고르라고 ㄸ르텐데, pc에서」 · 뜸 전함)
   const site = c.site || hostPath(url).split("/")[0];
   const yt = c.kind === "youtube";

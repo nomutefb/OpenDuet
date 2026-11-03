@@ -36,6 +36,7 @@ import { RoomSearch } from "./room-search";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
 import { useUnfold } from "./unfold";
+import { SiteIcon } from "./site-icon";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
@@ -525,7 +526,7 @@ function called(text: string, re: RegExp | null, key: string, nre: RegExp | null
 function linked(text: string, re: RegExp | null = null, nre: RegExp | null = null): ReactNode {
   const parts = text.split(URL_RE);
   if (parts.length === 1) return called(text, re, "t", nre);
-  return parts.map((x, i) => (i % 2 ? <a key={i} href={x} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{x}</a> : <Fragment key={i}>{called(x, re, `t${i}`, nre)}</Fragment>));
+  return parts.map((x, i) => (i % 2 ? <a key={i} href={x} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}><SiteIcon href={x} />{x}</a> : <Fragment key={i}>{called(x, re, `t${i}`, nre)}</Fragment>));
 }
 
 /** 봇 글(마크다운) 속 부름 → 「#nm-call」 링크로 바꿔 Streamdown 이 칩으로 그림 · 봇 이름 → 「#nm-name」(시안 글자) · 코드(``` · `) 안은 그대로 */
@@ -546,7 +547,7 @@ function calledMd(text: string, re: RegExp | null, nre: RegExp | null = null): s
 const MD_BOX = { lineNumbers: false, controls: { code: { copy: true, download: false } } } as const;   // 복사 창 = 줄 번호·받기 뺌(형 11-01 「복사가능한 창이 이리나오는데」 · 그록 앱 꼴 · 모양 = yeta-chat.css)
 const mdWithCalls = {
   ...markdownComponents,
-  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a(p)),
+  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a({ ...p, children: <><SiteIcon href={p.href} />{p.children}</> })),   // GitHub·Cloudflare·Suno = 글자 앞 작은 아이콘(./site-icon.tsx)
 };
 
 /** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)
