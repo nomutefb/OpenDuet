@@ -56,8 +56,10 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 .publish-elapsed,.publish-elapsed[data-age-band]{color:var(--accent)!important}
 .article-publisher .pub-more{transform:translateY(.08em)!important;font-variant-numeric:tabular-nums}
 .article-lead>.article-media{flex:1 1 auto!important;aspect-ratio:auto!important}
+.article-media{--article-image-h:clamp(156px,26svh,234px)!important}
 .practical-main .score-lead strong{color:var(--accent)!important;text-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)!important}`;
 // 점수 = 단계 색(modern-score.css) 대신 시그니처 색 한 가지(형 10-31 「점수, 시그니처 색으로 점수 나오게해주라」) · 홈 안에서만
+// 사진 높이 = 덱 셈(clamp(120px,20svh,180px) · 라이브 121px)을 통째로 1.3배(형 11-03 17:26 「지금 거의 가로가 긴데, 세로로 1.3배만 더 길게 노출되게해줘 메인 화면 사진.」 · 「그만큼 아래에 댓글? 그런거 안보이면 됨.」 = 아래 출처 줄은 밀려 내려가도 됨) · 홈 안에서만(웹 에디터 홈 그대로)
 // 위 덧줄 넷(형 10-31 12:2x 홈 사진) = ① 「이슈 근거 : …」 줄 안 보임(.article-signals · 화제 유발 원인·내용 줄은 그대로) ② 시각 줄 둘 다 형광(time 은 원래 --accent · 「n시간 전」 .publish-elapsed 는 나이 띠 색이던 것 → --accent · 윈터 12:31 「둘 다 형광」)
 //   ③ 사진 = 카드 남는 높이를 다 차지(.article-media flex 1 · 황금비 상한 풀기 · 원본은 clamp(120px,20svh,180px) 최소 + 1.618 비율) ④ 「외 +3」 광학 보정(형 「+3 이거 수평을 광학 잉크 단위로 맞춰주고」 · 원본 .05em 아래 → .08em · 화면 못 봐서 ±.03em 은 윈터가 보고)
 
