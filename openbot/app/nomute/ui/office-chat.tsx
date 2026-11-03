@@ -201,9 +201,25 @@ const sideOf = (x?: Item) => (!x || x.t === "sys" || x.t === "sent" ? "" : x.t =
 const MEET = "all";   // 회의실(서버 ROOMS id · 형 10-28 22:02 「회의실은 대화가 안접혀도 될거같아 그냥 최신순으로 … 내가 안본거부터 위로 보기 그 버튼만」)
 const wakeM = (m: Msg) => m.kind === "system" && /러너/.test(m.who) && /^깸:/.test(m.text || "");
 
+/** 보낸 흔적 하나를 알약에 — 형이 말하기 전 = 지금 알약에 더함(사이에 다른 글이 끼어도) · 형이 말한 뒤 = 그 말 아래 새 알약(형 11-03 19:3x 「그 사이에 내 말이 들어가면 이제 말 다음에 알약이 끼는거고, 그전에는 저렇게 사이에 들어가는거야」) */
+function sentInto(out: Item[], pill: { t: "sent"; msgs: Msg[] } | null, m: Msg) {
+  if (pill) { pill.msgs.push(m); return pill; }
+  const it = { t: "sent" as const, msgs: [m] };
+  out.push(it);
+  return it;
+}
+
 /** 회의실 보기 = 접기 0 · 묶음 0 · 줄기 0 — 받은 순서 그대로 한 줄씩(러너 깸 줄만 뺌 · 시스템 일 = 그 자리 흐린 알약 하나) */
 function flatView(list: Msg[]): Item[] {
-  return list.filter((m) => !wakeM(m)).map((m): Item => (m.kind === "sent" ? { t: "sent", msgs: [m] } : m.kind === "system" && !hyungApp(m) ? { t: "sys", msgs: [m] } : { t: "msg", m }));
+  const out: Item[] = [];
+  let pill: { t: "sent"; msgs: Msg[] } | null = null;   // 형 말 사이 보낸 흔적 = 알약 하나(SentGroup · sentInto)
+  for (const m of list) {
+    if (wakeM(m)) continue;
+    if (m.kind === "sent") { pill = sentInto(out, pill, m); continue; }
+    if (mineOf(m)) pill = null;
+    out.push(m.kind === "system" && !hyungApp(m) ? { t: "sys", msgs: [m] } : { t: "msg", m });
+  }
+  return out;
 }
 
 /** 줄기(상태 답을 원 글 아래) + 형 보기 묶음(옛 office.html 23차 규칙 그대로) */
@@ -232,10 +248,12 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && (!toOthers(m) || hyAnswer.has(m.id)) && !answersOther.has(m.id));
   const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m);
   const out: Item[] = [];
+  let pill: { t: "sent"; msgs: Msg[] } | null = null;
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
     if (wakeM(m)) continue;
-    if (m.kind === "sent") { out.push({ t: "sent", msgs: [m] }); continue; }   // 봇끼리 보낸 흔적 = 묶음에 안 섞고 그 자리 한 줄
+    if (m.kind === "sent") { pill = sentInto(out, pill, m); continue; }   // 봇끼리 보낸 흔적 = 묶음에 안 섞음 · 형 말 사이 것끼리 알약 하나(SentGroup)
+    if (mineOf(m)) pill = null;
     if (showM(m)) { out.push({ t: "msg", m }); continue; }
     if (sysM(m)) { const l = [m]; while (i + 1 < all.length && !showM(all[i + 1]) && sysM(all[i + 1]) && !wakeM(all[i + 1])) l.push(all[++i]); out.push({ t: "sys", msgs: l }); continue; }
     const b = [m];
@@ -260,6 +278,24 @@ function SentMark({ m, list }: { m: Msg; list: OfficePerson[] }) {
   const title = `${t12(m.ts)} · ${nmOf(list, m.who)} → ${p?.name || to || "?"}`;
   // 누르면 그 둘의 방을 읽기만으로(형 11-03 19:0x 「너네 간 주고받은 메세지 나도 읽을 수 있게 배선해」 · 뜸 #2331 = sent 줄 pair 칸 · 형 목록엔 그대로 0)
   return m.pair ? <button type="button" className="ysent" title={title} onClick={() => void nav({ to: "/channels/$channelId", params: { channelId: m.pair! } })}>{body}</button> : <p className="ysent" title={title}>{body}</p>;
+}
+/** 이어진 보낸 흔적 = 묶음 알약 하나(형 11-03 19:3x 그림 = 「외 1 · 메시지 13개」 꼴 · 「이런식으로 보이도록 수정해주라」) — 받은 이 얼굴 겹침 · 「보낸 메시지 N개」 · 누르면 펼침(줄마다 누르면 그 둘의 방) · 하나뿐 = 알약 누르면 바로 그 방 */
+function SentGroup({ msgs, list }: { msgs: Msg[]; list: OfficePerson[] }) {
+  const [open, setOpen] = useState(false), nav = useNavigate();
+  const tos = [...new Set(msgs.map((m) => m.to || "").filter(Boolean))];
+  const faces = <FaceStack ids={tos.slice(0, 3).map((w) => idOf(w, list))} size={18} />;
+  if (msgs.length === 1) {
+    const m = msgs[0], name = nmOf(list, m.to || "");
+    return <div className="flex flex-col items-center"><button type="button" className="ygrp" title={`${t12(m.ts)} · ${nmOf(list, m.who)} → ${name}`} aria-label={`${name}에게 보낸 메시지 · 누르면 둘의 방`} disabled={!m.pair} onClick={() => m.pair && void nav({ to: "/channels/$channelId", params: { channelId: m.pair } })}>{faces}{name} · 메시지 보냄</button></div>;
+  }
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <button type="button" className="ygrp" aria-expanded={open} aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개`} onClick={() => setOpen((v) => !v)}>
+        {faces}{tos.length > 3 ? <b>외 {tos.length - 3}</b> : null}{tos.length > 3 ? " · " : ""}보낸 메시지 {msgs.length}개
+      </button>
+      {open ? <div className="flex w-full flex-col gap-1">{msgs.map((m) => <SentMark key={m.id} m={m} list={list} />)}</div> : null}
+    </div>
+  );
 }
 /** 둘의 방 id 조각(서버 _pairs.js = 자리 이름 · eyes·sia·gam …) → 사람 = 앱 id · 봇 이름 · 얼굴 파일 이름 중 맞는 것 */
 const seatOf = (id: string, list: OfficePerson[]) => list.find((x) => idOf(x.who, list) === id || x.bot === id || x.slug === id || (x.face || "").replace(/^.*\//, "").replace(/\.[a-z]+$/, "") === id);
@@ -929,7 +965,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             return (
               <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
                 {newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null}
-                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentMark m={it.msgs[0]} list={list} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
+                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentGroup msgs={it.msgs} list={list} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
                   <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${y.who} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
                     {it.msgs.at(-1)?.who} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
                     {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>
