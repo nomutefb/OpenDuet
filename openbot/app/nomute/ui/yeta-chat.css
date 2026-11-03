@@ -550,3 +550,5 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .ypair-head span { display:inline-flex; align-items:center; gap:5px; color:var(--fg); font-weight:var(--fw-b); }
 .ychat .ypair-head i { font-style:normal; }
 .ychat .ypair-ro { margin:0 0 6px; padding:12px; border:1px solid var(--glass-line); border-radius:999px; text-align:center; color:var(--mut); font-size:var(--fs-xs); }
+/* 방 목록 알림 켠 방 = 시각 앞 작은 종(room-list · 형 11-04 08:09) · 글자와 같은 흐린 색 · 시각 글자 높이 */
+.nm-rbell { width:11px; height:11px; flex:none; opacity:.85; }

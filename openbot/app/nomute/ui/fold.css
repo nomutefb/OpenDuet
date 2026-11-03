@@ -16,3 +16,8 @@
 .nm-full-body.md { white-space:normal; }
 .nm-full-body a { color:rgb(var(--accent-rgb, 207,255,64)); text-decoration:underline; text-underline-offset:2px; }
 :root:not(.dark) .nm-full-body a { color:#2f6fd6; }
+
+/* 방 메뉴 「긴 글 다 펼쳐 보기」 켠 방(./unfold.ts · 형 11-04 08:08 「틈 같은 경우는 긴거를 한눈에 봐야하거든」) = 접기 풂 · 「전체 보기」 단추·끝 흐림 숨김 */
+.ychat.unfold .yfold { max-height:none; }
+.ychat.unfold .yfold.long { -webkit-mask-image:none; mask-image:none; }   /* 이미 잰 「긴 글」 표시(끝 흐림)도 풂 */
+.ychat.unfold .yfold-more { display:none; }

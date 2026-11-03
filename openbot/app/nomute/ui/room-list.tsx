@@ -159,7 +159,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
             </span>
           </span>
           <span className="nm-rside">   {/* 시각 = 오른쪽 위 · 안 읽은 수 = 그 아래(형 10-31 「저게 시간 아래로 가게 해줘」) */}
-            <span className="text-[11px] tabular-nums text-muted-foreground">{listTime(r.last_ts)}</span>
+            <span className="flex items-center gap-1 text-[11px] tabular-nums text-muted-foreground">{notify.data && nOn ? <svg aria-label="알림 켬" className="nm-rbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg> : null}{listTime(r.last_ts)}</span>   {/* 알림 켠 방 = 시각 앞 작은 종(형 11-04 08:09 「이거 켬으로 하면 목록에서 우측에 종모양이 나오면 될거같아 작게 적정한 공간에」) */}
             {n > 0 ? <b aria-label={`안 읽은 글 ${n}개`} className="nm-rcount">{n > 99 ? "99+" : n}</b>
               : n < 0 ? <span aria-label="안 읽음" className="nm-rdot" /> : null}
           </span>

@@ -10,6 +10,7 @@ import { type OfficeMsg, type OfficeRoom, office, people } from "../data/office"
 import { loadRoom } from "../data/room-cache";
 import { cachedFile, fileUrl, filesHeld, pruneFiles } from "../data/file-cache";
 import { type NotifyState, notifyOn, notifyState } from "../data/notify";
+import { setUnfold, useUnfold } from "./unfold";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
 
 export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
@@ -37,7 +38,7 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
     try { qc.setQueryData(["nomute", "notify"], notifyState(await office<Partial<NotifyState>>("notify", { method: "POST", body: JSON.stringify({ room, on }) }))); }
     catch (e) { setErr(`알림 설정을 못 바꿨어 · ${(e as Error).message}`); }
   };
-  const nOn = notifyOn(notify.data, room, !!r?.with);
+  const nOn = notifyOn(notify.data, room, !!r?.with), unfold = useUnfold(room);
   const b = btn.current?.getBoundingClientRect();
   return (
     <>
@@ -51,6 +52,7 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
           {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setKick(true); }}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」 · 11:57 「우상단 메뉴 버튼에서 잠시 내보내기」) */}
           {bell.data ? <button type="button" role="menuitemcheckbox" aria-checked={!!bell.data.on} onClick={() => void setBell(!bell.data?.on)}>5마디 알림<small>{bell.data.on ? "켬" : "멈춤"}</small></button> : null}   {/* 마디 연장 알림(형 11-01 13:5x · 시아 13:54 D) · 이름 = 형 11-02 23:21 「그리고 톡방 6마디 알림 5마디 알림으로 변경해줘. 그리고 대화방 종이 그걸 의미하면 용어 통일해줘.」(셈 6 → 5 는 서버 bell6) */}
           {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} onClick={() => void setNotify(!nOn)}>대화방 알림<small>{nOn ? "켬" : "끔"}</small></button> : null}
+          <button type="button" role="menuitemcheckbox" aria-checked={unfold} onClick={() => setUnfold(room, !unfold)}>긴 글 다 펼쳐 보기<small>{unfold ? "켬" : "끔"}</small></button>   {/* 켬 = 17줄 접기 풂(./unfold.ts · 형 11-04 08:08 · 기본 끔 = 접힘) */}
         </div>
       ) : null}
       {err ? <div role="alert" className="nm-room-menu-list" style={{ right: right + 4, top: (b ? b.bottom : 44) + 4 }} onClick={() => setErr("")}>{err}</div> : null}

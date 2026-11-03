@@ -35,6 +35,7 @@ import { MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
+import { useUnfold } from "./unfold";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
@@ -741,6 +742,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   };
   const meet = room === MEET;
   // 형이 낀 단톡(임시방 · 지정방 · 회의실) = 다 보이게(형 10-31 「단톡은 전체메세지로 보여야되는데 왜 봄메세지는 저렇게보여」) · 접는 보기(hyungView)는 1:1 방만
+  const unfold = useUnfold(room);   // 방 메뉴 「긴 글 다 펼쳐 보기」(./unfold.ts)
   const pairRoom = room.startsWith("pair-");   // 둘의 방 = 형은 읽기만(쓰기 칸 대신 한 줄 · 머리 = 두 얼굴 · 접기 0 = 둘이 한 말 다 보임)
   const flat = meet || pairRoom || (!!r && !r.with);
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
@@ -941,7 +943,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       {far ? <button type="button" className="ydown" aria-label={newBelow ? `최근 글로 · 새 글 ${newBelow}개` : "최근 글로"} onClick={toEnd}><Chev dir="down" size={20} />{newBelow ? <b>{newBelow > 99 ? "99+" : newBelow}</b> : null}</button> : null}
       <ScrollDate box={boxRef} />
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
-        <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
+        <div className={`ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]${unfold ? " unfold" : ""}`}>   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {r?.temp ? <TempRoomHead r={r} /> : null}
           {pairRoom ? <PairHead room={room} list={list} /> : null}
           {lead}
