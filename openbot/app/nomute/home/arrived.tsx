@@ -26,19 +26,17 @@ export function useArrived() {
 
 export function Arrived() {
   const { arrived, count, lastOf, list, pending, error } = useArrived();
+  const total = arrived.reduce((a, x) => a + Math.max(0, count(x)), 0);   // 신규 메시지 수 = 안 읽은 방 전부 합(점만 있는 방 = 0 으로 셈)
   return (
     <section aria-label="도착한 메시지" className="nm-arrived flex min-h-0 flex-col" style={{ gridRow: 3 }}>   {/* 줄 자리 못 박음(news-feed 2줄과 같은 꼴) · 높이는 한 방 꼴로 미리 잡음 = 받는 중·없음·한 방 사이에 카드가 안 밀림(follow-pulse.css .nm-arrived) */}
-      <h2 className="yset-sec">도착한 메시지</h2>   {/* 「방 N」 뺌(형 10-31 12:3x 「방1 이런거 없고 신규 메세지 n 만 뜨면 됨」) — 수는 아래 타일 말머리 배지로 */}
+      <h2 className="yset-sec flex items-center gap-1.5">도착한 메시지{total > 0 ? <b aria-label={`신규 메시지 ${total}개`} className="grid h-5 min-w-5 place-items-center rounded-full bg-[var(--accent)] px-1.5 text-[11px] font-bold leading-none tabular-nums text-black">{total > 99 ? "99+" : total}</b> : null}</h2>   {/* 수 = 머리 글자 옆 동그라미 안 숫자만(형 11-03 16:26 「도착한 메세지 옆에 숫자만 있으면 될거같아. 동그라미 안에」 · 옛 타일 말머리 「신규 메시지 N」 알약 뺌) */}
       {!arrived.length ? <p className="px-1 text-[13px] text-[var(--mut)]">{error ? "못 받았어" : pending ? "받는 중…" : "새로 온 글 없음"}</p> : (
         <ul className="flex min-h-0 flex-col gap-2">   {/* 한 방만(형 10-31 12:2x 「한 메세지만 보이게」) · 스크롤 0 · 네비 자리 여백 = 홈 바닥(home-screen · 글 없을 때도) · 나머지 방 수는 머리 「방 N」 이 말함 */}
           {arrived.slice(0, 1).map((r) => {
-            const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined, n = count(r);
-            const total = arrived.reduce((a, x) => a + Math.max(0, count(x)), 0);   // 신규 메시지 수 = 안 읽은 방 전부 합(점만 있는 방 = 0 으로 셈)
+            const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;
             const preview = l ? `${r.with || l.kind === "human" ? "" : `${list.find((x) => x.who === l.who)?.name || l.who}: `}${(l.text || "").split("\n")[0]}` : "";
             return (
-              <li key={r.id} className="relative pt-2">
-                {/* 「신규 메시지 N」 = 메시지 타일 말머리(위 왼쪽 모서리)에 걸친 형광 알약(형 「메세지 도형 말머리에 걸쳐서」) · N = 안 읽은 방 전부 합 · 0 이면 「새 메시지」만 */}
-                <b className="absolute -top-0.5 left-3 z-10 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[11px] font-bold leading-4 tabular-nums text-black shadow-sm">신규 메시지{total > 0 ? ` ${total > 99 ? "99+" : total}` : ""}</b>
+              <li key={r.id} className="nm-arr-one" data-stack={Math.min(arrived.length - 1, 2) || undefined}>   {/* 방이 더 있으면 줄 밑으로 카드 한두 장이 아주 살짝 비침(형 11-03 16:26 「중첩되어있으면 조금 겹쳐있는게 보이면좋겠어 … 아주 조금만 보이면될듯」 · follow-pulse.css) */}
                 <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} className="yset-item">
                   {r.with ? <FaceImg id={idOf(r.with, list)} size={36} /> : <span className="grid size-9 shrink-0 place-items-center"><FaceStack ids={ids.slice(0, 3)} size={20} /></span>}
                   <span className="min-w-0 flex-1 text-left">
@@ -48,8 +46,6 @@ export function Arrived() {
                     </span>
                     <span className="flex items-center gap-2">
                       <span data-content className="block min-w-0 flex-1 truncate text-[12px]">{preview}</span>
-                      {n > 0 ? <b aria-label={`안 읽은 글 ${n}개`} className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-[var(--accent)] px-1.5 text-[11px] font-bold tabular-nums text-black">{n > 99 ? "99+" : n}</b>
-                        : <span aria-label="안 읽음" className="size-2 shrink-0 rounded-full bg-[var(--accent)]" />}
                     </span>
                   </span>
                 </Link>
