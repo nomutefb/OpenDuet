@@ -557,6 +557,7 @@ class LineGuard extends Component<{ m: Msg; children: ReactNode }, { bad: boolea
   componentDidCatch(e: unknown) { console.error("글을 못 그림", this.props.m.id, e); }
   render() { return this.state.bad ? <div className="ymsg" data-id={this.props.m.id}><div className="yb ai">{String(this.props.m.who || "")}: {String(this.props.m.text || "")}</div></div> : this.props.children; }
 }
+const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); };   // 읽음 저장 실패 = 화면 0 · 기록만(형 11-03 12:11)
 function Line(p: ComponentProps<typeof LineBody>) { return <LineGuard m={p.m}><LineBody {...p} /></LineGuard>; }
 function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean; noTime?: boolean }) {
   const p = c.list.find((x) => x.who === m.who), ring = ringOf(p);   // ring = 이름표 바탕(테 색 · yeta-chat.css .yname.tab)
@@ -836,7 +837,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       if (!moreRef.current || !(await olderRef.current().catch(() => 0))) { if (first) setWant(first.id); return; }
     }
   };
-  useRoomRead(roomReadState, room, active, !!msgs.data && seenReady, msgs.isError, all.at(-1)?.ts || 0, setErr);
+  useRoomRead(roomReadState, room, active, !!msgs.data && seenReady, msgs.isError, all.at(-1)?.ts || 0, quietRead);   // 읽음 저장 실패 = 입력칸 위에 안 띄움(형 11-03 12:11 「받아오지 못했어 멘트 뜨는거 안떠도 되니까, 안뜨게 해줘 채팅 창 위」 · 다음 글·다시 열기에 저절로 다시 저장 · 기록에만)
 
   const react = useMutation({
     mutationFn: ({ id, emoji }: { id: string; emoji: string }) => office<{ reactions?: Record<string, string[]>; on?: boolean }>(`rooms/${enc(room)}/reactions`, { method: "POST", body: JSON.stringify({ id, emoji }) }),
