@@ -81,3 +81,8 @@ header.nm-head a:has(> .nm-room-mark) { width:0 !important; height:0 !important;
 header.nm-head:has(.nm-room-mark) .nm-top-name { font-size:13px; line-height:16px; font-weight:700; color:var(--accent); text-shadow:0 1px 6px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.5); }
 header.nm-head:has(.nm-room-mark) .nm-top-name i { color:#fff; }
 .nm-col:has(.nm-room-mark) .nm-pin-slot { top:calc(40px + env(safe-area-inset-top, 0px)); }
+/* 5번 서랍·6번 설정 = 판 바탕을 비워 껍데기 라임 3D 바탕(../home/home-scene.css .nm-app-ambient · 옅은 막 62%)이 그대로 보임 · 그동안 밑 화면은 숨김(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」) */
+.nm-modal.see { background:transparent; }
+.nm-see > .nm-pane { visibility:hidden; }
+/* 판 안 글 = 긴 주소·영문 한 덩이도 판 폭에서 줄 바꿈(형 11-03 15:09 사진 「그리구 이거 넘어갈 때가 있는데, 설정 창에서 글자가 안넘어가게 확인 좀 부탁해!」 = 공지 글 github 주소가 판 밖으로 나갔음) */
+.nm-modal [data-content], .nm-modal p, .nm-modal li { overflow-wrap:anywhere; }
