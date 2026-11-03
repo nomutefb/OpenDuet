@@ -582,7 +582,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <div className={ring ? "yname tab" : "yname"} style={ring ? ({ "--yn": ring, "--yn-ink": inkOn(ring) } as CSSProperties) : undefined}>{p?.name || m.who}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
+        <div className={ring ? "yname tab" : "yname"} style={ring ? ({ "--yn": ring } as CSSProperties) : undefined}>{p?.name || m.who}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
         <Quote m={m} c={c} />
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}

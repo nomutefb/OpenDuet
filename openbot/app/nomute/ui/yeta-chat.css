@@ -314,7 +314,12 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .ymsg .yname { position:sticky; top:var(--ytop, 84px); z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
 /* 이름표 = 프로필 테에서 이어져 나온 둥근 표 · 각자 테 색(형 11-03 10:51 「프로필 테두리에서 이어져서 이름 뒤 검정색색 을 대신할 수 있나? 그라벨을, 각자 시그니처 색으로, 테두리에서 조금 나와서 둥글게 모서리해서 구성하면될듯」)
    = 왼쪽 22px 를 얼굴 밑으로 넣어(얼굴 z 2 위) 테 밖으로 나온 만큼만 보임 · 글자 자리는 그대로 · 테 색 없는 이(--yn 없음)는 옛 바탕 */
-.ychat .ymsg .yname.tab { margin-left:-22px; padding:1px 8px 1px 24px; border-radius:999px; background:var(--yn); color:var(--yn-ink); }
+.ychat .ymsg .yname.tab { margin-left:-22px; padding:1px 8px 1px 24px; border-radius:999px; background:color-mix(in srgb, var(--yn) 50%, var(--background)); color:var(--fg); }
+/* 11:51 형 「프로필 테두리의 색으로 / 테두리에서 나와서 감싸야해 테두리를 넘거나 하면 어색해짐 픽셀단위로 확인해줘」 — 첫 판은 탭이 얼굴 밑에서 시작해 얼굴과 테 사이 틈으로 비치고 테 선을 가로질렀고, 색도 진한 말풍선 색이었음
+   → ① 색 = 테와 같은 셈(swap/mic-orb.css --ring = 밝기 .8 · 채도 .15 까지 · 반 투명)을 바탕 위에 반 섞은 불투명 색 = 테가 바탕 위에 보이는 그 색 그대로 · 글자 = 바탕 글자색(어둡게 = 흰 · 밝게 = 검정)
+   ② 얼굴 뒤 = 테 바깥 끝(테 상자 안쪽 2% + 선 1.4px)까지 바탕색 원 → 탭은 테 바깥 선에서 바로 시작해 테를 감싸고, 테 안쪽 틈으로는 안 비침 */
+@supports (color:oklch(from red l c h)) { .ychat .ymsg .yname.tab { background:color-mix(in srgb, oklch(from var(--yn) .8 min(c,.15) h) 50%, var(--background)); } }
+.ychat .ymsg .yava .nm-orb::before { content:""; position:absolute; inset:calc(var(--s) * .02 - 1.4px); border-radius:50%; background:var(--background); }
 /* 임시방 머리 = 인원을 펼쳐 얼굴 하나씩 */
 /* 임시방 줄 왼쪽 끌기 = 예타 .ylr 그대로 · 폭만 칸 둘 */
 .nm-sw { position:relative; overflow:hidden; border-radius:inherit; }
