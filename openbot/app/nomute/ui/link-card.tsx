@@ -9,6 +9,8 @@ import { type MouseEvent, useState } from "react";
 import { inAppClick, useGo } from "./news-data";
 import "./link-card.css";
 
+const pc = () => { try { return matchMedia("(hover: hover) and (pointer: fine)").matches; } catch { return false; } };   // 마우스 = PC·확장(enter-key.tsx 와 같은 셈)
+
 type Card = { ok?: boolean; url?: string; site?: string; title?: string; desc?: string; image?: string; kind?: "youtube" | "page" | "blocked"; yt?: { id?: string; thumb?: string } };
 
 const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // ./office-chat.tsx URL_RE 와 같은 꼴(글 속 주소)
@@ -50,7 +52,7 @@ export function LinkCard({ m }: { m: { text?: string; caption?: string; files?: 
   const [noImg, setNoImg] = useState(false);   // 그림 못 불러옴(핫링크 막힘 등) = 그림 칸만 숨김
   const c = q.data;
   if (!url || !c) return null;
-  const open = (e: MouseEvent<HTMLAnchorElement>) => { e.stopPropagation(); inAppClick(go)(e); };   // 앱 안 한 겹 못 들이면 = a 기본(새 창)
+  const open = (e: MouseEvent<HTMLAnchorElement>) => { e.stopPropagation(); if (!pc()) inAppClick(go)(e); };   // 폰 = 앱 안 한 겹(못 들이면 a 기본 새 창) · PC = 늘 a 기본 새 창(형 11-03 16:05 「링크줄때 내가 누르면 새창에서 항상 올리게 가능하니? 모바일은 아마 앱을 고르라고 ㄸ르텐데, pc에서」 · 뜸 전함)
   const site = c.site || hostPath(url).split("/")[0];
   const yt = c.kind === "youtube";
   const img = yt ? c.yt?.thumb || c.image || (c.yt?.id ? `https://i.ytimg.com/vi/${c.yt.id}/hqdefault.jpg` : "") : c.image || "";
