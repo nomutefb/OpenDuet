@@ -26,6 +26,7 @@ const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, 
 
 
 import { enterRoom, roomReadState } from "../data/read-state";
+const SUMMARY = "summary";   // 요약실 = 늘 회의실 바로 아래(형 11-04 07:5x 「회의실 아래에 요약실이 하나생겨서 내가 요약 요청 보낸거는 거기로 들어가는거야」 · 방 = 뜸 서버 id summary)
 const LIVE_MS = 3 * 60_000;   // 활발한 방 = 마지막 글(act_ts) 3분 안 · 빛 꼴 = live-shine.ts
 
 export type Room = OfficeRoom & { unread?: number };
@@ -73,10 +74,11 @@ export function useRoomOrder() {
     const serverCount = typeof r.unread === "number" ? r.unread : l && l.kind !== "human" && (seen[r.id]?.ts || 0) < (r.last_ts || 0) ? -1 : 0;
     return roomReadState.count(r.id, r.last_ts, serverCount);
   };
-  const pinned = (id: string) => id === "all" || pins.has(id);
+  const pinned = (id: string) => id === "all" || id === SUMMARY || pins.has(id);
   const recent = (a: Room, b: Room) => (b.last_ts || 0) - (a.last_ts || 0);
   const shown = all.filter((r) => !hidden.has(r.id));
-  const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => (a.id === "all" ? -1 : b.id === "all" ? 1 : recent(a, b)));
+  const head = (id: string) => (id === "all" ? 0 : id === SUMMARY ? 1 : 2);   // 회의실 → 요약실 → 고정 방(최근 순)
+  const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => head(a.id) - head(b.id) || recent(a, b));
   const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
   return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo"), hid, count, lastOf, pinned, pins, setPins, hidden, setHidden };
@@ -150,7 +152,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
               <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`} style={live(r) && sig ? ({ "--sig": sig } as CSSProperties) : undefined}>{live(r) ? <LiveShine text={p?.name || r.name} trunc sig /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
-              {pinned(r.id) && r.id !== "all" ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
+              {pinned(r.id) && r.id !== "all" && r.id !== SUMMARY ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
               <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{r.id === "all" && !ids.length ? "사용자가 없습니다" : preview}</span>

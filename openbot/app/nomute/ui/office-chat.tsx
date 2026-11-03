@@ -14,7 +14,6 @@
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { CallSheet } from "./call-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
@@ -195,7 +194,7 @@ export function useOfficeRoom(room: string) {
   return { r, list: peopleQ.data || [], msgs: msgsQ, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older, draft };
 }
 
-type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] } | { t: "sent"; msgs: Msg[] };   // sent = 봇 둘의 방으로 보낸 흔적 한 줄(SentMark)
+type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] } | { t: "sent"; msgs: Msg[] };   // sent = 봇 둘의 방으로 보낸 흔적(SentGroup 알약)
 const mineOf = (m: Msg) => m.kind === "human" || hyungApp(m);
 const sideOf = (x?: Item) => (!x || x.t === "sys" || x.t === "sent" ? "" : x.t === "msg" && mineOf(x.m) ? "me" : "them");   // 간격 = 내 글 쪽 · 상대 글 쪽(묶음 포함) · 시스템 줄은 어느 쪽도 아님
 const MEET = "all";   // 회의실(서버 ROOMS id · 형 10-28 22:02 「회의실은 대화가 안접혀도 될거같아 그냥 최신순으로 … 내가 안본거부터 위로 보기 그 버튼만」)
@@ -271,29 +270,33 @@ type Ctx = {
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
 };
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
-/** 봇끼리 보낸 흔적 = 내용 없이 가운데 한 줄 「메시지 보냄 · 얼굴 이름 · 직함」(형 11-03 17:52 그림 = 그록봇 앱 꼴 · 「이런식으로 가려달라고했는데」 · 「내가 내 대화만 보이면되고」 · 서버 = 뜸 kind sent) */
-function SentMark({ m, list }: { m: Msg; list: OfficePerson[] }) {
-  const to = m.to || "", p = to ? list.find((x) => x.who === to) : undefined, nav = useNavigate();
-  const body = <>메시지 보냄{to ? <><FaceImg id={idOf(to, list)} size={16} /><b>{p?.name || to}</b>{p?.role ? <span>· {p.role}</span> : null}</> : null}</>;
-  const title = `${t12(m.ts)} · ${nmOf(list, m.who)} → ${p?.name || to || "?"}`;
-  // 누르면 그 둘의 방을 읽기만으로(형 11-03 19:0x 「너네 간 주고받은 메세지 나도 읽을 수 있게 배선해」 · 뜸 #2331 = sent 줄 pair 칸 · 형 목록엔 그대로 0)
-  return m.pair ? <button type="button" className="ysent" title={title} onClick={() => void nav({ to: "/channels/$channelId", params: { channelId: m.pair! } })}>{body}</button> : <p className="ysent" title={title}>{body}</p>;
-}
-/** 이어진 보낸 흔적 = 묶음 알약 하나(형 11-03 19:3x 그림 = 「외 1 · 메시지 13개」 꼴 · 「이런식으로 보이도록 수정해주라」) — 받은 이 얼굴 겹침 · 「보낸 메시지 N개」 · 누르면 펼침(줄마다 누르면 그 둘의 방) · 하나뿐 = 알약 누르면 바로 그 방 */
-function SentGroup({ msgs, list }: { msgs: Msg[]; list: OfficePerson[] }) {
-  const [open, setOpen] = useState(false), nav = useNavigate();
+/** 이어진 보낸 흔적 = 묶음 알약 하나(형 11-03 19:3x 그림 = 「외 1 · 메시지 13개」 꼴 · 「이런식으로 보이도록 수정해주라」) — 받은 이 얼굴 겹침 · 「보낸 메시지 N개」(하나면 「이름 · 메시지 보냄」)
+ *  누르면 그 자리에서 펼침 = 그 둘의 방 대화를 받아 시간 순으로 이어 그림 · 날짜 바뀌는 곳에 날짜 줄 · 왼쪽 줄(묶음 펼침 Band 꼴)(형 11-04 08:04 「새 창에서 열리거나 요약되서 나오지 않고 그 옆에 라인 쭉 나오면서 인 라인으로 … 일자별로는 조금 구분 되게. 저거 누르면 그 대화방 안에서 확 펼쳐지면 좋겠어」) */
+function SentGroup({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
+  const list = c.list, [open, setOpen] = useState(false);
   const tos = [...new Set(msgs.map((m) => m.to || "").filter(Boolean))];
+  const pairs = [...new Set(msgs.map((m) => m.pair || "").filter(Boolean))];
+  const talk = useQuery({
+    queryKey: ["nomute", "pairtalk", ...pairs], enabled: open && pairs.length > 0, staleTime: 30_000,
+    queryFn: () => Promise.all(pairs.map((p) => office<{ messages?: Msg[] }>(`rooms/${enc(p)}/messages?n=40`).then((j) => j.messages || []).catch(() => [] as Msg[]))).then((a) => a.flat().sort((x, y) => x.ts - y.ts)),
+  });
   const faces = <FaceStack ids={tos.slice(0, 3).map((w) => idOf(w, list))} size={18} />;
-  if (msgs.length === 1) {
-    const m = msgs[0], name = nmOf(list, m.to || "");
-    return <div className="flex flex-col items-center"><button type="button" className="ygrp" title={`${t12(m.ts)} · ${nmOf(list, m.who)} → ${name}`} aria-label={`${name}에게 보낸 메시지 · 누르면 둘의 방`} disabled={!m.pair} onClick={() => m.pair && void nav({ to: "/channels/$channelId", params: { channelId: m.pair } })}>{faces}{name} · 메시지 보냄</button></div>;
-  }
+  const one = msgs.length === 1 ? nmOf(list, msgs[0].to || "") : "";
+  const rows = talk.data || [];
   return (
-    <div className="flex flex-col items-center gap-2">
-      <button type="button" className="ygrp" aria-expanded={open} aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개`} onClick={() => setOpen((v) => !v)}>
-        {faces}{tos.length > 3 ? <b>외 {tos.length - 3}</b> : null}{tos.length > 3 ? " · " : ""}보낸 메시지 {msgs.length}개
+    <div className="flex flex-col items-center gap-3">
+      <button type="button" className="ygrp" aria-expanded={open} title={msgs.map((m) => `${t12(m.ts)} · ${nmOf(list, m.who)} → ${nmOf(list, m.to || "")}`).join("\n")}
+        aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개 · 누르면 그 대화 펼침`} onClick={() => setOpen((v) => !v)}>
+        {faces}{one ? <>{one} · 메시지 보냄</> : <>{tos.length > 3 ? <b>외 {tos.length - 3}</b> : null}{tos.length > 3 ? " · " : ""}보낸 메시지 {msgs.length}개</>}
       </button>
-      {open ? <div className="flex w-full flex-col gap-1">{msgs.map((m) => <SentMark key={m.id} m={m} list={list} />)}</div> : null}
+      {open && rows.length ? (
+        <div className="ysent-talk flex w-full flex-col gap-[10px] border-l-2 border-border pl-3 opacity-90">
+          {rows.map((m, i) => {
+            const newDay = i === 0 || dayKey(rows[i - 1].ts) !== dayKey(m.ts), cont = !newDay && rows[i - 1].who === m.who;
+            return <Fragment key={m.id}>{newDay ? <p className="ydate" data-ts={m.ts}>{dateLabel(m.ts)}</p> : null}<Line m={m} c={c} cont={cont} /></Fragment>;
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -965,7 +968,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             return (
               <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
                 {newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null}
-                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentGroup msgs={it.msgs} list={list} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
+                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentGroup msgs={it.msgs} c={c} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
                   <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${y.who} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
                     {it.msgs.at(-1)?.who} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
                     {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>
