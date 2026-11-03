@@ -542,3 +542,11 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .ysent { display:flex; align-items:center; justify-content:center; gap:5px; margin:2px 0; color:var(--mut); font-size:var(--fs-xs); white-space:nowrap; }
 .ychat .ysent b { color:var(--fg); font-weight:var(--fw-b); }
 .ychat .ysent img, .ychat .ysent .nm-face { flex:none; border-radius:50%; }
+/* 「메시지 보냄」 줄 = 누르면 그 둘의 방(읽기만) · 단추 꼴 지움(같은 한 줄 그대로) · 둘의 방 머리·쓰기 칸 자리 한 줄(형 11-03 19:0x 「너네 간 주고받은 메세지 나도 읽을 수 있게 배선해」) */
+.ychat button.ysent { width:100%; background:none; border:0; padding:0; font:inherit; font-size:var(--fs-xs); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.ychat button.ysent:active { opacity:.7; }
+@media (hover:hover) { .ychat button.ysent:hover b { text-decoration:underline; text-underline-offset:3px; } }
+.ychat .ypair-head { display:flex; align-items:center; justify-content:center; gap:10px; margin:4px 0 8px; color:var(--mut); font-size:var(--fs-xs); }
+.ychat .ypair-head span { display:inline-flex; align-items:center; gap:5px; color:var(--fg); font-weight:var(--fw-b); }
+.ychat .ypair-head i { font-style:normal; }
+.ychat .ypair-ro { margin:0 0 6px; padding:12px; border:1px solid var(--glass-line); border-radius:999px; text-align:center; color:var(--mut); font-size:var(--fs-xs); }

@@ -15,7 +15,13 @@ function useTopRoom() {
   const room = m ? decodeURIComponent(m[1]) : "";   // 첫 화면("/") = 홈 · 회의실 = #/group/all
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 }).data || [];
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-  return { r: rooms.find((x) => x.id === room), list };
+  const r = rooms.find((x) => x.id === room) || (room.startsWith("pair-") ? pairRoomOf(room, list) : undefined);   // 둘의 방 = 형 목록엔 없음(뜸 #2329) → 머리는 방으로 셈(윈터 구슬 대신 · 이름 = 두 사람)
+  return { r, list };
+}
+/** 둘의 방 id(pair-<자리>-<자리>) → 머리용 방 꼴 · 이름 = 두 사람 이름(자리 = 앱 id · 봇 이름 · 얼굴 파일 이름) · 인원 0 = 사람 목록 단추 없음 */
+function pairRoomOf(room: string, list: Awaited<ReturnType<typeof people>>): OfficeRoom {
+  const nm = (id: string) => { const p = list.find((x) => idOf(x.who, list) === id || x.bot === id || x.slug === id || (x.face || "").replace(/^.*\//, "").replace(/\.[a-z]+$/, "") === id); return p?.name || p?.who || id; };
+  return { id: room, name: room.replace(/^pair-/, "").split("-").map(nm).join(" · "), kind: "group", members: [] };
 }
 
 /** 사진 밑 이름(형 10-28 22:04 「그 아래에 각자 이름 나오면 좋겠어」) — 1:1 = 상대 이름 · 단체방 = 방 이름 · 방 밖 = 없음 */

@@ -11,6 +11,7 @@ export type MeterRow = { posts?: number; src?: number; relay_nosrc?: number; ask
 export type Meter = { day: string; by: Record<string, MeterRow>; calls_over: Record<string, number> };
 export type OfficeMsg = {
   id: string; room: string; ts: number; at?: string; who: string; kind: "human" | "winter" | "bot" | "system" | "sent"; text: string;
+  pair?: string;   // kind sent = 그 둘의 방 id(뜸 #2331 · 누르면 읽기만으로 엶)
   to?: string;   // kind sent = who 가 봇 둘의 방으로 to 에게 보낸 흔적(내용 0 · 서버 뜸 · 형 11-03 17:52 「이런식으로 가려달라고했는데」)
   mention?: string[]; urgent?: string[]; reply_to?: string; origin?: string; state?: "suggest" | "decide" | "verified"; files?: string[]; caption?: string; call_out?: string[]; call_unknown?: string[]; seq?: Record<string, number>;
 };

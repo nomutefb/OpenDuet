@@ -14,6 +14,7 @@
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { CallSheet } from "./call-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
@@ -254,11 +255,22 @@ type Ctx = {
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
 /** 봇끼리 보낸 흔적 = 내용 없이 가운데 한 줄 「메시지 보냄 · 얼굴 이름 · 직함」(형 11-03 17:52 그림 = 그록봇 앱 꼴 · 「이런식으로 가려달라고했는데」 · 「내가 내 대화만 보이면되고」 · 서버 = 뜸 kind sent) */
 function SentMark({ m, list }: { m: Msg; list: OfficePerson[] }) {
-  const to = m.to || "", p = to ? list.find((x) => x.who === to) : undefined;
+  const to = m.to || "", p = to ? list.find((x) => x.who === to) : undefined, nav = useNavigate();
+  const body = <>메시지 보냄{to ? <><FaceImg id={idOf(to, list)} size={16} /><b>{p?.name || to}</b>{p?.role ? <span>· {p.role}</span> : null}</> : null}</>;
+  const title = `${t12(m.ts)} · ${nmOf(list, m.who)} → ${p?.name || to || "?"}`;
+  // 누르면 그 둘의 방을 읽기만으로(형 11-03 19:0x 「너네 간 주고받은 메세지 나도 읽을 수 있게 배선해」 · 뜸 #2331 = sent 줄 pair 칸 · 형 목록엔 그대로 0)
+  return m.pair ? <button type="button" className="ysent" title={title} onClick={() => void nav({ to: "/channels/$channelId", params: { channelId: m.pair! } })}>{body}</button> : <p className="ysent" title={title}>{body}</p>;
+}
+/** 둘의 방 id 조각(서버 _pairs.js = 자리 이름 · eyes·sia·gam …) → 사람 = 앱 id · 봇 이름 · 얼굴 파일 이름 중 맞는 것 */
+const seatOf = (id: string, list: OfficePerson[]) => list.find((x) => idOf(x.who, list) === id || x.bot === id || x.slug === id || (x.face || "").replace(/^.*\//, "").replace(/\.[a-z]+$/, "") === id);
+/** 둘의 방 머리 = 두 얼굴·이름 + 「둘의 방 · 읽기만」(형 1:1 「메시지 보냄」 줄에서 들어옴 · 방 id = pair-<자리>-<자리>) */
+function PairHead({ room, list }: { room: string; list: OfficePerson[] }) {
+  const ids = room.replace(/^pair-/, "").split("-");
   return (
-    <p className="ysent" title={`${t12(m.ts)} · ${nmOf(list, m.who)} → ${p?.name || to || "?"}`}>
-      메시지 보냄{to ? <><FaceImg id={idOf(to, list)} size={16} /><b>{p?.name || to}</b>{p?.role ? <span>· {p.role}</span> : null}</> : null}
-    </p>
+    <div className="ypair-head">
+      {ids.map((id) => { const p = seatOf(id, list); return <span key={id}><FaceImg id={p ? idOf(p.who, list) : id} size={22} /><b>{p?.name || p?.who || id}</b></span>; })}
+      <i>둘의 방 · 읽기만</i>
+    </div>
   );
 }
 
@@ -690,7 +702,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   };
   const meet = room === MEET;
   // 형이 낀 단톡(임시방 · 지정방 · 회의실) = 다 보이게(형 10-31 「단톡은 전체메세지로 보여야되는데 왜 봄메세지는 저렇게보여」) · 접는 보기(hyungView)는 1:1 방만
-  const flat = meet || (!!r && !r.with);
+  const pairRoom = room.startsWith("pair-");   // 둘의 방 = 형은 읽기만(쓰기 칸 대신 한 줄 · 머리 = 두 얼굴 · 접기 0 = 둘이 한 말 다 보임)
+  const flat = meet || pairRoom || (!!r && !r.with);
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
   const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 45분)은 시각으로 정해져서 새 글이 없어도 다시 셈
   const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
@@ -891,6 +904,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
         <div className="ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]">   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {r?.temp ? <TempRoomHead r={r} /> : null}
+          {pairRoom ? <PairHead room={room} list={list} /> : null}
           {lead}
           {msgs.data?.more && !flat ? (
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
@@ -956,7 +970,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <button type="button" aria-label="답장 그만" className="px-1" onClick={() => setReply(null)}>×</button>
           </div>
         ) : null}
-        <Composer
+        {pairRoom ? <p className="ypair-ro">둘의 방 · 읽기만</p> : (<Composer
           agents={toAgentOptions(bots4)}
           channelId={room}
           onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); }}
@@ -1001,7 +1015,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
               throw e;
             }
           }}
-        />
+        />)}
       </div>
       <ProfileCard who={prof} list={list} onClose={() => setProf("")} />
     </div>
