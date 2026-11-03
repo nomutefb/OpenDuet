@@ -554,3 +554,13 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-rbell { width:11px; height:11px; flex:none; opacity:.85; }
 /* 글 속 링크 앞 사이트 아이콘(./site-icon.tsx · GitHub·Cloudflare·Suno · 그록 앱 꼴) = 글자 높이 · 둥근 모서리 · 글자와 4px */
 .ychat .ysite-ico { display:inline-block; box-sizing:border-box; width:1.15em; height:1.15em; padding:1px; margin-right:4px; border-radius:4px; vertical-align:-0.2em; object-fit:contain; background:#fff; }   /* 흰 바탕 = 검은 아이콘(GitHub)도 어두운 판에서 보임 */
+/* 줄 왼쪽으로 밀기 = 답장 화살표(./swipe-reply.ts · 형 11-04 08:22 카톡 영상 꼴) · 넘기면 라임 */
+.nm-swipe-ico { position:fixed; z-index:60; display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:rgba(127,127,127,.28); color:var(--foreground,#fff); opacity:0; pointer-events:none; transition:background .12s, color .12s, opacity .15s; }
+.nm-swipe-ico.on { background:var(--accent,#c6ff3d); color:#111; }
+/* 크게 보기 저장(형 11-04 08:22 「이 두 화면에서 길게 누르면 사진을 다운로드」) · 위 띠 오른쪽 내려받기 + 길게 누름 = 아래 「사진 저장」 판 */
+.nm-zoom-bar .nm-zoom-sp { flex:1; }
+.nm-zoom-bar a.nm-zoom-dl { flex:none; display:grid; place-items:center; width:44px; height:44px; color:inherit; }
+.nm-zoom img { -webkit-touch-callout:none; user-select:none; -webkit-user-select:none; }
+.nm-zoom-save { position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 28px); transform:translateX(-50%); display:flex; align-items:center; gap:8px; padding:12px 22px; border:0; border-radius:999px; background:rgba(40,40,40,.96); color:#fff; font-size:15px; font-weight:600; box-shadow:0 6px 24px rgba(0,0,0,.4); cursor:pointer; }
+.nm-zoom-save svg { width:20px; height:20px; }
+.nm-zoom-note { position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 28px); transform:translateX(-50%); padding:10px 18px; border-radius:999px; background:rgba(40,40,40,.96); color:#fff; font-size:14px; pointer-events:none; }

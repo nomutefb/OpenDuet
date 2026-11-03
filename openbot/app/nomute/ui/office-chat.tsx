@@ -31,12 +31,14 @@ import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
 import { AttachSheet } from "./attach-sheet";
 import { useCloseCallMenu } from "./call-face";
-import { MsgMenu, useLongPress } from "./msg-menu";
+import { justHeld, MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
 import { useUnfold } from "./unfold";
 import { SiteIcon } from "./site-icon";
+import { dlHref } from "./news-data";
+import { useSwipeReply } from "./swipe-reply";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
@@ -403,9 +405,29 @@ function zoomImage(src: string, alt = "", who = "", when = "") {
   bar.append(back);
   if (who) { const b = document.createElement("b"); b.textContent = who; bar.append(b); }
   if (when) { const s = document.createElement("small"); s.textContent = when; bar.append(s); }
+  const name = alt || src.split("/").pop()?.split("?")[0] || "photo.jpg";
+  const sp = document.createElement("span"), dl = document.createElement("a");
+  sp.className = "nm-zoom-sp"; dl.className = "nm-zoom-dl"; dl.href = dlOf(src, name); dl.download = name; dl.setAttribute("aria-label", "이 사진 저장"); dl.innerHTML = DOWN_SVG;
+  bar.append(sp, dl);
   v.append(bar, i);
+  // 길게 누름 = 아래 「사진 저장」 판(형 11-04 08:22 「이 두 화면에서 길게 누르면 사진을 다운로드」) · 그 손을 뗄 때 오는 누름은 닫기로 안 셈 · 판이 떠 있을 때 누름 = 판만 닫음
+  let held = false, timer = 0, sheet: HTMLElement | null = null;
+  const hush = () => { sheet?.remove(); sheet = null; };
+  const said = (t: string) => { hush(); const n = document.createElement("p"); n.className = "nm-zoom-note"; n.textContent = t; v.append(n); window.setTimeout(() => n.remove(), 1400); };
+  const ask = () => {
+    if (sheet) return;
+    held = true; navigator.vibrate?.(8);
+    sheet = document.createElement("button"); sheet.type = "button"; sheet.className = "nm-zoom-save"; sheet.innerHTML = `${DOWN_SVG}<span>사진 저장</span>`;
+    sheet.onclick = (e) => { e.stopPropagation(); savePic(src, name); said("저장했어"); };
+    v.append(sheet);
+  };
+  dl.onclick = (e) => { e.stopPropagation(); said("저장했어"); };
+  i.addEventListener("pointerdown", (e) => { if (e.button) return; window.clearTimeout(timer); timer = window.setTimeout(ask, 500); });
+  for (const k of ["pointerup", "pointercancel", "pointerleave"]) i.addEventListener(k, () => window.clearTimeout(timer));
+  i.addEventListener("pointermove", (e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6) window.clearTimeout(timer); });
+  i.addEventListener("contextmenu", (e) => { e.preventDefault(); window.clearTimeout(timer); ask(); });   // 안드로이드 길게 누름 · PC 오른쪽 누름 = 기본 메뉴 대신 같은 판
   let closing = false;
-  const close = () => { if (closing) return; closing = true; history.back(); };
+  const close = () => { if (held) { held = false; return; } if (sheet) { hush(); return; } if (closing) return; closing = true; history.back(); };
   const key = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
   const off = () => { window.setTimeout(() => v.remove(), 0); window.removeEventListener("popstate", off); window.removeEventListener("keydown", key); };   // 지우기는 한 박자 늦게 = shell.tsx 뒤로 처리기가 .nm-zoom 을 먼저 봄(듣는 차례가 바뀌어도 대화 판 그대로)
   v.onclick = close;
@@ -413,6 +435,16 @@ function zoomImage(src: string, alt = "", who = "", when = "") {
   history.pushState({ ...history.state, nmZoom: 1 }, "");
   document.body.append(v);
 }
+const DOWN_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+/** 사진 저장 = 내려받기(사무실 파일 = dl=1 · 다른 출처 = /api/dl 프록시 · ./news-data.ts dlHref) */
+const dlOf = (src: string, name: string) => (src.startsWith("/api/office/file?") ? (src.includes("dl=1") ? src : `${src}&dl=1`) : dlHref(src, name));   // 사무실 파일 = 받기 표(dl=1 · 붙임 파일로)
+function savePic(src: string, name: string) { const a = document.createElement("a"); a.href = dlOf(src, name); a.download = name; a.rel = "noopener"; document.body.append(a); a.click(); a.remove(); }
+/** 글에 든 사진(올린 파일 · 글 속 같은 출처 그림) = 길게 누른 메뉴 「사진 저장」 */
+const picsOf = (m: Msg) => {
+  const meta = new Map((m.file_meta || []).filter((x) => x?.path).map((x) => [x.path, x]));
+  const files = [...new Set((m.files || []).map(String))].filter((p) => IMG_RE.test(p)).map((p) => ({ src: fileUrl(p), name: meta.get(p)?.name || fileName(p) }));
+  return files.length ? files : textPhotos(String(m.text || "")).map((u) => ({ src: u, name: u.split("/").pop()?.split("?")[0] || "photo.jpg" }));
+};
 const zoomWhen = (ts: number) => { const d = new Date(ts); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 (window as unknown as { nmZoom?: typeof zoomImage }).nmZoom = zoomImage;
 const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.test(String(p)) || VID_RE.test(String(p)));   // 사진(·영상)만 든 글 = 말풍선 없이(형 10-31 「사진 주변 테두리 없애줘」)
@@ -427,7 +459,7 @@ function Files({ m }: { m: Msg }) {
       {imgs.length ? (
         <div className="yfiles flex flex-col items-start gap-2">   {/* 두 장 이상 = 세로(형 10-31 「그리고 2개 이상은 세로로.」) */}
           {imgs.map((f) => (
-            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
+            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
               <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" />
             </a>
           ))}
@@ -592,7 +624,7 @@ function TextPhotos({ urls }: { urls: string[] }) {
   return (
     <div className="yfiles flex flex-col items-start gap-2">
       {urls.map((u) => (
-        <a key={u} href={u} target="_blank" rel="noopener" title="누르면 크게" className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); zoomImage(u, u.split("/").pop() || ""); }}>
+        <a key={u} href={u} target="_blank" rel="noopener" title="누르면 크게" className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(u, u.split("/").pop() || ""); }}>
           <img src={u} alt="" loading="lazy" className="block max-h-60 max-w-[240px] object-cover" onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }} />
         </a>
       ))}
@@ -778,7 +810,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const boxRef = useRef<HTMLDivElement | null>(null), stuck = useRef(true), near = useRef(true), keepTop = useRef<{ h: number; top: number; first?: string } | null>(null);   // near = 맨 아래 가까이(nearPx 안 · 스크롤이 움직일 때 셈)
   // 연 뒤 OPEN_PIN_MS 동안 손이 안 닿으면 = 맨 아래에 붙은 채(형 11-04 08:10 「채팅 들가면 가장 최근 채팅으로 들가져야되는데 올드채팅으로 들어가져」 · 기기에 둔 옛 글 → 새 글 통째 바꿔 끼움 · 앞 글 자동 받기가 그 사이 스크롤을 옮겨 붙음이 풀리던 것)
   const mountAt = useRef(Date.now()), pinFrom = useRef(0), touched = useRef(false);   // pinFrom = 글이 처음 오거나 바뀐 때(붙잡는 동안) · 연 뒤 OPEN_PIN_MAX 까지만
-  const pinning = () => !touched.current && pinFrom.current > 0 && Date.now() - pinFrom.current < OPEN_PIN_MS && Date.now() - mountAt.current < OPEN_PIN_MAX;
+  const sentPin = useRef(0);   // 보낸 직후 이때까지 = 맨 아래 붙잡음(사진 고른 칸이 걷히며 입력칸이 100px 줄 때 대화가 그 키만큼 입력칸 뒤로 묻혔음 · 형 11-04 08:05 「대화가 묻혔다가 위로 올라가는데 … 채팅창에 걸쳣다 올라가는게 어색해」)
+  const pinning = () => Date.now() < sentPin.current || !touched.current && pinFrom.current > 0 && Date.now() - pinFrom.current < OPEN_PIN_MS && Date.now() - mountAt.current < OPEN_PIN_MAX;
   if (msgs.data && !pinFrom.current) pinFrom.current = Date.now();
   // 내가 보낸 글·사진이 대화 줄 맨 아래 말풍선으로 새로 생기면 맨 아래로 붙임(형 11-02 12:02 「그냥 이 챗을 보내는 순간 채팅창으로 나가버리고」 · 보낸 이는 늘 제 글을 봐야 함)
   useSyncExternalStore(attachmentSender.subscribe, attachmentSender.getSnapshot, attachmentSender.getSnapshot);
@@ -787,6 +820,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     const more = pendN > pendWas.current;
     pendWas.current = pendN;
     if (!more) return;
+    sentPin.current = Date.now() + 1500; stuck.current = true; near.current = true; hold.current = 0;
     requestAnimationFrame(() => { const box = boxRef.current; if (box) { box.scrollTop = box.scrollHeight; stuck.current = true; } });
   }, [pendN]);
   const loadingOld = useRef(false), moreRef = useRef(false), olderRef = useRef(older), autoN = useRef(0), poke = useRef<() => void>(() => {});
@@ -875,7 +909,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       if (pinning()) { stuck.current = true; near.current = true; if (gap > 1) box.scrollTop = box.scrollHeight; on(); return; }
       stuck.current = gap < 4; near.current = gap < nearPx(box); on();
     };
-    const hand = () => { touched.current = true; autoN.current = 0; hold.current = Date.now() + 900; };   // 손으로 밀면 = 저절로 받기 다시 셈 · 잠깐 안 당김
+    const hand = () => { sentPin.current = 0; touched.current = true; autoN.current = 0; hold.current = Date.now() + 900; };   // 손으로 밀면 = 저절로 받기 다시 셈 · 잠깐 안 당김
     const wheel = (e: WheelEvent) => { hand(); if (e.deltaY < 0) stuck.current = false; };   // hand = 손 닿음(연 직후 붙잡기 끝)   // 가까이(near)는 스크롤이 멈춘 자리로 다시 셈   // 위로 굴림 = 바로 떨어짐
     const ro = new ResizeObserver(grow);
     const mo = new MutationObserver(grow);   // 대화 줄이 통째로 바뀌어도(첫 칸이 새 요소) 키 변화를 놓치지 않음 · 접기 단추가 나중에 붙음
@@ -962,13 +996,15 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuOf(m); },
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
-    onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); },
+    onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); requestAnimationFrame(() => document.querySelector<HTMLElement>(".ychat-in [contenteditable=\"true\"], .ychat-in textarea")?.focus()); },   // 답장 = 바로 쓰기 칸(폰 = 자판 올라옴 · 카톡 꼴)
     onJump: (who, line, id) => {
       const hit = id ? all.find((x) => x.id === id) : [...all].reverse().find((x) => nmOf(list, x.who) === who && firstLine(x).startsWith(line.replace(/…$/, "").slice(0, 20)));
       if (hit || id) setWant(hit ? hit.id : String(id));   // 묶음 안이면 펼치고 · 안 받은 앞 글이면 받으며 찾음(위 효과)
       else setErr("그 글이 지금 받은 글 안에 없어 — 위 「옛 글 더 보기」로");
     },
   };
+
+  useSwipeReply(boxRef, (id) => { const m = all.find((x) => x.id === id); if (m) c.onReply(m); }, !msgs.isPending && !pairRoom && room);   // 줄 왼쪽으로 밀기 = 답장(./swipe-reply.ts)
 
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
@@ -978,7 +1014,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     <div className="flex min-h-0 flex-1 flex-col">
       <AttachSheet />
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
-      {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} onClose={() => setMenuOf(null)} /> : null}
+      {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
       <div className="ychat relative flex min-h-0 flex-1 flex-col">
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()} aria-label={`안 본 글 ${unseen.length}개로`}><Chev dir="up" size={13} /> 안 본 글</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}><Chev dir="up" size={13} /> 글 처음</button> : null}

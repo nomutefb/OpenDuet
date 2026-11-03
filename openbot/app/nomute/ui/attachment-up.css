@@ -54,3 +54,5 @@
 .nac-wrow .nac-wait, .nac-wrow .nac-again { flex:none; white-space:nowrap; padding-bottom:2px; }
 .ychat .nac-wrow .yb.nac-wb { min-width:0; }
 .nac-list { align-self:stretch; }   /* 대화 줄 안 보내는 중·보냄 대기 묶음(형 11-02 12:02) · 말풍선은 오른쪽(.nac-up · .nac-wrow 가 align-self:flex-end) */
+.nac-uprow .nac-up { margin-bottom:0; }   /* 보내는 중 사진 = [전송 대기][사진·글] · 바깥 줄이 아래 틈(8px)을 맡음 */
+.nac-wait.now { animation-delay:0s; }

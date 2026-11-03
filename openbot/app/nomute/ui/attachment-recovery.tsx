@@ -36,13 +36,17 @@ function Original({ original }: { original: OriginalAttachment }) {
 
 /** 보내는 중 = 내 말풍선 자리에 먼저 올리고 그림 안 가운데 둥근 게이지(형 11-02 02:21 「이미지 안에서 로딩 동그랗게 차게헤줘 퍼센트로 다 차면 체크 뜨면서 뜨고 항상 채팅 보다 위」) · 그림 = 글 말풍선 위 · 글은 안 띄움
  *   차례 = 그림 흐리게 + 고리가 % 로 참 → 100% = ✓ 그려지고 그림이 또렷해짐(고리는 걷힘) → 서버 답이 오면 진짜 글로 바뀜 · 못 받으면 「전송 확인 필요」 칸 */
+/*   「전송 대기」 = 말풍선 왼쪽 아래(진짜 글이 되면 그 자리에 시각 · 형 11-04 08:05 「일단 대화가 위로 확 보내진다음에 전송 대기가 떳다가 시간으로 바뀔수있어?」) · 사진은 바로 보임(글만 보낼 땐 1.2초 뒤) */
 function Sending({ attempt }: { attempt: SendAttempt }) {
   return (
-    <div className="nac-up" aria-label="첨부 보내는 중">
-      <div className="nac-shots">
-        {attempt.originals.map((original) => <Preview key={original.id} file={original.file} p={attempt.progress} />)}
+    <div className="nac-wrow nac-uprow">
+      <span className="nac-wait now">전송 대기</span>
+      <div className="nac-up" aria-label="첨부 보내는 중">
+        <div className="nac-shots">
+          {attempt.originals.map((original) => <Preview key={original.id} file={original.file} p={attempt.progress} />)}
+        </div>
+        {attempt.text ? <NacText text={attempt.text} /> : null}
       </div>
-      {attempt.text ? <NacText text={attempt.text} /> : null}
     </div>
   );
 }

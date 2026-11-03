@@ -11,6 +11,9 @@ import { usePinActions } from "./pins";
 
 const HOLD_MS = 500, SLIP = 10, ORIGIN_MAX = 2000;   // 0.5초(형 10-31 「적어도 0.5초 터치는 해야함」)
 
+/** 방금 길게 누름이 터졌나 = 그 손을 뗄 때 오는 누름(PC 마우스 · 사진 크게 보기)은 안 셈 */
+let heldAt = 0;
+export const justHeld = () => Date.now() - heldAt < 800;
 /** 길게 누르기 · 손이 움직이면 취소(스크롤) · fired() = 이 눌림이 길게였나(뒤따르는 눌림 말풍선 동작을 막음). */
 export function useLongPress(open: () => void) {
   const timer = useRef(0), long = useRef(false), at = useRef({ x: 0, y: 0 });
@@ -21,7 +24,7 @@ export function useLongPress(open: () => void) {
       onPointerDown: (e: PointerEvent) => {
         if (e.button) return;
         long.current = false; at.current = { x: e.clientX, y: e.clientY }; stop();
-        timer.current = window.setTimeout(() => { long.current = true; timer.current = 0; open(); }, HOLD_MS);
+        timer.current = window.setTimeout(() => { long.current = true; timer.current = 0; heldAt = Date.now(); open(); }, HOLD_MS);
       },
       onPointerMove: (e: PointerEvent) => { if (timer.current && Math.hypot(e.clientX - at.current.x, e.clientY - at.current.y) > SLIP) stop(); },
       onPointerUp: stop, onPointerCancel: stop, onPointerLeave: stop,
@@ -32,7 +35,7 @@ export function useLongPress(open: () => void) {
 
 const short = (n: string) => n.replace(" PM", "");
 
-export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, onClose }: { quick: string[]; onReact: (e: string) => void; onReply: () => void; m: { id: string; ts: number }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
+export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose }: { quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
   const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
   const [asking, setAsking] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
@@ -85,6 +88,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
         ) : (
           <>
             <div className="nm-msgm-q" role="group" aria-label="반응">{quick.map((q) => <button key={q} type="button" aria-label={`반응 ${q}`} onClick={() => { onReact(q); onClose(); }}>{q}</button>)}</div>
+            {pics && onSave ? item(pics > 1 ? `사진 저장 ${pics}장` : "사진 저장", () => { onSave(); done("저장했어"); }) : null}   {/* 형 11-04 08:22 「길게 누르면 사진을 다운로드」 = 사진 든 글은 맨 위 */}
             {item("답장", () => { onReply(); onClose(); })}
             {pins.can ? item("고정", () => { pins.pin({ id: m.id, ts: m.ts }); onClose(); }) : null}
             {item("복사", () => { void navigator.clipboard?.writeText(text); done("복사했어"); })}
