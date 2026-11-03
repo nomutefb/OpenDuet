@@ -67,6 +67,7 @@ const MOUSE = typeof matchMedia === "function" && matchMedia("(hover:hover)").ma
 const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // 글 속 주소(형 글 = 꾸밈 없는 글 · 봇 글은 Streamdown 이 링크로)
 const RECENT_N = 40;   // 다시 받기 = 최근 40 글을 통째로(거울이 반응·글을 같은 글에 고쳐 씀 = since 로는 못 받음 · 맞물림 21:3x)
 const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;
+const OPEN_PIN_MS = 4000, OPEN_PIN_MAX = 15000;   // 방을 연 뒤 = 손이 안 닿으면 맨 아래에 붙잡음(글이 처음 오거나 바뀐 때부터 4초 · 연 뒤 15초까지 · 기기에 둔 옛 글 → 새 글 · 앞 글 자동 받기 · 사진·글꼴이 늦게 길어짐)
 // 맨 아래 「가까이」 = 이 안이면 새 글을 따라 내려감 · 밖이면 「↓ 최근 글」 단추(형 11-03 10:05 「그리고 내가 채팅에 들어와있으면, 그 채팅이 알아서 계속 트래킹 (새로 들어온 채팅이) 되게 할 수 있나?」 — 4px 안에 딱 붙어 있을 때만 따라가서, 조금만 올라가 있어도 새 글이 아래로 쌓이기만 하고 단추도 320px 넘어야 떴음)
 const nearPx = (box: HTMLElement) => Math.max(160, box.clientHeight / 4);   // 저장 없이 처음 = 최근 100(봇끼리 글은 한 줄로 접혀 40 이면 형 글이 안 들어와 위로 하루치를 한 번 더 기다렸음 · PM 17:20 · 서버 = 같은 한 장 한 번) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
 const HEAD = 92;   // 위에 떠 있는 머리(대화 상대 동그라미 + 이름 · ui/shell.css .nm-head) 높이 — 그 아래부터 「보이는 위」
@@ -770,9 +771,14 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   }, [r, list, meet]);
   const baseTs = useRef<number | null>(null);   // 방을 연 때 마지막 글 — 그 뒤에 온 글만 올라오는 움직임(YETA .in · 옛 글 다시 그림 = 0)
   if (baseTs.current === null && msgs.data) baseTs.current = all.at(-1)?.ts ?? 0;
-  const lastId = all.at(-1)?.id, firstId = all[0]?.id;
+  const lastId = all.at(-1)?.id, firstId = all[0]?.id, firstRef = useRef(firstId);
+  firstRef.current = firstId;
   // 스크롤 = 대화 칸 하나만 움직임(바깥 판 0) · stuck = 맨 아래에 붙어 있음(처음 열 때 · 새 글·사진·글꼴이 늦게 와서 길어져도 그대로 맨 아래)
-  const boxRef = useRef<HTMLDivElement | null>(null), stuck = useRef(true), near = useRef(true), keepTop = useRef<{ h: number; top: number } | null>(null);   // near = 맨 아래 가까이(nearPx 안 · 스크롤이 움직일 때 셈)
+  const boxRef = useRef<HTMLDivElement | null>(null), stuck = useRef(true), near = useRef(true), keepTop = useRef<{ h: number; top: number; first?: string } | null>(null);   // near = 맨 아래 가까이(nearPx 안 · 스크롤이 움직일 때 셈)
+  // 연 뒤 OPEN_PIN_MS 동안 손이 안 닿으면 = 맨 아래에 붙은 채(형 11-04 08:10 「채팅 들가면 가장 최근 채팅으로 들가져야되는데 올드채팅으로 들어가져」 · 기기에 둔 옛 글 → 새 글 통째 바꿔 끼움 · 앞 글 자동 받기가 그 사이 스크롤을 옮겨 붙음이 풀리던 것)
+  const mountAt = useRef(Date.now()), pinFrom = useRef(0), touched = useRef(false);   // pinFrom = 글이 처음 오거나 바뀐 때(붙잡는 동안) · 연 뒤 OPEN_PIN_MAX 까지만
+  const pinning = () => !touched.current && pinFrom.current > 0 && Date.now() - pinFrom.current < OPEN_PIN_MS && Date.now() - mountAt.current < OPEN_PIN_MAX;
+  if (msgs.data && !pinFrom.current) pinFrom.current = Date.now();
   // 내가 보낸 글·사진이 대화 줄 맨 아래 말풍선으로 새로 생기면 맨 아래로 붙임(형 11-02 12:02 「그냥 이 챗을 보내는 순간 채팅창으로 나가버리고」 · 보낸 이는 늘 제 글을 봐야 함)
   useSyncExternalStore(attachmentSender.subscribe, attachmentSender.getSnapshot, attachmentSender.getSnapshot);
   const pendN = attachmentSender.waitingFor(room).length + attachmentSender.forRoom(room).filter((a) => a.phase === "uploading").length, pendWas = useRef(pendN);
@@ -791,13 +797,17 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   if (stuck.current || !far) seenEnd.current = all.length;
   const newBelow = far ? Math.max(0, all.length - seenEnd.current) : 0;
   const toEnd = () => { const box = boxRef.current; if (!box) return; hold.current = 0; stuck.current = true; near.current = true; box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); setFar(false); };
-  useLayoutEffect(() => {   // 위로 받은 앞 글 = 보던 자리 그대로(늘어난 높이만큼 내림)
+  useLayoutEffect(() => {   // 위로 받은 앞 글 = 보던 자리 그대로(늘어난 높이만큼 내림) · 목록이 통째로 바뀜(잡을 때 첫 글이 없음) · 연 직후 = 맞추지 않고 맨 아래
     const box = boxRef.current, k = keepTop.current;
-    if (box && k) { box.scrollTop = k.top + (box.scrollHeight - k.h); keepTop.current = null; }
-  }, [firstId]);
+    if (!box || !k) return;
+    keepTop.current = null;
+    if (pinning() || (k.first && !all.some((m) => m.id === k.first))) { box.scrollTop = box.scrollHeight; stuck.current = true; near.current = true; return; }
+    box.scrollTop = k.top + (box.scrollHeight - k.h);
+  }, [firstId]);   // eslint-disable-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {   // 맨 아래 = 처음 열 때 · 새 글(맨 아래에 붙어 있었을 때 · 형이 쓴 글)
     const box = boxRef.current;
-    if (box && lastId && (stuck.current || (near.current && Date.now() > hold.current) || all.at(-1)?.kind === "human")) { box.scrollTop = box.scrollHeight; stuck.current = true; near.current = true; }   // 가까이 있었으면 새 글도 따라감(형 11-03 10:05)
+    if (pinning()) pinFrom.current = Date.now();   // 붙잡는 동안 글이 바뀜(기기 글 → 서버 새 글) = 그때부터 다시 4초
+    if (box && lastId && (stuck.current || pinning() || (near.current && Date.now() > hold.current) || all.at(-1)?.kind === "human")) { box.scrollTop = box.scrollHeight; stuck.current = true; near.current = true; }   // 가까이 있었으면 새 글도 따라감(형 11-03 10:05)
     const ts = [150, 500, 1200, 2500].map((t) => window.setTimeout(() => poke.current(), t));   // 마크다운·사진·글꼴이 늦게 그려져 길어져도 다시 맞춤(크기 알림이 안 오는 숨은 화면 포함)
     return () => ts.forEach(clearTimeout);
   }, [lastId, msgs.isPending]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -825,7 +835,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       const short = box.scrollHeight - box.clientHeight < 240 || box.scrollTop < 240;
       if (short && moreRef.current && !loadingOld.current && autoN.current < AUTO_MAX) {
         loadingOld.current = true; autoN.current++;
-        keepTop.current = { h: box.scrollHeight, top: box.scrollTop };
+        keepTop.current = { h: box.scrollHeight, top: box.scrollTop, first: firstRef.current };
         void olderRef.current().then((k) => { if (!k) autoN.current = AUTO_MAX; }).catch(() => { keepTop.current = null; autoN.current = AUTO_MAX; })
           .finally(() => { loadingOld.current = false; on(); });
       }
@@ -835,12 +845,17 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     const grow = () => { if (stuck.current && Date.now() > hold.current && box.scrollHeight - box.scrollTop - box.clientHeight > 1) box.scrollTop = box.scrollHeight; on(); };
     poke.current = grow;
     // 맨 아래에 붙음 = 스크롤이 움직일 때만 다시 셈(길이가 늘어나는 동안 셈하면 「붙음」이 먼저 꺼져 맨 아래를 놓침)
-    const onScroll = () => { const gap = box.scrollHeight - box.scrollTop - box.clientHeight; stuck.current = gap < 4; near.current = gap < nearPx(box); on(); };   // 붙음 = 정말 맨 아래(4px 안) · 가까이 = nearPx 안
-    const hand = () => { autoN.current = 0; hold.current = Date.now() + 900; };   // 손으로 밀면 = 저절로 받기 다시 셈 · 잠깐 안 당김
-    const wheel = (e: WheelEvent) => { hand(); if (e.deltaY < 0) stuck.current = false; };   // 가까이(near)는 스크롤이 멈춘 자리로 다시 셈   // 위로 굴림 = 바로 떨어짐
+    const onScroll = () => {   // 붙음 = 정말 맨 아래(4px 안) · 가까이 = nearPx 안 · 연 직후 손 안 댐 = 붙음 그대로(내용이 늦게 길어지며 나는 스크롤 알림에 안 풀림)
+      const gap = box.scrollHeight - box.scrollTop - box.clientHeight;
+      if (pinning()) { stuck.current = true; near.current = true; if (gap > 1) box.scrollTop = box.scrollHeight; on(); return; }
+      stuck.current = gap < 4; near.current = gap < nearPx(box); on();
+    };
+    const hand = () => { touched.current = true; autoN.current = 0; hold.current = Date.now() + 900; };   // 손으로 밀면 = 저절로 받기 다시 셈 · 잠깐 안 당김
+    const wheel = (e: WheelEvent) => { hand(); if (e.deltaY < 0) stuck.current = false; };   // hand = 손 닿음(연 직후 붙잡기 끝)   // 가까이(near)는 스크롤이 멈춘 자리로 다시 셈   // 위로 굴림 = 바로 떨어짐
     const ro = new ResizeObserver(grow);
     box.addEventListener("scroll", onScroll, { passive: true });
     box.addEventListener("load", grow, true);   // 사진이 와서 길어짐
+    box.addEventListener("pointerdown", hand, { passive: true });   // 스크롤 막대를 잡아 끎 = 손 닿음
     box.addEventListener("touchstart", hand, { passive: true });
     box.addEventListener("touchmove", hand, { passive: true });
     box.addEventListener("wheel", wheel, { passive: true });
@@ -849,7 +864,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     if (box.firstElementChild) ro.observe(box.firstElementChild);
     on();
     return () => {
-      box.removeEventListener("scroll", onScroll); box.removeEventListener("load", grow, true); box.removeEventListener("touchstart", hand); box.removeEventListener("touchmove", hand); box.removeEventListener("wheel", wheel);
+      box.removeEventListener("scroll", onScroll); box.removeEventListener("load", grow, true); box.removeEventListener("pointerdown", hand); box.removeEventListener("touchstart", hand); box.removeEventListener("touchmove", hand); box.removeEventListener("wheel", wheel);
       document.fonts?.removeEventListener?.("loadingdone", grow); ro.disconnect(); if (tm) clearTimeout(tm);
     };
   }, [msgs.isPending, room]);
@@ -863,7 +878,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     const t = window.setTimeout(() => {
       const el = boxRef.current?.querySelector<HTMLElement>(`[data-id="${CSS.escape(want.id)}"]`);
       if (el) {
-        wantDone.current = want.n; stuck.current = false; near.current = false; hold.current = Date.now() + 1500;
+        wantDone.current = want.n; touched.current = true; stuck.current = false; near.current = false; hold.current = Date.now() + 1500;   // 그 글로 = 연 직후 붙잡기 끝
         el.scrollIntoView({ block: "center", behavior: document.hidden ? "auto" : "smooth" });
         el.animate?.([{ backgroundColor: "color-mix(in srgb, currentColor 12%, transparent)" }, { backgroundColor: "transparent" }], { duration: 1200 });
         for (const d of [80, 700]) window.setTimeout(() => poke.current(), d);   // 이동 뒤 「↑ 글 처음」 다시 셈
@@ -879,7 +894,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const toStart = () => {   // 「↑ 글 처음」 = 그 글 시작이 머리 바로 아래로
     const box = boxRef.current, el = box?.querySelector<HTMLElement>(`[data-id="${CSS.escape(jump)}"]`);
     if (!box || !el) return;
-    stuck.current = false; near.current = false; hold.current = Date.now() + 1500;   // 이동 중엔 맨 아래로 안 당김(16:47 「눌러도 반응이 없고」 = 당기기가 이동을 되돌렸음)
+    touched.current = true; stuck.current = false; near.current = false; hold.current = Date.now() + 1500;   // 이동 중엔 맨 아래로 안 당김(16:47 「눌러도 반응이 없고」 = 당기기가 이동을 되돌렸음)
     box.scrollTo({ top: box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - HEAD - 8, behavior: document.hidden ? "auto" : "smooth" });   // 숨은 화면 = 부드러운 이동이 안 움직임
     for (const t of [80, 700]) window.setTimeout(() => poke.current(), t);   // 이동 뒤 단추 다시 셈(스크롤 알림이 늦거나 안 오는 화면 포함)
   };
@@ -948,7 +963,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           {pairRoom ? <PairHead room={room} list={list} /> : null}
           {lead}
           {msgs.data?.more && !flat ? (
-            <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop }; void older(); }}>옛 글 더 보기</button>
+            <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop, first: firstRef.current }; void older(); }}>옛 글 더 보기</button>
           ) : null}
           {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">첫 대화를 시작해보세요</p> : null}
           {items.map((it, idx) => {
