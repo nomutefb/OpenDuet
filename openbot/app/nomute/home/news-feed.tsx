@@ -70,6 +70,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
     let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null, picks: unknown[] = [], picksAt = 0;
     // 사진 없는 카드 채우기(형 11-03 12:46 「그리고 메인에 사진 없는 이슈는 없게 하고픈데 …」 · 뜸 에디터 홈 #2253 과 같은 꼴) = 다 그린 뒤 사진 없는 행의 기사 주소를 사무실 링크 카드(/api/office/linkcard · og:image · R2 7일)로 읽어 사진 지도에 더하고 다시 그림 · 동시 4 · 한 바퀴 24 · 물은 주소는 다시 안 물음
     const linkImages: Record<string, string> = {}, linkTried = new Set<string>();
+    const linkNotes: Record<string, string> = {};   // 짐작 그림 표시(서버 image_note 「검색 그림」) · 에디터 modern-workspace.js 와 같은 꼴(빠르 #2260 · 칩 = 덱 modern-card-content articleMedia)
     let linkCount = 0, linkTask: Promise<void> | null = null, lastRows: unknown[] = [];
     const post = (type: string, detail: Record<string, unknown> = {}) => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type, ...detail }, location.origin);
     const send = () => {
@@ -82,6 +83,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       if (!live || !md) return;
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
       const { rows } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: linkCount && md.mergeImages ? md.mergeImages((images as { images?: unknown } | null)?.images, linkImages) : (images as { images?: unknown } | null)?.images, picks });
+      for (const row of rows as { meta?: { images?: { url?: string; sourceUrl?: string; note?: string }[] } }[]) for (const im of row?.meta?.images || []) if (im.sourceUrl && linkNotes[im.sourceUrl] && (md.url ? md.url(im.url) === md.url(linkImages[im.sourceUrl]) : im.url === linkImages[im.sourceUrl])) im.note = linkNotes[im.sourceUrl];   // 그 사진 위 「검색 그림」 칩 · 같은 주소에 RSS 사진이 이기면 표시 안 함
       lastRows = rows;
       const generated = (overlap as { generated?: string } | null)?.generated || null;
       snap = { rows, status: { state: rows.length ? "ready" : overlap ? "empty" : "error", message: rows.length ? "" : overlap ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어.", generated, source: "live" } };
@@ -92,6 +94,8 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       if (linkTask || !md.imageAsks) return linkTask;
       const queue = md.imageAsks(lastRows, linkTried, 24);
       if (!queue.length) return null;
+      const titleOf = new Map<string, string>();   // 사진 사다리 ⑥(형 11-03 「정확한 사진이 아니더라도, 그 이슈와 유사한 사진을 가져오는게 포인트야」) = 카드 제목을 q 로 → 그 글에서 못 받으면 서버가 같은 이슈 검색 그림
+      for (const row of lastRows as { urls?: string[]; title?: string }[]) for (const u of Array.isArray(row?.urls) ? row.urls : []) if (!titleOf.has(u) && row.title) titleOf.set(u, String(row.title).slice(0, 120));
       queue.forEach((u) => linkTried.add(u));
       linkTask = (async () => {
         let got = 0;
@@ -99,11 +103,13 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
           for (let u = queue.shift(); u; u = queue.shift()) {
             const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 15000);
             try {
-              const r = await fetch("/api/office/linkcard?url=" + encodeURIComponent(u), { credentials: "same-origin", signal: ctl.signal });
+              const q = titleOf.get(u) ? "&q=" + encodeURIComponent(titleOf.get(u)!) : "";
+              const r = await fetch("/api/office/linkcard?url=" + encodeURIComponent(u) + q, { credentials: "same-origin", signal: ctl.signal });
               if (!r.ok) continue;
-              const v = (await r.json()) as { ok?: boolean; card?: { kind?: string; image?: string } };
-              const img = v?.ok && v.card?.kind === "page" ? (md.url ? md.url(v.card.image) : String(v.card.image || "")) : "";
-              if (img) { linkImages[u] = img; got++; }
+              const v = (await r.json()) as { ok?: boolean; card?: { kind?: string; image?: string; image_src?: string; image_note?: string } };
+              const c = v?.ok ? v.card : undefined;   // 막힌 글(봇벽)도 검색 그림(image_src search)이면 씀 · 그 표시 = image_note
+              const img = c && (c.kind === "page" || c.image_src === "search") ? (md.url ? md.url(c.image) : String(c.image || "")) : "";
+              if (img) { linkImages[u] = img; if (c?.image_note) linkNotes[u] = c.image_note; got++; }
             } catch { /* 이 주소는 사진 없이 */ } finally { clearTimeout(t); }
           }
         };
