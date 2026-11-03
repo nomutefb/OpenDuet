@@ -863,7 +863,11 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     };
     const on = () => { if (!tm) tm = window.setTimeout(look, 50); };   // 묶어 보기(그림 틀 알림 rAF 는 숨은 화면에서 안 와서 시계로)
     // 맨 아래 다시 붙이기 = 내용이 길어질 때만(사진·글꼴·마크다운이 늦게 그려짐 · 크기 알림·시계) · 손이 닿는 동안·이동 중엔 안 당김 · 스크롤 셈 자리에서는 안 함(16:46 고장 = 위로 미는 첫 80px 을 「붙음」으로 보고 맨 아래로 되당김)
-    const grow = () => { if (stuck.current && Date.now() > hold.current && box.scrollHeight - box.scrollTop - box.clientHeight > 1) box.scrollTop = box.scrollHeight; on(); };
+    const grow = () => {
+      if (pinning()) { pinFrom.current = Date.now(); if (box.scrollHeight - box.scrollTop - box.clientHeight > 1) box.scrollTop = box.scrollHeight; on(); return; }   // 붙잡는 동안 키가 커짐(마지막 긴 글의 「전체 보기」 단추·사진이 늦게 붙음) = 맨 아래 + 다시 4초(형 11-04 08:20 「전체 보기 선을 기준으로 해야 마지막 채팅을 기준으로 내려온다고 느껴지는데」)
+      if (stuck.current && Date.now() > hold.current && box.scrollHeight - box.scrollTop - box.clientHeight > 1) box.scrollTop = box.scrollHeight;
+      on();
+    };
     poke.current = grow;
     // 맨 아래에 붙음 = 스크롤이 움직일 때만 다시 셈(길이가 늘어나는 동안 셈하면 「붙음」이 먼저 꺼져 맨 아래를 놓침)
     const onScroll = () => {   // 붙음 = 정말 맨 아래(4px 안) · 가까이 = nearPx 안 · 연 직후 손 안 댐 = 붙음 그대로(내용이 늦게 길어지며 나는 스크롤 알림에 안 풀림)
@@ -874,6 +878,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     const hand = () => { touched.current = true; autoN.current = 0; hold.current = Date.now() + 900; };   // 손으로 밀면 = 저절로 받기 다시 셈 · 잠깐 안 당김
     const wheel = (e: WheelEvent) => { hand(); if (e.deltaY < 0) stuck.current = false; };   // hand = 손 닿음(연 직후 붙잡기 끝)   // 가까이(near)는 스크롤이 멈춘 자리로 다시 셈   // 위로 굴림 = 바로 떨어짐
     const ro = new ResizeObserver(grow);
+    const mo = new MutationObserver(grow);   // 대화 줄이 통째로 바뀌어도(첫 칸이 새 요소) 키 변화를 놓치지 않음 · 접기 단추가 나중에 붙음
+    mo.observe(box, { childList: true, subtree: true });
     box.addEventListener("scroll", onScroll, { passive: true });
     box.addEventListener("load", grow, true);   // 사진이 와서 길어짐
     box.addEventListener("pointerdown", hand, { passive: true });   // 스크롤 막대를 잡아 끎 = 손 닿음
@@ -886,7 +892,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     on();
     return () => {
       box.removeEventListener("scroll", onScroll); box.removeEventListener("load", grow, true); box.removeEventListener("pointerdown", hand); box.removeEventListener("touchstart", hand); box.removeEventListener("touchmove", hand); box.removeEventListener("wheel", wheel);
-      document.fonts?.removeEventListener?.("loadingdone", grow); ro.disconnect(); if (tm) clearTimeout(tm);
+      document.fonts?.removeEventListener?.("loadingdone", grow); ro.disconnect(); mo.disconnect(); if (tm) clearTimeout(tm);
     };
   }, [msgs.isPending, room]);
   useEffect(() => {   // 밖에서 그 글로(보조 01 고정 띠·이력 판 = window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id } })))
