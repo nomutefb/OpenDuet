@@ -14,7 +14,7 @@ import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단�
 
 const CHANNEL = "nomute-modern-home";
 const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
-const OVERLAP_EVERY = 60_000, IMAGES_EVERY = 5 * 60_000;
+const OVERLAP_EVERY = 60_000, IMAGES_EVERY = 5 * 60_000, PICKS_EVERY = 2 * 60_000;   // 틈·촉 픽 = 판이 40분마다라 2분에 한 번만(에디터 modern-workspace.js loadPicks 와 같음)
 
 type Cand = { id?: string; url?: string; title?: string; title_ko?: string; title_ko_of?: string; media?: string; published?: string; hp?: string; breaking_pick?: { url?: string }; _disp?: Cand };
 type Modern = { project: (o: unknown, c: Cand[], a: unknown[], s: () => null, opt: Record<string, unknown>) => { rows: unknown[] }; validOverlap: (o: unknown) => boolean };
@@ -66,7 +66,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
   shownCb.current = onShown;
   useEffect(() => {
     let live = true, ready = false, shown = false, version = 0, snap: { rows: unknown[]; status: Record<string, unknown> } | null = null;
-    let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null;
+    let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null, picks: unknown[] = [], picksAt = 0;
     const post = (type: string, detail: Record<string, unknown> = {}) => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type, ...detail }, location.origin);
     const send = () => {
       if (!ready || !snap) return;
@@ -77,7 +77,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       const md = await modernData();
       if (!live || !md) return;
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
-      const { rows } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: (images as { images?: unknown } | null)?.images });
+      const { rows } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: (images as { images?: unknown } | null)?.images, picks });
       const generated = (overlap as { generated?: string } | null)?.generated || null;
       snap = { rows, status: { state: rows.length ? "ready" : overlap ? "empty" : "error", message: rows.length ? "" : overlap ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어.", generated, source: "live" } };
       version++; send();
@@ -94,6 +94,10 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       if (o) overlap = o; if (c) cands = c; if (ar) articles = ar; if (tr) triage = tr; if (mg) merges = mg;
       if (!imagesAt || Date.now() - imagesAt > IMAGES_EVERY) { imagesAt = Date.now(); images = (await firstJson(["/api/trends?f=images", "/rss_images.json"])) || images; }
       if (alpha == null) alpha = (await firstJson(["/feed_alpha.json"])) || {};
+      if (!picksAt || Date.now() - picksAt > PICKS_EVERY) {   // 틈·촉 픽(형 11-03 09:57 「그 메인카드에 틈이나, 점수 반영된 이슈가 카드로 안뜨는거 같은데」 · 뜸 api/trends?f=picks) = 기사 주소 있는 픽만 · 못 받으면 받아 둔 그대로(없으면 픽 없이 = 홈 그대로)
+        const pk = await firstJson<{ picks?: unknown[] }>(["/api/trends?f=picks"], (v) => !!v && Array.isArray(v.picks));
+        if (pk) { picks = pk.picks || []; picksAt = Date.now(); }
+      }
       await rebuild();
     };
     const onMsg = (e: MessageEvent) => {
