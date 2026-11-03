@@ -535,3 +535,5 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .yrx-who button { flex:none; padding:3px 9px; border-radius:999px; border:1px solid rgba(207,255,64,.5); background:rgba(207,255,64,.12); color:#CFFF40; font-size:11px; font-weight:800; }
 :root:not(.dark) .ychat .yrx-who button { color:#3d5e00; border-color:rgba(79,122,0,.45); background:rgba(79,122,0,.08); }
 
+/* 생각 중 줄 이름표 = 말풍선 이름표와 같은 탭(형 11-03 16:06 「틈이 같은 경우에 이거 안이어진다 프로필 라벨」) · 은색 빛 글자 바탕 = 탭 위에서도 읽히게 반 투명 → 글자색 80% */
+.ychat .ymsg .yname.tab .t-shimmer { --shimmer-base: color-mix(in srgb, var(--fg) 80%, transparent); }

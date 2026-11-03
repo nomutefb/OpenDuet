@@ -684,6 +684,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
   const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 45분)은 시각으로 정해져서 새 글이 없어도 다시 셈
   const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
+  const typRing = typing.length ? ringOf(list.find((x) => x.who === typing[0])) : undefined;   // 생각 중 줄 이름표도 얼굴(typing[0]) 테에서 이어진 탭(형 11-03 16:06 「틈이 같은 경우에 이거 안이어진다 프로필 라벨」)
   useEffect(() => { if (!typing.length) return; const t = setInterval(() => setTick((x) => x + 1), 20e3); return () => clearInterval(t); }, [typing.length]);
   // 머리 등불 구슬(보조 02 PR 1489) = 원본 useChatOrb 재료 · 듣는 중 = 형이 글칸에 씀 · 일하는 중 = 윈터에게 보낸 형 글 뒤 윈터 답 전(30분 안) · 서버 「깸」 칸은 뜻이 달라 안 씀(office-orb.md)
   const winterWorking = useMemo(() => {
@@ -927,7 +928,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className="yname"><LiveShine text={`${typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}${typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각 중…`} /></div>   {/* 이름까지 한 줄 통째로 은색 빛(형 11-01 13:40 「좌측 아래 생각중 이거 그냥 지금 은색 지나가는 걸로 이름에 관계 없이 쭉 나오게 해줘. 색마다 안보이는게 있어서」) · 「생각 중」 띄어 씀(의존 명사 · 형 13:40 「생각 중. 생각중 띄어쓰기 뭐가 맞나봐주고」) */}
+                <div className={typRing ? "yname tab" : "yname"} style={typRing ? ({ "--yn": typRing } as CSSProperties) : undefined}><LiveShine text={`${typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}${typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각 중…`} /></div>   {/* 이름까지 한 줄 통째로 은색 빛(형 11-01 13:40 「좌측 아래 생각중 이거 그냥 지금 은색 지나가는 걸로 이름에 관계 없이 쭉 나오게 해줘. 색마다 안보이는게 있어서」) · 「생각 중」 띄어 씀(의존 명사 · 형 13:40 「생각 중. 생각중 띄어쓰기 뭐가 맞나봐주고」) */}
                 <div className="yb ai"><ThinkMark /></div>   {/* 점 셋(기본) · 구슬 = 설정 「생각중 표시」(형 11-01 12:5x 「내 취향따라 심심할때 바꾸게」) */}
               </div>
             </div>
