@@ -34,7 +34,7 @@ import { useCloseCallMenu } from "./call-face";
 import { MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
-import { FaceStack } from "./faces";
+import { FaceImg, FaceStack } from "./faces";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
@@ -194,15 +194,15 @@ export function useOfficeRoom(room: string) {
   return { r, list: peopleQ.data || [], msgs: msgsQ, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older, draft };
 }
 
-type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] };
+type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] } | { t: "sent"; msgs: Msg[] };   // sent = 봇 둘의 방으로 보낸 흔적 한 줄(SentMark)
 const mineOf = (m: Msg) => m.kind === "human" || hyungApp(m);
-const sideOf = (x?: Item) => (!x || x.t === "sys" ? "" : x.t === "msg" && mineOf(x.m) ? "me" : "them");   // 간격 = 내 글 쪽 · 상대 글 쪽(묶음 포함) · 시스템 줄은 어느 쪽도 아님
+const sideOf = (x?: Item) => (!x || x.t === "sys" || x.t === "sent" ? "" : x.t === "msg" && mineOf(x.m) ? "me" : "them");   // 간격 = 내 글 쪽 · 상대 글 쪽(묶음 포함) · 시스템 줄은 어느 쪽도 아님
 const MEET = "all";   // 회의실(서버 ROOMS id · 형 10-28 22:02 「회의실은 대화가 안접혀도 될거같아 그냥 최신순으로 … 내가 안본거부터 위로 보기 그 버튼만」)
 const wakeM = (m: Msg) => m.kind === "system" && /러너/.test(m.who) && /^깸:/.test(m.text || "");
 
 /** 회의실 보기 = 접기 0 · 묶음 0 · 줄기 0 — 받은 순서 그대로 한 줄씩(러너 깸 줄만 뺌 · 시스템 일 = 그 자리 흐린 알약 하나) */
 function flatView(list: Msg[]): Item[] {
-  return list.filter((m) => !wakeM(m)).map((m): Item => (m.kind === "system" && !hyungApp(m) ? { t: "sys", msgs: [m] } : { t: "msg", m }));
+  return list.filter((m) => !wakeM(m)).map((m): Item => (m.kind === "sent" ? { t: "sent", msgs: [m] } : m.kind === "system" && !hyungApp(m) ? { t: "sys", msgs: [m] } : { t: "msg", m }));
 }
 
 /** 줄기(상태 답을 원 글 아래) + 형 보기 묶음(옛 office.html 23차 규칙 그대로) */
@@ -222,7 +222,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   if (r?.with) {
     let prev: Msg | null = null;
     for (const m of all) {
-      if (wakeM(m) || (m.kind === "system" && !hyungApp(m))) continue;
+      if (wakeM(m) || m.kind === "sent" || (m.kind === "system" && !hyungApp(m))) continue;
       if (m.who !== r.with) { prev = m; continue; }
       if (prev && prev.kind !== "human" && !hyungApp(prev) && m.ts - prev.ts < 30 * 60e3) answersOther.add(m.id);
       if (prev && (prev.kind === "human" || hyungApp(prev)) && m.ts - prev.ts < 30 * 60e3) hyAnswer.add(m.id);
@@ -234,6 +234,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
     if (wakeM(m)) continue;
+    if (m.kind === "sent") { out.push({ t: "sent", msgs: [m] }); continue; }   // 봇끼리 보낸 흔적 = 묶음에 안 섞고 그 자리 한 줄
     if (showM(m)) { out.push({ t: "msg", m }); continue; }
     if (sysM(m)) { const l = [m]; while (i + 1 < all.length && !showM(all[i + 1]) && sysM(all[i + 1]) && !wakeM(all[i + 1])) l.push(all[++i]); out.push({ t: "sys", msgs: l }); continue; }
     const b = [m];
@@ -251,6 +252,15 @@ type Ctx = {
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
 };
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
+/** 봇끼리 보낸 흔적 = 내용 없이 가운데 한 줄 「메시지 보냄 · 얼굴 이름 · 직함」(형 11-03 17:52 그림 = 그록봇 앱 꼴 · 「이런식으로 가려달라고했는데」 · 「내가 내 대화만 보이면되고」 · 서버 = 뜸 kind sent) */
+function SentMark({ m, list }: { m: Msg; list: OfficePerson[] }) {
+  const to = m.to || "", p = to ? list.find((x) => x.who === to) : undefined;
+  return (
+    <p className="ysent" title={`${t12(m.ts)} · ${nmOf(list, m.who)} → ${p?.name || to || "?"}`}>
+      메시지 보냄{to ? <><FaceImg id={idOf(to, list)} size={16} /><b>{p?.name || to}</b>{p?.role ? <span>· {p.role}</span> : null}</> : null}
+    </p>
+  );
+}
 
 const ST: Record<string, [string, string]> = {
   suggest: ["💡 제안", "bg-sky-500/15 text-sky-700 dark:text-sky-300"],
@@ -905,7 +915,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             return (
               <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
                 {newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null}
-                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
+                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentMark m={it.msgs[0]} list={list} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
                   <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${y.who} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
                     {it.msgs.at(-1)?.who} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
                     {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>

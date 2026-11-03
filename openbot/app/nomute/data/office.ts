@@ -10,7 +10,8 @@ export type MeterRow = { posts?: number; src?: number; relay_nosrc?: number; ask
   헛깸률: number | null; 형말출처율: number | null; 바꿔전하기율: number | null; 되묻기율: number | null };
 export type Meter = { day: string; by: Record<string, MeterRow>; calls_over: Record<string, number> };
 export type OfficeMsg = {
-  id: string; room: string; ts: number; at?: string; who: string; kind: "human" | "winter" | "bot" | "system"; text: string;
+  id: string; room: string; ts: number; at?: string; who: string; kind: "human" | "winter" | "bot" | "system" | "sent"; text: string;
+  to?: string;   // kind sent = who 가 봇 둘의 방으로 to 에게 보낸 흔적(내용 0 · 서버 뜸 · 형 11-03 17:52 「이런식으로 가려달라고했는데」)
   mention?: string[]; urgent?: string[]; reply_to?: string; origin?: string; state?: "suggest" | "decide" | "verified"; files?: string[]; caption?: string; call_out?: string[]; call_unknown?: string[]; seq?: Record<string, number>;
 };
 export type OfficeRoom = {

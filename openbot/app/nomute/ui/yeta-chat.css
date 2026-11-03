@@ -537,3 +537,8 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 
 /* 생각 중 줄 이름표 = 말풍선 이름표와 같은 탭(형 11-03 16:06 「틈이 같은 경우에 이거 안이어진다 프로필 라벨」) · 은색 빛 글자 바탕 = 탭 위에서도 읽히게 반 투명 → 글자색 80% */
 .ychat .ymsg .yname.tab .t-shimmer { --shimmer-base: color-mix(in srgb, var(--fg) 80%, transparent); }
+
+/* 봇끼리 보낸 흔적 한 줄(office-chat SentMark · 형 11-03 17:52 그림 = 그록봇 앱 「메시지 보냄 · 감 · 수석 연구원」) = 가운데 · 흐린 작은 글 · 얼굴 16 · 이름만 진하게 */
+.ychat .ysent { display:flex; align-items:center; justify-content:center; gap:5px; margin:2px 0; color:var(--mut); font-size:var(--fs-xs); white-space:nowrap; }
+.ychat .ysent b { color:var(--fg); font-weight:var(--fw-b); }
+.ychat .ysent img, .ychat .ysent .nm-face { flex:none; border-radius:50%; }
