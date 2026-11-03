@@ -27,7 +27,7 @@ export function useArrived() {
 export function Arrived() {
   const { arrived, count, lastOf, list, pending, error } = useArrived();
   return (
-    <section aria-label="도착한 메시지" className="flex min-h-0 flex-col">
+    <section aria-label="도착한 메시지" className="nm-arrived flex min-h-0 flex-col" style={{ gridRow: 3 }}>   {/* 줄 자리 못 박음(news-feed 2줄과 같은 꼴) · 높이는 한 방 꼴로 미리 잡음 = 받는 중·없음·한 방 사이에 카드가 안 밀림(follow-pulse.css .nm-arrived) */}
       <h2 className="yset-sec">도착한 메시지</h2>   {/* 「방 N」 뺌(형 10-31 12:3x 「방1 이런거 없고 신규 메세지 n 만 뜨면 됨」) — 수는 아래 타일 말머리 배지로 */}
       {!arrived.length ? <p className="px-1 text-[13px] text-[var(--mut)]">{error ? "못 받았어" : pending ? "받는 중…" : "새로 온 글 없음"}</p> : (
         <ul className="flex min-h-0 flex-col gap-2">   {/* 한 방만(형 10-31 12:2x 「한 메세지만 보이게」) · 스크롤 0 · 네비 자리 여백 = 홈 바닥(home-screen · 글 없을 때도) · 나머지 방 수는 머리 「방 N」 이 말함 */}
