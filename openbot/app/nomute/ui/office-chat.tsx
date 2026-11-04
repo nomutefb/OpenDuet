@@ -497,25 +497,35 @@ const picsOf = (m: Msg) => {
 const zoomWhen = (ts: number) => { const d = new Date(ts); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 (window as unknown as { nmZoom?: typeof zoomImage }).nmZoom = zoomImage;
 const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.test(String(p)) || VID_RE.test(String(p)));   // 사진(·영상)만 든 글 = 말풍선 없이(형 10-31 「사진 주변 테두리 없애줘」)
+/** 못 그린 그림·영상 = 빈칸(0x0) 대신 이름 + 「못 불러왔어」 · 누르면 원본 주소(형 11-05 06:14 「애들이 보낸 영상 사진 안들어와」) */
+function Broken({ f, kind }: { f: { p: string; n: string }; kind: string }) {
+  return (
+    <a href={fileUrl(f.p)} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 hover:bg-foreground/5">
+      <span aria-hidden className="text-lg">⚠️</span>
+      <span className="min-w-0"><span className="block truncate text-sm font-medium">{f.n}</span><small className="text-xs text-muted-foreground">{kind}을 못 불러왔어</small></span>
+    </a>
+  );
+}
 function Files({ m }: { m: Msg }) {
   const qc = useQueryClient();
   const meta = new Map((m.file_meta || []).filter((x) => x?.path).map((x) => [x.path, x]));
   const ps = [...new Set((m.files || []).map(String))];
   const one = (p: string) => ({ p, n: meta.get(p)?.name || fileName(p), b: meta.get(p)?.bytes || 0 });
   const imgs = ps.filter((p) => IMG_RE.test(p)).map(one), vids = ps.filter((p) => VID_RE.test(p)).map(one), rest = ps.filter((p) => !IMG_RE.test(p) && !VID_RE.test(p)).map(one);
+  const [bad, setBad] = useState<Record<string, boolean>>({});   // 못 그린 그림·영상(받은 몸이 그림이 아님 · 11-05 번개 url 길 = Access 로그인 HTML) = 빈칸 대신 「못 불러왔어」 칸
   return (
     <div className="yfiles flex flex-col gap-2">
       {imgs.length ? (
         <div className="yfiles flex flex-col items-start gap-2">   {/* 두 장 이상 = 세로(형 10-31 「그리고 2개 이상은 세로로.」) */}
-          {imgs.map((f) => (
+          {imgs.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="그림" /> : (
             <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
-              <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" />
+              <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />
             </a>
           ))}
         </div>
       ) : null}
-      {vids.map((f) => (
-        <video key={f.p} src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" />
+      {vids.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="영상" /> : (
+        <video key={f.p} src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />
       ))}
       {rest.map((f) => (
         <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 hover:bg-foreground/5">
