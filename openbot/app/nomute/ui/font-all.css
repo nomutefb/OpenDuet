@@ -1,0 +1,3 @@
+/* 앱 전체 글꼴 = Pretendard(./chat-font.tsx · 설정 「앱 전체 글꼴」 · 형 11-04 10:40 「전체 인앱에 일괄」) — 에디터와 같은 파일(같은 출처 · 굵기 45~920 한 파일) */
+@font-face { font-family:'Pretendard Variable'; font-weight:45 920; font-style:normal; font-display:swap; src:local('Pretendard Variable'), url(/assets/fonts/pretendard.woff2) format('woff2-variations'); }
+html[data-font-all="pretendard"] body, html[data-font-all="pretendard"] body *:not(code):not(pre):not(pre *):not(kbd):not(samp) { font-family:'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif !important; }

@@ -2,13 +2,19 @@
 //   원본 = nomutefb/YETA viewer/index.html yFontGet·yFontSet·yFontApply(1691~1700줄) · fontRow·ySetVal latin/hangul(3404·3342줄) · 탭 = 토글(3673줄) · 저장 열쇠 yeta_font_* 그대로(이 기기)
 //   기본 = 영문 LEMONMILK · 한글 Paperlogy(YETA 운영자 260708 「기본값으로」) · 끄면 Pretendard 스택 · 라틴 글꼴을 스택 앞에 = 라틴 글자만 그 글꼴, 한글은 다음 글꼴로
 //   적용 자리 = --app-font 를 html 에 · 대화창(.ychat · 말풍선·입력칸)만 그 스택을 씀(./yeta-chat.css) · 글꼴 파일 = YETA viewer/fonts 에서 쓰는 굵기만(./fonts · ./yeta-chat.css @font-face)
+//   앱 전체 Pretendard(형 11-04 10:40 「그것도 설정에서 선택할수잇게해줘. 하나의 옵션으루」 · 「전체 인앱에 일괄을 말하는거임」 · 에디터 카드 글꼴 = Pretendard Variable) = html[data-font-all] · 글꼴 파일 = 에디터와 같은 출처 /assets/fonts/pretendard.woff2(./font-all.css) · 저장 nm_font_all(이 기기)
 import { useState } from "react";
 import { YICO } from "./yeta-icons";
+import "./font-all.css";
 
 type K = "latin" | "hangul";
 const fontGet = (k: K) => { const d = k === "latin" ? "lemonmilk" : "paperlogy"; try { return localStorage.getItem(`yeta_font_${k}`) || d; } catch { return d; } };
 const fontSet = (k: K, v: string) => { try { localStorage.setItem(`yeta_font_${k}`, v); } catch { /* 이번만 */ } };
+const allOn = () => { try { return localStorage.getItem("nm_font_all") === "pretendard"; } catch { return false; } };
+const PT = ["'Pretendard Variable'", "Pretendard", "-apple-system", "system-ui", "sans-serif"];
 export function applyChatFont() {
+  if (allOn()) { document.documentElement.dataset.fontAll = "pretendard"; document.documentElement.style.setProperty("--app-font", PT.join(",")); document.documentElement.style.setProperty("--app-font-text", PT.join(",")); return; }
+  delete document.documentElement.dataset.fontAll;
   const rest = [fontGet("hangul") === "paperlogy" ? "'Paperlogy'" : null, "Pretendard", "-apple-system", "system-ui", "sans-serif"].filter(Boolean);
   const stack = [fontGet("latin") === "lemonmilk" ? "'LEMONMILK'" : null, ...rest].filter(Boolean).join(",");
   document.documentElement.style.setProperty("--app-font", stack);
@@ -37,5 +43,16 @@ export function ChatFontRows() {
       </button>
     );
   };
-  return <>{row("latin", "영문 폰트")}{row("hangul", "한글 폰트")}</>;
+  const all = allOn();
+  return (
+    <>
+      <button type="button" className="yset-item" data-font="all" aria-pressed={all}
+        onClick={() => { try { localStorage.setItem("nm_font_all", all ? "" : "pretendard"); } catch { /* 이번만 */ } applyChatFont(); bump((x) => x + 1); }}>
+        <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.type }} />
+        <span className="si-lbl"><span className="si-t">앱 전체 글꼴</span></span>
+        <span className="si-v"><span className={`si-vt${all ? " mod" : ""}`}>{all ? "Pretendard" : "기본"}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
+      </button>
+      {all ? null : <>{row("latin", "영문 폰트")}{row("hangul", "한글 폰트")}</>}
+    </>
+  );
 }
