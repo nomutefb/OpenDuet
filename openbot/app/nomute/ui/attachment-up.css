@@ -2,8 +2,7 @@
 /* 칸 = 화면 반까지(256px 로 묶어 긴 글 윗부분이 평평하게 잘리던 것 · 형 11-02 07:18 사진 97119) · 긴 글은 말풍선 안에서 6줄로 접힘(보내지면 진짜 글 = 17줄 + 「전체 보기」 · ./fold.tsx) */
 .nac-box { max-height:50dvh; }
 .nac-up { align-self:flex-end; display:flex; flex-direction:column; align-items:flex-end; gap:6px; max-width:min(78%, 260px); margin-bottom:8px; }
-.nac-text { max-height:calc(14px * 1.5 * 6 + 16px); overflow:hidden; line-height:1.5; margin:0; padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; font-size:14px; white-space:pre-wrap; word-break:break-word; }
-.nac-text.long { -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 2.6em), transparent); mask-image:linear-gradient(to bottom, #000 calc(100% - 2.6em), transparent); }   /* 흐림 = 6줄 넘는 긴 글만(형 11-02 10:05 · 짧은 글이 띠에 묻히던 것) */
+.nac-text { line-height:1.5; margin:0; padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; font-size:14px; white-space:pre-wrap; word-break:break-word; }   /* 보내는 중 글 = 다 보임(보내진 뒤 사진 밑 글 .ycap 도 안 접힘 · 형 11-04 09:37 「일정 글자 이상 들어가는게 문제인거같아」 = 6줄로 자르고 끝을 흐려 입력칸에 묻힌 듯 보였음 · 앞 판 = 6줄 + 흐림 띠) */
 .nac-img { display:block; max-height:120px; max-width:100%; border-radius:16px; object-fit:cover; opacity:.55; transition:opacity .28s ease; }
 .nac-file { max-width:100%; padding:8px 12px; border-radius:14px; background:var(--duet-tile, rgba(255,255,255,.08)); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nac-wait { font-size:11px; line-height:1; color:var(--mut, currentColor); opacity:0; animation:nacLate .2s ease 1.2s forwards; }   /* 글도 줄로 가니(형 11-02 11:17) 빨리 가는 글엔 안 보이게 · 1.2초 넘게 걸리면 「보냄 대기」 */

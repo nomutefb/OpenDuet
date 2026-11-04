@@ -51,11 +51,9 @@ function Sending({ attempt }: { attempt: SendAttempt }) {
   );
 }
 
-/** 보내는 중 글 = 6줄 넘을 때만 아래를 흐리게 접음 · 짧은 글은 흐림 0(형 11-02 10:05 「사진 업로드할때 그라데이션 라인 아래에 박히는데, 그 위로 가야하고」 · 두 줄 글도 흐림 띠에 묻혔음) */
+/** 보내는 중 글 = 보내진 뒤처럼 다 보임(형 11-04 09:37 · 앞 판 = 6줄 넘으면 접고 끝 흐림) */
 function NacText({ text }: { text: string }) {
-  const ref = useRef<HTMLParagraphElement>(null), [long, setLong] = useState(false);
-  useEffect(() => { const el = ref.current; if (el) setLong(el.scrollHeight > el.clientHeight + 1); }, [text]);
-  return <p ref={ref} className={`nac-text${long ? " long" : ""}`}>{text}</p>;
+  return <p className="nac-text">{text}</p>;
 }
 
 const RING_C = 2 * Math.PI * 18;
