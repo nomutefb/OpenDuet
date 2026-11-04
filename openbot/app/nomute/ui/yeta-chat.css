@@ -594,3 +594,8 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-vprog-h { margin:4px 2px 6px; font-size:12px; font-weight:700; color:var(--mut); }
 .nm-vprog .nm-q-row { grid-template-columns:52px minmax(0, 1fr) 38px minmax(0, auto); }
 .nm-vprog-at { font-size:10.5px; color:var(--mut); white-space:nowrap; max-width:84px; overflow:hidden; text-overflow:ellipsis; }
+/* 글 속 부름 = 작은 얼굴 + 이름 알약(./office-chat.tsx CallChip · 형 11-04 17:15) · 줄 높이 안 흔들리게 15px 얼굴 · 바로 깸 = 뒤 라임 「!」 */
+.ychat .ycall.yface { display:inline-flex; align-items:center; gap:4px; padding:1px 7px 1px 2px; border-radius:999px; vertical-align:-3px; line-height:17px; font-size:.92em; background:rgba(var(--accent-rgb),.12); border:1px solid rgba(var(--accent-rgb),.22); }
+.ychat .ycall.yface img, .ychat .ycall.yface [role="img"] { width:15px !important; height:15px !important; }
+.ychat .ycall.yface b { color:var(--accent, #CFFF40); font-weight:800; margin-left:-1px; }
+.ychat .yb.me .ycall.yface { background:#1d1e1b; border-color:rgba(255,255,255,.12); padding:1px 7px 1px 2px; }

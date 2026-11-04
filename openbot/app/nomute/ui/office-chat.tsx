@@ -21,7 +21,7 @@ import { Streamdown } from "streamdown";
 import { Composer, toAgentOptions } from "@/components/channels/composer";
 import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
-import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
+import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, peopleSync, roomAgentIds } from "../data/office";
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { peekAttachments } from "../shim/attachments";
 import { attachmentSender } from "../data/attachment-state";
@@ -598,10 +598,19 @@ function tokened(text: string, key: string): ReactNode {
   if (last < text.length) out.push(text.slice(last));
   return out;
 }
+/** 부름 칩 = 작은 얼굴 + 이름 알약(형 11-04 17:15 dm-sia 「혹시 내가 골뱅이 하면, 이거 얼굴 조그마하게 해서, 이쁘게 호출모양이 들어가게 가능해?」 + 사진 = 「보낸 메시지」 알약 꼴 축약)
+ *  · 「!」 = 이름 뒤 작은 라임 「!」(바로 깸) · 얼굴 없는 이름(모두·묶음) = 글자 그대로 */
+function CallChip({ t }: { t: ReactNode }) {
+  const s = typeof t === "string" ? t : Array.isArray(t) && t.every((x) => typeof x === "string") ? t.join("") : null;
+  const m = s ? s.match(/^([@!])(.+)$/) : null;
+  const who = m?.[2] || "", p = m ? peopleSync().find((x) => x.who === who || x.name === who || (x.aka || []).includes(who)) : undefined;
+  if (!m || !p?.face) return <span className="ycall">{t}</span>;
+  return <span className={`ycall yface${m[1] === "!" ? " now" : ""}`} title={`${m[1]}${who}`}><FaceImg id={idOf(p.who)} size={15} /><span>{p.name || who}</span>{m[1] === "!" ? <b aria-label="바로 깸">!</b> : null}</span>;
+}
 function called(text: string, re: RegExp | null, key: string, nre: RegExp | null = null): ReactNode {
   if (!re) return named(text, nre, key);
   const parts = text.split(re);
-  return parts.length === 1 ? named(text, nre, key) : parts.map((x, i) => (i % 2 ? <span key={`${key}-${i}`} className="ycall">{x}</span> : <Fragment key={`${key}-${i}`}>{named(x, nre, `${key}-${i}`)}</Fragment>));
+  return parts.length === 1 ? named(text, nre, key) : parts.map((x, i) => (i % 2 ? <CallChip key={`${key}-${i}`} t={x} /> : <Fragment key={`${key}-${i}`}>{named(x, nre, `${key}-${i}`)}</Fragment>));
 }
 
 /** 꾸밈 없는 글(형 글) 속 주소 → 누르면 새 창 링크(말풍선 누름 = 글 동작 줄은 안 열림) · 부름 = 칩(형 10-30 「호출이 따로 링크처럼 표시안되는거」) · 봇 이름 = 시안 */
@@ -629,7 +638,7 @@ function calledMd(text: string, re: RegExp | null, nre: RegExp | null = null): s
 const MD_BOX = { lineNumbers: false, controls: { code: { copy: true, download: false } } } as const;   // 복사 창 = 줄 번호·받기 뺌(형 11-01 「복사가능한 창이 이리나오는데」 · 그록 앱 꼴 · 모양 = yeta-chat.css)
 const mdWithCalls = {
   ...markdownComponents,
-  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <span className="ycall">{p.children}</span> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a({ ...p, children: <><SiteIcon href={p.href} />{p.children}</> })),   // GitHub·Cloudflare·Suno = 글자 앞 작은 아이콘(./site-icon.tsx)
+  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <CallChip t={p.children} /> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a({ ...p, children: <><SiteIcon href={p.href} />{p.children}</> })),   // GitHub·Cloudflare·Suno = 글자 앞 작은 아이콘(./site-icon.tsx)
 };
 
 /** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)

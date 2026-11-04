@@ -7,6 +7,7 @@
 //     · 한글 입력 중 「@」 = 키가 「Process」(229)로 와서 원본 launch 가 못 봄 → 글자가 들어온 뒤(input) 그 「@」 를 지우고 같은 목록을 엶(「!」 는 글 앞·띄움 뒤만 · 「고마워!」 는 그대로)
 import { type RefObject, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { idOf, peopleSync } from "../data/office";
 import { faceIcon, markLabel } from "./call-face";
 import "./call-sheet.css";
 
@@ -46,6 +47,18 @@ function onTyped(e: Event) {
   else setTimeout(run, 0);
 }
 if (typeof document !== "undefined") document.addEventListener("input", onTyped, true);
+/** 입력칸 칩도 같은 알약(작은 얼굴 + 이름 · 형 11-04 17:15) — 칩은 입력칸 원본이 그려서 손대지 않고 얼굴 주소만 --face 로 걸어 둠(그림 = call-sheet.css ::before) */
+function faceChips() {
+  for (const el of document.querySelectorAll<HTMLElement>('[contenteditable="true"] .prompt-area-chip:not([data-faced])')) {
+    const v = el.dataset.chipValue || "", list = peopleSync(), p = list.find((x) => x.who === v || x.name === v || idOf(x.who, list) === v);
+    el.dataset.faced = p?.face ? "1" : "0";
+    if (p?.face) el.style.setProperty("--face", `url("${p.face}")`);
+  }
+}
+if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {
+  let raf = 0;
+  new MutationObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(faceChips); }).observe(document.documentElement, { childList: true, subtree: true });
+}
 const close = () => { open = null; emit(); const h = composer?.current; h?.focus(); h?.setCursorToEnd();   /* 칩은 글 끝에 붙음 → 커서도 끝으로(앞에 남으면 이어 친 글이 칩 앞에 붙어 「봐@시아」 = 서버가 부름으로 못 읽음 · 목 시험) */ };
 const ALL = "group-all";
 
@@ -141,7 +154,7 @@ export function CallSheet() {
           })}
           {list.length ? null : <li className="ncs-none">찾는 이름이 없어</li>}
         </ul>
-        <button type="button" className="ncs-go" disabled={!picked.length} onClick={put}>{picked.length ? `넣기 (${picked.length})` : "고를 이를 눌러 줘"}</button>
+        <button type="button" className="ncs-go" disabled={!picked.length} onClick={() => put()}>{picked.length ? `넣기 (${picked.length})` : "고를 이를 눌러 줘"}</button>
       </div>
     </div>,
     document.body,
