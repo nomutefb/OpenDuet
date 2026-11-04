@@ -13,6 +13,8 @@ import { GoButton } from "./go-button";
 import type { Review } from "./sched-review";
 import type { Health, HealthSum } from "./sched-bits";   // 상태 점 칸(뜸 서버 healthOf · 없으면 ○ 확인 안 됨)
 import { whoName } from "./who-name";
+import { DuetIcon } from "@/components/duet/icons";
+import { RoomGoneDialog, canGone } from "./temp-room";   // 방 없애기(형 11-05 · 방 목록 🗑️ 와 같은 되묻기)
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const hm = (ts?: number | string) => (ts ? t12(typeof ts === "string" ? Date.parse(ts) : ts) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
@@ -128,7 +130,7 @@ export function NomuteRoomset() {
   const list = usePeople();
   const q = useQuery({ queryKey: ["nomute", "roomset"], queryFn: () => office<{ roomset: { ver: number; rooms: Record<string, string[]>; at?: string; by?: string }; candidates: string[]; designated: string[]; can_edit: boolean }>("roomset") });
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: { id: string; name: string }[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 });
-  const [edit, setEdit] = useState<Record<string, string[]>>({});
+  const [edit, setEdit] = useState<Record<string, string[]>>({}), [gone, setGone] = useState<{ id: string; name: string } | null>(null);   // 방 없애기(형 11-05 「설정에서도 반영되어야해」 · 방 목록 🗑️ 와 같은 되묻기)
   const save = useMutation({
     mutationFn: ({ room, members }: { room: string; members: string[] }) => office("roomset", { method: "POST", body: JSON.stringify({ room, members, base: q.data?.roomset.ver }) }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); },   // 고친 칸 접기 = ✓ 뒤(GoButton done)
@@ -136,6 +138,7 @@ export function NomuteRoomset() {
   const d = q.data;
   return (
     <PageSection title="지정방 멤버">
+      {gone ? <RoomGoneDialog r={gone} onClose={() => setGone(null)} /> : null}
       <p className="mt-1 text-sm text-muted-foreground">{d ? `판 ${d.roomset.ver} · ${d.roomset.by || ""}` : q.isError ? q.error.message : "읽는 중…"}</p>
       {d ? d.designated.map((rid) => {
         const cur = edit[rid] || d.roomset.rooms[rid] || [];
@@ -143,7 +146,10 @@ export function NomuteRoomset() {
         return (
           <Card key={rid}>
             <div className="p-4">
-              <p className="text-sm font-semibold">{rooms.data?.find((r) => r.id === rid)?.name || rid} <span className="text-xs font-normal text-muted-foreground">{cur.length}명</span></p>
+              <div className="flex items-center gap-2">
+                <p className="min-w-0 flex-1 text-sm font-semibold">{rooms.data?.find((r) => r.id === rid)?.name || rid} <span className="text-xs font-normal text-muted-foreground">{cur.length}명</span></p>
+                {d.can_edit && canGone({ id: rid, temp: /^tmp-/.test(rid) }) ? <button type="button" aria-label={`${rooms.data?.find((r) => r.id === rid)?.name || rid} 없애기`} title="방 없애기" className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => setGone({ id: rid, name: rooms.data?.find((r) => r.id === rid)?.name || rid })}><DuetIcon name="trash" size={16} /></button> : null}
+              </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {d.candidates.map((w) => {
                   const on = cur.includes(w);

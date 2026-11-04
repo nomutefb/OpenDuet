@@ -10,3 +10,9 @@
 .ypc .ypc-intro-edit .row small { margin-right:auto; color:rgba(231,236,231,.55); font-size:11px; }
 .ypc .ypc-intro-edit .row button { border-radius:var(--r-pill); padding:5px 14px; font:inherit; font-size:var(--fs-sm); font-weight:var(--fw-b); cursor:pointer; }
 .ypc .ypc-intro-edit .err { color:#ff8a8a; font-size:11px; }
+/* 직무 고치기(형 11-05 「내가 애들 직무도 변경할 수 있게해줘 프로필에서」) = 직무 알약 옆 같은 연필 · 누르면 한 줄 입력칸 */
+.ypc .ypc-role { display:inline-flex; align-items:center; gap:4px; }
+.ypc .ypc-role-edit { display:flex; align-items:center; gap:6px; width:min(100%, 34ch); }
+.ypc .ypc-role-edit input { flex:1; min-width:0; padding:6px 10px; border-radius:var(--r-pill); border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:#E7ECE7; font:inherit; font-size:var(--fs-sm); }
+.ypc .ypc-role-edit input:focus { outline:none; border-color:color-mix(in srgb, var(--accent) 60%, transparent); }
+.ypc .ypc-role-edit button { flex:none; border-radius:var(--r-pill); padding:5px 12px; font:inherit; font-size:var(--fs-sm); font-weight:var(--fw-b); cursor:pointer; }

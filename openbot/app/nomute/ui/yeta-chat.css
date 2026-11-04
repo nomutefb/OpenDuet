@@ -335,7 +335,9 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-sw.open .nm-sw-tray { transform:translateX(0); }
 .nm-sw-act { flex:1; border:0; color:#fff; font-size:13px; font-weight:700; cursor:pointer; touch-action:manipulation; }
 .nm-sw-act.edit { background:rgba(255,255,255,.14); }
-.nm-sw-act.del { background:rgba(224,64,64,.72); }
+.nm-sw-act.del { display:grid; place-items:center; background:rgba(224,64,64,.72); }
+.nm-sw-act.del svg { width:20px; height:20px; transition:transform .2s; }   /* 단톡방 🗑️(형 11-05) */
+.nm-sw-act.del:active svg { transform:scale(.9); }
 .nm-sw-act.set { display:grid; place-items:center; color:var(--accent); background:rgba(18,18,18,.5); }   /* 대화방 줄 설정 칸(예타 고정 칸 꼴 · 블랙 50 유리 · 픽토 = 연두 · 빠르 11-02) */
 .nm-sw-act.set svg { width:20px; height:20px; transition:transform .2s; }
 .nm-sw-act.set:active svg { transform:scale(.9); }

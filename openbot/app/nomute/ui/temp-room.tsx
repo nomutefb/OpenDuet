@@ -122,6 +122,38 @@ export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClos
   );
 }
 
+/** 단톡방 없애기(형 11-05 「단톡방이 지금 없애는게 없는데, 좌측으로 하면 휴지통 모양 하나 나와서 정말 없애겠냐고 뜨고 없앨수있게해줘」 · 「설정에서도 반영되어야해」)
+ *  = 서버 DELETE rooms/<id>(뜸 · 형만) · 목록·설정·부름에서 빠지고 새 글 막힘 · 글은 서버에 남김(형 고름 「기록은 남김」 · 되살림 = 우리가 restore)
+ *  못 없앰 = 1:1·둘의 방 · 회의실·요약실·수리 접수·메모·공지 · 밥상(형 고름 「밥상은 못 지우게」 · 「밥상을지우겟냐?」) · 임시방 = 옛 길(TempDeleteDialog · 파기) */
+const KEEP_ROOMS = new Set(["all", "summary", "repair", "memo", "notice", "guide"]);
+export const canGone = (r: { id: string; with?: string; temp?: boolean }) => !r.with && !r.temp && !KEEP_ROOMS.has(r.id) && !/^(dm|pair)-/.test(r.id);
+export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: string }; onClose: () => void; onGone?: () => void }) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
+  const drop = async () => {
+    setBusy(true); setWhy("");
+    try {
+      await office(`rooms/${encodeURIComponent(r.id)}`, { method: "DELETE" });
+      await dropSearchCache(r.id);
+      await Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }), qc.invalidateQueries({ queryKey: ["nomute", "roomset"] })]);
+      onClose(); onGone?.();
+    } catch (e) { setWhy(e instanceof Error ? e.message : "못 없앴어"); setBusy(false); }
+  };
+  return (
+    <div role="alertdialog" aria-modal="true" aria-label="단톡방 없애기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
+        <b className="text-base">「{r.name}」 정말 없앨까?</b>
+        <p className="text-muted-foreground">없애면 대화 목록·설정·부름에서 빠지고 이 방엔 더 못 써. 쌓인 글은 서버에 남겨 둬서 되살릴 수 있어.</p>
+        {why ? <p role="alert" className="text-destructive">{why}</p> : null}
+        <div className="flex justify-end gap-2">
+          <button type="button" disabled={busy} className="rounded-full bg-destructive px-4 py-2 font-semibold text-white disabled:opacity-40" onClick={() => void drop()}>{busy ? "없애는 중" : "없애기"}</button>
+          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>그만두기</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const TRAY = 132, THRESH = 44, RUB = 0.55;   // 예타 목록 끌기(viewer/index.html yLrBind · 임계·고무줄 그대로 · 칸이 둘이라 폭만 두 배)
 
 /** 줄을 왼쪽으로 끌면 수정·삭제(형 10-31 「단체방은 방 좌측으로 끌면 이름 수정 이나 삭제 있어야 하고」) = 손가락 1:1 · 놓으면 이징 복귀 · 세로 = 스크롤 양보. */
