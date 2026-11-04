@@ -674,6 +674,19 @@ class LineGuard extends Component<{ m: Msg; children: ReactNode }, { bad: boolea
   render() { return this.state.bad ? <div className="ymsg" data-id={this.props.m.id}><div className="yb ai">{whoName(this.props.m.who)}: {String(this.props.m.text || "")}</div></div> : this.props.children; }
 }
 const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); };   // 읽음 저장 실패 = 화면 0 · 기록만(형 11-03 12:11)
+/** 형 글 아래 담당 줄 — 고르는 중 「서버가 배분 중입니다…」(빛 글자) → 고른 뒤 「담당 · 얼굴 · 이름」(복수 = 얼굴 겹침 · 이름 ·) · 칸 없으면 0(1:1 방·옛 글) */
+function RouteLine({ m, c }: { m: Msg; c: Ctx }) {
+  const r = m.route;
+  if (!r?.state) return null;
+  if (r.state === "pending") return <p className="yroute" aria-live="polite"><LiveShine text="서버가 배분 중입니다…" /></p>;
+  const to = (r.to || []).filter(Boolean);
+  if (!to.length) return null;
+  return (
+    <p className="yroute set" title={r.why ? `고른 까닭 · ${r.why}` : undefined}>
+      <span>담당</span><FaceStack ids={to.slice(0, 3).map((w) => idOf(w, c.list))} size={16} /><b>{to.map((w) => nmOf(c.list, w)).join(" · ")}</b>
+    </p>
+  );
+}
 function Line(p: ComponentProps<typeof LineBody>) { return <LineGuard m={p.m}><LineBody {...p} /></LineGuard>; }
 function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean; noTime?: boolean }) {
   const p = c.list.find((x) => x.who === m.who), ring = ringOf(p);   // ring = 이름표 바탕(테 색 · yeta-chat.css .yname.tab)
@@ -691,6 +704,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
           <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Missed m={m} /><Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
         </div>
+        <RouteLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
     );

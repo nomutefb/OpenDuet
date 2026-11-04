@@ -572,3 +572,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .ysent-fold > .ysent-talk { min-height:0; overflow:clip; opacity:0; transform:translateY(-8px); transition:opacity .24s ease .04s, transform .3s cubic-bezier(.2,.8,.2,1); }
 .ychat .ysent-fold.on > .ysent-talk { opacity:.9; transform:none; }
 @media (prefers-reduced-motion:reduce) { .ychat .ysent-fold, .ychat .ysent-fold > .ysent-talk { transition:none; } }
+/* 형 글 아래 담당 줄(RouteLine · 형 11-04 11:15 「서버가 배분중입니다 뜨면 좋을듯 … 누가 딱 선택된걸 픽스」) = 오른쪽 · 작게 · 시각 줄 아래 */
+.ychat .yroute { display:flex; align-items:center; justify-content:flex-end; gap:5px; margin:3px 2px 0; font-size:11px; line-height:1.2; color:var(--mut); }
+.ychat .yroute.set b { color:var(--fg-2, var(--fg)); font-weight:600; }
+.ychat .yroute .nm-face, .ychat .yroute img { border-radius:50%; }

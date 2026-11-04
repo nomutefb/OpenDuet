@@ -12,6 +12,7 @@ export type Meter = { day: string; by: Record<string, MeterRow>; calls_over: Rec
 export type OfficeMsg = {
   id: string; room: string; ts: number; at?: string; who: string; kind: "human" | "winter" | "bot" | "system" | "sent"; text: string;
   pair?: string;   // kind sent = 그 둘의 방 id(뜸 #2331 · 누르면 읽기만으로 엶)
+  route?: { state?: "pending" | "set"; to?: string[]; why?: string };   // 형 단체방 글 = 서버가 고른 담당(형 11-04 11:15 「누가 담당인지 파악중일때는 서버가 배분중입니다 뜨면 좋을듯. 그리고 누가 딱 선택된걸 픽스해주면 좋을듯. 그리고 애매하면 복수여도 돼.」 · 뜸 서버)
   to?: string;   // kind sent = who 가 봇 둘의 방으로 to 에게 보낸 흔적(내용 0 · 서버 뜸 · 형 11-03 17:52 「이런식으로 가려달라고했는데」)
   mention?: string[]; urgent?: string[]; reply_to?: string; origin?: string; state?: "suggest" | "decide" | "verified"; files?: string[]; caption?: string; call_out?: string[]; call_unknown?: string[]; seq?: Record<string, number>;
 };
