@@ -189,6 +189,22 @@ export function useOfficeRoom(room: string) {
     return () => { stop = true; ctl?.abort(); };
   }, [room, qc]);   // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 담당 고르는 중(route pending) 글 = 서버가 같은 글을 다시 써서 담당을 박음(뜸 11-04 16:55 · 밥상 고르기에 소넷 · 최대 ~10초) · watch 는 새 글만 줘서 고친 칸이 안 옴
+  //   → pending 글이 있는 동안 4·9·15·24초에 최근 글을 한 번씩 다시 읽어 id 로 합침(「서버가 배분 중」 → 담당 칩 · 형 11-04 11:15) · 다 박히면 멈춤
+  const pendingIds = (qc.getQueryData<Page>(officeKeys.msgs(room))?.messages || []).filter((m) => m.route?.state === "pending" && Date.now() - m.ts < 120_000).map((m) => m.id).join(",");
+  useEffect(() => {
+    if (!pendingIds) return undefined;
+    let stop = false;
+    const ts: number[] = [];
+    for (const ms of [4000, 9000, 15000, 24000]) ts.push(window.setTimeout(async () => {
+      if (stop) return;
+      const cur = qc.getQueryData<Page>(officeKeys.msgs(room));
+      if (!(cur?.messages || []).some((m) => m.route?.state === "pending")) return;
+      try { const j = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`); if (!stop && j.messages?.length) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, j.messages)); } catch { /* 다음 차례 */ }
+    }, ms));
+    return () => { stop = true; ts.forEach((t) => clearTimeout(t)); };
+  }, [pendingIds, room, qc]);
+
   const older = async () => {   // 앞 글 = 하루치(서버 day=1 · 그날이 비면 글 나올 때까지 앞날 · DAY_MIN 넘을 때까지)
     const cur = qc.getQueryData<Page>(officeKeys.msgs(room));
     const first = cur?.messages[0]?.ts;
