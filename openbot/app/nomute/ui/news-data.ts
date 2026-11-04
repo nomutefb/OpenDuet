@@ -16,7 +16,7 @@ export type Thumb = { img?: string; url?: string; link?: string; label?: string;
 export type Cards = { state?: string; thumb_search?: Thumb[]; thumb_gen?: Thumb[]; thumb_prompts_url?: string; images?: string[]; updated?: string; rev?: number; has_md?: boolean };
 export type Art = {
   file: string; title?: string; title_orig?: string; summary?: string; media?: string; reporter?: string; url?: string; date?: string; time?: string; time_est?: string;
-  category?: string; bias?: string; bias_src?: string; tags?: string; tags_why?: string; breaking?: boolean | number | string; issue?: boolean | number; rev?: number; has_body?: boolean; cards?: Cards;
+  category?: string; cat?: string; bias?: string; bias_src?: string; tags?: string; tags_why?: string; breaking?: boolean | number | string; issue?: boolean | number; rev?: number; has_body?: boolean; cards?: Cards;
 };
 type Feed = { articles?: Art[]; count?: number; generated?: string };
 
@@ -68,7 +68,7 @@ export const whenOf = (a: Art) => {
 };
 /** 분류 = 에디터 CAT_MAP 6칸(정치·사회·경제·국제·문화·테크) · 밖이면 원래 글자 */
 const CAT: Record<string, [string, string]> = { 정치: ["정치", "pol"], 사회: ["사회", "soc"], 시사: ["사회", "soc"], 경제: ["경제", "eco"], 국제: ["국제", "intl"], 외교: ["국제", "intl"], 문화: ["문화", "cul"], 스포츠: ["문화", "cul"], 연예: ["문화", "cul"], 테크: ["테크", "tech"], 과학: ["테크", "tech"], IT: ["테크", "tech"], AI: ["테크", "tech"] };
-export const catOf = (a: Art): [string, string] | null => { const c = String(a.category || "").trim(); return c ? CAT[c] || [c, ""] : null; };
+export const catOf = (a: Art): [string, string] | null => { const c = String(a.cat || a.category || "").trim(); return c ? CAT[c] || [c, ""] : null; };   // cat = 빌드가 뷰어 articleCat 으로 구운 대분류(정본 = viewer/index.html CAT_RULES · 에디터 화면과 같은 셈 · 빠르 11-04) · 없으면 옛 category
 
 /** 편향 = 에디터 biasLabel 카드 꼴(「중립 5」 · 보정 있으면 「좌 보정(4+1)」) · 색 칸 = 원문 방향 */
 const biasNum = (s?: string) => { const m = /(\d+)\s*[/／]\s*10/.exec(s || ""); return m ? +m[1] : null; };
