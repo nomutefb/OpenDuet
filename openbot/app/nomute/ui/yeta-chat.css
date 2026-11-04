@@ -8,6 +8,8 @@
 @font-face{font-family:'LEMONMILK';font-weight:700;font-style:normal;src:url('./fonts/LEMONMILK-Bold.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 @font-face{font-family:'LEMONMILK';font-weight:400;font-style:normal;src:url('./fonts/LEMONMILK-Regular.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 @font-face{font-family:'Paperlogy';font-weight:400;src:url('./fonts/Paperlogy-4Regular.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
+@font-face{font-family:'Paperlogy';font-weight:500;src:url('./fonts/Paperlogy-5Medium.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
+@font-face{font-family:'Paperlogy';font-weight:600;src:url('./fonts/Paperlogy-6SemiBold.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}   /* 500·600 = 요약실 한 단계 낮춘 굵기(형 11-04 10:50) · 원본 = editor 자료/폰트/Paperlogy-1.001.zip */
 @font-face{font-family:'Paperlogy';font-weight:700;src:url('./fonts/Paperlogy-7Bold.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 @font-face{font-family:'Paperlogy';font-weight:800;src:url('./fonts/Paperlogy-8ExtraBold.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 .ychat, .ynav, .nm-yeta {

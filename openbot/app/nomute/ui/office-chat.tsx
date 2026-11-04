@@ -280,6 +280,16 @@ type Ctx = {
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
 /** 이어진 보낸 흔적 = 묶음 알약 하나(형 11-03 19:3x 그림 = 「외 1 · 메시지 13개」 꼴 · 「이런식으로 보이도록 수정해주라」) — 받은 이 얼굴 겹침 · 「보낸 메시지 N개」(하나면 「이름 · 메시지 보냄」)
  *  누르면 그 자리에서 펼침 = 그 둘의 방 대화를 받아 시간 순으로 이어 그림 · 날짜 바뀌는 곳에 날짜 줄 · 왼쪽 줄(묶음 펼침 Band 꼴)(형 11-04 08:04 「새 창에서 열리거나 요약되서 나오지 않고 그 옆에 라인 쭉 나오면서 인 라인으로 … 일자별로는 조금 구분 되게. 저거 누르면 그 대화방 안에서 확 펼쳐지면 좋겠어」) */
+/** 알약을 펼칠 때 = 알약이 위 머리(떠 있는 네비) 바로 아래로 스르륵 올라감(형 11-04 10:51 「누르면, 자연스럽게 이게 상단 네비 아래로 알약이 올라가면서 펼쳐져야되」)
+ *  펼침(0.3초)과 같이 굴림 · 아래 글이 모자라 덜 올라가면 펼침이 끝난 뒤 한 번 더 · 자리 = 얼굴 sticky 가 서는 줄(--ytop) */
+function rise(pill: HTMLElement) {
+  const box = pill.closest<HTMLElement>(".overflow-y-auto");
+  if (!box) return;
+  const top = (parseFloat(getComputedStyle(pill).getPropertyValue("--ytop")) || 84) + 4;
+  const go = () => box.scrollTo({ top: box.scrollTop + pill.getBoundingClientRect().top - box.getBoundingClientRect().top - top, behavior: "smooth" });
+  requestAnimationFrame(go);
+  for (const ms of [340, 700]) window.setTimeout(() => { if (Math.abs(pill.getBoundingClientRect().top - box.getBoundingClientRect().top - top) > 8) go(); }, ms);
+}
 function SentGroup({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
   const list = c.list, [open, setOpen] = useState(false), [shown, setShown] = useState(false), [on, setOn] = useState(false);
   // 펼침 = 아래로 스르륵(형 11-04 09:42 「알약 버튼 누르면 자연스럽게 아래로 모션 생기면서 펼쳐지면 좋을듯 지금은 뚝딱 거리는 느낌이라」 · 「고 프레임으로」) — 높이 0fr→1fr + 글 살짝 내려오며 또렷 · 접힘도 같은 길로 걷힌 뒤 뺌
@@ -299,7 +309,7 @@ function SentGroup({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
   return (
     <div className="flex flex-col items-center gap-3">
       <button type="button" className="ygrp" aria-expanded={open} title={msgs.map((m) => `${t12(m.ts)} · ${nmOf(list, m.who)} → ${nmOf(list, m.to || "")}`).join("\n")}
-        aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개 · 누르면 그 대화 펼침`} onClick={() => { c.loose(); setOpen((v) => !v); }}>
+        aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개 · 누르면 그 대화 펼침`} onClick={(e) => { c.loose(); const opening = !open; setOpen(opening); if (opening) rise(e.currentTarget); }}>
         {faces}{one ? <>{one} · 메시지 보냄</> : <>{tos.length > 3 ? <b>외 {tos.length - 3}</b> : null}{tos.length > 3 ? " · " : ""}보낸 메시지 {msgs.length}개</>}
       </button>
       {shown && rows.length ? (
