@@ -8,6 +8,7 @@ import { Fragment, useState } from "react";
 import { office } from "../data/office";
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
 import "./sched-status.css";
+import "./yeta-settings.css";
 import "./trend.css";   // 수집 목록 = 옛 피드 꼴(SNS 전체와 같은 줄)
 import "./status-board.css";
 
@@ -102,7 +103,7 @@ function ZoneItems({ zone }: { zone: string }) {   // 수집 줄 누르면 그 �
   if (!q.data) return <p className="nsb-why">읽는 중…</p>;
   // 꼴 = 옛 뉴스 1번 피드(형 11-05 08:2x 「옛 뉴스 1번 피드를 기준으로하면됨」 · 에디터 트렌드 탭 = 앱 「SNS 전체」 ./trend.tsx 와 같은 Sec·Row 꼴 · trend.css 그대로)
   return (
-    <div className="nm-trend nsb-zones">
+    <div className="yeta-set nm-trend nsb-zones">
       {zs.map((z) => (
         <details key={z.id} className="ts" data-st={z.ok === false ? "miss" : undefined}>
           <summary className="ts-h"><span className="ts-l"><StatusDot st={z.ok === false ? "miss" : z.ok ? "ok" : "unknown"} />{z.name}</span><span className="ts-u">{z.at ? agoKo(z.at) : ""}</span><span className="ts-n">{z.n ?? z.items.length}</span></summary>
