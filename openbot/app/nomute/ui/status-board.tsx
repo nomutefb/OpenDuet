@@ -8,6 +8,7 @@ import { Fragment, useState } from "react";
 import { office } from "../data/office";
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
 import "./sched-status.css";
+import "./trend.css";   // 수집 목록 = 옛 피드 꼴(SNS 전체와 같은 줄)
 import "./status-board.css";
 
 type Cell = { st: HealthSt; note?: string };
@@ -99,12 +100,15 @@ function ZoneItems({ zone }: { zone: string }) {   // 수집 줄 누르면 그 �
   if (q.isError) return <p className="nsb-why">수집 목록은 빠르가 붙이는 중이야</p>;
   const zs = (q.data?.zones || []).filter((z) => z.group === zone || (zone === "X 수집" && z.group === "X"));
   if (!q.data) return <p className="nsb-why">읽는 중…</p>;
+  // 꼴 = 옛 뉴스 1번 피드(형 11-05 08:2x 「옛 뉴스 1번 피드를 기준으로하면됨」 · 에디터 트렌드 탭 = 앱 「SNS 전체」 ./trend.tsx 와 같은 Sec·Row 꼴 · trend.css 그대로)
   return (
-    <div className="nsb-zones">
+    <div className="nm-trend nsb-zones">
       {zs.map((z) => (
-        <details key={z.id} className="nsb-zone">
-          <summary><StatusDot st={z.ok === false ? "miss" : z.ok ? "ok" : "unknown"} />{z.name} <small>{z.n ?? z.items.length}개{z.at ? ` · ${agoKo(z.at)}` : ""}</small></summary>
-          <ol>{z.items.map((it, i) => <li key={i}><span className="nsb-rk">{it.rank ?? i + 1}</span>{it.url ? <a href={it.url} target="_blank" rel="noopener">{it.title}</a> : it.title}{it.metric !== undefined ? <small> · {it.metric}</small> : null}</li>)}</ol>
+        <details key={z.id} className="ts" data-st={z.ok === false ? "miss" : undefined}>
+          <summary className="ts-h"><span className="ts-l"><StatusDot st={z.ok === false ? "miss" : z.ok ? "ok" : "unknown"} />{z.name}</span><span className="ts-u">{z.at ? agoKo(z.at) : ""}</span><span className="ts-n">{z.n ?? z.items.length}</span></summary>
+          {z.items.length ? z.items.map((it, i) => (
+            <a key={i} className="tr-row" href={it.url || undefined} target="_blank" rel="noopener"><span className="rk">{it.rank ?? i + 1}</span><span className="q">{it.title}</span>{it.metric !== undefined ? <span className="tf">{it.metric}</span> : null}<span className="tm">{it.at ? agoKo(it.at) : ""}</span></a>
+          )) : <p className="nsb-why">{z.ok === false ? "멈춤 — 새로 들어온 게 없어" : "비어 있음"}</p>}
         </details>
       ))}
     </div>
