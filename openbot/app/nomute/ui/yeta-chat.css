@@ -532,6 +532,14 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat [data-streamdown="code-block-body"] { max-height:none !important; margin:0; padding:10px 34px 10px 12px; overflow:visible; border:0; border-radius:0; background:none; color:var(--fg-2); font-size:var(--fs-xs); line-height:1.55; white-space:pre-wrap; word-break:break-word; }
 .ychat [data-streamdown="code-block-body"] pre, .ychat [data-streamdown="code-block-body"] code, .ychat [data-streamdown="code-block-body"] code span { background:none; white-space:pre-wrap; word-break:break-word; }
 .ychat [data-streamdown="code-block-copy-button"] { width:32px; height:32px; min-width:0; min-height:0; }
+/* 말풍선 색 = 글씨 결 따라(형 11-05 08:28 「이거 밝은 화면일때 복사가능창 글씨 안보임」 · 번개 연두 말풍선 안 코드 글씨가 흰빛 그대로) · data-ink = office-chat inkOn */
+.ychat .yb[data-ink="dark"] [data-streamdown="code-block"] { background:rgba(0,0,0,.09); }
+.ychat .yb[data-ink="dark"] [data-streamdown="code-block-body"], .ychat .yb[data-ink="dark"] [data-streamdown="code-block-body"] :is(pre, code, span) { color:#161716 !important; }
+.ychat .yb[data-ink="dark"] [data-streamdown="code-block-copy-button"] { color:#161716; }
+.ychat .yb[data-ink="dark"] :not(pre) > code { color:#161716; background:rgba(0,0,0,.08); }
+.ychat .yb[data-ink="light"] [data-streamdown="code-block"] { background:rgba(255,255,255,.12); }
+.ychat .yb[data-ink="light"] [data-streamdown="code-block-body"], .ychat .yb[data-ink="light"] [data-streamdown="code-block-body"] :is(pre, code, span) { color:#F2F4F2 !important; }
+.ychat .yb[data-ink="light"] [data-streamdown="code-block-copy-button"] { color:#F2F4F2; }
 /* 반응 단 이 보기(office-chat Reactions · 형 11-02 12:00) = 칩 위 작은 유리 말풍선 · 이름 · 「나도」/「빼기」 */
 .ychat .yrxs { position:relative; }
 .ychat .yrx-who { position:absolute; bottom:calc(100% + 6px); left:0; z-index:6; display:flex; align-items:center; gap:8px; max-width:min(260px, 70vw); padding:6px 8px 6px 10px; border-radius:12px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); background:rgba(24,25,28,.94); color:#fff; font-size:12px; line-height:1.35; box-shadow:0 8px 20px rgba(0,0,0,.4); white-space:normal; }
