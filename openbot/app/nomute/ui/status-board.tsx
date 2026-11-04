@@ -30,6 +30,9 @@ const SKELETON: StatusCat[] = [
   { id: "diary", name: "일기 작동", cols: DIARY_COLS, rows: BEINGS.map((b) => ({ ...wait(b), cells: {} })) },
   { id: "ssh", name: "SSH 서로 연결 · 권한", cols: HOSTS.map((h) => ({ id: h, name: `→ ${h}` })), rows: HOSTS.map((h) => ({ ...wait(h), cells: {} })) },
   { id: "docker", name: "도커 · VM 구성", rows: HOSTS.map((h) => wait(h)) },
+  // 사무실 통신(형 11-05 08:2x 「사무실 커뮤니케이션 상태 / 열인덱싱: 클로드, 지피티, 그록봇 / 행인덱싱: …」) = 종류 × 봇 무리 격자 · 칸 = 그 무리가 그 종류를 사무실로 보내고 받는지(시험 = 빠르 · 서버 file·photo 길)
+  { id: "comm", name: "사무실 커뮤니케이션", cols: [["claude", "클로드"], ["gpt", "지피티"], ["grok", "그록봇"]].map(([id, name]) => ({ id, name })),
+    rows: ["텍스트", "사진 원본", "사진 압축본", "영상 원본", "영상 압축본", "영상 해석본", "음성", "음성 전사본", "링크", "파일(웹 관련)", "파일(앱 관련)", "bat 파일 등"].map((t) => ({ ...wait(t), cells: {} })) },
 ];
 
 // 수집 구역(형 「경향+커뮤니티 / x수집 / rss」 · 빠르 GET trends?f=board 의 group 과 같은 이름) · 러너 줄 → 구역 = 빠르 판 오기 전 임시 맞춤(짐작 · 판 오면 그쪽이 이김)
