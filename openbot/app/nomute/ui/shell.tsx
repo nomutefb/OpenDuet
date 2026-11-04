@@ -42,6 +42,7 @@ import { TrendModal } from "./trend";   // 서랍 「SNS 전체」 = 에디터 �
 import { ScrapModal } from "./scrap";   // 서랍 「LEGACY」 = 에디터 수집함 탭 네이티브(전엔 FRAME 으로 품음)
 import { TokensModal } from "./tokens";   // 서랍 「토큰」·「결의 방」·「피드백」 = 에디터 페이지 네이티브(전엔 FRAME 으로 품음)
 import { GyeolModal } from "./gyeol-room";
+import { StoriesModal } from "./stories";   // 밥상 이야기(형 11-04 15:4x · 서랍 칸 · 밥상 방 오른쪽 위 그림은 ./room-search.tsx)
 import { FeedbackModal } from "./feedback";
 import { QueueModal } from "./queue";
 import { MsgsModal } from "./msgs";
@@ -64,7 +65,7 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
@@ -95,6 +96,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "edlock", label: "화면 잠금", icon: "lock", to: "/edlock", desc: "잠금·PIN·자동 잠금" },
   { id: "edacct", label: "계정 전환", icon: "key", to: "/edacct", desc: "관리자 · 러너 Claude 계정" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
   { id: "gyeol", label: "결의 방", icon: "sparkle", to: "/gyeol" },
+  { id: "story", label: "밥상 이야기", icon: "file", to: "/story" },   // 종 틈에 지은 글 모음(형 11-04 15:4x · ./stories.tsx)
   { id: "play", label: "놀이터", icon: "sparkle", to: "/play" },   // 형 10-31 「놀이터를 … 서랍메뉴로 아예 빼줘」 · 주소 = viewer/play
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
   { id: "feedback", label: "피드백", icon: "reply", to: "/feedback" },
@@ -258,6 +260,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "legacy" ? <div className="nm-scroll"><ScrapModal /></div>
                   : M.id === "tokens" ? <div className="nm-scroll"><TokensModal /></div>
                   : M.id === "gyeol" ? <div className="nm-scroll"><GyeolModal /></div>
+                  : M.id === "story" ? <div className="nm-scroll"><StoriesModal /></div>
                   : M.id === "feedback" ? <div className="nm-scroll"><FeedbackModal /></div>
                   : <div className="nm-scroll"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
               </div>

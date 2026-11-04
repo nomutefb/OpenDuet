@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { type RefObject, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { RoomHeadMenu } from "./room-menu";
+import { StoryButton } from "./stories";
 import { type OfficeRoom, office } from "../data/office";
 
 type Row = { id: string; ts: number; text: string };
@@ -149,6 +150,7 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
   return createPortal(
     <>
       <RoomHeadMenu room={room} right={pane.right + 6} />   {/* 검색 오른쪽 햄버거(./room-menu.tsx · 형 11-01 08:46) */}
+      {room === "guide" && !open ? <StoryButton right={pane.right + 86} /> : null}   {/* 밥상만 = 검색 왼쪽 「밥상 이야기」 그림 → 바로 모달(형 11-04 15:4x 「밥상 대화는 우상단에 그거 픽토그램으로 하나 뜨게 해주라, 모달로 바로 뜨게. 밥상만」) */}
       <div className={`nm-find${open ? " open" : ""}`} style={{ right: pane.right + 46, width: open ? Math.max(120, pane.width - 92) : 40 }}>   {/* 닫힘 = 햄버거 왼쪽 그림 하나 · 열림 = 「<」 와 햄버거 사이(형 08:46 「범위 높이 등 만 조정」) */}
         {open ? <input ref={input} value={q} placeholder="대화내용 검색" aria-label="대화내용 검색" enterKeyHint="search" onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Escape") close(); if (e.key === "Enter") setIdx((i) => Math.min(i + 1, Math.max(0, hits.length - 1))); }} /> : null}

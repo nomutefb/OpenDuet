@@ -1,0 +1,30 @@
+/* 밥상 이야기(./stories.tsx · 형 11-04 15:4x) — 줄 = 「MM-DD HH시 · 제목 · 쓴 이」 · 누르면 그 자리에서 아래로 쭉(알약 펼침과 같은 결 · grid 0fr→1fr) · 결정 창과 같은 유리 판 */
+.nm-story { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; border-radius:var(--r-modal, 18px); background:var(--glass, rgba(26,27,26,.56)); border:1px solid var(--glass-line, rgba(255,255,255,.12)); overflow:hidden; }
+.nm-story > li + li { border-top:1px solid var(--glass-line, rgba(255,255,255,.1)); }
+.nm-story-row { display:flex; align-items:center; gap:10px; width:100%; min-height:48px; padding:11px 14px; border:0; background:none; color:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-story-row:active { background:rgba(255,255,255,.04); }
+.nm-story-row .w { flex:none; font-size:12px; color:var(--mut, var(--muted-foreground)); font-variant-numeric:tabular-nums; }
+.nm-story-row .t { flex:1; min-width:0; font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-story-row .by { flex:none; display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--mut, var(--muted-foreground)); }
+.nm-story li.on .nm-story-row .t { color:#CFFF40; white-space:normal; }   /* 라임 값 그대로(body 로 빠진 창은 원본 앱 --accent = 회색을 받음 · 결정 창과 같은 까닭) */
+:root:not(.dark) .nm-story li.on .nm-story-row .t { color:#2f4a00; }
+.nm-story-in { display:grid; grid-template-rows:0fr; transition:grid-template-rows .42s cubic-bezier(.2,.7,.3,1); }
+.nm-story li.on .nm-story-in { grid-template-rows:1fr; }
+.nm-story-in > div { min-height:0; overflow:hidden; }
+.nm-story-body { margin:0; padding:2px 16px 16px; font-size:14.5px; line-height:1.75; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; opacity:0; transition:opacity .3s ease .08s; }
+.nm-story li.on .nm-story-body { opacity:1; }
+.nm-story-empty { margin:18px 4px; font-size:14px; color:var(--mut, var(--muted-foreground)); }
+@media (prefers-reduced-motion: reduce) { .nm-story-in, .nm-story-body { transition:none; } }
+
+/* 밥상 방 오른쪽 위 그림 = 검색 그림 왼쪽 같은 줄(.nm-find · .nm-room-menu 와 같은 높이·그림자) */
+.nm-story-btn { position:fixed; top:calc(env(safe-area-inset-top, 0px) + 0px); z-index:55; display:grid; place-items:center; width:40px; height:40px; border:0; background:none; color:#fff; cursor:pointer; filter:drop-shadow(0 1px 4px rgba(0,0,0,.7)); -webkit-tap-highlight-color:transparent; }
+.nm-story-btn svg { width:21px; height:21px; }
+:root:not(.dark) .nm-story-btn { color:var(--fg); }
+.nm-story-scrim { position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.34); animation:nmDecFade .2s ease-out; }
+.nm-story-pop { --sp:cubic-bezier(.34,1.56,.64,1); position:fixed; z-index:41; top:calc(env(safe-area-inset-top, 0px) + 46px); right:12px; width:min(420px, calc(100vw - 24px)); max-height:min(76vh, 640px); display:flex; flex-direction:column; border-radius:var(--r-l, 18px); background:var(--glass-bg, rgba(26,27,26,.88)); border:1px solid var(--glass-line, rgba(255,255,255,.14)); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); box-shadow:0 18px 40px -12px rgba(0,0,0,.6); transform-origin:100% 0; animation:nmDecIn .36s var(--sp); overflow:hidden; }
+:root:not(.dark) .nm-story-pop { background:rgba(255,255,255,.92); border-color:rgba(0,0,0,.1); }
+.nm-story-pop header { display:flex; align-items:baseline; gap:8px; padding:12px 12px 8px 14px; border-bottom:1px solid var(--glass-line, rgba(255,255,255,.1)); }
+.nm-story-pop header b { flex:1; font-size:15px; }
+.nm-story-pop header button { border:0; background:none; color:inherit; font-size:15px; cursor:pointer; padding:2px 6px; }
+.nm-story-scroll { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:8px; }
+.nm-story-pop .nm-story { background:none; border:0; border-radius:0; }
