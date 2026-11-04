@@ -20,3 +20,20 @@
 .ncs-none { color:var(--mut, #9aa0a6); font-size:13px; cursor:default !important; }
 .ncs-go { padding:11px; border-radius:14px; border:0; background:var(--accent, #CFFF40); color:#141414; font-weight:700; font-size:15px; cursor:pointer; }
 .ncs-go:disabled { background:var(--glass-2, rgba(255,255,255,.1)); color:var(--mut, #9aa0a6); cursor:default; }
+/* PC = 입력칸 바로 위 목록(./call-sheet.tsx inline · 형 11-04 16:28 「채팅에서 바로 … 이런식으로 떠서 깔끔하게」) · 덮개는 투명(밖 누르면 닫힘) · 목록 위 · 찾기 줄 아래(입력칸 쪽) */
+.ncs-veil.pop { background:none; display:block; padding:0; }
+.ncs.ncs-pop { position:fixed; max-height:min(62vh, 460px); gap:0; padding:6px; border-radius:16px; background:rgba(26,27,26,.94); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); box-shadow:0 16px 36px -10px rgba(0,0,0,.65); animation:ncsPop .16s ease-out; transform-origin:0 100%; }
+:root:not(.dark) .ncs.ncs-pop { background:rgba(255,255,255,.96); }
+@keyframes ncsPop { from { opacity:0; transform:translateY(6px) scale(.98); } }
+.ncs-pop .ncs-list { gap:1px; }
+.ncs-pop .ncs-list li { padding:7px 10px; border-radius:10px; }
+.ncs-pop .ncs-list li.hi { background:var(--glass, rgba(255,255,255,.07)); }
+.ncs-pop .ncs-nm { flex-direction:row; align-items:baseline; gap:6px; }
+.ncs-pop .ncs-nm b { white-space:nowrap; }
+.ncs-pop .ncs-ck { width:auto; min-width:18px; font-size:12px; font-weight:600; color:var(--mut, #9aa0a6); }
+.ncs-pop .ncs-list li.on .ncs-ck { color:var(--accent, #CFFF40); font-size:14px; }
+.ncs-pop-f { display:flex; align-items:center; gap:8px; padding:6px 4px 2px; margin-top:4px; border-top:1px solid var(--glass-line, rgba(255,255,255,.1)); }
+.ncs-pop-f > b { color:var(--accent, #CFFF40); font-size:15px; padding-left:4px; }
+.ncs-pop-f .ncs-find { flex:1; padding:6px 8px; border:0; background:none; font-size:14px; }
+.ncs-pop-f small { flex:none; font-size:11px; color:var(--mut, #9aa0a6); }
+.ncs-pop-go { flex:none; padding:6px 12px; border:0; border-radius:999px; background:var(--accent, #CFFF40); color:#141414; font-weight:700; font-size:13px; cursor:pointer; }
