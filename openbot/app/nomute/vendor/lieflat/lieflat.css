@@ -1,0 +1,51 @@
+/* vendored from nomutefb/lieflat-charts@dab2d23 — templates/lupi-gallery.html <style> 의 공용 줄(카드·글자·움직임) 값 그대로
+   바꾼 곳 = 앱 전체로 새지 않게 선택자 앞에 .lf 만 붙임 · 쪽 전체 줄(:root · * · body · .grid2 · .pagehead)은 앱을 덮어서 뺌
+   @keyframes 는 겹쳐 쓸 수 없어서 맨 위 그대로 (앱에 같은 이름 없음 · 11-05 확인) */
+
+/* ── 카드 뼈대(gallery 그대로 · 어두운 앱은 .card.dark) ── */
+.lf .card{background:var(--bg);border-radius:24px;padding:28px 28px 20px}
+.lf .card.dark{background:var(--dark);color:#F0EFEB}
+.lf .card.dark .sub{color:#8F8E88}
+.lf .card.dark .src{color:#55554F}
+.lf .card.wide{grid-column:1/-1}
+.lf .split{display:grid;grid-template-columns:250px 1fr;gap:30px;align-items:start}
+.lf h2{font-weight:700;font-size:16.5px;letter-spacing:-.02em;margin-bottom:3px}
+.lf .sub{font-size:11.5px;color:var(--muted);margin-bottom:14px}
+.lf .src{font-size:9.5px;color:var(--faint);margin-top:10px;letter-spacing:.08em;font-weight:500}
+.lf .note{font-size:11px;color:#6A6963;line-height:1.65;margin-bottom:16px}
+.lf .legend{font-size:9px;letter-spacing:.1em;font-weight:600;color:var(--muted);line-height:2}
+.lf svg{width:100%;max-height:330px;display:block;margin:0 auto}
+.lf svg text{font-family:'Inter',sans-serif}
+.lf .badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;
+  padding:3px 10px;border-radius:99px;margin-bottom:10px}
+.lf .badge.del{background:#1C1C1A;color:#F0EFEB}
+.lf .badge.pick{border:1.5px solid #1C1C1A;color:#1C1C1A}
+.lf .badge.pair{border:1px dashed #B0AFA9;color:#8F8E88}
+.lf .card.dark .badge.del{background:#F0EFEB;color:#1C1C1A}
+.lf .card.dark .badge.pick{border-color:#F0EFEB;color:#F0EFEB}
+.lf .card.dark .badge.pair{border-color:#55554F;color:#8F8E88}
+
+/* ── 움직임(MONO.MOTION.css 와 같은 줄) ── */
+.lf .pop{transform-box:fill-box;transform-origin:center;animation:pop .5s cubic-bezier(.2,.7,.3,1.3) both}
+@keyframes pop{from{transform:scale(0)}to{transform:none}}
+.lf .fade{animation:fade .9s ease both}
+@keyframes fade{from{opacity:0}}
+.lf .draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1s cubic-bezier(.4,0,.2,1) both}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){
+  .lf .pop,.lf .fade{animation:none}
+  .lf .draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+}
+
+/* ── nomute 덧붙임(라이브러리에 없음) ── */
+/* 어두운 판 색 = MONO.DARK 값 */
+.lf{--bg:#1C1C1A;--dark:#1C1C1A;--ink:#F0EFEB;--muted:#8F8E88;--faint:#55554F;--grid:#2E2D29}
+/* 한글 글꼴 뒤받침 */
+.lf svg text{font-family:Inter,"Pretendard","Noto Sans KR",system-ui,sans-serif}
+/* 두 번째 그림부터 = 입장 움직임 없이(위 reduced-motion 줄과 같은 값) */
+.lf .lf-still .pop,.lf .lf-still .fade{animation:none}
+.lf .lf-still .draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+/* 폰 = 누르는 칸 */
+.lf .lf-hit{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lf .lf-hit:focus-visible{outline:none;stroke:#F0EFEB;stroke-width:1}
+.lf svg.lf-fit{max-height:none}

@@ -4,9 +4,10 @@
 //   자료 = GET status(뜸 · 몸 보고 + 서버 합침) 가 있으면 그것 · 없으면 지금 있는 GET bots · GET schedule 로 1·2·3 만 채우고 나머지는 「보고 아직 안 옴」 칸
 //   일기 = 일곱 × 8단계 격자(형 「일기 정상 작동여부도 프로세스별로 예를들어 7단계면 표를 7단계로 음영칠해. 8x8 이런식. 안되는 부분에 불들어오게」) · SSH = 몸 × 몸 격자
 import { useQuery } from "@tanstack/react-query";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { office } from "../data/office";
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
+import { type HeatCell, MatrixHeat } from "./lieflat-charts";
 import "./sched-status.css";
 import "./yeta-settings.css";
 import "./trend.css";   // 수집 목록 = 옛 피드 꼴(SNS 전체와 같은 줄)
@@ -87,23 +88,22 @@ const count = (rows: StatusRow[], st: HealthSt) => rows.reduce((n, r) => n + (r.
 const daysKo = (d?: number) => (d === undefined ? "" : d < 1 ? `${Math.max(0, Math.round(d * 24))}시간 남음` : `${Math.floor(d)}일 남음`);
 const nextKo = (ts?: number) => (ts ? `다음 ${new Date(ts).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}` : "");
 
+/** 격자 = lieflat Matrix Heat(형 11-05 「거기이 잇는 모든 css 다 써서」 · 「카피하지말고 가져다가 써」 · ./lieflat-charts.tsx G20·L16) · 안 된 칸 = 주황 불 · 자기 칸(SSH 같은 몸) = 짧은 줄 */
 function Grid({ c, pick, setPick }: { c: StatusCat; pick: string; setPick: (k: string) => void }) {
   const cols = c.cols || [];
+  const at = pick.startsWith(`${c.id}:`) ? pick.split(":") : null, ri = at ? c.rows.findIndex((r) => r.key === at[1]) : -1, ci = at ? cols.findIndex((x) => x.id === at[2]) : -1;
+  const cellOf = (r: number, k: number): HeatCell => {
+    const row = c.rows[r], col = cols[k];
+    if (c.id === "ssh" && row.name === col.id) return { st: "off" };
+    const x = row.cells?.[col.id];
+    return { st: x?.st || (row.note === "보고 아직 안 옴" ? "unknown" : row.st === "miss" ? "unknown" : row.st), label: x?.note };
+  };
+  const r = ri >= 0 ? c.rows[ri] : undefined, x = r && ci >= 0 ? r.cells?.[cols[ci].id] : undefined;
   return (
-    <div className="nsb-grid" style={{ gridTemplateColumns: `minmax(56px, auto) repeat(${cols.length}, minmax(28px, 1fr))` }} role="table" aria-label={c.name}>
-      <span role="columnheader" />
-      {cols.map((x) => <span key={x.id} role="columnheader" className="nsb-gh">{x.name}</span>)}
-      {c.rows.map((r) => (
-        <Fragment key={r.key}>
-          <span role="rowheader" className="nsb-gr">{r.name}</span>
-          {cols.map((x) => {
-            const cell = r.cells?.[x.id] || (r.name === x.id.replace(/^→ /, "") ? null : { st: "unknown" as HealthSt, note: r.note });
-            const k = `${c.id}:${r.key}:${x.id}`;
-            return cell ? <button key={x.id} type="button" role="cell" className={`nsb-cell${pick === k ? " on" : ""}`} data-st={cell.st} aria-label={`${r.name} ${x.name} ${HEALTH_KO[cell.st]}`} onClick={() => setPick(pick === k ? "" : k)} /> : <span key={x.id} role="cell" className="nsb-cell self" aria-hidden />;
-          })}
-        </Fragment>
-      ))}
-      {pick.startsWith(`${c.id}:`) ? (() => { const [, rk, ck] = pick.split(":"); const r = c.rows.find((x) => x.key === rk), cell = r?.cells?.[ck]; return <p className="nsb-why">{r?.name} · {cols.find((x) => x.id === ck)?.name} — {HEALTH_KO[cell?.st || "unknown"]}{cell?.note || r?.note ? ` · ${cell?.note || r?.note}` : ""}</p>; })() : null}
+    <div className="nsb-mh">
+      <MatrixHeat rows={c.rows.map((x) => x.name)} cols={cols.map((x) => x.name)} cells={cellOf} mark={ri >= 0 && ci >= 0 ? { r: ri, c: ci } : null} aria-label={c.name}
+        onCell={(a, b) => { const k = `${c.id}:${c.rows[a].key}:${cols[b].id}`; setPick(pick === k ? "" : k); }} />
+      {r && ci >= 0 ? <p className="nsb-why">{r.name} · {cols[ci].name} — {HEALTH_KO[x?.st || "unknown"]}{x?.note || r.note ? ` · ${x?.note || r.note}` : ""}</p> : null}
     </div>
   );
 }

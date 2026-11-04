@@ -154,6 +154,48 @@ export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: 
   );
 }
 
+/** 방 멤버 고르기 = 대화 목록 한 곳에서(형 11-05 08:35 「아예 저기서 설정할게 아니라 그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」)
+ *  지정방 = 서버 roomset(형만 · base 판 · 낡으면 409) · 임시방 = 옛 「수정」(TempRoomDialog) 그대로 */
+export function RoomMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["nomute", "roomset"], queryFn: () => office<{ roomset: { ver: number; rooms: Record<string, string[]> }; candidates: string[]; can_edit: boolean }>("roomset") });
+  const [cur, setCur] = useState<string[] | null>(null), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
+  const list = peopleSync(), d = q.data, now = cur ?? d?.roomset.rooms[r.id] ?? r.members ?? [];
+  const save = async () => {
+    setBusy(true); setWhy("");
+    try {
+      await office("roomset", { method: "POST", body: JSON.stringify({ room: r.id, members: now, base: d?.roomset.ver }) });
+      await Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }), qc.invalidateQueries({ queryKey: ["nomute", "rooms"] })]);
+      onClose();
+    } catch (e) { const m = e instanceof Error ? e.message : "저장 못 함"; setWhy(/changed|base/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); setCur(null); void q.refetch(); setBusy(false); }
+  };
+  return (
+    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
+        <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
+        {!d ? <p className="text-muted-foreground">{q.isError ? q.error.message : "읽는 중…"}</p> : (
+          <div className="flex flex-wrap gap-1.5">
+            {d.candidates.map((w) => {
+              const on = now.includes(w);
+              return (
+                <button key={w} type="button" disabled={!d.can_edit || busy} aria-pressed={on} onClick={() => setCur(on ? now.filter((x) => x !== w) : [...now, w])}
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${on ? "border-primary bg-primary/10 font-semibold" : "border-border text-muted-foreground"}`}>
+                  <FaceImg id={idOf(w, list)} size={16} />{list.find((p) => p.who === w)?.name || w}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {why ? <p role="alert" className="text-destructive">{why}</p> : null}
+        <div className="flex justify-end gap-2">
+          <button type="button" disabled={busy || !cur || !now.length || !d?.can_edit} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" onClick={() => void save()}>{busy ? "저장 중" : "저장"}</button>
+          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>닫기</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const TRAY = 132, THRESH = 44, RUB = 0.55;   // 예타 목록 끌기(viewer/index.html yLrBind · 임계·고무줄 그대로 · 칸이 둘이라 폭만 두 배)
 
 /** 줄을 왼쪽으로 끌면 수정·삭제(형 10-31 「단체방은 방 좌측으로 끌면 이름 수정 이나 삭제 있어야 하고」) = 손가락 1:1 · 놓으면 이징 복귀 · 세로 = 스크롤 양보. */

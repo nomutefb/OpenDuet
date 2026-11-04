@@ -50,3 +50,4 @@
 .nsb-rk { flex:none; width:20px; color:var(--nsb-ok); font-weight:700; text-align:right; }
 :root:not(.dark) .nsb { color:#1a1b1a; --nsb-line:rgba(0,0,0,.08); --nsb-mut:rgba(26,27,26,.55); }
 :root:not(.dark) .nsb-top, :root:not(.dark) .nsb-cat { background:rgba(255,255,255,.7); }
+.nsb-mh { padding:4px 12px 12px; }   /* lieflat 격자 자리(./lieflat-charts.tsx MatrixHeat) */
