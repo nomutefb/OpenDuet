@@ -602,3 +602,5 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 /* 칩 다듬음(형 11-04 17:28 「글자를 1단계 더 얇게 해주고, 그 포르필이랑 글자랑 수평을 유지」 · 「프로필 사진 사분할 중심점이랑, 글자 사분할 중심점이 수평선에」) = 700 → 600 · 글자 칸 높이를 글자 몸(cap~기준선)으로 깎아 얼굴과 같은 가운데 */
 .ychat .ycall.yface { font-weight:600; }
 .ychat .ycall.yface > span { display:block; line-height:1; text-box:trim-both cap alphabetic; }
+/* 형 11-04 17:36 「시아 라고 써진거가 조금 아주 조금만 더 위로」 = 글자 0.5px 위(형 화면 = 실제 글꼴 · 잰 판은 가운데였지만 형 눈이 끝 기준) */
+.ychat .ycall.yface > span { position:relative; top:-.5px; }

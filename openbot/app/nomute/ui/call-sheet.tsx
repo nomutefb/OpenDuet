@@ -25,7 +25,13 @@ export function registerComposer(ref: RefObject<Handle | null>) { composer = ref
 /** 「@」·「!」 를 치면 부름(triggers.ts launch) */
 let known: readonly Agent[] = [];
 const anchor = () => { const a = document.activeElement as HTMLElement | null, ed = a?.closest?.('[contenteditable="true"]') as HTMLElement | null; return (ed?.closest("form") || ed?.parentElement || ed)?.getBoundingClientRect() || null; };
-export function openCallSheet(char: string, agents: readonly Agent[]) { known = agents; open = { char: char === "!" ? "!" : "@", agents, at: anchor() }; emit(); }
+/** 1:1 방 = 부를 이가 정해져 있어 고르기 0(형 11-04 17:36 「개인방에서도 골뱅이가 필요없어 바로 깨우는거니까」) */
+const inDm = () => /\/channels\/dm-/.test(location.hash || location.pathname);
+export function openCallSheet(char: string, agents: readonly Agent[]) {
+  known = agents;
+  if (char === "!" || inDm()) { document.execCommand("insertText", false, char === "!" ? "!" : "@"); return; }   // 「!」 고르기 뺌(형 11-04 17:36 「나는 이제 느낌표가 필요없음」) · 1:1 = 그냥 글자
+  open = { char: "@", agents, at: anchor() }; emit();
+}
 /** 부름 목록(triggers.ts 가 그릴 때마다 넣음) = 한글 입력 길(아래)이 쓸 이름들 */
 export function setCallAgents(agents: readonly Agent[]) { known = agents; }
 const inline = () => !!window.matchMedia?.("(pointer: fine)").matches;   // 마우스 판이면 폭 상관없이(형 PC 웹앱 창 = 620px 안팎 · 11-04 16:4x 사진 = 640 기준에 걸려 옛 시트가 뜸)
@@ -37,9 +43,7 @@ function onTyped(e: Event) {
     const sel = window.getSelection(), n = sel?.focusNode, off = sel?.focusOffset ?? 0;
     if (!sel || !n || n.nodeType !== Node.TEXT_NODE || !ed.contains(n)) return;
     const before = (n.textContent || "").slice(0, off), ch = before.slice(-1);
-    if (ch !== "@" && ch !== "!") return;
-    const prev = before.slice(-2, -1);
-    if (ch === "!" && prev && !/\s/.test(prev)) return;   // 「고마워!」 = 그냥 글
+    if (ch !== "@" || inDm()) return;   // 「!」 = 그냥 글(형 11-04 17:36) · 1:1 = 그냥 「@」
     document.execCommand("delete");   // 그 한 글자만(입력칸이 input 으로 받아 글을 다시 맞춤)
     openCallSheet(ch, known);
   };

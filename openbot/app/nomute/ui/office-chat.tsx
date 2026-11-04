@@ -605,7 +605,7 @@ function CallChip({ t }: { t: ReactNode }) {
   const m = s ? s.match(/^([@!])(.+)$/) : null;
   const who = m?.[2] || "", p = m ? peopleSync().find((x) => x.who === who || x.name === who || (x.aka || []).includes(who)) : undefined;
   if (!m || !p?.face) return <span className="ycall">{t}</span>;
-  return <span className={`ycall yface${m[1] === "!" ? " now" : ""}`} title={`${m[1]}${who}`}><FaceImg id={idOf(p.who)} size={15} /><span>{p.name || who}</span>{m[1] === "!" ? <b aria-label="바로 깸">!</b> : null}</span>;
+  return <span className="ycall yface" title={`${m[1]}${who}`}><FaceImg id={idOf(p.who)} size={15} /><span>{p.name || who}</span></span>;   // 「!」 표지 뺌(형 11-04 17:36 「빠르는 왜 느낌표가 있어?」 · 「느낌표가 필요없음」)
 }
 function called(text: string, re: RegExp | null, key: string, nre: RegExp | null = null): ReactNode {
   if (!re) return named(text, nre, key);
