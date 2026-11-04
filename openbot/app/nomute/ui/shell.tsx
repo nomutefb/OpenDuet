@@ -22,6 +22,7 @@ import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
 import { SchedDesk } from "./sched-desk";
+import { StatusBoard } from "./status-board";
 import { DrawerPage } from "./drawer-page";
 import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
@@ -65,11 +66,12 @@ import { useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer";
+export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
-  { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 네비 4번(서랍 목록엔 안 넣음 · swap/tab-bar.tsx)
+  { id: "status", label: "작동", icon: "activity", to: "/status" },   // 네비 4번 = 작동 표(형 11-05 · ./status-board.tsx · 서랍 목록엔 안 넣음)
+  { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 서랍 「일」 칸(형 11-05 「스케줄러는 메뉴5번 서랍 안으로 넣을게」 · 옛 네비 4번)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x) · 앱 안(./scrap.tsx · 전엔 /?tab=scrap 품음)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 · 링크 판별·초안 보존" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
@@ -236,6 +238,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><RunnerScreen /></div>
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
+                  : M.id === "status" ? <div className="nm-scroll"><StatusBoard /></div>
                   : M.id === "drawer" ? <div className="nm-scroll"><DrawerPage /></div>
                   : M.id === "ask" ? <div className="nm-scroll"><AskModal onClose={closeModal} /></div>
                   : M.id === "news" ? <div className="nm-scroll"><NewsModal /></div>

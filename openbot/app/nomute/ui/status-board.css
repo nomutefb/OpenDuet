@@ -1,0 +1,52 @@
+/* 작동 표(./status-board.tsx · 형 11-05 「한눈에 볼 수 있는 표」 · 「안되는 부분에 불들어오게」) — 어두운 유리 판 · 불 = 빨강 은은히 번짐 */
+.nsb { --nsb-red:#FF5A5F; --nsb-yel:#FFD23F; --nsb-ok:var(--accent, #CFFF40); --nsb-line:rgba(255,255,255,.08); --nsb-mut:rgba(231,236,231,.55); color:#E7ECE7; }
+.nsb-top { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; padding:12px 14px; margin-bottom:10px; border-radius:16px; background:rgba(18,18,18,.55); border:1px solid var(--nsb-line); }
+.nsb-top b { font-size:18px; color:var(--nsb-ok); }
+.nsb-top b[data-st="miss"] { color:var(--nsb-red); text-shadow:0 0 14px rgba(255,90,95,.55); }
+.nsb-top b[data-st="late"] { color:var(--nsb-yel); }
+.nsb-top span { font-size:13px; color:var(--nsb-mut); }
+.nsb-top small { margin-left:auto; font-size:11px; color:var(--nsb-mut); }
+.nsb-cat { margin-bottom:8px; border-radius:16px; background:rgba(18,18,18,.45); border:1px solid var(--nsb-line); overflow:hidden; }
+.nsb-cat[data-st="miss"] { border-color:rgba(255,90,95,.45); box-shadow:0 0 0 1px rgba(255,90,95,.15), 0 0 18px -6px rgba(255,90,95,.5); }
+.nsb-ch { width:100%; display:flex; align-items:center; gap:4px; padding:12px 14px; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.nsb-ch b { font-size:15px; }
+.nsb-cnt { margin-left:auto; display:flex; gap:8px; align-items:center; font-size:12px; }
+.nsb-cnt em { font-style:normal; color:var(--nsb-red); font-weight:700; }
+.nsb-cnt i { font-style:normal; color:var(--nsb-yel); }
+.nsb-cnt small { color:var(--nsb-mut); }
+.nsb-rows { list-style:none; margin:0; padding:0 6px 8px; }
+.nsb-rows li { border-radius:10px; }
+.nsb-rows li[data-st="miss"] { background:rgba(255,90,95,.12); box-shadow:inset 3px 0 0 var(--nsb-red); }
+.nsb-rows li[data-st="late"] { background:rgba(255,210,63,.07); }
+.nsb-r { width:100%; display:flex; align-items:center; gap:2px; padding:8px; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.nsb-n { min-width:0; flex:1; font-size:14px; }
+.nsb-n small { display:block; font-size:11px; color:var(--nsb-mut); }
+.nsb-v { flex:none; max-width:55%; text-align:right; font-size:12px; color:var(--nsb-mut); }
+.nsb-zh > .nsb-r .nsb-n { font-weight:700; }
+.nsb-zh { margin-top:4px; border-top:1px solid var(--nsb-line); border-radius:0 !important; }
+.nsb-why { margin:0 8px 8px 22px; font-size:12px; color:#ffb3b5; }
+.nsb-empty { padding:8px 10px; font-size:12px; color:var(--nsb-mut); }
+.nsb-grid { display:grid; gap:4px; padding:4px 12px 12px; align-items:center; }
+.nsb-gh { font-size:10px; line-height:1.2; color:var(--nsb-mut); text-align:center; word-break:keep-all; }
+.nsb-gr { font-size:13px; white-space:nowrap; padding-right:6px; }
+.nsb-cell { height:26px; border:0; border-radius:6px; background:rgba(255,255,255,.07); cursor:pointer; transition:transform .12s; }
+.nsb-cell[data-st="ok"] { background:color-mix(in srgb, var(--nsb-ok) 55%, transparent); }
+.nsb-cell[data-st="late"] { background:color-mix(in srgb, var(--nsb-yel) 60%, transparent); }
+.nsb-cell[data-st="miss"] { background:var(--nsb-red); box-shadow:0 0 12px rgba(255,90,95,.7); animation:nsbGlow 1.6s ease-in-out infinite; }
+.nsb-cell[data-st="off"] { background:rgba(255,255,255,.03); }
+.nsb-cell.on { outline:2px solid #fff; outline-offset:1px; }
+.nsb-cell.self { background:repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 4px, transparent 4px 8px); cursor:default; }
+.nsb-cell:active { transform:scale(.92); }
+.nsb-grid .nsb-why { grid-column:1 / -1; margin:6px 0 0; }
+@keyframes nsbGlow { 50% { box-shadow:0 0 4px rgba(255,90,95,.35); } }
+@media (prefers-reduced-motion: reduce) { .nsb-cell[data-st="miss"] { animation:none; } }
+.nsb-zones { padding:0 8px 8px 22px; }
+.nsb-zone summary { cursor:pointer; padding:6px 0; font-size:13px; }
+.nsb-zone summary small { color:var(--nsb-mut); }
+.nsb-zone ol { list-style:none; margin:0 0 6px; padding:0; font-size:12px; }
+.nsb-zone li { display:flex; gap:6px; padding:3px 0; border-bottom:1px solid var(--nsb-line); }
+.nsb-zone li a { color:inherit; }
+.nsb-zone li small { color:var(--nsb-mut); }
+.nsb-rk { flex:none; width:20px; color:var(--nsb-ok); font-weight:700; text-align:right; }
+:root:not(.dark) .nsb { color:#1a1b1a; --nsb-line:rgba(0,0,0,.08); --nsb-mut:rgba(26,27,26,.55); }
+:root:not(.dark) .nsb-top, :root:not(.dark) .nsb-cat { background:rgba(255,255,255,.7); }

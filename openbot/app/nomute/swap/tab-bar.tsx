@@ -35,7 +35,7 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
   const tasks = useQuery(taskListQueryOptions());
   const decide = useBrief().data?.cols.decide.filter((x) => !x.answer).length || 0;   // 형 결정 필요(답 안 한 것) = 할 일 숫자(서랍 안 · ≡ 칸에도)
   const waiting = needsInputCount(tasks.data, inbox.data) + decide;
-  const inDrawer = !!modal && modal !== "sched" && modal !== "settings";   // 서랍 안 화면 = 5번 켜짐
+  const inDrawer = !!modal && modal !== "status" && modal !== "settings";   // 서랍 안 화면 = 5번 켜짐(스케줄도 이제 서랍 안 · 형 11-05)
   const badge = (n: number) => (n > 0 ? <b aria-hidden className="nm-nav-badge">{n > 99 ? "99+" : n}</b> : null);
   return (
     <>
@@ -49,9 +49,10 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
             </button>
           );
         })}
-        <button aria-current={modal === "sched" ? "page" : undefined} aria-label="스케줄" className={modal === "sched" ? "on" : undefined} onClick={() => void navigate({ to: "/sched" })} type="button">
-          <DuetIcon name="calendar" size={20} stroke={modal === "sched" ? 2.1 : 1.9} />
-          <span>스케줄</span>
+        {/* 네비 4번 = 작동 표(형 11-05 「한눈에 볼 수 있는 표를 만들어줄수있어? 메뉴4번에? 스케줄러는 메뉴5번 서랍 안으로 넣을게」) */}
+        <button aria-current={modal === "status" ? "page" : undefined} aria-label="작동" className={modal === "status" ? "on" : undefined} onClick={() => void navigate({ to: "/status" })} type="button">
+          <DuetIcon name="activity" size={20} stroke={modal === "status" ? 2.1 : 1.9} />
+          <span>작동</span>
         </button>
         <button aria-current={inDrawer ? "page" : undefined} aria-label={waiting ? `서랍, 할 일 ${waiting}개 기다림` : "서랍"} className={inDrawer ? "on" : undefined} onClick={() => void navigate({ to: "/drawer" })} type="button">
           <DuetIcon name="menu" size={20} stroke={inDrawer ? 2.1 : 1.9} />
