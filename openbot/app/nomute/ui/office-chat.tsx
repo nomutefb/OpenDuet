@@ -699,12 +699,13 @@ function TextPhotos({ urls }: { urls: string[] }) {
     </div>
   );
 }
-/** 그록봇이 붙인 그림 = 사무실엔 「[user-attachment] ""」 글자만 옴(파일 0 · 빠르 11-01 08:5x 잼) → 빈 글 대신 「그림이 안 넘어옴」을 보여 형이 묻게 */
-const LOST_ATTACH_RE = /^\s*\[user-attachment\]\s*(?:""|“”)?\s*$/;
+/** 그록봇이 붙인 그림 = 사무실엔 「[user-attachment] ""」 글자만 옴(파일 0 · 빠르 11-01 08:5x 잼) → 빈 글 대신 「그림이 안 넘어옴」을 보여 형이 묻게 ·
+ *  11-05 06:56~06:57 아이데이션 방 깃·빚·감·결 사진·영상 = 앞말 없이 「""」만 옴(형 06:58 「안보여」) → 그 꼴도 같이 · 파일이 붙은 글은 안 건드림(files 0 일 때만) */
+const LOST_ATTACH_RE = /^\s*(?:\[user-attachment\]\s*(?:""|“”)?|""|“”)\s*$/;
 
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
-  if (LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">🖼 그림을 붙였는데 사무실로 안 넘어왔어</span>;
+  if (!m.files?.length && LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">📎 사진·영상을 붙였는데 사무실로 안 넘어왔어</span>;
   const pics = m.files?.length ? [] : textPhotos(text);
   if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
