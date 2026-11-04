@@ -63,13 +63,23 @@ function fromLocal(s: Sched | undefined, bots: Bot[] | undefined): Record<string
   out.collect = jobs.filter((j) => ZONE_OF[j.id]).map((j) => ({ key: j.id, name: j.name, zone: ZONE_OF[j.id], st: j.on === false ? ("off" as HealthSt) : j.health?.st || "unknown", last_at: j.health?.last_at, next_at: j.health?.next_at, cron: j.cron_kst }));
   return out;
 }
-/** 뼈대 ← 지금 자료(1·2·3) ← 서버 GET status(있으면 · 같은 key 덮음 · 새 key 붙임) */
+/** 서버 불(뜸 _status.js = 🟢🟡🔴⚪) → 화면 낱말 · 줄·칸 둘 다 */
+const LIGHT: Record<string, HealthSt> = { "🟢": "ok", "🟡": "late", "🔴": "miss", "⚪": "unknown" };
+const stIn = (v: unknown): HealthSt => (typeof v === "string" && (LIGHT[v] || (["ok", "late", "miss", "unknown", "off"].includes(v) ? (v as HealthSt) : "unknown"))) || "unknown";
+const rowIn = (r: StatusRow & { host?: string }): StatusRow & { host?: string } => ({ ...r, st: stIn(r.st), ...(r.cells ? { cells: Object.fromEntries(Object.entries(r.cells).map(([k, c]) => [k, { ...c, st: stIn(c.st) }])) } : {}) });
+const HIDE_BOTS = new Set(["별"]);   // 형 11-05 08:31 「별은 빼면 되고」
+/** 뼈대 ← 지금 자료(1·2·3) ← 서버 GET status(있으면) · 격자 = 같은 key 덮음 · 줄 표 = 서버 줄이 이김 + 아직 보고 안 한 몸 자리 줄만 남김 */
 function merge(local: Record<string, StatusRow[]>, srv?: StatusCat[]): StatusCat[] {
   return SKELETON.map((c) => {
-    const s = srv?.find((x) => x.id === c.id);
-    let rows = local[c.id]?.length ? local[c.id] : c.rows;
-    if (s?.rows?.length) { const by = new Map(s.rows.map((r) => [r.key, r])); rows = [...rows.map((r) => by.get(r.key) || r), ...s.rows.filter((r) => !rows.some((x) => x.key === r.key))]; }
-    return { ...c, rows, cols: s?.cols || c.cols, at: s?.at };
+    const s = srv?.find((x) => x.id === c.id), sr = (s?.rows || []).map(rowIn).filter((r) => !(c.id === "bots" && HIDE_BOTS.has(r.name || r.key)));
+    let rows = (local[c.id]?.length ? local[c.id] : c.rows).filter((r) => !(c.id === "bots" && HIDE_BOTS.has(r.key)));
+    if (sr.length && c.cols) { const by = new Map(sr.map((r) => [r.key, r])); rows = [...rows.map((r) => by.get(r.key) || r), ...sr.filter((r) => !rows.some((x) => x.key === r.key))]; }
+    else if (sr.length) {
+      const hosts = new Set(sr.map((r) => String(r.host || r.key.split(":")[0])));
+      const left = c.rows.filter((r) => r.note === "보고 아직 안 옴" && !hosts.has(r.key) && !hosts.has(r.key.replace(/^VM /, "")));   // 보고 안 한 몸만 자리 줄로
+      rows = [...sr, ...left];
+    }
+    return { ...c, rows, cols: c.cols, at: s?.at };
   });
 }
 const worst = (rows: StatusRow[]): HealthSt => { const all = rows.flatMap((r) => [r.st, ...Object.values(r.cells || {}).map((x) => x.st)]); return all.includes("miss") ? "miss" : all.includes("late") ? "late" : all.length && all.every((x) => x === "ok" || x === "off") ? "ok" : "unknown"; };
@@ -121,7 +131,7 @@ function ZoneItems({ zone }: { zone: string }) {   // 수집 줄 누르면 그 �
 export function StatusBoard() {
   const sched = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), refetchInterval: 60_000 });
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 });
-  const srv = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: StatusCat[]; at?: number }>("status"), refetchInterval: 60_000, retry: false });
+  const srv = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: StatusCat[]; at?: number }>("status"), refetchInterval: 60_000, retry: false });   // 뜸 #2487 GET /api/office/status
   const cats = merge(fromLocal(sched.data, bots.data), srv.data?.cats);
   const [open, setOpen] = useState<Record<string, boolean>>({}), [pick, setPick] = useState(""), [zone, setZone] = useState("");
   const all = cats.flatMap((c) => c.rows), red = count(all, "miss"), yellow = count(all, "late"), gray = count(all, "unknown");
