@@ -23,3 +23,8 @@ html[data-home-in] .ynav { animation-delay:.15s; }
 @keyframes nmSplashBreath { 50% { transform:scale(1.04); } }
 html[data-home-wait] .nm-home-splash { opacity:1; visibility:visible; pointer-events:auto; transition:none; }
 @media (prefers-reduced-motion:reduce) { .nm-home-splash, .nm-home-splash img { transition:none; animation:none; } }
+/* 카드 판이 아직 뼈대일 때(news-feed · html[data-deck-wait]) = 도착한 메시지·전송 단추 숨김 → 첫 판이 가면 스르륵(형 11-04 13:24 「도착 메세지랑 체크 표시가 미리 뜨는데 늦게 뜰수잇게 할수잇어?」 · 다시 온 홈·덱 다시 불림 때 뼈대 위에 먼저 떴음) · 네비·그래프는 안 숨김 */
+html[data-deck-wait] .nm-send-dock, html[data-deck-wait] .nm-arrived { opacity:0; pointer-events:none; }
+html[data-deck-in] .nm-arrived { animation:nmHomeIn .5s cubic-bezier(.2,.7,.3,1) both; }
+html[data-deck-in] .nm-send-dock { animation:nmHomeInFade .5s cubic-bezier(.2,.7,.3,1) both; }
+@media (prefers-reduced-motion:reduce) { html[data-deck-in] .nm-arrived, html[data-deck-in] .nm-send-dock { animation:none; } }

@@ -7,7 +7,7 @@
 //   실검 키워드 띠 = 뺌(형 12:21 「키워드 빼도 될거같아 카드에 그만큼 사진이 더 보이면 됨」) · 카드 높이 = 품은 칸 전부(원본은 에디터 아래 독 몫을 빼서 칸 아래가 비었음 → 독 몫 0) ·
 //   사진 자르기·비율 = 원본 그대로(황금비 상한 · cover) = 카드가 길어진 만큼 사진이 덜 잘리고 아래 출처 줄이 더 보임.
 //   보이는 후보 = 에디터 scHomeCandidates 와 같은 거름(home-pool.ts · 서버 트리아지·병합 + 이 기기 기록 · 같은 기사 접기·자동 묶음) · PICK 상태 = 안 보임.
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { hookFrame, toneFrame } from "../ui/inapp";
 import { homePool } from "./home-pool";
 import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
@@ -63,6 +63,10 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 // 위 덧줄 넷(형 10-31 12:2x 홈 사진) = ① 「이슈 근거 : …」 줄 안 보임(.article-signals · 화제 유발 원인·내용 줄은 그대로) ② 시각 줄 둘 다 형광(time 은 원래 --accent · 「n시간 전」 .publish-elapsed 는 나이 띠 색이던 것 → --accent · 윈터 12:31 「둘 다 형광」)
 //   ③ 사진 = 카드 남는 높이를 다 차지(.article-media flex 1 · 황금비 상한 풀기 · 원본은 clamp(120px,20svh,180px) 최소 + 1.618 비율) ④ 「외 +3」 광학 보정(형 「+3 이거 수평을 광학 잉크 단위로 맞춰주고」 · 원본 .05em 아래 → .08em · 화면 못 봐서 ±.03em 은 윈터가 보고)
 
+/** 카드 판이 뼈대인 동안 = 도착한 메시지·전송 단추 숨김(html[data-deck-wait] · home-scene.css · 형 11-04 13:24) · 판이 가면 한 박자 뒤 스르륵 · 못 받아도 8초 뒤엔 보임 */
+let deckT = 0;
+const deckWait = () => { const h = document.documentElement; h.setAttribute("data-deck-wait", ""); clearTimeout(deckT); deckT = window.setTimeout(deckIn, 8000); };
+const deckIn = () => { const h = document.documentElement; if (!h.hasAttribute("data-deck-wait")) return; clearTimeout(deckT); deckT = window.setTimeout(() => { h.removeAttribute("data-deck-wait"); h.setAttribute("data-deck-in", ""); window.setTimeout(() => h.removeAttribute("data-deck-in"), 1200); }, 300); };
 export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onShown = 카드 첫 판이 품은 화면에 간 때 한 번(홈 「다 깸」 띠가 그 뒤에 뜸 · 형 11-02 23:17)
   const frame = useRef<HTMLIFrameElement>(null);
   const shownCb = useRef(onShown);
@@ -79,6 +83,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       if (!ready || !snap) return;
       post("snapshot", { version, ...snap });
       if (!shown) { shown = true; shownCb.current?.(); }
+      deckIn();
     };
     const rebuild = async () => {
       const md = await modernData();
@@ -142,7 +147,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       if (e.origin !== location.origin || e.source !== frame.current?.contentWindow) return;
       const m = e.data as { channel?: string; type?: string };
       if (!m || m.channel !== CHANNEL) return;
-      if (m.type === "ready") { ready = true; send(); post("suspend", { hidden: document.hidden }); }
+      if (m.type === "ready") { ready = true; send(); post("suspend", { hidden: document.hidden }); }   // 덱이 다시 불려 와도(뼈대부터) ready 가 다시 옴 → 다음 판까지 deckWait(아래 onLoad)
       else if (m.type === "refresh" || m.type === "reload") void load(true);
     };
     const onVis = () => post("suspend", { hidden: document.hidden });
@@ -158,7 +163,8 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
     const offLinks = hookFrame(el);
     return () => { offTone(); offLinks(); };
   }, []);
-  const onLoad = () => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type: "connect" }, location.origin);
+  const onLoad = () => { deckWait(); frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type: "connect" }, location.origin); };
+  useLayoutEffect(() => { deckWait(); return () => { document.documentElement.removeAttribute("data-deck-wait"); }; }, []);
   return (
     <section aria-label="뉴스 피드" className="relative flex min-h-0 flex-col" style={{ gridRow: 2 }}>   {/* 줄 자리 못 박음 = 띠(1줄)가 늦게 생겨도 이 칸이 1줄(높이 자동)로 끌려가지 않음(형 11-03 12:45) */}
       <iframe ref={frame} src="/modern-home.html" title="뉴스 피드" onLoad={onLoad} className="min-h-0 w-full flex-1 border-0 bg-transparent" />

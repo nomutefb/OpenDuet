@@ -192,18 +192,18 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         save={() => office<Partial<NotifyState>>("notify", { method: "POST", body: JSON.stringify({ room: pendPic.room, image: pendPic.url }) }).then((j) => qc.setQueryData(["nomute", "notify"], notifyState(j)))} /> : null}
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
-      {notice?.text ? (
-        <button type="button" className="nm-rnotice" aria-label="공지 보기·고치기" onClick={() => setNoticeOpen(true)}>
-          <svg aria-hidden viewBox="0 0 24 24" width="16" height="16"><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
-          <span data-content className="min-w-0 flex-1 truncate"><b>공지</b> · {notice.text.split("\n")[0].replace(/^공지\s*[—·:-]\s*/, "")}</span>
-        </button>
-      ) : null}
-      {noticeOpen ? <NoticeDialog onClose={() => setNoticeOpen(false)} /> : null}
-      <div className="nm-rtools">   {/* 회의실 위 = 기사 요약 픽토그램 하나(형 11-04 13:01 「이거 그 회의실 위에 앞에 그냥 픽토그램 하나로만 넣음 될듯 뉴스」 · 요약실 = 방 줄 아님) */}
+      <div className="nm-rtop">   {/* 맨 위 줄 = 공지(끝 둥글게 · 조금 짧게) + 오른쪽 기사 요약 동그라미(형 11-04 13:22 「요약실 우상단 우상단으로 보내주라 공지 라인 끝을 좀만 둘여서 동그랗게 처리하고 다시 원으로 저거 픽토그램」 · 앞 판 13:01 = 회의실 위 왼쪽) */}
+        {notice?.text ? (
+          <button type="button" className="nm-rnotice" aria-label="공지 보기·고치기" onClick={() => setNoticeOpen(true)}>
+            <svg aria-hidden viewBox="0 0 24 24" width="16" height="16"><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
+            <span data-content className="min-w-0 flex-1 truncate"><b>공지</b> · {notice.text.split("\n")[0].replace(/^공지\s*[—·:-]\s*/, "")}</span>
+          </button>
+        ) : null}
         <Link to="/channels/$channelId" params={{ channelId: SUMMARY }} className={`nm-rnews${current === SUMMARY ? " on" : ""}`} aria-label="기사 요약" title="기사 요약" onClick={() => onOpen?.()}>
-          <svg aria-hidden viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18h-5" /><path d="M18 14h-8" /><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2" /><rect width="8" height="4" x="10" y="6" rx="1" /></svg>
+          <svg aria-hidden viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18h-5" /><path d="M18 14h-8" /><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2" /><rect width="8" height="4" x="10" y="6" rx="1" /></svg>
         </Link>
       </div>
+      {noticeOpen ? <NoticeDialog onClose={() => setNoticeOpen(false)} /> : null}
       <ul className="nm-rgroup flex flex-col">
         {ordered.map((r) => <Fragment key={r.id}>{Row({ r })}</Fragment>)}
       </ul>
