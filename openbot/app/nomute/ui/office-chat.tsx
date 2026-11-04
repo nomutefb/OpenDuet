@@ -272,6 +272,7 @@ type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
   sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
+  loose: () => void;   // 맨 아래 붙음 풂(알약 펼칠 때 = 알약 자리 그대로 두고 아래로 펼침)
   onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
 };
@@ -279,7 +280,12 @@ const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?
 /** 이어진 보낸 흔적 = 묶음 알약 하나(형 11-03 19:3x 그림 = 「외 1 · 메시지 13개」 꼴 · 「이런식으로 보이도록 수정해주라」) — 받은 이 얼굴 겹침 · 「보낸 메시지 N개」(하나면 「이름 · 메시지 보냄」)
  *  누르면 그 자리에서 펼침 = 그 둘의 방 대화를 받아 시간 순으로 이어 그림 · 날짜 바뀌는 곳에 날짜 줄 · 왼쪽 줄(묶음 펼침 Band 꼴)(형 11-04 08:04 「새 창에서 열리거나 요약되서 나오지 않고 그 옆에 라인 쭉 나오면서 인 라인으로 … 일자별로는 조금 구분 되게. 저거 누르면 그 대화방 안에서 확 펼쳐지면 좋겠어」) */
 function SentGroup({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
-  const list = c.list, [open, setOpen] = useState(false);
+  const list = c.list, [open, setOpen] = useState(false), [shown, setShown] = useState(false), [on, setOn] = useState(false);
+  // 펼침 = 아래로 스르륵(형 11-04 09:42 「알약 버튼 누르면 자연스럽게 아래로 모션 생기면서 펼쳐지면 좋을듯 지금은 뚝딱 거리는 느낌이라」 · 「고 프레임으로」) — 높이 0fr→1fr + 글 살짝 내려오며 또렷 · 접힘도 같은 길로 걷힌 뒤 뺌
+  useEffect(() => {
+    if (open) { setShown(true); const f = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true))); return () => cancelAnimationFrame(f); }
+    setOn(false); const t = window.setTimeout(() => setShown(false), 320); return () => window.clearTimeout(t);
+  }, [open]);
   const tos = [...new Set(msgs.map((m) => m.to || "").filter(Boolean))];
   const pairs = [...new Set(msgs.map((m) => m.pair || "").filter(Boolean))];
   const talk = useQuery({
@@ -292,15 +298,17 @@ function SentGroup({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
   return (
     <div className="flex flex-col items-center gap-3">
       <button type="button" className="ygrp" aria-expanded={open} title={msgs.map((m) => `${t12(m.ts)} · ${nmOf(list, m.who)} → ${nmOf(list, m.to || "")}`).join("\n")}
-        aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개 · 누르면 그 대화 펼침`} onClick={() => setOpen((v) => !v)}>
+        aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개 · 누르면 그 대화 펼침`} onClick={() => { c.loose(); setOpen((v) => !v); }}>
         {faces}{one ? <>{one} · 메시지 보냄</> : <>{tos.length > 3 ? <b>외 {tos.length - 3}</b> : null}{tos.length > 3 ? " · " : ""}보낸 메시지 {msgs.length}개</>}
       </button>
-      {open && rows.length ? (
-        <div className="ysent-talk flex w-full flex-col gap-[10px] border-l-2 border-border pl-3 opacity-90">
-          {rows.map((m, i) => {
-            const newDay = i === 0 || dayKey(rows[i - 1].ts) !== dayKey(m.ts), cont = !newDay && rows[i - 1].who === m.who;
-            return <Fragment key={m.id}>{newDay ? <p className="ydate" data-ts={m.ts}>{dateLabel(m.ts)}</p> : null}<Line m={m} c={c} cont={cont} /></Fragment>;
-          })}
+      {shown && rows.length ? (
+        <div className={`ysent-fold${on ? " on" : ""}`} inert={!open || undefined}>
+          <div className="ysent-talk flex w-full flex-col gap-[10px] border-l-2 border-border pl-3">
+            {rows.map((m, i) => {
+              const newDay = i === 0 || dayKey(rows[i - 1].ts) !== dayKey(m.ts), cont = !newDay && rows[i - 1].who === m.who;
+              return <Fragment key={m.id}>{newDay ? <p className="ydate" data-ts={m.ts}>{dateLabel(m.ts)}</p> : null}<Line m={m} c={c} cont={cont} /></Fragment>;
+            })}
+          </div>
         </div>
       ) : null}
     </div>
@@ -811,6 +819,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const boxRef = useRef<HTMLDivElement | null>(null), stuck = useRef(true), near = useRef(true), keepTop = useRef<{ h: number; top: number; first?: string } | null>(null);   // near = 맨 아래 가까이(nearPx 안 · 스크롤이 움직일 때 셈)
   // 연 뒤 OPEN_PIN_MS 동안 손이 안 닿으면 = 맨 아래에 붙은 채(형 11-04 08:10 「채팅 들가면 가장 최근 채팅으로 들가져야되는데 올드채팅으로 들어가져」 · 기기에 둔 옛 글 → 새 글 통째 바꿔 끼움 · 앞 글 자동 받기가 그 사이 스크롤을 옮겨 붙음이 풀리던 것)
   const mountAt = useRef(Date.now()), pinFrom = useRef(0), touched = useRef(false);   // pinFrom = 글이 처음 오거나 바뀐 때(붙잡는 동안) · 연 뒤 OPEN_PIN_MAX 까지만
+  const anchorT = useRef(0);   // 알약 펼치는 동안 스크롤 붙들기 끔(c.loose)
   const sentPin = useRef(0);   // 보낸 직후 이때까지 = 맨 아래 붙잡음(사진 고른 칸이 걷히며 입력칸이 100px 줄 때 대화가 그 키만큼 입력칸 뒤로 묻혔음 · 형 11-04 08:05 「대화가 묻혔다가 위로 올라가는데 … 채팅창에 걸쳣다 올라가는게 어색해」)
   const pinning = () => Date.now() < sentPin.current || !touched.current && pinFrom.current > 0 && Date.now() - pinFrom.current < OPEN_PIN_MS && Date.now() - mountAt.current < OPEN_PIN_MAX;
   if (msgs.data && !pinFrom.current) pinFrom.current = Date.now();
@@ -995,6 +1004,11 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const nre = useMemo(() => nameRe(list), [list]);
   const c: Ctx = {
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
+    loose: () => {   // 알약 펼침 = 알약 자리 그대로 · 아래 글이 밀려 내려감(브라우저 스크롤 붙들기가 아래 글을 붙잡아 알약을 위로 243px 밀었음 = 펼치는 동안만 끔)
+      stuck.current = false; near.current = false; sentPin.current = 0; touched.current = true;
+      const box = boxRef.current; if (!box) return;
+      box.style.overflowAnchor = "none"; window.clearTimeout(anchorT.current); anchorT.current = window.setTimeout(() => { box.style.overflowAnchor = ""; }, 2000);
+    },
     sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuOf(m); },
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); requestAnimationFrame(() => document.querySelector<HTMLElement>(".ychat-in [contenteditable=\"true\"], .ychat-in textarea")?.focus()); },   // 답장 = 바로 쓰기 칸(폰 = 자판 올라옴 · 카톡 꼴)

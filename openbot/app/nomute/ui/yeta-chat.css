@@ -564,3 +564,9 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-zoom-save { position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 28px); transform:translateX(-50%); display:flex; align-items:center; gap:8px; padding:12px 22px; border:0; border-radius:999px; background:rgba(40,40,40,.96); color:#fff; font-size:15px; font-weight:600; box-shadow:0 6px 24px rgba(0,0,0,.4); cursor:pointer; }
 .nm-zoom-save svg { width:20px; height:20px; }
 .nm-zoom-note { position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 28px); transform:translateX(-50%); padding:10px 18px; border-radius:999px; background:rgba(40,40,40,.96); color:#fff; font-size:14px; pointer-events:none; }
+/* 보낸 메시지 알약 펼침 = 아래로 스르륵(형 11-04 09:42 「자연스럽게 아래로 모션 생기면서 펼쳐지면」) · 높이 0fr→1fr(그리드 칸) + 안 글 8px 위에서 내려오며 또렷 · 접힘 = 거꾸로 · 자르기 = clip(hidden 이면 얼굴 sticky 가 이 칸에 붙어 이름표가 말풍선 위로 겹쳤음) */
+.ychat .ysent-fold { display:grid; grid-template-rows:0fr; width:100%; transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1); }
+.ychat .ysent-fold.on { grid-template-rows:1fr; }
+.ychat .ysent-fold > .ysent-talk { min-height:0; overflow:clip; opacity:0; transform:translateY(-8px); transition:opacity .24s ease .04s, transform .3s cubic-bezier(.2,.8,.2,1); }
+.ychat .ysent-fold.on > .ysent-talk { opacity:.9; transform:none; }
+@media (prefers-reduced-motion:reduce) { .ychat .ysent-fold, .ychat .ysent-fold > .ysent-talk { transition:none; } }

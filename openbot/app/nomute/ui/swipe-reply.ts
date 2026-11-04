@@ -1,6 +1,6 @@
 // 글 줄 왼쪽으로 밀기 = 답장(형 11-04 08:22 「좌측으로 채팅을 살짝 밀면 항상 회신으로 뜨면 좋을듯」 · 카톡 영상 97389 「보통 모션은 이렇게 작동해」)
 //   손가락 따라 줄이 왼쪽으로 · 오른쪽 끝에 답장 화살표가 커지며 나옴 · 60px 넘기면 톡(진동) · 놓으면 답장 + 제자리로 튕김
-//   세로가 먼저면 스크롤 그대로 · 가로로 굴러가는 칸(코드·표) · 영상 · 입력칸 · 둘의 방 알약 펼침 안에서 시작하면 안 함
+//   세로가 먼저면 스크롤 그대로 · 가로로 굴러가는 칸(코드·표) · 영상 · 입력칸 · 둘의 방 알약 펼침(.ysent-talk) 안에서 시작하면 안 함
 //   대화 상자 하나에 손 하나(줄마다 듣지 않음) · touchmove 는 막아야 해서 passive 아님
 import { type RefObject, useEffect, useRef } from "react";
 
@@ -30,7 +30,7 @@ export function useSwipeReply(box: RefObject<HTMLElement | null>, onReply: (id: 
       if (row) reset();
       if (e.touches.length !== 1) return;
       const t = e.target as Element, r = t.closest<HTMLElement>("[data-id]");
-      if (!r || !el.contains(r) || !r.querySelector(".yb") || r.closest(".ysent") || t.closest("video,input,textarea,.nm-msgm") || hScroll(t, r)) return;
+      if (!r || !el.contains(r) || !r.querySelector(".yb") || r.closest(".ysent, .ysent-talk") || t.closest("video,input,textarea,.nm-msgm") || hScroll(t, r)) return;
       row = r; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
     };
     const move = (e: TouchEvent) => {
