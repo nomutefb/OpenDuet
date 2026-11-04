@@ -587,3 +587,10 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-rtop .nm-rnotice { flex:1; min-width:0; width:auto; height:40px; margin:0; border-radius:999px; padding:0 14px; }
 .nm-rnews { flex:none; display:grid; place-items:center; width:40px; height:40px; border:1px solid rgba(207,255,64,.28); border-radius:50%; background:rgba(207,255,64,.1); color:rgb(var(--accent-rgb, 207,255,64)); -webkit-tap-highlight-color:transparent; }   /* 테·바탕 = 공지 알약과 같은 라임 */
 .nm-rnews:active { opacity:.7; } .nm-rnews.on { background:rgba(var(--accent-rgb, 207,255,64), .2); border-color:rgba(var(--accent-rgb, 207,255,64), .55); }
+/* 영상 해석 진행 칸(./decide-pop.tsx VideoProg · 형 11-04 15:52 「신청 > 진행중 > 완료 (또는 실패)」) = 대기열 줄(./queue.css) 그대로 · 창 아래 칸 */
+.nm-decpop .nm-vprog { flex:none; max-height:42%; overflow-y:auto; overscroll-behavior:contain; padding:6px 10px 12px; border-top:1px solid var(--glass-line, rgba(255,255,255,.1)); --accent:#CFFF40; --mut:#8B8F8A; --fg:#F2F4F0; }
+:root:not(.dark) .nm-decpop .nm-vprog { --accent:#4d7a00; --mut:#6b6f6a; --fg:#161716; }
+.nm-decpop ul:empty { display:none; }
+.nm-vprog-h { margin:4px 2px 6px; font-size:12px; font-weight:700; color:var(--mut); }
+.nm-vprog .nm-q-row { grid-template-columns:52px minmax(0, 1fr) 38px minmax(0, auto); }
+.nm-vprog-at { font-size:10.5px; color:var(--mut); white-space:nowrap; max-width:84px; overflow:hidden; text-overflow:ellipsis; }
