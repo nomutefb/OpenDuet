@@ -280,23 +280,22 @@ type Ctx = {
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
 /** 이어진 보낸 흔적 = 묶음 알약 하나(형 11-03 19:3x 그림 = 「외 1 · 메시지 13개」 꼴 · 「이런식으로 보이도록 수정해주라」) — 받은 이 얼굴 겹침 · 「보낸 메시지 N개」(하나면 「이름 · 메시지 보냄」)
  *  누르면 그 자리에서 펼침 = 그 둘의 방 대화를 받아 시간 순으로 이어 그림 · 날짜 바뀌는 곳에 날짜 줄 · 왼쪽 줄(묶음 펼침 Band 꼴)(형 11-04 08:04 「새 창에서 열리거나 요약되서 나오지 않고 그 옆에 라인 쭉 나오면서 인 라인으로 … 일자별로는 조금 구분 되게. 저거 누르면 그 대화방 안에서 확 펼쳐지면 좋겠어」) */
-/** 알약을 펼칠 때 = 알약이 위 머리(떠 있는 네비) 바로 아래로 스르륵 올라감(형 11-04 10:51 「누르면, 자연스럽게 이게 상단 네비 아래로 알약이 올라가면서 펼쳐져야되」)
- *  펼침(0.3초)과 같이 굴림 · 아래 글이 모자라 덜 올라가면 펼침이 끝난 뒤 한 번 더 · 자리 = 얼굴 sticky 가 서는 줄(--ytop) */
+/** 알약을 펼칠 때 = 먼저 알약이 지금 화면 안에서 위 머리(떠 있는 네비) 쪽으로 스르륵 올라가고(아래 글이 모자라면 올라갈 수 있는 데까지만) → 그다음 아래로 펼쳐짐
+ *  (형 11-04 10:51 「상단 네비 아래로 알약이 올라가면서 펼쳐져야되」 · 11:18 「이 화면 안에서만 위로 올라가고, 자연스럽게 내려가게 풀어질 수 있어?」 · 앞 판 = 올라감·펼침 동시 + 뒤늦은 한 번 더 굴림 = 글이 위로 솟는 듯 보였음)
+ *  돌려주는 값 = 올라가는 데 걸릴 ms(그 뒤에 펼침) · 자리 = 얼굴 sticky 가 서는 줄(--ytop) */
 function rise(pill: HTMLElement) {
   const box = pill.closest<HTMLElement>(".overflow-y-auto");
-  if (!box) return;
+  if (!box) return 0;
   const top = (parseFloat(getComputedStyle(pill).getPropertyValue("--ytop")) || 84) + 4;
-  const go = () => box.scrollTo({ top: box.scrollTop + pill.getBoundingClientRect().top - box.getBoundingClientRect().top - top, behavior: "smooth" });
-  requestAnimationFrame(go);
-  for (const ms of [340, 700]) window.setTimeout(() => { if (Math.abs(pill.getBoundingClientRect().top - box.getBoundingClientRect().top - top) > 8) go(); }, ms);
+  const want = box.scrollTop + pill.getBoundingClientRect().top - box.getBoundingClientRect().top - top;
+  const to = Math.max(0, Math.min(want, box.scrollHeight - box.clientHeight));
+  if (Math.abs(to - box.scrollTop) < 8) return 0;
+  box.scrollTo({ top: to, behavior: "smooth" });
+  return 280;
 }
 function SentGroup({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
-  const list = c.list, [open, setOpen] = useState(false), [shown, setShown] = useState(false), [on, setOn] = useState(false);
-  // 펼침 = 아래로 스르륵(형 11-04 09:42 「알약 버튼 누르면 자연스럽게 아래로 모션 생기면서 펼쳐지면 좋을듯 지금은 뚝딱 거리는 느낌이라」 · 「고 프레임으로」) — 높이 0fr→1fr + 글 살짝 내려오며 또렷 · 접힘도 같은 길로 걷힌 뒤 뺌
-  useEffect(() => {
-    if (open) { setShown(true); const f = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true))); return () => cancelAnimationFrame(f); }
-    setOn(false); const t = window.setTimeout(() => setShown(false), 320); return () => window.clearTimeout(t);
-  }, [open]);
+  const list = c.list, [open, setOpen] = useState(false), [shown, setShown] = useState(false), [on, setOn] = useState(false), [all, setAll] = useState(false);
+  const pill = useRef<HTMLButtonElement | null>(null);
   const tos = [...new Set(msgs.map((m) => m.to || "").filter(Boolean))];
   const pairs = [...new Set(msgs.map((m) => m.pair || "").filter(Boolean))];
   const talk = useQuery({
@@ -305,20 +304,35 @@ function SentGroup({ msgs, c }: { msgs: Msg[]; c: Ctx }) {
   });
   const faces = <FaceStack ids={tos.slice(0, 3).map((w) => idOf(w, list))} size={18} />;
   const one = msgs.length === 1 ? nmOf(list, msgs[0].to || "") : "";
-  const rows = talk.data || [];
+  // 펼칠 대화 = 이 알약이 묶은 보낸 흔적 첫 시각(1분 앞)부터 · 없으면 받은 것 다 · 셋 넘으면 셋만 + 「전체 보기」(형 11-04 11:19 「만약에 이게 3번 대화 이상이면, 전체 보기로 줄여줄 수 있나? 그 인 라인으로 구분해놓은거 살리면서」)
+  const from = Math.min(...msgs.map((m) => m.ts)) - 60_000, got = talk.data || [];
+  const rows = got.some((m) => m.ts >= from) ? got.filter((m) => m.ts >= from) : got;
+  const SHOW = 3, view = all ? rows : rows.slice(0, SHOW), more = rows.length - view.length;
+  const ready = shown && rows.length > 0;
+  // 펼침 = 알약이 화면 안에서 위 머리 쪽으로 올라가며 + 대화가 위에서 아래로 쭉 드러남(clip) · 접힘 = 높이 걷힘(형 11-04 09:42 「자연스럽게 아래로 모션」 · 10:51 「상단 네비 아래로 알약이 올라가면서」 · 11:18 「그렇게 하고 쭉 내려가게」)
+  useEffect(() => {
+    if (open) { setShown(true); return; }
+    setOn(false); setAll(false); const t = window.setTimeout(() => setShown(false), 340); return () => window.clearTimeout(t);
+  }, [open]);
+  useEffect(() => {   // 대화가 그려진 다음 그림 = 키가 다 잡힌 뒤라 위로 올라갈 자리가 있음
+    if (!open || !ready || on) return;
+    const f = requestAnimationFrame(() => { setOn(true); if (pill.current) rise(pill.current); });
+    return () => cancelAnimationFrame(f);
+  }, [open, ready, on]);
   return (
     <div className="flex flex-col items-center gap-3">
-      <button type="button" className="ygrp" aria-expanded={open} title={msgs.map((m) => `${t12(m.ts)} · ${nmOf(list, m.who)} → ${nmOf(list, m.to || "")}`).join("\n")}
-        aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개 · 누르면 그 대화 펼침`} onClick={(e) => { c.loose(); const opening = !open; setOpen(opening); if (opening) rise(e.currentTarget); }}>
+      <button ref={pill} type="button" className="ygrp" aria-expanded={open} title={msgs.map((m) => `${t12(m.ts)} · ${nmOf(list, m.who)} → ${nmOf(list, m.to || "")}`).join("\n")}
+        aria-label={`${tos.map((w) => nmOf(list, w)).join(", ")}에게 보낸 메시지 ${msgs.length}개 · 누르면 그 대화 펼침`} onClick={() => { c.loose(); setOpen((v) => !v); }}>
         {faces}{one ? <>{one} · 메시지 보냄</> : <>{tos.length > 3 ? <b>외 {tos.length - 3}</b> : null}{tos.length > 3 ? " · " : ""}보낸 메시지 {msgs.length}개</>}
       </button>
-      {shown && rows.length ? (
-        <div className={`ysent-fold${on ? " on" : ""}`} inert={!open || undefined}>
+      {ready ? (
+        <div className={`ysent-fold${on ? " on" : ""}${open ? "" : " shut"}`} inert={!open || undefined}>
           <div className="ysent-talk flex w-full flex-col gap-[10px] border-l-2 border-border pl-3">
-            {rows.map((m, i) => {
-              const newDay = i === 0 || dayKey(rows[i - 1].ts) !== dayKey(m.ts), cont = !newDay && rows[i - 1].who === m.who;
+            {view.map((m, i) => {
+              const newDay = i === 0 || dayKey(view[i - 1].ts) !== dayKey(m.ts), cont = !newDay && view[i - 1].who === m.who;
               return <Fragment key={m.id}>{newDay ? <p className="ydate" data-ts={m.ts}>{dateLabel(m.ts)}</p> : null}<Line m={m} c={c} cont={cont} /></Fragment>;
             })}
+            {more > 0 ? <button type="button" className="ysent-all" onClick={() => { c.loose(); setAll(true); }}><span>전체 보기 · {more}개 더</span><Chev dir="down" /></button> : null}
           </div>
         </div>
       ) : null}
