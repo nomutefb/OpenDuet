@@ -34,7 +34,8 @@ export function openCallSheet(char: string, agents: readonly Agent[]) {
 }
 /** 부름 목록(triggers.ts 가 그릴 때마다 넣음) = 한글 입력 길(아래)이 쓸 이름들 */
 export function setCallAgents(agents: readonly Agent[]) { known = agents; }
-const inline = () => !!window.matchMedia?.("(pointer: fine)").matches;   // 마우스 판이면 폭 상관없이(형 PC 웹앱 창 = 620px 안팎 · 11-04 16:4x 사진 = 640 기준에 걸려 옛 시트가 뜸)
+const inline = () => true;   // 폰도 입력칸 바로 위 목록(형 11-05 「@ 는 되는데, 거기서 그록봇 내가 예전에 예시든ㄷ거처럼안돼」 = 11-04 16:28 그록봇 앱 사진 꼴 · 폰은 아래 시트로 떴음) · 전엔 마우스 판만(11-04 16:4x 폭 640 기준 뺌)
+const touch = () => !window.matchMedia?.("(pointer: fine)").matches;   // 손가락 판 = 찾기 칸 자동 초점 0(입력칸 자판 유지) · 누름 = 바로 넣고 닫힘 · 「Ctrl」 안내 0
 /** 한글 입력 중 들어온 「@」·「!」 — 커서 바로 앞 글자를 보고 지운 뒤 목록을 엶(원본 keydown 길이 이미 열었으면 글자가 안 들어와서 여기 안 옴) */
 function onTyped(e: Event) {
   const ie = e as InputEvent, ed = (ie.target as HTMLElement | null)?.closest?.('[contenteditable="true"]') as HTMLElement | null;
@@ -95,8 +96,9 @@ export function CallSheet() {
     close();
   };
   const urgent = o.char === "!";
-  if (inline()) {   // PC = 입력칸 바로 위 목록(형 16:28 사진 꼴 · 얼굴 · 이름·표지 · 자리 이름 · 오른쪽 칸)
+  if (inline()) {   // 입력칸 바로 위 목록(형 16:28 사진 꼴 · 얼굴 · 이름·표지 · 자리 이름 · 오른쪽 칸) · PC·폰 같음
     const r = o.at, W = Math.min(460, r ? r.width : 460), left = r ? Math.max(8, Math.min(r.left, window.innerWidth - W - 8)) : 16, bottom = r ? Math.max(8, window.innerHeight - r.top + 8) : 96;
+    const maxHeight = r ? Math.max(180, Math.min(460, r.top - 16)) : undefined, fing = touch();   // 폰 = 자판 올라와 입력칸 위 칸이 좁음 → 그 안에서 굴림
     const cur = Math.min(hi, Math.max(0, list.length - 1));
     const pick = (id: string, more: boolean) => {   // 그냥 누름 = 이미 고른 것 + 이 줄 넣고 닫힘 · Ctrl·⌘·Shift = 고르기만(여럿)
       if (more) { toggle(id); return; }
@@ -104,7 +106,7 @@ export function CallSheet() {
     };
     return createPortal(
       <div className="ncs-veil pop" onClick={close} role="presentation">
-        <div className="ncs ncs-pop" role="dialog" aria-label={urgent ? "바로 깨울 이 고르기" : "부를 이 고르기"} style={{ left, bottom, width: W }} onClick={(e) => e.stopPropagation()}>
+        <div className={`ncs ncs-pop${fing ? " touch" : ""}`} role="dialog" aria-label={urgent ? "바로 깨울 이 고르기" : "부를 이 고르기"} style={{ left, bottom, width: W, maxHeight }} onClick={(e) => e.stopPropagation()}>
           <ul className="ncs-list" role="listbox" aria-multiselectable="true">
             {list.map((a, i) => {
               const on = picked.includes(a.id), group = a.id.startsWith("group-");
@@ -128,7 +130,7 @@ export function CallSheet() {
                 else if (e.key === "Enter") { e.preventDefault(); if (list[cur]) pick(list[cur].id, e.ctrlKey || e.metaKey || e.shiftKey); else if (picked.length) put(); }
                 else if (e.key === "Backspace" && !q) { e.preventDefault(); close(); }
               }} />
-            {picked.length ? <button type="button" className="ncs-pop-go" onClick={() => put()}>넣기 {picked.length}</button> : <small>Ctrl 누르고 고르면 여럿</small>}
+            {picked.length ? <button type="button" className="ncs-pop-go" onClick={() => put()}>넣기 {picked.length}</button> : fing ? null : <small>Ctrl 누르고 고르면 여럿</small>}
           </div>
         </div>
       </div>,
@@ -140,7 +142,7 @@ export function CallSheet() {
       <div className="ncs" role="dialog" aria-modal="true" aria-label={urgent ? "바로 깨울 이 고르기" : "부를 이 고르기"} onClick={(e) => e.stopPropagation()}>
         <div className="ncs-h">
           <b>{urgent ? "! 바로 깨우기" : "@ 부르기"}</b>
-          <span>{urgent ? "고른 이를 지금 깨움" : "고른 이가 다음에 깰 때 읽음"}</span>
+          <span>{urgent ? "고른 이를 지금 깨움" : "고른 이를 바로 깨움"}</span>
           <button type="button" className="ncs-x" aria-label="닫기" onClick={close}>×</button>
         </div>
         <input ref={find} id="ncs-find" className="ncs-find" value={q} onChange={(e) => setQ(e.target.value)} placeholder="이름 찾기" aria-label="이름 찾기"
