@@ -21,7 +21,7 @@ export function useArrived() {
     const l = lastOf(r);
     return l && l.kind !== "human" && (seen[r.id]?.ts || 0) < (r.last_ts || 0) ? -1 : 0;
   };
-  const arrived = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.with !== "형" && count(r) !== 0).sort((a, b) => (b.last_ts || 0) - (a.last_ts || 0));
+  const arrived = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.id !== "summary" && r.with !== "형" && count(r) !== 0).sort((a, b) => (b.last_ts || 0) - (a.last_ts || 0));
   return { arrived, count, lastOf, list, pending: rooms.isPending, error: rooms.isError };
 }
 

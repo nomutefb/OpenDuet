@@ -579,3 +579,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .yroute { display:flex; align-items:center; justify-content:flex-end; gap:5px; margin:3px 2px 0; font-size:11px; line-height:1.2; color:var(--mut); }
 .ychat .yroute.set b { color:var(--fg-2, var(--fg)); font-weight:600; }
 .ychat .yroute .nm-face, .ychat .yroute img { border-radius:50%; }
+/* 회의실 위 기사 요약 픽토그램(room-list .nm-rtools · 형 11-04 13:01 「회의실 위에 앞에 그냥 픽토그램 하나로만」) = 얼굴 자리와 같은 왼쪽 줄 · 유리 동그라미 · 라임 */
+.nm-rtools { display:flex; align-items:center; gap:8px; padding:4px 12px 6px; }
+.nm-rnews { display:grid; place-items:center; width:40px; height:40px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); border-radius:50%; background:var(--glass, rgba(255,255,255,.05)); color:rgb(var(--accent-rgb, 207,255,64)); -webkit-tap-highlight-color:transparent; }
+.nm-rnews:active { opacity:.7; } .nm-rnews.on { background:rgba(var(--accent-rgb, 207,255,64), .14); border-color:rgba(var(--accent-rgb, 207,255,64), .5); }

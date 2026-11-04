@@ -26,7 +26,7 @@ const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, 
 
 
 import { enterRoom, roomReadState } from "../data/read-state";
-const SUMMARY = "summary";   // 요약실 = 늘 회의실 바로 아래(형 11-04 07:5x 「회의실 아래에 요약실이 하나생겨서 내가 요약 요청 보낸거는 거기로 들어가는거야」 · 방 = 뜸 서버 id summary)
+const SUMMARY = "summary";   // 요약실 = 목록엔 안 보임(형 11-04 13:00 「시아야 요약을 앞에 단톡 형태로 방으로 보일 필요는 없어」 · 같은 기사 요약 = 서랍 「뉴스 기사」 · 앞 판 = 회의실 바로 아래 · 형 07:5x) · 방 = 뜸 서버 id summary · 주소로 열면 ./summary-desk.tsx
 const LIVE_MS = 3 * 60_000;   // 활발한 방 = 마지막 글(act_ts) 3분 안 · 빛 꼴 = live-shine.ts
 
 export type Room = OfficeRoom & { unread?: number };
@@ -81,7 +81,7 @@ export function useRoomOrder() {
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => head(a.id) - head(b.id) || recent(a, b));
   const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
-  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo"), hid, count, lastOf, pinned, pins, setPins, hidden, setHidden };
+  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY), hid, count, lastOf, pinned, pins, setPins, hidden, setHidden };
 }
 
 export function RoomList({ onOpen, big = false, slim = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; current?: string }) {   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
@@ -199,6 +199,11 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         </button>
       ) : null}
       {noticeOpen ? <NoticeDialog onClose={() => setNoticeOpen(false)} /> : null}
+      <div className="nm-rtools">   {/* 회의실 위 = 기사 요약 픽토그램 하나(형 11-04 13:01 「이거 그 회의실 위에 앞에 그냥 픽토그램 하나로만 넣음 될듯 뉴스」 · 요약실 = 방 줄 아님) */}
+        <Link to="/channels/$channelId" params={{ channelId: SUMMARY }} className={`nm-rnews${current === SUMMARY ? " on" : ""}`} aria-label="기사 요약" title="기사 요약" onClick={() => onOpen?.()}>
+          <svg aria-hidden viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18h-5" /><path d="M18 14h-8" /><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2" /><rect width="8" height="4" x="10" y="6" rx="1" /></svg>
+        </Link>
+      </div>
       <ul className="nm-rgroup flex flex-col">
         {ordered.map((r) => <Fragment key={r.id}>{Row({ r })}</Fragment>)}
       </ul>
