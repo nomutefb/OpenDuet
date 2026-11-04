@@ -1,0 +1,14 @@
+/* 요약실(./summary-desk.tsx) = 요약 카드 목록 · 톤 = 앱 유리 카드(.nm-news 와 같은 바탕) · 말풍선 0 */
+.nm-sum-all { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:48px; padding:0 16px; border:1px solid rgba(var(--accent-rgb, 207,255,64), .45); border-radius:var(--r-l, 20px); background:rgba(var(--accent-rgb, 207,255,64), .08); color:rgb(var(--accent-rgb, 207,255,64)); font:600 15px/1.2 var(--app-font-text, Pretendard, -apple-system, system-ui, sans-serif); text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-sum-all:active { opacity:.7; }
+.nm-sum { min-width:0; display:flex; flex-direction:column; gap:8px; padding:14px 16px 12px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); border-radius:var(--r-l, 20px); background:var(--glass, rgba(255,255,255,.05)); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); }
+.nm-sum .nm-thumb { margin:0; }
+.nm-sum-h { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; width:100%; padding:0; border:0; background:none; color:var(--fg, inherit); font:700 16px/1.4 var(--app-font-text, Pretendard, -apple-system, system-ui, sans-serif); text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-sum-h:disabled { cursor:default; }
+.nm-sum-h svg { flex:none; margin-top:3px; opacity:.6; }
+.nm-sum-b { overflow-wrap:anywhere; text-align:left; color:var(--fg-2, inherit); font-size:var(--fs-body, 15px); line-height:var(--lh-base, 1.6); }
+.nm-sum-b > :first-child { margin-top:0; } .nm-sum-b > :last-child { margin-bottom:0; }
+.nm-sum-t { align-self:flex-end; font-size:var(--fs-xs, 12px); color:var(--mut); font-variant-numeric:tabular-nums; }
+.nm-sum-empty { padding:24px 4px; color:var(--mut); font-size:14px; text-align:center; }
+.nm-sum-b p { text-align:left; }
+.nm-sum > .yfold, .nm-sum > .yfold-more { align-self:stretch; width:100%; }   /* 접기 칸이 짧은 글 폭으로 줄어 가운데 섰음 */

@@ -44,6 +44,7 @@ import { inkOn } from "./color-pick";
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
 import { useMe, usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
+import { SUMMARY_ROOM, SummaryDesk } from "./summary-desk";   // 요약실 = 요약 카드 목록(형 11-04 09:28)
 import { Folded } from "./fold";   // 긴 글 접기 · 전체 보기(형 11-02 07:19)
 import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
 import { t12 } from "./when";
@@ -757,6 +758,7 @@ function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: O
 
 
 export function OfficeChat(p: { room: string; lead?: ReactNode; active?: boolean }) {
+  if (p.room === SUMMARY_ROOM) return <SummaryDesk lead={p.lead} active={p.active ?? true} />;   // 요약실 = 요약 카드 목록(./summary-desk.tsx · 형 11-04 09:28)
   return p.room === REPAIR_ROOM ? <RepairDesk lead={p.lead} active={p.active ?? true} /> : <OfficeChatRoom {...p} />;
 }
 
