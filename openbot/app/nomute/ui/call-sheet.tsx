@@ -27,7 +27,7 @@ const anchor = () => { const a = document.activeElement as HTMLElement | null, e
 export function openCallSheet(char: string, agents: readonly Agent[]) { known = agents; open = { char: char === "!" ? "!" : "@", agents, at: anchor() }; emit(); }
 /** 부름 목록(triggers.ts 가 그릴 때마다 넣음) = 한글 입력 길(아래)이 쓸 이름들 */
 export function setCallAgents(agents: readonly Agent[]) { known = agents; }
-const inline = () => !!window.matchMedia?.("(pointer: fine)").matches && window.innerWidth >= 640;
+const inline = () => !!window.matchMedia?.("(pointer: fine)").matches;   // 마우스 판이면 폭 상관없이(형 PC 웹앱 창 = 620px 안팎 · 11-04 16:4x 사진 = 640 기준에 걸려 옛 시트가 뜸)
 /** 한글 입력 중 들어온 「@」·「!」 — 커서 바로 앞 글자를 보고 지운 뒤 목록을 엶(원본 keydown 길이 이미 열었으면 글자가 안 들어와서 여기 안 옴) */
 function onTyped(e: Event) {
   const ie = e as InputEvent, ed = (ie.target as HTMLElement | null)?.closest?.('[contenteditable="true"]') as HTMLElement | null;
