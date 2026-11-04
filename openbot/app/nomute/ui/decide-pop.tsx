@@ -19,7 +19,12 @@ import { idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 
 type Pick = { i?: number; pass?: boolean; text?: string };
-export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null; _dups?: string[] };
+export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null; kind?: string; _dups?: string[] };
+// 영상 해석 허가 = 따로 동그라미(형 11-04 14:49 dm-eyes 「신청은 여기에 그 문제 신청 수락하는거 처럼 또」 · 「그 위에 뜨게해줘 문제 신청 수락없으면 저기 위에 뜨면되는거야」)
+//   = 결정 동그라미 위(없으면 그 자리 = 「+」 바로 위) · 가르기 = 서버 kind "videoreq"(뜸 #2387 뒤) · 그 전 판 = 물음 머리 「영상 해석 허가?」
+export const isVideoReq = (d: Decision) => d.kind === "videoreq" || /^\s*(\[결정\]\s*)?영상 해석 허가\?/.test(d.q || "");
+type Kind = "dec" | "video" | "all";
+const ofKind = (k: Kind) => (d: Decision) => (k === "all" ? true : k === "video" ? isVideoReq(d) : !isVideoReq(d));
 // 같은 질문 또 뜸 막기(형 11-02 11:15 「의사결정 받는 판 같은 질문이면 같은 거 또 못올리게 해줘 왠진 모르겠는데 또 올라오네」)
 //   = 묻는 이가 형인 것 뺌(형 글에 「결정」이 들어가 형한테 묻는 결정으로 잡힌 것 · 11-02 01:25 회의실 글 · 서버 막기는 봄) · 같은 방·같은 질문은 하나만(나머지 id 는 _dups = 고르면 같은 답을 같이 보냄 → 다시 안 떠오름)
 const HYUNG = new Set(["형", "세웅"]);
@@ -63,15 +68,17 @@ export const DECIDE_OPEN = "nm-decide-open";
 export const openDecide = (where: string) => window.dispatchEvent(new CustomEvent(DECIDE_OPEN, { detail: where }));
 export const useDecisions = () => useQuery({ queryKey: KEY, queryFn: () => office<{ items?: Decision[] }>("decisions").then((j) => tidy(j.items || [])), refetchInterval: 60_000, retry: false });
 
-/** fab = 대화방 우하단 노트 단추 + 모달 · fab=false = 단추 없이 모달만(where 로 부르면 열림 · 홈) */
-export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; where?: string }) {
+/** fab = 대화방 우하단 노트 단추 + 모달 · fab=false = 단추 없이 모달만(where 로 부르면 열림 · 홈) · kind = dec(결정 · 영상 허가 뺌) · video(영상 허가만 · 결정 동그라미 위) · all(홈) */
+export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?: boolean; where?: string; kind?: Kind }) {
   const qc = useQueryClient();
   const q = useDecisions();
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const [open, setOpen] = useState(false), [picks, setPicks] = useState<Record<string, Pick>>({}), [etc, setEtc] = useState(""), [err, setErr] = useState("");
   const [fx, setFx] = useState<Record<string, Fx>>({}), [gone, setGone] = useState<Set<string>>(() => new Set());   // fx = 불 들어온 줄 · gone = 접혀 사라진 질문(이 창에서만)
   const dirty = useRef(false), closing = useRef(false);
-  const items = q.data || [];
+  const all = q.data || [], items = all.filter(ofKind(kind));
+  const vid = kind === "video", stack = vid && all.some(ofKind("dec"));   // 결정 동그라미가 떠 있으면 그 위 칸
+  const title = vid ? "영상 해석 허가" : "의사 결정";
   const pickOf = (d: Decision) => picks[d.id] || d.pick || null;
   const ready = useRef<() => Sent[]>(() => []);
   // 한 결정은 한 번만 보냄(시아 11-01 10:55 「같은 답이 세 번 왔어」 · 10:54:53 1ms·444ms 차) = 보낸 id 기억 · 보내는 중 다시 안 쏨 · id 겹침 뺌 · 실패 뒤 다시 쏘기 0(받침 = 서버 2분)
@@ -149,15 +156,17 @@ export function DecideFab({ fab = true, where = "rooms" }: { fab?: boolean; wher
   if (q.isError || !items.length) return null;
   return (
     <>
-      {fab ? <button type="button" className={`nm-dec${open ? " on" : ""}`} aria-expanded={open} aria-label={`의사 결정 ${left}개`} onClick={() => (open ? close() : setOpen(true))}>
-        <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h6" /><path d="m8.5 14 2.2 2.2L15.5 11.5" /></svg>
+      {fab ? <button type="button" className={`nm-dec${vid ? " vid" : ""}${stack ? " up" : ""}${open ? " on" : ""}`} aria-expanded={open} aria-label={`${title} ${left}개`} onClick={() => (open ? close() : setOpen(true))}>
+        {vid
+          ? <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="6" width="13" height="12" rx="2" /><path d="m16 10.5 5-3v9l-5-3z" /><path d="m6.8 12.2 1.7 1.7 3.2-3.4" /></svg>
+          : <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h6" /><path d="m8.5 14 2.2 2.2L15.5 11.5" /></svg>}
         {left ? <b className="nm-rcount">{left > 99 ? "99+" : left}</b> : null}
       </button> : null}
       {open ? createPortal(   // body 로 뺌 = 유리 카드(backdrop-filter) 안에서 불러도 화면 기준 자리(홈 할 일 카드)
         <>
           <div className="nm-dec-scrim" aria-hidden onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="의사 결정" className="nm-decpop">
-            <header><b>의사 결정</b><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
+          <section role="dialog" aria-modal="true" aria-label={title} className={`nm-decpop${stack ? " up" : ""}`}>
+            <header><b>{title}</b><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
             <ul>
               {items.filter((d) => !gone.has(d.id)).map((d) => {
                 const p = pickOf(d), name = list.find((x) => x.who === d.who)?.name || d.who;

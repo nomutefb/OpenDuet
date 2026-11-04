@@ -321,6 +321,7 @@ function RoomsPane() {
       </div>
       <RoomFab />
       <DecideFab />
+      <DecideFab kind="video" />   {/* 영상 해석 허가 = 결정 동그라미 위(형 11-04 14:49) */}
     </>
   );
 }

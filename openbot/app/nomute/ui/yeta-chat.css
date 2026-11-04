@@ -245,6 +245,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-dec .nm-rcount { position:absolute; top:-4px; right:-4px; }
 .nm-dec:active { transform:scale(.92); }
 .nm-fab.on ~ .nm-dec { opacity:0; pointer-events:none; transform:scale(.6); }
+/* 영상 해석 허가 동그라미(형 11-04 14:49 「그 위에 뜨게해줘 문제 신청 수락없으면 저기 위에 뜨면되는거야」) = 결정 동그라미가 있으면 한 칸(46 + 틈 8) 위 · 없으면 결정 자리 · 창도 같이 한 칸 위 */
+.nm-dec.vid.up { bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 54px); }
+.nm-decpop.up { bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 52px + 54px); }
 .nm-dec-scrim { position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.28); animation:nmDecFade .2s ease-out; }
 .nm-decpop { --accent:#CFFF40; --accent-rgb:207,255,64;   /* 라임 = 대화창 칸(.ychat)과 같은 값 · body 로 빠진 창이라 안 걸면 원본 앱 --accent(회색 oklch 26.9%)를 받아 단추가 꺼진 것처럼 보였음(형 11-02 07:32 「비활성 처리가 기본값이라」 · 시아 실측) */
   --sp:cubic-bezier(.34,1.56,.64,1); position:fixed; z-index:41; right:12px; bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 52px); width:min(380px, calc(100vw - 24px)); max-height:min(70vh, 560px); display:flex; flex-direction:column; border-radius:var(--r-l,18px); background:var(--glass-bg, rgba(26,27,26,.86)); border:1px solid var(--glass-line, rgba(255,255,255,.14)); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); box-shadow:0 18px 40px -12px rgba(0,0,0,.6); transform-origin:100% 100%; animation:nmDecIn .36s var(--sp); overflow:hidden; }

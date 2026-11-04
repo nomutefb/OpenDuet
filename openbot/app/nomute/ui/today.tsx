@@ -157,7 +157,7 @@ export function NomuteToday() {
   const groups = RP_G.map(([t, sub, f]) => [t, sub, reps.filter((x) => f(x.state))] as const).concat([["그 밖", "", reps.filter((x) => !RP_G.some((g) => g[2](x.state)))] as const]);
   return (
     <section aria-label="오늘" className="mb-6 flex flex-col gap-3">
-      <DecideFab fab={false} where="today" />
+      <DecideFab fab={false} where="today" kind="all" />
       {decs.length ? (
         <div className="rounded-3xl border border-border bg-card p-4">
           <h2 className="text-base font-semibold">형 결정 필요 <span className="tabular-nums text-amber-600">{decs.length}</span></h2>
