@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg, FaceStack } from "../ui/faces";
 import { listWhen } from "../ui/when";
+import { whoName } from "../ui/who-name";
 
 type Room = OfficeRoom & { unread?: number };
 
@@ -34,7 +35,7 @@ export function Arrived() {
         <ul className="flex min-h-0 flex-col gap-2">   {/* 한 방만(형 10-31 12:2x 「한 메세지만 보이게」) · 스크롤 0 · 네비 자리 여백 = 홈 바닥(home-screen · 글 없을 때도) · 나머지 방 수는 머리 「방 N」 이 말함 */}
           {arrived.slice(0, 1).map((r) => {
             const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;
-            const preview = l ? `${r.with || l.kind === "human" ? "" : `${list.find((x) => x.who === l.who)?.name || l.who}: `}${(l.text || "").split("\n")[0]}` : "";
+            const preview = l ? `${r.with || l.kind === "human" ? "" : `${list.find((x) => x.who === l.who)?.name || whoName(l.who)}: `}${(l.text || "").split("\n")[0]}` : "";
             return (
               <li key={r.id} className="nm-arr-one" data-stack={Math.min(arrived.length - 1, 2) || undefined}>   {/* 방이 더 있으면 줄 밑으로 카드 한두 장이 아주 살짝 비침(형 11-03 16:26 「중첩되어있으면 조금 겹쳐있는게 보이면좋겠어 … 아주 조금만 보이면될듯」 · follow-pulse.css) */}
                 <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} className="yset-item">

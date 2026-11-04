@@ -12,6 +12,7 @@ import { DuetIcon } from "@/components/duet/icons";
 import { markdownComponents } from "@/lib/markdown";
 import { office } from "../data/office";
 import { t12 } from "./when";
+import { whoName } from "./who-name";
 
 export type Pin = { id: string; ts: number; who: string; at: string; text: string; files?: number; by: string; pinned_at: string; unpinned_at?: string; unpinned_by?: string };
 type Pins = { cur: Pin | null; history: Pin[] };
@@ -62,7 +63,7 @@ export function PinBar({ room, onJump, children }: { room: string; onJump?: (id:
               <DuetIcon name="pin" size={16} />
               <span className="nm-pinbar-t">
                 <b>{firstLine(cur.text) || (cur.files ? `파일 ${cur.files}개` : "(빈 글)")}</b>
-                <small>{cur.who} · {when(cur.at)} · {cur.by} 고정</small>
+                <small>{whoName(cur.who)} · {when(cur.at)} · {whoName(cur.by)} 고정</small>
               </span>
             </button>
             <button type="button" className="nm-pinbar-fold" aria-label="고정 띠 접기" onClick={toggle}><DuetIcon name="chevronRight" size={16} /></button>
@@ -81,8 +82,8 @@ function PinHistory({ room, pins, onClose, onJump }: { room: string; pins: Pins;
     <div key={`${p.id}-${p.pinned_at}`} className="ycd-card card-left nm-pin-card">
       <span className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "var(--mut)" }}>
         {now ? <b className="nm-pin-now">지금 고정</b> : null}
-        <span>{p.who} · {when(p.at)}</span>
-        <span>· {p.by} 고정 {when(p.pinned_at)}{p.unpinned_at ? ` · 풀림 ${when(p.unpinned_at)}` : ""}</span>
+        <span>{whoName(p.who)} · {when(p.at)}</span>
+        <span>· {whoName(p.by)} 고정 {when(p.pinned_at)}{p.unpinned_at ? ` · 풀림 ${when(p.unpinned_at)}` : ""}</span>
       </span>
       <div className="nm-pin-body" role="button" tabIndex={0} aria-label="그 글로 가기" onClick={(e) => { if (!(e.target as Element).closest("a")) onJump(p); }} onKeyDown={(e) => { if (e.key === "Enter") onJump(p); }}>
         {p.text.trim() ? <Streamdown components={markdownComponents}>{p.text}</Streamdown> : <span style={{ color: "var(--mut)" }}>{p.files ? `파일 ${p.files}개` : "(빈 글)"}</span>}

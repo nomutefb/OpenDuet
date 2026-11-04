@@ -12,6 +12,7 @@ import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { GoButton } from "./go-button";
 import type { Review } from "./sched-review";
 import type { Health, HealthSum } from "./sched-bits";   // 상태 점 칸(뜸 서버 healthOf · 없으면 ○ 확인 안 됨)
+import { whoName } from "./who-name";
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const hm = (ts?: number | string) => (ts ? t12(typeof ts === "string" ? Date.parse(ts) : ts) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
@@ -301,7 +302,7 @@ export function NomuteSchedule() {
             <ul className="divide-y divide-border">
               {d.routines.map((r) => (
                 <li key={r.id} data-content className="flex flex-col gap-2 px-4 py-2.5">
-                  <p data-content className="text-sm"><b>{r.who}</b> · {r.name}<small className="block text-xs text-muted-foreground">{r.id} · {r.when.length ? r.when.join(" + ") : "부를 때만"}</small></p>
+                  <p data-content className="text-sm"><b>{whoName(r.who)}</b> · {r.name}<small className="block text-xs text-muted-foreground">{r.id} · {r.when.length ? r.when.join(" + ") : "부를 때만"}</small></p>
                   <div className="flex flex-wrap items-center gap-1" role="group" aria-label={`${r.name} 상태`}>
                     {Object.keys(ST_KO).filter((k) => k !== "grok-stay" || r.state === k).map((k) => (
                       <button key={k} type="button" disabled={!can || go.isPending} aria-pressed={r.state === k} onClick={() => prep({ at: "routine", key: r.id, field: "state", value: k, label: `${r.who} ${r.name}` })}
@@ -327,7 +328,7 @@ export function NomuteSchedule() {
             <ul className="divide-y divide-border">
               {d.bots.map((b) => (
                 <li key={b.bot} data-content className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm">
-                  <b className="min-w-12">{b.who}</b>
+                  <b className="min-w-12">{whoName(b.who)}</b>
                   <span className="flex-1 text-xs text-muted-foreground">하루 정해진 깸 {b.wakes.length}번{b.next_ts ? ` · 다음 ${nextShort(b.next_ts)}` : ""}</span>
                 </li>
               ))}
@@ -394,7 +395,7 @@ export function NomuteOld() {
             <ol className="mt-2 flex flex-col gap-2">
               {msgs.map((m) => (
                 <li key={m.id} className="text-sm">
-                  <span className="text-xs text-muted-foreground"><b className="text-foreground">{m.who}</b>{m.to ? <> <Chev dir="right" size={11} /> {m.to}</> : ""} · <span className="tabular-nums">{hm(m.ts)}</span>{m.tag ? ` · ${m.tag}` : ""}</span>
+                  <span className="text-xs text-muted-foreground"><b className="text-foreground">{whoName(m.who)}</b>{m.to ? <> <Chev dir="right" size={11} /> {whoName(m.to)}</> : ""} · <span className="tabular-nums">{hm(m.ts)}</span>{m.tag ? ` · ${m.tag}` : ""}</span>
                   <p className="whitespace-pre-wrap">{m.text}</p>
                 </li>
               ))}

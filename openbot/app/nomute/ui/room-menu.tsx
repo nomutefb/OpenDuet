@@ -12,6 +12,7 @@ import { cachedFile, fileUrl, filesHeld, pruneFiles } from "../data/file-cache";
 import { type NotifyState, notifyOn, notifyState } from "../data/notify";
 import { setUnfold, useUnfold } from "./unfold";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
+import { whoName } from "./who-name";
 
 export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
   const qc = useQueryClient(), btn = useRef<HTMLButtonElement>(null);
@@ -189,7 +190,7 @@ function FileRow({ f }: { f: Got }) {
       <a href={src || fileUrl(f.path)} target="_blank" rel="noreferrer" className={img ? "pic" : "doc"}>
         {img ? (src ? <img src={src} alt={f.name} /> : <span className="ph" />) : <span className="nm">{f.name}</span>}
       </a>
-      <small>{f.who} · {when}</small>
+      <small>{whoName(f.who)} · {when}</small>
     </li>
   );
 }

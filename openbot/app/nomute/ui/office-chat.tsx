@@ -52,6 +52,7 @@ import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은�
 import { LinkCard } from "./link-card";
 import { ThumbCard, thumbOf, type ThumbRef } from "./thumb-card";   // 별 「[요약 완료]」 글 바로 위 썸네일 초안 그림(형 11-02 11:44 「별 요약 과 함께 요약 바로 위에 오면 됨 이미지로」)   // 글 속 첫 주소 = 말풍선 아래 미리보기 카드(형 11-02 07:13 「채팅에는 일반적인 채팅 앱처럼 보이면 됨」)
 import "./yeta-chat.css";
+import { whoName } from "./who-name";
 
 const enc = encodeURIComponent;
 /** 쓰던 글 = 방마다 이 탭 안에 바로 적어 둠(sessionStorage) → 새 판으로 다시 읽혀도 글칸에 되살림(뒤에 숨어 얼어 있던 탭은 서비스 워커에 「글 있음」을 못 알려 · 10-28 11:21 실측) */
@@ -651,7 +652,7 @@ class LineGuard extends Component<{ m: Msg; children: ReactNode }, { bad: boolea
   state = { bad: false };
   static getDerivedStateFromError() { return { bad: true }; }
   componentDidCatch(e: unknown) { console.error("글을 못 그림", this.props.m.id, e); }
-  render() { return this.state.bad ? <div className="ymsg" data-id={this.props.m.id}><div className="yb ai">{String(this.props.m.who || "")}: {String(this.props.m.text || "")}</div></div> : this.props.children; }
+  render() { return this.state.bad ? <div className="ymsg" data-id={this.props.m.id}><div className="yb ai">{whoName(this.props.m.who)}: {String(this.props.m.text || "")}</div></div> : this.props.children; }
 }
 const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); };   // 읽음 저장 실패 = 화면 0 · 기록만(형 11-03 12:11)
 function Line(p: ComponentProps<typeof LineBody>) { return <LineGuard m={p.m}><LineBody {...p} /></LineGuard>; }
@@ -679,7 +680,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <div className={ring ? "yname tab" : "yname"} style={ring ? ({ "--yn": ring } as CSSProperties) : undefined}>{p?.name || m.who}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
+        <div className={ring ? "yname tab" : "yname"} style={ring ? ({ "--yn": ring } as CSSProperties) : undefined}>{p?.name || whoName(m.who)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
         <Quote m={m} c={c} />
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}
@@ -687,7 +688,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
           <div className="ybw">
             <div {...press.bind} className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
-              {m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || m.who} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
+              {m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
               <BoxCard m={m} />
               <Reactions m={m} c={c} mine={false} />
             </div>
@@ -1049,8 +1050,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
               <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
                 {newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null}
                 {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentGroup msgs={it.msgs} c={c} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
-                  <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${y.who} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
-                    {it.msgs.at(-1)?.who} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
+                  <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${whoName(y.who)} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
+                    {whoName(it.msgs.at(-1)?.who)} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
                     {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>
                   </p>
                 )}

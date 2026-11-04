@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { office, peopleSync } from "../data/office";
+import { whoName } from "./who-name";
 
 type Answer = { v: string; by?: string; at?: string };
 type BriefItem = { id: string; key: string; col: string; what: string; impact?: string; next?: string; at?: string; room?: string; refs?: { label?: string; id?: string; room?: string }[]; runs?: number; raw?: string[]; answer?: Answer | null };
@@ -162,7 +163,7 @@ export function NomuteToday() {
           <h2 className="text-base font-semibold">형 결정 필요 <span className="tabular-nums text-amber-600">{decs.length}</span></h2>
           <ul className="mt-2 flex flex-col gap-2">{decs.map((d) => (
             <li key={d.id} className="flex items-center gap-2 border-b border-border py-2 text-sm last:border-b-0">
-              <span className="min-w-0 flex-1"><small className="block text-xs text-muted-foreground">{d.who} · {d.room_name || d.room}</small><span data-content className="block truncate font-medium">{d.q}</span></span>
+              <span className="min-w-0 flex-1"><small className="block text-xs text-muted-foreground">{whoName(d.who)} · {d.room_name || d.room}</small><span data-content className="block truncate font-medium">{d.q}</span></span>
             </li>
           ))}</ul>
           <button type="button" className="mt-3 w-full rounded-full border border-border py-2 text-sm font-semibold" onClick={() => openDecide("today")}>열어서 고르기</button>
