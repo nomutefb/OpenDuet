@@ -68,7 +68,6 @@ const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif)$/i;
 const VID_RE = /\.(mp4|webm|mov|m4v)$/i;   // 영상 첨부 = 대화창에서 바로 재생(시아 11-02 형 02:32 「여가에 영상도 올릴 수 있게 해줘」 · 서버 Range 206 = 아이폰 사파리)
 const WINTER_WHO = "윈터 PM";
-const MOUSE = typeof matchMedia === "function" && matchMedia("(hover:hover)").matches;
 const URL_RE = /(https?:\/\/[^\s<>"'「」()]+[^\s<>"'「」().,;:!?])/g;   // 글 속 주소(형 글 = 꾸밈 없는 글 · 봇 글은 Streamdown 이 링크로)
 const RECENT_N = 40;   // 다시 받기 = 최근 40 글을 통째로(거울이 반응·글을 같은 글에 고쳐 씀 = since 로는 못 받음 · 맞물림 21:3x)
 const FIRST_N = 100, DAY_MIN = 15, AUTO_MAX = 8;
@@ -731,7 +730,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
   const p = c.list.find((x) => x.who === m.who), ring = ringOf(p);   // ring = 이름표 바탕(테 색 · yeta-chat.css .yname.tab)
   const selected = c.sel === m.id;
   const press = useLongPress(() => c.onMenu(m));
-  const toggle = () => { if (!press.fired() && MOUSE) c.setSel(selected ? "" : m.id); };   // 폰 = 그냥 누르면 아무 일 없음 · 길게 눌러야 메뉴(형 10-31 「터치만 해도 … 메뉴 … 생겨 적어도 0.5초」)
+  const toggle = () => { press.fired(); };   // PC 도 그냥 누름 = 아무 일 없음(형 11-04 17:52 「pc에서 눌렀을때 이모지가 나올필요는 없구, 우클릭했을때만 (대화를) 옵션이 나오면 됨」) · 우클릭·길게 = 글 메뉴(./msg-menu.tsx) · 폰 = 길게(형 10-31)   // 폰 = 그냥 누르면 아무 일 없음 · 길게 눌러야 메뉴(형 10-31 「터치만 해도 … 메뉴 … 생겨 적어도 0.5초」)
   const time = noTime ? null : <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
   if (mineOf(m)) {
     const app = hyungApp(m) && m.kind !== "human";   // 그록봇 앱에서 친 형 글 = 검정 말풍선 흰 글씨(형 10-30)

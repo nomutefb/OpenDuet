@@ -604,3 +604,19 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .ycall.yface > span { display:block; line-height:1; text-box:trim-both cap alphabetic; }
 /* 형 11-04 17:36 「시아 라고 써진거가 조금 아주 조금만 더 위로」 = 글자 0.5px 위(형 화면 = 실제 글꼴 · 잰 판은 가운데였지만 형 눈이 끝 기준) */
 .ychat .ycall.yface > span { position:relative; top:-.5px; }
+/* 글 메뉴 나오는 결(형 11-04 17:52 「나오는 효과가 부드럽게 나오게 할수있어? 디자인은 이쁜데 조금 투박해서, 촤르륵 이 가능한지」)
+   = 덮개 스르륵(.2초) · 판은 살짝 작게·아래에서 탄력 있게(.36초) · 줄은 위에서부터 하나씩 촤르륵(줄마다 28ms 늦게 · 아래로 6px 에서 제자리) */
+.nm-msgm { animation:nmMsgmVeil .2s ease-out both; }
+.nm-msgm-p { transform-origin:50% 60%; animation:nmMsgmPop .36s cubic-bezier(.34,1.4,.64,1) both; }
+.nm-msgm-p > * { animation:nmMsgmRow .32s cubic-bezier(.2,.7,.3,1) both; }
+.nm-msgm-p > :nth-child(1) { animation-delay:.04s; } .nm-msgm-p > :nth-child(2) { animation-delay:.068s; } .nm-msgm-p > :nth-child(3) { animation-delay:.096s; }
+.nm-msgm-p > :nth-child(4) { animation-delay:.124s; } .nm-msgm-p > :nth-child(5) { animation-delay:.152s; } .nm-msgm-p > :nth-child(6) { animation-delay:.18s; }
+.nm-msgm-p > :nth-child(7) { animation-delay:.208s; } .nm-msgm-p > :nth-child(n+8) { animation-delay:.236s; }
+.nm-msgm-q > button { animation:nmMsgmEmo .34s cubic-bezier(.34,1.56,.64,1) both; }
+.nm-msgm-q > :nth-child(1) { animation-delay:.06s; } .nm-msgm-q > :nth-child(2) { animation-delay:.09s; } .nm-msgm-q > :nth-child(3) { animation-delay:.12s; }
+.nm-msgm-q > :nth-child(4) { animation-delay:.15s; } .nm-msgm-q > :nth-child(5) { animation-delay:.18s; } .nm-msgm-q > :nth-child(n+6) { animation-delay:.21s; }
+@keyframes nmMsgmVeil { from { background:rgba(0,0,0,0); } }
+@keyframes nmMsgmPop { from { opacity:0; transform:translateY(14px) scale(.94); } }
+@keyframes nmMsgmRow { from { opacity:0; transform:translateY(6px); } }
+@keyframes nmMsgmEmo { from { opacity:0; transform:scale(.4); } }
+@media (prefers-reduced-motion:reduce) { .nm-msgm, .nm-msgm-p, .nm-msgm-p > *, .nm-msgm-q > button { animation:none; } }
