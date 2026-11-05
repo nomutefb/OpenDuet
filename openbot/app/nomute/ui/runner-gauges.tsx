@@ -61,8 +61,8 @@ export function RunnerGauges() {
                 {busy != null ? <span className="text-muted-foreground" title="도는 잡 / 자리">잡 {busy}/{total ?? "-"}</span> : null}
                 <span className="ml-auto text-muted-foreground">{none ? (a?.stale ? "보고 끊김" : "숫자 없음") : at ? ago(now - at) : ""}</span>
               </header>
+              <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>{m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : "\u00a0"}</span>   {/* 형 15:44 「gpu 라는 말 빼고 좌상단에 온도만 · G 45도씨 W 아래에 · 66도시 랑 같은 크기 · 지피유 퍼센트는 뺄게」 */}
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} />   {/* 형 15:29 그림 = 온도는 위 빈 곳으로 · 「CPU」 글자 뺌 */}
-              {m.gpu_temp != null ? <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>G {Math.round(m.gpu_temp)}°C</span> : null}   {/* 형 15:44 「gpu 라는 말 빼고 좌상단에 온도만 · G 45도씨 W 아래에 · 66도시 랑 같은 크기 · 지피유 퍼센트는 뺄게」 */}
               {temp ? <span className="sr-only">{temp}</span> : null}
             </section>
           );
