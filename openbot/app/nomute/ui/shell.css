@@ -105,3 +105,8 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 /* 반갈일 때 아래 네비 = 창 가로 전체(형 11-05 14:14 「그리고 하단 네비를 길게 늘여뜨려보자」) — 왼쪽 얼굴 띠(64px) 다음부터 오른쪽 끝까지 · 단추는 고르게 · 오른쪽 칸 바닥은 네비 몫만큼 비움 */
 .nm-split-l .ynav { position:fixed; left:72px; right:8px; width:auto; max-width:none; margin-inline:0; justify-content:space-evenly; }
 .nm-split { padding-bottom:calc(72px + env(safe-area-inset-bottom)); }
+/* 반갈 한 톤(형 11-05 14:29 「근데 우측하고 통일감이 없어서 마음에 안들어」 · 14:30 「한톤으로 구성되어 있되, 배경은 하나고 구분감만 있으면 좋겠음...」)
+   = 라임 3D 바탕(.nm-app-ambient)을 창 전체로 한 장 깔고 · 오른쪽 반은 판 없이 그 위에 · 뉴스 칸만 대화 말풍선과 같은 옅은 유리 · 가운데 가는 금 하나로만 나눔 */
+.nm-split-l .nm-app-ambient { position:fixed; inset:0; }
+.nm-split { background:transparent; padding-left:8px; border-left:1px solid color-mix(in srgb, var(--duet-ink) 8%, transparent); }
+.nm-split > section.nm-split-news { background:color-mix(in srgb, var(--duet-surface) 42%, transparent); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border:1px solid color-mix(in srgb, var(--duet-ink) 7%, transparent); }
