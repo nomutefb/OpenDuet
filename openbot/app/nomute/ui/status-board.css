@@ -51,3 +51,5 @@
 :root:not(.dark) .nsb { color:#1a1b1a; --nsb-line:rgba(0,0,0,.08); --nsb-mut:rgba(26,27,26,.55); }
 :root:not(.dark) .nsb-top, :root:not(.dark) .nsb-cat { background:rgba(255,255,255,.7); }
 .nsb-mh { padding:4px 12px 12px; }   /* lieflat 격자 자리(./lieflat-charts.tsx MatrixHeat) */
+.nsb-cc { display:flex !important; flex-wrap:wrap; gap:2px 10px; margin-top:2px; }   /* 줄 안 작은 칸(봇 연결 = 깸 상태·마지막 깸·깨우는 문) */
+.nsb-cc span[data-st="miss"] { color:#ffb3b5; }

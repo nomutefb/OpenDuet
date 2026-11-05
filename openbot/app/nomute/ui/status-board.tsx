@@ -36,7 +36,7 @@ const SKELETON: StatusCat[] = [
   // 뉴스 요약 썸네일 기준(형 11-05 08:3x 「극화 on / off + 수량  / 썸넹일 플랫폼」 · 수채화 · 포토 실사 · 만평 같은 칸) = 화풍 넷(thumb_gen.py STYLES · sid webtoon·watercolor·photo·cartoon) × 켜짐·장수·엔진(에디터 설정 「AI 썸네일·이미지」)
   { id: "thumb", name: "뉴스 요약 썸네일 기준", rows: [["webtoon", "극화"], ["watercolor", "수채화"], ["photo", "포토 실사"], ["cartoon", "만평"]].map(([key, name]) => wait(name, key)) },
   // 사무실 통신(형 11-05 08:2x 「사무실 커뮤니케이션 상태 / 열인덱싱: 클로드, 지피티, 그록봇 / 행인덱싱: …」) = 종류 × 봇 무리 격자 · 칸 = 그 무리가 그 종류를 사무실로 보내고 받는지(시험 = 빠르 · 서버 file·photo 길)
-  { id: "comm", name: "사무실 커뮤니케이션", cols: [["claude", "클로드"], ["gpt", "지피티"], ["grok", "그록봇"]].map(([id, name]) => ({ id, name })),
+  { id: "comm", name: "사무실 커뮤니케이션", cols: ["클로드", "지피티", "그록봇"].map((x) => ({ id: x, name: x })),   // 칸 id = 서버(빠르 comm cells) 이름 그대로
     rows: ["텍스트", "사진 원본", "사진 압축본", "영상 원본", "영상 압축본", "영상 해석본", "음성", "음성 전사본", "링크", "파일(웹 관련)", "파일(앱 관련)", "bat 파일 등"].map((t) => ({ ...wait(t), cells: {} })) },
 ];
 
@@ -68,7 +68,8 @@ function fromLocal(s: Sched | undefined, bots: Bot[] | undefined): Record<string
 const LIGHT: Record<string, HealthSt> = { "🟢": "ok", "🟡": "late", "🔴": "miss", "⚪": "unknown" };
 const stIn = (v: unknown): HealthSt => (typeof v === "string" && (LIGHT[v] || (["ok", "late", "miss", "unknown", "off"].includes(v) ? (v as HealthSt) : "unknown"))) || "unknown";
 const rowIn = (r: StatusRow & { host?: string }): StatusRow & { host?: string } => ({ ...r, st: stIn(r.st), ...(r.cells ? { cells: Object.fromEntries(Object.entries(r.cells).map(([k, c]) => [k, { ...c, st: stIn(c.st) }])) } : {}) });
-const HIDE_BOTS = new Set(["별"]);   // 형 11-05 08:31 「별은 빼면 되고」
+const HIDE_BOTS = new Set(["별"]);
+const HOST_KO: Record<string, string> = { fast: "빠르", sia: "시아", deng: "뎅", neo: "누리", eyes: "뜸", mac: "맥", "win-a": "윈A", wina: "윈A", "win-b": "윈B", winb: "윈B" };   // 몸 보고 host(영어 자리) → 자리 줄 이름   // 형 11-05 08:31 「별은 빼면 되고」
 /** 뼈대 ← 지금 자료(1·2·3) ← 서버 GET status(있으면) · 격자 = 같은 key 덮음 · 줄 표 = 서버 줄이 이김 + 아직 보고 안 한 몸 자리 줄만 남김 */
 function merge(local: Record<string, StatusRow[]>, srv?: StatusCat[]): StatusCat[] {
   return SKELETON.map((c) => {
@@ -76,7 +77,7 @@ function merge(local: Record<string, StatusRow[]>, srv?: StatusCat[]): StatusCat
     let rows = (local[c.id]?.length ? local[c.id] : c.rows).filter((r) => !(c.id === "bots" && HIDE_BOTS.has(r.key)));
     if (sr.length && c.cols) { const by = new Map(sr.map((r) => [r.key, r])); rows = [...rows.map((r) => by.get(r.key) || r), ...sr.filter((r) => !rows.some((x) => x.key === r.key))]; }
     else if (sr.length) {
-      const hosts = new Set(sr.map((r) => String(r.host || r.key.split(":")[0])));
+      const hosts = new Set(sr.flatMap((r) => { const h = String(r.host || r.key.split(":")[0]); return [h, HOST_KO[h] || h]; }));
       const left = c.rows.filter((r) => r.note === "보고 아직 안 옴" && !hosts.has(r.key) && !hosts.has(r.key.replace(/^VM /, "")));   // 보고 안 한 몸만 자리 줄로
       rows = [...sr, ...left];
     }
@@ -158,7 +159,8 @@ export function StatusBoard() {
                     <li key={r.key} className={head ? "nsb-zh" : undefined} data-st={r.st}>
                       <button type="button" className="nsb-r" onClick={() => (head ? setZone(zone === z ? "" : z) : setPick(pick === r.key ? "" : r.key))}>
                         <StatusDot st={r.st} />
-                        <span className="nsb-n">{r.name}{r.cron?.length ? <small>{cronKo(r.cron)}</small> : null}</span>
+                        <span className="nsb-n">{r.name}{r.cron?.length ? <small>{cronKo(r.cron)}</small> : null}
+                          {r.cells && !head ? <small className="nsb-cc">{Object.entries(r.cells).map(([k, x]) => <span key={k} data-st={x.st}><StatusDot st={x.st} />{k}{x.note ? ` ${x.note}` : ""}</span>)}</small> : null}</span>
                         <span className="nsb-v">{[r.value, daysKo(r.left_days), r.last_at ? agoKo(r.last_at) : "", nextKo(r.next_at)].filter(Boolean).join(" · ") || HEALTH_KO[r.st]}</span>
                       </button>
                       {head && zone === z ? <ZoneItems zone={z} /> : null}
