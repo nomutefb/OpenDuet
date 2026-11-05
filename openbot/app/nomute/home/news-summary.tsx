@@ -18,7 +18,7 @@ export function NewsSummary() {
     queryFn: () => getJson<{ items?: QItem[] }>(`/api/pending?_=${Date.now()}`).then((d) => (d.items || []).filter((it) => it && it.status && it.status !== "done" && it.status !== "deleted").slice(0, 4), () => [] as QItem[]),
   });
   const list = useQuery(newsListQuery);
-  const done = (list.data || []).slice(0, N_DONE);
+  const done = (Array.isArray(list.data?.arts) ? list.data!.arts : []).slice(0, N_DONE);   // newsListQuery = { arts, count, generated }(배열 아님 · 17:2x 판에서 앱 통째로 깨짐)
   const q = pend.data || [];
   return (
     <section className="nm-nsum" aria-label="뉴스 요약">
