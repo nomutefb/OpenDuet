@@ -158,3 +158,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 /* 오른쪽 = 위 상태바(제 키) · 가운데 실시간 뉴스 · 아래 뉴스 요약(약 4할) */
 .nm-split > section.nm-split-sum { flex:0 0 38%; min-height:180px; background:transparent; overflow:hidden; }
 .nm-split-sum > section { flex:1 1 auto; }
+/* PC 반갈 위 막대(형 11-05 17:51 봄 창 「우측 상단에 메인화면 버튼은 웹앱에서는 없어도돼. 왜냐면 우측에 계쏙 뉴스나오니까」 · 「대화방 이라는 저 버튼은ㅇ 사실상 좌상단 맨 좌측에 버튼으로 통합시켜도될듯」)
+   홈 단추 = 반갈에서만 숨김(폰은 그대로) · 대화방 = 막대 맨 왼쪽 */
+.nm-split-l .ynav button[data-tab="home"] { display:none; }
+.nm-split-l .ynav button[data-tab="rooms"] { order:-1; margin-right:auto; }

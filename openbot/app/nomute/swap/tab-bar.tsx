@@ -43,7 +43,7 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
         {TABS.map((tab) => {
           const on = tab.id === pane && !modal;
           return (
-            <button aria-current={on ? "page" : undefined} aria-label={tab.label} className={on ? "on" : undefined} key={tab.id} onClick={() => void navigate({ to: tab.id === "chat" ? chatTo : tab.to })} type="button">
+            <button aria-current={on ? "page" : undefined} aria-label={tab.label} className={on ? "on" : undefined} key={tab.id} data-tab={tab.id} onClick={() => void navigate({ to: tab.id === "chat" ? chatTo : tab.to })} type="button">
               <DuetIcon name={tab.icon} size={20} stroke={on ? 2.1 : 1.9} />
               <span>{tab.label}</span>
             </button>
