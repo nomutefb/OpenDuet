@@ -58,8 +58,8 @@ export function RunnerGauges() {
                 {busy != null ? <span className="text-muted-foreground" title="도는 잡 / 자리">잡 {busy}/{total ?? "-"}</span> : null}
                 <span className="ml-auto text-muted-foreground">{none ? (a?.stale ? "보고 끊김" : "숫자 없음") : at ? ago(now - at) : ""}</span>
               </header>
-              <TickGauge label="CPU" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : ""} off={none} />
-              <p className="nm-rgx-sub">{[gpu != null ? `GPU ${Math.round(gpu)}` : "", m.gpu_temp != null ? `${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ") || " "}</p>
+              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} off={none} />   {/* 형 15:29 그림 = 온도는 위 빈 곳으로 · 「CPU」 글자 뺌 */}
+              <p className="nm-rgx-sub">{gpu != null ? `GPU ${Math.round(gpu)}%${m.gpu_temp != null ? ` (${Math.round(m.gpu_temp)}°C)` : ""}` : " "}</p>   {/* 형 15:30 「gpu 온도는 gpu에 귀속시켜서 GPU 16 (55 도ㅅ씨) 이런식으로」 */}
               {temp ? <span className="sr-only">{temp}</span> : null}
             </section>
           );
