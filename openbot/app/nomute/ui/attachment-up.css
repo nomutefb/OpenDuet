@@ -55,3 +55,7 @@
 .nac-list { align-self:stretch; }   /* 대화 줄 안 보내는 중·보냄 대기 묶음(형 11-02 12:02) · 말풍선은 오른쪽(.nac-up · .nac-wrow 가 align-self:flex-end) */
 .nac-uprow .nac-up { margin-bottom:0; }   /* 보내는 중 사진 = [전송 대기][사진·글] · 바깥 줄이 아래 틈(8px)을 맡음 */
 .nac-wait.now { animation-delay:0s; }
+/* 보낸 파일 머리표(office-chat FileTag · 형 11-05 09:13) = 왼쪽 위 작은 알약 「0.4MB · PNG · 읽음」 · 블릿 간격 같게 */
+.nm-ftag { position:absolute; top:6px; left:6px; z-index:1; display:inline-flex; align-items:center; padding:1px 7px; border-radius:999px; background:rgba(0,0,0,.62); color:#fff; font-size:10px; font-weight:700; line-height:16px; font-variant-numeric:tabular-nums; pointer-events:none; }
+.nm-ftag > span + span::before { content:"·"; margin:0 4px; opacity:.7; }
+.nm-ftag .rd { color:var(--accent, #CFFF40); }

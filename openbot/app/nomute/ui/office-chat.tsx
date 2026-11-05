@@ -497,6 +497,14 @@ const picsOf = (m: Msg) => {
 const zoomWhen = (ts: number) => { const d = new Date(ts); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 (window as unknown as { nmZoom?: typeof zoomImage }).nmZoom = zoomImage;
 const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.test(String(p)) || VID_RE.test(String(p)));   // 사진(·영상)만 든 글 = 말풍선 없이(형 10-31 「사진 주변 테두리 없애줘」)
+/** 보낸 파일 머리표(형 11-05 09:13 「파일 올리면, 파일 용량이랑 0.4MB · 확장자 이렇게 나오게해주라」 · 「블릿 하나 똑같이 간격에 달아서, 애들이 확실히 읽어지면 읽음. 뜨게」)
+ *  = 왼쪽 위 「0.4MB · PNG · 읽음」 · 읽음 = 서버 file_read[path](읽은 이 목록 · 기준은 깃·빠르 회의실 논의 뒤) 있을 때만 */
+function FileTag({ f, m }: { f: { p: string; n: string; b: number }; m: Msg }) {
+  const mb = f.b ? `${Math.max(0.1, Math.round((f.b / 1048576) * 10) / 10)}MB` : "", ext = (/\.([A-Za-z0-9]{1,6})$/.exec(f.n || f.p)?.[1] || "").toUpperCase();
+  const read = ((m as { file_read?: Record<string, string[]> }).file_read || {})[f.p] || [];
+  const tag = [mb, ext, read.length ? "읽음" : ""].filter(Boolean);
+  return tag.length ? <span className="nm-ftag" title={read.length ? `읽은 이: ${read.join(" · ")}` : undefined}>{tag.map((t, i) => <span key={i} className={t === "읽음" ? "rd" : undefined}>{t}</span>)}</span> : null;
+}
 /** 못 그린 그림·영상 = 빈칸(0x0) 대신 이름 + 「못 불러왔어」 · 누르면 원본 주소(형 11-05 06:14 「애들이 보낸 영상 사진 안들어와」) */
 function Broken({ f, kind }: { f: { p: string; n: string }; kind: string }) {
   return (
@@ -518,14 +526,15 @@ function Files({ m }: { m: Msg }) {
       {imgs.length ? (
         <div className="yfiles flex flex-col items-start gap-2">   {/* 두 장 이상 = 세로(형 10-31 「그리고 2개 이상은 세로로.」) */}
           {imgs.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="그림" /> : (
-            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
+            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="relative block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
               <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />
+              <FileTag f={f} m={m} />
             </a>
           ))}
         </div>
       ) : null}
       {vids.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="영상" /> : (
-        <video key={f.p} src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />
+        <div key={f.p} className="relative"><video src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} /><FileTag f={f} m={m} /></div>
       ))}
       {rest.map((f) => (
         <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 hover:bg-foreground/5">

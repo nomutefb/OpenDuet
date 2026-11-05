@@ -1015,6 +1015,7 @@ export function Composer({
           id: attachment.id,
           url: attachment.source.value,
           alt: attachment.filename,
+          size: attachment.size,   // 타일 왼쪽 위 「0.4MB · PNG」(형 11-05 09:13)
           loading: attachment.status === "uploading",
         })),
     [staged],

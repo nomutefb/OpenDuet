@@ -36,8 +36,14 @@ export type StagedImage = {
   id: string;
   url: string;
   alt?: string;
+  size?: number;
   loading: boolean;
 };
+
+/** 첨부 타일 머리표 = 「0.4MB · PNG」(형 11-05 09:13 「파일 올리면, 파일 용량이랑 0.4MB · 확장자 이렇게 나오게해주라」) */
+const mbOf = (bytes?: number) => (bytes === undefined ? "" : `${Math.max(0.1, Math.round((bytes / 1048576) * 10) / 10)}MB`);
+const extOf = (name?: string) => { const m = /\.([A-Za-z0-9]{1,6})$/.exec(name || ""); return m ? m[1].toUpperCase() : ""; };
+const tagOf = (name?: string, bytes?: number) => [mbOf(bytes), extOf(name)].filter(Boolean).join(" · ");
 
 export type StagedFile = {
   id: string;
@@ -111,6 +117,11 @@ export function AttachmentStrip({
                 src={image.url}
               />
             )}
+            {tagOf(image.alt, image.size) ? (
+              <span aria-hidden className="pointer-events-none absolute top-1 left-1 rounded-full bg-black/65 px-1.5 py-px font-semibold text-[10px] text-white leading-4 tabular-nums">
+                {tagOf(image.alt, image.size)}
+              </span>
+            ) : null}
             <RemoveButton
               name={image.alt ?? "attachment"}
               onRemove={() => onRemove(image.id)}
@@ -161,7 +172,7 @@ export function AttachmentStrip({
                       : undefined
                   }
                 >
-                  {formatBytes(file.size)}
+                  {tagOf(file.name, file.size) || formatBytes(file.size)}
                   {file.mayTruncate === true ? " · may be cut" : null}
                 </p>
               )}
