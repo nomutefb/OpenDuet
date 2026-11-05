@@ -621,3 +621,8 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 @keyframes nmMsgmRow { from { opacity:0; transform:translateY(6px); } }
 @keyframes nmMsgmEmo { from { opacity:0; transform:scale(.4); } }
 @media (prefers-reduced-motion:reduce) { .nm-msgm, .nm-msgm-p, .nm-msgm-p > *, .nm-msgm-q > button { animation:none; } }
+/* 단톡 방 아이콘(room-list RoomIcon · 형 11-05 13:19 「2개씩 보이게하지말구」 · 「좀 튀어야됨..」) = 둥근 네모(사람 동그라미와 갈림) · 그림 있으면 꽉 채움 · 없으면 표지 색 + 이모지/첫 글자 */
+.nm-ricon { flex:none; display:grid; place-items:center; overflow:hidden; border-radius:30%; background:linear-gradient(145deg, color-mix(in srgb, var(--accent, #CFFF40) 85%, #fff), color-mix(in srgb, var(--accent, #CFFF40) 70%, #000)); color:#141414; box-shadow:0 0 0 1.5px rgba(255,255,255,.18), 0 4px 12px -4px rgba(0,0,0,.6); }
+.nm-ricon img { width:100%; height:100%; object-fit:cover; }
+.nm-ricon .ch { font-weight:800; font-style:italic; line-height:1; }
+.nm-ricon .emo { line-height:1; filter:drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
