@@ -44,8 +44,9 @@ export function RunnerGauges() {
           const rd = lk.problem ? null : d;   // 위젯 자료는 살아 있을 때만 메움
           const cpu = m.cpu ?? num(rd?.cpu), ram = m.ram ?? num(rd?.ram), gpu = m.gpu ?? num(rd?.gpu);
           const none = cpu == null && ram == null && gpu == null;
-          const load = [cpu, ram].reduce<number | null>((x, y) => (y != null && (x == null || y > x) ? y : x), null);
-          const lv: Level = none ? "off" : (m.cpu_temp ?? 0) >= 85 || (m.gpu_temp ?? 0) >= 85 ? "red" : levelOf(load, false);
+          // 불 = CPU 기준(형 15:27 「램은 과도해도 별 문제가 안된다고 생각?」 · 「cpu가 제일 문제지?」) · RAM 은 92% 넘어 디스크로 밀릴 때만 주황 · 온도 85 = 빨강
+          const cl = levelOf(cpu, false), ramHot = (ram ?? 0) >= 92;
+          const lv: Level = none ? "off" : (m.cpu_temp ?? 0) >= 85 || (m.gpu_temp ?? 0) >= 85 || cl === "red" ? "red" : cl === "orange" || ramHot ? "orange" : cl;
           const at = a && !a.stale ? a.reported_at || 0 : rd ? rd.at * 1000 : 0;
           const busy = rd && num(rd.busy) != null && rd.busy! >= 0 ? rd.busy : null, total = rd && num(rd.total) != null && rd.total! >= 0 ? rd.total : null;
           const temp = [m.cpu_temp != null ? `CPU ${Math.round(m.cpu_temp)}°` : "", m.gpu_temp != null ? `GPU ${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ");
