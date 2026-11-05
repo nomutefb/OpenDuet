@@ -61,7 +61,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     <div className="ypc-veil nm-yeta" role="presentation" onClick={onClose}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
       <div className={look ? "ypc ypc--being" : "ypc"} role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
         <button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} />   {/* 프로필 창 우상단 모서리 · 마진 조금(형 11-01 14:02 「무지개색 프로필 원 저거 저 프로필 창의 우상단을 말하는 거임 우상단 모서리에 마진을 조금 둬서」) */}
-        {look ? <BeingCard who={who} name={name} role={p?.role} onChat={dm ? go : undefined} /> : <div className="ypc-ava"><MicOrb size={130} id={idOf(who, list)} tint={ringOf(p)} /></div>}
+        {look ? <BeingCard who={who} name={name} role={p?.role} /> : <div className="ypc-ava"><MicOrb size={130} id={idOf(who, list)} tint={ringOf(p)} /></div>}
         {pick ? <div className="ypc-pop"><ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /></div> : null}   {/* 프사 위에 뜨는 판 = 이름이 안 밀림(형 11-01 10:5x 「애초에 모달느낌으로 프사 위에 뜨면되니까」) */}
         {look ? null : <span className="ycd-nm">{name}{p?.mark ? <span className="ypc-mark" aria-hidden>{p.mark}</span> : null}</span>}
         {roleEdit ? (
