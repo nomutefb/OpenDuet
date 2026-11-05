@@ -4,8 +4,9 @@
 // 사진 압축 = 고르는 순간 굽고 원본도 같이 들고 있음 · 보낼 때 「압축 ON / 원본」 스위치로 고름(./compress.ts)
 //   형 11-05 「첨부할때, 디폴트값은 압축인데, 압축이라고 온 켜져있는 걸 토글하면 원본 으로 바뀌뀌고, 원본으로 전달되게해줘」 · 「이거는 사진, 영상 공통이야. 다른거는 애초에 원본으로 가야하고.」
 import { packImage, shouldPack } from "./compress";
+import { MEDIA_RE, waveOf } from "./wave";
 
-type Entry = { file: File; packed: File | null; pending: boolean; ready: Promise<void>; mode?: boolean };
+type Entry = { file: File; packed: File | null; pending: boolean; ready: Promise<void>; mode?: boolean; wave?: Promise<File | null> };
 const files = new Map<string, Entry>();
 const CACHE = "office-app-att";
 
@@ -43,6 +44,8 @@ export async function putAttachment(f: File) {
   const entry: Entry = { file: f, packed: null, pending: false, ready: Promise.resolve() };
   files.set(id, entry);
   const preview = (async () => { try { await (await caches.open(CACHE)).put(`/api/attachments/${id}`, new Response(f, { headers: { "content-type": f.type || "application/octet-stream" } })); } catch { /* 미리보기만 빠짐 */ } })();
+  // 소리·영상 = 고른 순간 파형 그림도 굽기 시작(./wave.ts · 형 11-05 09:41 「그 순간에 내가 올리는 부분에서 파형 분석해서 같이 공유」) · 보내기는 안 막음(보낼 때 waveFile 이 잠깐 기다림)
+  if (MEDIA_RE.test(f.name)) entry.wave = waveOf(f).then((w) => w?.file ?? null, () => null);
   if (shouldPack(f)) {
     // 타일 = 굽는 동안 「올리는 중」(입력칸이 그동안 보내기를 막음) · 미리보기 = 원본(화질 그대로)
     entry.pending = true;
@@ -72,6 +75,15 @@ export async function sendable(id: string, fallback: File): Promise<{ file: File
   await e.ready;
   const mode = e.mode ?? on, file = pick(e, mode);
   return { file, original: !mode && isMedia(e.file), untouched: file === e.file };
+}
+
+/** 그 첨부의 파형 그림(소리·영상만 · 못 풀었거나 아직이면 null) · 늦어도 ms 까지만 기다림 = 보내기가 파형 때문에 오래 멈추지 않게 */
+export async function waveFile(id: string, ms = 8000): Promise<File | null> {
+  const w = files.get(id)?.wave;
+  if (!w) return null;
+  let t = 0;
+  const late = new Promise<null>((ok) => { t = setTimeout(() => ok(null), ms) as unknown as number; });
+  try { return await Promise.race([w, late]); } finally { clearTimeout(t); }
 }
 
 /** 보낸 뒤에만 비움 */

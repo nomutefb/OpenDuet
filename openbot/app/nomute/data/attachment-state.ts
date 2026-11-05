@@ -1,5 +1,5 @@
 import { queryClient } from "@/query-client";
-import { dropAttachments, sendable } from "../shim/attachments";
+import { dropAttachments, sendable, waveFile } from "../shim/attachments";
 import { createAttachmentSender } from "./attachment-send";
 import type { OfficeMsg } from "./office";
 
@@ -140,8 +140,19 @@ export const attachmentSender = createAttachmentSender({
     const sent = await Promise.all(attempt.originals.map((o) => sendable(o.id, o.file)));
     // 「원본」으로 보냄 = 서버 original=1(러너가 안 줄이고 file_meta 에 원본 표시 · 형 11-05 09:39 「압축됨 원본 둘중 하나로만 뜨게」)
     const original = sent.some((s) => s.original);
+    // 파형 그림(소리·영상 · 고른 순간 구워 둠 · ../shim/wave.ts) = 같은 글에 「<이름>.파형.png」로 같이(형 11-05 09:41 「그 순간에 … 파형 분석해서 같이 공유」) · 못 구웠으면 없이
+    const waves = (await Promise.all(attempt.originals.map((o) => waveFile(o.id)))).filter((w): w is File => !!w);
     const only = sent.length === 1 ? sent[0].file : null;
-    if (only && only.type.startsWith("video/")) return uploadChunked(attempt.room, only, attempt.text || "", onProgress, original);
+    if (only && only.type.startsWith("video/")) {
+      const r = await uploadChunked(attempt.room, only, attempt.text || "", onProgress, original);
+      if (r.status === 200 && waves.length) {   // 조각 길 = 영상 글 바로 뒤 글 하나로 파형(같은 방 · 글 없이 · 부름 0)
+        const wf = new FormData();
+        waves.forEach((w, i) => { wf.append("file", w); wf.append(`original_${i}`, "1"); });
+        wf.set("room", attempt.room);
+        void post("files", wf).catch(() => {});
+      }
+      return r;
+    }
     const form = new FormData();
     for (const [i, s] of sent.entries()) {
       form.append("file", s.file);
@@ -149,6 +160,7 @@ export const attachmentSender = createAttachmentSender({
       if (small) form.append(`small_${i}`, small);
       if (s.untouched) form.append(`original_${i}`, "1");   // 파일마다 = 타일 블릿과 같은 뜻(서버가 file_meta 에 담으면 보낸 글도 같은 「압축됨/원본」)
     }
+    waves.forEach((w, j) => { form.append("file", w); form.append(`original_${sent.length + j}`, "1"); });   // 파형 = 화면이 그린 그대로(안 줄임) · 원 파일 차례 뒤에
     form.set("room", attempt.room);
     if (original) form.set("original", "1");
     if (attempt.text) form.set("text", attempt.text);
