@@ -9,7 +9,7 @@ import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pic
 import { homePool } from "./home-pool";
 
 type Row = { key?: string; title?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
-const PREFILL_KEY = "nm_ask_prefill", EVERY = 60_000, MAX = 40;
+const PREFILL_KEY = "nm_ask_prefill", EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
 const ago = (at?: string) => {
   const t = at ? Date.parse(at) : NaN;
@@ -43,7 +43,8 @@ export function NewsList() {
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
       const { rows: r } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
       if (!live) return;
-      const list = (r as Row[]).filter((x) => x && x.title).slice(0, MAX);
+      const now = Date.now();
+      const list = (r as Row[]).filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.meta?.published?.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
       setRows(list);
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };
@@ -62,16 +63,16 @@ export function NewsList() {
   };
   return (
     <section className="nm-nlist" aria-label="실시간 뉴스">
-      <div className="nm-nlist-h"><b>실시간 뉴스</b><span>{st === "ready" ? `${rows.length}건` : ""}</span></div>
+      <div className="nm-nlist-h"><i className="live" aria-hidden /><b>실시간 뉴스</b><span>{st === "ready" ? `${rows.length}건` : ""}</span></div>
       {st !== "ready" ? (
         <p className="nm-nlist-empty">{st === "loading" ? "받는 중…" : st === "empty" ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어."}</p>
       ) : (
         <ol className="nm-nlist-ol">
           {rows.map((row, i) => (
-            <li key={row.key || row.urls?.[0] || i}>
+            <li key={row.key || row.urls?.[0] || i} className={i < 3 ? "top" : undefined}>   {/* 1~3위 = 번호·제목 라임(형 15:49) */}
               <span className="rk">{i + 1}</span>   {/* 차례 번호(순위 그대로면 1 · 6 · 7 띄엄 · 뎅 11-05 15:0x 실물) */}
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>
-              <span className="mt">{[row.meta?.published?.sourceName, ago(row.meta?.published?.at)].filter(Boolean).join(" · ")}</span>
+              <span className="mt">{row.meta?.published?.sourceName || ""}{row.meta?.published?.at ? <em>{ago(row.meta.published.at)}</em> : null}</span>
               {Number.isFinite(row.score as number) ? <span className="sc">{Math.round(row.score as number)}</span> : null}
               <button type="button" className="sd" aria-label="이 기사로 요약 요청" title="이 기사로 요약 요청" onClick={() => send(row)}>전송</button>
             </li>

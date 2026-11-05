@@ -146,3 +146,6 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
    = 창을 줄이면 대화 · 오른쪽(상태바·뉴스)이 반반씩 같이 줄다가 대화 360 · 오른쪽 376(봄 상태바 셋이 읽히는 최소 360 + 여백) 에서 멈춤 · 그보다 좁으면(860px 아래) 한 칸으로 */
 .nm-split-l { min-width:360px; }
 .nm-split { min-width:376px; }
+/* PC 「생각 중」 말풍선 = 또렷하게(형 11-05 15:48 「그리고 이거 흐릿하게 보여버린다.」 · 그림 = 점 셋 말풍선) */
+.nm-split-root .ychat .ymsg.ytyp .yb.ai { background:#2a2d31 !important; border-color:rgba(255,255,255,.14) !important; opacity:1 !important; }
+.nm-split-root .ychat .ytdots i { background:#e6e9e6; }
