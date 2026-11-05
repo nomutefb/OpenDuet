@@ -22,7 +22,8 @@ import { useChannelEvents } from "@/lib/channels/use-channel-events";
 import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
-import { NewsList } from "../home/news-list";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
+import { NewsList } from "../home/news-list";
+import { NewsSummary } from "../home/news-summary";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
 import { SchedDesk } from "./sched-desk";
 import { StatusBoard } from "./status-board";
 import { DrawerPage } from "./drawer-page";
@@ -298,7 +299,8 @@ function SplitSide() {
   return (
     <aside className="nm-split" aria-label="러너 · 뉴스">
       <section className="nm-split-run" aria-label="러너"><RunnerGauges /></section>   {/* 러너 기본정보 게이지(봄 · 형 11-05 13:37 「게이지로 축약」 · 「갬성이 떨어지면안되.」) · 다 보기 = 메뉴 러너 */}
-      <section className="nm-split-news" aria-label="뉴스"><NewsList /></section>   {/* PC = 그림 없는 제목 목록(형 11-05 14:39 「pc판은 아예 뉴스에 아예 그림안뜨게 컴팩트하게 타이틀만」) · 폰 홈은 카드 덱 그대로 */}
+      <section className="nm-split-news" aria-label="뉴스"><NewsList /></section>
+      <section className="nm-split-sum" aria-label="뉴스 요약"><NewsSummary /></section>   {/* 우하단 = 요약 대기열 + 다 된 요약(형 11-05 16:27 「어짜피 우하단에는 뉴스 요약 부분이 나올거라서」 · 13:38 「전송하면 그 아래에 요약 대기열 올라오고, 다되면, 모달로 뉴스 요약본」) */}   {/* PC = 그림 없는 제목 목록(형 11-05 14:39 「pc판은 아예 뉴스에 아예 그림안뜨게 컴팩트하게 타이틀만」) · 폰 홈은 카드 덱 그대로 */}
     </aside>
   );
 }
