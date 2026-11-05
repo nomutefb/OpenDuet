@@ -17,7 +17,7 @@ export const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에�
 const OVERLAP_EVERY = 60_000, IMAGES_EVERY = 5 * 60_000, PICKS_EVERY = 2 * 60_000;   // 틈·촉 픽 = 판이 40분마다라 2분에 한 번만(에디터 modern-workspace.js loadPicks 와 같음)
 
 export type Cand = { id?: string; url?: string; title?: string; title_clean?: string; title_ko?: string; title_ko_of?: string; media?: string; published?: string; hp?: string; breaking_pick?: { url?: string }; _disp?: Cand };
-type Modern = { project: (o: unknown, c: Cand[], a: unknown[], s: () => null, opt: Record<string, unknown>) => { rows: unknown[] }; validOverlap: (o: unknown) => boolean;
+type Modern = { project: (o: unknown, c: Cand[], a: unknown[], s: () => null, opt: Record<string, unknown>) => { rows: unknown[]; lookup?: Map<string, unknown> }; validOverlap: (o: unknown) => boolean;
   imageAsks?: (rows: unknown[], tried: Set<string>, limit?: number) => string[]; mergeImages?: (base: unknown, extra: Record<string, string>) => unknown; url?: (u: unknown) => string };
 declare global { interface Window { ModernData?: Modern } }
 

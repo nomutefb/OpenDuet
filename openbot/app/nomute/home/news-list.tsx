@@ -9,7 +9,7 @@ import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pic
 import { homePool } from "./home-pool";
 import { cleanTitle } from "./title-clean";   // 제목 다듬기 로직(형 11-05 16:14)
 
-type Row = { key?: string; title?: string; title_clean?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
+type Row = { key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
 const PREFILL_KEY = "nm_ask_prefill", EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
 const ago = (at?: string) => {
@@ -42,10 +42,13 @@ export function NewsList() {
         if (pk) { picks = pk.picks || []; picksAt = Date.now(); }
       }
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
-      const { rows: r } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
+      const { rows: r, lookup } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
       if (!live) return;
       const now = Date.now();
-      const list = (r as Row[]).map((x) => (x ? { ...x, title: x.title_clean || cleanTitle(x.title) } : x)).filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.meta?.published?.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
+      const lk = lookup as Map<string, { published?: string; first_seen?: string; media?: string }> | undefined;
+      const host = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^www\./, "") : ""; } catch { return ""; } };
+      // 출처 · 시각 = 모든 줄(형 11-05 16:30 「뉴스는 점수 좌측에 출처에 대한 내용이 있어야되고, 몇시간전인지 나와야됨. 4위도 싹다.」) — 메타 없으면 묶음 첫 기사 출처 · 후보 장부(lookup) 발행/처음 본 때
+      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || cleanTitle(x.title), src: x.meta?.published?.sourceName || c?.media || x.items?.[0]?.src || host(x.meta?.published?.sourceUrl || x.urls?.[0]), at: x.meta?.published?.at || c?.published || c?.first_seen }; }).filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
       setRows(list);
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };
@@ -73,7 +76,7 @@ export function NewsList() {
             <li key={row.key || row.urls?.[0] || i} className={i < 3 ? "top" : undefined}>   {/* 1~3위 = 번호·제목 라임(형 15:49) */}
               <span className="rk">{i + 1}</span>   {/* 차례 번호(순위 그대로면 1 · 6 · 7 띄엄 · 뎅 11-05 15:0x 실물) */}
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>
-              <span className="mt">{row.meta?.published?.sourceName || ""}{row.meta?.published?.at ? <em>{ago(row.meta.published.at)}</em> : null}</span>
+              <span className="mt">{row.src || ""}{row.at ? <em>{ago(row.at)}</em> : null}</span>
               {Number.isFinite(row.score as number) ? <span className="sc">{Math.round(row.score as number)}</span> : null}
               <button type="button" className="sd" aria-label="이 기사로 요약 요청" title="이 기사로 요약 요청" onClick={() => send(row)}>전송</button>
             </li>
