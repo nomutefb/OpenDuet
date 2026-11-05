@@ -29,5 +29,5 @@
 .nm-nlist-ol li:hover .sc { visibility:hidden; }
 /* 픽 얼굴(형 11-06 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」) — 번호 왼쪽 16px 칸 · 픽 없는 줄은 빈 칸(제목 줄 맞춤) · 둘이면 촉 = 오른쪽 앞 · 틈 = 왼쪽 뒤(형 「촉이 더 앞으로 (우측 앞)」) */
 .nm-nlist-ol .pf { display:flex; flex-direction:row-reverse; justify-content:flex-start; align-items:center; width:16px; overflow:visible; }
-.nm-nlist-ol .pf-i { position:relative; display:block; border-radius:50%; box-shadow:0 0 0 1.5px #CFFF40, 0 0 0 3px rgba(14,14,16,.9); }
+.nm-nlist-ol .pf-i { flex:none; position:relative; display:block; border-radius:50%; box-shadow:0 0 0 1.5px #CFFF40, 0 0 0 3px rgba(14,14,16,.9); }
 .nm-nlist-ol .pf-i + .pf-i { margin-right:-5px; }   /* 겹침 30%(단톡방 FaceStack 과 같음) · 뒤 얼굴 = 왼쪽 아래층 */
