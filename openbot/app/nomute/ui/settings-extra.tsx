@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
 import { PageSection } from "@/components/layout/page-shell";
 import { idOf, type Meter, type MeterRow, office, people } from "../data/office";
+import type { SchedGpu } from "./sched-gpu";   // GPU 칸(형 11-05 09:43 · 뜸)
 import { FaceImg } from "./faces";
 import { t12 } from "./when";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
@@ -36,7 +37,7 @@ type Kind = { kind: string; delay_max?: number; ttl?: number };
 export type RunnerJob = { id: string; name: string; file: string; host?: string; kind: string; fork: string; on?: boolean; when?: string; cron_kst?: string[]; clock?: string[]; starts?: string[]; providers?: string[]; model?: string[]; owner?: string; checked?: boolean; res?: { at: string; gpu?: boolean }[]; gpu?: string[]; in?: { paths?: string[]; after?: string[] }; out?: { calls?: string[]; to?: string }; notify?: string[]; health?: Health };   // out.to = 잡이 내놓는 곳(저장소·화면 · 뜸 11-02 「out.to 6줄이 안 그려지고」)
 export type SchedRunners = { groups: { id: string; name: string }[]; forks: { id: string; name: string; group: string; on?: boolean; note?: string }[]; jobs: RunnerJob[] };
 export type SchedChange = { at: number; who: string; id: string; scope?: string; field?: string; from?: unknown; to?: unknown; commit?: string; sha?: string; live?: boolean; review?: string; note?: string };   // 최근 바뀜(서버 R2 · 최근 20 · live = 방 루틴·6마디 종 = 표 커밋 없이 바로 먹음)
-type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean; forks?: SchedFork[]; clock_got?: { got?: boolean; sha?: string }; runners?: SchedRunners; changes?: SchedChange[]; review?: Record<string, Review>; health_sum?: HealthSum; at?: number };   // review = 폐기 → 검토 칸(봄 #2092 · ./sched-review.tsx)
+type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean; forks?: SchedFork[]; clock_got?: { got?: boolean; sha?: string }; runners?: SchedRunners; gpu?: SchedGpu; changes?: SchedChange[]; review?: Record<string, Review>; health_sum?: HealthSum; at?: number };   // review = 폐기 → 검토 칸(봄 #2092 · ./sched-review.tsx)
 
 const usePeople = () => useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
 export const useSched = () => useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), staleTime: 30_000, refetchInterval: 120_000 });

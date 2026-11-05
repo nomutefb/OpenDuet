@@ -7,6 +7,7 @@ import { idOf, office, people } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { Breaker, type HealthSt, ST_ORDER, HEALTH_KO, StatusDot, cronKo, lastKo, stOf, sumOf, worstOf } from "./sched-bits";
 import { RunnerTree } from "./sched-runners";
+import { GpuPanel } from "./sched-gpu";   // GPU 쓰는 일 · GPU 우선 서버(형 11-05 09:43 · 뜸)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { Num, Times } from "./room-routine";   // 시간 고르기 부품 = 방 「루틴 만들기」와 같은 것
 import "./room-routine.css";
@@ -187,9 +188,11 @@ export function SchedDesk() {
             const gs = sumOf(groupSts(g.id)), w = worstOf(gs), n = ST_ORDER.reduce((a, k) => a + gs[k], 0);
             return <button key={g.id} type="button" className="nm-sched-chip nm-gchip" aria-pressed={tab === g.id} onClick={() => setTab(g.id)}>{g.name} {n}<span data-st={w}><StatusDot st={w} />{w === "miss" ? gs.miss : w === "late" ? gs.late : ""}</span></button>;   // 갈래 건강 = 제일 나쁜 것 하나 + 그 수
           })}
+          {d.gpu ? <button type="button" className="nm-sched-chip nm-gchip" aria-pressed={tab === "gpu"} onClick={() => setTab("gpu")}>GPU {d.gpu.jobs.length}</button> : null}   {/* GPU 쓰는 일만 따로(형 11-05 09:43) */}
         </div>
       ) : null}
-      {tab !== "bot" && d.runners ? <RunnerTree map={d.runners} group={tab} go={setTab} review={rv} can={can} who={whoKo} /> : null}
+      {tab === "gpu" && d.gpu ? <GpuPanel gpu={d.gpu} open={(id) => { const j = d.runners?.jobs.find((x) => x.id === id); const g = j && d.runners?.forks.find((f) => f.id === j.fork)?.group; if (g) setTab(g); }} /> : null}
+      {tab !== "bot" && tab !== "gpu" && d.runners ? <RunnerTree map={d.runners} group={tab} go={setTab} review={rv} can={can} who={whoKo} /> : null}
       {tab === "bot" ? <>
       <div className="nm-sched-faces" role="group" aria-label="봇 고르기">
         {d.bots.map((b) => (

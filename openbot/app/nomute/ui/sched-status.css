@@ -25,3 +25,18 @@
 .nm-chain em { padding:2px 8px; border:1px solid var(--glass-line); border-radius:999px; font-size:12px; font-style:normal; color:var(--fg); overflow-wrap:anywhere; }
 .nm-chain > b { padding:2px 9px; border-radius:999px; background:rgba(207,255,64,.14); color:var(--accent, #CFFF40); font-size:12px; }
 .nm-chain > svg { flex:none; color:var(--mut); }
+
+/* GPU 우선 서버(형 11-05 09:43 · 뜸 · sched-gpu.tsx) */
+.nm-gpu { display:flex; flex-direction:column; gap:8px; padding:12px; border:1px solid var(--line, rgba(127,127,127,.25)); border-radius:14px; }
+.nm-gpu-head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 10px; }
+.nm-gpu-head small { font-size:12px; color:var(--mut); }
+.nm-gpu-head small[data-st="hold"], .nm-gpu-head small[data-st="fail"] { color:var(--warn, #d08a2b); }
+.nm-gpu-hosts { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; }
+.nm-gpu-hosts button { display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:8px 10px; border-radius:10px; border:1px solid var(--line, rgba(127,127,127,.25)); text-align:left; }
+.nm-gpu-hosts button[aria-checked="true"] { border-color:currentColor; box-shadow:inset 0 0 0 1px currentColor; }
+.nm-gpu-hosts button:disabled { cursor:default; }
+.nm-gpu-hosts small { font-size:11px; color:var(--mut); }
+.nm-gpu-msg { font-size:12px; color:var(--mut); margin:0; }
+.nm-gpu-jobs { display:flex; flex-direction:column; gap:4px; margin:0; padding:0; list-style:none; }
+.nm-gpu-jobs li { display:flex; align-items:center; gap:8px; min-width:0; }
+.nm-gpu-jobs small { font-size:11px; color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
