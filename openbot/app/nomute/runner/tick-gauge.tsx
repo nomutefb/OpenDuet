@@ -21,10 +21,10 @@ const path = (from: number, to: number, end: "ink" | "un" | "cache") => {
   return d;
 };
 
-export function TickGauge({ label, pct, used, lv, cache, off }: { label: string; pct: number | null; used: string; lv: Level; cache?: number | null; off?: boolean }) {
+export function TickGauge({ label, pct, used, lv, cache, off, ink: inkOver }: { label: string; pct: number | null; used: string; lv: Level; cache?: number | null; off?: boolean; ink?: string }) {   // ink = 단계 색 대신 쓸 색(반갈 블랙 상태바 · 봄 11-05 · 없으면 그대로)
   const v = Math.max(0, Math.min(100, pct ?? 0)), n = Math.max(0, Math.min(100, Math.ceil(v - 1e-9)));
   const ce = Math.max(n, Math.min(100, Math.ceil(v + Math.max(0, cache ?? 0) - 1e-9)));
-  const ink = pct == null ? LV.off : LV[lv], bead = pol(R0 + 13, A0 + (v / 100) * SW);
+  const ink = pct == null ? LV.off : inkOver ?? LV[lv], bead = pol(R0 + 13, A0 + (v / 100) * SW);
   return (
     <svg viewBox="0 8 132 104" className="nm-rg-gauge" role="img" aria-label={`${label} ${pct == null ? "-" : Math.round(v)}% · ${used}`}>
       <path d={path(ce, 100, "un")} stroke={UNINKED} strokeWidth={0.6} />

@@ -1,10 +1,11 @@
-/* 러너 기본정보 계기판(ui/runner-gauges.tsx · cluster-dial.tsx · 봄 11-05 · 형 13:55 자동차 계기판 그림) — 판 없이 계기판만 · 세 몸 가로(넓은 창 러너 칸 1.5/4) */
-.nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:2px 0; align-content:center; background:transparent; box-shadow:none; border-radius:0; }   /* 판 없음 = 선반 위에 시계만(형 14:08 「투명하게 한다음에 · 위에 그냥 시계 올려놓은거처럼 · 선반위에」) */
-.nm-rgx-host { min-width:0; padding:4px 6px 2px; display:flex; flex-direction:column; }
-.nm-rgx-host header { padding:0 6px; }
-.nm-cd { display:block; width:100%; height:auto; max-height:100%; overflow:visible; margin-top:2px; }
-.nm-cd path, .nm-cd line { fill:none; }
-.nm-rgx-dot { display:inline-block; width:7px; height:7px; border-radius:999px; flex:none; transition:background .4s, box-shadow .4s; }
-.nm-cd line { transition:all .8s cubic-bezier(.2,.8,.2,1); }
-/* 좁아져도(형 13:57 「2:3비율에서도 이게 구성되게」) 셋 가로 그대로 줄어듦 · 아주 좁으면 머리 글만 작게 */
-@media (max-width: 520px) { .nm-rgx-host header { font-size:10px; } .nm-rgx-host header .text-muted-foreground { display:none; } }
+/* 러너 상태바(ui/runner-gauges.tsx · 봄 11-05) — 날씨 위젯 같은 잿빛 블랙 유리 카드 하나(형 14:40 「날씨 위젯처럼 러너상태바」 · 「쟂빛블랙 반투명에 살짝 글래스모피즘」) · 세 몸 가로 · 높이 = 제 키 */
+.nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:10px 6px 8px; border-radius:18px;
+  background:rgba(28,28,30,.55); -webkit-backdrop-filter:blur(16px) saturate(120%); backdrop-filter:blur(16px) saturate(120%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.35); color:#E6E6E6; }
+.nm-rgx-host { min-width:0; padding:0 8px; display:flex; flex-direction:column; align-items:stretch; }
+.nm-rgx-host + .nm-rgx-host { border-left:1px solid rgba(255,255,255,.06); }
+.nm-rgx-host header { padding:0 2px; }
+.nm-rgx-host .nm-rg-gauge { max-height:92px; margin:2px auto 0; }
+.nm-rgx-sub { margin:0; text-align:center; font-size:10.5px; letter-spacing:.02em; color:#9A9A9A; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-rgx-dot { display:inline-block; width:6px; height:6px; border-radius:999px; flex:none; transition:background .4s; }
+@media (max-width: 520px) { .nm-rgx-host header .text-muted-foreground { display:none; } }
