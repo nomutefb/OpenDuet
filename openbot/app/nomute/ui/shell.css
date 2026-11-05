@@ -124,3 +124,9 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-root .ychat .yb.me:not(.ph) a, .nm-split-root .ychat .yb.me:not(.app) .ytok.fl { color:#c3cad3 !important; }
 .nm-split-root .ychat .yb.me:not(.app) .ytok.gh, .nm-split-root .ychat .yb.me:not(.app) .ytok.tm { color:#b8a8ec !important; }
 .nm-split-root .ychat .yb.me .yname-c { color:#67e8f9; }
+/* PC 라벨 · 메뉴 막대 단추 자리(형 11-05 15:25 「너네 라벨이 채팅에 묻히는데 그거하나 고쳐주구.」 · 15:27 「이거 겹치는거 분리해주고」)
+   = 이름 라벨 = 제 색 진하게(검정 말풍선 위에서 안 묻힘 · 글자 검정) · 메뉴 단추 = 막대 오른쪽 끝(대화 머리 단추와 떨어짐 · 맥북 오른쪽 상태 단추 자리) */
+.nm-split-root .ychat .ymsg .yname.tab { background:color-mix(in srgb, var(--yn) 88%, #fff) !important; color:#121212 !important; font-weight:700; box-shadow:0 1px 6px rgba(0,0,0,.45); }
+@supports (color:oklch(from red l c h)) { .nm-split-root .ychat .ymsg .yname.tab { background:oklch(from var(--yn) .82 max(c,.12) h) !important; } }
+.nm-split-root .ychat .ymsg .yname:not(.tab) { color:#f2f3f2; }
+.nm-split-l .ynav { justify-content:flex-end; padding-right:12px; }

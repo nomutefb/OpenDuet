@@ -69,7 +69,7 @@ export function NewsList() {
         <ol className="nm-nlist-ol">
           {rows.map((row, i) => (
             <li key={row.key || row.urls?.[0] || i}>
-              <span className="rk">{row.rank ?? i + 1}</span>
+              <span className="rk">{i + 1}</span>   {/* 차례 번호(순위 그대로면 1 · 6 · 7 띄엄 · 뎅 11-05 15:0x 실물) */}
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>
               <span className="mt">{[row.meta?.published?.sourceName, ago(row.meta?.published?.at)].filter(Boolean).join(" · ")}</span>
               {Number.isFinite(row.score as number) ? <span className="sc">{Math.round(row.score as number)}</span> : null}
