@@ -53,3 +53,13 @@
 .nsb-mh { padding:4px 12px 12px; }   /* lieflat 격자 자리(./lieflat-charts.tsx MatrixHeat) */
 .nsb-cc { display:flex !important; flex-wrap:wrap; gap:2px 10px; margin-top:2px; }   /* 줄 안 작은 칸(봇 연결 = 깸 상태·마지막 깸·깨우는 문) */
 .nsb-cc span[data-st="miss"] { color:#ffb3b5; }
+/* 수집 색인 표(status-board IndexTable · 형 「한 표에 모든걸 다 담아」) = 옆으로 밀기 · 첫 칸 고정 · 🔴 줄 빨강 */
+.nsb-idx { overflow-x:auto; padding:0 6px 10px; -webkit-overflow-scrolling:touch; }
+.nsb-idx table { border-collapse:separate; border-spacing:0; font-size:12px; min-width:1100px; }
+.nsb-idx th, .nsb-idx td { padding:6px 8px; border-bottom:1px solid var(--nsb-line); text-align:left; vertical-align:top; max-width:220px; }
+.nsb-idx thead th { position:sticky; top:0; background:rgba(18,18,18,.95); color:var(--nsb-mut); font-weight:700; white-space:nowrap; }
+.nsb-idx thead button { border:0; background:none; color:inherit; font:inherit; cursor:pointer; padding:0; }
+.nsb-idx thead button[aria-pressed="true"] { color:var(--nsb-ok); }
+.nsb-idx .fix { position:sticky; left:0; z-index:1; background:#151515; min-width:120px; max-width:150px; font-weight:700; color:#E7ECE7; }
+.nsb-idx tr[data-st="miss"] td, .nsb-idx tr[data-st="miss"] .fix { background:rgba(255,90,95,.12); }
+.nsb-idx tr[data-st="late"] td { background:rgba(255,210,63,.06); }

@@ -33,6 +33,8 @@ const SKELETON: StatusCat[] = [
   { id: "diary", name: "일기 작동", cols: DIARY_COLS, rows: BEINGS.map((b) => ({ ...wait(b), cells: {} })) },
   { id: "ssh", name: "SSH 서로 연결 · 권한", cols: HOSTS.map((h) => ({ id: h, name: `→ ${h}` })), rows: HOSTS.map((h) => ({ ...wait(h), cells: {} })) },
   { id: "docker", name: "도커 · VM 구성", rows: HOSTS.map((h) => wait(h)) },
+  // 수집 색인(형 11-05 12:45~13:10 「인덱싱 10개정도로 표를 만들어야될거같다」 · 「초단위로」 · 「한 표에 모든걸 다 담아」 · 「봄이랑 상의해서 메뉴 4번에」 · 정본 = 공통/문서/2026-11-05-작동-표/수집-루틴.md · 서버 cat collect_index)
+  { id: "collect_index", name: "수집 색인 · 40분 판", rows: [] },
   // 뉴스 요약 썸네일 기준(형 11-05 08:3x 「극화 on / off + 수량  / 썸넹일 플랫폼」 · 수채화 · 포토 실사 · 만평 같은 칸) = 화풍 넷(thumb_gen.py STYLES · sid webtoon·watercolor·photo·cartoon) × 켜짐·장수·엔진(에디터 설정 「AI 썸네일·이미지」)
   { id: "thumb", name: "뉴스 요약 썸네일 기준", rows: [["webtoon", "극화"], ["watercolor", "수채화"], ["photo", "포토 실사"], ["cartoon", "만평"]].map(([key, name]) => wait(name, key)) },
   // 사무실 통신(형 11-05 08:2x 「사무실 커뮤니케이션 상태 / 열인덱싱: 클로드, 지피티, 그록봇 / 행인덱싱: …」) = 종류 × 봇 무리 격자 · 칸 = 그 무리가 그 종류를 사무실로 보내고 받는지(시험 = 빠르 · 서버 file·photo 길)
@@ -109,6 +111,29 @@ function Grid({ c, pick, setPick }: { c: StatusCat; pick: string; setPick: (k: s
   );
 }
 
+/** 수집 색인 = 가로로 긴 표(첫 칸 고정 · 옆으로 밀기 · 🔴 줄 위로 · 칸 머리 누르면 그 칸 정렬) · 칸 = 정본 열둘(봄 13:15 · 시아 첫 판 51줄) */
+type IndexRow = StatusRow & { t?: number; step?: string; algo?: string; stale_min?: number; amount?: string; sender?: string; receiver?: string; runner?: string; file?: string; evidence?: string; backup?: string; on_fail?: string };
+const IDX_COLS: [keyof IndexRow, string][] = [["t", "시각"], ["algo", "알고리즘·기준"], ["stale_min", "낡음(분)"], ["amount", "수집 양"], ["sender", "돌리는 이"], ["receiver", "받는 이"], ["runner", "러너·몸"], ["file", "파일 위치"], ["evidence", "근거"], ["backup", "백업"], ["on_fail", "못 깨면"]];
+const mmss = (t?: number) => (t === undefined || t === null ? "" : `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(Math.round(t % 60)).padStart(2, "0")}`);
+function IndexTable({ rows }: { rows: IndexRow[] }) {
+  const [sortBy, setSortBy] = useState<keyof IndexRow | "">("");
+  const rank = (r: IndexRow) => (r.st === "miss" ? 0 : r.st === "late" ? 1 : 2);
+  const list = [...rows].sort((a, b) => rank(a) - rank(b) || (sortBy ? String(a[sortBy] ?? "").localeCompare(String(b[sortBy] ?? ""), "ko", { numeric: true }) : (a.t ?? 0) - (b.t ?? 0)));
+  if (!rows.length) return <p className="nsb-empty">정본 줄을 서버가 아직 안 붙였어(봄)</p>;
+  return (
+    <div className="nsb-idx" role="region" aria-label="수집 색인 표" tabIndex={0}>
+      <table>
+        <thead><tr><th className="fix">단계</th>{IDX_COLS.map(([k, n]) => <th key={String(k)}><button type="button" onClick={() => setSortBy(sortBy === k ? "" : k)} aria-pressed={sortBy === k}>{n}</button></th>)}</tr></thead>
+        <tbody>{list.map((r, i) => (
+          <tr key={r.key || i} data-st={r.st}>
+            <th className="fix" scope="row"><StatusDot st={r.st} />{r.step || r.name}</th>
+            {IDX_COLS.map(([k]) => <td key={String(k)}>{k === "t" ? mmss(r.t) : String(r[k] ?? "")}</td>)}
+          </tr>
+        ))}</tbody>
+      </table>
+    </div>
+  );
+}
 function ZoneItems({ zone }: { zone: string }) {   // 수집 줄 누르면 그 구역 수집 목록(빠르 GET /api/trends?f=board · 형 「수집되는 구역별로 다 나와야함」)
   const q = useQuery({ queryKey: ["nomute", "trend-board"], queryFn: async () => { const r = await fetch("/api/trends?f=board", { cache: "no-store" }); if (!r.ok) throw new Error(String(r.status)); return (await r.json()) as Board; }, staleTime: 60_000, retry: false });
   if (q.isError) return <p className="nsb-why">수집 목록은 빠르가 붙이는 중이야</p>;
@@ -151,7 +176,7 @@ export function StatusBoard() {
               <StatusDot st={w} /><b>{c.name}</b>
               <span className="nsb-cnt">{count(c.rows, "miss") ? <em>✕ {count(c.rows, "miss")}</em> : null}{count(c.rows, "late") ? <i>▲ {count(c.rows, "late")}</i> : null}<small>{c.rows.length}</small></span>
             </button>
-            {isOpen ? (c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
+            {isOpen ? (c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
               <ul className="nsb-rows">
                 {(c.id === "collect" ? [...ZONES, ...(c.rows.some((r) => !ZONES.includes(r.zone || "")) ? ["기타"] : [])].flatMap((z) => [{ key: `zone:${z}`, name: z, st: worst(c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))), head: true } as StatusRow & { head?: boolean }, ...c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))]) : c.rows).map((r) => {   // 구역 없는 줄 = 「기타」(뎅 시험 보고 · 안 묶여 숨던 것)
                   const head = (r as { head?: boolean }).head, z = r.key.replace(/^zone:/, "");
