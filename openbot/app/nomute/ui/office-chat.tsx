@@ -510,6 +510,20 @@ function FileTag({ f, m }: { f: { p: string; n: string; b: number; o?: boolean |
   const tag = [mb, ext, len, kind, read.length ? "읽음" : ""].filter(Boolean);
   return tag.length ? <span className="nm-ftag" title={read.length ? `읽은 이: ${read.join(" · ")}` : undefined}>{tag.map((t, i) => <span key={i} className={t === "읽음" ? "rd" : t === "원본" ? "og" : undefined}>{t}</span>)}</span> : null;
 }
+/** 파일 칸 = 텔레그램 꼴(형 11-05 12:21~12:25 「파일을 붙이게 될 경우, 나에게 파일 형식에 맞게 파일명이 오고, 다운로드 가능하게만 나오면 돼」 · 「확장자도 당연히 있어야 겠지. … 이름은 좀 중간 축약되어도 돼.」 · 「텔레그램식으로 갈거면, 그 확장자에 따라서 상징되는 이미지가 달라져야돼」) */
+const extOfName = (n: string) => (/\.([A-Za-z0-9]{1,6})$/.exec(n)?.[1] || "").toUpperCase();
+/** 가운데 줄임 = 앞 14자 … 끝 6자 + 확장자(이름이 중요할 수 있어 앞뒤를 남김) */
+const midName = (n: string) => { const m = /^(.*?)(\.[A-Za-z0-9]{1,6})?$/.exec(n) || ["", n, ""]; const stem = m[1] || "", ext = m[2] || ""; return [...stem].length > 24 ? `${[...stem].slice(0, 14).join("")}…${[...stem].slice(-6).join("")}${ext}` : n; };
+const FILE_KIND: [RegExp, string, string][] = [
+  [/^(pdf)$/, "PDF", "#E5484D"], [/^(docx?|hwpx?|rtf|odt|pages)$/, "DOC", "#3E7BFA"], [/^(xlsx?|csv|tsv|numbers|ods)$/, "XLS", "#30A46C"],
+  [/^(pptx?|key|odp)$/, "PPT", "#F76B15"], [/^(zip|rar|7z|tar|gz|tgz|bz2|xz)$/, "ZIP", "#E9B500"], [/^(mp3|wav|m4a|aac|flac|ogg|opus)$/, "♪", "#FF8B3E"],
+  [/^(js|ts|tsx|jsx|py|json|html|css|md|sh|yml|yaml|sql|go|rs|java|c|cpp)$/, "</>", "#8E4EC6"], [/^(txt|log|srt|vtt)$/, "TXT", "#8B8D98"],
+  [/^(exe|msi|bat|cmd|ps1|vbs|dll|scr|com|jar|apk|dmg|iso|lnk)$/, "RUN", "#5B5E66"], [/^(psd|ai|fig|sketch|svg|eps)$/, "ART", "#D6409F"],
+];
+function FileIcon({ name }: { name: string }) {
+  const e = extOfName(name).toLowerCase(), k = FILE_KIND.find(([re]) => re.test(e));
+  return <span className="nm-fc-ic" style={{ background: k ? k[2] : "#6B6F76" }} aria-hidden>{k ? k[1] : e.slice(0, 4) || "FILE"}</span>;
+}
 /** 파일마다 다운로드 단추(형 11-05 11:35 「옆에 다운로드 버튼이 각각 나오게 할 수 있어?」) = 사무실 파일 받기 표(dl=1 · savePic 길) · 누르면 말풍선 누름으로 안 번짐 */
 function DlBtn({ p, n }: { p: string; n: string }) {
   return (
@@ -572,10 +586,10 @@ function Files({ m }: { m: Msg }) {
         <div key={f.p} className="relative"><video src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /><FileTag f={{ ...f, d: dur[f.p] }} m={m} /><DlBtn p={f.p} n={f.n} /><Subs meta={meta.get(f.p) as { transcript?: string; transcript_state?: string } | undefined} /></div>
       ))}
       {rest.map((f) => (
-        <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="relative flex items-center gap-3 rounded-2xl border border-border bg-card py-2 pr-11 pl-3 hover:bg-foreground/5">
-          <span aria-hidden className="text-lg">📄</span>
-          <span className="min-w-0"><span className="block truncate text-sm font-medium">{f.n}</span>{f.b ? <small className="text-xs text-muted-foreground">{size(f.b)}</small> : null}</span>
-          <DlBtn p={f.p} n={f.n} />
+        <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="nm-fcard" title={f.n} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; savePic(fileUrl(f.p), f.n); }}>
+          <FileIcon name={f.n} />
+          <span className="nm-fc-t"><b>{midName(f.n)}</b><small>{[f.b ? size(f.b) : "", extOfName(f.n)].filter(Boolean).join(" · ")}</small></span>
+          <span className="nm-fc-dl" aria-hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" /></svg></span>
         </a>
       ))}
     </div>
