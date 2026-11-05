@@ -153,7 +153,7 @@ export function StatusBoard() {
             </button>
             {isOpen ? (c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
               <ul className="nsb-rows">
-                {(c.id === "collect" ? ZONES.flatMap((z) => [{ key: `zone:${z}`, name: z, st: worst(c.rows.filter((r) => r.zone === z)), head: true } as StatusRow & { head?: boolean }, ...c.rows.filter((r) => r.zone === z)]) : c.rows).map((r) => {
+                {(c.id === "collect" ? [...ZONES, ...(c.rows.some((r) => !ZONES.includes(r.zone || "")) ? ["기타"] : [])].flatMap((z) => [{ key: `zone:${z}`, name: z, st: worst(c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))), head: true } as StatusRow & { head?: boolean }, ...c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))])   // 구역 없는 줄 = 「기타」(뎅 시험 보고 · 안 묶여 숨던 것) : c.rows).map((r) => {
                   const head = (r as { head?: boolean }).head, z = r.key.replace(/^zone:/, "");
                   return (
                     <li key={r.key} className={head ? "nsb-zh" : undefined} data-st={r.st}>
