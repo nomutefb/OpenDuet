@@ -1,5 +1,6 @@
 import { IconFile, IconX } from "@tabler/icons-react";
 import { motion, useReducedMotion } from "motion/react";
+import { useSyncExternalStore } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { EASE_OUT, ENTRANCE_SECONDS } from "@/lib/motion";
@@ -45,6 +46,30 @@ const mbOf = (bytes?: number) => (bytes === undefined ? "" : `${Math.max(0.1, Ma
 const extOf = (name?: string) => { const m = /\.([A-Za-z0-9]{1,6})$/.exec(name || ""); return m ? m[1].toUpperCase() : ""; };
 const tagOf = (name?: string, bytes?: number) => [mbOf(bytes), extOf(name)].filter(Boolean).join(" · ");
 
+/**
+ * 「압축 ON / 원본」 다리 = nomute 쪽이 window.nmCompress 로 걸어 둠(nomute/shim/attachments.ts) · 없으면 스위치·블릿 없이 전과 같음
+ * 형 11-05 「첨부할때, 디폴트값은 압축인데, 압축이라고 온 켜져있는 걸 토글하면 원본 으로 바뀌뀌고, 원본으로 전달되게해줘」
+ */
+type CompressBridge = {
+  get: () => boolean;
+  set: (on: boolean) => void;
+  subscribe: (fn: () => void) => () => void;
+  snapshot: () => number;
+  info: (id: string) => { name: string; size: number; packed: boolean; pending: boolean; media: boolean } | undefined;
+};
+const bridge = () => (typeof window === "undefined" ? undefined : (window as unknown as { nmCompress?: CompressBridge }).nmCompress);
+const noSubscribe = () => () => {};
+const zero = () => 0;
+function useCompress() {
+  const b = bridge();
+  useSyncExternalStore(b?.subscribe ?? noSubscribe, b?.snapshot ?? zero, zero);
+  return b;
+}
+/** 사진 타일 주소 = /api/attachments/<nomute 첨부 id>(입력칸 id 와 다름) → 그 id 로 보낼 판을 물음 */
+const shimIdOf = (url: string) => /\/api\/attachments\/([^/?#]+)$/.exec(url)?.[1];
+const VIDEO_EXT = /\.(mp4|mov|m4v|webm|mkv|avi|3gp)$/i;
+const ORIGINAL_TONE = "text-[#FFB020]";   // 원본 = 강조색(형 11-05 「원본이면 강조색으로」)
+
 export type StagedFile = {
   id: string;
   name: string;
@@ -68,6 +93,10 @@ export function AttachmentStrip({
   onRemove: (id: string) => void;
 }) {
   const occupied = images.length > 0 || files.length > 0;
+  const compress = useCompress();
+  const on = compress?.get() ?? true;
+  // 스위치 = 사진·영상이 하나라도 있을 때만(형 「이거는 사진, 영상 공통이야. 다른거는 애초에 원본으로 가야하고.」)
+  const hasMedia = images.length > 0 || files.some((file) => VIDEO_EXT.test(file.name));
 
   return (
     /*
@@ -93,6 +122,20 @@ export function AttachmentStrip({
         aria-label="Attachments"
         className="flex flex-wrap items-start gap-2 pb-3"
       >
+        {compress && hasMedia ? (
+          <li className="flex shrink-0 items-center self-center">
+            <button
+              aria-checked={on}
+              aria-label="사진·영상 압축해서 보내기"
+              className={`rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors ${on ? "border-primary/40 bg-primary/15 text-primary" : `border-border bg-muted ${ORIGINAL_TONE}`}`}
+              onClick={() => compress.set(!on)}
+              role="switch"
+              type="button"
+            >
+              {on ? "압축 ON" : "원본"}
+            </button>
+          </li>
+        ) : null}
         {images.map((image) => (
           <Staged key={image.id}>
             {image.loading || image.url === "" ? (
@@ -117,11 +160,7 @@ export function AttachmentStrip({
                 src={image.url}
               />
             )}
-            {tagOf(image.alt, image.size) ? (
-              <span aria-hidden className="pointer-events-none absolute top-1 left-1 rounded-full bg-black/65 px-1.5 py-px font-semibold text-[10px] text-white leading-4 tabular-nums">
-                {tagOf(image.alt, image.size)}
-              </span>
-            ) : null}
+            <ImageTag compress={compress} image={image} />
             <RemoveButton
               name={image.alt ?? "attachment"}
               onRemove={() => onRemove(image.id)}
@@ -173,6 +212,8 @@ export function AttachmentStrip({
                   }
                 >
                   {tagOf(file.name, file.size) || formatBytes(file.size)}
+                  {/* 사진·영상 아닌 파일 = 늘 원본(형 「다른거는 애초에 원본으로 가야하고」) · 영상 = 스위치를 원본으로 둘 때만 */}
+                  {compress && (!VIDEO_EXT.test(file.name) || !on) ? <> · <span className={ORIGINAL_TONE}>원본</span></> : null}
                   {file.mayTruncate === true ? " · may be cut" : null}
                 </p>
               )}
@@ -182,6 +223,32 @@ export function AttachmentStrip({
         ))}
       </ul>
     </Collapse>
+  );
+}
+
+/**
+ * 사진 타일 왼쪽 위 = 보낼 판의 「0.9MB · JPG · 압축됨」 / 「4.2MB · PNG · 원본」(둘 중 하나 · 원본 = 강조색)
+ * 형 11-05 「그 옆에 블릿 달아서 압축됨 원본 둘중 하나로만 뜨게해줄래? 원본이면 강조색으로」 · 「그때 용량하고 아까 말한 확장자 같이 알수있어야」
+ * 다리가 없으면(원본 앱) 전처럼 「0.4MB · PNG」만
+ */
+function ImageTag({ compress, image }: { compress: CompressBridge | undefined; image: StagedImage }) {
+  const id = shimIdOf(image.url);
+  const info = id ? compress?.info(id) : undefined;
+  const head = info ? tagOf(info.name, info.size) : tagOf(image.alt, image.size);
+  if (!head) return null;
+  // 타일이 좁아(80~88px) 한 줄에 다 안 들어가면 「· 압축됨」만 다음 줄로(블릿 간격 그대로)
+  return (
+    <span aria-hidden className="pointer-events-none absolute top-1 left-1 max-w-[calc(100%-0.5rem)] rounded-[9px] bg-black/65 px-1.5 py-px font-semibold text-[10px] text-white leading-4 tabular-nums">
+      <span className="whitespace-nowrap">{head}</span>
+      {info && !info.pending ? (
+        <>
+          {" "}
+          <span className="whitespace-nowrap">
+            · {info.packed ? "압축됨" : <span className={ORIGINAL_TONE}>원본</span>}
+          </span>
+        </>
+      ) : null}
+    </span>
   );
 }
 

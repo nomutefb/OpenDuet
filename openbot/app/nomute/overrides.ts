@@ -121,8 +121,7 @@ export const PATCH: Record<string, [string, string][]> = {
     ['<Collapse open={occupied}>', '<>'],
     ['</Collapse>', '</>'],
     ['className="flex flex-wrap items-start gap-2 pb-3"', 'className="nm-att-strip"'],
-    ['  url: string;\n  alt?: string;', '  url: string;\n  alt?: string;\n  size?: number;'],
-    ['            <RemoveButton\n              name={image.alt ?? "attachment"}', '            {image.size ? <span className="nm-att-size">{formatBytes(image.size)}</span> : null}\n            <RemoveButton\n              name={image.alt ?? "attachment"}'],   // 사진 칸 크기 글자(형 11-01 사진 보기)
+    // 사진 칸 크기 글자(형 11-01 · nm-att-size 아래 띠) = 뺌 · 크기는 원본 파일 왼쪽 위 머리표가 보낼 판으로 보여 줌(압축 ON = 압축판 크기 · 형 11-05 「그때 용량하고 아까 말한 확장자 같이 알수있어야」) · size 칸도 원본 파일에 이미 있음
     ['className="size-20 rounded-xl border border-border object-cover"', 'className="size-20 cursor-zoom-in rounded-xl border border-border object-cover" onClick={() => (window as unknown as { nmZoom?: (s: string) => void }).nmZoom?.(image.url)}'],
   ],
   "app/src/components/shell/channel-screen.tsx": [

@@ -1,5 +1,5 @@
 import { queryClient } from "@/query-client";
-import { dropAttachments } from "../shim/attachments";
+import { dropAttachments, sendable } from "../shim/attachments";
 import { createAttachmentSender } from "./attachment-send";
 import type { OfficeMsg } from "./office";
 
@@ -50,7 +50,7 @@ function putPart(url: string, body: Blob, onLoaded: (bytes: number) => void) {
     xhr.send(body);
   });
 }
-async function uploadChunked(room: string, file: File, text: string, onProgress?: (ratio: number) => void) {
+async function uploadChunked(room: string, file: File, text: string, onProgress?: (ratio: number) => void, original = false) {
   const st = await post("upload/start", JSON.stringify({ room, name: file.name, size: file.size, type: file.type }));
   const up = (st.data as { upload?: { id: string; key: string; part_size: number } } | null)?.upload;
   if (st.status !== 200 || !up?.id) return st;
@@ -65,7 +65,7 @@ async function uploadChunked(room: string, file: File, text: string, onProgress?
     }
   } catch (e) { void post("upload/abort", JSON.stringify({ id: up.id, key: up.key })).catch(() => {}); throw e; }
   onProgress?.(1);
-  return post("upload/done", JSON.stringify({ id: up.id, key: up.key, parts, room, name: file.name, ...(text ? { text, together: true } : {}) }));
+  return post("upload/done", JSON.stringify({ id: up.id, key: up.key, parts, room, name: file.name, ...(text ? { text, together: true } : {}), ...(original ? { original: "1" } : {}) }));
 }
 
 // 사진 = 원본 + 보기용 작은 판을 같이(형 11-02 06:55 「사진도 혹시 마찬가지 원본일 필요는 없음. 소스로 쓰라고 주는거면 너네가 압축 전을 재요청 하면 되는거고. 이미지를 확인하는 거면 시스템이 내가 올리는 즉시 압축 시켜서 내용만 확인할 수 있게 하면 너네가 앞으로 계속 편할거야」 · 06:53 「나한테는 그대로임」)
@@ -136,15 +136,21 @@ async function smallImage(file: File): Promise<File | null> {
 
 export const attachmentSender = createAttachmentSender({
   upload: async (attempt, onProgress) => {
-    const only = attempt.originals.length === 1 ? attempt.originals[0].file : null;
-    if (only && only.type.startsWith("video/")) return uploadChunked(attempt.room, only, attempt.text || "", onProgress);
+    // 보낼 판 = 누른 때 스위치대로(압축판 · 원본) · 굽는 중이면 여기서 기다림(원본이 잘못 나가지 않게)
+    const sent = await Promise.all(attempt.originals.map((o) => sendable(o.id, o.file)));
+    // 「원본」으로 보냄 = 서버 original=1(러너가 안 줄이고 file_meta 에 원본 표시 · 형 11-05 09:39 「압축됨 원본 둘중 하나로만 뜨게」)
+    const original = sent.some((s) => s.original);
+    const only = sent.length === 1 ? sent[0].file : null;
+    if (only && only.type.startsWith("video/")) return uploadChunked(attempt.room, only, attempt.text || "", onProgress, original);
     const form = new FormData();
-    for (const [i, original] of attempt.originals.entries()) {
-      form.append("file", original.file);
-      const small = await smallImage(original.file);
+    for (const [i, s] of sent.entries()) {
+      form.append("file", s.file);
+      const small = await smallImage(s.file);
       if (small) form.append(`small_${i}`, small);
+      if (s.untouched) form.append(`original_${i}`, "1");   // 파일마다 = 타일 블릿과 같은 뜻(서버가 file_meta 에 담으면 보낸 글도 같은 「압축됨/원본」)
     }
     form.set("room", attempt.room);
+    if (original) form.set("original", "1");
     if (attempt.text) form.set("text", attempt.text);
     form.set("together", "1");
     return upload(form, onProgress);
