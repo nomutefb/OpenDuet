@@ -45,8 +45,8 @@ export function RunnerGauges() {
           const cpu = m.cpu ?? num(rd?.cpu), ram = m.ram ?? num(rd?.ram), gpu = m.gpu ?? num(rd?.gpu);
           const none = cpu == null && ram == null && gpu == null;
           // 불 = CPU 기준(형 15:27 「램은 과도해도 별 문제가 안된다고 생각?」 · 「cpu가 제일 문제지?」) · RAM 은 92% 넘어 디스크로 밀릴 때만 주황 · 온도 85 = 빨강
-          const cl = levelOf(cpu, false), ramHot = (ram ?? 0) >= 92;
-          const lv: Level = none ? "off" : (m.cpu_temp ?? 0) >= 85 || (m.gpu_temp ?? 0) >= 85 || cl === "red" ? "red" : cl === "orange" || ramHot ? "orange" : cl;
+          const cl = levelOf(cpu, false);   // RAM 은 안 봄(형 15:28 「64gb인데 잠시 걸렷다가 말겟지」 · 「그럼 ram은 안보이게 하고 깔끔하게.」)
+          const lv: Level = none ? "off" : (m.cpu_temp ?? 0) >= 85 || (m.gpu_temp ?? 0) >= 85 ? "red" : cl;
           const at = a && !a.stale ? a.reported_at || 0 : rd ? rd.at * 1000 : 0;
           const busy = rd && num(rd.busy) != null && rd.busy! >= 0 ? rd.busy : null, total = rd && num(rd.total) != null && rd.total! >= 0 ? rd.total : null;
           const temp = [m.cpu_temp != null ? `CPU ${Math.round(m.cpu_temp)}°` : "", m.gpu_temp != null ? `GPU ${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ");
@@ -59,7 +59,7 @@ export function RunnerGauges() {
                 <span className="ml-auto text-muted-foreground">{none ? (a?.stale ? "보고 끊김" : "숫자 없음") : at ? ago(now - at) : ""}</span>
               </header>
               <TickGauge label="CPU" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : ""} off={none} />
-              <p className="nm-rgx-sub">{[ram != null ? `RAM ${Math.round(ram)}` : "", gpu != null ? `GPU ${Math.round(gpu)}` : "", m.gpu_temp != null ? `${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ") || " "}</p>
+              <p className="nm-rgx-sub">{[gpu != null ? `GPU ${Math.round(gpu)}` : "", m.gpu_temp != null ? `${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ") || " "}</p>
               {temp ? <span className="sr-only">{temp}</span> : null}
             </section>
           );
