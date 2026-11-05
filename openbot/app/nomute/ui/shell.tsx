@@ -30,7 +30,8 @@ import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
 import { SceneBg } from "./thumb-maker/scene-bg";
 import "../home/home-scene.css";
-import { HYUNG_ID, idOf, roomAgentIds } from "../data/office";
+import { useQuery } from "@tanstack/react-query";
+import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
@@ -353,6 +354,9 @@ function FaceStrip({ current }: { current: string }) {
   const nav = useNavigate();
   const { list, ordered, count } = useRoomOrder();
   const go = (id: string) => { enterRoom(id); void nav({ to: chatHref(id) }); };
+  // 자는 애 = 얼굴 채도 15%(형 11-05 15:31 「잠자고 있으면 채도 15%만 들어가게 해줘. 프로필 테두리 라인은 검정 챠콜 베이스 반투명으로 들어가고.」) · 깸 표 = 대화 목록과 같은 bots 캐시(./room-list.tsx)
+  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
+  const asleep = (who?: string) => !!who && !bots.some((b) => b.who === who && b.state === "awake");
   return (
     <aside aria-label="방 얼굴 띠" className="nm-strip">
       <button type="button" className="nm-strip-btn" aria-label="대화 목록" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="menu" size={21} /></button>
@@ -360,7 +364,7 @@ function FaceStrip({ current }: { current: string }) {
         {ordered.map((r) => {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list);
           return (
-            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n > 0 ? ` · 안 읽은 글 ${n}개` : ""}`} onClick={() => go(r.id)}>
+            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n > 0 ? ` · 안 읽은 글 ${n}개` : ""}`} onClick={() => go(r.id)}>
               {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : ids.length ? <span className="nm-face-group"><FaceStack ids={ids.slice(0, 2)} size={22} /></span> : <DuetIcon name="chat" size={20} />}
               {n > 0 ? <b className="nm-badge">{n > 99 ? "99+" : n}</b> : n < 0 ? <i className="nm-dot" aria-hidden /> : null}
             </button>

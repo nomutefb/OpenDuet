@@ -130,3 +130,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 @supports (color:oklch(from red l c h)) { .nm-split-root .ychat .ymsg .yname.tab { background:oklch(from var(--yn) .82 max(c,.12) h) !important; } }
 .nm-split-root .ychat .ymsg .yname:not(.tab) { color:#f2f3f2; }
 .nm-split-l .ynav { justify-content:flex-end; padding-right:12px; }
+/* PC 얼굴 띠(형 11-05 15:31 「잠자고 있으면 채도 15%만 들어가게 해줘. 프로필 테두리 라인은 검정 챠콜 베이스 반투명으로 들어가고.」) — 자는 1:1 얼굴 = 채도 15% · 테 = 차콜 반투명(지금 방 = 밝은 회색) */
+.nm-split-root .nm-face { border-color:rgba(24,25,27,.6); }
+.nm-split-root .nm-face.on { border-color:rgba(232,234,232,.7); }
+.nm-split-root .nm-face.zz > img, .nm-split-root .nm-face.zz > span { filter:saturate(.15); }
