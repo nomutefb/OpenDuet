@@ -102,3 +102,6 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-news { flex:1 1 auto; padding:8px; }   /* 4행 중 2.5 = 실시간 뉴스 카드(형 13:37) */
 .nm-split-news iframe { flex:1; width:100%; height:100%; border:0; }
 .nm-split-news > section { flex:1 1 auto; }   /* 뉴스 카드 덱(home/news-feed.tsx section)이 칸 높이를 다 쓰게 — 홈에선 grid 1fr 줄이 늘려 주던 것 · 반갈 첫 판 실물(9222 · 13:47) 덱 150px 로 쪼그라짐 */
+/* 반갈일 때 아래 네비 = 창 가로 전체(형 11-05 14:14 「그리고 하단 네비를 길게 늘여뜨려보자」) — 왼쪽 얼굴 띠(64px) 다음부터 오른쪽 끝까지 · 단추는 고르게 · 오른쪽 칸 바닥은 네비 몫만큼 비움 */
+.nm-split-l .ynav { position:fixed; left:72px; right:8px; width:auto; max-width:none; margin-inline:0; justify-content:space-evenly; }
+.nm-split { padding-bottom:calc(72px + env(safe-area-inset-bottom)); }
