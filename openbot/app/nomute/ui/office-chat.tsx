@@ -1222,7 +1222,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           ) : null}
           {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">첫 대화를 시작해보세요</p> : null}
           {items.map((it, idx) => {
-            const first = it.t === "msg" ? it.m : it.msgs[0];
+            const first = it.t === "msg" || it.t === "ev" ? it.m : it.msgs[0];   // ev = 글 하나(msgs 없음 · 11-06 08:0x 이걸 빠뜨려 드나듦 줄 있는 방이 깨졌음)
             const newDay = !first._thr && (!prevTs || dayKey(prevTs) !== dayKey(first.ts));
             if (newDay || it.t === "band") lastMsg = undefined;
             // 같은 사람이 이어 쓰면 얼굴·이름 접음 — 사이에 종·시스템 알약 줄이 끼어도 그대로 이어짐(형 11-02 10:04 「좌상단 동일 인물 보일때는 또 노출 안되조 되뎃다 이거 확인 좀」 · 사진 = 시아 9:35 · 종 9:40 · 시아 9:40 에 얼굴 두 번)
@@ -1233,7 +1233,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             //   · 다른 사람도 같은 시각이면 맨 아래만(형 10-31 「대화자의 시간대가 같으면 맨 아랫사람만 시간이 나오게해줘」)
             const noTime = it.t === "msg" && !!next && next.t === "msg" && !next.m._thr && dayKey(next.m.ts) === dayKey(it.m.ts) && ((next.m.who === it.m.who && next.m.kind === it.m.kind && next.m.ts - it.m.ts < TIME_GAP) || t12(next.m.ts) === t12(it.m.ts));
             const turn = !newDay && !first._thr && !!sideOf(prev) && !!sideOf(it) && sideOf(prev) !== sideOf(it);
-            prevTs = (it.t === "msg" ? it.m : it.msgs[it.msgs.length - 1]).ts;
+            prevTs = (it.t === "msg" || it.t === "ev" ? it.m : it.msgs[it.msgs.length - 1]).ts;
             prev = it;
             if (it.t === "msg") lastMsg = it.m;
             const key = it.t === "msg" ? it.m.id : `${it.t}-${first.id}`;
