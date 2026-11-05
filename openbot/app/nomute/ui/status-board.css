@@ -63,3 +63,4 @@
 .nsb-idx .fix { position:sticky; left:0; z-index:1; background:#151515; min-width:120px; max-width:150px; font-weight:700; color:#E7ECE7; }
 .nsb-idx tr[data-st="miss"] td, .nsb-idx tr[data-st="miss"] .fix { background:rgba(255,90,95,.12); }
 .nsb-idx tr[data-st="late"] td { background:rgba(255,210,63,.06); }
+.nsb-idx th, .nsb-idx td, .nsb-idx button { text-transform:none; letter-spacing:normal; }   /* 대문자 꾸밈 번짐 끔(파일 이름 그대로) */
