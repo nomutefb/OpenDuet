@@ -245,9 +245,6 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-dec .nm-rcount { position:absolute; top:-4px; right:-4px; }
 .nm-dec:active { transform:scale(.92); }
 .nm-fab.on ~ .nm-dec { opacity:0; pointer-events:none; transform:scale(.6); }
-/* 영상 해석 허가 동그라미(형 11-04 14:49 「그 위에 뜨게해줘 문제 신청 수락없으면 저기 위에 뜨면되는거야」) = 결정 동그라미가 있으면 한 칸(46 + 틈 8) 위 · 없으면 결정 자리 · 창도 같이 한 칸 위 */
-.nm-dec.vid.up { bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 54px); }
-.nm-decpop.up { bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 52px + 54px); }
 .nm-dec-scrim { position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.28); animation:nmDecFade .2s ease-out; }
 .nm-decpop { --accent:#CFFF40; --accent-rgb:207,255,64;   /* 라임 = 대화창 칸(.ychat)과 같은 값 · body 로 빠진 창이라 안 걸면 원본 앱 --accent(회색 oklch 26.9%)를 받아 단추가 꺼진 것처럼 보였음(형 11-02 07:32 「비활성 처리가 기본값이라」 · 시아 실측) */
   --sp:cubic-bezier(.34,1.56,.64,1); position:fixed; z-index:41; right:12px; bottom:calc(var(--duet-tab-space,86px) + 8px + 56px + 52px); width:min(380px, calc(100vw - 24px)); max-height:min(70vh, 560px); display:flex; flex-direction:column; border-radius:var(--r-l,18px); background:var(--glass-bg, rgba(26,27,26,.86)); border:1px solid var(--glass-line, rgba(255,255,255,.14)); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); box-shadow:0 18px 40px -12px rgba(0,0,0,.6); transform-origin:100% 100%; animation:nmDecIn .36s var(--sp); overflow:hidden; }
@@ -597,13 +594,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-rtop .nm-rnotice { flex:1; min-width:0; width:auto; height:40px; margin:0; border-radius:999px; padding:0 14px; }
 .nm-rnews { flex:none; display:grid; place-items:center; width:40px; height:40px; border:1px solid rgba(207,255,64,.28); border-radius:50%; background:rgba(207,255,64,.1); color:rgb(var(--accent-rgb, 207,255,64)); -webkit-tap-highlight-color:transparent; }   /* 테·바탕 = 공지 알약과 같은 라임 */
 .nm-rnews:active { opacity:.7; } .nm-rnews.on { background:rgba(var(--accent-rgb, 207,255,64), .2); border-color:rgba(var(--accent-rgb, 207,255,64), .55); }
-/* 영상 해석 진행 칸(./decide-pop.tsx VideoProg · 형 11-04 15:52 「신청 > 진행중 > 완료 (또는 실패)」) = 대기열 줄(./queue.css) 그대로 · 창 아래 칸 */
-.nm-decpop .nm-vprog { flex:none; max-height:42%; overflow-y:auto; overscroll-behavior:contain; padding:6px 10px 12px; border-top:1px solid var(--glass-line, rgba(255,255,255,.1)); --accent:#CFFF40; --mut:#8B8F8A; --fg:#F2F4F0; }
-:root:not(.dark) .nm-decpop .nm-vprog { --accent:#4d7a00; --mut:#6b6f6a; --fg:#161716; }
 .nm-decpop ul:empty { display:none; }
-.nm-vprog-h { margin:4px 2px 6px; font-size:12px; font-weight:700; color:var(--mut); }
-.nm-vprog .nm-q-row { grid-template-columns:52px minmax(0, 1fr) 38px minmax(0, auto); }
-.nm-vprog-at { font-size:10.5px; color:var(--mut); white-space:nowrap; max-width:84px; overflow:hidden; text-overflow:ellipsis; }
 /* 글 속 부름 = 작은 얼굴 + 이름 알약(./office-chat.tsx CallChip · 형 11-04 17:15) · 줄 높이 안 흔들리게 15px 얼굴 · 바로 깸 = 뒤 라임 「!」 */
 .ychat .ycall.yface { display:inline-flex; align-items:center; gap:4px; padding:1px 7px 1px 2px; border-radius:999px; vertical-align:-3px; line-height:17px; font-size:.92em; background:rgba(var(--accent-rgb),.12); border:1px solid rgba(var(--accent-rgb),.22); }
 .ychat .ycall.yface img, .ychat .ycall.yface [role="img"] { width:15px !important; height:15px !important; }

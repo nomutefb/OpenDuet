@@ -17,48 +17,14 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
-import "./queue.css";   // 영상 진행 줄 = 대기열 줄 꼴 그대로
 
 type Pick = { i?: number; pass?: boolean; text?: string };
 export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null; kind?: string; _dups?: string[] };
-// 영상 해석 허가 = 따로 동그라미(형 11-04 14:49 dm-eyes 「신청은 여기에 그 문제 신청 수락하는거 처럼 또」 · 「그 위에 뜨게해줘 문제 신청 수락없으면 저기 위에 뜨면되는거야」)
-//   = 결정 동그라미 위(없으면 그 자리 = 「+」 바로 위) · 가르기 = 서버 kind "videoreq"(뜸 #2387 뒤) · 그 전 판 = 물음 머리 「영상 해석 허가?」
+// 영상 해석 허가 동그라미·진행 칸 없앰(형 11-05 11:10 「그럼 이제 그 채팅창 우하단에 영상 신청 이거는 없어도되는거지? 판단해보고, 별 의미없는 코드니까. 기능을 없애고 디자인도 없애줘.」 · 서버도 요청 = 바로 상주)
+//   = 옛 영상 카드(서버 kind "videoreq" · 물음 머리 「영상 해석 허가?」)는 결정 창에 안 섞음
 export const isVideoReq = (d: Decision) => d.kind === "videoreq" || /^\s*(\[결정\]\s*)?영상 해석 허가\?/.test(d.q || "");
-type Kind = "dec" | "video" | "all";
-// 영상 해석 진행 판(형 11-04 15:52 dm-eyes 「신청 >  진행중  > 완료 (또는 실패) 가 보여야함 이거는 뉴스 요약의 그 edit.nomute.kr에 뉴스 요약 들어오는 그 진행상황 보이는 거있지? … 그거랑 동일하게 하면돼」)
-//   = 영상 동그라미 창 아래 칸 · 줄 = 대기열(./queue.tsx · 에디터 .qrow) 꼴 그대로(시간 | 제목 | 상태 | 자리) · 진행중 맨 위 · 자료 = 뜸 GET /api/office/videoreq(없으면 칸 0)
-type VReq = { id: string; t: number; status: string; title?: string; by?: string; room?: string; host?: string; why?: string; share?: string };
-const LIVE = new Set(["ask", "queued", "processing"]), DAY = 24 * 3600e3;
-export const useVideoReqs = (enabled = true) => useQuery({ queryKey: ["nomute", "videoreq"], enabled, queryFn: () => office<{ items?: VReq[] }>("videoreq").then((j) => (Array.isArray(j.items) ? j.items : [])), staleTime: 10_000, retry: false,
-  refetchInterval: (q) => ((q.state.data || []).some((x) => x.status === "queued" || x.status === "processing") ? 15_000 : 60_000) });
-const shown = (x: VReq) => LIVE.has(x.status) || Date.now() - x.t < DAY;   // 하루 지난 끝난 줄은 뺌(대기열 「최근 내역」 결)
-const agoV = (t: number) => { const m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
-function VideoProg({ list }: { list: VReq[] }) {
-  const rows = list.filter(shown).sort((a, b) => Number(b.status === "processing") - Number(a.status === "processing") || Number(LIVE.has(b.status)) - Number(LIVE.has(a.status)) || b.t - a.t);
-  if (!rows.length) return null;
-  return (
-    <div className="nm-q nm-vprog" aria-label="영상 해석 진행">
-      <p className="nm-vprog-h">진행 상황</p>
-      <div className="nm-q-list" role="list">
-        {rows.map((x) => {
-          const am = (Date.now() - x.t) / 60000, tc = am <= 60 ? " new" : am <= 240 ? " mid" : "";
-          return (
-            <div key={x.id} role="listitem" className={`nm-q-row q-${x.status}`} title={x.why || undefined}>
-              <span className={`qt${tc}`}>{agoV(x.t)}</span>
-              <span className="qm"><i>{x.title || x.id}</i>{x.by ? <span className="pp">{x.by}</span> : null}</span>
-              <span className="qs">{x.status === "processing" ? <span className="spin" aria-label="진행중" title={x.host ? `${x.host}에서 도는 중` : "도는 중"} />
-                : x.status === "success" ? <b className="ok">완료</b> : x.status === "failure" ? <b className="bad">실패</b>
-                : x.status === "cancelled" ? <b className="cxl">취소</b> : x.status === "no" ? <b className="cxl">안 함</b>
-                : x.status === "queued" ? <b className="lag">대기</b> : <b className="lag">신청</b>}</span>
-              <span className="qa"><span className="nm-vprog-at">{x.status === "processing" || x.status === "success" ? x.host || "" : x.status === "failure" || x.status === "cancelled" ? (x.why || "").slice(0, 14) : ""}</span></span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-const ofKind = (k: Kind) => (d: Decision) => (k === "all" ? true : k === "video" ? isVideoReq(d) : !isVideoReq(d));
+type Kind = "dec" | "all";
+const ofKind = (_k: Kind) => (d: Decision) => !isVideoReq(d);
 // 같은 질문 또 뜸 막기(형 11-02 11:15 「의사결정 받는 판 같은 질문이면 같은 거 또 못올리게 해줘 왠진 모르겠는데 또 올라오네」)
 //   = 묻는 이가 형인 것 뺌(형 글에 「결정」이 들어가 형한테 묻는 결정으로 잡힌 것 · 11-02 01:25 회의실 글 · 서버 막기는 봄) · 같은 방·같은 질문은 하나만(나머지 id 는 _dups = 고르면 같은 답을 같이 보냄 → 다시 안 떠오름)
 const HYUNG = new Set(["형", "세웅"]);
@@ -102,7 +68,7 @@ export const DECIDE_OPEN = "nm-decide-open";
 export const openDecide = (where: string) => window.dispatchEvent(new CustomEvent(DECIDE_OPEN, { detail: where }));
 export const useDecisions = () => useQuery({ queryKey: KEY, queryFn: () => office<{ items?: Decision[] }>("decisions").then((j) => tidy(j.items || [])), refetchInterval: 60_000, retry: false });
 
-/** fab = 대화방 우하단 노트 단추 + 모달 · fab=false = 단추 없이 모달만(where 로 부르면 열림 · 홈) · kind = dec(결정 · 영상 허가 뺌) · video(영상 허가만 · 결정 동그라미 위) · all(홈) */
+/** fab = 대화방 우하단 노트 단추 + 모달 · fab=false = 단추 없이 모달만(where 로 부르면 열림 · 홈) · kind = dec(결정) · all(홈) · 옛 영상 허가 카드는 둘 다 뺌 */
 export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?: boolean; where?: string; kind?: Kind }) {
   const qc = useQueryClient();
   const q = useDecisions();
@@ -111,9 +77,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
   const [fx, setFx] = useState<Record<string, Fx>>({}), [gone, setGone] = useState<Set<string>>(() => new Set());   // fx = 불 들어온 줄 · gone = 접혀 사라진 질문(이 창에서만)
   const dirty = useRef(false), closing = useRef(false);
   const all = q.data || [], items = all.filter(ofKind(kind));
-  const vid = kind === "video", stack = vid && all.some(ofKind("dec"));   // 결정 동그라미가 떠 있으면 그 위 칸
-  const vq = useVideoReqs(kind === "video"), reqs = vid ? (vq.data || []).filter(shown) : [], running = reqs.filter((x) => x.status === "queued" || x.status === "processing").length;
-  const title = vid ? "영상 해석 허가" : "의사 결정";
+  const title = "의사 결정";
   const pickOf = (d: Decision) => picks[d.id] || d.pick || null;
   const ready = useRef<() => Sent[]>(() => []);
   // 한 결정은 한 번만 보냄(시아 11-01 10:55 「같은 답이 세 번 왔어」 · 10:54:53 1ms·444ms 차) = 보낸 id 기억 · 보내는 중 다시 안 쏨 · id 겹침 뺌 · 실패 뒤 다시 쏘기 0(받침 = 서버 2분)
@@ -180,7 +144,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
   const isOn = (d: Decision, k: string) => fx[d.id]?.k === k;
   const fillOf = (d: Decision, k: string) => (fx[d.id]?.k === k ? fx[d.id].st : undefined);
   useEffect(() => {   // 다 고르면 창이 저절로 닫힘(「완료된 내역은 안보여도돼」)
-    if (open && !vid && items.length > 0 && items.every((d) => gone.has(d.id))) close();   // 영상 창은 안 닫힘 = 허가 뒤 진행 칸이 이어 보임
+    if (open && items.length > 0 && items.every((d) => gone.has(d.id))) close();
   }, [gone]);   // eslint-disable-line react-hooks/exhaustive-deps
   const etcSubmit = (d: Decision) => (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -188,20 +152,17 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
     if (t) void choose(d, { text: t }, "etc");
   };
 
-  if (!vid && (q.isError || !items.length)) return null;
-  if (vid && !items.length && !reqs.length) return null;   // 영상 = 고를 것도 진행 줄도 없으면 동그라미 0
+  if (q.isError || !items.length) return null;
   return (
     <>
-      {fab ? <button type="button" className={`nm-dec${vid ? " vid" : ""}${stack ? " up" : ""}${open ? " on" : ""}`} aria-expanded={open} aria-label={`${title} ${left}개`} onClick={() => (open ? close() : setOpen(true))}>
-        {vid
-          ? <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="6" width="13" height="12" rx="2" /><path d="m16 10.5 5-3v9l-5-3z" /><path d="m6.8 12.2 1.7 1.7 3.2-3.4" /></svg>
-          : <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h6" /><path d="m8.5 14 2.2 2.2L15.5 11.5" /></svg>}
-        {left || running ? <b className="nm-rcount">{(left || running) > 99 ? "99+" : left || running}</b> : null}
+      {fab ? <button type="button" className={`nm-dec${open ? " on" : ""}`} aria-expanded={open} aria-label={`${title} ${left}개`} onClick={() => (open ? close() : setOpen(true))}>
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h6" /><path d="m8.5 14 2.2 2.2L15.5 11.5" /></svg>
+        {left ? <b className="nm-rcount">{left > 99 ? "99+" : left}</b> : null}
       </button> : null}
       {open ? createPortal(   // body 로 뺌 = 유리 카드(backdrop-filter) 안에서 불러도 화면 기준 자리(홈 할 일 카드)
         <>
           <div className="nm-dec-scrim" aria-hidden onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label={title} className={`nm-decpop${stack ? " up" : ""}`}>
+          <section role="dialog" aria-modal="true" aria-label={title} className="nm-decpop">
             <header><b>{title}</b><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
             <ul>
               {items.filter((d) => !gone.has(d.id)).map((d) => {
@@ -220,7 +181,6 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
                 );
               })}
             </ul>
-            {vid ? <VideoProg list={vq.data || []} /> : null}
             {err ? <p role="alert" className="nm-dec-err">{err}</p> : null}
           </section>
         </>, document.body,
