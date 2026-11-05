@@ -22,6 +22,7 @@ import { useChannelEvents } from "@/lib/channels/use-channel-events";
 import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
+import { NewsFeed } from "../home/news-feed";   // PC 반갈 아래 칸 = 홈 실시간 뉴스 카드 그대로(형 11-05 13:37)
 import { SchedDesk } from "./sched-desk";
 import { StatusBoard } from "./status-board";
 import { DrawerPage } from "./drawer-page";
@@ -288,13 +289,14 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   );
 }
 
-/** PC 반갈 오른쪽 반(형 11-05 13:26 그림) — 위 작게 = 2 러너(하드웨어 · 러너 일 · 지금 4번 메뉴 거) · 아래 크게 = 3 뉴스(에디터 피드 원본 = 핫 이슈 · 편집 그대로)
+/** PC 반갈 오른쪽 반(형 11-05 13:26 그림 · 13:36 「가로 16 이야. 그러면 8 8 구성」 · 「4*4로 나눈다고 가정」 · 「2*4는 (좌측) 은 다 대화고」 · 「1*4 1행 ~ 1.5 는 러너 기본정보(… 게이지로 축약해서)」 · 「근데 갬성이 떨어지면안되.」 · 「나머지 3~2.5 를 실시간 뉴스 카드로.」)
+ *  위 1.5/4 = 2 러너(맨 위 몸 줄 + 러너 판 게이지) · 아래 2.5/4 = 3 실시간 뉴스 카드(홈 카드 덱 그대로 · 「전송」 = 그 기사 요약 요청 · 형 13:38 「전송하면 그 아래에 요약 대기열 … 근데 거기까지 안바래」)
  *  러너 위젯(PC 바탕화면)은 내림(형 13:23 「그럼냅다치우고」 · 윈A CPU 1등) — 여기 한 창에 대화 · 러너 · 뉴스가 같이 있어 창이 따로 놀지 않음(형 13:20 「근데 창이 다 따로놀아;;ㅠㅠ」) */
 function SplitSide() {
   return (
     <aside className="nm-split" aria-label="러너 · 뉴스">
       <section className="nm-split-run" aria-label="러너"><BodyBar /><div className="nm-scroll"><RunnerScreen /></div></section>   {/* 맨 위 몸 줄(봄 · 형 11-05 13:2x) = 러너 칸 맨 위 24px */}
-      <section className="nm-split-news" aria-label="뉴스"><FramePage title="뉴스" src="/?tab=feed" /></section>
+      <section className="nm-split-news yeta-set" aria-label="뉴스"><NewsFeed /></section>
     </aside>
   );
 }
