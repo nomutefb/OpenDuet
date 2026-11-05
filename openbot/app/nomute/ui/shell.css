@@ -150,3 +150,6 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-l .ynav { height:50px; padding:0 14px; border-bottom:1px solid rgba(255,255,255,.09); }
 .nm-split-l .ynav button { height:30px; font-size:12px; }
 .nm-split-news { margin-top:14px; }
+/* 위 메뉴 막대 픽토그램 = 시그니처 라임(형 11-05 16:57 「그리고 상단의 픽토그램 버튼들은 시그니처 색으로!」) */
+.nm-split-l .ynav button { color:#CFFF40; }
+.nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#CFFF40; background:rgba(207,255,64,.12); }
