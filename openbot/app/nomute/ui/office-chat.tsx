@@ -547,10 +547,16 @@ function Files({ m }: { m: Msg }) {
   const meta = new Map((m.file_meta || []).filter((x) => x?.path).map((x) => [x.path, x]));
   const ps = [...new Set((m.files || []).map(String))];
   const one = (p: string) => ({ p, n: meta.get(p)?.name || fileName(p), b: meta.get(p)?.bytes || 0, o: (meta.get(p) as { original?: boolean | number } | undefined)?.original, ob: (meta.get(p) as { orig_bytes?: number } | undefined)?.orig_bytes });   // o = 원본으로 보냄(서버 original=1 · 형 11-05 09:39)
-  const imgs = ps.filter((p) => IMG_RE.test(p)).map(one), vids = ps.filter((p) => VID_RE.test(p)).map(one), rest = ps.filter((p) => !IMG_RE.test(p) && !VID_RE.test(p)).map(one);
+  const GIF_RE = /\.gif$/i, gifs = ps.filter((p) => GIF_RE.test(p)).map(one);   // 움짤(형 11-05 12:10 「gif는, 움짤같은거로 쓰게 … 일렬로 최대 3개까지 … 지금 크기의 50%로」)
+  const imgs = ps.filter((p) => IMG_RE.test(p) && !GIF_RE.test(p)).map(one), vids = ps.filter((p) => VID_RE.test(p)).map(one), rest = ps.filter((p) => !IMG_RE.test(p) && !VID_RE.test(p)).map(one);
   const [bad, setBad] = useState<Record<string, boolean>>({}), [dur, setDur] = useState<Record<string, number>>({});   // dur = 영상 길이(초 · 형 11-05 10:44 「비디오에 가져다되면 초도 나오게」)   // 못 그린 그림·영상(받은 몸이 그림이 아님 · 11-05 번개 url 길 = Access 로그인 HTML) = 빈칸 대신 「못 불러왔어」 칸
   return (
     <div className="yfiles flex flex-col gap-2">
+      {gifs.length ? (
+        <div className="nm-gifs">   {/* 움짤 = 머리표·다운로드 단추 0 · 한 줄 셋 · 반 크기 · 저장 = 꾹 눌러 「사진 저장」(MsgMenu picsOf) */}
+          {gifs.map((f) => <img key={f.p} src={fileUrl(f.p)} alt={f.n} loading="lazy" className="nm-gif" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />)}
+        </div>
+      ) : null}
       {imgs.length ? (
         <div className="yfiles flex flex-col items-start gap-2">   {/* 두 장 이상 = 세로(형 10-31 「그리고 2개 이상은 세로로.」) */}
           {imgs.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="그림" /> : (
