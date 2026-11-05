@@ -1,6 +1,9 @@
 /* 홈 카드 전송 단추(./send-button.tsx) — 형 11-03 12:56·12:57 = 카드 세로 가운데 · 오른쪽 끝에 반쯤 걸친 반투명 동그라미 · 누르면 원 테가 차오름(사진 올리기 고리 꼴) → 가운데 ✓ · 마우스 기기는 위에 꺽쇠(다음 카드)
    차오름 리듬 = 옛 판 그대로(에디터 #askSend · 응답 기다리는 동안 0→90% 1.2s · 열리면 100% .3s · ✓ goTick .38s) · 출처 nomutefb/editor */
 .nm-send-dock { position:absolute; right:-9px; top:50%; transform:translateY(-50%); z-index:10; display:flex; flex-direction:column; align-items:center; gap:10px; }
+/* 폰 폭(형 11-05 사진 「모바일 버전 해결점」 · send-button.tsx useCardCorner) = 카드 오른쪽 아래 안쪽 · --nm-card-b = 품은 덱 앞 카드 아래 끝(칸 위에서) · --nm-card-r = 카드 오른쪽 끝 ~ 칸 오른쪽 끝 · 카드마다 높이가 달라 아래 끝을 부드럽게 따라감 */
+.nm-send-dock[data-fit] { top:auto; right:calc(var(--nm-card-r) + var(--nm-inset)); bottom:calc(100% - var(--nm-card-b) + var(--nm-inset)); transform:none; transition:bottom .25s var(--ease); }
+@media (prefers-reduced-motion:reduce) { .nm-send-dock[data-fit] { transition:none; } }
 .nm-send, .nm-send-nx { position:relative; display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:50%; background:color-mix(in srgb, var(--bg) 55%, transparent); color:var(--fg);
   box-shadow:0 2px 8px rgba(0,0,0,.22); backdrop-filter:blur(var(--blur-l)); -webkit-backdrop-filter:blur(var(--blur-l)); -webkit-tap-highlight-color:transparent; cursor:pointer; transition:transform .2s var(--ease); }
 .nm-send:active, .nm-send-nx:active { transform:scale(var(--press-m, .9)); }

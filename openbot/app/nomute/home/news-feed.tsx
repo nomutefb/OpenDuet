@@ -10,7 +10,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { hookFrame, toneFrame } from "../ui/inapp";
 import { homePool } from "./home-pool";
-import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
+import { SEND_ROOM, SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
 
 const CHANNEL = "nomute-modern-home";
 export const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
@@ -57,7 +57,20 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 .article-publisher .pub-more{transform:translateY(.08em)!important;font-variant-numeric:tabular-nums}
 .article-lead>.article-media{flex:1 1 auto!important;aspect-ratio:auto!important}
 .article-media{--article-image-h:clamp(156px,26svh,234px)!important}
-.practical-main .score-lead strong{color:var(--accent)!important;text-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)!important}`;
+.practical-main .score-lead strong{color:var(--accent)!important;text-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)!important}
+@media (max-width:480px){
+.practical-main .deck>.article-card{padding-bottom:calc(var(--sp-4) + ${SEND_ROOM}px)}
+.practical-main .deck>.article-card:not(:has(.article-media)){height:auto;max-height:var(--reader-card-height)}
+.practical-main .deck>.article-card:not(:has(.article-media)) .article-body{flex:0 1 auto}
+.practical-main .deck>.deck-fan{height:auto;bottom:var(--reader-peek)}
+.article-schedule:has(>.article-publisher):has(>.article-pick){flex-wrap:wrap;row-gap:0}
+.article-schedule:has(>.article-publisher):has(>.article-pick)>.meta-published{flex:0 0 100%}
+.article-schedule:has(>.article-publisher):has(>.article-pick)>.meta-published+.meta-chip::before{content:none}
+}`;
+// 폰 폭(품은 화면 480 이하 · 형 11-05 사진 「모바일 버전 해결점」) = ① 사진 없는 카드 = 높이를 글만큼(옛 = 품은 칸 전부라 아래가 텅 빔 · 카드 높이 셈 --reader-card-height 는 상한으로만 · 사진 카드는 사진이 남는 높이를 채우던 그대로)
+//   뒤 장 둘(.deck-fan) = 높이 못 박지 않고 앞 카드 높이(덱 아래 입술 몫만 뺌) = 짧은 카드 뒤로 긴 장이 안 삐져나옴 · 넘김 복사본(card-exit)은 덱이 넘길 때 잰 높이를 그대로 씀
+//   ② 카드 아래 안쪽에 전송 단추 자리(SEND_ROOM · send-button.tsx 가 그 자리 = 카드 오른쪽 아래 안으로 옮김 · 옛 = 카드 오른쪽 끝에 반쯤 걸쳐 화면 밖으로 나갔음)
+//   ③ 픽 얼굴 있는 줄 = 시각·몇 시간 전 한 줄 + 매체·얼굴 다음 줄(옛 = 한 줄에 다 넣느라 매체 이름이 「n.news.naver…」로 잘렸음 · 그래도 넘치면 끝만 「…」 · 줄 머리 점은 뺌)
 // 점수 = 단계 색(modern-score.css) 대신 시그니처 색 한 가지(형 10-31 「점수, 시그니처 색으로 점수 나오게해주라」) · 홈 안에서만
 // 사진 높이 = 덱 셈(clamp(120px,20svh,180px) · 라이브 121px)을 통째로 1.3배(형 11-03 17:26 「지금 거의 가로가 긴데, 세로로 1.3배만 더 길게 노출되게해줘 메인 화면 사진.」 · 「그만큼 아래에 댓글? 그런거 안보이면 됨.」 = 아래 출처 줄은 밀려 내려가도 됨) · 홈 안에서만(웹 에디터 홈 그대로)
 // 위 덧줄 넷(형 10-31 12:2x 홈 사진) = ① 「이슈 근거 : …」 줄 안 보임(.article-signals · 화제 유발 원인·내용 줄은 그대로) ② 시각 줄 둘 다 형광(time 은 원래 --accent · 「n시간 전」 .publish-elapsed 는 나이 띠 색이던 것 → --accent · 윈터 12:31 「둘 다 형광」)

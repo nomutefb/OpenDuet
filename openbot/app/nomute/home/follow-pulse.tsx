@@ -11,6 +11,13 @@ type Pt = { date: string; net: number | null; count: number; pct: number };
 const DAYS = 10, nf = new Intl.NumberFormat("ko-KR");
 const kstDay = () => new Date(Date.now() + 9 * 36e5).toISOString().slice(0, 10);
 const signed = (v: number) => (v > 0 ? "+" : v < 0 ? "−" : "") + nf.format(Math.abs(v));
+/** 칸(P) 안에 안 들어가는 수 = 짧게(1.2k · 12k) · 글자 폭 ≈ 0.6em(숫자 고정폭) · 굵은 오늘 칸은 조금 더 넓게 셈 */
+const fit = (v: number, room: number, fs: number, bold: boolean) => {
+  const full = signed(v);
+  if (full.length * fs * (bold ? 0.66 : 0.6) <= room || Math.abs(v) < 1000) return full;
+  const a = Math.abs(v), k = a >= 1e4 ? Math.round(a / 1e3) + "k" : (Math.round(a / 100) / 10).toString().replace(/\.0$/, "") + "k";
+  return (v > 0 ? "+" : "−") + k;
+};
 const NET = {
   ig: (r: Row) => (r.follower_net != null ? r.follower_net : r.follows != null && r.unfollows != null ? r.follows - r.unfollows : null),
   fb: (r: Row) => (r.follower_net != null ? r.follower_net : r.follows != null ? r.follows : null),
@@ -30,11 +37,26 @@ async function get(key: "ig" | "fb", file: string): Promise<Chan | null> {
   return null;
 }
 
+/** FB `follows` 가 그날 새 팔로우가 아니라 그날 끝 총수인 판(fb_data.json 실물 11-05 = 7,193 · 7,192 · 7,243 … · 총수 7,242)이면 = 앞날과의 차이가 그날 ±명
+ *  (형 사진 「모바일 버전 해결점」 = FB 줄에 +7,192 +7,243 … 총수가 ±로 찍혀 칸끼리 붙었음) · 반 넘는 날이 총수의 절반을 넘으면 총수 판으로 봄 · follower_net 있는 날은 그 값 그대로 */
+function netsOf(all: Row[], key: "ig" | "fb", total: number): (number | null)[] {
+  const raw = all.map(NET[key]);
+  if (key !== "fb" || total < 100) return raw;
+  const fol = all.filter((r) => r.follower_net == null && r.follows != null).map((r) => r.follows as number);
+  if (!fol.length || fol.filter((v) => v > total / 2).length * 2 <= fol.length) return raw;
+  return all.map((r, i) => {
+    if (r.follower_net != null) return r.follower_net;
+    const a = i ? all[i - 1].follows : null, b = r.follows;
+    return a != null && b != null ? b - a : null;
+  });
+}
+
 /** 원본 series() 그대로 — 지난 DAYS 일(오늘 제외) · count = 그날 끝 팔로워 · pct = 창 시작 대비 % */
 function series(j: Chan, key: "ig" | "fb"): Pt[] {
-  const today = kstDay(), all = (j.daily_series || []).filter((r) => r && r.date), todayRow = all.find((r) => r.date === today);
-  const days = all.filter((r) => r.date < today).slice(-DAYS), nets = days.map(NET[key]);
-  let c = j.profile.followers_count - ((todayRow && NET[key](todayRow)) || 0);
+  const today = kstDay(), all = (j.daily_series || []).filter((r) => r && r.date), netAll = netsOf(all, key, j.profile.followers_count);
+  const ti = all.findIndex((r) => r.date === today), idx = all.map((r, i) => (r.date < today ? i : -1)).filter((i) => i >= 0).slice(-DAYS);
+  const days = idx.map((i) => all[i]), nets = idx.map((i) => netAll[i]);
+  let c = j.profile.followers_count - ((ti >= 0 && netAll[ti]) || 0);
   const counts: number[] = [];
   for (let k = days.length - 1; k >= 0; k--) { counts[k] = c; c -= nets[k] || 0; }
   const base = c > 0 ? c : counts[0] || 1;
@@ -97,7 +119,7 @@ export function FollowPulse() {
                 return (
                   <g key={p.date}>
                     {p.net == null ? <circle className="x" cx={cx} cy={cy} r="2.2" strokeWidth=".8" strokeDasharray="1.2 1.4" fill="none" /> : <circle cx={cx} cy={cy} r={now ? 3.2 : 2.6} fillOpacity={key === "ig" ? 1 : 0.8} />}
-                    <text className={cls} x={cx} y={((key === "ig" ? IGY : FBY) + RH / 2 + FS * 0.35).toFixed(1)} textAnchor="middle" fontSize={FS}>{p.net == null ? "–" : signed(p.net)}</text>
+                    <text className={cls} x={cx} y={((key === "ig" ? IGY : FBY) + RH / 2 + FS * 0.35).toFixed(1)} textAnchor="middle" fontSize={FS}>{p.net == null ? "–" : fit(p.net, P - 4, FS, now)}</text>
                   </g>
                 );
               })}
