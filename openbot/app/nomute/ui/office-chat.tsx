@@ -14,6 +14,7 @@
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { CallSheet } from "./call-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
@@ -216,9 +217,12 @@ export function useOfficeRoom(room: string) {
   return { r, list: peopleQ.data || [], msgs: msgsQ, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older, draft };
 }
 
-type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] } | { t: "sent"; msgs: Msg[] };   // sent = 봇 둘의 방으로 보낸 흔적(SentGroup 알약)
+type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs: Msg[] } | { t: "sent"; msgs: Msg[] } | { t: "ev"; m: Msg };   // sent = 봇 둘의 방으로 보낸 흔적(SentGroup 알약) · ev = 방 드나듦 줄(나감·다시 옴·초대·방 닫음)
+/** 방 드나듦 줄(봄 서버 event · 형 11-06 「00가 나갔습니다는 뜨게해줘. … 이느낌으로 하되, 블록으로 감쌀필요는없어」) = 묶음·알약에 안 섞고 제자리 한 줄 */
+const evM = (m: Msg) => m.kind === "system" && !!m.event?.kind;
+const evWho = (m: Msg) => { const w = m.event?.who; return Array.isArray(w) ? w : w ? [w] : []; };
 const mineOf = (m: Msg) => m.kind === "human" || hyungApp(m);
-const sideOf = (x?: Item) => (!x || x.t === "sys" || x.t === "sent" ? "" : x.t === "msg" && mineOf(x.m) ? "me" : "them");   // 간격 = 내 글 쪽 · 상대 글 쪽(묶음 포함) · 시스템 줄은 어느 쪽도 아님
+const sideOf = (x?: Item) => (!x || x.t === "sys" || x.t === "sent" || x.t === "ev" ? "" : x.t === "msg" && mineOf(x.m) ? "me" : "them");   // 간격 = 내 글 쪽 · 상대 글 쪽(묶음 포함) · 시스템 줄은 어느 쪽도 아님
 const MEET = "all";   // 회의실(서버 ROOMS id · 형 10-28 22:02 「회의실은 대화가 안접혀도 될거같아 그냥 최신순으로 … 내가 안본거부터 위로 보기 그 버튼만」)
 const wakeM = (m: Msg) => m.kind === "system" && /러너/.test(m.who) && /^깸:/.test(m.text || "");
 
@@ -238,6 +242,7 @@ function flatView(list: Msg[]): Item[] {
     if (wakeM(m)) continue;
     if (m.kind === "sent") { pill = sentInto(out, pill, m); continue; }
     if (mineOf(m)) pill = null;
+    if (evM(m)) { out.push({ t: "ev", m }); continue; }
     out.push(m.kind === "system" && !hyungApp(m) ? { t: "sys", msgs: [m] } : { t: "msg", m });
   }
   return out;
@@ -275,10 +280,11 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
     if (wakeM(m)) continue;
     if (m.kind === "sent") { pill = sentInto(out, pill, m); continue; }   // 봇끼리 보낸 흔적 = 묶음에 안 섞음 · 형 말 사이 것끼리 알약 하나(SentGroup)
     if (mineOf(m)) pill = null;
+    if (evM(m)) { out.push({ t: "ev", m }); continue; }
     if (showM(m)) { out.push({ t: "msg", m }); continue; }
-    if (sysM(m)) { const l = [m]; while (i + 1 < all.length && !showM(all[i + 1]) && sysM(all[i + 1]) && !wakeM(all[i + 1])) l.push(all[++i]); out.push({ t: "sys", msgs: l }); continue; }
+    if (sysM(m)) { const l = [m]; while (i + 1 < all.length && !showM(all[i + 1]) && sysM(all[i + 1]) && !wakeM(all[i + 1]) && !evM(all[i + 1])) l.push(all[++i]); out.push({ t: "sys", msgs: l }); continue; }
     const b = [m];
-    while (i + 1 < all.length && !showM(all[i + 1]) && !sysM(all[i + 1])) b.push(all[++i]);
+    while (i + 1 < all.length && !showM(all[i + 1]) && !sysM(all[i + 1]) && !evM(all[i + 1])) b.push(all[++i]);
     out.push({ t: "band", msgs: b });
   }
   return out;
@@ -905,6 +911,7 @@ export function OfficeChat(p: { room: string; lead?: ReactNode; active?: boolean
 
 function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: ReactNode; active?: boolean }) {   // active = 이 판이 보임(껍데기에서 숨은 판이면 본 데까지 안 올림 = 안 읽은 수 그대로)
   const qc = useQueryClient();
+  const nav = useNavigate();
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
   const [err, setErr] = useState(""), [dropping, setDropping] = useState(false);   // dropping = 대화창에 파일 끌고 있음(형 11-05 10:45)
   const [sel, setSel] = useState(""), [menuOf, setMenuOf] = useState<Msg | null>(null);   // 글 길게 누르기(./msg-menu.tsx)
@@ -932,6 +939,19 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const pairRoom = room.startsWith("pair-");   // 둘의 방 = 형은 읽기만(쓰기 칸 대신 한 줄 · 머리 = 두 얼굴 · 접기 0 = 둘이 한 말 다 보임)
   const flat = meet || pairRoom || (!!r && !r.with);
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
+  // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
+  const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind === "bot" || m.kind === "winter") back.add(m.who); } return on; }, [all]);
+  const [inviting, setInviting] = useState("");
+  const invite = async (m: Msg) => {   // 형 11-06 「내가 초대하기누르면다시들어올수잇어야함」 → POST rooms/<방>/invite(봄 서버) · 답 = 「다시 불렀습니다」 줄
+    const who = evWho(m)[0]; if (!who || inviting) return;
+    setInviting(m.id); setErr("");
+    try {
+      const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/invite`, { method: "POST", body: JSON.stringify({ who }) });
+      if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
+      void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) }); void qc.invalidateQueries({ queryKey: officeKeys.rooms });
+    } catch (e) { setErr(`초대 못 했어 — ${e instanceof Error ? e.message : String(e)}`); }
+    finally { setInviting(""); }
+  };
   const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 45분)은 시각으로 정해져서 새 글이 없어도 다시 셈
   const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
   const typRing = typing.length ? ringOf(list.find((x) => x.who === typing[0])) : undefined;   // 생각 중 줄 이름표도 얼굴(typing[0]) 테에서 이어진 탭(형 11-03 16:06 「틈이 같은 경우에 이거 안이어진다 프로필 라벨」)
@@ -1220,7 +1240,12 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
             return (
               <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
                 {newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null}
-                {it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentGroup msgs={it.msgs} c={c} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
+                {it.t === "ev" ? (
+                  <p className="yev" title={t12(it.m.ts)}>
+                    <span>{it.m.text || ""}</span>
+                    {it.m.event?.kind === "left" && inviteOn.has(it.m.id) ? <button type="button" className="yev-a" disabled={inviting === it.m.id} onClick={() => void invite(it.m)}>{inviting === it.m.id ? "초대하는 중…" : "채팅방으로 초대하기"}</button> : null}
+                  </p>
+                ) : it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentGroup msgs={it.msgs} c={c} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
                   <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${whoName(y.who)} · ${(y.text || "").split("\n")[0]}`).join("\n")}>
                     {whoName(it.msgs.at(-1)?.who)} · {(it.msgs.at(-1)?.text || "").split("\n")[0].slice(0, 60)}
                     {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>
@@ -1289,10 +1314,14 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
                 // 전송을 시작한 원본/본문은 기록이 맡는다. 일부 실패해도 새 입력과 섞지 않는다.
                 attachmentSender.start({ room, text, originals });
               } else if (text) {
+                const cmd = /^\/(?:초대|방파기)(?:\s|$)/.test(text);   // 형만 쓰는 명령(봄 서버 · 형 11-06 「/ < 명령어는 나만.」) — 안 되는 방이면 서버 why 를 그대로 보여 주고 「다시 보내기」로 안 남김
                 const post = async () => {
                   const body: Record<string, unknown> = { text };
-                  const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) });
+                  let j: { message?: Msg; closed?: boolean };
+                  try { j = await office<{ message?: Msg; closed?: boolean }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) }); }
+                  catch (e) { if (!cmd) throw e; setErr(e instanceof Error ? e.message : String(e)); return; }
                   if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
+                  if (j.closed || j.message?.closed) { void qc.invalidateQueries({ queryKey: officeKeys.rooms }); void nav({ to: "/rooms" }); }   // 「/방파기」 = 방 닫힘 → 목록으로(형 11-06 「목적 달성해서 나가게 되는거야」)
                 };
                 // 글도 방마다 하나인 보냄 줄로 = 기다리지 않고 바로 돌아옴 → 입력칸이 안 묶여 다음 글을 바로 씀 · 순서는 줄이 지킴 · 실패 = 그 자리 「다시 보내기」
                 //   (형 11-02 11:17 「그리거 아직 전에 메세지 올리면 그 메세지 올라가는 도중이면 내 메세지 못올라가는 버그 안해결됨」 · 입력칸 부품은 onSubmit 이 끝날 때까지 다음 보내기를 거절함 = 앞 글 서버 답 1~2초 동안 막혔음)

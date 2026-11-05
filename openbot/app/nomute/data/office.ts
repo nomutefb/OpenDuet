@@ -14,6 +14,8 @@ export type OfficeMsg = {
   pair?: string;   // kind sent = 그 둘의 방 id(뜸 #2331 · 누르면 읽기만으로 엶)
   route?: { state?: "pending" | "set"; to?: string[]; why?: string };   // 형 단체방 글 = 서버가 고른 담당(형 11-04 11:15 「누가 담당인지 파악중일때는 서버가 배분중입니다 뜨면 좋을듯. 그리고 누가 딱 선택된걸 픽스해주면 좋을듯. 그리고 애매하면 복수여도 돼.」 · 뜸 서버)
   to?: string;   // kind sent = who 가 봇 둘의 방으로 to 에게 보낸 흔적(내용 0 · 서버 뜸 · 형 11-03 17:52 「이런식으로 가려달라고했는데」)
+  event?: { kind?: "left" | "back" | "invite" | "close" | string; who?: string | string[]; by?: string };   // 방 드나듦 줄(봄 서버 · 형 11-06 「00가 나갔습니다는 뜨게해줘」) = 가운데 흐린 글 한 줄
+  closed?: boolean;   // 「/방파기」 답 = 방 닫힘(봄 서버 · 형 11-06 「목적 달성해서 나가게 되는거야」)
   mention?: string[]; urgent?: string[]; reply_to?: string; origin?: string; state?: "suggest" | "decide" | "verified"; files?: string[]; caption?: string; call_out?: string[]; call_unknown?: string[]; seq?: Record<string, number>;
 };
 export type OfficeRoom = {
