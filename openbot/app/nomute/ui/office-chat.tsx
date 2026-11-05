@@ -510,6 +510,15 @@ function FileTag({ f, m }: { f: { p: string; n: string; b: number; o?: boolean |
   const tag = [mb, ext, len, kind, read.length ? "읽음" : ""].filter(Boolean);
   return tag.length ? <span className="nm-ftag" title={read.length ? `읽은 이: ${read.join(" · ")}` : undefined}>{tag.map((t, i) => <span key={i} className={t === "읽음" ? "rd" : t === "원본" ? "og" : undefined}>{t}</span>)}</span> : null;
 }
+/** 링크 = 늘 새 창 · 그 기기 기본 브라우저(형 11-05 12:27 「링크같은거는 항상 클릭하면 새 창에서, 그 환경에 설정된 기본 브라우저로 열리게」)
+ *  대화창 안 바깥 주소 <a> 누름을 한 곳에서 받아 window.open(_blank · noopener) — 설치 앱(PWA)에선 기기 기본 브라우저로 나감 · 같은 사이트 길(#/…·/api/office/file)은 그대로 */
+if (typeof document !== "undefined") document.addEventListener("click", (e) => {
+  const a = (e.target as HTMLElement | null)?.closest?.(".ychat a[href]") as HTMLAnchorElement | null;
+  if (!a || e.defaultPrevented || e.button !== 0) return;
+  let u: URL; try { u = new URL(a.href, location.href); } catch { return; }
+  if (u.origin === location.origin || !/^https?:$/.test(u.protocol)) return;
+  e.preventDefault(); window.open(u.href, "_blank", "noopener,noreferrer");
+}, true);
 /** 파일 칸 = 텔레그램 꼴(형 11-05 12:21~12:25 「파일을 붙이게 될 경우, 나에게 파일 형식에 맞게 파일명이 오고, 다운로드 가능하게만 나오면 돼」 · 「확장자도 당연히 있어야 겠지. … 이름은 좀 중간 축약되어도 돼.」 · 「텔레그램식으로 갈거면, 그 확장자에 따라서 상징되는 이미지가 달라져야돼」) */
 const extOfName = (n: string) => (/\.([A-Za-z0-9]{1,6})$/.exec(n)?.[1] || "").toUpperCase();
 /** 가운데 줄임 = 앞 14자 … 끝 6자 + 확장자(이름이 중요할 수 있어 앞뒤를 남김) */
