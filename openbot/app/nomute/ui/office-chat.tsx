@@ -14,7 +14,7 @@
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { CallSheet } from "./call-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Component, type ComponentProps, type CSSProperties, type DragEvent, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
@@ -1114,29 +1114,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
 
   let prevTs = 0, prev: Item | undefined, lastMsg: Msg | undefined;   // lastMsg = 바로 앞 글(가운데 알약 줄 = 종·시스템은 건너뜀 · 묶음 띠·날짜 줄에서 끊김)
-  // 대화창 어디에 끌어 놓아도 입력칸에 붙음(형 11-05 10:45 개발자 회의방 「대화창 이 입력하는 칸, 말고 대충 이 대화창 안에만 드래그앤 드롭해도 대화칸에 넣는것처럼 해주면 땡큐!!」)
-  //   = 떨어진 파일을 입력칸의 숨은 파일 칸(「+」 가 여는 그 칸)에 넣고 change 를 쏨 → 「+」 로 고른 것과 같은 길(크기·종류 거름 · 미리보기 띠) · 입력칸 위에 직접 떨군 건 입력칸이 먼저 받음(defaultPrevented) · 둘의 방(쓰기 칸 없음)·잠긴 입력칸 = 손 안 댐
-  const dropFiles = (e: DragEvent<HTMLDivElement>) => Array.from(e.dataTransfer?.types || []).includes("Files");
-  const dropInput = (el: HTMLElement) => { const i = el.querySelector<HTMLInputElement>('input[type="file"]'); return i && !i.disabled ? i : null; };
-  const onChatDragOver = (e: DragEvent<HTMLDivElement>) => {
-    if (e.defaultPrevented || pairRoom || !dropFiles(e) || !dropInput(e.currentTarget)) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-  };
-  const onChatDrop = (e: DragEvent<HTMLDivElement>) => {
-    if (e.defaultPrevented || pairRoom || !e.dataTransfer?.files?.length) return;
-    const input = dropInput(e.currentTarget);
-    if (!input) return;
-    e.preventDefault();
-    try {
-      const dt = new DataTransfer();
-      for (const f of Array.from(e.dataTransfer.files)) dt.items.add(f);
-      input.files = dt.files;
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-    } catch { /* DataTransfer 를 못 만드는 옛 브라우저 = 「+」 로 */ }
-  };
   return (
-    <div className="flex min-h-0 flex-1 flex-col" onDragOver={onChatDragOver} onDrop={onChatDrop}>
+    <div className="flex min-h-0 flex-1 flex-col">
       <AttachSheet />
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
       {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
