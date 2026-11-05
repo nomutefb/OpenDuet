@@ -69,12 +69,12 @@ export function peekAttachments(ids: string[]): File[] {
 
 /** 올리기 직전(data/attachment-state.ts) = 굽는 중이면 기다렸다가 누른 때 스위치대로
  *  original = 형이 「원본」으로 골라 보냄(사진·영상만 뜻이 있음) · untouched = 보낸 바이트가 고른 파일 그대로(1MB 아래 사진·문서 포함 = 타일 「원본」과 같음) */
-export async function sendable(id: string, fallback: File): Promise<{ file: File; original: boolean; untouched: boolean }> {
+export async function sendable(id: string, fallback: File): Promise<{ file: File; original: boolean; untouched: boolean; origBytes: number }> {
   const e = files.get(id);
-  if (!e) return { file: fallback, original: !on && isMedia(fallback), untouched: true };
+  if (!e) return { file: fallback, original: !on && isMedia(fallback), untouched: true, origBytes: fallback.size };
   await e.ready;
   const mode = e.mode ?? on, file = pick(e, mode);
-  return { file, original: !mode && isMedia(e.file), untouched: file === e.file };
+  return { file, original: !mode && isMedia(e.file), untouched: file === e.file, origBytes: e.file.size };   // origBytes = 고른 원본 크기(형 11-05 10:42 「압축 전 후 를 알수가잇나 혹시?」)
 }
 
 /** 그 첨부의 파형 그림(소리·영상만 · 못 풀었거나 아직이면 null) · 늦어도 ms 까지만 기다림 = 보내기가 파형 때문에 오래 멈추지 않게 */

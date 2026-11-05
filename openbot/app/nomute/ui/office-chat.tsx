@@ -499,8 +499,10 @@ const zoomWhen = (ts: number) => { const d = new Date(ts); return `${d.getMonth(
 const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.test(String(p)) || VID_RE.test(String(p)));   // 사진(·영상)만 든 글 = 말풍선 없이(형 10-31 「사진 주변 테두리 없애줘」)
 /** 보낸 파일 머리표(형 11-05 09:13 「파일 올리면, 파일 용량이랑 0.4MB · 확장자 이렇게 나오게해주라」 · 「블릿 하나 똑같이 간격에 달아서, 애들이 확실히 읽어지면 읽음. 뜨게」)
  *  = 왼쪽 위 「0.4MB · PNG · 읽음」 · 읽음 = 서버 file_read[path](읽은 이 목록 · 기준은 깃·빠르 회의실 논의 뒤) 있을 때만 */
-function FileTag({ f, m }: { f: { p: string; n: string; b: number; o?: boolean | number }; m: Msg }) {
-  const mb = f.b ? `${Math.max(0.1, Math.round((f.b / 1048576) * 10) / 10)}MB` : "", ext = (/\.([A-Za-z0-9]{1,6})$/.exec(f.n || f.p)?.[1] || "").toUpperCase();
+function FileTag({ f, m }: { f: { p: string; n: string; b: number; o?: boolean | number; ob?: number }; m: Msg }) {
+  const m1 = (x: number) => Math.max(0.1, Math.round((x / 1048576) * 10) / 10);
+  // 압축 전 → 후(형 11-05 10:42 「압축 전 후 를 알수가잇나 혹시?」 · 서버 file_meta.orig_bytes)
+  const mb = f.b ? (f.ob && f.ob > f.b ? `${m1(f.ob)} → ${m1(f.b)}MB` : `${m1(f.b)}MB`) : "", ext = (/\.([A-Za-z0-9]{1,6})$/.exec(f.n || f.p)?.[1] || "").toUpperCase();
   const read = ((m as { file_read?: Record<string, string[]> }).file_read || {})[f.p] || [];
   // 「압축됨」/「원본」 둘 중 하나(형 11-05 09:39 「그 옆에 블릿 달아서 압축됨 원본 둘중 하나로만 뜨게해줄래? 원본이면 강조색으로」) · 서버 file_meta.original 있을 때만(없으면 모름 = 안 띄움)
   const kind = f.o === undefined ? "" : f.o ? "원본" : "압축됨";
@@ -520,7 +522,7 @@ function Files({ m }: { m: Msg }) {
   const qc = useQueryClient();
   const meta = new Map((m.file_meta || []).filter((x) => x?.path).map((x) => [x.path, x]));
   const ps = [...new Set((m.files || []).map(String))];
-  const one = (p: string) => ({ p, n: meta.get(p)?.name || fileName(p), b: meta.get(p)?.bytes || 0, o: (meta.get(p) as { original?: boolean | number } | undefined)?.original });   // o = 원본으로 보냄(서버 original=1 · 형 11-05 09:39)
+  const one = (p: string) => ({ p, n: meta.get(p)?.name || fileName(p), b: meta.get(p)?.bytes || 0, o: (meta.get(p) as { original?: boolean | number } | undefined)?.original, ob: (meta.get(p) as { orig_bytes?: number } | undefined)?.orig_bytes });   // o = 원본으로 보냄(서버 original=1 · 형 11-05 09:39)
   const imgs = ps.filter((p) => IMG_RE.test(p)).map(one), vids = ps.filter((p) => VID_RE.test(p)).map(one), rest = ps.filter((p) => !IMG_RE.test(p) && !VID_RE.test(p)).map(one);
   const [bad, setBad] = useState<Record<string, boolean>>({});   // 못 그린 그림·영상(받은 몸이 그림이 아님 · 11-05 번개 url 길 = Access 로그인 HTML) = 빈칸 대신 「못 불러왔어」 칸
   return (

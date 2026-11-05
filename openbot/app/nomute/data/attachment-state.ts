@@ -158,6 +158,7 @@ export const attachmentSender = createAttachmentSender({
       form.append("file", s.file);
       const small = await smallImage(s.file);
       if (small) form.append(`small_${i}`, small);
+      if (!s.untouched) form.append(`orig_bytes_${i}`, String(s.origBytes));   // 줄였으면 원본 크기도(서버 file_meta.orig_bytes → 말풍선 「4.2 → 0.9MB」 · 형 10:42)
       if (s.untouched) form.append(`original_${i}`, "1");   // 파일마다 = 타일 블릿과 같은 뜻(서버가 file_meta 에 담으면 보낸 글도 같은 「압축됨/원본」)
     }
     waves.forEach((w, j) => { form.append("file", w); form.append(`original_${sent.length + j}`, "1"); });   // 파형 = 화면이 그린 그대로(안 줄임) · 원 파일 차례 뒤에
