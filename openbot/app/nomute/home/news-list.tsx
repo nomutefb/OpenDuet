@@ -46,9 +46,13 @@ export function NewsList() {
       if (!live) return;
       const now = Date.now();
       const lk = lookup as Map<string, { published?: string; first_seen?: string; media?: string }> | undefined;
+      // 묶음(overlap) 줄 = 기사 메타가 없음 → 그 묶음의 가장 새 신호 시각(signals.newest)으로(형 11-05 16:30 「4위도 싹다. 몇분전인지 몇시간전인지」)
+      const newest = new Map<string, string>();
+      for (const cl of ((overlap as { clusters?: { urls?: string[]; signals?: { newest?: string } }[] } | null)?.clusters || [])) for (const u of cl.urls || []) if (cl.signals?.newest && !newest.has(u)) newest.set(u, cl.signals.newest);
+      const srcName = (x: Row) => { for (const it of x.items || []) { const n = String(it.src || "").replace(/^(?:tbs_pop|tbs|editor|rss|sns)[:.]/i, ""); if (n && !/^(?:candidates|social_candidates|x_top10|gtrends)/i.test(n) && !/\(/.test(n)) return n; } return ""; };
       const host = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^www\./, "") : ""; } catch { return ""; } };
       // 출처 · 시각 = 모든 줄(형 11-05 16:30 「뉴스는 점수 좌측에 출처에 대한 내용이 있어야되고, 몇시간전인지 나와야됨. 4위도 싹다.」) — 메타 없으면 묶음 첫 기사 출처 · 후보 장부(lookup) 발행/처음 본 때
-      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || cleanTitle(x.title), src: x.meta?.published?.sourceName || c?.media || x.items?.[0]?.src || host(x.meta?.published?.sourceUrl || x.urls?.[0]), at: x.meta?.published?.at || c?.published || c?.first_seen }; }).filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
+      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || cleanTitle(x.title), src: x.meta?.published?.sourceName || c?.media || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0]), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) }; }).filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
       setRows(list);
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };
