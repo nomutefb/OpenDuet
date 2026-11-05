@@ -71,3 +71,7 @@
 .nm-subs-tx { max-width:260px; margin:6px 0 0; padding:8px 10px; border-radius:12px; background:rgba(0,0,0,.35); font-size:12px; line-height:1.55; white-space:pre-wrap; }
 @keyframes nmSubsBreath { 50% { opacity:.45; } }
 @media (prefers-reduced-motion: reduce) { .nm-subs.wait { animation:none; } }
+/* 파일마다 다운로드 단추(office-chat DlBtn · 형 11-05 11:35) = 오른쪽 위 반투명 동그라미 · 머리표(왼쪽 위)와 짝 */
+.nm-dl { position:absolute; top:6px; right:6px; z-index:2; width:28px; height:28px; display:grid; place-items:center; padding:0; border:0; border-radius:50%; background:rgba(0,0,0,.62); color:#fff; cursor:pointer; }
+.nm-dl svg { width:15px; height:15px; }
+.nm-dl:hover, .nm-dl:focus-visible { color:var(--accent, #CFFF40); }

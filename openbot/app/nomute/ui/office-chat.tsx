@@ -510,6 +510,14 @@ function FileTag({ f, m }: { f: { p: string; n: string; b: number; o?: boolean |
   const tag = [mb, ext, len, kind, read.length ? "읽음" : ""].filter(Boolean);
   return tag.length ? <span className="nm-ftag" title={read.length ? `읽은 이: ${read.join(" · ")}` : undefined}>{tag.map((t, i) => <span key={i} className={t === "읽음" ? "rd" : t === "원본" ? "og" : undefined}>{t}</span>)}</span> : null;
 }
+/** 파일마다 다운로드 단추(형 11-05 11:35 「옆에 다운로드 버튼이 각각 나오게 할 수 있어?」) = 사무실 파일 받기 표(dl=1 · savePic 길) · 누르면 말풍선 누름으로 안 번짐 */
+function DlBtn({ p, n }: { p: string; n: string }) {
+  return (
+    <button type="button" className="nm-dl" aria-label={`${n} 내려받기`} title="내려받기" onClick={(e) => { e.preventDefault(); e.stopPropagation(); savePic(fileUrl(p), n); }}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 4v11" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" /></svg>
+    </button>
+  );
+}
 /** 영상 자막 알약(형 11-05 11:04 「채팅에 미리 떠있고, 그게 늦게 전달가도됨」 · 「자막이 좀 늦게 가도 괜찮아」)
  *  = 영상은 바로 뜨고 밑에 「자막 만드는 중…」 → 받아쓰기 오면 그 자리에서 「자막」 펼침(서버 file_meta.transcript · transcript_state 'wait'|'done'|'fail' · 빠르 상주) */
 function Subs({ meta }: { meta?: { transcript?: string; transcript_state?: string } }) {
@@ -549,17 +557,19 @@ function Files({ m }: { m: Msg }) {
             <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="relative block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
               <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />
               <FileTag f={f} m={m} />
+              <DlBtn p={f.p} n={f.n} />
             </a>
           ))}
         </div>
       ) : null}
       {vids.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="영상" /> : (
-        <div key={f.p} className="relative"><video src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /><FileTag f={{ ...f, d: dur[f.p] }} m={m} /><Subs meta={meta.get(f.p) as { transcript?: string; transcript_state?: string } | undefined} /></div>
+        <div key={f.p} className="relative"><video src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /><FileTag f={{ ...f, d: dur[f.p] }} m={m} /><DlBtn p={f.p} n={f.n} /><Subs meta={meta.get(f.p) as { transcript?: string; transcript_state?: string } | undefined} /></div>
       ))}
       {rest.map((f) => (
-        <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 hover:bg-foreground/5">
+        <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="relative flex items-center gap-3 rounded-2xl border border-border bg-card py-2 pr-11 pl-3 hover:bg-foreground/5">
           <span aria-hidden className="text-lg">📄</span>
           <span className="min-w-0"><span className="block truncate text-sm font-medium">{f.n}</span>{f.b ? <small className="text-xs text-muted-foreground">{size(f.b)}</small> : null}</span>
+          <DlBtn p={f.p} n={f.n} />
         </a>
       ))}
     </div>
