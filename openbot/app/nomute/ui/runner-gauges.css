@@ -2,11 +2,10 @@
 .nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:10px 6px 8px; border-radius:18px;
   background:rgba(28,28,30,.55); -webkit-backdrop-filter:blur(16px) saturate(120%); backdrop-filter:blur(16px) saturate(120%);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.35); color:#E6E6E6; }
-.nm-rgx-host { min-width:0; padding:0 8px; display:flex; flex-direction:column; align-items:stretch; }
+.nm-rgx-host { position:relative; min-width:0; padding:0 8px; display:flex; flex-direction:column; align-items:stretch; }
 .nm-rgx-host + .nm-rgx-host { border-left:1px solid rgba(255,255,255,.06); }
 .nm-rgx-host header { padding:0 2px; }
-.nm-rgx-host .nm-rg-gauge { max-height:92px; margin:2px auto 0; }
-.nm-rgx-sub { margin:-24px 0 0; text-align:center; font-size:10.5px; letter-spacing:.02em; color:#9A9A9A; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-rgx-host .nm-rg-gauge { max-height:92px; margin:2px auto -20px; }   /* 아래 이름 칸(빈) 만큼 당김 */
 .nm-rgx-dot { display:inline-block; width:6px; height:6px; border-radius:999px; flex:none; transition:background .4s; }
 @media (max-width: 520px) { .nm-rgx-host header .text-muted-foreground { display:none; } }
-.nm-rgx-sub b { font-weight:700; color:#E6E6E6; }   /* GPU 숫자만 굵게(형 15:32 「55만 볼드」) */
+.nm-rgx-g { position:absolute; left:16px; top:20px; font-size:9px; letter-spacing:.02em; color:#8A8A8A; font-variant-numeric:tabular-nums; }   /* GPU 온도 = 이름 바로 아래 왼쪽 · 가운데 CPU 온도와 같은 크기(형 15:44) */

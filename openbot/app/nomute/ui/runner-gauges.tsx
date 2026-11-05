@@ -15,9 +15,12 @@ type Cat = { id: string; rows: Row[] };
 type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp?: number };
 
 const HOSTS: { k: string; pc: string; label: string }[] = [{ k: "윈A", pc: "A", label: "WIN A" }, { k: "윈B", pc: "B", label: "WIN B" }, { k: "맥", pc: "M", label: "MAC" }];
-const DOT: Record<Level, string> = { green: "#D9D9D9", yellow: "#FFD23F", orange: "#FF9F43", red: "#FF5A5F", off: "#5C5C5C" };
+const LIME = "var(--accent, #D4FF3A)";   // 경고 = 라임(형 15:44 「온도가 주황색 이상되면 라임색으로 보이게, 게이지도 주황색 이상되면 라임색」)
+const DOT: Record<Level, string> = { green: "#D9D9D9", yellow: "#D9D9D9", orange: LIME, red: LIME, off: "#5C5C5C" };
+const HOT = 80;   // 온도 주황 단계(위젯 단계 = 노랑 70 · 주황 80 · 빨강 90 · 온도도 같은 금)
+const tInk = (t?: number) => (t != null && t >= HOT ? LIME : undefined);
 // 블랙 톤(형 14:41 「라임느낌을 그리고 아예 빼버리고, 블랙 톤으로만」) = 평소 흰·회색 · 70/80/90 넘을 때만 노랑·주황·빨강(경고는 보여야 해서)
-const MONO = (lv: Level) => (lv === "green" ? "#E6E6E6" : lv === "off" ? "#5C5C5C" : DOT[lv]);
+const MONO = (lv: Level) => (lv === "off" ? "#5C5C5C" : lv === "orange" || lv === "red" ? LIME : "#E6E6E6");   // 평소(초록·노랑) = 흰 · 주황 이상 = 라임
 const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 90 ? "방금" : s < 5400 ? `${Math.round(s / 60)}분 전` : `${Math.round(s / 3600)}시간 전`; };
 
 /** 1분마다 지금 — 「N분 전」 글만 움직임. */
@@ -46,20 +49,20 @@ export function RunnerGauges() {
           const none = cpu == null && ram == null && gpu == null;
           // 불 = CPU 기준(형 15:27 「램은 과도해도 별 문제가 안된다고 생각?」 · 「cpu가 제일 문제지?」) · RAM 은 92% 넘어 디스크로 밀릴 때만 주황 · 온도 85 = 빨강
           const cl = levelOf(cpu, false);   // RAM 은 안 봄(형 15:28 「64gb인데 잠시 걸렷다가 말겟지」 · 「그럼 ram은 안보이게 하고 깔끔하게.」)
-          const lv: Level = none ? "off" : (m.cpu_temp ?? 0) >= 85 || (m.gpu_temp ?? 0) >= 85 ? "red" : cl;
+          const lv: Level = none ? "off" : (m.cpu_temp ?? 0) >= HOT || (m.gpu_temp ?? 0) >= HOT ? "orange" : cl;
           const at = a && !a.stale ? a.reported_at || 0 : rd ? rd.at * 1000 : 0;
           const busy = rd && num(rd.busy) != null && rd.busy! >= 0 ? rd.busy : null, total = rd && num(rd.total) != null && rd.total! >= 0 ? rd.total : null;
           const temp = [m.cpu_temp != null ? `CPU ${Math.round(m.cpu_temp)}°` : "", m.gpu_temp != null ? `GPU ${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ");
           return (
             <section key={h.k} className="nm-rgx-host" aria-label={`${h.label} 상태`}>
               <header className="flex items-center gap-1.5 text-[11px] tabular-nums">
-                <i aria-hidden className="nm-rgx-dot" style={{ background: DOT[lv], boxShadow: lv === "green" || lv === "off" ? "none" : `0 0 8px ${DOT[lv]}` }} />
+                <i aria-hidden className="nm-rgx-dot" style={{ background: DOT[lv], boxShadow: lv !== "orange" && lv !== "red" ? "none" : `0 0 8px ${DOT[lv]}` }} />
                 <b className="nm-rg-name">{h.label}</b>
                 {busy != null ? <span className="text-muted-foreground" title="도는 잡 / 자리">잡 {busy}/{total ?? "-"}</span> : null}
                 <span className="ml-auto text-muted-foreground">{none ? (a?.stale ? "보고 끊김" : "숫자 없음") : at ? ago(now - at) : ""}</span>
               </header>
-              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} off={none} />   {/* 형 15:29 그림 = 온도는 위 빈 곳으로 · 「CPU」 글자 뺌 */}
-              <p className="nm-rgx-sub">{gpu != null ? <>GPU <b>{Math.round(gpu)}</b>%{m.gpu_temp != null ? ` (${Math.round(m.gpu_temp)}°C)` : ""}</> : " "}</p>   {/* 형 15:30 「gpu 온도는 gpu에 귀속시켜서 GPU 16 (55 도ㅅ씨) 이런식으로」 · 15:32 「55만 볼드」 */}
+              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} />   {/* 형 15:29 그림 = 온도는 위 빈 곳으로 · 「CPU」 글자 뺌 */}
+              {m.gpu_temp != null ? <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>G {Math.round(m.gpu_temp)}°C</span> : null}   {/* 형 15:44 「gpu 라는 말 빼고 좌상단에 온도만 · G 45도씨 W 아래에 · 66도시 랑 같은 크기 · 지피유 퍼센트는 뺄게」 */}
               {temp ? <span className="sr-only">{temp}</span> : null}
             </section>
           );

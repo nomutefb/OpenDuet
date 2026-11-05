@@ -21,7 +21,7 @@ const path = (from: number, to: number, end: "ink" | "un" | "cache") => {
   return d;
 };
 
-export function TickGauge({ label, pct, used, lv, cache, off, ink: inkOver, top }: { label: string; pct: number | null; used: string; lv: Level; cache?: number | null; off?: boolean; ink?: string; top?: string }) {   // ink = 단계 색 대신 쓸 색(반갈 블랙 상태바 · 봄 11-05 · 없으면 그대로)
+export function TickGauge({ label, pct, used, lv, cache, off, ink: inkOver, top, topInk }: { label: string; pct: number | null; used: string; lv: Level; cache?: number | null; off?: boolean; ink?: string; top?: string; topInk?: string }) {   // ink = 단계 색 대신 쓸 색(반갈 블랙 상태바 · 봄 11-05 · 없으면 그대로)
   const v = Math.max(0, Math.min(100, pct ?? 0)), n = Math.max(0, Math.min(100, Math.ceil(v - 1e-9)));
   const ce = Math.max(n, Math.min(100, Math.ceil(v + Math.max(0, cache ?? 0) - 1e-9)));
   const ink = pct == null ? LV.off : inkOver ?? LV[lv], bead = pol(R0 + 13, A0 + (v / 100) * SW);
@@ -38,7 +38,7 @@ export function TickGauge({ label, pct, used, lv, cache, off, ink: inkOver, top 
           <text x={CX} y={CY + 23.5} textAnchor="middle" className="nm-rg-num" fontSize={7.5} fill={GRAY} letterSpacing={0.45}>{used}</text>
         </>
       )}
-      {top ? <text x={CX} y={CY - 6} textAnchor="middle" className="nm-rg-num" fontSize={8.5} fill={GRAY} letterSpacing={0.4}>{top}</text> : null}   {/* 위 빈 곳 글(반갈 상태바 온도 · 봄 11-05 · 없으면 예전 그대로) */}
+      {top ? <text x={CX} y={CY - 6} textAnchor="middle" className="nm-rg-num" fontSize={10} fill={topInk ?? GRAY} letterSpacing={0.4} style={topInk ? { fill: topInk } : undefined}>{top}</text> : null}   {/* 위 빈 곳 글(반갈 상태바 온도 · 봄 11-05 · 없으면 예전 그대로) */}
       {label ? <text x={CX} y={CY + 45.5} textAnchor="middle" className="nm-rg-lab" fontSize={9.5} fill={ink} letterSpacing={1.1}>{label}</text> : null}
     </svg>
   );
