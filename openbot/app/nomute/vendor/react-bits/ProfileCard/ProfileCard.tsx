@@ -7,7 +7,6 @@
  *   1) @hugeicons/react · @hugeicons/core-free-icons import → inline SVG (not a dependency of this app) + optional `contactIcon`
  *   2) `children` = art slot painted first inside the tile (behind sheen/holo/photo)
  *   3) `idle` = slow breathing sway while nobody is touching/hovering (touch screens)
- *   4) `overlay` = nodes painted above the photo/info inside the tile (under the tile rim) — badges, strips
  */
 
 import { memo, useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
@@ -52,7 +51,6 @@ interface ProfileCardProps {
   children?: ReactNode;
   contactIcon?: ReactNode;
   idle?: boolean;
-  overlay?: ReactNode;
 }
 
 interface Engine {
@@ -152,8 +150,7 @@ const ProfileCard = ({
   className = '',
   children,
   contactIcon,
-  idle = false,
-  overlay
+  idle = false
 }: ProfileCardProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<Engine | null>(null);
@@ -419,7 +416,6 @@ const ProfileCard = ({
               </div>
             </>
           )}
-          {overlay /* [nomute] above photo/info, under the rim */}
           <span className="profile-card__tile-rim" />
         </div>
 
