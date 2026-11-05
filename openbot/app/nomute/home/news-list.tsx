@@ -7,8 +7,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickUrl } from "./news-feed";
 import { homePool } from "./home-pool";
+import { cleanTitle } from "./title-clean";   // 제목 다듬기 로직(형 11-05 16:14)
 
-type Row = { key?: string; title?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
+type Row = { key?: string; title?: string; title_clean?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
 const PREFILL_KEY = "nm_ask_prefill", EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
 const ago = (at?: string) => {
@@ -44,7 +45,7 @@ export function NewsList() {
       const { rows: r } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
       if (!live) return;
       const now = Date.now();
-      const list = (r as Row[]).filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.meta?.published?.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
+      const list = (r as Row[]).map((x) => (x ? { ...x, title: x.title_clean || cleanTitle(x.title) } : x)).filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.meta?.published?.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
       setRows(list);
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };

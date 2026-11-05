@@ -285,7 +285,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           ) : null}
         </div>
         {split ? <SplitSide /> : null}
-        {split ? <TopFaces current={pane === "chat" ? room : ""} /> : null}
       </div>
     </ChatPresenceProvider>
   );
@@ -351,28 +350,6 @@ function RoomsPane() {
 }
 
 /** PC 왼쪽 끝 얼굴 띠 — 얼굴만(글자 0) · 차례 = 안 읽은 방 → 고정 → 나머지(목록 화면과 같은 차례) · 위아래 스크롤 · 맨 위 ≡ · 맨 아래 「+」·형 얼굴 붙박이 */
-/** PC 위 메뉴 막대 왼쪽 = 방 얼굴 축소판 한 줄(형 11-05 15:42 「이제 좌상단에 애들 이름 들어가면 될듯.」 · 「그 동그라미들 원래 잇던거잇지? 그거 축소판으로 네비처럼 붙어잇는느낌이랄까」 · 「너네 프로필 라인하고 안겹쳐야함」)
- *  = 왼쪽 얼굴 띠(64px) 다음부터 · 22px 동그라미 · 누르면 그 방 · 자는 애 채도 15% · 이름 = 마우스 올리면 */
-function TopFaces({ current }: { current: string }) {
-  const nav = useNavigate();
-  const { list, ordered, count } = useRoomOrder();
-  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
-  const asleep = (who?: string) => !!who && !bots.some((b) => b.who === who && b.state === "awake");
-  return (
-    <nav aria-label="방 얼굴 줄" className="nm-topfaces">
-      {ordered.map((r) => {
-        const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list);
-        return (
-          <button key={r.id} type="button" className={`nm-tf ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n > 0 ? ` · 안 읽은 글 ${n}개` : ""}`} onClick={() => { enterRoom(r.id); void nav({ to: chatHref(r.id) }); }}>
-            {r.with ? <FaceImg id={idOf(r.with, list)} size={20} /> : ids.length ? <FaceStack ids={ids.slice(0, 2)} size={12} /> : <DuetIcon name="chat" size={13} />}
-            {n > 0 ? <b aria-hidden /> : null}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
 function FaceStrip({ current }: { current: string }) {
   const nav = useNavigate();
   const { list, ordered, count } = useRoomOrder();

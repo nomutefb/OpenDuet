@@ -134,14 +134,6 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-root .nm-face { border-color:rgba(24,25,27,.6); }
 .nm-split-root .nm-face.on { border-color:rgba(232,234,232,.7); }
 .nm-split-root .nm-face.zz > img, .nm-split-root .nm-face.zz > span { filter:saturate(.15); }
-/* 위 메뉴 막대 왼쪽 얼굴 축소판(./shell.tsx TopFaces · 형 11-05 15:42) — 얼굴 띠(64px) 오른쪽부터 · 메뉴 단추(오른쪽 끝)와 안 겹치게 가운데까지만 · 넘치면 옆으로 밀어 봄 */
-.nm-topfaces { position:fixed; top:3px; left:72px; right:50%; height:22px; z-index:61; display:flex; align-items:center; gap:4px; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
-.nm-topfaces::-webkit-scrollbar { display:none; }
-.nm-tf { position:relative; flex:none; width:22px; height:22px; padding:0; border-radius:50%; border:1px solid rgba(24,25,27,.6); background:none; display:grid; place-items:center; cursor:pointer; overflow:visible; }
-.nm-tf > img, .nm-tf > span { border-radius:50%; }
-.nm-tf.on { border-color:rgba(232,234,232,.75); }
-.nm-tf.zz > img, .nm-tf.zz > span { filter:saturate(.15); }
-.nm-tf > b { position:absolute; top:-1px; right:-1px; width:6px; height:6px; border-radius:50%; background:#e8eae8; }
 /* 반갈 최소 폭(형 11-05 15:42 「줄어들면 대화 너비나, 우측 기사 너비가 우선 줄어들어야되고, 최소한으로 안줄어드는 너비가 존재해야해.」)
    = 창을 줄이면 대화 · 오른쪽(상태바·뉴스)이 반반씩 같이 줄다가 대화 360 · 오른쪽 376(봄 상태바 셋이 읽히는 최소 360 + 여백) 에서 멈춤 · 그보다 좁으면(860px 아래) 한 칸으로 */
 .nm-split-l { min-width:360px; }
