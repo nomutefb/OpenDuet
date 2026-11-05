@@ -8,4 +8,4 @@
 .nm-rgx-host .nm-rg-gauge { max-height:92px; margin:2px auto -20px; }   /* 아래 이름 칸(빈) 만큼 당김 */
 .nm-rgx-dot { display:inline-block; width:6px; height:6px; border-radius:999px; flex:none; transition:background .4s; }
 @media (max-width: 520px) { .nm-rgx-host header .text-muted-foreground { display:none; } }
-.nm-rgx-g { position:absolute; left:16px; top:20px; font-size:9px; letter-spacing:.02em; color:#8A8A8A; font-variant-numeric:tabular-nums; }   /* GPU 온도 = 이름 바로 아래 왼쪽 · 가운데 CPU 온도와 같은 크기(형 15:44) */
+.nm-rgx-g { position:absolute; left:16px; top:32px; font-size:9px; letter-spacing:.02em; color:#8A8A8A; font-variant-numeric:tabular-nums; }   /* GPU 온도 = 이름 바로 아래 왼쪽 · 가운데 CPU 온도와 같은 크기(형 15:44) */
