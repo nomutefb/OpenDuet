@@ -14,6 +14,9 @@ import { SEND_ROOM, SendButton } from "./send-button";   // 「뉴스 요약」 
 
 const CHANNEL = "nomute-modern-home";
 export const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
+/** 픽 차례(형 11-06 00:28 「촉픽이 제일 전면 틈픽이 그 다음」) = 촉 → 틈 → 나머지 봇 · 같은 봇 안에선 받은 차례(서버 = 점수순) 그대로 · 둘 다 고른 기사는 앞에 온 촉 쪽 칩이 대표(modern-data project = 먼저 온 픽이 그 카드 주인) */
+const PICK_RANK: Record<string, number> = { 촉: 0, chok: 0, 틈: 1, teum: 1 };
+const pickOrder = (list: unknown[]) => list.map((p, i) => ({ p, i, r: PICK_RANK[String((p as { by?: unknown })?.by ?? "").trim()] ?? 2 })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.p);
 const OVERLAP_EVERY = 60_000, IMAGES_EVERY = 5 * 60_000, PICKS_EVERY = 2 * 60_000;   // 틈·촉 픽 = 판이 40분마다라 2분에 한 번만(에디터 modern-workspace.js loadPicks 와 같음)
 
 export type Cand = { id?: string; url?: string; title?: string; title_clean?: string; title_ko?: string; title_ko_of?: string; media?: string; published?: string; hp?: string; breaking_pick?: { url?: string }; _disp?: Cand };
@@ -58,6 +61,7 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 .article-lead>.article-media{flex:1 1 auto!important;aspect-ratio:auto!important}
 .article-media{--article-image-h:clamp(156px,26svh,234px)!important}
 .practical-main .score-lead strong{color:var(--accent)!important;text-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)!important}
+.practical-main .deck>.article-card:has(.article-pick),.practical-main .deck>.deck-fan:has(.article-pick){border-color:var(--accent)!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent),0 0 22px color-mix(in srgb,var(--accent) 22%,transparent)!important}
 @media (max-width:480px){
 .practical-main .deck>.article-card{padding-bottom:calc(var(--sp-4) + ${SEND_ROOM}px)}
 .practical-main .deck>.article-card:not(:has(.article-media)){height:auto;max-height:var(--reader-card-height)}
@@ -71,6 +75,7 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 //   뒤 장 둘(.deck-fan) = 높이 못 박지 않고 앞 카드 높이(덱 아래 입술 몫만 뺌) = 짧은 카드 뒤로 긴 장이 안 삐져나옴 · 넘김 복사본(card-exit)은 덱이 넘길 때 잰 높이를 그대로 씀
 //   ② 카드 아래 안쪽에 전송 단추 자리(SEND_ROOM · send-button.tsx 가 그 자리 = 카드 오른쪽 아래 안으로 옮김 · 옛 = 카드 오른쪽 끝에 반쯤 걸쳐 화면 밖으로 나갔음)
 //   ③ 픽 얼굴 있는 줄 = 시각·몇 시간 전 한 줄 + 매체·얼굴 다음 줄(옛 = 한 줄에 다 넣느라 매체 이름이 「n.news.naver…」로 잘렸음 · 그래도 넘치면 끝만 「…」 · 줄 머리 점은 뺌)
+// 픽 카드(촉·틈 · 칩 .article-pick 있는 카드) = 라임 테두리 + 옅은 번짐(형 11-06 00:28 「3에 라임색 테두리 걸쳐서 나타나면 좋겠어」) · 테두리 두께는 카드 원래 1px 그대로(높이 셈 안 흔듦) · 번짐은 바깥 그림자로
 // 점수 = 단계 색(modern-score.css) 대신 시그니처 색 한 가지(형 10-31 「점수, 시그니처 색으로 점수 나오게해주라」) · 홈 안에서만
 // 사진 높이 = 덱 셈(clamp(120px,20svh,180px) · 라이브 121px)을 통째로 1.3배(형 11-03 17:26 「지금 거의 가로가 긴데, 세로로 1.3배만 더 길게 노출되게해줘 메인 화면 사진.」 · 「그만큼 아래에 댓글? 그런거 안보이면 됨.」 = 아래 출처 줄은 밀려 내려가도 됨) · 홈 안에서만(웹 에디터 홈 그대로)
 // 위 덧줄 넷(형 10-31 12:2x 홈 사진) = ① 「이슈 근거 : …」 줄 안 보임(.article-signals · 화제 유발 원인·내용 줄은 그대로) ② 시각 줄 둘 다 형광(time 은 원래 --accent · 「n시간 전」 .publish-elapsed 는 나이 띠 색이던 것 → --accent · 윈터 12:31 「둘 다 형광」)
@@ -152,7 +157,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       if (alpha == null) alpha = (await firstJson(["/feed_alpha.json"])) || {};
       if (!picksAt || Date.now() - picksAt > PICKS_EVERY) {   // 틈·촉 픽(형 11-03 09:57 「그 메인카드에 틈이나, 점수 반영된 이슈가 카드로 안뜨는거 같은데」 · 뜸 api/trends?f=picks) = 기사 주소 있는 픽만 · 못 받으면 받아 둔 그대로(없으면 픽 없이 = 홈 그대로)
         const pk = await firstJson<{ picks?: unknown[] }>(["/api/trends?f=picks"], (v) => !!v && Array.isArray(v.picks));
-        if (pk) { picks = pk.picks || []; picksAt = Date.now(); }
+        if (pk) { picks = pickOrder(pk.picks || []); picksAt = Date.now(); }
       }
       await rebuild();
     };

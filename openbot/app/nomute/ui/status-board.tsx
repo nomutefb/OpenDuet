@@ -35,8 +35,8 @@ const SKELETON: StatusCat[] = [
   { id: "docker", name: "도커 · VM 구성", rows: HOSTS.map((h) => wait(h)) },
   // 수집 색인(형 11-05 12:45~13:10 「인덱싱 10개정도로 표를 만들어야될거같다」 · 「초단위로」 · 「한 표에 모든걸 다 담아」 · 「봄이랑 상의해서 메뉴 4번에」 · 정본 = 공통/문서/2026-11-05-작동-표/수집-루틴.md · 서버 cat collect_index)
   { id: "collect_index", name: "수집 색인 · 40분 판", rows: [] },
-  // 뉴스 요약 썸네일 기준(형 11-05 08:3x 「극화 on / off + 수량  / 썸넹일 플랫폼」 · 수채화 · 포토 실사 · 만평 같은 칸) = 화풍 넷(thumb_gen.py STYLES · sid webtoon·watercolor·photo·cartoon) × 켜짐·장수·엔진(에디터 설정 「AI 썸네일·이미지」)
-  { id: "thumb", name: "뉴스 요약 썸네일 기준", rows: [["webtoon", "극화"], ["watercolor", "수채화"], ["photo", "포토 실사"], ["cartoon", "만평"]].map(([key, name]) => wait(name, key)) },
+  // 뉴스 요약 썸네일 기준(형 11-05 08:3x 「극화 on / off + 수량  / 썸넹일 플랫폼」 · 수채화 · 포토 실사 같은 칸 · 만평 = 형 11-06 「만평 없어서 없애두댜고」) = 화풍 셋(thumb_gen.py STYLES · sid webtoon·watercolor·photo·cartoon) × 켜짐·장수·엔진(에디터 설정 「AI 썸네일·이미지」)
+  { id: "thumb", name: "뉴스 요약 썸네일 기준", rows: [["webtoon", "극화"], ["watercolor", "수채화"], ["photo", "포토 실사"]].map(([key, name]) => wait(name, key)) },
   // 사무실 통신(형 11-05 08:2x 「사무실 커뮤니케이션 상태 / 열인덱싱: 클로드, 지피티, 그록봇 / 행인덱싱: …」) = 종류 × 봇 무리 격자 · 칸 = 그 무리가 그 종류를 사무실로 보내고 받는지(시험 = 빠르 · 서버 file·photo 길)
   { id: "comm", name: "사무실 커뮤니케이션", cols: ["클로드", "지피티", "그록봇"].map((x) => ({ id: x, name: x })),   // 칸 id = 서버(빠르 comm cells) 이름 그대로
     rows: ["텍스트", "사진 원본", "사진 압축본", "영상 원본", "영상 압축본", "영상 해석본", "음성", "음성 전사본", "링크", "파일(웹 관련)", "파일(앱 관련)", "bat 파일 등"].map((t) => ({ ...wait(t), cells: {} })) },
@@ -53,13 +53,13 @@ type Board = { at?: number; zones: { id: string; name: string; group: string; at
 const botSt = (s: string): HealthSt => (s === "awake" || s === "asleep" ? "ok" : s === "dead" || s === "down" || s === "error" ? "miss" : "unknown");
 const BOT_KO: Record<string, string> = { awake: "깨어 있음", asleep: "자는 중(부르면 깸)", unknown: "모름" };
 
-function fromLocal(s: Sched | undefined, bots: Bot[] | undefined): Record<string, StatusRow[]> {
+function fromLocal(s: Sched | undefined, bots: Bot[] | undefined, loading = false): Record<string, StatusRow[]> {
   const out: Record<string, StatusRow[]> = {};
   if (bots) out.bots = bots.map((b) => ({ key: b.who, name: b.who, st: botSt(b.state), value: BOT_KO[b.state] || b.state, note: b.why }));
   const jobs = s?.runners?.jobs || [];
   const mach = jobs.filter((j) => /nomute-wake|neo-agent|sched-clock/.test(j.id));
   out.server = [
-    { key: "api", name: "사무실 서버", st: s ? "ok" : "miss", value: s ? "응답함" : "응답 없음" },
+    { key: "api", name: "사무실 서버", st: s ? "ok" : loading ? "unknown" : "miss", value: s ? "응답함" : loading ? "불러오는 중" : "응답 없음" },   // 처음 불러오는 사이 = 회색(형 11-06 00:30 「메뉴 4 첨 들가몀 이게 쩟다가」)
     { key: "clock", name: "봇 시계(윈A)", st: s?.clock_got?.got ? "ok" : "unknown", last_at: s?.clock_got?.beat_at, value: s?.clock_got?.got ? "판 받음" : "" },
     ...mach.map((j) => ({ key: j.id, name: j.name, st: j.on === false ? ("off" as HealthSt) : j.health?.st || "unknown", last_at: j.health?.last_at })),
   ];
@@ -158,13 +158,14 @@ export function StatusBoard() {
   const sched = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), refetchInterval: 60_000 });
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 });
   const srv = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: StatusCat[]; at?: number }>("status"), refetchInterval: 60_000, retry: false });   // 뜸 #2487 GET /api/office/status
-  const cats = merge(fromLocal(sched.data, bots.data), srv.data?.cats);
+  const loading = sched.isPending || srv.isPending;
+  const cats = merge(fromLocal(sched.data, bots.data, sched.isPending), srv.data?.cats);
   const [open, setOpen] = useState<Record<string, boolean>>({}), [pick, setPick] = useState(""), [zone, setZone] = useState("");
   const all = cats.flatMap((c) => c.rows), red = count(all, "miss"), yellow = count(all, "late"), gray = count(all, "unknown");
   return (
     <div className="nsb mx-auto w-full max-w-3xl px-4 pb-12 pt-3">
       <div className="nsb-top" role="status">
-        <b data-st={red ? "miss" : yellow ? "late" : "ok"}>{red ? `안 됨 ${red}` : yellow ? `늦음 ${yellow}` : "다 정상"}</b>
+        <b data-st={loading ? "unknown" : red ? "miss" : yellow ? "late" : "ok"}>{loading ? "불러오는 중" : red ? `안 됨 ${red}` : yellow ? `늦음 ${yellow}` : "다 정상"}</b>
         <span>● {count(all, "ok")} · ▲ {yellow} · ✕ {red} · ○ {gray}</span>
         <small>{srv.isError ? "몸 보고 길 = 뜸이 붙이는 중" : srv.data?.at ? agoKo(srv.data.at) : ""}</small>
       </div>

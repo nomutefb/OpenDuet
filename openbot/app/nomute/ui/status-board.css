@@ -4,6 +4,7 @@
 .nsb-top b { font-size:18px; color:var(--nsb-ok); }
 .nsb-top b[data-st="miss"] { color:var(--nsb-red); text-shadow:0 0 14px rgba(255,90,95,.55); }
 .nsb-top b[data-st="late"] { color:var(--nsb-yel); }
+.nsb-top b[data-st="unknown"] { color:var(--nsb-mut); }
 .nsb-top span { font-size:13px; color:var(--nsb-mut); }
 .nsb-top small { margin-left:auto; font-size:11px; color:var(--nsb-mut); }
 .nsb-cat { margin-bottom:8px; border-radius:16px; background:rgba(18,18,18,.45); border:1px solid var(--nsb-line); overflow:hidden; }
