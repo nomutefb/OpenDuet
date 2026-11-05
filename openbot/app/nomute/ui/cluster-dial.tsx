@@ -19,7 +19,7 @@ type DialProps = { cx: number; cy: number; r: number; v: number | null; lv: Leve
 
 function Dial({ cx, cy, r, v, lv, label, sub, nums, big, sweep = SW_BIG }: DialProps) {
   const ang = angOf(sweep), arc = arcOf(sweep);
-  const ink = v == null ? LV.off : LV[lv];
+  const ink = v == null ? LV.off : lv === "green" ? "var(--accent, #D4FF3A)" : LV[lv];   // 괜찮음 = 앱 형광 라임(형 14:03 「톤만 라임맞추면되네」) · 70/80/90 = 노랑·주황·빨강 그대로
   const ticks: string[] = [];
   for (let k = 0; k <= 100; k += 2) {
     const major = k % 10 === 0, [x0, y0] = pol(cx, cy, r - (major ? (big ? 9 : 7) : big ? 4.5 : 3.5), ang(k)), [x1, y1] = pol(cx, cy, r - 1, ang(k));
@@ -33,15 +33,15 @@ function Dial({ cx, cy, r, v, lv, label, sub, nums, big, sweep = SW_BIG }: DialP
       {big ? <circle cx={cx} cy={cy} r={r - 14} fill="none" stroke="rgba(255,255,255,.05)" strokeWidth={10} /> : null}
       <path d={arc(cx, cy, r - 1, 90, 100)} stroke={LV.red} strokeWidth={big ? 3.2 : 2.6} fill="none" />
       <path d={ticks.join("")} stroke="rgba(242,242,242,.78)" strokeWidth={big ? 1 : 0.8} strokeLinecap="round" />
-      {v != null && v > 0 ? <path d={arc(cx, cy, r - (big ? 5 : 4), 0, v)} stroke={ink} strokeOpacity={0.35} strokeWidth={big ? 3 : 2.4} fill="none" strokeLinecap="round" /> : null}
+      {v != null && v > 0 ? <path d={arc(cx, cy, r - (big ? 5 : 4), 0, v)} style={{ stroke: ink }} strokeOpacity={0.35} strokeWidth={big ? 3 : 2.4} fill="none" strokeLinecap="round" /> : null}
       {nums.map((n) => { const [x, y] = pol(cx, cy, r - (big ? 19 : 15), ang(n)); return <text key={n} x={x} y={y + (big ? 3.4 : 2.8)} textAnchor="middle" fontSize={big ? 9.5 : 7.5} fill="#CFCFCF" className="nm-rg-num">{n}</text>; })}
       {v != null ? (
         <>
-          <line x1={tx} y1={ty} x2={nx} y2={ny} stroke={ink} strokeWidth={big ? 2.4 : 1.8} strokeLinecap="round" style={{ filter: `drop-shadow(0 0 3px ${ink})` }} />
+          <line x1={tx} y1={ty} x2={nx} y2={ny} strokeWidth={big ? 2.4 : 1.8} strokeLinecap="round" style={{ stroke: ink, filter: `drop-shadow(0 0 3px ${ink})` }} />
         </>
       ) : null}
       <text x={cx} y={cy + (big ? 28 : 7)} textAnchor="middle" className="nm-rg-num"><tspan fontSize={big ? 27 : 16} fill="#F2F2F2">{v == null ? "-" : Math.round(v)}</tspan><tspan fontSize={big ? 10 : 8} fill="#8A8A8A" dx={1}>%</tspan></text>
-      <text x={cx} y={cy + (big ? 41 : 18)} textAnchor="middle" className="nm-rg-lab" fontSize={big ? 9 : 7.5} fill={ink} letterSpacing={1.1}>{label}</text>
+      <text x={cx} y={cy + (big ? 41 : 18)} textAnchor="middle" className="nm-rg-lab" fontSize={big ? 9 : 7.5} letterSpacing={1.1} style={{ fill: ink }}>{label}</text>
       {sub ? <text x={cx} y={cy - (big ? 17 : 14)} textAnchor="middle" className="nm-rg-num" fontSize={big ? 8 : 7} fill="#9A9A9A">{sub}</text> : null}
     </g>
   );

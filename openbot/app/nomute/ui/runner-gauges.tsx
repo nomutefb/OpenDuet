@@ -15,7 +15,7 @@ type Cat = { id: string; rows: Row[] };
 type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp?: number };
 
 const HOSTS: { k: string; pc: string; label: string }[] = [{ k: "윈A", pc: "A", label: "WIN A" }, { k: "윈B", pc: "B", label: "WIN B" }, { k: "맥", pc: "M", label: "MAC" }];
-const DOT: Record<Level, string> = { green: "#71C5E8", yellow: "#FFD23F", orange: "#FF9F43", red: "#FF5A5F", off: "#5C5C5C" };
+const DOT: Record<Level, string> = { green: "var(--accent, #D4FF3A)", yellow: "#FFD23F", orange: "#FF9F43", red: "#FF5A5F", off: "#5C5C5C" };
 const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 90 ? "방금" : s < 5400 ? `${Math.round(s / 60)}분 전` : `${Math.round(s / 3600)}시간 전`; };
 
 /** 1분마다 지금 — 「N분 전」 글만 움직임. */
