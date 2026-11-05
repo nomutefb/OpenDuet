@@ -14,7 +14,7 @@
 .nm-pulse-chart .ig path { stroke:var(--accent); } .nm-pulse-chart .ig circle { fill:var(--accent); }
 .nm-pulse-chart .fb path { stroke:var(--fg); stroke-opacity:.55; } .nm-pulse-chart .fb circle { fill:var(--fg); fill-opacity:.55; }
 .nm-pulse-chart circle.x { stroke:var(--mut); }
-.nm-pulse-chart text { fill:var(--mut); font-family:inherit; }
+.nm-pulse-chart text { fill:var(--mut); font-family:inherit; font-variant-numeric:tabular-nums; }   /* 날마다 ± 줄 = 고정폭 숫자(칸 맞춤 · follow-pulse.tsx fit() 가 칸 폭 넘는 수는 1.2k 꼴로) */
 .nm-pulse-chart text.up { fill:var(--accent); } .nm-pulse-chart text.dn { fill:var(--fg); fill-opacity:.7; } .nm-pulse-chart text.now { font-weight:var(--fw-x); }   /* 내림 = 금색 대신 흰(흐림) · 오름만 형광 */
 .nm-pulse-wait { height:102px; }   /* 띠 받는 동안 자리(390 폭 실측 102px · follow-pulse.tsx) */
 /* 홈 맨 아래 도착한 메시지(arrived.tsx · 형 11-03 「거기 최근 온 메세지로 다시 변경해줘. 영상 없애구.」) — 자리 = 한 방 꼴 높이(머리 + 알약 걸친 줄 = 108px) 처음부터 잡음 · 받는 중·없음 때도 같은 높이 = 위 카드가 안 밀림 */

@@ -4,7 +4,7 @@
 //   픽토 애니메이트 = 에디터 자기 것(viewer/index.html #askSend 게이지 .glive/.grun/.gdone + 체크 .ack goTick · 우리 저장소라 라이선스·출처 = nomutefb/editor) 을 작게 옮김: 누르면 바 0→90% 차오르고 폼이 열리면 100% + ✓ 그어짐
 import "./send-button.css";
 import { useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CHANNEL = "nomute-modern-home", PREFILL_KEY = "nm_ask_prefill";
 const FINE = typeof matchMedia === "function" && matchMedia("(hover: hover) and (pointer: fine)").matches;   // 마우스 = PC·확장(꺽쇠 같이) · 손가락 = 폰(밀어서 넘김)
@@ -19,8 +19,52 @@ export function askCurrent(frame: HTMLIFrameElement | null): Promise<{ title?: s
   });
 }
 
+// 폰 폭(품은 화면 480 이하 · 형 11-05 사진 「모바일 버전 해결점」 = 단추가 카드 오른쪽 끝에 반쯤 걸쳐 화면 밖으로) = 카드 오른쪽 아래 안쪽(INSET)으로 · 카드 높이가 글만큼이라(news-feed DECK) 카드마다 아래 끝이 달라 품은 덱의 앞 카드(#article)를 재어 따라감
+//   SEND_ROOM = 카드 아래 안쪽에 비워 둔 단추 자리(news-feed DECK padding-bottom 에 더함 = 단추가 글을 안 덮음) · 넓은 화면 = 옛 자리(세로 가운데 · 반쯤 걸침) 그대로
+export const SEND_ROOM = 44;
+const INSET = 12;
+function useCardCorner(frame: React.RefObject<HTMLIFrameElement | null>, dock: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const el = frame.current;
+    if (!el) return;
+    let off = () => {};
+    const attach = () => {
+      off();
+      const win = el.contentWindow as (Window & typeof globalThis) | null;
+      let doc: Document | null = null;
+      try { doc = el.contentDocument; } catch { return; }
+      const card = doc?.getElementById("article");
+      if (!win || !doc || !card || typeof win.ResizeObserver !== "function") return;
+      const narrow = win.matchMedia("(max-width:480px)");
+      const place = () => {
+        const d = dock.current;
+        if (!d) return;
+        if (!narrow.matches || card.hidden || !card.offsetHeight) { d.removeAttribute("data-fit"); return; }
+        let x = 0, y = 0;
+        for (let n: HTMLElement | null = card; n; n = n.offsetParent as HTMLElement | null) { x += n.offsetLeft; y += n.offsetTop; }   /* offset = 넘김 중 transform 안 탐(쉰 자리) */
+        d.style.setProperty("--nm-card-b", `${y + card.offsetHeight}px`);
+        d.style.setProperty("--nm-card-r", `${Math.max(0, doc.documentElement.clientWidth - x - card.offsetWidth)}px`);
+        d.setAttribute("data-fit", "");
+      };
+      const ro = new win.ResizeObserver(place);
+      ro.observe(card);
+      ro.observe(doc.documentElement);
+      const mo = new win.MutationObserver(place);
+      mo.observe(card, { attributes: true, attributeFilter: ["hidden"] });
+      narrow.addEventListener("change", place);
+      place();
+      off = () => { ro.disconnect(); mo.disconnect(); narrow.removeEventListener("change", place); };
+    };
+    el.addEventListener("load", attach);
+    attach();
+    return () => { el.removeEventListener("load", attach); off(); };
+  }, [frame, dock]);
+}
+
 export function SendButton({ frame }: { frame: React.RefObject<HTMLIFrameElement | null> }) {
   const nav = useNavigate();
+  const dock = useRef<HTMLDivElement>(null);
+  useCardCorner(frame, dock);
   const [st, setSt] = useState<"" | "run" | "done">("");
   const busy = useRef(false);
   const go = async () => {
@@ -33,7 +77,7 @@ export function SendButton({ frame }: { frame: React.RefObject<HTMLIFrameElement
   // 꼴(형 11-03 12:56 「그리고 이 전송버튼, 그냥 전송만 있어도 돼. 화살표가 위일 필요는 없음 … 카드 정 중앙 기준 우측으로 동그라미 반쯤 걸쳐서 …」 · 12:57 「음 비행기 말고 그냥 체크가, 원으로 테두리를 감싼다음에 가운데가 체크 표식으로 모션하는게 더 나을수도있겠다 살짝 이미지 업로드 모션과 비슷」)
   //   = 카드 세로 가운데 · 오른쪽 끝에 반쯤 걸친 반투명 동그라미 · 누르면 원 테가 차오름 → 가운데 ✓ · PC·확장(마우스) = 그 위에 반투명 꺽쇠(다음 카드 · 덱 key next)
   return (
-    <div className="nm-send-dock">
+    <div ref={dock} className="nm-send-dock" style={{ "--nm-inset": `${INSET}px` } as React.CSSProperties}>
       {FINE ? <button type="button" className="nm-send-nx" aria-label="다음 카드" title="다음 카드" onClick={() => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type: "key", action: "next" }, location.origin)}><svg viewBox="0 0 24 24" aria-hidden><path d="M9 6l6 6-6 6" /></svg></button> : null}
       <button type="button" className={`nm-send${st ? " " + st : ""}`} aria-label="이 기사 요약 요청" title="이 기사로 요약 요청(폼이 열려 · 보내기는 거기서)" onClick={() => void go()} disabled={st !== ""}>
         <svg className="nm-send-ring" viewBox="0 0 44 44" aria-hidden><circle className="bg" cx="22" cy="22" r="19" /><circle className="fg" cx="22" cy="22" r="19" /></svg>
