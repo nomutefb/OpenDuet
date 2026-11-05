@@ -48,6 +48,16 @@ function useDisplayFont(key: FontKey | null) {
   }, [key]);
 }
 
+// 뎅 카드 소용돌이(🌀) — 바깥에서 안으로 감기는 한 줄(형 10-30 「뎅 뎅~ 은 뱅글 이어지는 느낌이거든」 · 11-05 「소용돌이는 무한대를 상징하기도하지」) · 그림 파일 없이 SVG 한 줄
+const DENG_SPIRAL = (() => {
+  const n = 180, turns = 3.25, out: string[] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = (i / n) * turns * 2 * Math.PI, r = 3 + 90 * (i / n);
+    out.push(`${(100 + r * Math.cos(t)).toFixed(1)} ${(100 + r * Math.sin(t)).toFixed(1)}`);
+  }
+  return `M${out.join(" L")}`;
+})();
+
 const LOOKS: Look[] = [
   {
     id: "sia",
@@ -73,6 +83,32 @@ const LOOKS: Look[] = [
           <i className="bc-steam" />
           <b>🍚</b>
         </span>
+      </span>
+    ),
+  },
+  {
+    id: "deng",
+    match: ["뎅", "deng"],
+    face: "/office/deng.webp",
+    handle: "from_deng",
+    meta: "말끝지기 · VM deng",
+    dot: "#FFB300",
+    font: "bagel-fat-one",
+    holo: 0.82,
+    glare: 0.5,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-rain" />
+        <span className="bc-glow" />
+        <svg className="bc-swirl" viewBox="0 0 200 200">
+          <path d={DENG_SPIRAL} />
+        </svg>
+        <svg className="bc-trail" viewBox="0 0 300 80" preserveAspectRatio="none">
+          <path d="M-10 62 C 50 70, 90 30, 150 44 S 250 70, 286 38" />
+          <circle cx="286" cy="38" r="3.2" />
+        </svg>
+        <span className="bc-word">뎅</span>
+        <span className="bc-tilde">~</span>
       </span>
     ),
   },
