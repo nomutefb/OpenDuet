@@ -9,6 +9,7 @@ const LEAD_SYM = /^[\s▶▷►■□◆◇★☆●○◎※→⇒>»·•\-–
 const EMOJI = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu;
 const GALL = /^(?:\s*\[[가-힣A-Za-z]{1,4}갤\]\s*)+/u;   // 커뮤 갤 머리표([싱갤] · [미갤] · 뜸과 같음)
 const FILE_TAIL = /\s*\.?(?:jpg|jpeg|gif|png|webp|mp4)\s*$/iu;   // .JPG · GIF 꼬리
+const TAIL_BOX = /\s*\[[^\]]{1,12}\]\s*$/u;   // 끝 꼭지 이름([Oh!쎈 이슈] · [MD포토] 같은 연재·코너 이름 · 실물 11-05 16:2x)
 const LAUGH_TAIL = /\s*(?:[ㅋㅎㄷㅠㅜ]{2,}|\^\^|;;+)\s*$/u;   // ㅋㅋ · ㄷㄷ · ㅠㅠ · ^^ 끝
 
 export function cleanTitle(raw: string | undefined | null): string {
@@ -17,7 +18,7 @@ export function cleanTitle(raw: string | undefined | null): string {
   const before = s;
   for (let i = 0; i < 3; i++) {   // 꼬리표가 둘셋 겹친 것([단독][종합] … - 연합뉴스)
     const prev = s;
-    s = s.replace(EMOJI, "").replace(LEAD_SYM, "").replace(GALL, "").replace(HEAD, "").replace(TAIL_TAG, "").replace(OUTLET, "").replace(FILE_TAIL, "").replace(LAUGH_TAIL, "").trim();
+    s = s.replace(EMOJI, "").replace(LEAD_SYM, "").replace(GALL, "").replace(HEAD, "").replace(TAIL_TAG, "").replace(OUTLET, "").replace(TAIL_BOX, "").replace(FILE_TAIL, "").replace(LAUGH_TAIL, "").trim();
     if (s === prev) break;
   }
   s = s.replace(/\s*(?:…|\.{3,})\s*$/u, "").replace(/\s{2,}/g, " ").trim();
