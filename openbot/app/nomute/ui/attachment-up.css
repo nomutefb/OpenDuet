@@ -61,3 +61,6 @@
 .nm-ftag .rd { color:var(--accent, #CFFF40); }
 .nm-ftag .og { color:var(--accent, #CFFF40); }   /* 원본 = 시그니처 라임(형 11-05 10:44 「원본이라는 글자 시그니처 라임으로」) */
 .nm-ftag { font-style:italic; }   /* 형 10:44 「기울임꼴로 통일 시아야 기울임꼴훨이쁘네」 */
+/* 대화창 끌어다 놓기(office-chat · 형 11-05 10:45) = 놓을 자리 라임 테두리 + 한 줄 */
+.ychat.ydrop { outline:2px dashed var(--accent, #CFFF40); outline-offset:-6px; border-radius:18px; }
+.ychat.ydrop::after { content:"여기에 놓으면 첨부"; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); padding:8px 14px; border-radius:999px; background:rgba(0,0,0,.7); color:var(--accent, #CFFF40); font-size:13px; font-weight:700; font-style:italic; pointer-events:none; z-index:5; }

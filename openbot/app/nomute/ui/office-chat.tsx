@@ -501,8 +501,8 @@ const onlyPhotos = (m: Msg) => !!m.files?.length && m.files.every((p) => IMG_RE.
  *  = 왼쪽 위 「0.4MB · PNG · 읽음」 · 읽음 = 서버 file_read[path](읽은 이 목록 · 기준은 깃·빠르 회의실 논의 뒤) 있을 때만 */
 function FileTag({ f, m }: { f: { p: string; n: string; b: number; o?: boolean | number; ob?: number; d?: number }; m: Msg }) {
   const m1 = (x: number) => Math.max(0.1, Math.round((x / 1048576) * 10) / 10);
-  // 압축 전 → 후(형 11-05 10:42 「압축 전 후 를 알수가잇나 혹시?」 · 서버 file_meta.orig_bytes)
-  const mb = f.b ? (f.ob && f.ob > f.b ? `${m1(f.ob)} → ${m1(f.b)}MB` : `${m1(f.b)}MB`) : "", ext = (/\.([A-Za-z0-9]{1,6})$/.exec(f.n || f.p)?.[1] || "").toUpperCase();
+  // 크기 = 보낸 판 하나(압축되면 압축된 크기 · 형 11-05 10:47 「지금 원본파일의 크기 대신에 압축되면 압축된 크기가 보여야한다는의미엿음」)
+  const mb = f.b ? `${m1(f.b)}MB` : "", ext = (/\.([A-Za-z0-9]{1,6})$/.exec(f.n || f.p)?.[1] || "").toUpperCase();
   const read = ((m as { file_read?: Record<string, string[]> }).file_read || {})[f.p] || [];
   // 「압축됨」/「원본」 둘 중 하나(형 11-05 09:39 「그 옆에 블릿 달아서 압축됨 원본 둘중 하나로만 뜨게해줄래? 원본이면 강조색으로」) · 서버 file_meta.original 있을 때만(없으면 모름 = 안 띄움)
   const kind = f.o === undefined ? "" : f.o ? "원본" : "압축됨";
@@ -852,7 +852,7 @@ export function OfficeChat(p: { room: string; lead?: ReactNode; active?: boolean
 function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: ReactNode; active?: boolean }) {   // active = 이 판이 보임(껍데기에서 숨은 판이면 본 데까지 안 올림 = 안 읽은 수 그대로)
   const qc = useQueryClient();
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
-  const [err, setErr] = useState("");
+  const [err, setErr] = useState(""), [dropping, setDropping] = useState(false);   // dropping = 대화창에 파일 끌고 있음(형 11-05 10:45)
   const [sel, setSel] = useState(""), [menuOf, setMenuOf] = useState<Msg | null>(null);   // 글 길게 누르기(./msg-menu.tsx)
   useMe();   // 메뉴 「고정」이 보는 나 = 방을 열 때 미리 받아 둠(첫 길게 누르기에 메뉴가 두 번 그려지던 것 · 형 11-03 10:49)
   const [prof, setProf] = useState("");   // 프로필 카드를 연 사람(who · 빈 값 = 닫힘)
@@ -1140,7 +1140,21 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       <AttachSheet />
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
       {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
-      <div className="ychat relative flex min-h-0 flex-1 flex-col">
+      {/* 대화창 아무 데나 끌어다 놓기 = 입력칸에 넣은 것처럼(형 11-05 10:45 「대화창 이 입력하는 칸, 말고 대충 이 대화창 안에만 드래그앤 드롭해도 대화칸에 넣는것처럼 해주면 땡큐!!」) */}
+      <div className={`ychat relative flex min-h-0 flex-1 flex-col${dropping ? " ydrop" : ""}`}
+        onDragOver={(e) => { if (Array.from(e.dataTransfer.types).includes("Files")) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; if (!dropping) setDropping(true); } }}
+        onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropping(false); }}
+        onDrop={(e) => {
+          setDropping(false);
+          if (!e.dataTransfer.files.length) return;
+          e.preventDefault();
+          const inp = document.querySelector<HTMLInputElement>('.ychat-in input[type="file"]');
+          if (!inp) return;
+          const dt = new DataTransfer();
+          for (const f of Array.from(e.dataTransfer.files)) dt.items.add(f);
+          inp.files = dt.files;
+          inp.dispatchEvent(new Event("change", { bubbles: true }));
+        }}>
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()} aria-label={`안 본 글 ${unseen.length}개로`}><Chev dir="up" size={13} /> 안 본 글</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}><Chev dir="up" size={13} /> 글 처음</button> : null}
       {far ? <button type="button" className="ydown" aria-label={newBelow ? `최근 글로 · 새 글 ${newBelow}개` : "최근 글로"} onClick={toEnd}><Chev dir="down" size={20} />{newBelow ? <b>{newBelow > 99 ? "99+" : newBelow}</b> : null}</button> : null}
