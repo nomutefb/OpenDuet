@@ -6,6 +6,7 @@
 .nm-rgx-host + .nm-rgx-host { border-left:1px solid rgba(255,255,255,.06); }
 .nm-rgx-host header { padding:0 2px; }
 .nm-rgx-host .nm-rg-gauge { max-height:92px; margin:2px auto 0; }
-.nm-rgx-sub { margin:-16px 0 0; text-align:center; font-size:10.5px; letter-spacing:.02em; color:#9A9A9A; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-rgx-sub { margin:-24px 0 0; text-align:center; font-size:10.5px; letter-spacing:.02em; color:#9A9A9A; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nm-rgx-dot { display:inline-block; width:6px; height:6px; border-radius:999px; flex:none; transition:background .4s; }
 @media (max-width: 520px) { .nm-rgx-host header .text-muted-foreground { display:none; } }
+.nm-rgx-sub b { font-weight:700; color:#E6E6E6; }   /* GPU 숫자만 굵게(형 15:32 「55만 볼드」) */
