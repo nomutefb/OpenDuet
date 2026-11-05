@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { usePinActions } from "./pins";
+import { fileUrl } from "../data/file-cache";
 
 const HOLD_MS = 500, SLIP = 10, ORIGIN_MAX = 2000;   // 0.5초(형 10-31 「적어도 0.5초 터치는 해야함」)
 
@@ -35,10 +36,10 @@ export function useLongPress(open: () => void) {
 
 const short = (n: string) => n.replace(" PM", "");
 
-export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose }: { quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
+export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose }: { quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
   const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
-  const [asking, setAsking] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
+  const [asking, setAsking] = useState(false), [moving, setMoving] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
   const others = list.filter((p) => p.who !== "형" && p.kind !== "human");
   const targets = r?.with || !r?.members?.length ? others : r.members.map((n) => list.find((p) => p.who === n)).filter((p): p is OfficePerson => !!p);
   const done = (t: string) => { setNote(t); window.setTimeout(onClose, 900); };
@@ -63,8 +64,42 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
       done(`${label}에게 확인 요청을 보냈어`);
     } catch (e) { setBusy(false); setWhy(e instanceof Error ? e.message : "못 보냈어"); }
   };
+  // 그 글의 첨부(서버 경로) → 이 기기로 받아 File 로(내부 공유 · 그림째 공유가 같이 씀)
+  const paths = (Array.isArray(m.files) ? m.files : []).filter((p): p is string => typeof p === "string");
+  const bareName = (p: string) => (p.split("/").pop() || "file").replace(/^\d{8}_\d{4}_/, "");
+  const fetchFile = async (p: string) => {
+    const res = await fetch(fileUrl(p), { credentials: "same-origin" });
+    if (!res.ok) throw new Error(`파일을 못 받았어 (${res.status})`);
+    const b = await res.blob();
+    return new File([b], bareName(p), { type: b.type });
+  };
+  // 내부 공유(형 11-05 12:31 개발자 회의방 「다른 채팅창에서 그걸 채팅이나 이미지를 눌러서 내부 공유를 누르면, 우리 사무실 내부 다른 곳으로 전달되게」)
+  //   = 고른 방에 그 글을 다시 올림 · 첨부는 받아서 지금 첨부 길(/files)로 그대로(original = 다시 안 줄임 · 받는 사람 폴더에도 들어감) · 머리 줄 = 어느 방 누구 글인지
+  const rooms = (qc.getQueryData<OfficeRoom[]>(["nomute", "rooms"]) || []).filter((x) => x.id !== room && !x.id.startsWith("pair-") && x.id !== "notice" && x.id !== "summary");
+  const forward = async (to: OfficeRoom) => {
+    setBusy(true); setWhy("");
+    const head = `↪ 「${r?.name || room}」 ${who}`, quiet = (raw || "").slice(0, 6000).replace(/(^|\s)([@!])(?=\S)/g, (_x, a: string, b: string) => a + (b === "@" ? "＠" : "！")), body = quiet ? `${head}\n${quiet}` : head;   // 넘긴 사본의 @·! = 전각(다른 방에서 또 깨우지 않게 · 원 글은 그대로)
+    try {
+      if (!paths.length) await send(to.id, body);
+      else {
+        const form = new FormData();
+        (await Promise.all(paths.map(fetchFile))).forEach((f, i) => { form.append("file", f); form.append(`original_${i}`, "1"); });
+        form.set("room", to.id); form.set("text", body); form.set("together", "1");
+        const res = await fetch("/api/office/files", { method: "POST", credentials: "same-origin", body: form });
+        if (!res.ok) { const j = (await res.json().catch(() => ({}))) as { why?: string; error?: string }; throw new Error(j.why || j.error || `못 보냈어 (${res.status})`); }
+      }
+      void qc.invalidateQueries({ queryKey: ["nomute", "msgs", to.id] });
+      void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+      done(`「${to.name}」에 보냈어`);
+    } catch (e) { setBusy(false); setWhy(e instanceof Error ? e.message : "못 보냈어"); }
+  };
   const share = async () => {
     try {
+      const pics = paths.filter((p) => /\.(png|jpe?g|webp|gif)$/i.test(p)).slice(0, 4);   // 그림 든 글 = 그림째 공유(되는 기기만 · 안 되면 글만)
+      if (pics.length && navigator.canShare) {
+        const fs = await Promise.all(pics.map(fetchFile));
+        if (navigator.canShare({ files: fs })) { await navigator.share({ files: fs, ...(raw ? { text: raw } : {}) }); onClose(); return; }
+      }
       if (navigator.share) await navigator.share({ text });
       else { await navigator.clipboard?.writeText(text); done("복사했어"); return; }
       onClose();
@@ -73,8 +108,14 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   const item = (label: string, on: () => void) => <button key={label} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={on}>{label}</button>;
   return createPortal(
     <div className="nm-msgm" role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
-      <div className="nm-msgm-p" role="menu" aria-label={asking ? "확인 요청할 봇" : "글 메뉴"}>
-        {note ? <p className="nm-msgm-n" role="status">{note}</p> : asking ? (
+      <div className="nm-msgm-p" role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"}>
+        {note ? <p className="nm-msgm-n" role="status">{note}</p> : moving ? (
+          <>
+            <p className="nm-msgm-h">보낼 방{paths.length ? ` · 첨부 ${paths.length}` : ""}</p>
+            {rooms.map((x) => <button key={x.id} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={() => void forward(x)}><span>{x.with ? short(list.find((p) => p.who === x.with)?.name || x.with) : x.name}</span></button>)}
+            {item("그만두기", () => setMoving(false))}
+          </>
+        ) : asking ? (
           <>
             <p className="nm-msgm-h">확인 요청할 봇</p>
             {targets.map((p) => (
@@ -94,6 +135,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
             {item("복사", () => { void navigator.clipboard?.writeText(text); done("복사했어"); })}
             {item("확인 요청", () => setAsking(true))}
             {item("공유", () => void share())}
+            {rooms.length ? item("다른 방으로", () => setMoving(true)) : null}
           </>
         )}
         {why ? <p className="nm-msgm-n err" role="alert">{why}</p> : null}
