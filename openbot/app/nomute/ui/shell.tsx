@@ -62,7 +62,7 @@ import { AskModal } from "./ask";   // 서랍 「요약 요청」(에디터 넷�
 import { RoomList, useRoomOrder } from "./room-list";
 import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
 import { DecideFab } from "./decide-pop";   // 대화방 우하단 + 위 = 형 결정 노트 단추(형 11-01 08:36)
-import { useWide } from "./side";
+import { useSplit, useWide } from "./side";
 import "./shell.css";
 
 export type Pane = "home" | "rooms" | "chat";
@@ -136,6 +136,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const nav = useNavigate();
   const where = whereFor(pathname);
   const wide = useWide();
+  const split = useSplit();   // PC 반갈(오른쪽 반 = 위 러너 · 아래 뉴스 · ./side.tsx)
   const [room, setRoom] = useState(() => roomOf(pathname));
   const [base, setBase] = useState<Pane>(() => ("pane" in where ? where.pane : "chat"));   // 모달·덮는 쪽 아래에 깔린 판
   const [open, setOpen] = useState<Set<Pane>>(() => new Set(["pane" in where ? where.pane : "chat"]));
@@ -202,7 +203,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <AttentionNotifier />
         <FinishedForYou />
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} /> : null}
-        <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
+        <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
           <SceneBg className="nm-app-ambient" />   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
           {show("rooms", <div className="nm-col"><RoomsPane /></div>)}
@@ -280,8 +281,20 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             </div>
           ) : null}
         </div>
+        {split ? <SplitSide /> : null}
       </div>
     </ChatPresenceProvider>
+  );
+}
+
+/** PC 반갈 오른쪽 반(형 11-05 13:26 그림) — 위 작게 = 2 러너(하드웨어 · 러너 일 · 지금 4번 메뉴 거) · 아래 크게 = 3 뉴스(에디터 피드 원본 = 핫 이슈 · 편집 그대로)
+ *  러너 위젯(PC 바탕화면)은 내림(형 13:23 「그럼냅다치우고」 · 윈A CPU 1등) — 여기 한 창에 대화 · 러너 · 뉴스가 같이 있어 창이 따로 놀지 않음(형 13:20 「근데 창이 다 따로놀아;;ㅠㅠ」) */
+function SplitSide() {
+  return (
+    <aside className="nm-split" aria-label="러너 · 뉴스">
+      <section className="nm-split-run" aria-label="러너"><div className="nm-scroll"><RunnerScreen /></div></section>
+      <section className="nm-split-news" aria-label="뉴스"><FramePage title="뉴스" src="/?tab=feed" /></section>
+    </aside>
   );
 }
 

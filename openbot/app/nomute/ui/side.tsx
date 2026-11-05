@@ -14,6 +14,13 @@ const onWide = (cb: () => void) => { const m = window.matchMedia(WIDE); m.addEve
 /** 넓은 화면(PC)인가 — 창 너비가 바뀌면 바로 따라감 */
 export const useWide = () => useSyncExternalStore(onWide, wideNow, () => false);
 
+// PC 반갈(형 11-05 13:23 「넓어졌을때 화면을 좌우반갈로 쓸수잇게하자」 · 13:26 그림 = 왼쪽 반 1 대화 · 오른쪽 위 작게 2 러너 · 오른쪽 아래 크게 3 뉴스) — 폭 1180px~ 만(태블릿 가로·PC)
+const SPLIT = "(min-width: 1180px)";
+const splitNow = () => typeof window !== "undefined" && window.matchMedia(SPLIT).matches;
+const onSplit = (cb: () => void) => { const m = window.matchMedia(SPLIT); m.addEventListener("change", cb); return () => m.removeEventListener("change", cb); };
+/** 반갈 넓이인가 — 창을 좁히면 바로 한 칸으로 */
+export const useSplit = () => useSyncExternalStore(onSplit, splitNow, () => false);
+
 /** 지금 열린 방 = 목록에서 칠할 줄 · 첫 화면("/") = PC 에선 회의실 */
 function useCurrentRoom() {
   const path = useRouterState({ select: (s) => s.location.pathname });
