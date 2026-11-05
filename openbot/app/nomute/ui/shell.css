@@ -117,3 +117,10 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-l .ynav button { height:22px; padding:0 10px; font-size:11.5px; border-radius:6px; color:rgba(232,234,232,.62); }
 .nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#f2f3f2; background:rgba(255,255,255,.08); border-color:transparent; box-shadow:none; }
 .nm-split-l .ynav svg { width:15px; height:15px; }
+/* PC 말풍선 = 다 잿빛 검정 · 글자 하나로(형 11-05 14:44 「응 내 말풍선 라임도, 그렇게 하고, 글자 색을 라임으로 할게. … 그냥 너네 라벨은 놔두고, 대화는 싹다 검정, 글자색은 다 통일. 기존의 형식대로, 검정이라하면 잿빛검정」)
+   = 형 말풍선: 잿빛 검정 + 라임 글자 · 우리·봇 말풍선: 잿빛 검정 + 같은 밝은 회색 글자(봇마다 칠한 바탕 = 인라인 → !important) · 이름 라벨(색)은 그대로 */
+.nm-split-root .ychat .yb.ai:not(.ph) { background:#1e2023 !important; border-color:rgba(255,255,255,.07) !important; color:#e6e9e6 !important; }
+.nm-split-root .ychat .yb.me:not(.ph) { background:#1e2023 !important; color:var(--accent, #CFFF40) !important; border:1px solid rgba(255,255,255,.07); }
+.nm-split-root .ychat .yb.me:not(.ph) a, .nm-split-root .ychat .yb.me:not(.app) .ytok.fl { color:#c3cad3 !important; }
+.nm-split-root .ychat .yb.me:not(.app) .ytok.gh, .nm-split-root .ychat .yb.me:not(.app) .ytok.tm { color:#b8a8ec !important; }
+.nm-split-root .ychat .yb.me .yname-c { color:#67e8f9; }
