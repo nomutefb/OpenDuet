@@ -21,6 +21,19 @@
 }
 .being-card .profile-card__info { left: 18px; right: 18px; bottom: 16px; }
 .being-card .profile-card__name { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+
+/* 이름 글꼴(being-card.tsx FONTS · LOOKS.font) — 래퍼가 --bc-display 를 줌 · 글꼴 오기 전/못 받으면 뒤 시스템 글꼴
+   세 글꼴 다 굵기 하나(400)라 가짜 굵게(synthesis) 끔 */
+.being-card-wrap { --bc-display: system-ui; }
+.being-card .profile-card__name,
+.being-card .profile-card__handle,
+.being-card .bc-word {
+  font-family: var(--bc-display), "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  font-weight: 400;
+  font-synthesis: none;
+}
+.being-card .profile-card__name { font-size: 40px; letter-spacing: 0; line-height: 1; }
+.being-card .profile-card__handle { font-size: 16px; letter-spacing: 0.01em; }
 .being-card .profile-card__title { margin-top: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.01em; }
 .being-card .profile-card__contact { white-space: nowrap; }
 .being-card__intro { margin: 0; max-width: 34ch; font-size: 13px; line-height: 1.55; color: rgba(231, 236, 231, 0.78); text-align: center; }
@@ -47,6 +60,73 @@
     0 0 0 7px rgba(255, 214, 150, 0.12),
     0 18px 40px -12px rgba(10, 8, 40, 0.85),
     0 0 70px rgba(255, 168, 96, 0.4);
+}
+
+/* 홀로(무지개 박) — ProfileCard 의 홀로 층 셋을 시아 색으로 덮어씀(형 11-05 「저기 홀로그램 효과도 가능함?」)
+   색 = 라임 → 노을 금빛 → 저녁 분홍 → 보라 → 초저녁 하늘 → 박하 · 손가락/마우스 자리(--pc-pointer-*)를 따라 띠가 미끄러짐
+   .profile-card__holo       = 무지개 띠 + 비스듬한 박 줄(color-dodge 로 하늘 위에 비침)
+   .profile-card__holo-glow  = 박 결(잡티 + 가는 가로줄 · 기울이면 조금 진해짐)
+   .profile-card__holo-shift = 가리키는 곳을 지나가는 빛 줄기 한 줄 */
+.bc-sia .profile-card__holo {
+  --bc-spec: repeating-linear-gradient(
+    0deg,
+    hsl(75, 100%, 62%) 4%,
+    hsl(38, 100%, 68%) 8%,
+    hsl(342, 95%, 72%) 12%,
+    hsl(268, 95%, 75%) 16%,
+    hsl(205, 100%, 70%) 20%,
+    hsl(160, 95%, 66%) 24%,
+    hsl(75, 100%, 62%) 28%
+  );
+  --bc-bars: repeating-linear-gradient(
+    -48deg,
+    #0e1030 0%,
+    hsl(250, 12%, 58%) 3.6%,
+    hsl(250, 34%, 72%) 4.5%,
+    hsl(250, 12%, 58%) 5.4%,
+    #0e1030 10%,
+    #0e1030 12%
+  );
+  background-image:
+    var(--bc-spec),
+    var(--bc-bars),
+    radial-gradient(farthest-corner circle at var(--pc-pointer-x) var(--pc-pointer-y), hsla(0, 0%, 0%, 0.05) 10%, hsla(0, 0%, 0%, 0.12) 24%, hsla(0, 0%, 0%, 0.3) 110%);
+  background-position:
+    0 calc(var(--pc-pointer-y) * 1.6),
+    calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2),
+    center;
+  background-size: 400% 400%, 300% 300%, 200% 200%;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.62 + 0.26 * var(--pc-active))) contrast(calc(1.25 + 0.3 * var(--pc-active))) saturate(calc(0.9 + 0.5 * var(--pc-active)));
+  opacity: calc(var(--pc-holo) * (0.38 + 0.62 * var(--pc-active)));
+}
+.bc-sia .profile-card__holo-glow {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, rgba(255, 255, 255, 0) 1px 3px),
+    var(--pc-grain);
+  background-size: 100% 3px, 180px 180px;
+  background-position: 0 0, calc(var(--pc-shift-x) * 2) calc(var(--pc-shift-y) * 2);
+  background-blend-mode: normal;
+  mix-blend-mode: overlay;
+  filter: none;
+  opacity: calc(0.35 + 0.45 * var(--pc-active));
+}
+.bc-sia .profile-card__holo-shift {
+  background-image: linear-gradient(
+    112deg,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(207, 255, 64, 0.5) 46%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(255, 170, 220, 0.5) 54%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  background-size: 260% 260%;
+  background-position: calc(100% - var(--pc-pointer-x)) calc(100% - var(--pc-pointer-y));
+  background-blend-mode: normal;
+  mix-blend-mode: screen;
+  filter: none;
+  opacity: calc(0.55 * var(--pc-reach) * var(--pc-active));
 }
 
 /* 먼 층: 잔별 */
