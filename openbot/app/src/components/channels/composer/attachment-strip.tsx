@@ -68,7 +68,7 @@ function useCompress() {
 /** 사진 타일 주소 = /api/attachments/<nomute 첨부 id>(입력칸 id 와 다름) → 그 id 로 보낼 판을 물음 */
 const shimIdOf = (url: string) => /\/api\/attachments\/([^/?#]+)$/.exec(url)?.[1];
 const VIDEO_EXT = /\.(mp4|mov|m4v|webm|mkv|avi|3gp)$/i;
-const ORIGINAL_TONE = "text-[#FFB020]";   // 원본 = 강조색(형 11-05 「원본이면 강조색으로」)
+const ORIGINAL_TONE = "text-[#CFFF40]";   // 원본 = 시그니처 라임(형 11-05 10:44 「원본이라는 글자 시그니처 라임으로」 · 앞 판 = 주황)
 
 export type StagedFile = {
   id: string;
@@ -238,7 +238,7 @@ function ImageTag({ compress, image }: { compress: CompressBridge | undefined; i
   if (!head) return null;
   // 타일이 좁아(80~88px) 한 줄에 다 안 들어가면 「· 압축됨」만 다음 줄로(블릿 간격 그대로)
   return (
-    <span aria-hidden className="pointer-events-none absolute top-1 left-1 max-w-[calc(100%-0.5rem)] rounded-[9px] bg-black/65 px-1.5 py-px font-semibold text-[10px] text-white leading-4 tabular-nums">
+    <span aria-hidden className="pointer-events-none absolute top-1 left-1 max-w-[calc(100%-0.5rem)] rounded-[9px] bg-black/65 px-1.5 py-px font-semibold text-[10px] text-white leading-4 tabular-nums italic">
       <span className="whitespace-nowrap">{head}</span>
       {info && !info.pending ? (
         <>

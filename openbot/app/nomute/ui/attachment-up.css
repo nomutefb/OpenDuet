@@ -59,4 +59,5 @@
 .nm-ftag { position:absolute; top:6px; left:6px; z-index:1; display:inline-flex; align-items:center; padding:1px 7px; border-radius:999px; background:rgba(0,0,0,.62); color:#fff; font-size:10px; font-weight:700; line-height:16px; font-variant-numeric:tabular-nums; pointer-events:none; }
 .nm-ftag > span + span::before { content:"·"; margin:0 4px; opacity:.7; }
 .nm-ftag .rd { color:var(--accent, #CFFF40); }
-.nm-ftag .og { color:#FFB020; }   /* 원본 = 강조색(형 11-05 09:39 「원본이면 강조색으로」) */
+.nm-ftag .og { color:var(--accent, #CFFF40); }   /* 원본 = 시그니처 라임(형 11-05 10:44 「원본이라는 글자 시그니처 라임으로」) */
+.nm-ftag { font-style:italic; }   /* 형 10:44 「기울임꼴로 통일 시아야 기울임꼴훨이쁘네」 */
