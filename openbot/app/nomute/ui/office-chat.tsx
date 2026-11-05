@@ -940,7 +940,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const flat = meet || pairRoom || (!!r && !r.with);
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
-  const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind === "bot" || m.kind === "winter") back.add(m.who); } return on; }, [all]);
+  const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot)
   const [inviting, setInviting] = useState("");
   const invite = async (m: Msg) => {   // 형 11-06 「내가 초대하기누르면다시들어올수잇어야함」 → POST rooms/<방>/invite(봄 서버) · 답 = 「다시 불렀습니다」 줄
     const who = evWho(m)[0]; if (!who || inviting) return;
