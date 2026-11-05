@@ -14,8 +14,9 @@ const onWide = (cb: () => void) => { const m = window.matchMedia(WIDE); m.addEve
 /** 넓은 화면(PC)인가 — 창 너비가 바뀌면 바로 따라감 */
 export const useWide = () => useSyncExternalStore(onWide, wideNow, () => false);
 
-// PC 반갈(형 11-05 13:23 「넓어졌을때 화면을 좌우반갈로 쓸수잇게하자」 · 13:26 그림 = 왼쪽 반 1 대화 · 오른쪽 위 작게 2 러너 · 오른쪽 아래 크게 3 뉴스) — 폭 1180px~ 만(태블릿 가로·PC)
-const SPLIT = "(min-width: 1180px)";
+// PC 반갈(형 11-05 13:23 「넓어졌을때 화면을 좌우반갈로 쓸수잇게하자」 · 13:26 그림 = 왼쪽 반 1 대화 · 오른쪽 위 작게 2 러너 · 오른쪽 아래 크게 3 뉴스) — 폭 860px~
+//   (형 13:57 「글구 혹시 2:3비율에서도 이게 구성되게해줄수잇어?」 · 「2:3 이상으로 키우기가 좀 부담시럽네」 → 1180 → 860 · 2:3 창 900×1350 도 반갈 · 왼쪽 대화 칸 ≈ 400)
+const SPLIT = "(min-width: 860px)";
 const splitNow = () => typeof window !== "undefined" && window.matchMedia(SPLIT).matches;
 const onSplit = (cb: () => void) => { const m = window.matchMedia(SPLIT); m.addEventListener("change", cb); return () => m.removeEventListener("change", cb); };
 /** 반갈 넓이인가 — 창을 좁히면 바로 한 칸으로 */
