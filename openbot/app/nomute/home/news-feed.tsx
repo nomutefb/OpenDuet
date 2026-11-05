@@ -16,7 +16,7 @@ const CHANNEL = "nomute-modern-home";
 export const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
 /** 픽 차례(형 11-06 00:28 「촉픽이 제일 전면 틈픽이 그 다음」) = 촉 → 틈 → 나머지 봇 · 같은 봇 안에선 받은 차례(서버 = 점수순) 그대로 · 둘 다 고른 기사는 앞에 온 촉 쪽 칩이 대표(modern-data project = 먼저 온 픽이 그 카드 주인) */
 const PICK_RANK: Record<string, number> = { 촉: 0, chok: 0, 틈: 1, teum: 1 };
-const pickOrder = (list: unknown[]) => list.map((p, i) => ({ p, i, r: PICK_RANK[String((p as { by?: unknown })?.by ?? "").trim()] ?? 2 })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.p);
+export const pickOrder = (list: unknown[]) => list.map((p, i) => ({ p, i, r: PICK_RANK[String((p as { by?: unknown })?.by ?? "").trim()] ?? 2 })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.p);
 const OVERLAP_EVERY = 60_000, IMAGES_EVERY = 5 * 60_000, PICKS_EVERY = 2 * 60_000;   // 틈·촉 픽 = 판이 40분마다라 2분에 한 번만(에디터 modern-workspace.js loadPicks 와 같음)
 
 export type Cand = { id?: string; url?: string; title?: string; title_clean?: string; title_ko?: string; title_ko_of?: string; media?: string; published?: string; hp?: string; breaking_pick?: { url?: string }; _disp?: Cand };

@@ -5,12 +5,17 @@
 import "./news-list.css";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickUrl } from "./news-feed";
+import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickOrder, pickUrl } from "./news-feed";
+import { FaceImg } from "../ui/faces";
 import { homePool } from "./home-pool";
 import { cleanTitle } from "./title-clean";   // 제목 다듬기 로직(형 11-05 16:14)
 
-type Row = { key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
+type Row = { picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
 const PREFILL_KEY = "nm_ask_prefill", EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
+
+// 픽 얼굴(형 11-06 07:4x 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」) = 그 기사를 고른 봇 얼굴 · 번호 왼쪽 · 둘 다 고르면 겹쳐 둘(먼저 온 쪽 = 위)
+const PICK_WHO: Record<string, string> = { chok: "촉", teum: "틈" };
+const pickers = (x: Row) => [...new Set((x.picks || []).map((p) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; }).filter(Boolean))];
 
 const ago = (at?: string) => {
   const t = at ? Date.parse(at) : NaN;
@@ -39,7 +44,7 @@ export function NewsList() {
       if (alpha == null) alpha = (await firstJson(["/feed_alpha.json"])) || {};
       if (!picksAt || Date.now() - picksAt > 2 * 60_000) {
         const pk = await firstJson<{ picks?: unknown[] }>(["/api/trends?f=picks"], (v) => !!v && Array.isArray(v.picks));
-        if (pk) { picks = pk.picks || []; picksAt = Date.now(); }
+        if (pk) { picks = pickOrder(pk.picks || []); picksAt = Date.now(); }   // 촉 → 틈 차례(홈 카드 덱과 같음 · 형 11-06 00:28 「촉픽이 제일 전면 틈픽이 그 다음」)
       }
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
       const { rows: r, lookup } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
@@ -81,6 +86,7 @@ export function NewsList() {
         <ol className="nm-nlist-ol">
           {rows.map((row, i) => (
             <li key={row.key || row.urls?.[0] || i} className={i < 3 ? "top" : undefined}>   {/* 1~3위 = 번호·제목 라임(형 15:49) */}
+              <span className="pf" aria-hidden={!pickers(row).length || undefined} title={pickers(row).length ? `${pickers(row).join("·")} 픽` : undefined}>{pickers(row).map((w, j) => <span key={w} className="pf-i" style={{ zIndex: 9 - j }}><FaceImg id={w} size={16} /></span>)}</span>
               <span className="rk">{i + 1}</span>   {/* 차례 번호(순위 그대로면 1 · 6 · 7 띄엄 · 뎅 11-05 15:0x 실물) */}
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>
               <span className="mt">{row.src || ""}{row.at ? <em>{ago(row.at)}</em> : null}</span>
