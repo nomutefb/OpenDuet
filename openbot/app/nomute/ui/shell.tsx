@@ -7,7 +7,7 @@
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { TodoBar } from "./todo-bar";   // 밥상 할 일 띠(형 11-04 11:51)
-import { BodyBar } from "./body-bar";
+import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
 import { AttentionNotifier } from "@/components/bot-profile/attention";
@@ -295,7 +295,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
 function SplitSide() {
   return (
     <aside className="nm-split" aria-label="러너 · 뉴스">
-      <section className="nm-split-run" aria-label="러너"><BodyBar /><div className="nm-scroll"><RunnerScreen /></div></section>   {/* 맨 위 몸 줄(봄 · 형 11-05 13:2x) = 러너 칸 맨 위 24px */}
+      <section className="nm-split-run" aria-label="러너"><RunnerGauges /></section>   {/* 러너 기본정보 게이지(봄 · 형 11-05 13:37 「게이지로 축약」 · 「갬성이 떨어지면안되.」) · 다 보기 = 메뉴 러너 */}
       <section className="nm-split-news yeta-set" aria-label="뉴스"><NewsFeed /></section>
     </aside>
   );

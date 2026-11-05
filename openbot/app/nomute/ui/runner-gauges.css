@@ -1,0 +1,8 @@
+/* 러너 기본정보 게이지 판(ui/runner-gauges.tsx · 봄 11-05) — 위젯 판 그대로 어둡게 · 세 몸을 가로로 나란히(넓은 창 러너 칸 1.5/4) */
+.nm-rgx-panel { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:8px 4px; align-content:center; }
+.nm-rgx-host { min-width:0; padding:6px 10px 4px; }
+.nm-rgx-host + .nm-rgx-host { border-left:1px solid rgba(255,255,255,.07); }
+.nm-rgx-host .nm-rg-gauges { margin-top:4px; gap:2px; }
+.nm-rgx-host .nm-rg-gauge { max-height:96px; }
+.nm-rgx-dot { display:inline-block; width:7px; height:7px; border-radius:999px; flex:none; transition:background .4s, box-shadow .4s; }
+@media (max-width: 900px) { .nm-rgx-panel { grid-template-columns:1fr; } .nm-rgx-host + .nm-rgx-host { border-left:0; border-top:1px solid rgba(255,255,255,.07); } }
