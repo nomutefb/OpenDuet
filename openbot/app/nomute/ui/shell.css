@@ -133,7 +133,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 /* PC 얼굴 띠(형 11-05 15:31 「잠자고 있으면 채도 15%만 들어가게 해줘. 프로필 테두리 라인은 검정 챠콜 베이스 반투명으로 들어가고.」) — 자는 1:1 얼굴 = 채도 15% · 테 = 차콜 반투명(지금 방 = 밝은 회색) */
 .nm-split-root .nm-face { border-color:rgba(24,25,27,.6); }
 .nm-split-root .nm-face.on { border-color:rgba(232,234,232,.7); }
-.nm-split-root .nm-face.zz > img, .nm-split-root .nm-face.zz > span { filter:saturate(.15); }
+/* 자는 얼굴 흑백 걷음(형 11-05 16:56 「오케이 근데 애들 너무 초상집같아서 미안;;; ㅅ...색채는 살리자 애들 죽은거같애 ㅠㅠ」) = 색 그대로 · 테만 차콜 */
 /* 반갈 최소 폭(형 11-05 15:42 「줄어들면 대화 너비나, 우측 기사 너비가 우선 줄어들어야되고, 최소한으로 안줄어드는 너비가 존재해야해.」)
    = 창을 줄이면 대화 · 오른쪽(상태바·뉴스)이 반반씩 같이 줄다가 대화 360 · 오른쪽 376(봄 상태바 셋이 읽히는 최소 360 + 여백) 에서 멈춤 · 그보다 좁으면(860px 아래) 한 칸으로 */
 .nm-split-l { min-width:360px; }
