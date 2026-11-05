@@ -510,6 +510,21 @@ function FileTag({ f, m }: { f: { p: string; n: string; b: number; o?: boolean |
   const tag = [mb, ext, len, kind, read.length ? "읽음" : ""].filter(Boolean);
   return tag.length ? <span className="nm-ftag" title={read.length ? `읽은 이: ${read.join(" · ")}` : undefined}>{tag.map((t, i) => <span key={i} className={t === "읽음" ? "rd" : t === "원본" ? "og" : undefined}>{t}</span>)}</span> : null;
 }
+/** 영상 자막 알약(형 11-05 11:04 「채팅에 미리 떠있고, 그게 늦게 전달가도됨」 · 「자막이 좀 늦게 가도 괜찮아」)
+ *  = 영상은 바로 뜨고 밑에 「자막 만드는 중…」 → 받아쓰기 오면 그 자리에서 「자막」 펼침(서버 file_meta.transcript · transcript_state 'wait'|'done'|'fail' · 빠르 상주) */
+function Subs({ meta }: { meta?: { transcript?: string; transcript_state?: string } }) {
+  const [open, setOpen] = useState(false);
+  const st = meta?.transcript_state, tx = String(meta?.transcript || "").trim();
+  if (!st && !tx) return null;
+  if (st === "wait" && !tx) return <span className="nm-subs wait" role="status">자막 만드는 중…</span>;
+  if (!tx) return st === "fail" ? <span className="nm-subs fail">자막 못 만듦</span> : null;
+  return (
+    <div className="nm-subs-box">
+      <button type="button" className="nm-subs" aria-expanded={open} onClick={(e) => { e.stopPropagation(); setOpen((x) => !x); }}>{open ? "자막 접기" : "자막"}</button>
+      {open ? <p className="nm-subs-tx">{tx}</p> : null}
+    </div>
+  );
+}
 /** 못 그린 그림·영상 = 빈칸(0x0) 대신 이름 + 「못 불러왔어」 · 누르면 원본 주소(형 11-05 06:14 「애들이 보낸 영상 사진 안들어와」) */
 function Broken({ f, kind }: { f: { p: string; n: string }; kind: string }) {
   return (
@@ -539,7 +554,7 @@ function Files({ m }: { m: Msg }) {
         </div>
       ) : null}
       {vids.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="영상" /> : (
-        <div key={f.p} className="relative"><video src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /><FileTag f={{ ...f, d: dur[f.p] }} m={m} /></div>
+        <div key={f.p} className="relative"><video src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /><FileTag f={{ ...f, d: dur[f.p] }} m={m} /><Subs meta={meta.get(f.p) as { transcript?: string; transcript_state?: string } | undefined} /></div>
       ))}
       {rest.map((f) => (
         <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 hover:bg-foreground/5">

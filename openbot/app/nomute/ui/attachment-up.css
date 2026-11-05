@@ -64,3 +64,10 @@
 /* 대화창 끌어다 놓기(office-chat · 형 11-05 10:45) = 놓을 자리 라임 테두리 + 한 줄 */
 .ychat.ydrop { outline:2px dashed var(--accent, #CFFF40); outline-offset:-6px; border-radius:18px; }
 .ychat.ydrop::after { content:"여기에 놓으면 첨부"; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); padding:8px 14px; border-radius:999px; background:rgba(0,0,0,.7); color:var(--accent, #CFFF40); font-size:13px; font-weight:700; font-style:italic; pointer-events:none; z-index:5; }
+/* 영상 자막 알약(office-chat Subs · 형 11-05 11:04) = 영상 밑 작은 알약 · 기울임 · 만드는 중엔 숨쉬듯 */
+.nm-subs { display:inline-flex; margin-top:6px; padding:2px 10px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); background:rgba(0,0,0,.35); color:var(--fg, #E7ECE7); font-size:11px; font-weight:700; font-style:italic; cursor:pointer; }
+.nm-subs.wait { color:var(--accent, #CFFF40); cursor:default; animation:nmSubsBreath 1.6s ease-in-out infinite; }
+.nm-subs.fail { color:#ffb3b5; cursor:default; }
+.nm-subs-tx { max-width:260px; margin:6px 0 0; padding:8px 10px; border-radius:12px; background:rgba(0,0,0,.35); font-size:12px; line-height:1.55; white-space:pre-wrap; }
+@keyframes nmSubsBreath { 50% { opacity:.45; } }
+@media (prefers-reduced-motion: reduce) { .nm-subs.wait { animation:none; } }
