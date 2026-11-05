@@ -85,7 +85,7 @@ function merge(local: Record<string, StatusRow[]>, srv?: StatusCat[]): StatusCat
   });
 }
 const worst = (rows: StatusRow[]): HealthSt => { const all = rows.flatMap((r) => [r.st, ...Object.values(r.cells || {}).map((x) => x.st)]); return all.includes("miss") ? "miss" : all.includes("late") ? "late" : all.length && all.every((x) => x === "ok" || x === "off") ? "ok" : "unknown"; };
-const count = (rows: StatusRow[], st: HealthSt) => rows.reduce((n, r) => n + (r.st === st ? 1 : 0) + Object.values(r.cells || {}).filter((x) => x.st === st).length, 0);
+const count = (rows: StatusRow[], st: HealthSt) => rows.reduce((n, r) => { const cs = Object.values(r.cells || {}); return n + (cs.length ? cs.filter((x) => x.st === st).length : r.st === st ? 1 : 0); }, 0);   // 칸 있는 줄 = 칸만 셈(줄 불은 칸에서 나온 것 · 두 번 세지 않음)
 const daysKo = (d?: number) => (d === undefined ? "" : d < 1 ? `${Math.max(0, Math.round(d * 24))}시간 남음` : `${Math.floor(d)}일 남음`);
 const nextKo = (ts?: number) => (ts ? `다음 ${new Date(ts).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}` : "");
 
