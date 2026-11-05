@@ -141,3 +141,12 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 /* PC 「생각 중」 말풍선 = 또렷하게(형 11-05 15:48 「그리고 이거 흐릿하게 보여버린다.」 · 그림 = 점 셋 말풍선) */
 .nm-split-root .ychat .ymsg.ytyp .yb.ai { background:#2a2d31 !important; border-color:rgba(255,255,255,.14) !important; opacity:1 !important; }
 .nm-split-root .ychat .ytdots i { background:#e6e9e6; }
+/* PC 고침 셋(형 11-05 16:27~16:28)
+   ① 왼쪽 얼굴 띠가 창 전체 3D 바탕(.nm-split-l .nm-app-ambient · fixed)에 덮여 빈칸으로 보이던 것(형 「그리고 좌측에 여기 프로필 아직도 안들어옴」) = 띠를 바탕 위 층으로
+   ② 위 메뉴 줄 = 50px · 창 가로로 줄 하나 쭉(형 「그리고 상단에는 탭부분이 들어올거야. 일단은 맥처럼 느낌 살리면 되는거니까 일단은 상단 라인을 구축을해 예: 50 까지는 메뉴라인. 그래서 쭉 아예 그어」)
+   ③ 실시간 뉴스 = 계기판에서 조금 떨어져 시작(형 「그리고 실시간 뉴스 너무 올라갔어. 그리고 어짜피 우하단에는 뉴스 요약 부분이 나올거라서.」) */
+.nm-split-root .nm-strip { position:relative; z-index:2; }
+.nm-split-root { padding-top:50px; }
+.nm-split-l .ynav { height:50px; padding:0 14px; border-bottom:1px solid rgba(255,255,255,.09); }
+.nm-split-l .ynav button { height:30px; font-size:12px; }
+.nm-split-news { margin-top:14px; }
