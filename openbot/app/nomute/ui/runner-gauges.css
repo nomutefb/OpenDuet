@@ -7,3 +7,5 @@
 @media (max-width: 520px) { .nm-rgx-host header .text-muted-foreground { display:none; } }
 .nm-rgx-g { display:block; margin:3px 0 0 2px; font-size:9px; line-height:1.2; letter-spacing:.02em; color:#8A8A8A; font-variant-numeric:tabular-nums; white-space:nowrap; }   /* GPU 온도 = 이름 밑 줄(띄우지 않음 · 폭이 줄어도 게이지와 안 겹침 · 형 16:27) */
 @container (max-width: 150px) { .nm-rgx-host header .text-muted-foreground { display:none; } .nm-rgx-host .nm-rg-name { font-size:11px; } }   /* 몸 칸이 좁으면 「n분 전」 숨김 */
+
+.nm-rgx .nm-rg-name { color:var(--accent, #D4FF3A); }   /* 몸 이름 = 라임(형 16:57 「win a win b mac 이거는 라임으로!」) */
