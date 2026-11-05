@@ -22,7 +22,7 @@ import { useChannelEvents } from "@/lib/channels/use-channel-events";
 import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
 import { RunnerScreen } from "../runner/runner-screen";
-import { NewsFeed } from "../home/news-feed";   // PC 반갈 아래 칸 = 홈 실시간 뉴스 카드 그대로(형 11-05 13:37)
+import { NewsList } from "../home/news-list";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
 import { SchedDesk } from "./sched-desk";
 import { StatusBoard } from "./status-board";
 import { DrawerPage } from "./drawer-page";
@@ -201,7 +201,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const M = modal ? MODALS.find((x) => x.id === modal) : undefined;
   return (
     <ChatPresenceProvider serverWork={serverWork}>
-      <div className="duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface">
+      <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}`}>
         <AttentionNotifier />
         <FinishedForYou />
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} /> : null}
@@ -296,7 +296,7 @@ function SplitSide() {
   return (
     <aside className="nm-split" aria-label="러너 · 뉴스">
       <section className="nm-split-run" aria-label="러너"><RunnerGauges /></section>   {/* 러너 기본정보 게이지(봄 · 형 11-05 13:37 「게이지로 축약」 · 「갬성이 떨어지면안되.」) · 다 보기 = 메뉴 러너 */}
-      <section className="nm-split-news yeta-set" aria-label="뉴스"><NewsFeed /></section>
+      <section className="nm-split-news" aria-label="뉴스"><NewsList /></section>   {/* PC = 그림 없는 제목 목록(형 11-05 14:39 「pc판은 아예 뉴스에 아예 그림안뜨게 컴팩트하게 타이틀만」) · 폰 홈은 카드 덱 그대로 */}
     </aside>
   );
 }

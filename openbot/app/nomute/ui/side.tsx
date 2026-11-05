@@ -8,7 +8,7 @@ import { appConfig } from "@/lib/generated/application-config";
 import { office } from "../data/office";
 import { RoomList } from "./room-list";
 
-const WIDE = "(min-width: 768px)";
+const WIDE = "(min-width: 768px), (min-aspect-ratio: 1/1)";   // 형 11-05 14:43 「좌측에는 그 애들나오는거 그대로 유지할거야. 그거는 어떤 비율에서도 나오게해줘 1:1이상이면」 = 가로가 세로 이상이면 폭과 상관없이 왼쪽 얼굴 띠
 const wideNow = () => typeof window !== "undefined" && window.matchMedia(WIDE).matches;
 const onWide = (cb: () => void) => { const m = window.matchMedia(WIDE); m.addEventListener("change", cb); return () => m.removeEventListener("change", cb); };
 /** 넓은 화면(PC)인가 — 창 너비가 바뀌면 바로 따라감 */

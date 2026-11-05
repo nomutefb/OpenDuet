@@ -103,10 +103,17 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-news iframe { flex:1; width:100%; height:100%; border:0; }
 .nm-split-news > section { flex:1 1 auto; }   /* 뉴스 카드 덱(home/news-feed.tsx section)이 칸 높이를 다 쓰게 — 홈에선 grid 1fr 줄이 늘려 주던 것 · 반갈 첫 판 실물(9222 · 13:47) 덱 150px 로 쪼그라짐 */
 /* 반갈일 때 아래 네비 = 창 가로 전체(형 11-05 14:14 「그리고 하단 네비를 길게 늘여뜨려보자」) — 왼쪽 얼굴 띠(64px) 다음부터 오른쪽 끝까지 · 단추는 고르게 · 오른쪽 칸 바닥은 네비 몫만큼 비움 */
-.nm-split-l .ynav { position:fixed; left:72px; right:8px; width:auto; max-width:none; margin-inline:0; justify-content:space-evenly; }
-.nm-split { padding-bottom:calc(72px + env(safe-area-inset-bottom)); }
 /* 반갈 한 톤(형 11-05 14:29 「근데 우측하고 통일감이 없어서 마음에 안들어」 · 14:30 「한톤으로 구성되어 있되, 배경은 하나고 구분감만 있으면 좋겠음...」)
    = 라임 3D 바탕(.nm-app-ambient)을 창 전체로 한 장 깔고 · 오른쪽 반은 판 없이 그 위에 · 뉴스 칸만 대화 말풍선과 같은 옅은 유리 · 가운데 가는 금 하나로만 나눔 */
 .nm-split-l .nm-app-ambient { position:fixed; inset:0; }
 .nm-split { background:transparent; padding-left:8px; border-left:1px solid color-mix(in srgb, var(--duet-ink) 8%, transparent); }
-.nm-split > section.nm-split-news { background:color-mix(in srgb, var(--duet-surface) 42%, transparent); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border:1px solid color-mix(in srgb, var(--duet-ink) 7%, transparent); }
+.nm-split > section.nm-split-news { background:transparent; padding:0; }   /* 뉴스 칸 유리 = 목록 자체(../home/news-list.css · 잿빛 블랙 반투명) */
+
+/* PC 블랙 톤 · 맥북 메뉴 막대(형 11-05 14:41 「라임느낌을 그리고 아예 빼버리고, 블랙 톤으로만 갈게. 사무실에서는 안튀는게 나은듯.」 · 14:42 「뒤에 배경도 그냥 다 뺌. 뉴스 나오는 카드칸도 투명하고, 블랙은 뒤에 라임 저 불빛을 검정불빛으로해버려」 · 「아니면 상단을 살짝 미니 태블릿 느낌으로 네비를 없애버리셈, 그 맥북 상단에 그 알림바잇잖아?」 · 「그 느낌으로 살려버리자」) */
+.nm-split-l .nm-app-ambient { --modern-bias-l1:#4b4d4b; --modern-bias-l2:#161716; --modern-space-hi-rgb:36,37,36; }
+.nm-split-root { padding-top:28px; }
+.nm-split-l .ynav { position:fixed; top:0; bottom:auto; left:0; right:0; width:auto; max-width:none; height:28px; margin:0; padding:0 10px; border-radius:0; justify-content:center; gap:2px;
+  background:rgba(14,14,16,.62); -webkit-backdrop-filter:blur(20px) saturate(120%); backdrop-filter:blur(20px) saturate(120%); border:0; border-bottom:1px solid rgba(255,255,255,.06); box-shadow:none; }
+.nm-split-l .ynav button { height:22px; padding:0 10px; font-size:11.5px; border-radius:6px; color:rgba(232,234,232,.62); }
+.nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#f2f3f2; background:rgba(255,255,255,.08); border-color:transparent; box-shadow:none; }
+.nm-split-l .ynav svg { width:15px; height:15px; }
