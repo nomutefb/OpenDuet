@@ -1,6 +1,5 @@
-/* 러너 기본정보 계기판(ui/runner-gauges.tsx · cluster-dial.tsx · 봄 11-05 · 형 13:55 자동차 계기판 그림) — 까만 판 · 세 몸 가로(넓은 창 러너 칸 1.5/4) */
-.nm-rgx-panel { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:10px 6px; align-content:center;
-  background:radial-gradient(120% 90% at 50% 110%, rgba(var(--accent-rgb, 212,255,58),.06), transparent 60%), #070707; box-shadow:inset 0 0 0 1px rgba(255,255,255,.05), inset 0 -30px 60px rgba(0,0,0,.6); }
+/* 러너 기본정보 계기판(ui/runner-gauges.tsx · cluster-dial.tsx · 봄 11-05 · 형 13:55 자동차 계기판 그림) — 판 없이 계기판만 · 세 몸 가로(넓은 창 러너 칸 1.5/4) */
+.nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:2px 0; align-content:center; background:transparent; box-shadow:none; border-radius:0; }   /* 판 없음 = 선반 위에 시계만(형 14:08 「투명하게 한다음에 · 위에 그냥 시계 올려놓은거처럼 · 선반위에」) */
 .nm-rgx-host { min-width:0; padding:4px 6px 2px; display:flex; flex-direction:column; }
 .nm-rgx-host header { padding:0 6px; }
 .nm-cd { display:block; width:100%; height:auto; max-height:100%; overflow:visible; margin-top:2px; }

@@ -31,7 +31,7 @@ export function RunnerGauges() {
   const now = useNow();
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
   return (
-    <div className="nm-rg nm-rgx flex h-full min-h-0 flex-col p-2" aria-label="러너 기본정보">
+    <div className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보">   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
       <div className="nm-rg-panel nm-rgx-panel">
         {HOSTS.map((h) => {
           const a = hw.find((r) => r.key === h.k), b = hw.find((r) => r.key === `${h.k}-temp`);

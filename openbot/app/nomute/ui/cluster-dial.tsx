@@ -28,7 +28,7 @@ function Dial({ cx, cy, r, v, lv, label, sub, nums, big, sweep = SW_BIG }: DialP
   const [nx, ny] = pol(cx, cy, r - (big ? 11 : 8), ang(v ?? 0)), [tx, ty] = pol(cx, cy, r * (big ? 0.5 : 0.52), ang(v ?? 0));   // 바늘 = 바깥 테만(가운데 큰 수를 안 가림 · 요즘 계기판 꼴)
   return (
     <g>
-      <circle cx={cx} cy={cy} r={r + 3} fill="#0A0A0A" />   {/* 겹칠 때 뒤 원을 가리는 판 */}
+      <circle cx={cx} cy={cy} r={r + 3} fill="#0A0A0A" fillOpacity={0.92} style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,.45))" }} />   {/* 계기판 얼굴(겹칠 때 뒤 원을 가림) · 선반 위 시계처럼 그림자 */}
       <circle cx={cx} cy={cy} r={r + 1.5} fill="none" stroke="rgba(255,255,255,.22)" strokeWidth={big ? 1.6 : 1.2} />
       {big ? <circle cx={cx} cy={cy} r={r - 14} fill="none" stroke="rgba(255,255,255,.05)" strokeWidth={10} /> : null}
       <path d={arc(cx, cy, r - 1, 90, 100)} stroke={LV.red} strokeWidth={big ? 3.2 : 2.6} fill="none" />
