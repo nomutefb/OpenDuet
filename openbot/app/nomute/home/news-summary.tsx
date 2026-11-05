@@ -6,7 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { getJson, newsListQuery, useGo, whenOf } from "../ui/news-data";
 import { cleanTitle } from "./title-clean";
 
-type QItem = { id?: string; t?: number; title?: string; status?: string; tries?: number };
+type QItem = { id?: string; t?: number; title?: string; key?: string; alt1?: string; status?: string; tries?: number };
+const LIVE = new Set(["processing", "retry", "queued", "pending", "failed", "error"]);   // 대기열에 보일 것 = 아직 안 끝난 것 · 실패(「succ」·done 같은 끝난 것 = 뺌 · 실물 17:3x)
 const ST: Record<string, string> = { processing: "요약 중", retry: "다시 시도", queued: "기다림", pending: "기다림", failed: "실패", error: "실패" };
 const N_DONE = 12, FRESH_MS = 30 * 60_000;
 
@@ -15,7 +16,7 @@ export function NewsSummary() {
   const pend = useQuery({
     queryKey: ["nomute", "split-pending"], staleTime: 15_000,
     refetchInterval: (q) => ((q.state.data || []).some((it) => it.status === "processing" || it.status === "retry") ? 15_000 : 45_000),
-    queryFn: () => getJson<{ items?: QItem[] }>(`/api/pending?_=${Date.now()}`).then((d) => (d.items || []).filter((it) => it && it.status && it.status !== "done" && it.status !== "deleted").slice(0, 4), () => [] as QItem[]),
+    queryFn: () => getJson<{ items?: QItem[] }>(`/api/pending?_=${Date.now()}`).then((d) => (d.items || []).filter((it) => it && LIVE.has(String(it.status))).slice(0, 4), () => [] as QItem[]),
   });
   const list = useQuery(newsListQuery);
   const done = (Array.isArray(list.data?.arts) ? list.data!.arts : []).slice(0, N_DONE);   // newsListQuery = { arts, count, generated }(배열 아님 · 17:2x 판에서 앱 통째로 깨짐)
@@ -27,7 +28,7 @@ export function NewsSummary() {
         <ul className="nm-nsum-q">
           {q.map((it, i) => (
             <li key={it.id || i} className={it.status === "processing" ? "run" : it.status === "failed" || it.status === "error" ? "bad" : ""}>
-              <i aria-hidden /><span className="tt">{cleanTitle(it.title) || "제목 없음"}</span><span className="st">{ST[it.status || ""] || it.status}</span>
+              <i aria-hidden /><span className="tt">{cleanTitle(it.title || it.alt1 || it.key) || "제목 없음"}</span><span className="st">{ST[it.status || ""] || it.status}</span>
             </li>
           ))}
         </ul>

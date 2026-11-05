@@ -9,7 +9,7 @@
 import { TodoBar } from "./todo-bar";   // 밥상 할 일 띠(형 11-04 11:51)
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Component, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
 import { AttentionNotifier } from "@/components/bot-profile/attention";
 import { DuetIcon } from "@/components/duet/icons";
 import { useTabSpace } from "@/components/shell/app-shell";
@@ -295,12 +295,20 @@ export function NomuteShell({ children }: { children: ReactNode }) {
 /** PC 반갈 오른쪽 반(형 11-05 13:26 그림 · 13:36 「가로 16 이야. 그러면 8 8 구성」 · 「4*4로 나눈다고 가정」 · 「2*4는 (좌측) 은 다 대화고」 · 「1*4 1행 ~ 1.5 는 러너 기본정보(… 게이지로 축약해서)」 · 「근데 갬성이 떨어지면안되.」 · 「나머지 3~2.5 를 실시간 뉴스 카드로.」)
  *  위 1.5/4 = 2 러너(맨 위 몸 줄 + 러너 판 게이지) · 아래 2.5/4 = 3 실시간 뉴스 카드(홈 카드 덱 그대로 · 「전송」 = 그 기사 요약 요청 · 형 13:38 「전송하면 그 아래에 요약 대기열 … 근데 거기까지 안바래」)
  *  러너 위젯(PC 바탕화면)은 내림(형 13:23 「그럼냅다치우고」 · 윈A CPU 1등) — 여기 한 창에 대화 · 러너 · 뉴스가 같이 있어 창이 따로 놀지 않음(형 13:20 「근데 창이 다 따로놀아;;ㅠㅠ」) */
+/** 반갈 칸 울타리 — 한 칸이 깨져도 앱 전체(「Something went wrong!」)로 번지지 않게 그 칸만 한 줄로(17:2x 뉴스 요약 칸이 앱을 통째로 깨뜨린 것 뒤) */
+class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: boolean }> {
+  state = { bad: false };
+  static getDerivedStateFromError() { return { bad: true }; }
+  componentDidCatch(e: unknown) { console.error("반갈 칸 깨짐:", this.props.name, e); }
+  render() { return this.state.bad ? <p style={{ margin: 0, padding: "12px 14px", fontSize: 12, color: "rgba(232,234,232,.55)" }}>{this.props.name} 칸을 못 그렸어 — 새로고침하면 다시 해 봐.</p> : this.props.children; }
+}
+
 function SplitSide() {
   return (
     <aside className="nm-split" aria-label="러너 · 뉴스">
-      <section className="nm-split-run" aria-label="러너"><RunnerGauges /></section>   {/* 러너 기본정보 게이지(봄 · 형 11-05 13:37 「게이지로 축약」 · 「갬성이 떨어지면안되.」) · 다 보기 = 메뉴 러너 */}
-      <section className="nm-split-news" aria-label="뉴스"><NewsList /></section>
-      <section className="nm-split-sum" aria-label="뉴스 요약"><NewsSummary /></section>   {/* 우하단 = 요약 대기열 + 다 된 요약(형 11-05 16:27 「어짜피 우하단에는 뉴스 요약 부분이 나올거라서」 · 13:38 「전송하면 그 아래에 요약 대기열 올라오고, 다되면, 모달로 뉴스 요약본」) */}   {/* PC = 그림 없는 제목 목록(형 11-05 14:39 「pc판은 아예 뉴스에 아예 그림안뜨게 컴팩트하게 타이틀만」) · 폰 홈은 카드 덱 그대로 */}
+      <section className="nm-split-run" aria-label="러너"><PaneGuard name="러너"><RunnerGauges /></PaneGuard></section>   {/* 러너 기본정보 게이지(봄 · 형 11-05 13:37 「게이지로 축약」 · 「갬성이 떨어지면안되.」) · 다 보기 = 메뉴 러너 */}
+      <section className="nm-split-news" aria-label="뉴스"><PaneGuard name="실시간 뉴스"><NewsList /></PaneGuard></section>
+      <section className="nm-split-sum" aria-label="뉴스 요약"><PaneGuard name="뉴스 요약"><NewsSummary /></PaneGuard></section>   {/* 우하단 = 요약 대기열 + 다 된 요약(형 11-05 16:27 「어짜피 우하단에는 뉴스 요약 부분이 나올거라서」 · 13:38 「전송하면 그 아래에 요약 대기열 올라오고, 다되면, 모달로 뉴스 요약본」) */}   {/* PC = 그림 없는 제목 목록(형 11-05 14:39 「pc판은 아예 뉴스에 아예 그림안뜨게 컴팩트하게 타이틀만」) · 폰 홈은 카드 덱 그대로 */}
     </aside>
   );
 }
