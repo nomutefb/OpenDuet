@@ -15,12 +15,14 @@ type Cat = { id: string; rows: Row[] };
 type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp?: number };
 
 const HOSTS: { k: string; pc: string; label: string }[] = [{ k: "윈A", pc: "A", label: "WIN A" }, { k: "윈B", pc: "B", label: "WIN B" }, { k: "맥", pc: "M", label: "MAC" }];
-const LIME = "var(--accent, #D4FF3A)";   // 경고 = 라임(형 15:44 「온도가 주황색 이상되면 라임색으로 보이게, 게이지도 주황색 이상되면 라임색」)
-const DOT: Record<Level, string> = { green: "#D9D9D9", yellow: "#D9D9D9", orange: LIME, red: LIME, off: "#5C5C5C" };
-const HOT = 80;   // 온도 주황 단계(위젯 단계 = 노랑 70 · 주황 80 · 빨강 90 · 온도도 같은 금)
-const tInk = (t?: number) => (t != null && t >= HOT ? LIME : undefined);
-// 블랙 톤(형 14:41 「라임느낌을 그리고 아예 빼버리고, 블랙 톤으로만」) = 평소 흰·회색 · 70/80/90 넘을 때만 노랑·주황·빨강(경고는 보여야 해서)
-const MONO = (lv: Level) => (lv === "off" ? "#5C5C5C" : lv === "orange" || lv === "red" ? LIME : "#E6E6E6");   // 평소(초록·노랑) = 흰 · 주황 이상 = 라임
+// 색(형 17:3x 「노란색, 주황색, 빨간색 그거는 그대로 유지할게, 평상시에는 흰색이면됨」) = 평소 흰 · 70/80/90 = 노랑·주황·빨강(위젯 단계 그대로) · 온도 80 주황 · 85 빨강
+const WARN: Record<Level, string> = { green: "#E6E6E6", yellow: "#FFD23F", orange: "#FF9F43", red: "#FF5A5F", off: "#5C5C5C" };
+const MONO = (lv: Level) => WARN[lv];
+const tInk = (t?: number) => (t == null ? undefined : t >= 85 ? WARN.red : t >= 80 ? WARN.orange : undefined);
+// 러너 불(형 17:3x 「러너 아래에 애들 아이콘 아래에 각각 좀 나오게 해줘, 꺼질때는 불 꺼져잇으면돼」) = 맥 몸 보고 hw 「러너」 줄 칸(gh api 그대로 · 5분) · 몸마다 이름 앞머리로 나눔
+const RUNNERS: Record<string, (n: string) => boolean> = { 윈A: (n) => n.startsWith("nomute-win-"), 윈B: (n) => n.startsWith("nomute-b-") || n.startsWith("nomute-office"), 맥: (n) => n.startsWith("mac-") };
+const short = (n: string) => n.replace(/^nomute-win-/, "").replace(/^nomute-b-/, "B").replace(/^nomute-office-?/, "O").replace(/^mac-/, "M");
+const rnum = (n: string) => Number((n.match(/\d+$/) || ["0"])[0]);
 const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 90 ? "방금" : s < 5400 ? `${Math.round(s / 60)}분 전` : `${Math.round(s / 3600)}시간 전`; };
 
 /** 1분마다 지금 — 「N분 전」 글만 움직임. */
@@ -35,6 +37,7 @@ export function RunnerGauges() {
   const rq = useRunner();
   const now = useNow();
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
+  const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
   return (
     <div className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보">   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
       <div className="nm-rg-panel nm-rgx-panel">
@@ -53,16 +56,20 @@ export function RunnerGauges() {
           const at = a && !a.stale ? a.reported_at || 0 : rd ? rd.at * 1000 : 0;
           const busy = rd && num(rd.busy) != null && rd.busy! >= 0 ? rd.busy : null, total = rd && num(rd.total) != null && rd.total! >= 0 ? rd.total : null;
           const temp = [m.cpu_temp != null ? `CPU ${Math.round(m.cpu_temp)}°` : "", m.gpu_temp != null ? `GPU ${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ");
+          const runners = Object.entries(rcells).filter(([n]) => RUNNERS[h.k]?.(n)).sort((x, y) => rnum(x[0]) - rnum(y[0]));
           return (
-            <section key={h.k} className="nm-rgx-host" aria-label={`${h.label} 상태`}>
-              <header className="flex items-center gap-1.5 text-[11px] tabular-nums">
-                <i aria-hidden className="nm-rgx-dot" style={{ background: DOT[lv], boxShadow: lv !== "orange" && lv !== "red" ? "none" : `0 0 8px ${DOT[lv]}` }} />
-                <b className="nm-rg-name">{h.label}</b>
-                {busy != null ? <span className="text-muted-foreground" title="도는 잡 / 자리">잡 {busy}/{total ?? "-"}</span> : null}
-                <span className="ml-auto text-muted-foreground">{none ? (a?.stale ? "보고 끊김" : "숫자 없음") : at ? ago(now - at) : ""}</span>
-              </header>
-              <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>{m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : "\u00a0"}</span>   {/* 형 15:44 「gpu 라는 말 빼고 좌상단에 온도만 · G 45도씨 W 아래에 · 66도시 랑 같은 크기 · 지피유 퍼센트는 뺄게」 */}
-              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} />   {/* 형 15:29 그림 = 온도는 위 빈 곳으로 · 「CPU」 글자 뺌 */}
+            <section key={h.k} className="nm-rgx-host" aria-label={`${h.label} 상태`}>   {/* 위에서부터 가운데로 = 이름 · G 온도 · (틈) · 게이지 · 러너 불(형 17:3x 「각각 게이지 바로 수직 위에다가 하드웨어 이름」 · 「블릿은 없어도」 · 「그래픽카드 온도도 그대로 수직위로」 · 「게이지랑딱붙으면 안이쁘니까」) */}
+              <b className="nm-rg-name nm-rgx-name">{h.label}</b>
+              <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>{m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : none && a?.stale ? "보고 끊김" : "\u00a0"}</span>
+              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} />
+              {runners.length ? (
+                <ul className="nm-rgx-runs" aria-label={`${h.label} 러너`}>
+                  {runners.map(([n, c]) => {
+                    const on = c.st === "🟢", work = on && c.note === "일하는 중";
+                    return <li key={n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${n} · ${on ? c.note || "켜짐" : c.note || "꺼짐"}`}>{short(n)}</li>;
+                  })}
+                </ul>
+              ) : null}
               {temp ? <span className="sr-only">{temp}</span> : null}
             </section>
           );

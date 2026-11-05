@@ -1,11 +1,10 @@
-/* 러너 상태바(ui/runner-gauges.tsx · 봄 11-05) — 날씨 위젯 같은 잿빛 블랙 유리 카드 하나(형 14:40 「날씨 위젯처럼 러너상태바」 · 「쟂빛블랙 반투명에 살짝 글래스모피즘」) · 세 몸 가로 · 높이 = 제 키 */
-.nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:6px 0 4px; border-radius:0; background:transparent; box-shadow:none; color:#E6E6E6; }   /* 판·칸 없이 그려지기만(형 16:27 「뒤에 블록 3개 … 굳이 블롯 3개 잇을필요없어. 그냥 그려지면될듯」) */
-.nm-rgx-host { position:relative; min-width:0; container-type:inline-size; padding:0 8px; display:flex; flex-direction:column; align-items:stretch; }
-.nm-rgx-host header { padding:0 2px; }
-.nm-rgx-host .nm-rg-gauge { max-height:92px; margin:2px auto -20px; }   /* 아래 이름 칸(빈) 만큼 당김 */
-.nm-rgx-dot { display:inline-block; width:6px; height:6px; border-radius:999px; flex:none; transition:background .4s; }
-@media (max-width: 520px) { .nm-rgx-host header .text-muted-foreground { display:none; } }
-.nm-rgx-g { display:block; margin:3px 0 0 2px; font-size:9px; line-height:1.2; letter-spacing:.02em; color:#8A8A8A; font-variant-numeric:tabular-nums; white-space:nowrap; }   /* GPU 온도 = 이름 밑 줄(띄우지 않음 · 폭이 줄어도 게이지와 안 겹침 · 형 16:27) */
-@container (max-width: 150px) { .nm-rgx-host header .text-muted-foreground { display:none; } .nm-rgx-host .nm-rg-name { font-size:11px; } }   /* 몸 칸이 좁으면 「n분 전」 숨김 */
-
-.nm-rgx .nm-rg-name { color:var(--accent, #D4FF3A); }   /* 몸 이름 = 라임(형 16:57 「win a win b mac 이거는 라임으로!」) */
+/* 러너 상태바(ui/runner-gauges.tsx · 봄 11-05) — 판·칸 없이 세 몸 가로 · 몸마다 가운데로 이름 · G 온도 · 게이지 · 러너 불 · 높이 = 제 키 */
+.nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:6px 0 4px; border-radius:0; background:transparent; box-shadow:none; color:#E6E6E6; }   /* 형 16:27 「그냥 그려지면될듯」 */
+.nm-rgx-host { position:relative; min-width:0; padding:0 6px; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.nm-rgx .nm-rgx-name { color:var(--accent, #D4FF3A); font-size:13px; letter-spacing:.06em; line-height:1.2; }   /* 몸 이름 = 라임(형 16:57) · 게이지 바로 위 가운데(형 17:3x) */
+.nm-rgx-g { display:block; margin-top:2px; font-size:9px; line-height:1.2; letter-spacing:.02em; color:#8A8A8A; font-variant-numeric:tabular-nums; white-space:nowrap; }   /* GPU 온도 = 이름 밑 · 같은 세로줄 */
+.nm-rgx-host .nm-rg-gauge { width:100%; max-height:88px; margin:12px auto -22px; }   /* 위 틈 12px · 이름이 더 위로(형 17:4x 「조금 하드웨어 이름이 더 위로 가야될수도」)(형 「게이지랑딱붙으면 안이쁘니까」) · 아래 빈 이름 칸만큼 당김 */
+.nm-rgx-runs { list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:3px; margin:4px 0 0; padding:0; }
+.nm-rgx-run { min-width:16px; height:14px; padding:0 3px; border-radius:4px; font-size:8.5px; line-height:14px; font-variant-numeric:tabular-nums; color:#4A4A4A; background:rgba(255,255,255,.04); box-shadow:inset 0 0 0 1px rgba(255,255,255,.06); transition:color .4s, background .4s, box-shadow .4s; }   /* 꺼짐 = 불 꺼짐 */
+.nm-rgx-run.on { color:#E6E6E6; background:rgba(255,255,255,.10); box-shadow:inset 0 0 0 1px rgba(255,255,255,.22), 0 0 6px rgba(255,255,255,.18); }   /* 켜짐 = 흰 불 */
+.nm-rgx-run.work { color:#0A0A0A; background:#E6E6E6; box-shadow:0 0 8px rgba(255,255,255,.45); }   /* 일하는 중 = 꽉 찬 흰 불 */
