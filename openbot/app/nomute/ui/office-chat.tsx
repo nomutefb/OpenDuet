@@ -897,7 +897,7 @@ function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: O
   // 우리(클로드 · kind being·winter) = 다른 방 일로 늘 「깸」이라 깸 표를 안 봄 → 부른 뒤 2분(PICKUP_WAIT)만 점 셋 · 봇 = 깸이 곧 그 부름이라 그대로(형 11-06 11:35 「그리고이거 생각중 아직해결안됨. 색깔별로 해결하려고했다면 그거아님」 · 봄 짚음 = 45분 내내 떴음)
   //   → 11-06 12:48 형 「아직도 생각중 이라고 뜬다 글자가 꺼져야된다구!」 · 「쉼이면!」 = 우리도 깸 표(턴 도는 중)를 봄 · 쉼(asleep)이면 바로 끔 · 부른 뒤 아직 안 쓴 동안만(45분 안)
   const ours = (n: string) => { const k = people.find((p) => p.who === n)?.kind as string | undefined; return k === "being" || k === "winter"; };
-  const awake = (n: string, since = 0) => bots.some((b) => b.who === n && b.state === "awake" && b.why !== "read" && (b.last_turn_ts ?? 0) >= since - 5_000);   // since = 부른 글 때 · 그 뒤에 시작한 턴만(다른 방 일 턴 = 아님 · 봄 12:50)
+  const awake = (n: string, since = 0) => bots.some((b) => b.who === n && b.state === "awake" && b.why === "turn" && (b.last_turn_ts ?? 0) >= since - 5_000);   // why turn = 훅이 찍은 「working」(턴 끝 = idle · 봄 12:51)   // since = 부른 글 때 · 그 뒤에 시작한 턴만(다른 방 일 턴 = 아님 · 봄 12:50)
   const doing = (n: string) => awake(n);
   const woke = (m: Msg, n: string) => (m.urgent || []).includes(n);   // 2분 = 바로 깨운 부름만 · 「@」 예약 = 다음 깸이라 점 안 돎(형 10-31 「@는 나중에 봐놔라.」)
   if (!r) return [];
