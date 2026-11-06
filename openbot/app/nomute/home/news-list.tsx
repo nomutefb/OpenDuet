@@ -22,7 +22,7 @@ const pickers = (x: Row) => [...new Set((x.picks || []).map((p) => { const b = S
 // 맨 위 고정 칸 = 촉 픽 → 틈 픽(형 11-06 00:28 「촉픽이 제일 전면 틈픽이 그 다음」 · 06:44 「촉픽은 교대하고 같이 바꾸자」 · 봄 안 11-05 17:59 「오른쪽 실시간 뉴스 맨 위에 「촉픽」 칸 고정 (뉴스 순위표랑 안 섞음 · 최근 3건)」)
 //   재료 = /api/trends?f=picks(봄 · editor#2643 · 틈 장부 줄 = sent:true) · 순위표에 없는 기사여도 뜸(어젯밤 틈 픽이 안 켜진 까닭 = 순위표에 있을 때만 얼굴을 붙였음 · 봄 10:58)
 //   차례 = 촉(최근 판 순위 차례) 둘 → 틈(최근 것) 하나 · 같은 기사 = 한 번 · PICK_WINDOW 넘은 픽 = 뺌
-type Pick = { by?: string; title?: string; title_clean?: string; urls?: string[]; url?: string; at?: string; score?: number | null; rank?: number | null; why?: string; keyword?: string; summary?: string };
+type Pick = { by?: string; title?: string; title_clean?: string; urls?: string[]; outlets?: string[]; url?: string; at?: string; score?: number | null; rank?: number | null; why?: string; keyword?: string; summary?: string };
 const PICK_WINDOW = 14 * 3600_000, PIN_CHOK = 2, PIN_TEUM = 1;
 const pickWho = (p: Pick) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; };
 const pickKey = (p: Pick) => String((p.urls || [])[0] || p.url || p.title || "").trim();
@@ -37,6 +37,24 @@ const pinsOf = (list: unknown[], now = Date.now()) => {
 // 위 고정 칸에 뜬 기사 = 아래 순위표에서 뺌(형 11-06 11:35 「뉴스가 겹치면안되고, 위에 픽으로 나온거 좋아. 나오면, 아래에는 위에거는 논외로 순위를 빼줘.」) · 같은 기사 = 주소(쿼리·끝 / 뗌) 하나라도 같거나 다듬은 제목이 같음
 const normUrl = (u?: string) => String(u || "").trim().replace(/^https?:\/\/(?:www\.|m\.)?/i, "").replace(/[?#].*$/, "").replace(/\/+$/, "").toLowerCase();
 const normTitle = (t?: string) => String(t || "").replace(/\s+/g, "").replace(/[\[\]「」『』"'‘’“”…·.,!?]/g, "").toLowerCase();
+// 픽 매체 이름(형 11-06 16:41 「네이버뉴스도 > 네이버 뉴스 ,. 근데 어느 매체건지?」) = 서버 outlets 칸(봄 · urls 와 같은 차례) → 네이버 기사 주소 언론사 번호 → 주소 이름(outletName)
+//   대표 링크 = urls[0] 그대로(주요 매체 앞에 꽂기 = 서버 · 봄 16:43 「앱은 「첫 링크 = 대표」로만」)
+const NAVER_OID: Record<string, string> = {
+  "001": "연합뉴스", "003": "뉴시스", "005": "국민일보", "008": "머니투데이", "009": "매일경제", "011": "서울경제", "014": "파이낸셜뉴스", "015": "한국경제", "016": "헤럴드경제",
+  "018": "이데일리", "020": "동아일보", "021": "문화일보", "022": "세계일보", "023": "조선일보", "025": "중앙일보", "028": "한겨레", "032": "경향신문", "052": "YTN", "055": "SBS",
+  "056": "KBS", "057": "MBN", "079": "노컷뉴스", "081": "서울신문", "214": "MBC", "215": "한국경제TV", "277": "아시아경제", "366": "조선비즈", "421": "뉴스1", "422": "연합뉴스TV",
+  "437": "JTBC", "448": "TV조선", "449": "채널A", "469": "한국일보",
+};
+const EXTRA_HOST: Record<string, string> = { "einfomax.co.kr": "연합인포맥스" };   // 공식 이름 표(ui/news-data.ts · 봄 자리)에 아직 없는 픽 매체 · 서버 outlets 가 오면 그게 먼저
+const naverOutlet = (u: string) => { const m = /^https?:\/\/(?:n\.|m\.)?news\.naver\.com\/(?:mnews\/)?article\/(\d{3})\//.exec(u); return m ? NAVER_OID[m[1]] || "" : ""; };
+const pickOutlet = (p: Pick) => {
+  const url = (p.urls || [])[0] || p.url || "";
+  const named = String((p.outlets || [])[0] || "").trim();
+  if (named) return named;
+  const nv = naverOutlet(url); if (nv) return nv;
+  const h = hostOf(url); const ex = Object.keys(EXTRA_HOST).find((k) => h === k || h.endsWith("." + k));
+  return ex ? EXTRA_HOST[ex] : outletName(h);
+};
 const hostOf = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^(?:www|m|n|core)\./, "") : ""; } catch { return ""; } };
 
 const ago = (at?: string) => {
@@ -90,6 +108,7 @@ export function NewsList() {
       const host = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^www\./, "") : ""; } catch { return ""; } };
       // 출처 · 시각 = 모든 줄(형 11-05 16:30 「뉴스는 점수 좌측에 출처에 대한 내용이 있어야되고, 몇시간전인지 나와야됨. 4위도 싹다.」) — 메타 없으면 묶음 첫 기사 출처 · 후보 장부(lookup) 발행/처음 본 때
       const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
+      for (const x of list) if (x && /^네이버(?:뉴스)?$/.test(x.src || "")) { const nv = [x.meta?.published?.sourceUrl || "", ...(x.urls || []), ...(x.items || []).map((it) => it.url || "")].map(naverOutlet).find(Boolean); if (nv) x.src = nv; }   // 순위표도 「네이버뉴스」 = 기사 주소 언론사 번호로 진짜 매체(형 11-06 16:41)
       setRows(list);
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };
@@ -104,7 +123,7 @@ export function NewsList() {
   };
   const sendPick = (p: Pick) => {
     const url = (p.urls || [])[0] || p.url || "";
-    try { sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ text: [p.title_clean || cleanTitle(p.title), url].filter(Boolean).join("\n"), link: url, media: outletName(hostOf(url)) })); } catch { /* 빈 폼 */ }
+    try { sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ text: [p.title_clean || cleanTitle(p.title), url].filter(Boolean).join("\n"), link: url, media: pickOutlet(p) })); } catch { /* 빈 폼 */ }
     void nav({ to: "/ask" });
   };
   const openPick = (p: Pick) => { const url = (p.urls || [])[0] || p.url; if (url) window.open(url, "_blank", "noopener"); };
@@ -125,7 +144,7 @@ export function NewsList() {
                 <span className="pk-face"><FaceImg id={who} size={20} /></span>
                 <span className="pk-tag">{who} 픽</span>
                 <button type="button" className="pk-tt" title={title} onClick={() => openPick(p)}>{title}</button>
-                <span className="pk-mt">{[why, outletName(hostOf(url)), ago(p.at)].filter(Boolean).join(" · ")}</span>
+                <span className="pk-mt">{[why, pickOutlet(p), ago(p.at)].filter(Boolean).join(" · ")}</span>
                 <span className="pk-sc">{Number.isFinite(p.score as number) ? Math.round(p.score as number) : ""}</span>
                 <button type="button" className="pk-sd" aria-label="이 기사로 요약 요청" title="이 기사로 요약 요청" onClick={() => sendPick(p)}>전송</button>
               </li>
