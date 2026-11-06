@@ -40,6 +40,7 @@ import { IssueView } from "./issue";
 import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
+import { IdleBlind } from "./idle-blind";
 import { NewsModal, newsFileOf } from "./news";
 import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
@@ -207,6 +208,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
       <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}`}>
         <AttentionNotifier />
         <FinishedForYou />
+        {split ? <IdleBlind /> : null}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} /> : null}
         <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
           <SceneBg className="nm-app-ambient" />   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
@@ -303,9 +305,31 @@ class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: 
   render() { return this.state.bad ? <p style={{ margin: 0, padding: "12px 14px", fontSize: 12, color: "rgba(232,234,232,.55)" }}>{this.props.name} 칸을 못 그렸어 — 새로고침하면 다시 해 봐.</p> : this.props.children; }
 }
 
+/** 대화 | 오른쪽 경계 끌기(형 11-06 대시보드 고급화 UI ② · 시아 판) = 오른쪽 넓이 30~65% · 이 PC 에 기억(nm-split-w) · 두 번 누름 = 반반 */
+const SPLIT_KEY = "nm-split-w";
+function useSplitW() {
+  useEffect(() => { try { const v = +(localStorage.getItem(SPLIT_KEY) || 0); if (v >= 30 && v <= 65) document.documentElement.style.setProperty("--nm-split-w", `${v}%`); } catch { /* 반반 */ } }, []);
+}
+function SplitGrip() {
+  const set = (v: number) => { const c = Math.max(30, Math.min(65, v)); document.documentElement.style.setProperty("--nm-split-w", `${c}%`); return c; };
+  const down = (e: { currentTarget: HTMLElement; preventDefault: () => void }) => {
+    e.preventDefault();
+    const rootEl = (e.currentTarget.closest(".nm-split-root") as HTMLElement | null) || document.body, box = rootEl.getBoundingClientRect();
+    let last = 50;
+    const move = (ev: PointerEvent) => { last = set(((box.right - ev.clientX) / box.width) * 100); };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); document.body.classList.remove("nm-dragging"); try { localStorage.setItem(SPLIT_KEY, String(Math.round(last))); } catch { /* 이번만 */ } };
+    document.body.classList.add("nm-dragging");
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+  };
+  const reset = () => { set(50); try { localStorage.removeItem(SPLIT_KEY); } catch { /* 이번만 */ } };
+  return <div className="nm-split-grip" role="separator" aria-orientation="vertical" aria-label="끌어서 칸 넓이 · 두 번 누르면 반반" title="끌어서 칸 넓이 · 두 번 누르면 반반" onPointerDown={down} onDoubleClick={reset}><i /></div>;
+}
+
 function SplitSide() {
+  useSplitW();
   return (
     <aside className="nm-split" aria-label="러너 · 뉴스">
+      <SplitGrip />
       <section className="nm-split-run" aria-label="러너"><PaneGuard name="러너"><RunnerGauges /></PaneGuard></section>   {/* 러너 기본정보 게이지(봄 · 형 11-05 13:37 「게이지로 축약」 · 「갬성이 떨어지면안되.」) · 다 보기 = 메뉴 러너 */}
       <section className="nm-split-news" aria-label="뉴스"><PaneGuard name="실시간 뉴스"><NewsList /></PaneGuard></section>
       <section className="nm-split-sum" aria-label="뉴스 요약"><PaneGuard name="뉴스 요약"><NewsSummary /></PaneGuard></section>   {/* 우하단 = 요약 대기열 + 다 된 요약(형 11-05 16:27 「어짜피 우하단에는 뉴스 요약 부분이 나올거라서」 · 13:38 「전송하면 그 아래에 요약 대기열 올라오고, 다되면, 모달로 뉴스 요약본」) */}   {/* PC = 그림 없는 제목 목록(형 11-05 14:39 「pc판은 아예 뉴스에 아예 그림안뜨게 컴팩트하게 타이틀만」) · 폰 홈은 카드 덱 그대로 */}

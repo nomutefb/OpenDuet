@@ -176,3 +176,11 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-root .ychat .yb.me:not(.app) .yname-c.cl:not(.w) { color:#FFAA4D; }
 .nm-split-root .ychat .yb.me:not(.app) .yname-c.gp { color:#C9A7FF; }
 .nm-split-root .ychat .yb.me:not(.app) .yname-c.hy { color:#0FFD02; }
+/* 대화 | 오른쪽 경계 끌기(시아 UI ②) — 오른쪽 넓이 = --nm-split-w(기본 50%) · 손잡이 = 경계 위 8px · 끄는 동안 글자 고르기 0 */
+.nm-split-root .nm-split { flex:0 0 var(--nm-split-w, 50%); }
+.nm-split-root .nm-split-l { flex:1 1 auto; }
+.nm-split-grip { position:absolute; left:-5px; top:0; bottom:0; width:10px; z-index:5; cursor:col-resize; display:grid; place-items:center; }
+.nm-split-grip i { width:2px; height:44px; border-radius:2px; background:rgba(255,255,255,.12); transition:background .15s, height .15s; }
+.nm-split-grip:hover i, body.nm-dragging .nm-split-grip i { background:#CFFF40; height:64px; }
+body.nm-dragging { user-select:none; cursor:col-resize; }
+body.nm-dragging iframe { pointer-events:none; }
