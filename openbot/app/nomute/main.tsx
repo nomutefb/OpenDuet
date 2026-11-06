@@ -57,6 +57,24 @@ function showUpdate() {
     go();
   });
   document.body.appendChild(bar);
+  if (pcScreen()) autoReload(btn);
+}
+
+/* PC 웹앱 = 새 판 오면 저절로 다시 읽기(형 11-06 13:14 「그리고 pc웹앱은 새로고침 자동으로 되게 해주라. 그리고 자동으로 되더라도, 채팅하고있는 이 채팅에 있는 로그는 기억되게 가능해?」)
+   · 쓰던 글 = 방마다 이 창(sessionStorage nm-draft:<방>)에 글자마다 저장돼 다시 읽어도 입력칸에 그대로 돌아옴(ui/office-chat.tsx saveDraft · loadDraft)
+   · 기다림 = 보내는 중 쓰기 0 · 붙여 둔 파일 0(파일은 창을 넘지 못함) · 열린 창(설정 등) 0 · 한글 조합 중 아님 · 마지막 키 3초 뒤 → 그때 읽음 · 폰 = 알약 그대로 */
+const pcScreen = () => !!window.matchMedia?.("(pointer: fine)").matches && window.innerWidth >= 900;
+let lastKey = 0, composing = false;
+window.addEventListener("keydown", () => { lastKey = Date.now(); }, true);
+window.addEventListener("compositionstart", () => { composing = true; }, true);
+window.addEventListener("compositionend", () => { composing = false; lastKey = Date.now(); }, true);
+function autoReload(btn: HTMLButtonElement) {
+  btn.textContent = "새 판 · 곧 다시 읽어";
+  const safe = () => writes === 0 && !composing && Date.now() - lastKey > 3000
+    && !document.querySelector('ul[aria-label="Attachments"] li')   // 붙여 둔 파일
+    && !document.querySelector('[role="dialog"]');                   // 열린 창
+  const tick = () => { if (safe()) { location.reload(); return; } setTimeout(tick, 1000); };
+  setTimeout(tick, 1500);
 }
 
 async function checkBuild() {
