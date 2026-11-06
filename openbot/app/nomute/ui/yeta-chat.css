@@ -684,3 +684,14 @@ header.nm-head.absolute:has(.nm-top-crew) { z-index:120 !important; }
 .nm-toptitle-room .nm-top-name { max-width:40vw; font-size:14px; line-height:20px; font-weight:700; color:#CFFF40 !important; pointer-events:auto; text-shadow:none; }
 .nm-toptitle-room .nm-top-name.nm-top-btn i { color:#fff; font-weight:600; }
 .nm-split-root header.nm-head .nm-top-wrap, .nm-split-root header.nm-head .nm-top-name { display:none !important; }
+/* 색 말풍선 안 강조 = 바탕 밝기 따라 한 색(형 11-06 21:10 「노란색 배경이면 모바일에서 아래버리네 근본 방법을 찾아봐얄듯 색마다 가장 심플한」)
+   data-ink = office-chat inkOn(말풍선 바탕 밝기) · dark = 밝은 바탕(검은 글씨) · light = 진한 바탕(흰 글씨)
+   → 이름 · 숫자 · sha · 링크 · 부름 칩 다 글씨색 그대로 + 굵게 · 칩은 옅은 덧칠만 = 색이 새로 생겨도 저절로 보임 · 반갈(PC 검정 말풍선)은 뺌 */
+body:not(:has(.nm-split-root)) .ychat .yb[data-ink] :is(.ytok, .yname-c, a) { color:inherit !important; text-shadow:none; font-weight:700; }
+body:not(:has(.nm-split-root)) .ychat .yb[data-ink] .yname-c.cl.w { background:none; -webkit-text-fill-color:currentColor; }
+body:not(:has(.nm-split-root)) .ychat .yb[data-ink] a { text-decoration:underline; text-underline-offset:2px; }
+body:not(:has(.nm-split-root)) .ychat .yb[data-ink="dark"] .ycall { color:inherit !important; background:rgba(0,0,0,.10); border-color:rgba(0,0,0,.20); }
+body:not(:has(.nm-split-root)) .ychat .yb[data-ink="light"] .ycall { color:inherit !important; background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.30); }
+/* 형 라임 말풍선(폰)도 같은 결 — 이름(윈터 초록 · 모루 보라 …)이 라임에 묻힘 → 글씨색 한 색 + 굵게 · 부름 칩(차콜 + 라임 · 형 11-02)은 그대로 */
+body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) :is(.ytok, .yname-c) { color:inherit !important; text-shadow:none; font-weight:700; }
+body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { background:none; -webkit-text-fill-color:currentColor; }
