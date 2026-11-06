@@ -1,0 +1,13 @@
+/* 맨 아래 상태 한 줄(④ · 빠르 11-06) — split 일 때만 · 유리 판 26px · 결 = 위 시계(.nm-topclock · 흐린 흰 · 숫자 라임) */
+.nm-split-root { padding-bottom: 26px; }
+.nm-statusline {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; height: 26px;
+  display: flex; align-items: center; gap: 8px; padding: 0 14px;
+  font-size: 12px; line-height: 1; letter-spacing: .02em; white-space: nowrap; overflow: hidden;
+  color: rgba(232,234,232,.62);
+  background: rgba(16,17,19,.55); -webkit-backdrop-filter: blur(14px) saturate(1.15); backdrop-filter: blur(14px) saturate(1.15);
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.nm-statusline b { color: #CFFF40; font-weight: 700; letter-spacing: .03em; }
+.nm-statusline .nm-sl-sep { font-style: normal; opacity: .4; }
+.nm-statusline .nm-sl-fill { flex: 1; }
