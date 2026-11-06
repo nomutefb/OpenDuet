@@ -67,6 +67,19 @@ async function checkBuild() {
   } catch { /* 끊김 = 다음 차례 */ }
 }
 
+// 옛 판이 새 판 조각(방·화면 코드)을 못 찾음 = 방이 안 열림(형 11-06 13:05 「대화도 안들어가지고 왜그러징?」 · 하루에 판 여러 번 올리면 옛 조각 404)
+//   → 쓰던 글·보내는 중 글이 없으면 그 자리에서 다시 읽음(한 번만 · 10초 안 되풀이 0) · 있으면 알약만(형 11-02 「강제로 화면 쌔로고침 하지말고」)
+window.addEventListener("vite:preloadError", (e) => {
+  let last = 0; try { last = +(sessionStorage.getItem("nm-chunk-reload") || 0); } catch { /* 이번만 */ }
+  if (!busyTyping() && writes === 0 && Date.now() - last > 10_000) {
+    e.preventDefault();
+    try { sessionStorage.setItem("nm-chunk-reload", String(Date.now())); } catch { /* 이번만 */ }
+    location.reload();
+    return;
+  }
+  showUpdate();
+});
+
 (window as unknown as { __nmBuild: string }).__nmBuild = BUILD;   // 지금 이 화면 판(확인용)
 setInterval(() => void checkBuild(), 60_000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) void checkBuild(); });
