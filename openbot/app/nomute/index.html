@@ -23,6 +23,8 @@
           (choice !== "light" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
         document.documentElement.classList.toggle("dark", dark);
         document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        // 꾸밈(지금 / 정원) — 첫 그림 전에 붙여 깜빡임 0 · 고르기 = 설정 「꾸밈」(ui/skin.ts · 형 11-07 「지금테마랑 정원테마 고를 수 있게해줘」)
+        try { if (window.localStorage.getItem("nomute-skin") === "garden") document.documentElement.dataset.theme = "garden"; } catch {}
       })();
     </script>
   </head>

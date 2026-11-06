@@ -74,6 +74,7 @@ import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
 import { DecideFab } from "./decide-pop";   // 대화방 우하단 + 위 = 형 결정 노트 단추(형 11-01 08:36)
 import { useSplit, useWide } from "./side";
 import "./shell.css";
+import "./theme-garden.css";   // 꾸밈 「정원」(html[data-theme=garden]:not(.dark) 에서만 · ./skin.ts · 뜸 11-07 시안)
 
 export type Pane = "home" | "rooms" | "chat";
 export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status";

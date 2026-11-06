@@ -1,0 +1,65 @@
+/* 앱에 넣은 판(번개 11-07) — 뜸 원본 그대로 + 바꾼 것 셋: ① 모든 줄 html[data-theme="garden"] → …:not(.dark)(어둡게 모드에선 안 먹음 · 고르면 밝게로 같이 바뀜 = ./skin.ts)
+   ② 그림 = ./garden/(빌드가 해시 붙여 묶음 · base /office-app/ 와 무관) ③ 고르기 = 설정 「화면·입력 → 꾸밈」(지금 / 정원 · 기기마다 localStorage nomute-skin · 첫 그림 전 index.html 이 먼저 붙임) */
+/* 정원 테마(아이보리 + 봄의 정원) — 뜸 11-07 · 「지금 테마 / 정원 테마」 고르기 안
+   형 11-07 08:01 뜸 1:1 「좋아 ㅋㅋ 지금테마랑 정원테마 고를 수 있게해줘」
+   (앞: 형 11-06 「그리구 우리 웹앱 메인화면 바꿔종」 · 「사무실 그냥 화이트톤으로할까?」 · 「안그래도 꼬롬한데 블랙톤」 · 시안 = 시안-비교.jpg 아래 줄)
+   쓰는 법(안): <html data-theme="garden"> 일 때만 먹게 범위를 묶음 · 고르기 = 설정(또는 홈 위 작은 단추)에 「테마: 지금 / 정원」 · 고른 값은 기기마다 localStorage
+   그림 두 장 = 이 방에 같이 보낸 garden-pc.jpg(형이 고른 길 · 16:9) · garden-phone.jpg(형 꽃 있는 9:16) → 앱 자산 자리에 두고 아래 url() 만 바꿈
+   ⚠ 시안은 짙은 카드를 filter:invert 로 뒤집어 찍었는데, 그 판에서 내 VM 화면(X)이 다섯 번 죽었어(무거움 · 짐작) — 진짜 판은 invert 쓰지 말고 아래처럼 색을 바로 칠함
+   ⚠ 카드 안 글자색은 앱 토큰(--duet-ink 등)을 정원 테마에서 진하게 바꾸는 게 제일 깔끔 — 아래는 토큰을 모를 때 쓰는 덮어쓰기 */
+
+html[data-theme="garden"]:not(.dark) {
+  --garden-ivory: #FAF6EC;     /* 바탕 · 새하얀 말고 따뜻한 흰 */
+  --garden-card: rgba(255, 252, 246, .92);   /* 봄 08:11 ① 「칸을 더 밝게」 */
+  --garden-ink: #2E2A26;       /* 글 = 숯색 */
+  --garden-soft: #8A7E70;      /* 작은 글 */
+  --garden-line: rgba(120, 96, 64, .16);
+  --garden-accent: #4E8F3A;    /* 연두(라임) 포인트는 아이보리 위에서 안 보여서 한 톤 진하게 */
+  --garden-peach: #F2A98B;     /* 그림에서 뽑은 복숭아 */
+  --garden-mint: #7FBFA6;      /* 그림에서 뽑은 민트 */
+}
+html[data-theme="garden"]:not(.dark), html[data-theme="garden"]:not(.dark) body { background: var(--garden-ivory) !important; }
+
+/* 앱 겉 바탕 칸은 비치게 · ambient 에 정원 띠(아래) — 위로 갈수록 아이보리로 스며듦 */
+html[data-theme="garden"]:not(.dark) .duet-touch.nm-yeta { background: transparent !important; }
+html[data-theme="garden"]:not(.dark) .nm-app-ambient {
+  background:
+    linear-gradient(to bottom, var(--garden-ivory) 0%, rgba(250,246,236,.95) 36%, rgba(250,246,236,.50) 64%, rgba(250,246,236,.06) 100%),
+    url("./garden/garden-pc.jpg") center bottom / cover no-repeat !important;
+}
+@media (max-width: 700px) {
+  html[data-theme="garden"]:not(.dark) .nm-app-ambient {
+    background:
+      linear-gradient(to bottom, var(--garden-ivory) 0%, rgba(250,246,236,.94) 42%, rgba(250,246,236,.52) 74%, rgba(250,246,236,.12) 100%),
+      url("./garden/garden-phone.jpg") center bottom / cover no-repeat !important;
+  }
+}
+html[data-theme="garden"]:not(.dark) .nm-app-ambient::after { background: transparent !important; }   /* 흰 베일 걷기 */
+
+/* 맨 위 짙은 띠(.nm-split-root::before) → 아이보리 · 시계·불빛 글자 숯색 */
+html[data-theme="garden"]:not(.dark) .duet-touch.nm-yeta::before { background: rgba(250,246,236,.92) !important; border-bottom: 1px solid var(--garden-line); }
+html[data-theme="garden"]:not(.dark) .nm-topclock, html[data-theme="garden"]:not(.dark) .nm-topclock *,
+html[data-theme="garden"]:not(.dark) .nm-top-lights, html[data-theme="garden"]:not(.dark) .nm-top-lights * { color: var(--garden-ink) !important; }
+
+/* 가운데 짙은 카드 셋(러너 · 실시간 뉴스 · 뉴스 요약) → 아이보리 카드 + 따뜻한 그림자
+   (앱 규칙 .nm-split-root .nm-split > section {background:rgba(24,25,27,.72)!important} 보다 세게) */
+html[data-theme="garden"]:not(.dark) .nm-split-root .nm-split > section {
+  background: var(--garden-card) !important;
+  color: var(--garden-ink) !important;
+  border: 1px solid var(--garden-line) !important;
+  box-shadow: 0 8px 28px rgba(90, 68, 40, .10) !important;
+}
+/* 카드 안 흰 글자들(어두운 카드용) → 숯색 · 포인트는 --garden-accent (토큰으로 바꿀 수 있으면 이 칸은 지움) */
+html[data-theme="garden"]:not(.dark) .nm-split-root .nm-split > section :is(h1,h2,h3,h4,p,span,li,a,time,small,b,strong,td,th,div) { color: var(--garden-ink); }
+
+/* 봄 08:11 ① 「뉴스 요약 · 실시간 뉴스의 옅은 글자가 바탕이랑 가까워 보여. 글자 쪽을 한 단 짙게」 — 흐리게 깐 글자(opacity)도 정원 테마에선 한 단 진하게 */
+html[data-theme="garden"]:not(.dark) .nm-split-root .nm-split > section [style*="opacity"],
+html[data-theme="garden"]:not(.dark) .nm-split-root .nm-split > section [class*="opacity-"] { opacity: .78 !important; color: var(--garden-soft) !important; }
+
+/* 봄 08:11 ② 「폰 아래 알약 아이콘이 꽃밭 그림 위에 앉아」 · 형 11-06 「노란색 배경이면 모바일에서 아래버리네 근본 방법을 찾아봐얄듯」
+   → 아래 알약(nav.ynav · 지금 거의 투명 + 흐림) 뒤에 아이보리 반투명 한 겹 = 꽃 색이 바뀌어도 안 묻힘 */
+html[data-theme="garden"]:not(.dark) nav.ynav {
+  background: rgba(250, 246, 236, .84) !important;
+  border: 1px solid var(--garden-line) !important;
+  box-shadow: 0 4px 16px rgba(90, 68, 40, .12) !important;
+}

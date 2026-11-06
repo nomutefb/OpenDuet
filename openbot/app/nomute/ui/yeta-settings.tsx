@@ -22,6 +22,7 @@ import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, useBuildLine } from "./settings-extra";
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
+import { setSkin, useSkin } from "./skin";   // 꾸밈 지금 / 정원(형 11-07 08:01 「지금테마랑 정원테마 고를 수 있게해줘」)
 
 const Svg = ({ k, className }: { k: YIcon; className?: string }) => <span className={className} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
 const THEME: { v: ThemePreference; t: string }[] = [{ v: "system", t: "폰 따라" }, { v: "light", t: "밝게" }, { v: "dark", t: "어둡게" }];
@@ -52,6 +53,7 @@ function Info({ ic, t, d, v }: { ic: YIcon; t: string; d?: string; v?: string })
 
 export function YetaSettings() {
   const { preference, setPreference } = useTheme();
+  const skin = useSkin();
   const [open, setOpen] = useState("");
   const list = usePeople();
   const health = useQuery({ queryKey: ["nomute", "health"], queryFn: () => office<Health>("health"), refetchInterval: 60_000 }).data?.counts;
@@ -72,6 +74,12 @@ export function YetaSettings() {
           <div className="yset-grp">
             <Act ic="contrast" t="테마" v={theme.t} vt mod={theme.v !== "system"}
               onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
+            <Act ic="screen" t="꾸밈" v={skin === "garden" ? "정원" : "지금"} vt mod={skin === "garden"}
+              onClick={() => {   // 정원 = 밝은 꾸밈이라 어둡게였으면 밝게로 같이(정원 CSS 는 :not(.dark) 에서만 먹음)
+                const next = skin === "garden" ? "now" : "garden";
+                if (next === "garden" && document.documentElement.classList.contains("dark")) setPreference("light");
+                setSkin(next);
+              }} />
             <PushRow />
             <ChatFontRows />
             <EnterKeyRow />
