@@ -50,11 +50,12 @@ function usePresence(ids: string[]) {
 const ICO_ONE = <svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="9" r="4" /><path d="M4 20.5c0-4.4 3.6-7 8-7s8 2.6 8 7z" /></svg>;
 const ICO_MANY = <svg viewBox="0 0 24 24" aria-hidden><circle cx="9" cy="9.2" r="3.3" /><path d="M2.4 20c0-3.8 2.9-6 6.6-6s6.6 2.2 6.6 6z" /><circle cx="17" cy="8.4" r="2.6" /><path d="M16.9 13c3 0 5.2 1.7 5.2 4.6v1.2h-4.7c-.2-2.2-1.3-3.9-3-4.9.8-.6 1.6-.9 2.5-.9z" /></svg>;
 function TFace({ id, name, state, small, group, own }: { id?: string; name?: string; state?: string; small?: boolean; group?: boolean; own?: string }) {
-  const [bad, setBad] = useState(false);
+  const [bad, setBad] = useState(false), [bad2, setBad2] = useState(false);
   const dot = state ? DOT[state] : undefined;
   return (
     <i className={`nm-tava${small ? " sm" : ""}`} title={name || undefined} aria-hidden>
-      {own ? <img alt="" loading="lazy" src={own} /> : id && !bad ? <img alt="" loading="lazy" src={`/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onError={() => setBad(true)} /> : group ? ICO_MANY : ICO_ONE}
+      {/* 차례 = 팀즈 사진 → 없으면 우리가 넣어 준 얼굴(형 그림 · 그룹웨어 사진) → 없으면 기본 꼴(형 11-06 「그룹웨어 … 프로필사진 연결해줘, 프사없는사람들」) */}
+      {id && !bad ? <img alt="" loading="lazy" src={`/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onError={() => setBad(true)} /> : own && !bad2 ? <img alt="" loading="lazy" src={own} onError={() => setBad2(true)} /> : group ? ICO_MANY : ICO_ONE}
       {dot ? <span className={`nm-tdot ${dot}`} /> : null}
     </i>
   );
