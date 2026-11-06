@@ -11,3 +11,13 @@
 .nm-statusline b { color: #CFFF40; font-weight: 700; letter-spacing: .03em; }
 .nm-statusline .nm-sl-sep { font-style: normal; opacity: .4; }
 .nm-statusline .nm-sl-fill { flex: 1; }
+/* 부품 둘(번개 22:42 「바깥 자리(position)는 부품에 박지 말고 클래스만」) — 자리 0 · 결만: ⓐ 윗줄 신호등 줄 · ⓑ 우하단 「동기화 00분 전 • 버전 0000000」 */
+.nm-sl-lights, .nm-sl-syncver { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; line-height: 1; letter-spacing: .02em; white-space: nowrap; color: rgba(232,234,232,.62); }
+.nm-sl-lights b { color: #CFFF40; font-weight: 700; letter-spacing: .03em; }
+.nm-sl-lights .nm-sl-sep, .nm-sl-syncver .nm-sl-dot { font-style: normal; opacity: .4; }
+.nm-sl-syncver .nm-sl-ver { all: unset; padding: 1px 4px; border-radius: 4px; font: 600 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .02em; color: rgba(232,234,232,.62); cursor: default; user-select: text; }
+.nm-sl-syncver .nm-sl-ver.stale { color: #CFFF40; background: rgba(207,255,64,.12); box-shadow: 0 0 0 1px rgba(207,255,64,.35); cursor: pointer; animation: nmSlVerPulse 1.6s ease-in-out infinite; }
+@keyframes nmSlVerPulse { 50% { box-shadow: 0 0 0 1px rgba(207,255,64,.7), 0 0 10px rgba(207,255,64,.35); } }
+@media (prefers-reduced-motion: reduce) { .nm-sl-syncver .nm-sl-ver.stale { animation: none; } }
+/* 우하단 버전 부품이 떠 있으면 옛 우상단 판 번호(ver-badge · .nm-ver)는 숨김(뎅 22:40 「지워도 돼 — 우하단 줄이 그 몫」) */
+html.nm-has-syncver .nm-ver { display: none !important; }

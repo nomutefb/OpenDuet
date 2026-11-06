@@ -5,6 +5,16 @@ import "./ver-badge.css";
 let el: HTMLButtonElement | null = null;
 let mine = { build: "", sha: "" };
 let onStale: (() => void) | null = null;
+// 우하단 「동기화 • 버전」 부품(빠르 11-06 · ui/status-line.tsx SyncVersion)이 같은 값을 읽는 구멍 — 배지는 그대로(부품이 뜨면 css 로 숨음)
+let liveV = { build: "", sha: "" };
+const subs = new Set<() => void>();
+const ping = () => subs.forEach((f) => { try { f(); } catch { /* 부품 하나가 깨져도 나머지는 그대로 */ } });
+/** 이 화면 판 · 올라간 판 · 다른가 */
+export function verState() { return { mine, live: liveV, stale: !!liveV.build && !!mine.build && liveV.build !== mine.build }; }
+/** 값이 바뀔 때마다 부름 · 돌려준 함수 = 그만 듣기 */
+export function onVer(fn: () => void): () => void { subs.add(fn); return () => { subs.delete(fn); }; }
+/** 라임일 때 누름 = 배지와 같은 길(새 판 · 쓰던 글 지킴) */
+export function openStale() { onStale?.(); }
 
 const kst = (iso: string) => {
   const t = Date.parse(iso);
@@ -19,6 +29,7 @@ const label = (b: { build?: string; sha?: string }) => [b.sha || "", kst(b.build
 export function verBadge(build: string, sha: string, onClick: () => void) {
   mine = { build, sha };
   onStale = onClick;
+  ping();
   if (el) return;
   el = document.createElement("button");
   el.type = "button";
@@ -32,6 +43,7 @@ export function verBadge(build: string, sha: string, onClick: () => void) {
 
 /** version.json 받을 때마다 — 다르면 라임 「지금 → 새」 */
 export function markLive(live: { build?: string; sha?: string }) {
+  if (live.build) { liveV = { build: live.build, sha: live.sha || "" }; ping(); }
   if (!el || !live.build) return;
   const stale = live.build !== mine.build;
   el.classList.toggle("stale", stale);
