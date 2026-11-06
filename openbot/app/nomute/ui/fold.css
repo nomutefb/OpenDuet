@@ -21,3 +21,5 @@
 .ychat.unfold .yfold { max-height:none; }
 .ychat.unfold .yfold.long { -webkit-mask-image:none; mask-image:none; }   /* 이미 잰 「긴 글」 표시(끝 흐림)도 풂 */
 .ychat.unfold .yfold-more { display:none; }
+/* PC = 전체 보기 창이 윗줄(시계 · 방 이름 · 판 번호 · 창 단추 50px) 아래에서 시작(형 11-06 21:07 「위에 저부분하고 안겹치게 해주라」 · 「저 부분보다 아래에 배치」) */
+@media (min-width: 900px) and (pointer: fine) { .nm-zoom.nm-full { top:50px; border-top:1px solid var(--glass-line, rgba(127,127,127,.18)); } }
