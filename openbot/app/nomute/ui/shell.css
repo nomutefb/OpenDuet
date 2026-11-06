@@ -121,6 +121,11 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
    = 형 말풍선: 잿빛 검정 + 라임 글자 · 우리·봇 말풍선: 잿빛 검정 + 같은 밝은 회색 글자(봇마다 칠한 바탕 = 인라인 → !important) · 이름 라벨(색)은 그대로 */
 .nm-split-root .ychat .yb.ai:not(.ph) { background:#1e2023 !important; border-color:rgba(255,255,255,.07) !important; color:#e6e9e6 !important; }
 .nm-split-root .ychat .yb.me:not(.ph) { background:#1e2023 !important; color:var(--accent, #CFFF40) !important; border:1px solid rgba(255,255,255,.07); }
+/* 반갈 검정 말풍선 안 코드 글씨(형 11-06 10:18 번개 방 사진 「응 봄 이렇게 보이는것두」) — 말풍선은 위에서 다 검정으로 덮는데 코드 글씨는 사람 말풍선 색(data-ink · 번개 노랑 = dark)을 따라 #161716 이 돼 검정 위 검정 → 반갈에선 늘 밝은 글씨 */
+.nm-split-root .ychat .yb[data-ink] :not(pre) > code { color:#e6e9e6; background:rgba(255,255,255,.09); }
+.nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block"] { background:rgba(255,255,255,.06); }
+.nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block-body"], .nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block-body"] :is(pre, code, span) { color:#e6e9e6 !important; }
+.nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block-copy-button"] { color:#e6e9e6; }
 .nm-split-root .ychat .yb.me:not(.ph) a, .nm-split-root .ychat .yb.me:not(.app) .ytok.fl { color:#c3cad3 !important; }
 .nm-split-root .ychat .yb.me:not(.app) .ytok.gh, .nm-split-root .ychat .yb.me:not(.app) .ytok.tm { color:#b8a8ec !important; }
 .nm-split-root .ychat .yb.me .yname-c { color:#67e8f9; }
