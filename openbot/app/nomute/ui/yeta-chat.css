@@ -706,3 +706,8 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .nm-top-kick[disabled] { opacity:.4; cursor:default; }
 @keyframes nmKickArm { from { box-shadow:0 0 0 2px rgba(255,90,95,.2); } to { box-shadow:0 0 0 5px rgba(255,90,95,.08); } }
 @media (prefers-reduced-motion:reduce){ .nm-top-kick.arm { animation:none; } }
+/* 내보내기 확정 = 그 줄 바닥에 빨간 게이지가 왼→오로 차고 나감(형 11-06 22:39 「그러면 게이지 채워지고 > 나가지는거로」 · 1.1초 = top.tsx KICK_FILL_MS) */
+.nm-top-one.going { position:relative; opacity:.75; }
+.nm-top-one.going::after { content:""; position:absolute; left:0; right:0; bottom:-3px; height:2px; border-radius:2px; background:#FF5A5F; transform-origin:left center; animation:nmKickFill 1.1s linear both; }
+@keyframes nmKickFill { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@media (prefers-reduced-motion:reduce){ .nm-top-one.going::after { animation:none; } }
