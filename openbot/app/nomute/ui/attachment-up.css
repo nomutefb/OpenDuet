@@ -88,3 +88,9 @@
 .nm-fc-dl { flex:none; width:30px; height:30px; display:grid; place-items:center; border-radius:50%; background:rgba(255,255,255,.08); }
 .nm-fc-dl svg { width:15px; height:15px; }
 .nm-fcard:hover .nm-fc-dl { color:var(--accent, #CFFF40); }
+/* 「전송 확인 필요」 카드(형 11-06 20:31) — 제목 = 라임 · 보관한 본문 = 기울임 회색 · 「비밀값 꼴 … 안 올림」 = 라임 · 오른쪽 위 × */
+.nar-card .nar-t { color:#CFFF40; padding-right:22px; }
+.nar-card .nar-body { font-style:italic; color:rgba(232,234,232,.5); }
+.nar-card .nar-lime { color:#CFFF40; font-weight:700; }
+.nar-card .nar-x { all:unset; position:absolute; top:6px; right:8px; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:15px; cursor:pointer; color:rgba(232,234,232,.7); }
+.nar-card .nar-x:hover { color:#CFFF40; background:rgba(207,255,64,.12); }

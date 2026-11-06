@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type {
   createAttachmentSender,
   OriginalAttachment,
@@ -97,6 +97,20 @@ function Preview({ file, p }: { file: File; p: number }) {
 }
 
 /** 입력칸에서 넘겨받은 전송 기록. 새로 쓰는 글/첨부와 별개로 원본과 결과를 보관한다. */
+// 기록 카드 닫기 = 이 탭에서만(보관한 원본·기록은 그대로 · 화면에서만 걷음)
+const gone = new Set<number>(), goneSubs = new Set<() => void>();
+const close = (id: number) => { gone.add(id); goneSubs.forEach((f) => f()); };
+function AutoClose({ id }: { id: number }) {
+  useEffect(() => { const t = setTimeout(() => close(id), 5_000); return () => clearTimeout(t); }, [id]);
+  return <button type="button" className="nar-x" aria-label="닫기" onClick={() => close(id)}>×</button>;
+}
+/** 「비밀값 꼴(…) … 안 올림」 = 라임(형 11-06 20:31 「비밀값 꼴(api ~ ) 안 올림 < 이거 라임색」) */
+function limeSecret(t?: string): ReactNode {
+  const s = String(t || ""), m = s.match(/비밀값 꼴[^—·]*?안 올림/);
+  if (!m || m.index == null) return s;
+  return <>{s.slice(0, m.index)}<b className="nar-lime">{m[0]}</b>{s.slice(m.index + m[0].length)}</>;
+}
+
 export function AttachmentRecovery({
   state,
   room,
@@ -114,6 +128,8 @@ export function AttachmentRecovery({
   part?: "pending" | "records";
 }) {
   const version = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot);
+  const [, bump] = useState(0);
+  useEffect(() => { const f = () => bump((n) => n + 1); goneSubs.add(f); return () => { goneSubs.delete(f); }; }, []);
   const box = useRef<HTMLDivElement | null>(null);
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [version]);   // 칸이 차면 마지막 대기 글이 보이게
   const pend = part !== "records", recs = part !== "pending";
@@ -122,23 +138,24 @@ export function AttachmentRecovery({
   if (part && !shown.length && !waits.length) return null;
   return (
     <div ref={box} className={part === "pending" ? "nac-list flex flex-col gap-2" : "nac-box flex flex-col gap-2 overflow-y-auto"}>
-      {shown.map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : (
+      {shown.map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : gone.has(attempt.id) ? null : (
         <section
           key={attempt.id}
           aria-label="첨부 전송 기록"
-          className="mb-2 rounded-xl border border-border bg-muted p-3 text-xs"
+          className="nar-card relative mb-2 rounded-xl border border-border bg-muted p-3 text-xs"
         >
-          <p role="status" className="font-semibold">
+          <AutoClose id={attempt.id} />   {/* 끄기(×) · 5초 뒤 저절로 닫힘 · 원본은 이 탭 보관 그대로(형 11-06 20:31 「끄기버튼만잇으면될듯」 · 「5초는 자동.」) */}
+          <p role="status" className="nar-t font-semibold">
             {attempt.phase === "needs-check"
               ? "전송 확인 필요"
               : attempt.phase === "body-retry"
                 ? "본문 다시 보내기 가능"
                 : "보내는 중"}
           </p>
-          <p className="mt-1">{attempt.detail}</p>
+          <p className="mt-1">{limeSecret(attempt.detail)}</p>
           {attempt.text ? (
             <section
-              className="mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap break-words"
+              className="nar-body mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap break-words"
               aria-label="보관한 본문"
             >
               {attempt.text}
