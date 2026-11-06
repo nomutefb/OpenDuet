@@ -16,12 +16,14 @@ import "./follow-pulse.css";
 import { Arrived } from "./arrived";   // 맨 아래 = 도착한 메시지 한 방(형 11-03 「거기 최근 온 메세지로 다시 변경해줘. 영상 없애구.」)
 import { FollowPulse } from "./follow-pulse";   // 1/6 = 팔로워 띠(형 10-31 09:5x 「인스타 맨 위에 뜨는거 … 웹앱 맨 상단에」 · 접수사항 CheckOne 은 안 부름 「어짜피 다른데서 볼 수 있으니까」 · 파일은 그대로)
 import { NewsFeed } from "./news-feed";
+import { IntroFace, pickIntro } from "./intro";
 
 const LAG = 300, SLOW = 8000;   // 카드 첫 판 뒤 한 박자(덱이 그릴 틈) · 못 받아도 이만큼 뒤엔 다 보임
 let firstHome = true;   // 앱 처음 열 때 한 번만
 
 export function HomeScreen() {
-  const [first] = useState(() => firstHome && performance.now() < 10_000);   // 앱을 다른 화면으로 열고 나중에 홈에 온 때 = 안 숨김
+  const [first] = useState(() => firstHome && performance.now() < 10_000);
+  const [intro] = useState(() => pickIntro("main"));   // 앱을 다른 화면으로 열고 나중에 홈에 온 때 = 안 숨김
   const shown = useRef<() => void>(() => {});
   useLayoutEffect(() => {   // 그리기 전에 = 뼈대 카드가 한 번도 안 비침
     firstHome = false;
@@ -39,7 +41,7 @@ export function HomeScreen() {
       <FollowPulse />
       <NewsFeed onShown={() => shown.current()} />
       <Arrived />
-      {first ? <div className="nm-home-splash" aria-hidden><img src="/office-app/icon-192.png" alt="" width={88} height={88} decoding="async" /></div> : null}
+      {first ? <div className="nm-home-splash" aria-hidden style={intro.bg ? { background: intro.bg } : undefined}><IntroFace item={intro} /></div> : null}   {/* 진입 화면 = 목록 중 랜덤(./intro.tsx · 형 11-06 18:5x) */}
     </div>
   );
 }

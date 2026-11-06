@@ -28,3 +28,10 @@ html[data-deck-wait] .nm-send-dock, html[data-deck-wait] .nm-arrived { opacity:0
 html[data-deck-in] .nm-arrived { animation:nmHomeIn .5s cubic-bezier(.2,.7,.3,1) both; }
 html[data-deck-in] .nm-send-dock { animation:nmHomeInFade .5s cubic-bezier(.2,.7,.3,1) both; }
 @media (prefers-reduced-motion:reduce) { html[data-deck-in] .nm-arrived, html[data-deck-in] .nm-send-dock { animation:none; } }
+/* 진입 화면 가득 판(./intro.tsx fit cover · 뜸 그림·영상) */
+.nm-intro-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+/* 앱 안 진입 화면(./intro.tsx AppIntro) = 홈 인트로와 같은 꼴 · 0.5초 걷힘 */
+.nm-app-intro { position:fixed; inset:0; z-index:80; display:grid; place-items:center; background:#08295e; transition:opacity .5s cubic-bezier(.2,.7,.3,1); }
+.nm-app-intro img:not(.nm-intro-cover) { width:88px; height:88px; border-radius:24px; animation:nmSplashBreath 2.4s ease-in-out infinite; }
+.nm-app-intro.out { opacity:0; pointer-events:none; }
+@media (prefers-reduced-motion:reduce) { .nm-app-intro, .nm-app-intro img { transition:none; animation:none; } }
