@@ -13,13 +13,14 @@
 //   「형 결정 > 의사 결정」 · 「옆에 설명글은 빼줘」)
 //   = 고를 줄 = 배경보다 패인 홈(안 그림자) · 모서리 살짝 · 왼쪽 정렬 · 누르면 바로 라임 형광 → 0.9초 뒤 그 질문 접혀 사라짐 · 게이지·✓·빛줄기 없음 · pass 뺌 · 기타 = 마지막 줄 · 누르면 그 줄이 같은 높이로 입력칸이 됨(창 높이 안 바뀜)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { tailnetUrl } from "./pc-url";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 
 type Pick = { i?: number; pass?: boolean; text?: string };
-export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null; kind?: string; _dups?: string[] };
+export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null; kind?: string; pc?: { task?: string; url?: string }; _dups?: string[] };   // pc = 컴퓨터 · 조치 필요 카드(서버 _pcreq.js · 형 11-06 「본인이 권한이 필요하면ㅇ ㅣ렇게 요청을해.」 · 「그러면 내가 그걸 제어하는 방식이야.」)
 // 영상 해석 허가 동그라미·진행 칸 없앰(형 11-05 11:10 「그럼 이제 그 채팅창 우하단에 영상 신청 이거는 없어도되는거지? 판단해보고, 별 의미없는 코드니까. 기능을 없애고 디자인도 없애줘.」 · 서버도 요청 = 바로 상주)
 //   = 옛 영상 카드(서버 kind "videoreq" · 물음 머리 「영상 해석 허가?」)는 결정 창에 안 섞음
 export const isVideoReq = (d: Decision) => d.kind === "videoreq" || /^\s*(\[결정\]\s*)?영상 해석 허가\?/.test(d.q || "");
@@ -172,6 +173,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
                     <p className="nm-dec-who"><FaceImg id={idOf(d.who, list)} size={22} /><b>{name}</b><span>{d.room_name || d.room}</span></p>
                     <p className="nm-dec-q" data-content>{d.q}</p>
                     <div className="nm-dec-ch">
+                      {tailnetUrl(d.pc?.url) ? <a className="nm-dec-row nm-dec-pc" href={tailnetUrl(d.pc?.url)} target="_blank" rel="noopener noreferrer"><span className="t">제어권 가져오기</span></a> : null}   {/* 그 몸 화면(테일넷)을 새 창으로 · 미리보기 없음(형 「공간낭비고」) · 끝나면 아래 완료 */}
                       {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} data-fill={fillOf(d, `c${i}`)} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}><span className="t">{c}</span>{drawn(fillOf(d, `c${i}`)) ? <Ck /> : null}</button>)}
                       {etc === d.id
                         ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} fill={fillOf(d, "etc")} onSubmit={etcSubmit(d)} />
