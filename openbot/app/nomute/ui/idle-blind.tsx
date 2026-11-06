@@ -68,9 +68,16 @@ export function BlindRows() {
   );
 }
 
-/** 위 가운데 시계(형 11-06 18:4x 「항상 중앙 상단부에 시간 나오게해주면되고」) = PC 반갈 윗줄 가운데 · 분 바뀔 때 · 누르면 바로 가림 */
+/** 위 왼쪽 시계(형 11-06 20:05 「좌상단에 시계를 배치하고」 · 20:06 「시계는 12시간 단위로 11-6 화 6:51 PM 이렇게 할게」 · 「6:51 PM 에 라임색. 시간에」) = 날짜·요일은 흐린 흰 · 시각은 라임 · 누르면 바로 가림 */
+const DOW = ["일", "월", "화", "수", "목", "금", "토"];
+const stamp = () => { const d = new Date(), h = d.getHours(); return { day: `${d.getMonth() + 1}-${d.getDate()} ${DOW[d.getDay()]}`, time: `${h % 12 || 12}:${String(d.getMinutes()).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}` }; };
 export function TopClock() {
-  const [t, setT] = useState(hhmm);
-  useEffect(() => { const i = setInterval(() => setT(hhmm()), 5_000); return () => clearInterval(i); }, []);
-  return <button type="button" className="nm-topclock" title="누르면 화면 가림(Alt+L)" onClick={() => setTimeout(blindNow, 150)}>{t}</button>;
+  const [t, setT] = useState(stamp);
+  useEffect(() => { const i = setInterval(() => setT(stamp()), 5_000); return () => clearInterval(i); }, []);
+  return <button type="button" className="nm-topclock" title="누르면 화면 가림(Alt+L)" onClick={() => setTimeout(blindNow, 150)}><span>{t.day}</span><b>{t.time}</b></button>;
+}
+
+/** 위 가운데 = 지금 페이지 이름(형 11-06 20:05 「중상단에 현재 페이지가 나오게 하자 … 현재 대화창이면 대화방 이름이」) */
+export function TopTitle({ text }: { text: string }) {
+  return text ? <div className="nm-toptitle" aria-live="polite">{text}</div> : null;
 }

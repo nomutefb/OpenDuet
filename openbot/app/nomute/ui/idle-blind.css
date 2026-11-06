@@ -5,6 +5,9 @@
 .nm-blind-c span { font-size:13px; color:rgba(232,234,232,.55); }
 @keyframes nmBlindIn { from { opacity:0; } to { opacity:1; } }
 @media (prefers-reduced-motion:reduce) { .nm-blind { animation:none; } }
-/* 위 가운데 시계 — 윗줄(50) 가운데 · 흐린 흰 글 · 누르면 가림 */
-.nm-topclock { all:unset; position:fixed; top:0; left:50%; transform:translateX(-50%); height:50px; display:flex; align-items:center; z-index:60; cursor:pointer; font-size:14px; font-weight:600; letter-spacing:.06em; font-variant-numeric:tabular-nums; color:rgba(232,234,232,.82); }
-.nm-topclock:hover { color:#CFFF40; }
+/* 위 왼쪽 시계 · 위 가운데 페이지 이름(형 11-06 20:05~20:06) — 윗줄(50) 안 · 시계 = 「11-6 목」 흐린 흰 + 「8:06 PM」 라임 */
+.nm-topclock { all:unset; position:fixed; top:0; left:84px; height:50px; display:flex; align-items:center; gap:7px; z-index:60; cursor:pointer; font-size:13px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.nm-topclock span { color:rgba(232,234,232,.62); letter-spacing:.02em; }
+.nm-topclock b { color:#CFFF40; font-weight:700; letter-spacing:.03em; }
+.nm-topclock:hover span { color:#e8eae8; }
+.nm-toptitle { position:fixed; top:0; left:50%; transform:translateX(-50%); height:50px; max-width:40vw; display:flex; align-items:center; z-index:59; font-size:14px; font-weight:700; color:#e8eae8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }

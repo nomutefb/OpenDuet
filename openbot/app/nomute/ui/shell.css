@@ -203,3 +203,5 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-emptybox { display:flex !important; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:24px 14px !important; text-align:center; list-style:none; }
 .nm-emptybox b { font-size:12.5px; font-weight:600; color:rgba(232,234,232,.62); }
 .nm-emptybox span { font-size:11px; color:rgba(232,234,232,.4); }
+/* 윗줄 = 왼쪽 시계 · 가운데 페이지 이름 · 오른쪽 판 번호 → 「대화방」·「대화」 탭 뺌(왼쪽 띠 아래 셋이 그 몫 · 형 11-06 20:02 「대화 이거는 … 대화로 있을 필욘없어」) */
+.nm-split-l .ynav button[data-tab="rooms"], .nm-split-l .ynav button[data-tab="chat"] { display:none !important; }

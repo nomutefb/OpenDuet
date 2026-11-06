@@ -40,7 +40,7 @@ import { IssueView } from "./issue";
 import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
-import { IdleBlind, TopClock } from "./idle-blind";
+import { IdleBlind, TopClock, TopTitle } from "./idle-blind";
 import { AppIntro } from "../home/intro";
 import { NewsModal, newsFileOf } from "./news";
 import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
@@ -184,6 +184,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const serverWork = useServerWork(chat.busy, chat.threadId);
   const stage = useRef<HTMLDivElement>(null);
   useTabSpace(stage);
+  const { ordered: roomsAll, list: peopleAll } = useRoomOrder();   // 위 가운데 페이지 이름 = 지금 방 이름(1:1 = 그 이 이름) · 훅 = 이른 return 앞
   if ("bare" in where) return <>{children}</>;
 
   const SEE = new Set(["settings", "drawer"]);   // 바탕 비치는 판(5번 서랍 · 6번 설정)
@@ -204,15 +205,18 @@ export function NomuteShell({ children }: { children: ReactNode }) {
     else void nav({ to: under ? MODALS.find((x) => x.id === under)!.to : paneHref(base, room) });
   };
   const M = modal ? MODALS.find((x) => x.id === modal) : undefined;
+  const rNow = roomsAll.find((x) => x.id === room);
+  const roomTitle = rNow ? (rNow.with ? peopleAll.find((x) => x.who === rNow.with)?.name || rNow.with : rNow.name) : "";
   return (
     <ChatPresenceProvider serverWork={serverWork}>
       <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}`}>
         <AttentionNotifier />
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
-        {split ? <TopClock /> : null}
+        {split ? <TopClock /> : null}   {/* 위 왼쪽 시계(형 11-06 20:05) */}
+        {split ? <TopTitle text={M ? M.label : pane === "chat" ? roomTitle : pane === "rooms" ? "대화방" : pane === "home" ? "홈" : ""} /> : null}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
-        {wide ? <FaceStrip current={pane === "chat" ? room : ""} /> : null}
+        {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
         <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
           <SceneBg className="nm-app-ambient" />   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
@@ -388,7 +392,7 @@ function RoomsPane() {
 }
 
 /** PC 왼쪽 끝 얼굴 띠 — 얼굴만(글자 0) · 차례 = 안 읽은 방 → 고정 → 나머지(목록 화면과 같은 차례) · 위아래 스크롤 · 맨 위 ≡ · 맨 아래 「+」·형 얼굴 붙박이 */
-function FaceStrip({ current }: { current: string }) {
+function FaceStrip({ current, last }: { current: string; last: string }) {
   const nav = useNavigate();
   const { list, ordered, count, pins, setPins } = useRoomOrder();
   const go = (id: string) => { enterRoom(id); void nav({ to: chatHref(id) }); };
@@ -399,11 +403,14 @@ function FaceStrip({ current }: { current: string }) {
   // 라이브 = 지금 깸 · 또는 마지막 턴 10분 안(상태바 조약돌과 같은 셈 · 형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어?」) — 턴 사이 「잠」 깜빡임 없게
   const live = (who?: string) => !!who && bots.some((b) => b.who === who && (b.state === "awake" || (!!b.last_turn_ts && Date.now() - b.last_turn_ts <= 10 * 60_000)));
   const asleep = (who?: string) => !!who && !live(who);
+  // 띠 차례(형 11-06 20:07 「깨어있는 애들이 위에 위치하도록 … 깨어난지 오래된 애들일 수록 아래로 가야함. (단톡방 포함) 시간기준」) = 고정 → 라이브(1:1 그 애 깸 · 10분 안) → 마지막으로 살아 움직인 때 새것부터
+  //   1:1 = 그 애 마지막 턴(bots last_turn_ts) · 단톡방 = 방 마지막 움직임(act_ts · last_ts)
+  const aliveAt = (r: (typeof ordered)[number]) => r.with ? bots.find((b) => b.who === r.with)?.last_turn_ts || 0 : r.act_ts || r.last_ts || 0;
+  const stripOrder = [...ordered].sort((a, b) => (+pins.has(b.id) - +pins.has(a.id)) || (+live(b.with) - +live(a.with)) || (aliveAt(b) - aliveAt(a)));
   return (
     <aside aria-label="방 얼굴 띠" className="nm-strip">
-      <button type="button" className="nm-strip-btn" aria-label="대화 목록" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="menu" size={21} /></button>
       <div className="nm-strip-faces">
-        {ordered.map((r) => {
+        {stripOrder.map((r) => {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list);
           return (
             <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n > 0 ? ` · 안 읽은 글 ${n}개` : ""}`} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
@@ -415,8 +422,10 @@ function FaceStrip({ current }: { current: string }) {
         })}
       </div>
       <div className="nm-strip-foot">
-        <button type="button" className="nm-strip-btn" aria-label="목록에서 방 고르기" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="plus" size={20} /></button>
-        <button type="button" className="nm-face" aria-label="형 · 설정" onClick={() => void nav({ to: "/settings" })}><FaceImg id={HYUNG_ID} size={36} /></button>
+        {/* 맨 아래 고정 셋 = 「+」 · 채팅(가장 최근 방) · 채팅 목록 · 형 프로필 뺌(형 11-06 20:03 「좌하단에 고정으로 오자」 · 「+ 채팅, 채팅목록」 · 「채팅 픽토그램을 누르면 가장 최근 채팅으로」 · 「그 3개는 고정임」 · 「내 프로필은 잇을필요없어」) */}
+        <button type="button" className="nm-strip-btn" aria-label="방 만들기 · 고르기" title="방 만들기 · 고르기" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="plus" size={20} /></button>
+        <button type="button" className="nm-strip-btn" aria-label="가장 최근 채팅" title="가장 최근 채팅" onClick={() => go(last || "all")}><DuetIcon name="chat" size={20} /></button>
+        <button type="button" className="nm-strip-btn" aria-label="채팅 목록" title="채팅 목록" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="menu" size={21} /></button>
       </div>
     </aside>
   );
