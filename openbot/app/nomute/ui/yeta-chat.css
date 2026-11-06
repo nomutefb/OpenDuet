@@ -701,3 +701,8 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 /* 내보내기 = × 글자 대신 문 + 화살표 그림(형 11-06 22:38) — 동그라미 자리 그대로 · 그림 가운데 */
 .nm-top-kick { display:inline-grid; place-items:center; }
 .nm-top-kick svg { display:block; }
+/* 내보내기 두 번 누름(형 11-06 22:38 「누르면, 색이 바뀌고. 그 이후에 한번 더 누르면 확정」) — 첫 누름 = 빨강 채움 + 살짝 뜀 · 5초 뒤 풀림 */
+.nm-top-kick.arm { color:#fff; background:#FF5A5F; box-shadow:0 0 0 3px rgba(255,90,95,.25); animation:nmKickArm .9s ease-in-out infinite alternate; }
+.nm-top-kick[disabled] { opacity:.4; cursor:default; }
+@keyframes nmKickArm { from { box-shadow:0 0 0 2px rgba(255,90,95,.2); } to { box-shadow:0 0 0 5px rgba(255,90,95,.08); } }
+@media (prefers-reduced-motion:reduce){ .nm-top-kick.arm { animation:none; } }
