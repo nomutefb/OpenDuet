@@ -205,3 +205,11 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-emptybox span { font-size:11px; color:rgba(232,234,232,.4); }
 /* 윗줄 = 왼쪽 시계 · 가운데 페이지 이름 · 오른쪽 판 번호 → 「대화방」·「대화」 탭 뺌(왼쪽 띠 아래 셋이 그 몫 · 형 11-06 20:02 「대화 이거는 … 대화로 있을 필욘없어」) */
 .nm-split-l .ynav button[data-tab="rooms"], .nm-split-l .ynav button[data-tab="chat"] { display:none !important; }
+/* 지금 방 = 테두리에 우리 일곱 색 무지개가 돎(형 11-06 20:10 「현재 위치한 채팅방은 무지개 색이 돌게해줘 … 테두리에 무지개 멤돌면됨」) */
+.nm-split-root .nm-face.on { border-color:transparent !important; box-shadow:none !important; }
+.nm-split-root .nm-face.on::before { content:""; position:absolute; inset:-3px; border-radius:50%; z-index:2; pointer-events:none;
+  background:conic-gradient(#ff6fb5, #0ffd02, #dde3ea, #c07a3a, #4f86ff, #ffd60a, #ffb07c, #ff6fb5);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  animation:nmRainbowSpin 3s linear infinite; }
+@keyframes nmRainbowSpin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .nm-split-root .nm-face.on::before { animation:none; } }

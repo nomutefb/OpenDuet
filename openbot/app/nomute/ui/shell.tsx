@@ -406,7 +406,7 @@ function FaceStrip({ current, last }: { current: string; last: string }) {
   // 띠 차례(형 11-06 20:07 「깨어있는 애들이 위에 위치하도록 … 깨어난지 오래된 애들일 수록 아래로 가야함. (단톡방 포함) 시간기준」) = 고정 → 라이브(1:1 그 애 깸 · 10분 안) → 마지막으로 살아 움직인 때 새것부터
   //   1:1 = 그 애 마지막 턴(bots last_turn_ts) · 단톡방 = 방 마지막 움직임(act_ts · last_ts)
   const aliveAt = (r: (typeof ordered)[number]) => r.with ? bots.find((b) => b.who === r.with)?.last_turn_ts || 0 : r.act_ts || r.last_ts || 0;
-  const stripOrder = [...ordered].sort((a, b) => (+pins.has(b.id) - +pins.has(a.id)) || (+live(b.with) - +live(a.with)) || (aliveAt(b) - aliveAt(a)));
+  const stripOrder = [...ordered].sort((a, b) => (+(b.id === current) - +(a.id === current)) || (+pins.has(b.id) - +pins.has(a.id)) ||   /* 지금 방 = 맨 위(형 20:10 「당연히 맨 위에 있겠지」) */ (+live(b.with) - +live(a.with)) || (aliveAt(b) - aliveAt(a)));
   return (
     <aside aria-label="방 얼굴 띠" className="nm-strip">
       <div className="nm-strip-faces">
