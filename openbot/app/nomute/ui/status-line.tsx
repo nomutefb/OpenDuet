@@ -50,7 +50,7 @@ export function StatusLine() {
           <span title="봇 연결">봇 <N v={l.bots?.ok} />/{l.bots?.total ?? 0}</span>
           <span className="nm-sl-fill" />
           <span title={l.synced_at ? new Date(l.synced_at).toLocaleString() : "몸 보고 아직 없음"}>동기화 {ago(l.synced_at, now)}</span>
-          {l.deploy ? (<><Sep /><span title="서버 판(editor 커밋)">판 {l.deploy}</span></>) : null}
+          {l.deploy ? (<><Sep /><span title="서버 판(editor 커밋) · 우상단 판 번호 = 앱 판">서버 판 {l.deploy}</span></>) : null}
         </>
       )}
     </div>
