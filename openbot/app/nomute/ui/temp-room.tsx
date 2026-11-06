@@ -57,9 +57,9 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
   };
   const made = (j: { room: { id: string } }) => { onClose(); if (!edit) void nav({ to: "/channels/$channelId", params: { channelId: j.room.id } }); };   // 닫고 옮기기 = ✓ 뒤(GoButton done)
   return (
-    <div role="dialog" aria-modal="true" aria-label={edit ? "단톡방 고치기" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div role="dialog" aria-modal="true" aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <b className="text-base">{edit ? "단톡방 고치기" : "임시 단톡방"}</b>
+        <b className="text-base">{edit ? "방 설정" : "임시 단톡방"}</b>
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground">방 이름</span>
           <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="rounded-xl border border-border bg-transparent px-3 py-2" />
@@ -79,7 +79,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
           </div>
         </fieldset>
         <fieldset className="flex flex-col gap-1">
-          <legend className="mb-1 text-muted-foreground">유지 시간</legend>   {/* 라벨 옆 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
+          <legend className="mb-1 text-muted-foreground">유지 시간{edit ? <span className="ml-1 text-xs">· 지금 {edit.exp ? tempLeft(edit.exp) : "영구"}</span> : null}</legend>   {/* 지금 남은 기한(형 11-06 10:37 「이거 하루가 넘나? 유지기간이」) */}   {/* 라벨 옆 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           <div className="flex gap-1.5">
             {HOURS.map(([h, label]) => <button key={h} type="button" aria-pressed={hours === h} onClick={() => setHours(h)} className="nm-pick flex-1 justify-center">{label}</button>)}
           </div>

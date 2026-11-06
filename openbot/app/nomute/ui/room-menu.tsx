@@ -47,9 +47,10 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
       <button ref={btn} type="button" className="nm-room-menu" style={{ right }} aria-label="방 메뉴" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}><DuetIcon name="menu" size={20} /></button>
       {open && r ? (
         <div role="menu" aria-label={`${r.name} 메뉴`} className="nm-room-menu-list" style={{ right: right + 4, top: (b ? b.bottom : 44) + 4 }}>
+          {r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setCrew(true); }}>방 설정<small>이름 · 목적 · 멤버 · 기한</small></button> : null}   {/* 임시방 = 한 창에서 다(형 11-06 10:37 「그 방설정이 이 안에서 되야할듯. 방설정이 한 모달안에 보이면좋겠네」 · 창은 원래 있었고 「멤버 넣고 빼기」 이름에 숨어 있었음) */}
           {!r.with ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setTinting(r); }}><span className="flex items-center gap-2"><RainbowOrb />대화방 프로필 · 표지 색</span></button> : null}
           {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setNaming(r); }}>대화방 이름 바꾸기</button> : null}
-          {!r.with && r.id !== MEET && (r.designated || r.temp) ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setCrew(true); }}>멤버 넣고 빼기<small>{r.members?.length || ""}</small></button> : null}   {/* 지정방 = roomset(형만) · 임시방 = 수정 창(멤버 칸) · 회의실 = 아래 「잠시 내보내기」 · 1:1 = 없음 */}
+          {!r.with && r.id !== MEET && r.designated && !r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setCrew(true); }}>멤버 넣고 빼기<small>{r.members?.length || ""}</small></button> : null}   {/* 지정방 = roomset(형만) · 임시방 = 수정 창(멤버 칸) · 회의실 = 아래 「잠시 내보내기」 · 1:1 = 없음 */}
           {asks.data ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setHist(true); }}>대화방 질문 이력<small>{asks.data.length}</small></button> : null}
           <button type="button" role="menuitem" onClick={() => { setOpen(false); setFiles(true); }}>파일 기록</button>
           {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setKick(true); }}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」 · 11:57 「우상단 메뉴 버튼에서 잠시 내보내기」) */}
