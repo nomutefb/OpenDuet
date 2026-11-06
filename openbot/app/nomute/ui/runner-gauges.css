@@ -9,7 +9,7 @@
 .nm-rgx-run.on { }   /* 켜짐·쉼 = 꺼짐 꼴 그대로(형 11-06 12:48 「쉼이면!」 · 13:03 「요기 아직 ...켜진것두」 · 11:50 「러너 오프 = 러너 아예 오프 같은개념으로 둬」 = 불은 일할 때만) */
 .nm-rgx-run.work { color:#FFFFFF; }   /* 일하는 중 = 글자만 흰색(형 11:50 「글자에 색만 들어오면돼」) */
 /* 우리 조약돌(형 11-06 09:48 「조약돌은 그 아래에 나오면 좋겠어 너네가 깬것도 보면 좋긴하거든 … 러너 위에」) — 게이지 아래 · 러너 위 · 각자 bloub(./bloub.tsx) · 깸 = 제 색 + 옅은 빛 · 상주 = 제 색 · 잠 = 회색 몸(bloub 쪽) */
-.nm-rgx-pebs { list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin:8px 0 0; padding:0; }
+.nm-rgx-pebs { list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin:8px 0 0; padding:0; min-height:20px; }
 .nm-rgx-peb { display:block; width:20px; height:20px; line-height:0; transition:filter .5s, opacity .5s; }
 .nm-rgx-peb .nm-bloub { display:block; overflow:visible; }
 .nm-rgx-peb.off { opacity:.75; }

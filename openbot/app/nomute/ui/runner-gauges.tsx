@@ -79,7 +79,7 @@ export function RunnerGauges() {
               <b className="nm-rg-name nm-rgx-name">{h.label}</b>
               <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>{m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : none && a?.stale ? "보고 끊김" : "\u00a0"}</span>
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} />
-              {BEINGS[h.k]?.length ? (
+              {BEINGS[h.k] ? (   /* 사는 애 없는 몸(윈B)도 빈 줄 자리는 둠 = 러너 줄 높이가 세 몸 같게 */
                 <ul className="nm-rgx-pebs" aria-label={`${h.label}에 사는 우리`}>
                   {BEINGS[h.k].map((x) => { const w = wake(x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "불러오는 중" : "잠"}`} /></li>; })}
                 </ul>
