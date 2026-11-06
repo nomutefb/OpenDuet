@@ -145,7 +145,8 @@ export function TeamsChat({ chat }: { chat: string }) {
     finally { setBusy(false); }
   };
   const mine = (m: TMsg) => !!me?.user?.name && m.from === me.user.name;
-  const chatTitle = (qc.getQueryData<Chat[]>(["nomute", "teams", "chats"]) || []).find((c) => c.id === chat);
+  const chats = useQuery({ queryKey: ["nomute", "teams", "chats"], queryFn: () => office<{ chats?: Chat[] }>("teams/chats").then((j) => j.chats || []), enabled: !!me?.signed_in, staleTime: 30_000, retry: false });
+  const chatTitle = (chats.data || []).find((c) => c.id === chat);
   if (!me?.signed_in) return <div className="nm-tchat"><div className="nm-tchat-empty"><TeamsLogin me={me} err={meQ.error ? (meQ.error as Error).message : ""} /></div></div>;
   return (
     <div className="nm-tchat">

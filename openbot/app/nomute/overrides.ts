@@ -87,7 +87,7 @@ export const PATCH: Record<string, [string, string][]> = {
   ],
   // 입력칸 부름 목록 = 「@」(예약) + 「!」(바로 깨움 · 사무실 말 · 형 10-30 「호출시 대화에 쓰면 리스트 안뜨는 것」) — 같은 이 목록 · 고르면 「!이름」 글
   "app/src/components/channels/composer/triggers.ts": [
-    ["  return [agentTrigger(agents), slashCommandTrigger(commands)];", "  setCallAgents(agents);\n  return [{ char: \"@\", position: \"any\", mode: \"launch\", accessibilityLabel: \"부르기\", onActivate: () => openCallSheet(\"@\", agents) }, slashCommandTrigger(commands)];"],   // 「@」 = 고르기(./ui/call-sheet.tsx · 형 11-02 11:34) · 「!」 고르기 뺌(형 11-04 17:36 「나는 이제 느낌표가 필요없음 바로 깨우는 거니까」) · 1:1 방 = 「@」 그냥 글자(call-sheet openCallSheet)
+    ["  return [agentTrigger(agents), slashCommandTrigger(commands)];", "  setCallAgents(agents);\n  return [{ char: \"@\", position: \"any\", mode: \"launch\", accessibilityLabel: \"부르기\", onActivate: () => openCallSheet(\"@\", agents) }, ...(commands.length ? [slashCommandTrigger(commands)] : [])];"],   // 「/」 목록 = 명령 없으면 안 켬(사무실 = commands [] · 원본 목록이 「No matching skills」만 띄우고 엔터를 먹었음 · 형 11-06 10:45 사진)   // 「@」 = 고르기(./ui/call-sheet.tsx · 형 11-02 11:34) · 「!」 고르기 뺌(형 11-04 17:36 「나는 이제 느낌표가 필요없음 바로 깨우는 거니까」) · 1:1 방 = 「@」 그냥 글자(call-sheet openCallSheet)
     ['emptyMessage: "No Bots in this conversation"', 'emptyMessage: "이 방엔 부를 이가 없어"'],
     ['import { commandTrigger, mentionTrigger } from "prompt-area/helpers";', 'import { commandTrigger, mentionTrigger } from "prompt-area/helpers";\nimport { faceIcon, markLabel } from "@nomute/ui/call-face";\nimport { openCallSheet, setCallAgents } from "@nomute/ui/call-sheet";'],
     ["          description: agent.description,", "          description: agent.description,\n          icon: faceIcon(agent.id),"],   // 부름 목록 얼굴(./ui/call-face.tsx)

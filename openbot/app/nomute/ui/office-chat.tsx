@@ -21,10 +21,9 @@ import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
 import { type CommandOption, Composer, toAgentOptions } from "@/components/channels/composer";
 // 「/」 = 우리 명령 둘(형 11-06 10:45 사진 = 「/초대」에 원본 스킬 메뉴 「No matching skills」가 떠서 엔터가 안 감 · 봄 서버 /초대·/방파기) — 고르면 그 글자가 입력칸에 들어가고 엔터 = 보내기
-const OFFICE_COMMANDS: CommandOption[] = [
-  { id: "초대", name: "초대", description: "하루 안 남은 임시방에 부르기 · /초대 이름", kind: "prompt", prompt: "/초대 " },
-  { id: "방파기", name: "방파기", description: "목적 달성 · 다 같이 나가기", kind: "prompt", prompt: "/방파기" },
-];
+//   → 원본 「/」 목록은 이 앱에서 늘 비어 「No matching skills」만 띄우고 엔터를 먹음(11-06 9222 실물) = 목록 끔(commands [] · overrides.ts) · 대신 입력칸 위 안내 줄(SLASH_HELP)
+const OFFICE_COMMANDS: CommandOption[] = [];
+const SLASH_HELP: [string, string][] = [["/초대 이름", "하루 안 남은 임시방에 부르기"], ["/방파기", "목적 달성 · 다 같이 나가기"]];
 import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, peopleSync, roomAgentIds } from "../data/office";
@@ -948,7 +947,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
   const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot)
-  const [inviting, setInviting] = useState("");
+  const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null);   // slash = 입력칸이 「/…」 한 낱말일 때 그 뒤 글자
   const invite = async (m: Msg) => {   // 형 11-06 「내가 초대하기누르면다시들어올수잇어야함」 → POST rooms/<방>/invite(봄 서버) · 답 = 「다시 불렀습니다」 줄
     const who = evWho(m)[0]; if (!who || inviting) return;
     setInviting(m.id); setErr("");
@@ -1285,6 +1284,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
+        {slash != null && SLASH_HELP.some(([k]) => k.slice(1).startsWith(slash)) ? (   /* 「/」 안내 줄 = 치는 글자에 맞는 명령만 · 엔터는 그대로 보내기 */
+          <div className="yslash" aria-live="polite">{SLASH_HELP.filter(([k]) => k.slice(1).startsWith(slash)).map(([k, d]) => <p key={k}><b>{k}</b><span>{d}</span></p>)}</div>
+        ) : null}
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         <CallSheet />   {/* 「@」·「!」 여러 명 고르기(./call-sheet.tsx · 형 11-02 11:34 · 11:37) */}
         {reply ? (
@@ -1297,7 +1299,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           agents={toAgentOptions(bots4)}
           commands={OFFICE_COMMANDS}
           channelId={room}
-          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); }}
+          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); }}
           initialValue={loadDraft(room)}
           className="relative mt-auto w-full"
           commands={[]}

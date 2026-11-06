@@ -39,7 +39,7 @@ import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { IssueView } from "./issue";
 import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
-import { isTeams } from "./teams";
+import { isTeams, useTeamsMode } from "./teams";
 import { NewsModal, newsFileOf } from "./news";
 import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
@@ -214,7 +214,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           {show("rooms", <div className="nm-col"><RoomsPane /></div>)}
           {show("chat", (
             <div className="nm-col">
-              <ShellHeader floating menuOpen={false} onMenu={() => {}} />
+              {isTeams(room) ? null : <ShellHeader floating menuOpen={false} onMenu={() => {}} />}   {/* 팀즈 대화 = 우리 얼굴 머리 0(TeamsChat 이 제 머리를 그림) */}
               {wide ? null : <button type="button" className="nm-room-back" aria-label="대화방 목록으로" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="chevronLeft" size={20} /></button>}   {/* 형 10-31 「좌상단에 좌측 꺽쇠가 있어줘야 함」 · 뒤로 버튼 없는 폰 */}
               {isTeams(room) ? null : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}</PinBar>}   {/* 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 그 밑 방 카드(평의회 2 ⑨ · ./meet-card.tsx) */}
               <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && roomOf(pathname) === room && !modal && !layer && !("page" in where)} /></main>
@@ -347,14 +347,14 @@ function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
 
 /** 목록 화면(카톡식 · 형 11:26 「대화랑 그냥 분리하자」) — 방 누르면 그 대화 판으로 */
 function RoomsPane() {
+  const teamsOn = useTeamsMode();
   return (
     <>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-4 pb-[calc(var(--duet-tab-space,86px)+56px)]">   {/* 끝 줄이 우하단 단추에 안 가리게 */}
         <h1 className="sr-only">대화방</h1>   {/* 판 위 큰 제목 0(PM 13:04 · 형 「공간」 · 지금 판 = 네비 「대화방」 칸) */}
         <RoomList big />
       </div>
-      <RoomFab />
-      <DecideFab />
+      {teamsOn ? null : <><RoomFab /><DecideFab /></>}   {/* 팀즈 모드 = 방 만들기·결정 동그라미 0 */}
       {/* 영상 해석 허가 동그라미 뺌(형 11-05 11:10 「그럼 이제 그 채팅창 우하단에 영상 신청 이거는 없어도되는거지? 판단해보고, 별 의미없는 코드니까. 기능을 없애고 디자인도 없애줘.」 · 올리는 순간 받아쓰기 상주가 대신함) */}
     </>
   );

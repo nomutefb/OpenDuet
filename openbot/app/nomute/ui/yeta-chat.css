@@ -631,3 +631,8 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .yev-a { all:unset; cursor:pointer; color:var(--fg-2); font-size:var(--fs-sm); text-decoration:underline; text-underline-offset:3px; text-decoration-color:color-mix(in srgb,var(--fg-2) 45%,transparent); }
 .ychat .yev-a:hover { text-decoration-color:currentColor; }
 .ychat .yev-a:disabled { cursor:default; opacity:.55; }
+/* 「/」 안내 줄(형 11-06 「/초대」 · 봄 아이데이션 「/ 치면 명령 목록」) — 입력칸 바로 위 · 유리 · 명령 = 라임 */
+.ychat .yslash { display:flex; flex-direction:column; gap:2px; margin:0 4px 6px; padding:6px 12px; border-radius:14px; background:var(--glass-2); border:1px solid var(--glass-line); font-size:var(--fs-sm); }
+.ychat .yslash p { display:flex; gap:10px; margin:0; }
+.ychat .yslash b { color:#CFFF40; font-weight:700; min-width:76px; }
+.ychat .yslash span { color:var(--fg-2); }
