@@ -38,7 +38,7 @@ export function StatusLine() {
   return (
     <div role="status" aria-label="작동 상태 한 줄" className="nm-statusline">
       {!l ? (
-        <span>{q.isError ? "상태를 못 읽었어요" : "상태 읽는 중…"}</span>
+        <span>{q.isError ? "상태를 못 읽었어요" : q.isSuccess ? "상태 줄 자료가 아직 없어요" : "상태 읽는 중…"}</span>
       ) : (
         <>
           <span title="작동 표 신호등 수">🟢 <N v={l.ok} /> 🟡 <N v={l.warn} /> 🔴 <N v={l.bad} /> ⚪ <N v={l.off} /></span>
