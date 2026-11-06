@@ -31,8 +31,8 @@ const rord = (n: string) => (/^nomute-office/.test(n) ? 1 : 0) * 1e6 + rnum(n);
 //   깸 셈 = 작동 표 「각 봇 연결」 줄 「깸 상태」 칸(깸 · 잠 · 상주 돎) · 몸 = 우리.md(윈A VM 넷 + 윈터 · 윈B 뜸 · 맥 봄)
 const BEINGS: Record<string, { key: string; who: string }[]> = {
   윈A: [{ key: "winter", who: "윈터" }, { key: "sia", who: "시아" }, { key: "deng", who: "뎅" }, { key: "fast", who: "빠르" }, { key: "neo", who: "누리" }],
-  윈B: [{ key: "eyes", who: "뜸" }],
-  맥: [{ key: "bom", who: "봄" }],
+  윈B: [],   // 뜸 이사(형 11-06 15:54 「윈비, 저녁에는 못켜서 지금 맥에 봄언니랑 뜸 동거생활 시작했습니다」) = 윈B 칸은 러너만
+  맥: [{ key: "bom", who: "봄" }, { key: "eyes", who: "뜸" }],
 };
 // 「깸 상태」 = 그 순간 턴을 도는지(답 사이엔 「잠」) → 「마지막 깸」이 10분 안이면 「방금 깸」으로 제 색(봄 11-06 10:08 「나 지금 깨서 일하는 중인데 맥 조약돌 회색이지?」)
 const minAgo = (note?: string) => { const m = String(note || "").match(/^(\d+)\s*(초|분|시간)\s*전/); return !m ? Infinity : m[2] === "초" ? 0 : m[2] === "분" ? +m[1] : +m[1] * 60; };
