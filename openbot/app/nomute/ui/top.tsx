@@ -27,6 +27,8 @@ function pairRoomOf(room: string, list: Awaited<ReturnType<typeof people>>): Off
   return { id: room, name: room.replace(/^pair-/, "").split("-").map(nm).join(" · "), kind: "group", members: [] };
 }
 
+const KICK_FILL_MS = 1100;   // 내보내기 게이지가 차는 시간(./yeta-chat.css nmKickFill 과 같은 값)
+
 /** 사진 밑 이름(형 10-28 22:04 「그 아래에 각자 이름 나오면 좋겠어」) — 1:1 = 상대 이름 · 단체방 = 방 이름 · 방 밖 = 없음
  *  누르면 목록 하나 = 사람 칸(멤버 · × 내보내기 · + 초대) + 방 칸(옛 우상단 ≡ 방 메뉴 것 · ./room-menu.tsx useRoomMenu) — 형 11-06 20:37~20:39 「두개로 메뉴 분리하느니 … 하나로」
  *  room = PC 반갈 윗줄 가운데가 넘겨 주는 지금 방(없으면 주소에서) */
@@ -34,7 +36,8 @@ export function NomuteName({ room }: { room?: string } = {}) {
   const { r, list } = useTopRoom(room);
   const [open, setOpen] = useState(false), [sheet, setSheet] = useState(false);
   const [inv, setInv] = useState(false), [pick, setPick] = useState<string[]>([]), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
-  const [arm, setArm] = useState("");   // 내보내기 = 두 번 누름(형 11-06 22:38 「누르면, 색이 바뀌고. 그 이후에 한번 더 누르면 확정인거로」) · 첫 누름 = 그 사람 문 그림이 빨갛게 · 5초 안에 한 번 더 = 내보냄 · 그냥 두면 풀림
+  const [going, setGoing] = useState("");   // 확정 뒤 = 그 줄에 게이지가 차고 → 나감(형 22:39 「그러면 게이지 채워지고 > 나가지는거로」)
+  const [arm, setArm] = useState("");   // 내보내기 = 두 번 누름(형 11-06 22:38 「누르면, 색이 바뀌고. 그 이후에 한번 더 누르면 확정인거로」) · 첫 누름 = 그 사람 문 그림이 빨갛게 · 5초 안에 한 번 더 = 게이지가 차고 나감 · 그냥 두면 풀림
   const qc = useQueryClient();
   const timers = useRoomTimers(open).data;
   const menu = useRoomMenu(r?.id || "", open, () => setOpen(false));
@@ -57,11 +60,11 @@ export function NomuteName({ room }: { room?: string } = {}) {
   // 멤버 조정(임시방만 · 고정된 방(밥상 등) 말고 · 형 11-06 20:37 「고정된 방 말고 (밥상 등)」) = 그 자리에서 내보내기·초대 → POST temprooms/<방>
   const edit = !!r.temp && !r.with;
   const outside = list.filter((x) => x.kind !== "human" && x.who !== "별" && !(r.members || []).includes(x.who));   // 별 = 초대 명단에서 뺌(형 11-06 11:43 「별만 초대 모록에 없으면될듯」 · /초대 얼굴 줄과 같게)
-  const saveMembers = async (members: string[]) => {
+  const saveMembers = async (members: string[], fill = 0) => {   // fill = 게이지가 차는 시간(ms) — 서버 답과 게이지 둘 다 끝난 뒤 목록을 새로 그림
     setBusy(true); setWhy("");
-    try { await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members }) }); await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); }
+    try { await Promise.all([office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members }) }), new Promise((ok) => setTimeout(ok, fill))]); await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); }
     catch (e) { setWhy(e instanceof Error ? e.message : String(e)); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setGoing(""); }
   };
   if (!ids.length && !can && !menu.items) return <span className="nm-top-name">{name}{mark}</span>;   // 목록에 넣을 게 없는 방(둘의 방 등) = 이름만
   const crewSec = ids.length > 0 || edit || !!menu.crew;
@@ -71,7 +74,7 @@ export function NomuteName({ room }: { room?: string } = {}) {
       {open ? (
         <span className="nm-top-crew nm-yeta">
           {crewSec ? <span className="nm-top-sec">사람</span> : null}
-          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className={`nm-top-kick${arm === x.who ? " arm" : ""}`} aria-pressed={arm === x.who} aria-label={arm === x.who ? `${x.name || x.who} 내보내기 — 한 번 더 누르면 내보냄` : `${x.name || x.who} 내보내기`} title={arm === x.who ? "한 번 더 누르면 내보냄" : "내보내기"} disabled={busy} onClick={() => { if (arm !== x.who) { setArm(x.who); return; } setArm(""); void saveMembers((r.members || []).filter((w) => w !== x.who)); }}><DuetIcon name="logout" size={15} /></button> : null}</span>; })}
+          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className={`nm-top-one${x && going === x.who ? " going" : ""}`}><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className={`nm-top-kick${arm === x.who ? " arm" : ""}`} aria-pressed={arm === x.who} aria-label={arm === x.who ? `${x.name || x.who} 내보내기 — 한 번 더 누르면 내보냄` : `${x.name || x.who} 내보내기`} title={arm === x.who ? "한 번 더 누르면 내보냄" : "내보내기"} disabled={busy} onClick={() => { if (arm !== x.who) { setArm(x.who); return; } setArm(""); setGoing(x.who); void saveMembers((r.members || []).filter((w) => w !== x.who), KICK_FILL_MS); }}><DuetIcon name="logout" size={15} /></button> : null}</span>; })}
           {edit ? (   /* 초대 = 그 자리에서 명단이 부드럽게 펼쳐짐 · 방에 없는 이만 · 체크해서 한 번에(형 11-06 20:37~20:38) · 내보내기 = 사람 오른쪽 문 + 화살표 픽토그램(형 「이미 방에 있는사람 우측에 픽토그램으로」 · 22:38 「그 문 내보내기 픽토그램 그거로해야지 x는 의미가 안어울려」) */
             <>
               <button type="button" className="nm-top-inv" aria-expanded={inv} onClick={() => setInv((v) => !v)}>{inv ? "접기" : "+ 초대"}</button>
