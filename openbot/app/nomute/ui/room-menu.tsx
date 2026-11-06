@@ -14,12 +14,13 @@ import { setUnfold, useUnfold } from "./unfold";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
 import { RoomMembersDialog, TempRoomDialog } from "./temp-room";   // 방 멤버 = 방 안 메뉴에서도(형 11-05 09:37 봄 1:1 「톡방 지금 인원을 내가 톡방 설정에서 배분하고 내보내고 그걸 맘대로 하고 싶거든?」)
 import { whoName } from "./who-name";
+import { RoomLookDialog } from "./room-look";
 
 export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
   const qc = useQueryClient(), btn = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false), [tinting, setTinting] = useState<OfficeRoom | null>(null), [naming, setNaming] = useState<OfficeRoom | null>(null), [err, setErr] = useState("");
   const notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
-  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false);
+  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [look, setLook] = useState(false);
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: open || hist, staleTime: 30_000, retry: false });   // 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
   const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: open, staleTime: 15_000, retry: false });   // 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
   const setBell = async (on: boolean) => {
@@ -47,7 +48,8 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
       <button ref={btn} type="button" className="nm-room-menu" style={{ right }} aria-label="방 메뉴" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}><DuetIcon name="menu" size={20} /></button>
       {open && r ? (
         <div role="menu" aria-label={`${r.name} 메뉴`} className="nm-room-menu-list" style={{ right: right + 4, top: (b ? b.bottom : 44) + 4 }}>
-          {r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setCrew(true); }}>방 설정<small>이름 · 목적 · 멤버 · 기한</small></button> : null}   {/* 임시방 = 한 창에서 다(형 11-06 10:37 「그 방설정이 이 안에서 되야할듯. 방설정이 한 모달안에 보이면좋겠네」 · 창은 원래 있었고 「멤버 넣고 빼기」 이름에 숨어 있었음) */}
+          {r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setCrew(true); }}>방 설정<small>이름 · 목적 · 멤버 · 기한</small></button> : null}
+          {!r.with ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setLook(true); }}>방 꾸미기<small>아이콘 · 색</small></button> : null}   {/* 단톡방·회의실 다(형 11-06 20:00 「단톡방은 내가 아이콘도 고를수잇으면」 · 20:33 「회의실도 가능해야해.」) */}   {/* 임시방 = 한 창에서 다(형 11-06 10:37 「그 방설정이 이 안에서 되야할듯. 방설정이 한 모달안에 보이면좋겠네」 · 창은 원래 있었고 「멤버 넣고 빼기」 이름에 숨어 있었음) */}
           {!r.with ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setTinting(r); }}><span className="flex items-center gap-2"><RainbowOrb />대화방 프로필 · 표지 색</span></button> : null}
           {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setNaming(r); }}>대화방 이름 바꾸기</button> : null}
           {!r.with && r.id !== MEET && r.designated && !r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setCrew(true); }}>멤버 넣고 빼기<small>{r.members?.length || ""}</small></button> : null}   {/* 지정방 = roomset(형만) · 임시방 = 수정 창(멤버 칸) · 회의실 = 아래 「잠시 내보내기」 · 1:1 = 없음 */}
@@ -65,6 +67,7 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
       {files && r ? <FileLog room={room} name={r.name} onClose={() => setFiles(false)} /> : null}
       {hist && r ? <AskHistory name={r.name} items={asks.data || []} onClose={() => setHist(false)} /> : null}
       {kick && r ? <MeetOut room={r} onClose={() => setKick(false)} /> : null}
+      {look && r ? <RoomLookDialog r={r} onClose={() => setLook(false)} /> : null}
       {crew && r ? (r.temp ? <TempRoomDialog edit={r} onClose={() => setCrew(false)} /> : <RoomMembersDialog r={r} onClose={() => setCrew(false)} />) : null}
     </>
   );

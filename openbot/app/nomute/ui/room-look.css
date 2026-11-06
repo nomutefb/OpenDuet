@@ -1,0 +1,27 @@
+/* 방 꾸미기(./room-look.tsx) — 그림 판 「방-꾸미기-v1」 그대로 */
+.nrl-veil { position:fixed; inset:0; z-index:90; display:grid; place-items:center; background:rgba(0,0,0,.55); padding:16px; }
+.nrl { width:min(520px, 100%); max-height:92vh; overflow:auto; border-radius:18px; background:rgba(28,29,31,.97); border:1px solid rgba(255,255,255,.08); box-shadow:0 20px 60px rgba(0,0,0,.5); color:#e8eae8; font-size:13px; }
+.nrl-h { display:flex; align-items:center; gap:12px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.07); }
+.nrl-h b { font-size:15px; } .nrl-h small { display:block; color:#8b8f8a; font-size:11.5px; }
+.nrl-tabs { display:flex; gap:4px; margin:12px 18px 0; padding:3px; border-radius:999px; background:rgba(255,255,255,.05); }
+.nrl-tabs button { all:unset; flex:1; text-align:center; height:30px; line-height:30px; border-radius:999px; font-weight:600; color:#c8ccc8; cursor:pointer; }
+.nrl-tabs button[aria-selected="true"] { background:#CFFF40; color:#111; }
+.nrl-sec { padding:12px 18px; }
+.nrl-q { width:100%; height:34px; border-radius:10px; border:1px solid rgba(255,255,255,.1); background:transparent; color:inherit; padding:0 12px; margin-bottom:10px; outline:0; }
+.nrl-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(40px, 1fr)); gap:6px; }
+.nrl-grid button { all:unset; height:40px; border-radius:10px; display:grid; place-items:center; background:rgba(255,255,255,.03); color:#d6d9d6; cursor:pointer; }
+.nrl-grid button[aria-pressed="true"] { background:rgba(207,255,64,.14); box-shadow:inset 0 0 0 1.5px #CFFF40; color:#CFFF40; }
+.nrl-lbl { color:#8b8f8a; font-size:11.5px; margin:6px 0 8px; }
+.nrl-sw { display:flex; flex-wrap:wrap; gap:8px; }
+.nrl-sw button { all:unset; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12); }
+.nrl-sw.gr button { width:46px; border-radius:15px; }
+.nrl-sw button[aria-pressed="true"] { box-shadow:0 0 0 2px #1c1d1f, 0 0 0 4px #CFFF40; }
+.nrl-cus { display:flex; align-items:center; gap:8px; margin-top:12px; color:#c8ccc8; font-size:12px; }
+.nrl-cus input[type="color"] { width:30px; height:26px; border:0; padding:0; background:none; cursor:pointer; }
+.nrl-cus button, .nrl-reset { all:unset; cursor:pointer; font-size:12px; color:#c8ccc8; text-decoration:underline; text-underline-offset:3px; }
+.nrl-reset { display:inline-block; margin-top:12px; }
+.nrl-why { margin:0 18px; color:#ff7b7b; font-size:12px; }
+.nrl-ft { display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1px solid rgba(255,255,255,.07); }
+.nrl-ft button { all:unset; cursor:pointer; padding:8px 16px; border-radius:999px; }
+.nrl-ft .ok { background:#e8eae8; color:#111; font-weight:700; }
+.nrl-ft .ok[disabled] { opacity:.5; }
