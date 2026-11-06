@@ -14,3 +14,7 @@
 .nm-rgx-peb .nm-bloub { display:block; overflow:visible; }
 .nm-rgx-peb.off { opacity:.75; }
 .nm-rgx-peb.on { filter:drop-shadow(0 0 4px rgba(255,255,255,.28)); }
+.nm-rgx-peb.near { opacity:.82; }   /* 방금 깸(10분 안) = 제 색 · 빛 없음 */
+.nm-rgx-peb.wait { opacity:.22; animation:nmPebWait 1.6s ease-in-out infinite; }   /* 작동 표 첫 답 전 = 흐리게 숨쉼(「다 잠듦」과 갈림 · 봄 10:08) */
+@keyframes nmPebWait { 0%,100% { opacity:.14; } 50% { opacity:.32; } }
+@media (prefers-reduced-motion:reduce) { .nm-rgx-peb.wait { animation:none; } }

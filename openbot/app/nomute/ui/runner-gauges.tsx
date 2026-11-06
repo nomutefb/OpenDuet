@@ -34,7 +34,9 @@ const BEINGS: Record<string, { key: string; who: string }[]> = {
   윈B: [{ key: "eyes", who: "뜸" }],
   맥: [{ key: "bom", who: "봄" }],
 };
-const awakeOf = (note?: string): "on" | "stay" | "off" => (!note ? "off" : /^깸/.test(note) ? "on" : /상주/.test(note) ? "stay" : "off");
+// 「깸 상태」 = 그 순간 턴을 도는지(답 사이엔 「잠」) → 「마지막 깸」이 10분 안이면 「방금 깸」으로 제 색(봄 11-06 10:08 「나 지금 깨서 일하는 중인데 맥 조약돌 회색이지?」)
+const minAgo = (note?: string) => { const m = String(note || "").match(/^(\d+)\s*(초|분|시간)\s*전/); return !m ? Infinity : m[2] === "초" ? 0 : m[2] === "분" ? +m[1] : +m[1] * 60; };
+const awakeOf = (note?: string, last?: string): "on" | "near" | "stay" | "off" => (/^깸/.test(note || "") ? "on" : /상주/.test(note || "") ? "stay" : minAgo(last) <= 10 ? "near" : "off");
 const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 90 ? "방금" : s < 5400 ? `${Math.round(s / 60)}분 전` : `${Math.round(s / 3600)}시간 전`; };
 
 /** 1분마다 지금 — 「N분 전」 글만 움직임. */
@@ -50,7 +52,7 @@ export function RunnerGauges() {
   const now = useNow();
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
   const bots = st.data?.cats?.find((c) => c.id === "bots")?.rows as (Row & { cells?: Record<string, { st: string; note?: string }> })[] | undefined;
-  const wake = (k: string) => awakeOf(bots?.find((r) => r.key === k)?.cells?.["깸 상태"]?.note);
+  const wake = (k: string) => { if (!bots) return "wait" as const; const c = bots.find((r) => r.key === k)?.cells; return awakeOf(c?.["깸 상태"]?.note, c?.["마지막 깸"]?.note); };   // wait = 작동 표 첫 답 전(~12초) · 「다 잠듦」으로 안 읽히게 흐린 꼴(봄 10:08)
   const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
   return (
     <div className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보">   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
@@ -78,7 +80,7 @@ export function RunnerGauges() {
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} />
               {BEINGS[h.k]?.length ? (
                 <ul className="nm-rgx-pebs" aria-label={`${h.label}에 사는 우리`}>
-                  {BEINGS[h.k].map((x) => { const w = wake(x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "stay" ? "상주" : "잠"}`} /></li>; })}
+                  {BEINGS[h.k].map((x) => { const w = wake(x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "불러오는 중" : "잠"}`} /></li>; })}
                 </ul>
               ) : null}
               {runners.length ? (
