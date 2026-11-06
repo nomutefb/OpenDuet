@@ -11,7 +11,7 @@ import "../runner/runner-board.css";
 import "./runner-gauges.css";
 import { Bloub } from "./bloub";
 
-type Row = { key: string; st?: string; stale?: boolean; reported_at?: number; metrics?: Record<string, number> };
+type Row = { key: string; st?: string; note?: string; stale?: boolean; reported_at?: number; metrics?: Record<string, number> };
 type Cat = { id: string; rows: Row[] };
 type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp?: number };
 
@@ -35,6 +35,10 @@ const BEINGS: Record<string, { key: string; who: string }[]> = {
   윈B: [],   // 뜸 이사(형 11-06 15:54 「윈비, 저녁에는 못켜서 지금 맥에 봄언니랑 뜸 동거생활 시작했습니다」) = 윈B 칸은 러너만
   맥: [{ key: "bom", who: "봄" }, { key: "eyes", who: "뜸" }],
 };
+// 맥 칸 = 러너 칩(M1~M3) 대신 몸 칩 둘(형 11-06 20:13 「러너를 아예 안쓰는 구조로 두개로 나눠잇을텐데」 · 봄 나눔 ④ 다음 칸 · 빠르) — M1~M3 = 11-03 형 「러너 꺼주라」로 꺼 둔 등록(11-17 저절로 지워짐 · 가지는 그대로 · 화면만)
+//   칩 꼴 = 러너 칩 그대로 · 불 = 작동 표 hw 줄 st(맥 본체 = 「맥」 줄 · VM eyes = 「VM 뜸」 줄 · 몸-보고.py hw_key) · 🟢 흰 글자 · 🟡 노랑 · 🔴 빨강 · ⚪·끊김(30분)·보고 없음 = 꺼짐 꼴
+const BODY_CHIPS: Record<string, { key: string; label: string }[]> = { 맥: [{ key: "맥", label: "맥" }, { key: "VM 뜸", label: "VM 뜸" }] };
+const LIGHT_CLS: Record<string, string> = { "🟢": "is-ok", "🟡": "is-warn", "🔴": "is-bad" };
 // 「깸 상태」 = 그 순간 턴을 도는지(답 사이엔 「잠」) → 「마지막 깸」이 10분 안이면 「방금 깸」으로 제 색(봄 11-06 10:08 「나 지금 깨서 일하는 중인데 맥 조약돌 회색이지?」)
 const minAgo = (note?: string) => { const m = String(note || "").match(/^(\d+)\s*(초|분|시간)\s*전/); return !m ? Infinity : m[2] === "초" ? 0 : m[2] === "분" ? +m[1] : +m[1] * 60; };
 const awakeOf = (note?: string, last?: string): "on" | "near" | "stay" | "off" => (/^깸/.test(note || "") ? "on" : /상주/.test(note || "") ? "stay" : minAgo(last) <= 10 ? "near" : "off");
@@ -85,7 +89,15 @@ export function RunnerGauges() {
                   {BEINGS[h.k].map((x) => { const w = wake(x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "불러오는 중" : "잠"}`} /></li>; })}
                 </ul>
               ) : null}
-              {runners.length ? (
+              {BODY_CHIPS[h.k] ? (
+                <ul className="nm-rgx-runs" aria-label={`${h.label} 몸`}>
+                  {BODY_CHIPS[h.k].map((c) => {
+                    const r = hw.find((x) => x.key === c.key);
+                    const cls = r && !r.stale ? LIGHT_CLS[r.st || ""] || "" : "";
+                    return <li key={c.key} className={`nm-rgx-run nm-rgx-body${cls ? ` ${cls}` : ""}`} title={`${c.label} · ${!r ? "보고 없음" : r.note || r.st || ""}`}>{c.label}</li>;
+                  })}
+                </ul>
+              ) : runners.length ? (
                 <ul className="nm-rgx-runs" aria-label={`${h.label} 러너`}>
                   {runners.map(([n, c]) => {
                     const on = c.st === "🟢", work = on && c.note === "일하는 중";
