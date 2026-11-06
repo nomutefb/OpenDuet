@@ -20,6 +20,7 @@ export type RoomLook = { icon?: string; fg?: string };
 const lineOf = (fg?: string) => { const c = String(fg || "").split(",").map((x) => x.trim()).filter((x) => /^#[0-9a-f]{6}$/i.test(x)); return c.length ? c : ["#CFFF40"]; };
 
 export function RoomGlyph({ id, look, size = 40 }: { id: string; look?: RoomLook | null; size?: number }) {
+  if (id === "guide") return <span className="nm-rglyph nm-rglyph-emoji" style={{ width: size, height: size, fontSize: Math.round(size * 0.55), lineHeight: `${size}px`, textAlign: "center" } as CSSProperties} aria-hidden>🍚</span>;   // 밥상 = 밥상 아이콘 박음(형 11-06 22:36 「픽토그램 말고 밥상 아이콘으로 박아버려. 따로 정하는게 아니라 밥상이게. 하드코딩」 · look 안 봄)
   const name = look?.icon && GLYPHS[look.icon] ? look.icon : DEFAULT_ICON[id] || (id.startsWith("tmp-") ? "message-circle" : "users");
   const Icon = GLYPHS[name] || Users, cols = lineOf(look?.fg), gid = `rg-${id.replace(/[^a-z0-9]/gi, "")}`;
   const stroke = cols.length > 1 ? `url(#${gid})` : cols[0];
