@@ -649,3 +649,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
   color:transparent !important; -webkit-text-fill-color:transparent; font-weight:700; }
 /* 명령 안 되는 방 안내 = 라임 안내 글(형 11-02 「이거 안내 시그니처 색 앞으로 라임」) · 누르면 닫힘 */
 .ychat .ycmdnote { white-space:pre-line; margin:0 4px 6px; padding:6px 12px; border-radius:12px; font-size:var(--fs-sm); color:#CFFF40; background:rgba(207,255,64,.07); border:1px dashed rgba(207,255,64,.4); cursor:pointer; }
+.ychat .ycmdnote { display:flex; align-items:flex-start; gap:8px; cursor:default; }
+.ychat .ycmdnote span { flex:1; }
+.ychat .ycmdnote button { all:unset; cursor:pointer; flex:none; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:15px; color:#CFFF40; }
+.ychat .ycmdnote button:hover { background:rgba(207,255,64,.15); }

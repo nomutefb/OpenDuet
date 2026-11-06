@@ -959,7 +959,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
   const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot)
-  const [cmdNote, setCmdNote] = useState("");   // 「/초대」·「/방파기」 안 되는 방 안내(라임 · 누르면 닫힘)
+  const [cmdNote, setCmdNote] = useState("");
+  useEffect(() => { if (!cmdNote) return undefined; const t = setTimeout(() => setCmdNote(""), 5_000); return () => clearTimeout(t); }, [cmdNote]);   // 「/초대」·「/방파기」 안 되는 방 안내(라임 · 누르면 닫힘)
   const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null), [inviteQ, setInviteQ] = useState<string[] | null>(null);   // inviteQ = 「/초대 …」 뒤 이미 친 이름들   // slash = 입력칸이 「/…」 한 낱말일 때 그 뒤 글자
   const invite = async (m: Msg) => {   // 형 11-06 「내가 초대하기누르면다시들어올수잇어야함」 → POST rooms/<방>/invite(봄 서버) · 답 = 「다시 불렀습니다」 줄
     const who = evWho(m)[0]; if (!who || inviting) return;
@@ -1297,7 +1298,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
-        {cmdNote ? <p className="ycmdnote" role="status" onClick={() => setCmdNote("")}>{cmdNote}</p> : null}
+        {cmdNote ? <p className="ycmdnote" role="status"><span>{cmdNote}</span><button type="button" aria-label="닫기" onClick={() => setCmdNote("")}>×</button></p> : null}   {/* 5초 뒤 저절로 · × = 바로(형 11-06 20:10 「한 5초뜨고 없어지면되는데 … 없앨수잇어야됨 x 버튼」) */}
         {inviteQ ? (() => {   /* 「/초대 」 뒤 = 이 방에 없는 애 얼굴 줄 · 누르면 이름이 입력칸 끝에 붙음(여럿) · 엔터 = 보내기(형 11-06 11:1x 「응 마찬가지로 되어야해」 · 봄 서버 이름 띄어 여럿) */
           const inRoom = new Set(r?.members || []), typed = new Set(inviteQ);
           const can = list.filter((x) => x.kind !== "human" && !INVITE_SKIP.has(x.who) && !inRoom.has(x.who) && !typed.has(x.who) && !typed.has(x.name || ""));
