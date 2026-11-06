@@ -7,6 +7,8 @@ import { type ReactNode, useEffect, useState } from "react";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg } from "./faces";
 import { RoomRoutineSheet, routineLabel, routineRoom, useRoomTimers } from "./room-routine";
+import { RoomLookDialog } from "./room-look";
+import { useQueryClient } from "@tanstack/react-query";
 
 /** 지금 대화 판의 방(주소 #/channels/<방> · #/group/<방>) · 명부 */
 function useTopRoom() {
@@ -28,6 +30,8 @@ function pairRoomOf(room: string, list: Awaited<ReturnType<typeof people>>): Off
 export function NomuteName() {
   const { r, list } = useTopRoom();
   const [open, setOpen] = useState(false), [sheet, setSheet] = useState(false);
+  const [look, setLook] = useState(false), [inv, setInv] = useState(false), [pick, setPick] = useState<string[]>([]), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
+  const qc = useQueryClient();
   const timers = useRoomTimers(open).data;
   useEffect(() => { setOpen(false); setSheet(false); }, [r?.id]);
   useEffect(() => {   // 사람 목록 = 밖을 누르면 닫힘(형 10-31 「사진 위 클릭하고 다른 곳 누르면 닫혀야되는데 안닫혀」)
@@ -41,15 +45,36 @@ export function NomuteName() {
   const name = r.with ? p?.name || r.with : r.name;
   const ids = r.with || r.id === "repair" || r.id === "memo" || r.id === "summary" ? [] : roomAgentIds(r, list);   // 수리 접수 = 접수처라 인원 없음(형 10-31 「여기에 10명은 머야?」) · 요약실 = 요약 목록이라 인원 없음(형 11-04 09:28 「누구 담당자가 있는게 아니라」)
   const can = routineRoom(r);
+  // 멤버 조정(임시방만 · 고정된 방(밥상 등) 말고 · 형 11-06 20:37 「고정된 방 말고 (밥상 등)」) = 그 자리에서 내보내기·초대 → POST temprooms/<방>
+  const edit = !!r.temp && !r.with;
+  const outside = list.filter((x) => x.kind !== "human" && !(r.members || []).includes(x.who));
+  const saveMembers = async (members: string[]) => {
+    setBusy(true); setWhy("");
+    try { await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members }) }); await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); }
+    catch (e) { setWhy(e instanceof Error ? e.message : String(e)); }
+    finally { setBusy(false); }
+  };
   if (ids.length || can) return (   // 단톡 = 이름 옆 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」)
     <span className="nm-top-wrap">
       <button type="button" className="nm-top-name nm-top-btn" style={r.color ? { color: r.color } : undefined} aria-expanded={open} aria-label={`${name} 사람 ${ids.length}명 보기`} onClick={() => setOpen((v) => !v)}>{name}{ids.length ? <> <i>{ids.length}</i></> : null}</button>
       {open ? (
         <span className="nm-top-crew nm-yeta">
-          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} />{x?.name || x?.who || id}</span>; })}
+          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className="nm-top-kick" aria-label={`${x.name || x.who} 내보내기`} title="내보내기" disabled={busy} onClick={() => void saveMembers((r.members || []).filter((w) => w !== x.who))}>×</button> : null}</span>; })}
+          {edit ? (   /* 초대 = 그 자리에서 명단이 부드럽게 펼쳐짐 · 방에 없는 이만 · 체크해서 한 번에(형 11-06 20:37~20:38) · 내보내기 = 사람 오른쪽 ×(형 「이미 방에 있는사람 우측에 픽토그램으로」) */
+            <>
+              <button type="button" className="nm-top-inv" aria-expanded={inv} onClick={() => setInv((v) => !v)}>{inv ? "접기" : "+ 초대"}</button>
+              <span className={`nm-top-invlist${inv ? " on" : ""}`}>
+                {outside.map((x) => <label key={x.who} className="nm-top-one"><input type="checkbox" checked={pick.includes(x.who)} onChange={() => setPick((p) => (p.includes(x.who) ? p.filter((w) => w !== x.who) : [...p, x.who]))} /><FaceImg id={idOf(x.who, list)} size={22} />{x.name || x.who}</label>)}
+                {pick.length ? <button type="button" className="nm-top-invgo" disabled={busy} onClick={() => void saveMembers([...(r.members || []), ...pick]).then(() => { setPick([]); setInv(false); })}>{pick.length}명 넣기</button> : null}
+              </span>
+            </>
+          ) : null}
+          {!r.with ? <button type="button" className="nm-top-routine" onClick={() => { setOpen(false); setLook(true); }}>방 꾸미기 · 아이콘 · 색</button> : null}   {/* 방 아이콘 변경도 여기(형 20:37 「방 아이콘 변경 저것도 저기에」) */}
           {can ? <button type="button" className="nm-top-routine" onClick={() => { setOpen(false); setSheet(true); }}>{routineLabel(timers?.[r.id])}</button> : null}
+          {why ? <span className="nm-top-why">{why}</span> : null}
         </span>
       ) : null}
+      {look ? <RoomLookDialog r={r} onClose={() => setLook(false)} /> : null}
       {sheet ? <RoomRoutineSheet room={r} onClose={() => setSheet(false)} /> : null}
     </span>
   );

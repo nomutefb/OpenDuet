@@ -655,3 +655,16 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .ycmdnote button:hover { background:rgba(207,255,64,.15); }
 /* 「○○ 생각 중…」 이름표 글자 = 평소 이름표처럼 검정(빛만 지나감)(형 11-06 20:12 「모루 생각중... 이거 아직도 흰색뜬다!!!!!!!!!!」 = 색 알약 위 흰 글자) */
 .ychat .ymsg .yname.tab .t-shimmer, .dark .ychat .ymsg .yname.tab .t-shimmer, .nm-split-root .ychat .ymsg .yname.tab .t-shimmer { --shimmer-base: rgba(18, 18, 18, .78); --shimmer-highlight: #000000; color:#121212; }
+/* 방 이름 누른 목록(형 11-06 20:37 「이렇게 공지에 묻히는거 확인」) = 고정 띠·할 일 띠 위로 · 사람 오른쪽 × · 「+ 초대」 = 그 자리 아래로 부드럽게 펼침(방에 없는 이만 · 체크) */
+header.nm-head.absolute:has(.nm-top-crew) { z-index:120 !important; }
+.nm-top-crew { z-index:120 !important; }
+.nm-top-one { display:flex; align-items:center; gap:8px; }
+.nm-top-one .nm-top-nm { flex:1; }
+.nm-top-kick { all:unset; cursor:pointer; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:14px; color:rgba(232,234,232,.5); }
+.nm-top-kick:hover { color:#FF5A5F; background:rgba(255,90,95,.12); }
+.nm-top-inv { all:unset; cursor:pointer; margin-top:2px; padding-top:6px; border-top:1px solid var(--glass-line); color:#CFFF40; font-size:var(--fs-label); }
+.nm-top-invlist { display:flex; flex-direction:column; gap:6px; max-height:0; overflow:hidden; opacity:0; transition:max-height .32s ease, opacity .25s ease; }
+.nm-top-invlist.on { max-height:40dvh; overflow-y:auto; opacity:1; }
+.nm-top-invlist input { accent-color:#CFFF40; }
+.nm-top-invgo { all:unset; cursor:pointer; align-self:flex-start; padding:4px 12px; border-radius:999px; background:#CFFF40; color:#111; font-weight:700; font-size:12px; }
+.nm-top-why { color:#ff7b7b; font-size:11px; }
