@@ -22,6 +22,8 @@ const emit = () => { for (const f of subs) f(); };
 
 /** 입력칸 손잡이(composer.tsx 의 promptAreaRef) · 마지막에 그려진 입력칸이 이김 */
 export function registerComposer(ref: RefObject<Handle | null>) { composer = ref; }
+/** 입력칸 끝에 글 붙이기(「/초대 」 얼굴 줄 · office-chat) — 손잡이 없으면 false */
+export function appendToComposer(t: string) { const h = composer?.current; if (!h) return false; h.setCursorToEnd(); h.appendText(t); h.focus(); return true; }
 /** 「@」·「!」 를 치면 부름(triggers.ts launch) */
 let known: readonly Agent[] = [];
 const anchor = () => { const a = document.activeElement as HTMLElement | null, ed = a?.closest?.('[contenteditable="true"]') as HTMLElement | null; return (ed?.closest("form") || ed?.parentElement || ed)?.getBoundingClientRect() || null; };

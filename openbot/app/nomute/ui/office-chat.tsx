@@ -12,7 +12,7 @@
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { mergeReact, type RoomReacts } from "../data/react-merge";
-import { CallSheet } from "./call-sheet";
+import { CallSheet, appendToComposer } from "./call-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -947,7 +947,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
   const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot)
-  const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null);   // slash = 입력칸이 「/…」 한 낱말일 때 그 뒤 글자
+  const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null), [inviteQ, setInviteQ] = useState<string[] | null>(null);   // inviteQ = 「/초대 …」 뒤 이미 친 이름들   // slash = 입력칸이 「/…」 한 낱말일 때 그 뒤 글자
   const invite = async (m: Msg) => {   // 형 11-06 「내가 초대하기누르면다시들어올수잇어야함」 → POST rooms/<방>/invite(봄 서버) · 답 = 「다시 불렀습니다」 줄
     const who = evWho(m)[0]; if (!who || inviting) return;
     setInviting(m.id); setErr("");
@@ -1284,7 +1284,11 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
-        {slash != null && SLASH_HELP.some(([k]) => k.slice(1).startsWith(slash)) ? (   /* 「/」 안내 줄 = 치는 글자에 맞는 명령만 · 엔터는 그대로 보내기 */
+        {inviteQ ? (() => {   /* 「/초대 」 뒤 = 이 방에 없는 애 얼굴 줄 · 누르면 이름이 입력칸 끝에 붙음(여럿) · 엔터 = 보내기(형 11-06 11:1x 「응 마찬가지로 되어야해」 · 봄 서버 이름 띄어 여럿) */
+          const inRoom = new Set(r?.members || []), typed = new Set(inviteQ);
+          const can = list.filter((x) => x.kind !== "human" && !inRoom.has(x.who) && !typed.has(x.who) && !typed.has(x.name || ""));
+          return can.length ? <div className="yslash yinv" aria-label="부를 수 있는 이">{can.map((x) => <button key={x.who} type="button" title={x.name || x.who} onMouseDown={(e) => e.preventDefault()} onClick={() => { appendToComposer(`${/\s$/.test(loadDraft(room) || "") ? "" : " "}${x.name || x.who} `); }}><FaceImg id={idOf(x.who, list)} size={26} /><span>{x.name || x.who}</span></button>)}</div> : null;
+        })() : slash != null && SLASH_HELP.some(([k]) => k.slice(1).startsWith(slash)) ? (   /* 「/」 안내 줄 = 치는 글자에 맞는 명령만 · 엔터는 그대로 보내기 */
           <div className="yslash" aria-live="polite">{SLASH_HELP.filter(([k]) => k.slice(1).startsWith(slash)).map(([k, d]) => <p key={k}><b>{k}</b><span>{d}</span></p>)}</div>
         ) : null}
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
@@ -1299,7 +1303,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           agents={toAgentOptions(bots4)}
           commands={OFFICE_COMMANDS}
           channelId={room}
-          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); }}
+          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); setInviteQ(/^\/초대(\s|$)/.test(t.trimStart()) ? t.trimStart().slice(3).split(/\s+/).filter(Boolean) : null); }}
           initialValue={loadDraft(room)}
           className="relative mt-auto w-full"
           commands={[]}
