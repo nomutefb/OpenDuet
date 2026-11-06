@@ -6,7 +6,7 @@
 .nm-nlist-h span { color:rgba(232,234,232,.45); font-size:11px; font-variant-numeric:tabular-nums; }
 .nm-nlist-empty { margin:0; padding:16px 14px; color:rgba(232,234,232,.5); font-size:12px; }
 .nm-nlist-ol { list-style:none; margin:0; padding:4px 6px 10px; overflow-y:auto; overscroll-behavior:contain; flex:1; min-height:0; }
-.nm-nlist-ol li { border-bottom:1px solid rgba(255,255,255,.045); border-radius:0; display:grid; grid-template-columns:16px 18px minmax(0,1fr) auto 30px; position:relative; align-items:center; gap:8px; min-height:34px; padding:0 8px; border-radius:9px; }
+.nm-nlist-ol li { border-bottom:1px solid rgba(255,255,255,.045); border-radius:0; display:grid; grid-template-columns:16px 18px minmax(0,1fr) auto 50px 30px; position:relative; align-items:center; gap:8px; min-height:34px; padding:0 8px; border-radius:9px; }
 .nm-nlist-ol li:hover { background:rgba(255,255,255,.045); }
 .nm-nlist-ol .rk { color:rgba(232,234,232,.38); font-size:11px; text-align:right; font-variant-numeric:tabular-nums; }
 .nm-nlist-ol .tt { all:unset; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:12.5px; line-height:1.3; }
@@ -23,7 +23,7 @@
 @media (prefers-reduced-motion:reduce) { .nm-nlist-h .live { animation:none; } }
 .nm-nlist-ol li.top .rk, .nm-nlist-ol li.top .tt { color:#CFFF40; }
 .nm-nlist-ol li.top .rk { font-weight:700; }
-.nm-nlist-ol .mt em { font-style:normal; color:#CFFF40; margin-left:6px; }
+.nm-nlist-ol .ag { font-size:10.5px; white-space:nowrap; text-align:right; color:#CFFF40; font-variant-numeric:tabular-nums; }   /* 「N분 전」 칸 = 점수 왼쪽 · 오른쪽 맞춤 · 라임(형 15:49) */
 /* 전송 = 따로 칸 없이 점수 자리 위에 뜸(형 11-05 16:57 「그리고 여기 우측 비는거 전송라인, 굳이 남기지 말고, 점수 위에 뜨게하면됨! 저기 낭비하진말고」) · 줄 = 번호 · 제목 · 출처·시각 · 점수 */
 .nm-nlist-ol .sd { position:absolute; right:6px; top:50%; transform:translateY(-50%); background:rgba(14,14,16,.92); }
 .nm-nlist-ol li:hover .sc { visibility:hidden; }
