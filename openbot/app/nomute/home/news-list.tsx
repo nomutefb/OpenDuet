@@ -19,6 +19,23 @@ const PICK_WHO: Record<string, string> = { chok: "촉", teum: "틈" };
 const PICK_FRONT: Record<string, number> = { 촉: 0, 틈: 1 };   // 겹칠 때 촉이 앞(형 11-06 「중첩일경우, 촉이 더 앞으로 (우측 앞)」) = 첫째가 오른쪽 · 위
 const pickers = (x: Row) => [...new Set((x.picks || []).map((p) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; }).filter(Boolean))].sort((a, b) => (PICK_FRONT[a] ?? 9) - (PICK_FRONT[b] ?? 9));
 
+// 맨 위 고정 칸 = 촉 픽 → 틈 픽(형 11-06 00:28 「촉픽이 제일 전면 틈픽이 그 다음」 · 06:44 「촉픽은 교대하고 같이 바꾸자」 · 봄 안 11-05 17:59 「오른쪽 실시간 뉴스 맨 위에 「촉픽」 칸 고정 (뉴스 순위표랑 안 섞음 · 최근 3건)」)
+//   재료 = /api/trends?f=picks(봄 · editor#2643 · 틈 장부 줄 = sent:true) · 순위표에 없는 기사여도 뜸(어젯밤 틈 픽이 안 켜진 까닭 = 순위표에 있을 때만 얼굴을 붙였음 · 봄 10:58)
+//   차례 = 촉(최근 판 순위 차례) 둘 → 틈(최근 것) 하나 · 같은 기사 = 한 번 · PICK_WINDOW 넘은 픽 = 뺌
+type Pick = { by?: string; title?: string; title_clean?: string; urls?: string[]; url?: string; at?: string; score?: number | null; rank?: number | null; why?: string; keyword?: string; summary?: string };
+const PICK_WINDOW = 14 * 3600_000, PIN_CHOK = 2, PIN_TEUM = 1;
+const pickWho = (p: Pick) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; };
+const pickKey = (p: Pick) => String((p.urls || [])[0] || p.url || p.title || "").trim();
+const pinsOf = (list: unknown[], now = Date.now()) => {
+  const fresh = (p: Pick) => { const t = Date.parse(p.at || ""); return !Number.isFinite(t) || now - t <= PICK_WINDOW; };
+  const ps = (list as Pick[]).filter((p) => p && (p.title || p.title_clean) && fresh(p));
+  const seen = new Set<string>(), take = (who: string, n: number, sort: (a: Pick, b: Pick) => number) => ps.filter((p) => pickWho(p) === who).sort(sort).filter((p) => { const k = pickKey(p); if (!k || seen.has(k)) return false; seen.add(k); return true; }).slice(0, n);
+  const byRank = (a: Pick, b: Pick) => (a.rank ?? 99) - (b.rank ?? 99) || (b.score ?? 0) - (a.score ?? 0);
+  const byNew = (a: Pick, b: Pick) => (Date.parse(b.at || "") || 0) - (Date.parse(a.at || "") || 0);
+  return [...take("촉", PIN_CHOK, byRank), ...take("틈", PIN_TEUM, byNew)];
+};
+const hostOf = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^(?:www|m|n|core)\./, "") : ""; } catch { return ""; } };
+
 const ago = (at?: string) => {
   const t = at ? Date.parse(at) : NaN;
   if (!Number.isFinite(t)) return "";
@@ -29,6 +46,7 @@ const ago = (at?: string) => {
 export function NewsList() {
   const nav = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
+  const [pins, setPins] = useState<Pick[]>([]);
   const [st, setSt] = useState<"loading" | "ready" | "empty" | "error">("loading");
   useEffect(() => {
     let live = true, overlap: unknown = null, cands: Cand[] = [], articles: unknown[] = [], triage: unknown = null, merges: unknown = null, alpha: unknown = null, picks: unknown[] = [], picksAt = 0;
@@ -52,6 +70,7 @@ export function NewsList() {
       const { rows: r, lookup } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
       if (!live) return;
       const now = Date.now();
+      setPins(pinsOf(picks, now));
       const lk = lookup as Map<string, { published?: string; first_seen?: string; media?: string }> | undefined;
       // 묶음(overlap) 줄 = 기사 메타가 없음 → 그 묶음의 가장 새 신호 시각(signals.newest)으로(형 11-05 16:30 「4위도 싹다. 몇분전인지 몇시간전인지」)
       const gen = (overlap as { generated?: string } | null)?.generated || undefined;
@@ -76,6 +95,12 @@ export function NewsList() {
     try { sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ text: [row.title, url].filter(Boolean).join("\n"), link: url, media: row.meta?.published?.sourceName || "" })); } catch { /* 빈 폼 */ }
     void nav({ to: "/ask" });
   };
+  const sendPick = (p: Pick) => {
+    const url = (p.urls || [])[0] || p.url || "";
+    try { sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ text: [p.title_clean || cleanTitle(p.title), url].filter(Boolean).join("\n"), link: url, media: outletName(hostOf(url)) })); } catch { /* 빈 폼 */ }
+    void nav({ to: "/ask" });
+  };
+  const openPick = (p: Pick) => { const url = (p.urls || [])[0] || p.url; if (url) window.open(url, "_blank", "noopener"); };
   const open = (row: Row) => {
     const url = row.meta?.published?.sourceUrl || row.urls?.[0];
     if (url) window.open(url, "_blank", "noopener");
@@ -83,6 +108,24 @@ export function NewsList() {
   return (
     <section className="nm-nlist" aria-label="실시간 뉴스">
       <div className="nm-nlist-h"><i className="live" aria-hidden /><b>실시간 뉴스</b><span>{st === "ready" ? `${rows.length}건` : ""}</span></div>
+      {pins.length ? (
+        <ul className="nm-nlist-pin" aria-label="촉 · 틈 픽">
+          {pins.map((p) => {
+            const who = pickWho(p), url = (p.urls || [])[0] || p.url || "", title = p.title_clean || cleanTitle(p.title) || "";
+            const why = String(p.why || p.keyword || "").trim();
+            return (
+              <li key={`${who}:${pickKey(p)}`} className={who === "촉" ? "chok" : "teum"}>
+                <span className="pk-face"><FaceImg id={who} size={20} /></span>
+                <span className="pk-tag">{who} 픽</span>
+                <button type="button" className="pk-tt" title={title} onClick={() => openPick(p)}>{title}</button>
+                <span className="pk-mt">{[why, outletName(hostOf(url)), ago(p.at)].filter(Boolean).join(" · ")}</span>
+                <span className="pk-sc">{Number.isFinite(p.score as number) ? Math.round(p.score as number) : ""}</span>
+                <button type="button" className="pk-sd" aria-label="이 기사로 요약 요청" title="이 기사로 요약 요청" onClick={() => sendPick(p)}>전송</button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
       {st !== "ready" ? (
         <p className="nm-nlist-empty">{st === "loading" ? "받는 중…" : st === "empty" ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어."}</p>
       ) : (
