@@ -63,3 +63,15 @@ html[data-theme="garden"]:not(.dark) nav.ynav {
   border: 1px solid var(--garden-line) !important;
   box-shadow: 0 4px 16px rgba(90, 68, 40, .12) !important;
 }
+
+/* 뜸 08:30 「실시간 뉴스 줄 연두(라임) 글자(1~3위 · 강조 줄)가 아이보리 위에서 거의 안 읽혀 — 정원 테마에서만 그 색을 --garden-accent(#4E8F3A)로」
+   → 라임(#CFFF40)을 글자색으로 쓰는 줄 중 정원에서 바탕이 아이보리가 되는 칸만(장식 점·막대·얼굴 테두리는 그대로):
+   실시간 뉴스 1~3위 순위·제목 · 「N분 전」 · 촉·틈 꼬리표 · 뉴스 요약 도는 줄 · PC 아래 알약 단추(뒤에 아이보리 한 겹이 깔려서 같은 꼴) */
+html[data-theme="garden"]:not(.dark) .nm-nlist-ol li.top .rk,
+html[data-theme="garden"]:not(.dark) .nm-nlist-ol li.top .tt,
+html[data-theme="garden"]:not(.dark) .nm-nlist-ol .ag,
+html[data-theme="garden"]:not(.dark) .nm-nlist-pin .pk-tag,
+html[data-theme="garden"]:not(.dark) .nm-nsum-q li.run .st,
+html[data-theme="garden"]:not(.dark) .nm-split-l .ynav button { color: var(--garden-accent) !important; text-shadow: none !important; }
+html[data-theme="garden"]:not(.dark) .nm-split-l .ynav button.on,
+html[data-theme="garden"]:not(.dark) .nm-split-l .ynav button[aria-current="page"] { background: rgba(78, 143, 58, .12) !important; }
