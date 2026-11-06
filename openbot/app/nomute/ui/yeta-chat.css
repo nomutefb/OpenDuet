@@ -668,3 +668,19 @@ header.nm-head.absolute:has(.nm-top-crew) { z-index:120 !important; }
 .nm-top-invlist input { accent-color:#CFFF40; }
 .nm-top-invgo { all:unset; cursor:pointer; align-self:flex-start; padding:4px 12px; border-radius:999px; background:#CFFF40; color:#111; font-weight:700; font-size:12px; }
 .nm-top-why { color:#ff7b7b; font-size:11px; }
+/* 방 메뉴 통합(형 11-06 20:37~20:39 · 번개) — 이름을 누른 목록 하나 = 사람 칸 + 방 칸(옛 우상단 ≡ 것) · 우상단 ≡ 단추 없음 */
+.nm-top-crew:has(.nm-top-menu) { min-width:208px; }
+.nm-top-sec { font-size:11px; font-weight:700; letter-spacing:.06em; color:rgba(232,234,232,.45); }
+.nm-top-sec.cut { margin-top:2px; padding-top:8px; border-top:1px solid var(--glass-line); }
+.nm-top-menu { display:flex; flex-direction:column; }
+.nm-top-menu button { all:unset; box-sizing:border-box; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:6px 0; font-size:var(--fs-label); color:var(--fg); white-space:nowrap; cursor:pointer; }
+.nm-top-menu button:hover, .nm-top-menu button:focus-visible { color:#CFFF40; }
+.nm-top-menu small { color:var(--mut, #8B8F8A); font-size:11px; }
+.nm-top-menu button[aria-checked="true"] small { color:#CFFF40; }
+.nm-top-inv + .nm-top-invlist + .nm-top-menu, .nm-top-one + .nm-top-menu { margin-top:2px; padding-top:4px; border-top:1px solid var(--glass-line); }
+/* PC 반갈 = 방 이름은 윗줄 가운데 한 곳만(라임 · 인원 흰색) · 대화 칸 위 이름 줄은 숨김(형 20:39 「방 위에는 잇을필요없어」) */
+.nm-toptitle.nm-toptitle-room { overflow:visible; pointer-events:auto; }
+.nm-toptitle.nm-toptitle-room:has(.nm-top-crew) { z-index:120; }
+.nm-toptitle-room .nm-top-name { max-width:40vw; font-size:14px; line-height:20px; font-weight:700; color:#CFFF40 !important; pointer-events:auto; text-shadow:none; }
+.nm-toptitle-room .nm-top-name.nm-top-btn i { color:#fff; font-weight:600; }
+.nm-split-root header.nm-head .nm-top-wrap, .nm-split-root header.nm-head .nm-top-name { display:none !important; }

@@ -42,6 +42,7 @@ import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
 import { IdleBlind, TopClock, TopTitle } from "./idle-blind";
+import { NomuteName } from "./top";
 import { RoomGlyph } from "./room-glyph";
 import { AppIntro } from "../home/intro";
 import { NewsModal, newsFileOf } from "./news";
@@ -217,7 +218,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         {split ? <IdleBlind /> : null}
         {split ? <TopClock /> : null}   {/* 위 왼쪽 시계(형 11-06 20:05) */}
         {split ? <StatusLine /> : null}   {/* 맨 아래 상태 한 줄(④ · 빠르 11-06 · status-line.tsx) */}
-        {split ? <TopTitle text={M ? M.label : pane === "chat" ? roomTitle : pane === "rooms" ? "대화방" : pane === "home" ? "홈" : ""} /> : null}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
+        {split ? (!M && pane === "chat" && rNow ? <div className="nm-toptitle nm-toptitle-room"><NomuteName room={room} /></div> : <TopTitle text={M ? M.label : pane === "chat" ? roomTitle : pane === "rooms" ? "대화방" : pane === "home" ? "홈" : ""} />) : null}   {/* 방 = 이름 한 곳만 · 라임 · 인원 · 누르면 사람·방 메뉴(형 11-06 20:39 「방 위에는 잇을필요없어」 「중상단에 라임으로 잇으면 됨 … 방 인원은 잇어야해」) */}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
         <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
