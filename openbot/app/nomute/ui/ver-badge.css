@@ -4,3 +4,5 @@
 .nm-ver.stale { color:#CFFF40; background:rgba(207,255,64,.12); box-shadow:0 0 0 1px rgba(207,255,64,.35); cursor:pointer; animation:nmVerPulse 1.6s ease-in-out infinite; }
 @keyframes nmVerPulse { 50% { box-shadow:0 0 0 1px rgba(207,255,64,.7), 0 0 10px rgba(207,255,64,.35); } }
 @media (prefers-reduced-motion:reduce) { .nm-ver.stale { animation:none; } }
+/* 폰 = 우상단 판 번호 안 띄움 · 설정 맨 아래 「지금 판」에서만(형 11-06 20:50 「모바일에서는 개발 버전 설정 맨 하단에서만 보아면 됨 일반적인 앱처럼」) */
+@media (max-width: 899px), (pointer: coarse) { .nm-ver { display:none !important; } }
