@@ -1354,7 +1354,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
                     // 글 = 형 11-06 17:21 원문 꼴 「임시로 개설된 채팅방이 아니라 초대가 불가합니다. (임시방 기준: n시간 미만)」 · n = 서버 글 속 시간(없으면 하루 = 24)
                     const hrs = (() => { const m = why.match(/(\d+)\s*시간/); return m ? +m[1] : /하루/.test(why) ? 24 : 24; })();
                     const what = /^\/방파기/.test(text) ? "방파기가" : "초대가";
-                    setCmdNote(/임시방|하루|시간/.test(why) ? `임시로 개설된 채팅방이 아니라 ${what} 불가합니다. (임시방 기준: ${hrs}시간 미만)` : why);
+                    setCmdNote(/임시방|하루|시간/.test(why) ? `임시로 개설된 채팅방이 아니라 ${what} 불가합니다.\n(임시방 기준: ${hrs}시간 미만)` : why);
                     return;
                   }
                   if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
