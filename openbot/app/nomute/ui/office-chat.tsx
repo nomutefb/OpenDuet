@@ -955,6 +955,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
   const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot)
+  const [cmdNote, setCmdNote] = useState("");   // 「/초대」·「/방파기」 안 되는 방 안내(라임 · 누르면 닫힘)
   const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null), [inviteQ, setInviteQ] = useState<string[] | null>(null);   // inviteQ = 「/초대 …」 뒤 이미 친 이름들   // slash = 입력칸이 「/…」 한 낱말일 때 그 뒤 글자
   const invite = async (m: Msg) => {   // 형 11-06 「내가 초대하기누르면다시들어올수잇어야함」 → POST rooms/<방>/invite(봄 서버) · 답 = 「다시 불렀습니다」 줄
     const who = evWho(m)[0]; if (!who || inviting) return;
@@ -1292,6 +1293,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
+        {cmdNote ? <p className="ycmdnote" role="status" onClick={() => setCmdNote("")}>{cmdNote}</p> : null}
         {inviteQ ? (() => {   /* 「/초대 」 뒤 = 이 방에 없는 애 얼굴 줄 · 누르면 이름이 입력칸 끝에 붙음(여럿) · 엔터 = 보내기(형 11-06 11:1x 「응 마찬가지로 되어야해」 · 봄 서버 이름 띄어 여럿) */
           const inRoom = new Set(r?.members || []), typed = new Set(inviteQ);
           const can = list.filter((x) => x.kind !== "human" && !INVITE_SKIP.has(x.who) && !inRoom.has(x.who) && !typed.has(x.who) && !typed.has(x.name || ""));
@@ -1341,7 +1343,16 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
                   const body: Record<string, unknown> = { text };
                   let j: { message?: Msg; closed?: boolean };
                   try { j = await office<{ message?: Msg; closed?: boolean }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) }); }
-                  catch (e) { if (!cmd) throw e; setErr(e instanceof Error ? e.message : String(e)); return; }
+                  catch (e) {
+                    if (!cmd) throw e;
+                    // 명령 안 되는 방 = 짧은 안내(라임)로(형 11-06 17:21 사진 = 서버 설명이 형 인용까지 섞여 빨갛게 길게 떴음) · 그 밖 실패 = 서버 글 그대로
+                    const why = e instanceof Error ? e.message : String(e);
+                    // 글 = 형 11-06 17:21 원문 꼴 「임시로 개설된 채팅방이 아니라 초대가 불가합니다. (임시방 기준: n시간 미만)」 · n = 서버 글 속 시간(없으면 하루 = 24)
+                    const hrs = (() => { const m = why.match(/(\d+)\s*시간/); return m ? +m[1] : /하루/.test(why) ? 24 : 24; })();
+                    const what = /^\/방파기/.test(text) ? "방파기가" : "초대가";
+                    setCmdNote(/임시방|하루|시간/.test(why) ? `임시로 개설된 채팅방이 아니라 ${what} 불가합니다. (임시방 기준: ${hrs}시간 미만)` : why);
+                    return;
+                  }
                   if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
                   if (j.closed || j.message?.closed) { void qc.invalidateQueries({ queryKey: officeKeys.rooms }); void nav({ to: "/rooms" }); }   // 「/방파기」 = 방 닫힘 → 목록으로(형 11-06 「목적 달성해서 나가게 되는거야」)
                 };

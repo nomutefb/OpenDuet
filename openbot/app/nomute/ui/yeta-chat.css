@@ -645,3 +645,5 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .yname-c.cl.w, .dark .ychat .yname-c.cl.w, .ychat .yb.me .yname-c.cl.w, .nm-split-root .ychat .yb.me .yname-c.cl.w {   /* .w = 묶음 낱말만(우리 이름 = 제 색 그대로 · 형 15:56) */
   background:linear-gradient(90deg, #ff6fb5, #0ffd02, #dde3ea, #c07a3a, #4f86ff, #ffd60a, #ffb07c); -webkit-background-clip:text; background-clip:text;
   color:transparent !important; -webkit-text-fill-color:transparent; font-weight:700; }
+/* 명령 안 되는 방 안내 = 라임 안내 글(형 11-02 「이거 안내 시그니처 색 앞으로 라임」) · 누르면 닫힘 */
+.ychat .ycmdnote { margin:0 4px 6px; padding:6px 12px; border-radius:12px; font-size:var(--fs-sm); color:#CFFF40; background:rgba(207,255,64,.07); border:1px dashed rgba(207,255,64,.4); cursor:pointer; }
