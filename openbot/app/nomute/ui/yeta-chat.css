@@ -266,6 +266,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-dec-row { display:flex; align-items:center; width:100%; min-height:42px; padding:10px 12px; border-radius:5px; border:1px solid transparent; background:rgba(0,0,0,.32); box-shadow:inset 0 2px 4px rgba(0,0,0,.5), inset 0 -1px 0 rgba(255,255,255,.05); color:inherit; font-size:14px; font-weight:600; line-height:1.4; text-align:left; text-transform:none; -webkit-tap-highlight-color:transparent; transition:border-color .16s ease, box-shadow .16s ease, color .16s ease, background .16s ease; }
 :root:not(.dark) .nm-dec-row { background:rgba(0,0,0,.055); box-shadow:inset 0 2px 4px rgba(0,0,0,.12), inset 0 -1px 0 rgba(255,255,255,.8); color:#161716; }
 .nm-dec-row:active { background:rgba(0,0,0,.42); }
+.nm-dec-pc { justify-content:center; font-weight:700; text-decoration:none; color:var(--accent,#CFFF40); border-color:rgba(207,255,64,.45); }   /* 컴퓨터 · 조치 필요 = 「제어권 가져오기」(그 몸 화면 새 창 · 형 11-06) */
+:root:not(.dark) .nm-dec-pc { color:#2f4a00; border-color:rgba(160,210,20,.7); }
 .nm-dec-row[aria-pressed="true"] { border-color:rgba(207,255,64,.45); }
 .nm-dec-row[data-on] { border-color:var(--accent,#CFFF40); color:var(--accent,#CFFF40); background:rgba(207,255,64,.1); box-shadow:inset 0 2px 4px rgba(0,0,0,.4), 0 0 0 1px rgba(207,255,64,.35), 0 0 18px rgba(207,255,64,.45); }
 :root:not(.dark) .nm-dec-row[data-on] { color:#2f4a00; background:rgba(207,255,64,.45); box-shadow:inset 0 2px 4px rgba(0,0,0,.08), 0 0 0 1px rgba(160,210,20,.6), 0 0 18px rgba(190,240,40,.7); }
