@@ -94,3 +94,7 @@
 .nar-card .nar-lime { color:#CFFF40; font-weight:700; }
 .nar-card .nar-x { all:unset; position:absolute; top:6px; right:8px; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:15px; cursor:pointer; color:rgba(232,234,232,.7); }
 .nar-card .nar-x:hover { color:#CFFF40; background:rgba(207,255,64,.12); }
+/* 「[원본 저장]」 = 하늘색 링크 글자(형 11-06 20:34 「링크 하늘색 글자 … 그거로 나와야 클릭 느낌이 날듯 [원본 저장] 이렇게」) */
+.nar-save { text-decoration:none; }
+.nar-save .nar-link { color:#67c7ff; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.nar-save:hover .nar-link { color:#9adcff; }

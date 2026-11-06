@@ -26,9 +26,9 @@ function Original({ original }: { original: OriginalAttachment }) {
       <a
         href={url || undefined}
         download={original.file.name}
-        className="break-all underline"
+        className="nar-save break-all"
       >
-        {original.file.name} · 원본 저장
+        {original.file.name} <span className="nar-link">[원본 저장]</span>
       </a>
     </li>
   );
@@ -208,12 +208,7 @@ export function AttachmentRecovery({
               보관한 본문만 다시 보내기
             </button>
           ) : null}
-          {attempt.phase === "needs-check" ? (
-            <p className="mt-2 text-muted-foreground">
-              대화와 받는 곳에서 확인해 줘. 이 기록은 현재 탭에서 보관돼. 창을
-              닫기 전에 원본을 저장해 줘.
-            </p>
-          ) : null}
+          {/* 아래 회색 설명 뺌(형 11-06 20:34 「하단부에 회색으로 나온 설명글은 삭제해도됨」) */}
         </section>
       ))}
       {waits.map((item) => <Waiting key={`w${item.id}`} item={item} onRetry={() => state.retryText(item.id)} />)}
