@@ -34,10 +34,13 @@ export function NomuteName({ room }: { room?: string } = {}) {
   const { r, list } = useTopRoom(room);
   const [open, setOpen] = useState(false), [sheet, setSheet] = useState(false);
   const [inv, setInv] = useState(false), [pick, setPick] = useState<string[]>([]), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
+  const [arm, setArm] = useState("");   // 내보내기 = 두 번 누름(형 11-06 22:38 「누르면, 색이 바뀌고. 그 이후에 한번 더 누르면 확정인거로」) · 첫 누름 = 그 사람 문 그림이 빨갛게 · 5초 안에 한 번 더 = 내보냄 · 그냥 두면 풀림
   const qc = useQueryClient();
   const timers = useRoomTimers(open).data;
   const menu = useRoomMenu(r?.id || "", open, () => setOpen(false));
-  useEffect(() => { setOpen(false); setSheet(false); setInv(false); setPick([]); setWhy(""); }, [r?.id]);
+  useEffect(() => { setOpen(false); setSheet(false); setInv(false); setPick([]); setWhy(""); setArm(""); }, [r?.id]);
+  useEffect(() => { if (!open) setArm(""); }, [open]);
+  useEffect(() => { if (!arm) return undefined; const t = setTimeout(() => setArm(""), 5000); return () => clearTimeout(t); }, [arm]);
   useEffect(() => {   // 목록 = 밖을 누르면 닫힘(형 10-31 「사진 위 클릭하고 다른 곳 누르면 닫혀야되는데 안닫혀」) · Esc 도
     if (!open) return undefined;
     const close = (e: PointerEvent) => { if (!(e.target as Element | null)?.closest?.(".nm-top-wrap")) setOpen(false); };
@@ -68,7 +71,7 @@ export function NomuteName({ room }: { room?: string } = {}) {
       {open ? (
         <span className="nm-top-crew nm-yeta">
           {crewSec ? <span className="nm-top-sec">사람</span> : null}
-          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className="nm-top-kick" aria-label={`${x.name || x.who} 내보내기`} title="내보내기" disabled={busy} onClick={() => void saveMembers((r.members || []).filter((w) => w !== x.who))}><DuetIcon name="logout" size={15} /></button> : null}</span>; })}
+          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className={`nm-top-kick${arm === x.who ? " arm" : ""}`} aria-pressed={arm === x.who} aria-label={arm === x.who ? `${x.name || x.who} 내보내기 — 한 번 더 누르면 내보냄` : `${x.name || x.who} 내보내기`} title={arm === x.who ? "한 번 더 누르면 내보냄" : "내보내기"} disabled={busy} onClick={() => { if (arm !== x.who) { setArm(x.who); return; } setArm(""); void saveMembers((r.members || []).filter((w) => w !== x.who)); }}><DuetIcon name="logout" size={15} /></button> : null}</span>; })}
           {edit ? (   /* 초대 = 그 자리에서 명단이 부드럽게 펼쳐짐 · 방에 없는 이만 · 체크해서 한 번에(형 11-06 20:37~20:38) · 내보내기 = 사람 오른쪽 문 + 화살표 픽토그램(형 「이미 방에 있는사람 우측에 픽토그램으로」 · 22:38 「그 문 내보내기 픽토그램 그거로해야지 x는 의미가 안어울려」) */
             <>
               <button type="button" className="nm-top-inv" aria-expanded={inv} onClick={() => setInv((v) => !v)}>{inv ? "접기" : "+ 초대"}</button>
