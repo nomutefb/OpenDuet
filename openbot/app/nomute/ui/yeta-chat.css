@@ -653,3 +653,5 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .ycmdnote span { flex:1; }
 .ychat .ycmdnote button { all:unset; cursor:pointer; flex:none; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:15px; color:#CFFF40; }
 .ychat .ycmdnote button:hover { background:rgba(207,255,64,.15); }
+/* 「○○ 생각 중…」 이름표 글자 = 평소 이름표처럼 검정(빛만 지나감)(형 11-06 20:12 「모루 생각중... 이거 아직도 흰색뜬다!!!!!!!!!!」 = 색 알약 위 흰 글자) */
+.ychat .ymsg .yname.tab .t-shimmer, .dark .ychat .ymsg .yname.tab .t-shimmer, .nm-split-root .ychat .ymsg .yname.tab .t-shimmer { --shimmer-base: rgba(18, 18, 18, .78); --shimmer-highlight: #000000; color:#121212; }
