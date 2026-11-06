@@ -634,12 +634,14 @@ function callRe(m: Msg): RegExp | null {
  *  앞 = 글 처음·한글/영문/숫자/@/! 아닌 자리 · 뒤 = 토씨 하나까지만 붙고 낱말 끝(「결과」·「온도」·「감사」 안의 한 글자는 안 칠함 · 한 글자 이름은 「과·와·도」 토씨 뺌) */
 const NAME_TAIL = "(?:야|아|님|씨|에게|한테|께|이|가|은|는|을|를|랑|이랑|의|이야|이가|(?:에게|한테|께|이랑|랑)(?:도|는|은|만))";   // 토씨 둘 = 「빠르한테도」(형 10-31 「빠르게 채색이 안되네」 · 「빠르게」는 안 칠함)
 const NAME_TONE = new Map<string, string>();   // 형 10-31 「그록봇은 시안 · 클로드봇은 주황네온 · 지피티 봇은 연보라네온」 · 「형 또는 세웅 은 노뮤트색」 = 이름 → 색 칸(gk·cl·gp·hy · 호출 칩 ycall 은 그대로)
+/** 이름·낱말 색 칸 — 묶음 낱말(「클로드」 등)은 「w」를 더 붙여 이름과 갈림(형 11-06 15:56 「클로드 색이 무지개로 바꼇는데 이거 확인」 = 무지개가 우리 이름에도 번졌음) */
+const toneOf = (n: string) => { const t = NAME_TONE.get(n) || ""; return t && TONE_WORDS.some(([w]) => w === n) ? `${t} w` : t; };
 const TONE_OF: Record<string, string> = { 그록봇: "gk", 클로드: "cl", 닷: "gp", 부름: "gp" };
 const TONE_WORDS: [string, string][] = [["그록", "gk"], ["그록봇", "gk"], ["클로드", "cl"], ["클로드봇", "cl"], ["지피티", "gp"], ["지피티봇", "gp"], ["세웅", "hy"]];   // 세웅 = 명부 이름이 「형」이라 따로(형 10-31 「세웅 키워드도 노뮤트색으로 형 키워드처럼」 · 호출 !세웅·@세웅 은 그대로)
 const GROUP_PICK = [{ id: "group-all", name: "모두", title: "전원" }, { id: "group-grok", name: "그록", title: "그록봇" }, { id: "group-claude", name: "클로드", title: "클로드" }, { id: "group-gpt", name: "지피티", title: "지피티" }];   // 입력칸 「@」·「!」 목록 맨 위 = 묶음 부르기(형 10-31 · 서버 _names.js)
 function nameRe(list: OfficePerson[]): RegExp | null {
   NAME_TONE.clear();
-  for (const [w, tone] of TONE_WORDS) NAME_TONE.set(w, tone);
+  for (const [w, tone] of TONE_WORDS) NAME_TONE.set(w, tone);   // 묶음 낱말(클로드·그록…) = toneOf 가 「w」를 더 붙임
   for (const p of list) {
     const tone = p.kind === "human" ? "hy" : TONE_OF[p.cls || ""];
     if (tone) for (const n of [p.who, p.name]) if (n) NAME_TONE.set(n, tone);
@@ -658,7 +660,7 @@ function named(text: string, nre: RegExp | null, key: string): ReactNode {
   for (const mm of text.matchAll(nre)) {
     const at = (mm.index || 0) + mm[1].length;
     if (at > last) out.push(tokened(text.slice(last, at), `${key}-s${k}`));
-    out.push(<span key={`${key}-n${k++}`} className={`yname-c ${NAME_TONE.get(mm[2]) || ""}`}>{mm[2]}</span>);
+    out.push(<span key={`${key}-n${k++}`} className={`yname-c ${toneOf(mm[2])}`}>{mm[2]}</span>);
     last = at + mm[2].length;
   }
   if (!out.length) return tokened(text, key);
@@ -721,13 +723,13 @@ function calledMd(text: string, re: RegExp | null, nre: RegExp | null = null): s
     if (i % 2) return x;
     const t0 = tokMd(x);
     const y = re ? t0.replace(re, `[$1](${CALL_HREF})`) : t0;
-    return nre ? y.replace(nre, (_all, pre: string, n: string) => `${pre}[${n}](${NAME_HREF}-${NAME_TONE.get(n) || "gk"})`) : y;
+    return nre ? y.replace(nre, (_all, pre: string, n: string) => `${pre}[${n}](${NAME_HREF}-${(toneOf(n) || "gk").replace(" ", "-")})`) : y;
   }).join("");
 }
 const MD_BOX = { lineNumbers: false, controls: { code: { copy: true, download: false } } } as const;   // 복사 창 = 줄 번호·받기 뺌(형 11-01 「복사가능한 창이 이리나오는데」 · 그록 앱 꼴 · 모양 = yeta-chat.css)
 const mdWithCalls = {
   ...markdownComponents,
-  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <CallChip t={p.children} /> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1)}`}>{p.children}</span> : markdownComponents.a({ ...p, children: <><SiteIcon href={p.href} />{p.children}</> })),   // GitHub·Cloudflare·Suno = 글자 앞 작은 아이콘(./site-icon.tsx)
+  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <CallChip t={p.children} /> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1).replace("-", " ")}`}>{p.children}</span> : markdownComponents.a({ ...p, children: <><SiteIcon href={p.href} />{p.children}</> })),   // GitHub·Cloudflare·Suno = 글자 앞 작은 아이콘(./site-icon.tsx)
 };
 
 /** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)
