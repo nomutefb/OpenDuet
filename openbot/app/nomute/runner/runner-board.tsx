@@ -12,7 +12,7 @@ import {
 
 const INK: Record<Level, string> = { green: "text-[#71C5E8]", yellow: "text-[#FFD23F]", orange: "text-[#FF9F43]", red: "text-[#FF5A5F]", off: "text-muted-foreground/50" };   // 단계 색 = 위젯 Theme(./tick-gauge LV)
 const BG: Record<Level, string> = { green: "bg-[#71C5E8]", yellow: "bg-[#FFD23F]", orange: "bg-[#FF9F43]", red: "bg-[#FF5A5F]", off: "bg-muted-foreground/40" };
-const PCS = [["A", "WIN A"], ["B", "WIN B"]] as const;
+const PCS = [["A", "WIN A"]] as const;   // 윈B 뺌(형 11-07 08:51 「윈비 제외」) · 러너 위젯 자료가 있는 PC 만(시아 본체 hwang 은 러너 위젯 없음)
 const f0 = (v: number | null) => (v == null ? "-" : String(Math.round(v)));
 const f1 = (v: number | null) => (v == null ? "-" : v.toFixed(1));
 const two = (n: number) => String(n).padStart(2, "0");

@@ -8,7 +8,7 @@ type Row = { key: string; st?: string; metrics?: Record<string, number> };
 type Cat = { id: string; rows: Row[] };
 type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp?: number };
 
-const HOSTS: [string, string][] = [["윈A", "WIN A"], ["윈B", "WIN B"], ["맥", "MAC"]];
+const HOSTS: [string, string][] = [["윈A", "WIN A"], ["맥", "MAC"], ["hwang", "SIA PC"]];   // 형 11-07 08:51 「하드웨어 바뀐거 … 윈비 제외」 = 윈B 빼고 시아 본체(hw 줄 hwang)
 const DOT = { red: "bg-red-500", yellow: "bg-amber-400", green: "bg-emerald-500", none: "bg-muted-foreground/40" } as const;
 
 function level(x: M): keyof typeof DOT {
