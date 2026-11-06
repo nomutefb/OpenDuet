@@ -26,7 +26,7 @@ import { NewsList } from "../home/news-list";
 import { NewsSummary } from "../home/news-summary";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
 import { SchedDesk } from "./sched-desk";
 import { StatusBoard } from "./status-board";
-import { StatusLine } from "./status-line";   // 맨 아래 상태 한 줄(④ · 빠르 11-06)
+import { StatusLights, SyncVersion } from "./status-line";   // 맨 아래 상태 한 줄(④ · 빠르 11-06)
 import { DrawerPage } from "./drawer-page";
 import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
@@ -217,7 +217,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
         {split ? <TopClock /> : null}   {/* 위 왼쪽 시계(형 11-06 20:05) */}
-        {split ? <StatusLine /> : null}   {/* 맨 아래 상태 한 줄(④ · 빠르 11-06 · status-line.tsx) */}
+        {split ? <StatusLights className="nm-top-lights" /> : null}   {/* 윗줄 오른쪽 = 정상·아닌 것(형 11-06 22:33 「시선이 분산되, 이거 상단으로 보내는게 맞는듯」 · 22:40 「스케줄러 관련된 내용은 우상단ㅇ으로」 · 부품 = 빠르 status-line.tsx) */}
+        {split ? <SyncVersion className="nm-br-syncver" /> : null}   {/* 우하단 = 「동기화 00분 전 • 버전 0000000」(형 22:40 「웹앱 버전은 우하단에 위치시켜 . 동기화도 마찬가지.」) */}
         {split ? (!M && pane === "chat" && rNow ? <div className="nm-toptitle nm-toptitle-room"><NomuteName room={room} /></div> : <TopTitle text={M ? M.label : pane === "chat" ? roomTitle : pane === "rooms" ? "대화방" : pane === "home" ? "홈" : ""} />) : null}   {/* 방 = 이름 한 곳만 · 라임 · 인원 · 누르면 사람·방 메뉴(형 11-06 20:39 「방 위에는 잇을필요없어」 「중상단에 라임으로 잇으면 됨 … 방 인원은 잇어야해」) */}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}

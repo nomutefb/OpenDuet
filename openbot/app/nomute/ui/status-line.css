@@ -1,5 +1,5 @@
 /* 맨 아래 상태 한 줄(④ · 빠르 11-06) — split 일 때만 · 유리 판 26px · 결 = 위 시계(.nm-topclock · 흐린 흰 · 숫자 라임) */
-.nm-split-root { padding-bottom: 26px; }
+/* (11-06 22:4x 번개 · 형 22:33) 맨 아래 줄은 뺌 → 부품 둘이 윗줄 오른쪽·우하단으로(./shell.css 「PC 자리 다시」) · 아래 26px 여백도 같이 뺌 */
 .nm-statusline {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; height: 26px;
   display: flex; align-items: center; gap: 8px; padding: 0 14px;

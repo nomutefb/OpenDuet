@@ -218,3 +218,27 @@ body.nm-dragging iframe { pointer-events:none; }
 /* 윗줄 가운데 페이지 이름과 겹치던 방 검색·방 메뉴(·밥상 이야기) 단추 = 반갈에선 윗줄 아래 대화 칸 머리 줄(56)로 내림(형 11-06 20:22 「이거 버튼은 아직남았음.」) */
 .nm-split-root .nm-find, .nm-split-root .nm-room-menu, .nm-split-root .nm-story { top:56px !important; }
 .nm-split-root .nm-find.open { top:58px !important; }
+/* ── PC 자리 다시(형 11-06 22:33~22:41 임시방 · 번개) ──
+   ① 윗줄 = 왼쪽 시계 · 가운데 방 이름 · 오른쪽 정상·아닌 것(신호등 · 서버 · 몸 · 봇) — 「하단에 정상 인거, 아닌거 보이는건 좋네, 근데 시선이 분산되, 이거 상단으로 보내는게 맞는듯.」 · 「스케줄러 관련된 내용은 우상단ㅇ으로 보낸다고 했고」
+   ② 우상단에 있던 픽토그램 네비 = 대화창 아래 알약(모바일 그대로) · 남는 단추 = 작동 · 서랍 · 설정 셋 — 「위에 있는 픽토그램 메뉴가 채팅창 아래에(모바일처럼」 · 「스케줄러, 서랍(원래 모바일 5번메뉴) 설정 이 3개만 잇어도 되긴해.」
+   ③ 윗줄 방 이름 뒤로 단추가 겹치던 것 = 네비가 내려가서 없어짐 — 「상단에 지금 페이지 타이틀하고 뒤에 메뉴 버튼 겹치는건 아주 배드.」
+   ④ 우하단 = 「동기화 00분 전 • 버전 0000000」 — 「웹앱 버전은 우하단에 위치시켜 . 동기화도 마찬가지.」
+   ⑤ 검색 단추 = 대화창 오른쪽 위에 작게 떠 있음 — 「검색 버튼은 그냥 채팅창 ㅈ(좌측) 우상단에 떠잇는 느낌으로 위치하게끔.」 · 「클필요없음」
+   윗줄 바탕(유리 · 아래 선)은 네비가 지던 것이라 따로 한 장 깖 */
+.nm-split-root::before { content:""; position:fixed; top:0; left:0; right:0; height:50px; z-index:56; pointer-events:none;
+  background:rgba(14,14,16,.62); -webkit-backdrop-filter:blur(20px) saturate(120%); backdrop-filter:blur(20px) saturate(120%); border-bottom:1px solid rgba(255,255,255,.09); }
+.nm-split-l .ynav { position:absolute; top:auto; bottom:14px; left:0; right:0; margin-inline:auto; width:fit-content; max-width:calc(100% - 32px); height:auto; padding:6px 10px; gap:8px; justify-content:center;
+  border-radius:var(--r-pill); border:1px solid var(--glass-line); background:color-mix(in srgb, var(--glass) 50%, transparent);
+  -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); backdrop-filter:blur(var(--blur-l)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
+.nm-split-l .ynav button { height:40px; padding:0 17px; font-size:var(--fs-xs); border-radius:var(--r-pill); color:#CFFF40; }
+.nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#CFFF40; background:rgba(207,255,64,.14); border-color:rgba(207,255,64,.38); }
+.nm-split-l .ynav svg { width:20px; height:20px; }
+.nm-split-l .ynav button[data-tab] { display:none !important; }   /* 홈 = 오른쪽에 늘 있음 · 대화방·대화 = 왼쪽 띠 → 남는 것 = 작동 · 서랍 · 설정 */
+.nm-top-lights { position:fixed; top:0; right:16px; height:50px; z-index:59; max-width:calc(50vw - 20vw - 28px); overflow:hidden; }
+.nm-br-syncver { position:fixed; right:12px; bottom:8px; z-index:55; padding:4px 9px; border-radius:9px; font-size:11px !important;
+  background:rgba(16,17,19,.6); -webkit-backdrop-filter:blur(12px) saturate(1.15); backdrop-filter:blur(12px) saturate(1.15); border:1px solid rgba(255,255,255,.07); }
+.nm-split-root .nm-find:not(.open) { top:60px !important; width:32px !important; height:32px; border-radius:50%; border-color:rgba(255,255,255,.1); background:rgba(20,21,23,.55);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2); filter:none; box-shadow:0 4px 14px rgba(0,0,0,.28); }
+.nm-split-root .nm-find:not(.open) .nm-find-btn { width:30px; }
+.nm-split-root .nm-find:not(.open) .nm-find-btn svg { width:16px; height:16px; }
+.nm-split-root .nm-story { top:58px !important; }
