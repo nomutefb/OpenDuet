@@ -5,3 +5,6 @@
 .nm-blind-c span { font-size:13px; color:rgba(232,234,232,.55); }
 @keyframes nmBlindIn { from { opacity:0; } to { opacity:1; } }
 @media (prefers-reduced-motion:reduce) { .nm-blind { animation:none; } }
+/* 위 가운데 시계 — 윗줄(50) 가운데 · 흐린 흰 글 · 누르면 가림 */
+.nm-topclock { all:unset; position:fixed; top:0; left:50%; transform:translateX(-50%); height:50px; display:flex; align-items:center; z-index:60; cursor:pointer; font-size:14px; font-weight:600; letter-spacing:.06em; font-variant-numeric:tabular-nums; color:rgba(232,234,232,.82); }
+.nm-topclock:hover { color:#CFFF40; }

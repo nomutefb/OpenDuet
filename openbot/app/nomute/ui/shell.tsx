@@ -40,7 +40,7 @@ import { IssueView } from "./issue";
 import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
-import { IdleBlind } from "./idle-blind";
+import { IdleBlind, TopClock } from "./idle-blind";
 import { NewsModal, newsFileOf } from "./news";
 import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
@@ -208,7 +208,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
       <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}`}>
         <AttentionNotifier />
         <FinishedForYou />
-        {split ? <IdleBlind /> : null}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
+        {split ? <IdleBlind /> : null}
+        {split ? <TopClock /> : null}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} /> : null}
         <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
           <SceneBg className="nm-app-ambient" />   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}

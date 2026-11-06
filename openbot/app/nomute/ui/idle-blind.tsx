@@ -67,3 +67,10 @@ export function BlindRows() {
     </>
   );
 }
+
+/** 위 가운데 시계(형 11-06 18:4x 「항상 중앙 상단부에 시간 나오게해주면되고」) = PC 반갈 윗줄 가운데 · 분 바뀔 때 · 누르면 바로 가림 */
+export function TopClock() {
+  const [t, setT] = useState(hhmm);
+  useEffect(() => { const i = setInterval(() => setT(hhmm()), 5_000); return () => clearInterval(i); }, []);
+  return <button type="button" className="nm-topclock" title="누르면 화면 가림(Alt+L)" onClick={() => setTimeout(blindNow, 150)}>{t}</button>;
+}
