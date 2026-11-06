@@ -23,6 +23,7 @@ import { type CommandOption, Composer, toAgentOptions } from "@/components/chann
 // 「/」 = 우리 명령 둘(형 11-06 10:45 사진 = 「/초대」에 원본 스킬 메뉴 「No matching skills」가 떠서 엔터가 안 감 · 봄 서버 /초대·/방파기) — 고르면 그 글자가 입력칸에 들어가고 엔터 = 보내기
 //   → 원본 「/」 목록은 이 앱에서 늘 비어 「No matching skills」만 띄우고 엔터를 먹음(11-06 9222 실물) = 목록 끔(commands [] · overrides.ts) · 대신 입력칸 위 안내 줄(SLASH_HELP)
 const OFFICE_COMMANDS: CommandOption[] = [];
+const INVITE_SKIP = new Set(["별"]);   // 「/초대」 얼굴 줄에서 뺌(형 11-06 11:43 「좋고, 별만 초대 모록에 없으면될듯」)
 const SLASH_HELP: [string, string][] = [["/초대 이름", "하루 안 남은 임시방에 부르기"], ["/방파기", "목적 달성 · 다 같이 나가기"]];
 import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
@@ -1288,7 +1289,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
         {inviteQ ? (() => {   /* 「/초대 」 뒤 = 이 방에 없는 애 얼굴 줄 · 누르면 이름이 입력칸 끝에 붙음(여럿) · 엔터 = 보내기(형 11-06 11:1x 「응 마찬가지로 되어야해」 · 봄 서버 이름 띄어 여럿) */
           const inRoom = new Set(r?.members || []), typed = new Set(inviteQ);
-          const can = list.filter((x) => x.kind !== "human" && !inRoom.has(x.who) && !typed.has(x.who) && !typed.has(x.name || ""));
+          const can = list.filter((x) => x.kind !== "human" && !INVITE_SKIP.has(x.who) && !inRoom.has(x.who) && !typed.has(x.who) && !typed.has(x.name || ""));
           return can.length ? <div className="yslash yinv" aria-label="부를 수 있는 이">{can.map((x) => <button key={x.who} type="button" title={x.name || x.who} onMouseDown={(e) => e.preventDefault()} onClick={() => { appendToComposer(`${/\s$/.test(loadDraft(room) || "") ? "" : " "}${x.name || x.who} `); }}><FaceImg id={idOf(x.who, list)} size={26} /><span>{x.name || x.who}</span></button>)}</div> : null;
         })() : slash != null && SLASH_HELP.some(([k]) => k.slice(1).startsWith(slash)) ? (   /* 「/」 안내 줄 = 치는 글자에 맞는 명령만 · 엔터는 그대로 보내기 */
           <div className="yslash" aria-live="polite">{SLASH_HELP.filter(([k]) => k.slice(1).startsWith(slash)).map(([k, d]) => <p key={k}><b>{k}</b><span>{d}</span></p>)}</div>
