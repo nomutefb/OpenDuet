@@ -23,7 +23,7 @@ const pickers = (x: Row) => [...new Set((x.picks || []).map((p) => { const b = S
 //   재료 = /api/trends?f=picks(봄 · editor#2643 · 틈 장부 줄 = sent:true) · 순위표에 없는 기사여도 뜸(어젯밤 틈 픽이 안 켜진 까닭 = 순위표에 있을 때만 얼굴을 붙였음 · 봄 10:58)
 //   차례 = 촉(최근 판 순위 차례) 둘 → 틈(최근 것) 하나 · 같은 기사 = 한 번 · PICK_WINDOW 넘은 픽 = 뺌
 type Pick = { by?: string; title?: string; title_clean?: string; urls?: string[]; outlets?: string[]; url?: string; at?: string; score?: number | null; rank?: number | null; why?: string; keyword?: string; summary?: string };
-const PICK_WINDOW = 14 * 3600_000, PIN_CHOK = 2, PIN_TEUM = 1;
+const PICK_WINDOW = 8 * 3600_000, PIN_CHOK = 2, PIN_TEUM = 1;
 const pickWho = (p: Pick) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; };
 const pickKey = (p: Pick) => String((p.urls || [])[0] || p.url || p.title || "").trim();
 const pinsOf = (list: unknown[], now = Date.now()) => {
@@ -64,6 +64,9 @@ const pickOutlet = (p: Pick) => {
   return ex ? EXTRA_HOST[ex] : outletName(h);
 };
 const hostOf = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^(?:www|m|n|core)\./, "") : ""; } catch { return ""; } };
+
+// 시간 흐림(형 11-06 20:14 「그리고 4시간 전은 명도를 75%로 설정. 6시간 전부터는 명도를 50%로 설정. 8시간부터는 노출안되는거 알지?」) — 픽 칸 · 순위표 같은 잣대 · 8시간 = 뺌(FRESH_MS · PICK_WINDOW)
+const ageCls = (at?: string) => { const t = Date.parse(at || ""); if (!Number.isFinite(t)) return ""; const h = (Date.now() - t) / 3600_000; return h >= 6 ? " age6" : h >= 4 ? " age4" : ""; };
 
 const ago = (at?: string) => {
   const t = at ? Date.parse(at) : NaN;
@@ -148,7 +151,7 @@ export function NewsList() {
             const who = pickWho(p), url = (p.urls || [])[0] || p.url || "", title = p.title_clean || cleanTitle(p.title) || "";
             const why = String(p.why || p.keyword || "").trim();
             return (
-              <li key={`${who}:${pickKey(p)}`} className={who === "촉" ? "chok" : "teum"}>
+              <li key={`${who}:${pickKey(p)}`} className={(who === "촉" ? "chok" : "teum") + ageCls(p.at)}>
                 <span className="pk-face"><FaceImg id={who} size={20} /></span>
                 <span className="pk-tag">{who} 픽</span>
                 <button type="button" className="pk-tt" title={title} onClick={() => openPick(p)}>{title}</button>
@@ -166,7 +169,7 @@ export function NewsList() {
       ) : (
         <ol className="nm-nlist-ol">
           {rows.map((row, i) => (
-            <li key={row.key || row.urls?.[0] || i} className={i < 3 ? "top" : undefined}>   {/* 1~3위 = 번호·제목 라임(형 15:49) */}
+            <li key={row.key || row.urls?.[0] || i} className={((i < 3 ? "top" : "") + ageCls(row.at)).trim() || undefined}>   {/* 1~3위 = 번호·제목 라임(형 15:49) */}
               <span className="pf" aria-hidden={!pickers(row).length || undefined} title={pickers(row).length ? `${pickers(row).join("·")} 픽` : undefined}>{pickers(row).map((w, j) => <span key={w} className="pf-i" style={{ zIndex: 9 - j }}><FaceImg id={w} size={16} /></span>)}</span>
               <span className="rk">{i + 1}</span>   {/* 차례 번호(순위 그대로면 1 · 6 · 7 띄엄 · 뎅 11-05 15:0x 실물) */}
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>

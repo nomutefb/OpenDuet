@@ -36,10 +36,9 @@
 .nm-nlist-pin li { position:relative; display:grid; grid-template-columns:20px auto minmax(0,1fr) 30px; grid-template-rows:auto auto; column-gap:8px; row-gap:1px; align-items:center; padding:6px 8px 6px 10px; border-radius:9px; background:rgba(207,255,64,.045); }
 .nm-nlist-pin li::before { content:""; position:absolute; left:0; top:6px; bottom:6px; width:2px; border-radius:2px; background:#CFFF40; }
 .nm-nlist-pin li.teum { background:rgba(255,255,255,.035); }
-.nm-nlist-pin li.teum::before { background:rgba(207,255,64,.55); }
+.nm-nlist-pin li.teum::before { background:#CFFF40; }
 .nm-nlist-pin li:hover { background:rgba(207,255,64,.08); }
 .nm-nlist-pin .pk-face { grid-row:1 / span 2; display:block; width:20px; height:20px; border-radius:50%; box-shadow:0 0 0 1.5px #CFFF40, 0 0 0 3px rgba(14,14,16,.9); }
-.nm-nlist-pin .pk-tag { color:rgba(207,255,64,.6); font-size:10.5px; font-weight:600; white-space:nowrap; letter-spacing:.02em; }   /* 한 단계 연하게(형 11-06 11:35 「촉픽 틈픽 이런거 글자 한단계 연하게」) */
 .nm-nlist-pin .pk-tt { all:unset; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:12.5px; line-height:1.3; color:#e8eae8; font-weight:600; }
 .nm-nlist-pin .pk-tt:hover { text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(232,234,232,.35); }
 .nm-nlist-pin .pk-sc { grid-row:1 / span 2; grid-column:4; color:rgba(232,234,232,.78); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
@@ -49,3 +48,12 @@
 .nm-nlist-pin li:hover .pk-sc { visibility:hidden; }
 .nm-nlist-pin .pk-sd:hover { color:#111; background:#e8eae8; border-color:transparent; }
 @media (hover:none) { .nm-nlist-pin .pk-sd { opacity:1; } .nm-nlist-pin .pk-sc { visibility:hidden; } }
+/* 픽 표 글자 = 봇 색 진하게 · 앞 막대 = 둘 다 같은 강조 라임(형 11-06 20:14 「이니다 촉픽은 촉 형광 파랑, 틈은 라임색. | 은 동일. 그래도 이로간성 잇어야하니까」) */
+.nm-nlist-pin .pk-tag { font-size:10.5px; font-weight:800; white-space:nowrap; letter-spacing:.02em; color:#CFFF40; }
+.nm-nlist-pin li.chok .pk-tag { color:#33CCFF; text-shadow:0 0 8px rgba(51,204,255,.35); }
+.nm-nlist-pin li.teum .pk-tag { color:#CFFF40; text-shadow:0 0 8px rgba(207,255,64,.3); }
+.nm-nlist-pin li::before { width:3px; box-shadow:0 0 8px rgba(207,255,64,.45); }
+/* 시간 흐림(형 20:14 「4시간 전은 명도를 75% … 6시간 전부터는 명도를 50%」) — 줄 통째로 · 마우스 올리면 다시 밝게(읽을 때) */
+.nm-nlist-pin li.age4, .nm-nlist-ol li.age4 { filter:brightness(.75); }
+.nm-nlist-pin li.age6, .nm-nlist-ol li.age6 { filter:brightness(.5); }
+.nm-nlist-pin li.age4:hover, .nm-nlist-pin li.age6:hover, .nm-nlist-ol li.age4:hover, .nm-nlist-ol li.age6:hover { filter:none; }
