@@ -237,8 +237,13 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-top-lights { position:fixed; top:0; right:16px; height:50px; z-index:59; max-width:calc(50vw - 20vw - 28px); overflow:hidden; }
 .nm-br-syncver { position:fixed; right:12px; bottom:8px; z-index:55; padding:4px 9px; border-radius:9px; font-size:11px !important;
   background:rgba(16,17,19,.6); -webkit-backdrop-filter:blur(12px) saturate(1.15); backdrop-filter:blur(12px) saturate(1.15); border:1px solid rgba(255,255,255,.07); }
-.nm-split-root .nm-find:not(.open) { top:60px !important; width:32px !important; height:32px; border-radius:50%; border-color:rgba(255,255,255,.1); background:rgba(20,21,23,.55);
+/* 검색·밥상 이야기 단추는 document.body 에 그려져서(.nm-split-root 밖) 앞 줄들(「.nm-split-root .nm-find」)이 안 먹었음 → :root:has 로 잡음(뎅 23:13 실물 = 검색이 윗줄 높이 y1~39 에 남아 있었음) */
+:root:has(.nm-split-root) .nm-find:not(.open) { top:60px !important; width:32px !important; height:32px; border-radius:50%; border-color:rgba(255,255,255,.1); background:rgba(20,21,23,.55);
   -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2); filter:none; box-shadow:0 4px 14px rgba(0,0,0,.28); }
-.nm-split-root .nm-find:not(.open) .nm-find-btn { width:30px; }
-.nm-split-root .nm-find:not(.open) .nm-find-btn svg { width:16px; height:16px; }
-.nm-split-root .nm-story { top:58px !important; }
+:root:has(.nm-split-root) .nm-find:not(.open) .nm-find-btn { width:30px; }
+:root:has(.nm-split-root) .nm-find:not(.open) .nm-find-btn svg { width:16px; height:16px; }
+:root:has(.nm-split-root) .nm-story { top:58px !important; }
+:root:has(.nm-split-root) .nm-find.open { top:58px !important; }
+/* 우하단 「동기화 • 버전」 줄이 뉴스 요약 칸 끝을 덮던 것(뎅 23:13 ①) = 오른쪽 칸 아래에 그 줄 자리만큼 여백 · 줄은 조금 더 아래로 */
+.nm-split-root .nm-split { padding-bottom:32px; }
+.nm-br-syncver { bottom:5px; }
