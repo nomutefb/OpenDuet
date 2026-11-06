@@ -19,7 +19,12 @@ import { Component, type ComponentProps, type CSSProperties, Fragment, type Reac
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
-import { Composer, toAgentOptions } from "@/components/channels/composer";
+import { type CommandOption, Composer, toAgentOptions } from "@/components/channels/composer";
+// 「/」 = 우리 명령 둘(형 11-06 10:45 사진 = 「/초대」에 원본 스킬 메뉴 「No matching skills」가 떠서 엔터가 안 감 · 봄 서버 /초대·/방파기) — 고르면 그 글자가 입력칸에 들어가고 엔터 = 보내기
+const OFFICE_COMMANDS: CommandOption[] = [
+  { id: "초대", name: "초대", description: "하루 안 남은 임시방에 부르기 · /초대 이름", kind: "prompt", prompt: "/초대 " },
+  { id: "방파기", name: "방파기", description: "목적 달성 · 다 같이 나가기", kind: "prompt", prompt: "/방파기" },
+];
 import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, peopleSync, roomAgentIds } from "../data/office";
@@ -1288,6 +1293,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         ) : null}
         {pairRoom ? <p className="ypair-ro">둘의 방 · 읽기만</p> : (<Composer
           agents={toAgentOptions(bots4)}
+          commands={OFFICE_COMMANDS}
           channelId={room}
           onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); }}
           initialValue={loadDraft(room)}
