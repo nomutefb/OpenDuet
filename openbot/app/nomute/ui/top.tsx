@@ -52,7 +52,7 @@ export function NomuteName({ room }: { room?: string } = {}) {
   const can = routineRoom(r);
   // 멤버 조정(임시방만 · 고정된 방(밥상 등) 말고 · 형 11-06 20:37 「고정된 방 말고 (밥상 등)」) = 그 자리에서 내보내기·초대 → POST temprooms/<방>
   const edit = !!r.temp && !r.with;
-  const outside = list.filter((x) => x.kind !== "human" && !(r.members || []).includes(x.who));
+  const outside = list.filter((x) => x.kind !== "human" && x.who !== "별" && !(r.members || []).includes(x.who));   // 별 = 초대 명단에서 뺌(형 11-06 11:43 「별만 초대 모록에 없으면될듯」 · /초대 얼굴 줄과 같게)
   const saveMembers = async (members: string[]) => {
     setBusy(true); setWhy("");
     try { await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members }) }); await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); }
