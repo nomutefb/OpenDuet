@@ -75,3 +75,8 @@ html[data-theme="garden"]:not(.dark) .nm-nsum-q li.run .st,
 html[data-theme="garden"]:not(.dark) .nm-split-l .ynav button { color: var(--garden-accent) !important; text-shadow: none !important; }
 html[data-theme="garden"]:not(.dark) .nm-split-l .ynav button.on,
 html[data-theme="garden"]:not(.dark) .nm-split-l .ynav button[aria-current="page"] { background: rgba(78, 143, 58, .12) !important; }
+
+/* 뜸 08:42 실물(news2.jpg) — 촉·틈 픽 제목(.pk-tt)이 아이보리 위에서 거의 안 보임: 단추(all:unset)에 어두운 카드용 흰 글자(#e8eae8)를 따로 박아 둬서
+   위 「카드 안 글자 → 숯색」 묶음에 안 걸림(나머지 단추 제목 = 뉴스 줄 .tt · 요약 줄 .tt 는 색을 안 박아 숯색을 물려받음) */
+html[data-theme="garden"]:not(.dark) .nm-nlist-pin .pk-tt { color: var(--garden-ink) !important; }
+html[data-theme="garden"]:not(.dark) .nm-nlist-pin .pk-tt:hover { text-decoration-color: var(--garden-line) !important; }
