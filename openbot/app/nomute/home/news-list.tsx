@@ -161,7 +161,8 @@ export function NewsList() {
         </ul>
       ) : null}
       {st !== "ready" ? (
-        <p className="nm-nlist-empty">{st === "loading" ? "받는 중…" : st === "empty" ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어."}</p>
+        st === "loading" ? <div className="nm-skel-list" aria-label="받는 중">{[92, 78, 86, 70, 82, 64].map((w, i) => <i key={i} className="nm-skel" style={{ width: `${w}%` }} />)}</div>   /* 불러오는 중 = 뼈대 줄(시아 UI ⑤) */
+        : <p className="nm-nlist-empty nm-emptybox"><b>{st === "empty" ? "지금 보여 줄 기사가 없어" : "기사 순위를 못 받았어"}</b><span>{st === "empty" ? "1분마다 다시 받아" : "1분 뒤 다시 해 볼게"}</span></p>
       ) : (
         <ol className="nm-nlist-ol">
           {rows.map((row, i) => (

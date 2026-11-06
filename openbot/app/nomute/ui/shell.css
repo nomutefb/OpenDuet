@@ -184,3 +184,22 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-grip:hover i, body.nm-dragging .nm-split-grip i { background:#CFFF40; height:64px; }
 body.nm-dragging { user-select:none; cursor:col-resize; }
 body.nm-dragging iframe { pointer-events:none; }
+/* 칸 틀 통일(시아 UI ① · 형 11-06 「ㅇㅋ」) — 오른쪽 세 칸 = 같은 유리 판 · 같은 머리줄(36 · 점 · 이름 · 오른쪽 흐린 글) · 칸 사이 8 */
+.nm-split-root .nm-split > section { background:rgba(24,25,27,.72) !important; border:1px solid rgba(255,255,255,.07); border-radius:14px !important; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); overflow:hidden; }
+.nm-split-root .nm-split > section.nm-split-run { padding:0 !important; }
+.nm-split-root .nm-split > section.nm-split-run .nm-rgx { padding:0 !important; }
+.nm-card-h, .nm-split-root .nm-nlist-h, .nm-split-root .nm-nsum-h { height:36px; flex:none; display:flex; align-items:center !important; gap:8px; padding:0 12px !important; border-bottom:1px solid rgba(255,255,255,.07); border-top:0 !important; margin:0; }
+.nm-card-h b, .nm-split-root .nm-nlist-h b, .nm-split-root .nm-nsum-h b { font-size:12.5px; letter-spacing:.02em; color:#e8eae8; }
+.nm-card-h > span, .nm-split-root .nm-nlist-h > span, .nm-split-root .nm-nsum-h > span { margin-left:auto; color:rgba(232,234,232,.45); font-size:11px; font-variant-numeric:tabular-nums; }
+.nm-card-h .live { width:7px; height:7px; border-radius:50%; background:#CFFF40; align-self:center; }
+.nm-split-root .nm-nsum { border-top:0 !important; }
+.nm-split-root .nm-nsum-h::before { content:""; width:7px; height:7px; border-radius:50%; background:rgba(207,255,64,.55); }
+.nm-split-root .nm-rgx .nm-rgx-panel { padding:8px 0 10px; }
+/* 불러오는 중 = 회색 뼈대 줄(흐르는 빛) · 빈 칸 = 가운데 흐린 두 줄(무엇이 · 언제 채워지는지)(시아 UI ⑤) */
+.nm-skel { display:block; height:11px; margin:10px 14px; border-radius:6px; background:linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.11), rgba(255,255,255,.05)); background-size:200% 100%; animation:nmSkel 1.4s linear infinite; }
+.nm-skel-list { padding:6px 0; }
+@keyframes nmSkel { from { background-position:200% 0; } to { background-position:-200% 0; } }
+@media (prefers-reduced-motion:reduce) { .nm-skel { animation:none; } }
+.nm-emptybox { display:flex !important; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:24px 14px !important; text-align:center; list-style:none; }
+.nm-emptybox b { font-size:12.5px; font-weight:600; color:rgba(232,234,232,.62); }
+.nm-emptybox span { font-size:11px; color:rgba(232,234,232,.4); }
