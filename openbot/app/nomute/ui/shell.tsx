@@ -32,7 +32,6 @@ import { TabBar } from "../swap/tab-bar";
 import { SceneBg } from "./thumb-maker/scene-bg";
 import "../home/home-scene.css";
 import { useQuery } from "@tanstack/react-query";
-import { ringOf } from "../swap/mic-orb";   // 살아 있는 얼굴 테 = 각자 시그니처 색(형 11-05 16:56)
 import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
@@ -368,8 +367,10 @@ function FaceStrip({ current }: { current: string }) {
   // 우클릭 = 고정 · 고정 풀기(형 11-05 17:03 「그리고 우클릭하면 고정같은거 작용하게 해줘 좌측에 저 프로필 사진들도」) — 대화방 목록 「고정」과 같은 칸(nm-office-pins · 이 기기) · 고정 방 = 띠 위쪽
   const togglePin = (id: string) => { if (id === "all") return; const n = new Set(pins); if (n.has(id)) n.delete(id); else n.add(id); try { localStorage.setItem("nm-office-pins", JSON.stringify([...n])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } setPins(n); };
   // 자는 애 = 얼굴 채도 15%(형 11-05 15:31 「잠자고 있으면 채도 15%만 들어가게 해줘. 프로필 테두리 라인은 검정 챠콜 베이스 반투명으로 들어가고.」) · 깸 표 = 대화 목록과 같은 bots 캐시(./room-list.tsx)
-  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
-  const asleep = (who?: string) => !!who && !bots.some((b) => b.who === who && b.state === "awake");
+  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string; last_turn_ts?: number }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
+  // 라이브 = 지금 깸 · 또는 마지막 턴 10분 안(상태바 조약돌과 같은 셈 · 형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어?」) — 턴 사이 「잠」 깜빡임 없게
+  const live = (who?: string) => !!who && bots.some((b) => b.who === who && (b.state === "awake" || (!!b.last_turn_ts && Date.now() - b.last_turn_ts <= 10 * 60_000)));
+  const asleep = (who?: string) => !!who && !live(who);
   return (
     <aside aria-label="방 얼굴 띠" className="nm-strip">
       <button type="button" className="nm-strip-btn" aria-label="대화 목록" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="menu" size={21} /></button>
@@ -377,7 +378,7 @@ function FaceStrip({ current }: { current: string }) {
         {ordered.map((r) => {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list);
           return (
-            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}`} style={r.with && !asleep(r.with) && ringOf(p) ? { borderColor: ringOf(p) } : undefined} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n > 0 ? ` · 안 읽은 글 ${n}개` : ""}`} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
+            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n > 0 ? ` · 안 읽은 글 ${n}개` : ""}`} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
               {pins.has(r.id) ? <i className="nm-face-pin" aria-label="고정됨" /> : null}
               {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : ids.length ? <span className="nm-face-group"><FaceStack ids={ids.slice(0, 2)} size={22} /></span> : <DuetIcon name="chat" size={20} />}
               {n > 0 ? <b className="nm-badge">{n > 99 ? "99+" : n}</b> : n < 0 ? <i className="nm-dot" aria-hidden /> : null}
