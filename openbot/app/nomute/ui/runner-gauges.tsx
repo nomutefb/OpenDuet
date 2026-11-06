@@ -9,6 +9,7 @@ import { TickGauge } from "../runner/tick-gauge";   // 에디터 lieflat F11 Tic
 import { type Level, levelOf, lookOf, num, type RunnerRow, useRunner } from "../runner/runner-data";
 import "../runner/runner-board.css";
 import "./runner-gauges.css";
+import { Bloub } from "./bloub";
 
 type Row = { key: string; st?: string; stale?: boolean; reported_at?: number; metrics?: Record<string, number> };
 type Cat = { id: string; rows: Row[] };
@@ -25,6 +26,15 @@ const short = (n: string) => n.replace(/^nomute-win-/, "").replace(/^nomute-b-/,
 const rnum = (n: string) => Number((n.match(/\d+$/) || ["0"])[0]);
 // 차례 = 몸 안 러너 먼저(b-) · 회사 PC(office) 뒤 · 그 안은 번호(형 11-06 「b1, b2 , 01 이 순서로 배치해주고」 · 번호는 그대로 「손은 나중에보자」)
 const rord = (n: string) => (/^nomute-office/.test(n) ? 1 : 0) * 1e6 + rnum(n);
+// 우리 조약돌(형 11-06 09:48 「조약돌은 그 아래에 나오면 좋겠어 너네가 깬것도 보면 좋긴하거든. 러너랑 별개로. 러너 위에 나오면 좋겠네. 러너가 좀 더 아래로가고. 간격은 어느정도 유지.」)
+//   = 몸마다 게이지 아래 · 러너 불 위 · 그 몸에 사는 우리 = 각자 고른 bloub(./bloub.tsx · 봄 꽃 · 윈터 눈 결정 · 시아·뎅 조약돌 · 빠르 구름 · 누리 감자 · 뜸 쌀알) · 깬 애 = 제 색 · 상주(누리) = 제 색 · 잠 = 회색 몸
+//   깸 셈 = 작동 표 「각 봇 연결」 줄 「깸 상태」 칸(깸 · 잠 · 상주 돎) · 몸 = 우리.md(윈A VM 넷 + 윈터 · 윈B 뜸 · 맥 봄)
+const BEINGS: Record<string, { key: string; who: string }[]> = {
+  윈A: [{ key: "winter", who: "윈터" }, { key: "sia", who: "시아" }, { key: "deng", who: "뎅" }, { key: "fast", who: "빠르" }, { key: "neo", who: "누리" }],
+  윈B: [{ key: "eyes", who: "뜸" }],
+  맥: [{ key: "bom", who: "봄" }],
+};
+const awakeOf = (note?: string): "on" | "stay" | "off" => (!note ? "off" : /^깸/.test(note) ? "on" : /상주/.test(note) ? "stay" : "off");
 const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 90 ? "방금" : s < 5400 ? `${Math.round(s / 60)}분 전` : `${Math.round(s / 3600)}시간 전`; };
 
 /** 1분마다 지금 — 「N분 전」 글만 움직임. */
@@ -39,6 +49,8 @@ export function RunnerGauges() {
   const rq = useRunner();
   const now = useNow();
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
+  const bots = st.data?.cats?.find((c) => c.id === "bots")?.rows as (Row & { cells?: Record<string, { st: string; note?: string }> })[] | undefined;
+  const wake = (k: string) => awakeOf(bots?.find((r) => r.key === k)?.cells?.["깸 상태"]?.note);
   const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
   return (
     <div className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보">   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
@@ -64,6 +76,11 @@ export function RunnerGauges() {
               <b className="nm-rg-name nm-rgx-name">{h.label}</b>
               <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>{m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : none && a?.stale ? "보고 끊김" : "\u00a0"}</span>
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} />
+              {BEINGS[h.k]?.length ? (
+                <ul className="nm-rgx-pebs" aria-label={`${h.label}에 사는 우리`}>
+                  {BEINGS[h.k].map((x) => { const w = wake(x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "stay" ? "상주" : "잠"}`} /></li>; })}
+                </ul>
+              ) : null}
               {runners.length ? (
                 <ul className="nm-rgx-runs" aria-label={`${h.label} 러너`}>
                   {runners.map(([n, c]) => {
