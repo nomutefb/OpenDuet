@@ -106,6 +106,12 @@ async function mount(
   return { container, render };
 }
 
+// 카드 첫 단추 = × 끄기(.nar-x · 형 11-06 20:31 「끄기버튼만잇으면될듯」 · 「5초는 자동.」) → 「button」 첫 것은 다시 보내기가 아님.
+// 다시 보내기는 글자로 집는다. 없음 단언은 개수로(요소를 단언에 넣으면 실패 글이 happy-dom 화면 통째를 펼치다 램을 다 먹고 SIGKILL · 11-07 8G 에서 13초 만에 7.8G).
+const retryButtons = (root: ParentNode) =>
+  [...root.querySelectorAll("button")].filter((b) => (b.textContent || "").includes("본문만 다시 보내기"));
+const count = (root: ParentNode, selector: string) => root.querySelectorAll(selector).length;
+
 test("partial copy outcomes keep original preview/download and explain confirmation without retry", async () => {
   const f = fixture([partial]);
   await f.state.submit(input());
@@ -119,7 +125,8 @@ test("partial copy outcomes keep original preview/download and explain confirmat
     view.container.querySelector("a[download]")?.getAttribute("href") || "",
     /^blob:/,
   );
-  assert.equal(view.container.querySelector("button"), null);
+  assert.equal(retryButtons(view.container).length, 0);
+  assert.equal(count(view.container, "button.nar-x[aria-label=닫기]"), 1);   // 끄기(×) 하나 · 5초 뒤 저절로(형 11-06 20:31)
   assert.ok(
     view.container.querySelector(".nac-box.overflow-y-auto"),   // 칸 높이 = 화면 반(.nac-box · 11-02 07:19 256px 잘림 고침)
     "records are bounded above the composer",
@@ -132,7 +139,8 @@ test("actual recovery button retries only frozen body, prevents double clicks, a
   const f = fixture([uploadOK()], [bodyRejected, () => pending.promise]);
   await f.state.submit(input());
   const view = await mount(f.state);
-  const button = view.container.querySelector("button")!;
+  const [button] = retryButtons(view.container);
+  assert.ok(button, "retry button is rendered");
   await act(async () => {
     button.click();
     button.click();
@@ -150,10 +158,7 @@ test("actual recovery button retries only frozen body, prevents double clicks, a
     pending.resolve(bodyOK());
     await setImmediate();
   });
-  assert.equal(
-    view.container.querySelector('[aria-label="첨부 전송 기록"]'),
-    null,
-  );
+  assert.equal(count(view.container, '[aria-label="첨부 전송 기록"]'), 0);
   assert.equal(
     view.container.querySelector("textarea")?.value,
     "기다리는 동안 쓴 새 글",
@@ -189,12 +194,14 @@ test("unknown retry outcome removes retry action while retaining originals and c
   await f.state.submit(input());
   const view = await mount(f.state);
   await act(async () => {
-    view.container.querySelector("button")!.click();
+    const [retry] = retryButtons(view.container);
+    assert.ok(retry, "retry button is rendered");
+    retry.click();
     await setImmediate();
   });
   assert.match(view.container.textContent || "", /전송 확인 필요/);
   assert.match(view.container.textContent || "", /저장 확인 · 복사본 1개/);
-  assert.equal(view.container.querySelector("button"), null);
+  assert.equal(retryButtons(view.container).length, 0);
   assert.equal(view.container.querySelectorAll("a[download]").length, 1);
   assert.deepEqual(f.released, []);
 });
