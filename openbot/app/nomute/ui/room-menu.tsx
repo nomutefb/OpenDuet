@@ -1,11 +1,10 @@
-// 방 안 햄버거 메뉴(형 11-01 08:46 「그 우측이 햄버거 모양 메뉴 픽토그램까지 두자」 · 「메뉴 열리면 거기에 톡방 길게 눌럿을때 나오는 메뉴들이 포함되면 될거같아」
+// 방 메뉴 — 11-06 20:39 부터 우상단 ≡ 단추 없이 윗줄 가운데 이름 목록 안(./top.tsx · useRoomMenu) · 처음 = 방 안 햄버거 메뉴(형 11-01 08:46 「그 우측이 햄버거 모양 메뉴 픽토그램까지 두자」 · 「메뉴 열리면 거기에 톡방 길게 눌럿을때 나오는 메뉴들이 포함되면 될거같아」
 //   「방 설정 같은 것들. 대화방 프로필 설정 · 대화방 알림 · 대화방 질문 이력 · 파일 기록」)
 //   = 방 목록 줄 메뉴(./room-list.tsx)의 방 설정 칸을 방 안에서 · 표지 색·이름 = ./room-color.tsx 판 그대로 · 알림 = 봄 서버(../data/notify.ts) 같은 열쇠
 //   질문 이력 = 봄 서버 GET decisions?room=&all=1(못 받으면 칸 안 보임) · 파일 기록 = 이 기기 방 글(최근 300 + 지금 받은 판)의 첨부 · 사진은 폰 사본 7일(../data/file-cache.ts)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeMsg, type OfficeRoom, office, people } from "../data/office";
 import { loadRoom } from "../data/room-cache";
 import { cachedFile, fileUrl, filesHeld, pruneFiles } from "../data/file-cache";
@@ -16,52 +15,51 @@ import { RoomMembersDialog, TempRoomDialog } from "./temp-room";   // 방 멤버
 import { whoName } from "./who-name";
 import { RoomLookDialog } from "./room-look";
 
-export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
-  const qc = useQueryClient(), btn = useRef<HTMLButtonElement>(null);
-  const [open, setOpen] = useState(false), [tinting, setTinting] = useState<OfficeRoom | null>(null), [naming, setNaming] = useState<OfficeRoom | null>(null), [err, setErr] = useState("");
+/** 방 메뉴 것(옛 우상단 ≡ 단추) = 윗줄 가운데 이름을 누른 목록 안으로(형 11-06 20:37 「애초에 그냥 방 메뉴를 저기서 나오게 해버려도 … 메뉴를 축약해서 하나로 가능한 통합시킨다음에 … 비슷한거끼리」 ·
+ *  20:39 「방 설정등이 최대한 기능 응축되어있으면 굳이 별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」 · 시아 판 ①~④) — 줄 = 사람 칸(crew) · 방 칸(items) · 창(dialogs · 목록이 닫혀도 남음) */
+export function useRoomMenu(room: string, open: boolean, close: () => void) {
+  const qc = useQueryClient();
+  const [tinting, setTinting] = useState<OfficeRoom | null>(null), [naming, setNaming] = useState<OfficeRoom | null>(null), [err, setErr] = useState("");
   const notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
   const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [look, setLook] = useState(false);
-  const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: open || hist, staleTime: 30_000, retry: false });   // 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
-  const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: open, staleTime: 15_000, retry: false });   // 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
+  const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: !!room && (open || hist), staleTime: 30_000, retry: false });   // 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
+  const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: !!room && open, staleTime: 15_000, retry: false });   // 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
   const setBell = async (on: boolean) => {
-    setOpen(false); setErr("");
+    close(); setErr("");
     try { const j = await office<{ on?: boolean }>("bell6", { method: "POST", body: JSON.stringify({ room, on }) }); qc.setQueryData(["nomute", "bell6", room], { ...(bell.data || {}), on: typeof j.on === "boolean" ? j.on : on }); }
     catch (e) { setErr(`종을 못 바꿨어 · ${(e as Error).message}`); }
   };
-  const r = (qc.getQueryData<OfficeRoom[]>(["nomute", "rooms"]) || []).find((x) => x.id === room);
-  useEffect(() => { setOpen(false); }, [room]);
-  useEffect(() => {   // 밖을 누르면 닫힘(줄 메뉴와 같음)
-    if (!open) return undefined;
-    const close = (e: PointerEvent) => { if (!(e.target as Element | null)?.closest?.(".nm-room-menu-list, .nm-room-menu")) setOpen(false); };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, [open]);
+  const r = room ? (qc.getQueryData<OfficeRoom[]>(["nomute", "rooms"]) || []).find((x) => x.id === room) : undefined;
+  useEffect(() => { setErr(""); }, [room, open]);
   const setNotify = async (on: boolean) => {
-    setOpen(false); setErr("");
+    close(); setErr("");
     try { qc.setQueryData(["nomute", "notify"], notifyState(await office<Partial<NotifyState>>("notify", { method: "POST", body: JSON.stringify({ room, on }) }))); }
     catch (e) { setErr(`알림 설정을 못 바꿨어 · ${(e as Error).message}`); }
   };
   const nOn = notifyOn(notify.data, room, !!r?.with), unfold = useUnfold(room);
-  const b = btn.current?.getBoundingClientRect();
-  return (
+  const go = (f: () => void) => () => { close(); f(); };
+  // 사람 칸 = 지정방 「멤버 넣고 빼기」(roomset · 형만) · 회의실 「잠시 내보내기」 — 임시방은 목록에서 바로(× · + 초대 · ./top.tsx)
+  const crewItems = r ? (
     <>
-      <button ref={btn} type="button" className="nm-room-menu" style={{ right }} aria-label="방 메뉴" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}><DuetIcon name="menu" size={20} /></button>
-      {open && r ? (
-        <div role="menu" aria-label={`${r.name} 메뉴`} className="nm-room-menu-list" style={{ right: right + 4, top: (b ? b.bottom : 44) + 4 }}>
-          {r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setCrew(true); }}>방 설정<small>이름 · 목적 · 멤버 · 기한</small></button> : null}
-          {!r.with ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setLook(true); }}>방 꾸미기<small>아이콘 · 색</small></button> : null}   {/* 단톡방·회의실 다(형 11-06 20:00 「단톡방은 내가 아이콘도 고를수잇으면」 · 20:33 「회의실도 가능해야해.」) */}   {/* 임시방 = 한 창에서 다(형 11-06 10:37 「그 방설정이 이 안에서 되야할듯. 방설정이 한 모달안에 보이면좋겠네」 · 창은 원래 있었고 「멤버 넣고 빼기」 이름에 숨어 있었음) */}
-          {!r.with ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setTinting(r); }}><span className="flex items-center gap-2"><RainbowOrb />대화방 프로필 · 표지 색</span></button> : null}
-          {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setNaming(r); }}>대화방 이름 바꾸기</button> : null}
-          {!r.with && r.id !== MEET && r.designated && !r.temp ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setCrew(true); }}>멤버 넣고 빼기<small>{r.members?.length || ""}</small></button> : null}   {/* 지정방 = roomset(형만) · 임시방 = 수정 창(멤버 칸) · 회의실 = 아래 「잠시 내보내기」 · 1:1 = 없음 */}
-          {asks.data ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setHist(true); }}>대화방 질문 이력<small>{asks.data.length}</small></button> : null}
-          <button type="button" role="menuitem" onClick={() => { setOpen(false); setFiles(true); }}>파일 기록</button>
-          {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={() => { setOpen(false); setKick(true); }}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」 · 11:57 「우상단 메뉴 버튼에서 잠시 내보내기」) */}
-          {bell.data ? <button type="button" role="menuitemcheckbox" aria-checked={!!bell.data.on} onClick={() => void setBell(!bell.data?.on)}>5마디 알림<small>{bell.data.on ? "켬" : "멈춤"}</small></button> : null}   {/* 마디 연장 알림(형 11-01 13:5x · 시아 13:54 D) · 이름 = 형 11-02 23:21 「그리고 톡방 6마디 알림 5마디 알림으로 변경해줘. 그리고 대화방 종이 그걸 의미하면 용어 통일해줘.」(셈 6 → 5 는 서버 bell6) */}
-          {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} onClick={() => void setNotify(!nOn)}>대화방 알림<small>{nOn ? "켬" : "끔"}</small></button> : null}
-          <button type="button" role="menuitemcheckbox" aria-checked={unfold} onClick={() => setUnfold(room, !unfold)}>긴 글 다 펼쳐 보기<small>{unfold ? "켬" : "끔"}</small></button>   {/* 켬 = 17줄 접기 풂(./unfold.ts · 형 11-04 08:08 · 기본 끔 = 접힘) */}
-        </div>
-      ) : null}
-      {err ? <div role="alert" className="nm-room-menu-list" style={{ right: right + 4, top: (b ? b.bottom : 44) + 4 }} onClick={() => setErr("")}>{err}</div> : null}
+      {!r.with && r.id !== MEET && r.designated && !r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>멤버 넣고 빼기<small>{r.members?.length || ""}</small></button> : null}
+      {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={go(() => setKick(true))}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」) */}
+    </>
+  ) : null;
+  const items = r ? (
+    <>
+      {r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>방 설정<small>이름 · 목적 · 기한</small></button> : null}
+      {!r.with ? <button type="button" role="menuitem" onClick={go(() => setLook(true))}>방 꾸미기<small>아이콘 · 색</small></button> : null}   {/* 단톡방·회의실 다(형 11-06 20:00 · 20:33 「회의실도 가능해야해.」 · 20:37 「방 아이콘 변경 저것도 저기에」) */}
+      {!r.with ? <button type="button" role="menuitem" onClick={go(() => setTinting(r))}><span className="flex items-center gap-2"><RainbowOrb />표지 색</span></button> : null}
+      {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={go(() => setNaming(r))}>이름 바꾸기</button> : null}
+      {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} onClick={() => void setNotify(!nOn)}>대화방 알림<small>{nOn ? "켬" : "끔"}</small></button> : null}
+      {bell.data ? <button type="button" role="menuitemcheckbox" aria-checked={!!bell.data.on} onClick={() => void setBell(!bell.data?.on)}>5마디 알림<small>{bell.data.on ? "켬" : "멈춤"}</small></button> : null}   {/* 이름 = 형 11-02 23:21 「5마디 알림으로 변경해줘」(셈은 서버 bell6) */}
+      <button type="button" role="menuitem" onClick={go(() => setFiles(true))}>파일 기록</button>
+      {asks.data ? <button type="button" role="menuitem" onClick={go(() => setHist(true))}>질문 이력<small>{asks.data.length}</small></button> : null}
+      <button type="button" role="menuitemcheckbox" aria-checked={unfold} onClick={() => setUnfold(room, !unfold)}>긴 글 다 펼쳐 보기<small>{unfold ? "켬" : "끔"}</small></button>   {/* 켬 = 17줄 접기 풂(./unfold.ts · 형 11-04 08:08 · 기본 끔 = 접힘) */}
+    </>
+  ) : null;
+  const dialogs = (
+    <>
       {tinting ? <RoomColorPick room={tinting} onPeek={() => {}} onClose={() => setTinting(null)} /> : null}
       {naming ? <RoomNamePick room={naming} onClose={() => setNaming(null)} /> : null}
       {files && r ? <FileLog room={room} name={r.name} onClose={() => setFiles(false)} /> : null}
@@ -71,6 +69,8 @@ export function RoomHeadMenu({ room, right }: { room: string; right: number }) {
       {crew && r ? (r.temp ? <TempRoomDialog edit={r} onClose={() => setCrew(false)} /> : <RoomMembersDialog r={r} onClose={() => setCrew(false)} />) : null}
     </>
   );
+  const hasCrew = !!r && ((!r.with && r.id !== MEET && !!r.designated && !r.temp) || (r.id === MEET && (r.members?.length || 0) > 0));
+  return { crew: hasCrew ? crewItems : null, items, dialogs, err };
 }
 
 const MEET = "all";   // 회의실 방 id
