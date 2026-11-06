@@ -31,7 +31,7 @@ const rord = (n: string) => (/^nomute-office/.test(n) ? 1 : 0) * 1e6 + rnum(n);
 //   = 몸마다 게이지 아래 · 러너 불 위 · 그 몸에 사는 우리 = 각자 고른 bloub(./bloub.tsx · 봄 꽃 · 윈터 눈 결정 · 시아·뎅 조약돌 · 빠르 구름 · 누리 감자 · 뜸 쌀알) · 깬 애 = 제 색 · 상주(누리) = 제 색 · 잠 = 회색 몸
 //   깸 셈 = 작동 표 「각 봇 연결」 줄 「깸 상태」 칸(깸 · 잠 · 상주 돎) · 몸 = 우리.md(윈A VM 넷 + 윈터 · 윈B 뜸 · 맥 봄)
 const BEINGS: Record<string, { key: string; who: string }[]> = {
-  윈A: [{ key: "winter", who: "윈터" }, { key: "sia", who: "시아" }, { key: "deng", who: "뎅" }, { key: "fast", who: "빠르" }, { key: "neo", who: "누리" }],
+  윈A: [{ key: "winter", who: "윈터" }, { key: "sia", who: "시아" }, { key: "deng", who: "뎅" }, { key: "fast", who: "빠르" }, { key: "neo", who: "누리" }, { key: "lightning", who: "번개" }],   // 번개 = 윈A VM light(윈터 11-06 16:01 · 형 15:54 「번개왕 클로드로 이식됬습니다」)
   윈B: [],   // 뜸 이사(형 11-06 15:54 「윈비, 저녁에는 못켜서 지금 맥에 봄언니랑 뜸 동거생활 시작했습니다」) = 윈B 칸은 러너만
   맥: [{ key: "bom", who: "봄" }, { key: "eyes", who: "뜸" }],
 };
