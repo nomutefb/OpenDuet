@@ -215,3 +215,6 @@ body.nm-dragging iframe { pointer-events:none; }
 @media (prefers-reduced-motion:reduce) { .nm-split-root .nm-face.on::before { animation:none; } }
 /* 단톡방 그림 = 바탕 투명 · 옅은 테 · 픽토그램 선만(./room-glyph.tsx · 형 11-06 20:15) */
 .nm-rglyph { position:relative; display:grid; place-items:center; flex:none; border-radius:50%; background:transparent; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12); }
+/* 윗줄 가운데 페이지 이름과 겹치던 방 검색·방 메뉴(·밥상 이야기) 단추 = 반갈에선 윗줄 아래 대화 칸 머리 줄(56)로 내림(형 11-06 20:22 「이거 버튼은 아직남았음.」) */
+.nm-split-root .nm-find, .nm-split-root .nm-room-menu, .nm-split-root .nm-story { top:56px !important; }
+.nm-split-root .nm-find.open { top:58px !important; }
