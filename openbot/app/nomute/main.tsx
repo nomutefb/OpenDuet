@@ -73,7 +73,10 @@ function autoReload(btn: HTMLButtonElement) {
   const safe = () => writes === 0 && !composing && Date.now() - lastKey > 3000
     && !document.querySelector('ul[aria-label="Attachments"] li')   // 붙여 둔 파일
     && !document.querySelector('[role="dialog"]');                   // 열린 창
-  const tick = () => { if (safe()) { location.reload(); return; } setTimeout(tick, 1000); };
+  // 되풀이 막기 = 저절로 다시 읽기는 2분에 한 번(배포가 퍼지는 틈에 version.json 만 먼저 새 판이면 계속 다시 읽을 수 있음 · 9222 시험 11-06 13:2x) · 막히면 알약 그대로(누르면 읽음)
+  let last = 0; try { last = +(sessionStorage.getItem("nm-auto-reload") || 0); } catch { /* 이번만 */ }
+  if (Date.now() - last < 120_000) { btn.textContent = "새 버전이 있어요"; return; }
+  const tick = () => { if (safe()) { try { sessionStorage.setItem("nm-auto-reload", String(Date.now())); } catch { /* 이번만 */ } location.reload(); return; } setTimeout(tick, 1000); };
   setTimeout(tick, 1500);
 }
 
