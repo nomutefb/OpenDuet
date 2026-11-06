@@ -73,7 +73,7 @@ const OUTLET: Record<string, string> = {
   kbs: "KBS", mbc: "MBC", imbc: "MBC", sbs: "SBS", jtbc: "JTBC", ytn: "YTN", mbn: "MBN",
   // 포털
   naver: "네이버", "news.naver": "네이버뉴스", "cafe.naver": "네이버카페", "blog.naver": "네이버블로그", daum: "다음", "v.daum": "다음", nate: "네이트", "pann.nate": "네이트판", natepann: "네이트판",
-  gnews: "구글뉴스", "news.google": "구글뉴스", google: "구글", gtrends: "구글 트렌드", x_top10: "X",
+  gnews: "구글뉴스", "news.google": "구글뉴스", google: "구글", gtrends: "구글 트렌드", x_top10: "X", issuelink: "이슈링크",
   // 커뮤니티
   theqoo: "더쿠", dcinside: "디시인사이드", "gall.dcinside": "디시인사이드", fmkorea: "에펨코리아", instiz: "인스티즈", clien: "클리앙", ruliweb: "루리웹", ppomppu: "뽐뿌",
   mlbpark: "엠엘비파크", bobaedream: "보배드림", todayhumor: "오늘의유머", etoland: "이토랜드", inven: "인벤", ygosu: "와이고수", humoruniv: "웃긴대학", "82cook": "82쿡",
