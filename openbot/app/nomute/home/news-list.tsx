@@ -34,6 +34,9 @@ const pinsOf = (list: unknown[], now = Date.now()) => {
   const byNew = (a: Pick, b: Pick) => (Date.parse(b.at || "") || 0) - (Date.parse(a.at || "") || 0);
   return [...take("촉", PIN_CHOK, byRank), ...take("틈", PIN_TEUM, byNew)];
 };
+// 위 고정 칸에 뜬 기사 = 아래 순위표에서 뺌(형 11-06 11:35 「뉴스가 겹치면안되고, 위에 픽으로 나온거 좋아. 나오면, 아래에는 위에거는 논외로 순위를 빼줘.」) · 같은 기사 = 주소(쿼리·끝 / 뗌) 하나라도 같거나 다듬은 제목이 같음
+const normUrl = (u?: string) => String(u || "").trim().replace(/^https?:\/\/(?:www\.|m\.)?/i, "").replace(/[?#].*$/, "").replace(/\/+$/, "").toLowerCase();
+const normTitle = (t?: string) => String(t || "").replace(/\s+/g, "").replace(/[\[\]「」『』"'‘’“”…·.,!?]/g, "").toLowerCase();
 const hostOf = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^(?:www|m|n|core)\./, "") : ""; } catch { return ""; } };
 
 const ago = (at?: string) => {
@@ -70,7 +73,11 @@ export function NewsList() {
       const { rows: r, lookup } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
       if (!live) return;
       const now = Date.now();
-      setPins(pinsOf(picks, now));
+      const pinned = pinsOf(picks, now);
+      setPins(pinned);
+      const pinUrls = new Set(pinned.flatMap((p) => [...(p.urls || []), p.url || ""]).map(normUrl).filter(Boolean));
+      const pinTitles = new Set(pinned.flatMap((p) => [p.title_clean || "", cleanTitle(p.title) || "", p.title || ""]).map(normTitle).filter(Boolean));
+      const inPins = (x: Row) => [...(x.urls || []), x.meta?.published?.sourceUrl || "", ...(x.items || []).map((it) => it.url || "")].some((u) => { const k = normUrl(u); return !!k && pinUrls.has(k); }) || (!!x.title && pinTitles.has(normTitle(x.title)));
       const lk = lookup as Map<string, { published?: string; first_seen?: string; media?: string }> | undefined;
       // 묶음(overlap) 줄 = 기사 메타가 없음 → 그 묶음의 가장 새 신호 시각(signals.newest)으로(형 11-05 16:30 「4위도 싹다. 몇분전인지 몇시간전인지」)
       const gen = (overlap as { generated?: string } | null)?.generated || undefined;
@@ -82,7 +89,7 @@ export function NewsList() {
       const inner = (n: string) => (/^(?:candidates|social_candidates)$/i.test(n) ? "" : n);   // 수집 칸 이름(SOCIAL_CANDIDATES 등) = 매체 아님 → 다음 후보로(시아 짚음)
       const host = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^www\./, "") : ""; } catch { return ""; } };
       // 출처 · 시각 = 모든 줄(형 11-05 16:30 「뉴스는 점수 좌측에 출처에 대한 내용이 있어야되고, 몇시간전인지 나와야됨. 4위도 싹다.」) — 메타 없으면 묶음 첫 기사 출처 · 후보 장부(lookup) 발행/처음 본 때
-      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
+      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
       setRows(list);
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };
