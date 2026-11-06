@@ -16,6 +16,7 @@ import { RoomGoneDialog, RoomMembersDialog, TempDeleteDialog, TempRoomDialog, Te
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
 import { TeamsList, TeamsSwitch, useTeamsMode } from "./teams";
+import { RoomGlyph } from "./room-glyph";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
 import { GoButton } from "./go-button";
 import { type NotifyState, notifyImage, notifyOn, notifyState } from "../data/notify";
@@ -89,6 +90,7 @@ export function useRoomOrder() {
 function RoomIcon({ r, size, color }: { r: Room; size: number; color?: string }) {
   const [noPic, setNoPic] = useState(false);
   const emo = /\p{Extended_Pictographic}/u.exec(r.name)?.[0], ch = emo || [...r.name.replace(/\s+/g, "")][0] || "#";
+  if (!r.with && (noPic || r.look?.icon)) return <RoomGlyph id={r.id} look={r.look} size={size} />;   // 단톡방 = 픽토그램 선만(형 11-06 20:15 · 그림 올린 방은 그림 · 형이 아이콘 고르면 아이콘)
   return (
     <span className="nm-ricon" style={{ width: size, height: size, ...(color ? { background: color } : {}) } as CSSProperties} aria-hidden>
       {noPic ? <span className={emo ? "emo" : "ch"} style={{ fontSize: Math.round(size * (emo ? 0.56 : 0.44)) }}>{ch}</span>

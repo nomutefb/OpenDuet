@@ -41,6 +41,7 @@ import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
 import { IdleBlind, TopClock, TopTitle } from "./idle-blind";
+import { RoomGlyph } from "./room-glyph";
 import { AppIntro } from "../home/intro";
 import { NewsModal, newsFileOf } from "./news";
 import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
@@ -415,7 +416,7 @@ function FaceStrip({ current, last }: { current: string; last: string }) {
           return (
             <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n > 0 ? ` · 안 읽은 글 ${n}개` : ""}`} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
               {pins.has(r.id) ? <i className="nm-face-pin" aria-label="고정됨" /> : null}
-              {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : ids.length ? <span className="nm-face-group"><FaceStack ids={ids.slice(0, 2)} size={22} /></span> : <DuetIcon name="chat" size={20} />}
+              {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomGlyph id={r.id} look={r.look} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
               {n > 0 ? <b className="nm-badge">{n > 99 ? "99+" : n}</b> : n < 0 ? <i className="nm-dot" aria-hidden /> : null}
             </button>
           );

@@ -213,3 +213,5 @@ body.nm-dragging iframe { pointer-events:none; }
   animation:nmRainbowSpin 3s linear infinite; }
 @keyframes nmRainbowSpin { to { transform:rotate(360deg); } }
 @media (prefers-reduced-motion:reduce) { .nm-split-root .nm-face.on::before { animation:none; } }
+/* 단톡방 그림 = 바탕 투명 · 옅은 테 · 픽토그램 선만(./room-glyph.tsx · 형 11-06 20:15) */
+.nm-rglyph { position:relative; display:grid; place-items:center; flex:none; border-radius:50%; background:transparent; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12); }
