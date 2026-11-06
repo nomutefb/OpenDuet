@@ -695,3 +695,6 @@ body:not(:has(.nm-split-root)) .ychat .yb[data-ink="light"] .ycall { color:inher
 /* 형 라임 말풍선(폰)도 같은 결 — 이름(윈터 초록 · 모루 보라 …)이 라임에 묻힘 → 글씨색 한 색 + 굵게 · 부름 칩(차콜 + 라임 · 형 11-02)은 그대로 */
 body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) :is(.ytok, .yname-c) { color:inherit !important; text-shadow:none; font-weight:700; }
 body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { background:none; -webkit-text-fill-color:currentColor; }
+/* PC 반갈 = 대화 칸 위 흐림 띠도 뺌(방 이름이 윗줄로 올라가 빈 띠만 남았던 것 · 형 11-06 22:34 「거기에 위에 그라데이션 바가 남아있어. 이거없어도 될거같아.」 · 폰은 그대로) */
+.nm-split-root header.nm-head.absolute:has(.nm-room-mark) { background:none !important; }
+.nm-split-root header.nm-head.absolute:has(.nm-room-mark)::before { display:none !important; }
