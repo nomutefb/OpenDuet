@@ -36,13 +36,14 @@ export function IdleBlind() {
     if (!shut) return undefined;
     setClock(hhmm());
     const t = setInterval(() => setClock(hhmm()), 10_000);
-    const open = (e: Event) => { if (e instanceof KeyboardEvent && e.altKey && e.code === "KeyL") return; setShut(false); };
-    const arm = setTimeout(() => { window.addEventListener("keydown", open, true); window.addEventListener("pointerdown", open, true); }, 400);   // 가린 그 키·누름으로 바로 안 걷히게
-    return () => { clearInterval(t); clearTimeout(arm); window.removeEventListener("keydown", open, true); window.removeEventListener("pointerdown", open, true); };
+    // 걷기 = 키는 어디서나 · 누름은 가림 판 자체의 click 으로만(pointerdown 에서 걷으면 이어 오는 click 이 밑 단추에 닿음 · 뎅 18:4x 짚음)
+    const open = (e: KeyboardEvent) => { if (e.altKey && e.code === "KeyL") return; e.preventDefault(); e.stopPropagation(); setShut(false); };
+    const arm = setTimeout(() => window.addEventListener("keydown", open, true), 400);   // 가린 그 키로 바로 안 걷히게
+    return () => { clearInterval(t); clearTimeout(arm); window.removeEventListener("keydown", open, true); };
   }, [shut]);
   if (!shut) return null;
   return (
-    <div className="nm-blind" role="dialog" aria-modal="true" aria-label="화면 가림">
+    <div className="nm-blind" role="dialog" aria-modal="true" aria-label="화면 가림" onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShut(false); }}>
       <div className="nm-blind-c"><big>{clock}</big><span>쉬는 중 · 아무 키나 누르면 열려</span></div>
     </div>
   );
