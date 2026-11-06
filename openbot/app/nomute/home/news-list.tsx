@@ -28,7 +28,15 @@ const pickWho = (p: Pick) => { const b = String(p?.by || "").trim(); return PICK
 const pickKey = (p: Pick) => String((p.urls || [])[0] || p.url || p.title || "").trim();
 const pinsOf = (list: unknown[], now = Date.now()) => {
   const fresh = (p: Pick) => { const t = Date.parse(p.at || ""); return !Number.isFinite(t) || now - t <= PICK_WINDOW; };
-  const ps = (list as Pick[]).filter((p) => p && (p.title || p.title_clean) && fresh(p));
+  // 같은 봇 · 같은 제목 = 한 줄로 합침(틈 장부 줄 = 네이버 링크 하나 · 판 줄 = 주요 매체 앞에 꽂힌 링크 여럿 · 봄 #2675) → 링크 많은 줄이 대표 · 시각은 있는 쪽 · 점수는 큰 쪽(형 11-06 16:41 「관련된 뉴스를 메인으로」)
+  const merged = new Map<string, Pick>();
+  for (const p of (list as Pick[]).filter((p) => p && (p.title || p.title_clean))) {
+    const k = pickWho(p) + "|" + normTitle(p.title_clean || p.title), o = merged.get(k);
+    if (!o) { merged.set(k, p); continue; }
+    const base = (p.urls?.length || 0) > (o.urls?.length || 0) ? p : o, other = base === p ? o : p;
+    merged.set(k, { ...base, at: base.at || other.at, score: Math.max(base.score ?? -1, other.score ?? -1) >= 0 ? Math.max(base.score ?? -1, other.score ?? -1) : base.score, rank: base.rank ?? other.rank });
+  }
+  const ps = [...merged.values()].filter(fresh);
   const seen = new Set<string>(), take = (who: string, n: number, sort: (a: Pick, b: Pick) => number) => ps.filter((p) => pickWho(p) === who).sort(sort).filter((p) => { const k = pickKey(p); if (!k || seen.has(k)) return false; seen.add(k); return true; }).slice(0, n);
   const byRank = (a: Pick, b: Pick) => (a.rank ?? 99) - (b.rank ?? 99) || (b.score ?? 0) - (a.score ?? 0);
   const byNew = (a: Pick, b: Pick) => (Date.parse(b.at || "") || 0) - (Date.parse(a.at || "") || 0);
