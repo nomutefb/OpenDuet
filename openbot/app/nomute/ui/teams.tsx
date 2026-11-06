@@ -38,12 +38,15 @@ function usePresence(ids: string[]) {
   return useQuery({ queryKey: ["nomute", "teams", "presence", key.join(",")], queryFn: () => office<{ presence?: Record<string, string> }>(`teams/presence?ids=${key.join(",")}`).then((j) => j.presence || {}),
     enabled: key.length > 0, refetchInterval: () => (document.hidden ? false : 60_000), staleTime: 30_000, retry: false }).data || {};
 }
-function TFace({ id, name, state, small }: { id?: string; name?: string; state?: string; small?: boolean }) {
+/* 얼굴 없는 사람 = 기본 프로필(사람 꼴) · 모임 대화 = 여럿 꼴(형 11-06 번개 창 「얼굴 없는사람들 은 그냥 기본 프로필로 넣어줄수있어? 단체는 단체 픽토그램 느낌이랄까.」) — 이름 첫 글자 동그라미를 갈음 */
+const ICO_ONE = <svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="9" r="4" /><path d="M4 20.5c0-4.4 3.6-7 8-7s8 2.6 8 7z" /></svg>;
+const ICO_MANY = <svg viewBox="0 0 24 24" aria-hidden><circle cx="9" cy="9.2" r="3.3" /><path d="M2.4 20c0-3.8 2.9-6 6.6-6s6.6 2.2 6.6 6z" /><circle cx="17" cy="8.4" r="2.6" /><path d="M16.9 13c3 0 5.2 1.7 5.2 4.6v1.2h-4.7c-.2-2.2-1.3-3.9-3-4.9.8-.6 1.6-.9 2.5-.9z" /></svg>;
+function TFace({ id, name, state, small, group }: { id?: string; name?: string; state?: string; small?: boolean; group?: boolean }) {
   const [bad, setBad] = useState(false);
   const dot = state ? DOT[state] : undefined;
   return (
-    <i className={`nm-tava${small ? " sm" : ""}`} aria-hidden>
-      {id && !bad ? <img alt="" loading="lazy" src={`/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onError={() => setBad(true)} /> : [...(name || "?")][0] || "?"}
+    <i className={`nm-tava${small ? " sm" : ""}`} title={name || undefined} aria-hidden>
+      {id && !bad ? <img alt="" loading="lazy" src={`/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onError={() => setBad(true)} /> : group ? ICO_MANY : ICO_ONE}
       {dot ? <span className={`nm-tdot ${dot}`} /> : null}
     </i>
   );
@@ -123,7 +126,7 @@ export function TeamsList({ current }: { current?: string }) {
               {chats.data.map((c) => (
                 <li key={c.id}>
                   <button type="button" className={current === TEAMS_PREFIX + c.id ? "on" : undefined} onClick={() => void nav({ to: href(c.id) })}>
-                    <TFace id={other(c, me?.user)?.id} name={chatName(c, me?.user?.name)} state={pres[other(c, me?.user)?.id || ""]} />
+                    <TFace group={c.type !== "oneOnOne"} id={other(c, me?.user)?.id} name={chatName(c, me?.user?.name)} state={pres[other(c, me?.user)?.id || ""]} />
                     <span className="min-w-0 flex-1"><b className="block truncate">{chatName(c, me?.user?.name)}</b><small className="block truncate">{c.last?.from ? `${c.last.from} · ` : ""}{c.last?.text || ""}</small></span>
                     <em>{ago(c.last?.at)}</em>
                   </button>
