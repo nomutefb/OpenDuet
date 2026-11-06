@@ -698,3 +698,6 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 /* PC 반갈 = 대화 칸 위 흐림 띠도 뺌(방 이름이 윗줄로 올라가 빈 띠만 남았던 것 · 형 11-06 22:34 「거기에 위에 그라데이션 바가 남아있어. 이거없어도 될거같아.」 · 폰은 그대로) */
 .nm-split-root header.nm-head.absolute:has(.nm-room-mark) { background:none !important; }
 .nm-split-root header.nm-head.absolute:has(.nm-room-mark)::before { display:none !important; }
+/* 내보내기 = × 글자 대신 문 + 화살표 그림(형 11-06 22:38) — 동그라미 자리 그대로 · 그림 가운데 */
+.nm-top-kick { display:inline-grid; place-items:center; }
+.nm-top-kick svg { display:block; }

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
+import { DuetIcon } from "@/components/duet/icons";
 import { FaceImg } from "./faces";
 import { RoomRoutineSheet, routineLabel, routineRoom, useRoomTimers } from "./room-routine";
 import { useRoomMenu } from "./room-menu";
@@ -67,8 +68,8 @@ export function NomuteName({ room }: { room?: string } = {}) {
       {open ? (
         <span className="nm-top-crew nm-yeta">
           {crewSec ? <span className="nm-top-sec">사람</span> : null}
-          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className="nm-top-kick" aria-label={`${x.name || x.who} 내보내기`} title="내보내기" disabled={busy} onClick={() => void saveMembers((r.members || []).filter((w) => w !== x.who))}>×</button> : null}</span>; })}
-          {edit ? (   /* 초대 = 그 자리에서 명단이 부드럽게 펼쳐짐 · 방에 없는 이만 · 체크해서 한 번에(형 11-06 20:37~20:38) · 내보내기 = 사람 오른쪽 ×(형 「이미 방에 있는사람 우측에 픽토그램으로」) */
+          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className="nm-top-one"><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className="nm-top-kick" aria-label={`${x.name || x.who} 내보내기`} title="내보내기" disabled={busy} onClick={() => void saveMembers((r.members || []).filter((w) => w !== x.who))}><DuetIcon name="logout" size={15} /></button> : null}</span>; })}
+          {edit ? (   /* 초대 = 그 자리에서 명단이 부드럽게 펼쳐짐 · 방에 없는 이만 · 체크해서 한 번에(형 11-06 20:37~20:38) · 내보내기 = 사람 오른쪽 문 + 화살표 픽토그램(형 「이미 방에 있는사람 우측에 픽토그램으로」 · 22:38 「그 문 내보내기 픽토그램 그거로해야지 x는 의미가 안어울려」) */
             <>
               <button type="button" className="nm-top-inv" aria-expanded={inv} onClick={() => setInv((v) => !v)}>{inv ? "접기" : "+ 초대"}</button>
               <span className={`nm-top-invlist${inv ? " on" : ""}`}>
