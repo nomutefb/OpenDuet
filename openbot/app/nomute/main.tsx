@@ -3,6 +3,7 @@ import "./shim/install";
 import "@/main";
 import { startSync } from "./data/sync";
 import "./ui/update-bar.css";
+import { markLive, verBadge } from "./ui/ver-badge";
 
 startSync();
 
@@ -11,6 +12,7 @@ startSync();
    · 이 판 번호 = 빌드 때 박은 __NM_BUILD__ · 지금 올라간 판 = /office-app/version.json(캐시 0) · 묻는 때 = 1분마다(보일 때) · 앞으로 올 때 · 서비스 워커가 새 판을 알릴 때
    · 다르면 위에 「새 버전이 있어요」 알약 하나(형 11-02 08:2x · 「새로고침」 글자 뺌) → 누르면 보내는 중인 글(쓰기 요청)이 다 끝난 뒤 다시 읽음 · 글칸에 글이 있으면 한 번 더 눌러야(쓰던 글은 이 탭에 저장돼 다시 열어도 남음) */
 declare const __NM_BUILD__: string;
+declare const __NM_SHA__: string;
 const BUILD = __NM_BUILD__;
 
 /** 쓰던 글이 있나 = 글칸에 글자가 있음 */
@@ -62,7 +64,8 @@ async function checkBuild() {
   try {
     const r = await fetch(`/office-app/version.json?t=${Date.now()}`, { cache: "no-store", credentials: "same-origin" });
     if (!r.ok) return;
-    const j = (await r.json()) as { build?: string };
+    const j = (await r.json()) as { build?: string; sha?: string };
+    markLive(j);   // 우상단 판 번호 = 다르면 라임(형 11-06 13:07 「버전 번호가 항상 우상단에 뜨게해야겟다」)
     if (j.build && j.build !== BUILD) showUpdate();
   } catch { /* 끊김 = 다음 차례 */ }
 }
@@ -81,6 +84,8 @@ window.addEventListener("vite:preloadError", (e) => {
 });
 
 (window as unknown as { __nmBuild: string }).__nmBuild = BUILD;   // 지금 이 화면 판(확인용)
+verBadge(BUILD, __NM_SHA__, () => { showUpdate(); (bar as HTMLButtonElement | null)?.click(); });   // 우상단 판 번호 · 라임일 때 누르면 알약과 같은 길
+void checkBuild();   // 열자마자 한 번 맞춰 봄(판 번호가 바로 라임/흐림)
 setInterval(() => void checkBuild(), 60_000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) void checkBuild(); });
 window.addEventListener("focus", () => void checkBuild());

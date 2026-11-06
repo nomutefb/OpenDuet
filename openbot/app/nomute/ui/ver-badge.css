@@ -1,0 +1,6 @@
+/* 우상단 판 번호(./ver-badge.ts · 형 11-06 13:07) — 평소 = 흐린 작은 글자(위 메뉴 아이콘 위 빈 줄) · 판이 다르면 = 라임 · 누르면 새 판 */
+.nm-ver { all:unset; position:fixed; top:calc(2px + env(safe-area-inset-top)); right:10px; z-index:95; padding:2px 6px; border-radius:5px;
+  font:600 9.5px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing:.02em; color:rgba(232,234,232,.36); cursor:default; white-space:nowrap; user-select:text; }
+.nm-ver.stale { color:#CFFF40; background:rgba(207,255,64,.12); box-shadow:0 0 0 1px rgba(207,255,64,.35); cursor:pointer; animation:nmVerPulse 1.6s ease-in-out infinite; }
+@keyframes nmVerPulse { 50% { box-shadow:0 0 0 1px rgba(207,255,64,.7), 0 0 10px rgba(207,255,64,.35); } }
+@media (prefers-reduced-motion:reduce) { .nm-ver.stale { animation:none; } }
