@@ -172,3 +172,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-face.live.on, .nm-split-root .nm-face.live.on { box-shadow:0 0 0 2px rgba(232,234,232,.55), 0 0 6px rgba(207,255,64,.35); }
 /* 반갈 = 내 사진 밑 글(.ycap)·보내는 중 글도 평소 내 말풍선 꼴(검정 · 라임 글자)(형 11-06 12:49 「내가 이미지 첨부하면서 글자 쓰면 형광색으로 보여」) */
 .nm-split-root .ychat .yb.me.ph .ycap, .nm-split-root .nac-text { background:#1e2023 !important; color:var(--accent, #CFFF40) !important; border:1px solid rgba(255,255,255,.07); }
+/* 반갈 = 내 말풍선이 검정이라 이름 색도 어두운 판 색으로(형 11-06 17:22 「우리 애들 내가 부를때 이름 아직, 빨갛게 나오거든? … 첨부2의 이색으로」 = 봇 말풍선 속 이름 주황 #FFAA4D) */
+.nm-split-root .ychat .yb.me:not(.app) .yname-c.cl:not(.w) { color:#FFAA4D; }
+.nm-split-root .ychat .yb.me:not(.app) .yname-c.gp { color:#C9A7FF; }
+.nm-split-root .ychat .yb.me:not(.app) .yname-c.hy { color:#0FFD02; }
