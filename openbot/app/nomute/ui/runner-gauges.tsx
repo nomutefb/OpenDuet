@@ -15,7 +15,8 @@ type Row = { key: string; st?: string; stale?: boolean; reported_at?: number; me
 type Cat = { id: string; rows: Row[] };
 type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp?: number };
 
-const HOSTS: { k: string; pc: string; label: string }[] = [{ k: "윈A", pc: "A", label: "WIN A" }, { k: "윈B", pc: "B", label: "WIN B" }, { k: "맥", pc: "M", label: "MAC" }];
+// 차례 = 윈A · 맥(가운데) · 윈B(오른쪽 · 켜질 때만 쓰는 서브)(형 11-06 15:56 「대시보드에 윈b 말고 이제 맥이 들어가야되고, 윈b는 완전 서브야(켜질때만 어쩔때 사용) mac이 가운데로 오게해줘 윈b는 우측으로」)
+const HOSTS: { k: string; pc: string; label: string }[] = [{ k: "윈A", pc: "A", label: "WIN A" }, { k: "맥", pc: "M", label: "MAC" }, { k: "윈B", pc: "B", label: "WIN B" }];
 // 색(형 17:3x 「노란색, 주황색, 빨간색 그거는 그대로 유지할게, 평상시에는 흰색이면됨」) = 평소 흰 · 70/80/90 = 노랑·주황·빨강(위젯 단계 그대로) · 온도 80 주황 · 85 빨강
 const WARN: Record<Level, string> = { green: "#E6E6E6", yellow: "#FFD23F", orange: "#FF9F43", red: "#FF5A5F", off: "#5C5C5C" };
 const MONO = (lv: Level) => WARN[lv];
