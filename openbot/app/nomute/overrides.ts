@@ -97,7 +97,7 @@ export const PATCH: Record<string, [string, string][]> = {
   // 「+」 = 카메라 말고 파일·갤러리(형 10-31) · 그림 꼴만 적힌 accept 는 폰 브라우저가 카메라·갤러리 고르기로 받음 · 거름은 screenPickedFiles 가 이미 함(빠르 판)
   // 영상 = 사무실 첨부로 받음(시아 11-02 형 02:32 「여가에 영상도 올릴 수 있게 해줘」) · 원본 거름은 영상을 「못 붙이는 꼴」로 막음 → 영상만 통과 · 영상 상한 4GB(봄 #2101 조각 받는 문 · 영상은 R2) 넘으면 여기서 먼저 막음
   "app/src/components/channels/composer/picked-files.ts": [
-    ['    if (kind === "unsupported" && !unnamed) {', '    const video = mediaType.startsWith("video/");\n    if (video && file.size > 4 * 1024 * 1024 * 1024) {\n      rejected.push(reject(file, "4GB까지 업로드 가능합니다."));\n      continue;\n    }\n    if (kind === "unsupported" && !unnamed && !video) {'],
+    ['    if (kind === "unsupported" && !unnamed) {', '    const video = mediaType.startsWith("video/");\n    if (video && file.size > 4 * 1024 * 1024 * 1024) {\n      rejected.push(reject(file, "4GB까지 업로드 가능합니다."));\n      continue;\n    }\n    if (kind === "unsupported" && !unnamed && !video && file.size > 20 * 1024 * 1024) {\n      rejected.push(reject(file, "20MB까지 업로드 가능합니다."));\n      continue;\n    }\n    if (false) {'],   // PDF·문서·압축·실행 파일 = 그대로 붙임(20MB · 서버 첨부 문턱 · 확장자 안 가림)(형 11-06 11:49 「그리고 pdf첨부가 안되서 굉장히 불편한데」 · 원본은 「못 붙이는 꼴」로 거름)
     ['    if (kind === "image" && file.size > MAX_IMAGE_BYTES) {', '    if (kind === "image" && file.size > 20 * 1024 * 1024) {'],   // 사진 고르는 문턱 = 서버 첨부 20MB(사진은 원본 + 작은 판 · data/attachment-state.ts smallImage)
     ["          `'${file.name}' is too large for an image. The limit is ${formatBytes(MAX_IMAGE_BYTES)}.`,", '          "20MB까지 업로드 가능합니다.",'],
     ["          `'${file.name}' is too large for a text file. The limit is ${formatBytes(MAX_FILE_BYTES)}.`,", "          `${formatBytes(MAX_FILE_BYTES)}까지 업로드 가능합니다.`,"],
