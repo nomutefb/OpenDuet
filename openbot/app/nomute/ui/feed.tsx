@@ -11,7 +11,7 @@ import "./feed.css";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
-import { type Art, biasOf, catOf, editorPath, getJson, inAppClick, newsListQuery, progOf, sensOf, thumbOf, useGo } from "./news-data";
+import { type Art, biasOf, catOf, editorPath, getJson, inAppClick, newsListQuery, outletName, progOf, sensOf, thumbOf, useGo } from "./news-data";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
 
@@ -50,7 +50,8 @@ const ago = (t?: number) => { if (!t) return ""; const m = Math.max(0, Math.roun
 const isBrk = (a: FArt) => !!a.breaking && (a.grade == null || a.grade >= 2 || (a.grade >= 1 && (a.lvt || 0) >= 3));
 const kindOf = (a: FArt) => { const brk = isBrk(a), p = pubAgeH(a), h = Math.max(inAgeH(a), p < 9e6 ? p : 0); return brk && h < 4 ? "brk" : h >= 4 && h < 24 && (a.issue || brk) ? "iss" : ""; };
 /** 매체 = 대표 하나(원본 primaryMedia · outletShort 7자) */
-const outlet = (m?: string) => { const s = (m || "").split("·")[0].trim().replace(/\s*등\s*$/, "").trim(); return s.length > 7 ? s.slice(0, 6) + "…" : s; };
+const outlet = (m?: string) => { const s = outletName((m || "").split("·")[0].trim().replace(/\s*등\s*$/, "").trim());   // 공식 이름(news-data outletName · 형 11-06)
+  return s.length > 7 ? s.slice(0, 6) + "…" : s; };
 
 /** 빌드 전 새 요약(원본 fetchFeedLive) — 못 받으면 빈 목록 = 정적만(원본도 같은 동작) */
 const feedLiveQuery = queryOptions({

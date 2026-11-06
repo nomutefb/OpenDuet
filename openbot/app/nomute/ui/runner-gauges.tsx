@@ -23,6 +23,8 @@ const tInk = (t?: number) => (t == null ? undefined : t >= 85 ? WARN.red : t >= 
 const RUNNERS: Record<string, (n: string) => boolean> = { 윈A: (n) => n.startsWith("nomute-win-"), 윈B: (n) => n.startsWith("nomute-b-") || n.startsWith("nomute-office"), 맥: (n) => n.startsWith("mac-") };
 const short = (n: string) => n.replace(/^nomute-win-/, "").replace(/^nomute-b-/, "B").replace(/^nomute-office-?/, "O").replace(/^mac-/, "M");
 const rnum = (n: string) => Number((n.match(/\d+$/) || ["0"])[0]);
+// 차례 = 몸 안 러너 먼저(b-) · 회사 PC(office) 뒤 · 그 안은 번호(형 11-06 「b1, b2 , 01 이 순서로 배치해주고」 · 번호는 그대로 「손은 나중에보자」)
+const rord = (n: string) => (/^nomute-office/.test(n) ? 1 : 0) * 1e6 + rnum(n);
 const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 90 ? "방금" : s < 5400 ? `${Math.round(s / 60)}분 전` : `${Math.round(s / 3600)}시간 전`; };
 
 /** 1분마다 지금 — 「N분 전」 글만 움직임. */
@@ -56,7 +58,7 @@ export function RunnerGauges() {
           const at = a && !a.stale ? a.reported_at || 0 : rd ? rd.at * 1000 : 0;
           const busy = rd && num(rd.busy) != null && rd.busy! >= 0 ? rd.busy : null, total = rd && num(rd.total) != null && rd.total! >= 0 ? rd.total : null;
           const temp = [m.cpu_temp != null ? `CPU ${Math.round(m.cpu_temp)}°` : "", m.gpu_temp != null ? `GPU ${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ");
-          const runners = Object.entries(rcells).filter(([n]) => RUNNERS[h.k]?.(n)).sort((x, y) => rnum(x[0]) - rnum(y[0]));
+          const runners = Object.entries(rcells).filter(([n]) => RUNNERS[h.k]?.(n)).sort((x, y) => rord(x[0]) - rord(y[0]));
           return (
             <section key={h.k} className="nm-rgx-host" aria-label={`${h.label} 상태`}>   {/* 위에서부터 가운데로 = 이름 · G 온도 · (틈) · 게이지 · 러너 불(형 17:3x 「각각 게이지 바로 수직 위에다가 하드웨어 이름」 · 「블릿은 없어도」 · 「그래픽카드 온도도 그대로 수직위로」 · 「게이지랑딱붙으면 안이쁘니까」) */}
               <b className="nm-rg-name nm-rgx-name">{h.label}</b>

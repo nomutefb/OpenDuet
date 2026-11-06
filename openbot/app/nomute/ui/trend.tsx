@@ -10,7 +10,7 @@ import "./chan.css";
 import "./trend.css";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { type ReactNode, type RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { useGo } from "./news-data";
+import { outletName, useGo } from "./news-data";   // 칩 글자 = 공식 매체명(형 11-06)
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
 
@@ -588,7 +588,7 @@ export function TrendModal() {
         <a key={socKey(r) + i} className="soc" href={r.url || undefined} target="_blank" rel="noopener">
           <span className="soc-top"><span className={`soc-burst${bt}`}><Svg s={FIRE} /> {b.toFixed(1)}</span><span className="soc-src"><Svg s={LINK} /> {r.source_count || 0}소스</span><span className="soc-posts">{r.posts > r.source_count ? `글 ${r.posts}` : ""}</span><span className="soc-age">{ago}</span>{st ? <span className="soc-pk" title={st.q ? "뉴스 요약 완료" : "뉴스 요약 대기열에 올라감 — 분석 중"}>{st.q ? "Pk-ed" : "Pk-ng"}</span> : null}</span>
           <span className="soc-title">{r.title || ""}</span>
-          <span className="soc-srcs">{(r.sources || []).map((s: string) => { const k0 = soc.lean[s] || (NAVER[s] ? "mid" : ""), nv = NAVER[s]; return <span key={s} className={`soc-chip${k0 ? " lean-" + k0 : ""}${nv ? " naver" + (nv[0] ? " ico" : "") : ""}`}>{nv ? <>{nv[1] ? <Svg s={nv[1]} /> : null}{nv[2]}</> : s}</span>; })}</span>
+          <span className="soc-srcs">{(r.sources || []).map((s: string) => { const k0 = soc.lean[s] || (NAVER[s] ? "mid" : ""), nv = NAVER[s]; return <span key={s} className={`soc-chip${k0 ? " lean-" + k0 : ""}${nv ? " naver" + (nv[0] ? " ico" : "") : ""}`}>{nv ? <>{nv[1] ? <Svg s={nv[1]} /> : null}{nv[2]}</> : outletName(s)}</span>; })}</span>
           {mid != null ? <span className="soc-gauge" role="img" aria-label={`출처성향 ${zone}`} title={`출처성향: ${zone} (커뮤 통념근사)`}><span className="soc-dot" style={{ left: `${(((mid - 1) / 8) * 100).toFixed(1)}%` }} /></span> : null}
         </a>
       );

@@ -58,12 +58,49 @@ export const imgOf = (t?: Thumb) => abs(t?.img || t?.url);
 /** 목록 썸네일 = AI 첫 장 · 없으면 검색 첫 장 */
 export const thumbOf = (a: Art) => { const c = a.cards || {}; return imgOf((c.thumb_gen || []).find((x) => imgOf(x))) || imgOf((c.thumb_search || []).find((x) => imgOf(x))); };
 
-/** 매체 = 첫 매체 + 「외 N」 */
-export const mediaOf = (m?: string) => { const xs = String(m || "").split(/[,·|/]/).map((s) => s.trim()).filter(Boolean); return xs.length ? xs[0].replace(/\s*\(.*?\)\s*/g, "").replace(/\s*등\s*$/, "") + (xs.length > 1 ? ` 외 ${xs.length - 1}` : "") : ""; };
+/** 공식 매체명(형 11-06 「yna 이런거 다 매체명으로 정확히 바꿔줘 더쿠, 연합뉴스. 뭐 이런식으로 공식 매체명 다 변환되게 구조상으로.」 · 「yna 는 연합일거고, asiae 이건 아시아경제 같고, 좀 더 다듬어줄수잇어? sns.youtube는 유튜브 같고.」)
+ *  출처 키(yna · editor:asiae · sns.youtube · www.hani.co.kr · https://news.kbs.co.kr/…) → 공식 이름 · 이미 한글이면 그대로 · 표에 없으면 받은 그대로 · 매체 칸·SNS 칩이 다 이걸 거침 */
+const OUTLET: Record<string, string> = {
+  // 통신·종합·경제
+  yna: "연합뉴스", yonhapnews: "연합뉴스", yonhapnewstv: "연합뉴스TV", newsis: "뉴시스", news1: "뉴스1",
+  chosun: "조선일보", "biz.chosun": "조선비즈", "sports.chosun": "스포츠조선", tvchosun: "TV조선", joongang: "중앙일보", joins: "중앙일보", donga: "동아일보", ichannela: "채널A",
+  hani: "한겨레", khan: "경향신문", "sports.khan": "스포츠경향", hankookilbo: "한국일보", seoul: "서울신문", segye: "세계일보", kmib: "국민일보", munhwa: "문화일보",
+  mk: "매일경제", hankyung: "한국경제", wowtv: "한국경제TV", asiae: "아시아경제", mt: "머니투데이", "star.mt": "스타뉴스", edaily: "이데일리", fnnews: "파이낸셜뉴스",
+  heraldcorp: "헤럴드경제", sedaily: "서울경제", etoday: "이투데이", ajunews: "아주경제", newspim: "뉴스핌", dt: "디지털타임스", etnews: "전자신문", zdnet: "지디넷코리아",
+  inews24: "아이뉴스24", bloter: "블로터", ddaily: "디지털데일리", aitimes: "AI타임스", thebell: "더벨", dealsite: "딜사이트", bizwatch: "비즈워치",
+  ohmynews: "오마이뉴스", pressian: "프레시안", nocutnews: "노컷뉴스", newstapa: "뉴스타파", sisain: "시사IN", mediatoday: "미디어오늘", dailian: "데일리안",
+  mydaily: "마이데일리", isplus: "일간스포츠", osen: "OSEN", tvreport: "TV리포트", imaeil: "매일신문", busan: "부산일보", kookje: "국제신문", kyeongin: "경인일보",
+  kbs: "KBS", mbc: "MBC", imbc: "MBC", sbs: "SBS", jtbc: "JTBC", ytn: "YTN", mbn: "MBN",
+  // 포털
+  naver: "네이버", "news.naver": "네이버뉴스", "cafe.naver": "네이버카페", "blog.naver": "네이버블로그", daum: "다음", "v.daum": "다음", nate: "네이트", "pann.nate": "네이트판", natepann: "네이트판",
+  gnews: "구글뉴스", "news.google": "구글뉴스", google: "구글", gtrends: "구글 트렌드", x_top10: "X",
+  // 커뮤니티
+  theqoo: "더쿠", dcinside: "디시인사이드", "gall.dcinside": "디시인사이드", fmkorea: "에펨코리아", instiz: "인스티즈", clien: "클리앙", ruliweb: "루리웹", ppomppu: "뽐뿌",
+  mlbpark: "엠엘비파크", bobaedream: "보배드림", todayhumor: "오늘의유머", etoland: "이토랜드", inven: "인벤", ygosu: "와이고수", humoruniv: "웃긴대학", "82cook": "82쿡",
+  teamblind: "블라인드", blind: "블라인드", arca: "아카라이브", "arca.live": "아카라이브", slrclub: "SLR클럽", damoang: "다모앙",
+  // SNS
+  "sns.youtube": "유튜브", youtube: "유튜브", "youtu.be": "유튜브", "sns.shorts": "유튜브 쇼츠", "sns.x": "X", x: "X", twitter: "X", "sns.twitter": "X",
+  "sns.instagram": "인스타그램", instagram: "인스타그램", "sns.threads": "스레드", threads: "스레드", "sns.tiktok": "틱톡", tiktok: "틱톡",
+  "sns.facebook": "페이스북", facebook: "페이스북", reddit: "레딧", "sns.reddit": "레딧",
+  // 외신
+  nytimes: "뉴욕타임스", washingtonpost: "워싱턴포스트", wsj: "월스트리트저널", bloomberg: "블룸버그", reuters: "로이터", apnews: "AP통신", cnn: "CNN", bbc: "BBC",
+  theguardian: "가디언", ft: "파이낸셜타임스", nhk: "NHK", "nhk.or": "NHK", asahi: "아사히신문", yomiuri: "요미우리신문", nikkei: "니혼게이자이신문", aljazeera: "알자지라",
+  cnbc: "CNBC", foxnews: "폭스뉴스", nbcnews: "NBC뉴스", scmp: "사우스차이나모닝포스트", axios: "악시오스", politico: "폴리티코",
+};
+export const outletName = (raw?: string) => {
+  const s0 = String(raw || "").trim();
+  if (!s0 || /[가-힣]/.test(s0)) return s0;   // 비었거나 이미 한글 이름
+  const k = s0.toLowerCase().replace(/^editor:/, "").replace(/^https?:\/\//, "").replace(/^(?:www|m|mobile)\./, "").replace(/[/?#].*$/, "");
+  if (OUTLET[k]) return OUTLET[k];
+  const stem = k.replace(/\.(?:co\.kr|or\.kr|com|net|kr|org|co\.jp|jp|co\.uk|tv|live)$/, "");
+  return OUTLET[stem] || OUTLET[stem.split(".").pop() || ""] || s0;
+};
+/** 매체 = 첫 매체 + 「외 N」 · 공식 이름으로(outletName) */
+export const mediaOf = (m?: string) => { const xs = String(m || "").split(/[,·|]/).map((s) => s.trim()).filter(Boolean); return xs.length ? outletName(xs[0]).replace(/\s*\(.*?\)\s*/g, "").replace(/\s*등\s*$/, "") + (xs.length > 1 ? ` 외 ${xs.length - 1}` : "") : ""; };
 /** 시각 = a.date(YYYY-MM-DD) + a.time(HH:MM) · 없으면 file(YYMMDD-HHMM)에서 */
 export const whenOf = (a: Art) => {
   const d = String(a.date || "").trim(), t = String(a.time || "").trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return `${+d.slice(5, 7)}/${+d.slice(8, 10)}${/^\d{1,2}:\d{2}$/.test(t) ? " " + t + (a.time_est === "true" ? "(추정)" : "") : ""}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return `${+d.slice(5, 7)}/${+d.slice(8, 10)}${/^\d{1,2}:\d{2}$/.test(t) ? " " + t : ""}`;   // 「(추정)」 뺌(형 11-06 「추정 이런말들도 필요없으니 없애고」)
   const m = /^(\d{2})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(a.file || ""); return m ? `${+m[2]}/${+m[3]} ${m[4]}:${m[5]}` : "";
 };
 /** 분류 = 에디터 CAT_MAP 6칸(정치·사회·경제·국제·문화·테크) · 밖이면 원래 글자 */

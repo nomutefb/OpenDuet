@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
 import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickOrder, pickUrl } from "./news-feed";
 import { FaceImg } from "../ui/faces";
 import { homePool } from "./home-pool";
-import { cleanTitle } from "./title-clean";   // 제목 다듬기 로직(형 11-05 16:14)
+import { cleanTitle } from "./title-clean";
+import { outletName } from "../ui/news-data";   // 공식 매체명(형 11-06 「yna 는 연합일거고, asiae 이건 아시아경제 같고 …」)   // 제목 다듬기 로직(형 11-05 16:14)
 
 type Row = { picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
 const PREFILL_KEY = "nm_ask_prefill", EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
@@ -59,9 +60,10 @@ export function NewsList() {
       for (const cl of ((overlap as { clusters?: { urls?: string[]; title_clean?: string; signals?: { newest?: string } }[] } | null)?.clusters || [])) for (const u of cl.urls || []) { if (cl.signals?.newest && !newest.has(u)) newest.set(u, cl.signals.newest); if (cl.title_clean && !clean.has(u)) clean.set(u, cl.title_clean); }
       const strip = (n?: string) => String(n || "").replace(/^(?:tbs_pop|tbs|editor|rss|sns)[:.]/i, "").trim();   // 「tbs:보배드림」 → 「보배드림」(실물 16:4x)
       const srcName = (x: Row) => { for (const it of x.items || []) { const n = String(it.src || "").replace(/^(?:tbs_pop|tbs|editor|rss|sns)[:.]/i, ""); if (n && !/^(?:candidates|social_candidates|x_top10|gtrends)/i.test(n) && !/\(/.test(n)) return n; } return ""; };
+      const inner = (n: string) => (/^(?:candidates|social_candidates)$/i.test(n) ? "" : n);   // 수집 칸 이름(SOCIAL_CANDIDATES 등) = 매체 아님 → 다음 후보로(시아 짚음)
       const host = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^www\./, "") : ""; } catch { return ""; } };
       // 출처 · 시각 = 모든 줄(형 11-05 16:30 「뉴스는 점수 좌측에 출처에 대한 내용이 있어야되고, 몇시간전인지 나와야됨. 4위도 싹다.」) — 메타 없으면 묶음 첫 기사 출처 · 후보 장부(lookup) 발행/처음 본 때
-      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: strip(x.meta?.published?.sourceName) || strip(c?.media) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0]), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
+      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
       setRows(list);
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };
