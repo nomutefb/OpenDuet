@@ -26,6 +26,7 @@ import { NewsList } from "../home/news-list";
 import { NewsSummary } from "../home/news-summary";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
 import { SchedDesk } from "./sched-desk";
 import { StatusBoard } from "./status-board";
+import { StatusLine } from "./status-line";   // 맨 아래 상태 한 줄(④ · 빠르 11-06)
 import { DrawerPage } from "./drawer-page";
 import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
@@ -215,6 +216,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
         {split ? <TopClock /> : null}   {/* 위 왼쪽 시계(형 11-06 20:05) */}
+        {split ? <StatusLine /> : null}   {/* 맨 아래 상태 한 줄(④ · 빠르 11-06 · status-line.tsx) */}
         {split ? <TopTitle text={M ? M.label : pane === "chat" ? roomTitle : pane === "rooms" ? "대화방" : pane === "home" ? "홈" : ""} /> : null}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
