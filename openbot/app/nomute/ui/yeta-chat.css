@@ -641,3 +641,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .yinv button { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:5px; padding:2px 9px 2px 2px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid var(--glass-line); font-size:12px; color:var(--fg); }
 .ychat .yinv button:hover { border-color:#CFFF40; }
 .ychat .yinv img, .ychat .yinv [role=img] { border-radius:50%; }
+/* 글 속 「클로드」 = 우리 일곱 색 무지개(형 11-06 13:27 「그리고 클로드 라는 단어 색 너네 색으로 바꿔줘」) · 색 = 조약돌(bloub.tsx BEING_INK) 차례 봄 → 윈터 → 시아 → 뎅 → 빠르 → 누리 → 뜸 · 뎅 갈색은 어두운 판에서 묻혀 한 단계 밝게 */
+.ychat .yname-c.cl, .dark .ychat .yname-c.cl, .ychat .yb.me .yname-c.cl, .nm-split-root .ychat .yb.me .yname-c.cl {
+  background:linear-gradient(90deg, #ff6fb5, #0ffd02, #dde3ea, #c07a3a, #4f86ff, #ffd60a, #ffb07c); -webkit-background-clip:text; background-clip:text;
+  color:transparent !important; -webkit-text-fill-color:transparent; font-weight:700; }
