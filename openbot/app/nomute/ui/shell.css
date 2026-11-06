@@ -121,6 +121,8 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
    = 형 말풍선: 잿빛 검정 + 라임 글자 · 우리·봇 말풍선: 잿빛 검정 + 같은 밝은 회색 글자(봇마다 칠한 바탕 = 인라인 → !important) · 이름 라벨(색)은 그대로 */
 .nm-split-root .ychat .yb.ai:not(.ph) { background:#1e2023 !important; border-color:rgba(255,255,255,.07) !important; color:#e6e9e6 !important; }
 .nm-split-root .ychat .yb.me:not(.ph) { background:#1e2023 !important; color:var(--accent, #CFFF40) !important; border:1px solid rgba(255,255,255,.07); }
+/* 사진 + 글 같이 보낸 글(사진 밑 .ycap · 보내는 중 .nac-text)도 같은 형 말풍선 = 잿빛 검정 + 라임 글자(형 11-06 12:49 「그리고 내가 이미지 첨부하면서 글자 쓰면 형광색으로 보여.」 · 폰은 라임 말풍선 그대로) */
+.nm-split-root .ychat .yb.me.ph .ycap, .nm-split-root .nac-text { background:#1e2023 !important; color:var(--accent, #CFFF40) !important; border:1px solid rgba(255,255,255,.07); }
 /* 반갈 검정 말풍선 안 코드 글씨(형 11-06 10:18 번개 방 사진 「응 봄 이렇게 보이는것두」) — 말풍선은 위에서 다 검정으로 덮는데 코드 글씨는 사람 말풍선 색(data-ink · 번개 노랑 = dark)을 따라 #161716 이 돼 검정 위 검정 → 반갈에선 늘 밝은 글씨 */
 .nm-split-root .ychat .yb[data-ink] :not(pre) > code { color:#e6e9e6; background:rgba(255,255,255,.09); }
 .nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block"] { background:rgba(255,255,255,.06); }
