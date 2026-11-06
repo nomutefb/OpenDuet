@@ -1157,6 +1157,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   if ((seenQ.data || seenQ.isError) && (!seenOpen.current || seenOpen.current.room !== room)) seenOpen.current = { room, ts: Number(seenQ.data?.[room]?.ts) || 0 };   // 못 받음 = 0(단추 없음 · 본 데까지 올리기는 그대로)
   const seenReady = seenOpen.current?.room === room;
   const [unseenUsed, setUnseenUsed] = useState("");   // 누른 방 = 단추 내림
+  useEffect(() => { const t = setTimeout(() => setUnseenUsed(room), 10_000); return () => clearTimeout(t); }, [room]);   // 방 들어와 10초 안 누르면 「안 본 글」 단추 내림(형 11-06 20:40 「10초가 경과한 뒤에도 안누르잖아/ 그러면 그냥 없는거로해 … 최대한 단순화」)
   const unseen = useMemo(() => {
     const t = seenOpen.current?.room === room ? seenOpen.current.ts : 0;
     return flat && t ? all.filter((m) => m.ts > t && m.kind !== "human" && !wakeM(m)) : [];   // 「안 본 것부터」 = 평면 보기 방 전부(형 10-31 「내가 안읽은거가 위로 누르면 거기로 가게끔하고」)
