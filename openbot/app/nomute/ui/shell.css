@@ -170,3 +170,5 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 /* 왼쪽 띠 라이브 = 라임 테(형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어? 안읽은거는 아까철럼 숫자로 표기. 그리고 고정은 지금 이미 불들어온거로 핀셋이고.」) · 사람마다 테 색(ringOf)은 이 띠에선 안 씀 · 지금 연 방 = 라임 바깥에 흰 고리 하나 더 */
 .nm-face.live, .nm-split-root .nm-face.live { border-color:#CFFF40; box-shadow:0 0 6px rgba(207,255,64,.35); }
 .nm-face.live.on, .nm-split-root .nm-face.live.on { box-shadow:0 0 0 2px rgba(232,234,232,.55), 0 0 6px rgba(207,255,64,.35); }
+/* 반갈 = 내 사진 밑 글(.ycap)·보내는 중 글도 평소 내 말풍선 꼴(검정 · 라임 글자)(형 11-06 12:49 「내가 이미지 첨부하면서 글자 쓰면 형광색으로 보여」) */
+.nm-split-root .ychat .yb.me.ph .ycap, .nm-split-root .nac-text { background:#1e2023 !important; color:var(--accent, #CFFF40) !important; border:1px solid rgba(255,255,255,.07); }
