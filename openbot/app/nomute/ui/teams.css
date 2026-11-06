@@ -45,3 +45,11 @@
 .nm-tin-row textarea { flex:1; resize:none; max-height:160px; background:none; border:0; outline:0; color:inherit; font:inherit; font-size:14px; line-height:1.5; padding:6px 0; field-sizing:content; }
 .nm-tin-row button { flex:none; width:34px; height:34px; border-radius:50%; border:0; cursor:pointer; font-weight:700; color:#111; background:#CFFF40; }
 .nm-tin-row button[disabled] { opacity:.35; cursor:default; }
+/* 파일 붙이기(형 11-06 19:27 「파일보내기 … 있으면 좋을거같애」) — 「+」 = 입력칸 왼쪽 흐린 동그라미 · 고른 파일 = 입력칸 위 칩(× 로 뺌) */
+.nm-tin-row:has(.nm-tplus) { padding-left:6px; }
+.nm-tin-row button.nm-tplus { background:none; color:rgba(232,234,232,.7); font-size:20px; font-weight:400; line-height:1; border:1px solid var(--glass-line, rgba(255,255,255,.14)); }
+.nm-tin-row button.nm-tplus:hover { color:#CFFF40; border-color:rgba(207,255,64,.5); }
+.nm-tpick { display:flex; align-items:center; gap:8px; max-width:100%; margin:0 0 6px; padding:6px 8px 6px 12px; border-radius:14px; font-size:12px; background:var(--glass-2, rgba(255,255,255,.07)); border:1px solid rgba(207,255,64,.35); }
+.nm-tpick small { flex:none; color:var(--mut, #8B8F8A); font-variant-numeric:tabular-nums; }
+.nm-tpick button { all:unset; flex:none; cursor:pointer; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; color:rgba(232,234,232,.6); }
+.nm-tpick button:hover { color:#FF5A5F; background:rgba(255,90,95,.12); }

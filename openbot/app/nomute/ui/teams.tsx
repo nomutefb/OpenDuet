@@ -170,16 +170,26 @@ export function TeamsChat({ chat }: { chat: string }) {
     finally { setMoreBusy(false); }
   };
   const [text, setText] = useState(""), [busy, setBusy] = useState(false), [err, setErr] = useState("");
+  // 파일 보내기(형 11-06 19:27 「파일보내기? 아냐~ 채팅만되면돼 ㅋㅋ음... 아니다 있으면 좋을거같애」) = 「+」로 고름 → 입력칸 위 칩 → 「↑」를 눌러야 나감(글은 같이 · 고르기만 해선 안 나감) · 서버 teams/upload(형 OneDrive 올림 → 대화 사람 보기 권한 → 첨부 글)
+  const [file, setFile] = useState<File | null>(null), pick = useRef<HTMLInputElement>(null);
+  useEffect(() => { setFile(null); }, [chat]);
+  const upload = async (t: string, f: File) => {
+    const fd = new FormData(); fd.append("chat", chat); if (t) fd.append("text", t); fd.append("file", f);
+    const res = await fetch("/api/office/teams/upload", { method: "POST", credentials: "same-origin", cache: "no-store", body: fd });   // office() 는 몸이 있으면 JSON 머리를 붙여서 폼은 직접 보냄
+    const j = (await res.json().catch(() => ({}))) as { ok?: boolean; why?: string; error?: string; message?: TMsg };
+    if (!res.ok || j.ok === false) throw new Error(j.why || j.error || `사무실 서버 ${res.status}`);
+    return j;
+  };
   const send = async () => {
-    const t = text.trim(); if (!t || busy) return;
+    const t = text.trim(); if ((!t && !file) || busy) return;
     if (t.length > 4000) { setErr("4,000자 넘음 — 나눠서 보내 줘"); return; }
     setBusy(true); setErr("");
     try {
-      const j = await office<{ message?: TMsg }>("teams/send", { method: "POST", body: JSON.stringify({ chat, text: t }) });
-      setText(""); stick.current = true;
+      const j = file ? await upload(t, file) : await office<{ message?: TMsg }>("teams/send", { method: "POST", body: JSON.stringify({ chat, text: t }) });
+      setText(""); setFile(null); stick.current = true;
       if (j.message) qc.setQueryData<Page>(key, (o) => ({ ...(o || { messages: [] }), messages: [j.message as TMsg, ...(o?.messages || [])] }));
       void qc.invalidateQueries({ queryKey: key }); void qc.invalidateQueries({ queryKey: ["nomute", "teams", "chats"] });
-    } catch (e) { setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 글은 입력칸에 그대로`); }
+    } catch (e) { setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 글${file ? "·파일" : ""}은 입력칸에 그대로`); }
     finally { setBusy(false); }
   };
   const mine = (m: TMsg) => !!me?.user?.name && m.from === me.user.name;
@@ -207,9 +217,12 @@ export function TeamsChat({ chat }: { chat: string }) {
       </div>
       <div className="nm-tin">
         {err ? <p role="alert" className="nm-terr" onClick={() => setErr("")}>{err}</p> : null}
+        {file ? <p className="nm-tpick"><span className="min-w-0 truncate">📎 {file.name}</span><small>{file.size >= 1048576 ? `${(file.size / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(file.size / 1024))}KB`}</small><button type="button" aria-label="붙인 파일 빼기" disabled={busy} onClick={() => setFile(null)}>×</button></p> : null}
         <div className="nm-tin-row">
-          <textarea value={text} rows={1} placeholder="팀즈로 보내기" onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} />
-          <button type="button" aria-label="보내기" disabled={busy || !text.trim()} onClick={() => void send()}>↑</button>
+          <input ref={pick} type="file" hidden onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ""; if (f && f.size > 25 * 1024 * 1024) { setErr("25MB 넘는 파일은 여기서 못 보내"); return; } if (f) { setFile(f); setErr(""); } }} />
+          <button type="button" className="nm-tplus" aria-label="파일 붙이기" title="파일 붙이기" disabled={busy} onClick={() => pick.current?.click()}>+</button>
+          <textarea value={text} rows={1} placeholder={file ? "같이 보낼 말(없어도 됨)" : "팀즈로 보내기"} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} />
+          <button type="button" aria-label={file ? "파일 보내기" : "보내기"} disabled={busy || (!text.trim() && !file)} onClick={() => void send()}>{busy && file ? "…" : "↑"}</button>
         </div>
       </div>
     </div>
