@@ -21,12 +21,35 @@ const readMode = () => { try { return localStorage.getItem(MODE_KEY) === "teams"
 export function setTeamsMode(on: boolean) { try { localStorage.setItem(MODE_KEY, on ? "teams" : "office"); } catch { /* 이번만 */ } subs.forEach((f) => f()); }
 export const useTeamsMode = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, readMode, () => false);
 
-type Me = { configured?: boolean; signed_in?: boolean; user?: { name?: string; upn?: string }; pending?: { user_code?: string; verification_uri?: string; expires_at?: number | string } | null };
-type Chat = { id: string; type?: string; topic?: string; members?: string[]; last?: { from?: string; text?: string; at?: string } };
-type TMsg = { id: string; from?: string; at?: string; text?: string; html?: string; files?: { name?: string; url?: string }[]; hosted?: string[] };
+type Me = { configured?: boolean; signed_in?: boolean; user?: { id?: string; name?: string; upn?: string }; pending?: { user_code?: string; verification_uri?: string; expires_at?: number | string } | null };
+type Person = { id: string; name?: string };
+type Chat = { id: string; type?: string; topic?: string; members?: string[]; people?: Person[]; last?: { from?: string; from_id?: string; text?: string; at?: string } };
+type TMsg = { id: string; from?: string; from_id?: string; at?: string; text?: string; html?: string; files?: { name?: string; url?: string }[]; hosted?: string[] };
 type Page = { messages: TMsg[]; next?: string };
 
 const meKey = ["nomute", "teams", "me"] as const;
+
+/* 사람 얼굴·접속 불(형 11-06 번개 창 「팀즈 프로필 받아오기가능한가」 · 「더 받아와야해 팀즈처럼 써야하니까」)
+   · 얼굴 = 서버 teams/photo?u=<사람 id>(사진 없음 404 = 이름 첫 글자 동그라미 그대로) · 불 = teams/presence?ids=…(1분마다 · 보일 때만)
+   · 사람 id 가 없는 글(봇·앱·옛 서버 판) = 첫 글자 동그라미 */
+const DOT: Record<string, string> = { Available: "on", AvailableIdle: "on", Busy: "busy", BusyIdle: "busy", DoNotDisturb: "busy", Away: "away", BeRightBack: "away" };
+function usePresence(ids: string[]) {
+  const key = [...new Set(ids.filter(Boolean))].sort().slice(0, 100);
+  return useQuery({ queryKey: ["nomute", "teams", "presence", key.join(",")], queryFn: () => office<{ presence?: Record<string, string> }>(`teams/presence?ids=${key.join(",")}`).then((j) => j.presence || {}),
+    enabled: key.length > 0, refetchInterval: () => (document.hidden ? false : 60_000), staleTime: 30_000, retry: false }).data || {};
+}
+function TFace({ id, name, state, small }: { id?: string; name?: string; state?: string; small?: boolean }) {
+  const [bad, setBad] = useState(false);
+  const dot = state ? DOT[state] : undefined;
+  return (
+    <i className={`nm-tava${small ? " sm" : ""}`} aria-hidden>
+      {id && !bad ? <img alt="" loading="lazy" src={`/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onError={() => setBad(true)} /> : [...(name || "?")][0] || "?"}
+      {dot ? <span className={`nm-tdot ${dot}`} /> : null}
+    </i>
+  );
+}
+/** 1:1 대화의 상대(나 말고 한 사람) — 여럿이면 없음(모임 대화 = 첫 글자 동그라미) */
+const other = (c: Chat, me?: Me["user"]) => { const l = (c.people || []).filter((x) => x.id && x.id !== me?.id && x.name !== me?.name); return c.type === "oneOnOne" && l.length === 1 ? l[0] : undefined; };
 function useTeamsMe(fast: boolean) {
   return useQuery({ queryKey: meKey, queryFn: () => office<Me>("teams"), refetchInterval: fast ? 5_000 : 60_000, staleTime: 4_000, retry: false });
 }
@@ -87,6 +110,7 @@ export function TeamsList({ current }: { current?: string }) {
   const meFast = useTeamsMe(!!me?.pending && !signed);   // 코드 기다리는 동안 5초(같은 열쇠 · 하나만 돎)
   void meFast;
   const chats = useQuery({ queryKey: ["nomute", "teams", "chats"], queryFn: () => office<{ chats?: Chat[] }>("teams/chats").then((j) => j.chats || []), enabled: signed, refetchInterval: 30_000, staleTime: 10_000, retry: false });
+  const pres = usePresence((chats.data || []).map((c) => other(c, me?.user)?.id || ""));
   const err = meQ.error ? (meQ.error as Error).message : "";
   const logout = async () => { try { await office("teams/logout", { method: "POST", body: "{}" }); } catch { /* 그대로 */ } void qc.invalidateQueries({ queryKey: meKey }); };
   return (
@@ -99,7 +123,7 @@ export function TeamsList({ current }: { current?: string }) {
               {chats.data.map((c) => (
                 <li key={c.id}>
                   <button type="button" className={current === TEAMS_PREFIX + c.id ? "on" : undefined} onClick={() => void nav({ to: href(c.id) })}>
-                    <i className="nm-tava" aria-hidden>{[...chatName(c, me?.user?.name)][0] || "?"}</i>
+                    <TFace id={other(c, me?.user)?.id} name={chatName(c, me?.user?.name)} state={pres[other(c, me?.user)?.id || ""]} />
                     <span className="min-w-0 flex-1"><b className="block truncate">{chatName(c, me?.user?.name)}</b><small className="block truncate">{c.last?.from ? `${c.last.from} · ` : ""}{c.last?.text || ""}</small></span>
                     <em>{ago(c.last?.at)}</em>
                   </button>
@@ -156,7 +180,7 @@ export function TeamsChat({ chat }: { chat: string }) {
         {page.isLoading ? <p className="nm-tnote">글 받는 중…</p> : page.error ? <p className="nm-tnote">글을 못 받았어 · {(page.error as Error).message}</p> : null}
         {all.map((m) => (
           <div key={m.id} className={`nm-tm${mine(m) ? " me" : ""}`}>
-            {mine(m) ? null : <b className="nm-tm-who">{m.from || "?"}</b>}
+            {mine(m) ? null : <b className="nm-tm-who"><TFace small id={m.from_id} name={m.from} />{m.from || "?"}</b>}
             <div className="nm-tm-b">
               {m.text ? <p>{m.text}</p> : null}
               {(m.hosted || []).map((h) => <img key={h} alt="" loading="lazy" src={`/api/office/teams/hosted?chat=${encodeURIComponent(chat)}&msg=${encodeURIComponent(m.id)}&h=${encodeURIComponent(h)}`} />)}
