@@ -16,6 +16,7 @@ import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { EnterKeyRow } from "./enter-key";
 import { ThinkMarkRow } from "./live-shine";
+import { BlindRows } from "./blind";   // 화면 가림(형 11-06 17:31 · 15분 입력 없음 = 가림 · 켜고 끄기 · 바로 가리기)
 import { WakeDepthRow } from "./wake-depth";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, useBuildLine } from "./settings-extra";
@@ -75,6 +76,7 @@ export function YetaSettings() {
             <ChatFontRows />
             <EnterKeyRow />
             <ThinkMarkRow />
+            <BlindRows />
           </div>
         </section>
         <section className="yset-part" aria-label="사무실">

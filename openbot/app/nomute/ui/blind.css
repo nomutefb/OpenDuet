@@ -1,0 +1,27 @@
+/* 화면 가림(./blind.tsx) — 검정 85% 한 장 · 어느 화면·창보다 위 · 누르면 걷힘 */
+.nm-blind {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: end center;
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+  background: rgb(0 0 0 / var(--nm-blind-a, 0.85));
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  animation: nm-blind-in 0.18s ease-out;
+}
+.nm-blind-t {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: rgb(255 255 255 / 0.42);
+}
+@keyframes nm-blind-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nm-blind { animation: none; }
+}

@@ -4,8 +4,10 @@ import "@/main";
 import { startSync } from "./data/sync";
 import "./ui/update-bar.css";
 import { markLive, verBadge } from "./ui/ver-badge";
+import { startBlind } from "./ui/blind";
 
 startSync();
+startBlind();   // 화면 가림(형 11-06 17:31) — 입력 15분 없으면 검정 85% 한 장
 
 /* 새 판 = 위에 단추(형 11-02 07:20 「글고 업데이트 강제로 될때내 메시지 하나씩 휘발되서 다시 써야되는 이슈가 있어. 강제로 화면 쌔로고침 하지말고. 내 ㅁㅔ세지는 정확히 가고. (확인) 새로고침은  내가특정 그 새로운 버전이 잇다는 화면에 버튼 누르면 갱신하게」)
    · 옛 판(형 10-28 09:44 「새판 나오면 … 자동으로 강제새로고침」)은 글칸이 비면 저절로 다시 읽었다 — 보내기 누른 직후 글칸이 비는 순간에 걸리면 서버에 닿기 전 글이 같이 날아감 → 뺌
