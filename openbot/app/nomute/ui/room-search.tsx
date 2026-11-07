@@ -139,7 +139,10 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
     const fit = () => { const b = box.current?.getBoundingClientRect(); if (b) setPane({ left: b.left, right: window.innerWidth - b.right, width: b.width }); };
     fit(); window.addEventListener("resize", fit);
     const settle = window.setTimeout(fit, 450);   // 대화창이 미끄러져 들어온 뒤 자리
-    return () => { window.clearTimeout(settle); window.removeEventListener("resize", fit); };
+    // PC 가운데 손잡이를 끌면 창 크기는 그대로라 resize 가 안 옴 → 대화 칸 자체 크기를 지켜봄(모루 #2837 검토 「검색을 연 채 손잡이를 끌면 … 예전 값」 · 시아 11-07)
+    const el = box.current, ro = el && typeof ResizeObserver !== "undefined" ? new ResizeObserver(fit) : null;
+    if (el && ro) ro.observe(el);
+    return () => { window.clearTimeout(settle); window.removeEventListener("resize", fit); ro?.disconnect(); };
   }, [box, open]);
   useEffect(() => { setOpen(false); setQ(""); setRows([]); setDone(false); }, [room]);
   useEffect(() => {
