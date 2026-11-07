@@ -2,20 +2,20 @@
 .nm-nlist { display:flex; flex:1 1 auto; min-height:0; flex-direction:column; border-radius:14px; overflow:hidden;
   background:transparent; border:0; color:#e8eae8; }   /* 칸 판 없음(형 14:42 「뉴스 나오는 카드칸도 투명하고」) */
 .nm-nlist-h { display:flex; align-items:baseline; gap:8px; padding:12px 14px 8px; border-bottom:1px solid rgba(255,255,255,.06); }
-.nm-nlist-h b { font-size:12.5px; letter-spacing:.02em; }
-.nm-nlist-h span { color:rgba(232,234,232,.45); font-size:11px; font-variant-numeric:tabular-nums; }
-.nm-nlist-empty { margin:0; padding:16px 14px; color:rgba(232,234,232,.5); font-size:12px; }
+.nm-nlist-h b { font-size:var(--fs-label); letter-spacing:.02em; }
+.nm-nlist-h span { color:rgba(232,234,232,.45); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
+.nm-nlist-empty { margin:0; padding:16px 14px; color:rgba(232,234,232,.5); font-size:var(--fs-sm); }
 .nm-nlist-ol { list-style:none; margin:0; padding:4px 6px 10px; overflow-y:auto; overscroll-behavior:contain; flex:1; min-height:0; }
 .nm-nlist-ol li { border-bottom:1px solid rgba(255,255,255,.045); border-radius:0; display:grid; grid-template-columns:16px 18px minmax(0,1fr) auto 50px 30px; position:relative; align-items:center; gap:8px; min-height:34px; padding:0 8px; border-radius:9px; }
 .nm-nlist-ol li:hover { background:rgba(255,255,255,.045); }
-.nm-nlist-ol .rk { color:rgba(232,234,232,.38); font-size:11px; text-align:right; font-variant-numeric:tabular-nums; }
-.nm-nlist-ol .tt { all:unset; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:12.5px; line-height:1.3; }
+.nm-nlist-ol .rk { color:rgba(232,234,232,.38); font-size:var(--fs-xs); text-align:right; font-variant-numeric:tabular-nums; }
+.nm-nlist-ol .tt { all:unset; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:var(--fs-label); line-height:1.3; }
 .nm-nlist-ol .tt:hover { text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(232,234,232,.35); }
-.nm-nlist-ol .mt { color:rgba(232,234,232,.42); font-size:10.5px; white-space:nowrap; }
+.nm-nlist-ol .mt { color:rgba(232,234,232,.42); font-size:var(--fs-xs); white-space:nowrap; }
 .nm-nlist-ol .mt { max-width:7.5em; overflow:hidden; text-overflow:ellipsis; }   /* 제목 줄 보장(형 11-07 13:22 「제목의 라인은 항상 보장을 어느정도해줘 애초에 짧은게 아니면」 · 봄 나눔 ① = 번개) = 매체 칸 폭 상한 · 넘치면 말줄임(전체 = 마우스 올리면) */
 @media (max-width:700px) { .nm-nlist-ol .mt { max-width:5.5em; } }
-.nm-nlist-ol .sc { color:rgba(232,234,232,.78); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; min-width:22px; text-align:right; }
-.nm-nlist-ol .sd { all:unset; cursor:pointer; font-size:10.5px; padding:3px 8px; border-radius:99px; color:rgba(232,234,232,.7); border:1px solid rgba(255,255,255,.12); opacity:0; transition:opacity .12s; }
+.nm-nlist-ol .sc { color:rgba(232,234,232,.78); font-size:var(--fs-xs); font-weight:700; font-variant-numeric:tabular-nums; min-width:22px; text-align:right; }
+.nm-nlist-ol .sd { all:unset; cursor:pointer; font-size:var(--fs-xs); padding:3px 8px; border-radius:99px; color:rgba(232,234,232,.7); border:1px solid rgba(255,255,255,.12); opacity:0; transition:opacity .12s; }
 .nm-nlist-ol li:hover .sd, .nm-nlist-ol .sd:focus-visible { opacity:1; }
 .nm-nlist-ol .sd:hover { color:#111; background:#e8eae8; border-color:transparent; }   /* 라임 0(형 14:41 「블랙 톤으로만」) */
 @media (hover:none) { .nm-nlist-ol .sd { opacity:1; } }
@@ -25,7 +25,7 @@
 @media (prefers-reduced-motion:reduce) { .nm-nlist-h .live { animation:none; } }
 .nm-nlist-ol li.top .rk, .nm-nlist-ol li.top .tt { color:#CFFF40; }
 .nm-nlist-ol li.top .rk { font-weight:700; }
-.nm-nlist-ol .ag { font-size:10.5px; white-space:nowrap; text-align:right; color:#CFFF40; font-variant-numeric:tabular-nums; }   /* 「N분 전」 칸 = 점수 왼쪽 · 오른쪽 맞춤 · 라임(형 15:49) */
+.nm-nlist-ol .ag { font-size:var(--fs-xs); white-space:nowrap; text-align:right; color:#CFFF40; font-variant-numeric:tabular-nums; }   /* 「N분 전」 칸 = 점수 왼쪽 · 오른쪽 맞춤 · 라임(형 15:49) */
 /* 전송 = 따로 칸 없이 점수 자리 위에 뜸(형 11-05 16:57 「그리고 여기 우측 비는거 전송라인, 굳이 남기지 말고, 점수 위에 뜨게하면됨! 저기 낭비하진말고」) · 줄 = 번호 · 제목 · 출처·시각 · 점수 */
 .nm-nlist-ol .sd { position:absolute; right:6px; top:50%; transform:translateY(-50%); background:rgba(14,14,16,.92); }
 .nm-nlist-ol li:hover .sc { visibility:hidden; }
@@ -41,17 +41,17 @@
 .nm-nlist-pin li.teum::before { background:#CFFF40; }
 .nm-nlist-pin li:hover { background:rgba(207,255,64,.08); }
 .nm-nlist-pin .pk-face { grid-row:1 / span 2; display:block; width:20px; height:20px; border-radius:50%; box-shadow:0 0 0 1.5px #CFFF40, 0 0 0 3px rgba(14,14,16,.9); }
-.nm-nlist-pin .pk-tt { all:unset; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:12.5px; line-height:1.3; color:#e8eae8; font-weight:600; }
+.nm-nlist-pin .pk-tt { all:unset; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:var(--fs-label); line-height:1.3; color:#e8eae8; font-weight:600; }
 .nm-nlist-pin .pk-tt:hover { text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(232,234,232,.35); }
-.nm-nlist-pin .pk-sc { grid-row:1 / span 2; grid-column:4; color:rgba(232,234,232,.78); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
-.nm-nlist-pin .pk-mt { grid-column:2 / span 2; color:rgba(232,234,232,.45); font-size:10.5px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.nm-nlist-pin .pk-sd { all:unset; cursor:pointer; position:absolute; right:6px; top:50%; transform:translateY(-50%); font-size:10.5px; padding:3px 8px; border-radius:99px; color:rgba(232,234,232,.7); border:1px solid rgba(255,255,255,.12); background:rgba(14,14,16,.92); opacity:0; transition:opacity .12s; }
+.nm-nlist-pin .pk-sc { grid-row:1 / span 2; grid-column:4; color:rgba(232,234,232,.78); font-size:var(--fs-xs); font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
+.nm-nlist-pin .pk-mt { grid-column:2 / span 2; color:rgba(232,234,232,.45); font-size:var(--fs-xs); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.nm-nlist-pin .pk-sd { all:unset; cursor:pointer; position:absolute; right:6px; top:50%; transform:translateY(-50%); font-size:var(--fs-xs); padding:3px 8px; border-radius:99px; color:rgba(232,234,232,.7); border:1px solid rgba(255,255,255,.12); background:rgba(14,14,16,.92); opacity:0; transition:opacity .12s; }
 .nm-nlist-pin li:hover .pk-sd, .nm-nlist-pin .pk-sd:focus-visible { opacity:1; }
 .nm-nlist-pin li:hover .pk-sc { visibility:hidden; }
 .nm-nlist-pin .pk-sd:hover { color:#111; background:#e8eae8; border-color:transparent; }
 @media (hover:none) { .nm-nlist-pin .pk-sd { opacity:1; } .nm-nlist-pin .pk-sc { visibility:hidden; } }
 /* 픽 표 글자 = 봇 색 진하게 · 앞 막대 = 둘 다 같은 강조 라임(형 11-06 20:14 「이니다 촉픽은 촉 형광 파랑, 틈은 라임색. | 은 동일. 그래도 이로간성 잇어야하니까」) */
-.nm-nlist-pin .pk-tag { font-size:10.5px; font-weight:800; white-space:nowrap; letter-spacing:.02em; color:#CFFF40; }
+.nm-nlist-pin .pk-tag { font-size:var(--fs-xs); font-weight:800; white-space:nowrap; letter-spacing:.02em; color:#CFFF40; }
 .nm-nlist-pin li.chok .pk-tag { color:#33CCFF; text-shadow:0 0 8px rgba(51,204,255,.35); }
 .nm-nlist-pin li.teum .pk-tag { color:#CFFF40; text-shadow:0 0 8px rgba(207,255,64,.3); }
 .nm-nlist-pin li::before { width:3px; box-shadow:0 0 8px rgba(207,255,64,.45); }

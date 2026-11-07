@@ -1,8 +1,8 @@
 /* 서랍 「생성 옵션」(./genopt.tsx) — 원본 기본값 그림 줄(이름 | 칩들 · 누른 칩이 곧 선택) */
 .nm-gopt { display:flex; flex-direction:column; gap:10px; }
 .nm-gopt .row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-.nm-gopt .lab { flex:none; font-size:var(--fs-xs, 12px); color:var(--fg); }
+.nm-gopt .lab { flex:none; font-size:var(--fs-xs); color:var(--fg); }
 .nm-gopt .opts { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; }
-.nm-gopt .chip { border:1px solid var(--glass-line); background:none; color:var(--mut); font-size:var(--fs-xs, 11px); padding:4px 10px; border-radius:var(--r-pill); font-family:var(--app-font-text, inherit); }
+.nm-gopt .chip { border:1px solid var(--glass-line); background:none; color:var(--mut); font-size:var(--fs-xs); padding:4px 10px; border-radius:var(--r-pill); font-family:var(--app-font-text, inherit); }
 .nm-gopt .chip.on { color:var(--bg); background:var(--accent); border-color:var(--accent); font-weight:600; }
 .nm-gopt .chip:disabled { opacity:.6; }

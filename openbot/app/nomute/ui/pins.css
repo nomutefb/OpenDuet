@@ -22,7 +22,7 @@
 .nm-pin-card { gap:8px; }
 .nm-pin-now { padding:2px 9px; border-radius:var(--r-pill); background:rgba(var(--accent-rgb),.16); border:1px solid rgba(var(--accent-rgb),.38); color:var(--accent); font-weight:var(--fw-b); }
 :root:not(.dark) .nm-pin-now { color:var(--fg); }
-.nm-pin-body { display:block; width:100%; padding:0; background:none; border:none; color:var(--fg); font-size:14px; line-height:1.6; text-align:left; overflow-wrap:anywhere; cursor:pointer; }
+.nm-pin-body { display:block; width:100%; padding:0; background:none; border:none; color:var(--fg); font-size:var(--fs-h3); line-height:1.6; text-align:left; overflow-wrap:anywhere; cursor:pointer; }
 .nm-pin-act { padding:5px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg-2); font-size:var(--fs-xs); font-weight:var(--fw-b); cursor:pointer; }
 .nm-pin-act:disabled { opacity:.5; }
 @media (prefers-reduced-motion:reduce){ .nm-pinbar, .nm-pinsheet { animation:none; } }

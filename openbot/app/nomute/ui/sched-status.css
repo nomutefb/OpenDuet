@@ -6,37 +6,37 @@
 .nm-st[data-st="off"] { width:8px; height:2px; border-radius:1px; vertical-align:3px; background:#6B6F6A; }
 
 .nm-sum { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 12px; padding:10px 12px; border:1px solid var(--glass-line); border-radius:14px; background:rgba(255,255,255,.03); }
-.nm-sum-n { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+.nm-sum-n { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:var(--fs-body); font-weight:700; font-variant-numeric:tabular-nums; }
 .nm-sum-n span { display:inline-flex; align-items:center; }
 .nm-sum-n span[data-zero] { opacity:.35; }
-.nm-sum small { font-size:12px; color:var(--mut); }
+.nm-sum small { font-size:var(--fs-sm); color:var(--mut); }
 
 .nm-gchip span { display:inline-flex; align-items:center; margin-left:6px; font-variant-numeric:tabular-nums; }
 .nm-gchip .nm-st { margin-right:3px; }
 .nm-gchip span[data-st="miss"] { color:#ff8a8a; } .nm-gchip span[data-st="late"] { color:#ffd27a; }
 
 .nm-row1 > .nm-st { margin:0 3px; }   /* 러너 줄 = 차단기 칸 자리에 점 */
-.nm-sched-tinehead small.nm-row1-last { flex:none; display:block; font-size:11px; font-variant-numeric:tabular-nums; }
+.nm-sched-tinehead small.nm-row1-last { flex:none; display:block; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
 .nm-sched-tinehead small.nm-row1-last:empty { display:none; }
 .nm-sched-rt small.nm-row1-h[data-st="miss"] { color:#ff8a8a; } .nm-sched-rt small.nm-row1-h[data-st="late"] { color:#ffd27a; }
 
-.nm-chain { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; }
+.nm-chain { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:var(--fs-label); }
 .nm-chain > span { display:inline-flex; flex-wrap:wrap; align-items:center; gap:5px; }
-.nm-chain em { padding:2px 8px; border:1px solid var(--glass-line); border-radius:999px; font-size:12px; font-style:normal; color:var(--fg); overflow-wrap:anywhere; }
-.nm-chain > b { padding:2px 9px; border-radius:999px; background:rgba(207,255,64,.14); color:var(--accent, #CFFF40); font-size:12px; }
+.nm-chain em { padding:2px 8px; border:1px solid var(--glass-line); border-radius:999px; font-size:var(--fs-sm); font-style:normal; color:var(--fg); overflow-wrap:anywhere; }
+.nm-chain > b { padding:2px 9px; border-radius:999px; background:rgba(207,255,64,.14); color:var(--accent, #CFFF40); font-size:var(--fs-sm); }
 .nm-chain > svg { flex:none; color:var(--mut); }
 
 /* GPU 우선 서버(형 11-05 09:43 · 뜸 · sched-gpu.tsx) */
 .nm-gpu { display:flex; flex-direction:column; gap:8px; padding:12px; border:1px solid var(--line, rgba(127,127,127,.25)); border-radius:14px; }
 .nm-gpu-head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 10px; }
-.nm-gpu-head small { font-size:12px; color:var(--mut); }
+.nm-gpu-head small { font-size:var(--fs-sm); color:var(--mut); }
 .nm-gpu-head small[data-st="hold"], .nm-gpu-head small[data-st="fail"] { color:var(--warn, #d08a2b); }
 .nm-gpu-hosts { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; }
 .nm-gpu-hosts button { display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:8px 10px; border-radius:10px; border:1px solid var(--line, rgba(127,127,127,.25)); text-align:left; }
 .nm-gpu-hosts button[aria-checked="true"] { border-color:currentColor; box-shadow:inset 0 0 0 1px currentColor; }
 .nm-gpu-hosts button:disabled { cursor:default; }
-.nm-gpu-hosts small { font-size:11px; color:var(--mut); }
-.nm-gpu-msg { font-size:12px; color:var(--mut); margin:0; }
+.nm-gpu-hosts small { font-size:var(--fs-xs); color:var(--mut); }
+.nm-gpu-msg { font-size:var(--fs-sm); color:var(--mut); margin:0; }
 .nm-gpu-jobs { display:flex; flex-direction:column; gap:4px; margin:0; padding:0; list-style:none; }
 .nm-gpu-jobs li { display:flex; align-items:center; gap:8px; min-width:0; }
-.nm-gpu-jobs small { font-size:11px; color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-gpu-jobs small { font-size:var(--fs-xs); color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

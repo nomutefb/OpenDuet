@@ -1,5 +1,5 @@
 /* 긴 글 접기 · 전체 보기(./fold.tsx · 형 11-02 07:19 · 카톡 꼴) */
-.yfold { max-height:calc(var(--fs-body, 15px) * var(--lh-base, 1.6) * 17); overflow:hidden; }   /* 17줄(형 11-02 21:34 「글자 한 70자 정도만 더 들어갔을때 전체보기 나오게 하자」 · 폰 말풍선 한 줄 24자쯤 = 3줄 더 · 옛 14줄) */
+.yfold { max-height:calc(var(--fs-body) * var(--lh-base, 1.6) * 17); overflow:hidden; }   /* 17줄(형 11-02 21:34 「글자 한 70자 정도만 더 들어갔을때 전체보기 나오게 하자」 · 폰 말풍선 한 줄 24자쯤 = 3줄 더 · 옛 14줄) */
 .yfold.long { -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 3.2em), transparent); mask-image:linear-gradient(to bottom, #000 calc(100% - 3.2em), transparent); }
 .yfold-more { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin:8px 0 0; padding:8px 0 0; border:0; border-top:1px solid color-mix(in srgb, currentColor 22%, transparent); background:none; color:inherit; font:600 13px/1.2 var(--app-font-text, Pretendard, -apple-system, system-ui, sans-serif); text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .yfold-more span { opacity:.88; }

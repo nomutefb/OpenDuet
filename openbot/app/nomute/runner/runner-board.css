@@ -7,7 +7,7 @@
 .nm-rg-row { padding:12px 10px 10px; } .nm-rg-row + .nm-rg-row { border-top:1px solid rgba(255,255,255,.07); }
 .nm-rg-row.mac { padding-bottom:12px; }
 .nm-rg-panel .text-muted-foreground { color:#8A8A8A; }
-.nm-rg-name { font-family:'LEMONMILK', var(--app-font-text, sans-serif); font-weight:400; font-size:13px; letter-spacing:.06em; color:#F2F2F2; }
+.nm-rg-name { font-family:'LEMONMILK', var(--app-font-text, sans-serif); font-weight:400; font-size:var(--fs-label); letter-spacing:.06em; color:#F2F2F2; }
 .nm-rg-gauges { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:4px; margin-top:6px; }
 .nm-rg-gauge { display:block; width:100%; height:auto; overflow:visible; }
 .nm-rg-gauge path { fill:none; stroke-linecap:round; }

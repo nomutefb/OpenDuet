@@ -5,13 +5,13 @@
 .nsb-top b[data-st="miss"] { color:var(--nsb-red); text-shadow:0 0 14px rgba(255,90,95,.55); }
 .nsb-top b[data-st="late"] { color:var(--nsb-yel); }
 .nsb-top b[data-st="unknown"] { color:var(--nsb-mut); }
-.nsb-top span { font-size:13px; color:var(--nsb-mut); }
-.nsb-top small { margin-left:auto; font-size:11px; color:var(--nsb-mut); }
+.nsb-top span { font-size:var(--fs-label); color:var(--nsb-mut); }
+.nsb-top small { margin-left:auto; font-size:var(--fs-xs); color:var(--nsb-mut); }
 .nsb-cat { margin-bottom:8px; border-radius:16px; background:rgba(18,18,18,.45); border:1px solid var(--nsb-line); overflow:hidden; }
 .nsb-cat[data-st="miss"] { border-color:rgba(255,90,95,.45); box-shadow:0 0 0 1px rgba(255,90,95,.15), 0 0 18px -6px rgba(255,90,95,.5); }
 .nsb-ch { width:100%; display:flex; align-items:center; gap:4px; padding:12px 14px; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
-.nsb-ch b { font-size:15px; }
-.nsb-cnt { margin-left:auto; display:flex; gap:8px; align-items:center; font-size:12px; }
+.nsb-ch b { font-size:var(--fs-body); }
+.nsb-cnt { margin-left:auto; display:flex; gap:8px; align-items:center; font-size:var(--fs-sm); }
 .nsb-cnt em { font-style:normal; color:var(--nsb-red); font-weight:700; }
 .nsb-cnt i { font-style:normal; color:var(--nsb-yel); }
 .nsb-cnt small { color:var(--nsb-mut); }
@@ -20,16 +20,16 @@
 .nsb-rows li[data-st="miss"] { background:rgba(255,90,95,.12); box-shadow:inset 3px 0 0 var(--nsb-red); }
 .nsb-rows li[data-st="late"] { background:rgba(255,210,63,.07); }
 .nsb-r { width:100%; display:flex; align-items:center; gap:2px; padding:8px; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
-.nsb-n { min-width:0; flex:1; font-size:14px; }
-.nsb-n small { display:block; font-size:11px; color:var(--nsb-mut); }
-.nsb-v { flex:none; max-width:55%; text-align:right; font-size:12px; color:var(--nsb-mut); }
+.nsb-n { min-width:0; flex:1; font-size:var(--fs-h3); }
+.nsb-n small { display:block; font-size:var(--fs-xs); color:var(--nsb-mut); }
+.nsb-v { flex:none; max-width:55%; text-align:right; font-size:var(--fs-sm); color:var(--nsb-mut); }
 .nsb-zh > .nsb-r .nsb-n { font-weight:700; }
 .nsb-zh { margin-top:4px; border-top:1px solid var(--nsb-line); border-radius:0 !important; }
-.nsb-why { margin:0 8px 8px 22px; font-size:12px; color:#ffb3b5; }
-.nsb-empty { padding:8px 10px; font-size:12px; color:var(--nsb-mut); }
+.nsb-why { margin:0 8px 8px 22px; font-size:var(--fs-sm); color:#ffb3b5; }
+.nsb-empty { padding:8px 10px; font-size:var(--fs-sm); color:var(--nsb-mut); }
 .nsb-grid { display:grid; gap:4px; padding:4px 12px 12px; align-items:center; }
-.nsb-gh { font-size:10px; line-height:1.2; color:var(--nsb-mut); text-align:center; word-break:keep-all; }
-.nsb-gr { font-size:13px; white-space:nowrap; padding-right:6px; }
+.nsb-gh { font-size:var(--fs-2xs); line-height:1.2; color:var(--nsb-mut); text-align:center; word-break:keep-all; }
+.nsb-gr { font-size:var(--fs-label); white-space:nowrap; padding-right:6px; }
 .nsb-cell { height:26px; border:0; border-radius:6px; background:rgba(255,255,255,.07); cursor:pointer; transition:transform .12s; }
 .nsb-cell[data-st="ok"] { background:color-mix(in srgb, var(--nsb-ok) 55%, transparent); }
 .nsb-cell[data-st="late"] { background:color-mix(in srgb, var(--nsb-yel) 60%, transparent); }
@@ -42,9 +42,9 @@
 @keyframes nsbGlow { 50% { box-shadow:0 0 4px rgba(255,90,95,.35); } }
 @media (prefers-reduced-motion: reduce) { .nsb-cell[data-st="miss"] { animation:none; } }
 .nsb-zones { padding:0 8px 8px 22px; }
-.nsb-zone summary { cursor:pointer; padding:6px 0; font-size:13px; }
+.nsb-zone summary { cursor:pointer; padding:6px 0; font-size:var(--fs-label); }
 .nsb-zone summary small { color:var(--nsb-mut); }
-.nsb-zone ol { list-style:none; margin:0 0 6px; padding:0; font-size:12px; }
+.nsb-zone ol { list-style:none; margin:0 0 6px; padding:0; font-size:var(--fs-sm); }
 .nsb-zone li { display:flex; gap:6px; padding:3px 0; border-bottom:1px solid var(--nsb-line); }
 .nsb-zone li a { color:inherit; }
 .nsb-zone li small { color:var(--nsb-mut); }
@@ -56,7 +56,7 @@
 .nsb-cc span[data-st="miss"] { color:#ffb3b5; }
 /* 수집 색인 표(status-board IndexTable · 형 「한 표에 모든걸 다 담아」) = 옆으로 밀기 · 첫 칸 고정 · 🔴 줄 빨강 */
 .nsb-idx { overflow-x:auto; padding:0 6px 10px; -webkit-overflow-scrolling:touch; }
-.nsb-idx table { border-collapse:separate; border-spacing:0; font-size:12px; min-width:1100px; }
+.nsb-idx table { border-collapse:separate; border-spacing:0; font-size:var(--fs-sm); min-width:1100px; }
 .nsb-idx th, .nsb-idx td { padding:6px 8px; border-bottom:1px solid var(--nsb-line); text-align:left; vertical-align:top; max-width:220px; }
 .nsb-idx thead th { position:sticky; top:0; background:rgba(18,18,18,.95); color:var(--nsb-mut); font-weight:700; white-space:nowrap; }
 .nsb-idx thead button { border:0; background:none; color:inherit; font:inherit; cursor:pointer; padding:0; }
@@ -68,11 +68,11 @@
 
 /* 계정 상태 표(형 11-07 14:35 「계정, %, 이름, 주기, 요금제」 · 「이름에 여러칸으로 나뉘어서 (투명 획선)세로」 · ./status-board.tsx AcctTable) */
 .nsb-acct { overflow-x:auto; padding:0 6px 10px; -webkit-overflow-scrolling:touch; }
-.nsb-acct table { width:100%; min-width:560px; border-collapse:separate; border-spacing:0; font-size:13px; }
+.nsb-acct table { width:100%; min-width:560px; border-collapse:separate; border-spacing:0; font-size:var(--fs-label); }
 .nsb-acct th, .nsb-acct td { padding:8px; border-bottom:1px solid var(--nsb-line); text-align:left; vertical-align:middle; }
-.nsb-acct thead th { color:var(--nsb-mut); font-size:11px; font-weight:700; white-space:nowrap; }
+.nsb-acct thead th { color:var(--nsb-mut); font-size:var(--fs-xs); font-weight:700; white-space:nowrap; }
 .nsb-acct tbody th { font-weight:700; white-space:nowrap; color:#E7ECE7; }
-.nsb-acct small { display:block; font-size:11px; font-weight:400; color:var(--nsb-mut); white-space:nowrap; }
+.nsb-acct small { display:block; font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); white-space:nowrap; }
 .nsb-acct tbody tr { cursor:pointer; }
 .nsb-acct .pct b { font-size:16px; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
 .nsb-acct .pct b[data-tone="low"] { color:#E9C46A; }   /* 불 아님 · 숫자 색만(형 15:40 「안뜨게 혀라」) */
@@ -83,16 +83,16 @@
 .nsb-acct .names { white-space:nowrap; }
 .nsb-acct .names span { display:inline-block; padding:0 9px; border-left:1px solid rgba(255,255,255,.14); }   /* 투명 획선 세로(형 14:35) */
 .nsb-acct .names span:first-child { padding-left:0; border-left:0; }
-.nsb-acct .memo { color:var(--nsb-mut); font-size:12px; }
-.nsb-acct tr.why td { font-size:12px; color:var(--nsb-mut); background:rgba(255,255,255,.03); }
+.nsb-acct .memo { color:var(--nsb-mut); font-size:var(--fs-sm); }
+.nsb-acct tr.why td { font-size:var(--fs-sm); color:var(--nsb-mut); background:rgba(255,255,255,.03); }
 /* 묶음 머리(형 11-08 01:29 「가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」) — 칸 위 작은 머리 · 불 = 그 묶음 제일 나쁜 것 */
-.nsb-grp { display:flex; align-items:center; gap:6px; margin:18px 4px 8px; font-size:12px; font-weight:800; letter-spacing:.06em; color:var(--nsb-mut); }
+.nsb-grp { display:flex; align-items:center; gap:6px; margin:18px 4px 8px; font-size:var(--fs-sm); font-weight:800; letter-spacing:.06em; color:var(--nsb-mut); }
 .nsb-grp:first-of-type { margin-top:6px; }
-.nsb-grp small { margin-left:auto; font-size:11px; font-weight:400; letter-spacing:0; font-variant-numeric:tabular-nums; }
+.nsb-grp small { margin-left:auto; font-size:var(--fs-xs); font-weight:400; letter-spacing:0; font-variant-numeric:tabular-nums; }
 .nsb-grp[data-st="miss"] { color:var(--nsb-red); }
 /* CLI 연결 표(형 01:25 「행에 애들, 열에 cli」) — 계정 상태 표 꼴 그대로 · 칸 = 불 + 계정 짧은 이름 */
 .nsb-cli table { min-width:720px; }
-.nsb-cli td { white-space:nowrap; font-size:12px; font-variant-numeric:tabular-nums; }
+.nsb-cli td { white-space:nowrap; font-size:var(--fs-sm); font-variant-numeric:tabular-nums; }
 .nsb-cli td .nm-st { margin-right:5px; }
 .nsb-cli td[data-st="unknown"] span { color:var(--nsb-mut); }
 .nsb-cli td[data-st="miss"] { background:rgba(255,90,95,.12); }

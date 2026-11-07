@@ -1,13 +1,13 @@
 /* 서랍 「대기열」(./queue.tsx) — 에디터 .qrow 꼴(시간 | 제목 | 상태 | 바로가기 · 한 줄 30px · 좌측 정렬)을 YETA 유리로 */
 .nm-q .nm-q-busy { margin-left:auto; font-size:var(--fs-xs); font-weight:var(--fw-b); font-style:normal; color:var(--accent); }
 .nm-q .nm-q-list { display:flex; flex-direction:column; gap:4px; }
-.nm-q .nm-q-row { display:grid; grid-template-columns:52px minmax(0, 1fr) 30px auto; align-items:center; gap:8px; min-height:36px; padding:4px 8px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-m, 11px); font-size:var(--fs-sm, 12px); }
+.nm-q .nm-q-row { display:grid; grid-template-columns:52px minmax(0, 1fr) 30px auto; align-items:center; gap:8px; min-height:36px; padding:4px 8px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-m, 11px); font-size:var(--fs-sm); }
 .nm-q .qt { font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; white-space:nowrap; }
 .nm-q .qt.new { color:var(--accent); font-weight:var(--fw-b); }   /* 원본 qt-new = 1시간 안 */
 .nm-q .qt.mid { color:#ffd27a; }   /* 원본 qt-mid = 1~4시간 노랑(채널 타일 dn 과 같은 값) */
 .nm-q .qm { display:flex; align-items:baseline; gap:6px; min-width:0; }
 .nm-q .qm i { font-style:normal; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; font-family:var(--app-font-text, inherit); }   /* 본문 글꼴 = 영어 제목이 대문자 꼴로 안 보이게(빠르 요약 요청 링크 칸과 같은 까닭) */
-.nm-q .qm .pp { flex:none; font-size:10px; color:var(--mut); }
+.nm-q .qm .pp { flex:none; font-size:var(--fs-2xs); color:var(--mut); }
 .nm-q .qs { display:flex; justify-content:center; }
 .nm-q .qs b { font-size:var(--fs-xs); font-weight:var(--fw-b); white-space:nowrap; }
 .nm-q .qs .ok { color:var(--accent); } .nm-q .qs .bad { color:#ff6b5a; } .nm-q .qs .lag, .nm-q .qs .cxl { color:var(--mut); }

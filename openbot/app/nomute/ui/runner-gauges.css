@@ -1,7 +1,7 @@
 /* 러너 상태바(ui/runner-gauges.tsx · 봄 11-05) — 판·칸 없이 세 몸 가로 · 몸마다 가운데로 이름 · G 온도 · 게이지 · 러너 불 · 높이 = 제 키 */
 .nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:6px 0 4px; border-radius:0; background:transparent; box-shadow:none; color:#E6E6E6; }   /* 형 16:27 「그냥 그려지면될듯」 */
 .nm-rgx-host { position:relative; min-width:0; padding:0 6px; display:flex; flex-direction:column; align-items:center; text-align:center; }
-.nm-rgx .nm-rgx-name { color:var(--accent, #D4FF3A); font-size:13px; letter-spacing:.06em; line-height:1.2; }   /* 몸 이름 = 라임(형 16:57) · 게이지 바로 위 가운데(형 17:3x) */
+.nm-rgx .nm-rgx-name { color:var(--accent, #D4FF3A); font-size:var(--fs-label); letter-spacing:.06em; line-height:1.2; }   /* 몸 이름 = 라임(형 16:57) · 게이지 바로 위 가운데(형 17:3x) */
 .nm-rgx-g { display:block; margin-top:2px; font-size:9px; line-height:1.2; letter-spacing:.02em; color:#8A8A8A; font-variant-numeric:tabular-nums; white-space:nowrap; }   /* GPU 온도 = 이름 밑 · 같은 세로줄 */
 .nm-rgx-host .nm-rg-gauge { width:100%; max-height:88px; margin:12px auto -22px; }   /* 위 틈 12px · 이름이 더 위로(형 17:4x 「조금 하드웨어 이름이 더 위로 가야될수도」)(형 「게이지랑딱붙으면 안이쁘니까」) · 아래 빈 이름 칸만큼 당김 */
 .nm-rgx-runs { list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:3px; margin:7px 0 0; padding:0; }   /* 조약돌 아래로 내려감(형 11-06 「러너가 좀 더 아래로가고. 간격은 어느정도 유지.」) */

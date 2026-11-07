@@ -17,13 +17,13 @@
 .nm-scrap .sc-col.green { padding-right:7px; }
 .nm-scrap .sc-col.black { padding-left:7px; position:relative; align-self:stretch; }
 .nm-scrap .sc-col.black::before { content:''; position:absolute; top:4px; bottom:4px; left:0; width:1px; pointer-events:none; background:linear-gradient(180deg, transparent, var(--glass-line) 20%, var(--glass-line) 80%, transparent); }
-.nm-scrap .sc-coltitle { font-size:12.5px; font-weight:800; letter-spacing:-.2px; padding:2px 4px 8px; }
+.nm-scrap .sc-coltitle { font-size:var(--fs-label); font-weight:800; letter-spacing:-.2px; padding:2px 4px 8px; }
 .nm-scrap .ct-cross { color:var(--accent-4); } .nm-scrap .ct-new { color:var(--accent); }
 .nm-scrap .sc-list { display:flex; flex-direction:column; gap:10px; }
 .nm-scrap .sc-sentinel { height:2px; pointer-events:none; }
-.nm-scrap .sc-more { width:100%; margin-top:2px; padding:9px; font:inherit; font-size:11.5px; font-weight:700; cursor:pointer; color:var(--mut); background:var(--glass); border:1px solid var(--glass-line); border-radius:10px; }
+.nm-scrap .sc-more { width:100%; margin-top:2px; padding:9px; font:inherit; font-size:var(--fs-sm); font-weight:700; cursor:pointer; color:var(--mut); background:var(--glass); border:1px solid var(--glass-line); border-radius:10px; }
 .nm-scrap .sc-more:active { transform:scale(var(--press-l, .98)); }
-.nm-scrap .sc-empty { display:flex; flex-direction:column; align-items:center; gap:14px; padding:48px 0; font-size:13px; color:var(--mut); text-align:center; }
+.nm-scrap .sc-empty { display:flex; flex-direction:column; align-items:center; gap:14px; padding:48px 0; font-size:var(--fs-label); color:var(--mut); text-align:center; }
 .nm-scrap-acts { margin-top:2px; justify-content:flex-end; }
 .nm-scrap .ypc-go { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 .nm-scrap .ypc-go span svg { width:14px; height:14px; }
@@ -46,7 +46,7 @@
 .nm-scrap .sc-item.lit-iss { box-shadow:0 0 0 1px rgba(var(--accent-4-rgb),.28), 0 0 15px rgba(var(--accent-4-rgb),.16), inset 0 1px 0 var(--glass-line); }
 .nm-scrap .sc-item.pickfail { border-color:rgba(var(--accent-4-rgb),.5) !important; }
 .nm-scrap .sc-item.removing { opacity:0; transform:scale(.96) translateX(16px); pointer-events:none; transition:opacity .3s, transform .3s, height .36s, margin .36s, padding .36s; }
-.nm-scrap .sc-top { display:flex; align-items:flex-start; justify-content:space-between; gap:5px; font-size:10px; color:var(--mut); }
+.nm-scrap .sc-top { display:flex; align-items:flex-start; justify-content:space-between; gap:5px; font-size:var(--fs-2xs); color:var(--mut); }
 .nm-scrap .sc-metal { display:flex; align-items:center; gap:5px; min-width:0; flex-wrap:wrap; }
 .nm-scrap .sc-top .cat { font-weight:700; }
 .nm-scrap .sc-cross { display:inline-flex; align-items:center; font-size:9.5px; font-weight:600; }
@@ -59,14 +59,14 @@
 .nm-scrap .sc-grade.fx { color:var(--accent); }
 .nm-scrap .sc-badge { font-weight:700; } .nm-scrap .sc-badge.iss { color:var(--accent-4); }
 .nm-scrap .sc-badge.brk { color:var(--danger); -webkit-touch-callout:none; user-select:none; }
-.nm-scrap .sc-plus { display:inline-flex; align-items:center; font-size:10px; font-weight:800; padding:1px 6px; border-radius:7px; color:var(--accent); background:rgba(var(--accent-rgb),.10); border:1px solid rgba(var(--accent-rgb),.28); }
+.nm-scrap .sc-plus { display:inline-flex; align-items:center; font-size:var(--fs-2xs); font-weight:800; padding:1px 6px; border-radius:7px; color:var(--accent); background:rgba(var(--accent-rgb),.10); border:1px solid rgba(var(--accent-rgb),.28); }
 .nm-scrap .sc-media { flex:none; white-space:nowrap; color:var(--fg); font-size:9.5px; font-weight:800; }
-.nm-scrap .sc-title { font-size:12.5px; font-weight:700; line-height:1.35; letter-spacing:-.2px; color:var(--fg); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.nm-scrap .sc-title { font-size:var(--fs-label); font-weight:700; line-height:1.35; letter-spacing:-.2px; color:var(--fg); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .nm-scrap .sc-title a { display:block; color:inherit; text-decoration:none; }
 
 /* 아래 줄 — PASS · PICK · 확인(원본 .sc-tg) / Picking… · PICKED(빗금 = 득템+잠김) / Failed(골드 빗금) */
 .nm-scrap .sc-bot { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; margin-top:2px; }
-.nm-scrap .sc-tg { flex:1; min-width:0; display:grid; place-items:center; height:26px; padding:0 5px; font:inherit; font-size:11px; font-weight:600; cursor:pointer; border-radius:9px;
+.nm-scrap .sc-tg { flex:1; min-width:0; display:grid; place-items:center; height:26px; padding:0 5px; font:inherit; font-size:var(--fs-xs); font-weight:600; cursor:pointer; border-radius:9px;
   border:1px solid var(--sc-btn-line); background:var(--sc-btn); color:var(--sc-btn-fg); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); transition:background .14s, transform .1s, color .14s, border-color .14s; }
 .nm-scrap .sc-tg:active { transform:scale(var(--press-m, .9)); }
 .nm-scrap .sc-tg.pick { flex:1.5; color:var(--accent); }
@@ -80,7 +80,7 @@
 .nm-scrap .sc-tg.ack.on .sc-dash { opacity:0; } .nm-scrap .sc-tg.ack.on .sc-chk { opacity:1; stroke-dashoffset:0; }   /* 확인 = −→✓ 그려짐(원본 ACK_MORPH) */
 .nm-scrap .sc-tg.sc-failgo { color:var(--accent); }
 .nm-scrap .sc-ck { width:14px; height:14px; display:block; } .nm-scrap .sc-ck path { stroke:currentColor; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; }
-.nm-scrap .sc-got { flex:1; position:relative; display:grid; place-items:center; height:26px; padding:0; overflow:hidden; border-radius:9px; font:inherit; font-size:11.5px; font-weight:800; letter-spacing:.06em; color:var(--accent);
+.nm-scrap .sc-got { flex:1; position:relative; display:grid; place-items:center; height:26px; padding:0; overflow:hidden; border-radius:9px; font:inherit; font-size:var(--fs-sm); font-weight:800; letter-spacing:.06em; color:var(--accent);
   border:1px solid rgba(var(--accent-rgb),.4); background:repeating-linear-gradient(45deg, rgba(var(--accent-rgb),.20) 0 5px, rgba(var(--accent-rgb),.05) 5px 10px); }
 button.sc-got { cursor:pointer; }
 .nm-scrap .sc-got.picking { letter-spacing:0; background:rgba(var(--accent-rgb),.10); }
@@ -91,7 +91,7 @@ button.sc-got { cursor:pointer; }
 .nm-scrap .sc-got.nm-go[data-stage="fill"] { color:var(--bg, #161716); background:linear-gradient(var(--accent), var(--accent)) left/0% 100% no-repeat, linear-gradient(rgba(var(--accent-rgb),.18), rgba(var(--accent-rgb),.18)); animation:nmGoFill .72s cubic-bezier(.22,.61,.36,1) forwards; }
 .nm-scrap .sc-got.nm-go[data-stage="ok"] { color:var(--bg, #161716); background:var(--accent); }
 .nm-scrap .sc-got.nm-go .nm-go-ck { width:16px; height:16px; margin:0; }
-.nm-scrap .sc-fail { flex:1; position:relative; display:grid; place-items:center; height:26px; padding:0; overflow:hidden; border-radius:9px; font:inherit; font-size:11.5px; font-weight:800; letter-spacing:.06em; cursor:pointer;
+.nm-scrap .sc-fail { flex:1; position:relative; display:grid; place-items:center; height:26px; padding:0; overflow:hidden; border-radius:9px; font:inherit; font-size:var(--fs-sm); font-weight:800; letter-spacing:.06em; cursor:pointer;
   color:var(--danger); border:1px solid rgba(var(--accent-4-rgb),.55); background:repeating-linear-gradient(45deg, rgba(var(--accent-4-rgb),.26) 0 4px, rgba(var(--accent-4-rgb),.09) 4px 8px);
   -webkit-touch-callout:none; user-select:none; touch-action:manipulation; }
 .nm-scrap .sc-fail:active { transform:scale(var(--press-l, .97)); }
@@ -126,14 +126,14 @@ button.sc-got { cursor:pointer; }
   box-shadow:0 18px 46px rgba(0,0,0,.35); -webkit-backdrop-filter:blur(24px) saturate(1.05); backdrop-filter:blur(24px) saturate(1.05); animation:scRsnIn .16s cubic-bezier(.22,.61,.36,1); }
 .nm-scrap-layer .sc-rsn.up { --rsn-dy:6px; transform-origin:bottom left; } .nm-scrap-layer .sc-rsn.down { --rsn-dy:-6px; transform-origin:top left; }
 @keyframes scRsnIn { from { opacity:0; transform:translateY(var(--rsn-dy, 4px)) scale(.97); } }
-.nm-scrap-layer .sc-rsn-q { display:flex; align-items:center; gap:6px; margin:-11px -11px 0 -16px; padding:10px 12px 10px 18px; background:var(--sc-pop-head); border-bottom:1px solid var(--glass-line); border-radius:14px 14px 0 0; font-size:var(--fs-h2, 15px); font-weight:800; letter-spacing:-.2px; }
+.nm-scrap-layer .sc-rsn-q { display:flex; align-items:center; gap:6px; margin:-11px -11px 0 -16px; padding:10px 12px 10px 18px; background:var(--sc-pop-head); border-bottom:1px solid var(--glass-line); border-radius:14px 14px 0 0; font-size:var(--fs-h2); font-weight:800; letter-spacing:-.2px; }
 .nm-scrap-layer .sc-rsn-q b { flex:1; font:inherit; }
 .nm-scrap-layer .sc-rsn-x { flex:none; width:30px; height:30px; display:grid; place-items:center; padding:0; border-radius:50%; border:1px solid var(--glass-line); background:none; color:var(--mut); cursor:pointer; }
 .nm-scrap-layer .sc-rsn-x svg { width:14px; height:14px; }
 .nm-scrap-layer .sc-rsn-chips { display:flex; flex-direction:column; }
 .nm-scrap-layer .sc-rsn-chips.inp-mode { flex-direction:row; align-items:center; gap:6px; padding-top:8px; }
 .nm-scrap-layer .sc-rsn-c { display:flex; align-items:center; width:auto; margin:0 -11px 0 -16px; padding:9px 11px 9px 16px; text-align:left; background:none; border:0; border-top:1px solid var(--glass-line); border-radius:0;
-  font:inherit; font-size:var(--fs-label, 13px); font-weight:600; color:var(--fg); cursor:pointer; transition:color .15s, background .15s; }
+  font:inherit; font-size:var(--fs-label); font-weight:600; color:var(--fg); cursor:pointer; transition:color .15s, background .15s; }
 .nm-scrap-layer .sc-rsn-c:first-child { border-top:0; }
 .nm-scrap-layer .sc-rsn-c:active, .nm-scrap-layer .sc-rsn-c:hover { color:var(--accent); background:rgba(var(--accent-rgb),.06); }
 .nm-scrap-layer .sc-rsn-c.inp { color:var(--mut); }
@@ -144,32 +144,32 @@ button.sc-got { cursor:pointer; }
 /* 묶음 풀기(원본 .unmerge-pop — 숫자 바로 위 가운데 · 게이지 → ✓ 뒤 풀림 = 잘못 눌러도 한 번 더) */
 .nm-scrap-layer .unmerge-pop { position:fixed; z-index:62; transform:translate(-50%, -100%); margin-top:-9px; animation:scUmPop .16s cubic-bezier(.22,.61,.36,1); }
 @keyframes scUmPop { from { transform:translate(-50%, -100%) translateY(6px) scale(.9); opacity:0; } }
-.nm-scrap-layer .unmerge-go { display:inline-flex; align-items:center; justify-content:center; height:30px; min-width:30px; padding:0 12px; border-radius:9px; font:inherit; font-size:12px; font-weight:800; white-space:nowrap; cursor:pointer; color:var(--accent);
+.nm-scrap-layer .unmerge-go { display:inline-flex; align-items:center; justify-content:center; height:30px; min-width:30px; padding:0 12px; border-radius:9px; font:inherit; font-size:var(--fs-sm); font-weight:800; white-space:nowrap; cursor:pointer; color:var(--accent);
   background:var(--sc-pop); border:1px solid rgba(var(--accent-rgb),.45); box-shadow:0 8px 22px rgba(0,0,0,.3); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); }
 .nm-scrap-layer .unmerge-go[data-stage="ok"] { padding:0 12px; }
 /* 실패 메뉴(원본 .failmenu — 실패 사유 · 내용 입력) */
 .nm-scrap-layer .sc-failmenu { position:fixed; z-index:62; display:flex; flex-direction:column; min-width:140px; padding:4px; border-radius:12px; background:var(--sc-pop); border:1px solid var(--glass-line); box-shadow:0 14px 36px rgba(0,0,0,.32); -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px); animation:scRsnIn .16s cubic-bezier(.22,.61,.36,1); }
-.nm-scrap-layer .sc-failmenu-it { display:flex; align-items:center; gap:8px; padding:9px 10px; border:0; border-radius:8px; background:none; color:var(--fg); font:inherit; font-size:13px; font-weight:600; text-align:left; cursor:pointer; }
+.nm-scrap-layer .sc-failmenu-it { display:flex; align-items:center; gap:8px; padding:9px 10px; border:0; border-radius:8px; background:none; color:var(--fg); font:inherit; font-size:var(--fs-label); font-weight:600; text-align:left; cursor:pointer; }
 .nm-scrap-layer .sc-failmenu-it:active { background:rgba(var(--accent-rgb),.08); color:var(--accent); }
 /* 내용 직접 입력(원본 pastedlg) — 아래에서 올라오는 판 */
 .nm-scrap-sheet { position:fixed; inset:0; z-index:63; display:flex; align-items:flex-end; justify-content:center; padding:0 12px calc(var(--duet-tab-space, 86px) + 8px); }
 .nm-scrap-veil { position:absolute; inset:0; border:0; background:rgba(0,0,0,.32); cursor:default; }
 .nm-scrap-sheet .sc-paste { position:relative; width:min(560px, 100%); display:flex; flex-direction:column; gap:10px; padding:11px 11px 12px 16px; border-radius:18px; background:var(--sc-pop); border:1px solid var(--glass-line); box-shadow:0 18px 46px rgba(0,0,0,.4); -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px); animation:scRsnIn .2s cubic-bezier(.22,.61,.36,1); }
-.nm-scrap-sheet .sc-paste-sub { font-size:12px; color:var(--mut); line-height:1.4; }
+.nm-scrap-sheet .sc-paste-sub { font-size:var(--fs-sm); color:var(--mut); line-height:1.4; }
 .nm-scrap-sheet textarea { width:100%; min-height:150px; resize:vertical; padding:10px; border-radius:10px; border:1px solid var(--glass-line); background:color-mix(in srgb, var(--fg) 5%, transparent); color:var(--fg); font:inherit; font-size:16px; line-height:1.5; outline:none; }
 .nm-scrap-sheet textarea:focus { border-color:rgba(var(--accent-rgb),.5); }
 .nm-scrap-sheet .sc-paste-bot { display:flex; justify-content:flex-end; }
-.nm-scrap-sheet .sc-paste-go, .nm-scrap .sc-retry { display:inline-flex; align-items:center; justify-content:center; min-width:120px; height:36px; padding:0 18px; border-radius:var(--r-pill, 999px); font:inherit; font-size:13px; font-weight:800; cursor:pointer; }
+.nm-scrap-sheet .sc-paste-go, .nm-scrap .sc-retry { display:inline-flex; align-items:center; justify-content:center; min-width:120px; height:36px; padding:0 18px; border-radius:var(--r-pill, 999px); font:inherit; font-size:var(--fs-label); font-weight:800; cursor:pointer; }
 /* 떠 있는 창 안 GoButton(풀기 · 직접입력 보내기 · 재분석 보내기) = 공용 단계 색이 위 단추 모양 규칙에 안 묻히게 한 겹 더(./go-button.css 값 그대로) */
 .nm-scrap-layer .nm-go[data-stage="fill"] { color:var(--bg, #161716); border-color:var(--accent); background:linear-gradient(var(--accent), var(--accent)) left/0% 100% no-repeat, linear-gradient(rgba(var(--accent-rgb),.18), rgba(var(--accent-rgb),.18)); animation:nmGoFill .72s cubic-bezier(.22,.61,.36,1) forwards; }
 .nm-scrap-layer .nm-go[data-stage="ok"] { color:var(--bg, #161716); border-color:var(--accent); background:var(--accent); }
 .nm-scrap-layer .nm-go[data-stage="err"] { color:#ff5f6d; border-color:rgba(255,95,109,.5); background:rgba(255,95,109,.1); }
 /* 알림 한 줄(원본 qFlash · PICK 실패 토스트) — 네비 바로 위 */
 .nm-scrap-layer .sc-note { position:fixed; z-index:64; left:50%; bottom:calc(var(--duet-tab-space, 86px) + 10px); transform:translateX(-50%); width:max-content; max-width:calc(100vw - 32px); display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:14px;
-  font-size:13px; line-height:1.4; color:var(--fg); background:var(--sc-pop); border:1px solid var(--glass-line); box-shadow:0 12px 30px rgba(0,0,0,.3); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); animation:scRsnIn .2s cubic-bezier(.22,.61,.36,1); }
+  font-size:var(--fs-label); line-height:1.4; color:var(--fg); background:var(--sc-pop); border:1px solid var(--glass-line); box-shadow:0 12px 30px rgba(0,0,0,.3); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); animation:scRsnIn .2s cubic-bezier(.22,.61,.36,1); }
 .nm-scrap-layer .sc-note.fail { border-color:rgba(var(--danger-rgb),.45); }
 .nm-scrap-layer .sc-note.fail b { color:var(--danger); }
-.nm-scrap-layer .sc-note-act { flex:none; padding:5px 10px; border-radius:var(--r-pill, 999px); border:1px solid rgba(var(--accent-rgb),.45); background:none; color:var(--accent); font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
+.nm-scrap-layer .sc-note-act { flex:none; padding:5px 10px; border-radius:var(--r-pill, 999px); border:1px solid rgba(var(--accent-rgb),.45); background:none; color:var(--accent); font:inherit; font-size:var(--fs-sm); font-weight:800; cursor:pointer; }
 @media (prefers-reduced-motion:reduce) {
   .nm-scrap .sc-item, .nm-scrap-layer .sc-rsn, .nm-scrap-layer .unmerge-pop, .nm-scrap-layer .sc-failmenu, .nm-scrap-layer .sc-note, .nm-scrap-sheet .sc-paste { animation:none; }
   .nm-scrap .sc-got.picking::after, .nm-scrap .sc-fail.picking::after { animation:none; }

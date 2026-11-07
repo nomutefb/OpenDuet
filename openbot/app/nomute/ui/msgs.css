@@ -10,7 +10,7 @@
 .nm-msg .nm-msg-back svg { width:14px; height:14px; transform:scaleX(-1); }
 .nm-msg .nm-msg-detail { display:flex; flex-direction:column; gap:10px; padding:4px 2px; }
 .nm-msg .nm-msg-detail .hd { display:flex; align-items:baseline; gap:8px; }
-.nm-msg .nm-msg-detail .bd { margin:0; font-size:var(--fs-sm, 12px); line-height:1.6; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; color:var(--fg); font-family:var(--app-font-text, inherit); }
+.nm-msg .nm-msg-detail .bd { margin:0; font-size:var(--fs-sm); line-height:1.6; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; color:var(--fg); font-family:var(--app-font-text, inherit); }
 .nm-msg .nm-msg-act { align-self:flex-start; }
 .nm-msg .nm-msg-act.ok { opacity:.8; }
 html:not(.dark) .nm-msg .mk.sys { color:#6a33c2; } html:not(.dark) .nm-msg .mk.warn { color:#b86200; }

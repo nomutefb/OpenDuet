@@ -4,7 +4,7 @@
 .nm-feed .nm-feed-head { display:flex; align-items:center; gap:8px; min-height:28px; font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; }
 .nm-feed .nm-feed-head b { font-weight:var(--fw-x); color:var(--fg); } .nm-feed .nm-feed-head b.z { color:var(--mut); }
 .nm-feed .nm-feed-qbtn { margin-left:auto; display:inline-flex; align-items:center; gap:5px; }
-.nm-feed .nm-feed-qbtn i { min-width:16px; height:16px; padding:0 4px; border-radius:var(--r-pill); background:var(--accent); color:var(--bg); font-style:normal; font-size:10px; font-weight:var(--fw-x); display:inline-grid; place-items:center; }
+.nm-feed .nm-feed-qbtn i { min-width:16px; height:16px; padding:0 4px; border-radius:var(--r-pill); background:var(--accent); color:var(--bg); font-style:normal; font-size:var(--fs-2xs); font-weight:var(--fw-x); display:inline-grid; place-items:center; }
 
 /* 검색칸 = 요약 요청 입력칸(.nm-ask-in) 결의 알약 */
 .nm-feed .nm-feed-find { display:flex; align-items:center; gap:8px; height:38px; padding:0 6px 0 12px; background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-pill); box-shadow:inset 0 1px 0 var(--glass-line); color:var(--mut); transition:border-color .45s var(--ease); }
@@ -28,13 +28,13 @@
 .nm-feed .qc-t span { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nm-feed .qc-t i { flex:none; font-style:normal; font-size:var(--fs-xs); color:var(--mut); font-variant-numeric:tabular-nums; }
 .nm-feed .qc-steps { display:flex; gap:4px; }
-.nm-feed .qc-s { flex:1; display:flex; align-items:center; gap:5px; padding-top:5px; border-top:3px solid var(--glass-line); font-size:10px; font-weight:var(--fw-b); color:var(--mut); white-space:nowrap; }
+.nm-feed .qc-s { flex:1; display:flex; align-items:center; gap:5px; padding-top:5px; border-top:3px solid var(--glass-line); font-size:var(--fs-2xs); font-weight:var(--fw-b); color:var(--mut); white-space:nowrap; }
 .nm-feed .qc-s i { width:6px; height:6px; border-radius:50%; background:var(--glass-line); flex:none; }
-.nm-feed .qc-s em { margin-left:auto; padding:0 6px; border-radius:var(--r-pill); background:var(--glass); border:1px solid var(--glass-line); font-style:normal; font-size:10px; line-height:15px; color:var(--fg-2); font-variant-numeric:tabular-nums; }
+.nm-feed .qc-s em { margin-left:auto; padding:0 6px; border-radius:var(--r-pill); background:var(--glass); border:1px solid var(--glass-line); font-style:normal; font-size:var(--fs-2xs); line-height:15px; color:var(--fg-2); font-variant-numeric:tabular-nums; }
 .nm-feed .qc-s.done { border-top-color:var(--accent); color:var(--fg-2); } .nm-feed .qc-s.done i { background:var(--accent); }
 .nm-feed .qc-s.run { border-top-color:rgba(var(--accent-rgb),.5); color:var(--accent); } .nm-feed .qc-s.run i { background:var(--accent); animation:nmNdPulse 1.4s ease-in-out infinite; }
 .nm-feed .qc-s.fail { border-top:3px dashed #ff5f8a; color:#ff5f8a; } .nm-feed .qc-s.fail i { background:#ff5f8a; }
-.nm-feed .qc-why { font-size:var(--fs-sm, 12px); line-height:1.45; color:var(--fg-2); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.nm-feed .qc-why { font-size:var(--fs-sm); line-height:1.45; color:var(--fg-2); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .nm-feed .qc-why b { margin-right:6px; font-weight:var(--fw-x); color:#ff5f8a; }
 
 /* 기사 줄 */
@@ -54,7 +54,7 @@
 .nm-feed .nm-feed-kv i { font-style:normal; }
 .nm-feed .nm-feed-kv b { font-weight:var(--fw-b); color:var(--fg-2); white-space:nowrap; }
 .nm-feed .nm-feed-src { position:relative; pointer-events:auto; font-weight:var(--fw-b); color:var(--fg-2); white-space:nowrap; text-decoration:underline; text-decoration-color:var(--glass-line); text-underline-offset:3px; -webkit-tap-highlight-color:transparent; }
-.nm-feed .nm-feed-kv .sens em { padding:0 6px; border:1px solid var(--glass-line); border-radius:var(--r-pill); font-style:normal; font-size:10px; line-height:16px; color:var(--fg-2); white-space:nowrap; }
+.nm-feed .nm-feed-kv .sens em { padding:0 6px; border:1px solid var(--glass-line); border-radius:var(--r-pill); font-style:normal; font-size:var(--fs-2xs); line-height:16px; color:var(--fg-2); white-space:nowrap; }
 .nm-feed .nm-feed-kv .sens em.warn { color:#e8921a; border-color:rgba(255,179,64,.4); background:rgba(255,179,64,.1); } .dark .nm-feed .nm-feed-kv .sens em.warn { color:#ffb340; }
 .nm-feed .bias.l2 { color:#3a6ddb; } .nm-feed .bias.l1 { color:#1a9fd6; } .nm-feed .bias.r1 { color:#e8604f; } .nm-feed .bias.r2 { color:#e23b2a; } .nm-feed .bias.na { color:var(--mut); }
 .dark .nm-feed .bias.l1 { color:#38C6FF; } .dark .nm-feed .bias.r1 { color:#ff7a6b; }   /* 편향 색 = 원문 방향(기사 한 장 .nm-chip.bias 와 같은 값) */

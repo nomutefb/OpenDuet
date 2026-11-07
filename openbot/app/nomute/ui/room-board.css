@@ -1,7 +1,7 @@
 /* 방 띠(./room-board.tsx) — 입력칸 바로 위 한 줄(형 11-07 10:28 「채팅 바로 위에 쓰는곳 위에 올라와야하고, 얼굴로 있어야함 … 분은 필요」)
    형 10:46 「심플하게 프로필 사진만 … 전경색 칠하는건 취소. 프로필 원만. 그리고 16분 이것만.」 → 칩 = 프로필 원 + 분 · 색 칠 0 · 왼쪽 × = 일괄 · 우클릭 = 지움
    형 10:45 「튀어나오게가 채팅창 구역 안으로」 → 마우스 올림 = 줄 안에서 밝기만(밖으로 안 튀어나옴) · 넘치면 「+N」 · 펼치면 줄바꿈(최대 높이) */
-.nm-board { display:flex; flex-wrap:nowrap; align-items:center; gap:8px; margin:0 0 6px; padding:2px; overflow:hidden; font-size:11px; line-height:1; }
+.nm-board { display:flex; flex-wrap:nowrap; align-items:center; gap:8px; margin:0 0 6px; padding:2px; overflow:hidden; font-size:var(--fs-xs); line-height:1; }
 .nm-board .bd-rail { display:flex; flex:1; min-width:0; align-items:center; gap:8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; scrollbar-width:none; -webkit-overflow-scrolling:touch; }   /* 옆으로 밀기(형 10:47 「옆으로 밀면 이거 밀려서 다음꺼 보여야해」) */
 .nm-board .bd-rail::-webkit-scrollbar { display:none; }
 .nm-board .bd-rail > * { scroll-snap-align:start; }
@@ -9,15 +9,15 @@
 .nm-board .bd-chip:hover { filter:brightness(1.15); color:var(--fg); }
 .nm-board .bd-chip:active { opacity:.5; }
 .nm-board .bd-chip > img, .nm-board .bd-chip > span:first-child { border-radius:50%; }
-.nm-board .bd-chip b { font-weight:400; font-size:10px; }
+.nm-board .bd-chip b { font-weight:400; font-size:var(--fs-2xs); }
 .nm-board .bd-chip i { font-style:normal; font-weight:400; }   /* 형 11:14 「분 글자 폰트 볼디한거 좀만 한단계 낮추자」 600 → 500 · 11:20 「볼디함 하나 더 줄임」(봄 나눔) → 400 */
 .nm-board .bd-sug.is-hold { opacity:.7; }
-.nm-board .bd-clear { all:unset; cursor:pointer; flex:none; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; color:var(--mut); font-size:15px; line-height:1; }
+.nm-board .bd-clear { all:unset; cursor:pointer; flex:none; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; color:var(--mut); font-size:var(--fs-body); line-height:1; }
 .nm-board .bd-clear:hover { color:var(--fg); background:rgba(127,127,127,.15); }
 .nm-board .bd-more { all:unset; cursor:pointer; flex:none; padding:0 6px; height:24px; display:inline-flex; align-items:center; color:var(--mut); font-weight:600; }
 .nm-board .bd-more:hover { color:var(--fg); }
 /* 폰 = 칩마다 작은 ×(형 11:13 「언급마다 x 가 아주 작게」 · 11:14 「개별 지우기가 크기가 작아야」 · 일괄 × 22px 보다 작게) · PC = 우클릭이라 × 없음 */
-.nm-board .bd-x { display:none; place-items:center; width:14px; height:14px; margin-left:1px; border-radius:50%; color:var(--mut); font-size:11px; line-height:1; }
+.nm-board .bd-x { display:none; place-items:center; width:14px; height:14px; margin-left:1px; border-radius:50%; color:var(--mut); font-size:var(--fs-xs); line-height:1; }
 @media (hover: none), (pointer: coarse) { .nm-board .bd-x { display:inline-grid; } }
 /* 분 글자 색(형 11:20 「30분 지나면 노랑, 45분 지나면 주황으로 하다가 없어지면 될듯 (분에 표기를 말함)」 · 1시간 = 띠에서 빠짐(room-board.tsx)) */
 .nm-board .bd-chip.is-30 i { color:#FFD23F; }

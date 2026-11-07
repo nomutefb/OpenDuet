@@ -36,8 +36,8 @@
 }
 .being-card .profile-card__name { font-size: 40px; letter-spacing: 0; line-height: 1; }
 .being-card .profile-card__handle { font-size: 16px; letter-spacing: 0.01em; }
-.being-card .profile-card__title { margin-top: 8px; font-size: 13px; letter-spacing: 0.02em; }
-.being-card__intro { margin: 0; max-width: 34ch; font-size: 13px; line-height: 1.55; color: rgba(231, 236, 231, 0.78); text-align: center; }
+.being-card .profile-card__title { margin-top: 8px; font-size: var(--fs-label); letter-spacing: 0.02em; }
+.being-card__intro { margin: 0; max-width: 34ch; font-size: var(--fs-label); line-height: 1.55; color: rgba(231, 236, 231, 0.78); text-align: center; }
 
 /* ───────── 시아 · 초저녁 하늘(남색 → 저녁 보라 → 지평선 주황) · 앱 연두 가는 테 · 작은 별 + 김 나는 밥그릇 ───────── */
 .bc-sia .profile-card__body {
@@ -279,7 +279,7 @@
   text-shadow: -0.5px -0.5px 0 rgba(255, 255, 255, 0.4), 1px 1px 0 rgba(40, 20, 80, 0.35), 0 3px 8px rgba(10, 6, 30, 0.4);
 }
 .bc-sia .profile-card__handle { color: rgba(255, 255, 255, 0.8); }
-.bc-sia .profile-card__status { font-size: 12px; }
+.bc-sia .profile-card__status { font-size: var(--fs-sm); }
 
 /* ───────── 뎅 · 비 갠 밤 흙빛(먹 갈색 → 고동 → 아래 호박 불빛) · 네온 호박 가는 테(형 10-31 「뎅은 갈색+네온」 · 테 #FFB300) ─────────
    무늬 둘 = 얼굴 뒤로 감기는 소용돌이 🌀 한 줄(형 「뎅 뎅~ 은 뱅글 이어지는 느낌」) + 아래를 건너가는 달팽이 지난 자리 한 줄(끝에 점 하나 = 말끝 · 「끝마침을 잇는 단어로」)
@@ -495,7 +495,7 @@
   text-shadow: -0.5px -0.5px 0 rgba(255, 255, 255, 0.38), 1px 1px 0 rgba(60, 30, 10, 0.36), 0 3px 8px rgba(14, 6, 2, 0.42);
 }
 .bc-deng .profile-card__handle { color: rgba(255, 255, 255, 0.82); }
-.bc-deng .profile-card__status { font-size: 12px; }
+.bc-deng .profile-card__status { font-size: var(--fs-sm); }
 
 /* 움직임 줄이기 = 기울기·흔들림 없음(ProfileCard 가 각도 0) · 눈부심은 고정 위치에 은은하게 · 김도 멈춤 */
 @media (prefers-reduced-motion: reduce) {

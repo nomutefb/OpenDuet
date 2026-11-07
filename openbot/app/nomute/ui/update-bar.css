@@ -4,7 +4,7 @@
 .nm-upd { position:fixed; left:0; right:0; margin-inline:auto; width:fit-content; max-width:calc(100% - 32px); top:calc(96px + env(safe-area-inset-top)); z-index:80;
   display:flex; align-items:center; height:38px; padding:0 16px; border-radius:var(--r-pill, 999px); cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   background:rgba(30,32,35,.72); background:color-mix(in srgb, var(--bubble-ai, #1e2023) 72%, transparent); border:1px solid rgba(255,255,255,.08); color:#E7ECE7;
-  font:var(--fw-b, 700) var(--fs-label, 13px)/1.2 'Paperlogy', system-ui, sans-serif;
+  font:var(--fw-b, 700) var(--fs-label)/1.2 'Paperlogy', system-ui, sans-serif;
   backdrop-filter:blur(var(--blur-l, 11px)); -webkit-backdrop-filter:blur(var(--blur-l, 11px)); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), var(--shadow-card, 0 24px 60px rgba(0,0,0,.42));
   animation:nmUpdIn .34s var(--ease, cubic-bezier(.2,.7,.3,1)); }
 .nm-upd { color:var(--accent, #CFFF40); border-color:rgba(var(--accent-rgb, 207,255,64),.38); transition:transform .28s var(--ease, cubic-bezier(.2,.7,.3,1)), opacity .2s; }   /* 알약 자체가 단추(형 「그거 누르면 갱신되게」) · 라임 글자 = 누를 수 있음 */

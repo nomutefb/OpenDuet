@@ -3,7 +3,7 @@
 .nm-statusline {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; height: 26px;
   display: flex; align-items: center; gap: 8px; padding: 0 14px;
-  font-size: 12px; line-height: 1; letter-spacing: .02em; white-space: nowrap; overflow: hidden;
+  font-size: var(--fs-sm); line-height: 1; letter-spacing: .02em; white-space: nowrap; overflow: hidden;
   color: rgba(232,234,232,.62);
   background: rgba(16,17,19,.55); -webkit-backdrop-filter: blur(14px) saturate(1.15); backdrop-filter: blur(14px) saturate(1.15);
   border-top: 1px solid rgba(255,255,255,.08);
@@ -12,7 +12,7 @@
 .nm-statusline .nm-sl-sep { font-style: normal; opacity: .4; }
 .nm-statusline .nm-sl-fill { flex: 1; }
 /* 부품 둘(번개 22:42 「바깥 자리(position)는 부품에 박지 말고 클래스만」) — 자리 0 · 결만: ⓐ 윗줄 신호등 줄 · ⓑ 우하단 「동기화 00분 전 • 버전 0000000」 */
-.nm-sl-lights, .nm-sl-syncver { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; line-height: 1; letter-spacing: .02em; white-space: nowrap; color: rgba(232,234,232,.62); }
+.nm-sl-lights, .nm-sl-syncver { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-sm); line-height: 1; letter-spacing: .02em; white-space: nowrap; color: rgba(232,234,232,.62); }
 .nm-sl-lights b { color: #CFFF40; font-weight: 700; letter-spacing: .03em; }
 .nm-sl-lights .nm-sl-sep, .nm-sl-syncver .nm-sl-dot { font-style: normal; opacity: .4; }
 .nm-sl-syncver .nm-sl-ver { all: unset; padding: 1px 4px; border-radius: 4px; font: 600 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .02em; color: rgba(232,234,232,.62); cursor: default; user-select: text; }

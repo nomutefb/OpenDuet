@@ -10,10 +10,10 @@
 .ychat .ylink-play svg { width:20px; height:20px; margin-left:2px; }
 .ychat .ylink-tx { display:flex; flex-direction:column; gap:3px; min-width:0; padding:9px 12px 10px; }
 .ychat .ylink-t, .ychat .ylink-d { display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
-.ychat .ylink-t { -webkit-line-clamp:2; font-size:14px; font-weight:700; line-height:1.35; }
-.ychat .ylink-d { -webkit-line-clamp:2; font-size:12.5px; line-height:1.4; color:var(--fg-2); opacity:.8; }
+.ychat .ylink-t { -webkit-line-clamp:2; font-size:var(--fs-h3); font-weight:700; line-height:1.35; }
+.ychat .ylink-d { -webkit-line-clamp:2; font-size:var(--fs-label); line-height:1.4; color:var(--fg-2); opacity:.8; }
 .ychat .ylink.yt .ylink-d { -webkit-line-clamp:1; }
-.ychat .ylink-s { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:11px; line-height:1.3; color:var(--mut); }
+.ychat .ylink-s { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:var(--fs-xs); line-height:1.3; color:var(--mut); }
 /* 로그인 벽(비공개 인스타 등) = 링크만 = 작은 알약 */
 .ychat .ylink-chip { display:inline-flex; align-items:center; gap:6px; max-width:min(260px, 100%); padding:6px 11px 6px 9px; border-radius:var(--r-pill, 999px); background:var(--glass-2); border:1px solid var(--glass-line);
   color:var(--fg-2); font:500 12px/1.3 Pretendard, -apple-system, system-ui, sans-serif; text-decoration:none; -webkit-tap-highlight-color:transparent; transition:transform .28s var(--ease); }

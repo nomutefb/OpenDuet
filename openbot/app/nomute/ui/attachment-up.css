@@ -2,13 +2,13 @@
 /* 칸 = 화면 반까지(256px 로 묶어 긴 글 윗부분이 평평하게 잘리던 것 · 형 11-02 07:18 사진 97119) · 긴 글은 말풍선 안에서 6줄로 접힘(보내지면 진짜 글 = 17줄 + 「전체 보기」 · ./fold.tsx) */
 .nac-box { max-height:50dvh; }
 .nac-up { align-self:flex-end; display:flex; flex-direction:column; align-items:flex-end; gap:6px; max-width:min(78%, 260px); margin-bottom:8px; }
-.nac-text { line-height:1.5; margin:0; padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; font-size:14px; white-space:pre-wrap; word-break:break-word; }   /* 보내는 중 글 = 다 보임(보내진 뒤 사진 밑 글 .ycap 도 안 접힘 · 형 11-04 09:37 「일정 글자 이상 들어가는게 문제인거같아」 = 6줄로 자르고 끝을 흐려 입력칸에 묻힌 듯 보였음 · 앞 판 = 6줄 + 흐림 띠) */
+.nac-text { line-height:1.5; margin:0; padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; font-size:var(--fs-h3); white-space:pre-wrap; word-break:break-word; }   /* 보내는 중 글 = 다 보임(보내진 뒤 사진 밑 글 .ycap 도 안 접힘 · 형 11-04 09:37 「일정 글자 이상 들어가는게 문제인거같아」 = 6줄로 자르고 끝을 흐려 입력칸에 묻힌 듯 보였음 · 앞 판 = 6줄 + 흐림 띠) */
 .nac-img { display:block; max-height:120px; max-width:100%; border-radius:16px; object-fit:cover; opacity:.55; transition:opacity .28s ease; }
-.nac-file { max-width:100%; padding:8px 12px; border-radius:14px; background:var(--duet-tile, rgba(255,255,255,.08)); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.nac-wait { font-size:11px; line-height:1; color:var(--mut, currentColor); opacity:0; animation:nacLate .2s ease 1.2s forwards; }   /* 글도 줄로 가니(형 11-02 11:17) 빨리 가는 글엔 안 보이게 · 1.2초 넘게 걸리면 「보냄 대기」 */
+.nac-file { max-width:100%; padding:8px 12px; border-radius:14px; background:var(--duet-tile, rgba(255,255,255,.08)); font-size:var(--fs-label); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nac-wait { font-size:var(--fs-xs); line-height:1; color:var(--mut, currentColor); opacity:0; animation:nacLate .2s ease 1.2s forwards; }   /* 글도 줄로 가니(형 11-02 11:17) 빨리 가는 글엔 안 보이게 · 1.2초 넘게 걸리면 「보냄 대기」 */
 @keyframes nacLate { to { opacity:.8; } }
 @media (prefers-reduced-motion:reduce){ .nac-wait { animation-duration:0s; } }
-.nac-again { padding:0; border:0; background:none; font-size:12px; color:var(--destructive, #ff6b6b); cursor:pointer; }
+.nac-again { padding:0; border:0; background:none; font-size:var(--fs-sm); color:var(--destructive, #ff6b6b); cursor:pointer; }
 .nac-shots { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:max-content; max-width:100%; }
 /* 둥근 게이지 = 그림 안 가운데(형 11-02 02:21) · % 로 참 → ✓ 그려지고 그림 또렷 · 고리는 걷힘 · 원본 리듬 = go-button(✓ 0.38초 그리기) */
 .nac-shot { position:relative; display:block; max-width:100%; }
@@ -29,7 +29,7 @@
 .nac-shot.file .nac-ring-ck { width:15px; height:15px; }
 @media (prefers-reduced-motion:reduce) { .nac-ring, .nac-img { transition:none; } .nac-ring-ck path { animation:none; stroke-dashoffset:0; } }
 /* 안 닿은 부름(office-chat Missed) */
-.ymiss { display:block; margin-top:4px; font-size:11px; line-height:1.3; opacity:.72; }
+.ymiss { display:block; margin-top:4px; font-size:var(--fs-xs); line-height:1.3; opacity:.72; }
 .ycap-ai { margin-top:6px; }
 .ycap { margin:6px 0 0; white-space:pre-wrap; word-break:break-word; }
 .ychat .yb.ph .ycap { padding:8px 12px; border-radius:16px; background:var(--accent, #CFFF40); color:#141414; }
@@ -37,7 +37,7 @@
 .nm-atts-back { position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.34); animation:nmAttsFade .16s ease-out; }
 .nm-atts { position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom, 0px)); z-index:61; display:flex; flex-direction:column; gap:2px; padding:8px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); border-radius:var(--r-l, 24px); background:rgba(24,25,28,.95); -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px); box-shadow:0 8px 32px rgba(0,0,0,.4); animation:nmAttsUp .22s cubic-bezier(.2,.8,.2,1); }
 :root:not(.dark) .nm-atts { background:rgba(255,255,255,.95); }
-.nm-atts button { display:flex; align-items:center; gap:14px; width:100%; min-height:52px; padding:0 14px; border:0; border-radius:16px; background:none; color:var(--fg, inherit); font-size:var(--fs-body, 15px); text-align:left; -webkit-tap-highlight-color:transparent; }
+.nm-atts button { display:flex; align-items:center; gap:14px; width:100%; min-height:52px; padding:0 14px; border:0; border-radius:16px; background:none; color:var(--fg, inherit); font-size:var(--fs-body); text-align:left; -webkit-tap-highlight-color:transparent; }
 .nm-atts button svg { color:rgb(var(--accent-rgb, 207,255,64)); }
 .nm-atts button:active { background:rgba(var(--accent-rgb, 207,255,64), .12); }
 @keyframes nmAttsFade { from { opacity:0; } }
@@ -56,19 +56,19 @@
 .nac-uprow .nac-up { margin-bottom:0; }   /* 보내는 중 사진 = [전송 대기][사진·글] · 바깥 줄이 아래 틈(8px)을 맡음 */
 .nac-wait.now { animation-delay:0s; }
 /* 보낸 파일 머리표(office-chat FileTag · 형 11-05 09:13) = 왼쪽 위 작은 알약 「0.4MB · PNG · 읽음」 · 블릿 간격 같게 */
-.nm-ftag { position:absolute; top:6px; left:6px; z-index:1; display:inline-flex; align-items:center; padding:1px 7px; border-radius:999px; background:rgba(0,0,0,.62); color:#fff; font-size:10px; font-weight:700; line-height:16px; font-variant-numeric:tabular-nums; pointer-events:none; }
+.nm-ftag { position:absolute; top:6px; left:6px; z-index:1; display:inline-flex; align-items:center; padding:1px 7px; border-radius:999px; background:rgba(0,0,0,.62); color:#fff; font-size:var(--fs-2xs); font-weight:700; line-height:16px; font-variant-numeric:tabular-nums; pointer-events:none; }
 .nm-ftag > span + span::before { content:"·"; margin:0 4px; opacity:.7; }
 .nm-ftag .rd { color:var(--accent, #CFFF40); }
 .nm-ftag .og { color:var(--accent, #CFFF40); }   /* 원본 = 시그니처 라임(형 11-05 10:44 「원본이라는 글자 시그니처 라임으로」) */
 .nm-ftag { font-style:italic; }   /* 형 10:44 「기울임꼴로 통일 시아야 기울임꼴훨이쁘네」 */
 /* 대화창 끌어다 놓기(office-chat · 형 11-05 10:45) = 놓을 자리 라임 테두리 + 한 줄 */
 .ychat.ydrop { outline:2px dashed var(--accent, #CFFF40); outline-offset:-6px; border-radius:18px; }
-.ychat.ydrop::after { content:"여기에 놓으면 첨부"; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); padding:8px 14px; border-radius:999px; background:rgba(0,0,0,.7); color:var(--accent, #CFFF40); font-size:13px; font-weight:700; font-style:italic; pointer-events:none; z-index:5; }
+.ychat.ydrop::after { content:"여기에 놓으면 첨부"; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); padding:8px 14px; border-radius:999px; background:rgba(0,0,0,.7); color:var(--accent, #CFFF40); font-size:var(--fs-label); font-weight:700; font-style:italic; pointer-events:none; z-index:5; }
 /* 영상 자막 알약(office-chat Subs · 형 11-05 11:04) = 영상 밑 작은 알약 · 기울임 · 만드는 중엔 숨쉬듯 */
-.nm-subs { display:inline-flex; margin-top:6px; padding:2px 10px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); background:rgba(0,0,0,.35); color:var(--fg, #E7ECE7); font-size:11px; font-weight:700; font-style:italic; cursor:pointer; }
+.nm-subs { display:inline-flex; margin-top:6px; padding:2px 10px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); background:rgba(0,0,0,.35); color:var(--fg, #E7ECE7); font-size:var(--fs-xs); font-weight:700; font-style:italic; cursor:pointer; }
 .nm-subs.wait { color:var(--accent, #CFFF40); cursor:default; animation:nmSubsBreath 1.6s ease-in-out infinite; }
 .nm-subs.fail { color:#ffb3b5; cursor:default; }
-.nm-subs-tx { max-width:260px; margin:6px 0 0; padding:8px 10px; border-radius:12px; background:rgba(0,0,0,.35); font-size:12px; line-height:1.55; white-space:pre-wrap; }
+.nm-subs-tx { max-width:260px; margin:6px 0 0; padding:8px 10px; border-radius:12px; background:rgba(0,0,0,.35); font-size:var(--fs-sm); line-height:1.55; white-space:pre-wrap; }
 @keyframes nmSubsBreath { 50% { opacity:.45; } }
 @media (prefers-reduced-motion: reduce) { .nm-subs.wait { animation:none; } }
 /* 파일마다 다운로드 단추(office-chat DlBtn · 형 11-05 11:35) = 오른쪽 위 반투명 동그라미 · 머리표(왼쪽 위)와 짝 */
@@ -81,10 +81,10 @@
 /* 파일 칸(office-chat · 형 11-05 12:21~12:25 텔레그램 꼴) = 확장자 색 판 · 가운데 줄인 이름 · 크기·확장자 · 오른쪽 다운로드 */
 .nm-fcard { display:flex; align-items:center; gap:10px; min-width:220px; max-width:280px; padding:8px 10px 8px 8px; border-radius:16px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); background:var(--card, rgba(255,255,255,.04)); color:inherit; text-decoration:none; cursor:pointer; }
 .nm-fcard:hover { background:rgba(255,255,255,.07); }
-.nm-fc-ic { flex:none; width:40px; height:44px; display:grid; place-items:center; border-radius:9px; color:#fff; font-size:11px; font-weight:800; letter-spacing:.02em; font-style:italic; box-shadow:inset 0 -10px 0 rgba(0,0,0,.12); clip-path:polygon(0 0, 72% 0, 100% 22%, 100% 100%, 0 100%); }
+.nm-fc-ic { flex:none; width:40px; height:44px; display:grid; place-items:center; border-radius:9px; color:#fff; font-size:var(--fs-xs); font-weight:800; letter-spacing:.02em; font-style:italic; box-shadow:inset 0 -10px 0 rgba(0,0,0,.12); clip-path:polygon(0 0, 72% 0, 100% 22%, 100% 100%, 0 100%); }
 .nm-fc-t { min-width:0; flex:1; display:flex; flex-direction:column; }
-.nm-fc-t b { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.nm-fc-t small { font-size:11px; color:var(--mut, #9aa0a6); font-style:italic; }
+.nm-fc-t b { font-size:var(--fs-label); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-fc-t small { font-size:var(--fs-xs); color:var(--mut, #9aa0a6); font-style:italic; }
 .nm-fc-dl { flex:none; width:30px; height:30px; display:grid; place-items:center; border-radius:50%; background:rgba(255,255,255,.08); }
 .nm-fc-dl svg { width:15px; height:15px; }
 .nm-fcard:hover .nm-fc-dl { color:var(--accent, #CFFF40); }
@@ -92,7 +92,7 @@
 .nar-card .nar-t { color:#CFFF40; padding-right:22px; }
 .nar-card .nar-body { font-style:italic; color:rgba(232,234,232,.5); }
 .nar-card .nar-lime { color:#CFFF40; font-weight:700; }
-.nar-card .nar-x { all:unset; position:absolute; top:6px; right:8px; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:15px; cursor:pointer; color:rgba(232,234,232,.7); }
+.nar-card .nar-x { all:unset; position:absolute; top:6px; right:8px; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:var(--fs-body); cursor:pointer; color:rgba(232,234,232,.7); }
 .nar-card .nar-x:hover { color:#CFFF40; background:rgba(207,255,64,.12); }
 /* 「[원본 저장]」 = 하늘색 링크 글자(형 11-06 20:34 「링크 하늘색 글자 … 그거로 나와야 클릭 느낌이 날듯 [원본 저장] 이렇게」) */
 .nar-save { text-decoration:none; }

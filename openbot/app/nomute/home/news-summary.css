@@ -1,20 +1,20 @@
 /* PC 우하단 뉴스 요약(./news-summary.tsx) — 실시간 뉴스 목록(./news-list.css)과 같은 꼴 · 판 없음 · 블랙 톤 · 라임 = 새 요약 점 · 요약 중 점 */
 .nm-nsum { display:flex; min-height:0; flex-direction:column; color:#e8eae8; border-top:1px solid rgba(255,255,255,.08); }
 .nm-nsum-h { display:flex; align-items:baseline; gap:8px; padding:12px 14px 6px; }
-.nm-nsum-h b { font-size:12.5px; letter-spacing:.02em; }
-.nm-nsum-h span { color:rgba(232,234,232,.45); font-size:11px; }
+.nm-nsum-h b { font-size:var(--fs-label); letter-spacing:.02em; }
+.nm-nsum-h span { color:rgba(232,234,232,.45); font-size:var(--fs-xs); }
 .nm-nsum-q { list-style:none; margin:0 6px 4px; padding:4px 8px; border-radius:9px; background:rgba(255,255,255,.035); }
-.nm-nsum-q li { display:grid; grid-template-columns:10px minmax(0,1fr) auto; align-items:center; gap:8px; min-height:26px; font-size:12px; }
+.nm-nsum-q li { display:grid; grid-template-columns:10px minmax(0,1fr) auto; align-items:center; gap:8px; min-height:26px; font-size:var(--fs-sm); }
 .nm-nsum-q li i { width:6px; height:6px; border-radius:50%; background:rgba(232,234,232,.35); }
 .nm-nsum-q li.run i { background:#CFFF40; animation:nmLive 1.8s ease-out infinite; }
 .nm-nsum-q li.bad i { background:#ff6b5e; }
 .nm-nsum-q .tt { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.nm-nsum-q .st { color:rgba(232,234,232,.5); font-size:10.5px; }
+.nm-nsum-q .st { color:rgba(232,234,232,.5); font-size:var(--fs-xs); }
 .nm-nsum-q li.run .st { color:#CFFF40; }
 .nm-nsum-ol { list-style:none; margin:0; padding:2px 6px 10px; overflow-y:auto; overscroll-behavior:contain; flex:1; min-height:0; }
 .nm-nsum-ol li { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; min-height:30px; padding:0 8px; border-bottom:1px solid rgba(255,255,255,.04); }
 .nm-nsum-ol li:hover { background:rgba(255,255,255,.045); }
-.nm-nsum-ol .tt { all:unset; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:12px; display:flex; align-items:center; gap:6px; }
+.nm-nsum-ol .tt { all:unset; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:var(--fs-sm); display:flex; align-items:center; gap:6px; }
 .nm-nsum-ol .tt .new { flex:none; width:6px; height:6px; border-radius:50%; background:#CFFF40; }
-.nm-nsum-ol .mt { color:rgba(232,234,232,.42); font-size:10.5px; white-space:nowrap; }
-.nm-nsum-ol .empty { color:rgba(232,234,232,.5); font-size:12px; border:0; }
+.nm-nsum-ol .mt { color:rgba(232,234,232,.42); font-size:var(--fs-xs); white-space:nowrap; }
+.nm-nsum-ol .empty { color:rgba(232,234,232,.5); font-size:var(--fs-sm); border:0; }

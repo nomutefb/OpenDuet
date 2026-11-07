@@ -3,5 +3,5 @@
 .nm-sensor .nm-sensor-row .qm > * { display:block; width:100%; max-width:100%; }   /* 두 줄 다 칸 폭에서 … (단추 밑으로 안 파고듦) */
 .nm-sensor .nm-sensor-row .qm small { font-size:var(--fs-xs); color:var(--fg-3, var(--fg-2)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nm-sensor .nm-sensor-row.off .qm i { opacity:.55; }
-.nm-sensor .nm-memo-add textarea { font-family:var(--app-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size:var(--fs-xs, 11px); }
+.nm-sensor .nm-memo-add textarea { font-family:var(--app-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size:var(--fs-xs); }
 .nm-sensor .nm-msg-detail .bd { white-space:pre-wrap; }

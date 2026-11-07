@@ -6,7 +6,7 @@
 /* 대화 판 머리(원본 ShellHeader floating = header.nm-head.absolute) — 사진 조금 위로(위 12→4px) · 사진 밑 이름 · 가림막 = 사진+이름까지 판 색(형 10-28 22:04 「거기까지가 가려지개」)
    사진 4 + 62 + 사이 4 + 이름 16 = 86px → 판 색 96px 까지 · 그 뒤 흐려짐 · 글 목록 위 여백·「보이는 위」·고정 띠 자리 = 같이 내림(office-chat HEAD·pt · pins.css) */
 header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradient(var(--duet-surface) 96px, transparent); }
-.nm-top-name { max-width:60vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; line-height:16px; font-weight:600; color:var(--fg, currentColor); pointer-events:none; }
+.nm-top-name { max-width:60vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-sm); line-height:16px; font-weight:600; color:var(--fg, currentColor); pointer-events:none; }
 .nm-pane.nm-over { z-index:20; background:var(--duet-surface); }   /* 판 위에 덮는 쪽(할 일 하나 보기 등 · 원본 머리 = 뒤로) */
 .nm-col { position:relative; margin-inline:auto; display:flex; min-height:0; width:100%; max-width:430px; flex:1; flex-direction:column; }   /* 대화·목록·할 일 = 원본 폰 폭 칸 그대로(TabColumn 430px) */
 .nm-scroll { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; padding-bottom:var(--duet-tab-space,86px); }   /* 러너·설정 = 넓은 판(PageShell) · 네비에 안 가리게 아래 여백 */
@@ -66,7 +66,7 @@ header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradi
 .nm-issue-st.on { background:rgba(var(--accent-rgb),.16); border-color:rgba(var(--accent-rgb),.38); color:var(--accent); }
 :root:not(.dark) .nm-issue-st.on { color:var(--fg); }
 .nm-issue-tag { padding:2px 8px; border-radius:var(--r-pill); background:var(--glass); border:1px solid var(--glass-line); }
-.nm-issue-md { font-size:14px; line-height:1.6; color:var(--fg); overflow-wrap:anywhere; }
+.nm-issue-md { font-size:var(--fs-h3); line-height:1.6; color:var(--fg); overflow-wrap:anywhere; }
 .nm-issue-md pre { overflow-x:auto; }
 .nm-modal-b.flush { padding-top:0; }   /* 할 일·러너·설정 = 판이 유리 알약 밑으로 지나감(YETA) · 할 일은 원본 ScreenScroll 윗여백(100px)이 곧 알약 자리 — 전엔 64+100 두 겹이라 위가 텅 빔 */
 .nm-modal-b.flush > .nm-scroll { padding-top:calc(64px + env(safe-area-inset-top)); }
@@ -78,7 +78,7 @@ header.nm-head.absolute:has(.nm-room-mark) { isolation:isolate; height:calc(44px
 /* 위 흐림(형 10-31 「그라데이션 흐림 좀 더 훨씬 세게해서 대화방 이름 잘보이게」) = 머리 아래로 22px 더 내려가며 스러짐 · 28 → 22 = 검색이 이름 줄로 올라와 아래 6px 이 빈 만큼(형 11-01 08:40 「아주 조금 줄어드만큼 그라데이션 가려지는 시작점 좀 더 위로」) */
 header.nm-head.absolute:has(.nm-room-mark)::before { content:""; position:absolute; inset:0 0 -22px 0; z-index:-1; pointer-events:none; background:linear-gradient(var(--duet-surface) 34%, color-mix(in srgb, var(--duet-surface) 78%, transparent) 62%, transparent); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); -webkit-mask-image:linear-gradient(#000 58%, transparent); mask-image:linear-gradient(#000 58%, transparent); }
 header.nm-head a:has(> .nm-room-mark) { width:0 !important; height:0 !important; }
-header.nm-head:has(.nm-room-mark) .nm-top-name { font-size:13px; line-height:16px; font-weight:700; color:var(--accent); text-shadow:0 1px 6px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.5); }
+header.nm-head:has(.nm-room-mark) .nm-top-name { font-size:var(--fs-label); line-height:16px; font-weight:700; color:var(--accent); text-shadow:0 1px 6px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.5); }
 header.nm-head:has(.nm-room-mark) .nm-top-name i { color:#fff; }
 .nm-col:has(.nm-room-mark) .nm-pin-slot { top:calc(40px + env(safe-area-inset-top, 0px)); }
 /* 5번 서랍·6번 설정 = 판 바탕을 비워 껍데기 라임 3D 바탕(../home/home-scene.css .nm-app-ambient · 옅은 막 62%)이 그대로 보임 · 그동안 밑 화면은 숨김(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」) */
@@ -114,7 +114,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-root { padding-top:28px; }
 .nm-split-l .ynav { position:fixed; top:0; bottom:auto; left:0; right:0; width:auto; max-width:none; height:28px; margin:0; padding:0 10px; border-radius:0; justify-content:center; gap:2px;
   background:rgba(14,14,16,.62); -webkit-backdrop-filter:blur(20px) saturate(120%); backdrop-filter:blur(20px) saturate(120%); border:0; border-bottom:1px solid rgba(255,255,255,.06); box-shadow:none; }
-.nm-split-l .ynav button { height:22px; padding:0 10px; font-size:11.5px; border-radius:6px; color:rgba(232,234,232,.62); }
+.nm-split-l .ynav button { height:22px; padding:0 10px; font-size:var(--fs-sm); border-radius:6px; color:rgba(232,234,232,.62); }
 .nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#f2f3f2; background:rgba(255,255,255,.08); border-color:transparent; box-shadow:none; }
 .nm-split-l .ynav svg { width:15px; height:15px; }
 /* PC 말풍선 = 다 잿빛 검정 · 글자 하나로(형 11-05 14:44 「응 내 말풍선 라임도, 그렇게 하고, 글자 색을 라임으로 할게. … 그냥 너네 라벨은 놔두고, 대화는 싹다 검정, 글자색은 다 통일. 기존의 형식대로, 검정이라하면 잿빛검정」)
@@ -154,7 +154,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-root .nm-strip { position:relative; z-index:2; }
 .nm-split-root { padding-top:50px; }
 .nm-split-l .ynav { height:50px; padding:0 14px; border-bottom:1px solid rgba(255,255,255,.09); }
-.nm-split-l .ynav button { height:30px; font-size:12px; }
+.nm-split-l .ynav button { height:30px; font-size:var(--fs-sm); }
 .nm-split-news { margin-top:14px; }
 /* 위 메뉴 막대 픽토그램 = 시그니처 라임(형 11-05 16:57 「그리고 상단의 픽토그램 버튼들은 시그니처 색으로!」) */
 .nm-split-l .ynav button { color:#CFFF40; }
@@ -190,8 +190,8 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-root .nm-split > section.nm-split-run { padding:0 !important; }
 .nm-split-root .nm-split > section.nm-split-run .nm-rgx { padding:0 !important; }
 .nm-card-h, .nm-split-root .nm-nlist-h, .nm-split-root .nm-nsum-h { height:36px; flex:none; display:flex; align-items:center !important; gap:8px; padding:0 12px !important; border-bottom:1px solid rgba(255,255,255,.07); border-top:0 !important; margin:0; }
-.nm-card-h b, .nm-split-root .nm-nlist-h b, .nm-split-root .nm-nsum-h b { font-size:12.5px; letter-spacing:.02em; color:#e8eae8; }
-.nm-card-h > span, .nm-split-root .nm-nlist-h > span, .nm-split-root .nm-nsum-h > span { margin-left:auto; color:rgba(232,234,232,.45); font-size:11px; font-variant-numeric:tabular-nums; }
+.nm-card-h b, .nm-split-root .nm-nlist-h b, .nm-split-root .nm-nsum-h b { font-size:var(--fs-label); letter-spacing:.02em; color:#e8eae8; }
+.nm-card-h > span, .nm-split-root .nm-nlist-h > span, .nm-split-root .nm-nsum-h > span { margin-left:auto; color:rgba(232,234,232,.45); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
 .nm-card-h .live { width:7px; height:7px; border-radius:50%; background:#CFFF40; align-self:center; }
 .nm-split-root .nm-nsum { border-top:0 !important; }
 .nm-split-root .nm-nsum-h::before { content:""; width:7px; height:7px; border-radius:50%; background:rgba(207,255,64,.55); }
@@ -202,8 +202,8 @@ body.nm-dragging iframe { pointer-events:none; }
 @keyframes nmSkel { from { background-position:200% 0; } to { background-position:-200% 0; } }
 @media (prefers-reduced-motion:reduce) { .nm-skel { animation:none; } }
 .nm-emptybox { display:flex !important; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:24px 14px !important; text-align:center; list-style:none; }
-.nm-emptybox b { font-size:12.5px; font-weight:600; color:rgba(232,234,232,.62); }
-.nm-emptybox span { font-size:11px; color:rgba(232,234,232,.4); }
+.nm-emptybox b { font-size:var(--fs-label); font-weight:600; color:rgba(232,234,232,.62); }
+.nm-emptybox span { font-size:var(--fs-xs); color:rgba(232,234,232,.4); }
 /* 윗줄 = 왼쪽 시계 · 가운데 페이지 이름 · 오른쪽 판 번호 → 「대화방」·「대화」 탭 뺌(왼쪽 띠 아래 셋이 그 몫 · 형 11-06 20:02 「대화 이거는 … 대화로 있을 필욘없어」) */
 .nm-split-l .ynav button[data-tab="rooms"], .nm-split-l .ynav button[data-tab="chat"] { display:none !important; }
 /* 지금 방 = 테두리에 우리 일곱 색 무지개가 돎(형 11-06 20:10 「현재 위치한 채팅방은 무지개 색이 돌게해줘 … 테두리에 무지개 멤돌면됨」) */
@@ -236,7 +236,7 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-l .ynav svg { width:20px; height:20px; }
 .nm-split-l .ynav button[data-tab] { display:none !important; }   /* 홈 = 오른쪽에 늘 있음 · 대화방·대화 = 왼쪽 띠 → 남는 것 = 작동 · 서랍 · 설정 */
 .nm-top-lights { position:fixed; top:0; right:16px; height:50px; z-index:59; max-width:calc(50vw - 20vw - 28px); overflow:hidden; }
-.nm-br-syncver { position:fixed; right:12px; bottom:8px; z-index:55; padding:4px 9px; border-radius:9px; font-size:11px !important;
+.nm-br-syncver { position:fixed; right:12px; bottom:8px; z-index:55; padding:4px 9px; border-radius:9px; font-size:var(--fs-xs) !important;
   background:rgba(16,17,19,.6); -webkit-backdrop-filter:blur(12px) saturate(1.15); backdrop-filter:blur(12px) saturate(1.15); border:1px solid rgba(255,255,255,.07); }
 /* 검색·밥상 이야기 단추는 document.body 에 그려져서(.nm-split-root 밖) 앞 줄들(「.nm-split-root .nm-find」)이 안 먹었음 → :root:has 로 잡음(뎅 23:13 실물 = 검색이 윗줄 높이 y1~39 에 남아 있었음) */
 :root:has(.nm-split-root) .nm-find:not(.open) { top:calc(76px + var(--nm-pin-h, 0px)) !important; width:32px !important; height:32px; border-radius:50%; border-color:rgba(255,255,255,.1); background:rgba(20,21,23,.55);
