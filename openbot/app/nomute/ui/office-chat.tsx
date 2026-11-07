@@ -41,6 +41,7 @@ import { justHeld, MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
+import { HyungPills, pendingOf } from "./hyung-pills";
 import { useUnfold } from "./unfold";
 import { SiteIcon } from "./site-icon";
 import { dlHref } from "./news-data";
@@ -89,7 +90,8 @@ const hyungApp = (m: { mirror_by?: string; who?: string }) => m.mirror_by === "�
 type Msg = OfficeMsg & { card?: ThumbRef; mirror_by?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
   app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
-type Page = { messages: Msg[]; more: boolean };
+type Page = { messages: Msg[]; more: boolean; pending_ids?: string[] };   // pending_ids = 형 결정 대기 글(뜸 서버 · 오래된 것부터 · 없으면 화면에서 셈 = ./hyung-pills.tsx)
+const withPend = (p: Page, src: { pending_ids?: unknown }): Page => (Array.isArray(src.pending_ids) ? { ...p, pending_ids: src.pending_ids.map(String) } : p);
 type Draft = { who: string; ts: number; text: string };   // 쓰는 중 초안(그 방에서 지금 자라는 답 · 서버 _watch.js · 거울 = 그록봇 앱 방 streaming 줄)
 type Reads = { got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>> };
 type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
@@ -106,7 +108,7 @@ export const officeKeys = {
 const merge = (old: Page | undefined, add: Msg[]): Page => {
   const m = new Map((old?.messages || []).map((x) => [x.id, x]));
   for (const x of add) m.set(x.id, x);
-  return { messages: [...m.values()].sort((a, b) => a.ts - b.ts), more: old?.more ?? false };
+  return { messages: [...m.values()].sort((a, b) => a.ts - b.ts), more: old?.more ?? false, ...(old?.pending_ids ? { pending_ids: old.pending_ids } : {}) };
 };
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
@@ -145,12 +147,12 @@ export function useOfficeRoom(room: string) {
       const last = old?.messages.at(-1)?.ts;
       if (old && last) {
         const r = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`);   // 최근 40 통째 = 새 글 + 거울이 고친 글(반응·카드)을 같이
-        if ((r.messages?.[0]?.ts ?? Infinity) <= last || !r.more) return merge(qc.getQueryData<Page>(key) || old, r.messages || []);   // 사이 빔 없음
+        if ((r.messages?.[0]?.ts ?? Infinity) <= last || !r.more) return withPend(merge(qc.getQueryData<Page>(key) || old, r.messages || []), r);   // 사이 빔 없음
         const j = await office<Page>(`rooms/${enc(room)}/messages?since=${last}&n=100`);
-        if (!j.more) return merge(qc.getQueryData<Page>(key) || old, j.messages || []);   // 기다리기 고리가 그새 붙인 글도 지킴
+        if (!j.more) return withPend(merge(qc.getQueryData<Page>(key) || old, j.messages || []), r);   // 기다리기 고리가 그새 붙인 글도 지킴
       }
       const j = await office<Page>(`rooms/${enc(room)}/messages?n=${FIRST_N}`);
-      return { messages: merge(undefined, j.messages || []).messages, more: !!j.more };
+      return withPend({ messages: merge(undefined, j.messages || []).messages, more: !!j.more }, j);
     },
     staleTime: 30_000,
     refetchInterval: 60_000,
@@ -1205,6 +1207,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   };
 
   useSwipeReply(boxRef, (id) => { const m = all.find((x) => x.id === id); if (m) c.onReply(m); }, !msgs.isPending && !pairRoom && room);   // 줄 왼쪽으로 밀기 = 답장(./swipe-reply.ts)
+  const hyServer = msgs.data?.pending_ids;
+  const hyItems = useMemo(() => (pairRoom ? [] : pendingOf(all, hyServer, (m) => `${nmOf(list, m.who)}: ${firstLine(m)}`).map((m) => ({ id: m.id, who: m.who, face: idOf(m.who, list), name: nmOf(list, m.who), line: firstLine(m) }))), [all, hyServer, list, pairRoom]);
+  const pickHy = (id: string) => { const m = all.find((x) => x.id === id); if (!m) return; setWant(id); c.onReply(m); };   // 알약 = 그 글로 부드럽게 + 답장 칸 열림(답하면 그 글 쓴 이에게 바로 · 서버 reply_to)
 
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
@@ -1311,6 +1316,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         ) : null}
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         <CallSheet />   {/* 「@」·「!」 여러 명 고르기(./call-sheet.tsx · 형 11-02 11:34 · 11:37) */}
+        <HyungPills items={hyItems} onPick={pickHy} active={reply?.id} />   {/* 형 결정 대기 알약 = 입력칸 바로 위(형 11-07 09:55~09:56) */}
         {reply ? (
           <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">
             <span className="min-w-0 flex-1 truncate">↩ <b>{reply.who}</b> · {reply.line}</span>
@@ -1348,7 +1354,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
               } else if (text) {
                 const cmd = /^\/(?:초대|방파기)(?:\s|$)/.test(text);   // 형만 쓰는 명령(봄 서버 · 형 11-06 「/ < 명령어는 나만.」) — 안 되는 방이면 서버 why 를 그대로 보여 주고 「다시 보내기」로 안 남김
                 const post = async () => {
-                  const body: Record<string, unknown> = { text };
+                  const body: Record<string, unknown> = { text, ...(submittedReply ? { reply_to: submittedReply.id } : {}) };   // 답장 = 원 글 id 도 같이(뜸 서버 = 형 결정 대기에서 빼고 원 글 쓴 이를 바로 깨움 · 11-07)
                   let j: { message?: Msg; closed?: boolean };
                   try { j = await office<{ message?: Msg; closed?: boolean }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) }); }
                   catch (e) {
