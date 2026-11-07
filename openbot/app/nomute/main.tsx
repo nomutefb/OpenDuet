@@ -4,6 +4,11 @@ import "@/main";
 import { startSync } from "./data/sync";
 import "./ui/update-bar.css";
 import { markLive, verBadge } from "./ui/ver-badge";
+// 자동 새로고침 화면(형 11-07 11:21 「자동 새로고침할때 껏다켜지는데, 그럴경우에는 웹앱 로딩화면말고, 그냥 먹색 챠콜검정화면이 껏다켜질수있나? 업데이트 중입니다... 라임색으로 표기 가운데에 뜨면서」 · 봄 나눔 ②)
+//   다시 읽기 직전 <html class="nm-updating"> + sessionStorage nm-updating → index.html 이 첫 그림 전에 같은 먹색 화면 → 앱이 뜬 뒤 1.5초에 걷음
+const UPD = "nm-updating";
+const updating = () => { document.documentElement.classList.add(UPD); try { sessionStorage.setItem(UPD, String(Date.now())); } catch { /* 이번만 */ } };
+if (document.documentElement.classList.contains(UPD)) setTimeout(() => { document.documentElement.classList.remove(UPD); try { sessionStorage.removeItem(UPD); } catch { /* 이번만 */ } }, 1500);
 
 startSync();
 
@@ -53,7 +58,7 @@ function showUpdate() {
     btn.disabled = true;
     btn.textContent = "보내는 중…";
     const t0 = Date.now();
-    const go = () => { if (writes > 0 && Date.now() - t0 < 60_000) { setTimeout(go, 300); return; } location.reload(); };
+    const go = () => { if (writes > 0 && Date.now() - t0 < 60_000) { setTimeout(go, 300); return; } updating(); location.reload(); };
     go();
   });
   document.body.appendChild(bar);
@@ -76,7 +81,7 @@ function autoReload(btn: HTMLButtonElement) {
   // 되풀이 막기 = 저절로 다시 읽기는 2분에 한 번(배포가 퍼지는 틈에 version.json 만 먼저 새 판이면 계속 다시 읽을 수 있음 · 9222 시험 11-06 13:2x) · 막히면 알약 그대로(누르면 읽음)
   let last = 0; try { last = +(sessionStorage.getItem("nm-auto-reload") || 0); } catch { /* 이번만 */ }
   if (Date.now() - last < 120_000) { btn.textContent = "새 버전이 있어요"; return; }
-  const tick = () => { if (safe()) { try { sessionStorage.setItem("nm-auto-reload", String(Date.now())); } catch { /* 이번만 */ } location.reload(); return; } setTimeout(tick, 1000); };
+  const tick = () => { if (safe()) { try { sessionStorage.setItem("nm-auto-reload", String(Date.now())); } catch { /* 이번만 */ } updating(); location.reload(); return; } setTimeout(tick, 1000); };
   setTimeout(tick, 1500);
 }
 
