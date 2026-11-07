@@ -10,9 +10,10 @@
 //   → 누름 = 그 글로 이동(nm-jump · 고정 띠와 같은 길) · 지움 = PC 우클릭 · 폰 칩마다 작은 ×(14px · 일괄 × 보다 작게) · 분 글자 500
 import "./room-board.css";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { idOf, office } from "../data/office";
 import { FaceImg, usePeople } from "./faces";
+import { useMe } from "./pins";
 
 type Hand = { id: string; who: string; what: string; at: number; kind?: "help" | "review" };
 // 형 11:44 「막힘 도움 🖐️ / 작업 중 < 이런거는 부르지말고해 / 결정 기다림 ❓ / 완료 보고 < 부르지 말고 그냥 하면됨 / 검수 부탁 그대로 ㄱ」 → 칩 = 🖐️ 막힘·도움 · 🔍 검수 부탁(서버 editor#2782 · [손 들어감] = 칩 0)
@@ -25,28 +26,35 @@ const took = (ms: number) => { const m = Math.max(0, Math.round(ms / 60_000)); r
 
 export function RoomBoard({ room }: { room: string }) {
   const pair = room.startsWith("pair-");   // 둘의 방(읽기만) = 띠 0
+  // 형 11-07 12:03 「느낌표만 나한테 채팅에 뜨는건지 아니먄 결정 이런거 다 떠버리는건지 재확인 해봐 느낌표 호출만 떠야됨 나에겐」 · 봄 12:04 나눔 「형 화면 = !형 알약만 · 번개 칩 줄은 형한테 안 보이게(우리끼리만)」
+  //   → 보는 이가 형(사람 자리)이면 칩 줄 0 · 서버 칩 장부·길(GET/POST board)은 그대로
+  const me = useMe();
+  const hyung = me?.kind === "human";
   const key = ["nomute", "board", room];
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: key, queryFn: () => office<Board>(`rooms/${encodeURIComponent(room)}/board`), refetchInterval: 30_000, staleTime: 15_000, retry: false, enabled: !pair });
+  const q = useQuery({ queryKey: key, queryFn: () => office<Board>(`rooms/${encodeURIComponent(room)}/board`), refetchInterval: 30_000, staleTime: 15_000, retry: false, enabled: !pair && !!me && !hyung });
   const list = usePeople();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 60_000); return () => clearInterval(t); }, []);
   // 형 11:20 「호출한지 1시간 지난거는 자동으로 아래 채팅 위 트레이에서 없어지게해주고, 30분 지나면 노랑, 45분 지나면 주황으로 하다가 없어지면 될듯 (분에 표기를 말함)」
   const HOUR = 3600_000, age = (t: number) => now - t, tone = (t: number) => (age(t) >= 45 * 60_000 ? " is-45" : age(t) >= 30 * 60_000 ? " is-30" : "");
   const hands = (q.data?.hands || []).filter((h) => age(h.at) < HOUR), sugs = (q.data?.open || []).filter((s) => age(idTs(s.id)) < HOUR);
-  if (pair || (!hands.length && !sugs.length)) return null;
+  const clearRef = useRef<() => void>(() => {});   // 훅은 return null 앞(칩 0 ↔ 생김 사이 훅 개수 같게)
+  // 한 줄 합침(형 12:01 「이런식으루 나옴 2줄로」) = 알약이 있으면 맨 앞 × 는 알약 것 하나 → 그 × 를 누르면 칩도 같이 지움(뜸 코드 안 건드림)
+  useEffect(() => { const f = (e: MouseEvent) => { if ((e.target as Element | null)?.closest?.(".nm-tray .yhy-clear")) clearRef.current(); }; document.addEventListener("click", f, true); return () => document.removeEventListener("click", f, true); }, []);
+
+  if (pair || hyung || !me || (!hands.length && !sugs.length)) return null;
   const drop = (id: string) => {   // 누르면 바로 사라짐(서버 = 형만 · 아니면 다음 조회에 다시 뜸)
     qc.setQueryData<Board>(key, (b) => (b ? { hands: b.hands.filter((h) => h.id !== id), open: b.open.filter((o) => o.id !== id) } : b));
     void office(`rooms/${encodeURIComponent(room)}/board`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ act: "dismiss", id }) }).catch(() => qc.invalidateQueries({ queryKey: key }));
   };
+  clearRef.current = () => clear();
   const jump = (id: string) => window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id } }));   // 누름 = 그 글로(office-chat 이 받음 · pins.tsx 와 같은 길)
   const x = (id: string) => <span className="bd-x" role="button" tabIndex={-1} aria-label="지우기" onClick={(e) => { e.stopPropagation(); drop(id); }}>×</span>;   // 폰만 보임(CSS)
   const clear = () => {   // 왼쪽 × = 일괄(형 10:45 「좌측에는 일괄 x 하나」) = 기준 시각 지금(그 앞 칩·제안 다 안 뜸 · 서버 = 형만)
     qc.setQueryData<Board>(key, (b) => (b ? { hands: [], open: [] } : b));
     void office(`rooms/${encodeURIComponent(room)}/board`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ act: "reset" }) }).catch(() => qc.invalidateQueries({ queryKey: key }));
   };
-  // 한 줄 합침(형 12:01 「이런식으루 나옴 2줄로」) = 알약이 있으면 맨 앞 × 는 알약 것 하나 → 그 × 를 누르면 칩도 같이 지움(뜸 코드 안 건드림)
-  useEffect(() => { const f = (e: MouseEvent) => { if ((e.target as Element | null)?.closest?.(".nm-tray .yhy-clear")) clear(); }; document.addEventListener("click", f, true); return () => document.removeEventListener("click", f, true); });
   const items = [
     ...hands.map((h) => (
       <button type="button" key={`h${h.id}`} className={`bd-chip bd-hand${tone(h.at)}`} onClick={() => jump(h.id)} onContextMenu={(e) => { e.preventDefault(); drop(h.id); }}
