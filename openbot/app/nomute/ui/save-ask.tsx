@@ -16,11 +16,16 @@ export function useCloseGuard(dirty: boolean, close: () => void, on = true) {
     const p = modalPush(); me.current = p.me;
     return () => { p.pop(); me.current = null; if (back && back.isConnected) back.focus({ preventScroll: true }); };
   }, [on]);
-  const request = useCallback(() => { if (dirty) setAsk(true); else close(); }, [dirty, close]);
-  useEffect(() => { if (!on) setAsk(false); }, [on]);
   const askBack = useRef<HTMLElement | null>(null);
+  const request = useCallback(() => {
+    if (!dirty) { close(); return; }
+    const a = document.activeElement;   // 묻는 순간(확인창 「예」 autoFocus 전)에 적음(모루 #2873 「effect 에서 저장해서 「예」 autoFocus 뒤의 버튼을 잡아」)
+    askBack.current = a instanceof HTMLElement && a !== document.body ? a : null;
+    setAsk(true);
+  }, [dirty, close]);
+  useEffect(() => { if (!on) setAsk(false); }, [on]);
   useEffect(() => {   // 「저장하시겠습니까?」만 취소(바깥 · Esc · 계속 쓰기) = 묻기 전 칸으로 포커스(모루 #2870 「확인창만 취소할 때는 cleanup 이 안 돌고」)
-    if (ask) { const a = document.activeElement; askBack.current = a instanceof HTMLElement && a !== document.body ? a : null; return; }
+    if (ask) return;
     const b = askBack.current; askBack.current = null;
     if (b && b.isConnected && on) b.focus({ preventScroll: true });
   }, [ask, on]);
