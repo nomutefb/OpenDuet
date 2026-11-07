@@ -360,8 +360,8 @@ function TopLeft() {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const root = document.documentElement;
-    // 바닥 120px = 몸 목록이 비어 게이지 띠가 작아도 오른쪽 팔로워 띠(머리 + 그림 64)가 안 잘리게(모루 #2883 ②) · --nm-top-off = 판·검색 단추가 내려갈 만큼(띠 + 위아래 틈 16 · 모루 ①)
-    const ro = new ResizeObserver(() => { const h = Math.max(120, Math.round(el.getBoundingClientRect().height)); root.style.setProperty("--nm-top-h", `${h}px`); root.style.setProperty("--nm-top-off", `${h + 16}px`); });
+    // 바닥 140px = 몸 목록이 비어 게이지 띠가 작아도 오른쪽 SNS 띠가 안 잘리게(머리 36 + 틈 14 + 총수 줄 14 + 4 + 그림 64 = 132 · 모루 #2883 ② · #2886 「120px는 아직 부족해」) · --nm-top-off = 판·검색 단추가 내려갈 만큼(띠 + 위아래 틈 16 · 모루 ①)
+    const ro = new ResizeObserver(() => { const h = Math.max(140, Math.round(el.getBoundingClientRect().height)); root.style.setProperty("--nm-top-h", `${h}px`); root.style.setProperty("--nm-top-off", `${h + 16}px`); });
     ro.observe(el);
     return () => { ro.disconnect(); root.style.removeProperty("--nm-top-h"); root.style.removeProperty("--nm-top-off"); };
   }, []);
