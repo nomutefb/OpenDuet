@@ -96,7 +96,7 @@ const HIDE_BOTS = new Set(["별"]);
 const HOST_KO: Record<string, string> = { fast: "빠르", sia: "시아", deng: "뎅", neo: "누리", eyes: "뜸", light: "번개", mac: "맥", "win-a": "윈A", wina: "윈A", hwang: "시아 PC", nuri: "누리 PC" };   // 몸 보고 host(영어 자리) → 자리 줄 이름   // 형 11-05 08:31 「별은 빼면 되고」
 const hostOf = (r: StatusRow & { host?: string }) => String(r.host || r.key.split(":")[0]);
 /** 계정 짧은 이름(형 01:25 「2열 2행(ems1130g)」 · 「3영ㄹ 2행(muteno)」) · 네이버 = ems1130n(형 11-07 14:34 「윈터는 ems1130n이야」) */
-const acctShort = (v?: string) => (!v ? "" : /@naver\.com$/i.test(v) ? `${v.split("@")[0]}n` : v.includes("@") ? v.split("@")[0] : v);
+const acctShort = (x?: unknown) => { const v = x === undefined || x === null ? "" : String(x); return !v ? "" : /@naver\.com$/i.test(v) ? `${v.split("@")[0]}n` : v.includes("@") ? v.split("@")[0] : v; };   // 서버는 숫자 value 도 받음(모루 #2852) → 글자로
 const claudeDir = (r: StatusRow) => (r.name.match(/\.claude[\w-]*/) || r.key.match(/\.claude[\w-]*/) || [""])[0];
 const dirRank = (d: string) => (d === ".claude" ? 0 : Number((d.match(/spare(\d+)/) || [0, 99])[1]));
 /** CLI 연결 표 = 서버 tok_claude · tok_gpt · tok_cli 줄을 애들 × 칸으로(행 = BODIES · 칸 = CLI_COLS) */
@@ -126,9 +126,11 @@ const SSH_NAME: Record<string, string> = { "뜸 VM": "맥 VM 뜸", 뜸: "맥 VM 
 function sshIn(r: StatusRow): StatusRow {
   const cells: Record<string, Cell> = {};
   for (const [k, c] of Object.entries(r.cells || {})) cells[SSH_NAME[k] || k] = { st: c.st, note: c.note };   // 칸 안 글자 뺌(형 01:22 사진 「관리자」 X) · 누르면 보임
-  if (!r.cells) for (const m of (r.value || "").matchAll(/([^·]+?)\s(됨|안 됨|꺼짐)(?:\(([^)]*)\))?\s*(?:·|$)/g)) {
+  // 보고 끊김(서버가 ⚪ · stale)이면 남은 글로 칸을 살리지 않음 = 칸도 ⚪(모루 #2852 「맥 됨을 초록 칸으로 되살려」)
+  const gone = (r as StatusRow & { stale?: boolean }).stale || r.note === "보고 끊김";
+  if (!r.cells) for (const m of String(r.value ?? "").matchAll(/([^·]+?)\s(됨|안 됨|꺼짐)(?:\(([^)]*)\))?\s*(?:·|$)/g)) {
     const k = SSH_NAME[m[1].trim()] || m[1].trim();
-    cells[k] = { st: m[2] === "됨" ? "ok" : m[2] === "꺼짐" ? "off" : "miss", note: m[3] ? `${m[2]} · ${m[3]}` : m[2] };
+    cells[k] = gone ? { st: "unknown", note: `보고 끊김 · 마지막 ${m[2]}` } : { st: m[2] === "됨" ? "ok" : m[2] === "꺼짐" ? "off" : "miss", note: m[3] ? `${m[2]} · ${m[3]}` : m[2] };
   }
   const me = BODIES.find((b) => b.hosts.includes(r.key) || b.body === r.name.replace(/\s*(→.*|SSH)$/, "").trim());
   return { ...r, name: me?.body || r.name, cells };
