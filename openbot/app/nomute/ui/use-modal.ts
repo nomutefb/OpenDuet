@@ -14,6 +14,16 @@ export function modalPush(): { me: symbol; pop: () => void } {
 /** 이 창이 맨 위인가(맨 위 창만 Esc · Tab 을 받음) */
 export const modalTop = (me: symbol) => stack[stack.length - 1] === me;
 
+const OPEN = '[role="dialog"],[role="alertdialog"]';
+/** 이 창 안이나 뒤(DOM 차례)에 열려 보이는 다른 창이 있나 — 이 부품을 안 쓰는 옛 창(이야기 보기 · LEGACY 안 팝업 · 웹 겹)이 위에 떠 있으면 Esc·Tab 은 그 창 몫 */
+export function coveredBy(el: HTMLElement): boolean {
+  for (const d of document.querySelectorAll<HTMLElement>(OPEN)) {
+    if (d === el || d.contains(el) || !d.getClientRects().length) continue;
+    if (el.contains(d) || el.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING) return true;
+  }
+  return false;
+}
+
 const SEL = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),iframe,[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
 
 /** 순수 — Tab 다음 자리(가두기) · null = 브라우저에 맡김 */
@@ -39,7 +49,7 @@ export function useModal<T extends HTMLElement>(close: () => void, on = true) {
       el.focus({ preventScroll: true });
     }
     const key = (e: KeyboardEvent) => {
-      if (!modalTop(me) || e.defaultPrevented) return;
+      if (!modalTop(me) || e.defaultPrevented || (el && coveredBy(el))) return;
       if (e.key === "Escape") {
         if (e.isComposing) return;   // 한글 조합 중 Esc = 조합만 끝냄
         e.preventDefault(); e.stopPropagation();

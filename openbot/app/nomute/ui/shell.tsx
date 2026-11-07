@@ -38,6 +38,7 @@ import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { WebPane } from "./web-pane";
+import { ModalBox } from "./modal-box";   // 큰 창 넷 = Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
 import { IssueView } from "./issue";
 import { PinBar } from "./pins";
 import { OfficeChat, roomMsgsOptions } from "./office-chat";
@@ -250,7 +251,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           ) : null}
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
           {M ? (
-            <div className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
+            <ModalBox close={closeModal} className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
               {M.id === "feed" || M.id === "trend" || M.id === "legacy" || M.id === "tokens" || M.id === "gyeol" || M.id === "feedback" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
@@ -291,17 +292,17 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "feedback" ? <div className="nm-scroll"><FeedbackModal /></div>
                   : <div className="nm-scroll nm-settings-page"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
               </div>
-            </div>
+            </ModalBox>
           ) : null}
           {web != null ? <WebLayer u={web} onClose={closeWeb} /> : null}
           {issue != null ? (
-            <div className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={`이슈 ${issue}`}>
+            <ModalBox close={closeWeb} className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={`이슈 ${issue}`}>
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeWeb}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>이슈 {issue}</b>
               </div>
               <div className="nm-modal-b flush"><div className="nm-scroll"><IssueView key={issue} no={issue} /></div></div>
-            </div>
+            </ModalBox>
           ) : null}
         </div>
         {split ? <SplitSide /> : null}
@@ -317,7 +318,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
 class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: boolean }> {
   state = { bad: false };
   static getDerivedStateFromError() { return { bad: true }; }
-  componentDidCatch(e: unknown) { console.error("반갈 칸 깨짐:", this.props.name, e); }
+  componentDidCatch(e: unknown) { console.error("반갈 칸 깨짐:", this.props.name, e); (window as unknown as { __nmReportError?: (kind: string, err: unknown) => void }).__nmReportError?.("boundary:pane", e); }   // 서버로도 알림(번개 ui/err-catch.ts · 빠르 11-08)
   render() { return this.state.bad ? <p style={{ margin: 0, padding: "12px 14px", fontSize: 12, color: "rgba(232,234,232,.55)" }}>{this.props.name} 칸을 못 그렸어 — 새로고침하면 다시 해 봐.</p> : this.props.children; }
 }
 
@@ -375,24 +376,24 @@ function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
   try { host = ext ? new URL(u).hostname.replace(/^(www|m)\./, "") : ""; } catch { /* 이름 없음 */ }
   if (ext || !u) {
     return (
-      <div className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={host || "웹"}>
+      <ModalBox close={onClose} className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={host || "웹"}>
         <div className="nm-modal-h">
           <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
           <b className="min-w-0 flex-1 truncate">{host || "웹"}</b>
         </div>
         <div className="nm-modal-b frame"><WebPane key={u} initial={u} /></div>
-      </div>
+      </ModalBox>
     );
   }
   const name = title[0] === u && title[1] ? title[1] : "에디터";
   return (
-    <div className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={name}>
+    <ModalBox close={onClose} className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={name}>
       <div className="nm-modal-h">
         <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
         <b className="min-w-0 flex-1 truncate">{name}</b>
       </div>
       <div className="nm-modal-b frame"><FramePage key={u} src={frameUrl(u)} title={name} onTitle={(t) => setTitle([u, t])} /></div>
-    </div>
+    </ModalBox>
   );
 }
 
