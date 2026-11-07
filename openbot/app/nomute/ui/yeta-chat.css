@@ -734,7 +734,14 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 @media (prefers-reduced-motion:reduce){ .ychat .yhy-p { animation:none; } }
 
 /* 형 결정 알약 누름 = 그 글 창(./call-peek.tsx · 뜸 11-07 · 형 12:03 「그냥 확 창이 뜨고 깔끔하게 답변하는게 나은듯 답 하면 창 자동 으로 닫히고」) — 글 메뉴 창(.nm-msgm-p)과 같은 결 · 넓이만 글 읽게 */
-.ypk { display:flex; flex-direction:column; width:min(520px,100%); max-height:80dvh; border-radius:22px; background:#232325; color:#fff; box-shadow:0 24px 60px rgba(0,0,0,.42); overflow:hidden; transform-origin:50% 60%; animation:nmMsgmPop .36s cubic-bezier(.34,1.4,.64,1) both; }
+.ypk { display:flex; flex-direction:column; width:min(520px,100%); max-height:80dvh; border-radius:22px; background:#232325; color:#fff; box-shadow:0 24px 60px rgba(0,0,0,.42); overflow:hidden; transform-origin:50% 60%; animation:ypkIn .22s cubic-bezier(.2,.7,.3,1) both; }
+/* 뜰 때·닫힐 때 같은 결(형 13:19 「뜨고 없어지는 모션 부드럽게」) — 통통 튀는 nmMsgmPop 대신 살짝 떠오름 · 닫힘 = 0.19초 스며 내려앉음 */
+@keyframes ypkIn { from { opacity:0; transform:translateY(10px) scale(.985); } to { opacity:1; transform:none; } }
+@keyframes ypkOut { from { opacity:1; transform:none; } to { opacity:0; transform:translateY(8px) scale(.985); } }
+@keyframes ypkVeilOut { from { opacity:1; } to { opacity:0; } }
+.ypk.out { animation:ypkOut .19s cubic-bezier(.4,0,.6,1) both; }
+.ypk-veil.out { animation:ypkVeilOut .19s ease-in both; }
+.ypk-s svg { display:block; margin:auto; }
 .ypk-h { display:flex; align-items:center; gap:10px; padding:14px 16px 10px 18px; border-bottom:1px solid rgba(255,255,255,.07); }
 .ypk-h b { font-size:15px; font-weight:600; }
 .ypk-h i { font-style:normal; font-size:12px; color:#8B8F8A; }
@@ -748,4 +755,4 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ypk-s:disabled { opacity:.35; cursor:default; }
 .ypk-err { padding:0 16px 12px; font-size:13px; color:#ff8a8a; }
 @media (max-width:700px) { .ypk-veil { place-items:end center; padding:12px; } .ypk { border-radius:20px; max-height:86dvh; } }
-@media (prefers-reduced-motion:reduce) { .ypk { animation:none; } }
+@media (prefers-reduced-motion:reduce) { .ypk, .ypk.out, .ypk-veil.out { animation:none; } }

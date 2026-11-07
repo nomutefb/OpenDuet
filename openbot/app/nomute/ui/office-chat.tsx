@@ -42,7 +42,8 @@ import { RoomSearch } from "./room-search";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
 import { HyungPills, pendingOf } from "./hyung-pills";
-import { CallPeek } from "./call-peek";   // 알약 누름 = 그 글 창 + 답칸(형 11-07 12:02~12:03 「그냥 확 창이 뜨고 깔끔하게 답변」)
+import { CallPeek } from "./call-peek";
+import { draftSet } from "./draft";   // 알약 누름 = 그 글 창 + 답칸(형 11-07 12:02~12:03 「그냥 확 창이 뜨고 깔끔하게 답변」)
 import { useUnfold } from "./unfold";
 import { SiteIcon } from "./site-icon";
 import { dlHref } from "./news-data";
@@ -1404,7 +1405,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         />)}
       </div>
       <ProfileCard who={prof} list={list} onClose={() => setProf("")} />
-      {peek ? <CallPeek key={peek.id} p={{ id: peek.id, face: idOf(peek.who, list), name: nmOf(list, peek.who), ts: Number((peek as { ts?: number }).ts) || 0, body: <div className="ymd"><Body m={peek} nre={nre} /></div> }} onClose={() => setPeek(null)} onSend={(t) => peekSend(peek, t)} /> : null}
+      {peek ? <CallPeek key={peek.id} p={{ id: peek.id, face: idOf(peek.who, list), name: nmOf(list, peek.who), ts: Number((peek as { ts?: number }).ts) || 0, body: <div className="ymd"><Body m={peek} nre={nre} /></div> }} onClose={() => setPeek(null)} onSend={(t) => { const m = peek; void peekSend(m, t).catch((e) => { draftSet(`peek:${m.id}`, t); setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 알약 다시 누르면 쓰던 답 그대로`); }); }} /> : null}   {/* 보내기 = 창 바로 닫힘 · 서버는 뒤에서(형 13:19 「순간 멎는 느낌」) */}
     </div>
   );
 }
