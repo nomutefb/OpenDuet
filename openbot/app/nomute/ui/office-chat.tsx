@@ -632,7 +632,7 @@ function Quote({ m, c }: { m: Msg; c: Ctx }) {
 /** 글 속 부름(「@이름」·「!이름」) — 서버가 알아들은 이름만(mention · urgent · alias 칸 = 부름이 실제로 걸린 것만 칩) · 긴 이름 먼저(「@윈터」보다 「@윈터 PM」) */
 const reEsc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 function callRe(m: Msg): RegExp | null {
-  const names = [...new Set([...(m.mention || []), ...(m.urgent || []), ...Object.keys(m.alias || {}).map((k) => k.replace(/^[@!]/, ""))])].filter(Boolean);
+  const names = [...new Set([...(m.mention || []), ...(m.urgent || []), ...Object.keys(m.alias || {}).map((k) => k.replace(/^[@!]/, "")), ...(m.kind !== "human" ? ["형", "세웅"] : [])])].filter(Boolean);   // 형·세웅 = 늘 칩(형 11-07 11:40 「느낌표 해도, 내 얼굴이 나와야돼 … 골뱅이도 마찬가지」 · 서버 mention 에 형이 빠질 때도)
   return names.length ? new RegExp(`([@!](?:${names.sort((a, b) => b.length - a.length).map(reEsc).join("|")}))`, "g") : null;
 }
 /** 글 속 봇 이름(부름 아닌 그냥 이름 · 형 10-30 18:4x 「호출은 그대로 두고 그냥 명칭일라도 색을 다르게 … 시안색으로」) = 시안 글자 —
@@ -702,9 +702,10 @@ function tokened(text: string, key: string): ReactNode {
 function CallChip({ t }: { t: ReactNode }) {
   const s = typeof t === "string" ? t : Array.isArray(t) && t.every((x) => typeof x === "string") ? t.join("") : null;
   const m = s ? s.match(/^([@!])(.+)$/) : null;
-  const who = m?.[2] || "", p = m ? peopleSync().find((x) => x.who === who || x.name === who || (x.aka || []).includes(who)) : undefined;
+  const who = m?.[2] || "", hy = who === "형" || who === "세웅", p = m ? peopleSync().find((x) => (hy ? x.who === "형" : x.who === who || x.name === who || (x.aka || []).includes(who))) : undefined;
   if (!m || !p?.face) return <span className="ycall">{t}</span>;
-  return <span className="ycall yface" title={`${m[1]}${who}`}><FaceImg id={idOf(p.who)} size={15} /><span>{p.name || who}</span></span>;   // 「!」 표지 뺌(형 11-04 17:36 「빠르는 왜 느낌표가 있어?」 · 「느낌표가 필요없음」)
+  // 형 부름 = 형 얼굴 칩 · 「!형」 = 파랑·라임 강조(형 11-07 11:40 「오히려 느낌표는 파랑 라임으로」 · 봄 나눔 = 「💡 제안」 표지 색 결)
+  return <span className={`ycall yface${hy ? (m[1] === "!" ? " hy-bang" : " hy-at") : ""}`} title={`${m[1]}${who}`}><FaceImg id={idOf(p.who)} size={15} /><span>{hy ? "형" : p.name || who}</span></span>;   // 「!」 표지 뺌(형 11-04 17:36 「빠르는 왜 느낌표가 있어?」 · 「느낌표가 필요없음」)
 }
 function called(text: string, re: RegExp | null, key: string, nre: RegExp | null = null): ReactNode {
   if (!re) return named(text, nre, key);
