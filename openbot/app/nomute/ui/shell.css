@@ -253,3 +253,6 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-l .nm-col .nm-pin-slot { top:0 !important; }
 .nm-split-l .nm-col .nm-pin-slot:not(:empty) { padding:8px 0 6px; background:var(--duet-surface); border-bottom:1px solid var(--glass-line); }
 .nm-split-l .nm-col main .ychat .ychat.mt-auto { padding-top:calc(48px + var(--nm-pin-h, 0px)) !important; }
+/* 형 결정 대기 수 = 방 얼굴 왼쪽 위 라임(안 읽은 수 = 오른쪽 위 · 형 11-07 09:36 「좌상단에 … 1 2 3 이런식으로 카운트」 · 서버 rooms[].pending_hyung) */
+.nm-hbadge { position:absolute; top:-4px; left:-6px; min-width:18px; height:18px; padding:0 5px; display:grid; place-items:center; border-radius:var(--r-pill);
+  background:#CFFF40; color:#111; font-size:var(--fs-xs); font-weight:var(--fw-x); line-height:1; font-variant-numeric:tabular-nums; box-shadow:0 0 0 2px var(--duet-surface); }
