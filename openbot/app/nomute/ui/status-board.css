@@ -99,3 +99,64 @@
 .nsb-cli td[data-st="late"] { background:rgba(255,210,63,.08); }
 .nsb-cli tr.why td span { display:inline-block; margin-right:12px; white-space:nowrap; }
 .nsb-cli tr.why td { white-space:normal; }
+/* 도식 넷(형 11-08 06:11 「웅 바로 반영해버리자 빚이 준거는」 · 빚 02:00 시안) — 칸 넷이 같은 유리 판 · 넓은 화면 = 두 단 */
+.nsb-dias { display:grid; grid-template-columns:minmax(0, 1fr); gap:8px; margin-bottom:8px; }
+@media (min-width:1100px) { .nsb-dias { grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr); } .nsb-dias > .nsb-diac:first-child { grid-column:1 / -1; } }
+.nsb-diac { margin-bottom:0; }
+.nsb-diac > .nsb-ch { cursor:default; margin:0; font:inherit; }
+.nsb-dia { padding:0 10px 10px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.nsb-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.nsb-dia table { border-collapse:separate; border-spacing:0; font-size:var(--fs-sm); font-variant-numeric:tabular-nums; }
+.nsb-dia th, .nsb-dia td { padding:5px 6px; border-bottom:1px solid var(--nsb-line); text-align:center; vertical-align:middle; white-space:nowrap; }
+.nsb-dia thead th { font-size:var(--fs-2xs); font-weight:700; color:var(--nsb-mut); }
+.nsb-dia thead th i { font-style:normal; display:inline-block; writing-mode:vertical-rl; transform:rotate(180deg); max-height:64px; overflow:hidden; }
+.nsb-dia tr.grp th { border-bottom:0; padding-bottom:0; letter-spacing:.06em; text-transform:none; }
+.nsb-dia tbody th { text-align:left; font-weight:700; position:sticky; left:0; background:rgba(18,18,18,.92); z-index:1; }
+:root:not(.dark) .nsb-dia tbody th { background:rgba(255,255,255,.95); }
+.nsb-dia tbody th small { display:block; font-size:var(--fs-2xs); font-weight:400; color:var(--nsb-mut); }
+.nsb-dia td.none, .nsb-dia .none { color:var(--nsb-mut); }
+.nsb-dia td[data-st="miss"] { background:rgba(255,90,95,.14); }
+.nsb-dia td[data-st="late"] { background:rgba(255,210,63,.08); }
+.nsb-who tbody tr { cursor:pointer; }
+.nsb-who tbody tr.bot th { font-weight:500; }
+.nsb-who td.wake span { font-size:var(--fs-xs); color:var(--nsb-mut); }
+.nsb-who td.wake span[data-w="깸"] { color:var(--nsb-ok); font-weight:700; }
+.nsb-who td.wake span[data-w="상주 돎"] { color:var(--nsb-ok); }
+.nsb-d { display:inline-flex; align-items:center; gap:0; }
+.nsb-d em { font-style:normal; font-size:var(--fs-xs); }
+.nsb-d[data-st="miss"] em { color:#ffb3b5; }
+.nsb-d[data-st="unknown"] em { color:var(--nsb-mut); }
+.nsb-who td.acct .nsb-d em { color:inherit; }
+.nsb-map td .nsb-d { margin:1px 6px 1px 0; }
+.nsb-map thead th { font-size:var(--fs-sm); color:inherit; }
+.nsb-map thead th small { display:block; font-weight:400; color:var(--nsb-mut); }
+.nsb-map td { text-align:left; }
+.nsb-foot { display:flex; flex-wrap:wrap; gap:4px 14px; align-items:center; font-size:var(--fs-xs); color:var(--nsb-mut); }
+.nsb-foot .nsb-d { margin-right:6px; }
+.nsb-sub > b { display:block; font-size:var(--fs-xs); color:var(--nsb-mut); margin:2px 2px 0; }
+/* 러너 길 = 점(상자) · 화살표(선 + 끝) — 형 01:29 「각 러너 지점을 점찍고 화살표 꼭지점으로 표현」 */
+.nsb-flow .node { display:inline-flex; align-items:center; gap:2px; padding:5px 10px; border-radius:999px; border:1px solid var(--nsb-line); background:rgba(255,255,255,.04); font-size:var(--fs-sm); white-space:nowrap; }
+.nsb-flow .node em { font-style:normal; margin-left:6px; font-size:var(--fs-2xs); color:var(--nsb-mut); }
+.nsb-flow .node[data-st="ok"] { border-color:color-mix(in srgb, var(--nsb-ok) 45%, transparent); }
+.nsb-flow .node[data-st="late"] { border-color:var(--nsb-yel); }
+.nsb-flow .node[data-st="miss"] { border-color:var(--nsb-red); background:rgba(255,90,95,.14); }
+.nsb-flow .node.dash { border-style:dashed; }
+.nsb-flow .base { display:flex; flex-wrap:wrap; gap:6px; padding-bottom:6px; border-bottom:1px dashed var(--nsb-line); }
+.nsb-flow .lane { display:grid; grid-template-columns:max-content 44px minmax(0, 1fr); align-items:center; gap:6px; }
+.nsb-flow .src { font-weight:700; border-radius:10px; }
+.nsb-flow .arrow { position:relative; height:2px; background:color-mix(in srgb, var(--nsb-ok) 60%, transparent); }
+.nsb-flow .arrow::after { content:""; position:absolute; right:-1px; top:-4px; border:5px solid transparent; border-left:7px solid color-mix(in srgb, var(--nsb-ok) 60%, transparent); border-right:0; }
+.nsb-flow .arrow[data-st="miss"] { background:var(--nsb-red); } .nsb-flow .arrow[data-st="miss"]::after { border-left-color:var(--nsb-red); }
+.nsb-flow .arrow[data-st="late"], .nsb-flow .arrow[data-st="unknown"] { background:var(--nsb-mut); } .nsb-flow .arrow[data-st="late"]::after, .nsb-flow .arrow[data-st="unknown"]::after { border-left-color:var(--nsb-mut); }
+.nsb-flow .to { display:flex; flex-wrap:wrap; gap:5px; }
+@media (max-width:560px) { .nsb-flow .lane { grid-template-columns:1fr; } .nsb-flow .arrow { width:2px; height:14px; margin-left:16px; } .nsb-flow .arrow::after { right:-4px; top:auto; bottom:-6px; border:5px solid transparent; border-top:7px solid color-mix(in srgb, var(--nsb-ok) 60%, transparent); border-bottom:0; } }
+.nsb-time .zones { display:flex; flex-wrap:wrap; gap:6px; }
+.nsb-time .node { display:inline-flex; align-items:center; gap:2px; padding:6px 12px; border-radius:999px; border:1px solid var(--nsb-line); background:rgba(255,255,255,.04); color:inherit; font:inherit; font-size:var(--fs-sm); cursor:pointer; }
+.nsb-time .node em { font-style:normal; margin-left:8px; color:var(--nsb-mut); font-variant-numeric:tabular-nums; }
+.nsb-time .node[aria-pressed="true"] { border-color:var(--nsb-ok); }
+.nsb-time .node[data-st="late"] { border-color:var(--nsb-yel); }
+.nsb-time .node[data-st="miss"] { border-color:var(--nsb-red); background:rgba(255,90,95,.14); }
+.nsb-time .nsb-idx { padding:0; }
+.nsb-more { width:100%; display:flex; align-items:center; gap:10px; margin:4px 0 8px; padding:10px 14px; border-radius:14px; border:1px dashed var(--nsb-line); background:none; color:inherit; font:inherit; font-size:var(--fs-sm); cursor:pointer; }
+.nsb-more small { margin-left:auto; color:var(--nsb-mut); font-variant-numeric:tabular-nums; }
+.nsb-more:focus-visible, .nsb-time .node:focus-visible { outline:2px solid var(--nsb-ok); outline-offset:2px; }

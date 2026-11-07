@@ -4,10 +4,10 @@
 //   자료 = GET status(뜸 · 몸 보고 + 서버 합침) 가 있으면 그것 · 없으면 지금 있는 GET bots · GET schedule 로 1·2·3 만 채우고 나머지는 「보고 아직 안 옴」 칸
 //   일기 = 일곱 × 8단계 격자(형 「일기 정상 작동여부도 프로세스별로 예를들어 7단계면 표를 7단계로 음영칠해. 8x8 이런식. 안되는 부분에 불들어오게」) · SSH = 몸 × 몸 격자
 import { useQuery } from "@tanstack/react-query";
-import { Fragment, useState } from "react";
+import { Fragment, type ReactNode, useState } from "react";
 import { office } from "../data/office";
 import { leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time";
-import { type Body, bodiesOf } from "../data/bodies";
+import { type Body, bodiesOf, homeOf, machinesOf } from "../data/bodies";
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
 import { type HeatCell, MatrixHeat } from "./lieflat-charts";
 import "./sched-status.css";
@@ -277,22 +277,183 @@ function ZoneItems({ zone }: { zone: string }) {   // 수집 줄 누르면 그 �
   );
 }
 
+// ── 도식 넷(형 11-08 06:11 윈터 1:1 「웅 바로 반영해버리자 빚이 준거는」 · 빚 02:00 시안 「작동 표 시안 · 도식 넷」) ──
+//   ① 애들 × 연결 ② 러너 길(점 · 화살표) ③ 몸 지도 ④ 시간축 · 수집 — 칸 목록은 아래 「자세히」로 접음(손실 0)
+//   되풀이 이름 = 줄 · 열 머리에 한 번만(형 01:46 「반복되는 글자는 인덱스로 보내면 된다는 뜻이야」 · 01:47 「한번 쓴 단어는 보고서에 재사용 안해야해」) · 칸 안 = 불 · 숫자 · 짧은 값 · 긴 글 = 마우스 올림
+//   몸 · 아이 = 정본 한 장(bs · 서버 bodies) · 봇 · 러너 · 서버 줄 = 서버 그대로(여기 따로 안 적음)
+type DCell = { st: HealthSt; note?: string; label?: string };
+const rowsOf = (cats: StatusCat[], id: string) => cats.find((c) => c.id === id)?.rows || [];
+const first = (s?: string) => String(s || "").split(" · ")[0];
+const Dot = ({ c, t }: { c?: DCell; t?: string }) => <span className="nsb-d" data-st={c?.st || "unknown"} title={t ?? c?.note ?? HEALTH_KO[c?.st || "unknown"]}><StatusDot st={c?.st || "unknown"} />{c?.label ? <em>{c.label}</em> : null}</span>;
+
+/** ① 애들 × 연결 — 줄 = 봇 줄(우리 먼저 · 정본 차례) · 열 = 깸 | 클로드 1~4 | GPT | R2 · GitHub · rclone | 일기 여덟 | 교대 넷 */
+function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pick: string; setPick: (k: string) => void }) {
+  const bots = rowsOf(cats, "bots"), cli = rowsOf(cats, "cli"), diary = rowsOf(cats, "diary");
+  const beings = bs.map((b) => b.being);
+  const ours = beings.map((n) => bots.find((r) => r.name === n) || { key: n, name: n, st: "unknown" as HealthSt, value: "봇 줄 없음" });
+  const rest = bots.filter((r) => !beings.includes(r.name));
+  const hand = diary.filter((r) => r.key.startsWith("교대"));
+  const handCols = Object.keys(hand[0]?.cells || {});
+  const cliCols = (cats.find((c) => c.id === "cli")?.cols || []).map((x) => x.id);
+  const grok = rowsOf(cats, "tok_grok")[0];
+  const comm = cats.find((c) => c.id === "comm");
+  return (
+    <div className="nsb-dia nsb-who">
+      <div className="nsb-scroll" role="region" aria-label="애들 × 연결" tabIndex={0}>
+        <table>
+          <thead>
+            <tr className="grp"><th /><th>깸</th><th colSpan={4}>클로드</th><th>GPT</th><th colSpan={3}>연결</th><th colSpan={DIARY_COLS.length}>일기</th><th colSpan={handCols.length || 1}>교대</th></tr>
+            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}</tr>
+          </thead>
+          <tbody>
+            {[...ours, ...rest].map((r) => {
+              const b = bs.find((x) => x.being === r.name), c = cli.find((x) => x.key === r.name)?.cells || {}, d = diary.find((x) => x.key === r.name)?.cells || {}, h = hand.find((x) => x.key === `교대·${r.name}`)?.cells || {};
+              const wake = r.cells?.["깸 상태"], last = r.cells?.["마지막 깸"];
+              return (
+                <tr key={r.key} data-st={r.st} className={b ? "ours" : "bot"} onClick={() => setPick(pick === `who:${r.key}` ? "" : `who:${r.key}`)}>
+                  <th scope="row"><StatusDot st={r.st} />{r.name}{b ? <small>{b.body}</small> : null}</th>
+                  <td className="wake" title={[wake?.note, last?.note, r.cells?.["깨우는 문"]?.note].filter(Boolean).join(" · ")}><span data-w={first(wake?.note || r.value)}>{first(wake?.note || r.value) || "—"}</span></td>
+                  {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "r2" || k === "gh" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <td colSpan={cliCols.length} className="none" />}
+                  {DIARY_COLS.map((x) => <td key={x.id}>{d[x.id] ? <Dot c={d[x.id]} t={`${x.name} · ${HEALTH_KO[d[x.id].st]}${d[x.id].note ? ` · ${d[x.id].note}` : ""}`} /> : null}</td>)}
+                  {handCols.map((x) => <td key={x}>{h[x] ? <Dot c={h[x]} t={`${x} · ${HEALTH_KO[h[x].st]}${h[x].note ? ` · ${h[x].note}` : ""}`} /> : null}</td>)}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {pick.startsWith("who:") ? (() => { const r = bots.find((x) => `who:${x.key}` === pick) || ours.find((x) => `who:${x.key}` === pick); const c = cli.find((x) => x.key === r?.name)?.cells || {}; return r ? <p className="nsb-why">{r.name} — {Object.entries(r.cells || {}).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}{Object.keys(c).length ? ` · ${Object.entries(c).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}` : ""}</p> : null; })() : null}
+      <div className="nsb-foot">
+        {grok ? <span><Dot c={grok} t={`${grok.name} · ${grok.value || ""}`} />그록봇 자동화 · 로그인</span> : null}
+        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · 칸 글자 = 계정 · 줄 누르면 까닭</small>
+      </div>
+      {comm ? <div className="nsb-sub"><b>사무실 말 주고받기</b><Grid c={comm} pick={pick} setPick={setPick} /></div> : null}
+    </div>
+  );
+}
+
+/** ② 러너 길 — 점 = 서버 줄 · 화살표 = 깨우는 길(봇 시계 → 깨움 러너 · 그록 웹훅 → 그록봇 · 부르기 → 모루) · 바탕 = 나머지 서버 줄 */
+function DiaFlow({ cats }: { cats: StatusCat[] }) {
+  const srv = rowsOf(cats, "server"), bots = rowsOf(cats, "bots");
+  const clock = srv.find((r) => r.key === "clock"), grok = srv.find((r) => r.key === "grok"), ping = srv.find((r) => /부르기/.test(r.name));
+  const runners = srv.filter((r) => r.key.startsWith("runner-") || /깨움 러너|neo-agent|nomute-wake/.test(r.key));
+  const pingTo = ping ? ping.name.split(" 부르기")[0] : "";
+  const runnerWho = runners.map((r) => r.name.split(" · ").pop() || r.name);
+  const stay = bots.filter((r) => /상주/.test(r.value || "") && !runnerWho.includes(r.name));
+  const ours = new Set([...runnerWho, ...stay.map((r) => r.name), pingTo]);
+  const grokTo = bots.filter((r) => !ours.has(r.name));   // 깨움 러너 · 상주 · 부르기 길이 없는 봇 = 그록 웹훅으로 깸
+  const used = new Set([clock, grok, ping, ...runners].filter(Boolean).map((r) => r!.key));
+  const base = srv.filter((r) => !used.has(r.key));
+  const lane = (src: StatusRow | undefined, to: { key: string; name: string; st: HealthSt; title?: string; dash?: boolean }[], label: string) => src ? (
+    <div className="lane" key={src.key}>
+      <div className="node src" data-st={src.st} title={[src.value, src.note].filter(Boolean).join(" · ")}><StatusDot st={src.st} />{label}</div>
+      <div className="arrow" data-st={src.st} aria-hidden />
+      <div className="to">{to.length ? to.map((t) => <span key={t.key} className={`node chip${t.dash ? " dash" : ""}`} data-st={t.st} title={t.title}><StatusDot st={t.st} />{t.name}</span>) : <small>받는 이 없음</small>}</div>
+    </div>
+  ) : null;
+  return (
+    <div className="nsb-dia nsb-flow">
+      <div className="base">{base.map((r) => <span key={r.key} className="node" data-st={r.st} title={[r.value, r.note].filter(Boolean).join(" · ")}><StatusDot st={r.st} />{r.name.replace(/\(.*\)$/, "")}{r.key === "deploy" && r.value ? <em>{r.value}</em> : null}</span>)}</div>
+      {lane(clock, [...runners.map((r) => ({ key: r.key, name: r.name.split(" · ").pop() || r.name, st: r.st, title: [r.name, r.note].filter(Boolean).join(" · ") })), ...stay.map((r) => ({ key: `stay:${r.key}`, name: r.name, st: r.st, title: r.value, dash: true }))], "봇 시계 → 깨움 러너")}
+      {lane(grok, grokTo.map((r) => ({ key: r.key, name: r.name, st: r.st, title: r.value })), "그록 웹훅")}
+      {lane(ping, bots.filter((r) => r.name === pingTo).map((r) => ({ key: r.key, name: r.name, st: r.st, title: r.value })), `${pingTo} 부르기`)}
+      <small className="nsb-foot">점 = 서버 줄 불 · 화살표 = 깨우는 길 · 점선 = 상주(러너 없이 늘 돎)</small>
+    </div>
+  );
+}
+
+/** ③ 몸 지도 — 열 = 본체(정본 · 이사 중 빼고) · 줄 = 하드웨어 · 온도 · 도커·VM · SSH · 백업 · VM · GitHub 러너 */
+const RUN_ON: [string, string][] = [["nomute-win-", "윈A"], ["mac-", "맥"]];   // GitHub 러너 이름 앞말 → 그 러너가 도는 몸 host(러너 등록 이름 = 러너 쪽 자리 · 몸 목록 아님)
+function DiaBody({ cats, bs }: { cats: StatusCat[]; bs: Body[] }) {
+  const hw = rowsOf(cats, "hw"), dock = rowsOf(cats, "docker"), ssh = rowsOf(cats, "ssh"), backup = rowsOf(cats, "backup") as (StatusRow & { host?: string })[];
+  const ms = machinesOf(bs), moving = bs.filter((b) => b.on === false);
+  const runner = hw.find((r) => r.key === "러너");
+  const m = (r?: StatusRow) => (r as (StatusRow & { metrics?: Record<string, number> }) | undefined)?.metrics || {};
+  const pct = (r?: StatusRow) => { const x = m(r); return [x.cpu !== undefined ? `CPU ${Math.round(x.cpu)}%` : "", x.ram !== undefined ? `램 ${Math.round(x.ram)}%` : "", x.disk_free !== undefined ? `빔 ${Math.round(x.disk_free)}%` : ""].filter(Boolean).join(" · "); };
+  const temp = (r?: StatusRow) => { const x = m(r); return [x.cpu_temp !== undefined ? `CPU ${Math.round(x.cpu_temp)}°` : "", x.gpu_temp !== undefined ? `GPU ${Math.round(x.gpu_temp)}°` : ""].filter(Boolean).join(" · "); };
+  const cell = (r: StatusRow | undefined, text: string) => r ? <td data-st={r.st} title={[r.name, r.value, r.note].filter(Boolean).join(" · ")}><StatusDot st={r.st} />{text || first(r.value) || HEALTH_KO[r.st]}</td> : <td className="none">—</td>;
+  return (
+    <div className="nsb-dia nsb-map">
+      <div className="nsb-scroll" role="region" aria-label="몸 지도" tabIndex={0}>
+        <table>
+          <thead><tr><th />{ms.map((b) => <th key={b.body}>{b.body}<small>{bs.filter((x) => homeOf(x) === b.body).map((x) => x.being).join(" · ")}</small></th>)}</tr></thead>
+          <tbody>
+            <tr><th scope="row">하드웨어</th>{ms.map((b) => { const r = hw.find((x) => x.key === b.hosts[0]); return <Fragment key={b.body}>{cell(r, pct(r))}</Fragment>; })}</tr>
+            <tr><th scope="row">온도</th>{ms.map((b) => { const r = hw.find((x) => x.key === `${b.hosts[0]}-temp`); return <Fragment key={b.body}>{cell(r, temp(r))}</Fragment>; })}</tr>
+            <tr><th scope="row">도커 · VM</th>{ms.map((b) => <Fragment key={b.body}>{cell(dock.find((x) => x.key === b.hosts[0]), "")}</Fragment>)}</tr>
+            <tr><th scope="row">SSH → 다른 몸</th>{ms.map((b) => {
+              const r = ssh.find((x) => x.key === b.hosts[0]), cs = Object.entries(r?.cells || {}), ok = cs.filter(([, c]) => c.st === "ok").length;
+              return r ? <td key={b.body} data-st={r.st} title={cs.map(([k, c]) => `${k} ${c.note || HEALTH_KO[c.st]}`).join(" · ")}><StatusDot st={r.st} />{cs.length ? `${ok}/${cs.length}` : first(r.value)}</td> : <td key={b.body} className="none">—</td>;
+            })}</tr>
+            <tr><th scope="row">백업</th>{ms.map((b) => { const rs = backup.filter((x) => (x.host || x.key.split("-")[0]) === b.hosts[0]); return <td key={b.body}>{rs.length ? rs.map((r) => <Dot key={r.key} c={{ st: r.st, label: r.name.replace(new RegExp(`^${b.hosts[0]}\\s*`), "").replace(/\(.*\)$/, "").replace(/ 백업$/, "") }} t={[r.name, r.note].filter(Boolean).join(" · ")} />) : <span className="none">—</span>}</td>; })}</tr>
+            <tr><th scope="row">VM</th>{ms.map((b) => { const vs = bs.filter((x) => x !== b && homeOf(x) === b.body); return <td key={b.body}>{vs.length ? vs.map((x) => { const r = hw.find((y) => y.key === `VM ${x.being}`); return <Dot key={x.being} c={{ st: r?.st || "unknown", label: x.being }} t={r ? [r.name, pct(r), r.note].filter(Boolean).join(" · ") : "보고 아직 안 옴"} />; }) : <span className="none">—</span>}</td>; })}</tr>
+            <tr><th scope="row">GitHub 러너</th>{ms.map((b) => { const cs = Object.entries(runner?.cells || {}).filter(([n]) => RUN_ON.some(([p, h]) => n.startsWith(p) && h === b.hosts[0])); const ok = cs.filter(([, c]) => c.st === "ok").length; return <td key={b.body} data-st={cs.length ? (ok === cs.length ? "ok" : "late") : undefined} title={cs.map(([n, c]) => `${n} ${c.note || HEALTH_KO[c.st]}`).join(" · ")}>{cs.length ? <><StatusDot st={ok === cs.length ? "ok" : "late"} />{ok}/{cs.length}</> : <span className="none">—</span>}</td>; })}</tr>
+          </tbody>
+        </table>
+      </div>
+      {moving.length ? <small className="nsb-foot">{moving.map((b) => `${b.body} · ${b.moving || "이사 중"}`).join(" · ")}</small> : null}
+    </div>
+  );
+}
+
+/** ④ 시간축 · 수집 — 위 = 구역 칩(누르면 그 구역 목록) · 아래 = 40분 판 색인 표 · 썸네일 기준 = 한 줄 */
+function DiaTime({ cats }: { cats: StatusCat[] }) {
+  const col = rowsOf(cats, "collect"), idx = rowsOf(cats, "collect_index") as IndexRow[], thumb = rowsOf(cats, "thumb");
+  const [zone, setZone] = useState("");
+  const zs = [...ZONES, ...(col.some((r) => !ZONES.includes(r.zone || "")) ? ["기타"] : [])];
+  return (
+    <div className="nsb-dia nsb-time">
+      <div className="zones">{zs.map((z) => { const rs = col.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z)), w = worst(rs); return (
+        <button key={z} type="button" className="node chip" data-st={w} aria-pressed={zone === z} onClick={() => setZone(zone === z ? "" : z)} title={rs.filter((r) => r.st !== "ok").map((r) => `${r.name} ${HEALTH_KO[r.st]}`).join(" · ")}><StatusDot st={w} />{z}<em>{count(rs, "ok")}/{rs.length}</em></button>
+      ); })}</div>
+      {zone ? <ZoneItems zone={zone} /> : null}
+      <IndexTable rows={idx} />
+      {thumb.length ? <small className="nsb-foot">썸네일 기준 · {thumb.map((r) => <Dot key={r.key} c={{ st: r.st, label: r.name }} t={r.value} />)}</small> : null}
+    </div>
+  );
+}
+
+function Diagrams({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pick: string; setPick: (k: string) => void }) {
+  const box = (n: string, title: string, sub: string, ids: string[], body: ReactNode) => { const rs = ids.flatMap((id) => rowsOf(cats, id)), w = worst(rs); return (
+    <section className="nsb-cat nsb-diac" data-st={w} aria-label={title}>
+      <h3 className="nsb-ch"><StatusDot st={w} /><b>{n} {title}</b><span className="nsb-cnt">{count(rs, "miss") ? <em>✕ {count(rs, "miss")}</em> : null}{count(rs, "late") ? <i>▲ {count(rs, "late")}</i> : null}<small>{sub}</small></span></h3>
+      {body}
+    </section>
+  ); };
+  return (
+    <div className="nsb-dias">
+      {box("①", "애들 × 연결", "깸 · 계정 · 일기 · 교대", ["bots", "cli", "diary", "tok_grok", "comm"], <DiaWho cats={cats} bs={bs} pick={pick} setPick={setPick} />)}
+      {box("②", "러너 길", "점 · 화살표", ["server"], <DiaFlow cats={cats} />)}
+      {box("③", "몸 지도", "본체 × 줄", ["hw", "docker", "ssh", "backup"], <DiaBody cats={cats} bs={bs} />)}
+      {box("④", "시간축 · 수집", "구역 · 40분 판", ["collect", "collect_index", "thumb"], <DiaTime cats={cats} />)}
+    </div>
+  );
+}
+
 export function StatusBoard() {
   const sched = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), refetchInterval: 60_000 });
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 });
   const srv = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: StatusCat[]; at?: number; bodies?: Body[] }>("status"), refetchInterval: 60_000, retry: false });   // 뜸 #2487 GET /api/office/status
   const loading = srv.isPending;   // 맨 위 셈 = 몸 보고(status · 6초 안팎)만 기다림 · 스케줄(12초 안팎)은 「사무실 서버」 줄만 회색 「불러오는 중」
-  const cats = merge(fromLocal(sched.data, bots.data, sched.isPending), bodiesOf(srv.data?.bodies), srv.data?.cats);   // 몸 = 서버 bodies(정본) · 없으면 사본
-  const [open, setOpen] = useState<Record<string, boolean>>({}), [pick, setPick] = useState(""), [zone, setZone] = useState("");
+  const bs = bodiesOf(srv.data?.bodies);   // 몸 = 서버 bodies(정본) · 없으면 사본
+  const cats = merge(fromLocal(sched.data, bots.data, sched.isPending), bs, srv.data?.cats);
+  const [open, setOpen] = useState<Record<string, boolean>>({}), [pick, setPick] = useState(""), [zone, setZone] = useState(""), [more, setMore] = useState(false);
+  const acct = cats.filter((c) => c.id === "acct"), rest = cats.filter((c) => c.id !== "acct");   // 맨 위 = 계정 상태(형 11-07 14:43 「먼저 나오게」) → 도식 넷 → 「자세히」 = 칸 목록(손실 0)
   const all = cats.flatMap((c) => c.rows), red = count(all, "miss"), yellow = count(all, "late"), gray = count(all, "unknown");
   return (
-    <div className="nsb mx-auto w-full max-w-3xl px-4 pb-12 pt-3">
+    <div className="nsb mx-auto w-full max-w-6xl px-4 pb-12 pt-3">
       <div className="nsb-top" role="status">
         <b data-st={loading ? "unknown" : red ? "miss" : yellow ? "late" : "ok"}>{loading ? "불러오는 중" : red ? `안 됨 ${red}` : yellow ? `늦음 ${yellow}` : "다 정상"}</b>
         <span>● {count(all, "ok")} · ▲ {yellow} · ✕ {red} · ○ {gray}</span>
         <small>{srv.isError ? "몸 보고 길 = 뜸이 붙이는 중" : srv.data?.at ? agoKo(srv.data.at) : ""}</small>
       </div>
-      {cats.map((c, i) => {
+      {acct.map((c, i) => sec(c, i, acct))}
+      <Diagrams cats={cats} bs={bs} pick={pick} setPick={setPick} />
+      <button type="button" className="nsb-more" aria-expanded={more} onClick={() => setMore(!more)}>{more ? "칸 목록 접기" : `자세히 · 칸 목록 ${rest.length}`}<small>● {count(rest.flatMap((c) => c.rows), "ok")} · ▲ {count(rest.flatMap((c) => c.rows), "late")} · ✕ {count(rest.flatMap((c) => c.rows), "miss")} · ○ {count(rest.flatMap((c) => c.rows), "unknown")}</small></button>
+      {more ? rest.map((c, i) => sec(c, i, rest)) : null}
+    </div>
+  );
+  function sec(c: StatusCat, i: number, cats: StatusCat[]) {
         const w = worst(c.rows), isOpen = open[c.id] ?? (c.id === "acct" || w === "miss" || w === "late");   // 계정 상태 = 늘 펼침(형 「먼저 나오게」)
         const g = c.grp && c.grp !== cats[i - 1]?.grp ? c.grp : "", gr = g ? cats.filter((x) => x.grp === g).flatMap((x) => x.rows) : [];   // 묶음 머리(형 01:29 「카테고라이징」) · 머리 불 = 그 묶음 제일 나쁜 것
         return (
@@ -326,7 +487,5 @@ export function StatusBoard() {
           </section>
           </Fragment>
         );
-      })}
-    </div>
-  );
+  }
 }
