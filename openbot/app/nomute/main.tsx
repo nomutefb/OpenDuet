@@ -44,6 +44,15 @@ XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, body?: Document 
 };
 
 let bar: HTMLElement | null = null;
+/** 알약 글(형 11-07 13:23 「이거 문구 변경 : 업데이트가 있습니다... 하면서 ... 가 움직이게 해주셈.  그리고 저거 반투명하게 애초에」) = 글 + 점 셋 차례로 켜짐(./ui/update-bar.css .nm-dots) */
+const UPD_TXT = "업데이트가 있습니다";
+function say(btn: HTMLButtonElement, t: string, dots = true) {
+  btn.textContent = t;
+  if (!dots) return;
+  const d = document.createElement("span"); d.className = "nm-dots"; d.setAttribute("aria-hidden", "true");
+  for (let i = 0; i < 3; i++) { const b = document.createElement("i"); b.textContent = "."; d.appendChild(b); }
+  btn.appendChild(d);
+}
 function showUpdate() {
   if (bar) return;
   const btn = document.createElement("button");   // 알약 하나 = 누르면 갱신(형 11-02 08:2x 「새 버전이 있어요 라고만 뜨면됨 새로고침은 없어도 되고 그냥 그거 누르면 갱신되게.」)
@@ -51,12 +60,12 @@ function showUpdate() {
   btn.type = "button";
   btn.className = "nm-yeta nm-upd";
   btn.setAttribute("role", "status");
-  btn.textContent = "새 버전이 있어요";
+  say(btn, UPD_TXT);
   let armed = 0;
   btn.addEventListener("click", () => {
-    if (busyTyping() && Date.now() - armed > 4000) { armed = Date.now(); btn.textContent = "쓰던 글 있음 · 한 번 더"; setTimeout(() => { if (btn.textContent !== "보내는 중…") btn.textContent = "새 버전이 있어요"; }, 4000); return; }
+    if (busyTyping() && Date.now() - armed > 4000) { armed = Date.now(); say(btn, "쓰던 글 있음 · 한 번 더", false); setTimeout(() => { if (!btn.disabled) say(btn, UPD_TXT); }, 4000); return; }
     btn.disabled = true;
-    btn.textContent = "보내는 중…";
+    say(btn, UPD_TXT);
     const t0 = Date.now();
     const go = () => { if (writes > 0 && Date.now() - t0 < 60_000) { setTimeout(go, 300); return; } updating(); location.reload(); };
     go();
@@ -74,13 +83,13 @@ window.addEventListener("keydown", () => { lastKey = Date.now(); }, true);
 window.addEventListener("compositionstart", () => { composing = true; }, true);
 window.addEventListener("compositionend", () => { composing = false; lastKey = Date.now(); }, true);
 function autoReload(btn: HTMLButtonElement) {
-  btn.textContent = "새 판 · 곧 다시 읽어";
+  say(btn, UPD_TXT);
   const safe = () => writes === 0 && !composing && Date.now() - lastKey > 3000
     && !document.querySelector('ul[aria-label="Attachments"] li')   // 붙여 둔 파일
     && !document.querySelector('[role="dialog"]');                   // 열린 창
   // 되풀이 막기 = 저절로 다시 읽기는 2분에 한 번(배포가 퍼지는 틈에 version.json 만 먼저 새 판이면 계속 다시 읽을 수 있음 · 9222 시험 11-06 13:2x) · 막히면 알약 그대로(누르면 읽음)
   let last = 0; try { last = +(sessionStorage.getItem("nm-auto-reload") || 0); } catch { /* 이번만 */ }
-  if (Date.now() - last < 120_000) { btn.textContent = "새 버전이 있어요"; return; }
+  if (Date.now() - last < 120_000) { say(btn, UPD_TXT); return; }
   const tick = () => { if (safe()) { try { sessionStorage.setItem("nm-auto-reload", String(Date.now())); } catch { /* 이번만 */ } updating(); location.reload(); return; } setTimeout(tick, 1000); };
   setTimeout(tick, 1500);
 }

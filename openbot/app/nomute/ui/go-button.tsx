@@ -42,7 +42,7 @@ export function GoButton<T>({ go, children, className = "", disabled, busy = "�
   return (
     <button type={type} className={`nm-go ${className}`} data-stage={st} disabled={disabled && st === "idle"} aria-label={label} aria-busy={st === "fill" || st === "wait" || undefined}
       title={st === "err" && why ? why : undefined} onClick={run}>
-      {st === "fill" ? busy
+      {st === "fill" ? <><span className="nm-go-sr">{busy}</span>{children}</>   /* 형 11-07 13:23 「전송누르면 전송중 안뜨고 그냥게이지 채워지는거로 변경」 = 글자는 그대로 · 게이지만 참(busy = 읽어 주기만) */
         : st === "ok" ? <svg className="nm-go-ck" viewBox="0 0 24 24" role="img" aria-label="됐어"><path d="M5 13l4 4L19 7" /></svg>
         : st === "wait" ? <><i className="nm-go-spin" aria-hidden />{waiting}</>
         : st === "err" ? "못 보냄"

@@ -22,3 +22,4 @@
   .nm-go-ck { animation:none; transform:scale(1); } .nm-go-ck path { animation:none; stroke-dashoffset:0; }
   .nm-go-spin { animation-duration:2s; }
 }
+.nm-go-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }   /* 「보내는 중」 = 화면엔 안 보임 · 읽어 주기만(형 11-07 13:23) */

@@ -289,7 +289,7 @@ export function goFire(yellow) {
   if (!gb.dataset.label) gb.dataset.label = gb.textContent;
   clearTimeout(gb._fT1); clearTimeout(gb._fT2); clearTimeout(gb._fT3); clearTimeout(gb._errT);
   gb.classList.remove('firing', 'okdone', 'checking', 'err', 'warn', 'shake', 'spelling', 'fy', 'spell-arm'); void gb.offsetWidth;
-  gb.classList.add('firing'); if (yellow) gb.classList.add('fy'); gb.textContent = '전송중…'; gb.setAttribute('aria-busy', 'true');
+  gb.classList.add('firing'); if (yellow) gb.classList.add('fy'); gb.setAttribute('aria-busy', 'true');   // 글자 그대로 · 게이지만(형 11-07 13:23 「전송누르면 전송중 안뜨고 그냥게이지 채워지는거로 변경」)
   gb._fT1 = setTimeout(() => {
     gb.classList.remove('firing'); gb.classList.add('okdone', 'checking');
     gb.innerHTML = '<svg class="gck" viewBox="0 0 24 24" role="img" aria-label="전송됨"><path d="M5 13l4 4L19 7"/></svg>';
