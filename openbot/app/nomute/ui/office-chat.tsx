@@ -43,7 +43,7 @@ import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 
 import { FaceImg, FaceStack } from "./faces";
 import { HyungPills, pendingOf } from "./hyung-pills";
 import { CallPeek } from "./call-peek";
-import { draftSet } from "./draft";   // 알약 누름 = 그 글 창 + 답칸(형 11-07 12:02~12:03 「그냥 확 창이 뜨고 깔끔하게 답변」)
+import { draftDrop, draftSet } from "./draft";   // 알약 누름 = 그 글 창 + 답칸(형 11-07 12:02~12:03 「그냥 확 창이 뜨고 깔끔하게 답변」)
 import { useUnfold } from "./unfold";
 import { SiteIcon } from "./site-icon";
 import { dlHref } from "./news-data";
@@ -109,6 +109,8 @@ export const officeKeys = {
   bots: ["nomute", "bots"] as const,
 };
 
+/** 알약 창 답이 보냄 줄에 든 동안의 원 글 id(이 탭 · 방을 옮겨도 남음) — 그새 글을 새로 받아 서버 대기(pending_ids)에 그 id 가 다시 와도 알약을 안 되살림 · 보내지면 뺌(모루 11-07 15:57 #2822 검토) */
+const replying = new Set<string>();
 const merge = (old: Page | undefined, add: Msg[]): Page => {
   const m = new Map((old?.messages || []).map((x) => [x.id, x]));
   for (const x of add) m.set(x.id, x);
@@ -1225,7 +1227,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
 
   useSwipeReply(boxRef, (id) => { const m = all.find((x) => x.id === id); if (m) c.onReply(m); }, !msgs.isPending && !pairRoom && room);   // 줄 왼쪽으로 밀기 = 답장(./swipe-reply.ts)
   const hyServer = msgs.data?.pending_ids;
-  const hyItems = useMemo(() => (pairRoom ? [] : pendingOf(all, hyServer, (m) => `${nmOf(list, m.who)}: ${firstLine(m)}`).map((m) => ({ id: m.id, who: m.who, face: idOf(m.who, list), name: nmOf(list, m.who), line: firstLine(m), ts: Number((m as { ts?: number }).ts) || 0, color: ringOf(list.find((x) => x.who === m.who)) }))), [all, hyServer, list, pairRoom]);   // ts·color = 형 10:28 「얼굴로 … 분은 필요」 · 「각자의 시그니처 색」(뜸)
+  const hyItems = useMemo(() => (pairRoom ? [] : pendingOf(all, hyServer?.filter((x) => !replying.has(x)), (m) => `${nmOf(list, m.who)}: ${firstLine(m)}`).map((m) => ({ id: m.id, who: m.who, face: idOf(m.who, list), name: nmOf(list, m.who), line: firstLine(m), ts: Number((m as { ts?: number }).ts) || 0, color: ringOf(list.find((x) => x.who === m.who)) }))), [all, hyServer, list, pairRoom]);   // ts·color = 형 10:28 「얼굴로 … 분은 필요」 · 「각자의 시그니처 색」(뜸)
   const dropHy = (ids: string[]) => {   // 알약 지움 = 바로 사라짐 + 서버 장부에서 뺌(형만 · editor#2774 POST rooms/<방>/hyungwait · 뜸 11-07)
     const drop = new Set(ids);
     qc.setQueryData<Page>(officeKeys.msgs(room), (old) => (old ? { ...old, pending_ids: (old.pending_ids || []).filter((x) => !drop.has(x)) } : old));
@@ -1236,9 +1238,14 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     //   보내기 = 입력칸과 같은 보냄 줄(attachmentSender.later) → 내 말풍선이 대화 맨 아래 바로 뜨고 「전송 대기」 → 진짜 글이 되면 시각(형 13:19 「전송대기면 채팅에 뜬 다음에 전송 대기라고 나오면됨」 · 뎅 15:19 검수 · 윈터 15:50 짚음) · 실패 = 그 자리 「다시 보내기」
     const name = nmOf(list, m.who);
     const text = `↩ ${name}: ${firstLine(m)}\n!${name.replace(" PM", "")} ${raw}`;
+    //   쓰던 답 = 보내질 때까지 이 기기에 둠(창은 닫히며 지움 → 여기서 다시 둠 · 실패 뒤 새로고침해도 알약 누르면 그대로 · 모루 15:57)
+    draftSet(`peek:${m.id}`, raw);
+    replying.add(m.id);
     qc.setQueryData<Page>(officeKeys.msgs(room), (old) => (old ? { ...old, pending_ids: (old.pending_ids || []).filter((x) => x !== m.id) } : old));   // 알약 = 보내는 순간 빠짐
     attachmentSender.later(room, text, async () => {
       const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify({ text, reply_to: m.id }) });
+      replying.delete(m.id);
+      draftDrop(`peek:${m.id}`);
       qc.setQueryData<Page>(officeKeys.msgs(room), (old) => { if (!old) return old; const next = j.message ? merge(old, [j.message]) : old; return { ...next, pending_ids: (next.pending_ids || []).filter((x) => x !== m.id) }; });
       void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });
       void qc.invalidateQueries({ queryKey: officeKeys.rooms });
