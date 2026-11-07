@@ -143,6 +143,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
    = 창을 줄이면 대화 · 오른쪽(상태바·뉴스)이 반반씩 같이 줄다가 대화 360 · 오른쪽 376(봄 상태바 셋이 읽히는 최소 360 + 여백) 에서 멈춤 · 그보다 좁으면(860px 아래) 한 칸으로 */
 .nm-split-l { min-width:360px; }
 .nm-split { min-width:376px; }
+.nm-split-l .nm-col:has(.ychat), .nm-split-l .nm-col .ychat.mx-auto { max-width:none; }   /* 칸(430) + 글 목록(max-w-2xl 672) 둘 다 풂 · PC 대화방 = 칸 폭이 가운데 손잡이를 따라감 → 말풍선(84% · 내 글 72%)도 같이 늘고 줆(형 11-07 17:59 「가운데 좌우로 너비 조정하면 글도 그에 맞춰서 좌우로 폭을 %로」 · 옛 = 폰 폭 430 고정) · 목록·할 일 칸은 430 그대로 */
 /* PC 「생각 중」 말풍선 = 또렷하게(형 11-05 15:48 「그리고 이거 흐릿하게 보여버린다.」 · 그림 = 점 셋 말풍선) */
 .nm-split-root .ychat .ymsg.ytyp .yb.ai { background:#2a2d31 !important; border-color:rgba(255,255,255,.14) !important; opacity:1 !important; }
 .nm-split-root .ychat .ytdots i { background:#e6e9e6; }
