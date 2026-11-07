@@ -297,3 +297,8 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-l > .nm-split-top-l { position:absolute; top:8px; left:8px; right:8px; z-index:1; max-height:none; }
 .nm-split-l > .nm-pane { top:var(--nm-top-off, 0px); }   /* 판(홈 · 대화방 · 대화 · 덮는 판)은 게이지 띠 밑에서 시작 */
 .nm-split > .nm-split-top-r { flex:0 0 var(--nm-top-h, auto); height:var(--nm-top-h, auto); max-height:none; overflow:hidden; }
+/* 오른쪽 칸 = 블록 없이 구분선만(형 11-08 08:18 dm 「우측의 내용도 블록 안에 담지말고 그냥 구분선 정도로 처리.」 · 봄) — 칸 바탕·둥근 모 0 · 칸 사이 = 가는 줄 하나 */
+.nm-split > section { background:transparent !important; border-radius:0 !important; }
+.nm-split > section + section { border-top:1px solid rgba(255,255,255,.07); }
+.nm-split-root .nm-nsum { border-top:0; }   /* 요약 칸 제 윗줄은 위 구분선과 겹쳐서 뺌 */
+.nm-split-root .nm-nsum-q { background:transparent; }

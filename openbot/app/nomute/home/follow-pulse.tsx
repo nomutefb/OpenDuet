@@ -103,7 +103,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v">{nf.format(ig.profile.followers_count)}</b>
         <i className="nm-pulse-sep" aria-hidden />
         <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v">{fb ? nf.format(fb.profile.followers_count) : "–"}</b>
-        <span className="nm-pulse-at">{ago(ig.generated_kst)}</span>
+        <span className="nm-pulse-at">{fill ? ago(ig.generated_kst).replace(/^갱신 /, "") : ago(ig.generated_kst)}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
       </div>
       <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
