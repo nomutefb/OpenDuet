@@ -18,7 +18,7 @@ type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp
 
 // 차례 = 윈A · 맥(가운데) · 윈B(오른쪽 · 켜질 때만 쓰는 서브)(형 11-06 15:56 「대시보드에 윈b 말고 이제 맥이 들어가야되고, 윈b는 완전 서브야(켜질때만 어쩔때 사용) mac이 가운데로 오게해줘 윈b는 우측으로」)
 // 몸 칸 = 정본 한 장(../data/bodies · 서버 GET status bodies) 의 본체(이사 중 빼고) · key = 그 몸 host 첫 이름(작동 표 hw 줄 key) · 이름 = 몸 이름(형 11-08 01:48 「부품 1개가 있어. 근데 이걸 참조하면 되는데 10개를 복사해서 쓰는 꼴임.」)
-const PC_OF: Record<string, string> = { 윈A: "A" };   // 러너 위젯(/api/runner) 칸 글자 = 위젯 자리(몸 목록 아님 · runner-board PCS 와 같은 글자)
+const PC_OF: Record<string, string> = { 윈A: "A", 맥: "M", hwang: "H" };   // 러너 위젯(/api/runner) 칸 글자 = 위젯 자리(몸 목록 아님) · hw 없거나 끊길 때 위젯 숫자로 메움(앞 판 HOSTS 의 pc 그대로 · 모루 #2871)
 // 11-07 형 08:51 임시방 「대시보드에 하드웨어 바뀐거 조약돌 포함 반영해줘 윈비 제외」 · 봄 나눔 ① = 윈B 칸 빼고 「SIA PC」(시아 본체 · 테일스케일 hwang · 작동 표 hw 줄 key 「hwang」) · 차례 윈A · 맥(가운데) · SIA PC
 // 색(형 17:3x 「노란색, 주황색, 빨간색 그거는 그대로 유지할게, 평상시에는 흰색이면됨」) = 평소 흰 · 70/80/90 = 노랑·주황·빨강(위젯 단계 그대로) · 온도 80 주황 · 85 빨강
 const WARN: Record<Level, string> = { green: "#E6E6E6", yellow: "#FFD23F", orange: "#FF9F43", red: "#FF5A5F", off: "#5C5C5C" };

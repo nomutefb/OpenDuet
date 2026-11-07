@@ -36,7 +36,7 @@ export const machinesOf = (bs: Body[]) => bs.filter((b) => isBox(b) && b.on !== 
 export const homeOf = (b: Body): string | null => {
   const vm = b.kind.match(/^vm@(.+)$/);
   if (vm) return vm[1];
-  if (b.on === false) return (b.moving || "").match(/지금 vm@([^)\s·]+)/)?.[1] ?? null;
+  if (b.on === false) { const m = b.moving || ""; return m.match(/vm@([^)\s·]+)/)?.[1] ?? m.match(/\(([^\s()]+) VM\b/)?.[1] ?? null; }   // 「지금 vm@윈A」 · 「(윈A VM neo → …)」 둘 다(모루 #2871)
   return b.body;
 };
 
