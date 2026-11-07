@@ -110,6 +110,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
       <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
         <rect className="nm-pulse-rowbg" x="0" y={IGY} width={W} height={RH} fill="url(#nm-pulse-fade)" />
+        {fill && fb ? <rect className="nm-pulse-rowbg fb" x="0" y={FBY} width={W} height={RH} /> : null}   {/* PC 칸 = 줄마다 제 선 색 음영(형 11-08 08:52 「표기 디자인을 차트의 배색에 맡게 뒤에 음영을 반투명도는 지하면서 깔으라는거고」) */}
         <line className="nm-pulse-base" x1="0" x2={W} y1={Y(0).toFixed(1)} y2={Y(0).toFixed(1)} strokeWidth="1" strokeDasharray="2 3" />
         {lines.map(([key, s]) => {
           const off = (DAYS - s.length) * P, pts = s.map((p, i) => [off + i * P + P / 2, Y(p.pct)] as [number, number]);
