@@ -53,11 +53,11 @@ export function PinBar({ room, onJump, children }: { room: string; onJump?: (id:
   useEffect(() => {
     const el = slot.current, root = document.documentElement;
     if (!el) { root.style.removeProperty("--nm-pin-h"); return; }
-    const put = () => { const h = el.offsetHeight; root.style.setProperty("--nm-pin-h", `${h ? h + 8 : 0}px`); };
+    const put = () => { const h = el.offsetHeight, v = h ? h + 8 : 0; root.style.setProperty("--nm-pin-h", `${v}px`); window.dispatchEvent(new CustomEvent("nm-pin-h", { detail: v })); };   // 신호 = 검색 단추(body 에 그려짐)가 제 몸에 직접 박음(room-search.tsx · 뎅 10:31 「--nm-pin-h 103 인데 .nm-find top 76」)
     put();
     const ro = new ResizeObserver(put);
     ro.observe(el);
-    return () => { ro.disconnect(); root.style.removeProperty("--nm-pin-h"); };
+    return () => { ro.disconnect(); root.style.removeProperty("--nm-pin-h"); window.dispatchEvent(new CustomEvent("nm-pin-h", { detail: 0 })); };
   });
   const jump = (p: Pin) => { setOpen(false); if (onJump) onJump(p.id, p.ts); else window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id: p.id } })); };   // 대화창(office-chat.tsx)이 받아 그 글로(묶음 펼침 포함)
   if (!cur && !open && !children) return null;

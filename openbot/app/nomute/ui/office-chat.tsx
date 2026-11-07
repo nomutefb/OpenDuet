@@ -57,6 +57,7 @@ import { SUMMARY_ROOM, SummaryDesk } from "./summary-desk";   // 요약실 = 요
 import { Folded } from "./fold";   // 긴 글 접기 · 전체 보기(형 11-02 07:19)
 import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
 import { t12 } from "./when";
+import { RoomBoard } from "./room-board";   // 방 띠(칩·열린 제안) = 입력칸 바로 위(형 11-07 10:28 「채팅 바로 위에 쓰는곳 위에 올라와야하고, 얼굴로 있어야함」)
 import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
@@ -1315,6 +1316,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         <CallSheet />   {/* 「@」·「!」 여러 명 고르기(./call-sheet.tsx · 형 11-02 11:34 · 11:37) */}
         <HyungPills items={hyItems} onPick={pickHy} active={reply?.id} />   {/* 형 결정 대기 알약 = 입력칸 바로 위(형 11-07 09:55~09:56) */}
+        <RoomBoard room={room} />   {/* 입력칸 바로 위 한 줄 · 뜸 @형 알약 = 그 위 줄 · 칩도 제안도 없으면 줄 0 */}
         {reply ? (
           <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">
             <span className="min-w-0 flex-1 truncate">↩ <b>{reply.who}</b> · {reply.line}</span>

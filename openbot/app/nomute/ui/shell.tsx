@@ -7,7 +7,6 @@
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { TodoBar } from "./todo-bar";
-import { RoomBoard } from "./room-board";   // 방 머리 띠(칩·열린 제안) = 공지(고정 띠) 바로 밑 자식 — 차례 공지 → 띠 → 검색(형 11-07 09:57 밥상 「공지는 아예 제일 윗단으로」 · 봄 나눔)   // 밥상 할 일 띠(형 11-04 11:51)
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Component, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
@@ -232,7 +231,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             <div className="nm-col">
               {isTeams(room) ? null : <ShellHeader floating menuOpen={false} onMenu={() => {}} />}   {/* 팀즈 대화 = 우리 얼굴 머리 0(TeamsChat 이 제 머리를 그림) */}
               {wide ? null : <button type="button" className="nm-room-back" aria-label="대화방 목록으로" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="chevronLeft" size={20} /></button>}   {/* 형 10-31 「좌상단에 좌측 꺽쇠가 있어줘야 함」 · 뒤로 버튼 없는 폰 */}
-              {isTeams(room) ? null : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}<RoomBoard room={room} /></PinBar>}   {/* 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 그 밑 방 카드(평의회 2 ⑨ · ./meet-card.tsx) */}
+              {isTeams(room) ? null : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}</PinBar>}   {/* 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 그 밑 방 카드(평의회 2 ⑨ · ./meet-card.tsx) */}
               <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && roomOf(pathname) === room && !modal && !layer && !("page" in where)} /></main>
             </div>
           ))}

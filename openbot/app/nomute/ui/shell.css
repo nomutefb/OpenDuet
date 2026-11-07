@@ -242,7 +242,7 @@ body.nm-dragging iframe { pointer-events:none; }
   -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2); filter:none; box-shadow:0 4px 14px rgba(0,0,0,.28); }
 :root:has(.nm-split-root) .nm-find:not(.open) .nm-find-btn { width:30px; }
 :root:has(.nm-split-root) .nm-find:not(.open) .nm-find-btn svg { width:16px; height:16px; }
-:root:has(.nm-split-root) .nm-story { top:calc(72px + var(--nm-pin-h, 0px)) !important; }
+:root:has(.nm-split-root) .nm-story, :root:has(.nm-split-root) .nm-story-btn { top:calc(72px + var(--nm-pin-h, 0px)) !important; }   /* 밥상 이야기 단추 = .nm-story-btn(앞 줄은 .nm-story 만 잡았음) · 값 = 단추 제 몸 변수(room-search · stories) */
 :root:has(.nm-split-root) .nm-find.open { top:calc(74px + var(--nm-pin-h, 0px)) !important; }   /* 대화 칸 위 끝(70) 안쪽으로 = 칸 테두리에 걸치지 않게(뎅 23:22 「위 끝 61 이 칸 위 끝 70 보다 9px 위」 · 형 22:40 「채팅창 … 우상단에 떠잇는 느낌」) */
 /* 우하단 「동기화 • 버전」 줄이 뉴스 요약 칸 끝을 덮던 것(뎅 23:13 ①) = 오른쪽 칸 아래에 그 줄 자리만큼 여백 · 줄은 조금 더 아래로 */
 .nm-split-root .nm-split { padding-bottom:32px; }

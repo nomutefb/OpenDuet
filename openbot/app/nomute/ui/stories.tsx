@@ -52,7 +52,7 @@ export function StoriesModal() {
 }
 
 /** 밥상 방 오른쪽 위 그림(검색 왼쪽) → 바로 모달 · 이야기가 하나도 없거나 서버가 없으면 단추 0 */
-export function StoryButton({ right }: { right: number }) {
+export function StoryButton({ right, pinH = 0 }: { right: number; pinH?: number }) {   // pinH = 공지 칸 높이(room-search 가 넘김 · PC 에서 공지 아래로)
   const q = useStories(), [open, setOpen] = useState(false);
   useEffect(() => {
     if (!open) return undefined;
@@ -65,7 +65,7 @@ export function StoryButton({ right }: { right: number }) {
   const close = () => history.back();   // 폰 뒤로가기와 같은 길
   return (
     <>
-      <button type="button" className="nm-story-btn" style={{ right }} aria-label="밥상 이야기" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+      <button type="button" className="nm-story-btn" style={{ right, ["--nm-pin-h" as string]: `${pinH}px` }} aria-label="밥상 이야기" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
         <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.5C10.4 5.3 8 4.8 4 5v13c4-.2 6.4.3 8 1.5 1.6-1.2 4-1.7 8-1.5V5c-4-.2-6.4.3-8 1.5z" /><path d="M12 6.5v13" /></svg>
       </button>
       {open ? createPortal(

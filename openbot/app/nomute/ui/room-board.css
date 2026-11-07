@@ -1,18 +1,21 @@
-/* 방 머리 띠(./room-board.tsx) — 공지(고정 띠 · .nm-pin-slot) 칸 안 공지 바로 밑(형 11-07 09:57 「공지는 아예 제일 윗단으로」 · 차례 공지 → 띠 → 검색 · 봄 나눔) · 한 줄 · 넘치면 「+N」 · 펼치면 줄바꿈 */
-.nm-pin-slot > .nm-board {
-  margin:6px auto 0; align-self:center;
-  width:max-content; max-width:calc(100% - 24px);
-  display:flex; flex-wrap:nowrap; align-items:center; gap:6px; padding:4px 6px;
-  border-radius:var(--r-pill, 999px); border:1px solid var(--glass-line, rgba(255,255,255,.1));
-  background:var(--glass, rgba(24,25,27,.72)); background:color-mix(in srgb, var(--glass, rgba(24,25,27,.72)) 85%, transparent);
-  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
-  font-size:11px; line-height:1.3; color:var(--fg); overflow:hidden;
+/* 방 띠(./room-board.tsx) — 입력칸 바로 위 한 줄(형 11-07 10:28 「채팅 바로 위에 쓰는곳 위에 올라와야하고, 얼굴로 있어야함 … 분은 필요 … 전경색을 글래스모피즘은 적용하되 각자의 시그니처 색으로」)
+   칩 = 얼굴 + 분 · 바탕 = 유리 + 각자 프로필 색(--sig) · 넘치면 「+N」 · 펼치면 줄바꿈(최대 높이) · 뜸 @형 알약 = 이 줄 위 */
+.nm-board { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; margin:0 0 6px; padding:0 2px; overflow:hidden; font-size:11px; line-height:1; }
+.nm-board.open { flex-wrap:wrap; max-height:min(30dvh, 200px); overflow-y:auto; }
+.nm-board .bd-chip {
+  all:unset; cursor:pointer; flex:none; display:inline-flex; align-items:center; gap:5px; height:26px; padding:0 9px 0 3px; border-radius:999px;
+  color:var(--fg); font-variant-numeric:tabular-nums;
+  background:color-mix(in srgb, var(--sig, #9aa0a6) 26%, transparent);
+  border:1px solid color-mix(in srgb, var(--sig, #9aa0a6) 55%, transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 2px 8px rgba(0,0,0,.18);
+  -webkit-backdrop-filter:blur(12px) saturate(1.2); backdrop-filter:blur(12px) saturate(1.2);
+  transition:transform .15s ease, opacity .15s ease;
 }
-.nm-pin-slot > .nm-board.open { flex-wrap:wrap; justify-content:center; border-radius:12px; max-height:min(40dvh, 320px); overflow-y:auto; }   /* 펼쳐도 대화를 다 덮지 않게(뎅 10:02 「펼치면 PC 362 · 폰 459」) */
-.nm-board .bd-chip { display:inline-flex; align-items:center; gap:5px; min-width:0; max-width:300px; white-space:nowrap; padding:2px 9px; border-radius:999px; background:rgba(127,127,127,.12); }
-.nm-board .bd-chip b { font-weight:700; }
-.nm-board .bd-what { overflow:hidden; text-overflow:ellipsis; }
-.nm-board .bd-chip i { flex:none; font-style:normal; color:var(--mut); font-variant-numeric:tabular-nums; }
-.nm-board .bd-sug.is-hold { opacity:.75; }
-.nm-board .bd-more { all:unset; cursor:pointer; flex:none; padding:2px 8px; border-radius:999px; color:var(--mut); font-weight:600; }
+.nm-board .bd-chip:hover { transform:translateY(-1px); }
+.nm-board .bd-chip:active { opacity:.6; }
+.nm-board .bd-chip > img, .nm-board .bd-chip > span:first-child { border-radius:50%; }
+.nm-board .bd-chip b { font-weight:400; font-size:11px; }
+.nm-board .bd-chip i { font-style:normal; font-weight:600; }
+.nm-board .bd-sug.is-hold { opacity:.7; }
+.nm-board .bd-more { all:unset; cursor:pointer; flex:none; padding:0 8px; height:26px; display:inline-flex; align-items:center; border-radius:999px; color:var(--mut); font-weight:600; }
 .nm-board .bd-more:hover { color:var(--fg); }
