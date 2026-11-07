@@ -1207,7 +1207,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
 
   useSwipeReply(boxRef, (id) => { const m = all.find((x) => x.id === id); if (m) c.onReply(m); }, !msgs.isPending && !pairRoom && room);   // 줄 왼쪽으로 밀기 = 답장(./swipe-reply.ts)
   const hyServer = msgs.data?.pending_ids;
-  const hyItems = useMemo(() => (pairRoom ? [] : pendingOf(all, hyServer, (m) => `${nmOf(list, m.who)}: ${firstLine(m)}`).map((m) => ({ id: m.id, who: m.who, face: idOf(m.who, list), name: nmOf(list, m.who), line: firstLine(m) }))), [all, hyServer, list, pairRoom]);
+  const hyItems = useMemo(() => (pairRoom ? [] : pendingOf(all, hyServer, (m) => `${nmOf(list, m.who)}: ${firstLine(m)}`).map((m) => ({ id: m.id, who: m.who, face: idOf(m.who, list), name: nmOf(list, m.who), line: firstLine(m), ts: Number((m as { ts?: number }).ts) || 0, color: ringOf(list.find((x) => x.who === m.who)) }))), [all, hyServer, list, pairRoom]);   // ts·color = 형 10:28 「얼굴로 … 분은 필요」 · 「각자의 시그니처 색」(뜸)
   const pickHy = (id: string) => { const m = all.find((x) => x.id === id); if (!m) return; setWant(id); c.onReply(m); };   // 알약 = 그 글로 부드럽게 + 답장 칸 열림(답하면 그 글 쓴 이에게 바로 · 서버 reply_to)
 
   if (msgs.isPending) return null;

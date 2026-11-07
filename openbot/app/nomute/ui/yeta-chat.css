@@ -715,11 +715,14 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 /* 형 결정 대기 알약 줄 = 입력칸 바로 위 · 하나씩 쌓임 · 넘치면 옆으로 밀기(형 11-07 09:55~09:56 「채팅 바로 위에 … 알약형태로 이렇게 누적」 · ./hyung-pills.tsx) */
 .ychat .yhy { display:flex; gap:6px; margin:0 4px 8px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
 .ychat .yhy::-webkit-scrollbar { display:none; }
-.ychat .yhy-p { flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; max-width:240px; height:30px; padding:0 12px 0 5px; border-radius:var(--r-pill);
-  background:rgba(207,255,64,.07); border:1px solid rgba(207,255,64,.55); color:var(--fg, #e8eae8); font-size:var(--fs-sm); line-height:1; cursor:pointer;
-  animation:yhyIn .32s cubic-bezier(.2,.8,.2,1) both; transition:background .18s ease, border-color .18s ease; }
-.ychat .yhy-p b { color:#CFFF40; font-weight:700; white-space:nowrap; }
-.ychat .yhy-p span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.85; }
-.ychat .yhy-p:hover, .ychat .yhy-p.on { background:rgba(207,255,64,.16); border-color:#CFFF40; }
+.ychat .yhy-p { --sig:#CFFF40; flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 11px 0 4px; border-radius:var(--r-pill);
+  /* 형 11-07 10:28 「전경색을 글래스모피즘은 적용하되 각자의 시그니처 색으로」 = 유리 바탕 + 그 이 색 테·빛(--sig = ringOf) */
+  background:linear-gradient(135deg, color-mix(in srgb, var(--sig) 22%, transparent), color-mix(in srgb, var(--sig) 8%, transparent));
+  backdrop-filter:blur(12px) saturate(1.2); -webkit-backdrop-filter:blur(12px) saturate(1.2);
+  border:1px solid color-mix(in srgb, var(--sig) 60%, transparent); box-shadow:0 2px 10px color-mix(in srgb, var(--sig) 18%, transparent), inset 0 1px 0 rgba(255,255,255,.12);
+  color:var(--fg, #e8eae8); font-size:var(--fs-sm); line-height:1; cursor:pointer;
+  animation:yhyIn .32s cubic-bezier(.2,.8,.2,1) both; transition:background .18s ease, border-color .18s ease, transform .18s ease; }
+.ychat .yhy-p i { font-style:normal; font-variant-numeric:tabular-nums; color:color-mix(in srgb, var(--sig) 70%, var(--fg, #e8eae8)); font-weight:600; white-space:nowrap; }
+.ychat .yhy-p:hover, .ychat .yhy-p.on { background:color-mix(in srgb, var(--sig) 28%, transparent); border-color:var(--sig); transform:translateY(-1px); }
 @keyframes yhyIn { from { opacity:0; transform:translateY(6px) scale(.96); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion:reduce){ .ychat .yhy-p { animation:none; } }
