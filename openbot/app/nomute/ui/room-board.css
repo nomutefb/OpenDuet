@@ -1,21 +1,18 @@
-/* 방 띠(./room-board.tsx) — 입력칸 바로 위 한 줄(형 11-07 10:28 「채팅 바로 위에 쓰는곳 위에 올라와야하고, 얼굴로 있어야함 … 분은 필요 … 전경색을 글래스모피즘은 적용하되 각자의 시그니처 색으로」)
-   칩 = 얼굴 + 분 · 바탕 = 유리 + 각자 프로필 색(--sig) · 넘치면 「+N」 · 펼치면 줄바꿈(최대 높이) · 뜸 @형 알약 = 이 줄 위 */
-.nm-board { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; margin:0 0 6px; padding:0 2px; overflow:hidden; font-size:11px; line-height:1; }
-.nm-board.open { flex-wrap:wrap; max-height:min(30dvh, 200px); overflow-y:auto; }
-.nm-board .bd-chip {
-  all:unset; cursor:pointer; flex:none; display:inline-flex; align-items:center; gap:5px; height:26px; padding:0 9px 0 3px; border-radius:999px;
-  color:var(--fg); font-variant-numeric:tabular-nums;
-  background:color-mix(in srgb, var(--sig, #9aa0a6) 26%, transparent);
-  border:1px solid color-mix(in srgb, var(--sig, #9aa0a6) 55%, transparent);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 2px 8px rgba(0,0,0,.18);
-  -webkit-backdrop-filter:blur(12px) saturate(1.2); backdrop-filter:blur(12px) saturate(1.2);
-  transition:transform .15s ease, opacity .15s ease;
-}
-.nm-board .bd-chip:hover { transform:translateY(-1px); }
-.nm-board .bd-chip:active { opacity:.6; }
+/* 방 띠(./room-board.tsx) — 입력칸 바로 위 한 줄(형 11-07 10:28 「채팅 바로 위에 쓰는곳 위에 올라와야하고, 얼굴로 있어야함 … 분은 필요」)
+   형 10:46 「심플하게 프로필 사진만 … 전경색 칠하는건 취소. 프로필 원만. 그리고 16분 이것만.」 → 칩 = 프로필 원 + 분 · 색 칠 0 · 왼쪽 × = 일괄 · 우클릭 = 지움
+   형 10:45 「튀어나오게가 채팅창 구역 안으로」 → 마우스 올림 = 줄 안에서 밝기만(밖으로 안 튀어나옴) · 넘치면 「+N」 · 펼치면 줄바꿈(최대 높이) */
+.nm-board { display:flex; flex-wrap:nowrap; align-items:center; gap:8px; margin:0 0 6px; padding:2px; overflow:hidden; font-size:11px; line-height:1; }
+.nm-board .bd-rail { display:flex; flex:1; min-width:0; align-items:center; gap:8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; scrollbar-width:none; -webkit-overflow-scrolling:touch; }   /* 옆으로 밀기(형 10:47 「옆으로 밀면 이거 밀려서 다음꺼 보여야해」) */
+.nm-board .bd-rail::-webkit-scrollbar { display:none; }
+.nm-board .bd-rail > * { scroll-snap-align:start; }
+.nm-board .bd-chip { all:unset; cursor:pointer; flex:none; display:inline-flex; align-items:center; gap:4px; height:24px; color:var(--mut); font-variant-numeric:tabular-nums; transition:opacity .15s ease, filter .15s ease; }
+.nm-board .bd-chip:hover { filter:brightness(1.15); color:var(--fg); }
+.nm-board .bd-chip:active { opacity:.5; }
 .nm-board .bd-chip > img, .nm-board .bd-chip > span:first-child { border-radius:50%; }
-.nm-board .bd-chip b { font-weight:400; font-size:11px; }
+.nm-board .bd-chip b { font-weight:400; font-size:10px; }
 .nm-board .bd-chip i { font-style:normal; font-weight:600; }
 .nm-board .bd-sug.is-hold { opacity:.7; }
-.nm-board .bd-more { all:unset; cursor:pointer; flex:none; padding:0 8px; height:26px; display:inline-flex; align-items:center; border-radius:999px; color:var(--mut); font-weight:600; }
+.nm-board .bd-clear { all:unset; cursor:pointer; flex:none; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; color:var(--mut); font-size:15px; line-height:1; }
+.nm-board .bd-clear:hover { color:var(--fg); background:rgba(127,127,127,.15); }
+.nm-board .bd-more { all:unset; cursor:pointer; flex:none; padding:0 6px; height:24px; display:inline-flex; align-items:center; color:var(--mut); font-weight:600; }
 .nm-board .bd-more:hover { color:var(--fg); }
