@@ -1210,6 +1210,11 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   useSwipeReply(boxRef, (id) => { const m = all.find((x) => x.id === id); if (m) c.onReply(m); }, !msgs.isPending && !pairRoom && room);   // 줄 왼쪽으로 밀기 = 답장(./swipe-reply.ts)
   const hyServer = msgs.data?.pending_ids;
   const hyItems = useMemo(() => (pairRoom ? [] : pendingOf(all, hyServer, (m) => `${nmOf(list, m.who)}: ${firstLine(m)}`).map((m) => ({ id: m.id, who: m.who, face: idOf(m.who, list), name: nmOf(list, m.who), line: firstLine(m), ts: Number((m as { ts?: number }).ts) || 0, color: ringOf(list.find((x) => x.who === m.who)) }))), [all, hyServer, list, pairRoom]);   // ts·color = 형 10:28 「얼굴로 … 분은 필요」 · 「각자의 시그니처 색」(뜸)
+  const dropHy = (ids: string[]) => {   // 알약 지움 = 바로 사라짐 + 서버 장부에서 뺌(형만 · editor#2774 POST rooms/<방>/hyungwait · 뜸 11-07)
+    const drop = new Set(ids);
+    qc.setQueryData<Page>(officeKeys.msgs(room), (old) => (old ? { ...old, pending_ids: (old.pending_ids || []).filter((x) => !drop.has(x)) } : old));
+    void office(`rooms/${enc(room)}/hyungwait`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ids }) }).catch(() => qc.invalidateQueries({ queryKey: officeKeys.msgs(room) }));
+  };
   const pickHy = (id: string) => { const m = all.find((x) => x.id === id); if (!m) return; setWant(id); c.onReply(m); };   // 알약 = 그 글로 부드럽게 + 답장 칸 열림(답하면 그 글 쓴 이에게 바로 · 서버 reply_to)
 
   if (msgs.isPending) return null;
@@ -1316,7 +1321,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         ) : null}
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         <CallSheet />   {/* 「@」·「!」 여러 명 고르기(./call-sheet.tsx · 형 11-02 11:34 · 11:37) */}
-        <HyungPills items={hyItems} onPick={pickHy} active={reply?.id} />   {/* 형 결정 대기 알약 = 입력칸 바로 위(형 11-07 09:55~09:56) */}
+        <HyungPills items={hyItems} onPick={pickHy} onDrop={dropHy} active={reply?.id} />   {/* 형 결정 대기 알약 = 입력칸 바로 위(형 11-07 09:55~09:56) */}
         <RoomBoard room={room} />   {/* 입력칸 바로 위 한 줄 · 뜸 @형 알약 = 그 위 줄 · 칩도 제안도 없으면 줄 0 */}
         {reply ? (
           <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">
