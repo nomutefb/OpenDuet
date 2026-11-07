@@ -270,8 +270,11 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-spread .nm-drawer-page .yeta-set { columns:3 300px; column-gap:22px; }
 .nm-split-spread .nm-drawer-page .yset-part { break-inside:avoid; margin:0 0 18px; }
 .nm-split-spread .nm-drawer-page .yset-part + .yset-part { margin-top:0; }
-/* 설정 = 넓게 · 설정 들어가는 줄은 두 단 */
+/* 설정 = 넓게 · YETA 설정(./yeta-settings.tsx) 묶음 넷(화면·입력 · 사무실 · 살펴보기 · 기록·정보)을 서랍처럼 단으로(시아 02:13 실물 「설정은 한 단이야」 = 앞 판이 원본 목록 nav 를 잡음) */
 .nm-split-spread .nm-settings-page .max-w-3xl { max-width:min(1180px, 100%); padding-inline:28px; }
-.nm-split-spread .nm-settings-page nav[aria-label="Settings"] { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:2px 18px; }
+.nm-split-spread .nm-settings-page .yeta-set { columns:2 360px; column-gap:22px; }
+.nm-split-spread .nm-settings-page .yeta-set > .yset-ttl { column-span:all; }
+.nm-split-spread .nm-settings-page .yset-part { break-inside:avoid; margin:0 0 18px; }
+.nm-split-spread .nm-settings-page .yset-part + .yset-part { margin-top:0; }
 /* 러너 = 칸 둘 나란히(max-w-5xl)를 넓게 */
 .nm-split-spread .nm-runner-page { max-width:min(1600px, 100%); padding-inline:28px; }
