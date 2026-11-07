@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { SaveAsk, useCloseGuard } from "./save-ask";
 import { createPortal } from "react-dom";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
@@ -252,21 +253,18 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
 
 /** 알림 그림 = 고른 그림을 먼저 보여 주고 「저장」 게이지 → ✓(형 11-01 14:12 「저장 눌러도 반응이 없다보니까 적용이 되엇는지 내가 안누른지를 몰라」 · 뎅 GoButton) · 못 올리면 단추가 「못 보냄」 */
 function NotifyPicPick({ name, url, save, onClose }: { name: string; url: string; save: () => Promise<unknown>; onClose: () => void }) {
-  useEffect(() => {
-    const off = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", off);
-    return () => window.removeEventListener("keydown", off);
-  }, [onClose]);
+  const g = useCloseGuard(true, onClose);   // 고른 그림 = 아직 저장 전 → 닫으려 하면 「저장하시겠습니까?」(형 11-07 10:59) · Esc 도 이 길
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
       <div className="nrc" role="dialog" aria-label={`${name} 알림 그림`} onClick={(e) => e.stopPropagation()}>
         <div className="nrc-head"><b>알림 그림</b></div>
         <img src={url} alt="" className="nm-npic" />
         <div className="nrc-acts">
-          <button type="button" className="nrc-x" onClick={onClose}>닫기</button>
+          <button type="button" className="nrc-x" onClick={g.request}>닫기</button>
           <GoButton className="nrc-x" go={save} done={onClose} busy="저장 중">저장</GoButton>
         </div>
       </div>
+      {g.ask ? <SaveAsk onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void save().then(onClose).catch(() => {}); }} /> : null}
     </div>,
     document.body,
   );

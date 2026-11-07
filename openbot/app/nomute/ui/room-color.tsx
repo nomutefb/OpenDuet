@@ -5,6 +5,8 @@ import "./room-color.css";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { draftDrop, draftGet, draftSet } from "./draft";
+import { SaveAsk, useCloseGuard } from "./save-ask";
 import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
 import { PickTop } from "./color-pick";
@@ -102,31 +104,31 @@ export function RoomColorPick({ room, onPeek, onClose }: { room: OfficeRoom; onP
 /** 방 이름(형 10-31 「방 길게누르면 이름도 변경 가능 해야하고」) = 줄 메뉴 「이름 바꾸기」 · 보이는 글자만(서버 _roomname.js · 방 id·글·읽음 그대로) · 형만 · 빈 값 = 원래 이름 */
 export function RoomNamePick({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
   const qc = useQueryClient();
-  const [name, setName] = useState(room.name), [note, setNote] = useState("");
-  useEffect(() => {
-    const off = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", off);
-    return () => window.removeEventListener("keydown", off);
-  }, [onClose]);
+  const dk = `roomname:${room.id}`;
+  const [name, setName] = useState(() => draftGet<string>(dk) ?? room.name), [note, setNote] = useState("");   // 쓰던 이름 되살림(형 11-07 10:56 「휘발안되고」)
+  useEffect(() => { if (name !== room.name) draftSet(dk, name); else draftDrop(dk); }, [name, room.name, dk]);
+  const g = useCloseGuard(name !== room.name, onClose);   // 「저장하시겠습니까?」 [예] [아니오](형 10:59) · Esc 도 이 길
   const send = async (raw: string) => {
     setNote("");
     try {
       await office("roomname", { method: "POST", body: JSON.stringify({ room: room.id, name: raw }) });
       await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+      draftDrop(dk);
     } catch (e) { setNote(e instanceof Error ? e.message : "저장을 못 했어"); throw e; }
   };
   const save = async (raw: string) => { setNote("저장 중"); try { await send(raw); onClose(); } catch { /* 글은 send 가 남김 */ } };
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
       <form className="nrc" role="dialog" aria-label={`${room.name} 이름 바꾸기`} onClick={(e) => e.stopPropagation()} onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 저장 단추 누름(게이지 단추가 받음) */}
         <div className="nrc-head"><b>이름 바꾸기</b>{note || room.base ? <small>{note || `원래 이름 ${room.base}`}</small> : null}</div>   {/* 안내 줄 뺌 · 저장 글·원래 이름만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
         <input className="nrc-in" value={name} maxLength={20} autoFocus enterKeyHint="done" aria-label="방 이름" onChange={(e) => setName(e.target.value)} />
         <div className="nrc-acts">
           {room.base ? <button type="button" className="nrc-x" onClick={() => void save("")}>원래대로</button> : null}
-          <button type="button" className="nrc-x" onClick={onClose}>닫기</button>
+          <button type="button" className="nrc-x" onClick={g.request}>닫기</button>
           <GoButton type="submit" className="nrc-x" go={() => send(name)} done={onClose} busy="저장 중">저장</GoButton>
         </div>
       </form>
+      {g.ask ? <SaveAsk onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void save(name); }} /> : null}
     </div>,
     document.body,
   );
