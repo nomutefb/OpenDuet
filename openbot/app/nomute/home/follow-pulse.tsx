@@ -7,11 +7,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null };
 type Chan = { profile: { followers_count: number }; generated_kst: string; daily_series?: Row[] };
-type Pt = { date: string; net: number | null; count: number; pct: number };
+type Pt = { date: string; net: number | null; count: number; pct: number; views?: number | null };
 const DAYS = 10, nf = new Intl.NumberFormat("ko-KR");
 const kstDay = () => new Date(Date.now() + 9 * 36e5).toISOString().slice(0, 10);
 const signed = (v: number) => (v > 0 ? "+" : v < 0 ? "−" : "") + nf.format(Math.abs(v));
 /** 칸(P) 안에 안 들어가는 수 = 짧게(1.2k · 12k) · 글자 폭 ≈ 0.6em(숫자 고정폭) · 굵은 오늘 칸은 조금 더 넓게 셈 */
+const kfmt = (n: number) => (n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(n));   // 노출 수 줄임(52334 → 52K)
 const fit = (v: number, room: number, fs: number, bold: boolean) => {
   const full = signed(v);
   if (full.length * fs * (bold ? 0.66 : 0.6) <= room || Math.abs(v) < 1000) return full;
@@ -60,7 +61,7 @@ function series(j: Chan, key: "ig" | "fb"): Pt[] {
   const counts: number[] = [];
   for (let k = days.length - 1; k >= 0; k--) { counts[k] = c; c -= nets[k] || 0; }
   const base = c > 0 ? c : counts[0] || 1;
-  return days.map((r, k) => ({ date: r.date, net: nets[k], count: counts[k], pct: ((counts[k] - base) / base) * 100 }));
+  return days.map((r, k) => ({ date: r.date, net: nets[k], count: counts[k], pct: ((counts[k] - base) / base) * 100, views: typeof (r as { views?: unknown }).views === "number" ? (r as { views: number }).views : null }));
 }
 
 const ago = (iso: string) => { const t = Date.parse(iso); if (!Number.isFinite(t)) return ""; const m = Math.max(0, Math.floor((Date.now() - t) / 6e4)); return "갱신 " + (m < 1 ? "방금" : m < 60 ? `${m}분 전` : `${Math.floor(m / 60)}시간 전`); };
@@ -87,17 +88,17 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
     if (!ig) return null;
     const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
     // ± 두 줄 차례: 폰 홈 = IG 위 · FB 아래 / PC 칸(fill) = FB 위 · IG 아래(형 11-08 08:51 「인스타를 아래로 깔아. 그래야 눈에 들어올듯. 페북이 위로」 · 「차트는 그대로인데, 2행<>1행 뒤바ㅣ꾸고」)
-    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - 6;
+    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, VWY = HIGH - RG - RH, TOP = 4, BOT = (fill ? VWY : HIGH) - 6;   // VWY = PC 칸 맨 위 줄 = 인스타 일일 노출(조회 views · 형 11-08 08:54 「그리고 저기에 일일 노출도도 표기되게 해줘 시안으로」 · 08:55 「인스타만 보이면돼」)
     const lines: ["ig" | "fb", Pt[]][] = [["ig", series(ig, "ig")], ...(fb ? [["fb", series(fb, "fb")] as ["fb", Pt[]]] : [])];
     const all = lines.flatMap(([, s]) => s.map((p) => p.pct));
     const span = Math.max(0.5, ...all.map(Math.abs)), lo = Math.min(0, ...all), hi = Math.max(0, ...all);
     const top = hi - lo < span * 0.1 ? hi + span * 0.05 : hi, bot = hi - lo < span * 0.1 ? lo - span * 0.05 : lo;
     const Y = (v: number) => BOT - ((v - bot) / (top - bot || 1)) * (BOT - TOP);
-    return { W, H, P, FS, RH, FBY, IGY, Y, lines };
+    return { W, H, P, FS, RH, FBY, IGY, VWY, Y, lines };
   }, [ig, fb, wide, tall, fill]);
   if (!tried && !ig) return <div className="nm-pulse-wait" aria-hidden />;   // 받는 동안 = 띠 높이만큼 자리만(형 11-03 12:45 「첨에 위로 버튼이 보였다가 내려가」 = 띠가 늦게 생기며 아래 칸이 밀렸음)
   if (!ig || !view) return null;   // 못 읽으면 자리 비움(홈이 그 자리만큼 올라옴)
-  const { W, H, P, FS, RH, FBY, IGY, Y, lines } = view;
+  const { W, H, P, FS, RH, FBY, IGY, VWY, Y, lines } = view;
   const go = () => { window.location.hash = "#/chan"; };   // 원본 = 채널 요약로 → 앱 안 채널 요약 판(봄 11-01 · 형 「눌렀을때 웹으로 연결된 부분이 많아서 불편했어..」)
   return (
     <button type="button" className={`nm-pulse${fill ? " nm-pulse-fill" : ""}`} aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
@@ -110,7 +111,8 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
       <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
         <rect className="nm-pulse-rowbg" x="0" y={IGY} width={W} height={RH} fill="url(#nm-pulse-fade)" />
-        {fill && fb ? <rect className="nm-pulse-rowbg fb" x="0" y={FBY} width={W} height={RH} /> : null}   {/* PC 칸 = 줄마다 제 선 색 음영(형 11-08 08:52 「표기 디자인을 차트의 배색에 맡게 뒤에 음영을 반투명도는 지하면서 깔으라는거고」) */}
+        {fill && fb ? <rect className="nm-pulse-rowbg fb" x="0" y={FBY} width={W} height={RH} /> : null}
+        {fill ? (() => { const s = lines[0][1], off = (DAYS - s.length) * P; return <g className="vw">{s.map((p, i) => <text key={p.date} className={i === s.length - 1 ? "now" : ""} x={off + i * P + P / 2} y={(VWY + RH / 2 + FS * 0.35).toFixed(1)} textAnchor="middle" fontSize={FS}>{p.views == null ? "–" : kfmt(p.views)}</text>)}</g>; })() : null}   {/* 인스타 일일 노출 = 시안 · 날마다 그 점 위 칸 */}   {/* PC 칸 = 줄마다 제 선 색 음영(형 11-08 08:52 「표기 디자인을 차트의 배색에 맡게 뒤에 음영을 반투명도는 지하면서 깔으라는거고」) */}
         <line className="nm-pulse-base" x1="0" x2={W} y1={Y(0).toFixed(1)} y2={Y(0).toFixed(1)} strokeWidth="1" strokeDasharray="2 3" />
         {lines.map(([key, s]) => {
           const off = (DAYS - s.length) * P, pts = s.map((p, i) => [off + i * P + P / 2, Y(p.pct)] as [number, number]);
