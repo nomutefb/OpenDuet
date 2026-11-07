@@ -9,6 +9,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 import { DROP_ROUTES, nomuteOverrides } from "./overrides";
+import { manualChunks } from "./chunks";   // 꾸러미 덩어리 가르기(판 바뀌어도 다시 안 받게 · 번개 11-08)
 
 const here = (p: string) => path.resolve(__dirname, p);
 
@@ -49,5 +50,5 @@ export default defineConfig({
       { find: /^@\//, replacement: `${here("../src")}/` },
     ],
   },
-  build: { outDir: here("dist"), emptyOutDir: true, chunkSizeWarningLimit: 4000 },
+  build: { outDir: here("dist"), emptyOutDir: true, chunkSizeWarningLimit: 4000, rollupOptions: { output: { manualChunks } } },
 });
