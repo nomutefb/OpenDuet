@@ -6,3 +6,6 @@
 .nm-igfb .nm-pulse { position:static; }
 .nm-igfb .nm-pulse-at { position:absolute; top:0; right:12px; height:36px; display:flex; align-items:center; color:rgba(232,234,232,.45); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }   /* 시각 = 머리줄 오른쪽(.nm-card-h > span 과 같은 자리 · 같은 꼴 · 형 08:18 「위치도 각각의 위치에 맞게」) */
 .nm-igfb .nm-pulse-wait { height:100%; }
+/* 형 11-08 08:51 dm 「위에 뒤에 음영으로 ㄹ해진 부분, 음영이 라임이 살짝 들어가게해」 · 「그리고 +는 형광 시안으로 보이게 해줘. 그래야 구분이될듯」 — PC 칸만(폰 홈은 그대로) */
+.nm-igfb .nm-pulse-rowbg { fill:rgba(212,255,58,.11); }   /* IG 줄 음영 = 라임 살짝 */
+.nm-igfb .nm-pulse-chart text.up { fill:#00F0FF; }   /* + = 형광 시안 */

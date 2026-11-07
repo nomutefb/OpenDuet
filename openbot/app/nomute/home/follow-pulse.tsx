@@ -85,7 +85,9 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
   }, []);
   const view = useMemo(() => {
     if (!ig) return null;
-    const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, FBY = H - RH, IGY = FBY - RG - RH, TOP = 4, BOT = IGY - 6;
+    const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
+    // ± 두 줄 차례: 폰 홈 = IG 위 · FB 아래 / PC 칸(fill) = FB 위 · IG 아래(형 11-08 08:51 「인스타를 아래로 깔아. 그래야 눈에 들어올듯. 페북이 위로」 · 「차트는 그대로인데, 2행<>1행 뒤바ㅣ꾸고」)
+    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - 6;
     const lines: ["ig" | "fb", Pt[]][] = [["ig", series(ig, "ig")], ...(fb ? [["fb", series(fb, "fb")] as ["fb", Pt[]]] : [])];
     const all = lines.flatMap(([, s]) => s.map((p) => p.pct));
     const span = Math.max(0.5, ...all.map(Math.abs)), lo = Math.min(0, ...all), hi = Math.max(0, ...all);
