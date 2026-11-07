@@ -89,16 +89,43 @@ const OUTLET: Record<string, string> = {
   nytimes: "뉴욕타임스", washingtonpost: "워싱턴포스트", wsj: "월스트리트저널", bloomberg: "블룸버그", reuters: "로이터", apnews: "AP통신", cnn: "CNN", bbc: "BBC",
   theguardian: "가디언", ft: "파이낸셜타임스", nhk: "NHK", "nhk.or": "NHK", asahi: "아사히신문", yomiuri: "요미우리신문", nikkei: "니혼게이자이신문", aljazeera: "알자지라",
   cnbc: "CNBC", foxnews: "폭스뉴스", nbcnews: "NBC뉴스", scmp: "사우스차이나모닝포스트", axios: "악시오스", politico: "폴리티코",
+  // 외신 더(형 11-07 13:22 「그리고 매체명도 자동 번역(중어나 일어 뭐 등등 프랑스어일수도잇겟지)」 · 뎅이 라이브 출처 219개 훑어 넣음)
+  hollywoodreporter: "할리우드 리포터", variety: "버라이어티", deadline: "데드라인", billboard: "빌보드", people: "피플", imdb: "IMDb", tmz: "TMZ",
+  espn: "ESPN", "espn.co": "ESPN", nba: "NBA", nbcsports: "NBC스포츠", cbssports: "CBS스포츠", "sports.yahoo": "야후 스포츠", si: "스포츠 일러스트레이티드",
+  yahoo: "야후", "news.yahoo": "야후 재팬", economist: "이코노미스트", "news.com": "뉴스닷컴", ocregister: "오렌지카운티 레지스터", "timesofindia.indiatimes": "타임스 오브 인디아",
+  smithsonianmag: "스미소니언", rotowire: "로토와이어", theplayerstribune: "플레이어스 트리뷴", thesportingtribune: "스포팅 트리뷴", vavel: "바벨",
+  bostonglobe: "보스턴글로브", independent: "인디펜던트", bild: "빌트", france24: "프랑스24", ilmessaggero: "일 메사제로", corriereadriatico: "코리에레 아드리아티코",
+  famitsu: "파미통", "umatoku.hochi": "우마토쿠", hochi: "호치신문", livedoor: "라이브도어", "news.livedoor": "라이브도어 뉴스", ubisoft: "유비소프트", "blog.playstation": "플레이스테이션 블로그",
+  "9to5google": "9to5구글", theverge: "더버지", techcrunch: "테크크런치", engadget: "인가젯", wired: "와이어드", reutersconnect: "로이터", bsky: "블루스카이", "bsky.app": "블루스카이",
+  invenglobal: "인벤 글로벌", koreadaily: "미주중앙일보", spotvnews: "스포티비뉴스", knewsla: "케이뉴스LA", tennis: "테니스코리아",
 };
 /** 짧은 이름(형 11-07 11:18 「디시인사이드 이런거 풀네임하지말고 > 디시 로 하면됨 에펨도 에펨」) — 서버가 한글 긴 이름으로 줘도 화면엔 이것 */
 const SHORT: Record<string, string> = { 디시인사이드: "디시", 디씨인사이드: "디시", 에펨코리아: "에펨", 펨코: "에펨" };
+/** 매체 이름이 글자째로 올 때(외신 영문 · 일어 · 중어) → 한글 이름 · 소문자 · 「&apos;」 풀어서 비교 */
+const NAME: Record<string, string> = {
+  "the hollywood reporter": "할리우드 리포터", "the new york times": "뉴욕타임스", "the guardian": "가디언", "the economist": "이코노미스트", "the times of india": "타임스 오브 인디아",
+  "the hill": "더힐", "ap news": "AP통신", "reuters connect": "로이터", "yahoo sports": "야후 스포츠", "sports illustrated": "스포츠 일러스트레이티드", "cbs sports": "CBS스포츠", "nbc sports": "NBC스포츠",
+  "orange county register": "오렌지카운티 레지스터", "people.com": "피플", "nba.com": "NBA", "news.com.au": "뉴스닷컴", "9to5google": "9to5구글", "inven global": "인벤 글로벌",
+  "the players' tribune": "플레이어스 트리뷴", "the sporting tribune": "스포팅 트리뷴", "spotv news": "스포티비뉴스", "zdnet korea": "지디넷코리아", "mbcnews": "MBC뉴스", "playstation.blog": "플레이스테이션 블로그",
+  "yahoo!ニュース": "야후 재팬", "ライブドアニュース": "라이브도어 뉴스", "ファミ通": "파미통", "日本経済新聞": "니혼게이자이신문", "朝日新聞": "아사히신문", "読売新聞": "요미우리신문", "毎日新聞": "마이니치신문",
+  "産経新聞": "산케이신문", "千葉テレビ放送": "지바TV", "ｄメニューニュース": "d메뉴 뉴스", "高校サッカードットコム": "고교축구닷컴", "新华社": "신화통신", "新華社": "신화통신", "人民日报": "인민일보", "环球时报": "환구시보",
+  "le monde": "르몽드", "le figaro": "르피가로", "sky news": "스카이뉴스", "sky tg24": "스카이 TG24", "il messaggero": "일 메사제로", "france 24": "프랑스24", "al jazeera": "알자지라", "bild": "빌트",
+  "corriere adriatico": "코리에레 아드리아티코", centropagina: "센트로파지나", umatoku: "우마토쿠",
+  "candidates(rss)": "RSS 후보", social_candidates: "커뮤 후보",
+};
+const unent = (s: string) => s.replace(/&apos;|&#39;/g, "'").replace(/&amp;/g, "&").replace(/&quot;/g, '"');
 export const outletName = (raw?: string) => {
-  const s0 = String(raw || "").trim();
+  const s0 = unent(String(raw || "").trim()).replace(/^(?:tbs|editor):/i, "");   // tbs: · editor: = 우리 안쪽 접두어(화면엔 안 보임)
   if (!s0 || /[가-힣]/.test(s0)) return SHORT[s0] || s0;   // 비었거나 이미 한글 이름(긴 이름은 짧게)
-  const k = s0.toLowerCase().replace(/^editor:/, "").replace(/^https?:\/\//, "").replace(/^(?:www|m|mobile)\./, "").replace(/[/?#].*$/, "");
+  const low = s0.toLowerCase();
+  if (NAME[low]) return NAME[low];   // 글자째 온 외신·일어·중어 이름
+  const k = low.replace(/^https?:\/\//, "").replace(/^(?:www|m|mobile)\./, "").replace(/[/?#].*$/, "");
   if (OUTLET[k]) return OUTLET[k];
-  const stem = k.replace(/\.(?:co\.kr|or\.kr|com|net|kr|org|co\.jp|jp|co\.uk|tv|live)$/, "");
-  return OUTLET[stem] || OUTLET[stem.split(".").pop() || ""] || s0;
+  const stem = k.replace(/\.(?:co\.kr|or\.kr|com\.au|co\.jp|co\.uk|com|net|kr|org|jp|tv|live|it|de|fr|cn|io|ai|app)$/, "");
+  const hit = OUTLET[stem] || OUTLET[stem.split(".").pop() || ""];
+  if (hit) return hit;
+  if (/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(k)) { const parts = stem.split("."); if (stem === k) parts.pop(); return parts.pop() || s0; }   // 표에 없는 외국 주소 = 「.com」 떼고 줄기만(형 13:22 사진 「HOLLYWOODREPORTER.COM」이 제목 자리를 먹던 것)
+  return s0;
 };
 /** 매체 = 첫 매체 + 「외 N」 · 공식 이름으로(outletName) */
 export const mediaOf = (m?: string) => { const xs = String(m || "").split(/[,·|]/).map((s) => s.trim()).filter(Boolean); return xs.length ? outletName(xs[0]).replace(/\s*\(.*?\)\s*/g, "").replace(/\s*등\s*$/, "") + (xs.length > 1 ? ` 외 ${xs.length - 1}` : "") : ""; };
