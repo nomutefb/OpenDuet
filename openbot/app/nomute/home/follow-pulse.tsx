@@ -5,7 +5,7 @@
 //   누르면 = 채널 요약(원본 «일단 홈 팔로워로» → 우리 앱은 앱 안 채널 요약 판 #/chan · 11-01 전엔 #/web?u=/?tab=chan 한 겹) · 10분마다 다시 읽음(원본과 같음) · 접수사항(CheckOne)은 이 자리에서 뺌(파일은 그대로 · 안 부름)
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null };
+type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null; views?: number | null };   // views = 그날 노출(조회 · insta_data.json daily_series)
 type Chan = { profile: { followers_count: number }; generated_kst: string; daily_series?: Row[] };
 type Pt = { date: string; net: number | null; count: number; pct: number; views?: number | null };
 const DAYS = 10, nf = new Intl.NumberFormat("ko-KR");
@@ -61,7 +61,7 @@ function series(j: Chan, key: "ig" | "fb"): Pt[] {
   const counts: number[] = [];
   for (let k = days.length - 1; k >= 0; k--) { counts[k] = c; c -= nets[k] || 0; }
   const base = c > 0 ? c : counts[0] || 1;
-  return days.map((r, k) => ({ date: r.date, net: nets[k], count: counts[k], pct: ((counts[k] - base) / base) * 100, views: typeof (r as { views?: unknown }).views === "number" ? (r as { views: number }).views : null }));
+  return days.map((r, k) => ({ date: r.date, net: nets[k], count: counts[k], pct: ((counts[k] - base) / base) * 100, views: typeof r.views === "number" ? r.views : null }));
 }
 
 const ago = (iso: string) => { const t = Date.parse(iso); if (!Number.isFinite(t)) return ""; const m = Math.max(0, Math.floor((Date.now() - t) / 6e4)); return "갱신 " + (m < 1 ? "방금" : m < 60 ? `${m}분 전` : `${Math.floor(m / 60)}시간 전`); };
@@ -112,7 +112,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
         <rect className="nm-pulse-rowbg" x="0" y={IGY} width={W} height={RH} fill="url(#nm-pulse-fade)" />
         {fill && fb ? <rect className="nm-pulse-rowbg fb" x="0" y={FBY} width={W} height={RH} /> : null}
-        {fill ? (() => { const s = lines[0][1], off = (DAYS - s.length) * P; return <g className="vw">{s.map((p, i) => <text key={p.date} className={i === s.length - 1 ? "now" : ""} x={off + i * P + P / 2} y={(VWY + RH / 2 + FS * 0.35).toFixed(1)} textAnchor="middle" fontSize={FS}>{p.views == null ? "–" : kfmt(p.views)}</text>)}</g>; })() : null}   {/* 인스타 일일 노출 = 시안 · 날마다 그 점 위 칸 */}   {/* PC 칸 = 줄마다 제 선 색 음영(형 11-08 08:52 「표기 디자인을 차트의 배색에 맡게 뒤에 음영을 반투명도는 지하면서 깔으라는거고」) */}
+        {fill ? (() => { const s = lines[0][1], off = (DAYS - s.length) * P; return <g className="vw">{P >= 44 ? <text className="k" x="3" y={(VWY + RH / 2 + FS * 0.3).toFixed(1)} fontSize={FS - 2}>노출</text> : null}{s.map((p, i) => <text key={p.date} className={i === s.length - 1 ? "now" : ""} x={off + i * P + P / 2} y={(VWY + RH / 2 + FS * 0.35).toFixed(1)} textAnchor="middle" fontSize={FS}>{p.views == null ? "–" : kfmt(p.views)}</text>)}</g>; })() : null}   {/* 인스타 일일 노출 = 시안 · 날마다 그 점 위 칸 */}   {/* PC 칸 = 줄마다 제 선 색 음영(형 11-08 08:52 「표기 디자인을 차트의 배색에 맡게 뒤에 음영을 반투명도는 지하면서 깔으라는거고」) */}
         <line className="nm-pulse-base" x1="0" x2={W} y1={Y(0).toFixed(1)} y2={Y(0).toFixed(1)} strokeWidth="1" strokeDasharray="2 3" />
         {lines.map(([key, s]) => {
           const off = (DAYS - s.length) * P, pts = s.map((p, i) => [off + i * P + P / 2, Y(p.pct)] as [number, number]);

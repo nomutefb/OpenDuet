@@ -12,3 +12,4 @@
 .nm-igfb .nm-pulse-chart text.up { fill:#00F0FF; }   /* + = 시안 네온(형 08:52 「+색이 차트 색이랑 같아서 주첩되서 해석에 왜곡이 생기니까 시안 네온으로」) */
 .nm-igfb .nm-pulse-chart .vw text { fill:#00F0FF; fill-opacity:.85; font-variant-numeric:tabular-nums; }   /* 인스타 일일 노출 = 시안(형 08:54) · 맨 위 줄 */
 .nm-igfb .nm-pulse-chart .vw text.now { fill-opacity:1; font-weight:var(--fw-x); }
+.nm-igfb .nm-pulse-chart .vw text.k { fill-opacity:.45; font-weight:400; }   /* 줄 이름 「노출」 = 왼쪽 끝 흐리게(무슨 숫자인지 형이 바로 알아보게) */
