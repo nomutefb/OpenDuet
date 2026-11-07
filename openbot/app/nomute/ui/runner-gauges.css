@@ -1,5 +1,5 @@
 /* 러너 상태바(ui/runner-gauges.tsx · 봄 11-05) — 판·칸 없이 세 몸 가로 · 몸마다 가운데로 이름 · G 온도 · 게이지 · 러너 불 · 높이 = 제 키 */
-.nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; padding:6px 0 4px; border-radius:0; background:transparent; box-shadow:none; color:#E6E6E6; }   /* 형 16:27 「그냥 그려지면될듯」 */
+.nm-rgx .nm-rgx-panel { display:grid; grid-template-columns:repeat(var(--nm-rgx-n, 3), minmax(0, 1fr));   /* 몸 수만큼 한 줄 · 간격 같게(형 11-08 07:35 dm 「4개 들어갈 수 있을 것 같아.」 · 「간격을 일정하게 유지해서 배치해줘」 · 봄) */ gap:0; padding:6px 0 4px; border-radius:0; background:transparent; box-shadow:none; color:#E6E6E6; }   /* 형 16:27 「그냥 그려지면될듯」 */
 .nm-rgx-host { position:relative; min-width:0; padding:0 6px; display:flex; flex-direction:column; align-items:center; text-align:center; }
 .nm-rgx .nm-rgx-name { color:var(--accent, #D4FF3A); font-size:var(--fs-label); letter-spacing:.06em; line-height:1.2; }   /* 몸 이름 = 라임(형 16:57) · 게이지 바로 위 가운데(형 17:3x) */
 .nm-rgx-g { display:block; margin-top:2px; font-size:9px; line-height:1.2; letter-spacing:.02em; color:#8A8A8A; font-variant-numeric:tabular-nums; white-space:nowrap; }   /* GPU 온도 = 이름 밑 · 같은 세로줄 */

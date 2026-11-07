@@ -1,0 +1,7 @@
+/* PC 오른쪽 위 팔로워 띠(./igfb-band.tsx · 봄 11-08) — 반갈 블랙 톤 위에 폰 홈 띠 색을 그대로(IG = 라임 · FB = 흰 흐림) · 토큰은 이 칸 안에서만 */
+.nm-igfb { height:100%; min-height:0; color:#e8eae8;
+  --fg:#e8eae8; --mut:rgba(232,234,232,.45); --glass-line:rgba(255,255,255,.10); --accent:var(--nm-accent, #D4FF3A); --fw-x:800; }
+.nm-igfb-body { flex:1 1 auto; min-height:0; display:flex; }
+.nm-igfb-body > .nm-pulse { flex:1 1 auto; padding:8px 12px 6px; }
+.nm-igfb .nm-pulse-at { right:12px; }
+.nm-igfb .nm-pulse-wait { height:100%; }
