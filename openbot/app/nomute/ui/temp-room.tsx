@@ -164,9 +164,10 @@ export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: 
   );
 }
 
-/** 방 멤버 고르기 = 대화 목록 한 곳에서(형 11-05 08:35 「아예 저기서 설정할게 아니라 그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」)
- *  지정방 = 서버 roomset(형만 · base 판 · 낡으면 409) · 임시방 = 옛 「수정」(TempRoomDialog) 그대로 */
+/** 방 멤버 고르기 = 대화 목록·방 메뉴 한 곳에서(형 11-05 08:35 「아예 저기서 설정할게 아니라 그냥 톡 목록에서 설정하게 일원화해야람」 · 형 11-07 13:38 「여기서도 방 멤버 설정 · 초대랑 별개」)
+ *  지정방 = 서버 roomset(형만 · base 판 · 낡으면 409) · 임시방 = temprooms 후보·저장(이름·목적·기한은 「방 설정」) */
 export function RoomMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
+  if (r.temp) return <TempMembersDialog r={r} onClose={onClose} />;
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["nomute", "roomset"], queryFn: () => office<{ roomset: { ver: number; rooms: Record<string, string[]> }; candidates: string[]; can_edit: boolean }>("roomset") });
   const [cur, setCur] = useState<string[] | null>(null), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
@@ -199,6 +200,48 @@ export function RoomMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () =
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
           <button type="button" disabled={busy || !cur || !now.length || !d?.can_edit} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" onClick={() => void save()}>{busy ? "저장 중" : "저장"}</button>
+          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>닫기</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** 임시방 멤버만(형 11-07 13:38 · 봄 나눔 「임시방에도 같은 꼴」 · 초대·방 설정과 별개) */
+function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms"), staleTime: 60_000 });
+  const [cur, setCur] = useState<string[] | null>(null), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
+  const list = peopleSync(), cand = q.data?.candidates || [], now = cur ?? r.members ?? [];
+  const save = async () => {
+    if (!now.length || busy) return;
+    setBusy(true); setWhy("");
+    try {
+      await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name || "", purpose: r.purpose || "", members: now }) });
+      await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+      onClose();
+    } catch (e) { setWhy(e instanceof Error ? e.message : "저장 못 함"); setBusy(false); }
+  };
+  return (
+    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
+      <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
+        <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
+        {!q.data && !q.isError ? <p className="text-muted-foreground">읽는 중…</p> : q.isError ? <p className="text-muted-foreground">{(q.error as Error).message}</p> : (
+          <div className="flex flex-wrap gap-1.5">
+            {cand.map((w) => {
+              const on = now.includes(w);
+              return (
+                <button key={w} type="button" disabled={busy} aria-pressed={on} onClick={() => setCur(on ? now.filter((x) => x !== w) : [...now, w])}
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${on ? "border-primary bg-primary/10 font-semibold" : "border-border text-muted-foreground"}`}>
+                  <FaceImg id={idOf(w, list)} size={16} />{list.find((p) => p.who === w)?.name || w}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {why ? <p role="alert" className="text-destructive">{why}</p> : null}
+        <div className="flex justify-end gap-2">
+          <button type="button" disabled={busy || !cur || !now.length} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" onClick={() => void save()}>{busy ? "저장 중" : "저장"}</button>
           <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>닫기</button>
         </div>
       </div>
