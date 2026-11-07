@@ -1,5 +1,6 @@
 // 진입점 — 원본 main.tsx 보다 먼저 우리 서버 잇기(shim)를 깐다 · 동기화(pulse) · 홈 화면 앱(PWA) 서비스 워커 · 새 판 = 위에 「새로고침」 단추
 import "./shim/install";
+import "./ui/err-catch";   // 오류 받기(번개 11-08 · 형 01:31 「엔터프라이즈급」) — 앱보다 먼저 실려서 처음부터 받음
 import "@/main";
 import { startSync } from "./data/sync";
 import "./ui/update-bar.css";
