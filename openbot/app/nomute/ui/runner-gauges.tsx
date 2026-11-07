@@ -84,7 +84,7 @@ export function RunnerGauges() {
             <section key={h.k} className="nm-rgx-host" aria-label={`${h.label} 상태`}>   {/* 위에서부터 가운데로 = 이름 · G 온도 · (틈) · 게이지 · 러너 불(형 17:3x 「각각 게이지 바로 수직 위에다가 하드웨어 이름」 · 「블릿은 없어도」 · 「그래픽카드 온도도 그대로 수직위로」 · 「게이지랑딱붙으면 안이쁘니까」) */}
               <b className="nm-rg-name nm-rgx-name">{h.label}</b>
               <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>{m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : none && a?.stale ? "보고 끊김" : "\u00a0"}</span>
-              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} />
+              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} wait={none && (!st.data || rq.isLoading)} />
               {BEINGS[h.k] ? (   /* 사는 애 없는 몸(윈B)도 빈 줄 자리는 둠 = 러너 줄 높이가 세 몸 같게 */
                 <ul className="nm-rgx-pebs" aria-label={`${h.label}에 사는 우리`}>
                   {BEINGS[h.k].map((x) => { const w = wake(x.bot ?? x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "불러오는 중" : "잠"}`} /></li>; })}
