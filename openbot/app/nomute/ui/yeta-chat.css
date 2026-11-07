@@ -7,11 +7,11 @@
    글꼴 = YETA 「글꼴」 설정 그대로(--app-font · ./chat-font.tsx · @font-face = YETA viewer/index.html 22~35줄 값 그대로 · 파일 = 그 viewer/fonts 에서 쓰는 굵기만) */
 @font-face{font-family:'LEMONMILK';font-weight:700;font-style:normal;src:url('./fonts/LEMONMILK-Bold.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 @font-face{font-family:'LEMONMILK';font-weight:400;font-style:normal;src:url('./fonts/LEMONMILK-Regular.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
-@font-face{font-family:'Paperlogy';font-weight:400;src:url('./fonts/Paperlogy-4Regular.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
-@font-face{font-family:'Paperlogy';font-weight:500;src:url('./fonts/Paperlogy-5Medium.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
-@font-face{font-family:'Paperlogy';font-weight:600;src:url('./fonts/Paperlogy-6SemiBold.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}   /* 500·600 = 요약실 한 단계 낮춘 굵기(형 11-04 10:50) · 원본 = editor 자료/폰트/Paperlogy-1.001.zip */
-@font-face{font-family:'Paperlogy';font-weight:700;src:url('./fonts/Paperlogy-7Bold.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
-@font-face{font-family:'Paperlogy';font-weight:800;src:url('./fonts/Paperlogy-8ExtraBold.ttf') format('truetype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
+@font-face{font-family:'Paperlogy';font-weight:400;src:url('./fonts/Paperlogy-4Regular.woff2') format('woff2');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
+@font-face{font-family:'Paperlogy';font-weight:500;src:url('./fonts/Paperlogy-5Medium.woff2') format('woff2');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
+@font-face{font-family:'Paperlogy';font-weight:600;src:url('./fonts/Paperlogy-6SemiBold.woff2') format('woff2');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}   /* 500·600 = 요약실 한 단계 낮춘 굵기(형 11-04 10:50) · 원본 = editor 자료/폰트/Paperlogy-1.001.zip */
+@font-face{font-family:'Paperlogy';font-weight:700;src:url('./fonts/Paperlogy-7Bold.woff2') format('woff2');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
+@font-face{font-family:'Paperlogy';font-weight:800;src:url('./fonts/Paperlogy-8ExtraBold.woff2') format('woff2');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 .ychat, .ynav, .nm-yeta {
   --r-s:9px; --r-m:11px; --r-l:16px; --r-modal:22px; --r-pill:999px; --r-in:28px; --sp-2:12px; --sp-3:18px; --btn:34px;
   --fs-h2:15px; --fs-h3:14px; --fs-body:15px; --fs-label:13px; --fs-sm:12px; --fs-xs:11px; --fw-x:800; --fw-b:700; --lh-base:1.6;
