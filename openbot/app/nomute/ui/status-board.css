@@ -78,6 +78,8 @@
 .nsb-acct .pct b[data-tone="low"] { color:#E9C46A; }   /* 불 아님 · 숫자 색만(형 15:40 「안뜨게 혀라」) */
 .nsb-acct .pct b[data-tone="out"] { color:#E8A0A0; }
 .nsb-acct .pct b[data-tone="none"] { color:var(--nsb-mut); }
+.nsb-acct small.out { color:#E8A0A0; }   /* 「이대로면 … 뒤 바닥」 = 숫자 색만(불 아님) */
+.nsb-acct small.dday { color:#E7ECE7; font-variant-numeric:tabular-nums; }   /* 디데이(형 17:18 「2일 00시간 이런식으로」) */
 .nsb-acct .names { white-space:nowrap; }
 .nsb-acct .names span { display:inline-block; padding:0 9px; border-left:1px solid rgba(255,255,255,.14); }   /* 투명 획선 세로(형 14:35) */
 .nsb-acct .names span:first-child { padding-left:0; border-left:0; }

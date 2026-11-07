@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { office } from "../data/office";
+import { leftKo, payEndAt, weekCell, weekPace } from "../data/acct-time";
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
 import { type HeatCell, MatrixHeat } from "./lieflat-charts";
 import "./sched-status.css";
@@ -121,20 +122,25 @@ const mdHm = (ts?: number) => { if (!ts) return ""; const d = new Date(ts); retu
 function AcctTable({ rows }: { rows: AcctRow[] }) {
   const [pick, setPick] = useState("");
   if (!rows.length) return <p className="nsb-empty">계정 표 보고 아직 안 옴(맥 몸 보고)</p>;
+  const now = Date.now();   // 디데이·하루 평균 = 그릴 때 셈(표는 몸 보고 받을 때마다 다시 그려짐)
   return (
     <div className="nsb-acct" role="region" aria-label="계정 상태 표" tabIndex={0}>
       <table>
         <thead><tr><th>계정</th><th>남은 %</th><th>이름</th><th>주기</th><th>요금제</th><th>비고</th></tr></thead>
         <tbody>{rows.flatMap((r) => {
           const cells = Object.entries(r.cells || {}).filter(([, c]) => c.left_pct !== undefined);
+          // 디데이 = 주간 창이 다시 차기까지(없으면 덜 남은 창) · 하루 평균 = 이번 주 쓴 % ÷ 지난 날(주간 창 있을 때만 · 형 11-07 17:18 「디데이 몇일남았는지 … 2일 00시간 이런식으로. 긜고 하루 평균 소모량」)
+          const wk = weekCell(r.cells), reset = wk?.reset_at ?? r.next_at, dday = leftKo(reset, now);
+          const pace = wk ? weekPace(wk.left_pct, wk.reset_at, now) : null, payLeft = leftKo(payEndAt(r.pay_end), now);
           const tr = (
             <tr key={r.key} data-st={r.st} onClick={() => setPick(pick === r.key ? "" : r.key)} title={r.value}>
               <th scope="row"><StatusDot st={r.st} />{r.name}{r.kind === "gpt" ? <small>지피티</small> : null}</th>
               <td className="pct"><b data-tone={r.left_pct === undefined ? "none" : r.left_pct >= 30 ? "ok" : r.left_pct >= 10 ? "low" : "out"}>{r.left_pct === undefined ? "—" : `${r.left_pct}%`}</b>{cells.length > 1 ? <small>{cells.map(([k, c]) => `${k} ${c.left_pct}`).join(" · ")}</small> : null}
-                {r.was_pct !== undefined ? <small>앞 값 {r.was_pct}% · 다시 참 지남</small> : null}{r.kind === "gpt" && r.last_at ? <small>{agoKo(r.last_at)} 잼</small> : null}</td>
+                {r.was_pct !== undefined ? <small>앞 값 {r.was_pct}% · 다시 참 지남</small> : null}{r.kind === "gpt" && r.last_at ? <small>{agoKo(r.last_at)} 잼</small> : null}
+                {pace ? <small>하루 평균 {pace.perDay}% 씀</small> : null}{pace ? (pace.outAt ? <small className="out">이대로면 {leftKo(pace.outAt, now)} 뒤 바닥</small> : <small>다시 찰 때 {pace.atReset}% 남음</small>) : null}</td>
               <td className="names">{(r.names || []).map((n) => <span key={n}>{n}</span>)}</td>
-              <td>{r.week_reset ? `매주 ${r.week_reset}` : ""}{r.next_at ? <small>다시 참 {mdHm(r.next_at)}</small> : null}</td>
-              <td>{r.plan || ""}{r.pay_end ? <small>{r.pay_end.slice(5).replace("-", "/")} 결제 끝</small> : null}{r.price_krw ? <small>{r.price_krw.toLocaleString("ko-KR")}원</small> : null}</td>
+              <td>{r.week_reset ? `매주 ${r.week_reset}` : ""}{r.next_at ? <small>다시 참 {mdHm(r.next_at)}</small> : null}{dday ? <small className="dday">D- {dday}</small> : null}</td>
+              <td>{r.plan || ""}{r.pay_end ? <small>{r.pay_end.slice(5).replace("-", "/")} 결제 끝</small> : null}{payLeft ? <small className="dday">결제 끝 D- {payLeft}</small> : null}{r.price_krw ? <small>{r.price_krw.toLocaleString("ko-KR")}원</small> : null}</td>
               <td className="memo">{r.memo || ""}</td>
             </tr>
           );
