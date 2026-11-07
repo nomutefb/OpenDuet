@@ -3,20 +3,27 @@
 //   = 작게 한 줄 [아니오] [예] · 예 = 저장하고 닫기 · 아니오 = 닫음(쓰던 글은 이 기기에 남김 · 다시 열면 되살림 · ./draft.ts) · 바깥·Esc = 물음만 닫고 계속 쓰기
 import { useCallback, useEffect, useRef, useState } from "react";
 import { backdrop } from "./backdrop";
-import { modalPush, modalTop } from "./use-modal";   // 창 쌓임 한 줄(빠르 11-08) = 이 창 위에 뜬 창(색 고르기 등)이 있으면 Esc 는 그 창 몫
+import { modalPush, modalTop, useOpenBack } from "./use-modal";   // 창 쌓임 한 줄(빠르 11-08) = 이 창 위에 뜬 창(색 고르기 등)이 있으면 Esc 는 그 창 몫
 
 /** dirty 면 닫기 대신 물음 · 아니면 바로 닫음 · Esc 도 같은 길 · on = 창이 떠 있을 때만 Esc 를 받음(늘 붙어 있는 창이 다른 창 Esc 를 먹지 않게) */
 export function useCloseGuard(dirty: boolean, close: () => void, on = true) {
   const [ask, setAsk] = useState(false);
   const me = useRef<symbol | null>(null);
+  const opener = useOpenBack(on);   // 연 자리 = 그리는 때 적음(autoFocus 입력칸보다 먼저 · 모루 #2870)
   useEffect(() => {   // 창 쌓임 한 칸 + 닫히면 연 자리로 포커스 돌려줌(시아 03:43 「프로필 카드를 Esc 로 닫으면 포커스가 얼굴 단추로 안 돌아오고 BODY 로 감」 · 빠르 11-08)
     if (!on) return;
-    const back = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+    const back = opener.current;
     const p = modalPush(); me.current = p.me;
     return () => { p.pop(); me.current = null; if (back && back.isConnected) back.focus({ preventScroll: true }); };
   }, [on]);
   const request = useCallback(() => { if (dirty) setAsk(true); else close(); }, [dirty, close]);
   useEffect(() => { if (!on) setAsk(false); }, [on]);
+  const askBack = useRef<HTMLElement | null>(null);
+  useEffect(() => {   // 「저장하시겠습니까?」만 취소(바깥 · Esc · 계속 쓰기) = 묻기 전 칸으로 포커스(모루 #2870 「확인창만 취소할 때는 cleanup 이 안 돌고」)
+    if (ask) { const a = document.activeElement; askBack.current = a instanceof HTMLElement && a !== document.body ? a : null; return; }
+    const b = askBack.current; askBack.current = null;
+    if (b && b.isConnected && on) b.focus({ preventScroll: true });
+  }, [ask, on]);
   useEffect(() => {
     if (!on) return;
     const k = (e: KeyboardEvent) => { if (me.current && !modalTop(me.current)) return; if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (ask) setAsk(false); else request(); } };

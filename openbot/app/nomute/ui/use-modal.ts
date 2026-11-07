@@ -26,7 +26,7 @@ export function coveredBy(el: HTMLElement): boolean {
 
 const SEL = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),iframe,[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
 
-/** 순수 — Tab 다음 자리(가두기) · null = 브라우저에 맡김 */
+/** 순수 — Tab 다음 자리(가두기) · null = 브라우저에 맡김 · inside = 지금 포커스가 창 안 탭 자리 중 하나(창 껍데기 · 탭 자리 아닌 칸이면 false = 처음/끝으로 보냄) */
 export function trapNext<T>(list: T[], at: T | null, inside: boolean, back: boolean): T | null {
   if (!list.length) return null;
   const first = list[0], last = list[list.length - 1];
@@ -34,15 +34,27 @@ export function trapNext<T>(list: T[], at: T | null, inside: boolean, back: bool
   return !inside || at === last ? first : null;
 }
 
+/** 창이 열리는 그림에서(그리기 = autoFocus 보다 먼저) 연 자리를 적어 둠 — 효과(useEffect)에서 적으면 autoFocus 입력칸이 먼저 잡혀서 닫을 때 돌아갈 데가 없음(모루 #2870 「autoFocus 뒤에 복귀 대상을 저장」) */
+export function useOpenBack(on: boolean) {
+  const back = useRef<HTMLElement | null>(null), was = useRef(false);
+  if (on && !was.current && typeof document !== "undefined") {
+    const a = document.activeElement;
+    back.current = a instanceof HTMLElement && a !== document.body ? a : null;
+  }
+  was.current = on;
+  return back;
+}
+
 /** ref 를 창 바깥 칸에 달면: Esc = close · Tab 은 창 안에서 돎 · 열 때 창으로 포커스 · 닫히면 연 자리로 돌려줌 · on = 창이 떠 있을 때만 */
 export function useModal<T extends HTMLElement>(close: () => void, on = true) {
   const ref = useRef<T>(null);
   const shut = useRef(close);
   shut.current = close;
+  const opener = useOpenBack(on);
   useEffect(() => {
     if (!on) return;
     const { me, pop } = modalPush();
-    const back = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const back = opener.current;
     const el = ref.current;
     if (el && !el.contains(document.activeElement)) {
       if (!el.hasAttribute("tabindex")) el.tabIndex = -1;
@@ -59,7 +71,7 @@ export function useModal<T extends HTMLElement>(close: () => void, on = true) {
       if (e.key !== "Tab" || !el) return;
       const list = [...el.querySelectorAll<HTMLElement>(SEL)].filter((x) => x.getClientRects().length > 0);
       const at = document.activeElement as HTMLElement | null;
-      const go = trapNext(list, at, !!at && el.contains(at), e.shiftKey);
+      const go = trapNext(list, at, !!at && list.includes(at), e.shiftKey);   // 열자마자 창 껍데기에 포커스 = 탭 자리 밖 → Shift+Tab 도 끝 칸으로(모루 #2862 「첫 Shift+Tab 이 창 밖으로」)
       if (!list.length) { e.preventDefault(); el.focus({ preventScroll: true }); return; }
       if (go) { e.preventDefault(); go.focus({ preventScroll: true }); }
     };

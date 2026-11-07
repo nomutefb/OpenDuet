@@ -34,3 +34,10 @@ test("Tab 가두기 — 포커스가 창 밖이면 창 안 처음(Shift = 끝)�
   assert.equal(trapNext(["x", "y"], "밖", false, true), "y");
   assert.equal(trapNext([], null, false, false), null);
 });
+
+test("열자마자 창 껍데기에 포커스(탭 자리 밖) — Shift+Tab = 끝 칸 · Tab = 첫 칸(모루 #2862 「첫 Shift+Tab 이 창 밖으로」)", () => {
+  const L = ["x", "y", "z"];
+  const at = "창 껍데기", inside = L.includes(at);
+  assert.equal(trapNext(L, at, inside, true), "z");
+  assert.equal(trapNext(L, at, inside, false), "x");
+});
