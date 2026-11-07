@@ -16,3 +16,6 @@
 .nm-errbar button:focus-visible { outline:2px solid var(--accent, #CFFF40); outline-offset:2px; }
 @keyframes nmErrIn { from { opacity:0; transform:translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .nm-errbar { animation:none; } }
+/* 끊김 띠(net-bar.ts · 번개 11-08) — 오류 띠와 같은 알약 · 글자 = 은은한 노랑 · 다시 붙음 = 라임 · 점 셋(.nm-dots = update-bar.css) */
+.nm-netbar { bottom:calc(134px + env(safe-area-inset-bottom, 0px)); padding:0 16px; border-color:rgba(255,214,102,.34); color:#ffe08a; }
+.nm-netbar.ok { border-color:rgba(var(--accent-rgb, 207,255,64),.38); color:var(--accent, #CFFF40); }

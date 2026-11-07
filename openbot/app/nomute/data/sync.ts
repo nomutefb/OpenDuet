@@ -4,13 +4,18 @@
 //   끊기면 3·10·30초 뒤 다시 · 탭이 숨으면 쉼(돌아오면 바로 한 번)
 import { queryClient } from "@/query-client";
 import { office } from "./office";
+import { setNetDown } from "../ui/net-bar";
 
 type PulseMap = { room?: Record<string, string>; brief?: string; answers?: string; repair?: string; notice?: string; roomset?: string; seen?: string };
 type Pulse = { v: string; map: PulseMap; timed_out?: boolean };
 
 export const bus = new EventTarget();   // 「rooms」(방 목록이 바뀜 · detail = 바뀐 방 id 목록) · 그 밖 칸 이름 그대로
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const BACKOFF = [3000, 10000, 30000];
+// 끊김(번개 11-08 · 형 01:31 「엔터프라이즈급」): 쉬는 동안 기기 인터넷이 돌아오거나(online) 창으로 돌아오면(focus) 남은 쉼을 끊고 바로 다시 잇는다
+let wake: (() => void) | null = null;
+const nap = (ms: number) => new Promise<void>((r) => { const done = () => { clearTimeout(t); wake = null; r(); }; const t = setTimeout(done, ms); wake = done; });
+window.addEventListener("online", () => wake?.());
+window.addEventListener("focus", () => wake?.());
 
 const inv = (key: readonly unknown[]) => void queryClient.invalidateQueries({ queryKey: key });
 
@@ -39,10 +44,12 @@ export function startSync() {
       if (document.hidden) { await new Promise<void>((r) => document.addEventListener("visibilitychange", () => r(), { once: true })); v = ""; }
       try {
         const j = await office<Pulse>(`pulse?${v ? `v=${encodeURIComponent(v)}&` : ""}max_s=25`);
+        if (fail >= 2) setNetDown(false);   // 끊겼다 다시 붙음 = 「다시 연결됐어요」 잠깐
         fail = 0;
         if (j.v !== v) { apply(map, j.map || {}); map = j.map || {}; v = j.v; }
       } catch {
-        await sleep(BACKOFF[Math.min(fail++, BACKOFF.length - 1)]);
+        if (++fail >= 2) setNetDown(true);   // 두 번 잇따라 못 닿음(13초쯤) = 끊김 띠
+        await nap(BACKOFF[Math.min(fail - 1, BACKOFF.length - 1)]);
       }
     }
   })();
