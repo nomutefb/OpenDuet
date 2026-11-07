@@ -10,13 +10,15 @@ import { type Level, levelOf, lookOf, num, type RunnerRow, useRunner } from "../
 import "../runner/runner-board.css";
 import "./runner-gauges.css";
 import { Bloub } from "./bloub";
+import { homeOf, machinesOf, useBodies } from "../data/bodies";
 
 type Row = { key: string; st?: string; note?: string; stale?: boolean; reported_at?: number; metrics?: Record<string, number> };
 type Cat = { id: string; rows: Row[] };
 type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp?: number };
 
 // 차례 = 윈A · 맥(가운데) · 윈B(오른쪽 · 켜질 때만 쓰는 서브)(형 11-06 15:56 「대시보드에 윈b 말고 이제 맥이 들어가야되고, 윈b는 완전 서브야(켜질때만 어쩔때 사용) mac이 가운데로 오게해줘 윈b는 우측으로」)
-const HOSTS: { k: string; pc: string; label: string }[] = [{ k: "윈A", pc: "A", label: "WIN A" }, { k: "맥", pc: "M", label: "MAC" }, { k: "hwang", pc: "H", label: "SIA PC" }];
+// 몸 칸 = 정본 한 장(../data/bodies · 서버 GET status bodies) 의 본체(이사 중 빼고) · key = 그 몸 host 첫 이름(작동 표 hw 줄 key) · 이름 = 몸 이름(형 11-08 01:48 「부품 1개가 있어. 근데 이걸 참조하면 되는데 10개를 복사해서 쓰는 꼴임.」)
+const PC_OF: Record<string, string> = { 윈A: "A" };   // 러너 위젯(/api/runner) 칸 글자 = 위젯 자리(몸 목록 아님 · runner-board PCS 와 같은 글자)
 // 11-07 형 08:51 임시방 「대시보드에 하드웨어 바뀐거 조약돌 포함 반영해줘 윈비 제외」 · 봄 나눔 ① = 윈B 칸 빼고 「SIA PC」(시아 본체 · 테일스케일 hwang · 작동 표 hw 줄 key 「hwang」) · 차례 윈A · 맥(가운데) · SIA PC
 // 색(형 17:3x 「노란색, 주황색, 빨간색 그거는 그대로 유지할게, 평상시에는 흰색이면됨」) = 평소 흰 · 70/80/90 = 노랑·주황·빨강(위젯 단계 그대로) · 온도 80 주황 · 85 빨강
 const WARN: Record<Level, string> = { green: "#E6E6E6", yellow: "#FFD23F", orange: "#FF9F43", red: "#FF5A5F", off: "#5C5C5C" };
@@ -31,10 +33,8 @@ const rord = (n: string) => (/^nomute-office/.test(n) ? 1 : 0) * 1e6 + rnum(n);
 // 우리 조약돌(형 11-06 09:48 「조약돌은 그 아래에 나오면 좋겠어 너네가 깬것도 보면 좋긴하거든. 러너랑 별개로. 러너 위에 나오면 좋겠네. 러너가 좀 더 아래로가고. 간격은 어느정도 유지.」)
 //   = 몸마다 게이지 아래 · 러너 불 위 · 그 몸에 사는 우리 = 각자 고른 bloub(./bloub.tsx · 봄 꽃 · 윈터 눈 결정 · 시아·뎅 조약돌 · 빠르 구름 · 누리 감자 · 뜸 쌀알) · 깬 애 = 제 색 · 상주(누리) = 제 색 · 잠 = 회색 몸
 //   깸 셈 = 작동 표 「각 봇 연결」 줄 「깸 상태」 칸(깸 · 잠 · 상주 돎) · 몸 = 우리.md(윈A VM 넷 + 윈터 · 윈B 뜸 · 맥 봄)
-const BEINGS: Record<string, { key: string; who: string; bot?: string }[]> = {   // bot = 작동 표 봇 줄 열쇠가 모양 열쇠와 다를 때(번개 = light · 뎅 11-07 08:54 실물)
-  윈A: [{ key: "winter", who: "윈터" }, { key: "deng", who: "뎅" }, { key: "fast", who: "빠르" }, { key: "neo", who: "누리" }, { key: "lightning", who: "번개", bot: "light" }],   // 번개 = 윈A VM light(윈터 11-06 16:01 · 형 15:54 「번개왕 클로드로 이식됬습니다」)
-  hwang: [{ key: "sia", who: "시아" }],   // 시아 = 윈A VM → 본체 hwang(11-06 밤 이사 · 형 「본체에 그냥 시아 원툴」 · 정본 하드웨어.md) · 윈B 칸은 뺌(형 11-07 「윈비 제외」)
-  맥: [{ key: "bom", who: "봄" }, { key: "eyes", who: "뜸" }],
+const PEB: Record<string, { key: string; bot?: string }> = {   // 조약돌 모양 열쇠(./bloub.tsx 그림 이름 · 아이마다 하나) · bot = 작동 표 봇 줄 열쇠가 다를 때(번개 = light · 뎅 11-07 08:54 실물) — 어디 사는지는 정본(homeOf)
+  윈터: { key: "winter" }, 봄: { key: "bom" }, 시아: { key: "sia" }, 누리: { key: "neo" }, 뎅: { key: "deng" }, 빠르: { key: "fast" }, 번개: { key: "lightning", bot: "light" }, 뜸: { key: "eyes" },
 };
 // 맥 칸 = 러너 칩(M1~M3) 대신 몸 칩 둘(형 11-06 20:13 「러너를 아예 안쓰는 구조로 두개로 나눠잇을텐데」 · 봄 나눔 ④ 다음 칸 · 빠르) — M1~M3 = 11-03 형 「러너 꺼주라」로 꺼 둔 등록(11-17 저절로 지워짐 · 가지는 그대로 · 화면만)
 //   칩 꼴 = 러너 칩 그대로 · 불 = 작동 표 hw 줄 st(맥 본체 = 「맥」 줄 · VM eyes = 「VM 뜸」 줄 · 몸-보고.py hw_key) · 🟢 흰 글자 · 🟡 노랑 · 🔴 빨강 · ⚪·끊김(30분)·보고 없음 = 꺼짐 꼴
@@ -59,6 +59,9 @@ export function RunnerGauges() {
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
   const bots = st.data?.cats?.find((c) => c.id === "bots")?.rows as (Row & { cells?: Record<string, { st: string; note?: string }> })[] | undefined;
   const wake = (k: string) => { if (!bots) return "wait" as const; const c = bots.find((r) => r.key === k)?.cells; return awakeOf(c?.["깸 상태"]?.note, c?.["마지막 깸"]?.note); };   // wait = 작동 표 첫 답 전(~12초) · 「다 잠듦」으로 안 읽히게 흐린 꼴(봄 10:08)
+  const bs = useBodies();   // 몸 = 정본 한 장(서버 bodies) — 칸 = 본체(이사 중 빼고) · 조약돌 = 그 본체에 지금 사는 아이
+  const HOSTS = machinesOf(bs).map((b) => ({ k: b.hosts[0], pc: PC_OF[b.hosts[0]] || "", label: b.body, body: b.body }));
+  const livesOn = (body: string) => bs.filter((x) => homeOf(x) === body && PEB[x.being]).map((x) => ({ ...PEB[x.being], who: x.being }));
   const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
   return (
     <div className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보">
@@ -85,9 +88,9 @@ export function RunnerGauges() {
               <b className="nm-rg-name nm-rgx-name">{h.label}</b>
               <span className="nm-rgx-g" style={tInk(m.gpu_temp) ? { color: tInk(m.gpu_temp) } : undefined}>{m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : none && a?.stale ? "보고 끊김" : "\u00a0"}</span>
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used="" top={m.cpu_temp != null ? `${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} off={none} wait={none && (st.isLoading || rq.isLoading)} />
-              {BEINGS[h.k] ? (   /* 사는 애 없는 몸(윈B)도 빈 줄 자리는 둠 = 러너 줄 높이가 세 몸 같게 */
+              {livesOn(h.body) ? (   /* 사는 애 없는 몸(윈B)도 빈 줄 자리는 둠 = 러너 줄 높이가 세 몸 같게 */
                 <ul className="nm-rgx-pebs" aria-label={`${h.label}에 사는 우리`}>
-                  {BEINGS[h.k].map((x) => { const w = wake(x.bot ?? x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "불러오는 중" : "잠"}`} /></li>; })}
+                  {livesOn(h.body).map((x) => { const w = wake(x.bot ?? x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "불러오는 중" : "잠"}`} /></li>; })}
                 </ul>
               ) : null}
               {BODY_CHIPS[h.k] ? (

@@ -3,12 +3,13 @@
 //   불 = 🔴 CPU 90% · 램 92% · 온도 85°C 넘음 / 🟡 CPU 70% · 램 85% · GPU 90% 넘음 / 🟢 그 밖 / ⚪ 숫자 없음(보고 끊김·아직 옛 판)
 import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
+import { machinesOf, useBodies } from "../data/bodies";
 
 type Row = { key: string; st?: string; metrics?: Record<string, number> };
 type Cat = { id: string; rows: Row[] };
 type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp?: number };
 
-const HOSTS: [string, string][] = [["윈A", "WIN A"], ["맥", "MAC"], ["hwang", "SIA PC"]];   // 형 11-07 08:51 「하드웨어 바뀐거 … 윈비 제외」 = 윈B 빼고 시아 본체(hw 줄 hwang)
+// 몸 칸 = 정본 한 장(../data/bodies) — 여기 따로 안 적음(형 11-08 01:49 「참조햇으면 한군디만 바꾸면 되는건데」)
 const DOT = { red: "bg-red-500", yellow: "bg-amber-400", green: "bg-emerald-500", none: "bg-muted-foreground/40" } as const;
 
 function level(x: M): keyof typeof DOT {
@@ -24,6 +25,7 @@ export function BodyBar({ className = "" }: { className?: string }) {
   const q = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: Cat[]; at?: number }>("status"), refetchInterval: 60_000, staleTime: 30_000 });
   const hw = q.data?.cats?.find((c) => c.id === "hw")?.rows || [];
   const of = (k: string): M => ({ ...(hw.find((r) => r.key === k)?.metrics || {}), ...(hw.find((r) => r.key === `${k}-temp`)?.metrics || {}) });
+  const HOSTS = machinesOf(useBodies()).map((b) => [b.hosts[0], b.body] as [string, string]);   // 몸 = 정본 한 장(서버 bodies · 본체만 · 이사 중 빼고)
   return (
     <div role="status" aria-label="몸 상태" className={`nm-bodybar flex h-6 shrink-0 items-center gap-3 overflow-x-auto whitespace-nowrap border-b border-border px-2 text-[11px] tabular-nums text-muted-foreground ${className}`}>
       {HOSTS.map(([k, label]) => {
