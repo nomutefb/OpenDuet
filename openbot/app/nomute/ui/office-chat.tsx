@@ -189,7 +189,7 @@ export function useOfficeRoom(room: string) {
             const d = draftRef.current;
             if (d && j.messages.some((m) => m.who === d.who && m.ts >= d.ts - 2000)) setDraft(null);   // 끝난 답이 올라옴 = 그 쓴 이의 초안 지움
             qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, j.messages));
-            for (const k of [officeKeys.reads(room), officeKeys.rooms, officeKeys.bots, ["channels"], ["duet-channels"]]) void qc.invalidateQueries({ queryKey: k });
+            for (const k of [officeKeys.reads(room), officeKeys.rooms, officeKeys.bots, ["channels"], ["duet-channels"]]) void qc.invalidateQueries({ queryKey: k }, { cancelRefetch: false });   // 받는 중이면 그 받기를 그대로 씀(새로 끊고 다시 X) — 글이 잇달아 오면 방 목록 부름이 끊겼다 다시 가며 쌓였음(뜸 11-07 13:1x 잼 = 형 앱 방 목록 1분 54번 · 한 번 2초)
             if (j.messages.some((m) => /!(형|세웅)/.test(String(m.text || "")) || m.reply_to)) void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });   // !형 글·형 답장 = 대기 알약 바로 다시 셈(형 11-07 10:57 「아직 내 채팅위에 이거 안올라와서 너네가 언급해도 안보임」)
           }
         } catch (e) {
