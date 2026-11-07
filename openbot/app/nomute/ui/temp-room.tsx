@@ -167,7 +167,11 @@ export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: 
 /** 방 멤버 고르기 = 대화 목록·방 메뉴 한 곳에서(형 11-05 08:35 「아예 저기서 설정할게 아니라 그냥 톡 목록에서 설정하게 일원화해야람」 · 형 11-07 13:38 「여기서도 방 멤버 설정 · 초대랑 별개」)
  *  지정방 = 서버 roomset(형만 · base 판 · 낡으면 409) · 임시방 = temprooms 후보·저장(이름·목적·기한은 「방 설정」) */
 export function RoomMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
-  if (r.temp) return <TempMembersDialog r={r} onClose={onClose} />;
+  return r.temp ? <TempMembersDialog r={r} onClose={onClose} /> : <SetMembersDialog r={r} onClose={onClose} />;   // 갈림 = 부품 둘(훅 순서가 방마다 안 바뀌게 · 시아 11-07)
+}
+
+/** 지정방 멤버(roomset) */
+function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["nomute", "roomset"], queryFn: () => office<{ roomset: { ver: number; rooms: Record<string, string[]> }; candidates: string[]; can_edit: boolean }>("roomset") });
   const [cur, setCur] = useState<string[] | null>(null), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
@@ -210,9 +214,10 @@ export function RoomMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () =
 /** 임시방 멤버만(형 11-07 13:38 · 봄 나눔 「임시방에도 같은 꼴」 · 초대·방 설정과 별개) */
 function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms"), staleTime: 60_000 });
+  // 캐시 꼴 = 「방 설정」(TempRoomDialog)과 같은 후보 배열 — 같은 열쇠에 꼴이 둘이면 먼저 연 창 꼴이 남아 다른 창이 비거나 깨짐(시아 11-07)
+  const q = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 });
   const [cur, setCur] = useState<string[] | null>(null), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
-  const list = peopleSync(), cand = q.data?.candidates || [], now = cur ?? r.members ?? [];
+  const list = peopleSync(), cand = q.data || [], now = cur ?? r.members ?? [];
   const save = async () => {
     if (!now.length || busy) return;
     setBusy(true); setWhy("");
