@@ -2,6 +2,7 @@
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
+import { livePicked } from "./picked";
 import { draftDrop, draftGet, draftSet } from "./draft";   // 쓰던 글 보관(형 11-07 10:56 「휘발안되고」)
 import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장할까?」(형 10:56)
 import { useNavigate } from "@tanstack/react-router";
@@ -42,7 +43,8 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
   const list = peopleSync(), who = (n: string) => list.find((p) => p.who === n);
   const dk = `room-${edit?.id || "new"}`, base = { name: edit?.name || "", purpose: edit?.purpose || "", picked: edit?.members || [] };
   const d0 = draftGet<typeof base>(dk) || base;   // 쓰던 글 있으면 되살림
-  const [name, setName] = useState(d0.name), [purpose, setPurpose] = useState(d0.purpose), [picked, setPicked] = useState<string[]>(() => d0.picked.filter((n) => !who(n)?.gone));   // 옛 초안에 남은 없어진 봇(별) = 되살릴 때 뺌(모루 #2861 검토 「별이 든 기존 로컬 초안은 우선 복원」 · 빠르 11-08)
+  const [name, setName] = useState(d0.name), [purpose, setPurpose] = useState(d0.purpose), [pickedRaw, setPicked] = useState<string[]>(d0.picked);
+  const picked = livePicked(pickedRaw, cand, (n) => !!who(n)?.gone);   // 옛 초안에 남은 없어진 봇(별) = 그릴 때마다 뺌 · 서버 후보(별 없음)가 오면 그걸로 · 명부가 늦게 와도 놓치지 않게(모루 #2861 · #2864 검토 · 빠르 11-08)
   const dirty = name !== base.name || purpose !== base.purpose || picked.join("|") !== base.picked.join("|");
   useEffect(() => { if (dirty) draftSet(dk, { name, purpose, picked }); else draftDrop(dk); }, [dk, dirty, name, purpose, picked]);
   const [hours, setHours] = useState<number | null>(edit ? null : 24), [fam, setFam] = useState("cl");   // 고치기 = 안 누르면 기한 그대로
