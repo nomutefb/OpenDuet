@@ -186,7 +186,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 body.nm-dragging { user-select:none; cursor:col-resize; }
 body.nm-dragging iframe { pointer-events:none; }
 /* 칸 틀 통일(시아 UI ① · 형 11-06 「ㅇㅋ」) — 오른쪽 세 칸 = 같은 유리 판 · 같은 머리줄(36 · 점 · 이름 · 오른쪽 흐린 글) · 칸 사이 8 */
-.nm-split-root .nm-split > section { background:rgba(24,25,27,.72) !important; border:1px solid rgba(255,255,255,.07); border-radius:14px !important; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); overflow:hidden; }
+.nm-split-root .nm-split > section { background:transparent !important; border:0; border-radius:0 !important; backdrop-filter:none; -webkit-backdrop-filter:none; overflow:hidden; }   /* 블록 없이(형 11-08 08:18 dm 「우측의 내용도 블록 안에 담지말고 그냥 구분선 정도로 처리.」 · 앞 판 = 잿빛 블랙 유리 칸 · 모루 #2887 「이 규칙이 더 강해서 안 먹음」 · 봄) */
 .nm-split-root .nm-split > section.nm-split-run { padding:0 !important; }
 .nm-split-root .nm-split > section.nm-split-run .nm-rgx { padding:0 !important; }
 .nm-card-h, .nm-split-root .nm-nlist-h, .nm-split-root .nm-nsum-h { height:36px; flex:none; display:flex; align-items:center !important; gap:8px; padding:0 12px !important; border-bottom:1px solid rgba(255,255,255,.07); border-top:0 !important; margin:0; }
@@ -297,8 +297,7 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-l > .nm-split-top-l { position:absolute; top:8px; left:8px; right:8px; z-index:1; max-height:none; }
 .nm-split-l > .nm-pane { top:var(--nm-top-off, 0px); }   /* 판(홈 · 대화방 · 대화 · 덮는 판)은 게이지 띠 밑에서 시작 */
 .nm-split > .nm-split-top-r { flex:0 0 var(--nm-top-h, auto); height:var(--nm-top-h, auto); max-height:none; overflow:hidden; }
-/* 오른쪽 칸 = 블록 없이 구분선만(형 11-08 08:18 dm 「우측의 내용도 블록 안에 담지말고 그냥 구분선 정도로 처리.」 · 봄) — 칸 바탕·둥근 모 0 · 칸 사이 = 가는 줄 하나 */
-.nm-split > section { background:transparent !important; border-radius:0 !important; }
-.nm-split > section + section { border-top:1px solid rgba(255,255,255,.07); }
+/* 오른쪽 칸 = 블록 없이 구분선만(형 11-08 08:18 · 봄) — 바탕·모 = 위 189줄에서 끔 · 칸 사이 = 가는 줄 하나(같은 세기로) */
+.nm-split-root .nm-split > section + section { border-top:1px solid rgba(255,255,255,.07); }
 .nm-split-root .nm-nsum { border-top:0; }   /* 요약 칸 제 윗줄은 위 구분선과 겹쳐서 뺌 */
 .nm-split-root .nm-nsum-q { background:transparent; }
