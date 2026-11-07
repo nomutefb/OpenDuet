@@ -4,6 +4,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { useState } from "react";
+import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장하시겠습니까?」 [예] [아니오](형 11-07 10:59)
 import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
 import { GLYPHS, RoomGlyph } from "./room-glyph";
@@ -19,6 +20,8 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
   const [icon, setIcon] = useState(r.look?.icon || ""), [fg, setFg] = useState(r.look?.fg || "");
   const [q, setQ] = useState(""), [a, setA] = useState("#2f6bff"), [b, setB] = useState("#CFFF40");
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
+  const dirty = icon !== (r.look?.icon || "") || fg !== (r.look?.fg || "");
+  const g = useCloseGuard(dirty, onClose);
   const names = Object.keys(GLYPHS).filter((n) => !q.trim() || n.includes(q.trim().toLowerCase()));
   const save = async () => {
     setBusy(true); setWhy("");
@@ -30,7 +33,7 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
     finally { setBusy(false); }
   };
   return createPortal(
-    <div className="nrl-veil" role="presentation" {...backdrop(onClose)}>
+    <div className="nrl-veil" role="presentation" {...backdrop(g.request)}>
       <div className="nrl" role="dialog" aria-label={`${r.name} 방 꾸미기`} onClick={(e) => e.stopPropagation()}>
         <div className="nrl-h"><RoomGlyph id={r.id} look={{ icon, fg }} size={52} /><div><b>{r.name} · 방 꾸미기</b><small>형만 바꿈 · 기기 넘어가도 그대로</small></div></div>
         <div className="nrl-tabs" role="tablist">
@@ -56,8 +59,9 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
           </div>
         )}
         {why ? <p className="nrl-why" role="alert">{why}</p> : null}
-        <div className="nrl-ft"><button type="button" onClick={onClose}>닫기</button><button type="button" className="ok" disabled={busy} onClick={() => void save()}>{busy ? "저장 중…" : "저장"}</button></div>
+        <div className="nrl-ft"><button type="button" onClick={g.request}>닫기</button><button type="button" className="ok" disabled={busy} onClick={() => void save()}>{busy ? "저장 중…" : "저장"}</button></div>
       </div>
+      {g.ask ? <SaveAsk saving={busy} onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void save(); }} /> : null}
     </div>,
     document.body,
   );

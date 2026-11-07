@@ -6,6 +6,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { useEffect, useState } from "react";
+import { draftDrop, draftGet, draftSet } from "./draft";   // 쓰던 소개 되살림(형 11-07 10:56 「휘발안되고」)
+import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장하시겠습니까?」 [예] [아니오](형 10:59)
 import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../data/office";
 import { ColorPick } from "./color-pick";
 import { BeingCard, beingLook } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
@@ -19,12 +21,10 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const [pick, setPick] = useState(false), [edit, setEdit] = useState(false), [draft, setDraft] = useState(""), [busy, setBusy] = useState(false), [note, setNote] = useState("");
   const [roleEdit, setRoleEdit] = useState(false), [roleDraft, setRoleDraft] = useState("");   // 직무 고치기(형 11-05 「내가 애들 직무도 변경할 수 있게해줘 프로필에서, 근데 그게 디비까지 반영되어야해」 · 서버 office/profile {who, role} · 형만)
   useEffect(() => { setPick(false); setEdit(false); setRoleEdit(false); setNote(""); }, [who]);
-  useEffect(() => {
-    if (!who) return;
-    const on = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", on);
-    return () => window.removeEventListener("keydown", on);
-  }, [who, onClose]);
+  const cur = who ? list.find((x) => x.who === who) : undefined;
+  const introDirty = edit && draft !== (cur?.intro || ""), roleDirty = roleEdit && roleDraft.trim() !== (cur?.role || "");
+  useEffect(() => { if (!who || !edit) return; if (introDirty) draftSet(`intro:${who}`, draft); else draftDrop(`intro:${who}`); }, [who, edit, draft, introDirty]);
+  const g = useCloseGuard(introDirty || roleDirty, onClose, !!who);   // 고치던 소개·직무 있으면 닫기 대신 물음 · Esc 도 이 길(카드 떠 있을 때만)
   if (!who) return null;
   const p = list.find((x) => x.who === who);
   const name = p?.name || who;
@@ -42,8 +42,9 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
       const r = await office<{ ok?: boolean; error?: string }>("profile", { method: "POST", body: JSON.stringify({ who, intro: draft }) });
       if (r && r.ok === false) throw new Error(r.error || "저장 못 함");
       qc.setQueryData(["nomute", "people"], await people(true));
-      setEdit(false);
-    } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); }
+      setEdit(false); draftDrop(`intro:${who}`);
+      return true;
+    } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); return false; }
     finally { setBusy(false); }
   };
   const saveRole = async () => {   // 빈 글 = 명부 기본 직무로 · 서버가 사람표·부를 말(직무 → 이름)까지 같이 바꿈
@@ -54,12 +55,13 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
       if (r && r.ok === false) throw new Error(r.error || "저장 못 함");
       qc.setQueryData(["nomute", "people"], await people(true));
       setRoleEdit(false);
-    } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); }
+      return true;
+    } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); return false; }
     finally { setBusy(false); }
   };
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   return (
-    <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
+    <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
       <div className={look ? "ypc ypc--being" : "ypc"} role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
         <button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} />   {/* 프로필 창 우상단 모서리 · 마진 조금(형 11-01 14:02 「무지개색 프로필 원 저거 저 프로필 창의 우상단을 말하는 거임 우상단 모서리에 마진을 조금 둬서」) */}
         {look ? <BeingCard who={who} name={name} role={p?.role} /> : <div className="ypc-ava"><MicOrb size={130} id={idOf(who, list)} tint={ringOf(p)} /></div>}
@@ -82,22 +84,23 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
         {edit ? (
           <div className="ypc-intro-edit">
             <textarea value={draft} maxLength={300} rows={4} autoFocus placeholder="소개 · 비우면 기본으로" aria-label={`${name} 소개`} onChange={(e) => setDraft(e.target.value)} />
-            <div className="row"><small>{[...draft].length}/300</small><button type="button" className="ypc-x" disabled={busy} onClick={() => { setEdit(false); setNote(""); }}>취소</button><button type="button" className="ypc-go" disabled={busy} onClick={() => void saveIntro()}>{busy ? "저장 중…" : "저장"}</button></div>
+            <div className="row"><small>{[...draft].length}/300</small><button type="button" className="ypc-x" disabled={busy} onClick={() => { setEdit(false); setNote(""); draftDrop(`intro:${who}`); }}>취소</button><button type="button" className="ypc-go" disabled={busy} onClick={() => void saveIntro()}>{busy ? "저장 중…" : "저장"}</button></div>
             {note ? <small className="err" role="alert">{note}</small> : null}
           </div>
         ) : (
           <span className="ypc-intro">
             {p?.intro ? <span className="ypp-desc">{p.intro}</span> : <span className="ycd-quote">자기소개는 아직이야</span>}
-            <button type="button" className="ypc-pen" aria-label={`${name} 소개 고치기`} title="소개 고치기" onClick={() => { setDraft(p?.intro || ""); setEdit(true); setRoleEdit(false); }}>
+            <button type="button" className="ypc-pen" aria-label={`${name} 소개 고치기`} title="소개 고치기" onClick={() => { setDraft(draftGet<string>(`intro:${who}`) ?? (p?.intro || "")); setEdit(true); setRoleEdit(false); }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
             </button>
           </span>
         )}
         <div className="ypc-acts">
           {dm && !look ? <button type="button" className="ypc-go" onClick={go}>1:1 대화</button> : null}
-          <button type="button" className="ypc-x" onClick={onClose}>닫기</button>
+          <button type="button" className="ypc-x" onClick={g.request}>닫기</button>
         </div>
       </div>
+      {g.ask ? <SaveAsk saving={busy} onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void (introDirty ? saveIntro() : saveRole()).then((ok) => { if (ok) onClose(); }); }} /> : null}
     </div>
   );
 }
