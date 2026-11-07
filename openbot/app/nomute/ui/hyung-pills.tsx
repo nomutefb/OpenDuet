@@ -21,6 +21,7 @@ const calls = (m: M) => m.kind !== "human" && [...(m.mention || []), ...(m.urgen
 export function pendingOf<T extends M>(all: T[], server: unknown, quoteOf: (m: T) => string): T[] {
   const byId = new Map(all.map((m) => [m.id, m] as const));
   if (Array.isArray(server)) return server.map((id) => byId.get(String(id))).filter((m): m is T => !!m);
+  if (server === undefined || server === null) return [];   // 서버 장부(editor#2750)가 정본 · 칸 없음 = 대기 0(옛 글 직접 셈 = 지난 @형까지 떠서 뺌 · 형 11-07 10:28 「내가 갱신 하자 한 시점부터 진행」)
   const answered = new Set<string>(), quotes = new Set<string>();
   for (const m of all) if (m.kind === "human") { if (m.reply_to) answered.add(m.reply_to); const q = /^↩ (.+)$/.exec(String(m.text || "").split("\n")[0]); if (q) quotes.add(q[1].trim()); }
   return all.filter((m) => calls(m) && !answered.has(m.id) && !quotes.has(quoteOf(m)));
