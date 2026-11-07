@@ -37,6 +37,7 @@ import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
+import { WebPane } from "./web-pane";
 import { IssueView } from "./issue";
 import { PinBar } from "./pins";
 import { OfficeChat } from "./office-chat";
@@ -364,18 +365,29 @@ function FramePage({ src, title, onTitle }: { src: string; title: string; onTitl
 }
 
 /** #/web 한 겹 — 머리 = 「< 이름」(같은 사이트 = 그 화면 제목 · 남의 사이트 = 사이트 이름) · 남의 사이트가 품기를 막아 빈 화면이면 오른쪽 지구 단추 = 밖에서 열기(그때만 쓰는 비상구) */
+//   남의 사이트·빈 주소 = 「웹」 칸(./web-pane.tsx · 빠르 부품 · 주소창 · 뒤로/앞으로 · 새로고침 · 품기 미리 재기 · 형 11-06 20:21 「대시보드 창 내부에서도 브라우저」 · 시아 11-07 끼움) · 같은 사이트 원본 화면 = 그대로 FramePage
 function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
   const [title, setTitle] = useState<[string, string]>(["", ""]);
   const ext = /^https?:\/\//i.test(u);
   let host = "";
   try { host = ext ? new URL(u).hostname.replace(/^(www|m)\./, "") : ""; } catch { /* 이름 없음 */ }
-  const name = ext ? host : title[0] === u && title[1] ? title[1] : "에디터";
+  if (ext || !u) {
+    return (
+      <div className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={host || "웹"}>
+        <div className="nm-modal-h">
+          <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
+          <b className="min-w-0 flex-1 truncate">{host || "웹"}</b>
+        </div>
+        <div className="nm-modal-b frame"><WebPane key={u} initial={u} /></div>
+      </div>
+    );
+  }
+  const name = title[0] === u && title[1] ? title[1] : "에디터";
   return (
     <div className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={name}>
       <div className="nm-modal-h">
         <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
         <b className="min-w-0 flex-1 truncate">{name}</b>
-        {ext ? <a data-nm-out href={u} target="_blank" rel="noopener" className="nm-modal-back" aria-label="밖에서 열기(이 사이트가 앱 안 보기를 막을 때)"><DuetIcon name="globe" size={19} /></a> : null}
       </div>
       <div className="nm-modal-b frame"><FramePage key={u} src={frameUrl(u)} title={name} onTitle={(t) => setTitle([u, t])} /></div>
     </div>
