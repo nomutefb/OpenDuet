@@ -111,6 +111,8 @@ export const officeKeys = {
 
 /** 알약 창 답이 보냄 줄에 든 동안의 원 글 id(이 탭 · 방을 옮겨도 남음) — 그새 글을 새로 받아 서버 대기(pending_ids)에 그 id 가 다시 와도 알약을 안 되살림 · 보내지면 뺌(모루 11-07 15:57 #2822 검토) */
 const replying = new Set<string>();
+/** 글 열쇠(client_id · 24자) — 보냄 줄이 다시 보내도 같은 값 · 서버 = 같은 열쇠면 앞 글 그대로(editor _post humanTwin) */
+const sendKey = () => { try { return crypto.randomUUID().replace(/-/g, "").slice(0, 24); } catch { return `k${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`; } };
 const merge = (old: Page | undefined, add: Msg[]): Page => {
   const m = new Map((old?.messages || []).map((x) => [x.id, x]));
   for (const x of add) m.set(x.id, x);
@@ -1242,8 +1244,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     draftSet(`peek:${m.id}`, raw);
     replying.add(m.id);
     qc.setQueryData<Page>(officeKeys.msgs(room), (old) => (old ? { ...old, pending_ids: (old.pending_ids || []).filter((x) => x !== m.id) } : old));   // 알약 = 보내는 순간 빠짐
+    const ck = sendKey();   // 다시 보내기 = 같은 열쇠(서버가 하나로)
     attachmentSender.later(room, text, async () => {
-      const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify({ text, reply_to: m.id }) });
+      const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify({ text, reply_to: m.id, client_id: ck }) });
       replying.delete(m.id);
       draftDrop(`peek:${m.id}`);
       qc.setQueryData<Page>(officeKeys.msgs(room), (old) => { if (!old) return old; const next = j.message ? merge(old, [j.message]) : old; return { ...next, pending_ids: (next.pending_ids || []).filter((x) => x !== m.id) }; });
@@ -1396,8 +1399,9 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
                 attachmentSender.start({ room, text, originals });
               } else if (text) {
                 const cmd = /^\/(?:초대|방파기)(?:\s|$)/.test(text);   // 형만 쓰는 명령(봄 서버 · 형 11-06 「/ < 명령어는 나만.」) — 안 되는 방이면 서버 why 를 그대로 보여 주고 「다시 보내기」로 안 남김
+                const ck = sendKey();   // 글 열쇠 하나 = 다시 보내기도 같은 열쇠 → 서버가 하나로(봄 11-07 16:06 · 뎅 안 · 형 16:02·16:04 같은 답장 두 번)
                 const post = async () => {
-                  const body: Record<string, unknown> = { text, ...(submittedReply ? { reply_to: submittedReply.id } : {}) };   // 답장 = 원 글 id 도 같이(뜸 서버 = 형 결정 대기에서 빼고 원 글 쓴 이를 바로 깨움 · 11-07)
+                  const body: Record<string, unknown> = { text, client_id: ck, ...(submittedReply ? { reply_to: submittedReply.id } : {}) };   // 답장 = 원 글 id 도 같이(뜸 서버 = 형 결정 대기에서 빼고 원 글 쓴 이를 바로 깨움 · 11-07)
                   let j: { message?: Msg; closed?: boolean };
                   try { j = await office<{ message?: Msg; closed?: boolean }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) }); }
                   catch (e) {

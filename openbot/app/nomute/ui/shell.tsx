@@ -32,7 +32,7 @@ import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
 import { SceneBg } from "./thumb-maker/scene-bg";
 import "../home/home-scene.css";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
@@ -40,7 +40,7 @@ import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { WebPane } from "./web-pane";
 import { IssueView } from "./issue";
 import { PinBar } from "./pins";
-import { OfficeChat } from "./office-chat";
+import { OfficeChat, roomMsgsOptions } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
 import { IdleBlind, TopClock, TopTitle } from "./idle-blind";
 import { NomuteName } from "./top";
@@ -425,13 +425,22 @@ function FaceStrip({ current, last }: { current: string; last: string }) {
   //   1:1 = 그 애 마지막 턴(bots last_turn_ts) · 단톡방 = 방 마지막 움직임(act_ts · last_ts)
   const aliveAt = (r: (typeof ordered)[number]) => r.with ? bots.find((b) => b.who === r.with)?.last_turn_ts || 0 : r.act_ts || r.last_ts || 0;
   const stripOrder = [...ordered].sort((a, b) => (+pins.has(b.id) - +pins.has(a.id)) || (+live(b.with) - +live(a.with)) || (aliveAt(b) - aliveAt(a)));   /* 누르기만 하면 자리 그대로 · 글이 오가야 위로(형 11-06 22:42 「내가 누른다고 바로 걔가 제일 위로 올라가면안돼. 내가 대화를 쳐서, 실시간으로 가장 최신 대화가 되어야 가장 위로올라가」) · 지금 방 = 무지개 테만(자리 그대로 · 봄 22:42 나눔) */
+  // 대화 미리 받기 = 띠 차례 위 넷(1.5초 뒤 하나씩) + 얼굴에 손 올림·누름·초점(대화 목록 ./room-list.tsx 와 같은 꼴 · 뎅 16:03 「화면 위 차례랑 「위 네 방」 차례가 다름」)
+  const qc = useQueryClient(), pre = (id: string) => { if (id) void qc.prefetchQuery(roomMsgsOptions(qc, id)); };
+  const topS = stripOrder.slice(0, 4).map((r) => r.id).join(",");
+  useEffect(() => {
+    if (!topS) return undefined;
+    const ts: number[] = [];
+    ts.push(window.setTimeout(() => topS.split(",").forEach((id, k) => ts.push(window.setTimeout(() => pre(id), k * 400))), 1500));
+    return () => ts.forEach((t) => clearTimeout(t));
+  }, [topS]);   // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <aside aria-label="방 얼굴 띠" className="nm-strip">
       <div className="nm-strip-faces">
         {stripOrder.map((r) => {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list), hy = Number((r as { pending_hyung?: number }).pending_hyung) || 0;
           return (
-            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
+            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
               {pins.has(r.id) ? <i className="nm-face-pin" aria-label="고정됨" /> : null}
               {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomGlyph id={r.id} look={r.look} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
               {n !== 0 ? <i className="nm-udot" aria-hidden /> : null}   {/* 안 읽음 = 왼쪽 위 레몬 점 하나(숫자 없음 · 형 13:20 「노란색으로」 · 형 11-07 13:15 「안읽은 글 수는 애초에 안떠두됨」 · 「라임색 접 작게 잇으면됨」 · 「저 불이 좌측에 있으면 됨.」) */}
