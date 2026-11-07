@@ -334,8 +334,9 @@ class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: 
 const SPLIT_KEY = "nm-split-w";
 // 16:9 화면 = 켤 때 늘 반반(8:9 + 8:9 · 형 11-08 07:24 dm 「16대9비율일 때는, 8:9로 항상 켜지게 하고싶어.」) · 기억한 넓이는 다른 비율 화면에서만 씀 · 켠 뒤 끌기는 그대로 됨
 const is169 = () => { try { const w = window.screen.width, h = window.screen.height; return w > 0 && h > 0 && Math.abs(w / h - 16 / 9) < 0.04; } catch { return false; } };
+let splitInit = false;   // 켤 때 한 번만(작은 창 왕복으로 칸이 다시 붙어도 그 사이 끈 넓이 그대로 · 모루 #2880 검토)
 function useSplitW() {
-  useEffect(() => { try { if (is169()) { document.documentElement.style.setProperty("--nm-split-w", "50%"); return; } const v = +(localStorage.getItem(SPLIT_KEY) || 0); if (v >= 30 && v <= 65) document.documentElement.style.setProperty("--nm-split-w", `${v}%`); } catch { /* 반반 */ } }, []);
+  useEffect(() => { if (splitInit) return; splitInit = true; try { if (is169()) { document.documentElement.style.setProperty("--nm-split-w", "50%"); return; } const v = +(localStorage.getItem(SPLIT_KEY) || 0); if (v >= 30 && v <= 65) document.documentElement.style.setProperty("--nm-split-w", `${v}%`); } catch { /* 반반 */ } }, []);
 }
 function SplitGrip() {
   const set = (v: number) => { const c = Math.max(30, Math.min(65, v)); document.documentElement.style.setProperty("--nm-split-w", `${c}%`); return c; };
