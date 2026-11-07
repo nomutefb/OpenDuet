@@ -22,6 +22,8 @@ export function tempLeft(exp: number, now = Date.now()) {
 }
 
 const short = (n: string) => n.replace(" PM", "");
+const SKIP = new Set(["별"]);   // 멤버 고르기 후보에서도 뺌(「/초대」 INVITE_SKIP 과 같게 · 형 11-06 11:43 「좋고, 별만 초대 모록에 없으면될듯」 · 11-08 01:32 「아ㅣ직 별 < 있는데 확인 ㅋㅋ」) · 이미 멤버면 끌 수 있게 그대로 보임
+const visible = (list: string[], on: string[]) => list.filter((n) => !SKIP.has(n) || on.includes(n));
 
 /** 방 맨 위 = 목적 · 남은 시간 · 목적을 받아 간 이(형 10-31 「목적을 듣고 온건지 확인 되어야하고」). */
 export function TempRoomHead({ r }: { r: OfficeRoom }) {
@@ -48,7 +50,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
   const [hours, setHours] = useState<number | null>(edit ? null : 24), [fam, setFam] = useState("cl");   // 고치기 = 안 누르면 기한 그대로
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
   const toggle = (n: string) => setPicked(picked.includes(n) ? picked.filter((x) => x !== n) : [...picked, n]);
-  const namesOf = (cls: string[]) => cand.filter((n) => cls.includes(who(n)?.cls || ""));
+  const namesOf = (cls: string[]) => visible(cand, picked).filter((n) => cls.includes(who(n)?.cls || ""));
   const shown = namesOf(FAMS.find((f) => f.key === fam)?.cls || []);
   const allOn = shown.length > 0 && shown.every((n) => picked.includes(n));
   const toggleAll = () => setPicked(allOn ? picked.filter((n) => !shown.includes(n)) : [...new Set([...picked, ...shown])]);
@@ -190,7 +192,7 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
         <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
         {!d ? <p className="text-muted-foreground">{q.isError ? q.error.message : "읽는 중…"}</p> : (
           <div className="flex flex-wrap gap-1.5">
-            {d.candidates.map((w) => {
+            {visible(d.candidates, now).map((w) => {
               const on = now.includes(w);
               return (
                 <button key={w} type="button" disabled={!d.can_edit || busy} aria-pressed={on} onClick={() => setCur(on ? now.filter((x) => x !== w) : [...now, w])}
@@ -233,7 +235,7 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
         <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
         {!q.data && !q.isError ? <p className="text-muted-foreground">읽는 중…</p> : q.isError ? <p className="text-muted-foreground">{(q.error as Error).message}</p> : (
           <div className="flex flex-wrap gap-1.5">
-            {cand.map((w) => {
+            {visible(cand, now).map((w) => {
               const on = now.includes(w);
               return (
                 <button key={w} type="button" disabled={busy} aria-pressed={on} onClick={() => setCur(on ? now.filter((x) => x !== w) : [...now, w])}
