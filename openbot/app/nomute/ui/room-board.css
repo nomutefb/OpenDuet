@@ -1,0 +1,19 @@
+/* 방 머리 띠(./room-board.tsx) — 떠 있는 방 머리 바로 아래(top 46px · 「안 본 글」 단추 자리와 같은 줄) · 한 줄 · 넘치면 「+N」 · 펼치면 줄바꿈 */
+.ychat > .nm-board {
+  position:absolute; top:46px; left:0; right:0; margin-inline:auto; z-index:4;
+  width:max-content; max-width:calc(100% - 24px);
+  display:flex; flex-wrap:nowrap; align-items:center; gap:6px; padding:4px 6px;
+  border-radius:var(--r-pill, 999px); border:1px solid var(--glass-line, rgba(255,255,255,.1));
+  background:var(--glass, rgba(24,25,27,.72)); background:color-mix(in srgb, var(--glass, rgba(24,25,27,.72)) 85%, transparent);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  font-size:11px; line-height:1.3; color:var(--fg); overflow:hidden;
+}
+.ychat > .nm-board.open { flex-wrap:wrap; justify-content:center; border-radius:12px; }
+.nm-board .bd-chip { display:inline-flex; align-items:center; gap:5px; min-width:0; max-width:300px; white-space:nowrap; padding:2px 9px; border-radius:999px; background:rgba(127,127,127,.12); }
+.nm-board .bd-chip b { font-weight:700; }
+.nm-board .bd-what { overflow:hidden; text-overflow:ellipsis; }
+.nm-board .bd-chip i { flex:none; font-style:normal; color:var(--mut); font-variant-numeric:tabular-nums; }
+.nm-board .bd-sug.is-hold { opacity:.75; }
+.nm-board .bd-more { all:unset; cursor:pointer; flex:none; padding:2px 8px; border-radius:999px; color:var(--mut); font-weight:600; }
+.nm-board .bd-more:hover { color:var(--fg); }
+.ychat:has(> .nm-board) > .yjump { top:82px; }   /* 띠가 있을 때만 「안 본 글」 단추를 띠 아래로 */
