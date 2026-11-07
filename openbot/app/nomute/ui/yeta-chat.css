@@ -40,7 +40,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .ymsg .ycol { display:flex; flex-direction:column; gap:3px; min-width:0; }
 .ychat .ymsg .yname { font-size:var(--fs-xs); color:var(--fg); font-weight:var(--fw-b); padding-left:2px; }
 .ychat .yb, .ychat-in .duet-composer-editor { font-family:var(--app-font-text, var(--app-font, Pretendard,-apple-system,system-ui,sans-serif)); }   /* 글 본문 = 영문 대문자 글꼴 뺌(./chat-font.tsx · D9) */
-.ychat .yb { padding:10px 13px; border-radius:var(--r-l); font-size:var(--fs-body); line-height:var(--lh-base); white-space:pre-wrap; word-break:break-word; }
+.ychat .yb { padding:10px 13px; border-radius:var(--r-l); font-size:var(--fs-body); line-height:var(--lh-base); white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }   /* 한글 낱말 안 쪼갬(「스타/일」 · 「줄/씩」) · 긴 줄만 아무 데서나 꺾음 · 시아 11-07 */
 .ychat .yb.ai { background:var(--glass-2); border:1px solid var(--glass-line); border-top-left-radius:var(--r-s); box-shadow:inset 0 1px 0 var(--glass-line); }   /* 뒤 흐림 뺌(형 10-31 「메세지 하단부가 번쩍번쩍」) */
 .ychat .yb { position:relative; }
 .ychat .yb:has(> .yrxs) { margin-bottom:13px; }
