@@ -2,7 +2,7 @@
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
-import { livePicked } from "./picked";
+import { livePicked, saveBlock } from "./picked";
 import { draftDrop, draftGet, draftSet } from "./draft";   // 쓰던 글 보관(형 11-07 10:56 「휘발안되고」)
 import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장할까?」(형 10:56)
 import { useNavigate } from "@tanstack/react-router";
@@ -54,8 +54,10 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
   const shown = namesOf(FAMS.find((f) => f.key === fam)?.cls || []);
   const allOn = shown.length > 0 && shown.every((n) => picked.includes(n));
   const toggleAll = () => setPicked(allOn ? picked.filter((n) => !shown.includes(n)) : [...new Set([...picked, ...shown])]);
-  const ready = !!purpose.trim() && picked.length > 0 && !busy;
+  const ready = !saveBlock(purpose, picked, busy);
   const make = async () => {
+    const no = saveBlock(purpose, picked, busy);   // 닫기 「예」 길도 단추와 같은 조건(0명 · 목적 빈 채로 서버에 안 보냄 · 모루 #2865)
+    if (no) { setWhy(no); throw new Error(no); }
     setBusy(true); setWhy("");
     try {
       const body = JSON.stringify({ name, purpose, members: picked, ...(hours === null ? {} : { hours }) });
