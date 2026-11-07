@@ -38,7 +38,7 @@ const BEINGS: Record<string, { key: string; who: string; bot?: string }[]> = {  
 };
 // 맥 칸 = 러너 칩(M1~M3) 대신 몸 칩 둘(형 11-06 20:13 「러너를 아예 안쓰는 구조로 두개로 나눠잇을텐데」 · 봄 나눔 ④ 다음 칸 · 빠르) — M1~M3 = 11-03 형 「러너 꺼주라」로 꺼 둔 등록(11-17 저절로 지워짐 · 가지는 그대로 · 화면만)
 //   칩 꼴 = 러너 칩 그대로 · 불 = 작동 표 hw 줄 st(맥 본체 = 「맥」 줄 · VM eyes = 「VM 뜸」 줄 · 몸-보고.py hw_key) · 🟢 흰 글자 · 🟡 노랑 · 🔴 빨강 · ⚪·끊김(30분)·보고 없음 = 꺼짐 꼴
-const BODY_CHIPS: Record<string, { key: string; label: string }[]> = { 맥: [{ key: "맥", label: "맥" }, { key: "VM 뜸", label: "VM 뜸" }] };
+const BODY_CHIPS: Record<string, { key: string; label: string }[]> = {};   // 몸 칩 뺌(형 11-07 09:04 임시방 「뜸 VM이 별도로 표현될 필요는 없어, 맥도 마찬가지. 그러면 너희들 vm도 다 떠야되니까, 시아도. 그거는 필요없고 러너 번호만 따로 있으면 됨.」) = 맥 칸도 러너 번호(M#)만
 const LIGHT_CLS: Record<string, string> = { "🟢": "is-ok", "🟡": "is-warn", "🔴": "is-bad" };
 // 「깸 상태」 = 그 순간 턴을 도는지(답 사이엔 「잠」) → 「마지막 깸」이 10분 안이면 「방금 깸」으로 제 색(봄 11-06 10:08 「나 지금 깨서 일하는 중인데 맥 조약돌 회색이지?」)
 const minAgo = (note?: string) => { const m = String(note || "").match(/^(\d+)\s*(초|분|시간)\s*전/); return !m ? Infinity : m[2] === "초" ? 0 : m[2] === "분" ? +m[1] : +m[1] * 60; };
