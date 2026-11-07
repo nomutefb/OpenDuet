@@ -278,6 +278,12 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-spread .nm-settings-page .yset-part + .yset-part { margin-top:0; }
 /* 러너 = 칸 둘 나란히(max-w-5xl)를 넓게 */
 .nm-split-spread .nm-runner-page { max-width:min(1600px, 100%); padding-inline:28px; }
+/* 러너 판 = 오른쪽 끝까지 펼침 · 몸 칸(WIN A · WIN B · MAC PRO)을 위아래 → 옆으로 나란히(형 11-08 07:24 dm 「지금 러너 대시보드 바꾼거. 그거를 우측까지 펼쳐서 나오게 하고싶어.」 · 옛 = 카드 560 · 위아래) · 게이지는 너무 커지지 않게 몸 칸마다 가운데 520 */
+.nm-split-spread .nm-runner-page .nm-rg-card { max-width:none; }
+.nm-split-spread .nm-runner-page .nm-rg-panel { flex-direction:row; align-items:stretch; }
+.nm-split-spread .nm-runner-page .nm-rg-panel > .nm-rg-row { flex:1 1 0; min-width:0; }
+.nm-split-spread .nm-runner-page .nm-rg-row + .nm-rg-row { border-top:0; border-left:1px solid rgba(255,255,255,.07); }
+.nm-split-spread .nm-runner-page .nm-rg-gauges { max-width:520px; margin-inline:auto; }
 
 /* 눌러야 받는 칸(서랍 창 · 이슈 · 웹) 코드를 받는 동안 = 가운데 라임 점 셋(ui/shell.tsx LazyDots · 번개 11-08 · 첫 화면 무게) */
 .nm-lazy{display:flex;flex:1;align-items:center;justify-content:center;min-height:120px}

@@ -330,8 +330,10 @@ class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: 
 
 /** 대화 | 오른쪽 경계 끌기(형 11-06 대시보드 고급화 UI ② · 시아 판) = 오른쪽 넓이 30~65% · 이 PC 에 기억(nm-split-w) · 두 번 누름 = 반반 */
 const SPLIT_KEY = "nm-split-w";
+// 16:9 화면 = 켤 때 늘 반반(8:9 + 8:9 · 형 11-08 07:24 dm 「16대9비율일 때는, 8:9로 항상 켜지게 하고싶어.」) · 기억한 넓이는 다른 비율 화면에서만 씀 · 켠 뒤 끌기는 그대로 됨
+const is169 = () => { try { const w = window.screen.width, h = window.screen.height; return w > 0 && h > 0 && Math.abs(w / h - 16 / 9) < 0.04; } catch { return false; } };
 function useSplitW() {
-  useEffect(() => { try { const v = +(localStorage.getItem(SPLIT_KEY) || 0); if (v >= 30 && v <= 65) document.documentElement.style.setProperty("--nm-split-w", `${v}%`); } catch { /* 반반 */ } }, []);
+  useEffect(() => { try { if (is169()) { document.documentElement.style.setProperty("--nm-split-w", "50%"); return; } const v = +(localStorage.getItem(SPLIT_KEY) || 0); if (v >= 30 && v <= 65) document.documentElement.style.setProperty("--nm-split-w", `${v}%`); } catch { /* 반반 */ } }, []);
 }
 function SplitGrip() {
   const set = (v: number) => { const c = Math.max(30, Math.min(65, v)); document.documentElement.style.setProperty("--nm-split-w", `${c}%`); return c; };
