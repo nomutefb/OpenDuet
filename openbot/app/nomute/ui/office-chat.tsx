@@ -91,7 +91,7 @@ type Msg = OfficeMsg & { card?: ThumbRef; mirror_by?: string; alias?: Record<str
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
   app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
 type Page = { messages: Msg[]; more: boolean; pending_ids?: string[] };   // pending_ids = 형 결정 대기 글(뜸 서버 · 오래된 것부터 · 없으면 화면에서 셈 = ./hyung-pills.tsx)
-const withPend = (p: Page, src: { pending_ids?: unknown }): Page => (Array.isArray(src.pending_ids) ? { ...p, pending_ids: src.pending_ids.map(String) } : p);
+const withPend = (p: Page, src: { pending_ids?: unknown }): Page => ({ ...p, pending_ids: Array.isArray(src.pending_ids) ? src.pending_ids.map(String) : [] });   // 서버 읽기 = 정본 · 칸 없음 = 대기 0(다 답한 알약이 남던 것 · 뜸 11-07)
 type Draft = { who: string; ts: number; text: string };   // 쓰는 중 초안(그 방에서 지금 자라는 답 · 서버 _watch.js · 거울 = 그록봇 앱 방 streaming 줄)
 type Reads = { got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>> };
 type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
@@ -189,6 +189,7 @@ export function useOfficeRoom(room: string) {
             if (d && j.messages.some((m) => m.who === d.who && m.ts >= d.ts - 2000)) setDraft(null);   // 끝난 답이 올라옴 = 그 쓴 이의 초안 지움
             qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, j.messages));
             for (const k of [officeKeys.reads(room), officeKeys.rooms, officeKeys.bots, ["channels"], ["duet-channels"]]) void qc.invalidateQueries({ queryKey: k });
+            if (j.messages.some((m) => /!(형|세웅)/.test(String(m.text || "")) || m.reply_to)) void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });   // !형 글·형 답장 = 대기 알약 바로 다시 셈(형 11-07 10:57 「아직 내 채팅위에 이거 안올라와서 너네가 언급해도 안보임」)
           }
         } catch (e) {
           if (!stop && !old && e instanceof Error && e.message.includes("없는 길")) { old = true; continue; }   // 서버에 watch 가 아직 없음 = 옛 wait
