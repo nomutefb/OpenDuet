@@ -29,7 +29,9 @@ export function RoomBoard({ room }: { room: string }) {
   const list = usePeople();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 60_000); return () => clearInterval(t); }, []);
-  const hands = q.data?.hands || [], sugs = q.data?.open || [];
+  // 형 11:20 「호출한지 1시간 지난거는 자동으로 아래 채팅 위 트레이에서 없어지게해주고, 30분 지나면 노랑, 45분 지나면 주황으로 하다가 없어지면 될듯 (분에 표기를 말함)」
+  const HOUR = 3600_000, age = (t: number) => now - t, tone = (t: number) => (age(t) >= 45 * 60_000 ? " is-45" : age(t) >= 30 * 60_000 ? " is-30" : "");
+  const hands = (q.data?.hands || []).filter((h) => age(h.at) < HOUR), sugs = (q.data?.open || []).filter((s) => age(idTs(s.id)) < HOUR);
   if (pair || (!hands.length && !sugs.length)) return null;
   const drop = (id: string) => {   // 누르면 바로 사라짐(서버 = 형만 · 아니면 다음 조회에 다시 뜸)
     qc.setQueryData<Board>(key, (b) => (b ? { hands: b.hands.filter((h) => h.id !== id), open: b.open.filter((o) => o.id !== id) } : b));
@@ -43,13 +45,13 @@ export function RoomBoard({ room }: { room: string }) {
   };
   const items = [
     ...hands.map((h) => (
-      <button type="button" key={`h${h.id}`} className="bd-chip bd-hand" onClick={() => jump(h.id)} onContextMenu={(e) => { e.preventDefault(); drop(h.id); }}
+      <button type="button" key={`h${h.id}`} className={`bd-chip bd-hand${tone(h.at)}`} onClick={() => jump(h.id)} onContextMenu={(e) => { e.preventDefault(); drop(h.id); }}
         title={`${h.who} · ${h.what} · ${new Date(h.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 시작 · 누르면 그 글로 · 우클릭 = 지움`} aria-label={`${h.who} 맡음 ${h.what} · ${took(now - h.at)} · 누르면 그 글로 · 우클릭 지움`}>
         <FaceImg id={idOf(h.who, list)} size={20} /><i>{took(now - h.at)}</i>{x(h.id)}
       </button>
     )),
     ...sugs.map((s) => (
-      <button type="button" key={`s${s.id}`} className={`bd-chip bd-sug${s.pstat !== "new" ? ` is-${s.pstat}` : ""}`} onClick={() => jump(s.id)} onContextMenu={(e) => { e.preventDefault(); drop(s.id); }}
+      <button type="button" key={`s${s.id}`} className={`bd-chip bd-sug${s.pstat !== "new" ? ` is-${s.pstat}` : ""}${tone(idTs(s.id))}`} onClick={() => jump(s.id)} onContextMenu={(e) => { e.preventDefault(); drop(s.id); }}
         title={`[제안] ${s.text} · ${PSTAT[s.pstat]} · ${s.who} · 누르면 그 글로 · 우클릭 = 지움`} aria-label={`${s.who} 제안 ${s.text} · ${PSTAT[s.pstat]} · 누르면 그 글로 · 우클릭 지움`}>
         <FaceImg id={idOf(s.who, list)} size={20} /><b aria-hidden>💡</b><i>{took(now - idTs(s.id))}</i>{x(s.id)}
       </button>

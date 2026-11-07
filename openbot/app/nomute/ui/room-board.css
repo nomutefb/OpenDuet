@@ -19,3 +19,8 @@
 /* 폰 = 칩마다 작은 ×(형 11:13 「언급마다 x 가 아주 작게」 · 11:14 「개별 지우기가 크기가 작아야」 · 일괄 × 22px 보다 작게) · PC = 우클릭이라 × 없음 */
 .nm-board .bd-x { display:none; place-items:center; width:14px; height:14px; margin-left:1px; border-radius:50%; color:var(--mut); font-size:11px; line-height:1; }
 @media (hover: none), (pointer: coarse) { .nm-board .bd-x { display:inline-grid; } }
+/* 분 글자 색(형 11:20 「30분 지나면 노랑, 45분 지나면 주황으로 하다가 없어지면 될듯 (분에 표기를 말함)」 · 1시간 = 띠에서 빠짐(room-board.tsx)) */
+.nm-board .bd-chip.is-30 i { color:#FFD23F; }
+.nm-board .bd-chip.is-45 i { color:#FF9F43; }
+:root:not(.dark) .nm-board .bd-chip.is-30 i { color:#B98A00; }
+:root:not(.dark) .nm-board .bd-chip.is-45 i { color:#C8641A; }
