@@ -260,3 +260,18 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-badge.nm-badge-hy { z-index:3; background:#CFFF40; color:#111; }
 .nm-hbadge { position:absolute; z-index:3; top:-4px; left:-6px; min-width:18px; height:18px; padding:0 5px; display:grid; place-items:center; border-radius:var(--r-pill);
   background:#CFFF40; color:#111; font-size:var(--fs-xs); font-weight:var(--fw-x); line-height:1; font-variant-numeric:tabular-nums; box-shadow:0 0 0 2px var(--duet-surface); }
+
+/* 좌우 통합(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」) — PC 반갈에서 러너 · 서랍 · 설정을 열면 오른쪽 칸(러너 게이지 · 뉴스)을 접고 왼쪽이 다 씀
+     오른쪽 칸 = 숨김만(살려 둠 · 닫으면 다시 안 그림 · 손잡이 넓이 기억 그대로) */
+.nm-split-spread .nm-split { display:none; }
+.nm-split-spread .nm-split-l { flex:1 1 100%; }
+/* 서랍 = 묶음(일 · 우리 · 뉴스 · 모으기 · 만들기 · 알림·기록 · 에디터 설정 · 놀기·살피기)을 단으로 나란히 · 단 안에서 묶음은 안 쪼개짐 · 묶음 차례 = 위→아래, 왼→오 */
+.nm-split-spread .nm-drawer-page { max-width:min(1480px, 100%); padding-inline:28px; }
+.nm-split-spread .nm-drawer-page .yeta-set { columns:3 300px; column-gap:22px; }
+.nm-split-spread .nm-drawer-page .yset-part { break-inside:avoid; margin:0 0 18px; }
+.nm-split-spread .nm-drawer-page .yset-part + .yset-part { margin-top:0; }
+/* 설정 = 넓게 · 설정 들어가는 줄은 두 단 */
+.nm-split-spread .nm-settings-page .max-w-3xl { max-width:min(1180px, 100%); padding-inline:28px; }
+.nm-split-spread .nm-settings-page nav[aria-label="Settings"] { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:2px 18px; }
+/* 러너 = 칸 둘 나란히(max-w-5xl)를 넓게 */
+.nm-split-spread .nm-runner-page { max-width:min(1600px, 100%); padding-inline:28px; }

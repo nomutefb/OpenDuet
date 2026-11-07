@@ -5,7 +5,7 @@ import { RunnerBoard } from "./runner-board";
 
 export function RunnerScreen() {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col px-4 pt-4 pb-12">
+    <div className="nm-runner-page mx-auto flex w-full max-w-5xl flex-col px-4 pt-4 pb-12">
       <h1 className="sr-only">러너</h1>
       <RunnerBoard />
     </div>

@@ -117,6 +117,8 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
+/** PC 반갈에서 좌우 통합(오른쪽 러너·뉴스 칸 접고 왼쪽을 다 씀) = 러너 · 서랍 · 설정(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」 · 윈터 넘김) · 오른쪽 칸은 숨김만(살려 둠 = 닫으면 다시 안 그림) */
+const SPREAD = new Set<Modal>(["runner", "drawer", "settings"]);
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
@@ -214,7 +216,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const roomTitle = rNow ? (rNow.with ? peopleAll.find((x) => x.who === rNow.with)?.name || rNow.with : rNow.name) : "";
   return (
     <ChatPresenceProvider serverWork={serverWork}>
-      <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}`}>
+      <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}${split && modal && SPREAD.has(modal) ? " nm-split-spread" : ""}`}>
         <AttentionNotifier />
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
@@ -287,7 +289,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "gyeol" ? <div className="nm-scroll"><GyeolModal /></div>
                   : M.id === "story" ? <div className="nm-scroll"><StoriesModal /></div>
                   : M.id === "feedback" ? <div className="nm-scroll"><FeedbackModal /></div>
-                  : <div className="nm-scroll"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
+                  : <div className="nm-scroll nm-settings-page"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
               </div>
             </div>
           ) : null}

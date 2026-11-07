@@ -31,7 +31,7 @@ export function DrawerPage() {
   const { rooms, count } = useRoomOrder(), mr = (rooms.data || []).find((x) => x.id === "memo"), memo = mr ? Math.max(0, count(mr)) : 0;   // 메모 = 사무실 방 하나(형 11-01 「해야할일 쌓아두는 서랍」 · 봇도 쌓음)
   const waiting = needsInputCount(tasks.data, inbox.data) + (useBrief().data?.cols.decide.filter((x) => !x.answer).length || 0);
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col px-4 pb-12 pt-4"><div className="yeta-set yset-short mt-2">
+    <div className="nm-drawer-page mx-auto flex w-full max-w-3xl flex-col px-4 pb-12 pt-4"><div className="yeta-set yset-short mt-2">
       {PARTS.map((p) => (
         <section key={p.name} className="yset-part" aria-label={p.name}>
           <div className="yset-sec">{p.name}</div>
