@@ -66,9 +66,10 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       {files && r ? <FileLog room={room} name={r.name} onClose={() => setFiles(false)} /> : null}
       {hist && r ? <AskHistory name={r.name} items={asks.data || []} onClose={() => setHist(false)} /> : null}
       {kick && r ? <MeetOut room={r} onClose={() => setKick(false)} /> : null}
-      {look && r ? <RoomLookDialog r={r} onClose={() => setLook(false)} /> : null}
-      {tempEdit && r ? <TempRoomDialog edit={r} onClose={() => setTempEdit(false)} /> : null}
-      {crew && r ? <RoomMembersDialog r={r} onClose={() => setCrew(false)} /> : null}
+      {/* 창 셋 = body 로 띄움 — 방 메뉴가 머리 제목(.nm-toptitle · transform) 안에 있어 fixed 창이 제목 칸(200×50)에 갇혀 PC 에서 「방 설정」이 안 보였음(시아 11-07 라이브 실물) */}
+      {look && r ? createPortal(<RoomLookDialog r={r} onClose={() => setLook(false)} />, document.body) : null}
+      {tempEdit && r ? createPortal(<TempRoomDialog edit={r} onClose={() => setTempEdit(false)} />, document.body) : null}
+      {crew && r ? createPortal(<RoomMembersDialog r={r} onClose={() => setCrew(false)} />, document.body) : null}
     </>
   );
   const hasCrew = !!r && (((!r.with && r.id !== MEET && !!r.designated && !r.temp) || !!r.temp) || (r.id === MEET && (r.members?.length || 0) > 0));
