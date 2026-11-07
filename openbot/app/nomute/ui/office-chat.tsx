@@ -70,6 +70,8 @@ import { whoName } from "./who-name";
 const enc = encodeURIComponent;
 /** 쓰던 글 = 방마다 이 탭 안에 바로 적어 둠(sessionStorage) → 새 판으로 다시 읽혀도 글칸에 되살림(뒤에 숨어 얼어 있던 탭은 서비스 워커에 「글 있음」을 못 알려 · 10-28 11:21 실측) */
 const DRAFT = (room: string) => `nm-draft:${room}`;
+const floorGet = (room: string) => { try { return Number(localStorage.getItem(`nm-seen-floor:${room}`)) || 0; } catch { return 0; } };   // 나간 때 바닥(이 기기 · 형 13:17)
+const floorSet = (room: string, ts: number) => { try { if (ts > floorGet(room)) localStorage.setItem(`nm-seen-floor:${room}`, String(ts)); } catch { /* 못 적으면 서버 값만 */ } };
 const loadDraft = (room: string) => { try { return sessionStorage.getItem(DRAFT(room)) || ""; } catch { return ""; } };
 const saveDraft = (room: string, t: string) => { try { if (t.trim()) sessionStorage.setItem(DRAFT(room), t); else sessionStorage.removeItem(DRAFT(room)); } catch { /* 이 탭만 · 못 쓰면 이번만 */ } };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -1162,14 +1164,23 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   };
   const seenQ = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 });
   const seenOpen = useRef<{ room: string; ts: number } | null>(null);   // 방을 연 때 본 데까지(그 뒤 = 안 본 글) — 이 방에서 한 번만 잡음
-  if ((seenQ.data || seenQ.isError) && (!seenOpen.current || seenOpen.current.room !== room)) seenOpen.current = { room, ts: Number(seenQ.data?.[room]?.ts) || 0 };   // 못 받음 = 0(단추 없음 · 본 데까지 올리기는 그대로)
+  // 나간 때 바닥(형 11-07 13:17 「그리고 안본 글은, 내가 만약에 들어가서 안본글을 클릭안하고 그 방을 나오면, 다음번엔 그 안본 글이 안떠야함.」 · 뜸)
+  //   = 방을 나갈 때 그 방 마지막 글 시각을 이 기기에 적음 · 다음에 열 때 「본 데까지」 = 서버 값과 이 바닥 중 늦은 것 · 숨은 판도 나갈 때 잡은 값을 비움(돌아오면 다시 잡음)
+  if ((seenQ.data || seenQ.isError) && (!seenOpen.current || seenOpen.current.room !== room)) seenOpen.current = { room, ts: Math.max(Number(seenQ.data?.[room]?.ts) || 0, floorGet(room)) };   // 못 받음 = 바닥만(없으면 0 = 단추 없음 · 본 데까지 올리기는 그대로)
   const seenReady = seenOpen.current?.room === room;
+  const openTs = seenReady ? seenOpen.current?.ts || 0 : 0;
   const [unseenUsed, setUnseenUsed] = useState("");   // 누른 방 = 단추 내림
-  useEffect(() => { const t = setTimeout(() => setUnseenUsed(room), 10_000); return () => clearTimeout(t); }, [room]);   // 방 들어와 10초 안 누르면 「안 본 글」 단추 내림(형 11-06 20:40 「10초가 경과한 뒤에도 안누르잖아/ 그러면 그냥 없는거로해 … 최대한 단순화」)
+  useEffect(() => { if (!active) return; const t = setTimeout(() => setUnseenUsed(room), 10_000); return () => clearTimeout(t); }, [room, active]);   // 방 들어와 10초 안 누르면 「안 본 글」 단추 내림(형 11-06 20:40 「10초가 경과한 뒤에도 안누르잖아/ 그러면 그냥 없는거로해 … 최대한 단순화」)
+  const lastTsRef = useRef(0);
+  lastTsRef.current = all.at(-1)?.ts || 0;
+  useEffect(() => {
+    if (!active) return;
+    return () => { floorSet(room, lastTsRef.current); seenOpen.current = null; setUnseenUsed(""); };   // 나감(방 바꿈 · 숨김 · 닫힘) = 바닥 적고 잡은 값 비움
+  }, [room, active]);
   const unseen = useMemo(() => {
-    const t = seenOpen.current?.room === room ? seenOpen.current.ts : 0;
+    const t = openTs;
     return flat && t ? all.filter((m) => m.ts > t && m.kind !== "human" && !wakeM(m)) : [];   // 「안 본 것부터」 = 평면 보기 방 전부(형 10-31 「내가 안읽은거가 위로 누르면 거기로 가게끔하고」)
-  }, [all, flat, room, seenReady]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [all, flat, openTs]);
   const toUnseen = async () => {   // 안 본 첫 글로(받은 글 안에 없으면 하루치씩 앞 글을 받으며 · AUTO_MAX 번까지)
     setUnseenUsed(room);
     const t = seenOpen.current?.ts || 0;
