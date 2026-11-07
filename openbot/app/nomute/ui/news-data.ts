@@ -71,13 +71,16 @@ const OUTLET: Record<string, string> = {
   ohmynews: "오마이뉴스", pressian: "프레시안", nocutnews: "노컷뉴스", newstapa: "뉴스타파", sisain: "시사IN", mediatoday: "미디어오늘", dailian: "데일리안",
   mydaily: "마이데일리", isplus: "일간스포츠", osen: "OSEN", tvreport: "TV리포트", imaeil: "매일신문", busan: "부산일보", kookje: "국제신문", kyeongin: "경인일보",
   kbs: "KBS", mbc: "MBC", imbc: "MBC", sbs: "SBS", jtbc: "JTBC", ytn: "YTN", mbn: "MBN",
+  kukinews: "쿠키뉴스", newdaily: "뉴데일리", "biz.newdaily": "뉴데일리경제", koreaherald: "코리아헤럴드", koreatimes: "코리아타임스", electimes: "전기신문", xportsnews: "엑스포츠뉴스",
+  getnews: "겟뉴스", incheonilbo: "인천일보", kyunghyang: "경향신문", kobis: "영화진흥위원회",   // 형 11-07 11:18 「kukinews.com 같은거 아직 분류안된거잇는거 가은데 > 쿠키뉴스」 · 뎅이 라이브 픽·순위·트렌드에서 안 붙은 것 훑어 넣음
   // 포털
   naver: "네이버", "news.naver": "네이버뉴스", "cafe.naver": "네이버카페", "blog.naver": "네이버블로그", daum: "다음", "v.daum": "다음", nate: "네이트", "pann.nate": "네이트판", natepann: "네이트판",
   gnews: "구글뉴스", "news.google": "구글뉴스", google: "구글", gtrends: "구글 트렌드", x_top10: "X", issuelink: "이슈링크",
   // 커뮤니티
-  theqoo: "더쿠", dcinside: "디시인사이드", "gall.dcinside": "디시인사이드", fmkorea: "에펨코리아", instiz: "인스티즈", clien: "클리앙", ruliweb: "루리웹", ppomppu: "뽐뿌",
+  theqoo: "더쿠", dcinside: "디시", "gall.dcinside": "디시", fmkorea: "에펨", instiz: "인스티즈", clien: "클리앙", ruliweb: "루리웹", ppomppu: "뽐뿌",
   mlbpark: "엠엘비파크", bobaedream: "보배드림", todayhumor: "오늘의유머", etoland: "이토랜드", inven: "인벤", ygosu: "와이고수", humoruniv: "웃긴대학", "82cook": "82쿡",
   teamblind: "블라인드", blind: "블라인드", arca: "아카라이브", "arca.live": "아카라이브", slrclub: "SLR클럽", damoang: "다모앙",
+  ddanzi: "딴지일보", dogdrip: "개드립", "sns.namu": "나무위키", namu: "나무위키", "namu.wiki": "나무위키", "sns.youtube_news": "유튜브 뉴스", "sns.signal": "시그널",
   // SNS
   "sns.youtube": "유튜브", youtube: "유튜브", "youtu.be": "유튜브", "sns.shorts": "유튜브 쇼츠", "sns.x": "X", x: "X", twitter: "X", "sns.twitter": "X",
   "sns.instagram": "인스타그램", instagram: "인스타그램", "sns.threads": "스레드", threads: "스레드", "sns.tiktok": "틱톡", tiktok: "틱톡",
@@ -87,9 +90,11 @@ const OUTLET: Record<string, string> = {
   theguardian: "가디언", ft: "파이낸셜타임스", nhk: "NHK", "nhk.or": "NHK", asahi: "아사히신문", yomiuri: "요미우리신문", nikkei: "니혼게이자이신문", aljazeera: "알자지라",
   cnbc: "CNBC", foxnews: "폭스뉴스", nbcnews: "NBC뉴스", scmp: "사우스차이나모닝포스트", axios: "악시오스", politico: "폴리티코",
 };
+/** 짧은 이름(형 11-07 11:18 「디시인사이드 이런거 풀네임하지말고 > 디시 로 하면됨 에펨도 에펨」) — 서버가 한글 긴 이름으로 줘도 화면엔 이것 */
+const SHORT: Record<string, string> = { 디시인사이드: "디시", 디씨인사이드: "디시", 에펨코리아: "에펨", 펨코: "에펨" };
 export const outletName = (raw?: string) => {
   const s0 = String(raw || "").trim();
-  if (!s0 || /[가-힣]/.test(s0)) return s0;   // 비었거나 이미 한글 이름
+  if (!s0 || /[가-힣]/.test(s0)) return SHORT[s0] || s0;   // 비었거나 이미 한글 이름(긴 이름은 짧게)
   const k = s0.toLowerCase().replace(/^editor:/, "").replace(/^https?:\/\//, "").replace(/^(?:www|m|mobile)\./, "").replace(/[/?#].*$/, "");
   if (OUTLET[k]) return OUTLET[k];
   const stem = k.replace(/\.(?:co\.kr|or\.kr|com|net|kr|org|co\.jp|jp|co\.uk|tv|live)$/, "");
