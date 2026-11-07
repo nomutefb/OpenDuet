@@ -601,6 +601,9 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .ycall.yface { display:inline-flex; align-items:center; gap:4px; padding:1px 7px 1px 2px; border-radius:999px; vertical-align:-3px; line-height:17px; font-size:.92em; background:rgba(var(--accent-rgb),.12); border:1px solid rgba(var(--accent-rgb),.22); }
 .ychat .ycall.yface img, .ychat .ycall.yface [role="img"] { width:15px !important; height:15px !important; }
 .ychat .ycall.yface b { color:var(--accent, #CFFF40); font-weight:800; margin-left:-1px; }
+/* 형 부름 칩(형 11-07 11:40) — 「@형」 = 형 얼굴(우리 얼굴 칩과 같은 꼴) · 「!형」 = 파랑→라임 강조(결정·긴급 · 공지 판9) */
+.ychat .ycall.yface.hy-bang { color:#CFFF40; background:linear-gradient(90deg, rgba(72,140,255,.30), rgba(207,255,64,.22)); box-shadow:inset 0 0 0 1px rgba(207,255,64,.55); font-weight:800; }
+.ychat .yb.me .ycall.yface.hy-bang { background:linear-gradient(90deg, rgba(72,140,255,.55), #1d1e1b); }
 .ychat .yb.me .ycall.yface { background:#1d1e1b; border-color:rgba(255,255,255,.12); padding:1px 7px 1px 2px; }
 /* 칩 다듬음(형 11-04 17:28 「글자를 1단계 더 얇게 해주고, 그 포르필이랑 글자랑 수평을 유지」 · 「프로필 사진 사분할 중심점이랑, 글자 사분할 중심점이 수평선에」) = 700 → 600 · 글자 칸 높이를 글자 몸(cap~기준선)으로 깎아 얼굴과 같은 가운데 */
 .ychat .ycall.yface { font-weight:600; }
