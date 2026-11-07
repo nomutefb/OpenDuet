@@ -24,3 +24,10 @@
 .nm-board .bd-chip.is-45 i { color:#FF9F43; }
 :root:not(.dark) .nm-board .bd-chip.is-30 i { color:#B98A00; }
 :root:not(.dark) .nm-board .bd-chip.is-45 i { color:#C8641A; }
+/* 알약 + 칩 한 줄(형 11-07 12:01 「이런식으루 나옴 2줄로」) — 두 부품 껍데기를 풀어 한 줄에 · 가로 밀기 = 이 줄 · 일괄 × = 맨 앞 하나(알약 있으면 알약 ×) */
+.nm-tray { display:flex; align-items:center; gap:8px; margin:0 0 6px; padding:2px; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:none; }
+.nm-tray::-webkit-scrollbar { display:none; }
+.nm-tray:empty { display:none; }
+.nm-tray > .yhy, .nm-tray > .nm-board, .nm-tray .yhy-rail, .nm-tray .bd-rail { display:contents; }
+.nm-tray:has(.yhy) .bd-clear { display:none; }
+.nm-tray > * > * { flex:none; }

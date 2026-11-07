@@ -1322,8 +1322,10 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         ) : null}
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         <CallSheet />   {/* 「@」·「!」 여러 명 고르기(./call-sheet.tsx · 형 11-02 11:34 · 11:37) */}
-        <HyungPills items={hyItems} onPick={pickHy} onDrop={dropHy} active={reply?.id} />   {/* 형 결정 대기 알약 = 입력칸 바로 위(형 11-07 09:55~09:56) */}
-        <RoomBoard room={room} />   {/* 입력칸 바로 위 한 줄 · 뜸 @형 알약 = 그 위 줄 · 칩도 제안도 없으면 줄 0 */}
+        <div className="nm-tray" onWheel={(e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY; }}>   {/* 알약 + 칩 = 한 줄(형 11-07 12:01 「이런식으루 나옴 2줄로」) · 일괄 × 하나 · 옆으로 밀기 */}
+          <HyungPills items={hyItems} onPick={pickHy} onDrop={dropHy} active={reply?.id} />   {/* 형 결정 대기 알약 = 입력칸 바로 위(형 11-07 09:55~09:56) */}
+          <RoomBoard room={room} />   {/* 입력칸 바로 위 한 줄 · 뜸 @형 알약 = 그 위 줄 · 칩도 제안도 없으면 줄 0 */}
+        </div>
         {reply ? (
           <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">
             <span className="min-w-0 flex-1 truncate">↩ <b>{reply.who}</b> · {reply.line}</span>

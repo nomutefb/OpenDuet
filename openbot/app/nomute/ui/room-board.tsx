@@ -45,6 +45,8 @@ export function RoomBoard({ room }: { room: string }) {
     qc.setQueryData<Board>(key, (b) => (b ? { hands: [], open: [] } : b));
     void office(`rooms/${encodeURIComponent(room)}/board`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ act: "reset" }) }).catch(() => qc.invalidateQueries({ queryKey: key }));
   };
+  // 한 줄 합침(형 12:01 「이런식으루 나옴 2줄로」) = 알약이 있으면 맨 앞 × 는 알약 것 하나 → 그 × 를 누르면 칩도 같이 지움(뜸 코드 안 건드림)
+  useEffect(() => { const f = (e: MouseEvent) => { if ((e.target as Element | null)?.closest?.(".nm-tray .yhy-clear")) clear(); }; document.addEventListener("click", f, true); return () => document.removeEventListener("click", f, true); });
   const items = [
     ...hands.map((h) => (
       <button type="button" key={`h${h.id}`} className={`bd-chip bd-hand${tone(h.at)}`} onClick={() => jump(h.id)} onContextMenu={(e) => { e.preventDefault(); drop(h.id); }}
