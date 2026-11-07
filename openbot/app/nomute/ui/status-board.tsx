@@ -333,13 +333,13 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
 }
 
 /** ② 러너 길 — 점 = 서버 줄 · 화살표 = 깨우는 길(봇 시계 → 깨움 러너 · 그록 웹훅 → 그록봇 · 부르기 → 모루) · 바탕 = 나머지 서버 줄 */
-function DiaFlow({ cats }: { cats: StatusCat[] }) {
+function DiaFlow({ cats, bs }: { cats: StatusCat[]; bs: Body[] }) {
   const srv = rowsOf(cats, "server"), bots = rowsOf(cats, "bots");
   const clock = srv.find((r) => r.key === "clock"), grok = srv.find((r) => r.key === "grok"), ping = srv.find((r) => /부르기/.test(r.name));
   const runners = srv.filter((r) => r.key.startsWith("runner-") || /깨움 러너|neo-agent|nomute-wake/.test(r.key));
   const pingTo = ping ? ping.name.split(" 부르기")[0] : "";
   const runnerWho = runners.map((r) => r.name.split(" · ").pop() || r.name);
-  const stay = bots.filter((r) => /상주/.test(r.value || "") && !runnerWho.includes(r.name));
+  const stay = bots.filter((r) => bs.some((b) => b.being === r.name) && !runnerWho.includes(r.name));   // 길 = 정본 아이인데 깨움 러너 줄 없음(상주) — 불은 그 봇 줄 그대로(끊겨도 길은 안 바뀜 · 모루 #2875)
   const ours = new Set([...runnerWho, ...stay.map((r) => r.name), pingTo]);
   const grokTo = bots.filter((r) => !ours.has(r.name));   // 깨움 러너 · 상주 · 부르기 길이 없는 봇 = 그록 웹훅으로 깸
   const used = new Set([clock, grok, ping, ...runners].filter(Boolean).map((r) => r!.key));
@@ -368,10 +368,11 @@ function DiaBody({ cats, bs }: { cats: StatusCat[]; bs: Body[] }) {
   const hw = rowsOf(cats, "hw"), dock = rowsOf(cats, "docker"), ssh = rowsOf(cats, "ssh"), backup = rowsOf(cats, "backup") as (StatusRow & { host?: string })[];
   const ms = machinesOf(bs), moving = bs.filter((b) => b.on === false);
   const runner = hw.find((r) => r.key === "러너");
-  const m = (r?: StatusRow) => (r as (StatusRow & { metrics?: Record<string, number> }) | undefined)?.metrics || {};
+  const gone = (r?: StatusRow) => !!r && (!!(r as StatusRow & { stale?: boolean }).stale || r.note === "보고 끊김");
+  const m = (r?: StatusRow) => (gone(r) ? {} : (r as (StatusRow & { metrics?: Record<string, number> }) | undefined)?.metrics || {});
   const pct = (r?: StatusRow) => { const x = m(r); return [x.cpu !== undefined ? `CPU ${Math.round(x.cpu)}%` : "", x.ram !== undefined ? `램 ${Math.round(x.ram)}%` : "", x.disk_free !== undefined ? `빔 ${Math.round(x.disk_free)}%` : ""].filter(Boolean).join(" · "); };
   const temp = (r?: StatusRow) => { const x = m(r); return [x.cpu_temp !== undefined ? `CPU ${Math.round(x.cpu_temp)}°` : "", x.gpu_temp !== undefined ? `GPU ${Math.round(x.gpu_temp)}°` : ""].filter(Boolean).join(" · "); };
-  const cell = (r: StatusRow | undefined, text: string) => r ? <td data-st={r.st} title={[r.name, r.value, r.note].filter(Boolean).join(" · ")}><StatusDot st={r.st} />{text || first(r.value) || HEALTH_KO[r.st]}</td> : <td className="none">—</td>;
+  const cell = (r: StatusRow | undefined, text: string) => r ? <td data-st={r.st} title={[r.name, r.value, r.note].filter(Boolean).join(" · ")}><StatusDot st={r.st} />{gone(r) ? "보고 끊김" : text || first(r.value) || HEALTH_KO[r.st]}</td> : <td className="none">—</td>;
   return (
     <div className="nsb-dia nsb-map">
       <div className="nsb-scroll" role="region" aria-label="몸 지도" tabIndex={0}>
@@ -387,7 +388,7 @@ function DiaBody({ cats, bs }: { cats: StatusCat[]; bs: Body[] }) {
             })}</tr>
             <tr><th scope="row">백업</th>{ms.map((b) => { const rs = backup.filter((x) => (x.host || x.key.split("-")[0]) === b.hosts[0]); return <td key={b.body}>{rs.length ? rs.map((r) => <Dot key={r.key} c={{ st: r.st, label: r.name.replace(new RegExp(`^${b.hosts[0]}\\s*`), "").replace(/\(.*\)$/, "").replace(/ 백업$/, "") }} t={[r.name, r.note].filter(Boolean).join(" · ")} />) : <span className="none">—</span>}</td>; })}</tr>
             <tr><th scope="row">VM</th>{ms.map((b) => { const vs = bs.filter((x) => x !== b && homeOf(x) === b.body); return <td key={b.body}>{vs.length ? vs.map((x) => { const r = hw.find((y) => y.key === `VM ${x.being}`); return <Dot key={x.being} c={{ st: r?.st || "unknown", label: x.being }} t={r ? [r.name, pct(r), r.note].filter(Boolean).join(" · ") : "보고 아직 안 옴"} />; }) : <span className="none">—</span>}</td>; })}</tr>
-            <tr><th scope="row">GitHub 러너</th>{ms.map((b) => { const cs = Object.entries(runner?.cells || {}).filter(([n]) => RUN_ON.some(([p, h]) => n.startsWith(p) && h === b.hosts[0])); const ok = cs.filter(([, c]) => c.st === "ok").length; return <td key={b.body} data-st={cs.length ? (ok === cs.length ? "ok" : "late") : undefined} title={cs.map(([n, c]) => `${n} ${c.note || HEALTH_KO[c.st]}`).join(" · ")}>{cs.length ? <><StatusDot st={ok === cs.length ? "ok" : "late"} />{ok}/{cs.length}</> : <span className="none">—</span>}</td>; })}</tr>
+            <tr><th scope="row">GitHub 러너</th>{ms.map((b) => { const cs = Object.entries(runner?.cells || {}).filter(([n]) => RUN_ON.some(([p, h]) => n.startsWith(p) && h === b.hosts[0])); const ok = cs.filter(([, c]) => c.st === "ok").length, sts = cs.map(([, c]) => c.st), w: HealthSt = sts.includes("miss") ? "miss" : sts.includes("late") ? "late" : ok === cs.length ? "ok" : "unknown"; return <td key={b.body} data-st={cs.length ? w : undefined} title={cs.map(([n, c]) => `${n} ${c.note || HEALTH_KO[c.st]}`).join(" · ")}>{cs.length ? <><StatusDot st={w} />{ok}/{cs.length}</> : <span className="none">—</span>}</td>; })}</tr>
           </tbody>
         </table>
       </div>
@@ -423,7 +424,7 @@ function Diagrams({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; 
   return (
     <div className="nsb-dias">
       {box("①", "애들 × 연결", "깸 · 계정 · 일기 · 교대", ["bots", "cli", "diary", "tok_grok", "comm"], <DiaWho cats={cats} bs={bs} pick={pick} setPick={setPick} />)}
-      {box("②", "러너 길", "점 · 화살표", ["server"], <DiaFlow cats={cats} />)}
+      {box("②", "러너 길", "점 · 화살표", ["server"], <DiaFlow cats={cats} bs={bs} />)}
       {box("③", "몸 지도", "본체 × 줄", ["hw", "docker", "ssh", "backup"], <DiaBody cats={cats} bs={bs} />)}
       {box("④", "시간축 · 수집", "구역 · 40분 판", ["collect", "collect_index", "thumb"], <DiaTime cats={cats} />)}
     </div>
