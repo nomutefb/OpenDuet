@@ -1,6 +1,7 @@
 // 임시 단톡방 만들기·고치기(형 10-31 「내가 + 눌러서 임시 단톡방 만들수있게해주라. 시간 지나면 파기되고 자동으로」 · 「누구 초대할지 고를 수 있고. 목적 쓸수있게」)
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, type ReactNode, useRef, useState } from "react";
 import { type OfficeRoom, idOf, office, peopleSync } from "../data/office";
@@ -57,7 +58,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
   };
   const made = (j: { room: { id: string } }) => { onClose(); if (!edit) void nav({ to: "/channels/$channelId", params: { channelId: j.room.id } }); };   // 닫고 옮기기 = ✓ 뒤(GoButton done)
   return (
-    <div role="dialog" aria-modal="true" aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div role="dialog" aria-modal="true" aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
       <div className="flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">{edit ? "방 설정" : "임시 단톡방"}</b>
         <label className="flex flex-col gap-1">
@@ -108,7 +109,7 @@ export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClos
     } catch (e) { setWhy(e instanceof Error ? e.message : "못 지웠어"); setBusy(false); }
   };
   return (
-    <div role="alertdialog" aria-modal="true" aria-label="단톡방 지우기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div role="alertdialog" aria-modal="true" aria-label="단톡방 지우기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
       <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">정말 지울까?</b>
         <p className="text-muted-foreground">「{r.name}」 방의 글이 모두 지워지고 되돌릴 수 없어. 첨부 파일은 저장소에 남아.</p>
@@ -140,7 +141,7 @@ export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: 
     } catch (e) { setWhy(e instanceof Error ? e.message : "못 없앴어"); setBusy(false); }
   };
   return (
-    <div role="alertdialog" aria-modal="true" aria-label="단톡방 없애기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div role="alertdialog" aria-modal="true" aria-label="단톡방 없애기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
       <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">「{r.name}」 정말 없앨까?</b>
         <p className="text-muted-foreground">없애면 대화 목록·설정·부름에서 빠지고 이 방엔 더 못 써. 쌓인 글은 서버에 남겨 둬서 되살릴 수 있어.</p>
@@ -170,7 +171,7 @@ export function RoomMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () =
     } catch (e) { const m = e instanceof Error ? e.message : "저장 못 함"; setWhy(/changed|base/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); setCur(null); void q.refetch(); setBusy(false); }
   };
   return (
-    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
       <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
         {!d ? <p className="text-muted-foreground">{q.isError ? q.error.message : "읽는 중…"}</p> : (

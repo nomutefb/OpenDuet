@@ -4,6 +4,7 @@
 //   어두운 유리 카드(.yeta-pick 결) · 가운데 큰 프사 → 이름 → 직무(연두 .ycd-tag) → 소개(.ypp-desc) → 단추 · 바깥 누름·Esc = 닫기
 //   「1:1 대화」 = 그 사람과 형의 1:1 방(rooms[].with)으로 · 없으면 단추 없음 · 소개 = 명부 intro(본인이 채움 · 비면 「아직」)
 import { useQueryClient } from "@tanstack/react-query";
+import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { useEffect, useState } from "react";
 import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../data/office";
 import { ColorPick } from "./color-pick";
@@ -58,7 +59,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   };
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   return (
-    <div className="ypc-veil nm-yeta" role="presentation" onClick={onClose}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
+    <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
       <div className={look ? "ypc ypc--being" : "ypc"} role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
         <button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} />   {/* 프로필 창 우상단 모서리 · 마진 조금(형 11-01 14:02 「무지개색 프로필 원 저거 저 프로필 창의 우상단을 말하는 거임 우상단 모서리에 마진을 조금 둬서」) */}
         {look ? <BeingCard who={who} name={name} role={p?.role} /> : <div className="ypc-ava"><MicOrb size={130} id={idOf(who, list)} tint={ringOf(p)} /></div>}

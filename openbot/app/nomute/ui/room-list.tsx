@@ -4,6 +4,7 @@
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 알림 켬/끔 · (단톡) 알림 그림 · 숨기기/보이기
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
@@ -257,7 +258,7 @@ function NotifyPicPick({ name, url, save, onClose }: { name: string; url: string
     return () => window.removeEventListener("keydown", off);
   }, [onClose]);
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="nrc" role="dialog" aria-label={`${name} 알림 그림`} onClick={(e) => e.stopPropagation()}>
         <div className="nrc-head"><b>알림 그림</b></div>
         <img src={url} alt="" className="nm-npic" />

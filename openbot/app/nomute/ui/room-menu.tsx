@@ -3,6 +3,7 @@
 //   = 방 목록 줄 메뉴(./room-list.tsx)의 방 설정 칸을 방 안에서 · 표지 색·이름 = ./room-color.tsx 판 그대로 · 알림 = 봄 서버(../data/notify.ts) 같은 열쇠
 //   질문 이력 = 봄 서버 GET decisions?room=&all=1(못 받으면 칸 안 보임) · 파일 기록 = 이 기기 방 글(최근 300 + 지금 받은 판)의 첨부 · 사진은 폰 사본 7일(../data/file-cache.ts)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeMsg, type OfficeRoom, office, people } from "../data/office";
@@ -99,7 +100,7 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
     } catch (e) { setErr(`못 내보냈어 · ${(e as Error).message}`); setBusy(false); }
   };
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="nrc" role="dialog" aria-label="회의실 잠시 내보내기" onClick={(e) => e.stopPropagation()}>
         <div className="nrc-head"><b>잠시 내보내기</b><small>{pick.size ? `${pick.size}명` : ""}</small></div>
         <div className="nm-meet-out">
@@ -127,7 +128,7 @@ function AskHistory({ name, items, onClose }: { name: string; items: Ask[]; onCl
   const picked = (c: Ask["choice"]) => (!c ? "" : c.pass ? "pass" : c.text ? `기타 · ${c.text}` : c.label || (typeof c.i === "number" ? `${c.i + 1}번` : "고름"));
   const list = [...items].sort((a, b) => (b.ts || 0) - (a.ts || 0));
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="nrc" role="dialog" aria-label={`${name} 질문 이력`} onClick={(e) => e.stopPropagation()}>
         <div className="nrc-head"><b>질문 이력</b><small>{list.length ? `${list.length}개` : "아직 없음"}</small></div>
         <ol className="nm-ask-hist">
@@ -169,7 +170,7 @@ function FileLog({ room, name, onClose }: { room: string; name: string; onClose:
   }, [room, qc]);
   const held = filesHeld();
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="nrc" role="dialog" aria-label={`${name} 파일 기록`} onClick={(e) => e.stopPropagation()}>
         <div className="nrc-head"><b>파일 기록</b><small>{list ? `${list.length}개` : "찾는 중"} · 폰 사본 7일 · {Math.round(held.bytes / 1048576)}MB</small></div>
         {list && !list.length ? <p className="nm-file-empty">이 기기에 받아 둔 이 방 글(최근 300개)엔 파일이 없어.</p> : null}

@@ -2,6 +2,7 @@
 //   「근데 톤이 맞아야되니까 톤의 범위내에서 고를수잇게해줘」) = 줄 메뉴 「표지 색」 → 무지개 판 · 끌다가 손을 떼면 저장(서버 office/room-colors.json · 형만)
 //   톤 범위 = 우리 사람 색 띠(봄 · 뎅 · 그록 · 클로드 · 닷)를 OKLCH 로 잰 값 · 판 가로 = 색상 전부 · 세로 = 위 선명 ↔ 아래 차분 · 밝기·채도는 이 안에서만 움직임
 import "./room-color.css";
+import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -81,7 +82,7 @@ export function RoomColorPick({ room, onPeek, onClose }: { room: OfficeRoom; onP
     return h;
   };
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="nrc" role="dialog" aria-label={`${room.name} 표지 색`} onClick={(e) => e.stopPropagation()}>
         <div className="nrc-head"><span className="nrc-dot" style={{ background: hex || "var(--accent)" }} /><b>{room.name}</b>{note ? <small>{note}</small> : null}
           <PickTop label="" onUndo={() => { setHex(""); onPeek(""); void save(""); }} onClose={onClose} /></div>   {/* 기본으로·닫기 = 우상단 그림(./color-pick.tsx PickTop · 떼면 저장이라 저장 단추 없음) */}
@@ -116,7 +117,7 @@ export function RoomNamePick({ room, onClose }: { room: OfficeRoom; onClose: () 
   };
   const save = async (raw: string) => { setNote("저장 중"); try { await send(raw); onClose(); } catch { /* 글은 send 가 남김 */ } };
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" onClick={onClose}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <form className="nrc" role="dialog" aria-label={`${room.name} 이름 바꾸기`} onClick={(e) => e.stopPropagation()} onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 저장 단추 누름(게이지 단추가 받음) */}
         <div className="nrc-head"><b>이름 바꾸기</b>{note || room.base ? <small>{note || `원래 이름 ${room.base}`}</small> : null}</div>   {/* 안내 줄 뺌 · 저장 글·원래 이름만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
         <input className="nrc-in" value={name} maxLength={20} autoFocus enterKeyHint="done" aria-label="방 이름" onChange={(e) => setName(e.target.value)} />

@@ -2,6 +2,7 @@
 //   = 방 안 ≡ → 「방 꾸미기」 · 탭 둘(아이콘 · 색) · 저장 = 번개 서버 POST roomlook {room, icon, fg}(형만 · 기기 넘어가도 그대로 · GET rooms 줄 look)
 //   그림 = ./room-glyph.tsx 와 같은 판(바탕 투명 · 선만 · 50%) · 그림 판 = 대시보드 고급화 방 「방-꾸미기-v1.png」
 import { useQueryClient } from "@tanstack/react-query";
+import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
@@ -29,7 +30,7 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
     finally { setBusy(false); }
   };
   return createPortal(
-    <div className="nrl-veil" role="presentation" onClick={onClose}>
+    <div className="nrl-veil" role="presentation" {...backdrop(onClose)}>
       <div className="nrl" role="dialog" aria-label={`${r.name} 방 꾸미기`} onClick={(e) => e.stopPropagation()}>
         <div className="nrl-h"><RoomGlyph id={r.id} look={{ icon, fg }} size={52} /><div><b>{r.name} · 방 꾸미기</b><small>형만 바꿈 · 기기 넘어가도 그대로</small></div></div>
         <div className="nrl-tabs" role="tablist">
