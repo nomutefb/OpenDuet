@@ -56,7 +56,6 @@ import { SUMMARY_ROOM, SummaryDesk } from "./summary-desk";   // 요약실 = 요
 import { Folded } from "./fold";   // 긴 글 접기 · 전체 보기(형 11-02 07:19)
 import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
 import { t12 } from "./when";
-import { RoomBoard } from "./room-board";   // 방 머리 띠 = 맡음 칩 + 열린 제안(형 11-07 09:10 · 깃 ①② · editor#2744)
 import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
@@ -1234,7 +1233,6 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         : jump ? <button type="button" className="yjump" onClick={toStart}><Chev dir="up" size={13} /> 글 처음</button> : null}
       {far ? <button type="button" className="ydown" aria-label={newBelow ? `최근 글로 · 새 글 ${newBelow}개` : "최근 글로"} onClick={toEnd}><Chev dir="down" size={20} />{newBelow ? <b>{newBelow > 99 ? "99+" : newBelow}</b> : null}</button> : null}
       <ScrollDate box={boxRef} />
-      {pairRoom ? null : <RoomBoard room={room} />}   {/* 둘의 방(읽기만) 빼고 · 칩도 제안도 없으면 줄 0 */}
       <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
         <div className={`ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]${unfold ? " unfold" : ""}`}>   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {r?.temp ? <TempRoomHead r={r} /> : null}

@@ -15,13 +15,14 @@ const SHOW = 3;
 const took = (ms: number) => { const m = Math.max(0, Math.round(ms / 60_000)); return m < 60 ? `${m}분` : `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ""}`; };
 
 export function RoomBoard({ room }: { room: string }) {
-  const q = useQuery({ queryKey: ["nomute", "board", room], queryFn: () => office<Board>(`rooms/${encodeURIComponent(room)}/board`), refetchInterval: 30_000, staleTime: 15_000, retry: false });
+  const pair = room.startsWith("pair-");   // 둘의 방(읽기만) = 띠 0
+  const q = useQuery({ queryKey: ["nomute", "board", room], queryFn: () => office<Board>(`rooms/${encodeURIComponent(room)}/board`), refetchInterval: 30_000, staleTime: 15_000, retry: false, enabled: !pair });
   const [now, setNow] = useState(() => Date.now());
   const [open, setOpen] = useState(false);
   useEffect(() => { const t = setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 60_000); return () => clearInterval(t); }, []);
   useEffect(() => setOpen(false), [room]);
   const hands = q.data?.hands || [], sugs = q.data?.open || [];
-  if (!hands.length && !sugs.length) return null;   // 둘 다 0 = 줄 0(봄 ①)
+  if (pair || (!hands.length && !sugs.length)) return null;   // 둘 다 0 = 줄 0(봄 ①)
   const items = [
     ...hands.map((h) => <span key={`h${h.id}`} className="bd-chip bd-hand" title={`${h.who} · ${h.what} · ${new Date(h.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 시작`}>🖐 <b>{h.who}</b><span className="bd-what">{h.what}</span><i>{took(now - h.at)}</i></span>),
     ...sugs.map((s) => <span key={`s${s.id}`} className={`bd-chip bd-sug${s.pstat !== "new" ? ` is-${s.pstat}` : ""}`} title={`[제안] ${s.text} · ${PSTAT[s.pstat]} · ${s.who}`}>💡 <span className="bd-what">{s.text}</span><i>{PSTAT[s.pstat]} · {s.who}</i></span>),
