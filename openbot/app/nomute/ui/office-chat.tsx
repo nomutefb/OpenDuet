@@ -42,6 +42,7 @@ import { RoomSearch } from "./room-search";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
 import { HyungPills, pendingOf } from "./hyung-pills";
+import { CallPeek } from "./call-peek";   // 알약 누름 = 그 글 창 + 답칸(형 11-07 12:02~12:03 「그냥 확 창이 뜨고 깔끔하게 답변」)
 import { useUnfold } from "./unfold";
 import { SiteIcon } from "./site-icon";
 import { dlHref } from "./news-data";
@@ -941,6 +942,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   useMe();   // 메뉴 「고정」이 보는 나 = 방을 열 때 미리 받아 둠(첫 길게 누르기에 메뉴가 두 번 그려지던 것 · 형 11-03 10:49)
   const [prof, setProf] = useState("");   // 프로필 카드를 연 사람(who · 빈 값 = 닫힘)
   const [reply, setReply] = useState<{ id: string; who: string; line: string } | null>(null);
+  const [peek, setPeek] = useState<Msg | null>(null);   // 형 결정 알약 누른 글 = 창(./call-peek.tsx)
   const [rxOver, setRxOver] = useState<Record<string, Record<string, string[]>> | null>(null);
   // 그 글로(답장 인용 · 고정 띠 이력 = window 「nm-jump」 {room, id}) — want.id = 간 글(그 묶음은 펼친 채 둠) · n = 부를 때마다 하나씩(같은 글로 또 가기) · done = 다 간 n
   const [want, setWantS] = useState<{ id: string; n: number }>({ id: "", n: 0 }), wantTry = useRef(0), wantDone = useRef(0);
@@ -1216,7 +1218,15 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     qc.setQueryData<Page>(officeKeys.msgs(room), (old) => (old ? { ...old, pending_ids: (old.pending_ids || []).filter((x) => !drop.has(x)) } : old));
     void office(`rooms/${enc(room)}/hyungwait`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ids }) }).catch(() => qc.invalidateQueries({ queryKey: officeKeys.msgs(room) }));
   };
-  const pickHy = (id: string) => { const m = all.find((x) => x.id === id); if (!m) return; setWant(id); c.onReply(m); };   // 알약 = 그 글로 부드럽게 + 답장 칸 열림(답하면 그 글 쓴 이에게 바로 · 서버 reply_to)
+  const pickHy = (id: string) => { const m = all.find((x) => x.id === id); if (m) setPeek(m); };   // 알약 = 화면 안 움직이고 그 글 창(형 12:03 「오히려 올라가는 액션이 정신 산만해서 그냥 확 창이 뜨고」)
+  const peekSend = async (m: Msg, raw: string) => {   // 창 답 = ↩ 답글(reply_to) + 「!그 봇」 하나만 부름(형 12:02 「그 봇만 개별 호출이 강조호출」 · 글 메뉴 「확인 요청」과 같은 꼴) → 알약 빠짐(서버 = 형 글이면 그 방 대기 닫힘 · editor#2789)
+    const name = nmOf(list, m.who);
+    const text = `↩ ${name}: ${firstLine(m)}\n!${name.replace(" PM", "")} ${raw}`;
+    const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify({ text, reply_to: m.id }) });
+    qc.setQueryData<Page>(officeKeys.msgs(room), (old) => { if (!old) return old; const next = j.message ? merge(old, [j.message]) : old; return { ...next, pending_ids: (next.pending_ids || []).filter((x) => x !== m.id) }; });
+    void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });
+    void qc.invalidateQueries({ queryKey: officeKeys.rooms });
+  };
 
   if (msgs.isPending) return null;
   if (msgs.isError) return <p className="p-8 text-sm text-destructive" role="alert">대화를 못 받았어 — {msgs.error.message}</p>;
@@ -1323,7 +1333,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         <CallSheet />   {/* 「@」·「!」 여러 명 고르기(./call-sheet.tsx · 형 11-02 11:34 · 11:37) */}
         <div className="nm-tray" onWheel={(e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY; }}>   {/* 알약 + 칩 = 한 줄(형 11-07 12:01 「이런식으루 나옴 2줄로」) · 일괄 × 하나 · 옆으로 밀기 */}
-          <HyungPills items={hyItems} onPick={pickHy} onDrop={dropHy} active={reply?.id} />   {/* 형 결정 대기 알약 = 입력칸 바로 위(형 11-07 09:55~09:56) */}
+          <HyungPills items={hyItems} onPick={pickHy} onDrop={dropHy} active={peek?.id} />   {/* 형 결정 대기 알약 = 입력칸 바로 위(형 11-07 09:55~09:56) */}
           <RoomBoard room={room} />   {/* 입력칸 바로 위 한 줄 · 뜸 @형 알약 = 그 위 줄 · 칩도 제안도 없으면 줄 0 */}
         </div>
         {reply ? (
@@ -1394,6 +1404,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         />)}
       </div>
       <ProfileCard who={prof} list={list} onClose={() => setProf("")} />
+      {peek ? <CallPeek key={peek.id} p={{ id: peek.id, face: idOf(peek.who, list), name: nmOf(list, peek.who), ts: Number((peek as { ts?: number }).ts) || 0, body: <div className="ymd"><Body m={peek} nre={nre} /></div> }} onClose={() => setPeek(null)} onSend={(t) => peekSend(peek, t)} /> : null}
     </div>
   );
 }
