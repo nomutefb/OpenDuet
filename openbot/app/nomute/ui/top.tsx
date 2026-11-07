@@ -59,7 +59,7 @@ export function NomuteName({ room }: { room?: string } = {}) {
   const can = routineRoom(r);
   // 멤버 조정(임시방만 · 고정된 방(밥상 등) 말고 · 형 11-06 20:37 「고정된 방 말고 (밥상 등)」) = 그 자리에서 내보내기·초대 → POST temprooms/<방>
   const edit = !!r.temp && !r.with;
-  const outside = list.filter((x) => x.kind !== "human" && x.who !== "별" && !(r.members || []).includes(x.who));   // 별 = 초대 명단에서 뺌(형 11-06 11:43 「별만 초대 모록에 없으면될듯」 · /초대 얼굴 줄과 같게)
+  const outside = list.filter((x) => x.kind !== "human" && !x.gone && !(r.members || []).includes(x.who));   // 없어진 봇(gone · 명부 한 곳 · 빠르 11-08 · 옛 = 「별」 이름 박기) = 초대 명단에서 뺌(형 11-06 11:43 「별만 초대 모록에 없으면될듯」 · /초대 얼굴 줄과 같게)
   const saveMembers = async (members: string[], fill = 0) => {   // fill = 게이지가 차는 시간(ms) — 서버 답과 게이지 둘 다 끝난 뒤 목록을 새로 그림
     setBusy(true); setWhy("");
     try { await Promise.all([office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members }) }), new Promise((ok) => setTimeout(ok, fill))]); await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); }
