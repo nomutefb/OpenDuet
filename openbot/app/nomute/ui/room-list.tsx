@@ -30,6 +30,7 @@ const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, 
 
 
 import { enterRoom, roomReadState } from "../data/read-state";
+import { roomMsgsOptions } from "./office-chat";   // 대화 미리 받기(방 화면과 같은 받기 꼴 · 윈터 11-07 15:50)
 const SUMMARY = "summary";   // 요약실 = 목록엔 안 보임(형 11-04 13:00 「시아야 요약을 앞에 단톡 형태로 방으로 보일 필요는 없어」 · 같은 기사 요약 = 서랍 「뉴스 기사」 · 앞 판 = 회의실 바로 아래 · 형 07:5x) · 방 = 뜸 서버 id summary · 주소로 열면 ./summary-desk.tsx
 const LIVE_MS = 3 * 60_000;   // 활발한 방 = 마지막 글(act_ts) 3분 안 · 빛 꼴 = live-shine.ts
 
@@ -119,6 +120,15 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   }, [menu]);
   // 방 알림(./data/notify.ts · 서버 = 봄) — 서버 답이 없으면(아직 안 올라감 · 못 받음) 메뉴에 알림 칸을 안 보인다(누르면 깨지는 단추 0)
   const qc = useQueryClient(), notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
+  // 대화 미리 받기(형 「치면 바로 올라가기」 · 윈터 15:50 짚음) = 위 네 방은 목록이 뜨고 1.5초 뒤 하나씩 · 줄에 손 올림(PC)·누름(폰)·초점 = 그 방 · 30초 안에 받은 방은 안 읽음(staleTime) → 방에 들어가면 글이 이미 있음
+  const pre = (id: string) => { if (id) void qc.prefetchQuery(roomMsgsOptions(qc, id)); };
+  const top = ordered.slice(0, 4).map((r) => r.id).join(",");
+  useEffect(() => {
+    if (!top) return undefined;
+    const ts: number[] = [];
+    ts.push(window.setTimeout(() => top.split(",").forEach((id, k) => ts.push(window.setTimeout(() => pre(id), k * 400))), 1500));
+    return () => ts.forEach((t) => clearTimeout(t));
+  }, [top]);   // eslint-disable-line react-hooks/exhaustive-deps
   const [notifyErr, setNotifyErr] = useState(""), pick = useRef<HTMLInputElement>(null), [picking, setPicking] = useState(""), [pendPic, setPendPic] = useState<{ room: string; url: string } | null>(null);
   const setNotify = async (body: { room: string; on?: boolean | null; image?: string }) => {
     setMenu(""); setNotifyErr("");
@@ -158,7 +168,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         onPointerUp={() => clearTimeout(press.current.t)} onPointerCancel={() => clearTimeout(press.current.t)}
         onClickCapture={(e) => { if (press.current.hit) { press.current.hit = false; e.preventDefault(); e.stopPropagation(); } }}>
         {wrapTemp(r, <>
-        <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
+        <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
           {r.with ? <span className="nm-rorb" style={{ margin: -Math.round(size / 8), marginRight: 4 - Math.round(size / 8) }}>   {/* 이름 4px 오른쪽(형 11-01 「이름을 조금만 우측으로 … 테두리가 두터워지면 좁아보여서」) */}
             <MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span>

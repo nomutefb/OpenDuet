@@ -13,7 +13,7 @@
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { CallSheet, appendToComposer } from "./call-sheet";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
@@ -127,6 +127,28 @@ const firstLine = (m: Msg) => {   // 답장 인용·복사 한 줄(인용 줄 �
   const l = (t.split("\n").find((x) => x.trim()) || "").replace(/[@!](?=\S)/g, "").replace(/\s+/g, " ").trim();
   return l.length > 40 ? `${l.slice(0, 40)}…` : l;
 };
+/** 방 글 받기 꼴 하나 = 방 화면(useOfficeRoom)과 미리 받기(./room-list.tsx · 줄에 손 올림·누름 · 위 몇 방)가 같이 씀(윈터 11-07 15:50 넘김 · 형 「치면 바로 올라가기」 · staleTime 30초라 겹쳐 안 읽음) */
+export const roomMsgsOptions = (qc: QueryClient, room: string) => ({
+  queryKey: officeKeys.msgs(room),
+  queryFn: async () => {   // 받아 둔 글(이 탭 → 이 기기 저장 · 먼저 그림) 뒤 새 글만(since) · 받아 둔 게 없거나 사이가 비면(since 가 100 넘음) 최근 한 화면치
+    const key = officeKeys.msgs(room);
+    let old = qc.getQueryData<Page>(key);
+    if (!old?.messages.length) {
+      const c = await loadRoom<Msg>(room);
+      if (c?.messages.length && !qc.getQueryData<Page>(key)?.messages.length) { old = { messages: c.messages, more: c.more }; qc.setQueryData<Page>(key, old); }
+    }
+    const last = old?.messages.at(-1)?.ts;
+    if (old && last) {
+      const r = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`);   // 최근 40 통째 = 새 글 + 거울이 고친 글(반응·카드)을 같이
+      if ((r.messages?.[0]?.ts ?? Infinity) <= last || !r.more) return withPend(merge(qc.getQueryData<Page>(key) || old, r.messages || []), r);   // 사이 빔 없음
+      const j = await office<Page>(`rooms/${enc(room)}/messages?since=${last}&n=100`);
+      if (!j.more) return withPend(merge(qc.getQueryData<Page>(key) || old, j.messages || []), r);   // 기다리기 고리가 그새 붙인 글도 지킴
+    }
+    const j = await office<Page>(`rooms/${enc(room)}/messages?n=${FIRST_N}`);
+    return withPend({ messages: merge(undefined, j.messages || []).messages, more: !!j.more }, j);
+  },
+  staleTime: 30_000,
+});
 export function useOfficeRoom(room: string) {
   const qc = useQueryClient();
   // 방 목록·사람표 = 이 기기에 둔 것으로 먼저 채움(누구와의 방인지 바로 앎 · 다른 화면이 같은 것을 먼저 받기 시작했어도 · 낡음 = 바로 새로 받음) → 받을 때마다 둠
@@ -139,28 +161,7 @@ export function useOfficeRoom(room: string) {
   const peopleQ = useQuery({ queryKey: officeKeys.people, queryFn: () => people(), staleTime: 60_000 });
   useEffect(() => { if (roomsQ.data?.length) listPut("rooms", roomsQ.data); }, [roomsQ.data]);
   useEffect(() => { if (peopleQ.data?.length) listPut("people", peopleQ.data); }, [peopleQ.data]);
-  const msgsQ = useQuery({
-    queryKey: officeKeys.msgs(room),
-    queryFn: async () => {   // 받아 둔 글(이 탭 → 이 기기 저장 · 먼저 그림) 뒤 새 글만(since) · 받아 둔 게 없거나 사이가 비면(since 가 100 넘음) 최근 한 화면치
-      const key = officeKeys.msgs(room);
-      let old = qc.getQueryData<Page>(key);
-      if (!old?.messages.length) {
-        const c = await loadRoom<Msg>(room);
-        if (c?.messages.length && !qc.getQueryData<Page>(key)?.messages.length) { old = { messages: c.messages, more: c.more }; qc.setQueryData<Page>(key, old); }
-      }
-      const last = old?.messages.at(-1)?.ts;
-      if (old && last) {
-        const r = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`);   // 최근 40 통째 = 새 글 + 거울이 고친 글(반응·카드)을 같이
-        if ((r.messages?.[0]?.ts ?? Infinity) <= last || !r.more) return withPend(merge(qc.getQueryData<Page>(key) || old, r.messages || []), r);   // 사이 빔 없음
-        const j = await office<Page>(`rooms/${enc(room)}/messages?since=${last}&n=100`);
-        if (!j.more) return withPend(merge(qc.getQueryData<Page>(key) || old, j.messages || []), r);   // 기다리기 고리가 그새 붙인 글도 지킴
-      }
-      const j = await office<Page>(`rooms/${enc(room)}/messages?n=${FIRST_N}`);
-      return withPend({ messages: merge(undefined, j.messages || []).messages, more: !!j.more }, j);
-    },
-    staleTime: 30_000,
-    refetchInterval: 60_000,
-  });
+  const msgsQ = useQuery({ ...roomMsgsOptions(qc, room), refetchInterval: 60_000 });
   useEffect(() => {   // 받은 글 = 이 기기에 둠(다음에 열면 바로 그림 · 잦은 붙임은 묶어서)
     const d = msgsQ.data;
     if (!d?.messages.length) return;
@@ -1232,12 +1233,16 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   };
   const pickHy = (id: string) => { const m = all.find((x) => x.id === id); if (m) setPeek(m); };   // 알약 = 화면 안 움직이고 그 글 창(형 12:03 「오히려 올라가는 액션이 정신 산만해서 그냥 확 창이 뜨고」)
   const peekSend = async (m: Msg, raw: string) => {   // 창 답 = ↩ 답글(reply_to) + 「!그 봇」 하나만 부름(형 12:02 「그 봇만 개별 호출이 강조호출」 · 글 메뉴 「확인 요청」과 같은 꼴) → 알약 빠짐(서버 = 형 글이면 그 방 대기 닫힘 · editor#2789)
+    //   보내기 = 입력칸과 같은 보냄 줄(attachmentSender.later) → 내 말풍선이 대화 맨 아래 바로 뜨고 「전송 대기」 → 진짜 글이 되면 시각(형 13:19 「전송대기면 채팅에 뜬 다음에 전송 대기라고 나오면됨」 · 뎅 15:19 검수 · 윈터 15:50 짚음) · 실패 = 그 자리 「다시 보내기」
     const name = nmOf(list, m.who);
     const text = `↩ ${name}: ${firstLine(m)}\n!${name.replace(" PM", "")} ${raw}`;
-    const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify({ text, reply_to: m.id }) });
-    qc.setQueryData<Page>(officeKeys.msgs(room), (old) => { if (!old) return old; const next = j.message ? merge(old, [j.message]) : old; return { ...next, pending_ids: (next.pending_ids || []).filter((x) => x !== m.id) }; });
-    void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });
-    void qc.invalidateQueries({ queryKey: officeKeys.rooms });
+    qc.setQueryData<Page>(officeKeys.msgs(room), (old) => (old ? { ...old, pending_ids: (old.pending_ids || []).filter((x) => x !== m.id) } : old));   // 알약 = 보내는 순간 빠짐
+    attachmentSender.later(room, text, async () => {
+      const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify({ text, reply_to: m.id }) });
+      qc.setQueryData<Page>(officeKeys.msgs(room), (old) => { if (!old) return old; const next = j.message ? merge(old, [j.message]) : old; return { ...next, pending_ids: (next.pending_ids || []).filter((x) => x !== m.id) }; });
+      void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });
+      void qc.invalidateQueries({ queryKey: officeKeys.rooms });
+    });
   };
 
   if (msgs.isPending) return null;
