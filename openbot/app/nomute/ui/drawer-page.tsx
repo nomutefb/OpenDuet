@@ -46,6 +46,13 @@ export function DrawerPage() {
                 </span>
               </button>
             ) : null}
+            {p.name === "일" ? (   /* 웹 = 앱 안 브라우저(형 11-06 20:21 「대시보드 창 내부에서도 브라우저」 · #/web 빈 주소 = 주소창부터 · ./web-pane.tsx) */
+              <button type="button" className="yset-item" onClick={() => { location.hash = "#/web"; }}>
+                <span className="si-ic" aria-hidden><DuetIcon name="globe" size={21} /></span>
+                <span className="si-lbl"><span className="si-t">웹</span></span>
+                <span className="si-v"><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
+              </button>
+            ) : null}
             {p.ids.map((id) => { const m = MODALS.find((x) => x.id === id)!; return (
               <button key={id} type="button" className="yset-item" onClick={() => { go(id); void nav({ to: m.to }); }}>
                 <span className="si-ic" aria-hidden><DuetIcon name={m.icon} size={21} /></span>
