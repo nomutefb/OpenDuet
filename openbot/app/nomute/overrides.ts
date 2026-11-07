@@ -35,6 +35,9 @@ export const SWAP: Record<string, string> = {
 
 /** 원본 파일 글자 고치기(정확히 그 글자 · 못 찾으면 빌드 멈춤 = 원본 새 판에서 바뀐 곳이 바로 드러남) — 한국어 · 우리에게 없는 메뉴 숨김 */
 export const PATCH: Record<string, [string, string][]> = {
+  "app/src/main.tsx": [
+    ['import "@copilotkit/react-core/v2/styles.css";\n', ""],   // CopilotChat 꾸밈(gz 14KB) = 쓰는 화면 0(번개 11-08 · 입력칸 꾸밈은 prompt-area/tailwind.css · src/styles.css)
+  ],
   // Tailwind 가 쓰인 글자 꼴을 찾는 자리 = openbot/app 전체(원본 src + 이 폴더) · 빌드 뿌리가 이 폴더라 정해 주지 않으면 원본 src 를 못 봄
   "app/src/styles.css": [['@import "tailwindcss";', '@import "tailwindcss" source("..");']],
   // ── 화면 글 = 한국어(공통 지침 제2조제10호 · PM 07:08 「영어 글자 0」) — 보이는 글·화면 읽기 이름(aria)·안내 글
@@ -59,10 +62,15 @@ export const PATCH: Record<string, [string, string][]> = {
   ],
   // 껍데기 자리 = 로그인 뒤 공통 자리(대화·설정 두 갈래 위) 한 번 — ui/shell.tsx
   "app/src/routes/_authed.tsx": [
+    // CopilotKit 뺌(번개 11-08 · 형 07:23 「ㄱㄱ」 · 첫 화면 무게 3판) — 우리 대화는 사무실 서버(shim)라 CopilotKit 런타임을 안 씀 · Provider 하나가 react-core·core·ag-ui·a2ui·zod v3·rxjs 를 첫 화면에 실었음(gz 218KB) · 봇 문맥(ActiveBotProvider · react 만 씀)은 남겨 원본 화면(채널 새로 만들기 등)이 그대로 돌게
+    ['import { CopilotProvider } from "../lib/copilot/provider";', 'import { ActiveBotProvider } from "../lib/copilot/active-bot";'],
+    ["<CopilotProvider>", "<ActiveBotProvider>"],
+    ["</CopilotProvider>", "</ActiveBotProvider>"],
     ['import { AppHotkeys } from "../lib/hotkeys/app-hotkeys";', 'import { AppHotkeys } from "../lib/hotkeys/app-hotkeys";\nimport { NomuteShell } from "@nomute/ui/shell";'],
     ["      <Outlet />", "      <NomuteShell>\n        <Outlet />\n      </NomuteShell>"],
   ],
   "app/src/components/channels/composer/composer.tsx": [
+    ['} from "@copilotkit/react-core/v2";', '} from "@nomute/shim/copilot-lite";'],   // 첨부 훅(useAttachments · 타입 둘) = 우리 판(shim/copilot-lite.ts · 뜻 그대로) — 이 import 하나가 CopilotKit 꾸러미 전부를 첫 화면에 실었음(번개 11-08)
     // 한 글에 「@」·「!」 여럿(형 11-02 11:34 「한번에 두명 태그가 안되거든. @ 는 하나로 밖에 안돼」 · 11:37 「긴급도 골뱅이와 마찬가지로 한번에 선택」) — 원본은 봇 하나만 남김(enforceSingleAgent) · 서버는 여럿 다 부름(_store.js calls)
     ["  enforceSingleAgent,\n", ""],
     ["        enforceSingleAgent(next),", "        next,"],

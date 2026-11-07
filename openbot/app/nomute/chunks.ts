@@ -10,12 +10,12 @@ import type { GetModuleInfo } from "rollup";
 const GROUPS: [string, RegExp][] = [
   ["v-react", /\/node_modules\/(react|react-dom|scheduler|use-sync-external-store|tslib)\//],   // tslib = 잎 도우미(radix 쪽 use-sidecar·react-remove-scroll 이 부름) · 안 모으면 Rollup 이 copilot 덩어리에 끼워 ui↔copilot 순환(07:09 실측)
   ["v-tanstack", /\/node_modules\/@tanstack\//],
-  ["v-ui", /\/node_modules\/(@base-ui|@floating-ui|@radix-ui|tailwind-merge|clsx|class-variance-authority|lucide-react|boring-avatars|embla-carousel|embla-carousel-react|react-use-measure|@tabler)\//],
+  ["v-ui", /\/node_modules\/(@base-ui|@floating-ui|@radix-ui|tailwind-merge|clsx|class-variance-authority|lucide-react|boring-avatars|embla-carousel|embla-carousel-react|react-use-measure|@tabler|prompt-area|use-stick-to-bottom)\//],   // prompt-area · use-stick-to-bottom = 입력칸 꾸러미(CopilotKit 집이지만 copilot 을 안 부름 · 3판에서 CopilotKit 을 뺀 뒤 ui 로)
   ["v-motion", /\/node_modules\/(motion|motion-dom|motion-utils|framer-motion)\//],
   ["v-zod", /\/node_modules\/(zod|zod-to-json-schema)\//],
   ["v-misc", /\/node_modules\/(date-fns|dayjs|semver|partial-json|fast-json-patch|uuid)\//],   // 잎 꾸러미(남을 안 부름) = 순환 0
   ["v-markdown", /\/node_modules\/(streamdown|katex|parse5|marked|remend|unified|vfile|vfile-message|bail|trough|is-plain-obj|is-hexadecimal|is-decimal|is-alphanumerical|is-alphabetical|extend|zwitch|devlop|ccount|longest-streak|markdown-table|escape-string-regexp|property-information|space-separated-tokens|comma-separated-tokens|trim-lines|html-url-attributes|style-to-js|style-to-object|inline-style-parser|decode-named-character-reference|parse-entities|character-entities(-[a-z]+)?|character-reference-invalid|entities|micromark(-[a-z0-9-]+)?|mdast-util-[a-z0-9-]+|hast-util-[a-z0-9-]+|hastscript|unist-util-[a-z0-9-]+|remark-[a-z0-9-]+|rehype-[a-z0-9-]+|estree-util-[a-z0-9-]+|web-namespaces|html-void-elements|stringify-entities|github-slugger)\//],
-  ["v-copilot", /\/node_modules\/(@copilotkit|@ag-ui|@a2ui|@bufbuild|rxjs|phoenix|prompt-area|use-stick-to-bottom)\//],   // prompt-area · use-stick-to-bottom = CopilotKit 집 꾸러미(copilot 쪽을 부름 → v-ui 에 두면 ui↔copilot 순환)
+  ["v-copilot", /\/node_modules\/(@copilotkit|@ag-ui|@a2ui|@bufbuild|rxjs|phoenix)\//],   // 3판(copilot-lite · PATCH _authed)부터 첫 화면엔 0 = 이 덩어리는 안 생김(눌러야 오는 채널 새로 만들기 화면 쪽에만 남음) · 원본 새 판이 다시 끌어오면 여기로 모여 눈에 띔
 ];
 
 /** 첫 화면 뿌리 = 입구(isEntry) + 로그인 뒤 공통 라우트 _authed(우리 껍데기 ui/shell.tsx 가 여기 붙음 · 라우터가 쪼갠 ?tsr-split 조각 포함) */
