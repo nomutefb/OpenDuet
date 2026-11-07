@@ -173,7 +173,7 @@ export function NewsList() {
               <span className="pf" aria-hidden={!pickers(row).length || undefined} title={pickers(row).length ? `${pickers(row).join("·")} 픽` : undefined}>{pickers(row).map((w, j) => <span key={w} className="pf-i" style={{ zIndex: 9 - j }}><FaceImg id={w} size={16} /></span>)}</span>
               <span className="rk">{i + 1}</span>   {/* 차례 번호(순위 그대로면 1 · 6 · 7 띄엄 · 뎅 11-05 15:0x 실물) */}
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>
-              <span className="mt">{row.src || ""}</span>
+              <span className="mt" title={row.src || undefined}>{row.src || ""}</span>
               <span className="ag">{row.at ? ago(row.at) : ""}</span>   {/* 「N분 전」 = 점수 바로 왼쪽 칸 · 오른쪽 맞춤(형 11-06 10:15 「00분전 0시간전 00분전이 좀 더 우측으로 가야될거같아 점수쪽」) */}
               <span className="sc">{Number.isFinite(row.score as number) ? Math.round(row.score as number) : ""}</span>   {/* 점수 없는 줄도 칸은 둠(줄 맞춤) */}
               <button type="button" className="sd" aria-label="이 기사로 요약 요청" title="이 기사로 요약 요청" onClick={() => send(row)}>전송</button>
