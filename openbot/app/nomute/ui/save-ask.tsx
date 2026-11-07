@@ -9,7 +9,12 @@ import { modalPush, modalTop } from "./use-modal";   // 창 쌓임 한 줄(빠�
 export function useCloseGuard(dirty: boolean, close: () => void, on = true) {
   const [ask, setAsk] = useState(false);
   const me = useRef<symbol | null>(null);
-  useEffect(() => { if (!on) return; const p = modalPush(); me.current = p.me; return () => { p.pop(); me.current = null; }; }, [on]);
+  useEffect(() => {   // 창 쌓임 한 칸 + 닫히면 연 자리로 포커스 돌려줌(시아 03:43 「프로필 카드를 Esc 로 닫으면 포커스가 얼굴 단추로 안 돌아오고 BODY 로 감」 · 빠르 11-08)
+    if (!on) return;
+    const back = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+    const p = modalPush(); me.current = p.me;
+    return () => { p.pop(); me.current = null; if (back && back.isConnected) back.focus({ preventScroll: true }); };
+  }, [on]);
   const request = useCallback(() => { if (dirty) setAsk(true); else close(); }, [dirty, close]);
   useEffect(() => { if (!on) setAsk(false); }, [on]);
   useEffect(() => {
