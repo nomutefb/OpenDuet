@@ -22,7 +22,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   const qc = useQueryClient();
   const [tinting, setTinting] = useState<OfficeRoom | null>(null), [naming, setNaming] = useState<OfficeRoom | null>(null), [err, setErr] = useState("");
   const notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
-  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [look, setLook] = useState(false);
+  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [mem, setMem] = useState(false), [look, setLook] = useState(false);
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: !!room && (open || hist), staleTime: 30_000, retry: false });   // 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
   const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: !!room && open, staleTime: 15_000, retry: false });   // 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
   const setBell = async (on: boolean) => {
@@ -39,7 +39,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   };
   const nOn = notifyOn(notify.data, room, !!r?.with), unfold = useUnfold(room);
   const go = (f: () => void) => () => { close(); f(); };
-  // 사람 칸 = 지정방 「멤버 넣고 빼기」(roomset · 형만) · 회의실 「잠시 내보내기」 — 임시방은 목록에서 바로(× · + 초대 · ./top.tsx)
+  // 사람 칸 = 지정방 「멤버 넣고 빼기」(roomset · 형만) · 회의실 「잠시 내보내기」 — 임시방 초대·내보내기 = 그 자리(./top.tsx) · 「멤버 설정」은 방 칸(temprooms · 방 설정과 따로)
   const crewItems = r ? (
     <>
       {!r.with && r.id !== MEET && r.designated && !r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>멤버 넣고 빼기<small>{r.members?.length || ""}</small></button> : null}
@@ -49,6 +49,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   const items = r ? (
     <>
       {r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>방 설정<small>이름 · 목적 · 기한</small></button> : null}
+      {r.temp ? <button type="button" role="menuitem" onClick={go(() => setMem(true))}>멤버 설정<small>{r.members?.length || ""}</small></button> : null}
       {!r.with ? <button type="button" role="menuitem" onClick={go(() => setLook(true))}>방 꾸미기<small>아이콘 · 색</small></button> : null}   {/* 단톡방·회의실 다(형 11-06 20:00 · 20:33 「회의실도 가능해야해.」 · 20:37 「방 아이콘 변경 저것도 저기에」) */}
       {!r.with ? <button type="button" role="menuitem" onClick={go(() => setTinting(r))}><span className="flex items-center gap-2"><RainbowOrb />표지 색</span></button> : null}
       {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={go(() => setNaming(r))}>이름 바꾸기</button> : null}
@@ -68,6 +69,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       {kick && r ? <MeetOut room={r} onClose={() => setKick(false)} /> : null}
       {look && r ? <RoomLookDialog r={r} onClose={() => setLook(false)} /> : null}
       {crew && r ? (r.temp ? <TempRoomDialog edit={r} onClose={() => setCrew(false)} /> : <RoomMembersDialog r={r} onClose={() => setCrew(false)} />) : null}
+      {mem && r?.temp ? <RoomMembersDialog r={r} onClose={() => setMem(false)} /> : null}
     </>
   );
   const hasCrew = !!r && ((!r.with && r.id !== MEET && !!r.designated && !r.temp) || (r.id === MEET && (r.members?.length || 0) > 0));
