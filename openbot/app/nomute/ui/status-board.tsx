@@ -92,7 +92,7 @@ const stIn = (v: unknown): HealthSt => (typeof v === "string" && (LIGHT[v] || ([
 // 줄 이름 맨 앞 hwang = 시아 PC(형 11-08 01:23 「시아 관련된거 vm이 아니라 시아 피시 갱신」 · 몸 보고는 host 이름 그대로 올림)
 const nameKo = (n?: string) => (n || "").replace(/^hwang(?=\s|$)/i, "시아 PC");
 const rowIn = (r: StatusRow & { host?: string }): StatusRow & { host?: string } => ({ ...r, name: nameKo(r.name), st: stIn(r.st), ...(r.cells ? { cells: Object.fromEntries(Object.entries(r.cells).map(([k, c]) => [k, { ...c, st: stIn(c.st) }])) } : {}) });
-const HIDE_BOTS = new Set(["별"]);
+// 없어진 봇(별) = 서버가 뺌(_status.js · _bots.js 둘 다 PEOPLE gone 거름) · 화면 사본 HIDE_BOTS 걷음(빠르 11-08 · 원천 하나)
 const HOST_KO: Record<string, string> = { fast: "빠르", sia: "시아", deng: "뎅", neo: "누리", eyes: "뜸", light: "번개", mac: "맥", "win-a": "윈A", wina: "윈A", hwang: "시아 PC", nuri: "누리 PC" };   // 몸 보고 host(영어 자리) → 자리 줄 이름   // 형 11-05 08:31 「별은 빼면 되고」
 const hostOf = (r: StatusRow & { host?: string }) => String(r.host || r.key.split(":")[0]);
 /** 계정 짧은 이름(형 01:25 「2열 2행(ems1130g)」 · 「3영ㄹ 2행(muteno)」) · 네이버 = ems1130n(형 11-07 14:34 「윈터는 ems1130n이야」) */
@@ -139,8 +139,8 @@ function sshIn(r: StatusRow): StatusRow {
 function merge(local: Record<string, StatusRow[]>, srv?: StatusCat[]): StatusCat[] {
   return SKELETON.map((c) => {
     if (c.id === "cli") return { ...c, rows: srv ? cliRows(srv) : c.rows, at: srv?.find((x) => x.id === "tok_claude")?.at };
-    const s = srv?.find((x) => x.id === c.id), sr = (s?.rows || []).map(rowIn).map((r) => (c.id === "ssh" ? sshIn(r) : r)).filter((r) => !(c.id === "bots" && HIDE_BOTS.has(r.name || r.key)));
-    let rows = (local[c.id]?.length ? local[c.id] : c.rows).filter((r) => !(c.id === "bots" && HIDE_BOTS.has(r.key)));
+    const s = srv?.find((x) => x.id === c.id), sr = (s?.rows || []).map(rowIn).map((r) => (c.id === "ssh" ? sshIn(r) : r));
+    let rows = (local[c.id]?.length ? local[c.id] : c.rows);
     if (sr.length && c.cols) { const by = new Map(sr.map((r) => [r.key, r])); rows = [...rows.map((r) => by.get(r.key) || r), ...sr.filter((r) => !rows.some((x) => x.key === r.key))]; }
     else if (sr.length) {
       const hosts = new Set(sr.flatMap((r) => { const h = hostOf(r); return [h, HOST_KO[h] || h]; }));
