@@ -132,7 +132,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
             {pics && onSave ? item(pics > 1 ? `사진 저장 ${pics}장` : "사진 저장", () => { onSave(); done("저장했어"); }) : null}   {/* 형 11-04 08:22 「길게 누르면 사진을 다운로드」 = 사진 든 글은 맨 위 */}
             {item("답장", () => { onReply(); onClose(); })}
             {pins.can ? item("고정", () => { pins.pin({ id: m.id, ts: m.ts }); onClose(); }) : null}
-            {item("복사", () => { void navigator.clipboard?.writeText(text); done("복사했어"); })}
+            {item("복사", () => { void navigator.clipboard?.writeText(text); onClose(); })}   {/* 알림 없이 창만 닫힘(형 11-07 09:40 봄 1:1 「그리고 우클릭해서 복사 누르면, 복사햇어 라고 뜰 필요는 없고 그냥 ㅌ창 닫히면 됨.」) */}
             {item("확인 요청", () => setAsking(true))}
             {item("공유", () => void share())}
             {rooms.length ? item("다른 방으로", () => setMoving(true)) : null}
