@@ -291,3 +291,9 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-lazy i:nth-child(2){animation-delay:.2s}
 .nm-lazy i:nth-child(3){animation-delay:.4s}
 @keyframes nmLazyDots{0%,100%{opacity:.22}33%{opacity:1}}
+
+/* PC 위 두 칸(봄 11-08 · 형 dm 07:29~07:35) — 왼쪽 위 = 러너 게이지(우리) · 오른쪽 위 = 인스타·페북(뉴스 쪽) · 높이 = 왼쪽 게이지 띠 제 키(--nm-top-h · shell.tsx TopLeft 가 잼)
+   형 07:31 「그 게이지바의 영역 높이만큼 좌측에도 height를 배정하고」 → 「오히려 게이지바가 좌측으로가고, 인스타그램이 우측으로」 · 「기존처럼 3개 있을때의 높이」 = 한 줄(몸 수만큼 칸) 제 키 */
+.nm-split-l > .nm-split-top-l { position:absolute; top:8px; left:8px; right:8px; z-index:1; max-height:none; }
+.nm-split-l > .nm-pane { top:calc(var(--nm-top-h, 0px) + 16px); }   /* 판(홈 · 대화방 · 대화 · 덮는 판)은 게이지 띠 밑에서 시작 */
+.nm-split > .nm-split-top-r { flex:0 0 var(--nm-top-h, auto); height:var(--nm-top-h, auto); max-height:none; overflow:hidden; }

@@ -8,6 +8,7 @@
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { TodoBar } from "./todo-bar";
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
+import { IgFbBand } from "./igfb-band";   // PC 오른쪽 위 = 인스타·페북 팔로워 띠(봄 11-08 · 형 dm 07:30~07:31)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Component, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
 import { AttentionNotifier } from "@/components/bot-profile/attention";
@@ -229,7 +230,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
         <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
-          <SceneBg className="nm-app-ambient" />   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
+          <SceneBg className="nm-app-ambient" />
+          {split ? <TopLeft /> : null}   {/* 왼쪽 위 = 러너 게이지(우리 쪽 · 형 11-08 07:31 dm 「오히려 게이지바가 좌측으로가고, 인스타그램이 우측으로 가서, 우측은 아예 뉴스 관련 내용, 좌측은 너네 관련으로」 · 판들은 그 키만큼 아래로 · shell.css .nm-split-l) */}   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
           {show("rooms", <div className="nm-col"><RoomsPane /></div>)}
           {show("chat", (
@@ -350,12 +352,26 @@ function SplitGrip() {
   return <div className="nm-split-grip" role="separator" aria-orientation="vertical" aria-label="끌어서 칸 넓이 · 두 번 누르면 반반" title="끌어서 칸 넓이 · 두 번 누르면 반반" onPointerDown={down} onDoubleClick={reset}><i /></div>;
 }
 
+/** 왼쪽 위 러너 게이지 띠 — 제 키를 재서 --nm-top-h 로 알림(오른쪽 위 팔로워 띠 · 왼쪽 판들이 그 키를 씀 · 봄 11-08) */
+function TopLeft() {
+  const ref = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const root = document.documentElement;
+    const ro = new ResizeObserver(() => { const h = Math.round(el.getBoundingClientRect().height); if (h > 0) root.style.setProperty("--nm-top-h", `${h}px`); });
+    ro.observe(el);
+    return () => { ro.disconnect(); root.style.removeProperty("--nm-top-h"); };
+  }, []);
+  return <section ref={ref} className="nm-split-run nm-split-top-l" aria-label="러너"><PaneGuard name="러너"><RunnerGauges /></PaneGuard></section>;
+}
+
 function SplitSide() {
   useSplitW();
   return (
     <aside className="nm-split" aria-label="러너 · 뉴스">
       <SplitGrip />
-      <section className="nm-split-run" aria-label="러너"><PaneGuard name="러너"><RunnerGauges /></PaneGuard></section>   {/* 러너 기본정보 게이지(봄 · 형 11-05 13:37 「게이지로 축약」 · 「갬성이 떨어지면안되.」) · 다 보기 = 메뉴 러너 */}
+      <section className="nm-split-run nm-split-top-r" aria-label="인스타 · 페북"><PaneGuard name="팔로워"><IgFbBand /></PaneGuard></section>   {/* 오른쪽 위 = 뉴스 쪽 · 높이 = 왼쪽 위 게이지 띠와 같게(--nm-top-h · 형 07:31 「기존처럼 3개 있을때의 높이」) · 러너 게이지는 왼쪽 위로(TopLeft) */}
       <section className="nm-split-news" aria-label="뉴스"><PaneGuard name="실시간 뉴스"><NewsList /></PaneGuard></section>
       <section className="nm-split-sum" aria-label="뉴스 요약"><PaneGuard name="뉴스 요약"><NewsSummary /></PaneGuard></section>   {/* 우하단 = 요약 대기열 + 다 된 요약(형 11-05 16:27 「어짜피 우하단에는 뉴스 요약 부분이 나올거라서」 · 13:38 「전송하면 그 아래에 요약 대기열 올라오고, 다되면, 모달로 뉴스 요약본」) */}   {/* PC = 그림 없는 제목 목록(형 11-05 14:39 「pc판은 아예 뉴스에 아예 그림안뜨게 컴팩트하게 타이틀만」) · 폰 홈은 카드 덱 그대로 */}
     </aside>
