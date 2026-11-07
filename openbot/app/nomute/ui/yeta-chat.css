@@ -14,7 +14,7 @@
 @font-face{font-family:'Paperlogy';font-weight:800;src:url('./fonts/Paperlogy-8ExtraBold.woff2') format('woff2');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 .ychat, .ynav, .nm-yeta {
   --r-s:9px; --r-m:11px; --r-l:16px; --r-modal:22px; --r-pill:999px; --r-in:28px; --sp-2:12px; --sp-3:18px; --btn:34px;
-  --fs-h2:15px; --fs-h3:14px; --fs-body:15px; --fs-label:13px; --fs-sm:12px; --fs-xs:11px; --fw-x:800; --fw-b:700; --lh-base:1.6;
+  --fw-x:800; --fw-b:700; --lh-base:1.6;
   --ease:cubic-bezier(.2,.7,.3,1); --blur-m:29px; --blur-l:11px; --press-m:.9; --press-l:.95; --press-s:.9;
   --accent:#CFFF40; --accent-rgb:207,255,64; --bubble-me:var(--accent); --bubble-ai:#1e2023;
   --fg:#161716; --fg-2:#3a3d3a; --mut:#8B8F8A; --bg:#161716;

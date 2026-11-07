@@ -3,7 +3,7 @@
    카드 = 뉴스 요약 유리(.nm-feed-it · 형 11-01 18:0x 「기본적으로 글래스모피즘」) · 숫자·영문 = Pretendard(형 11-01 17:5x) · 판 안 머리·뒤로 = 앱 모달 머리(원본 inmodal 규칙과 같음) */
 .nm-ep { --t1:color-mix(in srgb, var(--mut) 80%, transparent); --t2:color-mix(in srgb, var(--mut) 72%, transparent); --t3:color-mix(in srgb, var(--mut) 55%, transparent);
   --well:color-mix(in srgb, var(--fg) 5%, transparent); --line2:color-mix(in srgb, var(--glass-line) 70%, transparent); --accent-dim:rgba(var(--accent-rgb), .13);
-  --accent-4:#9a7400; --fs-sm:12px; --cap:12.4px; --title:28.8px; --lh:1.31; --hit:44px; --btn-sm:30px; --r-s:9px;
+  --accent-4:#9a7400; --cap:12.4px; --title:28.8px; --lh:1.31; --hit:44px; --btn-sm:30px; --r-s:9px;
   --num:Pretendard, -apple-system, system-ui, sans-serif;
   display:flex; flex-direction:column; min-width:0; font-family:var(--app-font-text, var(--num)); word-break:keep-all; color:var(--fg); }
 .dark .nm-ep { --accent-4:#FFE13D; }

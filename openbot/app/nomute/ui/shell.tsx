@@ -32,6 +32,7 @@ import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
 import { SceneBg } from "./thumb-maker/scene-bg";
 import "../home/home-scene.css";
+import "./fs-tokens.css";   // 글자 크기 기준값 한 곳(빠르 11-08 · 시아 02:14 표)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";

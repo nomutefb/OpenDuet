@@ -8,7 +8,7 @@
   --accent: #4f7a00; --accent-rgb: 79,122,0; --think: #0e8f7d; --bg: #ffffff;
   --shadow-card: 0 24px 60px rgba(0,0,0,.08);
   --r-l: 16px; --r-modal: 22px; --r-pill: 999px; --blur-m: 29px; --blur-l: 11px;
-  --fs-body: 15px; --fs-xs: 11px; --fs-label: 13px; --fs-h2: 15px; --fw-b: 700; --fw-x: 800;
+  --fw-b: 700; --fw-x: 800;   /* 글자 크기 = ./fs-tokens.css :root 한 곳(빠르 11-08) */
   --sp-2: 12px; --sp-3: 18px; --press-l: .95; --press-m: .9; --ease: cubic-bezier(.2,.7,.3,1);
   color: var(--fg);
 }
