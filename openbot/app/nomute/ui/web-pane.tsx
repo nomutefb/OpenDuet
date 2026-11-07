@@ -34,12 +34,13 @@ export function WebPane({ initial = "", className = "", onClose }: { initial?: s
   const frame = useRef<HTMLIFrameElement>(null);
   const cur = idx >= 0 ? hist[idx] : "";
 
-  useEffect(() => {   // 주소가 바뀔 때마다 품기 미리 재기(같은 사이트 = 안 물음)
+  useEffect(() => {   // 주소가 바뀔 때마다 품기 미리 재기(같은 사이트 = 안 물음) · 재는 주소 = 실제로 iframe 에 넣을 주소(frameUrl · 유튜브·Suno = 퍼가기 주소 · 원본 watch 주소는 막혀도 퍼가기는 됨 · 모루 검토 editor#2807)
     if (!cur) { setCheck({ state: "idle" }); return; }
-    if (sameSite(cur)) { setCheck({ state: "ok" }); return; }
+    const target = frameUrl(cur);
+    if (sameSite(target)) { setCheck({ state: "ok" }); return; }
     let live = true;
     setCheck({ state: "checking" });
-    office<{ frame: boolean | null; why?: string }>(`frame?u=${encodeURIComponent(cur)}`)
+    office<{ frame: boolean | null; why?: string }>(`frame?u=${encodeURIComponent(target)}`)
       .then((j) => { if (live) setCheck(j.frame === false ? { state: "blocked", why: j.why } : j.frame ? { state: "ok" } : { state: "unknown", why: j.why }); })
       .catch((e: unknown) => { if (live) setCheck({ state: "unknown", why: e instanceof Error ? e.message : "판정 못 받음" }); });
     return () => { live = false; };
