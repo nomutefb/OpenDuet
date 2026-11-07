@@ -13,6 +13,7 @@ import { markdownComponents } from "@/lib/markdown";
 import { office } from "../data/office";
 import { t12 } from "./when";
 import { whoName } from "./who-name";
+import { useModal } from "./use-modal";   // Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
 
 export type Pin = { id: string; ts: number; who: string; at: string; text: string; files?: number; by: string; pinned_at: string; unpinned_at?: string; unpinned_by?: string };
 type Pins = { cur: Pin | null; history: Pin[] };
@@ -89,6 +90,7 @@ export function PinBar({ room, onJump, children }: { room: string; onJump?: (id:
 /** 고정 이력 판(띠 누름) — 지금 고정 + 앞서 고정된 것(최신 위) · 누르면 그 글로 · 형 화면 = 풀기·다시 고정 */
 function PinHistory({ room, pins, onClose, onJump }: { room: string; pins: Pins; onClose: () => void; onJump: (p: Pin) => void }) {
   const act = usePinActions(room);
+  const box = useModal<HTMLDivElement>(onClose);
   const row = (p: Pin, now: boolean) => (
     <div key={`${p.id}-${p.pinned_at}`} className="ycd-card card-left nm-pin-card">
       <span className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "var(--mut)" }}>
@@ -108,7 +110,7 @@ function PinHistory({ room, pins, onClose, onJump }: { room: string; pins: Pins;
     </div>
   );
   return (
-    <div className="nm-pinsheet yeta-set" role="dialog" aria-modal="true" aria-label="고정 이력">
+    <div ref={box} className="nm-pinsheet yeta-set" role="dialog" aria-modal="true" aria-label="고정 이력">
       <div className="nm-modal-h">
         <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
         <b>고정 이력</b>

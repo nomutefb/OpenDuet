@@ -1,17 +1,20 @@
 // 「저장하시겠습니까?」 — 고친 것이 있는데 창을 닫으려 할 때(바탕 · 닫기 · Esc) — 뜸 11-07
 //   형 11-07 10:56(봄 옮김) 「저장 하시겠스빈까? 가 떠야 보통 ux」 · 형 10:59(봄 옮김 11:00) 「응응 저장하시겠습니까? 예 아니오 이렇게 너무 블록 넓지않게, 엔터프라이즈니까」
 //   = 작게 한 줄 [아니오] [예] · 예 = 저장하고 닫기 · 아니오 = 닫음(쓰던 글은 이 기기에 남김 · 다시 열면 되살림 · ./draft.ts) · 바깥·Esc = 물음만 닫고 계속 쓰기
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { backdrop } from "./backdrop";
+import { modalPush, modalTop } from "./use-modal";   // 창 쌓임 한 줄(빠르 11-08) = 이 창 위에 뜬 창(색 고르기 등)이 있으면 Esc 는 그 창 몫
 
 /** dirty 면 닫기 대신 물음 · 아니면 바로 닫음 · Esc 도 같은 길 · on = 창이 떠 있을 때만 Esc 를 받음(늘 붙어 있는 창이 다른 창 Esc 를 먹지 않게) */
 export function useCloseGuard(dirty: boolean, close: () => void, on = true) {
   const [ask, setAsk] = useState(false);
+  const me = useRef<symbol | null>(null);
+  useEffect(() => { if (!on) return; const p = modalPush(); me.current = p.me; return () => { p.pop(); me.current = null; }; }, [on]);
   const request = useCallback(() => { if (dirty) setAsk(true); else close(); }, [dirty, close]);
   useEffect(() => { if (!on) setAsk(false); }, [on]);
   useEffect(() => {
     if (!on) return;
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (ask) setAsk(false); else request(); } };
+    const k = (e: KeyboardEvent) => { if (me.current && !modalTop(me.current)) return; if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (ask) setAsk(false); else request(); } };
     window.addEventListener("keydown", k, true);
     return () => window.removeEventListener("keydown", k, true);
   }, [ask, request, on]);

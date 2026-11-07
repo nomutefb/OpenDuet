@@ -1,6 +1,7 @@
 // 말풍선 색 고르기(형 10-31 「프로필 눌러서 rgb 고르는 거로 정할 수 있으면 함」 · 「2 누르면 3창이 뜨는 느낌」) = HEX · 판(밝기·진하기) · 색띠 · R G B
 import { useRef, useState } from "react";
 import { GoButton } from "./go-button";
+import { useModal } from "./use-modal";   // Esc = 이 판만 닫힘(프로필 카드는 그대로) · Tab 가두기(빠르 11-08)
 
 type Hsv = { h: number; s: number; v: number };
 
@@ -24,6 +25,7 @@ export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: 
   const rgb = fromHsv(hsv), hex = toHex(rgb);
   const [typed, setTyped] = useState("");
   const box = useRef<HTMLDivElement | null>(null);
+  const root = useModal<HTMLDivElement>(onClose);
   const pick = (e: { clientX: number; clientY: number }) => {
     const r = box.current?.getBoundingClientRect();
     if (!r) return;
@@ -31,7 +33,7 @@ export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: 
   };
   const setRgb = (i: number, n: number) => { const c = [...rgb]; c[i] = Math.max(0, Math.min(255, n || 0)); setHsv(toHsv(c[0], c[1], c[2])); };
   return (
-    <div className="ncp" role="dialog" aria-label="말풍선 색 고르기" onClick={(e) => e.stopPropagation()}>
+    <div ref={root} className="ncp" role="dialog" aria-label="말풍선 색 고르기" onClick={(e) => e.stopPropagation()}>
       <PickTop label="말풍선 색" onUndo={() => void Promise.resolve(onSave("")).then(onClose, () => {})} onSave={() => onSave(hex)} onDone={onClose} onClose={onClose} />
       <label className="ncp-f"><span>HEX</span>
         <input value={typed || hex} onChange={(e) => { setTyped(e.target.value); const c = fromHex(e.target.value); if (c) setHsv(toHsv(c[0], c[1], c[2])); }} onBlur={() => setTyped("")} />

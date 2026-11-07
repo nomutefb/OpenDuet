@@ -8,6 +8,8 @@ import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { hookFrame } from "../ui/inapp";
+import { backdrop } from "../ui/backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕일 때만(뜸 11-07 · 끌어 고르다 닫히는 일 막음)
+import { useModal } from "../ui/use-modal";   // Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
 
 const SRC = "/?ui=classic";
 const BOOT_MS = 20_000;
@@ -48,6 +50,7 @@ export function SummaryButton() {
   }, [open, mounted]);
   const show = () => { setErr(""); setReady(false); setMounted(true); setOpen(true); };
   const hide = () => { const d = frame.current?.contentDocument?.getElementById("tooldlg") as HTMLDialogElement | null; if (d && d.open) d.close(); setOpen(false); setReady(false); };
+  const box = useModal<HTMLDivElement>(hide, open);
   return (
     <>
       <button type="button" onClick={show}
@@ -55,8 +58,8 @@ export function SummaryButton() {
         뉴스 요약
       </button>
       {mounted ? createPortal(
-        <div role="dialog" aria-modal="true" aria-label="뉴스 요약" hidden={!open}
-          className="yeta-set fixed inset-0 z-[55] grid place-items-center bg-black/50 pb-[calc(86px+env(safe-area-inset-bottom))] md:p-6 md:pb-[96px]" onClick={(e) => { if (e.target === e.currentTarget) hide(); }}>
+        <div ref={box} role="dialog" aria-modal="true" aria-label="뉴스 요약" hidden={!open}
+          className="yeta-set fixed inset-0 z-[55] grid place-items-center bg-black/50 pb-[calc(86px+env(safe-area-inset-bottom))] md:p-6 md:pb-[96px]" {...backdrop(hide)}>
           <div className="relative h-full w-full overflow-hidden bg-[var(--bg)] md:max-h-[90svh] md:max-w-3xl md:rounded-[22px]">
             {!ready ? <p className="absolute inset-0 grid place-items-center text-[13px] text-[var(--mut)]" role={err ? "alert" : undefined}>{err || "뉴스 요약 여는 중…"}</p> : null}
             <iframe ref={frame} src={SRC} title="뉴스 요약" className={`size-full border-0 ${ready ? "" : "opacity-0"}`} />

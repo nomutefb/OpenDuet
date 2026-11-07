@@ -1,0 +1,64 @@
+// 창 부품 하나 — Esc 로 닫기 · Tab 을 창 안에 가둠 · 닫으면 연 자리로 포커스 돌려줌(빠르 11-08 · 형 11-08 01:31 「엔터프라이즈급 앱으로 만든다.(PC용)」)
+//   창 쌓임 = 맨 위 창만 Esc 를 받음(이 부품 창 + 「저장하시겠습니까?」 가드 창(./save-ask useCloseGuard)이 같은 줄을 씀)
+//   까닭(빠르 01:41 셈) = Esc 로 안 닫히는 창 8 · 나머지 17곳은 Esc 줄을 저마다 따로 들고 있었고, 창 위에 창이 뜨면 아래 창이 먼저 Esc 를 먹었음(프로필 카드 위 색 고르기)
+import { useEffect, useRef } from "react";
+
+const stack: symbol[] = [];
+
+/** 창 쌓임에 한 칸 올림 → 내리는 함수 · 늦게 연 창이 맨 위 */
+export function modalPush(): { me: symbol; pop: () => void } {
+  const me = Symbol("modal");
+  stack.push(me);
+  return { me, pop: () => { const i = stack.lastIndexOf(me); if (i >= 0) stack.splice(i, 1); } };
+}
+/** 이 창이 맨 위인가(맨 위 창만 Esc · Tab 을 받음) */
+export const modalTop = (me: symbol) => stack[stack.length - 1] === me;
+
+const SEL = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),iframe,[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
+
+/** 순수 — Tab 다음 자리(가두기) · null = 브라우저에 맡김 */
+export function trapNext<T>(list: T[], at: T | null, inside: boolean, back: boolean): T | null {
+  if (!list.length) return null;
+  const first = list[0], last = list[list.length - 1];
+  if (back) return !inside || at === first ? last : null;
+  return !inside || at === last ? first : null;
+}
+
+/** ref 를 창 바깥 칸에 달면: Esc = close · Tab 은 창 안에서 돎 · 열 때 창으로 포커스 · 닫히면 연 자리로 돌려줌 · on = 창이 떠 있을 때만 */
+export function useModal<T extends HTMLElement>(close: () => void, on = true) {
+  const ref = useRef<T>(null);
+  const shut = useRef(close);
+  shut.current = close;
+  useEffect(() => {
+    if (!on) return;
+    const { me, pop } = modalPush();
+    const back = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const el = ref.current;
+    if (el && !el.contains(document.activeElement)) {
+      if (!el.hasAttribute("tabindex")) el.tabIndex = -1;
+      el.focus({ preventScroll: true });
+    }
+    const key = (e: KeyboardEvent) => {
+      if (!modalTop(me) || e.defaultPrevented) return;
+      if (e.key === "Escape") {
+        if (e.isComposing) return;   // 한글 조합 중 Esc = 조합만 끝냄
+        e.preventDefault(); e.stopPropagation();
+        shut.current();
+        return;
+      }
+      if (e.key !== "Tab" || !el) return;
+      const list = [...el.querySelectorAll<HTMLElement>(SEL)].filter((x) => x.getClientRects().length > 0);
+      const at = document.activeElement as HTMLElement | null;
+      const go = trapNext(list, at, !!at && el.contains(at), e.shiftKey);
+      if (!list.length) { e.preventDefault(); el.focus({ preventScroll: true }); return; }
+      if (go) { e.preventDefault(); go.focus({ preventScroll: true }); }
+    };
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("keydown", key);
+      pop();
+      if (back && back.isConnected) back.focus({ preventScroll: true });
+    };
+  }, [on]);
+  return ref;
+}

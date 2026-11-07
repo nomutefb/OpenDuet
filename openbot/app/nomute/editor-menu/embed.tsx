@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { DuetIcon } from "@/components/duet/icons";
 import { type EdItem, linkOf } from "./read";
 import { editorTone } from "./tone";
+import { useModal } from "../ui/use-modal";   // Esc(바깥 칸에 포커스 있을 때) · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
 
 const BOOT_MS = 20_000, TONE_ID = "nm-office-tone";
 const inapp = Object.values(import.meta.glob<{ hookFrame?: (f: HTMLIFrameElement) => void }>("../ui/inapp.ts", { eager: true }))[0];
@@ -26,6 +27,7 @@ function paint(doc: Document | null | undefined, css: string) {
 export function EditorEmbed({ item, host, onClose }: { item: EdItem; host: Element | null; onClose: () => void }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const close = useRef(onClose);
+  const box = useModal<HTMLDivElement>(() => close.current());
   close.current = onClose;
   const [ready, setReady] = useState(false), [err, setErr] = useState("");
   useEffect(() => {
@@ -47,7 +49,7 @@ export function EditorEmbed({ item, host, onClose }: { item: EdItem; host: Eleme
     return () => { live = false; clearTimeout(timer); mo?.disconnect(); };
   }, [item]);
   const node = (
-    <div className="nm-ed-over" role="dialog" aria-label={item.label}>
+    <div ref={box} className="nm-ed-over" role="dialog" aria-modal="true" aria-label={item.label}>
       <div className="nm-modal-h">
         <button type="button" className="nm-modal-back" aria-label="닫기" onClick={() => close.current()}><DuetIcon name="chevronLeft" size={20} /></button>
         <b>{item.label}</b>
