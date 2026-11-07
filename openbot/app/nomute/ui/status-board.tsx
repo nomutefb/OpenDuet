@@ -4,7 +4,7 @@
 //   자료 = GET status(뜸 · 몸 보고 + 서버 합침) 가 있으면 그것 · 없으면 지금 있는 GET bots · GET schedule 로 1·2·3 만 채우고 나머지는 「보고 아직 안 옴」 칸
 //   일기 = 일곱 × 8단계 격자(형 「일기 정상 작동여부도 프로세스별로 예를들어 7단계면 표를 7단계로 음영칠해. 8x8 이런식. 안되는 부분에 불들어오게」) · SSH = 몸 × 몸 격자
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { office } from "../data/office";
 import { leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time";
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
@@ -14,33 +14,51 @@ import "./yeta-settings.css";
 import "./trend.css";   // 수집 목록 = 옛 피드 꼴(SNS 전체와 같은 줄)
 import "./status-board.css";
 
-type Cell = { st: HealthSt; note?: string };
+type Cell = { st: HealthSt; note?: string; label?: string };
 export type StatusRow = { key: string; name: string; st: HealthSt; last_at?: number; next_at?: number; left_days?: number; value?: string; note?: string; cron?: string[]; zone?: string; cells?: Record<string, Cell> };
-export type StatusCat = { id: string; name: string; rows: StatusRow[]; cols?: { id: string; name: string }[]; at?: number };
+export type StatusCat = { id: string; name: string; rows: StatusRow[]; cols?: { id: string; name: string }[]; at?: number; grp?: string };
 
-const HOSTS = ["윈A", "윈B", "맥"], VMS = ["시아", "빠르", "뎅", "누리", "뜸"], BEINGS = ["윈터", "봄", "뜸", "시아", "빠르", "뎅", "누리"];
+// 몸 = 지금 애들 자리(형 11-08 01:23 「시아 관련된거 vm이 아니라 시아 피시 갱신」 · 01:22 「이번에 누리분 가정해서 그거까지 포함해서 갱신」 · 윈B 없음 = 형 11-07 09:16 「시아 피시 , 윈도우b 없는거 등」 · 01:21 사진 윈B 줄 X)
+//   hosts = 몸 보고 host 이름(영어 자리) · 누리 = 새 PC 로 간 걸로 봄(옮기기 전엔 VM neo 보고가 이 줄을 채움)
+const BODIES: { being: string; body: string; hosts: string[] }[] = [
+  { being: "윈터", body: "윈A", hosts: ["윈A", "win-a", "wina"] },
+  { being: "봄", body: "맥", hosts: ["맥", "mac"] },
+  { being: "시아", body: "시아 PC", hosts: ["hwang", "시아 PC"] },
+  { being: "누리", body: "누리 PC", hosts: ["nuri", "누리 PC", "neo"] },
+  { being: "뎅", body: "VM 뎅", hosts: ["deng"] },
+  { being: "빠르", body: "VM 빠르", hosts: ["fast"] },
+  { being: "번개", body: "VM 번개", hosts: ["light"] },
+  { being: "뜸", body: "맥 VM 뜸", hosts: ["eyes"] },
+];
+const HOSTS = ["윈A", "맥", "시아 PC", "누리 PC"], VMS = ["빠르", "뎅", "번개", "뜸"], BEINGS = ["윈터", "봄", "뜸", "시아", "빠르", "뎅", "번개", "누리"];
 const DIARY_COLS = [["raw", "원문 뜨기"], ["check", "원문 대조"], ["d40", "40% 일기"], ["d75", "75% 일기"], ["sketch", "습작"], ["end", "넘김 일기"], ["inj2", "2차 주입"], ["wake", "깰 때 넣기"]].map(([id, name]) => ({ id, name }));
-const wait = (name: string, key = name): StatusRow => ({ key, name, st: "unknown", note: "보고 아직 안 옴" });
+const WAIT = "보고 아직 안 옴", MOVING = "이사 전 · 지금은 VM 누리(neo)";
+const wait = (name: string, key = name): StatusRow => ({ key, name, st: "unknown", note: name === "누리 PC" ? MOVING : WAIT });
+// CLI 연결 표(형 11-08 01:25 「cli 연결은 표로 나타내자. 행에 애들, 열에 cli」 · 「이런식으로 클로드는 4개, gpt는 1개.」 · 01:26 「R2, GITHUB, Rclone 까지」)
+//   클로드1~4 = 그 몸 계정 폴더 차례(.claude → spare1 → spare2 …) · R2 · GitHub · rclone = 몸 보고 tok_cli 줄(key <몸>:r2 · :gh · :rclone · 뎅·봄 붙이는 중)
+const CLI_COLS = [["c1", "클로드1"], ["c2", "클로드2"], ["c3", "클로드3"], ["c4", "클로드4"], ["gpt", "GPT"], ["r2", "R2"], ["gh", "GitHub"], ["rclone", "rclone"]].map(([id, name]) => ({ id, name }));
+// 묶음(형 11-08 01:29 「가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」)
+const GROUPS = ["계정 · 연결", "수집", "몸", "우리"];
 /** 형이 준 분류 · 차례 · 기본 줄(보고가 오면 같은 key 줄을 덮음) */
 const SKELETON: StatusCat[] = [
-  { id: "acct", name: "계정 상태", rows: [] },   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
-  { id: "bots", name: "봇 연결", rows: [] },
-  { id: "server", name: "서버 연결 상태", rows: [] },
-  { id: "collect", name: "수집 상태", rows: [] },
-  { id: "tok_claude", name: "클로드 토큰 (CLI)", rows: [...HOSTS, ...VMS].map((h) => wait(h)) },
-  { id: "tok_grok", name: "그록봇 토큰", rows: [] },
-  { id: "tok_gpt", name: "지피티 토큰 (CLI)", rows: [...HOSTS, ...VMS].map((h) => wait(h)) },
-  { id: "backup", name: "백업 · G드라이브", rows: HOSTS.map((h) => wait(h)) },
-  { id: "hw", name: "하드웨어 연결 · 온도", rows: [...HOSTS, ...VMS.map((v) => `VM ${v}`)].map((h) => wait(h)) },
-  { id: "diary", name: "일기 작동", cols: DIARY_COLS, rows: BEINGS.map((b) => ({ ...wait(b), cells: {} })) },
-  { id: "ssh", name: "SSH 서로 연결 · 권한", cols: HOSTS.map((h) => ({ id: h, name: `→ ${h}` })), rows: HOSTS.map((h) => ({ ...wait(h), cells: {} })) },
-  { id: "docker", name: "도커 · VM 구성", rows: HOSTS.map((h) => wait(h)) },
+  { grp: "계정 · 연결", id: "acct", name: "계정 상태", rows: [] },   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
+  { grp: "계정 · 연결", id: "cli", name: "CLI 연결", cols: CLI_COLS, rows: BODIES.map((b) => ({ ...wait(b.being), cells: {} })) },   // 서버 tok_claude · tok_gpt · tok_cli 줄을 한 표로(cliRows)
+  { grp: "계정 · 연결", id: "tok_grok", name: "그록봇 토큰", rows: [] },
+  { grp: "계정 · 연결", id: "bots", name: "봇 연결", rows: [] },
+  { grp: "계정 · 연결", id: "server", name: "서버 연결 상태", rows: [] },
+  { grp: "수집", id: "collect", name: "수집 상태", rows: [] },
   // 수집 색인(형 11-05 12:45~13:10 「인덱싱 10개정도로 표를 만들어야될거같다」 · 「초단위로」 · 「한 표에 모든걸 다 담아」 · 「봄이랑 상의해서 메뉴 4번에」 · 정본 = 공통/문서/2026-11-05-작동-표/수집-루틴.md · 서버 cat collect_index)
-  { id: "collect_index", name: "수집 색인 · 40분 판", rows: [] },
+  { grp: "수집", id: "collect_index", name: "수집 색인 · 40분 판", rows: [] },
   // 뉴스 요약 썸네일 기준(형 11-05 08:3x 「극화 on / off + 수량  / 썸넹일 플랫폼」 · 수채화 · 포토 실사 같은 칸 · 만평 = 형 11-06 「만평 없어서 없애두댜고」) = 화풍 셋(thumb_gen.py STYLES · sid webtoon·watercolor·photo·cartoon) × 켜짐·장수·엔진(에디터 설정 「AI 썸네일·이미지」)
-  { id: "thumb", name: "뉴스 요약 썸네일 기준", rows: [["webtoon", "극화"], ["watercolor", "수채화"], ["photo", "포토 실사"]].map(([key, name]) => wait(name, key)) },
+  { grp: "수집", id: "thumb", name: "뉴스 요약 썸네일 기준", rows: [["webtoon", "극화"], ["watercolor", "수채화"], ["photo", "포토 실사"]].map(([key, name]) => wait(name, key)) },
+  { grp: "몸", id: "hw", name: "하드웨어 연결 · 온도", rows: [...HOSTS, ...VMS.map((v) => `VM ${v}`)].map((h) => wait(h)) },
+  { grp: "몸", id: "ssh", name: "SSH 서로 연결 · 권한", cols: BODIES.map((b) => ({ id: b.body, name: b.body.replace(/^(맥 )?VM /, "") })),   // 행 = SSH 를 재는 몸(윈A · 맥 · 시아 PC · 누리 PC) · 열 = 몸 여덟
+    rows: [["윈A", "윈A"], ["맥", "맥"], ["hwang", "시아 PC"], ["누리 PC", "누리 PC"]].map(([key, name]) => ({ ...wait(name, key), cells: {} })) },
+  { grp: "몸", id: "docker", name: "도커 · VM 구성", rows: HOSTS.map((h) => wait(h)) },
+  { grp: "몸", id: "backup", name: "백업 · G드라이브", rows: [wait("윈A")] },   // 맥 = 윈A 가 끌어감(「윈A ← 맥」 줄) · 윈B 없음(형 01:21 사진 X)
+  { grp: "우리", id: "diary", name: "일기 작동", cols: DIARY_COLS, rows: BEINGS.map((b) => ({ ...wait(b), cells: {} })) },
   // 사무실 통신(형 11-05 08:2x 「사무실 커뮤니케이션 상태 / 열인덱싱: 클로드, 지피티, 그록봇 / 행인덱싱: …」) = 종류 × 봇 무리 격자 · 칸 = 그 무리가 그 종류를 사무실로 보내고 받는지(시험 = 빠르 · 서버 file·photo 길)
-  { id: "comm", name: "사무실 커뮤니케이션", cols: ["클로드", "지피티", "그록봇"].map((x) => ({ id: x, name: x })),   // 칸 id = 서버(빠르 comm cells) 이름 그대로
+  { grp: "우리", id: "comm", name: "사무실 커뮤니케이션", cols: ["클로드", "지피티", "그록봇"].map((x) => ({ id: x, name: x })),   // 칸 id = 서버(빠르 comm cells) 이름 그대로
     rows: ["텍스트", "사진 원본", "사진 압축본", "영상 원본", "영상 압축본", "영상 해석본", "음성", "음성 전사본", "링크", "파일(웹 관련)", "파일(앱 관련)", "bat 파일 등"].map((t) => ({ ...wait(t), cells: {} })) },
 ];
 
@@ -71,18 +89,60 @@ function fromLocal(s: Sched | undefined, bots: Bot[] | undefined, loading = fals
 /** 서버 불(뜸 _status.js = 🟢🟡🔴⚪) → 화면 낱말 · 줄·칸 둘 다 */
 const LIGHT: Record<string, HealthSt> = { "🟢": "ok", "🟡": "late", "🔴": "miss", "⚪": "unknown" };
 const stIn = (v: unknown): HealthSt => (typeof v === "string" && (LIGHT[v] || (["ok", "late", "miss", "unknown", "off"].includes(v) ? (v as HealthSt) : "unknown"))) || "unknown";
-const rowIn = (r: StatusRow & { host?: string }): StatusRow & { host?: string } => ({ ...r, st: stIn(r.st), ...(r.cells ? { cells: Object.fromEntries(Object.entries(r.cells).map(([k, c]) => [k, { ...c, st: stIn(c.st) }])) } : {}) });
+// 줄 이름 맨 앞 hwang = 시아 PC(형 11-08 01:23 「시아 관련된거 vm이 아니라 시아 피시 갱신」 · 몸 보고는 host 이름 그대로 올림)
+const nameKo = (n?: string) => (n || "").replace(/^hwang(?=\s|$)/i, "시아 PC");
+const rowIn = (r: StatusRow & { host?: string }): StatusRow & { host?: string } => ({ ...r, name: nameKo(r.name), st: stIn(r.st), ...(r.cells ? { cells: Object.fromEntries(Object.entries(r.cells).map(([k, c]) => [k, { ...c, st: stIn(c.st) }])) } : {}) });
 const HIDE_BOTS = new Set(["별"]);
-const HOST_KO: Record<string, string> = { fast: "빠르", sia: "시아", deng: "뎅", neo: "누리", eyes: "뜸", mac: "맥", "win-a": "윈A", wina: "윈A", "win-b": "윈B", winb: "윈B" };   // 몸 보고 host(영어 자리) → 자리 줄 이름   // 형 11-05 08:31 「별은 빼면 되고」
+const HOST_KO: Record<string, string> = { fast: "빠르", sia: "시아", deng: "뎅", neo: "누리", eyes: "뜸", light: "번개", mac: "맥", "win-a": "윈A", wina: "윈A", hwang: "시아 PC", nuri: "누리 PC" };   // 몸 보고 host(영어 자리) → 자리 줄 이름   // 형 11-05 08:31 「별은 빼면 되고」
+const hostOf = (r: StatusRow & { host?: string }) => String(r.host || r.key.split(":")[0]);
+/** 계정 짧은 이름(형 01:25 「2열 2행(ems1130g)」 · 「3영ㄹ 2행(muteno)」) · 네이버 = ems1130n(형 11-07 14:34 「윈터는 ems1130n이야」) */
+const acctShort = (v?: string) => (!v ? "" : /@naver\.com$/i.test(v) ? `${v.split("@")[0]}n` : v.includes("@") ? v.split("@")[0] : v);
+const claudeDir = (r: StatusRow) => (r.name.match(/\.claude[\w-]*/) || r.key.match(/\.claude[\w-]*/) || [""])[0];
+const dirRank = (d: string) => (d === ".claude" ? 0 : Number((d.match(/spare(\d+)/) || [0, 99])[1]));
+/** CLI 연결 표 = 서버 tok_claude · tok_gpt · tok_cli 줄을 애들 × 칸으로(행 = BODIES · 칸 = CLI_COLS) */
+function cliRows(srv?: StatusCat[]): StatusRow[] {
+  const of = (id: string) => (srv?.find((x) => x.id === id)?.rows || []).map(rowIn);
+  const claude = of("tok_claude"), gpt = of("tok_gpt"), more = of("tok_cli");
+  return BODIES.map((b) => {
+    const mine = (rs: (StatusRow & { host?: string })[]) => rs.filter((r) => b.hosts.includes(hostOf(r)));
+    const cells: Record<string, Cell> = {};
+    mine(claude).sort((x, y) => dirRank(claudeDir(x)) - dirRank(claudeDir(y))).slice(0, 4).forEach((r, i) => {
+      cells[`c${i + 1}`] = { st: r.st, label: acctShort(r.value) || "—", note: [claudeDir(r), r.value, daysKo(r.left_days), r.st === "ok" ? "" : r.note].filter(Boolean).join(" · ") };
+    });
+    const g = mine(gpt)[0];
+    if (g) cells.gpt = { st: g.st, label: acctShort(g.value) || "붙음", note: [g.value, g.note].filter(Boolean).join(" · ") };
+    for (const id of ["r2", "gh", "rclone"]) {
+      const r = mine(more).find((x) => x.key.endsWith(`:${id}`));
+      cells[id] = r ? { st: r.st, label: acctShort(r.value) || HEALTH_KO[r.st], note: [r.value, r.note].filter(Boolean).join(" · ") } : { st: "unknown", label: "—", note: "재는 중(몸 보고 tok_cli · 뎅·봄)" };
+    }
+    for (const id of ["c1", "c2", "c3", "c4", "gpt"]) if (!cells[id]) cells[id] = { st: "unknown", label: "—", note: b.being === "누리" && id === "c1" ? MOVING : "그 칸 없음" };
+    const sts = Object.values(cells).map((x) => x.st);
+    const st: HealthSt = sts.includes("miss") ? "miss" : sts.includes("late") ? "late" : sts.some((x) => x === "ok") ? "ok" : "unknown";
+    return { key: b.being, name: b.being, value: b.body, st, cells };
+  });
+}
+/** SSH 줄 = 칸이 없으면 value 글(「맥 됨(hwang) · 뎅 됨(deng) …」 · 몸 보고 win_ssh)을 칸으로 · 칸 이름 = 몸 이름(BODIES.body) */
+const SSH_NAME: Record<string, string> = { "뜸 VM": "맥 VM 뜸", 뜸: "맥 VM 뜸", 뎅: "VM 뎅", 빠르: "VM 빠르", 번개: "VM 번개", 누리: "누리 PC", "시아 PC": "시아 PC", 윈A: "윈A", 맥: "맥" };
+function sshIn(r: StatusRow): StatusRow {
+  const cells: Record<string, Cell> = {};
+  for (const [k, c] of Object.entries(r.cells || {})) cells[SSH_NAME[k] || k] = { st: c.st, note: c.note };   // 칸 안 글자 뺌(형 01:22 사진 「관리자」 X) · 누르면 보임
+  if (!r.cells) for (const m of (r.value || "").matchAll(/([^·]+?)\s(됨|안 됨|꺼짐)(?:\(([^)]*)\))?\s*(?:·|$)/g)) {
+    const k = SSH_NAME[m[1].trim()] || m[1].trim();
+    cells[k] = { st: m[2] === "됨" ? "ok" : m[2] === "꺼짐" ? "off" : "miss", note: m[3] ? `${m[2]} · ${m[3]}` : m[2] };
+  }
+  const me = BODIES.find((b) => b.hosts.includes(r.key) || b.body === r.name.replace(/\s*(→.*|SSH)$/, "").trim());
+  return { ...r, name: me?.body || r.name, cells };
+}
 /** 뼈대 ← 지금 자료(1·2·3) ← 서버 GET status(있으면) · 격자 = 같은 key 덮음 · 줄 표 = 서버 줄이 이김 + 아직 보고 안 한 몸 자리 줄만 남김 */
 function merge(local: Record<string, StatusRow[]>, srv?: StatusCat[]): StatusCat[] {
   return SKELETON.map((c) => {
-    const s = srv?.find((x) => x.id === c.id), sr = (s?.rows || []).map(rowIn).filter((r) => !(c.id === "bots" && HIDE_BOTS.has(r.name || r.key)));
+    if (c.id === "cli") return { ...c, rows: srv ? cliRows(srv) : c.rows, at: srv?.find((x) => x.id === "tok_claude")?.at };
+    const s = srv?.find((x) => x.id === c.id), sr = (s?.rows || []).map(rowIn).map((r) => (c.id === "ssh" ? sshIn(r) : r)).filter((r) => !(c.id === "bots" && HIDE_BOTS.has(r.name || r.key)));
     let rows = (local[c.id]?.length ? local[c.id] : c.rows).filter((r) => !(c.id === "bots" && HIDE_BOTS.has(r.key)));
     if (sr.length && c.cols) { const by = new Map(sr.map((r) => [r.key, r])); rows = [...rows.map((r) => by.get(r.key) || r), ...sr.filter((r) => !rows.some((x) => x.key === r.key))]; }
     else if (sr.length) {
-      const hosts = new Set(sr.flatMap((r) => { const h = String(r.host || r.key.split(":")[0]); return [h, HOST_KO[h] || h]; }));
-      const left = c.rows.filter((r) => r.note === "보고 아직 안 옴" && !hosts.has(r.key) && !hosts.has(r.key.replace(/^VM /, "")));   // 보고 안 한 몸만 자리 줄로
+      const hosts = new Set(sr.flatMap((r) => { const h = hostOf(r); return [h, HOST_KO[h] || h]; }));
+      const left = c.rows.filter((r) => (r.note === WAIT || r.note === MOVING) && !hosts.has(r.key) && !hosts.has(r.key.replace(/^VM /, "")));   // 보고 안 한 몸만 자리 줄로
       rows = [...sr, ...left];
     }
     return { ...c, rows, cols: c.cols, at: s?.at };
@@ -101,7 +161,7 @@ function Grid({ c, pick, setPick }: { c: StatusCat; pick: string; setPick: (k: s
     const row = c.rows[r], col = cols[k];
     if (c.id === "ssh" && row.name === col.id) return { st: "off" };
     const x = row.cells?.[col.id];
-    return { st: x?.st || (row.note === "보고 아직 안 옴" ? "unknown" : row.st === "miss" ? "unknown" : row.st), label: x?.note };
+    return { st: x?.st || (row.note === WAIT || row.note === MOVING ? "unknown" : row.st === "miss" ? "unknown" : row.st), label: c.id === "ssh" ? undefined : x?.note };   // SSH 칸 = 불만(형 01:22 사진 「관리자」 X · 누르면 까닭)
   };
   const r = ri >= 0 ? c.rows[ri] : undefined, x = r && ci >= 0 ? r.cells?.[cols[ci].id] : undefined;
   return (
@@ -109,6 +169,30 @@ function Grid({ c, pick, setPick }: { c: StatusCat; pick: string; setPick: (k: s
       <MatrixHeat rows={c.rows.map((x) => x.name)} cols={cols.map((x) => x.name)} cells={cellOf} mark={ri >= 0 && ci >= 0 ? { r: ri, c: ci } : null} aria-label={c.name}
         onCell={(a, b) => { const k = `${c.id}:${c.rows[a].key}:${cols[b].id}`; setPick(pick === k ? "" : k); }} />
       {r && ci >= 0 ? <p className="nsb-why">{r.name} · {cols[ci].name} — {HEALTH_KO[x?.st || "unknown"]}{x?.note || r.note ? ` · ${x?.note || r.note}` : ""}</p> : null}
+    </div>
+  );
+}
+
+/** CLI 연결 표(형 11-08 01:25 「cli 연결은 표로 나타내자. 행에 애들, 열에 cli」) · 칸 = 불 + 계정 짧은 이름 · 줄 누르면 칸마다 까닭 */
+function CliTable({ c }: { c: StatusCat }) {
+  const [pick, setPick] = useState("");
+  const cols = c.cols || [];
+  return (
+    <div className="nsb-acct nsb-cli" role="region" aria-label="CLI 연결 표" tabIndex={0}>
+      <table>
+        <thead><tr><th>애들</th>{cols.map((x) => <th key={x.id}>{x.name}</th>)}</tr></thead>
+        <tbody>{c.rows.flatMap((r) => {
+          const tr = (
+            <tr key={r.key} data-st={r.st} onClick={() => setPick(pick === r.key ? "" : r.key)}>
+              <th scope="row"><StatusDot st={r.st} />{r.name}<small>{r.value}</small></th>
+              {cols.map((x) => { const v = r.cells?.[x.id]; return <td key={x.id} data-st={v?.st || "unknown"}>{v && v.st !== "unknown" ? <StatusDot st={v.st} /> : null}<span>{v?.label || "—"}</span></td>; })}
+            </tr>
+          );
+          if (pick !== r.key) return [tr];
+          const why = cols.map((x) => { const v = r.cells?.[x.id]; return v?.note ? `${x.name} ${v.note}` : ""; }).filter(Boolean);
+          return [tr, <tr key={`${r.key}:why`} className="why"><td colSpan={cols.length + 1}>{why.length ? why.map((w) => <span key={w}>{w}</span>) : HEALTH_KO[r.st]}</td></tr>];
+        })}</tbody>
+      </table>
     </div>
   );
 }
@@ -211,15 +295,18 @@ export function StatusBoard() {
         <span>● {count(all, "ok")} · ▲ {yellow} · ✕ {red} · ○ {gray}</span>
         <small>{srv.isError ? "몸 보고 길 = 뜸이 붙이는 중" : srv.data?.at ? agoKo(srv.data.at) : ""}</small>
       </div>
-      {cats.map((c) => {
+      {cats.map((c, i) => {
         const w = worst(c.rows), isOpen = open[c.id] ?? (c.id === "acct" || w === "miss" || w === "late");   // 계정 상태 = 늘 펼침(형 「먼저 나오게」)
+        const g = c.grp && c.grp !== cats[i - 1]?.grp ? c.grp : "", gr = g ? cats.filter((x) => x.grp === g).flatMap((x) => x.rows) : [];   // 묶음 머리(형 01:29 「카테고라이징」) · 머리 불 = 그 묶음 제일 나쁜 것
         return (
-          <section key={c.id} className="nsb-cat" data-st={w}>
+          <Fragment key={c.id}>
+            {g && GROUPS.includes(g) ? <h3 className="nsb-grp" data-st={worst(gr)}><StatusDot st={worst(gr)} />{g}<small>● {count(gr, "ok")}{count(gr, "late") ? ` · ▲ ${count(gr, "late")}` : ""}{count(gr, "miss") ? ` · ✕ ${count(gr, "miss")}` : ""}{count(gr, "unknown") ? ` · ○ ${count(gr, "unknown")}` : ""}</small></h3> : null}
+          <section className="nsb-cat" data-st={w}>
             <button type="button" className="nsb-ch" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [c.id]: !isOpen }))}>
               <StatusDot st={w} /><b>{c.name}</b>
               <span className="nsb-cnt">{count(c.rows, "miss") ? <em>✕ {count(c.rows, "miss")}</em> : null}{count(c.rows, "late") ? <i>▲ {count(c.rows, "late")}</i> : null}<small>{c.rows.length}</small></span>
             </button>
-            {isOpen ? (c.id === "acct" ? <AcctTable rows={c.rows as unknown as AcctRow[]} /> : c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
+            {isOpen ? (c.id === "acct" ? <AcctTable rows={c.rows as unknown as AcctRow[]} /> : c.id === "cli" ? <CliTable c={c} /> : c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
               <ul className="nsb-rows">
                 {(c.id === "collect" ? [...ZONES, ...(c.rows.some((r) => !ZONES.includes(r.zone || "")) ? ["기타"] : [])].flatMap((z) => [{ key: `zone:${z}`, name: z, st: worst(c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))), head: true } as StatusRow & { head?: boolean }, ...c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))]) : c.rows).map((r) => {   // 구역 없는 줄 = 「기타」(뎅 시험 보고 · 안 묶여 숨던 것)
                   const head = (r as { head?: boolean }).head, z = r.key.replace(/^zone:/, "");
@@ -240,6 +327,7 @@ export function StatusBoard() {
               </ul>
             )) : null}
           </section>
+          </Fragment>
         );
       })}
     </div>

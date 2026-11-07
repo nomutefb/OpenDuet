@@ -85,3 +85,17 @@
 .nsb-acct .names span:first-child { padding-left:0; border-left:0; }
 .nsb-acct .memo { color:var(--nsb-mut); font-size:12px; }
 .nsb-acct tr.why td { font-size:12px; color:var(--nsb-mut); background:rgba(255,255,255,.03); }
+/* 묶음 머리(형 11-08 01:29 「가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」) — 칸 위 작은 머리 · 불 = 그 묶음 제일 나쁜 것 */
+.nsb-grp { display:flex; align-items:center; gap:6px; margin:18px 4px 8px; font-size:12px; font-weight:800; letter-spacing:.06em; color:var(--nsb-mut); }
+.nsb-grp:first-of-type { margin-top:6px; }
+.nsb-grp small { margin-left:auto; font-size:11px; font-weight:400; letter-spacing:0; font-variant-numeric:tabular-nums; }
+.nsb-grp[data-st="miss"] { color:var(--nsb-red); }
+/* CLI 연결 표(형 01:25 「행에 애들, 열에 cli」) — 계정 상태 표 꼴 그대로 · 칸 = 불 + 계정 짧은 이름 */
+.nsb-cli table { min-width:720px; }
+.nsb-cli td { white-space:nowrap; font-size:12px; font-variant-numeric:tabular-nums; }
+.nsb-cli td .nm-st { margin-right:5px; }
+.nsb-cli td[data-st="unknown"] span { color:var(--nsb-mut); }
+.nsb-cli td[data-st="miss"] { background:rgba(255,90,95,.12); }
+.nsb-cli td[data-st="late"] { background:rgba(255,210,63,.08); }
+.nsb-cli tr.why td span { display:inline-block; margin-right:12px; white-space:nowrap; }
+.nsb-cli tr.why td { white-space:normal; }
