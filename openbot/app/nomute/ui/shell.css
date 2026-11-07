@@ -278,3 +278,10 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-spread .nm-settings-page .yset-part + .yset-part { margin-top:0; }
 /* 러너 = 칸 둘 나란히(max-w-5xl)를 넓게 */
 .nm-split-spread .nm-runner-page { max-width:min(1600px, 100%); padding-inline:28px; }
+
+/* 눌러야 받는 칸(서랍 창 · 이슈 · 웹) 코드를 받는 동안 = 가운데 라임 점 셋(ui/shell.tsx LazyDots · 번개 11-08 · 첫 화면 무게) */
+.nm-lazy{display:flex;flex:1;align-items:center;justify-content:center;min-height:120px}
+.nm-lazy i{display:inline-block;width:8px;height:8px;margin:0 5px;border-radius:50%;background:#CFFF40;opacity:.22;animation:nmLazyDots 1.2s ease-in-out infinite}
+.nm-lazy i:nth-child(2){animation-delay:.2s}
+.nm-lazy i:nth-child(3){animation-delay:.4s}
+@keyframes nmLazyDots{0%,100%{opacity:.22}33%{opacity:1}}

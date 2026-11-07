@@ -17,15 +17,15 @@ import { ChatPresenceProvider, useChatServerBusy, useServerWork } from "@/compon
 import { FinishedForYou } from "@/components/shell/finished-for-you";
 import { PageHeader, ShellHeader } from "@/components/shell/header";
 import { PageChromeProvider } from "@/components/shell/page-chrome";
-import { TasksScreen } from "@/components/shell/tasks-screen";
+const TasksScreen = lazy(() => import("@/components/shell/tasks-screen").then((m) => ({ default: m.TasksScreen })));
 import { useChannelEvents } from "@/lib/channels/use-channel-events";
 import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
-import { RunnerScreen } from "../runner/runner-screen";
+const RunnerScreen = lazy(() => import("../runner/runner-screen").then((m) => ({ default: m.RunnerScreen })));
 import { NewsList } from "../home/news-list";
 import { NewsSummary } from "../home/news-summary";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
-import { SchedDesk } from "./sched-desk";
-import { StatusBoard } from "./status-board";
+const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));
+const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));
 import { StatusLights, SyncVersion } from "./status-line";   // 맨 아래 상태 한 줄(④ · 빠르 11-06)
 import { DrawerPage } from "./drawer-page";
 import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
@@ -38,9 +38,9 @@ import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
-import { WebPane } from "./web-pane";
+const WebPane = lazy(() => import("./web-pane").then((m) => ({ default: m.WebPane })));
 import { ModalBox } from "./modal-box";   // 큰 창 넷 = Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
-import { IssueView } from "./issue";
+const IssueView = lazy(() => import("./issue").then((m) => ({ default: m.IssueView })));
 import { PinBar } from "./pins";
 import { OfficeChat, roomMsgsOptions } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
@@ -49,29 +49,29 @@ import { NomuteName } from "./top";
 import { RoomGlyph } from "./room-glyph";
 import { AppIntro } from "../home/intro";
 import { NewsModal, newsFileOf } from "./news";
-import { ThumbHist } from "./thumb-hist";   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
-import { FeedModal } from "./feed";   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
-import { ChanModal } from "./chan";
-import { TrendModal } from "./trend";   // 서랍 「SNS 전체」 = 에디터 트렌드 탭 네이티브(전엔 FRAME 으로 품음)
-import { ScrapModal } from "./scrap";   // 서랍 「LEGACY」 = 에디터 수집함 탭 네이티브(전엔 FRAME 으로 품음)
-import { TokensModal } from "./tokens";   // 서랍 「토큰」·「결의 방」·「피드백」 = 에디터 페이지 네이티브(전엔 FRAME 으로 품음)
-import { GyeolModal } from "./gyeol-room";
-import { StoriesModal } from "./stories";   // 밥상 이야기(형 11-04 15:4x · 서랍 칸 · 밥상 방 오른쪽 위 그림은 ./room-search.tsx)
-import { FeedbackModal } from "./feedback";
-import { QueueModal } from "./queue";
-import { MsgsModal } from "./msgs";
-import { AcctModal } from "./acct";   // 서랍 「계정 전환」 = 에디터 설정 ▸ 계정 전환을 앱 안으로(봄 11-01)
-import { GenOptModal } from "./genopt";   // 서랍 「생성 옵션」 = 에디터 설정 ▸ 기본값 그림 줄을 앱 안으로(봄 11-01)
-import { LockModal } from "./lock";   // 서랍 「잠금」 = 에디터 설정 ▸ 자동 잠금을 앱 안으로(봄 11-01)
-import { KwModal } from "./kw";   // 서랍 「키워드 알림」 = 에디터 설정 ▸ 키워드 알림을 앱 안으로(봄 11-01)
-import { SnsAccModal } from "./snsacc";   // 서랍 「구독 채널」 = 에디터 설정 ▸ 구독 채널을 앱 안으로(봄 11-01)
-import { DownloadModal } from "./dl";   // 서랍 「다운로드」 = 에디터 설정 ▸ 다운로드를 앱 안으로(봄 11-01)
-import { PushDevsModal } from "./push-devs";   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
-import { SensorModal } from "./sensor";   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
-import { MemoModal } from "./memo";   // 서랍 「메모」 = 에디터 설정 ▸ 메모를 앱 안으로(봄 11-01)   // 서랍 「알림메세지」 = 에디터 알림함을 앱 안으로(봄 11-01)   // 서랍 「대기열」 = 에디터 대기열 창을 앱 안으로(봄 11-01)
-import { SnsModal } from "./sns";
+const ThumbHist = lazy(() => import("./thumb-hist").then((m) => ({ default: m.ThumbHist })));   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
+const FeedModal = lazy(() => import("./feed").then((m) => ({ default: m.FeedModal })));   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
+const ChanModal = lazy(() => import("./chan").then((m) => ({ default: m.ChanModal })));
+const TrendModal = lazy(() => import("./trend").then((m) => ({ default: m.TrendModal })));   // 서랍 「SNS 전체」 = 에디터 트렌드 탭 네이티브(전엔 FRAME 으로 품음)
+const ScrapModal = lazy(() => import("./scrap").then((m) => ({ default: m.ScrapModal })));   // 서랍 「LEGACY」 = 에디터 수집함 탭 네이티브(전엔 FRAME 으로 품음)
+const TokensModal = lazy(() => import("./tokens").then((m) => ({ default: m.TokensModal })));   // 서랍 「토큰」·「결의 방」·「피드백」 = 에디터 페이지 네이티브(전엔 FRAME 으로 품음)
+const GyeolModal = lazy(() => import("./gyeol-room").then((m) => ({ default: m.GyeolModal })));
+const StoriesModal = lazy(() => import("./stories").then((m) => ({ default: m.StoriesModal })));   // 밥상 이야기(형 11-04 15:4x · 서랍 칸 · 밥상 방 오른쪽 위 그림은 ./room-search.tsx)
+const FeedbackModal = lazy(() => import("./feedback").then((m) => ({ default: m.FeedbackModal })));
+const QueueModal = lazy(() => import("./queue").then((m) => ({ default: m.QueueModal })));
+const MsgsModal = lazy(() => import("./msgs").then((m) => ({ default: m.MsgsModal })));
+const AcctModal = lazy(() => import("./acct").then((m) => ({ default: m.AcctModal })));   // 서랍 「계정 전환」 = 에디터 설정 ▸ 계정 전환을 앱 안으로(봄 11-01)
+const GenOptModal = lazy(() => import("./genopt").then((m) => ({ default: m.GenOptModal })));   // 서랍 「생성 옵션」 = 에디터 설정 ▸ 기본값 그림 줄을 앱 안으로(봄 11-01)
+const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModal })));   // 서랍 「잠금」 = 에디터 설정 ▸ 자동 잠금을 앱 안으로(봄 11-01)
+const KwModal = lazy(() => import("./kw").then((m) => ({ default: m.KwModal })));   // 서랍 「키워드 알림」 = 에디터 설정 ▸ 키워드 알림을 앱 안으로(봄 11-01)
+const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 서랍 「구독 채널」 = 에디터 설정 ▸ 구독 채널을 앱 안으로(봄 11-01)
+const DownloadModal = lazy(() => import("./dl").then((m) => ({ default: m.DownloadModal })));   // 서랍 「다운로드」 = 에디터 설정 ▸ 다운로드를 앱 안으로(봄 11-01)
+const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
+const SensorModal = lazy(() => import("./sensor").then((m) => ({ default: m.SensorModal })));   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
+const MemoModal = lazy(() => import("./memo").then((m) => ({ default: m.MemoModal })));   // 서랍 「메모」 = 에디터 설정 ▸ 메모를 앱 안으로(봄 11-01)   // 서랍 「알림메세지」 = 에디터 알림함을 앱 안으로(봄 11-01)   // 서랍 「대기열」 = 에디터 대기열 창을 앱 안으로(봄 11-01)
+const SnsModal = lazy(() => import("./sns").then((m) => ({ default: m.SnsModal })));
 const ThumbMaker = lazy(() => import("./thumb-maker"));   // 서랍 「에디터」 = 썸네일 생성기 앱 안(형 11-02 09:28 「이거 아예 이 디자인하고 배경 살려서 인앱 안으로 넣어줘」 · 원본 엔진·CSS 가 커서 열 때만 받음)
-import { AskModal } from "./ask";   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
+const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomList, useRoomOrder } from "./room-list";
 import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
 import { DecideFab } from "./decide-pop";   // 대화방 우하단 + 위 = 형 결정 노트 단추(형 11-01 08:36)
@@ -259,6 +259,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 <b>{M.label}</b>
               </div>
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
+                <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
                   : M.id === "edtool" ? <Suspense fallback={null}><ThumbMaker /></Suspense>   // 썸네일 생성기 = 원본 판·엔진·배경 그대로(./thumb-maker · 머리 「✧ 에디터 · 카드 제작」 = 옛 index 도구 창 꼴)
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
@@ -292,6 +293,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "story" ? <div className="nm-scroll"><StoriesModal /></div>
                   : M.id === "feedback" ? <div className="nm-scroll"><FeedbackModal /></div>
                   : <div className="nm-scroll nm-settings-page"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
+                </Suspense>
               </div>
             </ModalBox>
           ) : null}
@@ -302,7 +304,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeWeb}><DuetIcon name="chevronLeft" size={20} /></button>
                 <b>이슈 {issue}</b>
               </div>
-              <div className="nm-modal-b flush"><div className="nm-scroll"><IssueView key={issue} no={issue} /></div></div>
+              <div className="nm-modal-b flush"><div className="nm-scroll"><Suspense fallback={<LazyDots />}><IssueView key={issue} no={issue} /></Suspense></div></div>
             </ModalBox>
           ) : null}
         </div>
@@ -315,6 +317,9 @@ export function NomuteShell({ children }: { children: ReactNode }) {
 /** PC 반갈 오른쪽 반(형 11-05 13:26 그림 · 13:36 「가로 16 이야. 그러면 8 8 구성」 · 「4*4로 나눈다고 가정」 · 「2*4는 (좌측) 은 다 대화고」 · 「1*4 1행 ~ 1.5 는 러너 기본정보(… 게이지로 축약해서)」 · 「근데 갬성이 떨어지면안되.」 · 「나머지 3~2.5 를 실시간 뉴스 카드로.」)
  *  위 1.5/4 = 2 러너(맨 위 몸 줄 + 러너 판 게이지) · 아래 2.5/4 = 3 실시간 뉴스 카드(홈 카드 덱 그대로 · 「전송」 = 그 기사 요약 요청 · 형 13:38 「전송하면 그 아래에 요약 대기열 … 근데 거기까지 안바래」)
  *  러너 위젯(PC 바탕화면)은 내림(형 13:23 「그럼냅다치우고」 · 윈A CPU 1등) — 여기 한 창에 대화 · 러너 · 뉴스가 같이 있어 창이 따로 놀지 않음(형 13:20 「근데 창이 다 따로놀아;;ㅠㅠ」) */
+/** 눌러야 받는 칸(서랍 창 · 이슈 · 웹) 코드를 받는 동안 = 가운데 라임 점 셋(글자 0 · 형 11-07 17:20 「불러오는 중 일때 ...이 움직이거나 할수있나. 안그러면 멈춘거같아서.」 · 꼴 = ./shell.css .nm-lazy) */
+function LazyDots() { return <div className="nm-lazy" role="status" aria-label="불러오는 중"><i /><i /><i /></div>; }
+
 /** 반갈 칸 울타리 — 한 칸이 깨져도 앱 전체(「Something went wrong!」)로 번지지 않게 그 칸만 한 줄로(17:2x 뉴스 요약 칸이 앱을 통째로 깨뜨린 것 뒤) */
 class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: boolean }> {
   state = { bad: false };
@@ -382,7 +387,7 @@ function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
           <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
           <b className="min-w-0 flex-1 truncate">{host || "웹"}</b>
         </div>
-        <div className="nm-modal-b frame"><WebPane key={u} initial={u} /></div>
+        <div className="nm-modal-b frame"><Suspense fallback={<LazyDots />}><WebPane key={u} initial={u} /></Suspense></div>
       </ModalBox>
     );
   }
