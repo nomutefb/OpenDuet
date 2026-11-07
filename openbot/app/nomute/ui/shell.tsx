@@ -419,11 +419,11 @@ function FaceStrip({ current, last }: { current: string; last: string }) {
         {stripOrder.map((r) => {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list), hy = Number((r as { pending_hyung?: number }).pending_hyung) || 0;
           return (
-            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n > 0 ? ` · 안 읽은 글 ${n}개` : ""}`} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
+            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
               {pins.has(r.id) ? <i className="nm-face-pin" aria-label="고정됨" /> : null}
               {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomGlyph id={r.id} look={r.look} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
-              {n > 0 ? <b className="nm-badge">{n > 99 ? "99+" : n}</b> : n < 0 ? <i className="nm-dot" aria-hidden /> : null}
-              {hy > 0 ? <b className="nm-hbadge" aria-label={`형 결정 기다리는 글 ${hy}개`}>{hy > 99 ? "99+" : hy}</b> : null}   {/* 형 결정 대기 = 왼쪽 위 라임(뜸 서버 · 11-07) */}
+              {n !== 0 ? <i className="nm-udot" aria-hidden /> : null}   {/* 안 읽음 = 왼쪽 위 라임 점 하나(숫자 없음 · 형 11-07 13:15 「안읽은 글 수는 애초에 안떠두됨」 · 「라임색 접 작게 잇으면됨」 · 「저 불이 좌측에 있으면 됨.」) */}
+              {hy > 0 ? <b className="nm-badge nm-badge-hy" aria-label={`형 결정 기다리는 글 ${hy}개`}>{hy > 99 ? "99+" : hy}</b> : null}   {/* 오른쪽 걸친 숫자 = 호출 수(형 결정 대기 · 형 13:15 「숫자가 우측 프로필에 걸치는거 (기존 숫자) 그거는 호출.」 · 뜸 서버 pending_hyung) */}
             </button>
           );
         })}
