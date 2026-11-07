@@ -1,6 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { leftKo, payEndAt, weekCell, weekPace } from "../data/acct-time.ts";
+import { leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time.ts";
+
+test("같은 관측을 다음 날 그려도 평균·바닥 때가 그대로(모루 11-07 17:36)", () => {
+  const reset = Date.parse("2026-11-12T19:00:00+09:00"), obs = Date.parse("2026-11-06T19:00:00+09:00");   // 주 시작 하루째에 잰 50%
+  const a = weekPace(50, reset, obs)!, b = weekPace(50, reset, obs)!;
+  assert.equal(a.perDay, 50);
+  assert.deepEqual(a, b);   // 셈은 잰 때(obs)만 봄 · 그리는 때(now)는 안 들어감
+  assert.equal(a.outAt, obs + 1 * 24 * 3_600_000);
+  const nextDay = obs + 24 * 3_600_000;
+  assert.equal(staleObs(obs, nextDay), true);   // 하루 지난 값 = 화면이 평균을 숨김
+  assert.equal(staleObs(obs, obs + 10 * 60_000), false);
+  assert.equal(staleObs(undefined, obs), true);
+});
 
 const H = 3_600_000, D = 24 * H;
 const now = Date.parse("2026-11-07T17:20:00+09:00");

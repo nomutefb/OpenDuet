@@ -6,7 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { office } from "../data/office";
-import { leftKo, payEndAt, weekCell, weekPace } from "../data/acct-time";
+import { leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time";
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
 import { type HeatCell, MatrixHeat } from "./lieflat-charts";
 import "./sched-status.css";
@@ -116,7 +116,7 @@ function Grid({ c, pick, setPick }: { c: StatusCat; pick: string; setPick: (k: s
 /** 계정 상태 표(불 = 읽힘 여부만 · 한도 많고 적음 = 숫자 색만 · 형 11-07 15:40 「안뜨게 혀라.............」) · (형 11-07 14:35 「no, 계정, %, 이름, 주기(매주 0요일 00시), 요금제」 · 「이름에 여러칸으로 나뉘어서 들어가면될듯 (투명 획선)세로」 · 14:44 「비고에 각각 종량제 서비스 주는거 사용률」)
  *  줄 = 서버 acct(클로드 계정 넷 + 지피티 한 줄) · % = 덜 남은 쪽(5시간·7일 중) · 칸 = 창마다 남은 % · 이름 = 창 계정 먼저(봄 14:50) · 누르면 까닭 한 줄 */
 type AcctCell = { st: HealthSt; left_pct?: number; reset_at?: number; note?: string };
-type AcctRow = Omit<StatusRow, "cells"> & { kind?: string; names?: string[]; plan?: string; pay_end?: string; price_krw?: number; memo?: string; left_pct?: number; was_pct?: number; week_reset?: string; cells?: Record<string, AcctCell> };
+type AcctRow = Omit<StatusRow, "cells"> & { kind?: string; names?: string[]; plan?: string; pay_end?: string; price_krw?: number; memo?: string; left_pct?: number; was_pct?: number; week_reset?: string; reported_at?: number; cells?: Record<string, AcctCell> };
 const p2 = (n: number) => String(n).padStart(2, "0");
 const mdHm = (ts?: number) => { if (!ts) return ""; const d = new Date(ts); return `${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
 function AcctTable({ rows }: { rows: AcctRow[] }) {
@@ -131,13 +131,15 @@ function AcctTable({ rows }: { rows: AcctRow[] }) {
           const cells = Object.entries(r.cells || {}).filter(([, c]) => c.left_pct !== undefined);
           // 디데이 = 주간 창이 다시 차기까지(없으면 덜 남은 창) · 하루 평균 = 이번 주 쓴 % ÷ 지난 날(주간 창 있을 때만 · 형 11-07 17:18 「디데이 몇일남았는지 … 2일 00시간 이런식으로. 긜고 하루 평균 소모량」)
           const wk = weekCell(r.cells), reset = wk?.reset_at ?? r.next_at, dday = leftKo(reset, now);
-          const pace = wk ? weekPace(wk.left_pct, wk.reset_at, now) : null, payLeft = leftKo(payEndAt(r.pay_end), now);
+          // 하루 평균·예측 = 그 값을 잰 때 기준(last_at → 없으면 몸 보고 받은 때) · 잰 지 1시간 넘으면 숨김(모루 17:36)
+          const obsAt = r.last_at ?? r.reported_at, old = staleObs(obsAt, now);
+          const pace = wk && !old ? weekPace(wk.left_pct, wk.reset_at, obsAt) : null, payLeft = leftKo(payEndAt(r.pay_end), now);
           const tr = (
             <tr key={r.key} data-st={r.st} onClick={() => setPick(pick === r.key ? "" : r.key)} title={r.value}>
               <th scope="row"><StatusDot st={r.st} />{r.name}{r.kind === "gpt" ? <small>지피티</small> : null}</th>
               <td className="pct"><b data-tone={r.left_pct === undefined ? "none" : r.left_pct >= 30 ? "ok" : r.left_pct >= 10 ? "low" : "out"}>{r.left_pct === undefined ? "—" : `${r.left_pct}%`}</b>{cells.length > 1 ? <small>{cells.map(([k, c]) => `${k} ${c.left_pct}`).join(" · ")}</small> : null}
                 {r.was_pct !== undefined ? <small>앞 값 {r.was_pct}% · 다시 참 지남</small> : null}{r.kind === "gpt" && r.last_at ? <small>{agoKo(r.last_at)} 잼</small> : null}
-                {pace ? <small>하루 평균 {pace.perDay}% 씀</small> : null}{pace ? (pace.outAt ? <small className="out">이대로면 {leftKo(pace.outAt, now)} 뒤 바닥</small> : <small>다시 찰 때 {pace.atReset}% 남음</small>) : null}</td>
+                {wk && old && obsAt ? <small>잰 지 {agoKo(obsAt)} · 평균 숨김</small> : null}{pace ? <small>하루 평균 {pace.perDay}% 씀</small> : null}{pace ? (pace.outAt ? <small className="out">이대로면 {leftKo(pace.outAt, now)} 뒤 바닥</small> : <small>다시 찰 때 {pace.atReset}% 남음</small>) : null}</td>
               <td className="names">{(r.names || []).map((n) => <span key={n}>{n}</span>)}</td>
               <td>{r.week_reset ? `매주 ${r.week_reset}` : ""}{r.next_at ? <small>다시 참 {mdHm(r.next_at)}</small> : null}{dday ? <small className="dday">D- {dday}</small> : null}</td>
               <td>{r.plan || ""}{r.pay_end ? <small>{r.pay_end.slice(5).replace("-", "/")} 결제 끝</small> : null}{payLeft ? <small className="dday">결제 끝 D- {payLeft}</small> : null}{r.price_krw ? <small>{r.price_krw.toLocaleString("ko-KR")}원</small> : null}</td>
