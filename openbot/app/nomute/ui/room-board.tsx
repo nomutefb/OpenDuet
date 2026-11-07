@@ -14,7 +14,9 @@ import { useEffect, useState } from "react";
 import { idOf, office } from "../data/office";
 import { FaceImg, usePeople } from "./faces";
 
-type Hand = { id: string; who: string; what: string; at: number };
+type Hand = { id: string; who: string; what: string; at: number; kind?: "help" | "review" };
+// 형 11:44 「막힘 도움 🖐️ / 작업 중 < 이런거는 부르지말고해 / 결정 기다림 ❓ / 완료 보고 < 부르지 말고 그냥 하면됨 / 검수 부탁 그대로 ㄱ」 → 칩 = 🖐️ 막힘·도움 · 🔍 검수 부탁(서버 editor#2782 · [손 들어감] = 칩 0)
+const KIND_ICON: Record<string, string> = { help: "🖐️", review: "🔍" };
 type Open = { id: string; who: string; text: string; pstat: "new" | "spec" | "hold"; ts: number };
 type Board = { hands: Hand[]; open: Open[] };
 const PSTAT: Record<Open["pstat"], string> = { new: "새", spec: "명세로 넘김", hold: "보류" };
@@ -46,8 +48,8 @@ export function RoomBoard({ room }: { room: string }) {
   const items = [
     ...hands.map((h) => (
       <button type="button" key={`h${h.id}`} className={`bd-chip bd-hand${tone(h.at)}`} onClick={() => jump(h.id)} onContextMenu={(e) => { e.preventDefault(); drop(h.id); }}
-        title={`${h.who} · ${h.what} · ${new Date(h.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 시작 · 누르면 그 글로 · 우클릭 = 지움`} aria-label={`${h.who} 맡음 ${h.what} · ${took(now - h.at)} · 누르면 그 글로 · 우클릭 지움`}>
-        <FaceImg id={idOf(h.who, list)} size={20} /><i>{took(now - h.at)}</i>{x(h.id)}
+        title={`${h.who} · ${h.what} · ${new Date(h.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 시작 · 누르면 그 글로 · 우클릭 = 지움`} aria-label={`${h.who} ${h.kind === "review" ? "검수 부탁" : "막힘·도움"} ${h.what} · ${took(now - h.at)} · 누르면 그 글로 · 우클릭 지움`}>
+        <FaceImg id={idOf(h.who, list)} size={20} /><b aria-hidden>{KIND_ICON[h.kind || "help"]}</b><i>{took(now - h.at)}</i>{x(h.id)}
       </button>
     )),
     ...sugs.map((s) => (

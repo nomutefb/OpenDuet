@@ -114,7 +114,15 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
     const fit = () => {
       const slot = document.querySelector<HTMLElement>(".nm-split-l .nm-col .nm-pin-slot:not(:empty)");
       const b = slot && document.querySelector(".nm-split-root") ? Math.round(slot.getBoundingClientRect().bottom) : 0;
-      const put = (el: HTMLElement | null, off: number) => { if (!el) return; if (b > 0) el.style.setProperty("top", `${b + off}px`, "important"); else el.style.removeProperty("top"); };
+      // 단추 transition(width·top·height .32s)이 76→공지 아래 전환을 도는 중이면 계산 top 이 76 으로 잡힘(뎅 11:48 getAnimations = CSSTransition:top) → top 은 전환 빼고 · 값이 바뀔 때만 박음
+      const put = (el: HTMLElement | null, off: number) => {
+        if (!el) return;
+        const v = b > 0 ? `${b + off}px` : "";
+        if (el.dataset.pinTop === v) return;
+        el.dataset.pinTop = v;
+        if (v) { el.style.setProperty("transition", "width .32s, height .32s", "important"); el.style.setProperty("top", v, "important"); }
+        else { el.style.removeProperty("top"); el.style.removeProperty("transition"); }
+      };
       put(find.current, 8); put(document.querySelector<HTMLElement>(".nm-story-btn"), 4);
     };
     fit();
