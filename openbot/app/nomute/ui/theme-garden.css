@@ -80,3 +80,10 @@ html[data-theme="garden"]:not(.dark) .nm-split-l .ynav button[aria-current="page
    위 「카드 안 글자 → 숯색」 묶음에 안 걸림(나머지 단추 제목 = 뉴스 줄 .tt · 요약 줄 .tt 는 색을 안 박아 숯색을 물려받음) */
 html[data-theme="garden"]:not(.dark) .nm-nlist-pin .pk-tt { color: var(--garden-ink) !important; }
 html[data-theme="garden"]:not(.dark) .nm-nlist-pin .pk-tt:hover { text-decoration-color: var(--garden-line) !important; }
+
+/* 뎅 08:57 검수 「아래 알약 「작동 · 서랍 · 설정」 글자 = 정원에서도 라임 … PC·폰 둘 다」 — 위 .nm-split-l .ynav button 줄은 같은 묶음의 뉴스 줄은 먹었는데
+   알약엔 안 걸림(그 순간 .nm-split-l 밑이 아니거나 폰 꼴 · 짐작) → 자리에 안 묶이게 nav.ynav 단추 전부 · 그림(svg)은 글자색(currentColor)을 따라감 */
+html[data-theme="garden"]:not(.dark) nav.ynav button,
+html[data-theme="garden"]:not(.dark) nav.ynav button span { color: var(--garden-accent) !important; text-shadow: none !important; }
+html[data-theme="garden"]:not(.dark) nav.ynav button.on,
+html[data-theme="garden"]:not(.dark) nav.ynav button[aria-current="page"] { color: var(--garden-ink) !important; background: rgba(78, 143, 58, .14) !important; border-color: rgba(78, 143, 58, .32) !important; }
