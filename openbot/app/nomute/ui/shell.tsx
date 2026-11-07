@@ -360,9 +360,10 @@ function TopLeft() {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const root = document.documentElement;
-    const ro = new ResizeObserver(() => { const h = Math.round(el.getBoundingClientRect().height); if (h > 0) root.style.setProperty("--nm-top-h", `${h}px`); });
+    // 바닥 120px = 몸 목록이 비어 게이지 띠가 작아도 오른쪽 팔로워 띠(머리 + 그림 64)가 안 잘리게(모루 #2883 ②) · --nm-top-off = 판·검색 단추가 내려갈 만큼(띠 + 위아래 틈 16 · 모루 ①)
+    const ro = new ResizeObserver(() => { const h = Math.max(120, Math.round(el.getBoundingClientRect().height)); root.style.setProperty("--nm-top-h", `${h}px`); root.style.setProperty("--nm-top-off", `${h + 16}px`); });
     ro.observe(el);
-    return () => { ro.disconnect(); root.style.removeProperty("--nm-top-h"); };
+    return () => { ro.disconnect(); root.style.removeProperty("--nm-top-h"); root.style.removeProperty("--nm-top-off"); };
   }, []);
   return <section ref={ref} className="nm-split-run nm-split-top-l" aria-label="러너"><PaneGuard name="러너"><RunnerGauges /></PaneGuard></section>;
 }

@@ -10,7 +10,7 @@ import { FollowPulse } from "../home/follow-pulse";
 export function IgFbBand() {
   return (
     <div className="nm-igfb flex flex-col" aria-label="인스타 · 페이스북 팔로워">
-      <div className="nm-card-h"><i className="live" aria-hidden /><b>인스타 · 페북</b></div>
+      <div className="nm-card-h"><i className="live" aria-hidden /><b>SNS</b></div>
       <div className="nm-igfb-body"><FollowPulse fill /></div>
     </div>
   );

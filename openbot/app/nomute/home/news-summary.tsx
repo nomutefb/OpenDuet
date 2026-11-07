@@ -23,7 +23,7 @@ export function NewsSummary() {
   const q = pend.data || [];
   return (
     <section className="nm-nsum" aria-label="뉴스 요약">
-      <div className="nm-nsum-h"><b>뉴스 요약</b><span>{q.length ? `대기열 ${q.length}` : ""}</span></div>
+      <div className="nm-nsum-h"><b>Digest</b><span>{q.length ? `대기열 ${q.length}` : ""}</span></div>
       {q.length ? (
         <ul className="nm-nsum-q">
           {q.map((it, i) => (

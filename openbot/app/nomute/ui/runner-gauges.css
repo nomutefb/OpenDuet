@@ -23,3 +23,7 @@
 .nm-rgx-peb.wait { opacity:.22; animation:nmPebWait 1.6s ease-in-out infinite; }   /* 작동 표 첫 답 전 = 흐리게 숨쉼(「다 잠듦」과 갈림 · 봄 10:08) */
 @keyframes nmPebWait { 0%,100% { opacity:.14; } 50% { opacity:.32; } }
 @media (prefers-reduced-motion:reduce) { .nm-rgx-peb.wait { animation:none; } }
+/* 몸 칸 간격(형 11-08 08:14 dm 「mac lx a, b 의 간격을 좀만 붙이고 win하고 mac 간격을 아주 조금만 더 벌릴게.」 · 봄) = WIN 뒤만 조금 더 · MAC · Lx A · Lx B 는 조금 붙임 */
+.nm-rgx .nm-rgx-host { padding:0 3px; }
+.nm-rgx .nm-rgx-host:first-child { padding-right:12px; }
+.nm-rgx .nm-rgx-host:nth-child(2) { padding-left:9px; }

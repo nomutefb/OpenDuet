@@ -144,7 +144,7 @@ export function NewsList() {
   };
   return (
     <section className="nm-nlist" aria-label="실시간 뉴스">
-      <div className="nm-nlist-h"><i className="live" aria-hidden /><b>실시간 뉴스</b><span>{st === "ready" ? `${rows.length}건` : ""}</span></div>
+      <div className="nm-nlist-h"><i className="live" aria-hidden /><b>Hot Issue</b><span>{st === "ready" ? `${rows.length}건` : ""}</span></div>
       {pins.length ? (
         <ul className="nm-nlist-pin" aria-label="촉 · 틈 픽">
           {pins.map((p) => {
