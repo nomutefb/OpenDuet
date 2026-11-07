@@ -107,8 +107,21 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
   const qc = useQueryClient(), input = useRef<HTMLInputElement>(null), gap = useKeyboardGap();
   const [open, setOpen] = useState(false), [q, setQ] = useState(""), [rows, setRows] = useState<Row[]>([]), [done, setDone] = useState(false), [idx, setIdx] = useState(0);
   const [pane, setPane] = useState({ left: 0, right: 0, width: 0 });
-  const [pinH, setPinH] = useState(0);   // 공지 칸 높이(pins.tsx 신호) = 단추 제 몸 --nm-pin-h(문서 변수 물려받기에 안 기댐 · 형 11-07 09:57 「그 아래에 검색버튼 … 어느정도 간격」)
-  useEffect(() => { const f = (e: Event) => setPinH(Number((e as CustomEvent).detail) || 0); window.addEventListener("nm-pin-h", f); return () => window.removeEventListener("nm-pin-h", f); }, []);
+  // PC 공지 칸 아래로 단추 내림(형 11-07 09:57 밥상 「그 아래에 검색버튼이 위치하면 될 것 같아, 어느정도 간격을 두고」 · 뎅 10:31·11:05 「계산 top 76 그대로」 = 변수·신호가 늦게 닿아 0)
+  //   → 공지 칸 아래 끝을 직접 재서 단추 top 을 inline !important 로(1초마다 · 창 크기 · nm-pin-h 신호) · 공지 없거나 PC 아니면 CSS 자리 그대로
+  const find = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const fit = () => {
+      const slot = document.querySelector<HTMLElement>(".nm-split-l .nm-col .nm-pin-slot:not(:empty)");
+      const b = slot && document.querySelector(".nm-split-root") ? Math.round(slot.getBoundingClientRect().bottom) : 0;
+      const put = (el: HTMLElement | null, off: number) => { if (!el) return; if (b > 0) el.style.setProperty("top", `${b + off}px`, "important"); else el.style.removeProperty("top"); };
+      put(find.current, 8); put(document.querySelector<HTMLElement>(".nm-story-btn"), 4);
+    };
+    fit();
+    const t = window.setInterval(fit, 1000);
+    window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit);
+    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); };
+  }, [room, open]);
   const key = useDeferredValue(q).trim().toLowerCase();
   const hits = useMemo(() => (key ? rows.filter((r) => r.text.toLowerCase().includes(key)).reverse() : []), [rows, key]);   // 최신 글이 1번 · 위로 = 앞 글
   const at = hits[Math.min(idx, hits.length - 1)];
@@ -150,8 +163,8 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
   const count = hits.length ? `${Math.min(idx, hits.length - 1) + 1}/${hits.length}` : done ? "찾는 글 없음" : "찾는 중";
   return createPortal(
     <>
-      {room === "guide" && !open ? <StoryButton right={pane.right + 46} pinH={pinH} /> : null}   {/* 밥상만 = 검색 왼쪽 「밥상 이야기」 그림 → 바로 모달(형 11-04 15:4x 「밥상 대화는 우상단에 그거 픽토그램으로 하나 뜨게 해주라, 모달로 바로 뜨게. 밥상만」) */}
-      <div className={`nm-find${open ? " open" : ""}`} style={{ right: pane.right + 6, width: open ? Math.max(120, pane.width - 52) : 40, ["--nm-pin-h" as string]: `${pinH}px` }}>   {/* 11-06 20:39 = 우상단 ≡ 뺌(방 메뉴 = 윗줄 가운데 이름 목록 · 형 「별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」) → 돋보기가 맨 오른쪽 · 앞 줄: 닫힘 = 햄버거 왼쪽 그림 하나 · 열림 = 「<」 와 햄버거 사이(형 08:46 「범위 높이 등 만 조정」) */}
+      {room === "guide" && !open ? <StoryButton right={pane.right + 46} /> : null}   {/* 밥상만 = 검색 왼쪽 「밥상 이야기」 그림 → 바로 모달(형 11-04 15:4x 「밥상 대화는 우상단에 그거 픽토그램으로 하나 뜨게 해주라, 모달로 바로 뜨게. 밥상만」) */}
+      <div ref={find} className={`nm-find${open ? " open" : ""}`} style={{ right: pane.right + 6, width: open ? Math.max(120, pane.width - 52) : 40 }}>   {/* 11-06 20:39 = 우상단 ≡ 뺌(방 메뉴 = 윗줄 가운데 이름 목록 · 형 「별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」) → 돋보기가 맨 오른쪽 · 앞 줄: 닫힘 = 햄버거 왼쪽 그림 하나 · 열림 = 「<」 와 햄버거 사이(형 08:46 「범위 높이 등 만 조정」) */}
         {open ? <input ref={input} value={q} placeholder="대화내용 검색" aria-label="대화내용 검색" enterKeyHint="search" onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Escape") close(); if (e.key === "Enter") setIdx((i) => Math.min(i + 1, Math.max(0, hits.length - 1))); }} /> : null}
         <button type="button" className="nm-find-btn" aria-label={open ? "검색 닫기" : "대화내용 검색"} aria-expanded={open} onClick={() => (open ? close() : setOpen(true))}><SearchToX on={open} /></button>
