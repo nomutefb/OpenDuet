@@ -75,12 +75,11 @@
 .nsb-acct small { display:block; font-size:11px; font-weight:400; color:var(--nsb-mut); white-space:nowrap; }
 .nsb-acct tbody tr { cursor:pointer; }
 .nsb-acct .pct b { font-size:16px; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
-.nsb-acct .pct b[data-st="late"] { color:var(--nsb-yel); }
-.nsb-acct .pct b[data-st="miss"] { color:var(--nsb-red); text-shadow:0 0 12px rgba(255,90,95,.45); }
-.nsb-acct .pct b[data-st="unknown"] { color:var(--nsb-mut); }
+.nsb-acct .pct b[data-tone="low"] { color:#E9C46A; }   /* 불 아님 · 숫자 색만(형 15:40 「안뜨게 혀라」) */
+.nsb-acct .pct b[data-tone="out"] { color:#E8A0A0; }
+.nsb-acct .pct b[data-tone="none"] { color:var(--nsb-mut); }
 .nsb-acct .names { white-space:nowrap; }
 .nsb-acct .names span { display:inline-block; padding:0 9px; border-left:1px solid rgba(255,255,255,.14); }   /* 투명 획선 세로(형 14:35) */
 .nsb-acct .names span:first-child { padding-left:0; border-left:0; }
 .nsb-acct .memo { color:var(--nsb-mut); font-size:12px; }
-.nsb-acct tr[data-st="miss"] > * { background:rgba(255,90,95,.10); }
 .nsb-acct tr.why td { font-size:12px; color:var(--nsb-mut); background:rgba(255,255,255,.03); }
