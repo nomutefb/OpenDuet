@@ -6,6 +6,8 @@
 //   형 10:45~46 「아래에 뜬거 우클릭하면 없앨 수 있게 … 좌측에는 일괄 x 하나 … 튀어나오게가 채팅창 구역 안으로」 · 「심플하게 프로필 사진만 … 전경색 칠하는건 취소. 프로필 원만. 그리고 16분 이것만.」 · 「각각 항목 우클릭하면 바로 언급 지워지게」
 //   → 칩 = 프로필 원 + 분(색 칠 0) · 우클릭(또는 누름) = 바로 지움 · 왼쪽 × = 일괄(reset · 형 갱신 시점 = 지금) · 마우스 올림 효과는 줄 안에서만
 //   형 10:47 「그리고 옆으로 밀면 이거 밀려서 다음꺼 보여야해」 → 「+N」 접기 대신 가로로 밀기(손가락 · PC 휠도 가로로)
+//   형 11:13~11:14 「모바일에서는 누르기만 하면 없어져 이동되야되는데 … 언급마다 x 가 아주 작게」 · 「프로필 아이콘 분 x 모바일은 이리보일테고 pc는 우클릭이 잇어서 x가 생략.」 · 「일괄 지우기는 유지 … 개별 지우기가 크기가 작아야하고. 분 글자 폰트 볼디한거 좀만 한단계 낮추자」
+//   → 누름 = 그 글로 이동(nm-jump · 고정 띠와 같은 길) · 지움 = PC 우클릭 · 폰 칩마다 작은 ×(14px · 일괄 × 보다 작게) · 분 글자 500
 import "./room-board.css";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -33,21 +35,23 @@ export function RoomBoard({ room }: { room: string }) {
     qc.setQueryData<Board>(key, (b) => (b ? { hands: b.hands.filter((h) => h.id !== id), open: b.open.filter((o) => o.id !== id) } : b));
     void office(`rooms/${encodeURIComponent(room)}/board`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ act: "dismiss", id }) }).catch(() => qc.invalidateQueries({ queryKey: key }));
   };
+  const jump = (id: string) => window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id } }));   // 누름 = 그 글로(office-chat 이 받음 · pins.tsx 와 같은 길)
+  const x = (id: string) => <span className="bd-x" role="button" tabIndex={-1} aria-label="지우기" onClick={(e) => { e.stopPropagation(); drop(id); }}>×</span>;   // 폰만 보임(CSS)
   const clear = () => {   // 왼쪽 × = 일괄(형 10:45 「좌측에는 일괄 x 하나」) = 기준 시각 지금(그 앞 칩·제안 다 안 뜸 · 서버 = 형만)
     qc.setQueryData<Board>(key, (b) => (b ? { hands: [], open: [] } : b));
     void office(`rooms/${encodeURIComponent(room)}/board`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ act: "reset" }) }).catch(() => qc.invalidateQueries({ queryKey: key }));
   };
   const items = [
     ...hands.map((h) => (
-      <button type="button" key={`h${h.id}`} className="bd-chip bd-hand" onClick={() => drop(h.id)} onContextMenu={(e) => { e.preventDefault(); drop(h.id); }}
-        title={`${h.who} · ${h.what} · ${new Date(h.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 시작 · 우클릭 = 지움`} aria-label={`${h.who} 맡음 ${h.what} · ${took(now - h.at)} · 누르면 사라짐`}>
-        <FaceImg id={idOf(h.who, list)} size={20} /><i>{took(now - h.at)}</i>
+      <button type="button" key={`h${h.id}`} className="bd-chip bd-hand" onClick={() => jump(h.id)} onContextMenu={(e) => { e.preventDefault(); drop(h.id); }}
+        title={`${h.who} · ${h.what} · ${new Date(h.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 시작 · 누르면 그 글로 · 우클릭 = 지움`} aria-label={`${h.who} 맡음 ${h.what} · ${took(now - h.at)} · 누르면 그 글로 · 우클릭 지움`}>
+        <FaceImg id={idOf(h.who, list)} size={20} /><i>{took(now - h.at)}</i>{x(h.id)}
       </button>
     )),
     ...sugs.map((s) => (
-      <button type="button" key={`s${s.id}`} className={`bd-chip bd-sug${s.pstat !== "new" ? ` is-${s.pstat}` : ""}`} onClick={() => drop(s.id)} onContextMenu={(e) => { e.preventDefault(); drop(s.id); }}
-        title={`[제안] ${s.text} · ${PSTAT[s.pstat]} · ${s.who} · 우클릭 = 지움`} aria-label={`${s.who} 제안 ${s.text} · ${PSTAT[s.pstat]} · 누르면 사라짐`}>
-        <FaceImg id={idOf(s.who, list)} size={20} /><b aria-hidden>💡</b><i>{took(now - idTs(s.id))}</i>
+      <button type="button" key={`s${s.id}`} className={`bd-chip bd-sug${s.pstat !== "new" ? ` is-${s.pstat}` : ""}`} onClick={() => jump(s.id)} onContextMenu={(e) => { e.preventDefault(); drop(s.id); }}
+        title={`[제안] ${s.text} · ${PSTAT[s.pstat]} · ${s.who} · 누르면 그 글로 · 우클릭 = 지움`} aria-label={`${s.who} 제안 ${s.text} · ${PSTAT[s.pstat]} · 누르면 그 글로 · 우클릭 지움`}>
+        <FaceImg id={idOf(s.who, list)} size={20} /><b aria-hidden>💡</b><i>{took(now - idTs(s.id))}</i>{x(s.id)}
       </button>
     )),
   ];

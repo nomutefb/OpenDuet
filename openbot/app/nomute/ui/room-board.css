@@ -10,9 +10,12 @@
 .nm-board .bd-chip:active { opacity:.5; }
 .nm-board .bd-chip > img, .nm-board .bd-chip > span:first-child { border-radius:50%; }
 .nm-board .bd-chip b { font-weight:400; font-size:10px; }
-.nm-board .bd-chip i { font-style:normal; font-weight:600; }
+.nm-board .bd-chip i { font-style:normal; font-weight:500; }   /* 형 11:14 「분 글자 폰트 볼디한거 좀만 한단계 낮추자」 600 → 500 */
 .nm-board .bd-sug.is-hold { opacity:.7; }
 .nm-board .bd-clear { all:unset; cursor:pointer; flex:none; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; color:var(--mut); font-size:15px; line-height:1; }
 .nm-board .bd-clear:hover { color:var(--fg); background:rgba(127,127,127,.15); }
 .nm-board .bd-more { all:unset; cursor:pointer; flex:none; padding:0 6px; height:24px; display:inline-flex; align-items:center; color:var(--mut); font-weight:600; }
 .nm-board .bd-more:hover { color:var(--fg); }
+/* 폰 = 칩마다 작은 ×(형 11:13 「언급마다 x 가 아주 작게」 · 11:14 「개별 지우기가 크기가 작아야」 · 일괄 × 22px 보다 작게) · PC = 우클릭이라 × 없음 */
+.nm-board .bd-x { display:none; place-items:center; width:14px; height:14px; margin-left:1px; border-radius:50%; color:var(--mut); font-size:11px; line-height:1; }
+@media (hover: none), (pointer: coarse) { .nm-board .bd-x { display:inline-grid; } }
