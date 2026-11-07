@@ -21,7 +21,7 @@ const path = (from: number, to: number, end: "ink" | "un" | "cache") => {
   return d;
 };
 
-export function TickGauge({ label, pct, used, lv, cache, off, ink: inkOver, top, topInk }: { label: string; pct: number | null; used: string; lv: Level; cache?: number | null; off?: boolean; ink?: string; top?: string; topInk?: string }) {   // ink = 단계 색 대신 쓸 색(반갈 블랙 상태바 · 봄 11-05 · 없으면 그대로)
+export function TickGauge({ label, pct, used, lv, cache, off, wait, ink: inkOver, top, topInk }: { label: string; pct: number | null; used: string; lv: Level; cache?: number | null; off?: boolean; wait?: boolean; ink?: string; top?: string; topInk?: string }) {   // wait = 첫 자료 전(「off」 대신 「···」 · 열 때마다 몇 초 꺼짐처럼 보이던 것 · 시아 11-07)   // ink = 단계 색 대신 쓸 색(반갈 블랙 상태바 · 봄 11-05 · 없으면 그대로)
   const v = Math.max(0, Math.min(100, pct ?? 0)), n = Math.max(0, Math.min(100, Math.ceil(v - 1e-9)));
   const ce = Math.max(n, Math.min(100, Math.ceil(v + Math.max(0, cache ?? 0) - 1e-9)));
   const ink = pct == null ? LV.off : inkOver ?? LV[lv], bead = pol(R0 + 13, A0 + (v / 100) * SW);
@@ -32,7 +32,7 @@ export function TickGauge({ label, pct, used, lv, cache, off, ink: inkOver, top,
       {n > 0 ? <path d={path(0, n, "ink")} stroke={ink} strokeWidth={1} /> : null}
       {MILES.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={0.8} fill={MILE} />)}
       {v > 0 ? <circle cx={bead[0]} cy={bead[1]} r={1.8} fill={ink} /> : null}
-      {off ? <text x={CX} y={CY + 15.5} textAnchor="middle" className="nm-rg-num" fontSize={13} fill={GRAY}>off</text> : (
+      {off ? <text x={CX} y={CY + 15.5} textAnchor="middle" className="nm-rg-num" fontSize={13} fill={GRAY}>{wait ? "···" : "off"}</text> : (
         <>
           <text x={CX} y={CY + 15.5} textAnchor="middle" className="nm-rg-num"><tspan fontSize={17} fill={TEXT}>{pct == null ? "-" : Math.round(v)}</tspan><tspan fontSize={9} fill={GRAY} dx={1}>%</tspan></text>
           <text x={CX} y={CY + 23.5} textAnchor="middle" className="nm-rg-num" fontSize={7.5} fill={GRAY} letterSpacing={0.45}>{used}</text>
