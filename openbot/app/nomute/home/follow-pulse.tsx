@@ -66,16 +66,16 @@ function series(j: Chan, key: "ig" | "fb"): Pt[] {
 const ago = (iso: string) => { const t = Date.parse(iso); if (!Number.isFinite(t)) return ""; const m = Math.max(0, Math.floor((Date.now() - t) / 6e4)); return "갱신 " + (m < 1 ? "방금" : m < 60 ? `${m}분 전` : `${Math.floor(m / 60)}시간 전`); };
 const smooth = (pts: [number, number][]) => pts.map((p, i) => { if (!i) return `M${p[0].toFixed(1)} ${p[1].toFixed(1)}`; const a = pts[i - 1], m = (a[0] + p[0]) / 2; return `C${m.toFixed(1)} ${a[1].toFixed(1)} ${m.toFixed(1)} ${p[1].toFixed(1)} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`; }).join("");
 
-export function FollowPulse() {
+export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fill = 칸 높이를 다 씀(PC 오른쪽 위 · ../ui/igfb-band.tsx · 봄 11-08 · 형 07:31 「휴대폰 메인화면에 출력되어있던 차트를 알맞은 크기로」)
   const [ig, setIg] = useState<Chan | null>(null), [fb, setFb] = useState<Chan | null>(null), [, tick] = useState(0), [tried, setTried] = useState(false);   // tried = 첫 받기 끝(그 전엔 자리만 잡음)
   // 그림 폭 = 화면 실제 폭(형 10-31 「이거 위에 찌그러지는거 좀 수정해줄래?」 · 300칸을 가로로 늘려서 글자·점이 찌그러졌음)
-  const [wide, setWide] = useState(300), seen = useRef<ResizeObserver | null>(null);
+  const [wide, setWide] = useState(300), [tall, setTall] = useState(64), seen = useRef<ResizeObserver | null>(null);
   const chart = useCallback((el: SVGSVGElement | null) => {
     seen.current?.disconnect();
     if (!el) return;
-    seen.current = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width); if (w > 0) setWide(w); });
+    seen.current = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height); if (w > 0) setWide(w); if (fill && h > 0) setTall(Math.max(64, h)); });
     seen.current.observe(el);
-  }, []);
+  }, [fill]);
   useEffect(() => {
     let live = true;
     const load = () => Promise.all([get("ig", "insta_data.json"), get("fb", "fb_data.json")]).then(([a, b]) => { if (!live) return; if (a) setIg(a); setFb(b); }).catch(() => {}).finally(() => { if (live) setTried(true); });
@@ -85,20 +85,20 @@ export function FollowPulse() {
   }, []);
   const view = useMemo(() => {
     if (!ig) return null;
-    const W = wide, H = 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, FBY = H - RH, IGY = FBY - RG - RH, TOP = 4, BOT = IGY - 6;
+    const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, FBY = H - RH, IGY = FBY - RG - RH, TOP = 4, BOT = IGY - 6;
     const lines: ["ig" | "fb", Pt[]][] = [["ig", series(ig, "ig")], ...(fb ? [["fb", series(fb, "fb")] as ["fb", Pt[]]] : [])];
     const all = lines.flatMap(([, s]) => s.map((p) => p.pct));
     const span = Math.max(0.5, ...all.map(Math.abs)), lo = Math.min(0, ...all), hi = Math.max(0, ...all);
     const top = hi - lo < span * 0.1 ? hi + span * 0.05 : hi, bot = hi - lo < span * 0.1 ? lo - span * 0.05 : lo;
     const Y = (v: number) => BOT - ((v - bot) / (top - bot || 1)) * (BOT - TOP);
     return { W, H, P, FS, RH, FBY, IGY, Y, lines };
-  }, [ig, fb, wide]);
+  }, [ig, fb, wide, tall, fill]);
   if (!tried && !ig) return <div className="nm-pulse-wait" aria-hidden />;   // 받는 동안 = 띠 높이만큼 자리만(형 11-03 12:45 「첨에 위로 버튼이 보였다가 내려가」 = 띠가 늦게 생기며 아래 칸이 밀렸음)
   if (!ig || !view) return null;   // 못 읽으면 자리 비움(홈이 그 자리만큼 올라옴)
   const { W, H, P, FS, RH, FBY, IGY, Y, lines } = view;
   const go = () => { window.location.hash = "#/chan"; };   // 원본 = 채널 요약로 → 앱 안 채널 요약 판(봄 11-01 · 형 「눌렀을때 웹으로 연결된 부분이 많아서 불편했어..」)
   return (
-    <button type="button" className="nm-pulse" aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
+    <button type="button" className={`nm-pulse${fill ? " nm-pulse-fill" : ""}`} aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
       <div className="nm-pulse-row">
         <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v">{nf.format(ig.profile.followers_count)}</b>
         <i className="nm-pulse-sep" aria-hidden />

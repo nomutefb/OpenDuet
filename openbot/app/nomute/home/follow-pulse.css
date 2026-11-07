@@ -24,3 +24,7 @@
 .yeta-set .nm-arr-one[data-stack]::before, .yeta-set .nm-arr-one[data-stack="2"]::after { content:""; position:absolute; top:100%; height:4px; border:1px solid var(--glass-line); border-top:0; border-radius:0 0 12px 12px; background:var(--glass); pointer-events:none; }
 .yeta-set .nm-arr-one[data-stack]::before { left:10px; right:10px; }
 .yeta-set .nm-arr-one[data-stack="2"]::after { left:22px; right:22px; margin-top:4px; height:3px; opacity:.6; }
+
+/* 칸 높이 채우기(fill · PC 오른쪽 위 ../ui/igfb-band.tsx · 봄 11-08) = 그림이 남은 높이를 다 씀(그림 셈은 잰 높이로 · 찌그러짐 없음) */
+.nm-pulse.nm-pulse-fill { height:100%; min-height:0; }
+.nm-pulse.nm-pulse-fill .nm-pulse-chart { flex:1 1 0; height:0; min-height:64px; }   /* 높이 = 칸이 정함(그림 제 비율로 늘지 않게 · 잰 높이 ↔ 그림 높이 돌고 도는 것 막음) */
