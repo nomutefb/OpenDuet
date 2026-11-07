@@ -22,6 +22,7 @@ const DIARY_COLS = [["raw", "원문 뜨기"], ["check", "원문 대조"], ["d40"
 const wait = (name: string, key = name): StatusRow => ({ key, name, st: "unknown", note: "보고 아직 안 옴" });
 /** 형이 준 분류 · 차례 · 기본 줄(보고가 오면 같은 key 줄을 덮음) */
 const SKELETON: StatusCat[] = [
+  { id: "acct", name: "계정 상태", rows: [] },   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
   { id: "bots", name: "봇 연결", rows: [] },
   { id: "server", name: "서버 연결 상태", rows: [] },
   { id: "collect", name: "수집 상태", rows: [] },
@@ -111,6 +112,38 @@ function Grid({ c, pick, setPick }: { c: StatusCat; pick: string; setPick: (k: s
   );
 }
 
+/** 계정 상태 표(형 11-07 14:35 「no, 계정, %, 이름, 주기(매주 0요일 00시), 요금제」 · 「이름에 여러칸으로 나뉘어서 들어가면될듯 (투명 획선)세로」 · 14:44 「비고에 각각 종량제 서비스 주는거 사용률」)
+ *  줄 = 서버 acct(클로드 계정 넷 + 지피티 한 줄) · % = 덜 남은 쪽(5시간·7일 중) · 칸 = 창마다 남은 % · 이름 = 창 계정 먼저(봄 14:50) · 누르면 까닭 한 줄 */
+type AcctCell = { st: HealthSt; left_pct?: number; reset_at?: number; note?: string };
+type AcctRow = Omit<StatusRow, "cells"> & { kind?: string; names?: string[]; plan?: string; pay_end?: string; price_krw?: number; memo?: string; left_pct?: number; week_reset?: string; cells?: Record<string, AcctCell> };
+const p2 = (n: number) => String(n).padStart(2, "0");
+const mdHm = (ts?: number) => { if (!ts) return ""; const d = new Date(ts); return `${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+function AcctTable({ rows }: { rows: AcctRow[] }) {
+  const [pick, setPick] = useState("");
+  if (!rows.length) return <p className="nsb-empty">계정 표 보고 아직 안 옴(맥 몸 보고)</p>;
+  return (
+    <div className="nsb-acct" role="region" aria-label="계정 상태 표" tabIndex={0}>
+      <table>
+        <thead><tr><th>계정</th><th>남은 %</th><th>이름</th><th>주기</th><th>요금제</th><th>비고</th></tr></thead>
+        <tbody>{rows.flatMap((r) => {
+          const cells = Object.entries(r.cells || {}).filter(([, c]) => c.left_pct !== undefined);
+          const tr = (
+            <tr key={r.key} data-st={r.st} onClick={() => setPick(pick === r.key ? "" : r.key)} title={r.value}>
+              <th scope="row"><StatusDot st={r.st} />{r.name}{r.kind === "gpt" ? <small>지피티</small> : null}</th>
+              <td className="pct"><b data-st={r.st}>{r.left_pct === undefined ? "—" : `${r.left_pct}%`}</b>{cells.length > 1 ? <small>{cells.map(([k, c]) => `${k} ${c.left_pct}`).join(" · ")}</small> : null}</td>
+              <td className="names">{(r.names || []).map((n) => <span key={n}>{n}</span>)}</td>
+              <td>{r.week_reset ? `매주 ${r.week_reset}` : ""}{r.next_at ? <small>다시 참 {mdHm(r.next_at)}</small> : null}</td>
+              <td>{r.plan || ""}{r.pay_end ? <small>{r.pay_end.slice(5).replace("-", "/")} 결제 끝</small> : null}{r.price_krw ? <small>{r.price_krw.toLocaleString("ko-KR")}원</small> : null}</td>
+              <td className="memo">{r.memo || ""}</td>
+            </tr>
+          );
+          return pick === r.key && r.note ? [tr, <tr key={`${r.key}:why`} className="why"><td colSpan={6}>{HEALTH_KO[r.st]} · {r.note}</td></tr>] : [tr];
+        })}</tbody>
+      </table>
+    </div>
+  );
+}
+
 /** 수집 색인 = 가로로 긴 표(첫 칸 고정 · 옆으로 밀기 · 🔴 줄 위로 · 칸 머리 누르면 그 칸 정렬) · 칸 = 정본 열둘(봄 13:15 · 시아 첫 판 51줄) */
 type IndexRow = StatusRow & { t?: number; step?: string; algo?: string; stale_min?: number; amount?: string; sender?: string; receiver?: string; runner?: string; file?: string; evidence?: string; backup?: string; on_fail?: string };
 const IDX_COLS: [keyof IndexRow, string][] = [["t", "시각"], ["algo", "알고리즘·기준"], ["stale_min", "낡음(분)"], ["amount", "수집 양"], ["sender", "돌리는 이"], ["receiver", "받는 이"], ["runner", "러너·몸"], ["file", "파일 위치"], ["evidence", "근거"], ["backup", "백업"], ["on_fail", "못 깨면"]];
@@ -170,14 +203,14 @@ export function StatusBoard() {
         <small>{srv.isError ? "몸 보고 길 = 뜸이 붙이는 중" : srv.data?.at ? agoKo(srv.data.at) : ""}</small>
       </div>
       {cats.map((c) => {
-        const w = worst(c.rows), isOpen = open[c.id] ?? (w === "miss" || w === "late");
+        const w = worst(c.rows), isOpen = open[c.id] ?? (c.id === "acct" || w === "miss" || w === "late");   // 계정 상태 = 늘 펼침(형 「먼저 나오게」)
         return (
           <section key={c.id} className="nsb-cat" data-st={w}>
             <button type="button" className="nsb-ch" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [c.id]: !isOpen }))}>
               <StatusDot st={w} /><b>{c.name}</b>
               <span className="nsb-cnt">{count(c.rows, "miss") ? <em>✕ {count(c.rows, "miss")}</em> : null}{count(c.rows, "late") ? <i>▲ {count(c.rows, "late")}</i> : null}<small>{c.rows.length}</small></span>
             </button>
-            {isOpen ? (c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
+            {isOpen ? (c.id === "acct" ? <AcctTable rows={c.rows as unknown as AcctRow[]} /> : c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
               <ul className="nsb-rows">
                 {(c.id === "collect" ? [...ZONES, ...(c.rows.some((r) => !ZONES.includes(r.zone || "")) ? ["기타"] : [])].flatMap((z) => [{ key: `zone:${z}`, name: z, st: worst(c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))), head: true } as StatusRow & { head?: boolean }, ...c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))]) : c.rows).map((r) => {   // 구역 없는 줄 = 「기타」(뎅 시험 보고 · 안 묶여 숨던 것)
                   const head = (r as { head?: boolean }).head, z = r.key.replace(/^zone:/, "");
