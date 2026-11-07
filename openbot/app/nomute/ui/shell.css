@@ -238,12 +238,18 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-br-syncver { position:fixed; right:12px; bottom:8px; z-index:55; padding:4px 9px; border-radius:9px; font-size:11px !important;
   background:rgba(16,17,19,.6); -webkit-backdrop-filter:blur(12px) saturate(1.15); backdrop-filter:blur(12px) saturate(1.15); border:1px solid rgba(255,255,255,.07); }
 /* 검색·밥상 이야기 단추는 document.body 에 그려져서(.nm-split-root 밖) 앞 줄들(「.nm-split-root .nm-find」)이 안 먹었음 → :root:has 로 잡음(뎅 23:13 실물 = 검색이 윗줄 높이 y1~39 에 남아 있었음) */
-:root:has(.nm-split-root) .nm-find:not(.open) { top:76px !important; width:32px !important; height:32px; border-radius:50%; border-color:rgba(255,255,255,.1); background:rgba(20,21,23,.55);
+:root:has(.nm-split-root) .nm-find:not(.open) { top:calc(76px + var(--nm-pin-h, 0px)) !important; width:32px !important; height:32px; border-radius:50%; border-color:rgba(255,255,255,.1); background:rgba(20,21,23,.55);
   -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2); filter:none; box-shadow:0 4px 14px rgba(0,0,0,.28); }
 :root:has(.nm-split-root) .nm-find:not(.open) .nm-find-btn { width:30px; }
 :root:has(.nm-split-root) .nm-find:not(.open) .nm-find-btn svg { width:16px; height:16px; }
-:root:has(.nm-split-root) .nm-story { top:72px !important; }
-:root:has(.nm-split-root) .nm-find.open { top:74px !important; }   /* 대화 칸 위 끝(70) 안쪽으로 = 칸 테두리에 걸치지 않게(뎅 23:22 「위 끝 61 이 칸 위 끝 70 보다 9px 위」 · 형 22:40 「채팅창 … 우상단에 떠잇는 느낌」) */
+:root:has(.nm-split-root) .nm-story { top:calc(72px + var(--nm-pin-h, 0px)) !important; }
+:root:has(.nm-split-root) .nm-find.open { top:calc(74px + var(--nm-pin-h, 0px)) !important; }   /* 대화 칸 위 끝(70) 안쪽으로 = 칸 테두리에 걸치지 않게(뎅 23:22 「위 끝 61 이 칸 위 끝 70 보다 9px 위」 · 형 22:40 「채팅창 … 우상단에 떠잇는 느낌」) */
 /* 우하단 「동기화 • 버전」 줄이 뉴스 요약 칸 끝을 덮던 것(뎅 23:13 ①) = 오른쪽 칸 아래에 그 줄 자리만큼 여백 · 줄은 조금 더 아래로 */
 .nm-split-root .nm-split { padding-bottom:32px; }
 .nm-br-syncver { bottom:5px; }
+
+/* PC 공지 = 대화 칸 맨 위 불투명 띠(형 11-07 09:57 밥상 「그리고 공지는 아예 제일 윗단으로 올려줘. 그리고 공지 뒤에는 글이 안나오게, 저 부분은 처리해주고, 그 아래에 검색버튼이 위치하면 될 것 같아, 어느정도 간격을 두고.」 · 봄 나눔 · 번개)
+   공지 칸(고정 띠 · 할 일 · 칩·제안 띠) top 0 · 바탕 막음(글이 밑으로 지나가도 안 보임) · 첫 글·검색 단추 = 그 높이(--nm-pin-h · pins.tsx 가 잼) 아래 · 빈 칸 = 0 */
+.nm-split-l .nm-col .nm-pin-slot { top:0 !important; }
+.nm-split-l .nm-col .nm-pin-slot:not(:empty) { padding:8px 0 6px; background:var(--duet-surface); border-bottom:1px solid var(--glass-line); }
+.nm-split-l .nm-col main .ychat .ychat.mt-auto { padding-top:calc(48px + var(--nm-pin-h, 0px)) !important; }

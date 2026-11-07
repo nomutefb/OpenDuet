@@ -6,7 +6,7 @@
 import "./yeta-settings.css";
 import "./pins.css";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { DuetIcon } from "@/components/duet/icons";
 import { markdownComponents } from "@/lib/markdown";
@@ -48,13 +48,24 @@ export function PinBar({ room, onJump, children }: { room: string; onJump?: (id:
   const q = usePins(room), cur = q.data?.cur || null;
   const [fold, setFold] = useState(() => loadFold(room));
   const [open, setOpen] = useState(false);
+  // 공지 칸 높이 → 문서 변수 --nm-pin-h(높이 + 간격 8px · 비면 0) = PC 에서 검색 단추·글 시작을 공지 아래로(형 11-07 09:57 밥상 「공지는 아예 제일 윗단으로 … 공지 뒤에는 글이 안나오게 … 그 아래에 검색버튼 … 어느정도 간격」 · shell.css)
+  const slot = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = slot.current, root = document.documentElement;
+    if (!el) { root.style.removeProperty("--nm-pin-h"); return; }
+    const put = () => { const h = el.offsetHeight; root.style.setProperty("--nm-pin-h", `${h ? h + 8 : 0}px`); };
+    put();
+    const ro = new ResizeObserver(put);
+    ro.observe(el);
+    return () => { ro.disconnect(); root.style.removeProperty("--nm-pin-h"); };
+  });
   const jump = (p: Pin) => { setOpen(false); if (onJump) onJump(p.id, p.ts); else window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id: p.id } })); };   // 대화창(office-chat.tsx)이 받아 그 글로(묶음 펼침 포함)
   if (!cur && !open && !children) return null;
   const folded = !!cur && fold === cur.id;
   const toggle = () => { const v = folded ? "" : cur?.id || ""; setFold(v); saveFold(room, v); };
   return (
     <>
-      {cur || children ? <div className="nm-pin-slot">{!cur ? null :
+      {cur || children ? <div ref={slot} className="nm-pin-slot">{!cur ? null :
         folded ? (
           <button type="button" className="nm-pin-mini" aria-label={`고정된 글 펼치기 — ${firstLine(cur.text)}`} onClick={toggle}><DuetIcon name="pin" size={16} /></button>
         ) : (
