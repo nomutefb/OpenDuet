@@ -8,6 +8,7 @@ import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장할까?」(�
 import { useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { type OfficeRoom, idOf, office, peopleSync } from "../data/office";
+import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
 import { FaceImg } from "./faces";
 import { dropSearchCache } from "./room-search";
 import { GoButton } from "./go-button";
@@ -68,7 +69,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
       const body = JSON.stringify({ name, purpose, members: picked, ...(hours === null ? {} : { hours }) });
       const j = await office<{ room: { id: string } & Partial<OfficeRoom> }>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body });
       draftDrop(dk);   // 저장됨 = 보관 지움
-      if (edit) patchRoom(qc, edit.id, j.room && j.room.id === edit.id ? j.room : { name, purpose, members: picked });
+      if (edit) patchRoom(qc, edit.id, savedRoomPart(j, edit.id, { name, purpose, members: picked }) as Partial<OfficeRoom>);
       if (edit) void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
       else await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 새 방 = 목록에 있어야 들어감
       return j;
@@ -236,7 +237,7 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
     setBusy(true); setWhy("");
     try {
       const j = await office<{ room?: Partial<OfficeRoom> & { id: string } }>(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name || "", purpose: r.purpose || "", members: now }) });
-      patchRoom(qc, r.id, j.room && j.room.id === r.id ? j.room : { members: now });
+      patchRoom(qc, r.id, savedRoomPart(j, r.id, { members: now }) as Partial<OfficeRoom>);
       void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
       onClose();
     } catch (e) { setWhy(e instanceof Error ? e.message : "저장 못 함"); setBusy(false); }
