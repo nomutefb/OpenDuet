@@ -1,0 +1,22 @@
+/* 대화창 「컴퓨터 · 조치 필요」 카드(뜸 11-08 · 형 11-06 그록 카드 그림 꼴 · 미리보기 없음) + 앱 안 VM 화면 */
+.ychat .nm-pc { width:min(440px, 100%); border-radius:var(--r-l, 18px); background:var(--glass-2); border:1px solid var(--glass-line); box-shadow:inset 0 1px 0 var(--glass-line); overflow:hidden; }
+.ychat .nm-pc-h { display:flex; align-items:center; gap:7px; padding:12px 16px 0; font-size:var(--fs-sm, 13px); font-weight:var(--fw-b, 700); color:var(--fg-2); }
+.ychat .nm-pc-b { padding:10px 16px 12px; }
+.ychat .nm-pc-b b { display:block; font-size:var(--fs-body, 15px); font-weight:var(--fw-b, 700); }
+.ychat .nm-pc-b p { margin:3px 0 0; font-size:var(--fs-sm, 13px); color:var(--fg-2); white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }
+.ychat .nm-pc-act { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px; padding:10px 12px 12px; border-top:1px solid var(--glass-line); }
+.nm-pc-btn { display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:0 16px; border-radius:var(--r-pill, 999px); border:1px solid var(--glass-line); background:var(--glass); color:inherit; font-size:var(--fs-sm, 13px); font-weight:var(--fw-b, 700); text-decoration:none !important; cursor:pointer; }
+.nm-pc-btn:disabled { opacity:.45; cursor:default; }
+.nm-pc-btn:active:not(:disabled) { transform:scale(var(--press-m, .97)); }
+.nm-pc-btn.go { background:var(--fg, #f4f4f0); color:var(--bg, #111); border-color:transparent; }   /* 그록 카드 「제어권 가져오기」 = 밝은 알약 */
+.ychat .nm-pc-st { margin-right:auto; font-size:var(--fs-xs, 12px); color:var(--fg-2); }
+.ychat .nm-pc-st.err { color:#FFAA4D; }
+
+/* 앱 안 화면 = 꽉 차게 · 위 띠 한 줄 */
+.nm-pcs { position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; background:#0b0b0b; color:#f4f4f0; }
+.nm-pcs-bar { display:flex; align-items:center; gap:8px; padding:8px 10px; padding-top:max(8px, env(safe-area-inset-top)); border-bottom:1px solid rgba(255,255,255,.08); }
+.nm-pcs-t { display:flex; align-items:center; gap:7px; min-width:0; flex:1; font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-pcs-t em { font-style:normal; font-weight:500; opacity:.7; overflow:hidden; text-overflow:ellipsis; }
+.nm-pcs .nm-pc-btn { border-color:rgba(255,255,255,.14); background:rgba(255,255,255,.06); }
+.nm-pcs .nm-pc-btn.go { background:#f4f4f0; color:#111; }
+.nm-pcs-f { flex:1; width:100%; border:0; background:#000; }
