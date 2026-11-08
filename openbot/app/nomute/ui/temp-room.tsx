@@ -63,7 +63,8 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
       const body = JSON.stringify({ name, purpose, members: picked, ...(hours === null ? {} : { hours }) });
       const j = await office<{ room: { id: string } }>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body });
       draftDrop(dk);   // 저장됨 = 보관 지움
-      await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+      if (edit) void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
+      else await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 새 방 = 목록에 있어야 들어감
       return j;
     } catch (e) { setWhy(e instanceof Error ? e.message : "못 만들었어"); setBusy(false); throw e; }
   };
@@ -184,7 +185,7 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
     setBusy(true); setWhy("");
     try {
       await office("roomset", { method: "POST", body: JSON.stringify({ room: r.id, members: now, base: d?.roomset.ver }) });
-      await Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }), qc.invalidateQueries({ queryKey: ["nomute", "rooms"] })]);
+      void Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }), qc.invalidateQueries({ queryKey: ["nomute", "rooms"] })]);   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
       onClose();
     } catch (e) { const m = e instanceof Error ? e.message : "저장 못 함"; setWhy(/changed|base/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); setCur(null); void q.refetch(); setBusy(false); }
   };
@@ -227,7 +228,7 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
     setBusy(true); setWhy("");
     try {
       await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name || "", purpose: r.purpose || "", members: now }) });
-      await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+      void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
       onClose();
     } catch (e) { setWhy(e instanceof Error ? e.message : "저장 못 함"); setBusy(false); }
   };
