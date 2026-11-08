@@ -1,0 +1,45 @@
+/* 요약 대기열 = 「Tasks」 판(형 11-09 05:17 「뉴스요약 진행상황은 이런식으로 표시」 · 05:18 「뉴스 요약 형태 이덧도 있음」 · 시아 05:20 한 장 · 깃 · ./feed.tsx TaskPanel·TaskCard)
+   다크(기본) = 검정 → 오른쪽 아래 옅은 라임 번짐 · 체크 = 라임 / 라이트 = 옅은 회색 판 · 체크 = #161716 · 도는 호만 #4f7a00 · 「움직임 줄이기」 = 바로 */
+.nm-tasks { margin:4px 0 12px; border-radius:16px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(135deg, #0b0c0b 45%, rgba(207,255,64,.10)); overflow:hidden; }
+:root:not(.dark) .nm-tasks { background:#f2f2f2; border-color:rgba(0,0,0,.06); }
+.nm-tasks-head { width:100%; display:flex; align-items:center; gap:8px; padding:10px 14px; background:none; border:0; color:var(--fg); text-align:left; cursor:pointer; font-size:13px; }
+.nm-tasks-head b { font-weight:600; }
+.nm-tasks-car { width:12px; color:var(--mut); }
+.nm-tasks-meta { margin-left:auto; padding:2px 8px; border-radius:999px; background:rgba(255,255,255,.08); color:var(--mut); font-size:11px; }
+:root:not(.dark) .nm-tasks-meta { background:rgba(0,0,0,.06); }
+.nm-tasks-head > em { font-style:normal; font-size:11px; color:var(--mut); }
+.nm-tasks-head > em.ok { padding:1px 8px; border-radius:999px; border:1px solid rgb(var(--accent-rgb, 207,255,64)); color:rgb(var(--accent-rgb, 207,255,64)); }
+:root:not(.dark) .nm-tasks-head > em.ok { border-color:#4f7a00; color:#4f7a00; }
+.nm-tasks-list { display:flex; flex-direction:column; gap:6px; padding:0 10px 10px; }
+.nm-tasks-more { align-self:flex-end; background:none; border:0; color:var(--mut); font-size:11px; cursor:pointer; padding:2px 4px; }
+
+/* B = 기사 한 건 카드 */
+.nm-tk { border-radius:12px; background:rgba(255,255,255,.04); padding:8px 10px; animation:nmTkIn .32s ease-out both; }
+:root:not(.dark) .nm-tk { background:#fff; }
+.nm-tk-head { width:100%; display:flex; align-items:center; gap:8px; background:none; border:0; padding:0; color:var(--fg); text-align:left; cursor:pointer; }
+.nm-tk-t { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:500; }
+.nm-tk-head > em { font-style:normal; font-size:11px; color:var(--mut); }
+.nm-tk-car { font-size:10px; color:var(--mut); }
+.nm-tk-ring, .nm-tk-steps i { position:relative; flex:none; width:14px; height:14px; border-radius:50%; border:1.5px solid rgba(255,255,255,.28); box-sizing:border-box; }
+:root:not(.dark) .nm-tk-ring, :root:not(.dark) .nm-tk-steps i { border-color:rgba(0,0,0,.22); }
+.nm-tk.run .nm-tk-ring, .nm-tk-steps .run i { border-color:rgba(207,255,64,.2); border-top-color:rgb(var(--accent-rgb, 207,255,64)); animation:nmTkSpin .9s linear infinite; }
+:root:not(.dark) .nm-tk.run .nm-tk-ring, :root:not(.dark) .nm-tk-steps .run i { border-color:rgba(79,122,0,.2); border-top-color:#4f7a00; }
+.nm-tk.done .nm-tk-ring, .nm-tk-steps .done i { border:0; background:rgb(var(--accent-rgb, 207,255,64)); }
+:root:not(.dark) .nm-tk.done .nm-tk-ring, :root:not(.dark) .nm-tk-steps .done i { background:#161716; }
+.nm-tk.done .nm-tk-ring::after, .nm-tk-steps .done i::after { content:"✓"; position:absolute; inset:0; display:grid; place-items:center; font-size:9px; font-style:normal; color:#0b0c0b; }
+:root:not(.dark) .nm-tk.done .nm-tk-ring::after, :root:not(.dark) .nm-tk-steps .done i::after { color:#fff; }
+.nm-tk.fail .nm-tk-ring, .nm-tk-steps .fail i { border-color:#ff5a52; }
+.nm-tk.fail .nm-tk-ring::after, .nm-tk-steps .fail i::after { content:"×"; position:absolute; inset:0; display:grid; place-items:center; font-size:11px; font-style:normal; color:#ff5a52; }
+.nm-tk-steps { list-style:none; margin:6px 0 0; padding:0 0 0 22px; display:flex; flex-direction:column; gap:4px; }
+.nm-tk-steps li { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--fg); animation:nmTkIn .32s ease-out both; }
+.nm-tk-steps li.wait { color:var(--mut); }
+.nm-tk-steps li.wait i { width:6px; height:6px; margin:0 4px; border:0; background:currentColor; opacity:.5; }
+.nm-tk-steps li.done { color:var(--mut); text-decoration:line-through; opacity:.6; }
+.nm-tk-steps li.fail { color:#ff5a52; }
+.nm-tk-steps li em { margin-left:auto; padding:1px 7px; border-radius:999px; font-style:normal; font-size:10px; background:rgba(255,255,255,.08); color:var(--mut); }
+:root:not(.dark) .nm-tk-steps li em { background:rgba(0,0,0,.06); }
+.nm-tk-why { display:block; width:100%; margin:6px 0 0; padding:0 0 0 22px; background:none; border:0; text-align:left; font-size:11px; color:#ff8a84; cursor:pointer; }
+.nm-tk-why b { margin-right:6px; }
+@keyframes nmTkSpin { to { transform:rotate(360deg); } }
+@keyframes nmTkIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .nm-tk, .nm-tk-steps li { animation:none; } .nm-tk.run .nm-tk-ring, .nm-tk-steps .run i { animation:none; } }
