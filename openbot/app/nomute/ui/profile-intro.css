@@ -16,3 +16,7 @@
 .ypc .ypc-role-edit input { flex:1; min-width:0; padding:6px 10px; border-radius:var(--r-pill); border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:#E7ECE7; font:inherit; font-size:var(--fs-sm); }
 .ypc .ypc-role-edit input:focus { outline:none; border-color:color-mix(in srgb, var(--accent) 60%, transparent); }
 .ypc .ypc-role-edit button { flex:none; border-radius:var(--r-pill); padding:5px 12px; font:inherit; font-size:var(--fs-sm); font-weight:var(--fw-b); cursor:pointer; }
+
+/* 화면 보기(형 11-08 「프로필 누르면 본인의 vm이 배선되도록」) — 1:1 대화 단추와 같은 꼴 · 아이콘 한 칸 */
+.ypc-acts .ypc-screen { display: inline-flex; align-items: center; gap: 6px; }
+.ypc-acts .ypc-screen svg { width: 16px; height: 16px; flex: none; }
