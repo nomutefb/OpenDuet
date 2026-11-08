@@ -24,9 +24,10 @@ export function SchedFlow({ map, group, go, review = {}, phone = false }: { map:
   const isOpen = (id: string) => !phone || (openF[id] ?? id === rows[0]?.f.id);
   const box = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<Line[]>([]);
-  const jump = (j: RunnerJob) => {   // 폰 칩 → 그 블록(접혀 있으면 펼치고) 로
+  const jump = (j: RunnerJob, group?: string) => {   // 칩 → 그 블록으로(접혀 있으면 펼치고 · 다른 갈래면 갈래 바꾼 뒤 · 모루 11-09 08:37 ① 폰은 첫 상자만 펼쳐 있어 목적 잡이 숨던 것)
     setOpenF((o) => ({ ...o, [j.fork]: true }));
-    setTimeout(() => box.current?.querySelector<HTMLElement>(`[data-job="${CSS.escape(j.id)}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 60);
+    if (group) go(group);
+    setTimeout(() => box.current?.querySelector<HTMLElement>(`[data-job="${CSS.escape(j.id)}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" }), group ? 160 : 60);
   };
   const draw = useCallback(() => {   // 블록 자리 → 선 · PC = routeEdge(블록 밖 통로만 · 모루 06:36 ①) · 폰 = routeRail(같은 포크 안 선만 · 왼쪽 레일)
     const root = box.current;
@@ -59,7 +60,7 @@ export function SchedFlow({ map, group, go, review = {}, phone = false }: { map:
     return () => { ro?.disconnect(); window.removeEventListener("resize", draw); };
   }, [draw, openF]);
   const chipsOf = (j: RunnerJob): Chip[] => {   // 블록 밑 칩 = 다른 갈래로 가는 선(늘) + 폰이면 다른 포크로 가는 선도
-    const out: Chip[] = (far.get(j.id) || []).map((x) => ({ dir: x.dir, job: x.job, tag: gname(x.group), onClick: () => go(x.group) }));
+    const out: Chip[] = (far.get(j.id) || []).map((x) => ({ dir: x.dir, job: x.job, tag: gname(x.group), onClick: () => jump(x.job, x.group) }));
     if (phone) for (const e of edges) {
       if (e.from.fork === e.to.fork) continue;
       if (e.from.id === j.id) out.push({ dir: "out", job: e.to, tag: fname(e.to.fork), onClick: () => jump(e.to) });
@@ -77,7 +78,7 @@ export function SchedFlow({ map, group, go, review = {}, phone = false }: { map:
           <section key={f.id} className="nm-flow-fork" data-off={!fOn || undefined} aria-label={f.name}>
             <header className="nm-flow-forkhead" data-open={on || undefined}>
               {phone ? (
-                <button type="button" aria-expanded={on} onClick={() => setOpenF((o) => ({ ...o, [f.id]: !on }))}>
+                <button type="button" className="nm-flow-fold" aria-expanded={on} onClick={() => setOpenF((o) => ({ ...o, [f.id]: !on }))}>
                   {head}
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d={on ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} /></svg>
                 </button>
