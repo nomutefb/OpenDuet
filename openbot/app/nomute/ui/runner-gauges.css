@@ -62,3 +62,12 @@
 :root:not(.dark) .nm-rgx-run.nm-rgx-body.is-warn { color:#8a6d00; }
 :root:not(.dark) .nm-rgx-run.nm-rgx-body.is-bad { color:#c0392b; }
 :root:not(.dark) .nm-rgx-peb.on { filter:drop-shadow(0 0 4px rgba(0,0,0,.18)); }
+/* 라이트: 게이지 호·끝점(뎅 11-09 02:12 [찾음] · 녹색 ink #E6E6E6 · 바탕 호 #333333 이 밝은 바탕에서 뒤집혀 「얼마나 찼는지」 안 보임) — 녹색만 진하게 · 바탕 호 옅게 · 눈금 점 옅게 · 노랑/주황/빨강 경고색은 그대로 · 다크 손 0 */
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge path[stroke="#333333"] { stroke:rgba(22,23,22,.14); }
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge path[stroke="#E6E6E6"] { stroke:rgba(22,23,22,.6); }
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge circle[fill="#E6E6E6"] { fill:rgba(22,23,22,.6); }
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge circle[fill="#555555"] { fill:rgba(22,23,22,.25); }
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge path[stroke="#5C5C5C"] { stroke:rgba(22,23,22,.35); }
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge circle[fill="#5C5C5C"] { fill:rgba(22,23,22,.35); }
+/* 서랍·설정(.nm-modal.see)이 열려 있을 땐 밑 러너 칸을 숨김(뎅 02:12 · 봄 7) 나머지 = 칸 사이·머리줄로 게이지·RUNNER 글자 비침 · 안 ①) · 닫히면 그대로 돌아옴 */
+:root:has(.nm-modal.see) .nm-rgx { opacity:0; pointer-events:none; transition:opacity .15s; }
