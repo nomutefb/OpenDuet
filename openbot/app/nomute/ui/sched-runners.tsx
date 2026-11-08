@@ -6,8 +6,8 @@ import { type RunnerJob, type SchedRunners, nextShort } from "./settings-extra";
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { type Review, ReviewBadge, ReviewBox } from "./sched-review";   // 폐기 → 검토(형 11-02 02:1x · 러너 줄도 같은 길)
 
-const CLOCK_KO: Record<string, string> = { yml: "시간표", beat: "윈A 박자", phone: "폰 커밋", "runner-watch": "메우기", "cron-job": "바깥 타이머", after: "앞 일 뒤따름", launchd: "맥 예약" };
-const whenOf = (j: RunnerJob) => j.when || cronKo(j.cron_kst) || "부를 때만";
+export const CLOCK_KO: Record<string, string> = { yml: "시간표", beat: "윈A 박자", phone: "폰 커밋", "runner-watch": "메우기", "cron-job": "바깥 타이머", after: "앞 일 뒤따름", launchd: "맥 예약" };
+export const whenOf = (j: RunnerJob) => j.when || cronKo(j.cron_kst) || "부를 때만";
 
 export function RunnerTree({ map, group, go, review = {}, can = false, who = (w) => w }: { map: SchedRunners; group: string; go: (group: string) => void; review?: Record<string, Review>; can?: boolean; who?: (w: string) => string }) {
   const [openF, setOpenF] = useState(""), [openJ, setOpenJ] = useState("");
