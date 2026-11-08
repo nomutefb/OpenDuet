@@ -4,7 +4,7 @@
 import { useEffect, useRef } from "react";
 
 export const BEING_SHAPE: Record<string, string> = { bom: "fleur", winter: "flocon", sia: "galet", deng: "galet", fast: "nuage", neo: "patate", eyes: "riz", lightning: "cercle", gik: "goutte", bit: "squircle" };   // 번개 = 배선 뒤 스스로 고를 때까지 동그라미(윈터 16:01 「모양은 번개한테 물어봐」)
-export const BEING_INK: Record<string, string> = { bom: "#ff6fb5", winter: "#0ffd02", sia: "#dde3ea", deng: "#9c5a26", fast: "#2f6bff", neo: "#ffd60a", eyes: "#ffb07c", lightning: "#FFE606", gik: "#7EDFC3", bit: "#B79CFF" };   // 번개 = 명부 말풍선 색
+export const BEING_INK: Record<string, string> = { bom: "#ff6fb5", winter: "#0ffd02", sia: "#dde3ea", deng: "#9c5a26", fast: "#2f6bff", neo: "#ffd60a", eyes: "#ffb07c", lightning: "#FFE606", gik: "#7EDFC3", bit: "#C8643B" };   // 번개 = 명부 말풍선 색
 export const BEING_RIM: Record<string, string> = { deng: "#ffb300" };
 const ASLEEP = "#4f4f4f";   // 잠듦 = 회색 몸(형 10-31 「불꺼짅채로 잠들고 있으면 되는거임」 · runner.html BOT_ASLEEP)
 
