@@ -53,7 +53,10 @@
    — 다크 값은 위 그대로 · :root:not(.dark) 에서만 덮음 · 게이지 SVG 글자는 lieflat 팔레트(D.ink)가 박은 fill 을 CSS fill 로 덮음(속성보다 CSS 가 이김) */
 :root:not(.dark) .nm-rgx .nm-rgx-name { color:#4f7a00; }
 :root:not(.dark) .nm-rgx-g { color:rgba(22,23,22,.55); }
-:root:not(.dark) .nm-rgx .lf-gauge svg text { fill:#161716; }
+/* 게이지 = runner/tick-gauge.tsx 의 svg.nm-rg-gauge(모루 11-09 00:03 짚음 · .lf-gauge 아님) — 숫자 tspan fill="#F2F2F2" · 흐린 글 "#8A8A8A" · off "#5C5C5C" 만 겨눔 · 온도 경고색(style fill · 노랑/빨강)은 그대로 */
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge [fill="#F2F2F2"] { fill:#161716; }
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge [fill="#8A8A8A"] { fill:rgba(22,23,22,.55); }
+:root:not(.dark) .nm-rgx svg.nm-rg-gauge [fill="#5C5C5C"] { fill:rgba(22,23,22,.35); }
 :root:not(.dark) .nm-rgx-run { color:rgba(22,23,22,.38); }
 :root:not(.dark) .nm-rgx-run.work, :root:not(.dark) .nm-rgx-run.nm-rgx-body.is-ok { color:#161716; }
 :root:not(.dark) .nm-rgx-run.nm-rgx-body.is-warn { color:#8a6d00; }
