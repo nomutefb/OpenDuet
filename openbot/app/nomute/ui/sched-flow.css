@@ -14,7 +14,7 @@
 .nm-flow-forkhead b { font-size:var(--fs-body); white-space:nowrap; }
 .nm-flow-forkhead small { flex:1; min-width:0; font-size:var(--fs-sm); color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-flow-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(196px, 1fr)); gap:18px 28px; }   /* 칸 = 폭 따라 자동(반갈 왼쪽 칸 ≈660px = 3칸 · 1180px = 5칸) · 가로 틈 28 = 선이 꺾일 자리 */
-.nm-flow-job { position:relative; display:grid; gap:4px; min-width:0; padding:10px 12px; border:1px solid var(--flow-line); border-radius:14px; background:var(--flow-block); color:var(--flow-fg); }
+.nm-flow-job { position:relative; display:grid; grid-template-columns:minmax(0, 1fr); gap:4px; min-width:0; padding:10px 12px; border:1px solid var(--flow-line); border-radius:14px; background:var(--flow-block); color:var(--flow-fg); }
 .nm-flow-job[data-off] { opacity:.55; }
 .nm-flow-job[data-next] { outline:1.5px solid var(--flow-next); outline-offset:-1px; }   /* 다음 차례 = 라임 테 1.5px + 작은 「다음」 알약(시아 ③) */
 .nm-flow-l1 { display:flex; align-items:flex-start; gap:6px; min-width:0; }

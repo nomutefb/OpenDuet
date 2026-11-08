@@ -43,7 +43,7 @@ export function SchedFlow({ map, group, go, review = {} }: { map: SchedRunners; 
   }, [draw]);
   return (
     <div className="nm-flow" ref={box}>
-      <small className="nm-flow-note">1단 = 보기만(블록 위 탭 ▷ ⏻ 🔒 ⧉ 🗑 은 2단) · 선 = 뒤따름·부름 있는 것만 · 라임 테 = 다음 차례</small>   {/* 시아 06:41 ④: 따로 뜬 단추 줄은 어느 블록 것인지 몰라 1단에선 뺌 */}
+      <small className="nm-flow-note">1단 = 보기만(블록 위 탭 돌리기 · 켬끔 · 형만 · 복사 · 검토로는 2단) · 선 = 뒤따름·부름 있는 것만 · 라임 테 = 다음 차례</small>   {/* 시아 06:41 ④: 따로 뜬 단추 줄은 어느 블록 것인지 몰라 1단에선 뺌 */}
       {rows.map(({ f, jobs }) => {
         const fOn = f.on !== false, fs = sumOf(jobs.map((j) => stOf(j.health, !fOn || j.on === false)));
         return (
