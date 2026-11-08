@@ -315,7 +315,8 @@ form:has(.bg-popover[role="listbox"]) { -webkit-backdrop-filter:none !important;
 form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pane:has(.bg-popover[role="listbox"]) { transform:none !important; translate:none !important; }
 /* 긴 말풍선 = 화면을 넘어가도 얼굴·이름이 머리 밑에 남음(형 10-31 「화면 넘어가면 화자가 나와야함」) */
 .ychat .ymsg .yava { position:sticky; top:var(--ytop, 84px); z-index:2; }   /* 머리 흐림 아래(형 10-31 「이게 좀 더 아래로 내랴와야해. 가려지거든? 그래서 화자가 좀 안보여.」) */
-.ychat .ymsg .yname { position:sticky; top:var(--ytop, 84px); z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
+.ychat .ymsg .yname { position:relative; z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }
+/* 이름표 sticky 뺌(뎅 11-08 23:05 [찾음] ⑥ · 봄 배분 9 · 깃) — 이름표가 얼굴과 같이 머리 밑에 붙어 있으면 긴 말풍선을 내릴 때 불투명 탭이 말풍선 글자 위에 얹혀 가림(「chrome-profile/Fork-2」 줄 앞이 「번개 ⚡」 알약에 가려짐) → 화자는 sticky 얼굴(위 줄 · 형 10-31 「화면 넘어가면 화자가 나와야함」)로 남기고 이름 탭은 말풍선 머리와 같이 흐름 · relative = z-index 그대로 먹게 */
 /* 이름표 = 프로필 테에서 이어져 나온 둥근 표 · 각자 테 색(형 11-03 10:51 「프로필 테두리에서 이어져서 이름 뒤 검정색색 을 대신할 수 있나? 그라벨을, 각자 시그니처 색으로, 테두리에서 조금 나와서 둥글게 모서리해서 구성하면될듯」)
    = 왼쪽 22px 를 얼굴 밑으로 넣어(얼굴 z 2 위) 테 밖으로 나온 만큼만 보임 · 글자 자리는 그대로 · 테 색 없는 이(--yn 없음)는 옛 바탕 */
 .ychat .ymsg .yname.tab { margin-left:-22px; padding:1px 8px 1px 24px; border-radius:999px; background:color-mix(in srgb, var(--yn) 50%, var(--background)); color:var(--fg); }
