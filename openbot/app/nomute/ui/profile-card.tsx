@@ -10,22 +10,10 @@ import { draftDrop, draftGet, draftSet } from "./draft";   // 쓰던 소개 되�
 import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장하시겠습니까?」 [예] [아니오](형 10:59)
 import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../data/office";
 import { ColorPick } from "./color-pick";
+import { screenUrl, tailnetUrl } from "./pc-url";   // 「화면 보기」 주소 = 컴퓨터 카드와 같은 테일넷 거르개 · 앱 안 화면 꼴(모루 #2968 · 시험 tests/profile-screen.test.ts)
 import { BeingCard, beingLook } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import "./profile-intro.css";
-
-/** 몸 화면 주소 = 테일넷 안만(https <몸>.<테일넷>.ts.net · http(s) 100.64/10 · 컴퓨터-요청.py 와 같은 막음) · 밖 주소면 안 그림 */
-function screenUrl(u?: string): string | null {
-  if (!u) return null;
-  try {
-    const x = new URL(u);
-    if (x.protocol !== "https:" && x.protocol !== "http:") return null;
-    if (/\.ts\.net$/i.test(x.hostname)) return x.href;
-    const m = /^100\.(\d+)\.\d+\.\d+$/.exec(x.hostname);
-    if (m && +m[1] >= 64 && +m[1] <= 127) return x.href;
-  } catch { /* 깨진 주소 = 안 그림 */ }
-  return null;
-}
 
 const ROOMS_KEY = ["nomute", "rooms"] as const;   // office-chat.tsx officeKeys.rooms 와 같은 열쇠(받아 둔 방 목록을 그대로 씀 · 읽기 0)
 
@@ -73,7 +61,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     finally { setBusy(false); }
   };
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
-  const screen = screenUrl(p?.screen);   // 그 아이 몸 화면(형 11-08 빠르 창 「프로필 누르면 본인의 vm이 배선되도록」 · 주소 = 서버 명부 screen · 테일넷 안 주소만)
+  const screen = tailnetUrl(p?.screen) ? screenUrl(tailnetUrl(p?.screen)) : "";   // 그 아이 몸 화면(형 11-08 빠르 창 「프로필 누르면 본인의 vm이 배선되도록」 · 주소 = 서버 명부 screen · 테일넷 안 주소만)
   const openScreen = () => { if (screen) window.open(screen, "_blank", "noopener"); };
   return (
     <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
