@@ -29,3 +29,15 @@ test("요약 끝 · 피드에 있음 = succ(판에서 빠질 것) · 도는 중�
   assert.equal(taskOf("fail", "fail").label, "요약 실패");
   assert.equal(panelOf([{ status: "processing", e: "processing" }, { status: "succ", e: "lag" }]).tail, "1/2 건");
 });
+
+test("queued · pending = 기다림(도는 고리·「요약 중」 아님 · 모루 #3009 ②)", () => {
+  for (const s of ["queued", "pending"]) {
+    const t = taskOf(s, s);
+    assert.equal(t.wait, true);
+    assert.equal(t.run, false);
+    assert.equal(t.ring, "wait");
+    assert.equal(t.label, "기다림");
+  }
+  assert.equal(taskOf("processing", "processing").ring, "run");
+  assert.equal(taskOf("retry", "retry").label, "재시도 중");
+});
