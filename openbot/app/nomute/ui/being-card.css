@@ -520,3 +520,26 @@
 
 /* 프로필 창(./profile-card.tsx .ypc)에 카드가 들어갈 때 = 창을 조금 넓고 길게(카드 3:4 + 아래 연필 줄이 스크롤 없이) */
 .ypc.ypc--being { width: min(372px, 100%); max-height: min(92dvh, 800px); gap: 9px; padding-top: 50px; }   /* 위 50 = 말풍선 색 원(.ypc-orb 우상단)이 카드 테를 안 가림 */
+
+/* 틀 카드(.bc-tmpl · 형 11-09 05:17 「시아 플필 기본 템플릿화해서 모두 게시」 · 뜸) — 시아 카드 몸통 그대로 · 색 = 그 애 말풍선 색(--bc-accent) · 무늬 = 고리 + 띠만 */
+.bc-tmpl { --bc-accent: #CFFF40; }
+.being-card-wrap .bc-tmpl .profile-card__body { background: linear-gradient(165deg, color-mix(in srgb, var(--bc-accent) 34%, #14161a) 0%, #121316 100%); }
+.being-card-wrap .bc-tmpl .profile-card__rim { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bc-accent) 70%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
+.being-card-wrap .bc-tmpl .profile-card__tile { background: radial-gradient(120% 90% at 50% 18%, color-mix(in srgb, var(--bc-accent) 55%, #1a1c20) 0%, color-mix(in srgb, var(--bc-accent) 22%, #121316) 55%, #0e0f12 100%); }
+.being-card-wrap .bc-tmpl .profile-card__tile-rim { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bc-accent) 28%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
+.being-card-wrap .bc-tmpl .profile-card__scrim { background: linear-gradient(to top, rgba(10, 10, 14, 0.7) 0%, rgba(10, 10, 14, 0.32) 16%, rgba(10, 10, 14, 0) 32%); }
+.being-card-wrap .bc-tmpl .profile-card__photo { box-shadow: 0 0 0 2px color-mix(in srgb, var(--bc-accent) 65%, transparent), 0 0 0 7px color-mix(in srgb, var(--bc-accent) 14%, transparent), 0 18px 40px -12px rgba(0, 0, 0, 0.85), 0 0 70px color-mix(in srgb, var(--bc-accent) 35%, transparent); }
+.bc-tmpl .bc-band {
+  left: -30%; right: -30%; top: 46%; height: 70px;
+  background:
+    linear-gradient(color-mix(in srgb, var(--bc-accent) 60%, transparent), color-mix(in srgb, var(--bc-accent) 60%, transparent)) 0 0 / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--bc-accent) 26%, transparent) 45%, transparent);
+  transform: translate3d(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4), 0) rotate(-16deg);
+}
+.bc-tmpl .bc-ring {
+  left: 50%; top: 4%;
+  width: 78%; aspect-ratio: 1 / 1; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--bc-accent) 45%, transparent);
+  box-shadow: inset 0 0 40px color-mix(in srgb, var(--bc-accent) 14%, transparent);
+  transform: translate3d(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7), 0);
+}
