@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { type Rect, flowOf, modelKo, routeEdge, stem, timeKey } from "../ui/sched-flow-core.ts";
+import { type Rect, flowOf, modelKo, routeEdge, routeRail, stem, timeKey } from "../ui/sched-flow-core.ts";
 import type { RunnerJob, SchedRunners } from "../ui/settings-extra.tsx";
 
 // 러너 스케줄 흐름 그림 셈(봄 배분 19 · 시아 05:17 ②: 선 = after/calls 있는 것만 · 선 없는 잡은 시각 순 왼→오 · after 값은 .yml 없는 줄기 이름)
@@ -100,4 +100,11 @@ test("다른 갈래 쪽에서 보면 들어오는 칩 · after 줄기 이름으�
   assert.equal(g.edges.length, 0);
   assert.deepEqual(g.far.get("state")?.map((x) => `${x.dir}:${x.job.id}`).sort(), ["in:judge", "in:sweep"]);
   assert.equal(g.soon, "");
+});
+
+test("폰 선 = 왼쪽 레일(lane 마다 4px 안쪽) · 아래로도 위로도 · 도착은 왼쪽 가장자리 화살", () => {
+  const a: Rect = { left: 26, right: 360, top: 100, bottom: 190 }, b: Rect = { left: 26, right: 360, top: 204, bottom: 294 };
+  assert.equal(routeRail(a, b), "M26 145 H20 V249 H21");
+  assert.equal(routeRail(a, b, 2), "M26 145 H12 V249 H21");
+  assert.equal(routeRail(b, a, 1), "M26 249 H16 V145 H21");
 });

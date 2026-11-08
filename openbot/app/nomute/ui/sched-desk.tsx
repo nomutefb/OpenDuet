@@ -102,7 +102,7 @@ export function SchedDesk() {
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const [who, setWho] = useState(""), [openF, setOpenF] = useState(""), [openR, setOpenR] = useState(""), [tab, setTab] = useState("bot");
   const wide = useWide();
-  const [view, setView] = useState<"list" | "flow">(() => { try { return localStorage.getItem("nm-sched-view") === "flow" ? "flow" : "list"; } catch { return "list"; } });   // 러너 갈래 보기 = 목록 ↔ 흐름 그림(PC 만 · 기기마다 기억 · 기본 = 목록)
+  const [view, setView] = useState<"list" | "flow">(() => { try { return localStorage.getItem("nm-sched-view") === "flow" ? "flow" : "list"; } catch { return "list"; } });   // 러너 갈래 보기 = 목록 ↔ 흐름 그림(PC · 폰 · 기기마다 기억 · 기본 = 목록)
   const pickView = (v: "list" | "flow") => { setView(v); try { localStorage.setItem("nm-sched-view", v); } catch { /* 못 남겨도 됨 */ } };
   const [ask, setAsk] = useState<{ q: SchedQ; r: SchedSetRes } | null>(null), [msg, setMsg] = useState("");
   // 바꾸기 진행(형 10-31 「전송 게이지 차고 체크 된 다음 버튼이 있고, 그 다음에 빙글빙글 쭉 하다가 체크 뜨면」) = 옛 에디터 .go 상태 계승 — fill 전송 · ok ✓ · wait 시계 기다림 · done ✓ · late 2분 넘음
@@ -149,7 +149,7 @@ export function SchedDesk() {
   const face = (b?: { who: string }, size = 28) => { const p = list.find((x) => x.who === b?.who); return <MicOrb size={size} id={idOf(b?.who || "", list)} tint={ringOf(p)} />; };
   const nameOf = (b?: { who: string }) => list.find((x) => x.who === b?.who)?.name || b?.who || "";
   const rv = d.review || {}, whoKo = (w: string) => nameOf(botOf(w) || { who: w });
-  const runnerTab = tab !== "bot" && tab !== "gpu" && !!d.runners, flow = wide && view === "flow" && runnerTab;   // 흐름 그림은 러너 갈래 + PC 에서만 · 그때 판을 넓힘
+  const runnerTab = tab !== "bot" && tab !== "gpu" && !!d.runners, flow = view === "flow" && runnerTab, wideFlow = wide && flow;   // 흐름 그림 = 러너 갈래(PC · 폰 다 · 형 11-09 08:12 「모바일에서도」) · PC 흐름이면 판을 넓힘
   // 상태 점 셈(뜸 11-02 · 서버 health 칸 · 없으면 ○) — 봇 꼬챙이 = 포크·봇 차단기가 내려가면 꺼짐 · 러너 = 포크·잡 on 칸
   const fOff = (id?: string) => d.forks?.find((f) => f.id === id)?.on === false;
   const rSt = (r: Routine): HealthSt => stOf(r.health, r.state === "off" || fOff(r.fork) || botOf(r.bot)?.on === false);
@@ -182,7 +182,7 @@ export function SchedDesk() {
     );
   };
   return (
-    <div className={`nm-sched nm-yeta mx-auto flex w-full ${flow ? "max-w-[1180px]" : "max-w-2xl"} flex-col gap-3 px-3 pb-28 pt-1`}>
+    <div className={`nm-sched nm-yeta mx-auto flex w-full ${wideFlow ? "max-w-[1180px]" : "max-w-2xl"} flex-col gap-3 px-3 pb-28 pt-1`}>
       {msg ? <p className="text-sm" role="status">{msg}</p> : null}
       <div className="nm-sum" role="status" aria-label="스케줄 상태 요약">   {/* 요약 띠(뜸 11-02 와이어 「●131 ▲6 ✕1 ○13 · 시계=새 표 받음」) · 형 「원활하게 다 미러링되는지」를 맨 위 한 줄로 */}
         <div className="nm-sum-n">{ST_ORDER.map((k) => <span key={k} title={HEALTH_KO[k]} data-st={k} data-zero={!allSum[k] || undefined}><StatusDot st={k} />{allSum[k]}</span>)}</div>
@@ -194,12 +194,12 @@ export function SchedDesk() {
             const gs = sumOf(groupSts(g.id)), w = worstOf(gs), n = ST_ORDER.reduce((a, k) => a + gs[k], 0);
             return <button key={g.id} type="button" className="nm-sched-chip nm-gchip" aria-pressed={tab === g.id} onClick={() => setTab(g.id)}>{g.name} {n}<span data-st={w}><StatusDot st={w} />{w === "miss" ? gs.miss : w === "late" ? gs.late : ""}</span></button>;   // 갈래 건강 = 제일 나쁜 것 하나 + 그 수
           })}
-          {wide && runnerTab ? <span className="nm-flow-toggle" role="group" aria-label="보기"><button type="button" className="nm-sched-chip" aria-pressed={view === "list"} onClick={() => pickView("list")}>목록</button><button type="button" className="nm-sched-chip" aria-pressed={view === "flow"} onClick={() => pickView("flow")}>흐름</button></span> : null}   {/* 러너 갈래 보기 고르기(PC 만 · 봄 배분 19) */}
+          {runnerTab ? <span className="nm-flow-toggle" role="group" aria-label="보기"><button type="button" className="nm-sched-chip" aria-pressed={view === "list"} onClick={() => pickView("list")}>목록</button><button type="button" className="nm-sched-chip" aria-pressed={view === "flow"} onClick={() => pickView("flow")}>흐름</button></span> : null}   {/* 러너 갈래 보기 고르기(PC · 폰 · 봄 배분 19 · 27) */}
           {d.gpu ? <button type="button" className="nm-sched-chip nm-gchip" aria-pressed={tab === "gpu"} onClick={() => setTab("gpu")}>GPU {d.gpu.jobs.length}</button> : null}   {/* GPU 쓰는 일만 따로(형 11-05 09:43) */}
         </div>
       ) : null}
       {tab === "gpu" && d.gpu ? <GpuPanel gpu={d.gpu} open={(id) => { const j = d.runners?.jobs.find((x) => x.id === id); const g = j && d.runners?.forks.find((f) => f.id === j.fork)?.group; if (g) setTab(g); }} /> : null}
-      {runnerTab && d.runners ? (flow ? <SchedFlow map={d.runners} group={tab} go={setTab} review={rv} /> : <RunnerTree map={d.runners} group={tab} go={setTab} review={rv} can={can} who={whoKo} />) : null}
+      {runnerTab && d.runners ? (flow ? <SchedFlow map={d.runners} group={tab} go={setTab} review={rv} phone={!wide} /> : <RunnerTree map={d.runners} group={tab} go={setTab} review={rv} can={can} who={whoKo} />) : null}
       {tab === "bot" ? <>
       <div className="nm-sched-faces" role="group" aria-label="봇 고르기">
         {d.bots.map((b) => (

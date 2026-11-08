@@ -92,3 +92,9 @@ export function routeEdge(a: Rect, b: Rect, others: Rect[], G = 14): string {
   const ym = r1(b.top >= a.bottom || band(b) ? a.bottom + G : a.top - G);   // 아래 줄 · 같은 줄 = 출발 줄 밑 틈 · 위 줄 = 출발 줄 위 틈
   return `M${x1} ${y1} H${r1(x1 + G)} V${ym} H${r1(x2 - G)} V${y2} H${x2 - 5}`;
 }
+
+/** 폰 선(세로 한 줄 쌓기 · 시아 11-09 08:14 【2】) = 출발 블록 왼쪽 가장자리 → 왼쪽 레일(lane 마다 4px 안쪽) → 도착 블록 왼쪽 가장자리(화살) · 위·아래 다 됨 */
+export function routeRail(a: Rect, b: Rect, lane = 0): string {
+  const y1 = r1((a.top + a.bottom) / 2), y2 = r1((b.top + b.bottom) / 2), x = r1(Math.min(a.left, b.left) - 6 - lane * 4);
+  return `M${r1(a.left)} ${y1} H${x} V${y2} H${r1(b.left) - 5}`;
+}
