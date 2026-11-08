@@ -765,3 +765,11 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 :root:not(.dark) .ychat .yrx-who.yrx-swap > span { color:rgba(0,0,0,.6); }
 :root:not(.dark) .ychat .yrx-who.yrx-swap button.q { color:inherit; background:none; border:0; }
 .yrx { -webkit-touch-callout:none; user-select:none; }
+/* 폰(한 칸)에선 방 머리 목록에 「방」 칸(방 설정 · 대화방 알림 · 꾸미기 …)을 먼저 — 사람 아홉 줄 + 초대 + 멤버 설정이 50dvh 를 다 채워 방 칸이 목록 아래로 밀려 안 보였음
+   (형 11-09 05:09 「대화방 알림이 모바일 상단 눌럿을 때 켬 끔이없음 대화방 설정도」 · 빠르 실물 390×844 · 봄 배분 17) · 사람 칸 구분선은 「사람」 위로 · PC 두 칸은 그대로 */
+@media (max-width: 859px) {
+  .nm-top-crew > .nm-top-sec.cut, .nm-top-crew > .nm-top-sec.cut + .nm-top-menu { order:-1; }
+  .nm-top-crew > .nm-top-sec.cut { margin-top:0; padding-top:0; border-top:0; }
+  .nm-top-crew > .nm-top-sec:not(.cut) { margin-top:2px; padding-top:8px; border-top:1px solid var(--glass-line); }
+  .nm-top-crew { max-height:min(70dvh, 560px); }
+}
