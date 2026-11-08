@@ -12,7 +12,7 @@
 .nm-igfb .nm-pulse-chart text.up { fill:#00F0FF; }   /* + = 시안 네온(형 08:52 「+색이 차트 색이랑 같아서 주첩되서 해석에 왜곡이 생기니까 시안 네온으로」) */
 /* 형 11-08 09:00 dm-fast 「최상단에 방금 - 2시간 전 이거 수평 유지하는지 확인. 러너랑 sns도 수평 아닌거 같음」 — 러너 판 머리줄이 판 안 4px 아래(62px)라 SNS 머리줄도 4px 내림(위 padding-top · 시각 top:4px) */
 /* 「차트는 그대로두고 2행 라인을 … 아래로 내려와 어짜피 여유잇으니까 조금만. 아래로 딱 붙으면안됨」 — 칸을 아래 틈으로 5px 늘리고 같은 만큼 margin 을 당겨 Hot Issue 선 자리는 그대로(줄 아래 ~18px 남김) */
-.nm-split > section.nm-split-top-r { flex-basis:calc(var(--nm-top-h, 140px) + 5px); height:calc(var(--nm-top-h, 140px) + 5px); margin-bottom:-5px; }   /* +5 = ± 줄 밑이 왼쪽 Runner 판 밑과 한 줄(형 09:12 「hot issue에 수평으로 맞추기로 햇엇음 광학 크단위로 4분할 수평」) */
+.nm-split > section.nm-split-top-r { flex-basis:calc(var(--nm-top-h, 140px) + 12px); height:calc(var(--nm-top-h, 140px) + 12px); margin-bottom:-12px; }   /* +12 = ± 줄을 조금 더 아래로(형 10:06 사진) · Hot Issue 선 자리는 그대로 */   /* +5 = ± 줄 밑이 왼쪽 Runner 판 밑과 한 줄(형 09:12 「hot issue에 수평으로 맞추기로 햇엇음 광학 크단위로 4분할 수평」) */
 .nm-igfb .nm-pulse-chart text.dn { fill:#FFAA4D; fill-opacity:1; }   /* − = 주황 네온(하네스 --modern-neon-orange · 형 09:00 「-는 주황쪽 네온으로. 기존에 하네스에 잇는 색일거야. 황토색쪽 아님.」) */
 .nm-igfb .nm-pulse-chart .vw path { stroke:#AC5CFF; stroke-opacity:.95; }   /* 인스타 노출 꺾은선 = 네온 보라(하네스 --cat-tech #AC5CFF · 형 11-08 09:29 뎅 1:1 「그리고 우상단에 노출색 변경할게 > 네온 보라로 (미안)」 · 앞 판 = 시안) */
 .nm-igfb .nm-pulse-chart .vw circle { fill:#AC5CFF; }
@@ -20,3 +20,4 @@
 .nm-igfb .nm-pulse-chart text.vlab { fill:#C38BFF; fill-opacity:.9; font-weight:500; paint-order:stroke; stroke:#0b0c0b; stroke-width:3px; stroke-linejoin:round; }   /* 「노출 평균」 = 선이 지나가도 읽히게 검은 테(09:25 실물 · 흐려서 선에 묻혔음) */
 .nm-igfb .nm-pulse-k.th { color:var(--mut); }   /* FB · TH 이름 = 회색(형 11-08 09:29 뎅 1:1 「그리고 FB (글자색) 변경할게 미안. 다시 회색으로,」 · 09:11 판 = FB 시안) */
 .nm-igfb .nm-pulse { gap:10px; }   /* 총수 줄 ↔ 차트 사이 더 띄움(형 09:11 「그리고 아래 차트랑 좀 더 줄간격.」 · 폰 홈 4px) */
+.nm-split-root .nm-split-l .nm-pulse:not(.nm-pulse-fill), .nm-split-root .nm-split-l .nm-pulse-wait { display:none; }   /* PC 반갈 = 왼쪽 홈 칸의 옛 SNS 띠 숨김(오른쪽 위 SNS 칸과 겹침 · 시아 10:05 짚음 · 폰 홈은 그대로) */

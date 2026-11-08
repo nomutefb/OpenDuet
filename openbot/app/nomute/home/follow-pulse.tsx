@@ -70,11 +70,13 @@ const smooth = (pts: [number, number][]) => pts.map((p, i) => { if (!i) return `
 export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fill = 칸 높이를 다 씀(PC 오른쪽 위 · ../ui/igfb-band.tsx · 봄 11-08 · 형 07:31 「휴대폰 메인화면에 출력되어있던 차트를 알맞은 크기로」)
   const [ig, setIg] = useState<Chan | null>(null), [fb, setFb] = useState<Chan | null>(null), [th, setTh] = useState<Chan | null>(null), [, tick] = useState(0), [tried, setTried] = useState(false);   // tried = 첫 받기 끝(그 전엔 자리만 잡음)
   // 그림 폭 = 화면 실제 폭(형 10-31 「이거 위에 찌그러지는거 좀 수정해줄래?」 · 300칸을 가로로 늘려서 글자·점이 찌그러졌음)
-  const [wide, setWide] = useState(300), [tall, setTall] = useState(64), seen = useRef<ResizeObserver | null>(null);
+  const [wide, setWide] = useState(300), [tall, setTall] = useState(64), [gcy, setGcy] = useState(0), seen = useRef<ResizeObserver | null>(null);   // gcy = 왼쪽 러너 게이지 가운데 y(이 그림 위 끝에서 · PC 칸만)
   const chart = useCallback((el: SVGSVGElement | null) => {
     seen.current?.disconnect();
     if (!el) return;
-    seen.current = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height); if (w > 0) setWide(w); if (fill && h > 0) setTall(Math.max(64, h)); });
+    seen.current = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height); if (w > 0) setWide(w); if (fill && h > 0) setTall(Math.max(64, h));
+      // 노출 평균 선 = 러너 게이지 가운데와 한 줄(형 11-08 09:49 「게이지 위치를 차의 노출평균 선이랑 맞춤」 · 시아 10:05 「고정 숫자 말고 같은 줄에 묶어야 화면마다 맞음」) · 게이지 viewBox 0 8 132 104 · 가운데 CY 62(runner/tick-gauge.tsx)
+      if (fill) { const g = document.querySelector(".nm-split-top-l .nm-rg-gauge")?.getBoundingClientRect(); if (g && g.height > 0) setGcy(Math.round(g.top + ((62 - 8) * g.height) / 104 - el.getBoundingClientRect().top)); } });
     seen.current.observe(el);
   }, [fill]);
   useEffect(() => {
@@ -89,7 +91,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
     const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
     // ± 두 줄 차례: 폰 홈 = IG 위 · FB 아래 / PC 칸(fill) = FB 위 · IG 아래(형 11-08 08:51 「인스타를 아래로 깔아. 그래야 눈에 들어올듯. 페북이 위로」 · 「차트는 그대로인데, 2행<>1행 뒤바ㅣ꾸고」)
     // PC 칸(fill) = 차트와 ± 줄 사이를 더 띄움(10 · 폰 6) · 칸 자체도 아래로 5px 늘림(igfb-band.css) = 차트는 그대로 · 줄만 내려옴(형 11-08 09:00 dm-fast 「차트는 그대로두고 2행 라인을 차트로 부터 조금만 간격을 더 둬서 아래로 내려와 … 아래로 딱 붙으면안됨」 · 「둘사이는 그대로 두고.」)
-    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - (fill ? 10 : 6);
+    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - (fill ? 17 : 6);   // PC 칸 = 차트 끝 ↔ ± 줄 17(형 10:06 사진 「빨갛게 표시한 저붑부분의 간격을 좀 넓혀달라는뜻. 아래 글자 행이 좀 더 아래로 조금만」 · 칸은 +12 로 늘림 = 차트 그대로)
     const lines: ["ig" | "fb", Pt[]][] = [["ig", series(ig, "ig")], ...(fb ? [["fb", series(fb, "fb")] as ["fb", Pt[]]] : [])];
     const all = lines.flatMap(([, s]) => s.map((p) => p.pct));
     const span = Math.max(0.5, ...all.map(Math.abs)), lo = Math.min(0, ...all), hi = Math.max(0, ...all);
@@ -97,9 +99,9 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
     const Y = (v: number) => BOT - ((v - bot) / (top - bot || 1)) * (BOT - TOP);
     // 인스타 일일 노출 = 시안 꺾은선(PC 칸만) · 평균이 차트 높이 가운데 · 왼쪽 가운데에 「평균 0.05M · N일」(형 11-08 08:54 「일일 노출도도 표기되게 해줘 시안으로」 · 08:55 「인스타만 보이면돼」 · 09:09 「숫자로 나오는게 아니라 그래프로」 · 「차트 높이의 중앙 좌측에 노출수 평균이 나오게하고」 · 09:10 「그걸 기준해서 그래프만 꺽은선으로 ㅗ게하면됨. 아래에 숫자는 필요없어」 · 09:11 「1M을 목표로간다」)
     const vv = lines[0][1].map((p) => p.views).filter((v): v is number => v != null), vavg = vv.length ? vv.reduce((a, b) => a + b, 0) / vv.length : 0;
-    const vspan = Math.max(1, ...vv.map((v) => Math.abs(v - vavg))), MID = (TOP + BOT) / 2, VY = (v: number) => MID - ((v - vavg) / vspan) * ((BOT - TOP) / 2);
+    const vspan = Math.max(1, ...vv.map((v) => Math.abs(v - vavg))), MID = fill && gcy > TOP + 8 && gcy < BOT - 8 ? gcy : (TOP + BOT) / 2, VY = (v: number) => MID - ((v - vavg) / vspan) * Math.min(MID - TOP, BOT - MID);   // 가운데가 게이지 줄로 옮겨져도 선이 칸 밖으로 안 나감
     return { W, H, P, FS, RH, FBY, IGY, MID, Y, VY, vv, vavg, lines };
-  }, [ig, fb, wide, tall, fill]);
+  }, [ig, fb, wide, tall, fill, gcy]);
   if (!tried && !ig) return <div className="nm-pulse-wait" aria-hidden />;   // 받는 동안 = 띠 높이만큼 자리만(형 11-03 12:45 「첨에 위로 버튼이 보였다가 내려가」 = 띠가 늦게 생기며 아래 칸이 밀렸음)
   if (!ig || !view) return null;   // 못 읽으면 자리 비움(홈이 그 자리만큼 올라옴)
   const { W, H, P, FS, RH, FBY, IGY, MID, Y, VY, vv, vavg, lines } = view;
@@ -120,7 +122,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         {fill && vv.length ? (() => { const s = lines[0][1], off = (DAYS - s.length) * P, vp = s.map((p, i) => (p.views == null ? null : ([off + i * P + P / 2, VY(p.views)] as [number, number]))).filter((x): x is [number, number] => x != null); return (
           <g className="vw" aria-label={`인스타 일일 노출 · 평균 ${nf.format(Math.round(vavg))}`}>
             <line className="vavg" x1="0" x2={W} y1={MID.toFixed(1)} y2={MID.toFixed(1)} strokeWidth="1" />
-            <text className="vlab" x="3" y={(MID - 4).toFixed(1)} fontSize={FS}>{`노출 평균 ${mfmt(vavg)} · 목표 1M · ${s.length}일`}</text>
+            <text className="vlab" x={W - 3} y={(MID - 4).toFixed(1)} textAnchor="end" fontSize={FS}>{mfmt(vavg)}</text>   {/* 형 10:05 「노출평균 이거 없어도 됨. 설명 없어도되고 그냥 끝점 ---- 살짝 위에 0.9M 이렇게 00M만 나오면됨」 = 평균 점선 오른쪽 끝 살짝 위 · M 숫자만 */}
             {vp.length > 1 ? <path d={smooth(vp)} fill="none" strokeWidth="1.5" strokeLinecap="round" /> : null}
             {vp.map(([cx, cy], i) => <circle key={i} cx={cx.toFixed(1)} cy={cy.toFixed(1)} r={i === vp.length - 1 ? 2.4 : 1.8} />)}
           </g>); })() : null}   {/* 노출 꺾은선 = 팔로워 선 뒤(먼저 그림) · 평균 = 가운데 점선 */}
