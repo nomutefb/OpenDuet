@@ -5,7 +5,7 @@
 .nm-tab + .nm-tab:not(.on)::before { content:""; position:absolute; left:0; top:11px; bottom:11px; width:1px; background:rgba(232,234,232,.18); }   /* 사이 세로선 1px */
 .nm-tab.on + .nm-tab::before { display:none; }
 .nm-tab:hover { color:rgba(232,234,232,.85); }
-.nm-tab.on { background:var(--nm-tab-on, #f6f6f8); color:var(--fg, #161716); z-index:1; }
+.nm-tab.on { background:var(--nm-tab-on, #f6f6f8); color:var(--nm-tab-on-fg, #161716); z-index:1; }   /* 글자 = 바탕 밝기로(tab-bar.tsx tabColors · 뎅 ㉢) */
 .nm-tab.on::before, .nm-tab.on::after { content:""; position:absolute; bottom:0; width:12px; height:12px; pointer-events:none; }   /* 어깨 곡선 = 고른 탭이 아래 판과 한 몸 */
 .nm-tab.on::before { left:-12px; background:radial-gradient(circle at 0 0, transparent 12px, var(--nm-tab-on, #f6f6f8) 12.5px); }
 .nm-tab.on::after { right:-12px; background:radial-gradient(circle at 100% 0, transparent 12px, var(--nm-tab-on, #f6f6f8) 12.5px); }

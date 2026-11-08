@@ -51,3 +51,11 @@ export function tabsMove(s: TabState, key: string, to: number): TabState {
   const tabs = [...s.tabs]; tabs.splice(i, 1); tabs.splice(at, 0, t);
   return { ...s, tabs };
 }
+/** 순수 — 판 바탕색 글(rgb/rgba) → 고른 탭 바탕·글자색 · 투명·못 읽음 = 테마 따라(다크 #121314/#e8eae8 · 라이트 #f6f6f8/#161716) · 밝기(상대 휘도) .45 밑 = 어두움 */
+export function tabColors(css: string, dark: boolean): { bg: string; fg: string } {
+  const m = /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?/.exec(String(css || ""));
+  if (!m || (m[4] !== undefined && +m[4] < 0.5)) return dark ? { bg: "#121314", fg: "#e8eae8" } : { bg: "#f6f6f8", fg: "#161716" };
+  const [r, g, b] = [+m[1], +m[2], +m[3]].map((v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return { bg: `rgb(${m[1]}, ${m[2]}, ${m[3]})`, fg: lum < 0.45 ? "#e8eae8" : "#161716" };
+}

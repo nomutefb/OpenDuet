@@ -7,7 +7,7 @@ import { type PointerEvent as RPE, useEffect, useLayoutEffect, useRef, useState 
 import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg } from "./faces";
-import { DASH, type Tab, type TabState, TABS_KEY, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "./tab-list";
+import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "./tab-list";
 import "./tab-bar.css";
 
 const load = (): TabState => { try { return tabsLoad(localStorage.getItem(TABS_KEY)); } catch { return tabsLoad(null); } };
@@ -28,7 +28,10 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   useEffect(() => { if (s.active.startsWith("s:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   useLayoutEffect(() => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
     const root = document.querySelector(".nm-split-root") as HTMLElement | null, el = bar.current;
-    if (root && el) el.style.setProperty("--nm-tab-on", getComputedStyle(root).backgroundColor || "#f6f6f8");
+    if (root && el) {   // 고른 탭 = 아래 판 바탕색 · 글자 = 그 바탕 밝기로 고름(뎅 06:43 ㉢ 「라이트에서 고른 탭이 검은 알약에 글자 안 보임」 · 봄 배분 26)
+      const { bg, fg } = tabColors(getComputedStyle(root).backgroundColor, matchMedia("(prefers-color-scheme: dark)").matches);
+      el.style.setProperty("--nm-tab-on", bg); el.style.setProperty("--nm-tab-on-fg", fg);
+    }
     if (el) {   // 새 판 알약 = 「+」 오른쪽 · 시계 앞에 자리(알약 ≈160px)가 없으면 시계 오른쪽으로(06:3x 실물 · 탭 줄 상자 끝으로 잡으면 알약이 시계를 덮음)
       const plus = el.querySelector(".nm-tab-plus")?.getBoundingClientRect(), clock = document.querySelector(".nm-topclock")?.getBoundingClientRect();
       let x = Math.round((plus ? plus.right : el.getBoundingClientRect().left) + 8);

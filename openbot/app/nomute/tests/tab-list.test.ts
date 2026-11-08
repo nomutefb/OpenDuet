@@ -1,7 +1,7 @@
 // 위쪽 탭 줄 자료(빠르 11-09 · 형 05:16 · 시아 05:23)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DASH, TABS_MAX, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "../ui/tab-list.ts";
+import { DASH, TABS_MAX, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "../ui/tab-list.ts";
 
 const S = (keys: string[]) => keys.join(" ");
 const keysOf = (s: { tabs: Parameters<typeof tabKey>[0][] }) => S(s.tabs.map(tabKey));
@@ -46,4 +46,12 @@ test("끌어서 순서 = 대시보드 자리 고정 · 방·화면 갈래 안에
   assert.equal(keysOf(tabsMove(s, "r:a", 9)), "dash r:b r:c r:a s:뜸");
   assert.equal(keysOf(tabsMove(s, "s:뜸", 0)), keysOf(s));
   assert.equal(tabsMove(s, "dash", 3), s);
+});
+
+test("고른 탭 색 = 바탕 밝기로 글자 고름 · 투명·깨짐 = 테마 따라(뎅 06:43 ㉢ · 봄 26)", () => {
+  assert.deepEqual(tabColors("rgb(246, 246, 248)", false), { bg: "rgb(246, 246, 248)", fg: "#161716" });
+  assert.equal(tabColors("rgb(18, 19, 20)", false).fg, "#e8eae8");   // 라이트 몸인데 판이 어두우면(뎅 ㉢) = 밝은 글
+  assert.equal(tabColors("rgba(0, 0, 0, 0)", false).bg, "#f6f6f8");
+  assert.deepEqual(tabColors("", true), { bg: "#121314", fg: "#e8eae8" });
+  assert.equal(tabColors("rgba(30, 32, 35, 0.9)", false).fg, "#e8eae8");
 });
