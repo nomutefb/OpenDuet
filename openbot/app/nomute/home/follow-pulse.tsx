@@ -24,7 +24,7 @@ const NET = {
   fb: (r: Row) => (r.follower_net != null ? r.follower_net : r.follows != null ? r.follows : null),
 };
 
-async function get(key: "ig" | "fb", file: string): Promise<Chan | null> {
+async function get(key: "ig" | "fb" | "th", file: string): Promise<Chan | null> {
   for (const u of [`/api/chan?f=${key}`, `/${file}?ts=${Date.now()}`]) {
     try {
       const r = await fetch(u, { cache: "no-store", credentials: "same-origin" });
@@ -68,7 +68,7 @@ const ago = (iso: string) => { const t = Date.parse(iso); if (!Number.isFinite(t
 const smooth = (pts: [number, number][]) => pts.map((p, i) => { if (!i) return `M${p[0].toFixed(1)} ${p[1].toFixed(1)}`; const a = pts[i - 1], m = (a[0] + p[0]) / 2; return `C${m.toFixed(1)} ${a[1].toFixed(1)} ${m.toFixed(1)} ${p[1].toFixed(1)} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`; }).join("");
 
 export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fill = 칸 높이를 다 씀(PC 오른쪽 위 · ../ui/igfb-band.tsx · 봄 11-08 · 형 07:31 「휴대폰 메인화면에 출력되어있던 차트를 알맞은 크기로」)
-  const [ig, setIg] = useState<Chan | null>(null), [fb, setFb] = useState<Chan | null>(null), [, tick] = useState(0), [tried, setTried] = useState(false);   // tried = 첫 받기 끝(그 전엔 자리만 잡음)
+  const [ig, setIg] = useState<Chan | null>(null), [fb, setFb] = useState<Chan | null>(null), [th, setTh] = useState<Chan | null>(null), [, tick] = useState(0), [tried, setTried] = useState(false);   // tried = 첫 받기 끝(그 전엔 자리만 잡음)
   // 그림 폭 = 화면 실제 폭(형 10-31 「이거 위에 찌그러지는거 좀 수정해줄래?」 · 300칸을 가로로 늘려서 글자·점이 찌그러졌음)
   const [wide, setWide] = useState(300), [tall, setTall] = useState(64), seen = useRef<ResizeObserver | null>(null);
   const chart = useCallback((el: SVGSVGElement | null) => {
@@ -79,11 +79,11 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
   }, [fill]);
   useEffect(() => {
     let live = true;
-    const load = () => Promise.all([get("ig", "insta_data.json"), get("fb", "fb_data.json")]).then(([a, b]) => { if (!live) return; if (a) setIg(a); setFb(b); }).catch(() => {}).finally(() => { if (live) setTried(true); });
+    const load = () => Promise.all([get("ig", "insta_data.json"), get("fb", "fb_data.json"), fill ? get("th", "threads_data.json") : Promise.resolve(null)]).then(([a, b, c]) => { if (!live) return; if (a) setIg(a); setFb(b); setTh(c); }).catch(() => {}).finally(() => { if (live) setTried(true); });
     load();
     const t1 = window.setInterval(() => { if (!document.hidden) load(); }, 10 * 60e3), t2 = window.setInterval(() => tick((n) => n + 1), 60e3);   // 10분 다시 읽기 · 1분 「갱신 N분 전」
     return () => { live = false; clearInterval(t1); clearInterval(t2); };
-  }, []);
+  }, [fill]);
   const view = useMemo(() => {
     if (!ig) return null;
     const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
@@ -110,6 +110,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v">{nf.format(ig.profile.followers_count)}</b>
         <i className="nm-pulse-sep" aria-hidden />
         <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v">{fb ? nf.format(fb.profile.followers_count) : "–"}</b>
+        {fill ? <><i className="nm-pulse-sep" aria-hidden /><span className="nm-pulse-k th">TH</span><b className="nm-pulse-v">{th ? nf.format(th.profile.followers_count) : "–"}</b></> : null}   {/* PC 칸 = 스레드 총수 하나 더(형 11-08 09:11 「저기 fB 옆에구분자 하나 더 둬서 스레드도 나오게해, FB가 시안으로 표기되고 th 는 fb 색으로」 · 자료 = /api/chan?f=th → threads_data.json) */}
         <span className="nm-pulse-at">{fill ? ago(ig.generated_kst).replace(/^갱신 /, "") : ago(ig.generated_kst)}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
       </div>
       <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>
