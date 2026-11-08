@@ -39,6 +39,7 @@ import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
 import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
+import { deliverStudio } from "./studio-handoff";   // 카드 제작 → 영상 편집 넘김(품은 edit.html 이 뜨면 영상 넣기 · 번개 11-08)
 const WebPane = lazy(() => import("./web-pane").then((m) => ({ default: m.WebPane })));
 import { ModalBox } from "./modal-box";   // 큰 창 넷 = Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
 const IssueView = lazy(() => import("./issue").then((m) => ({ default: m.IssueView })));
@@ -387,8 +388,9 @@ function FramePage({ src, title, onTitle }: { src: string; title: string; onTitl
     const el = ref.current;
     const offs = [hookFrame(el), toneFrame(el)];
     const name = () => { try { const t = el?.contentDocument?.title; if (t && onTitle) onTitle(t); } catch { /* 남의 사이트 = 못 읽음 */ } };
-    el?.addEventListener("load", name);
-    return () => { offs.forEach((f) => f()); el?.removeEventListener("load", name); };
+    const dv = () => deliverStudio(el);
+    el?.addEventListener("load", name); el?.addEventListener("load", dv);
+    return () => { offs.forEach((f) => f()); el?.removeEventListener("load", name); el?.removeEventListener("load", dv); };
   }, [src]);   // eslint-disable-line react-hooks/exhaustive-deps
   return <iframe ref={ref} title={title} src={src} className="nm-modal-frame" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" />;
 }

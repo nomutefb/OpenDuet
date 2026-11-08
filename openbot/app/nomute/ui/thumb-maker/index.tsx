@@ -10,6 +10,7 @@ import { memo, useEffect, useRef } from "react";
 import { startEngine } from "./engine";
 import { THUMB_HTML } from "./markup";
 import { SceneBg } from "./scene-bg";
+import { studioRoute } from "../studio-handoff";   // 「영상 편집으로」·「유튜브 링크로 숏폼」 = 옛 화면을 앱 안 한 겹으로(번개 11-08)
 
 const HTML = { __html: THUMB_HTML };
 const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 3.5l1.8 4.9 4.9 1.8-4.9 1.8L12 16.9l-1.8-4.9-4.9-1.8 4.9-1.8L12 3.5z" /><path d="M19.5 15l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8.8-2.1z" /></svg>;
@@ -21,7 +22,10 @@ export const ThumbMaker = memo(function ThumbMaker() {
   const frame = useRef<HTMLDivElement>(null), scroller = useRef<HTMLDivElement>(null), root = useRef<HTMLDivElement>(null), body = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!frame.current || !scroller.current || !root.current || !body.current) return;
-    return startEngine(root.current, body.current, frame.current, scroller.current);
+    const w = window as Window & { __nmStudioRoute?: typeof studioRoute };
+    w.__nmStudioRoute = studioRoute;   // 엔진이 켜질 때 studioRouteFn 이 보도록 먼저
+    const stop = startEngine(root.current, body.current, frame.current, scroller.current);
+    return () => { if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
   }, []);
   useEffect(() => {   // 내용이 미리보기 도크 밑으로 들어갔나 = data-stuck(./frame.css 맨 아래 · 비침 고침)
     const s = scroller.current, r = root.current;

@@ -68,7 +68,7 @@ export async function fetchServerOrig(id) {
 export function isOwnEditApp(app) { const a = String(app || ''); return a !== '6' && a !== 'tr'; }
 export function parentStudioRouter() { try { return (window.parent !== window && window.parent.studioEditOpen) ? window.parent.studioEditOpen : null; } catch (_) { return null; } }
 export function trRouter() { try { return (window.parent !== window && window.parent.studioTrOpen) ? window.parent.studioTrOpen : null; } catch (_) { return null; } }
-export function studioRouteFn() { try { return (window.parent !== window && window.parent.studioRoute) ? window.parent.studioRoute : null; } catch (_) { return null; } }
+export function studioRouteFn() { try { if (window.parent !== window && window.parent.studioRoute) return window.parent.studioRoute; } catch (_) { /* 다른 출처 */ } return window.__nmStudioRoute || null; }   // 앱 안(부모 창 없음) = ../../studio-handoff.ts 가 둔 손(번개 11-08 · 「영상 편집으로」·「유튜브 링크로 숏폼」 단추 복귀)
 export function trHandoff() { const r = trRouter(); if (r && S.CIMG.b64) r(S.CIMG.b64, S.CIMG.name); }
 export function canEditSrc(src) { return !!(src && src.app) && !appHidden(src.app) && (isOwnEditApp(src.app) || !!parentStudioRouter()); }
 export function editOpenSrc(src, url) {
