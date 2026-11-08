@@ -66,7 +66,7 @@ function useRowSync(panel: { current: HTMLDivElement | null }) {
     let tm = 0;
     const mid = (e: Element | null) => { if (!e) return null; const r = e.getBoundingClientRect(); return r.height > 0 ? r.top + r.height / 2 : null; };
     const pick = (sels: string[]) => { for (const q of sels) { const m = mid(document.querySelector(q)); if (m != null) return m; } return null; };   // 글자 가운데 먼저(눈이 대는 건 글자 · 뎅 11:14 「− 글 195.3 ↔ 줄 196.1」) · 글자 없으면 줄 바탕
-    const clamp = (v: number) => Math.max(-60, Math.min(60, Math.round(v * 2) / 2));   // 반 px 단위 · 엉뚱한 자리(화면 꼴이 다를 때)로 60 넘게는 안 밀림
+    const clamp = (v: number) => Math.max(-160, Math.min(160, Math.round(v * 2) / 2));   // 반 px 단위 · 천장 ±160(앞 판 ±60 은 넓은 폭에서 필요한 −62 · −67 에 걸려 조약돌 1.8 · 러너 7px 아래로 남았음 · 뎅 11:48 검증 · 900 폭만 맞았던 까닭) · SNS 칸이 없으면 애초에 0
     const sync = () => {
       const fb = pick([".nm-split-top-r .nm-pulse-chart g.fb text", ".nm-split-top-r .nm-pulse-rowbg.fb"]), ig = pick([".nm-split-top-r .nm-pulse-chart g.ig text", ".nm-split-top-r .nm-pulse-rowbg:not(.fb)"]);
       const peb = mid(el.querySelector(".nm-rgx-peb") ?? el.querySelector(".nm-rgx-pebs")), run = mid(el.querySelector(".nm-rgx-run") ?? el.querySelector(".nm-rgx-runs"));
