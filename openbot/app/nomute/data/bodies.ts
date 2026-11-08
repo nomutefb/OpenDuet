@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { office } from "./office";
 
 export * from "./bodies-core";
-import { bodiesOf } from "./bodies-core";
+import { bodiesOf, type Body } from "./bodies-core";   // type Body = 이 파일 useBodies 도 씀(모루 #2966 짚음 · 봄)
 
 /** 작동 표와 같은 조회(같은 queryKey = 한 번만 부름) 에서 bodies 만 */
 export function useBodies(): Body[] {
