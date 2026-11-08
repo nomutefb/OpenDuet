@@ -35,6 +35,7 @@ import type { SendAttempt, WaitingText } from "../data/attachment-send";
 import "./attachment-up.css";
 import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
+import { AV_MIN, type AvEvent, type AvState, avInit, avStep } from "./auto-video";   // 영상 자동 재생 결정(순수 · 모루 11-09 05:33 회귀 고침)
 import { AttachSheet } from "./attach-sheet";
 import { useCloseCallMenu } from "./call-face";
 import { justHeld, MsgMenu, useLongPress } from "./msg-menu";
@@ -656,17 +657,31 @@ function Files({ m }: { m: Msg }) {
 }
 
 /** 영상 첨부 미리보기 = 화면에 보이면 저절로 돎(형 11-09 05:14 임시방 「그리거 대화창에서 영상 미리보기 자동으움직이먼 졸겠낸」 · 뜸 05:15 꼴) —
- *  소리 끔·반복 · 50% 넘게 보일 때만 재생 · 화면 밖이면 멈춤 · controls 는 그대로(누르면 소리·전체 화면) · 「움직임 줄이기」 설정이면 안 돎 · 저장(preload)은 metadata 그대로(보일 때 받음) */
+ *  소리 끔·반복 · 50% 넘게 보일 때만 재생 · 화면 밖·탭 숨김이면 멈춤 · controls 는 그대로(누르면 소리·전체 화면) · 「움직임 줄이기」면 안 돎(도중 바뀜도 따름) · 저장(preload)은 metadata 그대로(보이기 전엔 안 받음)
+ *  사용자가 멈춘 영상은 사용자가 다시 누를 때까지 안 돌림(모루 11-09 05:33 · 앞 판은 100%→90% 스크롤에도 play 가 다시 걸렸음) · 결정은 ./auto-video.ts(순수 · 시험 tests/auto-video.test.ts) */
 function AutoVideo({ src, label, onError, onLoadedMetadata }: { src: string; label: string; onError: () => void; onLoadedMetadata: (e: React.SyntheticEvent<HTMLVideoElement>) => void }) {
-  const ref = useRef<HTMLVideoElement>(null);
+  const ref = useRef<HTMLVideoElement>(null), st = useRef<AvState>(avInit()), ours = useRef(false);   // ours = 지금 거는 pause 가 우리 것(사용자 멈춤과 가름)
   useEffect(() => {
     const v = ref.current;
     if (!v || typeof IntersectionObserver === "undefined") return;
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const mq = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    st.current = avInit(!!mq?.matches, document.visibilityState === "hidden");
     v.muted = true;   // React 가 muted 속성을 첫 그림에 안 박는 일이 있어 손으로(자동 재생은 소리 꺼야 됨)
-    const io = new IntersectionObserver((es) => { const e = es[0]; if (!e) return; if (e.intersectionRatio >= 0.5) v.play().catch(() => {}); else v.pause(); }, { threshold: [0, 0.5, 1] });
+    const run = (e: AvEvent) => {
+      const r = avStep(st.current, e);
+      st.current = r.s;
+      if (r.act === "play") v.play().catch(() => {});
+      else if (r.act === "pause" && !v.paused) { ours.current = true; v.pause(); }
+    };
+    const onPause = () => { const byUs = ours.current; ours.current = false; run({ t: "pause", byUs }); };
+    const onPlay = () => run({ t: "play" });
+    const onVis = () => run({ t: "hidden", v: document.visibilityState === "hidden" });
+    const onMq = (ev: MediaQueryListEvent) => run({ t: "reduce", v: ev.matches });
+    const io = new IntersectionObserver((es) => { const e = es[0]; if (e) run({ t: "ratio", r: e.intersectionRatio }); }, { threshold: [AV_MIN] });
     io.observe(v);
-    return () => { io.disconnect(); v.pause(); };
+    v.addEventListener("pause", onPause); v.addEventListener("play", onPlay);
+    document.addEventListener("visibilitychange", onVis); mq?.addEventListener("change", onMq);
+    return () => { io.disconnect(); v.removeEventListener("pause", onPause); v.removeEventListener("play", onPlay); document.removeEventListener("visibilitychange", onVis); mq?.removeEventListener("change", onMq); v.pause(); };
   }, [src]);
   return <video ref={ref} src={src} controls playsInline muted loop preload="metadata" aria-label={label} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={onError} onLoadedMetadata={onLoadedMetadata} />;
 }
