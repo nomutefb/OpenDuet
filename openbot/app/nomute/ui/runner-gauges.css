@@ -27,3 +27,7 @@
 .nm-rgx .nm-rgx-host { padding:0 3px; }
 .nm-rgx .nm-rgx-host:first-child { padding-right:12px; }
 .nm-rgx .nm-rgx-host:nth-child(2) { padding-left:9px; }
+/* 형 11-08 09:49 밥상 「GPU 아래에 CPU 를 뜻하는 C 넣어서 온도 해주고, 게이지 너비 5%만 더 키울게. (간격을 줄이는 개념으로할게) 그리고 WIN MAC 이런것들 라인을 IG 이런애들하고 맞추고, 글자 크기도 동일하게 감. 볼디함도.그리고 게이지 위치를 차의 노출평균 선이랑 맞춤.」(봄 · 1920 라이브에 얹어 잼: 이름 11px/800 = IG 11px/800 · 이름 밑줄 = IG 밑줄 · 게이지 가운데 175.0 ↔ 노출 평균 175.8 · 판 키 196 그대로 = SNS 칸 안 흔들림) */
+.nm-rgx .nm-rgx-name { font-size:11px; font-weight:800; letter-spacing:.02em; margin-top:6px; }   /* = SNS 「IG」 글자(.nm-pulse-k) · 같은 줄 */
+.nm-rgx .nm-rgx-g { position:absolute; top:24px; left:0; right:0; margin:0; }   /* 「보고 끊김」만 이름 밑에 겹쳐 띄움(자리 0) */
+.nm-rgx-host .nm-rg-gauge { max-height:92px; margin:2px auto -3px; }   /* 88 → 92(+5% · 몸 사이 틈이 그만큼 줄어듦) · 가운데 = 노출 평균 선 */
