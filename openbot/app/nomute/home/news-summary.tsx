@@ -5,6 +5,7 @@ import "./news-summary.css";
 import { useQuery } from "@tanstack/react-query";
 import { getJson, newsListQuery, useGo, whenOf } from "../ui/news-data";
 import { cleanTitle } from "./title-clean";
+import { SyncAgo } from "../ui/status-line";   // Digest 머리줄 오른쪽 「동기화 N분 전」(형 11-08 09:00)
 
 type QItem = { id?: string; t?: number; title?: string; key?: string; alt1?: string; status?: string; tries?: number };
 const LIVE = new Set(["processing", "retry", "queued", "pending", "failed", "error"]);   // 대기열에 보일 것 = 아직 안 끝난 것 · 실패(「succ」·done 같은 끝난 것 = 뺌 · 실물 17:3x)
@@ -23,7 +24,7 @@ export function NewsSummary() {
   const q = pend.data || [];
   return (
     <section className="nm-nsum" aria-label="뉴스 요약">
-      <div className="nm-nsum-h"><b>Digest</b><span>{q.length ? `대기열 ${q.length}` : ""}</span></div>
+      <div className="nm-nsum-h"><b>Digest</b><span>{q.length ? `대기열 ${q.length} · ` : ""}<SyncAgo /></span></div>
       {q.length ? (
         <ul className="nm-nsum-q">
           {q.map((it, i) => (

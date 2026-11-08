@@ -11,7 +11,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { office } from "../data/office";
-import { onVer, openStale, verState } from "./ver-badge";
 import "./status-line.css";
 
 type Line = {
@@ -47,12 +46,6 @@ function useNow(ms = 30_000) {
   return now;
 }
 
-function useVer() {
-  const [v, setV] = useState(verState);
-  useEffect(() => onVer(() => setV(verState())), []);
-  return v;
-}
-
 /** ⓐ 윗줄용 신호등 줄 — 자리(position)는 끼우는 쪽이 클래스로 */
 export function StatusLights({ className = "" }: { className?: string }) {
   const { q, l } = useLine();
@@ -66,8 +59,7 @@ export function StatusLights({ className = "" }: { className?: string }) {
           <span title="작동 표 신호등 수">🟢 <N v={l.ok} /> 🟡 <N v={l.warn} /> 🔴 <N v={l.bad} /> ⚪ <N v={l.off} /></span>
           <Sep />
           <span title="서버 연결 칸의 가장 나쁜 불">서버 {l.server || "⚪"}</span>
-          <Sep />
-          <span title={stale.length ? `끊긴 몸: ${stale.join(", ")}` : "몸 보고 모두 살아 있음"}>몸 <N v={l.hosts?.live} />/{l.hosts?.total ?? 0}</span>
+          {/* 몸 n/m 뺌(형 11-08 09:00 dm-fast 「몸 7/9 이것도 없어도 돼.」 · 끊긴 몸은 러너 칸이 보여 줌) */}
           <Sep />
           <span title="봇 연결">봇 <N v={l.bots?.ok} />/{l.bots?.total ?? 0}</span>
         </>
@@ -76,23 +68,18 @@ export function StatusLights({ className = "" }: { className?: string }) {
   );
 }
 
-/** ⓑ 우하단용 「동기화 00분 전 • 버전 0000000」 — 자리(position)는 끼우는 쪽이 클래스로 */
-export function SyncVersion({ className = "" }: { className?: string }) {
+/** 「동기화 N분 전」 글자만 — PC Digest 머리줄 오른쪽(home/news-summary.tsx · 형 11-08 09:00 dm-fast 「그리고 동기화 1분전 이것도 digest 의 라인 우측으로 가야 다른거랑 맞음.」) */
+export function SyncAgo() {
   const { l } = useLine();
   const now = useNow();
-  const v = useVer();
+  return <span title={l?.synced_at ? `몸 보고 가장 늦은 때 ${new Date(l.synced_at).toLocaleString()}` : "몸 보고 아직 없음"}>동기화 {ago(l?.synced_at, now)}</span>;
+}
+
+/** ⓑ 옛 우하단 「동기화 00분 전 • 버전 0000000」 — 이제 화면엔 안 그림(형 11-08 09:00 dm-fast 「그리고 버전 어쩌고는 메인창에서 그냥 안보이게해줘. ux에 어긋나네」 · 동기화 = SyncAgo 가 Digest 머리줄로) ·
+ *  옛 우상단 판 번호(.nm-ver)를 숨기는 html 표지(nm-has-syncver)만 그대로 · 판 번호는 설정 「지금 판」(settings-extra) */
+export function SyncVersion(_: { className?: string } = {}) {
   useEffect(() => { const h = document.documentElement; h.classList.add("nm-has-syncver"); return () => { h.classList.remove("nm-has-syncver"); }; }, []);
-  const mine = v.mine.sha || "—";
-  return (
-    <div className={`nm-sl-syncver ${className}`.trim()}>
-      <span title={l?.synced_at ? `몸 보고 가장 늦은 때 ${new Date(l.synced_at).toLocaleString()}` : "몸 보고 아직 없음"}>동기화 {ago(l?.synced_at, now)}</span>
-      <i aria-hidden className="nm-sl-dot">•</i>
-      <button type="button" className={`nm-sl-ver${v.stale ? " stale" : ""}`} onClick={() => { if (v.stale) openStale(); }}
-        title={v.stale ? `이 화면 = ${mine} · 올라간 판 = ${v.live.sha || "?"} · 누르면 새 판으로` : `앱 판 ${mine}${l?.deploy ? ` · 서버 판 ${l.deploy}` : ""}`}>
-        버전 {v.stale ? `${mine} → ${v.live.sha || "새 판"}` : mine}
-      </button>
-    </div>
-  );
+  return null;
 }
 
 /** 옛 판 = 맨 아래 26px 한 줄(ⓐ + ⓑ) · split 일 때만(shell.tsx) — 번개가 자리 옮기면 빠짐 */

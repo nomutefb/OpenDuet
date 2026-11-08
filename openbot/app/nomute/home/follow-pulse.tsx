@@ -12,7 +12,7 @@ const DAYS = 10, nf = new Intl.NumberFormat("ko-KR");
 const kstDay = () => new Date(Date.now() + 9 * 36e5).toISOString().slice(0, 10);
 const signed = (v: number) => (v > 0 ? "+" : v < 0 ? "−" : "") + nf.format(Math.abs(v));
 /** 칸(P) 안에 안 들어가는 수 = 짧게(1.2k · 12k) · 글자 폭 ≈ 0.6em(숫자 고정폭) · 굵은 오늘 칸은 조금 더 넓게 셈 */
-const kfmt = (n: number) => (n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(n));   // 노출 수 줄임(52334 → 52K)
+const mfmt = (n: number) => (n / 1e6).toFixed(n >= 1e6 ? 1 : 2) + "M";   // 노출 = M 단위(52,334 → 0.05M · 형 11-08 09:09 「그래프에 0.1M M단위로 나오게할거야 1M 단ㅇ위가 안되면 문제가 있는거임」)
 const fit = (v: number, room: number, fs: number, bold: boolean) => {
   const full = signed(v);
   if (full.length * fs * (bold ? 0.66 : 0.6) <= room || Math.abs(v) < 1000) return full;
@@ -88,17 +88,21 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
     if (!ig) return null;
     const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
     // ± 두 줄 차례: 폰 홈 = IG 위 · FB 아래 / PC 칸(fill) = FB 위 · IG 아래(형 11-08 08:51 「인스타를 아래로 깔아. 그래야 눈에 들어올듯. 페북이 위로」 · 「차트는 그대로인데, 2행<>1행 뒤바ㅣ꾸고」)
-    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, VWY = HIGH - RG - RH, TOP = 4, BOT = (fill ? VWY : HIGH) - 6;   // VWY = PC 칸 맨 위 줄 = 인스타 일일 노출(조회 views · 형 11-08 08:54 「그리고 저기에 일일 노출도도 표기되게 해줘 시안으로」 · 08:55 「인스타만 보이면돼」)
+    // PC 칸(fill) = 차트와 ± 줄 사이를 더 띄움(16 · 폰 6) · 칸 자체도 아래로 10px 늘림(igfb-band.css) = 차트는 그대로 · 줄만 내려옴(형 11-08 09:00 dm-fast 「차트는 그대로두고 2행 라인을 차트로 부터 조금만 간격을 더 둬서 아래로 내려와 … 아래로 딱 붙으면안됨」 · 「둘사이는 그대로 두고.」)
+    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - (fill ? 16 : 6);
     const lines: ["ig" | "fb", Pt[]][] = [["ig", series(ig, "ig")], ...(fb ? [["fb", series(fb, "fb")] as ["fb", Pt[]]] : [])];
     const all = lines.flatMap(([, s]) => s.map((p) => p.pct));
     const span = Math.max(0.5, ...all.map(Math.abs)), lo = Math.min(0, ...all), hi = Math.max(0, ...all);
     const top = hi - lo < span * 0.1 ? hi + span * 0.05 : hi, bot = hi - lo < span * 0.1 ? lo - span * 0.05 : lo;
     const Y = (v: number) => BOT - ((v - bot) / (top - bot || 1)) * (BOT - TOP);
-    return { W, H, P, FS, RH, FBY, IGY, VWY, Y, lines };
+    // 인스타 일일 노출 = 시안 꺾은선(PC 칸만) · 평균이 차트 높이 가운데 · 왼쪽 가운데에 「평균 0.05M · N일」(형 11-08 08:54 「일일 노출도도 표기되게 해줘 시안으로」 · 08:55 「인스타만 보이면돼」 · 09:09 「숫자로 나오는게 아니라 그래프로」 · 「차트 높이의 중앙 좌측에 노출수 평균이 나오게하고」 · 09:10 「그걸 기준해서 그래프만 꺽은선으로 ㅗ게하면됨. 아래에 숫자는 필요없어」 · 09:11 「1M을 목표로간다」)
+    const vv = lines[0][1].map((p) => p.views).filter((v): v is number => v != null), vavg = vv.length ? vv.reduce((a, b) => a + b, 0) / vv.length : 0;
+    const vspan = Math.max(1, ...vv.map((v) => Math.abs(v - vavg))), MID = (TOP + BOT) / 2, VY = (v: number) => MID - ((v - vavg) / vspan) * ((BOT - TOP) / 2);
+    return { W, H, P, FS, RH, FBY, IGY, MID, Y, VY, vv, vavg, lines };
   }, [ig, fb, wide, tall, fill]);
   if (!tried && !ig) return <div className="nm-pulse-wait" aria-hidden />;   // 받는 동안 = 띠 높이만큼 자리만(형 11-03 12:45 「첨에 위로 버튼이 보였다가 내려가」 = 띠가 늦게 생기며 아래 칸이 밀렸음)
   if (!ig || !view) return null;   // 못 읽으면 자리 비움(홈이 그 자리만큼 올라옴)
-  const { W, H, P, FS, RH, FBY, IGY, VWY, Y, lines } = view;
+  const { W, H, P, FS, RH, FBY, IGY, MID, Y, VY, vv, vavg, lines } = view;
   const go = () => { window.location.hash = "#/chan"; };   // 원본 = 채널 요약로 → 앱 안 채널 요약 판(봄 11-01 · 형 「눌렀을때 웹으로 연결된 부분이 많아서 불편했어..」)
   return (
     <button type="button" className={`nm-pulse${fill ? " nm-pulse-fill" : ""}`} aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
@@ -112,7 +116,13 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
         <rect className="nm-pulse-rowbg" x="0" y={IGY} width={W} height={RH} fill="url(#nm-pulse-fade)" />
         {fill && fb ? <rect className="nm-pulse-rowbg fb" x="0" y={FBY} width={W} height={RH} /> : null}
-        {fill ? (() => { const s = lines[0][1], off = (DAYS - s.length) * P; return <g className="vw">{P >= 44 ? <text className="k" x="3" y={(VWY + RH / 2 + FS * 0.3).toFixed(1)} fontSize={FS - 2}>노출</text> : null}{s.map((p, i) => <text key={p.date} className={i === s.length - 1 ? "now" : ""} x={off + i * P + P / 2} y={(VWY + RH / 2 + FS * 0.35).toFixed(1)} textAnchor="middle" fontSize={FS}>{p.views == null ? "–" : kfmt(p.views)}</text>)}</g>; })() : null}   {/* 인스타 일일 노출 = 시안 · 날마다 그 점 위 칸 */}   {/* PC 칸 = 줄마다 제 선 색 음영(형 11-08 08:52 「표기 디자인을 차트의 배색에 맡게 뒤에 음영을 반투명도는 지하면서 깔으라는거고」) */}
+        {fill && vv.length ? (() => { const s = lines[0][1], off = (DAYS - s.length) * P, vp = s.map((p, i) => (p.views == null ? null : ([off + i * P + P / 2, VY(p.views)] as [number, number]))).filter((x): x is [number, number] => x != null); return (
+          <g className="vw" aria-label={`인스타 일일 노출 · 평균 ${nf.format(Math.round(vavg))}`}>
+            <line className="vavg" x1="0" x2={W} y1={MID.toFixed(1)} y2={MID.toFixed(1)} strokeWidth="1" />
+            <text className="vlab" x="3" y={(MID - 3).toFixed(1)} fontSize={FS - 1}>{`노출 평균 ${mfmt(vavg)} · 목표 1M · ${s.length}일`}</text>
+            {vp.length > 1 ? <path d={smooth(vp)} fill="none" strokeWidth="1.5" strokeLinecap="round" /> : null}
+            {vp.map(([cx, cy], i) => <circle key={i} cx={cx.toFixed(1)} cy={cy.toFixed(1)} r={i === vp.length - 1 ? 2.4 : 1.8} />)}
+          </g>); })() : null}   {/* 노출 꺾은선 = 팔로워 선 뒤(먼저 그림) · 평균 = 가운데 점선 */}
         <line className="nm-pulse-base" x1="0" x2={W} y1={Y(0).toFixed(1)} y2={Y(0).toFixed(1)} strokeWidth="1" strokeDasharray="2 3" />
         {lines.map(([key, s]) => {
           const off = (DAYS - s.length) * P, pts = s.map((p, i) => [off + i * P + P / 2, Y(p.pct)] as [number, number]);
