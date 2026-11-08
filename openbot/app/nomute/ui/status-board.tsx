@@ -8,6 +8,8 @@ import { Fragment, type ReactNode, useState } from "react";
 import { office } from "../data/office";
 import { leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time";
 import { type Body, bodiesOf, homeOf, machinesOf } from "../data/bodies";
+/** 몸 줄 고르기 = 그 몸 host 이름 전부 중 신선한 보고 먼저 · 없으면 마지막 보고(낡음) — 시아 PC 보고 이름 hwang → sia(11-08) 처럼 바뀌어도 칸이 안 빔(형 09:03 「오프라고 뜨는데 그래도 온도는 나와야해」) */
+const pickRow = <R extends { key: string; stale?: boolean; reported_at?: number }>(rows: R[], hosts: string[], suffix = ""): R | undefined => { const rs = hosts.map((h) => rows.find((r) => r.key === h + suffix)).filter((r): r is R => !!r); return rs.find((r) => !r.stale) ?? rs.sort((x, y) => (y.reported_at || 0) - (x.reported_at || 0))[0]; };
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
 import { type HeatCell, MatrixHeat } from "./lieflat-charts";
 import "./sched-status.css";
@@ -379,8 +381,8 @@ function DiaBody({ cats, bs }: { cats: StatusCat[]; bs: Body[] }) {
         <table>
           <thead><tr><th />{ms.map((b) => <th key={b.body}>{b.body}<small>{bs.filter((x) => homeOf(x) === b.body).map((x) => x.being).join(" · ")}</small></th>)}</tr></thead>
           <tbody>
-            <tr><th scope="row">하드웨어</th>{ms.map((b) => { const r = hw.find((x) => x.key === b.hosts[0]); return <Fragment key={b.body}>{cell(r, pct(r))}</Fragment>; })}</tr>
-            <tr><th scope="row">온도</th>{ms.map((b) => { const r = hw.find((x) => x.key === `${b.hosts[0]}-temp`); return <Fragment key={b.body}>{cell(r, temp(r))}</Fragment>; })}</tr>
+            <tr><th scope="row">하드웨어</th>{ms.map((b) => { const r = pickRow(hw, b.hosts); return <Fragment key={b.body}>{cell(r, pct(r))}</Fragment>; })}</tr>
+            <tr><th scope="row">온도</th>{ms.map((b) => { const r = pickRow(hw, b.hosts, "-temp"); return <Fragment key={b.body}>{cell(r, temp(r))}</Fragment>; })}</tr>
             <tr><th scope="row">도커 · VM</th>{ms.map((b) => <Fragment key={b.body}>{cell(dock.find((x) => x.key === b.hosts[0]), "")}</Fragment>)}</tr>
             <tr><th scope="row">SSH → 다른 몸</th>{ms.map((b) => {
               const r = ssh.find((x) => x.key === b.hosts[0]), cs = Object.entries(r?.cells || {}), ok = cs.filter(([, c]) => c.st === "ok").length;

@@ -45,7 +45,7 @@ const LIGHT_CLS: Record<string, string> = { "🟢": "is-ok", "🟡": "is-warn", 
 // 「깸 상태」 = 그 순간 턴을 도는지(답 사이엔 「잠」) → 「마지막 깸」이 10분 안이면 「방금 깸」으로 제 색(봄 11-06 10:08 「나 지금 깨서 일하는 중인데 맥 조약돌 회색이지?」)
 const minAgo = (note?: string) => { const m = String(note || "").match(/^(\d+)\s*(초|분|시간)\s*전/); return !m ? Infinity : m[2] === "초" ? 0 : m[2] === "분" ? +m[1] : +m[1] * 60; };
 const awakeOf = (note?: string, last?: string): "on" | "near" | "stay" | "off" => (/^깸/.test(note || "") ? "on" : /상주/.test(note || "") ? "stay" : minAgo(last) <= 10 ? "near" : "off");
-const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 90 ? "방금" : s < 5400 ? `${Math.round(s / 60)}분 전` : `${Math.round(s / 3600)}시간 전`; };
+const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 60 ? "방금" : s < 5400 ? `${Math.floor(s / 60)}분 전` : s < 86400 * 2 ? `${Math.round(s / 3600)}시간 전` : `${Math.round(s / 86400)}일 전`; };   // 봄 09:17 「1분 전 ≠ 방금」 = 60초 넘으면 분(내림)
 
 /** 1분마다 지금 — 「N분 전」 글만 움직임. */
 function useNow() {
@@ -62,17 +62,20 @@ export function RunnerGauges() {
   const bots = st.data?.cats?.find((c) => c.id === "bots")?.rows as (Row & { cells?: Record<string, { st: string; note?: string }> })[] | undefined;
   const wake = (k: string) => { if (!bots) return "wait" as const; const c = bots.find((r) => r.key === k)?.cells; return awakeOf(c?.["깸 상태"]?.note, c?.["마지막 깸"]?.note); };   // wait = 작동 표 첫 답 전(~12초) · 「다 잠듦」으로 안 읽히게 흐린 꼴(봄 10:08)
   const bs = useBodies();   // 몸 = 정본 한 장(서버 bodies) — 칸 = 본체(이사 중 빼고) · 조약돌 = 그 본체에 지금 사는 아이
-  const HOSTS = machinesOf(bs).map((b) => ({ k: b.hosts[0], pc: PC_OF[b.hosts[0]] || "", label: NAME_OF[b.hosts[0]] || b.body, body: b.body }));
+  const HOSTS = machinesOf(bs).map((b) => ({ k: b.hosts[0], hosts: b.hosts, pc: PC_OF[b.hosts[0]] || "", label: NAME_OF[b.hosts[0]] || b.body, body: b.body }));
+  // 몸 줄 고르기(형 11-08 09:03 「누리 가 있는 리눅스 a는 오프라고 뜨는데 그래도 온도는 나와야해」 · 봄 나눔) = 그 몸의 host 이름 전부 중 신선한 보고 먼저(시아 PC = hwang → sia 로 보고 이름이 바뀌어 hosts[0] 만 보면 OFF) · 신선한 게 없으면 마지막 보고(낡음 · 숫자는 흐리게)
+  const rowOf = (hosts: string[], suffix = "") => { const rs = hosts.map((h) => hw.find((r) => r.key === h + suffix)).filter((r): r is Row => !!r); return rs.find((r) => !r.stale) ?? rs.sort((x, y) => (y.reported_at || 0) - (x.reported_at || 0))[0]; };
+  const newest = hw.reduce((t, r) => Math.max(t, r.reported_at || 0), 0);   // 머리줄 시각 = 가장 새 몸 보고 시각(서버 표 만든 시각 아님 · 봄 09:17 「1분 전 ≠ 방금」)
   const livesOn = (body: string) => bs.filter((x) => homeOf(x) === body && PEB[x.being]).map((x) => ({ ...PEB[x.being], who: x.being }));
   const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
   return (
     <div className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보">
-      <div className="nm-card-h"><i className="live" aria-hidden /><b>Runner</b><span>{st.data?.at ? ago(now - st.data.at) : st.isLoading ? "불러오는 중" : ""}</span></div>   {/* 칸 머리줄 = 모든 칸 같은 꼴(시아 UI ① · 형 11-06 대시보드 고급화) */}   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
+      <div className="nm-card-h"><i className="live" aria-hidden /><b>Runner</b><span>{newest ? ago(now - newest) : st.data?.at ? ago(now - st.data.at) : st.isLoading ? "불러오는 중" : ""}</span></div>   {/* 칸 머리줄 = 모든 칸 같은 꼴(시아 UI ① · 형 11-06 대시보드 고급화) */}   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
       <div className="nm-rg-panel nm-rgx-panel" style={{ ["--nm-rgx-n" as string]: Math.max(1, HOSTS.length) }}>
         {HOSTS.map((h) => {
-          const a = hw.find((r) => r.key === h.k), b = hw.find((r) => r.key === `${h.k}-temp`);
-          const live = (r?: Row) => (r && !r.stale ? r.metrics || {} : {});
-          const m: M = { ...live(a), ...live(b) };
+          const a = rowOf(h.hosts), b = rowOf(h.hosts, "-temp");
+          const fresh = !!(a && !a.stale) || !!(b && !b.stale);   // 몸 보고가 살아 있음(존재가 자든 말든)
+          const m: M = { ...(a?.metrics || {}), ...(b?.metrics || {}) };   // 낡은 보고도 마지막 숫자는 보여 줌(OFF 대신 · 흐린 색)
           const d: RunnerRow | null = rq.data?.rows?.[h.pc] ?? null;
           const lk = lookOf(d, rq.data?.why?.[h.pc] || "", now / 1000);
           const rd = lk.problem ? null : d;   // 위젯 자료는 살아 있을 때만 메움
@@ -80,7 +83,7 @@ export function RunnerGauges() {
           const none = cpu == null && ram == null && gpu == null;
           // 불 = CPU 기준(형 15:27 「램은 과도해도 별 문제가 안된다고 생각?」 · 「cpu가 제일 문제지?」) · RAM 은 92% 넘어 디스크로 밀릴 때만 주황 · 온도 85 = 빨강
           const cl = levelOf(cpu, false);   // RAM 은 안 봄(형 15:28 「64gb인데 잠시 걸렷다가 말겟지」 · 「그럼 ram은 안보이게 하고 깔끔하게.」)
-          const lv: Level = none ? "off" : (m.cpu_temp ?? 0) >= 80 || (m.gpu_temp ?? 0) >= 80 ? "orange" : cl;
+          const lv: Level = none || !fresh ? "off" : (m.cpu_temp ?? 0) >= 80 || (m.gpu_temp ?? 0) >= 80 ? "orange" : cl;   // 낡은 보고 = 회색 호(숫자는 남김)
           const at = a && !a.stale ? a.reported_at || 0 : rd ? rd.at * 1000 : 0;
           const busy = rd && num(rd.busy) != null && rd.busy! >= 0 ? rd.busy : null, total = rd && num(rd.total) != null && rd.total! >= 0 ? rd.total : null;
           const temp = [m.cpu_temp != null ? `CPU ${Math.round(m.cpu_temp)}°` : "", m.gpu_temp != null ? `GPU ${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ");
