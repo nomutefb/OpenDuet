@@ -16,11 +16,11 @@ import { whoName } from "./who-name";
 import { useModal } from "./use-modal";   // Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
 
 export type Pin = { id: string; ts: number; who: string; at: string; text: string; files?: number; by: string; pinned_at: string; unpinned_at?: string; unpinned_by?: string };
-type Pins = { cur: Pin | null; history: Pin[] };
+export type Pins = { cur: Pin | null; history: Pin[] };
 
 const key = (room: string) => ["nomute", "pins", room] as const;
-const when = (iso?: string) => { const t = iso ? Date.parse(iso) : NaN; if (!Number.isFinite(t)) return ""; const d = new Date(t + 9 * 3600e3).toISOString().slice(5, 10), today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(5, 10); return d === today ? t12(t) : `${d} ${t12(t)}`; };
-const firstLine = (s: string) => s.replace(/[*_`>#~]|\[([^\]]*)\]\([^)]*\)/g, "$1").split("\n").map((x) => x.trim()).find(Boolean) || "";
+export const when = (iso?: string) => { const t = iso ? Date.parse(iso) : NaN; if (!Number.isFinite(t)) return ""; const d = new Date(t + 9 * 3600e3).toISOString().slice(5, 10), today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(5, 10); return d === today ? t12(t) : `${d} ${t12(t)}`; };
+export const firstLine = (s: string) => s.replace(/[*_`>#~]|\[([^\]]*)\]\([^)]*\)/g, "$1").split("\n").map((x) => x.trim()).find(Boolean) || "";
 const FOLD = (room: string) => `nm_pin_fold:${room}`;
 const loadFold = (room: string) => { try { return localStorage.getItem(FOLD(room)) || ""; } catch { return ""; } };
 const saveFold = (room: string, id: string) => { try { if (id) localStorage.setItem(FOLD(room), id); else localStorage.removeItem(FOLD(room)); } catch { /* 이 기기만 */ } };
@@ -88,7 +88,7 @@ export function PinBar({ room, onJump, children }: { room: string; onJump?: (id:
 }
 
 /** 고정 이력 판(띠 누름) — 지금 고정 + 앞서 고정된 것(최신 위) · 누르면 그 글로 · 형 화면 = 풀기·다시 고정 */
-function PinHistory({ room, pins, onClose, onJump }: { room: string; pins: Pins; onClose: () => void; onJump: (p: Pin) => void }) {
+export function PinHistory({ room, pins, onClose, onJump }: { room: string; pins: Pins; onClose: () => void; onJump: (p: Pin) => void }) {
   const act = usePinActions(room);
   const box = useModal<HTMLDivElement>(onClose);
   const row = (p: Pin, now: boolean) => (

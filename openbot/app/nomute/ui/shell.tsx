@@ -7,6 +7,7 @@
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { TodoBar } from "./todo-bar";
+import { ChatHead } from "./chat-head";
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
 import { IgFbBand } from "./igfb-band";   // PC 오른쪽 위 = 인스타·페북 팔로워 띠(봄 11-08 · 형 dm 07:30~07:31)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
@@ -46,8 +47,7 @@ const IssueView = lazy(() => import("./issue").then((m) => ({ default: m.IssueVi
 import { PinBar } from "./pins";
 import { OfficeChat, roomMsgsOptions } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
-import { IdleBlind, TopClock, TopTitle } from "./idle-blind";
-import { NomuteName } from "./top";
+import { IdleBlind, TopClock } from "./idle-blind";
 import { RoomGlyph } from "./room-glyph";
 import { AppIntro } from "../home/intro";
 import { NewsModal, newsFileOf } from "./news";
@@ -195,7 +195,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const serverWork = useServerWork(chat.busy, chat.threadId);
   const stage = useRef<HTMLDivElement>(null);
   useTabSpace(stage);
-  const { ordered: roomsAll, list: peopleAll } = useRoomOrder();   // 위 가운데 페이지 이름 = 지금 방 이름(1:1 = 그 이 이름) · 훅 = 이른 return 앞
   if ("bare" in where) return <>{children}</>;
 
   const SEE = new Set(["settings", "drawer"]);   // 바탕 비치는 판(5번 서랍 · 6번 설정)
@@ -216,18 +215,16 @@ export function NomuteShell({ children }: { children: ReactNode }) {
     else void nav({ to: under ? MODALS.find((x) => x.id === under)!.to : paneHref(base, room) });
   };
   const M = modal ? MODALS.find((x) => x.id === modal) : undefined;
-  const rNow = roomsAll.find((x) => x.id === room);
-  const roomTitle = rNow ? (rNow.with ? peopleAll.find((x) => x.who === rNow.with)?.name || rNow.with : rNow.name) : "";
   return (
     <ChatPresenceProvider serverWork={serverWork}>
       <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}${split && modal && SPREAD.has(modal) ? " nm-split-spread" : ""}`}>
         <AttentionNotifier />
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
-        {split ? <TopClock /> : null}   {/* 위 왼쪽 시계(형 11-06 20:05) */}
+        {split ? <TopClock /> : null}   {/* 윗줄 가운데 시계(형 11-08 09:49 밥상 「맨 위에는 시계가 나오면 될듯」 · 옛 = 위 왼쪽 11-06 20:05 · 가운데 방 이름은 대화창 머리줄로 ./chat-head.tsx) */}
         {split ? <StatusLights className="nm-top-lights" /> : null}   {/* 윗줄 오른쪽 = 정상·아닌 것(형 11-06 22:33 「시선이 분산되, 이거 상단으로 보내는게 맞는듯」 · 22:40 「스케줄러 관련된 내용은 우상단ㅇ으로」 · 부품 = 빠르 status-line.tsx) */}
         {split ? <SyncVersion className="nm-br-syncver" /> : null}   {/* 우하단 = 「동기화 00분 전 • 버전 0000000」(형 22:40 「웹앱 버전은 우하단에 위치시켜 . 동기화도 마찬가지.」) */}
-        {split ? (!M && pane === "chat" && rNow ? <div className="nm-toptitle nm-toptitle-room"><NomuteName room={room} /></div> : <TopTitle text={M ? M.label : pane === "chat" ? roomTitle : pane === "rooms" ? "대화방" : pane === "home" ? "홈" : ""} />) : null}   {/* 방 = 이름 한 곳만 · 라임 · 인원 · 누르면 사람·방 메뉴(형 11-06 20:39 「방 위에는 잇을필요없어」 「중상단에 라임으로 잇으면 됨 … 방 인원은 잇어야해」) */}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
+        {/* 윗줄 가운데 = 시계(위 TopClock) · 옛 = 지금 페이지 이름(형 11-06 20:05) · 방 이름은 대화창 머리줄(./chat-head.tsx · 형 11-08 09:49 「그 대화창은 거기에 대화창 명칭이 뜨면 될거같아」) */}   {/* 방 = 이름 한 곳만 · 라임 · 인원 · 누르면 사람·방 메뉴(형 11-06 20:39 「방 위에는 잇을필요없어」 「중상단에 라임으로 잇으면 됨 … 방 인원은 잇어야해」) */}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
         <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
@@ -239,7 +236,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             <div className="nm-col">
               {isTeams(room) ? null : <ShellHeader floating menuOpen={false} onMenu={() => {}} />}   {/* 팀즈 대화 = 우리 얼굴 머리 0(TeamsChat 이 제 머리를 그림) */}
               {wide ? null : <button type="button" className="nm-room-back" aria-label="대화방 목록으로" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="chevronLeft" size={20} /></button>}   {/* 형 10-31 「좌상단에 좌측 꺽쇠가 있어줘야 함」 · 뒤로 버튼 없는 폰 */}
-              {isTeams(room) ? null : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}</PinBar>}   {/* 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 그 밑 방 카드(평의회 2 ⑨ · ./meet-card.tsx) */}
+              {isTeams(room) ? null : split ? <ChatHead room={room} key={"head:" + room} /> : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}</PinBar>}   {/* 폰 = 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 밥상 할 일 띠 · PC = 대화창 머리줄(HOT ISSUE 줄 · 방 이름 · 공지·할 일 접는 칸 · ./chat-head.tsx · 형 11-08 08:58 「이 라인에 맞게 대화창도 조정하고」 · 「공지나 할일은 우측에 밥상이야기 처럼 접히게 할게」) */}
               <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && roomOf(pathname) === room && !modal && !layer && !("page" in where)} /></main>
             </div>
           ))}

@@ -6,7 +6,7 @@
 @keyframes nmBlindIn { from { opacity:0; } to { opacity:1; } }
 @media (prefers-reduced-motion:reduce) { .nm-blind { animation:none; } }
 /* 위 왼쪽 시계 · 위 가운데 페이지 이름(형 11-06 20:05~20:06) — 윗줄(50) 안 · 시계 = 「11-6 목」 흐린 흰 + 「8:06 PM」 라임 */
-.nm-topclock { all:unset; position:fixed; top:0; left:84px; height:50px; display:flex; align-items:center; gap:7px; z-index:60; cursor:pointer; font-size:var(--fs-label); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.nm-topclock { all:unset; position:fixed; top:0; left:50%; transform:translateX(-50%); height:50px; display:flex; align-items:center; gap:7px; z-index:60; cursor:pointer; font-size:var(--fs-label); font-variant-numeric:tabular-nums; white-space:nowrap; }   /* 자리 = 윗줄 가운데(형 11-08 09:49 「맨 위에는 시계가 나오면 될듯」 · 옛 = 왼쪽 84px · 방 이름은 대화창 머리줄로) */
 .nm-topclock span { color:rgba(232,234,232,.62); letter-spacing:.02em; }
 .nm-topclock b { color:#CFFF40; font-weight:700; letter-spacing:.03em; }
 .nm-topclock:hover span { color:#e8eae8; }

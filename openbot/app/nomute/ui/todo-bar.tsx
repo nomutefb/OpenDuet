@@ -14,19 +14,51 @@ const ms = (v?: string | number | null) => (v == null || v === "" ? NaN : typeof
 const hm = (t: number) => { const d = new Date(t); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 const ago = (t: number, now: number) => { const m = Math.max(0, Math.floor((now - t) / 60000)); return m < 60 ? `${m}분 지남` : `${Math.floor(m / 60)}시간 ${m % 60}분 지남`; };
 
-export function TodoBar({ room }: { room: string }) {
+/** 이 방 할 일(안 끝난 것) · 30초마다 · 줄 앞 동그라미 = 끝(형 손) — 띠(TodoBar)와 PC 대화창 머리 접는 칸(./chat-head.tsx)이 같이 씀 */
+export function useTodos(room: string) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: KEY, queryFn: () => office<{ items?: Todo[] }>("todo").then((j) => j.items || []), staleTime: 20_000, refetchInterval: 30_000, retry: 1 });
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data as OfficePerson[] | undefined;
-  const [open, setOpen] = useState(false), [now, setNow] = useState(() => Date.now()), [busy, setBusy] = useState("");
+  const [now, setNow] = useState(() => Date.now()), [busy, setBusy] = useState("");
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(t); }, []);
   const items = (q.data || []).filter((x) => (x.room || "guide") === room && !x.done_at);
-  if (!items.length) return null;
   const nm = (w: string) => list?.find((p) => p.who === w)?.name || whoName(w);
   const mark = async (it: Todo) => {
     setBusy(it.id);
     try { await office("todo", { method: "POST", body: JSON.stringify({ done: it.id }) }); await qc.invalidateQueries({ queryKey: KEY }); } finally { setBusy(""); }
   };
+  return { items, list, now, busy, nm, mark };
+}
+
+/** 할 일 줄 목록(펼친 꼴) */
+export function TodoRows({ t }: { t: ReturnType<typeof useTodos> }) {
+  const { items, list, now, busy, nm, mark } = t;
+  return (
+    <ul className="nm-todo-l">
+      {items.map((it) => {
+        const st = ms(it.start), who = (it.who || []).filter(Boolean);
+        return (
+          <li key={it.id}>
+            <button type="button" className="ck" aria-label={`「${it.text}」 끝으로`} disabled={busy === it.id} onClick={() => void mark(it)} />
+            <span className="b">
+              <span className="t">{it.text}</span>
+              <span className="m">
+                {who.length && list ? <><FaceStack ids={who.slice(0, 3).map((w) => idOf(w, list))} size={16} /><b>{who.map(nm).join(" · ")}</b></> : null}
+                {Number.isFinite(st) ? <><span>{hm(st)} 시작</span><span className="ago">{ago(st, now)}</span></> : null}
+              </span>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export function TodoBar({ room }: { room: string }) {
+  const t = useTodos(room);
+  const [open, setOpen] = useState(false);
+  const items = t.items;
+  if (!items.length) return null;
   const first = items[0];
   return (
     <div className={`nm-todo${open ? " open" : ""}`}>
@@ -36,25 +68,7 @@ export function TodoBar({ room }: { room: string }) {
         {open ? null : <span className="t">{first.text}</span>}
         <svg aria-hidden className="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
       </button>
-      {open ? (
-        <ul className="nm-todo-l">
-          {items.map((it) => {
-            const st = ms(it.start), who = (it.who || []).filter(Boolean);
-            return (
-              <li key={it.id}>
-                <button type="button" className="ck" aria-label={`「${it.text}」 끝으로`} disabled={busy === it.id} onClick={() => void mark(it)} />
-                <span className="b">
-                  <span className="t">{it.text}</span>
-                  <span className="m">
-                    {who.length && list ? <><FaceStack ids={who.slice(0, 3).map((w) => idOf(w, list))} size={16} /><b>{who.map(nm).join(" · ")}</b></> : null}
-                    {Number.isFinite(st) ? <><span>{hm(st)} 시작</span><span className="ago">{ago(st, now)}</span></> : null}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
+      {open ? <TodoRows t={t} /> : null}
     </div>
   );
 }
