@@ -23,10 +23,16 @@
 .nm-rgx-peb.wait { opacity:.22; animation:nmPebWait 1.6s ease-in-out infinite; }   /* 작동 표 첫 답 전 = 흐리게 숨쉼(「다 잠듦」과 갈림 · 봄 10:08) */
 @keyframes nmPebWait { 0%,100% { opacity:.14; } 50% { opacity:.32; } }
 @media (prefers-reduced-motion:reduce) { .nm-rgx-peb.wait { animation:none; } }
-/* 몸 칸 간격(형 11-08 08:14 dm 「mac lx a, b 의 간격을 좀만 붙이고 win하고 mac 간격을 아주 조금만 더 벌릴게.」 · 봄) = WIN 뒤만 조금 더 · MAC · Lx A · Lx B 는 조금 붙임 */
-.nm-rgx .nm-rgx-host { padding:0 3px; }
-.nm-rgx .nm-rgx-host:first-child { padding-right:12px; }
-.nm-rgx .nm-rgx-host:nth-child(2) { padding-left:9px; }
+/* 몸 칸 간격(형 11-08 08:14 dm 「mac lx a, b 의 간격을 좀만 붙이고 win하고 mac 간격을 아주 조금만 더 벌릴게.」 · 봄) = WIN 뒤만 조금 더 · MAC · Lx A · Lx B 는 조금 붙임
+   → 형 11-08 10:48 밥상 「lx a, lx b 의 숫자 3행 표기잇지? 그거에 win mac에 잇는 온도 2개랑 % 표기를 수평으로 맞추고, (게이지 크기가 차이가 나네 이제보니까 게이지 크기를 lxa, lxb에 맞추고」(번개)
+   = 앞 판(WIN 오른쪽 12 · MAC 왼쪽 9 패딩)은 칸 안쪽 폭이 몸마다 달라 좁은 창(모니터 2/5 창)에서 WIN · MAC 게이지만 작아지고 안 글(G · C · %)도 따라 올라갔음
+   → 몸 칸 패딩 다 같게(2) · WIN↔MAC 틈 = 빈 트랙 하나(.nm-rgx-sp · 12px · runner-gauges.tsx --nm-rgx-cols) = 게이지 넷 같은 폭(= Lx 크기) · 안 글 줄도 같은 높이 */
+.nm-rgx .nm-rgx-panel { grid-template-columns:var(--nm-rgx-cols, repeat(var(--nm-rgx-n, 3), minmax(0, 1fr))); }
+.nm-rgx .nm-rgx-host, .nm-rgx .nm-rgx-host:first-child, .nm-rgx .nm-rgx-host:nth-child(2) { padding:0 2px; }
+.nm-rgx-sp { display:block; min-width:0; }
+/* 형 11-08 10:48 「아예 조약돌 푝디를 옆에 +1 이런거랑 수평으로 그냥 맞추고,」 · 10:49 「조약돌 이 옆에 +1 1행하고 맞을텐데, 그럼 2행에는 러너가 배치되면 딱 맞는 느낌이 날듯.」 = 조약돌 줄 가운데 = SNS FB(+1) 줄 가운데 · 러너 번호 줄 = IG(−) 줄(runner-gauges.tsx useRowSync 가 DOM 으로 재서 CSS 변수 · translateY 라 판 키 안 바뀜 · 봄 팁) */
+.nm-rgx-pebs { transform:translateY(var(--nm-rgx-peb-dy, 0px)); }
+.nm-rgx-runs { transform:translateY(var(--nm-rgx-run-dy, 0px)); }
 /* 형 11-08 09:49 밥상 「GPU 아래에 CPU 를 뜻하는 C 넣어서 온도 해주고, 게이지 너비 5%만 더 키울게. (간격을 줄이는 개념으로할게) 그리고 WIN MAC 이런것들 라인을 IG 이런애들하고 맞추고, 글자 크기도 동일하게 감. 볼디함도.그리고 게이지 위치를 차의 노출평균 선이랑 맞춤.」(봄 · 1920 라이브에 얹어 잼: 이름 11px/800 = IG 11px/800 · 이름 밑줄 = IG 밑줄 · 게이지 가운데 175.0 ↔ 노출 평균 175.8 · 판 키 196 그대로 = SNS 칸 안 흔들림) */
 .nm-rgx .nm-rgx-name { font-size:11px; font-weight:800; letter-spacing:.02em; margin-top:6px; }   /* = SNS 「IG」 글자(.nm-pulse-k) · 같은 줄 */
 .nm-rgx .nm-rgx-g { position:absolute; top:24px; left:0; right:0; margin:0; }   /* 「보고 끊김」만 이름 밑에 겹쳐 띄움(자리 0) */
