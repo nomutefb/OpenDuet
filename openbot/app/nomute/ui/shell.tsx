@@ -28,7 +28,8 @@ import { NewsList } from "../home/news-list";
 import { NewsSummary } from "../home/news-summary";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));
-import { StatusLights, SyncVersion } from "./status-line";   // 맨 아래 상태 한 줄(④ · 빠르 11-06)
+import { StatusLights, SyncVersion } from "./status-line";
+import { TabBar } from "./tab-bar";   // 위쪽 탭 줄(형 11-09 05:16 · 시아 05:23 자리 · 빠르)   // 맨 아래 상태 한 줄(④ · 빠르 11-06)
 import { DrawerPage } from "./drawer-page";
 import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
@@ -222,6 +223,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <AttentionNotifier />
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
+        {split ? <TabBar room={room} pane={pane} /> : null}   {/* 윗줄 왼쪽 = 탭 줄(대시보드 · 방 · 몸 화면 · 「+」) */}
         {split ? <TopClock /> : null}   {/* 윗줄 가운데 시계(형 11-08 09:49 밥상 「맨 위에는 시계가 나오면 될듯」 · 옛 = 위 왼쪽 11-06 20:05 · 가운데 방 이름은 대화창 머리줄로 ./chat-head.tsx) */}
         {split ? <StatusLights className="nm-top-lights" /> : null}   {/* 윗줄 오른쪽 = 정상·아닌 것(형 11-06 22:33 「시선이 분산되, 이거 상단으로 보내는게 맞는듯」 · 22:40 「스케줄러 관련된 내용은 우상단ㅇ으로」 · 부품 = 빠르 status-line.tsx) */}
         {split ? <SyncVersion className="nm-br-syncver" /> : null}   {/* 우하단 = 「동기화 00분 전 • 버전 0000000」(형 22:40 「웹앱 버전은 우하단에 위치시켜 . 동기화도 마찬가지.」) */}
