@@ -25,6 +25,11 @@ export function tempLeft(exp: number, now = Date.now()) {
 const short = (n: string) => n.replace(" PM", "");
 
 /** 방 맨 위 = 목적 · 남은 시간 · 목적을 받아 간 이(형 10-31 「목적을 듣고 온건지 확인 되어야하고」). */
+/** 저장 답을 방 목록 캐시(["nomute","rooms"] = 방 배열)에 먼저 넣음 — 저장 뒤 바로 닫고 다시 읽기는 뒤에서 할 때, 그 사이 다시 연 창이 옛 명단으로 덮어쓰지 않게(모루 #2985 23:43 「B 빼고 저장 → 다시 열어 C 더함 → B 되살아남」) */
+function patchRoom(qc: ReturnType<typeof useQueryClient>, id: string, part: Partial<OfficeRoom>) {
+  qc.setQueryData<OfficeRoom[]>(["nomute", "rooms"], (old) => (Array.isArray(old) ? old.map((x) => (x.id === id ? { ...x, ...part } : x)) : old));
+}
+
 export function TempRoomHead({ r }: { r: OfficeRoom }) {
   const members = r.members || [], heard = members.filter((n) => (r.heard || []).includes(n)), wait = members.filter((n) => !heard.includes(n));
   return (
@@ -61,8 +66,9 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
     setBusy(true); setWhy("");
     try {
       const body = JSON.stringify({ name, purpose, members: picked, ...(hours === null ? {} : { hours }) });
-      const j = await office<{ room: { id: string } }>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body });
+      const j = await office<{ room: { id: string } & Partial<OfficeRoom> }>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body });
       draftDrop(dk);   // 저장됨 = 보관 지움
+      if (edit) patchRoom(qc, edit.id, j.room && j.room.id === edit.id ? j.room : { name, purpose, members: picked });
       if (edit) void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
       else await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 새 방 = 목록에 있어야 들어감
       return j;
@@ -184,7 +190,9 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
   const save = async () => {
     setBusy(true); setWhy("");
     try {
-      await office("roomset", { method: "POST", body: JSON.stringify({ room: r.id, members: now, base: d?.roomset.ver }) });
+      const j = await office<{ roomset?: { ver: number; rooms: Record<string, string[]> } }>("roomset", { method: "POST", body: JSON.stringify({ room: r.id, members: now, base: d?.roomset.ver }) });
+      if (j.roomset) qc.setQueryData(["nomute", "roomset"], (old: typeof d) => (old ? { ...old, roomset: j.roomset! } : old));   // 새 판 번호(ver)까지 = 다시 연 창이 옛 base 로 안 보냄
+      patchRoom(qc, r.id, { members: j.roomset?.rooms?.[r.id] ?? now });
       void Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }), qc.invalidateQueries({ queryKey: ["nomute", "rooms"] })]);   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
       onClose();
     } catch (e) { const m = e instanceof Error ? e.message : "저장 못 함"; setWhy(/changed|base/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); setCur(null); void q.refetch(); setBusy(false); }
@@ -227,7 +235,8 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
     if (!now.length || busy) return;
     setBusy(true); setWhy("");
     try {
-      await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name || "", purpose: r.purpose || "", members: now }) });
+      const j = await office<{ room?: Partial<OfficeRoom> & { id: string } }>(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name || "", purpose: r.purpose || "", members: now }) });
+      patchRoom(qc, r.id, j.room && j.room.id === r.id ? j.room : { members: now });
       void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
       onClose();
     } catch (e) { setWhy(e instanceof Error ? e.message : "저장 못 함"); setBusy(false); }
