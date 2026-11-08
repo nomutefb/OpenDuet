@@ -68,17 +68,17 @@ export function PinBar({ room, onJump, children }: { room: string; onJump?: (id:
     <>
       {cur || children ? <div ref={slot} className="nm-pin-slot">{!cur ? null :
         folded ? (
-          <button type="button" className="nm-pin-mini" aria-label={`고정된 글 펼치기 — ${firstLine(cur.text)}`} onClick={toggle}><DuetIcon name="pin" size={16} /></button>
+          <button type="button" className="nm-pin-mini" aria-label={`공지 펼치기 — ${firstLine(cur.text)}`} onClick={toggle}><DuetIcon name="pin" size={16} /></button>
         ) : (
-          <div className="nm-pinbar" role="region" aria-label="고정된 글">
-            <button type="button" className="nm-pinbar-main" onClick={() => setOpen(true)} aria-label="고정 이력 보기">
+          <div className="nm-pinbar" role="region" aria-label="공지">
+            <button type="button" className="nm-pinbar-main" onClick={() => setOpen(true)} aria-label="공지 이력 보기">
               <DuetIcon name="pin" size={16} />
               <span className="nm-pinbar-t">
                 <b>{firstLine(cur.text) || (cur.files ? `파일 ${cur.files}개` : "(빈 글)")}</b>
-                <small>{whoName(cur.who)} · {when(cur.at)} · {whoName(cur.by)} 고정</small>
+                <small>{whoName(cur.who)} · {when(cur.at)} · {whoName(cur.by)} 공지</small>
               </span>
             </button>
-            <button type="button" className="nm-pinbar-fold" aria-label="고정 띠 접기" onClick={toggle}><DuetIcon name="chevronRight" size={16} /></button>
+            <button type="button" className="nm-pinbar-fold" aria-label="공지 띠 접기" onClick={toggle}><DuetIcon name="chevronRight" size={16} /></button>
           </div>
         )
       }{children}</div> : null}
@@ -94,9 +94,9 @@ export function PinHistory({ room, pins, onClose, onJump }: { room: string; pins
   const row = (p: Pin, now: boolean) => (
     <div key={`${p.id}-${p.pinned_at}`} className="ycd-card card-left nm-pin-card">
       <span className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "var(--mut)" }}>
-        {now ? <b className="nm-pin-now">지금 고정</b> : null}
+        {now ? <b className="nm-pin-now">지금 공지</b> : null}
         <span>{whoName(p.who)} · {when(p.at)}</span>
-        <span>· {whoName(p.by)} 고정 {when(p.pinned_at)}{p.unpinned_at ? ` · 풀림 ${when(p.unpinned_at)}` : ""}</span>
+        <span>· {whoName(p.by)} 공지 {when(p.pinned_at)}{p.unpinned_at ? ` · 풀림 ${when(p.unpinned_at)}` : ""}</span>
       </span>
       <div className="nm-pin-body" role="button" tabIndex={0} aria-label="그 글로 가기" onClick={(e) => { if (!(e.target as Element).closest("a")) onJump(p); }} onKeyDown={(e) => { if (e.key === "Enter") onJump(p); }}>
         {p.text.trim() ? <Streamdown components={markdownComponents}>{p.text}</Streamdown> : <span style={{ color: "var(--mut)" }}>{p.files ? `파일 ${p.files}개` : "(빈 글)"}</span>}
@@ -104,20 +104,20 @@ export function PinHistory({ room, pins, onClose, onJump }: { room: string; pins
       {act.can ? (
         <span className="flex gap-2">
           {now ? <button type="button" className="nm-pin-act" disabled={act.busy} onClick={act.unpin}>풀기</button>
-            : <button type="button" className="nm-pin-act" disabled={act.busy} onClick={() => act.pin(p)}>다시 고정</button>}
+            : <button type="button" className="nm-pin-act" disabled={act.busy} onClick={() => act.pin(p)}>다시 공지</button>}
         </span>
       ) : null}
     </div>
   );
   return (
-    <div ref={box} className="nm-pinsheet yeta-set" role="dialog" aria-modal="true" aria-label="고정 이력">
+    <div ref={box} className="nm-pinsheet yeta-set" role="dialog" aria-modal="true" aria-label="공지 이력">
       <div className="nm-modal-h">
         <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
-        <b>고정 이력</b>
+        <b>공지 이력</b>
       </div>
       <div className="nm-pinsheet-b">
-        {pins.cur ? row(pins.cur, true) : <p className="px-2 text-sm" style={{ color: "var(--mut)" }}>지금 고정된 글 없음</p>}
-        {pins.history.length ? <h2 className="yset-sec">앞서 고정 {pins.history.length}</h2> : null}
+        {pins.cur ? row(pins.cur, true) : <p className="px-2 text-sm" style={{ color: "var(--mut)" }}>지금 공지 없음</p>}
+        {pins.history.length ? <h2 className="yset-sec">앞서 공지 {pins.history.length}</h2> : null}
         {pins.history.map((p) => row(p, false))}
         {act.error ? <p className="px-2 text-xs" role="alert" style={{ color: "var(--mut)" }}>못 바꿈 — {act.error}</p> : null}
       </div>
