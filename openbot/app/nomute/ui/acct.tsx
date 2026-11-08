@@ -7,10 +7,57 @@ import "./queue.css";
 import "./msgs.css";
 import "./memo.css";
 import "./genopt.css";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Pane } from "./pane";
+import { useQuery } from "@tanstack/react-query";
+import { office } from "../data/office";
+import "./acct-cards.css";
 
 const ACCTS: [string, string][] = [["CLD_01", "ems1130g"], ["CLD_02", "muteno"], ["CLD_03", "ems1130N(ems1130@naver.com) · 기본"]];   // 원본 ACCT_BTNS · title 그대로
+// 카드 다발(형 11-09 05:20 임시방 「메인 claude 계정 고르는 선택지는 이거로 계장 값은ㅇ느낌」 · 96975.mp4 · 시아 05:21 꼴 · 봄 24) · 뜸) — 앞 카드 = 지금 러너 계정 · 뒤 카드 누름/‹ › /← → = 그 계정으로(원래 pick 길 그대로)
+const CARD: Record<string, { mail: string; name: string; tint: string }> = {
+  CLD_01: { mail: "ems1130g@gmail.com", name: "ems1130g", tint: "#1f5c45" },
+  CLD_02: { mail: "muteno@pm.me", name: "muteno", tint: "#7a4a2a" },
+  CLD_03: { mail: "ems1130@naver.com", name: "naver", tint: "#24306b" },
+};
+type Row = { key: string; name: string; value?: string; note?: string };
+const pct = (note = "", w: "5시간" | "7일") => { const m = note.match(new RegExp(w + "\\s*(\\d+)%")); return m ? +m[1] : null; };
+const refill = (note = "") => { const m = note.match(/7일[^(]*\(다시 참 ([^)]+)\)/); return m && m[1] !== "-" ? m[1] : ""; };
+const maskMail = (m: string) => { const [u, d] = m.split("@"); return u.slice(0, 3) + "•••@" + (d || ""); };
+function useAcctRows() {
+  const q = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: { id: string; rows: Row[] }[] }>("status"), refetchInterval: 60_000, retry: false });
+  const rows = q.data?.cats?.find((c) => c.id === "acct")?.rows || [];
+  return (mail: string) => rows.find((r) => r.key === "claude:" + mail);
+}
+function Bar({ label, v }: { label: string; v: number | null }) {
+  return <span className="acx-bar"><i>{label}</i><b style={{ width: `${v ?? 0}%` }} data-low={v !== null && v < 10 ? "1" : undefined} /><em>{v === null ? "—" : `${v}%`}</em></span>;
+}
+function AcctCards({ id, busy, pick }: { id: string; busy: boolean; pick: (v: string) => void }) {
+  const row = useAcctRows();
+  const ids = ACCTS.map(([v]) => v), front = Math.max(0, ids.indexOf(id));
+  const order = ids.map((_, i) => ids[(front + i) % ids.length]);   // 앞 → 뒤
+  const step = (d: number) => { if (!busy) pick(ids[(front + d + ids.length) % ids.length]); };
+  return (
+    <div className="acx" tabIndex={0} role="listbox" aria-label="러너 Claude 계정" onKeyDown={(e) => { if (e.key === "ArrowRight") step(1); if (e.key === "ArrowLeft") step(-1); }}>
+      <div className="acx-stack">
+        {order.slice().reverse().map((v) => {
+          const k = order.indexOf(v), c = CARD[v], r = row(c.mail), n = r?.note || "", w7 = pct(n, "7일");
+          return (
+            <button key={v} type="button" role="option" aria-selected={k === 0} disabled={busy || k === 0} className={`acx-card${k === 0 ? " front" : ""}${w7 !== null && w7 < 10 ? " low" : ""}`} style={{ "--k": k, "--tint": c.tint } as CSSProperties} onClick={() => pick(v)} title={k === 0 ? "지금 러너 계정" : `${c.name} 으로`}>
+              <span className="acx-top"><small>CLAUDE {v.slice(-2)}</small><span className="acx-ini">{c.name[0].toUpperCase()}</span></span>
+              <b className="acx-name">{c.name}</b>
+              <span className="acx-bars"><Bar label="5시간" v={pct(n, "5시간")} /><Bar label="7일" v={w7} /></span>
+              <span className="acx-mail">{maskMail(c.mail)}</span>
+              <span className="acx-foot"><span><small>쓰는 곳</small>러너{k === 0 ? " · 지금" : ""}</span><span><small>다시 참</small>{refill(n) || "—"}</span></span>
+              {w7 !== null && w7 < 10 ? <span className="acx-tag">교대 때</span> : null}
+            </button>
+          );
+        })}
+      </div>
+      <div className="acx-nav"><button type="button" aria-label="앞 계정" disabled={busy} onClick={() => step(-1)}>‹</button>{ids.map((v, i) => <i key={v} className={i === front ? "on" : ""} />)}<button type="button" aria-label="다음 계정" disabled={busy} onClick={() => step(1)}>›</button></div>
+    </div>
+  );
+}
 
 export function AcctModal() {
   const [id, setId] = useState(""), [now, setNow] = useState("러너 · 읽는 중"), [busy, setBusy] = useState(false);
@@ -43,8 +90,8 @@ export function AcctModal() {
           <span className="ycd-nm yset-ttl">계정 전환</span>
           <div className="row">
             <span className="lab" aria-live="polite">{now}</span>
-            <span className="opts">{ACCTS.map(([v, tip]) => <button key={v} type="button" className={`chip${id === v ? " on" : ""}`} aria-pressed={id === v} title={tip} disabled={busy} onClick={() => void pick(v)}>{v}</button>)}</span>
           </div>
+          <AcctCards id={id} busy={busy} pick={(v) => void pick(v)} />
         </div>
       </div>
     </Pane>
