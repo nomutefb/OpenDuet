@@ -39,3 +39,9 @@
 :root:has(.nm-split-root .nm-chat-h) .nm-story-btn:hover { color:#CFFF40; }
 :root:has(.nm-split-root .nm-chat-h) .nm-story-btn svg { width:19px; height:19px; }
 .nm-chat-fold-pop:focus, .nm-chat-fold-pop:focus-visible { outline:none; }
+/* 글 칸 맨 위 = 흐림(형 11-08 11:32 「그라데이션 느낌으로 없어지게해줘. 지금은 너무 딱 끊김,예전 그라데이션느낌!?」)
+   옛 판 = 방 머리(header.nm-head)가 글 위에 떠 있고 ::before 흐림 뒤로 글이 스러짐(./shell.css 「위 흐림」) · 이 머리줄은 자리를 차지해 글 칸이 그 밑에서 잘려 시작했음
+   → PC 머리줄이 있는 칸만 · 스크롤 칸 위 48px 를 투명 → 진하게(바탕이 3D 판이라 색 덮기 대신 가림) · 「안 본 글」 단추는 스크롤 칸 밖이라 안 흐려짐 */
+.nm-col:has(> .nm-chat-h) .ychat > .overflow-y-auto { -webkit-mask-image:linear-gradient(to bottom, transparent 0, rgba(0,0,0,.4) 16px, #000 48px); mask-image:linear-gradient(to bottom, transparent 0, rgba(0,0,0,.4) 16px, #000 48px); }
+/* 「안 본 글」 = 머리줄 바로 밑으로(형 11:32 「안본 글 더 위로가게해주고」 · 옛 자리 top 46px) */
+.nm-col:has(> .nm-chat-h) .ychat .yjump { top:8px; }
