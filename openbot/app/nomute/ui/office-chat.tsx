@@ -489,7 +489,7 @@ function Actions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {   // 글 �
       ))}
       <button type="button" className="rounded-full px-2.5 py-1 text-xs hover:bg-foreground/5" onClick={() => c.onReply(m)}>답장</button>
       <button type="button" className="rounded-full px-2.5 py-1 text-xs hover:bg-foreground/5" onClick={() => { void navigator.clipboard?.writeText(String(m.text || "").replace(QUOTE, "")).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1200); }); }}>{copied ? "복사함" : "복사"}</button>
-      {pins.can ? <button type="button" className="rounded-full px-2.5 py-1 text-xs hover:bg-foreground/5" disabled={pins.busy} onClick={() => { pins.pin({ id: m.id, ts: m.ts }); c.setSel(""); }}>고정</button> : null}
+      {pins.can ? <button type="button" className="rounded-full px-2.5 py-1 text-xs hover:bg-foreground/5" disabled={pins.busy} onClick={() => { pins.pin({ id: m.id, ts: m.ts }); c.setSel(""); }}>공지</button> : null}   {/* 낱말 = 「공지」(형 11-08 23:09 「이거 고정해도 공지가 안되네 용어 곤지로 바꾸고 확인」 · 뜸 1c8e96a 에서 빠진 한 자리 · 뎅 02:12 찾음 · 깃) */}
     </div>
   );
 }
