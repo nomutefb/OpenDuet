@@ -5,7 +5,7 @@
 .dark .nm-flow { --flow-panel:#121314; --flow-block:#1e2023; --flow-fg:#e8eae8; --flow-line:rgba(232,234,232,.28); --flow-line-fg:rgba(232,234,232,.6); --flow-next:var(--accent, #CFFF40); --flow-next-fg:#161716; --flow-next-bg:rgba(207,255,64,.12); }
 .nm-flow-toggle { margin-left:auto; display:flex; gap:4px; }   /* 갈래 칩 줄 끝 = 「목록 | 흐름」(PC 만) */
 .nm-flow-bar { display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--flow-line); border-radius:12px; background:var(--flow-panel); }
-.nm-flow-bar button { width:30px; height:28px; padding:0; border:1px solid var(--flow-line); border-radius:8px; background:none; color:inherit; font-size:14px; line-height:1; opacity:.55; cursor:default; }
+.nm-flow-bar button { display:grid; place-items:center; width:30px; height:28px; padding:0; border:1px solid var(--flow-line); border-radius:8px; background:none; color:inherit; opacity:.55; cursor:default; }
 .nm-flow-bar small { margin-left:auto; font-size:var(--fs-xs); color:var(--mut); }
 .nm-flow-fork { border:1px solid var(--flow-line); border-radius:18px; background:var(--flow-panel); padding:10px 14px 14px; }
 .nm-flow-fork[data-off] { opacity:.6; }

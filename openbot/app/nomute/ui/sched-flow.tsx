@@ -1,6 +1,6 @@
 // 러너 스케줄 흐름 그림(1단 · PC 만 · 손 SVG · 보기만) — 형 11-09 05:14 임시방 「러너 스케줄러이런식으로 변경」(96984.mp4) · 시아 05:17 기준 ①~⑦ · 봄 배분 19)
 //   갈래 탭(지금 트리 group) → 포크 = 묶음 상자(이름 + 켬끔 · 보기만) → 잡 = 블록 세 줄(이름 + 꼬리표 / 언제 · 다음 / 상태 · 모델 · 켬끔) · 선 = 뒤따름(in.after) · 부름(out.calls) 있는 것만(직각선 · 화살표)
-//   색 = 앱 테마 토큰(./sched-flow.css · 다크 판 #121314 · 블록 #1e2023 · 글 #e8eae8 · 선 .28) · 라임은 「다음 차례」(next_at 제일 가까운 잡) 한 곳만 · 위 탭 아이콘(▷ ⏻ 🔒 ⧉ 🗑)은 1단 = 보기만 · Add block = 3단
+//   색 = 앱 테마 토큰(./sched-flow.css · 다크 판 #121314 · 블록 #1e2023 · 글 #e8eae8 · 선 .28) · 라임은 「다음 차례」(next_at 제일 가까운 잡) 한 곳만 · 위 탭 아이콘 다섯(SVG)은 1단 = 보기만 · Add block = 3단
 //   셈(차례 · 선 · 다른 갈래 칩)은 ./sched-flow-core.ts(순수 · 시험 있음) · 선은 블록이 그려진 뒤 자리를 재서 그림(ResizeObserver · 창 크기) → 줄바꿈돼도 따라감
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Breaker, HEALTH_KO, StatusDot, stOf, sumOf, worstOf } from "./sched-bits";
@@ -11,7 +11,14 @@ import { flowOf, modelKo } from "./sched-flow-core";
 import "./sched-flow.css";
 
 type Line = { k: string; d: string; title: string };
-const TOOLS: [string, string][] = [["▷", "지금 돌리기"], ["⏻", "켬끔"], ["🔒", "형만"], ["⧉", "복사"], ["🗑", "검토로"]];   // 시아 ④ · 1단 = 보기만
+// 시아 ④ 위 탭 다섯(▷ 지금 돌리기 · ⏻ 켬끔 · 🔒 형만 · ⧉ 복사 · 🗑 검토로) = 글자 대신 작은 SVG(⧉ · ⏻ 는 글꼴 없는 몸에서 네모로 뜸 · 번개 몸 실물 11-09 05:56) · 1단 = 보기만
+const TOOLS: { t: string; d: string; fill?: boolean }[] = [
+  { t: "지금 돌리기", d: "M8 5v14l11-7z", fill: true },
+  { t: "켬끔", d: "M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0" },
+  { t: "형만", d: "M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 11V7a4 4 0 0 1 8 0v4" },
+  { t: "복사", d: "M11 9h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zM5 15V5a2 2 0 0 1 2-2h10" },
+  { t: "검토로", d: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" },
+];
 const esc = (s: string) => (typeof CSS !== "undefined" && typeof CSS.escape === "function" ? CSS.escape(s) : s.replace(/["\\]/g, "\\$&"));
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
@@ -47,7 +54,7 @@ export function SchedFlow({ map, group, go, review = {} }: { map: SchedRunners; 
   return (
     <div className="nm-flow" ref={box}>
       <div className="nm-flow-bar" role="toolbar" aria-label="흐름 그림 도구(1단 = 보기만)">
-        {TOOLS.map(([g, t]) => <button key={t} type="button" disabled title={`${t} · 2단에서 누름`} aria-label={t}>{g}</button>)}
+        {TOOLS.map((x) => <button key={x.t} type="button" disabled title={`${x.t} · 2단에서 누름`} aria-label={x.t}><svg viewBox="0 0 24 24" width="16" height="16" fill={x.fill ? "currentColor" : "none"} stroke={x.fill ? "none" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={x.d} /></svg></button>)}
         <small>1단 = 보기만 · 선 = 뒤따름·부름 있는 것만 · 라임 = 다음 차례</small>
       </div>
       {rows.map(({ f, jobs }) => {
