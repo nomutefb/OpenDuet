@@ -22,4 +22,4 @@
 @media (prefers-reduced-motion: reduce) { .nm-dots i { animation:none; opacity:.8; } }
 /* PC 두 칸(nm-split-root · 형 화면 1600)에선 위 가운데(96px) 알약이 러너 칸 오른쪽 · 그래프 위를 덮음(뎅 11-08 22:57 ③ · 봄 배분 3) ·
    빠르 23:1x 실물 = 알약 x 725~876 · y 88~126 ↔ 러너 칸 x 72~792 · y 58~279) → 윗줄(높이 50 · 왼쪽 빈칸) 얼굴 띠(64px) 옆으로 · 폰·좁은 화면은 그대로 */
-:root:has(.nm-split-root) .nm-upd { top:6px; left:80px; right:auto; margin-inline:0; max-width:calc(50% - 160px); }
+:root:has(.nm-split-root) .nm-upd { top:6px; left:var(--nm-tabs-end, 80px); right:auto; margin-inline:0; max-width:calc(50% - 160px); }   /* 탭 줄 끝(「+」 오른쪽 · tab-bar.tsx --nm-tabs-end · 시아 11-09 05:23) */
