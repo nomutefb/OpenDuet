@@ -1,0 +1,30 @@
+/* 계정 카드 다발(뜸 11-09 · 형 05:20 「메인 claude 계정 고르는 선택지는 이거로」 · 시아 05:21 꼴) — 앞 카드 + 뒤로 비스듬히 비친 카드 · 카드마다 제 색 */
+.acx { margin-top: 10px; outline: none; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.acx-stack { position: relative; width: min(340px, 100%); aspect-ratio: 1.586 / 1; margin-right: 34px; }
+.acx-card { position: absolute; inset: 0; border-radius: 16px; border: 1px solid rgba(255,255,255,.14); color: #f2f4f1; text-align: left; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--tint) 92%, #fff 8%) 0%, var(--tint) 55%, color-mix(in srgb, var(--tint) 70%, #000) 100%);
+  box-shadow: 0 14px 30px -14px rgba(0,0,0,.7); cursor: pointer;
+  transform: translateX(calc(var(--k) * 16px)) translateY(calc(var(--k) * -6px)) rotate(calc(var(--k) * 3deg)) scale(calc(1 - var(--k) * .04));
+  transition: transform .32s cubic-bezier(.2,.8,.2,1), opacity .32s; opacity: calc(1 - var(--k) * .18); }
+.acx-card.front { cursor: default; }
+.acx-card:not(.front):hover { transform: translateX(calc(var(--k) * 22px)) translateY(calc(var(--k) * -8px)) rotate(calc(var(--k) * 4deg)) scale(calc(1 - var(--k) * .04)); }
+.acx-card.low { filter: saturate(.45) brightness(.8); }
+.acx-top { display: flex; justify-content: space-between; align-items: center; }
+.acx-top small { font-size: 11px; letter-spacing: .14em; opacity: .7; }
+.acx-ini { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: rgba(255,255,255,.16); }
+.acx-name { font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+.acx-bars { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+.acx-bar { display: grid; grid-template-columns: 34px 1fr 36px; align-items: center; gap: 6px; font-size: 11px; }
+.acx-bar i { font-style: normal; opacity: .7; }
+.acx-bar b { height: 5px; border-radius: 3px; background: #cfff40; box-shadow: inset 0 0 0 999px rgba(0,0,0,0); max-width: 100%; }
+.acx-bar b[data-low] { background: #ff6b5e; }
+.acx-bar em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
+.acx-mail { font-size: 13px; letter-spacing: .06em; opacity: .85; font-variant-numeric: tabular-nums; }
+.acx-foot { margin-top: auto; display: flex; justify-content: space-between; font-size: 12px; }
+.acx-foot small { display: block; font-size: 9px; letter-spacing: .14em; opacity: .6; }
+.acx-tag { position: absolute; right: 12px; bottom: 44px; font-size: 10px; padding: 2px 7px; border-radius: 999px; background: rgba(255,107,94,.22); border: 1px solid rgba(255,107,94,.6); }
+.acx-nav { display: flex; align-items: center; gap: 8px; }
+.acx-nav button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--glass-line, rgba(255,255,255,.2)); background: transparent; color: inherit; }
+.acx-nav i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .3; }
+.acx-nav i.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .acx-card { transition: none; } }
