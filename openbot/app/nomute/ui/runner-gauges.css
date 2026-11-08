@@ -42,3 +42,9 @@
 .nm-rgx-run { min-width:0; height:auto; padding:0; border-radius:0; box-shadow:none; background:transparent; font-size:10px; line-height:14px; }
 .nm-rgx-runs { gap:0; }
 .nm-rgx-run + .nm-rgx-run::before { content:"|"; margin:0 5px; color:rgba(255,255,255,.22); font-weight:300; }   /* 「1 | 2 | 3」 사이 세로줄 = 글자(도형 아님 · 늘 흐림) */
+/* 형 11-08 11:27 밥상(사진 · WIN 칸 「1 | 2 | 3 | 4 | 5」 다음 줄 「| 6」) 「이거 1을 좌측으로 좀 보내고, 한줄로 오게끔해줘. 간격을 좀 줄이면될듯.」(봄 11:28 나눔 → 번개)
+   = 번호 줄 왼쪽 맞춤(1 이 칸 왼쪽 끝) · 한 줄 고정(안 꺾임) · 「|」 양옆 5 → 3 */
+.nm-rgx-runs { width:100%; justify-content:flex-start; flex-wrap:nowrap; white-space:nowrap; overflow:visible; }
+.nm-rgx-run + .nm-rgx-run::before { margin:0 3px; }
+/* 「그리고 게이지 이미지가 좀 내령려면 될듯해. 게이지 안에 글자도 조금 더 내려오고(그럼 글자는 두번내려오는 느낌이겟지)」 = 게이지 4px 아래(위 틈 2 → 6) · 안 글자는 TickGauge dyText=4(runner-gauges.tsx) · 노출 평균 선은 follow-pulse 가 게이지 가운데를 재서 따라옴(봄 11:28) · 조약돌·러너 줄은 useRowSync 가 다시 잼 */
+.nm-rgx-host .nm-rg-gauge { margin-top:6px; }
