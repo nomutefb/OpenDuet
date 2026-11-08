@@ -29,7 +29,12 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   useLayoutEffect(() => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
     const root = document.querySelector(".nm-split-root") as HTMLElement | null, el = bar.current;
     if (root && el) el.style.setProperty("--nm-tab-on", getComputedStyle(root).backgroundColor || "#f6f6f8");
-    if (el) document.documentElement.style.setProperty("--nm-tabs-end", Math.round(el.getBoundingClientRect().right + 8) + "px");
+    if (el) {   // 새 판 알약 = 「+」 오른쪽 · 시계 앞에 자리(알약 ≈160px)가 없으면 시계 오른쪽으로(06:3x 실물 · 탭 줄 상자 끝으로 잡으면 알약이 시계를 덮음)
+      const plus = el.querySelector(".nm-tab-plus")?.getBoundingClientRect(), clock = document.querySelector(".nm-topclock")?.getBoundingClientRect();
+      let x = Math.round((plus ? plus.right : el.getBoundingClientRect().left) + 8);
+      if (clock && x + 160 > clock.left - 8) x = Math.round(clock.right + 16);
+      document.documentElement.style.setProperty("--nm-tabs-end", x + "px");
+    }
   });
   useEffect(() => () => { document.documentElement.style.removeProperty("--nm-tabs-end"); }, []);
   const roomOf = (id: string) => (rooms.data || []).find((r) => r.id === id);

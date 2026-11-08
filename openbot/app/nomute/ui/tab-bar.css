@@ -1,5 +1,5 @@
-/* 위쪽 탭 줄(빠르 11-09 · 뜸 05:16 꼴 · 시아 05:23) — 윗줄(높이 50) 안 · 얼굴 띠 옆부터 시계 왼쪽 16px 앞까지 · 넘치면 크롬처럼 탭이 줄어듦(최소 = 얼굴만) */
-.nm-tabs { position:fixed; top:0; left:72px; right:calc(50% + 52px); height:50px; z-index:58; display:flex; align-items:flex-end; gap:0; padding:0 4px; overflow:visible; }
+/* 위쪽 탭 줄(빠르 11-09 · 뜸 05:16 꼴 · 시아 05:23) — 윗줄(높이 50) 안 · 얼굴 띠 옆부터 시계 왼쪽 16px 앞까지(06:3x 실물 = 시계 상자 739~861 @1600 · 옛 52px 은 「+」가 시계에 닿음) · 넘치면 크롬처럼 탭이 줄어듦(최소 = 얼굴만) */
+.nm-tabs { position:fixed; top:0; left:72px; right:calc(50% + 77px); height:50px; z-index:58; display:flex; align-items:flex-end; gap:0; padding:0 4px; overflow:visible; }
 .nm-tab { position:relative; container-type:inline-size; flex:0 1 168px; min-width:40px; height:38px; display:flex; align-items:center; gap:7px; padding:0 8px 0 11px; border-radius:11px 11px 0 0;
   color:rgba(232,234,232,.55); font:600 12px/1 'Paperlogy', system-ui, sans-serif; cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:none; transition:color .15s; }
 .nm-tab + .nm-tab:not(.on)::before { content:""; position:absolute; left:0; top:11px; bottom:11px; width:1px; background:rgba(232,234,232,.18); }   /* 사이 세로선 1px */
