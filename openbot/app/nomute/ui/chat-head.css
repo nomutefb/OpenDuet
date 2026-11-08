@@ -1,13 +1,12 @@
 /* PC 대화창 머리줄(./chat-head.tsx · 빠르 11-08) = 오른쪽 HOT ISSUE 머리줄(.nm-nlist-h · shell.css .nm-card-h 꼴)과 같은 꼴·같은 줄
    줄 맞춤 = 대화 판은 게이지 띠 밑(--nm-top-off)에서 · 뉴스 칸은 그보다 14px 아래(shell.css .nm-split-news margin-top:14px + 띠 1px · 실물 297↔298) → 머리줄은 15px 내려 같은 선(형 08:58 「저 라인을 그대로 유지하는거구」)
-   오른쪽 끝 = 검색(32) · 밥상 이야기(40) 그림 자리(body 에 그려짐 · ./room-search.tsx 가 이 줄 가운데 높이로 맞춤)만큼 비움 */
-.nm-chat-h { position:relative; z-index:22; flex:none; display:flex; align-items:center; gap:8px; height:36px; margin:15px 10px 0; padding:0 46px 0 12px; border-bottom:1px solid rgba(255,255,255,.07); }
-.nm-chat-h.story { padding-right:88px; }
-.nm-chat-h > .live { flex:none; width:7px; height:7px; border-radius:50%; background:#CFFF40; box-shadow:0 0 0 0 rgba(207,255,64,.55); animation:nmLive 1.8s ease-out infinite; }
-.nm-chat-h .nm-top-wrap { min-width:0; }
-.nm-chat-h .nm-top-name { max-width:100%; font-size:var(--fs-label); line-height:16px; font-weight:700; letter-spacing:.02em; color:#e8eae8 !important; text-shadow:none; pointer-events:auto; }
-.nm-chat-h .nm-top-name.nm-top-btn i { color:rgba(232,234,232,.45); font-weight:600; }
-.nm-chat-h .nm-top-crew { left:0; transform:none; }
+   오른쪽 끝 = 검색(32) · 밥상 이야기(40) 그림 자리(그림 사이 = 가운데끼리 34px · 형 10:07 「픽토그램 간 간격 좀만 붙게」)(body 에 그려짐 · ./room-search.tsx 가 이 줄 가운데 높이로 맞춤)만큼 비움 */
+.nm-chat-h { position:relative; z-index:22; flex:none; display:flex; align-items:center; justify-content:flex-end; gap:8px; height:36px; margin:15px 10px 0; padding:0 30px 0 12px; border-bottom:1px solid rgba(255,255,255,.09); }
+.nm-chat-h.story { padding-right:64px; }
+/* 이름 = 줄 가운데 · 꼴 = 옛 윗줄 가운데 방 이름 그대로(라임 · 굵게 · 인원 흰 · 형 10:07 「블릿에 hot issue 이런거 대신해서, 구역 상단 구분선은 유지하되 가운데 글자에 대화창 명칭이 들어가면됨. 지금 웹앱 최상단 중앙에 위치한것.」) */
+.nm-chat-h .nm-top-wrap, .nm-chat-h > .nm-top-name { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); max-width:calc(100% - 180px); }
+.nm-chat-h .nm-top-name { max-width:100%; font-size:var(--fs-h3); line-height:20px; font-weight:700; color:#CFFF40 !important; text-shadow:none; pointer-events:auto; }
+.nm-chat-h .nm-top-name.nm-top-btn i { color:#fff; font-weight:600; }
 .nm-chat-fold { position:relative; flex:none; margin-left:auto; display:grid; place-items:center; width:32px; height:32px; padding:0; border:0; border-radius:8px; background:none; color:rgba(232,234,232,.78); cursor:pointer; }
 .nm-chat-fold:hover, .nm-chat-fold.on { color:#CFFF40; }
 .nm-chat-fold > i { position:absolute; top:2px; right:0; min-width:14px; height:14px; padding:0 3px; border-radius:7px; background:#CFFF40; color:#141516; font-style:normal; font-size:10px; line-height:14px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
@@ -23,11 +22,12 @@
 .nm-chat-fold-more { align-self:flex-start; padding:4px 10px; border-radius:var(--r-pill); border:1px solid rgba(255,255,255,.1); background:none; color:rgba(232,234,232,.7); font-size:var(--fs-xs); font-weight:600; cursor:pointer; }
 .nm-chat-fold-pop .nm-todo-l { max-height:none; padding:0; border-top:0; }
 :root:not(.dark) .nm-chat-h { border-bottom-color:var(--glass-line); }
-:root:not(.dark) .nm-chat-h .nm-top-name { color:var(--fg) !important; }
+:root:not(.dark) .nm-chat-h .nm-top-name { color:var(--accent-ink, var(--fg)) !important; }
+:root:not(.dark) .nm-chat-h .nm-top-name.nm-top-btn i { color:var(--fg-2); }
 :root:not(.dark) .nm-chat-fold { color:var(--fg-2); }
 :root:not(.dark) .nm-chat-fold-pop { background:var(--duet-surface); border-color:var(--glass-line); }
 :root:not(.dark) .nm-chat-fold-pin, :root:not(.dark) .nm-chat-fold-pin b { color:var(--fg); }
-@media (prefers-reduced-motion:reduce) { .nm-chat-h > .live, .nm-chat-fold-pop { animation:none; } }
+@media (prefers-reduced-motion:reduce) { .nm-chat-fold-pop { animation:none; } }
 
 /* 머리줄이 있는 대화 칸 = 글이 머리줄 밑에서 시작(옛 = 떠 있는 검색 단추 자리 48px 비움) */
 .nm-split-l .nm-col:has(> .nm-chat-h) main .ychat .ychat.mt-auto { padding-top:12px !important; }

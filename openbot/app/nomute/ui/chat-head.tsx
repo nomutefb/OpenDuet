@@ -1,6 +1,6 @@
 // PC 대화창 머리줄(빠르 11-08) — 형 dm 08:58 「이 라인에 맞게 대화창도 조정하고」(그림 = 할 일 띠에 줄 · 대화창 위를 오른쪽 HOT ISSUE 줄에) · 「저 라인을 그대로 유지하는거구」
 //   · 밥상 09:49 「핫이슈랑 같은 라인에 대화창 나오는것도」 · 「그 대화창은 거기에 대화창 명칭이 뜨면 될거같아 종류가 뜨는게 아니라」
-//   = HOT ISSUE 머리줄과 같은 꼴·같은 높이(36 · 라임 점 · 글자 크기) · 이름 = 지금 방 이름(누르면 사람·방 메뉴 = ./top.tsx NomuteName · 옛 윗줄 가운데 자리 → 윗줄 가운데는 시계)
+//   = HOT ISSUE 머리줄과 같은 높이(36 · 아래 구분선) · 가운데 = 지금 방 이름(형 10:07 「블릿에 hot issue 이런거 대신해서 … 가운데 글자에 대화창 명칭」 · 꼴 = 옛 윗줄 가운데 이름)(누르면 사람·방 메뉴 = ./top.tsx NomuteName · 옛 윗줄 가운데 자리 → 윗줄 가운데는 시계)
 //   공지·할 일 = 오른쪽 그림 하나 → 누르면 접힌 칸이 펼쳐짐(형 08:58 「공지나 할일은 우측에 밥상이야기 처럼 접히게 할게」 · 「다른방은 밥상이야기가 없고 저게 들어가면될듯」)
 //   검색 · 밥상 이야기 그림은 body 에 그려짐(./room-search.tsx) → 이 줄 가운데 높이에 맞춤 · 이 줄 오른쪽은 그만큼 비워 둠(.story = 그림 둘)
 import { useState } from "react";
@@ -19,7 +19,6 @@ export function ChatHead({ room }: { room: string }) {
   return (
     <>
       <div className={`nm-chat-h${room === "guide" ? " story" : ""}`}>
-        <i className="live" aria-hidden />
         <NomuteName room={room} />
         <NoticeFold room={room} onHist={() => setHist(true)} onJump={jump} />
       </div>

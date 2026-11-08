@@ -174,7 +174,7 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
   const count = hits.length ? `${Math.min(idx, hits.length - 1) + 1}/${hits.length}` : done ? "찾는 글 없음" : "찾는 중";
   return createPortal(
     <>
-      {room === "guide" && !open ? <StoryButton right={pane.right + 46} /> : null}   {/* 밥상만 = 검색 왼쪽 「밥상 이야기」 그림 → 바로 모달(형 11-04 15:4x 「밥상 대화는 우상단에 그거 픽토그램으로 하나 뜨게 해주라, 모달로 바로 뜨게. 밥상만」) */}
+      {room === "guide" && !open ? <StoryButton right={pane.right + (document.querySelector(".nm-split-root .nm-chat-h") ? 36 : 46)} /> : null}   {/* 밥상만 = 검색 왼쪽 「밥상 이야기」 그림 → 바로 모달(형 11-04 15:4x 「밥상 대화는 우상단에 그거 픽토그램으로 하나 뜨게 해주라, 모달로 바로 뜨게. 밥상만」) */}
       <div ref={find} className={`nm-find${open ? " open" : ""}`} style={{ right: pane.right + 6, width: open ? Math.max(120, pane.width - 52) : 40 }}>   {/* 11-06 20:39 = 우상단 ≡ 뺌(방 메뉴 = 윗줄 가운데 이름 목록 · 형 「별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」) → 돋보기가 맨 오른쪽 · 앞 줄: 닫힘 = 햄버거 왼쪽 그림 하나 · 열림 = 「<」 와 햄버거 사이(형 08:46 「범위 높이 등 만 조정」) */}
         {open ? <input ref={input} value={q} placeholder="대화내용 검색" aria-label="대화내용 검색" enterKeyHint="search" onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Escape") close(); if (e.key === "Enter") setIdx((i) => Math.min(i + 1, Math.max(0, hits.length - 1))); }} /> : null}
