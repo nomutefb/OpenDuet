@@ -15,7 +15,7 @@ import { mergeReact, type RoomReacts } from "../data/react-merge";
 import { CallSheet, appendToComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Component, type ComponentProps, type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Component, type ComponentProps, type CSSProperties, Fragment, type PointerEvent as RPointerEvent, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
@@ -313,7 +313,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
 
 type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
-  sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
+  sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onSwap: (id: string, from: string, to: string, hasTo: boolean) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
   loose: () => void;   // 맨 아래 붙음 풂(알약 펼칠 때 = 알약 자리 그대로 두고 아래로 펼침)
   onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
@@ -424,14 +424,22 @@ function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
   const app = new Map<string, string[]>();   // 그록 앱 반응(D14 · 거울 칸 app_reactions) = 같은 그림끼리 묶음
   for (const x of m.app_reactions || []) if (x?.emoji) app.set(x.emoji, [...(app.get(x.emoji) || []), x.who]);
   const [open, setOpen] = useState("");   // 누가 달았나 보기(형 11-02 12:00 「단체톡에서는 내 이모지 누르면 누가 달앗는지 알 수 있어야 함. 내가 너희들 말풍선에 달린 이모디 눌러도 누가 달앗는지 알아야함.」)
+  // 내 반응 길게 누름(또는 오른쪽 단추) = 다른 반응으로 바꾸기(형 11-08 09:23 밥상 「내 감정표현을 길게 누르면 다른 감정표현으로 바꿀수잇게 가능한지」 · 빠르) · 바꾸기 = 옛 것 빼고 새 것 담(서버 길은 그대로 두 번)
+  const [swap, setSwap] = useState("");
+  const hold = useRef(0), held = useRef(false);
   useEffect(() => {
-    if (!open) return undefined;
-    const off = (ev: PointerEvent) => { if (!(ev.target as Element | null)?.closest?.(".yrxs")) setOpen(""); };
-    document.addEventListener("pointerdown", off);
-    return () => document.removeEventListener("pointerdown", off);
-  }, [open]);
+    if (!open && !swap) return undefined;
+    const off = (ev: PointerEvent) => { if (!(ev.target as Element | null)?.closest?.(".yrxs")) { setOpen(""); setSwap(""); } };
+    const esc = (ev: KeyboardEvent) => { if (ev.key === "Escape") { setOpen(""); setSwap(""); } };
+    document.addEventListener("pointerdown", off); window.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", off); window.removeEventListener("keydown", esc); };
+  }, [open, swap]);
+  useEffect(() => () => window.clearTimeout(hold.current), []);
   if (!e.length && !app.size) return null;
   const shown = open ? (e.find(([k]) => k === open)?.[1] || app.get(open.replace(/^app:/, "")) || []) : [];
+  const toSwap = (k: string) => { held.current = true; setOpen(""); setSwap(k); navigator.vibrate?.(12); };
+  const holdOn = (k: string) => (ev: RPointerEvent) => { if (ev.button > 0) return; held.current = false; window.clearTimeout(hold.current); hold.current = window.setTimeout(() => toSwap(k), 450); };
+  const holdOff = () => window.clearTimeout(hold.current);
   return (
     <div className="yrxs" onClick={(e) => e.stopPropagation()}>   {/* 말풍선 모서리에 겹침(형 10-31 「이모지는 칸을 아껴야되니까」) */}
       {open ? (
@@ -440,18 +448,32 @@ function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
           {!open.startsWith("app:") ? <button type="button" onClick={() => { c.onReact(m.id, open); setOpen(""); }}>{shown.includes("형") ? "빼기" : "나도"}</button> : null}
         </div>
       ) : null}
+      {swap ? (
+        <div className={`yrx-who yrx-swap${mine ? " me" : ""}`} role="dialog" aria-label={`내 반응 ${swap} 바꾸기`}>
+          <span>{swap} →</span>
+          {c.quick.filter((q) => q !== swap).map((q) => (
+            <button key={q} type="button" className="q" aria-label={`${swap} 를 ${q} 로 바꾸기`} onClick={() => { c.onSwap(m.id, swap, q, (c.rx[m.id]?.[q] || []).includes("형")); setSwap(""); }}>{q}</button>
+          ))}
+        </div>
+      ) : null}
       {[...app].map(([k, w]) => (
         <span key={`app-${k}`} title={`그록 앱 반응 · ${w.map((x) => nmOf(c.list, x)).join(" · ")}`} role="button" tabIndex={0} onClick={() => setOpen(open === `app:${k}` ? "" : `app:${k}`)}
           className="yrx">
           {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
         </span>
       ))}
-      {e.map(([k, w]) => (
-        <button key={k} type="button" title={w.map((x) => nmOf(c.list, x)).join(" · ")} aria-expanded={open === k} onClick={() => setOpen(open === k ? "" : k)}   // 누름 = 단 이 보기 · 달기·빼기는 그 안 단추
-          className={`yrx${w.includes("형") ? " on" : ""}`}>
-          {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
-        </button>
-      ))}
+      {e.map(([k, w]) => {
+        const me = w.includes("형");
+        return (
+          <button key={k} type="button" title={w.map((x) => nmOf(c.list, x)).join(" · ") + (me ? " · 길게 누르면 바꾸기" : "")} aria-expanded={open === k}
+            onClick={() => { if (held.current) { held.current = false; return; } setSwap(""); setOpen(open === k ? "" : k); }}   // 누름 = 단 이 보기 · 달기·빼기는 그 안 단추
+            onPointerDown={me ? holdOn(k) : undefined} onPointerUp={holdOff} onPointerLeave={holdOff} onPointerCancel={holdOff}
+            onContextMenu={me ? (ev) => { ev.preventDefault(); toSwap(k); held.current = false; } : undefined}
+            className={`yrx${me ? " on" : ""}`}>
+            {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -1213,6 +1235,22 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     onError: (e) => { setRxOver(null); setErr(`반응 못 남김 — ${e instanceof Error ? e.message : String(e)}`); },
   });
 
+  const swapRx = useMutation({   // 내 반응 바꾸기(./office-chat Reactions 길게 누름 · 형 11-08 09:23) = 옛 것 빼고(토글) 새 것 담(이미 담았으면 빼기만) · 화면 먼저 한 번에
+    mutationFn: async ({ id, from, to, hasTo }: { id: string; from: string; to: string; hasTo: boolean }) => {
+      const post = (emoji: string) => office<{ reactions?: Record<string, string[]>; on?: boolean }>(`rooms/${enc(room)}/reactions`, { method: "POST", body: JSON.stringify({ id, emoji }) });
+      const j = await post(from);
+      return hasTo ? j : post(to);
+    },
+    onMutate: ({ id, from, to }) => {
+      const base = rxOver || reacts?.reactions || {}, row = { ...base[id] };
+      row[from] = (row[from] || []).filter((x) => x !== "형");
+      if (!(row[to] || []).includes("형")) row[to] = [...(row[to] || []), "형"];
+      setRxOver({ ...base, [id]: row });
+    },
+    onSuccess: (j, v) => { setRxOver(null); qc.setQueryData(officeKeys.reacts(room), (old: { reactions?: RoomReacts } | undefined) => mergeReact(old, v.id, j.reactions)); },
+    onError: (e) => { setRxOver(null); setErr(`반응 못 바꿈 — ${e instanceof Error ? e.message : String(e)}`); },
+  });
+
   const nre = useMemo(() => nameRe(list), [list]);
   const c: Ctx = {
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
@@ -1223,6 +1261,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     },
     sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuOf(m); },
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
+    onSwap: (id, from, to, hasTo) => { setSel(""); swapRx.mutate({ id, from, to, hasTo }); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); requestAnimationFrame(() => document.querySelector<HTMLElement>(".ychat-in [contenteditable=\"true\"], .ychat-in textarea")?.focus()); },   // 답장 = 바로 쓰기 칸(폰 = 자판 올라옴 · 카톡 꼴)
     onJump: (who, line, id) => {
       const hit = id ? all.find((x) => x.id === id) : [...all].reverse().find((x) => nmOf(list, x.who) === who && firstLine(x).startsWith(line.replace(/…$/, "").slice(0, 20)));

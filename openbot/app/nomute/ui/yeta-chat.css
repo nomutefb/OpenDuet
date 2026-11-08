@@ -756,3 +756,11 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ypk-err { padding:0 16px 12px; font-size:var(--fs-label); color:#ff8a8a; }
 @media (max-width:700px) { .ypk-veil { place-items:end center; padding:12px; } .ypk { border-radius:20px; max-height:86dvh; } }
 @media (prefers-reduced-motion:reduce) { .ypk, .ypk.out, .ypk-veil.out { animation:none; } }
+/* 내 반응 바꾸기 칸(길게 누름 · 형 11-08 09:23 「내 감정표현을 길게 누르면 다른 감정표현으로 바꿀수잇게」 · 빠르) = 단 이 보기 칸(.yrx-who) 꼴 · 그림만 줄로 */
+.ychat .yrx-who.yrx-swap { gap:2px; padding:4px 6px 4px 10px; white-space:nowrap; max-width:none; }
+.ychat .yrx-who.yrx-swap > span { margin-right:4px; color:rgba(255,255,255,.7); }
+.ychat .yrx-who.yrx-swap button.q { padding:2px 5px; border:0; border-radius:8px; background:none; color:inherit; font-size:19px; font-weight:400; line-height:1.2; cursor:pointer; }
+.ychat .yrx-who.yrx-swap button.q:hover { background:rgba(255,255,255,.1); }
+:root:not(.dark) .ychat .yrx-who.yrx-swap > span { color:rgba(0,0,0,.6); }
+:root:not(.dark) .ychat .yrx-who.yrx-swap button.q { color:inherit; background:none; border:0; }
+.yrx { -webkit-touch-callout:none; user-select:none; }
