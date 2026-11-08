@@ -1063,6 +1063,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const [jump, setJump] = useState("");   // 화면 위로 시작이 넘어간 글(「↑ 글 처음」)
   // 「↓ 최근 글」 = 맨 아래에서 한 화면쯤 떨어져 있으면 오른쪽 아래 단추 · 떨어진 뒤 새로 온 글 수(형 11-01 09:09 「그리구 채팅을 띄워놓고 자리를 비우면 채팅이 밀리는데 그럴경우 최근 채팅으로 가는 아래 버튼 같은게 있어야함」 · 「안그러면 죽죽죽 스크롤 내리거나 채팅을 쳐서 내려야되거듬」)
   const [far, setFar] = useState(false), seenEnd = useRef(0);
+  const [atTop, setAtTop] = useState(true);   // 스크롤 칸이 맨 위(24px 안) = 글 칸 위 흐림 끔(./chat-head.css .nm-top0 · 모루 #2923 「맨 위에 도달해도 「옛 글 더 보기」 단추·포커스 표시가 흐린 구간에 남음」) · 글이 칸보다 짧아 스크롤 없는 방도 맨 위 = 흐릴 게 없음
   if (stuck.current || !far) seenEnd.current = all.length;
   const newBelow = far ? Math.max(0, all.length - seenEnd.current) : 0;
   const toEnd = () => { const box = boxRef.current; if (!box) return; hold.current = 0; stuck.current = true; near.current = true; box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); setFar(false); };
@@ -1108,8 +1109,11 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     const box = boxRef.current;
     if (!box) return;
     let tm = 0;
+    const top0 = () => setAtTop(box.scrollTop < 24);
+    top0();
     const look = () => {
       tm = 0;
+      top0();
       const top = box.getBoundingClientRect().top + HEAD;   // 보이는 위 = 떠 있는 머리 아래
       let hit = "";
       for (const el of box.querySelectorAll<HTMLElement>("[data-id]")) {
@@ -1141,7 +1145,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     const onScroll = () => {   // 붙음 = 정말 맨 아래(4px 안) · 가까이 = nearPx 안 · 연 직후 손 안 댐 = 붙음 그대로(내용이 늦게 길어지며 나는 스크롤 알림에 안 풀림)
       const gap = box.scrollHeight - box.scrollTop - box.clientHeight;
       if (pinning()) { stuck.current = true; near.current = true; if (gap > 1) box.scrollTop = box.scrollHeight; on(); return; }
-      stuck.current = gap < 4; near.current = gap < nearPx(box); on();
+      stuck.current = gap < 4; near.current = gap < nearPx(box); top0(); on();
     };
     const hand = () => { sentPin.current = 0; touched.current = true; autoN.current = 0; hold.current = Date.now() + 900; };   // 손으로 밀면 = 저절로 받기 다시 셈 · 잠깐 안 당김
     const wheel = (e: WheelEvent) => { hand(); if (e.deltaY < 0) stuck.current = false; };   // hand = 손 닿음(연 직후 붙잡기 끝)   // 가까이(near)는 스크롤이 멈춘 자리로 다시 셈   // 위로 굴림 = 바로 떨어짐
@@ -1326,7 +1330,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
         : jump ? <button type="button" className="yjump" onClick={toStart}><Chev dir="up" size={13} /> 글 처음</button> : null}
       {far ? <button type="button" className="ydown" aria-label={newBelow ? `최근 글로 · 새 글 ${newBelow}개` : "최근 글로"} onClick={toEnd}><Chev dir="down" size={20} />{newBelow ? <b>{newBelow > 99 ? "99+" : newBelow}</b> : null}</button> : null}
       <ScrollDate box={boxRef} />
-      <div ref={boxRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
+      <div ref={boxRef} className={`flex min-h-0 flex-1 flex-col overflow-y-auto${atTop ? " nm-top0" : ""}`}>   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
         <div className={`ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]${unfold ? " unfold" : ""}`}>   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
           {r?.temp ? <TempRoomHead r={r} /> : null}
           {pairRoom ? <PairHead room={room} list={list} /> : null}
