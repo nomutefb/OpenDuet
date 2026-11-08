@@ -6,7 +6,6 @@
 //   10개씩(원본 FEED_CAP · 바닥 닿으면 +10) · 원본과 다른 점: 검색·칩 중에도 10개씩(스크롤하면 다 나옴) · 분류 = category 칸만(원본 articleCat 제목 규칙 폴백 없음 · 짐작)
 import "./yeta-settings.css";
 import "./chan.css";
-import "./task-panel.css";
 import { qEff } from "./task-state";
 import { type QCardT, TaskPanel } from "./task-panel";
 import "./news.css";
