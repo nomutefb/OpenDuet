@@ -11,7 +11,7 @@
 //   빠르게 열기(형 15:34 「프사먼저 나오고 넘 늦게 대화가 나와」 · 15:38 「캐시화 하고 뒤늦게 받아오는거로 동기화를」) = 이 기기 저장(data/room-cache.ts)을 먼저 그림 →
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
-import { mergeReact, type RoomReacts } from "../data/react-merge";
+import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
 import { CallSheet, appendToComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -1238,8 +1238,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const swapRx = useMutation({   // 내 반응 바꾸기(./office-chat Reactions 길게 누름 · 형 11-08 09:23) = 옛 것 빼고(토글) 새 것 담(이미 담았으면 빼기만) · 화면 먼저 한 번에
     mutationFn: async ({ id, from, to, hasTo }: { id: string; from: string; to: string; hasTo: boolean }) => {
       const post = (emoji: string) => office<{ reactions?: Record<string, string[]>; on?: boolean }>(`rooms/${enc(room)}/reactions`, { method: "POST", body: JSON.stringify({ id, emoji }) });
-      const j = await post(from);
-      return hasTo ? j : post(to);
+      return swapReact(post, (one) => qc.setQueryData(officeKeys.reacts(room), (old: { reactions?: RoomReacts } | undefined) => mergeReact(old, id, one)), { from, to, hasTo });   // 부름마다 답을 표에(둘째 실패 = 첫 답은 남음 · 모루 #2910 ①)
     },
     onMutate: ({ id, from, to }) => {
       const base = rxOver || reacts?.reactions || {}, row = { ...base[id] };
@@ -1247,9 +1246,10 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       if (!(row[to] || []).includes("형")) row[to] = [...(row[to] || []), "형"];
       setRxOver({ ...base, [id]: row });
     },
-    onSuccess: (j, v) => { setRxOver(null); qc.setQueryData(officeKeys.reacts(room), (old: { reactions?: RoomReacts } | undefined) => mergeReact(old, v.id, j.reactions)); },
-    onError: (e) => { setRxOver(null); setErr(`반응 못 바꿈 — ${e instanceof Error ? e.message : String(e)}`); },
+    onSuccess: () => { setRxOver(null); },   // 표는 mutationFn 이 부름마다 맞춤
+    onError: (e) => { setRxOver(null); void qc.invalidateQueries({ queryKey: officeKeys.reacts(room) }); setErr(`반응 못 바꿈 — ${e instanceof Error ? e.message : String(e)}`); },   // 실패 = 서버에서 다시 받음
   });
+  const swapBusy = useRef(new Set<string>());   // 같은 글 바꾸기는 한 번에 하나(모루 #2910 ①)
 
   const nre = useMemo(() => nameRe(list), [list]);
   const c: Ctx = {
@@ -1261,7 +1261,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     },
     sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuOf(m); },
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
-    onSwap: (id, from, to, hasTo) => { setSel(""); swapRx.mutate({ id, from, to, hasTo }); },
+    onSwap: (id, from, to, hasTo) => { setSel(""); swapLock(swapBusy.current, id, () => swapRx.mutateAsync({ id, from, to, hasTo })); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); requestAnimationFrame(() => document.querySelector<HTMLElement>(".ychat-in [contenteditable=\"true\"], .ychat-in textarea")?.focus()); },   // 답장 = 바로 쓰기 칸(폰 = 자판 올라옴 · 카톡 꼴)
     onJump: (who, line, id) => {
       const hit = id ? all.find((x) => x.id === id) : [...all].reverse().find((x) => nmOf(list, x.who) === who && firstLine(x).startsWith(line.replace(/…$/, "").slice(0, 20)));

@@ -3,7 +3,7 @@
 //   = HOT ISSUE 머리줄과 같은 높이(36 · 아래 구분선) · 가운데 = 지금 방 이름(형 10:07 「블릿에 hot issue 이런거 대신해서 … 가운데 글자에 대화창 명칭」 · 꼴 = 옛 윗줄 가운데 이름)(누르면 사람·방 메뉴 = ./top.tsx NomuteName · 옛 윗줄 가운데 자리 → 윗줄 가운데는 시계)
 //   공지·할 일 = 오른쪽 그림 하나 → 누르면 접힌 칸이 펼쳐짐(형 08:58 「공지나 할일은 우측에 밥상이야기 처럼 접히게 할게」 · 「다른방은 밥상이야기가 없고 저게 들어가면될듯」)
 //   검색 · 밥상 이야기 그림은 body 에 그려짐(./room-search.tsx) → 이 줄 가운데 높이에 맞춤 · 이 줄 오른쪽은 그만큼 비워 둠(.story = 그림 둘)
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { NomuteName } from "./top";
 import { type Pin, PinHistory, firstLine, usePins, when } from "./pins";
@@ -14,13 +14,14 @@ import "./chat-head.css";
 
 export function ChatHead({ room }: { room: string }) {
   const [hist, setHist] = useState(false);
+  const head = useRef<HTMLDivElement>(null);
   const pins = usePins(room).data;
   const jump = (p: Pin) => { setHist(false); window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id: p.id } })); };   // 대화창(office-chat.tsx)이 받아 그 글로
   return (
     <>
-      <div className={`nm-chat-h${room === "guide" ? " story" : ""}`}>
+      <div ref={head} className={`nm-chat-h${room === "guide" ? " story" : ""}`}>
         <NomuteName room={room} />
-        <NoticeFold room={room} onHist={() => setHist(true)} onJump={jump} />
+        <NoticeFold room={room} onHist={() => setHist(true)} onJump={jump} onGone={() => head.current?.querySelector<HTMLElement>("button, [tabindex]")?.focus({ preventScroll: true })} />
       </div>
       {hist ? <PinHistory room={room} pins={pins || { cur: null, history: [] }} onClose={() => setHist(false)} onJump={jump} /> : null}   {/* 판 = 대화 칸(.nm-col) 전체를 덮음 */}
     </>
@@ -28,12 +29,18 @@ export function ChatHead({ room }: { room: string }) {
 }
 
 /** 공지(고정 글) · 할 일 = 그림 하나 + 펼침 칸 · 둘 다 없으면 그림도 없음 */
-function NoticeFold({ room, onHist, onJump }: { room: string; onHist: () => void; onJump: (p: Pin) => void }) {
+function NoticeFold({ room, onHist, onJump, onGone }: { room: string; onHist: () => void; onJump: (p: Pin) => void; onGone: () => void }) {
   const cur = usePins(room).data?.cur || null;
   const t = useTodos(room);
   const [open, setOpen] = useState(false);
   const n = (cur ? 1 : 0) + t.items.length;
-  const box = useModal<HTMLDivElement>(() => setOpen(false), open);
+  const box = useModal<HTMLDivElement>(() => setOpen(false), foldLive(open, n));
+  useEffect(() => {   // 펼친 채 마지막 할 일을 끝내 칸이 사라짐 = 창도 닫고(Tab 가두기 풀림) 포커스는 머리줄 이름으로(그림 단추도 사라져 돌아갈 자리 없음 · 모루 #2910 ②)
+    if (!open || n) return;
+    setOpen(false);
+    const a = document.activeElement;
+    if (!a || a === document.body) onGone();
+  }, [open, n]);
   if (!n) return null;
   const jump = (p: Pin) => { setOpen(false); onJump(p); };
   const label = [cur ? "공지" : "", t.items.length ? `할 일 ${t.items.length}` : ""].filter(Boolean).join(" · ");
@@ -69,3 +76,6 @@ function NoticeFold({ room, onHist, onJump }: { room: string; onHist: () => void
     </>
   );
 }
+
+/** 접힌 칸 창이 살아 있나 = 펼침 + 보일 것 있음(없으면 그림도 칸도 안 그려지니 창 부품도 꺼야 Tab 이 안 갇힘) */
+const foldLive = (open: boolean, n: number) => open && n > 0;
