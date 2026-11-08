@@ -7,10 +7,10 @@ import { getJson, newsListQuery } from "../ui/news-data";
 import { SumCard } from "../ui/summary-desk";   // 에디터 「뉴스 요약」 카드 꼴(형 11-08 09:13 「digest 아까부터 말하는데 뉴스 요약처럼 바꾼고했어.」 · 「뉴스 요약 넣으면 어떻게 뜨는지까지 확인해서 반영하셈」)
 import { cleanTitle } from "./title-clean";
 import { SyncAgo } from "../ui/status-line";   // Digest 머리줄 오른쪽 「동기화 N분 전」(형 11-08 09:00)
+import { TaskPanel } from "../ui/task-panel";
 
 type QItem = { id?: string; t?: number; title?: string; key?: string; alt1?: string; status?: string; tries?: number };
 const LIVE = new Set(["processing", "retry", "queued", "pending", "failed", "error"]);   // 대기열에 보일 것 = 아직 안 끝난 것 · 실패(「succ」·done 같은 끝난 것 = 뺌 · 실물 17:3x)
-const ST: Record<string, string> = { processing: "요약 중", retry: "다시 시도", queued: "기다림", pending: "기다림", failed: "실패", error: "실패" };
 const N_DONE = 12;
 
 export function NewsSummary() {
@@ -26,18 +26,7 @@ export function NewsSummary() {
     <section className="nm-nsum" aria-label="뉴스 요약">
       <div className="nm-nsum-h"><b>Digest</b><span>{q.length ? `대기열 ${q.length} · ` : ""}<SyncAgo /></span></div>
       <ol className="nm-nsum-ol">
-        {q.map((it, i) => {   // 넣은 요약 = 에디터처럼 같은 카드 꼴로 맨 위(막대 「요약」이 도는 중 · 실패 = 빗금) → 요약이 끝나면 아래 다 된 카드로 넘어감
-          const bad = it.status === "failed" || it.status === "error", run = it.status === "processing" || it.status === "retry";
-          return (
-            <li key={it.id || i} className="c">
-              <div className={`nm-sumc pend${bad ? " bad" : ""}`} aria-label={`요약 대기열 · ${ST[it.status || ""] || it.status}`}>
-                <div className="nm-sumc-top"><b className="cat q">{ST[it.status || ""] || it.status}</b>{it.tries ? <span>시도 <b>{it.tries}</b></span> : null}</div>
-                <p className="nm-sumc-t">{cleanTitle(it.title || it.alt1 || it.key) || "제목 없음"}</p>
-                <div className="nm-sumc-prog">{["요약", "프롬프트", "카드"].map((st, k) => <span key={st} className={k === 0 ? (bad ? "fail" : run ? "cur" : "") : ""}><i>{st}</i><em /></span>)}</div>
-              </div>
-            </li>
-          );
-        })}
+        {q.length ? <li className="c nm-nsum-tasks"><TaskPanel qs={q.map((it) => ({ it, e: it.status === "failed" || it.status === "error" ? "fail" : it.status || "", title: cleanTitle(it.title || it.alt1 || it.key) || "제목 없음" }))} eta={null} onOpen={() => {}} /></li> : null}   {/* 요약 대기열 = 「뉴스 요약」과 같은 판(시아 06:44 ① · 깃) */}
         {done.map((a) => <li key={a.file} className="c"><SumCard a={a} /></li>)}
         {!done.length ? (list.isError ? <li className="empty nm-emptybox"><b>요약 목록을 못 받았어</b><span>조금 뒤 다시 받아</span></li>
           : list.isLoading ? <li className="empty"><i className="nm-skel" style={{ width: "88%" }} /><i className="nm-skel" style={{ width: "72%" }} /><i className="nm-skel" style={{ width: "80%" }} /></li>
