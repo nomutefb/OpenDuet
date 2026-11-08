@@ -26,7 +26,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     else setS((x) => (x.active.startsWith("s:") ? x : { ...x, active: "dash" }));
   }, [room, pane]);
   useEffect(() => { if (s.active.startsWith("s:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
-  useLayoutEffect(() => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
+  const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
     const root = document.querySelector(".nm-split-root") as HTMLElement | null, el = bar.current;
     if (root && el) {   // 고른 탭 = 아래 판 바탕색 · 글자 = 그 바탕 밝기로 고름(뎅 06:43 ㉢ 「라이트에서 고른 탭이 검은 알약에 글자 안 보임」 · 봄 배분 26)
       const { bg, fg } = tabColors(getComputedStyle(root).backgroundColor, matchMedia("(prefers-color-scheme: dark)").matches);
@@ -38,7 +38,15 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
       if (clock && x + 160 > clock.left - 8) x = Math.round(clock.right + 16);
       document.documentElement.style.setProperty("--nm-tabs-end", x + "px");
     }
-  });
+  };
+  useLayoutEffect(place);   // 그릴 때마다
+  useEffect(() => {   // 창 크기·탭 줄 폭이 바뀔 때도(모루 #3005 08:13 「resize 를 구독하지 않아 1600→900 이면 알약이 화면 밖」)
+    const on = () => place();
+    window.addEventListener("resize", on);
+    const ro = typeof ResizeObserver === "function" && bar.current ? new ResizeObserver(on) : null;
+    if (ro && bar.current) ro.observe(bar.current);
+    return () => { window.removeEventListener("resize", on); ro?.disconnect(); };
+  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { document.documentElement.style.removeProperty("--nm-tabs-end"); }, []);
   const roomOf = (id: string) => (rooms.data || []).find((r) => r.id === id);
   const faceOf = (t: Tab) => {
