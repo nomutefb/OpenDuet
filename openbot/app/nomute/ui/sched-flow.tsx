@@ -2,7 +2,7 @@
 //   갈래 탭(지금 트리 group) → 포크 = 묶음 상자(이름 + 켬끔 · 보기만) → 잡 = 블록 세 줄(이름 + 꼬리표 / 언제 · 다음 / 상태 · 모델 · 켬끔) · 선 = 뒤따름(in.after) · 부름(out.calls) 있는 것만(직각선 · 화살표)
 //   색 = 앱 테마 토큰(./sched-flow.css · 다크 판 #121314 · 블록 #1e2023 · 글 #e8eae8 · 선 .28) · 라임은 「다음 차례」 블록 테 한 곳만(상태 점 = 차분한 초록 · 켬끔 = 회색 · 시아 06:41 ③) · 블록 위 탭(▷ ⏻ 🔒 ⧉ 🗑) = 2단(시아 ④) · Add block = 3단
 //   셈(차례 · 선 · 다른 갈래 칩)은 ./sched-flow-core.ts(순수 · 시험 있음) · 선은 블록이 그려진 뒤 자리를 재서 그림(ResizeObserver · 창 크기) → 줄바꿈돼도 따라감
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Breaker, HEALTH_KO, StatusDot, stOf, sumOf, worstOf } from "./sched-bits";
 import { type SchedRunners, nextShort } from "./settings-extra";
 import { CLOCK_KO, whenOf } from "./sched-runners";
@@ -13,7 +13,9 @@ import "./sched-flow.css";
 type Line = { k: string; d: string; title: string };
 
 export function SchedFlow({ map, group, go, review = {} }: { map: SchedRunners; group: string; go: (group: string) => void; review?: Record<string, Review> }) {
-  const { rows, edges, far, soon } = useMemo(() => flowOf(map, group), [map, group]);   // soon 은 그릴 때 시각 기준(표가 새로 오면 다시 셈)
+  const [now, setNow] = useState(() => Date.now());   // 「다음」 배지 = 시각이 지나면 표가 새로 안 와도 넘어감(모루 11-09 07:57 · 30초마다 다시 셈)
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
+  const { rows, edges, far, soon } = useMemo(() => flowOf(map, group, now), [map, group, now]);
   const gname = (id: string) => map.groups.find((g) => g.id === id)?.name || id;
   const box = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<Line[]>([]);

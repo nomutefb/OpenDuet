@@ -49,6 +49,9 @@ test("「다음 차례」 = 아직 안 온 next_at 중 제일 가까운 켜진 �
   ] };
   assert.equal(flowOf(m, "g", now).soon, "next");
   assert.equal(flowOf(m, "g", 10_000).soon, "");
+  // 시계 경계(모루 07:57): next_at 과 같은 시각이면 이미 지난 것 → 다음 잡으로 · 1ms 전이면 아직
+  assert.equal(flowOf(m, "g", 7_000).soon, "later");
+  assert.equal(flowOf(m, "g", 6_999).soon, "next");
 });
 
 test("선 길 = 바로 옆은 ㄱ자 · 사이에 블록 있거나 다른 줄이면 블록 밖 통로(3·4·5열)", () => {
