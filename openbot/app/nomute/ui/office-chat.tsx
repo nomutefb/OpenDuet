@@ -15,6 +15,7 @@ import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-
 import { CallSheet, appendToComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import type React from "react";
 import { Component, type ComponentProps, type CSSProperties, Fragment, type PointerEvent as RPointerEvent, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
@@ -641,7 +642,7 @@ function Files({ m }: { m: Msg }) {
         </div>
       ) : null}
       {vids.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="영상" /> : (
-        <div key={f.p} className="relative"><video src={fileUrl(f.p)} controls playsInline preload="metadata" aria-label={f.n} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /><FileTag f={{ ...f, d: dur[f.p] }} m={m} /><DlBtn p={f.p} n={f.n} /><Subs meta={meta.get(f.p) as { transcript?: string; transcript_state?: string } | undefined} /></div>
+        <div key={f.p} className="relative"><AutoVideo src={fileUrl(f.p)} label={f.n} onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /><FileTag f={{ ...f, d: dur[f.p] }} m={m} /><DlBtn p={f.p} n={f.n} /><Subs meta={meta.get(f.p) as { transcript?: string; transcript_state?: string } | undefined} /></div>
       ))}
       {rest.map((f) => (
         <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="nm-fcard" title={f.n} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; savePic(fileUrl(f.p), f.n); }}>
@@ -652,6 +653,22 @@ function Files({ m }: { m: Msg }) {
       ))}
     </div>
   );
+}
+
+/** 영상 첨부 미리보기 = 화면에 보이면 저절로 돎(형 11-09 05:14 임시방 「그리거 대화창에서 영상 미리보기 자동으움직이먼 졸겠낸」 · 뜸 05:15 꼴) —
+ *  소리 끔·반복 · 50% 넘게 보일 때만 재생 · 화면 밖이면 멈춤 · controls 는 그대로(누르면 소리·전체 화면) · 「움직임 줄이기」 설정이면 안 돎 · 저장(preload)은 metadata 그대로(보일 때 받음) */
+function AutoVideo({ src, label, onError, onLoadedMetadata }: { src: string; label: string; onError: () => void; onLoadedMetadata: (e: React.SyntheticEvent<HTMLVideoElement>) => void }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    v.muted = true;   // React 가 muted 속성을 첫 그림에 안 박는 일이 있어 손으로(자동 재생은 소리 꺼야 됨)
+    const io = new IntersectionObserver((es) => { const e = es[0]; if (!e) return; if (e.intersectionRatio >= 0.5) v.play().catch(() => {}); else v.pause(); }, { threshold: [0, 0.5, 1] });
+    io.observe(v);
+    return () => { io.disconnect(); v.pause(); };
+  }, [src]);
+  return <video ref={ref} src={src} controls playsInline muted loop preload="metadata" aria-label={label} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={onError} onLoadedMetadata={onLoadedMetadata} />;
 }
 
 function Quote({ m, c }: { m: Msg; c: Ctx }) {
