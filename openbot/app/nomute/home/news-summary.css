@@ -18,3 +18,10 @@
 .nm-nsum-ol .tt .new { flex:none; width:6px; height:6px; border-radius:50%; background:#CFFF40; }
 .nm-nsum-ol .mt { color:rgba(232,234,232,.42); font-size:var(--fs-xs); white-space:nowrap; }
 .nm-nsum-ol .empty { color:rgba(232,234,232,.5); font-size:var(--fs-sm); border:0; }
+/* 형 11-08 09:13~09:14 — Digest = 에디터 「뉴스 요약」 카드(ui/summary-desk.tsx SumCard) 비율 그대로 · 판(테두리 · 바탕 · 그림자 · 둥글기) 없이 구분선만 · 색 = 앱 판(라임 막대 · 블랙 톤) */
+.nm-nsum-ol { padding:0 0 10px; }
+.nm-nsum-ol li.c { display:block; min-height:0; padding:0; border-bottom:1px solid rgba(255,255,255,.06); }
+.nm-nsum-ol li.c:hover { background:rgba(255,255,255,.03); }
+.nm-nsum .nm-sumc { padding:14px 14px 16px; border:0; border-radius:0; background:none; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; cursor:pointer; }
+.nm-nsum .nm-sumc.pend { cursor:default; }
+.nm-nsum .nm-sumc-top .cat.q { color:#CFFF40; } .nm-nsum .nm-sumc.bad .nm-sumc-top .cat.q { color:#ff6b5e; }   /* 대기열 상태 = 라임(돎) · 실패 = 빨강 */

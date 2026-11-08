@@ -24,7 +24,8 @@ const reportTs = (a: Art) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String
 const scrapTs = (a: Art) => { const m = /^(\d{2})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(a.file || ""); return m ? kst(2000 + +m[1], +m[2], +m[3], +m[4], +m[5]) : NaN; };
 const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); };   // 읽음 저장 실패 = 화면 0 · 기록만(대화창과 같음 · 형 11-03 12:11)
 
-function Card({ a }: { a: Art }) {
+/** 카드 한 장 — PC Digest 칸(home/news-summary.tsx)도 같은 카드를 판 없이 씀(형 11-08 09:14 「비율 그대로 유지하면서 가져와서 ui 스타일만 색상 팔레트 적용해서 녹여. 단 여기에 또 블록을 만들지마」) */
+export function SumCard({ a }: { a: Art }) {
   const go = useGo();
   const cat = catOf(a), bias = biasOf(a), pr = progOf(a), media = mediaOf(a.media);
   const rep = ago(reportTs(a)), scr = ago(scrapTs(a)), open = () => go(`/news?a=${encodeURIComponent(a.file)}`);
@@ -58,7 +59,7 @@ export function SummaryDesk({ lead, active = true }: { lead?: ReactNode; active?
         {lead}
         {q.isError ? <p className="text-sm text-destructive" role="alert">요약을 못 받았어 — {q.error.message}</p> : null}
         {q.data && !arts.length ? <p className="nm-sumc-empty">아직 요약된 기사가 없어.</p> : null}
-        {arts.slice(0, n).map((a) => <Card key={a.file} a={a} />)}
+        {arts.slice(0, n).map((a) => <SumCard key={a.file} a={a} />)}
         {arts.length > n ? <button type="button" className="nm-sumc-more" onClick={() => setN((v) => v + PAGE)}>더 보기 · {arts.length - n}</button> : null}
       </div>
     </div>
