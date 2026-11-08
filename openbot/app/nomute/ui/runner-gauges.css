@@ -14,8 +14,9 @@
 .nm-rgx-run.nm-rgx-body.is-warn { color:#FFD23F; }
 .nm-rgx-run.nm-rgx-body.is-bad { color:#FF5A5F; }   /* 일하는 중 = 글자만 흰색(형 11:50 「글자에 색만 들어오면돼」) */
 /* 우리 조약돌(형 11-06 09:48 「조약돌은 그 아래에 나오면 좋겠어 너네가 깬것도 보면 좋긴하거든 … 러너 위에」) — 게이지 아래 · 러너 위 · 각자 bloub(./bloub.tsx) · 깸 = 제 색 + 옅은 빛 · 상주 = 제 색 · 잠 = 회색 몸(bloub 쪽) */
-.nm-rgx-pebs { list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin:8px 0 0; padding:0; min-height:20px; }
-.nm-rgx-peb { display:block; width:20px; height:20px; line-height:0; transition:filter .5s, opacity .5s; }
+.nm-rgx-pebs { list-style:none; display:flex; flex-wrap:nowrap; justify-content:center; gap:3px; margin:8px 0 0; padding:0; min-height:20px; }   /* 한 줄 고정 — 윈A 에 다섯 살면 둘째 줄로 꺾여 러너 번호 줄을 덮었음(형 11-08 20:56 사진 · 봄) · 좁으면 조약돌이 조금 줄어듦 */
+.nm-rgx-peb { display:block; flex:0 1 20px; min-width:14px; width:20px; height:20px; line-height:0; transition:filter .5s, opacity .5s; }
+.nm-rgx-peb .nm-bloub { max-width:100%; height:auto; }
 .nm-rgx-peb .nm-bloub { display:block; overflow:visible; }
 .nm-rgx-peb.off { opacity:.75; }
 .nm-rgx-peb.on { filter:drop-shadow(0 0 4px rgba(255,255,255,.28)); }
