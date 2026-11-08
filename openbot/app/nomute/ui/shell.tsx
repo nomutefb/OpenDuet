@@ -80,6 +80,7 @@ import { DecideFab } from "./decide-pop";   // 대화방 우하단 + 위 = 형 �
 import { useSplit, useWide } from "./side";
 import "./shell.css";
 import "./theme-garden.css";   // 꾸밈 「정원」(html[data-theme=garden]:not(.dark) 에서만 · ./skin.ts · 뜸 11-07 시안)
+import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색(시아 11-08 · 다크·정원 손 0)
 
 export type Pane = "home" | "rooms" | "chat";
 export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status";

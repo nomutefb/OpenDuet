@@ -1,0 +1,57 @@
+/* 밝게(꾸밈 「지금」 · 정원 아님) PC 대시보드 글자색 — 시아 11-08 23:1x · 임시방 형 22:55 「사무실 웹앱 대시보드 개선 사항 … 자체 찾아서 보완하고 개선한다」 · 봄 배분 4) · 뎅 22:57 ②
+   까닭(실물 · 라이트 흉내 1600): PC 대시보드 판(.nm-split-root · 카드 머리 · Hot Issue · Digest · SNS 띠 · 아래 알약)이 어두운 판 값(#e8eae8 흰 글 · #CFFF40 라임)을 바로 박아 둬서
+     「밝게」(또는 폰 따라 + OS 라이트)에선 흰 바탕에 흰 글 · 라임 글 = 거의 안 보임. 다크 = 손 0 · 정원 = ./theme-garden.css 가 따로 맡음(여기선 :not([data-theme="garden"]) 로 비킴).
+   값 = 설정 판이 밝게에서 이미 쓰는 것(yeta-settings.css --accent #4f7a00) · 글 #161716 · 흐린 글 = 그 검정 반투명 · 러너 게이지 칸(.nm-rgx) = 번개 몫이라 여기선 안 건드림 */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root {
+  --nm-l-ink: #161716;
+  --nm-l-soft: rgba(22, 23, 22, .58);
+  --nm-l-faint: rgba(22, 23, 22, .44);
+  --nm-l-line: rgba(0, 0, 0, .09);
+  --nm-l-accent: #4f7a00;
+}
+
+/* 칸 머리(SNS · Hot Issue · Digest) */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-card-h, .nm-nlist-h, .nm-nsum-h) b { color: var(--nm-l-ink); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-card-h > span, .nm-nlist-h > span, .nm-nsum-h span) { color: var(--nm-l-soft); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-card-h, .nm-nlist-h) .live { background: var(--nm-l-accent); box-shadow: none; }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-nsum-h::before { background: rgba(79, 122, 0, .65); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-split > section + section { border-top-color: var(--nm-l-line); }
+
+/* SNS 띠(./igfb-band.css 가 칸 안 토큰을 어두운 값으로 박음 → 같은 토큰을 밝은 값으로) · 시안(+) · 주황(−) · 보라(노출) 선은 그대로 */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-igfb {
+  color: var(--nm-l-ink);
+  --fg: var(--nm-l-ink); --mut: var(--nm-l-soft); --glass-line: var(--nm-l-line); --accent: var(--nm-l-accent);
+}
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-igfb .nm-pulse-at { color: var(--nm-l-soft); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-igfb .nm-pulse-rowbg { fill: rgba(79, 122, 0, .09); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-igfb .nm-pulse-rowbg.fb { fill: rgba(0, 0, 0, .05); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-igfb .nm-pulse-chart text.up { fill: #008c99; }   /* 시안 네온은 흰 바탕에서 안 읽힘 → 같은 결 진한 청록 */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-igfb .nm-pulse-chart text.dn { fill: #c45f00; }   /* 주황 네온 → 같은 결 진한 주황 */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-igfb .nm-pulse-chart text.vlab { fill: #7b2fd6; stroke: #ffffff; }   /* 「노출 평균」 검은 테 → 흰 테 */
+
+/* Hot Issue(../home/news-list.css) */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-nlist { color: var(--nm-l-ink); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-nlist-ol .tt, .nm-nlist-pin .pk-tt) { color: var(--nm-l-ink); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-nlist-ol .tt, .nm-nlist-pin .pk-tt):hover { text-decoration-color: var(--nm-l-line); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-nlist-ol .rk, .nm-nlist-ol .mt, .nm-nlist-pin .pk-mt, .nm-nlist-empty) { color: var(--nm-l-faint); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-nlist-ol .sc, .nm-nlist-pin .pk-sc) { color: var(--nm-l-soft); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) { color: var(--nm-l-soft); border-color: rgba(0, 0, 0, .14); background: rgba(255, 255, 255, .96); }   /* 「전송」 알약 = 흰 알약 · 누르면 검정(다크 판 뒤집기) */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):hover { color: #ffffff; background: var(--nm-l-ink); border-color: transparent; }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-nlist-ol li.top .rk, .nm-nlist-ol li.top .tt, .nm-nlist-ol .ag, .nm-nlist-pin .pk-tag) { color: var(--nm-l-accent); text-shadow: none; }
+
+/* Digest(../home/news-summary.css · 카드 바탕은 summary-desk.css 가 이미 밝게 함) */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-nsum { color: var(--nm-l-ink); border-top-color: var(--nm-l-line); --accent-rgb: 79, 122, 0; }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root :is(.nm-nsum-q .st, .nm-nsum-ol .empty) { color: var(--nm-l-soft); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-nsum-ol .mt { color: var(--nm-l-faint); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-nsum-q li.run .st { color: var(--nm-l-accent); }
+
+/* 아래 알약(작동 · 서랍 · 설정) 글·그림 라임 → 진한 라임 */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root nav.ynav button { color: var(--nm-l-accent); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root nav.ynav :is(button.on, button[aria-current="page"]) { color: var(--nm-l-ink); background: rgba(79, 122, 0, .12); border-color: rgba(79, 122, 0, .30); }
+
+/* 반갈 손잡이 · 빈 칸 · 뼈대 */
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-split-grip i { background: rgba(0, 0, 0, .14); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-split-grip:hover i, html:not(.dark):not([data-theme="garden"]) body.nm-dragging .nm-split-root .nm-split-grip i { background: var(--nm-l-accent); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-emptybox b { color: var(--nm-l-soft); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-emptybox span { color: var(--nm-l-faint); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-root .nm-skel { background: linear-gradient(90deg, rgba(0, 0, 0, .04), rgba(0, 0, 0, .09), rgba(0, 0, 0, .04)); background-size: 200% 100%; }
