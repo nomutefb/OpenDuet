@@ -114,22 +114,48 @@ const LOOKS: Look[] = [
   },
 ];
 
-/** 이 사람 카드가 있나(who 또는 이름으로) — 없으면 null = 예전 카드 그대로 */
-export function beingLook(who?: string, name?: string): Look | null {
+/** 명부 한 줄(./profile-card.tsx 가 넘김) — 틀 카드 재료 */
+export type CardPerson = { who: string; name?: string; kind?: string; face?: string; role?: string; bubble?: string | null; slug?: string; dir?: string };
+const handleOf = (p: CardPerson) => p.slug || p.dir || (p.face || "").split("/").pop()?.replace(/\.\w+$/, "") || "";
+/** 틀 카드(형 11-09 05:17 임시방 「그리구 시아 플필 기본 템플릿화해서 모두 게시」 · 시아 05:19 틀 한 줄 · 뜸) — LOOKS 칸이 없는 애는 시아 카드 몸통 그대로 · 얼굴 = 명부 · @handle = slug(없으면 얼굴 파일 이름) · 아래 줄 = 직무 · 점·테 색 = 그 애 말풍선 색 · 무늬 = 고리 + 띠만 · 빈 칸은 안 그림 */
+function tmplLook(p: CardPerson): Look {
+  const accent = /^#[0-9a-f]{6}$/i.test(p.bubble || "") ? (p.bubble as string) : "#CFFF40";
+  return {
+    id: "tmpl",
+    match: [p.who],
+    face: p.face || "",
+    handle: handleOf(p),
+    meta: p.role || "",
+    dot: accent,
+    holo: 0.7,
+    glare: 0.45,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-band" />
+        <span className="bc-ring" />
+      </span>
+    ),
+  };
+}
+
+/** 이 사람 카드(who 또는 이름으로 LOOKS 먼저 · 없으면 명부 한 줄로 틀 카드 · 형은 늘 null = 예전 꼴) */
+export function beingLook(who?: string, name?: string, p?: CardPerson | null): Look | null {
   const keys = [who, name].filter(Boolean).map((s) => String(s).trim().toLowerCase());
-  return LOOKS.find((l) => l.match.some((m) => keys.includes(m.toLowerCase()))) || null;
+  const own = LOOKS.find((l) => l.match.some((m) => keys.includes(m.toLowerCase())));
+  if (own) return own;
+  return p && p.kind !== "human" ? tmplLook(p) : null;
 }
 
 // 「1:1 대화」 단추 없음(형 11-05 「1:1대화 애초에 없어도됑」) · 프로필 창 아래 단추도 카드 있는 애는 없음(profile-card.tsx)
-export function BeingCard({ who, name, role, intro, face }: { who: string; name?: string; role?: string; intro?: string; face?: string }) {
-  const look = beingLook(who, name);
+export function BeingCard({ who, name, role, intro, face, person }: { who: string; name?: string; role?: string; intro?: string; face?: string; person?: CardPerson | null }) {
+  const look = beingLook(who, name, person);
   // 손가락 화면(마우스 없음)만 숨쉬기 흔들림 · 마우스는 올리면 따라옴
   const [idle] = useState(() => typeof window !== "undefined" && !!window.matchMedia?.("(hover: none)").matches);
   const font: FontKey = look?.font && look.font in FONTS ? look.font : "bagel-fat-one";
   useDisplayFont(look ? font : null);
   if (!look) return null;
   return (
-    <div className="being-card-wrap" style={{ "--bc-display": `"${FONTS[font].family}"` } as CSSProperties}>
+    <div className="being-card-wrap" style={{ "--bc-display": `"${FONTS[font].family}"`, ...(look.id === "tmpl" ? { "--bc-accent": look.dot } : {}) } as CSSProperties}>
       <ProfileCard
         className={`being-card bc-${look.id}`}
         avatarUrl={face || look.face}
