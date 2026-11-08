@@ -59,9 +59,9 @@ function NoticeFold({ room, onHist, onJump, onGone }: { room: string; onHist: ()
                 <h3>공지</h3>
                 <button type="button" className="nm-chat-fold-pin" onClick={() => jump(cur)}>
                   <b>{firstLine(cur.text) || (cur.files ? `파일 ${cur.files}개` : "(빈 글)")}</b>
-                  <small>{whoName(cur.who)} · {when(cur.at)} · {whoName(cur.by)} 고정</small>
+                  <small>{whoName(cur.who)} · {when(cur.at)} · {whoName(cur.by)} 공지</small>
                 </button>
-                <button type="button" className="nm-chat-fold-more" onClick={() => { setOpen(false); onHist(); }}>고정 이력</button>
+                <button type="button" className="nm-chat-fold-more" onClick={() => { setOpen(false); onHist(); }}>공지 이력</button>
               </section>
             ) : null}
             {t.items.length ? (
