@@ -7,7 +7,7 @@ import { Breaker, HEALTH_KO, StatusDot, stOf, sumOf, worstOf } from "./sched-bit
 import { type SchedRunners, nextShort } from "./settings-extra";
 import { CLOCK_KO, whenOf } from "./sched-runners";
 import { type Review, ReviewBadge } from "./sched-review";
-import { flowOf, modelKo } from "./sched-flow-core";
+import { type Rect, flowOf, modelKo, routeEdge } from "./sched-flow-core";
 import "./sched-flow.css";
 
 type Line = { k: string; d: string; title: string };
@@ -19,28 +19,24 @@ const TOOLS: { t: string; d: string; fill?: boolean }[] = [
   { t: "복사", d: "M11 9h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zM5 15V5a2 2 0 0 1 2-2h10" },
   { t: "검토로", d: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" },
 ];
-const esc = (s: string) => (typeof CSS !== "undefined" && typeof CSS.escape === "function" ? CSS.escape(s) : s.replace(/["\\]/g, "\\$&"));
-const r1 = (n: number) => Math.round(n * 10) / 10;
 
 export function SchedFlow({ map, group, go, review = {} }: { map: SchedRunners; group: string; go: (group: string) => void; review?: Record<string, Review> }) {
-  const { rows, edges, far, soon } = useMemo(() => flowOf(map, group), [map, group]);
+  const { rows, edges, far, soon } = useMemo(() => flowOf(map, group), [map, group]);   // soon 은 그릴 때 시각 기준(표가 새로 오면 다시 셈)
   const gname = (id: string) => map.groups.find((g) => g.id === id)?.name || id;
   const box = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<Line[]>([]);
-  const draw = useCallback(() => {   // 블록 자리 → 선(src 오른쪽 가운데 → dst 왼쪽 가운데 · 오른쪽이면 가운데서 꺾음 · 아니면 줄 사이 틈으로 돌아감)
+  const draw = useCallback(() => {   // 블록 자리 → 선(길은 routeEdge · 블록 밖 통로만 · 모루 06:36 ①)
     const root = box.current;
     if (!root) return;
     const R = root.getBoundingClientRect();
-    const rect = (id: string) => root.querySelector<HTMLElement>(`[data-job="${esc(id)}"]`)?.getBoundingClientRect();
+    const rects = new Map<string, Rect>();
+    for (const el of root.querySelectorAll<HTMLElement>("[data-job]")) { const r = el.getBoundingClientRect(); rects.set(el.dataset.job || "", { left: r.left - R.left, right: r.right - R.left, top: r.top - R.top, bottom: r.bottom - R.top }); }
     const out: Line[] = [];
     for (const e of edges) {
-      const a = rect(e.from.id), b = rect(e.to.id);
+      const a = rects.get(e.from.id), b = rects.get(e.to.id);
       if (!a || !b) continue;
-      const x1 = r1(a.right - R.left), y1 = r1(a.top + a.height / 2 - R.top), x2 = r1(b.left - R.left), y2 = r1(b.top + b.height / 2 - R.top);
-      let d: string;
-      if (x2 >= x1 + 24) { const mx = r1((x1 + x2) / 2); d = `M${x1} ${y1} H${mx} V${y2} H${x2 - 5}`; }
-      else { const down = b.top >= a.bottom, ym = r1(down ? (a.bottom + b.top) / 2 - R.top : (b.bottom + a.top) / 2 - R.top); d = `M${x1} ${y1} H${x1 + 12} V${ym} H${x2 - 12} V${y2} H${x2 - 5}`; }
-      out.push({ k: e.k, d, title: `${e.from.name} → ${e.to.name} · ${e.kind === "after" ? "뒤따름" : "부름"}` });
+      const others = [...rects.entries()].filter(([k]) => k !== e.from.id && k !== e.to.id).map(([, r]) => r);
+      out.push({ k: e.k, d: routeEdge(a, b, others), title: `${e.from.name} → ${e.to.name} · ${e.kind === "after" ? "뒤따름" : "부름"}` });
     }
     setLines((old) => (old.length === out.length && old.every((o, i) => o.d === out[i].d && o.k === out[i].k) ? old : out));
   }, [edges]);

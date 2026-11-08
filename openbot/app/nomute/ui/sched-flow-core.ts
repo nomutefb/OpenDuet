@@ -9,14 +9,18 @@ export const stem = (s: string) => s.trim().replace(/\.ya?ml$/i, "");
 const CRON_H = /^CRON_TZ=\S+\s+/;
 const add = <T,>(m: Map<string, T[]>, k: string, v: T) => { const a = m.get(k); if (a) a.push(v); else m.set(k, [v]); };
 
-/** 왼→오 차례 열쇠(분) = 하루 중 첫 시각 · N분마다 = 하루 뒤(1440+N) · 못 읽는 cron = 1470 · 뒤따름 = 2880 · 부를 때만 = 4320(맨 뒤) */
+/** 왼→오 차례 열쇠(분) = 하루 중 첫 시각(cron 줄 전부 · 시·분 목록의 제일 이른 것 · 모루 11-09 06:36 ②) · N분마다 = 하루 뒤(1440+N) · 못 읽는 cron = 1470 · 뒤따름 = 2880 · 부를 때만 = 4320(맨 뒤) */
 export function timeKey(j: RunnerJob): number {
-  const c = (j.cron_kst || [])[0]?.replace(CRON_H, "").trim().split(/\s+/);
-  if (c && c.length === 5) {
-    const ev = c[0].match(/^\*\/(\d+)/); if (ev) return 1440 + +ev[1];
-    const h = c[1].match(/^\d+/); if (h) return +h[0] * 60 + (/^\d+$/.test(c[0]) ? +c[0] : 0);
-    return 1440 + 30;
+  const keys: number[] = [];
+  for (const line of j.cron_kst || []) {
+    const c = line.replace(CRON_H, "").trim().split(/\s+/);
+    if (c.length !== 5) continue;
+    const ev = c[0].match(/^\*\/(\d+)/); if (ev) { keys.push(1440 + +ev[1]); continue; }
+    const first = (f: string) => { const ns = f.split(",").map((x) => x.match(/^\d+/)).filter(Boolean).map((m) => +m![0]); return ns.length ? Math.min(...ns) : null; };   // 「15,45」 → 15 · 「9-17/2」 → 9 · 「*」 → 없음
+    const h = first(c[1]), m = first(c[0]) ?? 0;
+    keys.push(h === null ? 1440 + 60 : h * 60 + m);   // 시 칸이 * = 매시간 → N분마다 다음
   }
+  if (keys.length) return Math.min(...keys);
   const w = j.when || "", n = w.match(/(\d+)\s*분마다/), hr = w.match(/(\d+)\s*시간마다/), hm = w.match(/(\d{1,2}):(\d{2})/);
   if (n) return 1440 + +n[1];
   if (hr) return 1440 + 60 * +hr[1];
@@ -38,8 +42,8 @@ export function modelKo(j: RunnerJob): string {
 }
 
 export type Flow = { rows: { f: SchedRunners["forks"][number]; jobs: RunnerJob[] }[]; edges: Edge[]; far: Map<string, Far[]>; soon: string };
-/** 한 갈래의 그림 재료 = 포크별 잡 차례 · 갈래 안 선 · 다른 갈래로 가는 칩 · 「다음 차례」(next_at 제일 가까운 잡 하나 = 라임 한 곳) */
-export function flowOf(map: SchedRunners, group: string): Flow {
+/** 한 갈래의 그림 재료 = 포크별 잡 차례 · 갈래 안 선 · 다른 갈래로 가는 칩 · 「다음 차례」(아직 안 온 next_at 중 제일 가까운 켜진 잡 하나 = 라임 한 곳) */
+export function flowOf(map: SchedRunners, group: string, now = Date.now()): Flow {
   const forks = map.forks.filter((f) => f.group === group);
   const groupOf = (j: RunnerJob) => map.forks.find((f) => f.id === j.fork)?.group || "";
   const inG = (j: RunnerJob) => groupOf(j) === group;
@@ -71,6 +75,20 @@ export function flowOf(map: SchedRunners, group: string): Flow {
     walking.delete(j.id); col.set(j.id, c); return c;
   };
   const rows = forks.map((f) => ({ f, jobs: map.jobs.filter((j) => j.fork === f.id).sort((a, b) => colOf(a) - colOf(b) || timeKey(a) - timeKey(b) || a.name.localeCompare(b.name, "ko")) }));
-  const soon = map.jobs.filter((j) => inG(j) && j.health?.next_at).sort((a, b) => (a.health?.next_at || 0) - (b.health?.next_at || 0))[0]?.id || "";
+  const forkOn = (j: RunnerJob) => map.forks.find((f) => f.id === j.fork)?.on !== false;
+  const soon = map.jobs.filter((j) => inG(j) && j.on !== false && forkOn(j) && (j.health?.next_at || 0) > now).sort((a, b) => (a.health?.next_at || 0) - (b.health?.next_at || 0))[0]?.id || "";   // 지난 next_at · 꺼진 잡·포크는 뺌(모루 06:36 덧)
   return { rows, edges, far, soon };
+}
+
+export type Rect = { left: number; right: number; top: number; bottom: number };
+const r1 = (n: number) => Math.round(n * 10) / 10;
+/** 선 하나의 길(그림 좌표 · 블록 밖 통로만 · 모루 11-09 06:36 ①) —
+ *  같은 줄 바로 옆(사이에 블록 0) = 가운데서 한 번 꺾는 ㄱ자 · 그 밖(사이에 블록 있음 · 다른 줄 · 왼쪽) = 출발 블록 옆 세로 틈 → 줄 사이 가로 틈 → 도착 블록 왼쪽 세로 틈(격자라 세로 틈은 모든 줄에서 비어 있음) → 도착 · G = 틈 반(14) */
+export function routeEdge(a: Rect, b: Rect, others: Rect[], G = 14): string {
+  const x1 = r1(a.right), y1 = r1((a.top + a.bottom) / 2), x2 = r1(b.left), y2 = r1((b.top + b.bottom) / 2);
+  const band = (r: Rect) => Math.abs((r.top + r.bottom) / 2 - y1) < (a.bottom - a.top) / 2;   // 같은 줄 = 세로 가운데가 출발 블록 높이 안
+  const between = others.some((o) => band(o) && o.left >= a.right - 1 && o.right <= b.left + 1);
+  if (band(b) && b.left >= a.right && !between) { const mx = r1((x1 + x2) / 2); return `M${x1} ${y1} H${mx} V${y2} H${x2 - 5}`; }
+  const ym = r1(b.top >= a.bottom || band(b) ? a.bottom + G : a.top - G);   // 아래 줄 · 같은 줄 = 출발 줄 밑 틈 · 위 줄 = 출발 줄 위 틈
+  return `M${x1} ${y1} H${r1(x1 + G)} V${ym} H${r1(x2 - G)} V${y2} H${x2 - 5}`;
 }
