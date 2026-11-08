@@ -88,8 +88,8 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
     if (!ig) return null;
     const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
     // ± 두 줄 차례: 폰 홈 = IG 위 · FB 아래 / PC 칸(fill) = FB 위 · IG 아래(형 11-08 08:51 「인스타를 아래로 깔아. 그래야 눈에 들어올듯. 페북이 위로」 · 「차트는 그대로인데, 2행<>1행 뒤바ㅣ꾸고」)
-    // PC 칸(fill) = 차트와 ± 줄 사이를 더 띄움(16 · 폰 6) · 칸 자체도 아래로 10px 늘림(igfb-band.css) = 차트는 그대로 · 줄만 내려옴(형 11-08 09:00 dm-fast 「차트는 그대로두고 2행 라인을 차트로 부터 조금만 간격을 더 둬서 아래로 내려와 … 아래로 딱 붙으면안됨」 · 「둘사이는 그대로 두고.」)
-    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - (fill ? 16 : 6);
+    // PC 칸(fill) = 차트와 ± 줄 사이를 더 띄움(10 · 폰 6) · 칸 자체도 아래로 5px 늘림(igfb-band.css) = 차트는 그대로 · 줄만 내려옴(형 11-08 09:00 dm-fast 「차트는 그대로두고 2행 라인을 차트로 부터 조금만 간격을 더 둬서 아래로 내려와 … 아래로 딱 붙으면안됨」 · 「둘사이는 그대로 두고.」)
+    const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - (fill ? 10 : 6);
     const lines: ["ig" | "fb", Pt[]][] = [["ig", series(ig, "ig")], ...(fb ? [["fb", series(fb, "fb")] as ["fb", Pt[]]] : [])];
     const all = lines.flatMap(([, s]) => s.map((p) => p.pct));
     const span = Math.max(0.5, ...all.map(Math.abs)), lo = Math.min(0, ...all), hi = Math.max(0, ...all);
