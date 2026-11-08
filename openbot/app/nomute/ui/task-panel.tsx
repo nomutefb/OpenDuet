@@ -1,4 +1,5 @@
 // 요약 대기열 판(시아 05:20 · 06:44 · 깃) — 「뉴스 요약」(./feed.tsx) · Digest(../home/news-summary.tsx) 두 곳 같은 꼴 · 상태 가르기 = ./task-state.ts
+import "./task-panel.css";   // 판 css = 판 파일에(대시보드만 열 때 feed 조각이 안 와서 꾸밈 0 · 시아 08:21)
 import { useState } from "react";
 import { panelOf, taskOf } from "./task-state";
 export type QItem = { id?: string; t?: number; title?: string; via?: string; key?: string; alt1?: string; status?: string; tries?: number; why?: string | { cause?: string; text?: string } };
