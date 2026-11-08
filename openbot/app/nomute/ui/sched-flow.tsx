@@ -1,6 +1,6 @@
 // 러너 스케줄 흐름 그림(1단 · PC 만 · 손 SVG · 보기만) — 형 11-09 05:14 임시방 「러너 스케줄러이런식으로 변경」(96984.mp4) · 시아 05:17 기준 ①~⑦ · 봄 배분 19)
 //   갈래 탭(지금 트리 group) → 포크 = 묶음 상자(이름 + 켬끔 · 보기만) → 잡 = 블록 세 줄(이름 + 꼬리표 / 언제 · 다음 / 상태 · 모델 · 켬끔) · 선 = 뒤따름(in.after) · 부름(out.calls) 있는 것만(직각선 · 화살표)
-//   색 = 앱 테마 토큰(./sched-flow.css · 다크 판 #121314 · 블록 #1e2023 · 글 #e8eae8 · 선 .28) · 라임은 「다음 차례」(next_at 제일 가까운 잡) 한 곳만 · 위 탭 아이콘 다섯(SVG)은 1단 = 보기만 · Add block = 3단
+//   색 = 앱 테마 토큰(./sched-flow.css · 다크 판 #121314 · 블록 #1e2023 · 글 #e8eae8 · 선 .28) · 라임은 「다음 차례」 블록 테 한 곳만(상태 점 = 차분한 초록 · 켬끔 = 회색 · 시아 06:41 ③) · 블록 위 탭(▷ ⏻ 🔒 ⧉ 🗑) = 2단(시아 ④) · Add block = 3단
 //   셈(차례 · 선 · 다른 갈래 칩)은 ./sched-flow-core.ts(순수 · 시험 있음) · 선은 블록이 그려진 뒤 자리를 재서 그림(ResizeObserver · 창 크기) → 줄바꿈돼도 따라감
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Breaker, HEALTH_KO, StatusDot, stOf, sumOf, worstOf } from "./sched-bits";
@@ -11,14 +11,6 @@ import { type Rect, flowOf, modelKo, routeEdge } from "./sched-flow-core";
 import "./sched-flow.css";
 
 type Line = { k: string; d: string; title: string };
-// 시아 ④ 위 탭 다섯(▷ 지금 돌리기 · ⏻ 켬끔 · 🔒 형만 · ⧉ 복사 · 🗑 검토로) = 글자 대신 작은 SVG(⧉ · ⏻ 는 글꼴 없는 몸에서 네모로 뜸 · 번개 몸 실물 11-09 05:56) · 1단 = 보기만
-const TOOLS: { t: string; d: string; fill?: boolean }[] = [
-  { t: "지금 돌리기", d: "M8 5v14l11-7z", fill: true },
-  { t: "켬끔", d: "M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0" },
-  { t: "형만", d: "M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 11V7a4 4 0 0 1 8 0v4" },
-  { t: "복사", d: "M11 9h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zM5 15V5a2 2 0 0 1 2-2h10" },
-  { t: "검토로", d: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" },
-];
 
 export function SchedFlow({ map, group, go, review = {} }: { map: SchedRunners; group: string; go: (group: string) => void; review?: Record<string, Review> }) {
   const { rows, edges, far, soon } = useMemo(() => flowOf(map, group), [map, group]);   // soon 은 그릴 때 시각 기준(표가 새로 오면 다시 셈)
@@ -49,10 +41,7 @@ export function SchedFlow({ map, group, go, review = {} }: { map: SchedRunners; 
   }, [draw]);
   return (
     <div className="nm-flow" ref={box}>
-      <div className="nm-flow-bar" role="toolbar" aria-label="흐름 그림 도구(1단 = 보기만)">
-        {TOOLS.map((x) => <button key={x.t} type="button" disabled title={`${x.t} · 2단에서 누름`} aria-label={x.t}><svg viewBox="0 0 24 24" width="16" height="16" fill={x.fill ? "currentColor" : "none"} stroke={x.fill ? "none" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={x.d} /></svg></button>)}
-        <small>1단 = 보기만 · 선 = 뒤따름·부름 있는 것만 · 라임 = 다음 차례</small>
-      </div>
+      <small className="nm-flow-note">1단 = 보기만(블록 위 탭 ▷ ⏻ 🔒 ⧉ 🗑 은 2단) · 선 = 뒤따름·부름 있는 것만 · 라임 테 = 다음 차례</small>   {/* 시아 06:41 ④: 따로 뜬 단추 줄은 어느 블록 것인지 몰라 1단에선 뺌 */}
       {rows.map(({ f, jobs }) => {
         const fOn = f.on !== false, fs = sumOf(jobs.map((j) => stOf(j.health, !fOn || j.on === false)));
         return (
@@ -65,19 +54,20 @@ export function SchedFlow({ map, group, go, review = {} }: { map: SchedRunners; 
             </header>
             <div className="nm-flow-row">
               {jobs.map((j) => {
-                const st = stOf(j.health, !fOn || j.on === false), fr = far.get(j.id) || [];
+                const st = stOf(j.health, !fOn || j.on === false), fr = far.get(j.id) || [], [c0, ...cRest] = j.clock || [];   // 첫 줄 꼬리표 = 시계 종류 하나만 · 나머지는 셋째 줄 상태 앞(시아 06:41 ① · 뎅 ㉡ 이름 잘림)
+                const more = [...cRest.map((c) => <i key={c}>{CLOCK_KO[c] || c}</i>), ...(j.gpu?.length ? [<i key="gpu">GPU</i>] : []), ...(j.kind === "llm" ? [<i key="llm" data-k="llm">LLM</i>] : [])];
                 return (
                   <article key={j.id} className="nm-flow-job" data-job={j.id} data-st={st} data-next={soon === j.id || undefined} data-off={j.on === false || undefined}>
                     <div className="nm-flow-l1">
                       <b title={j.name}><ReviewBadge r={review[j.id]} />{j.name}</b>
-                      <span className="nm-flow-tags">{(j.clock || []).map((c) => <i key={c}>{CLOCK_KO[c] || c}</i>)}{j.gpu?.length ? <i>GPU</i> : null}{j.kind === "llm" ? <i data-k="llm">LLM</i> : null}</span>
+                      {c0 ? <span className="nm-flow-tags"><i>{CLOCK_KO[c0] || c0}</i></span> : null}
                     </div>
                     <small className="nm-flow-l2">{whenOf(j)}{j.health?.next_at ? ` · 다음 ${nextShort(j.health.next_at)}` : ""}</small>
                     <div className="nm-flow-l3">
-                      <small><StatusDot st={st} />{HEALTH_KO[st]} · {modelKo(j)}</small>
+                      <small>{more.length ? <span className="nm-flow-tags">{more}</span> : null}<StatusDot st={st} />{HEALTH_KO[st]} · {modelKo(j)}</small>
                       <Breaker on={j.on !== false} dim disabled label={`${j.name} 차단기(보기만)`} onFlip={() => {}} />
                     </div>
-                    {soon === j.id ? <em className="nm-flow-next">다음 차례</em> : null}
+                    {soon === j.id ? <em className="nm-flow-next">다음</em> : null}
                     {fr.length ? <div className="nm-flow-far">{fr.map((x) => <button key={`${x.dir}${x.job.id}`} type="button" title={`${gname(x.group)} 갈래로`} onClick={() => go(x.group)}>{x.dir === "out" ? "→ " : "← "}{x.job.name}<i>{gname(x.group)}</i></button>)}</div> : null}
                   </article>
                 );
