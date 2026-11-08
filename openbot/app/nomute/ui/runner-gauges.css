@@ -37,3 +37,8 @@
 .nm-rgx .nm-rgx-name { font-size:11px; font-weight:800; letter-spacing:.02em; margin-top:6px; }   /* = SNS 「IG」 글자(.nm-pulse-k) · 같은 줄 */
 .nm-rgx .nm-rgx-g { position:absolute; top:24px; left:0; right:0; margin:0; }   /* 「보고 끊김」만 이름 밑에 겹쳐 띄움(자리 0) */
 .nm-rgx-host .nm-rg-gauge { max-height:92px; margin:2px auto -3px; }   /* 88 → 92(+5% · 몸 사이 틈이 그만큼 줄어듦) · 가운데 = 노출 평균 선 */
+/* 형 11-08 09:04 밥상 「그리고 대시보드에 러너 123456으로 통일할거니까 미리 123456 맞춰놓고, 내 생각에는 그냥 불만들어오면 되니까 저것도 도형으로 감쌀 필요가 없음 1 | 2 | 3 ㅣ 이런식으로 나오면됨.」(봄 09:05·10:06 나눔 → 번개 · 시아 10:04 「러너 번호 네모」 짚음)
+   = 번호 글자만(네모·테 0) · 사이 「|」 · 불 = 일할 때만 흰(그대로) · 꺼짐 = 흰 30%(그대로) */
+.nm-rgx-run { min-width:0; height:auto; padding:0; border-radius:0; box-shadow:none; background:transparent; font-size:10px; line-height:14px; }
+.nm-rgx-runs { gap:0; }
+.nm-rgx-run + .nm-rgx-run::before { content:"|"; margin:0 5px; color:rgba(255,255,255,.22); font-weight:300; }   /* 「1 | 2 | 3」 사이 세로줄 = 글자(도형 아님 · 늘 흐림) */

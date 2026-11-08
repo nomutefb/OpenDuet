@@ -62,25 +62,28 @@ function useRowSync(panel: { current: HTMLDivElement | null }) {
   useEffect(() => {
     const el = panel.current;
     if (!el || typeof ResizeObserver === "undefined") return;
-    let raf = 0;
+    let tm = 0;
     const mid = (e: Element | null) => { if (!e) return null; const r = e.getBoundingClientRect(); return r.height > 0 ? r.top + r.height / 2 : null; };
+    const pick = (sels: string[]) => { for (const q of sels) { const m = mid(document.querySelector(q)); if (m != null) return m; } return null; };   // 글자 가운데 먼저(눈이 대는 건 글자 · 뎅 11:14 「− 글 195.3 ↔ 줄 196.1」) · 글자 없으면 줄 바탕
     const clamp = (v: number) => Math.max(-60, Math.min(60, Math.round(v * 2) / 2));   // 반 px 단위 · 엉뚱한 자리(화면 꼴이 다를 때)로 60 넘게는 안 밀림
     const sync = () => {
-      const fb = mid(document.querySelector(".nm-split-top-r .nm-pulse-rowbg.fb")), ig = mid(document.querySelector(".nm-split-top-r .nm-pulse-rowbg:not(.fb)"));
-      const peb = mid(el.querySelector(".nm-rgx-pebs")), run = mid(el.querySelector(".nm-rgx-runs"));
+      const fb = pick([".nm-split-top-r .nm-pulse-chart g.fb text", ".nm-split-top-r .nm-pulse-rowbg.fb"]), ig = pick([".nm-split-top-r .nm-pulse-chart g.ig text", ".nm-split-top-r .nm-pulse-rowbg:not(.fb)"]);
+      const peb = mid(el.querySelector(".nm-rgx-peb") ?? el.querySelector(".nm-rgx-pebs")), run = mid(el.querySelector(".nm-rgx-run") ?? el.querySelector(".nm-rgx-runs"));
       setDy((d) => {   // 잰 자리엔 지금 옮긴 값이 들어 있음 → 차이만 더함(한 번 맞으면 그대로)
         const np = fb != null && peb != null ? clamp(d.peb + fb - peb) : 0, nr = ig != null && run != null ? clamp(d.run + ig - run) : 0;
         return np === d.peb && nr === d.run ? d : { peb: np, run: nr };
       });
     };
-    const kick = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); };
-    const ro = new ResizeObserver(kick);
+    const soon = () => { clearTimeout(tm); tm = window.setTimeout(sync, 60); };   // rAF 아님 = 숨은 탭(9222 검수 탭 · 뒤로 간 창)에서도 돎(뎅 11:14 실물: 러너 줄만 2~3px 늦게 멎음)
+    const ro = new ResizeObserver(sync);
     ro.observe(el);
     const right = document.querySelector(".nm-split-top-r");
     if (right) ro.observe(right);
-    const t = setInterval(() => { if (!document.hidden) sync(); }, 2000);
-    kick();
-    return () => { ro.disconnect(); clearInterval(t); cancelAnimationFrame(raf); };
+    const mo = right && typeof MutationObserver !== "undefined" ? new MutationObserver(soon) : null;   // SNS 그림은 자료가 와야 그려지고 1분마다 다시 그림 → 그때마다 다시 잼
+    mo?.observe(right as Element, { childList: true, subtree: true, attributes: true, attributeFilter: ["y", "height", "viewBox", "class"] });
+    const t = setInterval(sync, 2000);
+    sync();
+    return () => { ro.disconnect(); mo?.disconnect(); clearInterval(t); clearTimeout(tm); };
   }, [panel]);
   return dy;
 }
@@ -149,7 +152,7 @@ export function RunnerGauges() {
                 <ul className="nm-rgx-runs" aria-label={`${h.label} 러너`}>
                   {runners.map(([n, c]) => {
                     const on = c.st === "🟢", work = on && c.note === "일하는 중";
-                    return <li key={n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${n} · ${on ? c.note || "켜짐" : c.note || "꺼짐"}`}>{short(n)}</li>;
+                    return <li key={n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${n} · ${on ? c.note || "켜짐" : c.note || "꺼짐"}`}>{rnum(n) || short(n)}</li>;   {/* 번호만 · 도형 없음 · 사이 「|」(CSS)(형 11-08 09:04 밥상 「대시보드에 러너 123456으로 통일할거니까 미리 123456 맞춰놓고, … 도형으로 감쌀 필요가 없음 1 | 2 | 3 ㅣ 이런식으로 나오면됨.」 · 봄 09:05·10:06 나눔) · 번호 없는 이름(O · M)은 옛 줄임 그대로 */}
                   })}
                 </ul>
               ) : null}
