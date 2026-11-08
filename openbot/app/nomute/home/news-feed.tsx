@@ -52,6 +52,7 @@ const pubIso = (c: Cand): string | undefined => (c._disp ? pubIso(c._disp) : hpO
 export const homeMeta = (c: Cand) => { let d = c; while (d._disp) d = d._disp; return { title: d.title_clean || (d.title_ko && d.title_ko_of === d.title ? d.title_ko : "") || d.title || "",   /* title_clean = 서버가 다듬은 제목(뜸 · 형 11-05 16:14 「항상 뉴스에는 다듬어져서」) */ published: { at: pubIso(c), sourceUrl: pickUrl(c), sourceName: d.media } }; };   // 묶음 = 따라간 형제의 제목·시각(scHomeMetadata)
 
 /** 품은 화면 톤 = YETA(ui/inapp.ts yetaTone · 결의 방·토큰·피드백과 같은 값)에 덱만의 덧줄 · 간소 = 팔로워 띠·PICK 뺌 */
+// 고른 카드(틈·촉 픽) = 얼굴 배지 · 라임 겉 테 · 번짐 빛 없음(형 11-09 08:13 임시방 「글구 이제 틈 촉 플필 모양이랑 겉면에 라인 이랑 번짐? 이거 없어도 될듯」 · 97789.jpg · 뜸) — 옛 줄 = .article-card:has(.article-pick) 라임 테·번짐
 const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--card-solid:${dark ? "#1b1c1b" : "#f4f5f3"}}
 .practical-main{--reader-top-gap:0px;--reader-dock-clear:0px;--menu-dock-gap:0px;--modern-menu-height:0px;--home-pulse-h:0px!important}
 #home-pulse{display:none!important}.reader-actions .pick-control{display:none!important}
@@ -61,7 +62,7 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 .article-lead>.article-media{flex:1 1 auto!important;aspect-ratio:auto!important}
 .article-media{--article-image-h:clamp(156px,26svh,234px)!important}
 .practical-main .score-lead strong{color:var(--accent)!important;text-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)!important}
-.practical-main .deck>.article-card:has(.article-pick),.practical-main .deck>.deck-fan:has(.article-pick){border-color:var(--accent)!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent),0 0 22px color-mix(in srgb,var(--accent) 22%,transparent)!important}
+.article-pick{display:none!important}
 @media (max-width:480px){
 .practical-main .deck>.article-card{padding-bottom:calc(var(--sp-4) + ${SEND_ROOM}px)}
 .practical-main .deck>.article-card:not(:has(.article-media)){height:auto;max-height:var(--reader-card-height)}
