@@ -19,6 +19,7 @@ const PICK_WHO: Record<string, string> = { chok: "촉", teum: "틈" };
 const PICK_FRONT: Record<string, number> = { 촉: 0, 틈: 1 };   // 겹칠 때 촉이 앞(형 11-06 「중첩일경우, 촉이 더 앞으로 (우측 앞)」) = 첫째가 오른쪽 · 위
 const pickers = (x: Row) => [...new Set((x.picks || []).map((p) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; }).filter(Boolean))].sort((a, b) => (PICK_FRONT[a] ?? 9) - (PICK_FRONT[b] ?? 9));
 
+const agoOf = (t: number, now: number) => { const m = Math.max(0, Math.floor((now - t) / 6e4)); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };   // Runner · SNS 와 같은 말(방금 · N분 전 · N시간 전)
 // 맨 위 고정 칸 = 촉 픽 → 틈 픽(형 11-06 00:28 「촉픽이 제일 전면 틈픽이 그 다음」 · 06:44 「촉픽은 교대하고 같이 바꾸자」 · 봄 안 11-05 17:59 「오른쪽 실시간 뉴스 맨 위에 「촉픽」 칸 고정 (뉴스 순위표랑 안 섞음 · 최근 3건)」)
 //   재료 = /api/trends?f=picks(봄 · editor#2643 · 틈 장부 줄 = sent:true) · 순위표에 없는 기사여도 뜸(어젯밤 틈 픽이 안 켜진 까닭 = 순위표에 있을 때만 얼굴을 붙였음 · 봄 10:58)
 //   차례 = 촉(최근 판 순위 차례) 둘 → 틈(최근 것) 하나 · 같은 기사 = 한 번 · PICK_WINDOW 넘은 픽 = 뺌
@@ -80,6 +81,8 @@ export function NewsList() {
   const [rows, setRows] = useState<Row[]>([]);
   const [pins, setPins] = useState<Pick[]>([]);
   const [st, setSt] = useState<"loading" | "ready" | "empty" | "error">("loading");
+  const [gotAt, setGotAt] = useState(0), [now, setNow] = useState(() => Date.now());   // 머리줄 「N분 전」 + 1분마다 다시 셈
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(t); }, []);
   useEffect(() => {
     let live = true, overlap: unknown = null, cands: Cand[] = [], articles: unknown[] = [], triage: unknown = null, merges: unknown = null, alpha: unknown = null, picks: unknown[] = [], picksAt = 0;
     const load = async () => {
@@ -121,6 +124,7 @@ export function NewsList() {
       const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
       for (const x of list) if (x && /^네이버(?:뉴스)?$/.test(x.src || "")) { const nv = [x.meta?.published?.sourceUrl || "", ...(x.urls || []), ...(x.items || []).map((it) => it.url || "")].map(naverOutlet).find(Boolean); if (nv) x.src = nv; }   // 순위표도 「네이버뉴스」 = 기사 주소 언론사 번호로 진짜 매체(형 11-06 16:41)
       setRows(list);
+      setGotAt(Date.parse(gen || "") || Date.now());   // 머리줄 「N분 전」 = 서버가 묶음을 만든 때(없으면 받은 때)
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };
     void load();
@@ -144,7 +148,7 @@ export function NewsList() {
   };
   return (
     <section className="nm-nlist" aria-label="실시간 뉴스">
-      <div className="nm-nlist-h"><i className="live" aria-hidden /><b>Hot Issue</b><span>{st === "ready" ? `${rows.length}건` : ""}</span></div>
+      <div className="nm-nlist-h"><i className="live" aria-hidden /><b>Hot Issue</b><span>{st === "ready" && gotAt ? agoOf(gotAt, now) : ""}</span></div>   {/* 「N건」 → 「N분 전」(형 11-08 09:12 「hotissue 40건,< ㅣ건 의미없고 이것도 몇분전에 받아왓는지가 중요」 · Runner · SNS · Digest 와 같은 말) */}
       {pins.length ? (
         <ul className="nm-nlist-pin" aria-label="촉 · 틈 픽">
           {pins.map((p) => {
