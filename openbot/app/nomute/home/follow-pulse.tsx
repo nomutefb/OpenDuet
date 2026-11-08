@@ -120,7 +120,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         {fill && vv.length ? (() => { const s = lines[0][1], off = (DAYS - s.length) * P, vp = s.map((p, i) => (p.views == null ? null : ([off + i * P + P / 2, VY(p.views)] as [number, number]))).filter((x): x is [number, number] => x != null); return (
           <g className="vw" aria-label={`인스타 일일 노출 · 평균 ${nf.format(Math.round(vavg))}`}>
             <line className="vavg" x1="0" x2={W} y1={MID.toFixed(1)} y2={MID.toFixed(1)} strokeWidth="1" />
-            <text className="vlab" x="3" y={(MID - 3).toFixed(1)} fontSize={FS - 1}>{`노출 평균 ${mfmt(vavg)} · 목표 1M · ${s.length}일`}</text>
+            <text className="vlab" x="3" y={(MID - 4).toFixed(1)} fontSize={FS}>{`노출 평균 ${mfmt(vavg)} · 목표 1M · ${s.length}일`}</text>
             {vp.length > 1 ? <path d={smooth(vp)} fill="none" strokeWidth="1.5" strokeLinecap="round" /> : null}
             {vp.map(([cx, cy], i) => <circle key={i} cx={cx.toFixed(1)} cy={cy.toFixed(1)} r={i === vp.length - 1 ? 2.4 : 1.8} />)}
           </g>); })() : null}   {/* 노출 꺾은선 = 팔로워 선 뒤(먼저 그림) · 평균 = 가운데 점선 */}
