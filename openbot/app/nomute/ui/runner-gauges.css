@@ -49,3 +49,13 @@
 .nm-rgx-run + .nm-rgx-run::before { margin:0 3px; }
 /* 「그리고 게이지 이미지가 좀 내령려면 될듯해. 게이지 안에 글자도 조금 더 내려오고(그럼 글자는 두번내려오는 느낌이겟지)」 = 게이지 4px 아래(위 틈 2 → 6) · 안 글자는 TickGauge dyText=4(runner-gauges.tsx) · 노출 평균 선은 follow-pulse 가 게이지 가운데를 재서 따라옴(봄 11:28) · 조약돌·러너 줄은 useRowSync 가 다시 잼 */
 .nm-rgx-host .nm-rg-gauge { margin-top:6px; }
+/* 라이트 갈래(시아 11-08 23:08 「다크는 그대로 · 라이트 갈래만 고침 · 라임 = #4f7a00 · 글 = #161716 · 흐린 글 = rgba(22,23,22,.55) · 번개 = runner-gauges 만」 · 뎅 23:31 「몸 이름 라임 그대로 · 게이지 % 흰 글 거의 안 보임 · 1 2 3 4 5 흐림」)
+   — 다크 값은 위 그대로 · :root:not(.dark) 에서만 덮음 · 게이지 SVG 글자는 lieflat 팔레트(D.ink)가 박은 fill 을 CSS fill 로 덮음(속성보다 CSS 가 이김) */
+:root:not(.dark) .nm-rgx .nm-rgx-name { color:#4f7a00; }
+:root:not(.dark) .nm-rgx-g { color:rgba(22,23,22,.55); }
+:root:not(.dark) .nm-rgx .lf-gauge svg text { fill:#161716; }
+:root:not(.dark) .nm-rgx-run { color:rgba(22,23,22,.38); }
+:root:not(.dark) .nm-rgx-run.work, :root:not(.dark) .nm-rgx-run.nm-rgx-body.is-ok { color:#161716; }
+:root:not(.dark) .nm-rgx-run.nm-rgx-body.is-warn { color:#8a6d00; }
+:root:not(.dark) .nm-rgx-run.nm-rgx-body.is-bad { color:#c0392b; }
+:root:not(.dark) .nm-rgx-peb.on { filter:drop-shadow(0 0 4px rgba(0,0,0,.18)); }
