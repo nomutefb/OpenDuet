@@ -11,6 +11,7 @@ import "../runner/runner-board.css";
 import "./runner-gauges.css";
 import { Bloub } from "./bloub";
 import { homeOf, machinesOf, useBodies } from "../data/bodies";
+import { pickHost } from "./runner-pick";
 
 type Row = { key: string; st?: string; note?: string; stale?: boolean; reported_at?: number; metrics?: Record<string, number> };
 type Cat = { id: string; rows: Row[] };
@@ -99,7 +100,7 @@ export function RunnerGauges() {
   const HOSTS = machinesOf(bs).map((b) => ({ k: b.hosts[0], hosts: b.hosts, pc: PC_OF[b.hosts[0]] || "", label: NAME_OF[b.hosts[0]] || b.body, body: b.body }));
   // 몸 줄 고르기(형 11-08 09:03 「누리 가 있는 리눅스 a는 오프라고 뜨는데 그래도 온도는 나와야해」 · 봄 나눔) = 그 몸의 host 이름 전부 중 신선한 보고 먼저(시아 PC = hwang → sia 로 보고 이름이 바뀌어 hosts[0] 만 보면 OFF) · 신선한 게 없으면 마지막 보고(낡음 · 숫자는 흐리게)
   //   한 몸의 두 줄(hw · -temp)은 같은 host 에서(호스트가 섞이면 산 cpu 에 낡은 온도 꼴 · 모루 #2899) — 신선한 보고가 있는 host 먼저 · 없으면 마지막 보고 host
-  const pickHost = (hosts: string[]) => { const rs = hosts.map((h) => ({ a: hw.find((r) => r.key === h), b: hw.find((r) => r.key === `${h}-temp`) })).filter((x) => x.a || x.b); const last = (x: typeof rs[number]) => Math.max(x.a?.reported_at || 0, x.b?.reported_at || 0); const score = (x: typeof rs[number]) => (x.a && !x.a.stale ? 2 : 0) + (x.b && !x.b.stale ? 1 : 0); return rs.sort((x, y) => score(y) - score(x) || last(y) - last(x))[0]; };   // 점수 = hw 신선 2 + 온도 신선 1 · 같으면 최근(모루 #2904: 옛 host 온도만 신선해도 새 host 의 CPU 를 버리던 길)
+  //   고르기 = ./runner-pick.ts pickHost(점수 = hw 신선 2 + 온도 신선 1 · 같으면 최근 · 모루 #2904: 옛 host 온도만 신선해도 새 host 의 CPU 를 버리던 길) · 시험 = tests/runner-pick.test.ts(모루 「합성 시험」)
   const newest = hw.reduce((t, r) => Math.max(t, r.reported_at || 0), 0);   // 머리줄 시각 = 가장 새 몸 보고 시각(서버 표 만든 시각 아님 · 봄 09:17 「1분 전 ≠ 방금」)
   const livesOn = (body: string) => bs.filter((x) => homeOf(x) === body && PEB[x.being]).map((x) => ({ ...PEB[x.being], who: x.being }));
   const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
@@ -112,7 +113,7 @@ export function RunnerGauges() {
       <div className="nm-card-h"><i className="live" aria-hidden /><b>Runner</b><span>{newest ? ago(now - newest) : st.data?.at ? ago(now - st.data.at) : st.isLoading ? "불러오는 중" : ""}</span></div>   {/* 칸 머리줄 = 모든 칸 같은 꼴(시아 UI ① · 형 11-06 대시보드 고급화) */}   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
       <div ref={panel} className="nm-rg-panel nm-rgx-panel" style={{ ["--nm-rgx-n" as string]: Math.max(1, HOSTS.length), ["--nm-rgx-cols" as string]: cols, ["--nm-rgx-peb-dy" as string]: `${dy.peb}px`, ["--nm-rgx-run-dy" as string]: `${dy.run}px` }}>
         {HOSTS.map((h, hi) => {
-          const pk = pickHost(h.hosts), a = pk?.a, b = pk?.b;
+          const pk = pickHost(hw, h.hosts), a = pk?.a, b = pk?.b;
           const fresh = !!(a ? !a.stale : b && !b.stale);   // 몸 보고가 살아 있음(존재가 자든 말든) · hw 줄이 있으면 그 줄 기준(온도 줄만 신선한 척 못 함)
           const m: M = { ...(a?.metrics || {}), ...(b?.metrics || {}) };   // 낡은 보고도 마지막 숫자는 보여 줌(OFF 대신 · 흐린 색)
           const d: RunnerRow | null = rq.data?.rows?.[h.pc] ?? null;
