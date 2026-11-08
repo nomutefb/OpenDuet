@@ -43,3 +43,7 @@
 @keyframes nmTkSpin { to { transform:rotate(360deg); } }
 @keyframes nmTkIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce) { .nm-tk, .nm-tk-steps li { animation:none; } .nm-tk.run .nm-tk-ring, .nm-tk-steps .run i { animation:none; } }
+/* 요약 끝 · 피드 없음 20분 넘음 = 분석 완료 · 반영 대기(봄 06:20 2) · 「완료」 아님) — 멈춘 고리 · 호박색 */
+.nm-tk.lag .nm-tk-ring { border-color:#f5b942; }
+.nm-tasks-head > em.lag { color:#f5b942; }
+:root:not(.dark) .nm-tasks-head > em.lag, :root:not(.dark) .nm-tk.lag .nm-tk-ring { color:#9a6a00; border-color:#9a6a00; }
