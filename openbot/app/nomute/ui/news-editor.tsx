@@ -10,12 +10,14 @@ import "./news.css";
 import "./summary-desk.css";
 import "./news-editor.css";
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouterState } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { isForeignUrl, presetFor, submitText } from "../home/quick-send";
 import { CATS, type FArt, byFile, feedLiveQuery, isBrk, kindOf, pendQuery, pickQ } from "./feed";
 import { catOf, editorPath, newsListQuery, useGo } from "./news-data";
 import { NewsDetail } from "./news-detail";
+import { newsFileOf } from "./news";   // #/newsed?a=<file> = 그 기사로 바로 열기(k-4 U2)
 import { useSplit } from "./side";
 import { SumCard } from "./summary-desk";
 import { TaskPanel } from "./task-panel";
@@ -89,7 +91,9 @@ export function NewsEditor() {
   const [init] = useState(() => keep || { q: "", cats: [] as string[], issue: false, n: CAP, top: 0 });
   const list = useQuery(newsListQuery), live = useQuery(feedLiveQuery), pend = useQuery(pendQuery);
   const [q, setQ] = useState(init.q), [find, setFind] = useState(!!init.q), [cats, setCats] = useState<Set<string>>(() => new Set(init.cats)), [issue, setIssue] = useState(init.issue), [n, setN] = useState(init.n);
-  const [sel, setSel] = useState("");   // PC = 오른쪽 칸 · 폰 = 화면 통째 기사 한 장
+  const qa = newsFileOf(useRouterState({ select: (st) => st.location.searchStr }));   // 홈 Digest · 대기열 「열기」 · 스크랩이 넘긴 기사(#/newsed?a=<file>)
+  const [sel, setSel] = useState(qa);   // PC = 오른쪽 칸 · 폰 = 화면 통째 기사 한 장
+  useEffect(() => { if (qa) setSel(qa); }, [qa]);   // 이미 4번에 있을 때 다른 기사를 넘겨받아도 그 기사로
   const dq = useDeferredValue(q.trim().toLowerCase());
   const all = useMemo(() => {   // 정적 + 빌드 전 새 요약(「뉴스 요약」과 같은 합침)
     const st = (list.data?.arts || []) as FArt[], have = new Set(st.map((a) => a.file)), add = (live.data || []).filter((x) => !have.has(x.file));
@@ -128,7 +132,7 @@ export function NewsEditor() {
     if (!wide) topOf.current = left.current?.scrollTop || 0;
     setSel(a.file);
   };
-  const back = () => { setSel(""); requestAnimationFrame(() => { if (left.current) left.current.scrollTop = topOf.current; }); };
+  const back = () => { setSel(""); if (qa) go("/newsed"); requestAnimationFrame(() => { if (left.current) left.current.scrollTop = topOf.current; }); };   // 넘겨받은 기사에서 「목록」 = 주소의 ?a 도 뗌(다시 그 기사로 안 튐)
 
   const body = (
     <div ref={left} className="nm-ned-l" hidden={!wide && !!sel}>

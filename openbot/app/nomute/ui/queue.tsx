@@ -103,7 +103,7 @@ export function QueueModal() {
                       : <span className={`spin${e === "retry" ? " re" : ""}`} title={e === "retry" ? `API 일시 과부하 — 자동 재시도 중${it.tries ? ` (${it.tries}회)` : ""}` : "분석 처리 중"} aria-label={e === "retry" ? "재시도 중" : "처리 중"} />}</span>
                     <span className="qa">
                       {isDone ? <span className="ok">✓</span>
-                        : e === "succ" && a ? <button type="button" className="go ok" onClick={() => go(`/news?a=${encodeURIComponent(a.file)}`)}>열기</button>
+                        : e === "succ" && a ? <button type="button" className="go ok" onClick={() => go(`/newsed?a=${encodeURIComponent(a.file)}`)}>열기</button>
                         : e === "fail" ? <button type="button" className="go arm" onClick={() => go(ED_QUEUE)} title={it.via === "요약요청" ? "요청 내용을 복원해 다시 요약 — 에디터 대기열에서" : "다시 분석 — 에디터 대기열에서"}>재시도</button>
                         : url ? <button type="button" className="go src" onClick={() => { const h = inAppHref(url); if (h) go(h); else window.open(url, "_blank", "noopener"); }} title={e === "lag" ? "원문 — 요약은 배포 반영 뒤 열림" : "원문"}>원문</button>
                         : <button type="button" className={`go ${armed ? "arm" : "gray"}`} onClick={() => cancel(it)} aria-label={armed ? "한 번 더 누르면 이 요청 취소" : "이 요청 취소"} title={armed ? "한 번 더 누르면 이 요청 취소" : "갈 곳 없음 · 누르면 이 요청 취소"}>{armed ? "취소?" : "—"}</button>}

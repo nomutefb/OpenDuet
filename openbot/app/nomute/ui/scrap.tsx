@@ -962,7 +962,7 @@ export function ScrapModal() {
     setFx((m) => ({ ...m, [id]: "fill" }));
     setTimeout(() => { setFx((m) => (m[id] ? { ...m, [id]: "ok" } : m)); setTimeout(() => { setFx((m) => { const n = { ...m }; delete n[id]; return n; }); after(); }, red ? 60 : 440); }, red ? 90 : 740);
   };
-  const openArt = (c: C) => { const a = feedMatch(c, true); if (a?.file) { go(`/news?a=${encodeURIComponent(a.file)}`); return true; } return false; };
+  const openArt = (c: C) => { const a = feedMatch(c, true); if (a?.file) { go(`/newsed?a=${encodeURIComponent(a.file)}`); return true; } return false; };
   const openLink = (u: string) => { if (!u) return; const h = inAppHref(u); if (h) go(h); else window.open(u, "_blank", "noopener,noreferrer"); };
   const onAct = (k: string, c: C, el?: HTMLElement, owner?: HTMLElement) => {
     const id = candId(c), ps = pickState(c);

@@ -161,7 +161,7 @@ export function FeedModal({ search = false }: { search?: boolean }) {   // searc
   const tog = (c: string) => { setCats((s) => { const x = new Set(s); if (x.has(c)) x.delete(c); else x.add(c); return x; }); reset(); };
   const open = (a: FArt) => {
     keep = { q, cats: [...cats], issue, n, top: scroller()?.scrollTop || 0 };
-    go(a._live ? editorPath(a.file) : `/news?a=${encodeURIComponent(a.file)}`);
+    go(a._live ? editorPath(a.file) : `/newsed?a=${encodeURIComponent(a.file)}`);   // 4번 뉴스 에디터 그 기사(k-4 U2)
   };
   return (
     <Pane title={search ? "검색" : "뉴스 요약"}>

@@ -31,7 +31,7 @@ const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); }; 
 export function SumCard({ a, on, kind, onOpen, sens: withSens, short, dg }: { a: Art; on?: boolean; kind?: string; onOpen?: () => void; sens?: boolean; short?: boolean; dg?: boolean }) {
   const go = useGo();
   const cat = catOf(a), bias = biasOf(a), pr = progOf(a), media = mediaOf(a.media), sens = withSens ? sensOf(a).slice(0, 2) : [];
-  const rep = ago(reportTs(a)), scr = ago(scrapTs(a)), open = onOpen || (() => go(`/news?a=${encodeURIComponent(a.file)}`));
+  const rep = ago(reportTs(a)), scr = ago(scrapTs(a)), open = onOpen || (() => go(`/newsed?a=${encodeURIComponent(a.file)}`));   // 홈 Digest 등 = 4번 뉴스 에디터 그 기사(형 11-10 00:5x 「지금 막 뉴스 요약같은거 누르면 화면은 다른게 떠」 · 앞 판 = 옛 #/news 한 장)
   return (
     <div className={`nm-sumc${on ? " on" : ""}${kind ? " k-" + kind : ""}${dg ? " dg" : ""}`} role="article" tabIndex={0} aria-label={a.title || "기사"} aria-current={on || undefined} onClick={open} onKeyDown={(e) => { if (e.key === "Enter") open(); }}>
       <div className="nm-sumc-top">
