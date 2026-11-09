@@ -3,12 +3,17 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { rssFirst } from "../home/rss-first.ts";
 
-test("RSS 2장마다 순위 묶음 1개 · 남는 묶음 끝 · 빠지는 줄 0", () => {
+test("맨 위 셋 = RSS · 그 뒤 RSS 2장마다 순위 묶음 1개 · 남는 묶음 끝 · 빠지는 줄 0", () => {
   const rows = [{ type: "ranked", k: "c1" }, { type: "ranked", k: "c2" }, { type: "existing", k: "n1" }, { type: "existing", k: "n2" }, { type: "existing", k: "n3" }, { type: "ranked", k: "c3" }];
-  assert.deepEqual(rssFirst(rows).map((r) => r.k), ["n1", "n2", "c1", "n3", "c2", "c3"]);
+  assert.deepEqual(rssFirst(rows).map((r) => r.k), ["n1", "n2", "n3", "c1", "c2", "c3"]);   // RSS 셋뿐 = 맨 위 셋 RSS · 묶음은 뒤
   assert.equal(rssFirst(rows).length, rows.length);
 });
 test("RSS 없음 = 그대로", () => {
   const rows = [{ type: "ranked", k: "c1" }, { type: "ranked", k: "c2" }];
   assert.deepEqual(rssFirst(rows), rows);
+});
+
+test("맨 위 셋 = 늘 RSS(책임질 기사 · 형 09:35) · 그 뒤 묶음 1 · RSS 2", () => {
+  const rows = [{ type: "ranked", k: "c1" }, { type: "ranked", k: "c2" }, ...["n1", "n2", "n3", "n4", "n5", "n6", "n7"].map((k) => ({ type: "existing", k }))];
+  assert.deepEqual(rssFirst(rows).map((r) => r.k), ["n1", "n2", "n3", "c1", "n4", "n5", "c2", "n6", "n7"]);
 });
