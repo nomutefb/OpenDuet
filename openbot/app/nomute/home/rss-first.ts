@@ -5,8 +5,12 @@
 export const RSS_EVERY = 2, RSS_TOP = 3;   // 맨 위 셋 = 늘 RSS(책임질 사람 있는 기사 · 형 09:35 「왜곡된 정보가 메인으로 갔을때 그걸 누가 책임질거냐는거임 기사는 책임질ㄱ사람이있지만」)
 
 /** rows = project 결과(type "ranked" = 순위 묶음 · 그 밖 = RSS) → RSS 바탕 차례 */
-export function rssFirst<T extends { type?: string }>(rows: T[], every = RSS_EVERY, top = RSS_TOP): T[] {
-  const ranked = rows.filter((r) => r.type === "ranked"), news = rows.filter((r) => r.type !== "ranked");
+/** 긴급보도 = 제목 머리 [속보] · [단독] · [긴급](형 09:35 「순간 배포의 기울기 긴급보도의 그런거로 … 해놓은게 있는데」 · 서버 event_score brk_tag 와 같은 머리표 · 앱 줄엔 서버 점수 칸이 안 와서 제목으로) */
+export const isBreaking = (r: { title?: string }) => /^\s*[[(]\s*(속보|단독|긴급)\s*[\])]/.test(String(r?.title || ""));
+
+export function rssFirst<T extends { type?: string; title?: string }>(rows: T[], every = RSS_EVERY, top = RSS_TOP): T[] {
+  const ranked = rows.filter((r) => r.type === "ranked"), news0 = rows.filter((r) => r.type !== "ranked");
+  const news = [...news0.filter(isBreaking), ...news0.filter((r) => !isBreaking(r))];   // RSS 안에서 긴급보도 먼저 · 그 밖 차례 그대로
   if (!news.length || every < 1) return rows;
   const out: T[] = news.slice(0, top);   // 맨 위 top 장 = RSS 만
   news.slice(top).forEach((n, i) => {
