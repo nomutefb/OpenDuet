@@ -11,6 +11,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { hookFrame, toneFrame } from "../ui/inapp";
 import { homePool } from "./home-pool";
 import { SEND_ROOM, SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
+import { rssFirst } from "./rss-first";
 
 const CHANNEL = "nomute-modern-home";
 export const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
@@ -108,7 +109,8 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       const md = await modernData();
       if (!live || !md) return;
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
-      const { rows } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: linkCount && md.mergeImages ? md.mergeImages((images as { images?: unknown } | null)?.images, linkImages) : (images as { images?: unknown } | null)?.images, picks });
+      const { rows: rows0 } = md.project(overlap, cands, articles, () => null, { mixNews: a ? ALPHA_EVERY[a] : 1, alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (c: Cand) => [pickUrl(c)], metadata: homeMeta, images: linkCount && md.mergeImages ? md.mergeImages((images as { images?: unknown } | null)?.images, linkImages) : (images as { images?: unknown } | null)?.images, picks });
+      const rows = a ? rows0 : (rssFirst(rows0 as { type?: string }[]) as typeof rows0);   // 기본 = RSS 바탕(형 09:34 · ./rss-first.ts)
       for (const row of rows as { meta?: { images?: { url?: string; sourceUrl?: string; note?: string }[] } }[]) for (const im of row?.meta?.images || []) if (im.sourceUrl && linkNotes[im.sourceUrl] && (md.url ? md.url(im.url) === md.url(linkImages[im.sourceUrl]) : im.url === linkImages[im.sourceUrl])) im.note = linkNotes[im.sourceUrl];   // 그 사진 위 「검색 그림」 칩 · 같은 주소에 RSS 사진이 이기면 표시 안 함
       lastRows = rows;
       const generated = (overlap as { generated?: string } | null)?.generated || null;
