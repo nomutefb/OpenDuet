@@ -66,3 +66,4 @@
 .nm-rsheet-msg { margin:0; font-size:var(--fs-sm); color:#ffd27a; }
 .nm-rsheet-acts small { color:var(--mut); font-size:var(--fs-xs); } .nm-rsheet-acts ul { margin:4px 0 0; padding:0; list-style:none; display:grid; gap:2px; font-size:var(--fs-sm); color:var(--mut); }
 .nm-rsheet-foot { color:var(--mut); font-size:var(--fs-xs); }
+.nm-rsheet-file { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.92em; text-transform:none; }   /* 파일 이름만 고정폭(시아 11-09 10:07 덧 · 제목 글꼴이 대문자로 그리던 것) */
