@@ -12,7 +12,7 @@ import { TaskPanel } from "../ui/task-panel";
 
 type QItem = { id?: string; t?: number; title?: string; key?: string; alt1?: string; status?: string; tries?: number };
 const LIVE = new Set(["processing", "retry", "queued", "pending", "failed", "error"]);   // 대기열에 보일 것 = 아직 안 끝난 것 · 실패(「succ」·done 같은 끝난 것 = 뺌 · 실물 17:3x)
-const N_DONE = 12;
+const N_DONE = 12, DAY_MS = 24 * 3600_000;
 
 // 다 된 요약 한 줄(형 11-09 09:21 「메인 화면에서 digest로 나온것도, 타이틀은 1줄로, / 매체 연합뉴스 이것도 가로로 해서 더 얇게 / 보도 3시간전 > 3시간 전 / 이것만 나오면 됨.」)
 //   = 제목 1줄(말줄임) · 아래 한 줄 「매체 · N시간 전」 · 분류·스크랩·편향·진행 막대 뺌(요약실 카드 SumCard 는 그대로) · 시각 = 보도(없으면 스크랩)
@@ -36,7 +36,9 @@ export function NewsSummary() {
     queryFn: () => getJson<{ items?: QItem[] }>(`/api/pending?_=${Date.now()}`).then((d) => (d.items || []).filter((it) => it && LIVE.has(String(it.status))).slice(0, 4), () => [] as QItem[]),
   });
   const list = useQuery(newsListQuery);
-  const done = (Array.isArray(list.data?.arts) ? list.data!.arts : []).slice(0, N_DONE);   // newsListQuery = { arts, count, generated }(배열 아님 · 17:2x 판에서 앱 통째로 깨짐)
+  // 홈 = 24시간 안 요약만(형 11-09 12:01 「메인 화면에 옛날 기사 뜨는데 확인 좀」 · 실물 = 열두 줄 중 열 줄이 1~4일 전) · 시각 = 보도(없으면 스크랩) · 옛 요약은 4번 뉴스 에디터에 그대로
+  const fresh = (a: Art) => { const t = reportTs(a), at = Number.isFinite(t) ? t : scrapTs(a); return Number.isFinite(at) && Date.now() - at <= DAY_MS; };
+  const done = (Array.isArray(list.data?.arts) ? list.data!.arts : []).filter(fresh).slice(0, N_DONE);   // newsListQuery = { arts, count, generated }(배열 아님 · 17:2x 판에서 앱 통째로 깨짐)
   const q = pend.data || [];
   return (
     <section className="nm-nsum" aria-label="뉴스 요약">
@@ -46,7 +48,7 @@ export function NewsSummary() {
         {done.map((a) => <li key={a.file} className="c"><DigestRow a={a} /></li>)}
         {!done.length ? (list.isError ? <li className="empty nm-emptybox"><b>요약 목록을 못 받았어</b><span>조금 뒤 다시 받아</span></li>
           : list.isLoading ? <li className="empty"><i className="nm-skel" style={{ width: "88%" }} /><i className="nm-skel" style={{ width: "72%" }} /><i className="nm-skel" style={{ width: "80%" }} /></li>
-          : <li className="empty nm-emptybox"><b>다 된 요약이 아직 없어</b><span>뉴스 줄 「전송」을 누르면 여기 쌓여</span></li>) : null}   {/* 빈 칸 · 불러오는 중 꼴 통일(시아 UI ⑤) */}
+          : <li className="empty nm-emptybox"><b>24시간 안 요약이 없어</b><span>24시간 안 요약만 보여 · 뉴스 줄 「전송」을 누르면 여기 쌓여</span></li>) : null}   {/* 빈 칸 · 불러오는 중 꼴 통일(시아 UI ⑤) */}
       </ol>
     </section>
   );

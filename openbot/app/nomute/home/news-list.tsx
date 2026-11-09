@@ -194,7 +194,7 @@ export function NewsList() {
         st === "loading" ? <div className="nm-skel-list" aria-label="받는 중">{[92, 78, 86, 70, 82, 64].map((w, i) => <i key={i} className="nm-skel" style={{ width: `${w}%` }} />)}</div>   /* 불러오는 중 = 뼈대 줄(시아 UI ⑤) */
         : <p className="nm-nlist-empty nm-emptybox"><b>{st === "empty" ? "지금 보여 줄 기사가 없어" : "기사 순위를 못 받았어"}</b><span>{st === "empty" ? "1분마다 다시 받아" : "1분 뒤 다시 해 볼게"}</span></p>
       ) : (
-        <ol className="nm-nlist-ol">
+        <ol className={rows.some((r) => pickers(r).length) ? "nm-nlist-ol" : "nm-nlist-ol nopf"}>   {/* 얼굴 있는 줄 0 = 왼쪽 얼굴 칸째 뺌(형 11-09 12:01 「핫이슈 아직 좌측에 여백남음」 · 틈 얼굴 뺀 뒤 빈 16px) */}
           {rows.map((row, i) => (
             <li key={row.key || row.urls?.[0] || i} className={((i < 3 ? "top" : "") + ageCls(row.at)).trim() || undefined}>   {/* 1~3위 = 번호·제목 라임(형 15:49) */}
               <span className="pf" aria-hidden={!pickers(row).length || undefined} title={pickers(row).length ? `${pickers(row).join("·")} 픽` : undefined}>{pickers(row).map((w, j) => <span key={w} className="pf-i" style={{ zIndex: 9 - j }}><FaceImg id={w} size={16} /></span>)}</span>
