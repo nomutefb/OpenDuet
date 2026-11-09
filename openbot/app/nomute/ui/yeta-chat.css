@@ -5,7 +5,8 @@
    더한 것(원본에 없음): .ydate(날짜 바뀌는 곳 · 형 10:23) · .yb.ai .ymd(말풍선 안 글 꾸밈 = 줄바꿈은 꾸밈이 맡음) ·
    .ybw·.ytout(시각 = 말풍선 밖 오른쪽 아래 모서리 바로 아래 · 형 15:36 · 16:5x 「바깥에 위치」) · .yjump(「↑ 글 처음」 · 형 15:33) · 말풍선 폭 넓힘(86·78% → 94·92% · 형 15:36 「최대한 대화를 길게」) ·
    글꼴 = YETA 「글꼴」 설정 그대로(--app-font · ./chat-font.tsx · @font-face = YETA viewer/index.html 22~35줄 값 그대로 · 파일 = 그 viewer/fonts 에서 쓰는 굵기만) */
-@font-face{font-family:'LEMONMILK';font-weight:700;font-style:normal;src:url('./fonts/LEMONMILK-Bold.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
+@font-face{font-family:'Manrope';font-weight:400 800;font-style:normal;src:url('./fonts/Manrope-latin-var.woff2') format('woff2');font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}   /* 고를 수 있는 영문(형 11-09 13:2x 시아 창 「manrope로 한번해봐」 · Google Fonts 라틴 조각 · 한글은 다음 글꼴 Paperlogy) */
+@font-face{font-family:'LEMONMILK';font-weight:500 900;font-style:normal;src:url('./fonts/LEMONMILK-Regular.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}   /* 굵은 칸(500~900)도 Regular 파일 = LEMONMILK 굵기 다 뺌(형 11-09 13:21 dm-sia 「레몬밀크는 살짝 좀 오버스러운데, 그럼 레몬밀크에서 볼디함좀 다 빼봐」 · 한글 Paperlogy 굵기는 그대로 · 시아) */
 @font-face{font-family:'LEMONMILK';font-weight:400;font-style:normal;src:url('./fonts/LEMONMILK-Regular.otf') format('opentype');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 @font-face{font-family:'Paperlogy';font-weight:400;src:url('./fonts/Paperlogy-4Regular.woff2') format('woff2');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
 @font-face{font-family:'Paperlogy';font-weight:500;src:url('./fonts/Paperlogy-5Medium.woff2') format('woff2');font-display:swap;ascent-override:116%;descent-override:29%;line-gap-override:0%}
