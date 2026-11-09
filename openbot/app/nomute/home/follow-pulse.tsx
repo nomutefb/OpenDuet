@@ -4,6 +4,7 @@
 //   꼴 = IG · FB 총수 한 줄 + 「갱신 N분 전」 + 10일 증가율(%) 꺾은선 둘(IG 위 선 · FB 아래 선 · 0% 점선) + 날마다 ±명수 두 줄(IG 위 · FB 아래) · 색 = 오름 강조색 · 내림 금색 · 없음 회색(원본 규칙)
 //   누르면 = 채널 요약(원본 «일단 홈 팔로워로» → 우리 앱은 앱 안 채널 요약 판 #/chan · 11-01 전엔 #/web?u=/?tab=chan 한 겹) · 10분마다 다시 읽음(원본과 같음) · 접수사항(CheckOne)은 이 자리에서 뺌(파일은 그대로 · 안 부름)
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { pollOff } from "../data/poll-linux";
 
 type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null; views?: number | null };   // views = 그날 노출(조회 · insta_data.json daily_series)
 type Chan = { profile: { followers_count: number }; generated_kst: string; daily_series?: Row[] };
@@ -83,7 +84,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
     let live = true;
     const load = () => Promise.all([get("ig", "insta_data.json"), get("fb", "fb_data.json"), fill ? get("th", "threads_data.json") : Promise.resolve(null)]).then(([a, b, c]) => { if (!live) return; if (a) setIg(a); setFb(b); setTh(c); }).catch(() => {}).finally(() => { if (live) setTried(true); });
     load();
-    const t1 = window.setInterval(() => { if (!document.hidden) load(); }, 10 * 60e3), t2 = window.setInterval(() => tick((n) => n + 1), 60e3);   // 10분 다시 읽기 · 1분 「갱신 N분 전」
+    const t1 = window.setInterval(() => { if (!pollOff()) load(); }, 10 * 60e3), t2 = window.setInterval(() => tick((n) => n + 1), 60e3);   // 10분 다시 읽기 · 1분 「갱신 N분 전」
     return () => { live = false; clearInterval(t1); clearInterval(t2); };
   }, [fill]);
   const view = useMemo(() => {

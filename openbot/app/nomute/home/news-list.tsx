@@ -3,6 +3,7 @@
 //   줄 = 순위 · 제목 · 출처 · 몇 분 전 · 점수 · 끝에 작은 「전송」(= 그 기사로 요약 요청 폼 · send-button.tsx 와 같은 열쇠 nm_ask_prefill → #/ask)
 //   제목 누름 = 원문 새 창(형 11-05 12:27 「링크같은거는 항상 클릭하면 새 창에서」) · 1분마다 다시 받음(보일 때만)
 import "./news-list.css";
+import { pollOff } from "../data/poll-linux";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { isForeignUrl, quickSend } from "./quick-send";
@@ -135,7 +136,7 @@ export function NewsList() {
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
     };
     void load();
-    const t = setInterval(() => { if (!document.hidden) void load(); }, EVERY);
+    const t = setInterval(() => { if (!pollOff()) void load(); }, EVERY);   // 숨은 탭 · 리눅스 데스크톱 = 쉼(../data/poll-linux.ts)
     return () => { live = false; clearInterval(t); };
   }, []);
   // 전송 · 픽 = 창 없이 바로 요약 요청(형 11-09 08:14 · 외신이면 fp 저절로 · ./quick-send.ts · 깃 29)) — 접수 한 줄 · 대기열 판 저절로 갱신

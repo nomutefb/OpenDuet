@@ -4,6 +4,7 @@
 //   데이터 = `/articles.json`(./news-data.ts · 분류 칸 = category · 전엔 cat 을 읽어 분류가 안 떴음) · 실시간 줄 `api/feedlive` 병합은 2차(원본은 4초 상한 병합) · 60초 다시 읽기(원본 폴) · 같은 출처 · HTML 응답 = 로그인 벽
 //   원본 카드의 검색·필터는 여기 없음(전체 보기) — 「읽기 중심 목록」만(설계-빠르.md ② 표)
 import "./yeta-settings.css";
+import { pollOff } from "../data/poll-linux";
 import "./chan.css";
 import "./sns.css";
 import "./news.css";
@@ -33,7 +34,7 @@ export function NewsModal() {
   useEffect(() => {
     let live = true;
     const load = () => fetch("/api/pending?_=" + Date.now(), { credentials: "same-origin" }).then((r) => (r.ok ? r.json() : null)).then((d: { items?: { status?: string }[] } | null) => { if (live && d) setPending((d.items || []).filter((it) => it && (it.status === "processing" || it.status === "retry")).length); }).catch(() => {});
-    load(); const t = window.setInterval(() => { if (!document.hidden) load(); }, 60_000);   // 숨은 탭 = 조회 0(47) · 깃허브 한도 · 봄 11-09 10:59)
+    load(); const t = window.setInterval(() => { if (!pollOff()) load(); }, 60_000);   // 숨은 탭 = 조회 0(47) · 깃허브 한도 · 봄 11-09 10:59) · 리눅스 데스크톱도 쉼(../data/poll-linux.ts · 형 「보는 것도 리눅스면 그건 수동이여야하고」)
     return () => { live = false; clearInterval(t); };
   }, []);
   const Svg = ({ k }: { k: keyof typeof YICO }) => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;

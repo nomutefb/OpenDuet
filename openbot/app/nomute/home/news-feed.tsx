@@ -8,6 +8,7 @@
 //   사진 자르기·비율 = 원본 그대로(황금비 상한 · cover) = 카드가 길어진 만큼 사진이 덜 잘리고 아래 출처 줄이 더 보임.
 //   보이는 후보 = 에디터 scHomeCandidates 와 같은 거름(home-pool.ts · 서버 트리아지·병합 + 이 기기 기록 · 같은 기사 접기·자동 묶음) · PICK 상태 = 안 보임.
 import { useEffect, useLayoutEffect, useRef } from "react";
+import { pollOff } from "../data/poll-linux";
 import { hookFrame, toneFrame } from "../ui/inapp";
 import { homePool } from "./home-pool";
 import { SEND_ROOM, SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
@@ -175,7 +176,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
     window.addEventListener("message", onMsg);
     document.addEventListener("visibilitychange", onVis);
     void load();
-    const t1 = setInterval(() => { if (!document.hidden) void load(); }, OVERLAP_EVERY);
+    const t1 = setInterval(() => { if (!pollOff()) void load(); }, OVERLAP_EVERY);   // 숨은 탭 · 리눅스 데스크톱 = 쉼
     return () => { live = false; clearInterval(t1); window.removeEventListener("message", onMsg); document.removeEventListener("visibilitychange", onVis); };
   }, []);
   useEffect(() => {   // 품은 화면 톤 = 앱의 어둡게·밝게를 따라 덧씌움 · 카드 출처 링크(원본 target=_blank) = 앱 안 #/web(ui/inapp.ts · 형 15:32)

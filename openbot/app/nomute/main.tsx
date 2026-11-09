@@ -4,7 +4,8 @@ import "./ui/err-catch";   // 오류 받기(번개 11-08 · 형 01:31 「엔터�
 import "@/main";
 import { startSync } from "./data/sync";
 import { queryClient } from "@/query-client";
-import { pollVisible } from "./data/poll-visible";   // 47) 숨은 탭 = 조회 멈춤 · 다시 보이면 한 번(봄 11-09 10:59 · 깃허브 한도)
+import { pollVisible } from "./data/poll-visible";
+import { linuxDesk, manualOnLinux } from "./data/poll-linux";   // 리눅스 데스크톱 = 저절로 조회 0 · 새로 고침만(형 11-09 10:57 「보는 것도 리눅스면 그건 수동이여야하고」 · 뜸)   // 47) 숨은 탭 = 조회 멈춤 · 다시 보이면 한 번(봄 11-09 10:59 · 깃허브 한도)
 import "./ui/update-bar.css";
 import { markLive, verBadge } from "./ui/ver-badge";
 // 자동 새로고침 화면(형 11-07 11:21 「자동 새로고침할때 껏다켜지는데, 그럴경우에는 웹앱 로딩화면말고, 그냥 먹색 챠콜검정화면이 껏다켜질수있나? 업데이트 중입니다... 라임색으로 표기 가운데에 뜨면서」 · 봄 나눔 ②)
@@ -15,6 +16,7 @@ if (document.documentElement.classList.contains(UPD)) setTimeout(() => { documen
 
 startSync();
 pollVisible(queryClient);
+manualOnLinux();
 
 /* 새 판 = 위에 단추(형 11-02 07:20 「글고 업데이트 강제로 될때내 메시지 하나씩 휘발되서 다시 써야되는 이슈가 있어. 강제로 화면 쌔로고침 하지말고. 내 ㅁㅔ세지는 정확히 가고. (확인) 새로고침은  내가특정 그 새로운 버전이 잇다는 화면에 버튼 누르면 갱신하게」)
    · 옛 판(형 10-28 09:44 「새판 나오면 … 자동으로 강제새로고침」)은 글칸이 비면 저절로 다시 읽었다 — 보내기 누른 직후 글칸이 비는 순간에 걸리면 서버에 닿기 전 글이 같이 날아감 → 뺌
@@ -125,7 +127,7 @@ window.addEventListener("vite:preloadError", (e) => {
 (window as unknown as { __nmBuild: string }).__nmBuild = BUILD;   // 지금 이 화면 판(확인용)
 verBadge(BUILD, __NM_SHA__, () => { showUpdate(); (bar as HTMLButtonElement | null)?.click(); });   // 우상단 판 번호 · 라임일 때 누르면 알약과 같은 길
 void checkBuild();   // 열자마자 한 번 맞춰 봄(판 번호가 바로 라임/흐림)
-setInterval(() => { if (!document.hidden) void checkBuild(); }, 60_000);   // 숨은 탭 = 안 봄(보이면 아래 visibilitychange 가 한 번 · 47))
+setInterval(() => { if (!document.hidden && !linuxDesk()) void checkBuild(); }, 60_000);   // 숨은 탭 = 안 봄(보이면 아래 visibilitychange 가 한 번 · 47))
 document.addEventListener("visibilitychange", () => { if (!document.hidden) void checkBuild(); });
 window.addEventListener("focus", () => void checkBuild());
 
