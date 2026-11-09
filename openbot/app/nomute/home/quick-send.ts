@@ -2,8 +2,8 @@
 //   보내는 꼴 = 요약 요청 창(../ui/ask.tsx send)과 같은 POST /api/submit · preset = 창 기본(DEF) 그대로에 fp(외신)만 기사 출처로 저절로 · 「주요 기사부터」 = mj 1(기본 그대로)
 //   외신 판별 = 링크 주소: .kr · 국내 매체 .com/.net · 포털(네이버·다음) = 국내 · 그 밖 = 외신
 
-// 외신 = 아는 외신 이름(../ui/news-data.ts 「// 외신」 묶음 키와 같은 줄기) 또는 외국 나라 끝(.jp .uk …) · 모르는 주소 = 국내(창 기본 fp 0 과 같음 · 모루 09:43 ① 쿠키뉴스가 외신으로 잡히던 것)
-const FOREIGN = new Set(["nytimes", "washingtonpost", "wsj", "bloomberg", "reuters", "apnews", "cnn", "theguardian", "ft", "nhk", "asahi", "yomiuri", "nikkei", "cnbc", "foxnews", "nbcnews", "scmp", "axios", "politico", "bbc", "aljazeera", "afp", "france24", "dw", "lemonde", "spiegel", "economist", "time", "forbes", "businessinsider", "huffpost", "npr", "abcnews", "cbsnews", "usatoday", "latimes", "theatlantic", "newsweek", "independent", "telegraph", "dailymail", "mirror", "hollywoodreporter", "variety", "deadline", "billboard", "people", "imdb", "tmz", "espn", "nba", "nbcsports", "cbssports", "yahoo", "xinhuanet", "chinadaily", "globaltimes", "kyodonews", "japantimes", "mainichi", "sankei", "tass", "rt", "straitstimes", "smh", "theverge", "techcrunch", "wired", "engadget"]);
+import { FOREIGN_OUTLET_KEYS } from "../ui/news-data";
+// 외신 = news-data OUTLET 「// 외신」 묶음 키(한 출처 · 모루 10:13) 또는 외국 나라 끝(.jp .uk …) · 모르는 주소 = 국내(창 기본 fp 0 · 모루 09:43 쿠키뉴스)
 const FOREIGN_TLD = new Set(["jp", "cn", "uk", "fr", "de", "tw", "hk", "ru", "in", "au", "ca", "it", "es", "br", "sg", "nz", "vn", "th", "ph", "id", "my", "mx", "ar", "nl", "se", "ch", "be", "at", "pl", "tr", "il", "ae", "sa", "eg", "za", "ng", "ke"]);
 
 /** 링크가 외신이면 true — 주소 못 읽음 · 모르는 주소 = 국내 */
@@ -13,7 +13,9 @@ export function isForeignUrl(url: string | undefined): boolean {
   if (!host || host.endsWith(".kr")) return false;
   const parts = host.split(".");
   if (FOREIGN_TLD.has(parts[parts.length - 1])) return true;
-  return parts.some((x) => FOREIGN.has(x));
+  const h = `.${host}.`;
+  for (const k of FOREIGN_OUTLET_KEYS) if (h.includes(`.${k}.`)) return true;
+  return false;
 }
 
 export type QuickPreset = { h24: 0 | 1; fp: 0 | 1; mj: 0 | 1; og: 0 | 1; noai: 0 | 1; know: 0 | 1 };

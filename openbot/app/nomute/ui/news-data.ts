@@ -99,6 +99,11 @@ const OUTLET: Record<string, string> = {
   "9to5google": "9to5구글", theverge: "더버지", techcrunch: "테크크런치", engadget: "인가젯", wired: "와이어드", reutersconnect: "로이터", bsky: "블루스카이", "bsky.app": "블루스카이",
   invenglobal: "인벤 글로벌", koreadaily: "미주중앙일보", spotvnews: "스포티비뉴스", knewsla: "케이뉴스LA", tennis: "테니스코리아",
 };
+/** 외신 매체 키 = 위 OUTLET 「// 외신」 · 「// 외신 더」 묶음 키 그대로(뉴스 줄 전송 fp · ../home/quick-send.ts · 모루 10:13 「국내/외신 목록 한 출처로」 · 고칠 땐 위 묶음과 같이 · 시험 tests/quick-send.test.ts 가 어긋남 잡음) */
+export const FOREIGN_OUTLET_KEYS: ReadonlySet<string> = new Set(["9to5google", "aljazeera", "apnews", "asahi", "axios", "bbc", "bild", "billboard", "blog.playstation", "bloomberg", "bostonglobe", "bsky", "bsky.app", "cbssports", "cnbc", "cnn", "corriereadriatico", "deadline", "economist", "engadget", "espn", "espn.co", "famitsu", "foxnews", "france24", "ft", "hochi", "hollywoodreporter", "ilmessaggero", "imdb", "independent", "invenglobal", "knewsla", "koreadaily", "livedoor", "nba", "nbcnews", "nbcsports", "news.com", "news.livedoor", "news.yahoo", "nhk", "nhk.or", "nikkei", "nytimes", "ocregister", "people", "politico", "reuters", "reutersconnect", "rotowire", "scmp", "si", "smithsonianmag", "sports.yahoo", "spotvnews", "techcrunch", "tennis", "theguardian", "theplayerstribune", "thesportingtribune", "theverge", "timesofindia.indiatimes", "tmz", "ubisoft", "umatoku.hochi", "variety", "vavel", "washingtonpost", "wired", "wsj", "yahoo", "yomiuri"]);
+/** 시험용 = OUTLET 키 목록 */
+export const outletKeys = () => Object.keys(OUTLET);
+
 /** 짧은 이름(형 11-07 11:18 「디시인사이드 이런거 풀네임하지말고 > 디시 로 하면됨 에펨도 에펨」) — 서버가 한글 긴 이름으로 줘도 화면엔 이것 */
 const SHORT: Record<string, string> = { 디시인사이드: "디시", 디씨인사이드: "디시", 에펨코리아: "에펨", 펨코: "에펨" };
 /** 매체 이름이 글자째로 올 때(외신 영문 · 일어 · 중어) → 한글 이름 · 소문자 · 「&apos;」 풀어서 비교 */

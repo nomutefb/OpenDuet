@@ -140,21 +140,23 @@ export function NewsList() {
   // 전송 · 픽 = 창 없이 바로 요약 요청(형 11-09 08:14 · 외신이면 fp 저절로 · ./quick-send.ts · 깃 29)) — 접수 한 줄 · 대기열 판 저절로 갱신
   const [sent, setSent] = useState("");
   const qc = useQueryClient();
-  const inflight = useRef(new Set<string>()), seq = useRef(0), clearT = useRef<ReturnType<typeof setTimeout> | null>(null);   // 모루 09:43 ②③ = 같은 기사 두 번 막기 · 요청 번호 · 타이머 하나
-  const say = (id: number, msg: string, hold = 0) => {
-    if (id !== seq.current) return;   // 뒤 요청이 있으면 앞 요청 글은 안 씀(응답 역전)
+  const inflight = useRef(new Set<string>()), seq = useRef(0), shown = useRef(0), clearT = useRef<ReturnType<typeof setTimeout> | null>(null);   // 모루 09:43 ②③ = 같은 기사 두 번 막기 · 요청 번호 · 타이머 하나
+  const say = (id: number, msg: string, hold = 0, force = false) => {
+    if (force) shown.current = id;   // 실패 = 차례와 상관없이 줄을 가져감(뒤 요청 성공에 묻히지 않게 · 모루 10:13 ②)
+    else if (id !== shown.current) return;   // 뒤 요청이 줄을 가졌으면 앞 요청 글은 안 씀(응답 역전)
     setSent(msg);
     if (clearT.current) clearTimeout(clearT.current);
-    clearT.current = hold ? setTimeout(() => { if (id === seq.current) setSent(""); }, hold) : null;
+    clearT.current = hold ? setTimeout(() => { if (id === shown.current) setSent(""); }, hold) : null;
   };
   const go = (title: string, url: string) => {
     const k = url || title;
     if (!k || inflight.current.has(k)) return;   // 보내는 중 같은 기사 = 무시
     inflight.current.add(k);
-    const id = ++seq.current;
+    const id = ++seq.current;   // 번호는 늘 늘기만(겹침 0)
+    shown.current = id;
     say(id, "보내는 중…");
     quickSend(title, url).then(() => { say(id, isForeignUrl(url) ? "요약 요청 접수 · 외신 포함" : "요약 요청 접수", 4000); void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] }); })
-      .catch((err: Error) => say(id, `못 보냈어 · ${err.message}`, 6000))
+      .catch((err: Error) => say(id, `못 보냈어 · ${err.message}`, 6000, true))
       .finally(() => { inflight.current.delete(k); });
   };
   const send = (row: Row) => go(row.title || "", row.meta?.published?.sourceUrl || row.urls?.[0] || "");
