@@ -8,8 +8,14 @@ export const RSS_EVERY = 2, RSS_TOP = 3;   // 맨 위 셋 = 늘 RSS(책임질 �
 /** 긴급보도 = 제목 머리 [속보] · [단독] · [긴급](형 09:35 「순간 배포의 기울기 긴급보도의 그런거로 … 해놓은게 있는데」 · 서버 event_score brk_tag 와 같은 머리표 · 앱 줄엔 서버 점수 칸이 안 와서 제목으로) */
 export const isBreaking = (r: { title?: string }) => /^\s*[[(]\s*(속보|단독|긴급)\s*[\])]/.test(String(r?.title || ""));
 
-export function rssFirst<T extends { type?: string; title?: string }>(rows: T[], every = RSS_EVERY, top = RSS_TOP): T[] {
-  const ranked = rows.filter((r) => r.type === "ranked"), news0 = rows.filter((r) => r.type !== "ranked");
+/** RSS 줄 신선도 = 8시간(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」 · news-list FRESH_MS 와 같은 값) — 형 11-09 12:01 「메인 화면에 옛날 기사 뜨는데 확인 좀」:
+ *  project 의 RSS 차례(alphaOrder)는 신선도를 일부러 뺀 매체 수 순이라, RSS 를 맨 위로 올리자 며칠 된 큰 기사(매체 30 · 136시간)가 맨 위로 옴 → RSS 줄만 8시간 넘은 것 뺌 · 시각 모르는 줄 = 둠(news-list 와 같음) · 순위 묶음 손 0 */
+export const RSS_FRESH_MS = 8 * 3600_000;
+type RowLike = { type?: string; title?: string; meta?: { published?: { at?: string } } };
+export const rssFresh = (r: RowLike, now = Date.now()) => { const t = Date.parse(String(r?.meta?.published?.at || "")); return !Number.isFinite(t) || now - t <= RSS_FRESH_MS; };
+
+export function rssFirst<T extends RowLike>(rows: T[], every = RSS_EVERY, top = RSS_TOP, now = Date.now()): T[] {
+  const ranked = rows.filter((r) => r.type === "ranked"), news0 = rows.filter((r) => r.type !== "ranked" && rssFresh(r, now));
   const news = [...news0.filter(isBreaking), ...news0.filter((r) => !isBreaking(r))];   // RSS 안에서 긴급보도 먼저 · 그 밖 차례 그대로
   if (!news.length || every < 1) return rows;
   const out: T[] = news.slice(0, top);   // 맨 위 top 장 = RSS 만
