@@ -38,29 +38,9 @@ export async function office<T>(path: string, init: RequestInit = {}): Promise<T
   return keepOnly(path, j);
 }
 
-/** 사무실 정리 = 화면엔 일곱 + 형만(형 11-09 봄 창 13:3x 그대로(봄 옮김) 「지금 사무실에 아직도 그록봇애들이랑 다 뜨는데 없애줘」 · 「사무실에 있는 빠르 번개 뎅 뜸 깃 시아 봄 말고 자리 다 없애.」 · 105 · 뜸)
- *   명부(people) · 봇 상태(bots) · 방 목록(rooms 의 1:1 · 둘의 방)에서 뺀 자리를 거름 · 서버 명부·기록 정리는 뒤 판(시험 127장이 그 봇들을 본보기로 씀) */
-export const KEEP = new Set(["형", "빠르", "번개", "뎅", "뜸", "깃", "시아", "봄"]);
-const pairKeep = (id: string) => { const m = /^pair-([a-z]+)-([a-z]+)$/.exec(id); return !m || [m[1], m[2]].every((d) => KEEP_DIRS.has(d)); };
-const KEEP_DIRS = new Set(["deng", "fast", "light", "eyes", "gik", "sia", "bom", "hyung"]);
-/** 남길 방 = 공지 · 회의실 · 일곱+형 1:1 · 일곱 둘의 방(형 11-09 「방을 없애서 다시 팔거야. 공지는 남기고 희이실 남기고 개발자 모임 지워」 · 「기존 톡방도 안보여도대. 그니까 데이터 없앳는데 왜 보이나 해서.」 · 봄 옮김) */
-const ROOM_KEEP = new Set(["notice", "all", "tmp-mw8seuv1", "tmp-mw8senut"]);   // 새 밥상 🍚(옛 정자 · 형 「밥상으로해」) · 부엌 🍳(형 11-09 「부엌이랑 소통공간 두개 만들어」 · 봄 13:5x)
-const roomKeep = (r: { id?: string; with?: string }) => { const id = String(r.id || ""); if (ROOM_KEEP.has(id)) return true; if (r.with) return KEEP.has(r.with); if (id.startsWith("pair-")) return pairKeep(id); return false; };
-export function keepOnly<T>(path: string, j: T): T {
-  const p = path.split("?")[0], o = j as unknown as { people?: OfficePerson[]; bots?: { who?: string }[]; rooms?: { id?: string; with?: string }[] };
-  if (p === "people" && Array.isArray(o.people)) o.people = o.people.filter((x) => KEEP.has(x.who));
-  if (p === "bots" && Array.isArray(o.bots)) o.bots = o.bots.filter((x) => KEEP.has(String(x.who || "")));
-  if (p === "rooms" && Array.isArray(o.rooms)) o.rooms = o.rooms.filter((r) => roomKeep(r));
-  if (p === "status") {   // 우상단 「봇 ok/total」 = 일곱 기준(봄 14:05 실물 「봇 15/17」) · 작동 표 봇 줄도 같은 거름
-    const st = j as unknown as { cats?: { id?: string; rows?: { name?: string; st?: string }[] }[]; line?: { bots?: { ok?: number; total?: number } } };
-    const cat = (st.cats || []).find((c) => c.id === "bots");
-    if (cat && Array.isArray(cat.rows)) {
-      cat.rows = cat.rows.filter((r) => KEEP.has(String(r.name || "")));
-      if (st.line) st.line.bots = { ok: cat.rows.filter((r) => r.st !== "🔴").length, total: cat.rows.length };
-    }
-  }
-  return j;
-}
+/** 사무실 정리 = 일곱 + 형만(형 11-09 「사무실에 있는 빠르 번개 뎅 뜸 깃 시아 봄 말고 자리 다 없애.」 · 105) — 이제 서버가 처음부터 거름(editor _listkeep.js · R2 office/listkeep.json) ·
+ *   앱은 받은 그대로(봄 14:50 형 「깔끔했으면 좋겠어 내가 보는 눈이랑 싱크가」 = 앱·봇이 한 글자도 안 다르게 · 앞 판 = 앱 거름 7bfca76) */
+export function keepOnly<T>(_path: string, j: T): T { return j; }
 
 let peopleP: Promise<OfficePerson[]> | null = null;
 let peopleNow: OfficePerson[] = [];
