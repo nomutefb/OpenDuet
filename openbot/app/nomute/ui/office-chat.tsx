@@ -986,7 +986,8 @@ function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: O
     if (ours(n)) return awake(n, m.ts) && now - m.ts < CALL_FRESH ? [n] : [];   // 우리 = 쉼이면 끔(형 12:48 「쉼이면!」)
     return doing(n) || (woke(m, n) && now - m.ts < PICKUP_WAIT) ? [n] : [];
   }
-  return people.map((p) => p.who).filter((n) => n !== "형").filter((n) => {
+  const inRoom = r.members?.length ? new Set(r.members) : null;   // 멤버를 정한 방 = 지금 멤버만(형 11-09 09:26 「모루 방 멤버에서 제외했는데, 아직 생각중으로 뜨네」 · 빠지기 전 글의 urgent 에 이름이 남아 45분 동안 그렸음)
+  return people.map((p) => p.who).filter((n) => n !== "형" && (!inRoom || inRoom.has(n))).filter((n) => {
     for (let i = list.length - 1; i >= 0 && list[i].who !== n; i--) if ((list[i].mention || []).includes(n) || (list[i].urgent || []).includes(n)) return ours(n) ? awake(n, list[i].ts) && now - list[i].ts < CALL_FRESH : doing(n) ? now - list[i].ts < CALL_FRESH : woke(list[i], n) && now - list[i].ts < PICKUP_WAIT;   // urgent = 「!모두」·임시방 형 글(이름 없이 전원)도 작업 중으로
     return false;
   });
