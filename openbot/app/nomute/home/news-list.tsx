@@ -3,8 +3,9 @@
 //   줄 = 순위 · 제목 · 출처 · 몇 분 전 · 점수 · 끝에 작은 「전송」(= 그 기사로 요약 요청 폼 · send-button.tsx 와 같은 열쇠 nm_ask_prefill → #/ask)
 //   제목 누름 = 원문 새 창(형 11-05 12:27 「링크같은거는 항상 클릭하면 새 창에서」) · 1분마다 다시 받음(보일 때만)
 import "./news-list.css";
-import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { isForeignUrl, quickSend } from "./quick-send";
 import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickOrder, pickUrl } from "./news-feed";
 import { FaceImg } from "../ui/faces";
 import { homePool } from "./home-pool";
@@ -12,7 +13,7 @@ import { cleanTitle } from "./title-clean";
 import { outletName } from "../ui/news-data";   // 공식 매체명(형 11-06 「yna 는 연합일거고, asiae 이건 아시아경제 같고 …」)   // 제목 다듬기 로직(형 11-05 16:14)
 
 type Row = { picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
-const PREFILL_KEY = "nm_ask_prefill", EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
+const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
 // 픽 얼굴(형 11-06 07:4x 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」 · 「틈도 저런식으로」) = 그 기사를 고른 봇 얼굴 · 번호 왼쪽 · 둘 다면 단톡방 겹친 얼굴 꼴(형 「그 단톡방 예전 표기처럼 중첩되게」)
 const PICK_WHO: Record<string, string> = { chok: "촉", teum: "틈" };
@@ -77,7 +78,6 @@ const ago = (at?: string) => {
 };
 
 export function NewsList() {
-  const nav = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [pins, setPins] = useState<Pick[]>([]);
   const [st, setSt] = useState<"loading" | "ready" | "empty" | "error">("loading");
@@ -131,16 +131,17 @@ export function NewsList() {
     const t = setInterval(() => { if (!document.hidden) void load(); }, EVERY);
     return () => { live = false; clearInterval(t); };
   }, []);
-  const send = (row: Row) => {
-    const url = row.meta?.published?.sourceUrl || row.urls?.[0] || "";
-    try { sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ text: [row.title, url].filter(Boolean).join("\n"), link: url, media: row.meta?.published?.sourceName || "" })); } catch { /* 빈 폼 */ }
-    void nav({ to: "/ask" });
+  // 전송 · 픽 = 창 없이 바로 요약 요청(형 11-09 08:14 · 외신이면 fp 저절로 · ./quick-send.ts · 깃 29)) — 접수 한 줄 · 대기열 판 저절로 갱신
+  const [sent, setSent] = useState("");
+  const qc = useQueryClient();
+  const go = (title: string, url: string) => {
+    setSent("보내는 중…");
+    quickSend(title, url).then(() => { setSent(isForeignUrl(url) ? "요약 요청 접수 · 외신 포함" : "요약 요청 접수"); void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] }); })
+      .catch((err: Error) => setSent(`못 보냈어 · ${err.message}`))
+      .finally(() => { setTimeout(() => setSent(""), 4000); });
   };
-  const sendPick = (p: Pick) => {
-    const url = (p.urls || [])[0] || p.url || "";
-    try { sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ text: [p.title_clean || cleanTitle(p.title), url].filter(Boolean).join("\n"), link: url, media: pickOutlet(p) })); } catch { /* 빈 폼 */ }
-    void nav({ to: "/ask" });
-  };
+  const send = (row: Row) => go(row.title || "", row.meta?.published?.sourceUrl || row.urls?.[0] || "");
+  const sendPick = (p: Pick) => go(p.title_clean || cleanTitle(p.title), (p.urls || [])[0] || p.url || "");
   const openPick = (p: Pick) => { const url = (p.urls || [])[0] || p.url; if (url) window.open(url, "_blank", "noopener"); };
   const open = (row: Row) => {
     const url = row.meta?.published?.sourceUrl || row.urls?.[0];
@@ -148,6 +149,7 @@ export function NewsList() {
   };
   return (
     <section className="nm-nlist" aria-label="실시간 뉴스">
+      {sent ? <p className="nm-nlist-sent" role="status">{sent}</p> : null}
       <div className="nm-nlist-h"><i className="live" aria-hidden /><b>Hot Issue</b><span>{st === "ready" && gotAt ? agoOf(gotAt, now) : ""}</span></div>   {/* 「N건」 → 「N분 전」(형 11-08 09:12 「hotissue 40건,< ㅣ건 의미없고 이것도 몇분전에 받아왓는지가 중요」 · Runner · SNS · Digest 와 같은 말) */}
       {pins.length ? (
         <ul className="nm-nlist-pin" aria-label="촉 · 틈 픽">

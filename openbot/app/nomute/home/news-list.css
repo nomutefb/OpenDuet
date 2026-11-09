@@ -59,3 +59,6 @@
 .nm-nlist-pin li.age4, .nm-nlist-ol li.age4 { filter:brightness(.75); }
 .nm-nlist-pin li.age6, .nm-nlist-ol li.age6 { filter:brightness(.5); }
 .nm-nlist-pin li.age4:hover, .nm-nlist-pin li.age6:hover, .nm-nlist-ol li.age4:hover, .nm-nlist-ol li.age6:hover { filter:none; }
+/* 전송 · 픽 접수 한 줄(깃 29) · 형 11-09 08:14 「창 또 안 떠도」) */
+.nm-nlist-sent { margin:0 0 6px; padding:4px 10px; border-radius:999px; width:fit-content; font-size:11px; color:var(--mut); background:rgba(255,255,255,.06); }
+:root:not(.dark) .nm-nlist-sent { background:rgba(0,0,0,.05); }
