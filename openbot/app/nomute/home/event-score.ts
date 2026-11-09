@@ -5,7 +5,16 @@
 export type NewsEvent = { title?: string; s: number; why?: string; at?: string; brk?: boolean; keys: string[]; m?: string };   // m = 같은 사건 열쇠(event_merge merge_id · 서버 ?f=event)
 export type EventHit = { id: string; s: number; why: string; brk: boolean };   // id = 같은 사건 열쇠(merge_id · 없으면 묶음 차례) — 쪼개진 묶음도 같은 사건이면 같은 id(평의회 11-09 「젠슨황 두 묶음」)
 
-const bare = (u: string) => u.trim().replace(/^https?:\/\/(?:www\.|m\.)?/i, "").replace(/#.*$/, "").replace(/\/+$/, "").toLowerCase();
+// 주소 꼴 맞추기 = 앞(https://www.) · 끝 / · # · 추적 꼬리(utm_* · fbclid 등)만 뗌 — 쿼리 통째로 떼면 「articleView.html?idxno=…」 꼴 기사들이 다 같은 주소로 뭉침
+//   (형 11-09 14:0x 화면 = 다른 기사 9줄이 다 84점 · 빠르 실물: sisajournal articleView.html 하나로 17줄이 젠슨황 묶음에 붙음)
+const TRACK = /^(?:utm_[a-z]+|fbclid|gclid|ref|from|sid|mid|section|cmpid|ocid|rssid|outlink)$/i;
+const bare = (u: string) => {
+  const t = u.trim().replace(/#.*$/, "");
+  const q = t.indexOf("?");
+  const head = (q < 0 ? t : t.slice(0, q)).replace(/^https?:\/\/(?:www\.|m\.)?/i, "").replace(/\/+$/, "");
+  const keep = q < 0 ? [] : t.slice(q + 1).split("&").filter((kv) => kv && !TRACK.test(kv.split("=")[0]));
+  return (head + (keep.length ? "?" + keep.sort().join("&") : "")).toLowerCase();
+};
 
 /** 순수 — 기사 주소 → 사건 묶음 열쇠들(네이버 = oid:aid · 네이트 = 기사 id · 그 밖 = rss:주소(쿼리 뗀 꼴도)) */
 export function eventKeysOfUrl(u0?: string): string[] {
@@ -17,7 +26,7 @@ export function eventKeysOfUrl(u0?: string): string[] {
   const nt = /news\.nate\.com\/view\/(\d{8}n\d+)/i.exec(u);
   if (nt) out.push(`natenews:${nt[1]}`);
   const b = bare(u);
-  out.push("rss:" + b, "rss:" + b.replace(/\?.*$/, ""));
+  out.push("rss:" + b);
   return [...new Set(out)];
 }
 
@@ -29,7 +38,7 @@ export function eventIndex(events: NewsEvent[] | null | undefined): Map<string, 
     const hit = { id: e.m ? "m:" + e.m : "#" + id, s: e.s, why: String(e.why || ""), brk: !!e.brk };
     for (const k0 of e.keys) {
       const k = typeof k0 === "string" && k0.startsWith("rss:") ? "rss:" + bare(k0.slice(4)) : String(k0 || "");
-      for (const kk of k.startsWith("rss:") ? [k, k.replace(/\?.*$/, "")] : [k]) { const cur = m.get(kk); if (!cur || cur.s < hit.s) m.set(kk, hit); }
+      const cur = m.get(k); if (!cur || cur.s < hit.s) m.set(k, hit);
     }
   });
   return m;

@@ -9,13 +9,16 @@ test("주소 → 열쇠: 네이버 oid:aid · 네이트 id · 그 밖 rss(쿼리
   assert.ok(eventKeysOfUrl("https://m.news.nate.com/view/20261109n05529?mid=m03").includes("natenews:20261109n05529"));
   assert.ok(eventKeysOfUrl("https://www.yna.co.kr/view/AKR20261109024500004?section=x").includes("rss:yna.co.kr/view/akr20261109024500004"));
   assert.deepEqual(eventKeysOfUrl(""), []);
+  // 쿼리로 기사를 가리는 주소 = 다른 기사는 다른 열쇠(형 11-09 화면 「다 84점」)
+  assert.notDeepEqual(eventKeysOfUrl("https://www.sisajournal.com/news/articleView.html?idxno=393225"), eventKeysOfUrl("https://www.sisajournal.com/news/articleView.html?idxno=1"));
+  assert.deepEqual(eventKeysOfUrl("https://a.kr/news/articleView.html?idxno=7&utm_source=x"), eventKeysOfUrl("https://www.a.kr/news/articleView.html?idxno=7"));
 });
 
 test("줄 = 그 줄 주소 중 가장 높은 사건 점수 · 차례 = 점수 큰 것부터 · 못 맞춘 줄 = 끝 · 빠지는 줄 0", () => {
   const idx = eventIndex([
     { s: 69.7, why: "69.7(2위)", brk: true, keys: ["naver:001:0016430119", "rss:https://www.yna.co.kr/view/AKR20261109024500004"] },
     { s: 85.2, keys: ["rss:https://www.sedaily.com/article/20111763"] },
-    { s: 12, keys: ["rss:https://a.kr/x?utm=1"] },
+    { s: 12, keys: ["rss:https://a.kr/x?utm_source=1"] },
   ]);
   const rows = [
     { k: "커뮤", urls: ["https://dcinside.com/1"] },

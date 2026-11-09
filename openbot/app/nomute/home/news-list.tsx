@@ -133,6 +133,10 @@ export function NewsList() {
       // 점수 차례(뜸 34) = 토글 고른 기기만 · 기본(RSS 바탕)은 rssFirst 가 섞은 차례 그대로(다시 점수로 뭉치면 커뮤가 또 위로 · 뜸 09:41 · 깃 42))
       const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).sort(a ? byScore : () => 0);   /* 점수 차례로 쭉(형 11-09 09:21) */
       for (const x of list) if (x && /^네이버(?:뉴스)?$/.test(x.src || "")) { const nv = [x.meta?.published?.sourceUrl || "", ...(x.urls || []), ...(x.items || []).map((it) => it.url || "")].map(naverOutlet).find(Boolean); if (nv) x.src = nv; }   // 순위표도 「네이버뉴스」 = 기사 주소 언론사 번호로 진짜 매체(형 11-06 16:41)
+      for (const x of list) if (x && /^네이버/.test(x.src || "")) {   // 기사 주소로도 못 바꾼 「네이버」 = 언론사 아님(형 11-09 14:0x 화면 1위 「네이버」 · 「네이버 < 이거는 언론사가 아닌데 … 대체되게」) → 묶음 안 다른 기사 주소의 언론사 · 없으면 빈 칸
+        const alt = [...(x.urls || []), ...(x.items || []).map((it) => it.url || "")].map((u) => { const h = String(u || "").replace(/^https?:\/\/(?:www\.|m\.)?/i, "").replace(/[/?#].*$/, "").toLowerCase(); return h && !/naver\.com$/.test(h) ? outletName(h) : ""; }).find((n) => !!n && !/^네이버/.test(n));
+        x.src = alt || "";
+      }
       // 뉴스 알고리즘 점수(./event-score.ts · 서버 회차 = 30분 · 2분에 한 번만 받음) — 맞춘 줄 = 그 점수 · 점수 큰 것부터 · 못 맞춘 줄 = 점수 칸 비움 · 끝에 앞 차례 그대로 · 못 받으면 앞 꼴 그대로
       if (!eventsAt || Date.now() - eventsAt > 2 * 60_000) {
         const ev = await firstJson<{ events?: NewsEvent[] }>(["/api/trends?f=event"], (v) => !!v && Array.isArray(v.events) && v.events.length > 0);
