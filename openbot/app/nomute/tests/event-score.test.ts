@@ -28,6 +28,9 @@ test("줄 = 그 줄 주소 중 가장 높은 사건 점수 · 차례 = 점수 �
   assert.equal(eventOf(rows[1], idx)?.s, 12);
   assert.equal(eventOf(rows[0], idx), null);
   assert.deepEqual(byEvent(rows, (r) => eventOf(r, idx)).map((r) => r.k), ["묶음", "속보", "낮음", "커뮤"]);
+  // 같은 사건 둘 = 앞 줄 하나만(형 12:5x 「중복되는거는 하나씩만」)
+  const dup = [...rows, { k: "속보2", urls: ["https://www.yna.co.kr/view/AKR20261109024500004"] }];
+  assert.deepEqual(byEvent(dup, (r) => eventOf(r, idx)).map((r) => r.k), ["묶음", "속보", "낮음", "커뮤"]);
 });
 
 test("점수 없음 = 그대로", () => {

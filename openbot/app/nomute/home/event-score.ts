@@ -3,7 +3,7 @@
 //   앞 판: 줄 점수 = 커뮤 묶음(overlap) 점수만 · RSS 기사 줄 = 점수 0칸 · 차례 = 매체 수 순(rssFirst) → 화면 숫자와 차례가 따로 놂 · 뉴스 알고리즘 점수는 아예 안 읽음
 //   이 판: 줄 주소(기사 · 묶음 기사 · 발행 주소)를 사건 묶음 열쇠(rss:<주소> · naver:<oid>:<aid> · natenews:<id>)로 맞춰 그 점수를 달고 · 점수 큰 것부터 · 못 맞춘 줄 = 끝(앞 차례 그대로) · 빠지는 줄 0
 export type NewsEvent = { title?: string; s: number; why?: string; at?: string; brk?: boolean; keys: string[] };
-export type EventHit = { s: number; why: string; brk: boolean };
+export type EventHit = { id: number; s: number; why: string; brk: boolean };   // id = 사건 묶음 차례(같은 사건 = 같은 id)
 
 const bare = (u: string) => u.trim().replace(/^https?:\/\/(?:www\.|m\.)?/i, "").replace(/#.*$/, "").replace(/\/+$/, "").toLowerCase();
 
@@ -24,14 +24,14 @@ export function eventKeysOfUrl(u0?: string): string[] {
 /** 순수 — 사건 목록 → 열쇠 지도(같은 열쇠가 둘이면 점수 큰 쪽) */
 export function eventIndex(events: NewsEvent[] | null | undefined): Map<string, EventHit> {
   const m = new Map<string, EventHit>();
-  for (const e of Array.isArray(events) ? events : []) {
-    if (!e || !Number.isFinite(e.s) || !Array.isArray(e.keys)) continue;
-    const hit = { s: e.s, why: String(e.why || ""), brk: !!e.brk };
+  (Array.isArray(events) ? events : []).forEach((e, id) => {
+    if (!e || !Number.isFinite(e.s) || !Array.isArray(e.keys)) return;
+    const hit = { id, s: e.s, why: String(e.why || ""), brk: !!e.brk };
     for (const k0 of e.keys) {
       const k = typeof k0 === "string" && k0.startsWith("rss:") ? "rss:" + bare(k0.slice(4)) : String(k0 || "");
       for (const kk of k.startsWith("rss:") ? [k, k.replace(/\?.*$/, "")] : [k]) { const cur = m.get(kk); if (!cur || cur.s < hit.s) m.set(kk, hit); }
     }
-  }
+  });
   return m;
 }
 
@@ -45,10 +45,11 @@ export function eventOf(row: RowLike, idx: Map<string, EventHit>): EventHit | nu
   return best;
 }
 
-/** 순수 — 점수 단 줄 = 점수 큰 것부터(같으면 앞 차례) · 못 맞춘 줄 = 끝에 앞 차례 그대로 · 빠지는 줄 0 */
+/** 순수 — 점수 단 줄 = 점수 큰 것부터(같으면 앞 차례) · 같은 사건 = 한 줄만(맨 앞 줄 · 형 11-09 12:5x 「핫 이슈에 중복되는거는 하나씩만 나오게하고」) · 못 맞춘 줄 = 끝에 앞 차례 그대로 */
 export function byEvent<T>(rows: T[], hitOf: (r: T) => EventHit | null): T[] {
-  const scored: [T, number, number][] = [], rest: T[] = [];
-  rows.forEach((r, i) => { const h = hitOf(r); if (h) scored.push([r, h.s, i]); else rest.push(r); });
-  scored.sort((a, b) => b[1] - a[1] || a[2] - b[2]);
-  return [...scored.map((x) => x[0]), ...rest];
+  const scored: [T, EventHit, number][] = [], rest: T[] = [];
+  rows.forEach((r, i) => { const h = hitOf(r); if (h) scored.push([r, h, i]); else rest.push(r); });
+  scored.sort((a, b) => b[1].s - a[1].s || a[2] - b[2]);
+  const seen = new Set<number>();
+  return [...scored.filter(([, h]) => (seen.has(h.id) ? false : (seen.add(h.id), true))).map((x) => x[0]), ...rest];
 }
