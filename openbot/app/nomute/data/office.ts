@@ -43,11 +43,13 @@ export async function office<T>(path: string, init: RequestInit = {}): Promise<T
 export const KEEP = new Set(["형", "빠르", "번개", "뎅", "뜸", "깃", "시아", "봄"]);
 const pairKeep = (id: string) => { const m = /^pair-([a-z]+)-([a-z]+)$/.exec(id); return !m || [m[1], m[2]].every((d) => KEEP_DIRS.has(d)); };
 const KEEP_DIRS = new Set(["deng", "fast", "light", "eyes", "gik", "sia", "bom", "hyung"]);
+/** 남길 방 = 공지 · 회의실 · 일곱+형 1:1 · 일곱 둘의 방(형 11-09 「방을 없애서 다시 팔거야. 공지는 남기고 희이실 남기고 개발자 모임 지워」 · 「기존 톡방도 안보여도대. 그니까 데이터 없앳는데 왜 보이나 해서.」 · 봄 옮김) */
+const roomKeep = (r: { id?: string; with?: string }) => { const id = String(r.id || ""); if (id === "notice" || id === "all") return true; if (r.with) return KEEP.has(r.with); if (id.startsWith("pair-")) return pairKeep(id); return false; };
 export function keepOnly<T>(path: string, j: T): T {
   const p = path.split("?")[0], o = j as unknown as { people?: OfficePerson[]; bots?: { who?: string }[]; rooms?: { id?: string; with?: string }[] };
   if (p === "people" && Array.isArray(o.people)) o.people = o.people.filter((x) => KEEP.has(x.who));
   if (p === "bots" && Array.isArray(o.bots)) o.bots = o.bots.filter((x) => KEEP.has(String(x.who || "")));
-  if (p === "rooms" && Array.isArray(o.rooms)) o.rooms = o.rooms.filter((r) => (!r.with || KEEP.has(r.with)) && pairKeep(String(r.id || "")));
+  if (p === "rooms" && Array.isArray(o.rooms)) o.rooms = o.rooms.filter((r) => roomKeep(r));
   return j;
 }
 
