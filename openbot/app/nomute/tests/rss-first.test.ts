@@ -18,9 +18,9 @@ test("맨 위 셋 = 늘 RSS(책임질 기사 · 형 09:35) · 그 뒤 묶음 1 �
   assert.deepEqual(rssFirst(rows).map((r) => r.k), ["n1", "n2", "n3", "c1", "n4", "n5", "c2", "n6", "n7"]);
 });
 
-test("긴급보도([속보]·[단독]·[긴급]) = RSS 안에서 먼저 · 그 밖 차례 그대로", () => {
+test("머리표([속보]·[단독]) = 차례에 안 씀(형 11-09 「속보라는 타이틀 언론사에서 자체적으로 붙인거는 아무 의미없음」) · 받은 차례 그대로", () => {
   const rows = [{ type: "existing", k: "n1", title: "평범 1" }, { type: "existing", k: "n2", title: "[속보] 지진" }, { type: "existing", k: "n3", title: "평범 3" }, { type: "existing", k: "n4", title: "[단독] 문건" }, { type: "ranked", k: "c1", title: "커뮤" }];
-  assert.deepEqual(rssFirst(rows).map((r) => r.k), ["n2", "n4", "n1", "c1", "n3"]);
+  assert.deepEqual(rssFirst(rows).map((r) => r.k), ["n1", "n2", "n3", "c1", "n4"]);
   assert.equal(isBreaking({ title: "(긴급) 대피" }), true);
   assert.equal(isBreaking({ title: "속보 아님 [속보]" }), false);
 });

@@ -31,6 +31,10 @@ test("줄 = 그 줄 주소 중 가장 높은 사건 점수 · 차례 = 점수 �
   // 같은 사건 둘 = 앞 줄 하나만(형 12:5x 「중복되는거는 하나씩만」)
   const dup = [...rows, { k: "속보2", urls: ["https://www.yna.co.kr/view/AKR20261109024500004"] }];
   assert.deepEqual(byEvent(dup, (r) => eventOf(r, idx)).map((r) => r.k), ["묶음", "속보", "낮음", "커뮤"]);
+  // 쪼개진 두 묶음이라도 같은 사건 열쇠(m) = 한 줄(점수 큰 쪽 · 평의회 11-09 젠슨황 83.7 · 41.3)
+  const idx2 = eventIndex([{ s: 83.7, m: "jensen", keys: ["rss:https://a.kr/j1"] }, { s: 41.3, m: "jensen", keys: ["rss:https://a.kr/j2"] }, { s: 50, keys: ["rss:https://a.kr/o"] }]);
+  const r2 = [{ k: "옛", urls: ["https://a.kr/j2"] }, { k: "딴", urls: ["https://a.kr/o"] }, { k: "새", urls: ["https://a.kr/j1"] }];
+  assert.deepEqual(byEvent(r2, (r) => eventOf(r, idx2)).map((r) => r.k), ["새", "딴"]);
 });
 
 test("점수 없음 = 그대로", () => {

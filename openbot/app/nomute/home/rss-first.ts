@@ -16,7 +16,7 @@ export const rssFresh = (r: RowLike, now = Date.now()) => { const t = Date.parse
 
 export function rssFirst<T extends RowLike>(rows: T[], every = RSS_EVERY, top = RSS_TOP, now = Date.now()): T[] {
   const ranked = rows.filter((r) => r.type === "ranked"), news0 = rows.filter((r) => r.type !== "ranked" && rssFresh(r, now));
-  const news = [...news0.filter(isBreaking), ...news0.filter((r) => !isBreaking(r))];   // RSS 안에서 긴급보도 먼저 · 그 밖 차례 그대로
+  const news = news0;   // 머리표([속보]·[단독]) 먼저 세우기 뺌 — 형 11-09 13:5x 「속보라는 타이틀 언론사에서 자체적으로 붙인거는 아무 의미없음. 실제 로는 퍼진정도가 유ㅜ의미」 · 차례 = 뉴스 알고리즘 점수(event-score.ts)
   if (!news.length || every < 1) return rows;
   const out: T[] = news.slice(0, top);   // 맨 위 top 장 = RSS 만
   news.slice(top).forEach((n, i) => {
