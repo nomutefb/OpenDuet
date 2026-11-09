@@ -17,8 +17,8 @@ html[data-home-in] .nm-send-dock { animation:nmHomeInFade .6s cubic-bezier(.2,.7
 @keyframes nmHomeInFade { from { opacity:0; } }
 html[data-home-in] .ynav { animation-delay:.15s; }
 @media (prefers-reduced-motion:reduce) { html[data-home-in] .nm-pulse, html[data-home-in] .nm-arrived, html[data-home-in] .ynav, html[data-home-in] .nm-send-dock { animation:none; } }
-/* 앱 처음 열 때 덮개(형 16:48 「그 전에 아예 메인 로고 창이나 그런거로 덮는게 어떤지」) = 화면 전체(네비 위) 아이콘 뒤 남색(#08295e = icon-512 가장자리 실측 · 형 17:0x 「저 배경색을 전면으로 다 깔아주라.」 · 그림자 뺌 = 아이콘이 바탕에 녹음) + 가운데 앱 아이콘 · 카드 첫 판 뒤 스르륵 걷힘 · 걷힌 뒤 안 눌림 */
-.nm-home-splash { position:fixed; inset:0; z-index:80; display:grid; place-items:center; background:#08295e; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .5s cubic-bezier(.2,.7,.3,1), visibility 0s linear .5s; }
+/* 앱 처음 열 때 덮개(형 16:48 「그 전에 아예 메인 로고 창이나 그런거로 덮는게 어떤지」) = 화면 전체(네비 위) 아이콘 뒤 바탕(11-09 봄 얼굴로 바뀜 = #F4D2B0 노을빛 · 형 13:2x 「봄의얼굴 테마로 바꿔」 · 앞 = 남색 #08295e = 윈터 icon-512 가장자리 실측 · 형 17:0x 「저 배경색을 전면으로 다 깔아주라.」 · 그림자 뺌 = 아이콘이 바탕에 녹음) + 가운데 앱 아이콘 · 카드 첫 판 뒤 스르륵 걷힘 · 걷힌 뒤 안 눌림 */
+.nm-home-splash { position:fixed; inset:0; z-index:80; display:grid; place-items:center; background:#F4D2B0; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .5s cubic-bezier(.2,.7,.3,1), visibility 0s linear .5s; }
 .nm-home-splash img { width:88px; height:88px; border-radius:24px; animation:nmSplashBreath 2.4s ease-in-out infinite; }
 @keyframes nmSplashBreath { 50% { transform:scale(1.04); } }
 html[data-home-wait] .nm-home-splash { opacity:1; visibility:visible; pointer-events:auto; transition:none; }
@@ -31,7 +31,7 @@ html[data-deck-in] .nm-send-dock { animation:nmHomeInFade .5s cubic-bezier(.2,.7
 /* 진입 화면 가득 판(./intro.tsx fit cover · 뜸 그림·영상) */
 .nm-intro-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 /* 앱 안 진입 화면(./intro.tsx AppIntro) = 홈 인트로와 같은 꼴 · 0.5초 걷힘 */
-.nm-app-intro { position:fixed; inset:0; z-index:80; display:grid; place-items:center; background:#08295e; transition:opacity .5s cubic-bezier(.2,.7,.3,1); }
+.nm-app-intro { position:fixed; inset:0; z-index:80; display:grid; place-items:center; background:#F4D2B0; transition:opacity .5s cubic-bezier(.2,.7,.3,1); }
 .nm-app-intro img:not(.nm-intro-cover) { width:88px; height:88px; border-radius:24px; animation:nmSplashBreath 2.4s ease-in-out infinite; }
 .nm-app-intro.out { opacity:0; pointer-events:none; }
 @media (prefers-reduced-motion:reduce) { .nm-app-intro, .nm-app-intro img { transition:none; animation:none; } }

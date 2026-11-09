@@ -8,7 +8,7 @@
   "scope": "/office-app/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#08295e",
+  "background_color": "#F4D2B0",
   "theme_color": "#111111",
   "share_target": {
     "action": "/office-app/share",

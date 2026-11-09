@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 export type IntroItem = { src: string; kind?: "img" | "video"; fit?: "icon" | "cover"; bg?: string };
 
-const ICON: IntroItem = { src: "/office-app/icon-192.png", fit: "icon", bg: "#08295e" };   // 윈터 얼굴 = 지금 그대로
+const ICON: IntroItem = { src: "/office-app/icon-192.png", fit: "icon", bg: "#F4D2B0" };   // 봄 얼굴(형 11-09 13:2x 시아 창 「봄의 정원에 윈터 얼굴 안나오게하고, 봄의얼굴 테마로 바꿔」 · 앞 = 윈터 얼굴 · 남색 #08295e) · 바탕 = 봄 얼굴 노을빛
 export const INTRO_MAIN: IntroItem[] = [ICON];   // 뜸 그림 오면 예: { src: "/office-app/intro/garden-1.webp", fit: "cover" } · { src: "/office-app/intro/garden-2.mp4", kind: "video", fit: "cover" }
 export const INTRO_APP: IntroItem[] = [ICON];
 
