@@ -109,3 +109,5 @@ export const stateKo = (s: string) => (s === "active" ? "켜짐" : s ? `꺼짐($
 export const toggleOf = (s: string): "on" | "off" => (s === "active" ? "off" : "on");
 /** 서버가 손댈 수 있는 잡인가(깃허브 워크플로) — 몸 안 잡은 주인 칩만(시아 11-09 08:55 ③) */
 export const ghJob = (j: RunnerJob) => j.host === "github" && /^gh:/.test(String(j.src || "")) && /\.ya?ml$/i.test(j.file || "");
+/** 서버 답이 지금 보는 잡의 것인가(늦게 온 답을 다른 잡 판에 안 넣게 · 모루 11-09 09:32 ③) */
+export const sameJob = (want: string, got?: string) => !!want && want === got;

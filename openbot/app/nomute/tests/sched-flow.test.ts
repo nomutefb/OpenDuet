@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { type Rect, flowOf, ghJob, modelKo, routeEdge, routeRail, stateKo, stem, timeKey, toggleOf } from "../ui/sched-flow-core.ts";
+import { type Rect, flowOf, ghJob, modelKo, routeEdge, routeRail, sameJob, stateKo, stem, timeKey, toggleOf } from "../ui/sched-flow-core.ts";
 import type { RunnerJob, SchedRunners } from "../ui/settings-extra.tsx";
 
 // 러너 스케줄 흐름 그림 셈(봄 배분 19 · 시아 05:17 ②: 선 = after/calls 있는 것만 · 선 없는 잡은 시각 순 왼→오 · after 값은 .yml 없는 줄기 이름)
@@ -118,4 +118,11 @@ test("바꾸기 판 순수 칸 = 상태 말 · 켬끔 다음 할 일 · 서버�
   assert.equal(ghJob(job("a", "f", { host: "github", src: "gh:a.yml" })), true);
   assert.equal(ghJob(job("b", "f", { host: "mac", src: "launchd:b", file: "" })), false);
   assert.equal(ghJob(job("c", "f", { host: "github" })), false);   // src 없음 = 모름 → 손 안 댐
+});
+
+test("늦게 온 답은 그 잡 판에만(모루 09:32 ③) — 지금 잡 파일과 답 파일이 같을 때만 받음", () => {
+  assert.equal(sameJob("breaking-judge.yml", "breaking-judge.yml"), true);
+  assert.equal(sameJob("news-analyze.yml", "breaking-judge.yml"), false);   // A 를 미리 보다 B 로 간 뒤 온 A 답
+  assert.equal(sameJob("breaking-judge.yml", undefined), false);
+  assert.equal(sameJob("", ""), false);
 });

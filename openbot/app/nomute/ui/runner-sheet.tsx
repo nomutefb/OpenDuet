@@ -2,12 +2,14 @@
 //   블록 누름 → 폰 = 아래서 올라오는 판 · PC = 가운데 판(같은 칸) · 서버 POST schedule/runner(editor #3015 · 형만 · dry 먼저)
 //   칸 = 상태(켜짐·꺼짐) · 켬끔 스위치 · 「지금 돌리기」 · 미리 보기 한 줄(끔 = 빨강 + 뒤따름 수) → 「적용」 · 최근 한 일 · 몸 안 잡 = 회색 글 + 주인 칩(스위치 없음)
 //   3단(언제 · 모델 · 복사 · 검토로)은 여기 아님
-import { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { office } from "../data/office";
 import { Breaker, StatusDot, stOf } from "./sched-bits";
 import { type RunnerJob, nextShort } from "./settings-extra";
 import { whenOf } from "./sched-runners";
-import { ACTION_KO, type RunnerRes, ghJob, stateKo, toggleOf } from "./sched-flow-core";
+import { ACTION_KO, type RunnerRes, ghJob, sameJob, stateKo, toggleOf } from "./sched-flow-core";
 
 const post = (file: string, action: string, dry: boolean) => office<RunnerRes>("schedule/runner", { method: "POST", body: JSON.stringify({ action, file, dry }) });
 const whenKo = (ts: number) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
@@ -15,36 +17,58 @@ const whenKo = (ts: number) => { const d = new Date(ts); return `${String(d.getM
 export function RunnerSheet({ job, can, phone, onClose, onRan }: { job: RunnerJob; can: boolean; phone: boolean; onClose: () => void; onRan: (id: string) => void }) {
   const gh = ghJob(job);
   const [res, setRes] = useState<RunnerRes | null>(null), [busy, setBusy] = useState(""), [msg, setMsg] = useState("");
-  const [pre, setPre] = useState<{ action: "run" | "on" | "off"; would: string; red: boolean } | null>(null);   // dry 미리 보기 → 「적용」 기다리는 중
-  useEffect(() => {   // 열면 지금 상태 한 번(깃허브 잡만 · 서버 = GET 하나)
-    let live = true;
+  const [pre, setPre] = useState<{ file: string; action: "run" | "on" | "off"; would: string; red: boolean } | null>(null);   // dry 미리 보기 → 「적용」 기다리는 중(file = 미리 본 그 잡 · 모루 09:32 ③)
+  const cur = useRef(job.file), sheet = useRef<HTMLElement>(null);
+  useEffect(() => {   // 열면 지금 상태 한 번(깃허브 잡만 · 서버 = GET 하나) · 잡이 바뀌면 앞 잡 답은 버림(모루 ③ · 늦은 답이 다른 잡 판에 들어가던 길)
+    cur.current = job.file;
     setRes(null); setPre(null); setMsg("");
     if (!gh) return;
-    post(job.file, "state", false).then((r) => { if (live) setRes(r); }).catch((e) => { if (live) setMsg(e instanceof Error ? e.message : String(e)); });
-    return () => { live = false; };
+    const want = job.file;
+    post(want, "state", false).then((r) => { if (cur.current === want && sameJob(want, r.file)) setRes(r); }).catch((e) => { if (cur.current === want) setMsg(e instanceof Error ? e.message : String(e)); });
   }, [job.file, gh]);
-  const state = res?.state || "";
-  const ask = async (action: "run" | "on" | "off") => {   // 먼저 dry = 「이렇게 돼」 한 줄
-    setBusy(action); setMsg("");
-    try { const r = await post(job.file, action, true); if (!r.ok) { setMsg(r.why || r.error || "안 됨"); setPre(null); } else setPre({ action, would: r.would || "", red: !!r.red }); }
-    catch (e) { setMsg(e instanceof Error ? e.message : String(e)); }
-    finally { setBusy(""); }
+  useEffect(() => {   // 판 = Escape 로 닫힘 · 첫 포커스는 닫기 단추 · 닫히면 포커스 제자리(모루 ②)
+    const prev = document.activeElement as HTMLElement | null;
+    sheet.current?.querySelector<HTMLElement>("button")?.focus();
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } };
+    window.addEventListener("keydown", k);
+    return () => { window.removeEventListener("keydown", k); prev?.focus?.(); };
+  }, [onClose]);
+  const trap = (e: React.KeyboardEvent) => {   // Tab 은 판 안에서만 돎(모루 ②)
+    if (e.key !== "Tab" || !sheet.current) return;
+    const f = [...sheet.current.querySelectorAll<HTMLElement>("button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")];
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   };
-  const apply = async () => {   // 「적용」 = 진짜로
-    if (!pre) return;
+  const state = res?.state || "";
+  const ask = async (action: "run" | "on" | "off") => {   // 먼저 dry = 「이렇게 돼」 한 줄 · 답은 그 잡 판에만(모루 ③)
+    const want = job.file;
+    setBusy(action); setMsg("");
+    try {
+      const r = await post(want, action, true);
+      if (cur.current !== want || !sameJob(want, r.file)) return;   // 그새 다른 잡으로 갔으면 버림
+      if (!r.ok) { setMsg(r.why || r.error || "안 됨"); setPre(null); } else setPre({ file: want, action, would: r.would || "", red: !!r.red });
+    } catch (e) { if (cur.current === want) setMsg(e instanceof Error ? e.message : String(e)); }
+    finally { if (cur.current === want) setBusy(""); }
+  };
+  const apply = async () => {   // 「적용」 = 진짜로 · 미리 본 그 잡(pre.file)으로만
+    if (!pre || pre.file !== job.file) { setPre(null); return; }
+    const want = pre.file;
     setBusy("apply"); setMsg("");
     try {
-      const r = await post(job.file, pre.action, false);
+      const r = await post(want, pre.action, false);
+      if (cur.current !== want || !sameJob(want, r.file)) return;
       if (!r.ok) { setMsg(r.why || r.error || "안 됨"); return; }
       setRes(r); setPre(null); setMsg(pre.action === "run" ? "띄웠어 — 끝은 상태 점으로" : `${ACTION_KO[pre.action]} 됐어`);
       if (pre.action === "run") onRan(job.id);
-    } catch (e) { setMsg(e instanceof Error ? e.message : String(e)); }
-    finally { setBusy(""); }
+    } catch (e) { if (cur.current === want) setMsg(e instanceof Error ? e.message : String(e)); }
+    finally { if (cur.current === want) setBusy(""); }
   };
   const on = state === "active", st = stOf(job.health, job.on === false);
-  return (
-    <div className="nm-rsheet-back" role="presentation" onClick={onClose}>
-      <section className="nm-rsheet" data-phone={phone || undefined} role="dialog" aria-modal="true" aria-label={`${job.name} 바꾸기`} onClick={(e) => e.stopPropagation()}>
+  return createPortal(   /* 몸(body) 밖으로 = 화면 전체 가운데 · 뒤 흐름 그림은 inert(sched-flow) · 토큰은 nm-yeta 로 */
+    <div className="nm-rsheet-back nm-yeta" role="presentation" onClick={onClose}>
+      <section ref={sheet} className="nm-rsheet" data-phone={phone || undefined} role="dialog" aria-modal="true" aria-label={`${job.name} 바꾸기`} onClick={(e) => e.stopPropagation()} onKeyDown={trap}>
         <header className="nm-rsheet-h">
           <b>{job.name}</b>
           <small>{whenOf(job)}{job.health?.next_at ? ` · 다음 ${nextShort(job.health.next_at)}` : ""} · <StatusDot st={st} />{job.file || job.id}</small>
@@ -84,6 +108,7 @@ export function RunnerSheet({ job, can, phone, onClose, onRan }: { job: RunnerJo
           </div>
         )}
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
