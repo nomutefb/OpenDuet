@@ -109,8 +109,13 @@
 .nsb-dia table { border-collapse:separate; border-spacing:0; font-size:var(--fs-sm); font-variant-numeric:tabular-nums; }
 .nsb-dia th, .nsb-dia td { padding:5px 6px; border-bottom:1px solid var(--nsb-line); text-align:center; vertical-align:middle; white-space:nowrap; }
 .nsb-dia thead th { font-size:var(--fs-2xs); font-weight:700; color:var(--nsb-mut); }
-.nsb-dia thead th i { font-style:normal; display:inline-block; writing-mode:vertical-rl; transform:rotate(180deg); max-height:64px; overflow:hidden; }
+.nsb-dia thead th i { font-style:normal; display:inline-block; writing-mode:vertical-rl; text-orientation:upright; letter-spacing:-.08em; line-height:1; max-height:84px; overflow:hidden; }   /* 세로 글 = 한글 바로 선 채 위→아래(앞 판 rotate(180deg) 는 한글이 거꾸로 섰음 · 시아 11-09) */
 .nsb-dia tr.grp th { border-bottom:0; padding-bottom:0; letter-spacing:.06em; text-transform:none; }
+/* 묶음 머리(클로드 · 연결 · 일기 · 교대) = 왼쪽 붙임 + 가로로 밀면 「누구」 칸 옆에 따라옴 · 「누구」 머리도 몸 칸처럼 고정(빚 11-09 10:05 폰 · 시아) */
+.nsb-who tr.grp th[colspan] { text-align:left; }
+.nsb-who tr.grp th > span { position:sticky; left:64px; padding:0 2px; }
+.nsb-who thead th:first-child { position:sticky; left:0; z-index:2; background:rgba(18,18,18,.92); }
+:root:not(.dark) .nsb-who thead th:first-child { background:rgba(255,255,255,.95); }
 .nsb-dia tbody th { text-align:left; font-weight:700; position:sticky; left:0; background:rgba(18,18,18,.92); z-index:1; }
 :root:not(.dark) .nsb-dia tbody th { background:rgba(255,255,255,.95); }
 .nsb-dia tbody th small { display:block; font-size:var(--fs-2xs); font-weight:400; color:var(--nsb-mut); }
