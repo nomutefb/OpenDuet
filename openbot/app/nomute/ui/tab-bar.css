@@ -29,3 +29,25 @@
 .nm-tab-screen[hidden], .nm-tab-screen iframe[hidden] { display:none; }
 .nm-tab-screen iframe { width:100%; height:100%; border:0; display:block; background:#000; }
 @media (prefers-reduced-motion: reduce) { .nm-tab { transition:none; } }
+/* 맥(사파리) 탭 꼴(형 11-09 09:29 회의실 「상단에 탭으로 있는거는 저런식으로 보이지말구, 맥 느,낌으로 탭이 보이면 됨」 · 봄 배분 39) — 어깨 곡선·본문과 한 몸 뺌 ·
+   진한 윗줄 안 둥근 칸 · 고른 탭 = 옅은 밝은 칸 · 탭 폭 고르게 · × = 대면 왼쪽에 · 사이 세로선 뺌 */
+.nm-tabs { align-items:center; gap:4px; }
+.nm-tab { flex:1 1 0; max-width:220px; height:30px; border-radius:7px; justify-content:center; padding:0 26px; color:rgba(232,234,232,.62); }
+.nm-tab + .nm-tab:not(.on)::before { display:none; }
+.nm-tab:hover { background:rgba(232,234,232,.07); }
+.nm-tab.on { background:rgba(232,234,232,.16); color:#F1F3EF; }
+.nm-tab.on::before, .nm-tab.on::after { display:none; }
+.nm-tab-nm { flex:0 1 auto; text-align:center; }
+.nm-tab-x { position:absolute; left:6px; top:50%; transform:translateY(-50%); opacity:0; }
+.nm-tab:hover .nm-tab-x, .nm-tab.on .nm-tab-x { opacity:.7; }
+.nm-tab-ic { width:14px; height:14px; }
+.nm-tab-plus { margin:0 0 0 2px; width:26px; height:26px; }
+/* 시아 09:30 꼴: 탭 폭 고르게(120~240) · 고른 탭 = 한 단 밝은 판 + 옅은 테 · 안 고른 글 .55 · 사이 세로선 .08 · 집 단추 = 대시보드 */
+.nm-tab { min-width:120px; max-width:240px; color:rgba(232,234,232,.55); }
+.nm-tab.on { background:rgba(232,234,232,.14); box-shadow:inset 0 0 0 1px rgba(232,234,232,.12); }
+.nm-tab + .nm-tab:not(.on)::before { display:block; content:""; position:absolute; left:-2px; top:8px; bottom:8px; width:1px; background:rgba(232,234,232,.08); }
+.nm-tab.on + .nm-tab::before { display:none; }
+.nm-tab-home { all:unset; flex:none; width:30px; height:30px; display:grid; place-items:center; border-radius:7px; color:rgba(232,234,232,.62); cursor:pointer; }
+.nm-tab-home:hover { background:rgba(232,234,232,.07); }
+.nm-tab-home.on { background:rgba(232,234,232,.14); color:#F1F3EF; }
+.nm-tab-home:focus-visible { outline:2px solid #CFFF40; outline-offset:-2px; }
