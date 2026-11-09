@@ -43,10 +43,13 @@
 .nm-nd .nm-nd-prog i.fail { border-top:3px dashed #ff5f8a; color:#ff5f8a; }
 @keyframes nmNdPulse { 50% { opacity:.4; } }
 .nm-nd .nm-nd-sum { margin:0; font-size:var(--fs-h3); line-height:1.6; color:var(--fg-2); }
-.nm-nd .nm-nd-md h2 { margin:18px 0 6px; font-size:var(--fs-body); font-weight:var(--fw-x); line-height:1.4; }
-.nm-nd .nm-nd-md h3 { margin:14px 0 4px; font-size:var(--fs-h3); font-weight:var(--fw-b); line-height:1.4; }
+/* 중간 제목(다각도 해석 · 활용 옵션 …) = 라임 + 위 구분선(형 11-09 09:26 「이 다각도 해석 이런 부분은 라임색으로 해서 구분되게 중간 타이틀 구분」 · 「기존에 뉴스 에디터가 어떻게 구분했는지를 보면됨」
+   = 옛 뉴스 에디터 viewer/index.html #mdbody h2, h3 { color:var(--accent); border-top:1px solid var(--line2); padding-top:16px; margin:22px 0 8px; font-weight:800 } 그대로 · 라이트 = 진한 라임 #4f7a00) */
+.nm-nd .nm-nd-md :is(h2, h3) { color:var(--nm-nd-h, #CFFF40); border-top:1px solid var(--glass-line, rgba(232,234,232,.10)); padding-top:14px; margin:20px 0 8px; font-size:var(--fs-body); font-weight:var(--fw-x, 800); letter-spacing:-.2px; line-height:1.4; }
+html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-nd .nm-nd-md h4 { margin:12px 0 4px; font-size:var(--fs-label); font-weight:var(--fw-b); }
 .nm-nd .nm-nd-md > div > :first-child, .nm-nd .nm-nd-md h2:first-child { margin-top:0; }
+.nm-nd .nm-nd-md > div > :is(h2, h3):first-child, .nm-nd .nm-nd-md :is(h2, h3):first-child { border-top:0; padding-top:0; }   /* 맨 첫 제목은 선 없이 */
 .nm-nd .nm-nd-md :is(ul, ol) { padding-left:1.2em; } .nm-nd .nm-nd-md li { margin:3px 0; }
 .nm-nd .nm-nd-acts { justify-content:center; margin-top:2px; }
 .nm-nd .ypc-go span svg { width:14px; height:14px; }
