@@ -2,6 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { isForeignUrl, presetFor } from "../home/quick-send.ts";
+import { FOREIGN_OUTLET_KEYS, outletKeys } from "../ui/news-data.ts";
 
 test("외신 주소 = fp 1 · 국내(.kr · 국내 .com · 포털) = fp 0", () => {
   for (const u of ["https://www.reuters.com/world/x", "https://www.nytimes.com/2026/11/09/a.html", "https://www3.nhk.or.jp/news/a.html", "https://www.bbc.co.uk/news/a"]) assert.equal(isForeignUrl(u), true, u);
@@ -10,4 +11,10 @@ test("외신 주소 = fp 1 · 국내(.kr · 국내 .com · 포털) = fp 0", () =
   assert.equal(presetFor("https://www.reuters.com/a").fp, 1);
   assert.equal(presetFor("https://www.yna.co.kr/a").fp, 0);
   assert.equal(presetFor("https://www.yna.co.kr/a").mj, 1);   // 주요 기사부터 = 창 기본 그대로
+});
+
+test("외신 목록 = news-data OUTLET 한 출처(모루 10:13 ①) · 로이터커넥트 외신 · 어긋남 0", () => {
+  assert.equal(isForeignUrl("https://www.reutersconnect.com/item/x"), true);
+  const all = new Set(outletKeys());
+  for (const k of FOREIGN_OUTLET_KEYS) assert.ok(all.has(k), k);
 });
