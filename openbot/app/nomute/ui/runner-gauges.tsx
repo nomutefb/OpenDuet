@@ -107,7 +107,9 @@ export function RunnerGauges() {
   const panel = useRef<HTMLDivElement | null>(null);
   const dy = useRowSync(panel);
   // 공용 두 줄 재료(36) · 시아 09:26 ②③): 조약돌 = 몸 차례(WIN → MAC → Lx B → Lx A)대로 사는 애를 한 줄로 · 러너 = 윈A 러너(RUNNERS 가 윈 칸인 것)만 번호 차례 · 둘 다 12칸(넘치면 자름)
-  const pebs = HOSTS.flatMap((h) => livesOn(h.body).map((x) => ({ ...x, host: h.label }))).slice(0, 12);
+  // 형 11-09 09:49 「조약돌 하드웨어에 관계없이 균일하게 나열 … 누리만 끝에 | 하고 두면됨」 = 누리(neo)만 맨 끝 · 그 앞에 「|」 칸 하나 · 나머지는 몸 차례 그대로 한 줄
+  const pebAll = HOSTS.flatMap((h) => livesOn(h.body).map((x) => ({ ...x, host: h.label }))), nuri = pebAll.filter((x) => x.key === "neo"), rest = pebAll.filter((x) => x.key !== "neo");
+  const pebs: (typeof pebAll[number] | { sep: true })[] = [...rest, ...(nuri.length ? [{ sep: true as const }, ...nuri] : [])].slice(0, 12);
   const runs = HOSTS.filter((h) => !BODY_CHIPS[h.k]).flatMap((h) => Object.entries(rcells).filter(([n]) => RUNNERS[h.k]?.(n)).sort((x, y) => rord(x[0]) - rord(y[0])).map(([n, c]) => ({ n, c }))).slice(0, 12);
   // 게이지 넷 같은 크기(형 11-08 10:48 「게이지 크기가 차이가 나네 이제보니까 게이지 크기를 lxa, lxb에 맞추고」) = 몸 칸 폭 다 같게 · WIN↔MAC 틈만 빈 트랙 하나(12px · 형 08:14 「win하고 mac 간격을 아주 조금만 더 벌릴게」 그대로) — 앞 판은 WIN 오른쪽 12 · MAC 왼쪽 9 패딩이라 좁은 창(2/5 창)에서 그 두 게이지만 작아졌음
   const cols = HOSTS.length > 1 ? `minmax(0, 1fr) 12px repeat(${HOSTS.length - 1}, minmax(0, 1fr))` : "minmax(0, 1fr)";
@@ -150,6 +152,7 @@ export function RunnerGauges() {
         {Array.from({ length: 12 }, (_, i) => {
           const x = pebs[i];
           if (!x) return <li key={`e${i}`} className="nm-rgx-cell empty" aria-hidden />;
+          if ("sep" in x) return <li key="sep" className="nm-rgx-cell sep" aria-hidden>|</li>;   {/* 「누리만 끝에 |」 */}
           const w = wake(x.bot ?? x.key);
           return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who}(${x.host}) · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "읽는 중" : "잠"}`} /></li>;
         })}
