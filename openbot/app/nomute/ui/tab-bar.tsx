@@ -10,7 +10,11 @@ import { FaceImg } from "./faces";
 import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "./tab-list";
 import "./tab-bar.css";
 
-const load = (): TabState => { try { return tabsLoad(localStorage.getItem(TABS_KEY)); } catch { return tabsLoad(null); } };
+const load = (): TabState => {   // 방 탭은 안 올림(형 11-09 09:29 회의실 「대화 상대가 저기 나올 필요는 없어. 웹과 관련된 내용만 저기 뜨면 될듯.」) = 옛 판에 남은 방 탭도 뺌
+  let s: TabState; try { s = tabsLoad(localStorage.getItem(TABS_KEY)); } catch { s = tabsLoad(null); }
+  const tabs = s.tabs.filter((t) => t.k !== "room");
+  return { tabs, active: tabs.some((t) => tabKey(t) === s.active) ? s.active : "dash" };
+};
 const go = (hash: string) => { if (location.hash !== hash) location.hash = hash; };
 
 export function TabBar({ room, pane }: { room: string; pane: string }) {
@@ -21,9 +25,10 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const ppl = useQuery({ queryKey: ["nomute", "people-tabs"], queryFn: () => people(), staleTime: 60_000 });
   const list: OfficePerson[] = ppl.data || [];
   useEffect(() => { try { localStorage.setItem(TABS_KEY, tabsSave(s)); } catch { /* 저장 못 쓰면 이번 판만 */ } }, [s]);
-  useEffect(() => {   // 길 따라 고른 탭: 방 = 그 방 탭(없으면 붙임) · 방 밖 = 화면 탭이 아니면 대시보드
-    if (pane === "chat" && room) setS((x) => tabsAdd(x, { k: "room", id: room }));
-    else setS((x) => (x.active.startsWith("s:") ? x : { ...x, active: "dash" }));
+  const first = useRef(true);
+  useEffect(() => {   // 방·판을 옮기면(얼굴 띠 · 목록 누름) 화면 탭은 덮개를 내리고 대시보드로 · 방 탭은 안 만듦(형 09:29)
+    if (first.current) { first.current = false; return; }
+    setS((x) => (x.active === "dash" ? x : { ...x, active: "dash" }));
   }, [room, pane]);
   useEffect(() => { if (s.active.startsWith("s:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
@@ -92,7 +97,10 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   return (
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
-        {s.tabs.map((t) => {
+        {s.tabs.length > 1 ? <button type="button" className={`nm-tab-home${s.active === "dash" ? " on" : ""}`} aria-label="대시보드" title="대시보드" onClick={() => pick(DASH)}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /></svg>
+        </button> : null}   {/* 대시보드 = 탭 아닌 왼쪽 집 단추 · 웹 탭 0 이면 숨김(시아 09:30) */}
+        {s.tabs.filter((t) => t.k !== "dash").map((t) => {
           const key = tabKey(t), on = s.active === key, face = faceOf(t);
           return (
             <div key={key} role="tab" aria-selected={on} tabIndex={0} title={nameOf(t)} className={`nm-tab${on ? " on" : ""}${t.k === "dash" ? " dash" : ""}`}
