@@ -51,3 +51,5 @@
 .nm-tab-home:hover { background:rgba(232,234,232,.07); }
 .nm-tab-home.on { background:rgba(232,234,232,.14); color:#F1F3EF; }
 .nm-tab-home:focus-visible { outline:2px solid #CFFF40; outline-offset:-2px; }
+/* 시계 뺌(형 09:30) → 탭 줄 = 오른쪽 신호등(.nm-top-lights · 오른쪽 30vw) 앞까지 · 새 판 알약 = 「+」 바로 옆(시계 없으면 비킴 0 · 형 09:33 「12시 30분 방향」 튐 고침 · 봄 41) */
+.nm-tabs { right:calc(30vw + 32px); }
