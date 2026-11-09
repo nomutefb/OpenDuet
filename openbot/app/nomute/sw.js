@@ -61,7 +61,7 @@ self.addEventListener("push", (e) => {
     if ((await appWins()).some((c) => c.focused && c.visibilityState === "visible")) return;
     // 아이콘 = 서버가 준 d.icon(단톡 알림 그림 · 없으면 보낸 이 얼굴 · 형 11-01 「애들 얼굴 붙여서 각각 오게하고 싶네」 · 봄 서버) · 없으면 앱 아이콘
     const icon = await iconData(d.icon);   // 그림 글(data URL) — 주소 그대로면 「A」 로 그려짐(위 iconData)
-    return self.registration.showNotification(d.title || "사무실", { body: d.body || "", icon, tag: d.tag || "office",
+    return self.registration.showNotification(d.title || "봄의 정원", { body: d.body || "", icon, tag: d.tag || "office",
       renotify: !!d.renotify, ...(d.vibrate ? { vibrate: d.vibrate } : {}), data: { url: d.url || "/office-app/" }, lang: "ko" });
   })());
 });
