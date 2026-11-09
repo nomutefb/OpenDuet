@@ -47,3 +47,9 @@
 .nm-col:has(> .nm-chat-h) .ychat > .overflow-y-auto.nm-top0 { -webkit-mask-image:none; mask-image:none; }
 /* 「안 본 글」 = 머리줄 바로 밑으로(형 11:32 「안본 글 더 위로가게해주고」 · 옛 자리 top 46px) */
 .nm-col:has(> .nm-chat-h) .ychat .yjump { top:8px; }
+/* 대화창 머리 구분선 위 · 아래 = 오른쪽 HOT ISSUE 줄과 같은 선(형 11-09 12:4x 「톡방 제목위에, 구분선이 없어. 구분선 하나 넣어줘. 아래쪽은 그라데이션 효과는 유지하되, 구분선은 우측처럼 그대로 있었으면 좋겠어.」 · 뜸)
+   실물 = 오른쪽 뉴스 칸 윗선 y310 · HOT ISSUE 머리 아래선 y346(둘 다 1px .07) ↔ 대화 머리 311~347 → 위 선 = 머리 1px 위 · 아래 선 = 머리 아래 테(1px 자리는 원래 있음) · 글 목록 아래 번짐은 그대로 */
+.nm-chat-h { border-bottom-color:rgba(255,255,255,.07); }
+.nm-chat-h::before { content:""; position:absolute; left:0; right:0; top:-1px; height:1px; background:rgba(255,255,255,.07); pointer-events:none; }
+:root:not(.dark) .nm-chat-h { border-bottom-color:var(--glass-line, rgba(0,0,0,.08)); }
+:root:not(.dark) .nm-chat-h::before { background:var(--glass-line, rgba(0,0,0,.08)); }
