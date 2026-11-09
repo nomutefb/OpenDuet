@@ -304,7 +304,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
       <div className="nsb-scroll" role="region" aria-label="애들 × 연결" tabIndex={0}>
         <table>
           <thead>
-            <tr className="grp"><th /><th>깸</th><th colSpan={4}>클로드</th><th>GPT</th><th colSpan={3}>연결</th><th colSpan={DIARY_COLS.length}>일기</th><th colSpan={handCols.length || 1}>교대</th></tr>
+            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={3}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length || 1}><span>교대</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
             <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}</tr>
           </thead>
           <tbody>
