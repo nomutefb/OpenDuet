@@ -11,6 +11,7 @@ import { FaceImg } from "../ui/faces";
 import { homePool } from "./home-pool";
 import { cleanTitle } from "./title-clean";
 import { outletName } from "../ui/news-data";   // 공식 매체명(형 11-06 「yna 는 연합일거고, asiae 이건 아시아경제 같고 …」)   // 제목 다듬기 로직(형 11-05 16:14)
+import { rssFirst } from "./rss-first";
 
 type Row = { picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
 const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
@@ -105,7 +106,8 @@ export function NewsList() {
         if (pk) { picks = pickOrder(pk.picks || []); picksAt = Date.now(); }   // 촉 → 틈 차례(홈 카드 덱과 같음 · 형 11-06 00:28 「촉픽이 제일 전면 틈픽이 그 다음」)
       }
       let a = 0; try { a = Math.max(0, Math.min(ALPHA_EVERY.length - 1, Math.floor(+(localStorage.getItem(ALPHA_KEY) || 0)))); } catch { /* 기본 0 */ }
-      const { rows: r, lookup } = md.project(overlap, cands, articles, () => null, { mixNews: ALPHA_EVERY[a], alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
+      const { rows: r0, lookup } = md.project(overlap, cands, articles, () => null, { mixNews: a ? ALPHA_EVERY[a] : 1, alphaProfile: alpha, visibleCandidates: homePool(cands, triage, merges), urls: (x: Cand) => [pickUrl(x)], metadata: homeMeta, images: null, picks });
+      const r = a ? r0 : (rssFirst(r0 as { type?: string }[]) as typeof r0);   // 기본 = RSS 바탕 · 커뮤 섞기(형 09:34 · ./rss-first.ts · 고른 기기 = 옛 꼴)
       if (!live) return;
       const now = Date.now();
       const pinned = pinsOf(picks, now);
