@@ -25,7 +25,7 @@ const agoOf = (t: number, now: number) => { const m = Math.max(0, Math.floor((no
 //   재료 = /api/trends?f=picks(봄 · editor#2643 · 틈 장부 줄 = sent:true) · 순위표에 없는 기사여도 뜸(어젯밤 틈 픽이 안 켜진 까닭 = 순위표에 있을 때만 얼굴을 붙였음 · 봄 10:58)
 //   차례 = 촉(최근 판 순위 차례) 둘 → 틈(최근 것) 하나 · 같은 기사 = 한 번 · PICK_WINDOW 넘은 픽 = 뺌
 type Pick = { by?: string; title?: string; title_clean?: string; urls?: string[]; outlets?: string[]; url?: string; at?: string; score?: number | null; rank?: number | null; why?: string; keyword?: string; summary?: string };
-const PICK_WINDOW = 8 * 3600_000, PIN_CHOK = 2, PIN_TEUM = 1;
+const PICK_WINDOW = 8 * 3600_000, PIN_CHOK = 2, PIN_TEUM = 0;   // 틈 픽 고정 칸 = 뺌(형 11-09 09:21 「메인엥서 틈픽 없어도 됨. 그냥 점수로 쭉 나열하게 해줘」) · 틈이 고른 기사는 아래 순위표에 점수 차례로 들어감
 const pickWho = (p: Pick) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; };
 const pickKey = (p: Pick) => String((p.urls || [])[0] || p.url || p.title || "").trim();
 const pinsOf = (list: unknown[], now = Date.now()) => {
@@ -69,6 +69,9 @@ const hostOf = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^
 
 // 시간 흐림(형 11-06 20:14 「그리고 4시간 전은 명도를 75%로 설정. 6시간 전부터는 명도를 50%로 설정. 8시간부터는 노출안되는거 알지?」) — 픽 칸 · 순위표 같은 잣대 · 8시간 = 뺌(FRESH_MS · PICK_WINDOW)
 const ageCls = (at?: string) => { const t = Date.parse(at || ""); if (!Number.isFinite(t)) return ""; const h = (Date.now() - t) / 3600_000; return h >= 6 ? " age6" : h >= 4 ? " age4" : ""; };
+
+// 순위표 차례 = 점수 큰 것부터(형 11-09 09:21 「그냥 점수로 쭉 나열하게 해줘」) · 점수 없는 줄 = 끝 · 같은 점수 = 받은 차례 그대로
+const byScore = (a: Row, b: Row) => { const sa = Number.isFinite(a?.score as number) ? (a.score as number) : -Infinity, sb = Number.isFinite(b?.score as number) ? (b.score as number) : -Infinity; return sb === sa ? 0 : sb > sa ? 1 : -1; };
 
 const ago = (at?: string) => {
   const t = at ? Date.parse(at) : NaN;
@@ -121,7 +124,7 @@ export function NewsList() {
       const inner = (n: string) => (/^(?:candidates|social_candidates)$/i.test(n) ? "" : n);   // 수집 칸 이름(SOCIAL_CANDIDATES 등) = 매체 아님 → 다음 후보로(시아 짚음)
       const host = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^www\./, "") : ""; } catch { return ""; } };
       // 출처 · 시각 = 모든 줄(형 11-05 16:30 「뉴스는 점수 좌측에 출처에 대한 내용이 있어야되고, 몇시간전인지 나와야됨. 4위도 싹다.」) — 메타 없으면 묶음 첫 기사 출처 · 후보 장부(lookup) 발행/처음 본 때
-      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).slice(0, MAX);
+      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).sort(byScore).slice(0, MAX);   /* 점수 차례로 쭉(형 11-09 09:21) */
       for (const x of list) if (x && /^네이버(?:뉴스)?$/.test(x.src || "")) { const nv = [x.meta?.published?.sourceUrl || "", ...(x.urls || []), ...(x.items || []).map((it) => it.url || "")].map(naverOutlet).find(Boolean); if (nv) x.src = nv; }   // 순위표도 「네이버뉴스」 = 기사 주소 언론사 번호로 진짜 매체(형 11-06 16:41)
       setRows(list);
       setGotAt(Date.parse(gen || "") || Date.now());   // 머리줄 「N분 전」 = 서버가 묶음을 만든 때(없으면 받은 때)

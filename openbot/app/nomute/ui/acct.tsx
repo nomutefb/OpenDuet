@@ -31,7 +31,7 @@ function useAcctRows() {
   return (mail: string) => rows.find((r) => r.key === "claude:" + mail);
 }
 function Bar({ label, v }: { label: string; v: number | null }) {
-  return <span className="acx-bar"><i>{label}</i><b style={{ width: `${v ?? 0}%` }} data-low={v !== null && v < 10 ? "1" : undefined} /><em>{v === null ? "—" : `${v}%`}</em></span>;
+  return <span className="acx-bar"><i>{label}</i><b style={{ width: `${v ?? 0}%` }} data-low={v !== null && v < 10 ? "1" : undefined} data-mid={v !== null && v >= 10 && v < 30 ? "1" : undefined} /><em>{v === null ? "—" : `${v}%`}</em></span>;
 }
 function AcctCards({ id, busy, pick }: { id: string; busy: boolean; pick: (v: string) => void }) {
   const row = useAcctRows();

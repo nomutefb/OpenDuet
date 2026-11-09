@@ -13,15 +13,15 @@ export const SUMMARY_ROOM = "summary";
 const PAGE = 20;
 
 /** 「N분 전 · N시간 전 · N일 전」(에디터 카드 꼴) */
-const ago = (t: number) => {
+export const ago = (t: number) => {
   if (!Number.isFinite(t) || t <= 0) return "";
   const m = Math.max(0, Math.round((Date.now() - t) / 60000));
   return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 60 * 24 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`;
 };
 /** 보도 = 기사 날짜·시각(KST) · 스크랩 = 파일 이름 앞 yymmdd-hhmm(KST) */
 const kst = (y: number, mo: number, d: number, h = 0, mi = 0) => Date.UTC(y, mo - 1, d, h - 9, mi);
-const reportTs = (a: Art) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(a.date || "")), t = /^(\d{1,2}):(\d{2})$/.exec(String(a.time || "")); return m ? kst(+m[1], +m[2], +m[3], t ? +t[1] : 0, t ? +t[2] : 0) : NaN; };
-const scrapTs = (a: Art) => { const m = /^(\d{2})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(a.file || ""); return m ? kst(2000 + +m[1], +m[2], +m[3], +m[4], +m[5]) : NaN; };
+export const reportTs = (a: Art) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(a.date || "")), t = /^(\d{1,2}):(\d{2})$/.exec(String(a.time || "")); return m ? kst(+m[1], +m[2], +m[3], t ? +t[1] : 0, t ? +t[2] : 0) : NaN; };
+export const scrapTs = (a: Art) => { const m = /^(\d{2})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(a.file || ""); return m ? kst(2000 + +m[1], +m[2], +m[3], +m[4], +m[5]) : NaN; };
 const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); };   // 읽음 저장 실패 = 화면 0 · 기록만(대화창과 같음 · 형 11-03 12:11)
 
 /** 카드 한 장 — PC Digest 칸(home/news-summary.tsx)도 같은 카드를 판 없이 씀(형 11-08 09:14 「비율 그대로 유지하면서 가져와서 ui 스타일만 색상 팔레트 적용해서 녹여. 단 여기에 또 블록을 만들지마」) */

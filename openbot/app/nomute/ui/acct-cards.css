@@ -18,8 +18,9 @@
 .acx-bar i { font-style: normal; opacity: .7; }
 .acx-bar b { height: 5px; border-radius: 3px; background: #cfff40; box-shadow: inset 0 0 0 999px rgba(0,0,0,0); max-width: 100%; }
 .acx-bar b[data-low] { background: #ff6b5e; }
+.acx-bar b[data-mid] { background: #ffb547; }   /* 남은 30% 밑 = 호박(시아 11-09 09:23) */
 .acx-bar em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
-.acx-mail { font-size: 13px; letter-spacing: .06em; opacity: .85; font-variant-numeric: tabular-nums; }
+.acx-mail { font-size: 13px; letter-spacing: .06em; opacity: .85; font-variant-numeric: tabular-nums; font-family: var(--app-font-text, inherit); }   /* 메일 = 소문자 그대로(시아 11-09 09:23 「EMS•••@NAVER.COM」 · 앱 기본 글꼴 LEMONMILK = 영문을 대문자 꼴로만 그림 → 본문 글꼴 · snsacc.css 와 같음) */
 .acx-foot { margin-top: auto; display: flex; justify-content: space-between; font-size: 12px; }
 .acx-foot small { display: block; font-size: 9px; letter-spacing: .14em; opacity: .6; }
 .acx-tag { position: absolute; right: 12px; bottom: 44px; font-size: 10px; padding: 2px 7px; border-radius: 999px; background: rgba(255,107,94,.22); border: 1px solid rgba(255,107,94,.6); }
