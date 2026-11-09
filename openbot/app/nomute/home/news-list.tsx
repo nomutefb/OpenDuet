@@ -19,7 +19,7 @@ const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기
 // 픽 얼굴(형 11-06 07:4x 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」 · 「틈도 저런식으로」) = 그 기사를 고른 봇 얼굴 · 번호 왼쪽 · 둘 다면 단톡방 겹친 얼굴 꼴(형 「그 단톡방 예전 표기처럼 중첩되게」)
 const PICK_WHO: Record<string, string> = { chok: "촉", teum: "틈" };
 const PICK_FRONT: Record<string, number> = { 촉: 0, 틈: 1 };   // 겹칠 때 촉이 앞(형 11-06 「중첩일경우, 촉이 더 앞으로 (우측 앞)」) = 첫째가 오른쪽 · 위
-const pickers = (x: Row) => [...new Set((x.picks || []).map((p) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; }).filter(Boolean))].sort((a, b) => (PICK_FRONT[a] ?? 9) - (PICK_FRONT[b] ?? 9));
+const pickers = (x: Row) => [...new Set((x.picks || []).map((p) => { const b = String(p?.by || "").trim(); return PICK_WHO[b] || b; }).filter((w) => !!w && w !== "틈"))].sort((a, b) => (PICK_FRONT[a] ?? 9) - (PICK_FRONT[b] ?? 9));   // 틈 얼굴 = Hot Issue 줄에서 뺌(형 11-09 10:07 「틈 프로필 사진 다시 들어와버렷다 확인좀」 · 「핫이슈 안에」 · 09:21 「틈픽 없어도 됨」 · 깃 44)
 
 const agoOf = (t: number, now: number) => { const m = Math.max(0, Math.floor((now - t) / 6e4)); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };   // Runner · SNS 와 같은 말(방금 · N분 전 · N시간 전)
 // 맨 위 고정 칸 = 촉 픽 → 틈 픽(형 11-06 00:28 「촉픽이 제일 전면 틈픽이 그 다음」 · 06:44 「촉픽은 교대하고 같이 바꾸자」 · 봄 안 11-05 17:59 「오른쪽 실시간 뉴스 맨 위에 「촉픽」 칸 고정 (뉴스 순위표랑 안 섞음 · 최근 3건)」)
