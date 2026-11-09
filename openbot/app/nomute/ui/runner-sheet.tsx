@@ -26,13 +26,14 @@ export function RunnerSheet({ job, can, phone, onClose, onRan }: { job: RunnerJo
     const want = job.file;
     post(want, "state", false).then((r) => { if (cur.current === want && sameJob(want, r.file)) setRes(r); }).catch((e) => { if (cur.current === want) setMsg(e instanceof Error ? e.message : String(e)); });
   }, [job.file, gh]);
-  useEffect(() => {   // 판 = Escape 로 닫힘 · 첫 포커스는 닫기 단추 · 닫히면 포커스 제자리(모루 ②)
+  const closeRef = useRef(onClose); closeRef.current = onClose;   // 닫기 함수는 ref 로(열릴 때 한 번만 포커스 · 30초 다시 그림에 안 튐 · 모루 10:22)
+  useEffect(() => {   // 판 = Escape 로 닫힘 · 첫 포커스는 닫기 단추 · 닫히면 포커스 제자리(모루 ②) — 열고 닫는 수명에만 묶임
     const prev = document.activeElement as HTMLElement | null;
     sheet.current?.querySelector<HTMLElement>("button")?.focus();
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } };
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); closeRef.current(); } };
     window.addEventListener("keydown", k);
     return () => { window.removeEventListener("keydown", k); prev?.focus?.(); };
-  }, [onClose]);
+  }, []);
   const trap = (e: React.KeyboardEvent) => {   // Tab 은 판 안에서만 돎(모루 ②)
     if (e.key !== "Tab" || !sheet.current) return;
     const f = [...sheet.current.querySelectorAll<HTMLElement>("button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")];
