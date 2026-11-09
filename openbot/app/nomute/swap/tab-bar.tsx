@@ -49,6 +49,18 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
             </button>
           );
         })}
+        {/* 「대화」 하나(PC 두 칸 · 형 11-09 09:31 회의실 「대화방일때는 대화방으로 바뀌고, 대화창일때는 대화창으로 바ㅣㄲ ㅟ고 그때그때 액티브하게」 · 「대화 라는 말은 그대로 (활성화되어있을때」 · 「비활성화되어ㅣ있을때 … 그냥 점등 꺼진 형태면 됨.」)
+            = 왼쪽 띠 아래 셋(+ · 최근 채팅 · 채팅 목록)을 갈음 · 그림 = 목록이면 대화방(inbox) · 대화창이면 말풍선(chat) · 누름 = 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록 · 폰은 위 TABS(대화방 · 대화) 그대로라 CSS 로 PC 만 보임(../ui/shell.css .nm-split-l) */}
+        {(() => {
+          const onRooms = pane === "rooms" && !modal, onChat = pane === "chat" && !modal, on = onRooms || onChat;
+          return (
+            <button aria-current={on ? "page" : undefined} aria-label={onChat ? "대화 · 대화창(누르면 목록)" : onRooms ? "대화 · 대화방 목록(누르면 마지막 대화)" : "대화"} className={on ? "on nm-nav-talk" : "nm-nav-talk"}
+              onClick={() => void navigate({ to: onRooms ? chatTo : "/rooms" })} type="button">
+              <DuetIcon name={onRooms ? "inbox" : "chat"} size={20} stroke={on ? 2.1 : 1.9} />
+              <span>대화</span>
+            </button>
+          );
+        })()}
         {/* 네비 4번 = 뉴스 에디터(형 11-09 08:50 「뉴스 에디터가 4번 메뉴에 보이게 해주고」 · 옛 4번 작동 표 = 서랍 「러너」 칸으로(봄 32) · 번개)) */}
         <button aria-current={modal === "nedit" ? "page" : undefined} aria-label="뉴스 에디터" className={modal === "nedit" ? "on" : undefined} onClick={() => void navigate({ to: "/newsed" })} type="button">
           <DuetIcon name="page" size={20} stroke={modal === "nedit" ? 2.1 : 1.9} />
