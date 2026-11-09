@@ -33,7 +33,7 @@ export function NewsModal() {
   useEffect(() => {
     let live = true;
     const load = () => fetch("/api/pending?_=" + Date.now(), { credentials: "same-origin" }).then((r) => (r.ok ? r.json() : null)).then((d: { items?: { status?: string }[] } | null) => { if (live && d) setPending((d.items || []).filter((it) => it && (it.status === "processing" || it.status === "retry")).length); }).catch(() => {});
-    load(); const t = window.setInterval(load, 60_000);
+    load(); const t = window.setInterval(() => { if (!document.hidden) load(); }, 60_000);   // 숨은 탭 = 조회 0(47) · 깃허브 한도 · 봄 11-09 10:59)
     return () => { live = false; clearInterval(t); };
   }, []);
   const Svg = ({ k }: { k: keyof typeof YICO }) => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
