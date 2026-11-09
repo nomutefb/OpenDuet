@@ -2,8 +2,17 @@
 //   보내는 꼴 = 요약 요청 창(../ui/ask.tsx send)과 같은 POST /api/submit · preset = 창 기본(DEF) 그대로에 fp(외신)만 기사 출처로 저절로 · 「주요 기사부터」 = mj 1(기본 그대로)
 //   외신 판별 = 링크 주소: .kr · 국내 매체 .com/.net · 포털(네이버·다음) = 국내 · 그 밖 = 외신
 
-import { FOREIGN_OUTLET_KEYS } from "../ui/news-data";
-// 외신 = news-data OUTLET 「// 외신」 묶음 키(한 출처 · 모루 10:13) 또는 외국 나라 끝(.jp .uk …) · 모르는 주소 = 국내(창 기본 fp 0 · 모루 09:43 쿠키뉴스)
+// 외신 = ../ui/news-data.ts OUTLET 「// 외신」 · 「// 외신 더」 묶음 키 그대로(정본 = 그 묶음 · 모루 10:13 「국내/외신 목록 한 출처로」) 또는 외국 나라 끝(.jp .uk …) · 모르는 주소 = 국내(창 기본 fp 0 · 모루 09:43 쿠키뉴스)
+//   import 안 함 = 이 파일 시험이 node 에서도 돎(빠르 10:43 「Cannot find module ui/news-data」) · 어긋남은 tests/quick-send.test.ts 가 news-data 글을 읽어 잡음 → 묶음 고치면 여기도
+export const FOREIGN_OUTLET_KEYS: ReadonlySet<string> = new Set([
+  "9to5google", "aljazeera", "apnews", "asahi", "axios", "bbc", "bild", "billboard", "blog.playstation", "bloomberg", "bostonglobe", "bsky",
+  "bsky.app", "cbssports", "cnbc", "cnn", "corriereadriatico", "deadline", "economist", "engadget", "espn", "espn.co", "famitsu", "foxnews",
+  "france24", "ft", "hochi", "hollywoodreporter", "ilmessaggero", "imdb", "independent", "invenglobal", "knewsla", "koreadaily", "livedoor", "nba",
+  "nbcnews", "nbcsports", "news.com", "news.livedoor", "news.yahoo", "nhk", "nhk.or", "nikkei", "nytimes", "ocregister", "people", "politico",
+  "reuters", "reutersconnect", "rotowire", "scmp", "si", "smithsonianmag", "sports.yahoo", "spotvnews", "techcrunch", "tennis", "theguardian",
+  "theplayerstribune", "thesportingtribune", "theverge", "timesofindia.indiatimes", "tmz", "ubisoft", "umatoku.hochi", "variety", "vavel",
+  "washingtonpost", "wired", "wsj", "yahoo", "yomiuri",
+]);
 const FOREIGN_TLD = new Set(["jp", "cn", "uk", "fr", "de", "tw", "hk", "ru", "in", "au", "ca", "it", "es", "br", "sg", "nz", "vn", "th", "ph", "id", "my", "mx", "ar", "nl", "se", "ch", "be", "at", "pl", "tr", "il", "ae", "sa", "eg", "za", "ng", "ke"]);
 
 /** 링크가 외신이면 true — 주소 못 읽음 · 모르는 주소 = 국내 */
