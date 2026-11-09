@@ -24,6 +24,7 @@ export function SchedFlow({ map, group, go, review = {}, phone = false, can = fa
   const fname = (id: string) => map.forks.find((f) => f.id === id)?.name || id;
   const [openF, setOpenF] = useState<Record<string, boolean>>({});   // 폰 = 포크 상자 접힘/펼침(처음엔 첫 상자만 펼침) · PC = 다 펼침
   const [sel, setSel] = useState<RunnerJob | null>(null);   // 누른 블록 = 바꾸기 판
+  const closeSel = useCallback(() => setSel(null), []);   // 닫기 = 고정 함수(30초 다시 그릴 때마다 새 함수면 판 포커스가 닫기 단추로 튐 · 모루 10:22)
   const [ran, setRan] = useState<Record<string, number>>({});   // 지금 돌리기 누른 잡 → 도는 호 끝나는 시각
   useEffect(() => {   // 판이 떠 있는 동안 그림은 inert(키보드·클릭으로 다른 잡을 못 고름 · 모루 09:32 ②③)
     const el = box.current;
@@ -122,7 +123,7 @@ export function SchedFlow({ map, group, go, review = {}, phone = false, can = fa
           </section>
         );
       })}
-      {sel ? <RunnerSheet job={sel} can={can} phone={phone} onClose={() => setSel(null)} onRan={(id) => setRan((r) => ({ ...r, [id]: Date.now() + RUN_MS }))} /> : null}
+      {sel ? <RunnerSheet job={sel} can={can} phone={phone} onClose={closeSel} onRan={(id) => setRan((r) => ({ ...r, [id]: Date.now() + RUN_MS }))} /> : null}
       {lines.length ? (
         <svg className="nm-flow-lines" aria-hidden>
           <defs><marker id="nm-flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" /></marker></defs>
