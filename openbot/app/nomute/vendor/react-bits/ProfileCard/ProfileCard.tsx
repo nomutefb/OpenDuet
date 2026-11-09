@@ -406,7 +406,7 @@ const ProfileCard = ({
             <span className="profile-card__holo-shift" />
           </span>
           {avatarUrl && (
-            <img className="profile-card__photo" src={avatarUrl} alt={name || ''} loading="lazy" draggable={false} />
+            <img className="profile-card__photo" src={avatarUrl} alt={name || ''} loading="eager" decoding="sync" draggable={false} /> /* [nomute] 얼굴 = 바로 받고 풀린 채 그림(11-10 형 폰 얼굴 조각) */
           )}
           {(name || title) && (
             <>

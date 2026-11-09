@@ -114,6 +114,18 @@ const LOOKS: Look[] = [
   },
 ];
 
+/** 얼굴 미리 풀기(봄 11-10 02:31 「얼굴 미리 풀어 두기(디코드 먼저)」) — 카드 열기 전에 그림을 받아 풀어 둠 · 한 번만 · 실패는 조용히(카드는 그대로 뜸) */
+const FACE_WARM = new Map<string, HTMLImageElement>();
+export function warmFace(src?: string) {
+  if (!src || FACE_WARM.has(src) || typeof Image === "undefined") return;
+  const im = new Image();
+  im.decoding = "async";
+  im.src = src;
+  im.decode?.().catch(() => {});
+  FACE_WARM.set(src, im);   // 붙잡아 둠(풀린 그림이 버려지지 않게)
+}
+if (typeof window !== "undefined") for (const l of LOOKS) warmFace(l.face);
+
 /** 명부 한 줄(./profile-card.tsx 가 넘김) — 틀 카드 재료 */
 export type CardPerson = { who: string; name?: string; kind?: string; face?: string; role?: string; bubble?: string | null; slug?: string; dir?: string };
 const handleOf = (p: CardPerson) => p.slug || p.dir || (p.face || "").split("/").pop()?.replace(/\.\w+$/, "") || "";
@@ -174,6 +186,7 @@ export function BeingCard({ who, name, role, intro, face, person }: { who: strin
         idle={idle}
       >
         {look.art}
+        <span className="bc-halo" aria-hidden="true" />
       </ProfileCard>
       {intro ? <p className="being-card__intro">{intro}</p> : null}
     </div>

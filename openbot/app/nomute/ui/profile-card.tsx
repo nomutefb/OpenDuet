@@ -11,7 +11,7 @@ import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장하시겠습�
 import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../data/office";
 import { ColorPick } from "./color-pick";
 import { screenUrl, tailnetUrl } from "./pc-url";   // 「화면 보기」 주소 = 컴퓨터 카드와 같은 테일넷 거르개 · 앱 안 화면 꼴(모루 #2968 · 시험 tests/profile-screen.test.ts)
-import { BeingCard, beingLook } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
+import { BeingCard, beingLook, warmFace } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import "./profile-intro.css";
 
@@ -19,6 +19,7 @@ const ROOMS_KEY = ["nomute", "rooms"] as const;   // office-chat.tsx officeKeys.
 
 export function ProfileCard({ who, list, onClose }: { who: string; list: OfficePerson[]; onClose: () => void }) {
   const qc = useQueryClient();
+  useEffect(() => { for (const x of list) if (x.kind !== "human" && x.face) warmFace(x.face); }, [list]);   // 카드 열기 전에 얼굴 미리 풀기(being-card warmFace · 한 번만)
   const [pick, setPick] = useState(false), [edit, setEdit] = useState(false), [draft, setDraft] = useState(""), [busy, setBusy] = useState(false), [note, setNote] = useState("");
   const [roleEdit, setRoleEdit] = useState(false), [roleDraft, setRoleDraft] = useState("");   // 직무 고치기(형 11-05 「내가 애들 직무도 변경할 수 있게해줘 프로필에서, 근데 그게 디비까지 반영되어야해」 · 서버 office/profile {who, role} · 형만)
   useEffect(() => { setPick(false); setEdit(false); setRoleEdit(false); setNote(""); }, [who]);
