@@ -21,3 +21,15 @@
 @media (prefers-reduced-motion: reduce) { .nm-sl-syncver .nm-sl-ver.stale { animation: none; } }
 /* 우하단 버전 부품이 떠 있으면 옛 우상단 판 번호(ver-badge · .nm-ver)는 숨김(뎅 22:40 「지워도 돼 — 우하단 줄이 그 몫」) */
 html.nm-has-syncver .nm-ver { display: none !important; }
+/* 점 불(형 11-09 12:3x 「동그라미 저거 촌스러우니까 그냥 점으로 디밍보이는거로」 · 시아) — 6px 점 · 제 빛 번짐 · 천천히 밝았다 흐려짐(불마다 박자 조금씩 어긋나게) */
+.nm-sl-leds { display: inline-flex; align-items: center; gap: 3px; }
+.nm-sl-leds .nm-sl-led { margin-right: 4px; }
+.nm-sl-leds b + .nm-sl-led { margin-left: 5px; }
+.nm-sl-led { display: inline-block; width: 6px; height: 6px; border-radius: 50%; vertical-align: middle; font-style: normal; flex: none;
+  background: var(--led); box-shadow: 0 0 4px 0 var(--led-glow), 0 0 0 1px rgba(0,0,0,.25); animation: nmSlLed 3.2s ease-in-out infinite; }
+.nm-sl-led.ok   { --led: #8BE36A; --led-glow: rgba(139,227,106,.55); }
+.nm-sl-led.warn { --led: #F2C94C; --led-glow: rgba(242,201,76,.55); animation-delay: -.8s; }
+.nm-sl-led.bad  { --led: #FF6B5E; --led-glow: rgba(255,107,94,.6); animation-delay: -1.6s; animation-duration: 2.4s; }
+.nm-sl-led.off  { --led: rgba(232,234,232,.32); --led-glow: transparent; animation: none; }
+@keyframes nmSlLed { 0%, 100% { opacity: 1; box-shadow: 0 0 5px 0 var(--led-glow), 0 0 0 1px rgba(0,0,0,.25); } 50% { opacity: .45; box-shadow: 0 0 1px 0 var(--led-glow), 0 0 0 1px rgba(0,0,0,.25); } }
+@media (prefers-reduced-motion: reduce) { .nm-sl-led { animation: none; } }

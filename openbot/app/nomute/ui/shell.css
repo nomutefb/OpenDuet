@@ -235,7 +235,7 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#CFFF40; background:rgba(207,255,64,.14); border-color:rgba(207,255,64,.38); }
 .nm-split-l .ynav svg { width:20px; height:20px; }
 .nm-split-l .ynav button[data-tab] { display:none !important; }   /* 홈 = 오른쪽에 늘 있음 · 대화방·대화 = 왼쪽 띠 → 남는 것 = 작동 · 서랍 · 설정 */
-.nm-top-lights { position:fixed; top:0; right:16px; height:50px; z-index:59; max-width:calc(50vw - 20vw - 28px); overflow:hidden; }
+.nm-top-lights { position:fixed; top:0; right:16px; height:50px; z-index:59; max-width:calc(100vw - 150px); }   /* 좁아져도 안 잘리게(형 11-09 12:3x 「화면 비율이 좁아져도 짤리지 않고 보이게」 · 시아) = 옛 30vw 칸 + 숨김 뺌 · 왼쪽 탭 줄 끝(~104px) 앞까지 */
 .nm-br-syncver { position:fixed; right:12px; bottom:8px; z-index:55; padding:4px 9px; border-radius:9px; font-size:var(--fs-xs) !important;
   background:rgba(16,17,19,.6); -webkit-backdrop-filter:blur(12px) saturate(1.15); backdrop-filter:blur(12px) saturate(1.15); border:1px solid rgba(255,255,255,.07); }
 /* 검색·밥상 이야기 단추는 document.body 에 그려져서(.nm-split-root 밖) 앞 줄들(「.nm-split-root .nm-find」)이 안 먹었음 → :root:has 로 잡음(뎅 23:13 실물 = 검색이 윗줄 높이 y1~39 에 남아 있었음) */

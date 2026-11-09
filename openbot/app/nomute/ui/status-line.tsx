@@ -2,7 +2,7 @@
 //   형 22:33 「하단에 정상 인거, 아닌거 보이는건 좋네, 근데 시선이 분산되, 이거 상단으로 보내는게 맞는듯.」 ·
 //   22:40 「그리고, 웹앱 버전은 우하단에 위치시켜 . 동기화도 마찬가지. 동기화 00분전 블릿 버전 0000000」
 //   → 부품 둘(번개 22:42 「바깥 자리(position)는 부품에 박지 말고 클래스만 줘 — 내가 끼울게」):
-//     ⓐ StatusLights = 윗줄용 · 🟢🟡🔴⚪ 수 · 서버 불 · 몸 live/total(끊긴 몸 이름 = 툴팁) · 봇 ok/total · 클래스 nm-sl-lights
+//     ⓐ StatusLights = 윗줄용 · 점 불(정상·주의·문제·꺼짐) 수 · 서버 불 · 몸 live/total(끊긴 몸 이름 = 툴팁) · 봇 ok/total · 클래스 nm-sl-lights
 //     ⓑ SyncVersion = 우하단용 · 「동기화 00분 전 • 버전 0000000」 · 버전 = 이 화면 판(__NM_SHA__ · ./ver-badge) · 올라간 판(version.json)과 다르면 라임 깜빡임 ·
 //        누르면 새 판(뎅 ver-badge 길 그대로) · 서버 판(editor sha)은 툴팁만(뎅 21:44 ② 판 번호 둘 헷갈림) · 클래스 nm-sl-syncver
 //        SyncVersion 이 떠 있으면 옛 우상단 판 번호(.nm-ver)는 숨김(html.nm-has-syncver · 뎅 22:40 「지워도 돼 — 우하단 줄이 그 몫」)
@@ -33,6 +33,10 @@ function ago(t: number | undefined, now: number): string {
 }
 
 const N = ({ v }: { v?: number }) => <b>{v ?? 0}</b>;
+// 신호등 = 이모지 동그라미 대신 작은 점 · 은은하게 숨 쉬는 불(형 11-09 12:3x 시아 창 「동그라미 저거 촌스러우니까 그냥 점으로 디밍보이는거로 해줘」 · 시아)
+type Tone = "ok" | "warn" | "bad" | "off";
+const Dot = ({ t }: { t: Tone }) => <i aria-hidden className={`nm-sl-led ${t}`} />;
+const toneOf = (s?: string): Tone => (!s ? "off" : s.includes("🔴") ? "bad" : s.includes("🟡") ? "warn" : s.includes("🟢") ? "ok" : "off");
 const Sep = () => <i aria-hidden className="nm-sl-sep">·</i>;
 
 function useLine() {
@@ -56,9 +60,9 @@ export function StatusLights({ className = "" }: { className?: string }) {
         <span>{q.isError ? "상태를 못 읽었어요" : q.isSuccess ? "상태 자료가 아직 없어요" : "상태 읽는 중…"}</span>
       ) : (
         <>
-          <span title="작동 표 신호등 수">🟢 <N v={l.ok} /> 🟡 <N v={l.warn} /> 🔴 <N v={l.bad} /> ⚪ <N v={l.off} /></span>
+          <span className="nm-sl-leds" title={`작동 표 신호등 수 · 정상 ${l.ok ?? 0} · 주의 ${l.warn ?? 0} · 문제 ${l.bad ?? 0} · 꺼짐 ${l.off ?? 0}`}><Dot t="ok" /><N v={l.ok} /> <Dot t="warn" /><N v={l.warn} /> <Dot t="bad" /><N v={l.bad} /> <Dot t="off" /><N v={l.off} /></span>
           <Sep />
-          <span title="서버 연결 칸의 가장 나쁜 불">서버 {l.server || "⚪"}</span>
+          <span title="서버 연결 칸의 가장 나쁜 불">서버 <Dot t={toneOf(l.server)} /></span>
           {/* 몸 n/m 뺌(형 11-08 09:00 dm-fast 「몸 7/9 이것도 없어도 돼.」 · 끊긴 몸은 러너 칸이 보여 줌) */}
           <Sep />
           <span title="봇 연결">봇 <N v={l.bots?.ok} />/{l.bots?.total ?? 0}</span>
