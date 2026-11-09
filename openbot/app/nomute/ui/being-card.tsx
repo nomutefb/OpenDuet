@@ -64,7 +64,7 @@ const LOOKS: Look[] = [
     match: ["시아", "sia", "시작의 아이"],
     face: "/office/sia.webp",
     handle: "sia",
-    meta: "물어보는 자리 · VM sia",
+    meta: "물어보는 자리 · Lx A",   // 몸 = 레노버 Lx A(11-09 13:4x 이사 · 형 「원래 잇던 데비안으로 가줘」)
     dot: "#CFFF40",
     font: "bagel-fat-one",   // 형 11-05 「폰트는 베이글로 할게」
     holo: 0.9,
@@ -91,7 +91,7 @@ const LOOKS: Look[] = [
     match: ["뎅", "deng"],
     face: "/office/deng.webp",
     handle: "from_deng",
-    meta: "말끝지기 · VM deng",
+    meta: "말끝지기 · Lx B",   // 몸 = 씽크센터 Lx B(11-09 뎅 이사)
     dot: "#FFB300",
     font: "bagel-fat-one",
     holo: 0.82,

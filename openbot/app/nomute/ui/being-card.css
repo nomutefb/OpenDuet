@@ -4,6 +4,10 @@
 
 .being-card-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .being-card.profile-card { width: 100%; max-width: 340px; touch-action: none; }   /* 손가락 = 끌면 기울기(위아래로도) */
+/* 얼굴 검정 · 렉(형 11-10 02:01 「줄이는게아니라 ㅋㅋ 얼굴이 막 검정이돼」 · 01:59 「렉걸린다고 전해줘 검정색 박스뜬다고」) — 기울어지는 몸통 · 그 안 알약의 흐림 유리(backdrop-filter)를
+   매 프레임 다시 흐리느라 GPU 가 밀려 얼굴 층이 까맣게 빔(짐작 · 크롬 계열) → 카드 안 흐림 유리만 끔 · 몸통 · 알약 색은 거의 그대로(알약은 흰빛 조금 더) · 홀로 · 박 · 무늬는 손 0 */
+.being-card .profile-card__body { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.being-card .profile-card__photo { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 .being-card .profile-card__tile { aspect-ratio: 3 / 4; }
 
 /* 무늬 층 = 타일 맨 아래(홀로가 그 위에 비침) · 깊이마다 시차 다르게 */
@@ -254,9 +258,7 @@
 }
 .bc-sia .profile-card__title,
 .bc-sia .profile-card__meta {
-  background: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(8px) saturate(1.5);
-  backdrop-filter: blur(8px) saturate(1.5);
+  background: rgba(255, 255, 255, 0.16);   /* 흐림 유리 뺀 몫만큼 흰빛 조금 더(맨 위 「얼굴 검정 · 렉」) */
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 14px -6px rgba(10, 6, 30, 0.55);
 }
 .bc-sia .profile-card__title {
@@ -470,9 +472,7 @@
 }
 .bc-deng .profile-card__title,
 .bc-deng .profile-card__meta {
-  background: rgba(255, 255, 255, 0.09);
-  -webkit-backdrop-filter: blur(8px) saturate(1.4);
-  backdrop-filter: blur(8px) saturate(1.4);
+  background: rgba(255, 255, 255, 0.15);   /* 흐림 유리 뺀 몫만큼 흰빛 조금 더 */
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 6px 14px -6px rgba(14, 6, 2, 0.6);
 }
 .bc-deng .profile-card__title {

@@ -172,6 +172,7 @@ const ProfileCard = ({
     let slowUntil = 0;
     let touchId: number | null = null;
     let hovering = false; /* [nomute] idle */
+    let lastWrite = 0; /* [nomute] idle 30fps — 아무도 안 만질 때 숨쉬기는 반 박자로 그림(형 11-10 「렉걸린다」) */
 
     const write = () => {
       const { enableTilt: tiltOn, tiltStrength: strength, parallax: depth } = settingsRef.current;
@@ -217,7 +218,7 @@ const ProfileCard = ({
       }
       const tau = light.target > light.p ? 0.18 : slow ? 0.9 : 0.45;
       light.p += (light.target - light.p) * (1 - Math.exp(-dt / tau));
-      write();
+      if (!idling || now - lastWrite >= 33) { write(); lastWrite = now; } /* [nomute] idle 30fps · 손 · 마우스는 매 프레임 */
       const moving =
         Math.abs(x.target - x.p) > 0.0005 ||
         Math.abs(y.target - y.p) > 0.0005 ||
