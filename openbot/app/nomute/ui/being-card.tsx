@@ -16,6 +16,8 @@ type Look = {
   glare?: number;       // 눈부심 세기 0~1
   font?: FontKey;       // 카드 글 전부(이름·직무·@handle·자리·큰 글자) 글꼴(아래 FONTS · 없으면 bagel-fat-one)
   art: ReactNode;       // 얼굴 뒤 무늬(그림 파일 없이 CSS·이모지)
+  tmpl?: boolean;       // 몸통 = 틀 카드(.bc-tmpl) 그대로 쓰고 .bc-<id> 로 덧칠만
+  accent?: string;      // 틀 카드 색(--bc-accent) · 없으면 dot
 };
 
 // 이름 글꼴 후보(형 11-05 「글자 폰트만 들어가면 지릴거같은디」) — 한글 되는 Google Fonts 셋 · 카드가 처음 뜰 때 그 글꼴 <link> 하나만 붙임
@@ -112,6 +114,27 @@ const LOOKS: Look[] = [
       </span>
     ),
   },
+  {
+    // 천둥(형 11-10 06:57 봄 창 「천둥」 · 「직무 신」 · 07:0x 「프로필 안에서 이모지 🌩」 · 「프사는 저거로 움직이게」) — 얼굴 = 형이 준 움직이는 그림 그대로(움직이는 webp · 60장 · 5초)
+    //   몸통 = 틀 카드 · 색 = 그림 금빛 번개(#FFC83D) · 바탕 = 남색 밤 하늘 · 무늬 = 띠 + 테 + 🌩(가끔 번쩍)
+    id: "thunder",
+    tmpl: true,
+    accent: "#FFC83D",
+    match: ["천둥", "thunder"],
+    face: "/office/thunder.webp",
+    handle: "thunder",
+    meta: "신",
+    dot: "#FFC83D",
+    holo: 0.78,
+    glare: 0.5,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <span className="bc-bolt">🌩</span>
+      </span>
+    ),
+  },
 ];
 
 /** 얼굴 미리 풀기(봄 11-10 02:31 「얼굴 미리 풀어 두기(디코드 먼저)」) — 카드 열기 전에 그림을 받아 풀어 둠 · 한 번만 · 실패는 조용히(카드는 그대로 뜸) */
@@ -167,9 +190,9 @@ export function BeingCard({ who, name, role, intro, face, person }: { who: strin
   useDisplayFont(look ? font : null);
   if (!look) return null;
   return (
-    <div className="being-card-wrap" style={{ "--bc-display": `"${FONTS[font].family}"`, ...(look.id === "tmpl" ? { "--bc-accent": look.dot } : {}) } as CSSProperties}>
+    <div className="being-card-wrap" style={{ "--bc-display": `"${FONTS[font].family}"`, ...(look.id === "tmpl" || look.tmpl ? { "--bc-accent": look.accent || look.dot } : {}) } as CSSProperties}>
       <ProfileCard
-        className={`being-card bc-${look.id}`}
+        className={`being-card bc-${look.id}${look.tmpl ? " bc-tmpl" : ""}`}
         avatarUrl={face || look.face}
         name={name || who}
         title={role || ""}

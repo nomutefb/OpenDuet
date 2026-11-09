@@ -552,3 +552,22 @@
   box-shadow: inset 0 0 40px color-mix(in srgb, var(--bc-accent) 14%, transparent);
   transform: translate3d(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7), 0);
 }
+
+/* ───────── 천둥 · 남색 밤 하늘 + 금빛 번개(being-card.tsx LOOKS thunder · 몸통 = 틀 카드 · 여기선 바탕 · 🌩 만) ───────── */
+.being-card-wrap .bc-thunder .profile-card__body { background: linear-gradient(165deg, rgba(40, 34, 96, 0.92) 0%, rgba(14, 12, 38, 0.95) 100%); }
+.being-card-wrap .bc-thunder .profile-card__tile { background: radial-gradient(120% 90% at 50% 18%, #4a3d9a 0%, #241d5c 46%, #0f0c2a 100%); }
+.bc-thunder .bc-bolt {
+  right: 14%; top: 8%;
+  font-size: 26px; line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(255, 200, 61, 0.9));
+  transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0);
+  animation: bc-bolt 4.2s steps(1, end) infinite;
+}
+@keyframes bc-bolt {   /* 가끔 번쩍(불투명도만 · 그리기 다시 0) */
+  0%, 70%, 100% { opacity: 0.92; }
+  72% { opacity: 0.35; }
+  74% { opacity: 1; }
+  76% { opacity: 0.45; }
+  78% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .bc-thunder .bc-bolt { animation: none; } }
