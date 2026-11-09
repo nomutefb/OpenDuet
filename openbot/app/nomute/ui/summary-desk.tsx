@@ -26,15 +26,17 @@ const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); }; 
 
 /** 카드 한 장 — PC Digest 칸(home/news-summary.tsx)도 같은 카드를 판 없이 씀(형 11-08 09:14 「비율 그대로 유지하면서 가져와서 ui 스타일만 색상 팔레트 적용해서 녹여. 단 여기에 또 블록을 만들지마」) */
 /**   뉴스 에디터(4번 · ./news-editor.tsx) = on(고른 카드 · 라임 테) · kind(긴급·이슈 = 금빛 테 + 표) · onOpen(PC = 오른쪽 칸에 열기) · sens(민감 칸 · 옛 에디터 카드 셋째 칸) · short(폰 = 매체·편향 줄 뺌) */
-export function SumCard({ a, on, kind, onOpen, sens: withSens, short }: { a: Art; on?: boolean; kind?: string; onOpen?: () => void; sens?: boolean; short?: boolean }) {
+/**   dg = 홈 Digest(형 11-09 09:21 「메인 화면에서 digest로 나온것도, 타이틀은 1줄로, / 매체 연합뉴스 이것도 가로로 해서 더 얇게 / 보도 3시간전 > 3시간 전 / 이것만 나오면 됨.」 · 12:3x 「여기 에디터 홈페이지 형태로 올라오게 하기로했는데, 한줄로 하라니까 아예 원상복귀가 되어버렸네」)
+ *   = 이 카드 꼴 그대로 · 제목 1줄 · 매체·편향 한 줄 가로(얇게) · 「보도」 말 뺌 */
+export function SumCard({ a, on, kind, onOpen, sens: withSens, short, dg }: { a: Art; on?: boolean; kind?: string; onOpen?: () => void; sens?: boolean; short?: boolean; dg?: boolean }) {
   const go = useGo();
   const cat = catOf(a), bias = biasOf(a), pr = progOf(a), media = mediaOf(a.media), sens = withSens ? sensOf(a).slice(0, 2) : [];
   const rep = ago(reportTs(a)), scr = ago(scrapTs(a)), open = onOpen || (() => go(`/news?a=${encodeURIComponent(a.file)}`));
   return (
-    <div className={`nm-sumc${on ? " on" : ""}${kind ? " k-" + kind : ""}`} role="article" tabIndex={0} aria-label={a.title || "기사"} aria-current={on || undefined} onClick={open} onKeyDown={(e) => { if (e.key === "Enter") open(); }}>
+    <div className={`nm-sumc${on ? " on" : ""}${kind ? " k-" + kind : ""}${dg ? " dg" : ""}`} role="article" tabIndex={0} aria-label={a.title || "기사"} aria-current={on || undefined} onClick={open} onKeyDown={(e) => { if (e.key === "Enter") open(); }}>
       <div className="nm-sumc-top">
         {cat ? <b className={`cat ${cat[1]}`}>{cat[0]}</b> : null}
-        {rep ? <span>보도 <b>{rep}</b></span> : null}
+        {rep ? <span>{dg ? null : "보도 "}<b>{rep}</b></span> : null}
         {kind ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
         {scr ? <span className="r">스크랩 <b>{scr}</b></span> : null}
       </div>
