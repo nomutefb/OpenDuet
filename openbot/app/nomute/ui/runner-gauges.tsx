@@ -106,12 +106,15 @@ export function RunnerGauges() {
   const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
   const panel = useRef<HTMLDivElement | null>(null);
   const dy = useRowSync(panel);
+  // 공용 두 줄 재료(36) · 시아 09:26 ②③): 조약돌 = 몸 차례(WIN → MAC → Lx B → Lx A)대로 사는 애를 한 줄로 · 러너 = 윈A 러너(RUNNERS 가 윈 칸인 것)만 번호 차례 · 둘 다 12칸(넘치면 자름)
+  const pebs = HOSTS.flatMap((h) => livesOn(h.body).map((x) => ({ ...x, host: h.label }))).slice(0, 12);
+  const runs = HOSTS.filter((h) => !BODY_CHIPS[h.k]).flatMap((h) => Object.entries(rcells).filter(([n]) => RUNNERS[h.k]?.(n)).sort((x, y) => rord(x[0]) - rord(y[0])).map(([n, c]) => ({ n, c }))).slice(0, 12);
   // 게이지 넷 같은 크기(형 11-08 10:48 「게이지 크기가 차이가 나네 이제보니까 게이지 크기를 lxa, lxb에 맞추고」) = 몸 칸 폭 다 같게 · WIN↔MAC 틈만 빈 트랙 하나(12px · 형 08:14 「win하고 mac 간격을 아주 조금만 더 벌릴게」 그대로) — 앞 판은 WIN 오른쪽 12 · MAC 왼쪽 9 패딩이라 좁은 창(2/5 창)에서 그 두 게이지만 작아졌음
   const cols = HOSTS.length > 1 ? `minmax(0, 1fr) 12px repeat(${HOSTS.length - 1}, minmax(0, 1fr))` : "minmax(0, 1fr)";
   return (
-    <div className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보">
+    <div ref={panel} className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보" style={{ ["--nm-rgx-peb-dy" as string]: `${dy.peb}px`, ["--nm-rgx-run-dy" as string]: `${dy.run}px` }}>   {/* ref·줄 맞춤 변수 = 바깥 틀(공용 두 줄이 판 밖이라 · 36) */}
       <div className="nm-card-h"><i className="live" aria-hidden /><b>Runner</b><span>{newest ? ago(now - newest) : st.data?.at ? ago(now - st.data.at) : st.isLoading ? "불러오는 중" : ""}</span></div>   {/* 칸 머리줄 = 모든 칸 같은 꼴(시아 UI ① · 형 11-06 대시보드 고급화) */}   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
-      <div ref={panel} className="nm-rg-panel nm-rgx-panel" style={{ ["--nm-rgx-n" as string]: Math.max(1, HOSTS.length), ["--nm-rgx-cols" as string]: cols, ["--nm-rgx-peb-dy" as string]: `${dy.peb}px`, ["--nm-rgx-run-dy" as string]: `${dy.run}px` }}>
+      <div className="nm-rg-panel nm-rgx-panel" style={{ ["--nm-rgx-n" as string]: Math.max(1, HOSTS.length), ["--nm-rgx-cols" as string]: cols }}>
         {HOSTS.map((h, hi) => {
           const pk = pickHost(hw, h.hosts), a = pk?.a, b = pk?.b;
           const fresh = !!(a ? !a.stale : b && !b.stale);   // 몸 보고가 살아 있음(존재가 자든 말든) · hw 줄이 있으면 그 줄 기준(온도 줄만 신선한 척 못 함)
@@ -129,34 +132,12 @@ export function RunnerGauges() {
           const at = a?.reported_at || b?.reported_at || (rd ? rd.at * 1000 : 0);   // 낡은 보고도 그 시각(밑에 「N분 전」)
           const busy = rd && num(rd.busy) != null && rd.busy! >= 0 ? rd.busy : null, total = rd && num(rd.total) != null && rd.total! >= 0 ? rd.total : null;
           const temp = [m.cpu_temp != null ? `CPU ${Math.round(m.cpu_temp)}°` : "", m.gpu_temp != null ? `GPU ${Math.round(m.gpu_temp)}°` : ""].filter(Boolean).join(" · ");
-          const runners = Object.entries(rcells).filter(([n]) => RUNNERS[h.k]?.(n)).sort((x, y) => rord(x[0]) - rord(y[0]));
           return (
             <Fragment key={h.k}>
             <section className="nm-rgx-host" aria-label={`${h.label} 상태`}>   {/* 위에서부터 가운데로 = 이름 · G 온도 · (틈) · 게이지 · 러너 불(형 17:3x 「각각 게이지 바로 수직 위에다가 하드웨어 이름」 · 「블릿은 없어도」 · 「그래픽카드 온도도 그대로 수직위로」 · 「게이지랑딱붙으면 안이쁘니까」) */}
               <b className="nm-rg-name nm-rgx-name">{h.label}</b>
               <span className="nm-rgx-g">{none && a?.stale ? "보고 끊김" : "\u00a0"}</span>   {/* G 온도는 게이지 안 위 글 둘째 줄로(TickGauge top2 · 형 11-08 09:03 글자 크기 = CPU 온도와 같게 · 「WIN 이랑 간격을 좀 더 벌려줘」 = 이 줄은 빈 틈) */}
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used={!live && !none && at ? ago(now - at) : ""} top={m.cpu_temp != null ? `C ${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} top2={m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : undefined} top2Ink={tInk(m.gpu_temp)} off={none} wait={none && (st.isLoading || rq.isLoading)} dyText={4} />   {/* 안 글자 4(≈3.5px) 아래(형 11-08 11:27 밥상 「게이지 안에 글자도 조금 더 내려오고(그럼 글자는 두번내려오는 느낌이겟지)」 · 게이지 자체도 4px 아래 = runner-gauges.css) */}
-              {livesOn(h.body) ? (   /* 사는 애 없는 몸(윈B)도 빈 줄 자리는 둠 = 러너 줄 높이가 세 몸 같게 */
-                <ul className="nm-rgx-pebs" aria-label={`${h.label}에 사는 우리`}>
-                  {livesOn(h.body).map((x) => { const w = wake(x.bot ?? x.key); return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who} · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "불러오는 중" : "잠"}`} /></li>; })}
-                </ul>
-              ) : null}
-              {BODY_CHIPS[h.k] ? (
-                <ul className="nm-rgx-runs" aria-label={`${h.label} 몸`}>
-                  {BODY_CHIPS[h.k].map((c) => {
-                    const r = hw.find((x) => x.key === c.key);
-                    const cls = r && !r.stale ? LIGHT_CLS[r.st || ""] || "" : "";
-                    return <li key={c.key} className={`nm-rgx-run nm-rgx-body${cls ? ` ${cls}` : ""}`} title={`${c.label} · ${!r ? "보고 없음" : r.note || r.st || ""}`}>{c.label}</li>;
-                  })}
-                </ul>
-              ) : runners.length ? (
-                <ul className="nm-rgx-runs" aria-label={`${h.label} 러너`}>
-                  {runners.map(([n, c]) => {
-                    const on = c.st === "🟢", work = on && c.note === "일하는 중";
-                    return <li key={n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${n} · ${on ? c.note || "켜짐" : c.note || "꺼짐"}`}>{rnum(n) || short(n)}</li>;   {/* 번호만 · 도형 없음 · 사이 「|」(CSS)(형 11-08 09:04 밥상 「대시보드에 러너 123456으로 통일할거니까 미리 123456 맞춰놓고, … 도형으로 감쌀 필요가 없음 1 | 2 | 3 ㅣ 이런식으로 나오면됨.」 · 봄 09:05·10:06 나눔) · 번호 없는 이름(O · M)은 옛 줄임 그대로 */}
-                  })}
-                </ul>
-              ) : null}
               {temp ? <span className="sr-only">{temp}</span> : null}
             </section>
             {hi === 0 && HOSTS.length > 1 ? <i className="nm-rgx-sp" aria-hidden /> : null}   {/* WIN↔MAC 틈 트랙(12px) · 다른 몸 사이는 패딩만 */}
@@ -164,6 +145,23 @@ export function RunnerGauges() {
           );
         })}
       </div>
+      {/* 형 11-09 09:25 「조약돌 모양 일정한 간격으로 그냥 쭉 나열 · 러너 > A1~A6 · 일자로 · 총 12개 칸 · 6개 칸은 공란」 · 시아 09:26 ②③ = 몸 묶음 풀고 12칸 격자 두 줄(위 = 조약돌 1~10 · 아래 = A1~A6 · 7~12 공란 = 흐린 점) · 높이 = 오른쪽 SNS FB 줄 · IG 줄(useRowSync 그대로) */}
+      <ul className="nm-rgx-pebs nm-rgx-row12" aria-label="우리 조약돌(몸 차례)">
+        {Array.from({ length: 12 }, (_, i) => {
+          const x = pebs[i];
+          if (!x) return <li key={`e${i}`} className="nm-rgx-cell empty" aria-hidden />;
+          const w = wake(x.bot ?? x.key);
+          return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who}(${x.host}) · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "읽는 중" : "잠"}`} /></li>;
+        })}
+      </ul>
+      <ul className="nm-rgx-runs nm-rgx-row12" aria-label="러너 A1~A6">
+        {Array.from({ length: 12 }, (_, i) => {
+          const r = runs[i];
+          if (!r) return <li key={`e${i}`} className="nm-rgx-cell empty" aria-hidden><i /></li>;
+          const on = r.c.st === "🟢", work = on && r.c.note === "일하는 중";
+          return <li key={r.n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${r.n} · ${on ? r.c.note || "켜짐" : r.c.note || "꺼짐"}`}>{`A${rnum(r.n) || i + 1}`}</li>;   {/* 화면 이름만 A1~ · 러너 진짜 이름은 그대로(title) */}
+        })}
+      </ul>
     </div>
   );
 }
