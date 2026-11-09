@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { type Rect, flowOf, modelKo, routeEdge, routeRail, stem, timeKey } from "../ui/sched-flow-core.ts";
+import { type Rect, flowOf, ghJob, modelKo, routeEdge, routeRail, stateKo, stem, timeKey, toggleOf } from "../ui/sched-flow-core.ts";
 import type { RunnerJob, SchedRunners } from "../ui/settings-extra.tsx";
 
 // 러너 스케줄 흐름 그림 셈(봄 배분 19 · 시아 05:17 ②: 선 = after/calls 있는 것만 · 선 없는 잡은 시각 순 왼→오 · after 값은 .yml 없는 줄기 이름)
@@ -107,4 +107,15 @@ test("폰 선 = 왼쪽 레일(lane 마다 4px 안쪽) · 아래로도 위로도 
   assert.equal(routeRail(a, b), "M26 145 H20 V249 H21");
   assert.equal(routeRail(a, b, 2), "M26 145 H12 V249 H21");
   assert.equal(routeRail(b, a, 1), "M26 249 H16 V145 H21");
+});
+
+test("바꾸기 판 순수 칸 = 상태 말 · 켬끔 다음 할 일 · 서버가 손댈 잡", () => {
+  assert.equal(stateKo("active"), "켜짐");
+  assert.equal(stateKo("disabled_manually"), "꺼짐(손으로)");
+  assert.equal(stateKo(""), "상태 모름");
+  assert.equal(toggleOf("active"), "off");
+  assert.equal(toggleOf("disabled_manually"), "on");
+  assert.equal(ghJob(job("a", "f", { host: "github", src: "gh:a.yml" })), true);
+  assert.equal(ghJob(job("b", "f", { host: "mac", src: "launchd:b", file: "" })), false);
+  assert.equal(ghJob(job("c", "f", { host: "github" })), false);   // src 없음 = 모름 → 손 안 댐
 });

@@ -41,3 +41,27 @@
 .nm-flow-lines { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:1; }
 .nm-flow-lines path { fill:none; stroke:var(--flow-line-fg); stroke-width:1.5; }
 .nm-flow-lines marker path { fill:var(--flow-line-fg); stroke:none; }
+
+/* 블록 누름 = 손 모양 · 지금 돌리기 뒤 = 상태 점이 도는 호(시아 08:55 ②) */
+.nm-flow-job[role="button"] { cursor:pointer; }
+.nm-flow-job[role="button"]:focus-visible { outline:2px solid var(--flow-next); outline-offset:1px; }
+@keyframes nm-flow-spin { to { transform:rotate(360deg); } }
+.nm-flow-job[data-run] .nm-flow-l3 .nm-st { width:9px; height:9px; background:none; border:1.5px solid var(--flow-next); border-top-color:transparent; border-radius:50%; animation:nm-flow-spin .9s linear infinite; }
+/* 바꾸기 판(./runner-sheet.tsx · 【3】 2단) — 폰 = 아래서 올라옴 · PC = 가운데 판 */
+.nm-rsheet-back { position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.45); }
+.nm-rsheet { width:min(440px, calc(100% - 32px)); max-height:min(80vh, 640px); overflow:auto; border:1px solid var(--flow-line); border-radius:18px; background:var(--flow-block); color:var(--flow-fg); box-shadow:var(--shadow-card); }
+.nm-rsheet[data-phone] { align-self:flex-end; width:100%; max-height:84vh; border-radius:18px 18px 0 0; padding-bottom:env(safe-area-inset-bottom); animation:nm-rsheet-up .22s var(--ease, ease-out); }
+@keyframes nm-rsheet-up { from { transform:translateY(24px); opacity:.6; } to { transform:none; opacity:1; } }
+.nm-rsheet-h { position:relative; display:grid; gap:2px; padding:14px 44px 10px 16px; border-bottom:1px solid var(--flow-line); }
+.nm-rsheet-h b { font-size:var(--fs-h3); } .nm-rsheet-h small { color:var(--mut); font-size:var(--fs-sm); display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.nm-rsheet-x { position:absolute; top:10px; right:10px; width:32px; height:32px; border:0; border-radius:50%; background:none; color:var(--mut); font-size:20px; line-height:1; cursor:pointer; }
+.nm-rsheet-body { display:grid; gap:10px; padding:12px 16px 16px; }
+.nm-rsheet-row { display:flex; align-items:center; gap:10px; } .nm-rsheet-row b { display:block; font-size:var(--fs-body); } .nm-rsheet-row small { display:block; color:var(--mut); font-size:var(--fs-sm); }
+.nm-rsheet-grey { margin:0; color:var(--mut); font-size:var(--fs-sm); }
+.nm-rsheet-chip { justify-self:start; padding:2px 10px; border:1px dashed var(--flow-line); border-radius:999px; color:var(--mut); font-size:var(--fs-xs); }
+.nm-rsheet-pre { display:grid; gap:8px; padding:10px 12px; border:1px solid var(--flow-line); border-radius:12px; background:var(--flow-panel); }
+.nm-rsheet-pre p { margin:0; font-size:var(--fs-sm); } .nm-rsheet-pre[data-red] p { color:#FF5A5F; }   /* 끔 미리 보기 = 빨강 한 줄(시아 08:55 ①) */
+.nm-rsheet-btns { display:flex; gap:6px; justify-content:flex-end; }
+.nm-rsheet-msg { margin:0; font-size:var(--fs-sm); color:#ffd27a; }
+.nm-rsheet-acts small { color:var(--mut); font-size:var(--fs-xs); } .nm-rsheet-acts ul { margin:4px 0 0; padding:0; list-style:none; display:grid; gap:2px; font-size:var(--fs-sm); color:var(--mut); }
+.nm-rsheet-foot { color:var(--mut); font-size:var(--fs-xs); }

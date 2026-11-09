@@ -9,18 +9,22 @@ import { type RunnerJob, type SchedRunners, nextShort } from "./settings-extra";
 import { CLOCK_KO, whenOf } from "./sched-runners";
 import { type Review, ReviewBadge } from "./sched-review";
 import { type Rect, flowOf, modelKo, routeEdge, routeRail } from "./sched-flow-core";
+import { RunnerSheet } from "./runner-sheet";   // 바꾸기 판(【3】 2단 · 켬끔 · 지금 돌리기 · 형만)
 import "./sched-flow.css";
 
 type Line = { k: string; d: string; title: string };
 type Chip = { dir: "in" | "out"; job: RunnerJob; tag: string; onClick: () => void };
 
-export function SchedFlow({ map, group, go, review = {}, phone = false }: { map: SchedRunners; group: string; go: (group: string) => void; review?: Record<string, Review>; phone?: boolean }) {
+const RUN_MS = 120_000;   // 「지금 돌리기」 누른 뒤 상태 점이 도는 호로 있는 시간(시아 08:55 ② · 끝은 다음 표(health)로)
+export function SchedFlow({ map, group, go, review = {}, phone = false, can = false }: { map: SchedRunners; group: string; go: (group: string) => void; review?: Record<string, Review>; phone?: boolean; can?: boolean }) {
   const [now, setNow] = useState(() => Date.now());   // 「다음」 배지 = 시각이 지나면 표가 새로 안 와도 넘어감(모루 11-09 07:57 · 30초마다 다시 셈)
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
   const { rows, edges, far, soon } = useMemo(() => flowOf(map, group, now), [map, group, now]);
   const gname = (id: string) => map.groups.find((g) => g.id === id)?.name || id;
   const fname = (id: string) => map.forks.find((f) => f.id === id)?.name || id;
   const [openF, setOpenF] = useState<Record<string, boolean>>({});   // 폰 = 포크 상자 접힘/펼침(처음엔 첫 상자만 펼침) · PC = 다 펼침
+  const [sel, setSel] = useState<RunnerJob | null>(null);   // 누른 블록 = 바꾸기 판
+  const [ran, setRan] = useState<Record<string, number>>({});   // 지금 돌리기 누른 잡 → 도는 호 끝나는 시각
   const isOpen = (id: string) => !phone || (openF[id] ?? id === rows[0]?.f.id);
   const box = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<Line[]>([]);
@@ -92,7 +96,7 @@ export function SchedFlow({ map, group, go, review = {}, phone = false }: { map:
                   const more = [...cRest.map((c) => <i key={c}>{CLOCK_KO[c] || c}</i>), ...(j.gpu?.length ? [<i key="gpu">GPU</i>] : []), ...(j.kind === "llm" ? [<i key="llm" data-k="llm">LLM</i>] : [])];
                   const stText = `${HEALTH_KO[st]} · ${modelKo(j)}`;
                   return (
-                    <article key={j.id} className="nm-flow-job" data-job={j.id} data-st={st} data-next={soon === j.id || undefined} data-off={j.on === false || undefined}>
+                    <article key={j.id} className="nm-flow-job" data-job={j.id} data-st={st} data-next={soon === j.id || undefined} data-off={j.on === false || undefined} data-run={(ran[j.id] || 0) > now || undefined} role="button" tabIndex={0} aria-label={`${j.name} 바꾸기 판`} onClick={() => setSel(j)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSel(j); } }}>
                       <div className="nm-flow-l1">
                         <b title={j.name}><ReviewBadge r={review[j.id]} />{j.name}</b>
                         {c0 ? <span className="nm-flow-tags"><i>{CLOCK_KO[c0] || c0}</i></span> : null}
@@ -103,7 +107,7 @@ export function SchedFlow({ map, group, go, review = {}, phone = false }: { map:
                         <Breaker on={j.on !== false} dim disabled label={`${j.name} 차단기(보기만)`} onFlip={() => {}} />
                       </div>
                       {soon === j.id ? <em className="nm-flow-next">다음</em> : null}
-                      {chips.length ? <div className="nm-flow-far">{chips.map((x) => <button key={`${x.dir}${x.job.id}`} type="button" title={`${x.tag}(으)로`} onClick={x.onClick}>{x.dir === "out" ? "→ " : "← "}{x.job.name}<i>{x.tag}</i></button>)}</div> : null}
+                      {chips.length ? <div className="nm-flow-far">{chips.map((x) => <button key={`${x.dir}${x.job.id}`} type="button" title={`${x.tag}(으)로`} onClick={(e) => { e.stopPropagation(); x.onClick(); }}>{x.dir === "out" ? "→ " : "← "}{x.job.name}<i>{x.tag}</i></button>)}</div> : null}
                     </article>
                   );
                 })}
@@ -112,6 +116,7 @@ export function SchedFlow({ map, group, go, review = {}, phone = false }: { map:
           </section>
         );
       })}
+      {sel ? <RunnerSheet job={sel} can={can} phone={phone} onClose={() => setSel(null)} onRan={(id) => setRan((r) => ({ ...r, [id]: Date.now() + RUN_MS }))} /> : null}
       {lines.length ? (
         <svg className="nm-flow-lines" aria-hidden>
           <defs><marker id="nm-flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" /></marker></defs>

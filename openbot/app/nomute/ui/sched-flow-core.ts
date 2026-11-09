@@ -98,3 +98,14 @@ export function routeRail(a: Rect, b: Rect, lane = 0): string {
   const y1 = r1((a.top + a.bottom) / 2), y2 = r1((b.top + b.bottom) / 2), x = r1(Math.min(a.left, b.left) - 6 - lane * 4);
   return `M${r1(a.left)} ${y1} H${x} V${y2} H${r1(b.left) - 5}`;
 }
+
+// ---- 바꾸기 판(【3】 2단 · 서버 POST schedule/runner · 형만) 순수 칸 ----
+export type RunnerAct = { at: number; who: string; action: string; from?: string; to?: string };
+export type RunnerRes = { ok: boolean; error?: string; why?: string; dry?: boolean; action?: string; would?: string; to?: string | null; red?: boolean; id: string; name: string; file: string; host?: string; owner?: string; state: string; state_why?: string; followers: string[]; acts: RunnerAct[]; dispatch: boolean };
+export const ACTION_KO: Record<string, string> = { run: "지금 돌리기", on: "켬", off: "끔", state: "상태 보기" };
+/** 깃허브 워크플로 상태 → 말(active = 켜짐 · disabled_* = 꺼짐 · 빈 값 = 모름) */
+export const stateKo = (s: string) => (s === "active" ? "켜짐" : s ? `꺼짐(${s === "disabled_manually" ? "손으로" : s})` : "상태 모름");
+/** 켬끔 스위치를 누르면 할 일 = 지금 켜져 있으면 off · 아니면 on */
+export const toggleOf = (s: string): "on" | "off" => (s === "active" ? "off" : "on");
+/** 서버가 손댈 수 있는 잡인가(깃허브 워크플로) — 몸 안 잡은 주인 칩만(시아 11-09 08:55 ③) */
+export const ghJob = (j: RunnerJob) => j.host === "github" && /^gh:/.test(String(j.src || "")) && /\.ya?ml$/i.test(j.file || "");
