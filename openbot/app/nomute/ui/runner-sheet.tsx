@@ -71,7 +71,7 @@ export function RunnerSheet({ job, can, phone, onClose, onRan }: { job: RunnerJo
       <section ref={sheet} className="nm-rsheet" data-phone={phone || undefined} role="dialog" aria-modal="true" aria-label={`${job.name} 바꾸기`} onClick={(e) => e.stopPropagation()} onKeyDown={trap}>
         <header className="nm-rsheet-h">
           <b>{job.name}</b>
-          <small>{whenOf(job)}{job.health?.next_at ? ` · 다음 ${nextShort(job.health.next_at)}` : ""} · <StatusDot st={st} />{job.file || job.id}</small>
+          <small>{whenOf(job)}{job.health?.next_at ? ` · 다음 ${nextShort(job.health.next_at)}` : ""} · <StatusDot st={st} /><code className="nm-rsheet-file">{job.file || job.id}</code></small>
           <button type="button" className="nm-rsheet-x" aria-label="닫기" onClick={onClose}>×</button>
         </header>
         {!gh ? (

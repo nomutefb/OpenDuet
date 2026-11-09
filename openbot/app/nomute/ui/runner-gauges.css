@@ -76,7 +76,7 @@
 .nm-rgx-host .nm-rg-gauge { max-height:106px; margin-top:0; }
 .nm-rgx .nm-rgx-row12 { display:grid; grid-template-columns:repeat(12, minmax(0, 1fr)); width:100%; justify-items:center; align-items:center; gap:0; margin:6px 0 0; padding:0 2px; min-height:20px; }
 .nm-rgx .nm-rgx-row12.nm-rgx-runs { justify-content:stretch; white-space:normal; margin-top:4px; }
-.nm-rgx .nm-rgx-row12 .nm-rgx-run { font-size:14px; line-height:18px; font-variant-numeric:tabular-nums; letter-spacing:0; }
+.nm-rgx .nm-rgx-row12 .nm-rgx-run { font-size:10px; line-height:14px; font-variant-numeric:tabular-nums; letter-spacing:0; }   /* 글자 = 앞 판(번호 1~6 때) 크기(형 11-09 10:08 「a1 a2 이런거 글자크기 기존과 동일하게 갈거야. 지금 너무 커」) */
 .nm-rgx .nm-rgx-row12 .nm-rgx-run + .nm-rgx-run::before { content:none; }   /* 「|」 사이 글자 0 = 칸 간격이 대신 */
 .nm-rgx .nm-rgx-row12 .nm-rgx-cell { display:block; width:20px; height:20px; }
 .nm-rgx .nm-rgx-row12 .nm-rgx-cell.empty i { display:block; width:3px; height:3px; margin:auto; border-radius:50%; background:rgba(255,255,255,.14); }   /* 공란 자리 표시 = 아주 흐린 점(시아 ③) */
