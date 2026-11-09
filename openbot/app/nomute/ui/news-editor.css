@@ -37,7 +37,7 @@
 .nm-ned-chips::-webkit-scrollbar { display:none; }
 .nm-ned-chips button { all:unset; box-sizing:border-box; flex:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); font-size:var(--fs-xs); color:var(--fg-2); }
 .nm-ned-chips button i { font-style:normal; color:var(--mut); font-variant-numeric:tabular-nums; }
-.nm-ned-chips button.on { background:var(--fg); color:var(--bg, #111); border-color:transparent; }
+.nm-ned-chips button.on { background:#CFFF40; color:#141516; border-color:transparent; font-weight:600; }   /* 고른 칩 = 라임 + 검은 글(옛 = --fg 바탕 · --bg 글 → 밝은 꼴에서 검은 알약에 검은 글 · 빚 12:35 짚음) */
 .nm-ned-chips button.on i { color:inherit; opacity:.6; }
 .nm-ned-chips button:focus-visible { outline:2px solid #CFFF40; outline-offset:1px; }
 .nm-ned-find { margin:0; }
