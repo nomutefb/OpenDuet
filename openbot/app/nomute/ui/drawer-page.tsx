@@ -18,7 +18,7 @@ const PARTS: { name: string; ids: Modal[] }[] = [
   { name: "만들기", ids: ["edtool", "eddl"] },   // 맨 위(봄 11-08 · 형 08:49 「아침에 올린 글도, 우리 오피스 안썼어. 옛날 에디터 썼고, 포토샵썼어」 · 「ux가 예전보다 안따라와」 · 에디터 자리는 형 10-31 「에디터는 그냥 서랍 누르면 뜨면 될듯」 그대로 서랍 · 다섯째 묶음이라 내려야 보였음)
   { name: "일", ids: ["tasks", "sched", "runner"] },   // 스케줄 = 네비 4번에서 서랍으로(형 11-05 「스케줄러는 메뉴5번 서랍 안으로 넣을게」)
   { name: "우리", ids: ["story"] },   // 밥상 이야기(형 11-04 15:4x 「5번 메뉴의 한 공간으로 밥상 이야기로」)
-  { name: "뉴스", ids: ["feed", "thumbhist", "edq", "edsearch", "ask"] },   // 「요약 요청 · 에디터 판」 = 앱 「요약 요청」에 합침(빠르 11-01 · 링크 판별·초안 보존)
+  { name: "뉴스", ids: ["thumbhist", "edq", "edsearch", "ask"] },   // 「뉴스 요약」(feed) = 네비 4번 뉴스 에디터로 합침(형 11-09 08:50 · 봄 33 · #/feed 주소는 그대로)   // 「요약 요청 · 에디터 판」 = 앱 「요약 요청」에 합침(빠르 11-01 · 링크 판별·초안 보존)
   { name: "모으기", ids: ["legacy", "sns", "trend", "chan", "chanfull"] },
   { name: "알림·기록", ids: ["edmsgs", "edkw", "edsensor", "edmemo"] },
   { name: "에디터 설정", ids: ["edsnsacc", "edpush", "edgenopt", "edlock", "edacct"] },

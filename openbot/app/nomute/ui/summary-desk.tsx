@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { roomReadState } from "../data/read-state";
 import { useRoomRead } from "../data/use-room-read";
-import { type Art, biasOf, catOf, mediaOf, newsListQuery, progOf, useGo } from "./news-data";
+import { type Art, biasOf, catOf, mediaOf, newsListQuery, progOf, sensOf, useGo } from "./news-data";
 import "./summary-desk.css";
 
 export const SUMMARY_ROOM = "summary";
@@ -25,22 +25,25 @@ export const scrapTs = (a: Art) => { const m = /^(\d{2})(\d{2})(\d{2})-(\d{2})(\
 const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); };   // 읽음 저장 실패 = 화면 0 · 기록만(대화창과 같음 · 형 11-03 12:11)
 
 /** 카드 한 장 — PC Digest 칸(home/news-summary.tsx)도 같은 카드를 판 없이 씀(형 11-08 09:14 「비율 그대로 유지하면서 가져와서 ui 스타일만 색상 팔레트 적용해서 녹여. 단 여기에 또 블록을 만들지마」) */
-export function SumCard({ a }: { a: Art }) {
+/**   뉴스 에디터(4번 · ./news-editor.tsx) = on(고른 카드 · 라임 테) · kind(긴급·이슈 = 금빛 테 + 표) · onOpen(PC = 오른쪽 칸에 열기) · sens(민감 칸 · 옛 에디터 카드 셋째 칸) · short(폰 = 매체·편향 줄 뺌) */
+export function SumCard({ a, on, kind, onOpen, sens: withSens, short }: { a: Art; on?: boolean; kind?: string; onOpen?: () => void; sens?: boolean; short?: boolean }) {
   const go = useGo();
-  const cat = catOf(a), bias = biasOf(a), pr = progOf(a), media = mediaOf(a.media);
-  const rep = ago(reportTs(a)), scr = ago(scrapTs(a)), open = () => go(`/news?a=${encodeURIComponent(a.file)}`);
+  const cat = catOf(a), bias = biasOf(a), pr = progOf(a), media = mediaOf(a.media), sens = withSens ? sensOf(a).slice(0, 2) : [];
+  const rep = ago(reportTs(a)), scr = ago(scrapTs(a)), open = onOpen || (() => go(`/news?a=${encodeURIComponent(a.file)}`));
   return (
-    <div className="nm-sumc" role="article" tabIndex={0} aria-label={a.title || "기사"} onClick={open} onKeyDown={(e) => { if (e.key === "Enter") open(); }}>
+    <div className={`nm-sumc${on ? " on" : ""}${kind ? " k-" + kind : ""}`} role="article" tabIndex={0} aria-label={a.title || "기사"} aria-current={on || undefined} onClick={open} onKeyDown={(e) => { if (e.key === "Enter") open(); }}>
       <div className="nm-sumc-top">
         {cat ? <b className={`cat ${cat[1]}`}>{cat[0]}</b> : null}
         {rep ? <span>보도 <b>{rep}</b></span> : null}
+        {kind ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
         {scr ? <span className="r">스크랩 <b>{scr}</b></span> : null}
       </div>
       <p className="nm-sumc-t">{a.title || a.title_orig || "(제목 없음)"}</p>
-      <div className="nm-sumc-kv">
+      {short ? null : <div className={`nm-sumc-kv${sens.length ? " three" : ""}`}>
         {media ? <div><span>매체</span><b>{media}</b></div> : null}
         {bias ? <div><span>편향</span><b className={`bias ${bias.cls}`}>{bias.text}</b></div> : null}
-      </div>
+        {sens.length ? <div><span>민감</span><b className="sens">{sens.map((s) => <em key={s.t} className={s.warn ? "warn" : undefined}>{s.t}</em>)}</b></div> : null}
+      </div>}
       <div className="nm-sumc-prog" aria-label={`진행 ${["요약", "프롬프트", "카드"].slice(0, pr.done).join("·")} 끝${pr.busy ? " · 만드는 중" : pr.fail ? " · 멈춤" : ""}`}>
         {["요약", "프롬프트", "카드"].map((s, i) => <span key={s} className={i < pr.done ? "done" : i === pr.done && pr.busy ? "cur" : i === pr.done && pr.fail ? "fail" : ""}><i>{s}</i><em /></span>)}
       </div>

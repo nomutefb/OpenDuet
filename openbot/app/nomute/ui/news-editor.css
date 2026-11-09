@@ -1,0 +1,57 @@
+/* 네비 4번 「뉴스 에디터」(./news-editor.tsx · 시아 08:54 구성 안) — PC 두 칸(58 : 42) · 폰 한 줄 · 카드 = ./summary-desk.css .nm-sumc 그대로 + 고른 카드 라임 테 · 이슈 금빛 테 */
+.nm-ned-host { position:relative; display:flex; min-height:0; width:100%; flex:1; flex-direction:column; padding-top:calc(64px + env(safe-area-inset-top)); }
+.nm-ned { display:flex; min-height:0; flex:1; flex-direction:column; }
+.nm-ned.wide { display:grid; grid-template-columns:minmax(0, 58fr) minmax(0, 42fr); }
+.nm-ned-l, .nm-ned-r, .nm-ned-one { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.nm-ned-l { display:flex; flex-direction:column; gap:12px; padding:4px 14px calc(var(--duet-tab-space, 86px) + 24px); flex:1; }
+.nm-ned-l[hidden] { display:none; }
+.nm-ned-r { border-left:1px solid var(--glass-line, rgba(255,255,255,.08)); padding:0 12px calc(var(--duet-tab-space, 86px) + 24px); }
+.nm-ned-one { flex:1; padding:4px 10px calc(var(--duet-tab-space, 86px) + 24px); }
+.nm-ned-back { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin:2px 4px 6px; padding:6px 10px; border-radius:999px; font-size:var(--fs-sm); color:var(--fg-2); background:var(--glass, rgba(255,255,255,.05)); }
+
+/* ① 지금 뜨는 말 = 옛 에디터 실검 티커(.tkr) — 가장자리 흐림 · 28초 한 바퀴 · 대면 멈춤 */
+.nm-ned-tkr { display:flex; align-items:center; gap:12px; min-width:0; padding:9px 14px; border:1px solid var(--glass-line, rgba(255,255,255,.08)); border-radius:999px; font-size:var(--fs-sm); }
+.nm-ned-tkr > b { flex:none; font-weight:500; color:var(--mut); font-size:var(--fs-xs); }
+.nm-ned-tkr-v { flex:1; min-width:0; overflow:hidden; -webkit-mask:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.nm-ned-tkr-track { display:inline-flex; white-space:nowrap; animation:nmNedTkr 28s linear infinite; }
+.nm-ned-tkr-track span { padding:0 14px; color:var(--fg); }
+.nm-ned-tkr-track span + span::before { content:"·"; margin:0 14px 0 -14px; color:var(--mut); }
+.nm-ned-tkr:hover .nm-ned-tkr-track { animation-play-state:paused; }
+@keyframes nmNedTkr { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .nm-ned-tkr-track { animation:none; } }
+
+/* ② 넣는 줄 = 칸 + 전송 + 픽(라임) */
+.nm-ned-send-row { display:flex; gap:8px; min-width:0; }
+.nm-ned-send-row input { flex:1; min-width:0; height:44px; padding:0 14px; border-radius:12px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); background:var(--glass, rgba(255,255,255,.04)); color:var(--fg); font:inherit; font-family:var(--app-font-text, inherit); font-size:var(--fs-sm); }
+.nm-ned-send-row input:focus-visible { outline:2px solid #CFFF40; outline-offset:1px; }
+.nm-ned-btn { flex:none; height:44px; min-width:58px; padding:0 14px; border-radius:12px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); background:var(--glass, rgba(255,255,255,.05)); color:var(--fg); font:inherit; font-size:var(--fs-sm); font-weight:600; cursor:pointer; }
+.nm-ned-btn.pick { border-color:transparent; background:#CFFF40; color:#111; }
+.nm-ned-btn:disabled { opacity:.45; cursor:default; }
+.nm-ned-sent { margin:6px 2px 0; font-size:var(--fs-xs); color:#CFFF40; }
+.nm-ned-sent.bad { color:#ff6b5e; }
+:root:not(.dark) .nm-ned-sent { color:#4f7a00; }
+
+/* ④ 칩 = 전체 · 이슈 · 분야 · 찾기(폰 = 가로 밀기) */
+.nm-ned-chips { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+.nm-ned-chips::-webkit-scrollbar { display:none; }
+.nm-ned-chips button { all:unset; box-sizing:border-box; flex:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); font-size:var(--fs-xs); color:var(--fg-2); }
+.nm-ned-chips button i { font-style:normal; color:var(--mut); font-variant-numeric:tabular-nums; }
+.nm-ned-chips button.on { background:var(--fg); color:var(--bg, #111); border-color:transparent; }
+.nm-ned-chips button.on i { color:inherit; opacity:.6; }
+.nm-ned-chips button:focus-visible { outline:2px solid #CFFF40; outline-offset:1px; }
+.nm-ned-find { margin:0; }
+
+/* ⑤ 카드 목록 */
+.nm-ned-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.nm-ned .nm-sumc { gap:10px; padding:14px 16px; }
+.nm-ned .nm-sumc.k-iss, .nm-ned .nm-sumc.k-brk { border-color:rgba(230,195,92,.75); }
+.nm-ned .nm-sumc.on { border-color:#CFFF40; box-shadow:0 0 0 1px #CFFF40 inset, 0 1px 16px rgba(0,0,0,.4); }
+:root:not(.dark) .nm-ned .nm-sumc.on { border-color:#4f7a00; box-shadow:0 0 0 1px #4f7a00 inset; }
+.nm-ned .nm-sumc-top .urg { font-weight:600; }
+.nm-ned .nm-sumc-top .urg.iss { color:#e6c35c; }
+.nm-ned .nm-sumc-top .urg.brk { color:#ff6b5e; }
+.nm-ned .nm-sumc-kv.three { grid-template-columns:1fr 1fr 1fr; }
+.nm-ned .nm-sumc-kv .sens { display:flex; flex-wrap:wrap; gap:4px; }
+.nm-ned .nm-sumc-kv .sens em { font-style:normal; }
+.nm-ned .nm-sumc-kv .sens em.warn { color:#ff9f6b; }
+.nm-ned-more { all:unset; cursor:pointer; align-self:center; padding:8px 16px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); font-size:var(--fs-xs); color:var(--fg-2); }

@@ -17,16 +17,16 @@ import { type Art, biasOf, catOf, editorPath, getJson, inAppClick, newsListQuery
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
 
-type FArt = Art & { grade?: number | null; lvt?: number; _live?: number; _hidden?: number };
+export type FArt = Art & { grade?: number | null; lvt?: number; _live?: number; _hidden?: number };
 type QItem = { id?: string; t?: number; title?: string; via?: string; key?: string; alt1?: string; status?: string; tries?: number; why?: string | { cause?: string; text?: string } };
 type Eta = Partial<Record<"url" | "ask", { p50?: number; p90?: number }>>;
 
 const CAP = 10;
-const CATS = ["정치", "사회", "경제", "문화", "국제", "테크"];   // 원본 CHIP_CATS 차례
+export const CATS = ["정치", "사회", "경제", "문화", "국제", "테크"];   // 원본 CHIP_CATS 차례
 const ED_FEED = "/web?u=" + encodeURIComponent("/?tab=feed&inapp=1");
 const ED_QUEUE = "/edq";   // 대기열 = 앱 안(./queue.tsx · 봄 11-01 · 전엔 에디터 대기열 한 겹)
 const HR = 36e5;
-const byFile = (a: FArt, b: FArt) => (a.file < b.file ? 1 : a.file > b.file ? -1 : 0);
+export const byFile = (a: FArt, b: FArt) => (a.file < b.file ? 1 : a.file > b.file ? -1 : 0);
 
 /* ── 시각(원본과 같은 셈 · KST 고정) ── */
 const fileMs = (f?: string) => { const m = /^(\d{2})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(f || ""); return m ? Date.UTC(2000 + +m[1], +m[2] - 1, +m[3], +m[4] - 9, +m[5]) : NaN; };
@@ -49,19 +49,19 @@ const today6 = () => { const d = new Date(Date.now() + 9 * HR), p = (x: number) 
 const ago = (t?: number) => { if (!t) return ""; const m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : rel(m / 60); };
 
 /* ── 긴급/이슈(원본 feedBrk · brkIssueKind) — 긴급 = 확정 breaking ∧ 경중(grade 0·1 컷 · 미채점 통과) ∧ 수집·발행 둘 다 4시간 안 · 이슈 = 4~24시간 ∧ (a.issue ∨ 지난 긴급) ── */
-const isBrk = (a: FArt) => !!a.breaking && (a.grade == null || a.grade >= 2 || (a.grade >= 1 && (a.lvt || 0) >= 3));
-const kindOf = (a: FArt) => { const brk = isBrk(a), p = pubAgeH(a), h = Math.max(inAgeH(a), p < 9e6 ? p : 0); return brk && h < 4 ? "brk" : h >= 4 && h < 24 && (a.issue || brk) ? "iss" : ""; };
+export const isBrk = (a: FArt) => !!a.breaking && (a.grade == null || a.grade >= 2 || (a.grade >= 1 && (a.lvt || 0) >= 3));
+export const kindOf = (a: FArt) => { const brk = isBrk(a), p = pubAgeH(a), h = Math.max(inAgeH(a), p < 9e6 ? p : 0); return brk && h < 4 ? "brk" : h >= 4 && h < 24 && (a.issue || brk) ? "iss" : ""; };
 /** 매체 = 대표 하나(원본 primaryMedia · outletShort 7자) */
 const outlet = (m?: string) => { const s = outletName((m || "").split("·")[0].trim().replace(/\s*등\s*$/, "").trim());   // 공식 이름(news-data outletName · 형 11-06)
   return s.length > 7 ? s.slice(0, 6) + "…" : s; };
 
 /** 빌드 전 새 요약(원본 fetchFeedLive) — 못 받으면 빈 목록 = 정적만(원본도 같은 동작) */
-const feedLiveQuery = queryOptions({
+export const feedLiveQuery = queryOptions({
   queryKey: ["nomute", "feed-live"], staleTime: 60_000, refetchInterval: 60_000,
   queryFn: () => getJson<{ rows?: FArt[] }>(`/api/feedlive?_=${Date.now()}`).then((d) => (d.rows || []).filter((x) => x && x.file && !x._hidden).map((x) => ({ ...x, _live: 1 })), () => [] as FArt[]),
 });
 /** 대기열(원본 loadPending) + 확인한 실패(계정 qf · /toast-seen.json) — 이 기기 확인(localStorage)은 그릴 때 더함 */
-const pendQuery = queryOptions({
+export const pendQuery = queryOptions({
   queryKey: ["nomute", "feed-pending"], staleTime: 15_000,
   refetchInterval: (q) => ((q.state.data?.items || []).some((it) => it.status === "processing" || it.status === "retry") ? 20_000 : 60_000),
   queryFn: async () => {
@@ -75,7 +75,7 @@ const lsJson = <T,>(k: string, v: T): T => { try { return (JSON.parse(localStora
 
 const Q_SKIP = new Set(["워크플로", "러너"]), Q_N = 8;   // 판 = 대기열 다(시아 06:44 ④ · 앞 진행 카드 두 장 → 판)   // 20분 반영 대기 = ./task-state.ts Q_LAG_MIN
 const normU = (u?: string) => String(u || "").trim().replace(/\/+$/, "");
-function pickQ(items: QItem[], feed: Map<string, FArt>, qf: string[]): QCardT[] {
+export function pickQ(items: QItem[], feed: Map<string, FArt>, qf: string[]): QCardT[] {
   const seen = new Set([...lsJson<string[]>("nomute_qfail_seen", []), ...qf].map(String)), cut = +(lsJson<number | string>("nomute_q_cleared", 0) || 0) || 0, keys = new Set<string>();
   const hit = (id?: string) => (id ? feed.get(id) || feed.get(id + ".md") : undefined);
   return items.map((it) => {

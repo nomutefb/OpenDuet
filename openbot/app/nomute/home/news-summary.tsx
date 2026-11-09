@@ -29,6 +29,7 @@ function DigestRow({ a }: { a: Art }) {
 }
 
 export function NewsSummary() {
+  const go = useGo();   // 머리 「Digest」 누름 = 네비 4번 뉴스 에디터(시아 08:54 안 「머리 「Digest」 누르면 4번으로」)
   const pend = useQuery({
     queryKey: ["nomute", "split-pending"], staleTime: 15_000,
     refetchInterval: (q) => ((q.state.data || []).some((it) => it.status === "processing" || it.status === "retry") ? 15_000 : 45_000),
@@ -39,7 +40,7 @@ export function NewsSummary() {
   const q = pend.data || [];
   return (
     <section className="nm-nsum" aria-label="뉴스 요약">
-      <div className="nm-nsum-h"><b>Digest</b><span>{q.length ? `대기열 ${q.length} · ` : ""}<SyncAgo /></span></div>
+      <div className="nm-nsum-h"><button type="button" className="nm-nsum-go" title="뉴스 에디터로" onClick={() => go("/newsed")}><b>Digest</b></button><span>{q.length ? `대기열 ${q.length} · ` : ""}<SyncAgo /></span></div>
       <ol className="nm-nsum-ol">
         {q.length ? <li className="c nm-nsum-tasks"><TaskPanel qs={q.map((it) => ({ it, e: it.status === "failed" || it.status === "error" ? "fail" : it.status || "", title: cleanTitle(it.title || it.alt1 || it.key) || "제목 없음" }))} eta={null} /></li> : null}   {/* 요약 대기열 = 「뉴스 요약」과 같은 판(시아 06:44 ① · 깃) */}
         {done.map((a) => <li key={a.file} className="c"><DigestRow a={a} /></li>)}

@@ -23,7 +23,12 @@ export const presetFor = (url: string | undefined): QuickPreset => ({ h24: 1, fp
 export async function quickSend(title: string, url: string): Promise<string> {
   const text = [title, url].filter(Boolean).join("\n").trim();
   if (!text) throw new Error("보낼 제목·링크가 없어");
-  const preset = presetFor(url);
+  return submitText(text, url, presetFor(url));
+}
+
+/** 글 그대로 보냄(뉴스 에디터 넣는 줄 · ../ui/news-editor.tsx) — 같은 POST /api/submit · preset 은 부르는 쪽이 고름 */
+export async function submitText(text: string, url: string, preset: QuickPreset | Readonly<QuickPreset>): Promise<string> {
+  if (!text.trim()) throw new Error("보낼 글·링크가 없어");
   const r = await fetch("/api/submit", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" },
     body: JSON.stringify({ text, link: /^https?:\/\//i.test(url) ? url : undefined, images: [], nothumb: preset.noai, preset }) });
   const ct = r.headers.get("content-type") || "";
