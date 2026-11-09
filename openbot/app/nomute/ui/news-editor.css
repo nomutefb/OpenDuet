@@ -5,6 +5,7 @@
 .nm-ned-l, .nm-ned-r, .nm-ned-one { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
 .nm-ned-l { display:flex; flex-direction:column; gap:12px; padding:4px 14px calc(var(--duet-tab-space, 86px) + 24px); flex:1; }
 .nm-ned-l[hidden] { display:none; }
+.nm-ned-l > * { flex-shrink:0; }   /* 세로 스크롤 판 안 줄들이 줄어들지 않게(칩 줄 = overflow-x 라 min-height 0 → 6px 로 눌려 첫 카드 밑에 깔렸음 · 뎅 10:10 실물) */
 .nm-ned-r { border-left:1px solid var(--glass-line, rgba(255,255,255,.08)); padding:0 12px calc(var(--duet-tab-space, 86px) + 24px); }
 .nm-ned-one { flex:1; padding:4px 10px calc(var(--duet-tab-space, 86px) + 24px); }
 .nm-ned-back { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin:2px 4px 6px; padding:6px 10px; border-radius:999px; font-size:var(--fs-sm); color:var(--fg-2); background:var(--glass, rgba(255,255,255,.05)); }
