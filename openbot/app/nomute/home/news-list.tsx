@@ -12,6 +12,7 @@ import { FaceImg } from "../ui/faces";
 import { homePool } from "./home-pool";
 import { cleanTitle } from "./title-clean";
 import { outletName } from "../ui/news-data";   // 공식 매체명(형 11-06 「yna 는 연합일거고, asiae 이건 아시아경제 같고 …」)   // 제목 다듬기 로직(형 11-05 16:14)
+import { notOutlet, outletOf } from "./outlet-name";   // 언론사 칸 = 진짜 언론사만(빠르 11-09)
 import { rssFirst } from "./rss-first";
 import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent } from "./event-score";   // 줄 점수·차례 = 뉴스 알고리즘 점수(형 11-09 12:3x 「점수대로 제대로 구현좀 되게 해주셈」)
 
@@ -53,21 +54,13 @@ const normUrl = (u?: string) => String(u || "").trim().replace(/^https?:\/\/(?:w
 const normTitle = (t?: string) => String(t || "").replace(/\s+/g, "").replace(/[\[\]「」『』"'‘’“”…·.,!?]/g, "").toLowerCase();
 // 픽 매체 이름(형 11-06 16:41 「네이버뉴스도 > 네이버 뉴스 ,. 근데 어느 매체건지?」) = 서버 outlets 칸(봄 · urls 와 같은 차례) → 네이버 기사 주소 언론사 번호 → 주소 이름(outletName)
 //   대표 링크 = urls[0] 그대로(주요 매체 앞에 꽂기 = 서버 · 봄 16:43 「앱은 「첫 링크 = 대표」로만」)
-const NAVER_OID: Record<string, string> = {
-  "001": "연합뉴스", "003": "뉴시스", "005": "국민일보", "008": "머니투데이", "009": "매일경제", "011": "서울경제", "014": "파이낸셜뉴스", "015": "한국경제", "016": "헤럴드경제",
-  "018": "이데일리", "020": "동아일보", "021": "문화일보", "022": "세계일보", "023": "조선일보", "025": "중앙일보", "028": "한겨레", "032": "경향신문", "052": "YTN", "055": "SBS",
-  "056": "KBS", "057": "MBN", "079": "노컷뉴스", "081": "서울신문", "214": "MBC", "215": "한국경제TV", "277": "아시아경제", "366": "조선비즈", "421": "뉴스1", "422": "연합뉴스TV",
-  "437": "JTBC", "448": "TV조선", "449": "채널A", "469": "한국일보",
-};
+// NAVER_OID · naverOutlet · 포털/길 이름 거름 = ./outlet-name.ts(빠르 11-09 · node --test 로 시험)
 const EXTRA_HOST: Record<string, string> = { "einfomax.co.kr": "연합인포맥스" };   // 공식 이름 표(ui/news-data.ts · 봄 자리)에 아직 없는 픽 매체 · 서버 outlets 가 오면 그게 먼저
-const naverOutlet = (u: string) => { const m = /^https?:\/\/(?:n\.|m\.)?news\.naver\.com\/(?:mnews\/)?article\/(\d{3})\//.exec(u); return m ? NAVER_OID[m[1]] || "" : ""; };
-const pickOutlet = (p: Pick) => {
-  const url = (p.urls || [])[0] || p.url || "";
+const pickOutlet = (p: Pick) => {   // 받은 이름 → 네이버 번호 → 주소 이름 → 다른 주소 → 빈 칸(포털 · 길 이름은 안 냄 · 형 11-09 「네이버 < 이거는 언론사가 아닌데 … 대체되게」 · 화면 3위 틈 픽 n.news 654)
+  const urls = [...(p.urls || []), p.url];
   const named = String((p.outlets || [])[0] || "").trim();
-  if (named) return named;
-  const nv = naverOutlet(url); if (nv) return nv;
-  const h = hostOf(url); const ex = Object.keys(EXTRA_HOST).find((k) => h === k || h.endsWith("." + k));
-  return ex ? EXTRA_HOST[ex] : outletName(h);
+  const h = hostOf(urls[0] || ""); const ex = Object.keys(EXTRA_HOST).find((k) => h === k || h.endsWith("." + k));
+  return outletOf(named || (ex ? EXTRA_HOST[ex] : ""), urls, outletName);
 };
 const hostOf = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^(?:www|m|n|core)\./, "") : ""; } catch { return ""; } };
 
@@ -132,11 +125,7 @@ export function NewsList() {
       // 출처 · 시각 = 모든 줄(형 11-05 16:30 「뉴스는 점수 좌측에 출처에 대한 내용이 있어야되고, 몇시간전인지 나와야됨. 4위도 싹다.」) — 메타 없으면 묶음 첫 기사 출처 · 후보 장부(lookup) 발행/처음 본 때
       // 점수 차례(뜸 34) = 토글 고른 기기만 · 기본(RSS 바탕)은 rssFirst 가 섞은 차례 그대로(다시 점수로 뭉치면 커뮤가 또 위로 · 뜸 09:41 · 깃 42))
       const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).sort(a ? byScore : () => 0);   /* 점수 차례로 쭉(형 11-09 09:21) */
-      for (const x of list) if (x && /^네이버(?:뉴스)?$/.test(x.src || "")) { const nv = [x.meta?.published?.sourceUrl || "", ...(x.urls || []), ...(x.items || []).map((it) => it.url || "")].map(naverOutlet).find(Boolean); if (nv) x.src = nv; }   // 순위표도 「네이버뉴스」 = 기사 주소 언론사 번호로 진짜 매체(형 11-06 16:41)
-      for (const x of list) if (x && /^네이버/.test(x.src || "")) {   // 기사 주소로도 못 바꾼 「네이버」 = 언론사 아님(형 11-09 14:0x 화면 1위 「네이버」 · 「네이버 < 이거는 언론사가 아닌데 … 대체되게」) → 묶음 안 다른 기사 주소의 언론사 · 없으면 빈 칸
-        const alt = [...(x.urls || []), ...(x.items || []).map((it) => it.url || "")].map((u) => { const h = String(u || "").replace(/^https?:\/\/(?:www\.|m\.)?/i, "").replace(/[/?#].*$/, "").toLowerCase(); return h && !/naver\.com$/.test(h) ? outletName(h) : ""; }).find((n) => !!n && !/^네이버/.test(n));
-        x.src = alt || "";
-      }
+      for (const x of list) if (x && (!x.src || notOutlet(x.src))) x.src = outletOf("", [x.meta?.published?.sourceUrl, ...(x.urls || []), ...(x.items || []).map((it) => it.url || "")], outletName);   // 「네이버」·「RSS 후보」 = 언론사 아님 → 기사 주소 언론사(네이버 번호 먼저) · 없으면 빈 칸(형 11-06 16:41 · 11-09 14:0x · 15:0x 화면 3위 · 11위)
       // 뉴스 알고리즘 점수(./event-score.ts · 서버 회차 = 30분 · 2분에 한 번만 받음) — 맞춘 줄 = 그 점수 · 점수 큰 것부터 · 못 맞춘 줄 = 점수 칸 비움 · 끝에 앞 차례 그대로 · 못 받으면 앞 꼴 그대로
       if (!eventsAt || Date.now() - eventsAt > 2 * 60_000) {
         const ev = await firstJson<{ events?: NewsEvent[] }>(["/api/trends?f=event"], (v) => !!v && Array.isArray(v.events) && v.events.length > 0);
