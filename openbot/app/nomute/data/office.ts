@@ -35,6 +35,19 @@ export async function office<T>(path: string, init: RequestInit = {}): Promise<T
   const res = await fetch(`/api/office/${path}`, { credentials: "same-origin", cache: "no-store", ...(keep(init) ? { keepalive: true } : {}), ...init, headers: { ...(init.body ? { "content-type": "application/json" } : {}), ...(init.headers || {}) } });
   const j = (await res.json().catch(() => ({}))) as T & { ok?: boolean; why?: string; error?: string };
   if (!res.ok || j.ok === false) throw new Error(j.why || j.error || `사무실 서버 ${res.status}`);
+  return keepOnly(path, j);
+}
+
+/** 사무실 정리 = 화면엔 일곱 + 형만(형 11-09 봄 창 13:3x 그대로(봄 옮김) 「지금 사무실에 아직도 그록봇애들이랑 다 뜨는데 없애줘」 · 「사무실에 있는 빠르 번개 뎅 뜸 깃 시아 봄 말고 자리 다 없애.」 · 105 · 뜸)
+ *   명부(people) · 봇 상태(bots) · 방 목록(rooms 의 1:1 · 둘의 방)에서 뺀 자리를 거름 · 서버 명부·기록 정리는 뒤 판(시험 127장이 그 봇들을 본보기로 씀) */
+export const KEEP = new Set(["형", "빠르", "번개", "뎅", "뜸", "깃", "시아", "봄"]);
+const pairKeep = (id: string) => { const m = /^pair-([a-z]+)-([a-z]+)$/.exec(id); return !m || [m[1], m[2]].every((d) => KEEP_DIRS.has(d)); };
+const KEEP_DIRS = new Set(["deng", "fast", "light", "eyes", "gik", "sia", "bom", "hyung"]);
+export function keepOnly<T>(path: string, j: T): T {
+  const p = path.split("?")[0], o = j as unknown as { people?: OfficePerson[]; bots?: { who?: string }[]; rooms?: { id?: string; with?: string }[] };
+  if (p === "people" && Array.isArray(o.people)) o.people = o.people.filter((x) => KEEP.has(x.who));
+  if (p === "bots" && Array.isArray(o.bots)) o.bots = o.bots.filter((x) => KEEP.has(String(x.who || "")));
+  if (p === "rooms" && Array.isArray(o.rooms)) o.rooms = o.rooms.filter((r) => (!r.with || KEEP.has(r.with)) && pairKeep(String(r.id || "")));
   return j;
 }
 
