@@ -12,6 +12,7 @@ import { Pane } from "./pane";
 import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
 import "./acct-cards.css";
+import { acctOrder } from "./acct-order";
 
 const ACCTS: [string, string][] = [["CLD_01", "ems1130g"], ["CLD_02", "muteno"], ["CLD_03", "ems1130N(ems1130@naver.com) · 기본"]];   // 원본 ACCT_BTNS · title 그대로
 // 카드 다발(형 11-09 05:20 임시방 「메인 claude 계정 고르는 선택지는 이거로 계장 값은ㅇ느낌」 · 96975.mp4 · 시아 05:21 꼴 · 봄 24) · 뜸) — 앞 카드 = 지금 러너 계정 · 뒤 카드 누름/‹ › /← → = 그 계정으로(원래 pick 길 그대로)
@@ -34,21 +35,20 @@ function Bar({ label, v }: { label: string; v: number | null }) {
 }
 function AcctCards({ id, busy, pick }: { id: string; busy: boolean; pick: (v: string) => void }) {
   const row = useAcctRows();
-  const ids = ACCTS.map(([v]) => v), front = Math.max(0, ids.indexOf(id));
-  const order = ids.map((_, i) => ids[(front + i) % ids.length]);   // 앞 → 뒤
+  const ids = ACCTS.map(([v]) => v), { known, front, order } = acctOrder(ids, id);   // 앞 → 뒤 · 「지금」 = known 일 때만(모루 09:13)
   const step = (d: number) => { if (!busy) pick(ids[(front + d + ids.length) % ids.length]); };
   return (
     <div className="acx" tabIndex={0} role="listbox" aria-label="러너 Claude 계정" onKeyDown={(e) => { if (e.key === "ArrowRight") step(1); if (e.key === "ArrowLeft") step(-1); }}>
       <div className="acx-stack">
         {order.slice().reverse().map((v) => {
-          const k = order.indexOf(v), c = CARD[v], r = row(c.mail), n = r?.note || "", w7 = pct(n, "7일");
+          const k = order.indexOf(v), now = known && k === 0, c = CARD[v], r = row(c.mail), n = r?.note || "", w7 = pct(n, "7일");
           return (
-            <button key={v} type="button" role="option" aria-selected={k === 0} disabled={busy || k === 0} className={`acx-card${k === 0 ? " front" : ""}${w7 !== null && w7 < 10 ? " low" : ""}`} style={{ "--k": k, "--tint": c.tint } as CSSProperties} onClick={() => pick(v)} title={k === 0 ? "지금 러너 계정" : `${c.name} 으로`}>
+            <button key={v} type="button" role="option" aria-selected={now} disabled={busy || now} className={`acx-card${k === 0 ? " front" : ""}${now ? " now" : ""}${w7 !== null && w7 < 10 ? " low" : ""}`} style={{ "--k": k, "--tint": c.tint } as CSSProperties} onClick={() => pick(v)} title={now ? "지금 러너 계정" : `${c.name} 으로`}>
               <span className="acx-top"><small>CLAUDE {v.slice(-2)}</small><span className="acx-ini">{c.name[0].toUpperCase()}</span></span>
               <b className="acx-name">{c.name}</b>
               <span className="acx-bars"><Bar label="5시간" v={pct(n, "5시간")} /><Bar label="7일" v={w7} /></span>
               <span className="acx-mail">{maskMail(c.mail)}</span>
-              <span className="acx-foot"><span><small>쓰는 곳</small>러너{k === 0 ? " · 지금" : ""}</span><span><small>다시 참</small>{refill(n) || "—"}</span></span>
+              <span className="acx-foot"><span><small>쓰는 곳</small>러너{now ? " · 지금" : ""}</span><span><small>다시 참</small>{refill(n) || "—"}</span></span>
               {w7 !== null && w7 < 10 ? <span className="acx-tag">교대 때</span> : null}
             </button>
           );

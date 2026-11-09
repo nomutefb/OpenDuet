@@ -6,7 +6,7 @@
   box-shadow: 0 14px 30px -14px rgba(0,0,0,.7); cursor: pointer;
   transform: translateX(calc(var(--k) * 16px)) translateY(calc(var(--k) * -6px)) rotate(calc(var(--k) * 3deg)) scale(calc(1 - var(--k) * .04));
   transition: transform .32s cubic-bezier(.2,.8,.2,1), opacity .32s; opacity: calc(1 - var(--k) * .18); }
-.acx-card.front { cursor: default; }
+.acx-card.now { cursor: default; }
 .acx-card:not(.front):hover { transform: translateX(calc(var(--k) * 22px)) translateY(calc(var(--k) * -8px)) rotate(calc(var(--k) * 4deg)) scale(calc(1 - var(--k) * .04)); }
 .acx-card.low { filter: saturate(.45) brightness(.8); }
 .acx-top { display: flex; justify-content: space-between; align-items: center; }
