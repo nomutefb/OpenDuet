@@ -4,7 +4,7 @@
 //   제목 누름 = 원문 새 창(형 11-05 12:27 「링크같은거는 항상 클릭하면 새 창에서」) · 1분마다 다시 받음(보일 때만)
 import "./news-list.css";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isForeignUrl, quickSend } from "./quick-send";
 import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickOrder, pickUrl } from "./news-feed";
 import { FaceImg } from "../ui/faces";
@@ -140,11 +140,22 @@ export function NewsList() {
   // 전송 · 픽 = 창 없이 바로 요약 요청(형 11-09 08:14 · 외신이면 fp 저절로 · ./quick-send.ts · 깃 29)) — 접수 한 줄 · 대기열 판 저절로 갱신
   const [sent, setSent] = useState("");
   const qc = useQueryClient();
+  const inflight = useRef(new Set<string>()), seq = useRef(0), clearT = useRef<ReturnType<typeof setTimeout> | null>(null);   // 모루 09:43 ②③ = 같은 기사 두 번 막기 · 요청 번호 · 타이머 하나
+  const say = (id: number, msg: string, hold = 0) => {
+    if (id !== seq.current) return;   // 뒤 요청이 있으면 앞 요청 글은 안 씀(응답 역전)
+    setSent(msg);
+    if (clearT.current) clearTimeout(clearT.current);
+    clearT.current = hold ? setTimeout(() => { if (id === seq.current) setSent(""); }, hold) : null;
+  };
   const go = (title: string, url: string) => {
-    setSent("보내는 중…");
-    quickSend(title, url).then(() => { setSent(isForeignUrl(url) ? "요약 요청 접수 · 외신 포함" : "요약 요청 접수"); void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] }); })
-      .catch((err: Error) => setSent(`못 보냈어 · ${err.message}`))
-      .finally(() => { setTimeout(() => setSent(""), 4000); });
+    const k = url || title;
+    if (!k || inflight.current.has(k)) return;   // 보내는 중 같은 기사 = 무시
+    inflight.current.add(k);
+    const id = ++seq.current;
+    say(id, "보내는 중…");
+    quickSend(title, url).then(() => { say(id, isForeignUrl(url) ? "요약 요청 접수 · 외신 포함" : "요약 요청 접수", 4000); void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] }); })
+      .catch((err: Error) => say(id, `못 보냈어 · ${err.message}`, 6000))
+      .finally(() => { inflight.current.delete(k); });
   };
   const send = (row: Row) => go(row.title || "", row.meta?.published?.sourceUrl || row.urls?.[0] || "");
   const sendPick = (p: Pick) => go(p.title_clean || cleanTitle(p.title), (p.urls || [])[0] || p.url || "");
