@@ -440,7 +440,7 @@ function RoomsPane() {
 }
 
 /** PC 왼쪽 끝 얼굴 띠 — 얼굴만(글자 0) · 차례 = 안 읽은 방 → 고정 → 나머지(목록 화면과 같은 차례) · 위아래 스크롤 · 맨 위 ≡ · 맨 아래 「+」·형 얼굴 붙박이 */
-function FaceStrip({ current, last }: { current: string; last: string }) {
+function FaceStrip({ current }: { current: string; last: string }) {
   const nav = useNavigate();
   const { list, ordered, count, pins, setPins } = useRoomOrder();
   const go = (id: string) => { enterRoom(id); void nav({ to: chatHref(id) }); };
@@ -479,12 +479,7 @@ function FaceStrip({ current, last }: { current: string; last: string }) {
           );
         })}
       </div>
-      <div className="nm-strip-foot">
-        {/* 맨 아래 고정 셋 = 「+」 · 채팅(가장 최근 방) · 채팅 목록 · 형 프로필 뺌(형 11-06 20:03 「좌하단에 고정으로 오자」 · 「+ 채팅, 채팅목록」 · 「채팅 픽토그램을 누르면 가장 최근 채팅으로」 · 「그 3개는 고정임」 · 「내 프로필은 잇을필요없어」) */}
-        <button type="button" className="nm-strip-btn" aria-label="방 만들기 · 고르기" title="방 만들기 · 고르기" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="plus" size={20} /></button>
-        <button type="button" className="nm-strip-btn" aria-label="가장 최근 채팅" title="가장 최근 채팅" onClick={() => go(last || "all")}><DuetIcon name="chat" size={20} /></button>
-        <button type="button" className="nm-strip-btn" aria-label="채팅 목록" title="채팅 목록" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="menu" size={21} /></button>
-      </div>
+      {/* 맨 아래 셋(+ · 가장 최근 채팅 · 채팅 목록) 뺌 = 아래 알약 「대화」 하나로(형 11-09 09:31 회의실 「저 3개 없애고, 대화 목록으로 가는 메뉴 한개만 하단 메뉴 네비에 추가하면됨」 · ../swap/tab-bar.tsx) · 방 만들기 = 대화방 목록 안 「+」 그대로 */}
     </aside>
   );
 }

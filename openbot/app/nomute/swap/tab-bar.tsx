@@ -49,6 +49,18 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
             </button>
           );
         })}
+        {/* 「대화」 하나(PC 두 칸 · 형 11-09 09:31 회의실 「대화방일때는 대화방으로 바뀌고, 대화창일때는 대화창으로 바ㅣㄲ ㅟ고 그때그때 액티브하게」 · 「대화 라는 말은 그대로 (활성화되어있을때」 · 「비활성화되어ㅣ있을때 … 그냥 점등 꺼진 형태면 됨.」)
+            = 왼쪽 띠 아래 셋(+ · 최근 채팅 · 채팅 목록)을 갈음 · 그림 = 목록이면 대화방(inbox) · 대화창이면 말풍선(chat) · 누름 = 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록 · 폰은 위 TABS(대화방 · 대화) 그대로라 CSS 로 PC 만 보임(../ui/shell.css .nm-split-l) */}
+        {(() => {
+          const onRooms = pane === "rooms" && !modal, onChat = pane === "chat" && !modal, on = onRooms || onChat;
+          return (
+            <button aria-current={on ? "page" : undefined} aria-label={onChat ? "대화 · 대화창(누르면 목록)" : onRooms ? "대화 · 대화방 목록(누르면 마지막 대화)" : "대화"} className={on ? "on nm-nav-talk" : "nm-nav-talk"}
+              onClick={() => void navigate({ to: onRooms ? chatTo : "/rooms" })} type="button">
+              <DuetIcon name={onRooms ? "inbox" : "chat"} size={20} stroke={on ? 2.1 : 1.9} />
+              <span>대화</span>
+            </button>
+          );
+        })()}
         {/* 네비 4번 = 작동 표(형 11-05 「한눈에 볼 수 있는 표를 만들어줄수있어? 메뉴4번에? 스케줄러는 메뉴5번 서랍 안으로 넣을게」) */}
         <button aria-current={modal === "status" ? "page" : undefined} aria-label="작동" className={modal === "status" ? "on" : undefined} onClick={() => void navigate({ to: "/status" })} type="button">
           <DuetIcon name="activity" size={20} stroke={modal === "status" ? 2.1 : 1.9} />
