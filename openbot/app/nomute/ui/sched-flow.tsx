@@ -102,7 +102,7 @@ export function SchedFlow({ map, group, go, review = {}, phone = false, can = fa
                   const more = [...cRest.map((c) => <i key={c}>{CLOCK_KO[c] || c}</i>), ...(j.gpu?.length ? [<i key="gpu">GPU</i>] : []), ...(j.kind === "llm" ? [<i key="llm" data-k="llm">LLM</i>] : [])];
                   const stText = `${HEALTH_KO[st]} · ${modelKo(j)}`;
                   return (
-                    <article key={j.id} className="nm-flow-job" data-job={j.id} data-st={st} data-next={soon === j.id || undefined} data-off={j.on === false || undefined} data-run={(ran[j.id] || 0) > now || undefined} role="button" tabIndex={0} aria-label={`${j.name} 바꾸기 판`} onClick={() => setSel(j)} onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSel(j); } }}>   /* 카드 자기 키만(안의 칩 Enter/Space 는 칩으로 · 모루 09:32 ①) */
+                    <article key={j.id} className="nm-flow-job" data-job={j.id} data-st={st} data-next={soon === j.id || undefined} data-off={j.on === false || undefined} data-run={(ran[j.id] || 0) > now || undefined} role="button" tabIndex={0} aria-label={`${j.name} 바꾸기 판`} onClick={() => setSel(j)} onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSel(j); } }}>{/* 카드 자기 키만(안의 칩 Enter/Space 는 칩으로 · 모루 09:32 ①) */}
                       <div className="nm-flow-l1">
                         <b title={j.name}><ReviewBadge r={review[j.id]} />{j.name}</b>
                         {c0 ? <span className="nm-flow-tags"><i>{CLOCK_KO[c0] || c0}</i></span> : null}
