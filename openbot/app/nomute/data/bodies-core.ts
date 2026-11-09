@@ -3,15 +3,17 @@
 export type Body = { being: string; body: string; kind: string; on?: boolean; hosts: string[]; moving?: string };
 
 /** 서버가 아직 bodies 를 안 줄 때만 쓰는 사본(정본 11-08 02:0x 판 그대로 · 서버 답이 오면 그쪽이 이김) */
-export const BODIES_FALLBACK: Body[] = [
+export const BODIES_FALLBACK: Body[] = [   // 몸.json 11-09 판(형 09:48 「시아는 lx a에 있는게 아니라, 윈a vm이야」 · 「llx a 가 깃이랑 빚이야」 · 봄 9ffdf1d)
   { being: "윈터", body: "윈A", kind: "pc", on: true, hosts: ["윈A", "win-a", "wina"] },
   { being: "봄", body: "맥", kind: "mac", on: true, hosts: ["맥", "mac"] },
-  { being: "시아", body: "시아 PC", kind: "pc", on: true, hosts: ["hwang", "sia"] },
-  { being: "누리", body: "누리 PC", kind: "pc", on: false, hosts: ["nuri", "neo"], moving: "이사 전(지금 vm@윈A)" },
+  { being: "시아", body: "VM 시아", kind: "vm@윈A", on: true, hosts: ["sia"] },
+  { being: "누리", body: "Lx B", kind: "pc", on: true, hosts: ["nuri", "neo"] },
   { being: "뎅", body: "VM 뎅", kind: "vm@윈A", on: true, hosts: ["deng"] },
   { being: "빠르", body: "VM 빠르", kind: "vm@윈A", on: true, hosts: ["fast"] },
   { being: "번개", body: "VM 번개", kind: "vm@윈A", on: true, hosts: ["light"] },
   { being: "뜸", body: "맥 VM 뜸", kind: "vm@맥", on: true, hosts: ["eyes"] },
+  { being: "깃", body: "Lx A", kind: "pc", on: true, hosts: ["lxa-gik"] },
+  { being: "빚", body: "Lx A", kind: "pc", on: true, hosts: ["lxa-bit"] },
 ];
 
 /** 순수 — 서버 bodies(없거나 비면 사본) */
