@@ -301,3 +301,7 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-root .nm-split > section + section { border-top:1px solid rgba(255,255,255,.07); }
 .nm-split-root .nm-nsum { border-top:0; }   /* 요약 칸 제 윗줄은 위 구분선과 겹쳐서 뺌 */
 .nm-split-root .nm-nsum-q { background:transparent; }
+
+/* 아래 알약 「대화」 하나(../swap/tab-bar.tsx · 형 11-09 09:31) = PC 두 칸에서만 · 폰은 위 TABS(대화방 · 대화)가 그대로 맡아서 숨김 · 차례 = 알약 맨 앞 */
+.ynav .nm-nav-talk { display:none; }
+.nm-split-l .ynav .nm-nav-talk { display:flex; order:-2; }
