@@ -13,8 +13,9 @@ import { homePool } from "./home-pool";
 import { cleanTitle } from "./title-clean";
 import { outletName } from "../ui/news-data";   // 공식 매체명(형 11-06 「yna 는 연합일거고, asiae 이건 아시아경제 같고 …」)   // 제목 다듬기 로직(형 11-05 16:14)
 import { rssFirst } from "./rss-first";
+import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent } from "./event-score";   // 줄 점수·차례 = 뉴스 알고리즘 점수(형 11-09 12:3x 「점수대로 제대로 구현좀 되게 해주셈」)
 
-type Row = { picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
+type Row = { score_why?: string; score_news?: boolean; picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
 const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
 // 픽 얼굴(형 11-06 07:4x 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」 · 「틈도 저런식으로」) = 그 기사를 고른 봇 얼굴 · 번호 왼쪽 · 둘 다면 단톡방 겹친 얼굴 꼴(형 「그 단톡방 예전 표기처럼 중첩되게」)
@@ -90,6 +91,7 @@ export function NewsList() {
   const [gotAt, setGotAt] = useState(0), [now, setNow] = useState(() => Date.now());   // 머리줄 「N분 전」 + 1분마다 다시 셈
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(t); }, []);
   useEffect(() => {
+    let events: NewsEvent[] | null = null, eventsAt = 0;
     let live = true, overlap: unknown = null, cands: Cand[] = [], articles: unknown[] = [], triage: unknown = null, merges: unknown = null, alpha: unknown = null, picks: unknown[] = [], picksAt = 0;
     const load = async () => {
       const md = await modernData();
@@ -129,8 +131,21 @@ export function NewsList() {
       const host = (u?: string) => { try { return u ? new URL(u).hostname.replace(/^www\./, "") : ""; } catch { return ""; } };
       // 출처 · 시각 = 모든 줄(형 11-05 16:30 「뉴스는 점수 좌측에 출처에 대한 내용이 있어야되고, 몇시간전인지 나와야됨. 4위도 싹다.」) — 메타 없으면 묶음 첫 기사 출처 · 후보 장부(lookup) 발행/처음 본 때
       // 점수 차례(뜸 34) = 토글 고른 기기만 · 기본(RSS 바탕)은 rssFirst 가 섞은 차례 그대로(다시 점수로 뭉치면 커뮤가 또 위로 · 뜸 09:41 · 깃 42))
-      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).sort(a ? byScore : () => 0).slice(0, MAX);   /* 점수 차례로 쭉(형 11-09 09:21) */
+      const list = (r as Row[]).map((x) => { if (!x) return x; const c = x.key && lk?.get ? lk.get(x.key) : undefined; return { ...x, title: x.title_clean || (x.urls || []).map((u) => clean.get(u)).find(Boolean) || cleanTitle(x.title), src: outletName(inner(strip(x.meta?.published?.sourceName)) || inner(strip(c?.media)) || srcName(x) || host(x.meta?.published?.sourceUrl || x.urls?.[0])), at: x.meta?.published?.at || c?.published || c?.first_seen || (x.urls || []).map((u) => newest.get(u)).find(Boolean) || gen }; })   /* 시각 끝 받침 = 순위 만든 때(overlap.generated) */.filter((x) => { if (!x || !x.title || inPins(x)) return false; const t = Date.parse(x.at || ""); return !Number.isFinite(t) || now - t <= FRESH_MS; }).sort(a ? byScore : () => 0);   /* 점수 차례로 쭉(형 11-09 09:21) */
       for (const x of list) if (x && /^네이버(?:뉴스)?$/.test(x.src || "")) { const nv = [x.meta?.published?.sourceUrl || "", ...(x.urls || []), ...(x.items || []).map((it) => it.url || "")].map(naverOutlet).find(Boolean); if (nv) x.src = nv; }   // 순위표도 「네이버뉴스」 = 기사 주소 언론사 번호로 진짜 매체(형 11-06 16:41)
+      // 뉴스 알고리즘 점수(./event-score.ts · 서버 회차 = 30분 · 2분에 한 번만 받음) — 맞춘 줄 = 그 점수 · 점수 큰 것부터 · 못 맞춘 줄 = 점수 칸 비움 · 끝에 앞 차례 그대로 · 못 받으면 앞 꼴 그대로
+      if (!eventsAt || Date.now() - eventsAt > 2 * 60_000) {
+        const ev = await firstJson<{ events?: NewsEvent[] }>(["/api/trends?f=event"], (v) => !!v && Array.isArray(v.events) && v.events.length > 0);
+        if (ev) { events = ev.events || []; eventsAt = Date.now(); }
+        if (!live) return;
+      }
+      const ei = eventIndex(events);
+      if (ei.size) {
+        const hit = new Map<Row, EventHit>();
+        const tagged = list.map((x) => { if (!x) return x; const h = eventOf(x, ei); const y: Row = h ? { ...x, score: h.s, score_why: h.why, score_news: true } : { ...x, score: null, score_why: "", score_news: false }; if (h) hit.set(y, h); return y; });
+        list.splice(0, list.length, ...byEvent(tagged, (y) => hit.get(y) || null));
+      }
+      list.splice(MAX);   // 40줄 = 점수 차례로 세운 뒤 자름(앞 = 섞은 차례로 먼저 잘라 높은 점수 기사가 41번째 밖이면 빠졌음)
       setRows(list);
       setGotAt(Date.parse(gen || "") || Date.now());   // 머리줄 「N분 전」 = 서버가 묶음을 만든 때(없으면 받은 때)
       setSt(list.length ? "ready" : overlap ? "empty" : "error");
@@ -202,7 +217,7 @@ export function NewsList() {
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>
               <span className="mt" title={row.src || undefined}>{row.src || ""}</span>
               <span className="ag">{row.at ? ago(row.at) : ""}</span>   {/* 「N분 전」 = 점수 바로 왼쪽 칸 · 오른쪽 맞춤(형 11-06 10:15 「00분전 0시간전 00분전이 좀 더 우측으로 가야될거같아 점수쪽」) */}
-              <span className="sc">{Number.isFinite(row.score as number) ? Math.round(row.score as number) : ""}</span>   {/* 점수 없는 줄도 칸은 둠(줄 맞춤) */}
+              <span className="sc" title={row.score_why || undefined}>{Number.isFinite(row.score as number) ? Math.round(row.score as number) : ""}</span>   {/* 점수 없는 줄도 칸은 둠(줄 맞춤) */}
               <button type="button" className="sd" aria-label="이 기사로 요약 요청" title="이 기사로 요약 요청" onClick={() => send(row)}>전송</button>
             </li>
           ))}
