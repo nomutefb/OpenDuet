@@ -2,12 +2,14 @@
 //   원본 = 에디터 viewer/index.html open()(요약 창) — 머리(분류·매체·기자·시각) · AI 제목(본문 첫 H1) · 기자 제목(a.title 이 다를 때) · 원문 제목(title_orig) · 썸네일 후보 · 본문 마크다운 · 카드뉴스 · 원문
 //   본문 = /detail/<file>.json(에디터 ensureDetail 과 같은 판 셈) · 그리기 = 대화창·이슈와 같은 streamdown · 다듬기 = 에디터 decorate 의 가벼운 판(썸네일 소절·머리 이모지·편향 색도형 뺌)
 //   맨 아래 = 「요약 고치기」(앱 안 · ./summary-fix.tsx = 옛 요약 창 ✏️요약 수정 api/revise) — 전엔 「에디터에서 고치기」 = 옛 에디터 그 기사 창(형 11-10 12:17 「기존 앱 화면으로 가서 받는게 아니라 자체로」)
+//   피드 칸(카드뉴스 아래) = 고치기 · 다시 만들기 앱 안에서 바로(./feed-acts.tsx · team-3 U1 · 형 11-10 「이런걸 다 하나로 하고싶은거지」)
 import { useQuery } from "@tanstack/react-query";
 import { Streamdown } from "streamdown";
 import { markdownComponents } from "@/lib/markdown";
 import { feedLiveQuery } from "./feed";
 import { type Art, Miss, biasOf, catOf, detailQuery, inAppClick, mediaOf, newsListQuery, progOf, sensOf, useGo, whenOf } from "./news-data";
 import { SummaryFix } from "./summary-fix";
+import { FeedActs } from "./feed-acts";
 import { CardStrip, ThumbStrip } from "./thumb-strip";
 import { YICO } from "./yeta-icons";
 
@@ -88,7 +90,7 @@ function Detail({ a }: { a: Art }) {
           : md ? <div className="nm-issue-md nm-nd-md"><Streamdown {...MD_BOX} components={markdownComponents}>{md}</Streamdown></div>
           : <p className="nm-news-msg">{a.summary || "요약 본문이 비어 있어"}</p>}
       </div>
-      <CardStrip a={a} />
+      <CardStrip a={a}><FeedActs a={a} /></CardStrip>
       <SummaryFix a={a} />
     </div>
   );

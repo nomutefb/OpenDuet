@@ -3,7 +3,7 @@
 //   뺀 것 = 에디터 몫(+AI 생성·수정·사진 더·프롬프트만 뽑기 = 돈·쓰기) → 상세 맨 아래 「에디터에서 고치기」 한 단추
 //   크게 보기 = 대화창 사진 크게 보기(.nm-zoom · ui/office-chat.tsx zoomImage)와 같은 겉·같은 닫는 길(기록 한 칸 · 폰 뒤로 · Esc · 아무 데나 누름) + 좌우 넘김
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { inAppHref } from "./inapp";
 import { type Art, type Thumb, type Vote, abs, dlHref, dlName, getJson, imgOf, useGo, voteGet, voteSend, voteSet } from "./news-data";
@@ -161,13 +161,16 @@ export function ThumbStrip({ a }: { a: Art }) {
 }
 
 /** 카드뉴스 이미지(cards.images · 렌더 끝난 장만) */
-export function CardStrip({ a }: { a: Art }) {
+/** 카드뉴스 칸 = 그림 줄 + 피드 단추(children · ./feed-acts.tsx) — 그림이 아직 없어도 단추가 있으면 칸을 그림(team-3 U1) */
+export function CardStrip({ a, children }: { a: Art; children?: ReactNode }) {
   const imgs = (a.cards?.images || []).map((u) => ({ img: u })).filter((t) => imgOf(t));
   const [zoom, setZoom] = useState<{ pics: Pic[]; at: number } | null>(null);
-  if (!imgs.length) return null;
+  if (!imgs.length && !children) return null;
   return (
     <section className="ycd-card card-left nm-th" aria-label="카드뉴스">
-      <Row a={a} kind="card" title="카드뉴스" items={imgs} onZoom={(pics, at) => setZoom({ pics, at })} onFail={() => {}} />
+      {imgs.length ? <Row a={a} kind="card" title="카드뉴스" items={imgs} onZoom={(pics, at) => setZoom({ pics, at })} onFail={() => {}} />
+        : <div className="nm-th-h"><b>카드뉴스</b><i>아직 그림 없음</i></div>}
+      {children}
       {zoom ? <Zoom pics={zoom.pics} at={zoom.at} onClose={() => setZoom(null)} /> : null}
     </section>
   );

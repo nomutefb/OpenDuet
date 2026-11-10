@@ -1,6 +1,6 @@
 // 뉴스 요약·썸네일 데이터(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일, 그리고 뉴스 요약 보는 것들. 그런것들 완전히 내재화 부탁해.」)
 //   원천 = 에디터 정적 파일 그대로(같은 출처 · build-viewer.mjs 산출 · 서버 고침 0): /articles.json · /detail/<file>.json · /thumb-hist.json · cards/<stem>/thumbs/prompts.json
-//   쓰기 = 화풍 투표(/api/rate action=thumb · 비용 0)·저장(/api/dl) 둘만 — 고치기·만들기는 에디터 한 겹(#/web)
+//   쓰기 = 화풍 투표(/api/rate action=thumb · 비용 0)·저장(/api/dl) · 피드 고치기 · 다시 만들기(./feed-acts.tsx = /api/revise-cards · /api/revise · /api/make-cards) — 그 밖 만들기는 에디터 한 겹(#/web)
 import { queryOptions } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { inAppHref } from "./inapp";
@@ -9,7 +9,7 @@ import { inAppHref } from "./inapp";
 export const useGo = () => { const r = useRouter(); return (path: string) => r.history.push(path); };
 /** 원문·출처 링크 누름 = 앱 안 한 겹(./inapp.ts 규칙 · 품기 막는 사이트는 원래대로 새 창) */
 export const inAppClick = (go: (p: string) => void) => (e: { preventDefault: () => void; currentTarget: HTMLAnchorElement }) => { const h = inAppHref(e.currentTarget.href); if (h) { e.preventDefault(); go(h); } };
-/** 에디터 그 기사 창(딥링크 /?a=<file> · 고치기·다시 만들기·AI 생성은 거기서 · 빌드 전 새 요약도 이제 앱 안에서 읽음 = ./news-detail.tsx) */
+/** 에디터 그 기사 창(딥링크 /?a=<file> · 카드 한 장 고치기 · AI 생성 · 썸네일 다시는 거기서 · 빌드 전 새 요약 · 요약 고치기 = ./news-detail.tsx · ./summary-fix.tsx · 피드 고치기 · 다시 만들기 = ./feed-acts.tsx 앱 안) */
 export const editorPath = (file: string) => "/web?u=" + encodeURIComponent(`/?a=${encodeURIComponent(file)}`);
 
 export type Thumb = { img?: string; url?: string; link?: string; label?: string; sid?: string };
