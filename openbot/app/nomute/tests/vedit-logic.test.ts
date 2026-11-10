@@ -40,3 +40,10 @@ test("파일 거름 · 조각 · 끝 판정 · 주소", () => {
   assert.equal(absUrl("ly_out/a/subbed.mp4"), "/ly_out/a/subbed.mp4"); assert.equal(absUrl("https://r2/x.mp4"), "https://r2/x.mp4");
   assert.ok(dlHref("https://r2/x.mp4", "a.mp4").startsWith("/api/dl?u=https%3A%2F%2Fr2%2Fx.mp4&n=a.mp4"));
 });
+
+test("베스트컷 = 서버 framethumb 꼴(n 1~3 · scale 2 · ar 다섯) · 끝 판정", async () => {
+  const { ftOpts, ftDone } = await import("../ui/vedit-logic.ts");
+  assert.deepEqual(ftOpts(2, "4:5"), { n: 2, scale: 2, ar: "4:5" });
+  assert.deepEqual(ftOpts(9, "x"), { n: 2, scale: 2, ar: "4:5" });
+  assert.ok(ftDone({ state: "done" })); assert.ok(ftDone({ state: "failed" })); assert.ok(!ftDone({ state: "run" })); assert.ok(!ftDone(null));
+});

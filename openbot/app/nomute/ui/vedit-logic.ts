@@ -53,3 +53,12 @@ export function landed(d: VRes | null, t0: number): boolean {
 }
 export const absUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : "/" + u.replace(/^\/+/, ""));
 export const dlHref = (u: string, name: string) => "/api/dl?u=" + encodeURIComponent(absUrl(u)) + "&n=" + encodeURIComponent(name);
+
+// 베스트컷(판 2 첫 칸 · edit.html:3598-3620 · functions/api/framethumb.js 47-49) = 같은 영상에서 장면 그림 뽑기 · 7초마다 ft_out/<id>/frames.json(최대 65분)
+export const FT_POLL_MS = 7000, FT_LIMIT_MS = 65 * 60e3, FT_KEY = "nm_vedit_ft";
+export const FT_N = [1, 2, 3], FT_AR = ["4:5", "9:16", "1:1", "16:9", "off"];
+export function ftOpts(n: number, ar: string): { n: number; scale: number; ar: string } {   // 원본 화면 기본 = {n:2, scale:2, ar:'4:5'}
+  return { n: FT_N.includes(n) ? n : 2, scale: 2, ar: FT_AR.includes(ar) ? ar : "4:5" };
+}
+export type Frames = { state?: string; error?: string; frames?: { url?: string; t?: number; quote?: string }[] } | null;
+export const ftDone = (d: Frames) => !!d && (d.state === "done" || d.state === "failed");
