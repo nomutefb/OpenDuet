@@ -1,6 +1,7 @@
 // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일, 그리고 뉴스 요약 보는 것들. 그런것들 완전히 내재화 부탁해.」)
 //   원본 = 에디터 썸네일 생성기 「이전 제작」(전 기기 공통 인덱스 /thumb-hist.json · build-viewer.mjs = [{url, dlname, cap, varStr, ts, src?}] 최신순 400장 · 포스트·릴스·카드뉴스·리사이즈·AI 생성·번역)
 //   보기·받기만(에디터 규약도 읽기 전용) — 바둑판 · 누르면 크게(넘김 · 저장) · 만들기·수정 = 에디터 도구 창 한 겹
+//   「에디터에서 만들기」 = 앱 안 「에디터」(#/edtool · ./thumb-maker · 원본 엔진) — 전엔 옛 /?tool=thumb 한 겹(형 11-10 12:17 「기존 앱 화면으로 가서 받는게 아니라 자체로」)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./news.css";
@@ -42,7 +43,7 @@ export function ThumbHist() {
             </ul>
           )}
           {all.length > n ? <button type="button" className="yset-chip nm-news-more" onClick={() => setN((v) => v + PAGE)}>더 보기 ({all.length - n})</button> : null}
-          <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={() => go("/web?u=" + encodeURIComponent("/?tool=thumb&inapp=1"))}>에디터에서 만들기 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
+          <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={() => go("/edtool")}>에디터에서 만들기 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
         </div>
       </div>
       {zoom != null ? <Zoom pics={pics} at={zoom} onClose={() => setZoom(null)} /> : null}
