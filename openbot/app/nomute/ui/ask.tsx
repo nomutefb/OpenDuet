@@ -32,7 +32,7 @@ const readAsDataUrl = (f: File) => new Promise<string>((res, rej) => { const r =
 
 export function AskModal({ onClose }: { onClose?: () => void } = {}) {
   // 홈 카드 「전송」 단추가 채워 둔 것(sessionStorage nm_ask_prefill · home/send-button.tsx) = 글·링크 미리 채움 · 한 번 읽고 지움 · 접수는 형이 「보내기」 눌러야
-  const [pre] = useState(() => { try { const j = JSON.parse(sessionStorage.getItem("nm_ask_prefill") || "null") as { text?: string; link?: string } | null; sessionStorage.removeItem("nm_ask_prefill"); return j; } catch { return null; } });
+  const [pre] = useState(() => { try { const j = JSON.parse(sessionStorage.getItem("nm_ask_prefill") || "null") as { text?: string; link?: string; retryOf?: string } | null; sessionStorage.removeItem("nm_ask_prefill"); return j; } catch { return null; } });
   const [draft] = useState(() => (pre ? null : readDraft()));   // 미리 채움이 있으면 그게 먼저
   const [text, setText] = useState(pre?.text || draft?.text || ""), [link, setLink] = useState(pre?.link || draft?.link || ""), [force, setForce] = useState(false);
   const [probe, setProbe] = useState<Probe>({ st: "hide", dur: 0 }), seq = useRef(0);
@@ -80,7 +80,7 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
     setBusy(true); setNote(null);
     try {
       const r = await fetch("/api/submit", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text: t, link: l || undefined, linkForce: l && force ? 1 : undefined, images: imgs.map((x) => x.dataUrl), nothumb: preset.noai ? 1 : 0, preset }) });   // 원본 20087줄 본문 그대로(nothumb = noai 와 같이 · 원본은 「AI 그림」 토글 실효값이지만 이 폼은 noai 칩 하나로)
+        body: JSON.stringify({ text: t, link: l || undefined, retryOf: pre?.retryOf || undefined, linkForce: l && force ? 1 : undefined, images: imgs.map((x) => x.dataUrl), nothumb: preset.noai ? 1 : 0, preset }) });   // 원본 20087줄 본문 그대로(nothumb = noai 와 같이 · 원본은 「AI 그림」 토글 실효값이지만 이 폼은 noai 칩 하나로)
       const ct = r.headers.get("content-type") || "";
       if (!ct.includes("json")) fail(r.status === 200 ? "로그인이 끝났어 — 새로 고쳐 다시 로그인" : `서버 ${r.status}`);
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; id?: string; error?: string };

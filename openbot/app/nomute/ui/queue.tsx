@@ -3,16 +3,18 @@
 //     · 이 기기 기록 셋 = 에디터와 같은 열쇠(같은 사이트라 같이 씀): 취소 nomute_q_cancelled · 내역 지우기 nomute_q_cleared · 픽 접수분 nomute_q_optimistic(15분 · 서버에 뜨면 회수)
 //     · 회색(갈 곳 없음) 누름 = 취소 두 번 누름(1번 = 휴지통 3초 · 2번 = 확정 ✓ 1.2초 뒤 줄 회수) · 추적만 끊음(파이프라인 멈추는 길 없음 = 원본 한계 그대로)
 //   다른 것 = 완료 「열기」 = 에디터 기사 창 대신 앱 안 기사 한 장(#/news?a=<file> · 시아 news-detail) · 원문 = 앱 안 한 겹(inapp)
-//     · 실패 「재시도」(다시 분석 api/pick · 요약요청 전문 복원) = 돈 드는 쓰기라 에디터 대기열 한 겹(시아 뉴스 판과 같은 원칙 · 「에디터에서」)
+//     · 실패 「재시도」 = 앱 안(형 11-10 12:17 「기존 앱 화면으로 가서 받는게 아니라 자체로」 · 전엔 에디터 대기열 한 겹) — 요약요청 = api/askget 전문 복원 → 앱 「요약 요청」에 미리 채움(보내기는 형 · retryOf = 옛 실패 줄 지움)
+//       · 링크 = api/pick 다시 분석(원본 qPickRetry 와 같은 글) · 바로 나가는 쓰기라 두 번 눌러야(취소와 같은 꼴 3초)
+//     · 빌드 전 새 요약(/api/feedlive)도 「열기」 = 앱 안 기사 한 장(목록 굽기 전 「반영 대기」 틈 · 형 11-10 11:59~12:10)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { inAppHref } from "./inapp";
+import { feedLiveQuery } from "./feed";
 import { getJson, newsListQuery, useGo } from "./news-data";
 import { Pane } from "./pane";
-import { YICO } from "./yeta-icons";
 
 type QItem = { id?: string; t?: number; title?: string; via?: string; key?: string; alt1?: string; status?: string; tries?: number; preset?: Record<string, boolean>; _opt?: 1 };
 type Opt = { id: string; url: string; title: string; t: number; retryOf?: string };
@@ -20,7 +22,6 @@ type Opt = { id: string; url: string; title: string; t: number; retryOf?: string
 const PER = 5;   // 원본 QPER(창 5칸)
 const LAG_MIN = 20;   // 원본 Q_LAG_MIN = api/pending STUCK_MIN
 const OPT_TTL = 15 * 60000, OPT_SKEW = 2 * 60000;   // 원본 QOPT_TTL · QOPT_SKEW
-const ED_QUEUE = "/web?u=" + encodeURIComponent("/?pop=queue&inapp=1");
 const PP_LBL: Record<string, string> = { h24: "24h", fp: "외신", mj: "주요", og: "원본" };   // 원본 PP_LBL
 
 const ls = <T,>(k: string, v: T): T => { try { const x = JSON.parse(localStorage.getItem(k) || "null"); return (x ?? v) as T; } catch { return v; } };
@@ -60,11 +61,11 @@ const queueQuery = queryOptions({
 
 export function QueueModal() {
   const go = useGo();
-  const q = useQuery(queueQuery), arts = useQuery(newsListQuery);
+  const q = useQuery(queueQuery), arts = useQuery(newsListQuery), live = useQuery(feedLiveQuery);
   const [page, setPage] = useState(0), [, bump] = useState(0), [arm, setArm] = useState(""), [done, setDone] = useState("");
   const armT = useRef(0);
   useEffect(() => () => clearTimeout(armT.current), []);
-  const files = new Map((arts.data?.arts || []).filter((a) => a && a.file).map((a) => [String(a.file).replace(/\.md$/, ""), a]));
+  const files = new Map([...(live.data || []), ...(arts.data?.arts || [])].filter((a) => a && a.file).map((a) => [String(a.file).replace(/\.md$/, ""), a]));   // 정적 목록이 뒤에 = 같은 기사면 정적 판이 이김
   const match = (id?: string) => (id ? files.get(String(id).replace(/\.md$/, "")) : undefined);   // 원본 qMatch(.md 있든 없든)
   const eff = (it: QItem) => {   // 원본 qEff
     if (it.status !== "succ" || match(it.id)) return it.status || "";
@@ -81,7 +82,25 @@ export function QueueModal() {
     clearTimeout(armT.current); setArm(""); setDone(id);   // ✓ 잔상 1.2초 뒤 기록·줄 회수(원본 thumb 1200 동값 · 먼저 쓰면 그 자리에서 사라짐)
     window.setTimeout(() => { lsSet("nomute_q_cancelled", [...new Set([...ls<string[]>("nomute_q_cancelled", []), id])]); setDone(""); bump((n) => n + 1); }, 1200);
   };
-  const Chev = () => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />;
+  const [rarm, setRarm] = useState(""), [note, setNote] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const retry = async (it: QItem) => {   // 원본 askRetry · qPickRetry(viewer-src/33-openQueue.part)
+    const id = cxlId(it), url = /^https?:\/\//i.test(String(it.key || it.alt1 || "")) ? String(it.key || it.alt1) : "";   // 원본 qPickRetry u = key 먼저
+    if (it.via === "요약요청") {
+      let text = "";
+      try { const r = await fetch(`/api/askget?id=${encodeURIComponent(String(it.id || ""))}&_=${Date.now()}`, { credentials: "same-origin" }); if (r.ok) text = String(((await r.json()) as { text?: string }).text || ""); } catch { /* 복원 못 하면 빈 칸 */ }
+      try { sessionStorage.setItem("nm_ask_prefill", JSON.stringify({ text, link: "", retryOf: String(it.id || "") })); } catch { /* 사생활 창 */ }
+      go("/ask"); return;
+    }
+    if (!url) { setNote({ kind: "err", text: "원문 링크가 없어서 다시 분석을 못 해 — 「요약 요청」에 글을 붙여 다시 보내 줘" }); return; }
+    if (rarm !== id) { setRarm(id); clearTimeout(armT.current); armT.current = window.setTimeout(() => setRarm(""), 3000); return; }
+    clearTimeout(armT.current); setRarm(""); setNote(null);
+    try {
+      const r = await fetch("/api/pick", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ url, title: it.title || "", alt: it.alt1 && it.alt1 !== url ? [it.alt1] : [] }) });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!r.ok || !d.ok) throw new Error(d.error || `서버 ${r.status}`);
+      setNote({ kind: "ok", text: "다시 분석 보냈어 — 위 줄에 새로 떠" }); void q.refetch();
+    } catch (e) { setNote({ kind: "err", text: `다시 분석 못 보냄 — ${(e as Error).message}` }); }
+  };
   return (
     <Pane title="대기열">
       <div className="yeta-set mt-2">
@@ -104,7 +123,7 @@ export function QueueModal() {
                     <span className="qa">
                       {isDone ? <span className="ok">✓</span>
                         : e === "succ" && a ? <button type="button" className="go ok" onClick={() => go(`/newsed?a=${encodeURIComponent(a.file)}`)}>열기</button>
-                        : e === "fail" ? <button type="button" className="go arm" onClick={() => go(ED_QUEUE)} title={it.via === "요약요청" ? "요청 내용을 복원해 다시 요약 — 에디터 대기열에서" : "다시 분석 — 에디터 대기열에서"}>재시도</button>
+                        : e === "fail" ? <button type="button" className="go arm" onClick={() => void retry(it)} title={it.via === "요약요청" ? "요청 내용을 복원해 「요약 요청」에 채움 — 보내기는 거기서" : rarm === id ? "한 번 더 누르면 다시 분석" : "다시 분석(대기열에 다시 넣음) — 두 번 눌러야"}>{rarm === id ? "다시?" : "재시도"}</button>
                         : url ? <button type="button" className="go src" onClick={() => { const h = inAppHref(url); if (h) go(h); else window.open(url, "_blank", "noopener"); }} title={e === "lag" ? "원문 — 요약은 배포 반영 뒤 열림" : "원문"}>원문</button>
                         : <button type="button" className={`go ${armed ? "arm" : "gray"}`} onClick={() => cancel(it)} aria-label={armed ? "한 번 더 누르면 이 요청 취소" : "이 요청 취소"} title={armed ? "한 번 더 누르면 이 요청 취소" : "갈 곳 없음 · 누르면 이 요청 취소"}>{armed ? "취소?" : "—"}</button>}
                     </span>
@@ -120,7 +139,7 @@ export function QueueModal() {
               <button type="button" disabled={cur === pages - 1} onClick={() => setPage(cur + 1)} aria-label="다음 쪽">›</button>
             </div>
           ) : null}
-          <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={() => go(ED_QUEUE)}>에디터 대기열 <Chev /></button></div>
+          {note ? <p className={`nm-q-note ${note.kind}`} role={note.kind === "err" ? "alert" : "status"}>{note.text}</p> : null}
         </div>
       </div>
     </Pane>

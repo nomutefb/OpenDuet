@@ -30,3 +30,6 @@
 html:not(.dark) .nm-q .qt.mid { color:#9a6a00; }
 html:not(.dark) .nm-q .qa .go.src { color:#b86200; }
 html:not(.dark) .nm-q .qa .go.arm { color:#161716; background:#d8f04a; border-color:#d8f04a; }
+/* 재시도 · 다시 분석 알림 한 줄(./queue.tsx · 앱 안 재시도 · 형 11-10 12:17 「자체로」) */
+.nm-q .nm-q-note { margin:6px 0 0; font-size:var(--fs-sm); line-height:1.45; padding:6px 10px; border-radius:var(--r-s, 9px); border:1px solid var(--glass-line); background:var(--glass); }
+.nm-q .nm-q-note.ok { color:var(--accent); } html:not(.dark) .nm-q .nm-q-note.ok { color:#4f7a00; } .nm-q .nm-q-note.err { color:#ff8a8a; } html:not(.dark) .nm-q .nm-q-note.err { color:#d23b3b; }
