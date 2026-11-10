@@ -37,7 +37,8 @@ import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
 import { AV_MIN, type AvEvent, type AvState, avInit, avStep } from "./auto-video";   // 영상 자동 재생 결정(순수 · 모루 11-09 05:33 회귀 고침)
 import { AttachSheet } from "./attach-sheet";
-import { EncGauge, encRing, useEnc } from "./enc-gauge";   // 미디어 게이지 · 라임 테두리(형 11-11 08:14 번개 1:1 「영상 00% / 파동 00% / 자막 00% / 다 공유되먼 완료」)
+import { EncGauge, encRing, useEnc } from "./enc-gauge";
+import { PicGrid } from "./pic-grid";   // 사진 2장 넘음 = 카톡 꼴 묶음 · 누르면 넘겨 보기(형 11-11 08:45 「2장 이상일땐 이런식으로 크키가 줄어서 나오게 할 수 있어? 누르면 커지고」 · 뎅)   // 미디어 게이지 · 라임 테두리(형 11-11 08:14 번개 1:1 「영상 00% / 파동 00% / 자막 00% / 다 공유되먼 완료」)
 import { useCloseCallMenu } from "./call-face";
 import { justHeld, MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
@@ -638,7 +639,12 @@ function Files({ m }: { m: Msg }) {
           {gifs.map((f) => <img key={f.p} src={fileUrl(f.p)} alt={f.n} loading="lazy" className={`nm-gif${encRing(enc, f.p)}`} onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />)}
         </div>
       ) : null}
-      {imgs.length ? (
+      {imgs.filter((f) => !bad[f.p]).length > 1 ? (
+        <>
+          <PicGrid pics={imgs.filter((f) => !bad[f.p]).map((f) => ({ p: f.p, src: fileUrl(f.p), name: f.n }))} who={nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who)} when={zoomWhen(m.ts)} ring={(p) => encRing(enc, p)} dl={dlOf} onBad={(p) => setBad((b) => ({ ...b, [p]: true }))} />
+          {imgs.filter((f) => bad[f.p]).map((f) => <Broken key={f.p} f={f} kind="그림" />)}
+        </>
+      ) : imgs.length ? (
         <div className="yfiles flex flex-col items-start gap-2">   {/* 두 장 이상 = 세로(형 10-31 「그리고 2개 이상은 세로로.」) */}
           {imgs.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="그림" /> : (
             <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className={`relative block overflow-hidden rounded-2xl${encRing(enc, f.p)}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>

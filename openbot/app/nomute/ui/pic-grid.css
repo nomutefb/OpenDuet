@@ -1,0 +1,22 @@
+/* 사진 묶음(./pic-grid.tsx · 뎅 11-11 · 형 08:45 「2장 이상일땐 이런식으로 크키가 줄어서 나오게」) — 카톡 꼴: 6칸 판 · 셋 줄 = 2칸씩 · 둘 줄 = 3칸씩 · 정사각 · 얇은 틈 · 바깥 모서리만 둥글게 */
+.nm-pg { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:2px; width:min(264px, 68vw); overflow:hidden; border-radius:16px; }
+.nm-pg-c { position:relative; display:block; aspect-ratio:1; min-width:0; padding:0; border:0; background:rgba(127,127,127,.14); cursor:zoom-in; -webkit-tap-highlight-color:transparent; }
+.nm-pg-c img { display:block; width:100%; height:100%; object-fit:cover; }
+.nm-pg-c:focus-visible { outline:2px solid rgb(var(--accent-rgb, 207,255,64)); outline-offset:-2px; }
+/* 라임 테(닿은 미디어) = 번개 .nm-encok::after(attachment-up.css · 칸 안쪽 선)가 칸에도 그대로 먹음(칸 = position:relative) */
+
+/* 크게 보기 넘김 + 아래 썸네일 줄 — 넘김 칸은 news.css .nm-zoom-g 와 같은 값(news.css 는 뉴스 화면 갈 때만 실릴 수 있어 대화창용으로 .nm-pv 범위에 둠) */
+.nm-zoom.nm-pv { padding:var(--bar) 0 calc(env(safe-area-inset-bottom, 0px) + 8px); grid-template:minmax(0, 1fr) auto / minmax(0, 1fr); place-items:stretch; cursor:default; }
+.nm-pv .nm-zoom-track { display:flex; min-width:0; min-height:0; overflow-x:auto; overflow-y:hidden; overscroll-behavior:contain; scroll-snap-type:x mandatory; scrollbar-width:none; }
+.nm-pv .nm-zoom-track::-webkit-scrollbar { display:none; }
+.nm-pv .nm-zoom-slide { flex:0 0 100%; min-width:0; display:grid; place-items:center; padding:0 12px; scroll-snap-align:center; scroll-snap-stop:always; cursor:zoom-out; }
+.nm-pv .nm-zoom-sp { flex:1; }
+.nm-pv .nm-zoom-act { flex:none; display:grid; place-items:center; min-width:44px; height:44px; color:inherit; text-decoration:none; }
+.nm-pv .nm-zoom-slide img { max-height:calc(100dvh - var(--bar) - 112px); }
+.nm-pv-foot { display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0; padding:8px 0 0; color:#fff; cursor:default; }
+.nm-pv-n { margin:0; font-size:var(--fs-sm, 13px); font-weight:600; opacity:.82; font-variant-numeric:tabular-nums; }
+.nm-pv-strip { display:flex; gap:4px; max-width:100%; padding:2px 12px; overflow-x:auto; scrollbar-width:none; overscroll-behavior:contain; }
+.nm-pv-strip::-webkit-scrollbar { display:none; }
+.nm-pv-t { flex:none; width:48px; height:48px; padding:0; border:2px solid transparent; border-radius:8px; overflow:hidden; background:rgba(255,255,255,.08); opacity:.6; cursor:pointer; }
+.nm-pv-t.on { border-color:rgb(var(--accent-rgb, 207,255,64)); opacity:1; }
+.nm-pv-t img { display:block; width:100%; height:100%; object-fit:cover; }
