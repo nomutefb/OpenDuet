@@ -15,7 +15,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { isForeignUrl, presetFor, submitText } from "../home/quick-send";
 import { CATS, type FArt, byFile, feedLiveQuery, isBrk, kindOf, pendQuery, pickQ } from "./feed";
-import { catOf, editorPath, newsListQuery, useGo } from "./news-data";
+import { catOf, newsListQuery, useGo } from "./news-data";
 import { NewsDetail } from "./news-detail";
 import { newsFileOf } from "./news";   // #/newsed?a=<file> = 그 기사로 바로 열기(k-4 U2)
 import { useSplit } from "./side";
@@ -128,7 +128,7 @@ export function NewsEditor() {
   const tog = (c: string) => { setCats((s) => { const x = new Set(s); if (x.has(c)) x.delete(c); else x.add(c); return x; }); reset(); };
   const topOf = useRef(0);
   const open = (a: FArt) => {
-    if (a._live) { keep = { q, cats: [...cats], issue, n, top: left.current?.scrollTop || 0 }; go(editorPath(a.file)); return; }   // 빌드 전 새 요약 = 정적 상세가 아직 없음 → 에디터 그 기사(「뉴스 요약」과 같음)
+    // 빌드 전 새 요약(_live)도 앱 안 기사 한 장(본문 동봉 · ./news-detail.tsx) — 전엔 옛 에디터 그 기사 창으로 넘김(형 11-10 12:17 「기존 앱 화면으로 가서 받는게 아니라 자체로」)
     if (!wide) topOf.current = left.current?.scrollTop || 0;
     setSel(a.file);
   };

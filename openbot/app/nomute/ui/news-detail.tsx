@@ -5,6 +5,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Streamdown } from "streamdown";
 import { markdownComponents } from "@/lib/markdown";
+import { feedLiveQuery } from "./feed";
 import { type Art, Miss, biasOf, catOf, detailQuery, editorPath, inAppClick, mediaOf, newsListQuery, progOf, sensOf, useGo, whenOf } from "./news-data";
 import { CardStrip, ThumbStrip } from "./thumb-strip";
 import { YICO } from "./yeta-icons";
@@ -34,10 +35,10 @@ function shape(body: string) {
 const key = (s: string) => s.replace(EMOJI0, "").replace(/\s+/g, "");
 
 export function NewsDetail({ file }: { file: string }) {
-  const list = useQuery(newsListQuery);
-  const a = list.data?.arts.find((x) => x.file === file);
+  const list = useQuery(newsListQuery), live = useQuery(feedLiveQuery);   // 빌드 전 새 요약 = 정적 목록엔 아직 없고 live 행(본문 동봉)에만 있음 → 앱 안에서 그대로 읽음(형 11-10 12:17 「기존 앱 화면으로 가서 받는게 아니라 자체로」)
+  const a = list.data?.arts.find((x) => x.file === file) || live.data?.find((x) => x.file === file);
   const go = useGo();
-  if (list.isPending) return <p className="nm-news-msg">기사 읽는 중…</p>;
+  if (list.isPending || (!a && live.isPending)) return <p className="nm-news-msg">기사 읽는 중…</p>;
   if (!a) return (
     <div className="yeta-set nm-nd mt-2">
       <div className="ycd-card card-left">
@@ -63,6 +64,7 @@ function Detail({ a }: { a: Art }) {
         <span className="nm-nd-meta">
           {cat ? <b className={`cat ${cat[1]}`}>{cat[0]}</b> : null}
           {kind ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
+          {a._live ? <b className="urg iss" title="목록 굽기 전 — 몇 분 뒤 썸네일 · 카드가 붙어">방금 요약</b> : null}
           <span>{[mediaOf(a.media), a.reporter, whenOf(a)].filter(Boolean).join(" · ")}</span>
         </span>
         <h1 className="nm-nd-t">{title}</h1>

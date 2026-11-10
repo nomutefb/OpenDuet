@@ -13,7 +13,7 @@ import "./feed.css";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
-import { type Art, biasOf, catOf, editorPath, getJson, inAppClick, newsListQuery, outletName, progOf, sensOf, thumbOf, useGo } from "./news-data";
+import { type Art, biasOf, catOf, getJson, inAppClick, newsListQuery, outletName, progOf, sensOf, thumbOf, useGo } from "./news-data";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
 
@@ -161,7 +161,7 @@ export function FeedModal({ search = false }: { search?: boolean }) {   // searc
   const tog = (c: string) => { setCats((s) => { const x = new Set(s); if (x.has(c)) x.delete(c); else x.add(c); return x; }); reset(); };
   const open = (a: FArt) => {
     keep = { q, cats: [...cats], issue, n, top: scroller()?.scrollTop || 0 };
-    go(a._live ? editorPath(a.file) : `/newsed?a=${encodeURIComponent(a.file)}`);   // 4번 뉴스 에디터 그 기사(k-4 U2)
+    go(`/newsed?a=${encodeURIComponent(a.file)}`);   // 4번 뉴스 에디터 그 기사(k-4 U2) · 빌드 전 새 요약(_live)도 앱 안(본문 동봉 · 형 11-10 12:17 「기존 앱 화면으로 가서 받는게 아니라 자체로」 · 전엔 옛 에디터 창)
   };
   return (
     <Pane title={search ? "검색" : "뉴스 요약"}>

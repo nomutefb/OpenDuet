@@ -9,7 +9,7 @@ import { inAppHref } from "./inapp";
 export const useGo = () => { const r = useRouter(); return (path: string) => r.history.push(path); };
 /** 원문·출처 링크 누름 = 앱 안 한 겹(./inapp.ts 규칙 · 품기 막는 사이트는 원래대로 새 창) */
 export const inAppClick = (go: (p: string) => void) => (e: { preventDefault: () => void; currentTarget: HTMLAnchorElement }) => { const h = inAppHref(e.currentTarget.href); if (h) { e.preventDefault(); go(h); } };
-/** 에디터 그 기사 창(딥링크 /?a=<file> · 고치기·다시 만들기·AI 생성은 거기서) */
+/** 에디터 그 기사 창(딥링크 /?a=<file> · 고치기·다시 만들기·AI 생성은 거기서 · 빌드 전 새 요약도 이제 앱 안에서 읽음 = ./news-detail.tsx) */
 export const editorPath = (file: string) => "/web?u=" + encodeURIComponent(`/?a=${encodeURIComponent(file)}`);
 
 export type Thumb = { img?: string; url?: string; link?: string; label?: string; sid?: string };
@@ -17,6 +17,8 @@ export type Cards = { state?: string; thumb_search?: Thumb[]; thumb_gen?: Thumb[
 export type Art = {
   file: string; title?: string; title_orig?: string; summary?: string; media?: string; reporter?: string; url?: string; date?: string; time?: string; time_est?: string;
   category?: string; cat?: string; bias?: string; bias_src?: string; tags?: string; tags_why?: string; breaking?: boolean | number | string; issue?: boolean | number; rev?: number; has_body?: boolean; cards?: Cards;
+  /** 빌드 전 새 요약(/api/feedlive · ./feed.tsx feedLiveQuery) = 본문(body) 동봉 · 정적 /detail 아직 없음 */
+  _live?: number; body?: string;
 };
 type Feed = { articles?: Art[]; count?: number; generated?: string };
 
@@ -44,6 +46,8 @@ export const newsListQuery = queryOptions({
 });
 /** 상세 본문 = /detail/<file>.json?v=<판>(file 이 .md 로 끝나 「….md.json」) · 판 = 에디터 ensureDetail 과 같은 셈(요약 rev · 카드 rev · 카드 updated) */
 export const detailQuery = (a: Art) => {
+  // 빌드 전 새 요약 = 받은 본문 그대로(옛 에디터 renderChips 「_live && body != null」 과 같은 길 · 형 11-10 12:17 「기존 앱 화면으로 가서 받는게 아니라 자체로」)
+  if (a._live && a.body != null) return queryOptions({ queryKey: ["nomute", "news-detail", a.file, `live.${a.rev || 0}`], staleTime: Infinity, queryFn: async (): Promise<{ body?: string; cards_md?: string }> => ({ body: a.body }) });
   const v = `${a.rev || 0}.${a.cards?.rev || 0}.${a.cards?.updated || ""}`;
   return queryOptions({
     queryKey: ["nomute", "news-detail", a.file, v], staleTime: 5 * 60_000,
