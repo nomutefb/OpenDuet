@@ -1,12 +1,14 @@
 // 썸네일 후보·카드뉴스 넘기기 + 크게 보기(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 //   원본 = 에디터 viewer/index.html thumbSec·thumbStatic(검색·AI 두 줄 4:5 넘기기 · 번호 · 저장 · AI 만 좋음/아쉬움) · thumbPromptPanel(프롬프트 4종) · feedSec(카드 이미지) · openLightbox(넘기며 크게 · 저장 · 출처)
-//   뺀 것 = 에디터 몫(+AI 생성·수정·사진 더·프롬프트만 뽑기 = 돈·쓰기) → 상세 맨 아래 「에디터에서 고치기」 한 단추
+//   쓰는 손 = ./thumb-gen.tsx(이미지 생성 창 · 이 화풍 수정 · 프롬프트만 뽑기 · 만드는 중 칸 · 뜸 11-10 봄 23:09 나눔) — 앞 판 = 「에디터 몫 → 「에디터에서 고치기」 한 단추」
 //   크게 보기 = 대화창 사진 크게 보기(.nm-zoom · ui/office-chat.tsx zoomImage)와 같은 겉·같은 닫는 길(기록 한 칸 · 폰 뒤로 · Esc · 아무 데나 누름) + 좌우 넘김
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { inAppHref } from "./inapp";
 import { type Art, type Thumb, type Vote, abs, dlHref, dlName, getJson, imgOf, useGo, voteGet, voteSend, voteSet } from "./news-data";
+import { GenPane, IcPen, PendSlot, PromptDry, RedoPane, usePendWatch } from "./thumb-gen";
+import { baseSid } from "./thumb-gen-opts";
 
 export type Pic = { src: string; name: string; label?: string; link?: string };
 const SV = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
@@ -75,15 +77,16 @@ function Votes({ a, sid, onFail }: { a: Art; sid: string; onFail: () => void }) 
 }
 
 /** 한 줄 넘기기(검색 · AI · 카드) — 칸 = 4:5 · 좌상단 번호 · 우상단 저장 · (AI) 아래 화풍 이름·투표 · 누르면 크게 · 못 읽는 사진 = 칸째 숨김 */
-function Row({ a, kind, title, items, onZoom, onFail }: { a: Art; kind: "search" | "gen" | "card"; title: string; items: Thumb[]; onZoom: (pics: Pic[], i: number) => void; onFail: () => void }) {
+function Row({ a, kind, title, items, onZoom, onFail, lead, tail, onRedo, redoOn, redoBusy }: { a: Art; kind: "search" | "gen" | "card"; title: string; items: Thumb[]; onZoom: (pics: Pic[], i: number) => void; onFail: () => void; lead?: ReactNode; tail?: ReactNode; onRedo?: (sid: string, label: string) => void; redoOn?: string; redoBusy?: (sid: string) => boolean }) {
   const [gone, setGone] = useState<Set<number>>(() => new Set());
   const pics: Pic[] = items.map((t, i) => { const src = imgOf(t); return { src, name: dlName(a.file, t.label || title, src, i), label: kind === "card" ? `${title} ${i + 1}` : t.label || title, link: kind === "search" && t.link && t.link !== t.img ? t.link : undefined }; });
   const live = pics.map((p, i) => ({ p, i })).filter((x) => !gone.has(x.i));
-  if (!live.length) return null;
+  if (!live.length && !lead && !tail) return null;
   return (
     <div className={`nm-th-row ${kind}`}>
       <div className="nm-th-h"><b>{title}</b><i>{live.length}장</i></div>
       <div className="nm-th-track" role="list">
+        {lead}
         {live.map(({ p, i }, k) => (
           <div key={`${i}:${p.src}`} role="listitem" className="nm-th-slot">
             <button type="button" className="nm-th-img" aria-label={`${p.label || title} 크게`} onClick={() => onZoom(live.map((x) => x.p), k)}>
@@ -91,6 +94,9 @@ function Row({ a, kind, title, items, onZoom, onFail }: { a: Art; kind: "search"
             </button>
             <span className="nm-th-no"><b>{k + 1}</b>/{live.length}</span>
             <a className="nm-th-act nm-th-save" href={dlHref(p.src, p.name)} download={p.name} aria-label="이 사진 저장" onClick={(e) => e.stopPropagation()}><IcDown /></a>
+            {kind === "gen" && onRedo && items[i].sid ? (   // 연필 = 이 화풍 수정(옛 thumbRedoSbtn · 저장 왼쪽) · 그 화풍 고치는 중 = 잠김
+              <button type="button" className={`nm-th-act nm-th-redo${redoOn === items[i].sid ? " on" : ""}`} aria-label={`${items[i].label || "이 화풍"} 수정`} title="이 화풍 수정" disabled={redoBusy?.(items[i].sid!)} onClick={(e) => { e.stopPropagation(); onRedo(items[i].sid!, items[i].label || p.label || title); }}><IcPen /></button>
+            ) : null}
             {kind === "gen" ? (   // 아래 띠 = 화풍 이름(왼) · 좋음/아쉬움(오른) — 폰 폭(칸 ≈150px)에서 위 번호·저장과 안 겹치게
               <span className="nm-th-foot">
                 {items[i].label ? <span className="nm-th-cap">{items[i].label}</span> : null}
@@ -99,6 +105,7 @@ function Row({ a, kind, title, items, onZoom, onFail }: { a: Art; kind: "search"
             ) : null}
           </div>
         ))}
+        {tail}
       </div>
     </div>
   );
@@ -126,7 +133,7 @@ function Prompts({ url, gen }: { url: string; gen: Thumb[] }) {
   return (
     <div className="nm-th-pr">
       <button type="button" className="yset-chip" aria-expanded={open} onClick={() => setOpen((o) => !o)}>프롬프트 4종 {open ? "접기" : "보기"}</button>
-      {!open ? null : q.isPending ? <p className="nm-news-msg">프롬프트 읽는 중…</p> : q.isError ? <p className="nm-news-msg" role="alert">프롬프트를 못 읽었어{q.error instanceof Error && !(q.error.message === "404" || q.error.message === "html") ? ` — ${q.error.message}` : ""}</p> : !order.length ? <p className="nm-news-msg">아직 프롬프트가 없어 — 에디터에서 뽑을 수 있어</p> : (
+      {!open ? null : q.isPending ? <p className="nm-news-msg">프롬프트 읽는 중…</p> : q.isError ? <p className="nm-news-msg" role="alert">프롬프트를 못 읽었어{q.error instanceof Error && !(q.error.message === "404" || q.error.message === "html") ? ` — ${q.error.message}` : ""}</p> : !order.length ? <p className="nm-news-msg">아직 프롬프트가 없어 — 위 「프롬프트만 뽑기」로 뽑을 수 있어(돈 0)</p> : (
         <div className="nm-th-pr-list">
           <div className="nm-th-pr-h"><b>{order.length}개</b><CopyBtn text={all} label="프롬프트 전체" /></div>
           {order.map((s) => { const t = pm[s] as string, lb = prLabel(s, gen); return (
@@ -141,20 +148,36 @@ function Prompts({ url, gen }: { url: string; gen: Thumb[] }) {
   );
 }
 
-/** 썸네일 후보 칸(상세 안 · 제목 아래) — 사진도 프롬프트도 없으면 안 그림 */
+/** 썸네일 후보 칸(상세 안 · 제목 아래) — 사진 · 프롬프트가 없어도 머리(「사진 못 찾음」) + 「AI 생성」 · 「프롬프트만 뽑기」는 둠(옛 thumbSec 픽 기사 진입로 · 손쓸 단추 0 구멍 막음) */
 export function ThumbStrip({ a }: { a: Art }) {
   const c = a.cards || {};
   const search = (c.thumb_search || []).filter((t) => imgOf(t)).slice(0, 60), gen = (c.thumb_gen || []).filter((t) => imgOf(t)).slice(0, 40);
   const [zoom, setZoom] = useState<{ pics: Pic[]; at: number } | null>(null), [fail, setFail] = useState(false);
-  if (!search.length && !gen.length && !c.thumb_prompts_url) return null;
+  const [open, setOpen] = useState(false), [redo, setRedo] = useState<{ sid: string; label: string } | null>(null);
+  const pend = usePendWatch(a);
+  const genPend = pend.filter((p) => p.kind === "gen"), redoPend = pend.filter((p) => p.kind === "redo");
+  const redoBusy = (sid: string) => redoPend.some((p) => !p.fail && p.base === baseSid(sid));
   const onZoom = (pics: Pic[], at: number) => setZoom({ pics, at });
+  const head = (search.length ? ["검색"] : []).concat(gen.length || genPend.length ? ["AI 생성"] : []).join(" · ") || (c.thumb_prompts_url ? "프롬프트" : "사진 못 찾음");
   return (
     <section className="ycd-card card-left nm-th" aria-label="썸네일 후보">
-      <span className="nm-th-ttl">썸네일 후보</span>
+      <div className="nm-th-top">
+        <span className="nm-th-ttl">썸네일 후보</span><i className="nm-th-sec">{head}</i>
+        <span className="nm-th-tools">
+          <button type="button" className={`yset-chip nm-th-gen${open ? " on" : ""}`} aria-expanded={open} title="AI 이미지 생성 — 옵션 골라 그리기(돈)" onClick={() => { setOpen((o) => !o); setRedo(null); }}>＋ AI 생성</button>
+        </span>
+      </div>
+      {open ? <GenPane a={a} onDone={() => setOpen(false)} /> : null}
       {search.length ? <Row a={a} kind="search" title="검색" items={search} onZoom={onZoom} onFail={() => setFail(true)} /> : null}
-      {gen.length ? <Row a={a} kind="gen" title="AI 생성" items={gen} onZoom={onZoom} onFail={() => setFail(true)} /> : null}
+      {gen.length || pend.length ? (
+        <Row a={a} kind="gen" title="AI 생성" items={gen} onZoom={onZoom} onFail={() => setFail(true)}
+          lead={genPend.length ? genPend.map((p) => <PendSlot key={p.id} a={a} p={p} />) : undefined}
+          tail={redoPend.length ? redoPend.map((p) => <PendSlot key={p.id} a={a} p={p} />) : undefined}
+          onRedo={(sid, label) => { setRedo((r) => (r?.sid === sid ? null : { sid, label })); setOpen(false); }} redoOn={redo?.sid} redoBusy={redoBusy} />
+      ) : null}
+      {redo ? <RedoPane a={a} sid={redo.sid} label={redo.label} onDone={() => setRedo(null)} /> : null}
       {fail ? <p className="nm-news-msg" role="status">투표를 못 보냈어 — 이 기기엔 남겨 뒀어</p> : null}
-      {c.thumb_prompts_url ? <Prompts url={c.thumb_prompts_url} gen={c.thumb_gen || []} /> : null}
+      {c.thumb_prompts_url ? <Prompts url={c.thumb_prompts_url} gen={c.thumb_gen || []} /> : <PromptDry a={a} />}
       {zoom ? <Zoom pics={zoom.pics} at={zoom.at} onClose={() => setZoom(null)} /> : null}
     </section>
   );
