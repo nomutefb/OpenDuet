@@ -415,8 +415,10 @@ function StatePill({ m }: { m: Msg }) {
 }
 
 /** 가져감 = 1:1 방에서 형 글을 그 봇이 가져갔나(누가·몇 시 0 · 형 10-28 10:20 「가져감만 … 카톡처럼」) · 단체방 = 0(형 09:44 「회의실도 … 읽은 사람 표시되는거 없애줘」) */
+// 「가져감」 스위치 = 끔(형 11-10 13:05 봄 1:1 「봄아 그리구 가저감이 특정 봇한테만 뜨는데 아예 안뜰더면 안뜨게해줘」 · 서버가 읽은 이를 아는 자리만 적어 봇마다 갈림 · 서버 기록(reads.got)은 그대로 · 다시 켜기 = true)
+const SHOW_GOT = false;
 function gotBy(m: Msg, c: Ctx) {
-  if (!c.r?.with || m.kind !== "human") return false;
+  if (!SHOW_GOT || !c.r?.with || m.kind !== "human") return false;
   const got = c.reads?.got || {};
   return Object.keys(got).some((n) => n !== m.who && (got[n] || []).includes(m.id));
 }
