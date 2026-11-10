@@ -111,3 +111,26 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 :is(.nm-news, .nm-th-hist) .ypc-go span svg { width:14px; height:14px; }
 
 .nm-nd-orig { font-family:var(--app-font-text, inherit); }   /* 원문 제목 = 본문 글꼴(LEMONMILK 대문자 꼴 안 씀 · D9) */
+
+/* 피드 칸 고치기 · 다시 만들기(./feed-acts.tsx · team-3 U1 · 카드뉴스 칸 안) — 칩 = .yset-chip · 글칸 = 요약 요청(.nm-ask-ta) 결 · 보내기 = .ypc-go(GoButton)
+   돈 드는 길(그림 = 제미나이) = 한 번 누르면 호박색으로 바뀌고 3.5초 안에 한 번 더 눌러야 나감(옛 에디터 shoot 재확인 꼴) · 맨 아래 「에디터에서 열기」 = 이제 보조 단추(유리) */
+.nm-feed { display:flex; flex-direction:column; gap:10px; padding-top:10px; border-top:1px solid var(--glass-line); }
+.nm-feed .nm-feed-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.nm-feed .nm-feed-busy { margin-left:auto; font-size:var(--fs-xs); font-weight:var(--fw-b); color:var(--accent); animation:nmNdPulse 1.4s ease-in-out infinite; }
+.nm-feed .nm-feed-pane { display:flex; flex-direction:column; gap:8px; }
+.nm-feed .nm-feed-pick { justify-content:flex-start; margin:0; }
+.nm-feed .nm-feed-pick .yset-chip:disabled { opacity:.4; cursor:not-allowed; }
+.nm-feed .nm-feed-why { margin:0; font-size:var(--fs-sm); line-height:1.45; color:var(--mut); }
+.nm-feed .nm-feed-why.pay { color:#b86e00; } .dark .nm-feed .nm-feed-why.pay { color:#ffb340; }
+.nm-feed .nm-feed-ta { width:100%; font:inherit; font-family:var(--app-font-text, inherit); font-size:var(--fs-body); line-height:var(--lh-base, 1.6); color:var(--fg); background:var(--glass); border:1px solid var(--glass-line);
+  border-radius:var(--r-l); padding:10px 13px; outline:none; resize:vertical; box-shadow:inset 0 1px 0 var(--glass-line); transition:border-color .45s var(--ease); }
+.nm-feed .nm-feed-ta:focus { border-color:color-mix(in srgb, var(--accent) 35%, transparent); }
+.nm-feed .nm-feed-ta::placeholder { color:var(--mut); }
+.nm-feed .nm-feed-acts { margin-top:0; justify-content:flex-end; }
+.nm-feed .ypc-go { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.nm-feed .ypc-go:disabled { opacity:.5; }
+.nm-feed .ypc-go.nm-feed-arm[data-stage="idle"] { background:#ffb340; color:#1a1a1a; }
+.nm-feed .nm-feed-note { margin:0; font-size:var(--fs-sm); line-height:1.45; padding:6px 10px; border-radius:var(--r-s, 9px); border:1px solid var(--glass-line); background:var(--glass); }
+.nm-feed .nm-feed-note.ok { color:var(--accent); } html:not(.dark) .nm-feed .nm-feed-note.ok { color:#4f7a00; } .nm-feed .nm-feed-note.err { color:#ff8a8a; } html:not(.dark) .nm-feed .nm-feed-note.err { color:#d23b3b; }
+.nm-nd .ypc-go.nm-nd-ed { background:var(--glass); color:var(--fg-2); border:1px solid var(--glass-line); }
+@media (prefers-reduced-motion:reduce) { .nm-feed .nm-feed-busy { animation:none; } }

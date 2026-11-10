@@ -1,11 +1,13 @@
 // 서랍 「뉴스 요약」 기사 한 장(앱 안 · 형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일, 그리고 뉴스 요약 보는 것들. 그런것들 완전히 내재화 부탁해.」)
 //   원본 = 에디터 viewer/index.html open()(요약 창) — 머리(분류·매체·기자·시각) · AI 제목(본문 첫 H1) · 기자 제목(a.title 이 다를 때) · 원문 제목(title_orig) · 썸네일 후보 · 본문 마크다운 · 카드뉴스 · 원문
 //   본문 = /detail/<file>.json(에디터 ensureDetail 과 같은 판 셈) · 그리기 = 대화창·이슈와 같은 streamdown · 다듬기 = 에디터 decorate 의 가벼운 판(썸네일 소절·머리 이모지·편향 색도형 뺌)
-//   읽기만 — 고치기·다시 만들기·AI 생성 = 맨 아래 「에디터에서 고치기」 한 단추(에디터 딥링크 /?a=<file>)
+//   피드 칸(카드뉴스 아래) = 고치기 · 다시 만들기 앱 안에서 바로(./feed-acts.tsx · team-3 U1 · 형 11-10 「이런걸 다 하나로 하고싶은거지」)
+//   그 밖(카드 한 장 고치기 · AI 생성 · 썸네일 다시) = 맨 아래 「에디터에서 열기」(에디터 딥링크 /?a=<file>)
 import { useQuery } from "@tanstack/react-query";
 import { Streamdown } from "streamdown";
 import { markdownComponents } from "@/lib/markdown";
 import { type Art, Miss, biasOf, catOf, detailQuery, editorPath, inAppClick, mediaOf, newsListQuery, progOf, sensOf, useGo, whenOf } from "./news-data";
+import { FeedActs } from "./feed-acts";
 import { CardStrip, ThumbStrip } from "./thumb-strip";
 import { YICO } from "./yeta-icons";
 
@@ -86,8 +88,8 @@ function Detail({ a }: { a: Art }) {
           : md ? <div className="nm-issue-md nm-nd-md"><Streamdown {...MD_BOX} components={markdownComponents}>{md}</Streamdown></div>
           : <p className="nm-news-msg">{a.summary || "요약 본문이 비어 있어"}</p>}
       </div>
-      <CardStrip a={a} />
-      <div className="ypc-acts nm-nd-acts"><button type="button" className="ypc-go" onClick={() => go(editorPath(a.file))}>에디터에서 고치기 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
+      <CardStrip a={a}><FeedActs a={a} /></CardStrip>
+      <div className="ypc-acts nm-nd-acts"><button type="button" className="ypc-go nm-nd-ed" onClick={() => go(editorPath(a.file))}>에디터에서 열기 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
     </div>
   );
 }
