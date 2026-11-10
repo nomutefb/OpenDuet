@@ -339,14 +339,13 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
 /** ② 러너 길 — 점 = 서버 줄 · 화살표 = 깨우는 길(봇 시계 → 깨움 러너 · 그록 웹훅 → 그록봇 · 부르기 → 모루) · 바탕 = 나머지 서버 줄 */
 function DiaFlow({ cats, bs }: { cats: StatusCat[]; bs: Body[] }) {
   const srv = rowsOf(cats, "server"), bots = rowsOf(cats, "bots");
-  const clock = srv.find((r) => r.key === "clock"), grok = srv.find((r) => r.key === "grok"), ping = srv.find((r) => /부르기/.test(r.name));
+  const clock = srv.find((r) => r.key === "clock"), ping = srv.find((r) => /부르기/.test(r.name));
   const runners = srv.filter((r) => r.key.startsWith("runner-") || /깨움 러너|neo-agent|nomute-wake/.test(r.key));
   const pingTo = ping ? ping.name.split(" 부르기")[0] : "";
   const runnerWho = runners.map((r) => r.name.split(" · ").pop() || r.name);
+  const ourRunners = runners.filter((r) => RUN_WHO.has(r.name.split(" · ").pop() || r.name));   // 시계 길 = 클로드 일곱 깨움 러너만(옛 빚 · 윈터 러너 줄 걷음 · 형 11-10 07:5x)
   const stay = bots.filter((r) => bs.some((b) => b.being === r.name) && !runnerWho.includes(r.name));   // 길 = 정본 아이인데 깨움 러너 줄 없음(상주) — 불은 그 봇 줄 그대로(끊겨도 길은 안 바뀜 · 모루 #2875)
-  const ours = new Set([...runnerWho, ...stay.map((r) => r.name), pingTo]);
-  const grokTo = bots.filter((r) => !ours.has(r.name));   // 깨움 러너 · 상주 · 부르기 길이 없는 봇 = 그록 웹훅으로 깸
-  const used = new Set([clock, grok, ping, ...runners].filter(Boolean).map((r) => r!.key));
+  const used = new Set([clock, ping, ...runners].filter(Boolean).map((r) => r!.key));   // 그록 웹훅 = 화살표 걷음(지피티 · 그록 = 러너 화면 밖 · 형 07:5x 「지피티 봇은 넣을 필요는 없음」) → 서버 불만 바탕 점으로
   const base = srv.filter((r) => !used.has(r.key));
   const lane = (src: StatusRow | undefined, to: { key: string; name: string; st: HealthSt; title?: string; dash?: boolean }[], label: string) => src ? (
     <div className="lane" key={src.key}>
@@ -358,8 +357,7 @@ function DiaFlow({ cats, bs }: { cats: StatusCat[]; bs: Body[] }) {
   return (
     <div className="nsb-dia nsb-flow">
       <div className="base">{base.map((r) => <span key={r.key} className="node" data-st={r.st} title={[r.value, r.note].filter(Boolean).join(" · ")}><StatusDot st={r.st} />{r.name.replace(/\(.*\)$/, "")}{r.key === "deploy" && r.value ? <em>{r.value}</em> : null}</span>)}</div>
-      {lane(clock, [...runners.map((r) => ({ key: r.key, name: r.name.split(" · ").pop() || r.name, st: r.st, title: [r.name, r.note].filter(Boolean).join(" · ") })), ...stay.map((r) => ({ key: `stay:${r.key}`, name: r.name, st: r.st, title: r.value, dash: true }))], "봇 시계 → 깨움 러너")}
-      {lane(grok, grokTo.map((r) => ({ key: r.key, name: r.name, st: r.st, title: r.value })), "그록 웹훅")}
+      {lane(clock, [...ourRunners.map((r) => ({ key: r.key, name: r.name.split(" · ").pop() || r.name, st: r.st, title: [r.name, r.note].filter(Boolean).join(" · ") })), ...stay.map((r) => ({ key: `stay:${r.key}`, name: r.name, st: r.st, title: r.value, dash: true }))], "봇 시계 → 깨움 러너")}
       {lane(ping, bots.filter((r) => r.name === pingTo).map((r) => ({ key: r.key, name: r.name, st: r.st, title: r.value })), `${pingTo} 부르기`)}
       <small className="nsb-foot">점 = 서버 줄 불 · 화살표 = 깨우는 길 · 점선 = 상주(러너 없이 늘 돎)</small>
     </div>
