@@ -38,13 +38,21 @@ export function FeedActs({ a }: { a: Art }) {
   const c = a.cards || {}, pr = progOf(a);
   const hasMd = !!c.has_md || pr.done >= 2, hasImg = !!c.images?.length;
   const makes: Make[] = hasMd && !hasImg ? ["text", "shoot", "full"] : ["text", "full"];
-  const [open, setOpen] = useState<"fix" | "make" | null>(null);
+  const [open, setOpen] = useState<"fix" | "make" | "one" | null>(null);
   const fix: Fix = "card";
   const [make, setMake] = useState<Make>("text");
   const [say, setSay] = useState("");
   const [armed, setArmed] = useState(false);
   const [sentAt, setSentAt] = useState(0);
   const [note, setNote] = useState<Note>(null);
+  const nImg = c.images?.length || 0;
+  const [one, setOne] = useState(1);
+  const [oneText, setOneText] = useState("");
+  const [oneWish, setOneWish] = useState("");
+  const [oneSync, setOneSync] = useState(false);
+  const [onePic, setOnePic] = useState<{ name: string; b64: string } | null>(null);
+  const [oneArmed, setOneArmed] = useState(false);
+  useEffect(() => { if (!oneArmed) return; const t = setTimeout(() => setOneArmed(false), ARM_MS); return () => clearTimeout(t); }, [oneArmed]);
   const held = sentAt > 0 && Date.now() - sentAt < HOLD_MS, busy = pr.busy || held;
   useEffect(() => { if (!armed) return; const t = setTimeout(() => setArmed(false), ARM_MS); return () => clearTimeout(t); }, [armed]);
   useEffect(() => { if (!sentAt) return; const t = setTimeout(() => setSentAt(0), HOLD_MS); return () => clearTimeout(t); }, [sentAt]);
@@ -52,7 +60,7 @@ export function FeedActs({ a }: { a: Art }) {
   const cur: Make = makes.includes(make) ? make : "text", m = MAKE[cur];
   const reread = () => { for (const ms of [4000, 20_000]) setTimeout(() => void qc.invalidateQueries({ queryKey: newsListQuery.queryKey }), ms); };
   const queued = (d: { via?: string }) => (d.via === "r2-queue" ? " · 깃허브가 막혀서 큐에 받아 뒀어(풀리면 저절로 나가)" : "");
-  const toggle = (k: "fix" | "make") => { setOpen((o) => (o === k ? null : k)); setNote(null); };
+  const toggle = (k: "fix" | "make" | "one") => { setOpen((o) => (o === k ? null : k)); setNote(null); setOneArmed(false); };
 
   const sendFix = async () => {
     const instruction = say.trim();
@@ -76,11 +84,33 @@ export function FeedActs({ a }: { a: Art }) {
     } catch (e) { setNote({ kind: "err", text: (e as Error).message }); throw e; }
   };
 
+  // 카드 한 장 고치기 = 옛 에디터 기사 창 카드 한 장 수정(make-cards mode edit · card · text · wish · sync · 첨부 4:5 사진 sceneB64) — 그림 다시 = 제미나이 = 돈 → 두 번
+  const pickPic = (f: File | undefined) => {
+    if (!f) { setOnePic(null); return; }
+    if (f.size > 9 * 1024 * 1024) { setNote({ kind: "err", text: "사진이 너무 커(9MB 까지)" }); return; }
+    const r = new FileReader();
+    r.onload = () => setOnePic({ name: f.name, b64: String(r.result || "") });
+    r.onerror = () => setNote({ kind: "err", text: "사진을 못 읽었어 — 다시 골라 줘" });
+    r.readAsDataURL(f);
+  };
+  const sendOne = async () => {
+    setNote(null); setOneArmed(false);
+    try {
+      const d = await post("/api/make-cards", { article: a.file, mode: "edit", card: one, text: oneText.trim(), wish: oneWish.trim(), sync: oneSync, ...(onePic ? { sceneB64: onePic.b64 } : {}) });
+      setSentAt(Date.now());
+      setNote({ kind: "ok", text: `보냈어 — ${one}번 카드 고치는 중 · 위 막대가 따라와${queued(d)}` });
+      setOneText(""); setOneWish(""); setOneSync(false); setOnePic(null); reread();
+      return d;
+    } catch (e) { setNote({ kind: "err", text: (e as Error).message }); throw e; }
+  };
+  const oneEmpty = !oneText.trim() && !oneWish.trim() && !oneSync && !onePic;
+
   return (
     <div className="nm-feed">
       <div className="nm-feed-bar" role="group" aria-label="피드">
         <button type="button" className={`yset-chip${open === "fix" ? " on" : ""}`} aria-expanded={open === "fix"} onClick={() => toggle("fix")}>고치기</button>
         <button type="button" className={`yset-chip${open === "make" ? " on" : ""}`} aria-expanded={open === "make"} onClick={() => toggle("make")}>다시 만들기</button>
+        <button type="button" className={`yset-chip${open === "one" ? " on" : ""}`} aria-expanded={open === "one"} disabled={!nImg} title={nImg ? undefined : "카드 그림이 아직 없어 — 「다시 만들기」 먼저"} onClick={() => toggle("one")}>한 장 고치기</button>
         {pr.busy ? <span className="nm-feed-busy" role="status">만드는 중</span> : null}
       </div>
       {open === "fix" ? (
@@ -101,6 +131,25 @@ export function FeedActs({ a }: { a: Art }) {
             {m.pay && !armed
               ? <button type="button" className="ypc-go nm-go" disabled={busy} onClick={() => setArmed(true)}>다시 만들기</button>
               : <GoButton className={`ypc-go${m.pay ? " nm-feed-arm" : ""}`} go={sendMake} busy="보내는 중" disabled={busy}>{m.pay ? "한 번 더 = 그림 그리기(돈)" : "다시 만들기"}</GoButton>}
+          </div>
+        </div>
+      ) : null}
+      {open === "one" && nImg ? (
+        <div className="nm-feed-pane">
+          <div className="yset-chips nm-feed-pick" role="radiogroup" aria-label="몇 번 카드">
+            {Array.from({ length: nImg }, (_, i) => i + 1).map((k) => <button key={k} type="button" role="radio" aria-checked={one === k} className={`yset-chip${one === k ? " on" : ""}`} onClick={() => setOne(k)}>{k}번</button>)}
+          </div>
+          <p className="nm-feed-why pay">{one}번 카드만 다시 · 그림을 다시 그리면 제미나이라 돈 들어 · 두 번 눌러야 나가</p>
+          <textarea className="nm-feed-ta" rows={2} maxLength={2000} value={oneText} onChange={(e) => setOneText(e.target.value)} placeholder="이 장 문구를 이렇게 — 비우면 그대로" aria-label="이 장 문구" />
+          <textarea className="nm-feed-ta" rows={2} maxLength={1000} value={oneWish} onChange={(e) => setOneWish(e.target.value)} placeholder="그림은 이렇게 — 예: 인물 빼고 건물만 · 비우면 그대로" aria-label="그림 바람" />
+          <label className="nm-feed-why nm-feed-chk"><input type="checkbox" checked={oneSync} onChange={(e) => setOneSync(e.target.checked)} /> 바꾼 문구에 맞게 그림도 다시</label>
+          <label className="nm-feed-why nm-feed-chk">첨부 사진(4:5 · 9MB 까지 · 선택) <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => pickPic(e.target.files?.[0])} /></label>
+          {onePic ? <p className="nm-feed-why">고른 사진 = {onePic.name}</p> : null}
+          {busy ? <p className="nm-feed-why" role="status">{pr.busy ? "지금 만드는 중이야 — 끝나면 고칠 수 있어" : "방금 보냈어 — 2분 뒤 다시 누를 수 있어"}</p> : null}
+          <div className="ypc-acts nm-feed-acts">
+            {!oneArmed
+              ? <button type="button" className="ypc-go nm-go" disabled={busy || oneEmpty} onClick={() => setOneArmed(true)}>{one}번 카드 고치기</button>
+              : <GoButton className="ypc-go nm-feed-arm" go={sendOne} busy="보내는 중" disabled={busy}>한 번 더 = 보내기(돈 들 수 있어)</GoButton>}
           </div>
         </div>
       ) : null}

@@ -151,3 +151,6 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-feed .nm-feed-note.ok { color:var(--accent); } html:not(.dark) .nm-feed .nm-feed-note.ok { color:#4f7a00; } .nm-feed .nm-feed-note.err { color:#ff8a8a; } html:not(.dark) .nm-feed .nm-feed-note.err { color:#d23b3b; }
 .nm-nd .ypc-go.nm-nd-ed { background:var(--glass); color:var(--fg-2); border:1px solid var(--glass-line); }
 @media (prefers-reduced-motion:reduce) { .nm-feed .nm-feed-busy { animation:none; } }
+/* 피드 칸 「한 장 고치기」(./feed-acts.tsx · 빠르 team-4 U2 ② · 옛 에디터 카드 한 장 수정 = make-cards mode edit) — 체크 · 첨부 줄 */
+.nm-feed .nm-feed-chk { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.nm-feed .nm-feed-chk input[type="file"] { font-size:var(--fs-sm); max-width:100%; }
