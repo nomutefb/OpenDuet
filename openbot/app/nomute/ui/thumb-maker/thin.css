@@ -1,0 +1,107 @@
+/* 기계가 만듦(./tools/thin-css.mjs) — 손으로 안 고침 · 카드 제작 글자 한 단 얇게(형 11-11 06:15 「폰트는 굵기를 얇게」) · 원본 판 = ./thumb-maker.css */
+.nm-tm {
+    --fw-b: 600;
+    --fw-x: 700
+}
+.nm-tm .pastefb-btn {
+    font-weight: 600
+}
+.nm-tm .cref-dlall .cref-dllbl {
+    font-weight: 600
+}
+.nm-tm .job .jlab {
+    font-weight: 700
+}
+.nm-tm .job .jretry {
+    font-weight: 700
+}
+.nm-tm .hist-h,.nm-tm  .geni-histfold {
+    font-weight: 600
+}
+.nm-tm #histRemote {
+    font-weight: 600
+}
+.nm-tm .hist-cap {
+    font-weight: 600
+}
+.nm-tm .tab.on {
+    font-weight: 700
+}
+.nm-tm .trk {
+    font-weight: 700
+}
+.nm-tm .go {
+    font-weight: 700
+}
+.nm-tm .pastefb-btn {
+    font-weight: 600
+}
+.nm-tm .csec .ovfmt {
+    font-weight: 700
+}
+.nm-tm .gospec .gs-bul {
+    font-weight: 600
+}
+.nm-tm .gospec .gs-lbl {
+    font-weight: 600
+}
+.nm-tm .gospec .gs-v.on {
+    font-weight: 600
+}
+.nm-tm .gospec .gs-opa {
+    font-weight: 600
+}
+.nm-tm .gospec .gsop-step {
+    font-weight: 700
+}
+.nm-tm .csec .onoff {
+    font-weight: 700
+}
+.nm-tm .spchip.on {
+    font-weight: 600
+}
+.nm-tm .carslide .cap {
+    font-weight: 600
+}
+.nm-tm .cref-dlall .cref-dllbl {
+    font-weight: 600
+}
+.nm-tm .ed-add {
+    font-weight: 700
+}
+.nm-tm .ed-addw {
+    font-weight: 700
+}
+.nm-tm .ovc {
+    font-weight: 700
+}
+.nm-tm .emon {
+    font-weight: 700
+}
+.nm-tm .ed-chip.on {
+    font-weight: 700
+}
+.nm-tm .cfm-btn {
+    font-weight: 600
+}
+.nm-tm .abdlg-h {
+    font-weight: 600
+}
+.nm-tm .abadd {
+    font-weight: 600
+}
+.nm-tm.modern-workspace #qPrev .qp-st {
+    font-weight: 600
+}
+.nm-tm.modern-workspace #qPrev :is(.qp-s-run,.qp-s-fail) .qp-l {
+    font-weight: 600
+}
+.nm-tm.modern-workspace #qPrev .qp-done .qp-n {
+    font-weight: 600
+}
+.nm-tm.modern-workspace #qPrev .qp-redo {
+    font-weight: 600
+}
+.nm-tm.modern-workspace #qPrev .qp-cause {
+    font-weight: 600
+}

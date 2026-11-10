@@ -6,6 +6,7 @@
 //   형 끝 기준 1~13(공통/문서/2026-11-01-뉴스-내재화/안.md 「3차」) = 원본 코드가 그대로 돌아서 같음 · 고친 것 하나 = 작은 화면에서 미리보기 도크 뒤로 옵션 줄이 비쳐 보이던 것(./frame.css 맨 아래)
 import "./thumb-maker.css";
 import "./frame.css";
+import "./thin.css";   // 글자 한 단 얇게(형 11-11 06:15 「폰트는 굵기를 얇게」 · ./tools/thin-css.mjs 가 만듦 · 옛 굵기로 = 이 줄 뺌)
 import { memo, useEffect, useRef } from "react";
 import { startEngine } from "./engine";
 import { THUMB_HTML } from "./markup";
