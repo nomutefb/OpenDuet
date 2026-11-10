@@ -37,6 +37,7 @@ import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
 import { AV_MIN, type AvEvent, type AvState, avInit, avStep } from "./auto-video";   // 영상 자동 재생 결정(순수 · 모루 11-09 05:33 회귀 고침)
 import { AttachSheet } from "./attach-sheet";
+import { EncGauge, encRing, useEnc } from "./enc-gauge";   // 미디어 게이지 · 라임 테두리(형 11-11 08:14 번개 1:1 「영상 00% / 파동 00% / 자막 00% / 다 공유되먼 완료」)
 import { useCloseCallMenu } from "./call-face";
 import { justHeld, MsgMenu, useLongPress } from "./msg-menu";
 import { RoomSearch } from "./room-search";
@@ -626,17 +627,20 @@ function Files({ m }: { m: Msg }) {
   const GIF_RE = /\.gif$/i, gifs = ps.filter((p) => GIF_RE.test(p)).map(one);   // 움짤(형 11-05 12:10 「gif는, 움짤같은거로 쓰게 … 일렬로 최대 3개까지 … 지금 크기의 50%로」)
   const imgs = ps.filter((p) => IMG_RE.test(p) && !GIF_RE.test(p)).map(one), vids = ps.filter((p) => VID_RE.test(p)).map(one), rest = ps.filter((p) => !IMG_RE.test(p) && !VID_RE.test(p)).map(one);
   const [bad, setBad] = useState<Record<string, boolean>>({}), [dur, setDur] = useState<Record<string, number>>({});   // dur = 영상 길이(초 · 형 11-05 10:44 「비디오에 가져다되면 초도 나오게」)   // 못 그린 그림·영상(받은 몸이 그림이 아님 · 11-05 번개 url 길 = Access 로그인 HTML) = 빈칸 대신 「못 불러왔어」 칸
+  const enc = useEnc(m);   // 봇에게 가는 정도(영상 · 파동 · 자막 · 사진) · 닿은 미디어 = 라임 테두리
   return (
+    <div className="nm-encrow">   {/* 게이지 = 미디어 왼쪽 아주 작게(상대 글은 오른쪽) · 틀은 늘 같음(게이지가 뜨고 져도 영상이 다시 안 실림) */}
+    <EncGauge e={enc} />
     <div className="yfiles flex flex-col gap-2">
       {gifs.length ? (
-        <div className="nm-gifs">   {/* 움짤 = 머리표·다운로드 단추 0 · 한 줄 셋 · 반 크기 · 저장 = 꾹 눌러 「사진 저장」(MsgMenu picsOf) */}
-          {gifs.map((f) => <img key={f.p} src={fileUrl(f.p)} alt={f.n} loading="lazy" className="nm-gif" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />)}
+        <div className={`nm-gifs${gifs.length < 3 ? ` c${gifs.length}` : ""}`}>   {/* 움짤 = 머리표·다운로드 단추 0 · 한 줄 셋 · 반 크기 · 저장 = 꾹 눌러 「사진 저장」(MsgMenu picsOf) */}
+          {gifs.map((f) => <img key={f.p} src={fileUrl(f.p)} alt={f.n} loading="lazy" className={`nm-gif${encRing(enc, f.p)}`} onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />)}
         </div>
       ) : null}
       {imgs.length ? (
         <div className="yfiles flex flex-col items-start gap-2">   {/* 두 장 이상 = 세로(형 10-31 「그리고 2개 이상은 세로로.」) */}
           {imgs.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="그림" /> : (
-            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className="relative block overflow-hidden rounded-2xl" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
+            <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" title={`${f.n} — 누르면 크게`} className={`relative block overflow-hidden rounded-2xl${encRing(enc, f.p)}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; zoomImage(fileUrl(f.p), f.n, nmOf(qc.getQueryData<OfficePerson[]>(officeKeys.people) || [], m.who), zoomWhen(m.ts)); }}>
               <img src={fileUrl(f.p)} alt={f.n} loading="lazy" className="block max-h-60 max-w-[240px] object-cover" onError={() => setBad((b) => ({ ...b, [f.p]: true }))} />
               <FileTag f={f} m={m} />
               <DlBtn p={f.p} n={f.n} />
@@ -645,7 +649,7 @@ function Files({ m }: { m: Msg }) {
         </div>
       ) : null}
       {vids.map((f) => bad[f.p] ? <Broken key={f.p} f={f} kind="영상" /> : (
-        <div key={f.p} className="relative"><AutoVideo src={fileUrl(f.p)} label={f.n} onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /><FileTag f={{ ...f, d: dur[f.p] }} m={m} /><DlBtn p={f.p} n={f.n} /><Subs meta={meta.get(f.p) as { transcript?: string; transcript_state?: string } | undefined} /></div>
+        <div key={f.p} className="relative"><span className={`nm-encv${encRing(enc, f.p)}`}><AutoVideo src={fileUrl(f.p)} label={f.n} onError={() => setBad((b) => ({ ...b, [f.p]: true }))} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; if (Number.isFinite(d) && d > 0) setDur((x) => ({ ...x, [f.p]: d })); }} /></span><FileTag f={{ ...f, d: dur[f.p] }} m={m} /><DlBtn p={f.p} n={f.n} /><Subs meta={meta.get(f.p) as { transcript?: string; transcript_state?: string } | undefined} /></div>
       ))}
       {rest.map((f) => (
         <a key={f.p} href={fileUrl(f.p)} target="_blank" rel="noopener" className="nm-fcard" title={f.n} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; savePic(fileUrl(f.p), f.n); }}>
@@ -654,6 +658,7 @@ function Files({ m }: { m: Msg }) {
           <span className="nm-fc-dl" aria-hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" /></svg></span>
         </a>
       ))}
+    </div>
     </div>
   );
 }
