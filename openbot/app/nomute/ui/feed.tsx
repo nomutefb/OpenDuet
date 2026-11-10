@@ -2,11 +2,15 @@
 //   전엔 에디터 화면을 통째로 품었음(shell FRAME.feed) → 읽기는 앱 안: 검색(제목·원제·매체) · 칩(전체·이슈·분류 6 · 원본 renderChips) · 맨 위 진행 카드(원본 renderQPrev 두 장) · 카드(분류·보도/스크랩 시각·긴급/이슈·제목·요약·매체·편향·민감·진행 세 칸 + 썸네일)
 //   데이터 = /articles.json(뉴스 요약과 같은 캐시 ./news-data.ts) + /api/feedlive(빌드 전 새 요약 · 원본은 4초 상한 병합 → 여기선 따로 받아 오면 덧붙임) · /api/pending + /toast-seen.json(qf = 확인한 실패) · 60초(진행 중이면 20초)
 //   누르면 = 앱 안 기사 한 장(#/news?a=<file>) · 빌드 전 새 요약(_live)은 정적 상세가 아직 없어 에디터 그 기사 창 · 매체 = 원문(앱 안 한 겹)
-//   쓰기(재시도·취소·없애기·카드 만들기) = 에디터 한 겹 — 진행 카드·「대기열」 → 에디터 대기열 · 맨 아래 「에디터에서」 → 에디터 피드 탭
+//   쓰기 = 앱 안(team-4 4′ · 형 11-10 12:40 「에디터도 정원에 완벽하게 녹여」 · 전엔 맨 아래 「에디터에서」 한 겹이 유일한 길):
+//     · 진행 판 실패 카드 「재시도」 · 「없애기」 = 그 건만(옛 qp-redo · qp-dismiss · ./q-acts.ts) · 판 「대기열 열기」 = 앱 대기열(./queue.tsx · 취소 · 재시도)
+//     · 줄 진행 칸 「프롬프트」 실패 = 그 자리에서 프롬프트 다시(옛 retryPromptSeg · make-cards text · 돈 0 · 카드(그림) 실패는 기사 한 장 「다시 만들기」 = 돈 → 두 번)
+//     · 카드 만들기 · 고치기 = 기사 한 장(./feed-acts.tsx) · 「에디터에서」 = 비상구로 남김(긴급 배지 길게 「긴급 아님」 신고는 아직 옛 피드만 · 수집함은 앱 ./scrap.tsx)
 //   10개씩(원본 FEED_CAP · 바닥 닿으면 +10) · 원본과 다른 점: 검색·칩 중에도 10개씩(스크롤하면 다 나옴) · 분류 = category 칸만(원본 articleCat 제목 규칙 폴백 없음 · 짐작)
 import "./yeta-settings.css";
 import "./chan.css";
 import { qEff } from "./task-state";
+import { qfSeenOne, qRetry } from "./q-acts";
 import { type QCardT, TaskPanel } from "./task-panel";
 import "./news.css";
 import "./feed.css";
@@ -26,6 +30,7 @@ export const CATS = ["정치", "사회", "경제", "문화", "국제", "테크"]
 const ED_FEED = "/web?u=" + encodeURIComponent("/?tab=feed&inapp=1");
 const ED_QUEUE = "/edq";   // 대기열 = 앱 안(./queue.tsx · 봄 11-01 · 전엔 에디터 대기열 한 겹)
 const HR = 36e5;
+const RT_HOLD = 3 * 60e3;   // 프롬프트 다시 누른 뒤 서버 상태가 올 때까지 「진행 중」으로 버팀(옛 RETRY_HOLD_MS 3분 · 서버 갱신이 더 새면 진짜 상태가 이김)
 export const byFile = (a: FArt, b: FArt) => (a.file < b.file ? 1 : a.file > b.file ? -1 : 0);
 
 /* ── 시각(원본과 같은 셈 · KST 고정) ── */
@@ -90,8 +95,8 @@ export function pickQ(items: QItem[], feed: Map<string, FArt>, qf: string[]): QC
 /* ── 요약 대기열 = 「Tasks」 판(형 11-09 05:17 「뉴스요약 진행상황은 이런식으로 표시」 · 05:18 「뉴스 요약 형태 이덧도 있음」 · 시아 05:20 합친 한 장 · 봄 22) · 깃)
    A = 판 하나(꺽쇠 · 「요약 대기열」 · 지난 분 · 시도 · 끝 a/b 건 · 다 끝나면 「완료」 · 접으면 한 줄) · B = 기사 한 건 카드(상태 고리 · 제목 · 끝 n/3 · 단계 셋 요약·프롬프트·카드)
    1단 = 서버 칸(status · tries · t)이 「요약」만 알려 줘서 요약만 진짜 · 프롬프트·카드 = 기다림(서버 step 칸 오면 2단) · 토큰 = 자료 0 → 뺌 · 고르기(pickQ)는 옛 진행 카드 그대로 */
-function Row({ a, go, onOpen }: { a: FArt; go: (p: string) => void; onOpen: (a: FArt) => void }) {
-  const cat = catOf(a), kind = kindOf(a), th = thumbOf(a), bias = biasOf(a), sens = sensOf(a).slice(0, 2), pr = progOf(a);   // 민감 = 두 개(원본 sensChips)
+function Row({ a, go, onOpen, rt, onRetry }: { a: FArt; go: (p: string) => void; onOpen: (a: FArt) => void; rt?: boolean; onRetry?: (a: FArt) => void }) {
+  const cat = catOf(a), kind = kindOf(a), th = thumbOf(a), bias = biasOf(a), sens = sensOf(a).slice(0, 2), pr = rt ? { done: 1, busy: true, fail: false } : progOf(a);   // rt = 방금 다시 누름(옛 isCardRetrying = 프롬프트 칸 진행 중)   // 민감 = 두 개(원본 sensChips)
   const dh = dispAgeH(a), rep = rel(dh), ih = inAgeH(a), scrap = ih * 60 < 30 ? "NEW" : rel(ih) && rel(ih) !== rep ? rel(ih) : "";   // 보도 = 표기 나이 · 스크랩 = 수집 나이(30분 안 NEW · 같은 값이면 한 번만)
   const title = a.title || "(제목 없음)", src = /^https?:\/\//i.test(a.url || "") ? a.url! : "", med = outlet(a.media);
   return (
@@ -113,7 +118,9 @@ function Row({ a, go, onOpen }: { a: FArt; go: (p: string) => void; onOpen: (a: 
             {sens.length ? <span className="sens"><i>민감</i>{sens.map((s) => <em key={s.t} className={s.warn ? "warn" : undefined}>{s.t}</em>)}</span> : null}
           </span>
           <span className="nm-feed-prog" aria-label={`진행 ${pr.done}/3`}>
-            {["요약", "프롬프트", "카드"].map((lb, i) => <i key={lb} className={i < pr.done ? "done" : i === pr.done && pr.busy ? "cur" : i === pr.done && pr.fail ? "fail" : undefined}>{lb}</i>)}
+            {["요약", "프롬프트", "카드"].map((lb, i) => i === 1 && i === pr.done && pr.fail && onRetry   // 프롬프트 칸 실패 = 그 자리 다시(옛 data-retry="text" · i===done 필수 = 카드 칸 실패 기사에서 끝난 프롬프트 칸이 단추로 안 뜨게)
+              ? <button key={lb} type="button" className="fail rt" onClick={(e) => { e.stopPropagation(); onRetry(a); }} aria-label={`프롬프트 다시 생성 — ${title}`} title="눌러서 프롬프트 다시 생성">{lb}</button>
+              : <i key={lb} className={i < pr.done ? "done" : i === pr.done && pr.busy ? "cur" : i === pr.done && pr.fail ? "fail" : undefined}>{lb}</i>)}
           </span>
         </span>
         {th ? <img className="nm-news-th" src={th} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.hidden = true; }} /> : null}
@@ -143,7 +150,25 @@ export function FeedModal({ search = false }: { search?: boolean }) {   // searc
     (!cats.size || cats.has(catOf(a)?.[0] || "")) &&
     (!issue || isBrk(a) || !!a.issue)), [all, dq, cats, issue]);   // 이슈 칩 = 긴급 ∨ 이슈(원본 FILTERS.issue)
   const shown = rows.slice(0, n);
-  const qs = useMemo(() => (pend.data ? pickQ(pend.data.items, byId, pend.data.qf) : []), [pend.data, byId]);
+  const [seenN, setSeenN] = useState(0);   // 「없애기」 · 「재시도」 뒤 다시 고름(확인한 실패 = 이 기기 기록이라 쿼리 밖)
+  const qs = useMemo(() => (pend.data ? pickQ(pend.data.items, byId, pend.data.qf) : []), [pend.data, byId, seenN]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const [rt, setRt] = useState<Record<string, number>>({}), [note, setNote] = useState("");
+  const rtOn = (a: FArt) => { const t = rt[a.file]; if (!t || Date.now() - t > RT_HOLD) return false; const up = a.cards?.updated ? Date.parse(a.cards.updated) : 0; return !(up && up > t); };
+  const retryPrompt = async (a: FArt) => {   // 옛 retryPromptSeg — make-cards text(프롬프트만 · 그림 0 = 돈 0 → 한 번) · 실패면 다시 빗금 + 까닭 한 줄
+    if (rtOn(a)) return;
+    setRt((m) => ({ ...m, [a.file]: Date.now() })); setNote("");
+    try {
+      const r = await fetch("/api/make-cards", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ article: a.file, mode: "text" }) });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!r.ok || !d.ok) throw new Error(d.error || `서버 ${r.status}`);
+      window.setTimeout(() => { void list.refetch(); void live.refetch(); }, 4000);   // 옛 setTimeout(load, 4000) = 60초 폴 기다림 줄임
+    } catch (e) {
+      setRt((m) => { const x = { ...m }; delete x[a.file]; return x; });
+      setNote(`프롬프트 다시 못 보냄 — ${(e as Error).message || "연결 끊김"}`);
+    }
+  };
+  const qRedo = (it: Parameters<typeof qRetry>[0]) => qRetry(it, go).then((why) => { if (!why) { setSeenN((n) => n + 1); void pend.refetch(); } return why; });
+  const qDrop = (it: { id?: string }) => { qfSeenOne(it.id); setSeenN((n) => n + 1); };
   const busy = (pend.data?.items || []).filter((it) => it.status === "processing" || it.status === "retry").length;   // 원본 qbadge = 처리 중 + 재시도 대기
   const t6 = today6(), todayN = useMemo(() => all.filter((a) => a.file.slice(0, 6) === t6).length, [all, t6]);
 
@@ -176,9 +201,10 @@ export function FeedModal({ search = false }: { search?: boolean }) {   // searc
             </label>
           ) : null}
           {/* 분류 칩 뺌(형 11-01 17:5x 「필터는 없어도될것같아!」) */}
-          {pend.isError ? <p className="nm-chan-msg" role="status">대기열을 못 읽었어</p> : qs.length ? <TaskPanel qs={qs} eta={pend.data?.eta || null} onOpen={() => go(ED_QUEUE)} /> : null}
+          {note ? <p className="nm-chan-msg" role="alert">{note}</p> : null}
+          {pend.isError ? <p className="nm-chan-msg" role="status">대기열을 못 읽었어</p> : qs.length ? <TaskPanel qs={qs} eta={pend.data?.eta || null} onOpen={() => go(ED_QUEUE)} onRetry={qRedo} onDismiss={qDrop} /> : null}
           {list.isPending ? <p className="nm-chan-msg">기사 읽는 중…</p> : list.isError ? <p className="nm-chan-msg" role="alert">{(list.error as Error).message || "뉴스 요약을 못 읽었어"}</p> : !rows.length ? <p className="nm-chan-msg">{filtered ? "결과 없음" : "기사가 없어"}</p> : (
-            <ul className="nm-feed-list">{shown.map((a) => <Row key={a.file} a={a} go={go} onOpen={open} />)}</ul>
+            <ul className="nm-feed-list">{shown.map((a) => <Row key={a.file} a={a} go={go} onOpen={open} rt={rtOn(a)} onRetry={(x) => void retryPrompt(x)} />)}</ul>
           )}
           {rows.length > shown.length ? <><div ref={sent} aria-hidden className="nm-feed-sent" /><button type="button" className="yset-chip nm-news-more" onClick={() => setN((v) => v + CAP)}>더 보기 +{Math.min(CAP, rows.length - shown.length)} · 남은 {rows.length - shown.length}건</button></> : null}
           <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={() => go(ED_FEED)}>에디터에서 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>

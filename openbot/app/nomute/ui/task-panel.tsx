@@ -1,6 +1,7 @@
 // 요약 대기열 판(시아 05:20 · 06:44 · 깃) — 「뉴스 요약」(./feed.tsx) · Digest(../home/news-summary.tsx) 두 곳 같은 꼴 · 상태 가르기 = ./task-state.ts
 import "./task-panel.css";   // 판 css = 판 파일에(대시보드만 열 때 feed 조각이 안 와서 꾸밈 0 · 시아 08:21)
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { qCanRetry } from "./q-acts";
 import { panelOf, taskOf } from "./task-state";
 export type QItem = { id?: string; t?: number; title?: string; via?: string; key?: string; alt1?: string; status?: string; tries?: number; why?: string | { cause?: string; text?: string } };
 export type Eta = Partial<Record<"url" | "ask", { p50?: number; p90?: number }>>;
@@ -11,8 +12,21 @@ function Chev({ open }: { open: boolean }) {
   return <svg className="nm-tk-chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden><path d={open ? "M3 4.5l3 3 3-3" : "M4.5 3l3 3-3 3"} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 const tkSecs = (ms: number) => (ms < 60e3 ? `${Math.max(1, Math.round(ms / 1000))}초` : `${Math.round(ms / 60e3)}분`);
-function TaskCard({ c, eta, onOpen }: { c: QCardT; eta: Eta | null; onOpen?: () => void }) {
-  const { it, e, title } = c, { fail, fed, wait, run, ring, label } = taskOf(it.status, e);   // 요약 끝 · 피드 없음 = 반영 중/대기(「완료」 아님 · 봄 06:20 2))
+/** 실패 카드 손 = 「재시도」 · 「없애기」(옛 피드 맨 위 qp-redo · qp-dismiss · ./q-acts.ts) — 없으면 안 그림(Digest 판 그대로) */
+export type QActs = { onRetry?: (it: QItem) => Promise<string>; onDismiss?: (it: QItem) => void };
+function TaskCard({ c, eta, onOpen, onRetry, onDismiss }: { c: QCardT; eta: Eta | null; onOpen?: () => void } & QActs) {
+  const { it, e, title } = c, { fail, fed, wait, run, ring, label } = taskOf(it.status, e);
+  const [arm, setArm] = useState(false), [sending, setSending] = useState(false), [err, setErr] = useState(""), armT = useRef(0);
+  useEffect(() => () => clearTimeout(armT.current), []);
+  const canRe = fail && !!onRetry && qCanRetry(it);
+  const redo = async () => {   // 링크 = 바로 나가는 쓰기라 두 번(3초 · ./queue.tsx 와 같은 꼴) · 요약요청 = 「요약 요청」 창으로 가서 형이 보냄 = 한 번
+    if (sending || !onRetry) return;
+    if (it.via !== "요약요청" && !arm) { setArm(true); clearTimeout(armT.current); armT.current = window.setTimeout(() => setArm(false), 3000); return; }
+    clearTimeout(armT.current); setArm(false); setSending(true); setErr("");
+    const why = await onRetry(it).catch((x) => String((x as Error)?.message || x));
+    setSending(false);
+    if (why) setErr(why);
+  };   // 요약 끝 · 피드 없음 = 반영 중/대기(「완료」 아님 · 봄 06:20 2))
   const [open, setOpen] = useState(true);
   const p = eta?.[it.via === "요약요청" ? "ask" : "url"], el = it.t ? Math.max(0, Date.now() - it.t) : 0;
   const est = run && e === "processing" && p?.p50 && it.t ? { pct: Math.min(95, Math.floor((el / p.p50) * 100)), late: el > (p.p90 || Infinity) } : null;
@@ -29,10 +43,17 @@ function TaskCard({ c, eta, onOpen }: { c: QCardT; eta: Eta | null; onOpen?: () 
       </button>
       {open ? <ul className="nm-tk-steps">{steps.map(([lb, k, pl]) => <li key={lb} className={k}><i aria-hidden />{lb}{pl ? <em>{pl}</em> : null}</li>)}</ul> : null}
       {fail && onOpen ? <button type="button" className="nm-tk-why" onClick={onOpen} title={w.text || ""}>{w.cause && Q_CAUSE[w.cause] ? <b>{Q_CAUSE[w.cause]}</b> : null}{w.text || "사유 기록 없음 — 대기열에서 확인"}</button> : fail ? <p className="nm-tk-why">{w.cause && Q_CAUSE[w.cause] ? <b>{Q_CAUSE[w.cause]}</b> : null}{w.text || "사유 기록 없음"}</p> : null}
+      {fail && (canRe || onDismiss) ? (
+        <div className="nm-tk-acts">
+          {canRe ? <button type="button" className={`nm-tk-act re${arm ? " arm" : ""}`} disabled={sending} onClick={() => void redo()} aria-label={arm ? "한 번 더 누르면 다시 분석" : `다시 요약 — ${title}`}>{sending ? "보내는 중…" : arm ? "한 번 더 = 다시 분석" : "재시도"}</button> : null}
+          {onDismiss ? <button type="button" className="nm-tk-act" disabled={sending} onClick={() => onDismiss(it)} aria-label={`이 실패 없애기(확인) — ${title}`}>없애기</button> : null}
+          {err ? <span className="nm-tk-err" role="alert">{err}</span> : null}
+        </div>
+      ) : null}
     </div>
   );
 }
-export function TaskPanel({ qs, eta, onOpen }: { qs: QCardT[]; eta: Eta | null; onOpen?: () => void }) {
+export function TaskPanel({ qs, eta, onOpen, onRetry, onDismiss }: { qs: QCardT[]; eta: Eta | null; onOpen?: () => void } & QActs) {
   const [open, setOpen] = useState(true);
   const { total, done, allFed, tail } = panelOf(qs.map((c) => ({ status: c.it.status, e: c.e })));
   const t0 = Math.min(...qs.map((c) => c.it.t || Date.now())), mins = Math.max(0, Math.round((Date.now() - t0) / 60e3)), tries = Math.max(0, ...qs.map((c) => c.it.tries || 0));
@@ -43,7 +64,7 @@ export function TaskPanel({ qs, eta, onOpen }: { qs: QCardT[]; eta: Eta | null; 
         <span className="nm-tasks-meta">{mins}분{tries ? ` · 시도 ${tries}` : ""}</span>
         <em className={allFed ? "lag" : ""}>{tail}</em>
       </button>
-      {open ? <div className="nm-tasks-list">{qs.map((c) => <TaskCard key={`${c.it.id || c.it.t}`} c={c} eta={eta} onOpen={onOpen} />)}{onOpen ? <button type="button" className="nm-tasks-more" onClick={onOpen}>대기열 열기</button> : null}</div> : null}
+      {open ? <div className="nm-tasks-list">{qs.map((c) => <TaskCard key={`${c.it.id || c.it.t}`} c={c} eta={eta} onOpen={onOpen} onRetry={onRetry} onDismiss={onDismiss} />)}{onOpen ? <button type="button" className="nm-tasks-more" onClick={onOpen}>대기열 열기</button> : null}</div> : null}
     </section>
   );
 }

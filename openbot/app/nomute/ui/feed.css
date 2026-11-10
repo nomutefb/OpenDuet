@@ -63,6 +63,10 @@
 .nm-feed .nm-feed-prog i.done { border-top-color:var(--accent); color:var(--fg-2); }
 .nm-feed .nm-feed-prog i.cur { border-top-color:rgba(var(--accent-rgb),.5); color:var(--accent); animation:nmNdPulse 1.4s ease-in-out infinite; }
 .nm-feed .nm-feed-prog i.fail { border-top:2px dashed #ff5f8a; color:#ff5f8a; }
+/* 프롬프트 칸 실패 = 단추(옛 .seg.fail[data-retry] · 그 자리 다시) — 줄은 덮는 단추라 이것만 누를 수 있게 · 손가락 칸은 위아래로 넓힘 */
+.nm-feed .nm-feed-prog button.rt { position:relative; flex:1; min-height:22px; margin:0; padding:3px 0 4px; border:0; border-top:2px dashed #ff5f8a; border-radius:0; background:none; font:inherit; font-size:9.5px; font-weight:var(--fw-b); line-height:1.2; text-align:center; color:#ff5f8a; cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
+.nm-feed .nm-feed-prog button.rt::after { content:" ↻"; }
+.nm-feed .nm-feed-prog button.rt:hover, .nm-feed .nm-feed-prog button.rt:focus-visible { text-decoration:underline; outline:none; }
 .nm-feed .nm-feed-sent { height:1px; margin-top:-1px; }
 .nm-feed .nm-news-more { align-self:center; }
 .nm-feed .ypc-go { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }

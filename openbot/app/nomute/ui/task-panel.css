@@ -40,6 +40,14 @@
 :root:not(.dark) .nm-tk-steps li em { background:rgba(0,0,0,.06); }
 .nm-tk-why { display:block; width:100%; margin:6px 0 0; padding:0 0 0 22px; background:none; border:0; text-align:left; font-size:11px; color:#ff8a84; cursor:pointer; }
 .nm-tk-why b { margin-right:6px; }
+/* 실패 카드 손(./q-acts.ts · 옛 qp-redo · qp-dismiss) — 재시도 = 실패 색 테 · 한 번 누르면 꽉 참(두 번째 = 나감) · 없애기 = 옅은 테 */
+.nm-tk-acts { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:6px 0 0; padding-left:22px; }
+.nm-tk-act { min-height:26px; padding:0 11px; border-radius:13px; border:1px solid var(--glass-line); background:none; color:var(--fg-2); font-size:11.5px; font-weight:var(--fw-b); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-tk-act.re { border-color:rgba(255,95,138,.55); color:#ff5f8a; }
+.nm-tk-act.re.arm { background:#ff5f8a; border-color:#ff5f8a; color:#fff; }
+.nm-tk-act:disabled { opacity:.6; cursor:default; }
+.nm-tk-act:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.nm-tk-err { flex-basis:100%; font-size:11px; color:#ff8a84; }
 @keyframes nmTkSpin { to { transform:rotate(360deg); } }
 @keyframes nmTkIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce) { .nm-tk, .nm-tk-steps li { animation:none; } .nm-tk.run .nm-tk-ring, .nm-tk-steps .run i { animation:none; } }
