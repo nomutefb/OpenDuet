@@ -8,6 +8,7 @@
 //     3조각 = 잘 되는 조건 · 시간대별 반응(봄 · ./chan-charts.tsx)
 //     4조각 = 주제별 반응(원본 884줄 · topics / topics_90d · 「기타」 뺌 · 표본 5개 미만 = 「표본부족」 맨 뒤 · 막대 = 조회 중앙값 · 믿을 칸 평균 대비 ×배수 · 위 둘 강조 · 90일 창 = signals.win_90d 있을 때만)
 //     아직 에디터 몫 = 결과 함께(형 11-01 「그건 내가 따로얘기할게」) → 맨 아래 「나머지는 에디터에서」 한 단추
+//     「지금 새로 수집 ↻」 = 앱 안(/api/chanretry?src= · 원본 CHANF · ./fresh-btn.tsx · 형 11-10 12:40 「봄 노는 작업실 있으면 에디터도 정원에 완벽하게 녹여」 · team-4 U3 뎅)
 import "./yeta-settings.css";
 import "./chan.css";
 import { useQuery } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ import { useState } from "react";
 import { ChanCharts } from "./chan-charts";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
+import { FreshBtn } from "./fresh-btn";
 
 type Row = Record<string, number | null | undefined> & { date: string };
 type Thumb = { th?: string; u?: string; t?: string; r?: boolean };
@@ -225,7 +227,7 @@ export function ChanModal({ full = false }: { full?: boolean }) {
               ) : null}
             </>
           )}
-          <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={go}>{full ? "나머지는 에디터에서" : "전체 보기"} <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
+          <div className="ypc-acts nm-chan-acts">{full && d ? <FreshBtn key={src} url={`/api/chanretry?src=${src}`} upd={String(d.generated_kst || "")} refetch={() => { void q.refetch(); }} noun="채널" /> : null}<button type="button" className="ypc-go" onClick={go}>{full ? "나머지는 에디터에서" : "전체 보기"} <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
         </div>
       </div>
     </Pane>

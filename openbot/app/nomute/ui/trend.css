@@ -209,6 +209,9 @@
 .nm-trend .soc-burst { min-width:40px; color:color-mix(in srgb, var(--accent) 62%, transparent); } .nm-trend .soc-burst.hot30 { color:var(--accent); } .nm-trend .soc-burst.hot10 { color:var(--purple); }
 .nm-trend .soc-src { color:var(--accent); } .nm-trend .soc-posts { min-width:26px; color:var(--mut); font-weight:700; }
 .nm-trend .soc-age { margin-left:auto; color:var(--mut); font-weight:700; }
+.nm-trend .soc-send { padding:2px 9px; border-radius:999px; border:1px solid var(--line, rgba(127,127,127,.35)); color:var(--fg, inherit); font-weight:800; cursor:pointer; -webkit-tap-highlight-color:transparent; }   /* 커뮤니티 「전송」(앱 안 · 형 11-10 12:40 · 원본 soc-send) */
+.nm-trend .soc-send.firing { opacity:.55; pointer-events:none; }
+.nm-trend .soc-send.err { color:var(--danger, #e5484d); border-color:currentColor; }
 .nm-trend .soc-pk { padding:1px 7px; border:1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius:var(--r-pill); color:var(--accent); }
 .nm-trend .soc-title { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:var(--fs-body); font-weight:700; line-height:1.42; }
 .nm-trend .soc-srcs { display:flex; flex-wrap:nowrap; gap:5px; margin-top:9px; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, #000 85%, transparent); mask-image:linear-gradient(90deg, #000 85%, transparent); }   /* 폰 = 한 줄(원본 260729) · 넘침 = 흐림 */

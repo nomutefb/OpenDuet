@@ -3,7 +3,7 @@
 //   데이터 = 원본 차례: /api/trends → /sns_trends.json · /api/trends?f=brief → /sns_brief.json · /api/trends?f=xtop · /fire_watch.json · /social_candidates.json(+ /soc_lean.json) · 5분(원본 _trFetched TTL)
 //   규칙 = 원본 값 그대로(번역 ko · 3일 컷 · TOP 24h 입장·12h 신선 우대 · 구글 가점 ×10·5천 강등 · 유튜브 환산 곡선 · 플랫폼 캡 4 · 게임 배제 · 교차합의 색 · 구독 빈칸 사유 · 금융 임계·회전 · 박스오피스 1만·재개봉 컷 · 커뮤니티 🔥10 하한·전송 잔류)
 //   접힘·지역 기억 = 원본과 같은 열쇠(nm_trend_gfold · nm_trend_fold · nm_trend_region · 같은 사이트라 에디터와 같이 감) · 안전 = 늘 접힘(원본 GFOLD_ALWAYS)
-//   안 옮긴 것 = 쓰기(러너·대기열을 깨움): 「새로 수집」(/api/snsretry) · 커뮤니티 「전송」(/api/submit) → 맨 아래 「에디터에서」 · 영상 팝업·참고 기사 팝업 = 앱 안 한 겹(#/web)이 대신 · 실검 티커(에디터 전 탭 머리 장식) 뺌
+//   쓰기도 앱 안(형 11-10 12:40 「봄 노는 작업실 있으면 에디터도 정원에 완벽하게 녹여」 · team-4 U3 뎅): 맨 아래 「새로 수집」(/api/snsretry · ./fresh-btn.tsx) · 커뮤니티 카드 「전송」(/api/submit · 원본 socSend · 원장 nm_soc_sent 에 적음 = 에디터와 같은 열쇠) · 전엔 맨 아래 「에디터에서」 · 영상 팝업·참고 기사 팝업 = 앱 안 한 겹(#/web)이 대신 · 실검 티커(에디터 전 탭 머리 장식) 뺌
 //   원본과 다른 점: AI 요약 48시간 넘으면 숨김(앱 SNS 한눈 ./sns.tsx 와 같은 줄 · 윈터 10:34) · 커뮤니티 소스 칩 = 한 줄 넘침은 흐림으로 자름(원본 = 넘친 칩 지우고 「…」)
 import "./yeta-settings.css";
 import "./chan.css";
@@ -12,10 +12,11 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { type ReactNode, type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { outletName, useGo } from "./news-data";   // 칩 글자 = 공식 매체명(형 11-06)
 import { Pane } from "./pane";
+import { FreshBtn } from "./fresh-btn";
 import { YICO } from "./yeta-icons";
 
 type J = Record<string, any>;   // eslint-disable-line @typescript-eslint/no-explicit-any
-const ED_TREND = "/web?u=" + encodeURIComponent("/?tab=trend&inapp=1");   // 쓰기(새로 수집 · 커뮤니티 전송) = 에디터 한 겹
+const ED_TREND = "/web?u=" + encodeURIComponent("/?tab=trend&inapp=1");   // 못 읽었을 때만 에디터 한 겹(쓰기는 앱 안)
 const HR = 36e5;
 
 /* ── 받기(원본 loadTrends · loadSocial · loadSocLean) — HTML 응답(SPA 폴백) = 건너뜀 · updated 없는 응답 = 다음 길 ── */
@@ -212,6 +213,26 @@ const socSent = (): Map<string, Sent> => {
   } catch { /* 못 읽으면 빈 원장 */ }
   return new Map();
 };
+
+/** 원본 socSentAdd · socSentSave(viewer/index.html) = 같은 열쇠 · 같은 꼴(k · ask · q · snap · at) · 상한 200 · 24시간 지난 스냅샷은 버림 */
+const SOC_SENT_CAP = 200;
+const socSentAdd = (k: string, ask: string, snap: J | null) => {
+  if (!k) return;
+  const m = socSent(); m.delete(k); m.set(k, { ask: String(ask || ""), q: "", ...(snap ? { snap, at: Date.now() } : {}) });
+  const now = Date.now();
+  try { localStorage.setItem("nm_soc_sent", JSON.stringify([...m].slice(-SOC_SENT_CAP).map(([kk, v]) => ({ k: kk, ask: v.ask || "", q: v.q || "", ...(v.snap && v.at && now - v.at <= SOC_PIN_MS ? { snap: v.snap, at: v.at } : {}) })))); } catch { /* 이번만 */ }
+};
+/** 커뮤니티 카드 「전송」 = 원본 soc-send(요약 요청 · 프리셋 그대로) · 답 d.id = asks 줄(대기열 추적) */
+async function socSend(r: J, lm: number) {
+  const url = String(r.url || ""), title = String(r.title || "");
+  const text = [title, url, String(r.desc || "")].filter(Boolean).join("\n").slice(0, 12000);
+  if (!text) throw new Error("보낼 내용이 없어");
+  const res = await fetch("/api/submit", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, srcUrl: url, preset: { h24: 1, fp: 0, mj: 1, og: 0, noai: 1 } }) });
+  const d = (await res.json().catch(() => ({}))) as { ok?: boolean; id?: string; error?: string };
+  if (!res.ok || !d.ok) throw new Error(d.error || `서버 ${res.status}`);
+  const el = lm ? Math.max(0, (Date.now() - lm) / HR) : 0;
+  socSentAdd(socKey(r), d.id || "", { url, title, desc: r.desc || "", burst: +r.burst || 0, source_count: +r.source_count || 0, posts: +r.posts || 0, sources: (r.sources || []).slice(0, 14), age0: Math.round(((+r.age_h || 0) + el) * 10) / 10 });
+}
 
 /* ── 접힘 기억(원본 열쇠 그대로 · 칸이 처음 그려질 때 한 번 읽음 = 사람이 연 상태를 다시 그림이 덮지 않음) ── */
 const lsObj = (k: string): Record<string, number> => { try { return JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch { return {}; } };
@@ -410,6 +431,14 @@ export function TrendModal() {
   const [reg, setReg] = useState<"kr" | "gl">(() => { try { return localStorage.getItem("nm_trend_region") === "gl" ? "gl" : "kr"; } catch { return "kr"; } });   // 지역 = 국내 기본(운영자 260712)
   const [topf, setTopf] = useState("all");   // TOP 10 플랫폼 칩(원본 TR_TOPF · 세션 한정)
   const [rail, setRail] = useState("top");
+  const [sentV, setSentV] = useState(0), [sending, setSending] = useState<Record<string, "send" | "err">>({});   // 커뮤니티 「전송」 · 원장 다시 읽기
+  const sendSoc = async (r: J) => {
+    const k = socKey(r);
+    if (!k || sending[k] === "send") return;   // 보내는 중 다시 누름 = 겹쳐 쏘기 0(원본 firing 가드)
+    setSending((m) => ({ ...m, [k]: "send" }));
+    try { await socSend(r, sq.data?.lm || 0); setSending((m) => { const n = { ...m }; delete n[k]; return n; }); setSentV((v) => v + 1); }
+    catch { setSending((m) => ({ ...m, [k]: "err" })); }
+  };
   const root = useRef<HTMLDivElement>(null), body = useRef<HTMLDivElement>(null);
   useMinute();
   const d = q.data?.tr ?? null, BRIEF = q.data?.br ?? null, XTOP = q.data?.xtop ?? null, FW = q.data?.fw ?? [];
@@ -511,7 +540,7 @@ export function TrendModal() {
     for (const [k, v] of sent) if (v.snap && !live.has(k) && pinned(k)) ghosts.push({ ...v.snap, _pinAge: (+v.snap.age0 || 0) + (Date.now() - (v.at || 0)) / HR });
     const rows = SOCIAL.filter((r) => socPass(r) || pinned(socKey(r))).concat(ghosts).sort((a, b) => (+b.burst || 0) - (+a.burst || 0));
     return { rows, lean, el: lm ? Math.max(0, (Date.now() - lm) / HR) : 0, sent };
-  }, [sq.data]);
+  }, [sq.data, sentV]);
 
   const finRows = useRef<HTMLDivElement>(null);
   const finSt = useRot(V?.finS.length || 0, finRows);
@@ -586,7 +615,13 @@ export function TrendModal() {
       const st = soc.sent.get(socKey(r));
       return (
         <a key={socKey(r) + i} className="soc" href={r.url || undefined} target="_blank" rel="noopener">
-          <span className="soc-top"><span className={`soc-burst${bt}`}><Svg s={FIRE} /> {b.toFixed(1)}</span><span className="soc-src"><Svg s={LINK} /> {r.source_count || 0}소스</span><span className="soc-posts">{r.posts > r.source_count ? `글 ${r.posts}` : ""}</span><span className="soc-age">{ago}</span>{st ? <span className="soc-pk" title={st.q ? "뉴스 요약 완료" : "뉴스 요약 대기열에 올라감 — 분석 중"}>{st.q ? "Pk-ed" : "Pk-ng"}</span> : null}</span>
+          <span className="soc-top"><span className={`soc-burst${bt}`}><Svg s={FIRE} /> {b.toFixed(1)}</span><span className="soc-src"><Svg s={LINK} /> {r.source_count || 0}소스</span><span className="soc-posts">{r.posts > r.source_count ? `글 ${r.posts}` : ""}</span><span className="soc-age">{ago}</span>{st ? <span className="soc-pk" title={st.q ? "뉴스 요약 완료" : "뉴스 요약 대기열에 올라감 — 분석 중"}>{st.q ? "Pk-ed" : "Pk-ng"}</span> : (
+            <span
+              role="button" tabIndex={0} className={`soc-send${sending[socKey(r)] === "send" ? " firing" : sending[socKey(r)] === "err" ? " err" : ""}`} aria-label="뉴스 요약 요청으로 보내기"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); void sendSoc(r); }}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); void sendSoc(r); } }}
+            >{sending[socKey(r)] === "send" ? "보내는 중…" : sending[socKey(r)] === "err" ? "못 보냄 · 다시" : "전송"}</span>
+          )}</span>
           <span className="soc-title">{r.title || ""}</span>
           <span className="soc-srcs">{(r.sources || []).map((s: string) => { const k0 = soc.lean[s] || (NAVER[s] ? "mid" : ""), nv = NAVER[s]; return <span key={s} className={`soc-chip${k0 ? " lean-" + k0 : ""}${nv ? " naver" + (nv[0] ? " ico" : "") : ""}`}>{nv ? <>{nv[1] ? <Svg s={nv[1]} /> : null}{nv[2]}</> : outletName(s)}</span>; })}</span>
           {mid != null ? <span className="soc-gauge" role="img" aria-label={`출처성향 ${zone}`} title={`출처성향: ${zone} (커뮤 통념근사)`}><span className="soc-dot" style={{ left: `${(((mid - 1) / 8) * 100).toFixed(1)}%` }} /></span> : null}
@@ -699,8 +734,8 @@ export function TrendModal() {
             </Group>
           ))}
         </>}
-        {/* 새로 수집(러너 워크플로) · 커뮤니티 전송(대기열) = 쓰기라 에디터에서 */}
-        <div className="ypc-acts nm-chan-acts nm-trend-acts"><button type="button" className="ypc-go" onClick={() => go(ED_TREND)}>에디터에서 <Svg s={YICO.chev} /></button></div>
+        {/* 새로 수집 = 앱 안(/api/snsretry · 러너 워크플로 · 끝 = updated 바뀜 · ./fresh-btn.tsx) · 전엔 「에디터에서」 */}
+        <div className="ypc-acts nm-chan-acts nm-trend-acts"><FreshBtn url="/api/snsretry" upd={String(d.updated || "")} refetch={() => { void q.refetch(); }} noun="SNS" /></div>
       </div>
     </Pane>
   );
