@@ -47,3 +47,14 @@ test("베스트컷 = 서버 framethumb 꼴(n 1~3 · scale 2 · ar 다섯) · 끝
   assert.deepEqual(ftOpts(9, "x"), { n: 2, scale: 2, ar: "4:5" });
   assert.ok(ftDone({ state: "done" })); assert.ok(ftDone({ state: "failed" })); assert.ok(!ftDone({ state: "run" })); assert.ok(!ftDone(null));
 });
+
+test("자를 곳 먼저 보기 = 스캔 opts · 고른 뒤 cutref · cutoff", async () => {
+  const { scanOpts, withCut, cutsDone, tc } = await import("../ui/vedit-logic.ts");
+  assert.deepEqual(scanOpts({ cut: "hard", take: "on" }), { cutscan: true, cut: true, cutlv: "hard", take: true });
+  assert.deepEqual(scanOpts({}), { cutscan: true, cut: true, cutlv: "std", take: false });
+  const o = withCut({ burn: true, cut: true, cutlv: "std", take: true, aud_norm: true }, "261110183000-abc123", [3, 1, 3, -1]);
+  assert.deepEqual(o, { burn: true, aud_norm: true, cutref: "261110183000-abc123", cutoff: "1,3" });
+  assert.ok(!("cutoff" in withCut({}, "261110183000-abc123", [])));
+  assert.ok(/^[0-9]{1,4}(,[0-9]{1,4}){0,199}$/.test(String(o.cutoff)), "서버 cutoff 정규식");
+  assert.ok(cutsDone({ rm: [] })); assert.ok(!cutsDone({})); assert.equal(tc(75.25), "1:15.2");
+});

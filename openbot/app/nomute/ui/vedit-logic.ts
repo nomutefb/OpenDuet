@@ -62,3 +62,23 @@ export function ftOpts(n: number, ar: string): { n: number; scale: number; ar: s
 }
 export type Frames = { state?: string; error?: string; frames?: { url?: string; t?: number; quote?: string }[] } | null;
 export const ftDone = (d: Frames) => !!d && (d.state === "done" || d.state === "failed");
+
+// 자를 곳 먼저 보기(판 2 · edit.html:2331 · 3536-3547 · edit.js:219-227 · 66) = 스캔만 → cuts.json 의 rm 을 보고 고른 뒤 cutref(스캔 id) · cutoff(뺀 칸 번호 CSV)로 만들기
+export type Cut = { s: number; e: number; k?: string; t?: string };
+export type Cuts = { dur?: number; keep_dur?: number; cutlv?: string; note?: string; rm?: Cut[] } | null;
+export const CUT_KIND: Record<string, string> = { sil: "무음", fil: "군말", take: "테이크" };
+export function scanOpts(v: VOpts): Record<string, unknown> {   // 서버가 cutscan · cut · cutlv · cutfill · take 만 남김
+  const p = optsPick(v);
+  return { cutscan: true, cut: true, cutlv: p.cut === "off" ? "std" : p.cut, take: p.take === "on" };
+}
+/** 만들기 opts 에 스캔 결과를 씀 = 자르기 칸(cut · cutlv · cutfill · take)을 빼고 cutref · cutoff(안 자를 칸 번호) */
+export function withCut(opts: Record<string, unknown>, scanId: string, off: number[]): Record<string, unknown> {
+  const o: Record<string, unknown> = { ...opts };
+  for (const k of ["cut", "cutlv", "cutfill", "take", "cutscan"]) delete o[k];
+  o.cutref = scanId;
+  const cf = [...new Set(off.filter((i) => Number.isInteger(i) && i >= 0 && i < 10000))].sort((a, b) => a - b).slice(0, 200).join(",");
+  if (cf) o.cutoff = cf;
+  return o;
+}
+export const cutsDone = (d: Cuts) => !!d && Array.isArray(d.rm);
+export const tc = (s: number) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") + "." + Math.floor((s % 1) * 10);

@@ -12,9 +12,9 @@ import "./ys.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
 import { r2Upload } from "./r2-upload";
-import { SELS, OKEY, PEND, POLL_MS, BUDGET_S, optsPick, buildOpts, hasAction, fileWhy, landed, absUrl, dlHref, FT_POLL_MS, FT_LIMIT_MS, FT_KEY, FT_N, ftOpts, ftDone, type VOpts, type VRes, type Frames } from "./vedit-logic";
+import { SELS, OKEY, PEND, POLL_MS, BUDGET_S, optsPick, buildOpts, hasAction, fileWhy, landed, absUrl, dlHref, FT_POLL_MS, FT_LIMIT_MS, FT_KEY, FT_N, ftOpts, ftDone, scanOpts, withCut, cutsDone, tc, CUT_KIND, type VOpts, type VRes, type Frames, type Cuts } from "./vedit-logic";
 
-type Job = { id: string; lbl: string; t0: number; st: "run" | "done" | "fail"; msg?: string; res?: VRes };
+type Job = { id: string; lbl: string; t0: number; st: "run" | "done" | "fail"; msg?: string; res?: VRes; kind?: "scan"; src?: Record<string, string>; cuts?: Cuts; off?: number[] };
 type FtJob = { id: string; out: string; lbl: string; t0: number; st: "run" | "done" | "fail"; msg?: string; frames?: { url?: string; t?: number; quote?: string }[] };
 const load = <T,>(k: string, d: T): T => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return v ?? d; } catch { return d; } };
 const save = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 이 판만 */ } };
@@ -53,7 +53,22 @@ export function VeditModal() {
       }
     } finally { polling.current.delete(j0.id); }
   }, [upd, loadRecent]);
-  useEffect(() => { alive.current = true; void loadRecent(); for (const j of load<Job[]>(PEND, [])) if (j?.st === "run" && Date.now() - j.t0 < 120 * 60e3) void poll(j); return () => { alive.current = false; }; }, [loadRecent, poll]);
+  const pollScan = useCallback(async (j0: Job) => {   // 자를 곳 먼저 보기 = cuts.json(?stat=&k=cuts → 없으면 정적) · 5초
+    if (polling.current.has("cut:" + j0.id)) return;
+    polling.current.add("cut:" + j0.id);
+    try {
+      while (alive.current) {
+        const el = await text("/ly_out/" + encodeURIComponent(j0.id) + "/error.log");
+        if (el.trim()) { upd(j0.id, (j) => ({ ...j, st: "fail", msg: el.trim().slice(-300) })); return; }
+        let d: Cuts = null;
+        for (const u of ["/api/edit?stat=" + encodeURIComponent(j0.id) + "&k=cuts", "/ly_out/" + encodeURIComponent(j0.id) + "/cuts.json"]) { try { d = JSON.parse((await text(u)) || "null"); } catch { d = null; } if (cutsDone(d)) break; }
+        if (cutsDone(d)) { upd(j0.id, (j) => ({ ...j, st: "done", cuts: d, off: [] })); setOpen(j0.id); return; }
+        if (Date.now() - j0.t0 > BUDGET_S * 2000) { upd(j0.id, (j) => ({ ...j, st: "fail", msg: "90분 넘게 스캔 결과가 없어 추적을 멈췄어" })); return; }
+        await new Promise((r) => setTimeout(r, POLL_MS));
+      }
+    } finally { polling.current.delete("cut:" + j0.id); }
+  }, [upd]);
+  useEffect(() => { alive.current = true; void loadRecent(); for (const j of load<Job[]>(PEND, [])) if (j?.st === "run" && Date.now() - j.t0 < 120 * 60e3) void (j.kind === "scan" ? pollScan(j) : poll(j)); return () => { alive.current = false; }; }, [loadRecent, poll, pollScan]);
 
   const ftUpd = useCallback((id: string, fn: (j: FtJob) => FtJob) => setFt((a) => { const b = a.map((j) => (j.id === id ? fn(j) : j)); save(FT_KEY, b); return b; }), []);
   const ftPoll = useCallback(async (j0: FtJob) => {   // 원본 7초 · 최대 65분
@@ -69,6 +84,35 @@ export function VeditModal() {
     } finally { polling.current.delete("ft:" + j0.id); }
   }, [ftUpd]);
   useEffect(() => { for (const j of load<FtJob[]>(FT_KEY, [])) if (j?.st === "run" && Date.now() - j.t0 < FT_LIMIT_MS) void ftPoll(j); }, [ftPoll]);
+  const startScan = async () => {   // 자를 곳 먼저 보기(스캔만 · 고른 뒤 만들기)
+    if (busy) return;
+    if (!file && !isUrl(url)) { setErr("영상 파일을 고르거나 영상 주소를 넣어 줘"); return; }
+    setBusy(true); setErr("");
+    try {
+      const src: Record<string, string> = file ? { r2key: await r2Upload(file, setPct), name: file.name } : { url: url.trim() };
+      const lbl = "자를 곳 · " + (file ? file.name : url.trim().replace(/^https?:\/\/(www\.)?/, "")).slice(0, 70);
+      const { r, d } = await post("/api/edit", { ...src, opts: scanOpts(opts), lbl });
+      if (!r.ok || !d?.ok || !d.id) { setErr(String(d?.error || "스캔 요청 실패 · HTTP " + r.status)); return; }
+      const j: Job = { id: String(d.id), lbl, t0: Date.now(), st: "run", kind: "scan", src };
+      setJobs((a) => { const b = [j, ...a.filter((x) => x.id !== j.id)].slice(0, 20); save(PEND, b); return b; });
+      setFile(null); setUrl(""); setOpen(j.id);
+      void pollScan(j);
+    } catch (e) { setErr(String((e as Error)?.message || e).slice(0, 200)); }
+    finally { setBusy(false); setPct(-1); }
+  };
+  const makeFromScan = async (sj: Job) => {   // 고른 자를 곳으로 만들기 = 같은 원본(r2key 24시간 · 주소) + cutref · cutoff
+    if (busy || !sj.src) return;
+    setBusy(true); setErr("");
+    try {
+      const lbl = sj.lbl.replace(/^자를 곳 · /, "");
+      const { r, d } = await post("/api/edit", { ...sj.src, opts: withCut(buildOpts(opts), sj.id, sj.off || []), lbl });
+      if (!r.ok || !d?.ok || !d.id) { setErr(String(d?.error || "만들기 요청 실패 · HTTP " + r.status)); return; }
+      const j: Job = { id: String(d.id), lbl, t0: Date.now(), st: "run" };
+      setJobs((a) => { const b = [j, ...a.filter((x) => x.id !== j.id)].slice(0, 20); save(PEND, b); return b; });
+      setOpen(j.id); void poll(j);
+    } catch (e) { setErr(String((e as Error)?.message || e).slice(0, 200)); }
+    finally { setBusy(false); }
+  };
   const makeFt = async () => {   // 베스트컷 = 같은 영상(파일 · 주소)에서 장면 그림 뽑기(api/framethumb)
     if (busy) return;
     if (!file && !isUrl(url)) { setErr("영상 파일을 고르거나 영상 주소를 넣어 줘"); return; }
@@ -127,6 +171,7 @@ export function VeditModal() {
           </div>
           <div className="nm-ys-links nm-ved-ft">
             <select className="nm-dl-q" value={ftN} aria-label="베스트컷 장 수" onChange={(e) => setFtN(+e.target.value)}>{FT_N.map((n) => <option key={n} value={n}>{n}장</option>)}</select>
+            <button type="button" className="go gray" disabled={busy || (!file && !isUrl(url))} onClick={() => void startScan()}>자를 곳 먼저 보기</button>
             <button type="button" className="go gray" disabled={busy || (!file && !isUrl(url))} onClick={() => void makeFt()}>베스트컷 뽑기(4:5)</button>
           </div>
           {err ? <p className="nm-chan-msg" role="alert">{err}</p> : null}
@@ -140,9 +185,18 @@ export function VeditModal() {
             <div key={j.id} className={`nm-dl-job${j.st === "done" ? " done" : ""}${j.st === "fail" ? " err" : ""}`}>
               <div className="hd">
                 <button type="button" className="lab nm-ys-lab" onClick={() => setOpen(open === j.id ? "" : j.id)} aria-expanded={open === j.id}>{j.lbl || j.id}</button>
-                <span className="st">{j.st === "fail" ? "⚠ 실패" : j.st === "done" ? "✓ 완료" + (j.res?.dur ? " · " + durTxt(j.res.dur) : "") : "만드는 중… · " + Math.max(1, Math.round((Date.now() - j.t0) / 60e3)) + "분"}</span>
+                <span className="st">{j.st === "fail" ? "⚠ 실패" : j.kind === "scan" && j.st === "done" ? "✓ 자를 곳 " + (j.cuts?.rm || []).length + "곳 · 골라서 만들기" : j.st === "done" ? "✓ 완료" + (j.res?.dur ? " · " + durTxt(j.res.dur) : "") : (j.kind === "scan" ? "자를 곳 찾는 중… · " : "만드는 중… · ") + Math.max(1, Math.round((Date.now() - j.t0) / 60e3)) + "분"}</span>
               </div>
               {j.st === "fail" ? <p className="nm-dl-why">{j.msg || "실패"}</p> : null}
+              {j.kind === "scan" && j.st === "done" && j.cuts && open === j.id ? (
+                <div className="nm-ved-cuts">
+                  <p className="nm-dl-why">{"자를 곳 " + (j.cuts.rm || []).length + "곳 · 지금 고른 대로 자르면 " + durTxt(Math.max(0, (j.cuts.dur || 0) - (j.cuts.rm || []).reduce((a, c, i) => a + ((j.off || []).includes(i) ? 0 : Math.max(0, c.e - c.s)), 0))) + " / 원본 " + durTxt(j.cuts.dur) + (j.cuts.note ? " · " + j.cuts.note : "")}</p>
+                  <ol className="nm-ys-steps">{(j.cuts.rm || []).map((c, i) => { const keep = (j.off || []).includes(i); return (
+                    <li key={i} className={keep ? "s-skip" : "s-run"}><label><input type="checkbox" checked={!keep} onChange={() => upd(j.id, (x) => ({ ...x, off: keep ? (x.off || []).filter((k) => k !== i) : [...(x.off || []), i] }))} /> {tc(c.s) + "~" + tc(c.e) + " · " + (CUT_KIND[c.k || ""] || c.k || "") + (c.t ? " · " + String(c.t).slice(0, 40) : "")}</label></li>
+                  ); })}</ol>
+                  <button type="button" className="go" disabled={busy} onClick={() => void makeFromScan(j)}>{"이대로 만들기(" + ((j.cuts.rm || []).length - (j.off || []).length) + "곳 자름)"}</button>
+                </div>
+              ) : null}
               {j.st === "done" && j.res?.url && open === j.id ? <Player r={j.res} name={j.lbl} /> : null}
               {j.st !== "run" ? <button type="button" className="go gray" onClick={() => setJobs((a) => { const b = a.filter((x) => x.id !== j.id); save(PEND, b); return b; })}>목록에서 지움</button> : null}
             </div>
@@ -181,7 +235,7 @@ export function VeditModal() {
               </div>
             ))}
           </div>
-          <p className="nm-dl-why">자를 곳 먼저 보기 · 자막 고쳐 다시 입히기 · 트래킹 = 다음 판(그때까지는 옛 에디터)</p>
+          <p className="nm-dl-why">자막 고쳐 다시 입히기 · 트래킹 = 다음 판(그때까지는 옛 에디터)</p>
         </div>
       </div>
     </Pane>
