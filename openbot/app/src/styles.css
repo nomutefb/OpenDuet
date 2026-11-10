@@ -498,6 +498,17 @@ body {
   }
 }
 
+/*
+ * [nomute] A hidden pill does not sweep. The chat step pill (shell/header.tsx ChatStep) stays mounted
+ * at opacity 0 to fade, and its line kept sweeping: `background-position` on clipped text is repainted
+ * every frame, not composited, and the pill is frosted glass, so the whole blur was redrawn about 60
+ * times a second on every chat screen while nothing showed (Chromium trace 11-11: 360 paints in 3 s →
+ * 0). On iPhone that is the kind of layer that flickers (형 11-10 07:10 dm-sia 「번쩍이는데 … 득득거림」).
+ */
+.duet-glass[data-shown="false"] .tool-line-running {
+  animation: none;
+}
+
 /* Preserve running-state text without shimmer for reduced-motion users. */
 @media (prefers-reduced-motion: reduce) {
   .tool-line-running {

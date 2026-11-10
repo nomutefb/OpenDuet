@@ -571,3 +571,29 @@
   78% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .bc-thunder .bc-bolt { animation: none; } }
+
+/* 폰 번쩍 · 득득(형 11-10 07:10 dm-sia 「시아야 애들 플필카드 좀 번쩍이는데 이거 나증에 번개랑 상의해서 해결해줘 이쁜데 득득거림」 · 번개 11-11 00:55 짚음 · 시아 짬)
+   까닭(짐작 · 아이폰 실물 못 봄) = 폰은 안 만져도 숨쉬기가 30fps 로 --pc-pointer · light · band · shift · active 를 바꿈 → 그 값을 background · background-position · mask-position · filter 안에서 쓰는 겹 다섯(sheen · holo(+glow · shift) · glare · shade · 애마다 body::before)이
+   색 섞기(mix-blend · background-blend) 채로 매 프레임 통째로 다시 구워짐 → 웹킷이 한두 프레임 늦거나 빈 칸 = 번쩍
+   고침 = 손가락 화면(hover:none)만 그 겹들 안에서 값을 한 자리에 고정(그리기 다시 0) · 움직임은 겹 통째 transform(합성기 몫)으로만 · 몸통 기울기 · 얼굴 · 무늬 시차는 그대로 · PC(마우스) 손 0 */
+.being-card.profile-card { --bc-sx: var(--pc-shift-x); --bc-sy: var(--pc-shift-y); }   /* 뿌리 값 사본 = 아래에서 겹마다 --pc-shift 를 0 으로 묶어도 움직임은 이 값으로 */
+@media (hover: none) {
+  .being-card .profile-card__sheen,
+  .being-card .profile-card__holo,
+  .being-card .profile-card__glare,
+  .being-card .profile-card__shade,
+  .being-card .profile-card__body::before {
+    --pc-pointer-x: 28%; --pc-pointer-y: 18%;   /* 고정 자리 = 위 「움직임 줄이기」 판과 같은 값(한가운데면 빛이 얼굴에 앉아 바램 · 실물 11-11) */
+    --pc-light-x: 28%; --pc-light-y: 18%;
+    --pc-band-x: 46%; --pc-band-y: 44%;
+    --pc-shift-x: 0px; --pc-shift-y: 0px;
+    --pc-reach: 0.3; --pc-tilt: 0.12; --pc-active: 0.55;
+  }
+  .being-card .profile-card__holo,
+  .being-card .profile-card__sheen {
+    transform: translate3d(calc(var(--bc-sx) * -1), calc(var(--bc-sy) * -1), 0) scale(1.1);   /* 박 띠가 손가락 반대로 미끄러짐 = 합성만 · 1.1 = 가장자리 안 비게(시차 최대 10px < 타일 한쪽 늘어난 몫 ≈ 14px) */
+    will-change: transform;
+  }
+  .being-card .profile-card__glare,
+  .being-card .profile-card__shade { transform: translate3d(calc(var(--bc-sx) * 0.8), calc(var(--bc-sy) * 0.8), 0) scale(1.06); will-change: transform; }   /* 눈부심 · 그늘 = 손가락 쪽으로 · 8px < 한쪽 늘어난 몫 ≈ 10px */
+}

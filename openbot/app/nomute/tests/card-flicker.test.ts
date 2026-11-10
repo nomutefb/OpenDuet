@@ -1,0 +1,20 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+// 폰 번쩍 · 득득(형 11-10 07:10 dm-sia) — 매 프레임 다시 굽던 겹을 손가락 화면에서 묶어 둔 줄이 빠지지 않게
+const card = readFileSync(new URL("../ui/being-card.css", import.meta.url), "utf8");
+const shell = readFileSync(new URL("../../src/styles.css", import.meta.url), "utf8");
+
+test("카드 = 손가락 화면만 홀로 · 눈부심 · 그늘 겹 값 고정 + transform 으로만 움직임(PC 손 0)", () => {
+  const m = /@media \(hover: none\) \{([\s\S]*?)\n\}/.exec(card.slice(card.indexOf("폰 번쩍 · 득득")));
+  assert.ok(m, "hover:none 묶음");
+  for (const sel of ["profile-card__sheen", "profile-card__holo", "profile-card__glare", "profile-card__shade", "profile-card__body::before"]) assert.ok(m[1].includes(sel), sel);
+  for (const v of ["--pc-pointer-x", "--pc-light-x", "--pc-shift-x", "--pc-active"]) assert.ok(m[1].includes(v), v);
+  assert.match(m[1], /translate3d\(calc\(var\(--bc-sx\)/);
+  assert.match(card, /\.being-card\.profile-card \{ --bc-sx: var\(--pc-shift-x\); --bc-sy: var\(--pc-shift-y\); \}/);
+});
+
+test("대화 머리 단계 알약 = 안 보이면 훑기 멈춤", () => {
+  assert.match(shell, /\.duet-glass\[data-shown="false"\] \.tool-line-running \{\s*animation: none;/);
+});
