@@ -1,7 +1,7 @@
 // 서랍 「음원」 = 옛 에디터 음원 창(viewer/song.html · api/song → 러너 → song_out/<id>/…)을 앱 안으로
 //   (형 11-10 15:48 봄 1:1 「응 에디터에 잇는거 다 정원으로 가져왕」 · team-4 뎅 · 봄 18:40 「음원 · 보이스(song)」)
 //   같은 것 = 이야기(≤1500) · 장르 · 분위기 · 테마 · 표현방식(원본 레일 값 그대로 + 직접) · 세 단추(옵션 → 고르기 · Suno 프롬프트 · 완성곡 Lyria) · 서버 칸 이름 · 기다리는 길(song_out · error.log) · 진행 기억 nm_song_pend
-//   다른 것(다음 판) = 보컬 · 실험성 · 장르 충실 게이지(중립 = 원본도 안 실음) · 마스터링 · 보이스 입히기(api/voice) · 캡션 이력
+//   판 2(./song-more.tsx) = 길이 · 고급 게이지(중립 = 원본도 안 실음) · 음성 클로닝(학습 · 입히기 = api/voice) · 마스터링(/master.js) · 남은 것 = 만든 노래 목록(caphist)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
@@ -12,16 +12,18 @@ import "./ys.css";
 import "./song.css";
 import { useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
+import { GaugeBox, MasterPanel, VoicePanel } from "./song-more";
+import { GAUGE_DEF, applyPayload, gaugeOpts, hardMs, type Gauge } from "./song-logic";
 
-type Mode = "options" | "suno" | "lyria";
+type Mode = "options" | "suno" | "lyria" | "voice";   // voice = 보이스 입히기(결과는 song_out · 곡과 같은 꼴)
 const RAILS: { k: "genre" | "mood" | "theme" | "express"; lab: string; vals: string[] }[] = [   // 원본 genPop · moodPop · themePop · expPop
   { k: "genre", lab: "장르", vals: ["자동", "발라드", "힙합", "록", "R&B", "댄스·EDM", "트로트", "재즈", "어쿠스틱", "OST·시네마틱", "시티팝", "신스팝", "로파이", "인디 포크", "펑크·디스코", "국악 퓨전"] },
   { k: "mood", lab: "분위기", vals: ["자동", "신나는", "잔잔한", "웅장한", "몽환적", "어두운", "따뜻한", "쓸쓸한", "긴장감", "희망찬", "새벽 감성", "장난스러운"] },
   { k: "theme", lab: "테마", vals: ["자동", "사랑", "이별", "응원·위로", "추억·향수", "성장", "우정·가족", "사회 풍자", "계절", "여행", "성공·야망", "일상"] },
   { k: "express", lab: "표현방식", vals: ["자동", "감성 서정", "유머·풍자", "웅장·시네마틱", "담담한 내레이션", "신나는 훅", "몽환", "분노·비판"] },
 ];
-const WL: Record<Mode, string> = { options: "옵션 만드는 중", suno: "프롬프트 만드는 중", lyria: "곡 만드는 중" };   // 원본 WL
-const PEND = "nm_song_pend", POLL_MS = 6_000, BUDGET_MS = 1000_000;   // 원본 PEND_KEY · BUDGET 1000초
+const WL: Record<Mode, string> = { options: "옵션 만드는 중", suno: "프롬프트 만드는 중", lyria: "곡 만드는 중", voice: "보이스 입히는 중" };   // 원본 WL
+const PEND = "nm_song_pend", POLL_MS = 6_000;   // 원본 PEND_KEY · 예산 = song-logic hardMs(원본 BUDGETS 하드 ×2)
 type Opt = { name?: string; why?: string; vocal?: string; [k: string]: unknown };
 type Res = { title?: string; style?: string; lyrics?: string; sung?: string; exclude?: string; genre?: string; express?: string; target?: string; url?: string; engine?: string; model?: string; voice_name?: string; options?: Opt[] };
 type Pend = { id: string; mode: Mode; t0: number; lbl: string };
@@ -40,13 +42,13 @@ async function copyText(t: string) { try { await navigator.clipboard.writeText(t
 
 export function SongModal() {
   const [story, setStory] = useState(""), [sel, setSel] = useState<Record<string, string>>({ genre: "자동", mood: "자동", theme: "자동", express: "자동" }), [free, setFree] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState<Mode | "">(""), [msg, setMsg] = useState(""), [err, setErr] = useState(""), [opts, setOpts] = useState<Opt[]>([]), [pick, setPick] = useState<number>(-1), [res, setRes] = useState<{ mode: Mode; d: Res } | null>(null);
+  const [busy, setBusy] = useState<Mode | "">(""), [msg, setMsg] = useState(""), [err, setErr] = useState(""), [opts, setOpts] = useState<Opt[]>([]), [pick, setPick] = useState<number>(-1), [res, setRes] = useState<{ mode: Mode; d: Res; id: string } | null>(null), [G, setG] = useState<Gauge>(GAUGE_DEF);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const val = (k: string) => (sel[k] === "직접" ? (free[k] || "").trim() || "자동" : sel[k] || "자동");
   const poll = async (p: Pend) => {
     setBusy(p.mode); setMsg(`${WL[p.mode]}…`); setErr("");
-    while (alive.current && Date.now() - p.t0 < BUDGET_MS) {
+    while (alive.current && Date.now() - p.t0 < hardMs(p.mode)) {
       const r = await readOut(p.id, p.mode);
       if (!alive.current) return;
       if (r?.err) { pendSet(null); setBusy(""); setMsg(""); setErr(r.err); return; }
@@ -54,7 +56,7 @@ export function SongModal() {
         pendSet(null); setBusy("");
         const sec = Math.round((Date.now() - p.t0) / 1000);
         if (p.mode === "options") { setOpts(r.d.options || []); setPick(-1); setMsg(`옵션 ${(r.d.options || []).length}개 (${sec}초) — 골라서 아래 단추로`); }
-        else { setRes({ mode: p.mode, d: r.d }); setMsg(`${p.mode === "suno" ? "완료" : "완성곡"} (${sec}초)`); }
+        else { setRes({ mode: p.mode, d: r.d, id: p.id }); setMsg(`${p.mode === "suno" ? "완료" : p.mode === "voice" ? "보이스 커버" : "완성곡"} (${sec}초)`); }
         return;
       }
       await new Promise((ok) => setTimeout(ok, POLL_MS));
@@ -69,6 +71,7 @@ export function SongModal() {
     const ln = (s.split("\n").find((x) => x.trim()) || "").replace(/\s+/g, " ").trim(), lbl = ln ? ln.slice(0, 16) + (ln.length > 16 ? "…" : "") : mode === "options" ? "음원 옵션" : "음원";
     const payload: Record<string, unknown> = { mode, genre: val("genre"), express: val("express"), mood: val("mood"), theme: val("theme"), story: s.slice(0, 1500), lbl };
     if (mode !== "options" && pick >= 0 && opts[pick]) payload.pick = opts[pick];
+    const go = mode !== "options" ? gaugeOpts(G) : null; if (go) payload.opts = go;   // 원본 = 중립이면 아예 안 실음
     setBusy(mode); setErr(""); if (mode !== "options") setRes(null);
     try {
       const r = await fetch("/api/song", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
@@ -77,7 +80,17 @@ export function SongModal() {
       const p = { id: j.id, mode, t0: Date.now(), lbl }; pendSet(p); void poll(p);
     } catch (e) { setBusy(""); setErr(e instanceof Error ? e.message : String(e)); }
   };
-  const d = res?.d;
+  const apply = async (vid: string) => {   // 원본 vApply — 지금 결과 곡(src = 그 곡 id)에 고른 보이스
+    if (!res?.id || !res.d.url || busy) return;
+    setBusy("voice"); setErr("");
+    try {
+      const r = await fetch("/api/voice", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(applyPayload(res.id, vid)) });
+      const j = (await r.json().catch(() => ({}))) as { id?: string; error?: string };
+      if (!r.ok || j.error || !j.id) throw new Error(j.error || `서버 오류 ${r.status} — 다시`);
+      const p = { id: j.id, mode: "voice" as Mode, t0: Date.now(), lbl: "보이스" }; pendSet(p); void poll(p);
+    } catch (e) { setBusy(""); setErr(e instanceof Error ? e.message : String(e)); }
+  };
+  const d = res?.d, songish = res?.mode === "lyria" || res?.mode === "voice";
   return (
     <Pane title="음원">
       <div className="yeta-set mt-2 nm-dl nm-ys">
@@ -91,6 +104,7 @@ export function SongModal() {
               {sel[r.k] === "직접" ? <input className="nm-dl-q" value={free[r.k] || ""} placeholder={`${r.lab} 직접`} aria-label={`${r.lab} 직접`} onChange={(e) => setFree((m) => ({ ...m, [r.k]: e.target.value }))} /> : null}
             </div>
           ))}
+          <GaugeBox G={G} set={setG} />
           <div className="nm-ys-opts">
             <button type="button" className="yset-chip" disabled={!!busy} onClick={() => void fire("options")}>{busy === "options" ? "옵션 만드는 중…" : "옵션 보기"}</button>
             <button type="button" className="yset-chip" disabled={!!busy} onClick={() => void fire("suno")}>{busy === "suno" ? "만드는 중…" : "Suno 프롬프트"}</button>
@@ -118,15 +132,17 @@ export function SongModal() {
             <p className="nm-chan-msg">{[d.genre || "자동", d.express || "자동", "목표 " + (d.target || "60초 미만")].join(" · ")}</p>
           </div>
         ) : null}
-        {d && res?.mode === "lyria" ? (
+        {d && songish ? (
           <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo">
             <span className="ycd-nm yset-ttl">{d.title || "완성곡"}</span>
             {d.url ? <audio src={d.url} controls preload="metadata" style={{ width: "100%" }} /> : null}
             <p className="nm-chan-msg">{d.engine === "rvc" ? "보이스 커버" + (d.voice_name ? " · " + d.voice_name : "") : "Lyria 3" + (d.model ? " · " + d.model : "")}{d.sung && d.lyrics && d.sung !== d.lyrics ? " · 실제 부른 가사 기준" : ""}</p>
             {d.sung || d.lyrics ? <pre className="nm-song-lyr">{d.sung || d.lyrics}</pre> : null}
             {d.url ? <div className="nm-ys-opts"><button type="button" className="yset-chip on" onClick={() => window.open(`/api/dl?u=${encodeURIComponent(String(d.url))}&n=${encodeURIComponent((d.title || "song").replace(/[\\/:*?"<>|]+/g, "").slice(0, 60) + ".mp3")}`, "_blank")}>받기</button></div> : null}
+            {d.url && res ? <MasterPanel url={String(d.url)} songId={res.id} /> : null}
           </div>
         ) : null}
+        <VoicePanel songUrl={songish ? d?.url : undefined} busy={!!busy} onApply={(v) => void apply(v)} />
       </div>
     </Pane>
   );

@@ -7,3 +7,13 @@
 .nm-ys .nm-song-field { display:grid; grid-template-columns:52px minmax(0, 1fr) auto; gap:8px; align-items:start; margin-top:8px; }
 .nm-ys .nm-song-field pre, .nm-ys .nm-song-lyr { margin:0; white-space:pre-wrap; word-break:break-word; font:inherit; font-size:13px; }
 .nm-ys .nm-song-lyr { max-height:40dvh; overflow-y:auto; margin-top:6px; }
+/* 판 2(./song-more.tsx) — 길이 · 고급 게이지 · 마스터링 행 = 라벨 │ 게이지 │ 값(원본 .lyopt-row 꼴) */
+.nm-ys .nm-song-row { display:grid; grid-template-columns:64px minmax(0, 1fr) 64px; gap:8px; align-items:center; margin-top:8px; }
+.nm-ys .nm-song-row input[type=range] { width:100%; min-width:60px; accent-color:rgb(var(--accent-rgb)); }
+.nm-ys .nm-song-v { font-size:12px; color:var(--mut); text-align:right; font-variant-numeric:tabular-nums; }
+.nm-ys .nm-song-v.on { color:rgb(var(--accent-rgb)); font-weight:800; }
+.nm-ys .nm-song-adv, .nm-ys .nm-song-ma { margin-top:6px; }
+.nm-ys .nm-song-file { cursor:pointer; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-ys .nm-song-eqg { display:block; width:100%; height:88px; margin-top:8px; border:1px solid var(--glass-line); border-radius:10px; background:var(--glass); }
+.nm-ys .nm-song-eqg path { fill:none; stroke:rgb(var(--accent-rgb)); stroke-width:2; vector-effect:non-scaling-stroke; }
+.nm-ys .nm-song-eqg path.z { stroke:var(--glass-line); stroke-width:1; }
