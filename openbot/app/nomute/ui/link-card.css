@@ -21,3 +21,5 @@
 .ychat .ylink-chip span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .ychat .ylink-chip b { font-weight:700; color:var(--fg); }
 @media (prefers-reduced-motion:reduce) { .ychat .ylink, .ychat .ylink-chip { transition:none; } }
+/* 픽 · 경보(러너가 옮긴 틈 픽 · 촉) = 대표 사진 카드가 말풍선 위(형 11-11 08:45 「사진은 젤 위에」 · 깃) */
+.ypick-top { margin-bottom: 4px; }
