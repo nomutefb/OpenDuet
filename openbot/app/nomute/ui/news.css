@@ -171,6 +171,8 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-th .nm-tg-why.pay { color:#b86e00; } .dark .nm-th .nm-tg-why.pay { color:#ffb340; }
 .nm-th .nm-tg-row { display:flex; align-items:center; gap:8px; min-width:0; }
 .nm-th .nm-tg-row.col { flex-direction:column; align-items:stretch; gap:4px; }
+.nm-th .nm-tg-row.col .nm-tg-l { flex:none; }   /* 세로 줄 = 이름 칸 높이 0(가로 줄 5.2em 이 세로 줄에선 높이로 먹어 폰에서 빈 틈 · 뜸 11-10 실물) */
+.nm-th :is(.nm-tg-pane, .nm-th-tools) .yset-chip, .nm-th .nm-tg-sum { text-transform:none; }   /* 모델 이름 = 옛 창 그대로 「Gemini 3.1 Flash」 · 「720p」(앱 칩 대문자 꼴이 「GEMINI」 · 「720P」로 바꿈) */
 .nm-th .nm-tg-l { flex:0 0 5.2em; font-size:var(--fs-xs); font-weight:var(--fw-b); color:var(--fg-2); }
 .nm-th .nm-tg-chips { flex:1; min-width:0; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; padding:1px 0; }
 .nm-th .nm-tg-chips::-webkit-scrollbar { display:none; }
