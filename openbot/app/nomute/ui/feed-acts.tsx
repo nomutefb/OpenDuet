@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { GoButton } from "./go-button";
 import { type Art, newsListQuery, progOf } from "./news-data";
 
-type Fix = "card" | "text";
+type Fix = "card";   // 글(인스타 · 스레드 초안 = api/revise)은 「요약 고치기」(./summary-fix.tsx)가 맡음 = 여기서 뺌(시아 12:47 「둘이 안 겹침」 · 빠르 team-4 U2)
 type Make = "text" | "shoot" | "full";
 type Note = { kind: "ok" | "err"; text: string } | null;
 const ARM_MS = 3500, HOLD_MS = 120_000;
@@ -26,7 +26,6 @@ async function post(url: string, body: object): Promise<{ ok?: boolean; via?: st
 
 const FIX: Record<Fix, { label: string; why: string; ph: string }> = {
   card: { label: "카드", why: "카드 문구 · 구성(프롬프트)만 다시 짜 · 그림은 그대로 · 돈 0", ph: "어떻게 고칠지 한 줄 — 예: 3번 카드 문구 더 짧게 · 마지막 장에 출처 넣기" },
-  text: { label: "글", why: "인스타 · 스레드 초안만 다시 써 · 기사 다시 요약은 안 함 · 돈 0", ph: "어떻게 고칠지 한 줄 — 예: 첫 줄을 질문으로 · 해시태그 셋만" },
 };
 const MAKE: Record<Make, { label: string; why: string; pay: boolean }> = {
   text: { label: "글 · 구성만", why: "카드 문구 · 구성(프롬프트)을 처음부터 다시 · 그림 0 · 돈 0", pay: false },
@@ -40,7 +39,7 @@ export function FeedActs({ a }: { a: Art }) {
   const hasMd = !!c.has_md || pr.done >= 2, hasImg = !!c.images?.length;
   const makes: Make[] = hasMd && !hasImg ? ["text", "shoot", "full"] : ["text", "full"];
   const [open, setOpen] = useState<"fix" | "make" | null>(null);
-  const [fix, setFix] = useState<Fix>(hasMd ? "card" : "text");
+  const fix: Fix = "card";
   const [make, setMake] = useState<Make>("text");
   const [say, setSay] = useState("");
   const [armed, setArmed] = useState(false);
@@ -60,8 +59,8 @@ export function FeedActs({ a }: { a: Art }) {
     if (!instruction) { setNote({ kind: "err", text: "어떻게 고칠지 한 줄 적어 줘" }); throw new Error("빈 지시"); }
     setNote(null);
     try {
-      const d = await post(fix === "card" ? "/api/revise-cards" : "/api/revise", { file: a.file.replace(/\.md$/, ""), instruction });
-      setNote({ kind: "ok", text: `보냈어 — ${fix === "card" ? "카드 프롬프트" : "인스타 · 스레드 초안"} 고치는 중 · 1~3분 뒤 여기 반영${queued(d)}` });
+      const d = await post("/api/revise-cards", { file: a.file.replace(/\.md$/, ""), instruction });
+      setNote({ kind: "ok", text: `보냈어 — 카드 프롬프트 고치는 중 · 1~3분 뒤 여기 반영${queued(d)}` });
       setSay(""); reread();
       return d;
     } catch (e) { setNote({ kind: "err", text: (e as Error).message }); throw e; }
@@ -86,15 +85,9 @@ export function FeedActs({ a }: { a: Art }) {
       </div>
       {open === "fix" ? (
         <div className="nm-feed-pane">
-          <div className="yset-chips nm-feed-pick" role="radiogroup" aria-label="무엇을 고칠까">
-            {(["card", "text"] as Fix[]).map((k) => (
-              <button key={k} type="button" role="radio" aria-checked={fix === k} className={`yset-chip${fix === k ? " on" : ""}`} disabled={k === "card" && !hasMd}
-                title={k === "card" && !hasMd ? "카드 프롬프트가 아직 없어 — 다시 만들기 「글 · 구성만」 먼저" : undefined} onClick={() => setFix(k)}>{FIX[k].label}</button>
-            ))}
-          </div>
-          <p className="nm-feed-why">{FIX[fix].why}</p>
+          <p className="nm-feed-why">{hasMd ? FIX[fix].why : "카드 프롬프트가 아직 없어 — 「다시 만들기」 → 「글 · 구성만」 먼저"}</p>
           <textarea className="nm-feed-ta" rows={3} maxLength={2000} value={say} onChange={(e) => setSay(e.target.value)} placeholder={FIX[fix].ph} aria-label="어떻게 고칠까" />
-          <div className="ypc-acts nm-feed-acts"><GoButton className="ypc-go" go={sendFix} busy="보내는 중" disabled={!say.trim()}>고치기 보내기</GoButton></div>
+          <div className="ypc-acts nm-feed-acts"><GoButton className="ypc-go" go={sendFix} busy="보내는 중" disabled={!hasMd || !say.trim()}>카드 고치기 보내기</GoButton></div>
         </div>
       ) : null}
       {open === "make" ? (
