@@ -225,3 +225,4 @@
 .nm-trend .soc-chip.lean-rr { background:color-mix(in srgb, #e23b2a 17%, transparent); border-color:color-mix(in srgb, #e23b2a 50%, transparent); }
 .nm-trend .soc-gauge { position:relative; display:block; height:4px; margin:10px 2px 2px; border-radius:var(--r-pill); background:linear-gradient(90deg, #3a6ddb, #38C6FF 25%, color-mix(in srgb, var(--fg) 30%, transparent) 50%, #ff7a6b 75%, #e23b2a); opacity:.7; }
 .nm-trend .soc-dot { position:absolute; top:50%; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; border-radius:50%; background:#fff; box-shadow:0 0 0 1.5px rgba(0,0,0,.35); }
+.nm-trend .tcard-dl { position:absolute; right:6px; top:6px; padding:2px 8px; border-radius:999px; background:rgba(0,0,0,.62); color:#fff; font-size:11px; font-weight:800; cursor:pointer; -webkit-tap-highlight-color:transparent; }   /* SNS 카드 「받기」 → 변환 창(team-4 U3 뎅) */

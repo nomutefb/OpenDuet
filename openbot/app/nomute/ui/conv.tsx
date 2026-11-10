@@ -39,7 +39,8 @@ async function readOut(id: string): Promise<{ url?: string; err?: string } | nul
 }
 
 export function ConvModal() {
-  const [url, setUrl] = useState(""), [file, setFile] = useState<File | null>(null), [o, setO] = useState<Opts>(OPT0), [t0, setT0] = useState(""), [t1, setT1] = useState("");
+  // SNS 카드 「받기」 = #/edconv?u=<영상 주소>(./trend.tsx) → 주소 칸 미리 채움
+  const [url, setUrl] = useState(() => { try { return new URLSearchParams(window.location.hash.split("?")[1] || "").get("u") || ""; } catch { return ""; } }), [file, setFile] = useState<File | null>(null), [o, setO] = useState<Opts>(OPT0), [t0, setT0] = useState(""), [t1, setT1] = useState("");
   const [st, setSt] = useState<St>({ k: "idle" }), alive = useRef(true), fileIn = useRef<HTMLInputElement>(null);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const poll = async (p: Pend) => {   // 진행 중 변환 이어받기(원본 pend 재개 · 다시 열어도 이어짐)

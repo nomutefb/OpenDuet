@@ -286,6 +286,9 @@ function Card({ t, i, title, nocls, metric, wd = true }: { t: J; i: number; titl
       <span className="tcard-cw">
         {t.cover ? <Cover className={`tcard-cov${wd ? " wd" : ""}`} src={t.cover} nocls={nocls} href={t.url} /> : <span className={`tcard-cov${wd ? " wd" : ""} noc ${nocls}`} />}
         <span className={`tcard-rank${i < 3 ? " top" : ""}`}>{i + 1}위</span>
+        {t.url ? <span role="button" tabIndex={0} className="tcard-dl" aria-label="이 영상 받기 — 변환 창으로" title="받기(변환 창)"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.hash = "#/edconv?u=" + encodeURIComponent(String(t.url)); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); window.location.hash = "#/edconv?u=" + encodeURIComponent(String(t.url)); } }}>받기</span> : null}   {/* SNS 영상 받기 = 앱 안 변환 창(./conv.tsx · 원본 tvView 다운로드 = conv 길 · team-4 U3 뎅) */}
       </span>
       <span className="tcard-t">{title}</span>
       <span className="tcard-m">{metric !== undefined ? metric : v > 0 ? <i><Svg s={EYE} /><span>{vfmt(v)}</span></i> : null}{ago ? <span className={`tcard-ago${t._fresh24 ? " fresh24" : ""}`}>{ago}</span> : null}</span>
