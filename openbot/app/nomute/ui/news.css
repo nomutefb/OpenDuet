@@ -48,6 +48,10 @@
 .nm-nd .nm-nd-md :is(h2, h3) { color:var(--nm-nd-h, #CFFF40); border-top:1px solid var(--glass-line, rgba(232,234,232,.10)); padding-top:14px; margin:20px 0 8px; font-size:var(--fs-body); font-weight:var(--fw-x, 800); letter-spacing:-.2px; line-height:1.4; }
 html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-nd .nm-nd-md h4 { margin:12px 0 4px; font-size:var(--fs-label); font-weight:var(--fw-b); }
+/* 초안 글 상자(``` · 인스타 · 스레드 초안) = 줄 접기 · 상자 높이 묶음(400px · 안쪽 스크롤) 풂 — 형 11-10 12:01 봄 1:1 「봄아 뉴스 에디터로 요약한거 모바일에서 제대로 확인이 안돼.가능하게 해줘」
+   뜸 12:03 폰 390 실물 = 한 줄 3,934px · 상자 안 가로 스크롤만 됨 · 끝까지 못 읽음 → 폰 · PC 다 줄 접음(복사는 그대로 · 원문 줄바꿈 그대로) */
+.nm-nd .nm-nd-md [data-streamdown="code-block-body"] { max-height:none !important; overflow:visible !important; }
+.nm-nd .nm-nd-md [data-streamdown="code-block-body"] pre { white-space:pre-wrap; overflow-wrap:anywhere; word-break:keep-all; overflow:visible; }
 .nm-nd .nm-nd-md > div > :first-child, .nm-nd .nm-nd-md h2:first-child { margin-top:0; }
 .nm-nd .nm-nd-md > div > :is(h2, h3):first-child, .nm-nd .nm-nd-md :is(h2, h3):first-child { border-top:0; padding-top:0; }   /* 맨 첫 제목은 선 없이 */
 .nm-nd .nm-nd-md :is(ul, ol) { padding-left:1.2em; } .nm-nd .nm-nd-md li { margin:3px 0; }
