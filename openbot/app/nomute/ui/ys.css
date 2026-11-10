@@ -28,3 +28,10 @@
 .nm-ys .nm-trk-face img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
 .nm-ys .nm-trk-card input { width: 100%; margin-top: 4px; }
 .nm-ys .nm-trk-alpha video { background: repeating-conic-gradient(rgba(127, 127, 127, .25) 0% 25%, transparent 0% 50%) 50% / 16px 16px; }
+.nm-ys .nm-nb { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.nm-ys .nm-nb ul { margin: 0; padding-left: 18px; }
+.nm-ys .nm-nb-ttl { font-weight: 700; margin: 0; }
+.nm-ys .nm-nb-one { font-weight: 600; margin: 4px 0; }
+.nm-ys .nm-nb-h { font-weight: 700; font-size: 13px; margin: 6px 0 0; }
+.nm-ys .nm-nb-box { white-space: pre-wrap; margin: 0; font-size: 13px; line-height: 1.55; }
+.nm-ys .nm-nb-tx { width: 100%; resize: vertical; margin: 6px 0; }
