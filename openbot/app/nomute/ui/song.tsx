@@ -1,7 +1,7 @@
 // 서랍 「음원」 = 옛 에디터 음원 창(viewer/song.html · api/song → 러너 → song_out/<id>/…)을 앱 안으로
 //   (형 11-10 15:48 봄 1:1 「응 에디터에 잇는거 다 정원으로 가져왕」 · team-4 뎅 · 봄 18:40 「음원 · 보이스(song)」)
 //   같은 것 = 이야기(≤1500) · 장르 · 분위기 · 테마 · 표현방식(원본 레일 값 그대로 + 직접) · 세 단추(옵션 → 고르기 · Suno 프롬프트 · 완성곡 Lyria) · 서버 칸 이름 · 기다리는 길(song_out · error.log) · 진행 기억 nm_song_pend
-//   판 2(./song-more.tsx) = 길이 · 고급 게이지(중립 = 원본도 안 실음) · 음성 클로닝(학습 · 입히기 = api/voice) · 마스터링(/master.js) · 남은 것 = 만든 노래 목록(caphist)
+//   판 2(./song-more.tsx) = 길이 · 고급 게이지(중립 = 원본도 안 실음) · 음성 클로닝(학습 · 입히기 = api/voice) · 마스터링(/master.js) · 만든 노래 목록(song_out/index.json · 끝나면 다음 곡) · 이걸로 원본 창 전부(남긴 것 = 미리보기 확대 · 레일 꾸밈)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
@@ -12,7 +12,7 @@ import "./ys.css";
 import "./song.css";
 import { useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
-import { GaugeBox, MasterPanel, VoicePanel } from "./song-more";
+import { GaugeBox, MasterPanel, SongList, VoicePanel, type PItem } from "./song-more";
 import { GAUGE_DEF, applyPayload, gaugeOpts, hardMs, type Gauge } from "./song-logic";
 
 type Mode = "options" | "suno" | "lyria" | "voice";   // voice = 보이스 입히기(결과는 song_out · 곡과 같은 꼴)
@@ -42,7 +42,7 @@ async function copyText(t: string) { try { await navigator.clipboard.writeText(t
 
 export function SongModal() {
   const [story, setStory] = useState(""), [sel, setSel] = useState<Record<string, string>>({ genre: "자동", mood: "자동", theme: "자동", express: "자동" }), [free, setFree] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState<Mode | "">(""), [msg, setMsg] = useState(""), [err, setErr] = useState(""), [opts, setOpts] = useState<Opt[]>([]), [pick, setPick] = useState<number>(-1), [res, setRes] = useState<{ mode: Mode; d: Res; id: string } | null>(null), [G, setG] = useState<Gauge>(GAUGE_DEF);
+  const [busy, setBusy] = useState<Mode | "">(""), [msg, setMsg] = useState(""), [err, setErr] = useState(""), [opts, setOpts] = useState<Opt[]>([]), [pick, setPick] = useState<number>(-1), [res, setRes] = useState<{ mode: Mode; d: Res; id: string } | null>(null), [G, setG] = useState<Gauge>(GAUGE_DEF), [plist, setPlist] = useState<PItem[]>([]), [pidx, setPidx] = useState(-1);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const val = (k: string) => (sel[k] === "직접" ? (free[k] || "").trim() || "자동" : sel[k] || "자동");
@@ -56,7 +56,7 @@ export function SongModal() {
         pendSet(null); setBusy("");
         const sec = Math.round((Date.now() - p.t0) / 1000);
         if (p.mode === "options") { setOpts(r.d.options || []); setPick(-1); setMsg(`옵션 ${(r.d.options || []).length}개 (${sec}초) — 골라서 아래 단추로`); }
-        else { setRes({ mode: p.mode, d: r.d, id: p.id }); setMsg(`${p.mode === "suno" ? "완료" : p.mode === "voice" ? "보이스 커버" : "완성곡"} (${sec}초)`); }
+        else { setPidx(-1); setRes({ mode: p.mode, d: r.d, id: p.id }); setMsg(`${p.mode === "suno" ? "완료" : p.mode === "voice" ? "보이스 커버" : "완성곡"} (${sec}초)`); }
         return;
       }
       await new Promise((ok) => setTimeout(ok, POLL_MS));
@@ -90,6 +90,14 @@ export function SongModal() {
       const p = { id: j.id, mode: "voice" as Mode, t0: Date.now(), lbl: "보이스" }; pendSet(p); void poll(p);
     } catch (e) { setBusy(""); setErr(e instanceof Error ? e.message : String(e)); }
   };
+  const playIdx = async (list: PItem[], i: number) => {   // 원본 playIdx — 그 곡 song.json(가사까지) · 없으면 목록 값만으로
+    const s = list[i]; if (!s) return;
+    setPlist(list); setPidx(i);
+    let dd: Res | null = null;
+    try { const r = await fetch(`/song_out/${encodeURIComponent(s.id)}/song.json?t=${Date.now()}`, { credentials: "same-origin" }); if (r.ok) { const t = await r.text(); if (!/^\s*</.test(t)) dd = JSON.parse(t) as Res; } } catch { /* 목록 값으로 */ }
+    if (!dd?.url) dd = { title: s.title, url: s.url, engine: s.engine, lyrics: "" };
+    setRes({ mode: s.engine === "rvc" ? "voice" : "lyria", d: dd, id: s.id }); setMsg("");
+  };
   const d = res?.d, songish = res?.mode === "lyria" || res?.mode === "voice";
   return (
     <Pane title="음원">
@@ -111,6 +119,7 @@ export function SongModal() {
             <button type="button" className="yset-chip on" disabled={!!busy} onClick={() => void fire("lyria")}>{busy === "lyria" ? "곡 만드는 중…" : "완성곡 만들기"}</button>
           </div>
           {msg ? <p className="nm-chan-msg" role="status">{msg}{busy ? " · 이 창을 닫아도 다시 열면 이어서 기다려" : ""}</p> : null}
+          <SongList cur={pidx >= 0 && res ? res.id : ""} onPick={(l, i) => void playIdx(l, i)} />
           {err ? <p className="nm-chan-msg" role="alert">{err}</p> : null}
         </div>
         {opts.length ? (
@@ -135,7 +144,7 @@ export function SongModal() {
         {d && songish ? (
           <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo">
             <span className="ycd-nm yset-ttl">{d.title || "완성곡"}</span>
-            {d.url ? <audio src={d.url} controls preload="metadata" style={{ width: "100%" }} /> : null}
+            {d.url ? <audio key={d.url} src={d.url} controls preload="metadata" autoPlay={pidx >= 0} onEnded={() => { if (pidx >= 0 && pidx + 1 < plist.length) void playIdx(plist, pidx + 1); }} style={{ width: "100%" }} /> : null}
             <p className="nm-chan-msg">{d.engine === "rvc" ? "보이스 커버" + (d.voice_name ? " · " + d.voice_name : "") : "Lyria 3" + (d.model ? " · " + d.model : "")}{d.sung && d.lyrics && d.sung !== d.lyrics ? " · 실제 부른 가사 기준" : ""}</p>
             {d.sung || d.lyrics ? <pre className="nm-song-lyr">{d.sung || d.lyrics}</pre> : null}
             {d.url ? <div className="nm-ys-opts"><button type="button" className="yset-chip on" onClick={() => window.open(`/api/dl?u=${encodeURIComponent(String(d.url))}&n=${encodeURIComponent((d.title || "song").replace(/[\\/:*?"<>|]+/g, "").slice(0, 60) + ".mp3")}`, "_blank")}>받기</button></div> : null}

@@ -229,3 +229,38 @@ export function MasterPanel({ url, songId }: { url: string; songId: string }) {
     </div>
   );
 }
+
+// ── ④ 만든 노래(원본 hpop · openHist · pollHist · playIdx) — /song_out/index.json · 열려 있을 때만 10초마다 · 바뀐 것만 다시 그림 ──
+export type PItem = { id: string; title?: string; ts?: string; engine?: string; genre?: string; url?: string };
+export function SongList({ cur, onPick }: { cur: string; onPick: (list: PItem[], i: number) => void }) {
+  const [open, setOpen] = useState(false), [list, setList] = useState<PItem[]>([]), [err, setErr] = useState(false);
+  const sig = useRef("");
+  const load = async () => {
+    const t = await getText("/song_out/index.json");
+    if (t === null) { setErr(true); return; }
+    if (t === sig.current) return;
+    try { const j = JSON.parse(t); if (Array.isArray(j)) { sig.current = t; setList(j as PItem[]); setErr(false); } } catch { setErr(true); }
+  };
+  useEffect(() => {
+    if (!open) return;
+    void load();
+    const h = setInterval(() => { if (!document.hidden) void load(); }, 10_000);
+    return () => clearInterval(h);
+  }, [open]);   // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <div className="nm-song-ma">
+      <div className="nm-ys-opts"><button type="button" className={`yset-chip${open ? " on" : ""}`} aria-expanded={open} onClick={() => setOpen((v) => !v)}>만든 노래{list.length ? ` ${list.length}` : ""}</button></div>
+      {open ? (
+        <div className="nm-vd-list">
+          {err && !list.length ? <button type="button" className="yset-chip" onClick={() => void load()}>목록을 못 불러왔어 · 다시</button> : null}
+          {list.map((s, i) => (
+            <button key={s.id} type="button" className={`nm-song-opt${cur === s.id ? " on" : ""}`} aria-pressed={cur === s.id} onClick={() => onPick(list, i)}>
+              <b>{s.title || "(무제)"}{cur === s.id ? " · 재생 중" : ""}</b>
+              <span>{[(s.ts || "").slice(5, 16).replace("T", " "), s.engine === "lyria" ? "구글" : s.engine === "rvc" ? "보이스" : s.engine || "", s.genre || ""].filter(Boolean).join(" · ")}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
