@@ -15,6 +15,7 @@
 .nac-shot.ok .nac-img { opacity:1; }
 .nac-ring { position:absolute; left:50%; top:50%; width:46px; height:46px; margin:-23px 0 0 -23px; display:grid; place-items:center; border-radius:50%; background:rgba(0,0,0,.42); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); transition:opacity .3s ease .55s, transform .3s ease .55s; pointer-events:none; }
 .nac-shot.ok .nac-ring { opacity:0; transform:scale(.86); }
+.nac-ring.can { pointer-events:auto; cursor:pointer; -webkit-tap-highlight-color:transparent; }   /* 고리 누름 = 전송 취소(형 11-10 12:18) · ✓ 전만 */
 .nac-ring-o { position:absolute; inset:2px; transform:rotate(-90deg); }
 .nac-ring-o circle { fill:none; stroke-width:3; }
 .nac-ring-o .t { stroke:rgba(255,255,255,.22); }

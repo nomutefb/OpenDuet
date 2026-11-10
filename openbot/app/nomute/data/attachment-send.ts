@@ -8,7 +8,7 @@ export type SendInput = {
 };
 export type SendAttempt = SendInput & {
   id: number;
-  phase: "uploading" | "sending-body" | "body-retry" | "needs-check";
+  phase: "uploading" | "sending-body" | "body-retry" | "needs-check" | "cancelled";   // cancelled = 다 올라가기 전에 게이지를 눌러 끊음(형 11-10 12:18 「그리고 파일 전송중에 게이지 클릭하면 전공 취소 가능하게」)
   saved: readonly SavedCopy[];
   failed: readonly FailedCopy[];
   announcement: boolean;
@@ -20,7 +20,8 @@ export type SendAttempt = SendInput & {
 export type WaitingText = { id: number; room: string; text: string; failed: boolean; at: number };   // at = 줄에 든 때(방에 같은 글이 먼저 뜨면 숨김 · ui/office-chat.tsx landedText)
 export type SendReply = { status: number; data: unknown };
 type Transport = {
-  upload: (input: SendInput, onProgress?: (ratio: number) => void) => Promise<SendReply>;
+  /** signal = 게이지를 눌러 끊을 때 · 다 올라가기 전이면 요청을 끊고 throw · 이미 다 올라갔으면 무시하고 끝까지(서버가 받은 걸 반쯤 버리지 않게) */
+  upload: (input: SendInput, onProgress?: (ratio: number) => void, signal?: AbortSignal) => Promise<SendReply>;
   body: (input: SendInput) => Promise<SendReply>;
   release: (ids: string[]) => void;
   refresh: (room: string) => void;
@@ -71,6 +72,8 @@ export function createAttachmentSender(transport: Transport) {
   const attempts = new Map<number, SendAttempt>();
   const attemptedIds = new Set<string>();
   const retrying = new Set<number>();
+  const stops = new Map<number, AbortController>();   // 시도마다 끊는 손(게이지 누름)
+  const started = new Set<number>();   // 줄에서 차례가 와 올리기를 시작한 시도(줄 서 있던 건 누르면 바로 「취소됨」)
   const waiting = new Map<number, WaitingText>();
   const textJobs = new Map<number, () => Promise<void>>();
   const tails = new Map<string, Promise<void>>();
@@ -102,8 +105,18 @@ export function createAttachmentSender(transport: Transport) {
       emit();
     }
   };
+  const cancelled = (id: number) => {
+    stops.delete(id);
+    started.delete(id);
+    update(id, {
+      phase: "cancelled",
+      detail: "전송을 취소했어. 원본은 이 탭에 보관 중이야.",
+    });
+  };
   const complete = (attempt: SendAttempt) => {
     // 현재 입력칸이 아니라 이 시도의 원본만 해제한다. 시도한 id는 재전송 방지용으로 남긴다.
+    stops.delete(attempt.id);
+    started.delete(attempt.id);
     attempts.delete(attempt.id);
     emit();
     // 서버 확인과 로컬 캐시 정리는 별개다. 정리 실패를 재전송 가능한 실패로 바꾸지 않는다.
@@ -199,13 +212,17 @@ export function createAttachmentSender(transport: Transport) {
     };
     for (const id of ids) attemptedIds.add(id);
     attempts.set(attempt.id, attempt);
+    stops.set(attempt.id, new AbortController());
     emit();
     return attempt;
   };
 
   const run = async (attempt: SendAttempt) => {
+    const stop = stops.get(attempt.id);
+    if (!stop || stop.signal.aborted) return;   // 줄 서 있다 취소됨 = 안 올림(취소 표시는 누른 때 이미 함)
+    started.add(attempt.id);
     try {
-      const reply = await transport.upload(attempt, (ratio) => update(attempt.id, { progress: ratio }));
+      const reply = await transport.upload(attempt, (ratio) => update(attempt.id, { progress: ratio }), stop.signal);
       const data = object(reply.data);
       const saved = Array.isArray(data?.files)
         ? data.files.filter(savedCopy)
@@ -244,6 +261,10 @@ export function createAttachmentSender(transport: Transport) {
       if (attempt.text && data?.together !== true) await sendBody(attempt);   // 서버가 글과 첨부를 한 글로 받았으면 끝(형 10-31 「말한거랑 한꺼번에 가자」)
       else complete(attempt);
     } catch {
+      if (stop.signal.aborted) {
+        cancelled(attempt.id);   // 다 올라가기 전에 끊김 = 서버엔 안 남음(조각 길은 upload/abort 까지)
+        return;
+      }
       update(attempt.id, {
         phase: "needs-check",
         detail:
@@ -272,6 +293,14 @@ export function createAttachmentSender(transport: Transport) {
     start(input: SendInput) {
       const attempt = begin(input);
       void inLine(attempt.room, () => run(attempt));
+    },
+    /** 게이지 누름 = 이 전송 끊기 · 올리는 중이고 다 올라가기 전(progress < 1)만 · 줄 서 있던 건 바로 「취소됨」 · 올리던 건 요청이 끊긴 뒤 「취소됨」 */
+    cancel(id: number) {
+      const attempt = attempts.get(id), stop = stops.get(id);
+      if (attempt?.phase !== "uploading" || !stop || stop.signal.aborted || attempt.progress >= 1) return false;
+      stop.abort();
+      if (!started.has(id)) cancelled(id);
+      return true;
     },
     /** 이 방에 올라가는 중이거나 줄 선 것이 있나 */
     busy: (room: string) => tails.has(room),

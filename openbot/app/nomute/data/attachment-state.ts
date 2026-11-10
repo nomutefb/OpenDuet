@@ -19,16 +19,22 @@ async function post(path: string, body: FormData | string) {
 const REPLY_WAIT_MS = 60_000;   // 다섯 자리 사본 + 글 = 보통 4~20초 · 넉넉히 1분
 
 // fetch 는 올리는 진행률을 못 줘서 첨부만 XHR(형 10-31 「이미지 아래에 전송 게이지가 가로로 차면 될듯」)
-function upload(form: FormData, onProgress?: (ratio: number) => void) {
+// 끊기(게이지 누름 · 형 11-10 12:18 「그리고 파일 전송중에 게이지 클릭하면 전공 취소 가능하게」) = 다 올라가기 전만 xhr.abort() · 다 올라간 뒤(서버가 받는 중)엔 무시 = 서버에 반쯤 남는 일 0
+const stopped = () => new DOMException("전송 취소", "AbortError");
+function upload(form: FormData, onProgress?: (ratio: number) => void, signal?: AbortSignal) {
   return new Promise<{ status: number; data: unknown }>((resolve, reject) => {
+    if (signal?.aborted) { reject(stopped()); return; }
     const xhr = new XMLHttpRequest();
+    let sent = false;
+    const onStop = () => { if (!sent) xhr.abort(); };
+    signal?.addEventListener("abort", onStop, { once: true });
     xhr.open("POST", "/api/office/files");
     xhr.withCredentials = true;
     xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(e.loaded / e.total); };
     let wait = 0;   // 다 올린 뒤 서버 답을 기다리는 한도(형 11-01 09:01 글이 게이지 95% 에서 멈춘 채 안 감 · 서버가 도중에 끊기면 답이 영영 안 옴) → 넘으면 끊고 「전송 확인 필요」로
-    xhr.upload.onload = () => { wait = window.setTimeout(() => xhr.abort(), REPLY_WAIT_MS); };
-    xhr.onabort = () => { window.clearTimeout(wait); reject(new Error("서버 답이 오지 않았어")); };
-    xhr.onloadend = () => window.clearTimeout(wait);
+    xhr.upload.onload = () => { sent = true; wait = window.setTimeout(() => xhr.abort(), REPLY_WAIT_MS); };
+    xhr.onabort = () => { window.clearTimeout(wait); reject(sent ? new Error("서버 답이 오지 않았어") : stopped()); };
+    xhr.onloadend = () => { window.clearTimeout(wait); signal?.removeEventListener("abort", onStop); };
     xhr.onload = () => {
       try { resolve({ status: xhr.status, data: JSON.parse(xhr.responseText) }); } catch (e) { reject(e); }
     };
@@ -39,9 +45,14 @@ function upload(form: FormData, onProgress?: (ratio: number) => void) {
 
 // 영상 하나 = 조각으로(형 11-02 06:53 「그니까 내가 올리는거는 제약이 없는데 그거를 어짜피 뷴석할거니까 자동 압축이 되고(고화질일 필요 없음)」) · 봄 받는 문 #2101(upload/start → part → done · R2 · 4GB)
 //   고리 % = 조각마다 올라간 바이트 합 · 조각이 못 가면 abort 하고 그 답을 그대로 돌려줌(보내는 쪽이 「전송 확인 필요」로) · 영상 한 개만 든 글만 이 길(나머지 = /files 한 번)
-function putPart(url: string, body: Blob, onLoaded: (bytes: number) => void) {
+function putPart(url: string, body: Blob, onLoaded: (bytes: number) => void, signal?: AbortSignal) {
   return new Promise<{ status: number; data: unknown }>((resolve, reject) => {
+    if (signal?.aborted) { reject(stopped()); return; }
     const xhr = new XMLHttpRequest();
+    const onStop = () => xhr.abort();
+    signal?.addEventListener("abort", onStop, { once: true });
+    xhr.onabort = () => reject(stopped());
+    xhr.onloadend = () => signal?.removeEventListener("abort", onStop);
     xhr.open("PUT", url);
     xhr.withCredentials = true;
     xhr.upload.onprogress = (e) => { if (e.lengthComputable) onLoaded(e.loaded); };
@@ -50,7 +61,8 @@ function putPart(url: string, body: Blob, onLoaded: (bytes: number) => void) {
     xhr.send(body);
   });
 }
-async function uploadChunked(room: string, file: File, text: string, onProgress?: (ratio: number) => void, original = false) {
+async function uploadChunked(room: string, file: File, text: string, onProgress?: (ratio: number) => void, original = false, signal?: AbortSignal) {
+  if (signal?.aborted) throw stopped();
   const st = await post("upload/start", JSON.stringify({ room, name: file.name, size: file.size, type: file.type }));
   const up = (st.data as { upload?: { id: string; key: string; part_size: number } } | null)?.upload;
   if (st.status !== 200 || !up?.id) return st;
@@ -58,11 +70,13 @@ async function uploadChunked(room: string, file: File, text: string, onProgress?
   const size = Math.max(5 * 1024 * 1024, up.part_size || 20 * 1024 * 1024), parts: { n: number; etag: string }[] = [];
   try {
     for (let n = 1, off = 0; off < file.size; n++, off += size) {
-      const r = await putPart(q(n), file.slice(off, Math.min(file.size, off + size)), (b) => onProgress?.(Math.min(1, (off + b) / file.size)));
+      if (signal?.aborted) throw stopped();
+      const r = await putPart(q(n), file.slice(off, Math.min(file.size, off + size)), (b) => onProgress?.(Math.min(1, (off + b) / file.size)), signal);
       const etag = (r.data as { etag?: string } | null)?.etag;
       if (r.status !== 200 || !etag) { void post("upload/abort", JSON.stringify({ id: up.id, key: up.key })).catch(() => {}); return r; }
       parts.push({ n, etag }); onProgress?.(Math.min(1, (off + size) / file.size));   // 진행 신호가 없는 폰에서도 조각마다 고리가 참
     }
+    if (signal?.aborted) throw stopped();   // 조각은 다 갔지만 아직 글(upload/done) 전 = 여기서 끊어도 반쪽 0(조각은 abort 가 지움)
   } catch (e) { void post("upload/abort", JSON.stringify({ id: up.id, key: up.key })).catch(() => {}); throw e; }
   onProgress?.(1);
   return post("upload/done", JSON.stringify({ id: up.id, key: up.key, parts, room, name: file.name, ...(text ? { text, together: true } : {}), ...(original ? { original: "1" } : {}) }));
@@ -135,16 +149,17 @@ async function smallImage(file: File): Promise<File | null> {
 }
 
 export const attachmentSender = createAttachmentSender({
-  upload: async (attempt, onProgress) => {
+  upload: async (attempt, onProgress, signal) => {
     // 보낼 판 = 누른 때 스위치대로(압축판 · 원본) · 굽는 중이면 여기서 기다림(원본이 잘못 나가지 않게)
     const sent = await Promise.all(attempt.originals.map((o) => sendable(o.id, o.file)));
+    if (signal?.aborted) throw stopped();   // 굽는 사이 눌렀으면 안 올림
     // 「원본」으로 보냄 = 서버 original=1(러너가 안 줄이고 file_meta 에 원본 표시 · 형 11-05 09:39 「압축됨 원본 둘중 하나로만 뜨게」)
     const original = sent.some((s) => s.original);
     // 파형 그림(소리·영상 · 고른 순간 구워 둠 · ../shim/wave.ts) = 같은 글에 「<이름>.파형.png」로 같이(형 11-05 09:41 「그 순간에 … 파형 분석해서 같이 공유」) · 못 구웠으면 없이
     const waves = (await Promise.all(attempt.originals.map((o) => waveFile(o.id)))).filter((w): w is File => !!w);
     const only = sent.length === 1 ? sent[0].file : null;
     if (only && only.type.startsWith("video/")) {
-      const r = await uploadChunked(attempt.room, only, attempt.text || "", onProgress, original);
+      const r = await uploadChunked(attempt.room, only, attempt.text || "", onProgress, original, signal);
       if (r.status === 200 && waves.length) {   // 조각 길 = 영상 글 바로 뒤 글 하나로 파형(같은 방 · 글 없이 · 부름 0)
         const wf = new FormData();
         waves.forEach((w, i) => { wf.append("file", w); wf.append(`original_${i}`, "1"); });
@@ -166,7 +181,8 @@ export const attachmentSender = createAttachmentSender({
     if (original) form.set("original", "1");
     if (attempt.text) form.set("text", attempt.text);
     form.set("together", "1");
-    return upload(form, onProgress);
+    if (signal?.aborted) throw stopped();   // 작은 판 굽는 사이 눌렀으면 안 올림
+    return upload(form, onProgress, signal);
   },
   body: (attempt) =>
     post(

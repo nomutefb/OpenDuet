@@ -37,13 +37,13 @@ function Original({ original }: { original: OriginalAttachment }) {
 /** 보내는 중 = 내 말풍선 자리에 먼저 올리고 그림 안 가운데 둥근 게이지(형 11-02 02:21 「이미지 안에서 로딩 동그랗게 차게헤줘 퍼센트로 다 차면 체크 뜨면서 뜨고 항상 채팅 보다 위」) · 그림 = 글 말풍선 위 · 글은 안 띄움
  *   차례 = 그림 흐리게 + 고리가 % 로 참 → 100% = ✓ 그려지고 그림이 또렷해짐(고리는 걷힘) → 서버 답이 오면 진짜 글로 바뀜 · 못 받으면 「전송 확인 필요」 칸 */
 /*   「전송 대기」 = 말풍선 왼쪽 아래(진짜 글이 되면 그 자리에 시각 · 형 11-04 08:05 「일단 대화가 위로 확 보내진다음에 전송 대기가 떳다가 시간으로 바뀔수있어?」) · 사진은 바로 보임(글만 보낼 땐 1.2초 뒤) */
-function Sending({ attempt }: { attempt: SendAttempt }) {
+function Sending({ attempt, onCancel }: { attempt: SendAttempt; onCancel?: () => void }) {
   return (
     <div className="nac-wrow nac-uprow">
       <span className="nac-wait now">전송 대기</span>
       <div className="nac-up" aria-label="첨부 보내는 중">
         <div className="nac-shots">
-          {attempt.originals.map((original) => <Preview key={original.id} file={original.file} p={attempt.progress} />)}
+          {attempt.originals.map((original) => <Preview key={original.id} file={original.file} p={attempt.progress} onCancel={onCancel} />)}
         </div>
         {attempt.text ? <NacText text={attempt.text} /> : null}
       </div>
@@ -57,10 +57,14 @@ function NacText({ text }: { text: string }) {
 }
 
 const RING_C = 2 * Math.PI * 18;
-function Ring({ p }: { p: number }) {
-  const pct = Math.max(0, Math.min(100, Math.round(p * 100))), done = pct >= 100;
+/** 고리 누름 = 이 전송 취소(형 11-10 12:18 「그리고 파일 전송중에 게이지 클릭하면 전공 취소 가능하게」) · 다 올라가기 전(✓ 전)만 눌림 */
+function Ring({ p, onCancel }: { p: number; onCancel?: () => void }) {
+  const pct = Math.max(0, Math.min(100, Math.round(p * 100))), done = pct >= 100, can = !!onCancel && p < 1;
   return (
-    <span className="nac-ring" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={done ? "다 올라감" : `올리는 중 ${pct}%`}>
+    <span
+      className={`nac-ring${can ? " can" : ""}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={done ? "다 올라감" : can ? `올리는 중 ${pct}% · 누르면 취소` : `올리는 중 ${pct}%`}
+      onClick={can ? (e) => { e.preventDefault(); e.stopPropagation(); onCancel?.(); } : undefined}
+    >
       <svg className="nac-ring-o" viewBox="0 0 44 44" aria-hidden="true"><circle className="t" cx="22" cy="22" r="18" /><circle className="f" cx="22" cy="22" r="18" style={{ strokeDasharray: RING_C, strokeDashoffset: RING_C * (1 - pct / 100) }} /></svg>
       {done ? <svg className="nac-ring-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg> : <b>{pct}%</b>}
     </span>
@@ -78,7 +82,7 @@ function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) 
   );
 }
 
-function Preview({ file, p }: { file: File; p: number }) {
+function Preview({ file, p, onCancel }: { file: File; p: number; onCancel?: () => void }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
     const next = URL.createObjectURL(file);
@@ -91,7 +95,7 @@ function Preview({ file, p }: { file: File; p: number }) {
       {img ? <img src={url} alt={file.name} className="nac-img" decoding="async" />
         : vid ? <video src={url} className="nac-img" muted playsInline preload="metadata" aria-label={file.name} />   /* 영상 = 첫 장면만(소리 없음) */
         : <span className="nac-file">{file.name}</span>}
-      <Ring p={p} />
+      <Ring p={p} onCancel={onCancel} />
     </span>
   );
 }
@@ -138,7 +142,7 @@ export function AttachmentRecovery({
   if (part && !shown.length && !waits.length) return null;
   return (
     <div ref={box} className={part === "pending" ? "nac-list flex flex-col gap-2" : "nac-box flex flex-col gap-2 overflow-y-auto"}>
-      {shown.map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} /> : gone.has(attempt.id) ? null : (
+      {shown.map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} onCancel={() => state.cancel(attempt.id)} /> : gone.has(attempt.id) ? null : (
         <section
           key={attempt.id}
           aria-label="첨부 전송 기록"
@@ -146,13 +150,15 @@ export function AttachmentRecovery({
         >
           <AutoClose id={attempt.id} />   {/* 끄기(×) · 5초 뒤 저절로 닫힘 · 원본은 이 탭 보관 그대로(형 11-06 20:31 「끄기버튼만잇으면될듯」 · 「5초는 자동.」) */}
           <p role="status" className="nar-t font-semibold">
-            {attempt.phase === "needs-check"
+            {attempt.phase === "cancelled"
+              ? "취소됨"
+              : attempt.phase === "needs-check"
               ? "전송 확인 필요"
               : attempt.phase === "body-retry"
                 ? "본문 다시 보내기 가능"
                 : "보내는 중"}
           </p>
-          <p className="mt-1">{limeSecret(attempt.detail)}</p>
+          {attempt.phase === "cancelled" ? null : <p className="mt-1">{limeSecret(attempt.detail)}</p>}   {/* 취소됨 = 한 줄(봄 12:19 · 친 글이 있으면 그 글만 아래에 남김 · 다시 쓸 수 있게) */}
           {attempt.text ? (
             <section
               className="nar-body mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap break-words"
@@ -161,6 +167,7 @@ export function AttachmentRecovery({
               {attempt.text}
             </section>
           ) : null}
+          {attempt.phase === "cancelled" ? null : (
           <ul
             className="mt-2 flex flex-wrap gap-3"
             aria-label="보관한 첨부 원본"
@@ -169,6 +176,7 @@ export function AttachmentRecovery({
               <Original key={original.id} original={original} />
             ))}
           </ul>
+          )}
           {attempt.saved.length ? (
             <div className="mt-2">
               <p>저장 확인 · 복사본 {attempt.saved.length}개</p>
