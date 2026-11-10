@@ -1,0 +1,14 @@
+/* 서랍 「프롬프팅」(./kprompt.tsx · 번개 11-10 · 옛 에디터 k.html renderMd 꼴) */
+.nm-kp .nm-kp-out p { margin:6px 0 0; font-size:13px; line-height:1.55; word-break:break-word; }
+.nm-kp .nm-kp-h1 { margin:10px 0 0; font-size:16px; font-weight:800; }
+.nm-kp .nm-kp-h2 { margin:14px 0 0; font-size:14px; font-weight:800; }
+.nm-kp .nm-kp-h3 { margin:10px 0 0; font-size:13px; font-weight:800; color:var(--mut); }
+.nm-kp .nm-kp-code { display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:8px; align-items:start; margin-top:6px; padding:8px 10px; border-radius:10px; border:1px solid var(--glass-line); background:var(--glass); }
+.nm-kp .nm-kp-code pre { margin:0; white-space:pre-wrap; word-break:break-word; font:inherit; font-size:12.5px; line-height:1.5; max-height:40dvh; overflow-y:auto; }
+.nm-kp .nm-kp-refs { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.nm-kp .nm-kp-refs img { width:140px; max-width:44vw; border-radius:10px; display:block; }
+/* 서랍 「번역카드」(./trcard.tsx · 번개 11-10) */
+.nm-kp .nm-tr-stage { margin-top:8px; border-radius:12px; border:1px dashed var(--glass-line); background:var(--glass); display:flex; justify-content:center; overflow:hidden; }
+.nm-kp .nm-tr-cv { display:block; width:100%; max-width:520px; height:auto; }
+.nm-kp .nm-tr-empty { width:100%; min-height:180px; border:0; background:transparent; color:var(--mut); font-size:13px; cursor:pointer; }
+.nm-kp input[type="range"] { flex:1 1 140px; min-width:120px; }
