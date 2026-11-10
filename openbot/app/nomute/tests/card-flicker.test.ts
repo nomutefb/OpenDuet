@@ -9,7 +9,8 @@ const shell = readFileSync(new URL("../../src/styles.css", import.meta.url), "ut
 test("카드 = 손가락 화면만 홀로 · 눈부심 · 그늘 겹 값 고정 + transform 으로만 움직임(PC 손 0)", () => {
   const m = /@media \(hover: none\) \{([\s\S]*?)\n\}/.exec(card.slice(card.indexOf("폰 번쩍 · 득득")));
   assert.ok(m, "hover:none 묶음");
-  for (const sel of ["profile-card__sheen", "profile-card__holo", "profile-card__glare", "profile-card__shade", "profile-card__body::before"]) assert.ok(m[1].includes(sel), sel);
+  for (const sel of ["profile-card__tile", "profile-card__footer", "profile-card__sheen", "profile-card__holo", "profile-card__glare", "profile-card__shade", "profile-card__body::before"]) assert.ok(m[1].includes(sel), sel);   // 타일 · @ 줄 = 안쪽 시차 묶음(형 11-11 08:12 「아직 아주 조금 번쩍」)
+  assert.ok(!/mix-blend-mode:\s*normal/.test(m[1]), "섞기는 안 끔(무지개 죽음)");
   for (const v of ["--pc-pointer-x", "--pc-light-x", "--pc-shift-x", "--pc-active"]) assert.ok(m[1].includes(v), v);
   assert.match(m[1], /\.being-card\.profile-card \{ perspective: none; \}/);   // 기울기 3D → 2D(형 06:39 「좌우로 왓더갓다 할때 다시 문제발생」)
   assert.match(m[1], /\.being-card \.profile-card__body \{ transform: translate\(/);

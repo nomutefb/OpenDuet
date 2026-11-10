@@ -592,6 +592,8 @@
    둘째 판(형 11-11 06:14 dm-sia 「가만히 있을때도 ㅋㅋ 근데 시아꺼가 더.번쩍여. vm이나 맥에 9222 로 보고 테스트 해봐야할거같아」) = 안 만지면 카드 통째 정지(숨쉬기 끔 = ./being-card.tsx · 장식 애니 멈춤) · 겹 통째 밀기도 뺌
    셋째 판(형 06:38~06:39) = 손가락 화면 기울기 3D → 2D(아래 묶음 끝) */
 @media (hover: none) {
+  .being-card .profile-card__tile,   /* 넷째 판(형 11-11 08:12 dm-sia 「아직 아주 조금 번쩍 ㅋㅋ」) = 타일 · @ 줄 안 전부 묶음 — 얼굴 · 무늬 · 글 시차가 섞는 겹(홀로 color-dodge …) 밑에서 따로 움직이면 웹킷이 섞기를 다시 함(짐작) → 카드는 통째로만 움직임 · 빛 · 무지개는 그대로(섞기 끄기 = 무지개가 뿌옇게 죽어서 안 함 · 웹킷 실물) */
+  .being-card .profile-card__footer,
   .being-card .profile-card__sheen,
   .being-card .profile-card__holo,
   .being-card .profile-card__glare,
