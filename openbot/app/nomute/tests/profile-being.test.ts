@@ -13,7 +13,9 @@ test("카드 애 = 카드 한 장만 · 색 원 · 설명 글 카드 안 · 화�
   assert.match(m[1], /className="ypc-orb"/);
   assert.match(m[1], /note=\{p\?\.intro/);
   assert.match(m[1], /onScreen=\{screen \? openScreen : undefined\}/);
-  assert.match(bc, /contactText=\{onScreen \? "화면 보기" : ""\}/);
+  assert.match(m[1], /onDm=\{dm \? go : undefined\}/);   // 형 11-11 08:41 「글구 하단에 화면 보기 좌측엔 1:1 대화. 로」
+  assert.ok(bc.indexOf("1:1 대화</button>") > 0 && bc.indexOf("1:1 대화</button>") < bc.indexOf("화면 보기</button>"), "1:1 대화 = 화면 보기 왼쪽");
+  assert.match(vend, /\{!actions && contactText && \(/);
   assert.match(vend, /note && <p className="profile-card__note">/);
   assert.match(css, /\.ypc\.ypc--being \{[^}]*background: none;/);
   assert.match(css, /\.ypc-veil:has\(> \.ypc--being\) \{ place-items: start center;/);

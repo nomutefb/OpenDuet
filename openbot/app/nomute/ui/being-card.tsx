@@ -184,7 +184,9 @@ export function beingLook(who?: string, name?: string, p?: CardPerson | null): L
 // 「1:1 대화」 단추 없음(형 11-05 「1:1대화 애초에 없어도됑」) · 프로필 창 아래 단추도 카드 있는 애는 없음(profile-card.tsx)
 const SCREEN_IC = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8" /><path d="M12 17v4" /></svg>;
 // note = 카드 안 이름 · 직무 밑 설명 글 · onScreen = @handle 줄 오른쪽 「화면 보기」(형 11-11 06:42 「화면보기 같은거는 @sia 이런 곳에 옮기자」 · 06:43 「설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯」)
-export function BeingCard({ who, name, role, intro, face, person, note, onScreen }: { who: string; name?: string; role?: string; intro?: string; face?: string; person?: CardPerson | null; note?: string; onScreen?: () => void }) {
+const DM_IC = <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z" /></svg>;
+// onDm = 아래 줄 「화면 보기」 왼쪽 「1:1 대화」(형 11-11 08:41 dm-sia 「글구 하단에 화면 보기 좌측엔 1:1 대화. 로」 · 앞 판 11-05 「1:1대화 애초에 없어도됑」을 갈음)
+export function BeingCard({ who, name, role, intro, face, person, note, onScreen, onDm }: { who: string; name?: string; role?: string; intro?: string; face?: string; person?: CardPerson | null; note?: string; onScreen?: () => void; onDm?: () => void }) {
   const look = beingLook(who, name, person);
   // 숨쉬기 흔들림 끔(형 11-11 06:12 dm-sia 「근데 번쩍임 아직 있긴있어 내 폰만 그럴수도 이펙트가 조금 화려해서그런가봐」) — 손가락 화면은 안 만지면 카드가 가만히 · 만지면 따라옴 · 마우스는 올리면 따라옴(앞 판 = 손가락 화면만 30fps 숨쉬기 · 번개 짚음 = 그게 카드 밑 스타일을 매 프레임 다시 셈)
   const font: FontKey = look?.font && look.font in FONTS ? look.font : "bagel-fat-one";
@@ -200,9 +202,13 @@ export function BeingCard({ who, name, role, intro, face, person, note, onScreen
         handle={look.handle || ""}
         status={look.meta}
         statusColor={look.dot || "#CFFF40"}
-        contactText={onScreen ? "화면 보기" : ""}
-        contactIcon={SCREEN_IC}
-        onContactClick={onScreen}
+        contactText=""
+        actions={onDm || onScreen ? (
+          <span className="bc-acts">
+            {onDm ? <button type="button" className="profile-card__contact" onClick={onDm} aria-label={`${name || who} 1:1 대화`}>{DM_IC}1:1 대화</button> : null}
+            {onScreen ? <button type="button" className="profile-card__contact" onClick={onScreen} aria-label={`${name || who} 화면 보기`}>{SCREEN_IC}화면 보기</button> : null}
+          </span>
+        ) : undefined}
         note={note}
         theme="dark"
         radius={18}

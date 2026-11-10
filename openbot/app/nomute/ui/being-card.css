@@ -58,8 +58,11 @@
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
 }
 .being-card:has(.profile-card__note) .profile-card__tile { aspect-ratio: 3 / 4.4; }   /* 글 자리만큼 세로로(이름 · 직무가 위로 올라가도 얼굴과 안 겹침) */
-.being-card .profile-card__footer:has(.profile-card__contact) { justify-content: space-between; }
-.being-card .profile-card__contact { gap: 5px; height: 34px; padding: 0 12px; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
+.being-card .profile-card__footer:has(.profile-card__contact) { justify-content: space-between; gap: 8px; padding-left: 12px; padding-right: 12px; }
+.being-card .profile-card__footer:has(.profile-card__contact) .profile-card__meta { min-width: 0; flex: 0 1 auto; }   /* 단추 둘(1:1 대화 · 화면 보기)이 들어가면 @ 알약이 좁아짐 · 넘치면 말줄임 */
+.being-card .profile-card__footer:has(.profile-card__contact) .profile-card__status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.being-card .bc-acts { display: flex; flex: none; gap: 6px; }
+.being-card .profile-card__contact { gap: 4px; height: 32px; padding: 0 10px; font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; }
 
 /* ───────── 시아 · 초저녁 하늘(남색 → 저녁 보라 → 지평선 주황) · 앱 연두 가는 테 · 작은 별 + 김 나는 밥그릇 ───────── */
 .bc-sia .profile-card__body {
@@ -614,6 +617,8 @@
   .being-card.profile-card { perspective: none; }
   .being-card .profile-card__body { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(calc(var(--pc-rotate-y) * -0.12)); }
   .being-card .profile-card__photo { -webkit-backface-visibility: visible; backface-visibility: visible; }
+  /* 다섯째 판(형 11-11 08:41 「거의 나아졌는데 아주 잔잔하게 조금 남아 ㅋㅋㅋ 아주빠르게」) = 결 겹의 1px 가로줄(3px 간격)이 카드가 1° 돌거나 반 픽셀 밀릴 때마다 픽셀 사이에서 반짝임(짐작 · 모아레) → 폰에서만 줄 뺌 · 잡티는 둠(빼면 얼굴이 바램 · 웹킷 실물) */
+  .bc-sia .profile-card__holo-glow, .bc-deng .profile-card__holo-glow { background-image: var(--pc-grain); background-size: 180px 180px; background-position: 0 0; }
   /* 안 만질 때도 도는 장식 = 「움직임 줄이기」 판과 같게 멈춤(시아 김 · 뎅 소용돌이 · 꼬리) — 섞는 겹 · 마스크 안에서 매 프레임 다시 섞이던 것 · 천둥 번쩍(bc-bolt)은 설계라 둠 */
   .being-card .bc-steam { animation: none; opacity: 0.55; }
   .bc-deng .bc-swirl path, .bc-deng .bc-trail path { animation: none; }
