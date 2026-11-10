@@ -1,0 +1,13 @@
+/* 썸네일 칸 「사진 5장 더」 · 「썸네일 다시」(./thumb-more.tsx · 봄바람 잡) — 칩 = .yset-chip · 만드는 중 = 피드 칸(.nm-feed-busy) 결 · 돈 드는 길 = 한 번 누르면 호박색 · 3.5초 안에 한 번 더(피드 칸 .nm-feed-arm 과 같은 색) */
+.nm-thm { display:flex; flex-direction:column; gap:6px; }
+.nm-thm-chip:disabled { opacity:.45; cursor:not-allowed; }
+.nm-thm-chip.nm-thm-arm { background:#ffb340; color:#1a1a1a; border-color:#ffb340; }
+.nm-th .nm-th-tools:has(.nm-thm-chip) { flex-wrap:wrap; justify-content:flex-end; }   /* 칩 셋 = 폰 폭에서 넘치면 줄 바꿈 */
+.nm-thm .nm-thm-busy { margin:0; font-size:var(--fs-xs); font-weight:var(--fw-b); color:var(--accent); animation:nmNdPulse 1.4s ease-in-out infinite; }
+html:not(.dark) .nm-thm .nm-thm-busy { color:#4f7a00; }
+.nm-thm .nm-thm-why { margin:0; font-size:var(--fs-sm); line-height:1.45; color:var(--mut); }
+.nm-thm .nm-thm-why.pay { color:#b86e00; } .dark .nm-thm .nm-thm-why.pay { color:#ffb340; }
+.nm-thm .nm-thm-note { margin:0; font-size:var(--fs-sm); line-height:1.45; padding:6px 10px; border-radius:var(--r-s, 9px); border:1px solid var(--glass-line); background:var(--glass); }
+.nm-thm .nm-thm-note.ok { color:var(--accent); } html:not(.dark) .nm-thm .nm-thm-note.ok { color:#4f7a00; }
+.nm-thm .nm-thm-note.err { color:#ff8a8a; } html:not(.dark) .nm-thm .nm-thm-note.err { color:#d23b3b; }
+@media (prefers-reduced-motion:reduce) { .nm-thm .nm-thm-busy { animation:none; } }

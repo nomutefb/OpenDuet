@@ -1,6 +1,6 @@
 // 썸네일 후보·카드뉴스 넘기기 + 크게 보기(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 //   원본 = 에디터 viewer/index.html thumbSec·thumbStatic(검색·AI 두 줄 4:5 넘기기 · 번호 · 저장 · AI 만 좋음/아쉬움) · thumbPromptPanel(프롬프트 4종) · feedSec(카드 이미지) · openLightbox(넘기며 크게 · 저장 · 출처)
-//   쓰는 손 = ./thumb-gen.tsx(이미지 생성 창 · 이 화풍 수정 · 프롬프트만 뽑기 · 만드는 중 칸 · 뜸 11-10 봄 23:09 나눔) — 앞 판 = 「에디터 몫 → 「에디터에서 고치기」 한 단추」
+//   쓰는 손 = ./thumb-gen.tsx(이미지 생성 창 · 이 화풍 수정 · 프롬프트만 뽑기 · 만드는 중 칸 · 뜸 11-10 봄 23:09 나눔) · ./thumb-more.tsx(사진 5장 더 · 썸네일 다시 = 4화풍 통째 · 시아) — 앞 판 = 「에디터 몫 → 「에디터에서 고치기」 한 단추」
 //   크게 보기 = 대화창 사진 크게 보기(.nm-zoom · ui/office-chat.tsx zoomImage)와 같은 겉·같은 닫는 길(기록 한 칸 · 폰 뒤로 · Esc · 아무 데나 누름) + 좌우 넘김
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -9,6 +9,7 @@ import { inAppHref } from "./inapp";
 import { type Art, type Thumb, type Vote, abs, dlHref, dlName, getJson, imgOf, useGo, voteGet, voteSend, voteSet } from "./news-data";
 import { GenPane, IcPen, PendSlot, PromptDry, RedoPane, usePendWatch } from "./thumb-gen";
 import { baseSid } from "./thumb-gen-opts";
+import { useThumbMore } from "./thumb-more";
 
 export type Pic = { src: string; name: string; label?: string; link?: string };
 const SV = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
@@ -155,6 +156,7 @@ export function ThumbStrip({ a }: { a: Art }) {
   const [zoom, setZoom] = useState<{ pics: Pic[]; at: number } | null>(null), [fail, setFail] = useState(false);
   const [open, setOpen] = useState(false), [redo, setRedo] = useState<{ sid: string; label: string } | null>(null);
   const pend = usePendWatch(a);
+  const more = useThumbMore(a);   // 사진 5장 더 · 썸네일 다시(./thumb-more.tsx · 시아)
   const genPend = pend.filter((p) => p.kind === "gen"), redoPend = pend.filter((p) => p.kind === "redo");
   const redoBusy = (sid: string) => redoPend.some((p) => !p.fail && p.base === baseSid(sid));
   const onZoom = (pics: Pic[], at: number) => setZoom({ pics, at });
@@ -164,9 +166,11 @@ export function ThumbStrip({ a }: { a: Art }) {
       <div className="nm-th-top">
         <span className="nm-th-ttl">썸네일 후보</span><i className="nm-th-sec">{head}</i>
         <span className="nm-th-tools">
+          {more.chips}
           <button type="button" className={`yset-chip nm-th-gen${open ? " on" : ""}`} aria-expanded={open} title="AI 이미지 생성 — 옵션 골라 그리기(돈)" onClick={() => { setOpen((o) => !o); setRedo(null); }}>＋ AI 생성</button>
         </span>
       </div>
+      {more.pane}
       {open ? <GenPane a={a} onDone={() => setOpen(false)} /> : null}
       {search.length ? <Row a={a} kind="search" title="검색" items={search} onZoom={onZoom} onFail={() => setFail(true)} /> : null}
       {gen.length || pend.length ? (
