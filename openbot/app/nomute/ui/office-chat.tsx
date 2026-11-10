@@ -67,6 +67,7 @@ import { RoomBoard } from "./room-board";   // 방 띠(칩·열린 제안) = 입
 import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
+import { pickM } from "./pick-msg";
 import { ThumbCard, thumbOf, type ThumbRef } from "./thumb-card";   // 별 「[요약 완료]」 글 바로 위 썸네일 초안 그림(형 11-02 11:44 「별 요약 과 함께 요약 바로 위에 오면 됨 이미지로」)   // 글 속 첫 주소 = 말풍선 아래 미리보기 카드(형 11-02 07:13 「채팅에는 일반적인 채팅 앱처럼 보이면 됨」)
 import "./yeta-chat.css";
 import { whoName } from "./who-name";
@@ -267,7 +268,7 @@ function flatView(list: Msg[]): Item[] {
     if (m.kind === "sent") { pill = sentInto(out, pill, m); continue; }
     if (mineOf(m)) pill = null;
     if (evM(m)) { out.push({ t: "ev", m }); continue; }
-    out.push(m.kind === "system" && !hyungApp(m) ? { t: "sys", msgs: [m] } : { t: "msg", m });
+    out.push(m.kind === "system" && !hyungApp(m) && !pickM(m) ? { t: "sys", msgs: [m] } : { t: "msg", m });
   }
   return out;
 }
@@ -296,7 +297,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
     }
   }
   const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && (!toOthers(m) || hyAnswer.has(m.id)) && !answersOther.has(m.id));
-  const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m);
+  const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m) && !pickM(m);
   const out: Item[] = [];
   let pill: { t: "sent"; msgs: Msg[] } | null = null;
   for (let i = 0; i < all.length; i++) {
@@ -305,7 +306,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
     if (m.kind === "sent") { pill = sentInto(out, pill, m); continue; }   // 봇끼리 보낸 흔적 = 묶음에 안 섞음 · 형 말 사이 것끼리 알약 하나(SentGroup)
     if (mineOf(m)) pill = null;
     if (evM(m)) { out.push({ t: "ev", m }); continue; }
-    if (showM(m)) { out.push({ t: "msg", m }); continue; }
+    if (showM(m) || pickM(m)) { out.push({ t: "msg", m }); continue; }
     if (sysM(m)) { const l = [m]; while (i + 1 < all.length && !showM(all[i + 1]) && sysM(all[i + 1]) && !wakeM(all[i + 1]) && !evM(all[i + 1])) l.push(all[++i]); out.push({ t: "sys", msgs: l }); continue; }
     const b = [m];
     while (i + 1 < all.length && !showM(all[i + 1]) && !sysM(all[i + 1]) && !evM(all[i + 1])) b.push(all[++i]);
