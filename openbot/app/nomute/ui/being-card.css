@@ -575,8 +575,8 @@
 /* 폰 번쩍 · 득득(형 11-10 07:10 dm-sia 「시아야 애들 플필카드 좀 번쩍이는데 이거 나증에 번개랑 상의해서 해결해줘 이쁜데 득득거림」 · 번개 11-11 00:55 짚음 · 시아 짬)
    까닭(짐작 · 아이폰 실물 못 봄) = 폰은 안 만져도 숨쉬기가 30fps 로 --pc-pointer · light · band · shift · active 를 바꿈 → 그 값을 background · background-position · mask-position · filter 안에서 쓰는 겹 다섯(sheen · holo(+glow · shift) · glare · shade · 애마다 body::before)이
    색 섞기(mix-blend · background-blend) 채로 매 프레임 통째로 다시 구워짐 → 웹킷이 한두 프레임 늦거나 빈 칸 = 번쩍
-   고침 = 손가락 화면(hover:none)만 그 겹들 안에서 값을 한 자리에 고정(그리기 다시 0) · 움직임은 겹 통째 transform(합성기 몫)으로만 · 몸통 기울기 · 얼굴 · 무늬 시차는 그대로 · PC(마우스) 손 0 */
-.being-card.profile-card { --bc-sx: var(--pc-shift-x); --bc-sy: var(--pc-shift-y); }   /* 뿌리 값 사본 = 아래에서 겹마다 --pc-shift 를 0 으로 묶어도 움직임은 이 값으로 */
+   고침 = 손가락 화면(hover:none)만 그 겹들 안에서 값을 한 자리에 고정(그리기 다시 0) · 몸통 기울기 · 얼굴 · 무늬 시차는 그대로 · PC(마우스) 손 0
+   둘째 판(형 11-11 06:14 dm-sia 「가만히 있을때도 ㅋㅋ 근데 시아꺼가 더.번쩍여. vm이나 맥에 9222 로 보고 테스트 해봐야할거같아」) = 안 만지면 카드 통째 정지(숨쉬기 끔 = ./being-card.tsx · 장식 애니 멈춤) · 겹 통째 밀기도 뺌 · 자르는 타일에 마스크 */
 @media (hover: none) {
   .being-card .profile-card__sheen,
   .being-card .profile-card__holo,
@@ -589,11 +589,11 @@
     --pc-shift-x: 0px; --pc-shift-y: 0px;
     --pc-reach: 0.3; --pc-tilt: 0.12; --pc-active: 0.55;
   }
-  .being-card .profile-card__holo,
-  .being-card .profile-card__sheen {
-    transform: translate3d(calc(var(--bc-sx) * -1), calc(var(--bc-sy) * -1), 0) scale(1.1);   /* 박 띠가 손가락 반대로 미끄러짐 = 합성만 · 1.1 = 가장자리 안 비게(시차 최대 10px < 타일 한쪽 늘어난 몫 ≈ 14px) */
-    will-change: transform;
-  }
-  .being-card .profile-card__glare,
-  .being-card .profile-card__shade { transform: translate3d(calc(var(--bc-sx) * 0.8), calc(var(--bc-sy) * 0.8), 0) scale(1.06); will-change: transform; }   /* 눈부심 · 그늘 = 손가락 쪽으로 · 8px < 한쪽 늘어난 몫 ≈ 10px */
+  /* 겹은 통째로도 안 움직임(형 11-11 06:12 「근데 번쩍임 아직 있긴있어 … 이펙트가 조금 화려해서그런가봐」 · 번개 짚음 = 웹킷은 섞는 겹(color-dodge · overlay · screen)이 transform 만 바뀌어도 섞기를 통째로 다시 함)
+     → 박 · 눈부심 · 그늘은 한 자리에 서 있고, 카드 몸통 기울기 · 얼굴 · 무늬 시차만 손가락을 따라감 · 앞 판(2e75347) = 겹을 translate3d 로 밀었음 */
+  /* 둥근 모서리 + 자르기 + 3D 기울기 = 아이폰에서 모서리가 한 프레임 네모로 튀는 꼴(번개 짚음) → 자르는 두 판에 흰 마스크 한 장 */
+  .being-card .profile-card__tile { -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); }   /* 몸통은 바깥 그림자가 있어 안 씌움 · 자르는 건 타일 */
+  /* 안 만질 때도 도는 장식 = 「움직임 줄이기」 판과 같게 멈춤(시아 김 · 뎅 소용돌이 · 꼬리) — 섞는 겹 · 마스크 안에서 매 프레임 다시 섞이던 것 · 천둥 번쩍(bc-bolt)은 설계라 둠 */
+  .being-card .bc-steam { animation: none; opacity: 0.55; }
+  .bc-deng .bc-swirl path, .bc-deng .bc-trail path { animation: none; }
 }

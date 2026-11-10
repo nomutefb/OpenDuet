@@ -1,7 +1,7 @@
 // 애들 프로필 카드(형 11-05 「시아, 프로필카드 누르면 이 퀄리티 나오게 가능해?」 · 「애들 프로필 카드가 하나씩 잇는 느낌인거거든? 시아 너꺼부터 하나 만들어보면될듯 그럼 다음껀 쉬우니까」 · 「만들 필요가없어 카피해서 써」)
 //   몸통 = react-bits ProfileCard 그대로(../vendor/react-bits/ProfileCard · 기울기·눈부심·홀로 = rAF 한 번 + CSS 변수 · 프레임 쪼개기 없음)
 //   애마다 다른 것 = 아래 LOOKS 한 칸 + being-card.css 의 .bc-<id> 블록 하나 · 다음 애 = LOOKS 에 한 칸 + CSS 블록 하나 추가
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
 import ProfileCard from "../vendor/react-bits/ProfileCard/ProfileCard";
 import "./being-card.css";
 
@@ -184,8 +184,7 @@ export function beingLook(who?: string, name?: string, p?: CardPerson | null): L
 // 「1:1 대화」 단추 없음(형 11-05 「1:1대화 애초에 없어도됑」) · 프로필 창 아래 단추도 카드 있는 애는 없음(profile-card.tsx)
 export function BeingCard({ who, name, role, intro, face, person }: { who: string; name?: string; role?: string; intro?: string; face?: string; person?: CardPerson | null }) {
   const look = beingLook(who, name, person);
-  // 손가락 화면(마우스 없음)만 숨쉬기 흔들림 · 마우스는 올리면 따라옴
-  const [idle] = useState(() => typeof window !== "undefined" && !!window.matchMedia?.("(hover: none)").matches);
+  // 숨쉬기 흔들림 끔(형 11-11 06:12 dm-sia 「근데 번쩍임 아직 있긴있어 내 폰만 그럴수도 이펙트가 조금 화려해서그런가봐」) — 손가락 화면은 안 만지면 카드가 가만히 · 만지면 따라옴 · 마우스는 올리면 따라옴(앞 판 = 손가락 화면만 30fps 숨쉬기 · 번개 짚음 = 그게 카드 밑 스타일을 매 프레임 다시 셈)
   const font: FontKey = look?.font && look.font in FONTS ? look.font : "bagel-fat-one";
   useDisplayFont(look ? font : null);
   if (!look) return null;
@@ -206,7 +205,6 @@ export function BeingCard({ who, name, role, intro, face, person }: { who: strin
         glare={look.glare ?? 0.5}
         tiltStrength={14}
         parallax={10}
-        idle={idle}
       >
         {look.art}
         <span className="bc-halo" aria-hidden="true" />
