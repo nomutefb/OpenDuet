@@ -58,3 +58,21 @@ test("자를 곳 먼저 보기 = 스캔 opts · 고른 뒤 cutref · cutoff", as
   assert.ok(/^[0-9]{1,4}(,[0-9]{1,4}){0,199}$/.test(String(o.cutoff)), "서버 cutoff 정규식");
   assert.ok(cutsDone({ rm: [] })); assert.ok(!cutsDone({})); assert.equal(tc(75.25), "1:15.2");
 });
+
+test("자막 고쳐 다시 입히기 = subs.json 줄 · 고친 줄만 segs · 별표 키워드 지킴", async () => {
+  const { subRows, effSegs, reburnBody, reburnOpts, canReburn } = await import("../ui/vedit-logic.ts");
+  const j = { segs: [{ s: 0, e: 1.234, ko: "오늘 *속보* 입니다" }, { s: 1.2, e: 3, ko: "", src: "hello world" }, { s: 3, e: 3, ko: "빈 길이" }] };
+  const rows = subRows(j);
+  assert.equal(rows.length, 3); assert.equal(rows[0].t, "오늘 속보 입니다"); assert.equal(rows[1].f, "src");
+  assert.deepEqual(effSegs(rows), [{ s: 0, e: 1.2, ko: "오늘 *속보* 입니다" }, { s: 1.2, e: 3, ko: "", src: "hello world" }]);   // 겹침 = 앞 끝을 1.2 로 · 길이 0 = 뺌
+  const same = reburnBody("261110183000-abc123", rows, subRows(j), { lang: "dual", burn: true, aud_norm: true, vid_ar: "9:16" });
+  assert.equal(same.edited, false); assert.deepEqual(same.body, { reburn: "261110183000-abc123", opts: { lang: "dual", burn: true } });
+  const ed = rows.map((r, i) => (i === 0 ? { ...r, t: "오늘 속보 였습니다" } : r));
+  const b = reburnBody("261110183000-abc123", ed, subRows(j));
+  assert.equal(b.edited, true); assert.deepEqual((b.body!.segs as { ko: string }[])[0].ko, "오늘 *속보* 였습니다");
+  assert.ok(reburnBody("261110183000-abc123", rows.map((r) => ({ ...r, t: " " })), subRows(j)).error);
+  assert.deepEqual(reburnOpts({ cutref: "x", cutlv: "std" }), { cutlv: "std", cut: true, burn: true });
+  assert.ok(canReburn("https://r2.example/ly_out/x/src.mp4")); assert.ok(!canReburn("")); assert.ok(!canReburn("ly_out/x/src.mp4"));
+  const t = Date.UTC(2026, 10, 10, 14, 0, 0);   // 23:00 KST
+  assert.ok(canReburn("https://r2.example/up_src/261110220000-ab.mp4", t)); assert.ok(!canReburn("https://r2.example/up_src/261108220000-ab.mp4", t));
+});

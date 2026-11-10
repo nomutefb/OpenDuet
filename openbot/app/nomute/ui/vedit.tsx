@@ -1,7 +1,7 @@
 // 서랍 「영상 편집」 = 옛 에디터 ＋ 에디터 › 영상 편집 탭(viewer/edit.html)을 앱 안으로 · 판 1(team-4 · 깃 11-10 · 형 14:23 「응 밖에잇는거 다 옮길거야」 · 12:17 「기존 앱 화면으로 가서 받는게 아니라 자체로」)
 //   길 = 원본과 같음: 파일 = GET api/upload(쓸 수 있나) → POST {action:create} → PUT ?key&uploadId&n(32MB 조각 · 하나씩 · 조각마다 한 번 더) → POST {action:complete} · 실패 = {action:abort}
 //          만들기 = POST /api/edit {r2key, name | url, opts, lbl} → {id, out} · 5초마다 ly_out/<id>/error.log → GET /api/edit?stat=<id>(video.json) · 끝 = ./vedit-logic landed
-//          완성작 = GET /api/edit?recent=24 · 받기 = /api/dl?u=&n= · 판 2(아직) = 자를 곳 먼저 보기 · 자막 고쳐 다시 입히기 · 트래킹 · 베스트컷 → 그때까지는 옛 화면
+//          완성작 = GET /api/edit?recent=24 · 받기 = /api/dl?u=&n= · 판 2 = 자를 곳 먼저 보기 · 베스트컷 · 자막 고쳐 다시 입히기(reburn) · 트래킹(아직 → 옛 화면)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
@@ -12,9 +12,9 @@ import "./ys.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
 import { r2Upload } from "./r2-upload";
-import { SELS, OKEY, PEND, POLL_MS, BUDGET_S, optsPick, buildOpts, hasAction, fileWhy, landed, absUrl, dlHref, FT_POLL_MS, FT_LIMIT_MS, FT_KEY, FT_N, ftOpts, ftDone, scanOpts, withCut, cutsDone, tc, CUT_KIND, type VOpts, type VRes, type Frames, type Cuts } from "./vedit-logic";
+import { SELS, OKEY, PEND, POLL_MS, BUDGET_S, optsPick, buildOpts, hasAction, fileWhy, landed, absUrl, dlHref, FT_POLL_MS, FT_LIMIT_MS, FT_KEY, FT_N, ftOpts, ftDone, scanOpts, withCut, cutsDone, tc, CUT_KIND, subRows, reburnBody, canReburn, type SubRow, type VOpts, type VRes, type Frames, type Cuts } from "./vedit-logic";
 
-type Job = { id: string; lbl: string; t0: number; st: "run" | "done" | "fail"; msg?: string; res?: VRes; kind?: "scan"; src?: Record<string, string>; cuts?: Cuts; off?: number[] };
+type Job = { id: string; lbl: string; t0: number; st: "run" | "done" | "fail"; msg?: string; res?: VRes; kind?: "scan"; src?: Record<string, string>; cuts?: Cuts; off?: number[]; made?: Record<string, unknown>; prev?: string };
 type FtJob = { id: string; out: string; lbl: string; t0: number; st: "run" | "done" | "fail"; msg?: string; frames?: { url?: string; t?: number; quote?: string }[] };
 const load = <T,>(k: string, d: T): T => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return v ?? d; } catch { return d; } };
 const save = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 이 판만 */ } };
@@ -47,7 +47,8 @@ export function VeditModal() {
         const el = await text("/ly_out/" + encodeURIComponent(j0.id) + "/error.log");
         if (el.trim()) { upd(j0.id, (j) => ({ ...j, st: "fail", msg: el.trim().slice(-300) })); return; }
         const d = await stat(j0.id);
-        if (landed(d, j0.t0)) { upd(j0.id, (j) => (d!.url ? { ...j, st: "done", res: d!, msg: "" } : { ...j, st: "fail", msg: String(d!.error || d!.skip || "실패").slice(0, 300) })); if (d!.url) { setOpen(j0.id); void loadRecent(); } return; }
+        if (landed(d, j0.t0) && !(j0.prev && d!.url === j0.prev)) {   // 다시 입히기 = 옛 판 url 은 끝으로 안 셈(edit.html lyPollVideo prevUrl)
+          upd(j0.id, (j) => (d!.url ? { ...j, st: "done", res: d!, msg: "" } : { ...j, st: "fail", msg: String(d!.error || d!.skip || "실패").slice(0, 300) })); if (d!.url) { setOpen(j0.id); void loadRecent(); } return; }
         if (Date.now() - j0.t0 > BUDGET_S * 2000) { upd(j0.id, (j) => ({ ...j, st: "fail", msg: "90분 넘게 결과가 없어 추적을 멈췄어 — 오면 완성작에 올라와" })); return; }
         await new Promise((r) => setTimeout(r, POLL_MS));
       }
@@ -105,9 +106,10 @@ export function VeditModal() {
     setBusy(true); setErr("");
     try {
       const lbl = sj.lbl.replace(/^자를 곳 · /, "");
-      const { r, d } = await post("/api/edit", { ...sj.src, opts: withCut(buildOpts(opts), sj.id, sj.off || []), lbl });
+      const o = withCut(buildOpts(opts), sj.id, sj.off || []);
+      const { r, d } = await post("/api/edit", { ...sj.src, opts: o, lbl });
       if (!r.ok || !d?.ok || !d.id) { setErr(String(d?.error || "만들기 요청 실패 · HTTP " + r.status)); return; }
-      const j: Job = { id: String(d.id), lbl, t0: Date.now(), st: "run" };
+      const j: Job = { id: String(d.id), lbl, t0: Date.now(), st: "run", made: o };
       setJobs((a) => { const b = [j, ...a.filter((x) => x.id !== j.id)].slice(0, 20); save(PEND, b); return b; });
       setOpen(j.id); void poll(j);
     } catch (e) { setErr(String((e as Error)?.message || e).slice(0, 200)); }
@@ -142,7 +144,7 @@ export function VeditModal() {
       const lbl = (file ? file.name : url.trim().replace(/^https?:\/\/(www\.)?/, "")).slice(0, 80);
       const { r, d } = await post("/api/edit", { ...src, opts: o, lbl });
       if (!r.ok || !d?.ok || !d.id) { setErr(String(d?.error || "만들기 요청 실패 · HTTP " + r.status)); return; }
-      const j: Job = { id: String(d.id), lbl, t0: Date.now(), st: "run" };
+      const j: Job = { id: String(d.id), lbl, t0: Date.now(), st: "run", made: o };
       setJobs((a) => { const b = [j, ...a.filter((x) => x.id !== j.id)].slice(0, 20); save(PEND, b); return b; });
       setFile(null); setUrl(""); setOpen(j.id);
       void poll(j);
@@ -150,6 +152,11 @@ export function VeditModal() {
     finally { setBusy(false); setPct(-1); }
   };
   const openRecent = async (id: string) => { if (open === id) { setOpen(""); return; } setOpen(id); if (!(id in peek)) { const d = await stat(id); setPeek((m) => ({ ...m, [id]: d })); } };
+  const reburned = (id: string, lbl: string, prev: string, made?: Record<string, unknown>) => {   // 다시 입히기 보냄 = 같은 id 를 「만드는 중」으로 · 옛 url 이 바뀌면 끝
+    const j: Job = { id, lbl: lbl.startsWith("다시 입히기 · ") ? lbl : "다시 입히기 · " + lbl, t0: Date.now(), st: "run", made, prev };
+    setJobs((a) => { const b = [j, ...a.filter((x) => x.id !== id)].slice(0, 20); save(PEND, b); return b; });
+    setOpen(id); void poll(j);
+  };
   const mine = new Set(jobs.map((j) => j.id)), others = recent.filter((id) => !mine.has(id));
 
   return (
@@ -197,7 +204,7 @@ export function VeditModal() {
                   <button type="button" className="go" disabled={busy} onClick={() => void makeFromScan(j)}>{"이대로 만들기(" + ((j.cuts.rm || []).length - (j.off || []).length) + "곳 자름)"}</button>
                 </div>
               ) : null}
-              {j.st === "done" && j.res?.url && open === j.id ? <Player r={j.res} name={j.lbl} /> : null}
+              {j.st === "done" && j.res?.url && open === j.id ? <><Player r={j.res} name={j.lbl} />{canReburn(j.res.src) ? <SubsEdit id={j.id} onSent={(b) => reburned(j.id, j.lbl, j.res!.url!, b)} made={j.made} /> : null}</> : null}
               {j.st !== "run" ? <button type="button" className="go gray" onClick={() => setJobs((a) => { const b = a.filter((x) => x.id !== j.id); save(PEND, b); return b; })}>목록에서 지움</button> : null}
             </div>
           ))}
@@ -231,11 +238,11 @@ export function VeditModal() {
             {others.map((id) => (
               <div key={id} role="listitem" className="nm-q-row nm-memo-row nm-ys-hist">
                 <button type="button" className="qm" onClick={() => void openRecent(id)} aria-expanded={open === id}><i>{id}</i><small>{peek[id]?.dur ? durTxt(peek[id]!.dur) : ""}</small></button>
-                {open === id ? (peek[id]?.url ? <Player r={peek[id]!} name={id} /> : <p className="nm-chan-msg">{id in peek ? "결과를 못 읽었어" : "읽는 중…"}</p>) : null}
+                {open === id ? (peek[id]?.url ? <><Player r={peek[id]!} name={id} />{canReburn(peek[id]!.src) ? <SubsEdit id={id} onSent={() => reburned(id, id, peek[id]!.url!)} /> : null}</> : <p className="nm-chan-msg">{id in peek ? "결과를 못 읽었어" : "읽는 중…"}</p>) : null}
               </div>
             ))}
           </div>
-          <p className="nm-dl-why">자막 고쳐 다시 입히기 · 트래킹 = 다음 판(그때까지는 옛 에디터)</p>
+          <p className="nm-dl-why">트래킹 = 다음 판(그때까지는 옛 에디터)</p>
         </div>
       </div>
     </Pane>
@@ -250,6 +257,61 @@ function Player({ r, name }: { r: VRes; name: string }) {
       <video src={v} poster={r.poster ? absUrl(r.poster) : undefined} controls playsInline preload="metadata" />
       {r.note ? <p className="nm-dl-why">{String(r.note).slice(0, 200)}</p> : null}
       <div className="nm-ys-links"><a className="go" href={dlHref(r.url, (name || "edit").replace(/\.[a-z0-9]+$/i, "") + "-편집.mp4")}>영상 받기</a></div>
+    </div>
+  );
+}
+
+// 자막 고쳐 다시 입히기(edit.html 3335-3367) = subs.json 줄마다 고침 → POST /api/edit {reburn, opts, segs?} · 고친 게 없으면 지금 자막 그대로 다시 굽기
+function SubsEdit({ id, made, onSent }: { id: string; made?: Record<string, unknown>; onSent: (made?: Record<string, unknown>) => void }) {
+  const [orig, setOrig] = useState<SubRow[] | null>(null), [rows, setRows] = useState<SubRow[]>([]), [on, setOn] = useState(false), [busy, setBusy] = useState(false), [msg, setMsg] = useState("");
+  const getSubs = async (): Promise<SubRow[] | null> => {   // null = 못 읽음(일시 장애) · [] = 없음
+    const t = await text("/ly_out/" + encodeURIComponent(id) + "/subs.json");
+    if (!t) return [];
+    try { return subRows(JSON.parse(t)); } catch { return null; }
+  };
+  const toggle = async () => {
+    if (on) { setOn(false); return; }
+    setOn(true); setMsg("");
+    if (orig && orig.length) return;
+    const r = await getSubs();
+    if (r) { setOrig(r); setRows(r); }
+    setMsg(!r ? "자막을 못 읽었어 — 잠시 뒤 다시 열어 줘" : !r.length ? "이 작업엔 고칠 자막(subs.json)이 없어" : "");
+  };
+  const send = async () => {
+    if (busy || !orig) return;
+    setBusy(true); setMsg("");
+    try {
+      const rb = reburnBody(id, rows, orig, made);
+      if (rb.error) { setMsg(rb.error); return; }
+      if (rb.edited) {   // 보내기 직전 서버 판 대조(edit.html lyRebase) — 그 사이 다른 데서 다시 구웠으면 내 낡은 판으로 덮지 않음
+        const fresh = await getSubs();
+        if (!fresh) { setMsg("지금 서버 자막을 못 읽었어 — 덮을 수 있어서 멈췄어, 잠시 뒤 다시 눌러 줘"); return; }
+        if (JSON.stringify(fresh) !== JSON.stringify(orig)) { setOrig(fresh); setRows(fresh); setMsg("그 사이 다른 데서 자막이 바뀌었어 — 최신 판으로 다시 띄웠어, 한 번 더 고쳐 줘"); return; }
+      }
+      const { r, d } = await post("/api/edit", rb.body);
+      if (!r.ok || !d?.ok) { setMsg(String(d?.error || "다시 입히기 실패 · HTTP " + r.status)); return; }
+      setOn(false); onSent(made);
+    } catch (e) { setMsg(String((e as Error)?.message || e).slice(0, 200)); }
+    finally { setBusy(false); }
+  };
+  const dirty = !!orig && JSON.stringify(rows) !== JSON.stringify(orig);
+  return (
+    <div className="nm-ved-subs">
+      <div className="nm-ys-links"><button type="button" className="go gray" onClick={() => void toggle()} aria-expanded={on}>{on ? "자막 고치기 닫기" : "자막 고쳐 다시 입히기"}</button></div>
+      {on && rows.length ? (
+        <>
+          <p className="nm-dl-why">{"자막 " + rows.length + "줄 · 줄을 비우면 그 줄은 빠져 · 고친 게 없으면 지금 자막 그대로 다시 구워"}</p>
+          <ol className="nm-ys-steps">{rows.map((r, i) => (
+            <li key={i}><span className="nm-ved-tc">{tc(r.s) + "~" + tc(r.e)}</span>
+              <input type="text" className="nm-dl-q" value={r.t} aria-label={(i + 1) + "번 자막"} maxLength={200} onChange={(e) => { const v = e.target.value; setRows((a) => a.map((x, k) => (k === i ? { ...x, t: v } : x))); }} /></li>
+          ))}</ol>
+          <div className="nm-ys-links">
+            <button type="button" className="go" disabled={busy} onClick={() => void send()}>{busy ? "보내는 중…" : dirty ? "고친 자막으로 다시 입히기" : "지금 자막 그대로 다시 입히기"}</button>
+            {dirty ? <button type="button" className="go gray" disabled={busy} onClick={() => setRows(orig || [])}>처음대로</button> : null}
+          </div>
+        </>
+      ) : null}
+      {msg ? <p className="nm-chan-msg" role="alert">{msg}</p> : null}
     </div>
   );
 }

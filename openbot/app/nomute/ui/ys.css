@@ -17,3 +17,7 @@
 .nm-ys .nm-ys-hist .qm { background: none; border: 0; padding: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; }
 /* 서랍 「영상 편집」(./vedit.tsx) — 파일 고르기 단추 */
 .nm-ys .nm-ved-file { display: inline-flex; margin-bottom: 8px; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-ys .nm-ved-subs { margin-top: 8px; }
+.nm-ys .nm-ved-subs li { display: flex; align-items: center; gap: 8px; }
+.nm-ys .nm-ved-subs li input { flex: 1; min-width: 0; }
+.nm-ys .nm-ved-tc { flex: none; font-size: 12px; opacity: .7; font-variant-numeric: tabular-nums; }

@@ -1,5 +1,5 @@
 // 서랍 「영상 편집」 계산 줄(./vedit.tsx · 시험 = tests/vedit-logic.test.ts) — 원본 viewer/edit.html buildOpts · viewer/upload.js · functions/api/edit.js 와 같은 값(team-4 · 깃 11-10)
-//   판 1 = 올리기 · 자막 · 컷 · 화면 · 소리 → 만들기 → 결과 · 완성작 / 판 2(아직) = 자를 곳 먼저 보기(cutscan) · 자막 고쳐 다시 입히기(reburn) · 트래킹 · 베스트컷
+//   판 1 = 올리기 · 자막 · 컷 · 화면 · 소리 → 만들기 → 결과 · 완성작 / 판 2 = 자를 곳 먼저 보기(cutscan) · 베스트컷 · 자막 고쳐 다시 입히기(reburn) · 트래킹(아직)
 export const VID_EXT = /\.(mp4|mov|m4v|webm|mkv|avi)$/i;   // edit.js:253 = 영상 여섯만
 export const UP_MAX = 2 * 1024 ** 3, PART = 32 * 1024 ** 2, PARTS_MAX = 64;   // upload.js 서버 14 · 15(2 GiB · 32 MiB 조각 · 64조각)
 export const POLL_MS = 5000, BUDGET_S = 2700, PEND = "nm_vedit_jobs", OKEY = "nm_vedit_opts";   // 원본 BUDGET 2700초 · 하드 = 두 배
@@ -82,3 +82,58 @@ export function withCut(opts: Record<string, unknown>, scanId: string, off: numb
 }
 export const cutsDone = (d: Cuts) => !!d && Array.isArray(d.rm);
 export const tc = (s: number) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") + "." + Math.floor((s % 1) * 10);
+
+// 자막 고쳐 다시 입히기(판 2 · edit.html:2682-2700 lyStrip · lyKo · lySubsRaw · lyEffSegs · 3335-3367 · functions/api/edit.js 7-60 · 128-143)
+//   원천 = ly_out/<id>/subs.json(구워진 조각 {s,e,ko,src?}) · 보냄 = POST /api/edit {reburn:<id>, opts(자막 축) , segs?} · 같은 자리 video.json 에 다시 굽기
+//   편집기 축(비율 · 해상도 · 구간 · 소리)은 러너가 직전 video.json edit_opts 에서 잇는다 → 여기선 자막 축만(cleanReburnOpts 화이트리스트)
+export type SubRow = { s: number; e: number; t: string; k: string; f: "ko" | "src" };
+export const subStrip = (k: string) => String(k || "").replace(/\*([^*\n]{1,24})\*/g, "$1").replace(/\s+/g, " ").trim();
+export function subRows(j: unknown): SubRow[] {   // subs.json → 고칠 줄(별표 키워드 = k 에 보존 · 보이는 글 = 별표 뺀 것)
+  const segs = (j && typeof j === "object" && Array.isArray((j as { segs?: unknown }).segs)) ? (j as { segs: Record<string, unknown>[] }).segs : [];
+  return segs.filter((s) => s && Number.isFinite(Number(s.s)) && Number.isFinite(Number(s.e)))
+    .map((s) => { const ko = String(s.ko || "").trim(); return { s: Number(s.s), e: Number(s.e), t: subStrip(ko || String(s.src || "")), k: ko, f: ko ? "ko" as const : "src" as const }; });
+}
+function subKo(r: SubRow, txt: string): string {   // 안 고친 줄 = 구워진 본문 그대로(별표째) · 고친 줄 = 살아남은 키워드만 다시 별표
+  if (!r.k) return txt;
+  if (txt.replace(/\s+/g, " ").trim() === subStrip(r.k)) return r.k;
+  let out = txt;
+  for (const m of r.k.match(/\*([^*\n]{1,24})\*/g) || []) {
+    const kw = m.slice(1, -1).trim();
+    if (!kw || out.includes("*" + kw + "*")) continue;
+    out = out.replace(new RegExp("(^|\\s)" + kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), (_a, p) => p + "*" + kw + "*");
+  }
+  return out;
+}
+export type EffSeg = { s: number; e: number; ko: string; src?: string };
+/** 굽기 계약 = subs.json 조각 꼴({s,e,ko} · 원문 줄만 = {s,e,ko:'',src}) · 빈 줄 = 뺌 · 시작 차례 · 겹침 = 앞 줄 끝을 다음 시작에 맞춤 */
+export function effSegs(rows: SubRow[]): EffSeg[] {
+  const r2 = (x: number) => Math.round(x * 100) / 100, fl = (t: string) => String(t).replace(/[\r\n\t]+/g, " ").trim().slice(0, 200);
+  const a: EffSeg[] = rows.filter((r) => r.e > r.s && fl(r.t))
+    .map((r) => (r.f === "src" ? { s: r2(r.s), e: r2(r.e), ko: "", src: fl(r.t) } : { s: r2(r.s), e: r2(r.e), ko: fl(subKo(r, fl(r.t))) }))
+    .sort((x, y) => x.s - y.s);
+  for (let k = 0; k < a.length - 1; k++) if (a[k + 1].s > a[k].s && a[k + 1].s < a[k].e) a[k].e = a[k + 1].s;
+  return a;
+}
+const RB_KEYS = ["lang", "tone", "style", "shtype", "filler", "cut", "cutlv", "bgm", "karaoke", "hi", "keyword", "pop", "font", "fg", "kwc", "oc"];
+/** 다시 입히기 opts = 그 작업을 만든 자막 축(없으면 지금 칸) + burn:true · 서버가 한 번 더 거름 */
+export function reburnOpts(made: Record<string, unknown> | undefined): Record<string, unknown> {
+  const o: Record<string, unknown> = {};
+  for (const k of RB_KEYS) if (made && made[k] !== undefined) o[k] = made[k];
+  if (made && made.cutref && o.cut === undefined) o.cut = true;   // 자를 곳 먼저 보기로 만든 작업 = 자르기 켠 채로
+  o.burn = true;
+  return o;
+}
+/** 보낼 몸통 = 고친 게 있을 때만 segs(서버 cleanReburnSegs) · 다 지웠으면 error */
+export function reburnBody(id: string, rows: SubRow[], orig: SubRow[], made?: Record<string, unknown>): { body?: Record<string, unknown>; error?: string; edited: boolean } {
+  const cur = effSegs(rows), base = effSegs(orig), edited = JSON.stringify(cur) !== JSON.stringify(base);
+  if (edited && !cur.length) return { error: "자막 줄이 다 비었어 — 한 줄은 남겨 줘", edited };
+  if (cur.length > 700) return { error: "자막 줄이 700개를 넘어", edited };
+  return { body: { reburn: id, opts: reburnOpts(made), ...(edited ? { segs: cur } : {}) }, edited };
+}
+/** 다시 입히기 원천이 살아 있나(edit.html lyUpExpired · 3306) = video.json src 가 http · 업로드 칸(up_src)이면 24시간 안 */
+export function canReburn(src: unknown, now = Date.now()): boolean {
+  const s = String(src || "");
+  if (!/^https?:\/\//i.test(s)) return false;
+  const m = /\/up_src\/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-/.exec(s);
+  return !m || now - Date.UTC(2000 + +m[1], +m[2] - 1, +m[3], +m[4] - 9, +m[5], +m[6]) <= 24 * 3600e3;
+}
