@@ -154,3 +154,4 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 /* 피드 칸 「한 장 고치기」(./feed-acts.tsx · 빠르 team-4 U2 ② · 옛 에디터 카드 한 장 수정 = make-cards mode edit) — 체크 · 첨부 줄 */
 .nm-feed .nm-feed-chk { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .nm-feed .nm-feed-chk input[type="file"] { font-size:var(--fs-sm); max-width:100%; }
+.nm-news .nm-news-chips { margin:6px 0 8px; }   /* 필터 칩(원본 R 필터 칩 · team-4 U3 뎅 · 형 11-10 12:40) */
