@@ -9,6 +9,7 @@ import { type OfficePerson, type OfficeRoom, idOf, office } from "../data/office
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { usePinActions } from "./pins";
 import { fileUrl } from "../data/file-cache";
+import { captureMsg } from "./capture";   // 「캡처」 = 그 글 한 줄을 그림으로(뎅 11-11 · 형 08:50 「책갈피 빼고는 가져오면 됨」)
 
 const HOLD_MS = 500, SLIP = 10, ORIGIN_MAX = 2000;   // 0.5초(형 10-31 「적어도 0.5초 터치는 해야함」)
 
@@ -135,6 +136,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
             {item("복사", () => { void navigator.clipboard?.writeText(text); onClose(); })}   {/* 알림 없이 창만 닫힘(형 11-07 09:40 봄 1:1 「그리고 우클릭해서 복사 누르면, 복사햇어 라고 뜰 필요는 없고 그냥 ㅌ창 닫히면 됨.」) */}
             {item("확인 요청", () => setAsking(true))}
             {item("공유", () => void share())}
+            {item("캡처", () => { setBusy(true); void captureMsg(m.id, m.ts).then((r) => (r === "saved" ? done("저장했어") : r === "none" ? done("못 구웠어") : onClose())).catch(() => setWhy("캡처 못 했어 — 다시")).finally(() => setBusy(false)); })}
             {rooms.length ? item("다른 방으로", () => setMoving(true)) : null}
           </>
         )}

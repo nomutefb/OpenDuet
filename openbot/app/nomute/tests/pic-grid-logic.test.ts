@@ -33,3 +33,8 @@ test("크게 보기 숫자 · 넘김 번호", () => {
   assert.equal(pvIndex(99999, 390, 5), 4);
   assert.equal(pvIndex(10, 0, 3), 0, "폭 0 이어도 안 깨짐");
 });
+
+test("캡처 파일 이름 = 글 시각", async () => {
+  const { capName } = await import("../ui/capture.ts");
+  assert.equal(capName(new Date(2026, 10, 11, 8, 5).getTime()), "캡처-20261111-0805.png");
+});
