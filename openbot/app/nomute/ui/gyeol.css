@@ -1,0 +1,38 @@
+/* 채널 전체 › 결과 함께(./gyeol.tsx · team-4 U3 뎅 · 형 11-10 14:23 「응 밖에잇는거 다 옮길거야」) — 원본 gy-* 판 문법(9:16 칸 · 글은 커버 아래 · PC 4칸 · 폰 2칸) */
+.nm-gy { display:flex; flex-direction:column; gap:14px; margin-top:8px; }
+.nm-gy .gy-hero { display:flex; flex-direction:column; gap:6px; padding:14px; border-radius:14px; background:color-mix(in srgb, var(--fg, #fff) 5%, transparent); }
+.nm-gy .gy-eyebrow { font-size:var(--fs-xs, 12px); color:var(--mut); font-weight:700; }
+.nm-gy .gy-stale { color:var(--danger, #e5484d); }
+.nm-gy .gy-big { display:flex; align-items:baseline; gap:4px; }
+.nm-gy .gy-big b { font-size:40px; line-height:1; font-weight:800; font-variant-numeric:tabular-nums; }
+.nm-gy .gy-kpis { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; }
+.nm-gy .gy-kpi { display:flex; flex-direction:column; gap:2px; }
+.nm-gy .gy-kpi b { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; }
+.nm-gy .gy-kpi span { font-size:var(--fs-xs, 12px); color:var(--mut); }
+.nm-gy .gy-mv-h { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+.nm-gy .gy-mv-h > span:not(.gy-sort) { color:var(--mut); font-size:var(--fs-xs, 12px); }
+.nm-gy .gy-sort { margin-left:auto; }
+.nm-gy .gy-board { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:10px; }
+@media (max-width:640px) { .nm-gy .gy-board { grid-template-columns:repeat(2, minmax(0, 1fr)); } .nm-gy .gy-kpis { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+.nm-gy .gy-mvt { display:flex; flex-direction:column; gap:3px; text-align:left; background:none; border:0; padding:0; color:inherit; cursor:pointer; min-width:0; }
+.nm-gy .gy-mvt-cv { position:relative; display:block; aspect-ratio:9 / 16; border-radius:10px; overflow:hidden; background:#111; }
+.nm-gy .gy-mvt.stk .gy-mvt-cv { box-shadow:4px -4px 0 -1px color-mix(in srgb, var(--fg, #fff) 18%, transparent); }   /* 버전 2편+ = 뒤에 겹친 장 */
+.nm-gy .gy-mvt-cv img { width:100%; height:100%; object-fit:cover; display:block; }
+.nm-gy .gy-mvt-new, .nm-gy .gy-mvt-n, .nm-gy .gy-mvt-up { position:absolute; font-size:10px; font-weight:800; padding:2px 6px; border-radius:999px; background:rgba(0,0,0,.6); color:#fff; }
+.nm-gy .gy-mvt-new { left:6px; top:6px; color:var(--accent, #CFFF40); }
+.nm-gy .gy-mvt-n { right:6px; top:6px; }
+.nm-gy .gy-mvt-up { left:6px; bottom:6px; color:var(--accent, #CFFF40); }
+.nm-gy .gy-mvt-t { font-weight:800; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-gy .gy-mvt-g, .nm-gy .gy-mvt-m { font-size:11px; color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-gy .gy-more { margin-top:8px; }
+.gy-view { position:fixed; inset:0; z-index:60; display:grid; place-items:center; background:rgba(0,0,0,.72); padding:16px; }
+.gy-view-in { width:min(420px, 100%); max-height:calc(100dvh - 32px); overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:12px; border-radius:16px; background:var(--bg, #111); color:var(--fg, #fff); }
+.gy-view-h { display:flex; align-items:center; gap:8px; }
+.gy-view-h b { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gy-x { background:none; border:0; color:inherit; font-size:22px; line-height:1; cursor:pointer; padding:0 4px; }
+.gy-view-v { width:100%; aspect-ratio:9 / 16; max-height:62dvh; object-fit:contain; background:#000; border-radius:10px; }
+.gy-view-acts { display:flex; flex-wrap:wrap; gap:6px; }
+.gy-view-st { font-size:12px; color:var(--mut); margin:0; }
+.gy-view-notes { display:flex; flex-direction:column; gap:8px; margin:0; }
+.gy-view-notes dt { font-size:11px; font-weight:800; color:var(--mut); }
+.gy-view-notes dd { margin:2px 0 0; font-size:13px; white-space:pre-wrap; }

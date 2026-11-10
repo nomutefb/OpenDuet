@@ -17,6 +17,7 @@ import { ChanCharts } from "./chan-charts";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
 import { FreshBtn } from "./fresh-btn";
+import { GyeolBoard } from "./gyeol";
 
 type Row = Record<string, number | null | undefined> & { date: string };
 type Thumb = { th?: string; u?: string; t?: string; r?: boolean };
@@ -135,6 +136,7 @@ function DailyChart({ series, metric, unit }: { series: Row[]; metric: string; u
 const signed = (v: number, u: string) => (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toLocaleString("ko-KR") + u;
 
 export function ChanModal({ full = false }: { full?: boolean }) {
+  const [gyOn, setGyOn] = useState(false);   // 「결과 함께」 칩(채널 전체만 · ./gyeol.tsx · 형 11-10 14:23 「응 밖에잇는거 다 옮길거야」)
   const [src, setSrc] = useState<Src>("ig"), [met, setMet] = useState("views"), [range, setRange] = useState<Range>("30"), [tpr, setTpr] = useState<Range>("7"), [rr, setRr] = useState<"90" | "all">("90");
   const q = useQuery({
     queryKey: ["nomute", "chan-brief"], staleTime: 300_000, refetchInterval: 300_000,   // 원본 TTL 5분
@@ -163,8 +165,8 @@ export function ChanModal({ full = false }: { full?: boolean }) {
         <div className="ycd-card card-left nm-chan">
           <span className="ycd-nm yset-ttl"><Svg k="data" />{full ? "채널 전체" : "채널 요약"}{d?.generated_kst ? <i className="nm-chan-at">{k12(d.generated_kst)}</i> : null}</span>
           {d?.generated_kst ? <i className="nm-chan-at nm-in-modal">{k12(d.generated_kst)} 기준</i> : null}
-          {have.length > 1 ? <div className="yset-chips nm-chan-src" role="tablist">{have.map((s) => <button key={s.id} type="button" role="tab" aria-selected={src === s.id} className={`yset-chip${src === s.id ? " on" : ""}`} onClick={() => setSrc(s.id)}>{s.t}</button>)}</div> : null}
-          {q.isLoading ? <p className="nm-chan-msg">채널 읽는 중…</p> : !d ? <p className="nm-chan-msg">{q.isError ? "채널 요약을 못 읽었어" : "이 소스는 지금 데이터가 없어"}</p> : (
+          {have.length > 1 || full ? <div className="yset-chips nm-chan-src" role="tablist">{have.map((s) => <button key={s.id} type="button" role="tab" aria-selected={!gyOn && src === s.id} className={`yset-chip${!gyOn && src === s.id ? " on" : ""}`} onClick={() => { setSrc(s.id); setGyOn(false); }}>{s.t}</button>)}{full ? <button type="button" role="tab" aria-selected={gyOn} className={`yset-chip${gyOn ? " on" : ""}`} onClick={() => setGyOn(true)}>결과 함께</button> : null}</div> : null}
+          {full && gyOn ? <GyeolBoard /> : q.isLoading ? <p className="nm-chan-msg">채널 읽는 중…</p> : !d ? <p className="nm-chan-msg">{q.isError ? "채널 요약을 못 읽었어" : "이 소스는 지금 데이터가 없어"}</p> : (
             <>
               <div className="nm-chan-tiles">
                 <div className="nm-chan-tile tall"><span className="k">팔로워</span><b>{flw != null ? flw.toLocaleString("ko-KR") : "—"}</b>{fsum != null ? <span className={`sub ${fsum > 0 ? "up" : fsum < 0 ? "dn" : ""}`}>{WIN}일 {signed(fsum, "명")}</span> : null}</div>
@@ -227,7 +229,7 @@ export function ChanModal({ full = false }: { full?: boolean }) {
               ) : null}
             </>
           )}
-          <div className="ypc-acts nm-chan-acts">{full && d ? <FreshBtn key={src} url={`/api/chanretry?src=${src}`} upd={String(d.generated_kst || "")} refetch={() => { void q.refetch(); }} noun="채널" /> : null}<button type="button" className="ypc-go" onClick={go}>{full ? "나머지는 에디터에서" : "전체 보기"} <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
+          <div className="ypc-acts nm-chan-acts">{full && d && !gyOn ? <FreshBtn key={src} url={`/api/chanretry?src=${src}`} upd={String(d.generated_kst || "")} refetch={() => { void q.refetch(); }} noun="채널" /> : null}<button type="button" className="ypc-go" onClick={go}>{full ? "나머지는 에디터에서" : "전체 보기"} <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
         </div>
       </div>
     </Pane>
