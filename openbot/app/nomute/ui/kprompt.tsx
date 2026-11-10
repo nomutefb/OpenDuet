@@ -3,7 +3,8 @@
 //   같은 것 = 장면(≤8000) · 모델(Kling 4.0 기본 · 3.0 Omni) · 길이(모델별 프리셋) · 오디오(대사 삽입 = 대사 ≤300) · 네거티브 일곱 · 참조 이미지 생성(Gemini · 다장)
 //            · 서버 칸 이름 그대로({scene, refimage, refmulti, reroll, lbl, model, set, dial, seg}) · 기다리는 길(error.log 먼저 → prompt.md · SPA HTML 은 끝으로 안 봄)
 //            · 결과 = 코드 칸마다 복사(원본 renderMd 꼴) · 다시 뽑기 축 넷(카메라 · 조명 · 액션 · 오디오 = 참조 생성 끔) · 작업 내역(/k-hist.json)
-//   다른 것(다음 판) = 장면 분막(seg) · 길이 「직접」 게이지 · 붙여넣기 단추 · 진행 중 여러 줄(병렬)
+//   판 2(11-11) = 길이 「직접」 게이지(3초 ~ 모델 상한 · 프리셋 밖 값 = 직접) · 장면 분막(2~5구간 · 구간 최소 3초 · 마지막 = 나머지 자동 · 서술 500자) · 붙여넣기 단추 — 산수 = ./k-logic(시험 tests/k-logic)
+//   다른 것(다음 판) = 진행 중 여러 줄(병렬) · 지우개 되돌리기
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
@@ -15,12 +16,8 @@ import "./song.css";
 import "./kprompt.css";
 import { useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
+import { K_MODELS as MODELS, LEN_MIN, SEG_MIN, SEG_TXT, isDirect, kSpec, lenFit, segCanAdd, segCanGrow, segFit, segOk, segPayload, segSpans, segValid, type KModel as Model, type Seg } from "./k-logic";
 
-type Model = "kling4" | "kling";
-const MODELS: { id: Model; nm: string; len: number[] }[] = [   // 원본 K_MODELS · K_LEN(kling 3~15s · kling4 3~30s) · 기본 = 4.0(운영자 261021)
-  { id: "kling4", nm: "Kling 4.0", len: [10, 15, 20, 30] },
-  { id: "kling", nm: "Kling 3.0 Omni", len: [8, 10, 15] },
-];
 const AUDIO = ["의성어만", "대사 삽입", "음악 무드"];   // 원본 K_VALS 오디오
 const NEG = ["AI 티 제거", "손 왜곡 방지", "얼굴 유지", "글자 왜곡 방지", "과장 미소 방지", "배경 고정", "워터마크 방지"];   // 원본 K_VALS 네거티브
 const REROLL = ["카메라", "조명", "액션", "오디오"];   // api/k.js REROLL_AXES
@@ -57,16 +54,34 @@ function parseMd(md: string): Blk[] {   // 원본 renderMd = ``` 칸은 코드(�
 }
 
 export function KPromptModal() {
-  const d0 = ls.get<{ scene?: string; model?: Model; len?: number; audio?: string; dial?: string; neg?: string[]; ref?: boolean }>(DRAFT) || {};
-  const [scene, setScene] = useState(d0.scene || ""), [model, setModel] = useState<Model>(d0.model === "kling" ? "kling" : "kling4"), [len, setLen] = useState<number>(d0.len || 0);
+  const d0 = ls.get<{ scene?: string; model?: Model; len?: number; audio?: string; dial?: string; neg?: string[]; ref?: boolean; segOn?: boolean; segs?: Seg[] }>(DRAFT) || {};
+  const m0: Model = d0.model === "kling" ? "kling" : "kling4", len0 = lenFit(Number.isFinite(d0.len) ? Number(d0.len) : 0, m0);
+  const [scene, setScene] = useState(d0.scene || ""), [model, setModel] = useState<Model>(m0), [len, setLen] = useState<number>(len0);
+  const [segs, setSegs] = useState<Seg[]>(() => segFit(Array.isArray(d0.segs) ? d0.segs : [], Math.max(len0, SEG_MIN * 2))), [segOn, setSegOn] = useState(d0.segOn === true && segOk(len0));
   const [audio, setAudio] = useState(AUDIO.includes(d0.audio || "") ? d0.audio! : ""), [dial, setDial] = useState(d0.dial || ""), [neg, setNeg] = useState<string[]>((d0.neg || []).filter((x) => NEG.includes(x)));
   const [refimg, setRefimg] = useState(d0.ref !== false), [multi, setMulti] = useState(false);   // 원본 = 참조 생성 기본 켬(운영자 260711 refimgDef=on)
   const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), [err, setErr] = useState(""), [md, setMd] = useState(""), [refs, setRefs] = useState<string[]>([]), [hist, setHist] = useState<Hist[]>([]);
   const alive = useRef(true), lastRef = useRef("");
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  useEffect(() => { ls.set(DRAFT, { scene, model, len, audio, dial, neg, ref: refimg }); }, [scene, model, len, audio, dial, neg, refimg]);
-  const lens = MODELS.find((m) => m.id === model)!.len;
-  useEffect(() => { if (len && !lens.includes(len)) setLen(0); }, [model]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { ls.set(DRAFT, { scene, model, len, audio, dial, neg, ref: refimg, segOn, segs }); }, [scene, model, len, audio, dial, neg, refimg, segOn, segs]);
+  const spec = kSpec(model), lens = spec.pre, direct = isDirect(len, model);
+  const applyLen = (n: number) => {   // 길이가 바뀌면 구간도 같이 맞춤(원본 segValid · 6초 미만 = 분막 꺼짐)
+    setLen(n); setErr("");
+    if (!segOk(n)) { if (segOn) { setSegOn(false); setMsg("분막은 6초부터라 껐어 — 구간 글은 남아 있어"); } return; }
+    setSegs((a) => segFit(a, n));
+  };
+  const pickModel = (id: Model) => { setModel(id); applyLen(lenFit(len, id)); };   // 원본 lenFit = 상한 넘으면 상한으로(4.0 30초 → 3.0 15초)
+  const toggleSeg = () => {
+    if (segOn) { setSegOn(false); return; }
+    if (!segOk(len)) { setErr(len ? "분막은 6초부터 — 구간 최소 3초 × 2" : "분막은 길이를 먼저 정해 줘(6초부터) — 자동 길이에선 구간을 못 나눠"); return; }
+    setSegs((a) => segFit(a, len)); setSegOn(true); setErr("");
+  };
+  const segStep = (i: number, d: number) => setSegs((a) => (d > 0 ? !segCanGrow(a, len) : a[i].s <= SEG_MIN) ? a : a.map((g, j) => (j === i ? { ...g, s: g.s + d } : g)));
+  const segAdd = () => setSegs((a) => (segCanAdd(a, len) ? [...a.slice(0, -1), { s: SEG_MIN, txt: "" }, a[a.length - 1]] : a));   // 나머지에서 3초를 떼어 새 구간(마지막 앞에)
+  const segDel = (i: number) => setSegs((a) => (a.length > 2 ? a.filter((_, j) => j !== i) : a));   // 마지막을 지우면 앞 구간이 새 「나머지 자동」
+  const paste = async () => {   // 원본 붙여넣기 단추 = 칸을 클립보드 글로 바꿈
+    try { const t = await navigator.clipboard.readText(); if (t) { setScene(t.slice(0, 8000)); setErr(""); setMsg("붙여넣었어"); } else setMsg("클립보드가 비어 있어"); } catch { setErr("붙여넣기 권한이 없어 — 칸에 직접 붙여 줘"); }
+  };
   const loadRefs = async (ref: string) => {   // 원본 renderOut = ref.json(urls 다장 · url 단수) 먼저 · 없으면 ref.jpg
     if (!ref) { setRefs([]); return; }
     const j = await getText(ref.replace(/ref\.jpg$/, "ref.json"));
@@ -109,7 +124,9 @@ export function KPromptModal() {
     const ri = !reroll && refimg, set: Record<string, unknown> = { 네거티브: neg };
     if (len) set["길이"] = `${len}s`;
     if (audio) set["오디오"] = audio;
-    const body = { scene: s.slice(0, 8000), refimage: ri, refmulti: ri && multi, reroll, lbl, model, set, dial: audio === "대사 삽입" ? dial.trim().slice(0, 300) : "", seg: [] };
+    const seg = segOn && segOk(len) ? segPayload(segs, len) : [];
+    if (seg.length && !segValid(segs, len, model)) { setErr("구간 길이가 안 맞아 — 구간마다 3초 이상 · 합이 길이와 같아야 해"); return; }   // 서버는 어긋난 분막을 말없이 버림 → 여기서 막음
+    const body = { scene: s.slice(0, 8000), refimage: ri, refmulti: ri && multi, reroll, lbl, model, set, dial: audio === "대사 삽입" ? dial.trim().slice(0, 300) : "", seg };
     setBusy(true); setErr(""); setMd(""); setRefs([]); setMsg("보내는 중…");
     try {
       const r = await fetch("/api/k", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -128,13 +145,37 @@ export function KPromptModal() {
       <div className="yeta-set mt-2 nm-dl nm-ys nm-kp">
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo">
           <span className="ycd-nm yset-ttl">장면</span>
+          <div className="nm-kp-row nm-kp-end"><button type="button" className="yset-chip" onClick={() => void paste()}>붙여넣기</button></div>
           <textarea className="nm-ys-ask" rows={5} maxLength={8000} value={scene} placeholder="스토리 · 상황 — 이걸로 영상 프롬프트를 만들어" aria-label="장면" onChange={(e) => { setScene(e.target.value); setErr(""); }} />
           <div className="nm-ys-opts" role="group" aria-label="비디오 모델"><span className="nm-song-k">모델</span>
-            {MODELS.map((m) => <button key={m.id} type="button" className={chip(model === m.id)} aria-pressed={model === m.id} onClick={() => setModel(m.id)}>{m.nm}</button>)}
+            {MODELS.map((m) => <button key={m.id} type="button" className={chip(model === m.id)} aria-pressed={model === m.id} onClick={() => pickModel(m.id)}>{m.nm}</button>)}
           </div>
           <div className="nm-ys-opts" role="group" aria-label="길이"><span className="nm-song-k">길이</span>
-            {[0, ...lens].map((n) => <button key={n} type="button" className={chip(len === n)} aria-pressed={len === n} onClick={() => setLen(n)}>{n ? `${n}초` : "자동"}</button>)}
+            {[0, ...lens].map((n) => <button key={n} type="button" className={chip(len === n)} aria-pressed={len === n} onClick={() => applyLen(n)}>{n ? `${n}초` : "자동"}</button>)}
+            <input type="range" min={LEN_MIN} max={spec.max} step={1} value={len || lens[0]} aria-label={`길이 직접(${LEN_MIN}~${spec.max}초)`} aria-valuetext={len ? `${len}초` : "자동"} onChange={(e) => applyLen(Number(e.target.value))} />
+            <b className={`nm-kp-len${direct ? " direct" : ""}`}>{len ? `${len}초${direct ? " · 직접" : ""}` : "자동"}</b>
           </div>
+          <div className="nm-ys-opts" role="group" aria-label="장면 분막"><span className="nm-song-k">분막</span>
+            <button type="button" className={chip(segOn)} aria-pressed={segOn} onClick={toggleSeg}>장면 분막 — 구간별 서술</button>
+            {segOn ? <span className="nm-kp-hint">{`${segs.length}구간 · 총 ${len}초`}</span> : null}
+          </div>
+          {segOn ? (
+            <div className="nm-kp-segs">
+              {segSpans(segs, len).map((sp, i) => { const g = segs[i], last = i === segs.length - 1; return (
+                <div key={i} className="nm-kp-seg">
+                  <div className="nm-kp-row">
+                    <span className="nm-song-k">{`구간 ${i + 1}`}</span><b className={`nm-kp-len${last ? " direct" : ""}`}>{`${sp.from}~${sp.to}초`}</b>
+                    {last ? <span className="nm-kp-hint">나머지 자동</span> : (<>
+                      <button type="button" className="yset-chip" disabled={g.s <= SEG_MIN} aria-label={`구간 ${i + 1} 1초 줄임(최소 3초)`} onClick={() => segStep(i, -1)}>−</button>
+                      <button type="button" className="yset-chip" disabled={!segCanGrow(segs, len)} aria-label={`구간 ${i + 1} 1초 늘림(나머지 최소 3초)`} onClick={() => segStep(i, 1)}>＋</button>
+                    </>)}
+                    {segs.length > 2 ? <button type="button" className="yset-chip" aria-label={`구간 ${i + 1} 지우기`} onClick={() => segDel(i)}>지우기</button> : null}
+                  </div>
+                  <textarea className="nm-ys-ask" rows={2} maxLength={SEG_TXT} value={g.txt} placeholder={last ? "이 구간 내용 — 비우면 AI 재량" : "이 구간에서 벌어질 내용"} aria-label={`구간 ${i + 1} 서술`} onChange={(e) => { const v = e.target.value.slice(0, SEG_TXT); setSegs((a) => a.map((x, j) => (j === i ? { ...x, txt: v } : x))); }} />
+                </div>); })}
+              <div className="nm-kp-row"><button type="button" className="yset-chip" disabled={!segCanAdd(segs, len)} title={segCanAdd(segs, len) ? "나머지에서 3초를 떼어 새 구간" : "나머지가 6초 이상일 때 추가(최대 5구간)"} onClick={segAdd}>+ 구간 추가</button></div>
+            </div>
+          ) : null}
           <div className="nm-ys-opts" role="group" aria-label="오디오"><span className="nm-song-k">오디오</span>
             {["", ...AUDIO].map((v) => <button key={v || "auto"} type="button" className={chip(audio === v)} aria-pressed={audio === v} onClick={() => setAudio(v)}>{v || "자동"}</button>)}
             {audio === "대사 삽입" ? <input className="nm-dl-q" maxLength={300} value={dial} placeholder="대사(300자)" aria-label="대사" onChange={(e) => setDial(e.target.value)} /> : null}
@@ -168,6 +209,7 @@ export function KPromptModal() {
         {hist.length ? (
           <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo">
             <span className="ycd-nm yset-ttl">작업 내역 · 누르면 그 결과를 열어</span>
+            <p className="nm-kp-cap">{`작업 내역 (${hist.length}) · 누르면 그 결과를 열어`}</p>
             {hist.map((h) => { const d = new Date(h.ts || 0), p2 = (n: number) => String(n).padStart(2, "0"); return (
               <button key={h.id} type="button" className="nm-song-opt" disabled={busy} onClick={async () => { const t = await getText(h.out!); if (t) { setErr(""); await show(t, "", `지난 결과 · ${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`); } }}>
                 <b>{(h.t || "프롬프트").slice(0, 24)}</b><span>{`${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`}</span>

@@ -2,9 +2,10 @@
 //   같은 것 = 색 · 서체 · 자간 상수 · OCR(tesseract.js@5 · eng · 누를 때만 로드) · 발췌 리프트(팝아웃 배율) · 형광펜(multiply 50%) · 검정 칩 · 밴드(dark/light · *초록* · [박스]) · 비율 · JPG q90
 //   다른 것 = 전역 대신 인자(img · lines · plan · 옵션)로 받음
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { arRatio } from "./tr-logic";
 export type OcrLine = { i: number; t: string; b: { x: number; y: number; w: number; h: number } };
 export type Plan = { hl?: number[]; chips?: { a: number; t: string }[]; band?: string; fail?: boolean; msg?: string };
-export type TrOpt = { style: "dark" | "light"; fs: number; ar: "4:5" | "9:16" | "16:9" | "1:1" };
+export type TrOpt = { style: "dark" | "light"; fs: number; ar: string };   // ar = 프리셋(4:5 · 9:16 · 16:9) 또는 직접 「W:H」(./tr-logic arRatio)
 
 const TR_BLACK = "#000", TR_WHITE = "#fff", TR_GREEN = "#2ee65c";
 export const TR_JPGQ = 0.9;
@@ -12,7 +13,6 @@ export const TR_W = 1080;
 const PADX = 64, TRACK = "-0.01em";
 const FONT_KO = "'Noto Sans KR', 'Noto Sans', -apple-system, sans-serif";
 const OV_MARK = "rgba(120,240,90,.5)", OV_CHIP = "rgba(18,18,18,.85)", OV_LINE = "rgba(255,255,255,.13)", OV_TEXT = "#f4f7f4", OV_EMPH = "#8dff6a";
-const RATIO: Record<TrOpt["ar"], number> = { "4:5": 5 / 4, "9:16": 16 / 9, "16:9": 9 / 16, "1:1": 1 };
 
 const withCap = <T,>(p: Promise<T>, ms: number, msg: string): Promise<T> => { let t: ReturnType<typeof setTimeout>; return Promise.race([Promise.resolve(p).finally(() => clearTimeout(t)), new Promise<T>((_, rj) => { t = setTimeout(() => rj(new Error(msg)), ms); })]); };
 function loadTess(): Promise<void> {   // 원본 = 누를 때만 지연 로드(평시 무게 0)
@@ -188,7 +188,7 @@ export function compose(cv: HTMLCanvasElement, img: HTMLImageElement, lines: Ocr
   if (!plan || !lines) { const h = Math.round((TR_W * img.naturalHeight) / img.naturalWidth); cv.width = TR_W; cv.height = h; ctx.drawImage(img, 0, 0, TR_W, h); return; }
   const cut = document.createElement("canvas"); const s = TR_W / img.naturalWidth; cut.width = TR_W; cut.height = Math.round(img.naturalHeight * s); cut.getContext("2d")!.drawImage(img, 0, 0, TR_W, cut.height);
   const band = String(plan.band || "").trim(), bandIt = band ? { tx: band, style: o.style, fs: o.fs } : null;
-  const bH = bandIt ? layoutBand(bandIt).h : 0, RH = Math.round(TR_W * (RATIO[o.ar] || 5 / 4)), regionH = RH - bH;
+  const bH = bandIt ? layoutBand(bandIt).h : 0, RH = Math.round(TR_W * arRatio(o.ar)), regionH = RH - bH;
   cv.width = TR_W; cv.height = RH;
   ctx.fillStyle = TR_WHITE; ctx.fillRect(0, 0, TR_W, RH);
   const sf = Math.min(TR_W / cut.width, regionH / cut.height), dw = Math.round(cut.width * sf), dh = Math.round(cut.height * sf);
