@@ -80,8 +80,8 @@
 .nsb-acct .pct b[data-tone="none"] { color:var(--nsb-mut); }
 .nsb-acct small.out { color:#E8A0A0; }   /* 「이대로면 … 뒤 바닥」 = 숫자 색만(불 아님) */
 .nsb-acct small.dday { color:#E7ECE7; font-variant-numeric:tabular-nums; }   /* 디데이(형 17:18 「2일 00시간 이런식으로」) */
-.nsb-acct .names { white-space:nowrap; }
-.nsb-acct .names span { display:inline-block; padding:0 9px; border-left:1px solid rgba(255,255,255,.14); }   /* 투명 획선 세로(형 14:35) */
+.nsb-acct .names { white-space:normal; min-width:7em; }   /* 이름 넷 넘으면 줄바꿈(폰 390 에서 오른쪽 잘림 · 봄 11-11 06:50 · 깃) */
+.nsb-acct .names span { display:inline-block; white-space:nowrap; margin:1px 0; padding:0 9px; border-left:1px solid rgba(255,255,255,.14); }   /* 투명 획선 세로(형 14:35) */
 .nsb-acct .names span:first-child { padding-left:0; border-left:0; }
 .nsb-acct .memo { color:var(--nsb-mut); font-size:var(--fs-sm); }
 .nsb-acct tr.why td { font-size:var(--fs-sm); color:var(--nsb-mut); background:rgba(255,255,255,.03); }
