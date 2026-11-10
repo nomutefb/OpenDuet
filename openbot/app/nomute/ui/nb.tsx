@@ -1,7 +1,7 @@
 // 서랍 「미디어 요약」 = 옛 에디터 미디어 요약(viewer/nb.html)을 앱 안으로 · 판 1(team-4 · 깃 11-10 · 형 15:48 「응 에디터에 잇는거 다 정원으로 가져왕」)
 //   길 = 원본과 같음: 보냄 = POST /api/nb {url | r2key, name | text, title, kind} + ask → {id} · 5초마다 nb_out/<id>/error.log → note.json(summary) · list.json(채널 · 재생목록 = items)
 //          최근 = nb_out/index.json · 뉴스 요약으로 = POST /api/submit {text} · .md = 화면에서 만들어 받기
-//   판 1 = 주소 · 파일 · 붙여넣은 글 / 판 2(아직) = 사진 글자 인식 · 기사 참조 → 그때까지는 옛 화면
+//   판 1 = 주소 · 파일 · 붙여넣은 글 / 판 2 = 기사 참조(articles.json · candidates.json · detail) · 사진 글자 인식(아직 → 옛 화면)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
 import { r2Upload } from "./r2-upload";
 import { UP_MAX } from "./vedit-logic";
-import { NB_KEY, NB_POLL_MS, NB_BUDGET_S, NB_EXT, SRC_LB, isTxt, shaky, mmss, nbBody, fresh, newsText, noteMd, trText, type Note, type VList } from "./nb-logic";
+import { NB_KEY, NB_POLL_MS, NB_BUDGET_S, NB_EXT, SRC_LB, isTxt, shaky, mmss, nbBody, fresh, newsText, noteMd, trText, artList, artSrc, type Note, type VList, type ArtRow } from "./nb-logic";
 
 type NJob = { id: string; lbl: string; t0: number; st: "run" | "done" | "list" | "fail"; msg?: string; fed?: boolean };
 type Recent = { id: string; t?: string; ts?: string; ch?: string; d?: number };
@@ -31,8 +31,11 @@ function saveFile(txt: string, name: string) {
 }
 
 export function NbModal() {
-  const [tab, setTab] = useState<"url" | "file" | "text">("url"), [url, setUrl] = useState(""), [file, setFile] = useState<File | null>(null), [txt, setTxt] = useState(""), [ask, setAsk] = useState("");
+  const [tab, setTab] = useState<"url" | "file" | "text" | "art">("url"), [url, setUrl] = useState(""), [file, setFile] = useState<File | null>(null), [txt, setTxt] = useState(""), [ask, setAsk] = useState("");
   const [busy, setBusy] = useState(false), [pct, setPct] = useState(-1), [err, setErr] = useState("");
+  const [arts, setArts] = useState<ArtRow[] | null>(null), [art, setArt] = useState<{ text: string; title: string; kind: "article" } | null>(null);
+  const loadArts = async () => { if (arts) return; const [a, c] = [json<unknown>(await text("/articles.json")), json<unknown>(await text("/candidates.json"))]; setArts(artList(a, c)); };
+  const pickArt = async (r: ArtRow) => { let body = ""; if (r.file) { const d = json<{ body?: string }>(await text("/detail/" + encodeURIComponent(r.file) + ".json")); body = d?.body || ""; } setArt(artSrc(r, body)); setErr(""); };   // nb.html 418-425
   const [jobs, setJobs] = useState<NJob[]>(() => load<NJob[]>(NB_KEY, []).filter((j) => j && j.id).slice(0, 20)), [open, setOpen] = useState("");
   const [notes, setNotes] = useState<Record<string, Note | VList | null>>({}), [recent, setRecent] = useState<Recent[]>([]);
   const alive = useRef(true), polling = useRef<Set<string>>(new Set());
@@ -73,7 +76,8 @@ export function NbModal() {
       else if (tab === "file") {
         if (!file) { setErr("영상 · 소리 파일을 골라 줘"); return; }
         if (await fire({ r2key: await r2Upload(file, setPct), name: file.name }, file.name)) setFile(null);
-      } else if (await fire({ text: txt }, txt.trim().split("\n")[0])) setTxt("");
+      } else if (tab === "art") { if (!art) { setErr("참고할 기사를 골라 줘"); return; } if (await fire(art, "참조 — " + art.title)) setArt(null); }
+      else if (await fire({ text: txt }, txt.trim().split("\n")[0])) setTxt("");
     } catch (e) { setErr(String((e as Error)?.message || e).slice(0, 200)); }
     finally { setBusy(false); setPct(-1); }
   };
@@ -90,7 +94,7 @@ export function NbModal() {
     } catch (e) { setErr(String((e as Error)?.message || e).slice(0, 200)); return false; }
     upd(id, (j) => ({ ...j, fed: true })); setErr(""); return true;
   };
-  const ready = tab === "url" ? /^https?:\/\/\S+$/i.test(url.trim()) : tab === "file" ? !!file : txt.trim().length >= 40;
+  const ready = tab === "url" ? /^https?:\/\/\S+$/i.test(url.trim()) : tab === "file" ? !!file : tab === "art" ? !!art : txt.trim().length >= 40;
   const mine = new Set(jobs.map((j) => j.id)), others = recent.filter((r) => r && r.id && !mine.has(r.id));
 
   return (
@@ -99,10 +103,18 @@ export function NbModal() {
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo">
           <span className="ycd-nm yset-ttl">자료</span>
           <div className="nm-ys-links" role="group" aria-label="자료 꼴">
-            {([["url", "주소"], ["file", "파일"], ["text", "글"]] as const).map(([k, l]) => <button key={k} type="button" className={`go${tab === k ? "" : " gray"}`} aria-pressed={tab === k} onClick={() => { setTab(k); setErr(""); }}>{l}</button>)}
+            {([["url", "주소"], ["file", "파일"], ["text", "글"], ["art", "기사"]] as const).map(([k, l]) => <button key={k} type="button" className={`go${tab === k ? "" : " gray"}`} aria-pressed={tab === k} onClick={() => { setTab(k); setErr(""); if (k === "art") void loadArts(); }}>{l}</button>)}
           </div>
           {tab === "url" ? <div className="nm-dl-url"><input type="url" value={url} placeholder="유튜브 영상 · 채널 · 재생목록 주소" aria-label="주소" autoComplete="off" spellCheck={false} onChange={(e) => { setUrl(e.target.value); setErr(""); }} /></div> : null}
           {tab === "file" ? <label className="go nm-ved-file">{file ? file.name : "영상 · 소리 파일 고르기"}<input type="file" accept="video/*,audio/*,.mkv,.avi,.flac" hidden onChange={(e) => pickFile(e.target.files?.[0] || null)} /></label> : null}
+          {tab === "art" ? (
+            <div className="nm-nb">
+              {art ? <p className="nm-dl-why">{"고른 기사 · " + art.title}</p> : null}
+              {!arts ? <p className="nm-chan-msg">기사 목록 읽는 중…</p> : !arts.length ? <p className="nm-chan-msg">기사 목록을 못 읽었어</p> : (
+                <ol className="nm-ys-steps">{arts.map((r, i) => <li key={i} className={art && art.title === r.t.slice(0, 200) ? "s-run" : ""}><button type="button" className="go gray sm" onClick={() => void pickArt(r)}>{r.k}</button> {(r.m ? r.m + " · " : "") + r.t.slice(0, 60)}</li>)}</ol>
+              )}
+            </div>
+          ) : null}
           {tab === "text" ? <textarea className="nm-dl-q nm-nb-tx" value={txt} rows={6} maxLength={8000} placeholder="붙여넣을 글(첫 줄 = 제목 · 40자 넘게)" aria-label="글" onChange={(e) => { setTxt(e.target.value); setErr(""); }} /> : null}
           <div className="nm-dl-url">
             <input type="text" value={ask} maxLength={500} placeholder="바라는 점(없어도 돼)" aria-label="바라는 점" onChange={(e) => setAsk(e.target.value)} />
@@ -145,7 +157,7 @@ export function NbModal() {
               </div>
             ))}
           </div>
-          <p className="nm-dl-why">사진 글자 인식 · 기사 참조 = 다음 판(그때까지는 옛 에디터)</p>
+          <p className="nm-dl-why">사진 글자 인식 = 다음 판(그때까지는 옛 에디터)</p>
         </div>
       </div>
     </Pane>

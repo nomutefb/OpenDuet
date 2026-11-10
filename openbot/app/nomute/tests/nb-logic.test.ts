@@ -32,3 +32,16 @@ test("뉴스 요약으로 보낼 글 · .md = 옛 화면 꼴 그대로", () => {
   assert.equal(trText(d), "[0:01] 안녕");
   assert.ok(newsText({ tr_src: "text", src: { title: "글" } }).startsWith("[붙여넣은 텍스트 자료화 노트"));
 });
+
+test("기사 참조 = 요약 10 + 수집 10(새 글부터) · 고르면 제목 · 매체 · 본문 글", async () => {
+  const { artList, artSrc, nbBody } = await import("../ui/nb-logic.ts");
+  const arts = Array.from({ length: 12 }, (_, i) => ({ title: "요약" + i, media: "M", file: "f" + i }));
+  const cands = [{ title: "옛", published: "2026-11-01", summary: "<b>옛</b> 글" }, { title: "새", published: "2026-11-10", desc: "새 글" }, { nope: 1 }];
+  const rows = artList({ articles: arts }, cands);
+  assert.equal(rows.length, 12); assert.equal(rows[10].t, "새"); assert.equal(rows[11].s, "<b>옛</b> 글");
+  const s = artSrc(rows[11]);
+  assert.deepEqual(s, { text: "옛\n\n옛 글", title: "옛", kind: "article" });
+  assert.equal(artSrc(rows[0], "<p>본문</p>  둘").text, "요약0\n매체: M\n\n본문 둘");
+  const b = nbBody({ ...artSrc(rows[0], "가".repeat(50)) }, "").body!;
+  assert.equal(b.kind, "article"); assert.equal(b.title, "요약0");
+});

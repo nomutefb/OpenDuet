@@ -1,5 +1,5 @@
 // 서랍 「미디어 요약」 계산 줄(./nb.tsx · 시험 = tests/nb-logic.test.ts) — 원본 viewer/nb.html · functions/api/nb.js 와 같은 값(team-4 · 깃 11-10)
-//   판 1 = 주소(유튜브 · 채널 목록) · 파일(영상 · 소리) · 붙여넣은 글 → 자료 노트 → 「뉴스 요약으로 보내기」(/api/submit) · .md 받기 / 판 2(아직) = 사진 글자 인식 · 기사 참조
+//   판 1 = 주소(유튜브 · 채널 목록) · 파일(영상 · 소리) · 붙여넣은 글 → 자료 노트 → 「뉴스 요약으로 보내기」(/api/submit) · .md 받기 / 판 2 = 기사 참조(○) · 사진 글자 인식(아직)
 export const NB_KEY = "nm_nb_jobs", NB_POLL_MS = 5000, NB_BUDGET_S = 2400;   // nb.html 216 · 하드 = 두 배
 export const NB_EXT = /\.(mp4|mov|m4v|webm|mkv|avi|mp3|m4a|wav|ogg|aac|flac)$/i;   // nb.js r2key 정규식
 export const SRC_LB: Record<string, string> = { subs: "업로더 자막", "subs-auto": "자동 생성 자막", stt: "Whisper 음성 인식", "stt-file": "Whisper 음성 인식(업로드 파일)", ocr: "사진 글자 인식(OCR)", text: "붙여넣은 텍스트", article: "기존 요약본 기사" };
@@ -17,15 +17,15 @@ export type Note = {
 export type VList = { ts?: string; n?: number; src?: { title?: string; channel?: string; url?: string }; items: { t?: string; url: string; d?: number }[] };
 
 /** 보낼 몸통(nb.js 31-60 · 112) — 주소 · 파일(r2key) · 글(40자 넘게) 중 하나 · ask = 바라는 점 */
-export function nbBody(src: { url?: string; r2key?: string; name?: string; text?: string }, ask: string): { body?: Record<string, unknown>; error?: string } {
+export function nbBody(src: { url?: string; r2key?: string; name?: string; text?: string; title?: string; kind?: "text" | "article" }, ask: string): { body?: Record<string, unknown>; error?: string } {
   const a = ask.replace(/[\r\n\t]+/g, " ").trim().slice(0, 500);
   if (src.url) { const u = src.url.trim(); if (!/^https?:\/\/\S+$/i.test(u)) return { error: "주소는 http(s) 로 시작해야 해" }; return { body: { url: u, ask: a } }; }
   if (src.r2key) return { body: { r2key: src.r2key, name: String(src.name || "").slice(0, 200), ask: a } };
   const t = String(src.text || "").trim();
   if (!t) return { error: "주소 · 파일 · 글 중 하나를 넣어 줘" };
   if (t.length < 40) return { error: "글이 너무 짧아(40자 넘게)" };
-  const title = t.split("\n")[0].trim().slice(0, 200);
-  return { body: { text: t.slice(0, 8000), title, kind: "text", ask: a } };
+  const title = (src.title || t.split("\n")[0]).trim().slice(0, 200);
+  return { body: { text: t.slice(0, 8000), title, kind: src.kind === "article" ? "article" : "text", ask: a } };
 }
 /** 끝났나(nb.html 488-506) = 이번에 보낸 뒤 판(ts ≥ 보낸 때 −90초) · 노트 = summary 있음 · 목록 = items 있음 */
 export function fresh<T extends { ts?: string }>(d: T | null, need: string, minTs: number): T | null {
@@ -70,3 +70,21 @@ export function noteMd(d: Note): string {
   return L.join("\n");
 }
 export const trText = (d: Note) => (d.transcript || []).map((r) => "[" + mmss(r.s) + "] " + r.t).join("\n");
+
+// 기사 참조(판 2 · nb.html 399-430 openArts) = 요약(articles.json) 10 + 수집(candidates.json · 새 글부터) 10 → 고르면 본문(요약 = detail/<file>.json body · 수집 = summary)으로 글 소스 · kind article
+export type ArtRow = { k: "요약" | "수집"; t: string; m: string; file?: string; s?: string };
+const str = (v: unknown) => (typeof v === "string" ? v : v == null ? "" : String(v));
+export function artList(articles: unknown, candidates: unknown): ArtRow[] {
+  const rows: ArtRow[] = [];
+  const a = Array.isArray(articles) ? articles : Array.isArray((articles as { articles?: unknown[] } | null)?.articles) ? (articles as { articles: unknown[] }).articles : [];
+  (a as Record<string, unknown>[]).filter((x) => x && x.title).slice(0, 10).forEach((x) => rows.push({ k: "요약", t: str(x.title), m: str(x.media), file: str(x.file) || undefined }));
+  const c = Array.isArray(candidates) ? (candidates as Record<string, unknown>[]) : [];
+  c.filter((x) => x && x.title).sort((p, q) => str(q.published).localeCompare(str(p.published))).slice(0, 10)
+    .forEach((x) => rows.push({ k: "수집", t: str(x.title), m: str(x.media), s: str(x.summary || x.desc) }));
+  return rows;
+}
+/** 고른 기사 → 글 소스(nb.html 421-425 · 본문 태그 빼고 공백 하나 · 8000 자) */
+export function artSrc(r: ArtRow, body = ""): { text: string; title: string; kind: "article" } {
+  const b = str(body || r.s).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return { text: (r.t + "\n" + (r.m ? "매체: " + r.m + "\n" : "") + "\n" + b).slice(0, 8000), title: r.t.slice(0, 200), kind: "article" };
+}
