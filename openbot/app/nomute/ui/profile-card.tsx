@@ -64,6 +64,17 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   const screen = tailnetUrl(p?.screen) ? screenUrl(tailnetUrl(p?.screen)) : "";   // 그 아이 몸 화면(형 11-08 빠르 창 「프로필 누르면 본인의 vm이 배선되도록」 · 주소 = 서버 명부 screen · 테일넷 안 주소만)
   const openScreen = () => { if (screen) window.open(screen, "_blank", "noopener"); };
+  // 카드 있는 애 = 카드 한 장만(형 11-11 06:41 dm-sia 「여기 리인보우 카드 빼고 주변 다 날려도 될거같아」 · 「우상단에 색 고르는거는 카드 안에 우상단으로 넣어버리고. 딱 붙이진 말구.」 · 06:42 「화면보기 같은거는 @sia 이런 곳에 옮기자」 · 06:43 「그리고 설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯 . 좀 좁으려나? 그럼 세로를 늘리면 됑」 · 시아 「소개 글 · 직무 고치기도 같이 빼도 돼?」 → 형 「응응」)
+  //   닫기 = 바깥 누름 · 뒤로 · Esc · 앞 판 = 둘레 유리 창 + 직무 · 소개 줄(연필) + 화면 보기 · 닫기 단추
+  if (look) return (
+    <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
+      <div className="ypc ypc--being" role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} />
+        <BeingCard who={who} name={name} role={p?.role} person={p} note={p?.intro || undefined} onScreen={screen ? openScreen : undefined} />
+        {pick ? <div className="ypc-pop"><ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /></div> : null}
+      </div>
+    </div>
+  );
   return (
     <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
       <div className={look ? "ypc ypc--being" : "ypc"} role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
@@ -79,7 +90,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
           </div>
         ) : p?.kind === "human" ? (p?.role ? <span className="ycd-tag">{p.role}</span> : null) : (
           <span className="ypc-role">
-            {look ? <span className="ycd-quote">직무</span> : p?.role ? <span className="ycd-tag">{p.role}</span> : <span className="ycd-quote">직무 없음</span>}
+            {p?.role ? <span className="ycd-tag">{p.role}</span> : <span className="ycd-quote">직무 없음</span>}   {/* 카드 애도 진짜 직무(형 11-11 06:40 dm-sia 「그리구 직무가 이미 잇는데 직무가 없는거처럼 수정이 있어버림」 · 앞 판 = 카드 애는 회색 「직무」 글자만) */}
             <button type="button" className="ypc-pen" aria-label={`${name} 직무 고치기`} title="직무 고치기" onClick={() => { setRoleDraft(p?.role || ""); setRoleEdit(true); setEdit(false); }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
             </button>

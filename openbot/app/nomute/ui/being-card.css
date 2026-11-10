@@ -52,6 +52,14 @@
 .being-card .profile-card__handle { font-size: 16px; letter-spacing: 0.01em; }
 .being-card .profile-card__title { margin-top: 8px; font-size: var(--fs-label); letter-spacing: 0.02em; }
 .being-card__intro { margin: 0; max-width: 34ch; font-size: var(--fs-label); line-height: 1.55; color: rgba(231, 236, 231, 0.78); text-align: center; }
+.being-card .profile-card__note {   /* 카드 안 설명 글(형 11-11 06:43 「설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯 . 좀 좁으려나? 그럼 세로를 늘리면 됑」) */
+  margin: 10px auto 0; max-width: 30ch; font-size: var(--fs-sm); font-weight: 500; line-height: 1.5; letter-spacing: -0.01em; text-align: center; word-break: keep-all;
+  color: rgba(255, 255, 255, 0.92); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.35);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+}
+.being-card:has(.profile-card__note) .profile-card__tile { aspect-ratio: 3 / 4.4; }   /* 글 자리만큼 세로로(이름 · 직무가 위로 올라가도 얼굴과 안 겹침) */
+.being-card .profile-card__footer:has(.profile-card__contact) { justify-content: space-between; }
+.being-card .profile-card__contact { gap: 5px; height: 34px; padding: 0 12px; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
 
 /* ───────── 시아 · 초저녁 하늘(남색 → 저녁 보라 → 지평선 주황) · 앱 연두 가는 테 · 작은 별 + 김 나는 밥그릇 ───────── */
 .bc-sia .profile-card__body {
@@ -527,7 +535,12 @@
 }
 
 /* 프로필 창(./profile-card.tsx .ypc)에 카드가 들어갈 때 = 창을 조금 넓고 길게(카드 3:4 + 아래 연필 줄이 스크롤 없이) */
-.ypc.ypc--being { width: min(372px, 100%); max-height: min(92dvh, 800px); gap: 9px; padding-top: 50px; }   /* 위 50 = 말풍선 색 원(.ypc-orb 우상단)이 카드 테를 안 가림 */
+/* 카드 창 = 카드 한 장만(형 11-11 06:41 dm-sia 「여기 리인보우 카드 빼고 주변 다 날려도 될거같아」 · 「우상단에 색 고르는거는 카드 안에 우상단으로 넣어버리고. 딱 붙이진 말구.」 · ./profile-card.tsx)
+   앞 판 = 둘레 어두운 유리 창(위 50 비움 = 색 원 자리) + 아래 직무 · 소개 · 단추 */
+.ypc.ypc--being { width: min(372px, 100%); max-height: none; padding: 0; gap: 0; overflow: visible; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.ypc--being .ypc-orb { top: 22px; right: 22px; width: 26px; height: 26px; }   /* 카드 테(몸통 10 + 타일) 안쪽으로 조금 · 딱 안 붙게 */
+.ypc--being .ypc-pop { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 6; }
+.ypc-veil:has(> .ypc--being) { place-items: start center; padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }   /* 카드 창 = 창 위쪽에 붙여 뜸(형 11-11 06:40 dm-sia 「글구 모달이 좀 더 위쪽으로 뜨게해줘 창 기준」 · 앞 판 = 한가운데) */
 
 /* 틀 카드(.bc-tmpl · 형 11-09 05:17 「시아 플필 기본 템플릿화해서 모두 게시」 · 뜸) — 시아 카드 몸통 그대로 · 색 = 그 애 말풍선 색(--bc-accent) · 무늬 = 고리 + 띠만 */
 .bc-tmpl { --bc-accent: #CFFF40; }
@@ -576,7 +589,8 @@
    까닭(짐작 · 아이폰 실물 못 봄) = 폰은 안 만져도 숨쉬기가 30fps 로 --pc-pointer · light · band · shift · active 를 바꿈 → 그 값을 background · background-position · mask-position · filter 안에서 쓰는 겹 다섯(sheen · holo(+glow · shift) · glare · shade · 애마다 body::before)이
    색 섞기(mix-blend · background-blend) 채로 매 프레임 통째로 다시 구워짐 → 웹킷이 한두 프레임 늦거나 빈 칸 = 번쩍
    고침 = 손가락 화면(hover:none)만 그 겹들 안에서 값을 한 자리에 고정(그리기 다시 0) · 몸통 기울기 · 얼굴 · 무늬 시차는 그대로 · PC(마우스) 손 0
-   둘째 판(형 11-11 06:14 dm-sia 「가만히 있을때도 ㅋㅋ 근데 시아꺼가 더.번쩍여. vm이나 맥에 9222 로 보고 테스트 해봐야할거같아」) = 안 만지면 카드 통째 정지(숨쉬기 끔 = ./being-card.tsx · 장식 애니 멈춤) · 겹 통째 밀기도 뺌 · 자르는 타일에 마스크 */
+   둘째 판(형 11-11 06:14 dm-sia 「가만히 있을때도 ㅋㅋ 근데 시아꺼가 더.번쩍여. vm이나 맥에 9222 로 보고 테스트 해봐야할거같아」) = 안 만지면 카드 통째 정지(숨쉬기 끔 = ./being-card.tsx · 장식 애니 멈춤) · 겹 통째 밀기도 뺌
+   셋째 판(형 06:38~06:39) = 손가락 화면 기울기 3D → 2D(아래 묶음 끝) */
 @media (hover: none) {
   .being-card .profile-card__sheen,
   .being-card .profile-card__holo,
@@ -592,7 +606,12 @@
   /* 겹은 통째로도 안 움직임(형 11-11 06:12 「근데 번쩍임 아직 있긴있어 … 이펙트가 조금 화려해서그런가봐」 · 번개 짚음 = 웹킷은 섞는 겹(color-dodge · overlay · screen)이 transform 만 바뀌어도 섞기를 통째로 다시 함)
      → 박 · 눈부심 · 그늘은 한 자리에 서 있고, 카드 몸통 기울기 · 얼굴 · 무늬 시차만 손가락을 따라감 · 앞 판(2e75347) = 겹을 translate3d 로 밀었음 */
   /* 둥근 모서리 + 자르기 + 3D 기울기 = 아이폰에서 모서리가 한 프레임 네모로 튀는 꼴(번개 짚음) → 자르는 두 판에 흰 마스크 한 장 */
-  .being-card .profile-card__tile { -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); }   /* 몸통은 바깥 그림자가 있어 안 씌움 · 자르는 건 타일 */
+  /* 셋째 판(형 11-11 06:38 dm-sia 「가만히잇읆댄 괜찮다가 첨에 조금 무빙 잇을때랑」 · 「무빙이 문제가 되서 문제가 될게아니라 무빙때 발생하는 이펙트가 검은 화면을 안만들게 해야할듯」 · 06:39 「도중에 내가 좌우로 왓더갓다 할때 다시 문제발생」)
+     = 기울일 때 까매짐 → 까닭(짐작 · 아이폰 실물 못 봄) = 몸통 3D 기울기(perspective + rotateX/Y)가 안쪽 섞는 겹 · 따로 도는 층 여럿을 3D 로 끌고 가 웹킷이 섞기 · 다시 그리기를 놓치는 꼴
+     → 손가락 화면만 3D 를 2D 로(살짝 돌고 손가락 쪽으로 밀림) · 안쪽 시차(얼굴 · 무늬 · 글)는 그대로 · 3D 가 없으니 둘째 판 타일 마스크 · 얼굴 뒷면 숨김도 뺌 */
+  .being-card.profile-card { perspective: none; }
+  .being-card .profile-card__body { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(calc(var(--pc-rotate-y) * -0.12)); }
+  .being-card .profile-card__photo { -webkit-backface-visibility: visible; backface-visibility: visible; }
   /* 안 만질 때도 도는 장식 = 「움직임 줄이기」 판과 같게 멈춤(시아 김 · 뎅 소용돌이 · 꼬리) — 섞는 겹 · 마스크 안에서 매 프레임 다시 섞이던 것 · 천둥 번쩍(bc-bolt)은 설계라 둠 */
   .being-card .bc-steam { animation: none; opacity: 0.55; }
   .bc-deng .bc-swirl path, .bc-deng .bc-trail path { animation: none; }

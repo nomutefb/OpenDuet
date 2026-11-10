@@ -831,7 +831,7 @@ function Missed({ m }: { m: Msg }) {
 }
 
 function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
-  return <><Said m={m} nre={nre} /><Missed m={m} /></>;
+  return <Said m={m} nre={nre} />;   // 애들 글 밑 「… 안 닿음」 줄 뺌(형 11-11 06:43 dm-sia 「그리고 시아 안닿음 대화중에 나오는 이런것도 없애버려」) · 형이 쓴 글 밑은 그대로(형 10-31 「태그안된 @ 가 된줄알고 써버리지 않게 하자는거임」)
 }
 
 /** 글 속 같은 출처 그림 주소(https://edit.nomute.kr/…png · /cards/…jpg) → 말풍선 위 사진(형 11-01 08:48 「뉴스 요약한게 섬네일같은거 여기 올리면 내가 사진을 못보더라」 ·

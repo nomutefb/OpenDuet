@@ -51,6 +51,7 @@ interface ProfileCardProps {
   children?: ReactNode;
   contactIcon?: ReactNode;
   idle?: boolean;
+  note?: string; /* [nomute] 이름 · 직무 밑 설명 글(형 11-11 06:43 「설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯」) */
 }
 
 interface Engine {
@@ -150,7 +151,8 @@ const ProfileCard = ({
   className = '',
   children,
   contactIcon,
-  idle = false
+  idle = false,
+  note
 }: ProfileCardProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<Engine | null>(null);
@@ -408,12 +410,13 @@ const ProfileCard = ({
           {avatarUrl && (
             <img className="profile-card__photo" src={avatarUrl} alt={name || ''} loading="eager" decoding="sync" draggable={false} /> /* [nomute] 얼굴 = 바로 받고 풀린 채 그림(11-10 형 폰 얼굴 조각) */
           )}
-          {(name || title) && (
+          {(name || title || note) && (
             <>
               <span className="profile-card__scrim" />
               <div className="profile-card__info">
                 {name && <h3 className="profile-card__name">{name}</h3>}
                 {title && <p className="profile-card__title">{title}</p>}
+                {note && <p className="profile-card__note">{note}</p> /* [nomute] */}
               </div>
             </>
           )}
