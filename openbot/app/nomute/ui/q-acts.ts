@@ -40,3 +40,13 @@ export async function qRetry(it: QItem, go: (p: string) => void): Promise<string
   qfSeenOne(it.id);
   return "";
 }
+
+/** 긴급 배지 길게 = 「긴급 아님」 신고(옛 brkNotUrgent · ./feed.tsx BrkBadge) — candId = id ∨ url ∨ 제목 · 기사엔 판단 기록이 없어 칸은 빈 값
+ *  서버 = api/rate → rate.yml → ratings.jsonl reason brkno → scraper/brk_misfire.py 가 제목으로 묶음(수집함 ./scrap.tsx 와 같은 글) · 빈 글 = 보냄 */
+export async function brkNo(a: { id?: string; url?: string; title?: string }): Promise<string> {
+  const id = a.id || a.url || a.title || "";
+  try {
+    const r = await fetch("/api/rate", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, url: a.url || "", title: a.title || "", score: 0, picked: false, dismissed: false, acked: false, action: "", reason: "brkno" }) });
+    return r.ok ? "" : `서버 ${r.status}`;
+  } catch (e) { return (e as Error).message || "연결 끊김"; }
+}

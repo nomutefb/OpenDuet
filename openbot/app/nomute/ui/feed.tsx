@@ -5,17 +5,18 @@
 //   쓰기 = 앱 안(team-4 4′ · 형 11-10 12:40 「에디터도 정원에 완벽하게 녹여」 · 전엔 맨 아래 「에디터에서」 한 겹이 유일한 길):
 //     · 진행 판 실패 카드 「재시도」 · 「없애기」 = 그 건만(옛 qp-redo · qp-dismiss · ./q-acts.ts) · 판 「대기열 열기」 = 앱 대기열(./queue.tsx · 취소 · 재시도)
 //     · 줄 진행 칸 「프롬프트」 실패 = 그 자리에서 프롬프트 다시(옛 retryPromptSeg · make-cards text · 돈 0 · 카드(그림) 실패는 기사 한 장 「다시 만들기」 = 돈 → 두 번)
-//     · 카드 만들기 · 고치기 = 기사 한 장(./feed-acts.tsx) · 「에디터에서」 = 비상구로 남김(긴급 배지 길게 「긴급 아님」 신고는 아직 옛 피드만 · 수집함은 앱 ./scrap.tsx)
+//     · 카드 만들기 · 고치기 = 기사 한 장(./feed-acts.tsx) · 「에디터에서」 = 비상구로 남김(스위치 때 형 문)
+//     · 긴급 배지 길게(0.48초 · 우클릭) = 「긴급 아님」 신고(옛 brkClaimBadge · api/rate reason brkno → scraper/brk_misfire.py 가 제목으로 묶음 · 수집함 ./scrap.tsx 와 같은 글) · 짧게 = 기사 열기 그대로
 //   10개씩(원본 FEED_CAP · 바닥 닿으면 +10) · 원본과 다른 점: 검색·칩 중에도 10개씩(스크롤하면 다 나옴) · 분류 = category 칸만(원본 articleCat 제목 규칙 폴백 없음 · 짐작)
 import "./yeta-settings.css";
 import "./chan.css";
 import { qEff } from "./task-state";
-import { qfSeenOne, qRetry } from "./q-acts";
+import { brkNo, qfSeenOne, qRetry } from "./q-acts";
 import { type QCardT, TaskPanel } from "./task-panel";
 import "./news.css";
 import "./feed.css";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type MouseEvent as RME, type PointerEvent as RPE, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { type Art, biasOf, catOf, getJson, inAppClick, newsListQuery, outletName, progOf, sensOf, thumbOf, useGo } from "./news-data";
 import { Pane } from "./pane";
@@ -30,6 +31,29 @@ export const CATS = ["정치", "사회", "경제", "문화", "국제", "테크"]
 const ED_FEED = "/web?u=" + encodeURIComponent("/?tab=feed&inapp=1");
 const ED_QUEUE = "/edq";   // 대기열 = 앱 안(./queue.tsx · 봄 11-01 · 전엔 에디터 대기열 한 겹)
 const HR = 36e5;
+/** 길게 누름(옛 claimLongPress 480 · ./scrap.tsx useHold 꼴) — 짧은 탭 = tap · 길게 = fn · 손가락 10px 넘게 움직이면 취소 */
+function useHold(ms: number, fn: () => void, tap: () => void) {
+  const t = useRef(0), xy = useRef([0, 0]), fired = useRef(false), f = useRef(fn), g = useRef(tap);
+  f.current = fn; g.current = tap;
+  useEffect(() => () => clearTimeout(t.current), []);
+  const cancel = () => { clearTimeout(t.current); t.current = 0; };
+  return {
+    onPointerDown: (e: RPE) => { fired.current = false; if (e.button) return; e.stopPropagation(); xy.current = [e.clientX, e.clientY]; cancel(); t.current = window.setTimeout(() => { t.current = 0; fired.current = true; f.current(); }, ms); },
+    onPointerUp: cancel, onPointerCancel: cancel, onPointerLeave: cancel,
+    onPointerMove: (e: RPE) => { if (t.current && Math.abs(e.clientX - xy.current[0]) + Math.abs(e.clientY - xy.current[1]) > 10) cancel(); },
+    onContextMenu: (e: RME) => { e.preventDefault(); e.stopPropagation(); const was = fired.current; cancel(); fired.current = true; if (!was) f.current(); },
+    onClick: (e: RME) => { e.stopPropagation(); if (fired.current) { fired.current = false; return; } g.current(); },   // 길게 누른 뒤 손 뗀 탭 = 삼킴(옛 _lpFired)
+  };
+}
+function BrkBadge({ a, onOpen, onNote }: { a: FArt; onOpen: (a: FArt) => void; onNote: (m: string) => void }) {
+  const [st, setSt] = useState<"" | "busy" | "ok">("");
+  const hold = useHold(480, () => {
+    if (st) return;
+    setSt("busy");
+    void brkNo(a).then((why) => { if (why) { setSt(""); onNote(`긴급 아님 신고 못 보냄 — ${why}`); return; } setSt("ok"); window.setTimeout(() => setSt(""), 1200); });   // 「신고됨 ✓」 1.2초(옛 그대로)
+  }, () => onOpen(a));
+  return <b className="urg brk hold" title="길게 누르면 「긴급 아님」 신고" aria-label={st === "ok" ? "신고됨" : "긴급 — 길게 누르면 긴급 아님 신고"} {...hold}>{st === "ok" ? "신고됨 ✓" : "긴급"}</b>;
+}
 const RT_HOLD = 3 * 60e3;   // 프롬프트 다시 누른 뒤 서버 상태가 올 때까지 「진행 중」으로 버팀(옛 RETRY_HOLD_MS 3분 · 서버 갱신이 더 새면 진짜 상태가 이김)
 export const byFile = (a: FArt, b: FArt) => (a.file < b.file ? 1 : a.file > b.file ? -1 : 0);
 
@@ -95,7 +119,7 @@ export function pickQ(items: QItem[], feed: Map<string, FArt>, qf: string[]): QC
 /* ── 요약 대기열 = 「Tasks」 판(형 11-09 05:17 「뉴스요약 진행상황은 이런식으로 표시」 · 05:18 「뉴스 요약 형태 이덧도 있음」 · 시아 05:20 합친 한 장 · 봄 22) · 깃)
    A = 판 하나(꺽쇠 · 「요약 대기열」 · 지난 분 · 시도 · 끝 a/b 건 · 다 끝나면 「완료」 · 접으면 한 줄) · B = 기사 한 건 카드(상태 고리 · 제목 · 끝 n/3 · 단계 셋 요약·프롬프트·카드)
    1단 = 서버 칸(status · tries · t)이 「요약」만 알려 줘서 요약만 진짜 · 프롬프트·카드 = 기다림(서버 step 칸 오면 2단) · 토큰 = 자료 0 → 뺌 · 고르기(pickQ)는 옛 진행 카드 그대로 */
-function Row({ a, go, onOpen, rt, onRetry }: { a: FArt; go: (p: string) => void; onOpen: (a: FArt) => void; rt?: boolean; onRetry?: (a: FArt) => void }) {
+function Row({ a, go, onOpen, rt, onRetry, onNote }: { a: FArt; go: (p: string) => void; onOpen: (a: FArt) => void; rt?: boolean; onRetry?: (a: FArt) => void; onNote?: (m: string) => void }) {
   const cat = catOf(a), kind = kindOf(a), th = thumbOf(a), bias = biasOf(a), sens = sensOf(a).slice(0, 2), pr = rt ? { done: 1, busy: true, fail: false } : progOf(a);   // rt = 방금 다시 누름(옛 isCardRetrying = 프롬프트 칸 진행 중)   // 민감 = 두 개(원본 sensChips)
   const dh = dispAgeH(a), rep = rel(dh), ih = inAgeH(a), scrap = ih * 60 < 30 ? "NEW" : rel(ih) && rel(ih) !== rep ? rel(ih) : "";   // 보도 = 표기 나이 · 스크랩 = 수집 나이(30분 안 NEW · 같은 값이면 한 번만)
   const title = a.title || "(제목 없음)", src = /^https?:\/\//i.test(a.url || "") ? a.url! : "", med = outlet(a.media);
@@ -107,7 +131,7 @@ function Row({ a, go, onOpen, rt, onRetry }: { a: FArt; go: (p: string) => void;
           <span className="nm-news-top">
             {cat ? <b className={`cat ${cat[1]}`}>{cat[0]}</b> : null}
             {/* 보도·스크랩 몇 시간 전 뺌(형 11-01 17:5x 「스크랩 00 분 전의 스크랩도 없고 웅! 보도 00시간 전 이것도 없어도 됑.」) */}
-            {kind ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
+            {kind === "brk" && onNote ? <BrkBadge a={a} onOpen={onOpen} onNote={onNote} /> : kind ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
             {a._live ? <b className="urg iss">방금 요약</b> : null}
           </span>
           <span className="nm-news-t">{title}</span>
@@ -204,7 +228,7 @@ export function FeedModal({ search = false }: { search?: boolean }) {   // searc
           {note ? <p className="nm-chan-msg" role="alert">{note}</p> : null}
           {pend.isError ? <p className="nm-chan-msg" role="status">대기열을 못 읽었어</p> : qs.length ? <TaskPanel qs={qs} eta={pend.data?.eta || null} onOpen={() => go(ED_QUEUE)} onRetry={qRedo} onDismiss={qDrop} /> : null}
           {list.isPending ? <p className="nm-chan-msg">기사 읽는 중…</p> : list.isError ? <p className="nm-chan-msg" role="alert">{(list.error as Error).message || "뉴스 요약을 못 읽었어"}</p> : !rows.length ? <p className="nm-chan-msg">{filtered ? "결과 없음" : "기사가 없어"}</p> : (
-            <ul className="nm-feed-list">{shown.map((a) => <Row key={a.file} a={a} go={go} onOpen={open} rt={rtOn(a)} onRetry={(x) => void retryPrompt(x)} />)}</ul>
+            <ul className="nm-feed-list">{shown.map((a) => <Row key={a.file} a={a} go={go} onOpen={open} rt={rtOn(a)} onRetry={(x) => void retryPrompt(x)} onNote={setNote} />)}</ul>
           )}
           {rows.length > shown.length ? <><div ref={sent} aria-hidden className="nm-feed-sent" /><button type="button" className="yset-chip nm-news-more" onClick={() => setN((v) => v + CAP)}>더 보기 +{Math.min(CAP, rows.length - shown.length)} · 남은 {rows.length - shown.length}건</button></> : null}
           <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={() => go(ED_FEED)}>에디터에서 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>

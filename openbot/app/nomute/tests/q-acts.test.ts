@@ -1,7 +1,7 @@
 // 진행 카드 실패 「재시도」 · 「없애기」(ui/q-acts.ts · team-4 4′ 피드 목록 쓰기) — 옛 qpCanRetry · qPrevRetry · qfMarkSeenOne 과 같은 글이 나가는지
 import test from "node:test";
 import assert from "node:assert/strict";
-import { qCanRetry, qfSeenOne, qRetry, qRetryUrl } from "../ui/q-acts.ts";
+import { brkNo, qCanRetry, qfSeenOne, qRetry, qRetryUrl } from "../ui/q-acts.ts";
 
 type Call = { url: string; body?: unknown };
 function rig(answer: (url: string) => { status?: number; json?: unknown }) {
@@ -57,4 +57,12 @@ test("요약요청 재시도 = askget 전문 복원 → 「요약 요청」 미�
   assert.equal(why, "");
   assert.equal(went, "/ask");
   assert.deepEqual(JSON.parse(sess.get("nm_ask_prefill") || "{}"), { text: "원래 글", link: "", retryOf: "a7" });
+});
+
+test("긴급 아님 = api/rate reason brkno · id = url(기사엔 id 없음) · 제목 그대로(brk_misfire 가 제목으로 묶음) · 거절이면 까닭", async () => {
+  const { calls } = rig((u) => (u === "/api/rate" ? { json: { ok: true } } : { json: {} }));
+  assert.equal(await brkNo({ url: "https://a.kr/9", title: "[속보] 무슨 일" }), "");
+  assert.deepEqual(calls[0].body, { id: "https://a.kr/9", url: "https://a.kr/9", title: "[속보] 무슨 일", score: 0, picked: false, dismissed: false, acked: false, action: "", reason: "brkno" });
+  rig(() => ({ status: 401 }));
+  assert.equal(await brkNo({ title: "제목만" }), "서버 401");
 });
