@@ -1,0 +1,55 @@
+// 서랍 「영상 편집」 계산 줄(./vedit.tsx · 시험 = tests/vedit-logic.test.ts) — 원본 viewer/edit.html buildOpts · viewer/upload.js · functions/api/edit.js 와 같은 값(team-4 · 깃 11-10)
+//   판 1 = 올리기 · 자막 · 컷 · 화면 · 소리 → 만들기 → 결과 · 완성작 / 판 2(아직) = 자를 곳 먼저 보기(cutscan) · 자막 고쳐 다시 입히기(reburn) · 트래킹 · 베스트컷
+export const VID_EXT = /\.(mp4|mov|m4v|webm|mkv|avi)$/i;   // edit.js:253 = 영상 여섯만
+export const UP_MAX = 2 * 1024 ** 3, PART = 32 * 1024 ** 2, PARTS_MAX = 64;   // upload.js 서버 14 · 15(2 GiB · 32 MiB 조각 · 64조각)
+export const POLL_MS = 5000, BUDGET_S = 2700, PEND = "nm_vedit_jobs", OKEY = "nm_vedit_opts";   // 원본 BUDGET 2700초 · 하드 = 두 배
+
+export type Sel = { k: string; lab: string; vals: [string, string][]; when?: (o: VOpts) => boolean };
+export type VOpts = Record<string, string>;
+export const SELS: Sel[] = [   // 첫 값 = 원본 화면 기본(edit.html:945 ON · 949-953 P)
+  { k: "subs", lab: "자막", vals: [["on", "켬"], ["off", "끔"]] },
+  { k: "lang", lab: "자막 말", vals: [["dual", "번역 같이(원어+한국어)"], ["ko", "한국어만"], ["src", "원어만"], ["auto", "자동"]], when: (o) => o.subs === "on" },
+  { k: "tone", lab: "말투", vals: [["lit", "문어"], ["plain", "담백"], ["sns", "SNS"], ["mz", "MZ"]], when: (o) => o.subs === "on" },
+  { k: "style", lab: "자막 꼴", vals: [["clean", "깔끔"], ["bold", "굵게"], ["box", "상자"]], when: (o) => o.subs === "on" },
+  { k: "filler", lab: "군말 빼기(자막)", vals: [["on", "켬"], ["off", "끔"]], when: (o) => o.subs === "on" },
+  { k: "cut", lab: "무음 · 군말 자르기", vals: [["off", "끔"], ["soft", "약하게"], ["std", "보통"], ["hard", "세게"]] },
+  { k: "take", lab: "테이크 정리", vals: [["off", "끔"], ["on", "켬"]] },
+  { k: "bgm", lab: "배경음", vals: [["off", "끔"], ["on", "켬"]] },
+  { k: "vid_ar", lab: "비율", vals: [["src", "원본"], ["9:16", "9:16"], ["1:1", "1:1"], ["4:5", "4:5"], ["16:9", "16:9"]] },
+  { k: "vid_fit", lab: "맞춤", vals: [["crop", "잘라 채움"], ["pad", "여백"], ["blur", "흐린 배경"]], when: (o) => o.vid_ar !== "src" },
+  { k: "vid_res", lab: "해상도", vals: [["src", "원본"], ["720", "720p"], ["1080", "1080p"], ["2k", "2K"], ["4k", "4K"]] },
+  { k: "aud_norm", lab: "소리 고르기", vals: [["on", "켬"], ["off", "끔"]] },
+];
+export function optsPick(o: Record<string, string>): VOpts {
+  return Object.fromEntries(SELS.map((s) => [s.k, s.vals.some(([v]) => v === o[s.k]) ? o[s.k] : s.vals[0][0]]));
+}
+/** 화면 칸 → /api/edit opts(원본 buildOpts 와 같은 이름 · 안 보이는 칸은 안 보냄 · 서버가 한 번 더 거름) */
+export function buildOpts(o: VOpts): Record<string, unknown> {
+  const v = optsPick(o), out: Record<string, unknown> = {};
+  if (v.subs === "on") Object.assign(out, { burn: true, lang: v.lang, tone: v.tone, style: v.style, filler: v.filler === "on", shtype: v.style === "box" ? "box" : "none" });
+  if (v.cut !== "off") Object.assign(out, { cut: true, cutlv: v.cut });
+  if (v.take === "on") out.take = true;
+  if (v.bgm === "on") out.bgm = true;
+  if (v.vid_ar !== "src") Object.assign(out, { vid_ar: v.vid_ar, vid_fit: v.vid_fit });
+  if (v.vid_res !== "src") out.vid_res = v.vid_res;
+  out.aud_norm = v.aud_norm === "on";
+  return out;
+}
+/** 할 일이 하나라도 있나(edit.js:239 = 없으면 400 · 소리 고르기 하나도 할 일로 침 = 서버 69줄과 같음) */
+export const hasAction = (opts: Record<string, unknown>) => ["burn", "cut", "take", "bgm", "vid_ar", "vid_res", "aud_norm"].some((k) => opts[k] !== undefined && opts[k] !== false);
+export const partsOf = (size: number) => Math.max(1, Math.ceil(size / PART));
+export function fileWhy(name: string, size: number): string {   // 빈 글 = 됨
+  if (!VID_EXT.test(name)) return "영상 파일만(mp4 · mov · m4v · webm · mkv · avi)";
+  if (size > UP_MAX) return "2GB 넘는 파일은 못 올려";
+  if (partsOf(size) > PARTS_MAX) return "조각이 64개를 넘어";
+  return "";
+}
+export type VRes = { url?: string; poster?: string; dur?: number; note?: string; error?: string; skip?: string | boolean; xtr_wait?: boolean; ts?: number | string; src?: string };
+/** 끝났나(edit.html:2509) = url · error · skip 중 하나 · xtr_wait 아님 · 띄운 때 90초 앞보다 새 판 */
+export function landed(d: VRes | null, t0: number): boolean {
+  if (!d || !(d.url || d.error || d.skip) || d.xtr_wait) return false;
+  const ts = typeof d.ts === "number" ? (d.ts > 1e12 ? d.ts : d.ts * 1000) : Date.parse(String(d.ts || "")) || 0;
+  return !ts || ts >= t0 - 90e3;
+}
+export const absUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : "/" + u.replace(/^\/+/, ""));
+export const dlHref = (u: string, name: string) => "/api/dl?u=" + encodeURIComponent(absUrl(u)) + "&n=" + encodeURIComponent(name);

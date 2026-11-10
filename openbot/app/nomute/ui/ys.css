@@ -15,3 +15,5 @@
 .nm-ys .nm-ys-links { display: flex; flex-wrap: wrap; gap: 6px; }
 .nm-ys .nm-ys-hist { flex-direction: column; align-items: stretch; }
 .nm-ys .nm-ys-hist .qm { background: none; border: 0; padding: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; }
+/* 서랍 「영상 편집」(./vedit.tsx) — 파일 고르기 단추 */
+.nm-ys .nm-ved-file { display: inline-flex; margin-bottom: 8px; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
