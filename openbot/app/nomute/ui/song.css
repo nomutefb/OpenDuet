@@ -1,0 +1,9 @@
+/* 서랍 「음원」(./song.tsx · team-4 뎅 · 형 11-10 15:48 「응 에디터에 잇는거 다 정원으로 가져왕」) */
+.nm-ys .nm-song-k { font-size:12px; font-weight:800; color:var(--mut); min-width:52px; align-self:center; }
+.nm-ys .nm-song-opt { display:flex; flex-direction:column; gap:2px; text-align:left; width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--glass-line); background:var(--glass); color:inherit; cursor:pointer; margin-top:6px; }
+.nm-ys .nm-song-opt.on { border-color:rgba(var(--accent-rgb),.9); box-shadow:0 0 0 1px rgba(var(--accent-rgb),.9) inset; }
+.nm-ys .nm-song-opt span { font-size:12px; color:var(--mut); }
+.nm-ys .nm-song-opt i { font-size:11px; font-style:normal; color:var(--mut); }
+.nm-ys .nm-song-field { display:grid; grid-template-columns:52px minmax(0, 1fr) auto; gap:8px; align-items:start; margin-top:8px; }
+.nm-ys .nm-song-field pre, .nm-ys .nm-song-lyr { margin:0; white-space:pre-wrap; word-break:break-word; font:inherit; font-size:13px; }
+.nm-ys .nm-song-lyr { max-height:40dvh; overflow-y:auto; margin-top:6px; }
