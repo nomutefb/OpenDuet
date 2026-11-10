@@ -7,7 +7,7 @@
 //     2조각 = TOP 게시물(926줄 · 최신 게시일 앵커 기간 · 같은 포맷 중앙값 대비 ×배수 순 · 조회 = views 없으면 eng) · 인구통계(776줄 audience_sample · 성별 남:여 정규화 · 나이 age_full 상위 4 · 도시·나라 상위 4 · 이어 쓴 값 = 「M/D 기준」)
 //     3조각 = 잘 되는 조건 · 시간대별 반응(봄 · ./chan-charts.tsx)
 //     4조각 = 주제별 반응(원본 884줄 · topics / topics_90d · 「기타」 뺌 · 표본 5개 미만 = 「표본부족」 맨 뒤 · 막대 = 조회 중앙값 · 믿을 칸 평균 대비 ×배수 · 위 둘 강조 · 90일 창 = signals.win_90d 있을 때만)
-//     아직 에디터 몫 = 결과 함께(형 11-01 「그건 내가 따로얘기할게」) → 맨 아래 「나머지는 에디터에서」 한 단추
+//     결과 함께 = 앱 안(./gyeol.tsx · 형 11-10 14:23 「응 밖에잇는거 다 옮길거야」 · 앞 판 = 형 11-01 「그건 내가 따로얘기할게」로 맨 아래 「나머지는 에디터에서」 한 단추 · 이제 뺌)
 //     「지금 새로 수집 ↻」 = 앱 안(/api/chanretry?src= · 원본 CHANF · ./fresh-btn.tsx · 형 11-10 12:40 「봄 노는 작업실 있으면 에디터도 정원에 완벽하게 녹여」 · team-4 U3 뎅)
 import "./yeta-settings.css";
 import "./chan.css";
@@ -148,7 +148,7 @@ export function ChanModal({ full = false }: { full?: boolean }) {
     },
   });
   const Svg = ({ k }: { k: keyof typeof YICO }) => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
-  const go = () => { window.location.hash = "#/web?u=" + encodeURIComponent("/?tab=chan"); };
+  const go = () => { window.location.hash = "#/chanfull"; };   // 「전체 보기」 = 앱 안 채널 전체(shell chanfull · 앞 판 = 에디터 /?tab=chan 한 겹)
   const d = q.data?.[src] ?? null;
   const have = SRC.filter((s) => q.data?.[s.id]);
   const series = (d?.daily_series || []).filter((r) => r && r.date);
@@ -229,7 +229,7 @@ export function ChanModal({ full = false }: { full?: boolean }) {
               ) : null}
             </>
           )}
-          <div className="ypc-acts nm-chan-acts">{full && d && !gyOn ? <FreshBtn key={src} url={`/api/chanretry?src=${src}`} upd={String(d.generated_kst || "")} refetch={() => { void q.refetch(); }} noun="채널" /> : null}<button type="button" className="ypc-go" onClick={go}>{full ? "나머지는 에디터에서" : "전체 보기"} <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
+          <div className="ypc-acts nm-chan-acts">{full && d && !gyOn ? <FreshBtn key={src} url={`/api/chanretry?src=${src}`} upd={String(d.generated_kst || "")} refetch={() => { void q.refetch(); }} noun="채널" /> : null}{full ? null : <button type="button" className="ypc-go" onClick={go}>전체 보기 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button>}</div>
         </div>
       </div>
     </Pane>
