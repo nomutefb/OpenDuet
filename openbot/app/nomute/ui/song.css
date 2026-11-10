@@ -17,3 +17,5 @@
 .nm-ys .nm-song-eqg { display:block; width:100%; height:88px; margin-top:8px; border:1px solid var(--glass-line); border-radius:10px; background:var(--glass); }
 .nm-ys .nm-song-eqg path { fill:none; stroke:rgb(var(--accent-rgb)); stroke-width:2; vector-effect:non-scaling-stroke; }
 .nm-ys .nm-song-eqg path.z { stroke:var(--glass-line); stroke-width:1; }
+/* 서랍 「큐영상」(./vd.tsx) — 기사 목록은 카드 안에서만 스크롤 */
+.nm-ys .nm-vd-list { max-height:44dvh; overflow-y:auto; margin-top:4px; }
