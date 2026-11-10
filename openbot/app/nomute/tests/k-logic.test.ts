@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isDirect, kSpec, lenFit, segCanAdd, segCanGrow, segFit, segLast, segOk, segPayload, segSpans, segValid, type Seg } from "../ui/k-logic.ts";
+import { isDirect, kSpec, lenFit, segCanAdd, segCanGrow, segFit, segLast, segOk, segPayload, segSpans, segValid, K_PAR_MAX, pendAdd, pendDrop, pendLoad, type Seg } from "../ui/k-logic.ts";
 
 // 서랍 「프롬프팅」 판 2(ui/kprompt.tsx) — 원본 viewer/k.html 과 같은 값이 서버(functions/api/k.js)로 가는지
 const S = (s: number, txt = ""): Seg => ({ s, txt });
@@ -55,4 +55,18 @@ test("서버가 받는 꼴만 보냄 — api/k.js: 2~5구간 · 3 ~ 상한 정�
   const p = segPayload([S(3, "가".repeat(600)), S(0)], 10);
   assert.equal(p[0].txt.length, 500, "서술 500자");
   assert.equal(p.reduce((a, g) => a + g.s, 0), 10, "합 = 길이");
+});
+
+test("진행 중 줄 = 옛 꼴(하나)도 읽고 · 낡은 줄 · 이상한 줄은 버리고 · 넷까지", () => {
+  const now = 1_000_000_000, B = 1800_000, P = (n: number, t0 = now - 1000) => ({ out: `/k_out/j${n}/prompt.md`, ref: "", t0, lbl: `줄 ${n}` });
+  assert.deepEqual(pendLoad(P(1), now, B), [P(1)], "판 1 이 남긴 객체 하나");
+  assert.deepEqual(pendLoad(null, now, B), []);
+  assert.deepEqual(pendLoad([P(1), P(1), P(2, now - B), { out: "k_out/x/prompt.md", t0: now }, { out: "/a/../b", t0: now }, "글"], now, B), [P(1)], "겹침 · 30분 넘김 · 꼴 틀림");
+  assert.deepEqual(pendLoad([P(2, now - 10), P(1, now - 500)], now, B).map((p) => p.lbl), ["줄 1", "줄 2"], "보낸 차례대로(마지막 = 화면)");
+  let a = [1, 2, 3, 4, 5].reduce((acc, n) => pendAdd(acc, P(n)), [] as ReturnType<typeof pendLoad>);
+  assert.equal(a.length, K_PAR_MAX);
+  assert.deepEqual(a.map((p) => p.lbl), ["줄 2", "줄 3", "줄 4", "줄 5"]);
+  a = pendDrop(a, "/k_out/j3/prompt.md");
+  assert.deepEqual(a.map((p) => p.lbl), ["줄 2", "줄 4", "줄 5"]);
+  assert.equal(pendAdd(a, P(4)).length, 3, "같은 줄은 한 번");
 });

@@ -40,3 +40,16 @@ export function segSpans(segs: Seg[], total: number): { from: number; to: number
   let acc = 0;
   return segs.map((g, i) => { const n = i === segs.length - 1 ? segLast(segs, total) : g.s, from = acc; acc += n; return { from, to: acc }; });
 }
+
+// ── 진행 중 여러 줄(판 3 · 원본 = nm-jobs 슬롯 · 운영자 260810 「동시에 병렬로 진행」) — 저장 칸 nm_k_pend = 옛 꼴(한 개 객체)도 읽음
+export type KPend = { out: string; ref: string; t0: number; lbl: string };
+export const K_PAR_MAX = 4;   // 한 창에서 같이 기다리는 줄(원본엔 상한 없음 · 5초마다 줄마다 두 번 읽으니 넷에서 막음)
+const okPend = (p: unknown): p is KPend => { const o = p as KPend | null; return !!o && typeof o.out === "string" && o.out.startsWith("/") && !o.out.includes("..") && !o.out.includes("//") && o.out.length <= 200 && Number.isFinite(o.t0); };
+/** 저장된 진행 줄 읽기 — 옛 꼴(객체 하나) · 배열 둘 다 · 같은 out 한 번 · 30분(잡 상한) 넘긴 줄은 버림 · 새것이 뒤 */
+export function pendLoad(raw: unknown, now: number, budgetMs: number): KPend[] {
+  const a = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? [raw] : [], seen = new Set<string>(), out: KPend[] = [];
+  for (const p of a) { if (!okPend(p) || seen.has(p.out) || now - p.t0 >= budgetMs) continue; seen.add(p.out); out.push({ out: p.out, ref: typeof p.ref === "string" ? p.ref : "", t0: p.t0, lbl: typeof p.lbl === "string" ? p.lbl.slice(0, 24) : "프롬프트" }); }
+  return out.sort((x, y) => x.t0 - y.t0).slice(-K_PAR_MAX);
+}
+export const pendAdd = (a: KPend[], p: KPend) => [...a.filter((x) => x.out !== p.out), p].slice(-K_PAR_MAX);
+export const pendDrop = (a: KPend[], out: string) => a.filter((x) => x.out !== out);

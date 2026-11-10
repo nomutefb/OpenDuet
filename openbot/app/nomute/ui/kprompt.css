@@ -11,6 +11,8 @@
 .nm-kp .nm-kp-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; }   /* 옵션 줄(.nm-ys-opts)은 150px 격자라 작은 단추 줄엔 안 맞음 */
 .nm-kp .nm-kp-row.nm-kp-end { justify-content:flex-end; margin-top:8px; }
 .nm-kp .nm-kp-row .yset-chip { flex:none; min-width:44px; }
+.nm-kp .nm-kp-jobs { display:grid; gap:4px; margin-top:8px; padding:8px 10px; border-radius:10px; border:1px dashed var(--glass-line); }
+.nm-kp .nm-kp-jobs p { margin:0; }
 .nm-kp .nm-kp-cap { margin:0; font-size:12px; font-weight:800; color:var(--mut); }   /* 창 안에선 카드 머리(.yset-ttl)가 숨음 → 목록 이름은 이 줄로 */
 .nm-kp .nm-kp-len { font-size:12.5px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .nm-kp .nm-kp-len.direct { color:var(--warn, #E8C547); }

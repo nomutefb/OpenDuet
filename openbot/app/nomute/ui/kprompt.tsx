@@ -4,7 +4,8 @@
 //            · 서버 칸 이름 그대로({scene, refimage, refmulti, reroll, lbl, model, set, dial, seg}) · 기다리는 길(error.log 먼저 → prompt.md · SPA HTML 은 끝으로 안 봄)
 //            · 결과 = 코드 칸마다 복사(원본 renderMd 꼴) · 다시 뽑기 축 넷(카메라 · 조명 · 액션 · 오디오 = 참조 생성 끔) · 작업 내역(/k-hist.json)
 //   판 2(11-11) = 길이 「직접」 게이지(3초 ~ 모델 상한 · 프리셋 밖 값 = 직접) · 장면 분막(2~5구간 · 구간 최소 3초 · 마지막 = 나머지 자동 · 서술 500자) · 붙여넣기 단추 — 산수 = ./k-logic(시험 tests/k-logic)
-//   다른 것(다음 판) = 진행 중 여러 줄(병렬) · 지우개 되돌리기
+//   판 3(11-11) = 진행 중 여러 줄(만드는 동안 또 만들기 · 넷까지 · 화면은 마지막에 보낸 것이 차지 · 뒤에서 끝난 건 작업 내역으로 · 창을 닫아도 다 이어서 기다림 · 원본 FOCUS_OUT · nm-jobs 슬롯)
+//   다른 것 = 지우개 되돌리기
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
@@ -16,13 +17,12 @@ import "./song.css";
 import "./kprompt.css";
 import { useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
-import { K_MODELS as MODELS, LEN_MIN, SEG_MIN, SEG_TXT, isDirect, kSpec, lenFit, segCanAdd, segCanGrow, segFit, segOk, segPayload, segSpans, segValid, type KModel as Model, type Seg } from "./k-logic";
+import { K_MODELS as MODELS, LEN_MIN, SEG_MIN, SEG_TXT, isDirect, kSpec, lenFit, segCanAdd, segCanGrow, segFit, segOk, segPayload, segSpans, segValid, K_PAR_MAX, pendAdd, pendDrop, pendLoad, type KModel as Model, type KPend as Pend, type Seg } from "./k-logic";
 
 const AUDIO = ["의성어만", "대사 삽입", "음악 무드"];   // 원본 K_VALS 오디오
 const NEG = ["AI 티 제거", "손 왜곡 방지", "얼굴 유지", "글자 왜곡 방지", "과장 미소 방지", "배경 고정", "워터마크 방지"];   // 원본 K_VALS 네거티브
 const REROLL = ["카메라", "조명", "액션", "오디오"];   // api/k.js REROLL_AXES
 const PEND = "nm_k_pend", LAST = "nm_k_last", DRAFT = "nm_k_draft", POLL_MS = 5_000, BUDGET_MS = 1800_000;   // 원본 budget 1800초 = 잡 상한 30분
-type Pend = { out: string; ref: string; t0: number; lbl: string };
 type Hist = { id?: string; out?: string; t?: string; ts?: number };
 const ls = { get<T>(k: string): T | null { try { return JSON.parse(localStorage.getItem(k) || "null") as T; } catch { return null; } }, set(k: string, v: unknown) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch { /* 이번만 */ } } };
 const abs = (p: string) => (p.startsWith("/") ? p : "/" + p);
@@ -60,8 +60,10 @@ export function KPromptModal() {
   const [segs, setSegs] = useState<Seg[]>(() => segFit(Array.isArray(d0.segs) ? d0.segs : [], Math.max(len0, SEG_MIN * 2))), [segOn, setSegOn] = useState(d0.segOn === true && segOk(len0));
   const [audio, setAudio] = useState(AUDIO.includes(d0.audio || "") ? d0.audio! : ""), [dial, setDial] = useState(d0.dial || ""), [neg, setNeg] = useState<string[]>((d0.neg || []).filter((x) => NEG.includes(x)));
   const [refimg, setRefimg] = useState(d0.ref !== false), [multi, setMulti] = useState(false);   // 원본 = 참조 생성 기본 켬(운영자 260711 refimgDef=on)
-  const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), [err, setErr] = useState(""), [md, setMd] = useState(""), [refs, setRefs] = useState<string[]>([]), [hist, setHist] = useState<Hist[]>([]);
-  const alive = useRef(true), lastRef = useRef("");
+  const [jobs, setJobs] = useState<Pend[]>([]), [sending, setSending] = useState(false), [, setTick] = useState(0), [msg, setMsg] = useState(""), [err, setErr] = useState(""), [md, setMd] = useState(""), [refs, setRefs] = useState<string[]>([]), [hist, setHist] = useState<Hist[]>([]);
+  const alive = useRef(true), lastRef = useRef(""), focus = useRef(""), polling = useRef(new Set<string>());   // focus = 지금 화면(결과 칸)을 차지한 줄의 out
+  const saveJobs = (f: (a: Pend[]) => Pend[]) => setJobs((a) => { const n = f(a); ls.set(PEND, n.length ? n : null); return n; });
+  useEffect(() => { if (!jobs.length) return; const t = setInterval(() => setTick((x) => x + 1), 1000); return () => clearInterval(t); }, [jobs.length]);   // 줄마다 흐른 초
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useEffect(() => { ls.set(DRAFT, { scene, model, len, audio, dial, neg, ref: refimg, segOn, segs }); }, [scene, model, len, audio, dial, neg, refimg, segOn, segs]);
   const spec = kSpec(model), lens = spec.pre, direct = isDirect(len, model);
@@ -90,20 +92,25 @@ export function KPromptModal() {
     if (alive.current) setRefs(u.length ? u : [abs(ref)]);
   };
   const show = async (text: string, ref: string, note: string) => { setMd(text); setMsg(note); lastRef.current = ref || lastRef.current; await loadRefs(ref); };
-  const poll = async (p: Pend) => {
-    setBusy(true); setErr(""); setMsg("만드는 중…");
-    const errPath = p.out.replace(/[^/]+$/, "error.log");
+  const poll = async (p: Pend) => {   // 줄마다 하나씩 돎(같은 줄 두 번 안 돎) · 화면을 차지한 줄만 결과 칸 · 오류 줄을 건드림
+    if (polling.current.has(p.out)) return;
+    polling.current.add(p.out);
+    const errPath = p.out.replace(/[^/]+$/, "error.log"), mine = () => focus.current === p.out, end = () => { polling.current.delete(p.out); saveJobs((a) => pendDrop(a, p.out)); };
     while (alive.current && Date.now() - p.t0 < BUDGET_MS) {
       const e = await getText(errPath);
       if (!alive.current) return;
-      if (e) { ls.set(PEND, null); setBusy(false); setMsg(""); setErr(e.trim().slice(0, 200)); return; }
+      if (e) { end(); if (mine()) { setMsg(""); setErr(e.trim().slice(0, 200)); } else setMsg(`「${p.lbl}」 실패 — ${e.trim().slice(0, 80)}`); return; }
       const t = await getText(p.out);
       if (!alive.current) return;
-      if (t) { ls.set(PEND, null); ls.set(LAST, { out: p.out, ref: p.ref, ts: Date.now() }); setBusy(false); await show(t, p.ref, `완료 (${Math.round((Date.now() - p.t0) / 1000)}초)`); void loadHist(); return; }
-      setMsg(`만드는 중… ${Math.round((Date.now() - p.t0) / 1000)}초 · 이 창을 닫아도 다시 열면 이어서 기다려`);
+      if (t) {
+        end(); void loadHist();
+        if (mine()) { ls.set(LAST, { out: p.out, ref: p.ref, ts: Date.now() }); await show(t, p.ref, `완료 (${Math.round((Date.now() - p.t0) / 1000)}초)`); }
+        else setMsg(`「${p.lbl}」 완료 — 작업 내역에서 열어`);
+        return;
+      }
       await new Promise((ok) => setTimeout(ok, POLL_MS));
     }
-    if (alive.current) { ls.set(PEND, null); setBusy(false); setMsg(""); setErr("표시 시간 초과 — 생성은 계속 돌고 있을 수 있어. 잠시 뒤 작업 내역에서 열어 봐"); }
+    if (alive.current) { end(); if (mine()) { setMsg(""); setErr("표시 시간 초과 — 생성은 계속 돌고 있을 수 있어. 잠시 뒤 작업 내역에서 열어 봐"); } }
   };
   const loadHist = async () => {
     const t = await getText("/k-hist.json");
@@ -111,15 +118,17 @@ export function KPromptModal() {
   };
   useEffect(() => {
     void loadHist();
-    const p = ls.get<Pend>(PEND);
-    if (p?.out) { void poll(p); return; }
+    const ps = pendLoad(ls.get<unknown>(PEND), Date.now(), BUDGET_MS);   // 닫았다 다시 연 창 = 기다리던 줄 다 이어서(화면은 마지막에 보낸 것)
+    ls.set(PEND, ps.length ? ps : null);
+    if (ps.length) { setJobs(ps); focus.current = ps[ps.length - 1].out; ps.forEach((p) => void poll(p)); return; }
     const l = ls.get<{ out?: string; md?: string; ref?: string; ts?: number }>(LAST);   // 재열람(원본 LKEY · 24시간)
     if (l && Date.now() - (l.ts || 0) < 86_400_000) { if (l.md) void show(l.md, l.ref || "", "지난 결과"); else if (l.out) void getText(l.out).then((t) => { if (t) void show(t, l.ref || "", "지난 결과"); }); }
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   const fire = async (reroll = "") => {   // 원본 #go.onclick
     const s = scene.trim();
     if (!s) { setErr("장면을 적어 줘"); return; }
-    if (busy) return;
+    if (sending) return;
+    if (jobs.length >= K_PAR_MAX) { setErr(`같이 기다리는 건 ${K_PAR_MAX}개까지야 — 하나 끝나면 다시`); return; }
     const ln = (s.split("\n").find((x) => x.trim()) || "").replace(/\s+/g, " ").trim(), lbl = ln ? ln.slice(0, 16) + (ln.length > 16 ? "…" : "") : "프롬프트";
     const ri = !reroll && refimg, set: Record<string, unknown> = { 네거티브: neg };
     if (len) set["길이"] = `${len}s`;
@@ -127,16 +136,18 @@ export function KPromptModal() {
     const seg = segOn && segOk(len) ? segPayload(segs, len) : [];
     if (seg.length && !segValid(segs, len, model)) { setErr("구간 길이가 안 맞아 — 구간마다 3초 이상 · 합이 길이와 같아야 해"); return; }   // 서버는 어긋난 분막을 말없이 버림 → 여기서 막음
     const body = { scene: s.slice(0, 8000), refimage: ri, refmulti: ri && multi, reroll, lbl, model, set, dial: audio === "대사 삽입" ? dial.trim().slice(0, 300) : "", seg };
-    setBusy(true); setErr(""); setMd(""); setRefs([]); setMsg("보내는 중…");
+    setSending(true); setErr(""); setMd(""); setRefs([]); setMsg("보내는 중…");
     try {
       const r = await fetch("/api/k", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
       const j = (await r.json().catch(() => ({}))) as { md?: string; out?: string; ref?: string; refimage?: boolean; error?: string };
       if (!r.ok || j.error) throw new Error(String(j.error || `서버 오류 ${r.status}`));
       const ref = reroll ? lastRef.current : j.refimage && j.ref ? j.ref : "";
-      if (j.md) { setBusy(false); ls.set(LAST, { md: j.md, ref, ts: Date.now() }); await show(j.md, ref, "완료 (즉답)"); return; }
+      if (j.md) { focus.current = ""; ls.set(LAST, { md: j.md, ref, ts: Date.now() }); await show(j.md, ref, "완료 (즉답)"); return; }
       if (!j.out) throw new Error("서버 답에 결과 자리가 없어 — 다시");
-      const p: Pend = { out: abs(j.out), ref: ref ? abs(ref) : "", t0: Date.now(), lbl }; ls.set(PEND, p); void poll(p);
-    } catch (e) { setBusy(false); setMsg(""); setErr(e instanceof Error ? e.message : String(e)); }
+      const p: Pend = { out: abs(j.out), ref: ref ? abs(ref) : "", t0: Date.now(), lbl };
+      focus.current = p.out; saveJobs((a) => pendAdd(a, p)); setMsg(""); void poll(p);
+    } catch (e) { setMsg(""); setErr(e instanceof Error ? e.message : String(e)); }
+    finally { if (alive.current) setSending(false); }
   };
   const blocks = md ? parseMd(md) : [];
   const chip = (on: boolean) => `yset-chip${on ? " on" : ""}`;
@@ -188,8 +199,14 @@ export function KPromptModal() {
             {refimg ? <button type="button" className={chip(multi)} aria-pressed={multi} onClick={() => setMulti((v) => !v)}>다장(인물 · 배경별 · 장수만큼 과금)</button> : null}
           </div>
           <div className="nm-ys-opts">
-            <button type="button" className="yset-chip on" disabled={busy} onClick={() => void fire()}>{busy ? "만드는 중…" : "프롬프트 만들기"}</button>
+            <button type="button" className="yset-chip on" disabled={sending} onClick={() => void fire()}>{sending ? "보내는 중…" : jobs.length ? "하나 더 만들기" : "프롬프트 만들기"}</button>
           </div>
+          {jobs.length ? (
+            <div className="nm-kp-jobs" role="status" aria-label="만드는 중">
+              {jobs.map((p) => <div key={p.out} className="nm-kp-row"><b className="nm-kp-len">{`「${p.lbl}」`}</b><span className="nm-kp-hint">{`만드는 중… ${Math.max(0, Math.round((Date.now() - p.t0) / 1000))}초 · ${focus.current === p.out ? "끝나면 여기에 떠" : "끝나면 작업 내역에"}`}</span></div>)}
+              <p className="nm-kp-hint">이 창을 닫아도 다시 열면 이어서 기다려</p>
+            </div>
+          ) : null}
           {msg ? <p className="nm-chan-msg" role="status">{msg}</p> : null}
           {err ? <p className="nm-chan-msg" role="alert">{err}</p> : null}
         </div>
@@ -198,7 +215,7 @@ export function KPromptModal() {
             <div className="nm-ys-opts">
               <button type="button" className="yset-chip" onClick={async () => setMsg((await copyText(md)) ? "전체 복사했어" : "복사 못 했어")}>전체 복사</button>
               <span className="nm-song-k">다시 뽑기</span>
-              {REROLL.map((a) => <button key={a} type="button" className="yset-chip" disabled={busy} title={`${a}만 다른 안으로`} onClick={() => void fire(a)}>{a}</button>)}
+              {REROLL.map((a) => <button key={a} type="button" className="yset-chip" disabled={sending} title={`${a}만 다른 안으로`} onClick={() => void fire(a)}>{a}</button>)}
             </div>
             {blocks.map((b, i) => b.k === "code"
               ? <div key={i} className="nm-kp-code"><pre>{b.t}</pre><button type="button" className="yset-chip" onClick={async () => setMsg((await copyText(b.t)) ? "복사했어" : "복사 못 했어")}>복사</button></div>
@@ -211,7 +228,7 @@ export function KPromptModal() {
             <span className="ycd-nm yset-ttl">작업 내역 · 누르면 그 결과를 열어</span>
             <p className="nm-kp-cap">{`작업 내역 (${hist.length}) · 누르면 그 결과를 열어`}</p>
             {hist.map((h) => { const d = new Date(h.ts || 0), p2 = (n: number) => String(n).padStart(2, "0"); return (
-              <button key={h.id} type="button" className="nm-song-opt" disabled={busy} onClick={async () => { const t = await getText(h.out!); if (t) { setErr(""); await show(t, "", `지난 결과 · ${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`); } }}>
+              <button key={h.id} type="button" className="nm-song-opt" onClick={async () => { const t = await getText(h.out!); if (t) { focus.current = ""; setErr(""); await show(t, "", `지난 결과 · ${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`); } }}>
                 <b>{(h.t || "프롬프트").slice(0, 24)}</b><span>{`${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`}</span>
               </button>); })}
           </div>
