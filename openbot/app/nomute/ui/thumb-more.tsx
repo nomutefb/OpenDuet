@@ -40,7 +40,7 @@ export function useThumbMore(a: Art): { chips: ReactNode; pane: ReactNode } {
   useEffect(() => {
     if (!job) return;
     if (sig[job.kind] !== job.sig) {
-      setNote({ kind: "ok", text: job.kind === "more" ? "새 사진이 왔어 — 「검색」 줄 끝까지 넘겨 봐" : "새 썸네일이 왔어 — 「AI 생성」 줄" });
+      setNote({ kind: "ok", text: job.kind === "more" ? "새 사진이 왔어 — 「검색」 줄 맨 앞" : "새 썸네일이 왔어 — 「AI 생성」 줄" });
       setJob(null); return;
     }
     const left = job.at + LIMIT[job.kind] - Date.now();
@@ -65,7 +65,7 @@ export function useThumbMore(a: Art): { chips: ReactNode; pane: ReactNode } {
     <>
       <button type="button" className="yset-chip nm-thm-chip" disabled={busy} title={why || "기사 관련 실사진 5장 더 찾기 · 돈 0"} onClick={() => void send("more")}>사진 5장 더</button>
       <button type="button" className={`yset-chip nm-thm-chip${armed ? " nm-thm-arm" : ""}`} disabled={busy} aria-label={armed ? "한 번 더 누르면 4화풍 다시 그림(돈)" : "썸네일 다시"}
-        title={why || "AI 썸네일 4화풍 통째 다시 그리기 · 제미나이라 돈 들어 · 두 번 눌러야 나가"} onClick={() => (armed ? void send("redo") : setArmed(true))}>{armed ? "한 번 더(돈)" : "썸네일 다시"}</button>
+        title={why || "AI 썸네일 4화풍 통째 다시 그리기 · 제미나이라 돈 들어 · 두 번 눌러야 나가"} onClick={() => (armed ? void send("redo") : setArmed(true))}>{armed ? "한 번 더" : "썸네일 다시"}</button>
     </>
   );
   const pane = armed || live || job || sending || note ? (
