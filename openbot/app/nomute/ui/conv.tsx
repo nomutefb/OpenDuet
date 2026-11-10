@@ -1,7 +1,7 @@
 // 서랍 「변환」 = 옛 에디터 변환 창(viewer/conv.html · api/conv → 러너 → conv_out/<id>/video.json)을 앱 안으로
 //   (형 11-10 14:23 봄 1:1 「응 밖에잇는거 다 옮길거야」 · team-4 U3 뎅 · SNS 영상 받기도 같은 길)
 //   같은 것 = 넣는 것(영상 주소 또는 파일) · 고르는 칸(비율 · 채움 · 위치 · 해상도 · fps · 화질 · 소리 · 구간) · 서버 칸 이름 · 기다리는 길(video.json · error.log) · 진행 기억 열쇠(nm_conv_pend = 에디터와 같이)
-//   다른 것 = 파일은 30MB 까지(원본 R2 직업로드 길은 다음 판 · 넘으면 「주소로」) · 위치 미리보기 · 장면 고르기 그림판은 없음(위치 = 슬라이더 숫자)
+//   파일 = 30MB 까지 base64(원본 폴백 길) · 넘으면 R2 조각 올리기(./r2-upload.ts · 원본 upload.js) → r2key · 다른 것 = 위치 미리보기 · 장면 고르기 그림판은 없음(위치 = 슬라이더 숫자)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
@@ -11,6 +11,7 @@ import "./dl.css";
 import "./ys.css";
 import { useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
+import { r2Upload } from "./r2-upload";   // 30MB 넘는 파일 = R2 조각 올리기 → r2key(깃 공용 · 원본 upload.js nmUpload 와 같은 길)
 
 type Opts = { fps: string; ar: string; fit: string; pos: number; res: string; q: string; audio: string };
 const OPT0: Opts = { fps: "keep", ar: "orig", fit: "crop", pos: 50, res: "orig", q: "18", audio: "keep" };   // 원본 OPT 기본값
@@ -60,11 +61,12 @@ export function ConvModal() {
     if (!ready) return;
     const a = parseFloat(t0), b = parseFloat(t1);
     if (Number.isFinite(a) && Number.isFinite(b) && b <= a) { setSt({ k: "err", msg: "구간이 이상해 — 끝이 시작보다 커야 해" }); return; }
-    if (file && file.size > FILE_MAX) { setSt({ k: "err", msg: "30MB 넘는 파일은 아직 여기서 못 올려 — 영상 주소로 넣어 줘" }); return; }
     setSt({ k: "send" });
     try {
       const opts: Record<string, unknown> = { ...o, pos: o.pos / 100, ...(Number.isFinite(a) && a > 0 ? { t0: a } : {}), ...(Number.isFinite(b) && b > 0 ? { t1: b } : {}) };
-      const body = file ? { fileB64: await b64Of(file), name: file.name, opts } : { url: url.trim(), opts };
+      let body: Record<string, unknown>;
+      if (file && file.size > FILE_MAX) { const r2key = await r2Upload(file, (p) => { if (alive.current) setSt({ k: "send", msg: `올리는 중 ${p}%` }); }); body = { r2key, name: file.name, opts }; }
+      else body = file ? { fileB64: await b64Of(file), name: file.name, opts } : { url: url.trim(), opts };
       const r = await fetch("/api/conv", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; id?: string; error?: string };
       if (!r.ok || !d.ok || !d.id) throw new Error(d.error || `서버 ${r.status}`);
@@ -80,11 +82,11 @@ export function ConvModal() {
           <div className="nm-dl-url">
             <input type="url" value={url} placeholder="https://… (영상 주소)" aria-label="영상 주소" autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false} disabled={!!file}
               onChange={(e) => { setUrl(e.target.value); if (st.k === "err") setSt({ k: "idle" }); }} onKeyDown={(e) => { if (e.key === "Enter") void go(); }} />
-            <button type="button" className={`nm-dl-send${ready ? " on" : ""}`} disabled={!ready} onClick={() => void go()} aria-label="변환">{st.k === "send" ? "…" : "변환"}</button>
+            <button type="button" className={`nm-dl-send${ready ? " on" : ""}`} disabled={!ready} onClick={() => void go()} aria-label="변환">{st.k === "send" ? (st.msg ? st.msg.replace("올리는 중 ", "") : "…") : "변환"}</button>
           </div>
           <div className="nm-ys-opts">
             <input ref={fileIn} type="file" accept="video/*" hidden onChange={(e) => { setFile(e.target.files?.[0] || null); e.target.value = ""; }} />
-            <button type="button" className="yset-chip" onClick={() => fileIn.current?.click()}>{file ? `파일 · ${file.name}` : "파일 고르기(30MB 까지)"}</button>
+            <button type="button" className="yset-chip" onClick={() => fileIn.current?.click()}>{file ? `파일 · ${file.name}` : "파일 고르기"}</button>
             {file ? <button type="button" className="yset-chip" onClick={() => setFile(null)}>파일 빼기</button> : null}
           </div>
           <div className="nm-ys-opts">
