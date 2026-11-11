@@ -59,7 +59,7 @@ export function PcCard({ id, task, url, who }: { id: string; task: string; url: 
 }
 
 /** 앱 안 화면 — 그 몸 noVNC 를 꽉 차게 · 뒤로가기 = 닫기 · Esc 는 VM 으로 가야 해서 닫기에 안 씀 · 새 창 = 같은 주소 */
-function PcScreen({ url, title, task, canDone, onDone, onClose }: { url: string; title: string; task: string; canDone: boolean; onDone: () => void; onClose: () => void }) {
+export function PcScreen({ url, out, title, task, canDone, onDone, onClose }: { url: string; out?: string; title: string; task: string; canDone: boolean; onDone: () => void; onClose: () => void }) {   // out = 「새 창」 주소(표 한 번 쓴 주소 대신 · 프로필 「화면 보기」 빠르 11-11)
   useEffect(() => {
     history.pushState({ ...history.state, nmPc: 1 }, "");
     const pop = () => onClose();
@@ -72,7 +72,7 @@ function PcScreen({ url, title, task, canDone, onDone, onClose }: { url: string;
     <div className="nm-pcs" role="dialog" aria-modal="true" aria-label={`${title} 화면`}>
       <div className="nm-pcs-bar">
         <span className="nm-pcs-t"><Laptop />{title}{task ? <em> · {task}</em> : null}</span>
-        <a className="nm-pc-btn" href={url} target="_blank" rel="noopener noreferrer">새 창</a>
+        <a className="nm-pc-btn" href={out || url} target="_blank" rel="noopener noreferrer">새 창</a>
         {canDone ? <button type="button" className="nm-pc-btn" onClick={() => { onDone(); close(); }}>완료</button> : null}
         <button type="button" className="nm-pc-btn go" onClick={close}>닫기</button>
       </div>

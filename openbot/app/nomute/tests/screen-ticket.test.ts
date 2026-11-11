@@ -16,3 +16,12 @@ test("누르면 새 창 하나로 바로(기다림 · fetch 0)", () => {
   openScreenGo(U, { open: (...a: unknown[]) => { opens.push(a); return null; } } as unknown as Pick<Window, "open">);
   assert.deepEqual(opens, [[screenGoUrl(U), "_blank", "noopener"]]);
 });
+
+test("앱 안 화면 표 = 사람 문 답의 https 주소 · 못 받으면 빈 값(→ 새 창 바로 보내기)", async () => {
+  const { screenTicket } = await import("../ui/screen-ticket.ts");
+  const seen: unknown[] = [];
+  assert.equal(await screenTicket(U, async (b) => { seen.push(b); return { url: U + "&t=abc" }; }), U + "&t=abc");
+  assert.deepEqual(seen, [{ url: U }]);
+  assert.equal(await screenTicket(U, async () => { throw new Error("열쇠 없음"); }), "");
+  assert.equal(await screenTicket(U, async () => ({ url: "javascript:x" })), "");
+});

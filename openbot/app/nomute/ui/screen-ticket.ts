@@ -11,3 +11,12 @@ export function screenGoUrl(u: string): string {
 export function openScreenGo(u: string, w: Pick<Window, "open"> = window): void {
   w.open(screenGoUrl(u), "_blank", "noopener");
 }
+
+/** 앱 안 화면(형 11-11 19:08 「브라우저로 따로 안들어가고 여기서 원활하게 제어할수잇는 방법익나?」) — 사람 문(office · Access)으로 표 붙은 주소를 받음 · 못 받으면 ""
+ *  몸 문지기가 표를 받으면 주소 세션(?s= · 웹소켓 path)으로 넘겨 쿠키 없는 앱 안 틀(iframe)에서도 이어짐 */
+export async function screenTicket(u: string, call: (body: { url: string }) => Promise<{ url?: string }>): Promise<string> {
+  try {
+    const d = await call({ url: u });
+    return typeof d?.url === "string" && d.url.startsWith("https://") ? d.url : "";
+  } catch { return ""; }
+}
