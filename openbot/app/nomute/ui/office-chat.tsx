@@ -712,7 +712,7 @@ const NAME_TAIL = "(?:야|아|님|씨|에게|한테|께|이|가|은|는|을|를|
 const NAME_TONE = new Map<string, string>();   // 형 10-31 「그록봇은 시안 · 클로드봇은 주황네온 · 지피티 봇은 연보라네온」 · 「형 또는 세웅 은 노뮤트색」 = 이름 → 색 칸(gk·cl·gp·hy · 호출 칩 ycall 은 그대로)
 /** 이름·낱말 색 칸 — 묶음 낱말(「클로드」 등)은 「w」를 더 붙여 이름과 갈림(형 11-06 15:56 「클로드 색이 무지개로 바꼇는데 이거 확인」 = 무지개가 우리 이름에도 번졌음) */
 /** 우리 이름 = 각자 제 색(조약돌 BEING_INK 와 같음)(형 11-06 17:24 「애들 이름은 그냥 제대로 나오게해줘 붉은색 말고..」) · 묶음 낱말·그록봇·형 = 원래 칸 색 */
-const WHO_KEY: Record<string, string> = { 봄: "bom", 윈터: "winter", 시아: "sia", 뎅: "deng", 빠르: "fast", 누리: "neo", 뜸: "eyes", 번개: "lightning" };
+const WHO_KEY: Record<string, string> = { 봄: "bom", 윈터: "winter", 시아: "sia", 뎅: "deng", 빠르: "fast", 누리: "neo", 뜸: "eyes", 번개: "lightning", 챙: "chaeng" };
 const inkOfName = (n: string): string | undefined => { const k = WHO_KEY[n]; return k ? (k === "deng" ? "#d9894a" : BEING_INK[k]) : undefined; };   // 뎅 갈색은 어두운 판에서 묻혀 한 단계 밝게
 const toneOf = (n: string) => { const t = NAME_TONE.get(n) || ""; return t && TONE_WORDS.some(([w]) => w === n) ? `${t} w` : t; };
 const TONE_OF: Record<string, string> = { 그록봇: "gk", 클로드: "cl", 닷: "gp", 부름: "gp" };

@@ -311,3 +311,6 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-l .nm-rooms-pane .nm-rgroup { background:none; border:0; border-radius:0; }
 .nm-split-l .nm-rooms-pane .nm-rgroup > :first-child { border-top:0; }
 .nm-split-l .nm-rooms-pane .nm-rooms > .nm-tswitch, .nm-split-l .nm-rooms-pane .nm-rooms > .nm-rtop { margin-left:12px; margin-right:12px; }   /* 맨 위 알약 줄(팀즈 바꿈 · 공지)은 아직 여백 그대로 — 아이콘으로 바꿀 꼴은 봄한테 먼저(②③) */
+
+/* 켜고 끄는 알약(첨부 「압축」 · 「프레임」 · 형 11-12 07:48 「버튼 켜질때 라임 들어가니까 글자가 안보이는데 / 켜짐의 의미효과를 하단 네비처럼」 「포인트를 주면 됨」) = 아래 막대 켜진 칸과 같은 꼴 · 꽉 채우지 않음(글자 늘 읽힘) */
+.nm-sw.on { color:#CFFF40 !important; background:rgba(207,255,64,.14) !important; border-color:rgba(207,255,64,.38) !important; box-shadow:0 0 10px rgba(207,255,64,.22); }

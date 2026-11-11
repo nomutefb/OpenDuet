@@ -87,3 +87,6 @@ html[data-theme="garden"]:not(.dark) nav.ynav button,
 html[data-theme="garden"]:not(.dark) nav.ynav button span { color: var(--garden-accent) !important; text-shadow: none !important; }
 html[data-theme="garden"]:not(.dark) nav.ynav button.on,
 html[data-theme="garden"]:not(.dark) nav.ynav button[aria-current="page"] { color: var(--garden-ink) !important; background: rgba(78, 143, 58, .14) !important; border-color: rgba(78, 143, 58, .32) !important; }
+
+/* 켜고 끄는 알약 = 정원(밝은 판) 아래 막대 켜진 칸과 같은 꼴(형 11-12 07:48) */
+html[data-theme="garden"]:not(.dark) .nm-sw.on { color: var(--garden-ink) !important; background: rgba(78, 143, 58, .14) !important; border-color: rgba(78, 143, 58, .32) !important; box-shadow: 0 0 10px rgba(78, 143, 58, .18); }

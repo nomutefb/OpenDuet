@@ -129,7 +129,7 @@ export function AttachmentStrip({
             <button
               aria-checked={on}
               aria-label="사진·영상 압축해서 보내기"
-              className={`rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors ${on ? "border-[#CFFF40] bg-[#CFFF40] text-black shadow-[0_0_8px_#CFFF4099]" : "border-border bg-transparent text-muted-foreground"}`}
+              className={`nm-sw rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors border-border bg-transparent text-muted-foreground${on ? " on" : ""}`}   // 켜짐 = 아래 막대 켜진 칸처럼(라임 테두리 · 라임 글자 · 은은한 빛 · 형 11-12 07:48 「켜짐의 의미효과를 하단 네비처럼」 · nomute ui/shell.css .nm-sw)
               onClick={() => compress.set(!on)}
               role="switch"
               type="button"
@@ -143,7 +143,7 @@ export function AttachmentStrip({
             <button
               aria-checked={denseOn}
               aria-label="프레임 — 영상을 30프레임마다 쪼개 같이 보냄"
-              className={`rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors ${denseOn ? "border-[#CFFF40] bg-[#CFFF40] text-black shadow-[0_0_8px_#CFFF4099]" : "border-border bg-transparent text-muted-foreground"}`}
+              className={`nm-sw rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors border-border bg-transparent text-muted-foreground${denseOn ? " on" : ""}`}
               onClick={() => dense.set(!denseOn)}
               role="switch"
               type="button"
