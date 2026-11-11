@@ -1347,7 +1347,14 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     <div className="flex min-h-0 flex-1 flex-col">
       <AttachSheet />
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
-      {menuOf ? <MsgMenu m={menuOf} onUnsent={(id, u) => qc.setQueryData<Page>(officeKeys.msgs(room), (old) => (old ? { ...old, messages: old.messages.map((x) => (x.id === id ? ({ ...x, text: "", files: [], file_meta: [], caption: "", mention: [], unsent: u } as Msg) : x)) } : old))} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
+      {menuOf ? <MsgMenu m={menuOf} onUnsent={(id) => {   // 「예」 = 창 바로 닫힘 · 글 바로 빠짐 · 서버는 뒤에서 · 「지웠어」 알림 0 · 실패 때만 되돌리고 한 문장(형 11-12 07:28 「삭제 예.누르면 지웠어. 안떠도 돼 … 누르면 닫히고 백단에서 처리하셈」 · 뎅)
+        const key = officeKeys.msgs(room), prev = qc.getQueryData<Page>(key)?.messages.find((x) => x.id === id);
+        const put = (fn: (x: Msg) => Msg) => qc.setQueryData<Page>(key, (old) => (old ? { ...old, messages: old.messages.map((x) => (x.id === id ? fn(x) : x)) } : old));
+        put((x) => ({ ...x, text: "", files: [], file_meta: [], caption: "", mention: [], unsent: { by: "형", at: Date.now() } } as Msg));
+        void office<{ ok?: boolean; unsent?: { by: string; at: number } }>(`rooms/${enc(room)}/unsend`, { method: "POST", body: JSON.stringify({ id }) })
+          .then((j) => { if (j?.unsent) put((x) => ({ ...x, unsent: j.unsent } as Msg)); else throw new Error("no unsent"); })
+          .catch(() => { if (prev) put(() => prev); setErr("메시지를 삭제하지 못했습니다. 다시 시도해 주세요."); });
+      }} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
       {/* 대화창 아무 데나 끌어다 놓기 = 입력칸에 넣은 것처럼(형 11-05 10:45 「대화창 이 입력하는 칸, 말고 대충 이 대화창 안에만 드래그앤 드롭해도 대화칸에 넣는것처럼 해주면 땡큐!!」) */}
       <div className={`ychat relative flex min-h-0 flex-1 flex-col${dropping ? " ydrop" : ""}`}
         onDragOver={(e) => { if (Array.from(e.dataTransfer.types).includes("Files")) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; if (!dropping) setDropping(true); } }}

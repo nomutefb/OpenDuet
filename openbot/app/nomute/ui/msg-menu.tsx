@@ -37,7 +37,7 @@ export function useLongPress(open: () => void) {
 
 const short = (n: string) => n.replace(" PM", "");
 
-export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onUnsent, onClose }: { onUnsent?: (id: string, u: { by: string; at: number }) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
+export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onUnsent, onClose }: { onUnsent?: (id: string) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
   const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
   const [gone, setGone] = useState(false);   // 「삭제」 → 「지울까?」 한 번(봄 08:57 · 되돌리기 어려운 손)
@@ -117,7 +117,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
             <p className="nm-msgm-ask">삭제 하시겠습니까?</p>
             <div className="nm-msgm-yn">
               <button type="button" className="no" disabled={busy} onClick={() => setGone(false)}>아니오</button>
-              <button type="button" disabled={busy} onClick={() => { setBusy(true); void office<{ ok?: boolean; unsent?: { by: string; at: number } }>(`rooms/${encodeURIComponent(room)}/unsend`, { method: "POST", body: JSON.stringify({ id: m.id }) }).then((j) => { if (j?.unsent) onUnsent?.(m.id, j.unsent); done("지웠어"); }).catch(() => setWhy("못 지웠어 — 다시")).finally(() => setBusy(false)); }}>예</button>
+              <button type="button" disabled={busy} onClick={() => { onUnsent?.(m.id); onClose(); }}>예</button>   {/* 바로 닫힘 · 서버는 office-chat 이 뒤에서(형 11-12 07:28) */}
             </div>
           </>
         ) : moving ? (

@@ -116,6 +116,17 @@ function limeSecret(t?: string): ReactNode {
   return <>{s.slice(0, m.index)}<b className="nar-lime">{m[0]}</b>{s.slice(m.index + m[0].length)}</>;
 }
 
+/** 전송 알림 한 문장(공적인 말씨) — 첨부 원본이 있으면 「파일」 · 글만이면 「메시지」(형 11-12 07:27) */
+export function noticeOf(a: { phase: string; originals: unknown[]; detail?: string; saved?: unknown[]; failed?: unknown[]; announcement?: unknown }): string {
+  const what = a.originals.length ? "파일을" : "메시지를";
+  if (a.phase === "cancelled") return "전송을 취소했습니다.";
+  if (a.phase === "needs-check" || a.phase === "body-retry") {
+    console.info("[첨부 전송]", a.phase, a.detail || "", { saved: a.saved, failed: a.failed, announcement: a.announcement });   // 까닭 · 받는 곳별 결과 = 기록에만
+    return `${what} 전송하지 못했습니다. 다시 시도해 주세요.`;
+  }
+  return "보내는 중입니다.";
+}
+
 export function AttachmentRecovery({
   state,
   room,
@@ -150,16 +161,8 @@ export function AttachmentRecovery({
           className="nar-card relative mb-2 rounded-xl border border-border bg-muted p-3 text-xs"
         >
           <AutoClose id={attempt.id} />   {/* 끄기(×) · 5초 뒤 저절로 닫힘 · 원본은 이 탭 보관 그대로(형 11-06 20:31 「끄기버튼만잇으면될듯」 · 「5초는 자동.」) */}
-          <p role="status" className="nar-t font-semibold">
-            {attempt.phase === "cancelled"
-              ? "취소됨"
-              : attempt.phase === "needs-check"
-              ? "전송 확인 필요"
-              : attempt.phase === "body-retry"
-                ? "본문 다시 보내기 가능"
-                : "보내는 중"}
-          </p>
-          {attempt.phase === "cancelled" ? null : <p className="mt-1">{limeSecret(attempt.detail)}</p>}   {/* 취소됨 = 한 줄(봄 12:19 · 친 글이 있으면 그 글만 아래에 남김 · 다시 쓸 수 있게) */}
+          {/* 알림 = 공적인 한 문장(형 11-12 07:27 「메세지 좀 심플하게 공적으로 알림 한문장으로 뜨게해줘」 · 07:35 「이 메세지가 먼지 확안들어왕」 · 뎅) — 까닭(attempt.detail)은 화면에 안 쏟고 기록(콘솔 · 길게 보기 title)에만 */}
+          <p role="status" className="nar-t font-semibold" title={attempt.phase === "cancelled" ? undefined : attempt.detail}>{noticeOf(attempt)}</p>
           {attempt.text ? (
             <section
               className="nar-body mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap break-words"
@@ -178,36 +181,7 @@ export function AttachmentRecovery({
             ))}
           </ul>
           )}
-          {attempt.saved.length ? (
-            <div className="mt-2">
-              <p>저장 확인 · 복사본 {attempt.saved.length}개</p>
-              <ul>
-                {attempt.saved.map((copy) => (
-                  <li key={copy.path}>
-                    {copy.bot || "공용"} · {copy.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {attempt.failed.length ? (
-            <div className="mt-2">
-              <p>저장 실패 · 복사본 {attempt.failed.length}개</p>
-              <ul>
-                {attempt.failed.map((copy, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: 서버는 실패 복사본 ID를 주지 않는다. 이 시도의 응답 행은 이후 정렬/편집하지 않는다.
-                  <li key={`${copy.bot}:${copy.name}:${i}`}>
-                    {copy.bot} · {copy.name} · {copy.why}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {attempt.saved.length ? (
-            <p className="mt-1">
-              첨부 알림 · {attempt.announcement ? "확인됨" : "확인 필요"}
-            </p>
-          ) : null}
+          {/* 받는 곳별 저장 · 실패 · 알림 확인 = 화면 0 · 기록에만(noticeOf 콘솔 · 형 11-12 07:27 「한문장으로」) */}
           {attempt.phase === "body-retry" ? (
             <button
               type="button"

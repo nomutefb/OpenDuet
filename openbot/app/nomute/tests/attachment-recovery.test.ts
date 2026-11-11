@@ -116,9 +116,8 @@ test("partial copy outcomes keep original preview/download and explain confirmat
   const f = fixture([partial]);
   await f.state.submit(input());
   const view = await mount(f.state);
-  assert.match(view.container.textContent || "", /전송 확인 필요/);
-  assert.match(view.container.textContent || "", /winter · same.png/);
-  assert.match(view.container.textContent || "", /bom · same.png · 권한 없음/);
+  assert.match(view.container.textContent || "", /파일을 전송하지 못했습니다\. 다시 시도해 주세요\./);
+  assert.doesNotMatch(view.container.textContent || "", /winter · same.png|권한 없음/);   // 받는 곳별 결과 = 화면 0 · 기록에만(형 11-12 07:27 「한문장으로」)
   assert.match(view.container.textContent || "", /원래 본문/);
   assert.equal(view.container.querySelectorAll("img").length, 1);
   assert.match(
@@ -199,8 +198,8 @@ test("unknown retry outcome removes retry action while retaining originals and c
     retry.click();
     await setImmediate();
   });
-  assert.match(view.container.textContent || "", /전송 확인 필요/);
-  assert.match(view.container.textContent || "", /저장 확인 · 복사본 1개/);
+  assert.match(view.container.textContent || "", /파일을 전송하지 못했습니다\. 다시 시도해 주세요\./);
+  assert.doesNotMatch(view.container.textContent || "", /저장 확인 · 복사본/);
   assert.equal(retryButtons(view.container).length, 0);
   assert.equal(view.container.querySelectorAll("a[download]").length, 1);
   assert.deepEqual(f.released, []);
@@ -220,7 +219,7 @@ test("the persistent recovery card owns originals before a delayed upload settle
   });
   assert.equal(view.container.querySelectorAll("a[download]").length, 0);
   await view.render("a");
-  assert.match(view.container.textContent || "", /전송 확인 필요/);
+  assert.match(view.container.textContent || "", /파일을 전송하지 못했습니다\. 다시 시도해 주세요\./);
   assert.equal(view.container.querySelectorAll("a[download]").length, 1);
 });
 
