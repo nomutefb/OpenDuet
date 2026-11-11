@@ -18,3 +18,14 @@ test("카드 = 폰도 매체 · 편향 · 민감 줄 · 옛 값(Pretendard · �
   assert.match(css, /\.nm-ned \.nm-sumc-t \{ font-size:15px; font-weight:700; line-height:1\.45; \}/);
   assert.match(css, /\.nm-ned \.nm-sumc-prog em \{ height:7px;/);
 });
+
+test("요약 요청 = 옛 꼴(글칸 한 장 안 붙여넣기 · 사진 · 링크 · 전송 · 칩 다섯 옛 이름 · 주요는 칩 없이 기본값)", () => {
+  const ask = rd("../ui/ask.tsx"), acss = rd("../ui/ask.css");
+  assert.match(ask, /className="nm-ask nm-ask-o/);
+  assert.match(ask, /placeholder="내용을 입력해주세요"/);
+  for (const o of ["24시간 내", "외신 기반", "원본 한정", "AI 미제작", "지식형"]) assert.ok(ask.includes(`o: "${o}"`), o);
+  assert.match(ask, /CHIPS\.filter\(\(c\) => c\.k !== "mj"\)/);
+  assert.match(ask, /const DEF: Preset = \{ h24: 1, fp: 0, mj: 1, og: 0, noai: 1, know: 0 \}/);   // 보내는 값 그대로
+  assert.match(ask, /fetch\("\/api\/submit"/);
+  assert.match(acss, /\.nm-ask-o \.nm-ask-box \{ position:relative; display:flex; flex-direction:column; border:1px solid rgba\(255,255,255,\.08\); border-radius:16px; background:rgba\(255,255,255,\.05\); \}/);
+});

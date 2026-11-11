@@ -24,3 +24,31 @@
 .nm-ask > .nm-ask-badge.nm-in-modal { display:none; }
 .nm-modal .nm-ask > .nm-ask-badge.nm-in-modal { display:inline-grid; align-self:flex-start; margin-left:0; }
 
+
+/* 옛 에디터 「요약 요청」 꼴(./ask.tsx nm-ask-o · 형 11-11 09:01 · 13:02 · 옛 = /?old .asktawrap 웹킷 폰 390 실측) — 글꼴 Pretendard · 색만 정원 라임
+   상자 = 바탕 .05 · 테 .08 · 모서리 16 · 글 14 · 안쪽 12/48/12/14 · 붙여넣기 = 26 둥근 · 아래 사진 · 링크 = 44 둥근 · 「전송」 = 14/800 알약 · 칩 = 11.25/700 글(켜짐 = ✓ + 라임 알약) */
+.nm-ask-o { display:flex; flex-direction:column; gap:12px; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing:-.2px; }
+.nm-ask-o .nm-ask-box { position:relative; display:flex; flex-direction:column; border:1px solid rgba(255,255,255,.08); border-radius:16px; background:rgba(255,255,255,.05); }
+:root:not(.dark) .nm-ask-o .nm-ask-box { border-color:rgba(0,0,0,.1); background:rgba(255,255,255,.7); }
+.nm-ask-o .nm-ask-ta { width:100%; min-height:138px; margin:0; padding:12px 48px 12px 14px; border:0; border-radius:16px 16px 0 0; background:transparent; box-shadow:none; resize:vertical; font:inherit; font-size:14px; line-height:1.6; color:var(--fg); }
+.nm-ask-o .nm-ask-ta:focus { outline:none; border:0; }
+.nm-ask-o .nm-ask-box:focus-within { border-color:rgba(207,255,64,.35); }
+.nm-ask-o .nm-ask-ta::placeholder { color:rgb(143,166,151); }
+.nm-ask-o .nm-ask-clip { position:absolute; top:10px; right:10px; display:grid; place-items:center; width:26px; height:26px; padding:0; border:1px solid rgba(255,255,255,.08); border-radius:50%; background:rgba(255,255,255,.04); color:#BBBCBC; cursor:pointer; }
+.nm-ask-o .nm-ask-linkrow { display:flex; align-items:center; gap:8px; padding:0 12px 6px; }
+.nm-ask-o .nm-ask-in { flex:1; min-width:0; height:36px; padding:0 12px; border:1px solid rgba(255,255,255,.1); border-radius:12px; background:rgba(0,0,0,.18); font:inherit; font-size:13px; color:var(--fg); }
+.nm-ask-o .nm-ask-probe { margin:0 14px 6px; font-size:12px; }
+.nm-ask-o .nm-ask-imgs { display:flex; gap:6px; flex-wrap:wrap; padding:0 12px 6px; }
+.nm-ask-o .nm-ask-bar { display:flex; align-items:center; gap:2px; padding:0 6px 6px; }
+.nm-ask-o .nm-ask-sp { flex:1; }
+.nm-ask-o .nm-ask-ic { display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:50%; background:none; color:#BBBCBC; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-ask-o .nm-ask-ic.on { color:#CFFF40; }
+:root:not(.dark) .nm-ask-o .nm-ask-ic.on { color:#4f7a00; }
+.nm-ask-o .nm-ask-ic:disabled, .nm-ask-o .nm-ask-clip:disabled { opacity:.4; cursor:default; }
+.nm-ask-o .nm-ask-go { height:32px; margin:6px; padding:0 12px; border:0; border-radius:15px; background:rgba(255,255,255,.04); color:#BBBCBC; font:inherit; font-size:14px; font-weight:800; }
+.nm-ask-o .nm-ask-box.filled .nm-ask-go { background:#CFFF40; color:#111; }   /* 글이 차면 = 라임(옛 판은 하늘색 강조) */
+.nm-ask-o .nm-ask-chips-o { display:flex; flex-wrap:wrap; align-items:center; gap:4px 2px; padding:0 2px; }
+.nm-ask-o .nm-ask-chip { height:30px; padding:0 9px; border:0; border-radius:999px; background:none; color:#BBBCBC; font:inherit; font-size:11.25px; font-weight:700; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-ask-o .nm-ask-chip.on { color:#CFFF40; background:rgba(207,255,64,.12); }
+:root:not(.dark) .nm-ask-o .nm-ask-chip.on { color:#4f7a00; background:rgba(79,122,0,.1); }
+.nm-ask-o .nm-ask-chip:disabled { opacity:.5; }

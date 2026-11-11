@@ -13,13 +13,12 @@ import "./ask.css";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { GoButton } from "./go-button";
 import { Pane } from "./pane";
-import { YICO } from "./yeta-icons";
 
 type Preset = { h24: 0 | 1; fp: 0 | 1; mj: 0 | 1; og: 0 | 1; noai: 0 | 1; know: 0 | 1 };
 const DEF: Preset = { h24: 1, fp: 0, mj: 1, og: 0, noai: 1, know: 0 };   // 원본 askPreset 기본(17680줄 · 창 열 때마다 이 값으로 돌아감)
-const CHIPS: { k: keyof Preset; t: string; d: string }[] = [   // 라벨 = 원본 PP_LBL 12056줄(24h·외신·주요·원본) · noai·know 뜻 = 원본 4463줄 title 그대로
-  { k: "h24", t: "24h", d: "최근 24시간 안 기사" }, { k: "fp", t: "외신", d: "외신 기반(끄면 국내 기반)" }, { k: "mj", t: "주요", d: "주요 매체 위주" },
-  { k: "og", t: "원본", d: "원본 한정" }, { k: "noai", t: "AI 썸네일 끔", d: "켜짐 = AI 썸네일을 만들지 않음(끄면 그 건만 평소대로 생성)" }, { k: "know", t: "지식형", d: "뉴스 사건이 아니라 지식·설명 콘텐츠로 다룸(질문→핵심 답→이유→적용→주의)" },
+const CHIPS: { k: keyof Preset; t: string; o?: string; d: string }[] = [   // o = 옛 판 「요약 요청」 탭에 보이는 글(/?old 실측 · 11-11)   // 라벨 = 원본 PP_LBL 12056줄(24h·외신·주요·원본) · noai·know 뜻 = 원본 4463줄 title 그대로
+  { k: "h24", t: "24h", o: "24시간 내", d: "최근 24시간 안 기사" }, { k: "fp", t: "외신", o: "외신 기반", d: "외신 기반(끄면 국내 기반)" }, { k: "mj", t: "주요", d: "주요 매체 위주" },
+  { k: "og", t: "원본", o: "원본 한정", d: "원본 한정" }, { k: "noai", t: "AI 썸네일 끔", o: "AI 미제작", d: "켜짐 = AI 썸네일을 만들지 않음(끄면 그 건만 평소대로 생성)" }, { k: "know", t: "지식형", o: "지식형", d: "뉴스 사건이 아니라 지식·설명 콘텐츠로 다룸(질문→핵심 답→이유→적용→주의)" },
 ];
 const IMG_MAX = 4, IMG_BYTES = 6 * 1024 * 1024;
 const DRAFT = "nm_ask_draft", STT_CAP = 1800, STT_FORCE_CAP = 3300;   // 전사 상한(초) = 원본 ALK_STT_CAP · ALK_STT_FORCE_CAP(news-ask.yml 사본 · 실제 문은 파이프)
@@ -28,6 +27,10 @@ const readDraft = (): { text?: string; link?: string } | null => { try { return 
 class Shown extends Error {}   // 이미 아래 줄에 까닭을 띄운 실패(게이지 단추엔 그대로 던짐)
 const mins = (sec: number) => (sec >= 60 ? `${Math.round(sec / 60)}분` : `${Math.round(sec)}초`);
 
+const SV = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
+const IC_IMG = <svg {...SV}><rect x="3" y="4" width="18" height="16" rx="2.5" /><circle cx="8.5" cy="9.5" r="1.6" /><path d="m21 16-5-5-9 9" /></svg>;
+const IC_LINK = <svg {...SV}><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2" /><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" /></svg>;
+const IC_CLIP = <svg {...SV} width={14} height={14} strokeWidth={2}><rect x="6" y="4" width="12" height="17" rx="2" /><path d="M9 4h6v3H9z" /></svg>;
 const readAsDataUrl = (f: File) => new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(f); });
 
 export function AskModal({ onClose }: { onClose?: () => void } = {}) {
@@ -56,6 +59,7 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
   const [preset, setPreset] = useState<Preset>({ ...DEF });
   const [busy, setBusy] = useState(false), [note, setNote] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [pending, setPending] = useState<number | null>(null);
+  const [showLink, setShowLink] = useState(false);   // 링크 칸 = 링크 아이콘을 누르면(옛 판 「링크 넣기」) · 링크가 이미 있으면 늘 보임
   const file = useRef<HTMLInputElement>(null);
   const loadPending = async () => {
     try {
@@ -94,39 +98,50 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
       throw e;
     } finally { setBusy(false); }
   };
-  const Svg = ({ k }: { k: keyof typeof YICO }) => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
+  // 꼴 = 옛 에디터 「요약 요청」 탭 그대로(형 11-11 09:01 봄 1:1 「… 폰트도 에디터 들은 거기에 맞춰 뉴스 요약 받는 것도 포함」 · 13:02 「이미지 썸네일 만들기랑 뉴스요약 뉴스요약 보기가 가장 많이 쓰는 기능이니까 그것만 따라오면 돼」 · 옛 = /?old .asktawrap 웹킷 폰 390 실측)
+  //   글칸 한 장 안에 = 오른쪽 위 붙여넣기 · 아래 사진 · 링크(누르면 링크 칸) · 오른쪽 「전송」 · 그 아래 칩 다섯(✓ = 켜짐) · 「주요」(mj)는 옛 판처럼 칩 없이 기본값 그대로 보냄 · 「대기 n」 표 = 옛 판에 없어 뺌 · 색 = 정원 라임
+  //   앞 판 = YETA 설정 카드(대기 배지 · 글칸 · 링크 칸 · 칩 여섯 · 사진 칩 · 「보내기」)
+  const paste = async () => {
+    try { const t = await navigator.clipboard.readText(); if (t) setText((v) => (v ? v.replace(/\s*$/, "\n") : "") + t); }
+    catch { setNote({ kind: "err", text: "붙여넣기를 못 했어 — 글칸을 길게 눌러 붙여 줘" }); }
+  };
   return (
     <Pane title="요약 요청">
-      <div className="yeta-set mt-2">
-        <div className="ycd-card card-left nm-ask">
-          <span className="ycd-nm yset-ttl"><Svg k="chat" />요약 요청{pending != null ? <i className="nm-ask-badge" title="대기열 처리 중">{pending}</i> : null}</span>
-          {pending != null ? <i className="nm-ask-badge nm-in-modal" title="대기열 처리 중">대기 {pending}</i> : null}
-          <textarea className="nm-ask-ta" rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder="요약할 글을 붙이거나 할 말을 써 줘 (사진·링크만 보내도 돼)" aria-label="요약할 글" disabled={busy} />
-          <div className="nm-ask-row">
-            <input className="nm-ask-in" type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="링크(선택) — 기사면 원문 · 영상이면 받아쓰기" aria-label="링크" disabled={busy} />
-            {over && !tooLong ? <button type="button" className={`yset-chip${force ? " on" : ""}`} aria-pressed={force} onClick={() => setForce((v) => !v)} title="자막 없는 긴 영상 = 받아쓰기 상한을 30분 → 55분으로">전사 강행</button> : null}
-          </div>
+      <div className="nm-ask nm-ask-o mt-2">
+        <div className={`nm-ask-box${text ? " filled" : ""}`}>
+          <textarea className="nm-ask-ta" rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder="내용을 입력해주세요" aria-label="요약할 글" disabled={busy} />
+          <button type="button" className="nm-ask-clip" aria-label="붙여넣기" title="붙여넣기" onClick={() => void paste()} disabled={busy}>{IC_CLIP}</button>
+          {showLink || link ? (
+            <div className="nm-ask-linkrow">
+              <input className="nm-ask-in" type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="링크 — 기사면 원문 · 영상이면 받아쓰기" aria-label="링크" disabled={busy} autoFocus={showLink && !link} />
+              {over && !tooLong ? <button type="button" className={`nm-ask-chip${force ? " on" : ""}`} aria-pressed={force} onClick={() => setForce((v) => !v)} title="자막 없는 긴 영상 = 받아쓰기 상한을 30분 → 55분으로">{force ? "✓ " : ""}전사 강행</button> : null}
+            </div>
+          ) : null}
           {probe.st !== "hide" ? (
             <p className={`nm-ask-probe ${probe.st}`} role="status">
               {probe.st === "wait" ? "링크 확인 중…"
-                : `영상 링크${probe.dur ? ` · ${mins(probe.dur)}` : ""} · ${probe.st === "subs" ? "자막이 있어서 자막을 그대로 써" : probe.st === "stt" ? "자막이 없어서 large-v3 로 받아써" : "자막이 있는지 미리 못 봤어 — 처리 때 자막부터 찾아"}`}
+                : `영상 링크${probe.dur ? ` · ${mins(probe.dur)}` : ""} · ${probe.st === "subs" ? "자막이 있어서 자막을 그대로 써" : probe.st === "stt" ? "자막이 없어서 large-v3 로 받아써" : "자막이 있는지 미리 못 봤어 — 보내면 알아서 골라"}`}
               {over ? <b>{tooLong ? " · 55분 넘는 영상은 받아쓰기 못 해 — 자막 있는 영상으로" : force ? " · 전사 강행 = 55분까지" : " · 30분 넘어서 기본으론 못 받아써 — 「전사 강행」"}</b> : null}
             </p>
           ) : null}
-          <div className="yset-chips nm-ask-chips" role="group" aria-label="수집 프리셋">
-            {CHIPS.map((c) => <button key={c.k} type="button" className={`yset-chip${preset[c.k] ? " on" : ""}`} aria-pressed={!!preset[c.k]} title={c.d} onClick={() => setPreset((p) => ({ ...p, [c.k]: p[c.k] ? 0 : 1 }))} disabled={busy}>{c.t}</button>)}
-          </div>
-          <div className="nm-ask-row">
-            <button type="button" className="yset-chip" onClick={() => file.current?.click()} disabled={busy || imgs.length >= IMG_MAX}>사진 {imgs.length}/{IMG_MAX}</button>
+          {imgs.length ? (
+            <div className="nm-ask-imgs">
+              {imgs.map((im, i) => <span key={im.name + i} className="nm-ask-img"><img src={im.dataUrl} alt="" /><button type="button" aria-label={`${im.name} 빼기`} onClick={() => setImgs((s) => s.filter((_, j) => j !== i))}>×</button></span>)}
+            </div>
+          ) : null}
+          <div className="nm-ask-bar">
+            <button type="button" className="nm-ask-ic" aria-label={`이미지 첨부 ${imgs.length}/${IMG_MAX}`} title={`사진 ${imgs.length}/${IMG_MAX}`} onClick={() => file.current?.click()} disabled={busy || imgs.length >= IMG_MAX}>{IC_IMG}</button>
             <input ref={file} type="file" accept="image/*" multiple hidden onChange={(e) => void pick(e)} />
-            {imgs.map((im, i) => <span key={im.name + i} className="nm-ask-img"><img src={im.dataUrl} alt="" /><button type="button" aria-label={`${im.name} 빼기`} onClick={() => setImgs((s) => s.filter((_, j) => j !== i))}>×</button></span>)}
-          </div>
-          {note ? <p className={`nm-ask-note ${note.kind}`} role={note.kind === "err" ? "alert" : "status"}>{note.text}</p> : null}
-          <div className="ypc-acts nm-ask-acts">
-            {draft && (text || link) ? <button type="button" className="yset-chip" onClick={() => { setText(""); setLink(""); setNote(null); }} disabled={busy}>초안 비우기</button> : null}
-            <GoButton className="ypc-go" go={send} busy="보내는 중" done={() => onClose?.()}>보내기</GoButton>
+            <button type="button" className={`nm-ask-ic${showLink || link ? " on" : ""}`} aria-label="링크 넣기" aria-pressed={showLink || !!link} onClick={() => setShowLink((v) => !v)}>{IC_LINK}</button>
+            <span className="nm-ask-sp" />
+            {draft && (text || link) ? <button type="button" className="nm-ask-chip" onClick={() => { setText(""); setLink(""); setNote(null); }} disabled={busy}>초안 비우기</button> : null}
+            <GoButton className="nm-ask-go" go={send} busy="보내는 중" done={() => onClose?.()}>전송</GoButton>
           </div>
         </div>
+        <div className="nm-ask-chips-o" role="group" aria-label="수집 프리셋">
+          {CHIPS.filter((c) => c.k !== "mj").map((c) => <button key={c.k} type="button" className={`nm-ask-chip${preset[c.k] ? " on" : ""}`} aria-pressed={!!preset[c.k]} title={c.d} onClick={() => setPreset((p) => ({ ...p, [c.k]: p[c.k] ? 0 : 1 }))} disabled={busy}>{preset[c.k] ? "✓ " : ""}{c.o}</button>)}
+        </div>
+        {note ? <p className={`nm-ask-note ${note.kind}`} role={note.kind === "err" ? "alert" : "status"}>{note.text}</p> : null}
       </div>
     </Pane>
   );
