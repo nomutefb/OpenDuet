@@ -2,7 +2,8 @@
    차오름 리듬 = 옛 판 그대로(에디터 #askSend · 응답 기다리는 동안 0→90% 1.2s · 열리면 100% .3s · ✓ goTick .38s) · 출처 nomutefb/editor */
 .nm-send-dock { position:absolute; right:-9px; top:50%; transform:translateY(-50%); z-index:10; display:flex; flex-direction:column; align-items:center; gap:10px; }
 /* 폰 폭(형 11-05 사진 「모바일 버전 해결점」 · send-button.tsx useCardCorner) = 카드 오른쪽 아래 안쪽 · --nm-card-b = 품은 덱 앞 카드 아래 끝(칸 위에서) · --nm-card-r = 카드 오른쪽 끝 ~ 칸 오른쪽 끝 · 카드마다 높이가 달라 아래 끝을 부드럽게 따라감 */
-.nm-send-dock[data-fit] { top:auto; right:calc(var(--nm-card-r) + var(--nm-inset)); bottom:calc(100% - var(--nm-card-b) + var(--nm-inset)); transform:none; transition:bottom .25s var(--ease); }
+/* 폰 = 카드 세로 가운데 · 오른쪽 테두리 선에 반쯤 걸침(형 11-12 07:47 봄 1:1 「웅 그리구 이거 픽 버튼 체크 카드 정중앙기중 우측 으로 보내도 돼. / 라인에 반쯤 걸치게. / 저기에 잇어서 공간 잡아먹을 필요없음 어제 말한 내용」 · 앞 판 = 카드 오른쪽 아래 안쪽) · 화면 밖으로는 안 나감(오른쪽 4px 앞에서 멈춤) */
+.nm-send-dock[data-fit] { top:calc(var(--nm-card-y) + var(--nm-card-h) / 2); bottom:auto; right:max(4px, calc(var(--nm-card-r) - 22px)); transform:translateY(-50%); transition:top .25s var(--ease); }
 @media (prefers-reduced-motion:reduce) { .nm-send-dock[data-fit] { transition:none; } }
 .nm-send, .nm-send-nx { position:relative; display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:50%; background:color-mix(in srgb, var(--bg) 55%, transparent); color:var(--fg);
   box-shadow:0 2px 8px rgba(0,0,0,.22); backdrop-filter:blur(var(--blur-l)); -webkit-backdrop-filter:blur(var(--blur-l)); -webkit-tap-highlight-color:transparent; cursor:pointer; transition:transform .2s var(--ease); }
