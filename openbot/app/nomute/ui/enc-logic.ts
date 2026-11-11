@@ -22,6 +22,9 @@ export const STT_HOLD = 10 * 60e3;
 /** 「완료」 글을 보이는 동안(끝난 지 이만큼) · 그 뒤엔 라임 테두리만 남음 */
 export const DONE_SHOW = 10 * 60e3;
 
+/** 형 1:1 방(dm-<봇> · 형 방 dm-hyung 뺌)에서 봇이 형한테 보낸 첨부 = 게이지 · 라임 테두리 0(형 11-12 07:41~07:44 봄 1:1 「봇이 보냇을땐 사용자한테 그 % 가 안나오게해줄래?」 · 「사진 테두리 둘러싸는것도 없어두 댐」 · 「무조건 나랑 1대1대화일대만 이야」 · 깃)
+ *  보이는 것만 가림(줄이기 · 인식 · encstate 그대로) · 형 → 봇 · 봇끼리 둘의 방 · 단톡 = 그대로 · mirrorBy = 형이 앱에서 친 거울 글(형 글) */
+export const encQuiet = (room: string, kind: string, mirrorBy?: string) => /^dm-/.test(room) && room !== "dm-hyung" && kind !== "human" && !mirrorBy;
 export const kindOf = (p: string): GaugeKind | "" => (VID.test(p) ? "video" : WAVE_RE.test(p) ? "wave" : PIC.test(p) ? "photo" : "");
 /** 이 글에서 물을 경로(영상 · 사진 · 파형 그림 · 자리 사본만 · 옛 글 = 0) */
 export function encWanted(files: string[] | undefined, ts: number): string[] {

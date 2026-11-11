@@ -3,7 +3,7 @@
 //   묻는 곳 = 화면에 떠 있는 글의 경로만 모아 한 번에(30 까지) · 가는 중인 것만 3초마다 다시 · 탭이 숨으면 쉼 · 셈 = ./enc-logic.ts(순수)
 import { type CSSProperties, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { office } from "../data/office";
-import { type EncCell, type EncItems, type Gauge, doneShown, encOk, encWanted, gaugeOf, kindOf, nextAsk } from "./enc-logic";
+import { type EncCell, type EncItems, type Gauge, doneShown, encOk, encWanted, gaugeOf, kindOf, nextAsk, encQuiet } from "./enc-logic";
 
 const cells = new Map<string, EncCell>();                    // 경로 → 서버 답
 const want = new Map<string, { n: number; ts: number }>();   // 화면에 떠 있는 경로(몇 군데서 · 그 글 때)
@@ -46,9 +46,9 @@ const sub = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; 
 
 export type EncView = { gauge: Gauge | null; done: boolean; ok: (p: string) => boolean; pop: (p: string) => boolean };
 /** 글 하나의 게이지 · 미디어마다 「봇이 읽을 수 있음」 */
-export function useEnc(m: { files?: string[]; ts: number }): EncView {
-  const key = (m.files || []).join("|");
-  const paths = useMemo(() => encWanted(m.files, m.ts), [key, m.ts]);   // eslint-disable-line react-hooks/exhaustive-deps
+export function useEnc(m: { files?: string[]; ts: number; room?: string; kind?: string; mirror_by?: string }): EncView {
+  const key = (m.files || []).join("|"), quiet = encQuiet(m.room || "", m.kind || "", m.mirror_by);
+  const paths = useMemo(() => (quiet ? [] : encWanted(m.files, m.ts)), [key, m.ts, quiet]);   // 형 1:1 봇 글 = 묻지도 그리지도 않음(encQuiet)   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!paths.length) return undefined;
     for (const p of paths) want.set(p, { n: (want.get(p)?.n || 0) + 1, ts: m.ts });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DONE_SHOW, ENC_T0, STT_HOLD, doneShown, encOk, encWanted, gaugeOf, kindOf, nextAsk } from "../ui/enc-logic.ts";
+import { DONE_SHOW, ENC_T0, STT_HOLD, doneShown, encOk, encQuiet, encWanted, gaugeOf, kindOf, nextAsk } from "../ui/enc-logic.ts";
 
 // 미디어 게이지(형 11-11 08:14 「영상 00% / 파동 00% / 자막 00% / 다 공유되먼 완료」 · 「사진이면 사진」) — 서버 encstate 답 → 화면 줄
 const T = ENC_T0 + 3600e3, D = "claude/light/office_files/";
@@ -98,4 +98,14 @@ test("움직임 자세히 = 넷째 칸 프레임(셋째 자리 · 켠 영상만)
   const g2 = gaugeOf([V], { [V]: { stage: "run", pct: 40, at: T } }, T + 1000);
   assert.deepEqual(g2?.lines.map((l) => l.label), ["영상"], "안 켠 영상 = 프레임 칸 없음");
   assert.equal(nextAsk({ ready: true, stage: "done", at: T, parts: { frames: { stage: "run", pct: 50, at: T } } }, "video", T, T + 1000), 3000);
+});
+
+test("형 1:1 에서 봇이 보낸 첨부만 게이지 · 테두리 0(형 11-12 07:44 「무조건 나랑 1대1대화일대만」)", () => {
+  assert.equal(encQuiet("dm-chok", "bot"), true);
+  assert.equal(encQuiet("dm-gik", "being"), true);
+  assert.equal(encQuiet("dm-chok", "human"), false);   // 형 → 봇 = 그대로
+  assert.equal(encQuiet("dm-chok", "system", "형"), false);   // 형이 앱에서 친 거울 글 = 형 글
+  assert.equal(encQuiet("pair-bom-gik", "being"), false);   // 봇끼리 = 그대로
+  assert.equal(encQuiet("tmp-mw8seuv1", "bot"), false);   // 단톡 = 그대로
+  assert.equal(encQuiet("dm-hyung", "bot"), false);
 });
