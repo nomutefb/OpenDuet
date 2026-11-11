@@ -25,3 +25,10 @@ test("글자 한 단 얇게 = thin.css 가 원본 판에서 다시 뗀 것과 �
   assert.ok(!/font-weight: (8|9)00\b[\s\S]*font-weight: 900/.test(before));
   assert.match(rd("../ui/thumb-maker/index.tsx"), /import "\.\/frame\.css";\nimport "\.\/thin\.css";/);
 });
+
+test("시그니처 팔레트 = 강조 · 포스트 · 장면 라임(형 11-11 12:51 「시그니처 팔레트만 그럼 여기에 맞춰줄수잇는지? 배경 이랑」)", () => {
+  const f = rd("../ui/thumb-maker/frame.css");
+  assert.match(f, /\.nm-tm \{ --modern-accent:#CFFF40; --modern-accent-rgb:207,255,64; --modern-bias-l1:#CFFF40; --modern-bias-l2:#5E8C00; --bias-l1:#CFFF40; \}/);
+  assert.match(f, /--modern-bias-l1:#CFFF40; --modern-bias-l2:#5E8C00; --modern-space-hi-rgb:150,190,40;/);   // 장면 받침 = 홈과 같은 라임
+  assert.ok(!/#41B6E7|#0762C8/.test(f.replace(/\/\*[\s\S]*?\*\//g, "")), "장면 파랑 0(주석 밖)");
+});

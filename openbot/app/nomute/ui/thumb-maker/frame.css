@@ -5,9 +5,9 @@
 .tm-stage { position:relative; display:flex; flex:1; min-height:0; flex-direction:column; padding:12px 0 0; overflow:hidden; isolation:isolate;   /* 아래 70 = 옛 index 아래 메뉴 자리였음 → 앱에선 앱 막대 자리(tm-host padding-bottom)가 이미 비워서 두 겹 빈 띠 · 「옵션」이 일찍 흐려짐(형 11-11 06:13 폰 사진) → 0 */
   color:#fff; font:15px/24px 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing:-.2px; }
 .tm-ambient { position:absolute; inset:0; z-index:0; pointer-events:none;
-  --modern-space-bg:#ffffff; --modern-fg:#161716; --modern-bias-l1:#41B6E7; --modern-bias-l2:#0762C8; --modern-space-hi-rgb:26,47,102;
+  --modern-space-bg:#ffffff; --modern-fg:#161716; --modern-bias-l1:#CFFF40; --modern-bias-l2:#5E8C00; --modern-space-hi-rgb:150,190,40;   /* 장면 색 = 홈과 같은 라임 받침(home/home-scene.css nm-home-ambient · 형 11-11 12:51 「배경 이랑」) · 앞 판 = 에디터 시안 · 파랑 #41B6E7 · #0762C8 · 26,47,102 */
   background:radial-gradient(ellipse at 20% 15%, rgba(var(--modern-space-hi-rgb),.42), transparent 65%), var(--modern-space-bg); }
-html.dark .tm-ambient { --modern-space-bg:#161716; --modern-fg:#FFFFFF; }
+html.dark .tm-ambient { --modern-space-bg:#161716; --modern-fg:#FFFFFF; --modern-space-hi-rgb:70,100,10; }
 .tm-ambient canvas { display:block; width:100%; height:100%; }
 
 /* 머리(.tool-h) — 좁은 창(760 밑) = 양옆 13px 안으로 · 위 모서리 15 둥긂 */
@@ -40,3 +40,8 @@ html.dark .tm-rf { color:#8B8F8A; }
    쉴 때(맨 위) 모양 = 원본 그대로 · 도크는 그대로 붙박이(끝 기준 13) */
 .nm-tm[data-stuck] .topdock { background:linear-gradient(var(--modern-control-glass), var(--modern-control-glass)), linear-gradient(var(--modern-control-glass), var(--modern-control-glass)), rgb(17,18,20);
   -webkit-backdrop-filter:blur(20px) saturate(1.3); backdrop-filter:blur(20px) saturate(1.3); }
+
+/* 시그니처 팔레트(형 11-11 12:50~12:51 봄 1:1 「이거는 아예 여기 붙은거지?」 · 「시그니처 팔레트만 그럼 여기에 맞춰줄수잇는지? 배경 이랑」) — 색 · 배경만 정원 라임 · 자리 · 크기 · 굵기 손 0 · 원본 판(./thumb-maker.css) 손 0
+   강조 = 옛 에디터 하늘색(--modern-accent #71C5E8 · 그림 아이콘 · 「생성」 · 고른 숫자 · 소머리 점) → 라임 · 「포스트」(--bias-l1 #38C6FF · 이 판에선 그 글자 하나에만 씀) → 라임
+   판 속은 밝게 · 어둡게 갈래가 없어 늘 어두움 = 라임 그대로 두 모드 · 장면 받침만 위 .tm-ambient 가 밝기 따라감 */
+.nm-tm { --modern-accent:#CFFF40; --modern-accent-rgb:207,255,64; --modern-bias-l1:#CFFF40; --modern-bias-l2:#5E8C00; --bias-l1:#CFFF40; }
