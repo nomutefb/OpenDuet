@@ -49,7 +49,6 @@ import { PinBar } from "./pins";
 import { OfficeChat, roomMsgsOptions } from "./office-chat";
 import { isTeams, useTeamsMode } from "./teams";
 import { IdleBlind, TopClock } from "./idle-blind";
-import { RoomGlyph } from "./room-glyph";
 import { AppIntro } from "../home/intro";
 import { NewsModal, newsFileOf } from "./news";
 const ThumbHist = lazy(() => import("./thumb-hist").then((m) => ({ default: m.ThumbHist })));   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
@@ -85,7 +84,7 @@ const MemoModal = lazy(() => import("./memo").then((m) => ({ default: m.MemoModa
 const SnsModal = lazy(() => import("./sns").then((m) => ({ default: m.SnsModal })));
 const ThumbMaker = lazy(() => import("./thumb-maker"));   // 서랍 「에디터」 = 썸네일 생성기 앱 안(형 11-02 09:28 「이거 아예 이 디자인하고 배경 살려서 인앱 안으로 넣어줘」 · 원본 엔진·CSS 가 커서 열 때만 받음)
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
-import { RoomList, useRoomOrder } from "./room-list";
+import { RoomIcon, RoomList, useRoomOrder } from "./room-list";
 import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
 import { DecideFab } from "./decide-pop";   // 대화방 우하단 + 위 = 형 결정 노트 단추(형 11-01 08:36)
 import { useSplit, useWide } from "./side";
@@ -502,7 +501,7 @@ function FaceStrip({ current }: { current: string; last: string }) {
           return (
             <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
               {pins.has(r.id) ? <i className="nm-face-pin" aria-label="고정됨" /> : null}
-              {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomGlyph id={r.id} look={r.look} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
+              {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomIcon r={r} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
               {n !== 0 ? <i className="nm-udot" aria-hidden /> : null}   {/* 안 읽음 = 왼쪽 위 레몬 점 하나(숫자 없음 · 형 13:20 「노란색으로」 · 형 11-07 13:15 「안읽은 글 수는 애초에 안떠두됨」 · 「라임색 접 작게 잇으면됨」 · 「저 불이 좌측에 있으면 됨.」) */}
               {hy > 0 ? <b className="nm-badge nm-badge-hy" aria-label={`형 결정 기다리는 글 ${hy}개`}>{hy > 99 ? "99+" : hy}</b> : null}   {/* 오른쪽 걸친 숫자 = 호출 수(형 결정 대기 · 형 13:15 「숫자가 우측 프로필에 걸치는거 (기존 숫자) 그거는 호출.」 · 뜸 서버 pending_hyung) */}
             </button>
