@@ -113,9 +113,12 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
       <div className="nm-msgm-p" role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"}>
         {note ? <p className="nm-msgm-n" role="status">{note}</p> : gone ? (
           <>
-            <p className="nm-msgm-h">지울까? · 지우면 모두에게 「삭제된 글이야」로 보여</p>
-            {item("지우기", () => { setBusy(true); void office<{ ok?: boolean; unsent?: { by: string; at: number } }>(`rooms/${encodeURIComponent(room)}/unsend`, { method: "POST", body: JSON.stringify({ id: m.id }) }).then((j) => { if (j?.unsent) onUnsent?.(m.id, j.unsent); done("지웠어"); }).catch(() => setWhy("못 지웠어 — 다시")).finally(() => setBusy(false)); })}
-            {item("그만두기", () => setGone(false))}
+            {/* 형 11-12 06:13 「삭제 하시겠습니까? 아니오 예 이렇게만 나오면됨. 아니오에 라임색 이면 됨.」 — 설명 글 0 · 아니오(안 지움) = 라임 */}
+            <p className="nm-msgm-ask">삭제 하시겠습니까?</p>
+            <div className="nm-msgm-yn">
+              <button type="button" className="no" disabled={busy} onClick={() => setGone(false)}>아니오</button>
+              <button type="button" disabled={busy} onClick={() => { setBusy(true); void office<{ ok?: boolean; unsent?: { by: string; at: number } }>(`rooms/${encodeURIComponent(room)}/unsend`, { method: "POST", body: JSON.stringify({ id: m.id }) }).then((j) => { if (j?.unsent) onUnsent?.(m.id, j.unsent); done("지웠어"); }).catch(() => setWhy("못 지웠어 — 다시")).finally(() => setBusy(false)); }}>예</button>
+            </div>
           </>
         ) : moving ? (
           <>

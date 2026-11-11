@@ -44,7 +44,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .yb { padding:10px 13px; border-radius:var(--r-l); font-size:var(--fs-body); line-height:var(--lh-base); white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }   /* 한글 낱말 안 쪼갬(「스타/일」 · 「줄/씩」) · 긴 줄만 아무 데서나 꺾음 · 시아 11-07 */
 .ychat .yb.ai { background:var(--glass-2); border:1px solid var(--glass-line); border-top-left-radius:var(--r-s); box-shadow:inset 0 1px 0 var(--glass-line); }   /* 뒤 흐림 뺌(형 10-31 「메세지 하단부가 번쩍번쩍」) */
 .ychat .yb { position:relative; }
-.ychat .yb:has(> .yrxs) { margin-bottom:13px; }
+/* 반응이 붙어도 자리를 따로 안 잡음 = 말풍선 모서리에 겹쳐 얹힘(형 11-12 06:13 「이모지 붙을때, 이게 추가로 공간을 확보하는게 아니라, 그냥 붙는 꼴로할게」 · 뎅 · 옛 margin-bottom 13px 걷음) */
 .yrxs { position:absolute; right:8px; bottom:-14px; z-index:2; display:flex; gap:3px; white-space:nowrap; }
 .yrx { display:inline-flex; align-items:center; gap:2px; height:24px; padding:0 6px; border-radius:999px; font-size:var(--fs-label); line-height:1; background:var(--bubble-ai); border:0; color:var(--fg); box-shadow:0 1px 4px rgba(0,0,0,.35); }   /* 단 곳에 테두리 0(형 11-01 14:03 「이모지 저거 달아도 단 곳에 테두리 안생기게해줘」) · 말풍선과는 그림자로만 떨어짐 */
 .yrx.on { background:color-mix(in srgb, rgb(var(--accent-rgb)) 22%, var(--bubble-ai)); }   /* 내가 단 것 = 테 대신 바탕 살짝 */
@@ -368,6 +368,12 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-msgm-h { padding:8px 26px 6px; font-size:var(--fs-label); color:#8B8F8A; }
 .nm-msgm-n { padding:14px 26px; font-size:var(--fs-body); }
 .nm-msgm-n.err { color:#ff8a8a; }
+/* 삭제 묻는 창(형 11-12 06:13 「삭제 하시겠습니까? 아니오 예 이렇게만 나오면됨. 아니오에 라임색 이면 됨.」 · 뎅) = 물음 한 줄 + 단추 둘 · 아니오 = 라임 */
+.nm-msgm-ask { padding:14px 26px 10px; font-size:var(--fs-body); text-align:center; }
+.nm-msgm-yn { display:flex; gap:10px; padding:6px 18px 8px; }
+.nm-msgm-yn button { flex:1; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:none; color:inherit; font-size:16px; font-weight:700; cursor:pointer; }
+.nm-msgm-yn button.no { border-color:#CFFF40; background:#CFFF40; color:#141414; }
+.nm-msgm-yn button:disabled { opacity:.5; }
 
 .nm-npic { display:block; width:96px; height:96px; margin:2px auto; border-radius:20px; object-fit:cover; }   /* 알림 그림 미리보기(NotifyPicPick · 192px 를 반으로) */
 /* 방 상단 = 단톡 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」) */
@@ -550,7 +556,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .yb[data-ink="light"] [data-streamdown="code-block-body"], .ychat .yb[data-ink="light"] [data-streamdown="code-block-body"] :is(pre, code, span) { color:#F2F4F2 !important; }
 .ychat .yb[data-ink="light"] [data-streamdown="code-block-copy-button"] { color:#F2F4F2; }
 /* 반응 단 이 보기(office-chat Reactions · 형 11-02 12:00) = 칩 위 작은 유리 말풍선 · 이름 · 「나도」/「빼기」 */
-.ychat .yrxs { position:relative; }
+/* .yrxs = 위 48줄 absolute 그대로(단 이 보기 칸 .yrx-who 의 기준도 absolute 로 충분) — 여기 있던 position:relative 가 모서리 겹침을 덮어 반응이 제 줄을 따로 차지했음(형 11-12 06:03 폰 사진 · 뎅) */
 .ychat .yrx-who { position:absolute; bottom:calc(100% + 6px); left:0; z-index:6; display:flex; align-items:center; gap:8px; max-width:min(260px, 70vw); padding:6px 8px 6px 10px; border-radius:12px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); background:rgba(24,25,28,.94); color:#fff; font-size:var(--fs-sm); line-height:1.35; box-shadow:0 8px 20px rgba(0,0,0,.4); white-space:normal; }
 .ychat .yrx-who.me { left:auto; right:0; }
 :root:not(.dark) .ychat .yrx-who { background:rgba(255,255,255,.97); color:#161716; border-color:rgba(0,0,0,.1); }
