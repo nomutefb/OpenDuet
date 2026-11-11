@@ -37,9 +37,10 @@ export function useLongPress(open: () => void) {
 
 const short = (n: string) => n.replace(" PM", "");
 
-export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose }: { quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
+export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onUnsent, onClose }: { onUnsent?: (id: string, u: { by: string; at: number }) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
   const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
+  const [gone, setGone] = useState(false);   // 「삭제」 → 「지울까?」 한 번(봄 08:57 · 되돌리기 어려운 손)
   const [asking, setAsking] = useState(false), [moving, setMoving] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
   const others = list.filter((p) => p.who !== "형" && p.kind !== "human");
   const targets = r?.with || !r?.members?.length ? others : r.members.map((n) => list.find((p) => p.who === n)).filter((p): p is OfficePerson => !!p);
@@ -110,7 +111,13 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   return createPortal(
     <div className="nm-msgm" role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
       <div className="nm-msgm-p" role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"}>
-        {note ? <p className="nm-msgm-n" role="status">{note}</p> : moving ? (
+        {note ? <p className="nm-msgm-n" role="status">{note}</p> : gone ? (
+          <>
+            <p className="nm-msgm-h">지울까? · 지우면 모두에게 「삭제된 글이야」로 보여</p>
+            {item("지우기", () => { setBusy(true); void office<{ ok?: boolean; unsent?: { by: string; at: number } }>(`rooms/${encodeURIComponent(room)}/unsend`, { method: "POST", body: JSON.stringify({ id: m.id }) }).then((j) => { if (j?.unsent) onUnsent?.(m.id, j.unsent); done("지웠어"); }).catch(() => setWhy("못 지웠어 — 다시")).finally(() => setBusy(false)); })}
+            {item("그만두기", () => setGone(false))}
+          </>
+        ) : moving ? (
           <>
             <p className="nm-msgm-h">보낼 방{paths.length ? ` · 첨부 ${paths.length}` : ""}</p>
             {rooms.map((x) => <button key={x.id} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={() => void forward(x)}><span>{x.with ? short(list.find((p) => p.who === x.with)?.name || x.with) : x.name}</span></button>)}
@@ -136,6 +143,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
             {item("복사", () => { void navigator.clipboard?.writeText(text); onClose(); })}   {/* 알림 없이 창만 닫힘(형 11-07 09:40 봄 1:1 「그리고 우클릭해서 복사 누르면, 복사햇어 라고 뜰 필요는 없고 그냥 ㅌ창 닫히면 됨.」) */}
             {item("확인 요청", () => setAsking(true))}
             {item("공유", () => void share())}
+            {pins.can && onUnsent ? item("삭제", () => setGone(true)) : null}   {/* 형 · 봄만(형 11-11 08:57 「1하고 봄」) · 앱 = 형 화면만(봄은 열쇠로 서버 문) · pins.can = 사람 문 · 쓰기 됨 */}
             {item("캡처", () => { setBusy(true); void captureMsg(m.id, m.ts).then((r) => (r === "saved" ? done("저장했어") : r === "none" ? done("못 구웠어") : onClose())).catch(() => setWhy("캡처 못 했어 — 다시")).finally(() => setBusy(false)); })}
             {rooms.length ? item("다른 방으로", () => setMoving(true)) : null}
           </>

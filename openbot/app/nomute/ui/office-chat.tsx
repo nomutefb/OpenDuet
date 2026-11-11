@@ -871,9 +871,13 @@ function TextPhotos({ urls }: { urls: string[] }) {
 /** 그록봇이 붙인 그림 = 사무실엔 「[user-attachment] ""」 글자만 옴(파일 0 · 빠르 11-01 08:5x 잼) → 빈 글 대신 「그림이 안 넘어옴」을 보여 형이 묻게 ·
  *  11-05 06:56~06:57 아이데이션 방 깃·빚·감·결 사진·영상 = 앞말 없이 「""」만 옴(형 06:58 「안보여」) → 그 꼴도 같이 · 파일이 붙은 글은 안 건드림(files 0 일 때만) */
 const LOST_ATTACH_RE = /^\s*(?:\[user-attachment\]\s*(?:""|“”)?|""|“”)\s*$/;
+/** 지운 글(서버 unsent · 형 · 봄만 지움 · 형 11-11 08:57 「1하고 봄」 · ./capture 옆 메뉴 「삭제」) = 글 · 첨부 대신 한 줄 */
+const goneOf = (m: Msg) => (m as Msg & { unsent?: { by?: string; at?: number } }).unsent;
+const Gone = () => <span className="nm-gone">삭제된 글이야</span>;
 
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
+  if (goneOf(m)) return <Gone />;
   if (!m.files?.length && LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">📎 사진·영상을 붙였는데 사무실로 안 넘어왔어</span>;
   const pics = m.files?.length ? [] : textPhotos(text);
   if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
@@ -920,7 +924,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Missed m={m} /><Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Missed m={m} /><Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
         </div>
         <RouteLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -1358,7 +1362,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
     <div className="flex min-h-0 flex-1 flex-col">
       <AttachSheet />
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
-      {menuOf ? <MsgMenu m={menuOf} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
+      {menuOf ? <MsgMenu m={menuOf} onUnsent={(id, u) => qc.setQueryData<Page>(officeKeys.msgs(room), (old) => (old ? { ...old, messages: old.messages.map((x) => (x.id === id ? ({ ...x, text: "", files: [], file_meta: [], caption: "", mention: [], unsent: u } as Msg) : x)) } : old))} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
       {/* 대화창 아무 데나 끌어다 놓기 = 입력칸에 넣은 것처럼(형 11-05 10:45 「대화창 이 입력하는 칸, 말고 대충 이 대화창 안에만 드래그앤 드롭해도 대화칸에 넣는것처럼 해주면 땡큐!!」) */}
       <div className={`ychat relative flex min-h-0 flex-1 flex-col${dropping ? " ydrop" : ""}`}
         onDragOver={(e) => { if (Array.from(e.dataTransfer.types).includes("Files")) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; if (!dropping) setDropping(true); } }}
