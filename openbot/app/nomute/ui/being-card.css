@@ -624,4 +624,31 @@
   /* 안 만질 때도 도는 장식 = 「움직임 줄이기」 판과 같게 멈춤(시아 김 · 뎅 소용돌이 · 꼬리) — 섞는 겹 · 마스크 안에서 매 프레임 다시 섞이던 것 · 천둥 번쩍(bc-bolt)은 설계라 둠 */
   .being-card .bc-steam { animation: none; opacity: 0.55; }
   .bc-deng .bc-swirl path, .bc-deng .bc-trail path { animation: none; }
+  /* 여섯째 판(형 11-11 18:45 dm-sia 「시아 프로필 이쁜데 움직일때 번쩍번쩍 조금 뜬다」 · 18:46 「레이어가 위로 오르락 내리락 하는 느낌이야」 · 「그래서 이 프로필이 여러겹으로 겹친거같은데 레이어가 앞뒤앞뒤하면서 번쩍거리는느낌」)
+     = 안쪽 시차 층(무늬 · 얼굴 · 글 · 알약)마다 translate3d + will-change 라 웹킷이 층마다 따로 합성 → 섞는 겹(color-dodge · overlay · screen)과 앞뒤 순서를 움직일 때마다 다시 정함(짐작 · 형 말 「앞뒤앞뒤」와 같은 꼴)
+     → 손가락 화면만 안쪽 층을 2D translate + will-change 풂 = 카드 몸통 한 장 안에서 같이 그림(움직임 · 시차 값 그대로 · 뽑은 줄 = 위 본 규칙의 translate3d 를 기계로 2D 로)     + 몸통 뒤 흐림(backdrop-filter 20 · 모든 카드 공통 뼈대)도 끔 = 움직이는 판이 매 프레임 뒤를 다시 떠 흐리지 않음(형 18:47 「빠르꺼는 좀 덜해. 근데 아주 약간 간헐적으로 그럼」 · 「애초에 아예 다시 위에 판만 다시 설계를 해보는게 나을수도 디자인은 그대로 두고」) · 뒤는 어두운 막이라 흐림 빼도 보이는 꼴 거의 같음 */
+  .being-card .profile-card__body { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .being-card .bc-halo { transform: translate(calc(-50% + var(--pc-shift-x) * 1.2), calc(var(--pc-shift-y) * 1.2)); will-change: auto; }
+  .being-card .bc-art > * { will-change: auto; }
+  .being-card .profile-card__photo { transform: translate(calc(-50% + var(--pc-shift-x) * 1.2), calc(var(--pc-shift-y) * 1.2)); will-change: auto; }
+  .bc-sia .bc-stars { transform: translate(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5)); will-change: auto; }
+  .bc-sia .bc-sun { transform: translate(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
+  .bc-sia .bc-band { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(-16deg); will-change: auto; }
+  .bc-sia .bc-ring { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
+  .bc-sia .bc-word { transform: translate(calc(var(--pc-shift-x) * 0.6), calc(var(--pc-shift-y) * 0.6)); will-change: auto; }
+  .bc-sia .bc-star { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-sia .bc-bowl { transform: translate(calc(var(--pc-shift-x) * 1.5), calc(var(--pc-shift-y) * 1.5)) rotate(8deg); will-change: auto; }
+  .bc-sia .profile-card__info { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8)); will-change: auto; }
+  .bc-sia .profile-card__meta { transform: translate(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
+  .bc-deng .bc-rain { transform: translate(calc(var(--pc-shift-x) * -0.4), calc(var(--pc-shift-y) * -0.4)); will-change: auto; }
+  .bc-deng .bc-glow { transform: translate(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
+  .bc-deng .bc-swirl { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
+  .bc-deng .bc-trail { transform: translate(calc(var(--pc-shift-x) * 1.3), calc(var(--pc-shift-y) * 1.3)) rotate(-6deg); will-change: auto; }
+  .bc-deng .bc-word { transform: translate(calc(var(--pc-shift-x) * 0.6), calc(var(--pc-shift-y) * 0.6)); will-change: auto; }
+  .bc-deng .bc-tilde { transform: translate(calc(var(--pc-shift-x) * 1.6), calc(var(--pc-shift-y) * 1.6)); will-change: auto; }
+  .bc-deng .profile-card__info { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8)); will-change: auto; }
+  .bc-deng .profile-card__meta { transform: translate(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
+  .bc-tmpl .bc-band { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(-16deg); will-change: auto; }
+  .bc-tmpl .bc-ring { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
+  .bc-thunder .bc-bolt { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
 }

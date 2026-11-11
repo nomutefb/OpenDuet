@@ -28,3 +28,16 @@ test("카드 = 숨쉬기 끔(안 만지면 정지 · 형 11-11 06:14 「가만�
 test("대화 머리 단계 알약 = 안 보이면 훑기 멈춤", () => {
   assert.match(shell, /\.duet-glass\[data-shown="false"\] \.tool-line-running \{\s*animation: none;/);
 });
+
+test("여섯째 판 = 폰에서 안쪽 시차 층 2D · will-change 풂 · 몸통 뒤흐림 끔(형 11-11 18:46 「레이어가 앞뒤앞뒤하면서 번쩍거리는느낌」)", () => {
+  const css = readFileSync(new URL("../ui/being-card.css", import.meta.url), "utf8");
+  const ph = css.slice(css.indexOf("@media (hover: none) {"));
+  const flat = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const top = flat.slice(0, flat.indexOf("@media (hover: none) {"));
+  const sels = [...top.matchAll(/(^|\})\s*([^{}@]+?)\s*\{([^{}]*)\}/g)].filter((m) => /(?<![-\w])transform:[^;]*translate3d\(/.test(m[3])).map((m) => m[2].replace(/\s+/g, " ").trim());
+  assert.ok(sels.length >= 12, `본 규칙 translate3d ${sels.length}`);
+  for (const s of sels) assert.ok(ph.includes(`  ${s} { transform: translate(`), `폰 2D 덮어쓰기 없음: ${s}`);
+  assert.ok(!/translate3d\(/.test(ph.slice(ph.indexOf("여섯째 판"))), "여섯째 판 안 3D 0");
+  assert.match(ph, /\.being-card \.bc-art > \* \{ will-change: auto; \}/);
+  assert.match(ph, /\.being-card \.profile-card__body \{ -webkit-backdrop-filter: none; backdrop-filter: none; \}/);
+});
