@@ -28,3 +28,10 @@ test("「안 닿음」 줄 0 · 애들 글 · 형 글 둘 다(형 11-11 14:35 �
   assert.match(chat, /function Body\([^)]*\) \{\n  return <Said m=\{m\} nre=\{nre\} \/>;/);
   assert.ok(!/<Missed\b|function Missed\(|ymiss/.test(chat));
 });
+
+test("프로필 카드 = 일찍 돌려주기(!who) 뒤에 훅 0(React #310 · 프사 누르면 앱 통째 죽던 것 · 11-11 22:4x PC 실물)", () => {
+  const src = readFileSync(new URL("../ui/profile-card.tsx", import.meta.url), "utf8");
+  const body = src.slice(src.indexOf("export function ProfileCard"));
+  const after = body.slice(body.indexOf("if (!who) return null;"), body.indexOf("\n}\n"));
+  assert.ok(!/\buse[A-Z]\w*\(/.test(after.replace(/\/\/.*$/gm, "")), "!who 뒤 훅");
+});

@@ -29,6 +29,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const introDirty = edit && draft !== (cur?.intro || ""), roleDirty = roleEdit && roleDraft.trim() !== (cur?.role || "");
   useEffect(() => { if (!who || !edit) return; if (introDirty) draftSet(`intro:${who}`, draft); else draftDrop(`intro:${who}`); }, [who, edit, draft, introDirty]);
   const g = useCloseGuard(introDirty || roleDirty, onClose, !!who);   // 고치던 소개·직무 있으면 닫기 대신 물음 · Esc 도 이 길(카드 떠 있을 때만)
+  const [scr, setScr] = useState("");   // 앱 안 화면 주소(표 붙음 · 형 11-11 19:08 「브라우저로 따로 안들어가고 여기서」)   // 훅은 일찍 돌려주기(!who) 앞에(시아 11-11 22:4x · 뒤에 있으면 프사 누를 때 훅 수가 늘어 React #310 = 앱 통째 「Something went wrong」 · PC 실물)
   if (!who) return null;
   const p = list.find((x) => x.who === who);
   const name = p?.name || who;
@@ -65,7 +66,6 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   };
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   const screen = tailnetUrl(p?.screen) ? screenUrl(tailnetUrl(p?.screen)) : "";   // 그 아이 몸 화면(형 11-08 빠르 창 「프로필 누르면 본인의 vm이 배선되도록」 · 주소 = 서버 명부 screen · 테일넷 안 주소만)
-  const [scr, setScr] = useState("");   // 앱 안 화면 주소(표 붙음 · 형 11-11 19:08 「브라우저로 따로 안들어가고 여기서」)
   const openScreen = () => { if (screen) void screenTicket(screen, (b) => office<{ url?: string }>("screen/ticket", { method: "POST", body: JSON.stringify(b) })).then((u) => (u ? setScr(u) : openScreenGo(screen))); };   // 못 받으면 = 새 창 바로 보내기
   const scrView = scr ? <PcScreen url={scr} out={screenGoUrl(screen)} title={`${name} 몸 화면`} task="" canDone={false} onDone={() => {}} onClose={() => setScr("")} /> : null;   // 표 붙여 열기 = 테일넷 밖 폰에서도(빠르 11-11 · ./screen-ticket.ts)
   // 카드 있는 애 = 카드 한 장만(형 11-11 06:41 dm-sia 「여기 리인보우 카드 빼고 주변 다 날려도 될거같아」 · 「우상단에 색 고르는거는 카드 안에 우상단으로 넣어버리고. 딱 붙이진 말구.」 · 06:42 「화면보기 같은거는 @sia 이런 곳에 옮기자」 · 06:43 「그리고 설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯 . 좀 좁으려나? 그럼 세로를 늘리면 됑」 · 시아 「소개 글 · 직무 고치기도 같이 빼도 돼?」 → 형 「응응」)
