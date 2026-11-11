@@ -10,6 +10,8 @@ export const qRetryUrl = (it: QItem) => (/^https?:\/\//i.test(String(it.key || i
 export const qCanRetry = (it: QItem) => it.via === "요약요청" || !!qRetryUrl(it);   // 옛 qpCanRetry
 
 /** 실패 한 건 확인(옛 qfMarkSeenOne) — 이 기기 바로 · 계정은 보내 두고 안 기다림(옛 fail-soft) */
+/** 이 기기에서 「취소」(확인)한 실패 id 들 — Digest 처럼 pickQ 를 안 쓰는 판이 거를 때(형 11-12 07:55 「글구 이런거 실패하면.취소할수잇게해줘.」) */
+export function qfSeenSet(): Set<string> { try { const v = JSON.parse(localStorage.getItem(QF_KEY) || "[]"); return new Set(Array.isArray(v) ? v.map(String) : []); } catch { return new Set(); } }
 export function qfSeenOne(id?: string) {
   const s = String(id || "");
   if (!s) return;

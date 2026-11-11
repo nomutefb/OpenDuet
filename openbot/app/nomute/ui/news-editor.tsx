@@ -19,7 +19,8 @@ import { NewsDetail } from "./news-detail";
 import { newsFileOf } from "./news";   // #/newsed?a=<file> = 그 기사로 바로 열기(k-4 U2)
 import { useSplit } from "./side";
 import { SumCard } from "./summary-desk";
-import { TaskPanel } from "./task-panel";
+import { type QItem, TaskPanel } from "./task-panel";
+import { qRetry, qfSeenOne } from "./q-acts";
 
 const CAP = 10;
 
@@ -64,7 +65,10 @@ export function NewsEditor() {
   const byId = useMemo(() => new Map(all.map((a) => [a.file, a])), [all]);
   const rows = all;
   const shown = rows.slice(0, n);
-  const qs = useMemo(() => (pend.data ? pickQ(pend.data.items, byId, pend.data.qf) : []), [pend.data, byId]);
+  const [seenN, setSeenN] = useState(0);   // 실패 줄 「취소」 = 이 기기 확인 목록(./q-acts.ts qfSeenOne) → pickQ 가 거름 · 다시 셈
+  const qs = useMemo(() => (pend.data ? pickQ(pend.data.items, byId, pend.data.qf) : []), [pend.data, byId, seenN]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const qRedo = (it: QItem) => qRetry(it, go).then((why) => { if (!why) { setSeenN((n) => n + 1); void pend.refetch(); } return why; });
+  const qDrop = (it: QItem) => { qfSeenOne(it.id); setSeenN((n) => n + 1); };
   const cur = wide ? (sel && byId.has(sel) ? sel : shown[0]?.file || "") : sel;   // PC 처음 = 맨 위 카드
 
   const left = useRef<HTMLDivElement>(null), sent = useRef<HTMLDivElement>(null), restored = useRef(false);
@@ -92,7 +96,7 @@ export function NewsEditor() {
   const body = (
     <div ref={left} className="nm-ned-l" hidden={!wide && !!sel}>
       {/* 맨 위 「지금 뜨는 말」 줄 뺌(형 11-11 09:02 봄 1:1 「상단에 인기검색어 없어도 되고 네비게이션 아이콘으로 누르면 뉴스 요약으로 이동만 가능하면 됨」) · 넣는 줄(링크·글 + 전송 + 픽)도 뺌(형 14:36 봄 1:1 「글 붙여넣기는 없어두대! 우하단에 버튼으로 요약만 잇으면 댐」) */}
-      {pend.isError ? <p className="nm-chan-msg" role="status">대기열을 못 읽었어</p> : qs.length ? <TaskPanel qs={qs} eta={pend.data?.eta || null} onOpen={() => go("/edq")} /> : null}
+      {pend.isError ? <p className="nm-chan-msg" role="status">대기열을 못 읽었어</p> : qs.length ? <TaskPanel qs={qs} eta={pend.data?.eta || null} onRetry={qRedo} onDismiss={qDrop} onOpen={() => go("/edq")} /> : null}
       {/* 알약 줄(전체 · 이슈 · 분야 여섯 · 찾기)과 찾기 칸 걷음(형 11-11 18:51 봄 1:1 「이거 필터 없어도 되고. 상단에 분류도 없어도 됨 바로 내용 나와도댐」) = 머리 막대 바로 밑부터 카드 · 앞 판 = git */}
       {list.isPending ? <p className="nm-chan-msg">기사 읽는 중…</p> : list.isError ? <p className="nm-chan-msg" role="alert">{(list.error as Error).message || "뉴스 요약을 못 읽었어"}</p> : !rows.length ? <p className="nm-chan-msg">기사가 없어</p> : (
         <ul className="nm-ned-list">{shown.map((a) => <li key={a.file}><SumCard a={a} lean kind={kindOf(a) || (a.issue ? "iss" : "")} on={wide && a.file === cur} onOpen={() => open(a)} /></li>)}</ul>

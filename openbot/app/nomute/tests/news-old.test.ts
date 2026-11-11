@@ -90,13 +90,17 @@ test("뉴스 에디터 목록 = 알약 줄 · 찾기 걷음 · 카드 lean(형 1
   assert.match(sd, /kind && !\(lean && kind !== "brk"\)/);
 });
 
-test("요약 대기열 = 요청 → 요약 → 프롬프트 → 카드 가로 네 칸 · 요청한 차례대로 · 도는 칸 줄무늬(형 11-11 18:55 「… 순서대로 진행상황」)", () => {
-  const tp = rd("../ui/task-panel.tsx"), tc = rd("../ui/task-panel.css"), sc = rd("../ui/summary-desk.css");
-  assert.match(tp, /\[\["요청", "done", ""\], \["요약",/);
+test("요약 중 카드 = 검은 판 0 · 「요청」 단계 0 · 본보기 세로 진행 줄 · 차례대로 · 실패 「취소」(형 11-12 06:17 · 06:18 · 07:55 · 07:56)", () => {
+  const tp = rd("../ui/task-panel.tsx"), tc = rd("../ui/task-panel.css"), sc = rd("../ui/summary-desk.css"), ne = rd("../ui/news-editor.tsx"), ns = rd("../home/news-summary.tsx");
+  assert.ok(!/\["요청", "done"/.test(tp), "「요청」 단계 0");
+  assert.match(tp, /const bars: \[string, string\]\[\] = \[\["요약",/);
   assert.match(tp, /const rows = \[\.\.\.qs\]\.sort\(\(a, b\) => \(a\.it\.t \|\| 0\) - \(b\.it\.t \|\| 0\)\)/);
-  assert.match(tp, /`\$\{pos\}번째`/);
-  assert.match(tc, /\.nm-tk-prog \.run em \{ background:repeating-linear-gradient\(/);
+  assert.match(tp, /replace\(\/https\?:/, "제목 주소 글자 0");
+  assert.match(tp, />취소 하시겠습니까\?</);
+  assert.ok(!/nm-tasks-head/.test(tp), "검은 판 머리 0");
+  assert.match(tc, /\.nm-tk2-log li\.cur span \{ background:linear-gradient/);
   assert.match(sc, /\.nm-sumc-prog \.cur em \{ background:repeating-linear-gradient\(/);
+  assert.match(ne, /onDismiss=\{qDrop\}/); assert.match(ns, /onDismiss=\{\(it\) => \{ qfSeenOne\(it\.id\)/);
 });
 
 test("홈 차트 = 보라 노출 선 폰에도 · 「N분 전」 숫자 줄 가운데(형 11-11 20:06)", () => {
