@@ -7,7 +7,7 @@
 .nm-pulse-v { font-size:var(--fs-h2); font-weight:var(--fw-x); font-style:italic; }
 .nm-pulse-sep { width:1px; height:14px; background:var(--glass-line); align-self:center; }
 .nm-pulse-at { position:absolute; top:2px; right:10px; font-size:calc(var(--fs-xs) * .8); color:var(--mut); }   /* 형 10-31 12:3x 「갱신 0분전은 좀 더 우상단 20% 더 작게」 = 줄 밖 우상단 모서리 · 11px→8.8px */
-.nm-pulse-chart { display:block; width:100%; height:64px; overflow:visible; }
+.nm-pulse-chart { display:block; width:100%; height:108px; overflow:visible; }   /* = follow-pulse.tsx PH(형 11-11 18:48 「차트 좀만 더 영역 세로가 길어도 될듯」) */
 .nm-pulse-rowbg { fill:rgba(255,255,255,.07); }
 :root:not(.dark) .nm-pulse-rowbg { fill:rgba(0,0,0,.05); }
 .nm-pulse-base { stroke:var(--glass-line); }
@@ -16,9 +16,10 @@
 .nm-pulse-chart circle.x { stroke:var(--mut); }
 .nm-pulse-chart text { fill:var(--mut); font-family:inherit; font-variant-numeric:tabular-nums; }   /* 날마다 ± 줄 = 고정폭 숫자(칸 맞춤 · follow-pulse.tsx fit() 가 칸 폭 넘는 수는 1.2k 꼴로) */
 .nm-pulse-chart text.up { fill:var(--accent); } .nm-pulse-chart text.dn { fill:var(--fg); fill-opacity:.7; } .nm-pulse-chart text.now { font-weight:var(--fw-x); }   /* 내림 = 금색 대신 흰(흐림) · 오름만 형광 */
-.nm-pulse-wait { height:102px; }   /* 띠 받는 동안 자리(390 폭 실측 102px · follow-pulse.tsx) */
+.nm-pulse-wait { height:146px; }   /* 띠 받는 동안 자리(그림 108 + 숫자 줄 · 앞 판 102 = 그림 64) */   /* 띠 받는 동안 자리(390 폭 실측 102px · follow-pulse.tsx) */
 /* 홈 맨 아래 도착한 메시지(arrived.tsx · 형 11-03 「거기 최근 온 메세지로 다시 변경해줘. 영상 없애구.」) — 자리 = 한 방 꼴 높이(머리 + 알약 걸친 줄 = 108px) 처음부터 잡음 · 받는 중·없음 때도 같은 높이 = 위 카드가 안 밀림 */
-.yeta-set .nm-arrived { min-height:110px; margin-inline:16px; }   /* 16px = 덱 앞 카드(article-card)가 품은 틀 양끝에서 들어간 만큼(9222 실측 · 폭 390·506 둘 다 16) → 줄 양끝 = 카드 선(형 11-03 16:27 「이게 라인이 맞아야해.카드에 맞춰줘」) · 110 = 머리 + 줄 + 아래 비침 */
+.yeta-set .nm-arrived { margin-inline:16px; padding-bottom:12px; }   /* 11-11 머리 · 「새로 온 글 없음」 걷음 = 제 높이만(한 장 + 뒤 장 가장자리 12) · 앞 판 min-height 110 */
+.yeta-set .nm-arrived.nm-arr-none { padding:0; } .yeta-set .nm-arrived.nm-arr-none.wait { min-height:76px; }   /* 없으면 0 · 받는 동안만 한 장 자리 */   /* 16px = 덱 앞 카드(article-card)가 품은 틀 양끝에서 들어간 만큼(9222 실측 · 폭 390·506 둘 다 16) → 줄 양끝 = 카드 선(형 11-03 16:27 「이게 라인이 맞아야해.카드에 맞춰줘」) · 110 = 머리 + 줄 + 아래 비침 */
 /* 방이 더 있으면 = 줄 밑으로 카드 한두 장 끝만 아주 살짝(형 16:26 「중첩되어있으면 조금 겹쳐있는게 보이면좋겠어 … 아주 조금만 보이면될듯」) · 줄 바탕이 비치는 유리라 뒤 판을 통째로 깔지 않고 밑으로 나온 끝만 그림 */
 .yeta-set .nm-arr-one { position:relative; }
 .yeta-set .nm-arr-one[data-stack]::before, .yeta-set .nm-arr-one[data-stack="2"]::after { content:""; position:absolute; top:100%; height:4px; border:1px solid var(--glass-line); border-top:0; border-radius:0 0 12px 12px; background:var(--glass); pointer-events:none; }
@@ -28,3 +29,16 @@
 /* 칸 높이 채우기(fill · PC 오른쪽 위 ../ui/igfb-band.tsx · 봄 11-08) = 그림이 남은 높이를 다 씀(그림 셈은 잰 높이로 · 찌그러짐 없음) */
 .nm-pulse.nm-pulse-fill { height:100%; min-height:0; }
 .nm-pulse.nm-pulse-fill .nm-pulse-chart { flex:1 1 0; height:0; min-height:64px; }   /* 높이 = 칸이 정함(그림 제 비율로 늘지 않게 · 잰 높이 ↔ 그림 높이 돌고 도는 것 막음) */
+
+/* 폰 홈 숫자 줄(형 11-11 18:48 「스레드도 나와도 될거같아. 팔로워수가 좀 적어져도」 · 18:51 「… 그냥 0시간 전 이라는 말만 팔로워랑 수평맞춰서 우측 끝으로 더 조그마하게」 「마진은 유지」)
+   = IG · FB · TH 세 칸 · 숫자 한 단 작게 · 「N시간 전」 = 줄 안 오른쪽 끝 · 밑선 맞춤 · 앞 판(줄 밖 우상단 8.8px)보다 작게 · 빽빽하면 이 글자가 먼저 줄어듦 · 좌우 여백(띠 안쪽 10) 그대로 */
+.nm-pulse:not(.nm-pulse-fill) .nm-pulse-row { gap:6px; min-width:0; }
+.nm-pulse:not(.nm-pulse-fill) .nm-pulse-v { font-size:calc(var(--fs-h2) * .86); flex:none; }
+.nm-pulse:not(.nm-pulse-fill) .nm-pulse-k { flex:none; }
+.nm-pulse-k.th { color:var(--mut); }
+.nm-pulse:not(.nm-pulse-fill) .nm-pulse-at { position:static; margin-left:auto; flex:0 1 auto; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:clip; font-size:calc(var(--fs-xs) * .72); line-height:1; }
+/* 보낸 이 옆 안 읽은 수(형 11-11 18:50 「대화 보낸 사람 옆에 몇개 와잇는지 발신자별로」) · 뒤 장 = 아래 가장자리 겹침 조금 더(형 「중첩된 느낌으로 뒤에」 · 앞 판 4 · 3px) */
+.yeta-set .nm-arr-n { display:inline-grid; place-items:center; flex:none; height:18px; min-width:18px; padding:0 5px; border-radius:999px; background:var(--accent); color:#111; font-size:11px; font-weight:800; font-style:normal; line-height:1; font-variant-numeric:tabular-nums; }
+.yeta-set .nm-arr-dot { display:inline-block; flex:none; width:7px; height:7px; border-radius:50%; background:var(--accent); }
+.yeta-set .nm-arr-one[data-stack]::before { height:6px; }
+.yeta-set .nm-arr-one[data-stack="2"]::after { height:5px; margin-top:6px; }

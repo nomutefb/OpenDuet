@@ -68,6 +68,9 @@ function series(j: Chan, key: "ig" | "fb"): Pt[] {
 const ago = (iso: string) => { const t = Date.parse(iso); if (!Number.isFinite(t)) return ""; const m = Math.max(0, Math.floor((Date.now() - t) / 6e4)); return "갱신 " + (m < 1 ? "방금" : m < 60 ? `${m}분 전` : `${Math.floor(m / 60)}시간 전`); };
 const smooth = (pts: [number, number][]) => pts.map((p, i) => { if (!i) return `M${p[0].toFixed(1)} ${p[1].toFixed(1)}`; const a = pts[i - 1], m = (a[0] + p[0]) / 2; return `C${m.toFixed(1)} ${a[1].toFixed(1)} ${m.toFixed(1)} ${p[1].toFixed(1)} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`; }).join("");
 
+// 폰 홈 그림 높이(형 11-11 18:48 봄 1:1 「상단에 차트 좀만 더 영역 세로가 길어도 될듯 카드가 좀 더 내려와도 될거같아 길어지고」 · 옛 웹앱 홈 #home-pulse 폰 390 실측 = 선 칸 ≈ 40px · 앞 판 64 = 선 칸 ≈ 20px 이라 납작)
+//   + 스레드 총수 폰에도(형 18:48 「스레드도 나와도 될거같아. 팔로워수가 좀 적어져도. 여기 그 웹앱 뷰랑 동일하면 좋을듯」) · 「갱신」 말 뺀 「N시간 전」 = 숫자 줄 오른쪽 끝(형 18:51 「갱신 0시간전은 위치가 애매하면 그냥 0시간 전 이라는 말만 팔로워랑 수평맞춰서 우측 끝으로 더 조그마하게」 「마진은 유지」)
+const PH = 108;
 export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fill = 칸 높이를 다 씀(PC 오른쪽 위 · ../ui/igfb-band.tsx · 봄 11-08 · 형 07:31 「휴대폰 메인화면에 출력되어있던 차트를 알맞은 크기로」)
   const [ig, setIg] = useState<Chan | null>(null), [fb, setFb] = useState<Chan | null>(null), [th, setTh] = useState<Chan | null>(null), [, tick] = useState(0), [tried, setTried] = useState(false);   // tried = 첫 받기 끝(그 전엔 자리만 잡음)
   // 그림 폭 = 화면 실제 폭(형 10-31 「이거 위에 찌그러지는거 좀 수정해줄래?」 · 300칸을 가로로 늘려서 글자·점이 찌그러졌음)
@@ -82,14 +85,14 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
   }, [fill]);
   useEffect(() => {
     let live = true;
-    const load = () => Promise.all([get("ig", "insta_data.json"), get("fb", "fb_data.json"), fill ? get("th", "threads_data.json") : Promise.resolve(null)]).then(([a, b, c]) => { if (!live) return; if (a) setIg(a); setFb(b); setTh(c); }).catch(() => {}).finally(() => { if (live) setTried(true); });
+    const load = () => Promise.all([get("ig", "insta_data.json"), get("fb", "fb_data.json"), get("th", "threads_data.json")]).then(([a, b, c]) => { if (!live) return; if (a) setIg(a); setFb(b); setTh(c); }).catch(() => {}).finally(() => { if (live) setTried(true); });
     load();
     const t1 = window.setInterval(() => { if (!pollOff()) load(); }, 10 * 60e3), t2 = window.setInterval(() => tick((n) => n + 1), 60e3);   // 10분 다시 읽기 · 1분 「갱신 N분 전」
     return () => { live = false; clearInterval(t1); clearInterval(t2); };
   }, [fill]);
   const view = useMemo(() => {
     if (!ig) return null;
-    const W = wide, H = fill ? tall : 64, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
+    const W = wide, H = fill ? tall : PH, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
     // ± 두 줄 차례: 폰 홈 = IG 위 · FB 아래 / PC 칸(fill) = FB 위 · IG 아래(형 11-08 08:51 「인스타를 아래로 깔아. 그래야 눈에 들어올듯. 페북이 위로」 · 「차트는 그대로인데, 2행<>1행 뒤바ㅣ꾸고」)
     // PC 칸(fill) = 차트와 ± 줄 사이를 더 띄움(10 · 폰 6) · 칸 자체도 아래로 5px 늘림(igfb-band.css) = 차트는 그대로 · 줄만 내려옴(형 11-08 09:00 dm-fast 「차트는 그대로두고 2행 라인을 차트로 부터 조금만 간격을 더 둬서 아래로 내려와 … 아래로 딱 붙으면안됨」 · 「둘사이는 그대로 두고.」)
     const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - (fill ? 17 : 6);   // PC 칸 = 차트 끝 ↔ ± 줄 17(형 10:06 사진 「빨갛게 표시한 저붑부분의 간격을 좀 넓혀달라는뜻. 아래 글자 행이 좀 더 아래로 조금만」 · 칸은 +12 로 늘림 = 차트 그대로)
@@ -113,8 +116,8 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v">{nf.format(ig.profile.followers_count)}</b>
         <i className="nm-pulse-sep" aria-hidden />
         <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v">{fb ? nf.format(fb.profile.followers_count) : "–"}</b>
-        {fill ? <><i className="nm-pulse-sep" aria-hidden /><span className="nm-pulse-k th">TH</span><b className="nm-pulse-v">{th ? nf.format(th.profile.followers_count) : "–"}</b></> : null}   {/* PC 칸 = 스레드 총수 하나 더(형 11-08 09:11 「저기 fB 옆에구분자 하나 더 둬서 스레드도 나오게해, FB가 시안으로 표기되고 th 는 fb 색으로」 · 자료 = /api/chan?f=th → threads_data.json) */}
-        <span className="nm-pulse-at">{fill ? ago(ig.generated_kst).replace(/^갱신 /, "") : ago(ig.generated_kst)}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
+        <i className="nm-pulse-sep" aria-hidden /><span className="nm-pulse-k th">TH</span><b className="nm-pulse-v">{th ? nf.format(th.profile.followers_count) : "–"}</b>   {/* PC 칸 = 스레드 총수 하나 더(형 11-08 09:11 「저기 fB 옆에구분자 하나 더 둬서 스레드도 나오게해, FB가 시안으로 표기되고 th 는 fb 색으로」 · 자료 = /api/chan?f=th → threads_data.json) */}
+        <span className="nm-pulse-at">{ago(ig.generated_kst).replace(/^갱신 /, "")}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
       </div>
       <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>

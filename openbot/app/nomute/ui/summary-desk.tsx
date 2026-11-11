@@ -28,17 +28,18 @@ const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); }; 
 /**   뉴스 에디터(4번 · ./news-editor.tsx) = on(고른 카드 · 라임 테) · kind(긴급·이슈 = 금빛 테 + 표) · onOpen(PC = 오른쪽 칸에 열기) · sens(민감 칸 · 옛 에디터 카드 셋째 칸) · short(폰 = 매체·편향 줄 뺌) */
 /**   dg = 홈 Digest(형 11-09 09:21 「메인 화면에서 digest로 나온것도, 타이틀은 1줄로, / 매체 연합뉴스 이것도 가로로 해서 더 얇게 / 보도 3시간전 > 3시간 전 / 이것만 나오면 됨.」 · 12:3x 「여기 에디터 홈페이지 형태로 올라오게 하기로했는데, 한줄로 하라니까 아예 원상복귀가 되어버렸네」)
  *   = 이 카드 꼴 그대로 · 제목 1줄 · 매체·편향 한 줄 가로(얇게) · 「보도」 말 뺌 */
-export function SumCard({ a, on, kind, onOpen, sens: withSens, short, dg }: { a: Art; on?: boolean; kind?: string; onOpen?: () => void; sens?: boolean; short?: boolean; dg?: boolean }) {
+// lean = 뉴스 에디터 목록(형 11-11 18:52~18:53 봄 1:1 「보도 0 시간 전 에서 보도 라는 말 빼고 스크랩은 스크랩 몇 시간 전은 안떠도 될 듯」 「글구 제목은 한줄로만 나오게하고 두줄되면 ...으로」 「글구 이슈 라는 이런건 표기 안해줘도 됨 이제」) = 「보도」 말 · 스크랩 시각 · 「이슈」 표 0(긴급 표 · 금빛 테 · 분류 글자는 그대로) · 제목 한 줄 = ./news-editor.css
+export function SumCard({ a, on, kind, onOpen, sens: withSens, short, dg, lean }: { a: Art; on?: boolean; kind?: string; onOpen?: () => void; sens?: boolean; short?: boolean; dg?: boolean; lean?: boolean }) {
   const go = useGo();
   const cat = catOf(a), bias = biasOf(a), pr = progOf(a), media = mediaOf(a.media), sens = withSens ? sensOf(a).slice(0, 2) : [];
   const rep = ago(reportTs(a)), scr = ago(scrapTs(a)), open = onOpen || (() => go(`/newsed?a=${encodeURIComponent(a.file)}`));   // 홈 Digest 등 = 4번 뉴스 에디터 그 기사(형 11-10 00:5x 「지금 막 뉴스 요약같은거 누르면 화면은 다른게 떠」 · 앞 판 = 옛 #/news 한 장)
   return (
-    <div className={`nm-sumc${on ? " on" : ""}${kind ? " k-" + kind : ""}${dg ? " dg" : ""}`} role="article" tabIndex={0} aria-label={a.title || "기사"} aria-current={on || undefined} onClick={open} onKeyDown={(e) => { if (e.key === "Enter") open(); }}>
+    <div className={`nm-sumc${on ? " on" : ""}${kind ? " k-" + kind : ""}${dg ? " dg" : ""}${lean ? " lean" : ""}`} role="article" tabIndex={0} aria-label={a.title || "기사"} aria-current={on || undefined} onClick={open} onKeyDown={(e) => { if (e.key === "Enter") open(); }}>
       <div className="nm-sumc-top">
         {cat ? <b className={`cat ${cat[1]}`}>{cat[0]}</b> : null}
-        {rep ? <span>{dg ? null : "보도 "}<b>{rep}</b></span> : null}
-        {kind ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
-        {scr ? <span className="r">스크랩 <b>{scr}</b></span> : null}
+        {rep ? <span>{dg || lean ? null : "보도 "}<b>{rep}</b></span> : null}
+        {kind && !(lean && kind !== "brk") ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
+        {scr && !lean ? <span className="r">스크랩 <b>{scr}</b></span> : null}
       </div>
       <p className="nm-sumc-t">{a.title || a.title_orig || "(제목 없음)"}</p>
       {short ? null : <div className={`nm-sumc-kv${sens.length ? " three" : ""}`}>

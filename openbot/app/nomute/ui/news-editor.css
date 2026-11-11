@@ -45,7 +45,7 @@ html.dark .nm-ned .nm-sumc { background:rgba(255,255,255,.012); -webkit-backdrop
 .nm-ned .nm-sumc-top > span:not(.r) b { font-weight:700; color:#CFFF40; }   /* 보도 시각 = 강조(옛 --accent) */
 html:not(.dark) .nm-ned .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
 .nm-ned .nm-sumc-top .r b { font-weight:700; color:var(--fg); }
-.nm-ned .nm-sumc-t { font-size:15px; font-weight:700; line-height:1.45; }
+.nm-ned .nm-sumc-t { font-size:15px; font-weight:700; line-height:1.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }   /* 제목 한 줄 · 넘치면 …(형 11-11 18:53 「글구 제목은 한줄로만 나오게하고 두줄되면 ...으로」) */
 .nm-ned .nm-sumc-kv span { font-size:11px; font-weight:400; line-height:1.6; }
 .nm-ned .nm-sumc-kv b { font-size:13px; font-weight:700; line-height:1.45; }
 .nm-ned .nm-sumc-prog i { font-size:11px; font-weight:700; }
@@ -63,3 +63,10 @@ html:not(.dark) .nm-ned .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
 .nm-ned .nm-sumc-kv .sens em { font-style:normal; }
 .nm-ned .nm-sumc-kv .sens em.warn { color:#ff9f6b; }
 .nm-ned-more { all:unset; cursor:pointer; align-self:center; padding:8px 16px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); font-size:var(--fs-xs); color:var(--fg-2); }
+/* 매체 · 편향 = 이름표 옆에 값 가로 한 줄 · 민감 칸 0(news-editor.tsx sens 뺌) · 카드 높이 = 줄어든 만큼(형 11-11 18:54 봄 1:1 「그리고 매체 편향 / 각각의 내용 잇지 인덱싱 가로 간격 벌려서( 내용 들어갈 칸 확보) / 가로로 내용 기입. / 그러면 아마 새로 높이가 좀 더 확보될거야 / 민감 키워드는 없어도 됨 표기 안할게」 「그럼 더 많이 보일거고. 이 높이에 맞춰서」)
+   = 머리 줄 · 제목 한 줄 · 매체 편향 한 줄 · 막대 셋 = 네 줄 · 긴 매체 이름은 칸 안에서 … */
+.nm-ned .nm-sumc.lean .nm-sumc-kv { display:flex; flex-wrap:nowrap; align-items:baseline; gap:22px; min-width:0; }
+.nm-ned .nm-sumc.lean .nm-sumc-kv > div { display:flex; flex-direction:row; align-items:baseline; gap:8px; min-width:0; }
+.nm-ned .nm-sumc.lean .nm-sumc-kv > div:first-child { flex:0 1 auto; max-width:64%; }
+.nm-ned .nm-sumc.lean .nm-sumc-kv > div > span { flex:none; }
+.nm-ned .nm-sumc.lean .nm-sumc-kv b { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

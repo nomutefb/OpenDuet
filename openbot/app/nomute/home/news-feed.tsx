@@ -11,7 +11,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { pollOff } from "../data/poll-linux";
 import { hookFrame, toneFrame } from "../ui/inapp";
 import { homePool } from "./home-pool";
-import { SEND_ROOM, SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
+import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
 import { rssFirst } from "./rss-first";
 import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent } from "./event-score";   // 카드 점수 · 차례 = 뉴스 알고리즘 하나(형 11-11 08:53 봄 1:1 「글구 메인화면에서 그 점수 별로 카드 보이는거 잇지? 그거 점수마다 보여야 함 한 알고리즘 대로」 · 아래 Hot Issue 와 같은 맞추기)
 
@@ -67,15 +67,13 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 .practical-main .score-lead strong{color:var(--accent)!important;text-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)!important}
 .article-pick{display:none!important}
 @media (max-width:480px){
-.practical-main .deck>.article-card{padding-bottom:calc(var(--sp-4) + ${SEND_ROOM}px)}
-.practical-main .deck>.article-card:not(:has(.article-media)){height:auto;max-height:var(--reader-card-height)}
-.practical-main .deck>.article-card:not(:has(.article-media)) .article-body{flex:0 1 auto}
 .practical-main .deck>.deck-fan{height:auto;bottom:var(--reader-peek)}
 .article-schedule:has(>.article-publisher):has(>.article-pick){flex-wrap:wrap;row-gap:0}
 .article-schedule:has(>.article-publisher):has(>.article-pick)>.meta-published{flex:0 0 100%}
 .article-schedule:has(>.article-publisher):has(>.article-pick)>.meta-published+.meta-chip::before{content:none}
 }`;
-// 폰 폭(품은 화면 480 이하 · 형 11-05 사진 「모바일 버전 해결점」) = ① 사진 없는 카드 = 높이를 글만큼(옛 = 품은 칸 전부라 아래가 텅 빔 · 카드 높이 셈 --reader-card-height 는 상한으로만 · 사진 카드는 사진이 남는 높이를 채우던 그대로)
+// 11-11 형 18:48 봄 1:1 「카드가 좀 더 내려와도 될거같아 길어지고」 · 18:49 「이정도인데 체크표시가 아래를 좀 먹을 필요가 없음」 「우측으로 가서 겹쳐도 되거든」 → 아래 ①(글만큼 높이) · ②(단추 자리 SEND_ROOM)를 걷음 = 사진 없는 카드도 칸 높이 다 씀 · ✓ 단추는 카드 오른쪽 아래 귀퉁이에서 글·사진 위에 겹쳐 뜸(send-button.tsx 자리 셈 그대로) · 앞 판 = git
+// (앞 판) 폰 폭(품은 화면 480 이하 · 형 11-05 사진 「모바일 버전 해결점」) = ① 사진 없는 카드 = 높이를 글만큼(옛 = 품은 칸 전부라 아래가 텅 빔 · 카드 높이 셈 --reader-card-height 는 상한으로만 · 사진 카드는 사진이 남는 높이를 채우던 그대로)
 //   뒤 장 둘(.deck-fan) = 높이 못 박지 않고 앞 카드 높이(덱 아래 입술 몫만 뺌) = 짧은 카드 뒤로 긴 장이 안 삐져나옴 · 넘김 복사본(card-exit)은 덱이 넘길 때 잰 높이를 그대로 씀
 //   ② 카드 아래 안쪽에 전송 단추 자리(SEND_ROOM · send-button.tsx 가 그 자리 = 카드 오른쪽 아래 안으로 옮김 · 옛 = 카드 오른쪽 끝에 반쯤 걸쳐 화면 밖으로 나갔음)
 //   ③ 픽 얼굴 있는 줄 = 시각·몇 시간 전 한 줄 + 매체·얼굴 다음 줄(옛 = 한 줄에 다 넣느라 매체 이름이 「n.news.naver…」로 잘렸음 · 그래도 넘치면 끝만 「…」 · 줄 머리 점은 뺌)

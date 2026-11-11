@@ -25,36 +25,36 @@ export function useArrived() {
   return { arrived, count, lastOf, list, pending: rooms.isPending, error: rooms.isError };
 }
 
+// 11-11 형 18:49~18:50 봄 1:1 「그러면 그만큼 확보되니까」 「그리고 도착한 메세지 라는 말 없이 그냥 대화가 떠도 될듯」 「그리고 대화 보낸 사람 옆에 몇개 와잇는지 발신자별로 나오면 되고.」 「중첩된 느낌으로 뒤에 잇으면 될거같아.」
+//   → 머리 「도착한 메시지」 · 숫자 알약 걷음 · 대화 줄이 바로 · 보낸 이(방)마다 한 장 = 이름 옆에 그 방 안 읽은 수(점만이면 작은 점) · 여러 장이면 맨 앞 한 장 온전히 + 뒤 장은 아래 가장자리만 겹쳐(최대 둘) · 없으면 칸 0(「새로 온 글 없음」 뺌 = 카드가 그만큼 내려옴) · 누르면 그 대화 · 앞 판 = git
 export function Arrived() {
-  const { arrived, count, lastOf, list, pending, error } = useArrived();
-  const total = arrived.reduce((a, x) => a + Math.max(0, count(x)), 0);   // 신규 메시지 수 = 안 읽은 방 전부 합(점만 있는 방 = 0 으로 셈)
+  const { arrived, count, lastOf, list, pending } = useArrived();
+  if (!arrived.length) return <section aria-label="새로 온 대화" className={`nm-arrived nm-arr-none${pending ? " wait" : ""}`} style={{ gridRow: 3 }} />;   /* 받는 동안만 한 장 자리(follow-pulse.css) · 없으면 0 */
   return (
-    <section aria-label="도착한 메시지" className="nm-arrived flex min-h-0 flex-col" style={{ gridRow: 3 }}>   {/* 줄 자리 못 박음(news-feed 2줄과 같은 꼴) · 높이는 한 방 꼴로 미리 잡음 = 받는 중·없음·한 방 사이에 카드가 안 밀림(follow-pulse.css .nm-arrived) */}
-      <h2 className="yset-sec flex items-center gap-1.5">도착한 메시지{total > 0 ? <b aria-label={`신규 메시지 ${total}개`} className="grid h-5 min-w-5 place-items-center rounded-full bg-[var(--accent)] px-1.5 text-[11px] font-bold leading-none tabular-nums text-black">{total > 99 ? "99+" : total}</b> : null}</h2>   {/* 수 = 머리 글자 옆 동그라미 안 숫자만(형 11-03 16:26 「도착한 메세지 옆에 숫자만 있으면 될거같아. 동그라미 안에」 · 옛 타일 말머리 「신규 메시지 N」 알약 뺌) */}
-      {!arrived.length ? (pending ? null : <p className="px-1 text-[13px] text-[var(--mut)]">{error ? "못 받았어" : "새로 온 글 없음"}</p>) : (   /* 받는 동안 = 글자 없이 자리만(형 11-03 16:48 「이거 로딩때. 받는 중... 이거 안나와도돼.」) */
-        <ul className="flex min-h-0 flex-col gap-2">   {/* 한 방만(형 10-31 12:2x 「한 메세지만 보이게」) · 스크롤 0 · 네비 자리 여백 = 홈 바닥(home-screen · 글 없을 때도) · 나머지 방 수는 머리 「방 N」 이 말함 */}
-          {arrived.slice(0, 1).map((r) => {
-            const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;
-            const preview = l ? `${r.with || l.kind === "human" ? "" : `${list.find((x) => x.who === l.who)?.name || whoName(l.who)}: `}${(l.text || "").split("\n")[0]}` : "";
-            return (
-              <li key={r.id} className="nm-arr-one" data-stack={Math.min(arrived.length - 1, 2) || undefined}>   {/* 방이 더 있으면 줄 밑으로 카드 한두 장이 아주 살짝 비침(형 11-03 16:26 「중첩되어있으면 조금 겹쳐있는게 보이면좋겠어 … 아주 조금만 보이면될듯」 · follow-pulse.css) */}
-                <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} className="yset-item">
-                  {r.with ? <FaceImg id={idOf(r.with, list)} size={36} /> : <span className="grid size-9 shrink-0 place-items-center"><FaceStack ids={ids.slice(0, 3)} size={20} /></span>}
-                  <span className="min-w-0 flex-1 text-left">
-                    <span className="flex items-center gap-1.5">
-                      <b className="truncate text-[15px] font-bold">{p?.name || r.name}</b>
-                      <span className="ml-auto shrink-0 text-[11px] tabular-nums text-[var(--mut)]">{listWhen(r.last_ts)}</span>
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span data-content className="block min-w-0 flex-1 truncate text-[12px]">{preview}</span>
-                    </span>
+    <section aria-label={`새로 온 대화 ${arrived.length}곳`} className="nm-arrived flex min-h-0 flex-col" style={{ gridRow: 3 }}>
+      <ul className="flex min-h-0 flex-col">
+        {arrived.slice(0, 1).map((r) => {
+          const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined, n = count(r);
+          const preview = l ? `${r.with || l.kind === "human" ? "" : `${list.find((x) => x.who === l.who)?.name || whoName(l.who)}: `}${(l.text || "").split("\n")[0]}` : "";
+          return (
+            <li key={r.id} className="nm-arr-one" data-stack={Math.min(arrived.length - 1, 2) || undefined}>
+              <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} className="yset-item">
+                {r.with ? <FaceImg id={idOf(r.with, list)} size={36} /> : <span className="grid size-9 shrink-0 place-items-center"><FaceStack ids={ids.slice(0, 3)} size={20} /></span>}
+                <span className="min-w-0 flex-1 text-left">
+                  <span className="flex items-center gap-1.5">
+                    <b className="truncate text-[15px] font-bold">{p?.name || r.name}</b>
+                    {n > 0 ? <i className="nm-arr-n" aria-label={`안 읽은 글 ${n}개`}>{n > 99 ? "99+" : n}</i> : n < 0 ? <i className="nm-arr-dot" aria-label="안 읽은 글 있음" /> : null}
+                    <span className="ml-auto shrink-0 text-[11px] tabular-nums text-[var(--mut)]">{listWhen(r.last_ts)}</span>
                   </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                  <span className="flex items-center gap-2">
+                    <span data-content className="block min-w-0 flex-1 truncate text-[12px]">{preview}</span>
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
