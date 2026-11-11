@@ -17,6 +17,8 @@ test("카드 = 폰도 매체 · 편향 · 민감 줄 · 옛 값(Pretendard · �
   assert.match(css, /\.nm-ned \.nm-sumc \{ gap:12px; padding:18px; font-family:'Pretendard Variable'/);
   assert.match(css, /\.nm-ned \.nm-sumc-t \{ font-size:15px; font-weight:700; line-height:1\.45; \}/);
   assert.match(css, /\.nm-ned \.nm-sumc-prog em \{ height:7px;/);
+  assert.ok(!/\.nm-ned \.nm-sumc-prog em \{[^}]*background/.test(css), "막대 회색은 아직 칸만(끝남 라임을 덮지 않게)");
+  assert.match(css, /span:not\(\.done\):not\(\.cur\):not\(\.fail\) em \{ background:rgba\(187,188,188,\.7\); \}/);
 });
 
 test("요약 요청 = 옛 꼴(글칸 한 장 안 붙여넣기 · 사진 · 링크 · 전송 · 칩 다섯 옛 이름 · 주요는 칩 없이 기본값)", () => {

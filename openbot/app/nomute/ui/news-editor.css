@@ -47,8 +47,10 @@ html:not(.dark) .nm-ned .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
 .nm-ned .nm-sumc-t { font-size:15px; font-weight:700; line-height:1.45; }
 .nm-ned .nm-sumc-kv span { font-size:11px; font-weight:400; line-height:1.6; }
 .nm-ned .nm-sumc-kv b { font-size:13px; font-weight:700; line-height:1.45; }
-.nm-ned .nm-sumc-prog i { font-size:11px; font-weight:700; color:#BBBCBC; }
-.nm-ned .nm-sumc-prog em { height:7px; background:rgba(187,188,188,.7); }
+.nm-ned .nm-sumc-prog i { font-size:11px; font-weight:700; }
+.nm-ned .nm-sumc-prog em { height:7px; }
+.nm-ned .nm-sumc-prog span:not(.done):not(.cur):not(.fail) i { color:#BBBCBC; }   /* 회색 = 아직 칸만(끝남 · 만드는 중 · 멈춤 색은 summary-desk.css 그대로 · 앞 판 = 회색이 끝남 라임까지 덮음 11-11 13:2x 라이브 실물) */
+.nm-ned .nm-sumc-prog span:not(.done):not(.cur):not(.fail) em { background:rgba(187,188,188,.7); }
 .nm-ned .nm-sumc.k-iss, .nm-ned .nm-sumc.k-brk { border-color:rgba(230,195,92,.75); }
 .nm-ned .nm-sumc.on { border-color:#CFFF40; box-shadow:0 0 0 1px #CFFF40 inset, 0 1px 16px rgba(0,0,0,.4); }
 :root:not(.dark) .nm-ned .nm-sumc.on { border-color:#4f7a00; box-shadow:0 0 0 1px #4f7a00 inset; }
