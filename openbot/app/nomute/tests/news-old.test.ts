@@ -112,3 +112,9 @@ test("HOT ISSUE 「전송」 = 단추 안 차오름 → ✓ · 위 알약 0(형 
   assert.match(nl, /x\?\.k === "ok" \? "✓" : x\?\.k === "bad" \? "다시" : "전송"/);
   assert.match(nc, /\.run::before \{ content:""; position:absolute; inset:0;/);
 });
+
+test("홈 카드 ✓ = 폰도 카드 세로 가운데 · 오른쪽 선에 반쯤 걸침(형 11-12 07:47)", () => {
+  const sc = rd("../home/send-button.css"), sb = rd("../home/send-button.tsx");
+  assert.match(sc, /\.nm-send-dock\[data-fit\] \{ top:calc\(var\(--nm-card-y\) \+ var\(--nm-card-h\) \/ 2\); bottom:auto; right:max\(4px, calc\(var\(--nm-card-r\) - 22px\)\); transform:translateY\(-50%\);/);
+  assert.match(sb, /--nm-card-y/);
+});

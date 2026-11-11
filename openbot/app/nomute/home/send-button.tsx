@@ -43,6 +43,7 @@ function useCardCorner(frame: React.RefObject<HTMLIFrameElement | null>, dock: R
         let x = 0, y = 0;
         for (let n: HTMLElement | null = card; n; n = n.offsetParent as HTMLElement | null) { x += n.offsetLeft; y += n.offsetTop; }   /* offset = 넘김 중 transform 안 탐(쉰 자리) */
         d.style.setProperty("--nm-card-b", `${y + card.offsetHeight}px`);
+        d.style.setProperty("--nm-card-y", `${y}px`); d.style.setProperty("--nm-card-h", `${card.offsetHeight}px`);   // 세로 가운데(형 11-12 07:47)
         d.style.setProperty("--nm-card-r", `${Math.max(0, doc.documentElement.clientWidth - x - card.offsetWidth)}px`);
         d.setAttribute("data-fit", "");
       };
