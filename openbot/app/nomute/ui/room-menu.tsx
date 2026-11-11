@@ -15,6 +15,7 @@ import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
 import { RoomMembersDialog, TempRoomDialog } from "./temp-room";   // 방 멤버 = 방 안 메뉴에서도(형 11-05 09:37 봄 1:1 「톡방 지금 인원을 내가 톡방 설정에서 배분하고 내보내고 그걸 맘대로 하고 싶거든?」)
 import { whoName } from "./who-name";
 import { RoomLookDialog } from "./room-look";
+import { DmRuleDialog, dmRuleRoom } from "./dm-rule";   // 1:1 방 지침(형 11-11 22:28 · 깃)
 
 /** 방 메뉴 것(옛 우상단 ≡ 단추) = 윗줄 가운데 이름을 누른 목록 안으로(형 11-06 20:37 「애초에 그냥 방 메뉴를 저기서 나오게 해버려도 … 메뉴를 축약해서 하나로 가능한 통합시킨다음에 … 비슷한거끼리」 ·
  *  20:39 「방 설정등이 최대한 기능 응축되어있으면 굳이 별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」 · 시아 판 ①~④) — 줄 = 사람 칸(crew) · 방 칸(items) · 창(dialogs · 목록이 닫혀도 남음) */
@@ -22,7 +23,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   const qc = useQueryClient();
   const [tinting, setTinting] = useState<OfficeRoom | null>(null), [naming, setNaming] = useState<OfficeRoom | null>(null), [err, setErr] = useState("");
   const notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
-  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [tempEdit, setTempEdit] = useState(false), [look, setLook] = useState(false);
+  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [tempEdit, setTempEdit] = useState(false), [look, setLook] = useState(false), [dmRule, setDmRule] = useState(false);
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: !!room && (open || hist), staleTime: 30_000, retry: false });   // 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
   const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: !!room && open, staleTime: 15_000, retry: false });   // 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
   const setBell = async (on: boolean) => {
@@ -49,6 +50,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   const items = r ? (
     <>
       {r.temp ? <button type="button" role="menuitem" onClick={go(() => setTempEdit(true))}>방 설정<small>이름 · 방 지침 · 기한</small></button> : null}
+      {dmRuleRoom(r) ? <button type="button" role="menuitem" onClick={go(() => setDmRule(true))}>방 지침<small>깰 때 읽는 글</small></button> : null}
       {!r.with ? <button type="button" role="menuitem" onClick={go(() => setLook(true))}>방 꾸미기<small>아이콘 · 색</small></button> : null}   {/* 단톡방·회의실 다(형 11-06 20:00 · 20:33 「회의실도 가능해야해.」 · 20:37 「방 아이콘 변경 저것도 저기에」) */}
       {!r.with ? <button type="button" role="menuitem" onClick={go(() => setTinting(r))}><span className="flex items-center gap-2"><RainbowOrb />표지 색</span></button> : null}
       {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={go(() => setNaming(r))}>이름 바꾸기</button> : null}
@@ -70,6 +72,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       {look && r ? createPortal(<RoomLookDialog r={r} onClose={() => setLook(false)} />, document.body) : null}
       {tempEdit && r ? createPortal(<TempRoomDialog edit={r} onClose={() => setTempEdit(false)} />, document.body) : null}
       {crew && r ? createPortal(<RoomMembersDialog r={r} onClose={() => setCrew(false)} />, document.body) : null}
+      {dmRule && r ? <DmRuleDialog room={r} onClose={() => setDmRule(false)} /> : null}
     </>
   );
   const hasCrew = !!r && (((!r.with && r.id !== MEET && !!r.designated && !r.temp) || !!r.temp) || (r.id === MEET && (r.members?.length || 0) > 0));

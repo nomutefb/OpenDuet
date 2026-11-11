@@ -1,6 +1,6 @@
 // 단체방 루틴(형 10-31 「그 열쇠는 타이머로 단체방마다 타이머를 설정할 수 있게 해줘. 어떻게보면 단체방 루틴이겠네.」 · 「n일 몇회, 모든 주기를 효율적으로 커버가능하도록 uiux를 구성해줘.」)
 //   멤버 일부 빼기 = 기본 모두(형 「구성멤버중에 일부는 제외할 수 있도록도 해줘. 기본값은 모두야.」) · 지침 = 울릴 때 글 뒤에 같이 나감(형 「단체방 루틴에는 그리고 별도의 지침을 심고」)
-//   서버 = GET/POST /api/office/room-timers(#1861) · 들어가는 곳 = 방 상단 사람 목록(ui/top.tsx) · 1:1·공지·수리 접수엔 없음
+//   서버 = GET/POST /api/office/room-timers(#1861) · 들어가는 곳 = 방 상단 사람 목록(ui/top.tsx) · 봇 1:1 도(형 11-11 22:28 · 깃) · 형 방·공지·수리 접수엔 없음
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -25,8 +25,8 @@ const QUICK: { label: string; set: Partial<Form> }[] = [
 ];
 const MAX_TIMES = 24;
 
-/** 루틴을 걸 수 있는 방 — 1:1·공지·수리 접수는 안 됨. */
-export const routineRoom = (r?: OfficeRoom) => !!r && !r.with && r.id !== "notice" && r.id !== "repair";
+/** 루틴을 걸 수 있는 방 — 단체방 + 봇 1:1(형 11-11 22:28 「각 애들 1대1 방에도 주기 루틴 … 모든 봇 가능해야함」 · 서버 routineRoom 과 같은 판정) · 형 방 · 공지 · 수리 접수는 안 됨. */
+export const routineRoom = (r?: OfficeRoom) => !!r && (r.with ? r.kind === "dm" && r.with !== "형" : r.id !== "notice" && r.id !== "repair");
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(v) || lo));
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
@@ -84,7 +84,7 @@ export function Times({ times, onChange }: { times: string[]; onChange: (t: stri
 function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; onClose: () => void }) {
   const qc = useQueryClient();
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-  const crew = roomAgentIds(room, list).map((id) => { const p = list.find((y) => idOf(y.who, list) === id); return { id, who: p?.who || id, name: p?.name || p?.who || id }; });
+  const crew = room.with ? [] : roomAgentIds(room, list).map((id) => { const p = list.find((y) => idOf(y.who, list) === id); return { id, who: p?.who || id, name: p?.name || p?.who || id }; });
   const [f, setF] = useState<Form>(() => formOf(timer)), [skip, setSkip] = useState<string[]>(timer?.skip || []);
   const [sure, setSure] = useState(false), [saved, setSaved] = useState(false);
   const set = (x: Partial<Form>) => { setF((v) => ({ ...v, ...x })); setSaved(false); };
