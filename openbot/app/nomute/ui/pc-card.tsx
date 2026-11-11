@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { office } from "../data/office";
 import { useDecisions } from "./decide-pop";
 import { screenUrl } from "./pc-url";
+import { screenGoUrl, screenTicket } from "./screen-ticket";   // 표 붙여 앱 안(빠르 11-11)
 import "./pc-card.css";
 
 type St = "" | "보내는 중" | "완료" | "건너뜀" | "못 보냄";
@@ -21,7 +22,7 @@ export function PcCard({ id, task, url, who }: { id: string; task: string; url: 
   const qc = useQueryClient();
   const dec = useDecisions();
   const d = (dec.data || []).find((x) => x.id === id || (x._dups || []).includes(id));
-  const [st, setSt] = useState<St>(""), [open, setOpen] = useState(false);
+  const [st, setSt] = useState<St>(""), [open, setOpen] = useState("");   // open = 앱 안 화면 주소(표 붙음 · 테일넷 밖 폰에서도 · 형 11-11 19:18 「인앱에서 클립보드 컨트롤 제어권 고받고 완료신호」 · 빠르)
   const over = !!dec.data && !d && !st;   // 서버 목록에 없음 = 이미 답했거나 닫힘
   const answer = async (label: "완료" | "건너뛰기") => {
     if (!d || (st && st !== "못 보냄")) return;
@@ -51,9 +52,9 @@ export function PcCard({ id, task, url, who }: { id: string; task: string; url: 
           </>
         )}
         {st === "못 보냄" ? <span className="nm-pc-st err">못 보냄 · 다시 눌러 줘</span> : null}
-        <button type="button" className="nm-pc-btn go" onClick={(e) => { e.stopPropagation(); setOpen(true); }}>제어권 가져오기</button>
+        <button type="button" className="nm-pc-btn go" onClick={(e) => { e.stopPropagation(); const raw = screenUrl(url); void screenTicket(raw, (b) => office<{ url?: string }>("screen/ticket", { method: "POST", body: JSON.stringify(b) })).then((u) => setOpen(u || raw)); }}>제어권 가져오기</button>
       </div>
-      {open ? <PcScreen url={screenUrl(url)} title={`${who} 컴퓨터`} task={task} canDone={!!d && !st} onDone={() => void answer("완료")} onClose={() => setOpen(false)} /> : null}
+      {open ? <PcScreen url={open} out={screenGoUrl(screenUrl(url))} title={`${who} 컴퓨터`} task={task} canDone={!!d && !st} onDone={() => void answer("완료")} onClose={() => setOpen("")} /> : null}
     </div>
   );
 }
