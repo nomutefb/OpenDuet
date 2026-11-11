@@ -1,5 +1,6 @@
 // 임시 단톡방 만들기·고치기(형 10-31 「내가 + 눌러서 임시 단톡방 만들수있게해주라. 시간 지나면 파기되고 자동으로」 · 「누구 초대할지 고를 수 있고. 목적 쓸수있게」)
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
+import { resetRoomArt, uploadRoomArt, useRoomArtSrc } from "./room-art";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { livePicked, saveBlock } from "./picked";
@@ -43,6 +44,27 @@ export function TempRoomHead({ r }: { r: OfficeRoom }) {
   );
 }
 
+/** 방 설정 「방 사진」 — 형이 사진을 골라 바꿈 · 기본으로 = 뜸 그림(정적)으로 돌아감(형 11-11 12:49 「내가 따로 첨부로도 방 사진 변경할 수 있게해줘」 · 서버가 형 문만 받음) */
+function RoomArtRow({ id }: { id: string }) {
+  const src = useRoomArtSrc(id), [busy, setBusy] = useState(false), [note, setNote] = useState("");
+  const run = async (f: () => Promise<void>, ok: string) => { setBusy(true); setNote(""); try { await f(); setNote(ok); } catch (e) { setNote((e as Error).message); } finally { setBusy(false); } };
+  return (
+    <div className="flex items-center gap-3">
+      <img src={src} alt="방 사진" className="h-14 w-14 rounded-2xl border border-border object-cover" />
+      <div className="flex flex-col gap-1">
+        <span className="text-muted-foreground">방 사진</span>
+        <span className="flex gap-1.5">
+          <label className="nm-pick cursor-pointer" aria-disabled={busy}>{busy ? "올리는 중" : "사진 고르기"}
+            <input type="file" accept="image/*" hidden disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void run(() => uploadRoomArt(id, f), "바꿨어"); }} />
+          </label>
+          <button type="button" className="nm-pick" disabled={busy} onClick={() => void run(() => resetRoomArt(id), "기본 그림으로")}>기본으로</button>
+        </span>
+        {note ? <small className="text-muted-foreground" role="status">{note}</small> : null}
+      </div>
+    </div>
+  );
+}
+
 export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: () => void }) {
   const qc = useQueryClient(), nav = useNavigate();
   const cand = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 }).data || [];
@@ -81,6 +103,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
     <div role="dialog" aria-modal="true" aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
       <div className="flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">{edit ? "방 설정" : "임시 단톡방"}</b>
+        {edit ? <RoomArtRow id={edit.id} /> : null}
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground">방 이름</span>
           <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="rounded-xl border border-border bg-transparent px-3 py-2" />

@@ -3,6 +3,7 @@
 //   같은 차례를 PC 얼굴 띠(ui/shell.tsx)가 씀 = useRoomOrder
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 알림 켬/끔 · (단톡) 알림 그림 · 숨기기/보이기
+import { useRoomArtSrc } from "./room-art";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -91,13 +92,14 @@ export function useRoomOrder() {
 
 /** 방 아이콘 = 둥근 네모(사람 = 동그라미라 한눈에 갈림) · 그림 /office/room-<방 id>.webp(뜸 그림 · 있으면 먼저) · 없으면 방 표지 색 바탕 + 방 이름의 이모지(밥상 🍚) 또는 첫 글자 */
 function RoomIcon({ r, size, color }: { r: Room; size: number; color?: string }) {
-  const [noPic, setNoPic] = useState(false);
+  const [noPic, setNoPic] = useState(false), src = useRoomArtSrc(r.id);   // 형이 올린 방 사진 먼저 · 없으면 서버가 정적 그림으로(./room-art.ts · 형 11-11 12:49)
+  useEffect(() => setNoPic(false), [src]);   // 새로 올리면 다시 그림
   const emo = /\p{Extended_Pictographic}/u.exec(r.name)?.[0], ch = emo || [...r.name.replace(/\s+/g, "")][0] || "#";
   if (!r.with && (noPic || r.look?.icon)) return <RoomGlyph id={r.id} look={r.look} size={size} />;   // 단톡방 = 픽토그램 선만(형 11-06 20:15 · 그림 올린 방은 그림 · 형이 아이콘 고르면 아이콘)
   return (
     <span className="nm-ricon" style={{ width: size, height: size, ...(color ? { background: color } : {}) } as CSSProperties} aria-hidden>
       {noPic ? <span className={emo ? "emo" : "ch"} style={{ fontSize: Math.round(size * (emo ? 0.56 : 0.44)) }}>{ch}</span>
-        : <img src={`/office/room-${encodeURIComponent(r.id)}.webp`} alt="" onError={() => setNoPic(true)} />}
+        : <img src={src} alt="" onError={() => setNoPic(true)} />}
     </span>
   );
 }
