@@ -11,6 +11,7 @@
 import "./yeta-settings.css";
 import "./ask.css";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { isForeignUrl } from "../home/quick-send";
 import { GoButton } from "./go-button";
 import { Pane } from "./pane";
 
@@ -57,6 +58,11 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
   useEffect(() => { if (!over && force) setForce(false); }, [over, force]);   // 짧은 영상·자막 길로 바뀌면 강행도 끔(원본 같은 꼴)
   const [imgs, setImgs] = useState<{ name: string; dataUrl: string }[]>([]);
   const [preset, setPreset] = useState<Preset>({ ...DEF });
+  // 옛 뉴스 에디터 맨 위 「픽」 일을 여기로(형 11-11 14:36 봄 1:1 「글 붙여넣기는 없어두대! 우하단에 버튼으로 요약만 잇으면 댐」 · 봄 「픽 단추가 하던 일이 요약 요청 화면에 없으면 거기로 옮겨」)
+  //   = 링크(링크 칸 · 없으면 글 안 첫 주소)가 외신이면 「외신 기반」 칩이 저절로 ✓ · 국내면 저절로 끔(../home/quick-send.ts isForeignUrl · 깃 29) · 칩을 손으로 누른 뒤엔 안 건드림
+  const [fpHand, setFpHand] = useState(false);
+  const autoUrl = link.trim() || (/https?:\/\/\S+/i.exec(text) || [""])[0];
+  useEffect(() => { if (fpHand) return; const fp = isForeignUrl(autoUrl) ? 1 : 0; setPreset((p) => (p.fp === fp ? p : { ...p, fp })); }, [autoUrl, fpHand]);
   const [busy, setBusy] = useState(false), [note, setNote] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [pending, setPending] = useState<number | null>(null);
   const [showLink, setShowLink] = useState(false);   // 링크 칸 = 링크 아이콘을 누르면(옛 판 「링크 넣기」) · 링크가 이미 있으면 늘 보임
@@ -78,7 +84,7 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
   };
   const fail = (msg: string): never => { setNote({ kind: "err", text: msg }); throw new Shown(msg); };   // 게이지 단추가 「못 보냄」 + 아래 줄에 까닭
   const send = async () => {
-    const t = text.trim(), l = link.trim();
+    const t = text.trim(), l = link.trim() || (/https?:\/\/\S+/i.exec(t) || [""])[0];   // 링크 칸이 비면 글 안 첫 주소를 링크로(옛 넣는 줄 「전송 · 픽」과 같은 꼴 · ../home/quick-send.ts submitText)
     if (l && !/^https?:\/\//i.test(l)) fail("링크는 http(s)로 시작해야 해 — 주소를 고쳐 줘");   // 원본 형식 게이트
     if (!t && !imgs.length && !l) fail("보낼 글·사진·링크 중 하나는 있어야 해");
     setBusy(true); setNote(null);
@@ -90,7 +96,7 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; id?: string; error?: string };
       if (r.ok && d.ok) {
         setNote({ kind: "ok", text: `접수됨${d.id ? ` · ${d.id}` : ""} — 대기열에서 처리 중` });
-        setText(""); setLink(""); setForce(false); setImgs([]); setPreset({ ...DEF });
+        setText(""); setLink(""); setForce(false); setImgs([]); setPreset({ ...DEF }); setFpHand(false);
         setTimeout(() => void loadPending(), 1200); setTimeout(() => void loadPending(), 4000);   // 원본과 같은 두 번 갱신
       } else fail(d.error || `서버 ${r.status}`);
     } catch (e) {
@@ -139,7 +145,7 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
           </div>
         </div>
         <div className="nm-ask-chips-o" role="group" aria-label="수집 프리셋">
-          {CHIPS.filter((c) => c.k !== "mj").map((c) => <button key={c.k} type="button" className={`nm-ask-chip${preset[c.k] ? " on" : ""}`} aria-pressed={!!preset[c.k]} title={c.d} onClick={() => setPreset((p) => ({ ...p, [c.k]: p[c.k] ? 0 : 1 }))} disabled={busy}>{preset[c.k] ? "✓ " : ""}{c.o}</button>)}
+          {CHIPS.filter((c) => c.k !== "mj").map((c) => <button key={c.k} type="button" className={`nm-ask-chip${preset[c.k] ? " on" : ""}`} aria-pressed={!!preset[c.k]} title={c.d} onClick={() => { if (c.k === "fp") setFpHand(true); setPreset((p) => ({ ...p, [c.k]: p[c.k] ? 0 : 1 })); }} disabled={busy}>{preset[c.k] ? "✓ " : ""}{c.o}</button>)}
         </div>
         {note ? <p className={`nm-ask-note ${note.kind}`} role={note.kind === "err" ? "alert" : "status"}>{note.text}</p> : null}
       </div>

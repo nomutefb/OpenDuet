@@ -44,3 +44,21 @@ test("기사 한 장 = 옛 기사 창 글 꼴(소제목 줄임 · Pretendard · 
   assert.match(ncss, /\.nm-nd \.nm-nd-md li \{ margin:0; padding:0; \}/, "점 줄 사이 = 옛처럼 붙음");
   assert.match(ncss, /\.nm-nd \.nm-nd-md li::marker \{ color:var\(--nm-nd-h/, "점 = 강조색");
 });
+
+test("뉴스 에디터 = 맨 위 넣는 줄 0 · 오른쪽 아래 「요약」 단추 → #/ask · 픽 일 = 요약 요청 「외신 기반」 저절로(형 11-11 14:36 「글 붙여넣기는 없어두대! 우하단에 버튼으로 요약만 잇으면 댐」)", () => {
+  const ned = rd("../ui/news-editor.tsx"), ncss = rd("../ui/news-editor.css"), ask = rd("../ui/ask.tsx");
+  assert.ok(!/function SendBar\(|<SendBar\b|submitText|링크 · 글 붙여 넣기/.test(ned), "넣는 줄 걷음");
+  assert.match(ned, /className="nm-ned-fab"[^>]*onClick=\{\(\) => go\("\/ask"\)\}/);
+  assert.match(ncss, /\.nm-ned-fab \{[^}]*position:absolute;[^}]*bottom:calc\(14px \+ env\(safe-area-inset-bottom\) \+ 54px \+ 12px\)/, "아래 막대 위");
+  assert.match(ncss, /\.nm-ned-fab \{[\s\S]*?background:#CFFF40;/);
+  assert.ok(!/nm-ned-send|nm-ned-btn/.test(ncss));
+  assert.match(ask, /import \{ isForeignUrl \} from "\.\.\/home\/quick-send";/);
+  assert.match(ask, /if \(fpHand\) return; const fp = isForeignUrl\(autoUrl\) \? 1 : 0;/);
+  assert.match(ask, /if \(c\.k === "fp"\) setFpHand\(true\);/, "손으로 누르면 저절로 멈춤");
+});
+
+test("아래 막대 덜 비침 = 바탕 짙게 + 흐림 24(봄 14:52 · 형 「결정 너의 판단에 맡길게」)", () => {
+  const nav = rd("../swap/ynav.css");
+  assert.match(nav, /html\.dark \.ynav, html\.dark \.nm-split-l \.ynav \{ background:rgba\(19,20,19,\.8\);[^}]*blur\(24px\)/);
+  assert.match(nav, /html:not\(\.dark\) \.ynav, html:not\(\.dark\) \.nm-split-l \.ynav \{ background:rgba\(250,250,248,\.82\);/);
+});

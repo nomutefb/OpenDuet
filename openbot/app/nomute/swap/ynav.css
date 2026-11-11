@@ -27,3 +27,7 @@
 /* 폰 꼴(767 아래 · 네비 폭 406 고정)에서 켜진 칸 글자가 길면(대화방) 칸들이 못 줄어 오른쪽으로 넘침 → 설정 그림이 오른쪽 끝에 붙어 왼쪽 끝과 여백이 안 맞음(형 11-03 16:27 「설정 픽토그램 튀어나가려고 하는거 (마진이 좌측 끝에거랑 비교하면 안맞음)」)
    = 안 켜진 칸은 안쪽 여백까지 줄어들 수 있게(min-width 0 · 같은 몫씩 줄어 양끝 칸이 늘 같음) · 켜진 칸(글자)은 안 줄어듦 */
 @media (max-width:767px) { .ynav button { min-width:0; } .ynav button.on { flex-shrink:0; } }
+/* 덜 비침(봄 11-11 14:52 · 형 14:52 「결정 너의 판단에 맡길게」) — 막대 밑으로 지나가는 글자 꼴이 안 읽히게 = 바탕 짙게(.03 → .80) + 흐림 11 → 24 · 테 · 그림자 · 라임 알약은 그대로(유리 느낌 남김)
+   PC 두 칸(../ui/shell.css .nm-split-l .ynav)도 같은 값 · 밝게 정원(../ui/theme-garden.css !important .84)은 그 판 바탕 그대로 · 흐림만 */
+html.dark .ynav, html.dark .nm-split-l .ynav { background:rgba(19,20,19,.8); -webkit-backdrop-filter:blur(24px) saturate(1.2); backdrop-filter:blur(24px) saturate(1.2); }
+html:not(.dark) .ynav, html:not(.dark) .nm-split-l .ynav { background:rgba(250,250,248,.82); -webkit-backdrop-filter:blur(24px) saturate(1.2); backdrop-filter:blur(24px) saturate(1.2); }
