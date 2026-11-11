@@ -11,17 +11,26 @@
 .nm-ned-back { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin:2px 4px 6px; padding:6px 10px; border-radius:999px; font-size:var(--fs-sm); color:var(--fg-2); background:var(--glass, rgba(255,255,255,.05)); }
 
 
-/* 오른쪽 아래 떠 있는 「요약」 = 요약 요청 화면으로(형 11-11 14:36 봄 1:1 「글 붙여넣기는 없어두대! 우하단에 버튼으로 요약만 잇으면 댐」 · 앞 판 = 맨 위 넣는 줄 칸 + 전송 + 픽 · git)
-   자리 = 아래 막대(swap/ynav.css · 바닥 14 + 안전 + 높이 54) 위 12 · PC 두 칸 = 왼쪽 목록 칸 오른쪽 아래 · 색 = 정원 라임 */
+/* 오른쪽 아래 「+」 펼침(형 11-11 19:23 「요약버튼 혹시 그 대화방에 펼침 + 로 해줄 수 있어? 펼쳐서 이미지 에디터랑 뉴스 요약 비디오 에디터 3개 나오면 됨. 그리고 최소화 가능하게」 · 앞 판 = 「+ 요약」 라임 알약 · 형 14:36)
+   = 대화방 목록 「+」(yeta-chat.css .nm-fab) 같은 결: 유리 동그라미 46 · 라임 「+」 · 펼치면 「+」가 135° 돌아 × · 알약 셋이 위로 차례로 튀어나옴 · 자리 = 아래 막대(바닥 14 + 안전 + 54) 위 12 · PC 두 칸 = 왼쪽 목록 칸 오른쪽 아래 */
 .nm-ned { position:relative; }
-.nm-ned-fab { all:unset; box-sizing:border-box; position:absolute; z-index:6; right:16px; bottom:calc(14px + env(safe-area-inset-bottom) + 54px + 12px); display:inline-flex; align-items:center; gap:6px; height:48px; padding:0 20px 0 16px;
-  border-radius:999px; background:#CFFF40; color:#12160a; font:800 15px/1 'Pretendard Variable', Pretendard, system-ui, sans-serif; letter-spacing:-.2px; cursor:pointer;
-  box-shadow:0 8px 24px rgba(0,0,0,.38), 0 0 0 1px rgba(207,255,64,.5), 0 0 18px rgba(207,255,64,.22); -webkit-tap-highlight-color:transparent; touch-action:manipulation; transition:transform .18s cubic-bezier(.2,.7,.3,1); }
-.nm-ned-fab:active { transform:scale(.94); }
-.nm-ned-fab:focus-visible { outline:2px solid #fff; outline-offset:2px; }
-.nm-ned.wide > .nm-ned-fab { right:calc(42% + 18px); }
-:root:not(.dark) .nm-ned-fab { box-shadow:0 6px 18px rgba(40,60,0,.22), 0 0 0 1px rgba(94,140,0,.45); }
-.nm-ned-l { padding-bottom:calc(var(--duet-tab-space, 86px) + 84px); }   /* 맨 끝 카드 · 「더 보기」가 「요약」 단추 밑에 깔리지 않게(단추 높이 48 + 사이 36) */
+.nm-ned-plus { --sp:cubic-bezier(.34,1.56,.64,1); position:absolute; z-index:6; right:16px; bottom:calc(14px + env(safe-area-inset-bottom) + 54px + 12px); width:46px; height:46px; }
+.nm-ned.wide > .nm-ned-plus { right:calc(42% + 18px); }
+.nm-ned-plus-main, .nm-ned-plus-i { background:rgba(26,27,26,.72); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); -webkit-tap-highlight-color:transparent; user-select:none; cursor:pointer; font:inherit; }
+:root:not(.dark) .nm-ned-plus-main, :root:not(.dark) .nm-ned-plus-i { background:rgba(255,255,255,.8); border-color:rgba(0,0,0,.1); }
+.nm-ned-plus-main { position:absolute; inset:0; z-index:2; display:grid; place-items:center; padding:0; border-radius:50%; color:#CFFF40; box-shadow:0 8px 20px -8px rgba(0,0,0,.6); transition:transform .4s var(--sp); }
+:root:not(.dark) .nm-ned-plus-main { color:#4f7a00; }
+.nm-ned-plus-main:active { transform:scale(.92); }
+.nm-ned-plus-main svg { width:20px; height:20px; transition:transform .45s var(--sp); }
+.nm-ned-plus.on .nm-ned-plus-main svg { transform:rotate(135deg); }
+.nm-ned-plus-i { position:absolute; right:0; bottom:5px; display:inline-flex; align-items:center; height:38px; padding:0 16px; border-radius:999px; color:var(--fg); font-size:14px; font-weight:700; white-space:nowrap; opacity:0; pointer-events:none; transform:translate(0,0) scale(.4); transform-origin:100% 50%; transition:transform .42s var(--sp), opacity .2s ease; }
+.nm-ned-plus-i:active { background:rgba(207,255,64,.22); }
+.nm-ned-plus.on .nm-ned-plus-i { opacity:1; pointer-events:auto; }
+.nm-ned-plus.on .nm-ned-plus-i.up1 { transform:translate(0,-54px) scale(1); transition-delay:.02s; }
+.nm-ned-plus.on .nm-ned-plus-i.up2 { transform:translate(0,-100px) scale(1); transition-delay:.06s; }
+.nm-ned-plus.on .nm-ned-plus-i.up3 { transform:translate(0,-146px) scale(1); transition-delay:.1s; }
+@media (prefers-reduced-motion:reduce) { .nm-ned-plus-main, .nm-ned-plus-main svg, .nm-ned-plus-i { transition:none; } }
+.nm-ned-l { padding-bottom:calc(var(--duet-tab-space, 86px) + 84px); }   /* 맨 끝 카드 · 「더 보기」가 「+」 단추 밑에 깔리지 않게 */
 
 /* ④ 칩 = 전체 · 이슈 · 분야 · 찾기(폰 = 가로 밀기) */
 .nm-ned-chips { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
@@ -63,10 +72,11 @@ html:not(.dark) .nm-ned .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
 .nm-ned .nm-sumc-kv .sens em { font-style:normal; }
 .nm-ned .nm-sumc-kv .sens em.warn { color:#ff9f6b; }
 .nm-ned-more { all:unset; cursor:pointer; align-self:center; padding:8px 16px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); font-size:var(--fs-xs); color:var(--fg-2); }
-/* 매체 · 편향 = 이름표 옆에 값 가로 한 줄 · 민감 칸 0(news-editor.tsx sens 뺌) · 카드 높이 = 줄어든 만큼(형 11-11 18:54 봄 1:1 「그리고 매체 편향 / 각각의 내용 잇지 인덱싱 가로 간격 벌려서( 내용 들어갈 칸 확보) / 가로로 내용 기입. / 그러면 아마 새로 높이가 좀 더 확보될거야 / 민감 키워드는 없어도 됨 표기 안할게」 「그럼 더 많이 보일거고. 이 높이에 맞춰서」)
-   = 머리 줄 · 제목 한 줄 · 매체 편향 한 줄 · 막대 셋 = 네 줄 · 긴 매체 이름은 칸 안에서 … */
-.nm-ned .nm-sumc.lean .nm-sumc-kv { display:flex; flex-wrap:nowrap; align-items:baseline; gap:22px; min-width:0; }
-.nm-ned .nm-sumc.lean .nm-sumc-kv > div { display:flex; flex-direction:row; align-items:baseline; gap:8px; min-width:0; }
-.nm-ned .nm-sumc.lean .nm-sumc-kv > div:first-child { flex:0 1 auto; max-width:64%; }
-.nm-ned .nm-sumc.lean .nm-sumc-kv > div > span { flex:none; }
-.nm-ned .nm-sumc.lean .nm-sumc-kv b { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* 카드 세 줄 = 머리 줄(분류 · N시간 전 ………… 매체 · 편향) · 제목 한 줄 · 막대 셋(형 11-11 19:22 「매체도 우상단으로 보내버리면 더 줄일 수 있나?」 · 18:54 「… 민감 키워드는 없어도 됨 표기 안할게」 「그럼 더 많이 보일거고. 이 높이에 맞춰서」 · 앞 판 = 매체 · 편향 가로 한 줄 따로)
+   이름표 「매체」 「편향」 글자 0 · 값만 · 편향 = 흐리게 · 긴 매체 이름은 … · 머리 줄 왼쪽(분류 · 시각)은 안 줄어듦 */
+.nm-ned .nm-sumc.lean .nm-sumc-top { min-width:0; }
+.nm-ned .nm-sumc.lean .nm-sumc-top > :not(.src) { flex:none; }
+.nm-ned .nm-sumc.lean .nm-sumc-top .src { margin-left:auto; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:right; }
+.nm-ned .nm-sumc.lean .nm-sumc-top .src b { color:var(--fg); font-weight:600; }
+.nm-ned .nm-sumc.lean .nm-sumc-top .src i { font-style:normal; color:var(--mut); font-weight:400; }
+

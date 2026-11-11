@@ -40,9 +40,10 @@ export function SumCard({ a, on, kind, onOpen, sens: withSens, short, dg, lean }
         {rep ? <span>{dg || lean ? null : "보도 "}<b>{rep}</b></span> : null}
         {kind && !(lean && kind !== "brk") ? <b className={`urg ${kind}`}>{kind === "brk" ? "긴급" : "이슈"}</b> : null}
         {scr && !lean ? <span className="r">스크랩 <b>{scr}</b></span> : null}
+        {lean && (media || bias) ? <span className="r src">{media ? <b>{media}</b> : null}{bias ? <i className={`bias ${bias.cls}`}>{media ? " · " : ""}{bias.text}</i> : null}</span> : null}   {/* lean = 매체 · 편향 값만 머리 줄 오른쪽(형 11-11 19:22 「매체도 우상단으로 보내버리면 더 줄일 수 있나?」 · 봄 = 편향도 같이 올림 · 흐리게) */}
       </div>
       <p className="nm-sumc-t">{a.title || a.title_orig || "(제목 없음)"}</p>
-      {short ? null : <div className={`nm-sumc-kv${sens.length ? " three" : ""}`}>
+      {short || lean ? null : <div className={`nm-sumc-kv${sens.length ? " three" : ""}`}>
         {media ? <div><span>매체</span><b>{media}</b></div> : null}
         {bias ? <div><span>편향</span><b className={`bias ${bias.cls}`}>{bias.text}</b></div> : null}
         {sens.length ? <div><span>민감</span><b className="sens">{sens.map((s) => <em key={s.t} className={s.warn ? "warn" : undefined}>{s.t}</em>)}</b></div> : null}

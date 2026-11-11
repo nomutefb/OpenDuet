@@ -25,6 +25,27 @@ const CAP = 10;
 
 // 「지금 뜨는 말」 줄(kwQuery · Ticker)은 걷음(형 11-11 09:02 「상단에 인기검색어 없어도 되고」) · 앞 판 = git
 
+/** 오른쪽 아래 「+」 펼침(형 11-11 19:23 봄 1:1 「요약버튼 혹시 그 대화방에 펼침 + 로 해줄 수 있어? 펼쳐서 이미지 에디터랑 뉴스 요약 비디오 에디터 3개 나오면 됨. 그리고 최소화 가능하게」)
+ *  = 대화방 목록 「+」(./room-fab.tsx .nm-fab) 결 · 평소 = 작은 「+」 하나(최소화) · 누르면 위로 셋(뉴스 요약 = 요약 요청 · 이미지 에디터 = 카드 제작 /edtool · 비디오 에디터 = 영상 편집 /edvid) · 하나 누르면 그 화면 · 「+」 다시 또는 바깥 = 접힘 */
+function PlusFan({ go }: { go: (to: string) => void }) {
+  const [open, setOpen] = useState(false), box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [open]);
+  const items: [string, string][] = [["/ask", "뉴스 요약"], ["/edtool", "이미지 에디터"], ["/edvid", "비디오 에디터"]];
+  return (
+    <div ref={box} className={`nm-ned-plus${open ? " on" : ""}`}>
+      {items.map(([to, t], i) => <button key={to} type="button" className={`nm-ned-plus-i up${i + 1}`} tabIndex={open ? 0 : -1} aria-hidden={!open} onClick={() => { setOpen(false); go(to); }}>{t}</button>)}
+      <button type="button" className="nm-ned-plus-main" aria-expanded={open} aria-label={open ? "접기" : "펼치기 — 뉴스 요약 · 이미지 에디터 · 비디오 에디터"} onClick={() => setOpen((v) => !v)}>
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+      </button>
+    </div>
+  );
+}
+
 /** 기사 한 장에 갔다 돌아오면 보던 그대로(폰 · 칩·찾기·개수·스크롤) */
 let keep: { n: number; top: number } | null = null;
 
@@ -79,7 +100,7 @@ export function NewsEditor() {
       {rows.length > shown.length ? <><div ref={sent} aria-hidden className="nm-feed-sent" /><button type="button" className="nm-ned-more" onClick={() => setN((v) => v + CAP)}>더 보기 +{Math.min(CAP, rows.length - shown.length)} · 남은 {rows.length - shown.length}건</button></> : null}
     </div>
   );
-  const fab = !wide && sel ? null : <button type="button" className="nm-ned-fab" aria-label="요약 요청" onClick={() => go("/ask")}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>요약</button>;   // 오른쪽 아래 떠 있는 「요약」 = 요약 요청 화면(형 14:36 · 아래 막대 위 · 라임)
+  const fab = !wide && sel ? null : <PlusFan go={go} />;   // 오른쪽 아래 「+」 펼침(형 19:23 · 앞 판 = 「+ 요약」 알약 하나 · 형 14:36)
   if (wide) return (
     <div className="nm-ned wide">
       {body}

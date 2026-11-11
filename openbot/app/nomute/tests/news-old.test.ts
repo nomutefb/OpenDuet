@@ -48,9 +48,10 @@ test("기사 한 장 = 옛 기사 창 글 꼴(소제목 줄임 · Pretendard · 
 test("뉴스 에디터 = 맨 위 넣는 줄 0 · 오른쪽 아래 「요약」 단추 → #/ask · 픽 일 = 요약 요청 「외신 기반」 저절로(형 11-11 14:36 「글 붙여넣기는 없어두대! 우하단에 버튼으로 요약만 잇으면 댐」)", () => {
   const ned = rd("../ui/news-editor.tsx"), ncss = rd("../ui/news-editor.css"), ask = rd("../ui/ask.tsx");
   assert.ok(!/function SendBar\(|<SendBar\b|submitText|링크 · 글 붙여 넣기/.test(ned), "넣는 줄 걷음");
-  assert.match(ned, /className="nm-ned-fab"[^>]*onClick=\{\(\) => go\("\/ask"\)\}/);
-  assert.match(ncss, /\.nm-ned-fab \{[^}]*position:absolute;[^}]*bottom:calc\(14px \+ env\(safe-area-inset-bottom\) \+ 54px \+ 12px\)/, "아래 막대 위");
-  assert.match(ncss, /\.nm-ned-fab \{[\s\S]*?background:#CFFF40;/);
+  assert.match(ned, /const items: \[string, string\]\[\] = \[\["\/ask", "뉴스 요약"\], \["\/edtool", "이미지 에디터"\], \["\/edvid", "비디오 에디터"\]\];/, "「+」 펼침 셋(형 19:23)");
+  assert.match(ned, /<PlusFan go=\{go\} \/>/);
+  assert.match(ncss, /\.nm-ned-plus \{[^}]*position:absolute;[^}]*bottom:calc\(14px \+ env\(safe-area-inset-bottom\) \+ 54px \+ 12px\)/, "아래 막대 위");
+  assert.match(ncss, /\.nm-ned-plus\.on \.nm-ned-plus-main svg \{ transform:rotate\(135deg\); \}/);
   assert.ok(!/nm-ned-send|nm-ned-btn/.test(ncss));
   assert.match(ask, /import \{ isForeignUrl \} from "\.\.\/home\/quick-send";/);
   assert.match(ask, /if \(fpHand\) return; const fp = isForeignUrl\(autoUrl\) \? 1 : 0;/);
@@ -82,7 +83,8 @@ test("뉴스 에디터 목록 = 알약 줄 · 찾기 걷음 · 카드 lean(형 1
   assert.ok(!/nm-ned-chips|nm-ned-find|CATS/.test(ned));
   assert.match(sd, /\{dg \|\| lean \? null : "보도 "\}/);
   assert.match(sd, /\{scr && !lean \?/);
-  assert.match(rd("../ui/news-editor.css"), /\.nm-ned \.nm-sumc\.lean \.nm-sumc-kv \{ display:flex; flex-wrap:nowrap;/);
+  assert.match(sd, /\{short \|\| lean \? null : <div className=\{`nm-sumc-kv/, "카드 세 줄 = 매체 · 편향 줄 0(형 19:22)");
+  assert.match(sd, /lean && \(media \|\| bias\) \? <span className="r src">/);
   assert.match(sd, /kind && !\(lean && kind !== "brk"\)/);
 });
 
