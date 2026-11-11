@@ -55,3 +55,29 @@ test("고른 탭 색 = 바탕 밝기로 글자 고름 · 투명·깨짐 = 테마
   assert.deepEqual(tabColors("", true), { bg: "#121314", fg: "#e8eae8" });
   assert.equal(tabColors("rgba(30, 32, 35, 0.9)", false).fg, "#e8eae8");
 });
+
+test("웹 탭(「+」 빈 탭 · 빠르 11-11 · 형 22:10 「+ 누르면 … 인앱안에서 그냥 빈 화면 페이지」)", async () => {
+  const m = await import("../ui/tab-list.ts");
+  const w = m.webTabNew(1794403200000);
+  assert.deepEqual(w, { k: "web", id: (1794403200000).toString(36), url: "" });
+  let s = m.tabsAdd(m.tabsLoad(null), w);
+  assert.equal(s.active, "w:" + (1794403200000).toString(36));
+  assert.equal(m.webTabName(""), "새 탭");
+  s = m.tabsSetUrl(s, s.active, "https://www.example.com/a?b=1");
+  assert.equal((s.tabs[1] as { url: string }).url, "https://www.example.com/a?b=1");
+  assert.equal(m.webTabName("https://www.example.com/a"), "example.com");
+  assert.equal(m.tabsSetUrl(s, "w:none", "https://x.com"), s, "없는 탭 = 그대로");
+  // 저장 → 다시 읽기 = 웹 탭 그대로 · 잘못된 웹 탭(주소 꼴 · id 꼴) = 버림
+  const back = m.tabsLoad(m.tabsSave(s));
+  assert.deepEqual(back, s);
+  const bad = m.tabsLoad(JSON.stringify({ tabs: [{ k: "web", id: "A B", url: "" }, { k: "web", id: "ok1", url: "javascript:alert(1)" }, { k: "web", id: "ok2", url: "" }], active: "w:ok2" }));
+  assert.deepEqual(bad.tabs.map(m.tabKey), ["dash", "w:ok2"]);
+  // 방 탭은 앞 · 화면 · 웹 탭은 섞여 끌림(같은 갈래)
+  let t = m.tabsAdd(m.tabsLoad(null), { k: "screen", who: "fast", url: "https://fast2.x.ts.net/vnc.html" });
+  t = m.tabsAdd(t, m.webTabNew(5));
+  t = m.tabsAdd(t, { k: "room", id: "all" });
+  assert.deepEqual(t.tabs.map(m.tabKey), ["dash", "r:all", "s:fast", "w:5"]);
+  t = m.tabsMove(t, "w:5", 2);
+  assert.deepEqual(t.tabs.map(m.tabKey), ["dash", "r:all", "w:5", "s:fast"]);
+  assert.deepEqual(m.tabsMove(t, "w:5", 1).tabs.map(m.tabKey), ["dash", "r:all", "w:5", "s:fast"], "방 갈래로는 못 넘어감");
+});

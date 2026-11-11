@@ -5,7 +5,7 @@
 //   낱말을 치면 = 구글 검색(igu=1 = 품기 허용 · 실측 11-06 22:4x) · 뒤로/앞으로 = 이 주소창으로 연 것만(남의 사이트 안 링크 이동은 못 봄)
 //   남의 사이트 = sandbox(맨 위 창을 못 끌고 감 · 새 창은 됨) · 자리(position)는 끼우는 쪽(번개 4분할 묶음) · 클래스 nm-web-pane
 //   2단계(막는 곳까지 진짜 브라우저 화면 비추기)는 형 결정
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { office } from "../data/office";
 import { frameUrl, hookFrame } from "./inapp";
@@ -24,15 +24,18 @@ export function toAddress(raw: string): string {
 
 const sameSite = (u: string) => u.startsWith("/") || u.startsWith(location.origin + "/");
 
-export function WebPane({ initial = "", className = "", onClose }: { initial?: string; className?: string; onClose?: () => void }) {
+export function WebPane({ initial = "", className = "", onClose, onGo, blank, focus = false }: { initial?: string; className?: string; onClose?: () => void; onGo?: (url: string) => void; blank?: ReactNode; focus?: boolean }) {   // onGo = 주소 바뀜 알림(탭 이름 · 기억) · blank = 빈 화면 아래 덧(탭 「+」 = 몸 화면 바로가기) · focus = 빈 채로 열리면 주소칸에 손(빠르 11-11)
   const first = toAddress(initial);
   const [input, setInput] = useState(first);
   const [hist, setHist] = useState<string[]>(first ? [first] : []);
   const [idx, setIdx] = useState(first ? 0 : -1);
   const [check, setCheck] = useState<Check>({ state: "idle" });
   const [nonce, setNonce] = useState(0);
-  const frame = useRef<HTMLIFrameElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null), addr = useRef<HTMLInputElement>(null);
   const cur = idx >= 0 ? hist[idx] : "";
+  useEffect(() => { if (focus && !first) addr.current?.focus({ preventScroll: true }); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+  const said = useRef(first);
+  useEffect(() => { if (cur && cur !== said.current) { said.current = cur; onGo?.(cur); } }, [cur]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {   // 주소가 바뀔 때마다 품기 미리 재기(같은 사이트 = 안 물음) · 재는 주소 = 실제로 iframe 에 넣을 주소(frameUrl · 유튜브·Suno = 퍼가기 주소 · 원본 watch 주소는 막혀도 퍼가기는 됨 · 모루 검토 editor#2807)
     if (!cur) { setCheck({ state: "idle" }); return; }
@@ -65,14 +68,14 @@ export function WebPane({ initial = "", className = "", onClose }: { initial?: s
         <button type="button" className="nm-web-btn" aria-label="뒤로" title="뒤로" disabled={idx <= 0} onClick={() => step(-1)}><DuetIcon name="chevronLeft" size={16} /></button>
         <button type="button" className="nm-web-btn" aria-label="앞으로" title="앞으로" disabled={idx >= hist.length - 1} onClick={() => step(1)}><DuetIcon name="chevronRight" size={16} /></button>
         <button type="button" className="nm-web-btn" aria-label="새로고침" title="새로고침" disabled={!cur} onClick={() => setNonce((n) => n + 1)}>↻</button>
-        <input className="nm-web-addr" value={input} onChange={(e) => setInput(e.target.value)} onFocus={(e) => e.currentTarget.select()}
+        <input ref={addr} className="nm-web-addr" value={input} onChange={(e) => setInput(e.target.value)} onFocus={(e) => e.currentTarget.select()}
           placeholder="주소나 검색어" spellCheck={false} autoCapitalize="off" autoCorrect="off" enterKeyHint="go" aria-label="주소" />
         {cur ? <a data-nm-out href={cur} target="_blank" rel="noopener" className="nm-web-btn" aria-label="밖에서 열기" title="밖에서 열기"><DuetIcon name="globe" size={16} /></a> : null}
         {onClose ? <button type="button" className="nm-web-btn" aria-label="닫기" title="닫기" onClick={onClose}><DuetIcon name="x" size={16} /></button> : null}
       </form>
       <div className="nm-web-body">
         {!cur ? (
-          <p className="nm-web-note">주소나 검색어를 넣어 줘요<span>앱 안 보기를 막는 사이트(구글 첫 화면 · 네이버 · 유튜브 본 화면 · http 사이트 등)는 「밖에서 열기」로 열려요</span></p>
+          <div className="nm-web-note"><p>주소나 검색어를 넣어 줘요<span>앱 안 보기를 막는 사이트(구글 첫 화면 · 네이버 · 유튜브 본 화면 · http 사이트 등)는 「밖에서 열기」로 열려요</span></p>{blank}</div>
         ) : check.state === "blocked" ? (
           <div className="nm-web-note">
             <b>이 사이트는 앱 안 보기를 막아요</b>

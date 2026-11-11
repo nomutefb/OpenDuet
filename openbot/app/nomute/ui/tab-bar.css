@@ -53,3 +53,10 @@
 .nm-tab-home:focus-visible { outline:2px solid #CFFF40; outline-offset:-2px; }
 /* 시계 뺌(형 09:30) → 탭 줄 = 오른쪽 신호등(.nm-top-lights · 오른쪽 30vw) 앞까지 · 새 판 알약 = 「+」 바로 옆(시계 없으면 비킴 0 · 형 09:33 「12시 30분 방향」 튐 고침 · 봄 41) */
 .nm-tabs { right:calc(30vw + 32px); }
+/* 웹 탭(「+」 빈 탭 · 빠르 11-11) — 판 = 대시보드 「웹」 칸 한 벌(WebPane) · 빈 화면 아래 몸 화면 바로가기 */
+.nm-tab-web { position:absolute; inset:0; display:flex; }
+.nm-tab-web[hidden] { display:none; }
+.nm-tab-web > .nm-web-pane { flex:1; min-width:0; }
+.nm-web-shots { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:6px; }
+.nm-web-shots button { all:unset; display:flex; align-items:center; gap:7px; padding:7px 11px; border-radius:999px; background:rgba(255,255,255,.06); color:#E7ECE7; font:600 12.5px/1.2 'Paperlogy', system-ui, sans-serif; cursor:pointer; }
+.nm-web-shots button:hover { background:rgba(255,255,255,.12); color:#CFFF40; }

@@ -7,7 +7,8 @@ import { type PointerEvent as RPE, useEffect, useLayoutEffect, useRef, useState 
 import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg } from "./faces";
-import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "./tab-list";
+import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave, tabsSetUrl, webTabName, webTabNew } from "./tab-list";
+import { WebPane } from "./web-pane";   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 
 const load = (): TabState => {   // 방 탭은 안 올림(형 11-09 09:29 회의실 「대화 상대가 저기 나올 필요는 없어. 웹과 관련된 내용만 저기 뜨면 될듯.」) = 옛 판에 남은 방 탭도 뺌
@@ -19,7 +20,7 @@ const go = (hash: string) => { if (location.hash !== hash) location.hash = hash;
 
 export function TabBar({ room, pane }: { room: string; pane: string }) {
   const [s, setS] = useState<TabState>(load);
-  const [plus, setPlus] = useState(false), [seen, setSeen] = useState<Set<string>>(() => new Set());
+  const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const bar = useRef<HTMLDivElement>(null), drag = useRef<{ key: string; x: number; moved: boolean } | null>(null);
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 30_000 });
   const ppl = useQuery({ queryKey: ["nomute", "people-tabs"], queryFn: () => people(), staleTime: 60_000 });
@@ -30,7 +31,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     if (first.current) { first.current = false; return; }
     setS((x) => (x.active === "dash" ? x : { ...x, active: "dash" }));
   }, [room, pane]);
-  useEffect(() => { if (s.active.startsWith("s:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
+  useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
     const root = document.querySelector(".nm-split-root") as HTMLElement | null, el = bar.current;
     if (root && el) {   // 고른 탭 = 아래 판 바탕색 · 글자 = 그 바탕 밝기로 고름(뎅 06:43 ㉢ 「라이트에서 고른 탭이 검은 알약에 글자 안 보임」 · 봄 배분 26)
@@ -60,7 +61,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     const r = roomOf(t.id);
     return !r ? "" : r.with ? idOf(r.with, list) : roomAgentIds(r, list)[0] || "";
   };
-  const nameOf = (t: Tab) => (t.k === "dash" ? "대시보드" : t.k === "screen" ? `${list.find((p) => p.who === t.who)?.name || t.who} 화면` : roomOf(t.id)?.name || t.id);
+  const nameOf = (t: Tab) => (t.k === "dash" ? "대시보드" : t.k === "web" ? webTabName(t.url) : t.k === "screen" ? `${list.find((p) => p.who === t.who)?.name || t.who} 화면` : roomOf(t.id)?.name || t.id);
   const pick = (t: Tab) => {
     const key = tabKey(t);
     setS((x) => ({ ...x, active: key }));
@@ -93,7 +94,13 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     if (d && !d.moved) pick(t);
   };
   const shots = list.filter((p) => typeof (p as OfficePerson & { screen?: string }).screen === "string" && (p as OfficePerson & { screen?: string }).screen);
-  const screenTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" }> => t.k === "screen");
+  const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" }> => t.k === "screen" || t.k === "web");
+  const openShot = (p: OfficePerson) => setS((x) => tabsAdd(x, { k: "screen", who: p.who, url: (p as OfficePerson & { screen: string }).screen }));
+  const shortcuts = shots.length ? (   // 빈 탭 = 몸 화면 바로가기(앞 판 「+」 차림표 자리 · 형 22:10 「0화면 이 저 멀리에서 따로 ㄴ로면 안됨」)
+    <div className="nm-web-shots" aria-label="몸 화면">
+      {shots.map((p) => <button key={p.who} type="button" onClick={() => openShot(p)}><FaceImg id={idOf(p.who, list)} size={18} />{(p.name || p.who) + " 화면"}</button>)}
+    </div>
+  ) : null;
   return (
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
@@ -111,20 +118,15 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
             </div>
           );
         })}
-        <button type="button" className="nm-tab-plus" aria-label="화면 탭 열기" aria-expanded={plus} onClick={() => setPlus((v) => !v)}>+</button>
-        {plus ? (
-          <div className="nm-tab-menu" role="menu" aria-label="몸 화면 고르기">
-            {shots.length ? shots.map((p) => (
-              <button key={p.who} type="button" role="menuitem" onClick={() => { setPlus(false); setS((x) => tabsAdd(x, { k: "screen", who: p.who, url: (p as OfficePerson & { screen: string }).screen })); }}>
-                <FaceImg id={idOf(p.who, list)} size={18} />{(p.name || p.who) + " 화면"}
-              </button>
-            )) : <span className="nm-tab-none">열 수 있는 몸 화면이 없어</span>}
-          </div>
-        ) : null}
+        <button type="button" className="nm-tab-plus" aria-label="새 탭" title="새 탭" onClick={() => setS((x) => tabsAdd(x, webTabNew()))}>+</button>
       </div>
-      {screenTabs.length ? createPortal(
-        <div className="nm-tab-screen" hidden={!s.active.startsWith("s:")}>
-          {screenTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => (
+      {paneTabs.length ? createPortal(
+        <div className="nm-tab-screen" hidden={!(s.active.startsWith("s:") || s.active.startsWith("w:"))}>
+          {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "web" ? (
+            <div key={tabKey(t)} className="nm-tab-web" hidden={s.active !== tabKey(t)}>
+              <WebPane initial={t.url} focus={s.active === tabKey(t)} blank={shortcuts} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} />
+            </div>
+          ) : (
             <iframe key={tabKey(t)} title={nameOf(t)} src={t.url} hidden={s.active !== tabKey(t)} allow="clipboard-read; clipboard-write; fullscreen" />
           ))}
         </div>, document.body) : null}
