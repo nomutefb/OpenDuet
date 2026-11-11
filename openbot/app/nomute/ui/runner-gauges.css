@@ -83,3 +83,6 @@
 :root:not(.dark) .nm-rgx .nm-rgx-row12 .nm-rgx-cell.empty i { background:rgba(22,23,22,.16); }
 .nm-rgx .nm-rgx-row12 .nm-rgx-cell.sep { width:auto; height:auto; line-height:20px; font-size:12px; font-weight:300; color:rgba(255,255,255,.22); }   /* 조약돌 줄 끝 「|」(형 09:49 「누리만 끝에 | 하고」) */
 :root:not(.dark) .nm-rgx .nm-rgx-row12 .nm-rgx-cell.sep { color:rgba(22,23,22,.25); }
+/* 형 11-11 22:09 「8) 지금 러너에 게이지부분. 지금의 15% 정도로 확대해주고 안에 글자는 25% 키워줘. 그리고 글자만 게이지 기준선에서 조금 더 아래로 내려오게해 (아래 여백이 너무 많다.」 · 11-12 06:14 「그리고 이거 글자만 조금만 더 아래로. 공백이 좀 너무 남아서 어색. 고마워」
+   = 게이지 106 → 122(+15%) · 안 글자 덩이 1.25배(runner-gauges.tsx textScale) · 글자 가운데 4 → 9 아래(dyText) · 호 · 눈금 자리 그대로 · WIN · MAC · LX A · LX B 넷 같이 */
+.nm-rgx-host .nm-rg-gauge { max-height:122px; }

@@ -21,7 +21,7 @@ const path = (from: number, to: number, end: "ink" | "un" | "cache") => {
   return d;
 };
 
-export function TickGauge({ label, pct, used, lv, cache, off, wait, ink: inkOver, top, topInk, top2, top2Ink, dyText = 0 }: { label: string; pct: number | null; used: string; lv: Level; cache?: number | null; off?: boolean; wait?: boolean; ink?: string; top?: string; topInk?: string; top2?: string; top2Ink?: string; dyText?: number }) {   // dyText = 안 글자(G · C · 수 · 쓴 양 · 이름)만 viewBox 단위로 내림(반갈 러너 칸 · 형 11-08 11:27 「게이지 안에 글자도 조금 더 내려오고」 · 호는 그대로)   // wait = 첫 자료 전(「off」 대신 「···」 · 열 때마다 몇 초 꺼짐처럼 보이던 것 · 시아 11-07)   // ink = 단계 색 대신 쓸 색(반갈 블랙 상태바 · 봄 11-05 · 없으면 그대로)
+export function TickGauge({ label, pct, used, lv, cache, off, wait, ink: inkOver, top, topInk, top2, top2Ink, dyText = 0, textScale = 1 }: { label: string; pct: number | null; used: string; lv: Level; cache?: number | null; off?: boolean; wait?: boolean; ink?: string; top?: string; topInk?: string; top2?: string; top2Ink?: string; dyText?: number; textScale?: number }) {   // dyText = 안 글자(G · C · 수 · 쓴 양 · 이름)만 viewBox 단위로 내림(반갈 러너 칸 · 형 11-08 11:27 「게이지 안에 글자도 조금 더 내려오고」 · 호는 그대로)   // wait = 첫 자료 전(「off」 대신 「···」 · 열 때마다 몇 초 꺼짐처럼 보이던 것 · 시아 11-07)   // ink = 단계 색 대신 쓸 색(반갈 블랙 상태바 · 봄 11-05 · 없으면 그대로)
   const v = Math.max(0, Math.min(100, pct ?? 0)), n = Math.max(0, Math.min(100, Math.ceil(v - 1e-9)));
   const ce = Math.max(n, Math.min(100, Math.ceil(v + Math.max(0, cache ?? 0) - 1e-9)));
   const ink = pct == null ? LV.off : inkOver ?? LV[lv], bead = pol(R0 + 13, A0 + (v / 100) * SW), TY = CY + dyText;   // TY = 글자 기준 가운데(호 가운데 CY 에서 dyText 만큼 아래)
@@ -32,6 +32,7 @@ export function TickGauge({ label, pct, used, lv, cache, off, wait, ink: inkOver
       {n > 0 ? <path d={path(0, n, "ink")} stroke={ink} strokeWidth={1} /> : null}
       {MILES.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={0.8} fill={MILE} />)}
       {v > 0 ? <circle cx={bead[0]} cy={bead[1]} r={1.8} fill={ink} /> : null}
+      <g transform={textScale === 1 ? undefined : `translate(${CX} ${TY}) scale(${textScale}) translate(${-CX} ${-TY})`}>   {/* 안 글자 덩이만 키움(가운데 = TY · 호 · 눈금은 그대로 · 형 11-11 22:09 「안에 글자는 25% 키워줘」) */}
       {off ? <text x={CX} y={TY + 15.5} textAnchor="middle" className="nm-rg-num" fontSize={13} fill={GRAY}>{wait ? "···" : "off"}</text> : (
         <>
           <text x={CX} y={TY + 15.5} textAnchor="middle" className="nm-rg-num"><tspan fontSize={17} fill={TEXT}>{pct == null ? "-" : Math.round(v)}</tspan><tspan fontSize={9} fill={GRAY} dx={1}>%</tspan></text>
@@ -39,7 +40,8 @@ export function TickGauge({ label, pct, used, lv, cache, off, wait, ink: inkOver
         </>
       )}
       {top ? <text x={CX} y={TY - 6} textAnchor="middle" className="nm-rg-num" fontSize={10} fill={topInk ?? GRAY} letterSpacing={0.4} style={topInk ? { fill: topInk } : undefined}>{top}</text> : null}
-      {top2 ? <text x={CX} y={TY - 18} textAnchor="middle" className="nm-rg-num" fontSize={10} fill={top2Ink ?? GRAY} letterSpacing={0.4} style={top2Ink ? { fill: top2Ink } : undefined}>{top2}</text> : null}   {/* 위 글 둘째 줄 = GPU 온도(형 11-08 09:03 「그래픽 카드 온도, 아래에 cpu 온도랑 글자크기 동일하게」 = 같은 SVG 글자 10 · CPU 줄 바로 위) */}   {/* 위 빈 곳 글(반갈 상태바 온도 · 봄 11-05 · 없으면 예전 그대로) */}
+      {top2 ? <text x={CX} y={TY - 18} textAnchor="middle" className="nm-rg-num" fontSize={10} fill={top2Ink ?? GRAY} letterSpacing={0.4} style={top2Ink ? { fill: top2Ink } : undefined}>{top2}</text> : null}
+      </g>   {/* 위 글 둘째 줄 = GPU 온도(형 11-08 09:03 「그래픽 카드 온도, 아래에 cpu 온도랑 글자크기 동일하게」 = 같은 SVG 글자 10 · CPU 줄 바로 위) */}   {/* 위 빈 곳 글(반갈 상태바 온도 · 봄 11-05 · 없으면 예전 그대로) */}
       {label ? <text x={CX} y={TY + 45.5} textAnchor="middle" className="nm-rg-lab" fontSize={9.5} fill={ink} letterSpacing={1.1}>{label}</text> : null}
     </svg>
   );

@@ -116,3 +116,9 @@ test("HOT ISSUE 「전송」 = 단추 안 차오름 → ✓ · 위 알약 0(형 
   assert.match(nl, /x\?\.k === "ok" \? "✓" : x\?\.k === "bad" \? "다시" : "전송"/);
   assert.match(nc, /\.run::before \{ content:""; position:absolute; inset:0;/);
 });
+
+test("RUNNER 게이지 = 15% 크게 · 안 글자 25% 크게 · 글자 아래로(형 11-11 22:09 · 11-12 06:14)", () => {
+  const tg = rd("../runner/tick-gauge.tsx"), rg = rd("../ui/runner-gauges.tsx"), rc = rd("../ui/runner-gauges.css");
+  assert.match(tg, /scale\(\$\{textScale\}\)/); assert.match(rg, /dyText=\{9\} textScale=\{1\.25\}/);
+  assert.match(rc, /\.nm-rgx-host \.nm-rg-gauge \{ max-height:122px; \}\s*$/);
+});
