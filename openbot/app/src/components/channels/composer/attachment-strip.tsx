@@ -129,12 +129,12 @@ export function AttachmentStrip({
             <button
               aria-checked={on}
               aria-label="사진·영상 압축해서 보내기"
-              className={`rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors ${on ? "border-primary/40 bg-primary/15 text-primary" : `border-border bg-muted ${ORIGINAL_TONE}`}`}
+              className={`rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors ${on ? "border-[#CFFF40] bg-[#CFFF40] text-black shadow-[0_0_8px_#CFFF4099]" : "border-border bg-transparent text-muted-foreground"}`}
               onClick={() => compress.set(!on)}
               role="switch"
               type="button"
             >
-              {on ? "압축 ON" : "원본"}
+              압축   {/* 형 11-12 07:33 「압축도 그냥 ON 말고 압축에 점등 들어오는거로 유무로 할게 기능 차이는 없어 동작이랑」 = 켜짐 라임 점등 · 꺼짐 = 원본으로 보냄(동작 그대로) */}
             </button>
           </li>
         ) : null}
