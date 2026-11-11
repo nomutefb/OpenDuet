@@ -302,6 +302,16 @@ export function createAttachmentSender(transport: Transport) {
       if (!started.has(id)) cancelled(id);
       return true;
     },
+    /** 멈춘 전송(✕) 다시 누름 = 0% 부터 다시 보냄(같은 원본 · 같은 시도 · 형 11-12 08:35 「x 눌럿다가누르면 다시 가게」 · 「다시 보내려면 0퍼 부터」) */
+    resume(id: number) {
+      const attempt = attempts.get(id);
+      if (attempt?.phase !== "cancelled") return false;
+      stops.set(id, new AbortController());
+      update(id, { phase: "uploading", progress: 0, detail: "", saved: [], failed: [], announcement: false });
+      const again = attempts.get(id);
+      if (again) void inLine(again.room, () => run(again));
+      return true;
+    },
     /** 이 방에 올라가는 중이거나 줄 선 것이 있나 */
     busy: (room: string) => tails.has(room),
     waitingFor: (room: string) =>

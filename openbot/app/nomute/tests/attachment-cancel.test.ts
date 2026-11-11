@@ -89,3 +89,26 @@ test("abort that the transport ignores (already sent) still finishes normally", 
   await tick();
   assert.deepEqual(state.forRoom("a"), [], "서버가 받은 건 끝까지(취소됨으로 거짓 표시 안 함)");
 });
+
+test("멈춘 전송(✕) 다시 누름 = 0% 부터 다시 올림 · 끝까지 가면 사라짐(형 11-12 08:35 「x 눌럿다가누르면 다시 가게」)", async () => {
+  const p = pending(), { state, calls } = sender(p.upload);
+  const draft = input();
+  draft.text = "";
+  state.start(draft);
+  await tick();
+  p.progress(0.6);
+  const card = state.forRoom("a")[0];
+  assert.equal(state.cancel(card.id), true);
+  await tick();
+  assert.equal(state.forRoom("a")[0].phase, "cancelled", "말풍선은 남음(✕)");
+  assert.equal(state.resume(card.id), true);
+  const again = state.forRoom("a")[0];
+  assert.equal(again.phase, "uploading");
+  assert.equal(again.progress, 0, "0% 부터");
+  await tick();
+  assert.equal(calls.upload, 2, "다시 올림");
+  p.finish(uploadOK());
+  await tick();
+  assert.deepEqual(state.forRoom("a"), [], "다 가면 사라짐");
+  assert.equal(state.resume(card.id), false, "없는 건 무시");
+});

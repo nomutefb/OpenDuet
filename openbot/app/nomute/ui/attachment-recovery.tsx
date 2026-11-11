@@ -38,13 +38,15 @@ function Original({ original }: { original: OriginalAttachment }) {
 /** 보내는 중 = 내 말풍선 자리에 먼저 올리고 그림 안 가운데 둥근 게이지(형 11-02 02:21 「이미지 안에서 로딩 동그랗게 차게헤줘 퍼센트로 다 차면 체크 뜨면서 뜨고 항상 채팅 보다 위」) · 그림 = 글 말풍선 위 · 글은 안 띄움
  *   차례 = 그림 흐리게 + 고리가 % 로 참 → 100% = ✓ 그려지고 그림이 또렷해짐(고리는 걷힘) → 서버 답이 오면 진짜 글로 바뀜 · 못 받으면 「전송 확인 필요」 칸 */
 /*   「전송 대기」 = 말풍선 왼쪽 아래(진짜 글이 되면 그 자리에 시각 · 형 11-04 08:05 「일단 대화가 위로 확 보내진다음에 전송 대기가 떳다가 시간으로 바뀔수있어?」) · 사진은 바로 보임(글만 보낼 땐 1.2초 뒤) */
-function Sending({ attempt, onCancel }: { attempt: SendAttempt; onCancel?: () => void }) {
+/** 보내는 중 · 멈춘 첨부 말풍선 — 멈춤(형이 고리를 눌러 끊음) = 말풍선 그대로 · 고리 자리 ✕ · 옆에 「전송 실패」 · ✕ 다시 누름 = 0% 부터 다시(형 11-12 08:35 「% 가 x 뜨면서 중단만 되면돼 … 채팅엔 남아잇고 x 된 채로 잇으면 됨 … x 눌럿다가누르면 다시 가게 … 전송 실패가 낫겟다」 · 뎅) */
+function Sending({ attempt, onCancel, onResume }: { attempt: SendAttempt; onCancel?: () => void; onResume?: () => void }) {
+  const stopped = attempt.phase === "cancelled";
   return (
     <div className="nac-wrow nac-uprow">
-      <span className="nac-wait now">전송 대기</span>
-      <div className="nac-up" aria-label="첨부 보내는 중">
+      {stopped ? <span className="nac-wait now nac-fail" role="status">전송 실패</span> : <span className="nac-wait now">전송 대기</span>}
+      <div className="nac-up" aria-label={stopped ? "첨부 전송 멈춤" : "첨부 보내는 중"}>
         <div className="nac-shots">
-          {attempt.originals.map((original) => <Preview key={original.id} file={original.file} p={attempt.progress} onCancel={onCancel} />)}
+          {attempt.originals.map((original) => <Preview key={original.id} file={original.file} p={stopped ? 0 : attempt.progress} onCancel={stopped ? undefined : onCancel} onResume={stopped ? onResume : undefined} />)}
         </div>
         {attempt.text ? <NacText text={attempt.text} /> : null}
       </div>
@@ -59,8 +61,15 @@ function NacText({ text }: { text: string }) {
 
 const RING_C = 2 * Math.PI * 18;
 /** 고리 누름 = 이 전송 취소(형 11-10 12:18 「그리고 파일 전송중에 게이지 클릭하면 전공 취소 가능하게」) · 다 올라가기 전(✓ 전)만 눌림 */
-function Ring({ p, onCancel }: { p: number; onCancel?: () => void }) {
+function Ring({ p, onCancel, onResume }: { p: number; onCancel?: () => void; onResume?: () => void }) {
   const pct = Math.max(0, Math.min(100, Math.round(p * 100))), done = pct >= 100, can = !!onCancel && p < 1;
+  if (onResume) return (   // 멈춘 전송 = ✕ · 누르면 처음부터 다시
+    <span className="nac-ring can stop" role="button" tabIndex={0} aria-label="전송 실패 · 누르면 다시 보내기"
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onResume(); }}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onResume(); } }}>
+      <svg className="nac-ring-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+    </span>
+  );
   return (
     <span
       className={`nac-ring${can ? " can" : ""}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={done ? "다 올라감" : can ? `올리는 중 ${pct}% · 누르면 취소` : `올리는 중 ${pct}%`}
@@ -83,7 +92,7 @@ function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) 
   );
 }
 
-function Preview({ file, p, onCancel }: { file: File; p: number; onCancel?: () => void }) {
+function Preview({ file, p, onCancel, onResume }: { file: File; p: number; onCancel?: () => void; onResume?: () => void }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
     const next = URL.createObjectURL(file);
@@ -96,7 +105,7 @@ function Preview({ file, p, onCancel }: { file: File; p: number; onCancel?: () =
       {img ? <img src={url} alt={file.name} className="nac-img" decoding="async" />
         : vid ? <video src={url} className="nac-img" muted playsInline preload="metadata" aria-label={file.name} />   /* 영상 = 첫 장면만(소리 없음) */
         : <span className="nac-file">{file.name}</span>}
-      <Ring p={p} onCancel={onCancel} />
+      <Ring p={p} onCancel={onCancel} onResume={onResume} />
     </span>
   );
 }
@@ -149,12 +158,13 @@ export function AttachmentRecovery({
   const box = useRef<HTMLDivElement | null>(null);
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [version]);   // 칸이 차면 마지막 대기 글이 보이게
   const pend = part !== "records", recs = part !== "pending";
-  const shown = state.forRoom(room).filter((attempt) => (attempt.phase === "uploading" ? pend && !landed?.(attempt) : recs));
+  const live = (a: SendAttempt) => a.phase === "uploading" || a.phase === "cancelled";   // 멈춘 전송도 말풍선 자리에 그대로(형 11-12 08:35)
+  const shown = state.forRoom(room).filter((attempt) => (live(attempt) ? pend && !landed?.(attempt) : recs));
   const waits = pend ? state.waitingFor(room).filter((item) => !landedText?.(item)) : [];
   if (part && !shown.length && !waits.length) return null;
   return (
     <div ref={box} className={part === "pending" ? "nac-list flex flex-col gap-2" : "nac-box flex flex-col gap-2 overflow-y-auto"}>
-      {shown.map((attempt) => attempt.phase === "uploading" ? <Sending key={attempt.id} attempt={attempt} onCancel={() => state.cancel(attempt.id)} /> : gone.has(attempt.id) ? null : (
+      {shown.map((attempt) => live(attempt) ? <Sending key={attempt.id} attempt={attempt} onCancel={() => state.cancel(attempt.id)} onResume={() => state.resume(attempt.id)} /> : gone.has(attempt.id) ? null : (
         <section
           key={attempt.id}
           aria-label="첨부 전송 기록"
