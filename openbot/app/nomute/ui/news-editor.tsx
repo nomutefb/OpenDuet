@@ -9,7 +9,7 @@ import "./sns.css";
 import "./news.css";
 import "./summary-desk.css";
 import "./news-editor.css";
-import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
@@ -25,34 +25,7 @@ import { TaskPanel } from "./task-panel";
 const CAP = 10;
 const ASK_DEF = { h24: 1, fp: 0, mj: 1, og: 0, noai: 1, know: 0 } as const;   // 「전송」 = 요약 요청 창 기본(./ask.tsx DEF)과 같은 값
 
-/** 「지금 뜨는 말」 = 옛 에디터 실검 키워드 티커(viewer/index.html #tkrHost · d.gtrends 상위 10) · 못 받으면 띠 0 */
-const kwQuery = queryOptions({
-  queryKey: ["nomute", "ned-kw"], staleTime: 300_000, refetchInterval: 300_000,
-  queryFn: async () => {
-    for (const u of ["/api/trends", `/sns_trends.json?t=${Date.now()}`]) {
-      try {
-        const r = await fetch(u, { credentials: "same-origin", cache: "no-store" });
-        if (!r.ok) continue;
-        const t = await r.text(); if (/^\s*</.test(t)) continue;   // HTML = 로그인 벽
-        const j = JSON.parse(t) as { gtrends?: { query?: string }[] };
-        if (j && Array.isArray(j.gtrends)) return j.gtrends.map((x) => String(x?.query || "").trim()).filter(Boolean).slice(0, 10);
-      } catch { /* 다음 길 */ }
-    }
-    return [] as string[];
-  },
-});
-
-function Ticker() {
-  const kw = useQuery(kwQuery).data || [];
-  if (!kw.length) return null;
-  const words = (k: string) => kw.map((w, i) => <span key={k + i}>{w}</span>);
-  return (
-    <div className="nm-ned-tkr" role="note" aria-label={`지금 뜨는 말: ${kw.join(", ")}`}>
-      <b>지금 뜨는 말</b>
-      <div className="nm-ned-tkr-v" aria-hidden><div className="nm-ned-tkr-track">{words("a")}{words("b")}</div></div>   {/* 두 벌 = -50% 이동이 이음매 없이 돎(옛 .tkr-track) */}
-    </div>
-  );
-}
+// 「지금 뜨는 말」 줄(kwQuery · Ticker)은 걷음(형 11-11 09:02 「상단에 인기검색어 없어도 되고」) · 앞 판 = git
 
 function SendBar() {
   const qc = useQueryClient();
@@ -136,8 +109,7 @@ export function NewsEditor() {
 
   const body = (
     <div ref={left} className="nm-ned-l" hidden={!wide && !!sel}>
-      <Ticker />
-      <SendBar />
+      <SendBar />   {/* 맨 위 「지금 뜨는 말」 줄 뺌(형 11-11 09:02 봄 1:1 「상단에 인기검색어 없어도 되고 네비게이션 아이콘으로 누르면 뉴스 요약으로 이동만 가능하면 됨」) */}
       {pend.isError ? <p className="nm-chan-msg" role="status">대기열을 못 읽었어</p> : qs.length ? <TaskPanel qs={qs} eta={pend.data?.eta || null} onOpen={() => go("/edq")} /> : null}
       <div className="nm-ned-chips" role="toolbar" aria-label="기사 거르기">
         <button type="button" className={!cats.size && !issue ? "on" : undefined} onClick={() => { setCats(new Set()); setIssue(false); reset(); }}>전체 <i>{all.length}</i></button>
@@ -153,7 +125,7 @@ export function NewsEditor() {
         </label>
       ) : null}
       {list.isPending ? <p className="nm-chan-msg">기사 읽는 중…</p> : list.isError ? <p className="nm-chan-msg" role="alert">{(list.error as Error).message || "뉴스 요약을 못 읽었어"}</p> : !rows.length ? <p className="nm-chan-msg">{dq || cats.size || issue ? "결과 없음" : "기사가 없어"}</p> : (
-        <ul className="nm-ned-list">{shown.map((a) => <li key={a.file}><SumCard a={a} sens={wide} short={!wide} kind={kindOf(a) || (a.issue ? "iss" : "")} on={wide && a.file === cur} onOpen={() => open(a)} /></li>)}</ul>
+        <ul className="nm-ned-list">{shown.map((a) => <li key={a.file}><SumCard a={a} sens kind={kindOf(a) || (a.issue ? "iss" : "")} on={wide && a.file === cur} onOpen={() => open(a)} /></li>)}</ul>
       )}
       {rows.length > shown.length ? <><div ref={sent} aria-hidden className="nm-feed-sent" /><button type="button" className="nm-ned-more" onClick={() => setN((v) => v + CAP)}>더 보기 +{Math.min(CAP, rows.length - shown.length)} · 남은 {rows.length - shown.length}건</button></> : null}
     </div>

@@ -10,16 +10,6 @@
 .nm-ned-one { flex:1; padding:4px 10px calc(var(--duet-tab-space, 86px) + 24px); }
 .nm-ned-back { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin:2px 4px 6px; padding:6px 10px; border-radius:999px; font-size:var(--fs-sm); color:var(--fg-2); background:var(--glass, rgba(255,255,255,.05)); }
 
-/* ① 지금 뜨는 말 = 옛 에디터 실검 티커(.tkr) — 가장자리 흐림 · 28초 한 바퀴 · 대면 멈춤 */
-.nm-ned-tkr { display:flex; align-items:center; gap:12px; min-width:0; padding:9px 14px; border:1px solid var(--glass-line, rgba(255,255,255,.08)); border-radius:999px; font-size:var(--fs-sm); }
-.nm-ned-tkr > b { flex:none; font-weight:500; color:var(--mut); font-size:var(--fs-xs); }
-.nm-ned-tkr-v { flex:1; min-width:0; overflow:hidden; -webkit-mask:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-.nm-ned-tkr-track { display:inline-flex; white-space:nowrap; animation:nmNedTkr 28s linear infinite; }
-.nm-ned-tkr-track span { padding:0 14px; color:var(--fg); }
-.nm-ned-tkr-track span + span::before { content:"·"; margin:0 14px 0 -14px; color:var(--mut); }
-.nm-ned-tkr:hover .nm-ned-tkr-track { animation-play-state:paused; }
-@keyframes nmNedTkr { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .nm-ned-tkr-track { animation:none; } }
 
 /* ② 넣는 줄 = 칸 + 전송 + 픽(라임) */
 .nm-ned-send-row { display:flex; gap:8px; min-width:0; }
@@ -44,7 +34,21 @@
 
 /* ⑤ 카드 목록 */
 .nm-ned-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
-.nm-ned .nm-sumc { gap:10px; padding:14px 16px; }
+/* 카드 = 옛 에디터 뉴스 요약 .card 그대로(형 11-11 09:01 봄 1:1 「옛.에디터 디자인이 거의 최적화니까 거기에 그냥 맞춘다 생각하면됨 폰트도 에디터 들은 거기에 맞춰 뉴스 요약 받는 것도 포함」 · 13:02 「이미지 썸네일 만들기랑 뉴스요약 뉴스요약 보기가 가장 많이 쓰는 기능이니까 그것만 따라오면 돼」)
+   값 = 옛 판(/?old) 웹킷 폰 390 실측: 글꼴 Pretendard · 안쪽 18 · 유리(바탕 투명 + 흐림 12 · 테 .08 · 모서리 16) · 머리 11(분류 800 · 시각 700) · 제목 15/700/1.45 · 매체 · 편향 · 민감 이름 11/400 · 값 13/700 · 진행 글 11/700 · 막대 7 · 색만 정원 라임(형 12:51 「시그니처 팔레트」 결)
+   앞 판 = 형 11-04 「폰트 안따라가도 돼」 · 굵기 한 단 낮춤 · 안쪽 14/16 · 폰은 매체 · 편향 줄 뺌(→ 09:01 이 갈음) */
+.nm-ned .nm-sumc { gap:12px; padding:18px; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing:-.2px; }
+html.dark .nm-ned .nm-sumc { background:rgba(255,255,255,.012); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-color:rgba(255,255,255,.08); }
+.nm-ned .nm-sumc-top { font-size:11px; gap:6px; }
+.nm-ned .nm-sumc-top .cat { font-weight:800; }
+.nm-ned .nm-sumc-top > span:not(.r) b { font-weight:700; color:#CFFF40; }   /* 보도 시각 = 강조(옛 --accent) */
+html:not(.dark) .nm-ned .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
+.nm-ned .nm-sumc-top .r b { font-weight:700; color:var(--fg); }
+.nm-ned .nm-sumc-t { font-size:15px; font-weight:700; line-height:1.45; }
+.nm-ned .nm-sumc-kv span { font-size:11px; font-weight:400; line-height:1.6; }
+.nm-ned .nm-sumc-kv b { font-size:13px; font-weight:700; line-height:1.45; }
+.nm-ned .nm-sumc-prog i { font-size:11px; font-weight:700; color:#BBBCBC; }
+.nm-ned .nm-sumc-prog em { height:7px; background:rgba(187,188,188,.7); }
 .nm-ned .nm-sumc.k-iss, .nm-ned .nm-sumc.k-brk { border-color:rgba(230,195,92,.75); }
 .nm-ned .nm-sumc.on { border-color:#CFFF40; box-shadow:0 0 0 1px #CFFF40 inset, 0 1px 16px rgba(0,0,0,.4); }
 :root:not(.dark) .nm-ned .nm-sumc.on { border-color:#4f7a00; box-shadow:0 0 0 1px #4f7a00 inset; }
