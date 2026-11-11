@@ -89,7 +89,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
   const shut = () => {   // 떠날 때 = 고른 게 있으면 그때만 깨움(안 고른 항목은 남음)
     setOpen(false); setEtc("");
     const out = ready.current();
-    if (sending.current || !dirty.current || !out.length) return;
+    if (sending.current || !dirty.current || !out.length) { void qc.invalidateQueries({ queryKey: KEY }); return; }   // 고를 때 이미 보냄 = 닫으면 개수만 새로
     dirty.current = false; sending.current = true; out.forEach((x) => sent.current.add(x.id));
     void office<{ items?: Decision[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: out, send: true }) })
       .then((j) => { if (j.items) qc.setQueryData(KEY, tidy(j.items)); })   // 보낸 뒤 남은 목록이 바로 옴 = 개수 바로 고침(봄 08:44) · 같은 거르기
@@ -116,10 +116,10 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
   const pick = async (d: Decision, p: Pick): Promise<boolean> => {   // 고르면 바로 서버에 적음(send 없음 = 안 깨움) · 보내기는 떠날 때
     setPicks((m) => ({ ...m, [d.id]: p })); setErr("");
     try {
-      const j = await office<{ bad?: { id: string; why?: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: withDups(d, p) }) });
+      const j = await office<{ bad?: { id: string; why?: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: withDups(d, p), send: true }) });   // 고르면 그 결정만 바로 보냄 = 따로 전송 0(형 11-11 19:45 봄 1:1 「글구 이거 그냥 결정하면 바로 넘어가면 될거같은데전송이 잇어어되나 싳음」 · 「내가 결정하면 그냥 창 닫히고 그 뒤에서 백단에서 처리하면 될듯」 · 뜸)
       const bad = (j.bad || []).find((x) => x.id === d.id);   // 봄 08:44 「둘 이상이거나 빈 기타·틀린 번호면 그 줄만 bad」 = 안 적힘
       if (bad) throw new Error(bad.why || "서버가 안 받았어");
-      dirty.current = true;
+      withDups(d, p).forEach((x) => sent.current.add(x.id));   // 보냄 = 닫을 때 다시 안 보냄
       return true;
     }
     catch (e) { setPicks((m) => { const n = { ...m }; delete n[d.id]; return n; }); setErr(`못 적었어 · ${(e as Error).message}`); return false; }
@@ -174,10 +174,10 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
                     <p className="nm-dec-q" data-content>{d.q}</p>
                     <div className="nm-dec-ch">
                       {tailnetUrl(d.pc?.url) ? <a className="nm-dec-row nm-dec-pc" href={tailnetUrl(d.pc?.url)} target="_blank" rel="noopener noreferrer"><span className="t">제어권 가져오기</span></a> : null}   {/* 그 몸 화면(테일넷)을 새 창으로 · 미리보기 없음(형 「공간낭비고」) · 끝나면 아래 완료 */}
-                      {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} data-fill={fillOf(d, `c${i}`)} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}><span className="t">{c}</span>{drawn(fillOf(d, `c${i}`)) ? <Ck /> : null}</button>)}
+                      {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} data-fill={fillOf(d, `c${i}`)} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}><span className="nm-dec-no" aria-hidden>{i + 1}</span><span className="t">{c}</span>{drawn(fillOf(d, `c${i}`)) ? <Ck /> : null}</button>)}   {/* 보기 번호 1 · 2 · 3(형 11-11 19:45 「보기 중에 고르는 방식으로 / 1234 보기 주고. 3번까지 여도되고. 기타는 4번이니까.」) */}
                       {etc === d.id
                         ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} fill={fillOf(d, "etc")} onSubmit={etcSubmit(d)} />
-                        : <button type="button" className="nm-dec-row" aria-pressed={!!p?.text} onClick={() => setEtc(d.id)}>{p?.text ? `기타 · ${p.text}` : "기타"}</button>}
+                        : <button type="button" className="nm-dec-row" aria-pressed={!!p?.text} onClick={() => setEtc(d.id)}><span className="nm-dec-no" aria-hidden>{d.choices.length + 1}</span><span className="t">{p?.text ? `기타 · ${p.text}` : "기타"}</span></button>}
                     </div>
                   </div></li>
                 );

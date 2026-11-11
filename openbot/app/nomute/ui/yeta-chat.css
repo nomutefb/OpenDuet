@@ -774,3 +774,8 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
   .nm-top-crew > .nm-top-sec:not(.cut) { margin-top:2px; padding-top:8px; border-top:1px solid var(--glass-line); }
   .nm-top-crew { max-height:min(70dvh, 560px); }
 }
+
+/* 의사 결정 보기 번호(형 11-11 19:45 「1234 보기 주고 … 기타는 4번」 · 뜸) = 왼쪽 작은 동그라미 숫자 */
+.nm-dec-row .nm-dec-no { flex:none; display:inline-grid; place-items:center; width:22px; height:22px; margin-right:10px; border-radius:50%; background:rgba(255,255,255,.1); color:var(--fg-2, inherit); font-size:12px; font-weight:700; font-variant-numeric:tabular-nums; }
+:root:not(.dark) .nm-dec-row .nm-dec-no { background:rgba(0,0,0,.08); }
+.nm-dec-row[data-on] .nm-dec-no { background:#CFFF40; color:#161716; }
