@@ -314,3 +314,10 @@ body.nm-dragging iframe { pointer-events:none; }
 
 /* 켜고 끄는 알약(첨부 「압축」 · 「프레임」 · 형 11-12 07:48 「버튼 켜질때 라임 들어가니까 글자가 안보이는데 / 켜짐의 의미효과를 하단 네비처럼」 「포인트를 주면 됨」) = 아래 막대 켜진 칸과 같은 꼴 · 꽉 채우지 않음(글자 늘 읽힘) */
 .nm-pill-sw.on { color:#CFFF40 !important; background:rgba(207,255,64,.14) !important; border-color:rgba(207,255,64,.38) !important; box-shadow:0 0 10px rgba(207,255,64,.22); }
+/* PC 대화 칸 맨 위 한 줄(./room-list.tsx topBar · 형 11-12 07:5x 「맨 위에만 색이 좀 다르면 될듯. 아무래도 메뉴 영역이니까 아주 조금?」) = 옆 HOT ISSUE 머리줄과 같은 36 · 바탕 한 단만 · 아이콘 셋(공지 · 사무실↔팀즈 · 기사 요약) */
+.nm-rbar { position:sticky; top:0; z-index:3; display:flex; align-items:center; gap:4px; height:36px; padding:0 8px 0 14px; margin-bottom:4px; border-bottom:1px solid var(--glass-line); background:color-mix(in srgb, var(--duet-surface, #161716) 96%, currentColor 4%); }
+.nm-rbar > b { flex:1; min-width:0; font-size:var(--fs-label, 13px); font-weight:700; color:var(--fg-2, inherit); }
+.nm-rbar-b { position:relative; width:32px; height:32px; display:grid; place-items:center; border:0; border-radius:10px; background:none; color:var(--fg-2, inherit); cursor:pointer; }
+.nm-rbar-b:hover, .nm-rbar-b.on { background:color-mix(in srgb, currentColor 10%, transparent); color:var(--fg-1, inherit); }
+.nm-rbar-b .dot { position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:#CFFF40; }
+.nm-rbar-b .t { font-size:14px; font-weight:800; line-height:1; }

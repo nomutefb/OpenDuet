@@ -458,12 +458,12 @@ function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
 
 /** 목록 화면(카톡식 · 형 11:26 「대화랑 그냥 분리하자」) — 방 누르면 그 대화 판으로 */
 function RoomsPane() {
-  const teamsOn = useTeamsMode();
+  const teamsOn = useTeamsMode(), split = useSplit();
   return (
     <>
       <div className="nm-rooms-pane min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-4 pb-[calc(var(--duet-tab-space,86px)+56px)]">   {/* 끝 줄이 우하단 단추에 안 가리게 */}
         <h1 className="sr-only">대화방</h1>   {/* 판 위 큰 제목 0(PM 13:04 · 형 「공간」 · 지금 판 = 네비 「대화방」 칸) */}
-        <RoomList big />
+        <RoomList big bar={split} />
       </div>
       {teamsOn ? null : <><RoomFab /><DecideFab /></>}   {/* 팀즈 모드 = 방 만들기·결정 동그라미 0 */}
       {/* 영상 해석 허가 동그라미 뺌(형 11-05 11:10 「그럼 이제 그 채팅창 우하단에 영상 신청 이거는 없어도되는거지? 판단해보고, 별 의미없는 코드니까. 기능을 없애고 디자인도 없애줘.」 · 올리는 순간 받아쓰기 상주가 대신함) */}

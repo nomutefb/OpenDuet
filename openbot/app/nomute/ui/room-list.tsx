@@ -18,13 +18,14 @@ import { LiveShine } from "./live-shine";
 import { RoomGoneDialog, RoomMembersDialog, TempDeleteDialog, TempRoomDialog, TempSwipe, canGone } from "./temp-room";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
-import { TeamsList, TeamsSwitch, useTeamsMode } from "./teams";
+import { TeamsList, TeamsSwitch, setTeamsMode, useTeamsMode } from "./teams";
 import { RoomGlyph } from "./room-glyph";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
 import { GoButton } from "./go-button";
 import { type NotifyState, notifyImage, notifyOn, notifyState } from "../data/notify";
 
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
+const NOTICE_SEEN = "nm_notice_seen_at";
 const PINS = "nm-office-pins", HIDE = "nm-office-hidden";
 const readSet = (k: string): Set<string> => { try { return new Set(JSON.parse(localStorage.getItem(k) || "[]")); } catch { return new Set(); } };
 const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, JSON.stringify([...s])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } };
@@ -103,7 +104,7 @@ export function RoomIcon({ r, size, color }: { r: Room; size: number; color?: st
     </span>
   );
 }
-export function RoomList({ onOpen, big = false, slim = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; current?: string }) {   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
+export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
   const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
   const teamsOn = useTeamsMode() && !slim;   // 「사무실 | 팀즈」 바꿈(PC 왼쪽 좁은 칸 = 사무실 그대로)
   // 활발한 방 = 이름에 빛(형 11-01 「현재 활발한 방(누군가라도 활동중인 방개인포함)은 이름에 빚지나가게」) — 마지막 글이 3분 안 · 또는 1:1 에서 형 글 뒤 그 이가 일하는 중(대화 칸 점 셋과 같은 깸 표 · 같은 bots 캐시)
@@ -111,6 +112,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
   const live = (r: Room) => { const l = lastOf(r); return Date.now() - (r.act_ts || r.last_ts || 0) < LIVE_MS ||   /* act_ts = 1:1 방 우리끼리 글까지 든 진짜 마지막(미리보기는 형 낀 글 · 서버 #1990) */ (!!r.with && l?.kind === "human" && bots.some((b) => b.who === r.with && b.state === "awake" && b.why !== "read")); };
   const notice = useQuery({ queryKey: ["nomute", "notice"], queryFn: () => office<{ notice?: { text: string; at?: string } }>("noticeset").then((j) => j.notice), staleTime: 60_000 }).data;
   const [menu, setMenu] = useState(""), [noticeOpen, setNoticeOpen] = useState(false), [hiddenOpen, setHiddenOpen] = useState(false);
+  const [nSeen, setNSeen] = useState(() => { try { return localStorage.getItem(NOTICE_SEEN) || ""; } catch { return ""; } });   // PC 공지 아이콘 점 = 이 기기에서 본 공지 판과 다르면
   const [tinting, setTinting] = useState<Room | null>(null), [peek, setPeek] = useState<{ id: string; hex: string } | null>(null);   // 표지 색 판(./room-color.tsx) · peek = 끄는 동안 줄에 먼저 보임
   const [naming, setNaming] = useState<Room | null>(null);   // 방 이름(./room-color.tsx) · 임시방 = 「수정」 길
   const press = useRef<{ t: number; x: number; y: number; hit: boolean; touch?: boolean; buzz?: number }>({ t: 0, x: 0, y: 0, hit: false });   // 길게 누르기(형 10-31 「길게 누르면 변경 하는 거기서 수정」) = 터치만 · 오른쪽 클릭은 onContextMenu
@@ -215,15 +217,29 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
     );
   };
 
+  const noticeNew = !!notice?.at && notice.at !== nSeen;
+  const openNotice = () => { setNoticeOpen(true); if (notice?.at) { try { localStorage.setItem(NOTICE_SEEN, notice.at); } catch { /* 이 화면만 */ } setNSeen(notice.at); } };
+  const ico = { viewBox: "0 0 24 24", width: 18, height: 18, fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
+  // PC 대화 칸 맨 위 한 줄(형 11-12 06:21 「팀즈는 전환아이콘으로 대체해서 좀 더 넓게쓰면될듯. 공지도 그냥 아이콘으로 하면 될거같애」 · 07:5x 「응 저거 맞아. 맨 위에만 색이 좀 다르면 될듯. 아무래도 메뉴 영역이니까 아주 조금?」 · 봄 07:19 · 깃) — 폰 꼴(알약 둘)은 그대로
+  const topBar = bar ? (
+    <div className="nm-rbar">
+      <b>{teamsOn ? "팀즈" : "대화"}</b>
+      {notice?.text ? <button type="button" className="nm-rbar-b" aria-label={`공지${noticeNew ? " · 새 공지" : ""}`} title={"공지 · " + notice.text.split("\n")[0].replace(/^공지\s*[—·:-]\s*/, "")} onClick={openNotice}><svg {...ico}><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>{noticeNew ? <i className="dot" /> : null}</button> : null}
+      <button type="button" className="nm-rbar-b" aria-label={teamsOn ? "사무실로 바꾸기" : "팀즈로 바꾸기"} title={teamsOn ? "지금 팀즈 · 누르면 사무실" : "지금 사무실 · 누르면 팀즈"} onClick={() => setTeamsMode(!teamsOn)}>{teamsOn ? <b className="t">T</b> : <svg {...ico}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>}</button>
+      <Link to="/channels/$channelId" params={{ channelId: SUMMARY }} className={`nm-rbar-b${current === SUMMARY ? " on" : ""}`} aria-label="기사 요약" title="기사 요약" onClick={() => onOpen?.()}><svg {...ico}><path d="M15 18h-5" /><path d="M18 14h-8" /><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2" /><rect width="8" height="4" x="10" y="6" rx="1" /></svg></Link>
+    </div>
+  ) : null;
+
   if (teamsOn) return (   // 팀즈 모드 = 목록 자리에 팀즈 대화(./teams.tsx · 형 11-06 「팀즈 를 누르면 팀즈모드로 전환되는 느낌이랄까」)
     <nav aria-label="팀즈 대화 목록" className="nm-yeta nm-rooms flex flex-col">
-      <TeamsSwitch />
+      {topBar || <TeamsSwitch />}
+      {noticeOpen ? <NoticeDialog onClose={() => setNoticeOpen(false)} /> : null}
       <TeamsList current={current} />
     </nav>
   );
   return (
     <nav aria-label="대화 목록" className="nm-yeta nm-rooms flex flex-col">
-      {slim ? null : <TeamsSwitch />}
+      {topBar || (slim ? null : <TeamsSwitch />)}
       {tinting ? <RoomColorPick room={tinting} onPeek={(hex) => setPeek({ id: tinting.id, hex })} onClose={() => { setTinting(null); setPeek(null); }} /> : null}
       {naming ? <RoomNamePick room={naming} onClose={() => setNaming(null)} /> : null}
       {pendPic ? <NotifyPicPick name={(rooms.data || []).find((x) => x.id === pendPic.room)?.name || pendPic.room} url={pendPic.url} onClose={() => setPendPic(null)}
@@ -232,7 +248,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
       {membering ? <RoomMembersDialog r={membering} onClose={() => setMembering(null)} /> : null}
       {gone ? <RoomGoneDialog r={gone} onClose={() => setGone(null)} onGone={() => { if (current === gone.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
-      <div className="nm-rtop">   {/* 맨 위 줄 = 공지(끝 둥글게 · 조금 짧게) + 오른쪽 기사 요약 동그라미(형 11-04 13:22 「요약실 우상단 우상단으로 보내주라 공지 라인 끝을 좀만 둘여서 동그랗게 처리하고 다시 원으로 저거 픽토그램」 · 앞 판 13:01 = 회의실 위 왼쪽) */}
+      {bar ? null : <div className="nm-rtop">   {/* 맨 위 줄 = 공지(끝 둥글게 · 조금 짧게) + 오른쪽 기사 요약 동그라미(형 11-04 13:22 「요약실 우상단 우상단으로 보내주라 공지 라인 끝을 좀만 둘여서 동그랗게 처리하고 다시 원으로 저거 픽토그램」 · 앞 판 13:01 = 회의실 위 왼쪽) */}
         {notice?.text ? (
           <button type="button" className="nm-rnotice" aria-label="공지 보기·고치기" onClick={() => setNoticeOpen(true)}>
             <svg aria-hidden viewBox="0 0 24 24" width="16" height="16"><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
@@ -242,7 +258,7 @@ export function RoomList({ onOpen, big = false, slim = false, current }: { onOpe
         <Link to="/channels/$channelId" params={{ channelId: SUMMARY }} className={`nm-rnews${current === SUMMARY ? " on" : ""}`} aria-label="기사 요약" title="기사 요약" onClick={() => onOpen?.()}>
           <svg aria-hidden viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18h-5" /><path d="M18 14h-8" /><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2" /><rect width="8" height="4" x="10" y="6" rx="1" /></svg>
         </Link>
-      </div>
+      </div>}
       {noticeOpen ? <NoticeDialog onClose={() => setNoticeOpen(false)} /> : null}
       <ul className="nm-rgroup flex flex-col">
         {ordered.map((r) => <Fragment key={r.id}>{Row({ r })}</Fragment>)}
