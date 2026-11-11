@@ -835,15 +835,8 @@ function BoxCard({ m }: { m: Msg }) {
   );
 }
 
-/** 안 닿은 부름 = 글 아래 한 줄(형 10-31 「태그안된 @ 가 된줄알고 써버리지 않게 하자는거임」) · 칩은 서버가 알아들은 이름만(callRe) */
-function Missed({ m }: { m: Msg }) {
-  const out = m.call_out || [], lost = m.call_unknown || [];
-  if (!out.length && !lost.length) return null;
-  return <small className="ymiss">{[out.length ? `${out.join("·")} 안 닿음 · 이 방 멤버 아님` : "", lost.length ? `${lost.join("·")} 안 닿음 · 없는 이름` : ""].filter(Boolean).join(" / ")}</small>;
-}
-
 function Body({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
-  return <Said m={m} nre={nre} />;   // 애들 글 밑 「… 안 닿음」 줄 뺌(형 11-11 06:43 dm-sia 「그리고 시아 안닿음 대화중에 나오는 이런것도 없애버려」) · 형이 쓴 글 밑은 그대로(형 10-31 「태그안된 @ 가 된줄알고 써버리지 않게 하자는거임」)
+  return <Said m={m} nre={nre} />;   // 「… 안 닿음」 줄 = 애들 글 · 형 글 둘 다 뺌(형 11-11 06:43 dm-sia 「그리고 시아 안닿음 대화중에 나오는 이런것도 없애버려」 · 14:35 형 글 밑도 「아 ㅋㅋ 그거는 안떠도 돼.」 · 앞 판 = 10-31 「태그안된 @ 가 된줄알고 써버리지 않게 하자는거임」으로 형 글 밑만 남겼음)
 }
 
 /** 글 속 같은 출처 그림 주소(https://edit.nomute.kr/…png · /cards/…jpg) → 말풍선 위 사진(형 11-01 08:48 「뉴스 요약한게 섬네일같은거 여기 올리면 내가 사진을 못보더라」 ·
@@ -924,7 +917,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Missed m={m} /><Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
         </div>
         <RouteLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine /> : null}

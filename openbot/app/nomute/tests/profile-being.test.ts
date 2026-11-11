@@ -24,7 +24,7 @@ test("카드 애 = 카드 한 장만 · 색 원 · 설명 글 카드 안 · 화�
   assert.match(css, /\.ypc-veil:has\(> \.ypc--being\) \{ place-items: start center;/);
 });
 
-test("애들 글 밑 「안 닿음」 줄 0 · 형 글 밑은 그대로", () => {
+test("「안 닿음」 줄 0 · 애들 글 · 형 글 둘 다(형 11-11 14:35 「아 ㅋㅋ 그거는 안떠도 돼.」)", () => {
   assert.match(chat, /function Body\([^)]*\) \{\n  return <Said m=\{m\} nre=\{nre\} \/>;/);
-  assert.match(chat, /<Missed m=\{m\} \/><Reactions m=\{m\} c=\{c\} mine \/>/);
+  assert.ok(!/<Missed\b|function Missed\(|ymiss/.test(chat));
 });
