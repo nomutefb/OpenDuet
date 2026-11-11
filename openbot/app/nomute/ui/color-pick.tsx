@@ -34,7 +34,7 @@ export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: 
   const setRgb = (i: number, n: number) => { const c = [...rgb]; c[i] = Math.max(0, Math.min(255, n || 0)); setHsv(toHsv(c[0], c[1], c[2])); };
   return (
     <div ref={root} className="ncp" role="dialog" aria-label="말풍선 색 고르기" onClick={(e) => e.stopPropagation()}>
-      <PickTop label="말풍선 색" onUndo={() => void Promise.resolve(onSave("")).then(onClose, () => {})} onSave={() => onSave(hex)} onDone={onClose} onClose={onClose} />
+      <PickTop label="말풍선" onUndo={() => void Promise.resolve(onSave("")).then(onClose, () => {})} onSave={() => onSave(hex)} onDone={onClose} onClose={onClose} />
       <label className="ncp-f"><span>HEX</span>
         <input value={typed || hex} onChange={(e) => { setTyped(e.target.value); const c = fromHex(e.target.value); if (c) setHsv(toHsv(c[0], c[1], c[2])); }} onBlur={() => setTyped("")} />
       </label>

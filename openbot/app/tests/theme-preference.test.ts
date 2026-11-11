@@ -16,8 +16,8 @@ import {
  */
 describe("theme preference", () => {
   test("nothing stored follows the phone", () => {
-    expect(parseThemePreference(null)).toBe("system");
-    expect(parseThemePreference("nonsense")).toBe("system");
+    expect(parseThemePreference(null)).toBe("dark");   // 안 고른 기기 = 어두운 판(형 11-12 08:33)
+    expect(parseThemePreference("nonsense")).toBe("dark");
   });
 
   test("a stored choice is kept", () => {

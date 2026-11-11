@@ -38,7 +38,8 @@ export function parseThemePreference(
 ): ThemePreference {
   if (stored === "system" || stored === "light" || stored === "dark")
     return stored;
-  return legacy === "dark" ? "dark" : "system";
+  if (legacy === "light") return "system";   // 옛 OpenBot 기본값(늘 「light」 를 썼음) = 기기 따라가기 그대로
+  return "dark";   // 아무것도 안 고른 기기 = 어두운 판(형 11-12 08:33 「… 그 인앱설정을 어둡게로 이게 가능한가? 나랑 보는 화면이 달라서 시행착오가 생길수도잇거든 … 기본값이 다크로 가능한지 확인해봐」 · 봄 08:50 「걸어 줘」) · 고른 값(밝음 · 어두움 · 기기 따라)은 그대로
 }
 
 /** The theme to draw: the choice, or the phone's when the choice is to follow it. */

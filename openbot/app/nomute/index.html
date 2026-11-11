@@ -17,10 +17,13 @@
         let choice = null;
         try {
           choice = window.localStorage.getItem("openduet-theme");
-          if (choice === null && window.localStorage.getItem("openbot-theme") === "dark") choice = "dark";
+          const lg = window.localStorage.getItem("openbot-theme");
+          if (choice === null && lg === "dark") choice = "dark";
+          if (choice === null && lg === "light") choice = "system";   /* 옛 OpenBot 기본값 = 기기 따라 그대로(src/lib/theme.ts) */
         } catch {}
         const dark =
           choice === "dark" ||
+          choice === null ||   /* 아무것도 안 고른 기기 = 어두운 판(형 11-12 08:33 · src/lib/theme.ts 와 같은 셈) */
           (choice !== "light" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
         document.documentElement.classList.toggle("dark", dark);
         document.documentElement.style.colorScheme = dark ? "dark" : "light";

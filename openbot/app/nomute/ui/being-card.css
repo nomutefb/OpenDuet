@@ -544,7 +544,10 @@
    앞 판 = 둘레 어두운 유리 창(위 50 비움 = 색 원 자리) + 아래 직무 · 소개 · 단추 */
 .ypc.ypc--being { width: min(372px, 100%); max-height: none; padding: 0; gap: 0; overflow: visible; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .ypc--being .ypc-orb { top: 22px; right: 22px; width: 26px; height: 26px; }   /* 카드 테(몸통 10 + 타일) 안쪽으로 조금 · 딱 안 붙게 */
-.ypc--being .ypc-pop { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 6; }
+/* 무지개 단추 자리(카드 안 오른쪽 위 · .ypc-orb top 22 · right 22)에서 바로 · 부드럽게 열림(형 11-12 08:37 봄 1:1 「그리고 무지개 이거 누르면 그 부분에서 모달이 바로 부드럽게 뜨구,」 · 앞 판 = 카드 가운데 위 56) */
+.ypc--being .ypc-pop { position: absolute; top: 22px; right: 22px; left: auto; width: min(264px, calc(100% - 44px)); transform: none; transform-origin: top right; z-index: 6; animation: ypcPopIn .22s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes ypcPopIn { from { opacity: 0; transform: scale(.35); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ypc--being .ypc-pop { animation: none; } }
 .ypc-veil:has(> .ypc--being) { place-items: start center; padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }   /* 카드 창 = 창 위쪽에 붙여 뜸(형 11-11 06:40 dm-sia 「글구 모달이 좀 더 위쪽으로 뜨게해줘 창 기준」 · 앞 판 = 한가운데) */
 
 /* 틀 카드(.bc-tmpl · 형 11-09 05:17 「시아 플필 기본 템플릿화해서 모두 게시」 · 뜸) — 시아 카드 몸통 그대로 · 색 = 그 애 말풍선 색(--bc-accent) · 무늬 = 고리 + 띠만 */

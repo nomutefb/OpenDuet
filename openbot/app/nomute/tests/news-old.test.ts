@@ -128,3 +128,11 @@ test("홈 카드 ✓ = 폰도 카드 세로 가운데 · 오른쪽 선에 반쯤
   assert.match(sc, /\.nm-send-dock\[data-fit\] \{ top:calc\(var\(--nm-card-y\) \+ var\(--nm-card-h\) \/ 2\); bottom:auto; right:max\(4px, calc\(var\(--nm-card-r\) - 22px\)\); transform:translateY\(-50%\);/);
   assert.match(sb, /--nm-card-y/);
 });
+
+test("무지개 단추 판 = 그 자리에서 · 「말풍선」 · R G B 작게(형 11-12 08:37) · 안 고른 기기 = 어두운 판(형 08:33)", () => {
+  assert.match(rd("../ui/color-pick.tsx"), /<PickTop label="말풍선"/);
+  assert.match(rd("../ui/being-card.css"), /\.ypc--being \.ypc-pop \{ position: absolute; top: 22px; right: 22px;/);
+  assert.match(rd("../ui/yeta-chat.css"), /\.ncp-rgb \.ncp-f input \{ padding:6px 2px; font-size:13px; text-align:center;/);
+  assert.match(rd("../index.html"), /choice === null \|\|/);
+  assert.match(rd("../../src/lib/theme.ts"), /return "dark";/);
+});

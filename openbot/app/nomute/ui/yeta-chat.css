@@ -794,3 +794,7 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .nm-dec-row .nm-dec-no { flex:none; display:inline-grid; place-items:center; width:22px; height:22px; margin-right:10px; border-radius:50%; background:rgba(255,255,255,.1); color:var(--fg-2, inherit); font-size:12px; font-weight:700; font-variant-numeric:tabular-nums; }
 :root:not(.dark) .nm-dec-row .nm-dec-no { background:rgba(0,0,0,.08); }
 .nm-dec-row[data-on] .nm-dec-no { background:#CFFF40; color:#161716; }
+/* R · G · B 숫자 = 한 단 작게 · 가운데 · 세 칸 폭 합 = 무지개 줄 폭(형 11-12 08:37 「아래 숫자들 크기 좀 줄어도 됨 잘리니까. 무지개색 라인에 정렬하듯이」 · 앞 판 = 「242」 잘림) */
+.ncp-rgb { gap:6px; }
+.ncp-rgb .ncp-f { align-items:center; }
+.ncp-rgb .ncp-f input { padding:6px 2px; font-size:13px; text-align:center; font-variant-numeric:tabular-nums; }
