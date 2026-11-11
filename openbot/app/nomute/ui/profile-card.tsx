@@ -11,7 +11,7 @@ import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장하시겠습�
 import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../data/office";
 import { ColorPick } from "./color-pick";
 import { screenUrl, tailnetUrl } from "./pc-url";
-import { openScreenWithTicket } from "./screen-ticket";   // 「화면 보기」 주소 = 컴퓨터 카드와 같은 테일넷 거르개 · 앱 안 화면 꼴(모루 #2968 · 시험 tests/profile-screen.test.ts)
+import { openScreenGo } from "./screen-ticket";   // 「화면 보기」 주소 = 컴퓨터 카드와 같은 테일넷 거르개 · 앱 안 화면 꼴(모루 #2968 · 시험 tests/profile-screen.test.ts)
 import { BeingCard, beingLook, warmFace } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import "./profile-intro.css";
@@ -64,7 +64,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   };
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   const screen = tailnetUrl(p?.screen) ? screenUrl(tailnetUrl(p?.screen)) : "";   // 그 아이 몸 화면(형 11-08 빠르 창 「프로필 누르면 본인의 vm이 배선되도록」 · 주소 = 서버 명부 screen · 테일넷 안 주소만)
-  const openScreen = () => { if (screen) openScreenWithTicket(screen); };   // 표 붙여 열기 = 테일넷 밖 폰에서도(빠르 11-11 · ./screen-ticket.ts)
+  const openScreen = () => { if (screen) openScreenGo(screen); };   // 표 붙여 열기 = 테일넷 밖 폰에서도(빠르 11-11 · ./screen-ticket.ts)
   // 카드 있는 애 = 카드 한 장만(형 11-11 06:41 dm-sia 「여기 리인보우 카드 빼고 주변 다 날려도 될거같아」 · 「우상단에 색 고르는거는 카드 안에 우상단으로 넣어버리고. 딱 붙이진 말구.」 · 06:42 「화면보기 같은거는 @sia 이런 곳에 옮기자」 · 06:43 「그리고 설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯 . 좀 좁으려나? 그럼 세로를 늘리면 됑」 · 시아 「소개 글 · 직무 고치기도 같이 빼도 돼?」 → 형 「응응」)
   //   닫기 = 바깥 누름 · 뒤로 · Esc · 앞 판 = 둘레 유리 창 + 직무 · 소개 줄(연필) + 화면 보기 · 닫기 단추
   if (look) return (
