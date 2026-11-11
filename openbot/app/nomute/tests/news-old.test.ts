@@ -31,3 +31,13 @@ test("요약 요청 = 옛 꼴(글칸 한 장 안 붙여넣기 · 사진 · 링�
   assert.match(ask, /fetch\("\/api\/submit"/);
   assert.match(acss, /\.nm-ask-o \.nm-ask-box \{ position:relative; display:flex; flex-direction:column; border:1px solid rgba\(255,255,255,\.08\); border-radius:16px; background:rgba\(255,255,255,\.05\); \}/);
 });
+
+test("기사 한 장 = 옛 기사 창 글 꼴(소제목 줄임 · Pretendard · 대문자 0 · 링크 강조색)", () => {
+  const src = rd("../ui/news-detail.tsx"), ncss = rd("../ui/news.css");
+  const m = /export const headOf = (\(t: string\) => [^\n]+);\n/.exec(src);
+  assert.ok(m, "headOf 한 줄");
+  const headOf = new Function(`return ${m[1].replace(/: string/g, "")}`)() as (t: string) => string;   // tsx 는 node 가 못 읽어 줄째 꺼내 돌림
+  assert.equal(headOf("FACT (확인된 사실)"), "Fact"); assert.equal(headOf("INFERENCE (추론·해석)"), "Inference"); assert.equal(headOf("다각도 해석"), "다각도 해석");
+  assert.match(ncss, /\.nm-nd \.nm-nd-md :is\(p, li\) \{ font-size:14px; font-weight:400; line-height:1\.6; \}/);
+  assert.match(ncss, /text-transform:none;/);
+});

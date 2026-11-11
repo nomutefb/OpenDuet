@@ -27,7 +27,7 @@ function shape(body: string) {
       skip = false;   // 썸네일 소절 끝 = 다음 h1~h3(에디터 decorate ①)
       if (h[1] === "#" && !h1) { h1 = h[2].replace(EMOJI0, "").trim(); continue; }
       if (h[1] === "###" && /썸네일/.test(h[2])) { skip = true; continue; }
-      if (h[1] !== "#" && !/시사점/.test(h[2])) { out.push(`${h[1]} ${h[2].replace(EMOJI0, "")}`); continue; }
+      if (h[1] !== "#" && !/시사점/.test(h[2])) { out.push(`${h[1]} ${headOf(h[2].replace(EMOJI0, ""))}`); continue; }
     }
     if (edge) fence = !fence;
     if (skip) continue;
@@ -35,6 +35,8 @@ function shape(body: string) {
   }
   return { h1, md: out.join("\n").trim() };
 }
+/** 소제목 = 옛 에디터 기사 창 꼴(「FACT (확인된 사실)」 → 「Fact」 · 「INFERENCE (추론·해석)」 → 「Inference」 · 한글 소제목은 그대로 · /?old 실측 11-11) */
+export const headOf = (t: string) => t.replace(/^([A-Z][A-Z ]*?)\s*\(.*\)\s*$/, (_, w: string) => w.trim().toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase()));
 const key = (s: string) => s.replace(EMOJI0, "").replace(/\s+/g, "");
 
 export function NewsDetail({ file }: { file: string }) {
