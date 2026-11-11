@@ -96,3 +96,10 @@ test("요약 대기열 = 요청 → 요약 → 프롬프트 → 카드 가로 �
   assert.match(tc, /\.nm-tk-prog \.run em \{ background:repeating-linear-gradient\(/);
   assert.match(sc, /\.nm-sumc-prog \.cur em \{ background:repeating-linear-gradient\(/);
 });
+
+test("홈 차트 = 보라 노출 선 폰에도 · 「N분 전」 숫자 줄 가운데(형 11-11 20:06)", () => {
+  const fp = rd("../home/follow-pulse.tsx"), fcss = rd("../home/follow-pulse.css");
+  assert.ok(!/\{fill && vv\.length \?/.test(fp)); assert.match(fp, /\{vv\.length \? \(\(\) => \{/);
+  assert.match(fcss, /\.nm-pulse:not\(\.nm-pulse-fill\) \.nm-pulse-chart \.vw path \{ stroke:#AC5CFF;/);
+  assert.match(fcss, /\.nm-pulse-at \{ position:static; margin-left:auto; align-self:center;/);
+});

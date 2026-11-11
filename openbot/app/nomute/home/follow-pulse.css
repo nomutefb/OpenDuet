@@ -36,9 +36,14 @@
 .nm-pulse:not(.nm-pulse-fill) .nm-pulse-v { font-size:calc(var(--fs-h2) * .86); flex:none; }
 .nm-pulse:not(.nm-pulse-fill) .nm-pulse-k { flex:none; }
 .nm-pulse-k.th { color:var(--mut); }
-.nm-pulse:not(.nm-pulse-fill) .nm-pulse-at { position:static; margin-left:auto; flex:0 1 auto; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:clip; font-size:calc(var(--fs-xs) * .72); line-height:1; }
+.nm-pulse:not(.nm-pulse-fill) .nm-pulse-at { position:static; margin-left:auto; align-self:center; flex:0 1 auto; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:clip; font-size:calc(var(--fs-xs) * .72); line-height:1; }
 /* 보낸 이 옆 안 읽은 수(형 11-11 18:50 「대화 보낸 사람 옆에 몇개 와잇는지 발신자별로」) · 뒤 장 = 아래 가장자리 겹침 조금 더(형 「중첩된 느낌으로 뒤에」 · 앞 판 4 · 3px) */
 .yeta-set .nm-arr-n { display:inline-grid; place-items:center; flex:none; height:18px; min-width:18px; padding:0 5px; border-radius:999px; background:var(--accent); color:#111; font-size:11px; font-weight:800; font-style:normal; line-height:1; font-variant-numeric:tabular-nums; }
 .yeta-set .nm-arr-dot { display:inline-block; flex:none; width:7px; height:7px; border-radius:50%; background:var(--accent); }
 .yeta-set .nm-arr-one[data-stack]::before { height:6px; }
 .yeta-set .nm-arr-one[data-stack="2"]::after { height:5px; margin-top:6px; }
+/* 「N분 전」 = 숫자 줄 가운데 높이(형 11-11 20:06 「이거 수집 시간 우상단에 기준선 맞춰서 정렬해주고」 · 형 폰 사진 실측 = 밑선은 같지만 작은 글자라 큰 숫자보다 가운데가 3px 아래로 보였음) */
+/* 인스타 노출 꺾은선 = PC 칸(../ui/igfb-band.css)과 같은 네온 보라 · 평균 가로선 = 옅게 */
+.nm-pulse:not(.nm-pulse-fill) .nm-pulse-chart .vw path { stroke:#AC5CFF; stroke-opacity:.95; }
+.nm-pulse:not(.nm-pulse-fill) .nm-pulse-chart .vw circle { fill:#AC5CFF; }
+.nm-pulse:not(.nm-pulse-fill) .nm-pulse-chart .vw .vavg { stroke:#AC5CFF; stroke-opacity:.22; stroke-dasharray:2 3; }

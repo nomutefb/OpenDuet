@@ -123,7 +123,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
         <rect className="nm-pulse-rowbg" x="0" y={IGY} width={W} height={RH} fill="url(#nm-pulse-fade)" />
         {fill && fb ? <rect className="nm-pulse-rowbg fb" x="0" y={FBY} width={W} height={RH} /> : null}
-        {fill && vv.length ? (() => { const s = lines[0][1], off = (DAYS - s.length) * P, vp = s.map((p, i) => (p.views == null ? null : ([off + i * P + P / 2, VY(p.views)] as [number, number]))).filter((x): x is [number, number] => x != null); return (
+        {vv.length ? (() => {   /* 인스타 노출 보라 선 = 폰 홈에도(형 11-11 20:06 「그 보라색 선 잇잖아 노출아엿나 그거 어기도 보여야함.」 · 앞 판 = PC 칸만) */  const s = lines[0][1], off = (DAYS - s.length) * P, vp = s.map((p, i) => (p.views == null ? null : ([off + i * P + P / 2, VY(p.views)] as [number, number]))).filter((x): x is [number, number] => x != null); return (
           <g className="vw" aria-label={`인스타 일일 노출 · 평균 ${nf.format(Math.round(vavg))}`}>
             <line className="vavg" x1="0" x2={W} y1={MID.toFixed(1)} y2={MID.toFixed(1)} strokeWidth="1" />
             <text className="vlab" x={W - 3} y={(MID - 4).toFixed(1)} textAnchor="end" fontSize={FS}>{mfmt(vavg)}</text>   {/* 형 10:05 「노출평균 이거 없어도 됨. 설명 없어도되고 그냥 끝점 ---- 살짝 위에 0.9M 이렇게 00M만 나오면됨」 = 평균 점선 오른쪽 끝 살짝 위 · M 숫자만 */}
