@@ -11,6 +11,12 @@ import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, ta
 import { WebPane } from "./web-pane";   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 
+// 첫 탭 = 「봄의 정원」(형 11-12 06:23 봄 1:1 「기본적으로 탭형태를 갖춰서. 봄의 정원. 이라고 나오게해줘. 그리고 거기서 +가 나오게 크롬형태를 참고하면 될거같애」
+//   · 「일단 누르면 기본값으로 우측 sns, hotiussue, digest로 빈창이 열리게 하자 좌측은 유지되고(대화족은)」) — 지금 판 그 자체가 첫 탭 · 늘 보임
+export const GARDEN = "봄의 정원";
+// 웹 · 화면 탭이 덮는 자리 = 오른쪽 칸(aside.nm-split · SNS · HOT ISSUE · DIGEST)만 · 왼쪽 대화는 그대로 · 칸이 없으면(좁은 판) 옛 자리(몸 전체)
+const paneHost = (): HTMLElement | null => document.querySelector<HTMLElement>(".nm-split-root aside.nm-split");
+
 const load = (): TabState => {   // 방 탭은 안 올림(형 11-09 09:29 회의실 「대화 상대가 저기 나올 필요는 없어. 웹과 관련된 내용만 저기 뜨면 될듯.」) = 옛 판에 남은 방 탭도 뺌
   let s: TabState; try { s = tabsLoad(localStorage.getItem(TABS_KEY)); } catch { s = tabsLoad(null); }
   const tabs = s.tabs.filter((t) => t.k !== "room");
@@ -21,6 +27,8 @@ const go = (hash: string) => { if (location.hash !== hash) location.hash = hash;
 export function TabBar({ room, pane }: { room: string; pane: string }) {
   const [s, setS] = useState<TabState>(load);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useEffect(() => { const h = paneHost(); if (h !== host) setHost(h); });   // 오른쪽 칸이 그려진 뒤 · 다시 그려지면 따라감
   const bar = useRef<HTMLDivElement>(null), drag = useRef<{ key: string; x: number; moved: boolean } | null>(null);
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 30_000 });
   const ppl = useQuery({ queryKey: ["nomute", "people-tabs"], queryFn: () => people(), staleTime: 60_000 });
@@ -61,7 +69,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     const r = roomOf(t.id);
     return !r ? "" : r.with ? idOf(r.with, list) : roomAgentIds(r, list)[0] || "";
   };
-  const nameOf = (t: Tab) => (t.k === "dash" ? "대시보드" : t.k === "web" ? webTabName(t.url) : t.k === "screen" ? `${list.find((p) => p.who === t.who)?.name || t.who} 화면` : roomOf(t.id)?.name || t.id);
+  const nameOf = (t: Tab) => (t.k === "dash" ? GARDEN : t.k === "web" ? webTabName(t.url) : t.k === "screen" ? `${list.find((p) => p.who === t.who)?.name || t.who} 화면` : roomOf(t.id)?.name || t.id);
   const pick = (t: Tab) => {
     const key = tabKey(t);
     setS((x) => ({ ...x, active: key }));
@@ -104,9 +112,10 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   return (
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
-        {s.tabs.length > 1 ? <button type="button" className={`nm-tab-home${s.active === "dash" ? " on" : ""}`} aria-label="대시보드" title="대시보드" onClick={() => pick(DASH)}>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /></svg>
-        </button> : null}   {/* 대시보드 = 탭 아닌 왼쪽 집 단추 · 웹 탭 0 이면 숨김(시아 09:30) */}
+        <div role="tab" aria-selected={s.active === "dash"} tabIndex={0} title={GARDEN} className={`nm-tab dash garden${s.active === "dash" ? " on" : ""}`}
+          onClick={() => pick(DASH)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(DASH); } }}>
+          <span className="nm-tab-nm">{GARDEN}</span>
+        </div>   {/* 첫 탭 = 지금 판(늘 보임 · 닫기 · 끌기 없음) · 누르면 오른쪽이 원래 판(SNS · HOT ISSUE · DIGEST)으로 */}
         {s.tabs.filter((t) => t.k !== "dash").map((t) => {
           const key = tabKey(t), on = s.active === key, face = faceOf(t);
           return (
@@ -121,7 +130,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
         <button type="button" className="nm-tab-plus" aria-label="새 탭" title="새 탭" onClick={() => setS((x) => tabsAdd(x, webTabNew()))}>+</button>
       </div>
       {paneTabs.length ? createPortal(
-        <div className="nm-tab-screen" hidden={!(s.active.startsWith("s:") || s.active.startsWith("w:"))}>
+        <div className={`nm-tab-screen${host ? " in-split" : ""}`} hidden={!(s.active.startsWith("s:") || s.active.startsWith("w:"))}>
           {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "web" ? (
             <div key={tabKey(t)} className="nm-tab-web" hidden={s.active !== tabKey(t)}>
               <WebPane initial={t.url} focus={s.active === tabKey(t)} blank={shortcuts} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} />
@@ -129,7 +138,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
           ) : (
             <iframe key={tabKey(t)} title={nameOf(t)} src={t.url} hidden={s.active !== tabKey(t)} allow="clipboard-read; clipboard-write; fullscreen" />
           ))}
-        </div>, document.body) : null}
+        </div>, host || document.body) : null}
     </>
   );
 }
