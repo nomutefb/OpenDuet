@@ -60,9 +60,16 @@
 .nm-nlist-pin li.age6, .nm-nlist-ol li.age6 { filter:brightness(.5); }
 .nm-nlist-pin li.age4:hover, .nm-nlist-pin li.age6:hover, .nm-nlist-ol li.age4:hover, .nm-nlist-ol li.age6:hover { filter:none; }
 /* 전송 · 픽 접수 한 줄(깃 29) · 형 11-09 08:14 「창 또 안 떠도」) */
-.nm-nlist-sent { margin:0 0 6px; padding:4px 10px; border-radius:999px; width:fit-content; font-size:11px; color:var(--mut); background:rgba(255,255,255,.06); }
-:root:not(.dark) .nm-nlist-sent { background:rgba(0,0,0,.05); }
 
 /* 얼굴 있는 줄이 하나도 없으면 왼쪽 얼굴 칸째 뺌(형 11-09 12:01 「핫이슈 아직 좌측에 여백남음」 · 뜸) */
 .nm-nlist-ol.nopf li { grid-template-columns:18px minmax(0,1fr) auto 50px 30px; }
 .nm-nlist-ol.nopf .pf { display:none; }
+/* 「전송」 단추 안에서 차오름 → ✓(형 11-12 06:15 「… 그냥 전송 버튼에서 게이지차서 체크누르고 백단에서 이루어지면됨. 저렇게 표기될필요없음」 · 위 알약 .nm-nlist-sent 걷음) · 색 = 블랙 톤(라임 0 · 형 14:41) · 도는 중 · 끝 · 실패는 손 안 올려도 보임 */
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) > span { position:relative; z-index:1; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):is(.run, .ok, .bad) { opacity:1; overflow:hidden; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run { cursor:default; color:#e8eae8; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run::before { content:""; position:absolute; inset:0; background:rgba(232,234,232,.32); transform-origin:left center; transform:scaleX(0); animation:nmSdFill 1.2s cubic-bezier(.2,.7,.3,1) forwards; }
+@keyframes nmSdFill { to { transform:scaleX(.9); } }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).ok { color:#111; background:#e8eae8; border-color:transparent; min-width:2.2em; text-align:center; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).bad { color:#ff6b5e; border-color:rgba(255,107,94,.6); }
+@media (prefers-reduced-motion:reduce) { :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run::before { animation:none; transform:scaleX(.9); } }

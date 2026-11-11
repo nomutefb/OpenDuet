@@ -5,8 +5,8 @@
 import "./news-list.css";
 import { pollOff } from "../data/poll-linux";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
-import { isForeignUrl, quickSend } from "./quick-send";
+import { useEffect, useState } from "react";
+import { quickSend } from "./quick-send";
 import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickOrder, pickUrl } from "./news-feed";
 import { FaceImg } from "../ui/faces";
 import { homePool } from "./home-pool";
@@ -148,26 +148,21 @@ export function NewsList() {
     return () => { live = false; clearInterval(t); };
   }, []);
   // 전송 · 픽 = 창 없이 바로 요약 요청(형 11-09 08:14 · 외신이면 fp 저절로 · ./quick-send.ts · 깃 29)) — 접수 한 줄 · 대기열 판 저절로 갱신
-  const [sent, setSent] = useState("");
+  // 「전송」 = 그 단추 안에서 차오름 → ✓ · 위 알약(「보내는 중…」 · 「요약 요청 접수」) 걷음(형 11-12 06:15 봄 1:1 「그리고 이거 전송 누르면 위에 전송 중~ 뭐 이런식으로 떠, 어색하거든? 그냥 전송 버튼에서 게이지차서 체크누르고 백단에서 이루어지면됨. 저렇게 표기될필요없음」)
+  //   실패 = 그 단추가 「다시」(빨강 · 까닭은 title) 로 남음 = 조용히 삼키지 않음 · 같은 기사 두 번 막기(보내는 중 · 모루 09:43) 그대로
+  const [sdSt, setSdSt] = useState<Record<string, { k: "run" | "ok" | "bad"; why?: string }>>({});
   const qc = useQueryClient();
-  const inflight = useRef(new Set<string>()), seq = useRef(0), shown = useRef(0), clearT = useRef<ReturnType<typeof setTimeout> | null>(null);   // 모루 09:43 ②③ = 같은 기사 두 번 막기 · 요청 번호 · 타이머 하나
-  const say = (id: number, msg: string, hold = 0, force = false) => {
-    if (force) shown.current = id;   // 실패 = 차례와 상관없이 줄을 가져감(뒤 요청 성공에 묻히지 않게 · 모루 10:13 ②)
-    else if (id !== shown.current) return;   // 뒤 요청이 줄을 가졌으면 앞 요청 글은 안 씀(응답 역전)
-    setSent(msg);
-    if (clearT.current) clearTimeout(clearT.current);
-    clearT.current = hold ? setTimeout(() => { if (id === shown.current) setSent(""); }, hold) : null;
-  };
+  const mark = (k: string, v: { k: "run" | "ok" | "bad"; why?: string } | null) => setSdSt((o) => { const n = { ...o }; if (v) n[k] = v; else delete n[k]; return n; });
   const go = (title: string, url: string) => {
     const k = url || title;
-    if (!k || inflight.current.has(k)) return;   // 보내는 중 같은 기사 = 무시
-    inflight.current.add(k);
-    const id = ++seq.current;   // 번호는 늘 늘기만(겹침 0)
-    shown.current = id;
-    say(id, "보내는 중…");
-    quickSend(title, url).then(() => { say(id, isForeignUrl(url) ? "요약 요청 접수 · 외신 포함" : "요약 요청 접수", 4000); void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] }); })
-      .catch((err: Error) => say(id, `못 보냈어 · ${err.message}`, 6000, true))
-      .finally(() => { inflight.current.delete(k); });
+    if (!k || sdSt[k]?.k === "run") return;
+    mark(k, { k: "run" });
+    quickSend(title, url).then(() => { mark(k, { k: "ok" }); window.setTimeout(() => setSdSt((o) => (o[k]?.k === "ok" ? (({ [k]: _, ...r }) => r)(o) : o)), 6000); void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] }); })
+      .catch((err: Error) => mark(k, { k: "bad", why: err.message || "못 보냈어" }));
+  };
+  const sdBtn = (cls: string, k: string, onClick: () => void) => {
+    const x = sdSt[k];
+    return <button type="button" className={`${cls}${x ? ` ${x.k}` : ""}`} disabled={x?.k === "run"} aria-label={x?.k === "ok" ? "요약 요청 접수됨" : x?.k === "bad" ? `못 보냄 · 다시 보내기 — ${x.why}` : "이 기사로 요약 요청"} title={x?.k === "bad" ? x.why : "이 기사로 요약 요청"} onClick={onClick}><span>{x?.k === "ok" ? "✓" : x?.k === "bad" ? "다시" : "전송"}</span></button>;
   };
   const send = (row: Row) => go(row.title || "", row.meta?.published?.sourceUrl || row.urls?.[0] || "");
   const sendPick = (p: Pick) => go(p.title_clean || cleanTitle(p.title), (p.urls || [])[0] || p.url || "");
@@ -178,7 +173,6 @@ export function NewsList() {
   };
   return (
     <section className="nm-nlist" aria-label="실시간 뉴스">
-      {sent ? <p className="nm-nlist-sent" role="status">{sent}</p> : null}
       <div className="nm-nlist-h"><i className="live" aria-hidden /><b>Hot Issue</b><span>{st === "ready" && gotAt ? agoOf(gotAt, now) : ""}</span></div>   {/* 「N건」 → 「N분 전」(형 11-08 09:12 「hotissue 40건,< ㅣ건 의미없고 이것도 몇분전에 받아왓는지가 중요」 · Runner · SNS · Digest 와 같은 말) */}
       {pins.length ? (
         <ul className="nm-nlist-pin" aria-label="촉 · 틈 픽">
@@ -192,7 +186,7 @@ export function NewsList() {
                 <button type="button" className="pk-tt" title={title} onClick={() => openPick(p)}>{title}</button>
                 <span className="pk-mt">{[why, pickOutlet(p), ago(p.at)].filter(Boolean).join(" · ")}</span>
                 <span className="pk-sc">{Number.isFinite(p.score as number) ? Math.round(p.score as number) : ""}</span>
-                <button type="button" className="pk-sd" aria-label="이 기사로 요약 요청" title="이 기사로 요약 요청" onClick={() => sendPick(p)}>전송</button>
+                {sdBtn("pk-sd", url || title, () => sendPick(p))}
               </li>
             );
           })}
@@ -211,7 +205,7 @@ export function NewsList() {
               <span className="mt" title={row.src || undefined}>{row.src || ""}</span>
               <span className="ag">{row.at ? ago(row.at) : ""}</span>   {/* 「N분 전」 = 점수 바로 왼쪽 칸 · 오른쪽 맞춤(형 11-06 10:15 「00분전 0시간전 00분전이 좀 더 우측으로 가야될거같아 점수쪽」) */}
               <span className="sc" title={row.score_why || undefined}>{Number.isFinite(row.score as number) ? Math.round(row.score as number) : ""}</span>   {/* 점수 없는 줄도 칸은 둠(줄 맞춤) */}
-              <button type="button" className="sd" aria-label="이 기사로 요약 요청" title="이 기사로 요약 요청" onClick={() => send(row)}>전송</button>
+              {sdBtn("sd", row.meta?.published?.sourceUrl || row.urls?.[0] || row.title || "", () => send(row))}
             </li>
           ))}
         </ol>

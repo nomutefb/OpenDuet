@@ -105,3 +105,10 @@ test("홈 차트 = 보라 노출 선 폰에도 · 「N분 전」 숫자 줄 가�
   assert.match(fcss, /\.nm-pulse:not\(\.nm-pulse-fill\) \.nm-pulse-chart \.vw path \{ stroke:#AC5CFF;/);
   assert.match(fcss, /\.nm-pulse-at \{ position:static; margin-left:auto; align-self:center;/);
 });
+
+test("HOT ISSUE 「전송」 = 단추 안 차오름 → ✓ · 위 알약 0(형 11-12 06:15)", () => {
+  const nl = rd("../home/news-list.tsx"), nc = rd("../home/news-list.css");
+  assert.ok(!/nm-nlist-sent/.test(nl) && !/^\.nm-nlist-sent \{/m.test(nc), "위 알약 걷음");
+  assert.match(nl, /x\?\.k === "ok" \? "✓" : x\?\.k === "bad" \? "다시" : "전송"/);
+  assert.match(nc, /\.run::before \{ content:""; position:absolute; inset:0;/);
+});
