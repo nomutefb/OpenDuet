@@ -69,7 +69,7 @@ test("홈 판(형 11-11 18:48~18:51) = 그림 세로 108 · 스레드 · 「N시
   assert.match(fp, /const PH = 108;/); assert.match(fp, /H = fill \? tall : PH/);
   assert.match(fp, /get\("th", "threads_data\.json"\)\]/, "스레드 폰에도 받음");
   assert.ok(!/\{fill \? <><i className="nm-pulse-sep"/.test(fp), "TH 칸 = 폰에도");
-  assert.match(fp, /<span className="nm-pulse-at">\{ago\(ig\.generated_kst\)\.replace\(\/\^갱신 \/, ""\)\}<\/span>/);
+  assert.match(fp, /<span className="nm-pulse-at">\{ago\(ig\.live_followers\?\.at \|\| ig\.generated_kst\)\.replace\(\/\^갱신 \/, ""\)\}<\/span>/);
   assert.match(fcss, /\.nm-pulse:not\(\.nm-pulse-fill\) \.nm-pulse-at \{ position:static; margin-left:auto;/);
   assert.ok(!/SEND_ROOM/.test(nf.replace(/\/\/.*$/gm, "")), "카드 아래 단추 자리 걷음");
   assert.ok(!/:not\(:has\(\.article-media\)\)\{height:auto/.test(nf), "사진 없는 카드도 칸 높이");

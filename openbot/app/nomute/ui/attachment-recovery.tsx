@@ -1,3 +1,4 @@
+import { QUOTE, ReplyStrip } from "./reply-strip";
 import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type {
   createAttachmentSender,
@@ -77,7 +78,7 @@ function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) 
   return (
     <div className="nac-wrow" aria-label="보냄 대기">
       {item.failed ? <button type="button" className="nac-again" onClick={onRetry}>못 보냈어 · 다시 보내기</button> : <span className="nac-wait">보냄 대기</span>}   {/* 「보냄 대기」 = 1.2초 넘게 걸릴 때만 보임(./attachment-up.css · 글마다 깜빡이지 않게) */}
-      <div className="yb me nac-wb">{item.text}</div>
+      <div className="ybw"><ReplyStrip text={item.text} /><div className="yb me nac-wb">{item.text.replace(QUOTE, "")}</div></div>   {/* 답장 글 = 띠 + 내 글만(형 11-11 20:08 사진 = 여기서 「↩ 빠르: …」 줄이 글 안에 보였음 · ./reply-strip.tsx) */}
     </div>
   );
 }

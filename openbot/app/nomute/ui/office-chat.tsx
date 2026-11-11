@@ -55,6 +55,7 @@ import { dlHref } from "./news-data";
 import { useSwipeReply } from "./swipe-reply";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { inkOn } from "./color-pick";
+import { QUOTE, ReplyStrip } from "./reply-strip";   // 답글 띠(말풍선 바로 위 · 형 11-11 20:08 ~ 20:13) · 답장 글 첫 줄 꼴
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
 import { useMe, usePinActions } from "./pins";
 import { REPAIR_ROOM, RepairDesk } from "./repair-desk";   // 수리 접수 방 = 접수 창구(대화 말풍선 0 · 형 10-28 22:28)   // 글 동작 줄 「고정」(보조 01 · 장부 office-pin.md 「바뀜」 17:1x)
@@ -83,7 +84,6 @@ const saveDraft = (room: string, t: string) => { try { if (t.trim()) sessionStor
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const PICKUP_WAIT = 2 * 60e3;   // 점 셋 = 턴 신호가 오기 전 2분(감시 60초 + bots 조회 60초 · 형 「멍하고 기다리고」 자리)
 const CALL_FRESH = 45 * 60e3;   // 회의실 「작업 중」 = 부른 글이 45분 안일 때만(옛 화면 PR 1478 실측 · 답의 90% = 41분)
-const QUOTE = /^↩ ([^:\n]{1,24}): ([^\n]*)(?:\n|$)/;
 const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_Pictographic})*$/u;
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif)$/i;
 const VID_RE = /\.(mp4|webm|mov|m4v)$/i;   // 영상 첨부 = 대화창에서 바로 재생(시아 11-02 형 02:32 「여가에 영상도 올릴 수 있게 해줘」 · 서버 Range 206 = 아이폰 사파리)
@@ -700,13 +700,6 @@ function AutoVideo({ src, label, onError, onLoadedMetadata }: { src: string; lab
   return <video ref={ref} src={src} controls playsInline muted loop preload="metadata" aria-label={label} className="yvid block max-h-72 max-w-[260px] rounded-2xl bg-black" onError={onError} onLoadedMetadata={onLoadedMetadata} />;
 }
 
-function Quote({ m, c }: { m: Msg; c: Ctx }) {
-  const q = String(m.text || "").match(QUOTE);
-  if (q) return <button type="button" className="mb-1 block max-w-full truncate rounded-md border-l-2 border-primary bg-muted px-2 py-1 text-left text-xs" title="그 글로" onClick={() => c.onJump(q[1], q[2])}><b>{q[1]}</b> · {q[2]}</button>;
-  //   「↩ 원 글로」 칩(reply_to 만 있는 글) = 뺌(형 10-28 22:03 「원글로 라고 나오는거 안나와도 될듯」) · 「↩ 이름: 첫 줄」 인용은 그대로
-  return null;
-}
-
 /** 글 속 부름(「@이름」·「!이름」) — 서버가 알아들은 이름만(mention · urgent · alias 칸 = 부름이 실제로 걸린 것만 칩) · 긴 이름 먼저(「@윈터」보다 「@윈터 PM」) */
 const reEsc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 function callRe(m: Msg): RegExp | null {
@@ -913,11 +906,10 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     const app = hyungApp(m) && m.kind !== "human";   // 그록봇 앱에서 친 형 글 = 검정 말풍선 흰 글씨(형 10-30)
     return (
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
-        <Quote m={m} c={c} />
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
-          <div className="ybw"><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} /><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
         </div>
         <RouteLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -929,12 +921,12 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
         <div className={ring ? "yname tab" : "yname"} style={ring ? ({ "--yn": ring } as CSSProperties) : undefined}>{p?.name || whoName(m.who)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
-        <Quote m={m} c={c} />
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}
         <div className="ybrow">
           <div className="ybw">
             {pickM(m) ? <div className="ypick-top"><LinkCard m={m} /></div> : null}
+            <ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} />
             {pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               {m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
@@ -1456,8 +1448,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
           <RoomBoard room={room} />   {/* 입력칸 바로 위 한 줄 · 뜸 @형 알약 = 그 위 줄 · 칩도 제안도 없으면 줄 0 */}
         </div>
         {reply ? (
-          <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-primary bg-muted px-3 py-1.5 text-xs">
-            <span className="min-w-0 flex-1 truncate">↩ <b>{reply.who}</b> · {reply.line}</span>
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-muted px-3 py-1.5 text-xs">   {/* 카톡 꼴 = 「누구에게 답장」 + 그 글 한 줄 + ×(형 11-11 20:08 봄 1:1 = 봄이 옮김 · 왼쪽 강조 선 뺌) */}
+            <span className="min-w-0 flex-1"><b className="block truncate">{reply.who}에게 답장</b><span className="block truncate opacity-70">{reply.line}</span></span>
             <button type="button" aria-label="답장 그만" className="px-1" onClick={() => setReply(null)}>×</button>
           </div>
         ) : null}

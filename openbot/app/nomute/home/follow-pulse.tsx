@@ -7,7 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pollOff } from "../data/poll-linux";
 
 type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null; views?: number | null };   // views = 그날 노출(조회 · insta_data.json daily_series)
-type Chan = { profile: { followers_count: number }; generated_kst: string; daily_series?: Row[] };
+type Chan = { profile: { followers_count: number }; generated_kst: string; daily_series?: Row[]; live_followers?: { count?: number; at?: string } };   // live_followers = 서버가 20분마다 바로 물어 온 팔로워 수(editor #3307 /api/chan · 형 11-11 18:48 「이거 갱신 3시간 전은 너무 늦구」 · 19:53 「저 팔로워만 갱신하는거 같은건」 = 봄이 옮김)
+const liveN = (j: Chan) => (typeof j.live_followers?.count === "number" ? j.live_followers.count : j.profile.followers_count);   // 머리줄 숫자 = 바로 물은 값 먼저(그림 셈은 수집 값 그대로)
 type Pt = { date: string; net: number | null; count: number; pct: number; views?: number | null };
 const DAYS = 10, nf = new Intl.NumberFormat("ko-KR");
 const kstDay = () => new Date(Date.now() + 9 * 36e5).toISOString().slice(0, 10);
@@ -113,11 +114,11 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
   return (
     <button type="button" className={`nm-pulse${fill ? " nm-pulse-fill" : ""}`} aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
       <div className="nm-pulse-row">
-        <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v">{nf.format(ig.profile.followers_count)}</b>
+        <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v">{nf.format(liveN(ig))}</b>
         <i className="nm-pulse-sep" aria-hidden />
-        <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v">{fb ? nf.format(fb.profile.followers_count) : "–"}</b>
+        <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v">{fb ? nf.format(liveN(fb)) : "–"}</b>
         <i className="nm-pulse-sep" aria-hidden /><span className="nm-pulse-k th">TH</span><b className="nm-pulse-v">{th ? nf.format(th.profile.followers_count) : "–"}</b>   {/* PC 칸 = 스레드 총수 하나 더(형 11-08 09:11 「저기 fB 옆에구분자 하나 더 둬서 스레드도 나오게해, FB가 시안으로 표기되고 th 는 fb 색으로」 · 자료 = /api/chan?f=th → threads_data.json) */}
-        <span className="nm-pulse-at">{ago(ig.generated_kst).replace(/^갱신 /, "")}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
+        <span className="nm-pulse-at">{ago(ig.live_followers?.at || ig.generated_kst).replace(/^갱신 /, "")}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
       </div>
       <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
