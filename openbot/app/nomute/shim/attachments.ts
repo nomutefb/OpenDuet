@@ -6,7 +6,7 @@
 import { packImage, shouldPack } from "./compress";
 import { MEDIA_RE, waveOf } from "./wave";
 
-type Entry = { file: File; packed: File | null; pending: boolean; ready: Promise<void>; mode?: boolean; wave?: Promise<File | null> };
+type Entry = { file: File; packed: File | null; pending: boolean; ready: Promise<void>; mode?: boolean; dense?: boolean; wave?: Promise<File | null> };
 const files = new Map<string, Entry>();
 const CACHE = "office-app-att";
 
@@ -23,6 +23,11 @@ export function setCompress(next: boolean) {
   try { localStorage.setItem(KEY, next ? "1" : "0"); } catch { /* 이번 탭만 */ }
   emit();
 }
+// ── 「움직임 자세히」(영상만 · 형만 · 평소 꺼짐 · 형 11-12 06:4x 「영상쪼개서 보내는건 사용자만 기능이 있으면 돼. 그리고 평소에는 off야」)
+//   켜면 서버 러너가 30프레임마다 쪼갠 모음을 같이 붙임 · 기억 안 함 = 한 번 보내면 다시 꺼짐
+let dense = false;
+export const denseOn = () => dense;
+export function setDense(next: boolean) { if (next !== dense) { dense = next; emit(); } }
 export function subscribeCompress(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }
 /** useSyncExternalStore 용 = 스위치·압축 결과가 바뀔 때마다 오름 */
 export const compressVersion = () => version;
@@ -59,22 +64,24 @@ export async function putAttachment(f: File) {
 /** 보낼 파일(지우지 않음 · 보내기가 실패하면 입력칸 첨부 알약이 그대로 남으니 다시 보낼 수 있게)
  *  누른 순간의 스위치를 그 첨부에 적어 둠 = 줄 서서 늦게 올라가도 누른 때 고른 판으로(sendable) */
 export function peekAttachments(ids: string[]): File[] {
+  queueMicrotask(() => setDense(false));   // 「움직임 자세히」 = 한 번 보내면 다시 꺼짐(평소 꺼짐)
   return ids.map((id) => {
     const e = files.get(id);
     if (!e) return undefined;
     e.mode = on;
+    e.dense = dense && /^video\//i.test(e.file.type || "") || dense && /\.(mp4|mov|m4v|webm)$/i.test(e.file.name);
     return pick(e, on);
   }).filter((f): f is File => !!f);
 }
 
 /** 올리기 직전(data/attachment-state.ts) = 굽는 중이면 기다렸다가 누른 때 스위치대로
  *  original = 형이 「원본」으로 골라 보냄(사진·영상만 뜻이 있음) · untouched = 보낸 바이트가 고른 파일 그대로(1MB 아래 사진·문서 포함 = 타일 「원본」과 같음) */
-export async function sendable(id: string, fallback: File): Promise<{ file: File; original: boolean; untouched: boolean; origBytes: number }> {
+export async function sendable(id: string, fallback: File): Promise<{ file: File; original: boolean; untouched: boolean; origBytes: number; dense: boolean }> {
   const e = files.get(id);
-  if (!e) return { file: fallback, original: !on && isMedia(fallback), untouched: true, origBytes: fallback.size };
+  if (!e) return { file: fallback, original: !on && isMedia(fallback), untouched: true, origBytes: fallback.size, dense: false };
   await e.ready;
   const mode = e.mode ?? on, file = pick(e, mode);
-  return { file, original: !mode && isMedia(e.file), untouched: file === e.file, origBytes: e.file.size };   // origBytes = 고른 원본 크기(형 11-05 10:42 「압축 전 후 를 알수가잇나 혹시?」)
+  return { file, original: !mode && isMedia(e.file), untouched: file === e.file, origBytes: e.file.size, dense: !!e.dense };   // origBytes = 고른 원본 크기(형 11-05 10:42 「압축 전 후 를 알수가잇나 혹시?」)
 }
 
 /** 그 첨부의 파형 그림(소리·영상만 · 못 풀었거나 아직이면 null) · 늦어도 ms 까지만 기다림 = 보내기가 파형 때문에 오래 멈추지 않게 */
@@ -99,7 +106,8 @@ export type NmCompress = {
   subscribe: (fn: () => void) => () => void;
   snapshot: () => number;
   info: typeof compressInfo;
+  dense?: { get: () => boolean; set: (on: boolean) => void };
 };
 if (typeof window !== "undefined") {
-  (window as unknown as { nmCompress?: NmCompress }).nmCompress = { get: compressOn, set: setCompress, subscribe: subscribeCompress, snapshot: compressVersion, info: compressInfo };
+  (window as unknown as { nmCompress?: NmCompress }).nmCompress = { get: compressOn, set: setCompress, subscribe: subscribeCompress, snapshot: compressVersion, info: compressInfo, dense: { get: denseOn, set: setDense } };
 }

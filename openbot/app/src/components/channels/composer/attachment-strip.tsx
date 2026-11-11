@@ -56,6 +56,7 @@ type CompressBridge = {
   subscribe: (fn: () => void) => () => void;
   snapshot: () => number;
   info: (id: string) => { name: string; size: number; packed: boolean; pending: boolean; media: boolean } | undefined;
+  dense?: { get: () => boolean; set: (on: boolean) => void };   // 「움직임 자세히」(영상만 · 평소 꺼짐 · 형 11-12)
 };
 const bridge = () => (typeof window === "undefined" ? undefined : (window as unknown as { nmCompress?: CompressBridge }).nmCompress);
 const noSubscribe = () => () => {};
@@ -97,6 +98,7 @@ export function AttachmentStrip({
   const on = compress?.get() ?? true;
   // 스위치 = 사진·영상이 하나라도 있을 때만(형 「이거는 사진, 영상 공통이야. 다른거는 애초에 원본으로 가야하고.」)
   const hasMedia = images.length > 0 || files.some((file) => VIDEO_EXT.test(file.name));
+  const hasVideo = files.some((file) => VIDEO_EXT.test(file.name)), dense = compress?.dense, denseOn = dense?.get() ?? false;
 
   return (
     /*
@@ -133,6 +135,20 @@ export function AttachmentStrip({
               type="button"
             >
               {on ? "압축 ON" : "원본"}
+            </button>
+          </li>
+        ) : null}
+        {dense && hasVideo ? (
+          <li className="flex shrink-0 items-center self-center">
+            <button
+              aria-checked={denseOn}
+              aria-label="영상 움직임 자세히(30프레임마다 쪼개 같이 보냄)"
+              className={`rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors ${denseOn ? `border-border bg-muted ${ORIGINAL_TONE}` : "border-border bg-transparent text-muted-foreground"}`}
+              onClick={() => dense.set(!denseOn)}
+              role="switch"
+              type="button"
+            >
+              {denseOn ? "움직임 자세히 ON" : "움직임 자세히"}
             </button>
           </li>
         ) : null}

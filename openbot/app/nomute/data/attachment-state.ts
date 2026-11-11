@@ -61,7 +61,7 @@ function putPart(url: string, body: Blob, onLoaded: (bytes: number) => void, sig
     xhr.send(body);
   });
 }
-async function uploadChunked(room: string, file: File, text: string, onProgress?: (ratio: number) => void, original = false, signal?: AbortSignal) {
+async function uploadChunked(room: string, file: File, text: string, onProgress?: (ratio: number) => void, original = false, signal?: AbortSignal, dense = false) {
   if (signal?.aborted) throw stopped();
   const st = await post("upload/start", JSON.stringify({ room, name: file.name, size: file.size, type: file.type }));
   const up = (st.data as { upload?: { id: string; key: string; part_size: number } } | null)?.upload;
@@ -79,7 +79,7 @@ async function uploadChunked(room: string, file: File, text: string, onProgress?
     if (signal?.aborted) throw stopped();   // 조각은 다 갔지만 아직 글(upload/done) 전 = 여기서 끊어도 반쪽 0(조각은 abort 가 지움)
   } catch (e) { void post("upload/abort", JSON.stringify({ id: up.id, key: up.key })).catch(() => {}); throw e; }
   onProgress?.(1);
-  return post("upload/done", JSON.stringify({ id: up.id, key: up.key, parts, room, name: file.name, ...(text ? { text, together: true } : {}), ...(original ? { original: "1" } : {}) }));
+  return post("upload/done", JSON.stringify({ id: up.id, key: up.key, parts, room, name: file.name, ...(text ? { text, together: true } : {}), ...(original ? { original: "1" } : {}), ...(dense ? { dense: "1" } : {}) }));
 }
 
 // 사진 = 원본 + 보기용 작은 판을 같이(형 11-02 06:55 「사진도 혹시 마찬가지 원본일 필요는 없음. 소스로 쓰라고 주는거면 너네가 압축 전을 재요청 하면 되는거고. 이미지를 확인하는 거면 시스템이 내가 올리는 즉시 압축 시켜서 내용만 확인할 수 있게 하면 너네가 앞으로 계속 편할거야」 · 06:53 「나한테는 그대로임」)
@@ -155,11 +155,12 @@ export const attachmentSender = createAttachmentSender({
     if (signal?.aborted) throw stopped();   // 굽는 사이 눌렀으면 안 올림
     // 「원본」으로 보냄 = 서버 original=1(러너가 안 줄이고 file_meta 에 원본 표시 · 형 11-05 09:39 「압축됨 원본 둘중 하나로만 뜨게」)
     const original = sent.some((s) => s.original);
+    const dense = sent.some((s) => s.dense);   // 「움직임 자세히」(형만 · 평소 꺼짐 · 서버 dense=1)
     // 파형 그림(소리·영상 · 고른 순간 구워 둠 · ../shim/wave.ts) = 같은 글에 「<이름>.파형.png」로 같이(형 11-05 09:41 「그 순간에 … 파형 분석해서 같이 공유」) · 못 구웠으면 없이
     const waves = (await Promise.all(attempt.originals.map((o) => waveFile(o.id)))).filter((w): w is File => !!w);
     const only = sent.length === 1 ? sent[0].file : null;
     if (only && only.type.startsWith("video/")) {
-      const r = await uploadChunked(attempt.room, only, attempt.text || "", onProgress, original, signal);
+      const r = await uploadChunked(attempt.room, only, attempt.text || "", onProgress, original, signal, dense);
       if (r.status === 200 && waves.length) {   // 조각 길 = 영상 글 바로 뒤 글 하나로 파형(같은 방 · 글 없이 · 부름 0)
         const wf = new FormData();
         waves.forEach((w, i) => { wf.append("file", w); wf.append(`original_${i}`, "1"); });
@@ -179,6 +180,7 @@ export const attachmentSender = createAttachmentSender({
     waves.forEach((w, j) => { form.append("file", w); form.append(`original_${sent.length + j}`, "1"); });   // 파형 = 화면이 그린 그대로(안 줄임) · 원 파일 차례 뒤에
     form.set("room", attempt.room);
     if (original) form.set("original", "1");
+    if (dense) form.set("dense", "1");
     if (attempt.text) form.set("text", attempt.text);
     form.set("together", "1");
     if (signal?.aborted) throw stopped();   // 작은 판 굽는 사이 눌렀으면 안 올림
