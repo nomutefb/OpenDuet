@@ -484,10 +484,7 @@ function FaceStrip({ current }: { current: string; last: string }) {
   // 라이브 = 지금 깸 · 또는 마지막 턴 10분 안(상태바 조약돌과 같은 셈 · 형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어?」) — 턴 사이 「잠」 깜빡임 없게
   const live = (who?: string) => !!who && bots.some((b) => b.who === who && (b.state === "awake" || (!!b.last_turn_ts && Date.now() - b.last_turn_ts <= 10 * 60_000)));
   const asleep = (who?: string) => !!who && !live(who);
-  // 띠 차례(형 11-06 20:07 「깨어있는 애들이 위에 위치하도록 … 깨어난지 오래된 애들일 수록 아래로 가야함. (단톡방 포함) 시간기준」) = 고정 → 라이브(1:1 그 애 깸 · 10분 안) → 마지막으로 살아 움직인 때 새것부터
-  //   1:1 = 그 애 마지막 턴(bots last_turn_ts) · 단톡방 = 방 마지막 움직임(act_ts · last_ts)
-  const aliveAt = (r: (typeof ordered)[number]) => r.with ? bots.find((b) => b.who === r.with)?.last_turn_ts || 0 : r.act_ts || r.last_ts || 0;
-  const stripOrder = [...ordered].sort((a, b) => (+pins.has(b.id) - +pins.has(a.id)) || (+live(b.with) - +live(a.with)) || (aliveAt(b) - aliveAt(a)));   /* 누르기만 하면 자리 그대로 · 글이 오가야 위로(형 11-06 22:42 「내가 누른다고 바로 걔가 제일 위로 올라가면안돼. 내가 대화를 쳐서, 실시간으로 가장 최신 대화가 되어야 가장 위로올라가」) · 지금 방 = 무지개 테만(자리 그대로 · 봄 22:42 나눔) */
+  const stripOrder = ordered;   // 차례 = 폰 대화 목록과 한 벌(./room-list.tsx useRoomOrder · 고정 → 최근 대화순 · 새 글 오면 바로)(형 11-11 23:52 봄 1:1 「그리고 이거 아직 안고쳐짐」 · 앞 말 「윈터 나랑 대화한지 얼마 안됬는데, 저 아래로 가있어」 · 앞 판 = 고정 → 깸 → 봇 마지막 턴 = 턴 기록 없는 윈터 · 빈 단톡이 뒤섞임)
   // 대화 미리 받기 = 띠 차례 위 넷(1.5초 뒤 하나씩) + 얼굴에 손 올림·누름·초점(대화 목록 ./room-list.tsx 와 같은 꼴 · 뎅 16:03 「화면 위 차례랑 「위 네 방」 차례가 다름」)
   const qc = useQueryClient(), pre = (id: string) => { if (id) void qc.prefetchQuery(roomMsgsOptions(qc, id)); };
   const topS = stripOrder.slice(0, 4).map((r) => r.id).join(",");

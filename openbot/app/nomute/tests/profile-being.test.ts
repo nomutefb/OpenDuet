@@ -35,3 +35,8 @@ test("프로필 카드 = 일찍 돌려주기(!who) 뒤에 훅 0(React #310 · �
   const after = body.slice(body.indexOf("if (!who) return null;"), body.indexOf("\n}\n"));
   assert.ok(!/\buse[A-Z]\w*\(/.test(after.replace(/\/\/.*$/gm, "")), "!who 뒤 훅");
 });
+
+test("PC 얼굴 띠 차례 = 폰 대화 목록과 한 벌(형 11-11 23:52 「그리고 이거 아직 안고쳐짐」)", () => {
+  const sh = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
+  assert.match(sh, /const stripOrder = ordered;/);
+});
