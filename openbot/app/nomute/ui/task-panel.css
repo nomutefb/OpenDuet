@@ -55,3 +55,19 @@
 .nm-tk.lag .nm-tk-ring { border-color:#f5b942; }
 .nm-tasks-head > em.lag { color:#f5b942; }
 :root:not(.dark) .nm-tasks-head > em.lag, :root:not(.dark) .nm-tk.lag .nm-tk-ring { color:#9a6a00; border-color:#9a6a00; }
+/* 단계 가로 네 칸(요청 → 요약 → 프롬프트 → 카드 · 형 11-11 18:55 「… 순서대로 진행상황」) = 카드 막대(summary-desk.css .nm-sumc-prog)와 같은 꼴 · 앞 판 = 세로 줄 · 끝난 칸 줄 그음
+   끝 = 라임 · 도는 중 = 라임 줄무늬가 오른쪽으로 흐름(「도는 중」이 한눈에) · 아직 = 회색 · 멈춤 = 빨강 점선 · 칸 글자 옆 작은 수 = 몇 %·몇 분 · 기다림 「n번째」 */
+.nm-tk-prog { list-style:none; margin:8px 0 0; padding:0; display:flex; gap:6px; }
+.nm-tk-prog li { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:5px; }
+.nm-tk-prog i { display:flex; align-items:baseline; gap:4px; max-width:100%; font-style:normal; font-size:11px; font-weight:700; color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-tk-prog i b { font-size:10px; font-weight:600; font-variant-numeric:tabular-nums; opacity:.85; }
+.nm-tk-prog em { display:block; width:100%; height:6px; border-radius:999px; background:rgba(255,255,255,.16); }
+:root:not(.dark) .nm-tk-prog em { background:rgba(0,0,0,.1); }
+.nm-tk-prog .done i { color:rgb(var(--accent-rgb, 207,255,64)); } .nm-tk-prog .done em { background:rgb(var(--accent-rgb, 207,255,64)); }
+.nm-tk-prog .run i { color:rgb(var(--accent-rgb, 207,255,64)); }
+.nm-tk-prog .run em { background:repeating-linear-gradient(-45deg, rgb(var(--accent-rgb, 207,255,64)) 0 5px, rgba(var(--accent-rgb, 207,255,64), .3) 5px 10px); background-size:14.14px 100%; animation:nmTkRun .7s linear infinite; }
+.nm-tk-prog .fail i { color:#ff5a52; } .nm-tk-prog .fail em { background:repeating-linear-gradient(90deg, #ff5a52 0 6px, transparent 6px 10px); }
+:root:not(.dark) .nm-tk-prog .done i, :root:not(.dark) .nm-tk-prog .run i { color:#4f7a00; }
+@keyframes nmTkRun { to { background-position:14.14px 0; } }
+@media (prefers-reduced-motion: reduce) { .nm-tk-prog .run em { animation:none; } }
+

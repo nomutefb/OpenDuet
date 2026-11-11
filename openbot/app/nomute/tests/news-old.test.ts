@@ -85,3 +85,12 @@ test("뉴스 에디터 목록 = 알약 줄 · 찾기 걷음 · 카드 lean(형 1
   assert.match(rd("../ui/news-editor.css"), /\.nm-ned \.nm-sumc\.lean \.nm-sumc-kv \{ display:flex; flex-wrap:nowrap;/);
   assert.match(sd, /kind && !\(lean && kind !== "brk"\)/);
 });
+
+test("요약 대기열 = 요청 → 요약 → 프롬프트 → 카드 가로 네 칸 · 요청한 차례대로 · 도는 칸 줄무늬(형 11-11 18:55 「… 순서대로 진행상황」)", () => {
+  const tp = rd("../ui/task-panel.tsx"), tc = rd("../ui/task-panel.css"), sc = rd("../ui/summary-desk.css");
+  assert.match(tp, /\[\["요청", "done", ""\], \["요약",/);
+  assert.match(tp, /const rows = \[\.\.\.qs\]\.sort\(\(a, b\) => \(a\.it\.t \|\| 0\) - \(b\.it\.t \|\| 0\)\)/);
+  assert.match(tp, /`\$\{pos\}번째`/);
+  assert.match(tc, /\.nm-tk-prog \.run em \{ background:repeating-linear-gradient\(/);
+  assert.match(sc, /\.nm-sumc-prog \.cur em \{ background:repeating-linear-gradient\(/);
+});

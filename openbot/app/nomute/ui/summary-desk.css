@@ -21,7 +21,8 @@
 :root:not(.dark) .nm-sumc-prog em { background:rgba(0,0,0,.1); }
 .nm-sumc-prog .done i { color:rgb(var(--accent-rgb, 207,255,64)); }
 .nm-sumc-prog .done em { background:rgb(var(--accent-rgb, 207,255,64)); }
-.nm-sumc-prog .cur em { background:rgba(var(--accent-rgb, 207,255,64), .45); animation:nmSumPulse 1.4s ease-in-out infinite; }
+.nm-sumc-prog .cur em { background:repeating-linear-gradient(-45deg, rgb(var(--accent-rgb, 207,255,64)) 0 5px, rgba(var(--accent-rgb, 207,255,64), .3) 5px 10px); background-size:14.14px 100%; animation:nmSumRun .7s linear infinite; }   /* 만드는 중 = 줄무늬가 흐름(형 11-11 18:55 「… 순서대로 진행상황」 · 앞 판 = 흐린 라임 숨쉬기라 끝남과 잘 안 갈렸음) */
+@keyframes nmSumRun { to { background-position:14.14px 0; } }
 .nm-sumc-prog .cur i { color:rgb(var(--accent-rgb, 207,255,64)); }
 .nm-sumc-prog .fail em { background:repeating-linear-gradient(90deg, #ff5f8a 0 6px, transparent 6px 10px); }
 .nm-sumc-prog .fail i { color:#ff5f8a; }
