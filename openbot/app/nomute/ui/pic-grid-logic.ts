@@ -1,20 +1,12 @@
 // 사진 묶음 계산 줄(./pic-grid.tsx · 시험 = tests/pic-grid-logic.test.ts) — 화면 없이 도는 것만
 //   형 11-11 08:45 봄 1:1(봄 옮김) 「글구 너네가 사진 여러장 첨부하명」 · 「2장 이상일땐 이런식으로 크키가 줄어서 나오게 할 수 있어? 누르면 커지고」 · 참고 = 카톡 사진 묶음
 
-/** 한 줄에 몇 장씩 — 카톡 꼴: 셋씩 채우고, 남는 한 장은 마지막 두 줄을 둘 · 둘로(외톨이 한 칸 없음) · 1장 = 묶음 아님(지금 그대로) */
-export function gridRows(n: number): number[] {
-  if (n < 2) return n === 1 ? [1] : [];
-  if (n === 2) return [2];
-  if (n === 4) return [2, 2];
-  const r = n % 3, threes = Math.floor(n / 3);
-  if (r === 0) return Array(threes).fill(3);
-  if (r === 2) return [...Array(threes).fill(3), 2];
-  return [...Array(threes - 1).fill(3), 2, 2];   // r = 1 → 3…3 + 2 + 2
-}
-
-/** 칸마다 6칸 판에서 차지하는 폭(셋 줄 = 2 · 둘 줄 = 3 · 한 장 = 6) — CSS grid-column span */
-export function gridSpans(n: number): number[] {
-  return gridRows(n).flatMap((k) => Array(k).fill(6 / k));
+/** 한 줄 묶음(형 11-11 12:52 봄 1:1 · 봄 옮김 「1개는 크게 / 2개는 작게 가로로 / 3개는 작게 가로로 단 +n이 3번째 거에 썸네일로 들어가구 누르면 카톡 줫던 예시화면처럼」)
+ *  2장 = 둘 · 3장부터 = 셋만 보이고 넷째부터 숨김 → 셋째 칸에 「+n」(n = 가려진 장 수 · 카톡 버릇) · 1장 = 묶음 아님(옛 꼴 그대로) · 앞 판 = 셋 · 둘 · 둘 여러 줄(11-11 10:02 · 걷음) */
+export function rowOf(n: number): { show: number; more: number } {
+  if (n < 2) return { show: 0, more: 0 };
+  const show = Math.min(n, 3);
+  return { show, more: n - show };
 }
 
 /** 크게 보기 숫자 = 카톡 말(「17장 중 13번」) */

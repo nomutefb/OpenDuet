@@ -1,5 +1,6 @@
-/* 사진 묶음(./pic-grid.tsx · 뎅 11-11 · 형 08:45 「2장 이상일땐 이런식으로 크키가 줄어서 나오게」) — 카톡 꼴: 6칸 판 · 셋 줄 = 2칸씩 · 둘 줄 = 3칸씩 · 정사각 · 얇은 틈 · 바깥 모서리만 둥글게 */
-.nm-pg { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:2px; width:min(264px, 68vw); overflow:hidden; border-radius:16px; }
+/* 사진 묶음(./pic-grid.tsx · 뎅 11-11) — 형 12:52 「2개는 작게 가로로 / 3개는 작게 가로로 단 +n이 3번째 거에」 = 한 줄 · 정사각 · 얇은 틈 · 바깥 모서리만 둥글게 */
+.nm-pg { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:2px; width:min(264px, 68vw); overflow:hidden; border-radius:16px; }
+.nm-pg.c2 { grid-template-columns:repeat(2, minmax(0, 1fr)); width:min(220px, 58vw); }
 .nm-pg-c { position:relative; display:block; aspect-ratio:1; min-width:0; padding:0; border:0; background:rgba(127,127,127,.14); cursor:zoom-in; -webkit-tap-highlight-color:transparent; }
 .nm-pg-c img { display:block; width:100%; height:100%; object-fit:cover; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-user-drag:none; }   /* 길게 누름 = 브라우저 「이미지 저장」 말고 우리 글 메뉴(말풍선 .yb 의 useLongPress)
 .nm-pg-c:focus-visible { outline:2px solid rgb(var(--accent-rgb, 207,255,64)); outline-offset:-2px; }
@@ -22,3 +23,5 @@
 .nm-pv-t img { display:block; width:100%; height:100%; object-fit:cover; }
 /* 지운 글 한 줄(ui/office-chat.tsx Gone · 메뉴 「삭제」 · 뎅 11-11) */
 .nm-gone { font-size:var(--fs-sm, 13px); font-style:italic; opacity:.6; }
+/* 「+n」 = 셋째 칸 위 덮개(가려진 장 수 · 누르면 크게 보기에서 다 넘김) */
+.nm-pg-more { position:absolute; inset:0; z-index:2; display:grid; place-items:center; background:rgba(0,0,0,.48); color:#fff; font-size:22px; font-weight:700; letter-spacing:.01em; pointer-events:none; }

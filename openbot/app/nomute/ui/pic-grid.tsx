@@ -1,13 +1,13 @@
 // 사진 묶음 + 크게 보기 넘김(형 11-11 08:45~08:47 봄 1:1 · 봄 옮김) — 뎅
 //   「글구 너네가 사진 여러장 첨부하명」 · 「2장 이상일땐 이런식으로 크키가 줄어서 나오게 할 수 있어? 누르면 커지고」 · 「카톡은 이런식임」
-//   묶음 = 한 글에 사진 2장 넘음 → 작은 격자(셋씩 · 남는 한 장은 둘 · 둘 · 바깥 모서리만 둥글게 · ./pic-grid-logic.ts) · 1장 = ui/office-chat.tsx 옛 꼴 그대로
+//   묶음 = 한 글에 사진 2장 넘음 → 작게 가로 한 줄(2장 = 둘 · 3장부터 = 셋 + 셋째 칸 「+n」 · 형 12:52 · ./pic-grid-logic.ts rowOf) · 1장 = ui/office-chat.tsx 옛 꼴 그대로
 //   누르면 = 크게 보기 · 좌우로 넘김 · 아래 썸네일 줄(지금 장 라임 테) · 「N장 중 M번」 · 위 = 보낸 이 · 시각 · 받기
 //   겉 · 닫는 길 = 대화창 크게 보기(.nm-zoom · zoomImage)와 넘김(.nm-zoom-g · ./thumb-strip.tsx Zoom) 그대로 — 기록 한 칸 · 폰 뒤로 · Esc · 아무 데나 누름 · ui/shell.tsx 는 .nm-zoom 이 있으면 판을 안 옮김
 //   남은 것(둘째 판) = 길게 누르면 다운로드 · 공유 · 봄의 정원 다른 대화방으로(형 08:46 「오래누르면 다운로드 공유 다른 봄의 정원 대화방 공유 등」)
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { justHeld } from "./msg-menu";
-import { gridSpans, pvCount, pvIndex } from "./pic-grid-logic";
+import { pvCount, pvIndex, rowOf } from "./pic-grid-logic";
 import "./pic-grid.css";
 
 export type GridPic = { p: string; src: string; name: string };
@@ -15,14 +15,15 @@ const SV = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeW
 
 export function PicGrid({ pics, who, when, ring, dl, onBad }: { pics: GridPic[]; who: string; when: string; ring: (p: string) => string; dl: (src: string, name: string) => string; onBad: (p: string) => void }) {
   const [at, setAt] = useState(-1);
-  const spans = gridSpans(pics.length);
+  const { show, more } = rowOf(pics.length);
   return (
     <>
-      <div className="nm-pg" role="group" aria-label={`사진 ${pics.length}장`}>
-        {pics.map((f, k) => (
-          <button key={f.p} type="button" className={`nm-pg-c${ring(f.p)}`} style={{ gridColumn: `span ${spans[k]}` }} title={`${f.name} — 누르면 크게`} aria-label={`${pics.length}장 중 ${k + 1}번 크게`}
+      <div className={`nm-pg c${show}`} role="group" aria-label={`사진 ${pics.length}장`}>
+        {pics.slice(0, show).map((f, k) => (
+          <button key={f.p} type="button" className={`nm-pg-c${ring(f.p)}`} title={`${f.name} — 누르면 크게`} aria-label={more && k === show - 1 ? `${pics.length}장 중 ${k + 1}번 · ${more}장 더 · 크게` : `${pics.length}장 중 ${k + 1}번 크게`}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; setAt(k); }}>
             <img src={f.src} alt={f.name} loading="lazy" decoding="async" onError={() => onBad(f.p)} />
+            {more && k === show - 1 ? <span className="nm-pg-more" aria-hidden>+{more}</span> : null}
           </button>
         ))}
       </div>

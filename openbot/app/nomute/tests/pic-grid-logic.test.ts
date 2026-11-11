@@ -1,29 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { gridRows, gridSpans, pvCount, pvIndex } from "../ui/pic-grid-logic.ts";
+import { pvCount, pvIndex, rowOf } from "../ui/pic-grid-logic.ts";
 
-// 사진 묶음(ui/pic-grid.tsx) — 카톡처럼 셋씩, 외톨이 한 칸 없이
-test("줄 나눔", () => {
-  assert.deepEqual(gridRows(0), []);
-  assert.deepEqual(gridRows(1), [1]);
-  assert.deepEqual(gridRows(2), [2]);
-  assert.deepEqual(gridRows(3), [3]);
-  assert.deepEqual(gridRows(4), [2, 2]);
-  assert.deepEqual(gridRows(5), [3, 2]);
-  assert.deepEqual(gridRows(7), [3, 2, 2]);
-  assert.deepEqual(gridRows(8), [3, 3, 2]);
-  assert.deepEqual(gridRows(15), [3, 3, 3, 3, 3]);
-  for (let n = 2; n <= 30; n++) {
-    const r = gridRows(n);
-    assert.equal(r.reduce((a, b) => a + b, 0), n, `${n}장 다 들어감`);
-    assert.ok(r.every((k) => k === 2 || k === 3), `${n}장 = 둘 · 셋 줄만`);
-  }
-});
-
-test("칸 폭 = 6칸 판", () => {
-  assert.deepEqual(gridSpans(5), [2, 2, 2, 3, 3]);
-  assert.deepEqual(gridSpans(4), [3, 3, 3, 3]);
-  for (let n = 2; n <= 30; n++) assert.equal(gridSpans(n).length, n);
+// 사진 묶음(ui/pic-grid.tsx) — 형 11-11 12:52 「1개는 크게 / 2개는 작게 가로로 / 3개는 작게 가로로 단 +n이 3번째 거에」
+test("한 줄 · 셋까지 · 넷째부터 「+n」", () => {
+  assert.deepEqual(rowOf(0), { show: 0, more: 0 });
+  assert.deepEqual(rowOf(1), { show: 0, more: 0 }, "1장 = 묶음 아님(옛 꼴)");
+  assert.deepEqual(rowOf(2), { show: 2, more: 0 });
+  assert.deepEqual(rowOf(3), { show: 3, more: 0 });
+  assert.deepEqual(rowOf(4), { show: 3, more: 1 });
+  assert.deepEqual(rowOf(7), { show: 3, more: 4 });
+  for (let n = 2; n <= 30; n++) { const r = rowOf(n); assert.equal(r.show + r.more, n, `${n}장 = 보이는 것 + 가린 것`); assert.ok(r.show <= 3); }
 });
 
 test("크게 보기 숫자 · 넘김 번호", () => {
