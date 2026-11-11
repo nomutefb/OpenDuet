@@ -29,6 +29,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const introDirty = edit && draft !== (cur?.intro || ""), roleDirty = roleEdit && roleDraft.trim() !== (cur?.role || "");
   useEffect(() => { if (!who || !edit) return; if (introDirty) draftSet(`intro:${who}`, draft); else draftDrop(`intro:${who}`); }, [who, edit, draft, introDirty]);
   const g = useCloseGuard(introDirty || roleDirty, onClose, !!who);   // 고치던 소개·직무 있으면 닫기 대신 물음 · Esc 도 이 길(카드 떠 있을 때만)
+  const [fx, setFx] = useState(false), [fImg, setFImg] = useState(""), [fIntro, setFIntro] = useState(""), [fNote, setFNote] = useState("");   // 형이 사진 · 소개 고치기(형 11-12 07:52 「내가 사진하구. 문구 수정 가능하게 해주셈」 · 한 번 저장 = 서버가 그 봇 1:1 에 [변경 안내])
   const [scr, setScr] = useState("");   // 앱 안 화면 주소(표 붙음 · 형 11-11 19:08 「브라우저로 따로 안들어가고 여기서」)   // 훅은 일찍 돌려주기(!who) 앞에(시아 11-11 22:4x · 뒤에 있으면 프사 누를 때 훅 수가 늘어 React #310 = 앱 통째 「Something went wrong」 · PC 실물)
   if (!who) return null;
   const p = list.find((x) => x.who === who);
@@ -64,6 +65,34 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); return false; }
     finally { setBusy(false); }
   };
+  const pickFace = (f?: File | null) => { if (!f) return; void squareWebp(f).then(setFImg, () => setFNote("사진을 못 읽었어 — 다른 걸로")); };
+  const saveFx = async () => {
+    if (busy) return;
+    const introChanged = fIntro !== (p?.intro || "");
+    if (!fImg && !introChanged) { setFx(false); return; }
+    setBusy(true); setFNote("");
+    try {
+      const r = await office<{ ok?: boolean; error?: string; why?: string }>("profile", { method: "POST", body: JSON.stringify({ who, ...(introChanged ? { intro: fIntro } : {}), ...(fImg ? { face_b64: fImg } : {}) }) });
+      if (r && r.ok === false) throw new Error(r.why || r.error || "저장 못 함");
+      qc.setQueryData(["nomute", "people"], await people(true));
+      setFx(false); setFImg("");
+    } catch (e) { setFNote((e as Error)?.message || "저장 못 함 — 다시"); }
+    finally { setBusy(false); }
+  };
+  const fxView = fx ? (
+    <div className="ypc-fx" role="dialog" aria-label={`${name} 사진 · 소개 고치기`} onClick={(e) => e.stopPropagation()}>
+      <label className="ypc-fx-face">
+        <img src={fImg || p?.face || ""} alt="" />
+        <span>사진 바꾸기</span>
+        <input type="file" accept="image/*" onChange={(e) => pickFace(e.target.files?.[0])} hidden />
+      </label>
+      <textarea value={fIntro} maxLength={300} rows={4} aria-label={`${name} 소개`} onChange={(e) => setFIntro(e.target.value)} />
+      <div className="row"><small>{[...fIntro].length}/300 · 저장하면 {name} 1:1 에 [변경 안내]</small></div>
+      {fNote ? <small className="err" role="alert">{fNote}</small> : null}
+      <div className="row"><button type="button" className="ypc-x" disabled={busy} onClick={() => { setFx(false); setFImg(""); setFNote(""); }}>닫기</button><button type="button" className="ypc-ok" disabled={busy} onClick={() => void saveFx()}>{busy ? "저장 중…" : "저장"}</button></div>
+    </div>
+  ) : null;
+  const fxPen = p?.kind === "human" ? null : <button type="button" className="ypc-fxpen" aria-label={`${name} 사진 · 소개 고치기`} title="사진 · 소개 고치기" onClick={() => { setFIntro(p?.intro || ""); setFImg(""); setFNote(""); setFx(true); }}>✎</button>;
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   const screen = tailnetUrl(p?.screen) ? screenUrl(tailnetUrl(p?.screen)) : "";   // 그 아이 몸 화면(형 11-08 빠르 창 「프로필 누르면 본인의 vm이 배선되도록」 · 주소 = 서버 명부 screen · 테일넷 안 주소만)
   const openScreen = () => { if (screen) void screenTicket(screen, (b) => office<{ url?: string }>("screen/ticket", { method: "POST", body: JSON.stringify(b) })).then((u) => (u ? setScr(u) : openScreenGo(screen))); };   // 못 받으면 = 새 창 바로 보내기
@@ -76,6 +105,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
         <button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} />
         <BeingCard who={who} name={name} role={p?.role} person={p} note={p?.intro || undefined} onScreen={screen ? openScreen : undefined} onDm={dm ? go : undefined} acts />
         {pick ? <div className="ypc-pop"><ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /></div> : null}
+        {fxPen}{fxView}
       </div>
       {scrView}
     </div>
@@ -83,6 +113,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   return (
     <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>   {/* nm-yeta = 예타 토큰(--accent · --r-l …) 받는 자리(카드는 .ychat 밖에 뜸) */}
       <div className={look ? "ypc ypc--being" : "ypc"} role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
+        {fxPen}{fxView}
         <button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} />   {/* 프로필 창 우상단 모서리 · 마진 조금(형 11-01 14:02 「무지개색 프로필 원 저거 저 프로필 창의 우상단을 말하는 거임 우상단 모서리에 마진을 조금 둬서」) */}
         {look ? <BeingCard who={who} name={name} role={p?.role} person={p} /> : <div className="ypc-ava"><MicOrb size={130} id={idOf(who, list)} tint={ringOf(p)} /></div>}
         {pick ? <div className="ypc-pop"><ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /></div> : null}   {/* 프사 위에 뜨는 판 = 이름이 안 밀림(형 11-01 10:5x 「애초에 모달느낌으로 프사 위에 뜨면되니까」) */}
@@ -128,4 +159,22 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
       {scrView}
     </div>
   );
+}
+
+/** 고른 사진 → 가운데 정사각 256 webp(data URL) · 서버 2MB 상한 안(방 사진과 같은 꼴) */
+function squareWebp(f: File): Promise<string> {
+  return new Promise((ok, no) => {
+    const u = URL.createObjectURL(f), im = new Image();
+    im.onload = () => {
+      const n = Math.min(im.naturalWidth, im.naturalHeight), c = document.createElement("canvas");
+      c.width = c.height = 256;
+      const x = c.getContext("2d");
+      if (!x) { URL.revokeObjectURL(u); no(new Error("no canvas")); return; }
+      x.drawImage(im, (im.naturalWidth - n) / 2, (im.naturalHeight - n) / 2, n, n, 0, 0, 256, 256);
+      URL.revokeObjectURL(u);
+      ok(c.toDataURL("image/webp", 0.9));
+    };
+    im.onerror = () => { URL.revokeObjectURL(u); no(new Error("bad image")); };
+    im.src = u;
+  });
 }

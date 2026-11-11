@@ -20,3 +20,15 @@
 /* 화면 보기(형 11-08 「프로필 누르면 본인의 vm이 배선되도록」) — 1:1 대화 단추와 같은 꼴 · 아이콘 한 칸 */
 .ypc-acts .ypc-screen { display: inline-flex; align-items: center; gap: 6px; }
 .ypc-acts .ypc-screen svg { width: 16px; height: 16px; flex: none; }
+
+/* 형이 사진 · 소개 고치기(형 11-12 07:52) — 카드 왼쪽 위 연필 · 누르면 카드 위에 작은 판 */
+.ypc-fxpen { position:absolute; left:22px; top:22px; z-index:4; width:26px; height:26px; padding:0; border:1px solid rgba(207,255,64,.38); border-radius:50%; background:rgba(20,22,20,.62); color:#CFFF40; font-size:13px; line-height:24px; cursor:pointer; }
+.ypc-fx { position:absolute; inset:auto 16px 16px 16px; z-index:6; display:flex; flex-direction:column; gap:8px; padding:14px; border-radius:18px; background:rgba(18,20,18,.94); border:1px solid rgba(255,255,255,.12); box-shadow:0 12px 32px rgba(0,0,0,.45); color:#f1efe9; }
+.ypc-fx-face { display:flex; align-items:center; gap:12px; cursor:pointer; }
+.ypc-fx-face img { width:64px; height:64px; border-radius:50%; object-fit:cover; background:#222; }
+.ypc-fx-face span { font-size:13px; color:#CFFF40; }
+.ypc-fx textarea { resize:none; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:inherit; font-size:16px; line-height:1.45; }
+.ypc-fx .row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.ypc-fx .row small { color:rgba(241,239,233,.6); font-size:11px; }
+.ypc-fx .err { color:#ff8a80; }
+.ypc-fx .ypc-ok { padding:8px 16px; border-radius:999px; border:1px solid rgba(207,255,64,.38); background:rgba(207,255,64,.14); color:#CFFF40; font-weight:700; }
