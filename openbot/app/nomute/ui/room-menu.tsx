@@ -48,7 +48,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   ) : null;
   const items = r ? (
     <>
-      {r.temp ? <button type="button" role="menuitem" onClick={go(() => setTempEdit(true))}>방 설정<small>이름 · 목적 · 기한</small></button> : null}
+      {r.temp ? <button type="button" role="menuitem" onClick={go(() => setTempEdit(true))}>방 설정<small>이름 · 방 지침 · 기한</small></button> : null}
       {!r.with ? <button type="button" role="menuitem" onClick={go(() => setLook(true))}>방 꾸미기<small>아이콘 · 색</small></button> : null}   {/* 단톡방·회의실 다(형 11-06 20:00 · 20:33 「회의실도 가능해야해.」 · 20:37 「방 아이콘 변경 저것도 저기에」) */}
       {!r.with ? <button type="button" role="menuitem" onClick={go(() => setTinting(r))}><span className="flex items-center gap-2"><RainbowOrb />표지 색</span></button> : null}
       {!r.with && !r.temp ? <button type="button" role="menuitem" onClick={go(() => setNaming(r))}>이름 바꾸기</button> : null}
