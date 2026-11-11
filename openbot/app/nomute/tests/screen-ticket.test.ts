@@ -7,7 +7,7 @@ const U = "https://fast2.tail46034f.ts.net/vnc.html?autoconnect=1&resize=scale";
 
 test("바로 보내기 주소 = 서버 문 + 몸 주소 통째(쿼리까지)", () => {
   const g = screenGoUrl(U);
-  assert.ok(g.startsWith("/api/office/m/screen/go?url="));
+  assert.ok(g.startsWith("/api/office/screen/go?url="));   // 사람 문(형 · Access) — m/ 는 봇 문
   assert.equal(new URL(g, "https://edit.nomute.kr").searchParams.get("url"), U);
 });
 
