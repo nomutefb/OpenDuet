@@ -30,3 +30,33 @@
 @media (prefers-reduced-motion:reduce) { .nm-sumc-prog .cur em { animation:none; } }
 .nm-sumc-more { align-self:center; min-height:40px; padding:0 18px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); border-radius:999px; background:none; color:var(--fg-2, inherit); font-size:13px; cursor:pointer; }
 .nm-sumc-empty { padding:24px 4px; color:var(--mut); font-size:14px; text-align:center; }
+/* lean 카드 한 벌(뉴스 에디터 목록 · PC 홈 DIGEST 같이 씀 · 형 11-11 22:09 「1) digest > 아까 수정한 모바일에 통일」 · 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까 잘 참고해.」 · 앞 판 = ./news-editor.css .nm-ned 안에만) — 세 줄 = 머리 줄(분류 · N시간 전 … 매체 · 편향) · 제목 한 줄 · 막대 */
+.nm-sumc.lean { gap:12px; padding:18px; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing:-.2px; }
+html.dark .nm-sumc.lean { background:rgba(255,255,255,.012); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-color:rgba(255,255,255,.08); }
+.nm-sumc.lean .nm-sumc-top { font-size:11px; gap:6px; }
+.nm-sumc.lean .nm-sumc-top .cat { font-weight:800; }
+.nm-sumc.lean .nm-sumc-top > span:not(.r) b { font-weight:700; color:#CFFF40; }   /* 보도 시각 = 강조(옛 --accent) */
+html:not(.dark) .nm-sumc.lean .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
+.nm-sumc.lean .nm-sumc-top .r b { font-weight:700; color:var(--fg); }
+.nm-sumc.lean .nm-sumc-t { font-size:15px; font-weight:700; line-height:1.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }   /* 제목 한 줄 · 넘치면 …(형 11-11 18:53 「글구 제목은 한줄로만 나오게하고 두줄되면 ...으로」) */
+.nm-sumc.lean .nm-sumc-kv span { font-size:11px; font-weight:400; line-height:1.6; }
+.nm-sumc.lean .nm-sumc-kv b { font-size:13px; font-weight:700; line-height:1.45; }
+.nm-sumc.lean .nm-sumc-prog i { font-size:11px; font-weight:700; }
+.nm-sumc.lean .nm-sumc-prog em { height:7px; }
+.nm-sumc.lean .nm-sumc-prog span:not(.done):not(.cur):not(.fail) i { color:#BBBCBC; }   /* 회색 = 아직 칸만(끝남 · 만드는 중 · 멈춤 색은 summary-desk.css 그대로 · 앞 판 = 회색이 끝남 라임까지 덮음 11-11 13:2x 라이브 실물) */
+.nm-sumc.lean .nm-sumc-prog span:not(.done):not(.cur):not(.fail) em { background:rgba(187,188,188,.7); }
+.nm-sumc.lean.k-iss, .nm-sumc.lean.k-brk { border-color:rgba(230,195,92,.75); }
+.nm-sumc.lean.on { border-color:#CFFF40; box-shadow:0 0 0 1px #CFFF40 inset, 0 1px 16px rgba(0,0,0,.4); }
+:root:not(.dark) .nm-sumc.lean.on { border-color:#4f7a00; box-shadow:0 0 0 1px #4f7a00 inset; }
+.nm-sumc.lean .nm-sumc-top .urg { font-weight:600; }
+.nm-sumc.lean .nm-sumc-top .urg.iss { color:#e6c35c; }
+.nm-sumc.lean .nm-sumc-top .urg.brk { color:#ff6b5e; }
+.nm-sumc.lean .nm-sumc-kv.three { grid-template-columns:1fr 1fr 1fr; }
+.nm-sumc.lean .nm-sumc-kv .sens { display:flex; flex-wrap:wrap; gap:4px; }
+.nm-sumc.lean .nm-sumc-kv .sens em { font-style:normal; }
+.nm-sumc.lean .nm-sumc-kv .sens em.warn { color:#ff9f6b; }
+.nm-sumc.lean .nm-sumc-top { min-width:0; }
+.nm-sumc.lean .nm-sumc-top > :not(.src) { flex:none; }
+.nm-sumc.lean .nm-sumc-top .src { margin-left:auto; min-width:0; font-size:10px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:right; }
+.nm-sumc.lean .nm-sumc-top .src b { color:var(--fg); font-weight:600; }
+.nm-sumc.lean .nm-sumc-top .src i { font-style:normal; color:var(--mut); font-weight:400; }

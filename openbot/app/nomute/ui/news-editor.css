@@ -49,36 +49,7 @@
 /* 카드 = 옛 에디터 뉴스 요약 .card 그대로(형 11-11 09:01 봄 1:1 「옛.에디터 디자인이 거의 최적화니까 거기에 그냥 맞춘다 생각하면됨 폰트도 에디터 들은 거기에 맞춰 뉴스 요약 받는 것도 포함」 · 13:02 「이미지 썸네일 만들기랑 뉴스요약 뉴스요약 보기가 가장 많이 쓰는 기능이니까 그것만 따라오면 돼」)
    값 = 옛 판(/?old) 웹킷 폰 390 실측: 글꼴 Pretendard · 안쪽 18 · 유리(바탕 투명 + 흐림 12 · 테 .08 · 모서리 16) · 머리 11(분류 800 · 시각 700) · 제목 15/700/1.45 · 매체 · 편향 · 민감 이름 11/400 · 값 13/700 · 진행 글 11/700 · 막대 7 · 색만 정원 라임(형 12:51 「시그니처 팔레트」 결)
    앞 판 = 형 11-04 「폰트 안따라가도 돼」 · 굵기 한 단 낮춤 · 안쪽 14/16 · 폰은 매체 · 편향 줄 뺌(→ 09:01 이 갈음) */
-.nm-ned .nm-sumc { gap:12px; padding:18px; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing:-.2px; }
-html.dark .nm-ned .nm-sumc { background:rgba(255,255,255,.012); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-color:rgba(255,255,255,.08); }
-.nm-ned .nm-sumc-top { font-size:11px; gap:6px; }
-.nm-ned .nm-sumc-top .cat { font-weight:800; }
-.nm-ned .nm-sumc-top > span:not(.r) b { font-weight:700; color:#CFFF40; }   /* 보도 시각 = 강조(옛 --accent) */
-html:not(.dark) .nm-ned .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
-.nm-ned .nm-sumc-top .r b { font-weight:700; color:var(--fg); }
-.nm-ned .nm-sumc-t { font-size:15px; font-weight:700; line-height:1.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }   /* 제목 한 줄 · 넘치면 …(형 11-11 18:53 「글구 제목은 한줄로만 나오게하고 두줄되면 ...으로」) */
-.nm-ned .nm-sumc-kv span { font-size:11px; font-weight:400; line-height:1.6; }
-.nm-ned .nm-sumc-kv b { font-size:13px; font-weight:700; line-height:1.45; }
-.nm-ned .nm-sumc-prog i { font-size:11px; font-weight:700; }
-.nm-ned .nm-sumc-prog em { height:7px; }
-.nm-ned .nm-sumc-prog span:not(.done):not(.cur):not(.fail) i { color:#BBBCBC; }   /* 회색 = 아직 칸만(끝남 · 만드는 중 · 멈춤 색은 summary-desk.css 그대로 · 앞 판 = 회색이 끝남 라임까지 덮음 11-11 13:2x 라이브 실물) */
-.nm-ned .nm-sumc-prog span:not(.done):not(.cur):not(.fail) em { background:rgba(187,188,188,.7); }
-.nm-ned .nm-sumc.k-iss, .nm-ned .nm-sumc.k-brk { border-color:rgba(230,195,92,.75); }
-.nm-ned .nm-sumc.on { border-color:#CFFF40; box-shadow:0 0 0 1px #CFFF40 inset, 0 1px 16px rgba(0,0,0,.4); }
-:root:not(.dark) .nm-ned .nm-sumc.on { border-color:#4f7a00; box-shadow:0 0 0 1px #4f7a00 inset; }
-.nm-ned .nm-sumc-top .urg { font-weight:600; }
-.nm-ned .nm-sumc-top .urg.iss { color:#e6c35c; }
-.nm-ned .nm-sumc-top .urg.brk { color:#ff6b5e; }
-.nm-ned .nm-sumc-kv.three { grid-template-columns:1fr 1fr 1fr; }
-.nm-ned .nm-sumc-kv .sens { display:flex; flex-wrap:wrap; gap:4px; }
-.nm-ned .nm-sumc-kv .sens em { font-style:normal; }
-.nm-ned .nm-sumc-kv .sens em.warn { color:#ff9f6b; }
 .nm-ned-more { all:unset; cursor:pointer; align-self:center; padding:8px 16px; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); font-size:var(--fs-xs); color:var(--fg-2); }
 /* 카드 세 줄 = 머리 줄(분류 · N시간 전 ………… 매체 · 편향) · 제목 한 줄 · 막대 셋(형 11-11 19:22 「매체도 우상단으로 보내버리면 더 줄일 수 있나?」 · 18:54 「… 민감 키워드는 없어도 됨 표기 안할게」 「그럼 더 많이 보일거고. 이 높이에 맞춰서」 · 앞 판 = 매체 · 편향 가로 한 줄 따로)
    이름표 「매체」 「편향」 글자 0 · 값만 · 편향 = 흐리게 · 긴 매체 이름은 … · 머리 줄 왼쪽(분류 · 시각)은 안 줄어듦 */
-.nm-ned .nm-sumc.lean .nm-sumc-top { min-width:0; }
-.nm-ned .nm-sumc.lean .nm-sumc-top > :not(.src) { flex:none; }
-.nm-ned .nm-sumc.lean .nm-sumc-top .src { margin-left:auto; min-width:0; font-size:10px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:right; }
-.nm-ned .nm-sumc.lean .nm-sumc-top .src b { color:var(--fg); font-weight:600; }
-.nm-ned .nm-sumc.lean .nm-sumc-top .src i { font-style:normal; color:var(--mut); font-weight:400; }
-
+/* 카드 꼴(.nm-sumc.lean) = ./summary-desk.css 로 옮김(PC DIGEST 와 한 벌 · 형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까 잘 참고해.」) */

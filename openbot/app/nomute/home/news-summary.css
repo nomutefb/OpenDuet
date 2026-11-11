@@ -22,7 +22,7 @@
 .nm-nsum-ol { padding:0 0 10px; }
 .nm-nsum-ol li.c { display:block; min-height:0; padding:0; border-bottom:1px solid rgba(255,255,255,.06); }
 .nm-nsum-ol li.c:hover { background:rgba(255,255,255,.03); }
-.nm-nsum .nm-sumc { padding:14px 14px 16px; border:0; border-radius:0; background:none; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; cursor:pointer; }
+.nm-nsum .nm-sumc:not(.lean) { padding:14px 14px 16px; border:0; border-radius:0; background:none; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; cursor:pointer; }
 .nm-nsum .nm-sumc.pend { cursor:default; }
 .nm-nsum .nm-sumc-top .cat.q { color:#CFFF40; } .nm-nsum .nm-sumc.bad .nm-sumc-top .cat.q { color:#ff6b5e; }   /* 대기열 상태 = 라임(돎) · 실패 = 빨강 */
 /* 형 11-09 09:21 · 12:3x — Digest = 뉴스 요약 카드(SumCard dg) 그대로 · 제목 1줄 · 매체·편향 한 줄 가로로 얇게 · 「보도」 말 뺌 · 색 = 카드 변수(밝은 판에서도 보임) */

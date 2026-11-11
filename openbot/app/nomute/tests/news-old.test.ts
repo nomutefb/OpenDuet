@@ -12,13 +12,15 @@ test("맨 위 「지금 뜨는 말」 줄 없음(형 09:02 「상단에 인기�
 });
 
 test("카드 = 폰도 매체 · 편향 · 민감 줄 · 옛 값(Pretendard · 안쪽 18 · 머리 11 · 제목 15/700 · 막대 7)", () => {
+  const sdc = rd("../ui/summary-desk.css");   // 카드 꼴 = 한 벌(PC DIGEST 같이 · 11-11 22:09)
+  assert.match(rd("../home/news-summary.tsx"), /<SumCard a=\{a\} lean kind=/, "DIGEST = 같은 카드");
   assert.match(tsx, /<SumCard a=\{a\} lean kind=/);   // 민감 칸 0(형 18:54 「민감 키워드는 없어도 됨 표기 안할게」)
   assert.ok(!/short=\{!wide\}/.test(tsx));
-  assert.match(css, /\.nm-ned \.nm-sumc \{ gap:12px; padding:18px; font-family:'Pretendard Variable'/);
-  assert.match(css, /\.nm-ned \.nm-sumc-t \{ font-size:15px; font-weight:700; line-height:1\.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; \}/);
-  assert.match(css, /\.nm-ned \.nm-sumc-prog em \{ height:7px;/);
-  assert.ok(!/\.nm-ned \.nm-sumc-prog em \{[^}]*background/.test(css), "막대 회색은 아직 칸만(끝남 라임을 덮지 않게)");
-  assert.match(css, /span:not\(\.done\):not\(\.cur\):not\(\.fail\) em \{ background:rgba\(187,188,188,\.7\); \}/);
+  assert.match(sdc, /\.nm-sumc\.lean \{ gap:12px; padding:18px; font-family:'Pretendard Variable'/);
+  assert.match(sdc, /\.nm-sumc\.lean \.nm-sumc-t \{ font-size:15px; font-weight:700; line-height:1\.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; \}/);
+  assert.match(sdc, /\.nm-sumc\.lean \.nm-sumc-prog em \{ height:7px;/);
+  assert.ok(!/\.nm-sumc\.lean \.nm-sumc-prog em \{[^}]*background/.test(sdc), "막대 회색은 아직 칸만(끝남 라임을 덮지 않게)");
+  assert.match(sdc, /span:not\(\.done\):not\(\.cur\):not\(\.fail\) em \{ background:rgba\(187,188,188,\.7\); \}/);
 });
 
 test("요약 요청 = 옛 꼴(글칸 한 장 안 붙여넣기 · 사진 · 링크 · 전송 · 칩 다섯 옛 이름 · 주요는 칩 없이 기본값)", () => {

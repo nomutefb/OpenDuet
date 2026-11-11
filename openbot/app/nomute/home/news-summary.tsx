@@ -9,6 +9,7 @@ import { useGo } from "../ui/news-data";
 import { cleanTitle } from "./title-clean";
 import { SyncAgo } from "../ui/status-line";   // Digest 머리줄 오른쪽 「동기화 N분 전」(형 11-08 09:00)
 import { TaskPanel } from "../ui/task-panel";
+import { type FArt, kindOf } from "../ui/feed";   // 긴급 · 이슈 테 = 뉴스 에디터와 같은 셈
 
 type QItem = { id?: string; t?: number; title?: string; key?: string; alt1?: string; status?: string; tries?: number };
 const LIVE = new Set(["processing", "retry", "queued", "pending", "failed", "error"]);   // 대기열에 보일 것 = 아직 안 끝난 것 · 실패(「succ」·done 같은 끝난 것 = 뺌 · 실물 17:3x)
@@ -30,7 +31,7 @@ export function NewsSummary() {
       <div className="nm-nsum-h"><button type="button" className="nm-nsum-go" title="뉴스 에디터로" onClick={() => go("/newsed")}><b>Digest</b></button><span>{q.length ? `대기열 ${q.length} · ` : ""}<SyncAgo /></span></div>
       <ol className="nm-nsum-ol">
         {q.length ? <li className="c nm-nsum-tasks"><TaskPanel qs={q.map((it) => ({ it, e: it.status === "failed" || it.status === "error" ? "fail" : it.status || "", title: cleanTitle(it.title || it.alt1 || it.key) || "제목 없음" }))} eta={null} /></li> : null}   {/* 요약 대기열 = 「뉴스 요약」과 같은 판(시아 06:44 ① · 깃) */}
-        {done.map((a) => <li key={a.file} className="c"><SumCard a={a} dg /></li>)}
+        {done.map((a) => <li key={a.file} className="c"><SumCard a={a} lean kind={kindOf(a as FArt) || (a.issue ? "iss" : "")} />   {/* 폰 뉴스 에디터 카드 한 벌 그대로(형 11-11 22:09 「1) digest > 아까 수정한 모바일에 통일」 · 앞 판 = dg) */}</li>)}
         {!done.length ? (list.isError ? <li className="empty nm-emptybox"><b>요약 목록을 못 받았어</b><span>조금 뒤 다시 받아</span></li>
           : list.isLoading ? <li className="empty"><i className="nm-skel" style={{ width: "88%" }} /><i className="nm-skel" style={{ width: "72%" }} /><i className="nm-skel" style={{ width: "80%" }} /></li>
           : <li className="empty nm-emptybox"><b>다 된 요약이 아직 없어</b><span>뉴스 줄 「전송」을 누르면 여기 쌓여</span></li>) : null}   {/* 빈 칸 · 불러오는 중 꼴 통일(시아 UI ⑤) */}
