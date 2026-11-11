@@ -38,7 +38,7 @@ export function TempRoomHead({ r }: { r: OfficeRoom }) {
     <div className="mb-2 rounded-2xl border border-border px-3 py-2 text-sm">
       <p className="whitespace-pre-wrap">{r.purpose}</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        {r.exp ? tempLeft(r.exp) : "영구"} · 목적 받음 {heard.map(short).join("·") || "아직 없음"}{wait.length ? ` · 안 온 이 ${wait.map(short).join("·")}` : ""}
+        {r.exp ? tempLeft(r.exp) : "영구"} · 지침 받음 {heard.map(short).join("·") || "아직 없음"}{wait.length ? ` · 안 온 이 ${wait.map(short).join("·")}` : ""}
       </p>
     </div>
   );
@@ -109,8 +109,9 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
           <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="rounded-xl border border-border bg-transparent px-3 py-2" />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-muted-foreground">목적</span>
+          <span className="text-muted-foreground">방 지침</span>   {/* 옛 「목적」 = 방 지침 하나(봄 11-12 00:39 「가」 · 형이 찾는 낱말) */}
           <textarea value={purpose} maxLength={500} rows={3} onChange={(e) => setPurpose(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
+          <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요</small>
         </label>
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-muted-foreground">초대할 사람 · {picked.length}명</legend>

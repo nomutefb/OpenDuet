@@ -24,7 +24,7 @@ test("저장 막기 — 별만 든 초안(거른 뒤 0명)은 닫기 「예」 �
   assert.equal(saveBlock("목적", livePicked(["별"], ["빠르"], goneLate), false), "초대할 사람을 한 명 이상 골라 줘");
 });
 test("저장 막기 — 목적 빈 칸 · 저장 중 · 다 됨", () => {
-  assert.equal(saveBlock("  ", ["빠르"], false), "목적을 적어 줘");
+  assert.equal(saveBlock("  ", ["빠르"], false), "방 지침을 적어 줘");
   assert.equal(saveBlock("목적", ["빠르"], true), "저장 중");
   assert.equal(saveBlock("목적", ["빠르"], false), "");
 });

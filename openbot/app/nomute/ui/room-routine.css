@@ -35,3 +35,5 @@
 .nm-top-routine { margin-top:2px; padding:6px 0 0; border:0; border-top:1px solid var(--glass-line); background:none; color:var(--accent); font-size:var(--fs-label); text-align:left; white-space:nowrap; cursor:pointer; pointer-events:auto; }
 :root:not(.dark) .nm-top-routine { color:var(--fg); }
 @media (prefers-reduced-motion:reduce){ .nm-rr { animation:none; } }
+
+.nm-rr-hint { font-size:var(--fs-xs); color:var(--mut); opacity:.8; }   /* 칸 아래 작은 글(봄 11-12 「울릴 때 방에 올라가요」) */
