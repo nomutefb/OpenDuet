@@ -50,7 +50,7 @@ test("뉴스 에디터 = 맨 위 넣는 줄 0 · 오른쪽 아래 「요약」 �
   assert.ok(!/function SendBar\(|<SendBar\b|submitText|링크 · 글 붙여 넣기/.test(ned), "넣는 줄 걷음");
   assert.match(ned, /const items: \[string, string\]\[\] = \[\["\/ask", "뉴스 요약"\], \["\/edtool", "이미지 에디터"\], \["\/edvid", "비디오 에디터"\]\];/, "「+」 펼침 셋(형 19:23)");
   assert.match(ned, /<PlusFan go=\{go\} \/>/);
-  assert.match(ncss, /\.nm-ned-plus \{[^}]*position:absolute;[^}]*bottom:calc\(14px \+ env\(safe-area-inset-bottom\) \+ 54px \+ 12px\)/, "아래 막대 위");
+  assert.match(ncss, /\.nm-ned-plus \{[^}]*position:absolute;[^}]*right:14px; bottom:calc\(var\(--duet-tab-space,86px\) \+ 8px\)/, "대화방 목록 「+」 자리 그대로");
   assert.match(ncss, /\.nm-ned-plus\.on \.nm-ned-plus-main svg \{ transform:rotate\(135deg\); \}/);
   assert.ok(!/nm-ned-send|nm-ned-btn/.test(ncss));
   assert.match(ask, /import \{ isForeignUrl \} from "\.\.\/home\/quick-send";/);
