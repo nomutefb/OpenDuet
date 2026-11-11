@@ -305,3 +305,9 @@ body.nm-dragging iframe { pointer-events:none; }
 /* 아래 알약 「대화」 하나(../swap/tab-bar.tsx · 형 11-09 09:31) = PC 두 칸에서만 · 폰은 위 TABS(대화방 · 대화)가 그대로 맡아서 숨김 · 차례 = 알약 맨 앞 */
 .ynav .nm-nav-talk { display:none; }
 .nm-split-l .ynav .nm-nav-talk { display:flex; order:-2; }
+
+/* PC 대화 목록 = 옆 HOT ISSUE 칸처럼 블록 없이 좌우 끝까지(형 11-12 06:21 봄 1:1 「웹앱은, 그냥 옆에 핫이슈처럼 블록 없이 좌우를 다써버리면 됨」 · 「일단 대화방 리스트 자체는 좌우 폭맞춤해도 될것같음」 · 깃) · 폰 꼴 그대로 */
+.nm-split-l .nm-rooms-pane { padding-left:0; padding-right:0; }
+.nm-split-l .nm-rooms-pane .nm-rgroup { background:none; border:0; border-radius:0; }
+.nm-split-l .nm-rooms-pane .nm-rgroup > :first-child { border-top:0; }
+.nm-split-l .nm-rooms-pane .nm-rooms > .nm-tswitch, .nm-split-l .nm-rooms-pane .nm-rooms > .nm-rtop { margin-left:12px; margin-right:12px; }   /* 맨 위 알약 줄(팀즈 바꿈 · 공지)은 아직 여백 그대로 — 아이콘으로 바꿀 꼴은 봄한테 먼저(②③) */

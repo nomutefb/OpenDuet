@@ -461,7 +461,7 @@ function RoomsPane() {
   const teamsOn = useTeamsMode();
   return (
     <>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-4 pb-[calc(var(--duet-tab-space,86px)+56px)]">   {/* 끝 줄이 우하단 단추에 안 가리게 */}
+      <div className="nm-rooms-pane min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-4 pb-[calc(var(--duet-tab-space,86px)+56px)]">   {/* 끝 줄이 우하단 단추에 안 가리게 */}
         <h1 className="sr-only">대화방</h1>   {/* 판 위 큰 제목 0(PM 13:04 · 형 「공간」 · 지금 판 = 네비 「대화방」 칸) */}
         <RoomList big />
       </div>
