@@ -36,7 +36,8 @@ function shape(body: string) {
   return { h1, md: out.join("\n").trim() };
 }
 /** 소제목 = 옛 에디터 기사 창 꼴(「FACT (확인된 사실)」 → 「Fact」 · 「INFERENCE (추론·해석)」 → 「Inference」 · 한글 소제목은 그대로 · /?old 실측 11-11) */
-export const headOf = (t: string) => t.replace(/^([A-Z][A-Z ]*?)\s*\(.*\)\s*$/, (_, w: string) => w.trim().toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase()));
+// 요약 글 = 「Fact (확인된 사실)」(대소문자 섞임 · 앞 판은 대문자만 봐서 안 줄었음 · 앱 영문 글꼴이 대문자 꼴이라 착각)
+export const headOf = (t: string) => t.replace(/^([A-Za-z][A-Za-z ]*?)\s*\(.*\)\s*$/, (_, w: string) => w.trim().toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase()));
 const key = (s: string) => s.replace(EMOJI0, "").replace(/\s+/g, "");
 
 export function NewsDetail({ file }: { file: string }) {

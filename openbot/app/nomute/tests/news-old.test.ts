@@ -37,7 +37,7 @@ test("기사 한 장 = 옛 기사 창 글 꼴(소제목 줄임 · Pretendard · 
   const m = /export const headOf = (\(t: string\) => [^\n]+);\n/.exec(src);
   assert.ok(m, "headOf 한 줄");
   const headOf = new Function(`return ${m[1].replace(/: string/g, "")}`)() as (t: string) => string;   // tsx 는 node 가 못 읽어 줄째 꺼내 돌림
-  assert.equal(headOf("FACT (확인된 사실)"), "Fact"); assert.equal(headOf("INFERENCE (추론·해석)"), "Inference"); assert.equal(headOf("다각도 해석"), "다각도 해석");
+  assert.equal(headOf("FACT (확인된 사실)"), "Fact"); assert.equal(headOf("INFERENCE (추론·해석)"), "Inference"); assert.equal(headOf("다각도 해석"), "다각도 해석"); assert.equal(headOf("Fact (확인된 사실)"), "Fact"); assert.equal(headOf("Inference (추론·해석)"), "Inference"); assert.equal(headOf("활용 옵션 (콘텐츠화 후보)"), "활용 옵션 (콘텐츠화 후보)");
   assert.match(ncss, /\.nm-nd \.nm-nd-md :is\(p, li\) \{ font-size:14px; font-weight:400; line-height:1\.6; \}/);
   assert.match(ncss, /text-transform:none;/);
 });
