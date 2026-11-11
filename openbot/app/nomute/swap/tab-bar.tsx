@@ -2,6 +2,7 @@
 // 칸 넷(형 12:22·12:24 → 10-31 15:1x 「에디터는 그냥 서랍 누르면 뜨면 될듯.」) = 홈 · 대화방(목록) · 대화 · ≡(서랍 · 접힌 토글) — 서랍 = 덜 중요한 것 모음(형 12:25) + 에디터 칸 전부(LEGACY·뉴스 요약·채널 요약·SNS·요약 요청·에디터) · 누르면 네비 위로 펼쳐지고 항목 = 모달(ui/shell.tsx MODALS)
 //   짐작(빠르): 형 말을 「에디터 네비 칸을 없애고 에디터는 서랍에서」로 읽음 · 「에디터 칸을 누르면 서랍이 열림」으로 읽으면 TABS 에 editor 줄을 되살리고 onClick 을 setDrawer 로(아래 EDITOR_OPENS_DRAWER 주석 줄) — 한 줄 차이
 import { useQuery } from "@tanstack/react-query";
+import { talkNext } from "./talk-next";   // 「대화」 누름 한 곳(폰 · PC 같은 함수 · 순수 = node 시험이 .ts 로 부름)
 import { useNavigate } from "@tanstack/react-router";
 import { DuetIcon, type DuetIconName } from "@/components/duet/icons";
 import { approvalInboxOptions } from "@/lib/approvals";
@@ -28,10 +29,6 @@ export function tabForPath(pathname: string): ShellTab | null {
   if (path === "/tasks" || /^\/tasks\/[^/]+$/.test(path)) return "tasks";
   return null;
 }
-
-/** 「대화」 누름 한 곳(폰 아래 막대 · PC 왼쪽 띠 둘 다 이것만 · 형 11-11 22:11 「2개 만들면 수정할때마다 두번수정해야되니까」)
- *  대화창에서 다시 누름 = 대화방 목록(형 11-12 07:54 「하단 대화 두번 누르먄 대화방 리스트 ( 메뉴2번) 으루 가게」) · 목록에서 = 마지막 대화창 · 꺼져 있으면 = offTo(폰 = 마지막 대화창 · PC = 목록) */
-export const talkNext = (pane: Pane | null, modal: Modal | null, chatTo: string, offTo: string) => (modal ? offTo : pane === "chat" ? "/rooms" : pane === "rooms" ? chatTo : offTo);
 
 export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pane | null; modal?: Modal | null; chatTo?: string; current?: ShellTab }) {
   const navigate = useNavigate();
