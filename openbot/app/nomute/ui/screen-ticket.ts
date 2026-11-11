@@ -20,3 +20,8 @@ export async function screenTicket(u: string, call: (body: { url: string }) => P
     return typeof d?.url === "string" && d.url.startsWith("https://") ? d.url : "";
   } catch { return ""; }
 }
+
+/** 앱 안 화면 아래 단추(클립보드 · 키보드)가 postMessage 를 보낼 곳 = 그 화면 주소의 origin(https 만 · 그 몸 mom-app.js 가 edit.nomute.kr 글만 받음) · 아니면 "" = 단추 흐리게(빠르 11-11) */
+export function momOrigin(url: string): string {
+  try { const u = new URL(url); return u.protocol === "https:" ? u.origin : ""; } catch { return ""; }
+}

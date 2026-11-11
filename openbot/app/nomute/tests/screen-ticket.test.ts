@@ -25,3 +25,10 @@ test("앱 안 화면 표 = 사람 문 답의 https 주소 · 못 받으면 빈 �
   assert.equal(await screenTicket(U, async () => { throw new Error("열쇠 없음"); }), "");
   assert.equal(await screenTicket(U, async () => ({ url: "javascript:x" })), "");
 });
+
+test("아래 단추 보낼 곳 = 화면 주소 origin(https 만 · 빠르 11-11)", async () => {
+  const { momOrigin } = await import("../ui/screen-ticket.ts");
+  assert.equal(momOrigin("https://fast2.tail46034f.ts.net/vnc.html?s=abc&path=websockify%3Fs%3Dabc"), "https://fast2.tail46034f.ts.net");
+  assert.equal(momOrigin("https://lxa.tail46034f.ts.net:8443/vnc.html"), "https://lxa.tail46034f.ts.net:8443");
+  for (const bad of ["", "http://100.84.18.19:6080/vnc.html", "javascript:alert(1)", "/vnc.html"]) assert.equal(momOrigin(bad), "", bad);
+});

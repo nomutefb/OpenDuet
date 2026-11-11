@@ -20,3 +20,16 @@
 .nm-pcs .nm-pc-btn { border-color:rgba(255,255,255,.14); background:rgba(255,255,255,.06); }
 .nm-pcs .nm-pc-btn.go { background:#f4f4f0; color:#111; }
 .nm-pcs-f { flex:1; width:100%; border:0; background:#000; }
+/* 아래 단추 셋 · 클립보드 · 완료 · 키보드(그록 앱 컴퓨터 화면 꼴 · 빠르 11-11) */
+.nm-pch { position:relative; border-top:1px solid rgba(255,255,255,.08); padding-bottom:env(safe-area-inset-bottom); }
+.nm-pch-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; }
+.nm-pch-b { flex:0 0 auto; min-width:84px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:inherit; font:inherit; font-size:13px; font-weight:700; }
+.nm-pch-b.on { background:rgba(255,255,255,.18); }
+.nm-pch-b.done { background:#f4f4f0; color:#111; }
+.nm-pch-b:disabled { opacity:.4; }
+.nm-pch-say { flex:1; text-align:center; font-size:12px; opacity:.75; }
+.nm-pch-say.float { position:absolute; left:0; right:0; top:-22px; pointer-events:none; }
+.nm-pch-pad { display:flex; flex-wrap:wrap; gap:8px; padding:8px 12px 0; }
+.nm-pch-in { flex:1; min-width:0; resize:none; max-height:30vh; padding:9px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:#151515; color:inherit; font:inherit; font-size:16px; }
+.nm-pch-keys { flex-basis:100%; display:flex; gap:6px; overflow-x:auto; }
+.nm-pch-k { flex:1 0 auto; min-width:40px; padding:7px 8px; border-radius:8px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:inherit; font:inherit; font-size:13px; }

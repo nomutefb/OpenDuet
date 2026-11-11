@@ -5,12 +5,12 @@
 //   화면 안 한글·붙여넣기·포인터 = 그 몸 noVNC 위 한 장(뜸 novnc-tteum/app/mom-screen.js · 형 09:07 「vm에서 상호간에 클립보드, 한영전환 다 되어야하고」 · 「마우스 포인터 잘 나와야하고」)
 //   완료 · 건너뛰기 = 결정 창과 같은 길(POST decisions · send = 그 몸만 깸) · 서버 목록에서 빠진 카드 = 끝난 것(단추 대신 「끝남」 · 화면은 그대로 열 수 있음)
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { office } from "../data/office";
 import { useDecisions } from "./decide-pop";
 import { screenUrl } from "./pc-url";
-import { screenGoUrl, screenTicket } from "./screen-ticket";   // 표 붙여 앱 안(빠르 11-11)
+import { momOrigin, screenGoUrl, screenTicket } from "./screen-ticket";   // 표 붙여 앱 안(빠르 11-11)
 import "./pc-card.css";
 
 type St = "" | "보내는 중" | "완료" | "건너뜀" | "못 보냄";
@@ -69,16 +69,95 @@ export function PcScreen({ url, out, title, task, canDone, onDone, onClose }: { 
     return () => { window.removeEventListener("popstate", pop); document.body.style.overflow = prev; };
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   const close = () => history.back();
+  const frame = useRef<HTMLIFrameElement>(null);
+  const hands = useMomHands(frame, url);
   return createPortal(
     <div className="nm-pcs" role="dialog" aria-modal="true" aria-label={`${title} 화면`}>
       <div className="nm-pcs-bar">
         <span className="nm-pcs-t"><Laptop />{title}{task ? <em> · {task}</em> : null}</span>
         <a className="nm-pc-btn" href={out || url} target="_blank" rel="noopener noreferrer">새 창</a>
-        {canDone ? <button type="button" className="nm-pc-btn" onClick={() => { onDone(); close(); }}>완료</button> : null}
         <button type="button" className="nm-pc-btn go" onClick={close}>닫기</button>
       </div>
-      <iframe className="nm-pcs-f" src={url} title={`${title} 화면`} allow="clipboard-read; clipboard-write; fullscreen; keyboard-map" />
+      <iframe ref={frame} className="nm-pcs-f" src={url} title={`${title} 화면`} allow="clipboard-read; clipboard-write; fullscreen; keyboard-map" />
+      <PcHands hands={hands} canDone={canDone} onDone={() => { onDone(); close(); }} />
     </div>,
     document.body,
+  );
+}
+
+/** 아래 단추 셋(그록 앱 컴퓨터 화면 꼴 · 형 11-11 19:48 「응 한번 해봐 이거로」) — 클립보드 · 완료 · 키보드
+ *  iframe 안 noVNC 와는 postMessage(그 몸 mom-app.js · 받는 곳 = edit.nomute.kr 만) · 답 mom-ack 로 「보냄 / 연결 전」 */
+type Hands = ReturnType<typeof useMomHands>;
+function useMomHands(frame: RefObject<HTMLIFrameElement | null>, url: string) {
+  const [say, setSay] = useState("");
+  const origin = momOrigin(url);
+  useEffect(() => {
+    if (!origin) return;
+    let t = 0;
+    const on = (e: MessageEvent) => {
+      if (e.origin !== origin || e.source !== frame.current?.contentWindow) return;
+      const m = e.data as { type?: string; ok?: boolean; why?: string } | null;
+      if (!m || m.type !== "mom-ack") return;
+      setSay(m.ok ? "보냄" : (m.why || "못 보냄"));
+      window.clearTimeout(t); t = window.setTimeout(() => setSay(""), 1800);
+    };
+    window.addEventListener("message", on);
+    return () => { window.removeEventListener("message", on); window.clearTimeout(t); };
+  }, [origin, frame]);
+  const post = (m: Record<string, unknown>) => {
+    const w = frame.current?.contentWindow;
+    if (!w || !origin) { setSay("화면 없음"); return false; }
+    w.postMessage(m, origin);
+    return true;
+  };
+  return { say, setSay, post, ok: !!origin };
+}
+
+function PcHands({ hands, canDone, onDone }: { hands: Hands; canDone: boolean; onDone: () => void }) {
+  const [pad, setPad] = useState<"" | "clip" | "kbd">("");
+  const [buf, setBuf] = useState("");
+  const comp = useRef(false);
+  const inp = useRef<HTMLTextAreaElement>(null);
+  const open = (k: "clip" | "kbd") => { setPad(pad === k ? "" : k); setBuf(""); setTimeout(() => inp.current?.focus({ preventScroll: true }), 0); };
+  const clip = async () => {   // 폰 클립보드 바로 읽기(허락 · 탭 안에서만) → 안 되면 붙여넣을 칸
+    try {
+      const t = await navigator.clipboard?.readText?.();
+      if (t) { hands.post({ type: "mom-paste", text: t }); setPad(""); return; }
+    } catch { /* 허락 없음 · iOS 는 칸에 길게 눌러 붙여넣기 */ }
+    open("clip");
+  };
+  const send = () => {
+    if (!buf) { if (pad === "kbd") hands.post({ type: "mom-key", key: "Enter" }); return; }
+    hands.post({ type: pad === "clip" ? "mom-paste" : "mom-type", text: buf });
+    setBuf("");
+    if (pad === "clip") setPad("");
+  };
+  const key = (k: string) => hands.post({ type: "mom-key", key: k });
+  return (
+    <div className="nm-pch">
+      {pad ? (
+        <div className="nm-pch-pad">
+          <textarea ref={inp} className="nm-pch-in" rows={1} value={buf} enterKeyHint="send"
+            placeholder={pad === "clip" ? "여기 붙여넣고 보내기 → 그 컴퓨터에 붙여넣기" : "여기 쓰고 ⏎ → 그 컴퓨터에 입력 · 빈 칸 ⏎ = 엔터"}
+            onChange={(e) => setBuf(e.target.value)}
+            onCompositionStart={() => { comp.current = true; }} onCompositionEnd={() => { comp.current = false; }}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !comp.current && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }} />
+          <button type="button" className="nm-pc-btn go" onClick={send}>보내기</button>
+          {pad === "kbd" ? (
+            <div className="nm-pch-keys">
+              {([["Escape", "Esc"], ["Tab", "Tab"], ["ArrowLeft", "←"], ["ArrowUp", "↑"], ["ArrowDown", "↓"], ["ArrowRight", "→"], ["Backspace", "⌫"], ["Enter", "⏎"]] as const).map(([k, l]) => (
+                <button key={k} type="button" className="nm-pch-k" onPointerDown={(e) => e.preventDefault()} onClick={() => key(k)}>{l}</button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="nm-pch-bar">
+        <button type="button" className={`nm-pch-b${pad === "clip" ? " on" : ""}`} disabled={!hands.ok} onClick={() => void clip()}>클립보드</button>
+        {canDone ? <button type="button" className="nm-pch-b done" onClick={onDone}>완료</button> : <span className="nm-pch-say">{hands.say}</span>}
+        <button type="button" className={`nm-pch-b${pad === "kbd" ? " on" : ""}`} disabled={!hands.ok} onClick={() => open("kbd")}>키보드</button>
+      </div>
+      {canDone && hands.say ? <span className="nm-pch-say float">{hands.say}</span> : null}
+    </div>
   );
 }
