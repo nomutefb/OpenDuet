@@ -63,6 +63,8 @@
 .being-card .profile-card__footer:has(.profile-card__contact) .profile-card__status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .being-card .bc-acts { display: flex; flex: none; gap: 6px; }
 .being-card .profile-card__contact { gap: 4px; height: 32px; padding: 0 10px; font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; }
+.being-card .profile-card__contact:disabled { opacity: 0.38; cursor: default; filter: none; transform: none; }   /* 없는 애 = 자리는 그대로 · 흐리게(통일 · 형 11-11 08:56) */
+.being-card .profile-card__note.is-empty { color: rgba(255, 255, 255, 0.55); font-weight: 400; }   /* 소개 빈 애 = 자리 글 옅게 */
 
 /* ───────── 시아 · 초저녁 하늘(남색 → 저녁 보라 → 지평선 주황) · 앱 연두 가는 테 · 작은 별 + 김 나는 밥그릇 ───────── */
 .bc-sia .profile-card__body {

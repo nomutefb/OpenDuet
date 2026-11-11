@@ -51,6 +51,7 @@ interface ProfileCardProps {
   children?: ReactNode;
   contactIcon?: ReactNode;
   idle?: boolean;
+  noteEmpty?: boolean; /* [nomute] 소개가 비어 자리 글(옅게) */
   actions?: ReactNode; /* [nomute] 아래 줄 오른쪽 단추 묶음(있으면 contact 단추 대신) */
   note?: string; /* [nomute] 이름 · 직무 밑 설명 글(형 11-11 06:43 「설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯」) */
 }
@@ -154,6 +155,7 @@ const ProfileCard = ({
   contactIcon,
   idle = false,
   note,
+  noteEmpty,
   actions
 }: ProfileCardProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -418,7 +420,7 @@ const ProfileCard = ({
               <div className="profile-card__info">
                 {name && <h3 className="profile-card__name">{name}</h3>}
                 {title && <p className="profile-card__title">{title}</p>}
-                {note && <p className="profile-card__note">{note}</p> /* [nomute] */}
+                {note && <p className={`profile-card__note${noteEmpty ? " is-empty" : ""}`}>{note}</p> /* [nomute] */}
               </div>
             </>
           )}

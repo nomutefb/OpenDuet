@@ -70,7 +70,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
       <div className="ypc ypc--being" role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
         <button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} />
-        <BeingCard who={who} name={name} role={p?.role} person={p} note={p?.intro || undefined} onScreen={screen ? openScreen : undefined} onDm={dm ? go : undefined} />
+        <BeingCard who={who} name={name} role={p?.role} person={p} note={p?.intro || undefined} onScreen={screen ? openScreen : undefined} onDm={dm ? go : undefined} acts />
         {pick ? <div className="ypc-pop"><ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /></div> : null}
       </div>
     </div>
