@@ -59,6 +59,6 @@ test("뉴스 에디터 = 맨 위 넣는 줄 0 · 오른쪽 아래 「요약」 �
 
 test("아래 막대 덜 비침 = 바탕 짙게 + 흐림 24(봄 14:52 · 형 「결정 너의 판단에 맡길게」)", () => {
   const nav = rd("../swap/ynav.css");
-  assert.match(nav, /html\.dark \.ynav, html\.dark \.nm-split-l \.ynav \{ background:rgba\(19,20,19,\.8\);[^}]*blur\(24px\)/);
-  assert.match(nav, /html:not\(\.dark\) \.ynav, html:not\(\.dark\) \.nm-split-l \.ynav \{ background:rgba\(250,250,248,\.82\);/);
+  assert.match(nav, /html\.dark \.ynav, html\.dark \.nm-split-l \.ynav \{ background:rgba\(19,20,19,\.99\);[^}]*blur\(24px\)/);
+  assert.match(nav, /html:not\(\.dark\) \.ynav, html:not\(\.dark\) \.nm-split-l \.ynav \{ background:rgba\(250,250,248,\.98\);/);
 });
