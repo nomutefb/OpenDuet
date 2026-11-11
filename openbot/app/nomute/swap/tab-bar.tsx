@@ -29,6 +29,10 @@ export function tabForPath(pathname: string): ShellTab | null {
   return null;
 }
 
+/** 「대화」 누름 한 곳(폰 아래 막대 · PC 왼쪽 띠 둘 다 이것만 · 형 11-11 22:11 「2개 만들면 수정할때마다 두번수정해야되니까」)
+ *  대화창에서 다시 누름 = 대화방 목록(형 11-12 07:54 「하단 대화 두번 누르먄 대화방 리스트 ( 메뉴2번) 으루 가게」) · 목록에서 = 마지막 대화창 · 꺼져 있으면 = offTo(폰 = 마지막 대화창 · PC = 목록) */
+export const talkNext = (pane: Pane | null, modal: Modal | null, chatTo: string, offTo: string) => (modal ? offTo : pane === "chat" ? "/rooms" : pane === "rooms" ? chatTo : offTo);
+
 export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pane | null; modal?: Modal | null; chatTo?: string; current?: ShellTab }) {
   const navigate = useNavigate();
   const inbox = useQuery(approvalInboxOptions());
@@ -43,7 +47,7 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
         {TABS.map((tab) => {
           const on = tab.id === pane && !modal;
           return (
-            <button aria-current={on ? "page" : undefined} aria-label={tab.label} className={on ? "on" : undefined} key={tab.id} data-tab={tab.id} onClick={() => void navigate({ to: tab.id === "chat" ? chatTo : tab.to })} type="button">
+            <button aria-current={on ? "page" : undefined} aria-label={tab.label} className={on ? "on" : undefined} key={tab.id} data-tab={tab.id} onClick={() => void navigate({ to: tab.id === "chat" ? talkNext(pane, modal, chatTo, chatTo) : tab.to })} type="button">
               <DuetIcon name={tab.icon} size={20} stroke={on ? 2.1 : 1.9} />
               <span>{tab.label}</span>
             </button>
@@ -55,7 +59,7 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
           const onRooms = pane === "rooms" && !modal, onChat = pane === "chat" && !modal, on = onRooms || onChat;
           return (
             <button aria-current={on ? "page" : undefined} aria-label={onChat ? "대화 · 대화창(누르면 목록)" : onRooms ? "대화 · 대화방 목록(누르면 마지막 대화)" : "대화"} className={on ? "on nm-nav-talk" : "nm-nav-talk"}
-              onClick={() => void navigate({ to: onRooms ? chatTo : "/rooms" })} type="button">
+              onClick={() => void navigate({ to: talkNext(pane, modal, chatTo, "/rooms") })} type="button">
               <DuetIcon name={onRooms ? "inbox" : "chat"} size={20} stroke={on ? 2.1 : 1.9} />
               <span>대화</span>
             </button>
