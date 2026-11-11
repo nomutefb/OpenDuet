@@ -4,9 +4,9 @@
 //   영상 = 러너가 줄여 봇이 읽게 된 정도 · 파동 = 올릴 때 구운 파형 그림(「<이름>.파형.png」 · ../shim/wave.ts)이 닿은 정도 · 자막 = 받아쓰기 러너 진행
 //   라임 테두리 = 그 미디어를 봇이 읽을 수 있음(형 11-11 06:35 봄 1:1 「사진도 보내서 볼수잇게되면 테두리에 라임띄어줘」 · 봄이 옮김)
 
-export type EncCell = { ready?: boolean; stage?: string; pct?: number | null; at?: number; why?: string; parts?: { stt?: EncCell } };
+export type EncCell = { ready?: boolean; stage?: string; pct?: number | null; at?: number; why?: string; parts?: { stt?: EncCell; frames?: EncCell } };   // frames = 「움직임 자세히」 쪼개기(형 11-12 07:20 dm-eyes 「세번째로 프레임이 0% 뜨게 가능해? … 그래서 총 4개가 가야해 내가 옵션을 카면」)
 export type EncItems = Record<string, EncCell | undefined>;
-export type GaugeKind = "video" | "wave" | "stt" | "photo";
+export type GaugeKind = "video" | "wave" | "frames" | "stt" | "photo";
 export type GaugeLine = { k: GaugeKind; label: string; pct: number; done: boolean; fail: boolean; why?: string };
 export type Gauge = { lines: GaugeLine[]; done: boolean; at: number };
 
@@ -16,7 +16,7 @@ export const WAVE_RE = /\.파형\.png$/;
 const SEAT = /^(grokbot|claude|chatgpt)\/[^/]+\/office_files\/[^/]+$/;
 /** 서버에 진행 기록이 생긴 날(11-11 06:00 KST) — 그 앞 글은 묻지 않음(기록 없음 = 조용히) */
 export const ENC_T0 = Date.UTC(2026, 10, 10, 21, 0, 0);
-export const LABEL: Record<GaugeKind, string> = { video: "영상", wave: "파동", stt: "자막", photo: "사진" };
+export const LABEL: Record<GaugeKind, string> = { video: "영상", wave: "파동", frames: "프레임", stt: "자막", photo: "사진" };
 /** 자막 기록이 아직 없을 때 「자막 0%」로 먼저 그리는 동안 = 영상이 읽힌 뒤 이만큼(받아쓰기 러너가 줄 서는 사이) · 넘으면 줄을 뺌(대상 아님으로 봄) */
 export const STT_HOLD = 10 * 60e3;
 /** 「완료」 글을 보이는 동안(끝난 지 이만큼) · 그 뒤엔 라임 테두리만 남음 */
@@ -41,7 +41,7 @@ function line(k: GaugeKind, cells: EncCell[]): GaugeLine | null {
   return { k, label: LABEL[k], pct, done, fail: !done && !!bad, ...(bad?.why && !done ? { why: bad.why } : {}) };
 }
 
-/** 글 하나의 게이지 — 기록이 하나도 없으면 null(안 그림) · 차례 = 영상 · 파동 · 자막 · 사진 */
+/** 글 하나의 게이지 — 기록이 하나도 없으면 null(안 그림) · 차례 = 영상 · 파동 · 프레임(켠 영상만) · 자막 · 사진 */
 export function gaugeOf(files: string[] | undefined, items: EncItems, now: number): Gauge | null {
   const ps = [...new Set((files || []).map(String))];
   const by = (k: GaugeKind) => ps.filter((p) => kindOf(p) === k).map((p) => items[p]).filter(Boolean) as EncCell[];
@@ -49,6 +49,8 @@ export function gaugeOf(files: string[] | undefined, items: EncItems, now: numbe
   const lines: GaugeLine[] = [];
   const v = line("video", vids); if (v) lines.push(v);
   const w = line("wave", waves); if (w) lines.push(w);
+  const frs = vids.map((c) => c.parts?.frames).filter(live);
+  const f = line("frames", frs); if (f) lines.push(f);   // 서버가 보낼 때 0% 로 세움 = 켠 영상만 칸
   const stts = vids.map((c) => c.parts?.stt).filter(live);
   const s = line("stt", stts);
   if (s) lines.push(s);
@@ -58,7 +60,7 @@ export function gaugeOf(files: string[] | undefined, items: EncItems, now: numbe
   }
   const p = line("photo", by("photo")); if (p) lines.push(p);
   if (!lines.length) return null;
-  const all = [...vids, ...waves, ...stts, ...by("photo")].filter(live);
+  const all = [...vids, ...waves, ...frs, ...stts, ...by("photo")].filter(live);
   return { lines, done: lines.every((l) => l.done), at: Math.max(0, ...all.map((c) => Number(c.at) || 0)) };
 }
 
@@ -73,6 +75,8 @@ export function nextAsk(c: EncCell | undefined, kind: GaugeKind | "", msgTs: num
   if (c.stage === "fail") return now - msgTs < 6 * 3600e3 ? 30_000 : 0;
   if (!c.ready) return 3000;
   if (kind !== "video") return 0;
+  const fr = c.parts?.frames;
+  if (live(fr) && !fr.ready && fr.stage !== "fail") return 3000;   // 프레임 쪼개는 중 = 계속 물음
   const s = c.parts?.stt;
   if (live(s)) return s.ready ? 0 : s.stage === "fail" ? (now - msgTs < 6 * 3600e3 ? 30_000 : 0) : 3000;
   return now - (Number(c.at) || 0) < STT_HOLD ? 5000 : 0;   // 영상은 읽혔고 자막 기록은 아직 = 줄 서는 사이만 더 물음

@@ -90,3 +90,12 @@ test("다시 묻기 = 가는 중 3초 · 멈춤 30초 · 다 되면 끝 · 영�
   assert.equal(nextAsk({ ready: true, stage: "done", at: T, parts: { stt: { stage: "run", pct: 10, at: T } } }, "video", T, T + STT_HOLD + 1), 3000);
   assert.equal(nextAsk({ ready: true, stage: "done", at: T, parts: { stt: { ready: true, stage: "done", at: T } } }, "video", T, now), 0);
 });
+
+test("움직임 자세히 = 넷째 칸 프레임(셋째 자리 · 켠 영상만)", () => {
+  const V = "claude/eyes/office_files/20261112_0720_a.mp4", W = "claude/eyes/office_files/20261112_0720_a.mp4.파형.png", T = Date.UTC(2026, 10, 11, 22, 20);
+  const g = gaugeOf([V, W], { [V]: { stage: "run", pct: 40, at: T, parts: { frames: { stage: "wait", pct: 0, at: T }, stt: { stage: "wait", pct: 0, at: T } } }, [W]: { ready: true, stage: "done", at: T } }, T + 1000);
+  assert.deepEqual(g?.lines.map((l) => `${l.label} ${l.pct}`), ["영상 40", "파동 100", "프레임 0", "자막 0"]);
+  const g2 = gaugeOf([V], { [V]: { stage: "run", pct: 40, at: T } }, T + 1000);
+  assert.deepEqual(g2?.lines.map((l) => l.label), ["영상"], "안 켠 영상 = 프레임 칸 없음");
+  assert.equal(nextAsk({ ready: true, stage: "done", at: T, parts: { frames: { stage: "run", pct: 50, at: T } } }, "video", T, T + 1000), 3000);
+});

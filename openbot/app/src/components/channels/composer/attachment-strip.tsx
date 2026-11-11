@@ -142,13 +142,13 @@ export function AttachmentStrip({
           <li className="flex shrink-0 items-center self-center">
             <button
               aria-checked={denseOn}
-              aria-label="영상 움직임 자세히(30프레임마다 쪼개 같이 보냄)"
-              className={`rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors ${denseOn ? `border-border bg-muted ${ORIGINAL_TONE}` : "border-border bg-transparent text-muted-foreground"}`}
+              aria-label="프레임 — 영상을 30프레임마다 쪼개 같이 보냄"
+              className={`rounded-full border px-2.5 py-1 font-semibold text-[11px] leading-4 transition-colors ${denseOn ? "border-[#CFFF40] bg-[#CFFF40] text-black shadow-[0_0_8px_#CFFF4099]" : "border-border bg-transparent text-muted-foreground"}`}
               onClick={() => dense.set(!denseOn)}
               role="switch"
               type="button"
             >
-              {denseOn ? "움직임 자세히 ON" : "움직임 자세히"}
+              프레임   {/* 형 11-12 07:25 「프레임 이라고만 나오게하고 누르면 그냥 점등 되면 on 이라고 생각할게!」 · 07:26 「켜진거는 라임 들어오게해줘 ㅎㅎ 프레임은 평소에 꺼지먼 점등 오프고 켜지면 라임」 */}
             </button>
           </li>
         ) : null}
