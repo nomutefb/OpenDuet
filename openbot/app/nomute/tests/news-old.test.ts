@@ -40,4 +40,7 @@ test("기사 한 장 = 옛 기사 창 글 꼴(소제목 줄임 · Pretendard · 
   assert.equal(headOf("FACT (확인된 사실)"), "Fact"); assert.equal(headOf("INFERENCE (추론·해석)"), "Inference"); assert.equal(headOf("다각도 해석"), "다각도 해석"); assert.equal(headOf("Fact (확인된 사실)"), "Fact"); assert.equal(headOf("Inference (추론·해석)"), "Inference"); assert.equal(headOf("활용 옵션 (콘텐츠화 후보)"), "활용 옵션 (콘텐츠화 후보)");
   assert.match(ncss, /\.nm-nd \.nm-nd-md :is\(p, li\) \{ font-size:14px; font-weight:400; line-height:1\.6; \}/);
   assert.match(ncss, /text-transform:none;/);
+  assert.match(ncss, /\.nm-nd \.nm-nd-md ul \{ list-style-position:outside; padding-left:18px; \}/, "점 줄 = 옛 18 · 꺾인 줄 글자 밑으로");
+  assert.match(ncss, /\.nm-nd \.nm-nd-md li \{ margin:0; padding:0; \}/, "점 줄 사이 = 옛처럼 붙음");
+  assert.match(ncss, /\.nm-nd \.nm-nd-md li::marker \{ color:var\(--nm-nd-h/, "점 = 강조색");
 });
