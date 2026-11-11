@@ -63,7 +63,7 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 .publish-elapsed,.publish-elapsed[data-age-band]{color:var(--accent)!important}
 .article-publisher .pub-more{transform:translateY(.08em)!important;font-variant-numeric:tabular-nums}
 .article-lead>.article-media{flex:1 1 auto!important;aspect-ratio:auto!important}
-.article-media{--article-image-h:clamp(156px,26svh,234px)!important}
+.article-media{--article-image-h:clamp(156px,34svh,330px)!important}
 .practical-main .score-lead strong{color:var(--accent)!important;text-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent)!important}
 .article-pick{display:none!important}
 @media (max-width:480px){
@@ -72,6 +72,7 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 .article-schedule:has(>.article-publisher):has(>.article-pick)>.meta-published{flex:0 0 100%}
 .article-schedule:has(>.article-publisher):has(>.article-pick)>.meta-published+.meta-chip::before{content:none}
 }`;
+// 11-11 사진 높이 26svh(상한 234) → 34svh(상한 330) = 길어진 카드 아래 빈 데를 사진이 씀 → ✓ 단추가 사진 · 출처 줄 위 귀퉁이에 겹침(폰 390 실물 · 앞 판은 사진 밑에 빈 줄이 남아 단추가 제 자리를 먹은 꼴)
 // 11-11 형 18:48 봄 1:1 「카드가 좀 더 내려와도 될거같아 길어지고」 · 18:49 「이정도인데 체크표시가 아래를 좀 먹을 필요가 없음」 「우측으로 가서 겹쳐도 되거든」 → 아래 ①(글만큼 높이) · ②(단추 자리 SEND_ROOM)를 걷음 = 사진 없는 카드도 칸 높이 다 씀 · ✓ 단추는 카드 오른쪽 아래 귀퉁이에서 글·사진 위에 겹쳐 뜸(send-button.tsx 자리 셈 그대로) · 앞 판 = git
 // (앞 판) 폰 폭(품은 화면 480 이하 · 형 11-05 사진 「모바일 버전 해결점」) = ① 사진 없는 카드 = 높이를 글만큼(옛 = 품은 칸 전부라 아래가 텅 빔 · 카드 높이 셈 --reader-card-height 는 상한으로만 · 사진 카드는 사진이 남는 높이를 채우던 그대로)
 //   뒤 장 둘(.deck-fan) = 높이 못 박지 않고 앞 카드 높이(덱 아래 입술 몫만 뺌) = 짧은 카드 뒤로 긴 장이 안 삐져나옴 · 넘김 복사본(card-exit)은 덱이 넘길 때 잰 높이를 그대로 씀
