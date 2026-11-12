@@ -53,3 +53,7 @@ test("고정 압정 = 무지개 고리 · 안 읽음 점 위(형 11-12 16:44 「
   assert.match(css, /\.nm-face-pin ~ \.nm-udot \{ top:auto; bottom:1px; \}/);
   assert.ok(sh.indexOf('className="nm-face-pin"') < sh.indexOf('className="nm-udot"'), "압정이 점보다 앞 = ~ 가 먹음");
 });
+
+test("에디터 창 머리 = 「‹」만 · 「에디터」 글자 뺌(형 11-12 21:32)", () => {
+  assert.match(sh, /\{M\.id === "edtool" \? null : <b>\{M\.label\}<\/b>\}/);
+});

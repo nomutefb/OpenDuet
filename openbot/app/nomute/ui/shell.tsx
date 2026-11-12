@@ -280,7 +280,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               {M.id === "feed" || M.id === "trend" || M.id === "legacy" || M.id === "tokens" || M.id === "gyeol" || M.id === "feedback" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
               <div className="nm-modal-h">
                 <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
-                <b>{M.label}</b>
+                {M.id === "edtool" ? null : <b>{M.label}</b>}   {/* 에디터 = 머리 글자 뺌 · 바로 아래 「✦ 에디터 · 카드 제작」과 겹침(형 11-12 21:32 봄 1:1 「상단에 에디터 라는 문구 없어도 됨」) · ‹ 는 남김 */}
               </div>
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
