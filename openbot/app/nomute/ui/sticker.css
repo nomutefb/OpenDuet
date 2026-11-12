@@ -3,11 +3,11 @@
 .nm-stk-btn { all:unset; flex:none; width:44px; height:44px; display:grid; place-items:center; border-radius:50%; color:var(--duet-ink-2, rgba(232,234,232,.7)); cursor:pointer; align-self:flex-end; }
 .nm-stk-btn:hover { background:rgba(255,255,255,.06); }
 .nm-stk-back { position:fixed; inset:0; z-index:88; }
-.nm-stk { position:fixed; left:50%; bottom:calc(150px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:89; width:min(420px, calc(100vw - 24px)); max-height:min(58vh, 460px); display:flex; flex-direction:column; border-radius:20px; background:rgba(20,22,20,.96); border:1px solid rgba(255,255,255,.1); box-shadow:0 16px 40px rgba(0,0,0,.5); overflow:hidden; }
-.nm-stk-tabs { display:flex; gap:6px; padding:10px 10px 6px; overflow-x:auto; flex:none; }
+.nm-stk { position:fixed; left:50%; bottom:calc(150px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:89; width:min(420px, calc(100vw - 24px)); max-height:min(58vh, 460px); display:flex; flex-direction:column; border-radius:20px; background:#151715; border:1px solid rgba(255,255,255,.1); box-shadow:0 16px 40px rgba(0,0,0,.5); overflow:hidden; }
+.nm-stk-tabs { background:#151715; display:flex; gap:6px; padding:10px 10px 6px; overflow-x:auto; flex:none; }
 .nm-stk-tabs button { all:unset; flex:none; padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600; color:rgba(232,234,232,.62); border:1px solid transparent; cursor:pointer; }
 .nm-stk-tabs button.on { color:#CFFF40; background:rgba(207,255,64,.14); border-color:rgba(207,255,64,.38); }
-.nm-stk-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(84px, 1fr)); gap:6px; padding:6px 10px 12px; overflow-y:auto; }
-.nm-stk-grid button { all:unset; aspect-ratio:1; border-radius:14px; overflow:hidden; cursor:pointer; background:rgba(255,255,255,.04); }
+.nm-stk-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(84px, 1fr)); gap:6px; row-gap:6px; padding:6px 10px 12px; overflow-y:auto; isolation:isolate; }   /* 판 바탕 = 뒤 안 비침 · 줄 사이도 가로 틈만큼(봄 11-12 12:38) */
+.nm-stk-grid button { all:unset; display:block; box-sizing:border-box; aspect-ratio:1; border-radius:14px; overflow:hidden; cursor:pointer; background:rgba(255,255,255,.04); }
 .nm-stk-grid button:hover { outline:2px solid rgba(207,255,64,.38); }
 .nm-stk-grid img { width:100%; height:100%; object-fit:cover; display:block; }
