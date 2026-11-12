@@ -4,6 +4,7 @@
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 알림 켬/끔 · (단톡) 알림 그림 · 숨기기/보이기
 import { PinMark } from "./pin-mark";
+import { isPairRoom } from "./pair-fold";
 import { useRoomArtSrc } from "./room-art";
 import { useRoomPhoto } from "./room-photo";   // 목록 방 사진 누름 = 바로 바꾸기(형 11-13 06:54)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -78,7 +79,7 @@ export function useRoomOrder() {
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const seen = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number; at?: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 }).data || {};
   const [pins, setPins] = useState(() => readSet(PINS)), [hidden, setHidden] = useState(() => readSet(HIDE));
-  const all = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.with !== "형");
+  const all = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.with !== "형" && !isPairRoom(r.id));   // 둘의 방(「봄 · 챙」) = 목록 · 띠에 따로 안 세움 · 1:1 안에서 보임(형 11-13 08:29 「둘 대화로 귀속」 · ./pair-fold.ts)
   const lastOf = (r: Room) => (r.last_talk !== undefined ? r.last_talk : r.last);
   const count = (r: Room) => {
     const l = lastOf(r);
