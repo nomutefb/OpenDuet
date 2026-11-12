@@ -1,7 +1,7 @@
 // 움짤 스티커(형 11-12 12:17 dm-eyes 「애들한테 공유해서 자주쓰라고해. 글구 혹시 이거 내가 + 옆에 이모지 눌러서 애들마다 골라서 쓸수잇으면 좋겟다」
 //   · 12:18 「이모지 눌러서 전체가 있고, 애들마다 이름 있고 그 안에 gif」 · 「모두가 등록될필요는없고 일단 잇는애들부터」 · 뜸)
 //   보냄 = 글 한 줄 표지 「[스티커 <이름> <상황>]」(깃 커밋 0 · 봇도 같은 한 줄로 씀) → 말풍선 없이 움짤로 그림 · 몸 = editor viewer/office/sticker/<자리>/<상황>.gif
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { queryClient } from "@/query-client";
 import { office } from "../data/office";
@@ -21,7 +21,11 @@ export function Sticker({ text, mark }: { text: unknown; mark?: "wait" | "sent" 
 const roomNow = () => /^#\/(?:channels|group)\/([^/?#]+)/.exec(location.hash)?.[1] || "";
 
 export function StickerButton() {
-  const [open, setOpen] = useState(false), [tab, setTab] = useState("all");
+  const [open, setOpen] = useState(false), [tab, setTab] = useState("all"), [at, setAt] = useState<CSSProperties>({});
+  const btn = useRef<HTMLButtonElement>(null);
+  // 판 자리 = 누른 😊 바로 위(형 11-12 13:27 「이거 창이 이모지 누른 그 바로 그 부분에서 떠야해, 부드럽게. 지금은 멀찍이 떠버림.」 · 「모바일도 마찬가지야!」) · 화면 밖으로 안 나가게 12px 안쪽
+  const place = () => { const r = btn.current?.getBoundingClientRect(); if (!r) return; const w = Math.min(420, innerWidth - 24); const left = Math.max(12, Math.min(r.left - 8, innerWidth - w - 12)); setAt({ left, bottom: innerHeight - r.top + 8, width: w, transformOrigin: `${Math.round(r.left + r.width / 2 - left)}px 100%` }); };
+  useEffect(() => { if (!open) return; addEventListener("resize", place); return () => removeEventListener("resize", place); }, [open]);
   useEffect(() => { if (!open) return; const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [open]);
   // 누르면 판은 바로 닫고(형 11-12 12:50 「내가 이모지 클릭하면 바로 창 닫히면돼. ㅋㅋ 두개를 보내는 경우는 별로없거든」) 대화 줄에 「보내는 중」 움짤을 먼저 띄운 뒤 뒤에서 보냄 → 서버 답 = 진짜 글(라임 ✓)로 갈음 · 못 보냄 = 그 칸 걷힘(✓ 없음 = 안 감)
   const send = (p: Pack, it: Item) => {
@@ -41,13 +45,13 @@ export function StickerButton() {
   const shown = tab === "all" ? PACKS : PACKS.filter((p) => p.id === tab);
   return (
     <>
-      <button type="button" className="nm-stk-btn" aria-label="움짤 고르기" title="움짤" onClick={() => setOpen((x) => !x)}>
+      <button ref={btn} type="button" className="nm-stk-btn" aria-label="움짤 고르기" title="움짤" onClick={() => { place(); setOpen((x) => !x); }}>
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8" /><path d="M9 9.5h.01M15 9.5h.01" /></svg>
       </button>
       {open ? createPortal(
         <>
           <div className="nm-stk-back" aria-hidden onClick={() => setOpen(false)} />
-          <div className="nm-stk" role="dialog" aria-label="움짤">
+          <div className="nm-stk" role="dialog" aria-label="움짤" style={at}>
             <div className="nm-stk-tabs" role="tablist">
               <button type="button" role="tab" aria-selected={tab === "all"} className={tab === "all" ? "on" : ""} onClick={() => setTab("all")}>전체</button>
               {PACKS.map((p) => <button key={p.id} type="button" role="tab" aria-selected={tab === p.id} className={tab === p.id ? "on" : ""} onClick={() => setTab(p.id)}>{p.name}</button>)}
