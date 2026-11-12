@@ -31,7 +31,7 @@ test("보내는 중 움짤 + 진짜 글이 같이 있으면 하나만(형 11-12 
 });
 
 test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · 카리나(빼꼼) · 형(선글라스) · 나팔꽃(나팔) · 온(형 11-12 17:28 · 17:29 · 17:35 · 18:34 · 18:39)", () => {
-  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "번개", "시아", "깃", "챙", "카리나", "형", "나팔꽃", "온"]);
+  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "번개", "시아", "깃", "챙", "카리나", "형", "나팔꽃", "온", "여울"]);
   const k = PACKS.find((p) => p.id === "karina")!, h = PACKS.find((p) => p.id === "hyung")!;
   assert.equal(stickerOf("[스티커 카리나 빼꼼]")?.item.id, "peek");
   assert.equal(stickerOf("[스티커 형 선글라스]")?.pack.id, "hyung");
@@ -39,6 +39,7 @@ test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · �
   assert.equal(stickerUrl(h, h.items[5]), "/office/sticker/hyung/cool.gif");
   assert.equal(stickerOf("[스티커 나팔꽃 나팔]")?.item.id, "toot");
   assert.equal(stickerOf("[스티커 온 좋아]")?.pack.id, "on");
+  assert.equal(stickerOf("[스티커 여울 윙크]")?.item.id, "wink");
 });
 
 test("우상단 러너 숫자 = 흰색 · 문제(빨강) 칸만 라임(형 11-12 17:49)", () => {
