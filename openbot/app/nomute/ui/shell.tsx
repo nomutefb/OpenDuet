@@ -474,7 +474,8 @@ function RoomsPane() {
 /** PC 왼쪽 끝 얼굴 띠 — 얼굴만(글자 0) · 차례 = 안 읽은 방 → 고정 → 나머지(목록 화면과 같은 차례) · 위아래 스크롤 · 맨 위 ≡ · 맨 아래 「+」·형 얼굴 붙박이 */
 function FaceStrip({ current }: { current: string; last: string }) {
   const nav = useNavigate();
-  const { list, ordered, count, pins, setPins } = useRoomOrder();
+  const { list, ordered, count, pins, setPins, pinned } = useRoomOrder();
+  const seen = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number; at?: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 }).data || {};   // 대화 목록과 같은 캐시
   const go = (id: string) => { enterRoom(id); void nav({ to: chatHref(id) }); };
   // 우클릭 = 고정 · 고정 풀기(형 11-05 17:03 「그리고 우클릭하면 고정같은거 작용하게 해줘 좌측에 저 프로필 사진들도」) — 대화방 목록 「고정」과 같은 칸(nm-office-pins · 이 기기) · 고정 방 = 띠 위쪽
   const togglePin = (id: string) => { if (id === "all") return; const n = new Set(pins); if (n.has(id)) n.delete(id); else n.add(id); try { localStorage.setItem("nm-office-pins", JSON.stringify([...n])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } setPins(n); };
@@ -483,7 +484,9 @@ function FaceStrip({ current }: { current: string; last: string }) {
   // 라이브 = 지금 깸 · 또는 마지막 턴 10분 안(상태바 조약돌과 같은 셈 · 형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어?」) — 턴 사이 「잠」 깜빡임 없게
   const live = (who?: string) => !!who && bots.some((b) => b.who === who && (b.state === "awake" || (!!b.last_turn_ts && Date.now() - b.last_turn_ts <= 10 * 60_000)));
   const asleep = (who?: string) => !!who && !live(who);
-  const stripOrder = ordered;   // 차례 = 폰 대화 목록과 한 벌(./room-list.tsx useRoomOrder · 고정 → 최근 대화순 · 새 글 오면 바로)(형 11-11 23:52 봄 1:1 「그리고 이거 아직 안고쳐짐」 · 앞 말 「윈터 나랑 대화한지 얼마 안됬는데, 저 아래로 가있어」 · 앞 판 = 고정 → 깸 → 봇 마지막 턴 = 턴 기록 없는 윈터 · 빈 단톡이 뒤섞임)
+  // 띠만 = 고정 그대로 위 · 나머지 = 마지막 대화 · 형이 마지막으로 읽은 때(서버 seen.at) 중 늦은 것(형 11-12 10:01 「가장 위에는 내가 가장 최근에 읽은 애가 있어야함」 · 봄 10:30 「PC 왼쪽 띠에만」 · 폰 목록은 그대로 · 뎅)
+  const keyOf = (r: { id: string; last_ts?: number }) => Math.max(r.last_ts || 0, seen[r.id]?.at || 0);
+  const stripOrder = [...ordered.filter((r) => pinned(r.id)), ...ordered.filter((r) => !pinned(r.id)).sort((a, b) => keyOf(b) - keyOf(a))];   // 앞 판 = ordered 그대로(폰 대화 목록과 한 벌)(./room-list.tsx useRoomOrder · 고정 → 최근 대화순 · 새 글 오면 바로)(형 11-11 23:52 봄 1:1 「그리고 이거 아직 안고쳐짐」 · 앞 말 「윈터 나랑 대화한지 얼마 안됬는데, 저 아래로 가있어」 · 앞 판 = 고정 → 깸 → 봇 마지막 턴 = 턴 기록 없는 윈터 · 빈 단톡이 뒤섞임)
   // 대화 미리 받기 = 띠 차례 위 넷(1.5초 뒤 하나씩) + 얼굴에 손 올림·누름·초점(대화 목록 ./room-list.tsx 와 같은 꼴 · 뎅 16:03 「화면 위 차례랑 「위 네 방」 차례가 다름」)
   const qc = useQueryClient(), pre = (id: string) => { if (id) void qc.prefetchQuery(roomMsgsOptions(qc, id)); };
   const topS = stripOrder.slice(0, 4).map((r) => r.id).join(",");
