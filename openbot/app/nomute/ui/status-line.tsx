@@ -32,7 +32,7 @@ function ago(t: number | undefined, now: number): string {
   return h < 24 ? `${h}시간 전` : `${Math.round(h / 24)}일 전`;
 }
 
-const N = ({ v }: { v?: number }) => <b>{v ?? 0}</b>;
+const N = ({ v, t }: { v?: number; t?: string }) => <b className={t}>{v ?? 0}</b>;   // t = 신호등 칸(러너 숫자 = 흰색 · 문제(빨강) 칸만 라임 · 형 11-12 17:49 봄 1:1 「저거 흰색이여도 될거같아. 빨간색만 라임이면 될듯.」 · 봄 옮김)
 // 신호등 = 이모지 동그라미 대신 작은 점 · 은은하게 숨 쉬는 불(형 11-09 12:3x 시아 창 「동그라미 저거 촌스러우니까 그냥 점으로 디밍보이는거로 해줘」 · 시아)
 type Tone = "ok" | "warn" | "bad" | "off";
 const Dot = ({ t }: { t: Tone }) => <i aria-hidden className={`nm-sl-led ${t}`} />;
@@ -60,7 +60,7 @@ export function StatusLights({ className = "" }: { className?: string }) {
         <span>{q.isError ? "상태를 못 읽었어요" : q.isSuccess ? "상태 자료가 아직 없어요" : "상태 읽는 중…"}</span>
       ) : (
         <>
-          <span className="nm-sl-leds" title={`작동 표 신호등 수 · 정상 ${l.ok ?? 0} · 주의 ${l.warn ?? 0} · 문제 ${l.bad ?? 0} · 꺼짐 ${l.off ?? 0}`}><Dot t="ok" /><N v={l.ok} /> <Dot t="warn" /><N v={l.warn} /> <Dot t="bad" /><N v={l.bad} /> <Dot t="off" /><N v={l.off} /></span>
+          <span className="nm-sl-leds" title={`작동 표 신호등 수 · 정상 ${l.ok ?? 0} · 주의 ${l.warn ?? 0} · 문제 ${l.bad ?? 0} · 꺼짐 ${l.off ?? 0}`}><Dot t="ok" /><N v={l.ok} t="ok" /> <Dot t="warn" /><N v={l.warn} t="warn" /> <Dot t="bad" /><N v={l.bad} t="bad" /> <Dot t="off" /><N v={l.off} t="off" /></span>
           <Sep />
           <span title="서버 연결 칸의 가장 나쁜 불">서버 <Dot t={toneOf(l.server)} /></span>
           {/* 몸 n/m 뺌(형 11-08 09:00 dm-fast 「몸 7/9 이것도 없어도 돼.」 · 끊긴 몸은 러너 칸이 보여 줌) */}
