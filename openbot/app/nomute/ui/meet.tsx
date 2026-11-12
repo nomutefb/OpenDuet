@@ -116,7 +116,7 @@ export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
           return (
             <span key={n} className={`nm-meet-who s-${s}`} title={s === "no" && ans[n]?.why ? `거절 · ${ans[n]?.why}` : undefined}>
               <img src={faceOf(n)} alt="" /><b>{nameOf(n)}</b>
-              <small>{s === "scribe" ? "기록관 · 자동" : `${online(n) || s === "yes" ? "온라인" : "오프라인"} · ${LBL[s]}`}{s === "no" && ans[n]?.why ? ` · ${ans[n]?.why}` : ""}</small>
+              <small>{s === "scribe" ? "기록관 · 자동" : s === "off" ? "오프라인" : `온라인 · ${LBL[s]}`}{s === "no" && ans[n]?.why ? ` · ${ans[n]?.why}` : ""}</small>
             </span>
           );
         })}
