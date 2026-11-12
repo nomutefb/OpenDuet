@@ -7,13 +7,13 @@ const sh = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
 const src = sh.match(/export const ringOn = \(b: RingBot\) => ([^;]+);/);
 const ringOn = new Function("b", "return " + (src ? src[1] : "false")) as (b: Record<string, string | undefined>) => boolean;
 
-test("띠 라임 테 = 형 · 동료 말로 연 턴만 · 시계 알림 턴 · 깨움 표시 · 서버 잠 = 안 켜짐", () => {
+test("띠 라임 테 = 턴이 실제로 도는 애만 · 그록 깨움 표시 · 서버 잠 = 안 켜짐", () => {
   assert.ok(src, "ringOn 한 줄");
   assert.equal(ringOn({ state: "awake", why: "turn", by: "hyung" }), true);
   assert.equal(ringOn({ state: "awake", why: "turn", by: "peer" }), true);
   assert.equal(ringOn({ state: "awake", why: "roster" }), true);   // 그록 앱이 진짜 도는 중
   assert.equal(ringOn({ state: "awake", why: "turn", mark: "read" }), true);   // 부름 가져감 = 일하는 중
-  assert.equal(ringOn({ state: "awake", why: "turn", by: "clock" }), false);   // 깨움 러너 알림이 연 턴
+  assert.equal(ringOn({ state: "awake", why: "turn", by: "clock" }), true);   // 형 · 동료 부름도 러너 알림(clock)으로 와서 셈 · 클로드 깸 = 턴 도는 동안만
   assert.equal(ringOn({ state: "awake", why: "turn", mark: "woke" }), false);   // 서버가 깨움만 보냄
   assert.equal(ringOn({ state: "asleep", why: "roster", last_why: "wrote" }), false);
   assert.equal(ringOn({ state: "unknown", why: "roster" }), false);

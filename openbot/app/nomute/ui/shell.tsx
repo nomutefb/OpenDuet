@@ -474,9 +474,10 @@ function RoomsPane() {
 
 /** PC 왼쪽 끝 얼굴 띠 — 얼굴만(글자 0) · 차례 = 안 읽은 방 → 고정 → 나머지(목록 화면과 같은 차례) · 위아래 스크롤 · 맨 위 ≡ · 맨 아래 「+」·형 얼굴 붙박이 */
 // 띠 라임 테 = 진짜 일하는 애만(형 11-12 16:23 봄 1:1 「애들 다 활성화되어잇는거맞아? 라인 프로필이 다 떠서」 · 봄 16:28 고침 「가」) —
-//   서버 「깸」 가운데 시계 알림이 연 턴(by clock · 깨움 러너가 1~2분마다 엶)과 서버가 깨움만 보낸 표시(mark woke · 답 안 해도 10분)는 뺌 · 서버 「잠」이면 안 켜짐(앞 판 = 마지막 턴 10분 안이면 잠이어도 켬)
+//   서버 「깸」 가운데 서버가 깨움만 보낸 표시(mark woke · 그록 · 답 안 해도 10분)는 뺌 · 서버 「잠」이면 안 켜짐(앞 판 = 마지막 턴 10분 안이면 잠이어도 켬)
+//   클로드 턴은 by clock 이어도 켬 = 형 · 동료 부름도 깨움 러너 알림으로 와서 clock 으로 찍힘(ab24faf 판 = clock 빼니 일하는 셋까지 꺼져 0/24 · 시아 16:5x 실물) · 클로드 「깸」 = 턴이 실제로 도는 동안만
 export type RingBot = { who: string; state: string; last_turn_ts?: number; why?: string; by?: string; mark?: string };
-export const ringOn = (b: RingBot) => b.state === "awake" && b.by !== "clock" && b.mark !== "woke" && b.why !== "woke";
+export const ringOn = (b: RingBot) => b.state === "awake" && b.mark !== "woke" && b.why !== "woke";
 export const HYUNG_TALK_MS = 60 * 60_000;   // 띠 얼굴 「형과 최근 대화」 창(형 11-12 16:23 「최근 1시간」)
 function FaceStrip({ current }: { current: string; last: string }) {
   const nav = useNavigate();
