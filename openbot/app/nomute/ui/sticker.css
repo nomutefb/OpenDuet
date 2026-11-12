@@ -7,7 +7,7 @@
 .nm-stk-tabs { background:#151715; display:flex; gap:6px; padding:10px 10px 6px; overflow-x:auto; flex:none; }
 .nm-stk-tabs button { all:unset; flex:none; padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600; color:rgba(232,234,232,.62); border:1px solid transparent; cursor:pointer; }
 .nm-stk-tabs button.on { color:#CFFF40; background:rgba(207,255,64,.14); border-color:rgba(207,255,64,.38); }
-.nm-stk-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(84px, 1fr)); gap:6px; row-gap:6px; padding:6px 10px 12px; overflow-y:auto; isolation:isolate; }   /* 판 바탕 = 뒤 안 비침 · 줄 사이도 가로 틈만큼(봄 11-12 12:38) */
+.nm-stk-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(84px, 1fr)); grid-auto-rows:max-content; align-content:start; flex:1 1 auto; min-height:0; gap:6px; row-gap:6px; padding:6px 10px 12px; overflow-y:auto; isolation:isolate; }   /* 판 바탕 = 뒤 안 비침 · 줄 사이도 가로 틈만큼(봄 11-12 12:38) · 줄 높이 = 칸 높이(max-content · 없으면 판이 줄을 60px 로 눌러 움짤끼리 겹침 = 봄 12:38 「한 덩이」의 진짜 까닭 · 뜸 13:4x 실물) */
 .nm-stk-grid button { all:unset; display:block; box-sizing:border-box; aspect-ratio:1; border-radius:14px; overflow:hidden; cursor:pointer; background:rgba(255,255,255,.04); }
 .nm-stk-grid button:hover { outline:2px solid rgba(207,255,64,.38); }
 .nm-stk-grid img { width:100%; height:100%; object-fit:cover; display:block; }
