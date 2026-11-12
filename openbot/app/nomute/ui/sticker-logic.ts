@@ -13,8 +13,8 @@ export const PACKS: Pack[] = [
   { id: "chaeng", name: "챙", items: MOODS },
   { id: "karina", name: "카리나", items: [...MOODS, { id: "peek", label: "빼꼼" }] },
   { id: "hyung", name: "형", items: [...MOODS, { id: "cool", label: "선글라스" }] },
-  { id: "morning", name: "나팔꽃", items: [...MOODS, { id: "toot", label: "나팔" }] },   // 형 꽃(정원 한쪽 네온그린 · 둥근 안경 · 형 11-12 18:34 「나팔꽃해줄줄알앗더니」 · 18:35 「그럼 너무좋지,,」)
-  { id: "on", name: "온", items: MOODS },
+  { id: "morning", name: "나팔꽃", items: [{ id: "ibul", label: "이불" }] },   // 형 꽃 = 이불 하나(형 11-13 08:03 「미안한데 나팔꽃은 6개 말구 요거 하나만. ㅋㅋ」 · 「나한테는 밝아서 잘 안보여」 · 앞 판 여섯 = 그림만 남김)
+  // 그록봇(온) 묶음 뺌(형 11-13 08:03 「글구 그록봇 애들은 gif 없어도 돼. 이게 맥락이 달라서 이해를 하기가 어렵다라고 어제 테스트해보니까 걍 빼줭」)
   // 여울 묶음 뺌(형 11-13 06:55 「뜸 여울 관련된 gif는 안뜨게 없애줘」 · 그림 파일은 editor viewer/office/sticker/yeoul 에 남김)
 ];
 export const stickerUrl = (p: Pack, it: Item) => `/office/sticker/${p.id}/${it.id}.gif`;
