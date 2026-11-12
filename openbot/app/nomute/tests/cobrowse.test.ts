@@ -27,3 +27,11 @@ test("탭 줄 — 같이 보기 탭은 하나 · 저장 · 되읽기", () => {
   assert.equal(back.active, "co");
   assert.equal(tabKey(back.tabs[1]), "co");
 });
+
+test("로컬 네트워크 권한 — 물음 = 길게 기다림 · 못 물음 = 막지 않음", async () => {
+  const { lnaState, reachWait } = await import("../ui/cobrowse.ts");
+  assert.equal(await lnaState({ permissions: { query: async () => ({ state: "prompt" }) } }), "prompt");
+  assert.equal(await lnaState({ permissions: { query: async () => { throw new TypeError("x"); } } }), "unknown");
+  assert.equal(await lnaState({}), "unknown");
+  assert.ok(reachWait("prompt") > reachWait("granted"));
+});
