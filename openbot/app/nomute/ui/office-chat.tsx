@@ -1044,7 +1044,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   // 형이 낀 단톡(임시방 · 지정방 · 회의실) = 다 보이게(형 10-31 「단톡은 전체메세지로 보여야되는데 왜 봄메세지는 저렇게보여」) · 접는 보기(hyungView)는 1:1 방만
   const unfold = useUnfold(room);   // 방 메뉴 「긴 글 다 펼쳐 보기」(./unfold.ts)
   const pairRoom = room.startsWith("pair-");   // 둘의 방 = 형은 읽기만(쓰기 칸 대신 한 줄 · 머리 = 두 얼굴 · 접기 0 = 둘이 한 말 다 보임)
-  const flat = meet || pairRoom || (!!r && !r.with);
+  const flat = meet || pairRoom || room.startsWith("tmp-") || (!!r && !r.with);   // 임시방(tmp- · 화상회의 포함) = 늘 단톡 · 목록에 아직 없을 때(r 없음)도 접지 않음(화상회의 첫 시험 tmp-mwe78kqp 「외 1 · 메시지 6개」로 접힘)
   const shownAll = useMemo(() => all.map(relayAs), [all]);   // 러너가 그록 친구 대신 쓴 글 = 그 친구 말풍선(./pick-msg.ts relayAs · 형 11-13 08:05)
   const items = useMemo(() => (flat ? flatView(shownAll) : hyungView(shownAll, r)), [shownAll, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
