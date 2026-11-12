@@ -144,3 +144,12 @@ test("테일스케일 연결표 = 게이지 기기는 손 올림만 · 게이지
   assert.match(tt, /100\.103\.55\.120/); assert.match(tt, /100\.93\.212\.35/);
   assert.ok(!/group: "(WIN|MAC|Lx)/.test(tt), "게이지 기기는 줄로 또 안 넣음");
 });
+
+test("러너 칸 간격 · 아래 막대 꺼진 픽토그램 흰색(형 11-12 16:34 · 16:41)", () => {
+  const rg = rd("../ui/runner-gauges.tsx"), tg = rd("../runner/tick-gauge.tsx"), sh = rd("../ui/shell.css");
+  assert.match(rg, /const PEB_LIFT = 6;/); assert.match(rg, /fb - PEB_LIFT - peb/);
+  assert.match(rg, /textScale=\{1\.25\} spread=\{3\}/);
+  assert.match(tg, /y=\{TY - 18\}/);   // G 줄은 그대로(위로 안 올림)
+  assert.match(tg, /y=\{TY - 6 \+ S1\}/); assert.match(tg, /y=\{TY \+ 15\.5 \+ S2\}/);
+  assert.match(sh, /\.nm-split-l \.ynav button \{ height:40px; padding:0 17px; font-size:var\(--fs-xs\); border-radius:var\(--r-pill\); color:#FFFFFF; \}/);
+});

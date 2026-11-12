@@ -61,6 +61,7 @@ function useNow() {
 /** 조약돌 줄 · 러너 번호 줄 = 오른쪽 SNS 칸의 FB(+1) 줄 · IG(−) 줄과 같은 높이(형 11-08 10:48 밥상 「아예 조약돌 푝디를 옆에 +1 이런거랑 수평으로 그냥 맞추고,」 · 10:49 「조약돌 이 옆에 +1 1행하고 맞을텐데, 그럼 2행에는 러너가 배치되면 딱 맞는 느낌이 날듯.」 · 봄 10:49 「옆 칸이랑 맞추는 건 고정 숫자 말고 DOM 으로 재서 묶기」)
  *  = 두 줄의 지금 가운데 y 와 SNS 두 줄(.nm-pulse-rowbg.fb · .nm-pulse-rowbg) 가운데 y 를 재서 그 차이만큼 translateY(CSS 변수) — 판 키는 안 바뀌니 오른쪽 칸 높이(--nm-top-h = 이 판 키)가 따라 움직이는 되먹임이 없음 · SNS 칸이 없으면(폰 · 펼침) 0
  *  다시 잼 = 판·오른쪽 칸 크기 바뀔 때 + 2초마다(SNS 그림은 자료가 와야 그려져 줄이 늦게 생김 · 글꼴 로딩 뒤 줄 키 바뀜) · 재는 줄 = 첫 몸의 줄(네 몸 다 같은 꼴 · 게이지 넷 같은 크기) */
+const PEB_LIFT = 6;   // 조약돌만 FB 줄보다 6px 위(형 11-12 16:34 봄 1:1 「그리고 조약돌이 조금 더 위로가게, a1 이런애들보다는」 · 봄 옮김) · 러너 번호 줄 = IG 줄 그대로
 function useRowSync(panel: { current: HTMLDivElement | null }) {
   const [dy, setDy] = useState({ peb: 0, run: 0 });
   useEffect(() => {
@@ -74,7 +75,7 @@ function useRowSync(panel: { current: HTMLDivElement | null }) {
       const fb = pick([".nm-split-top-r .nm-pulse-chart g.fb text", ".nm-split-top-r .nm-pulse-rowbg.fb"]), ig = pick([".nm-split-top-r .nm-pulse-chart g.ig text", ".nm-split-top-r .nm-pulse-rowbg:not(.fb)"]);
       const peb = mid(el.querySelector(".nm-rgx-peb") ?? el.querySelector(".nm-rgx-pebs")), run = mid(el.querySelector(".nm-rgx-run") ?? el.querySelector(".nm-rgx-runs"));
       setDy((d) => {   // 잰 자리엔 지금 옮긴 값이 들어 있음 → 차이만 더함(한 번 맞으면 그대로)
-        const np = fb != null && peb != null ? clamp(d.peb + fb - peb) : 0, nr = ig != null && run != null ? clamp(d.run + ig - run) : 0;
+        const np = fb != null && peb != null ? clamp(d.peb + fb - PEB_LIFT - peb) : 0, nr = ig != null && run != null ? clamp(d.run + ig - run) : 0;
         return np === d.peb && nr === d.run ? d : { peb: np, run: nr };
       });
     };
@@ -142,7 +143,7 @@ export function RunnerGauges() {
             <section className="nm-rgx-host" aria-label={`${h.label} 상태`}>   {/* 위에서부터 가운데로 = 이름 · G 온도 · (틈) · 게이지 · 러너 불(형 17:3x 「각각 게이지 바로 수직 위에다가 하드웨어 이름」 · 「블릿은 없어도」 · 「그래픽카드 온도도 그대로 수직위로」 · 「게이지랑딱붙으면 안이쁘니까」) */}
               <b className="nm-rg-name nm-rgx-name" title={(TAIL_OF_GAUGE[h.label] || []).map(tailTitle).join("\n") || undefined}>{h.label}</b>
               <span className="nm-rgx-g">{none && a?.stale ? "보고 끊김" : "\u00a0"}</span>   {/* G 온도는 게이지 안 위 글 둘째 줄로(TickGauge top2 · 형 11-08 09:03 글자 크기 = CPU 온도와 같게 · 「WIN 이랑 간격을 좀 더 벌려줘」 = 이 줄은 빈 틈) */}
-              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used={!live && !none && at ? ago(now - at) : ""} top={m.cpu_temp != null ? `C ${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} top2={m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : undefined} top2Ink={tInk(m.gpu_temp)} off={none} wait={none && (st.isLoading || rq.isLoading)} dyText={9} textScale={1.25} />   {/* 안 글자 4(≈3.5px) 아래(형 11-08 11:27 밥상 「게이지 안에 글자도 조금 더 내려오고(그럼 글자는 두번내려오는 느낌이겟지)」 · 게이지 자체도 4px 아래 = runner-gauges.css) */}
+              <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used={!live && !none && at ? ago(now - at) : ""} top={m.cpu_temp != null ? `C ${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} top2={m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : undefined} top2Ink={tInk(m.gpu_temp)} off={none} wait={none && (st.isLoading || rq.isLoading)} dyText={9} textScale={1.25} spread={3} />   {/* 안 글자 4(≈3.5px) 아래(형 11-08 11:27 밥상 「게이지 안에 글자도 조금 더 내려오고(그럼 글자는 두번내려오는 느낌이겟지)」 · 게이지 자체도 4px 아래 = runner-gauges.css) */}
               {temp ? <span className="sr-only">{temp}</span> : null}
             </section>
             {hi === 0 && HOSTS.length > 1 ? <i className="nm-rgx-sp" aria-hidden /> : null}   {/* WIN↔MAC 틈 트랙(12px) · 다른 몸 사이는 패딩만 */}

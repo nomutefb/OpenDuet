@@ -240,7 +240,7 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-l .ynav { position:absolute; top:auto; bottom:14px; left:0; right:0; margin-inline:auto; width:fit-content; max-width:calc(100% - 32px); height:auto; padding:6px 10px; gap:8px; justify-content:center;
   border-radius:var(--r-pill); border:1px solid var(--glass-line); background:color-mix(in srgb, var(--glass) 50%, transparent);
   -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); backdrop-filter:blur(var(--blur-l)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
-.nm-split-l .ynav button { height:40px; padding:0 17px; font-size:var(--fs-xs); border-radius:var(--r-pill); color:#CFFF40; }
+.nm-split-l .ynav button { height:40px; padding:0 17px; font-size:var(--fs-xs); border-radius:var(--r-pill); color:#FFFFFF; }   /* 꺼진 픽토그램 = 흰색 · 켜진 것만 라임(형 11-12 16:41 봄 1:1 「그리고 활성화된 부분 아니면, 흰색이면 될거같애. 픽토그램들」 · 봄 옮김) */
 .nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#CFFF40; background:rgba(207,255,64,.14); border-color:rgba(207,255,64,.38); }
 .nm-split-l .ynav svg { width:20px; height:20px; }
 .nm-split-l .ynav button[data-tab] { display:none !important; }   /* 홈 = 오른쪽에 늘 있음 · 대화방·대화 = 왼쪽 띠 → 남는 것 = 작동 · 서랍 · 설정 */
