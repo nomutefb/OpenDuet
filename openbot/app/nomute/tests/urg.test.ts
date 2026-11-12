@@ -20,4 +20,5 @@ test("화면 = 긴급 줄 점수 칸 「긴급 HH:MM」", () => {
   const nl = readFileSync(new URL("../home/news-list.tsx", import.meta.url), "utf8");
   assert.match(nl, /row\.urg \? <span className="sc urg"/);
   assert.match(nl, /urg: h\.urg \}/);
+  assert.match(readFileSync(new URL("../home/news-list.css", import.meta.url), "utf8"), /li:has\(\.sc\.urg\) \{ grid-template-columns:16px 18px minmax\(0,1fr\) auto 50px 76px; \}/);
 });
