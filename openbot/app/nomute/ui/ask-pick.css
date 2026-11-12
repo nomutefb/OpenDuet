@@ -1,0 +1,8 @@
+/* 촉 방 「요약」 단추(./ask-pick.tsx · 형 11-13 02:45) = 글 아래 작은 알약 · 묶음 카드 「올림 · 넘김」(라임 채움)과 안 헷갈리게 = 테두리만 */
+.nm-askpick { display:inline-flex; align-items:center; gap:4px; align-self:flex-start; margin-top:4px; height:26px; padding:0 11px; border:1px solid rgba(207,255,64,.55); border-radius:999px; background:none; color:#CFFF40; font:inherit; font-size:12px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-askpick:active { transform:scale(.96); }
+.nm-askpick.run { opacity:.6; cursor:default; }
+.nm-askpick.ok { border-color:transparent; color:rgba(232,234,232,.6); cursor:default; padding-left:4px; }
+.nm-askpick.ok svg { width:12px; height:12px; fill:none; stroke:#CFFF40; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+.nm-askpick.err { border-color:rgba(255,107,94,.6); color:#ff8a8a; }
+:root:not(.dark) .nm-askpick { color:#4f7a00; border-color:rgba(79,122,0,.5); }
