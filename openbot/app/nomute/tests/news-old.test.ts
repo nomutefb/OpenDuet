@@ -153,3 +153,12 @@ test("러너 칸 간격 · 아래 막대 꺼진 픽토그램 흰색(형 11-12 16
   assert.match(tg, /y=\{TY - 6 \+ S1\}/); assert.match(tg, /y=\{TY \+ 15\.5 \+ S2\}/);
   assert.match(sh, /\.nm-split-l \.ynav button \{ height:40px; padding:0 17px; font-size:var\(--fs-xs\); border-radius:var\(--r-pill\); color:#FFFFFF; \}/);
 });
+
+test("다음 창 모델 · 노력도 = 작동 표 몸 줄 끝 칸 둘 · 형만 고름 · 저장 m/profile/nextwin(형 11-12 16:17)", () => {
+  const sb = rd("../ui/status-board.tsx"), nw = rd("../ui/next-win.tsx");
+  assert.match(sb, /<span>다음 창<\/span>/);
+  assert.match(sb, /\{b \? <NextWinCells who=\{r\.name\} \/> : <td colSpan=\{2\}/);
+  assert.match(nw, /"profile\/nextwin"/); assert.ok(!/"m\/profile\/nextwin"/.test(nw), "형 브라우저 = 사람 문(m\/ = 봇 열쇠 401)");
+  assert.match(nw, /me\?\.kind === "human"/);
+  assert.match(nw, /who === "봄" \? \{ model: "claude-fable-5-2", effort: "medium" \}/);
+});

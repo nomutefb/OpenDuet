@@ -16,6 +16,7 @@ import "./sched-status.css";
 import "./yeta-settings.css";
 import "./trend.css";   // 수집 목록 = 옛 피드 꼴(SNS 전체와 같은 줄)
 import "./status-board.css";
+import { NextWinCells } from "./next-win";   // 다음 창 모델 · 노력도(형 11-12 16:17 「짓자 거기서 변경하면 연동되게」)
 
 type Cell = { st: HealthSt; note?: string; label?: string };
 export type StatusRow = { key: string; name: string; st: HealthSt; last_at?: number; next_at?: number; left_days?: number; value?: string; note?: string; cron?: string[]; zone?: string; cells?: Record<string, Cell> };
@@ -306,8 +307,8 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
       <div className="nsb-scroll" role="region" aria-label="애들 × 연결" tabIndex={0}>
         <table>
           <thead>
-            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={3}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length || 1}><span>교대</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
-            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}</tr>
+            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={3}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length || 1}><span>교대</span></th><th colSpan={2}><span>다음 창</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
+            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}<th>모델</th><th>노력</th></tr>
           </thead>
           <tbody>
             {[...ours, ...rest].map((r) => {
@@ -320,6 +321,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
                   {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "r2" || k === "gh" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <td colSpan={cliCols.length} className="none" />}
                   {DIARY_COLS.map((x) => <td key={x.id}>{d[x.id] ? <Dot c={d[x.id]} t={`${x.name} · ${HEALTH_KO[d[x.id].st]}${d[x.id].note ? ` · ${d[x.id].note}` : ""}`} /> : null}</td>)}
                   {handCols.map((x) => <td key={x}>{h[x] ? <Dot c={h[x]} t={`${x} · ${HEALTH_KO[h[x].st]}${h[x].note ? ` · ${h[x].note}` : ""}`} /> : null}</td>)}
+                  {b ? <NextWinCells who={r.name} /> : <td colSpan={2} className="none" />}{/* 다음 창 모델 · 노력도(형 11-12 16:17 · ui/next-win.tsx) */}
                 </tr>
               );
             })}
