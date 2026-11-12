@@ -82,6 +82,9 @@ export const PATCH: Record<string, [string, string][]> = {
     ['import { AttachmentStrip } from "./attachment-strip";', 'import { AttachmentStrip } from "./attachment-strip";\nimport { openAttach } from "@nomute/ui/attach-sheet";'],
     ["onClick={() => fileInputRef.current?.click()}", "onClick={() => openAttach(fileInputRef.current)}"],
     ["onClick={() => fileInputRef.current?.click()}", "onClick={() => openAttach(fileInputRef.current)}"],
+    // 「+」 옆 움짤 단추(형 11-12 12:17 「+ 옆에 이모지 눌러서 애들마다 골라서 쓸수잇으면」 · ./ui/sticker.tsx · 뜸)
+    ['import { openAttach } from "@nomute/ui/attach-sheet";', 'import { openAttach } from "@nomute/ui/attach-sheet";\nimport { StickerButton } from "@nomute/ui/sticker";'],
+    ['<DuetIcon name="plus" size={22} />\n                  </Button>\n                )}', '<DuetIcon name="plus" size={22} />\n                  </Button>\n                )}\n                <StickerButton />'],
     ['          alt: attachment.filename,\n', '          alt: attachment.filename,\n          size: attachment.size,\n'],
     ['const sendLabel = parking ? "Queue message" : "Send message";', 'const sendLabel = parking ? "줄 세워 보내기" : "보내기";'],
     ['aria-label="More message options unavailable"', 'aria-label="글 꾸미기 없음"'],
