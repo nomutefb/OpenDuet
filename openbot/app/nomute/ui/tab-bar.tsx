@@ -101,6 +101,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* 이미 놓음 */ }
     if (d && !d.moved) pick(t);
   };
+  const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" }> => t.k === "screen" || t.k === "web");
   return (
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
