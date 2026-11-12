@@ -63,7 +63,14 @@ export function byEvent<T>(rows: T[], hitOf: (r: T) => EventHit | null): T[] {
   return [...scored.filter(([, h]) => (seen.has(h.id) ? false : (seen.add(h.id), true))).map((x) => x[0]), ...rest];
 }
 
-/** 화면에 보일 점수 = 펴서(형 11-12 10:43 봄 1:1 「너무 낮아서, 분별력이 떨어져버리네」 → 11:43 「웅 그렇게해줘!」 「원래 점수는 없어도돼」) — min(100, s × 100 / scale)
- *  scale = 서버 ?f=event 답 머리 칸(지난 3일 회차 최고의 상위 5% · 빠르 11-12 12:03 · data/collect/event/scale.json) · 없으면(첫 회차 전 · 못 읽음) 옛 그대로 s · 줄 세우는 차례는 s 그대로(이 값은 보이는 데만) */
-export const shownScore = (s: number, scale?: number | null): number => (scale && scale > 0 && Number.isFinite(s) ? Math.min(100, Math.round((s * 100) / scale)) : s);
-export const scaleOf = (j: unknown): number | null => { const n = Number((j as { scale?: unknown } | null)?.scale); return Number.isFinite(n) && n > 0 ? n : null; };
+/** 화면에 보일 점수 = 로그 눈금(봄 11-12 18:10 고름 · 빠르 식 · 형 12:36 「전쟁나면 그게 저거랑 동급일순없잖아」 「이 점수간의 간격도 어느정도 수학적이엿으면해서」)
+ *  원점 = −60 × ln(1 − s/100)(서버 score100 을 되푼 값 · 빠르 12:38 봄 연구소) → 화면 = 15 × log2(원점 ÷ 1.8) · 0 ~ 100 자름 = 「15점 차이 = 2배 큰 이슈」
+ *  앞 판 = min(100, s × 100 / scale)(지난 3일 상위 5% · 기준이 회차마다 움직여 같은 사건이 100 → 85 → 70 으로 흘러내림 · 빠르 18:08) · 줄 세우는 차례는 s 그대로(이 값은 보이는 데만) */
+export const SCORE_LOG = { step: 15, floor: 1.8, raw: 60 };   // 숫자 한 곳(15 = 2배마다 오르는 점 · 1.8 = 0점 원점 · 60 = 서버 score100 되풀이)
+export const shownScore = (s: number): number => {
+  if (!Number.isFinite(s)) return s;
+  if (s >= 100) return 100;
+  const raw = -SCORE_LOG.raw * Math.log(1 - Math.max(0, s) / 100);
+  if (!(raw > 0)) return 0;
+  return Math.max(0, Math.min(100, Math.round(SCORE_LOG.step * Math.log2(raw / SCORE_LOG.floor))));
+};

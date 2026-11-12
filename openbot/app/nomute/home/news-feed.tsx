@@ -13,7 +13,7 @@ import { hookFrame, toneFrame } from "../ui/inapp";
 import { homePool } from "./home-pool";
 import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
 import { rssFirst } from "./rss-first";
-import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, scaleOf, shownScore } from "./event-score";   // 카드 점수 · 차례 = 뉴스 알고리즘 하나(형 11-11 08:53 봄 1:1 「글구 메인화면에서 그 점수 별로 카드 보이는거 잇지? 그거 점수마다 보여야 함 한 알고리즘 대로」 · 아래 Hot Issue 와 같은 맞추기)
+import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, shownScore } from "./event-score";   // 카드 점수 · 차례 = 뉴스 알고리즘 하나(형 11-11 08:53 봄 1:1 「글구 메인화면에서 그 점수 별로 카드 보이는거 잇지? 그거 점수마다 보여야 함 한 알고리즘 대로」 · 아래 Hot Issue 와 같은 맞추기)
 
 const CHANNEL = "nomute-modern-home";
 export const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
@@ -94,7 +94,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
   shownCb.current = onShown;
   useEffect(() => {
     let live = true, ready = false, shown = false, version = 0, snap: { rows: unknown[]; status: Record<string, unknown> } | null = null;
-    let events: NewsEvent[] | null = null, scale: number | null = null;   // 사건 묶음 점수(score100 · /api/trends?f=event · 1분마다 · 못 받으면 앞 판)
+    let events: NewsEvent[] | null = null;   // 사건 묶음 점수(score100 · /api/trends?f=event · 1분마다 · 못 받으면 앞 판)
     let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null, picks: unknown[] = [], picksAt = 0;
     // 사진 없는 카드 채우기(형 11-03 12:46 「그리고 메인에 사진 없는 이슈는 없게 하고픈데 …」 · 뜸 에디터 홈 #2253 과 같은 꼴) = 다 그린 뒤 사진 없는 행의 기사 주소를 사무실 링크 카드(/api/office/linkcard · og:image · R2 7일)로 읽어 사진 지도에 더하고 다시 그림 · 동시 4 · 한 바퀴 24 · 물은 주소는 다시 안 물음
     const linkImages: Record<string, string> = {}, linkTried = new Set<string>();
@@ -119,7 +119,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       const ei = eventIndex(events), hits = new Map<unknown, EventHit>();
       for (const r of rows as Record<string, unknown>[]) {
         const h = eventOf(r as Parameters<typeof eventOf>[0], ei);
-        if (h) { hits.set(r, h); r.score = shownScore(h.s, scale); r.score_int = true; }   // 보이는 숫자만 폄 · 차례 = h.s else { delete r.score; delete r.score_int; }
+        if (h) { hits.set(r, h); r.score = shownScore(h.s); r.score_int = true; }   // 보이는 숫자만 폄 · 차례 = h.s else { delete r.score; delete r.score_int; }
       }
       if (ei.size) rows = byEvent(rows, (r) => hits.get(r) || null);
       lastRows = rows;
@@ -169,7 +169,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       if (!imagesAt || Date.now() - imagesAt > IMAGES_EVERY) { imagesAt = Date.now(); images = (await firstJson(["/api/trends?f=images", "/rss_images.json"])) || images; }
       if (alpha == null) alpha = (await firstJson(["/feed_alpha.json"])) || {};
       const ev = await firstJson<{ events?: NewsEvent[] }>(["/api/trends?f=event"], (v) => !!v && Array.isArray(v.events) && v.events.length > 0);
-      if (ev) { events = ev.events || null; scale = scaleOf(ev); }
+      if (ev) { events = ev.events || null; }
       if (!picksAt || Date.now() - picksAt > PICKS_EVERY) {   // 틈·촉 픽(형 11-03 09:57 「그 메인카드에 틈이나, 점수 반영된 이슈가 카드로 안뜨는거 같은데」 · 뜸 api/trends?f=picks) = 기사 주소 있는 픽만 · 못 받으면 받아 둔 그대로(없으면 픽 없이 = 홈 그대로)
         const pk = await firstJson<{ picks?: unknown[] }>(["/api/trends?f=picks"], (v) => !!v && Array.isArray(v.picks));
         if (pk) { picks = pickOrder(pk.picks || []); picksAt = Date.now(); }

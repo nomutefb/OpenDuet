@@ -2,17 +2,18 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { scaleOf, shownScore } from "../home/event-score.ts";
+import { SCORE_LOG, shownScore } from "../home/event-score.ts";
 
-test("scale 있으면 min(100, s × 100 / scale) · 없으면 옛 그대로", () => {
-  assert.equal(shownScore(62.1, 60), 100); assert.equal(shownScore(32, 56.5), 57); assert.equal(shownScore(12, 56.5), 21);
-  assert.equal(shownScore(80, 56.5), 100, "위는 100 에서 멈춤");
-  assert.equal(shownScore(32, null), 32); assert.equal(shownScore(32, 0), 32);
-  assert.equal(scaleOf({ scale: 60 }), 60); assert.equal(scaleOf({}), null); assert.equal(scaleOf({ scale: "x" }), null);
+test("화면 점수 = 15 × log2(원점 ÷ 1.8) · 원점 = −60 × ln(1 − s/100) · 0 ~ 100(봄 11-12 18:10 · 빠르 식)", () => {
+  assert.deepEqual(SCORE_LOG, { step: 15, floor: 1.8, raw: 60 });
+  assert.equal(shownScore(62.1), 75); assert.equal(shownScore(28.8), 53); assert.equal(shownScore(18), 41);
+  assert.equal(shownScore(100), 100); assert.equal(shownScore(99.9), 100, "위는 100 에서 멈춤"); assert.equal(shownScore(0), 0); assert.equal(shownScore(1), 0, "아래는 0");
+  const a = -60 * Math.log(1 - 40 / 100), b = -60 * Math.log(1 - 64 / 100);
+  assert.ok(Math.abs(15 * Math.log2(b / a) - (shownScore(64) - shownScore(40))) <= 1, "15점 차이 = 원점 2배");
 });
 
 test("홈 카드 · HOT ISSUE 둘 다 보이는 숫자만 폄 · 차례는 h.s", () => {
   const nf = readFileSync(new URL("../home/news-feed.tsx", import.meta.url), "utf8"), nl = readFileSync(new URL("../home/news-list.tsx", import.meta.url), "utf8");
-  assert.match(nf, /r\.score = shownScore\(h\.s, scale\)/); assert.match(nf, /scale = scaleOf\(ev\)/);
-  assert.match(nl, /score: shownScore\(h\.s, scale\)/); assert.match(nl, /scale = scaleOf\(ev\)/);
+  assert.match(nf, /r\.score = shownScore\(h\.s\)/); assert.ok(!/scaleOf/.test(nf), "scale 펴기 걷음");
+  assert.match(nl, /score: shownScore\(h\.s\)/); assert.ok(!/scaleOf/.test(nl), "scale 펴기 걷음");
 });
