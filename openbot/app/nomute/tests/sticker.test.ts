@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { PACKS, STK_TMP, dropStickerTwins, stickerMark, stickerOf, stickerText, stickerUrl } from "../ui/sticker-logic.ts";
+import { readFileSync } from "node:fs";
 
 test("「[스티커 이름 상황]」 한 줄 = 움짤 · 그 밖 = 그냥 글", () => {
   const s = stickerOf("[스티커 빠르 좋아]");
@@ -43,8 +44,7 @@ test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · �
 });
 
 test("우상단 러너 숫자 = 흰색 · 문제(빨강) 칸만 라임(형 11-12 17:49)", () => {
-  const fs = require("node:fs"), path = require("node:path");
-  const css = fs.readFileSync(path.join(__dirname, "../ui/status-line.css"), "utf8"), tsx = fs.readFileSync(path.join(__dirname, "../ui/status-line.tsx"), "utf8");
+  const css = readFileSync(new URL("../ui/status-line.css", import.meta.url), "utf8"), tsx = readFileSync(new URL("../ui/status-line.tsx", import.meta.url), "utf8");
   assert.match(css, /\.nm-sl-leds b \{ color: #FFFFFF; \}/); assert.match(css, /\.nm-sl-leds b\.bad \{ color: #CFFF40; \}/);
   assert.match(tsx, /<N v=\{l\.bad\} t="bad" \/>/);
 });
