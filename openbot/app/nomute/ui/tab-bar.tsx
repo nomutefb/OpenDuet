@@ -39,6 +39,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const first = useRef(true);
   useEffect(() => {   // 방·판을 옮기면(얼굴 띠 · 목록 누름) 화면 탭은 덮개를 내리고 대시보드로 · 방 탭은 안 만듦(형 09:29)
     if (first.current) { first.current = false; return; }
+    if (paneHost()) return;   // 웹 · 화면 탭이 오른쪽 칸만 덮는 판(PC 두 칸) = 왼쪽 대화를 옮겨도 오른쪽 탭은 그대로(형 11-12 16:41 봄 1:1 「봄으 ㅣ정원으로 다시 탭 갔다가 오면, 방금 탭으로 와야됨. (항상 메인으로 다시 오더라)」 · 깃) · 몸 전체를 덮는 옛 판만 내림
     setS((x) => (x.active === "dash" ? x : { ...x, active: "dash" }));
   }, [room, pane]);
   useEffect(() => { const on = () => setS((x) => tabsAdd(x, { k: "co" })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
@@ -77,12 +78,12 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     const key = tabKey(t);
     setS((x) => ({ ...x, active: key }));
     if (t.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`);
-    else if (t.k === "dash" && pane === "chat") go("#/");
+    else if (t.k === "dash" && pane === "chat" && !paneHost()) go("#/");   // 오른쪽 칸만 덮는 판 = 왼쪽 대화는 그대로(정원 탭 = 오른쪽만 원래 판 · 형 11-12 16:41 「항상 메인으로 다시 오더라」 · 깃)
   };
   const close = (key: string) => {
     const next = tabsClose(s, key), t = next.tabs.find((x) => tabKey(x) === next.active) || DASH;
     setS(next);
-    if (next.active !== s.active) { if (t.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`); else if (t.k === "dash" && pane === "chat") go("#/"); }
+    if (next.active !== s.active) { if (t.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`); else if (t.k === "dash" && pane === "chat" && !paneHost()) go("#/"); }
   };
   const down = (key: string) => (e: RPE<HTMLDivElement>) => {
     if (e.button !== 0 || (e.target as HTMLElement).closest(".nm-tab-x")) return;
