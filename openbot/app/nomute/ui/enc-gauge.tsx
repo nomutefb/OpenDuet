@@ -3,7 +3,7 @@
 //   묻는 곳 = 화면에 떠 있는 글의 경로만 모아 한 번에(30 까지) · 가는 중인 것만 3초마다 다시 · 탭이 숨으면 쉼 · 셈 = ./enc-logic.ts(순수)
 import { type CSSProperties, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { office } from "../data/office";
-import { type EncCell, type EncItems, type Gauge, doneShown, encOk, encWanted, gaugeOf, kindOf, nextAsk, encQuiet } from "./enc-logic";
+import { type EncCell, type EncItems, type Gauge, encOk, encWanted, gaugeOf, kindOf, nextAsk, encQuiet } from "./enc-logic";
 
 const cells = new Map<string, EncCell>();                    // 경로 → 서버 답
 const want = new Map<string, { n: number; ts: number }>();   // 화면에 떠 있는 경로(몇 군데서 · 그 글 때)
@@ -61,9 +61,9 @@ export function useEnc(m: { files?: string[]; ts: number; room?: string; kind?: 
   const view = useMemo(() => {
     const items: EncItems = Object.fromEntries(paths.map((p) => [p, cells.get(p)]));
     const g = paths.length ? gaugeOf(m.files, items, now) : null;
-    const saw = paths.some((p) => seen.has(p));
-    const done = !!g && doneShown(g, saw, now);
-    return { gauge: g && (!g.done || done) ? g : null, done, wait: !!g && (!g.done || done || paths.some((p) => now - (okAt.get(p) || 0) < POP_MS)) };
+    // 다 닿음 = 「완료」 글 · 라임 테두리 대신 옆 라임 ✓ 하나를 늘(움짤 옆 ✓ 와 같은 꼴 · 형 11-12 16:42 봄 1:1 「그리고 이거 테두리가 씌일필요는없을거같고, 그 옆에 체크표시면될듯, 그 움짤이랑 동일하게. 완료 대신」)
+    const done = !!g && g.done;
+    return { gauge: g, done, wait: !!g && !g.done };
   }, [paths, v, Math.floor(now / 5000)]);   // eslint-disable-line react-hooks/exhaustive-deps
   // 때가 지나 바뀌는 것(자막 줄 빼기 · 「완료」 글 거두기 · 퍼짐 끝)만 5초마다 다시 그림 — 그릴 게 없으면 안 돎
   useEffect(() => { if (!view.wait) return undefined; const t = window.setInterval(() => setBeat((x) => x + 1), 5000); return () => window.clearInterval(t); }, [view.wait]);
@@ -74,7 +74,7 @@ export function useEnc(m: { files?: string[]; ts: number; room?: string; kind?: 
 export function EncGauge({ e }: { e: EncView }) {
   const g = e.gauge;
   if (!g) return null;
-  if (e.done) return <span className="nm-encg ok" role="status">완료</span>;
+  if (e.done) return <span className="nm-encg ok" role="img" aria-label="봇이 읽을 수 있음"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden><path d="M3.2 8.6l3 3 6.6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>;
   return (
     <span className="nm-encg" role="status" aria-label="봇에게 가는 중">
       {g.lines.map((l) => (
@@ -85,5 +85,5 @@ export function EncGauge({ e }: { e: EncView }) {
     </span>
   );
 }
-/** 닿은 미디어 테두리 class(라임 · 닿는 순간을 봤으면 두 번 퍼짐) */
-export const encRing = (e: EncView, p: string) => (e.ok(p) ? ` nm-encok${e.pop(p) ? " pop" : ""}` : "");
+/** 닿은 미디어 테두리 class — 형 11-12 16:42 「테두리가 씌일필요는없을거같고」 = 늘 빈 줄(닿음 표시는 EncGauge ✓ 하나 · 부르는 곳은 그대로 둠) */
+export const encRing = (_e: EncView, _p: string) => "";
