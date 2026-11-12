@@ -87,3 +87,8 @@
 
 /* 탭 글자 아래(g · y 꼬리)가 잘리던 것(형 11-12 16:41 봄 1:1 「응 이거 글자 씹히는거 좀 나오고」 · 깃) — 탭 글꼴 줄 높이 1(12px)에 이름 칸 overflow:hidden 이 꼬리를 자름 → 이름 칸만 줄 높이 넉넉히 */
 .nm-tab-nm { line-height:1.4; padding-block:1px; }
+/* 팀즈 고정 탭 · 오른쪽 칸 = 팀즈 목록(형 11-12 16:49 · 깃) */
+.nm-tab.teams { flex:0 0 auto; min-width:0; max-width:none; padding:0 14px; gap:7px; }
+.nm-tab-ic.teams { width:16px; height:16px; border-radius:0; }
+.nm-tab-teams { position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden; background:var(--nm-tab-on, #121314); }
+.nm-tab-teams > .nm-tlist { flex:1; min-height:0; overflow-y:auto; }
