@@ -53,5 +53,15 @@ test("움짤 판 연 채 뒤로 = 판만 닫힘 · 방 바뀌면 닫힘(형 11-1
   const tsx = readFileSync(new URL("../ui/sticker.tsx", import.meta.url), "utf8");
   assert.match(tsx, /history\.pushState\(\{ \.\.\.\(history\.state \|\| \{\}\), nmStk: 1 \}, ""\)/);
   assert.match(tsx, /addEventListener\("popstate", off\); addEventListener\("hashchange", off\);/);
-  assert.match(tsx, /const close = \(\) => \{ setOpen\(false\); if \(\(history\.state as \{ nmStk\?: number \} \| null\)\?\.nmStk\) history\.back\(\); \};/);
+  assert.match(tsx, /const close = \(\) => \{ if \(\(history\.state as \{ nmStk\?: number \} \| null\)\?\.nmStk\) history\.back\(\); else setOpen\(false\); \};/);
+  assert.match(readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8"), /document\.querySelector\("\.nm-zoom, \.nm-stk"\)/);   // 형 11-13 02:24 「이모지를 … 올리면 대화창이 목록으로 나가져」
+});
+
+test("받기 단추 움직임 = 에디터 「⬇ 전체」 그대로(세기 1/N → 체크 팝 → 1.05초 뒤 원래 · 형 11-13 02:28 · 02:32)", () => {
+  const ds = readFileSync(new URL("../ui/dl-seq.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/dl-seq.css", import.meta.url), "utf8");
+  const pg = readFileSync(new URL("../ui/pic-grid.tsx", import.meta.url), "utf8"), oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
+  assert.match(ds, /const GAP = 280;/); assert.match(ds, /const BACK = 1050;/); assert.match(ds, /`\$\{st\.k\}\/\$\{n\}`/);
+  assert.match(css, /@keyframes nm-dlChkPop \{ 0%\{transform:scale\(\.3\);opacity:0\} 58%\{transform:scale\(1\.3\);opacity:1\} 100%\{transform:scale\(1\);opacity:1\} \}/);
+  assert.match(pg, /<DlSeqButton className="nm-zoom-act" hrefs=\{pics\.map\(\(p\) => dl\(p\.src, p\.name\)\)\}/);   // 사진 보기 우상단 = 묶음 다
+  assert.match(oc, /<DlSeqButton className="nm-dl" hrefs=\{\[dlOf\(fileUrl\(p\), n\)\]\}/);   // 말풍선 저장
 });

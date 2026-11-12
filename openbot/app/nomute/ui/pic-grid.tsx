@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { justHeld } from "./msg-menu";
 import { pvCount, pvIndex, rowOf } from "./pic-grid-logic";
 import "./pic-grid.css";
+import { DlSeqButton } from "./dl-seq";
 
 export type GridPic = { p: string; src: string; name: string };
 const SV = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
@@ -58,7 +59,7 @@ function PicView({ pics, at, who, when, dl, onClose }: { pics: GridPic[]; at: nu
         {who ? <b>{who}</b> : null}
         {when ? <small>{when}</small> : null}
         <span className="nm-zoom-sp" />
-        <a className="nm-zoom-act" href={dl(cur.src, cur.name)} download={cur.name} aria-label="이 사진 저장"><svg {...SV} width={22} height={22}><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg></a>
+        <DlSeqButton className="nm-zoom-act" hrefs={pics.map((p) => dl(p.src, p.name))} ariaLabel={pics.length > 1 ? `${pics.length}장 다 저장` : "이 사진 저장"} />   {/* 우상단 받기 = 이 묶음 다(1/N 세기 → 체크 → 돌아옴 · 에디터 「⬇ 전체」 움직임 · 형 11-13 02:28 · ui/dl-seq.tsx) */}
       </div>
       <div className="nm-zoom-track" ref={track} onScroll={(e) => { const t = e.currentTarget; setI(pvIndex(t.scrollLeft, t.clientWidth, pics.length)); }}>
         {pics.map((p, k) => <div key={p.p} className="nm-zoom-slide"><img src={p.src} alt={p.name} loading={Math.abs(k - at) <= 1 ? "eager" : "lazy"} decoding="async" /></div>)}
