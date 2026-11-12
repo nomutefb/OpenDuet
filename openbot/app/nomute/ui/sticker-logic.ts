@@ -6,6 +6,13 @@ export const PACKS: Pack[] = [
   { id: "fast", name: "빠르", items: MOODS },
   { id: "bom", name: "봄", items: MOODS },
   { id: "eyes", name: "뜸", items: [...MOODS, { id: "rise", label: "해뜸" }] },   // 해뜸 = 뜸 얼굴 해가 떠오르다 뽕 하고 밥알(형 11-12 12:39 「해가 뜨다가 갑자기 뜸이 뜨는것도 해줘」)
+  // 형 11-12 17:28 「뜸 다른애들것두 만들어줄수잇엉? ㅋㅋ 빠르, 번개 시아, 깃. 챙」 · 17:29 「아 내껏도..」 · 17:35 「선글라스쓴 모습도 멋지게」 · 카리나 16:51 「수첩 위로 눈만 빼꼼 내밀었다가 살짝 웃으면 좋겠다」
+  { id: "lightning", name: "번개", items: MOODS },
+  { id: "sia", name: "시아", items: MOODS },
+  { id: "git", name: "깃", items: MOODS },
+  { id: "chaeng", name: "챙", items: MOODS },
+  { id: "karina", name: "카리나", items: [...MOODS, { id: "peek", label: "빼꼼" }] },
+  { id: "hyung", name: "형", items: [...MOODS, { id: "cool", label: "선글라스" }] },
 ];
 export const stickerUrl = (p: Pack, it: Item) => `/office/sticker/${p.id}/${it.id}.gif`;
 export const stickerText = (p: Pack, it: Item) => `[스티커 ${p.name} ${it.label}]`;
