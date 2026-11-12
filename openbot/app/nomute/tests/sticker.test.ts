@@ -36,7 +36,7 @@ test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · �
   const k = PACKS.find((p) => p.id === "karina")!, h = PACKS.find((p) => p.id === "hyung")!;
   assert.equal(stickerOf("[스티커 카리나 빼꼼]")?.item.id, "peek");
   assert.equal(stickerOf("[스티커 형 선글라스]")?.pack.id, "hyung");
-  assert.equal(stickerUrl(k, k.items[5]), "/office/sticker/karina/peek.gif");
+  assert.equal(stickerUrl(k, k.items[0]), "/office/sticker/karina/peek.gif");   // 카리나 = 셋(빼꼼 맨 앞 · 형 11-13 08:06)
   assert.equal(stickerUrl(h, h.items[5]), "/office/sticker/hyung/cool.gif");
   assert.equal(stickerOf("[스티커 나팔꽃 이불]")?.item.id, "ibul");   // 형 11-13 08:03 나팔꽃 = 이불 하나
   assert.equal(stickerOf("[스티커 온 좋아]"), null);   // 형 11-13 08:03 그록봇 움짤 뺌
@@ -87,4 +87,13 @@ test("화상회의 = 수락 · 거절 표기 · 열림(다 답함 · 60초 · �
   assert.match(cp, /<MeetDock meet=\{meet\}/); assert.match(cp, />화상회의<\/button>/);
   assert.match(sh, /\{ id: "meetlog", label: "화상회의"/);
   assert.match(src, /office\(`meetlog\/\$\{encodeURIComponent\(meet\.id\)\}`, \{ method: "POST"/);
+});
+
+test("움짤 = 카리나 셋 · 자주 쓰는 10개 맨 앞 · 칸 작게(형 11-13 08:06 · 08:07)", async () => {
+  const k = PACKS.find((p) => p.id === "karina")!;
+  assert.deepEqual(k.items.map((x) => x.id), ["peek", "joy", "thanks"]);
+  const { freqTop } = await import("../ui/sticker-logic.ts");
+  const top = freqTop({ "fast/joy": 3, "bom/think": 5, "eyes/rise": 1 });
+  assert.deepEqual(top.map((x) => `${x.pack.id}/${x.item.id}`), ["bom/think", "fast/joy", "eyes/rise"]);
+  assert.match(readFileSync(new URL("../ui/sticker.css", import.meta.url), "utf8"), /minmax\(62px, 1fr\)/);
 });
