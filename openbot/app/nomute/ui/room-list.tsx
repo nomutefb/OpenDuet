@@ -3,6 +3,7 @@
 //   같은 차례를 PC 얼굴 띠(ui/shell.tsx)가 씀 = useRoomOrder
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 알림 켬/끔 · (단톡) 알림 그림 · 숨기기/보이기
+import { PinMark } from "./pin-mark";
 import { useRoomArtSrc } from "./room-art";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
@@ -72,7 +73,7 @@ export function useRoomOrder() {
   useSyncExternalStore(roomReadState.subscribe, roomReadState.getSnapshot, roomReadState.getSnapshot);
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: Room[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 });
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-  const seen = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 }).data || {};
+  const seen = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number; at?: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 }).data || {};
   const [pins, setPins] = useState(() => readSet(PINS)), [hidden, setHidden] = useState(() => readSet(HIDE));
   const all = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.with !== "형");
   const lastOf = (r: Room) => (r.last_talk !== undefined ? r.last_talk : r.last);
@@ -82,7 +83,9 @@ export function useRoomOrder() {
     return roomReadState.count(r.id, r.last_ts, serverCount);
   };
   const pinned = (id: string) => id === "all" || id === SUMMARY || pins.has(id);
-  const recent = (a: Room, b: Room) => (b.last_ts || 0) - (a.last_ts || 0);
+  // 차례 = 마지막 대화 · 형이 마지막으로 읽은 때(서버 seen.at) 중 늦은 것 — 폰 목록 · PC 띠 한 벌(형 11-12 10:01 「가장 위에는 내가 가장 최근에 읽은 애가 있어야함」 · 16:17 「하자」 = 폰도 · 앞 판 = 폰 목록은 마지막 대화만 · 띠만 읽은 때 · 뎅)
+  const keyOf = (r: Room) => Math.max(r.last_ts || 0, seen[r.id]?.at || 0);
+  const recent = (a: Room, b: Room) => keyOf(b) - keyOf(a);
   const shown = all.filter((r) => !hidden.has(r.id));
   const head = (id: string) => (id === "all" ? 0 : id === SUMMARY ? 1 : 2);   // 회의실 → 요약실 → 고정 방(최근 순)
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => head(a.id) - head(b.id) || recent(a, b));
@@ -183,7 +186,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
               <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`} style={live(r) && sig ? ({ "--sig": sig } as CSSProperties) : undefined}>{live(r) ? <LiveShine text={p?.name || r.name} trunc sig /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
-              {pinned(r.id) && r.id !== "all" && r.id !== SUMMARY ? <span aria-label="고정함" className="text-[11px]">📌</span> : null}
+              {pinned(r.id) && r.id !== "all" && r.id !== SUMMARY ? <PinMark className="nm-pin-mark" label="고정함" /> : null}   {/* 고정 표시 = PC 띠와 한 벌 압정 그림(./pin-mark.tsx · 봄 11-12 16:17 A) */}
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
               <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{r.id === "all" && !ids.length ? "사용자가 없습니다" : preview}</span>

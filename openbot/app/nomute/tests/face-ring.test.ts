@@ -27,3 +27,12 @@ test("형과 1시간 넘게 대화 없는 1:1 얼굴 = 채도 75% · 단톡 그�
   const css = readFileSync(new URL("../ui/shell.css", import.meta.url), "utf8");
   assert.match(css, /\.nm-face\.far > img, \.nm-face\.far > span \{ filter:saturate\(\.75\); \}/);
 });
+
+test("고정 표시 = 압정 그림 한 벌(PC 띠 · 폰 목록 · 봄 11-12 16:17 A)", () => {
+  const rl = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8");
+  assert.match(sh, /<PinMark className="nm-face-pin" label="고정됨" \/>/);
+  assert.match(rl, /<PinMark className="nm-pin-mark" label="고정함" \/>/);
+  assert.ok(!rl.includes("📌</span>"), "폰 목록 📌 글자 걷음");
+  const pm = readFileSync(new URL("../ui/pin-mark.tsx", import.meta.url), "utf8");
+  assert.match(pm, /export function PinMark/);
+});

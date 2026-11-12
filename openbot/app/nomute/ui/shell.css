@@ -159,8 +159,12 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 /* 위 메뉴 막대 픽토그램 = 시그니처 라임(형 11-05 16:57 「그리고 상단의 픽토그램 버튼들은 시그니처 색으로!」) */
 .nm-split-l .ynav button { color:#CFFF40; }
 .nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#CFFF40; background:rgba(207,255,64,.12); }
-/* 얼굴 띠 고정 표시(우클릭 = 고정 · 형 11-05 17:03) — 왼쪽 위 작은 라임 점 */
-.nm-face-pin { position:absolute; top:-1px; left:-1px; width:9px; height:9px; border-radius:50%; background:#CFFF40; border:2px solid #121314; z-index:1; }
+/* 얼굴 띠 고정 표시(우클릭 = 고정 · 형 11-05 17:03) — 왼쪽 위 작은 압정(봄 11-12 16:17 A · 앞 판 = 라임 점) */
+.nm-face-pin { position:absolute; top:-5px; left:-5px; width:17px; height:17px; display:grid; place-items:center; border-radius:50%; background:#1b1c1b; border:1px solid rgba(255,255,255,.35); color:#fff; z-index:1; }
+.nm-face-pin > svg { width:11px; height:11px; }
+/* 폰 대화 목록 고정 = 같은 압정(./pin-mark.tsx) · 글자 색 따라감 */
+.nm-pin-mark { display:inline-grid; place-items:center; flex:none; width:13px; height:13px; color:var(--muted-foreground, #9a9c9a); }
+.nm-pin-mark > svg { width:12px; height:12px; }
 /* 오른쪽 = 위 상태바(제 키) · 가운데 실시간 뉴스 · 아래 뉴스 요약(약 4할) */
 .nm-split > section.nm-split-sum { flex:0 0 38%; min-height:180px; background:transparent; overflow:hidden; }
 .nm-split-sum > section { flex:1 1 auto; }

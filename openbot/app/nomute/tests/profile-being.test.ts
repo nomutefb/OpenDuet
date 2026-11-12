@@ -39,6 +39,8 @@ test("프로필 카드 = 일찍 돌려주기(!who) 뒤에 훅 0(React #310 · �
 
 test("PC 얼굴 띠 차례 = 폰 목록의 고정 그대로 위 · 나머지 = 마지막 대화 · 형이 마지막으로 읽은 때 중 늦은 것(형 11-11 23:52 → 11-12 10:01 「가장 위에는 내가 가장 최근에 읽은 애가 있어야함」 · 봄 10:30 띠만)", () => {
   const sh = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
-  assert.match(sh, /const stripOrder = \[\.\.\.ordered\.filter\(\(r\) => pinned\(r\.id\)\)/);   // 바탕 = 폰 목록 차례(ordered) · 고정 먼저
-  assert.match(sh, /Math\.max\(r\.last_ts \|\| 0, seen\[r\.id\]\?\.at \|\| 0\)/);   // 읽은 때(서버 seen.at)도 셈
+  assert.match(sh, /const stripOrder = ordered;/);   // 띠 = 폰 목록 차례 그대로(형 11-12 16:17 「하자」 · 폰도 읽은 때)
+  const rl = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8");
+  assert.match(rl, /const keyOf = \(r: Room\) => Math\.max\(r\.last_ts \|\| 0, seen\[r\.id\]\?\.at \|\| 0\);/);   // 읽은 때(서버 seen.at)도 셈 · 폰 · 띠 한 벌
+  assert.match(rl, /const recent = \(a: Room, b: Room\) => keyOf\(b\) - keyOf\(a\);/);
 });

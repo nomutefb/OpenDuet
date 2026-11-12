@@ -6,6 +6,7 @@
 //     결의 방·토큰·피드백 = 앱 안(./gyeol-room.tsx · tokens.tsx · feedback.tsx · 전엔 에디터 원본 화면 viewer/gyeol-room.html · tokens.html · feedback.html 을 품음) · 설정 = 원본 settings 화면(보조 03 YETA 설정)
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
+import { PinMark } from "./pin-mark";
 import { TodoBar } from "./todo-bar";
 import { ChatHead } from "./chat-head";
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
@@ -480,7 +481,6 @@ export const HYUNG_TALK_MS = 60 * 60_000;   // 띠 얼굴 「형과 최근 대�
 function FaceStrip({ current }: { current: string; last: string }) {
   const nav = useNavigate();
   const { list, ordered, count, pins, setPins, pinned } = useRoomOrder();
-  const seen = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number; at?: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 }).data || {};   // 대화 목록과 같은 캐시
   const go = (id: string) => { enterRoom(id); void nav({ to: chatHref(id) }); };
   // 우클릭 = 고정 · 고정 풀기(형 11-05 17:03 「그리고 우클릭하면 고정같은거 작용하게 해줘 좌측에 저 프로필 사진들도」) — 대화방 목록 「고정」과 같은 칸(nm-office-pins · 이 기기) · 고정 방 = 띠 위쪽
   const togglePin = (id: string) => { if (id === "all") return; const n = new Set(pins); if (n.has(id)) n.delete(id); else n.add(id); try { localStorage.setItem("nm-office-pins", JSON.stringify([...n])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } setPins(n); };
@@ -491,9 +491,7 @@ function FaceStrip({ current }: { current: string; last: string }) {
   const asleep = (who?: string) => !!who && !live(who);
   // 형과 1시간 넘게 대화 없는 애 = 얼굴 채도 75%(형 11-12 16:23 봄 1:1 「애들 채도를 75%로 할게. 지금 나랑 최근 1시간에 대화한 애들 아니면」) · 셈 = 그 1:1 방 last_ts(형 낀 글 · 서버 미리보기와 같은 값) · 단톡 그림은 그대로
   const far = (r: { with?: string; last_ts?: number }) => !!r.with && Date.now() - (r.last_ts || 0) > HYUNG_TALK_MS;
-  // 띠만 = 고정 그대로 위 · 나머지 = 마지막 대화 · 형이 마지막으로 읽은 때(서버 seen.at) 중 늦은 것(형 11-12 10:01 「가장 위에는 내가 가장 최근에 읽은 애가 있어야함」 · 봄 10:30 「PC 왼쪽 띠에만」 · 폰 목록은 그대로 · 뎅)
-  const keyOf = (r: { id: string; last_ts?: number }) => Math.max(r.last_ts || 0, seen[r.id]?.at || 0);
-  const stripOrder = [...ordered.filter((r) => pinned(r.id)), ...ordered.filter((r) => !pinned(r.id)).sort((a, b) => keyOf(b) - keyOf(a))];   // 앞 판 = ordered 그대로(폰 대화 목록과 한 벌)(./room-list.tsx useRoomOrder · 고정 → 최근 대화순 · 새 글 오면 바로)(형 11-11 23:52 봄 1:1 「그리고 이거 아직 안고쳐짐」 · 앞 말 「윈터 나랑 대화한지 얼마 안됬는데, 저 아래로 가있어」 · 앞 판 = 고정 → 깸 → 봇 마지막 턴 = 턴 기록 없는 윈터 · 빈 단톡이 뒤섞임)
+  const stripOrder = ordered;   // 차례 = 폰 대화 목록과 한 벌(./room-list.tsx useRoomOrder · 고정 위 · 나머지 = 마지막 대화 · 형이 마지막으로 읽은 때 중 늦은 것 · 형 11-12 16:17 「하자」 · 앞 판 = 띠만 읽은 때를 셈 · 뎅)
   // 대화 미리 받기 = 띠 차례 위 넷(1.5초 뒤 하나씩) + 얼굴에 손 올림·누름·초점(대화 목록 ./room-list.tsx 와 같은 꼴 · 뎅 16:03 「화면 위 차례랑 「위 네 방」 차례가 다름」)
   const qc = useQueryClient(), pre = (id: string) => { if (id) void qc.prefetchQuery(roomMsgsOptions(qc, id)); };
   const topS = stripOrder.slice(0, 4).map((r) => r.id).join(",");
@@ -510,7 +508,7 @@ function FaceStrip({ current }: { current: string; last: string }) {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list), hy = Number((r as { pending_hyung?: number }).pending_hyung) || 0;
           return (
             <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}${far(r) ? " far" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
-              {pins.has(r.id) ? <i className="nm-face-pin" aria-label="고정됨" /> : null}
+              {pins.has(r.id) ? <PinMark className="nm-face-pin" label="고정됨" /> : null}   {/* 고정 = 얼굴 왼쪽 위 작은 압정(봄 11-12 16:17 A · 형 14:06 「점으로 하지말고 좀 더 다른거로」) · 폰 목록과 한 벌 */}
               {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomIcon r={r} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
               {n !== 0 ? <i className="nm-udot" aria-hidden /> : null}   {/* 안 읽음 = 왼쪽 위 레몬 점 하나(숫자 없음 · 형 13:20 「노란색으로」 · 형 11-07 13:15 「안읽은 글 수는 애초에 안떠두됨」 · 「라임색 접 작게 잇으면됨」 · 「저 불이 좌측에 있으면 됨.」) */}
               {hy > 0 ? <b className="nm-badge nm-badge-hy" aria-label={`형 결정 기다리는 글 ${hy}개`}>{hy > 99 ? "99+" : hy}</b> : null}   {/* 오른쪽 걸친 숫자 = 호출 수(형 결정 대기 · 형 13:15 「숫자가 우측 프로필에 걸치는거 (기존 숫자) 그거는 호출.」 · 뜸 서버 pending_hyung) */}
