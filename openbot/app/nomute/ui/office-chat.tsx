@@ -70,7 +70,8 @@ import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
 import { bubbleM, pickM } from "./pick-msg";
-import { Sticker, stickerMark, stickerOf } from "./sticker";   // 움짤 스티커 한 줄 = 말풍선 없이 움짤(형 11-12 12:17 · 뜸)
+import { Sticker, stickerMark, stickerOf } from "./sticker";
+import { dropStickerTwins } from "./sticker-logic";   // 움짤 스티커 한 줄 = 말풍선 없이 움짤(형 11-12 12:17 · 뜸)
 import { ThumbCard, thumbOf, type ThumbRef } from "./thumb-card";   // 별 「[요약 완료]」 글 바로 위 썸네일 초안 그림(형 11-02 11:44 「별 요약 과 함께 요약 바로 위에 오면 됨 이미지로」)   // 글 속 첫 주소 = 말풍선 아래 미리보기 카드(형 11-02 07:13 「채팅에는 일반적인 채팅 앱처럼 보이면 됨」)
 import "./yeta-chat.css";
 import { whoName } from "./who-name";
@@ -123,7 +124,7 @@ const sendKey = () => { try { return crypto.randomUUID().replace(/-/g, "").slice
 const merge = (old: Page | undefined, add: Msg[]): Page => {
   const m = new Map((old?.messages || []).map((x) => [x.id, x]));
   for (const x of add) m.set(x.id, x);
-  return { messages: [...m.values()].sort((a, b) => a.ts - b.ts), more: old?.more ?? false, ...(old?.pending_ids ? { pending_ids: old.pending_ids } : {}) };
+  return { messages: dropStickerTwins([...m.values()].sort((a, b) => a.ts - b.ts)), more: old?.more ?? false, ...(old?.pending_ids ? { pending_ids: old.pending_ids } : {}) };
 };
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);

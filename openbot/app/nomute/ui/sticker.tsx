@@ -7,7 +7,7 @@ import { queryClient } from "@/query-client";
 import { office } from "../data/office";
 import "./sticker.css";
 
-import { PACKS, STK_TMP, stickerOf, stickerText, stickerUrl, type Item, type Pack } from "./sticker-logic";
+import { PACKS, STK_TMP, dropStickerTwins, stickerOf, stickerText, stickerUrl, type Item, type Pack } from "./sticker-logic";
 export { PACKS, STK_TMP, stickerMark, stickerOf, stickerText, stickerUrl } from "./sticker-logic";
 
 /** mark = 내가 보낸 움짤 옆 표(형 11-12 12:50 「움짤옆에는 항상 체크표시 라임색으로 보내진건지 확인해주게해」) · "wait" = 보내는 중(흐린 점) · "sent" = 서버에 앉음(라임 ✓) */
@@ -35,7 +35,7 @@ export function StickerButton() {
     const key = ["nomute", "msgs", room], text = stickerText(p, it), tmp = STK_TMP + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     type M = { id: string; ts: number; [k: string]: unknown };
     type P = { messages: M[]; [k: string]: unknown };
-    const put = (fn: (ms: M[]) => M[]) => queryClient.setQueryData<P>(key, (old) => (old ? { ...old, messages: fn(old.messages || []) } : old));
+    const put = (fn: (ms: M[]) => M[]) => queryClient.setQueryData<P>(key, (old) => (old ? { ...old, messages: dropStickerTwins(fn(old.messages || [])) } : old));
     put((ms) => [...ms, { id: tmp, room, ts: Date.now(), kind: "human", who: "형", text }]);
     void office<{ message?: M }>(`rooms/${encodeURIComponent(room)}/messages`, { method: "POST", body: JSON.stringify({ text }) })
       .then((j) => { put((ms) => { const rest = ms.filter((m) => m.id !== tmp); return j?.message && !rest.some((m) => m.id === j.message!.id) ? [...rest, j.message].sort((a, b) => a.ts - b.ts) : rest; }); })

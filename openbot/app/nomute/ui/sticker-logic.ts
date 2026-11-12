@@ -23,3 +23,9 @@ export function stickerOf(text: unknown): { pack: Pack; item: Item } | null {
 export const STK_TMP = "stk-tmp-";
 export const stickerMark = (id: unknown): "wait" | "sent" => (String(id || "").startsWith(STK_TMP) ? "wait" : "sent");
 
+/** 순수 — 보내는 중 임시 움짤에 진짜 글(같은 글 · 사람 · 1분 안)이 들어오면 임시를 뺌(형 11-12 13:46 「근데 이거 전송하는 과정에서 2개로 순간적으로 보인다 ㅠㅠ」 · 서버 받기 고리가 POST 답보다 먼저 진짜 글을 붙임) */
+export function dropStickerTwins<T extends { id: string; ts: number; text?: unknown; kind?: unknown }>(ms: T[]): T[] {
+  if (!ms.some((m) => String(m.id).startsWith(STK_TMP))) return ms;
+  const real = ms.filter((m) => !String(m.id).startsWith(STK_TMP) && m.kind === "human");
+  return ms.filter((m) => !String(m.id).startsWith(STK_TMP) || !real.some((r) => r.text === m.text && Math.abs(r.ts - m.ts) < 60_000));
+}
