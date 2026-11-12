@@ -489,7 +489,7 @@ function FaceStrip({ current }: { current: string; last: string }) {
   // 라이브 = 지금 깸 · 또는 마지막 턴 10분 안(상태바 조약돌과 같은 셈 · 형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어?」) — 턴 사이 「잠」 깜빡임 없게
   const live = (who?: string) => !!who && bots.some((b) => b.who === who && ringOn(b));
   const asleep = (who?: string) => !!who && !live(who);
-  // 형과 1시간 넘게 대화 없는 애 = 얼굴 채도 75%(형 11-12 16:23 봄 1:1 「애들 채도를 75%로 할게. 지금 나랑 최근 1시간에 대화한 애들 아니면」) · 셈 = 그 1:1 방 last_ts(형 낀 글 · 서버 미리보기와 같은 값) · 단톡 그림은 그대로
+  // 형과 1시간 넘게 대화 없는 애 = 얼굴 채도 50%(형 11-12 16:23 봄 1:1 「지금 나랑 최근 1시간에 대화한 애들 아니면」 · 16:38 「75가 아니라 50 이여도될듯」) · 셈 = 그 1:1 방 last_ts(형 낀 글 · 서버 미리보기와 같은 값) · 단톡 그림은 그대로
   const far = (r: { with?: string; last_ts?: number }) => !!r.with && Date.now() - (r.last_ts || 0) > HYUNG_TALK_MS;
   const stripOrder = ordered;   // 차례 = 폰 대화 목록과 한 벌(./room-list.tsx useRoomOrder · 고정 위 · 나머지 = 마지막 대화 · 형이 마지막으로 읽은 때 중 늦은 것 · 형 11-12 16:17 「하자」 · 앞 판 = 띠만 읽은 때를 셈 · 뎅)
   // 대화 미리 받기 = 띠 차례 위 넷(1.5초 뒤 하나씩) + 얼굴에 손 올림·누름·초점(대화 목록 ./room-list.tsx 와 같은 꼴 · 뎅 16:03 「화면 위 차례랑 「위 네 방」 차례가 다름」)
