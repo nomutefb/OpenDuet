@@ -1,0 +1,21 @@
+/* 촉 묶음 카드(./bundle-card.tsx · 봄 11-12 19:22) — 말풍선 자리 · 어두운 판 기본 · 라임 = 누른 단추 */
+.nm-bdl { display:flex; flex-direction:column; gap:8px; max-width:min(420px, 100%); padding:12px; border-radius:14px; background:#1b1c1e; border:1px solid rgba(255,255,255,.08); color:#e8eae8; }
+.nm-bdl.skip { opacity:.75; }
+.nm-bdl-hd { display:flex; align-items:center; gap:6px; }
+.nm-bdl-tag { font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; background:rgba(207,255,64,.14); color:#CFFF40; }
+.nm-bdl-st { font-size:11px; color:rgba(232,234,232,.6); }
+.nm-bdl-img { width:100%; max-height:200px; object-fit:cover; border-radius:10px; background:#111; }
+.nm-bdl-t { font-size:15px; font-weight:700; line-height:1.35; }
+.nm-bdl-sum { margin:0; padding-left:16px; display:flex; flex-direction:column; gap:3px; font-size:13px; line-height:1.45; color:rgba(232,234,232,.86); list-style:disc; }
+.nm-bdl-url { font-size:11px; color:rgba(232,234,232,.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
+.nm-bdl-row { display:flex; gap:6px; flex-wrap:wrap; }
+.nm-bdl-btn { flex:1 1 0; min-width:72px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#242528; color:#e8eae8; font-size:13px; font-weight:600; text-align:center; text-decoration:none; cursor:pointer; }
+.nm-bdl-btn.on { background:#CFFF40; border-color:#CFFF40; color:#161716; }
+.nm-bdl-btn:disabled { opacity:.45; }
+.nm-bdl-up { display:flex; flex-direction:column; gap:8px; padding-top:4px; border-top:1px solid rgba(255,255,255,.08); }
+.nm-bdl-big img { display:block; width:100%; border-radius:10px; }
+.nm-bdl-cr { font-size:11px; color:rgba(232,234,232,.5); }
+.nm-bdl-cap { white-space:pre-wrap; font-size:13px; line-height:1.5; padding:10px; border-radius:10px; background:#131415; max-height:260px; overflow:auto; user-select:text; -webkit-user-select:text; }
+.nm-bdl-err { font-size:12px; color:#ff8a7a; }
+.nm-bdl-fold { flex-direction:row; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; text-align:left; opacity:.7; }
+.nm-bdl-ft { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; }

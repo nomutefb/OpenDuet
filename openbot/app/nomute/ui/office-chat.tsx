@@ -49,6 +49,8 @@ import { CallPeek } from "./call-peek";
 import { draftDrop, draftSet } from "./draft";   // 알약 누름 = 그 글 창 + 답칸(형 11-07 12:02~12:03 「그냥 확 창이 뜨고 깔끔하게 답변」)
 import { useUnfold } from "./unfold";
 import { SiteIcon } from "./site-icon";
+import { BundleCard } from "./bundle-card";   // 촉 묶음 글 「올림 · 넘김」(봄 11-12 19:22 · 글 꼴 깃 · 시아)
+import { parseBundle } from "./bundle";
 import { PcCard } from "./pc-card";   // 대화창 컴퓨터 카드(뜸 11-08 · 형 09:07 「채팅창에 너네 vm 띄우면 로그인 가능하게」)
 import { pcOfText } from "./pc-url";
 import { dlHref } from "./news-data";
@@ -929,7 +931,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
           <div className="ybw">
             {pickM(m) ? <div className="ypick-top"><LinkCard m={m} /></div> : null}
             <ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} />
-            {pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
+            {bundleOf(m) ? <BundleCard b={bundleOf(m)!} id={m.id} /> : pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               {stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
               <BoxCard m={m} />
@@ -946,6 +948,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
 }
 
 /** 봇 글이 「컴퓨터 · 조치 필요」 꼴이면 카드(그록 꼴 · 테일넷 안 화면 주소만) · 그록 거울 box · 첨부 글은 그대로 */
+const bundleOf = (m: Msg) => (m.files?.length ? null : parseBundle(m.text));   // 첫 줄 `[묶음 <stem>]` = 러너가 dm-chok 에 보내는 요약 묶음(깃) · 표지 줄은 카드가 숨김
 const pcOf = (m: Msg) => (m.box || m.files?.length ? null : pcOfText(m.text));
 
 /** 말 옆 얼굴 = 등불 테 + 얼굴(형 10-31 「대화창 내부에도 있어야해」) · 40칸 = 얼굴 32 그대로(테는 .yava 밖으로) · 일하는 중 = 테 위 빛 호 */
