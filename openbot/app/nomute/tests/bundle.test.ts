@@ -37,3 +37,9 @@ test("대화창 = 표지 글만 묶음 카드 · 형만 누름 길", () => {
   assert.match(bc, /office(<[^>]*>)?\("hyung-pick", \{ method: "POST"/);
   assert.match(bc, /queryKey: \["nomute", "hyung-pick"\]/);
 });
+
+test("러너 묶음 글 = 알약 말고 말풍선(카드) 자리", async () => {
+  const { bubbleM } = await import("../ui/pick-msg.ts");
+  assert.equal(bubbleM({ kind: "system", who: "러너", text: T }), true);
+  assert.equal(bubbleM({ kind: "system", who: "러너", text: "깸: 아무개" }), false);
+});
