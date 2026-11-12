@@ -120,7 +120,7 @@ test("HOT ISSUE 「전송」 = 단추 안 차오름 → ✓ · 위 알약 0(형 
 test("RUNNER 게이지 = 15% 크게 · 안 글자 25% 크게 · 글자 아래로(형 11-11 22:09 · 11-12 06:14)", () => {
   const tg = rd("../runner/tick-gauge.tsx"), rg = rd("../ui/runner-gauges.tsx"), rc = rd("../ui/runner-gauges.css");
   assert.match(tg, /scale\(\$\{textScale\}\)/); assert.match(rg, /dyText=\{9\} textScale=\{1\.25\}/);
-  assert.match(rc, /\.nm-rgx-host \.nm-rg-gauge \{ max-height:122px; \}\s*$/);
+  assert.match(rc, /\.nm-rgx-host \.nm-rg-gauge \{ max-height:122px; \}/);
 });
 
 test("홈 카드 ✓ = 폰도 카드 세로 가운데 · 오른쪽 선에 반쯤 걸침(형 11-12 07:47)", () => {
@@ -135,4 +135,12 @@ test("무지개 단추 판 = 그 자리에서 · 「말풍선」 · R G B 작게
   assert.match(rd("../ui/yeta-chat.css"), /\.ncp-rgb \.ncp-f input \{ padding:6px 2px; font-size:13px; text-align:center;/);
   assert.match(rd("../index.html"), /choice === null \|\|/);
   assert.match(rd("../../src/lib/theme.ts"), /return "dark";/);
+});
+
+test("테일스케일 연결표 = 게이지 기기는 손 올림만 · 게이지 밖(회사 · 그록)만 한 줄(형 11-12)", () => {
+  const rg = rd("../ui/runner-gauges.tsx"), tt = rd("../ui/tailnet-table.ts");
+  assert.match(rg, /title=\{\(TAIL_OF_GAUGE\[h\.label\] \|\| \[\]\)\.map\(tailTitle\)/);
+  assert.match(rg, /className="nm-rgx-tail"/);
+  assert.match(tt, /100\.103\.55\.120/); assert.match(tt, /100\.93\.212\.35/);
+  assert.ok(!/group: "(WIN|MAC|Lx)/.test(tt), "게이지 기기는 줄로 또 안 넣음");
 });

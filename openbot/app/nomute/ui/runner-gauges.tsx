@@ -11,6 +11,7 @@ import "../runner/runner-board.css";
 import "./runner-gauges.css";
 import { Bloub } from "./bloub";
 import { homeOf, machinesOf, useBodies } from "../data/bodies";
+import { TAIL_EXTRA, TAIL_OF_GAUGE, tailTitle } from "./tailnet-table";   // 테일스케일 연결표(형 11-12 · 있는 칸엔 손 올림만 · 없는 기기만 한 줄)
 import { pickHost } from "./runner-pick";
 
 type Row = { key: string; st?: string; note?: string; stale?: boolean; reported_at?: number; metrics?: Record<string, number> };
@@ -139,7 +140,7 @@ export function RunnerGauges() {
           return (
             <Fragment key={h.k}>
             <section className="nm-rgx-host" aria-label={`${h.label} 상태`}>   {/* 위에서부터 가운데로 = 이름 · G 온도 · (틈) · 게이지 · 러너 불(형 17:3x 「각각 게이지 바로 수직 위에다가 하드웨어 이름」 · 「블릿은 없어도」 · 「그래픽카드 온도도 그대로 수직위로」 · 「게이지랑딱붙으면 안이쁘니까」) */}
-              <b className="nm-rg-name nm-rgx-name">{h.label}</b>
+              <b className="nm-rg-name nm-rgx-name" title={(TAIL_OF_GAUGE[h.label] || []).map(tailTitle).join("\n") || undefined}>{h.label}</b>
               <span className="nm-rgx-g">{none && a?.stale ? "보고 끊김" : "\u00a0"}</span>   {/* G 온도는 게이지 안 위 글 둘째 줄로(TickGauge top2 · 형 11-08 09:03 글자 크기 = CPU 온도와 같게 · 「WIN 이랑 간격을 좀 더 벌려줘」 = 이 줄은 빈 틈) */}
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used={!live && !none && at ? ago(now - at) : ""} top={m.cpu_temp != null ? `C ${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} top2={m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : undefined} top2Ink={tInk(m.gpu_temp)} off={none} wait={none && (st.isLoading || rq.isLoading)} dyText={9} textScale={1.25} />   {/* 안 글자 4(≈3.5px) 아래(형 11-08 11:27 밥상 「게이지 안에 글자도 조금 더 내려오고(그럼 글자는 두번내려오는 느낌이겟지)」 · 게이지 자체도 4px 아래 = runner-gauges.css) */}
               {temp ? <span className="sr-only">{temp}</span> : null}
@@ -167,6 +168,12 @@ export function RunnerGauges() {
           return <li key={r.n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${r.n} · ${on ? r.c.note || "켜짐" : r.c.note || "꺼짐"}`}>{`A${rnum(r.n) || i + 1}`}</li>;   {/* 화면 이름만 A1~ · 러너 진짜 이름은 그대로(title) */}
         })}
       </ul>
+      {/* 테일넷 = 게이지에 없는 기기만(회사 PC · 그록 상자) 한 줄 · 손 올리면 이름 · IP · ssh(형 11-12 「테일 스케일 연결표도 러너에 붙여서 구체화해. 기존에 잇는걸 인덱싱을 또 넣을필요는없어.」) · 켜짐 점 = 번개 테일넷 값 들어오면 */}
+      <div className="nm-rgx-tail" aria-label="테일넷 · 게이지 밖 기기">
+        {TAIL_EXTRA.map((g) => (
+          <span key={g.group} className="nm-rgx-tail-g"><b>{g.group}</b>{g.devs.map((d) => <i key={d.name} className={d.off ? "off" : undefined} title={tailTitle(d)}>{d.short}</i>)}</span>
+        ))}
+      </div>
     </div>
   );
 }
