@@ -45,7 +45,7 @@ export function TempRoomHead({ r }: { r: OfficeRoom }) {
 }
 
 /** 방 설정 「방 사진」 — 형이 사진을 골라 바꿈 · 기본으로 = 뜸 그림(정적)으로 돌아감(형 11-11 12:49 「내가 따로 첨부로도 방 사진 변경할 수 있게해줘」 · 서버가 형 문만 받음) */
-function RoomArtRow({ id }: { id: string }) {
+export function RoomArtRow({ id }: { id: string }) {
   const src = useRoomArtSrc(id), [busy, setBusy] = useState(false), [note, setNote] = useState("");
   const run = async (f: () => Promise<void>, ok: string) => { setBusy(true); setNote(""); try { await f(); setNote(ok); } catch (e) { setNote((e as Error).message); } finally { setBusy(false); } };
   return (

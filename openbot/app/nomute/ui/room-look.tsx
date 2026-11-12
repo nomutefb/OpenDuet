@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
 import { GLYPHS, RoomGlyph } from "./room-glyph";
 import "./room-look.css";
+import { RoomArtRow } from "./temp-room";   // 「사진」 탭 = 임시방 방 설정의 방 사진 칸 그대로(형 11-13 05:27 봄 1:1 「단톡 표지 사진 넣는거 챙겨주면 감사」 · 회의실 · 지정방에도)
 
 const SOLID = ["#CFFF40", "#0FFD02", "#2f6bff", "#ff6fb5", "#ffb07c", "#ffd60a", "#22d3ee", "#C9A7FF", "#FF5A5F", "#dde3ea"];
 const GRAD = ["#2f6bff,#CFFF40", "#ff6fb5,#ffb07c", "#22d3ee,#C9A7FF", "#0FFD02,#ffd60a", "#dde3ea,#4f86ff", "#ff6fb5,#4f86ff"];
@@ -16,7 +17,7 @@ const bg = (fg: string) => { const c = fg.split(","); return c.length > 1 ? `lin
 
 export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"icon" | "color">("icon");
+  const [tab, setTab] = useState<"icon" | "color" | "photo">("icon");
   const [icon, setIcon] = useState(r.look?.icon || ""), [fg, setFg] = useState(r.look?.fg || "");
   const [q, setQ] = useState(""), [a, setA] = useState("#2f6bff"), [b, setB] = useState("#CFFF40");
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
@@ -39,8 +40,11 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
         <div className="nrl-tabs" role="tablist">
           <button type="button" role="tab" aria-selected={tab === "icon"} onClick={() => setTab("icon")}>아이콘</button>
           <button type="button" role="tab" aria-selected={tab === "color"} onClick={() => setTab("color")}>색</button>
+          <button type="button" role="tab" aria-selected={tab === "photo"} onClick={() => setTab("photo")}>사진</button>
         </div>
-        {tab === "icon" ? (
+        {tab === "photo" ? (
+          <div className="nrl-sec"><RoomArtRow id={r.id} /><small className="nrl-lbl">표지 사진 = 목록(폰 · PC)에 바로 · 고르면 바로 올라가(아래 「저장」과 따로)</small></div>
+        ) : tab === "icon" ? (
           <div className="nrl-sec">
             <input className="nrl-q" value={q} placeholder="아이콘 찾기(영어 이름 · 예: trend, rocket)" onChange={(e) => setQ(e.target.value)} />
             <div className="nrl-grid">
