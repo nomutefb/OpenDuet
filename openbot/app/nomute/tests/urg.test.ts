@@ -20,5 +20,6 @@ test("화면 = 긴급 줄 점수 칸 「긴급 HH:MM」", () => {
   const nl = readFileSync(new URL("../home/news-list.tsx", import.meta.url), "utf8");
   assert.match(nl, /row\.urg \? <span className="sc urg"/);
   assert.match(nl, /urg: h\.urg \}/);
-  assert.match(readFileSync(new URL("../home/news-list.css", import.meta.url), "utf8"), /li:has\(\.sc\.urg\) \{ grid-template-columns:16px 18px minmax\(0,1fr\) auto 50px 76px; \}/);
+  const css = readFileSync(new URL("../home/news-list.css", import.meta.url), "utf8");
+  assert.match(css, /li:has\(\.sc\.urg\) \.ag \{ display:none; \}/); assert.match(css, /\.sc\.urg \{ grid-column:span 2;/); assert.ok(!/li:has\(\.sc\.urg\) \{ grid-template-columns/.test(css), "칸 수 안 바꿈");
 });
