@@ -44,3 +44,40 @@ test("러너 묶음 글 = 알약 말고 말풍선(카드) 자리", async () => {
   assert.equal(bubbleM({ kind: "system", who: "러너", text: T }), true);
   assert.equal(bubbleM({ kind: "system", who: "러너", text: "깸: 아무개" }), false);
 });
+
+const N = `[묶음 261113-0250-ask-x]
+제목: 젠슨 황 퇴진
+개요:
+엔비디아 이사회가 젠슨 황을 해임했다.
+33년 만의 퇴진이다.
+후임은 아직 없다.
+IG:
+\`\`\`text
+젠슨 황, 33년 만에 퇴진 🟢
+
+#엔비디아
+\`\`\`
+TH:
+\`\`\`text
+엔비디아 젠슨 황 퇴진. 33년.
+\`\`\`
+썸네일 찾기:
+- 검색어: 젠슨 황 · Jensen Huang
+- 구글 이미지: https://www.google.com/search?q=jensen&tbm=isch&tbs=qdr:d
+- 그림: https://pub-x.r2.dev/a.jpg
+- 사진: 연합뉴스 · AP · 보기용
+주소: https://www.yna.co.kr/view/AKR1`;
+
+test("새 꼴(깃 11-13 02:52) = 개요 · IG · TH 덩어리 · 썸네일 찾기 · 옛 꼴도 그대로 읽음", () => {
+  const b = parseBundle(N)!;
+  assert.equal(b.stem, "261113-0250-ask-x");
+  assert.deepEqual(b.sums, ["엔비디아 이사회가 젠슨 황을 해임했다.", "33년 만의 퇴진이다.", "후임은 아직 없다."]);
+  assert.equal(b.ig, "젠슨 황, 33년 만에 퇴진 🟢\n\n#엔비디아");
+  assert.equal(b.th, "엔비디아 젠슨 황 퇴진. 33년.");
+  assert.deepEqual(b.terms, ["젠슨 황", "Jensen Huang"]);
+  assert.match(b.gimg, /^https:\/\/www\.google\.com\/search/);
+  assert.equal(b.img, "https://pub-x.r2.dev/a.jpg");
+  assert.equal(b.credit, "연합뉴스 · AP · 보기용");
+  assert.equal(b.url, "https://www.yna.co.kr/view/AKR1");
+  assert.equal(parseBundle(T)!.ig, "첫 줄 캡션\n\n둘째 문단 · 제목: 이란 말이 들어가도 캡션", "옛 꼴 캡션 = IG 칸으로");
+});

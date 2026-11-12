@@ -33,7 +33,7 @@ async function evOf(url: string): Promise<{ ev: string; ev_at: number }> {
 export function BundleCard({ b, id }: { b: Bundle; id: string }) {
   const qc = useQueryClient();
   const saved = (usePicks().data || []).filter((p) => p.msg === id || (!p.msg && p.stem === b.stem)).pop();
-  const [act, setAct] = useState<Act>(""), [open, setOpen] = useState(false), [err, setErr] = useState(""), [copied, setCopied] = useState(false);
+  const [act, setAct] = useState<Act>(""), [open, setOpen] = useState(false), [err, setErr] = useState("");
   const cur: Act = act || saved?.act || "";
   const press = async (a: "up" | "skip") => {
     setAct(a); setOpen(a === "up"); setErr("");
@@ -43,7 +43,8 @@ export function BundleCard({ b, id }: { b: Bundle; id: string }) {
       void qc.invalidateQueries({ queryKey: ["nomute", "hyung-pick"] });
     } catch { setErr("기록 못 함 · 다시 눌러 줘"); }
   };
-  const copy = () => { void navigator.clipboard?.writeText(b.caption).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1400); }); };
+  const [copied, setCopied] = useState("");
+  const copy = (k: string, v: string) => { void navigator.clipboard?.writeText(v).then(() => { setCopied(k); setTimeout(() => setCopied((c) => (c === k ? "" : c)), 1400); }); };
   if (cur === "skip" && !open)
     return (
       <button type="button" className="nm-bdl nm-bdl-fold" onClick={() => setOpen(true)} aria-label={`넘김 · ${b.title} · 눌러 펼침`}>
@@ -58,12 +59,24 @@ export function BundleCard({ b, id }: { b: Bundle; id: string }) {
       {b.sums.length ? <ul className="nm-bdl-sum">{b.sums.map((s, i) => <li key={i}>{s}</li>)}</ul> : null}
       {b.url ? <a className="nm-bdl-url" href={b.url} target="_blank" rel="noreferrer">{b.url.replace(/^https?:\/\/(www\.)?/, "")}</a> : null}
       {cur === "up" && open ? (
-        <div className="nm-bdl-up">
+        <div className="nm-bdl-up">   {/* 올림 = 복사 · 저장하기 쉽게(형 02:51 꼴 = IG · TH 덩어리 · 썸네일 찾기 · 깃 02:52) */}
           {b.img ? <a href={b.img} target="_blank" rel="noreferrer" className="nm-bdl-big" aria-label="사진 크게 · 길게 눌러 저장"><img src={b.img} alt="" referrerPolicy="no-referrer" /></a> : null}
           {b.credit ? <div className="nm-bdl-cr">사진 · {b.credit}</div> : null}
-          <div className="nm-bdl-cap">{b.caption || "캡션 없음"}</div>
+          {([["IG", b.ig], ["TH", b.th]] as const).filter(([, v]) => v).map(([k, v]) => (
+            <div key={k} className="nm-bdl-blk">
+              <div className="nm-bdl-bh"><b>{k}</b><button type="button" className={`nm-bdl-cp${copied === k ? " on" : ""}`} onClick={() => copy(k, v)}>{copied === k ? "복사했어" : "복사"}</button></div>
+              <div className="nm-bdl-cap">{v}</div>
+            </div>
+          ))}
+          {!b.ig && !b.th ? <div className="nm-bdl-cap">캡션 없음</div> : null}
+          {b.terms.length || b.gimg ? (
+            <div className="nm-bdl-find">
+              <b>썸네일 찾기</b>
+              <div className="nm-bdl-chips">{b.terms.map((t) => <button key={t} type="button" className={`nm-bdl-chip${copied === "t:" + t ? " on" : ""}`} onClick={() => copy("t:" + t, t)}>{copied === "t:" + t ? "복사했어" : t}</button>)}</div>
+              {b.gimg ? <a className="nm-bdl-btn" href={b.gimg} target="_blank" rel="noreferrer">구글 이미지</a> : null}
+            </div>
+          ) : null}
           <div className="nm-bdl-row">
-            <button type="button" className="nm-bdl-btn on" onClick={copy} disabled={!b.caption}>{copied ? "복사했어" : "캡션 복사"}</button>
             {b.img ? <a className="nm-bdl-btn" href={b.img} target="_blank" rel="noreferrer">사진 열기</a> : null}
             <button type="button" className="nm-bdl-btn" onClick={() => setOpen(false)}>접기</button>
           </div>
