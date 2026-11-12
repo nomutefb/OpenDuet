@@ -26,11 +26,20 @@ export function StickerButton() {
   // 판 자리 = 누른 😊 바로 위(형 11-12 13:27 「이거 창이 이모지 누른 그 바로 그 부분에서 떠야해, 부드럽게. 지금은 멀찍이 떠버림.」 · 「모바일도 마찬가지야!」) · 화면 밖으로 안 나가게 12px 안쪽
   const place = () => { const r = btn.current?.getBoundingClientRect(); if (!r) return; const w = Math.min(420, innerWidth - 24); const left = Math.max(12, Math.min(r.left - 8, innerWidth - w - 12)); setAt({ left, bottom: innerHeight - r.top + 8, width: w, transformOrigin: `${Math.round(r.left + r.width / 2 - left)}px 100%` }); };
   useEffect(() => { if (!open) return; addEventListener("resize", place); return () => removeEventListener("resize", place); }, [open]);
-  useEffect(() => { if (!open) return; const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [open]);
+  // 뒤로 = 판만 닫힘(형 11-12 21:31 봄 1:1 「이모지 킨 채로 뒤로가면 이리됨」 · 봄 옮김) — 열 때 주소 그대로 한 칸 쌓고, 뒤로(popstate)·방 바뀜(hashchange) = 닫힘 · 판을 다른 길로 닫으면 쌓은 칸을 걷음
+  const close = () => { setOpen(false); if ((history.state as { nmStk?: number } | null)?.nmStk) history.back(); };
+  useEffect(() => {
+    if (!open) return;
+    if (!(history.state as { nmStk?: number } | null)?.nmStk) history.pushState({ ...(history.state || {}), nmStk: 1 }, "");
+    const off = () => setOpen(false);
+    addEventListener("popstate", off); addEventListener("hashchange", off);
+    return () => { removeEventListener("popstate", off); removeEventListener("hashchange", off); };
+  }, [open]);
+  useEffect(() => { if (!open) return; const k = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [open]);
   // 누르면 판은 바로 닫고(형 11-12 12:50 「내가 이모지 클릭하면 바로 창 닫히면돼. ㅋㅋ 두개를 보내는 경우는 별로없거든」) 대화 줄에 「보내는 중」 움짤을 먼저 띄운 뒤 뒤에서 보냄 → 서버 답 = 진짜 글(라임 ✓)로 갈음 · 못 보냄 = 그 칸 걷힘(✓ 없음 = 안 감)
   const send = (p: Pack, it: Item) => {
     const room = decodeURIComponent(roomNow());
-    setOpen(false);
+    close();
     if (!room) return;
     const key = ["nomute", "msgs", room], text = stickerText(p, it), tmp = STK_TMP + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     type M = { id: string; ts: number; [k: string]: unknown };
@@ -45,12 +54,12 @@ export function StickerButton() {
   const shown = tab === "all" ? PACKS : PACKS.filter((p) => p.id === tab);
   return (
     <>
-      <button ref={btn} type="button" className="nm-stk-btn" aria-label="움짤 고르기" title="움짤" onClick={() => { place(); setOpen((x) => !x); }}>
+      <button ref={btn} type="button" className="nm-stk-btn" aria-label="움짤 고르기" title="움짤" onClick={() => { if (open) close(); else { place(); setOpen(true); } }}>
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8" /><path d="M9 9.5h.01M15 9.5h.01" /></svg>
       </button>
       {open ? createPortal(
         <>
-          <div className="nm-stk-back" aria-hidden onClick={() => setOpen(false)} />
+          <div className="nm-stk-back" aria-hidden onClick={close} />
           <div className="nm-stk" role="dialog" aria-label="움짤" style={at}>
             <div className="nm-stk-tabs" role="tablist">
               <button type="button" role="tab" aria-selected={tab === "all"} className={tab === "all" ? "on" : ""} onClick={() => setTab("all")}>전체</button>

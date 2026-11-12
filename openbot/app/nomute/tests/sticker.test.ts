@@ -48,3 +48,10 @@ test("우상단 러너 숫자 = 흰색 · 문제(빨강) 칸만 라임(형 11-12
   assert.match(css, /\.nm-sl-leds b \{ color: #FFFFFF; \}/); assert.match(css, /\.nm-sl-leds b\.bad \{ color: #CFFF40; \}/);
   assert.match(tsx, /<N v=\{l\.bad\} t="bad" \/>/);
 });
+
+test("움짤 판 연 채 뒤로 = 판만 닫힘 · 방 바뀌면 닫힘(형 11-12 21:31 「이모지 킨 채로 뒤로가면 이리됨」)", () => {
+  const tsx = readFileSync(new URL("../ui/sticker.tsx", import.meta.url), "utf8");
+  assert.match(tsx, /history\.pushState\(\{ \.\.\.\(history\.state \|\| \{\}\), nmStk: 1 \}, ""\)/);
+  assert.match(tsx, /addEventListener\("popstate", off\); addEventListener\("hashchange", off\);/);
+  assert.match(tsx, /const close = \(\) => \{ setOpen\(false\); if \(\(history\.state as \{ nmStk\?: number \} \| null\)\?\.nmStk\) history\.back\(\); \};/);
+});
