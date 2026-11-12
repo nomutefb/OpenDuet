@@ -46,6 +46,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .yb { position:relative; }
 /* 반응이 붙어도 자리를 따로 안 잡음 = 말풍선 모서리에 겹쳐 얹힘(형 11-12 06:13 「이모지 붙을때, 이게 추가로 공간을 확보하는게 아니라, 그냥 붙는 꼴로할게」 · 뎅 · 옛 margin-bottom 13px 걷음) */
 .yrxs { position:absolute; left:6px; bottom:-13px; z-index:2; display:flex; gap:2px; white-space:nowrap; }   /* 왼쪽 아래 모서리 = 시각(오른쪽 아래 · .ybw flex-end)을 안 가림(형 11-12 07:29 「날짜가 가려지는 위치가 될수도 잇는데」 · 뎅) */
+.ychat .yb.me > .yrxs { left:auto; right:6px; }   /* 시각 반대쪽 모서리 — 형 말풍선 = 시각이 왼쪽 아래(라이브 9222 실물 11-12 09:02) → 반응 오른쪽 · 봇 말풍선 = 시각 오른쪽 아래 → 반응 왼쪽(위 줄) · 뎅 */
 .ychat .yb:has(> .yrxs) { min-width:104px; }   /* 짧은 말풍선(「오키」)에 반응이 붙으면 시각이 말풍선보다 넓어 왼쪽까지 와 겹침 → 반응 단 말풍선만 폭 바닥 */
 .ychat [data-id]:has(.yrxs) { position:relative; z-index:3; }   /* 반응 단 글 = 한 층 위 — 다음 말풍선이 반응을 덮던 것(형 11-12 07:53 「말풍선 레이어 덮힘 ㅋㅋ」 · 자리는 그대로 안 잡음) */
 .yrx { display:inline-flex; align-items:center; gap:1px; height:24px; padding:0 2px; border-radius:999px; font-size:17px; line-height:1; background:none; border:0; color:var(--fg); box-shadow:none; filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.55)); }   /* 바탕 원 0 · 이모지만(형 11-12 07:29 「말풍선 뒤에 백그라운드 없어도 됨」) · 말풍선 색에 묻히지 않게 얇은 그림자만 · 뎅 */   /* 단 곳에 테두리 0(형 11-01 14:03 「이모지 저거 달아도 단 곳에 테두리 안생기게해줘」) · 말풍선과는 그림자로만 떨어짐 */
