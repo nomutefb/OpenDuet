@@ -12,7 +12,8 @@ test("카드 애 = 카드 한 장만 · 색 원 · 설명 글 카드 안 · 화�
   assert.ok(!/ypc-role|ypc-intro|ypc-acts|닫기/.test(m[1]), "둘레 줄 · 단추 0");
   assert.match(m[1], /className="ypc-orb"/);
   assert.match(m[1], /note=\{p\?\.intro/);
-  assert.match(m[1], /onScreen=\{screen \? openScreen : undefined\}/);
+  assert.match(m[1], /onScreen=\{screen \? openScreen : crd \? openCrd : undefined\}/);   // 맥 몸(봄 · 챙) = 크롬 원격 데스크톱 새 창(형 11-12 07:32)
+  assert.match(m[1], /\{fxPen\}\{fxView\}/);   // 형이 사진 · 소개 고치기(형 11-12 07:52)
   assert.match(m[1], /onDm=\{dm \? go : undefined\} acts \/>/);   // 네 칸 통일(형 11-11 08:56 「직무 소개글 대화하기 화면보기 이거 통일해줘」)
   assert.match(bc, /disabled=\{!onDm\}/); assert.match(bc, /disabled=\{!onScreen\}/);   // 없는 애 = 자리는 두고 흐리게
   assert.match(bc, /note=\{acts \? note \|\| "소개는 아직이야" : note\}/);

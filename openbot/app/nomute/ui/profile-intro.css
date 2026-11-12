@@ -32,3 +32,4 @@
 .ypc-fx .row small { color:rgba(241,239,233,.6); font-size:11px; }
 .ypc-fx .err { color:#ff8a80; }
 .ypc-fx .ypc-ok { padding:8px 16px; border-radius:999px; border:1px solid rgba(207,255,64,.38); background:rgba(207,255,64,.14); color:#CFFF40; font-weight:700; }
+.ypc-fx .ypc-x { padding:8px 16px; border-radius:999px; font-weight:600; }   /* 「닫기」 = 「저장」과 같은 알약(뜸 11-12 · 폰 실물에서 네모로 보였음) */
