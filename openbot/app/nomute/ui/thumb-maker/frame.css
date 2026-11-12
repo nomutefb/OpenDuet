@@ -2,6 +2,10 @@
    창 = 위 12 · 아래 70 비움(옛 index 아래 메뉴 자리 = 지금 보이는 꼴 그대로) · 머리 「✧ 에디터 · 카드 제작」 + ⟳ 입력 초기화 · 판(옛 iframe) = 아래 32px 흐려짐
    장면 받침 색 = 앱이 에디터에 덧씌우던 YETA 톤(ui/inapp.ts yetaTone · 바탕·글자) + 에디터 시안·파랑(modern-tokens) */
 .nm-modal-b.tm-host { padding-top:calc(64px + env(safe-area-inset-top)); padding-bottom:var(--duet-tab-space,86px); }
+/* 앱 안 = 위 챠콜 머리 줄 없음 → 위 여백은 안전 영역만 · ‹ = 판 머리 왼쪽(형 11-13 02:24) */
+.nm-modal.see .nm-modal-b.tm-host { padding-top:calc(12px + env(safe-area-inset-top)); }
+.tm-back { flex:none; display:grid; place-items:center; width:30px; height:30px; margin:-4px 0 -4px -6px; padding:0; border:0; border-radius:50%; background:none; color:#fff; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.tm-back:active { transform:scale(.92); }
 .tm-stage { position:relative; display:flex; flex:1; min-height:0; flex-direction:column; padding:12px 0 0; overflow:hidden; isolation:isolate;   /* 아래 70 = 옛 index 아래 메뉴 자리였음 → 앱에선 앱 막대 자리(tm-host padding-bottom)가 이미 비워서 두 겹 빈 띠 · 「옵션」이 일찍 흐려짐(형 11-11 06:13 폰 사진) → 0 */
   color:#fff; font:15px/24px 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing:-.2px; }
 .tm-ambient { position:absolute; inset:0; z-index:0; pointer-events:none;

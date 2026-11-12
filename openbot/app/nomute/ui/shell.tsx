@@ -220,7 +220,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   useTabSpace(stage);
   if ("bare" in where) return <>{children}</>;
 
-  const SEE = new Set(["settings", "drawer"]);   // 바탕 비치는 판(5번 서랍 · 6번 설정)
+  const SEE = new Set(["settings", "drawer", "edtool"]);   // 에디터도(형 11-13 02:26 봄 1:1 「지금 수정한 에디터, 뒤에 지금 인앱 배경을 깔아버리면 될듯」)   // 바탕 비치는 판(5번 서랍 · 6번 설정)
   const show = (id: Pane, node: ReactNode) =>
     open.has(id) ? <section key={id} className={`nm-pane ${pane === id ? "on" : ""}`} aria-hidden={pane !== id} inert={pane !== id || undefined}>{node}</section> : null;
   const closeModal = () => {   // 서랍에서 연 칸의 「<」 = 서랍으로(봄 11-01 · 전엔 아래 판(홈·대화방)으로 갔음) · 표지 = drawer-page 가 누를 때 남김
@@ -278,14 +278,16 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           {M ? (
             <ModalBox close={closeModal} className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
               {M.id === "feed" || M.id === "trend" || M.id === "legacy" || M.id === "tokens" || M.id === "gyeol" || M.id === "feedback" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
-              <div className="nm-modal-h">
-                <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
-                {M.id === "edtool" ? null : <b>{M.label}</b>}   {/* 에디터 = 머리 글자 뺌 · 바로 아래 「✦ 에디터 · 카드 제작」과 겹침(형 11-12 21:32 봄 1:1 「상단에 에디터 라는 문구 없어도 됨」) · ‹ 는 남김 */}
-              </div>
+              {M.id === "edtool" ? null : (   /* 에디터 = 위 챠콜 머리 줄 통째로 뺌 · ‹ 는 판 머리 「✦ 에디터」 왼쪽(형 11-13 02:24 봄 1:1 「글자를 없애는거 말구, 그냥 위에 네비 챠콜색 저 라인을 다 없애면됨」 · 앞 판 = 글자만 뺌) */
+                <div className="nm-modal-h">
+                  <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
+                  <b>{M.label}</b>
+                </div>
+              )}
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
-                  : M.id === "edtool" ? <Suspense fallback={null}><ThumbMaker /></Suspense>   // 썸네일 생성기 = 원본 판·엔진·배경 그대로(./thumb-maker · 머리 「✧ 에디터 · 카드 제작」 = 옛 index 도구 창 꼴)
+                  : M.id === "edtool" ? <Suspense fallback={null}><ThumbMaker onBack={closeModal} /></Suspense>   // 썸네일 생성기 = 원본 판·엔진·배경 그대로(./thumb-maker · 머리 「✧ 에디터 · 카드 제작」 = 옛 index 도구 창 꼴)
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><StatusBoard /></div>   /* 서랍 「러너」 = 작동 표(형 11-09 08:50 「러너는 5번 서랍 안으로 … 기존거는 없애면 됨 끌고오는거 아님」 · 옛 RunnerScreen 칸 뺌 · 네비 4번 「작동」 은 33) 뉴스 에디터 판에서 바꿈 · 봄 배분 32) */
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>

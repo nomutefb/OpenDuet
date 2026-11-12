@@ -19,7 +19,7 @@ const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeW
 /** 머리 ⟳ = 원본 index 「입력 초기화」(그 세부 메뉴의 글자·사진 비우기 = thumb 의 window.nmTabReset) */
 function reset() { (window as Window & { nmTabReset?: () => void }).nmTabReset?.(); }
 
-export const ThumbMaker = memo(function ThumbMaker() {
+export const ThumbMaker = memo(function ThumbMaker({ onBack }: { onBack?: () => void }) {   // onBack = 앱 껍데기 닫기(위 챠콜 머리 줄을 뺀 뒤 ‹ 자리 · 형 11-13 02:24)
   const frame = useRef<HTMLDivElement>(null), scroller = useRef<HTMLDivElement>(null), root = useRef<HTMLDivElement>(null), body = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!frame.current || !scroller.current || !root.current || !body.current) return;
@@ -37,8 +37,9 @@ export const ThumbMaker = memo(function ThumbMaker() {
   }, []);
   return (
     <div className="tm-stage">
-      <SceneBg />
+      {onBack ? null : <SceneBg />}   {/* 앱 안 = 제 장면 대신 웹앱 배경이 비침(형 11-13 02:26 「뒤에 지금 인앱 배경을 깔아버리면 될듯」 · 껍데기 .nm-modal.see) */}
       <div className="tm-head">
+        {onBack ? <button type="button" className="tm-back" aria-label="닫기" onClick={onBack}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 18l-6-6 6-6" /></svg></button> : null}
         <b className="tm-title">{SPARK}<span>에디터</span></b>
         <span className="tm-menu">카드 제작<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 9L12 15L18 9" /></svg></span>
         <button type="button" className="tm-rf" aria-label="입력 초기화" title="입력 초기화 — 글자·사진 비우기" onClick={reset}>
