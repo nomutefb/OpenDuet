@@ -144,3 +144,12 @@ test("테일스케일 연결표 = 게이지 기기는 손 올림만 · 게이지
   assert.match(tt, /100\.103\.55\.120/); assert.match(tt, /100\.93\.212\.35/);
   assert.ok(!/group: "(WIN|MAC|Lx)/.test(tt), "게이지 기기는 줄로 또 안 넣음");
 });
+
+test("다음 창 모델 · 노력도 = 작동 표 몸 줄 끝 칸 둘 · 형만 고름 · 저장 m/profile/nextwin(형 11-12 16:17)", () => {
+  const sb = rd("../ui/status-board.tsx"), nw = rd("../ui/next-win.tsx");
+  assert.match(sb, /<span>다음 창<\/span>/);
+  assert.match(sb, /\{b \? <NextWinCells who=\{r\.name\} \/> : <td colSpan=\{2\}/);
+  assert.match(nw, /"m\/profile\/nextwin"/);
+  assert.match(nw, /me\?\.kind === "human"/);
+  assert.match(nw, /who === "봄" \? \{ model: "claude-fable-5-2", effort: "medium" \}/);
+});
