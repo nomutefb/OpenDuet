@@ -8,7 +8,9 @@ import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg } from "./faces";
 import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave, tabsSetUrl, webTabName, webTabNew } from "./tab-list";
-import { WebPane } from "./web-pane";   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
+import { WebPane } from "./web-pane";
+import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:54 · 맥 72 다리)
+import { COBROWSE_EVENT } from "./cobrowse";   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 
 // 첫 탭 = 「봄의 정원」(형 11-12 06:23 봄 1:1 「기본적으로 탭형태를 갖춰서. 봄의 정원. 이라고 나오게해줘. 그리고 거기서 +가 나오게 크롬형태를 참고하면 될거같애」
@@ -39,6 +41,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     if (first.current) { first.current = false; return; }
     setS((x) => (x.active === "dash" ? x : { ...x, active: "dash" }));
   }, [room, pane]);
+  useEffect(() => { const on = () => setS((x) => tabsAdd(x, { k: "co" })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
     const root = document.querySelector(".nm-split-root") as HTMLElement | null, el = bar.current;
@@ -69,7 +72,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     const r = roomOf(t.id);
     return !r ? "" : r.with ? idOf(r.with, list) : roomAgentIds(r, list)[0] || "";
   };
-  const nameOf = (t: Tab) => (t.k === "dash" ? GARDEN : t.k === "web" ? webTabName(t.url) : t.k === "screen" ? `${list.find((p) => p.who === t.who)?.name || t.who} 화면` : roomOf(t.id)?.name || t.id);
+  const nameOf = (t: Tab) => (t.k === "dash" ? GARDEN : t.k === "co" ? "같이 보기" : t.k === "web" ? webTabName(t.url) : t.k === "screen" ? `${list.find((p) => p.who === t.who)?.name || t.who} 화면` : roomOf(t.id)?.name || t.id);
   const pick = (t: Tab) => {
     const key = tabKey(t);
     setS((x) => ({ ...x, active: key }));
@@ -101,7 +104,8 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* 이미 놓음 */ }
     if (d && !d.moved) pick(t);
   };
-  const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" }> => t.k === "screen" || t.k === "web");
+  const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" | "co" }> => t.k === "screen" || t.k === "web" || t.k === "co");
+  const paneOn = s.active.startsWith("s:") || s.active.startsWith("w:") || s.active === "co";
   return (
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
@@ -121,10 +125,13 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
           );
         })}
         <button type="button" className="nm-tab-plus" aria-label="새 탭" title="새 탭" onClick={() => setS((x) => tabsAdd(x, webTabNew()))}>+</button>
+        {room === "all" && pane === "chat" ? <button type="button" className="nm-tab-cobtn" title="맥 브라우저를 같이 보며 얘기하기" onClick={() => setS((x) => tabsAdd(x, { k: "co" }))}>같이 보기</button> : null}   {/* 들머리 = 회의실(봄 13:21 「먼저 회의실」) */}
       </div>
       {paneTabs.length ? createPortal(
-        <div className={`nm-tab-screen${host ? " in-split" : ""}`} hidden={!(s.active.startsWith("s:") || s.active.startsWith("w:"))}>
-          {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "web" ? (
+        <div className={`nm-tab-screen${host ? " in-split" : ""}`} hidden={!paneOn}>
+          {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "co" ? (
+            s.active === "co" ? <div key="co" className="nm-tab-co"><CobrowsePane onClose={() => close("co")} /></div> : null   /* 보는 동안만 붙음 = 안 보면 다리 쉼(봄 12:53 「보는 중」 신호) · 다시 고르면 새 표 */
+          ) : t.k === "web" ? (
             <div key={tabKey(t)} className="nm-tab-web" hidden={s.active !== tabKey(t)}>
               <WebPane initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} />   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
             </div>

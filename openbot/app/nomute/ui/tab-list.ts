@@ -1,12 +1,13 @@
 // 위쪽 탭 줄 자료(순수 · 시험 tests/tab-list.test.ts) — 빠르 11-09 · 형 05:16 「위쪽에 탭 열리게 … 안에서 인터넷 가능하게」 · 시아 05:23 자리·차례
 //   탭 = 「대시보드」(고정 · 늘 맨 앞 · × 없음) + 방 탭 + 화면 탭(몸 브레이브·VM 화면 · 명부 screen) · 기기마다 기억(localStorage nm-tabs-v1)
-export type Tab = { k: "dash" } | { k: "room"; id: string } | { k: "screen"; who: string; url: string } | { k: "web"; id: string; url: string };   // web = 「+」 빈 탭 · 주소 넣으면 그 탭 안(빠르 11-11 · 형 22:10 「+ 누르면 … 인앱안에서 그냥 빈 화면 페이지가 나와서」 · 「좌상단은 탭처럼」)
+export type Tab = { k: "dash" } | { k: "room"; id: string } | { k: "screen"; who: string; url: string } | { k: "web"; id: string; url: string } | { k: "co" };   // co = 같이 보기(맥 72 다리 · 하나만 · 뜸 11-12)   // web = 「+」 빈 탭 · 주소 넣으면 그 탭 안(빠르 11-11 · 형 22:10 「+ 누르면 … 인앱안에서 그냥 빈 화면 페이지가 나와서」 · 「좌상단은 탭처럼」)
 export type TabState = { tabs: Tab[]; active: string };
 export const TABS_KEY = "nm-tabs-v1", TABS_MAX = 14, DASH: Tab = { k: "dash" };
-export const tabKey = (t: Tab) => (t.k === "dash" ? "dash" : t.k === "room" ? "r:" + t.id : t.k === "web" ? "w:" + t.id : "s:" + t.who);
+export const tabKey = (t: Tab) => (t.k === "dash" ? "dash" : t.k === "co" ? "co" : t.k === "room" ? "r:" + t.id : t.k === "web" ? "w:" + t.id : "s:" + t.who);
 const ok = (t: unknown): t is Tab => {
   const x = t as Record<string, unknown>;
   if (!x || typeof x !== "object") return false;
+  if (x.k === "co") return true;
   if (x.k === "room") return typeof x.id === "string" && !!x.id && x.id.length < 120;
   if (x.k === "screen") return typeof x.who === "string" && !!x.who && typeof x.url === "string" && /^https?:\/\//.test(x.url);
   if (x.k === "web") return typeof x.id === "string" && /^[a-z0-9]{1,24}$/.test(x.id) && typeof x.url === "string" && (x.url === "" || /^https?:\/\//.test(x.url) || x.url.startsWith("/"));
