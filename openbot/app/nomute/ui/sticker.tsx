@@ -7,46 +7,36 @@ import { queryClient } from "@/query-client";
 import { office } from "../data/office";
 import "./sticker.css";
 
-type Item = { id: string; label: string };
-type Pack = { id: string; name: string; items: Item[] };
-const MOODS: Item[] = [{ id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }, { id: "think", label: "생각중" }, { id: "surprise", label: "놀람" }, { id: "done", label: "해냈다" }];
-export const PACKS: Pack[] = [
-  { id: "fast", name: "빠르", items: MOODS },
-  { id: "bom", name: "봄", items: MOODS },
-  { id: "eyes", name: "뜸", items: [...MOODS, { id: "rise", label: "해뜸" }] },   // 해뜸 = 뜸 얼굴 해가 떠오르다 뽕 하고 밥알(형 11-12 12:39 「해가 뜨다가 갑자기 뜸이 뜨는것도 해줘」)
-];
-export const stickerUrl = (p: Pack, it: Item) => `/office/sticker/${p.id}/${it.id}.gif`;
-export const stickerText = (p: Pack, it: Item) => `[스티커 ${p.name} ${it.label}]`;
-const RE = /^\s*\[스티커\s+(\S+)\s+(\S+)\]\s*$/;
-/** 순수 — 글 하나가 스티커 한 줄이면 {pack, item} */
-export function stickerOf(text: unknown): { pack: Pack; item: Item } | null {
-  const m = RE.exec(String(text || ""));
-  if (!m) return null;
-  const pack = PACKS.find((p) => p.name === m[1] || p.id === m[1]);
-  const item = pack?.items.find((x) => x.label === m[2] || x.id === m[2]);
-  return pack && item ? { pack, item } : null;
-}
+import { PACKS, STK_TMP, stickerOf, stickerText, stickerUrl, type Item, type Pack } from "./sticker-logic";
+export { PACKS, STK_TMP, stickerMark, stickerOf, stickerText, stickerUrl } from "./sticker-logic";
 
-export function Sticker({ text }: { text: unknown }) {
+/** mark = 내가 보낸 움짤 옆 표(형 11-12 12:50 「움짤옆에는 항상 체크표시 라임색으로 보내진건지 확인해주게해」) · "wait" = 보내는 중(흐린 점) · "sent" = 서버에 앉음(라임 ✓) */
+export function Sticker({ text, mark }: { text: unknown; mark?: "wait" | "sent" }) {
   const s = stickerOf(text);
   if (!s) return null;
-  return <img className="nm-sticker" src={stickerUrl(s.pack, s.item)} alt={`${s.pack.name} ${s.item.label}`} loading="lazy" draggable={false} />;
+  const img = <img className="nm-sticker" src={stickerUrl(s.pack, s.item)} alt={`${s.pack.name} ${s.item.label}`} loading="lazy" draggable={false} />;
+  if (!mark) return img;
+  return <span className={`nm-stk-sent ${mark}`}><span className="nm-stk-ok" role="img" aria-label={mark === "sent" ? "보냄" : "보내는 중"}>{mark === "sent" ? <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden><path d="M3.2 8.6l3 3 6.6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg> : null}</span>{img}</span>;
 }
-
 const roomNow = () => /^#\/(?:channels|group)\/([^/?#]+)/.exec(location.hash)?.[1] || "";
 
 export function StickerButton() {
-  const [open, setOpen] = useState(false), [tab, setTab] = useState("all"), [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false), [tab, setTab] = useState("all");
   useEffect(() => { if (!open) return; const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [open]);
-  const send = async (p: Pack, it: Item) => {
+  // 누르면 판은 바로 닫고(형 11-12 12:50 「내가 이모지 클릭하면 바로 창 닫히면돼. ㅋㅋ 두개를 보내는 경우는 별로없거든」) 대화 줄에 「보내는 중」 움짤을 먼저 띄운 뒤 뒤에서 보냄 → 서버 답 = 진짜 글(라임 ✓)로 갈음 · 못 보냄 = 그 칸 걷힘(✓ 없음 = 안 감)
+  const send = (p: Pack, it: Item) => {
     const room = decodeURIComponent(roomNow());
-    if (!room || busy) return;
-    setBusy(true);
-    try {
-      await office(`rooms/${encodeURIComponent(room)}/messages`, { method: "POST", body: JSON.stringify({ text: stickerText(p, it) }) });
-      void queryClient.invalidateQueries({ queryKey: ["nomute", "msgs", room] });
-      setOpen(false);
-    } catch { /* 못 보냄 = 판 그대로(다시 누름) */ } finally { setBusy(false); }
+    setOpen(false);
+    if (!room) return;
+    const key = ["nomute", "msgs", room], text = stickerText(p, it), tmp = STK_TMP + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    type M = { id: string; ts: number; [k: string]: unknown };
+    type P = { messages: M[]; [k: string]: unknown };
+    const put = (fn: (ms: M[]) => M[]) => queryClient.setQueryData<P>(key, (old) => (old ? { ...old, messages: fn(old.messages || []) } : old));
+    put((ms) => [...ms, { id: tmp, room, ts: Date.now(), kind: "human", who: "형", text }]);
+    void office<{ message?: M }>(`rooms/${encodeURIComponent(room)}/messages`, { method: "POST", body: JSON.stringify({ text }) })
+      .then((j) => { put((ms) => { const rest = ms.filter((m) => m.id !== tmp); return j?.message && !rest.some((m) => m.id === j.message!.id) ? [...rest, j.message].sort((a, b) => a.ts - b.ts) : rest; }); })
+      .catch(() => put((ms) => ms.filter((m) => m.id !== tmp)))
+      .finally(() => void queryClient.invalidateQueries({ queryKey: key }));
   };
   const shown = tab === "all" ? PACKS : PACKS.filter((p) => p.id === tab);
   return (
@@ -64,7 +54,7 @@ export function StickerButton() {
             </div>
             <div className="nm-stk-grid">
               {shown.map((p) => p.items.map((it) => (
-                <button key={p.id + it.id} type="button" disabled={busy} aria-label={`${p.name} ${it.label} 보내기`} title={`${p.name} · ${it.label}`} onClick={() => void send(p, it)}>
+                <button key={p.id + it.id} type="button" aria-label={`${p.name} ${it.label} 보내기`} title={`${p.name} · ${it.label}`} onClick={() => send(p, it)}>
                   <img src={stickerUrl(p, it)} alt="" loading="lazy" draggable={false} />
                 </button>
               )))}

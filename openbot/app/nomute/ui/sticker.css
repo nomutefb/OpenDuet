@@ -11,3 +11,8 @@
 .nm-stk-grid button { all:unset; display:block; box-sizing:border-box; aspect-ratio:1; border-radius:14px; overflow:hidden; cursor:pointer; background:rgba(255,255,255,.04); }
 .nm-stk-grid button:hover { outline:2px solid rgba(207,255,64,.38); }
 .nm-stk-grid img { width:100%; height:100%; object-fit:cover; display:block; }
+/* 내가 보낸 움짤 옆 표(형 11-12 12:50 「움짤옆에는 항상 체크표시 라임색으로」) — 움짤 왼쪽 아래 · 보내는 중 = 흐림 */
+.nm-stk-sent { display:inline-flex; align-items:flex-end; gap:6px; }
+.nm-stk-ok { flex:none; width:20px; height:20px; display:grid; place-items:center; color:#CFFF40; filter:drop-shadow(0 0 4px rgba(207,255,64,.45)); }
+.nm-stk-sent.wait .nm-sticker { opacity:.55; }
+.nm-stk-sent.wait .nm-stk-ok::after { content:""; width:6px; height:6px; border-radius:50%; background:rgba(232,234,232,.45); }
