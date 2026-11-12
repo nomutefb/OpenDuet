@@ -472,6 +472,11 @@ function RoomsPane() {
 }
 
 /** PC 왼쪽 끝 얼굴 띠 — 얼굴만(글자 0) · 차례 = 안 읽은 방 → 고정 → 나머지(목록 화면과 같은 차례) · 위아래 스크롤 · 맨 위 ≡ · 맨 아래 「+」·형 얼굴 붙박이 */
+// 띠 라임 테 = 진짜 일하는 애만(형 11-12 16:23 봄 1:1 「애들 다 활성화되어잇는거맞아? 라인 프로필이 다 떠서」 · 봄 16:28 고침 「가」) —
+//   서버 「깸」 가운데 시계 알림이 연 턴(by clock · 깨움 러너가 1~2분마다 엶)과 서버가 깨움만 보낸 표시(mark woke · 답 안 해도 10분)는 뺌 · 서버 「잠」이면 안 켜짐(앞 판 = 마지막 턴 10분 안이면 잠이어도 켬)
+export type RingBot = { who: string; state: string; last_turn_ts?: number; why?: string; by?: string; mark?: string };
+export const ringOn = (b: RingBot) => b.state === "awake" && b.by !== "clock" && b.mark !== "woke" && b.why !== "woke";
+export const HYUNG_TALK_MS = 60 * 60_000;   // 띠 얼굴 「형과 최근 대화」 창(형 11-12 16:23 「최근 1시간」)
 function FaceStrip({ current }: { current: string; last: string }) {
   const nav = useNavigate();
   const { list, ordered, count, pins, setPins, pinned } = useRoomOrder();
@@ -480,10 +485,12 @@ function FaceStrip({ current }: { current: string; last: string }) {
   // 우클릭 = 고정 · 고정 풀기(형 11-05 17:03 「그리고 우클릭하면 고정같은거 작용하게 해줘 좌측에 저 프로필 사진들도」) — 대화방 목록 「고정」과 같은 칸(nm-office-pins · 이 기기) · 고정 방 = 띠 위쪽
   const togglePin = (id: string) => { if (id === "all") return; const n = new Set(pins); if (n.has(id)) n.delete(id); else n.add(id); try { localStorage.setItem("nm-office-pins", JSON.stringify([...n])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } setPins(n); };
   // 자는 애 = 얼굴 채도 15%(형 11-05 15:31 「잠자고 있으면 채도 15%만 들어가게 해줘. 프로필 테두리 라인은 검정 챠콜 베이스 반투명으로 들어가고.」) · 깸 표 = 대화 목록과 같은 bots 캐시(./room-list.tsx)
-  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string; last_turn_ts?: number }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
+  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: RingBot[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
   // 라이브 = 지금 깸 · 또는 마지막 턴 10분 안(상태바 조약돌과 같은 셈 · 형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어?」) — 턴 사이 「잠」 깜빡임 없게
-  const live = (who?: string) => !!who && bots.some((b) => b.who === who && (b.state === "awake" || (!!b.last_turn_ts && Date.now() - b.last_turn_ts <= 10 * 60_000)));
+  const live = (who?: string) => !!who && bots.some((b) => b.who === who && ringOn(b));
   const asleep = (who?: string) => !!who && !live(who);
+  // 형과 1시간 넘게 대화 없는 애 = 얼굴 채도 75%(형 11-12 16:23 봄 1:1 「애들 채도를 75%로 할게. 지금 나랑 최근 1시간에 대화한 애들 아니면」) · 셈 = 그 1:1 방 last_ts(형 낀 글 · 서버 미리보기와 같은 값) · 단톡 그림은 그대로
+  const far = (r: { with?: string; last_ts?: number }) => !!r.with && Date.now() - (r.last_ts || 0) > HYUNG_TALK_MS;
   // 띠만 = 고정 그대로 위 · 나머지 = 마지막 대화 · 형이 마지막으로 읽은 때(서버 seen.at) 중 늦은 것(형 11-12 10:01 「가장 위에는 내가 가장 최근에 읽은 애가 있어야함」 · 봄 10:30 「PC 왼쪽 띠에만」 · 폰 목록은 그대로 · 뎅)
   const keyOf = (r: { id: string; last_ts?: number }) => Math.max(r.last_ts || 0, seen[r.id]?.at || 0);
   const stripOrder = [...ordered.filter((r) => pinned(r.id)), ...ordered.filter((r) => !pinned(r.id)).sort((a, b) => keyOf(b) - keyOf(a))];   // 앞 판 = ordered 그대로(폰 대화 목록과 한 벌)(./room-list.tsx useRoomOrder · 고정 → 최근 대화순 · 새 글 오면 바로)(형 11-11 23:52 봄 1:1 「그리고 이거 아직 안고쳐짐」 · 앞 말 「윈터 나랑 대화한지 얼마 안됬는데, 저 아래로 가있어」 · 앞 판 = 고정 → 깸 → 봇 마지막 턴 = 턴 기록 없는 윈터 · 빈 단톡이 뒤섞임)
@@ -502,7 +509,7 @@ function FaceStrip({ current }: { current: string; last: string }) {
         {stripOrder.map((r) => {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list), hy = Number((r as { pending_hyung?: number }).pending_hyung) || 0;
           return (
-            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
+            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}${far(r) ? " far" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
               {pins.has(r.id) ? <i className="nm-face-pin" aria-label="고정됨" /> : null}
               {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomIcon r={r} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
               {n !== 0 ? <i className="nm-udot" aria-hidden /> : null}   {/* 안 읽음 = 왼쪽 위 레몬 점 하나(숫자 없음 · 형 13:20 「노란색으로」 · 형 11-07 13:15 「안읽은 글 수는 애초에 안떠두됨」 · 「라임색 접 작게 잇으면됨」 · 「저 불이 좌측에 있으면 됨.」) */}
