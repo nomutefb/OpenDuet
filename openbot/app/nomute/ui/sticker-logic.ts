@@ -15,7 +15,7 @@ export const PACKS: Pack[] = [
   { id: "hyung", name: "형", items: [...MOODS, { id: "cool", label: "선글라스" }] },
   { id: "morning", name: "나팔꽃", items: [...MOODS, { id: "toot", label: "나팔" }] },   // 형 꽃(정원 한쪽 네온그린 · 둥근 안경 · 형 11-12 18:34 「나팔꽃해줄줄알앗더니」 · 18:35 「그럼 너무좋지,,」)
   { id: "on", name: "온", items: MOODS },
-  { id: "yeoul", name: "여울", items: [{ id: "smile", label: "웃음" }, { id: "wink", label: "윙크" }, { id: "pout", label: "볼빵빵" }, { id: "surprise", label: "놀람" }] },   // 여울이 만든 제 얼굴 표정 넷(여울 11-12 18:41 · 18:46 「😊 판에 「여울」 탭으로도 넣어줘」)   // 형 11-12 18:39 「뜸아 온 이도 하나 만들어줘 고마웡~~ㅋ」
+  // 여울 묶음 뺌(형 11-13 06:55 「뜸 여울 관련된 gif는 안뜨게 없애줘」 · 그림 파일은 editor viewer/office/sticker/yeoul 에 남김)
 ];
 export const stickerUrl = (p: Pack, it: Item) => `/office/sticker/${p.id}/${it.id}.gif`;
 export const stickerText = (p: Pack, it: Item) => `[스티커 ${p.name} ${it.label}]`;
