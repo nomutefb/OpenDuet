@@ -16,7 +16,7 @@ import "./tab-bar.css";
 
 // 첫 탭 = 「봄의 정원」(형 11-12 06:23 봄 1:1 「기본적으로 탭형태를 갖춰서. 봄의 정원. 이라고 나오게해줘. 그리고 거기서 +가 나오게 크롬형태를 참고하면 될거같애」
 //   · 「일단 누르면 기본값으로 우측 sns, hotiussue, digest로 빈창이 열리게 하자 좌측은 유지되고(대화족은)」) — 지금 판 그 자체가 첫 탭 · 늘 보임
-export const GARDEN = "봄의 정원", TEAMS = "teams";   // TEAMS = 고정 팀즈 탭 키(탭 목록 밖 · 닫기 · 끌기 없음)
+export const GARDEN = "봄의 정원", TEAMS = "teams", BROWSER = "co";   // BROWSER = 고정 「브라우저」 탭 키(= 옛 같이 보기 탭 · 맥 72 다리 판 · 못 닿으면 끼워 넣기 · 형 11-12 16:49 「봄의정원, 브라우저, 팀즈」 · 봄 17:01 ⓐ · 17:03 「구글 · 인스타 · 클라우드플레어 걸린 곳도 열림」)   // TEAMS = 고정 팀즈 탭 키(탭 목록 밖 · 닫기 · 끌기 없음)
 const TEAMS_LAST = "nm-teams-last";   // 마지막에 본 팀즈 대화(이 기기) = 팀즈 탭 누르면 왼쪽이 그리로
 const teamsLast = () => { try { return localStorage.getItem(TEAMS_LAST) || ""; } catch { return ""; } };
 /** 팀즈 픽토그램(사람 둘 + T 판 · 보라) */
@@ -32,8 +32,8 @@ const paneHost = (): HTMLElement | null => document.querySelector<HTMLElement>("
 
 const load = (): TabState => {   // 방 탭은 안 올림(형 11-09 09:29 회의실 「대화 상대가 저기 나올 필요는 없어. 웹과 관련된 내용만 저기 뜨면 될듯.」) = 옛 판에 남은 방 탭도 뺌
   let s: TabState; try { s = tabsLoad(localStorage.getItem(TABS_KEY)); } catch { s = tabsLoad(null); }
-  const tabs = s.tabs.filter((t) => t.k !== "room");
-  return { tabs, active: s.active === TEAMS || tabs.some((t) => tabKey(t) === s.active) ? s.active : "dash" };
+  const tabs = s.tabs.filter((t) => t.k !== "room" && t.k !== "co");   // co = 이제 고정 「브라우저」 탭(목록 밖)
+  return { tabs, active: s.active === TEAMS || s.active === BROWSER || tabs.some((t) => tabKey(t) === s.active) ? s.active : "dash" };
 };
 const go = (hash: string) => { if (location.hash !== hash) location.hash = hash; };
 
@@ -53,7 +53,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     if (paneHost()) return;   // 웹 · 화면 탭이 오른쪽 칸만 덮는 판(PC 두 칸) = 왼쪽 대화를 옮겨도 오른쪽 탭은 그대로(형 11-12 16:41 봄 1:1 「봄으 ㅣ정원으로 다시 탭 갔다가 오면, 방금 탭으로 와야됨. (항상 메인으로 다시 오더라)」 · 깃) · 몸 전체를 덮는 옛 판만 내림
     setS((x) => (x.active === "dash" ? x : { ...x, active: "dash" }));
   }, [room, pane]);
-  useEffect(() => { const on = () => setS((x) => tabsAdd(x, { k: "co" })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
+  useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
   useEffect(() => { if (isTeams(room)) try { localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
@@ -131,6 +131,15 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
           onClick={() => pick(DASH)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(DASH); } }}>
           <span className="nm-tab-nm">{GARDEN}</span>
         </div>   {/* 첫 탭 = 지금 판(늘 보임 · 닫기 · 끌기 없음) · 누르면 오른쪽이 원래 판(SNS · HOT ISSUE · DIGEST)으로 */}
+        <div role="tab" aria-selected={s.active === BROWSER} tabIndex={0} title="브라우저(맥 72 · 같이 보기)" className={`nm-tab browser${s.active === BROWSER ? " on" : ""}`}
+          onClick={() => setS((x) => ({ ...x, active: BROWSER }))} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setS((x) => ({ ...x, active: BROWSER })); } }}>
+          <svg className="nm-tab-ic browser" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+          <span className="nm-tab-nm">브라우저</span>
+        </div>   {/* 브라우저 = 늘 있는 고정 탭 · 화면 = 같이 보기 다리 판(맥 72) · 못 닿으면 끼워 넣기 웹 칸(CobrowsePane 안) */}
+        <div role="tab" aria-selected={s.active === TEAMS} tabIndex={0} title="팀즈" className={`nm-tab teams${s.active === TEAMS ? " on" : ""}`}
+          onClick={pickTeams} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickTeams(); } }}>
+          <TeamsIcon /><span className="nm-tab-nm">팀즈</span>
+        </div>   {/* 팀즈 = 늘 있는 고정 탭(닫기 · 끌기 없음) */}
         {s.tabs.filter((t) => t.k !== "dash").map((t) => {
           const key = tabKey(t), on = s.active === key, face = faceOf(t);
           return (
@@ -142,15 +151,12 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
             </div>
           );
         })}
-        <div role="tab" aria-selected={s.active === TEAMS} tabIndex={0} title="팀즈" className={`nm-tab teams${s.active === TEAMS ? " on" : ""}`}
-          onClick={pickTeams} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickTeams(); } }}>
-          <TeamsIcon /><span className="nm-tab-nm">팀즈</span>
-        </div>   {/* 팀즈 = 늘 있는 고정 탭(닫기 · 끌기 없음) */}
         <button type="button" className="nm-tab-plus" aria-label="새 탭" title="새 탭" onClick={() => setS((x) => tabsAdd(x, webTabNew()))}>+</button>
-        {room === "all" && pane === "chat" ? <button type="button" className="nm-tab-cobtn" title="맥 브라우저를 같이 보며 얘기하기" onClick={() => setS((x) => tabsAdd(x, { k: "co" }))}>같이 보기</button> : null}   {/* 들머리 = 회의실(봄 13:21 「먼저 회의실」) */}
+        {room === "all" && pane === "chat" ? <button type="button" className="nm-tab-cobtn" title="맥 브라우저를 같이 보며 얘기하기" onClick={() => setS((x) => ({ ...x, active: BROWSER }))}>같이 보기</button> : null}   {/* 들머리 = 회의실(봄 13:21 「먼저 회의실」) */}
       </div>
-      {paneTabs.length || s.active === TEAMS ? createPortal(
+      {paneTabs.length || s.active === TEAMS || s.active === BROWSER ? createPortal(
         <div className={`nm-tab-screen${host ? " in-split" : ""}`} hidden={!paneOn}>
+          {s.active === BROWSER ? <div className="nm-tab-co"><CobrowsePane onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}   {/* 보는 동안만 붙음 = 안 보면 다리 쉼 · 다시 고르면 새 표(맥 72 탭은 그대로 = 마지막 웹 화면) */}
           {s.active === TEAMS ? <div className="nm-tab-teams"><TeamsList current={room} /></div> : null}   {/* 팀즈 목록 = 오른쪽 칸 · 누르면 왼쪽 대화만 바뀜 */}
           {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "co" ? (
             s.active === "co" ? <div key="co" className="nm-tab-co"><CobrowsePane onClose={() => close("co")} /></div> : null   /* 보는 동안만 붙음 = 안 보면 다리 쉼(봄 12:53 「보는 중」 신호) · 다시 고르면 새 표 */
