@@ -20,12 +20,22 @@ test("띠 라임 테 = 턴이 실제로 도는 애만 · 그록 깨움 표시 ·
   assert.match(sh, /const live = \(who\?: string\) => !!who && bots\.some\(\(b\) => b\.who === who && ringOn\(b\)\);/);   // 앞 판 「마지막 턴 10분 안이면 잠이어도」 걷음
 });
 
-test("형과 1시간 넘게 대화 없는 1:1 얼굴 = 채도 50% · 단톡 그림은 그대로", () => {
-  assert.match(sh, /export const HYUNG_TALK_MS = 60 \* 60_000;/);
-  assert.match(sh, /const far = \(r: \{ with\?: string; last_ts\?: number \}\) => !!r\.with && Date\.now\(\) - \(r\.last_ts \|\| 0\) > HYUNG_TALK_MS;/);
-  assert.match(sh, /\$\{far\(r\) \? " far" : ""\}/);
+test("띠 얼굴 채도 = 형과 1:1 대화한 지 오래될수록 · 바닥 25% · 기준 = 서버 last_ts(형 11-12 17:02)", () => {
+  const tbl = sh.match(/export const FACE_SAT: \[number, number\]\[\] = (\[[^;]+\]);/);
+  assert.ok(tbl, "눈금 표");
+  const FACE_SAT = new Function("return " + tbl![1])() as [number, number][];
+  const faceSat = (ago: number) => { for (const [ms, v] of FACE_SAT) if (ago <= ms) return v; return 0.25; };
+  const H = 3600_000;
+  assert.equal(faceSat(5 * 60_000), 1);
+  assert.equal(faceSat(2 * H), 0.75);
+  assert.equal(faceSat(6 * H), 0.5);
+  assert.equal(faceSat(48 * H), 0.25);
+  assert.match(sh, /export const faceSat = \(ago: number\) => \{ for \(const \[ms, v\] of FACE_SAT\) if \(ago <= ms\) return v; return 0\.25; \};/);
+  assert.match(sh, /const sat = \(r: \{ with\?: string; last_ts\?: number \}\) => \(r\.with \? faceSat\(Date\.now\(\) - \(r\.last_ts \|\| 0\)\) : 1\);/);
   const css = readFileSync(new URL("../ui/shell.css", import.meta.url), "utf8");
-  assert.match(css, /\.nm-face\.far > img, \.nm-face\.far > span \{ filter:saturate\(\.5\); \}/);
+  assert.match(css, /\.nm-face > img, \.nm-face > span \{ filter:saturate\(var\(--face-sat, 1\)\); \}/);
+  const rl = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8");
+  assert.ok(!rl.includes("--face-sat"), "폰 목록은 안 입힘");
 });
 
 test("고정 표시 = 압정 그림 한 벌(PC 띠 · 폰 목록 · 봄 11-12 16:17 A)", () => {

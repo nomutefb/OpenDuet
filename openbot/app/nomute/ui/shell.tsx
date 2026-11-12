@@ -12,7 +12,7 @@ import { ChatHead } from "./chat-head";
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
 import { IgFbBand } from "./igfb-band";   // PC 오른쪽 위 = 인스타·페북 팔로워 띠(봄 11-08 · 형 dm 07:30~07:31)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Component, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Component, type CSSProperties, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
 import { AttentionNotifier } from "@/components/bot-profile/attention";
 import { DuetIcon } from "@/components/duet/icons";
 import { useTabSpace } from "@/components/shell/app-shell";
@@ -478,7 +478,9 @@ function RoomsPane() {
 //   클로드 턴은 by clock 이어도 켬 = 형 · 동료 부름도 깨움 러너 알림으로 와서 clock 으로 찍힘(ab24faf 판 = clock 빼니 일하는 셋까지 꺼져 0/24 · 시아 16:5x 실물) · 클로드 「깸」 = 턴이 실제로 도는 동안만
 export type RingBot = { who: string; state: string; last_turn_ts?: number; why?: string; by?: string; mark?: string };
 export const ringOn = (b: RingBot) => b.state === "awake" && b.mark !== "woke" && b.why !== "woke";
-export const HYUNG_TALK_MS = 60 * 60_000;   // 띠 얼굴 「형과 최근 대화」 창(형 11-12 16:23 「최근 1시간」)
+// 띠 얼굴 채도 눈금(형 11-12 17:02 「채도 25%까지 오래 대화 1:1 안나눳을수록 채도 낮아지게」) — 형과 1:1 마지막 대화에서 지난 시간 → 채도 · 1시간 안 100 · 3시간 안 75 · 12시간 안 50 · 그 뒤 25(바닥)
+export const FACE_SAT: [number, number][] = [[60 * 60_000, 1], [3 * 60 * 60_000, 0.75], [12 * 60 * 60_000, 0.5]];
+export const faceSat = (ago: number) => { for (const [ms, v] of FACE_SAT) if (ago <= ms) return v; return 0.25; };
 function FaceStrip({ current }: { current: string; last: string }) {
   const nav = useNavigate();
   const { list, ordered, count, pins, setPins, pinned } = useRoomOrder();
@@ -490,8 +492,9 @@ function FaceStrip({ current }: { current: string; last: string }) {
   // 라이브 = 지금 깸 · 또는 마지막 턴 10분 안(상태바 조약돌과 같은 셈 · 형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어?」) — 턴 사이 「잠」 깜빡임 없게
   const live = (who?: string) => !!who && bots.some((b) => b.who === who && ringOn(b));
   const asleep = (who?: string) => !!who && !live(who);
-  // 형과 1시간 넘게 대화 없는 애 = 얼굴 채도 50%(형 11-12 16:23 봄 1:1 「지금 나랑 최근 1시간에 대화한 애들 아니면」 · 16:38 「75가 아니라 50 이여도될듯」) · 셈 = 그 1:1 방 last_ts(형 낀 글 · 서버 미리보기와 같은 값) · 단톡 그림은 그대로
-  const far = (r: { with?: string; last_ts?: number }) => !!r.with && Date.now() - (r.last_ts || 0) > HYUNG_TALK_MS;
+  // 얼굴 채도 = 형과 1:1 대화한 지 오래될수록 낮아짐 · 바닥 25%(형 11-12 16:23 「최근 1시간에 대화한 애들 아니면」 → 17:02 「채도 25%까지 오래 대화 1:1 안나눳을수록 채도 낮아지게」 · 「모바일과도 동기화되어야돼」)
+  //   기준 = 그 1:1 방 last_ts(서버 값 · 형 낀 글 · 폰에서 방금 대화했으면 PC 띠도 방금) · 단톡 그림은 그대로 · 폰 목록은 안 입힘(형 「모바일에서도 이렇게 보일 필요는없음」)
+  const sat = (r: { with?: string; last_ts?: number }) => (r.with ? faceSat(Date.now() - (r.last_ts || 0)) : 1);
   const stripOrder = ordered;   // 차례 = 폰 대화 목록과 한 벌(./room-list.tsx useRoomOrder · 고정 위 · 나머지 = 마지막 대화 · 형이 마지막으로 읽은 때 중 늦은 것 · 형 11-12 16:17 「하자」 · 앞 판 = 띠만 읽은 때를 셈 · 뎅)
   // 대화 미리 받기 = 띠 차례 위 넷(1.5초 뒤 하나씩) + 얼굴에 손 올림·누름·초점(대화 목록 ./room-list.tsx 와 같은 꼴 · 뎅 16:03 「화면 위 차례랑 「위 네 방」 차례가 다름」)
   const qc = useQueryClient(), pre = (id: string) => { if (id) void qc.prefetchQuery(roomMsgsOptions(qc, id)); };
@@ -508,7 +511,7 @@ function FaceStrip({ current }: { current: string; last: string }) {
         {stripOrder.map((r) => {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list), hy = Number((r as { pending_hyung?: number }).pending_hyung) || 0;
           return (
-            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}${far(r) ? " far" : ""}`} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
+            <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} style={sat(r) < 1 ? ({ "--face-sat": sat(r) } as CSSProperties) : undefined} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
               {pins.has(r.id) ? <PinMark className="nm-face-pin" label="고정됨" /> : null}   {/* 고정 = 얼굴 왼쪽 위 작은 압정(봄 11-12 16:17 A · 형 14:06 「점으로 하지말고 좀 더 다른거로」) · 폰 목록과 한 벌 */}
               {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomIcon r={r} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
               {n !== 0 ? <i className="nm-udot" aria-hidden /> : null}   {/* 안 읽음 = 왼쪽 위 레몬 점 하나(숫자 없음 · 형 13:20 「노란색으로」 · 형 11-07 13:15 「안읽은 글 수는 애초에 안떠두됨」 · 「라임색 접 작게 잇으면됨」 · 「저 불이 좌측에 있으면 됨.」) */}
