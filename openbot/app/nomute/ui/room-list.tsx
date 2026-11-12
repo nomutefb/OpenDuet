@@ -56,10 +56,12 @@ const REPAIR = "repair";
 
 /** 미리보기 한 줄 = 글꼴 기호·부름·파일 경로 뺌(형 사진 10-31 09:12 「**[정치]」 · 「파일: … → 윈터 PM (cl…」) · 원문은 대화창에 그대로 */
 export function previewLine(text: string) {
-  const line = (text || "").split("\n")[0];
-  const file = line.match(/^파일: (.+?) → /);
+  const first = (text || "").split("\n")[0];
+  const file = first.match(/^파일: (.+?) → /);
   if (file) return /\.(png|jpe?g|webp|gif|heic)$/i.test(file[1]) ? "사진" : `파일 · ${file[1]}`;
-  return line.replace(/^(?:[!@]\S+\s+)+/, "").replace(/\*\*|__|`/g, "").trim();
+  // 여러 줄 글 = 줄바꿈을 넘어 한 줄로 이어 붙임 · 칸이 모자라면 목록 칸(truncate)이 「…」로 끝냄(형 11-13 02:48 봄 1:1 「말이 뒤에 긴데 대화목록에는 잘려서 나오는 경우가 있어. 이어지다가 ...로 끝나야랄듯」 · 앞 판 = 첫 줄만 → 「응.」 한 마디로 보임)
+  const line = (text || "").split("\n").map((x) => x.trim()).filter(Boolean).join(" ");
+  return line.replace(/^(?:[!@]\S+\s+)+/, "").replace(/\*\*|__|`/g, "").replace(/\s{2,}/g, " ").trim();
 }
 
 /** 목록 시각 = 오늘은 24시간 「23:05」 · 다른 날은 listWhen 그대로(형 10-31 「11:34 am 목록에선 am빼서 우측 정렬으로 해서 24시간 표시로」) · 대화창 시각은 그대로 */

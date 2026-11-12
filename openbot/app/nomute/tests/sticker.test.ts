@@ -65,3 +65,10 @@ test("받기 단추 움직임 = 에디터 「⬇ 전체」 그대로(세기 1/N 
   assert.match(pg, /<DlSeqButton className="nm-zoom-act" hrefs=\{pics\.map\(\(p\) => dl\(p\.src, p\.name\)\)\}/);   // 사진 보기 우상단 = 묶음 다
   assert.match(oc, /<DlSeqButton className="nm-dl" hrefs=\{\[dlOf\(fileUrl\(p\), n\)\]\}/);   // 말풍선 저장
 });
+
+test("목록 미리보기 = 줄바꿈 넘어 한 줄로(칸 모자라면 「…」 = truncate · 형 11-13 02:48)", async () => {
+  const { previewLine } = await import("../ui/room-list.tsx").catch(() => ({ previewLine: null as unknown as (t: string) => string }));
+  const src = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8");
+  assert.match(src, /split\("\\n"\)\.map\(\(x\) => x\.trim\(\)\)\.filter\(Boolean\)\.join\(" "\)/);
+  if (previewLine) assert.equal(previewLine("응.\n촉은 물어오기만 하고"), "응. 촉은 물어오기만 하고");
+});
