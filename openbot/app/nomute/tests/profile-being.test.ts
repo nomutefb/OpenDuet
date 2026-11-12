@@ -37,7 +37,8 @@ test("프로필 카드 = 일찍 돌려주기(!who) 뒤에 훅 0(React #310 · �
   assert.ok(!/\buse[A-Z]\w*\(/.test(after.replace(/\/\/.*$/gm, "")), "!who 뒤 훅");
 });
 
-test("PC 얼굴 띠 차례 = 폰 대화 목록과 한 벌(형 11-11 23:52 「그리고 이거 아직 안고쳐짐」)", () => {
+test("PC 얼굴 띠 차례 = 폰 목록의 고정 그대로 위 · 나머지 = 마지막 대화 · 형이 마지막으로 읽은 때 중 늦은 것(형 11-11 23:52 → 11-12 10:01 「가장 위에는 내가 가장 최근에 읽은 애가 있어야함」 · 봄 10:30 띠만)", () => {
   const sh = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
-  assert.match(sh, /const stripOrder = ordered;/);
+  assert.match(sh, /const stripOrder = \[\.\.\.ordered\.filter\(\(r\) => pinned\(r\.id\)\)/);   // 바탕 = 폰 목록 차례(ordered) · 고정 먼저
+  assert.match(sh, /Math\.max\(r\.last_ts \|\| 0, seen\[r\.id\]\?\.at \|\| 0\)/);   // 읽은 때(서버 seen.at)도 셈
 });
