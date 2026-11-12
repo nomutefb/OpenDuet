@@ -1,5 +1,6 @@
 /* PC 우하단 뉴스 요약(./news-summary.tsx) — 실시간 뉴스 목록(./news-list.css)과 같은 꼴 · 판 없음 · 블랙 톤 · 라임 = 새 요약 점 · 요약 중 점 */
-.nm-nsum { display:flex; min-height:0; flex-direction:column; color:#e8eae8; border-top:1px solid rgba(255,255,255,.08); }
+.nm-nsum { position:relative; display:flex; min-height:0; flex-direction:column; color:#e8eae8; border-top:1px solid rgba(255,255,255,.08); }
+.nm-nsum > .nm-ned-plus { right:14px; bottom:14px; }   /* PC Digest 오른쪽 아래 「+」(형 11-13 02:24) · 아래 막대 자리 없음 */
 .nm-nsum-h { display:flex; align-items:baseline; gap:8px; padding:12px 14px 6px; }
 .nm-nsum-h b { font-size:var(--fs-label); letter-spacing:.02em; }
 .nm-nsum-h span { color:rgba(232,234,232,.45); font-size:var(--fs-xs); }

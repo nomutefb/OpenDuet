@@ -1,0 +1,18 @@
+/* 「+」 펼침(./plus-fan.tsx) — 앞 자리 = news-editor.css 17~34줄 그대로 옮김 · 폰 뉴스 에디터 자리는 아래 첫 줄 */
+.nm-ned-plus { --sp:cubic-bezier(.34,1.56,.64,1); position:absolute; z-index:6; right:14px; bottom:calc(var(--duet-tab-space,86px) + 8px); width:46px; height:46px; }   /* 자리 · 크기 = 대화방 목록 「+」(.nm-fab) 그대로(형 19:24 「웅 그 여기잇는거랑 같은 헝태라고 생각하면 돼 ㅋㅋ」) */
+.nm-ned-plus-main, .nm-ned-plus-i { background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); -webkit-tap-highlight-color:transparent; user-select:none; cursor:pointer; font:inherit; }
+:root:not(.dark) .nm-ned-plus-main, :root:not(.dark) .nm-ned-plus-i { background:rgba(255,255,255,.66); border-color:rgba(0,0,0,.1); }
+.nm-ned-plus-main { position:absolute; inset:0; z-index:2; display:grid; place-items:center; padding:0; border-radius:50%; color:#CFFF40; box-shadow:0 8px 20px -8px rgba(0,0,0,.6); transition:transform .4s var(--sp); }
+:root:not(.dark) .nm-ned-plus-main { color:#4f7a00; }
+.nm-ned-plus-main:active { transform:scale(.92); }
+.nm-ned-plus-main svg { width:20px; height:20px; transition:transform .45s var(--sp); }
+.nm-ned-plus.on .nm-ned-plus-main svg { transform:rotate(135deg); }
+.nm-ned-plus-i { position:absolute; right:0; bottom:5px; display:inline-flex; align-items:center; height:36px; padding:0 14px; border-radius:999px; color:var(--fg); font-size:var(--fs-label, 13px); font-weight:600; white-space:nowrap; opacity:0; pointer-events:none; transform:translate(0,0) scale(.4); transform-origin:100% 50%; transition:transform .42s var(--sp), opacity .2s ease; }
+.nm-ned-plus-i { background:rgba(26,27,26,.94); }   /* 펼친 알약 = 목록 글 위에 뜨니 바탕 짙게(웹킷 폰 390 = .56 이면 밑 카드 글자가 알약 글자와 겹쳐 읽힘 · 아래 막대 .99 와 같은 까닭) · 「+」 동그라미는 대화방 목록 그대로 */
+:root:not(.dark) .nm-ned-plus-i { background:rgba(255,255,255,.95); }
+.nm-ned-plus-i:active { background:rgba(207,255,64,.22); }
+.nm-ned-plus.on .nm-ned-plus-i { opacity:1; pointer-events:auto; }
+.nm-ned-plus.on .nm-ned-plus-i.up1 { transform:translate(0,-52px) scale(1); transition-delay:.02s; }
+.nm-ned-plus.on .nm-ned-plus-i.up2 { transform:translate(0,-96px) scale(1); transition-delay:.06s; }
+.nm-ned-plus.on .nm-ned-plus-i.up3 { transform:translate(0,-140px) scale(1); transition-delay:.1s; }
+@media (prefers-reduced-motion:reduce) { .nm-ned-plus-main, .nm-ned-plus-main svg, .nm-ned-plus-i { transition:none; } }

@@ -11,7 +11,8 @@ import { SyncAgo } from "../ui/status-line";   // Digest 머리줄 오른쪽 「
 import { TaskPanel } from "../ui/task-panel";
 import { qfSeenOne, qfSeenSet } from "../ui/q-acts";
 import { useState } from "react";
-import { type FArt, kindOf } from "../ui/feed";   // 긴급 · 이슈 테 = 뉴스 에디터와 같은 셈
+import { type FArt, kindOf } from "../ui/feed";
+import { PlusFan } from "../ui/plus-fan";   // 오른쪽 아래 「+」 펼침 = 폰 뉴스 에디터 「+」 한 벌(형 11-13 02:24 봄 1:1 「1) 에디터 요약 + 있잖아 모바일에 잇는거. 그거 인앱 메인 digest 우하단에 + 나오게 해줘」)   // 긴급 · 이슈 테 = 뉴스 에디터와 같은 셈
 
 type QItem = { id?: string; t?: number; title?: string; key?: string; alt1?: string; status?: string; tries?: number };
 const LIVE = new Set(["processing", "retry", "queued", "pending", "failed", "error"]);   // 대기열에 보일 것 = 아직 안 끝난 것 · 실패(「succ」·done 같은 끝난 것 = 뺌 · 실물 17:3x)
@@ -39,6 +40,7 @@ export function NewsSummary() {
           : list.isLoading ? <li className="empty"><i className="nm-skel" style={{ width: "88%" }} /><i className="nm-skel" style={{ width: "72%" }} /><i className="nm-skel" style={{ width: "80%" }} /></li>
           : <li className="empty nm-emptybox"><b>다 된 요약이 아직 없어</b><span>뉴스 줄 「전송」을 누르면 여기 쌓여</span></li>) : null}   {/* 빈 칸 · 불러오는 중 꼴 통일(시아 UI ⑤) */}
       </ol>
+      <PlusFan go={go} />
     </section>
   );
 }
