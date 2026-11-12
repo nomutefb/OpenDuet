@@ -73,7 +73,7 @@ import { RoomBoard } from "./room-board";   // 방 띠(칩·열린 제안) = 입
 import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
-import { bubbleM, pickM } from "./pick-msg";
+import { bubbleM, pickM, relayAs } from "./pick-msg";
 import { Sticker, stickerMark, stickerOf } from "./sticker";
 import { dropStickerTwins } from "./sticker-logic";   // 움짤 스티커 한 줄 = 말풍선 없이 움짤(형 11-12 12:17 · 뜸)
 import { ThumbCard, thumbOf, type ThumbRef } from "./thumb-card";   // 별 「[요약 완료]」 글 바로 위 썸네일 초안 그림(형 11-02 11:44 「별 요약 과 함께 요약 바로 위에 오면 됨 이미지로」)   // 글 속 첫 주소 = 말풍선 아래 미리보기 카드(형 11-02 07:13 「채팅에는 일반적인 채팅 앱처럼 보이면 됨」)
@@ -1040,7 +1040,8 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const unfold = useUnfold(room);   // 방 메뉴 「긴 글 다 펼쳐 보기」(./unfold.ts)
   const pairRoom = room.startsWith("pair-");   // 둘의 방 = 형은 읽기만(쓰기 칸 대신 한 줄 · 머리 = 두 얼굴 · 접기 0 = 둘이 한 말 다 보임)
   const flat = meet || pairRoom || (!!r && !r.with);
-  const items = useMemo(() => (flat ? flatView(all) : hyungView(all, r)), [all, r, flat]);
+  const shownAll = useMemo(() => all.map(relayAs), [all]);   // 러너가 그록 친구 대신 쓴 글 = 그 친구 말풍선(./pick-msg.ts relayAs · 형 11-13 08:05)
+  const items = useMemo(() => (flat ? flatView(shownAll) : hyungView(shownAll, r)), [shownAll, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
   const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot)
   const [cmdNote, setCmdNote] = useState("");

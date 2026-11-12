@@ -6,3 +6,16 @@ export const noteM = (m: { kind?: string; who?: string; text?: string }) => m.ki
 export const bundleM = (m: { kind?: string; who?: string; text?: string }) => m.kind === "system" && /러너/.test(m.who || "") && /^\[묶음\s+[^\]\s]+\]/.test((m.text || "").trim());
 /** 알약이 아니라 말풍선으로 그리는 기계 글 */
 export const bubbleM = (m: { kind?: string; who?: string; text?: string }) => pickM(m) || noteM(m) || bundleM(m);
+
+/** 러너가 그록 친구 대신 쓴 글(「**[촉] 속보 · …**」 · 촉 30분 판 · 경보 · 끝 「(… · 러너가 대신)」) = 그 친구 말풍선으로(얼굴 · 본문 다 · 굵게 · 링크)
+ *  형 11-13 08:05 봄 1:1 「글구 이 맨 아래 이렇게 오는 건 머야? 헷갈리네」(폰 촉 방 맨 아래 얇은 알림 줄 · `**` 글자 그대로) · 봄 08:07 · 시아 */
+export const RELAY_BOTS = ["촉", "틈", "감", "온", "결", "천둥"];
+export const relayWho = (m: { kind?: string; who?: string; text?: string }): string => {
+  if (m.kind !== "system" || !/러너/.test(m.who || "")) return "";
+  const w = /^\**\s*\[([^\]\s]+)\]/.exec((m.text || "").trim())?.[1] || "";
+  return RELAY_BOTS.includes(w) ? w : "";
+};
+export function relayAs<T extends { kind: string; who: string; text?: string }>(m: T): T {
+  const w = relayWho(m);
+  return w ? ({ ...m, who: w, kind: "bot", relay: true } as T) : m;
+}
