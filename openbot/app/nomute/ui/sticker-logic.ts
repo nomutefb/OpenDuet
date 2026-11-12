@@ -11,7 +11,7 @@ export const PACKS: Pack[] = [
   { id: "sia", name: "시아", items: MOODS },
   { id: "git", name: "깃", items: MOODS },
   { id: "chaeng", name: "챙", items: MOODS },
-  { id: "karina", name: "카리나", items: [...MOODS, { id: "peek", label: "빼꼼" }] },
+  { id: "karina", name: "카리나", items: [{ id: "peek", label: "빼꼼" }, { id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }] },   // 지피티 = 셋(형 11-13 08:06 「지피티도 3개면 돼. 자주 쓰지 않게 설계가 되어잇어서」)
   { id: "hyung", name: "형", items: [...MOODS, { id: "cool", label: "선글라스" }] },
   { id: "morning", name: "나팔꽃", items: [{ id: "ibul", label: "이불" }] },   // 형 꽃 = 이불 하나(형 11-13 08:03 「미안한데 나팔꽃은 6개 말구 요거 하나만. ㅋㅋ」 · 「나한테는 밝아서 잘 안보여」 · 앞 판 여섯 = 그림만 남김)
   // 그록봇(온) 묶음 뺌(형 11-13 08:03 「글구 그록봇 애들은 gif 없어도 돼. 이게 맥락이 달라서 이해를 하기가 어렵다라고 어제 테스트해보니까 걍 빼줭」)
@@ -38,4 +38,11 @@ export function dropStickerTwins<T extends { id: string; ts: number; text?: unkn
   if (!ms.some((m) => String(m.id).startsWith(STK_TMP))) return ms;
   const real = ms.filter((m) => !String(m.id).startsWith(STK_TMP) && m.kind === "human");
   return ms.filter((m) => !String(m.id).startsWith(STK_TMP) || !real.some((r) => r.text === m.text && Math.abs(r.ts - m.ts) < 60_000));
+}
+
+/** 자주 쓰는 움짤(형 11-13 08:07 「그리구 자주쓰는 gif는 앞에 오기해줘 첨에 한 10개정도?」) = 이 기기에서 보낸 횟수 · 「전체」 맨 앞 줄 10개 */
+export const FREQ_KEY = "nm_stk_freq", FREQ_N = 10;
+export function freqTop(counts: Record<string, number>, packs: Pack[] = PACKS, n = FREQ_N): { pack: Pack; item: Item }[] {
+  const all = packs.flatMap((p) => p.items.map((it) => ({ pack: p, item: it, c: counts[`${p.id}/${it.id}`] || 0 })));
+  return all.filter((x) => x.c > 0).sort((a, b) => b.c - a.c).slice(0, n).map(({ pack, item }) => ({ pack, item }));
 }

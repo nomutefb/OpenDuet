@@ -7,7 +7,7 @@ import { queryClient } from "@/query-client";
 import { office } from "../data/office";
 import "./sticker.css";
 
-import { PACKS, STK_TMP, dropStickerTwins, stickerOf, stickerText, stickerUrl, type Item, type Pack } from "./sticker-logic";
+import { FREQ_KEY, PACKS, STK_TMP, dropStickerTwins, freqTop, stickerOf, stickerText, stickerUrl, type Item, type Pack } from "./sticker-logic";
 export { PACKS, STK_TMP, stickerMark, stickerOf, stickerText, stickerUrl } from "./sticker-logic";
 
 /** mark = 내가 보낸 움짤 옆 표(형 11-12 12:50 「움짤옆에는 항상 체크표시 라임색으로 보내진건지 확인해주게해」) · "wait" = 보내는 중(흐린 점) · "sent" = 서버에 앉음(라임 ✓) */
@@ -41,6 +41,7 @@ export function StickerButton() {
     const room = decodeURIComponent(roomNow());
     close();
     if (!room) return;
+    try { const c = JSON.parse(localStorage.getItem(FREQ_KEY) || "{}") || {}; c[`${p.id}/${it.id}`] = (c[`${p.id}/${it.id}`] || 0) + 1; localStorage.setItem(FREQ_KEY, JSON.stringify(c)); } catch { /* 이 기기에만 · 못 쓰면 셈 안 함 */ }
     const key = ["nomute", "msgs", room], text = stickerText(p, it), tmp = STK_TMP + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     type M = { id: string; ts: number; [k: string]: unknown };
     type P = { messages: M[]; [k: string]: unknown };
@@ -66,6 +67,11 @@ export function StickerButton() {
               {PACKS.map((p) => <button key={p.id} type="button" role="tab" aria-selected={tab === p.id} className={tab === p.id ? "on" : ""} onClick={() => setTab(p.id)}>{p.name}</button>)}
             </div>
             <div className="nm-stk-grid">
+              {tab === "all" ? freqTop((() => { try { return JSON.parse(localStorage.getItem(FREQ_KEY) || "{}") || {}; } catch { return {}; } })()).map(({ pack: p, item: it }) => (
+                <button key={"f" + p.id + it.id} type="button" className="freq" aria-label={`자주 · ${p.name} ${it.label} 보내기`} title={`자주 · ${p.name} · ${it.label}`} onClick={() => send(p, it)}>
+                  <img src={stickerUrl(p, it)} alt="" loading="lazy" draggable={false} />
+                </button>
+              )) : null}
               {shown.map((p) => p.items.map((it) => (
                 <button key={p.id + it.id} type="button" aria-label={`${p.name} ${it.label} 보내기`} title={`${p.name} · ${it.label}`} onClick={() => send(p, it)}>
                   <img src={stickerUrl(p, it)} alt="" loading="lazy" draggable={false} />
