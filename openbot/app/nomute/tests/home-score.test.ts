@@ -8,7 +8,7 @@ const feed = readFileSync(new URL("../home/news-feed.tsx", import.meta.url), "ut
 
 test("카드판이 Hot Issue 와 같은 사건 점수(/api/trends?f=event)로 점수 · 차례를 단다", () => {
   assert.match(feed, /\/api\/trends\?f=event/);
-  assert.match(feed, /r\.score = h\.s; r\.score_int = true;/);
+  assert.match(feed, /r\.score = shownScore\(h\.s, scale\); r\.score_int = true;/);   // 보이는 숫자 = 편 점수(형 11-12 11:43) · 차례 = h.s
   assert.match(feed, /delete r\.score;/);   // 못 맞춘 카드 = 옛 점수 안 섞음
   assert.match(feed, /rows = byEvent\(rows, /);
 });

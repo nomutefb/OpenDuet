@@ -14,7 +14,7 @@ import { cleanTitle } from "./title-clean";
 import { outletName } from "../ui/news-data";   // 공식 매체명(형 11-06 「yna 는 연합일거고, asiae 이건 아시아경제 같고 …」)   // 제목 다듬기 로직(형 11-05 16:14)
 import { notOutlet, outletOf } from "./outlet-name";   // 언론사 칸 = 진짜 언론사만(빠르 11-09)
 import { rssFirst } from "./rss-first";
-import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent } from "./event-score";   // 줄 점수·차례 = 뉴스 알고리즘 점수(형 11-09 12:3x 「점수대로 제대로 구현좀 되게 해주셈」)
+import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, scaleOf, shownScore } from "./event-score";   // 줄 점수·차례 = 뉴스 알고리즘 점수(형 11-09 12:3x 「점수대로 제대로 구현좀 되게 해주셈」)
 
 type Row = { score_why?: string; score_news?: boolean; picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
 const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
@@ -84,7 +84,7 @@ export function NewsList() {
   const [gotAt, setGotAt] = useState(0), [now, setNow] = useState(() => Date.now());   // 머리줄 「N분 전」 + 1분마다 다시 셈
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(t); }, []);
   useEffect(() => {
-    let events: NewsEvent[] | null = null, eventsAt = 0;
+    let events: NewsEvent[] | null = null, eventsAt = 0, scale: number | null = null;
     let live = true, overlap: unknown = null, cands: Cand[] = [], articles: unknown[] = [], triage: unknown = null, merges: unknown = null, alpha: unknown = null, picks: unknown[] = [], picksAt = 0;
     const load = async () => {
       const md = await modernData();
@@ -129,13 +129,13 @@ export function NewsList() {
       // 뉴스 알고리즘 점수(./event-score.ts · 서버 회차 = 30분 · 2분에 한 번만 받음) — 맞춘 줄 = 그 점수 · 점수 큰 것부터 · 못 맞춘 줄 = 점수 칸 비움 · 끝에 앞 차례 그대로 · 못 받으면 앞 꼴 그대로
       if (!eventsAt || Date.now() - eventsAt > 2 * 60_000) {
         const ev = await firstJson<{ events?: NewsEvent[] }>(["/api/trends?f=event"], (v) => !!v && Array.isArray(v.events) && v.events.length > 0);
-        if (ev) { events = ev.events || []; eventsAt = Date.now(); }
+        if (ev) { events = ev.events || []; eventsAt = Date.now(); scale = scaleOf(ev); }
         if (!live) return;
       }
       const ei = eventIndex(events);
       if (ei.size) {
         const hit = new Map<Row, EventHit>();
-        const tagged = list.map((x) => { if (!x) return x; const h = eventOf(x, ei); const y: Row = h ? { ...x, score: h.s, score_why: h.why, score_news: true } : { ...x, score: null, score_why: "", score_news: false }; if (h) hit.set(y, h); return y; });
+        const tagged = list.map((x) => { if (!x) return x; const h = eventOf(x, ei); const y: Row = h ? { ...x, score: shownScore(h.s, scale), score_why: h.why, score_news: true } : { ...x, score: null, score_why: "", score_news: false }; if (h) hit.set(y, h); return y; });
         list.splice(0, list.length, ...byEvent(tagged, (y) => hit.get(y) || null));
       }
       list.splice(MAX);   // 40줄 = 점수 차례로 세운 뒤 자름(앞 = 섞은 차례로 먼저 잘라 높은 점수 기사가 41번째 밖이면 빠졌음)

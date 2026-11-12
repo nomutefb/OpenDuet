@@ -62,3 +62,8 @@ export function byEvent<T>(rows: T[], hitOf: (r: T) => EventHit | null): T[] {
   const seen = new Set<string>();
   return [...scored.filter(([, h]) => (seen.has(h.id) ? false : (seen.add(h.id), true))).map((x) => x[0]), ...rest];
 }
+
+/** 화면에 보일 점수 = 펴서(형 11-12 10:43 봄 1:1 「너무 낮아서, 분별력이 떨어져버리네」 → 11:43 「웅 그렇게해줘!」 「원래 점수는 없어도돼」) — min(100, s × 100 / scale)
+ *  scale = 서버 ?f=event 답 머리 칸(지난 3일 회차 최고의 상위 5% · 빠르 11-12 12:03 · data/collect/event/scale.json) · 없으면(첫 회차 전 · 못 읽음) 옛 그대로 s · 줄 세우는 차례는 s 그대로(이 값은 보이는 데만) */
+export const shownScore = (s: number, scale?: number | null): number => (scale && scale > 0 && Number.isFinite(s) ? Math.min(100, Math.round((s * 100) / scale)) : s);
+export const scaleOf = (j: unknown): number | null => { const n = Number((j as { scale?: unknown } | null)?.scale); return Number.isFinite(n) && n > 0 ? n : null; };
