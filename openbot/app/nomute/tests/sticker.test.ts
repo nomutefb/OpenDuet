@@ -76,7 +76,7 @@ test("목록 미리보기 = 줄바꿈 넘어 한 줄로(칸 모자라면 「…�
 test("단톡 표지 사진 = 방 꾸미기 「사진」 탭(회의실 · 지정방 · 임시방 다 · 형만 · 형 11-13 05:27)", () => {
   const rl = readFileSync(new URL("../ui/room-look.tsx", import.meta.url), "utf8"), tr = readFileSync(new URL("../ui/temp-room.tsx", import.meta.url), "utf8");
   assert.match(rl, /aria-selected=\{tab === "photo"\} onClick=\{\(\) => setTab\("photo"\)\}>사진<\/button>/);
-  assert.match(rl, /<RoomArtRow id=\{r\.id\} \/>/);
+  assert.match(rl, /<RoomArtRow id=\{r\.id\} look=\{r\.look\} \/>/);   // look = 사진 고르면 아이콘 비움(뎅 11-13 06:54 ⑤)
   assert.match(tr, /export function RoomArtRow\(/);
 });
 

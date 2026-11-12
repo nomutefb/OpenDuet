@@ -43,7 +43,7 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
           <button type="button" role="tab" aria-selected={tab === "photo"} onClick={() => setTab("photo")}>사진</button>
         </div>
         {tab === "photo" ? (
-          <div className="nrl-sec"><RoomArtRow id={r.id} /><small className="nrl-lbl">표지 사진 = 목록(폰 · PC)에 바로 · 고르면 바로 올라가(아래 「저장」과 따로)</small></div>
+          <div className="nrl-sec"><RoomArtRow id={r.id} look={r.look} /></div>   {/* 설명글 뺌(형 11-13 06:54 「사진 설정 시 설명글은 필요없움」) */}
         ) : tab === "icon" ? (
           <div className="nrl-sec">
             <input className="nrl-q" value={q} placeholder="아이콘 찾기(영어 이름 · 예: trend, rocket)" onChange={(e) => setQ(e.target.value)} />

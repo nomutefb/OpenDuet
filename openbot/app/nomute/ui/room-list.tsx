@@ -5,6 +5,7 @@
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 알림 켬/끔 · (단톡) 알림 그림 · 숨기기/보이기
 import { PinMark } from "./pin-mark";
 import { useRoomArtSrc } from "./room-art";
+import { useRoomPhoto } from "./room-photo";   // 목록 방 사진 누름 = 바로 바꾸기(형 11-13 06:54)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -109,6 +110,16 @@ export function RoomIcon({ r, size, color }: { r: Room; size: number; color?: st
     </span>
   );
 }
+/** 방 목록 방 사진 누르기 = 방에 안 들어가고 바로 사진 바꾸기(형 11-13 06:54 「이거 방 목록이서프로필 사진쪽 클릭하면 바로 방 프로필 사진 변경으로 이동ㄷ어야하고」 · 단톡방만 · 서버가 형 문만 받음) */
+function RoomPhotoTap({ r, children }: { r: Room; children: React.ReactNode }) {
+  const photo = useRoomPhoto(r);
+  const go = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); photo.pick(); };
+  return (
+    <span role="button" tabIndex={0} aria-label={`${r.name} 방 사진 바꾸기`} className="nm-rphoto" onClick={go} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") go(e); }}>
+      {children}{photo.sheet}
+    </span>
+  );
+}
 export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
   const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
   const teamsOn = useTeamsMode() && !slim;   // 「사무실 | 팀즈」 바꿈(PC 왼쪽 좁은 칸 = 사무실 그대로)
@@ -181,7 +192,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
           {r.with ? <span className="nm-rorb" style={{ margin: -Math.round(size / 8), marginRight: 4 - Math.round(size / 8) }}>   {/* 이름 4px 오른쪽(형 11-01 「이름을 조금만 우측으로 … 테두리가 두터워지면 좁아보여서」) */}
             <MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span>
-            : !r.with ? <RoomIcon r={r} size={size} color={rc} />   /* 단톡 = 방 아이콘 하나(형 11-05 13:19 「이거 2개씩 보이게하지말구」 · 「구분이 안되넹 다른거랑」 · 「좀 튀어야됨..」 · 「항상위에잇을거니까;」) · 얼굴 둘 겹침(pair) 뺌 */
+            : !r.with ? <RoomPhotoTap r={r}><RoomIcon r={r} size={size} color={rc} /></RoomPhotoTap>   /* 단톡 = 방 아이콘 하나(형 11-05 13:19 「이거 2개씩 보이게하지말구」 · 「구분이 안되넹 다른거랑」 · 「좀 튀어야됨..」 · 「항상위에잇을거니까;」) · 얼굴 둘 겹침(pair) 뺌 */
             : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">

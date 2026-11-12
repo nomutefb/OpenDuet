@@ -36,4 +36,5 @@ async function send(id: string, method: "POST" | "DELETE", body?: Blob) {
   bump(id);
 }
 export const uploadRoomArt = async (id: string, file: File) => send(id, "POST", await squareWebp(file));
+export const uploadRoomArtBlob = (id: string, blob: Blob) => send(id, "POST", blob);   // 자르기 판(./room-photo.tsx)이 이미 256 정사각으로 만든 것
 export const resetRoomArt = (id: string) => send(id, "DELETE");

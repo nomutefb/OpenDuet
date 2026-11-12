@@ -1,0 +1,22 @@
+/* 방 사진 자르기(./room-photo.tsx · 형 11-13 06:54 첨부3 = 원형 틀 + 3×3 격자 · 오른쪽 위 「완료」) */
+.nrp-veil { position:fixed; inset:0; z-index:90; display:grid; place-items:center; background:rgba(0,0,0,.72); }
+.nrp { display:flex; flex-direction:column; gap:14px; width:min(360px, calc(100vw - 32px)); padding:12px 14px 18px; border-radius:20px; background:#141514; color:#e8eae8; }
+.nrp-h { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; }
+.nrp-h b { font-size:15px; }
+.nrp-h button { justify-self:start; padding:6px 4px; border:0; background:none; color:rgba(232,234,232,.75); font:inherit; font-size:15px; cursor:pointer; }
+.nrp-h button.ok { justify-self:end; color:#CFFF40; font-weight:700; }
+.nrp-h button:disabled { opacity:.45; cursor:default; }
+.nrp-frame { position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:4px; background:#000; touch-action:none; cursor:grab; user-select:none; }
+.nrp-frame:active { cursor:grabbing; }
+.nrp-frame img { position:absolute; max-width:none; pointer-events:none; }
+.nrp-mask { position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 50% 50%, transparent 0 calc(50% - 1px), rgba(255,255,255,.85) calc(50% - 1px) 50%, rgba(0,0,0,.55) 50%); }
+.nrp-grid { position:absolute; inset:0; pointer-events:none; }
+.nrp-grid span { position:absolute; background:rgba(255,255,255,.38); }
+.nrp-grid span:nth-child(1) { left:33.333%; top:0; bottom:0; width:1px; } .nrp-grid span:nth-child(2) { left:66.666%; top:0; bottom:0; width:1px; }
+.nrp-grid span:nth-child(3) { top:33.333%; left:0; right:0; height:1px; } .nrp-grid span:nth-child(4) { top:66.666%; left:0; right:0; height:1px; }
+.nrp-zoom { width:100%; accent-color:#CFFF40; }
+.nrp-bad, .nrp-why { margin:0; font-size:13px; color:#ff8a8a; text-align:center; }
+.nrp-bad { position:absolute; inset:0; display:grid; place-items:center; padding:20px; }
+/* 방 목록 방 사진 누르기 = 바로 바꾸기(형 06:54 ①) */
+.nm-rphoto { display:inline-flex; border-radius:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-rphoto:active { transform:scale(.94); }
