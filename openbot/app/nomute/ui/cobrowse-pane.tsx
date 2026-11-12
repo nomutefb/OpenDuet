@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { office } from "../data/office";
 import { CO_ALLOW, cobrowseSrc, lnaState } from "./cobrowse";
 import { WebPane } from "./web-pane";
+import { MeetDock, MeetPick, useMeet, useSyncAgo } from "./meet";   // 화상회의 · 동기화 N초 전 · 「○○가 제어하고 있습니다」(형 11-13 06:4x · 봄 옮김)
 
 export function CobrowsePane({ onClose }: { onClose: () => void }) {
   const [src, setSrc] = useState(""), [state, setState] = useState<"wait" | "ok" | "off">("wait"), [nonce, setNonce] = useState(0);
+  const [meet, setMeet] = useMeet(), [picking, setPicking] = useState(false), sync = useSyncAgo();
   useEffect(() => {
     let live = true;
     setState("wait"); setSrc("");
@@ -24,10 +26,17 @@ export function CobrowsePane({ onClose }: { onClose: () => void }) {
       <div className="nm-co-bar">
         <span className="nm-co-dot" aria-hidden />
         <b>같이 보기</b><span className="nm-co-sub">맥 72 · 화면이 안 뜨면 브라우저 「로컬 네트워크」 허용 · ↻</span>
+        <span className="nm-co-sync" aria-live="polite">{sync.ago === null ? "동기화 아직" : `동기화 ${sync.ago}초 전`}</span>
+        {!meet ? <button type="button" className="nm-meet-btn" onClick={() => setPicking((x) => !x)}>화상회의</button> : null}
         <button type="button" className="nm-web-btn" aria-label="다시 잇기" title="다시 잇기" onClick={() => setNonce((n) => n + 1)}>↻</button>
         <button type="button" className="nm-web-btn" aria-label="닫기" title="닫기" onClick={onClose}>×</button>
       </div>
-      {state === "ok" ? <iframe key={src} title="같이 보기" src={src} className="nm-co-frame" allow={CO_ALLOW} referrerPolicy="no-referrer" /> : <p className="nm-web-note">잇는 중…</p>}
+      <div className="nm-co-stage">
+        {state === "ok" ? <iframe key={src} title="같이 보기" src={src} className="nm-co-frame" allow={CO_ALLOW} referrerPolicy="no-referrer" /> : <p className="nm-web-note">잇는 중…</p>}
+        {sync.control?.who ? <span className="nm-co-ctrl" role="status">{sync.control.who}{/[가-힣]$/.test(sync.control.who) && (sync.control.who.charCodeAt(sync.control.who.length - 1) - 0xac00) % 28 === 0 ? "가" : "이"} 제어하고 있습니다</span> : null}
+        {picking && !meet ? <MeetPick onStart={(m) => { setMeet(m); setPicking(false); }} onClose={() => setPicking(false)} /> : null}
+      </div>
+      {meet ? <MeetDock meet={meet} onEnd={() => setMeet(null)} /> : null}
     </section>
   );
 }
