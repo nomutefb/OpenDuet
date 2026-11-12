@@ -26,3 +26,11 @@
 .nm-meet-left { flex:none; font-size:11px; color:rgba(232,234,232,.5); white-space:nowrap; }
 .nm-meet-chat { flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; border-top:1px solid rgba(255,255,255,.06); background:#000; }   /* 대화 = 보통 대화창 그대로 · 바탕 검정(형 「대화창은 그냥 검정화면위에」) */
 .nm-co-sync.stale { opacity:.45; }
+.nm-meet-end.on { color:#FF8A8D !important; border-color:rgba(255,90,95,.5) !important; }
+.nm-meet-endcnt { color:#FF8A8D; font-weight:700; }
+.nm-meetlog { display:flex; flex-direction:column; gap:8px; padding:12px; }
+.nm-meetlog-empty { color:var(--mut, rgba(232,234,232,.5)); font-size:13px; }
+.nm-meetlog-row > button { all:unset; display:flex; flex-direction:column; gap:2px; width:100%; box-sizing:border-box; padding:10px 12px; border-radius:12px; border:1px solid var(--border, rgba(255,255,255,.1)); cursor:pointer; }
+.nm-meetlog-row b { font-size:13px; } .nm-meetlog-row small { font-size:12px; color:var(--mut, rgba(232,234,232,.55)); }
+.nm-meetlog-body { padding:8px 12px; display:flex; flex-direction:column; gap:4px; font-size:13px; max-height:50vh; overflow:auto; }
+.nm-meetlog-body p { margin:0; white-space:pre-wrap; } .nm-meetlog-body p b { color:#CFFF40; margin-right:6px; }

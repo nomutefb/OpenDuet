@@ -6,6 +6,7 @@
 //     결의 방·토큰·피드백 = 앱 안(./gyeol-room.tsx · tokens.tsx · feedback.tsx · 전엔 에디터 원본 화면 viewer/gyeol-room.html · tokens.html · feedback.html 을 품음) · 설정 = 원본 settings 화면(보조 03 YETA 설정)
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
+import { MeetLogList } from "./meet";   // 서랍 「화상회의」(형 11-13)
 import { PinMark } from "./pin-mark";
 import { TodoBar } from "./todo-bar";
 import { ChatHead } from "./chat-head";
@@ -94,14 +95,15 @@ import "./theme-garden.css";   // 꾸밈 「정원」(html[data-theme=garden]:no
 import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색(시아 11-08 · 다크·정원 손 0)
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edys" | "edconv" | "edsong" | "edk" | "edtr" | "edvd" | "edvid" | "edtrack" | "ednb" | "edsb" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit";
+export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edys" | "edconv" | "edsong" | "edk" | "edtr" | "edvd" | "edvid" | "edtrack" | "ednb" | "edsb" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
   { id: "nedit", label: "뉴스 에디터", icon: "page", to: "/newsed" },   // 네비 4번 = 뉴스 에디터(형 11-09 08:50 「뉴스 에디터가 4번 메뉴에 보이게 해주고 / 요약된 내용이 여기에 일제히 나오게 해줘」 · ./news-editor.tsx · 서랍 목록엔 안 넣음)
   { id: "status", label: "작동", icon: "activity", to: "/status" },   // 네비 4번 = 작동 표(형 11-05 · ./status-board.tsx · 서랍 목록엔 안 넣음)
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 서랍 「일」 칸(형 11-05 「스케줄러는 메뉴5번 서랍 안으로 넣을게」 · 옛 네비 4번)
-  { id: "runner", label: "러너", icon: "activity", to: "/runner" },   // 서랍 「일」 칸 = 작동 표(러너 · 형 11-09 08:50 · 옛 RunnerScreen 은 뺌)
+  { id: "runner", label: "러너", icon: "activity", to: "/runner" },
+  { id: "meetlog", label: "화상회의", icon: "chat", to: "/meetlog", desc: "끝난 회의 기록" },   // 화상회의 기록 서랍(형 11-13 06:5x 「대화가 끝나면 그 대화는 기록되어서 한 서랍에 들어가면돼」 · ./meet.tsx · 서버 meetlog)   // 서랍 「일」 칸 = 작동 표(러너 · 형 11-09 08:50 · 옛 RunnerScreen 은 뺌)
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x) · 앱 안(./scrap.tsx · 전엔 /?tab=scrap 품음)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 · 링크 판별·초안 보존" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
   { id: "thumbhist", label: "썸네일 이력", icon: "layout", to: "/thumbhist", desc: "만든 썸네일 보기·저장" },   // 에디터 썸네일 「이전 제작」(thumb-hist.json · ./thumb-hist.tsx)
@@ -289,6 +291,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
                   : M.id === "edtool" ? <Suspense fallback={null}><ThumbMaker onBack={closeModal} /></Suspense>   // 썸네일 생성기 = 원본 판·엔진·배경 그대로(./thumb-maker · 머리 「✧ 에디터 · 카드 제작」 = 옛 index 도구 창 꼴)
                   : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
+                  : M.id === "meetlog" ? <div className="nm-scroll"><MeetLogList /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><StatusBoard /></div>   /* 서랍 「러너」 = 작동 표(형 11-09 08:50 「러너는 5번 서랍 안으로 … 기존거는 없애면 됨 끌고오는거 아님」 · 옛 RunnerScreen 칸 뺌 · 네비 4번 「작동」 은 33) 뉴스 에디터 판에서 바꿈 · 봄 배분 32) */
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
                   : M.id === "status" ? <div className="nm-scroll"><StatusBoard /></div>

@@ -79,3 +79,12 @@ test("단톡 표지 사진 = 방 꾸미기 「사진」 탭(회의실 · 지정�
   assert.match(rl, /<RoomArtRow id=\{r\.id\} \/>/);
   assert.match(tr, /export function RoomArtRow\(/);
 });
+
+test("화상회의 = 수락 · 거절 표기 · 열림(다 답함 · 60초 · 오프라인 안 기다림 · 챙 셈 밖) · 서랍 「화상회의」(형 11-13 06:4x~06:5x · 명세)", async () => {
+  const src = readFileSync(new URL("../ui/meet.tsx", import.meta.url), "utf8"), cp = readFileSync(new URL("../ui/cobrowse-pane.tsx", import.meta.url), "utf8"), sh = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
+  assert.match(src, /export const SCRIBE = "챙";/); assert.match(src, /export const MEET_WAIT = 60_000;/);
+  assert.match(src, /\/\^\\\[수락\\\]\//); assert.match(src, /\/\^\\\[거절\\\]\//);
+  assert.match(cp, /<MeetDock meet=\{meet\}/); assert.match(cp, />화상회의<\/button>/);
+  assert.match(sh, /\{ id: "meetlog", label: "화상회의"/);
+  assert.match(src, /office\(`meetlog\/\$\{encodeURIComponent\(meet\.id\)\}`, \{ method: "POST"/);
+});
