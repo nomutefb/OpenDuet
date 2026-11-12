@@ -95,6 +95,7 @@ function useRowSync(panel: { current: HTMLDivElement | null }) {
 
 export function RunnerGauges() {
   const st = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: Cat[]; at?: number }>("status"), refetchInterval: 60_000, staleTime: 30_000 });
+  const tail = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<{ runners?: { tailnet?: { ip?: string; online?: boolean | null }[] } }>("schedule"), staleTime: 30_000, refetchInterval: 120_000 }).data?.runners?.tailnet;   // 테일 켜짐(번개 11-12 17:00 · 설정 화면 useSched 와 같은 캐시)
   const rq = useRunner();
   const now = useNow();
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
@@ -141,7 +142,7 @@ export function RunnerGauges() {
           return (
             <Fragment key={h.k}>
             <section className="nm-rgx-host" aria-label={`${h.label} 상태`}>   {/* 위에서부터 가운데로 = 이름 · G 온도 · (틈) · 게이지 · 러너 불(형 17:3x 「각각 게이지 바로 수직 위에다가 하드웨어 이름」 · 「블릿은 없어도」 · 「그래픽카드 온도도 그대로 수직위로」 · 「게이지랑딱붙으면 안이쁘니까」) */}
-              <b className="nm-rg-name nm-rgx-name" title={(TAIL_OF_GAUGE[h.label] || []).map(tailTitle).join("\n") || undefined}>{h.label}</b>
+              <b className="nm-rg-name nm-rgx-name" title={(TAIL_OF_GAUGE[h.label] || []).map((d) => tailTitle(d, tail)).join("\n") || undefined}>{h.label}</b>
               <span className="nm-rgx-g">{none && a?.stale ? "보고 끊김" : "\u00a0"}</span>   {/* G 온도는 게이지 안 위 글 둘째 줄로(TickGauge top2 · 형 11-08 09:03 글자 크기 = CPU 온도와 같게 · 「WIN 이랑 간격을 좀 더 벌려줘」 = 이 줄은 빈 틈) */}
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used={!live && !none && at ? ago(now - at) : ""} top={m.cpu_temp != null ? `C ${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} top2={m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : undefined} top2Ink={tInk(m.gpu_temp)} off={none} wait={none && (st.isLoading || rq.isLoading)} dyText={9} textScale={1.25} spread={3} />   {/* 안 글자 4(≈3.5px) 아래(형 11-08 11:27 밥상 「게이지 안에 글자도 조금 더 내려오고(그럼 글자는 두번내려오는 느낌이겟지)」 · 게이지 자체도 4px 아래 = runner-gauges.css) */}
               {temp ? <span className="sr-only">{temp}</span> : null}

@@ -31,4 +31,7 @@ export const TAIL_EXTRA: { group: string; devs: TailDev[] }[] = [
     { name: "bungae-box-lightning", short: "번개 상자", ip: "100.105.202.34", what: "그록 번개 상자" },
   ] },
 ];
-export const tailTitle = (d: TailDev) => [d.name, d.ip || "IP 없음(꺼짐)", d.ssh ? `ssh ${d.ssh}@${d.ip}` : "", d.what].filter(Boolean).join(" · ");
+// 켜짐 = 윈A 몸 보고(5분마다 tailscale status --json)가 서버 schedule 답 runners.tailnet[] 에 실음(번개 11-12 17:00 · {host, ip, online, last_seen, dns, os} · 20분 넘게 묵으면 online null = 모름) · IP 로 맞춤
+export type TailLive = { ip?: string; online?: boolean | null }[] | undefined;
+export const onOf = (d: TailDev, live: TailLive) => { const t = d.ip ? (live || []).find((x) => x.ip === d.ip) : undefined; return t ? t.online ?? null : null; };
+export const tailTitle = (d: TailDev, live?: TailLive) => { const on = onOf(d, live); return [on === true ? "● 켜짐" : on === false ? "○ 꺼짐" : "", d.name, d.ip || "IP 없음(꺼짐)", d.ssh ? `ssh ${d.ssh}@${d.ip}` : "", d.what].filter(Boolean).join(" · "); };

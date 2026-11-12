@@ -139,7 +139,9 @@ test("무지개 단추 판 = 그 자리에서 · 「말풍선」 · R G B 작게
 
 test("테일스케일 연결표 = 게이지 기기는 손 올림만 · 게이지 밖(회사 · 그록)만 한 줄(형 11-12)", () => {
   const rg = rd("../ui/runner-gauges.tsx"), tt = rd("../ui/tailnet-table.ts");
-  assert.match(rg, /title=\{\(TAIL_OF_GAUGE\[h\.label\] \|\| \[\]\)\.map\(tailTitle\)/);
+  assert.match(rg, /title=\{\(TAIL_OF_GAUGE\[h\.label\] \|\| \[\]\)\.map\(\(d\) => tailTitle\(d, tail\)\)/);   // 켜짐 = 서버 runners.tailnet(번개 11-12 17:00)
+  assert.match(rg, /queryKey: \["nomute", "schedule"\]/);
+  assert.match(tt, /on === true \? "● 켜짐" : on === false \? "○ 꺼짐" : ""/);
   assert.ok(!/className="nm-rgx-tail"/.test(rg), "러너 메인엔 테일넷 줄 0(형 11-12 16:20 「러너 메인에 테일스케일이 나올필요는없음」)");
   assert.match(tt, /100\.103\.55\.120/); assert.match(tt, /100\.93\.212\.35/);
   assert.ok(!/group: "(WIN|MAC|Lx)/.test(tt), "게이지 기기는 줄로 또 안 넣음");
