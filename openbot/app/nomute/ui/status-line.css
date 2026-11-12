@@ -24,6 +24,9 @@ html.nm-has-syncver .nm-ver { display: none !important; }
 /* 점 불(형 11-09 12:3x 「동그라미 저거 촌스러우니까 그냥 점으로 디밍보이는거로」 · 시아) — 6px 점 · 제 빛 번짐 · 천천히 밝았다 흐려짐(불마다 박자 조금씩 어긋나게) */
 .nm-sl-leds { display: inline-flex; align-items: center; gap: 3px; }
 .nm-sl-leds .nm-sl-led { margin-right: 4px; }
+.nm-sl-leds b { color: #FFFFFF; }   /* 러너 숫자 = 흰색 · 문제(빨강) 칸만 라임(형 11-12 17:49 「저거 흰색이여도 될거같아. 빨간색만 라임이면 될듯.」 · 점 색은 그대로) */
+.nm-sl-leds b.bad { color: #CFFF40; }
+:root:not(.dark) .nm-sl-leds b:not(.bad) { color: inherit; }   /* 밝은 판 = 흰 글자 안 보임 → 글자색 그대로 */
 .nm-sl-leds b + .nm-sl-led { margin-left: 5px; }
 .nm-sl-led { display: inline-block; width: 6px; height: 6px; border-radius: 50%; vertical-align: middle; font-style: normal; flex: none;
   background: var(--led); box-shadow: 0 0 4px 0 var(--led-glow), 0 0 0 1px rgba(0,0,0,.25); animation: nmSlLed 3.2s ease-in-out infinite; }

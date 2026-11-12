@@ -38,3 +38,10 @@ test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · �
   assert.equal(stickerUrl(k, k.items[5]), "/office/sticker/karina/peek.gif");
   assert.equal(stickerUrl(h, h.items[5]), "/office/sticker/hyung/cool.gif");
 });
+
+test("우상단 러너 숫자 = 흰색 · 문제(빨강) 칸만 라임(형 11-12 17:49)", () => {
+  const fs = require("node:fs"), path = require("node:path");
+  const css = fs.readFileSync(path.join(__dirname, "../ui/status-line.css"), "utf8"), tsx = fs.readFileSync(path.join(__dirname, "../ui/status-line.tsx"), "utf8");
+  assert.match(css, /\.nm-sl-leds b \{ color: #FFFFFF; \}/); assert.match(css, /\.nm-sl-leds b\.bad \{ color: #CFFF40; \}/);
+  assert.match(tsx, /<N v=\{l\.bad\} t="bad" \/>/);
+});
