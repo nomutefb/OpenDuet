@@ -34,6 +34,7 @@ test("묶음 글 = 줄 이름으로 갈라 읽음 · 캡션 = 「주소:」 앞�
 test("대화창 = 표지 글만 묶음 카드 · 형만 누름 길", () => {
   const oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8"), bc = readFileSync(new URL("../ui/bundle-card.tsx", import.meta.url), "utf8");
   assert.match(oc, /bundleOf\(m\) \? <BundleCard /);
+  assert.match(oc, /\{pickM\(m\) \|\| bundleOf\(m\) \? null : <LinkCard m=\{m\} \/>\}/);
   assert.match(bc, /office(<[^>]*>)?\("hyung-pick", \{ method: "POST"/);
   assert.match(bc, /queryKey: \["nomute", "hyung-pick"\]/);
 });

@@ -937,7 +937,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
               <BoxCard m={m} />
               <Reactions m={m} c={c} mine={false} />
             </div>}
-            {pickM(m) ? null : <LinkCard m={m} />}
+            {pickM(m) || bundleOf(m) ? null : <LinkCard m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) */}
             {time}
           </div>
         </div>
