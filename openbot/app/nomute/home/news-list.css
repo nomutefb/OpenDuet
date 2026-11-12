@@ -73,3 +73,5 @@
 :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).ok { color:#111; background:#e8eae8; border-color:transparent; min-width:2.2em; text-align:center; }
 :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).bad { color:#ff6b5e; border-color:rgba(255,107,94,.6); }
 @media (prefers-reduced-motion:reduce) { :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run::before { animation:none; transform:scaleX(.9); } }
+/* 긴급 줄 = 점수 칸에 「긴급 07:46」(봄 11-13 05:31 · 수집함 긴급 · 서버 urg) — 빨강 알약 · 점수보다 넓어 줄 맞춤은 오른쪽 */
+.nm-nlist-ol .sc.urg { min-width:auto; padding:1px 6px; border-radius:999px; background:rgba(255,90,82,.16); color:#ff6b62; white-space:nowrap; }

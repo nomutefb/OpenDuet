@@ -2,8 +2,8 @@
 //   형 11-09 12:3x 빠르 창 「핫 이슈에 지금 점수대로 속보가 안올라오는데, 점수대로 제대로 구현좀 되게 해주셈」 · 「점수가 , 그 뉴스 알고리즘이랑 연관이 되어잇는지도 좀 봐주고. 점수가 근본이없네 순위가」
 //   앞 판: 줄 점수 = 커뮤 묶음(overlap) 점수만 · RSS 기사 줄 = 점수 0칸 · 차례 = 매체 수 순(rssFirst) → 화면 숫자와 차례가 따로 놂 · 뉴스 알고리즘 점수는 아예 안 읽음
 //   이 판: 줄 주소(기사 · 묶음 기사 · 발행 주소)를 사건 묶음 열쇠(rss:<주소> · naver:<oid>:<aid> · natenews:<id>)로 맞춰 그 점수를 달고 · 점수 큰 것부터 · 못 맞춘 줄 = 끝(앞 차례 그대로) · 빠지는 줄 0
-export type NewsEvent = { title?: string; s: number; why?: string; at?: string; brk?: boolean; keys: string[]; m?: string };   // m = 같은 사건 열쇠(event_merge merge_id · 서버 ?f=event)
-export type EventHit = { id: string; s: number; why: string; brk: boolean };   // id = 같은 사건 열쇠(merge_id · 없으면 묶음 차례) — 쪼개진 묶음도 같은 사건이면 같은 id(평의회 11-09 「젠슨황 두 묶음」)
+export type NewsEvent = { title?: string; s: number; why?: string; at?: string; brk?: boolean; keys: string[]; m?: string; urg?: { at?: string; g?: number; title?: string; url?: string } };   // urg = 수집함 긴급(빠르 11-13 05:40 · 긴급인 줄만 · 서버가 맨 위로)   // m = 같은 사건 열쇠(event_merge merge_id · 서버 ?f=event)
+export type EventHit = { id: string; s: number; why: string; brk: boolean; urg?: string };   // urg = 긴급 처음 본 때 「HH:MM」(화면 표지 「긴급 07:46」 · 봄 11-13 05:31)   // id = 같은 사건 열쇠(merge_id · 없으면 묶음 차례) — 쪼개진 묶음도 같은 사건이면 같은 id(평의회 11-09 「젠슨황 두 묶음」)
 
 // 주소 꼴 맞추기 = 앞(https://www.) · 끝 / · # · 추적 꼬리(utm_* · fbclid 등)만 뗌 — 쿼리 통째로 떼면 「articleView.html?idxno=…」 꼴 기사들이 다 같은 주소로 뭉침
 //   (형 11-09 14:0x 화면 = 다른 기사 9줄이 다 84점 · 빠르 실물: sisajournal articleView.html 하나로 17줄이 젠슨황 묶음에 붙음)
@@ -35,10 +35,11 @@ export function eventIndex(events: NewsEvent[] | null | undefined): Map<string, 
   const m = new Map<string, EventHit>();
   (Array.isArray(events) ? events : []).forEach((e, id) => {
     if (!e || !Number.isFinite(e.s) || !Array.isArray(e.keys)) return;
-    const hit = { id: e.m ? "m:" + e.m : "#" + id, s: e.s, why: String(e.why || ""), brk: !!e.brk };
+    const ua = e.urg ? new Date(String(e.urg.at || "")) : null, urg = ua && !Number.isNaN(ua.getTime()) ? ua.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul" }) : e.urg ? "?" : "";
+    const hit: EventHit = { id: e.m ? "m:" + e.m : "#" + id, s: e.s, why: String(e.why || ""), brk: !!e.brk, ...(urg ? { urg } : {}) };
     for (const k0 of e.keys) {
       const k = typeof k0 === "string" && k0.startsWith("rss:") ? "rss:" + bare(k0.slice(4)) : String(k0 || "");
-      const cur = m.get(k); if (!cur || cur.s < hit.s) m.set(k, hit);
+      const cur = m.get(k); if (!cur || (!!hit.urg > !!cur.urg) || (!!hit.urg === !!cur.urg && cur.s < hit.s)) m.set(k, hit);   // 긴급 사건이 먼저
     }
   });
   return m;
@@ -58,7 +59,7 @@ export function eventOf(row: RowLike, idx: Map<string, EventHit>): EventHit | nu
 export function byEvent<T>(rows: T[], hitOf: (r: T) => EventHit | null): T[] {
   const scored: [T, EventHit, number][] = [], rest: T[] = [];
   rows.forEach((r, i) => { const h = hitOf(r); if (h) scored.push([r, h, i]); else rest.push(r); });
-  scored.sort((a, b) => b[1].s - a[1].s || a[2] - b[2]);
+  scored.sort((a, b) => Number(!!b[1].urg) - Number(!!a[1].urg) || b[1].s - a[1].s || a[2] - b[2]);   // 긴급 먼저(서버 차례와 같음 · 빠르 11-13) → 점수
   const seen = new Set<string>();
   return [...scored.filter(([, h]) => (seen.has(h.id) ? false : (seen.add(h.id), true))).map((x) => x[0]), ...rest];
 }

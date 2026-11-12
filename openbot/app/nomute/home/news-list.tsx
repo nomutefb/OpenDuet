@@ -16,7 +16,7 @@ import { notOutlet, outletOf } from "./outlet-name";   // 언론사 칸 = 진짜
 import { rssFirst } from "./rss-first";
 import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, shownScore } from "./event-score";   // 줄 점수·차례 = 뉴스 알고리즘 점수(형 11-09 12:3x 「점수대로 제대로 구현좀 되게 해주셈」)
 
-type Row = { score_why?: string; score_news?: boolean; picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
+type Row = { urg?: string; score_why?: string; score_news?: boolean; picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
 const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
 // 픽 얼굴(형 11-06 07:4x 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」 · 「틈도 저런식으로」) = 그 기사를 고른 봇 얼굴 · 번호 왼쪽 · 둘 다면 단톡방 겹친 얼굴 꼴(형 「그 단톡방 예전 표기처럼 중첩되게」)
@@ -135,7 +135,7 @@ export function NewsList() {
       const ei = eventIndex(events);
       if (ei.size) {
         const hit = new Map<Row, EventHit>();
-        const tagged = list.map((x) => { if (!x) return x; const h = eventOf(x, ei); const y: Row = h ? { ...x, score: shownScore(h.s), score_why: h.why, score_news: true } : { ...x, score: null, score_why: "", score_news: false }; if (h) hit.set(y, h); return y; });
+        const tagged = list.map((x) => { if (!x) return x; const h = eventOf(x, ei); const y: Row = h ? { ...x, score: shownScore(h.s), score_why: h.why, score_news: true, urg: h.urg } : { ...x, score: null, score_why: "", score_news: false }; if (h) hit.set(y, h); return y; });
         list.splice(0, list.length, ...byEvent(tagged, (y) => hit.get(y) || null));
       }
       list.splice(MAX);   // 40줄 = 점수 차례로 세운 뒤 자름(앞 = 섞은 차례로 먼저 잘라 높은 점수 기사가 41번째 밖이면 빠졌음)
@@ -204,7 +204,7 @@ export function NewsList() {
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>
               <span className="mt" title={row.src || undefined}>{row.src || ""}</span>
               <span className="ag">{row.at ? ago(row.at) : ""}</span>   {/* 「N분 전」 = 점수 바로 왼쪽 칸 · 오른쪽 맞춤(형 11-06 10:15 「00분전 0시간전 00분전이 좀 더 우측으로 가야될거같아 점수쪽」) */}
-              <span className="sc" title={row.score_why || undefined}>{Number.isFinite(row.score as number) ? Math.round(row.score as number) : ""}</span>   {/* 점수 없는 줄도 칸은 둠(줄 맞춤) */}
+              {row.urg ? <span className="sc urg" title={`수집함 긴급 · ${row.urg}${row.score_why ? " · " + row.score_why : ""}`}>긴급 {row.urg}</span> : <span className="sc" title={row.score_why || undefined}>{Number.isFinite(row.score as number) ? Math.round(row.score as number) : ""}</span>}   {/* 긴급 = 점수 대신 「긴급 07:46」(봄 11-13 05:31 · 빠르 urg) */}   {/* 점수 없는 줄도 칸은 둠(줄 맞춤) */}
               {sdBtn("sd", row.meta?.published?.sourceUrl || row.urls?.[0] || row.title || "", () => send(row))}
             </li>
           ))}
