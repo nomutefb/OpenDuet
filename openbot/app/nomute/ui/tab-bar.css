@@ -65,3 +65,9 @@
 .nm-tab.garden { cursor:pointer; }
 .nm-tab.garden .nm-tab-nm { padding:0 4px; }
 .nm-tab-screen.in-split { position:absolute; inset:0; top:0; left:0; right:0; bottom:0; z-index:20; border-radius:inherit; }
+
+/* 21:9(가로/세로 ≥ 2.1) = 오른쪽 칸(웹 · 화면 탭이 덮는 자리)을 화면 가로 5분의 2 · 오른쪽 붙임 · 세로 꽉 · 탭 줄도 같은 경계(형 11-12 10:01 봄 1:1 「화면 구성비가 21:9 일 때는, 화면을 5분할 했을때, 우측 2에 항상 켜지게 하겠다는 의미임. 전에 16대 9같은경우에는 1/3 인가 반을 우측으로 사용하기로 했었어. (우측으로 정렬붙여서)」) · 16:9 = 그대로 */
+@media (min-aspect-ratio: 21/10) {
+  .nm-split-root aside.nm-split { flex:0 0 40vw; width:40vw; max-width:40vw; }
+  .nm-tabs { right:calc(40% + 77px); }
+}

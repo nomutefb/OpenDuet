@@ -101,14 +101,6 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* 이미 놓음 */ }
     if (d && !d.moved) pick(t);
   };
-  const shots = list.filter((p) => typeof (p as OfficePerson & { screen?: string }).screen === "string" && (p as OfficePerson & { screen?: string }).screen);
-  const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" }> => t.k === "screen" || t.k === "web");
-  const openShot = (p: OfficePerson) => setS((x) => tabsAdd(x, { k: "screen", who: p.who, url: (p as OfficePerson & { screen: string }).screen }));
-  const shortcuts = shots.length ? (   // 빈 탭 = 몸 화면 바로가기(앞 판 「+」 차림표 자리 · 형 22:10 「0화면 이 저 멀리에서 따로 ㄴ로면 안됨」)
-    <div className="nm-web-shots" aria-label="몸 화면">
-      {shots.map((p) => <button key={p.who} type="button" onClick={() => openShot(p)}><FaceImg id={idOf(p.who, list)} size={18} />{(p.name || p.who) + " 화면"}</button>)}
-    </div>
-  ) : null;
   return (
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
@@ -133,7 +125,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
         <div className={`nm-tab-screen${host ? " in-split" : ""}`} hidden={!(s.active.startsWith("s:") || s.active.startsWith("w:"))}>
           {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "web" ? (
             <div key={tabKey(t)} className="nm-tab-web" hidden={s.active !== tabKey(t)}>
-              <WebPane initial={t.url} focus={s.active === tabKey(t)} blank={shortcuts} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} />
+              <WebPane initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} />   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
             </div>
           ) : (
             <iframe key={tabKey(t)} title={nameOf(t)} src={t.url} hidden={s.active !== tabKey(t)} allow="clipboard-read; clipboard-write; fullscreen" />

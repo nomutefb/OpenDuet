@@ -22,6 +22,7 @@ export function toAddress(raw: string): string {
   return `https://www.google.com/search?igu=1&q=${encodeURIComponent(s)}`;
 }
 
+// 빈 판 글 = 「주소나 검색어를 넣어주세요」 한 줄(형 11-12 10:00 「그냥 주소나 검색어를 넣어주세요. 정도 나오면 될듯」)
 const sameSite = (u: string) => u.startsWith("/") || u.startsWith(location.origin + "/");
 
 export function WebPane({ initial = "", className = "", onClose, onGo, blank, focus = false }: { initial?: string; className?: string; onClose?: () => void; onGo?: (url: string) => void; blank?: ReactNode; focus?: boolean }) {   // onGo = 주소 바뀜 알림(탭 이름 · 기억) · blank = 빈 화면 아래 덧(탭 「+」 = 몸 화면 바로가기) · focus = 빈 채로 열리면 주소칸에 손(빠르 11-11)
@@ -75,7 +76,7 @@ export function WebPane({ initial = "", className = "", onClose, onGo, blank, fo
       </form>
       <div className="nm-web-body">
         {!cur ? (
-          <div className="nm-web-note"><p>주소나 검색어를 넣어 줘요<span>앱 안 보기를 막는 사이트(구글 첫 화면 · 네이버 · 유튜브 본 화면 · http 사이트 등)는 「밖에서 열기」로 열려요</span></p>{blank}</div>
+          <div className="nm-web-note"><p>주소나 검색어를 넣어주세요</p>{blank}</div>
         ) : check.state === "blocked" ? (
           <div className="nm-web-note">
             <b>이 사이트는 앱 안 보기를 막아요</b>
