@@ -67,7 +67,8 @@ function Ring({ p, onCancel, onResume }: { p: number; onCancel?: () => void; onR
     <span className="nac-ring can stop" role="button" tabIndex={0} aria-label="전송 실패 · 누르면 다시 보내기"
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); onResume(); }}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onResume(); } }}>
-      <svg className="nac-ring-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      {/* ✕ → 되돌리기 꼴 하나(형 11-12 18:09 봄 1:1 「다시보내기 뜨는거 좋은데. 픽토그램 한번만 나오면 될듯 그 되돌리기 비슷한 픽토그램으로」) */}
+      <svg className="nac-redo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
     </span>
   );
   return (
@@ -86,7 +87,7 @@ function Ring({ p, onCancel, onResume }: { p: number; onCancel?: () => void; onR
 function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) {
   return (
     <div className="nac-wrow" aria-label="보냄 대기">
-      {item.failed ? <button type="button" className="nac-again" onClick={onRetry}>못 보냈어 · 다시 보내기</button> : <span className="nac-wait">보냄 대기</span>}   {/* 「보냄 대기」 = 1.2초 넘게 걸릴 때만 보임(./attachment-up.css · 글마다 깜빡이지 않게) */}
+      {item.failed ? <button type="button" className="nac-again" onClick={onRetry} aria-label="못 보냈어 · 다시 보내기" title="다시 보내기"><svg className="nac-redo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg></button> : <span className="nac-wait">보냄 대기</span>}   {/* 「보냄 대기」 = 1.2초 넘게 걸릴 때만 보임(./attachment-up.css · 글마다 깜빡이지 않게) */}
       <div className="ybw"><ReplyStrip text={item.text} /><div className="yb me nac-wb">{item.text.replace(QUOTE, "")}</div></div>   {/* 답장 글 = 띠 + 내 글만(형 11-11 20:08 사진 = 여기서 「↩ 빠르: …」 줄이 글 안에 보였음 · ./reply-strip.tsx) */}
     </div>
   );
