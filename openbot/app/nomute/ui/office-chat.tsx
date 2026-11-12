@@ -11,6 +11,7 @@
 //   빠르게 열기(형 15:34 「프사먼저 나오고 넘 늦게 대화가 나와」 · 15:38 「캐시화 하고 뒤늦게 받아오는거로 동기화를」) = 이 기기 저장(data/room-cache.ts)을 먼저 그림 →
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
+import { DlSeqButton } from "./dl-seq";
 import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
 import { CallSheet, appendToComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -597,9 +598,7 @@ function FileIcon({ name }: { name: string }) {
 /** 파일마다 다운로드 단추(형 11-05 11:35 「옆에 다운로드 버튼이 각각 나오게 할 수 있어?」) = 사무실 파일 받기 표(dl=1 · savePic 길) · 누르면 말풍선 누름으로 안 번짐 */
 function DlBtn({ p, n }: { p: string; n: string }) {
   return (
-    <button type="button" className="nm-dl" aria-label={`${n} 내려받기`} title="내려받기" onClick={(e) => { e.preventDefault(); e.stopPropagation(); savePic(fileUrl(p), n); }}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 4v11" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" /></svg>
-    </button>
+    <DlSeqButton className="nm-dl" hrefs={[dlOf(fileUrl(p), n)]} ariaLabel={`${n} 내려받기`} size={15} />   // 누르면 라임 → 체크 팝 → 돌아옴(형 11-13 02:32 「색만 바뀌면 솔직히 잘 눌럿다는 공감이 안되거든 바꼇다가 다시 돌아와야해」 · ui/dl-seq.tsx)
   );
 }
 /** 영상 자막 알약(형 11-05 11:04 「채팅에 미리 떠있고, 그게 늦게 전달가도됨」 · 「자막이 좀 늦게 가도 괜찮아」)

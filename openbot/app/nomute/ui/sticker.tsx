@@ -27,7 +27,7 @@ export function StickerButton() {
   const place = () => { const r = btn.current?.getBoundingClientRect(); if (!r) return; const w = Math.min(420, innerWidth - 24); const left = Math.max(12, Math.min(r.left - 8, innerWidth - w - 12)); setAt({ left, bottom: innerHeight - r.top + 8, width: w, transformOrigin: `${Math.round(r.left + r.width / 2 - left)}px 100%` }); };
   useEffect(() => { if (!open) return; addEventListener("resize", place); return () => removeEventListener("resize", place); }, [open]);
   // 뒤로 = 판만 닫힘(형 11-12 21:31 봄 1:1 「이모지 킨 채로 뒤로가면 이리됨」 · 봄 옮김) — 열 때 주소 그대로 한 칸 쌓고, 뒤로(popstate)·방 바뀜(hashchange) = 닫힘 · 판을 다른 길로 닫으면 쌓은 칸을 걷음
-  const close = () => { setOpen(false); if ((history.state as { nmStk?: number } | null)?.nmStk) history.back(); };
+  const close = () => { if ((history.state as { nmStk?: number } | null)?.nmStk) history.back(); else setOpen(false); };   // 쌓은 칸이 있으면 뒤로 = popstate 에서 닫힘(판이 그때까지 떠 있어야 shell.tsx 뒤로 처리기가 비켜 감 · 앞 판은 먼저 닫아서 PC 가 목록으로 나갔음)
   useEffect(() => {
     if (!open) return;
     if (!(history.state as { nmStk?: number } | null)?.nmStk) history.pushState({ ...(history.state || {}), nmStk: 1 }, "");
