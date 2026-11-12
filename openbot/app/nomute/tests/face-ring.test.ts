@@ -36,3 +36,10 @@ test("고정 표시 = 압정 그림 한 벌(PC 띠 · 폰 목록 · 봄 11-12 16
   const pm = readFileSync(new URL("../ui/pin-mark.tsx", import.meta.url), "utf8");
   assert.match(pm, /export function PinMark/);
 });
+
+test("고정 압정 = 무지개 고리 · 안 읽음 점 위(형 11-12 16:44 「핀 묻힌ㄷ」)", () => {
+  const css = readFileSync(new URL("../ui/shell.css", import.meta.url), "utf8");
+  assert.match(css, /\.nm-face-pin \{[^}]*z-index:4;/);
+  assert.match(css, /\.nm-face-pin ~ \.nm-udot \{ top:auto; bottom:1px; \}/);
+  assert.ok(sh.indexOf('className="nm-face-pin"') < sh.indexOf('className="nm-udot"'), "압정이 점보다 앞 = ~ 가 먹음");
+});

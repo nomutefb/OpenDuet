@@ -160,7 +160,9 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-l .ynav button { color:#CFFF40; }
 .nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#CFFF40; background:rgba(207,255,64,.12); }
 /* 얼굴 띠 고정 표시(우클릭 = 고정 · 형 11-05 17:03) — 왼쪽 위 작은 압정(봄 11-12 16:17 A · 앞 판 = 라임 점) */
-.nm-face-pin { position:absolute; top:-5px; left:-5px; width:17px; height:17px; display:grid; place-items:center; border-radius:50%; background:#1b1c1b; border:1px solid rgba(255,255,255,.35); color:#fff; z-index:1; }
+.nm-face-pin { position:absolute; top:-5px; left:-5px; width:17px; height:17px; display:grid; place-items:center; border-radius:50%; background:#1b1c1b; border:1px solid rgba(255,255,255,.35); color:#fff; z-index:4; pointer-events:none; }   /* z 4 = 무지개 고리(::before 2) · 안 읽음 점(3) 위(형 11-12 16:44 「핀 묻힌ㄷ」) */
+/* 고정 + 안 읽음 = 점은 왼쪽 아래로 비킴(둘 다 왼쪽 · 형 11-07 「저 불이 좌측에 있으면 됨」) */
+.nm-face-pin ~ .nm-udot { top:auto; bottom:1px; }
 .nm-face-pin > svg { width:11px; height:11px; }
 /* 폰 대화 목록 고정 = 같은 압정(./pin-mark.tsx) · 글자 색 따라감 */
 .nm-pin-mark { display:inline-grid; place-items:center; flex:none; width:13px; height:13px; color:var(--muted-foreground, #9a9c9a); }
