@@ -2,7 +2,7 @@
 import "./task-panel.css";   // 판 css = 판 파일에(대시보드만 열 때 feed 조각이 안 와서 꾸밈 0 · 시아 08:21)
 import { useEffect, useRef, useState } from "react";
 import { qCanRetry } from "./q-acts";
-import { panelOf, taskOf } from "./task-state";
+import { panelOf, stageDur, stageTimes, taskOf } from "./task-state";
 export type QItem = { id?: string; t?: number; title?: string; via?: string; key?: string; alt1?: string; status?: string; tries?: number; why?: string | { cause?: string; text?: string } };
 export type Eta = Partial<Record<"url" | "ask", { p50?: number; p90?: number }>>;
 export type QCardT = { it: QItem; e: string; title: string };
@@ -37,11 +37,13 @@ function TaskCard({ c, eta, pos, onRetry, onDismiss }: { c: QCardT; eta: Eta | n
   const url = linkOf(it), name = String(title || "").replace(/https?:\/\/\S+/gi, "").replace(/\s+/g, " ").trim() || hostOf(url) || "요약 요청";
   const w: { cause?: string; text?: string } = typeof it.why === "string" ? { text: it.why } : it.why || {};
   const head = fail ? "요약 멈춤" : fed ? `피드에 올리는 중 · ${tkSecs(el)}` : wait ? `차례 기다림${pos ? ` · ${pos}번째` : ""}` : `요약 중 ${tkSecs(el)}`;
+  const now = Date.now(), cur = fail ? "fail" : fed ? "fed" : wait ? "wait" : "run";
+  const dur = stageDur(it.t, stageTimes(String(it.id || it.t || name), now, cur), cur, now), dm = (ms: number | null) => (ms == null ? "" : tkSecs(ms));
   const log: [string, "done" | "cur" | "fail" | "next", string?][] = [
     [`접수${it.t ? ` · ${hhmm(it.t)}` : ""}`, "done"],
-    [wait ? `차례 기다림${pos ? ` · ${pos}번째` : ""}` : "차례 받음", wait ? "cur" : "done"],
-    [fail ? "요약 멈춤" : e === "retry" ? `다시 요약하는 중 · 시도 ${it.tries || 2}` : "요약 쓰는 중", fail ? "fail" : run ? "cur" : wait ? "next" : "done", run && pct ? `보통 걸리는 시간의 ${pct}%` : ""],
-    ["피드에 올리는 중", fed ? "cur" : "next"],
+    [wait ? `차례${pos ? ` · ${pos}번째` : ""}` : "차례 받음", wait ? "cur" : "done", dm(dur.wait)],
+    [fail ? "요약 멈춤" : e === "retry" ? `다시 요약 · 시도 ${it.tries || 2}` : "요약", fail ? "fail" : run ? "cur" : wait ? "next" : "done", [dm(dur.run), run && pct ? `보통의 ${pct}%` : ""].filter(Boolean).join(" · ")],
+    ["피드에 올림", fed ? "cur" : "next", dm(dur.fed)],
   ];
   const open = () => { if (!fail && url) window.open(url, "_blank", "noopener"); };
   const bars: [string, string][] = [["요약", fail ? "fail" : fed ? "done" : run ? "cur" : ""], ["프롬프트", ""], ["카드", ""]];
@@ -49,7 +51,7 @@ function TaskCard({ c, eta, pos, onRetry, onDismiss }: { c: QCardT; eta: Eta | n
     <div className={`nm-tk2${fail ? " fail" : ""}${run || fed ? " live" : ""}`} role="article" aria-label={`${name} · ${label}`} onClick={open} title={url && !fail ? "누르면 원문" : undefined}>
       <div className="nm-tk2-top"><i className="nm-tk2-ring" aria-hidden /><b className="nm-tk2-h">{head}</b>{url ? <span className="nm-tk2-src">{hostOf(url)}</span> : null}</div>
       <p className="nm-tk2-t">{name}</p>
-      <ol className="nm-tk2-log">{log.filter(([, k]) => k !== "next").map(([t, k, sub]) => <li key={t} className={k}><i aria-hidden /><span>{t}</span>{sub ? <em>{sub}</em> : null}</li>)}</ol>
+      <ol className="nm-tk2-log h">{log.map(([t, k, sub]) => <li key={t} className={k}><i aria-hidden /><span>{t}</span>{sub ? <em>{sub}</em> : null}</li>)}</ol>   {/* 가로 = 선 하나에 점 넷 · 사이 › · 단계 밑 걸린 분(형 11-13 02:26) · 앞 판 = 세로 · 다음 단계 숨김 */}
       {fail ? <p className="nm-tk2-why">{w.cause && Q_CAUSE[w.cause] ? <b>{Q_CAUSE[w.cause]}</b> : null}{w.text || "사유 기록 없음"}</p> : null}
       <div className="nm-sumc-prog">{bars.map(([b, k]) => <span key={b} className={k}><i>{b}</i><em /></span>)}</div>
       {fail && (canRe || onDismiss) ? (

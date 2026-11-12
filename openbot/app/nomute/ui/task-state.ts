@@ -22,3 +22,26 @@ export function panelOf(rows: { status?: string; e: string }[]) {
   const tail = allFed ? (rows.some((r) => r.e === "lag") ? "분석 완료 · 반영 대기" : "피드 반영 중") : `${done}/${total} 건`;
   return { total, done, allFed, tail };
 }
+
+// 단계마다 걸린 시간(형 11-13 02:26 봄 1:1 「각 단계에서 몇분인지 알면 좋을듯. 혹시 이거 라인 이어가는건 유지하되 가로로 표시가능해? 결은 살리되 > > 방향으로 시간은 뜨고」)
+//   서버는 단계 시각을 안 남김(번개 11-12) → 이 기기가 그 단계를 처음 본 때를 적어 둠(localStorage nm-tk-st:<id> · 요청마다 한 장 · 하루 지나면 지움) · 접수 = 서버 t
+//   앞 단계를 이 기기가 못 봤으면(이미 다음 단계로 처음 봄) 그 앞 단계 시간은 안 띄움(지어낸 분 0)
+type StageT = { wait?: number; run?: number; fed?: number };
+const ST_KEY = (id: string) => `nm-tk-st:${id}`;
+export function stageTimes(id: string, now: number, cur: "wait" | "run" | "fed" | "fail"): StageT {
+  let o: StageT = {};
+  try { o = JSON.parse(localStorage.getItem(ST_KEY(id)) || "{}") || {}; } catch { o = {}; }
+  if ((cur === "wait" || cur === "run" || cur === "fed") && !o[cur]) { o = { ...o, [cur]: now }; try { localStorage.setItem(ST_KEY(id), JSON.stringify(o)); } catch { /* 이번만 */ } }
+  return o;
+}
+/** 순수 — 접수 t · 본 때들 · 지금 단계 → 단계마다 걸린 ms(모르면 null) · 차례 = 접수 → 요약 시작 · 요약 = 요약 시작 → 피드 · 피드 = 피드 → 지금 */
+export function stageDur(t: number | undefined, st: StageT, cur: "wait" | "run" | "fed" | "fail", now: number): { wait: number | null; run: number | null; fed: number | null } {
+  const runAt = st.run && (st.wait || (t && st.run - t < 15e3)) ? st.run : null;   // 요약 시작 = 차례 기다림을 이 기기가 봤거나 접수 바로 뒤에 봤을 때만 믿음
+  const fedAt = st.fed && st.run ? st.fed : null;
+  return {
+    wait: t && runAt ? runAt - t : cur === "wait" && t ? now - t : null,
+    run: runAt && fedAt ? fedAt - runAt : cur === "run" && runAt ? now - runAt : null,
+    fed: fedAt ? now - fedAt : null,
+  };
+}
+try { const day = Date.now() - 864e5; for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i) || ""; if (!k.startsWith("nm-tk-st:")) continue; const o = JSON.parse(localStorage.getItem(k) || "{}"); if (Math.max(o.wait || 0, o.run || 0, o.fed || 0) < day) localStorage.removeItem(k); } } catch { /* 못 지움 = 다음에 */ }

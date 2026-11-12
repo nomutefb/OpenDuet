@@ -107,3 +107,14 @@
 .nm-tk2-acts button:disabled { opacity:.5; cursor:default; }
 @media (prefers-reduced-motion: reduce) { .nm-tk2-ring, .nm-tk2-log li.cur i, .nm-tk2-log li.cur span, .nm-tk2-log li { animation:none; } .nm-tk2-log li.cur span { color:var(--fg); background:none; } }
 
+
+/* 가로 단계(형 11-13 02:26 「라인 이어가는건 유지하되 가로로 … 결은 살리되 > > 방향으로 시간은 뜨고」) — 점 넷이 가로 선 하나로 이어짐 · 사이 › · 단계 이름 밑 걸린 분 · 지금 단계 = 도는 고리 + 빛 훑기 그대로 · 다음 단계 = 흐림 */
+.nm-tk2-log.h { flex-direction:row; align-items:flex-start; gap:0; border-left:0; margin-left:0; padding:0; position:relative; }
+.nm-tk2-log.h::before { content:""; position:absolute; left:6px; right:6px; top:5.5px; height:1px; background:var(--glass-line, rgba(255,255,255,.14)); }
+.nm-tk2-log.h li { flex:1 1 0; min-width:0; flex-direction:column; align-items:flex-start; gap:2px; padding:16px 4px 0 0; font-size:12px; }
+.nm-tk2-log.h li i { left:1px; top:1.5px; }
+.nm-tk2-log.h li.cur i { left:-.5px; top:0; }
+.nm-tk2-log.h li + li::before { content:"›"; position:absolute; left:-10px; top:-5px; font-size:13px; line-height:1; color:var(--mut); opacity:.7; }
+.nm-tk2-log.h li.next { opacity:.38; }
+.nm-tk2-log.h li span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.nm-tk2-log.h li em { font-size:11px; }
