@@ -13,7 +13,7 @@ const MOODS: Item[] = [{ id: "joy", label: "좋아" }, { id: "thanks", label: "�
 export const PACKS: Pack[] = [
   { id: "fast", name: "빠르", items: MOODS },
   { id: "bom", name: "봄", items: MOODS },
-  { id: "eyes", name: "뜸", items: MOODS },
+  { id: "eyes", name: "뜸", items: [...MOODS, { id: "rise", label: "해뜸" }] },   // 해뜸 = 뜸 얼굴 해가 떠오르다 뽕 하고 밥알(형 11-12 12:39 「해가 뜨다가 갑자기 뜸이 뜨는것도 해줘」)
 ];
 export const stickerUrl = (p: Pack, it: Item) => `/office/sticker/${p.id}/${it.id}.gif`;
 export const stickerText = (p: Pack, it: Item) => `[스티커 ${p.name} ${it.label}]`;
