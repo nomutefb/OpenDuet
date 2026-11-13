@@ -102,3 +102,14 @@ test("움짤 = 카리나 셋 · 자주 쓰는 10개 맨 앞 · 칸 작게(형 11
   assert.deepEqual(top.map((x) => `${x.pack.id}/${x.item.id}`), ["bom/think", "fast/joy", "eyes/rise"]);
   assert.match(readFileSync(new URL("../ui/sticker.css", import.meta.url), "utf8"), /minmax\(62px, 1fr\)/);
 });
+
+test("움짤 이름 줄 = PC 마우스 잡아끌기 · 끈 뒤 클릭 막음 · 스크롤바 · ◀▶ 뺌(형 11-13 10:20 「끌면움직이면 <> 없어도될듯」)", () => {
+  const src = readFileSync(new URL("../ui/sticker.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/sticker.css", import.meta.url), "utf8");
+  assert.match(src, /<div ref=\{rail\} className="nm-stk-tabs"/);
+  assert.match(src, /e\.pointerType !== "mouse"/);   // 폰 손가락 = 네이티브 밀기 그대로
+  assert.match(src, /Math\.abs\(dx\) > 4/);
+  assert.match(src, /addEventListener\("click", clk, true\)/);
+  assert.match(css, /\.nm-stk-tabs::-webkit-scrollbar \{ display:none; \}/);
+  assert.match(css, /\.nm-stk-tabs \{[^}]*scrollbar-width:none/);
+  assert.match(css, /\.nm-stk-tabs \{[^}]*user-select:none/);
+});

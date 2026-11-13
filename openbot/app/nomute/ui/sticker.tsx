@@ -20,9 +20,29 @@ export function Sticker({ text, mark }: { text: unknown; mark?: "wait" | "sent" 
 }
 const roomNow = () => /^#\/(?:channels|group)\/([^/?#]+)/.exec(location.hash)?.[1] || "";
 
+/** 이름 줄 = PC 마우스로 잡아끌어 옆으로(형 11-13 10:20 봄 옮김 「pc앱에서도 이거 끌어서 우측으로 보내면 고를수잇게 해줘 … 끌면움직이면 <> 없어도될듯」)
+ *  옛 에디터 화풍 줄 geniRailSetup 그대로 = 마우스만(폰 손가락은 네이티브 밀기) · 4px 넘게 끌면 그 클릭 막음(끈 것 ≠ 누른 것) · 스크롤바 · ◀▶ 뺌 · 양 끝 흐림(atStart · atEnd) */
+function useDragRail() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const rail = ref.current; if (!rail) return;
+    let down = false, moved = false, sx = 0, sl = 0, pid = -1;
+    const upd = () => { rail.classList.toggle("atStart", rail.scrollLeft <= 1); rail.classList.toggle("atEnd", rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 1); };
+    const dn = (e: PointerEvent) => { if (e.pointerType !== "mouse" || e.button !== 0) return; down = true; moved = false; sx = e.clientX; sl = rail.scrollLeft; pid = e.pointerId; e.preventDefault(); };   // preventDefault = 끌 때 글자 파랗게 선택 안 됨
+    const mv = (e: PointerEvent) => { if (!down) return; const dx = e.clientX - sx; if (!moved && Math.abs(dx) > 4) { moved = true; rail.classList.add("grabbing"); try { rail.setPointerCapture(pid); } catch { /* 판 밖으로 나가도 이어 끌기 · 못 잡으면 판 안에서만 */ } } if (moved) rail.scrollLeft = sl - dx; };
+    const end = () => { if (!down) return; down = false; rail.classList.remove("grabbing"); try { rail.releasePointerCapture(pid); } catch { /* 안 잡았음 */ } };
+    const clk = (e: MouseEvent) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } };   // 끈 뒤 놓은 자리 이름이 눌리지 않게(캡처)
+    rail.addEventListener("pointerdown", dn); rail.addEventListener("pointermove", mv); rail.addEventListener("pointerup", end); rail.addEventListener("pointercancel", end);
+    rail.addEventListener("click", clk, true); rail.addEventListener("scroll", upd, { passive: true });
+    const raf = requestAnimationFrame(upd);
+    return () => { cancelAnimationFrame(raf); rail.removeEventListener("pointerdown", dn); rail.removeEventListener("pointermove", mv); rail.removeEventListener("pointerup", end); rail.removeEventListener("pointercancel", end); rail.removeEventListener("click", clk, true); rail.removeEventListener("scroll", upd); };
+  });
+  return ref;
+}
+
 export function StickerButton() {
   const [open, setOpen] = useState(false), [tab, setTab] = useState("all"), [at, setAt] = useState<CSSProperties>({});
-  const btn = useRef<HTMLButtonElement>(null);
+  const btn = useRef<HTMLButtonElement>(null), rail = useDragRail();
   // 판 자리 = 누른 😊 바로 위(형 11-12 13:27 「이거 창이 이모지 누른 그 바로 그 부분에서 떠야해, 부드럽게. 지금은 멀찍이 떠버림.」 · 「모바일도 마찬가지야!」) · 화면 밖으로 안 나가게 12px 안쪽
   const place = () => { const r = btn.current?.getBoundingClientRect(); if (!r) return; const w = Math.min(420, innerWidth - 24); const left = Math.max(12, Math.min(r.left - 8, innerWidth - w - 12)); setAt({ left, bottom: innerHeight - r.top + 8, width: w, transformOrigin: `${Math.round(r.left + r.width / 2 - left)}px 100%` }); };
   useEffect(() => { if (!open) return; addEventListener("resize", place); return () => removeEventListener("resize", place); }, [open]);
@@ -62,7 +82,7 @@ export function StickerButton() {
         <>
           <div className="nm-stk-back" aria-hidden onClick={close} />
           <div className="nm-stk" role="dialog" aria-label="움짤" style={at}>
-            <div className="nm-stk-tabs" role="tablist">
+            <div ref={rail} className="nm-stk-tabs" role="tablist">
               <button type="button" role="tab" aria-selected={tab === "all"} className={tab === "all" ? "on" : ""} onClick={() => setTab("all")}>전체</button>
               {PACKS.map((p) => <button key={p.id} type="button" role="tab" aria-selected={tab === p.id} className={tab === p.id ? "on" : ""} onClick={() => setTab(p.id)}>{p.name}</button>)}
             </div>
