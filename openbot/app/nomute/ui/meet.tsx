@@ -11,6 +11,8 @@ import { type OfficeMsg, type OfficePerson, office, faceOf, nameOf, people } fro
 import { OfficeChat, officeKeys } from "./office-chat";
 import { ringOf } from "../swap/mic-orb";
 import "./meet.css";
+import "./update-bar.css";   // .nm-dots = 라임 점 셋(업데이트 띠 · 끊김 띠와 같은 것 · 형 19:3x 「들어오는중... 이거 표시 떠야될듯」 · 「종료하는중 ... < 이거 점세개로」)
+export const Dots = () => <span className="nm-dots" aria-hidden><i>.</i><i>.</i><i>.</i></span>;
 
 export const SCRIBE = "챙";   // 늘 자동 참여 · 기록관 · 「다 왔다」 셈 밖(봄 06:46)
 export const MEET_WAIT = 60_000;   // 답 없는 이를 기다리는 시간(명세 「여는 때」 = 60초 · 봄 06:5x)
@@ -105,7 +107,7 @@ export function EndAsk({ end }: { end: ReturnType<typeof useMeetEnd> }) {
     <div className="nm-meet-ask" role="dialog" aria-label="회의 종료">
       <b>회의를 종료하시겠습니까?</b>
       {end.why ? <small role="alert">{end.why}</small> : null}
-      <div className="nm-meet-ask-ft"><button type="button" className="no" autoFocus onClick={() => end.setAsk(false)}>아니오</button><button type="button" disabled={end.ending} onClick={() => void end.endNow()}>{end.ending ? "끝내는 중…" : "예"}</button></div>
+      <div className="nm-meet-ask-ft"><button type="button" className="no" autoFocus onClick={() => end.setAsk(false)}>아니오</button><button type="button" disabled={end.ending} onClick={() => void end.endNow()}>{end.ending ? <>종료하는 중<Dots /></> : "예"}</button></div>
     </div>
   );
 }
@@ -116,11 +118,11 @@ export function useTogetherNow() {
   return q.data || { at: 0, ctrl: "" };
 }
 /** 머리 「ON AIR ( n초 전 )」(형 11-13 16:18 「동기화 n초전 이거는 그냥 on air로 나오면 되고 ON AIR ( n초 전 )」 · 괄호 = 연하게) · 값 = 다리 신호 nm-co-sync(ago) 먼저 · 없으면 서버 together.at */
-export function OnAir({ ago }: { ago: number | null }) {
+export function OnAir({ ago, at: recvAt = 0 }: { ago: number | null; at?: number }) {   // at = 그 신호 받은 때(그 뒤 흐른 만큼 더해 1초마다 바로 올라감 · 형 19:3x 「그때그때 바로 갱신되게」)
   const { at } = useTogetherNow();
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
-  const ms = ago ?? (at ? now - at : null);
+  const ms = ago != null ? ago + Math.max(0, now - (recvAt || now)) : at ? now - at : null;
   const s = ms == null ? null : Math.max(0, Math.round(ms / 1000));
   return <span className="nm-onair"><i aria-hidden /> <b>ON AIR</b>{s == null ? null : <span className={`nm-co-sync${s > 10 ? " stale" : ""}`}>( {s < 60 ? `${s}초` : `${Math.floor(s / 60)}분`} 전 )</span>}</span>;
 }
@@ -149,19 +151,24 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
   const members = live?.members?.length ? live.members : meet.members;
   const ans = useMemo(() => answersOf(msgs, members, meet.t0), [msgs, members, meet.t0]);
   const ctrl = useTogetherNow().ctrl;
-  const [inv, setInv] = useState(false), [busy, setBusy] = useState(""), [why, setWhy] = useState("");
+  const [inv, setInv] = useState(false), [busy, setBusy] = useState(""), [why, setWhy] = useState(""), [inviting, setInviting] = useState<string[]>([]), [kicking, setKicking] = useState<string[]>([]);
   const [open, setOpen] = useState(() => { try { return localStorage.getItem(`${KEY}_ppl`) !== "0"; } catch { return true; } });   // 명단 접기(형 11-13 16:15 「명단 접을수도 잇나?」) · 이 기기에 기억
   const flip = () => setOpen((v) => { try { localStorage.setItem(`${KEY}_ppl`, v ? "0" : "1"); } catch { /* 이 기기 */ } return !v; });
   const setMembers = async (next: string[], tag: string) => {
     if (!live) return;
+    const who = tag.slice(1), add = tag[0] === "+";
     setBusy(tag); setWhy("");
+    if (add) setInviting((l) => [...l, who]); else setKicking((l) => [...l, who]);   // 누른 순간부터 그 줄 = 「들어오는 중…」 · 「내보내는 중…」(서버 답 전)
     try { await office(`temprooms/${encodeURIComponent(meet.id)}`, { method: "POST", body: JSON.stringify({ name: live.name, purpose: live.purpose, members: next }) }); await refetch(); }
     catch (e) { setWhy(e instanceof Error ? e.message : "못 했어"); }
+    setInviting((l) => l.filter((x) => x !== who)); setKicking((l) => l.filter((x) => x !== who));
     setBusy("");
   };
   const pOf = (who: string): OfficePerson | undefined => list.find((x) => x.who === who);
-  const rows = ["형", ...members.filter((n) => n !== "형")];
-  const inRoom = (n: string) => n === "형" || n === SCRIBE || ans[n]?.a === "yes";   // 들어옴 = 형 · 기록관 · 「[수락]」 한 이
+  const rows = ["형", ...members.filter((n) => n !== "형"), ...inviting.filter((n) => !members.includes(n))];
+  type St = "on" | "coming" | "no" | "kick";
+  const stOf = (n: string): St => (kicking.includes(n) ? "kick" : n === "형" || n === SCRIBE || ans[n]?.a === "yes" ? "on" : ans[n]?.a === "no" ? "no" : "coming");   // 초대했는데 아직 [수락] 전 = 들어오는 중(회색과 다른 꼴 · 형 19:3x)
+  const inRoom = (n: string) => stOf(n) === "on";   // 들어옴 = 형 · 기록관 · 「[수락]」 한 이
   return (
     <div className={`nm-meet-ppl${open ? "" : " shut"}`} aria-label="화상회의에 들어와 있는 이" style={at ? { top: at.y + 10 } : undefined}>
       <button type="button" className="nm-mp-h" aria-expanded={open} onClick={flip} title={open ? "명단 접기" : "명단 펴기"}>   {/* 접힘 = 옛 에디터 .tbrief-led 아코디언 그대로(grid 0fr↔1fr .26s · 꺾쇠 180°) */}
@@ -170,11 +177,12 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
       </button>
       <div className="nm-mp-w" {...(open ? {} : { inert: "" as unknown as boolean })}><div className="nm-mp-l">
       {rows.map((n) => {
-        const p = pOf(n), on = inRoom(n), ring = ringOf(p);
+        const p = pOf(n), st = stOf(n), on = st === "on", ring = ringOf(p);
         return (
-          <div key={n} className={`nm-mp${on ? " on" : ""}`} title={on ? "들어와 있음" : ans[n]?.a === "no" ? `거절${ans[n]?.why ? " · " + ans[n]?.why : ""}` : "아직 안 들어옴"}>
+          <div key={n} className={`nm-mp ${st}${on ? " on" : ""}`} title={on ? "들어와 있음" : st === "no" ? `거절${ans[n]?.why ? " · " + ans[n]?.why : ""}` : st === "kick" ? "내보내는 중" : "들어오는 중(초대 · [수락] 기다림)"}>
             <span className="nm-mp-ava">{faceOf(n) ? <img src={faceOf(n)} alt="" /> : null}<i className="nm-mp-dot" /></span>
-            <span className="nm-mp-nm" style={ring ? ({ "--yn": ring } as React.CSSProperties) : undefined}>{p?.name || nameOf(n)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</span>
+            <span className="nm-mp-nm" style={ring ? ({ "--yn": ring } as React.CSSProperties) : undefined}>{p?.name || nameOf(n)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}
+              {st === "coming" ? <small className="nm-mp-st">들어오는 중<Dots /></small> : st === "kick" ? <small className="nm-mp-st">내보내는 중<Dots /></small> : st === "no" ? <small className="nm-mp-st">거절{ans[n]?.why ? ` · ${ans[n]?.why}` : ""}</small> : null}</span>
             {ctrl && ctrl === n ? <span className="nm-mp-ctl" title="제어권 쥠">✋</span> : null}
             {n !== "형" ? <button type="button" className="nm-mp-x" aria-label={`${nameOf(n)} 내보내기`} title="내보내기" disabled={!!busy || members.length <= 1} onClick={() => void setMembers(members.filter((x) => x !== n), "x" + n)}>×</button> : null}
           </div>

@@ -98,3 +98,14 @@
 .nm-meetlog-body p.nm-ml-line { align-self:center; text-align:center; max-width:92%; font-size:11.5px; color:var(--mut, rgba(232,234,232,.5)); padding:1px 10px; border-radius:999px; background:color-mix(in srgb, currentColor 5%, transparent); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-meetlog-body p.nm-ml-line.url { color:var(--fg-2, rgba(232,234,232,.72)); }
 .nm-meetlog-body p.nm-ml-line a { color:inherit; text-decoration:underline; text-underline-offset:2px; }
+/* 명단 상태 넷(형 11-13 19:3x 「들어오는중... 이거 표시 떠야될듯. 초대 확인중인거 (회색이랑 달라야될거같고)」) = 들어옴 초록 · 들어오는 중 = 라임 점선 테 + 라임 점 깜빡 + 「들어오는 중…」 · 거절 = 빨강 점 · 내보내는 중 = 흐림 */
+.nm-mp-nm { display:flex; flex-direction:column; line-height:1.15; }
+.nm-mp-st { font-size:10.5px; font-weight:600; color:#CFFF40; white-space:nowrap; }
+.nm-mp.coming .nm-mp-ava img { filter:grayscale(.35); border:2px dashed rgba(207,255,64,.75); }
+.nm-mp.coming .nm-mp-dot { background:#CFFF40; animation:nm-mpWait 1.2s ease-in-out infinite; }
+@keyframes nm-mpWait { 0%,100% { opacity:1 } 50% { opacity:.3 } }
+.nm-mp.no .nm-mp-dot { background:#FF5A5F; }
+.nm-mp.no .nm-mp-st { color:#FF8A8D; }
+.nm-mp.kick { opacity:.55; }
+.nm-mp.kick .nm-mp-st { color:rgba(232,234,232,.6); }
+@media (prefers-reduced-motion:reduce) { .nm-mp.coming .nm-mp-dot { animation:none; } }
