@@ -8,7 +8,9 @@ test("영상 편집 = 원본 edit.html 품음 · 포토와 같은 머리 · 챠�
   const sh = rd("../ui/shell.tsx"), ve = rd("../ui/video-editor.tsx"), sd = rd("../ui/studio-handoff.ts");
   assert.match(sh, /: M\.id === "edvid" \? <VideoEditor onBack=\{closeModal\} \/>/);
   assert.match(ve, /src=\{EDIT\}/);
-  assert.match(sd, /export const EDIT = "\/viewer\/edit\.html";/);
+  assert.match(sd, /export const EDIT = "\/edit\.html";/);   // /viewer/edit.html = 없는 파일 → 옛 첫 화면으로 떨어짐(라이브 실측)
+  assert.match(sd, /const YS = "\/ys\.html";/);
+  assert.match(sd, /\^\\\/\(viewer\\\/\)\?edit\(\\\.html\)\?\$/);
   assert.match(ve, /<span className="tm-menu">영상 편집<\/span>/);
   assert.match(ve, /\.nm-scene-canvas\{display:none!important\}/, "품은 문서 제 장면 끔 = 앱 배경 비침");
   assert.match(ve, /d\?\.nm === "nmToolTab"/, "옛 셸 탭 넘김 = 앱 안");

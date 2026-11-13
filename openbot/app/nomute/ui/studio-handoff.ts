@@ -5,8 +5,8 @@
 import { openInApp } from "./inapp";
 
 let pending: { file: File; at: number } | null = null;
-export const EDIT = "/viewer/edit.html";
-const YS = "/viewer/ys.html";
+export const EDIT = "/edit.html";   // 옛 스튜디오 셸 THUMB_TABS 와 같은 주소(사이트 바탕 = viewer · 실제로 뜨는 길 = /edit · 앞 판 /viewer/edit.html = 없는 파일이라 옛 첫 화면(index)으로 떨어졌음 · 시아 11-13 라이브 실측)
+const YS = "/ys.html";
 
 /** 엔진이 부르는 손(window.__nmStudioRoute) — kind = video(파일) · link(유튜브 주소 · 비면 화면만) */
 export function studioRoute(kind: string, payload?: unknown) {
@@ -28,7 +28,7 @@ export function deliverStudio(el: HTMLIFrameElement | null) {
   let n = 0;
   const tick = () => {
     let w: (Window & { lrTiltApply?: (f: File) => unknown }) | null = null;
-    try { w = el.contentWindow as typeof w; if (!w || !/\/viewer\/edit\.html$/.test(w.location.pathname)) { if (n++ < 60) setTimeout(tick, 150); return; } } catch { return; }   // 다른 출처 = 손 못 댐 = 그만
+    try { w = el.contentWindow as typeof w; if (!w || !/^\/(viewer\/)?edit(\.html)?$/.test(w.location.pathname)) { if (n++ < 60) setTimeout(tick, 150); return; } } catch { return; }   // 다른 출처 = 손 못 댐 = 그만
     try {
       if (typeof w.lrTiltApply === "function") {
         const inp = w.document.getElementById("file") as HTMLInputElement | null;

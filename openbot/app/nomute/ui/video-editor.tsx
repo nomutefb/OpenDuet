@@ -32,7 +32,7 @@ export function VideoEditor({ onBack }: { onBack?: () => void }) {
     const msg = (e: MessageEvent) => {   // 옛 셸 탭 넘김(edit.html 「트랙」 → /track.html) = 앱 안 한 겹
       if (e.source !== el.contentWindow || e.origin !== location.origin) return;
       const d = e.data as { nm?: string; src?: string } | null;
-      if (d?.nm === "nmToolTab" && typeof d.src === "string" && d.src.startsWith("/")) openInApp(d.src.startsWith("/viewer/") ? d.src : "/viewer" + d.src);
+      if (d?.nm === "nmToolTab" && typeof d.src === "string" && d.src.startsWith("/")) openInApp(d.src);
     };
     window.addEventListener("message", msg);
     return () => { unhook(); el.removeEventListener("load", load); window.removeEventListener("message", msg); };
