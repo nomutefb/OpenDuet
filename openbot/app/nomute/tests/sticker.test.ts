@@ -32,7 +32,7 @@ test("보내는 중 움짤 + 진짜 글이 같이 있으면 하나만(형 11-12 
 });
 
 test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · 카리나(빼꼼) · 형(선글라스) · 나팔꽃(나팔) · 온(형 11-12 17:28 · 17:29 · 17:35 · 18:34 · 18:39)", () => {
-  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "번개", "시아", "깃", "챙", "카리나", "형", "나팔꽃", "틈", "촉", "온"]);
+  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "번개", "시아", "깃", "챙", "카리나", "형", "나팔꽃", "소나", "촉", "온"]);   // 틈 뺌 · 소나 들임(형 11-14 06:59)
   const k = PACKS.find((p) => p.id === "karina")!, h = PACKS.find((p) => p.id === "hyung")!;
   assert.equal(stickerOf("[스티커 카리나 빼꼼]")?.item.id, "peek");
   assert.equal(stickerOf("[스티커 형 선글라스]")?.pack.id, "hyung");
@@ -42,7 +42,8 @@ test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · �
   assert.equal(stickerOf("[스티커 온 좋아]")?.pack.id, "on");   // 형 11-13 10:20 온 셋 되살림
   assert.equal(stickerOf("[스티커 온 놀람]"), null);   // 셋만
   assert.equal(stickerOf("[스티커 촉 속보]")?.item.id, "news");   // 형 11-13 09:33 틈 · 촉 다시 부름 · 속보 = 기자 분장
-  assert.equal(stickerOf("[스티커 틈 빼꼼]")?.pack.id, "teum");
+  assert.equal(stickerOf("[스티커 소나 첨벙]")?.pack.id, "sona");
+  assert.equal(stickerOf("[스티커 틈 빼꼼]"), null);   // 틈 묶음 뺌(형 11-14 06:59 「글구 틈은 삭제」)
   assert.equal(stickerOf("[스티커 여울 윙크]"), null);   // 형 11-13 06:55 「여울 관련된 gif는 안뜨게 없애줘」
 });
 
