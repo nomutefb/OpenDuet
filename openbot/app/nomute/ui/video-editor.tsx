@@ -31,8 +31,11 @@ function see(el: HTMLIFrameElement) {
   const pv = doc.getElementById("pvsec"), rail = doc.getElementById("cpRailWrap");
   if (w && pv && rail && !w.__nmRail && "ResizeObserver" in w) {   // 기둥 키 = 칸 위끝부터 기둥 아래끝(문서마다 한 번 · 탭 · 돋보기로 기둥이 바뀌면 따라감)
     w.__nmRail = true;
-    const fit = () => pv.style.setProperty("--nm-railh", `${Math.ceil(rail.offsetTop + rail.offsetHeight)}px`);
-    new (w as unknown as { ResizeObserver: typeof ResizeObserver }).ResizeObserver(fit).observe(rail); fit();
+    // 기둥 틀(offsetHeight)은 칸 키에 묶여 있어 넘친 단추 키를 못 잼 → 안 단추 아래끝으로(형 11-14 05:23 봄 옮김 · 폰 단추 줄이 「자막 설정」 「컷·구간」 위를 덮음)
+    //   틀 키 · scrollHeight 는 칸이 커지면 같이 커져 끝없이 자람 → 안 잎 요소(글자 · 그림) 아래끝(칸 위 기준)만 잼
+    const fit = () => { const top = pv.getBoundingClientRect().top; let bot = 0; for (const c of Array.from(rail.querySelectorAll<HTMLElement>("*"))) { if (c.children.length) continue; const r = c.getBoundingClientRect(); if (r.height) bot = Math.max(bot, r.bottom - top); } pv.style.setProperty("--nm-railh", `${Math.ceil(bot) + 6}px`); };
+    const ro = new (w as unknown as { ResizeObserver: typeof ResizeObserver }).ResizeObserver(fit);
+    ro.observe(rail); for (const c of Array.from(rail.children)) ro.observe(c); fit();
   }   // 도크 밑으로 들어감 = html.nm-stuck(문서마다 한 번)
   if (w && !w.__nmStuck) {
     w.__nmStuck = true;
