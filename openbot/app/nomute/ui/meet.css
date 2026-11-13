@@ -93,3 +93,8 @@
 .nm-meet-ask-ft { display:flex; justify-content:center; gap:8px; }
 .nm-meet-ask-ft button { min-width:76px; height:34px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:transparent; color:#e8eae8; font-weight:700; cursor:pointer; }
 .nm-meet-ask-ft button.no { background:#CFFF40; border-color:#CFFF40; color:#111; }
+/* 회의록 줄(형 11-13 17:09~17:10) = 대화 줄 사이에 주소 · 행위 = 가운데 얇은 연한 줄(팀즈 시스템 줄 결) */
+.nm-ml-t { display:inline-block; min-width:3.2em; margin-right:6px; color:var(--mut, rgba(232,234,232,.42)); font-size:11px; font-variant-numeric:tabular-nums; }
+.nm-meetlog-body p.nm-ml-line { align-self:center; text-align:center; max-width:92%; font-size:11.5px; color:var(--mut, rgba(232,234,232,.5)); padding:1px 10px; border-radius:999px; background:color-mix(in srgb, currentColor 5%, transparent); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-meetlog-body p.nm-ml-line.url { color:var(--fg-2, rgba(232,234,232,.72)); }
+.nm-meetlog-body p.nm-ml-line a { color:inherit; text-decoration:underline; text-underline-offset:2px; }

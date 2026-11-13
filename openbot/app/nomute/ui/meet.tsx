@@ -192,15 +192,31 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
   );
 }
 
+// 회의록 한 장 = 대화 + 같이 본 주소(보기 시작한 시각) + 행위 줄 · 시각 차례(형 11-13 17:09 「화면 공유로 같이 본 주소만 남게」 · 17:10 「시작 시간 대 별로」 · 「어떤 행위가 잇엇는지가 남기는게 쉬우면 남을수록 좋고」 · 서버 editor _meettrail.js · 깃 다리 events)
+export const EV_LABEL: Record<string, string> = { tab_open: "새 탭", tab_switch: "탭 바꿈", tab_close: "탭 닫음", take: "제어권 쥠", release: "제어권 놓음", auto_release: "제어권 풀림", curtain_on: "커튼 침", curtain_off: "커튼 걷음", bot_click: "누름", bot_text: "글 침", bot_nav: "주소 이동", bot_back: "뒤로", enter: "입력", sketch: "스케치" };
+type TrailRow = { t: "msg" | "url" | "ev"; at: number; who?: string; text?: string; url?: string; title?: string; kind?: string };
+/** 순수 — 기록 한 장 → 시각 차례 줄(같은 시각 = 주소 · 행위 먼저) */
+export function trailRows(log: { messages?: { who: string; ts: number; text: string }[]; urls?: { at: number; url: string; title?: string }[]; events?: { at: number; who: string; kind: string; text?: string }[] } | null | undefined): TrailRow[] {
+  if (!log) return [];
+  const rows: TrailRow[] = [
+    ...(log.urls || []).map((u) => ({ t: "url" as const, at: u.at, url: u.url, title: u.title })),
+    ...(log.events || []).map((e) => ({ t: "ev" as const, at: e.at, who: e.who, kind: e.kind, text: e.text })),
+    ...(log.messages || []).filter((m) => !/^\s*(!모두\s*)?\[임시방 목적/.test(m.text || "")).map((m) => ({ t: "msg" as const, at: m.ts, who: m.who, text: m.text })),
+  ];
+  const rank = { url: 0, ev: 1, msg: 2 };
+  return rows.sort((a, b) => a.at - b.at || rank[a.t] - rank[b.t]);
+}
+const hm = (t: number) => { const d = new Date(t); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
+
 /** 서랍 「화상회의」 = 끝난 회의 기록 목록(서버 GET meetlog · 줄 = yyyy-mm-dd hh-mm 제목 · 참여자 · 주제 · 형 11-13 06:5x) · 누르면 그 회의 대화 한 장 */
 export function MeetLogList() {
   const list = useQuery({ queryKey: ["nomute", "meetlog"], queryFn: () => office<{ logs?: { key: string; title: string; members: string[]; topic?: string; n: number }[] }>("meetlog").then((j) => j.logs || []), staleTime: 30_000 });
   const [open, setOpen] = useState("");
-  const one = useQuery({ queryKey: ["nomute", "meetlog", open], enabled: !!open, queryFn: () => office<{ log?: { messages: { who: string; ts: number; text: string }[]; purpose?: string } }>(`meetlog/${encodeURIComponent(open)}`).then((j) => j.log || null) });
+  const one = useQuery({ queryKey: ["nomute", "meetlog", open], enabled: !!open, queryFn: () => office<{ log?: { messages: { who: string; ts: number; text: string }[]; urls?: { at: number; url: string; title?: string }[]; events?: { at: number; who: string; kind: string; text?: string }[]; purpose?: string } }>(`meetlog/${encodeURIComponent(open)}`).then((j) => j.log || null) });
   const rows = list.data || [];
   return (
     <div className="nm-meetlog">
-      {list.isLoading ? <p className="nm-meetlog-empty">불러오는 중…</p> : !rows.length ? <p className="nm-meetlog-empty">아직 끝난 화상회의가 없어 — 같이 보기(브라우저) 칸 「화상회의」로 열면 끝날 때 여기 담겨</p> : null}
+      {list.isLoading ? <p className="nm-meetlog-empty">불러오는 중…</p> : !rows.length ? <p className="nm-meetlog-empty">아직 끝난 화상회의가 없어 — 위 「화상회의」 탭으로 열고 끝내면 대화 · 같이 본 주소 · 행위가 시각 차례로 여기 담겨</p> : null}
       {rows.map((r) => (
         <div key={r.key} className="nm-meetlog-row">
           <button type="button" onClick={() => setOpen(open === r.key ? "" : r.key)} aria-expanded={open === r.key}>
@@ -209,7 +225,8 @@ export function MeetLogList() {
           </button>
           {open === r.key ? (
             <div className="nm-meetlog-body">
-              {(one.data?.messages || []).map((m, k) => <p key={k}><b>{nameOf(m.who)}</b> {m.text}</p>)}
+              {trailRows(one.data).map((r, k) => r.t === "msg" ? <p key={k}><span className="nm-ml-t">{hm(r.at)}</span><b>{nameOf(r.who)}</b> {r.text}</p>
+                : <p key={k} className={`nm-ml-line ${r.t}`}><span className="nm-ml-t">{hm(r.at)}</span>{r.t === "url" ? <>🌐 <a href={r.url} target="_blank" rel="noreferrer">{r.title || r.url}</a></> : <>{nameOf(r.who)} · {EV_LABEL[r.kind] || r.kind}{r.text ? ` · ${r.text}` : ""}</>}</p>)}
             </div>
           ) : null}
         </div>
