@@ -63,3 +63,8 @@ test("폰 명단 = 두 칸 · 초대 단추는 두 칸 다(형 11-14 01:44)", ()
   assert.match(c, /\.nm-pmeet \.nm-mp-l \{ display:grid; grid-template-columns:repeat\(2, minmax\(0, 1fr\)\);/);
   assert.match(c, /\.nm-pmeet \.nm-mp-l > \.nm-mp-inv[^{]*\{ grid-column:1 \/ -1; \}/);
 });
+test("폰 = 뜸 세로 알약 오른쪽 위(다리 줄 밑) · 칸 36(형 11-14 01:48)", () => {
+  const c = rd("../ui/teams.css");
+  assert.match(c, /\.nm-pmeet \.nm-sk-bar \{ left:auto; right:8px; bottom:auto; top:calc\(var\(--co-bar, 62px\) \+ 8px\); \}/);
+  assert.doesNotMatch(c, /\.nm-pmeet \.nm-sk-bar \{[^}]*flex-direction:row;/);
+});

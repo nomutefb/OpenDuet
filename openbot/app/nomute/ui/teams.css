@@ -113,8 +113,8 @@
   .nm-pmeet .nm-mp { min-width:0; }
   .nm-pmeet .nm-mp-x { width:32px; height:32px; }
   .nm-pmeet .nm-meet, .nm-pmeet .nm-co.meet .nm-meet.open { flex:1 1 auto; min-height:0; }   /* 대화 = 남는 자리 다(meet.css 50% 를 이김) · 입력 칸은 대화창이 제 몫으로 네비 위에 둠 */
-  .nm-pmeet .nm-sk-bar { right:auto; left:8px; top:auto; bottom:8px; flex-direction:row; gap:10px; }   /* 펜 = 화면 왼쪽 아래(위는 다리 탭 줄 · 01:43 사진) */
-  .nm-pmeet .nm-sk-bar button.nm-sk-pen { width:40px; height:40px; }
+  .nm-pmeet .nm-sk-bar { left:auto; right:8px; bottom:auto; top:calc(var(--co-bar, 62px) + 8px); }   /* 뜸 세로 알약(펜 · 커튼 · 손 · 형 01:48) = 그림 오른쪽 위 · 다리 탭 줄 밑(bar) · 앞 판 = 펜 하나 왼쪽 아래 */
+  .nm-pmeet .nm-sk-pill button.nm-sk-pen { width:36px; height:36px; }
 }
 /* 팀즈 폰 목록(형 11-14 01:19 dm-sia 「팀즈 모바일에서 톡방 이름 볼디 한단계 낮춰줘. ㅋㅋ 글구 짝 홀 라인 구분되게 부탁해 하나는 검정쪽 투명에 가깝게 하나는 팀즈 고유색 투명에 가깝게 면 구분이 쉬울듯」)
    · 이름 = 700 → 600(새 글 800 → 700) · 홀 줄 = 검정 옅게 · 짝 줄 = 팀즈 보라(#5b5fc7) 옅게 */
