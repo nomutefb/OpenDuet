@@ -1,6 +1,6 @@
 /* 바로 다는 반응(./quick-react.tsx · 형 11-14 05:56) — 오른쪽 위 모서리 작은 둥근 단추(흐림 · 점등 꺼짐) · 펼치면 유리 구슬이 둥글게 · 고른 것 = 모서리에 불 켜진 채 */
 .nm-qr { position:absolute; top:-10px; right:-10px; z-index:4; width:24px; height:24px; }
-.nm-qr-btn { position:relative; z-index:2; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,.14); background:rgba(22,23,22,.78); color:rgba(232,234,232,.42); cursor:pointer; opacity:.55; transition:opacity .18s, transform .18s, background .18s;   /* 60프레임 = opacity · transform 만(폭 · 높이 움직임 0 · 형 05:57) */ backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+.nm-qr-btn { position:relative; z-index:2; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,.24); background:rgba(22,23,22,.82); color:rgba(232,234,232,.66); cursor:pointer; opacity:.85; transition:opacity .18s, transform .18s, background .18s;   /* 60프레임 = opacity · transform 만(폭 · 높이 움직임 0 · 형 05:57) */ backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
 .ychat [data-id]:hover .nm-qr-btn, .nm-qr-btn:focus-visible { opacity:1; }
 .nm-qr.lit .nm-qr-btn { opacity:1; border-color:rgba(207,255,64,.55); background:rgba(207,255,64,.14); box-shadow:0 0 8px rgba(207,255,64,.35); }
 .nm-qr-lit { font-size:13px; line-height:1; }
@@ -13,6 +13,6 @@
 .nm-qr-orb:hover, .nm-qr-orb:focus-visible { transform:translate(var(--x),var(--y)) scale(1.18) !important; }
 .nm-qr-orb.on { border-color:#CFFF40; box-shadow:0 0 10px rgba(207,255,64,.55), inset 0 1px 0 rgba(255,255,255,.25); }
 @keyframes nm-qrOut { to { transform:translate(var(--x),var(--y)) scale(1); opacity:1; } }
-:root:not(.dark) .nm-qr-btn { background:rgba(255,255,255,.9); color:rgba(22,23,22,.45); border-color:rgba(0,0,0,.12); }
+:root:not(.dark) .nm-qr-btn { background:rgba(255,255,255,.92); color:rgba(22,23,22,.6); border-color:rgba(0,0,0,.18); }
 :root:not(.dark) .nm-qr-hub { background:#fff; color:#161716; }
 @media (prefers-reduced-motion:reduce) { .nm-qr-orb { animation:none; transform:translate(var(--x),var(--y)); opacity:1; } .nm-qr-hub { animation:none; transform:none; opacity:1; } }
