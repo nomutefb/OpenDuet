@@ -20,6 +20,8 @@ export const GARDEN = "봄의 정원", TEAMS = "teams", BROWSER = "co", MEET = "
    // BROWSER = 고정 「브라우저」 탭 키(= 옛 같이 보기 탭 · 맥 72 다리 판 · 못 닿으면 끼워 넣기 · 형 11-12 16:49 「봄의정원, 브라우저, 팀즈」 · 봄 17:01 ⓐ · 17:03 「구글 · 인스타 · 클라우드플레어 걸린 곳도 열림」)   // TEAMS = 고정 팀즈 탭 키(탭 목록 밖 · 닫기 · 끌기 없음)
 const TEAMS_LAST = "nm-teams-last";   // 마지막에 본 팀즈 대화(이 기기) = 팀즈 탭 누르면 왼쪽이 그리로
 const teamsLast = () => { try { return localStorage.getItem(TEAMS_LAST) || ""; } catch { return ""; } };
+const OFFICE_LAST = "nm-office-last";   // 마지막에 본 사무실 대화(이 기기) = 팀즈에서 정원 탭 누르면 왼쪽이 그리로(형 11-13 12:43 봄 옮김 「그리고 팀즈에서 다시 정원을 누르면 그 채팅이 뜨게 가능해?」 · 「✓ ③ 둘 다」 · 뎅)
+const officeLast = () => { try { return localStorage.getItem(OFFICE_LAST) || ""; } catch { return ""; } };
 /** 화상회의 픽토그램(카메라 + 사람 하나 · 라임) — 팀즈 「회의」처럼 한눈에 갈리는 제 아이콘(형 11-13 09:21) */
 const MeetIcon = () => (
   <svg className="nm-tab-ic meet" viewBox="0 0 24 24" aria-hidden>
@@ -62,7 +64,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     setS((x) => (x.active === "dash" ? x : { ...x, active: "dash" }));
   }, [room, pane]);
   useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
-  useEffect(() => { if (isTeams(room)) try { localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
+  useEffect(() => { try { if (isTeams(room)) localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); else if (room && location.hash.startsWith("#/channels/")) localStorage.setItem(OFFICE_LAST, room); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
     const root = document.querySelector(".nm-split-root") as HTMLElement | null, el = bar.current;
@@ -104,6 +106,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     const key = tabKey(t);
     setS((x) => ({ ...x, active: key }));
     if (t.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`);
+    else if (t.k === "dash" && isTeams(room)) { const o = officeLast(); go(o ? `#/channels/${encodeURIComponent(o)}` : "#/"); }   // 팀즈 대화를 보다가 정원 = 아까 보던 사무실 대화 그대로(없으면 처음 판)
     else if (t.k === "dash" && pane === "chat" && !paneHost()) go("#/");   // 오른쪽 칸만 덮는 판 = 왼쪽 대화는 그대로(정원 탭 = 오른쪽만 원래 판 · 형 11-12 16:41 「항상 메인으로 다시 오더라」 · 깃)
   };
   const close = (key: string) => {

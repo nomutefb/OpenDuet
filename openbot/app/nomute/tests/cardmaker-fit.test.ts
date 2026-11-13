@@ -10,7 +10,7 @@ test("판 폭 = 틀 그대로(같은 이름 .nm-tm 이 다른 화면에서 폭 �
   assert.match(rd("../ui/thumb-maker/frame.css"), /\.tm-scroll > \.nm-tm \{ display:block; max-width:none;/);
   const teams = rd("../ui/teams.css");
   assert.ok(!/^\.nm-tm[ .{]/m.test(teams), "팀즈 말 줄 규칙이 맨 .nm-tm 으로 시작하면 카드 제작 판에 먹음");
-  assert.match(teams, /^\.nm-tchat-b > \.nm-tm \{/m);
+  assert.ok(!/className=\{?[`"]nm-tm[\s"`$]/.test(rd("../ui/teams.tsx")), "팀즈 말 줄 = 우리 대화 말풍선 부품(.ymsg · .yb · 형 11-13 12:43 · 뎅) · .nm-tm 이름은 이제 카드 제작 판만");
 });
 
 test("아래 빈 띠 0(옛 index 아래 메뉴 자리 70 뺌)", () => {

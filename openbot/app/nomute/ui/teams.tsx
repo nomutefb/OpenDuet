@@ -5,7 +5,8 @@
 //   방 주소 = /channels/teams:<chat id>(대화 판은 OfficeChat 이 이 앞머리를 보고 TeamsChat 으로)
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { DuetIcon } from "@/components/duet/icons";
 import { office } from "../data/office";
 import { t12 } from "./when";
 import "./teams.css";
@@ -80,6 +81,15 @@ export function useTeamsUnread() {
 }
 /** 받는 동안 = 라임 점 셋(앱 다른 칸 LazyDots 와 같은 꼴 · 형 11-13 「팀즈 때도 점 세개 로딩중 시그니처 색으로」) · slim = 그려 둔 목록 위 한 줄 */
 const Dots = ({ slim }: { slim?: boolean }) => <div className={`nm-lazy nm-tdots${slim ? " slim" : ""}`} role="status" aria-label="불러오는 중"><i /><i /><i /></div>;
+/* 날짜 가름 · 시각 묶음 = 우리 대화(office-chat.tsx dayKey · dateLabel · TIME_GAP)와 같은 셈 */
+const kst = (ts: number) => new Date(ts + 9 * 3600e3);
+const dayKey = (ts: number) => kst(ts).toISOString().slice(0, 10);
+const dateLabel = (ts: number) => `${dayKey(ts).slice(5).replace("-", "/")}(${"일월화수목금토"[kst(ts).getUTCDay()]})`;
+const TIME_GAP = 60_000;
+/* 대화마다 스크롤 자리(이 탭 동안 · 앱이 새 판으로 다시 읽혀도) — 정원 갔다 다시 팀즈 = 보던 자리 그대로(형 11-13 12:43 봄 옮김 「팀즈에서 다시 정원을 누르면 그 채팅이 뜨게」 · 「✓ ③ 둘 다」 · 뎅) · 맨 아래면 안 둠(새 글 따라감) */
+const SCROLL_KEY = (chat: string) => `nm-teams-scroll:${chat}`;
+function keepScroll(chat: string, b: HTMLElement) { try { const atEnd = b.scrollHeight - b.scrollTop - b.clientHeight < 40; if (atEnd) sessionStorage.removeItem(SCROLL_KEY(chat)); else sessionStorage.setItem(SCROLL_KEY(chat), String(Math.round(b.scrollTop))); } catch { /* 이번만 */ } }
+const savedScroll = (chat: string) => { try { const v = sessionStorage.getItem(SCROLL_KEY(chat)); return v == null ? null : +v; } catch { return null; } };
 const chatName = (c: Chat, me?: string) => c.topic || (c.members || []).filter((m) => m && m !== me).join(", ") || "(이름 없는 대화)";
 const ago = (at?: string) => { const t = at ? Date.parse(at) : NaN; if (!Number.isFinite(t)) return ""; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "방금" : m < 60 ? `${m}분` : m < 1440 ? t12(t) : new Date(t).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }); };
 
@@ -176,8 +186,12 @@ export function TeamsChat({ chat }: { chat: string }) {
   useEffect(() => { setOlder([]); setNext(undefined); }, [chat]);
   const nextOf = next ?? page.data?.next;
   const all = useMemo(() => { const seen = new Set<string>(); const out: TMsg[] = []; for (const m of [...(page.data?.messages || []), ...older]) if (!seen.has(m.id)) { seen.add(m.id); out.push(m); } return out.reverse(); }, [page.data, older]);
-  const box = useRef<HTMLDivElement>(null), stick = useRef(true);
-  useEffect(() => { const b = box.current; if (b && stick.current) b.scrollTop = b.scrollHeight; }, [all.length]);
+  const box = useRef<HTMLDivElement>(null), stick = useRef(true), restored = useRef("");
+  useLayoutEffect(() => {   // 처음 그릴 때 = 이 대화 보던 자리가 있으면 거기 · 없으면 맨 아래 · 그 뒤 = 맨 아래 붙어 있을 때만 따라감
+    const b = box.current; if (!b || !all.length) return;
+    if (restored.current !== chat) { restored.current = chat; const y = savedScroll(chat); if (y != null) { stick.current = false; b.scrollTop = y; return; } stick.current = true; }
+    if (stick.current) b.scrollTop = b.scrollHeight;
+  }, [all.length, chat]);
   const more = async () => {
     if (!nextOf || moreBusy) return;
     setMoreBusy(true); stick.current = false;
@@ -223,30 +237,46 @@ export function TeamsChat({ chat }: { chat: string }) {
   return (
     <div className="nm-tchat">
       <div className="nm-tchat-h"><b className="min-w-0 truncate">{chatTitle ? (chatTitle.topic || (chatTitle.members || []).filter((m) => m && m !== me.user?.name).map((m) => titled(m, table)).join(", ") || "(이름 없는 대화)") : "대화"}</b></div>   {/* 「팀즈」 꼬리표 뺌(형 11-06 「(팀즈) 이렇게 뜰 필요는없어 팀즈인건 당연히 아니까」) · 이름 뒤 직급 */}
-      <div ref={box} className="nm-tchat-b" onScroll={(e) => { const b = e.currentTarget; stick.current = b.scrollHeight - b.scrollTop - b.clientHeight < 40; }}>
-        {nextOf ? <button type="button" className="nm-tmore" disabled={moreBusy} onClick={() => void more()}>{moreBusy ? "받는 중…" : "앞 글 더 보기"}</button> : null}
-        {page.isLoading ? <Dots /> : page.error ? <p className="nm-tnote">글을 못 받았어 · {(page.error as Error).message}</p> : null}
-        {all.map((m) => (
-          <div key={m.id} className={`nm-tm${mine(m) ? " me" : ""}`}>
-            {mine(m) ? null : <b className="nm-tm-who">{titled(m.from, table) || "?"}</b>}
-            <div className="nm-tm-b">
-              {m.text ? <p>{m.text}</p> : null}
-              {(m.hosted || []).map((h) => <img key={h} alt="" loading="lazy" src={`/api/office/teams/hosted?chat=${encodeURIComponent(chat)}&msg=${encodeURIComponent(m.id)}&h=${encodeURIComponent(h)}`} />)}
-              {(m.files || []).map((f, i) => f.url ? <a key={i} className="nm-tfile" href={`/api/office/teams/file?u=${encodeURIComponent(f.url)}`} target="_blank" rel="noopener">📎 {f.name || "파일"}</a> : null)}
-            </div>
-            <time className="nm-tm-t">{m.at ? t12(Date.parse(m.at)) : ""}</time>
-          </div>
-        ))}
-      </div>
-      <div className="nm-tin">
-        {err ? <p role="alert" className="nm-terr" onClick={() => setErr("")}>{err}</p> : null}
-        {file ? <p className="nm-tpick"><span className="min-w-0 truncate">📎 {file.name}</span><small>{file.size >= 1048576 ? `${(file.size / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(file.size / 1024))}KB`}</small><button type="button" aria-label="붙인 파일 빼기" disabled={busy} onClick={() => setFile(null)}>×</button></p> : null}
-        <div className="nm-tin-row">
-          <input ref={pick} type="file" hidden onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ""; if (f && f.size > 25 * 1024 * 1024) { setErr("25MB 넘는 파일은 여기서 못 보내"); return; } if (f) { setFile(f); setErr(""); } }} />
-          <button type="button" className="nm-tplus" aria-label="파일 붙이기" title="파일 붙이기" disabled={busy} onClick={() => pick.current?.click()}>+</button>
-          <textarea value={text} rows={1} placeholder={file ? "같이 보낼 말(없어도 됨)" : "팀즈로 보내기"} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} />
-          <button type="button" aria-label={file ? "파일 보내기" : "보내기"} disabled={busy || (!text.trim() && !file)} onClick={() => void send()}>{busy && file ? "…" : "↑"}</button>
+      {/* 말풍선 = 우리 대화와 같은 부품(.ychat · .ymsg/.ymrow · .yb ai/me · .ytout · .ydate · 입력칸 .ychat-in = yeta-chat.css) · 겉꼴만 — 반응 · 답장 · 움짤 · 결정 · 표지 0 · 얼굴 칸 없이 이름 위(형 11-13 12:43 봄 옮김 「팀즈도, 이 우리 채팅하고 동일하게 구성을 적용할수있나? 채팅창 안에. 그니까 말풍선 이런것만.」 · 뎅) */}
+      <div ref={box} className="nm-tchat-b" onScroll={(e) => { const b = e.currentTarget; stick.current = b.scrollHeight - b.scrollTop - b.clientHeight < 40; keepScroll(chat, b); }}>
+        <div className="ychat nm-tychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-3">
+          {nextOf ? <button type="button" className="nm-tmore" disabled={moreBusy} onClick={() => void more()}>{moreBusy ? "받는 중…" : "앞 글 더 보기"}</button> : null}
+          {page.isLoading ? <Dots /> : page.error ? <p className="nm-tnote">글을 못 받았어 · {(page.error as Error).message}</p> : null}
+          {all.map((m, i) => {
+            const ts = m.at ? Date.parse(m.at) : 0, prev = all[i - 1], nx = all[i + 1];
+            const pts = prev?.at ? Date.parse(prev.at) : 0, nts = nx?.at ? Date.parse(nx.at) : 0;
+            const newDay = !!ts && (!pts || dayKey(pts) !== dayKey(ts)), cont = !newDay && !!prev && prev.from === m.from;
+            const noTime = !!nx && !!nts && dayKey(nts) === dayKey(ts) && ((nx.from === m.from && nts - ts < TIME_GAP) || t12(nts) === t12(ts));   // 시각 = 이어 쓴 묶음 마지막 글에만(우리 대화와 같은 셈)
+            const time = noTime || !ts ? null : <time className="ytout" dateTime={m.at}>{t12(ts)}</time>;
+            const body = (
+              <>
+                {m.text ? <span>{m.text}</span> : null}
+                {(m.hosted || []).map((h) => <img key={h} className="nm-thost" alt="" loading="lazy" src={`/api/office/teams/hosted?chat=${encodeURIComponent(chat)}&msg=${encodeURIComponent(m.id)}&h=${encodeURIComponent(h)}`} />)}
+                {(m.files || []).map((f, k) => f.url ? <a key={k} className="nm-tfile" href={`/api/office/teams/file?u=${encodeURIComponent(f.url)}`} target="_blank" rel="noopener">📎 {f.name || "파일"}</a> : null)}
+              </>
+            );
+            return (
+              <Fragment key={m.id}>
+                {newDay ? <p className="ydate">{dateLabel(ts)}</p> : null}
+                {mine(m) ? (
+                  <div className="flex flex-col items-end"><div className={`ymrow me${cont ? " cont" : ""}`}><div className="ybw"><div className="yb me">{body}</div>{time}</div></div></div>
+                ) : (
+                  <div className={`ymsg nm-tnoface${cont ? " cont" : ""}`}><div className="ycol"><div className="yname">{titled(m.from, table) || "?"}</div><div className="ybrow"><div className="ybw"><div className="yb ai">{body}</div>{time}</div></div></div></div>
+                )}
+              </Fragment>
+            );
+          })}
         </div>
+      </div>
+      <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
+        {err ? <p role="alert" className="nm-terr pb-2" onClick={() => setErr("")}>{err}</p> : null}
+        {file ? <p className="nm-tpick"><span className="min-w-0 truncate">📎 {file.name}</span><small>{file.size >= 1048576 ? `${(file.size / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(file.size / 1024))}KB`}</small><button type="button" aria-label="붙인 파일 빼기" disabled={busy} onClick={() => setFile(null)}>×</button></p> : null}
+        <form className="nm-tform flex items-end gap-1" onSubmit={(e) => { e.preventDefault(); void send(); }}>
+          <input ref={pick} type="file" hidden onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ""; if (f && f.size > 25 * 1024 * 1024) { setErr("25MB 넘는 파일은 여기서 못 보내"); return; } if (f) { setFile(f); setErr(""); } }} />
+          <button type="button" className="nm-tplus2" aria-label="파일 붙이기" title="파일 붙이기" disabled={busy} onClick={() => pick.current?.click()}><DuetIcon name="plus" size={20} stroke={2} /></button>
+          <textarea value={text} rows={1} placeholder={file ? "같이 보낼 말(없어도 됨)" : "팀즈로 보내기"} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} />
+          <button type="submit" aria-label={file ? "파일 보내기" : "보내기"} disabled={busy || (!text.trim() && !file)}>{busy && file ? "…" : <DuetIcon name="arrowUp" size={20} stroke={2.4} />}</button>
+        </form>
       </div>
     </div>
   );
