@@ -109,3 +109,5 @@
 .nm-mp.kick { opacity:.55; }
 .nm-mp.kick .nm-mp-st { color:rgba(232,234,232,.6); }
 @media (prefers-reduced-motion:reduce) { .nm-mp.coming .nm-mp-dot { animation:none; } }
+.nm-mp-n1 { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }   /* 이름 + 이모지 = 한 줄 · 상태 = 그 아래 한 줄 */
+.nm-mp-st { display:block; overflow:hidden; text-overflow:ellipsis; }
