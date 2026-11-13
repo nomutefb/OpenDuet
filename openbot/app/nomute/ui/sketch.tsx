@@ -25,7 +25,7 @@ export function SketchLayer({ frame }: { frame: React.RefObject<HTMLIFrameElemen
   const area = rect ? { left: rect.x, top: rect.y, width: rect.w, height: rect.h } : { left: 0, top: 0, width: "100%", height: "100%" };
   const at = (e: React.PointerEvent): [number, number] => { const b = box.current!.getBoundingClientRect(); return [Math.round(((e.clientX - b.left) / b.width) * 1000), Math.round(((e.clientY - b.top) / b.height) * 1000)]; };
   const post = (body: object) => office("together/sketch", { method: "POST", body: JSON.stringify(body) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "sketch"] })).catch((e) => setWhy(e instanceof Error ? e.message : "못 그렸어"));
-  const down = (e: React.PointerEvent) => { if (!on) return; e.preventDefault(); (e.target as Element).setPointerCapture?.(e.pointerId); drawing.current = true; setLive([at(e)]); };
+  const down = (e: React.PointerEvent) => { if (!on) return; e.preventDefault(); try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch { /* 잡기 못 해도 그림 */ } drawing.current = true; setLive([at(e)]); };
   const move = (e: React.PointerEvent) => { if (!drawing.current) return; const p = at(e); setLive((l) => (l.length && Math.abs(l[l.length - 1][0] - p[0]) + Math.abs(l[l.length - 1][1] - p[1]) < 4 ? l : [...l, p].slice(0, 400))); };
   const up = () => { if (!drawing.current) return; drawing.current = false; const p = live; setLive([]); if (p.length >= 2) void post({ op: "add", item: { k: "free", p, url: rect?.url } }); };
   const shown = useMemo(() => items.map((it) => ({ it, dim: !!(rect?.url && it.url && it.url !== rect.url) })), [items, rect?.url]);
