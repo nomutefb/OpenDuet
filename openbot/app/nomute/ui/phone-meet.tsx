@@ -12,14 +12,13 @@ export function PhoneMeet({ onClose }: { onClose: () => void }) {
   const [go, setGo] = useState(false);
   const q = useQuery({ queryKey: ["nomute", "temprooms", "meet"], queryFn: () => office<{ rooms?: TempRoom[] }>("temprooms").then((j) => j.rooms || []), staleTime: 10_000 });
   if (!go) {
-    if (q.isPending) return <p className="nm-pmeet-note">회의 찾는 중…</p>;
+    if (q.isPending) return <div className="nm-pmeet-empty" aria-busy="true" />;   // 설명 글 0(형 11-14 01:41 「부가적인 설명글잇는 부분들은 다른 곳도 없애주면돼」)
     const now = Date.now(), rooms = q.data || [], mine = readMine();
     const open = stillOpen(mine, rooms, now) ? mine : openMeetOf(rooms, now);
     if (open) { writeMine(open); return <CobrowsePane mode="meet" onClose={onClose} />; }
     if (mine) writeMine(null);   // PC 에서 끝낸 회의
     return (
       <div className="nm-pmeet-empty">
-        <p>지금 열린 회의가 없어요</p>
         <button type="button" className="nm-meet-btn" onClick={() => setGo(true)}>새 회의</button>
       </div>
     );
