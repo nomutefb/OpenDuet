@@ -7,7 +7,7 @@ export const OOPS_GIF = "/office/sticker/bom/surprise-clear.webp";   // 투명 �
 export const OOPS_PNG = "/office/sticker/bom/surprise-clear.png";
 const home = () => { try { location.hash = "#/"; } catch { /* 그대로 */ } location.reload(); };
 
-export function Oops({ title = "앗, 화면이 꼬였어", sub = "잠깐 길을 잃었나 봐", small = false, retry }: { title?: string; sub?: string; small?: boolean; retry?: () => void }) {
+export function Oops({ title = "앗, 잠깐 엉켰어.", sub = "같이 다시 가볼까?", small = false, retry }: { title?: string; sub?: string; small?: boolean; retry?: () => void }) {
   return (
     <div className={`nm-oops${small ? " small" : ""}`} role="alert">
       <picture><source srcSet={OOPS_GIF} type="image/webp" /><img src={OOPS_PNG} alt="" width={small ? 72 : 168} height={small ? 72 : 168} /></picture>

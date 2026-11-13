@@ -371,7 +371,7 @@ class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: 
   state = { bad: false };
   static getDerivedStateFromError() { return { bad: true }; }
   componentDidCatch(e: unknown) { console.error("반갈 칸 깨짐:", this.props.name, e); (window as unknown as { __nmReportError?: (kind: string, err: unknown) => void }).__nmReportError?.("boundary:pane", e); }   // 서버로도 알림(번개 ui/err-catch.ts · 빠르 11-08)
-  render() { return this.state.bad ? <Oops small title={`${this.props.name} 칸이 꼬였어`} sub="새로 열면 다시 그려" retry={() => this.setState({ bad: false })} /> : this.props.children; }
+  render() { return this.state.bad ? <Oops small title={`${this.props.name} 칸이 잠깐 엉켰어`} sub="같이 다시 가볼까?" retry={() => this.setState({ bad: false })} /> : this.props.children; }
 }
 
 /** 대화 | 오른쪽 경계 끌기(형 11-06 대시보드 고급화 UI ② · 시아 판) = 오른쪽 넓이 30~65% · 이 PC 에 기억(nm-split-w) · 두 번 누름 = 반반 */
