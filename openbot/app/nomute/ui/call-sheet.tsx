@@ -49,8 +49,10 @@ function confirmAgent(a: Agent, drop: number) {
   const h = composer?.current;
   const ed = (document.activeElement as HTMLElement | null)?.closest?.('[contenteditable="true"]') as HTMLElement | null, b = ed ? beforeCaret(ed) : "";
   if (b && !/\s$/.test(b)) document.execCommand("insertText", false, " ");   // 「봐」 뒤에 바로 붙으면 서버가 부름으로 못 읽음
-  h?.insertChip({ trigger: "@", value: a.id, displayText: a.name });
+  h?.insertChip({ trigger: "@", value: a.id, displayText: a.name });   // 칩 + 빈칸이 글 끝에 붙음(prompt-area) — 커서는 안 옮겨 줌
   open = null; emit();
+  const toEnd = () => { h?.focus(); h?.setCursorToEnd(); };   // 커서 = 칩 뒤 빈칸 다음(형 11-14 00:07 봄 옮김 「호출 시 커서가 그 다음으로 가게해주라!!」) · 같은 입력칸 초점 그대로 = 폰 자판 안 내려감
+  toEnd(); requestAnimationFrame(toEnd);
 }
 /** 명부가 떠 있는 동안 입력칸 글이 바뀔 때 = 좁힘 · 확정 · 닫힘 */
 function onQueryInput(e: Event) {
