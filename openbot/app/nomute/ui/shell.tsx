@@ -6,6 +6,7 @@
 //     결의 방·토큰·피드백 = 앱 안(./gyeol-room.tsx · tokens.tsx · feedback.tsx · 전엔 에디터 원본 화면 viewer/gyeol-room.html · tokens.html · feedback.html 을 품음) · 설정 = 원본 settings 화면(보조 03 YETA 설정)
 //   그 밖 길(할 일 하나 보기 등) = 판 위에 덮는 쪽(원본 머리 = 뒤로) · PC(768px~) = 왼쪽 끝 얼굴 띠(형 11:21~11:26)
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
+import { Oops } from "./oops";   // 칸 깨짐 = 작은 에러 판(형 11-14 05:18)
 import { MeetLogList } from "./meet";   // 서랍 「화상회의」(형 11-13)
 import { PinMark } from "./pin-mark";
 import { TodoBar } from "./todo-bar";
@@ -370,7 +371,7 @@ class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: 
   state = { bad: false };
   static getDerivedStateFromError() { return { bad: true }; }
   componentDidCatch(e: unknown) { console.error("반갈 칸 깨짐:", this.props.name, e); (window as unknown as { __nmReportError?: (kind: string, err: unknown) => void }).__nmReportError?.("boundary:pane", e); }   // 서버로도 알림(번개 ui/err-catch.ts · 빠르 11-08)
-  render() { return this.state.bad ? <p style={{ margin: 0, padding: "12px 14px", fontSize: 12, color: "rgba(232,234,232,.55)" }}>{this.props.name} 칸을 못 그렸어 — 새로고침하면 다시 해 봐.</p> : this.props.children; }
+  render() { return this.state.bad ? <Oops small title={`${this.props.name} 칸이 꼬였어`} sub="새로 열면 다시 그려" retry={() => this.setState({ bad: false })} /> : this.props.children; }
 }
 
 /** 대화 | 오른쪽 경계 끌기(형 11-06 대시보드 고급화 UI ② · 시아 판) = 오른쪽 넓이 30~65% · 이 PC 에 기억(nm-split-w) · 두 번 누름 = 반반 */
