@@ -46,10 +46,10 @@ export function SketchLayer({ rect }: { rect: CoRect | null }) {
         </svg>
         {shown.filter(({ it }) => it.text).map(({ it, dim }) => { const [x, y] = labelAt(it); return <span key={it.id} className="nm-sk-lbl" style={{ left: `${x / 10}%`, top: `${y / 10}%`, borderColor: skColor(it.who), opacity: dim ? 0.35 : 1 }}><b style={{ color: skColor(it.who) }}>{it.who}</b> {it.text}</span>; })}
       </div>
-      <div className="nm-sk-bar" role="toolbar" aria-label="스케치">
-        <button type="button" className={on ? "on" : ""} aria-pressed={on} onClick={() => setOn((v) => !v)} title={on ? "그리기 끄기(화면 손으로 돌아감)" : "화면 위에 그리기(우리끼리만 보임)"}>✎ 스케치</button>
-        {on ? <button type="button" onClick={() => void post({ op: "undo" })} title="내 마지막 하나 지우기">↶</button> : null}
-        {items.length ? <button type="button" onClick={() => void post({ op: "clear" })} title="다 지우기">지우기</button> : null}
+      <div className="nm-sk-bar" role="toolbar" aria-label="스케치">   {/* 자리 = 우상단 제어권 동그라미 왼쪽 나란히(형 11-13 16:15 「스케치랑 제어권은 우상단에 같이」 · 깃 다리 제어권 = right 10 · top 80 · 34) */}
+        <button type="button" className={`nm-sk-pen${on ? " on" : ""}`} aria-pressed={on} aria-label="스케치" onClick={() => setOn((v) => !v)} title={on ? "그리기 끄기(화면 손으로 돌아감)" : "화면 위에 그리기(우리끼리만 보임)"}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden><path d="M4 20l4-1 10-10-3-3L5 16l-1 4z M14 7l3 3" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round" /></svg></button>
+        {on ? <button type="button" className="nm-sk-pen" onClick={() => void post({ op: "undo" })} title="내 마지막 하나 지우기" aria-label="되돌리기">↶</button> : null}
+        {on && items.length ? <button type="button" className="nm-sk-pen" onClick={() => void post({ op: "clear" })} title="다 지우기" aria-label="다 지우기">⌫</button> : null}
         {why ? <small role="alert" onClick={() => setWhy("")}>{why}</small> : null}
       </div>
     </>

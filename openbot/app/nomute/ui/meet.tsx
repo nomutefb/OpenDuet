@@ -86,32 +86,43 @@ export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onC
   );
 }
 
-/** 회의 종료 = 형만 · 누르면 1분 카운트(방에 알림) · 다시 누르면 취소 · 0 = 서버 meetlog 로 기록 서랍에 담고 방 닫힘(형 11-13 06:5x 「종료하면 1분 동안 회의 종료 카운트 알리고 종료되면서 방 나가짐 알림 뜸」) · 단추 자리 = 머리 오른쪽 */
+/** 회의 종료 = 형만 · 머리 × → 「회의를 종료하시겠습니까?」 아니오(라임) / 예 → 서버 meetlog(기록 서랍 · 방 닫힘 · 들어와 있던 이 1:1 방에 「[안내- 자동]」 · editor _meetlog.js) (형 11-13 16:17 「정지는 누르면 회의가 종료하시겠습니까? / 아니오 예 / 아니오에 라임색」 · 「종료 시 > 각 방에 … 안내 보냄」 · 16:18 「x 대신 종료」) */
 export function useMeetEnd(meet: Meet | null, onEnd: () => void) {
+  const id = meet?.id || "";
+  const [ask, setAsk] = useState(false), [ending, setEnding] = useState(false), [why, setWhy] = useState("");
+  const endNow = async () => {
+    if (!id) { onEnd(); return; }
+    setEnding(true); setWhy("");
+    try { await office(`meetlog/${encodeURIComponent(id)}`, { method: "POST", body: "{}" }); setAsk(false); onEnd(); }
+    catch (e) { setWhy(e instanceof Error ? e.message : "못 끝냈어"); }
+    setEnding(false);
+  };
+  return { ask, setAsk, ending, why, endNow };
+}
+export function EndAsk({ end }: { end: ReturnType<typeof useMeetEnd> }) {
+  if (!end.ask) return null;
+  return (
+    <div className="nm-meet-ask" role="dialog" aria-label="회의 종료">
+      <b>회의를 종료하시겠습니까?</b>
+      {end.why ? <small role="alert">{end.why}</small> : null}
+      <div className="nm-meet-ask-ft"><button type="button" className="no" autoFocus onClick={() => end.setAsk(false)}>아니오</button><button type="button" disabled={end.ending} onClick={() => void end.endNow()}>{end.ending ? "끝내는 중…" : "예"}</button></div>
+    </div>
+  );
+}
+
+/** 서버 「지금 같이 보는 창」 한 장(다리가 올림) — 제어권 쥔 이 · 마지막 올린 때(머리 「동기화 n초 전」) */
+export function useTogetherNow() {
+  const q = useQuery({ queryKey: ["nomute", "together", "now"], queryFn: () => office<{ now?: { at?: number; ctrl?: { who?: string } } }>("together").then((j) => ({ at: j.now?.at || 0, ctrl: j.now?.ctrl?.who || "" })), refetchInterval: 2000 });
+  return q.data || { at: 0, ctrl: "" };
+}
+/** 머리 「ON AIR ( n초 전 )」(형 11-13 16:18 「동기화 n초전 이거는 그냥 on air로 나오면 되고 ON AIR ( n초 전 )」 · 괄호 = 연하게) · 값 = 다리 신호 nm-co-sync(ago) 먼저 · 없으면 서버 together.at */
+export function OnAir({ ago }: { ago: number | null }) {
+  const { at } = useTogetherNow();
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
-  const id = meet?.id || "";
-  const [endAt, setEndAt] = useState<number>(0);
-  useEffect(() => { try { setEndAt(+(localStorage.getItem(`${KEY}_end_${id}`) || 0)); } catch { setEndAt(0); } }, [id]);
-  const [ending, setEnding] = useState(false);
-  const say = (text: string) => office(`rooms/${encodeURIComponent(id)}/messages`, { method: "POST", body: JSON.stringify({ text }) }).catch(() => {});
-  const keepEnd = (t: number) => { setEndAt(t); try { if (t) localStorage.setItem(`${KEY}_end_${id}`, String(t)); else localStorage.removeItem(`${KEY}_end_${id}`); } catch { /* 이 기기 */ } };
-  const toggle = async () => {
-    if (!id) return;
-    if (endAt) { keepEnd(0); await say("회의 종료 취소 — 계속해"); return; }
-    keepEnd(Date.now() + 60_000); await say("회의 종료 1분 전 — 1분 뒤 이 방이 닫혀(대화는 기록 서랍 「화상회의」에 남아) · 할 말 있으면 지금");
-  };
-  const left = endAt ? Math.max(0, Math.ceil((endAt - now) / 1000)) : 0;
-  useEffect(() => {
-    if (!id || !endAt || now < endAt || ending) return;
-    setEnding(true);
-    void (async () => {
-      await say("회의가 끝났어 · 모두 나감 — 기록 서랍 「화상회의」에 담았어");
-      await office(`meetlog/${encodeURIComponent(id)}`, { method: "POST", body: "{}" }).catch(() => {});
-      keepEnd(0); setEnding(false); onEnd();
-    })();
-  }, [now, endAt, ending, id]);   // eslint-disable-line react-hooks/exhaustive-deps
-  return { on: !!endAt, left, ending, toggle };
+  const ms = ago ?? (at ? now - at : null);
+  const s = ms == null ? null : Math.max(0, Math.round(ms / 1000));
+  return <span className="nm-onair"><i aria-hidden /> <b>ON AIR</b>{s == null ? null : <span className={`nm-co-sync${s > 10 ? " stale" : ""}`}>( {s < 60 ? `${s}초` : `${Math.floor(s / 60)}분`} 전 )</span>}</span>;
 }
 
 type ListRoom = { id: string; name?: string; purpose?: string; members?: string[] };
@@ -137,8 +148,10 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
   const list = useQuery({ queryKey: officeKeys.people, queryFn: () => people(), staleTime: 60_000 }).data || [];
   const members = live?.members?.length ? live.members : meet.members;
   const ans = useMemo(() => answersOf(msgs, members, meet.t0), [msgs, members, meet.t0]);
-  const ctrl = useQuery({ queryKey: ["nomute", "together", "now"], queryFn: () => office<{ now?: { ctrl?: { who?: string } } }>("together").then((j) => j.now?.ctrl?.who || ""), refetchInterval: 3000 }).data || "";
+  const ctrl = useTogetherNow().ctrl;
   const [inv, setInv] = useState(false), [busy, setBusy] = useState(""), [why, setWhy] = useState("");
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem(`${KEY}_ppl`) !== "0"; } catch { return true; } });   // 명단 접기(형 11-13 16:15 「명단 접을수도 잇나?」) · 이 기기에 기억
+  const flip = () => setOpen((v) => { try { localStorage.setItem(`${KEY}_ppl`, v ? "0" : "1"); } catch { /* 이 기기 */ } return !v; });
   const setMembers = async (next: string[], tag: string) => {
     if (!live) return;
     setBusy(tag); setWhy("");
@@ -150,7 +163,12 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
   const rows = ["형", ...members.filter((n) => n !== "형")];
   const inRoom = (n: string) => n === "형" || n === SCRIBE || ans[n]?.a === "yes";   // 들어옴 = 형 · 기록관 · 「[수락]」 한 이
   return (
-    <div className="nm-meet-ppl" aria-label="화상회의에 들어와 있는 이" style={at ? { top: at.y + 10 } : undefined}>
+    <div className={`nm-meet-ppl${open ? "" : " shut"}`} aria-label="화상회의에 들어와 있는 이" style={at ? { top: at.y + 10 } : undefined}>
+      <button type="button" className="nm-mp-h" aria-expanded={open} onClick={flip} title={open ? "명단 접기" : "명단 펴기"}>   {/* 접힘 = 옛 에디터 .tbrief-led 아코디언 그대로(grid 0fr↔1fr .26s · 꺾쇠 180°) */}
+        <span>명단</span><b>{rows.filter(inRoom).length}/{rows.length}</b>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      <div className="nm-mp-w" {...(open ? {} : { inert: "" as unknown as boolean })}><div className="nm-mp-l">
       {rows.map((n) => {
         const p = pOf(n), on = inRoom(n), ring = ringOf(p);
         return (
@@ -169,6 +187,7 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
       ) : null}
       <button type="button" className="nm-mp-inv" onClick={() => setInv((v) => !v)} aria-expanded={inv}>{inv ? "닫기" : "+ 초대하기"}</button>
       {why ? <small role="alert" className="nm-mp-why">{why}</small> : null}
+      </div></div>
     </div>
   );
 }
