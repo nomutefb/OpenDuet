@@ -93,5 +93,6 @@
 .nm-tab-ic.teams { width:16px; height:16px; border-radius:0; }
 .nm-tab-teams { position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden; background:var(--nm-tab-on, #121314); }
 .nm-tab-teams > .nm-tlist { flex:1; min-height:0; overflow-y:auto; }
-.nm-tab.browser { flex:0 0 auto; min-width:0; max-width:none; padding:0 14px; gap:7px; }
+.nm-tab.browser, .nm-tab.meet { flex:0 0 auto; min-width:0; max-width:none; padding:0 14px; gap:7px; }
 .nm-tab-ic.browser { width:15px; height:15px; border-radius:0; }
+.nm-tab-ic.meet { width:16px; height:16px; border-radius:0; }   /* 화상회의 고정 탭(형 11-13 09:21) */
