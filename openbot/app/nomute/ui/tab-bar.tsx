@@ -11,7 +11,7 @@ import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, ta
 import { WebPane } from "./web-pane";
 import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:54 · 맥 72 다리)
 import { COBROWSE_EVENT } from "./cobrowse";
-import { TEAMS_PREFIX, TeamsList, isTeams } from "./teams";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
+import { TEAMS_PREFIX, TeamsList, isTeams, useTeamsUnread } from "./teams";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 
 // 첫 탭 = 「봄의 정원」(형 11-12 06:23 봄 1:1 「기본적으로 탭형태를 갖춰서. 봄의 정원. 이라고 나오게해줘. 그리고 거기서 +가 나오게 크롬형태를 참고하면 될거같애」
@@ -94,6 +94,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     return !r ? "" : r.with ? idOf(r.with, list) : roomAgentIds(r, list)[0] || "";
   };
   const nameOf = (t: Tab) => (t.k === "dash" ? GARDEN : t.k === "co" ? "같이 보기" : t.k === "web" ? webTabName(t.url) : t.k === "screen" ? `${list.find((p) => p.who === t.who)?.name || t.who} 화면` : roomOf(t.id)?.name || t.id);
+  const teamsNew = useTeamsUnread();
   const pickTeams = () => {   // 오른쪽 칸 = 팀즈 목록 · 왼쪽 대화 = 마지막 팀즈 대화(없으면 그대로 · 목록에서 고르면 왼쪽만 바뀜)
     setS((x) => ({ ...x, active: TEAMS }));
     const c = teamsLast();
@@ -150,7 +151,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
         </div>   {/* 화상회의 = 따로 선 들머리(형 11-13 09:21) · 열린 회의 없으면 바로 참여자 고르기 */}
         <div role="tab" aria-selected={s.active === TEAMS} tabIndex={0} title="팀즈" className={`nm-tab teams${s.active === TEAMS ? " on" : ""}`}
           onClick={pickTeams} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickTeams(); } }}>
-          <TeamsIcon /><span className="nm-tab-nm">팀즈</span>
+          <TeamsIcon /><span className="nm-tab-nm">팀즈</span>{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}   {/* 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」) */}
         </div>   {/* 팀즈 = 늘 있는 고정 탭(닫기 · 끌기 없음) */}
         {s.tabs.filter((t) => t.k !== "dash").map((t) => {
           const key = tabKey(t), on = s.active === key, face = faceOf(t);

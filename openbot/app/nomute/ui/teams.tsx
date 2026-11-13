@@ -21,6 +21,36 @@ const readMode = () => { try { return localStorage.getItem(MODE_KEY) === "teams"
 export function setTeamsMode(on: boolean) { try { localStorage.setItem(MODE_KEY, on ? "teams" : "office"); } catch { /* 이번만 */ } subs.forEach((f) => f()); }
 export const useTeamsMode = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, readMode, () => false);
 
+/* 이 기기 기억 셋(형 11-13 10:23 봄 옮김 「팀즈 미미리 얼굴 보이게 로딩떠도돼. 이게 렉이걸리면 사진을 아주 축소해서 애초에 저장을하자」 · 「새로 들어온 글도 여기서 알수있으면 베스트임」 · 뎅)
+   · 대화 목록 = 마지막에 받은 판을 먼저 그림(얼굴 · 이름 바로) · 그사이 새로 받음
+   · 얼굴 = 서버에서 한 번 받으면 64px 로 줄여 이 기기에 둠(다음부터 서버 안 기다림)
+   · 읽은 때 = 대화마다 「여기까지 봄」 · 그보다 새 글(남이 쓴 것) = 목록 굵게 + 라임 점 · 팀즈 탭 · 바꿈 단추에 숫자 */
+const CHATS_KEY = "nm-teams-chats", FACE_KEY = "nm-teams-face", SEEN_KEY = "nm-teams-seen";
+const readJ = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(k); return v ? (JSON.parse(v) as T) : d; } catch { return d; } };
+const writeJ = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 가득 참 · 막힘 = 이번만 */ } };
+let faceMem: Record<string, string> | null = null;
+const faces = () => (faceMem ??= readJ<Record<string, string>>(FACE_KEY, {}));
+function keepFace(id: string, img: HTMLImageElement) {   // 받은 얼굴을 64px jpeg 로(한 장 2~3KB · 많아야 120장 · 폰 2배 화면에서도 안 뭉개질 만큼만)
+  if (!id || faces()[id]) return;
+  try {
+    const c = document.createElement("canvas"); c.width = c.height = 64;
+    const x = c.getContext("2d"); if (!x) return;
+    x.drawImage(img, 0, 0, 64, 64);
+    const m = { ...faces(), [id]: c.toDataURL("image/jpeg", 0.72) }, ks = Object.keys(m);
+    for (const k of ks.slice(0, Math.max(0, ks.length - 120))) delete m[k];
+    faceMem = m; writeJ(FACE_KEY, m);
+  } catch { /* 그림을 못 읽음 = 다음에 서버에서 */ }
+}
+const seenSubs = new Set<() => void>();
+let seenMem: Record<string, string> | null = null;
+const seenNow = () => (seenMem ??= readJ<Record<string, string> | null>(SEEN_KEY, null) || ({} as Record<string, string>));
+const seenEver = () => { try { return localStorage.getItem(SEEN_KEY) != null; } catch { return true; } };
+function markSeen(chat: string, at?: string) {
+  if (!chat || !at || (seenNow()[chat] || "") >= at) return;
+  seenMem = { ...seenNow(), [chat]: at }; writeJ(SEEN_KEY, seenMem); seenSubs.forEach((f) => f());
+}
+const useSeen = () => useSyncExternalStore((f) => { seenSubs.add(f); return () => seenSubs.delete(f); }, seenNow, seenNow);
+
 type Me = { configured?: boolean; signed_in?: boolean; user?: { id?: string; name?: string; upn?: string }; pending?: { user_code?: string; verification_uri?: string; expires_at?: number | string } | null };
 type Person = { id: string; name?: string };
 type Chat = { id: string; type?: string; topic?: string; members?: string[]; people?: Person[]; last?: { from?: string; from_id?: string; text?: string; at?: string } };
@@ -55,7 +85,7 @@ function TFace({ id, name, state, small, group, own }: { id?: string; name?: str
   return (
     <i className={`nm-tava${small ? " sm" : ""}${(id && !bad) || (own && !bad2) ? "" : " ico"}`} title={name || undefined} aria-hidden>   {/* ico = 사진 없음 = 바탕 투명 · 선만(형 11-06 20:15) */}
       {/* 차례 = 팀즈 사진 → 없으면 우리가 넣어 준 얼굴(형 그림 · 그룹웨어 사진) → 없으면 기본 꼴(형 11-06 「그룹웨어 … 프로필사진 연결해줘, 프사없는사람들」) */}
-      {id && !bad ? <img alt="" loading="lazy" src={`/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onError={() => setBad(true)} /> : own && !bad2 ? <img alt="" loading="lazy" src={own} onError={() => setBad2(true)} /> : group ? ICO_MANY : ICO_ONE}
+      {id && !bad ? <img alt="" src={faces()[id] || `/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onLoad={(e) => keepFace(id, e.currentTarget)} onError={() => setBad(true)} /> : own && !bad2 ? <img alt="" loading="lazy" src={own} onError={() => setBad2(true)} /> : group ? ICO_MANY : ICO_ONE}
       {dot ? <span className={`nm-tdot ${dot}`} /> : null}
     </i>
   );
@@ -65,16 +95,37 @@ const other = (c: Chat, me?: Me["user"]) => { const l = (c.people || []).filter(
 function useTeamsMe(fast: boolean) {
   return useQuery({ queryKey: meKey, queryFn: () => office<Me>("teams"), refetchInterval: fast ? 5_000 : 60_000, staleTime: 4_000, retry: false });
 }
+/** 대화 목록 한 벌(목록 · 대화 판 · 탭 숫자 같이) — 처음엔 이 기기에 둔 마지막 판을 그리고 바로 새로 받음 */
+function useTeamsChats(on: boolean) {
+  const q = useQuery({ queryKey: ["nomute", "teams", "chats"], queryFn: () => office<{ chats?: Chat[] }>("teams/chats").then((j) => j.chats || []), enabled: on,
+    initialData: () => { const l = readJ<Chat[]>(CHATS_KEY, []); return l.length ? l : undefined; }, initialDataUpdatedAt: 0,
+    refetchInterval: () => (document.hidden ? false : 30_000), staleTime: 10_000, retry: false });
+  useEffect(() => {
+    if (!q.data || !q.dataUpdatedAt) return;
+    writeJ(CHATS_KEY, q.data.slice(0, 50));
+    if (!seenEver()) for (const c of q.data) markSeen(c.id, c.last?.at);   // 이 기기 첫 판 = 다 읽은 걸로(옛 글이 한꺼번에 「새 글」로 뜨지 않게)
+  }, [q.data, q.dataUpdatedAt]);
+  return q;
+}
+const isNew = (c: Chat, seen: Record<string, string>, me?: Me["user"]) => !!c.last?.at && (seen[c.id] || "") < c.last.at && !(me?.id && c.last.from_id === me.id) && !(me?.name && c.last.from === me.name);
+/** 새 글 있는 팀즈 대화 수(팀즈 탭 · 바꿈 단추) — 로그인 안 했으면 0 */
+export function useTeamsUnread() {
+  const me = useTeamsMe(false).data, seen = useSeen();
+  const chats = useTeamsChats(!!me?.signed_in);
+  return me?.signed_in ? (chats.data || []).filter((c) => isNew(c, seen, me.user)).length : 0;
+}
+/** 받는 동안 = 라임 점 셋(앱 다른 칸 LazyDots 와 같은 꼴 · 형 11-13 「팀즈 때도 점 세개 로딩중 시그니처 색으로」) · slim = 그려 둔 목록 위 한 줄 */
+const Dots = ({ slim }: { slim?: boolean }) => <div className={`nm-lazy nm-tdots${slim ? " slim" : ""}`} role="status" aria-label="불러오는 중"><i /><i /><i /></div>;
 const chatName = (c: Chat, me?: string) => c.topic || (c.members || []).filter((m) => m && m !== me).join(", ") || "(이름 없는 대화)";
 const ago = (at?: string) => { const t = at ? Date.parse(at) : NaN; if (!Number.isFinite(t)) return ""; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "방금" : m < 60 ? `${m}분` : m < 1440 ? t12(t) : new Date(t).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }); };
 
 /** 「사무실 | 팀즈」 바꿈(대화 목록 맨 위) */
 export function TeamsSwitch() {
-  const on = useTeamsMode();
+  const on = useTeamsMode(), n = useTeamsUnread();
   return (
     <div className="nm-tswitch" role="tablist" aria-label="대화 판 바꾸기">
       <button type="button" role="tab" aria-selected={!on} onClick={() => setTeamsMode(false)}>사무실</button>
-      <button type="button" role="tab" aria-selected={on} onClick={() => setTeamsMode(true)}>팀즈</button>
+      <button type="button" role="tab" aria-selected={on} onClick={() => setTeamsMode(true)}>팀즈{n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null}</button>
     </div>
   );
 }
@@ -91,7 +142,7 @@ function TeamsLogin({ me, err }: { me?: Me; err?: string }) {
     finally { setBusy(false); }
   };
   if (err) return <div className="nm-tlogin"><p>팀즈 서버에 못 닿았어 · {err}</p></div>;
-  if (!me) return <div className="nm-tlogin"><p>팀즈 불러오는 중…</p></div>;
+  if (!me) return <Dots />;
   if (me.configured === false) return <div className="nm-tlogin"><b>팀즈 준비 중</b><p>형 회사 앱 등록이 끝나면 여기서 바로 로그인돼.</p></div>;
   return (
     <div className="nm-tlogin">
@@ -121,25 +172,27 @@ export function TeamsList({ current }: { current?: string }) {
   const me = meQ.data, signed = !!me?.signed_in;
   const meFast = useTeamsMe(!!me?.pending && !signed);   // 코드 기다리는 동안 5초(같은 열쇠 · 하나만 돎)
   void meFast;
-  const chats = useQuery({ queryKey: ["nomute", "teams", "chats"], queryFn: () => office<{ chats?: Chat[] }>("teams/chats").then((j) => j.chats || []), enabled: signed, refetchInterval: 30_000, staleTime: 10_000, retry: false });
+  const chats = useTeamsChats(signed), seen = useSeen();
   const pres = usePresence((chats.data || []).map((c) => other(c, me?.user)?.id || ""));
   const table = usePeopleTable(signed);
   const rowName = (c: Chat) => { const o = other(c, me?.user); return c.topic ? c.topic : o ? titled(o.name, table) : (c.members || []).filter((m) => m && m !== me?.user?.name).map((m) => titled(m, table)).join(", ") || "(이름 없는 대화)"; };
   const err = meQ.error ? (meQ.error as Error).message : "";
-  const logout = async () => { try { await office("teams/logout", { method: "POST", body: "{}" }); } catch { /* 그대로 */ } void qc.invalidateQueries({ queryKey: meKey }); };
+  void qc;
+  const cached = !!chats.data && !chats.dataUpdatedAt;   // 이 기기에 둔 판을 그리는 중(새로 받는 중)
   return (
     <div className="nm-tlist">
       {!signed ? <TeamsLogin me={me} err={err} /> : (
         <>
-          <div className="nm-tme"><span className="min-w-0 truncate">{me?.user?.name || me?.user?.upn || "팀즈"}</span><button type="button" onClick={() => void logout()}>로그아웃</button></div>
-          {chats.isLoading ? <p className="nm-tnote">대화 받는 중…</p> : chats.error ? <p className="nm-tnote">대화를 못 받았어 · {(chats.error as Error).message}</p> : !chats.data?.length ? <p className="nm-tnote">대화가 없어</p> : (
+          {/* 머리 줄(이름 · 로그아웃) 뺌 = 로그아웃은 설정 「팀즈」 줄(형 11-13 10:23 봄 옮김 「이거 잇을 필요없구」) */}
+          {cached && chats.isFetching ? <Dots slim /> : null}
+          {!chats.data ? (chats.error ? <p className="nm-tnote">대화를 못 받았어 · {(chats.error as Error).message}</p> : <Dots />) : !chats.data.length ? <p className="nm-tnote">대화가 없어</p> : (
             <ul>
               {chats.data.map((c) => (
                 <li key={c.id}>
-                  <button type="button" className={current === TEAMS_PREFIX + c.id ? "on" : undefined} onClick={() => void nav({ to: href(c.id) })}>
+                  <button type="button" className={[current === TEAMS_PREFIX + c.id ? "on" : "", isNew(c, seen, me?.user) ? "new" : ""].filter(Boolean).join(" ") || undefined} onClick={() => void nav({ to: href(c.id) })}>
                     <TFace group={c.type !== "oneOnOne"} id={other(c, me?.user)?.id} own={faceOf(other(c, me?.user)?.name, table)} name={chatName(c, me?.user?.name)} state={pres[other(c, me?.user)?.id || ""]} />
                     <span className="min-w-0 flex-1"><b className="block truncate">{rowName(c)}</b><small className="block truncate">{c.last?.from ? `${c.last.from} · ` : ""}{c.last?.text || ""}</small></span>
-                    <em>{ago(c.last?.at)}</em>
+                    <em>{ago(c.last?.at)}{isNew(c, seen, me?.user) ? <i className="nm-tnew" aria-label="새 글" /> : null}</em>
                   </button>
                 </li>
               ))}
@@ -194,15 +247,23 @@ export function TeamsChat({ chat }: { chat: string }) {
   };
   const mine = (m: TMsg) => !!me?.user?.name && m.from === me.user.name;
   const table = usePeopleTable(!!me?.signed_in);
-  const chats = useQuery({ queryKey: ["nomute", "teams", "chats"], queryFn: () => office<{ chats?: Chat[] }>("teams/chats").then((j) => j.chats || []), enabled: !!me?.signed_in, staleTime: 30_000, retry: false });
+  const chats = useTeamsChats(!!me?.signed_in);
   const chatTitle = (chats.data || []).find((c) => c.id === chat);
+  const newest = page.data?.messages?.[0]?.at;   // 새 글 먼저 받음 = 첫 칸이 제일 새 것
+  useEffect(() => {   // 이 대화를 보고 있는 동안 = 읽음(목록 마지막 글 때와 받은 첫 글 때 중 늦은 것)
+    const at = [newest, chatTitle?.last?.at].filter(Boolean).sort().pop();
+    if (!at) return;
+    const go = () => { if (!document.hidden) markSeen(chat, at); };
+    go(); document.addEventListener("visibilitychange", go);
+    return () => document.removeEventListener("visibilitychange", go);
+  }, [chat, newest, chatTitle?.last?.at]);
   if (!me?.signed_in) return <div className="nm-tchat"><div className="nm-tchat-empty"><TeamsLogin me={me} err={meQ.error ? (meQ.error as Error).message : ""} /></div></div>;
   return (
     <div className="nm-tchat">
       <div className="nm-tchat-h"><b className="min-w-0 truncate">{chatTitle ? (chatTitle.topic || (chatTitle.members || []).filter((m) => m && m !== me.user?.name).map((m) => titled(m, table)).join(", ") || "(이름 없는 대화)") : "대화"}</b></div>   {/* 「팀즈」 꼬리표 뺌(형 11-06 「(팀즈) 이렇게 뜰 필요는없어 팀즈인건 당연히 아니까」) · 이름 뒤 직급 */}
       <div ref={box} className="nm-tchat-b" onScroll={(e) => { const b = e.currentTarget; stick.current = b.scrollHeight - b.scrollTop - b.clientHeight < 40; }}>
         {nextOf ? <button type="button" className="nm-tmore" disabled={moreBusy} onClick={() => void more()}>{moreBusy ? "받는 중…" : "앞 글 더 보기"}</button> : null}
-        {page.isLoading ? <p className="nm-tnote">글 받는 중…</p> : page.error ? <p className="nm-tnote">글을 못 받았어 · {(page.error as Error).message}</p> : null}
+        {page.isLoading ? <Dots /> : page.error ? <p className="nm-tnote">글을 못 받았어 · {(page.error as Error).message}</p> : null}
         {all.map((m) => (
           <div key={m.id} className={`nm-tm${mine(m) ? " me" : ""}`}>
             {mine(m) ? null : <b className="nm-tm-who"><TFace small id={m.from_id} own={faceOf(m.from, table)} name={m.from} />{titled(m.from, table) || "?"}</b>}
@@ -228,3 +289,17 @@ export function TeamsChat({ chat }: { chat: string }) {
     </div>
   );
 }
+
+/** 설정 「팀즈」 줄 몸 — 로그인한 이름 + 로그아웃(목록 머리 줄에서 옮김 · 형 11-13 10:23) */
+export function TeamsAccount() {
+  const qc = useQueryClient(), meQ = useTeamsMe(false), me = meQ.data;
+  const [busy, setBusy] = useState(false);
+  const logout = async () => { setBusy(true); try { await office("teams/logout", { method: "POST", body: "{}" }); } catch { /* 그대로 */ } finally { setBusy(false); } void qc.invalidateQueries({ queryKey: meKey }); };
+  if (!me) return <Dots />;
+  if (!me.signed_in) return <p className="nm-tnote">로그인 안 됨 · 팀즈 탭에서 로그인</p>;
+  return (
+    <div className="nm-tacct"><span className="min-w-0 truncate">{me.user?.name || me.user?.upn || "팀즈"}</span><button type="button" disabled={busy} onClick={() => void logout()}>{busy ? "…" : "로그아웃"}</button></div>
+  );
+}
+/** 설정 줄 오른쪽 값 = 로그인한 이름(없으면 「로그인 안 됨」) */
+export function useTeamsName() { const me = useTeamsMe(false).data; return !me ? undefined : me.signed_in ? me.user?.name || me.user?.upn || "로그인됨" : "로그인 안 됨"; }

@@ -53,3 +53,15 @@
 .nm-tpick small { flex:none; color:var(--mut, #8B8F8A); font-variant-numeric:tabular-nums; }
 .nm-tpick button { all:unset; flex:none; cursor:pointer; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; color:rgba(232,234,232,.6); }
 .nm-tpick button:hover { color:#FF5A5F; background:rgba(255,90,95,.12); }
+/* 받는 동안 라임 점 셋(.nm-lazy = shell.css) · slim = 그려 둔 목록 위 한 줄 · 새 글 = 굵게 + 라임 점 · 숫자 = 바꿈 단추 · 팀즈 탭(형 11-13 10:23 · 뎅) */
+.nm-tdots.slim { flex:none; min-height:0; padding:4px 0 8px; }
+.nm-tdots.slim i { width:6px; height:6px; margin:0 4px; }
+.nm-tlist li button.new b { font-weight:800; color:var(--fg, #fff); }
+.nm-tlist li button.new small { color:var(--fg-2, #c8ccc8); }
+.nm-tlist li button em { display:inline-flex; flex-direction:column; align-items:flex-end; gap:5px; }
+.nm-tnew { display:block; width:8px; height:8px; border-radius:50%; background:#CFFF40; }
+.nm-tbadge { display:inline-grid; place-items:center; min-width:16px; height:16px; margin-left:5px; padding:0 4px; border-radius:999px; font-size:10px; font-weight:800; line-height:1; color:#111; background:#CFFF40; vertical-align:1px; }
+.nm-tswitch button[aria-selected="true"] .nm-tbadge { color:#CFFF40; background:#111; }
+.nm-tacct { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; font-size:var(--fs-label); }
+.nm-tacct button { all:unset; cursor:pointer; padding:6px 14px; border-radius:999px; font-weight:700; color:#111; background:#CFFF40; }
+.nm-tacct button[disabled] { opacity:.5; cursor:default; }

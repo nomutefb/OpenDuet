@@ -19,6 +19,7 @@ import { EnterKeyRow } from "./enter-key";
 import { ThinkMarkRow } from "./live-shine";
 import { WakeDepthRow } from "./wake-depth";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
+import { TeamsAccount, useTeamsName } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, useBuildLine } from "./settings-extra";
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
@@ -59,6 +60,7 @@ export function YetaSettings() {
   const health = useQuery({ queryKey: ["nomute", "health"], queryFn: () => office<Health>("health"), refetchInterval: 60_000 }).data?.counts;
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string }[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 }).data;
   const build = useBuildLine();
+  const teamsName = useTeamsName();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
   const nBots = list.filter((p) => p.kind === "bot").length, awake = (bots || []).filter((b) => b.state === "awake").length;
   const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
@@ -94,6 +96,7 @@ export function YetaSettings() {
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
             {row("notice", "speaker", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
             <WakeDepthRow />
+            {row("teams", "chat", "팀즈", <TeamsAccount />, teamsName)}
           </div>
         </section>
         <section className="yset-part" aria-label="살펴보기">
