@@ -266,11 +266,19 @@ export function TeamsChat({ chat }: { chat: string }) {
   const table = usePeopleTable(!!me?.signed_in);
   const chats = useTeamsChats(!!me?.signed_in);
   const chatTitle = (chats.data || []).find((c) => c.id === chat);
-  const newest = page.data?.messages?.[0]?.at;   // 새 글 먼저 받음 = 첫 칸이 제일 새 것
+  const newest = page.data?.messages?.[0]?.at, sentRead = useRef("");   // 새 글 먼저 받음 = 첫 칸이 제일 새 것
   useEffect(() => {   // 이 대화를 보고 있는 동안 = 읽음(목록 마지막 글 때와 받은 첫 글 때 중 늦은 것)
     const at = [newest, chatTitle?.last?.at].filter(Boolean).sort().pop();
     if (!at) return;
-    const go = () => { if (!document.hidden) markSeen(chat, at); };
+    const go = () => {
+      if (document.hidden) return;
+      markSeen(chat, at);
+      // 진짜 팀즈에도 읽음(형 11-13 15:04 봄 옮김 「✓ ① 응, 읽음으로 보내」 · 서버 teams/read = markChatReadForUser) — 팀즈 쪽 읽은 때보다 새 글이 있을 때만 · 같은 글엔 한 번
+      if ((chatTitle?.read_at || "") < at && sentRead.current !== chat + at) {
+        sentRead.current = chat + at;
+        void office("teams/read", { method: "POST", body: JSON.stringify({ chat }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "teams", "chats"] })).catch(() => { sentRead.current = ""; });
+      }
+    };
     go(); document.addEventListener("visibilitychange", go);
     return () => document.removeEventListener("visibilitychange", go);
   }, [chat, newest, chatTitle?.last?.at]);
