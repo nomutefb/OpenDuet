@@ -45,9 +45,13 @@ export function keepOnly<T>(_path: string, j: T): T { return j; }
 let peopleP: Promise<OfficePerson[]> | null = null;
 let peopleNow: OfficePerson[] = [];
 /** 명부(사람표) — 한 번 받아 두고 같이 씀(얼굴·이름 · 1분마다 새로) */
+/** 기계 화자 얼굴(사람표 밖 · 앱에서만) — 촉 방 묶음 카드를 올리는 러너 = 「촉봇」 + 뜸이 만든 러너 파비콘 움짤(형 11-14 05:13 봄 옮김 「러너 파비콘 만든거 영상으로 만든거 하나 뜸에게 받아서 러너한테 이름을 촉봇 이라고 붙여주고」 · 「얘 이름하고 사진 글케 나오게해주셈」 · 뎅)
+ *  gone = 「@」 명부 · 목록엔 안 뜸(부를 수 있는 이가 아님) · 얼굴 · 이름만 */
+export const MACHINE_FACES: OfficePerson[] = [{ who: "촉봇", name: "촉봇", kind: "system", face: "/office-app/chokbot.webp", gone: true } as unknown as OfficePerson];
+
 export function people(fresh = false): Promise<OfficePerson[]> {
   if (!peopleP || fresh) {
-    peopleP = office<{ people: OfficePerson[] }>("people").then((j) => (peopleNow = j.people || []));
+    peopleP = office<{ people: OfficePerson[] }>("people").then((j) => (peopleNow = [...(j.people || []), ...MACHINE_FACES.filter((x) => !(j.people || []).some((y) => y.who === x.who))]));
     setTimeout(() => { peopleP = null; }, 60_000);
   }
   return peopleP;

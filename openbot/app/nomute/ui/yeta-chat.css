@@ -819,4 +819,6 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ychat .yb-st .yb-un { margin:0; }
 .ychat .yb-ck { width:13px; height:13px; fill:none; stroke:var(--accent, #CFFF40); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
 /* 사진 등 첨부 = 체크(말풍선 밖 왼쪽 · nm-encg) 위 · 안 본 수 아래(겹침 0 · 형 11-13 17:55 「확인했는지는 … 아래 배치하는게 맞다고봄」 · 22:09 체크 둘 뒤 실물 = ✓3 겹침 · 뎅) */
-.ychat .yb-line:has(> .yb-st) > .yb.me .nm-encg { bottom:20px; }
+.ychat .yb-st.media { min-width:15px; min-height:12px; align-items:center; }   /* 사진 · 움짤 · 스티커 = 숫자 칸을 늘 비워 둠(숫자가 없어져도 체크 · 말풍선 자리 그대로) */
+.ychat .yb-line:has(> .yb-st.media) > .yb.me .nm-encg { right:calc(100% + 6px); bottom:20px; }   /* 체크 = 숫자 칸 바로 위 같은 세로줄(형 11-14 05:25 봄 옮김 「1위치는 혼자 독립 위치 유지구 그 위에 체크 수직 기준 유지」 · 뎅) */
+.ychat .yb-line:has(> .yb-st.media) > .yb.me .nm-stk-ok { position:absolute; right:calc(100% + 6px); bottom:20px; margin:0; }   /* 스티커 체크도 같은 자리(앞 판 = 움짤 바로 왼쪽 · 숫자와 대각) */

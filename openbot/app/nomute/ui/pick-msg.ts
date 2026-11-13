@@ -18,5 +18,6 @@ export const relayWho = (m: { kind?: string; who?: string; text?: string }): str
 };
 export function relayAs<T extends { kind: string; who: string; text?: string }>(m: T): T {
   const w = relayWho(m);
-  return w ? ({ ...m, who: w, kind: "bot", relay: true } as T) : m;
+  if (w) return { ...m, who: w, kind: "bot", relay: true } as T;
+  return bundleM(m) ? ({ ...m, who: "촉봇" } as T) : m;   // 촉 방 묶음 카드 화자 = 「촉봇」(얼굴 = data/office.ts MACHINE_FACES · 형 11-14 05:13 · 카드 꼴 bubbleM 은 kind system 그대로)
 }
