@@ -1,0 +1,3 @@
+/* 옛 비디오 에디터 품기(./video-editor.tsx) — 겉틀 = 포토 에디터 머리(./thumb-maker/frame.css tm-*) · 판 = 원본 edit.html 한 장 */
+.ved-frame { -webkit-mask-image:none; mask-image:none; }   /* 판 아래 흐려짐 0(원본 화면 아래 단추 줄이 흐려지지 않게) */
+.ved-if { position:absolute; inset:0; width:100%; height:100%; border:0; background:transparent; color-scheme:dark; }

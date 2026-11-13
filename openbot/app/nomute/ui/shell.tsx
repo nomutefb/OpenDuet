@@ -70,7 +70,7 @@ const KPromptModal = lazy(() => import("./kprompt").then((m) => ({ default: m.KP
 const TrCardModal = lazy(() => import("./trcard").then((m) => ({ default: m.TrCardModal })));   // 서랍 「번역카드」 = 옛 에디터 번역 창(viewer/tr.html) 앱 안(봄 11-10 23:09 · 번개)
 const VdModal = lazy(() => import("./vd").then((m) => ({ default: m.VdModal })));   // 서랍 「큐영상」 = 옛 에디터 큐 영상 창(viewer/vd.html) 앱 안(team-4 뎅 11-10)   // 서랍 「음원」 = 옛 에디터 음원 창(viewer/song.html) 앱 안(team-4 뎅 · 형 11-10 15:48 「응 에디터에 잇는거 다 정원으로 가져왕」)
 const ConvModal = lazy(() => import("./conv").then((m) => ({ default: m.ConvModal })));   // 서랍 「변환」 = 옛 에디터 변환 창(viewer/conv.html) 앱 안(team-4 U3 뎅 · 형 11-10 14:23 「응 밖에잇는거 다 옮길거야」)   // 서랍 「유튜브」 = 옛 에디터 유튜브 탭 네이티브(team-4 · 형 11-10 14:23 「응 밖에잇는거 다 옮길거야」)
-const VeditModal = lazy(() => import("./vedit").then((m) => ({ default: m.VeditModal })));
+const VideoEditor = lazy(() => import("./video-editor"));   // 서랍 「영상 편집」 = 옛 비디오 에디터 화면 그대로(형 11-13 13:21 · 앞 판 = ./vedit.tsx 새 판 · 깃 11-10)
 const SbModal = lazy(() => import("./sb").then((m) => ({ default: m.SbModal })));   // 서랍 「스토리보드」 = 옛 에디터 콘티 판 1(team-4 · 깃 11-11)
 const NbModal = lazy(() => import("./nb").then((m) => ({ default: m.NbModal })));   // 서랍 「미디어 요약」 = 옛 에디터 미디어 요약 판 1(team-4 · 깃 11-10)
 const TrackModal = lazy(() => import("./track").then((m) => ({ default: m.TrackModal })));   // 서랍 「트래킹」 = 옛 에디터 트래킹 판 1(team-4 · 깃 11-10)   // 서랍 「영상 편집」 = 옛 에디터 영상 편집 탭 네이티브 판 1(team-4 · 깃)
@@ -222,7 +222,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   useTabSpace(stage);
   if ("bare" in where) return <>{children}</>;
 
-  const SEE = new Set(["settings", "drawer", "edtool"]);   // 에디터도(형 11-13 02:26 봄 1:1 「지금 수정한 에디터, 뒤에 지금 인앱 배경을 깔아버리면 될듯」)   // 바탕 비치는 판(5번 서랍 · 6번 설정)
+  const SEE = new Set(["settings", "drawer", "edtool", "edvid"]);   // 영상 편집도(형 11-13 13:21 「지금 포토 에디터처럼」)   // 에디터도(형 11-13 02:26 봄 1:1 「지금 수정한 에디터, 뒤에 지금 인앱 배경을 깔아버리면 될듯」)   // 바탕 비치는 판(5번 서랍 · 6번 설정)
   const show = (id: Pane, node: ReactNode) =>
     open.has(id) ? <section key={id} className={`nm-pane ${pane === id ? "on" : ""}`} aria-hidden={pane !== id} inert={pane !== id || undefined}>{node}</section> : null;
   const closeModal = () => {   // 서랍에서 연 칸의 「<」 = 서랍으로(봄 11-01 · 전엔 아래 판(홈·대화방)으로 갔음) · 표지 = drawer-page 가 누를 때 남김
@@ -280,13 +280,13 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           {M ? (
             <ModalBox close={closeModal} className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
               {M.id === "feed" || M.id === "trend" || M.id === "legacy" || M.id === "tokens" || M.id === "gyeol" || M.id === "feedback" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
-              {M.id === "edtool" ? null : (   /* 에디터 = 위 챠콜 머리 줄 통째로 뺌 · ‹ 는 판 머리 「✦ 에디터」 왼쪽(형 11-13 02:24 봄 1:1 「글자를 없애는거 말구, 그냥 위에 네비 챠콜색 저 라인을 다 없애면됨」 · 앞 판 = 글자만 뺌) */
+              {M.id === "edtool" || M.id === "edvid" ? null : (   /* 에디터 = 위 챠콜 머리 줄 통째로 뺌 · ‹ 는 판 머리 「✦ 에디터」 왼쪽(형 11-13 02:24 봄 1:1 「글자를 없애는거 말구, 그냥 위에 네비 챠콜색 저 라인을 다 없애면됨」 · 앞 판 = 글자만 뺌) */
                 <div className="nm-modal-h">
                   <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
                   <b>{M.label}</b>
                 </div>
               )}
-              <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
+              <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" || M.id === "edvid" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
                   : M.id === "edtool" ? <Suspense fallback={null}><ThumbMaker onBack={closeModal} /></Suspense>   // 썸네일 생성기 = 원본 판·엔진·배경 그대로(./thumb-maker · 머리 「✧ 에디터 · 카드 제작」 = 옛 index 도구 창 꼴)
@@ -316,7 +316,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "edtr" ? <div className="nm-scroll"><TrCardModal /></div>   // 번역카드 = 앱 안(번개 11-10 · 같은 길 api/tr · trplan · tr_out)
                   : M.id === "edvd" ? <div className="nm-scroll"><VdModal /></div>   // 큐영상 = 앱 안(뎅 11-10 · 같은 길 api/vd · vd_out)   // 음원 = 앱 안(뎅 11-10 · 같은 길 api/song · song_out)
                   : M.id === "edconv" ? <div className="nm-scroll"><ConvModal /></div>   // 변환 = 앱 안(뎅 11-10 · 같은 길 api/conv · conv_out)   // 유튜브 = 앱 안(깃 11-10 · 같은 길 api/ys · ys_out)
-                  : M.id === "edvid" ? <div className="nm-scroll"><VeditModal /></div>
+                  : M.id === "edvid" ? <VideoEditor onBack={closeModal} />
                   : M.id === "edtrack" ? <div className="nm-scroll"><TrackModal /></div>
                   : M.id === "ednb" ? <div className="nm-scroll"><NbModal /></div>
                   : M.id === "edsb" ? <div className="nm-scroll"><SbModal /></div>   // 스토리보드 = 앱 안 판 1(깃 11-11 · 같은 길 api/sb · sb_out)   // 미디어 요약 = 앱 안 판 1(깃 11-10 · 같은 길 api/nb · nb_out · api/submit)   // 트래킹 = 앱 안 판 1(깃 11-10 · 같은 길 api/upload · api/track · track_out)   // 영상 편집 = 앱 안 판 1(깃 11-10 · 같은 길 api/upload · api/edit · ly_out)

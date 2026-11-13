@@ -5,13 +5,14 @@
 import { openInApp } from "./inapp";
 
 let pending: { file: File; at: number } | null = null;
-const EDIT = "/viewer/edit.html", YS = "/viewer/ys.html";
+export const EDIT = "/viewer/edit.html";
+const YS = "/viewer/ys.html";
 
 /** 엔진이 부르는 손(window.__nmStudioRoute) — kind = video(파일) · link(유튜브 주소 · 비면 화면만) */
 export function studioRoute(kind: string, payload?: unknown) {
   if (kind === "video") {
     if (payload instanceof File) pending = { file: payload, at: Date.now() };
-    openInApp(EDIT);
+    location.hash = "#/edvid";   // 서랍 「영상 편집」 = 옛 비디오 에디터 화면 그대로(./video-editor.tsx · 형 11-13 13:21) · 뜨면 deliverStudio 가 영상 넣음(앞 판 = #/web 한 겹 edit.html)
     return;
   }
   if (kind === "link") {

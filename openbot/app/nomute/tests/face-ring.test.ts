@@ -55,8 +55,8 @@ test("고정 압정 = 무지개 고리 · 안 읽음 점 위(형 11-12 16:44 「
 });
 
 test("에디터 = 위 챠콜 머리 줄 뺌 · ‹ 는 판 머리 · 뒤 = 웹앱 배경(형 11-13 02:24 · 02:26)", () => {
-  assert.match(sh, /const SEE = new Set\(\["settings", "drawer", "edtool"\]\)/);
-  assert.match(sh, /\{M\.id === "edtool" \? null : \(/);
+  assert.match(sh, /const SEE = new Set\(\["settings", "drawer", "edtool", "edvid"\]\)/);
+  assert.match(sh, /\{M\.id === "edtool" \|\| M\.id === "edvid" \? null : \(/);
   assert.match(sh, /<ThumbMaker onBack=\{closeModal\} \/>/);
   const tm = readFileSync(new URL("../ui/thumb-maker/index.tsx", import.meta.url), "utf8");
   assert.match(tm, /\{onBack \? null : <SceneBg \/>\}/);
