@@ -58,7 +58,6 @@
 .nm-mp-ctl { flex:none; font-size:12px; }
 .nm-mp-x { flex:none; width:20px; height:20px; display:grid; place-items:center; border:0; border-radius:50%; background:transparent; color:rgba(232,234,232,.45); font-size:14px; line-height:1; cursor:pointer; }
 .nm-mp-x:hover { background:rgba(255,90,95,.18); color:#FF8A8D; }
-.nm-mp-inv { margin-top:4px; height:28px; border-radius:999px; border:1px dashed rgba(207,255,64,.45); background:transparent; color:#CFFF40; font-size:12px; font-weight:700; cursor:pointer; }
 .nm-mp-pick { display:flex; flex-wrap:wrap; gap:4px; padding-top:4px; }
 .nm-mp-pick button { border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:2px 8px; background:rgba(255,255,255,.04); color:#e8eae8; font-size:11.5px; cursor:pointer; }
 .nm-mp-why { color:#FF8A8D; font-size:11px; }
@@ -67,15 +66,15 @@
 /* 명단 접기(형 11-13 16:15 「명단 접을수도 잇나?」) = 옛 에디터 .tbrief-led 아코디언 그대로(grid-rows 0fr↔1fr · .26s cubic-bezier(.2,.7,.3,1) · 꺾쇠 180° · 펼칠 때 줄 cardIn 촤르륵) */
 .nm-mp-h { all:unset; box-sizing:border-box; display:flex; align-items:center; gap:6px; padding:2px 4px 4px; cursor:pointer; color:#e8eae8; font-size:12px; font-weight:700; }
 .nm-mp-h b { font-variant-numeric:tabular-nums; color:#3DDC6B; font-weight:800; }
-.nm-mp-h svg { margin-left:auto; transition:transform .26s cubic-bezier(.2,.7,.3,1); }
-.nm-mp-h[aria-expanded="true"] svg { transform:rotate(180deg); }
+.nm-mp-chev svg { transition:transform .26s cubic-bezier(.2,.7,.3,1); }
+.nm-mp-chev[aria-expanded="true"] svg { transform:rotate(180deg); }
 .nm-mp-w { display:grid; grid-template-rows:0fr; transition:grid-template-rows .26s cubic-bezier(.2,.7,.3,1); }
-.nm-mp-h[aria-expanded="true"] + .nm-mp-w { grid-template-rows:1fr; }
+.nm-mp-hrow:has(> .nm-mp-h[aria-expanded="true"]) + .nm-mp-w { grid-template-rows:1fr; }
 .nm-mp-l { overflow:hidden; min-height:0; display:flex; flex-direction:column; gap:4px; }
-.nm-mp-h[aria-expanded="true"] + .nm-mp-w .nm-mp { animation:nm-mpIn .3s cubic-bezier(.22,.61,.36,1) both; }
-.nm-mp-h[aria-expanded="true"] + .nm-mp-w .nm-mp:nth-child(2) { animation-delay:.03s; } .nm-mp-h[aria-expanded="true"] + .nm-mp-w .nm-mp:nth-child(3) { animation-delay:.06s; } .nm-mp-h[aria-expanded="true"] + .nm-mp-w .nm-mp:nth-child(n+4) { animation-delay:.09s; }
+.nm-mp-hrow:has(> .nm-mp-h[aria-expanded="true"]) + .nm-mp-w .nm-mp { animation:nm-mpIn .3s cubic-bezier(.22,.61,.36,1) both; }
+.nm-mp-hrow:has(> .nm-mp-h[aria-expanded="true"]) + .nm-mp-w .nm-mp:nth-child(2) { animation-delay:.03s; } .nm-mp-hrow:has(> .nm-mp-h[aria-expanded="true"]) + .nm-mp-w .nm-mp:nth-child(3) { animation-delay:.06s; } .nm-mp-hrow:has(> .nm-mp-h[aria-expanded="true"]) + .nm-mp-w .nm-mp:nth-child(n+4) { animation-delay:.09s; }
 @keyframes nm-mpIn { from { opacity:0; transform:translateY(12px) scale(.985); } to { opacity:1; transform:none; } }   /* = 옛 에디터 cardIn */
-@media (prefers-reduced-motion:reduce) { .nm-mp-w, .nm-mp-h svg { transition:none; } .nm-mp { animation:none !important; } }
+@media (prefers-reduced-motion:reduce) { .nm-mp-w, .nm-mp-chev svg { transition:none; } .nm-mp { animation:none !important; } }
 .nm-meet-ppl.shut { width:auto; min-width:0; padding:6px 8px; }
 /* 스케치 펜 = 우상단 제어권(다리 · right 10 · top 80 · 34) 왼쪽 나란히 · 남이 쥐면 알약 자리라 한 줄 아래(형 16:15 · 깃 16:18) */
 .nm-sk-bar { left:auto; bottom:auto; right:90px; top:80px; flex-direction:row-reverse; gap:6px; }   /* [펜][커튼][제어권] 나란히(형 16:21 「커튼 버튼으로 제어권 스케치 옆에」 · 깃 = 커튼 right 50 · 제어권 right 10 · 34 · gap 6) */
@@ -123,3 +122,10 @@
 .nm-dots.bob i:nth-child(3) { animation-delay:.4s; }
 @keyframes nmDotBob { 0%, 100% { opacity:.25; transform:translateY(0); } 40% { opacity:1; transform:translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .nm-dots.bob i { animation:none; opacity:.8; } }
+
+/* 명단 머리 줄 = 「명단 2/2」 · 「+」(연회색 작은 동그라미 · 라임 0) · 꺾쇠(오른쪽 끝) */
+.nm-mp-hrow { display:flex; align-items:center; gap:4px; }
+.nm-mp-hrow .nm-mp-h { flex:none; }
+.nm-mp-add { all:unset; box-sizing:border-box; width:20px; height:20px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(232,234,232,.28); color:rgba(232,234,232,.6); font-size:14px; line-height:1; cursor:pointer; }
+.nm-mp-add:hover, .nm-mp-add[aria-expanded="true"] { color:#e8eae8; border-color:rgba(232,234,232,.5); }
+.nm-mp-chev { all:unset; box-sizing:border-box; margin-left:auto; display:grid; place-items:center; width:22px; height:22px; color:#e8eae8; cursor:pointer; }

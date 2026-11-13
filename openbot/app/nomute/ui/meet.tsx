@@ -169,10 +169,11 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
   const inRoom = (n: string) => stOf(n) === "on";   // 들어옴 = 형 · 기록관 · 「[수락]」 한 이
   return (
     <div className={`nm-meet-ppl${open ? "" : " shut"}`} aria-label="화상회의에 들어와 있는 이" style={at ? { top: at.y + 10 } : undefined}>
-      <button type="button" className="nm-mp-h" aria-expanded={open} onClick={flip} title={open ? "명단 접기" : "명단 펴기"}>   {/* 접힘 = 옛 에디터 .tbrief-led 아코디언 그대로(grid 0fr↔1fr .26s · 꺾쇠 180°) */}
-        <span>명단</span><b>{rows.filter(inRoom).length}/{rows.length}</b>
-        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
+      <div className="nm-mp-hrow">   {/* 머리 줄 = 「명단 2/2」 · 바로 옆 작은 「+」(초대 · 형 11-14 01:45 시아 옮김 「초대하기는 + 아이콘으로만 변경해서 2/2 옆에 컴팩트하게 들어가면 될것같아 그럼 더 깔끔」 · 「+ 는 연회색 이여도 돼 강조안되어도됨」) · 꺾쇠 = 접기(옛 에디터 .tbrief-led 아코디언 그대로) */}
+        <button type="button" className="nm-mp-h" aria-expanded={open} onClick={flip} title={open ? "명단 접기" : "명단 펴기"}><span>명단</span><b>{rows.filter(inRoom).length}/{rows.length}</b></button>
+        <button type="button" className="nm-mp-add" aria-label={inv ? "초대 닫기" : "초대하기"} title={inv ? "초대 닫기" : "초대하기"} aria-expanded={inv} onClick={() => { if (!open) flip(); setInv((v) => !v); }}>{inv ? "×" : "+"}</button>
+        <button type="button" className="nm-mp-chev" aria-expanded={open} onClick={flip} aria-label={open ? "명단 접기" : "명단 펴기"}><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+      </div>
       <div className="nm-mp-w" {...(open ? {} : { inert: "" as unknown as boolean })}><div className="nm-mp-l">
       {rows.map((n) => {
         const p = pOf(n), st = stOf(n), on = st === "on", ring = ringOf(p);
@@ -191,7 +192,6 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
           {cands.filter((n) => !members.includes(n)).map((n) => <button key={n} type="button" disabled={!!busy} onClick={() => { setInv(false); void setMembers([...members, n], "+" + n); }}>{nameOf(n)}{pOf(n)?.mark ? " " + pOf(n)!.mark : ""}</button>)}
         </div>
       ) : null}
-      <button type="button" className="nm-mp-inv" onClick={() => setInv((v) => !v)} aria-expanded={inv}>{inv ? "닫기" : "+ 초대하기"}</button>
       {why ? <small role="alert" className="nm-mp-why">{why}</small> : null}
       </div></div>
     </div>
