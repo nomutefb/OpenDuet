@@ -6,7 +6,8 @@
 import { PinMark } from "./pin-mark";
 import { isPairRoom } from "./pair-fold";
 import { useRoomArtSrc } from "./room-art";
-import { useRoomPhoto } from "./room-photo";   // 목록 방 사진 누름 = 바로 바꾸기(형 11-13 06:54)
+import { useRoomPhoto } from "./room-photo";
+import { ProfileCard } from "./profile-card";   // 1:1 줄 프사 누름 = 그 상대 프로필(형 11-14 05:49 「대화창 목록에서도 프사 쪽을 누르면 프로필이 떠야됨 대화쪽 누르면 대화로 진입하고」)   // 목록 방 사진 누름 = 바로 바꾸기(형 11-13 06:54)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -112,6 +113,17 @@ export function RoomIcon({ r, size, color }: { r: Room; size: number; color?: st
     </span>
   );
 }
+/** 1:1 줄 얼굴 누르기 = 방에 안 들어가고 그 상대 프로필 카드(이 앱엔 친구 목록이 따로 없어서 · 형 11-14 05:49) · 이름 · 마지막 글 쪽 = 지금처럼 대화로 */
+function PeerFaceTap({ who, name, list, children }: { who: string; name: string; list: Parameters<typeof ProfileCard>[0]["list"]; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const go = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); setOpen(true); };
+  return (
+    <span role="button" tabIndex={0} aria-label={`${name} 프로필`} className="nm-rface" onClick={go} onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") go(e); }}>
+      {children}
+      {open ? createPortal(<span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><ProfileCard who={who} list={list} onClose={() => setOpen(false)} /></span>, document.body) : null}
+    </span>
+  );
+}
 /** 방 목록 방 사진 누르기 = 방에 안 들어가고 바로 사진 바꾸기(형 11-13 06:54 「이거 방 목록이서프로필 사진쪽 클릭하면 바로 방 프로필 사진 변경으로 이동ㄷ어야하고」 · 단톡방만 · 서버가 형 문만 받음) */
 function RoomPhotoTap({ r, children }: { r: Room; children: React.ReactNode }) {
   const photo = useRoomPhoto(r);
@@ -193,8 +205,8 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
         {wrapTemp(r, <>
         <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
-          {r.with ? <span className="nm-rorb" style={{ margin: -Math.round(size / 8), marginRight: 4 - Math.round(size / 8) }}>   {/* 이름 4px 오른쪽(형 11-01 「이름을 조금만 우측으로 … 테두리가 두터워지면 좁아보여서」) */}
-            <MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span>
+          {r.with ? <PeerFaceTap who={r.with} name={p?.name || r.name} list={list}><span className="nm-rorb" style={{ margin: -Math.round(size / 8), marginRight: 4 - Math.round(size / 8) }}>   {/* 이름 4px 오른쪽(형 11-01 「이름을 조금만 우측으로 … 테두리가 두터워지면 좁아보여서」) */}
+            <MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span></PeerFaceTap>
             : !r.with ? <RoomPhotoTap r={r}><RoomIcon r={r} size={size} color={rc} /></RoomPhotoTap>   /* 단톡 = 방 아이콘 하나(형 11-05 13:19 「이거 2개씩 보이게하지말구」 · 「구분이 안되넹 다른거랑」 · 「좀 튀어야됨..」 · 「항상위에잇을거니까;」) · 얼굴 둘 겹침(pair) 뺌 */
             : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
           <span className="min-w-0 flex-1">
