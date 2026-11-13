@@ -1,5 +1,5 @@
 /* 화상회의(ui/meet.tsx) = 같이 보기 칸 아래 · 위 = 맥 72 화면 · 아래 = 얼굴 줄 → 그 방 대화 */
-.nm-co-bar .nm-meet-btn { color:#CFFF40; border:1px solid rgba(207,255,64,.38); border-radius:999px; padding:2px 10px; background:rgba(207,255,64,.1); font-size:12px; font-weight:700; cursor:pointer; }
+.nm-co-bar .nm-meet-btn { flex:none; white-space:nowrap; color:#CFFF40; border:1px solid rgba(207,255,64,.38); border-radius:999px; padding:2px 10px; background:rgba(207,255,64,.1); font-size:12px; font-weight:700; cursor:pointer; }
 .nm-co-sync { font-size:12px; color:rgba(232,234,232,.55); font-variant-numeric:tabular-nums; white-space:nowrap; }
 .nm-co-ctrl { position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:3; padding:4px 12px; border-radius:999px; background:rgba(14,15,14,.86); border:1px solid rgba(207,255,64,.45); color:#CFFF40; font-size:12px; font-weight:700; pointer-events:none; }
 .nm-meet-pick { position:absolute; top:44px; right:10px; z-index:4; width:min(360px, calc(100% - 20px)); display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:16px; background:#151715; border:1px solid rgba(255,255,255,.1); box-shadow:0 16px 40px rgba(0,0,0,.5); color:#e8eae8; font-size:13px; }

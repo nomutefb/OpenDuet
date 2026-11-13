@@ -25,7 +25,7 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
     <section className={`nm-co${isMeet ? " meet" : ""}`} aria-label={isMeet ? "화상회의" : "브라우저"}>
       <div className="nm-co-bar">
         <span className="nm-co-dot" aria-hidden />
-        <b>{isMeet ? "화상회의" : "브라우저"}</b><span className="nm-co-sub">{isMeet ? "맥 72 화면 + 우리 대화" : "맥 72 · 대신 로그인"} · 화면이 안 뜨면 브라우저 「로컬 네트워크」 허용 · ↻</span>
+        <b>{isMeet ? "화상회의" : "브라우저"}</b><span className="nm-co-sub" title={`${isMeet ? "맥 72 화면 + 우리 대화" : "맥 72 · 대신 로그인"} · 화면이 안 뜨면 브라우저 「로컬 네트워크」 허용 · ↻`}>{isMeet ? "맥 72 화면 + 우리 대화" : "맥 72 · 대신 로그인"} · 화면이 안 뜨면 브라우저 「로컬 네트워크」 허용 · ↻</span>
         {isMeet && !meet && !picking ? <button type="button" className="nm-meet-btn" onClick={() => setPicking(true)}>회의 시작</button> : null}
         <button type="button" className="nm-web-btn" aria-label="다시 잇기" title="다시 잇기" onClick={() => setNonce((n) => n + 1)}>↻</button>
         <button type="button" className="nm-web-btn" aria-label="닫기" title="닫기" onClick={onClose}>×</button>

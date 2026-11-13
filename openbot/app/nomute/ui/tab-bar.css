@@ -76,9 +76,9 @@
 .nm-tab-co[hidden] { display:none; }
 .nm-co { flex:1; min-width:0; display:flex; flex-direction:column; background:#0e0f0e; }
 .nm-co-bar { flex:none; display:flex; align-items:center; gap:8px; height:36px; padding:0 8px 0 12px; border-bottom:1px solid rgba(255,255,255,.07); font-size:13px; color:rgba(232,234,232,.85); }
-.nm-co-bar b { color:#CFFF40; font-weight:700; }
-.nm-co-sub { color:rgba(232,234,232,.45); margin-right:auto; }
-.nm-co-dot { width:8px; height:8px; border-radius:50%; background:#CFFF40; box-shadow:0 0 8px rgba(207,255,64,.6); }
+.nm-co-bar b { flex:none; white-space:nowrap; color:#CFFF40; font-weight:700; }
+.nm-co-sub { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:rgba(232,234,232,.45); margin-right:auto; }   /* 창이 좁아도 머리 줄 한 줄(형 11-13 09:46 「화면 비율이 좀 좁아져도 2줄로 쪼개지지 않게」 · 맥 1024 에서 「화상회 / 의」 + 안내 두 줄 실물) · 전문 = title */
+.nm-co-dot { flex:none; width:8px; height:8px; border-radius:50%; background:#CFFF40; box-shadow:0 0 8px rgba(207,255,64,.6); }
 .nm-co-stage { position:relative; flex:1; min-height:0; display:flex; flex-direction:column; }   /* 화면 칸 = 표지(제어 · 고르기) 겹침 자리 */
 .nm-co-frame { flex:1; width:100%; border:0; display:block; background:#000; }
 .nm-co-off { flex:1; min-width:0; }
