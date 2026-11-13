@@ -41,8 +41,8 @@ const useSeen = () => useSyncExternalStore((f) => { seenSubs.add(f); return () =
 
 type Me = { configured?: boolean; signed_in?: boolean; user?: { id?: string; name?: string; upn?: string }; pending?: { user_code?: string; verification_uri?: string; expires_at?: number | string } | null };
 type Person = { id: string; name?: string };
-type Chat = { id: string; type?: string; topic?: string; members?: string[]; people?: Person[]; last?: { from?: string; from_id?: string; text?: string; at?: string } };
-type TMsg = { id: string; kind?: string; from?: string; from_id?: string; at?: string; text?: string; html?: string; files?: { name?: string; url?: string }[]; hosted?: string[]; sys?: string | null };
+type Chat = { id: string; type?: string; topic?: string; members?: string[]; people?: Person[]; last?: { from?: string; from_id?: string; text?: string; at?: string }; read_at?: string | null };
+type TMsg = { id: string; kind?: string; from?: string; from_id?: string; at?: string; text?: string; html?: string; files?: { name?: string; url?: string }[]; hosted?: string[]; sys?: string | null; card?: string[] };
 type Page = { messages: TMsg[]; next?: string };
 
 const meKey = ["nomute", "teams", "me"] as const;
@@ -72,7 +72,9 @@ function useTeamsChats(on: boolean) {
   }, [q.data, q.dataUpdatedAt]);
   return q;
 }
-const isNew = (c: Chat, seen: Record<string, string>, me?: Me["user"]) => !!c.last?.at && (seen[c.id] || "") < c.last.at && !(me?.id && c.last.from_id === me.id) && !(me?.name && c.last.from === me.name);
+// 읽은 때 = 이 기기에서 연 때 · 형이 진짜 팀즈에서 읽은 때(서버 read_at) 중 늦은 것(형 11-13 14:37 봄 옮김 「글구 팀즈 혹시 내가 읽은거를 여기와 동기화 가능해?」 · 실물 = 그래프 viewpoint · 뎅)
+const readOf = (c: Chat, seen: Record<string, string>) => { const a = seen[c.id] || "", b = c.read_at || ""; return a > b ? a : b; };
+const isNew = (c: Chat, seen: Record<string, string>, me?: Me["user"]) => !!c.last?.at && readOf(c, seen) < c.last.at && !(me?.id && c.last.from_id === me.id) && !(me?.name && c.last.from === me.name);
 /** 새 글 있는 팀즈 대화 수(팀즈 탭 · 바꿈 단추) — 로그인 안 했으면 0 */
 export function useTeamsUnread() {
   const me = useTeamsMe(false).data, seen = useSeen();
@@ -112,6 +114,13 @@ const gifsOf = (html?: string): string[] => (html && /giphy\.com/i.test(html) &&
 function GifImg({ src }: { src: string }) {   // 못 불러오면 기울인 「GIF」 글자(형 14:13 「안되면 그냥 GIF 이탤릭으로면돼」)
   const [bad, setBad] = useState(false);
   return bad ? <i className="nm-tgifx">GIF</i> : <img className="nm-thost nm-tgif" alt="GIF" loading="lazy" referrerPolicy="no-referrer" src={src} onError={() => setBad(true)} />;
+}
+/* 첨부 사진 = 말풍선 안 작은 판(서버 teams/thumb = 그래프 썸네일) · 누르면 원본 · 작은 판 못 받으면 📎 파일 줄 그대로(형 11-13 14:59 봄 옮김 「사진파일까진 보이게 할 수 있어?」 · 뎅) */
+const IMG_EXT = /\.(jpe?g|png|gif|webp|heic|bmp)$/i;
+function TPic({ url, name }: { url: string; name: string }) {
+  const [bad, setBad] = useState(false), full = `/api/office/teams/file?u=${encodeURIComponent(url)}`;
+  return bad ? <a className="nm-tfile" href={full} target="_blank" rel="noopener">📎 {name}</a>
+    : <a className="nm-tpic" href={full} target="_blank" rel="noopener" title={name}><img alt={name} loading="lazy" src={`/api/office/teams/thumb?u=${encodeURIComponent(url)}`} onError={() => setBad(true)} /></a>;
 }
 /* 날짜 가름 · 시각 묶음 = 우리 대화(office-chat.tsx dayKey · dateLabel · TIME_GAP)와 같은 셈 */
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
@@ -285,7 +294,8 @@ export function TeamsChat({ chat }: { chat: string }) {
                 {partsOf(m.html)?.map((x, k) => x.t === "table" ? <TTable key={k} rows={x.rows} /> : <span key={k} className="nm-tpart">{x.s}</span>) ?? (m.text ? <span>{m.text}</span> : null)}
                 {gifsOf(m.html).map((u) => <GifImg key={u} src={u} />)}
                 {(m.hosted || []).map((h) => <img key={h} className="nm-thost" alt="" loading="lazy" src={`/api/office/teams/hosted?chat=${encodeURIComponent(chat)}&msg=${encodeURIComponent(m.id)}&h=${encodeURIComponent(h)}`} />)}
-                {(m.files || []).map((f, k) => f.url ? <a key={k} className="nm-tfile" href={`/api/office/teams/file?u=${encodeURIComponent(f.url)}`} target="_blank" rel="noopener">📎 {f.name || "파일"}</a> : null)}
+                {m.card?.length ? <span className="nm-tcard">{m.card.map((l, k) => <span key={k}>{l}</span>)}</span> : null}   {/* 봇 카드 글 = 카드 안 글자만(형 11-13 14:47 「응응」 · 단추·입력 0) */}
+                {(m.files || []).map((f, k) => !f.url ? null : IMG_EXT.test(f.name || "") ? <TPic key={k} url={f.url} name={f.name || "사진"} /> : <a key={k} className="nm-tfile" href={`/api/office/teams/file?u=${encodeURIComponent(f.url)}`} target="_blank" rel="noopener">📎 {f.name || "파일"}</a>)}
               </>
             );
             return (
