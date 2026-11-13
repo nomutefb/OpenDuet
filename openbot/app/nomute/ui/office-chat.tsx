@@ -13,6 +13,7 @@
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { DlSeqButton } from "./dl-seq";
 import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
+import { QuickReact } from "./quick-react";
 import { CallSheet, appendToComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -952,6 +953,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
               <BoxCard m={m} />
               <DecideInline id={m.id} />   {/* 질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
               <Reactions m={m} c={c} mine={false} />
+              <QuickReact id={m.id} quick={c.quick} mine={Object.entries(c.rx[m.id] || {}).filter(([, w]) => (w || []).includes("형")).map(([k]) => k)} onReact={c.onReact} />   {/* 바로 다는 반응(오른쪽 위 모서리 · 형 11-14 05:56) */}
             </div>}
             {pickM(m) || bundleOf(m) ? null : <LinkCard m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) */}
             {!bundleOf(m) && askPickOf(c.room, m) ? <AskPick id={m.id} {...askPickOf(c.room, m)!} /> : null}   {/* 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}
