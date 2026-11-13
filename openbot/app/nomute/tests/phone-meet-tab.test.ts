@@ -47,3 +47,9 @@ test("폰 회의 판 = 화면 전체 · 16:9 폭 맞춤 · 명단 안 덮음 · 
   assert.match(rd("../ui/shell.tsx"), /\{teamsOn \|\| meetOn \? null : <><RoomFab \/>/);
   assert.match(rd("../swap/tab-bar.tsx"), /tab\.id === "rooms" && mode !== "office" \? MODE_LABEL\[mode\] : tab\.label/);
 });
+test("팀즈 폰 목록 = 이름 굵기 한 단계 낮춤 · 홀 검정 옅게 · 짝 팀즈 보라 옅게(형 11-14 01:19)", () => {
+  const c = rd("../ui/teams.css");
+  assert.match(c, /\.nm-tlist li > button b \{ font-weight:600; \}/);
+  assert.match(c, /\.nm-tlist li:nth-child\(odd\) > button \{ background:rgba\(0,0,0,\.22\); \}/);
+  assert.match(c, /\.nm-tlist li:nth-child\(even\) > button \{ background:rgba\(91,95,199,\.13\); \}/);
+});

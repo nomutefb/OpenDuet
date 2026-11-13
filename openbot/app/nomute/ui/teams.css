@@ -109,3 +109,15 @@
   .nm-pmeet .nm-sk-bar { right:auto; left:8px; top:8px; bottom:auto; flex-direction:row; gap:10px; }
   .nm-pmeet .nm-sk-bar button.nm-sk-pen { width:40px; height:40px; }
 }
+/* 팀즈 폰 목록(형 11-14 01:19 dm-sia 「팀즈 모바일에서 톡방 이름 볼디 한단계 낮춰줘. ㅋㅋ 글구 짝 홀 라인 구분되게 부탁해 하나는 검정쪽 투명에 가깝게 하나는 팀즈 고유색 투명에 가깝게 면 구분이 쉬울듯」)
+   · 이름 = 700 → 600(새 글 800 → 700) · 홀 줄 = 검정 옅게 · 짝 줄 = 팀즈 보라(#5b5fc7) 옅게 */
+@media (max-width: 767px) {
+  .nm-tlist li > button b { font-weight:600; }
+  .nm-tlist li button.new b { font-weight:700; }
+  .nm-tlist li:nth-child(odd) > button { background:rgba(0,0,0,.22); }
+  .nm-tlist li:nth-child(even) > button { background:rgba(91,95,199,.13); }
+  .nm-tlist li > button:hover, .nm-tlist li > button.on { background:rgba(91,95,199,.26); }
+  :root:not(.dark) .nm-tlist li:nth-child(odd) > button { background:rgba(0,0,0,.04); }
+  :root:not(.dark) .nm-tlist li:nth-child(even) > button { background:rgba(91,95,199,.09); }
+  :root:not(.dark) .nm-tlist li > button:hover, :root:not(.dark) .nm-tlist li > button.on { background:rgba(91,95,199,.18); }
+}
