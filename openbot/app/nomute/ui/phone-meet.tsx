@@ -1,6 +1,6 @@
 // 폰 「회의」 탭 몸통 — 열린 회의 이어 받기 → 뜸 화상회의 칸(./cobrowse-pane meet) 그대로 · 없으면 「새 회의」 단추(형 11-13 22:05 · 22:14 「좋아」)
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { office } from "../data/office";
 import { CobrowsePane } from "./cobrowse-pane";
 import { MEET_KEY, type MeetLike, type TempRoom, openMeetOf, stillOpen } from "./phone-meet-logic";
@@ -8,7 +8,22 @@ import { MEET_KEY, type MeetLike, type TempRoom, openMeetOf, stillOpen } from ".
 const readMine = (): MeetLike | null => { try { const m = JSON.parse(localStorage.getItem(MEET_KEY) || "null"); return m && m.id ? m : null; } catch { return null; } };
 const writeMine = (m: MeetLike | null) => { try { if (m) localStorage.setItem(MEET_KEY, JSON.stringify(m)); else localStorage.removeItem(MEET_KEY); } catch { /* 이번만 */ } };
 
+/** 다리 그림 위 줄(탭 + 주소) 실측 = nm-co-sync 의 bar(깃 11-14 01:53 「틀 높이 = 폭 × 900/1440 + bar」) → 이 칸 CSS 변수 --co-bar */
+function useCoBar() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const f = (e: MessageEvent) => { const d = e.data as { type?: string; bar?: number }; if (d && d.type === "nm-co-sync" && Number.isFinite(d.bar) && d.bar! >= 0 && d.bar! < 400) ref.current?.style.setProperty("--co-bar", `${Math.round(d.bar!)}px`); };
+    window.addEventListener("message", f); return () => window.removeEventListener("message", f);
+  }, []);
+  return ref;
+}
+
 export function PhoneMeet({ onClose }: { onClose: () => void }) {
+  const bar = useCoBar();
+  return <div ref={bar} className="nm-pmeet-in"><PhoneMeetBody onClose={onClose} /></div>;
+}
+
+function PhoneMeetBody({ onClose }: { onClose: () => void }) {
   const [go, setGo] = useState(false);
   const q = useQuery({ queryKey: ["nomute", "temprooms", "meet"], queryFn: () => office<{ rooms?: TempRoom[] }>("temprooms").then((j) => j.rooms || []), staleTime: 10_000 });
   if (!go) {

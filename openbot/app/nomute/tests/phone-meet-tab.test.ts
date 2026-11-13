@@ -41,7 +41,7 @@ test("폰 = 열린 화상회의 이어 받음 · 끝난 방 · 다른 임시방�
 test("폰 회의 판 = 화면 전체 · 16:9 폭 맞춤 · 명단 안 덮음 · 대화 = 남는 자리 · 「+」 숨김 · 네비 대화방 칸도 「회의」", () => {
   const c = rd("../ui/teams.css");
   assert.match(c, /\.nm-rooms-meet \{ position:fixed;/);
-  assert.match(c, /\.nm-pmeet \.nm-co-frame \{ flex:none; width:100%; height:calc\(100vw \* 10 \/ 16 \+ 64px\); aspect-ratio:auto; \}/);
+  assert.match(c, /\.nm-pmeet \.nm-co-frame \{ flex:none; width:100%; height:calc\(100vw \* 900 \/ 1440 \+ var\(--co-bar, 62px\)\); aspect-ratio:auto; \}/);
   assert.match(c, /\.nm-pmeet \.nm-meet-ppl \{ position:static;/);
   assert.match(c, /\.nm-pmeet \.nm-meet, \.nm-pmeet \.nm-co\.meet \.nm-meet\.open \{ flex:1 1 auto;/);
   assert.match(rd("../ui/shell.tsx"), /\{teamsOn \|\| meetOn \? null : <><RoomFab \/>/);

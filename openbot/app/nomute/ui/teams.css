@@ -102,7 +102,9 @@
   .nm-pmeet .nm-co-bar { height:46px; gap:6px; padding:0 4px 0 12px; }
   .nm-pmeet .nm-co-bar .nm-web-btn { width:42px; height:42px; font-size:18px; border-radius:10px; }
   .nm-pmeet .nm-co-stage { flex:none; display:block; position:relative; }
-  .nm-pmeet .nm-co-frame { flex:none; width:100%; height:calc(100vw * 10 / 16 + 64px); aspect-ratio:auto; }   /* 화면 = 폭 꽉(맥 72 화면 16:10) + 다리 탭 줄 · 주소 줄 64 — 형 01:43 「16대 9 아예 창 양 끝을 좌우로 붙여서 풀로 쓸수잇나」(앞 판 16:9 틀 = 다리 줄 몫만큼 화면이 줄어 양옆 검은 띠) */
+  .nm-pmeet-in { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  .nm-pmeet-in > .nm-co { flex:1 1 auto; min-height:0; }
+  .nm-pmeet .nm-co-frame { flex:none; width:100%; height:calc(100vw * 900 / 1440 + var(--co-bar, 62px)); aspect-ratio:auto; }   /* 다리 화면 1440×900 · bar = 다리 실측(phone-meet.tsx useCoBar · 깃 01:53)   /* 화면 = 폭 꽉(맥 72 화면 16:10) + 다리 탭 줄 · 주소 줄 64 — 형 01:43 「16대 9 아예 창 양 끝을 좌우로 붙여서 풀로 쓸수잇나」(앞 판 16:9 틀 = 다리 줄 몫만큼 화면이 줄어 양옆 검은 띠) */
   .nm-pmeet .nm-meet-ppl { position:static; width:auto; min-width:0; max-height:32vh; margin:0; border-radius:0; border-left:0; border-right:0; padding:6px 12px; }
   .nm-pmeet .nm-meet-ppl .nm-mp-h { min-height:36px; }
   /* 명단 = 두 칸(한 줄에 둘) · × 는 제 칸 오른쪽 끝 · 초대 · 고르기 · 알림 = 두 칸 다 씀(형 11-14 01:44 「명단은 되게 넓잖아. 2분할하자 2명이 1행으로 x 같은건 각각 자른 영역에 맞게」) */
