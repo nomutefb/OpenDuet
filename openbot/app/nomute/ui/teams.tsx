@@ -22,25 +22,12 @@ export function setTeamsMode(on: boolean) { try { localStorage.setItem(MODE_KEY,
 export const useTeamsMode = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, readMode, () => false);
 
 /* 이 기기 기억 셋(형 11-13 10:23 봄 옮김 「팀즈 미미리 얼굴 보이게 로딩떠도돼. 이게 렉이걸리면 사진을 아주 축소해서 애초에 저장을하자」 · 「새로 들어온 글도 여기서 알수있으면 베스트임」 · 뎅)
-   · 대화 목록 = 마지막에 받은 판을 먼저 그림(얼굴 · 이름 바로) · 그사이 새로 받음
-   · 얼굴 = 서버에서 한 번 받으면 64px 로 줄여 이 기기에 둠(다음부터 서버 안 기다림)
+   · 대화 목록 = 마지막에 받은 판을 먼저 그림(이름 바로) · 그사이 새로 받음
+   · 얼굴 칸 = 뺌(형 11-13 11:36 봄 옮김 「기다리지 않게해줘. 근데 그러면 실제로 얼굴 칸이 의미가없잖아? 팀즈는 얼굴칸 없어도 될거같아」 · 그래프 얼굴 길이 통째 막혀 한 장 12초)
    · 읽은 때 = 대화마다 「여기까지 봄」 · 그보다 새 글(남이 쓴 것) = 목록 굵게 + 라임 점 · 팀즈 탭 · 바꿈 단추에 숫자 */
-const CHATS_KEY = "nm-teams-chats", FACE_KEY = "nm-teams-face", SEEN_KEY = "nm-teams-seen";
+const CHATS_KEY = "nm-teams-chats", SEEN_KEY = "nm-teams-seen";
 const readJ = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(k); return v ? (JSON.parse(v) as T) : d; } catch { return d; } };
 const writeJ = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 가득 참 · 막힘 = 이번만 */ } };
-let faceMem: Record<string, string> | null = null;
-const faces = () => (faceMem ??= readJ<Record<string, string>>(FACE_KEY, {}));
-function keepFace(id: string, img: HTMLImageElement) {   // 받은 얼굴을 64px jpeg 로(한 장 2~3KB · 많아야 120장 · 폰 2배 화면에서도 안 뭉개질 만큼만)
-  if (!id || faces()[id]) return;
-  try {
-    const c = document.createElement("canvas"); c.width = c.height = 64;
-    const x = c.getContext("2d"); if (!x) return;
-    x.drawImage(img, 0, 0, 64, 64);
-    const m = { ...faces(), [id]: c.toDataURL("image/jpeg", 0.72) }, ks = Object.keys(m);
-    for (const k of ks.slice(0, Math.max(0, ks.length - 120))) delete m[k];
-    faceMem = m; writeJ(FACE_KEY, m);
-  } catch { /* 그림을 못 읽음 = 다음에 서버에서 */ }
-}
 const seenSubs = new Set<() => void>();
 let seenMem: Record<string, string> | null = null;
 const seenNow = () => (seenMem ??= readJ<Record<string, string> | null>(SEEN_KEY, null) || ({} as Record<string, string>));
@@ -59,37 +46,14 @@ type Page = { messages: TMsg[]; next?: string };
 
 const meKey = ["nomute", "teams", "me"] as const;
 
-/* 사람 얼굴·접속 불(형 11-06 번개 창 「팀즈 프로필 받아오기가능한가」 · 「더 받아와야해 팀즈처럼 써야하니까」)
-   · 얼굴 = 서버 teams/photo?u=<사람 id>(사진 없음 404 = 이름 첫 글자 동그라미 그대로) · 불 = teams/presence?ids=…(1분마다 · 보일 때만)
-   · 사람 id 가 없는 글(봇·앱·옛 서버 판) = 첫 글자 동그라미 */
+/* 얼굴 · 접속 불 칸 = 뺌(형 11-13 11:36 봄 옮김 「팀즈는 얼굴칸 없어도 될거같아」 · 앞 판 = 서버 teams/photo · teams/presence · git 이력) */
 /* 사람 표(형 11-06 번개 창 「박민주 단장님 이거 넣어드려라 ㅠㅠ」 · 「그리고 뒤에 직급 다 붙일수잇어? 내가 직급알려줄게」) — 서버 teams/people {이름: {title, face}}
-   · title = 이름 뒤에 붙는 직급(「박민주 단장」) · face = 우리가 넣어 준 얼굴(teams/face?n=이름 · 팀즈 사진보다 먼저) · 이 화면에서만 보임(팀즈 원본은 안 바뀜) */
+   · title = 이름 뒤에 붙는 직급(「박민주 단장」) · face = 우리가 넣어 준 얼굴(이 화면에선 안 씀 · 11-13) · 이 화면에서만 보임(팀즈 원본은 안 바뀜) */
 type PeopleTable = Record<string, { title?: string; face?: boolean; v?: number }>;
 function usePeopleTable(on: boolean): PeopleTable {
   return useQuery({ queryKey: ["nomute", "teams", "people"], queryFn: () => office<{ people?: PeopleTable }>("teams/people").then((j) => j.people || {}), enabled: on, staleTime: 5 * 60_000, retry: false }).data || {};
 }
 const titled = (name: string | undefined, t: PeopleTable) => (name && t[name]?.title ? `${name} ${t[name].title}` : name || "");
-const faceOf = (name: string | undefined, t: PeopleTable) => (name && t[name]?.face ? `/api/office/teams/face?n=${encodeURIComponent(name)}&v=${t[name].v || 0}` : "");
-const DOT: Record<string, string> = { Available: "on", AvailableIdle: "on", Busy: "busy", BusyIdle: "busy", DoNotDisturb: "busy", Away: "away", BeRightBack: "away" };
-function usePresence(ids: string[]) {
-  const key = [...new Set(ids.filter(Boolean))].sort().slice(0, 100);
-  return useQuery({ queryKey: ["nomute", "teams", "presence", key.join(",")], queryFn: () => office<{ presence?: Record<string, string> }>(`teams/presence?ids=${key.join(",")}`).then((j) => j.presence || {}),
-    enabled: key.length > 0, refetchInterval: () => (document.hidden ? false : 60_000), staleTime: 30_000, retry: false }).data || {};
-}
-/* 얼굴 없는 사람 = 기본 프로필(사람 꼴) · 모임 대화 = 여럿 꼴(형 11-06 번개 창 「얼굴 없는사람들 은 그냥 기본 프로필로 넣어줄수있어? 단체는 단체 픽토그램 느낌이랄까.」) — 이름 첫 글자 동그라미를 갈음 */
-const ICO_ONE = <svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="9" r="4" /><path d="M4 20.5c0-4.4 3.6-7 8-7s8 2.6 8 7z" /></svg>;
-const ICO_MANY = <svg viewBox="0 0 24 24" aria-hidden><circle cx="9" cy="9.2" r="3.3" /><path d="M2.4 20c0-3.8 2.9-6 6.6-6s6.6 2.2 6.6 6z" /><circle cx="17" cy="8.4" r="2.6" /><path d="M16.9 13c3 0 5.2 1.7 5.2 4.6v1.2h-4.7c-.2-2.2-1.3-3.9-3-4.9.8-.6 1.6-.9 2.5-.9z" /></svg>;
-function TFace({ id, name, state, small, group, own }: { id?: string; name?: string; state?: string; small?: boolean; group?: boolean; own?: string }) {
-  const [bad, setBad] = useState(false), [bad2, setBad2] = useState(false);
-  const dot = state ? DOT[state] : undefined;
-  return (
-    <i className={`nm-tava${small ? " sm" : ""}${(id && !bad) || (own && !bad2) ? "" : " ico"}`} title={name || undefined} aria-hidden>   {/* ico = 사진 없음 = 바탕 투명 · 선만(형 11-06 20:15) */}
-      {/* 차례 = 우리가 넣어 준 얼굴(R2 · 바로) → 팀즈 사진(이 기기 둔 판 → 서버) → 기본 꼴(형 11-06 「그룹웨어 … 프로필사진 연결해줘, 프사없는사람들」 · 11-13 그래프 얼굴 길이 막혀 넣어 준 얼굴을 먼저 · 뎅) */}
-      {own && !bad2 ? <img alt="" src={own} onError={() => setBad2(true)} /> : id && !bad ? <img alt="" loading={faces()[id] ? undefined : "lazy"} src={faces()[id] || `/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onLoad={(e) => keepFace(id, e.currentTarget)} onError={() => setBad(true)} /> : group ? ICO_MANY : ICO_ONE}
-      {dot ? <span className={`nm-tdot ${dot}`} /> : null}
-    </i>
-  );
-}
 /** 1:1 대화의 상대(나 말고 한 사람) — 여럿이면 없음(모임 대화 = 첫 글자 동그라미) */
 const other = (c: Chat, me?: Me["user"]) => { const l = (c.people || []).filter((x) => x.id && x.id !== me?.id && x.name !== me?.name); return c.type === "oneOnOne" && l.length === 1 ? l[0] : undefined; };
 function useTeamsMe(fast: boolean) {
@@ -173,7 +137,6 @@ export function TeamsList({ current }: { current?: string }) {
   const meFast = useTeamsMe(!!me?.pending && !signed);   // 코드 기다리는 동안 5초(같은 열쇠 · 하나만 돎)
   void meFast;
   const chats = useTeamsChats(signed), seen = useSeen();
-  const pres = usePresence((chats.data || []).map((c) => other(c, me?.user)?.id || ""));
   const table = usePeopleTable(signed);
   const rowName = (c: Chat) => { const o = other(c, me?.user); return c.topic ? c.topic : o ? titled(o.name, table) : (c.members || []).filter((m) => m && m !== me?.user?.name).map((m) => titled(m, table)).join(", ") || "(이름 없는 대화)"; };
   const err = meQ.error ? (meQ.error as Error).message : "";
@@ -190,7 +153,6 @@ export function TeamsList({ current }: { current?: string }) {
               {chats.data.map((c) => (
                 <li key={c.id}>
                   <button type="button" className={[current === TEAMS_PREFIX + c.id ? "on" : "", isNew(c, seen, me?.user) ? "new" : ""].filter(Boolean).join(" ") || undefined} onClick={() => void nav({ to: href(c.id) })}>
-                    <TFace group={c.type !== "oneOnOne"} id={other(c, me?.user)?.id} own={faceOf(other(c, me?.user)?.name, table)} name={chatName(c, me?.user?.name)} state={pres[other(c, me?.user)?.id || ""]} />
                     <span className="min-w-0 flex-1"><b className="block truncate">{rowName(c)}</b><small className="block truncate">{c.last?.from ? `${c.last.from} · ` : ""}{c.last?.text || ""}</small></span>
                     <em>{ago(c.last?.at)}{isNew(c, seen, me?.user) ? <i className="nm-tnew" aria-label="새 글" /> : null}</em>
                   </button>
@@ -266,7 +228,7 @@ export function TeamsChat({ chat }: { chat: string }) {
         {page.isLoading ? <Dots /> : page.error ? <p className="nm-tnote">글을 못 받았어 · {(page.error as Error).message}</p> : null}
         {all.map((m) => (
           <div key={m.id} className={`nm-tm${mine(m) ? " me" : ""}`}>
-            {mine(m) ? null : <b className="nm-tm-who"><TFace small id={m.from_id} own={faceOf(m.from, table)} name={m.from} />{titled(m.from, table) || "?"}</b>}
+            {mine(m) ? null : <b className="nm-tm-who">{titled(m.from, table) || "?"}</b>}
             <div className="nm-tm-b">
               {m.text ? <p>{m.text}</p> : null}
               {(m.hosted || []).map((h) => <img key={h} alt="" loading="lazy" src={`/api/office/teams/hosted?chat=${encodeURIComponent(chat)}&msg=${encodeURIComponent(m.id)}&h=${encodeURIComponent(h)}`} />)}
