@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { office } from "../data/office";
+import { LOOK_ONLY } from "../data/read-state";
 import { t12 } from "./when";
 import "./teams.css";
 
@@ -274,7 +275,7 @@ export function TeamsChat({ chat }: { chat: string }) {
       if (document.hidden) return;
       markSeen(chat, at);
       // 진짜 팀즈에도 읽음(형 11-13 15:04 봄 옮김 「✓ ① 응, 읽음으로 보내」 · 서버 teams/read = markChatReadForUser) — 팀즈 쪽 읽은 때보다 새 글이 있을 때만 · 같은 글엔 한 번
-      if ((chatTitle?.read_at || "") < at && sentRead.current !== chat + at) {
+      if (!LOOK_ONLY && (chatTitle?.read_at || "") < at && sentRead.current !== chat + at) {   // 찍기 탭(?look=1 · 봇이 화면 볼 때) = 형 팀즈 읽음 안 건드림
         sentRead.current = chat + at;
         void office("teams/read", { method: "POST", body: JSON.stringify({ chat }) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "teams", "chats"] })).catch(() => { sentRead.current = ""; });
       }
