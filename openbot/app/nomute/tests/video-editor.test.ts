@@ -16,3 +16,19 @@ test("영상 편집 = 원본 edit.html 품음 · 포토와 같은 머리 · 챠�
   assert.match(ve, /d\?\.nm === "nmToolTab"/, "옛 셸 탭 넘김 = 앱 안");
   assert.match(sd, /location\.hash = "#\/edvid";/);
 });
+
+test("시그니처 색 = 라임(형 11-13 14:06 「이미지 에디터처럼 시그니처 색이 좀 일치되어야 되구」) · 옛 청록 --accent 만 덮음 · 밝게/어둡게 따라감", () => {
+  const ve = rd("../ui/video-editor.tsx");
+  assert.match(ve, /--accent:\$\{dark \? "#CFFF40" : "#4f7a00"\}/);
+  assert.match(ve, /--accent-rgb:\$\{dark \? "207,255,64" : "79,122,0"\}/);
+  assert.match(ve, /new MutationObserver\(\(\) => see\(el\)\)/);
+  const tone = rd("../ui/inapp.ts");
+  assert.match(tone, /--modern-accent:\$\{dark \? "#CFFF40" : "#4f7a00"\}/, "앱 YETA 톤과 같은 값");
+});
+
+test("한 배경(형 11-13 14:08 「원톤으로 그냥 한 배경이 쭉」) = 도크 쉴 땐 투명 · 밑으로 들어갈 때만 유리", () => {
+  const ve = rd("../ui/video-editor.tsx");
+  assert.match(ve, /#topDock\{background:transparent!important/);
+  assert.match(ve, /html\.nm-stuck #topDock\{background:rgba\(17,18,20,\.82\)!important/);
+  assert.match(ve, /classList\.toggle\("nm-stuck"/);
+});

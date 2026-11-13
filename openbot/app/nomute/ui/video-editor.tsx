@@ -11,13 +11,26 @@ import { deliverStudio, EDIT } from "./studio-handoff";
 
 const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 3.5l1.8 4.9 4.9 1.8-4.9 1.8L12 16.9l-1.8-4.9-4.9-1.8 4.9-1.8L12 3.5z" /><path d="M19.5 15l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8.8-2.1z" /></svg>;
 /** 품은 옛 화면 바탕 = 투명(앱 배경이 비침) · 제 장면 그림(nm-scene) 끔 — 원본 파일은 안 고치고 품은 문서에만 덧씀 */
-export const SEE_CSS = "html,html.nm-scene-ready:not(:has(#wavebg)),body{background:transparent!important}.nm-scene-canvas{display:none!important}body::before{display:none!important}";
+export const SEE_CSS = "html,html.nm-scene-ready:not(:has(#wavebg)),body{background:transparent!important}.nm-scene-canvas{display:none!important}body::before{display:none!important}"
+  // 한 배경(형 11-13 14:08 봄 옮김 「배경같은것도 원톤으로 그냥 한 배경이 쭉 깔려야되」) = 미리보기 고정 도크(#topDock · 원본 #121212)도 쉴 땐 투명 · 내용이 도크 밑으로 들어간 동안만 유리(포토 에디터 ./thumb-maker/frame.css data-stuck 과 같은 꼴)
+  + "#topDock{background:transparent!important;transition:background-color .2s ease}html.nm-stuck #topDock{background:rgba(17,18,20,.82)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}";
+
+/** 시그니처 색 = 포토 에디터와 같은 라임(형 11-13 14:06 봄 옮김 「이미지 에디터처럼 시그니처 색이 좀 일치되어야 되구」) · 옛 화면 청록(--accent #00EED2)만 덮음 · 값 = 앱 YETA 톤(./inapp yetaTone --modern-accent)과 같음 · 앱 밝게/어둡게 따라감 */
+export const accentCss = (dark: boolean) => `:root{--accent:${dark ? "#CFFF40" : "#4f7a00"};--accent-rgb:${dark ? "207,255,64" : "79,122,0"}}`;
 
 function see(el: HTMLIFrameElement) {
   let doc: Document | null = null;
   try { doc = el.contentDocument; } catch { return; }
-  if (!doc?.head || doc.getElementById("nm-ved-see")) return;
-  const s = doc.createElement("style"); s.id = "nm-ved-see"; s.textContent = SEE_CSS; doc.head.appendChild(s);
+  if (!doc?.head) return;
+  let s = doc.getElementById("nm-ved-see") as HTMLStyleElement | null;
+  if (!s) { s = doc.createElement("style"); s.id = "nm-ved-see"; doc.head.appendChild(s); }
+  s.textContent = SEE_CSS + accentCss(document.documentElement.classList.contains("dark"));
+  const w = doc.defaultView as (Window & { __nmStuck?: boolean }) | null;   // 도크 밑으로 들어감 = html.nm-stuck(문서마다 한 번)
+  if (w && !w.__nmStuck) {
+    w.__nmStuck = true;
+    const d = doc, on = () => d.documentElement.classList.toggle("nm-stuck", (d.scrollingElement?.scrollTop || 0) > 1);
+    w.addEventListener("scroll", on, { passive: true }); on();
+  }
 }
 
 export function VideoEditor({ onBack }: { onBack?: () => void }) {
@@ -35,7 +48,9 @@ export function VideoEditor({ onBack }: { onBack?: () => void }) {
       if (d?.nm === "nmToolTab" && typeof d.src === "string" && d.src.startsWith("/")) openInApp(d.src);
     };
     window.addEventListener("message", msg);
-    return () => { unhook(); el.removeEventListener("load", load); window.removeEventListener("message", msg); };
+    const mo = new MutationObserver(() => see(el));   // 앱 밝게/어둡게 바뀌면 라임 값도 같이
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => { unhook(); mo.disconnect(); el.removeEventListener("load", load); window.removeEventListener("message", msg); };
   }, []);
   return (
     <div className="tm-stage ved-stage">
