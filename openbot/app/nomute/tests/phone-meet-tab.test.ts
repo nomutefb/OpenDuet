@@ -58,3 +58,8 @@ test("폰 회의 몸통 = 설명 글 0 · 「새 회의」 단추만(형 11-14 0
   assert.doesNotMatch(t, /회의 찾는 중|지금 열린 회의가 없어요/);
   assert.match(t, />새 회의</);
 });
+test("폰 명단 = 두 칸 · 초대 단추는 두 칸 다(형 11-14 01:44)", () => {
+  const c = rd("../ui/teams.css");
+  assert.match(c, /\.nm-pmeet \.nm-mp-l \{ display:grid; grid-template-columns:repeat\(2, minmax\(0, 1fr\)\);/);
+  assert.match(c, /\.nm-pmeet \.nm-mp-l > \.nm-mp-inv[^{]*\{ grid-column:1 \/ -1; \}/);
+});

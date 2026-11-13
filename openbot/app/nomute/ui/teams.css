@@ -105,6 +105,11 @@
   .nm-pmeet .nm-co-frame { flex:none; width:100%; height:calc(100vw * 10 / 16 + 64px); aspect-ratio:auto; }   /* 화면 = 폭 꽉(맥 72 화면 16:10) + 다리 탭 줄 · 주소 줄 64 — 형 01:43 「16대 9 아예 창 양 끝을 좌우로 붙여서 풀로 쓸수잇나」(앞 판 16:9 틀 = 다리 줄 몫만큼 화면이 줄어 양옆 검은 띠) */
   .nm-pmeet .nm-meet-ppl { position:static; width:auto; min-width:0; max-height:32vh; margin:0; border-radius:0; border-left:0; border-right:0; padding:6px 12px; }
   .nm-pmeet .nm-meet-ppl .nm-mp-h { min-height:36px; }
+  /* 명단 = 두 칸(한 줄에 둘) · × 는 제 칸 오른쪽 끝 · 초대 · 고르기 · 알림 = 두 칸 다 씀(형 11-14 01:44 「명단은 되게 넓잖아. 2분할하자 2명이 1행으로 x 같은건 각각 자른 영역에 맞게」) */
+  .nm-pmeet .nm-mp-l { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:10px; row-gap:4px; }
+  .nm-pmeet .nm-mp-l > .nm-mp-pick, .nm-pmeet .nm-mp-l > .nm-mp-inv, .nm-pmeet .nm-mp-l > .nm-mp-why { grid-column:1 / -1; }
+  .nm-pmeet .nm-mp { min-width:0; }
+  .nm-pmeet .nm-mp-x { width:32px; height:32px; }
   .nm-pmeet .nm-meet, .nm-pmeet .nm-co.meet .nm-meet.open { flex:1 1 auto; min-height:0; }   /* 대화 = 남는 자리 다(meet.css 50% 를 이김) · 입력 칸은 대화창이 제 몫으로 네비 위에 둠 */
   .nm-pmeet .nm-sk-bar { right:auto; left:8px; top:auto; bottom:8px; flex-direction:row; gap:10px; }   /* 펜 = 화면 왼쪽 아래(위는 다리 탭 줄 · 01:43 사진) */
   .nm-pmeet .nm-sk-bar button.nm-sk-pen { width:40px; height:40px; }
