@@ -61,6 +61,7 @@ import { pcOfText } from "./pc-url";
 import { dlHref } from "./news-data";
 import { useSwipeReply } from "./swipe-reply";
 import { MicOrb, ringOf } from "../swap/mic-orb";
+import { NameLabel } from "./name-label";
 import { inkOn } from "./color-pick";
 import { QUOTE, ReplyStrip } from "./reply-strip";   // 답글 띠(말풍선 바로 위 · 형 11-11 20:08 ~ 20:13) · 답장 글 첫 줄 꼴
 import { ProfileCard } from "./profile-card";   // 프사 누름 = 프로필 카드(형 10-30 19:4x)
@@ -939,7 +940,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <div className={ring ? "yname tab" : "yname"} style={ring ? ({ "--yn": ring } as CSSProperties) : undefined}>{p?.name || whoName(m.who)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</div>   {/* 이름 옆 표지(형 10-31 09:12 「애들 개별 대화창에서도 이모지 나오게해주랑 프로필이랑, 대화 옆」) */}
+        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} />
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}
         <div className="ybrow">
@@ -1448,7 +1449,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={draft.who} list={list} work /></div>
               <div className="ycol">
-                <div className="yname">{nmOf(list, draft.who)} · 쓰는 중</div>
+                <NameLabel tint={ringOf(list.find((x) => x.who === draft.who))} text={`${nmOf(list, draft.who)} · 쓰는 중`} />
                 <div className="yb ai"><Streamdown {...MD_BOX} components={markdownComponents}>{draft.text}</Streamdown><span className="ytdots"><i /><i /><i /></span></div>
               </div>
             </div>
@@ -1458,7 +1459,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
             <div className="ymsg ytyp" aria-live="polite">
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
-                <div className={typRing ? "yname tab" : "yname"} style={typRing ? ({ "--yn": typRing } as CSSProperties) : undefined}><LiveShine text={`${typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}${typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각 중…`} /></div>   {/* 이름까지 한 줄 통째로 은색 빛(형 11-01 13:40 「좌측 아래 생각중 이거 그냥 지금 은색 지나가는 걸로 이름에 관계 없이 쭉 나오게 해줘. 색마다 안보이는게 있어서」) · 「생각 중」 띄어 씀(의존 명사 · 형 13:40 「생각 중. 생각중 띄어쓰기 뭐가 맞나봐주고」) */}
+                <NameLabel tint={typRing} text={`${typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}${typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각 중…`} thinking />
                 <div className="yb ai"><ThinkMark /></div>   {/* 점 셋(기본) · 구슬 = 설정 「생각중 표시」(형 11-01 12:5x 「내 취향따라 심심할때 바꾸게」) */}
               </div>
             </div>
