@@ -68,3 +68,8 @@ test("폰 = 뜸 세로 알약 오른쪽 위(다리 줄 밑) · 칸 36(형 11-14 
   assert.match(c, /\.nm-pmeet \.nm-sk-bar \{ left:auto; right:8px; bottom:auto; top:calc\(var\(--co-bar, 62px\) \+ 8px\); \}/);
   assert.doesNotMatch(c, /\.nm-pmeet \.nm-sk-bar \{[^}]*flex-direction:row;/);
 });
+test("영상 편집 기둥 키 = 안 잎 요소 아래끝(틀 키 · scrollHeight 는 끝없이 자람 · 형 11-14 05:23)", () => {
+  const v = rd("../ui/video-editor.tsx");
+  assert.match(v, /if \(c\.children\.length\) continue;/);
+  assert.doesNotMatch(v, /rail\.offsetTop \+ rail\.offsetHeight/);
+});
