@@ -26,6 +26,7 @@
 .nm-meet-left { flex:none; font-size:11px; color:rgba(232,234,232,.5); white-space:nowrap; }
 .nm-meet-chat { flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; border-top:1px solid rgba(255,255,255,.06); background:#000; }   /* 대화 = 보통 대화창 그대로 · 바탕 검정(형 「대화창은 그냥 검정화면위에」) */
 .nm-co-sync.stale { opacity:.45; }
+.nm-meet-end { flex:none; white-space:nowrap; position:sticky; right:0; background:#0e0f0e !important; box-shadow:-10px 0 10px #0e0f0e; }   /* 얼굴 줄이 넘쳐도 단추는 오른쪽에 붙어 한 줄(첫 시험 PC 800 칸에서 「회의 종료」가 세로로 찌그러짐) */
 .nm-meet-end.on { color:#FF8A8D !important; border-color:rgba(255,90,95,.5) !important; }
 .nm-meet-endcnt { color:#FF8A8D; font-weight:700; }
 .nm-meetlog { display:flex; flex-direction:column; gap:8px; padding:12px; }
