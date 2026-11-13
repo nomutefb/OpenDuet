@@ -204,7 +204,7 @@ export function NewsList() {
               <button type="button" className="tt" title={row.title} onClick={() => open(row)}>{row.title}</button>
               <span className="mt" title={row.src || undefined}>{row.src || ""}</span>
               <span className="ag">{row.at ? ago(row.at) : ""}</span>   {/* 「N분 전」 = 점수 바로 왼쪽 칸 · 오른쪽 맞춤(형 11-06 10:15 「00분전 0시간전 00분전이 좀 더 우측으로 가야될거같아 점수쪽」) */}
-              {row.urg ? <span className="sc urg" title={`수집함 긴급 · ${row.urg}${row.score_why ? " · " + row.score_why : ""}`}>긴급 {row.urg}</span> : <span className="sc" title={row.score_why || undefined}>{Number.isFinite(row.score as number) ? Math.round(row.score as number) : ""}</span>}   {/* 긴급 = 점수 대신 「긴급 07:46」(봄 11-13 05:31 · 빠르 urg) */}   {/* 점수 없는 줄도 칸은 둠(줄 맞춤) */}
+              <span className="sc" title={row.score_why || undefined}>{Number.isFinite(row.score as number) ? Math.round(row.score as number) : ""}</span>   {/* 점수(긴급 줄도 같음 · 빨간 「긴급 HH:MM」 알약 뺌 = 형 11-13 11:00 「긴급 -> 없어도 되구」 · 차례 = 긴급 맨 위 그대로 byEvent) */}   {/* 점수 없는 줄도 칸은 둠(줄 맞춤) */}
               {sdBtn("sd", row.meta?.published?.sourceUrl || row.urls?.[0] || row.title || "", () => send(row))}
             </li>
           ))}

@@ -1,19 +1,19 @@
 // 쉴 때 화면 가림(형 11-06 17:31 「15분 미입력시 화면 가림 설정 기능과 설정 온오프 및 즉시 기능 블라인드는 한 85퍼」 · 대시보드 고급화 방 UI 첫 판 ⑥)
-//   = PC(마우스 · 넓은 화면)에서 15분 동안 손이 안 닿으면 85% 어둡게 덮고 큰 시계 · 아무 키·누름이면 걷힘
+//   = PC(마우스 · 넓은 화면)에서 10분 동안(11-13 형 「10분」) 손이 안 닿으면 85% 어둡게 덮고 큰 시계 · 아무 키·누름이면 걷힘
 //   켜고 끄기 = 설정 「쉴 때 화면 가림」(이 기기 localStorage nm-blind · 처음 = 켬) · 바로 가림 = 설정 「지금 가리기」 · Alt+L
 //   가림은 화면만 덮음(대화·동기화는 뒤에서 그대로 돎) · 쓰던 글은 그대로
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { YICO } from "./yeta-icons";
 import "./idle-blind.css";
 
-const KEY = "nm-blind", IDLE_MS = 15 * 60_000;
+const KEY = "nm-blind", IDLE_MS = 10 * 60_000;   // 10분(형 11-13 10:59 봄 옮김 「미 입력 10분이면 웹앱 보호기 있어야되는데 안되더라고」 · 앞 판 = 15분 · 11-06 「15분 미입력시」)
 const subs = new Set<() => void>();
 const readOn = () => { try { return localStorage.getItem(KEY) !== "off"; } catch { return true; } };
 const setOn = (on: boolean) => { try { localStorage.setItem(KEY, on ? "on" : "off"); } catch { /* 이번만 */ } subs.forEach((f) => f()); };
 const useOn = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, readOn, () => true);
 export const blindNow = () => window.dispatchEvent(new Event("nm-blind-now"));
 
-const pc = () => !!window.matchMedia?.("(pointer: fine)").matches && window.innerWidth >= 900;
+const pc = () => !!window.matchMedia?.("(pointer: fine)").matches && window.innerWidth >= 860;   // = PC 반갈 문턱(side.tsx SPLIT 860 · 앞 판 900 = 창 860~899 폭이면 붙어 있어도 안 가렸음)
 const hhmm = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
 /** 껍데기에 한 번 — 15분 쉼 · 바로 가림 · 걷힘 */
@@ -22,7 +22,12 @@ export function IdleBlind() {
   const [shut, setShut] = useState(false), [clock, setClock] = useState(hhmm);
   useEffect(() => {
     let last = Date.now();
-    const poke = () => { last = Date.now(); };
+    let px = NaN, py = NaN;
+    const poke = (e: Event) => {
+      if (e.type === "pointermove") { const m = e as PointerEvent; if (m.screenX === px && m.screenY === py) return; px = m.screenX; py = m.screenY; }   // 자리 그대로인 이동 = 손 아님(밑 화면이 바뀌면 브라우저가 커서 밑에 쏘는 이동 · 짐작 막이)
+      if (!e.isTrusted) return;   // 코드가 쏜 키·누름(call-face Escape · swipe-reply pointercancel 등) = 손 아님
+      last = Date.now();
+    };
     const evs = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"] as const;
     evs.forEach((e) => window.addEventListener(e, poke, { passive: true, capture: true }));
     const now = () => setShut(true);
@@ -57,7 +62,7 @@ export function BlindRows() {
       <button type="button" className="yset-item" onClick={() => setOn(!on)}>
         <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.screen }} />
         <span className="si-lbl"><span className="si-t">쉴 때 화면 가림</span></span>
-        <span className="si-v"><span className={`si-vt${on ? " mod" : ""}`}>{on ? "15분" : "끔"}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
+        <span className="si-v"><span className={`si-vt${on ? " mod" : ""}`}>{on ? "10분" : "끔"}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
       </button>
       <button type="button" className="yset-item" onClick={() => setTimeout(blindNow, 150)}>
         <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.contrast }} />

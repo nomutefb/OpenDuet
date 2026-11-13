@@ -16,10 +16,11 @@ test("urg 있는 사건 = 맨 위 · HH:MM(서울) · 점수 낮아도", () => {
   assert.equal(eventOf(rows[0], idx)!.urg, undefined);
 });
 
-test("화면 = 긴급 줄 점수 칸 「긴급 HH:MM」", () => {
+test("화면 = 긴급 표지 0 · 긴급 줄도 점수 · 「N시간 전」 = 흰색(형 11-13 11:00 「긴급 -> 없어도 되구, / 0시간전 > 이거 그냥 흰색으로 뜨면 돼」)", () => {
   const nl = readFileSync(new URL("../home/news-list.tsx", import.meta.url), "utf8");
-  assert.match(nl, /row\.urg \? <span className="sc urg"/);
-  assert.match(nl, /urg: h\.urg \}/);
+  assert.ok(!/className="sc urg"/.test(nl), "빨간 긴급 알약 뺌");
+  assert.match(nl, /urg: h\.urg \}/, "차례(긴급 맨 위)는 그대로");
   const css = readFileSync(new URL("../home/news-list.css", import.meta.url), "utf8");
-  assert.match(css, /li:has\(\.sc\.urg\) \.ag \{ display:none; \}/); assert.match(css, /\.sc\.urg \{ grid-column:span 2;/); assert.ok(!/li:has\(\.sc\.urg\) \{ grid-template-columns/.test(css), "칸 수 안 바꿈");
+  assert.ok(!/\.sc\.urg/.test(css));
+  assert.match(css, /\.nm-nlist-ol \.ag \{[^}]*color:#e8eae8;/);
 });
