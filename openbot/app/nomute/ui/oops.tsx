@@ -3,13 +3,14 @@
 //   쓰는 곳 = router.tsx defaultErrorComponent(앱 통째 깨짐 · 옛 「Something went wrong!」) · shell.tsx PaneGuard(반갈 칸 하나 깨짐 = 작은 판)
 import "./oops.css";
 
-export const OOPS_GIF = "/office/sticker/bom/surprise.gif";
+export const OOPS_GIF = "/office/sticker/bom/surprise-clear.webp";   // 투명 움직임(뜸 11-14 05:50 · 320 · 34장) · 못 그리면 png
+export const OOPS_PNG = "/office/sticker/bom/surprise-clear.png";
 const home = () => { try { location.hash = "#/"; } catch { /* 그대로 */ } location.reload(); };
 
 export function Oops({ title = "앗, 화면이 꼬였어", sub = "잠깐 길을 잃었나 봐", small = false, retry }: { title?: string; sub?: string; small?: boolean; retry?: () => void }) {
   return (
     <div className={`nm-oops${small ? " small" : ""}`} role="alert">
-      <img src={OOPS_GIF} alt="" width={small ? 72 : 168} height={small ? 72 : 168} />
+      <picture><source srcSet={OOPS_GIF} type="image/webp" /><img src={OOPS_PNG} alt="" width={small ? 72 : 168} height={small ? 72 : 168} /></picture>
       <b>{title}</b>
       <small>{sub}</small>
       <p>

@@ -1,8 +1,8 @@
 /* 에러 화면(11-14) — 다크 = 기본(앱이 .dark) · 밝은 판 = :root:not(.dark) · 눌림 = 옛 에디터 --press-l */
 .nm-oops { position:fixed; inset:0; z-index:90; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:24px 16px; text-align:center; background:#0f100f; color:#e8eae8; }
 :root:not(.dark) .nm-oops { background:#fff; color:#161716; }
-.nm-oops img { width:min(168px, 42vw); height:auto; margin-bottom:6px; border-radius:28%; box-shadow:0 8px 28px rgba(0,0,0,.35); }   /* 스티커 = 분홍 네모 바탕 → 둥근 판(바탕 없는 그림 오면 둥글기 · 그림자 걷음) */
-:root:not(.dark) .nm-oops img { box-shadow:0 8px 24px rgba(0,0,0,.12); }
+/* 가운데 = 투명 봄 놀람(뜸 · 둥근 판 · 그림자 걷음) */
+.nm-oops img { width:min(176px, 44vw); height:auto; margin-bottom:6px; }
 .nm-oops b { font-size:var(--fs-h2, 20px); font-weight:700; letter-spacing:-.01em; }
 .nm-oops small { font-size:var(--fs-body, 14px); opacity:.6; }
 .nm-oops p { margin:10px 0 0; display:flex; gap:10px; align-items:center; font-size:var(--fs-body, 14px); }
@@ -11,5 +11,5 @@
 :root:not(.dark) .nm-oops button { color:#3d6b00; }
 .nm-oops button:active { transform:scale(var(--press-l, .95)); }
 .nm-oops.small { position:static; inset:auto; z-index:auto; min-height:180px; height:100%; padding:16px; background:none; }
-.nm-oops.small img { width:72px; border-radius:24%; }
+.nm-oops.small img { width:72px; }
 .nm-oops.small b { font-size:var(--fs-body, 14px); }
