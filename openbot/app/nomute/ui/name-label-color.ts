@@ -6,7 +6,8 @@ const linear = (v: number) => {
   const s = v / 255;
   return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
 };
-const contrast = ([r, g, b]: number[]) => 1.05 / (0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b) + 0.05);
+const luminance = ([r, g, b]: number[]) => 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+const contrast = (rgb: number[]) => 1.05 / (luminance(rgb) + 0.05);
 
 /** 서버 시그니처(#RGB/#RGBA/#RRGGBB/#RRGGBBAA) → 테마와 무관한 불투명 이름표 바탕.
  * RGB에 같은 비율을 곱해 색상·채도를 유지하고, 충분히 어두운 색은 보존한다.
@@ -27,4 +28,19 @@ export function nameLabelColor(signature?: string): string {
     else hi = mid;
   }
   return "#" + rgb.map((v) => Math.floor(v * lo).toString(16).padStart(2, "0")).join("");
+}
+
+/** 어두운 라벨도 윤곽이 남도록 바탕 대비 3:1 이상인 같은 색 계열의 밝은 테. */
+export function nameLabelBorder(background: string): string {
+  const hex = /^#[\da-f]{6}$/i.test(background) ? background : FALLBACK;
+  const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const base = luminance(rgb) + 0.05;
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 16; i++) {
+    const mid = (lo + hi) / 2;
+    const line = rgb.map((v) => Math.ceil(v + (255 - v) * mid));
+    if ((luminance(line) + 0.05) / base >= 3) hi = mid;
+    else lo = mid;
+  }
+  return "#" + rgb.map((v) => Math.ceil(v + (255 - v) * hi).toString(16).padStart(2, "0")).join("");
 }

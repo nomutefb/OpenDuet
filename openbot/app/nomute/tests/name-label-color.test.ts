@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { nameLabelColor } from "../ui/name-label-color.ts";
+import { nameLabelBorder, nameLabelColor } from "../ui/name-label-color.ts";
 
 type RGB = readonly [number, number, number];
 const WHITE: RGB = [255, 255, 255];
@@ -94,6 +94,21 @@ test("17-step RGB grid keeps white text above 4.5:1 even inside the .9 opacity c
         const output = nameLabelColor(signature);
         assertReadable(output, signature);
         if (contrast(WHITE, [r, g, b]) >= 7) assert.deepEqual(rgb(output), [r, g, b], `dark colour changed: ${signature}`);
+      }
+    }
+  }
+});
+
+test("17-step RGB grid has a lighter opaque border with at least 3:1 label contrast", () => {
+  for (let r = 0; r <= 255; r += 17) {
+    for (let g = 0; g <= 255; g += 17) {
+      for (let b = 0; b <= 255; b += 17) {
+        const signature = "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
+        const background = nameLabelColor(signature);
+        const base = rgb(background), border = rgb(nameLabelBorder(background));
+        const actual = contrast(border, base);
+        assert.ok(actual >= 3, `${signature}: border-to-label contrast is only ${actual}:1`);
+        assert.ok(border.every((channel, i) => channel >= base[i]), `${signature}: border must lighten toward white`);
       }
     }
   }
