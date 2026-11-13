@@ -5,12 +5,13 @@
 //   방 주소 = /channels/teams:<chat id>(대화 판은 OfficeChat 이 이 앞머리를 보고 TeamsChat 으로)
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { office } from "../data/office";
 import { LOOK_ONLY } from "../data/read-state";
 import { t12 } from "./when";
 import "./teams.css";
+import { MeetIcon, OfficeIcon, TeamsIcon } from "./tab-icons";
 
 export const TEAMS_PREFIX = "teams:";
 export const isTeams = (room: string) => room.startsWith(TEAMS_PREFIX);
@@ -19,8 +20,15 @@ const href = (chat: string) => `/channels/${encodeURIComponent(TEAMS_PREFIX + ch
 // 바꿈 = 이 기기에 기억(다시 열어도 그 판) · 같은 창 안 여러 곳이 같이 바뀌게 작은 알림
 const MODE_KEY = "nm-teams-mode";
 const subs = new Set<() => void>();
-const readMode = () => { try { return localStorage.getItem(MODE_KEY) === "teams"; } catch { return false; } };
-export function setTeamsMode(on: boolean) { try { localStorage.setItem(MODE_KEY, on ? "teams" : "office"); } catch { /* 이번만 */ } subs.forEach((f) => f()); }
+// 판 셋 = 사무실 · 팀즈 · 회의(형 11-13 22:05 「폰에서도 화상회의 … 위 탭에따라 아래에 메뉴는 고정이고 이름만 변경되게 / 대화 / 팀즈 / 회의」 · 앞 판 = 사무실 · 팀즈 둘)
+export type OfficeMode = "office" | "teams" | "meet";
+const readOffice = (): OfficeMode => { try { const v = localStorage.getItem(MODE_KEY); return v === "teams" || v === "meet" ? v : "office"; } catch { return "office"; } };
+export function setOfficeMode(m: OfficeMode) { try { localStorage.setItem(MODE_KEY, m); } catch { /* 이번만 */ } subs.forEach((f) => f()); }
+export const useOfficeMode = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, readOffice, () => "office" as OfficeMode);
+/** 아래 네비 「대화」 칸 이름 = 위 탭 판(형 22:05 「이름만 변경되게」) */
+export const MODE_LABEL: Record<OfficeMode, string> = { office: "대화", teams: "팀즈", meet: "회의" };
+const readMode = () => readOffice() === "teams";
+export function setTeamsMode(on: boolean) { setOfficeMode(on ? "teams" : "office"); }
 export const useTeamsMode = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, readMode, () => false);
 
 /* 이 기기 기억 셋(형 11-13 10:23 봄 옮김 「팀즈 미미리 얼굴 보이게 로딩떠도돼. 이게 렉이걸리면 사진을 아주 축소해서 애초에 저장을하자」 · 「새로 들어온 글도 여기서 알수있으면 베스트임」 · 뎅)
@@ -138,12 +146,20 @@ const chatName = (c: Chat, me?: string) => c.topic || (c.members || []).filter((
 const ago = (at?: string) => { const t = at ? Date.parse(at) : NaN; if (!Number.isFinite(t)) return ""; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "방금" : m < 60 ? `${m}분` : m < 1440 ? t12(t) : new Date(t).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }); };
 
 /** 「사무실 | 팀즈」 바꿈(대화 목록 맨 위) */
+/** 폰 위 탭 「사무실 | 팀즈 | 회의」 = PC 위 탭 줄과 같은 폴더 탭(고른 탭이 아래 판과 한 몸 · 어깨 곡선) · 고른 탭만 이름까지 부드럽게 펼침 · 나머지 = 아이콘
+ *  형 11-13 22:14 dm-sia 「근데 상단 탭 모양을 팀즈 그 아이콘 고르면 부드럽게 확장되는 느낌으로 하면 될듯」 · 참고 영상 96981.mp4(브라우저식 폴더 탭) */
 export function TeamsSwitch() {
-  const on = useTeamsMode(), n = useTeamsUnread();
+  const mode = useOfficeMode(), n = useTeamsUnread();
+  const tab = (m: OfficeMode, ic: ReactNode, name: string, extra?: ReactNode) => (
+    <button type="button" role="tab" aria-selected={mode === m} aria-label={name} className={`nm-ftab${mode === m ? " on" : ""}`} onClick={() => setOfficeMode(m)}>
+      {ic}<span className="nm-ftab-nm">{name}</span>{extra}
+    </button>
+  );
   return (
-    <div className="nm-tswitch" role="tablist" aria-label="대화 판 바꾸기">
-      <button type="button" role="tab" aria-selected={!on} onClick={() => setTeamsMode(false)}>사무실</button>
-      <button type="button" role="tab" aria-selected={on} onClick={() => setTeamsMode(true)}>팀즈{n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null}</button>
+    <div className="nm-tswitch fold" role="tablist" aria-label="대화 판 바꾸기">
+      {tab("office", <OfficeIcon />, "사무실")}
+      {tab("teams", <TeamsIcon />, "팀즈", n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null)}
+      {tab("meet", <MeetIcon />, "회의")}
     </div>
   );
 }

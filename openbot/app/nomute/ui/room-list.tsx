@@ -21,7 +21,8 @@ import { LiveShine } from "./live-shine";
 import { RoomGoneDialog, RoomMembersDialog, TempDeleteDialog, TempRoomDialog, TempSwipe, canGone } from "./temp-room";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
-import { TeamsList, TeamsSwitch, setTeamsMode, useTeamsMode } from "./teams";
+import { TeamsList, TeamsSwitch, setOfficeMode, setTeamsMode, useOfficeMode, useTeamsMode } from "./teams";
+import { PhoneMeet } from "./phone-meet";   // 폰 「회의」 탭 = 열린 회의 이어 받기 + 뜸 화상회의 칸 그대로(형 11-13 22:05 · 22:14)
 import { RoomGlyph } from "./room-glyph";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
 import { GoButton } from "./go-button";
@@ -124,6 +125,7 @@ function RoomPhotoTap({ r, children }: { r: Room; children: React.ReactNode }) {
 export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
   const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
   const teamsOn = useTeamsMode() && !slim;   // 「사무실 | 팀즈」 바꿈(PC 왼쪽 좁은 칸 = 사무실 그대로)
+  const meetOn = useOfficeMode() === "meet" && !slim && !bar;   // 폰 「회의」 = 목록 자리에 화상회의(PC 반갈 = 위 탭 줄 「화상회의」가 그 자리 · 형 11-13 22:05)
   // 활발한 방 = 이름에 빛(형 11-01 「현재 활발한 방(누군가라도 활동중인 방개인포함)은 이름에 빚지나가게」) — 마지막 글이 3분 안 · 또는 1:1 에서 형 글 뒤 그 이가 일하는 중(대화 칸 점 셋과 같은 깸 표 · 같은 bots 캐시)
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string; why?: string }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
   const live = (r: Room) => { const l = lastOf(r); return Date.now() - (r.act_ts || r.last_ts || 0) < LIVE_MS ||   /* act_ts = 1:1 방 우리끼리 글까지 든 진짜 마지막(미리보기는 형 낀 글 · 서버 #1990) */ (!!r.with && l?.kind === "human" && bots.some((b) => b.who === r.with && b.state === "awake" && b.why !== "read")); };
@@ -247,6 +249,12 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     </div>
   ) : null;
 
+  if (meetOn) return (   // 폰 「회의」 = PC 에서 연 그 회의를 이어 봄(같이 보는 화면 · 사람 줄 · 회의 대화 = ./cobrowse-pane meet · 뜸 부품 · 다리 터치 = 깃 11-13 23:45)
+    <nav aria-label="화상회의" className="nm-yeta nm-rooms nm-rooms-meet flex flex-col">
+      <TeamsSwitch />
+      <div className="nm-pmeet"><PhoneMeet onClose={() => setOfficeMode("office")} /></div>
+    </nav>
+  );
   if (teamsOn) return (   // 팀즈 모드 = 목록 자리에 팀즈 대화(./teams.tsx · 형 11-06 「팀즈 를 누르면 팀즈모드로 전환되는 느낌이랄까」)
     <nav aria-label="팀즈 대화 목록" className="nm-yeta nm-rooms flex flex-col">
       {topBar || <TeamsSwitch />}

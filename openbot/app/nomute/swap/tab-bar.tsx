@@ -12,6 +12,7 @@ import { MODALS, type Modal, type Pane } from "../ui/shell";
 import "../ui/yeta-chat.css";
 import "./ynav.css";
 import { useDecideWaiting } from "../ui/decide-count";
+import { MODE_LABEL, useOfficeMode } from "../ui/teams";   // 「대화」 칸 이름 = 위 탭 판(대화 · 팀즈 · 회의 · 형 11-13 22:05 「위 탭에따라 아래에 메뉴는 고정이고 이름만 변경되게」)
 
 export type ShellTab = "chat" | "tasks" | "make";
 
@@ -31,6 +32,7 @@ export function tabForPath(pathname: string): ShellTab | null {
 }
 
 export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pane | null; modal?: Modal | null; chatTo?: string; current?: ShellTab }) {
+  const mode = useOfficeMode();
   const navigate = useNavigate();
   const inbox = useQuery(approvalInboxOptions());
   const tasks = useQuery(taskListQueryOptions());
@@ -54,11 +56,12 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
             = 왼쪽 띠 아래 셋(+ · 최근 채팅 · 채팅 목록)을 갈음 · 그림 = 목록이면 대화방(inbox) · 대화창이면 말풍선(chat) · 누름 = 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록 · 폰은 위 TABS(대화방 · 대화) 그대로라 CSS 로 PC 만 보임(../ui/shell.css .nm-split-l) */}
         {(() => {
           const onRooms = pane === "rooms" && !modal, onChat = pane === "chat" && !modal, on = onRooms || onChat;
+          const label = MODE_LABEL[mode];
           return (
             <button aria-current={on ? "page" : undefined} aria-label={onChat ? "대화 · 대화창(누르면 목록)" : onRooms ? "대화 · 대화방 목록(누르면 마지막 대화)" : "대화"} className={on ? "on nm-nav-talk" : "nm-nav-talk"}
               onClick={() => void navigate({ to: talkNext(pane, modal, chatTo, "/rooms") })} type="button">
               <DuetIcon name={onRooms ? "inbox" : "chat"} size={20} stroke={on ? 2.1 : 1.9} />
-              <span>대화</span>
+              <span>{label}</span>
             </button>
           );
         })()}

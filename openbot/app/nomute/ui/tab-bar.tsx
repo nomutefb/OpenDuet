@@ -13,6 +13,7 @@ import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:
 import { COBROWSE_EVENT } from "./cobrowse";
 import { TEAMS_PREFIX, TeamsList, isTeams, useTeamsUnread } from "./teams";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
+import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀즈 | 회의」 탭도 같이 씀(./teams.tsx TeamsSwitch · 형 11-13 22:14)
 
 // 첫 탭 = 「봄의 정원」(형 11-12 06:23 봄 1:1 「기본적으로 탭형태를 갖춰서. 봄의 정원. 이라고 나오게해줘. 그리고 거기서 +가 나오게 크롬형태를 참고하면 될거같애」
 //   · 「일단 누르면 기본값으로 우측 sns, hotiussue, digest로 빈창이 열리게 하자 좌측은 유지되고(대화족은)」) — 지금 판 그 자체가 첫 탭 · 늘 보임
@@ -22,21 +23,6 @@ const TEAMS_LAST = "nm-teams-last";   // 마지막에 본 팀즈 대화(이 기�
 const teamsLast = () => { try { return localStorage.getItem(TEAMS_LAST) || ""; } catch { return ""; } };
 const OFFICE_LAST = "nm-office-last";   // 마지막에 본 사무실 대화(이 기기) = 팀즈에서 정원 탭 누르면 왼쪽이 그리로(형 11-13 12:43 봄 옮김 「그리고 팀즈에서 다시 정원을 누르면 그 채팅이 뜨게 가능해?」 · 「✓ ③ 둘 다」 · 뎅)
 const officeLast = () => { try { return localStorage.getItem(OFFICE_LAST) || ""; } catch { return ""; } };
-/** 화상회의 픽토그램(카메라 + 사람 하나 · 라임) — 팀즈 「회의」처럼 한눈에 갈리는 제 아이콘(형 11-13 09:21) */
-const MeetIcon = () => (
-  <svg className="nm-tab-ic meet" viewBox="0 0 24 24" aria-hidden>
-    <rect x="1.5" y="5.5" width="14.5" height="13" rx="3" fill="#CFFF40" /><path d="M17.4 10.4l4.2-2.6c.4-.2.9.1.9.5v7.4c0 .4-.5.7-.9.5l-4.2-2.6z" fill="#CFFF40" />
-    <circle cx="8.75" cy="10.4" r="2.3" fill="#121314" /><path d="M4.6 16.4c.5-2 2.2-3.1 4.15-3.1s3.65 1.1 4.15 3.1z" fill="#121314" />
-  </svg>
-);
-/** 팀즈 픽토그램(사람 둘 + T 판 · 보라) */
-const TeamsIcon = () => (
-  <svg className="nm-tab-ic teams" viewBox="0 0 24 24" aria-hidden>
-    <circle cx="18.2" cy="6.6" r="2.4" fill="#7B83EB" /><path d="M15.4 10.2h5.4c.7 0 1.2.5 1.2 1.2v4.3a3.2 3.2 0 0 1-6.4 0v-5.5z" fill="#7B83EB" />
-    <circle cx="12.6" cy="5.4" r="3" fill="#5059C9" /><path d="M7.4 9.6h9.6c.6 0 1 .4 1 1v5.6a5.4 5.4 0 0 1-10.8 0v-5.4c0-.7.5-1.2 1.2-1.2z" fill="#5059C9" />
-    <rect x="2" y="7" width="10.6" height="10.6" rx="1.6" fill="#4B53BC" /><path d="M4.6 9.6h5.4v1.5H8.1v4.6H6.5v-4.6H4.6z" fill="#fff" />
-  </svg>
-);
 // 웹 · 화면 탭이 덮는 자리 = 오른쪽 칸(aside.nm-split · SNS · HOT ISSUE · DIGEST)만 · 왼쪽 대화는 그대로 · 칸이 없으면(좁은 판) 옛 자리(몸 전체)
 const paneHost = (): HTMLElement | null => document.querySelector<HTMLElement>(".nm-split-root aside.nm-split");
 
