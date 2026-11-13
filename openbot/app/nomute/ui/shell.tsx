@@ -209,7 +209,9 @@ export function NomuteShell({ children }: { children: ReactNode }) {
     if (pane !== "chat" || modal || layer || "page" in where) return;
     const onPop = (e: PopStateEvent) => {
       if (!e.state) return;   // location.hash = 로 옮길 때도 popstate 가 옴(state 없음 · 프로필 「대화」·앱 안 링크) = 뒤로가기 아님
-      if (document.querySelector(".nm-zoom, .nm-stk")) return;   // 사진 크게 보기 · 움짤 판을 닫는 뒤로 = 대화 판 그대로(ui/office-chat.tsx zoomImage · ui/sticker.tsx · 형 11-13 02:24 「이모지를 지금 하나 인앱에서 올리면 대화창이 목록으로 나가져」)
+      const w = window as Window & { nmEatPop?: number };
+      if (w.nmEatPop && Date.now() - w.nmEatPop < 1500) { w.nmEatPop = 0; return; }   // 판이 스스로 닫히며 깐 칸을 걷는 뒤로(ui/call-sheet.tsx) = 진짜 뒤로 아님
+      if ((e as PopStateEvent & { nmEaten?: boolean }).nmEaten || document.querySelector(".nm-zoom, .nm-stk, .ncs-veil")) return;   // 사진 크게 보기 · 움짤 판을 닫는 뒤로 = 대화 판 그대로(ui/office-chat.tsx zoomImage · ui/sticker.tsx · 형 11-13 02:24 「이모지를 지금 하나 인앱에서 올리면 대화창이 목록으로 나가져」) · 「@」 호출 명부(.ncs-veil · ui/call-sheet.tsx 가 한 칸 깖 · 형 11-13 22:13 「호출 하다가 뒤로가면 이 화면 데리고 가는거」 · 셀프 실물 23:10 = 명부는 닫혔는데 방도 목록으로 나감)
       const at = location.hash.replace(/^#/, "") || "/";
       if (at !== "/rooms") void nav({ to: "/rooms", replace: true });
     };

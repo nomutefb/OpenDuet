@@ -136,9 +136,9 @@ export function CallSheet() {
     if (!isOpen) return undefined;
     let byBack = false;
     history.pushState({ ...history.state, nmCall: 1 }, "");
-    const pop = () => { byBack = true; if (open) { open = null; emit(); } };
+    const pop = (e: PopStateEvent) => { (e as PopStateEvent & { nmEaten?: boolean }).nmEaten = true; byBack = true; if (open) { open = null; emit(); } };   // nmEaten = 이 뒤로는 명부가 먹음(ui/shell.tsx 「대화 판 뒤로 = 목록」이 먼저 닫힌 명부를 못 보고 방을 옮기던 것 · 뜸 23:1x 실물)
     window.addEventListener("popstate", pop);
-    return () => { window.removeEventListener("popstate", pop); if (!byBack && history.state?.nmCall) history.back(); };
+    return () => { window.removeEventListener("popstate", pop); if (!byBack && history.state?.nmCall) { (window as Window & { nmEatPop?: number }).nmEatPop = Date.now(); history.back(); } };   // 누름 · 확정 · Esc 로 닫힐 때 깐 칸 걷는 뒤로 = ui/shell.tsx 가 진짜 뒤로로 읽고 방을 목록으로 옮기던 것(뜸 23:1x 실물 · 「@모두 」 확정 뒤 방 나감) → 다음 popstate 하나는 셸이 먹지 않음
   }, [isOpen]);
   if (!o) return null;
   const toggle = (id: string) => setPicked((p) => {
