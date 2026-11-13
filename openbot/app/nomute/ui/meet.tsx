@@ -132,7 +132,7 @@ const useMeetRoom = (id: string) => {
   return { live, gone: !!q.data && !live, cands: q.data?.cands || [], refetch: q.refetch };
 };
 const useMeetMsgs = (id: string) => useQuery({ queryKey: ["nomute", "meet", id], queryFn: () => office<{ messages?: OfficeMsg[] }>(`rooms/${encodeURIComponent(id)}/messages?n=100`).then((j) => j.messages || []), refetchInterval: 3000 }).data || [];
-const purposeM = (m: OfficeMsg) => /^\s*(!모두\s*)?\[임시방 목적/.test(String(m.text || ""));   // 목적 말풍선(설명글) = 회의 대화엔 안 보임(형 15:15 「이거는 설명글은 필요없고」)
+const purposeM = (m: OfficeMsg) => /^\s*(![^\s]+\s*)*\[임시방 목적/.test(String(m.text || ""));   // 목적 말풍선(설명글) = 회의 대화엔 안 보임(형 15:15 「이거는 설명글은 필요없고」)
 
 /** 칸 아래 = 그 방 대화(우리 대화 부품 그대로 · 말하는 이 왼쪽 · 형 오른쪽 · 형 15:02 「우리 대화하는것 처럼 올라갔으면 좋겠어. 동일한 디자인 계승해서 각자의 프로필 색에 똑같이」) · 끝난 방 = 「새 회의」 */
 export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
@@ -201,7 +201,7 @@ export function trailRows(log: { messages?: { who: string; ts: number; text: str
   const rows: TrailRow[] = [
     ...(log.urls || []).map((u) => ({ t: "url" as const, at: u.at, url: u.url, title: u.title })),
     ...(log.events || []).map((e) => ({ t: "ev" as const, at: e.at, who: e.who, kind: e.kind, text: e.text })),
-    ...(log.messages || []).filter((m) => !/^\s*(!모두\s*)?\[임시방 목적/.test(m.text || "")).map((m) => ({ t: "msg" as const, at: m.ts, who: m.who, text: m.text })),
+    ...(log.messages || []).filter((m) => !/^\s*(![^\s]+\s*)*\[임시방 목적/.test(m.text || "")).map((m) => ({ t: "msg" as const, at: m.ts, who: m.who, text: m.text })),
   ];
   const rank = { url: 0, ev: 1, msg: 2 };
   return rows.sort((a, b) => a.at - b.at || rank[a.t] - rank[b.t]);
