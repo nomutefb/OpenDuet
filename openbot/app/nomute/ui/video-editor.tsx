@@ -15,7 +15,9 @@ export const SEE_CSS = "html,html.nm-scene-ready:not(:has(#wavebg)),body{backgro
   // 한 배경(형 11-13 14:08 봄 옮김 「배경같은것도 원톤으로 그냥 한 배경이 쭉 깔려야되」) = 미리보기 고정 도크(#topDock · 원본 #121212)도 쉴 땐 투명 · 내용이 도크 밑으로 들어간 동안만 유리(포토 에디터 ./thumb-maker/frame.css data-stuck 과 같은 꼴)
   + "#topDock{background:transparent!important;transition:background-color .2s ease}html.nm-stuck #topDock{background:rgba(17,18,20,.82)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}"
   // 도구 기둥(#cpRailWrap · 미리보기 창 밖 오른쪽 절대 자리)이 창보다 길면 도크 밖 「자막 설정」 위로 넘쳐 비침(형 11-13 22:05 봄 옮김 「글구 여기 뒷 배경 안보여여되는데 보이네」 · 폰 실측 기둥 288 > 칸 186) → 칸 최소 높이 = 기둥(--nm-railh · see() 가 잼) · 접힘(.fold)엔 안 걸림
-  + ".topdock:not(.fold) #pvsec{min-height:var(--nm-railh,0px)}";
+  + ".topdock:not(.fold) #pvsec{min-height:var(--nm-railh,0px)}"
+  // 폰 = 미리보기만 폭맞춤 고정 · 옆 기둥은 아래 설정에 겹쳐도 됨(형 11-14 07:06 dm-sia 「저 영상 편집기 네비게이션 부분은 아래 내용에 겹쳐도 되거든? 영상 미리보기 부분만 고정으로 폭맞춤 되게해주면 됨」 · 앞 판 칸 최소 높이는 폰에서 끔)
+  + "@media (max-width:767px){.topdock:not(.fold) #pvsec{min-height:0!important}#pvsec .cpprev-box{width:calc(100% - 82px)!important;max-width:none!important;margin-left:0!important;margin-right:0!important;max-height:62vh}}";
 
 /** 옆 기둥 글자 단추(해상도 · 배경음 · 음량 · 컷 편집 = 옛 #editSpec .gs-v) → 사진 에디터처럼 그림 단추(형 11-14 05:41 봄 옮김 「✓ ② 사진 에디터처럼 그림 단추로 바꿈」 · 05:23 「비디오 에디터 화면 사진 에디터 처럼 디자인을 구성한다고 생각하면 마음이 편함」)
  *  누름 · 켜짐(.on = 라임)은 옛 화면 그대로 · 해상도 값은 그림 밑 작은 글자 · 길게 누르면 이름 말풍선(see() · nm-tip) */
