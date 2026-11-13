@@ -44,3 +44,8 @@
 
 :root:not(.dark) .prompt-area-chip[data-faced="1"] { background:#f1f3ee !important; color:#2f4a00 !important; border-color:rgba(0,0,0,.12) !important; }
 .ncs-pop.touch .ncs-list li { padding:10px 12px; }   /* 손가락 판 = 줄 높이 넉넉히(형 11-05) */
+/* 「@」 명부 = 입력칸 글자로 좁힘(11-13) · 아래 줄 = 친 글 · 눌림 = 옛 에디터 꼴(--press-l .95 · 0.12초) */
+.ncs-pop-f .ncs-q { flex:1; font-size:var(--fs-h3); color:inherit; }
+.ncs-pop-f .ncs-q small { font-size:var(--fs-xs); color:var(--mut, #9aa0a6); }
+.ncs-pop .ncs-list li { transition:transform .12s ease, background .12s ease; }
+.ncs-pop .ncs-list li:active { transform:scale(var(--press-l, .95)); }
