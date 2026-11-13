@@ -9,9 +9,10 @@
 .nm-meet-ft button { border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:5px 12px; background:transparent; color:inherit; cursor:pointer; }
 .nm-meet-ft button.ok { background:#CFFF40; color:#111; border-color:#CFFF40; font-weight:700; }
 .nm-meet-ft button:disabled { opacity:.45; cursor:default; }
-.nm-meet { flex:none; display:flex; flex-direction:column; border-top:1px solid rgba(255,255,255,.08); background:#0e0f0e; }
+.nm-meet { flex:none; min-width:0; max-width:100%; display:flex; flex-direction:column; border-top:1px solid rgba(255,255,255,.08); background:#0e0f0e; }
 .nm-meet.open { flex:0 0 42%; min-height:220px; }
-.nm-meet-row { flex:none; display:flex; align-items:center; gap:8px; padding:8px 10px; overflow-x:auto; }
+.nm-meet-row { flex:none; display:flex; align-items:center; gap:8px; padding:8px 10px; min-width:0; }
+.nm-meet-faces { flex:1; min-width:0; display:flex; align-items:center; gap:8px; overflow-x:auto; scrollbar-width:none; }   /* 얼굴만 가로로 밀림 · 남은 초 · 종료 단추는 오른쪽에 늘 보임(첫 시험 PC 800 칸에서 단추가 칸 밖으로 밀림) */
 .nm-meet-who { flex:none; display:grid; grid-template-columns:28px auto; grid-template-rows:auto auto; column-gap:6px; align-items:center; padding:3px 10px 3px 3px; border-radius:999px; border:1px solid rgba(255,255,255,.1); }
 .nm-meet-who img { grid-row:1 / 3; width:28px; height:28px; border-radius:50%; object-fit:cover; border:2px solid transparent; }
 .nm-meet-who b { font-size:12px; color:#e8eae8; line-height:1.1; }
@@ -22,13 +23,11 @@
 .nm-meet-who.s-off { opacity:.45; } .nm-meet-who.s-off img { filter:grayscale(1); }
 .nm-meet-who.s-scribe { border-style:dashed; }
 @keyframes nm-meetWait { 0%,100%{ opacity:1 } 50%{ opacity:.45 } }
-.nm-meet-sp { flex:1; }
 .nm-meet-left { flex:none; font-size:11px; color:rgba(232,234,232,.5); white-space:nowrap; }
 .nm-meet-chat { flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; border-top:1px solid rgba(255,255,255,.06); background:#000; }   /* 대화 = 보통 대화창 그대로 · 바탕 검정(형 「대화창은 그냥 검정화면위에」) */
 .nm-co-sync.stale { opacity:.45; }
-.nm-meet-end { flex:none; white-space:nowrap; position:sticky; right:0; background:#0e0f0e !important; box-shadow:-10px 0 10px #0e0f0e; }   /* 얼굴 줄이 넘쳐도 단추는 오른쪽에 붙어 한 줄(첫 시험 PC 800 칸에서 「회의 종료」가 세로로 찌그러짐) */
+.nm-meet-end { flex:none; white-space:nowrap; width:auto !important; height:26px; padding:0 12px !important; border:1px solid rgba(255,255,255,.18); border-radius:999px; font-size:12px; font-weight:700; color:#e8eae8 !important; }   /* .nm-web-btn = 26px 네모 아이콘 단추라 글자가 세로로 찌그러짐(첫 시험) → 「화상회의」 단추와 같은 알약 */
 .nm-meet-end.on { color:#FF8A8D !important; border-color:rgba(255,90,95,.5) !important; }
-.nm-meet-endcnt { color:#FF8A8D; font-weight:700; }
 .nm-meetlog { display:flex; flex-direction:column; gap:8px; padding:12px; }
 .nm-meetlog-empty { color:var(--mut, rgba(232,234,232,.5)); font-size:13px; }
 .nm-meetlog-row > button { all:unset; display:flex; flex-direction:column; gap:2px; width:100%; box-sizing:border-box; padding:10px 12px; border-radius:12px; border:1px solid var(--border, rgba(255,255,255,.1)); cursor:pointer; }

@@ -110,7 +110,8 @@ export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
   }, [now, endAt, ending]);   // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className={`nm-meet${st.open ? " open" : ""}`}>
-      <div className="nm-meet-row" aria-label="화상회의 참여자">
+      <div className="nm-meet-row">
+        <div className="nm-meet-faces" aria-label="화상회의 참여자">
         {meet.members.map((n) => {
           const s: Answer | "scribe" = n === SCRIBE ? "scribe" : stateOf(n);
           return (
@@ -120,10 +121,9 @@ export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
             </span>
           );
         })}
-        <span className="nm-meet-sp" />
+        </div>
         {!st.open ? <small className="nm-meet-left">{`${left}초 뒤엔 온 이들로 열림`}</small> : null}
-        {endAt ? <small className="nm-meet-left nm-meet-endcnt" role="status">회의 종료까지 {endLeft}초</small> : null}
-        <button type="button" className={`nm-web-btn nm-meet-end${endAt ? " on" : ""}`} disabled={ending} onClick={() => void toggleEnd()} title={endAt ? "종료 취소" : "회의 종료(1분 카운트 · 형만)"}>{endAt ? `종료 ${endLeft}초 · 취소` : "회의 종료"}</button>
+        <button type="button" className={`nm-web-btn nm-meet-end${endAt ? " on" : ""}`} disabled={ending} onClick={() => void toggleEnd()} title={endAt ? "종료 취소" : "회의 종료(1분 카운트 · 형만)"}>{endAt ? <span role="status">{`종료 ${endLeft}초 · 취소`}</span> : "회의 종료"}</button>
       </div>
       {st.open ? <div className="nm-meet-chat"><OfficeChat room={meet.id} /></div> : null}
     </div>
