@@ -13,7 +13,7 @@
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
 import { DlSeqButton } from "./dl-seq";
 import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
-import { QuickReact } from "./quick-react";
+import { QrRadial, QuickReact } from "./quick-react";
 import { CallSheet, appendToComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -453,37 +453,25 @@ function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
   const e = Object.entries(c.rx[m.id] || {}).filter(([, w]) => w && w.length);
   const app = new Map<string, string[]>();   // 그록 앱 반응(D14 · 거울 칸 app_reactions) = 같은 그림끼리 묶음
   for (const x of m.app_reactions || []) if (x?.emoji) app.set(x.emoji, [...(app.get(x.emoji) || []), x.who]);
-  const [open, setOpen] = useState("");   // 누가 달았나 보기(형 11-02 12:00 「단체톡에서는 내 이모지 누르면 누가 달앗는지 알 수 있어야 함. 내가 너희들 말풍선에 달린 이모디 눌러도 누가 달앗는지 알아야함.」)
-  // 내 반응 길게 누름(또는 오른쪽 단추) = 다른 반응으로 바꾸기(형 11-08 09:23 밥상 「내 감정표현을 길게 누르면 다른 감정표현으로 바꿀수잇게 가능한지」 · 빠르) · 바꾸기 = 옛 것 빼고 새 것 담(서버 길은 그대로 두 번)
-  const [swap, setSwap] = useState("");
-  const hold = useRef(0), held = useRef(false);
+  const [open, setOpen] = useState("");   // 누가 달았나 보기(형 11-02 12:00 「단체톡에서는 내 이모지 누르면 누가 달앗는지 알 수 있어야 함. 내가 너희들 말풍선에 달린 이모디 눌러도 누가 달앗는지 알아야함.」 · 11-14 06:17 「남이 달은거를 클릭 시 누가 달았는지 보는거는 기존과 동일해」)
+  const [rad, setRad] = useState("");   // 내가 단 이모지 누름 = 그 자리 구슬(바꾸기 · 가운데 − 빼기 · 형 11-14 06:16 「이미 달은거를 다시 누르면 바꿀 수 있게 해줘 가운데 빼기가 나오면 되겠네」 · 앞 판 = 길게 눌러 바꾸기 줄 · 형 11-08 09:23)
   useEffect(() => {
-    if (!open && !swap) return undefined;
-    const off = (ev: PointerEvent) => { if (!(ev.target as Element | null)?.closest?.(".yrxs")) { setOpen(""); setSwap(""); } };
-    const esc = (ev: KeyboardEvent) => { if (ev.key === "Escape") { setOpen(""); setSwap(""); } };
+    if (!open) return undefined;
+    const off = (ev: PointerEvent) => { if (!(ev.target as Element | null)?.closest?.(".yrxs")) setOpen(""); };
+    const esc = (ev: KeyboardEvent) => { if (ev.key === "Escape") setOpen(""); };
     document.addEventListener("pointerdown", off); window.addEventListener("keydown", esc);
     return () => { document.removeEventListener("pointerdown", off); window.removeEventListener("keydown", esc); };
-  }, [open, swap]);
-  useEffect(() => () => window.clearTimeout(hold.current), []);
+  }, [open]);
   if (!e.length && !app.size) return null;
   const shown = open ? (e.find(([k]) => k === open)?.[1] || app.get(open.replace(/^app:/, "")) || []) : [];
-  const toSwap = (k: string) => { held.current = true; setOpen(""); setSwap(k); navigator.vibrate?.(12); };
-  const holdOn = (k: string) => (ev: RPointerEvent) => { if (ev.button > 0) return; held.current = false; window.clearTimeout(hold.current); hold.current = window.setTimeout(() => toSwap(k), 450); };
-  const holdOff = () => window.clearTimeout(hold.current);
+  const meFace = idOf(m.who, c.list);
   return (
     <div className="yrxs" onClick={(e) => e.stopPropagation()}>   {/* 말풍선 모서리에 겹침(형 10-31 「이모지는 칸을 아껴야되니까」) */}
       {open ? (
-        <div className={`yrx-who${mine ? " me" : ""}`} role="dialog" aria-label="반응 단 이">
-          <span>{open.replace(/^app:/, "")} {shown.map((x) => nmOf(c.list, x)).join(" · ")}</span>
-          {!open.startsWith("app:") ? <button type="button" onClick={() => { c.onReact(m.id, open); setOpen(""); }}>{shown.includes("형") ? "빼기" : "나도"}</button> : null}
-        </div>
-      ) : null}
-      {swap ? (
-        <div className={`yrx-who yrx-swap${mine ? " me" : ""}`} role="dialog" aria-label={`내 반응 ${swap} 바꾸기`}>
-          <span>{swap} →</span>
-          {c.quick.filter((q) => q !== swap).map((q) => (
-            <button key={q} type="button" className="q" aria-label={`${swap} 를 ${q} 로 바꾸기`} onClick={() => { c.onSwap(m.id, swap, q, (c.rx[m.id]?.[q] || []).includes("형")); setSwap(""); }}>{q}</button>
-          ))}
+        <div className={`yrx-who${mine ? " me" : ""}`} role="dialog" aria-label="반응 단 이">   {/* 누가 달았나 = 이모지 + 얼굴 · 이름 한 줄 · 반응 줄 아래(말풍선 글 안 덮음 · 형 11-14 06:18 「글자가 못나게 보이지 않게 손봐주고」) */}
+          <span className="yrx-who-e" aria-hidden>{open.replace(/^app:/, "")}</span>
+          <span className="yrx-who-l">{shown.map((x) => <span key={x} className="yrx-who-p"><FaceImg id={idOf(x, c.list)} size={18} /><b>{nmOf(c.list, x)}</b></span>)}</span>
+          {!open.startsWith("app:") && !shown.includes("형") ? <button type="button" onClick={() => { c.onReact(m.id, open); setOpen(""); }}>나도</button> : null}
         </div>
       ) : null}
       {[...app].map(([k, w]) => (
@@ -495,13 +483,15 @@ function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
       {e.map(([k, w]) => {
         const me = w.includes("형");
         return (
-          <button key={k} type="button" title={w.map((x) => nmOf(c.list, x)).join(" · ") + (me ? " · 길게 누르면 바꾸기" : "")} aria-expanded={open === k}
-            onClick={() => { if (held.current) { held.current = false; return; } setSwap(""); setOpen(open === k ? "" : k); }}   // 누름 = 단 이 보기 · 달기·빼기는 그 안 단추
-            onPointerDown={me ? holdOn(k) : undefined} onPointerUp={holdOff} onPointerLeave={holdOff} onPointerCancel={holdOff}
-            onContextMenu={me ? (ev) => { ev.preventDefault(); toSwap(k); held.current = false; } : undefined}
-            className={`yrx${me ? " on" : ""}`}>
-            {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
-          </button>
+          <span key={k} className="yrx-at">
+            <button type="button" title={w.map((x) => nmOf(c.list, x)).join(" · ") + (me ? " · 누르면 바꾸기 · 빼기" : "")} aria-expanded={me ? rad === k : open === k}
+              onClick={() => { if (me) { setOpen(""); setRad(rad === k ? "" : k); } else { setRad(""); setOpen(open === k ? "" : k); } }}   // 내 것 = 구슬 · 남의 것 = 단 이 보기
+              className={`yrx${me ? " on" : ""}`}>
+              {k}{w.length > 1 ? <span className="tabular-nums">{w.length}</span> : null}
+            </button>
+            {me && rad === k ? <QrRadial quick={c.quick} mine={[k]} faceId={meFace} onClose={() => setRad("")}
+              onPick={(q) => { if (q !== k) c.onSwap(m.id, k, q, (c.rx[m.id]?.[q] || []).includes("형")); }} onRemove={() => c.onReact(m.id, k)} /> : null}
+          </span>
         );
       })}
     </div>
@@ -953,7 +943,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
               <BoxCard m={m} />
               <DecideInline id={m.id} />   {/* 질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
               <Reactions m={m} c={c} mine={false} />
-              <QuickReact id={m.id} quick={c.quick} mine={Object.entries(c.rx[m.id] || {}).filter(([, w]) => (w || []).includes("형")).map(([k]) => k)} onReact={c.onReact} />   {/* 바로 다는 반응(오른쪽 위 모서리 · 형 11-14 05:56) */}
+              <QuickReact id={m.id} quick={c.quick} faceId={idOf(m.who, c.list)} mine={Object.entries(c.rx[m.id] || {}).filter(([, w]) => (w || []).includes("형")).map(([k]) => k)} onReact={c.onReact} />   {/* 바로 다는 반응(오른쪽 위 모서리 · 형 11-14 05:56) */}
             </div>}
             {pickM(m) || bundleOf(m) ? null : <LinkCard m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) */}
             {!bundleOf(m) && askPickOf(c.room, m) ? <AskPick id={m.id} {...askPickOf(c.room, m)!} /> : null}   {/* 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}

@@ -5,10 +5,10 @@
 .nm-qr.lit .nm-qr-btn { opacity:1; border-color:rgba(207,255,64,.55); background:rgba(207,255,64,.14); box-shadow:0 0 8px rgba(207,255,64,.35); }
 .nm-qr-lit { font-size:13px; line-height:1; }
 .nm-qr.open .nm-qr-btn { opacity:0; transform:scale(.6); }
-.nm-qr-hub { position:absolute; left:50%; top:50%; z-index:2; width:46px; height:46px; margin:-23px 0 0 -23px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(207,255,64,.45); background:rgba(22,23,22,.92); color:#e8eae8; pointer-events:none; box-shadow:0 6px 18px rgba(0,0,0,.4); transform:scale(.5); opacity:0; animation:nm-qrHub .22s cubic-bezier(.2,.9,.3,1.2) forwards; will-change:transform, opacity; }
+.nm-qr-hub { position:absolute; left:50%; top:50%; z-index:2; width:46px; height:46px; margin:-23px 0 0 -23px; overflow:visible; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(207,255,64,.45); background:rgba(22,23,22,.92); color:#e8eae8; pointer-events:none; box-shadow:0 6px 18px rgba(0,0,0,.4); transform:scale(.5); opacity:0; animation:nm-qrHub .22s cubic-bezier(.2,.9,.3,1.2) forwards; will-change:transform, opacity; }
 @keyframes nm-qrHub { to { transform:scale(1); opacity:1; } }
 .nm-qr-name { font-size:10.5px; font-weight:700; white-space:nowrap; }
-.nm-qr-orb { position:absolute; left:50%; top:50%; z-index:3; width:34px; height:34px; margin:-17px 0 0 -17px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,.22); background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.28), rgba(255,255,255,.06) 55%, rgba(20,22,20,.55)); box-shadow:0 4px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25); font-size:18px; line-height:1; cursor:pointer; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); will-change:transform, opacity;
+.nm-qr-orb { position:absolute; left:0; top:0; z-index:3; width:34px; height:34px; margin:-17px 0 0 -17px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,.22); background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.28), rgba(255,255,255,.06) 55%, rgba(20,22,20,.55)); box-shadow:0 4px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25); font-size:18px; line-height:1; cursor:pointer; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); will-change:transform, opacity;
   transform:translate(0,0) scale(.3); opacity:0; animation:nm-qrOut .26s cubic-bezier(.2,.9,.3,1.25) forwards; animation-delay:var(--d, 0ms); }
 .nm-qr-orb:hover, .nm-qr-orb:focus-visible { transform:translate(var(--x),var(--y)) scale(1.18) !important; }
 .nm-qr-orb.on { border-color:#CFFF40; box-shadow:0 0 10px rgba(207,255,64,.55), inset 0 1px 0 rgba(255,255,255,.25); }
@@ -16,3 +16,18 @@
 :root:not(.dark) .nm-qr-btn { background:rgba(255,255,255,.92); color:rgba(22,23,22,.6); border-color:rgba(0,0,0,.18); }
 :root:not(.dark) .nm-qr-hub { background:#fff; color:#161716; }
 @media (prefers-reduced-motion:reduce) { .nm-qr-orb { animation:none; transform:translate(var(--x),var(--y)); opacity:1; } .nm-qr-hub { animation:none; transform:none; opacity:1; } }
+/* 구슬 둘레(QrRadial · 모서리 단추 · 반응 줄 내 이모지 둘 다) = 부모 가운데 축 · 가운데 = 말풍선 주인 얼굴(형 06:17) · 빼기 = 얼굴 오른쪽 아래 작은 −(형 06:16) */
+.nm-qr-rad { position:absolute; left:50%; top:50%; width:0; height:0; z-index:8; }
+.nm-qr-rad .nm-qr-hub { left:0; top:0; }
+.nm-qr-face { border-radius:50%; }
+.nm-qr-hub img, .nm-qr-hub .nm-face { width:40px; height:40px; border-radius:50%; object-fit:cover; }
+.nm-qr-tip { position:absolute; left:50%; bottom:-9px; transform:translateX(-50%); padding:1px 7px; border-radius:999px; background:#CFFF40; color:#111; font-size:10.5px; font-weight:800; white-space:nowrap; }
+.nm-qr-minus { position:absolute; left:12px; top:10px; z-index:4; width:20px; height:20px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,.35); background:#FF5A5F; color:#fff; font-size:15px; font-weight:900; line-height:1; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.4); transform:scale(.4); opacity:0; animation:nm-qrHub .22s .08s cubic-bezier(.2,.9,.3,1.2) forwards; }
+.yrx-at { position:relative; display:inline-flex; }
+/* 누가 달았나 판(./office-chat Reactions · 형 11-14 06:18 「남이 달은거는 이런식으로 보일텐데 글자가 못나게 보이지 않게 손봐주고」) = 이모지 + 얼굴 · 이름 한 줄 · 반응 줄 아래(말풍선 글 안 덮음) */
+.ychat .yrxs .yrx-who { top:calc(100% + 6px); bottom:auto; flex-wrap:nowrap; align-items:center; gap:8px; padding:5px 6px 5px 8px; max-width:min(300px, 78vw); white-space:nowrap; line-height:1.2; }
+.yrx-who-e { flex:none; font-size:17px; line-height:1; }
+.yrx-who-l { display:flex; flex-wrap:wrap; gap:4px 10px; min-width:0; }
+.yrx-who-p { display:inline-flex; align-items:center; gap:5px; }
+.yrx-who-p b { font-size:12.5px; font-weight:700; }
+.yrx-who-p img, .yrx-who-p .nm-face { width:18px; height:18px; border-radius:50%; }
