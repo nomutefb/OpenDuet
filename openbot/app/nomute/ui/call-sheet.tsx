@@ -10,10 +10,11 @@ import { createPortal } from "react-dom";
 import { idOf, peopleSync } from "../data/office";
 import { faceIcon, markLabel } from "./call-face";
 import "./call-sheet.css";
+import { filterAgents, onQuery } from "./call-query";
 
 type Handle = { insertChip: (chip: { trigger: string; value: string; displayText: string }) => void; focus: () => void; setCursorToEnd: () => void; getPlainText: () => string; appendText: (t: string) => void };
 type Agent = { id: string; name: string; description?: string };
-type Open = { char: "@" | "!"; agents: readonly Agent[]; at: DOMRect | null } | null;
+type Open = { char: "@" | "!"; agents: readonly Agent[]; at: DOMRect | null; q: string } | null;   // q = 입력칸 「@」 뒤에 친 글(형 11-13 22:13 「유사한 단어 쓰면 … 호출자가 줄어들어야돼」)
 
 let composer: RefObject<Handle | null> | null = null;
 let open: Open = null;
@@ -32,8 +33,41 @@ const inDm = () => /\/channels\/dm-/.test(location.hash || location.pathname);
 export function openCallSheet(char: string, agents: readonly Agent[]) {
   known = agents;
   if (char === "!" || inDm()) { document.execCommand("insertText", false, char === "!" ? "!" : "@"); return; }   // 「!」 고르기 뺌(형 11-04 17:36 「나는 이제 느낌표가 필요없음」) · 1:1 = 그냥 글자
-  open = { char: "@", agents, at: anchor() }; emit();
+  document.execCommand("insertText", false, "@");   // 「@」 는 입력칸에 남김 = 그 뒤 친 글자로 좁힘(형 11-13 22:13)
+  openNow(agents);
 }
+function openNow(agents: readonly Agent[]) { open = { char: "@", agents, at: anchor(), q: "" }; emit(); }
+/** 커서 앞 글(입력칸 글 마디 안) */
+function beforeCaret(ed: HTMLElement) {
+  const sel = window.getSelection(), n = sel?.focusNode, off = sel?.focusOffset ?? 0;
+  if (!sel || !n || n.nodeType !== Node.TEXT_NODE || !ed.contains(n)) return null;
+  return (n.textContent || "").slice(0, off);
+}
+/** 커서 앞 n 글자 지우고 그 자리에 부름 칩(누름 · 띄어쓰기 확정) */
+function confirmAgent(a: Agent, drop: number) {
+  for (let i = 0; i < drop; i++) document.execCommand("delete");
+  const h = composer?.current;
+  const ed = (document.activeElement as HTMLElement | null)?.closest?.('[contenteditable="true"]') as HTMLElement | null, b = ed ? beforeCaret(ed) : "";
+  if (b && !/\s$/.test(b)) document.execCommand("insertText", false, " ");   // 「봐」 뒤에 바로 붙으면 서버가 부름으로 못 읽음
+  h?.insertChip({ trigger: "@", value: a.id, displayText: a.name });
+  open = null; emit();
+}
+/** 명부가 떠 있는 동안 입력칸 글이 바뀔 때 = 좁힘 · 확정 · 닫힘 */
+function onQueryInput(e: Event) {
+  if (!open) return;
+  const ed = ((e as InputEvent).target as HTMLElement | null)?.closest?.('[contenteditable="true"]') as HTMLElement | null;
+  if (!ed) return;
+  setTimeout(() => {
+    if (!open) return;
+    const b = beforeCaret(ed);
+    if (b === null) { open = null; emit(); return; }
+    const r = onQuery(open.agents, b);
+    if (r.t === "close") { open = null; emit(); }
+    else if (r.t === "confirm") confirmAgent(r.agent, r.drop);
+    else if (r.q !== open.q) { open = { ...open, q: r.q }; emit(); }
+  }, 0);
+}
+if (typeof document !== "undefined") document.addEventListener("input", onQueryInput, true);
 /** 부름 목록(triggers.ts 가 그릴 때마다 넣음) = 한글 입력 길(아래)이 쓸 이름들 */
 export function setCallAgents(agents: readonly Agent[]) { known = agents; }
 const inline = () => true;   // 폰도 입력칸 바로 위 목록(형 11-05 「@ 는 되는데, 거기서 그록봇 내가 예전에 예시든ㄷ거처럼안돼」 = 11-04 16:28 그록봇 앱 사진 꼴 · 폰은 아래 시트로 떴음) · 전엔 마우스 판만(11-04 16:4x 폭 640 기준 뺌)
@@ -47,8 +81,7 @@ function onTyped(e: Event) {
     if (!sel || !n || n.nodeType !== Node.TEXT_NODE || !ed.contains(n)) return;
     const before = (n.textContent || "").slice(0, off), ch = before.slice(-1);
     if (ch !== "@" || inDm()) return;   // 「!」 = 그냥 글(형 11-04 17:36) · 1:1 = 그냥 「@」
-    document.execCommand("delete");   // 그 한 글자만(입력칸이 input 으로 받아 글을 다시 맞춤)
-    openCallSheet(ch, known);
+    openNow(known);   // 친 「@」 는 그대로 두고 명부만 엶(11-13 · 그 뒤 글자로 좁힘)
   };
   if (ie.isComposing) ed.addEventListener("compositionend", () => setTimeout(run, 0), { once: true });
   else setTimeout(run, 0);
@@ -68,12 +101,13 @@ if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") 
 }
 const close = () => { open = null; emit(); const h = composer?.current; h?.focus(); h?.setCursorToEnd();   /* 칩은 글 끝에 붙음 → 커서도 끝으로(앞에 남으면 이어 친 글이 칩 앞에 붙어 「봐@시아」 = 서버가 부름으로 못 읽음 · 목 시험) */ };
 const ALL = "group-all";
+const isOpenOf = (o: Open) => !!o;
 
 export function CallSheet() {
   const o = useSyncExternalStore((f) => { subs.add(f); return () => { subs.delete(f); }; }, () => open, () => null);
   const [picked, setPicked] = useState<string[]>([]), [q, setQ] = useState(""), [hi, setHi] = useState(0);
   const find = useRef<HTMLInputElement>(null);
-  useEffect(() => { setPicked([]); setQ(""); setHi(0); if (o && window.matchMedia?.("(pointer: fine)").matches) setTimeout(() => find.current?.focus(), 30); }, [o]);
+  useEffect(() => { setPicked([]); setQ(""); setHi(0); if (o && !inline() && window.matchMedia?.("(pointer: fine)").matches) setTimeout(() => find.current?.focus(), 30); }, [isOpenOf(o)]);
   useEffect(() => {
     if (!o) return undefined;
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); close(); } };
@@ -84,6 +118,28 @@ export function CallSheet() {
     const s = q.trim().toLowerCase();
     return (o?.agents || []).filter((a) => !s || a.name.toLowerCase().includes(s) || (a.description || "").toLowerCase().includes(s));
   }, [o, q]);
+  const shown = useMemo(() => filterAgents(o?.agents || [], o?.q || ""), [o]);
+  useEffect(() => { setHi(0); }, [o?.q]);
+  useEffect(() => {   // 입력칸 초점 그대로 · ↑↓ · Enter(보내기 대신 고르기) · Tab
+    if (!o || !inline()) return undefined;
+    const key = (e: KeyboardEvent) => {
+      if (e.isComposing) return;
+      if (e.key === "ArrowDown") { e.preventDefault(); e.stopPropagation(); setHi((v) => Math.min(v + 1, shown.length - 1)); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); e.stopPropagation(); setHi((v) => Math.max(v - 1, 0)); }
+      else if ((e.key === "Enter" || e.key === "Tab") && shown.length) { e.preventDefault(); e.stopPropagation(); confirmAgent(shown[Math.min(hi, shown.length - 1)], o.q.length + 1); }
+    };
+    window.addEventListener("keydown", key, true);
+    return () => window.removeEventListener("keydown", key, true);
+  }, [o, shown, hi]);
+  const isOpen = !!o;
+  useEffect(() => {   // 뒤로 = 명부 닫힘(형 11-13 22:13 「호출 하다가 뒤로가면 이 화면 데리고 가는거 안고쳐졌당」 · 뎅 공지 창 dfd5ff2 꼴 = 열 때 한 칸 깖 · 다른 길로 닫으면 걷음)
+    if (!isOpen) return undefined;
+    let byBack = false;
+    history.pushState({ ...history.state, nmCall: 1 }, "");
+    const pop = () => { byBack = true; if (open) { open = null; emit(); } };
+    window.addEventListener("popstate", pop);
+    return () => { window.removeEventListener("popstate", pop); if (!byBack && history.state?.nmCall) history.back(); };
+  }, [isOpen]);
   if (!o) return null;
   const toggle = (id: string) => setPicked((p) => {
     if (p.includes(id)) return p.filter((x) => x !== id);
@@ -98,42 +154,27 @@ export function CallSheet() {
     close();
   };
   const urgent = o.char === "!";
-  if (inline()) {   // 입력칸 바로 위 목록(형 16:28 사진 꼴 · 얼굴 · 이름·표지 · 자리 이름 · 오른쪽 칸) · PC·폰 같음
+  if (inline()) {   // 입력칸 바로 위 목록 · 찾기 칸 0 = 입력칸 「@」 뒤 글자로 좁힘 · 누름 · 딱 맞는 이름 + 띄어쓰기 = 확정 · ↑↓ · Enter · Esc · 뒤로 = 닫힘(형 11-13 22:13)
     const r = o.at, W = Math.min(460, r ? r.width : 460), left = r ? Math.max(8, Math.min(r.left, window.innerWidth - W - 8)) : 16, bottom = r ? Math.max(8, window.innerHeight - r.top + 8) : 96;
-    const maxHeight = r ? Math.max(180, Math.min(460, r.top - 16)) : undefined, fing = touch();   // 폰 = 자판 올라와 입력칸 위 칸이 좁음 → 그 안에서 굴림
-    const cur = Math.min(hi, Math.max(0, list.length - 1));
-    const pick = (id: string, more: boolean) => {   // 그냥 누름 = 이미 고른 것 + 이 줄 넣고 닫힘 · Ctrl·⌘·Shift = 고르기만(여럿)
-      if (more) { toggle(id); return; }
-      put(id === ALL ? [ALL] : picked.includes(id) ? picked : [...picked.filter((x) => x !== ALL), id]);
-    };
+    const maxHeight = r ? Math.max(140, Math.min(460, r.top - 16)) : undefined, fing = touch();
+    const cur = Math.min(hi, Math.max(0, shown.length - 1));
     return createPortal(
-      <div className="ncs-veil pop" onClick={close} role="presentation">
-        <div className={`ncs ncs-pop${fing ? " touch" : ""}`} role="dialog" aria-label={urgent ? "바로 깨울 이 고르기" : "부를 이 고르기"} style={{ left, bottom, width: W, maxHeight }} onClick={(e) => e.stopPropagation()}>
-          <ul className="ncs-list" role="listbox" aria-multiselectable="true">
-            {list.map((a, i) => {
-              const on = picked.includes(a.id), group = a.id.startsWith("group-");
+      <div className="ncs-veil pop" onClick={() => close()} role="presentation">
+        <div className={`ncs ncs-pop${fing ? " touch" : ""}`} role="dialog" aria-label="부를 이 고르기" style={{ left, bottom, width: W, maxHeight }} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.preventDefault()}>
+          <ul className="ncs-list" role="listbox">
+            {shown.map((a, i) => {
+              const group = a.id.startsWith("group-");
               return (
-                <li key={a.id} role="option" aria-selected={on} className={`${on ? "on" : ""}${group ? " group" : ""}${i === cur ? " hi" : ""}`} onMouseEnter={() => setHi(i)} onClick={(e) => pick(a.id, e.ctrlKey || e.metaKey || e.shiftKey)}>
+                <li key={a.id} role="option" aria-selected={i === cur} className={`${group ? "group" : ""}${i === cur ? " hi" : ""}`} onMouseEnter={() => setHi(i)} onClick={() => confirmAgent(a, o.q.length + 1)}>
                   <span className="ncs-face">{group ? <i aria-hidden>{a.name.slice(0, 1)}</i> : faceIcon(a.id)}</span>
                   <span className="ncs-nm"><b>{group ? a.name : markLabel(a.id, a.name)}</b>{a.description ? <small>{a.description}</small> : null}</span>
-                  <span className="ncs-ck" aria-hidden>{on ? "✓" : group ? "묶음" : ""}</span>
+                  <span className="ncs-ck" aria-hidden>{group ? "묶음" : ""}</span>
                 </li>
               );
             })}
-            {list.length ? null : <li className="ncs-none">찾는 이름이 없어</li>}
+            {shown.length ? null : <li className="ncs-none">찾는 이름이 없어</li>}
           </ul>
-          <div className="ncs-pop-f">
-            <b>{o.char}</b>
-            <input ref={find} className="ncs-find" value={q} onChange={(e) => { setQ(e.target.value); setHi(0); }} placeholder={urgent ? "바로 깨울 이 · 이름 찾기" : "부를 이 · 이름 찾기"} aria-label="이름 찾기"
-              onKeyDown={(e) => {
-                if (e.nativeEvent.isComposing) return;
-                if (e.key === "ArrowDown") { e.preventDefault(); setHi((v) => Math.min(v + 1, list.length - 1)); }
-                else if (e.key === "ArrowUp") { e.preventDefault(); setHi((v) => Math.max(v - 1, 0)); }
-                else if (e.key === "Enter") { e.preventDefault(); if (list[cur]) pick(list[cur].id, e.ctrlKey || e.metaKey || e.shiftKey); else if (picked.length) put(); }
-                else if (e.key === "Backspace" && !q) { e.preventDefault(); close(); }
-              }} />
-            {picked.length ? <button type="button" className="ncs-pop-go" onClick={() => put()}>넣기 {picked.length}</button> : fing ? null : <small>Ctrl 누르고 고르면 여럿</small>}
-          </div>
+          <div className="ncs-pop-f"><b>@</b><span className="ncs-q">{o.q || <small>이름을 치면 좁혀져 · 띄어쓰기 = 부르기</small>}</span></div>
         </div>
       </div>,
       document.body,
