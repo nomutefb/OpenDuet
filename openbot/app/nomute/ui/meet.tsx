@@ -3,6 +3,7 @@
 //   「그 화면을 보면서 할수잇어야하고 동기화 0초전 이게 떠야함」 · 「챙은 항상 자동참여 기록관으로」 · 「봄은 무슨 일을 하고잇을지 모르니까 상황에 따라서」
 //   = 같이 보기 칸(./cobrowse-pane.tsx) 위 「화상회의」 → 고르기 → 임시방 하나(서버가 첫 글 = 목적으로 다 바로 깨움) → 봇은 그 방에 「[수락]」 또는 「[거절] 까닭」 한 줄
 //   → 칸 아래 얼굴 줄 = 온라인(깸 표 · 띠와 같은 값) · 수락 · 거절 · 답 기다림 · 오프라인 → 다 답하면(챙 빼고) 수락한 이들로 대화가 칸 아래 열림 · 2분 지나면 온 이들로
+//   ★ 바뀜(형 11-13 11:01 봄 1:1 「화상회의 누가 부를까 이거. 창뜨고 그 아래에 @로 호출하면 한명씩 참가하는 느낌으로 하면돼.」) = 고르기 판 없음 · 카메라 누르면 형 + 챙으로 방이 바로 열리고 대화도 바로 · 아래 대화 「@이름」 = 서버가 그 애를 방에 더함(editor _meetat.js) · 얼굴 줄 = 서버 방 멤버
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type OfficeMsg, office, faceOf, nameOf } from "../data/office";
@@ -34,11 +35,19 @@ export function meetOpen(ans: Record<string, { a: "yes" | "no" }>, members: stri
   const all = ask.every((n) => ans[n] || !online(n));
   return { open: all || now - t0 > MEET_WAIT, allNo: all && !yes.length, yes };
 }
-export const meetPurpose = (members: string[]) =>
-  `화상회의 요청 — 형이 맥 72 브라우저(같이 보기)를 열어 두고 같이 보며 이야기하자고 불렀어(형 11-13 「그 화면을 보면서 할수잇어야하고」). ` +
-  `답 = 이 방에 한 줄: 들어오면 「[수락]」 · 지금 못 오면 「[거절] 까닭 한 줄」(하던 일 따라 · 형 「상황에 따라서」). ` +
-  `지금 그 창 = 사무실 읽기 머리 「지금 같이 보는 창」 · 손 = POST /api/office/m/together/act(한 번에 한 사람 · 쥔 이 「○○가 제어하고 있습니다」). ` +
-  `${SCRIBE} = 자동 참여 · 기록관(답 안 해도 됨). 부른 이 = ${members.filter((n) => n !== SCRIBE).join(" · ")}`;
+export const meetPurpose = (_members: string[] = []) =>
+  `화상회의 — 형이 맥 72 브라우저(같이 보기)를 열어 두고 같이 보며 이야기해(형 11-13 「그 화면을 보면서 할수잇어야하고」). ` +
+  `부르는 법 = 형이 이 방 대화에서 「@이름」 → 그 애가 방에 들어오며 깸(형 11-13 11:01 「아래에 @로 호출하면 한명씩 참가하는 느낌」). ` +
+  `불리면 이 방에 한 줄: 들어오면 「[수락]」 · 지금 못 오면 「[거절] 까닭 한 줄」(하던 일 따라 · 형 「상황에 따라서」). ` +
+  `지금 그 창 = 이 방 읽기 머리 「지금 같이 보는 창」 · 손 = send 「[화면 click] …」(한 번에 한 사람 · 쥔 이 「○○가 제어하고 있습니다」) · 짚기 = 「[스케치 rect] x,y,w,h 글」. ` +
+  `${SCRIBE} = 자동 참여 · 기록관(답 안 해도 됨).`;
+
+/** 회의 열기 = 형 + 챙(기록관)으로 임시방 하나 · 나머지는 아래 대화 「@이름」으로 한 명씩(형 11-13 11:01) */
+export async function startMeet(): Promise<Meet> {
+  const t = new Date(), name = `화상회의 ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
+  const j = await office<{ room: { id: string } }>("temprooms", { method: "POST", body: JSON.stringify({ name, purpose: meetPurpose(), members: [SCRIBE], hours: 2 }) });
+  return { id: j.room.id, members: [SCRIBE], t0: Date.now() - 2000 };
+}
 
 function load(): Meet | null { try { const m = JSON.parse(localStorage.getItem(KEY) || "null"); return m && m.id ? m : null; } catch { return null; } }
 function save(m: Meet | null) { try { if (m) localStorage.setItem(KEY, JSON.stringify(m)); else localStorage.removeItem(KEY); } catch { /* 이 기기에만 */ } }
@@ -81,11 +90,13 @@ export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onC
 export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const list = useQuery({ queryKey: ["nomute", "temprooms", "list"], queryFn: () => office<{ rooms?: { id: string; members?: string[] }[] }>("temprooms").then((j) => j.rooms || []), refetchInterval: 5000 }).data;
+  const live = list?.find((r) => r.id === meet.id), gone = !!list && !live;   // 서버 방 멤버 = 「@이름」으로 들어온 이까지 · 목록에 없음 = 끝났거나 기한 지남
+  const members = live?.members?.length ? live.members : meet.members;
   const msgs = useQuery({ queryKey: ["nomute", "meet", meet.id], queryFn: () => office<{ messages?: OfficeMsg[] }>(`rooms/${encodeURIComponent(meet.id)}/messages?n=100`).then((j) => j.messages || []), refetchInterval: 3000 }).data || [];
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: RingBot[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 15_000 }).data || [];
-  const ans = useMemo(() => answersOf(msgs, meet.members, meet.t0), [msgs, meet]);
+  const ans = useMemo(() => answersOf(msgs, members, meet.t0), [msgs, members, meet.t0]);
   const online = (n: string) => bots.some((b) => b.who === n && ringOn(b));
-  const st = meetOpen(ans, meet.members, meet.t0, now, online);
   const stateOf = (n: string): Answer => (ans[n]?.a === "yes" ? "yes" : ans[n]?.a === "no" ? "no" : online(n) ? "wait" : "off");
   const LBL: Record<Answer, string> = { yes: "수락", no: "거절", wait: "답 기다림", off: "오프라인" };
   const left = Math.max(0, Math.ceil((MEET_WAIT - (now - meet.t0)) / 1000));
@@ -109,10 +120,12 @@ export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
     })();
   }, [now, endAt, ending]);   // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <div className={`nm-meet${st.open ? " open" : ""}`}>
+    gone ? <div className="nm-meet"><div className="nm-meet-row"><small className="nm-meet-left">이 회의는 끝났어(종료 · 기한)</small><button type="button" className="nm-web-btn nm-meet-end" onClick={onEnd}>새 회의</button></div></div> :
+    <div className="nm-meet open">
       <div className="nm-meet-row">
         <div className="nm-meet-faces" aria-label="화상회의 참여자">
-        {meet.members.map((n) => {
+        {members.filter((n) => n !== SCRIBE).length ? null : <small className="nm-meet-left">아래 대화에서 @이름 으로 부르면 한 명씩 들어와</small>}
+        {members.map((n) => {
           const s: Answer | "scribe" = n === SCRIBE ? "scribe" : stateOf(n);
           return (
             <span key={n} className={`nm-meet-who s-${s}`} title={s === "no" && ans[n]?.why ? `거절 · ${ans[n]?.why}` : undefined}>
@@ -122,10 +135,9 @@ export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
           );
         })}
         </div>
-        {!st.open ? <small className="nm-meet-left">{`${left}초 뒤엔 온 이들로 열림`}</small> : null}
         <button type="button" className={`nm-web-btn nm-meet-end${endAt ? " on" : ""}`} disabled={ending} onClick={() => void toggleEnd()} title={endAt ? "종료 취소" : "회의 종료(1분 카운트 · 형만)"}>{endAt ? <span role="status">{`종료 ${endLeft}초 · 취소`}</span> : "회의 종료"}</button>
       </div>
-      {st.open ? <div className="nm-meet-chat"><OfficeChat room={meet.id} /></div> : null}
+      <div className="nm-meet-chat"><OfficeChat room={meet.id} /></div>
     </div>
   );
 }

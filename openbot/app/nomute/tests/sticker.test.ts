@@ -87,7 +87,7 @@ test("화상회의 = 수락 · 거절 표기 · 열림(다 답함 · 60초 · �
   const src = readFileSync(new URL("../ui/meet.tsx", import.meta.url), "utf8"), cp = readFileSync(new URL("../ui/cobrowse-pane.tsx", import.meta.url), "utf8"), sh = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
   assert.match(src, /export const SCRIBE = "챙";/); assert.match(src, /export const MEET_WAIT = 60_000;/);
   assert.match(src, /\/\^\\\[수락\\\]\//); assert.match(src, /\/\^\\\[거절\\\]\//);
-  assert.match(cp, /<MeetDock meet=\{meet\}/); assert.match(cp, />회의 시작<\/button>/);
+  assert.match(cp, /<MeetDock meet=\{meet\}/); assert.match(cp, /startMeet\(\)\.then/); assert.doesNotMatch(cp, /<MeetPick/);   // 고르기 판 없음 · 카메라 누르면 바로 열림(형 11-13 11:01 「@로 호출하면 한명씩」)
   const tb = readFileSync(new URL("../ui/tab-bar.tsx", import.meta.url), "utf8");   // 들머리 둘로(형 11-13 09:21 「그냥 웹 브라우저랑, 화상 채팅방이랑 구분해주라」) = 「브라우저」(회의 0) · 「화상회의」 고정 탭 + 제 아이콘
   assert.match(tb, /<MeetIcon \/><span className="nm-tab-nm">화상회의<\/span>/); assert.match(tb, /<CobrowsePane mode="browser"/); assert.match(tb, /<CobrowsePane mode="meet"/);
   assert.match(cp, /meet = isMeet \? meet0 : null/);
