@@ -12,7 +12,8 @@ export const bubbleM = (m: { kind?: string; who?: string; text?: string }) => pi
 export const RELAY_BOTS = ["촉", "틈", "감", "온", "결", "천둥"];
 export const relayWho = (m: { kind?: string; who?: string; text?: string }): string => {
   if (m.kind !== "system" || !/러너/.test(m.who || "")) return "";
-  const w = /^\**\s*\[([^\]\s]+)\]/.exec((m.text || "").trim())?.[1] || "";
+  const w0 = /^\**\s*\[([^\]\s]+)\]/.exec((m.text || "").trim())?.[1] || "";
+  const w = w0 === "촉보" ? "촉" : w0;   // 「**[촉보] <제목>**」 = 촉(형 11-13 09:32 「속보 이제 촉보로 하자」 · 감 b2cf066)
   return RELAY_BOTS.includes(w) ? w : "";
 };
 export function relayAs<T extends { kind: string; who: string; text?: string }>(m: T): T {

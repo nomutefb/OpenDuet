@@ -8,6 +8,7 @@ test("촉 방 · 주소 있는 글 = 단추 · 글 통째 + 주소(형 11-13 02:
 });
 test("러너 「[촉]」 글 = 주소 없어도 단추(러너가 자료 찾음 · 형 02:46)", () => {
   assert.deepEqual(askPickOf("dm-chok", { text: "[촉] 속보 엔비디아 칩 밀반입" }), { text: "[촉] 속보 엔비디아 칩 밀반입", url: "" });
+  assert.deepEqual(askPickOf("dm-chok", { text: "**[촉보] 엔비디아 칩 밀반입**" }), { text: "**[촉보] 엔비디아 칩 밀반입**", url: "" });
 });
 test("안 다는 글 = 다른 방 · 첨부 · 잡담", () => {
   assert.equal(askPickOf("dm-teum", { text: "https://a.com/x" }), null);
