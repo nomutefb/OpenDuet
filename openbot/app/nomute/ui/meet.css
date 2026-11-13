@@ -149,3 +149,15 @@
 .nm-sk-head button.nm-sk-pen.on { background:#CFFF40; border-color:#CFFF40; color:#111; }
 .nm-sk-head .nm-sk-side { display:inline-flex; align-items:center; gap:6px; }
 .nm-sk-head .nm-sk-ctl { height:24px; font-size:11.5px; }
+/* 회의 끝내기 쪼개짐(형 11-14 05:09 시아 옮김 · 본보기 = Mark as Done → Done | Undo · 흐림 섞인 모핑) = × 가 흐려지며 작아지고 [종료 | ↶] 가 흐림에서 또렷하게 · transform · opacity · filter 만 */
+.nm-endm { position:relative; display:inline-grid; place-items:center end; height:26px; }
+.nm-endm > * { grid-area:1/1; }
+.nm-endm-x { transition:transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s, filter .28s; }
+.nm-endm.open .nm-endm-x { transform:scale(.4); opacity:0; filter:blur(4px); pointer-events:none; }
+.nm-endm-pair { display:inline-flex; gap:5px; transform:scale(.6); opacity:0; filter:blur(6px); pointer-events:none; transform-origin:right center; transition:transform .32s cubic-bezier(.2,.9,.25,1.15), opacity .22s, filter .32s; }
+.nm-endm.open .nm-endm-pair { transform:scale(1); opacity:1; filter:blur(0); pointer-events:auto; }
+.nm-endm-go, .nm-endm-undo { height:26px; display:inline-flex; align-items:center; gap:4px; border-radius:999px; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; }
+.nm-endm-go { padding:0 11px 0 9px; border:1px solid #CFFF40; background:#CFFF40; color:#111; }
+.nm-endm-undo { width:26px; padding:0; justify-content:center; font-size:15px; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.92); color:#111; }
+.nm-endm-go:disabled { opacity:.85; }
+@media (prefers-reduced-motion:reduce) { .nm-endm-x, .nm-endm-pair { transition:none; } }

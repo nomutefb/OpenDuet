@@ -112,6 +112,25 @@ export function EndAsk({ end }: { end: ReturnType<typeof useMeetEnd> }) {
   );
 }
 
+/** 회의 끝내기 = 판(모달) 없이 그 자리에서 쪼개짐(형 11-14 05:09 시아 옮김 「회의 중단 버튼 이거로 대체하면 팝업 모달 없어도 될듯」 · 본보기 = 「✓ Mark as Done」 → 「✓ Done」 + 「↶ Undo」 흐림 섞인 모핑)
+ *  × → [종료(라임) | ↶] · 종료 = 끝냄(종료하는 중…) · ↶ = 그대로 · 5초 안 누르면 저절로 × 로(안 끝냄 · 한 번 잘못 눌러 끝나지 않게 · 짐작) · 앞 판 = 「회의를 종료하시겠습니까? 아니오 예」(EndAsk · 남김) */
+export function EndMorph({ end }: { end: ReturnType<typeof useMeetEnd> }) {
+  useEffect(() => {
+    if (!end.ask || end.ending) return undefined;
+    const t = window.setTimeout(() => end.setAsk(false), 5000);
+    return () => window.clearTimeout(t);
+  }, [end.ask, end.ending]);   // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <span className={`nm-endm${end.ask ? " open" : ""}`} title={end.why || undefined}>
+      <button type="button" className="nm-web-btn nm-endm-x" aria-label="회의 종료" tabIndex={end.ask ? -1 : 0} onClick={() => end.setAsk(true)}>×</button>
+      <span className="nm-endm-pair" aria-hidden={!end.ask}>
+        <button type="button" className="nm-endm-go" tabIndex={end.ask ? 0 : -1} disabled={end.ending} onClick={() => void end.endNow()}>{end.ending ? <>종료하는 중<Dots /></> : <><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>종료</>}</button>
+        <button type="button" className="nm-endm-undo" tabIndex={end.ask ? 0 : -1} disabled={end.ending} aria-label="되돌리기" onClick={() => end.setAsk(false)}>↶</button>
+      </span>
+    </span>
+  );
+}
+
 /** 서버 「지금 같이 보는 창」 한 장(다리가 올림) — 제어권 쥔 이 · 마지막 올린 때(머리 「동기화 n초 전」) */
 export function useTogetherNow() {
   const q = useQuery({ queryKey: ["nomute", "together", "now"], queryFn: () => office<{ now?: { at?: number; ctrl?: { who?: string } } }>("together").then((j) => ({ at: j.now?.at || 0, ctrl: j.now?.ctrl?.who || "" })), refetchInterval: 2000 });
