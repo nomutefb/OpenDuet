@@ -182,13 +182,15 @@ export function useOfficeRoom(room: string) {
   useEffect(() => { if (roomsQ.data?.length) listPut("rooms", roomsQ.data); }, [roomsQ.data]);
   useEffect(() => { if (peopleQ.data?.length) listPut("people", peopleQ.data); }, [peopleQ.data]);
   const msgsQ = useQuery({ ...roomMsgsOptions(qc, room), refetchInterval: 60_000 });
+  const hyLast = useRef(0);   // 이 방 형 마지막 글 때(읽음 표 빨리 받기 · 아래 readsQ)
+  { const hm = (msgsQ.data?.messages || []).filter((x) => x.kind === "human"); if (hm.length) hyLast.current = Math.max(hyLast.current, hm[hm.length - 1].ts); }
   useEffect(() => {   // 받은 글 = 이 기기에 둠(다음에 열면 바로 그림 · 잦은 붙임은 묶어서)
     const d = msgsQ.data;
     if (!d?.messages.length) return;
     const t = setTimeout(() => void saveRoom(room, d), 400);
     return () => clearTimeout(t);
   }, [room, msgsQ.data]);
-  const readsQ = useQuery({ queryKey: officeKeys.reads(room), queryFn: () => office<Reads>(`rooms/${enc(room)}/reads`), staleTime: 10_000, refetchInterval: () => (document.hidden ? false : 15_000) });   // 안 본 수(「1」)가 봇 창에 찍힌 뒤 15초 안에 빠지게(형 11-13 「확인하는 즉시」 · 보일 때만 · 앞 판 60초)
+  const readsQ = useQuery({ queryKey: officeKeys.reads(room), queryFn: () => office<Reads>(`rooms/${enc(room)}/reads`), staleTime: 4_000, refetchInterval: () => (document.hidden ? false : Date.now() - hyLast.current < 180_000 ? 5_000 : 15_000) });   // 형 글이 막 간 3분 = 5초(봄이 9초 만에 봤는데 화면은 15초 뒤 지움 · 형 19:49 실물) · 그 밖 15초 · 보일 때만   // 안 본 수(「1」)가 봇 창에 찍힌 뒤 15초 안에 빠지게(형 11-13 「확인하는 즉시」 · 보일 때만 · 앞 판 60초)
   const reactsQ = useQuery({ queryKey: officeKeys.reacts(room), queryFn: () => office<{ reactions: Record<string, Record<string, string[]>>; quick?: string[] }>(`rooms/${enc(room)}/reactions`), staleTime: 15_000, refetchInterval: 60_000 });
   const botsQ = useQuery({ queryKey: officeKeys.bots, queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), staleTime: 10_000, refetchInterval: 15_000 });   // 15초 = 쉼 되면 「생각 중」이 빨리 꺼지게(형 11-06 12:48 「쉼이면!」)
 
@@ -926,8 +928,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
-          {c.unseen(m) || m.files?.length ? <span className="yb-st">{m.files?.length ? <svg className="yb-ck" viewBox="0 0 24 24" aria-label="보냄"><path d="M5 13l4 4L19 7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}   {/* 안 본 봇 수 = 말풍선 왼쪽 아래(카톡 자리 · 보내는 동안의 「전송 대기 · 다시 보내기」는 보낸 뒤 사라져 안 겹침) */}
-          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} /><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} /><div className="yb-line">{c.unseen(m) || m.files?.length ? <span className="yb-st">{m.files?.length ? <svg className="yb-ck" viewBox="0 0 24 24" aria-label="보냄"><path d="M5 13l4 4L19 7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}   {/* 안 본 봇 수 = 말풍선 왼쪽 아래(카톡 자리 · 보내는 동안의 「전송 대기 · 다시 보내기」는 보낸 뒤 사라져 안 겹침) */}<div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
         </div>
         <RouteLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine /> : null}

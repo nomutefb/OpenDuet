@@ -12,7 +12,7 @@ const fp = readFileSync(new URL("../home/follow-pulse.tsx", import.meta.url), "u
 
 test("답글 띠 = 말풍선 묶음(.ybw) 안 · 말풍선 바로 앞 · 내 글 · 남 글 둘 다 · 옛 칩(Quote) 없음", () => {
   assert.equal((chat.match(/<ReplyStrip text=\{String\(m\.text \|\| ""\)\} list=\{c\.list\} onJump=\{c\.onJump\} \/>/g) || []).length, 2);
-  assert.match(chat, /<div className="ybw"><ReplyStrip text=[^>]*\/><div \{\.\.\.press\.bind\} className=\{`yb me/);
+  assert.match(chat, /<div className="ybw"><ReplyStrip text=[^>]*\/><div className="yb-line">.*?<div \{\.\.\.press\.bind\} className=\{`yb me/);   // 띠 바로 뒤 = 말풍선 줄(숫자 · 체크 + 말풍선 · 형 11-13 19:49 「말풍선 라인 아래 정렬」 · 뎅)
   assert.doesNotMatch(chat, /<Quote /);
   assert.match(strip, /<i>답글 : \{q\[2\]\}<\/i>/);
   assert.match(strip, /p\?\.bubble \? \{ background: p\.bubble, color: inkOn\(p\.bubble\) \}/);   // 띠 색 = 답한 상대 말풍선 색
