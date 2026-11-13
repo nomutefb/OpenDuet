@@ -87,7 +87,7 @@ function Ring({ p, onCancel, onResume }: { p: number; onCancel?: () => void; onR
 function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) {
   return (
     <div className="nac-wrow" aria-label="보냄 대기">
-      {item.failed ? <button type="button" className="nac-again" onClick={onRetry} aria-label="못 보냈어 · 다시 보내기" title="다시 보내기"><svg className="nac-redo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg></button> : <span className="nac-wait">보냄 대기</span>}   {/* 「보냄 대기」 = 1.2초 넘게 걸릴 때만 보임(./attachment-up.css · 글마다 깜빡이지 않게) */}
+      {item.failed ? <button type="button" className="nac-again" onClick={onRetry} aria-label="못 보냈어 · 다시 보내기" title="다시 보내기"><svg className="nac-redo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg></button> : null}   {/* 글 = 「보냄 대기」 글자 뺌 · 서버가 받으면 진짜 말풍선 옆 숫자(안 본 봇 수)로 바뀜 · 못 보내면 다시 보내기만(형 11-13 18:12 봄 옮김 「이제는 글은 전송대기까진 필요없고, 전송이 완료되면 체크 대신 1로 할게」 · 뎅) */}
       <div className="ybw"><ReplyStrip text={item.text} /><div className="yb me nac-wb">{item.text.replace(QUOTE, "")}</div></div>   {/* 답장 글 = 띠 + 내 글만(형 11-11 20:08 사진 = 여기서 「↩ 빠르: …」 줄이 글 안에 보였음 · ./reply-strip.tsx) */}
     </div>
   );

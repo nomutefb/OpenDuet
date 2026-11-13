@@ -806,3 +806,8 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .nm-dec-inl button.had { opacity:.75; font-size:13px; }
 .nm-dec-inl .err { font-size:12px; color:#ff8a7a; }
 .nm-dec-inl-ok { margin:8px 0 0; font-size:13px; font-weight:700; opacity:.85; }
+
+/* 형 말풍선 왼쪽 아래 = 사진 등 첨부만 보냄 체크(위) · 안 본 봇 수(아래) · 글 말풍선 = 숫자만(형 11-13 17:55~18:12 봄 옮김 「모든 끊겨서 온 말풍선 마다 1이 있어야해 (사진 포함)」 · 「그냥 글은 무조건 1. 이미지 같은거는 체크랑 같이 1」 · 뎅) */
+.ychat .yb-st { flex:none; align-self:flex-end; display:flex; flex-direction:column; align-items:flex-end; gap:2px; margin-bottom:3px; }
+.ychat .yb-st .yb-un { margin:0; }
+.ychat .yb-ck { width:13px; height:13px; fill:none; stroke:var(--accent, #CFFF40); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }

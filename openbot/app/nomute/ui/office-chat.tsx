@@ -112,7 +112,7 @@ type Msg = OfficeMsg & { card?: ThumbRef; mirror_by?: string; alias?: Record<str
 type Page = { messages: Msg[]; more: boolean; pending_ids?: string[] };   // pending_ids = 형 결정 대기 글(뜸 서버 · 오래된 것부터 · 없으면 화면에서 셈 = ./hyung-pills.tsx)
 const withPend = (p: Page, src: { pending_ids?: unknown }): Page => ({ ...p, pending_ids: Array.isArray(src.pending_ids) ? src.pending_ids.map(String) : [] });   // 서버 읽기 = 정본 · 칸 없음 = 대기 0(다 답한 알약이 남던 것 · 뜸 11-07)
 type Draft = { who: string; ts: number; text: string };   // 쓰는 중 초안(그 방에서 지금 자라는 답 · 서버 _watch.js · 거울 = 그록봇 앱 방 streaming 줄)
-type Reads = { got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>> };
+type Reads = { reads?: Record<string, number>; got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>> };
 type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
 
 export const officeKeys = {
@@ -441,8 +441,8 @@ function unseenOf(m: Msg, c: Ctx, all: Msg[]) {
   const bot = (n: string) => n !== "형" && c.list.find((p) => p.who === n)?.kind !== "human";
   const who = c.r?.with ? [c.r.with] : (c.r?.members || []).filter(bot);
   if (!who.length) return 0;
-  const got = c.reads?.got || {};
-  return who.filter((n) => !(got[n] || []).includes(m.id) && !all.some((x) => x.who === n && x.ts > m.ts)).length;
+  const got = c.reads?.got || {}, upto = c.reads?.reads || {};   // upto = 그 봇이 본 가장 늦은 글 때 → 그 위 형 글은 다 본 것(형 18:11 「1은 당연히 한번 읽으면 위에건 다 사라지는 로직이고」)
+  return who.filter((n) => (upto[n] || 0) < m.ts && !(got[n] || []).includes(m.id) && !all.some((x) => x.who === n && x.ts > m.ts)).length;
 }
 
 function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
@@ -925,7 +925,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
-          {c.unseen(m) ? <span className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</span> : null}   {/* 안 본 봇 수 = 말풍선 왼쪽 아래(카톡 자리 · 보내는 동안의 「전송 대기 · 다시 보내기」는 보낸 뒤 사라져 안 겹침) */}
+          {c.unseen(m) || m.files?.length ? <span className="yb-st">{m.files?.length ? <svg className="yb-ck" viewBox="0 0 24 24" aria-label="보냄"><path d="M5 13l4 4L19 7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}   {/* 안 본 봇 수 = 말풍선 왼쪽 아래(카톡 자리 · 보내는 동안의 「전송 대기 · 다시 보내기」는 보낸 뒤 사라져 안 겹침) */}
           <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} /><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
         </div>
         <RouteLine m={m} c={c} />
