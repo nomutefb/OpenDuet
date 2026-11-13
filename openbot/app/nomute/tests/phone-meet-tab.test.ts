@@ -84,3 +84,6 @@ test("폰 뉴스 에디터 머리 줄 0 · PC 그대로(형 11-14 06:58)", () =>
   assert.match(rd("../ui/shell.tsx"), /className=\{`nm-modal-h nm-mh-\$\{M\.id\}`\}/);
   assert.match(rd("../ui/shell.css"), /@media \(max-width: 767px\) \{\n  \.nm-modal-h\.nm-mh-nedit \{ display:none; \}/);
 });
+test("폰 영상 편집 = 미리보기 폭맞춤 · 기둥 겹침 허용(형 11-14 07:06)", () => {
+  assert.match(rd("../ui/video-editor.tsx"), /@media \(max-width:767px\)\{\.topdock:not\(\.fold\) #pvsec\{min-height:0!important\}#pvsec \.cpprev-box\{width:calc\(100% - 82px\)!important;/);
+});
