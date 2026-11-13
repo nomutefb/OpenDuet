@@ -45,7 +45,7 @@
 .nm-sk-bar button.on { color:#111; background:#CFFF40; border-color:#CFFF40; }
 .nm-sk-bar small { color:#FF8A8D; font-size:11px; background:rgba(14,15,14,.86); padding:2px 8px; border-radius:999px; cursor:pointer; }
 /* 사람 칸(형 11-13 15:01 「이런 좌측 에 누가 들어와잇는지 프로필 그 동그라미랑 이름이랑 같이 (이모지 포함)」 · 「들어와있으면 초록불, 안들어와잇으면 회색불」 · 「맨 아래는 초대하기 / … 내보내기는 … 이름 우측에」) = 화면 왼쪽 위 세로 줄 · 반투명 · 좁게 */
-.nm-meet-ppl { position:absolute; top:10px; left:10px; z-index:4; width:min(210px, 22%); min-width:150px; max-height:calc(100% - 64px); overflow:auto; scrollbar-width:none; display:flex; flex-direction:column; gap:4px; padding:8px; border-radius:14px; background:rgba(14,15,14,.62); border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(8px); }
+.nm-meet-ppl { position:absolute; top:10px; left:10px; z-index:4; width:min(210px, 25%); min-width:178px; max-height:calc(100% - 64px); overflow:auto; scrollbar-width:none; display:flex; flex-direction:column; gap:4px; padding:8px; border-radius:14px; background:rgba(14,15,14,.62); border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(8px); }
 .nm-mp { display:flex; align-items:center; gap:8px; min-width:0; padding:3px 4px; border-radius:10px; }
 .nm-mp-ava { position:relative; flex:none; width:28px; height:28px; }
 .nm-mp-ava img { width:28px; height:28px; border-radius:50%; object-fit:cover; filter:grayscale(1) brightness(.75); border:2px solid #5d5f5d; box-sizing:border-box; }
@@ -91,7 +91,7 @@
 .nm-meet-ask { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:6; display:flex; flex-direction:column; gap:12px; padding:18px 20px; min-width:240px; border-radius:16px; background:#151715; border:1px solid rgba(255,255,255,.12); box-shadow:0 16px 40px rgba(0,0,0,.55); color:#e8eae8; font-size:14px; text-align:center; }
 .nm-meet-ask small { color:#FF8A8D; font-size:12px; }
 .nm-meet-ask-ft { display:flex; justify-content:center; gap:8px; }
-.nm-meet-ask-ft button { min-width:76px; height:34px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:transparent; color:#e8eae8; font-weight:700; cursor:pointer; }
+.nm-meet-ask-ft button { flex:none; width:auto !important; padding:0 14px !important; white-space:nowrap; min-width:76px; height:34px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:transparent; color:#e8eae8; font-weight:700; cursor:pointer; }
 .nm-meet-ask-ft button.no { background:#CFFF40; border-color:#CFFF40; color:#111; }
 /* 회의록 줄(형 11-13 17:09~17:10) = 대화 줄 사이에 주소 · 행위 = 가운데 얇은 연한 줄(팀즈 시스템 줄 결) */
 .nm-ml-t { display:inline-block; min-width:3.2em; margin-right:6px; color:var(--mut, rgba(232,234,232,.42)); font-size:11px; font-variant-numeric:tabular-nums; }
