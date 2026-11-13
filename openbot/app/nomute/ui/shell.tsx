@@ -14,6 +14,7 @@ import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11
 import { IgFbBand } from "./igfb-band";   // PC 오른쪽 위 = 인스타·페북 팔로워 띠(봄 11-08 · 형 dm 07:30~07:31)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Component, type CSSProperties, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
+import { clampW, snapW } from "./split-snap";   // 경계 끌기 자석 · 눈금(형 11-14 05:07 · 05:15)
 import { AttentionNotifier } from "@/components/bot-profile/attention";
 import { DuetIcon } from "@/components/duet/icons";
 import { useTabSpace } from "@/components/shell/app-shell";
@@ -381,18 +382,26 @@ function useSplitW() {
   useEffect(() => { if (splitInit) return; splitInit = true; try { if (is169()) { document.documentElement.style.setProperty("--nm-split-w", "50%"); return; } const v = +(localStorage.getItem(SPLIT_KEY) || 0); if (v >= 30 && v <= 65) document.documentElement.style.setProperty("--nm-split-w", `${v}%`); } catch { /* 반반 */ } }, []);
 }
 function SplitGrip() {
-  const set = (v: number) => { const c = Math.max(30, Math.min(65, v)); document.documentElement.style.setProperty("--nm-split-w", `${c}%`); return c; };
-  const down = (e: { currentTarget: HTMLElement; preventDefault: () => void }) => {
+  const set = (v: number) => { const c = clampW(v); document.documentElement.style.setProperty("--nm-split-w", `${c}%`); return c; };
+  // 자석에 붙는 동안 = 손잡이 · 줄이 라임으로 착(형 11-14 05:15 「숫자만 빼고」 · 05:16 「차트도 나오게하자는건아님 저 느낌만」 = 눈금 띠 · 숫자 0)
+  const [snap, setSnap] = useState(false);
+  const down = (e: { currentTarget: HTMLElement; preventDefault: () => void; clientX: number }) => {
     e.preventDefault();
     const rootEl = (e.currentTarget.closest(".nm-split-root") as HTMLElement | null) || document.body, box = rootEl.getBoundingClientRect();
-    let last = 50;
-    const move = (ev: PointerEvent) => { last = set(((box.right - ev.clientX) / box.width) * 100); };
-    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); document.body.classList.remove("nm-dragging"); try { localStorage.setItem(SPLIT_KEY, String(Math.round(last))); } catch { /* 이번만 */ } };
+    let last = 50, was = false;
+    const at = (cx: number) => { const s = snapW(((box.right - cx) / box.width) * 100); last = set(s.w); const on = s.hit >= 0; if (on !== was) { was = on; setSnap(on); } };
+    const move = (ev: PointerEvent) => at(ev.clientX);
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); document.body.classList.remove("nm-dragging"); setSnap(false); try { localStorage.setItem(SPLIT_KEY, String(Math.round(last * 10) / 10)); } catch { /* 이번만 */ } };
     document.body.classList.add("nm-dragging");
     window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
   };
   const reset = () => { set(50); try { localStorage.removeItem(SPLIT_KEY); } catch { /* 이번만 */ } };
-  return <div className="nm-split-grip" role="separator" aria-orientation="vertical" aria-label="끌어서 칸 넓이 · 두 번 누르면 반반" title="끌어서 칸 넓이 · 두 번 누르면 반반" onPointerDown={down} onDoubleClick={reset}><i /></div>;
+  return (
+    <div className={`nm-split-grip${snap ? " snap" : ""}`} role="separator" aria-orientation="vertical" aria-label="끌어서 칸 넓이 · 두 번 누르면 반반" title="끌어서 칸 넓이 · 두 번 누르면 반반" onPointerDown={down} onDoubleClick={reset}>
+      <i />
+      <b className="nm-split-knob" aria-hidden><svg viewBox="0 0 16 16" width="12" height="12"><path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></b>
+    </div>
+  );
 }
 
 /** 왼쪽 위 러너 게이지 띠 — 제 키를 재서 --nm-top-h 로 알림(오른쪽 위 팔로워 띠 · 왼쪽 판들이 그 키를 씀 · 봄 11-08) */
