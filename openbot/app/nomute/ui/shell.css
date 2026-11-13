@@ -339,3 +339,8 @@ body.nm-dragging .nm-split-knob { color:#CFFF40; border-color:rgba(207,255,64,.5
 html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; border-color:rgba(0,0,0,.14); color:rgba(0,0,0,.55); }
 .nm-split-grip.snap i { background:#CFFF40; height:84px; box-shadow:0 0 10px rgba(207,255,64,.55); }
 .nm-split-grip.snap .nm-split-knob { transform:scale(1.12); box-shadow:0 0 0 3px rgba(207,255,64,.18); }
+/* 폰 뉴스 에디터 = 머리 알약 「‹ 뉴스 에디터」 뺌 · 목록이 그 자리부터(형 11-14 06:58 봄 옮김 「상단 뉴스이디터 없어도 됨」 · 아래 네비가 이름을 보여 줌 · 나가기 = 폰 뒤로 · 아래 네비) · PC 는 그대로 */
+@media (max-width: 767px) {
+  .nm-modal-h.nm-mh-nedit { display:none; }
+  .nm-modal:has(> .nm-mh-nedit) .nm-ned-host { padding-top:calc(10px + env(safe-area-inset-top)); }
+}

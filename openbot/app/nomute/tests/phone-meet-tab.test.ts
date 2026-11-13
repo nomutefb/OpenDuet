@@ -80,3 +80,7 @@ test("영상 편집 기둥 글자 단추 넷 = 그림 단추(형 11-14 05:41 「
   assert.match(v, /SEE_CSS \+ RAIL_CSS \+ accentCss/);
   assert.match(v, /tip\.className = "nm-tip"/);
 });
+test("폰 뉴스 에디터 머리 줄 0 · PC 그대로(형 11-14 06:58)", () => {
+  assert.match(rd("../ui/shell.tsx"), /className=\{`nm-modal-h nm-mh-\$\{M\.id\}`\}/);
+  assert.match(rd("../ui/shell.css"), /@media \(max-width: 767px\) \{\n  \.nm-modal-h\.nm-mh-nedit \{ display:none; \}/);
+});
