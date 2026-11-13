@@ -1445,7 +1445,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
             );
           })}
           {draft ? (   /* 쓰는 중 초안 = YETA _yDraft 꼴(문장이 자라는 대로 그 봇 말풍선 · 끝에 점 셋 · 끝난 답 글이 오면 사라짐) */
-            <div className="ymsg ytyp" aria-live="polite">
+            <div className="ymsg ytyp" aria-live="polite" role="button" tabIndex={0} aria-label={`${nmOf(list, draft.who)} 프로필`} style={{ cursor: "pointer" }} onClick={() => setProf(draft.who)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setProf(draft.who); } }}>   {/* 쓰는 중 줄도 같게 */}
               <div className="yava"><Ava who={draft.who} list={list} work /></div>
               <div className="ycol">
                 <div className="yname">{nmOf(list, draft.who)} · 쓰는 중</div>
@@ -1455,7 +1455,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
           ) : null}
           <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="pending" />   {/* 보내는 중·보냄 대기 = 대화 줄 맨 아래 내 말풍선 자리(형 11-02 12:02 · 전엔 입력칸 위 따로 된 칸) */}
           {typing.length ? (   /* YETA 타이핑 = 얼굴 + 점 셋 말풍선 · 이름 칸 = 「결 작업 중 · 고민하는 중…」(옛 규칙) */
-            <div className="ymsg ytyp" aria-live="polite">
+            <div className="ymsg ytyp" aria-live="polite" role="button" tabIndex={0} aria-label={`${nmOf(list, typing[0])} 프로필`} style={{ cursor: "pointer" }} onClick={() => setProf(typing[0])} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setProf(typing[0]); } }}>   {/* 생각 중 줄(얼굴 · 이름 · 점 셋) 어디를 눌러도 프로필(형 11-14 05:49 「긍구 생각중 눌러도 프로필 나오게해줘」) */}
               <div className="yava"><Ava who={typing[0]} list={list} work /></div>
               <div className="ycol">
                 <div className={typRing ? "yname tab" : "yname"} style={typRing ? ({ "--yn": typRing } as CSSProperties) : undefined}><LiveShine text={`${typing.slice(0, 3).map((n) => nmOf(list, n)).join("·")}${typing.length > 3 ? ` 외 ${typing.length - 3}` : ""} 생각 중…`} /></div>   {/* 이름까지 한 줄 통째로 은색 빛(형 11-01 13:40 「좌측 아래 생각중 이거 그냥 지금 은색 지나가는 걸로 이름에 관계 없이 쭉 나오게 해줘. 색마다 안보이는게 있어서」) · 「생각 중」 띄어 씀(의존 명사 · 형 13:40 「생각 중. 생각중 띄어쓰기 뭐가 맞나봐주고」) */}

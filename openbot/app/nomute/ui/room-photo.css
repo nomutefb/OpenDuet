@@ -20,3 +20,5 @@
 /* 방 목록 방 사진 누르기 = 바로 바꾸기(형 06:54 ①) */
 .nm-rphoto { display:inline-flex; border-radius:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .nm-rphoto:active { transform:scale(.94); }
+.nm-rface { display:inline-flex; border-radius:9999px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-rface:active { transform:scale(.94); }   /* 1:1 줄 얼굴 = 프로필(형 11-14 05:49) */
