@@ -3,8 +3,10 @@
 export const COBROWSE_EVENT = "nm-cobrowse";
 /** 들머리(회의실 단추 · 어디서든) → 탭 줄이 「같이 보기」 탭을 엶 */
 export const openCobrowse = (w: Pick<Window, "dispatchEvent"> = window) => { w.dispatchEvent(new Event(COBROWSE_EVENT)); };
-/** 서버 답 → 띄울 주소(https · ts.net · 표 붙음)만 · 아니면 "" */
+/** 서버 답 → 띄울 주소 = 같은 집 길(via) 먼저 · 없으면 https · ts.net · 표 붙음 · 아니면 "" */
 export function cobrowseSrc(d: unknown): string {
+  const via = (d as { via?: unknown } | null)?.via;   // 같은 집 길(서버 co/ → 맥 funnel 문지기 · 로컬 네트워크 권한 없이 · 깃 11-13 · 형 11:02 「클라우드플레어 뚫리는 그 곳에서는 아무데나」)
+  if (typeof via === "string" && /^\/api\/office\/co\/\?t=[A-Za-z0-9_%-]{8,}$/.test(via)) return via;
   const u = (d as { url?: unknown } | null)?.url;
   if (typeof u !== "string") return "";
   try { const x = new URL(u); return x.protocol === "https:" && /\.ts\.net$/.test(x.hostname) && x.searchParams.get("t") ? x.href : ""; } catch { return ""; }
@@ -28,3 +30,5 @@ export async function lnaState(nav: { permissions?: { query: (d: { name: string 
 export const CO_ALLOW = "local-network-access; local-network; loopback-network; clipboard-read; clipboard-write; fullscreen";
 /** 닿나 재는 시간 — 권한을 물어야 하면(형이 누를 동안) 길게 */
 export const reachWait = (lna: string) => (lna === "granted" || lna === "unknown" ? 5000 : 45000);
+/** 같은 집 길이면 로컬 네트워크 권한이 필요 없음 */
+export const isVia = (src: string) => src.startsWith("/api/office/co/");

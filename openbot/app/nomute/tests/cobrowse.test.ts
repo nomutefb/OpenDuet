@@ -10,6 +10,9 @@ test("서버 답 → 띄울 주소 = https · ts.net · 표 붙은 것만", () =
   assert.equal(cobrowseSrc({ url: "http://mac.tail46034f.ts.net:7273/?t=x" }), "", "http");
   assert.equal(cobrowseSrc({ url: "https://evil.example.com/?t=x" }), "");
   assert.equal(cobrowseSrc(null), "");
+  assert.equal(cobrowseSrc({ via: "/api/office/co/?t=abcdefghijklmnop", url: "https://mac.tail46034f.ts.net:8443/?t=abcdefghijklmnop" }), "/api/office/co/?t=abcdefghijklmnop", "같은 집 길 먼저");
+  assert.equal(cobrowseSrc({ via: "https://evil.example.com/api/office/co/?t=abcdefghij", url: "https://mac.tail46034f.ts.net:8443/?t=abcdefghijklmnop" }), "https://mac.tail46034f.ts.net:8443/?t=abcdefghijklmnop", "via 는 이 집 길만");
+  assert.equal(cobrowseSrc({ via: "//evil.example.com/?t=abcdefghij" }), "");
 });
 
 test("닿나 재기 — 그물 끊김 = false · 닿음(403 도) = true", async () => {

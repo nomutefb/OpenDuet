@@ -1,7 +1,7 @@
 // 같이 보기 칸(봄 11-12 13:54 · 깃 다리) — 보이는 동안만 iframe(안 보면 내려서 다리 「보는 중」이 끊김 · 다시 보면 새 표) · 못 닿으면 지금 웹 칸
 import { useEffect, useRef, useState } from "react";
 import { office } from "../data/office";
-import { CO_ALLOW, cobrowseSrc, lnaState } from "./cobrowse";
+import { CO_ALLOW, cobrowseSrc, isVia, lnaState } from "./cobrowse";
 import { WebPane } from "./web-pane";
 import { MeetDock, MeetPick, useMeet } from "./meet";
 import { SketchLayer } from "./sketch";   // 스케치 = 화상회의 틀 위 덧그림(형 11-13 06:49 · 명세 10)   // 화상회의(형 11-13 06:4x · 봄 옮김) · 탭 줄 · 「○○가 제어하고 있습니다」 · 포인터 · 치는 중 · 「동기화 N초 전」 = 다리 판(틀 안 · 깃 다리.mjs)이 그림 = 여기서 겹쳐 안 그림
@@ -15,7 +15,7 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
     setState("wait"); setSrc("");
     void office<{ url?: string }>("cobrowse/ticket", { method: "POST", body: "{}" })
       .then(async (d) => {
-        const u = cobrowseSrc(d), lna = await lnaState();
+        const u = cobrowseSrc(d), lna = u && isVia(u) ? "granted" : await lnaState();   // 같은 집 길 = 권한 안 물음(윈B 브레이브 「로컬 네트워크」 막음이어도 뜸 · 깃 11-13)
         if (!u || lna === "denied") throw new Error("off");
         if (live) { setSrc(u); setState("ok"); }   // 닿나 재기(fetch) 안 함 — 크롬이 공개 사이트 → 테일넷 no-cors 요청을 권한이 있어도 막음(뜸 14:4x 실물 · 35ms 실패) · 틀 자체는 권한으로 뜸 · 권한 물음 = 틀이 붙을 때 브라우저가 띄움
       })
