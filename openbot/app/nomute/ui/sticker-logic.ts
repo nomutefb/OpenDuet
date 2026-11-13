@@ -16,7 +16,7 @@ export const PACKS: Pack[] = [
   { id: "morning", name: "나팔꽃", items: [{ id: "ibul", label: "이불" }] },   // 형 꽃 = 이불 하나(형 11-13 08:03 「미안한데 나팔꽃은 6개 말구 요거 하나만. ㅋㅋ」 · 「나한테는 밝아서 잘 안보여」 · 앞 판 여섯 = 그림만 남김)
   { id: "teum", name: "틈", items: [{ id: "peek", label: "빼꼼" }, { id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }] },   // 틈 = 바위 틈 돌멩이 · 빼꼼 = 틈 속에서 빼꼼 → 웃음
   { id: "chok", name: "촉", items: [{ id: "news", label: "속보" }, { id: "joy", label: "좋아" }, { id: "surprise", label: "놀람" }, { id: "think", label: "생각중" }] },   // 속보 = 기자 분장(트렌치코트 · 마이크) — 형 11-13 09:33 「틈, 촉도 귀염뽀짝하게, 3개정도 gif 만들어줘」 · 「속보를 전달하는 컨셉으로 1개 정도 추가(분장해서)」(속보 = 특파원 촉 · 짐작) · 08:03 「그록봇 애들은 gif 없어도 돼」 뒤 형이 다시 부른 것
-  // 그록봇(온) 묶음 뺌(형 11-13 08:03 「글구 그록봇 애들은 gif 없어도 돼. 이게 맥락이 달라서 이해를 하기가 어렵다라고 어제 테스트해보니까 걍 빼줭」)
+  { id: "on", name: "온", items: [{ id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }, { id: "done", label: "해냈다" }] },   // 온 셋 되살림(형 11-13 10:20 「웅 글구 온 거 만드러놓은게 없어졋는데 다시 살려줭 3개정도만!」) · 앞 판 08:03 「그록봇 애들은 gif 없어도 돼」로 뺐던 것
   // 여울 묶음 뺌(형 11-13 06:55 「뜸 여울 관련된 gif는 안뜨게 없애줘」 · 그림 파일은 editor viewer/office/sticker/yeoul 에 남김)
 ];
 export const stickerUrl = (p: Pack, it: Item) => `/office/sticker/${p.id}/${it.id}.gif`;
