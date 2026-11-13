@@ -5,7 +5,7 @@
 //   형 06:17 「반응 대신 해당 말풍선 주인 프로필 사진이 나오게 해줘. 리액션 단톡에서도 안헷갈리게」 · 「남이 달은거를 클릭 시 누가 달았는지 보는거는 기존과 동일해」
 //     = 가운데 = 그 말풍선 쓴 이 얼굴(빼기는 얼굴 위 작은 − 단추) · 남이 단 이모지 누름 = 누가 달았나(옛 길 그대로 · ./office-chat Reactions)
 //   폰 = 올려놓기 없음 → 누르면 펼침 · 누르면 달림 · 바깥 누름 · Esc = 접힘 · 움직임 = transform · opacity 만(형 05:57 「웅 고프레임이면 조음」)
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FaceImg } from "./faces";
 import "./quick-react.css";
 
@@ -25,8 +25,20 @@ export function QrRadial({ quick, mine, faceId, onPick, onRemove, onClose }: { q
     return () => { window.clearTimeout(t); document.removeEventListener("pointerdown", off); window.removeEventListener("keydown", esc); };
   }, []);
   const R = 48, n = quick.length;
+  // 가장자리에 닿으면 고리를 안쪽으로 밂(봄 06:23 「아래쪽 구슬 둘이 화면 밑(입력 칸 쪽)에 가려 안 보여 … 위 · 아래 · 왼 · 오른 다」) = 둘레 반지름(구슬 끝까지) + 6 여백이 대화 목록 칸(스크롤 칸) 안에 들어오게
+  const [shift, setShift] = useState<[number, number]>([0, 0]);
+  useLayoutEffect(() => {
+    const el = box.current; if (!el) return;
+    let sc: HTMLElement | null = el.parentElement;
+    while (sc && !/(auto|scroll)/.test(getComputedStyle(sc).overflowY)) sc = sc.parentElement;
+    const r = el.getBoundingClientRect(), b = sc ? sc.getBoundingClientRect() : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+    const E = R + 17 + 6, L = Math.max(b.left, 0), T = Math.max(b.top, 0), Rr = Math.min(b.right, innerWidth), B = Math.min(b.bottom, innerHeight);
+    const dx = r.left - E < L ? L - (r.left - E) : r.left + E > Rr ? Rr - (r.left + E) : 0;
+    const dy = r.top - E < T ? T - (r.top - E) : r.top + E > B ? B - (r.top + E) : 0;
+    if (dx || dy) setShift([Math.round(dx), Math.round(dy)]);
+  }, []);
   return (
-    <span ref={box} className="nm-qr-rad" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+    <span ref={box} className="nm-qr-rad" style={shift[0] || shift[1] ? { transform: `translate(${shift[0]}px, ${shift[1]}px)` } : undefined} onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
       <span className="nm-qr-hub">
         {faceId ? <FaceImg id={faceId} size={40} className="nm-qr-face" /> : <span className="nm-qr-name">반응</span>}
         {hover ? <span className="nm-qr-tip">{NAME[hover] || hover}</span> : null}
