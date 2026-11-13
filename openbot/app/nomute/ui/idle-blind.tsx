@@ -4,6 +4,7 @@
 //   가림은 화면만 덮음(대화·동기화는 뒤에서 그대로 돎) · 쓰던 글은 그대로
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { YICO } from "./yeta-icons";
+import { idleLast0 } from "./idle-blind-logic";
 import "./idle-blind.css";
 
 const KEY = "nm-blind", IDLE_MS = 10 * 60_000;   // 10분(형 11-13 10:59 봄 옮김 「미 입력 10분이면 웹앱 보호기 있어야되는데 안되더라고」 · 앞 판 = 15분 · 11-06 「15분 미입력시」)
@@ -17,17 +18,26 @@ const pc = () => !!window.matchMedia?.("(pointer: fine)").matches && window.inne
 const hhmm = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
 /** 껍데기에 한 번 — 15분 쉼 · 바로 가림 · 걷힘 */
+// 다시 읽어도 이어 셈(형 11-13 10:59 「미 입력 10분이면 … 안되더라고」 진짜 까닭 = PC 웹앱은 새 판이 오면 저절로 다시 읽음(main.tsx autoReload · 형 11-06 13:14) ·
+//   오늘처럼 판이 10~20분마다 오르면 다시 읽을 때마다 「마지막 손」이 0 으로 돌아가 10분에 못 닿았음 · 라이브 진짜 시간 시험 = 5분쯤 다시 읽힘 → 10.5분 가림 0)
+//   = 마지막 손 시각 · 가림 상태를 이 창(sessionStorage)에 두고 다시 읽은 뒤 그대로 이어 받음 · 저절로 다시 읽기는 손이 아님
+const LAST = "nm-idle-last", SHUT = "nm-idle-shut";
+const ss = { get: (k: string) => { try { return sessionStorage.getItem(k) || ""; } catch { return ""; } }, set: (k: string, v: string) => { try { if (v) sessionStorage.setItem(k, v); else sessionStorage.removeItem(k); } catch { /* 이번만 */ } } };
+
 export function IdleBlind() {
   const on = useOn();
-  const [shut, setShut] = useState(false), [clock, setClock] = useState(hhmm);
+  const [shut, setShut] = useState(() => ss.get(SHUT) === "1"), [clock, setClock] = useState(hhmm);
+  useEffect(() => { ss.set(SHUT, shut ? "1" : ""); }, [shut]);
   useEffect(() => {
-    let last = Date.now();
+    let last = idleLast0(ss.get(LAST), Date.now()), wrote = 0;
     let px = NaN, py = NaN;
     const poke = (e: Event) => {
       if (e.type === "pointermove") { const m = e as PointerEvent; if (m.screenX === px && m.screenY === py) return; px = m.screenX; py = m.screenY; }   // 자리 그대로인 이동 = 손 아님(밑 화면이 바뀌면 브라우저가 커서 밑에 쏘는 이동 · 짐작 막이)
       if (!e.isTrusted) return;   // 코드가 쏜 키·누름(call-face Escape · swipe-reply pointercancel 등) = 손 아님
       last = Date.now();
+      if (last - wrote > 5000) { wrote = last; ss.set(LAST, String(last)); }   // 5초에 한 번만 적음
     };
+    if (!ss.get(LAST)) ss.set(LAST, String(last));
     const evs = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"] as const;
     evs.forEach((e) => window.addEventListener(e, poke, { passive: true, capture: true }));
     const now = () => setShut(true);
