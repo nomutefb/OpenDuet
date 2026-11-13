@@ -2,6 +2,7 @@ import { queryClient } from "@/query-client";
 import { dropAttachments, sendable, waveFile } from "../shim/attachments";
 import { createAttachmentSender } from "./attachment-send";
 import type { OfficeMsg } from "./office";
+import { uploadingPing } from "./typing";   // 올리는 동안 = 「치는 중」과 같은 신호(형 11-13 18:14 「모든 미디어도 10초 룰」)
 
 // office()는 JSON 해석 실패를 {}로 바꾼다. 전송 확인은 상태와 실제 JSON을 모두 보존해야 한다.
 async function post(path: string, body: FormData | string) {
@@ -150,6 +151,8 @@ async function smallImage(file: File): Promise<File | null> {
 
 export const attachmentSender = createAttachmentSender({
   upload: async (attempt, onProgress, signal) => {
+    const stopPing = uploadingPing(attempt.room);   // 올리는 동안 형 글 깨움 붙듦(60초 막 · 넘으면 글 먼저 · 파일은 다 올라간 뒤 따로 · 형 11-13 18:14)
+    try {
     // 보낼 판 = 누른 때 스위치대로(압축판 · 원본) · 굽는 중이면 여기서 기다림(원본이 잘못 나가지 않게)
     const sent = await Promise.all(attempt.originals.map((o) => sendable(o.id, o.file)));
     if (signal?.aborted) throw stopped();   // 굽는 사이 눌렀으면 안 올림
@@ -184,7 +187,8 @@ export const attachmentSender = createAttachmentSender({
     if (attempt.text) form.set("text", attempt.text);
     form.set("together", "1");
     if (signal?.aborted) throw stopped();   // 작은 판 굽는 사이 눌렀으면 안 올림
-    return upload(form, onProgress, signal);
+    return await upload(form, onProgress, signal);
+    } finally { stopPing(); }
   },
   body: (attempt) =>
     post(

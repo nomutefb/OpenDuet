@@ -29,6 +29,7 @@ const SLASH_HELP: [string, string][] = [["/초대 이름", "하루 안 남은 �
 import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, peopleSync, roomAgentIds } from "../data/office";
+import { markSent, typingPing } from "../data/typing";   // 형 치는 중(형 11-13 17:57 · 17:59 · 18:09 · 18:14)
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { peekAttachments } from "../shim/attachments";
 import { attachmentSender } from "../data/attachment-state";
@@ -1490,7 +1491,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
           agents={toAgentOptions(bots4)}
           commands={OFFICE_COMMANDS}
           channelId={room}
-          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); setInviteQ(/^\/초대(\s|$)/.test(t.trimStart()) ? t.trimStart().slice(3).split(/\s+/).filter(Boolean) : null); }}
+          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); typingPing(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); setInviteQ(/^\/초대(\s|$)/.test(t.trimStart()) ? t.trimStart().slice(3).split(/\s+/).filter(Boolean) : null); }}
           initialValue={loadDraft(room)}
           className="relative mt-auto w-full"
           commands={[]}
@@ -1520,6 +1521,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
                 const post = async () => {
                   const body: Record<string, unknown> = { text, client_id: ck, ...(submittedReply ? { reply_to: submittedReply.id } : {}) };   // 답장 = 원 글 id 도 같이(뜸 서버 = 형 결정 대기에서 빼고 원 글 쓴 이를 바로 깨움 · 11-07)
                   let j: { message?: Msg; closed?: boolean };
+                  markSent(room);   // 이 뒤 60초 = 「치는 중」 보낼 창(형 11-13 18:09 · ../data/typing.ts)
                   try { j = await office<{ message?: Msg; closed?: boolean }>(`rooms/${enc(room)}/messages`, { method: "POST", body: JSON.stringify(body) }); }
                   catch (e) {
                     if (!cmd) throw e;
