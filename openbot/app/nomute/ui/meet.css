@@ -117,3 +117,9 @@
 /* 대화 칸 위 = 대화방 머리 흐림 그대로(shell.css header.nm-head:has(.nm-room-mark)::before 의 단 34% · 78% 62% · 끝 투명) · 바탕이 검정이라 색 = #000 — 형 11-13 22:07 봄 옮김 「회의방 대화도 위에 맞닿는 부분이 그라데이션 이여야되는데 대화 끊기는 곳이 딱 끊어지더라구」 */
 .nm-meet-chat { position:relative; }
 .nm-meet-chat::before { content:""; position:absolute; top:0; left:0; right:0; height:52px; z-index:3; pointer-events:none; background:linear-gradient(#000 0%, rgba(0,0,0,.78) 45%, transparent); }
+/* 점 셋 오르락내리락(형 11-14 01:42 「연결 중 하고 점세개 오르락」) = 업데이트 띠 .nm-dots 박자(1.2s · .2s 씩 늦게) 그대로 · 켜짐 + 위로 3px */
+.nm-dots.bob i { display:inline-block; animation:nmDotBob 1.2s ease-in-out infinite; }
+.nm-dots.bob i:nth-child(2) { animation-delay:.2s; }
+.nm-dots.bob i:nth-child(3) { animation-delay:.4s; }
+@keyframes nmDotBob { 0%, 100% { opacity:.25; transform:translateY(0); } 40% { opacity:1; transform:translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .nm-dots.bob i { animation:none; opacity:.8; } }

@@ -12,7 +12,7 @@ import { OfficeChat, officeKeys } from "./office-chat";
 import { ringOf } from "../swap/mic-orb";
 import "./meet.css";
 import "./update-bar.css";   // .nm-dots = 라임 점 셋(업데이트 띠 · 끊김 띠와 같은 것 · 형 19:3x 「들어오는중... 이거 표시 떠야될듯」 · 「종료하는중 ... < 이거 점세개로」)
-export const Dots = () => <span className="nm-dots" aria-hidden><i>.</i><i>.</i><i>.</i></span>;
+export const Dots = ({ bob = false }: { bob?: boolean }) => <span className={`nm-dots${bob ? " bob" : ""}`} aria-hidden><i>.</i><i>.</i><i>.</i></span>;   // bob = 점 셋 오르락내리락(형 11-14 01:42 시아 옮김 「잇는중 - 은 변경 연결 중 하고 점세개 오르락」)
 
 export const SCRIBE = "챙";   // 늘 자동 참여 · 기록관 · 「다 왔다」 셈 밖(봄 06:46)
 export const MEET_WAIT = 60_000;   // 답 없는 이를 기다리는 시간(명세 「여는 때」 = 60초 · 봄 06:5x)
@@ -137,7 +137,7 @@ const purposeM = (m: OfficeMsg) => /^\s*(![^\s]+\s*)*\[임시방 목적/.test(St
 /** 칸 아래 = 그 방 대화(우리 대화 부품 그대로 · 말하는 이 왼쪽 · 형 오른쪽 · 형 15:02 「우리 대화하는것 처럼 올라갔으면 좋겠어. 동일한 디자인 계승해서 각자의 프로필 색에 똑같이」) · 끝난 방 = 「새 회의」 */
 export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
   const { gone } = useMeetRoom(meet.id);
-  if (gone) return <div className="nm-meet"><div className="nm-meet-row"><small className="nm-meet-left">이 회의는 끝났어(종료 · 기한)</small><button type="button" className="nm-web-btn nm-meet-end" onClick={onEnd}>새 회의</button></div></div>;
+  if (gone) return <div className="nm-meet"><div className="nm-meet-row"><button type="button" className="nm-web-btn nm-meet-end" onClick={onEnd}>새 회의</button></div></div>;
   return <div className="nm-meet open"><div className="nm-meet-chat"><OfficeChat room={meet.id} hide={purposeM} /></div></div>;
 }
 
