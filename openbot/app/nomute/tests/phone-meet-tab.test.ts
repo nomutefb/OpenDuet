@@ -73,3 +73,10 @@ test("영상 편집 기둥 키 = 안 잎 요소 아래끝(틀 키 · scrollHeigh
   assert.match(v, /if \(c\.children\.length\) continue;/);
   assert.doesNotMatch(v, /rail\.offsetTop \+ rail\.offsetHeight/);
 });
+test("영상 편집 기둥 글자 단추 넷 = 그림 단추(형 11-14 05:41 「✓ ② 사진 에디터처럼 그림 단추로 바꿈」)", () => {
+  const v = rd("../ui/video-editor.tsx");
+  for (const k of ["res", "bgm", "anorm", "cutlv"]) assert.match(v, new RegExp(`\\b${k}: "<`));
+  assert.match(v, /#editSpec \.gs-v\{font-size:0!important;/);
+  assert.match(v, /SEE_CSS \+ RAIL_CSS \+ accentCss/);
+  assert.match(v, /tip\.className = "nm-tip"/);
+});
