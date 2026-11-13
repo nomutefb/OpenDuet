@@ -36,14 +36,14 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
     <section className={`nm-co${isMeet ? " meet" : ""}`} aria-label={isMeet ? "화상회의" : "브라우저"}>
       <div className="nm-co-bar">
         <span className="nm-co-dot" aria-hidden />
-        {isMeet ? <OnAir ago={sync ? sync.ago : null} at={sync ? sync.at : 0} /> : <><b>브라우저</b><span className="nm-co-sub" title="맥 72 · 대신 로그인 · 화면이 안 뜨면 브라우저 「로컬 네트워크」 허용 · ↻">맥 72 · 대신 로그인 · 화면이 안 뜨면 브라우저 「로컬 네트워크」 허용 · ↻</span></>}   {/* 화상회의 머리 = 「같이 보는 중」만(형 11-13 15:15 「같이보는중 이라는 말만 뜨면되지 그 외에 다른 값은 안뜨면 돼」) */}
+        {isMeet ? <OnAir ago={state === "ok" && sync ? sync.ago : null} at={sync ? sync.at : 0} /> : <><b>브라우저</b><span className="nm-co-sub" title="맥 72 · 대신 로그인 · 화면이 안 뜨면 브라우저 「로컬 네트워크」 허용 · ↻">맥 72 · 대신 로그인 · 화면이 안 뜨면 브라우저 「로컬 네트워크」 허용 · ↻</span></>}   {/* 화상회의 머리 = 「같이 보는 중」만(형 11-13 15:15 「같이보는중 이라는 말만 뜨면되지 그 외에 다른 값은 안뜨면 돼」) */}
         {isMeet ? <span className="nm-co-sub" /> : null}
         {isMeet && !meet ? (opening === "busy" ? <span className="nm-co-sync">회의 여는 중<Dots /></span> : <button type="button" className="nm-meet-btn" title={opening || undefined} onClick={open}>{opening ? "다시 열기" : "새 회의"}</button>) : null}
         <button type="button" className="nm-web-btn" aria-label="다시 잇기" title="다시 잇기" onClick={() => setNonce((n) => n + 1)}>↻</button>
         <button type="button" className="nm-web-btn" aria-label={meet ? "회의 종료" : "닫기"} title={meet ? "회의 종료" : "닫기"} onClick={meet ? () => end.setAsk(true) : onClose}>×</button>   {/* 화상회의 × = 회의 종료(형 16:18 「x 대신 종료」) */}
       </div>
       <div className="nm-co-stage">
-        {state === "ok" ? <iframe ref={frame} key={src} title="같이 보기" src={src} className="nm-co-frame" allow={CO_ALLOW} referrerPolicy="no-referrer" /> : state === "off" ? <p className="nm-web-note">맥 72 에 안 닿음 · <button type="button" className="nm-meet-btn" onClick={() => setNonce((n) => n + 1)}>다시 잇기</button></p> : <p className="nm-web-note">잇는 중<Dots /></p>}   {/* 화상회의 칸이 못 닿으면 = 화면 자리만 안내 · 아래 대화는 그대로(명세 「끊김」) */}
+        {state === "ok" ? <iframe ref={frame} key={src} title="같이 보기" src={src} className="nm-co-frame" allow={CO_ALLOW} referrerPolicy="no-referrer" /> : state === "off" ? <p className="nm-web-note"><button type="button" className="nm-meet-btn" onClick={() => setNonce((n) => n + 1)}>브라우저 연결하기</button></p> : <p className="nm-web-note">잇는 중<Dots /></p>}   {/* 화상회의 칸이 못 닿으면 = 화면 자리만 안내 · 아래 대화는 그대로(명세 「끊김」) */}
         {meet && state === "ok" ? <SketchLayer rect={rect} /> : null}
         {meet ? <MeetPeople meet={meet} at={rect} /> : null}
         <EndAsk end={end} />

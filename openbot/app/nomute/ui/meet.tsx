@@ -117,14 +117,12 @@ export function useTogetherNow() {
   const q = useQuery({ queryKey: ["nomute", "together", "now"], queryFn: () => office<{ now?: { at?: number; ctrl?: { who?: string } } }>("together").then((j) => ({ at: j.now?.at || 0, ctrl: j.now?.ctrl?.who || "" })), refetchInterval: 2000 });
   return q.data || { at: 0, ctrl: "" };
 }
-/** 머리 「ON AIR ( n초 전 )」(형 11-13 16:18 「동기화 n초전 이거는 그냥 on air로 나오면 되고 ON AIR ( n초 전 )」 · 괄호 = 연하게) · 값 = 다리 신호 nm-co-sync(ago) 먼저 · 없으면 서버 together.at */
-export function OnAir({ ago, at: recvAt = 0 }: { ago: number | null; at?: number }) {   // at = 그 신호 받은 때(그 뒤 흐른 만큼 더해 1초마다 바로 올라감 · 형 19:3x 「그때그때 바로 갱신되게」)
-  const { at } = useTogetherNow();
+/** 머리 「ON AIR」 — 불 = 진행 중일 때만(형 11-14 01:36 시아 옮김 「온 에어에 진행중일때만 불 들어오면 됨 빨강 디밍」 · 「0분전 이거는 좀 의미가없는거 같아. 그냥 빼자」) · 진행 중 = 다리 신호(nm-co-sync ago) 받은 지 10초 안 · 아니면 회색 꺼짐 · 앞 판 = 「( n초 전 )」(형 11-13 16:18) */
+export function OnAir({ ago, at: recvAt = 0 }: { ago: number | null; at?: number }) {   // at = 그 신호 받은 때(그 뒤 흐른 만큼 더해 1초마다 다시 셈)
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
-  const ms = ago != null ? ago + Math.max(0, now - (recvAt || now)) : at ? now - at : null;
-  const s = ms == null ? null : Math.max(0, Math.round(ms / 1000));
-  return <span className="nm-onair"><i aria-hidden /> <b>ON AIR</b>{s == null ? null : <span className={`nm-co-sync${s > 10 ? " stale" : ""}`}>( {s < 60 ? `${s}초` : `${Math.floor(s / 60)}분`} 전 )</span>}</span>;
+  const live = ago != null && ago + Math.max(0, now - (recvAt || now)) <= 10_000;
+  return <span className={`nm-onair${live ? " live" : ""}`} title={live ? "진행 중" : "신호 없음"}><i aria-hidden /> <b>ON AIR</b></span>;
 }
 
 type ListRoom = { id: string; name?: string; purpose?: string; members?: string[] };

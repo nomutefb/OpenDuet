@@ -83,9 +83,12 @@
 .nm-sk-bar button.nm-sk-pen.on { background:#CFFF40; border-color:#CFFF40; color:#111; }
 /* 머리 「ON AIR ( n초 전 )」(형 16:18) */
 .nm-onair { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
-.nm-onair i { width:8px; height:8px; border-radius:50%; background:#FF4D4F; box-shadow:0 0 8px rgba(255,77,79,.7); animation:nm-onair 1.6s ease-in-out infinite; }
+.nm-onair i { width:8px; height:8px; border-radius:50%; background:#5d5f5d; box-shadow:none; transition:background .3s, box-shadow .3s; }   /* 꺼짐 = 회색(신호 없음) */
+.nm-onair.live i { background:#FF4D4F; box-shadow:0 0 8px rgba(255,77,79,.7); animation:nm-onair 1.6s ease-in-out infinite; }   /* 진행 중 = 빨강 숨쉬기(디밍) */
+.nm-onair:not(.live) b { color:rgba(232,234,232,.5); }
 .nm-onair b { color:#e8eae8; font-weight:800; letter-spacing:.04em; font-size:12.5px; }
-@keyframes nm-onair { 0%,100% { opacity:1 } 50% { opacity:.45 } }
+@keyframes nm-onair { 0%,100% { opacity:1 } 50% { opacity:.35 } }
+@media (prefers-reduced-motion:reduce) { .nm-onair.live i { animation:none; } }
 .nm-co.meet .nm-co-bar > .nm-co-dot { display:none; }
 /* 종료 묻기(형 16:17 「회의가 종료하시겠습니까? / 아니오 예 / 아니오에 라임색」) */
 .nm-meet-ask { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:6; display:flex; flex-direction:column; gap:12px; padding:18px 20px; min-width:240px; border-radius:16px; background:#151715; border:1px solid rgba(255,255,255,.12); box-shadow:0 16px 40px rgba(0,0,0,.55); color:#e8eae8; font-size:14px; text-align:center; }
