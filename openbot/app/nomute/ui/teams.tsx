@@ -43,7 +43,7 @@ const useSeen = () => useSyncExternalStore((f) => { seenSubs.add(f); return () =
 type Me = { configured?: boolean; signed_in?: boolean; user?: { id?: string; name?: string; upn?: string }; pending?: { user_code?: string; verification_uri?: string; expires_at?: number | string } | null };
 type Person = { id: string; name?: string };
 type Chat = { id: string; type?: string; topic?: string; members?: string[]; people?: Person[]; last?: { from?: string; from_id?: string; text?: string; at?: string }; read_at?: string | null };
-type TMsg = { id: string; kind?: string; from?: string; from_id?: string; at?: string; text?: string; html?: string; files?: { name?: string; url?: string }[]; hosted?: string[]; sys?: string | null; card?: string[] };
+type TMsg = { id: string; kind?: string; deleted?: boolean; from?: string; from_id?: string; at?: string; text?: string; html?: string; files?: { name?: string; url?: string }[]; hosted?: string[]; sys?: string | null; card?: string[] };
 type Page = { messages: TMsg[]; next?: string };
 
 const meKey = ["nomute", "teams", "me"] as const;
@@ -123,6 +123,8 @@ function TPic({ url, name }: { url: string; name: string }) {
   return bad ? <a className="nm-tfile" href={full} target="_blank" rel="noopener">📎 {name}</a>
     : <a className="nm-tpic" href={full} target="_blank" rel="noopener" title={name}><img alt={name} loading="lazy" src={`/api/office/teams/thumb?u=${encodeURIComponent(url)}`} onError={() => setBad(true)} /></a>;
 }
+/* 이모지 하나만 보낸 글 = 본문이 <emoji alt="😃"> 뿐이라 서버 글자 칸이 빔(실물 11-13 넷) → alt 를 글자로 · 크게(우리 대화 이모지 글과 같은 결 · 뎅) */
+const emojiOnly = (html?: string) => (html && /<emoji/i.test(html) ? [...html.matchAll(/<emoji[^>]*\balt="([^"]*)"/gi)].map((x) => x[1]).join("") : "");
 /* 날짜 가름 · 시각 묶음 = 우리 대화(office-chat.tsx dayKey · dateLabel · TIME_GAP)와 같은 셈 */
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const dayKey = (ts: number) => kst(ts).toISOString().slice(0, 10);
@@ -298,9 +300,9 @@ export function TeamsChat({ chat }: { chat: string }) {
             const newDay = !!ts && (!pts || dayKey(pts) !== dayKey(ts)), cont = !newDay && !!prev && prev.from === m.from;
             const noTime = !!nx && !!nts && dayKey(nts) === dayKey(ts) && ((nx.from === m.from && nts - ts < TIME_GAP) || t12(nts) === t12(ts));   // 시각 = 이어 쓴 묶음 마지막 글에만(우리 대화와 같은 셈)
             const time = noTime || !ts ? null : <time className="ytout" dateTime={m.at}>{t12(ts)}</time>;
-            const body = (
+            const body = m.deleted ? <span className="nm-gone">삭제된 글이야</span> : (   /* 지운 글 = 우리 대화와 같은 한 줄(빈 말풍선 대신) */
               <>
-                {partsOf(m.html)?.map((x, k) => x.t === "table" ? <TTable key={k} rows={x.rows} /> : <span key={k} className="nm-tpart">{x.s}</span>) ?? (m.text ? <span>{m.text}</span> : null)}
+                {partsOf(m.html)?.map((x, k) => x.t === "table" ? <TTable key={k} rows={x.rows} /> : <span key={k} className="nm-tpart">{x.s}</span>) ?? (m.text ? <span>{m.text}</span> : emojiOnly(m.html) ? <span className="nm-temoji">{emojiOnly(m.html)}</span> : null)}
                 {gifsOf(m.html).map((u) => <GifImg key={u} src={u} />)}
                 {(m.hosted || []).map((h) => <img key={h} className="nm-thost" alt="" loading="lazy" src={`/api/office/teams/hosted?chat=${encodeURIComponent(chat)}&msg=${encodeURIComponent(m.id)}&h=${encodeURIComponent(h)}`} />)}
                 {m.card?.length ? <span className="nm-tcard">{m.card.map((l, k) => <span key={k}>{l}</span>)}</span> : null}   {/* 봇 카드 글 = 카드 안 글자만(형 11-13 14:47 「응응」 · 단추·입력 0) */}

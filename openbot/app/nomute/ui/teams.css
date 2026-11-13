@@ -72,3 +72,5 @@
 .nm-tychat .yb .nm-tcard > span:first-child { font-weight:700; }
 .nm-tychat .yb .nm-tpic { display:block; margin-top:6px; }
 .nm-tychat .yb .nm-tpic img { display:block; max-width:100%; max-height:320px; border-radius:10px; }
+
+.nm-tychat .yb .nm-temoji { font-size:28px; line-height:1.2; }   /* 이모지만 보낸 글(뎅 11-13) */
