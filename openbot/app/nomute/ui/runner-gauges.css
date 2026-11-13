@@ -70,7 +70,7 @@
 :root:not(.dark) .nm-rgx svg.nm-rg-gauge path[stroke="#5C5C5C"] { stroke:rgba(22,23,22,.35); }
 :root:not(.dark) .nm-rgx svg.nm-rg-gauge circle[fill="#5C5C5C"] { fill:rgba(22,23,22,.35); }
 /* 서랍·설정(.nm-modal.see)이 열려 있을 땐 밑 러너 칸을 숨김(뎅 02:12 · 봄 7) 나머지 = 칸 사이·머리줄로 게이지·RUNNER 글자 비침 · 안 ①) · 닫히면 그대로 돌아옴 */
-:root:has(.nm-modal.see) .nm-rgx { opacity:0; pointer-events:none; transition:opacity .15s; }
+:root:has(.nm-modal.see) .nm-rgx { visibility:hidden; opacity:0; pointer-events:none; transition:none; }   /* 바로 숨김(형 11-13 22:03 봄 옮김 「뉴스에디터 처음 누를때 뒤 배경에 잔상이 남네」 = .15s 로 서서히 꺼지던 동안 판 너머로 RUNNER 게이지가 비침 · 실측 첫 프레임) */
 
 /* 36)(형 11-09 09:25 · 시아 09:26) — ① 게이지 115%(92 → 106) · 위로 6px ② 조약돌 = 몸 묶음 풀고 12칸 격자 한 줄(칸 가운데 · 11·12 빈 자리) ③ 러너 = A1~A6 같은 12칸 격자(7~12 = 흐린 점) · 글 14 고정폭 · 높이 = 오른쪽 SNS FB 줄 · IG 줄(translateY 그대로) */
 .nm-rgx-host .nm-rg-gauge { max-height:106px; margin-top:0; }

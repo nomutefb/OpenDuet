@@ -13,7 +13,9 @@ const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeW
 /** 품은 옛 화면 바탕 = 투명(앱 배경이 비침) · 제 장면 그림(nm-scene) 끔 — 원본 파일은 안 고치고 품은 문서에만 덧씀 */
 export const SEE_CSS = "html,html.nm-scene-ready:not(:has(#wavebg)),body{background:transparent!important}.nm-scene-canvas{display:none!important}body::before{display:none!important}"
   // 한 배경(형 11-13 14:08 봄 옮김 「배경같은것도 원톤으로 그냥 한 배경이 쭉 깔려야되」) = 미리보기 고정 도크(#topDock · 원본 #121212)도 쉴 땐 투명 · 내용이 도크 밑으로 들어간 동안만 유리(포토 에디터 ./thumb-maker/frame.css data-stuck 과 같은 꼴)
-  + "#topDock{background:transparent!important;transition:background-color .2s ease}html.nm-stuck #topDock{background:rgba(17,18,20,.82)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}";
+  + "#topDock{background:transparent!important;transition:background-color .2s ease}html.nm-stuck #topDock{background:rgba(17,18,20,.82)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}"
+  // 도구 기둥(#cpRailWrap · 미리보기 창 밖 오른쪽 절대 자리)이 창보다 길면 도크 밖 「자막 설정」 위로 넘쳐 비침(형 11-13 22:05 봄 옮김 「글구 여기 뒷 배경 안보여여되는데 보이네」 · 폰 실측 기둥 288 > 칸 186) → 칸 최소 높이 = 기둥(--nm-railh · see() 가 잼) · 접힘(.fold)엔 안 걸림
+  + ".topdock:not(.fold) #pvsec{min-height:var(--nm-railh,0px)}";
 
 /** 시그니처 색 = 포토 에디터와 같은 라임(형 11-13 14:06 봄 옮김 「이미지 에디터처럼 시그니처 색이 좀 일치되어야 되구」) · 옛 화면 청록(--accent #00EED2)만 덮음 · 값 = 앱 YETA 톤(./inapp yetaTone --modern-accent)과 같음 · 앱 밝게/어둡게 따라감 */
 export const accentCss = (dark: boolean) => `:root{--accent:${dark ? "#CFFF40" : "#4f7a00"};--accent-rgb:${dark ? "207,255,64" : "79,122,0"}}`;
@@ -25,7 +27,13 @@ function see(el: HTMLIFrameElement) {
   let s = doc.getElementById("nm-ved-see") as HTMLStyleElement | null;
   if (!s) { s = doc.createElement("style"); s.id = "nm-ved-see"; doc.head.appendChild(s); }
   s.textContent = SEE_CSS + accentCss(document.documentElement.classList.contains("dark"));
-  const w = doc.defaultView as (Window & { __nmStuck?: boolean }) | null;   // 도크 밑으로 들어감 = html.nm-stuck(문서마다 한 번)
+  const w = doc.defaultView as (Window & { __nmStuck?: boolean; __nmRail?: boolean }) | null;
+  const pv = doc.getElementById("pvsec"), rail = doc.getElementById("cpRailWrap");
+  if (w && pv && rail && !w.__nmRail && "ResizeObserver" in w) {   // 기둥 키 = 칸 위끝부터 기둥 아래끝(문서마다 한 번 · 탭 · 돋보기로 기둥이 바뀌면 따라감)
+    w.__nmRail = true;
+    const fit = () => pv.style.setProperty("--nm-railh", `${Math.ceil(rail.offsetTop + rail.offsetHeight)}px`);
+    new (w as unknown as { ResizeObserver: typeof ResizeObserver }).ResizeObserver(fit).observe(rail); fit();
+  }   // 도크 밑으로 들어감 = html.nm-stuck(문서마다 한 번)
   if (w && !w.__nmStuck) {
     w.__nmStuck = true;
     const d = doc, on = () => d.documentElement.classList.toggle("nm-stuck", (d.scrollingElement?.scrollTop || 0) > 1);
