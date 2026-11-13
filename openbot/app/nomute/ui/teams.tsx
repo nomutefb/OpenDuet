@@ -81,6 +81,31 @@ export function useTeamsUnread() {
 }
 /** 받는 동안 = 라임 점 셋(앱 다른 칸 LazyDots 와 같은 꼴 · 형 11-13 「팀즈 때도 점 세개 로딩중 시그니처 색으로」) · slim = 그려 둔 목록 위 한 줄 */
 const Dots = ({ slim }: { slim?: boolean }) => <div className={`nm-lazy nm-tdots${slim ? " slim" : ""}`} role="status" aria-label="불러오는 중"><i /><i /><i /></div>;
+/* 글 안 표(형 11-13 13:03 봄 옮김 「팀즈가 이렇게 원래 표구조로 나오는데, 이게 잘살릴수잇느는지도 한번 확인해줘」 · 뎅) — 그래프 본문 HTML 에 <table> 이 그대로 옴(실물 11-13 · tbody/tr/td)
+   → 본문을 「글 조각 · 표 조각」 차례로 나눔 · 칸 = 글자만(링크 · 꾸밈 · 스크립트 0 = innerHTML 안 씀) · 표 없는 글 = 지금처럼 text 그대로 */
+type Part = { t: "text"; s: string } | { t: "table"; rows: { th: boolean; cells: string[] }[] };
+const cellText = (el: Element) => { const c = el.cloneNode(true) as Element; c.querySelectorAll("br").forEach((b) => b.replaceWith("\n")); c.querySelectorAll("p,div,li").forEach((b) => b.append("\n")); return (c.textContent || "").replace(/\u00a0/g, " ").replace(/\n{2,}/g, "\n").trim(); };
+function partsOf(html?: string): Part[] | null {
+  if (!html || !/<table/i.test(html) || typeof DOMParser === "undefined") return null;
+  const body = new DOMParser().parseFromString(html, "text/html").body, out: Part[] = [];
+  let buf = "";
+  const flush = () => { const t = buf.replace(/\n{3,}/g, "\n\n").trim(); if (t) out.push({ t: "text", s: t }); buf = ""; };
+  const walk = (n: Node) => {
+    if (n.nodeType === 3) { buf += (n.textContent || "").replace(/\u00a0/g, " "); return; }
+    if (n.nodeType !== 1) return;
+    const el = n as Element, tag = el.tagName;
+    if (tag === "TABLE") { flush(); out.push({ t: "table", rows: [...el.querySelectorAll("tr")].map((tr) => ({ th: [...tr.children].every((c) => c.tagName === "TH"), cells: [...tr.children].map(cellText) })) }); return; }
+    if (tag === "BR") { buf += "\n"; return; }
+    if (tag === "SCRIPT" || tag === "STYLE") return;
+    el.childNodes.forEach(walk);
+    if (/^(P|DIV|LI|H[1-6]|TR)$/.test(tag)) buf += "\n";
+  };
+  body.childNodes.forEach(walk); flush();
+  return out.some((x) => x.t === "table") ? out : null;
+}
+function TTable({ rows }: { rows: { th: boolean; cells: string[] }[] }) {
+  return <div className="nm-ttable"><table><tbody>{rows.map((r, i) => <tr key={i}>{r.cells.map((c, k) => r.th ? <th key={k}>{c}</th> : <td key={k}>{c}</td>)}</tr>)}</tbody></table></div>;
+}
 /* 날짜 가름 · 시각 묶음 = 우리 대화(office-chat.tsx dayKey · dateLabel · TIME_GAP)와 같은 셈 */
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const dayKey = (ts: number) => kst(ts).toISOString().slice(0, 10);
@@ -250,7 +275,7 @@ export function TeamsChat({ chat }: { chat: string }) {
             const time = noTime || !ts ? null : <time className="ytout" dateTime={m.at}>{t12(ts)}</time>;
             const body = (
               <>
-                {m.text ? <span>{m.text}</span> : null}
+                {partsOf(m.html)?.map((x, k) => x.t === "table" ? <TTable key={k} rows={x.rows} /> : <span key={k} className="nm-tpart">{x.s}</span>) ?? (m.text ? <span>{m.text}</span> : null)}
                 {(m.hosted || []).map((h) => <img key={h} className="nm-thost" alt="" loading="lazy" src={`/api/office/teams/hosted?chat=${encodeURIComponent(chat)}&msg=${encodeURIComponent(m.id)}&h=${encodeURIComponent(h)}`} />)}
                 {(m.files || []).map((f, k) => f.url ? <a key={k} className="nm-tfile" href={`/api/office/teams/file?u=${encodeURIComponent(f.url)}`} target="_blank" rel="noopener">📎 {f.name || "파일"}</a> : null)}
               </>

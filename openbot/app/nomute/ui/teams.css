@@ -51,3 +51,13 @@
 .nm-tform button { display:grid; place-items:center; flex:none; }
 .nm-tform .nm-tplus2 { width:var(--btn, 36px); height:var(--btn, 36px); border:0; border-radius:50%; background:none; cursor:pointer; }
 .nm-tform .nm-tplus2:hover { color:var(--accent, #CFFF40); }
+/* 글 안 표 = 말풍선 안 표 · 좁으면 옆으로 밀기 · 줄 = 옅은 선(형 11-13 13:03 봄 옮김 「원래 표구조」 · 뎅) */
+.nm-tychat .yb .nm-tpart { display:block; }
+.nm-tychat .yb .nm-tpart + .nm-ttable, .nm-tychat .yb .nm-ttable + .nm-tpart { margin-top:8px; }
+.nm-tychat .yb .nm-ttable { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
+.nm-tychat .yb .nm-ttable table { border-collapse:collapse; font-size:var(--fs-sm); line-height:1.45; white-space:pre-wrap; word-break:keep-all; }
+.nm-tychat .yb .nm-ttable td, .nm-tychat .yb .nm-ttable th { padding:5px 9px; border:1px solid var(--glass-line, rgba(255,255,255,.12)); vertical-align:top; text-align:left; min-width:3em; }
+.nm-tychat .yb .nm-ttable th { font-weight:700; background:rgba(255,255,255,.05); }
+.nm-tychat .yb .nm-ttable tr:nth-child(even) td { background:rgba(255,255,255,.025); }
+.nm-tychat .yb.me .nm-ttable td, .nm-tychat .yb.me .nm-ttable th { border-color:rgba(0,0,0,.18); }
+:root:not(.dark) .nm-tychat .yb .nm-ttable td, :root:not(.dark) .nm-tychat .yb .nm-ttable th { border-color:rgba(0,0,0,.12); }
