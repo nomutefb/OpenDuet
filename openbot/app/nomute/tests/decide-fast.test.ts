@@ -6,7 +6,7 @@ import test from "node:test";
 const dp = readFileSync(new URL("../ui/decide-pop.tsx", import.meta.url), "utf8"), oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
 test("고르면 그 질문 바로 사라짐 · 보내기는 뒤에서 · 차오름 · ✓ 단계 0 · 실패면 창 다시", () => {
   const ch = dp.slice(dp.indexOf("const choose = async"), dp.indexOf("const isOn ="));
-  assert.match(ch, /setGone\(\(g\) => new Set\(g\)\.add\(d\.id\)\);\n    const ok = await pick\(d, p\);/);
+  assert.match(ch, /setGone\(\(g\) => new Set\(g\)\.add\(d\.id\)\);\n    markDecided\(qc, d, p\);[^\n]*\n    const ok = await pick\(d, p\);/);   // 숫자 먼저 줄임(형 11-13 16:19) 뒤 바로 보냄
   assert.ok(!/later\(/.test(ch), "기다림(차오름 · ✓ · 접힘) 0");
   assert.match(ch, /setOpen\(true\)/);
 });

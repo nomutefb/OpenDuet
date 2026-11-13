@@ -12,11 +12,11 @@
 //   「그리고 지금 배경보다 좀 더 패인느낌을 주려면 어떻게해야하지? 적당히해보고, ㅣ누르면 바로 반영되게, 그리고 저기에 애초에 기타를 넣어. 패스는 없어도 돼 기타로 갈음할거야. 그리고 질문시작점을 도형 변 시작점으로 해. … 질문 누르면 그냥 질문에 불이 들어온다음에 사라져도 돼. 기타를 누르면 대신 창이 흔들리지않고 입력칸이 뜨고」 ·
 //   「형 결정 > 의사 결정」 · 「옆에 설명글은 빼줘」)
 //   = 고를 줄 = 배경보다 패인 홈(안 그림자) · 모서리 살짝 · 왼쪽 정렬 · 누르면 바로 라임 형광 → 0.9초 뒤 그 질문 접혀 사라짐 · 게이지·✓·빛줄기 없음 · pass 뺌 · 기타 = 마지막 줄 · 누르면 그 줄이 같은 높이로 입력칸이 됨(창 높이 안 바뀜)
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { tailnetUrl } from "./pc-url";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { idOf, office, people } from "../data/office";
+import { type OfficeRoom, idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 
 type Pick = { i?: number; pass?: boolean; text?: string };
@@ -41,6 +41,14 @@ const tidy = (list: Decision[]) => {
 };
 const withDups = (d: Decision, p: Pick) => [{ id: d.id, room: d.room, ...p }, ...(d._dups || []).map((id) => ({ id, room: d.room, ...p }))];
 const KEY = ["nomute", "decisions"];
+/** 고른 그 자리에서 숫자 먼저 줄임(형 11-13 16:19 봄 옮김 「의사결정을 떠잇는걸 x 누르면 그거 더 곧바로 반영되게해줘. (메뉴 서랍하고, 좌측 프로필 1 둘다)」)
+ *  = 결정 목록 그 줄에 pick 먼저 적음(서랍 숫자 = ./decide-count.ts · 창은 그대로 · 다 고르면 닫힘 셈 안 깨짐) + 방 목록 그 방 pending_hyung −1(왼쪽 얼굴 숫자) · 서버 답은 뒤따름 · 못 보내면 다시 받아 되돌림 */
+export function markDecided(qc: QueryClient, d: Decision, p: Pick | null) {
+  const ids = new Set([d.id, ...(d._dups || [])]);
+  qc.setQueryData<Decision[]>(KEY, (old) => old?.map((x) => (ids.has(x.id) ? { ...x, pick: p } : x)));
+  if (p) qc.setQueryData<OfficeRoom[]>(["nomute", "rooms"], (old) => old?.map((r) => { const n = Number((r as { pending_hyung?: number }).pending_hyung) || 0; return r.id === d.room && n > 0 ? ({ ...r, pending_hyung: n - 1 } as OfficeRoom) : r; }));
+}
+const settle = (qc: QueryClient) => { for (const k of [KEY, ["nomute", "rooms"], ["nomute", "brief"]]) void qc.invalidateQueries({ queryKey: k }); };
 export const ALREADY = "이미 대답함";   // 결정 창 · 글 아래 단추 둘 다 늘 붙는 보기(형 11-13 09:12)
 const done = (p?: Pick | null) => !!p && (typeof p.i === "number" || !!p.pass || !!p.text);
 type Fx = { k: string; st: "on0" | "run" | "done" | "ck" | "bye" };
@@ -133,7 +141,9 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
     if (k !== "etc") setEtc("");
     put(d.id, { k, st: "bye" });
     setGone((g) => new Set(g).add(d.id));
+    markDecided(qc, d, p);   // 서랍 · 왼쪽 얼굴 숫자 = 누른 그 자리에서(형 11-13 16:19)
     const ok = await pick(d, p);
+    settle(qc);   // 서버 값으로 맞춤(되면 그대로 · 못 보냈으면 되돌아옴)
     if (!ok) { put(d.id, null); setGone((g) => { const n = new Set(g); n.delete(d.id); return n; }); setOpen(true); return; }
     if (k === "etc") setEtc((e) => (e === d.id ? "" : e));
   };
@@ -198,11 +208,12 @@ export function DecideInline({ id }: { id: string }) {
   const send = async (p: Pick, label: string) => {
     if (st === "보내는 중") return;
     setSt("보내는 중"); setGot(label);
+    markDecided(qc, d, p);   // 글 아래 단추도 누른 그 자리에서 숫자 줄임(형 11-13 16:19)
     try {
       const j = await office<{ bad?: { id: string; why?: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: withDups(d, p), send: true }) });
       if ((j.bad || []).some((x) => x.id === d.id)) throw new Error("bad");
-      void qc.invalidateQueries({ queryKey: KEY });
-    } catch { setGot(""); setSt("못 보냄"); }
+      settle(qc);
+    } catch { setGot(""); setSt("못 보냄"); settle(qc); }
   };
   const CIRC = "①②③④⑤⑥⑦⑧⑨";
   return (

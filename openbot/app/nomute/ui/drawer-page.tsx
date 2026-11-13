@@ -9,9 +9,9 @@ import { needsInputCount } from "@/lib/tasks/groups";
 import { enterRoom } from "../data/read-state";
 import { useRoomOrder } from "./room-list";
 import { MODALS, type Modal } from "./shell";
-import { useBrief } from "./today";
 import { YICO } from "./yeta-icons";
 import "./yeta-settings.css";   // 설정과 같은 판(형 11-01 「톤이 맞아야되거든」 · .yset-part · .yset-grp · .yset-item)
+import { useDecideWaiting } from "./decide-count";   // 형 결정 대기 = 결정 서버 목록(형 11-13 16:19)
 
 // 묶음 = 에디터 독 차례(뉴스 → 모으기 → 만들기)를 서랍으로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘」 · 한눈 = 앱 네이티브 · 전체 = 에디터 화면 그대로라 기능이 안 빠짐)
 const PARTS: { name: string; ids: Modal[] }[] = [
@@ -29,7 +29,7 @@ const go = (id: Modal) => { try { sessionStorage.setItem("nm-from-drawer", id); 
 export function DrawerPage() {
   const nav = useNavigate(), inbox = useQuery(approvalInboxOptions()), tasks = useQuery(taskListQueryOptions());
   const { rooms, count } = useRoomOrder(), mr = (rooms.data || []).find((x) => x.id === "memo"), memo = mr ? Math.max(0, count(mr)) : 0;   // 메모 = 사무실 방 하나(형 11-01 「해야할일 쌓아두는 서랍」 · 봇도 쌓음)
-  const waiting = needsInputCount(tasks.data, inbox.data) + (useBrief().data?.cols.decide.filter((x) => !x.answer).length || 0);
+  const waiting = needsInputCount(tasks.data, inbox.data) + useDecideWaiting();
   return (
     <div className="nm-drawer-page mx-auto flex w-full max-w-3xl flex-col px-4 pb-12 pt-4"><div className="yeta-set yset-short mt-2">
       {PARTS.map((p) => (

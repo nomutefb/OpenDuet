@@ -9,9 +9,9 @@ import { approvalInboxOptions } from "@/lib/approvals";
 import { needsInputCount } from "@/lib/tasks/groups";
 import { taskListQueryOptions } from "@/lib/tasks/queries";
 import { MODALS, type Modal, type Pane } from "../ui/shell";
-import { useBrief } from "../ui/today";
 import "../ui/yeta-chat.css";
 import "./ynav.css";
+import { useDecideWaiting } from "../ui/decide-count";
 
 export type ShellTab = "chat" | "tasks" | "make";
 
@@ -34,7 +34,7 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
   const navigate = useNavigate();
   const inbox = useQuery(approvalInboxOptions());
   const tasks = useQuery(taskListQueryOptions());
-  const decide = useBrief().data?.cols.decide.filter((x) => !x.answer).length || 0;   // 형 결정 필요(답 안 한 것) = 할 일 숫자(서랍 안 · ≡ 칸에도)
+  const decide = useDecideWaiting();   // 형 결정 대기 = 결정 서버 목록(고른 그 자리에서 줆 · ../ui/decide-count.ts · 형 11-13 16:19) · 앞 판 = 밤 요약만   // 형 결정 필요(답 안 한 것) = 할 일 숫자(서랍 안 · ≡ 칸에도)
   const waiting = needsInputCount(tasks.data, inbox.data) + decide;
   const inDrawer = !!modal && modal !== "nedit" && modal !== "settings";   // 작동 표(status)는 이제 서랍 안(봄 32)   // 서랍 안 화면 = 5번 켜짐(스케줄도 이제 서랍 안 · 형 11-05)
   const badge = (n: number) => (n > 0 ? <b aria-hidden className="nm-nav-badge">{n > 99 ? "99+" : n}</b> : null);
