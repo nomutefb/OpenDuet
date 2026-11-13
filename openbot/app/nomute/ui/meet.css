@@ -137,3 +137,15 @@
 .nm-sk-pill button.nm-sk-pen.on { background:#CFFF40; color:#111; box-shadow:0 0 10px rgba(207,255,64,.45); }
 .nm-sk-side { display:flex; align-items:center; gap:6px; }
 .nm-sk-ctl { white-space:nowrap; height:26px; display:inline-flex; align-items:center; padding:0 10px; border-radius:999px; background:rgba(14,15,14,.86); border:1px solid rgba(255,255,255,.18); color:#e8eae8; font-size:12px; font-weight:700; }
+/* 명단 챙 = 이름 옆 연회색 「(기록관)」(형 11-14 05:21 시아 옮김 「챙 항상 ( 기록관 ) 이라고 나오게 해주고 름 옆에 연회색으로」) */
+.nm-mp-role { margin-left:4px; font-size:11px; font-weight:600; color:rgba(232,234,232,.42); }
+/* 머리 줄 도구(형 05:22 「그 버튼들 새로고침 좌측으로 다 나란히 간격 맞춰서」) = ↻ · × 와 같은 26px 동그라미 · 같은 간격 · 켜짐 = 라임 */
+.nm-co-tools { display:inline-flex; align-items:center; }
+.nm-sk-head { display:inline-flex; align-items:center; gap:6px; flex-direction:row-reverse; }
+.nm-sk-head .nm-sk-row { display:inline-flex; align-items:center; gap:6px; }
+.nm-sk-head button.nm-sk-pen { width:26px; height:26px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,.18); background:transparent; color:rgba(232,234,232,.8); cursor:pointer; transition:background .18s, color .18s, border-color .18s; }
+.nm-sk-head button.nm-sk-pen svg { width:14px; height:14px; }
+.nm-sk-head button.nm-sk-pen:hover { color:#fff; border-color:rgba(255,255,255,.32); }
+.nm-sk-head button.nm-sk-pen.on { background:#CFFF40; border-color:#CFFF40; color:#111; }
+.nm-sk-head .nm-sk-side { display:inline-flex; align-items:center; gap:6px; }
+.nm-sk-head .nm-sk-ctl { height:24px; font-size:11.5px; }

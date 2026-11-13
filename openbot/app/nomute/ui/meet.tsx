@@ -180,7 +180,7 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
         return (
           <div key={n} className={`nm-mp ${st}${on ? " on" : ""}`} title={on ? "들어와 있음" : st === "no" ? `거절${ans[n]?.why ? " · " + ans[n]?.why : ""}` : st === "kick" ? "내보내는 중" : "들어오는 중(초대 · [수락] 기다림)"}>
             <span className="nm-mp-ava">{faceOf(n) ? <img src={faceOf(n)} alt="" /> : null}<i className="nm-mp-dot" /></span>
-            <span className="nm-mp-nm" style={ring ? ({ "--yn": ring } as React.CSSProperties) : undefined}><span className="nm-mp-n1">{p?.name || nameOf(n)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</span>
+            <span className="nm-mp-nm" style={ring ? ({ "--yn": ring } as React.CSSProperties) : undefined}><span className="nm-mp-n1">{p?.name || nameOf(n)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}{n === SCRIBE ? <span className="nm-mp-role">(기록관)</span> : null}</span>
               {st === "coming" ? <small className="nm-mp-st">들어오는 중<Dots /></small> : st === "kick" ? <small className="nm-mp-st">내보내는 중<Dots /></small> : st === "no" ? <small className="nm-mp-st">거절{ans[n]?.why ? ` · ${ans[n]?.why}` : ""}</small> : null}</span>
             {ctrl && ctrl === n ? <span className="nm-mp-ctl" title="제어권 쥠">✋</span> : null}
             {n !== "형" ? <button type="button" className="nm-mp-x" aria-label={`${nameOf(n)} 내보내기`} title="내보내기" disabled={!!busy || members.length <= 1} onClick={() => void setMembers(members.filter((x) => x !== n), "x" + n)}>×</button> : null}
