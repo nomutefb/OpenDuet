@@ -129,3 +129,11 @@
 .nm-mp-add { all:unset; box-sizing:border-box; width:20px; height:20px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(232,234,232,.28); color:rgba(232,234,232,.6); font-size:14px; line-height:1; cursor:pointer; }
 .nm-mp-add:hover, .nm-mp-add[aria-expanded="true"] { color:#e8eae8; border-color:rgba(232,234,232,.5); }
 .nm-mp-chev { all:unset; box-sizing:border-box; margin-left:auto; display:grid; place-items:center; width:22px; height:22px; color:#e8eae8; cursor:pointer; }
+/* 세로 알약(형 11-14 01:48 「3개를 한 도형에 넣어서 누르면 점등」 · 이미지 에디터 세로 칸(.trail) 결) = 다리 제 단추 자리(우상단 · 다리는 bare 로 숨김) · 켜짐 = 라임 */
+.nm-sk-bar { left:auto; bottom:auto; right:10px; top:80px; flex-direction:row-reverse; align-items:flex-start; gap:8px; }
+.nm-sk-pill { display:flex; flex-direction:column; gap:4px; padding:4px; border-radius:999px; background:rgba(14,15,14,.86); border:1px solid rgba(255,255,255,.18); box-shadow:0 4px 14px rgba(0,0,0,.35); }
+.nm-sk-pill button.nm-sk-pen { width:30px; height:30px; border:0; background:transparent; color:rgba(232,234,232,.78); transition:background .18s, color .18s; }
+.nm-sk-pill button.nm-sk-pen:hover { color:#fff; background:rgba(255,255,255,.08); }
+.nm-sk-pill button.nm-sk-pen.on { background:#CFFF40; color:#111; box-shadow:0 0 10px rgba(207,255,64,.45); }
+.nm-sk-side { display:flex; align-items:center; gap:6px; }
+.nm-sk-ctl { white-space:nowrap; height:26px; display:inline-flex; align-items:center; padding:0 10px; border-radius:999px; background:rgba(14,15,14,.86); border:1px solid rgba(255,255,255,.18); color:#e8eae8; font-size:12px; font-weight:700; }

@@ -24,7 +24,9 @@ export function useCoRect(frame: React.RefObject<HTMLIFrameElement | null>): CoR
   return rect;
 }
 
-export function SketchLayer({ rect }: { rect: CoRect | null }) {
+/** 화상회의 우상단 세로 알약(형 11-14 01:48 시아 옮김 「스케치도 세로로 같이 배열 … 그냥 3개를 한 도형에 넣어서 누르면 점등 되는 방식으로 구현할게 이미지 에디터 잇는 좀 그런 느낌인데 점등으로 토글 켜지는 느낌임」) = 펜 · 커튼 · 제어권 · 켜진 것만 라임 점등 · 커튼 · 제어권 = 깃 다리 명령(nm-co-cmd) · 상태 = 다리 신호(curtain · ctrl) */
+export type CoCtl = { curtain: boolean; ctrl: string | null; cmd: (c: "curtain" | "control") => void };
+export function SketchLayer({ rect, co }: { rect: CoRect | null; co?: CoCtl }) {
   const qc = useQueryClient();
   const items = useQuery({ queryKey: ["nomute", "sketch"], queryFn: () => office<{ items?: SkItem[] }>("together/sketch").then((j) => j.items || []), refetchInterval: 1500 }).data || [];
   const [on, setOn] = useState(false), [live, setLive] = useState<[number, number][]>([]), [why, setWhy] = useState("");
@@ -46,11 +48,20 @@ export function SketchLayer({ rect }: { rect: CoRect | null }) {
         </svg>
         {shown.filter(({ it }) => it.text).map(({ it, dim }) => { const [x, y] = labelAt(it); return <span key={it.id} className="nm-sk-lbl" style={{ left: `${x / 10}%`, top: `${y / 10}%`, borderColor: skColor(it.who), opacity: dim ? 0.35 : 1 }}><b style={{ color: skColor(it.who) }}>{it.who}</b> {it.text}</span>; })}
       </div>
-      <div className="nm-sk-bar" role="toolbar" aria-label="스케치">   {/* 자리 = 우상단 제어권 동그라미 왼쪽 나란히(형 11-13 16:15 「스케치랑 제어권은 우상단에 같이」 · 깃 다리 제어권 = right 10 · top 80 · 34) */}
-        <button type="button" className={`nm-sk-pen${on ? " on" : ""}`} aria-pressed={on} aria-label="스케치" onClick={() => setOn((v) => !v)} title={on ? "그리기 끄기(화면 손으로 돌아감)" : "화면 위에 그리기(우리끼리만 보임)"}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden><path d="M4 20l4-1 10-10-3-3L5 16l-1 4z M14 7l3 3" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round" /></svg></button>
-        {on ? <button type="button" className="nm-sk-pen" onClick={() => void post({ op: "undo" })} title="내 마지막 하나 지우기" aria-label="되돌리기">↶</button> : null}
-        {on && items.length ? <button type="button" className="nm-sk-pen" onClick={() => void post({ op: "clear" })} title="다 지우기" aria-label="다 지우기">⌫</button> : null}
-        {why ? <small role="alert" onClick={() => setWhy("")}>{why}</small> : null}
+      <div className="nm-sk-bar" role="toolbar" aria-label="화면 도구">   {/* 세로 알약 하나 = 펜 · 커튼 · 제어권(위에서 아래) · 되돌리기 · 지우기는 펜 켜졌을 때 알약 왼쪽 */}
+        <div className="nm-sk-pill">
+          <button type="button" className={`nm-sk-pen${on ? " on" : ""}`} aria-pressed={on} aria-label="스케치" onClick={() => setOn((v) => !v)} title={on ? "그리기 끄기" : "화면 위에 그리기(우리끼리만 보임)"}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M4 20l4-1 10-10-3-3L5 16l-1 4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M13.5 6.5l3 3" stroke="currentColor" strokeWidth="2" /></svg></button>
+          {co ? <button type="button" className={`nm-sk-pen${co.curtain ? " on" : ""}`} aria-pressed={co.curtain} aria-label="커튼" onClick={() => co.cmd("curtain")} title={co.curtain ? "커튼 걷기" : "커튼 치기(화면 가림)"}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M4 3h16M6 3v15c2 0 4-3 4-7.5V3M18 3v15c-2 0-4-3-4-7.5V3M6 18v3M18 18v3" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg></button> : null}
+          {co ? <button type="button" className={`nm-sk-pen${co.ctrl === "형" ? " on" : ""}`} aria-pressed={co.ctrl === "형"} aria-label="제어권" onClick={() => co.cmd("control")} title={co.ctrl === "형" ? "제어권 놓기" : co.ctrl ? `${co.ctrl} 제어 중 · 누르면 가져옴` : "제어권 쥐기"}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M8 13V5.5a1.5 1.5 0 013 0V12m0-6.5a1.5 1.5 0 013 0V12m0-5a1.5 1.5 0 013 0V14c0 4-2.5 7-6.5 7S5 18.5 4.5 16L3.6 12.4A1.4 1.4 0 016 11.3L8 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></button> : null}
+        </div>
+        {on || (co?.ctrl && co.ctrl !== "형") || why ? (
+          <div className="nm-sk-side">
+            {co?.ctrl && co.ctrl !== "형" ? <span className="nm-sk-ctl">{co.ctrl}가 제어하고 있습니다</span> : null}
+            {on ? <button type="button" className="nm-sk-pen" onClick={() => void post({ op: "undo" })} title="내 마지막 하나 지우기" aria-label="되돌리기">↶</button> : null}
+            {on && items.length ? <button type="button" className="nm-sk-pen" onClick={() => void post({ op: "clear" })} title="다 지우기" aria-label="다 지우기">⌫</button> : null}
+            {why ? <small role="alert" onClick={() => setWhy("")}>{why}</small> : null}
+          </div>
+        ) : null}
       </div>
     </>
   );

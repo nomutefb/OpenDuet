@@ -14,9 +14,10 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
   const open = () => { setOpening("busy"); startMeet().then((m) => { setMeet(m); setOpening(""); }).catch((e) => setOpening(e instanceof Error ? e.message : "못 열었어")); };
   useEffect(() => { if (isMeet && !meet0 && !tried.current) { tried.current = true; open(); } }, [isMeet]);   // eslint-disable-line react-hooks/exhaustive-deps
   const end = useMeetEnd(meet, () => { setMeet(null); onClose(); });
-  const [sync, setSync] = useState<{ ago: number; bad?: boolean; paused?: boolean; at: number } | null>(null);   // 다리 신호(깃 · 1~2초마다 {type:'nm-co-sync', ago, bad, paused})
+  const meetRef = useRef(false); meetRef.current = !!meet;
+  const [sync, setSync] = useState<{ ago: number; bad?: boolean; paused?: boolean; at: number; curtain?: boolean; ctrl?: string | null } | null>(null);   // curtain · ctrl = 깃 다리 신호(11-14 01:53 · 커튼 쳐짐 · 쥔 이)   // 다리 신호(깃 · 1~2초마다 {type:'nm-co-sync', ago, bad, paused})
   useEffect(() => {
-    const f = (e: MessageEvent) => { const d = e.data as { type?: string; ago?: number; bad?: boolean; paused?: boolean }; if (d && d.type === "nm-co-sync" && e.source === frame.current?.contentWindow && Number.isFinite(d.ago)) setSync({ ago: d.ago!, bad: !!d.bad, paused: !!d.paused, at: Date.now() }); };
+    const f = (e: MessageEvent) => { const d = e.data as { type?: string; ago?: number; bad?: boolean; paused?: boolean; curtain?: boolean; ctrl?: string | null }; if (d && d.type === "nm-co-sync" && e.source === frame.current?.contentWindow && Number.isFinite(d.ago)) { setSync({ ago: d.ago!, bad: !!d.bad, paused: !!d.paused, at: Date.now(), curtain: !!d.curtain, ctrl: d.ctrl ?? null }); if (meetRef.current) frame.current?.contentWindow?.postMessage({ type: "nm-co-bare", on: true }, "*"); } };   // 화상회의 = 다리 제 단추(커튼 · 제어권 · 「○○가 제어하고 있습니다」) 숨김 → 앱 세로 알약이 맡음(깃 01:53 꼴 · 다리가 다시 떠도 신호마다 다시 알림)
     window.addEventListener("message", f); return () => window.removeEventListener("message", f);
   }, []);
   useEffect(() => {
@@ -44,7 +45,7 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
       </div>
       <div className="nm-co-stage">
         {state === "ok" ? <iframe ref={frame} key={src} title="같이 보기" src={src} className="nm-co-frame" allow={CO_ALLOW} referrerPolicy="no-referrer" /> : state === "off" ? <p className="nm-web-note"><button type="button" className="nm-meet-btn" onClick={() => setNonce((n) => n + 1)}>브라우저 연결하기</button></p> : <p className="nm-web-note">연결 중<Dots bob /></p>}   {/* 화상회의 칸이 못 닿으면 = 화면 자리만 안내 · 아래 대화는 그대로(명세 「끊김」) */}
-        {meet && state === "ok" ? <SketchLayer rect={rect} /> : null}
+        {meet && state === "ok" ? <SketchLayer rect={rect} co={{ curtain: !!sync?.curtain, ctrl: sync?.ctrl ?? null, cmd: (c) => frame.current?.contentWindow?.postMessage({ type: "nm-co-cmd", cmd: c }, "*") }} /> : null}
         {meet ? <MeetPeople meet={meet} at={rect} /> : null}
         <EndAsk end={end} />
       </div>
