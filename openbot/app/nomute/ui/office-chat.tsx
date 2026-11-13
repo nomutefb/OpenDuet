@@ -187,7 +187,7 @@ export function useOfficeRoom(room: string) {
     const t = setTimeout(() => void saveRoom(room, d), 400);
     return () => clearTimeout(t);
   }, [room, msgsQ.data]);
-  const readsQ = useQuery({ queryKey: officeKeys.reads(room), queryFn: () => office<Reads>(`rooms/${enc(room)}/reads`), staleTime: 15_000, refetchInterval: 60_000 });
+  const readsQ = useQuery({ queryKey: officeKeys.reads(room), queryFn: () => office<Reads>(`rooms/${enc(room)}/reads`), staleTime: 10_000, refetchInterval: () => (document.hidden ? false : 15_000) });   // 안 본 수(「1」)가 봇 창에 찍힌 뒤 15초 안에 빠지게(형 11-13 「확인하는 즉시」 · 보일 때만 · 앞 판 60초)
   const reactsQ = useQuery({ queryKey: officeKeys.reacts(room), queryFn: () => office<{ reactions: Record<string, Record<string, string[]>>; quick?: string[] }>(`rooms/${enc(room)}/reactions`), staleTime: 15_000, refetchInterval: 60_000 });
   const botsQ = useQuery({ queryKey: officeKeys.bots, queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), staleTime: 10_000, refetchInterval: 15_000 });   // 15초 = 쉼 되면 「생각 중」이 빨리 꺼지게(형 11-06 12:48 「쉼이면!」)
 
@@ -333,6 +333,7 @@ type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
   sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onSwap: (id: string, from: string, to: string, hasTo: boolean) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
+  unseen: (m: Msg) => number;   // 안 본 봇 수(형 글 · 말풍선마다 · unseenOf)
   loose: () => void;   // 맨 아래 붙음 풂(알약 펼칠 때 = 알약 자리 그대로 두고 아래로 펼침)
   onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
@@ -431,13 +432,17 @@ function StatePill({ m }: { m: Msg }) {
   );
 }
 
-/** 가져감 = 1:1 방에서 형 글을 그 봇이 가져갔나(누가·몇 시 0 · 형 10-28 10:20 「가져감만 … 카톡처럼」) · 단체방 = 0(형 09:44 「회의실도 … 읽은 사람 표시되는거 없애줘」) */
-// 「가져감」 스위치 = 끔(형 11-10 13:05 봄 1:1 「봄아 그리구 가저감이 특정 봇한테만 뜨는데 아예 안뜰더면 안뜨게해줘」 · 서버가 읽은 이를 아는 자리만 적어 봇마다 갈림 · 서버 기록(reads.got)은 그대로 · 다시 켜기 = true)
-const SHOW_GOT = false;
-function gotBy(m: Msg, c: Ctx) {
-  if (!SHOW_GOT || !c.r?.with || m.kind !== "human") return false;
+/** 안 본 봇 수(카톡 「1」 · 형 11-13 17:38~17:56 봄 옮김 「만약에 상대가 확인을 못한거면 내가 그걸 알아야될거같은데」 · 「그냥 로그개념」 · 「예를들어 5명인데 2가 남아있으면 2명이 안읽은거지」 · 「모든 끊겨서 온 말풍선 마다 1이 있어야해 (사진 포함)」 · 뎅)
+ *  봄 = 서버 가져감 표(reads.got) — 그 봇 창에 깨움 줄이 찍힌 순간 훅이 적음(POST m/got) + read·wait 로 받은 것 · 그 방에 그 뒤 그 봇 글이 있으면 = 본 것
+ *  대상 = 1:1 = 그 봇 · 단톡 = 그 방 멤버 중 봇(형 빼고) · 멤버를 모르는 방(회의실 · 옛 방) = 숫자 0 · 하루 넘은 글 = 안 셈(옛 표는 200개만 남음) */
+const UNSEEN_DAY = 24 * 3600e3;
+function unseenOf(m: Msg, c: Ctx, all: Msg[]) {
+  if (m.kind !== "human" || Date.now() - m.ts > UNSEEN_DAY) return 0;
+  const bot = (n: string) => n !== "형" && c.list.find((p) => p.who === n)?.kind !== "human";
+  const who = c.r?.with ? [c.r.with] : (c.r?.members || []).filter(bot);
+  if (!who.length) return 0;
   const got = c.reads?.got || {};
-  return Object.keys(got).some((n) => n !== m.who && (got[n] || []).includes(m.id));
+  return who.filter((n) => !(got[n] || []).includes(m.id) && !all.some((x) => x.who === n && x.ts > m.ts)).length;
 }
 
 function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
@@ -920,7 +925,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
-          {gotBy(m, c) ? <span className="yb-un">가져감</span> : null}
+          {c.unseen(m) ? <span className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</span> : null}   {/* 안 본 봇 수 = 말풍선 왼쪽 아래(카톡 자리 · 보내는 동안의 「전송 대기 · 다시 보내기」는 보낸 뒤 사라져 안 겹침) */}
           <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} /><div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? "그록봇 앱에서 쓴 글" : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <><Files m={m} />{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div><LinkCard m={m} />{time}</div>
         </div>
         <RouteLine m={m} c={c} />
@@ -1314,6 +1319,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   const nre = useMemo(() => nameRe(list), [list]);
   const c: Ctx = {
     srcs,
+    unseen: (m) => unseenOf(m, c, all),
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     loose: () => {   // 알약 펼침 = 알약 자리 그대로 · 아래 글이 밀려 내려감(브라우저 스크롤 붙들기가 아래 글을 붙잡아 알약을 위로 243px 밀었음 = 펼치는 동안만 끔)
       stuck.current = false; near.current = false; sentPin.current = 0; touched.current = true;
