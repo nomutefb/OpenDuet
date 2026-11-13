@@ -84,8 +84,8 @@ function TFace({ id, name, state, small, group, own }: { id?: string; name?: str
   const dot = state ? DOT[state] : undefined;
   return (
     <i className={`nm-tava${small ? " sm" : ""}${(id && !bad) || (own && !bad2) ? "" : " ico"}`} title={name || undefined} aria-hidden>   {/* ico = 사진 없음 = 바탕 투명 · 선만(형 11-06 20:15) */}
-      {/* 차례 = 팀즈 사진 → 없으면 우리가 넣어 준 얼굴(형 그림 · 그룹웨어 사진) → 없으면 기본 꼴(형 11-06 「그룹웨어 … 프로필사진 연결해줘, 프사없는사람들」) */}
-      {id && !bad ? <img alt="" src={faces()[id] || `/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onLoad={(e) => keepFace(id, e.currentTarget)} onError={() => setBad(true)} /> : own && !bad2 ? <img alt="" loading="lazy" src={own} onError={() => setBad2(true)} /> : group ? ICO_MANY : ICO_ONE}
+      {/* 차례 = 우리가 넣어 준 얼굴(R2 · 바로) → 팀즈 사진(이 기기 둔 판 → 서버) → 기본 꼴(형 11-06 「그룹웨어 … 프로필사진 연결해줘, 프사없는사람들」 · 11-13 그래프 얼굴 길이 막혀 넣어 준 얼굴을 먼저 · 뎅) */}
+      {own && !bad2 ? <img alt="" src={own} onError={() => setBad2(true)} /> : id && !bad ? <img alt="" loading={faces()[id] ? undefined : "lazy"} src={faces()[id] || `/api/office/teams/photo?u=${encodeURIComponent(id)}&s=${small ? 48 : 96}`} onLoad={(e) => keepFace(id, e.currentTarget)} onError={() => setBad(true)} /> : group ? ICO_MANY : ICO_ONE}
       {dot ? <span className={`nm-tdot ${dot}`} /> : null}
     </i>
   );
