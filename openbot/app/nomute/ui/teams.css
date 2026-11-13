@@ -102,11 +102,11 @@
   .nm-pmeet .nm-co-bar { height:46px; gap:6px; padding:0 4px 0 12px; }
   .nm-pmeet .nm-co-bar .nm-web-btn { width:42px; height:42px; font-size:18px; border-radius:10px; }
   .nm-pmeet .nm-co-stage { flex:none; display:block; position:relative; }
-  .nm-pmeet .nm-co-frame { flex:none; width:100%; height:auto; aspect-ratio:16 / 9; }
+  .nm-pmeet .nm-co-frame { flex:none; width:100%; height:calc(100vw * 10 / 16 + 64px); aspect-ratio:auto; }   /* 화면 = 폭 꽉(맥 72 화면 16:10) + 다리 탭 줄 · 주소 줄 64 — 형 01:43 「16대 9 아예 창 양 끝을 좌우로 붙여서 풀로 쓸수잇나」(앞 판 16:9 틀 = 다리 줄 몫만큼 화면이 줄어 양옆 검은 띠) */
   .nm-pmeet .nm-meet-ppl { position:static; width:auto; min-width:0; max-height:32vh; margin:0; border-radius:0; border-left:0; border-right:0; padding:6px 12px; }
   .nm-pmeet .nm-meet-ppl .nm-mp-h { min-height:36px; }
   .nm-pmeet .nm-meet, .nm-pmeet .nm-co.meet .nm-meet.open { flex:1 1 auto; min-height:0; }   /* 대화 = 남는 자리 다(meet.css 50% 를 이김) · 입력 칸은 대화창이 제 몫으로 네비 위에 둠 */
-  .nm-pmeet .nm-sk-bar { right:auto; left:8px; top:8px; bottom:auto; flex-direction:row; gap:10px; }
+  .nm-pmeet .nm-sk-bar { right:auto; left:8px; top:auto; bottom:8px; flex-direction:row; gap:10px; }   /* 펜 = 화면 왼쪽 아래(위는 다리 탭 줄 · 01:43 사진) */
   .nm-pmeet .nm-sk-bar button.nm-sk-pen { width:40px; height:40px; }
 }
 /* 팀즈 폰 목록(형 11-14 01:19 dm-sia 「팀즈 모바일에서 톡방 이름 볼디 한단계 낮춰줘. ㅋㅋ 글구 짝 홀 라인 구분되게 부탁해 하나는 검정쪽 투명에 가깝게 하나는 팀즈 고유색 투명에 가깝게 면 구분이 쉬울듯」)
