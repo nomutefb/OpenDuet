@@ -50,7 +50,8 @@ import { CallPeek } from "./call-peek";
 import { draftDrop, draftSet } from "./draft";   // 알약 누름 = 그 글 창 + 답칸(형 11-07 12:02~12:03 「그냥 확 창이 뜨고 깔끔하게 답변」)
 import { useUnfold } from "./unfold";
 import { SiteIcon } from "./site-icon";
-import { BundleCard } from "./bundle-card";   // 촉 묶음 글 「올림 · 넘김」(봄 11-12 19:22 · 글 꼴 깃 · 시아)
+import { BundleCard } from "./bundle-card";
+import { srcOf, type Src } from "./bundle-src";   // 묶음 「공식 자료」 이어 글(깃 11-13 12:49)   // 촉 묶음 글 「올림 · 넘김」(봄 11-12 19:22 · 글 꼴 깃 · 시아)
 import { parseBundle } from "./bundle";
 import { AskPick, askPickOf } from "./ask-pick";   // 촉 방 촉 글 「요약」 = 형이 골라 바로 요약 접수(형 11-13 02:45 · 02:46 봄 1:1 · 뎅)
 import { DecideInline } from "./decide-pop";   // 질문 글 아래 선택지(형 11-13 09:08)
@@ -335,6 +336,7 @@ type Ctx = {
   loose: () => void;   // 맨 아래 붙음 풂(알약 펼칠 때 = 알약 자리 그대로 두고 아래로 펼침)
   onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
+  srcs?: Map<string, Src[]>;   // 묶음 stem → 「공식 자료」 이어 글(./bundle-src.ts)
 };
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
 /** 이어진 보낸 흔적 = 묶음 알약 하나(형 11-03 19:3x 그림 = 「외 1 · 메시지 13개」 꼴 · 「이런식으로 보이도록 수정해주라」) — 받은 이 얼굴 겹침 · 「보낸 메시지 N개」(하나면 「이름 · 메시지 보냄」)
@@ -937,7 +939,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
           <div className="ybw">
             {pickM(m) ? <div className="ypick-top"><LinkCard m={m} /></div> : null}
             <ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} />
-            {bundleOf(m) ? <BundleCard b={bundleOf(m)!} id={m.id} /> : pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
+            {bundleOf(m) ? <BundleCard b={bundleOf(m)!} id={m.id} srcs={c.srcs?.get(bundleOf(m)!.stem)} /> : pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               {stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
               <BoxCard m={m} />
@@ -1047,7 +1049,10 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   const unfold = useUnfold(room);   // 방 메뉴 「긴 글 다 펼쳐 보기」(./unfold.ts)
   const pairRoom = room.startsWith("pair-");   // 둘의 방 = 형은 읽기만(쓰기 칸 대신 한 줄 · 머리 = 두 얼굴 · 접기 0 = 둘이 한 말 다 보임)
   const flat = meet || pairRoom || room.startsWith("tmp-") || (!!r && !r.with);   // 임시방(tmp- · 화상회의 포함) = 늘 단톡 · 목록에 아직 없을 때(r 없음)도 접지 않음(화상회의 첫 시험 tmp-mwe78kqp 「외 1 · 메시지 6개」로 접힘)
-  const shownAll = useMemo(() => all.map(relayAs), [all]);   // 러너가 그록 친구 대신 쓴 글 = 그 친구 말풍선(./pick-msg.ts relayAs · 형 11-13 08:05)
+  // 「[자료 <stem>]」 이어 글 = 같은 방 묶음 카드 안으로(카드 있으면 글 숨김 · 없으면 알약 그대로 · 깃 11-13 12:49)
+  const srcs = useMemo(() => { const by = new Map<string, Src[]>(); for (const m of all) { const x = srcOf(m); if (x) by.set(x.stem, [...(by.get(x.stem) || []), x]); } return by; }, [all]);
+  const bundled = useMemo(() => new Set(all.map((m) => bundleOf(m)?.stem).filter(Boolean) as string[]), [all]);
+  const shownAll = useMemo(() => all.filter((m) => { const x = srcOf(m); return !x || !bundled.has(x.stem); }).map(relayAs), [all, bundled]);   // 러너가 그록 친구 대신 쓴 글 = 그 친구 말풍선(./pick-msg.ts relayAs · 형 11-13 08:05)
   const items = useMemo(() => (flat ? flatView(shownAll) : hyungView(shownAll, r)), [shownAll, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
   const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot)
@@ -1308,6 +1313,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
 
   const nre = useMemo(() => nameRe(list), [list]);
   const c: Ctx = {
+    srcs,
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     loose: () => {   // 알약 펼침 = 알약 자리 그대로 · 아래 글이 밀려 내려감(브라우저 스크롤 붙들기가 아래 글을 붙잡아 알약을 위로 243px 밀었음 = 펼치는 동안만 끔)
       stuck.current = false; near.current = false; sentPin.current = 0; touched.current = true;

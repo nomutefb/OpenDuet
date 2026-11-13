@@ -28,3 +28,15 @@
 .nm-bdl-find > b { font-size:12px; font-weight:700; color:rgba(232,234,232,.7); }
 .nm-bdl-chips { display:flex; flex-wrap:wrap; gap:6px; }
 .nm-bdl-chip { padding:4px 10px; border-radius:999px; border:1px solid rgba(207,255,64,.35); background:rgba(207,255,64,.08); color:#e8eae8; font-size:12px; cursor:pointer; }
+/* 「공식 자료」 칸(깃 11-13 12:49 · 틈이 찾은 자료) — 카드 안 아래 · 원문 = 접힘 */
+.nm-bdl-src { display:flex; flex-direction:column; gap:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,.08); }
+.nm-bdl-src-h { font-size:12px; font-weight:700; color:rgba(232,234,232,.7); }
+.nm-bdl-src-i { display:flex; flex-direction:column; gap:5px; padding:10px; border-radius:10px; background:#131415; }
+.nm-bdl-src-w { display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:13px; font-weight:700; }
+.nm-bdl-src-ok, .nm-bdl-src-no { font-size:11px; font-weight:600; padding:1px 7px; border-radius:999px; }
+.nm-bdl-src-ok { background:rgba(207,255,64,.14); color:#CFFF40; }
+.nm-bdl-src-no { background:rgba(255,255,255,.08); color:rgba(232,234,232,.6); }
+.nm-bdl-src-ko { font-size:13px; line-height:1.45; color:rgba(232,234,232,.9); }
+.nm-bdl-src-o summary { font-size:12px; color:rgba(232,234,232,.55); cursor:pointer; }
+.nm-bdl-src-o > div { margin-top:4px; white-space:pre-wrap; font-size:12px; line-height:1.5; color:rgba(232,234,232,.75); user-select:text; -webkit-user-select:text; }
+.nm-bdl-src-go { flex:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

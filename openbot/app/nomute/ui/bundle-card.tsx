@@ -7,6 +7,7 @@ import { useState } from "react";
 import { office } from "../data/office";
 import { eventKeysOfUrl, type NewsEvent } from "../home/event-score";
 import type { Bundle } from "./bundle";
+import type { Src } from "./bundle-src";
 import "./bundle-card.css";
 
 type Pick = { msg?: string; stem?: string; act: "up" | "skip"; at?: number };
@@ -30,7 +31,24 @@ async function evOf(url: string): Promise<{ ev: string; ev_at: number }> {
   return { ev: keys[0], ev_at: 0 };
 }
 
-export function BundleCard({ b, id }: { b: Bundle; id: string }) {
+/** 「공식 자료」 칸(깃 11-13 12:49 · 틈이 찾은 공식 자료 · 누가 · 한글 · 원문 접힘 · 주소 단추 · 열어 봄 표) */
+function SrcBox({ srcs }: { srcs: Src[] }) {
+  return (
+    <div className="nm-bdl-src">
+      <b className="nm-bdl-src-h">공식 자료</b>
+      {srcs.map((x, i) => (
+        <div key={x.id || i} className="nm-bdl-src-i">
+          <div className="nm-bdl-src-w">{x.who || "출처"}{x.opened === true ? <span className="nm-bdl-src-ok">열어 봄</span> : x.opened === false ? <span className="nm-bdl-src-no">못 열어 봄</span> : null}</div>
+          {x.ko ? <div className="nm-bdl-src-ko">{x.ko}</div> : null}
+          {x.orig ? <details className="nm-bdl-src-o"><summary>원문</summary><div>{x.orig}</div></details> : null}
+          {x.url ? <a className="nm-bdl-btn nm-bdl-src-go" href={x.url} target="_blank" rel="noreferrer" title={x.url}>자료 열기 · {x.url.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}</a> : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function BundleCard({ b, id, srcs }: { b: Bundle; id: string; srcs?: Src[] }) {
   const qc = useQueryClient();
   const saved = (usePicks().data || []).filter((p) => p.msg === id || (!p.msg && p.stem === b.stem)).pop();
   const [act, setAct] = useState<Act>(""), [open, setOpen] = useState(false), [err, setErr] = useState("");
@@ -58,6 +76,7 @@ export function BundleCard({ b, id }: { b: Bundle; id: string }) {
       <b className="nm-bdl-t">{b.title}</b>
       {b.sums.length ? <ul className="nm-bdl-sum">{b.sums.map((s, i) => <li key={i}>{s}</li>)}</ul> : null}
       {b.url ? <a className="nm-bdl-url" href={b.url} target="_blank" rel="noreferrer">{b.url.replace(/^https?:\/\/(www\.)?/, "")}</a> : null}
+      {srcs?.length ? <SrcBox srcs={srcs} /> : null}
       {cur === "up" && open ? (
         <div className="nm-bdl-up">   {/* 올림 = 복사 · 저장하기 쉽게(형 02:51 꼴 = IG · TH 덩어리 · 썸네일 찾기 · 깃 02:52) */}
           {b.img ? <a href={b.img} target="_blank" rel="noreferrer" className="nm-bdl-big" aria-label="사진 크게 · 길게 눌러 저장"><img src={b.img} alt="" referrerPolicy="no-referrer" /></a> : null}
