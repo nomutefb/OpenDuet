@@ -74,7 +74,7 @@ import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
 import { bubbleM, pickM, relayAs } from "./pick-msg";
-import { mergeTs, pairOf } from "./pair-fold";   // 둘의 방 귀속(형 11-13 08:29)
+import { asSent, mergeTs, pairOf } from "./pair-fold";   // 둘의 방 귀속(형 11-13 08:29)
 import { Sticker, stickerMark, stickerOf } from "./sticker";
 import { dropStickerTwins } from "./sticker-logic";   // 움짤 스티커 한 줄 = 말풍선 없이 움짤(형 11-12 12:17 · 뜸)
 import { ThumbCard, thumbOf, type ThumbRef } from "./thumb-card";   // 별 「[요약 완료]」 글 바로 위 썸네일 초안 그림(형 11-02 11:44 「별 요약 과 함께 요약 바로 위에 오면 됨 이미지로」)   // 글 속 첫 주소 = 말풍선 아래 미리보기 카드(형 11-02 07:13 「채팅에는 일반적인 채팅 앱처럼 보이면 됨」)
@@ -250,7 +250,7 @@ export function useOfficeRoom(room: string) {
   const pairId = pairOf(r, roomsQ.data || []);   // 그 이가 낀 둘의 방 글 = 이 1:1 안에(./pair-fold.ts · 형 11-13 08:29 「둘 대화로 귀속」)
   const pairQ = useQuery({ ...roomMsgsOptions(qc, pairId || "-"), enabled: !!pairId, refetchInterval: 60_000 });
   const pairMsgs = pairId ? pairQ.data?.messages : undefined;
-  const msgs = useMemo(() => (pairMsgs?.length && msgsQ.data ? { ...msgsQ, data: { ...msgsQ.data, messages: mergeTs(msgsQ.data.messages, pairMsgs) } } : msgsQ), [msgsQ, pairMsgs]);
+  const msgs = useMemo(() => (pairMsgs?.length && msgsQ.data ? { ...msgsQ, data: { ...msgsQ.data, messages: mergeTs(msgsQ.data.messages, pairMsgs.map((m) => asSent(m, pairId))) } } : msgsQ), [msgsQ, pairMsgs, pairId]);
   return { r, list: peopleQ.data || [], msgs, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older, draft };
 }
 
@@ -308,7 +308,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
       if (prev && (prev.kind === "human" || hyungApp(prev)) && m.ts - prev.ts < 30 * 60e3) hyAnswer.add(m.id);
     }
   }
-  const showM = (m: Msg) => (!!r && !!m.room && m.room !== r.id) || r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && (!toOthers(m) || hyAnswer.has(m.id)) && !answersOther.has(m.id));
+  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && (!toOthers(m) || hyAnswer.has(m.id)) && !answersOther.has(m.id));
   const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m) && !bubbleM(m);
   const out: Item[] = [];
   let pill: { t: "sent"; msgs: Msg[] } | null = null;

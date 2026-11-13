@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { isPairRoom, mergeTs, pairOf } from "../ui/pair-fold.ts";
+import { asSent, isPairRoom, mergeTs, pairOf } from "../ui/pair-fold.ts";
 
 test("dm-bom ↔ pair-bom-chaeng(「봄 · 챙」) · 없으면 빈 · 글 = 시각 차례 · 같은 id 하나", () => {
   const rooms = [{ id: "dm-bom", name: "봄", with: "봄" }, { id: "pair-bom-chaeng", name: "봄 · 챙" }, { id: "dm-sia", name: "시아", with: "시아" }];
@@ -16,5 +16,7 @@ test("목록 · 띠 = 둘의 방 줄 0 · 1:1 = 섞어 그림 · 섞은 글은 �
   const rl = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8"), oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
   assert.match(rl, /&& !isPairRoom\(r\.id\)\);/);
   assert.match(oc, /const pairId = pairOf\(r, roomsQ\.data \|\| \[\]\);/);
-  assert.match(oc, /const showM = \(m: Msg\) => \(!!r && !!m\.room && m\.room !== r\.id\) \|\|/);
+  assert.match(oc, /pairMsgs\.map\(\(m\) => asSent\(m, pairId\)\)/);   // 본문 0 · 알약(형 09:09)
+  assert.ok(!/m\.room !== r\.id\) \|\|/.test(oc), "섞은 본문을 다 보이게 하던 줄 걷음");
+  assert.deepEqual(asSent({ id: "x", kind: "bot", who: "챙", text: "본문" }, "pair-bom-chaeng"), { id: "x", kind: "sent", who: "챙", text: "본문", to: "챙", pair: "pair-bom-chaeng" });
 });
