@@ -34,3 +34,13 @@
 .nm-meetlog-row b { font-size:13px; } .nm-meetlog-row small { font-size:12px; color:var(--mut, rgba(232,234,232,.55)); }
 .nm-meetlog-body { padding:8px 12px; display:flex; flex-direction:column; gap:4px; font-size:13px; max-height:50vh; overflow:auto; }
 .nm-meetlog-body p { margin:0; white-space:pre-wrap; } .nm-meetlog-body p b { color:#CFFF40; margin-right:6px; }
+/* 스케치(ui/sketch.tsx · 형 11-13 06:49 「화면은 그대로인데, 그 위에 스케치」 · 우리끼리만) = 틀 위 덧그림 · 끄면 손이 화면으로 감 */
+.nm-sk { position:absolute; z-index:2; pointer-events:none; }
+.nm-sk.on { pointer-events:auto; cursor:crosshair; outline:1px dashed rgba(207,255,64,.45); outline-offset:-1px; touch-action:none; }
+.nm-sk-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.nm-sk-lbl { position:absolute; transform:translate(6px,-50%); max-width:16em; padding:2px 8px; border-radius:999px; border:1px solid; background:rgba(14,15,14,.88); color:#e8eae8; font-size:11.5px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
+.nm-sk-lbl b { font-weight:700; margin-right:2px; }
+.nm-sk-bar { position:absolute; left:10px; bottom:10px; z-index:4; display:flex; align-items:center; gap:6px; }
+.nm-sk-bar button { flex:none; white-space:nowrap; height:26px; padding:0 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(14,15,14,.86); color:#e8eae8; font-size:12px; font-weight:700; cursor:pointer; }
+.nm-sk-bar button.on { color:#111; background:#CFFF40; border-color:#CFFF40; }
+.nm-sk-bar small { color:#FF8A8D; font-size:11px; background:rgba(14,15,14,.86); padding:2px 8px; border-radius:999px; cursor:pointer; }
