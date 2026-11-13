@@ -3,7 +3,8 @@ export const pickM = (m: { kind?: string; who?: string; text?: string }) => m.ki
 /** 「일 판」 기계가 방마다 쓰는 일 습작 = 알약(머리 한 줄) 대신 말풍선(몸 = 일 줄 · 열린 것이 폰에서 읽히게 · 길면 「전체 보기」 · 형 11-11 13:25 「일 관련 습작 각 방 마다 들가게하면 되겠네」 · 번개) */
 export const noteM = (m: { kind?: string; who?: string; text?: string }) => m.kind === "system" && m.who === "일 판" && /^일 습작/.test((m.text || "").trim());
 /** 러너가 촉 1:1 에 옮긴 요약 묶음(첫 줄 `[묶음 <stem>]` · 깃 11-12 19:34) = 알약 대신 묶음 카드(./bundle-card.tsx · 「올림 · 넘김」 · 봄 19:22) */
-export const bundleM = (m: { kind?: string; who?: string; text?: string }) => m.kind === "system" && /러너/.test(m.who || "") && /^\[묶음\s+[^\]\s]+\]/.test((m.text || "").trim());
+export const bundleM = (m: { kind?: string; who?: string; text?: string }) => m.kind === "system" && /러너|촉봇/.test(m.who || "") &&   // 촉봇 = relayAs 가 바꾼 뒤 이름(카드 꼴 그대로 · 11-14 실물 = 바꾼 뒤 알약으로 떨어졌음)
+  /^\[묶음\s+[^\]\s]+\]/.test((m.text || "").trim());
 /** 알약이 아니라 말풍선으로 그리는 기계 글 */
 export const bubbleM = (m: { kind?: string; who?: string; text?: string }) => pickM(m) || noteM(m) || bundleM(m);
 
