@@ -2,6 +2,7 @@
 //   우리 판 위 덧그림(맥 72 페이지엔 아무것도 안 감) · 한 장 = 서버 GET/POST together/sketch(‰ · editor _sketch.js) · 봇 = send 「[스케치 rect] …」 같은 한 장
 //   자리 = 틀 안 화면 그림 칸(다리가 postMessage 「nm-co-rect」로 알려 줌 · 없으면 틀 전체) · 그 탭 주소가 바뀌면 흐리게(명세 「화면이 넘어가면 흐려지고」)
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { office } from "../data/office";
 import { pathOf, skColor, type SkItem } from "./sketch-logic";
@@ -26,7 +27,8 @@ export function useCoRect(frame: React.RefObject<HTMLIFrameElement | null>): CoR
 
 /** 화상회의 우상단 세로 알약(형 11-14 01:48 시아 옮김 「스케치도 세로로 같이 배열 … 그냥 3개를 한 도형에 넣어서 누르면 점등 되는 방식으로 구현할게 이미지 에디터 잇는 좀 그런 느낌인데 점등으로 토글 켜지는 느낌임」) = 펜 · 커튼 · 제어권 · 켜진 것만 라임 점등 · 커튼 · 제어권 = 깃 다리 명령(nm-co-cmd) · 상태 = 다리 신호(curtain · ctrl) */
 export type CoCtl = { curtain: boolean; ctrl: string | null; cmd: (c: "curtain" | "control") => void };
-export function SketchLayer({ rect, co }: { rect: CoRect | null; co?: CoCtl }) {
+const KEEP_PILL = false;   // 세로 알약(11-14 01:48 판) = 보관만(형 05:22 시아 옮김 「일단 보관해둬 어딘가에」) · true 로 바꾸면 화면 안 우상단 세로 알약으로 돌아감 · CSS = meet.css .nm-sk-pill 그대로
+export function SketchLayer({ rect, co, slot }: { rect: CoRect | null; co?: CoCtl; slot?: HTMLElement | null }) {
   const qc = useQueryClient();
   const items = useQuery({ queryKey: ["nomute", "sketch"], queryFn: () => office<{ items?: SkItem[] }>("together/sketch").then((j) => j.items || []), refetchInterval: 1500 }).data || [];
   const [on, setOn] = useState(false), [live, setLive] = useState<[number, number][]>([]), [why, setWhy] = useState("");
@@ -48,6 +50,23 @@ export function SketchLayer({ rect, co }: { rect: CoRect | null; co?: CoCtl }) {
         </svg>
         {shown.filter(({ it }) => it.text).map(({ it, dim }) => { const [x, y] = labelAt(it); return <span key={it.id} className="nm-sk-lbl" style={{ left: `${x / 10}%`, top: `${y / 10}%`, borderColor: skColor(it.who), opacity: dim ? 0.35 : 1 }}><b style={{ color: skColor(it.who) }}>{it.who}</b> {it.text}</span>; })}
       </div>
+      {slot ? createPortal(
+      <div className="nm-sk-head" role="toolbar" aria-label="화면 도구">   {/* 세로 알약 하나 = 펜 · 커튼 · 제어권(위에서 아래) · 되돌리기 · 지우기는 펜 켜졌을 때 알약 왼쪽 */}
+        <div className="nm-sk-row">
+          <button type="button" className={`nm-sk-pen${on ? " on" : ""}`} aria-pressed={on} aria-label="스케치" onClick={() => setOn((v) => !v)} title={on ? "그리기 끄기" : "화면 위에 그리기(우리끼리만 보임)"}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M4 20l4-1 10-10-3-3L5 16l-1 4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M13.5 6.5l3 3" stroke="currentColor" strokeWidth="2" /></svg></button>
+          {co ? <button type="button" className={`nm-sk-pen${co.curtain ? " on" : ""}`} aria-pressed={co.curtain} aria-label="커튼" onClick={() => co.cmd("curtain")} title={co.curtain ? "커튼 걷기" : "커튼 치기(화면 가림)"}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M4 3h16M6 3v15c2 0 4-3 4-7.5V3M18 3v15c-2 0-4-3-4-7.5V3M6 18v3M18 18v3" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg></button> : null}
+          {co ? <button type="button" className={`nm-sk-pen${co.ctrl === "형" ? " on" : ""}`} aria-pressed={co.ctrl === "형"} aria-label="제어권" onClick={() => co.cmd("control")} title={co.ctrl === "형" ? "제어권 놓기" : co.ctrl ? `${co.ctrl} 제어 중 · 누르면 가져옴` : "제어권 쥐기"}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M8 13V5.5a1.5 1.5 0 013 0V12m0-6.5a1.5 1.5 0 013 0V12m0-5a1.5 1.5 0 013 0V14c0 4-2.5 7-6.5 7S5 18.5 4.5 16L3.6 12.4A1.4 1.4 0 016 11.3L8 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></button> : null}
+        </div>
+        {on || (co?.ctrl && co.ctrl !== "형") || why ? (
+          <div className="nm-sk-side">
+            {co?.ctrl && co.ctrl !== "형" ? <span className="nm-sk-ctl">{co.ctrl}가 제어하고 있습니다</span> : null}
+            {on ? <button type="button" className="nm-sk-pen" onClick={() => void post({ op: "undo" })} title="내 마지막 하나 지우기" aria-label="되돌리기">↶</button> : null}
+            {on && items.length ? <button type="button" className="nm-sk-pen" onClick={() => void post({ op: "clear" })} title="다 지우기" aria-label="다 지우기">⌫</button> : null}
+            {why ? <small role="alert" onClick={() => setWhy("")}>{why}</small> : null}
+          </div>
+        ) : null}
+      </div>,
+        slot) : KEEP_PILL ? (
       <div className="nm-sk-bar" role="toolbar" aria-label="화면 도구">   {/* 세로 알약 하나 = 펜 · 커튼 · 제어권(위에서 아래) · 되돌리기 · 지우기는 펜 켜졌을 때 알약 왼쪽 */}
         <div className="nm-sk-pill">
           <button type="button" className={`nm-sk-pen${on ? " on" : ""}`} aria-pressed={on} aria-label="스케치" onClick={() => setOn((v) => !v)} title={on ? "그리기 끄기" : "화면 위에 그리기(우리끼리만 보임)"}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M4 20l4-1 10-10-3-3L5 16l-1 4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M13.5 6.5l3 3" stroke="currentColor" strokeWidth="2" /></svg></button>
@@ -63,6 +82,7 @@ export function SketchLayer({ rect, co }: { rect: CoRect | null; co?: CoCtl }) {
           </div>
         ) : null}
       </div>
+      ) : null}
     </>
   );
 }

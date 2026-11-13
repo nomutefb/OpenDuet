@@ -14,6 +14,7 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
   const open = () => { setOpening("busy"); startMeet().then((m) => { setMeet(m); setOpening(""); }).catch((e) => setOpening(e instanceof Error ? e.message : "못 열었어")); };
   useEffect(() => { if (isMeet && !meet0 && !tried.current) { tried.current = true; open(); } }, [isMeet]);   // eslint-disable-line react-hooks/exhaustive-deps
   const end = useMeetEnd(meet, () => { setMeet(null); onClose(); });
+  const [toolSlot, setToolSlot] = useState<HTMLSpanElement | null>(null);
   const meetRef = useRef(false); meetRef.current = !!meet;
   const [sync, setSync] = useState<{ ago: number; bad?: boolean; paused?: boolean; at: number; curtain?: boolean; ctrl?: string | null } | null>(null);   // curtain · ctrl = 깃 다리 신호(11-14 01:53 · 커튼 쳐짐 · 쥔 이)   // 다리 신호(깃 · 1~2초마다 {type:'nm-co-sync', ago, bad, paused})
   useEffect(() => {
@@ -40,12 +41,13 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
         {isMeet ? <OnAir ago={state === "ok" && sync ? sync.ago : null} at={sync ? sync.at : 0} /> : <b title="맥 72 · 대신 로그인">브라우저</b>}   {/* 머리 = 이름 · 단추만(형 11-14 01:41 시아 옮김 「부가적인 설명글잇는 부분들은 다른 곳도 없애주면돼」 · 앞 판 = 브라우저 「맥 72 · 대신 로그인 · …」 설명 줄) */}
         {isMeet ? <span className="nm-co-sub" /> : null}
         {isMeet && !meet ? (opening === "busy" ? <span className="nm-co-sync">회의 여는 중<Dots /></span> : <button type="button" className="nm-meet-btn" title={opening || undefined} onClick={open}>{opening ? "다시 열기" : "새 회의"}</button>) : null}
+        {meet && state === "ok" ? <span className="nm-co-tools" ref={setToolSlot} /> : null}   {/* 펜 · 커튼 · 제어권 = ↻ 왼쪽에 나란히(형 11-14 05:22 시아 옮김 「그 버튼들 새로고침 좌측으로 다 나란히 간격 맞춰서 보낼게」) · 그리는 판(SketchLayer)이 여기로 띄움 */}
         <button type="button" className="nm-web-btn" aria-label="다시 잇기" title="다시 잇기" onClick={() => setNonce((n) => n + 1)}>↻</button>
         <button type="button" className="nm-web-btn" aria-label={meet ? "회의 종료" : "닫기"} title={meet ? "회의 종료" : "닫기"} onClick={meet ? () => end.setAsk(true) : onClose}>×</button>   {/* 화상회의 × = 회의 종료(형 16:18 「x 대신 종료」) */}
       </div>
       <div className="nm-co-stage">
         {state === "ok" ? <iframe ref={frame} key={src} title="같이 보기" src={src} className="nm-co-frame" allow={CO_ALLOW} referrerPolicy="no-referrer" /> : state === "off" ? <p className="nm-web-note"><button type="button" className="nm-meet-btn" onClick={() => setNonce((n) => n + 1)}>브라우저 연결하기</button></p> : <p className="nm-web-note">연결 중<Dots bob /></p>}   {/* 화상회의 칸이 못 닿으면 = 화면 자리만 안내 · 아래 대화는 그대로(명세 「끊김」) */}
-        {meet && state === "ok" ? <SketchLayer rect={rect} co={{ curtain: !!sync?.curtain, ctrl: sync?.ctrl ?? null, cmd: (c) => frame.current?.contentWindow?.postMessage({ type: "nm-co-cmd", cmd: c }, "*") }} /> : null}
+        {meet && state === "ok" ? <SketchLayer rect={rect} slot={toolSlot} co={{ curtain: !!sync?.curtain, ctrl: sync?.ctrl ?? null, cmd: (c) => frame.current?.contentWindow?.postMessage({ type: "nm-co-cmd", cmd: c }, "*") }} /> : null}
         {meet ? <MeetPeople meet={meet} at={rect} /> : null}
         <EndAsk end={end} />
       </div>
