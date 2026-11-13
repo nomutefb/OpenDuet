@@ -21,7 +21,8 @@ test("폰 회의 = 목록 자리에 화상회의 칸 · PC 반갈(bar) · 좁은
 });
 test("고른 탭만 이름 펼침(폴더 탭)", () => {
   const c = rd("../ui/teams.css");
-  assert.match(c, /\.nm-tswitch\.fold \.nm-ftab\.on \.nm-ftab-nm \{ max-width:120px; opacity:1; \}/);
+  assert.match(c, /\.nm-tswitch\.fold \.nm-ftab\.on \.nm-ftab-nm \{ max-width:120px; opacity:1; transition:opacity \.12s ease \.2s; \}/);
+  assert.doesNotMatch(c, /transition:max-width/);   // 형 ② = 글자가 폭과 같이 접히지 않음
 });
 import { openMeetOf, stillOpen } from "../ui/phone-meet-logic.ts";
 test("폰 = 열린 화상회의 이어 받음 · 끝난 방 · 다른 임시방은 안 고름", () => {
@@ -36,4 +37,13 @@ test("폰 = 열린 화상회의 이어 받음 · 끝난 방 · 다른 임시방�
   assert.equal(openMeetOf(rooms.filter((r) => r.id === "t-c" || r.id === "t-d"), now), null);
   assert.equal(stillOpen({ id: "t-d", members: [], t0: 0 }, rooms, now), false);
   assert.equal(stillOpen({ id: "t-a", members: [], t0: 0 }, rooms, now), true);
+});
+test("폰 회의 판 = 화면 전체 · 16:9 폭 맞춤 · 명단 안 덮음 · 대화 = 남는 자리 · 「+」 숨김 · 네비 대화방 칸도 「회의」", () => {
+  const c = rd("../ui/teams.css");
+  assert.match(c, /\.nm-rooms-meet \{ position:fixed;/);
+  assert.match(c, /\.nm-pmeet \.nm-co-frame \{ flex:none; width:100%; height:auto; aspect-ratio:16 \/ 9; \}/);
+  assert.match(c, /\.nm-pmeet \.nm-meet-ppl \{ position:static;/);
+  assert.match(c, /\.nm-pmeet \.nm-meet, \.nm-pmeet \.nm-co\.meet \.nm-meet\.open \{ flex:1 1 auto;/);
+  assert.match(rd("../ui/shell.tsx"), /\{teamsOn \|\| meetOn \? null : <><RoomFab \/>/);
+  assert.match(rd("../swap/tab-bar.tsx"), /tab\.id === "rooms" && mode !== "office" \? MODE_LABEL\[mode\] : tab\.label/);
 });
