@@ -818,3 +818,5 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ychat .yb-st { flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:2px; padding-bottom:1px; }
 .ychat .yb-st .yb-un { margin:0; }
 .ychat .yb-ck { width:13px; height:13px; fill:none; stroke:var(--accent, #CFFF40); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+/* 사진 등 첨부 = 체크(말풍선 밖 왼쪽 · nm-encg) 위 · 안 본 수 아래(겹침 0 · 형 11-13 17:55 「확인했는지는 … 아래 배치하는게 맞다고봄」 · 22:09 체크 둘 뒤 실물 = ✓3 겹침 · 뎅) */
+.ychat .yb-line:has(> .yb-st) > .yb.me .nm-encg { bottom:20px; }
