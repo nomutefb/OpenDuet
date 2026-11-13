@@ -41,6 +41,7 @@ const tidy = (list: Decision[]) => {
 };
 const withDups = (d: Decision, p: Pick) => [{ id: d.id, room: d.room, ...p }, ...(d._dups || []).map((id) => ({ id, room: d.room, ...p }))];
 const KEY = ["nomute", "decisions"];
+export const ALREADY = "이미 대답함";   // 결정 창 · 글 아래 단추 둘 다 늘 붙는 보기(형 11-13 09:12)
 const done = (p?: Pick | null) => !!p && (typeof p.i === "number" || !!p.pass || !!p.text);
 type Fx = { k: string; st: "on0" | "run" | "done" | "ck" | "bye" };
 // 차오름 = 뉴스 요약 「프롬프트 생성」 .mkbtn.glive 그대로(editor viewer/index.html 3092~ · 답 기다리는 동안 0→90% 3.6초 gauge-ease · 답 오면 100% 0.3초 linear · ✓ = goTick .38s .04s ease)
@@ -125,21 +126,15 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
     catch (e) { setPicks((m) => { const n = { ...m }; delete n[d.id]; return n; }); setErr(`못 적었어 · ${(e as Error).message}`); return false; }
   };
   const put = (id: string, f: Fx | null) => setFx((m) => { const n = { ...m }; if (f) n[id] = f; else delete n[id]; return n; });
-  const choose = async (d: Decision, p: Pick, k: string) => {   // 누름 = 바로 형광 + 차오름(적는 동안 90% 까지) → 답 오면 100% → ✓ → 접힘 → 목록에서 뺌 · 못 적으면 불 끔
+  // 고르면 바로 그 질문 사라짐 · 다 고르면 창 닫힘 · 보내기는 뒤에서(형 11-13 09:12 봄 1:1 「고르면 바로 창은 닫히고 백단에서 처리되게 해줘, 굳이 게이지 찰 필요없는듯」) — 못 보내면 그 질문 다시 · 창 다시 열고 까닭 한 줄
+  //   앞 판 = 누름 → 차오름 90% → 답 오면 100% → ✓ → 접힘(형 11-02 10:37 · 지금은 걷음)
+  const choose = async (d: Decision, p: Pick, k: string) => {
     if (fx[d.id]) return;
     if (k !== "etc") setEtc("");
-    put(d.id, { k, st: "on0" });
-    await later(34);   // 0% 를 한 번 그린 뒤 90% 로 = 차오름이 보임(원본 rAF grun 자리)
-    put(d.id, { k, st: "run" });
-    const ok = await pick(d, p);
-    if (!ok) { put(d.id, null); return; }
-    put(d.id, { k, st: "done" });
-    await later(FULL);
-    put(d.id, { k, st: "ck" });
-    await later(TICK + HOLD);
     put(d.id, { k, st: "bye" });
-    await later(FADE);
     setGone((g) => new Set(g).add(d.id));
+    const ok = await pick(d, p);
+    if (!ok) { put(d.id, null); setGone((g) => { const n = new Set(g); n.delete(d.id); return n; }); setOpen(true); return; }
     if (k === "etc") setEtc((e) => (e === d.id ? "" : e));
   };
   const isOn = (d: Decision, k: string) => fx[d.id]?.k === k;
@@ -175,6 +170,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
                     <div className="nm-dec-ch">
                       {tailnetUrl(d.pc?.url) ? <a className="nm-dec-row nm-dec-pc" href={tailnetUrl(d.pc?.url)} target="_blank" rel="noopener noreferrer"><span className="t">제어권 가져오기</span></a> : null}   {/* 그 몸 화면(테일넷)을 새 창으로 · 미리보기 없음(형 「공간낭비고」) · 끝나면 아래 완료 */}
                       {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} data-fill={fillOf(d, `c${i}`)} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}><span className="nm-dec-no" aria-hidden>{i + 1}</span><span className="t">{c}</span>{drawn(fillOf(d, `c${i}`)) ? <Ck /> : null}</button>)}   {/* 보기 번호 1 · 2 · 3(형 11-11 19:45 「보기 중에 고르는 방식으로 / 1234 보기 주고. 3번까지 여도되고. 기타는 4번이니까.」) */}
+                      <button type="button" className="nm-dec-row nm-dec-had" aria-pressed={p?.text === ALREADY} onClick={() => void choose(d, { text: ALREADY }, "had")}><span className="nm-dec-no" aria-hidden>✓</span><span className="t">{ALREADY}</span></button>   {/* 늘 하나 더(형 11-13 09:12 「항상 보기 추가로 이미 대답함. 이 잇게해줘」) = 묻는 이한테 「✓ 기타: 이미 대답함」 */}
                       {etc === d.id
                         ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} fill={fillOf(d, "etc")} onSubmit={etcSubmit(d)} />
                         : <button type="button" className="nm-dec-row" aria-pressed={!!p?.text} onClick={() => setEtc(d.id)}><span className="nm-dec-no" aria-hidden>{d.choices.length + 1}</span><span className="t">{p?.text ? `기타 · ${p.text}` : "기타"}</span></button>}
@@ -188,5 +184,32 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
         </>, document.body,
       ) : null}
     </>
+  );
+}
+
+/** 질문 글 바로 아래 선택지 단추(형 11-13 09:08 봄 1:1 「질문 혹시 할때, 내가 선택지를 바로 선택할수잇는 질문도 나오게 할수잇나? … 여러개 질문잇을때 응 하면 너가 1번 에 대한 응인지 2번에 대한 응인지 알기가 어렵거든」)
+ *  = 그 글이 아직 안 고른 [결정](서버 결정 줄기 · 글 하나 = 질문 하나)이면 보기 + 「이미 대답함」 · 누르면 바로 보냄(그 글에 형 답장 「✓ ① …」 · 묻는 이만 깸 · 결정 창과 같은 길) · 고르면 「✓ 골랐어」 한 줄 */
+export function DecideInline({ id }: { id: string }) {
+  const qc = useQueryClient();
+  const d = (useDecisions().data || []).find((x) => x.id === id || (x._dups || []).includes(id));
+  const [st, setSt] = useState<"" | "보내는 중" | "못 보냄">(""), [got, setGot] = useState("");
+  if (got) return <p className="nm-dec-inl-ok">✓ 골랐어 · {got}</p>;
+  if (!d || isVideoReq(d) || !d.choices.length) return null;
+  const send = async (p: Pick, label: string) => {
+    if (st === "보내는 중") return;
+    setSt("보내는 중"); setGot(label);
+    try {
+      const j = await office<{ bad?: { id: string; why?: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: withDups(d, p), send: true }) });
+      if ((j.bad || []).some((x) => x.id === d.id)) throw new Error("bad");
+      void qc.invalidateQueries({ queryKey: KEY });
+    } catch { setGot(""); setSt("못 보냄"); }
+  };
+  const CIRC = "①②③④⑤⑥⑦⑧⑨";
+  return (
+    <div className="nm-dec-inl" onClick={(e) => e.stopPropagation()}>
+      {d.choices.map((c, i) => <button key={i} type="button" onClick={() => void send({ i }, `${CIRC[i] || i + 1} ${c}`)}><b>{CIRC[i] || i + 1}</b>{c}</button>)}
+      <button type="button" className="had" onClick={() => void send({ text: ALREADY }, ALREADY)}>{ALREADY}</button>
+      {st === "못 보냄" ? <span className="err">못 보냈어 · 다시 눌러 줘</span> : null}
+    </div>
   );
 }

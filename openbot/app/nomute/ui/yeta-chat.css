@@ -798,3 +798,11 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ncp-rgb { gap:6px; }
 .ncp-rgb .ncp-f { align-items:center; }
 .ncp-rgb .ncp-f input { padding:6px 2px; font-size:13px; text-align:center; font-variant-numeric:tabular-nums; }
+/* 질문 글 바로 아래 선택지(./decide-pop.tsx DecideInline · 형 11-13 09:08 「선택지를 바로 선택할수잇는 질문」) — 말풍선 안 아래 · 한 줄에 하나 · 누르면 바로 보냄 */
+.nm-dec-inl { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.nm-dec-inl button { all:unset; box-sizing:border-box; display:flex; align-items:center; gap:8px; width:100%; padding:9px 12px; border-radius:10px; background:rgba(0,0,0,.22); color:inherit; font-size:14px; line-height:1.35; cursor:pointer; box-shadow:inset 0 1px 2px rgba(0,0,0,.25); }
+.nm-dec-inl button b { flex:none; font-weight:700; opacity:.8; }
+.nm-dec-inl button:active { background:#CFFF40; color:#161716; }
+.nm-dec-inl button.had { opacity:.75; font-size:13px; }
+.nm-dec-inl .err { font-size:12px; color:#ff8a7a; }
+.nm-dec-inl-ok { margin:8px 0 0; font-size:13px; font-weight:700; opacity:.85; }

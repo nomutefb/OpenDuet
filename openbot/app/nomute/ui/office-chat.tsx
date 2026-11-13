@@ -53,6 +53,7 @@ import { SiteIcon } from "./site-icon";
 import { BundleCard } from "./bundle-card";   // 촉 묶음 글 「올림 · 넘김」(봄 11-12 19:22 · 글 꼴 깃 · 시아)
 import { parseBundle } from "./bundle";
 import { AskPick, askPickOf } from "./ask-pick";   // 촉 방 촉 글 「요약」 = 형이 골라 바로 요약 접수(형 11-13 02:45 · 02:46 봄 1:1 · 뎅)
+import { DecideInline } from "./decide-pop";   // 질문 글 아래 선택지(형 11-13 09:08)
 import { PcCard } from "./pc-card";   // 대화창 컴퓨터 카드(뜸 11-08 · 형 09:07 「채팅창에 너네 vm 띄우면 로그인 가능하게」)
 import { pcOfText } from "./pc-url";
 import { dlHref } from "./news-data";
@@ -940,6 +941,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               {stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
               <BoxCard m={m} />
+              <DecideInline id={m.id} />   {/* 질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
               <Reactions m={m} c={c} mine={false} />
             </div>}
             {pickM(m) || bundleOf(m) ? null : <LinkCard m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) */}
