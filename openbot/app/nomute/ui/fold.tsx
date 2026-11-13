@@ -4,6 +4,7 @@
 import { type ReactNode, type SyntheticEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import "./fold.css";
+import { selfBack } from "./self-back";
 
 // 말풍선 수백 개 = 지켜보는 눈 하나(글 칸 크기가 바뀌면 그 칸의 잼만 다시)
 const looks = new WeakMap<Element, () => void>();
@@ -45,7 +46,7 @@ const readSz = () => { try { const n = Number(localStorage.getItem(SZ_KEY)); ret
 function FullText({ children, text, who, when, md, onClose }: { children: ReactNode; text: string; who: string; when: string; md: boolean; onClose: () => void }) {
   const [sz, setSz] = useState(readSz), [copied, setCopied] = useState(false);
   const pushed = useRef(false), closing = useRef(false);
-  const back = () => { if (closing.current) return; closing.current = true; history.back(); };
+  const back = () => { if (closing.current) return; closing.current = true; selfBack(); };
   useEffect(() => {
     if (!pushed.current) { pushed.current = true; history.pushState({ ...history.state, nmZoom: 1 }, ""); }
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") back(); };

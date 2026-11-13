@@ -8,6 +8,7 @@ import { office } from "../data/office";
 import "./sticker.css";
 
 import { FREQ_KEY, PACKS, STK_TMP, dropStickerTwins, freqTop, stickerOf, stickerText, stickerUrl, type Item, type Pack } from "./sticker-logic";
+import { selfBack } from "./self-back";
 export { PACKS, STK_TMP, stickerMark, stickerOf, stickerText, stickerUrl } from "./sticker-logic";
 
 /** mark = 내가 보낸 움짤 옆 표(형 11-12 12:50 「움짤옆에는 항상 체크표시 라임색으로 보내진건지 확인해주게해」) · "wait" = 보내는 중(흐린 점) · "sent" = 서버에 앉음(라임 ✓) */
@@ -47,7 +48,7 @@ export function StickerButton() {
   const place = () => { const r = btn.current?.getBoundingClientRect(); if (!r) return; const w = Math.min(420, innerWidth - 24); const left = Math.max(12, Math.min(r.left - 8, innerWidth - w - 12)); setAt({ left, bottom: innerHeight - r.top + 8, width: w, transformOrigin: `${Math.round(r.left + r.width / 2 - left)}px 100%` }); };
   useEffect(() => { if (!open) return; addEventListener("resize", place); return () => removeEventListener("resize", place); }, [open]);
   // 뒤로 = 판만 닫힘(형 11-12 21:31 봄 1:1 「이모지 킨 채로 뒤로가면 이리됨」 · 봄 옮김) — 열 때 주소 그대로 한 칸 쌓고, 뒤로(popstate)·방 바뀜(hashchange) = 닫힘 · 판을 다른 길로 닫으면 쌓은 칸을 걷음
-  const close = () => { if ((history.state as { nmStk?: number } | null)?.nmStk) history.back(); else setOpen(false); };   // 쌓은 칸이 있으면 뒤로 = popstate 에서 닫힘(판이 그때까지 떠 있어야 shell.tsx 뒤로 처리기가 비켜 감 · 앞 판은 먼저 닫아서 PC 가 목록으로 나갔음)
+  const close = () => { if ((history.state as { nmStk?: number } | null)?.nmStk) selfBack(); else setOpen(false); };   // 쌓은 칸이 있으면 뒤로 = popstate 에서 닫힘(판이 그때까지 떠 있어야 shell.tsx 뒤로 처리기가 비켜 감 · 앞 판은 먼저 닫아서 PC 가 목록으로 나갔음)
   useEffect(() => {
     if (!open) return;
     if (!(history.state as { nmStk?: number } | null)?.nmStk) history.pushState({ ...(history.state || {}), nmStk: 1 }, "");

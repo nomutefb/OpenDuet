@@ -18,6 +18,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeRoom, idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
+import { selfBack } from "./self-back";
 
 type Pick = { i?: number; pass?: boolean; text?: string };
 export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null; kind?: string; pc?: { task?: string; url?: string }; _dups?: string[] };   // pc = 컴퓨터 · 조치 필요 카드(서버 _pcreq.js · 형 11-06 「본인이 권한이 필요하면ㅇ ㅣ렇게 요청을해.」 · 「그러면 내가 그걸 제어하는 방식이야.」)
@@ -104,7 +105,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
       .then((j) => { if (j.items) qc.setQueryData(KEY, tidy(j.items)); })   // 보낸 뒤 남은 목록이 바로 옴 = 개수 바로 고침(봄 08:44) · 같은 거르기
       .catch(() => undefined).finally(() => { sending.current = false; setPicks({}); void qc.invalidateQueries({ queryKey: KEY }); });
   };
-  const close = () => { if (closing.current) return; closing.current = true; history.back(); };   // 뒤로가기와 같은 길(폰 뒤로가기 = 닫기 · 형 10-31)
+  const close = () => { if (closing.current) return; closing.current = true; selfBack(); };   // 뒤로가기와 같은 길(폰 뒤로가기 = 닫기 · 형 10-31)
   useEffect(() => {   // 다른 화면(홈 할 일)이 부르면 이 자리 모달이 열림
     const on = (e: Event) => { if ((e as CustomEvent).detail === where) setOpen(true); };
     window.addEventListener(DECIDE_OPEN, on);

@@ -12,6 +12,7 @@ import { useDecisions } from "./decide-pop";
 import { screenUrl } from "./pc-url";
 import { momOrigin, screenGoUrl, screenTicket } from "./screen-ticket";   // 표 붙여 앱 안(빠르 11-11)
 import "./pc-card.css";
+import { selfBack } from "./self-back";
 
 type St = "" | "보내는 중" | "완료" | "건너뜀" | "못 보냄";
 const Laptop = () => (
@@ -68,7 +69,7 @@ export function PcScreen({ url, out, title, task, canDone, onDone, onClose }: { 
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
     return () => { window.removeEventListener("popstate", pop); document.body.style.overflow = prev; };
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
-  const close = () => history.back();
+  const close = () => selfBack();
   const frame = useRef<HTMLIFrameElement>(null);
   const hands = useMomHands(frame, url);
   return createPortal(

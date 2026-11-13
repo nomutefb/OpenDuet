@@ -10,6 +10,7 @@ import { justHeld } from "./msg-menu";
 import { pvCount, pvIndex, rowOf } from "./pic-grid-logic";
 import "./pic-grid.css";
 import { DlSeqButton } from "./dl-seq";
+import { selfBack } from "./self-back";
 
 export type GridPic = { p: string; src: string; name: string };
 const SV = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
@@ -36,7 +37,7 @@ export function PicGrid({ pics, who, when, ring, dl, onBad }: { pics: GridPic[];
 function PicView({ pics, at, who, when, dl, onClose }: { pics: GridPic[]; at: number; who: string; when: string; dl: (src: string, name: string) => string; onClose: () => void }) {
   const track = useRef<HTMLDivElement>(null), strip = useRef<HTMLDivElement>(null), pushed = useRef(false), backing = useRef(false);
   const [i, setI] = useState(at);
-  const close = () => { if (backing.current) return; backing.current = true; history.back(); };
+  const close = () => { if (backing.current) return; backing.current = true; selfBack(); };
   const goTo = (k: number, smooth = true) => { const t = track.current; if (t) t.scrollTo({ left: k * t.clientWidth, behavior: smooth ? "smooth" : "auto" }); };
   useLayoutEffect(() => { goTo(at, false); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {

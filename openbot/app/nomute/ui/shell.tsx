@@ -93,6 +93,7 @@ import { useSplit, useWide } from "./side";
 import "./shell.css";
 import "./theme-garden.css";   // 꾸밈 「정원」(html[data-theme=garden]:not(.dark) 에서만 · ./skin.ts · 뜸 11-07 시안)
 import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색(시아 11-08 · 다크·정원 손 0)
+import { selfBackNow } from "./self-back";
 
 export type Pane = "home" | "rooms" | "chat";
 export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edys" | "edconv" | "edsong" | "edk" | "edtr" | "edvd" | "edvid" | "edtrack" | "ednb" | "edsb" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit";
@@ -212,6 +213,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
       const w = window as Window & { nmEatPop?: number };
       if (w.nmEatPop && Date.now() - w.nmEatPop < 1500) { w.nmEatPop = 0; return; }   // 판이 스스로 닫히며 깐 칸을 걷는 뒤로(ui/call-sheet.tsx) = 진짜 뒤로 아님
       if ((e as PopStateEvent & { nmEaten?: boolean }).nmEaten || document.querySelector(".nm-zoom, .nm-stk, .ncs-veil")) return;   // 사진 크게 보기 · 움짤 판을 닫는 뒤로 = 대화 판 그대로(ui/office-chat.tsx zoomImage · ui/sticker.tsx · 형 11-13 02:24 「이모지를 지금 하나 인앱에서 올리면 대화창이 목록으로 나가져」) · 「@」 호출 명부(.ncs-veil · ui/call-sheet.tsx 가 한 칸 깖 · 형 11-13 22:13 「호출 하다가 뒤로가면 이 화면 데리고 가는거」 · 셀프 실물 23:10 = 명부는 닫혔는데 방도 목록으로 나감)
+      if (selfBackNow()) return;   // 다른 판(움짤 · 결정 · 사진 · 공지 …)이 닫히며 걷은 칸(./self-back.ts) = 형 뒤로 아님(형 11-14 01:24 「폰에서 움짤쓰면 다시 밖으로 나가져 버리네」 · 뎅)
       const at = location.hash.replace(/^#/, "") || "/";
       if (at !== "/rooms") void nav({ to: "/rooms", replace: true });
     };

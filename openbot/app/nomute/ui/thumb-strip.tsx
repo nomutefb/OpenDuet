@@ -10,6 +10,7 @@ import { type Art, type Thumb, type Vote, abs, dlHref, dlName, getJson, imgOf, u
 import { GenPane, IcPen, PendSlot, PromptDry, RedoPane, usePendWatch } from "./thumb-gen";
 import { baseSid } from "./thumb-gen-opts";
 import { useThumbMore } from "./thumb-more";
+import { selfBack } from "./self-back";
 
 export type Pic = { src: string; name: string; label?: string; link?: string };
 const SV = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
@@ -23,7 +24,7 @@ export function Zoom({ pics, at, onClose }: { pics: Pic[]; at: number; onClose: 
   const track = useRef<HTMLDivElement>(null), pushed = useRef(false), backing = useRef(false), then = useRef("");
   const [i, setI] = useState(at);
   const go = useGo();
-  const close = () => { if (backing.current) return; backing.current = true; history.back(); };
+  const close = () => { if (backing.current) return; backing.current = true; selfBack(); };
   const step = (d: number) => { const t = track.current; if (t) t.scrollTo({ left: (Math.round(t.scrollLeft / (t.clientWidth || 1)) + d) * t.clientWidth, behavior: "smooth" }); };
   useLayoutEffect(() => { const t = track.current; if (t) t.scrollLeft = at * t.clientWidth; }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {

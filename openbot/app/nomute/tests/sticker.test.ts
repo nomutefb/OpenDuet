@@ -56,7 +56,7 @@ test("움짤 판 연 채 뒤로 = 판만 닫힘 · 방 바뀌면 닫힘(형 11-1
   const tsx = readFileSync(new URL("../ui/sticker.tsx", import.meta.url), "utf8");
   assert.match(tsx, /history\.pushState\(\{ \.\.\.\(history\.state \|\| \{\}\), nmStk: 1 \}, ""\)/);
   assert.match(tsx, /addEventListener\("popstate", off\); addEventListener\("hashchange", off\);/);
-  assert.match(tsx, /const close = \(\) => \{ if \(\(history\.state as \{ nmStk\?: number \} \| null\)\?\.nmStk\) history\.back\(\); else setOpen\(false\); \};/);
+  assert.match(tsx, /const close = \(\) => \{ if \(\(history\.state as \{ nmStk\?: number \} \| null\)\?\.nmStk\) selfBack\(\); else setOpen\(false\); \};/);
   assert.match(readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8"), /document\.querySelector\("\.nm-zoom, \.nm-stk, \.ncs-veil"\)/);   // 형 11-13 02:24 「이모지를 … 올리면 대화창이 목록으로 나가져」 · 「@」 명부(.ncs-veil)도 같은 비켜 감(형 22:13)
 });
 

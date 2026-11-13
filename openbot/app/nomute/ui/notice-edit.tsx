@@ -6,6 +6,7 @@ import { office } from "../data/office";
 import { GoButton } from "./go-button";
 import { draftDrop, draftGet, draftSet } from "./draft";   // 쓰던 글 보관(형 11-07 10:56 「저장하기 전에 글이 남아있어야돼 휘발안되고」)
 import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장할까?」(형 10:56)
+import { selfBack } from "./self-back";
 
 const appliedAt = (ts?: number) => (ts ? new Date(ts).toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).slice(0, 16) : "-");
 
@@ -33,7 +34,7 @@ export function NoticeDialog({ onClose }: { onClose: () => void }) {
       byBack = true; live.current.onClose();
     };
     window.addEventListener("popstate", pop);
-    return () => { window.removeEventListener("popstate", pop); if (!byBack && history.state?.nmNotice) history.back(); };
+    return () => { window.removeEventListener("popstate", pop); if (!byBack && history.state?.nmNotice) selfBack(); };
   }, []);
   return (
     <div role="dialog" aria-modal="true" aria-label="공지 고치기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
