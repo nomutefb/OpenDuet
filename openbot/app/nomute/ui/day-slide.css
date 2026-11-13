@@ -1,0 +1,14 @@
+/* 유지 시간 셋(./day-slide.tsx · 형 11-14 04:56 본보기 영상 98691) — 어두운 앱 = 길 = 옅은 회색 · 늘어나는 알약 = 고르면 라임(안 고르면 회색) · 숫자 굴러감 · 끝 손잡이 줄 */
+.nm-dsl { display:flex; align-items:center; gap:6px; }
+.nm-dsl-chip { flex:none; height:40px; padding:0 14px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:rgba(232,234,232,.7); font-size:13px; font-weight:700; cursor:pointer; transition:background .18s, color .18s, border-color .18s; }
+.nm-dsl-chip.on { background:#CFFF40; border-color:#CFFF40; color:#111; }
+.nm-dsl-track { position:relative; flex:1; min-width:150px; height:40px; border-radius:999px; background:rgba(255,255,255,.07); cursor:ew-resize; touch-action:none; user-select:none; outline:none; }
+.nm-dsl-track:focus-visible { box-shadow:0 0 0 2px rgba(207,255,64,.5); }
+.nm-dsl-max { position:absolute; right:14px; top:50%; transform:translateY(-50%); color:rgba(232,234,232,.38); font-size:13px; font-weight:700; }
+.nm-dsl-fill { position:absolute; left:3px; top:3px; bottom:3px; min-width:76px; max-width:calc(100% - 6px); display:flex; align-items:center; gap:2px; padding:0 22px 0 14px; border-radius:999px; background:#3a3c3a; color:rgba(232,234,232,.75); font-size:13px; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,.35); transition:width .32s cubic-bezier(.22,.9,.3,1.12), background .18s, color .18s; box-sizing:border-box; }
+.nm-dsl-track.on .nm-dsl-fill { background:#CFFF40; color:#111; }
+.nm-dsl-num { display:inline-block; height:1.25em; line-height:1.25em; overflow:hidden; font-variant-numeric:tabular-nums; }
+.nm-dsl-roll { display:flex; flex-direction:column; transition:transform .32s cubic-bezier(.22,.9,.3,1.12); }
+.nm-dsl-roll i { font-style:normal; height:1.25em; }
+.nm-dsl-grip { position:absolute; right:10px; top:50%; width:3px; height:14px; margin-top:-7px; border-radius:2px; background:currentColor; opacity:.55; }
+@media (prefers-reduced-motion:reduce) { .nm-dsl-fill, .nm-dsl-roll { transition:none; } }

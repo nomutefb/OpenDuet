@@ -8,6 +8,7 @@ import { livePicked, saveBlock } from "./picked";
 import { draftDrop, draftGet, draftSet } from "./draft";   // 쓰던 글 보관(형 11-07 10:56 「휘발안되고」)
 import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장할까?」(형 10:56)
 import { useNavigate } from "@tanstack/react-router";
+import { DaySlide } from "./day-slide";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { type OfficeRoom, idOf, office, peopleSync } from "../data/office";
 import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
@@ -15,7 +16,6 @@ import { FaceImg } from "./faces";
 import { dropSearchCache } from "./room-search";
 import { GoButton } from "./go-button";
 
-const HOURS: [number, string][] = [[1, "1시간"], [24, "하루"], [72, "사흘"], [168, "일주일"], [0, "영구"]];
 // 묶음(형 10-31 「클로드 눌러서 선택 그록 눌러서 선택 지피티 눌러서 선택」) = 서버 clsOf 분류 · 명부에 없는 이 = 클로드 칸
 const FAMS: { key: string; label: string; cls: string[] }[] = [{ key: "cl", label: "클로드", cls: ["클로드", ""] }, { key: "gk", label: "그록", cls: ["그록봇"] }, { key: "gp", label: "지피티", cls: ["닷", "부름"] }];
 
@@ -128,9 +128,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
         </fieldset>
         <fieldset className="flex flex-col gap-1">
           <legend className="mb-1 text-muted-foreground">유지 시간{edit ? <span className="ml-1 text-xs">· 지금 {edit.exp ? tempLeft(edit.exp) : "영구"}</span> : null}</legend>   {/* 지금 남은 기한(형 11-06 10:37 「이거 하루가 넘나? 유지기간이」) */}   {/* 라벨 옆 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
-          <div className="flex gap-1.5">
-            {HOURS.map(([h, label]) => <button key={h} type="button" aria-pressed={hours === h} onClick={() => setHours(h)} className="nm-pick flex-1 justify-center">{label}</button>)}
-          </div>
+          <DaySlide hours={hours} onChange={setHours} />   {/* 1시간 · 끌어서 1~7일 · 영구(형 11-14 04:56 「1시간, 그리고 이렇게 기한, 영구 3개 설정으로」 · 앞 판 = 1시간 · 하루 · 사흘 · 일주일 · 영구 다섯 단추) */}
         </fieldset>
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
