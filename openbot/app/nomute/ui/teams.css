@@ -61,3 +61,8 @@
 .nm-tychat .yb .nm-ttable tr:nth-child(even) td { background:rgba(255,255,255,.025); }
 .nm-tychat .yb.me .nm-ttable td, .nm-tychat .yb.me .nm-ttable th { border-color:rgba(0,0,0,.18); }
 :root:not(.dark) .nm-tychat .yb .nm-ttable td, :root:not(.dark) .nm-tychat .yb .nm-ttable th { border-color:rgba(0,0,0,.12); }
+
+/* 시스템 줄 = 우리 대화 .yb.sys 알약 그대로 · 길면 줄바꿈 · 움짤 = 그림 칸 · 못 불러오면 기울인 GIF(형 11-13 14:12 · 14:13 봄 옮김 · 뎅) */
+.nm-tychat .yb.sys.nm-tsys { white-space:normal; text-align:center; max-width:92%; line-height:1.45; }
+.nm-tychat .yb .nm-tgif { max-height:220px; }
+.nm-tychat .yb .nm-tgifx { display:block; font-style:italic; opacity:.75; }

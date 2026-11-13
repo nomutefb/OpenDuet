@@ -42,7 +42,7 @@ const useSeen = () => useSyncExternalStore((f) => { seenSubs.add(f); return () =
 type Me = { configured?: boolean; signed_in?: boolean; user?: { id?: string; name?: string; upn?: string }; pending?: { user_code?: string; verification_uri?: string; expires_at?: number | string } | null };
 type Person = { id: string; name?: string };
 type Chat = { id: string; type?: string; topic?: string; members?: string[]; people?: Person[]; last?: { from?: string; from_id?: string; text?: string; at?: string } };
-type TMsg = { id: string; from?: string; from_id?: string; at?: string; text?: string; html?: string; files?: { name?: string; url?: string }[]; hosted?: string[] };
+type TMsg = { id: string; kind?: string; from?: string; from_id?: string; at?: string; text?: string; html?: string; files?: { name?: string; url?: string }[]; hosted?: string[]; sys?: string | null };
 type Page = { messages: TMsg[]; next?: string };
 
 const meKey = ["nomute", "teams", "me"] as const;
@@ -105,6 +105,13 @@ function partsOf(html?: string): Part[] | null {
 }
 function TTable({ rows }: { rows: { th: boolean; cells: string[] }[] }) {
   return <div className="nm-ttable"><table><tbody>{rows.map((r, i) => <tr key={i}>{r.cells.map((c, k) => r.th ? <th key={k}>{c}</th> : <td key={k}>{c}</td>)}</tr>)}</tbody></table></div>;
+}
+/* 움짤(Giphy) = 본문 HTML 의 <img src="https://media*.giphy.com/…"> · 공개 주소라 그대로 그림(형 11-13 14:13 봄 옮김 「이런 gif도 붙일수잇나 봐보구 ㅋ 안되면 무리하진마」 · 실물 11-13 = 주소 옴 · 뎅) · 그 밖 바깥 그림 주소 = 안 붙임 */
+const GIPHY = /^https:\/\/media\d?\.giphy\.com\/[\w\-./%?=&]+$/;
+const gifsOf = (html?: string): string[] => (html && /giphy\.com/i.test(html) && typeof DOMParser !== "undefined" ? [...new DOMParser().parseFromString(html, "text/html").querySelectorAll("img")].map((i) => i.getAttribute("src") || "").filter((u) => GIPHY.test(u)) : []);
+function GifImg({ src }: { src: string }) {   // 못 불러오면 기울인 「GIF」 글자(형 14:13 「안되면 그냥 GIF 이탤릭으로면돼」)
+  const [bad, setBad] = useState(false);
+  return bad ? <i className="nm-tgifx">GIF</i> : <img className="nm-thost nm-tgif" alt="GIF" loading="lazy" referrerPolicy="no-referrer" src={src} onError={() => setBad(true)} />;
 }
 /* 날짜 가름 · 시각 묶음 = 우리 대화(office-chat.tsx dayKey · dateLabel · TIME_GAP)와 같은 셈 */
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
@@ -276,6 +283,7 @@ export function TeamsChat({ chat }: { chat: string }) {
             const body = (
               <>
                 {partsOf(m.html)?.map((x, k) => x.t === "table" ? <TTable key={k} rows={x.rows} /> : <span key={k} className="nm-tpart">{x.s}</span>) ?? (m.text ? <span>{m.text}</span> : null)}
+                {gifsOf(m.html).map((u) => <GifImg key={u} src={u} />)}
                 {(m.hosted || []).map((h) => <img key={h} className="nm-thost" alt="" loading="lazy" src={`/api/office/teams/hosted?chat=${encodeURIComponent(chat)}&msg=${encodeURIComponent(m.id)}&h=${encodeURIComponent(h)}`} />)}
                 {(m.files || []).map((f, k) => f.url ? <a key={k} className="nm-tfile" href={`/api/office/teams/file?u=${encodeURIComponent(f.url)}`} target="_blank" rel="noopener">📎 {f.name || "파일"}</a> : null)}
               </>
@@ -283,7 +291,7 @@ export function TeamsChat({ chat }: { chat: string }) {
             return (
               <Fragment key={m.id}>
                 {newDay ? <p className="ydate">{dateLabel(ts)}</p> : null}
-                {mine(m) ? (
+                {m.kind && m.kind !== "message" ? (m.sys ? <div className="yb sys nm-tsys">{m.sys}</div> : null) : mine(m) ? (
                   <div className="flex flex-col items-end"><div className={`ymrow me${cont ? " cont" : ""}`}><div className="ybw"><div className="yb me">{body}</div>{time}</div></div></div>
                 ) : (
                   <div className={`ymsg nm-tnoface${cont ? " cont" : ""}`}><div className="ycol"><div className="yname">{titled(m.from, table) || "?"}</div><div className="ybrow"><div className="ybw"><div className="yb ai">{body}</div>{time}</div></div></div></div>
