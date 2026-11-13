@@ -5,6 +5,7 @@ import { parseSearchText } from "@/lib/search-text";
 import type { RouterContext } from "@/router-context";
 import { Route as AppRoute } from "@/routes/_authed/_app";
 import { routeTree } from "./gen/routeTree.gen";
+import { Oops } from "./ui/oops";
 
 /* 우리 길(원본 routes 폴더 밖) = 앱 틀(_app) 아래에 더함 · #/runner = 러너 화면(보조 02 nomute/runner · office-runner.md) */
 /*   #/rooms = 목록 화면(형 11:26 「대화랑 그냥 분리하자」) · 둘 다 화면은 껍데기 판(ui/shell.tsx)이 그림 = 길은 자리만 */
@@ -21,6 +22,7 @@ export const router = createRouter({
   history: createHashHistory(),
   context: {} as RouterContext,
   parseSearch: parseSearchText,
+  defaultErrorComponent: ({ reset }) => <Oops retry={() => { reset(); location.reload(); }} />,   // 앱 통째 깨짐 = 옛 「Something went wrong!」 대신 우리 판(형 11-14 05:18)
 });
 
 declare module "@tanstack/react-router" {
