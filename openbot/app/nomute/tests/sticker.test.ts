@@ -92,7 +92,7 @@ test("화상회의 = 수락 · 거절 표기 · 열림(다 답함 · 60초 · �
   assert.match(tb, /<MeetIcon \/><span className="nm-tab-nm">화상회의<\/span>/); assert.match(tb, /<CobrowsePane mode="browser"/); assert.match(tb, /<CobrowsePane mode="meet"/);
   assert.match(cp, /meet = isMeet \? meet0 : null/);
   assert.match(sh, /\{ id: "meetlog", label: "화상회의"/);
-  assert.match(src, /office\(`meetlog\/\$\{encodeURIComponent\(meet\.id\)\}`, \{ method: "POST"/);
+  assert.match(src, /office\(`meetlog\/\$\{encodeURIComponent\(id\)\}`, \{ method: "POST"/);
 });
 
 test("움짤 = 카리나 셋 · 자주 쓰는 10개 맨 앞 · 칸 작게(형 11-13 08:06 · 08:07)", async () => {

@@ -3,13 +3,13 @@
 //   「그 화면을 보면서 할수잇어야하고 동기화 0초전 이게 떠야함」 · 「챙은 항상 자동참여 기록관으로」 · 「봄은 무슨 일을 하고잇을지 모르니까 상황에 따라서」
 //   = 같이 보기 칸(./cobrowse-pane.tsx) 위 「화상회의」 → 고르기 → 임시방 하나(서버가 첫 글 = 목적으로 다 바로 깨움) → 봇은 그 방에 「[수락]」 또는 「[거절] 까닭」 한 줄
 //   → 칸 아래 얼굴 줄 = 온라인(깸 표 · 띠와 같은 값) · 수락 · 거절 · 답 기다림 · 오프라인 → 다 답하면(챙 빼고) 수락한 이들로 대화가 칸 아래 열림 · 2분 지나면 온 이들로
+//   ★★ 바뀜(형 11-13 15:01 ~ 15:15 봄 옮김) = 사람 칸은 화면 왼쪽 위 세로 줄(동그라미 + 이름 이모지 + 초록/회색 불 · 이름 오른쪽 내보내기 · 맨 아래 초대하기) · 대화 = 화면 아래 넓게(우리 대화 부품 그대로 · 목적 말풍선 숨김) · 머리 = 「같이 보는 중」만 · 회의 종료 = 머리 오른쪽
 //   ★ 바뀜(형 11-13 11:01 봄 1:1 「화상회의 누가 부를까 이거. 창뜨고 그 아래에 @로 호출하면 한명씩 참가하는 느낌으로 하면돼.」) = 고르기 판 없음 · 카메라 누르면 형 + 챙으로 방이 바로 열리고 대화도 바로 · 아래 대화 「@이름」 = 서버가 그 애를 방에 더함(editor _meetat.js) · 얼굴 줄 = 서버 방 멤버
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type OfficeMsg, office, faceOf, nameOf } from "../data/office";
-import { OfficeChat } from "./office-chat";
-type RingBot = { who: string; state: string; mark?: string; why?: string };
-const ringOn = (b: RingBot) => b.state === "awake" && b.mark !== "woke" && b.why !== "woke";   // 온라인 = 띠 얼굴 라임 테와 같은 셈(./shell.tsx ringOn · 돌 import 피해 같은 한 줄)
+import { type OfficeMsg, type OfficePerson, office, faceOf, nameOf, people } from "../data/office";
+import { OfficeChat, officeKeys } from "./office-chat";
+import { ringOf } from "../swap/mic-orb";
 import "./meet.css";
 
 export const SCRIBE = "챙";   // 늘 자동 참여 · 기록관 · 「다 왔다」 셈 밖(봄 06:46)
@@ -86,58 +86,89 @@ export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onC
   );
 }
 
-/** 칸 아래 = 얼굴 줄(온라인 · 수락 · 거절 · 답 기다림 · 오프라인) → 열리면 그 방 대화 */
-export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
+/** 회의 종료 = 형만 · 누르면 1분 카운트(방에 알림) · 다시 누르면 취소 · 0 = 서버 meetlog 로 기록 서랍에 담고 방 닫힘(형 11-13 06:5x 「종료하면 1분 동안 회의 종료 카운트 알리고 종료되면서 방 나가짐 알림 뜸」) · 단추 자리 = 머리 오른쪽 */
+export function useMeetEnd(meet: Meet | null, onEnd: () => void) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
-  const list = useQuery({ queryKey: ["nomute", "temprooms", "list"], queryFn: () => office<{ rooms?: { id: string; members?: string[] }[] }>("temprooms").then((j) => j.rooms || []), refetchInterval: 5000 }).data;
-  const live = list?.find((r) => r.id === meet.id), gone = !!list && !live;   // 서버 방 멤버 = 「@이름」으로 들어온 이까지 · 목록에 없음 = 끝났거나 기한 지남
-  const members = live?.members?.length ? live.members : meet.members;
-  const msgs = useQuery({ queryKey: ["nomute", "meet", meet.id], queryFn: () => office<{ messages?: OfficeMsg[] }>(`rooms/${encodeURIComponent(meet.id)}/messages?n=100`).then((j) => j.messages || []), refetchInterval: 3000 }).data || [];
-  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: RingBot[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 15_000 }).data || [];
-  const ans = useMemo(() => answersOf(msgs, members, meet.t0), [msgs, members, meet.t0]);
-  const online = (n: string) => bots.some((b) => b.who === n && ringOn(b));
-  const stateOf = (n: string): Answer => (ans[n]?.a === "yes" ? "yes" : ans[n]?.a === "no" ? "no" : online(n) ? "wait" : "off");
-  const LBL: Record<Answer, string> = { yes: "수락", no: "거절", wait: "답 기다림", off: "오프라인" };
-  const left = Math.max(0, Math.ceil((MEET_WAIT - (now - meet.t0)) / 1000));
-  // 회의 종료 = 형만 · 누르면 1분 카운트(방에 알림) · 다시 누르면 취소 · 0 = 서버 meetlog 로 기록 서랍에 담고 방 닫힘(형 11-13 06:5x 「종료하면 1분 동안 회의 종료 카운트 알리고 종료되면서 방 나가짐 알림 뜸」)
-  const [endAt, setEndAt] = useState<number>(() => { try { return +(localStorage.getItem(`${KEY}_end_${meet.id}`) || 0); } catch { return 0; } });
+  const id = meet?.id || "";
+  const [endAt, setEndAt] = useState<number>(0);
+  useEffect(() => { try { setEndAt(+(localStorage.getItem(`${KEY}_end_${id}`) || 0)); } catch { setEndAt(0); } }, [id]);
   const [ending, setEnding] = useState(false);
-  const say = (text: string) => office(`rooms/${encodeURIComponent(meet.id)}/messages`, { method: "POST", body: JSON.stringify({ text }) }).catch(() => {});
-  const keepEnd = (t: number) => { setEndAt(t); try { if (t) localStorage.setItem(`${KEY}_end_${meet.id}`, String(t)); else localStorage.removeItem(`${KEY}_end_${meet.id}`); } catch { /* 이 기기 */ } };
-  const toggleEnd = async () => {
+  const say = (text: string) => office(`rooms/${encodeURIComponent(id)}/messages`, { method: "POST", body: JSON.stringify({ text }) }).catch(() => {});
+  const keepEnd = (t: number) => { setEndAt(t); try { if (t) localStorage.setItem(`${KEY}_end_${id}`, String(t)); else localStorage.removeItem(`${KEY}_end_${id}`); } catch { /* 이 기기 */ } };
+  const toggle = async () => {
+    if (!id) return;
     if (endAt) { keepEnd(0); await say("회의 종료 취소 — 계속해"); return; }
     keepEnd(Date.now() + 60_000); await say("회의 종료 1분 전 — 1분 뒤 이 방이 닫혀(대화는 기록 서랍 「화상회의」에 남아) · 할 말 있으면 지금");
   };
-  const endLeft = endAt ? Math.max(0, Math.ceil((endAt - now) / 1000)) : 0;
+  const left = endAt ? Math.max(0, Math.ceil((endAt - now) / 1000)) : 0;
   useEffect(() => {
-    if (!endAt || now < endAt || ending) return;
+    if (!id || !endAt || now < endAt || ending) return;
     setEnding(true);
     void (async () => {
       await say("회의가 끝났어 · 모두 나감 — 기록 서랍 「화상회의」에 담았어");
-      await office(`meetlog/${encodeURIComponent(meet.id)}`, { method: "POST", body: "{}" }).catch(() => {});
-      keepEnd(0); onEnd();
+      await office(`meetlog/${encodeURIComponent(id)}`, { method: "POST", body: "{}" }).catch(() => {});
+      keepEnd(0); setEnding(false); onEnd();
     })();
-  }, [now, endAt, ending]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [now, endAt, ending, id]);   // eslint-disable-line react-hooks/exhaustive-deps
+  return { on: !!endAt, left, ending, toggle };
+}
+
+type ListRoom = { id: string; name?: string; purpose?: string; members?: string[] };
+const useMeetRoom = (id: string) => {
+  const q = useQuery({ queryKey: ["nomute", "temprooms", "list"], queryFn: () => office<{ rooms?: ListRoom[]; candidates?: string[] }>("temprooms").then((j) => ({ rooms: j.rooms || [], cands: j.candidates || [] })), refetchInterval: 5000 });
+  const live = q.data?.rooms.find((r) => r.id === id);
+  return { live, gone: !!q.data && !live, cands: q.data?.cands || [], refetch: q.refetch };
+};
+const useMeetMsgs = (id: string) => useQuery({ queryKey: ["nomute", "meet", id], queryFn: () => office<{ messages?: OfficeMsg[] }>(`rooms/${encodeURIComponent(id)}/messages?n=100`).then((j) => j.messages || []), refetchInterval: 3000 }).data || [];
+const purposeM = (m: OfficeMsg) => /^\s*(!모두\s*)?\[임시방 목적/.test(String(m.text || ""));   // 목적 말풍선(설명글) = 회의 대화엔 안 보임(형 15:15 「이거는 설명글은 필요없고」)
+
+/** 칸 아래 = 그 방 대화(우리 대화 부품 그대로 · 말하는 이 왼쪽 · 형 오른쪽 · 형 15:02 「우리 대화하는것 처럼 올라갔으면 좋겠어. 동일한 디자인 계승해서 각자의 프로필 색에 똑같이」) · 끝난 방 = 「새 회의」 */
+export function MeetDock({ meet, onEnd }: { meet: Meet; onEnd: () => void }) {
+  const { gone } = useMeetRoom(meet.id);
+  if (gone) return <div className="nm-meet"><div className="nm-meet-row"><small className="nm-meet-left">이 회의는 끝났어(종료 · 기한)</small><button type="button" className="nm-web-btn nm-meet-end" onClick={onEnd}>새 회의</button></div></div>;
+  return <div className="nm-meet open"><div className="nm-meet-chat"><OfficeChat room={meet.id} hide={purposeM} /></div></div>;
+}
+
+/** 화면 왼쪽 위 사람 칸(형 15:01 「이런 좌측 에 누가 들어와잇는지 프로필 그 동그라미랑 이름이랑 같이 (이모지 포함)」 · 「들어와있으면 초록불, 안들어와잇으면 회색불」 · 「맨 아래는 초대하기 / 그리고 내보내기는 방 내보내기랑 같은 개념으로 이름 우측에」) */
+export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: number } | null }) {   // at = 화면 그림 칸 왼쪽 위(다리 nm-co-rect) · 다리 탭 줄 안 가림
+  const { live, cands, refetch } = useMeetRoom(meet.id);
+  const msgs = useMeetMsgs(meet.id);
+  const list = useQuery({ queryKey: officeKeys.people, queryFn: () => people(), staleTime: 60_000 }).data || [];
+  const members = live?.members?.length ? live.members : meet.members;
+  const ans = useMemo(() => answersOf(msgs, members, meet.t0), [msgs, members, meet.t0]);
+  const ctrl = useQuery({ queryKey: ["nomute", "together", "now"], queryFn: () => office<{ now?: { ctrl?: { who?: string } } }>("together").then((j) => j.now?.ctrl?.who || ""), refetchInterval: 3000 }).data || "";
+  const [inv, setInv] = useState(false), [busy, setBusy] = useState(""), [why, setWhy] = useState("");
+  const setMembers = async (next: string[], tag: string) => {
+    if (!live) return;
+    setBusy(tag); setWhy("");
+    try { await office(`temprooms/${encodeURIComponent(meet.id)}`, { method: "POST", body: JSON.stringify({ name: live.name, purpose: live.purpose, members: next }) }); await refetch(); }
+    catch (e) { setWhy(e instanceof Error ? e.message : "못 했어"); }
+    setBusy("");
+  };
+  const pOf = (who: string): OfficePerson | undefined => list.find((x) => x.who === who);
+  const rows = ["형", ...members.filter((n) => n !== "형")];
+  const inRoom = (n: string) => n === "형" || n === SCRIBE || ans[n]?.a === "yes";   // 들어옴 = 형 · 기록관 · 「[수락]」 한 이
   return (
-    gone ? <div className="nm-meet"><div className="nm-meet-row"><small className="nm-meet-left">이 회의는 끝났어(종료 · 기한)</small><button type="button" className="nm-web-btn nm-meet-end" onClick={onEnd}>새 회의</button></div></div> :
-    <div className="nm-meet open">
-      <div className="nm-meet-row">
-        <div className="nm-meet-faces" aria-label="화상회의 참여자">
-        {members.filter((n) => n !== SCRIBE).length ? null : <small className="nm-meet-left">아래 대화에서 @이름 으로 부르면 한 명씩 들어와</small>}
-        {members.map((n) => {
-          const s: Answer | "scribe" = n === SCRIBE ? "scribe" : stateOf(n);
-          return (
-            <span key={n} className={`nm-meet-who s-${s}`} title={s === "no" && ans[n]?.why ? `거절 · ${ans[n]?.why}` : undefined}>
-              <img src={faceOf(n)} alt="" /><b>{nameOf(n)}</b>
-              <small>{s === "scribe" ? "기록관 · 자동" : s === "off" ? "오프라인" : `온라인 · ${LBL[s]}`}{s === "no" && ans[n]?.why ? ` · ${ans[n]?.why}` : ""}</small>
-            </span>
-          );
-        })}
+    <div className="nm-meet-ppl" aria-label="화상회의에 들어와 있는 이" style={at ? { top: at.y + 10 } : undefined}>
+      {rows.map((n) => {
+        const p = pOf(n), on = inRoom(n), ring = ringOf(p);
+        return (
+          <div key={n} className={`nm-mp${on ? " on" : ""}`} title={on ? "들어와 있음" : ans[n]?.a === "no" ? `거절${ans[n]?.why ? " · " + ans[n]?.why : ""}` : "아직 안 들어옴"}>
+            <span className="nm-mp-ava">{faceOf(n) ? <img src={faceOf(n)} alt="" /> : null}<i className="nm-mp-dot" /></span>
+            <span className="nm-mp-nm" style={ring ? ({ "--yn": ring } as React.CSSProperties) : undefined}>{p?.name || nameOf(n)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</span>
+            {ctrl && ctrl === n ? <span className="nm-mp-ctl" title="제어권 쥠">✋</span> : null}
+            {n !== "형" ? <button type="button" className="nm-mp-x" aria-label={`${nameOf(n)} 내보내기`} title="내보내기" disabled={!!busy || members.length <= 1} onClick={() => void setMembers(members.filter((x) => x !== n), "x" + n)}>×</button> : null}
+          </div>
+        );
+      })}
+      {inv ? (
+        <div className="nm-mp-pick">
+          {cands.filter((n) => !members.includes(n)).map((n) => <button key={n} type="button" disabled={!!busy} onClick={() => { setInv(false); void setMembers([...members, n], "+" + n); }}>{nameOf(n)}{pOf(n)?.mark ? " " + pOf(n)!.mark : ""}</button>)}
         </div>
-        <button type="button" className={`nm-web-btn nm-meet-end${endAt ? " on" : ""}`} disabled={ending} onClick={() => void toggleEnd()} title={endAt ? "종료 취소" : "회의 종료(1분 카운트 · 형만)"}>{endAt ? <span role="status">{`종료 ${endLeft}초 · 취소`}</span> : "회의 종료"}</button>
-      </div>
-      <div className="nm-meet-chat"><OfficeChat room={meet.id} /></div>
+      ) : null}
+      <button type="button" className="nm-mp-inv" onClick={() => setInv((v) => !v)} aria-expanded={inv}>{inv ? "닫기" : "+ 초대하기"}</button>
+      {why ? <small role="alert" className="nm-mp-why">{why}</small> : null}
     </div>
   );
 }

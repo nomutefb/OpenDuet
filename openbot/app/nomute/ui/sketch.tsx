@@ -6,14 +6,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { office } from "../data/office";
 import { pathOf, skColor, type SkItem } from "./sketch-logic";
 
-type Rect = { x: number; y: number; w: number; h: number; url?: string };
 
-export function SketchLayer({ frame }: { frame: React.RefObject<HTMLIFrameElement | null> }) {
-  const qc = useQueryClient();
-  const items = useQuery({ queryKey: ["nomute", "sketch"], queryFn: () => office<{ items?: SkItem[] }>("together/sketch").then((j) => j.items || []), refetchInterval: 1500 }).data || [];
-  const [rect, setRect] = useState<Rect | null>(null), [on, setOn] = useState(false), [live, setLive] = useState<[number, number][]>([]), [why, setWhy] = useState("");
-  const box = useRef<HTMLDivElement>(null), drawing = useRef(false);
-  useEffect(() => {   // 다리 판이 알려 주는 화면 그림 칸(틀 안 CSS px · 깃 다리)
+export type CoRect = { x: number; y: number; w: number; h: number; url?: string };
+type Rect = CoRect;
+/** 다리 판이 알려 주는 화면 그림 칸(틀 안 CSS px · 깃 다리 「nm-co-rect」) — 스케치 · 들어온 이 줄이 같이 씀 */
+export function useCoRect(frame: React.RefObject<HTMLIFrameElement | null>): CoRect | null {
+  const [rect, setRect] = useState<Rect | null>(null);
+  useEffect(() => {
     const f = (e: MessageEvent) => {
       const d = e.data as { type?: string } & Partial<Rect>;
       if (!d || d.type !== "nm-co-rect" || e.source !== frame.current?.contentWindow) return;
@@ -22,6 +21,14 @@ export function SketchLayer({ frame }: { frame: React.RefObject<HTMLIFrameElemen
     window.addEventListener("message", f);
     return () => window.removeEventListener("message", f);
   }, [frame]);
+  return rect;
+}
+
+export function SketchLayer({ rect }: { rect: CoRect | null }) {
+  const qc = useQueryClient();
+  const items = useQuery({ queryKey: ["nomute", "sketch"], queryFn: () => office<{ items?: SkItem[] }>("together/sketch").then((j) => j.items || []), refetchInterval: 1500 }).data || [];
+  const [on, setOn] = useState(false), [live, setLive] = useState<[number, number][]>([]), [why, setWhy] = useState("");
+  const box = useRef<HTMLDivElement>(null), drawing = useRef(false);
   const area = rect ? { left: rect.x, top: rect.y, width: rect.w, height: rect.h } : { left: 0, top: 0, width: "100%", height: "100%" };
   const at = (e: React.PointerEvent): [number, number] => { const b = box.current!.getBoundingClientRect(); return [Math.round(((e.clientX - b.left) / b.width) * 1000), Math.round(((e.clientY - b.top) / b.height) * 1000)]; };
   const post = (body: object) => office("together/sketch", { method: "POST", body: JSON.stringify(body) }).then(() => qc.invalidateQueries({ queryKey: ["nomute", "sketch"] })).catch((e) => setWhy(e instanceof Error ? e.message : "못 그렸어"));

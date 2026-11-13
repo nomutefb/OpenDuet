@@ -21,7 +21,7 @@ test("러너 글만 · 대화창 = 묶음 있으면 숨기고 카드 안으로",
   assert.ok(srcOf({ kind: "system", who: "러너", text: T, id: "a" }));
   assert.equal(srcOf({ kind: "bot", who: "틈", text: T }), null);
   const oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
-  assert.match(oc, /all\.filter\(\(m\) => \{ const x = srcOf\(m\); return !x \|\| !bundled\.has\(x\.stem\); \}\)\.map\(relayAs\)/);
+  assert.match(oc, /all\.filter\(\(m\) => \{ const x = srcOf\(m\); return \(!x \|\| !bundled\.has\(x\.stem\)\) && !\(hide && hide\(m as OfficeMsg\)\); \}\)\.map\(relayAs\)/);   // + 화상회의 hide(뜸 11-13)
   assert.match(oc, /srcs=\{c\.srcs\?\.get\(bundleOf\(m\)!\.stem\)\}/);
   const bc = readFileSync(new URL("../ui/bundle-card.tsx", import.meta.url), "utf8");
   assert.match(bc, /<b className="nm-bdl-src-h">공식 자료<\/b>/);

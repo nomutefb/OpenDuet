@@ -16,5 +16,5 @@ test("「**[촉] …」 러너 글 = 촉 · 그 밖 러너 글 · 모르는 이�
 });
 test("대화창 = 목록을 relayAs 로 바꿔 그림", () => {
   const oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
-  assert.match(oc, /const shownAll = useMemo\(\(\) => all\.filter\([^\n]*\)\.map\(relayAs\), \[all, bundled\]\);/);   // 「[자료]」 이어 글 거른 뒤 relayAs(깃 11-13 12:49)
+  assert.match(oc, /const shownAll = useMemo\(\(\) => all\.filter\([^\n]*\)\.map\(relayAs\), \[all, bundled, hide\]\);/);   // 「[자료]」 이어 글 거른 뒤 relayAs(깃 11-13 12:49) · hide = 화상회의 목적 말풍선(뜸 11-13 15:15)
 });

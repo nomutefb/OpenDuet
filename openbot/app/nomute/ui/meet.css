@@ -44,3 +44,23 @@
 .nm-sk-bar button { flex:none; white-space:nowrap; height:26px; padding:0 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(14,15,14,.86); color:#e8eae8; font-size:12px; font-weight:700; cursor:pointer; }
 .nm-sk-bar button.on { color:#111; background:#CFFF40; border-color:#CFFF40; }
 .nm-sk-bar small { color:#FF8A8D; font-size:11px; background:rgba(14,15,14,.86); padding:2px 8px; border-radius:999px; cursor:pointer; }
+/* 사람 칸(형 11-13 15:01 「이런 좌측 에 누가 들어와잇는지 프로필 그 동그라미랑 이름이랑 같이 (이모지 포함)」 · 「들어와있으면 초록불, 안들어와잇으면 회색불」 · 「맨 아래는 초대하기 / … 내보내기는 … 이름 우측에」) = 화면 왼쪽 위 세로 줄 · 반투명 · 좁게 */
+.nm-meet-ppl { position:absolute; top:10px; left:10px; z-index:4; width:min(210px, 22%); min-width:150px; max-height:calc(100% - 64px); overflow:auto; scrollbar-width:none; display:flex; flex-direction:column; gap:4px; padding:8px; border-radius:14px; background:rgba(14,15,14,.62); border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(8px); }
+.nm-mp { display:flex; align-items:center; gap:8px; min-width:0; padding:3px 4px; border-radius:10px; }
+.nm-mp-ava { position:relative; flex:none; width:28px; height:28px; }
+.nm-mp-ava img { width:28px; height:28px; border-radius:50%; object-fit:cover; filter:grayscale(1) brightness(.75); border:2px solid #5d5f5d; box-sizing:border-box; }
+.nm-mp-dot { position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#6b6d6b; border:2px solid #121312; }
+.nm-mp.on .nm-mp-ava img { filter:none; border-color:#3DDC6B; }
+.nm-mp.on .nm-mp-dot { background:#3DDC6B; box-shadow:0 0 8px rgba(61,220,107,.8); }   /* 초록불(형 「들어와있으면 초록불」) */
+.nm-mp-nm { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px; font-weight:700; color:rgba(232,234,232,.55); }
+.nm-mp.on .nm-mp-nm { color:var(--yn, #e8eae8); }
+.nm-mp-nm .ymark { margin-left:3px; }
+.nm-mp-ctl { flex:none; font-size:12px; }
+.nm-mp-x { flex:none; width:20px; height:20px; display:grid; place-items:center; border:0; border-radius:50%; background:transparent; color:rgba(232,234,232,.45); font-size:14px; line-height:1; cursor:pointer; }
+.nm-mp-x:hover { background:rgba(255,90,95,.18); color:#FF8A8D; }
+.nm-mp-inv { margin-top:4px; height:28px; border-radius:999px; border:1px dashed rgba(207,255,64,.45); background:transparent; color:#CFFF40; font-size:12px; font-weight:700; cursor:pointer; }
+.nm-mp-pick { display:flex; flex-wrap:wrap; gap:4px; padding-top:4px; }
+.nm-mp-pick button { border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:2px 8px; background:rgba(255,255,255,.04); color:#e8eae8; font-size:11.5px; cursor:pointer; }
+.nm-mp-why { color:#FF8A8D; font-size:11px; }
+/* 대화를 더 넓게(형 15:02 「브라우저가 좀 더 위로 올라가고 대화가 좀 더 많이 보여도 됌」) */
+.nm-co.meet .nm-meet.open { flex:0 0 50%; }

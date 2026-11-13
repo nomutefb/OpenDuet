@@ -1013,13 +1013,13 @@ function typingOf(list: Msg[], r: OfficeRoom | undefined, bots: Bot[], people: O
 }
 
 
-export function OfficeChat(p: { room: string; lead?: ReactNode; active?: boolean }) {
+export function OfficeChat(p: { room: string; lead?: ReactNode; active?: boolean; hide?: (m: OfficeMsg) => boolean }) {   // hide = 이 칸에선 안 보일 글(화상회의 목적 말풍선 · 뜸 11-13)
   if (isTeams(p.room)) return <TeamsChat chat={p.room.slice(TEAMS_PREFIX.length)} />;   // 팀즈 대화(./teams.tsx · 형 11-06 「전송이랑 다 가능해야해 채팅」)
   if (p.room === SUMMARY_ROOM) return <SummaryDesk lead={p.lead} active={p.active ?? true} />;   // 요약실 = 요약 카드 목록(./summary-desk.tsx · 형 11-04 09:28)
   return p.room === REPAIR_ROOM ? <RepairDesk lead={p.lead} active={p.active ?? true} /> : <OfficeChatRoom {...p} />;
 }
 
-function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: ReactNode; active?: boolean }) {   // active = 이 판이 보임(껍데기에서 숨은 판이면 본 데까지 안 올림 = 안 읽은 수 그대로)
+function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lead?: ReactNode; active?: boolean; hide?: (m: OfficeMsg) => boolean }) {   // active = 이 판이 보임(껍데기에서 숨은 판이면 본 데까지 안 올림 = 안 읽은 수 그대로)
   const qc = useQueryClient();
   const nav = useNavigate();
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
@@ -1052,7 +1052,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
   // 「[자료 <stem>]」 이어 글 = 같은 방 묶음 카드 안으로(카드 있으면 글 숨김 · 없으면 알약 그대로 · 깃 11-13 12:49)
   const srcs = useMemo(() => { const by = new Map<string, Src[]>(); for (const m of all) { const x = srcOf(m); if (x) by.set(x.stem, [...(by.get(x.stem) || []), x]); } return by; }, [all]);
   const bundled = useMemo(() => new Set(all.map((m) => bundleOf(m)?.stem).filter(Boolean) as string[]), [all]);
-  const shownAll = useMemo(() => all.filter((m) => { const x = srcOf(m); return !x || !bundled.has(x.stem); }).map(relayAs), [all, bundled]);   // 러너가 그록 친구 대신 쓴 글 = 그 친구 말풍선(./pick-msg.ts relayAs · 형 11-13 08:05)
+  const shownAll = useMemo(() => all.filter((m) => { const x = srcOf(m); return (!x || !bundled.has(x.stem)) && !(hide && hide(m as OfficeMsg)); }).map(relayAs), [all, bundled, hide]);   // 러너가 그록 친구 대신 쓴 글 = 그 친구 말풍선(./pick-msg.ts relayAs · 형 11-13 08:05) · hide = 화상회의 목적 말풍선(뜸 11-13 15:15)
   const items = useMemo(() => (flat ? flatView(shownAll) : hyungView(shownAll, r)), [shownAll, r, flat]);
   // 「채팅방으로 초대하기」 = 그 뒤로 그 애가 다시 안 온 「나갔습니다」 줄에만(다시 옴 = 다시 부름·초대 줄 · 그 애가 쓴 글)
   const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (!back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot)
@@ -1396,7 +1396,7 @@ function OfficeChatRoom({ room, lead, active = true }: { room: string; lead?: Re
       <ScrollDate box={boxRef} />
       <div ref={boxRef} className={`flex min-h-0 flex-1 flex-col overflow-y-auto${atTop ? " nm-top0" : ""}`}>   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}
         <div className={`ychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-[48px]${unfold ? " unfold" : ""}`}>   {/* 위 여백 = 떠 있는 머리(대화 상대 동그라미) 밑에 첫 글이 안 깔리게 */}
-          {r?.temp ? <TempRoomHead r={r} /> : null}
+          {r?.temp && !hide ? <TempRoomHead r={r} /> : null}   {/* 화상회의 칸(hide 줌) = 목적 카드 안 그림(형 11-13 15:15 「이거는 설명글은 필요없고」) */}
           {pairRoom ? <PairHead room={room} list={list} /> : null}
           {lead}
           {msgs.data?.more && !flat ? (
