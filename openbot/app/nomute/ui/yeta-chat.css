@@ -63,6 +63,11 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ncp-box i { position:absolute; width:18px; height:18px; margin:-9px 0 0 -9px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.5); pointer-events:none; }
 .ncp-hue { width:100%; height:12px; border-radius:6px; appearance:none; -webkit-appearance:none; background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00); outline:none; }
 .ncp-hue::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:2px solid rgba(0,0,0,.25); }
+.ncp-a { display:flex; align-items:center; gap:8px; font-size:var(--fs-xs); color:var(--mut, #9aa0a6); }   /* 투명도(형 11-13 22:19) = 색 띠와 같은 부품 꼴 · 바탕 = 체크무늬 위 지금 색 */
+.ncp-a b { min-width:36px; text-align:right; font-weight:600; color:inherit; }
+.ncp-alpha { flex:1; height:12px; border-radius:6px; appearance:none; -webkit-appearance:none; outline:none; background:linear-gradient(to right, transparent, var(--c, #888)), repeating-conic-gradient(#555 0 25%, #888 0 50%) 0 0 / 10px 10px; }
+.ncp-alpha::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:2px solid rgba(0,0,0,.25); }
+.ncp-alpha::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid rgba(0,0,0,.25); }
 .ncp-rgb { display:flex; gap:8px; }
 .ncp-acts { display:flex; gap:8px; justify-content:flex-end; }
 .ncp-top { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:24px; font-size:var(--fs-label); font-weight:700; }   /* 색 판 머리 = 이름 · 우상단 그림 셋(형 11-01 10:5x) */

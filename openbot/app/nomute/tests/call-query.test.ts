@@ -22,3 +22,11 @@ test("딱 맞는 이름 + 띄어쓰기 = 확정 · 안 맞으면 닫힘 · 「@�
   assert.deepEqual(onQuery(A, "봐 "), { t: "close" });
   assert.deepEqual(onQuery(A, "@"), { t: "query", q: "" });
 });
+
+test("말풍선 투명도 = #RRGGBBAA · 옅으면 어두운 바탕과 섞인 밝기로 글자색(형 11-13 22:19)", async () => {
+  const { alphaOf, inkOn } = await import("../ui/bubble-tone.ts");
+  assert.equal(alphaOf("#FFFFFF"), 1);
+  assert.ok(Math.abs(alphaOf("#FFFFFF80") - 128 / 255) < 1e-9);
+  assert.equal(inkOn("#FFFFFF"), "#161716");
+  assert.equal(inkOn("#FFFFFF4D"), "#FFFFFF");   // 흰 30% = 어두운 바탕이 비쳐 → 흰 글자
+});

@@ -15,14 +15,14 @@ function toHsv(r: number, g: number, b: number): Hsv {
   return { h: h * 60, s: max ? d / max : 0, v: max };
 }
 const toHex = (c: number[]) => "#" + c.map((x) => x.toString(16).padStart(2, "0")).join("").toUpperCase();
-const fromHex = (t: string) => (/^#?[0-9a-f]{6}$/i.test(t) ? [0, 2, 4].map((i) => parseInt(t.replace("#", "").slice(i, i + 2), 16)) : null);
-/** 말풍선 글자색 = 배경 밝기로 저절로 */
-export const inkOn = (hex: string) => { const c = fromHex(hex); return c && 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2] > 150 ? "#161716" : "#FFFFFF"; };
+import { ALPHA_MIN, alphaOf, fromHex, inkOn, withAlpha } from "./bubble-tone";
+export { alphaOf, inkOn };
 
 export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: (hex: string) => Promise<unknown> | void; onClose: () => void }) {
   const first = fromHex(value || "") || [30, 32, 35];
   const [hsv, setHsv] = useState<Hsv>(() => toHsv(first[0], first[1], first[2]));
-  const rgb = fromHsv(hsv), hex = toHex(rgb);
+  const [alpha, setAlpha] = useState(() => alphaOf(value || ""));
+  const rgb = fromHsv(hsv), hex6 = toHex(rgb), hex = withAlpha(hex6, alpha);
   const [typed, setTyped] = useState("");
   const box = useRef<HTMLDivElement | null>(null);
   const root = useModal<HTMLDivElement>(onClose);
@@ -36,13 +36,17 @@ export function ColorPick({ value, onSave, onClose }: { value?: string; onSave: 
     <div ref={root} className="ncp" role="dialog" aria-label="말풍선 색 고르기" onClick={(e) => e.stopPropagation()}>
       <PickTop label="말풍선" onUndo={() => void Promise.resolve(onSave("")).then(onClose, () => {})} onSave={() => onSave(hex)} onDone={onClose} onClose={onClose} />
       <label className="ncp-f"><span>HEX</span>
-        <input value={typed || hex} onChange={(e) => { setTyped(e.target.value); const c = fromHex(e.target.value); if (c) setHsv(toHsv(c[0], c[1], c[2])); }} onBlur={() => setTyped("")} />
+        <input value={typed || hex} onChange={(e) => { setTyped(e.target.value); const c = fromHex(e.target.value); if (c) { setHsv(toHsv(c[0], c[1], c[2])); setAlpha(alphaOf(e.target.value)); } }} onBlur={() => setTyped("")} />
       </label>
       <div ref={box} className="ncp-box" style={{ background: `linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(${hsv.h} 100% 50%))` }}
         onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); pick(e); }} onPointerMove={(e) => { if (e.buttons) pick(e); }}>
         <i style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, background: hex }} />
       </div>
       <input className="ncp-hue" type="range" min={0} max={360} aria-label="색" value={hsv.h} onChange={(e) => setHsv((o) => ({ ...o, h: +e.target.value }))} />
+      <label className="ncp-a"><span>투명도</span>
+        <input className="ncp-alpha" type="range" min={Math.round(ALPHA_MIN * 100)} max={100} aria-label="투명도" value={Math.round(alpha * 100)} onChange={(e) => setAlpha(+e.target.value / 100)} style={{ ["--c" as string]: hex6 }} />
+        <b>{Math.round(alpha * 100)}%</b>
+      </label>
       <div className="ncp-rgb">
         {["R", "G", "B"].map((l, i) => (
           <label key={l} className="ncp-f"><span>{l}</span><input inputMode="numeric" value={rgb[i]} onChange={(e) => setRgb(i, +e.target.value)} /></label>
