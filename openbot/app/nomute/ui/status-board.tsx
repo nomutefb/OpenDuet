@@ -478,7 +478,7 @@ export function StatusBoard() {
                   return (
                     <li key={r.key} className={head ? "nsb-zh" : undefined} data-st={r.st}>
                       <button type="button" className="nsb-r" onClick={() => (head ? setZone(zone === z ? "" : z) : setPick(pick === r.key ? "" : r.key))}>
-                        <StatusDot st={r.st} />
+                        <StatusDot st={c.id === "activity" && /^(쉼|모름)/.test(String(r.value || "")) ? "unknown" : r.st} />{/* 활동 칸 = 일 라임 · 쉼 · 모름 흐린 점 · 멈춤 빨강(봄 08:04 「쉼 = 흐린 점(회색) · 멈춤 = 빨강 · 일 = 라임」) · 합계 셈은 r.st 그대로 */}
                         <span className="nsb-n">{r.name}{r.cron?.length ? <small>{cronKo(r.cron)}</small> : null}
                           {r.cells && !head ? <small className="nsb-cc">{Object.entries(r.cells).map(([k, x]) => <span key={k} data-st={x.st}><StatusDot st={x.st} />{k}{x.note ? ` ${x.note}` : ""}</span>)}</small> : null}</span>
                         <span className="nsb-v">{[r.value, daysKo(r.left_days), r.last_at ? agoKo(r.last_at) : "", nextKo(r.next_at)].filter(Boolean).join(" · ") || HEALTH_KO[r.st]}</span>
