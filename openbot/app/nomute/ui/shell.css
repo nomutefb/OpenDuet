@@ -330,3 +330,10 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-rbar-b:hover, .nm-rbar-b.on { background:color-mix(in srgb, currentColor 10%, transparent); color:var(--fg-1, inherit); }
 .nm-rbar-b .dot { position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:#CFFF40; }
 .nm-rbar-b .t { font-size:14px; font-weight:800; line-height:1; }
+/* 경계 끌기 = ⇔ 손잡이 · 자석에 붙으면 라임으로 착(형 11-14 05:07 참고 영상 · 05:15 「숫자만 빼고」 · 05:16 「차트도 나오게하자는건아님 저 느낌만」 · ./split-snap.ts) */
+.nm-split-knob { position:absolute; top:50%; left:50%; width:20px; height:20px; margin:-10px 0 0 -10px; display:grid; place-items:center; border-radius:50%; background:rgba(20,21,20,.92); border:1px solid rgba(255,255,255,.16); color:rgba(232,234,232,.7); opacity:0; transform:scale(.8); transition:opacity .15s, transform .15s, color .15s, border-color .15s; pointer-events:none; }
+.nm-split-grip:hover .nm-split-knob, body.nm-dragging .nm-split-knob { opacity:1; transform:none; }
+body.nm-dragging .nm-split-knob { color:#CFFF40; border-color:rgba(207,255,64,.55); }
+html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; border-color:rgba(0,0,0,.14); color:rgba(0,0,0,.55); }
+.nm-split-grip.snap i { background:#CFFF40; height:84px; box-shadow:0 0 10px rgba(207,255,64,.55); }
+.nm-split-grip.snap .nm-split-knob { transform:scale(1.12); box-shadow:0 0 0 3px rgba(207,255,64,.18); }
