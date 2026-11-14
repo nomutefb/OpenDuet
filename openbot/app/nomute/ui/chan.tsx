@@ -18,6 +18,7 @@ import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
 import { FreshBtn } from "./fresh-btn";
 import { GyeolBoard } from "./gyeol";
+import { sharedText } from "./news-data";   // 3초 안 같은 주소 = 한 번만(빠르 11-14)
 
 type Row = Record<string, number | null | undefined> & { date: string };
 type Thumb = { th?: string; u?: string; t?: string; r?: boolean };
@@ -43,11 +44,11 @@ const rnd = (x: number) => (x >= 100 ? Math.round(x) : Math.round(x * 10) / 10);
 const k12 = (iso?: string) => { const t = iso ? Date.parse(iso) : NaN; if (!Number.isFinite(t)) return ""; const d = new Date(t + 9 * 36e5); const h = d.getUTCHours(), m = String(d.getUTCMinutes()).padStart(2, "0"); return `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${h % 12 || 12}:${m}${h < 12 ? "AM" : "PM"}`; };
 
 async function getJ<T>(key: string, file: string, ok: string): Promise<T | null> {
-  for (const u of [`/api/chan?f=${key}`, `/${file}?ts=${Date.now()}`]) {
+  for (const u of [`/api/chan?f=${key}`, `/${file}`]) {   // 3초 안 같은 주소 = 한 번만(사무실 숫자 칸과 같이 뜸 · 빠르 11-14 · 새로 받기 = no-store)
     try {
-      const r = await fetch(u, { credentials: "same-origin", signal: AbortSignal.timeout(12000) });
-      if (!r.ok) continue;
-      const t = await r.text(); if (/^\s*</.test(t)) continue;
+      const r = await sharedText(u, { signal: AbortSignal.timeout(12000) });
+      if (r.status < 200 || r.status >= 300) continue;
+      const t = r.text; if (/^\s*</.test(t)) continue;
       const j = JSON.parse(t) as Record<string, unknown>; if (!j || !j[ok]) continue;
       return j as T;
     } catch { /* 다음 길 */ }

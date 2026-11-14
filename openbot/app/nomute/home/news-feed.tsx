@@ -14,6 +14,7 @@ import { homePool } from "./home-pool";
 import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
 import { rssFirst } from "./rss-first";
 import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, shownScore } from "./event-score";   // 카드 점수 · 차례 = 뉴스 알고리즘 하나(형 11-11 08:53 봄 1:1 「글구 메인화면에서 그 점수 별로 카드 보이는거 잇지? 그거 점수마다 보여야 함 한 알고리즘 대로」 · 아래 Hot Issue 와 같은 맞추기)
+import { sharedText } from "../ui/news-data";   // 3초 안 같은 주소 = 한 번만(빠르 11-14)
 
 const CHANNEL = "nomute-modern-home";
 export const ALPHA_EVERY = [0, 6, 4, 2], ALPHA_KEY = "nm_home_alpha";   // 에디터 modern-workspace.js 와 같은 값·같은 열쇠(같은 주소 = 같은 기기 설정)
@@ -30,9 +31,9 @@ declare global { interface Window { ModernData?: Modern } }
 export async function firstJson<T>(urls: string[], ok: (v: T) => boolean = () => true): Promise<T | null> {   // 에디터와 같은 차례(api 먼저 → 정적) · HTML 폴백(200) 거름
   for (const u of urls) {
     try {
-      const r = await fetch(u, { cache: "no-store", credentials: "same-origin" });
-      if (!r.ok) continue;
-      const t = await r.text();
+      const r = await sharedText(u);   // 3초 안 같은 주소 = 한 번만(오른쪽 뉴스 칸 · 홈 피드가 같이 뜸 · 빠르 11-14)
+      if (r.status < 200 || r.status >= 300) continue;
+      const t = r.text;
       if (/^\s*</.test(t)) continue;
       const v = JSON.parse(t) as T;
       if (ok(v)) return v;

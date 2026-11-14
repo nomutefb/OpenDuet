@@ -44,8 +44,8 @@ const msgsQuery = queryOptions({
     const [raw, trends, ig, fb, seen] = await Promise.all([
       getJson<Msg[]>(`/messages.json?_=${Date.now()}`).catch(() => [] as Msg[]),
       firstJson<{ updated?: string }>([`/api/trends?_=${Date.now()}`, `/sns_trends.json?t=${Date.now()}`], (v) => !!v.updated),   // 원본 loadTrends 차례(updated 없으면 다음 길)
-      firstJson<{ generated_kst?: string }>(["/api/chan?f=ig", `/insta_data.json?ts=${Date.now()}`], (v) => !!v.generated_kst),
-      firstJson<{ generated_kst?: string }>(["/api/chan?f=fb", `/fb_data.json?ts=${Date.now()}`], (v) => !!v.generated_kst),
+      firstJson<{ generated_kst?: string }>(["/api/chan?f=ig", "/insta_data.json"], (v) => !!v.generated_kst),
+      firstJson<{ generated_kst?: string }>(["/api/chan?f=fb", "/fb_data.json"], (v) => !!v.generated_kst),
       getJson<Seen>(`/toast-seen.json?_=${Date.now()}`).catch(() => ({}) as Seen),
     ]);
     const cut = Date.now() - 24 * 36e5;   // 원본 loadMessages = 24시간 지난 것 숨김
