@@ -1,0 +1,7 @@
+/* 형 손 2분 없으면 장식 움직임 쉼(./calm.ts · 11-14 형 맥 뜨거움) — 멈춘 자리 그대로 · 손 대면 이어서 돎 */
+html.nm-calm .nm-split-root .nm-face.on::before,
+html.nm-calm .nm-arc,
+html.nm-calm .t-shimmer,
+html.nm-calm .ytdots i,
+html.nm-calm .nm-lazy i,
+html.nm-calm .live { animation-play-state:paused !important; }
