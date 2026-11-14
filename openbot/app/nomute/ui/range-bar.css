@@ -1,0 +1,45 @@
+/* 기간 막대(./range-bar.tsx) — 본 = 형 11-15 영상 · 색 = 앱 라임 · 움직임 = 한 번 재생하고 끝 · 값 = ./press.css 말투(--e-out · --e-spring) */
+.nm-rb { --rb-h:32px; position:relative; margin-top:8px; user-select:none; -webkit-user-select:none; color:#e8eae8; }
+html:not(.dark) .nm-rb { color:#161716; }
+.nm-rb-track { position:relative; height:var(--rb-h); touch-action:none; }   /* 가로로 끄는 동안 화면이 같이 안 밀림 */
+.nm-rb-ticks { position:absolute; inset:0; display:flex; gap:3px; pointer-events:none; }
+.nm-rb-ticks i { flex:1 1 0; min-width:0; border-radius:7px; background:color-mix(in srgb, currentColor 7%, transparent); transition:border-radius .3s var(--e-out,cubic-bezier(.2,.8,.2,1)), margin .3s var(--e-out,cubic-bezier(.2,.8,.2,1)); }
+.nm-rb-bar { position:absolute; top:0; bottom:0; min-width:34px; display:grid; place-items:center; border-radius:10px; background:var(--accent, #CFFF40); color:#161716; cursor:grab; outline:0;
+  box-shadow:0 4px 14px rgba(207,255,64,.16), inset 0 1px 0 rgba(255,255,255,.35);
+  transition:left .38s var(--e-spring,cubic-bezier(.34,1.56,.64,1)), width .38s var(--e-spring,cubic-bezier(.34,1.56,.64,1)), transform .12s ease, box-shadow .2s ease; }
+html:not(.dark) .nm-rb-bar { background:#4f7a00; color:#fff; box-shadow:0 4px 14px rgba(79,122,0,.2), inset 0 1px 0 rgba(255,255,255,.25); }
+.nm-rb-bar:focus-visible { box-shadow:0 0 0 2px color-mix(in srgb, currentColor 60%, transparent); }
+.nm-rb[data-drag] .nm-rb-bar { transition:transform .12s ease, box-shadow .2s ease; cursor:grabbing; }   /* 끄는 중 = 자리 전환 끔(손가락을 그대로 따라감) */
+.nm-rb[data-drag="move"] .nm-rb-bar { transform:scaleY(1.06); box-shadow:0 8px 22px rgba(207,255,64,.26), inset 0 1px 0 rgba(255,255,255,.35); }
+/* 손잡이 = 양끝 흰 알약 · 닿는 자리는 넉넉히(::after) */
+.nm-rb-grip { position:absolute; top:5px; bottom:5px; width:9px; border-radius:5px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.28); cursor:ew-resize; outline:0; transition:transform .16s var(--e-spring,cubic-bezier(.34,1.56,.64,1)), opacity .2s ease; }
+.nm-rb-grip::before { content:""; position:absolute; left:50%; top:50%; width:1px; height:8px; margin:-4px 0 0 -1.5px; border-left:1px solid rgba(0,0,0,.35); border-right:1px solid rgba(0,0,0,.35); padding-left:2px; }
+.nm-rb-grip.a { left:4px; } .nm-rb-grip.b { right:4px; }
+.nm-rb-bar, .nm-rb-grip { touch-action:none; }   /* 어디를 잡았나는 눈금 줄이 누른 자리로 가름(./range-bar.tsx down) — 손잡이는 그림 · 글쇠만 */
+.nm-rb-grip:focus-visible { box-shadow:0 0 0 2px #161716; }
+.nm-rb[data-drag="a"] .nm-rb-grip.a, .nm-rb[data-drag="b"] .nm-rb-grip.b { transform:scale(1.18); }
+/* 누른 자리 고리(끄는 동안만) */
+.nm-rb-halo { position:absolute; left:var(--px, 0px); top:50%; width:38px; height:38px; margin:-19px 0 0 -19px; border-radius:50%; border:1.5px solid color-mix(in srgb, currentColor 34%, transparent); pointer-events:none; opacity:0; transform:scale(.55);
+  transition:opacity .16s ease, transform .22s var(--e-out,cubic-bezier(.2,.8,.2,1)); }
+.nm-rb[data-drag] .nm-rb-halo { opacity:1; transform:scale(1); }
+/* 굴러가는 숫자 */
+.nm-rb-roll { display:inline-flex; align-items:center; font-size:12px; font-weight:650; letter-spacing:-.1px; font-variant-numeric:tabular-nums; line-height:1; white-space:nowrap; pointer-events:none; }
+.nm-rb-roll .d { display:inline-block; height:1em; overflow:hidden; }
+.nm-rb-roll .d > span { display:flex; flex-direction:column; transition:transform .2s var(--e-out,cubic-bezier(.2,.8,.2,1)); will-change:transform; }
+.nm-rb-roll .d i { height:1em; font-style:normal; }
+.nm-rb-roll .c { white-space:pre; }
+.nm-rb[data-drag] .nm-rb-roll .d > span { transition-duration:.09s; }   /* 끄는 중 = 짧게(숫자가 손을 안 놓침) */
+.nm-rb-axis { display:flex; justify-content:space-between; margin-top:6px; font-size:10px; opacity:.42; font-variant-numeric:tabular-nums; }
+.nm-rb-sum { margin:8px 0 0; font-size:12px; opacity:.78; display:flex; align-items:center; flex-wrap:wrap; }
+.nm-rb-sum .nm-rb-roll { font-weight:560; }
+.nm-rb-sum .p { white-space:pre; }
+.nm-rb-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* 잠김(못 바꾸는 자리) = 눈금이 한 덩이로 · 손잡이 숨김 · 빈 쪽에 자물쇠 */
+.nm-rb[data-lock] .nm-rb-ticks { gap:0; }
+.nm-rb[data-lock] .nm-rb-ticks i { border-radius:0; }
+.nm-rb[data-lock] .nm-rb-ticks i:first-child { border-radius:9px 0 0 9px; } .nm-rb[data-lock] .nm-rb-ticks i:last-child { border-radius:0 9px 9px 0; }
+.nm-rb[data-lock] .nm-rb-bar { cursor:default; }
+.nm-rb[data-lock] .nm-rb-grip { opacity:0; pointer-events:none; }
+.nm-rb-lock { position:absolute; top:50%; transform:translate(-50%, -50%); opacity:.4; display:grid; pointer-events:none; }
+.nm-rb-lock[hidden] { display:none; }
+@media (prefers-reduced-motion:reduce) { .nm-rb-bar, .nm-rb-grip, .nm-rb-halo, .nm-rb-roll .d > span, .nm-rb-ticks i { transition:none; } }
