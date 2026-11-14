@@ -98,3 +98,10 @@ test("저장 · 전송 단추 = 게이지 알약(GoButton) 하나로 — 제 「
   }
   assert.match(rd("../ui/go-button.tsx"), /export const must = \(fn: \(\) => Promise<boolean \| void>\) => async \(\) => \{ if \(\(await fn\(\)\) === false\) throw new Error\(""\); \};/);
 });
+
+test("보안 서랍 = 서버가 가려 준 꼴만 보임 · 설정 설명글 0(형 11-15 「노출 가능한 부분은 보이고 나머지늠 ***로 표기」 · 「설정에 설명글잇는것좀 없애주라」)", () => {
+  const se = readFileSync(new URL("../ui/settings-extra.tsx", import.meta.url), "utf8"), pt = readFileSync(new URL("../ui/pin-tint.tsx", import.meta.url), "utf8");
+  assert.match(se, /\{s\.set && s\.hint \? <code [^>]*>\{s\.hint\}<\/code> : null\}/);
+  assert.doesNotMatch(se, /자리 열쇠를 처음 한 번만 붙여 넣으면/);
+  assert.doesNotMatch(pt, /진하기를 골라\./);
+});

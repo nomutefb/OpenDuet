@@ -18,7 +18,6 @@ export function PinTintSetting() {
   const a = usePinAlpha();
   return (
     <div className="flex flex-col gap-3 p-1">
-      <p className="text-sm text-muted-foreground">고정한 방 줄 바탕을 그 프로필 색(단체방 · 색 없는 방은 라임)으로 칠해. 진하기를 골라.</p>
       <div className="flex items-center gap-3">
         <input type="range" min={5} max={100} step={5} value={a} aria-label="고정 줄 색 진하기" className="flex-1" onChange={(e) => setPinAlpha(+e.target.value)} />
         <b className="w-12 text-right tabular-nums">{a}%</b>
