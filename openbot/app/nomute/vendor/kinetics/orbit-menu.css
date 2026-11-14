@@ -1,0 +1,14 @@
+/*
+ * Vendored from Kinetics (nomutefb/kinetics) · public/css/effects-a.css 264~269줄 「Orbital Action Menu」(src/content/body.html .demo-orbit-menu)
+ * commit 3972609430f9b200ca83b9da05e958a69436950c (2026-10-25)
+ * © 2026. nomute (nomutefb@pm.me, github). All rights reserved. — see that repo's LICENSE.
+ *
+ * 값 = 원문 그대로. 바꾼 것 하나: 펼치는 손 `:hover` → `.on`(폰은 올려 두기가 없어 누름으로 켬)
+ * 자리(9시 · 10시 반 · 12시) · 크기 · 유리 옷 · 색 토큰(--amber · --card-2 …)은 ../../ui/plus-fan.css 가 줌
+ */
+.demo-orbit-menu { position: relative; width: 126px; height: 126px; display: grid; place-items: center; }
+.demo-orbit-core, .demo-orbit-action { position: absolute; display: grid; place-items: center; border-radius: 50%; }
+.demo-orbit-core { z-index: 2; width: 46px; height: 46px; background: var(--amber); color: var(--graphite); font-size: 27px; transition: transform .42s var(--spring); }
+.demo-orbit-action { width: 31px; height: 31px; background: var(--card-2); border: 1px solid var(--line); color: var(--bone-dim); font-size: 14px; opacity: 0; transition: transform .46s var(--spring), opacity .2s ease; }
+.demo-orbit-menu.on .demo-orbit-core { transform: rotate(45deg) scale(.88); }
+.demo-orbit-menu.on .action-n { transform: translateY(-48px); opacity: 1; }.demo-orbit-menu.on .action-e { transform: translateX(48px); opacity: 1; }.demo-orbit-menu.on .action-s { transform: translateY(48px); opacity: 1; }.demo-orbit-menu.on .action-w { transform: translateX(-48px); opacity: 1; }

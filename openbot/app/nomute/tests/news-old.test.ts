@@ -53,7 +53,15 @@ test("뉴스 에디터 = 맨 위 넣는 줄 0 · 오른쪽 아래 「요약」 �
   assert.match(fan, /const items: \[string, string\]\[\] = \[\["\/ask", "뉴스 요약"\], \["\/edtool", "이미지 에디터"\], \["\/edvid", "비디오 에디터"\]\];/, "「+」 펼침 셋(형 19:23)");
   assert.match(ned, /<PlusFan go=\{go\} \/>/);
   assert.match(ncss, /\.nm-ned-plus \{[^}]*position:absolute;[^}]*right:14px; bottom:calc\(var\(--duet-tab-space,86px\) \+ 8px\)/, "대화방 목록 「+」 자리 그대로");
-  assert.match(ncss, /\.nm-ned-plus\.on \.nm-ned-plus-main svg \{ transform:rotate\(135deg\); \}/);
+  // 꼴 = 9시 → 12시로 셋 · 그림 단추 · 유리(형 11-15 「9시에서 12시로 3개가 펼쳐지게 … 픽토그램식으로 · Kinetics orbital menu … 글래스모피즘」) · 몸 = Kinetics 원문 값
+  const orbit = rd("../vendor/kinetics/orbit-menu.css");
+  assert.match(orbit, /\.demo-orbit-menu\.on \.demo-orbit-core \{ transform: rotate\(45deg\) scale\(\.88\); \}/);
+  assert.match(orbit, /\.demo-orbit-action \{[^}]*opacity: 0; transition: transform \.46s var\(--spring\), opacity \.2s ease; \}/);
+  assert.match(fan, /const at = \["action-w", "action-nw", "action-n"\];/, "9시 · 10시 반 · 12시");
+  assert.match(fan, /className=\{`nm-ned-plus-i demo-orbit-action \$\{at\[i\]\}`\}[^>]*aria-label=\{t\} title=\{t\}/, "그림만 · 이름은 읽어 주기");
+  assert.match(ncss, /\.nm-ned-plus\.on \.action-nw \{ transform:translate\(calc\(var\(--rd\) \* -1\), calc\(var\(--rd\) \* -1\)\); opacity:1;/);
+  assert.match(ncss, /\.nm-ned-plus\.on \.nm-ned-plus-i \{ pointer-events:auto; -webkit-backdrop-filter:blur\(14px\) saturate\(1\.5\)/, "유리 흐림 = 펼친 동안만");
+  assert.doesNotMatch(ncss + orbit, /infinite/);
   assert.ok(!/nm-ned-send|nm-ned-btn/.test(ncss));
   assert.match(ask, /import \{ isForeignUrl \} from "\.\.\/home\/quick-send";/);
   assert.match(ask, /if \(fpHand\) return; const fp = isForeignUrl\(autoUrl\) \? 1 : 0;/);
