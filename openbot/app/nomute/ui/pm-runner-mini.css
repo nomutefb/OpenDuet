@@ -7,8 +7,8 @@
 .nm-pmrun-kids li { display: flex; gap: 6px; align-items: baseline; white-space: nowrap; overflow: hidden; }
 .nm-pmrun-kids b { min-width: 3.2em; color: #e8eae8; }
 .nm-pmrun-kids span { color: rgba(232, 234, 232, .6); }
-.nm-pmrun-kids li.s-awake span { color: #CFFF40; }
-.nm-pmrun-kids li.s-unknown span { color: #ff8a7a; }
+.nm-pmrun-kids li.s-work span { color: #CFFF40; }
+.nm-pmrun-kids li.s-lost span { color: #ff8a7a; }   /* 빨강 = 서버가 멈춤으로 판정한 줄만(쉼 · 모름 = 흐린 글) */
 .nm-pmrun-kids small { color: rgba(232, 234, 232, .45); overflow: hidden; text-overflow: ellipsis; }
 .nm-pmrun-g { zoom: .62; }
 .nm-pmrun-g .nm-rgx-panel { display: none; }   /* 기계 계기(WIN · MAC · LX 게이지) 가림 = 조약돌 · 러너 여섯 점만(깃 23:03) */

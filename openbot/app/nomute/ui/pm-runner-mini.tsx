@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { office } from "../data/office";
 import { RunnerGauges } from "./runner-gauges";
+import { miniLine, type MiniRow } from "./pm-runner-mini-logic";
 import "./pm-runner-mini.css";
 
 function usePmRoom(): string | null {
@@ -13,14 +14,15 @@ function usePmRoom(): string | null {
   return pm && rooms ? rooms.find((r) => (r.kind === "dm" || r.id.startsWith("dm-")) && r.name === pm)?.id || null : null;
 }
 
-const ST: Record<string, string> = { awake: "일함", asleep: "쉼", unknown: "멈춤?" };   // 서버 bots state 실물 = awake · asleep · unknown(11-14 23:2x)
-function Kids() {   // 봇 현황(설정 「지금 봇」과 같은 bots 자료 · 같은 캐시 열쇠 · 열렸을 때만 60초)
-  const q = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string; why?: string }[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000, staleTime: 30_000 });
-  const rows = q.data || [];
+function Kids() {   // 봇 현황 = 서버 활동 판정 그대로(GET status/activity · 봇 현황 한 장 · 작동 표 활동 칸과 같은 줄 · 열렸을 때만 60초)
+  //   옛 bots 자료(깸 · 잠 · 모름)는 쉬는 그록 · 카리나를 「멈춤?」으로, 일하는 클로드를 「쉼」으로 냈음(형 11-14 23:4x 클라우드 세션 창 「멈춤? 이렇게 뜨는거 없어야 함」)
+  //   작업 알림(기차봇) = 활동 줄에 없는 자리라 안 나옴(형 「러너맵에 기차 는 나올 필요없음」)
+  const q = useQuery({ queryKey: ["nomute", "activity"], queryFn: () => office<{ rows?: MiniRow[] }>("status/activity").then((j) => j.rows || []), refetchInterval: 60_000, staleTime: 30_000 });
+  const rows = (q.data || []).map(miniLine);
   if (!rows.length) return null;
   return (
     <ul className="nm-pmrun-kids" aria-label="애들 지금">
-      {rows.map((b) => <li key={b.who} className={`s-${b.state}`}><b>{b.who}</b><span>{ST[b.state] || b.state}</span>{b.why ? <small>{b.why}</small> : null}</li>)}
+      {rows.map((b) => <li key={b.name} className={`s-${b.kind}`}><b>{b.name}</b><span>{b.label}</span>{b.sub ? <small>{b.sub}</small> : null}</li>)}
     </ul>
   );
 }
