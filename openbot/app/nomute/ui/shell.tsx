@@ -74,7 +74,8 @@ const KwModal = lazy(() => import("./kw").then((m) => ({ default: m.KwModal })))
 const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 서랍 「구독 채널」 = 에디터 설정 ▸ 구독 채널을 앱 안으로(봄 11-01)
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
 const SensorModal = lazy(() => import("./sensor").then((m) => ({ default: m.SensorModal })));   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
-const ThumbMaker = lazy(() => import("./thumb-maker"));   // 서랍 「에디터」 = 썸네일 생성기 앱 안(형 11-02 09:28 「이거 아예 이 디자인하고 배경 살려서 인앱 안으로 넣어줘」 · 원본 엔진·CSS 가 커서 열 때만 받음)
+import { EdKeep } from "./ed-keep";   // 이미지 편집 = 접어도 살아 있는 한 겹(최소화 ▽ · 형 11-15 · 원본 엔진은 그 안에서 열 때만 받음)
+import { edAlive, edChip, edKeptNext } from "./ed-keep-logic";
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomIcon, RoomList, useRoomOrder } from "./room-list";
 import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
@@ -175,6 +176,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const layer = web != null || issue != null;   // #/web · #/issue = 앞 모달 위 한 겹
   const modal = "modal" in where ? where.modal : layer ? under : null;
   useEffect(() => listenAppLinks(), []);
+  const [edKept, setEdKept] = useState(false);   // 이미지 편집 접어 둠(최소화 · ./ed-keep.tsx) — 주소를 벗어나도 살려 둠
+  useEffect(() => { if (modal === "edtool") setEdKept((k) => edKeptNext(k, "open")); }, [modal]);
   // 방에 들어올 때 = 바로 앞 칸이 대화 목록이 아니면 목록을 한 칸 깔고 그 위에 방(형 11-14 19:41 깃 옮김 「글구 대화에서 항상 뒤로가기하면 대화목록이 나오게 해주라.」)
   //   = 앱 「<」 · 폰 뒤로 · 브라우저 뒤로 어느 길이든 뒤 칸이 /rooms · 아래 onPop(뒤로 뒤에 바꿔 끼움)은 상태 없는 이동(location.hash =)으로 들어온 방에선 안 걸려 홈으로 새던 것(시아 라이브 실측 = 홈 → 방 → 뒤로 = #/)
   const prevPath = useRef("");
@@ -277,7 +280,10 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             </section>
           ) : null}
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
-          {M ? (
+          {edAlive(modal, edKept) ? (   /* 이미지 편집 = 제 겹(접으면 숨기기만 · ▽ 로 하던 그대로 펼침 · 형 11-15) */
+            <EdKeep open={modal === "edtool"} covered={layer} onClose={() => { setEdKept((k) => edKeptNext(k, "close")); closeModal(); }} onMin={() => { setEdKept((k) => edKeptNext(k, "min")); closeModal(); }} onRestore={() => void nav({ to: "/edtool" })} />
+          ) : null}
+          {M && M.id !== "edtool" ? (
             <ModalBox close={closeModal} className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
               {M.id === "feed" || M.id === "trend" || M.id === "legacy" || M.id === "tokens" || M.id === "gyeol" || M.id === "feedback" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
               {M.id === "edtool" || M.id === "edvid" ? null : (   /* 에디터 = 위 챠콜 머리 줄 통째로 뺌 · ‹ 는 판 머리 「✦ 에디터」 왼쪽(형 11-13 02:24 봄 1:1 「글자를 없애는거 말구, 그냥 위에 네비 챠콜색 저 라인을 다 없애면됨」 · 앞 판 = 글자만 뺌) */
@@ -289,7 +295,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" || M.id === "edvid" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
-                  : M.id === "edtool" ? <Suspense fallback={null}><ThumbMaker onBack={closeModal} /></Suspense>   // 썸네일 생성기 = 원본 판·엔진·배경 그대로(./thumb-maker · 머리 「✧ 에디터 · 카드 제작」 = 옛 index 도구 창 꼴)
                   : M.id === "tasks" ? <div className="nm-scroll"><RepairPage /></div>
                   : M.id === "meetlog" ? <div className="nm-scroll"><MeetLogList /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><StatusBoard /></div>   /* 서랍 「러너」 = 작동 표(형 11-09 08:50 「러너는 5번 서랍 안으로 … 기존거는 없애면 됨 끌고오는거 아님」 · 옛 RunnerScreen 칸 뺌 · 네비 4번 「작동」 은 33) 뉴스 에디터 판에서 바꿈 · 봄 배분 32) */

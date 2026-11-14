@@ -26,6 +26,10 @@ html.dark .tm-menu { color:#CFFF40; }
 .tm-rf { flex:none; display:grid; place-items:center; width:16px; height:16px; margin-left:auto; margin-right:12px; padding:0; border:0; background:none; color:#6f736e; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 html.dark .tm-rf { color:#8B8F8A; }
 .tm-rf:active { transform:scale(.9); }
+/* 최소화 ▽(창 접기 · 형 11-15) = ⟳ 오른쪽 · 닿는 칸 30 */
+.tm-min { flex:none; display:grid; place-items:center; width:30px; height:30px; margin:-4px -8px -4px -4px; padding:0; border:0; border-radius:50%; background:none; color:#6f736e; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+html.dark .tm-min { color:#8B8F8A; }
+.tm-min:active { transform:scale(var(--press-s,.9)); }
 
 /* 판 = 옛 iframe 자리 — 폭·높이 질의·고정 위치의 기준(container) · 스크롤은 그 안 한 칸 */
 .tm-frame { position:relative; z-index:1; flex:1; min-height:0; container:tm / size; -webkit-mask-image:linear-gradient(#000 calc(100% - 32px), transparent); mask-image:linear-gradient(#000 calc(100% - 32px), transparent); }
