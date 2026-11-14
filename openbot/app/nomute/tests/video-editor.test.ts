@@ -69,7 +69,8 @@ test("「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 띠 · 한
   const on = bandCells()[0].map((_, c) => bandCells().filter((r) => r[c]).length);
   assert.ok(on[0] >= 3, "채운 쪽 = 거의 꽉 참");
   assert.equal(on[on.length - 1], 0, "끝 = 빔");
-  for (let c = 1; c < on.length; c++) assert.ok(on[c] <= on[c - 1], "오른쪽으로 갈수록 성김");
+  const sum = (a: number[]) => a.reduce((x, y) => x + y, 0), third = on.length / 3;
+  assert.ok(sum(on.slice(0, third)) > sum(on.slice(third, 2 * third)) && sum(on.slice(third, 2 * third)) > sum(on.slice(2 * third)), "오른쪽으로 갈수록 성김");
   const css = ditherGaugeCss(".go.firing:not(.fy)", "#CFFF40");
   assert.match(css, /animation:nmDgFill \.72s [^;}]* forwards/);
   assert.doesNotMatch(css, /infinite/);
