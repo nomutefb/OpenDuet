@@ -79,6 +79,7 @@ import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
 import { bubbleM, pickM, relayAs } from "./pick-msg";
+import { JobFold, jobOf } from "./job-fold";   // 작업 알림 = 한 줄 접힌 카드(깃 #-019)
 import { asSent, mergeTs, pairOf } from "./pair-fold";   // 둘의 방 귀속(형 11-13 08:29)
 import { Sticker, stickerMark, stickerOf } from "./sticker";
 import { dropStickerTwins } from "./sticker-logic";   // 움짤 스티커 한 줄 = 말풍선 없이 움짤(형 11-12 12:17 · 뜸)
@@ -940,7 +941,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
             <ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} />
             {bundleOf(m) ? <BundleCard b={bundleOf(m)!} id={m.id} srcs={c.srcs?.get(bundleOf(m)!.stem)} /> : pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
-              {stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
+              {jobOf(m) ? <JobFold m={m}><div className="ymd"><Body m={m} nre={c.nre} /></div></JobFold> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
               <BoxCard m={m} />
               <DecideInline id={m.id} />{/* 줄 끝 공백 0 = 말풍선(pre-wrap)에 빈 줄 안 생김(형 11-14 16:53 「말풍선이 한줄씩 공백이 남아」 · 뜸) ·  질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
               <Reactions m={m} c={c} mine={false} />

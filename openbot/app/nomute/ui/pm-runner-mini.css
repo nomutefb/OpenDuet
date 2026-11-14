@@ -1,6 +1,6 @@
 /* PM 방 러너맵 축소판(./pm-runner-mini.tsx · 깃 #-008) — 오른쪽 위 알약 · 펼치면 홈 러너 칸을 줄여 그대로(새로 그리는 것 0 · 움직임 0) */
 .nm-pmrun { display: flex; flex-direction: column; align-items: flex-end; margin: 4px 8px 0 auto; max-width: min(100%, 380px); }
-.nm-pmrun-h { font-size: 12px; line-height: 1; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(207, 255, 64, .35); background: rgba(17, 18, 20, .55); color: #CFFF40; cursor: pointer; }
+.nm-pmrun-h { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; line-height: 1; border-radius: 999px; border: 1px solid rgba(207, 255, 64, .35); background: rgba(17, 18, 20, .55); color: #CFFF40; cursor: pointer; }
 .nm-pmrun-b { margin-top: 6px; width: 100%; border-radius: 14px; overflow: hidden; zoom: .62; }
 .nm-pmrun-b { zoom: 1; background: rgba(17, 18, 20, .72); border: 1px solid rgba(255, 255, 255, .08); padding: 8px 10px; }
 .nm-pmrun-kids { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 3px; font-size: 12px; }
@@ -12,3 +12,12 @@
 .nm-pmrun-kids small { color: rgba(232, 234, 232, .45); overflow: hidden; text-overflow: ellipsis; }
 .nm-pmrun-g { zoom: .62; }
 .nm-pmrun-g .nm-rgx-panel { display: none; }   /* 기계 계기(WIN · MAC · LX 게이지) 가림 = 조약돌 · 러너 여섯 점만(깃 23:03) */
+.nm-pmrun-row { display: flex; gap: 6px; }
+.nm-pmrun-h.on { background: rgba(207, 255, 64, .16); }
+.nm-pmrun-jobs { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 12px; }
+.nm-pmrun-jobs li { display: flex; gap: 6px; align-items: baseline; white-space: nowrap; overflow: hidden; }
+.nm-pmrun-jobs .mk { color: rgba(232, 234, 232, .55); }
+.nm-pmrun-jobs li.done .mk { color: #CFFF40; }
+.nm-pmrun-jobs b { color: #e8eae8; }
+.nm-pmrun-jobs .tt { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; color: rgba(232, 234, 232, .85); }
+.nm-pmrun-jobs small, .nm-pmrun-empty { color: rgba(232, 234, 232, .45); font-size: 12px; margin: 0; }

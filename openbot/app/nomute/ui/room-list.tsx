@@ -109,7 +109,7 @@ export function useRoomOrder() {
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => rank(a.id) - rank(b.id) || head(a.id) - head(b.id) || recent(a, b));
   const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
-  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY), hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
+  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY && r.id !== TRAIN_ROOM)   /* 작업 알림(기차봇 1:1) = 목록에서 숨김 · 완료는 PM 방 접힌 카드 + 리모콘(형 11-14 23:34 「작업 알림은 대화방으로 취급 안하고」 · 깃 #-019) */, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
 }
 
 /** 방 아이콘 = 둥근 네모(사람 = 동그라미라 한눈에 갈림) · 그림 /office/room-<방 id>.webp(뜸 그림 · 있으면 먼저) · 없으면 방 표지 색 바탕 + 방 이름의 이모지(밥상 🍚) 또는 첫 글자 */

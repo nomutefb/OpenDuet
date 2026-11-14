@@ -2,7 +2,8 @@
 //   = 지금 PM(서버 pm 칸)의 1:1 방에서만 · 공지 고정 띠 자리(PinBar 밑) 오른쪽 위 알약 「러너맵」 · 누르면 위 = 애들 한 줄씩(봇 현황 · 일함 · 쉼 · 멈춤 · 까닭) · 아래 = 홈 러너 칸의 조약돌 · 러너 여섯 점(기계 계기는 가림 · 깃 23:03 「기계 계기는 빼도 돼」)
 //   얼마를 먹나 = 닫힘 = 받아오기 0(PM 칸 5분 · 방 목록 10분만) · 열림 = 홈 러너 칸과 같은 자료 · 같은 캐시(status 60초 · schedule 120초 · 숨은 탭 멈춤 = react-query 기본)
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { jobBoard } from "./job-fold";
 import { office } from "../data/office";
 import { RunnerGauges } from "./runner-gauges";
 import { miniLine, type MiniRow } from "./pm-runner-mini-logic";
@@ -27,15 +28,41 @@ function Kids() {   // 봇 현황 = 서버 활동 판정 그대로(GET status/ac
   );
 }
 
+const when = (ts: number) => { const d = new Date(ts); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
+function Jobs({ pmRoom }: { pmRoom: string }) {   // 접수 · 완료 = PM 1:1 글 중 작업 알림(relay job_recv · job_done) + 옛 작업 알림 방(dm-chaeng) · 열렸을 때만 60초 · 숨으면 멈춤
+  const get = (room: string, n: number) => office<{ messages?: { id: string; ts: number; who: string; text: string; relay?: unknown }[] }>(`rooms/${encodeURIComponent(room)}/messages?n=${n}`).then((j) => j.messages || []).catch(() => []);
+  const q = useQuery({ queryKey: ["nomute", "pm-jobs", pmRoom], queryFn: async () => [...(await get(pmRoom, 80)), ...(await get("dm-chaeng", 40))], refetchInterval: 60_000, staleTime: 30_000 });
+  const rows = jobBoard(q.data || []);
+  if (!q.data) return <p className="nm-pmrun-empty">불러오는 중…</p>;
+  if (!rows.length) return <p className="nm-pmrun-empty">접수 · 완료 없음</p>;
+  return (
+    <ul className="nm-pmrun-jobs" aria-label="접수 · 완료">
+      {rows.map((j) => <li key={j.no || j.id} className={j.kind}><span className="mk" aria-hidden>{j.kind === "done" ? "✓" : "↘"}</span>{j.no ? <b>{j.no}</b> : null}<span className="tt">{j.title}</span><small>{j.kind === "done" ? "완료" : "접수"} {when(j.ts)}</small></li>)}
+    </ul>
+  );
+}
+
+const GRID = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>;
+const CHECKS = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 6l2 2 3-3" /><path d="M3 13l2 2 3-3" /><path d="M11 7h10" /><path d="M11 14h10" /><path d="M11 20h10" /></svg>;
+
+/** PM 방 리모콘(깃 #-019) = 오른쪽 위 픽토그램 알약 줄 · ① 러너맵(#-008) ② 접수 · 완료 · 한 번에 하나만 펼침 · 판 밖 누르면 닫힘 · 늘 닫힌 채 시작(형 23:32 「다른 쪽 클릭하면 바로 닫히게」 · 「픽토그램으로 바꿔줘 얼굴모양 봇모양 말고」) */
 export function PmRunnerMini({ room }: { room: string }) {
   const pmRoom = usePmRoom();
-  const [open, setOpen] = useState(() => { try { return localStorage.getItem("nm-pm-runner") === "1"; } catch { return false; } });
+  const [open, setOpen] = useState<"" | "run" | "job">("");
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const off = (e: PointerEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(""); };
+    document.addEventListener("pointerdown", off, true);
+    return () => document.removeEventListener("pointerdown", off, true);
+  }, [open]);
   if (!pmRoom || room !== pmRoom) return null;
-  const toggle = () => setOpen((o) => { const n = !o; try { localStorage.setItem("nm-pm-runner", n ? "1" : "0"); } catch { /* 이번만 */ } return n; });
+  const pill = (k: "run" | "job", label: string, icon: JSX.Element) => <button type="button" className={`nm-pmrun-h${open === k ? " on" : ""}`} onClick={() => setOpen((o) => (o === k ? "" : k))} aria-expanded={open === k} aria-label={label} title={label}>{icon}</button>;
   return (
-    <div className={`nm-pmrun${open ? " open" : ""}`}>
-      <button type="button" className="nm-pmrun-h" onClick={toggle} aria-expanded={open}>러너맵 <span aria-hidden>{open ? "▴" : "▾"}</span></button>
-      {open ? <div className="nm-pmrun-b"><Kids /><div className="nm-pmrun-g"><RunnerGauges /></div></div> : null}
+    <div ref={box} className={`nm-pmrun${open ? " open" : ""}`}>
+      <div className="nm-pmrun-row">{pill("run", "러너맵", GRID)}{pill("job", "접수 · 완료", CHECKS)}</div>
+      {open === "run" ? <div className="nm-pmrun-b"><Kids /><div className="nm-pmrun-g"><RunnerGauges /></div></div> : null}
+      {open === "job" ? <div className="nm-pmrun-b"><Jobs pmRoom={pmRoom} /></div> : null}
     </div>
   );
 }
