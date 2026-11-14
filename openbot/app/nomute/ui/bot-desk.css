@@ -1,0 +1,14 @@
+/* 서랍 「봇 현황」(./bot-desk.tsx) — 틀 · 표 = 작동 표 것 그대로(./status-board.css .nsb · .nsb-top · .nsb-cat · .nsb-acct) · 여기선 칸 색 갈래와 붙박이 첫 칸만(새 색 0) */
+.nm-botdesk .nsb-acct table { min-width:0; font-variant-numeric:tabular-nums; }
+.nm-botdesk .nsb-acct tbody tr { cursor:default; }
+.nm-botdesk .nsb-acct td { white-space:nowrap; }
+.nm-botdesk .nsb-acct td.wrap { white-space:normal; min-width:22em; }   /* 비고 = 한두 줄(줄 높이가 들쭉날쭉하지 않게) */
+.nm-botdesk .nsb-acct tbody th, .nm-botdesk .nsb-acct thead th:first-child { position:sticky; left:0; z-index:1; background:#151515; }   /* 옆으로 밀어도 이름은 남음(.nsb-idx .fix 와 같은 바탕) */
+.nm-botdesk .mx td, .nm-botdesk .mx thead th:not(:first-child) { text-align:center; }
+.nm-botdesk .t-ok { color:var(--nsb-ok); font-weight:700; }
+.nm-botdesk .t-lost { color:var(--nsb-red); font-weight:700; }
+.nm-botdesk .t-dim { color:var(--nsb-mut); }
+.nm-botdesk .nsb-ch { cursor:default; }
+.nm-botdesk .nsb-ch small { margin-left:auto; font-size:var(--fs-xs); color:var(--nsb-mut); }
+.nm-botdesk .legend { margin:0 14px 8px; font-size:var(--fs-xs); color:var(--nsb-mut); }
+:root:not(.dark) .nm-botdesk .nsb-acct tbody th, :root:not(.dark) .nm-botdesk .nsb-acct thead th:first-child { background:#fff; }
