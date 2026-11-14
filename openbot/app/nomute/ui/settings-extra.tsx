@@ -4,6 +4,7 @@
 //   옛 그록 대화(GET old · 봇 → 날 → 글 · 읽기만) · 맨 아래 「지금 판」(형이 새 판인지 눈으로 · 10-28 10:51 「웹앱이 자동으로 버전업이 안되네」)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { PageSection } from "@/components/layout/page-shell";
 import { idOf, type Meter, type MeterRow, office, people } from "../data/office";
 import type { SchedGpu } from "./sched-gpu";   // GPU 칸(형 11-05 09:43 · 뜸)
@@ -437,7 +438,7 @@ type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean
 export function NomuteVault() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["nomute", "seatvault"], queryFn: () => office<{ seats: VaultSeat[] }>("seatvault").then((j) => j.seats || []), staleTime: 60_000 });
-  const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({});
+  const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [ask, setAsk] = useState("");
   const put = useMutation({
     mutationFn: (v: { seat: string; value: string }) => office<{ match: boolean }>("seatvault", { method: "POST", body: JSON.stringify(v) }),
     onSuccess: (j, v) => { setDraft((d) => ({ ...d, [v.seat]: "" })); setNote((n) => ({ ...n, [v.seat]: j.match ? "넣었어 · 열쇠 맞음" : "넣었어 · 이 자리 열쇠와 안 맞아(다시 확인)" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
@@ -473,13 +474,25 @@ export function NomuteVault() {
                 <button type="button" disabled={!s.set} onClick={() => void copy(s.seat)} className="rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-40">복사</button>
               </div>
               {!s.set ? (
-                <button type="button" disabled={mint.isPending} onClick={() => { if (window.confirm(`${s.seat.replace("자리", "자리 ")} 새 열쇠를 만들까? 앞 열쇠는 꺼져.`)) mint.mutate(s.seat); }} className="self-start text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40">새 열쇠 만들기</button>
+                <button type="button" disabled={mint.isPending} onClick={() => setAsk(s.seat)} className="self-start text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40">새 열쇠 만들기</button>
               ) : null}
               {note[s.seat] ? <p role="status" className="text-xs text-muted-foreground">{note[s.seat]}</p> : null}
             </li>
           ))}
         </ul>
       </Card>
+      {ask ? createPortal(
+        <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setAsk("")}>
+          <div role="alertdialog" aria-label="새 열쇠 만들기" className="w-full max-w-xs rounded-2xl border border-border bg-background p-5 text-center" onClick={(e) => e.stopPropagation()}>
+            <p className="text-sm">열쇠를 새로 만드시겠습니까?<br />앞 열쇠는 무효화됩니다.</p>
+            <div className="mt-4 flex justify-center gap-2">
+              <button type="button" onClick={() => setAsk("")} className="rounded-lg border border-border px-4 py-1.5 text-sm">취소</button>
+              <button type="button" disabled={mint.isPending} onClick={() => { mint.mutate(ask); setAsk(""); }} className="rounded-lg border border-border px-4 py-1.5 text-sm font-semibold disabled:opacity-40">만들기</button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      ) : null}
       {q.isError ? <p className="mt-2 text-xs text-destructive">{q.error instanceof Error ? q.error.message : "서랍을 못 열었어"}</p> : null}
     </PageSection>
   );
