@@ -20,11 +20,19 @@ const load = () => (libP ||= (async () => {
   } catch { return null; }
 })());
 
-// 한 박자 돌림(30fps 상한 · 숨은 탭·움직임 줄이기 = 멈춤) — 조약돌 여럿이 rAF 하나를 같이 씀
-type Live = { el: SVGSVGElement; eng: Engine; body: SVGPathElement; back: SVGPathElement; edge: SVGPathElement | null; eyes: SVGPathElement[]; g: SVGGElement; off: number };
+// 한 박자 돌림(20fps 상한 · 숨은 탭·움직임 줄이기 = 멈춤) — 조약돌 여럿이 rAF 하나를 같이 씀
+//   11-14 형 맥 뜨거움(봄 08:43 실측 · 브레이브 그래픽 59% · 시아 = 정원 2560 창 가만히 둔 15초 레이아웃 446회 → 조약돌 끄면 2회): 모양 · 움직임 꼴은 그대로 두고
+//   ① 화면에 보이는 조약돌만 그림(IntersectionObserver · 숨은 칸 · 접힌 판 · 스크롤 밖 = 그 자리 멈춤) ② 형 손이 2분 없으면 쉼 · 손 대면 바로 다시 ③ 30 → 20fps
+type Live = { el: SVGSVGElement; eng: Engine; body: SVGPathElement; back: SVGPathElement; edge: SVGPathElement | null; eyes: SVGPathElement[]; g: SVGGElement; off: number; vis: boolean };
 const live = new Set<Live>();
 let raf = 0, last = 0;
 const t0 = typeof performance !== "undefined" ? performance.now() : 0;
+export const BLOUB_STEP_MS = 50, BLOUB_IDLE_MS = 120_000;
+let touched = typeof performance !== "undefined" ? performance.now() : 0;
+/** 순수 — 이번 박자에 그릴지(node 시험) */
+export const bloubDue = (now: number, lastDraw: number, lastTouch: number, step = BLOUB_STEP_MS, idle = BLOUB_IDLE_MS) => now - lastTouch < idle && now - lastDraw >= step;
+export const bloubIdle = (now: number, lastTouch: number, idle = BLOUB_IDLE_MS) => now - lastTouch >= idle;
+const seen = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver((es) => { for (const e of es) for (const b of live) if (b.el === e.target) b.vis = e.isIntersecting; run(); }) : null;
 function draw(b: Live, t: number) {
   const f = b.eng.sample(b.off + t);
   b.body.setAttribute("d", f.bodyPath); b.back.setAttribute("d", f.bodyPath); b.edge?.setAttribute("d", f.bodyPath);
@@ -36,14 +44,19 @@ function run() {
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const step = (now: number) => {
     raf = 0;
-    for (const b of live) if (!b.el.isConnected) live.delete(b);
+    for (const b of live) if (!b.el.isConnected) { live.delete(b); seen?.unobserve(b.el); }
     if (!live.size) return;
-    if (now - last >= 33) { last = now; const t = still ? 0 : (now - t0) / 1000; live.forEach((b) => draw(b, t)); }
-    if (!still && !document.hidden) raf = requestAnimationFrame(step);
+    if (bloubIdle(now, touched)) return;   // 쉼 = rAF 0(손 대면 wake())
+    if (bloubDue(now, last, touched)) { last = now; const t = still ? 0 : (now - t0) / 1000; live.forEach((b) => { if (b.vis) draw(b, t); }); }
+    if (!still && !document.hidden && [...live].some((b) => b.vis)) raf = requestAnimationFrame(step);
   };
   raf = requestAnimationFrame(step);
 }
-if (typeof document !== "undefined") document.addEventListener("visibilitychange", () => { if (!document.hidden) run(); });
+const wake = () => { const was = bloubIdle(performance.now(), touched); touched = performance.now(); if (was) run(); };
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) run(); });
+  for (const k of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) window.addEventListener(k, wake, { passive: true, capture: true });
+}
 
 let uid = 0;
 /** 조약돌 하나 — who = 열쇠(bom·winter·sia·deng·fast·neo·eyes) · asleep = 회색 몸(테 없음) · 바탕 = paper(몸 아래 판 · 눈 구멍으로 비침) */
@@ -70,10 +83,10 @@ export function Bloub({ who, asleep = false, size = 18, paper = "#0b0b0c", title
       const edge = rim ? mk("path", { fill: "none", stroke: rim, "stroke-width": 24 }) : null;
       g.append(back, m); if (edge) g.append(edge);
       svg.append(defs, g);
-      mine = { el: svg, eng, body, back, edge, eyes, g, off: Math.random() * 30 };
-      live.add(mine); draw(mine, 0); run();
+      mine = { el: svg, eng, body, back, edge, eyes, g, off: Math.random() * 30, vis: !seen };
+      live.add(mine); draw(mine, 0); seen?.observe(svg); run();
     });
-    return () => { gone = true; if (mine) live.delete(mine); };
+    return () => { gone = true; if (mine) { live.delete(mine); seen?.unobserve(mine.el); } };
   }, [who, asleep, paper]);
   return (
     <svg ref={ref} className="nm-bloub" viewBox="-158 -158 316 316" width={size} height={size} role="img" aria-label={title || who}>
