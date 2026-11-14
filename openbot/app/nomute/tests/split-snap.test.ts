@@ -32,3 +32,12 @@ test("#-007 대화 칸 폭 풂 = 표지 클래스(:has(.ychat) 0 · 대화 안 �
   assert.match(s, /classList\.contains\("nm-dragging"\)\) later = true/);
   assert.match(s, /dispatchEvent\(new Event\("nm-split-end"\)\)/);
 });
+test("#-038 끄는 동안 대화 칸 폭 그대로 · 놓을 때 한 번 맞춤 · 맨 아래 보던 대화는 맨 아래로(형 11-15 07:04 「① 끄는 동안 글 폭은 그대로 · 손 놓을 때 한 번 맞춤」)", () => {
+  const s = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
+  const i = s.indexOf("function SplitGrip()"), j = s.indexOf("/** 왼쪽 위 러너 게이지 띠"), g = s.slice(i, j);
+  assert.match(g, /col\.style\.width = `\$\{col\.getBoundingClientRect\(\)\.width\}px`/);
+  assert.match(g, /sec\.style\.overflow = "hidden"/);
+  const up = g.slice(g.indexOf("const up"));
+  assert.match(up, /thaw\(\)/);
+  assert.match(g, /if \(end && sc\) sc\.scrollTop = sc\.scrollHeight/);
+});

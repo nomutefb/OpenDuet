@@ -381,10 +381,19 @@ function SplitGrip() {
     e.preventDefault();
     const rootEl = (e.currentTarget.closest(".nm-split-root") as HTMLElement | null) || document.body, box = rootEl.getBoundingClientRect();
     const pane = e.currentTarget.closest(".nm-split") as HTMLElement | null;
+    // 끄는 동안 대화 칸 폭 그대로(왼쪽에 붙여 두고 넘치는 쪽은 판이 가림) · 놓을 때 한 번 맞춤(#-038 · 형 11-15 07:04 [결정] 「① 끄는 동안 글 폭은 그대로 · 손 놓을 때 한 번 맞춤(더 매끄러움)」 · 매 장 대화 글 줄바꿈 = 남은 끊김 몫이던 것)
+    const col = document.querySelector<HTMLElement>(".nm-split-l .nm-pane.on .nm-col"), sec = col?.closest<HTMLElement>("section.nm-pane") ?? null;
+    if (col && sec) { col.style.width = `${col.getBoundingClientRect().width}px`; col.style.marginInline = "0"; sec.style.overflow = "hidden"; }
+    const thaw = () => {
+      if (!col || !sec) return;
+      const sc = col.querySelector<HTMLElement>(".ychat .overflow-y-auto"), end = !!sc && sc.scrollHeight - sc.scrollTop - sc.clientHeight < 4;   // 맨 아래 보던 대화 = 맞춘 뒤에도 맨 아래(한 번에 키가 바뀌면 붙음이 풀려 84px 떠 있던 것 · 라이브 실측)
+      col.style.width = ""; col.style.marginInline = ""; sec.style.overflow = "";
+      if (end && sc) sc.scrollTop = sc.scrollHeight;
+    };
     let last = NaN, was = false, cx = 0, raf = 0;
     const at = () => { raf = 0; const s = snapW(((box.right - cx) / box.width) * 100); const c = clampW(s.w); if (c !== last) { last = c; if (pane) pane.style.flexBasis = `${c}%`; else set(c); } const on = s.hit >= 0; if (on !== was) { was = on; setSnap(on); } };
     const move = (ev: PointerEvent) => { cx = ev.clientX; if (!raf) raf = requestAnimationFrame(at); };
-    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); if (raf) { cancelAnimationFrame(raf); at(); } document.body.classList.remove("nm-dragging"); setSnap(false); window.dispatchEvent(new Event("nm-split-end")); if (Number.isNaN(last)) return; set(last); if (pane) pane.style.flexBasis = ""; try { localStorage.setItem(SPLIT_KEY, String(Math.round(last * 10) / 10)); } catch { /* 이번만 */ } };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); if (raf) { cancelAnimationFrame(raf); at(); } document.body.classList.remove("nm-dragging"); setSnap(false); window.dispatchEvent(new Event("nm-split-end")); if (Number.isNaN(last)) { thaw(); return; } set(last); if (pane) pane.style.flexBasis = ""; thaw(); try { localStorage.setItem(SPLIT_KEY, String(Math.round(last * 10) / 10)); } catch { /* 이번만 */ } };
     document.body.classList.add("nm-dragging");
     window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
   };
