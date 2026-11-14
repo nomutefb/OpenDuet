@@ -1,0 +1,4 @@
+/* PM 방 러너맵 축소판(./pm-runner-mini.tsx · 깃 #-008) — 오른쪽 위 알약 · 펼치면 홈 러너 칸을 줄여 그대로(새로 그리는 것 0 · 움직임 0) */
+.nm-pmrun { display: flex; flex-direction: column; align-items: flex-end; margin: 4px 8px 0 auto; max-width: min(100%, 380px); }
+.nm-pmrun-h { font-size: 12px; line-height: 1; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(207, 255, 64, .35); background: rgba(17, 18, 20, .55); color: #CFFF40; cursor: pointer; }
+.nm-pmrun-b { margin-top: 6px; width: 100%; border-radius: 14px; overflow: hidden; zoom: .62; }
