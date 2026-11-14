@@ -32,7 +32,7 @@ const CRON_H = "CRON_TZ=Asia/Seoul ";
 // 시간 고르기(형 11-02 02:23 「시간고르는게 저게 최선인가? 주기랑 시간 고르는 방식이 조금 선택 방식이 비효율이야 인터페이스가」) =
 //   방 「루틴 만들기」(./room-routine.tsx)와 같은 꼴 — 요일 칩 + 「시각 고르기(목록)」 | 「몇 시간마다(시작~끝 · 분)」 · 빠른 칩 · 보낼 땐 cron 줄로(분이 다른 시각은 줄을 나눔)
 //   그림으로 못 그리는 줄(날짜 박힌 한 번짜리 · 분마다 등)은 예전처럼 글자로
-type Pick = { wd: number[]; mode: "times" | "every"; times: string[]; every: number; from: number; to: number; min: number };
+type Pick = { wd: number[]; mode: "times" | "every"; times: string[]; every: number; from: number; to: number; min: number; mins?: number[] };   // mins = 한 시간에 여러 번(「0,30」 = 30분마다 · 실제 「X 급상승」 줄이 이 꼴이라 고르기·기간 막대가 안 뜨던 것)
 const WDK = ["일", "월", "화", "수", "목", "금", "토"];
 const two = (n: number) => String(n).padStart(2, "0");
 const dowOf = (wd: number[]) => { const w = [...new Set(wd)].sort((a, b) => a - b); return w.length === 7 || !w.length ? "*" : w.join(",") === "1,2,3,4,5" ? "1-5" : w.join(",") === "0,6" ? "0,6" : w.join(","); };
@@ -42,23 +42,24 @@ const wdOf = (d: string): number[] | null => {
   for (const t of d.split(",")) { const m = t.match(/^(\d)(?:-(\d))?$/); if (!m) return null; for (let i = +m[1]; i <= (m[2] ? +m[2] : +m[1]); i++) out.push(i % 7); }
   return [...new Set(out)];
 };
-const readPick = (l?: string[]): Pick | null => {   // 고르기로 다 그릴 수 있는 줄만(같은 요일 · 날짜 없음 · 분 숫자)
+const readPick = (l?: string[]): Pick | null => {   // 고르기로 다 그릴 수 있는 줄만(같은 요일 · 날짜 없음 · 분 = 숫자 또는 숫자 목록)
   if (!l?.length) return null;
   let wd: number[] | null = null; const times: string[] = []; let every: Pick | null = null;
   for (const c of l) {
     const p = c.replace(CRON_H, "").trim().split(/\s+/);
-    if (p.length !== 5 || !/^\d+$/.test(p[0]) || p[2] !== "*" || p[3] !== "*") return null;
+    if (p.length !== 5 || !/^\d+(,\d+)*$/.test(p[0]) || p[2] !== "*" || p[3] !== "*") return null;
+    const ms = [...new Set(p[0].split(",").map(Number))].sort((a, b) => a - b); if (ms.some((m) => m > 59)) return null;
     const w = wdOf(p[4]); if (!w || (wd && dowOf(wd) !== dowOf(w))) return null; wd = w;
     const st = p[1].match(/^(\d+)-(\d+)(?:\/(\d+))?$/);
-    if (st && l.length === 1) { every = { wd: w, mode: "every", times: [], every: st[3] ? +st[3] : 1, from: +st[1], to: +st[2], min: +p[0] }; continue; }
-    for (const h of p[1].split(",")) { if (!/^\d+$/.test(h)) return null; times.push(`${two(+h)}:${two(+p[0])}`); }
+    if (st && l.length === 1) { every = { wd: w, mode: "every", times: [], every: st[3] ? +st[3] : 1, from: +st[1], to: +st[2], min: ms[0], ...(ms.length > 1 ? { mins: ms } : {}) }; continue; }
+    for (const h of p[1].split(",")) { if (!/^\d+$/.test(h)) return null; for (const m of ms) times.push(`${two(+h)}:${two(m)}`); }
   }
   if (every) return every;
   return { wd: wd!, mode: "times", times: [...new Set(times)].sort(), every: 3, from: 9, to: 21, min: 0 };
 };
 const pickCron = (k: Pick): string[] => {
   const d = dowOf(k.wd);
-  if (k.mode === "every") return [`${CRON_H}${k.min} ${k.from}-${k.to}${k.every > 1 ? "/" + k.every : ""} * * ${d}`];
+  if (k.mode === "every") return [`${CRON_H}${k.mins?.length ? k.mins.join(",") : k.min} ${k.from}-${k.to}${k.every > 1 ? "/" + k.every : ""} * * ${d}`];
   const byMin = new Map<number, number[]>();
   for (const t of k.times) { const [h, m] = t.split(":").map(Number); byMin.set(m, [...(byMin.get(m) || []), h]); }
   return [...byMin.entries()].sort((a, b) => a[0] - b[0]).map(([m, hs]) => `${CRON_H}${m} ${[...new Set(hs)].sort((a, b) => a - b).join(",")} * * ${d}`);
@@ -67,7 +68,7 @@ const QUICK: { label: string; set: Partial<Pick> }[] = [
   { label: "매일 9시", set: { wd: [0, 1, 2, 3, 4, 5, 6], mode: "times", times: ["09:00"] } },
   { label: "평일 9시", set: { wd: [1, 2, 3, 4, 5], mode: "times", times: ["09:00"] } },
   { label: "하루 세 번", set: { wd: [0, 1, 2, 3, 4, 5, 6], mode: "times", times: ["11:00", "15:00", "19:00"] } },
-  { label: "낮 3시간마다", set: { wd: [0, 1, 2, 3, 4, 5, 6], mode: "every", every: 3, from: 9, to: 21, min: 0 } },
+  { label: "낮 3시간마다", set: { wd: [0, 1, 2, 3, 4, 5, 6], mode: "every", every: 3, from: 9, to: 21, min: 0, mins: undefined } },
 ];
 
 function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: boolean; send: (v: string[]) => void }) {
@@ -99,9 +100,11 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
       </div>
       {k.mode === "times" ? <Times times={k.times} onChange={(times) => set({ times })} />
         : <>
-          <div className="nm-rr-row"><Num label="몇 시간마다" value={k.every} lo={1} hi={12} onChange={(every) => set({ every })} /><span>시간마다 ·</span><Num label="분" value={k.min} lo={0} hi={59} onChange={(min) => set({ min })} /><span>분</span></div>
+          <div className="nm-rr-row"><Num label="몇 시간마다" value={k.every} lo={1} hi={12} onChange={(every) => set({ every })} /><span>시간마다 ·</span>{k.mins?.length
+            ? <><span>{k.mins.join(" · ")}분</span><button type="button" className="nm-rr-chip" disabled={!can} onClick={() => set({ mins: undefined, min: k.mins![0] })}>한 번만</button></>   // 한 시간에 여러 번 = 그대로 지킴 · 「한 번만」 = 첫 분만 남김
+            : <><Num label="분" value={k.min} lo={0} hi={59} onChange={(min) => set({ min })} /><span>분</span></>}</div>
           {/* 시작~끝 = 숫자 칸 둘 → 끌어서 정하는 기간 막대(형 11-15 영상 「스케줄 일정 조정을 기간을 이런식으로 조정 가응하게」) · 몸통 = 통째로 · 손잡이 = 그 끝만 · 놓으면 한 시간 단위에 붙음 · 끝 = 23시까지(cron 시 칸) */}
-          <RangeBar name={`${r.name} 시간대`} from={k.from} to={Math.max(k.to, k.from)} end={23} min={0} disabled={!can} sum={`${wdKo(k.wd)} · ${k.every}시간마다`} onChange={({ from, to }) => set({ from, to })} />
+          <RangeBar name={`${r.name} 시간대`} from={k.from} to={Math.max(k.to, k.from)} end={23} min={0} disabled={!can} sum={`${wdKo(k.wd)} · ${k.mins?.length === 2 && k.every === 1 && k.mins[1] - k.mins[0] === 30 ? "30분마다" : `${k.every}시간마다`}`} onChange={({ from, to }) => set({ from, to })} />
         </>}
       {changed ? <div><small>{cronKo(next)}</small> <button type="button" className="nm-sched-go" disabled={busy || !ok || !can} onClick={() => send(next)}>미리 보기</button></div> : null}
     </div>
