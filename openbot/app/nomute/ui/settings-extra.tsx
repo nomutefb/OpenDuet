@@ -262,14 +262,18 @@ export function NomuteSchedule() {
   const [ask, setAsk] = useState<{ q: Q; r: SetRes } | null>(null), [msg, setMsg] = useState("");
   const [vals, setVals] = useState<Record<string, string>>({});
   useEffect(() => { setVals({}); }, [s.data?.sha]);
+  const setReq = (q: Q, dry: boolean) => office<SetRes>("schedule/set", { method: "POST", body: JSON.stringify({ at: q.at, key: q.key, field: q.field, value: q.value, sha: s.data?.sha, dry }) });
+  const changed = (q: Q, r: SetRes) => {
+    setAsk(null);
+    setMsg(`바뀜 · ${q.label} ${cfVal(q.field, r.from)} → ${cfVal(q.field, r.to)} · 커밋 ${String(r.commit || "").slice(0, 7)}${r.checked ? " · 다시 읽어 그대로 확인" : ""}`);
+    void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] });
+  };
   const go = useMutation({
-    mutationFn: ({ q, dry }: { q: Q; dry: boolean }) => office<SetRes>("schedule/set", { method: "POST", body: JSON.stringify({ at: q.at, key: q.key, field: q.field, value: q.value, sha: s.data?.sha, dry }) }),
+    mutationFn: ({ q, dry }: { q: Q; dry: boolean }) => setReq(q, dry),
     onSuccess: (r, { q, dry }) => {
       if (r.same) { setAsk(null); setMsg(`이미 ${cfVal(q.field, q.value)}이야 — 바꿀 것 없음`); return; }
       if (dry) { setAsk({ q, r }); setMsg(""); return; }
-      setAsk(null);
-      setMsg(`바뀜 · ${q.label} ${cfVal(q.field, r.from)} → ${cfVal(q.field, r.to)} · 커밋 ${String(r.commit || "").slice(0, 7)}${r.checked ? " · 다시 읽어 그대로 확인" : ""}`);
-      void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] });
+      changed(q, r);
     },
     onError: (e) => {
       setAsk(null);
@@ -279,6 +283,11 @@ export function NomuteSchedule() {
     },
   });
   const prep = (q: Q) => go.mutate({ q, dry: true });
+  // 「바꾸기」 = 게이지 → ✓ 단추(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」 · 빠르 02:12 「스케줄러 바꾸기 하나만 아직 맨 단추」) — 확인 띠는 ✓ 를 보여 준 뒤 접음(done) · 실패 = 띠를 남기고 빨강
+  const apply = async (q: Q) => {
+    try { return await setReq(q, false); }
+    catch (e) { const m = e instanceof Error ? e.message : String(e); setMsg(/changed/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); if (/changed/.test(m)) void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] }); throw e; }
+  };
   const d = s.data, can = !!d?.can_set;
   const num = (q: Omit<Q, "value">, cur: number | undefined, min: number, max: number) => {
     const k = `${q.at}|${q.key}|${q.field}`;
@@ -299,7 +308,7 @@ export function NomuteSchedule() {
           <span className="min-w-0 flex-1">{ask.q.label} {CF_KO[ask.q.field]}: {cfVal(ask.q.field, ask.r.from)} <Chev dir="right" size={12} /> <b>{cfVal(ask.q.field, ask.r.to)}</b>
             {ask.r.preview ? <small className="block text-xs text-muted-foreground">다음 깸 {ask.r.preview.next_at ? nextShort(ask.r.preview.next_at) : "없음"} · 하루 정해진 {ask.r.preview.day_max}번</small> : null}
           </span>
-          <button type="button" className={btn} disabled={go.isPending} onClick={() => go.mutate({ q: ask.q, dry: false })}>바꾸기</button>
+          <GoButton className={btn} disabled={go.isPending} busy="바꾸는 중" go={() => apply(ask.q)} done={(r) => { if (r.same) { setAsk(null); setMsg(`이미 ${cfVal(ask.q.field, ask.q.value)}이야 — 바꿀 것 없음`); } else changed(ask.q, r); }}>바꾸기</GoButton>
           <button type="button" className={btn} onClick={() => setAsk(null)}>취소</button>
         </div>
       ) : null}
