@@ -142,7 +142,8 @@ export function RepairRow({ x, arc, desk, spec }: { x: RepairItem; arc?: boolean
   );
 }
 
-export function NomuteToday() {
+/** part = 그 조각만(decide = 형 결정 카드 · brief = 밤 요약) — 서랍 「수리 접수」 화면(./repair-page.tsx)이 접수 창구 위·아래에 나눠 씀 · 없으면 옛 할 일 맨 위 통째 */
+export function NomuteToday({ part }: { part?: "decide" | "brief" } = {}) {
   const brief = useBrief();
   const repair = useQuery({ queryKey: ["nomute", "repair"], queryFn: () => office<{ items: RepairItem[] }>("repair").then((j) => j.items || []), refetchInterval: 60_000 });
   const [arcOn, setArcOn] = useState(false);
@@ -156,9 +157,9 @@ export function NomuteToday() {
   const reps = repair.data || [];
   const groups = RP_G.map(([t, sub, f]) => [t, sub, reps.filter((x) => f(x.state))] as const).concat([["그 밖", "", reps.filter((x) => !RP_G.some((g) => g[2](x.state)))] as const]);
   return (
-    <section aria-label="오늘" className="mb-6 flex flex-col gap-3">
-      <DecideFab fab={false} where="today" kind="all" />
-      {decs.length ? (
+    <section aria-label={part === "brief" ? "밤 요약" : part === "decide" ? "형 결정" : "오늘"} className={part ? "flex flex-col gap-3 empty:hidden" : "mb-6 flex flex-col gap-3"}>
+      {part === "brief" ? null : <DecideFab fab={false} where="today" kind="all" />}
+      {part !== "brief" && decs.length ? (
         <div className="rounded-3xl border border-border bg-card p-4">
           <h2 className="text-base font-semibold">형 결정 필요 <span className="tabular-nums text-amber-600">{decs.length}</span></h2>
           <ul className="mt-2 flex flex-col gap-2">{decs.map((d) => (
@@ -169,13 +170,13 @@ export function NomuteToday() {
           <button type="button" className="mt-3 w-full rounded-full border border-border py-2 text-sm font-semibold" onClick={() => openDecide("today")}>열어서 고르기</button>
         </div>
       ) : null}
-      {decide.length ? (
+      {part !== "brief" && decide.length ? (
         <div className="rounded-3xl border border-border bg-card p-4">
           <h2 className="text-base font-semibold">형 결정 필요 <span className="tabular-nums text-amber-600">{decide.length}</span></h2>
           <ul className="mt-2 flex flex-col gap-2">{decide.map((x) => <DecisionCard key={x.key} x={x} can={!!b?.can_answer} always={!!b?.can_always} />)}</ul>
         </div>
       ) : null}
-      <div className="rounded-3xl border border-border bg-card p-4">
+      {part === "decide" ? null : <div className="rounded-3xl border border-border bg-card p-4">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="shrink-0 text-base font-semibold">밤 요약</h2>
           <span data-content className="truncate text-xs text-muted-foreground">{brief.isError ? "못 받았어" : b?.label || "받는 중…"}</span>
@@ -208,8 +209,8 @@ export function NomuteToday() {
             })}
           </ul>
         ) : null}
-      </div>
-      <div className="rounded-3xl border border-border bg-card p-4">
+      </div>}
+      {part ? null : <div className="rounded-3xl border border-border bg-card p-4">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="shrink-0 text-base font-semibold">수리 접수</h2>
           <span className="text-xs text-muted-foreground">{repair.isError ? "못 받았어" : repair.isPending ? "받는 중…" : groups.filter((g, i) => i < 3 || g[2].length).map((g) => `${g[0]} ${g[2].length}`).join(" · ")}</span>
@@ -226,7 +227,7 @@ export function NomuteToday() {
             <div className="mt-2"><p className="text-xs font-semibold">보관 {ym} · {(archive.data || []).length}건</p><ul className="flex flex-col divide-y divide-border">{(archive.data || []).map((x) => <RepairRow key={x.no} x={x} arc />)}</ul></div>
           )
         ) : null}
-      </div>
+      </div>}
     </section>
   );
 }

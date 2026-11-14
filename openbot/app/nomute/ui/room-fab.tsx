@@ -22,7 +22,7 @@ export function RoomFab() {
       <div ref={box} className={`nm-fab${open ? " on" : ""}`}>
         {rp ? (
           <button type="button" className="nm-fab-i at9" tabIndex={open ? 0 : -1} aria-label={n ? `수리 접수 · 안 읽은 글 ${n}개` : "수리 접수"}
-            onClick={() => { setOpen(false); enterRoom(REPAIR_ROOM); void nav({ to: "/channels/$channelId", params: { channelId: REPAIR_ROOM } }); }}>
+            onClick={() => { setOpen(false); enterRoom(REPAIR_ROOM); void nav({ to: "/tasks" }); }}>   {/* 서랍 「수리 접수」 와 같은 한 화면으로(형 11-14 「연관된 배선들도 다 여기로」 · 앞 판 = 접수 방 대화창 자리) */}
             수리 접수{badge}
           </button>
         ) : null}

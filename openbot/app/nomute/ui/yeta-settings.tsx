@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, Suspense, lazy, useState } from "react";
 const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModal })));   // 화면 잠금 · 구독 기기 = 서랍에서 설정으로(형 11-14 「화면 잠금 > 설정으로」 · 「구독 기기 > 설정으로」)
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));
+const GenOptModal = lazy(() => import("./genopt").then((m) => ({ default: m.GenOptModal })));   // AI 썸네일 옵션 = 서랍 「AI 썸네일·이미지」를 간추려 여기로(형 11-14)
 import { Pane } from "./pane";
 import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
@@ -91,6 +92,8 @@ export function YetaSettings() {
             <BlindRows />   {/* 쉴 때 화면 가림 · 지금 가리기(형 11-06 17:31 · ./idle-blind.tsx) */}
             {row("lock", "keys", "화면 잠금", <Suspense fallback={null}><LockModal /></Suspense>)}
             {row("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
+            <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
+            {row("genopt", "layers", "AI 썸네일 옵션", <Suspense fallback={null}><GenOptModal /></Suspense>)}
           </div>
         </section>
         <section className="yset-part" aria-label="사무실">

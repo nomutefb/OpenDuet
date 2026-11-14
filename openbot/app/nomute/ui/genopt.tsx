@@ -11,7 +11,6 @@ import "./genopt.css";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getJson } from "./news-data";
-import { Pane } from "./pane";
 
 type ImgOpt = { gemModel: string; gemSize: string; layout: string; styles: string[]; grow: string; fallback: boolean };
 type Settings = { genImgOn?: boolean; imgProvider?: string; imgOpt?: Partial<ImgOpt>; lockPinHash?: string; error?: string; code?: string; settings?: Settings };
@@ -39,10 +38,14 @@ const ROWS: { k: keyof ImgOpt | "provider"; lab: string; opts: Opt[] }[] = [   /
   { k: "fallback", lab: "GPT 실패 → Gemini", opts: [{ v: "1", lab: "켬", tip: "GPT 그림이 실패·시간 초과면 Gemini 로 다시(종량)" }, { v: "0", lab: "끔", tip: "GPT 실패 = 그 그림 없음" }] },
 ];
 
+/** 설정 「AI 썸네일 옵션」(형 11-14 클라우드 세션 창 「ai 썸네일 이미지는 옵션이네, 이거 간추려가지고 설정으로 넣어버려, ai 썸네일 옵션으로」) —
+ *  늘 보이는 것 = 켬끔 · 이미지 엔진 · 화풍 / 「자세히」 = 엔진에 맞는 나머지(Gemini 모델 · 크기는 Gemini 일 때만 · GPT 실패 대체는 GPT 일 때만) */
+const MAIN = new Set<string>(["provider", "styles"]);
 export function GenOptModal() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: KEY, staleTime: 15_000, queryFn: () => getJson<Settings>(`/api/settings?_=${Date.now()}`) });
   const [busy, setBusy] = useState(""), [note, setNote] = useState("");
+  const [more, setMore] = useState(false);
   const opt = clean(q.data?.imgOpt), prov = ["gemini", "gpt"].includes(q.data?.imgProvider || "") ? q.data!.imgProvider! : "gpt", gen = q.data?.genImgOn !== false, pin = !!q.data?.lockPinHash;   // 원본 imgProvider() · genImgOn()
   const save = async (tag: string, patch: Partial<Settings>) => {   // 원본 saveSettings — 하나짜리 값 = 빈 base · imgOpt = 바뀐 칸만
     setBusy(tag); setNote("");
@@ -68,30 +71,27 @@ export function GenOptModal() {
     if ((opt as unknown as Record<string, unknown>)[k] === val) return;
     void save(k, { imgOpt: { [k]: val } as Partial<ImgOpt> });
   };
+  const rows = ROWS.filter((r) => MAIN.has(r.k) || (more && (r.k === "fallback" ? prov === "gpt" : String(r.k).startsWith("gem") ? prov === "gemini" : true)));
   return (
-    <Pane title="생성 옵션">
-      <div className="yeta-set mt-2">
-        <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-gopt">
-          <span className="ycd-nm yset-ttl">생성 옵션</span>
-          {q.isLoading ? <p className="nm-chan-msg">읽는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">설정을 못 읽었어 — 다시 열어 줘</p> : (
-            <>
-              <div className="row">
-                <span className="lab">AI 썸네일</span>
-                <span className="opts">
-                  <button type="button" className={`chip${gen ? " on" : ""}`} aria-pressed={gen} disabled={pin || !!busy} title={pin ? "켜고 끄기 = 잠금 PIN 확인이 필요 — 에디터 설정 줄에서" : "요약할 때 썸네일 그림을 만들지"} onClick={() => void save("gen", { genImgOn: !gen })}>{gen ? "ON" : "OFF"}</button>
-                </span>
-              </div>
-              {ROWS.map((r) => (
-                <div key={r.k} className="row">
-                  <span className="lab">{r.lab}</span>
-                  <span className="opts">{r.opts.map((o) => { const on = isOn(r.k, o.v); return <button key={o.v} type="button" className={`chip${on ? " on" : ""}`} aria-pressed={on} title={o.tip} disabled={!!busy} onClick={() => pick(r.k, o.v)}>{o.lab}</button>; })}</span>
-                </div>
-              ))}
-              {note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
-            </>
-          )}
-        </div>
-      </div>
-    </Pane>
+    <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-gopt nm-gopt-in">
+      {q.isLoading ? <p className="nm-chan-msg">읽는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">설정을 못 읽었어 — 다시 열어 줘</p> : (
+        <>
+          <div className="row">
+            <span className="lab">AI 썸네일</span>
+            <span className="opts">
+              <button type="button" className={`chip${gen ? " on" : ""}`} aria-pressed={gen} disabled={pin || !!busy} title={pin ? "켜고 끄기 = 잠금 PIN 확인이 필요 — 에디터 설정 줄에서" : "요약할 때 썸네일 그림을 만들지"} onClick={() => void save("gen", { genImgOn: !gen })}>{gen ? "ON" : "OFF"}</button>
+            </span>
+          </div>
+          {rows.map((r) => (
+            <div key={r.k} className="row">
+              <span className="lab">{r.lab}</span>
+              <span className="opts">{r.opts.map((o) => { const on = isOn(r.k, o.v); return <button key={o.v} type="button" className={`chip${on ? " on" : ""}`} aria-pressed={on} title={o.tip} disabled={!!busy} onClick={() => pick(r.k, o.v)}>{o.lab}</button>; })}</span>
+            </div>
+          ))}
+          <div className="row"><span className="lab" /><span className="opts"><button type="button" className="chip" aria-expanded={more} onClick={() => setMore(!more)}>{more ? "접기" : "자세히"}</button></span></div>
+          {note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
+        </>
+      )}
+    </div>
   );
 }

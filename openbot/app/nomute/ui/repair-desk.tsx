@@ -34,7 +34,8 @@ function specsOf(items: RepairItem[], msgs: FileMsg[]) {
   return out;
 }
 
-export function RepairDesk({ lead, active = true }: { lead?: ReactNode; active?: boolean }) {
+/** page = 서랍 「수리 접수」 화면(껍데기 판이 스크롤 · 머리 줄이 따로 있어 위 여백 작게) · tail = 목록 아래 덧붙임(밤 요약) */
+export function RepairDesk({ lead, tail, active = true, page = false }: { lead?: ReactNode; tail?: ReactNode; active?: boolean; page?: boolean }) {
   const qc = useQueryClient();
   const repair = useQuery({ queryKey: ["nomute", "repair"], queryFn: () => office<{ items: RepairItem[] }>("repair").then((j) => j.items || []), refetchInterval: 60_000 });
   const msgs = useQuery({ queryKey: ["nomute", "repair-files"], queryFn: () => office<{ messages: FileMsg[] }>(`rooms/${REPAIR_ROOM}/messages?n=200`).then((j) => j.messages || []), staleTime: 15_000, refetchInterval: 60_000 });
@@ -72,8 +73,8 @@ export function RepairDesk({ lead, active = true }: { lead?: ReactNode; active?:
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-8 pt-[48px]">   {/* 위 여백 = 떠 있는 머리(사진+이름 · ui/shell.css .nm-head) */}
+    <div className={page ? "flex flex-col" : "flex min-h-0 flex-1 flex-col overflow-y-auto"}>
+      <div className={`mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-8 ${page ? "pt-2" : "pt-[48px]"}`}>   {/* 위 여백 = 떠 있는 머리(사진+이름 · ui/shell.css .nm-head) */}
         {lead}
         <form className="rounded-3xl border border-border bg-card p-3" onSubmit={(e) => { e.preventDefault(); void send(); }}>
           <p className="text-sm font-semibold">수리 접수</p>
@@ -103,6 +104,7 @@ export function RepairDesk({ lead, active = true }: { lead?: ReactNode; active?:
             )
           ) : null}
         </div>
+        {tail}
       </div>
     </div>
   );

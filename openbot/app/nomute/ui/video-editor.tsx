@@ -3,7 +3,9 @@
 //   겉틀 = 포토 에디터(./thumb-maker 「✧ 에디터 · 카드 제작」)와 같은 머리 「‹ ✦ 에디터 · 영상 편집」 · 위 챠콜 줄 없음 · 뒤 = 웹앱 배경(품은 문서 바탕만 투명 · 형 11-13 02:24 · 02:26)
 //   옛 셸만 받던 손 = 「트랙」 탭 넘김(edit.html parent.postMessage nmToolTab) → 앱 안 한 겹 · 카드 제작 「영상 편집으로」 = 이 화면으로 와서 영상 넣음(./studio-handoff deliverStudio)
 //   다음 판(짐작) = 포토처럼 엔진을 앱 안으로(코드모드) — 이 판은 화면 · 움직임 · 단추가 이미 원본 그대로
-import { useEffect, useRef } from "react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { Chev } from "./chev";
 import "./thumb-maker/frame.css";
 import "./video-editor.css";
 import { hookFrame, openInApp } from "./inapp";
@@ -83,34 +85,100 @@ function see(el: HTMLIFrameElement) {
   }
 }
 
-export function VideoEditor({ onBack }: { onBack?: () => void }) {
-  const ref = useRef<HTMLIFrameElement>(null);
+/** 영상 편집 안에서 고르는 일(형 11-14 「영상 편집 안에서 트래킹이며 뭐며 그 안에서 내부에서 고르는 형태였는데, 합칠수있나 기능을? … 기본 영상 편집을 할건지, 트래킹을 할건지, 프롬프팅을 할건지 고르는거에 따라서 나오게 … 이미지 편집 1개, 영상 편집 1개 이렇게만 잇엇거든 … 옛날 버전이 github에 남아있으면 차라리 그걸 가져오는게 빠를거야」)
+ *  옛 스튜디오 셸(editor viewer/index.html CAP_TABS = 편집 · 생성 · 프롬프팅 · 음원 · 큐영상 · 유튜브 + 편집 안 「트랙」 넘김)이 한 창에서 탭으로 고르던 그 화면들 = 저장소에 그대로 남아 있음 → 같은 틀 안에 그대로 품음(고친 글자 0)
+ *  path = 옛 서랍 칸 주소(즐겨찾기 · 다른 화면의 링크가 안 끊기게 그대로 받음) · 한 번 연 화면은 안 버림(옛 「탭별 보존 프레임」 = 올리던 영상 · 쓰던 글이 고르는 사이에 안 날아감) */
+export const MODES = [
+  { k: "edit", t: "편집", d: "자막 · 자르기 · 비율 · 소리", src: EDIT, path: "/edvid" },
+  { k: "track", t: "트래킹", d: "얼굴 따라 모자이크 · 이름표", src: "/track.html", path: "/edtrack" },
+  { k: "k", t: "프롬프팅", d: "장면 → 영상 프롬프트", src: "/k.html", path: "/edk" },
+  { k: "sb", t: "스토리보드", d: "이야기 → 콘티 · 참고 그림", src: "/sb.html", path: "/edsb" },
+  { k: "ys", t: "유튜브", d: "영상 주소 → 짧은 영상", src: "/ys.html", path: "/edys" },
+  { k: "song", t: "음원", d: "이야기 → 곡", src: "/song.html", path: "/edsong" },
+  { k: "vd", t: "큐영상", d: "기사 골라 → 6초 세로 영상", src: "/vd.html", path: "/edvd" },
+  { k: "nb", t: "미디어 요약", d: "영상 · 소리 · 글 → 자료 노트", src: "/nb.html", path: "/ednb" },
+] as const;
+export type VMode = (typeof MODES)[number]["k"];
+/** 주소 → 고른 일(모르는 길 = 편집) */
+export const modeOfPath = (pathname: string): VMode => MODES.find((m) => m.path === (pathname.replace(/\/+$/, "") || "/"))?.k ?? "edit";
+/** 품은 화면이 부모에게 「이 화면으로 넘겨 줘」 한 주소 → 그 일(옛 셸 nmToolTab · 편집 「트랙」) */
+export const modeOfSrc = (src: string): VMode | null => MODES.find((m) => m.src === src.split("?")[0])?.k ?? null;
+
+function ModeFrame({ src, title, on, edit, onTab }: { src: string; title: string; on: boolean; edit: boolean; onTab: (src: string) => void }) {
+  const ref = useRef<HTMLIFrameElement>(null), tab = useRef(onTab);
+  tab.current = onTab;
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const unhook = hookFrame(el);
-    const load = () => { see(el); deliverStudio(el); };
+    const load = () => { see(el); if (edit) deliverStudio(el); };
     el.addEventListener("load", load);
     load();
-    const msg = (e: MessageEvent) => {   // 옛 셸 탭 넘김(edit.html 「트랙」 → /track.html) = 앱 안 한 겹
+    const msg = (e: MessageEvent) => {   // 옛 셸 탭 넘김(edit.html 「트랙」 → /track.html) = 같은 틀 안에서 그 일로(앞 판 = #/web 한 겹)
       if (e.source !== el.contentWindow || e.origin !== location.origin) return;
       const d = e.data as { nm?: string; src?: string } | null;
-      if (d?.nm === "nmToolTab" && typeof d.src === "string" && d.src.startsWith("/")) openInApp(d.src);
+      if (d?.nm === "nmToolTab" && typeof d.src === "string" && d.src.startsWith("/")) tab.current(d.src);
     };
     window.addEventListener("message", msg);
     const mo = new MutationObserver(() => see(el));   // 앱 밝게/어둡게 바뀌면 라임 값도 같이
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => { unhook(); mo.disconnect(); el.removeEventListener("load", load); window.removeEventListener("message", msg); };
-  }, []);
+  }, [edit]);
+  return <iframe ref={ref} title={title} src={src} className="ved-if" data-on={on || undefined} aria-hidden={on ? undefined : true} tabIndex={on ? undefined : -1} allow="autoplay; clipboard-write; fullscreen; picture-in-picture" />;
+}
+
+export function VideoEditor({ onBack }: { onBack?: () => void }) {
+  const nav = useNavigate();
+  const loc = useRouterState({ select: (s) => ({ p: s.location.pathname, q: s.location.searchStr || "" }) });
+  const mode = modeOfPath(loc.p);
+  const [seen, setSeen] = useState<Partial<Record<VMode, string>>>({});   // 연 화면 = 그 주소(다시 넘겨받으면 새 번호 = 새로 읽음)
+  const [menu, setMenu] = useState(false);
+  const cur = MODES.find((m) => m.k === mode)!;
+  useEffect(() => {   // 고른 일이 처음이면 그때 읽음 · 유튜브 = 넘겨받은 주소(?u=)째로
+    setSeen((s) => {
+      const u = mode === "ys" ? new URLSearchParams(loc.q).get("u") : null;
+      const src = u ? `${cur.src}?u=${encodeURIComponent(u)}` : cur.src;
+      return s[mode] && !u ? s : { ...s, [mode]: src };
+    });
+  }, [mode, loc.q, cur.src]);
+  useEffect(() => {
+    if (!menu) return;
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") setMenu(false); };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [menu]);
+  const pick = (k: VMode) => { setMenu(false); if (k !== mode) void nav({ to: MODES.find((m) => m.k === k)!.path, replace: true }); };
+  const onTab = (src: string) => {   // 품은 화면이 넘김 = 아는 일이면 그 일로(설정을 넘겨받게 새로 읽음) · 모르는 주소 = 옛대로 한 겹
+    const k = modeOfSrc(src);
+    if (!k) { openInApp(src); return; }
+    setSeen((s) => ({ ...s, [k]: `${src}${src.includes("?") ? "&" : "?"}nmk=${Date.now().toString(36)}` }));
+    void nav({ to: MODES.find((m) => m.k === k)!.path, replace: true });
+  };
   return (
     <div className="tm-stage ved-stage">
       <div className="tm-head">
         {onBack ? <button type="button" className="tm-back" aria-label="닫기" onClick={onBack}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 18l-6-6 6-6" /></svg></button> : null}
-        <b className="tm-title">{SPARK}<span>에디터</span></b>
-        <span className="tm-menu">영상 편집</span>
+        <b className="tm-title">{SPARK}<span>영상 편집</span></b>
+        <button type="button" className="tm-menu ved-pick" aria-haspopup="menu" aria-expanded={menu} aria-label={`지금 ${cur.t} · 눌러서 다른 일 고르기`} onClick={() => setMenu((v) => !v)}>
+          {cur.t}<Chev dir={menu ? "up" : "down"} size={14} />
+        </button>
       </div>
       <div className="tm-frame ved-frame">
-        <iframe ref={ref} title="영상 편집" src={EDIT} className="ved-if" allow="autoplay; clipboard-write; fullscreen; picture-in-picture" />
+        {MODES.map((m) => seen[m.k] ? <ModeFrame key={m.k + "|" + seen[m.k]} src={seen[m.k]!} title={`영상 편집 · ${m.t}`} on={m.k === mode} edit={m.k === "edit"} onTab={onTab} /> : null)}
+        {menu ? (
+          <>
+            <button type="button" className="ved-veil" aria-label="닫기" tabIndex={-1} onClick={() => setMenu(false)} />   {/* 품은 화면은 바깥 누름을 못 알려 줌 → 얇은 가림막이 받음 */}
+            <div className="ved-menu" role="menu" aria-label="영상 편집에서 할 일">
+              {MODES.map((m, i) => (
+                <button key={m.k} type="button" role="menuitemradio" aria-checked={m.k === mode} className="ved-mi" style={{ animationDelay: `${Math.min(i, 7) * 26}ms` }} onClick={() => pick(m.k)}>
+                  <span className="ved-mi-t">{m.t}</span>
+                  <span className="ved-mi-d">{m.d}</span>
+                  <svg className="ved-mi-ok" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );

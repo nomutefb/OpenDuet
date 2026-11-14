@@ -1,17 +1,13 @@
 // 원본 components/shell/tab-bar.tsx 자리 — 아래 네비 = YETA .ynav 원본 그대로(./ynav.css · 형 10-28 11:20 「예타스타일로」 · 10:21 「네비 액티브 하게 펼쳐지는건 좋아!」)
 // 칸 넷(형 12:22·12:24 → 10-31 15:1x 「에디터는 그냥 서랍 누르면 뜨면 될듯.」) = 홈 · 대화방(목록) · 대화 · ≡(서랍 · 접힌 토글) — 서랍 = 덜 중요한 것 모음(형 12:25) + 에디터 칸 전부(LEGACY·뉴스 요약·채널 요약·SNS·요약 요청·에디터) · 누르면 네비 위로 펼쳐지고 항목 = 모달(ui/shell.tsx MODALS)
 //   짐작(빠르): 형 말을 「에디터 네비 칸을 없애고 에디터는 서랍에서」로 읽음 · 「에디터 칸을 누르면 서랍이 열림」으로 읽으면 TABS 에 editor 줄을 되살리고 onClick 을 setDrawer 로(아래 EDITOR_OPENS_DRAWER 주석 줄) — 한 줄 차이
-import { useQuery } from "@tanstack/react-query";
 import { talkNext } from "./talk-next";   // 「대화」 누름 한 곳(폰 · PC 같은 함수 · 순수 = node 시험이 .ts 로 부름)
 import { useNavigate } from "@tanstack/react-router";
 import { DuetIcon, type DuetIconName } from "@/components/duet/icons";
-import { approvalInboxOptions } from "@/lib/approvals";
-import { needsInputCount } from "@/lib/tasks/groups";
-import { taskListQueryOptions } from "@/lib/tasks/queries";
 import { MODALS, type Modal, type Pane } from "../ui/shell";
 import "../ui/yeta-chat.css";
 import "./ynav.css";
-import { useDecideWaiting } from "../ui/decide-count";
+import { useRepairWaiting } from "../ui/repair-count";
 import { MODE_LABEL, useOfficeMode } from "../ui/teams";   // 「대화」 칸 이름 = 위 탭 판(대화 · 팀즈 · 회의 · 형 11-13 22:05 「위 탭에따라 아래에 메뉴는 고정이고 이름만 변경되게」)
 
 export type ShellTab = "chat" | "tasks" | "make";
@@ -34,10 +30,7 @@ export function tabForPath(pathname: string): ShellTab | null {
 export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pane | null; modal?: Modal | null; chatTo?: string; current?: ShellTab }) {
   const mode = useOfficeMode();
   const navigate = useNavigate();
-  const inbox = useQuery(approvalInboxOptions());
-  const tasks = useQuery(taskListQueryOptions());
-  const decide = useDecideWaiting();   // 형 결정 대기 = 결정 서버 목록(고른 그 자리에서 줆 · ../ui/decide-count.ts · 형 11-13 16:19) · 앞 판 = 밤 요약만   // 형 결정 필요(답 안 한 것) = 할 일 숫자(서랍 안 · ≡ 칸에도)
-  const waiting = needsInputCount(tasks.data, inbox.data) + decide;
+  const waiting = useRepairWaiting();   // 서랍 숫자 = 서랍 안 「수리 접수」 숫자와 같은 값(형 결정 대기 + 접수 방 안 읽은 글 · ../ui/repair-count.ts · 형 11-14)
   const inDrawer = !!modal && modal !== "nedit" && modal !== "settings";   // 작동 표(status)는 이제 서랍 안(봄 32)   // 서랍 안 화면 = 5번 켜짐(스케줄도 이제 서랍 안 · 형 11-05)
   const badge = (n: number) => (n > 0 ? <b aria-hidden className="nm-nav-badge">{n > 99 ? "99+" : n}</b> : null);
   return (
@@ -70,7 +63,7 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
           <DuetIcon name="page" size={20} stroke={modal === "nedit" ? 2.1 : 1.9} />
           <span>뉴스 에디터</span>
         </button>
-        <button aria-current={inDrawer ? "page" : undefined} aria-label={waiting ? `서랍, 할 일 ${waiting}개 기다림` : "서랍"} className={inDrawer ? "on" : undefined} onClick={() => void navigate({ to: "/drawer" })} type="button">
+        <button aria-current={inDrawer ? "page" : undefined} aria-label={waiting ? `서랍, 수리 접수 ${waiting}개 기다림` : "서랍"} className={inDrawer ? "on" : undefined} onClick={() => void navigate({ to: "/drawer" })} type="button">
           <DuetIcon name="menu" size={20} stroke={inDrawer ? 2.1 : 1.9} />
           <span>서랍</span>
           {badge(waiting)}

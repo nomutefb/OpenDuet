@@ -23,7 +23,7 @@ import { ChatPresenceProvider, useChatServerBusy, useServerWork } from "@/compon
 import { FinishedForYou } from "@/components/shell/finished-for-you";
 import { PageHeader, ShellHeader } from "@/components/shell/header";
 import { PageChromeProvider } from "@/components/shell/page-chrome";
-const TasksScreen = lazy(() => import("@/components/shell/tasks-screen").then((m) => ({ default: m.TasksScreen })));
+const RepairPage = lazy(() => import("./repair-page"));   // 서랍 「수리 접수」 = 옛 할 일 자리(형 11-14 · 원본 TasksScreen 은 뺌 = 우리 서버엔 없는 길이라 늘 빈 목록)
 import { useChannelEvents } from "@/lib/channels/use-channel-events";
 import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
@@ -67,22 +67,11 @@ const FeedbackModal = lazy(() => import("./feedback").then((m) => ({ default: m.
 const QueueModal = lazy(() => import("./queue").then((m) => ({ default: m.QueueModal })));
 const MsgsModal = lazy(() => import("./msgs").then((m) => ({ default: m.MsgsModal })));
 const MsgsKw = lazy(() => import("./msgs-kw").then((m) => ({ default: m.MsgsKw })));
-const YsModal = lazy(() => import("./ys").then((m) => ({ default: m.YsModal })));
-const SongModal = lazy(() => import("./song").then((m) => ({ default: m.SongModal })));
-const KPromptModal = lazy(() => import("./kprompt").then((m) => ({ default: m.KPromptModal })));   // 서랍 「프롬프팅」 = 옛 에디터 영상 프롬프트 창(viewer/k.html) 앱 안(봄 11-10 23:09 · 번개)
-const TrCardModal = lazy(() => import("./trcard").then((m) => ({ default: m.TrCardModal })));   // 서랍 「번역카드」 = 옛 에디터 번역 창(viewer/tr.html) 앱 안(봄 11-10 23:09 · 번개)
-const VdModal = lazy(() => import("./vd").then((m) => ({ default: m.VdModal })));   // 서랍 「큐영상」 = 옛 에디터 큐 영상 창(viewer/vd.html) 앱 안(team-4 뎅 11-10)   // 서랍 「음원」 = 옛 에디터 음원 창(viewer/song.html) 앱 안(team-4 뎅 · 형 11-10 15:48 「응 에디터에 잇는거 다 정원으로 가져왕」)
-const ConvModal = lazy(() => import("./conv").then((m) => ({ default: m.ConvModal })));   // 서랍 「변환」 = 옛 에디터 변환 창(viewer/conv.html) 앱 안(team-4 U3 뎅 · 형 11-10 14:23 「응 밖에잇는거 다 옮길거야」)   // 서랍 「유튜브」 = 옛 에디터 유튜브 탭 네이티브(team-4 · 형 11-10 14:23 「응 밖에잇는거 다 옮길거야」)
 const VideoEditor = lazy(() => import("./video-editor"));   // 서랍 「영상 편집」 = 옛 비디오 에디터 화면 그대로(형 11-13 13:21 · 앞 판 = ./vedit.tsx 새 판 · 깃 11-10)
-const SbModal = lazy(() => import("./sb").then((m) => ({ default: m.SbModal })));   // 서랍 「스토리보드」 = 옛 에디터 콘티 판 1(team-4 · 깃 11-11)
-const NbModal = lazy(() => import("./nb").then((m) => ({ default: m.NbModal })));   // 서랍 「미디어 요약」 = 옛 에디터 미디어 요약 판 1(team-4 · 깃 11-10)
-const TrackModal = lazy(() => import("./track").then((m) => ({ default: m.TrackModal })));   // 서랍 「트래킹」 = 옛 에디터 트래킹 판 1(team-4 · 깃 11-10)   // 서랍 「영상 편집」 = 옛 에디터 영상 편집 탭 네이티브 판 1(team-4 · 깃)
 const AcctModal = lazy(() => import("./acct").then((m) => ({ default: m.AcctModal })));   // 서랍 「계정 전환」 = 에디터 설정 ▸ 계정 전환을 앱 안으로(봄 11-01)
-const GenOptModal = lazy(() => import("./genopt").then((m) => ({ default: m.GenOptModal })));   // 서랍 「생성 옵션」 = 에디터 설정 ▸ 기본값 그림 줄을 앱 안으로(봄 11-01)
 const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModal })));   // 서랍 「잠금」 = 에디터 설정 ▸ 자동 잠금을 앱 안으로(봄 11-01)
 const KwModal = lazy(() => import("./kw").then((m) => ({ default: m.KwModal })));   // 서랍 「키워드 알림」 = 에디터 설정 ▸ 키워드 알림을 앱 안으로(봄 11-01)
 const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 서랍 「구독 채널」 = 에디터 설정 ▸ 구독 채널을 앱 안으로(봄 11-01)
-const DownloadModal = lazy(() => import("./dl").then((m) => ({ default: m.DownloadModal })));   // 서랍 「다운로드」 = 에디터 설정 ▸ 다운로드를 앱 안으로(봄 11-01)
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
 const SensorModal = lazy(() => import("./sensor").then((m) => ({ default: m.SensorModal })));   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
 const SnsModal = lazy(() => import("./sns").then((m) => ({ default: m.SnsModal })));
@@ -98,10 +87,10 @@ import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색
 import { selfBackNow } from "./self-back";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "eddl" | "edys" | "edconv" | "edsong" | "edk" | "edtr" | "edvd" | "edvid" | "edtrack" | "ednb" | "edsb" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit";
+export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
-  { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
+  { id: "tasks", label: "수리 접수", icon: "tasks", to: "/tasks" },   // 옛 「할 일」 자리 = 접수 창구 통째(형 11-14 「할일 안에 수리접수를 할일로 빼내고 할일을 없애줘」 · ./repair-page.tsx · 길은 그대로 #/tasks)
   { id: "nedit", label: "뉴스 에디터", icon: "page", to: "/newsed" },   // 네비 4번 = 뉴스 에디터(형 11-09 08:50 「뉴스 에디터가 4번 메뉴에 보이게 해주고 / 요약된 내용이 여기에 일제히 나오게 해줘」 · ./news-editor.tsx · 서랍 목록엔 안 넣음)
   { id: "status", label: "작동", icon: "activity", to: "/status" },   // 네비 4번 = 작동 표(형 11-05 · ./status-board.tsx · 서랍 목록엔 안 넣음)
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 서랍 「일」 칸(형 11-05 「스케줄러는 메뉴5번 서랍 안으로 넣을게」 · 옛 네비 4번)
@@ -120,23 +109,12 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "chanfull", label: "채널 전체", icon: "dashboard", to: "/chanfull", desc: "차트·게시물·결의 보드" },
   // 에디터 설정 메뉴 안 칸들(전엔 러너 톱니로만 열림) = 에디터 /?pop=<이름> 딥링크(빠르 11-01 04:23 · 이름 = 봄 안 표)
   { id: "edq", label: "대기열", icon: "tasks", to: "/edq", desc: "재시도·취소" },
-  { id: "eddl", label: "다운로드", icon: "box", to: "/eddl", desc: "주소 → 사진·영상·파일" },
-  { id: "edys", label: "유튜브", icon: "sparkle", to: "/edys", desc: "영상 주소 → 짧은 인사이트 영상" },
-  { id: "edsong", label: "음원", icon: "sparkle", to: "/edsong", desc: "이야기 → 곡 · Suno 프롬프트" },
-  { id: "edk", label: "프롬프팅", icon: "sparkle", to: "/edk", desc: "장면 → 영상(Kling) 프롬프트" },   // 옛 에디터 프롬프팅(./kprompt.tsx · 번개 11-10)
-  { id: "edtr", label: "번역카드", icon: "sparkle", to: "/edtr", desc: "외국어 문서 사진 → 강조 · 한글 칩" },   // 옛 에디터 번역(./trcard.tsx · 번개 11-10)
-  { id: "edvd", label: "큐영상", icon: "layout", to: "/edvd", desc: "기사 골라 → 6초 세로 영상" },   // 옛 에디터 큐 영상(./vd.tsx · team-4 뎅 11-10)   // 옛 에디터 음원(./song.tsx · team-4 뎅 11-10)
-  { id: "edconv", label: "변환", icon: "box", to: "/edconv", desc: "영상 비율 · 화질 · 구간 바꾸기" },   // 옛 에디터 변환(./conv.tsx · team-4 U3 뎅 11-10)   // 옛 에디터 ＋ 에디터 › 유튜브 탭(./ys.tsx · team-4 깃 11-10)
-  { id: "edvid", label: "영상 편집", icon: "layout", to: "/edvid", desc: "자막 · 자르기 · 비율 · 소리" },   // 옛 에디터 ＋ 에디터 › 영상 편집 탭 판 1(./vedit.tsx · team-4 깃 11-10)
-  { id: "edtrack", label: "트래킹", icon: "search", to: "/edtrack", desc: "얼굴 따라 모자이크 · 이름표 · 크로마키" },   // 옛 에디터 트래킹 판 1(./track.tsx · team-4 깃 11-10)
-  { id: "ednb", label: "미디어 요약", icon: "file", to: "/ednb", desc: "영상 · 소리 · 글 → 자료 노트" },   // 옛 에디터 미디어 요약 판 1(./nb.tsx · team-4 깃 11-10)
-  { id: "edsb", label: "스토리보드", icon: "page", to: "/edsb", desc: "이야기 → 글 콘티 · 시트 · 레퍼런스" },   // 옛 에디터 콘티 판 1(./sb.tsx · team-4 깃 11-11)
+  { id: "edvid", label: "영상 편집", icon: "layout", to: "/edvid", desc: "편집 · 트래킹 · 프롬프팅 · 스토리보드 · 유튜브 · 음원 · 큐영상 · 미디어 요약" },   // 옛 에디터 ＋ 에디터 › 영상 편집 탭 판 1(./vedit.tsx · team-4 깃 11-10)
   { id: "edmsgs", label: "알림메세지", icon: "bell", to: "/edmsgs", desc: "24시간 알림·조치" },
   { id: "edsensor", label: "센서", icon: "activity", to: "/edsensor", desc: "키워드 센서" },
   { id: "edkw", label: "키워드 알림", icon: "bell", to: "/edkw", desc: "키워드 켜기·목록" },
   { id: "edsnsacc", label: "구독 채널", icon: "globe", to: "/edsnsacc", desc: "X·틱톡·인스타·유튜브 계정" },
   { id: "edpush", label: "구독 기기", icon: "phone", to: "/edpush", desc: "알림 받는 기기" },
-  { id: "edgenopt", label: "AI 썸네일·이미지", icon: "sparkle", to: "/edgenopt", desc: "엔진·모델·크기·화풍" },
   { id: "edlock", label: "화면 잠금", icon: "lock", to: "/edlock", desc: "잠금·PIN·자동 잠금" },
   { id: "edacct", label: "계정 전환", icon: "key", to: "/edacct", desc: "관리자 · 러너 Claude 계정" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
   { id: "gyeol", label: "결의 방", icon: "sparkle", to: "/gyeol" },
@@ -160,6 +138,7 @@ export function whereFor(pathname: string): Where {
   if (p === "/rooms") return { pane: "rooms" };
   if (p === "/editor") return { pane: "home" };
   if (p === "/askfull") return { modal: "ask" };   // 옛 「요약 요청 · 에디터 판」 주소 = 앱 요약 요청(빠르 11-01 · 합침)   // 옛 에디터 판 주소(즐겨찾기·옛 링크) = 홈으로(판 없음 · 칸은 서랍에)
+  if (/^\/(edtrack|edk|edsb|edys|edsong|edvd|ednb)$/.test(p)) return { modal: "edvid" };   // 옛 서랍 칸 주소 = 영상 편집 안에서 그 일(형 11-14 「영상 편집 안에서 … 고르는 형태」 · ./video-editor.tsx MODES)
   const m = MODALS.find((x) => x.to === p);
   if (m) return { modal: m.id };
   if (p === "/web") return { web: true };   // 앱 밖 주소 = 앱 안 한 겹(#/web?u=…)
@@ -306,7 +285,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
                   : M.id === "edtool" ? <Suspense fallback={null}><ThumbMaker onBack={closeModal} /></Suspense>   // 썸네일 생성기 = 원본 판·엔진·배경 그대로(./thumb-maker · 머리 「✧ 에디터 · 카드 제작」 = 옛 index 도구 창 꼴)
-                  : M.id === "tasks" ? <div className="nm-col"><TasksScreen /></div>
+                  : M.id === "tasks" ? <div className="nm-scroll"><RepairPage /></div>
                   : M.id === "meetlog" ? <div className="nm-scroll"><MeetLogList /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><StatusBoard /></div>   /* 서랍 「러너」 = 작동 표(형 11-09 08:50 「러너는 5번 서랍 안으로 … 기존거는 없애면 됨 끌고오는거 아님」 · 옛 RunnerScreen 칸 뺌 · 네비 4번 「작동」 은 33) 뉴스 에디터 판에서 바꿈 · 봄 배분 32) */
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
@@ -320,21 +299,10 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "edq" ? <div className="nm-scroll"><QueueModal /></div>
                   : M.id === "edmsgs" ? <div className="nm-scroll"><MsgsKw /></div>   /* 알림 = 알림메세지 + 키워드 알림 한 화면(탭 · 형 11-14 「키워드 알림 > 알림 메세지랑 통합(기능은 유지하면서)」) */
                   : M.id === "edacct" ? <div className="nm-scroll"><AcctModal /></div>   // 계정 전환 = 앱 안(봄 11-01 · api/account · 20초 뒤 실제 값)
-                  : M.id === "edgenopt" ? <div className="nm-scroll"><GenOptModal /></div>   // 생성 옵션 = 앱 안(봄 11-01 · imgProvider·imgOpt 바뀐 칸만 · AI 썸네일 켜기는 PIN 없을 때만)
                   : M.id === "edlock" ? <div className="nm-scroll"><LockModal /></div>   // 잠금 = 앱 안(봄 11-01 · 자동 잠금 분 · 켜기·PIN 은 에디터 설정 줄)
                   : M.id === "edkw" ? <div className="nm-scroll"><KwModal /></div>   // 키워드 알림 = 앱 안(봄 11-01 · 설정 한 장 kwItems·kwAlertOn · 발견 판정은 에디터·서버 그대로)
                   : M.id === "edsnsacc" ? <div className="nm-scroll"><SnsAccModal /></div>   // 구독 채널 = 앱 안(봄 11-01 · 같은 길 api/snsacc · 고친 플랫폼만 저장)
-                  : M.id === "eddl" ? <div className="nm-scroll"><DownloadModal /></div>   // 다운로드 = 앱 안(봄 11-01 · 같은 길 vidpeek·vidl·vidlout·linkgrab · 같은 열쇠 = 이전 받기 공유)
-                  : M.id === "edys" ? <div className="nm-scroll"><YsModal /></div>
-                  : M.id === "edsong" ? <div className="nm-scroll"><SongModal /></div>
-                  : M.id === "edk" ? <div className="nm-scroll"><KPromptModal /></div>   // 프롬프팅 = 앱 안(번개 11-10 · 같은 길 api/k · k_out)
-                  : M.id === "edtr" ? <div className="nm-scroll"><TrCardModal /></div>   // 번역카드 = 앱 안(번개 11-10 · 같은 길 api/tr · trplan · tr_out)
-                  : M.id === "edvd" ? <div className="nm-scroll"><VdModal /></div>   // 큐영상 = 앱 안(뎅 11-10 · 같은 길 api/vd · vd_out)   // 음원 = 앱 안(뎅 11-10 · 같은 길 api/song · song_out)
-                  : M.id === "edconv" ? <div className="nm-scroll"><ConvModal /></div>   // 변환 = 앱 안(뎅 11-10 · 같은 길 api/conv · conv_out)   // 유튜브 = 앱 안(깃 11-10 · 같은 길 api/ys · ys_out)
                   : M.id === "edvid" ? <VideoEditor onBack={closeModal} />
-                  : M.id === "edtrack" ? <div className="nm-scroll"><TrackModal /></div>
-                  : M.id === "ednb" ? <div className="nm-scroll"><NbModal /></div>
-                  : M.id === "edsb" ? <div className="nm-scroll"><SbModal /></div>   // 스토리보드 = 앱 안 판 1(깃 11-11 · 같은 길 api/sb · sb_out)   // 미디어 요약 = 앱 안 판 1(깃 11-10 · 같은 길 api/nb · nb_out · api/submit)   // 트래킹 = 앱 안 판 1(깃 11-10 · 같은 길 api/upload · api/track · track_out)   // 영상 편집 = 앱 안 판 1(깃 11-10 · 같은 길 api/upload · api/edit · ly_out)
                   : M.id === "edpush" ? <div className="nm-scroll"><PushDevsModal /></div>   // 구독 기기 = 앱 안(봄 11-01 · 같은 길 api/push list·toggle·remove)
                   : M.id === "edsensor" ? <div className="nm-scroll"><SensorModal /></div>   // 센서 = 앱 안(봄 11-01 · 같은 길 api/sensors · 형이 바꾸면 그 봇에게 알림)
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>

@@ -2,11 +2,9 @@
 //   옛 에디터 = 스튜디오 셸 viewer/index.html studioRoute(kind, payload) 가 탭 iframe(edit.html · ys.html)에 파일·링크를 넣어 줌(deliver · lrTiltApply · typeUrl)
 //   앱 = 카드 제작 엔진이 앱 안(부모 창 없음)이라 그 두 단추가 숨겨졌음(engine p06-draft studioRouteFn) → 여기 window.__nmStudioRoute 가 그 자리
 //   1단계 = 품기: 옛 화면을 #/web 한 겹(FramePage · 같은 출처)으로 열고, 영상은 화면이 뜨면 옛 deliver 와 같은 꼴로 넣음 · 링크는 ys.html?u= 로(에디터 ys.html 이 ?u= 를 typeUrl 로 받음)
-import { openInApp } from "./inapp";
 
 let pending: { file: File; at: number } | null = null;
 export const EDIT = "/edit.html";   // 옛 스튜디오 셸 THUMB_TABS 와 같은 주소(사이트 바탕 = viewer · 실제로 뜨는 길 = /edit · 앞 판 /viewer/edit.html = 없는 파일이라 옛 첫 화면(index)으로 떨어졌음 · 시아 11-13 라이브 실측)
-const YS = "/ys.html";
 
 /** 엔진이 부르는 손(window.__nmStudioRoute) — kind = video(파일) · link(유튜브 주소 · 비면 화면만) */
 export function studioRoute(kind: string, payload?: unknown) {
@@ -17,7 +15,7 @@ export function studioRoute(kind: string, payload?: unknown) {
   }
   if (kind === "link") {
     const u = String(payload ?? "").trim();
-    openInApp(u ? `${YS}?u=${encodeURIComponent(u)}` : YS);
+    location.hash = u ? `#/edys?u=${encodeURIComponent(u)}` : "#/edys";   // 영상 편집 안 「유튜브」(형 11-14 · ./video-editor.tsx MODES · 앞 판 = #/web 한 겹 ys.html)
   }
 }
 
