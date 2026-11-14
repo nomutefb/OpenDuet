@@ -28,7 +28,9 @@ test("시그니처 색 = 라임(형 11-13 14:06 「이미지 에디터처럼 시
 test("한 배경(형 11-13 14:08 「원톤으로 그냥 한 배경이 쭉」) = 도크 쉴 땐 투명 · 밑으로 들어갈 때만 유리", () => {
   const ve = rd("../ui/video-editor.tsx");
   assert.match(ve, /#topDock\{background:transparent!important/);
-  assert.match(ve, /html\.nm-stuck #topDock\{background:rgba\(17,18,20,\.82\)!important/);
+  assert.match(ve, /html\.nm-stuck #topDock\{background:rgba\(17,18,20,\.96\)!important\}/);   // 흐림 0 · 줄 아래 그라데이션(형 11-15 01:12 · 깃 #-025)
+  assert.match(ve, /html\.nm-stuck #topDock::after\{content:'';[^}]*linear-gradient/);
+  assert.ok(!/@media \(max-width:767px\)\{\.topdock:not\(\.fold\) #pvsec\{min-height:0/.test(ve), "폰도 칸 최소 높이 = 기둥(「생성」이 줄에 안 걸림)");
   assert.match(ve, /classList\.toggle\("nm-stuck"/);
 });
 
