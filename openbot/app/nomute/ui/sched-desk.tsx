@@ -7,6 +7,7 @@ import { idOf, office, people } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { Breaker, type HealthSt, ST_ORDER, HEALTH_KO, StatusDot, cronKo, lastKo, stOf, sumOf, worstOf } from "./sched-bits";
 import { RunnerTree } from "./sched-runners";
+import { SchedTree } from "./sched-tree";   // 러너 = 노드 트리 하나(형 11-14 「스케줄러를 … 트리구조로」 · 「중첩되는 내용들은 카테고라이징해서 없애」 — 갈래 칩 다섯 · 목록 · 흐름 보기는 이 나무 하나로 합침)
 import { SchedFlow } from "./sched-flow";   // 러너 갈래 흐름 그림(1단 · PC · 보기만 · 형 11-09 05:14 「러너 스케줄러이런식으로 변경」 · 봄 배분 19)
 import { useWide } from "./side";   // PC 인가(폰은 목록 그대로 · 시아 05:17 ⑦)
 import { GpuPanel } from "./sched-gpu";   // GPU 쓰는 일 · GPU 우선 서버(형 11-05 09:43 · 뜸)
@@ -149,7 +150,7 @@ export function SchedDesk() {
   const face = (b?: { who: string }, size = 28) => { const p = list.find((x) => x.who === b?.who); return <MicOrb size={size} id={idOf(b?.who || "", list)} tint={ringOf(p)} />; };
   const nameOf = (b?: { who: string }) => list.find((x) => x.who === b?.who)?.name || b?.who || "";
   const rv = d.review || {}, whoKo = (w: string) => nameOf(botOf(w) || { who: w });
-  const runnerTab = tab !== "bot" && tab !== "gpu" && !!d.runners, flow = view === "flow" && runnerTab, wideFlow = wide && flow;   // 흐름 그림 = 러너 갈래(PC · 폰 다 · 형 11-09 08:12 「모바일에서도」) · PC 흐름이면 판을 넓힘
+  const runnerTab = tab !== "bot" && tab !== "gpu" && !!d.runners, flow = view === "flow" && runnerTab, wideFlow = wide && (flow || tab === "tree");   // 흐름 그림 = 러너 갈래(PC · 폰 다 · 형 11-09 08:12 「모바일에서도」) · PC 흐름이면 판을 넓힘
   // 상태 점 셈(뜸 11-02 · 서버 health 칸 · 없으면 ○) — 봇 꼬챙이 = 포크·봇 차단기가 내려가면 꺼짐 · 러너 = 포크·잡 on 칸
   const fOff = (id?: string) => d.forks?.find((f) => f.id === id)?.on === false;
   const rSt = (r: Routine): HealthSt => stOf(r.health, r.state === "off" || fOff(r.fork) || botOf(r.bot)?.on === false);
@@ -190,16 +191,16 @@ export function SchedDesk() {
       </div>
       {d.runners?.jobs.length ? (
         <div className="flex flex-wrap gap-1" role="group" aria-label="갈래">
-          {[{ id: "bot", name: "봇" }, ...d.runners.groups].map((g) => {
-            const gs = sumOf(groupSts(g.id)), w = worstOf(gs), n = ST_ORDER.reduce((a, k) => a + gs[k], 0);
+          {[{ id: "bot", name: "봇" }, { id: "tree", name: "러너" }].map((g) => {
+            const gs = sumOf(g.id === "tree" ? (d.runners?.jobs || []).map(jSt) : groupSts(g.id)), w = worstOf(gs), n = ST_ORDER.reduce((a, k) => a + gs[k], 0);
             return <button key={g.id} type="button" className="nm-sched-chip nm-gchip" aria-pressed={tab === g.id} onClick={() => setTab(g.id)}>{g.name} {n}<span data-st={w}><StatusDot st={w} />{w === "miss" ? gs.miss : w === "late" ? gs.late : ""}</span></button>;   // 갈래 건강 = 제일 나쁜 것 하나 + 그 수
           })}
-          {runnerTab ? <span className="nm-flow-toggle" role="group" aria-label="보기"><button type="button" className="nm-sched-chip" aria-pressed={view === "list"} onClick={() => pickView("list")}>목록</button><button type="button" className="nm-sched-chip" aria-pressed={view === "flow"} onClick={() => pickView("flow")}>흐름</button></span> : null}   {/* 러너 갈래 보기 고르기(PC · 폰 · 봄 배분 19 · 27) */}
           {d.gpu ? <button type="button" className="nm-sched-chip nm-gchip" aria-pressed={tab === "gpu"} onClick={() => setTab("gpu")}>GPU {d.gpu.jobs.length}</button> : null}   {/* GPU 쓰는 일만 따로(형 11-05 09:43) */}
         </div>
       ) : null}
-      {tab === "gpu" && d.gpu ? <GpuPanel gpu={d.gpu} open={(id) => { const j = d.runners?.jobs.find((x) => x.id === id); const g = j && d.runners?.forks.find((f) => f.id === j.fork)?.group; if (g) setTab(g); }} /> : null}
-      {runnerTab && d.runners ? (flow ? <SchedFlow map={d.runners} group={tab} go={setTab} review={rv} phone={!wide} can={can} /> : <RunnerTree map={d.runners} group={tab} go={setTab} review={rv} can={can} who={whoKo} />) : null}
+      {tab === "gpu" && d.gpu ? <GpuPanel gpu={d.gpu} open={(id) => { const j = d.runners?.jobs.find((x) => x.id === id); const g = j && d.runners?.forks.find((f) => f.id === j.fork)?.group; if (g) setTab("tree"); }} /> : null}
+      {tab === "tree" && d.runners ? <SchedTree map={d.runners} review={rv} phone={!wide} can={can} /> : null}
+      {runnerTab && tab !== "tree" && d.runners ? (flow ? <SchedFlow map={d.runners} group={tab} go={setTab} review={rv} phone={!wide} can={can} /> : <RunnerTree map={d.runners} group={tab} go={setTab} review={rv} can={can} who={whoKo} />) : null}
       {tab === "bot" ? <>
       <div className="nm-sched-faces" role="group" aria-label="봇 고르기">
         {d.bots.map((b) => (

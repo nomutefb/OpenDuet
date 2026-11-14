@@ -14,7 +14,7 @@ import { ACTION_KO, type RunnerRes, ghJob, sameJob, stateKo, toggleOf } from "./
 const post = (file: string, action: string, dry: boolean) => office<RunnerRes>("schedule/runner", { method: "POST", body: JSON.stringify({ action, file, dry }) });
 const whenKo = (ts: number) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
-export function RunnerSheet({ job, can, phone, onClose, onRan }: { job: RunnerJob; can: boolean; phone: boolean; onClose: () => void; onRan: (id: string) => void }) {
+export function RunnerSheet({ job, can, phone, onClose, onRan, start }: { job: RunnerJob; can: boolean; phone: boolean; onClose: () => void; onRan: (id: string) => void; start?: "run" | "toggle" }) {   // start = 열자마자 그 일의 미리 보기까지(노드 트리 탭 단추 · ./sched-tree.tsx)
   const gh = ghJob(job);
   const [res, setRes] = useState<RunnerRes | null>(null), [busy, setBusy] = useState(""), [msg, setMsg] = useState("");
   const [pre, setPre] = useState<{ file: string; action: "run" | "on" | "off"; would: string; red: boolean } | null>(null);   // dry 미리 보기 → 「적용」 기다리는 중(file = 미리 본 그 잡 · 모루 09:32 ③)
@@ -53,6 +53,12 @@ export function RunnerSheet({ job, can, phone, onClose, onRan }: { job: RunnerJo
     } catch (e) { if (cur.current === want) setMsg(e instanceof Error ? e.message : String(e)); }
     finally { if (cur.current === want) setBusy(""); }
   };
+  const started = useRef(false);
+  useEffect(() => {   // 트리 탭에서 「지금 돌리기」·「켬끔」 으로 열었으면 = 상태를 읽은 뒤 그 일의 미리 보기(dry)를 한 번 — 적용은 여전히 「적용」 을 눌러야
+    if (!start || started.current || !gh || !can || !res || !state) return;
+    started.current = true;
+    void ask(start === "run" ? "run" : toggleOf(state));
+  });
   const apply = async () => {   // 「적용」 = 진짜로 · 미리 본 그 잡(pre.file)으로만
     if (!pre || pre.file !== job.file) { setPre(null); return; }
     const want = pre.file;
