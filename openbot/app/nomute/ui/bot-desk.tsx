@@ -4,7 +4,7 @@
 //   줄 차례 = 손 표 그대로(상태가 바뀌어도 줄이 안 움직임) · 틀 · 표 = 작동 표 것(./status-board.css)
 import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
-import { type BotTable, agoKo, countOf, hmKo, laneTone, sigOf, turnCell } from "./bot-desk-logic";
+import { type BotTable, agoKo, countOf, fireChips, hmKo, laneTone, openText, sigOf, turnCell } from "./bot-desk-logic";
 import "./status-board.css";
 import "./bot-desk.css";
 
@@ -26,17 +26,26 @@ export function BotDesk() {
       {q.isError ? <p className="nsb-why">봇 현황을 못 읽었어 — {(q.error as Error)?.message || "서버 답 없음"} <button type="button" className="nm-sched-chip" onClick={() => void q.refetch()}>다시</button></p> : null}
       {q.data && !t ? <p className="nsb-empty">서버가 아직 도표를 안 줘(옛 판) — 잠깐 뒤 다시 열어 줘</p> : null}
 
+      {t && live && fireChips(t).length ? (
+        <section className="nsb-cat" aria-label="불">
+          <div className="nsb-ch"><b>불</b><small>분류마다 지금 1번 · PM 이 일 나눌 때 보는 줄</small></div>
+          <div className="fire">{fireChips(t).map((f) => <span key={f.code} className={`t-${f.tone}`} title={skills[f.code] || f.code}><b>{f.code}</b>{f.text}</span>)}</div>
+          {(t.late || []).map((o) => <p key={o.no} className="nsb-why">{o.no} {o.who}{o.code ? ` ${o.code}` : ""} — 부른 지 {o.min}분, 받음 없음</p>)}
+        </section>
+      ) : null}
+
       {t && live ? (
         <section className="nsb-cat" aria-label="지금">
-          <div className="nsb-ch"><b>지금</b><small>손마다 한 줄 · 줄 차례 = 손 표</small></div>
+          <div className="nsb-ch"><b>지금</b><small>깨어 있는지 · 맡은 일 · 줄 차례 = 손 표</small></div>
           <div className="nsb-acct" role="region" aria-label="지금 표" tabIndex={0}>
             <table>
-              <thead><tr><th>손</th><th>상태</th><th>마지막 손</th><th>신호</th><th>맥락</th><th>오늘 일</th><th>계정 남은</th></tr></thead>
+              <thead><tr><th>손</th><th>상태</th><th>맡은 일</th><th>마지막 손</th><th>신호</th><th>맥락</th><th>오늘 일</th><th>계정 남은</th></tr></thead>
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.who}>
-                    <th scope="row">{r.who}{r.brain ? <small>{r.brain}</small> : null}</th>
+                    <th scope="row">{r.who}{r.pm ? <span className="tag">PM</span> : null}{r.rest ? <span className="tag">쉼 지정</span> : null}{r.brain ? <small>{r.brain}</small> : null}</th>
                     <td className={`t-${laneTone(r.lane)}`}>{r.state}</td>
+                    <td className="jobs">{openText(r).length ? openText(r).map((x) => <small key={x}>{x}</small>) : <span className="t-dim">–</span>}{r.today ? <small>오늘 {r.today}건 받음</small> : null}</td>
                     <td>{r.last_at ? <>{agoKo(now - r.last_at)}<small>{hmKo(r.last_at)}</small></> : "–"}</td>
                     <td>{sigOf(r, now)}</td>
                     <td>{r.ctx_pct === undefined ? "–" : `${r.ctx_pct}%`}</td>

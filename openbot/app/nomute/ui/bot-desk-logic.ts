@@ -6,8 +6,11 @@ export type BotRow = {
   who: string; brain?: string; lane: Lane; state: string; cause?: string; why?: string;
   last_at?: number; beat_at?: number; door_at?: number; ctx_pct?: number; work_min?: number; acct?: string; acct_left?: number;
   skills?: string[]; hw?: { ram?: string; cpu?: string; gpu?: string; os?: string }; note?: string; turn?: Record<string, Turn>;
+  open?: { no: string; title?: string; code?: string; at?: number }[]; today?: number; pm?: boolean; rest?: boolean;   // 맡은 오더(받고 안 끝낸 것) · 오늘 받은 수 · PM 자리 · 쉼 지정
 };
-export type BotTable = { codes: string[]; rows: BotRow[] };
+export type First = { who: string; rank?: number; busy?: boolean };
+export type Late = { no: string; who: string; code?: string; min: number };
+export type BotTable = { codes: string[]; rows: BotRow[]; first?: Record<string, First>; late?: Late[] };
 export type Tone = "ok" | "lost" | "dim" | "plain";
 
 /** 지난 때 글 — 서버 글(agoKo)과 같은 꼴: 방금 · N분 전 · N시간 M분 전. */
@@ -41,3 +44,10 @@ export function countOf(rows: BotRow[]): { ready: number; work: number; rest: nu
   for (const r of rows) if (r.lane === "ready" || r.lane === "work" || r.lane === "rest" || r.lane === "lost") n[r.lane]++;
   return n;
 }
+
+/** 불 칩 — 분류마다 지금 1번(서버 first 칸 그대로) → [{code, text, tone}] · 특기 밖 = 「밖」 · 다 일하는 중 = (괄호). */
+export function fireChips(t: BotTable): { code: string; text: string; tone: Tone }[] {
+  return (t.codes || []).filter((c) => t.first?.[c]).map((c) => { const f = t.first![c]; return { code: c, text: `${f.busy ? "(" : ""}${f.who}${f.rank ? "" : " 밖"}${f.busy ? ")" : ""}`, tone: f.busy || !f.rank ? "dim" : "ok" as Tone }; });
+}
+/** 맡은 일 칸 — 「#-024 제목」 줄들(없으면 빈 목록). */
+export const openText = (r: BotRow): string[] => (r.open || []).map((o) => `${o.no}${o.title ? " " + o.title : ""}`);

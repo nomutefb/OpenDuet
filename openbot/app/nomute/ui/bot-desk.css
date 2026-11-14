@@ -12,3 +12,10 @@
 .nm-botdesk .nsb-ch small { margin-left:auto; font-size:var(--fs-xs); color:var(--nsb-mut); }
 .nm-botdesk .legend { margin:0 14px 8px; font-size:var(--fs-xs); color:var(--nsb-mut); }
 :root:not(.dark) .nm-botdesk .nsb-acct tbody th, :root:not(.dark) .nm-botdesk .nsb-acct thead th:first-child { background:#fff; }
+.nm-botdesk .fire { display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 10px; }
+.nm-botdesk .fire span { display:inline-flex; align-items:baseline; gap:5px; padding:4px 10px; border:1px solid var(--nsb-line); border-radius:999px; font-size:var(--fs-sm); }
+.nm-botdesk .fire span b { color:var(--nsb-mut); font-weight:700; }
+.nm-botdesk .fire span.t-ok { border-color:rgba(207,255,64,.55); }   /* 불 = 지금 쉬는 특기 손(라임 테 · 설정 칩 눌림과 같은 값) */
+.nm-botdesk td.jobs { white-space:normal; min-width:14em; max-width:22em; }
+.nm-botdesk td.jobs small { display:block; white-space:normal; }
+.nm-botdesk .tag { margin-left:6px; padding:0 6px; border:1px solid var(--nsb-line); border-radius:999px; font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); }
