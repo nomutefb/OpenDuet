@@ -1,0 +1,18 @@
+/* 설정 「모델 · 노력도」(./model-set.tsx) — 줄 = 이름 + 고르는 칸 둘 · 값 · 색 = 설정 판 것(./yeta-settings.css 의 --glass-line · --mut · --accent) · 새 색 0 */
+.nm-ms { display:grid; gap:6px; padding:2px 4px 6px; }
+.nm-ms h3 { margin:10px 2px 2px; font-size:var(--fs-sm); font-weight:var(--fw-b, 700); color:var(--mut); display:flex; align-items:baseline; gap:6px; }
+.nm-ms h3:first-child { margin-top:2px; }
+.nm-ms h3 small { font-size:var(--fs-xs); font-weight:400; }
+.nm-ms .note { margin:2px; font-size:var(--fs-xs); line-height:1.5; color:var(--mut); }
+.nm-ms .note.err { color:var(--nsb-red, #ff5a5f); }
+.nm-ms .note button { font:inherit; color:inherit; text-decoration:underline; background:none; border:0; padding:0 2px; cursor:pointer; }
+.nm-ms-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,auto) minmax(0,auto); align-items:center; gap:8px; min-height:44px; padding:6px 12px; border:1px solid var(--glass-line); border-radius:var(--r-m, 12px); background:var(--glass); }
+.nm-ms-row .who { min-width:0; display:flex; align-items:baseline; gap:6px; }
+.nm-ms-row .who b { font-size:var(--fs-body); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-ms-row .who small { flex:none; font-size:var(--fs-xs); color:var(--mut); }
+.nm-ms-row select, .nm-ms-row > span:not(.who) { min-width:0; max-width:100%; font:inherit; font-size:var(--fs-sm); font-variant-numeric:tabular-nums; color:var(--accent); background:transparent; border:1px solid var(--glass-line); border-radius:8px; padding:6px 8px; }
+.nm-ms-row select { cursor:pointer; min-height:36px; }
+.nm-ms-row select:disabled { opacity:.5; }
+.nm-ms-row select option { color:#161716; }
+.nm-ms-row.dim select, .nm-ms-row.dim > span:not(.who) { color:var(--mut); }   /* 기본값 = 흐리게(고른 것만 색) */
+.nm-ms-row > span:not(.who) { border-color:transparent; padding-left:0; padding-right:0; }
