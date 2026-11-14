@@ -19,6 +19,7 @@ type Line = {
   server?: string;
   hosts?: { live?: number; total?: number; stale?: string[] };
   bots?: { ok?: number; total?: number };
+  act?: { ready?: number; lost?: number; total?: number };   // 활동 칸 셈(서버 lineOf) — 지금 일 받을 수 있는 수 · 멈춘 수
   synced_at?: number;
   deploy?: string;
 };
@@ -66,6 +67,7 @@ export function StatusLights({ className = "" }: { className?: string }) {
           {/* 몸 n/m 뺌(형 11-08 09:00 dm-fast 「몸 7/9 이것도 없어도 돼.」 · 끊긴 몸은 러너 칸이 보여 줌) */}
           <Sep />
           <span title="봇 연결">봇 <N v={l.bots?.ok} />/{l.bots?.total ?? 0}</span>
+          {l.act ? <><Sep /><span className="nm-sl-act" title="지금 일을 받을 수 있는 아이 수(대기 신호가 5분 안에 온 아이)">받을 수 있음 <N v={l.act.ready} /></span>{l.act.lost ? <span className="nm-sl-act lost" title="신호가 끊겼거나 부름에 손이 없는 아이 수">멈춤 <N v={l.act.lost} t="bad" /></span> : null}</> : null}{/* 형 11-14 「지금 쉬고있어서 일을 받을 상태가 되어있냐」 · 「신호가 끊긴게 아니냐」 — 작동 표를 안 열어도 윗줄에서 */}
         </>
       )}
     </div>

@@ -34,3 +34,4 @@ html.nm-has-syncver .nm-ver { display: none !important; }
 .nm-sl-led.warn { --led: #F2C94C; --led-glow: rgba(242,201,76,.55); }
 .nm-sl-led.bad  { --led: #FF6B5E; --led-glow: rgba(255,107,94,.6); }
 .nm-sl-led.off  { --led: rgba(232,234,232,.32); --led-glow: transparent; opacity: 1; }
+.nm-sl-act.lost, .nm-sl-lights .nm-sl-act.lost b { color: #FF5A5F; }   /* 멈춘 아이 수 = 0 이면 안 뜸 · 뜨면 빨강(작동 표 멈춤과 같은 색) */
