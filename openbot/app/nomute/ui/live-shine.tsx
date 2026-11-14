@@ -4,6 +4,7 @@
 //     (형 11-01 12:5x 「저거는 전이 나아. 그 구슬」 · 「혹시 아까우면 저거 선택할수있게해버려 설정에서」 · 「내 취향따라 심심할때 바꾸게」)
 //     값은 이 기기에만(엔터 키 칸과 같은 꼴 · ./enter-key.tsx)
 import { useSyncExternalStore } from "react";
+import { DiffValue } from "./state-diff";   // 값 바뀜(형 11-15 State Diff)
 import { ThinkingOrb } from "thinking-orbs";
 import { useTheme } from "@/components/theme-provider";
 import { YICO } from "./yeta-icons";
@@ -33,7 +34,7 @@ export function ThinkMarkRow() {
     <button type="button" className="yset-item" onClick={() => set(!orb)}>
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.think }} />
       <span className="si-lbl"><span className="si-t">생각중 표시</span></span>
-      <span className="si-v"><span className={`si-vt${orb ? " mod" : ""}`}>{orb ? "구슬" : "점 셋"}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
+      <span className="si-v"><span className={`si-vt${orb ? " mod" : ""}`}><DiffValue value={orb ? "구슬" : "점 셋"} /></span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
     </button>
   );
 }

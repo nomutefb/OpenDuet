@@ -3,6 +3,7 @@
 //   켜고 끄기 = 설정 「쉴 때 화면 가림」(이 기기 localStorage nm-blind · 처음 = 켬) · 바로 가림 = 설정 「지금 가리기」 · Alt+L
 //   가림은 화면만 덮음(대화·동기화는 뒤에서 그대로 돎) · 쓰던 글은 그대로
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { DiffValue } from "./state-diff";   // 값 바뀜(형 11-15 State Diff)
 import { YICO } from "./yeta-icons";
 import { idleLast0 } from "./idle-blind-logic";
 import "./idle-blind.css";
@@ -72,7 +73,7 @@ export function BlindRows() {
       <button type="button" className="yset-item" onClick={() => setOn(!on)}>
         <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.screen }} />
         <span className="si-lbl"><span className="si-t">쉴 때 화면 가림</span></span>
-        <span className="si-v"><span className={`si-vt${on ? " mod" : ""}`}>{on ? "10분" : "끔"}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
+        <span className="si-v"><span className={`si-vt${on ? " mod" : ""}`}><DiffValue value={on ? "10분" : "끔"} /></span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
       </button>
       <button type="button" className="yset-item" onClick={() => setTimeout(blindNow, 150)}>
         <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.contrast }} />

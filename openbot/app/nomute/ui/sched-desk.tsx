@@ -19,6 +19,8 @@ import { wdKo } from "./range-bar-core";
 import "./room-routine.css";
 import { BotPick } from "./bot-pick";   // 「어떤 봇」 = 부름 목록 꼴(형 11-02 02:24)
 import { ReviewBadge, ReviewBox } from "./sched-review";   // 폐기 → 검토(형 11-02 02:1x · 봄 #2092)
+import { DiffPair } from "./state-diff";
+import { isFresh } from "./state-diff-core";
 import { CF_KO, type Routine, ST_KO, type SchedChange, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
 
 // 조직도(형 11-01 17:4x 「스케줄러 있지. 그 내용이 지금 좀 투박해. 버튼 눌러도 동작하는지도 잘 모르겠구 … 엔터프라이즈급으로 동작했으면 좋겠어. 트리구조 조직도로」 · 「각 대화방하고 연동도 잘 되어야하고」)
@@ -343,6 +345,7 @@ export function SchedDesk() {
 const RV_KO: Record<string, string> = { "": "없음", review: "검토 중", remove: "없애기 확정", change: "바꾼 뒤 원복", restore: "원복", done: "끝냄" };   // 검토 걸음(봄 _schedreview.js change.from·to)
 /** 최근 바뀜 = 누른 단추가 실제로 먹었는지(형 「버튼 눌러도 동작하는지도 잘 모르겠구」) — 표 커밋 ✓(서버가 쓴 뒤 다시 읽어 그 칸 확인) · 맨 위 표 바꿈은 시계 받음까지 · 방 루틴·6마디 종 = 바로 먹음 */
 function Changes({ list, got, labelOf }: { list: SchedChange[]; got?: { got?: boolean; sha?: string }; labelOf: (c: SchedChange) => string }) {
+  const [since] = useState(() => Date.now());   // 화면을 연 뒤에 생긴 줄만 값 바뀜 재생(./state-diff-core.ts isFresh)
   if (!list.length) return null;
   const head = list.find((c) => !c.live);
   const v = (x: unknown) => (Array.isArray(x) ? cronKo(x.map(String)) || "없음" : typeof x === "boolean" ? (x ? "켬" : "끔") : typeof x === "string" ? (ST_KO[x] || (x.length > 24 ? x.slice(0, 24) + "…" : x)) : x == null ? "없음" : String(x));
@@ -352,7 +355,7 @@ function Changes({ list, got, labelOf }: { list: SchedChange[]; got?: { got?: bo
       <ol>
         {list.slice(0, 8).map((c, i) => (
           <li key={`${c.at}-${i}`}>
-            <span className="min-w-0 flex-1"><b>{labelOf(c)}</b><small>{c.review === "note" ? <>같이 멈추는 것 「{c.note}」</> : c.review ? <>검토 {RV_KO[String(c.from ?? "")] ?? String(c.from)} <Chev dir="right" size={11} /> {RV_KO[String(c.to ?? "")] ?? String(c.to)}</> : <>{CF_KO[c.field as SchedQ["field"]] || c.field || "상태"} {v(c.from)} <Chev dir="right" size={11} /> {v(c.to)}</>} · {c.who} · {agoKo(c.at)}</small></span>
+            <span className="min-w-0 flex-1"><b>{labelOf(c)}</b><small>{c.review === "note" ? <>같이 멈추는 것 「{c.note}」</> : c.review ? <>검토 <DiffPair from={RV_KO[String(c.from ?? "")] ?? String(c.from)} to={RV_KO[String(c.to ?? "")] ?? String(c.to)} play={isFresh(c.at, since)} sep={<> <Chev dir="right" size={11} /> </>} /></> : <>{CF_KO[c.field as SchedQ["field"]] || c.field || "상태"} <DiffPair from={v(c.from)} to={v(c.to)} play={isFresh(c.at, since)} sep={<> <Chev dir="right" size={11} /> </>} /></>} · {c.who} · {agoKo(c.at)}</small></span>
             <em data-k={c.live ? "live" : c === head ? (got?.got ? "got" : "wait") : "ok"}>{c.live ? "바로 먹음" : c === head ? (got?.got ? "시계 받음" : "시계 기다림") : "표에 들어감"}</em>
           </li>
         ))}

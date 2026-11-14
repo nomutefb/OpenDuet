@@ -16,9 +16,11 @@
 .nm-sl-lights b { color: #CFFF40; font-weight: 700; letter-spacing: .03em; }
 .nm-sl-lights .nm-sl-sep, .nm-sl-syncver .nm-sl-dot { font-style: normal; opacity: .4; }
 .nm-sl-syncver .nm-sl-ver { all: unset; padding: 1px 4px; border-radius: 4px; font: 600 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .02em; color: rgba(232,234,232,.62); cursor: default; user-select: text; }
-.nm-sl-syncver .nm-sl-ver.stale { color: #CFFF40; background: rgba(207,255,64,.12); box-shadow: 0 0 0 1px rgba(207,255,64,.35); cursor: pointer; animation: nmSlVerPulse 1.6s ease-in-out infinite; }
-@keyframes nmSlVerPulse { 50% { box-shadow: 0 0 0 1px rgba(207,255,64,.7), 0 0 10px rgba(207,255,64,.35); } }
-@media (prefers-reduced-motion: reduce) { .nm-sl-syncver .nm-sl-ver.stale { animation: none; } }
+.nm-sl-syncver .nm-sl-ver.stale { color: #CFFF40; background: rgba(207,255,64,.12); box-shadow: 0 0 0 1px rgba(207,255,64,.35); cursor: pointer; position: relative; }
+/* 깜박임 = 그림자를 움직이지 않고 빛 한 겹(::after)의 투명도만(형 11-15 「60프레임 아닌것도」) */
+.nm-sl-syncver .nm-sl-ver.stale::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; box-shadow: 0 0 0 1px rgba(207,255,64,.7), 0 0 10px rgba(207,255,64,.35); animation: nmSlVerPulse 1.6s ease-in-out infinite; }
+@keyframes nmSlVerPulse { 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nm-sl-syncver .nm-sl-ver.stale::after { animation: none; } }
 /* 우하단 버전 부품이 떠 있으면 옛 우상단 판 번호(ver-badge · .nm-ver)는 숨김(뎅 22:40 「지워도 돼 — 우하단 줄이 그 몫」) */
 html.nm-has-syncver .nm-ver { display: none !important; }
 /* 점 불(형 11-09 12:3x 「동그라미 저거 촌스러우니까 그냥 점으로 디밍보이는거로」 · 시아) — 6px 점 · 제 빛 번짐 · 천천히 밝았다 흐려짐(불마다 박자 조금씩 어긋나게) */

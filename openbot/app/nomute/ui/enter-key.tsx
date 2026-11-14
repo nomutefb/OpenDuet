@@ -4,6 +4,7 @@
 //     = PC(마우스·호버) 값은 따로 칸(yeta_enter_send_pc · 옛 값은 안 씀 = 바뀐 기본이 바로 먹음) · 폰은 옛 칸·옛 기본(줄바꿈) 그대로 · 한글 조합 중 엔터 = 글자 확정만(prompt-area 가 isComposing·229 에서 멈춤)
 //   값은 이 기기에만(글꼴 칸과 같음 · ./chat-font.tsx) · 입력칸 연결 = overrides.ts composer 줄 · 엔터 처리는 prompt-area 안(submitOnEnter · onKeyDown 이 먼저 불림)
 import { type KeyboardEvent, useSyncExternalStore } from "react";
+import { DiffValue } from "./state-diff";   // 값 바뀜(형 11-15 State Diff)
 import { YICO } from "./yeta-icons";
 
 const KEY = "yeta_enter_send", KEY_PC = "yeta_enter_send_pc";
@@ -29,7 +30,7 @@ export function EnterKeyRow() {
     <button type="button" className="yset-item" onClick={() => set(!on)}>
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.enter }} />
       <span className="si-lbl"><span className="si-t">엔터 키</span></span>
-      <span className="si-v"><span className={`si-vt${on ? " mod" : ""}`}>{on ? "보내기" : "줄바꿈"}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
+      <span className="si-v"><span className={`si-vt${on ? " mod" : ""}`}><DiffValue value={on ? "보내기" : "줄바꿈"} /></span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
     </button>
   );
 }
