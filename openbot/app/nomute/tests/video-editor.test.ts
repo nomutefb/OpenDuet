@@ -40,7 +40,7 @@ test("영상 편집 하나 안에서 고름(형 11-14 「기본 영상 편집을
     assert.ok(ve.includes(`{ k: "${k}", `) && ve.includes(`src: "${src}", path: "${path}" }`), `${k} = 옛 화면 ${src}`);
   assert.match(sh, /if \(\/\^\\\/\(edtrack\|edk\|edsb\|edys\|edsong\|edvd\|ednb\)\$\/\.test\(p\)\) return \{ modal: "edvid" \};/, "옛 서랍 칸 주소 = 영상 편집");
   assert.doesNotMatch(sh, /id: "edtrack"|id: "edk"|TrackModal|KPromptModal/, "따로 놀던 칸 0");
-  assert.match(dr, /\{ name: "만들기", ids: \["ask"\] \}/, "이미지 · 영상 편집 = 서랍에서 뺌(형 11-15 「대신 서랍에서는 없앰」)");
+  assert.doesNotMatch(dr, /ids: \[[^\]]*"(edtool|edvid)"/, "이미지 · 영상 편집 = 서랍에서 뺌(형 11-15 「대신 서랍에서는 없앰」)");
   assert.match(ve, /if \(!k\) \{ openInApp\(src\); return; \}/, "모르는 넘김 주소 = 옛대로 한 겹");
   assert.match(ve, /className="ved-if" data-on=\{on \|\| undefined\}/, "안 고른 화면 = 살려 둠");
   // 형 11-14 「기존 시안 라인을 라임으로 덮어씌웟는데 기존 시안은 없애서 깔끔하고 빨리뜨게」 = 그려지기 전에 색을 넣음 · 옛 청록보다 셈 · 안 보이는 3D 바탕은 안 읽음

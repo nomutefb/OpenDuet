@@ -27,9 +27,9 @@ export function isForeignUrl(url: string | undefined): boolean {
   return false;
 }
 
-export type QuickPreset = { h24: 0 | 1; fp: 0 | 1; mj: 0 | 1; og: 0 | 1; noai: 0 | 1; know: 0 | 1 };
+export type QuickPreset = { h24: 0 | 1; fp: 0 | 1; mj: 0 | 1; og: 0 | 1; noai: 0 | 1 };
 /** 창 기본(../ui/ask.tsx DEF)에 fp 만 기사 출처로 */
-export const presetFor = (url: string | undefined): QuickPreset => ({ h24: 1, fp: isForeignUrl(url) ? 1 : 0, mj: 1, og: 0, noai: 1, know: 0 });
+export const presetFor = (url: string | undefined): QuickPreset => ({ h24: 1, fp: isForeignUrl(url) ? 1 : 0, mj: 1, og: 0, noai: 1 });   // know(지식형) = 걷음(깃 #-036)
 
 /** 바로 보냄 — 성공 = 접수 id(없으면 "") · 실패 = 던짐(까닭 글) */
 export async function quickSend(title: string, url: string): Promise<string> {
