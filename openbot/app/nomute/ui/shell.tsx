@@ -51,6 +51,7 @@ const WebPane = lazy(() => import("./web-pane").then((m) => ({ default: m.WebPan
 import { ModalBox } from "./modal-box";   // 큰 창 넷 = Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
 const IssueView = lazy(() => import("./issue").then((m) => ({ default: m.IssueView })));
 import { PinBar } from "./pins";
+import { PmRunnerMini } from "./pm-runner-mini";   // PM 방 러너맵 축소판(깃 #-008)
 import { OfficeChat, roomMsgsOptions } from "./office-chat";
 import { isTeams, useOfficeMode, useTeamsMode } from "./teams";
 import { IdleBlind, TopClock } from "./idle-blind";
@@ -258,7 +259,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             <div className="nm-col">
               {isTeams(room) ? null : <ShellHeader floating menuOpen={false} onMenu={() => {}} />}   {/* 팀즈 대화 = 우리 얼굴 머리 0(TeamsChat 이 제 머리를 그림) */}
               {wide ? null : <button type="button" className="nm-room-back" aria-label="대화방 목록으로" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="chevronLeft" size={20} /></button>}   {/* 형 10-31 「좌상단에 좌측 꺽쇠가 있어줘야 함」 · 뒤로 버튼 없는 폰 */}
-              {isTeams(room) ? null : split ? <ChatHead room={room} key={"head:" + room} /> : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}</PinBar>}   {/* 폰 = 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 밥상 할 일 띠 · PC = 대화창 머리줄(HOT ISSUE 줄 · 방 이름 · 공지·할 일 접는 칸 · ./chat-head.tsx · 형 11-08 08:58 「이 라인에 맞게 대화창도 조정하고」 · 「공지나 할일은 우측에 밥상이야기 처럼 접히게 할게」) */}
+              {isTeams(room) ? null : split ? <ChatHead room={room} key={"head:" + room} /> : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}<PmRunnerMini room={room} /></PinBar>}   {/* 폰 = 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 밥상 할 일 띠 · PC = 대화창 머리줄(HOT ISSUE 줄 · 방 이름 · 공지·할 일 접는 칸 · ./chat-head.tsx · 형 11-08 08:58 「이 라인에 맞게 대화창도 조정하고」 · 「공지나 할일은 우측에 밥상이야기 처럼 접히게 할게」) */}
               <main className="flex min-h-0 flex-1 flex-col"><OfficeChat room={room} key={room} active={pane === "chat" && roomOf(pathname) === room && !modal && !layer && !("page" in where)} /></main>
             </div>
           ))}
