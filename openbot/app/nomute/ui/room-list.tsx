@@ -35,6 +35,7 @@ import { type NotifyState, notifyImage, notifyOn, notifyState } from "../data/no
 export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
 const NOTICE_SEEN = "nm_notice_seen_at";
 const PINS = "nm-office-pins", HIDE = "nm-office-hidden";
+const TRAIN_ROOM = "dm-chaeng";   // 기차봇 1:1(서버 _conf 방 dm-chaeng · 이름 「기차봇」)
 const readSet = (k: string): Set<string> => { try { return new Set(JSON.parse(localStorage.getItem(k) || "[]")); } catch { return new Set(); } };
 const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, JSON.stringify([...s])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } };
 
@@ -91,16 +92,20 @@ export function useRoomOrder() {
     const serverCount = typeof r.unread === "number" ? r.unread : l && l.kind !== "human" && (seen[r.id]?.ts || 0) < (r.last_ts || 0) ? -1 : 0;
     return roomReadState.count(r.id, r.last_ts, serverCount);
   };
-  const pinned = (id: string) => id === "all" || id === SUMMARY || pins.has(id);
+  // 늘 맨 위 = 지금 PM 과의 1:1 → 기차봇 1:1(형 11-14 22:42 dm-gik 「글,구 pm은 항상 채팅창 인앱이나 모바일 상단에 고정~ 기차봇도~」 · 「회의실 처럼~」 · 「오히려 회의실이 고정일 필요없ㄷ음~」 · 깃 #-010 · 뜸)
+  //   PM = 명부 pm 칸(서버 office/pm.json · 바뀌면 따라감) · 회의실 = 이제 다른 방처럼 새 글 순(고정하려면 줄 메뉴 「고정」)
+  const pmRoom = (() => { const w = list.find((p) => p.pm)?.who; return w ? all.find((r) => r.with === w)?.id || "" : ""; })();
+  const fixed = (id: string) => (!!pmRoom && id === pmRoom) || id === TRAIN_ROOM;
+  const pinned = (id: string) => fixed(id) || id === SUMMARY || pins.has(id);
   // 차례 = 마지막 대화 · 형이 마지막으로 읽은 때(서버 seen.at) 중 늦은 것 — 폰 목록 · PC 띠 한 벌(형 11-12 10:01 「가장 위에는 내가 가장 최근에 읽은 애가 있어야함」 · 16:17 「하자」 = 폰도 · 앞 판 = 폰 목록은 마지막 대화만 · 띠만 읽은 때 · 뎅)
   const keyOf = (r: Room) => Math.max(r.last_ts || 0, seen[r.id]?.at || 0);
   const recent = (a: Room, b: Room) => keyOf(b) - keyOf(a);
   const shown = all.filter((r) => !hidden.has(r.id));
-  const head = (id: string) => (id === "all" ? 0 : id === SUMMARY ? 1 : 2);   // 회의실 → 요약실 → 고정 방(최근 순)
+  const head = (id: string) => (id === pmRoom ? 0 : id === TRAIN_ROOM ? 1 : id === SUMMARY ? 2 : 3);   // PM 1:1 → 기차봇 1:1 → 요약실 → 고정 방(최근 순) · 앞 판 = 회의실 → 요약실
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => head(a.id) - head(b.id) || recent(a, b));
   const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
-  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY), hid, count, lastOf, pinned, pins, setPins, hidden, setHidden };
+  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY), hid, count, lastOf, pinned, fixed, pins, setPins, hidden, setHidden };
 }
 
 /** 방 아이콘 = 둥근 네모(사람 = 동그라미라 한눈에 갈림) · 그림 /office/room-<방 id>.webp(뜸 그림 · 있으면 먼저) · 없으면 방 표지 색 바탕 + 방 이름의 이모지(밥상 🍚) 또는 첫 글자 */
@@ -176,7 +181,7 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
   );
 }
 export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
-  const { rooms, list, ordered, hid, count, lastOf, pinned, pins, setPins, hidden, setHidden } = useRoomOrder();
+  const { rooms, list, ordered, hid, count, lastOf, pinned, fixed, pins, setPins, hidden, setHidden } = useRoomOrder();
   const teamsOn = useTeamsMode() && !slim;   // 「사무실 | 팀즈」 바꿈(PC 왼쪽 좁은 칸 = 사무실 그대로)
   const meetOn = useOfficeMode() === "meet" && !slim && !bar;   // 폰 「회의」 = 목록 자리에 화상회의(PC 반갈 = 위 탭 줄 「화상회의」가 그 자리 · 형 11-13 22:05)
   // 활발한 방 = 이름에 빛(형 11-01 「현재 활발한 방(누군가라도 활동중인 방개인포함)은 이름에 빚지나가게」) — 마지막 글이 3분 안 · 또는 1:1 에서 형 글 뒤 그 이가 일하는 중(대화 칸 점 셋과 같은 깸 표 · 같은 bots 캐시)
@@ -256,7 +261,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
               <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`} style={live(r) && sig ? ({ "--sig": sig } as CSSProperties) : undefined}>{live(r) ? <LiveShine text={p?.name || r.name} trunc sig /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
-              {pinned(r.id) && r.id !== "all" && r.id !== SUMMARY ? <PinMark className="nm-pin-mark" label="고정함" /> : null}   {/* 고정 표시 = PC 띠와 한 벌 압정 그림(./pin-mark.tsx · 봄 11-12 16:17 A) */}
+              {pinned(r.id) && r.id !== SUMMARY ? <PinMark className="nm-pin-mark" label="고정함" /> : null}   {/* 고정 표시 = PC 띠와 한 벌 압정 그림(./pin-mark.tsx · 봄 11-12 16:17 A) */}
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
               <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{r.id === "all" && !ids.length ? "사용자가 없습니다" : preview}</span>
@@ -272,7 +277,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
         </>)}
         {menu === r.id ? (
           <div role="menu" className="absolute right-2 top-full z-10 flex min-w-36 flex-col rounded-xl border border-border bg-popover p-1 text-sm shadow-lg">
-            {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(PINS, pins, setPins, r.id)}>{pins.has(r.id) ? "고정 풀기" : "고정"}</button> : null}
+            {!fixed(r.id) ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(PINS, pins, setPins, r.id)}>{pins.has(r.id) ? "고정 풀기" : "고정"}</button> : null}
             <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void markRead(r, u)}>{u ? "읽음으로" : "안 읽음으로"}</button>
             {!r.with ? <button type="button" role="menuitem" className="flex items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setTinting(r); }}><RainbowOrb />표지 색</button> : null}
             {!r.with && !r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); if (groupRuleRoom(r)) setGrouping(r); else setNaming(r); }}>{groupRuleRoom(r) ? "방 설정" : "이름 바꾸기"}</button> : null}

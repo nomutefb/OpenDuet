@@ -479,10 +479,10 @@ export const FACE_SAT: [number, number][] = [[60 * 60_000, 1], [3 * 60 * 60_000,
 export const faceSat = (ago: number) => { for (const [ms, v] of FACE_SAT) if (ago <= ms) return v; return 0.25; };
 function FaceStrip({ current }: { current: string; last: string }) {
   const nav = useNavigate();
-  const { list, ordered, count, pins, setPins, pinned } = useRoomOrder();
+  const { list, ordered, count, pins, setPins, pinned, fixed: fixedRoom } = useRoomOrder();   // fixedRoom = PM · 기차봇 1:1(늘 고정 · 풀기 0 · 형 11-14 22:42)
   const go = (id: string) => { enterRoom(id); void nav({ to: chatHref(id) }); };
   // 우클릭 = 고정 · 고정 풀기(형 11-05 17:03 「그리고 우클릭하면 고정같은거 작용하게 해줘 좌측에 저 프로필 사진들도」) — 대화방 목록 「고정」과 같은 칸(nm-office-pins · 이 기기) · 고정 방 = 띠 위쪽
-  const togglePin = (id: string) => { if (id === "all") return; const n = new Set(pins); if (n.has(id)) n.delete(id); else n.add(id); try { localStorage.setItem("nm-office-pins", JSON.stringify([...n])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } setPins(n); };
+  const togglePin = (id: string) => { if (fixedRoom(id)) return; const n = new Set(pins); if (n.has(id)) n.delete(id); else n.add(id); try { localStorage.setItem("nm-office-pins", JSON.stringify([...n])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } setPins(n); };
   // 자는 애 = 얼굴 채도 15%(형 11-05 15:31 「잠자고 있으면 채도 15%만 들어가게 해줘. 프로필 테두리 라인은 검정 챠콜 베이스 반투명으로 들어가고.」) · 깸 표 = 대화 목록과 같은 bots 캐시(./room-list.tsx)
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: RingBot[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, refetchInterval: 60_000 }).data || [];
   // 라이브 = 지금 깸 · 또는 마지막 턴 10분 안(상태바 조약돌과 같은 셈 · 형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어?」) — 턴 사이 「잠」 깜빡임 없게
