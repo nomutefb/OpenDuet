@@ -7,11 +7,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { idOf, office, people } from "../data/office";
+import { fileUrl } from "../data/file-cache";
 import { FaceImg } from "./faces";
 import { Pane } from "./pane";
 import "./stories.css";
 
-export type Story = { id: string; ts: number; who: string; title: string; path?: string; text?: string; bell?: string };
+export type Story = { id: string; ts: number; who: string; title: string; path?: string; text?: string; bell?: string; media?: string[] };
 /** 안 보이는 지은이 — 윈터 글 뺌(형 11-14 「윈터 관련된 글은 삭제」 · 서버 글은 그대로 두고 목록에서만) */
 const GONE = new Set(["윈터", "winter"]);
 export const useStories = () => useQuery({ queryKey: ["nomute", "stories"], queryFn: () => office<{ items?: Story[] }>("stories").then((j) => (Array.isArray(j.items) ? j.items : []).filter((s) => !GONE.has(s.who))), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false });
@@ -24,12 +25,21 @@ const body = (s: Story) => String(s.text || "").replace(/^\s*#[^\n]*\n+/, "").tr
 export function StoryList() {
   const q = useStories();
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-  const [open, setOpen] = useState("");
-  const items = (q.data || []).slice().sort((a, b) => b.ts - a.ts);
+  const [open, setOpen] = useState(""), [by, setBy] = useState("");   // by = 쓴 이 하나만(형 11-15 05:09 「다른애들도 쓰면 구분되서 들어갈 수 있어?」 · 깃 #-029)
+  const all = (q.data || []).slice().sort((a, b) => b.ts - a.ts);
+  const whos = [...new Set(all.map((s) => s.who))];
+  const items = by ? all.filter((s) => s.who === by) : all;
   if (q.isPending) return <p className="nm-story-empty">불러오는 중</p>;
   if (q.isError) return <p className="nm-story-empty">아직 이야기를 못 불러왔어</p>;
   if (!items.length) return <p className="nm-story-empty">아직 지은 이야기가 없어 — 종이 울리면 여기 쌓여</p>;
   return (
+    <>
+    {whos.length > 1 ? (
+      <div className="nm-story-who" role="tablist" aria-label="쓴 이">
+        <button type="button" role="tab" aria-selected={!by} className={by ? "" : "on"} onClick={() => setBy("")}>전체</button>
+        {whos.map((w) => <button key={w} type="button" role="tab" aria-selected={by === w} className={by === w ? "on" : ""} onClick={() => setBy(by === w ? "" : w)}><FaceImg id={idOf(w, list)} size={18} />{list.find((x) => x.who === w)?.name || w}</button>)}
+      </div>
+    ) : null}
     <ul className="nm-story">
       {items.map((s) => {
         const on = open === s.id, name = list.find((x) => x.who === s.who)?.name || s.who;
@@ -40,11 +50,24 @@ export function StoryList() {
               <span className="t">{s.title}</span>
               <span className="by"><FaceImg id={idOf(s.who, list)} size={20} />{name}</span>
             </button>
-            <div className="nm-story-in"><div><p className="nm-story-body" data-content>{body(s) || "(본문 사본 없음)"}</p></div></div>
+            <div className="nm-story-in"><div><p className="nm-story-body" data-content>{body(s) || "(본문 사본 없음)"}</p>{on && s.media?.length ? <Media list={s.media} /> : null}</div></div>
           </li>
         );
       })}
     </ul>
+    </>
+  );
+}
+
+/** 그 글에 붙은 사진 · 영상 = 펼친 본문 아래(형 11-15 05:09 「사진하고 같이 올렷으면 영상 같은거랑 같이 나오면 좋겠어」) · 펼쳤을 때만 받음 · 영상 = 누르면 재생 */
+const VID = /\.(mp4|mov|webm|m4v)$/i;
+function Media({ list }: { list: string[] }) {
+  return (
+    <div className="nm-story-media">
+      {list.slice(0, 6).map((p) => VID.test(p)
+        ? <video key={p} src={fileUrl(p)} controls playsInline preload="metadata" />
+        : <a key={p} href={fileUrl(p)} target="_blank" rel="noreferrer"><img src={fileUrl(p)} alt="" loading="lazy" draggable={false} /></a>)}
+    </div>
   );
 }
 
