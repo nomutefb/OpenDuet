@@ -84,7 +84,7 @@ function fromLocal(s: Sched | undefined, bots: Bot[] | undefined, loading = fals
   const jobs = s?.runners?.jobs || [];
   const mach = jobs.filter((j) => /nomute-wake|neo-agent|sched-clock/.test(j.id));
   out.server = [
-    { key: "api", name: "사무실 서버", st: s ? "ok" : loading ? "unknown" : "miss", value: s ? "응답함" : loading ? "불러오는 중" : "응답 없음" },   // 처음 불러오는 사이 = 회색(형 11-06 00:30 「메뉴 4 첨 들가몀 이게 쩟다가」)
+    { key: "api", name: "사무실 서버", st: s ? "ok" : loading ? "unknown" : "miss", value: s ? "응답함" : loading ? "읽는 중…" : "응답 없음" },   // 처음 불러오는 사이 = 회색(형 11-06 00:30 「메뉴 4 첨 들가몀 이게 쩟다가」)
     { key: "clock", name: "봇 시계(윈A)", st: s?.clock_got?.got ? "ok" : "unknown", last_at: s?.clock_got?.beat_at, value: s?.clock_got?.got ? "판 받음" : "" },
     ...mach.map((j) => ({ key: j.id, name: j.name, st: j.on === false ? ("off" as HealthSt) : j.health?.st || "unknown", last_at: j.health?.last_at })),
   ];
@@ -454,7 +454,7 @@ export function StatusBoard() {
   return (
     <div className="nsb mx-auto w-full max-w-6xl px-4 pb-12 pt-3">
       <div className="nsb-top" role="status">
-        <b data-st={loading ? "unknown" : red ? "miss" : yellow ? "late" : "ok"}>{loading ? "불러오는 중" : red ? `안 됨 ${red}` : yellow ? `늦음 ${yellow}` : "다 정상"}</b>
+        <b data-st={loading ? "unknown" : red ? "miss" : yellow ? "late" : "ok"}>{loading ? "읽는 중…" : red ? `안 됨 ${red}` : yellow ? `늦음 ${yellow}` : "다 정상"}</b>
         <span>● {count(all, "ok")} · ▲ {yellow} · ✕ {red} · ○ {gray}</span>
         <small>{srv.isError ? "몸 보고 길 = 뜸이 붙이는 중" : srv.data?.at ? agoKo(srv.data.at) : ""}</small>
       </div>

@@ -75,7 +75,7 @@ export function PushDevsModal() {
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-devs">
           <span className="ycd-nm yset-ttl">구독 기기</span>
           {note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
-          {q.isLoading ? <p className="nm-chan-msg">불러오는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">목록을 못 불러왔어 — 잠시 뒤 다시 열어 줘</p> : !items.length ? <p className="nm-chan-msg">알림을 켠 기기 없음</p> : (
+          {q.isLoading ? <p className="nm-chan-msg">읽는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">목록을 못 불러왔어 — 잠시 뒤 다시 열어 줘</p> : !items.length ? <p className="nm-chan-msg">알림을 켠 기기 없음</p> : (
             <div className="nm-q-list" role="list">
               {items.map((it) => {
                 const nm = devName(it), here = !!me && it.id === me;

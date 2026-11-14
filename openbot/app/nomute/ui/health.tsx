@@ -18,7 +18,7 @@ export function NomuteHealth() {
   return (
     <PageSection title="점검표">
       <p className="mt-1 text-sm text-muted-foreground">
-        {h.isPending ? "받는 중…" : h.isError ? `못 받았어 — ${h.error.message}` : `준비됨 ${c?.ready ?? 0} · 확인 안 됨 ${c?.unchecked ?? 0} · 고칠 것 ${c?.fix ?? 0} · ${hm(h.data?.at)} 기준`}
+        {h.isPending ? "읽는 중…" : h.isError ? `못 받았어 — ${h.error.message}` : `준비됨 ${c?.ready ?? 0} · 확인 안 됨 ${c?.unchecked ?? 0} · 고칠 것 ${c?.fix ?? 0} · ${hm(h.data?.at)} 기준`}
       </p>
       <ul className="mt-3 flex flex-col divide-y divide-border rounded-2xl border border-border">
         {(h.data?.rows || []).map((r) => (

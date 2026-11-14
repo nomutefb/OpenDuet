@@ -11,12 +11,12 @@
 .nm-stk-tabs.atStart.atEnd { -webkit-mask-image:none; mask-image:none; }
 @media (hover:hover) and (pointer:fine) { .nm-stk-tabs { cursor:grab; } .nm-stk-tabs.grabbing, .nm-stk-tabs.grabbing button { cursor:grabbing; } }
 .nm-stk-tabs button { all:unset; flex:none; padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600; color:rgba(232,234,232,.62); border:1px solid transparent; cursor:pointer; }
-.nm-stk-tabs button.on { color:#CFFF40; background:rgba(207,255,64,.14); border-color:rgba(207,255,64,.38); }
+.nm-stk-tabs button.on { color:var(--accent, #CFFF40); background:rgba(var(--accent-rgb, 207,255,64),.14); border-color:rgba(var(--accent-rgb, 207,255,64),.38); }
 .nm-stk-grid { display:flex; flex-direction:column; flex:0 1 auto; min-height:0; max-height:calc(var(--stk-cell) * 3 + 6px * 2 + 18px); padding:6px 10px 12px; overflow-y:auto; overscroll-behavior:contain; isolation:isolate; }   /* 처음 = 5칸 × 3 줄 = 15(형 11-15 01:28 「움짤은 15개 정도만 나오면 돼 … 그 이상은 지금처럼 올려서 보면 됨 너무 뒤덮어서」) · 더 = 위로 끌어올림(스크롤) */
 .nm-stk { container-type:inline-size; --stk-cell:calc((min(420px, 100vw - 24px) - 20px - 24px) / 5); }
 .nm-stk-sec { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:6px; flex:none; }
 .nm-stk-sec + .nm-stk-sec { margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,.08); }   /* 줄(묶음)마다 살짝 구분(형 01:28 「각각 라인이 조금은 구분되야함」) */
-.nm-stk-sec.fav + .nm-stk-sec, .nm-stk-sec.recent + .nm-stk-sec { border-top-color:rgba(207,255,64,.22); }
+.nm-stk-sec.fav + .nm-stk-sec, .nm-stk-sec.recent + .nm-stk-sec { border-top-color:rgba(var(--accent-rgb, 207,255,64),.22); }
 .nm-stk-cell { position:relative; aspect-ratio:1; }
 .nm-stk-cell .pick { all:unset; display:block; box-sizing:border-box; width:100%; height:100%; border-radius:14px; overflow:hidden; cursor:pointer; background:rgba(255,255,255,.04); }
 .nm-stk-heart { all:unset; position:absolute; top:2px; right:2px; width:22px; height:22px; display:grid; place-items:center; cursor:pointer; border-radius:50%; }   /* 하트 = 누르면 맨 앞 줄(≤5) */
@@ -24,11 +24,11 @@
 .nm-stk-heart.on svg { fill:#FF6FA0; stroke:#FF6FA0; }
 .nm-stk-face { margin:-2px 5px -2px -4px; display:inline-block; vertical-align:middle; }
 .nm-stk-tabs button { display:inline-flex !important; align-items:center; }
-.nm-stk-cell .pick:hover { outline:2px solid rgba(207,255,64,.38); }
+.nm-stk-cell .pick:hover { outline:2px solid rgba(var(--accent-rgb, 207,255,64),.38); }
 .nm-stk-cell img { width:100%; height:100%; object-fit:cover; display:block; }
 /* 내가 보낸 움짤 옆 표(형 11-12 12:50 「움짤옆에는 항상 체크표시 라임색으로」) — 움짤 왼쪽 아래 · 보내는 중 = 흐림 */
 .nm-stk-sent { display:inline-flex; align-items:flex-end; gap:1px; }   /* 형 13:27 「체크 조금만 더 이모지 쪽으로 붙이고, 크기 75%로해서 살짝만 위로」 */
-.nm-stk-ok { flex:none; width:15px; height:15px; margin-bottom:8px; display:grid; place-items:center; color:#CFFF40; filter:drop-shadow(0 0 3px rgba(207,255,64,.45)); }
+.nm-stk-ok { flex:none; width:15px; height:15px; margin-bottom:8px; display:grid; place-items:center; color:var(--accent, #CFFF40); filter:drop-shadow(0 0 3px rgba(var(--accent-rgb, 207,255,64),.45)); }
 .nm-stk-ok svg { width:12px; height:12px; }
 .nm-stk-sent.wait .nm-sticker { opacity:.55; }
 .nm-stk-sent.wait .nm-stk-ok::after { content:""; width:6px; height:6px; border-radius:50%; background:rgba(232,234,232,.45); }

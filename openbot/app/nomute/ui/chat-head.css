@@ -5,10 +5,10 @@
 .nm-chat-h.story { padding-right:64px; }
 /* 이름 = 줄 가운데 · 꼴 = 옛 윗줄 가운데 방 이름 그대로(라임 · 굵게 · 인원 흰 · 형 10:07 「블릿에 hot issue 이런거 대신해서, 구역 상단 구분선은 유지하되 가운데 글자에 대화창 명칭이 들어가면됨. 지금 웹앱 최상단 중앙에 위치한것.」) */
 .nm-chat-h .nm-top-wrap, .nm-chat-h > .nm-top-name { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); max-width:calc(100% - 180px); }
-.nm-chat-h .nm-top-name { max-width:100%; font-size:var(--fs-h3); line-height:20px; font-weight:700; color:#CFFF40 !important; text-shadow:none; pointer-events:auto; }
+.nm-chat-h .nm-top-name { max-width:100%; font-size:var(--fs-h3); line-height:20px; font-weight:700; color:var(--accent, #CFFF40) !important; text-shadow:none; pointer-events:auto; }
 .nm-chat-h .nm-top-name.nm-top-btn i { color:#fff; font-weight:600; }
 .nm-chat-fold { position:relative; flex:none; margin-left:auto; display:grid; place-items:center; width:32px; height:32px; padding:0; border:0; border-radius:8px; background:none; color:rgba(232,234,232,.78); cursor:pointer; }
-.nm-chat-fold:hover, .nm-chat-fold.on { color:#CFFF40; }
+.nm-chat-fold:hover, .nm-chat-fold.on { color:var(--accent, #CFFF40); }
 .nm-chat-fold > i { position:absolute; top:2px; right:0; min-width:14px; height:14px; padding:0 3px; border-radius:7px; background:#CFFF40; color:#141516; font-style:normal; font-size:10px; line-height:14px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
 .nm-chat-fold-scrim { position:fixed; inset:0; z-index:44; }
 .nm-chat-fold-pop { position:absolute; top:calc(100% + 6px); right:0; z-index:45; display:flex; flex-direction:column; gap:10px; width:min(440px, calc(100% - 8px)); max-height:min(64dvh, 560px); overflow-y:auto; overscroll-behavior:contain; padding:12px 14px;
@@ -32,11 +32,11 @@
 .nm-split-l .nm-col:has(> .nm-chat-h) main .ychat .ychat.mt-auto { padding-top:12px !important; }
 /* 검색 · 밥상 이야기 그림 = 머리줄 가운데 높이(36 줄 · 판 위 14) · 검정 동그라미 감싸기 뺌(형 08:58 「검색은 사실 픽토그램만 보여도돼. 검정색으로 감싸지마, 촌스러움」) */
 :root:has(.nm-split-root .nm-chat-h) .nm-find:not(.open) { top:calc(67px + var(--nm-top-off, 0px)) !important; background:none !important; border-color:transparent !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; box-shadow:none !important; filter:none !important; color:rgba(232,234,232,.78); }
-:root:has(.nm-split-root .nm-chat-h) .nm-find:not(.open):hover { color:#CFFF40; }
+:root:has(.nm-split-root .nm-chat-h) .nm-find:not(.open):hover { color:var(--accent, #CFFF40); }
 :root:has(.nm-split-root .nm-chat-h) .nm-find:not(.open) .nm-find-btn svg { width:18px; height:18px; }
 :root:has(.nm-split-root .nm-chat-h) .nm-find.open { top:calc(65px + var(--nm-top-off, 0px)) !important; }
 :root:has(.nm-split-root .nm-chat-h) .nm-story-btn { top:calc(63px + var(--nm-top-off, 0px)) !important; filter:none; color:rgba(232,234,232,.78); }
-:root:has(.nm-split-root .nm-chat-h) .nm-story-btn:hover { color:#CFFF40; }
+:root:has(.nm-split-root .nm-chat-h) .nm-story-btn:hover { color:var(--accent, #CFFF40); }
 :root:has(.nm-split-root .nm-chat-h) .nm-story-btn svg { width:19px; height:19px; }
 .nm-chat-fold-pop:focus, .nm-chat-fold-pop:focus-visible { outline:none; }
 /* 글 칸 맨 위 = 흐림(형 11-08 11:32 「그라데이션 느낌으로 없어지게해줘. 지금은 너무 딱 끊김,예전 그라데이션느낌!?」)

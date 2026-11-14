@@ -161,7 +161,7 @@ export function BotDesk() {
     <div className="nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pb-12 pt-3">
       <h1 className="sr-only">봇 현황</h1>
       <div className="nm-bd-head" role="status">
-        <p className="big">{q.isPending ? <span className="t-dim">불러오는 중</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>노는 손 <b>{idle.length}</b></>}
+        <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>노는 손 <b>{idle.length}</b></>}
           <span className="side">{n.lost ? <span className="badge">멈춤 {n.lost}</span> : null}{q.data?.at ? <span className="at">{hmKo(q.data.at)}{q.data.stale ? " · 묵은 것" : ""}</span> : null}</span>
         </p>
         {idle.length ? <ul className="idle">{idle.map((r) => <li key={r.who}><span className="face"><FaceImg id={idOf(r.who, people)} size={22} /></span>{r.who}</li>)}</ul> : q.data && live ? <p className="names t-dim">다 일하는 중이거나 차례 밖</p> : null}

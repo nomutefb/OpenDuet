@@ -107,7 +107,7 @@ export function SensorModal() {
           {note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
           {cur ? (
             <div className="nm-msg-detail"><div className="hd"><span className="qt">{(cur.s.by ? nm(cur.s.by) + " · " : "") + when(cur.s.updated_at || cur.s.created_at)}</span></div><p className="bd">{asText(cur.bot, cur.s)}</p></div>
-          ) : q.isLoading ? <p className="nm-chan-msg">불러오는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">센서를 못 불러왔어 — {(q.error as Error)?.message || "연결 확인"}</p> : !rows.length ? <p className="nm-chan-msg">걸린 센서 없음 — ＋ 로 추가</p> : (
+          ) : q.isLoading ? <p className="nm-chan-msg">읽는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">센서를 못 불러왔어 — {(q.error as Error)?.message || "연결 확인"}</p> : !rows.length ? <p className="nm-chan-msg">걸린 센서 없음 — ＋ 로 추가</p> : (
             <div className="nm-q-list" role="list">
               {rows.map(({ bot, s }, i) => {
                 const by = s.by && s.by !== "세웅" ? s.by : "", fresh = !!by && Date.parse(s.updated_at || "") > seen;   // 봇이 바꾼 걸 아직 안 봄 = 앞에 ●

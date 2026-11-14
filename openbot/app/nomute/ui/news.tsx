@@ -4,6 +4,7 @@
 //   데이터 = `/articles.json`(./news-data.ts · 분류 칸 = category · 전엔 cat 을 읽어 분류가 안 떴음) · 실시간 줄 `api/feedlive` 병합은 2차(원본은 4초 상한 병합) · 60초 다시 읽기(원본 폴) · 같은 출처 · HTML 응답 = 로그인 벽
 //   필터 칩 = 원본 R 필터 칩(viewer/index.html renderChips · FILTERS · render 4912) 그대로: 전체 · 이슈(긴급 + 이슈) · 정치 · 사회 · 경제 · 문화 · 국제 · 테크 — 분류는 여러 개 = OR · 이슈는 분류와 같이(AND) · 이 화면에서만(원본도 저장 안 함)
 //     (형 11-10 12:40 「봄 노는 작업실 있으면 에디터도 정원에 완벽하게 녹여」 · team-4 U3 뎅 · 전엔 「원본 카드의 검색·필터는 여기 없음」) · 검색은 여기 없음(전체 보기)
+import { readFail } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import "./yeta-settings.css";
 import { pollOff } from "../data/poll-linux";
 import "./chan.css";
@@ -53,7 +54,7 @@ export function NewsModal() {
         <div className="yeta-set mt-2">
           <div className="ycd-card card-left nm-chan nm-sns nm-news">
             <span className="ycd-nm yset-ttl"><Svg k="chat" />뉴스 요약{pending ? <i className="nm-ask-badge" title="대기열 처리 중">{pending}</i> : null}{q.data ? <i className="nm-chan-at">{q.data.count.toLocaleString("ko-KR")}건{q.data.generated ? ` · ${k12(q.data.generated)}` : ""}</i> : null}</span>
-            {q.isLoading ? <p className="nm-chan-msg">기사 읽는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">{(q.error as Error).message || "뉴스 요약을 못 읽었어"}</p> : !all.length ? <p className="nm-chan-msg">기사가 없어</p> : <>
+            {q.isLoading ? <p className="nm-chan-msg">기사 읽는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">{readFail(q.error, "뉴스 요약")}</p> : !all.length ? <p className="nm-chan-msg">기사가 없어</p> : <>
               <div className="yset-chips nm-news-chips" role="group" aria-label="분류 필터">
                 <button type="button" className={`yset-chip${!fc.size && !fi ? " on" : ""}`} aria-pressed={!fc.size && !fi} onClick={() => { setFc(new Set()); setFi(false); setN(PAGE); }}>전체</button>
                 <button type="button" className={`yset-chip${fi ? " on" : ""}`} aria-pressed={fi} onClick={() => { setFi((v) => !v); setN(PAGE); }}>이슈</button>

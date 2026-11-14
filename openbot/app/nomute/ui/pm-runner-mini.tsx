@@ -23,7 +23,7 @@ function Kids() {   // 봇 현황 = 서버 활동 판정 그대로(GET status/ac
   //   앞 판 = 아이 줄(글) 밑에 홈 러너 칸(status 175KB · 7~8초) → 처음 누르면 두 번 끊겨 뜸(형 05:24 「처음 누르면 2단으로 탁탁 끊겨서 나옴」) · 러너 칸은 홈에 그대로
   const q = useQuery({ queryKey: ACT_QUERY_KEY, queryFn: () => office<{ rows?: MiniRow[] }>("status/activity").then((j) => j.rows || []), refetchInterval: 60_000, staleTime: 30_000 });
   const rows = (q.data || []).map(miniLine);
-  if (!rows.length) return <p className="nm-pmrun-empty">불러오는 중…</p>;
+  if (!rows.length) return <p className="nm-pmrun-empty">읽는 중…</p>;
   const dev = rows.filter((b) => !NODEV.has(b.name)), rest = rows.filter((b) => NODEV.has(b.name));
   return (
     <div className="nm-pmrun-kids" aria-label="애들 지금">
@@ -38,7 +38,7 @@ function Jobs({ pmRoom }: { pmRoom: string }) {   // 접수 · 완료 = PM 1:1 �
   const get = (room: string, n: number) => office<{ messages?: { id: string; ts: number; who: string; text: string; relay?: unknown }[] }>(`rooms/${encodeURIComponent(room)}/messages?n=${n}`).then((j) => j.messages || []).catch(() => []);
   const q = useQuery({ queryKey: ["nomute", "pm-jobs", pmRoom], queryFn: async () => [...(await get(pmRoom, 80)), ...(await get("dm-chaeng", 40))], refetchInterval: 60_000, staleTime: 30_000 });
   const rows = jobBoard(q.data || []);
-  if (!q.data) return <p className="nm-pmrun-empty">불러오는 중…</p>;
+  if (!q.data) return <p className="nm-pmrun-empty">읽는 중…</p>;
   if (!rows.length) return <p className="nm-pmrun-empty">접수 · 완료 없음</p>;
   return (
     <ul className="nm-pmrun-jobs" aria-label="접수 · 완료">

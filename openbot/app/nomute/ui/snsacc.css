@@ -20,8 +20,5 @@
 .nm-acc .nm-acc-save:disabled { background:none; color:var(--mut); border-color:var(--glass-line); }
 .nm-acc .nm-acc-err { margin:0; font-size:var(--fs-xs); color:#ff8a8a; }
 .nm-acc .nm-acc-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.nm-acc .nm-acc-off { display:inline-flex; align-items:center; gap:8px; padding:0; border:0; background:none; font:inherit; font-size:var(--fs-xs); color:var(--mut); cursor:pointer; }
-.nm-acc .nm-acc-off[aria-checked="true"] .si-sw { background:rgba(var(--accent-rgb),.9); border-color:transparent; }   /* 켜짐 꼴 = yeta-settings.css .yset-item.on .si-sw 와 같은 값 */
-.nm-acc .nm-acc-off[aria-checked="true"] .si-sw::after { transform:translateX(16px); background:var(--bg); }
-.nm-acc .nm-acc-off:disabled { opacity:.5; cursor:default; }
+.nm-acc .nm-acc-off { font-size:var(--fs-xs); color:var(--mut); }   /* 스위치 꼴 = 공용 .nm-sw(yeta-settings.css) */
 .nm-acc .nm-acc-add input::placeholder { font-family:var(--app-font-text, inherit); }

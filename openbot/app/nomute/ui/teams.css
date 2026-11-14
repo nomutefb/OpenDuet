@@ -10,7 +10,7 @@
 .nm-tnote { padding:16px 8px; color:var(--mut, #8b8f8a); font-size:var(--fs-label); }
 .nm-tlogin { display:flex; flex-direction:column; align-items:center; gap:10px; padding:28px 12px; text-align:center; font-size:var(--fs-label); color:var(--fg-2, #c8ccc8); }
 .nm-tlogin b { font-size:var(--fs-body); color:var(--fg, #fff); }
-.nm-tcode { all:unset; cursor:pointer; font:700 30px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing:.14em; color:#CFFF40; padding:10px 18px; border-radius:14px; background:rgba(207,255,64,.08); border:1px solid rgba(207,255,64,.35); }
+.nm-tcode { all:unset; cursor:pointer; font:700 30px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing:.14em; color:var(--accent, #CFFF40); padding:10px 18px; border-radius:14px; background:rgba(var(--accent-rgb, 207,255,64),.08); border:1px solid rgba(var(--accent-rgb, 207,255,64),.35); }
 .nm-tgo { all:unset; cursor:pointer; padding:9px 18px; border-radius:999px; font-weight:700; color:#111; background:#CFFF40; }
 .nm-tgo[disabled] { opacity:.5; cursor:default; }
 .nm-terr { color:#ff7b7b; font-size:var(--fs-sm); }
@@ -20,7 +20,7 @@
 .nm-tchat-h span { font-size:var(--fs-2xs); font-weight:700; color:#fff; background:#5b5fc7; padding:1px 7px; border-radius:999px; }
 .nm-tfile { color:inherit; text-decoration:underline; text-underline-offset:3px; }
 /* 파일 붙이기(형 11-06 19:27 「파일보내기 … 있으면 좋을거같애」) — 「+」 = 입력칸 왼쪽 흐린 동그라미 · 고른 파일 = 입력칸 위 칩(× 로 뺌) */
-.nm-tpick { display:flex; align-items:center; gap:8px; max-width:100%; margin:0 0 6px; padding:6px 8px 6px 12px; border-radius:14px; font-size:var(--fs-sm); background:var(--glass-2, rgba(255,255,255,.07)); border:1px solid rgba(207,255,64,.35); }
+.nm-tpick { display:flex; align-items:center; gap:8px; max-width:100%; margin:0 0 6px; padding:6px 8px 6px 12px; border-radius:14px; font-size:var(--fs-sm); background:var(--glass-2, rgba(255,255,255,.07)); border:1px solid rgba(var(--accent-rgb, 207,255,64),.35); }
 .nm-tpick small { flex:none; color:var(--mut, #8B8F8A); font-variant-numeric:tabular-nums; }
 .nm-tpick button { all:unset; flex:none; cursor:pointer; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; color:rgba(232,234,232,.6); }
 .nm-tpick button:hover { color:#FF5A5F; background:rgba(255,90,95,.12); }
@@ -32,7 +32,7 @@
 .nm-tlist li button em { display:inline-flex; flex-direction:column; align-items:flex-end; gap:5px; }
 .nm-tnew { display:block; width:8px; height:8px; border-radius:50%; background:#CFFF40; }
 .nm-tbadge { display:inline-grid; place-items:center; min-width:16px; height:16px; margin-left:5px; padding:0 4px; border-radius:999px; font-size:10px; font-weight:800; line-height:1; color:#111; background:#CFFF40; vertical-align:1px; }
-.nm-tswitch button[aria-selected="true"] .nm-tbadge { color:#CFFF40; background:#111; }
+.nm-tswitch button[aria-selected="true"] .nm-tbadge { color:var(--accent, #CFFF40); background:#111; }
 .nm-tacct { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; font-size:var(--fs-label); }
 .nm-tacct button { all:unset; cursor:pointer; padding:6px 14px; border-radius:999px; font-weight:700; color:#111; background:#CFFF40; }
 .nm-tacct button[disabled] { opacity:.5; cursor:default; }
@@ -50,7 +50,7 @@
 .nm-tform textarea { flex:1; min-width:0; resize:none; max-height:160px; background:none; border:0; outline:0; color:var(--fg); font:inherit; font-family:var(--app-font-text, var(--app-font, Pretendard,-apple-system,system-ui,sans-serif)); font-size:var(--fs-body); line-height:1.5; padding:7px 4px; field-sizing:content; align-self:center; }
 .nm-tform button { display:grid; place-items:center; flex:none; }
 .nm-tform .nm-tplus2 { width:var(--btn, 36px); height:var(--btn, 36px); border:0; border-radius:50%; background:none; cursor:pointer; }
-.nm-tform .nm-tplus2:hover { color:var(--accent, #CFFF40); }
+.nm-tform .nm-tplus2:hover { color:var(--accent, var(--accent, #CFFF40)); }
 /* 글 안 표 = 말풍선 안 표 · 좁으면 옆으로 밀기 · 줄 = 옅은 선(형 11-13 13:03 봄 옮김 「원래 표구조」 · 뎅) */
 .nm-tychat .yb .nm-tpart { display:block; }
 .nm-tychat .yb .nm-tpart + .nm-ttable, .nm-tychat .yb .nm-ttable + .nm-tpart { margin-top:8px; }
@@ -142,5 +142,5 @@
 
 /* 회의 탭 빈 화면 = 가운데 반투명 알약 「새 회의 시작」(./phone-meet.tsx · 깃 #-027 · 형 11-15 01:23) · 움직임 · 흐림 0 */
 .nm-pmeet-empty:has(> .nm-meet-start) { flex:1 1 auto; justify-content:center; min-height:min(60dvh, 520px); padding:0 16px; }
-.nm-meet-start { padding:10px 22px; border-radius:999px; border:1px solid rgba(207,255,64,.38); background:rgba(207,255,64,.1); color:#CFFF40; font-size:15px; font-weight:600; line-height:1.2; cursor:pointer; }
-.nm-meet-start:active { background:rgba(207,255,64,.18); }
+.nm-meet-start { padding:10px 22px; border-radius:999px; border:1px solid rgba(var(--accent-rgb, 207,255,64),.38); background:rgba(var(--accent-rgb, 207,255,64),.1); color:var(--accent, #CFFF40); font-size:15px; font-weight:600; line-height:1.2; cursor:pointer; }
+.nm-meet-start:active { background:rgba(var(--accent-rgb, 207,255,64),.18); }

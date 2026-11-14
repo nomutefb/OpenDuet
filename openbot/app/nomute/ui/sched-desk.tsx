@@ -1,6 +1,7 @@
 // 스케줄(형 10-31 「포크로 꼽아지고 그걸 차단기로 내리고 키는 개념」 · 「꼬챙이 하나하나에 루틴을 담고 시간을 설계」 · 「포크가 공통의 내용을 담을 수 있는거고」 · 「각각의 끝에는 ! 훅 이거 단 하나야」)
 //   트리 = 맨 위 봇 얼굴 줄(봇 큰 차단기 · 고르면 그 봇 꼬챙이만) → 포크 차단기 → 꼬챙이 차단기 → 끝 ! 얼굴 · 내린 위 칸 아래는 다 멈춘 것으로 보임
 //   서버 = GET schedule · POST schedule/set(형만 · dry = 미리 보기 · at routine·fork·bot) · 저장 흐름 = 설정 NomuteSchedule 과 같음 · 서버 판이 안 올라온 동안은 forks 없음 → 「아직 안 나눔」 한 포크
+import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -160,7 +161,7 @@ export function SchedDesk() {
     return undefined;
   }, [save?.stage, qc]);
   useEffect(() => { if (save?.stage === "wait" && got?.got && (!save.sha || got.sha === save.sha)) setSave((s) => s && { ...s, stage: "done" }); }, [save?.stage, save?.sha, got?.got, got?.sha]);
-  if (!d) return <p className="p-6 text-sm text-muted-foreground">{s.isError ? s.error.message : "표 읽는 중"}</p>;
+  if (!d) return <p className="p-6 text-sm text-muted-foreground">{s.isError ? readFail(s.error, "스케줄 표") : reading("표")}</p>;
   const hasForks = !!d.forks?.length;
   const forks: SchedFork[] = hasForks ? d.forks! : [{ id: "", name: "아직 안 나눔", on: true }];
   const rsOf = (f: SchedFork) => d.routines.filter((r) => (hasForks ? r.fork === f.id : true) && (!who || r.bot === who));

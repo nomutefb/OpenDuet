@@ -93,7 +93,7 @@ export function SnsAccModal() {
           <div className="nm-acc-tabs" role="tablist">
             {TABS.map(([k, lab]) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => { setTab(k); setErr(""); }}>{lab}{dirty.has(k) ? <i aria-label="안 저장한 편집">•</i> : null}</button>)}
           </div>
-          {loading ? <p className="nm-chan-msg">불러오는 중…</p> : (
+          {loading ? <p className="nm-chan-msg">읽는 중…</p> : (
             <div className="nm-acc-chips">
               {list.length ? list.map(([r, i, a]) => (
                 <button key={r + i + a} type="button" className="nm-acc-chip" aria-label={"@" + a + " 삭제"} onClick={() => edit((p) => { p[r].splice(i, 1); })}>@<span>{a}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden><path d="M6 6 18 18M18 6 6 18" /></svg></button>
@@ -107,7 +107,7 @@ export function SnsAccModal() {
           </div>
           {err ? <p className="nm-acc-err" role="alert">{err}</p> : note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
           <div className="nm-acc-foot">
-            <button type="button" role="switch" aria-checked={P.off === true} className="nm-acc-off" disabled={loading} onClick={() => edit((p) => { if (p.off === true) delete p.off; else p.off = true; })}><span className="si-sw" aria-hidden />구독 끄기(화면 숨김)</button>   {/* 네모 체크박스 → 설정 공용 스위치 꼴(.si-sw · 형 11-15 「하네스 따로 노는 거」) */}
+            <button type="button" role="switch" aria-checked={P.off === true} className="nm-acc-off nm-sw" disabled={loading} onClick={() => edit((p) => { if (p.off === true) delete p.off; else p.off = true; })}><span className="si-sw" aria-hidden />구독 끄기(화면 숨김)</button>   {/* 네모 체크박스 → 설정 공용 스위치 꼴(.si-sw · 형 11-15 「하네스 따로 노는 거」) */}
             <GoButton className="nm-acc-save" disabled={!canSave} go={must(save)} busy="저장 중">저장</GoButton>
           </div>
         </div>

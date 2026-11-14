@@ -48,10 +48,10 @@ html.dark .nm-hotswap { color:#e8eae8; }
 .nm-kwb-col .sub.new { opacity:.8; font-weight:700; letter-spacing:.03em; }
 /* 겹친 말 = 라임(형 「중복되는 키워드는 … 라임색으로 그대로 표기」) · 셋 넘게 = 작은 숫자 */
 .nm-kwb-col li.dup .q, .nm-kwb-col li.dup .rk { color:#4f7a00; opacity:1; }
-html.dark .nm-kwb-col li.dup .q, html.dark .nm-kwb-col li.dup .rk { color:#CFFF40; }
+html.dark .nm-kwb-col li.dup .q, html.dark .nm-kwb-col li.dup .rk { color:var(--accent, #CFFF40); }
 .nm-kwb-col li.dup .q { font-weight:600; }
 .nm-kwb-col .n { font-style:normal; font-size:9.5px; font-weight:700; line-height:15px; min-width:15px; text-align:center; border-radius:999px; color:#4f7a00; border:1px solid currentColor; font-variant-numeric:tabular-nums; }
-html.dark .nm-kwb-col .n { color:#CFFF40; }
+html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
 .nm-kwb-col[data-stale] ol { opacity:.42; }
 .nm-kwb-empty, .nm-kwb-none { margin:0; padding:10px 4px; font-size:12px; opacity:.5; }
 .nm-kwb-none { padding:16px 14px; display:flex; flex-direction:column; gap:3px; opacity:.6; }

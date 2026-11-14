@@ -2,7 +2,7 @@
 .nm-jobf { max-width: min(100%, 420px); }
 .nm-jobf-h { display: flex; align-items: baseline; gap: 6px; width: 100%; padding: 6px 10px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .1); background: rgba(255, 255, 255, .04); color: inherit; font-size: 12.5px; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; }
 .nm-jobf-h .mk { color: rgba(232, 234, 232, .55); }
-.nm-jobf.done .nm-jobf-h .mk, .nm-jobf.done .nm-jobf-h .lab { color: #CFFF40; }
+.nm-jobf.done .nm-jobf-h .mk, .nm-jobf.done .nm-jobf-h .lab { color: var(--accent, #CFFF40); }
 .nm-jobf-h .lab { color: rgba(232, 234, 232, .6); }
 .nm-jobf-h .tt { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; }
 .nm-jobf-h small { color: rgba(232, 234, 232, .45); flex: none; }

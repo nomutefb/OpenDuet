@@ -5,7 +5,7 @@
 .nm-web-btn:hover:not(:disabled) { background: rgba(255,255,255,.08); color: #FFFFFF; }
 .nm-web-btn:disabled { opacity: .3; cursor: default; }
 .nm-web-addr { flex: 1; min-width: 0; height: 26px; padding: 0 10px; border-radius: 7px; border: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.25); color: #E8EAE8; font-size: var(--fs-label); outline: none; }
-.nm-web-addr:focus { border-color: rgba(207,255,64,.55); box-shadow: 0 0 0 2px rgba(207,255,64,.15); }
+.nm-web-addr:focus { border-color: rgba(var(--accent-rgb, 207,255,64),.55); box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 207,255,64),.15); }
 .nm-web-body { position: relative; flex: 1; min-height: 0; display: flex; }
 .nm-web-frame { flex: 1; width: 100%; height: 100%; border: 0; background: #FFFFFF; }
 .nm-web-note { margin: auto; max-width: 30em; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: rgba(232,234,232,.62); font-size: var(--fs-label); line-height: 1.5; }

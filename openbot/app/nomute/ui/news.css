@@ -45,7 +45,7 @@
 .nm-nd .nm-nd-sum { margin:0; font-size:var(--fs-h3); line-height:1.6; color:var(--fg-2); }
 /* 중간 제목(다각도 해석 · 활용 옵션 …) = 라임 + 위 구분선(형 11-09 09:26 「이 다각도 해석 이런 부분은 라임색으로 해서 구분되게 중간 타이틀 구분」 · 「기존에 뉴스 에디터가 어떻게 구분했는지를 보면됨」
    = 옛 뉴스 에디터 viewer/index.html #mdbody h2, h3 { color:var(--accent); border-top:1px solid var(--line2); padding-top:16px; margin:22px 0 8px; font-weight:800 } 그대로 · 라이트 = 진한 라임 #4f7a00) */
-.nm-nd .nm-nd-md :is(h2, h3) { color:var(--nm-nd-h, #CFFF40); border-top:1px solid var(--glass-line, rgba(232,234,232,.10)); padding-top:14px; margin:20px 0 8px; font-size:var(--fs-body); font-weight:var(--fw-x, 800); letter-spacing:-.2px; line-height:1.4; }
+.nm-nd .nm-nd-md :is(h2, h3) { color:var(--nm-nd-h, var(--accent, #CFFF40)); border-top:1px solid var(--glass-line, rgba(232,234,232,.10)); padding-top:14px; margin:20px 0 8px; font-size:var(--fs-body); font-weight:var(--fw-x, 800); letter-spacing:-.2px; line-height:1.4; }
 html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-nd .nm-nd-md h4 { margin:12px 0 4px; font-size:var(--fs-label); font-weight:var(--fw-b); }
 /* 기사 한 장 글 = 옛 에디터 기사 창 글 꼴(형 11-11 09:01 봄 1:1 「… 폰트도 에디터 들은 거기에 맞춰 뉴스 요약 받는 것도 포함」 · 13:02 「… 뉴스요약 뉴스요약 보기가 가장 많이 쓰는 기능이니까 그것만 따라오면 돼」 · /?old 웹킷 폰 390 실측)
@@ -53,7 +53,7 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-nd .nm-nd-md, .nm-nd .nm-nd-md :not(pre, code, pre *, code *), .nm-nd .nm-nd-t, .nm-nd .nm-nd-head { font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; text-transform:none; }
 .nm-nd .nm-nd-md :is(p, li) { font-size:14px; font-weight:400; line-height:1.6; }
 .nm-nd .nm-nd-md :is(h2, h3) { font-size:15px; font-weight:800; line-height:24px; margin:22px 0 8px; }
-.nm-nd .nm-nd-md a { color:var(--nm-nd-h, #CFFF40); font-weight:400; text-decoration:underline; text-underline-offset:2px; word-break:break-all; }
+.nm-nd .nm-nd-md a { color:var(--nm-nd-h, var(--accent, #CFFF40)); font-weight:400; text-decoration:underline; text-underline-offset:2px; word-break:break-all; }
 .nm-nd .nm-nd-t { font-size:19px; font-weight:800; line-height:1.4; }
 /* 초안 글 상자(``` · 인스타 · 스레드 초안) = 줄 접기 · 상자 높이 묶음(400px · 안쪽 스크롤) 풂 — 형 11-10 12:01 봄 1:1 「봄아 뉴스 에디터로 요약한거 모바일에서 제대로 확인이 안돼.가능하게 해줘」
    뜸 12:03 폰 390 실물 = 한 줄 3,934px · 상자 안 가로 스크롤만 됨 · 끝까지 못 읽음 → 폰 · PC 다 줄 접음(복사는 그대로 · 원문 줄바꿈 그대로) */
@@ -63,7 +63,7 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-nd .nm-nd-md > div > :is(h2, h3):first-child, .nm-nd .nm-nd-md :is(h2, h3):first-child { border-top:0; padding-top:0; }   /* 맨 첫 제목은 선 없이 */
 /* 점 줄 = 옛 기사 창 꼴(viewer/index.html .md ul { padding-left:18px } · li::marker = 강조색 · li 위아래 0) — 앞 판 = 스트림다운 list-inside + py-1 + 3px 이라 줄마다 11px 띄고 꺾인 줄이 점 밑으로 감(/?old 웹킷 폰 390 맞대 봄) */
 .nm-nd .nm-nd-md ul { list-style-position:outside; padding-left:18px; } .nm-nd .nm-nd-md ol { list-style-position:outside; padding-left:1.6em; }
-.nm-nd .nm-nd-md li { margin:0; padding:0; } .nm-nd .nm-nd-md li::marker { color:var(--nm-nd-h, #CFFF40); }
+.nm-nd .nm-nd-md li { margin:0; padding:0; } .nm-nd .nm-nd-md li::marker { color:var(--nm-nd-h, var(--accent, #CFFF40)); }
 .nm-nd .nm-nd-acts { justify-content:center; margin-top:2px; }
 .nm-nd .ypc-go span svg { width:14px; height:14px; }
 @media (prefers-reduced-motion:reduce) { .nm-nd .nm-nd-prog i.cur { animation:none; } }
@@ -81,7 +81,7 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-th .nm-th-img { position:absolute; inset:0; padding:0; border:0; background:none; cursor:zoom-in; -webkit-tap-highlight-color:transparent; }
 .nm-th .nm-th-img img { display:block; width:100%; height:100%; object-fit:cover; }
 .nm-th .nm-th-no { position:absolute; top:6px; left:6px; padding:1px 7px; border-radius:var(--r-pill); background:rgba(0,0,0,.55); color:#fff; font-size:var(--fs-2xs); font-variant-numeric:tabular-nums; pointer-events:none; }
-.nm-th .nm-th-no b { color:#CFFF40; }
+.nm-th .nm-th-no b { color:var(--accent, #CFFF40); }
 .nm-th .nm-th-save { position:absolute; top:5px; right:5px; }
 .nm-th .nm-th-foot { position:absolute; left:6px; right:5px; bottom:5px; display:flex; align-items:flex-end; gap:4px; pointer-events:none; }
 .nm-th .nm-th-votes { flex:none; display:flex; gap:4px; margin-left:auto; pointer-events:auto; }
@@ -202,7 +202,7 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 .nm-th .nm-tg-ggs { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:6px 12px; }
 .nm-th .nm-tg-gg { display:flex; flex-direction:column; gap:2px; font-size:var(--fs-xs); }
 .nm-th .nm-tg-ggh { display:flex; justify-content:space-between; color:var(--fg-2); } .nm-th .nm-tg-ggh i { font-style:normal; font-variant-numeric:tabular-nums; color:var(--accent); }
-.nm-th .nm-tg-gg input[type="range"] { width:100%; accent-color:#CFFF40; }
+.nm-th .nm-tg-gg input[type="range"] { width:100%; accent-color:var(--accent, #CFFF40); }
 .nm-th .nm-tg-ggend { display:flex; justify-content:space-between; color:var(--mut); font-size:var(--fs-2xs); }
 .nm-th :is(.nm-tg-pane, .nm-tg-dry) .nm-feed-ta { width:100%; font:inherit; font-family:var(--app-font-text, inherit); font-size:var(--fs-body); line-height:var(--lh-base, 1.6); color:var(--fg); background:var(--glass); border:1px solid var(--glass-line);
   border-radius:var(--r-l); padding:10px 13px; outline:none; resize:vertical; box-shadow:inset 0 1px 0 var(--glass-line); }

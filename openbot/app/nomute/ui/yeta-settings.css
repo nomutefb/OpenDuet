@@ -45,6 +45,11 @@
 .yeta-set .si-sw::after { content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--fg-2); transition:transform .2s var(--ease), background .2s var(--ease); }
 .yeta-set .yset-item.on .si-sw { background:rgba(var(--accent-rgb),.9); border-color:transparent; }
 .yeta-set .yset-item.on .si-sw::after { transform:translateX(16px); background:var(--bg); }
+/* 혼자 서는 스위치(줄이 아닌 자리 · 키워드 알림 · AI 썸네일 · 구독 끄기) = 같은 .si-sw 를 단추 하나로 — 전엔 ON/OFF 글자 칩 · 네모 체크박스로 따로 놀았음(형 11-15) */
+.yeta-set .nm-sw { flex:none; display:inline-flex; align-items:center; gap:8px; padding:0; border:0; background:none; font:inherit; color:inherit; cursor:pointer; }
+.yeta-set .nm-sw[aria-checked="true"] .si-sw { background:rgba(var(--accent-rgb),.9); border-color:transparent; }
+.yeta-set .nm-sw[aria-checked="true"] .si-sw::after { transform:translateX(16px); background:var(--bg); }
+.yeta-set .nm-sw:disabled { opacity:.5; cursor:default; }
 .yeta-set .ycd-nm.yset-ttl { display:flex; align-items:center; gap:8px; }
 .yeta-set .ycd-nm.yset-ttl svg { width:19px; height:19px; flex:none; }
 .nm-modal .yeta-set .ycd-nm.yset-ttl { display:none; }   /* 모달 머리 규칙(PM 15:02) = 껍데기 모달 머리 「< 설정」 하나만 · 판 안 카드 머리는 모달 안에서 숨김 */

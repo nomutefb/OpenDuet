@@ -82,7 +82,7 @@ export function TokensModal() {
     </div>
   );
   let body: ReactNode;
-  if (q.isPending) body = <div className="tk-card tk-empty">불러오는 중</div>;
+  if (q.isPending) body = <div className="tk-card tk-empty">읽는 중…</div>;
   else if (!AGG) body = <div className="tk-card tk-empty">토큰 데이터 파일이 아직 없어.<br />계측 머지 후 첫 파이프라인 실행 + 롤업(≤2h)부터 채워져.</div>;
   else {
     const agg = withinWindow(AGG, hours);

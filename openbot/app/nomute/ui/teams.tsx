@@ -119,7 +119,7 @@ export function useTeamsUnread() {
   return me?.signed_in && !muted ? (chats.data || []).filter((c) => isNew(c, seen, me.user)).length : 0;   // 알림 끔 = 숫자 0(위 useTeamsMuteMenu)
 }
 /** 받는 동안 = 라임 점 셋(앱 다른 칸 LazyDots 와 같은 꼴 · 형 11-13 「팀즈 때도 점 세개 로딩중 시그니처 색으로」) · slim = 그려 둔 목록 위 한 줄 */
-const Dots = ({ slim }: { slim?: boolean }) => <div className={`nm-lazy nm-tdots${slim ? " slim" : ""}`} role="status" aria-label="불러오는 중"><i /><i /><i /></div>;
+const Dots = ({ slim }: { slim?: boolean }) => <div className={`nm-lazy nm-tdots${slim ? " slim" : ""}`} role="status" aria-label="읽는 중"><i /><i /><i /></div>;
 /* 글 안 표(형 11-13 13:03 봄 옮김 「팀즈가 이렇게 원래 표구조로 나오는데, 이게 잘살릴수잇느는지도 한번 확인해줘」 · 뎅) — 그래프 본문 HTML 에 <table> 이 그대로 옴(실물 11-13 · tbody/tr/td)
    → 본문을 「글 조각 · 표 조각」 차례로 나눔 · 칸 = 글자만(링크 · 꾸밈 · 스크립트 0 = innerHTML 안 씀) · 표 없는 글 = 지금처럼 text 그대로 */
 type Part = { t: "text"; s: string } | { t: "table"; rows: { th: boolean; cells: string[] }[] };
@@ -336,7 +336,7 @@ export function TeamsChat({ chat }: { chat: string }) {
       {/* 말풍선 = 우리 대화와 같은 부품(.ychat · .ymsg/.ymrow · .yb ai/me · .ytout · .ydate · 입력칸 .ychat-in = yeta-chat.css) · 겉꼴만 — 반응 · 답장 · 움짤 · 결정 · 표지 0 · 얼굴 칸 없이 이름 위(형 11-13 12:43 봄 옮김 「팀즈도, 이 우리 채팅하고 동일하게 구성을 적용할수있나? 채팅창 안에. 그니까 말풍선 이런것만.」 · 뎅) */}
       <div ref={box} className="nm-tchat-b" onScroll={(e) => { const b = e.currentTarget; stick.current = b.scrollHeight - b.scrollTop - b.clientHeight < 40; keepScroll(chat, b); }}>
         <div className="ychat nm-tychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-3">
-          {nextOf ? <button type="button" className="nm-tmore" disabled={moreBusy} onClick={() => void more()}>{moreBusy ? "받는 중…" : "앞 글 더 보기"}</button> : null}
+          {nextOf ? <button type="button" className="nm-tmore" disabled={moreBusy} onClick={() => void more()}>{moreBusy ? "읽는 중…" : "앞 글 더 보기"}</button> : null}
           {page.isLoading ? <Dots /> : page.error ? <p className="nm-tnote">글을 못 받았어 · {(page.error as Error).message}</p> : null}
           {all.map((m, i) => {
             const ts = m.at ? Date.parse(m.at) : 0, prev = all[i - 1], nx = all[i + 1];

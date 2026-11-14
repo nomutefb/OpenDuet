@@ -23,7 +23,7 @@
 .nm-trend-rail .trail-i span, .nm-trend-rail .trail-i svg { display:block; width:12px; height:12px; }
 .nm-trend-rail .trail-i.rg span, .nm-trend-rail .trail-i.rg svg { width:15px; height:15px; }
 .nm-trend-rail .trail-i.rg:not(.on) svg { opacity:.5; filter:grayscale(1); }
-.nm-trend-rail .trail-i.on { color:var(--accent, #CFFF40); }
+.nm-trend-rail .trail-i.on { color:var(--accent, var(--accent, #CFFF40)); }
 .nm-trend-rail .trail-i:active { transform:scale(.9); }
 .nm-trend-rail .trail-div { width:14px; height:1px; margin:1px 0; background:color-mix(in srgb, currentColor 16%, transparent); color:var(--mut, #8B8F8A); }
 
@@ -133,7 +133,7 @@
 .nm-trend .tstk-mini { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
 .nm-trend .tsk.mini .tsk-cov { aspect-ratio:1; }
 .nm-trend .tpc-rank { position:absolute; top:5px; left:5px; z-index:3; display:inline-flex; align-items:center; height:15px; padding:0 5px 1px; border-radius:var(--r-pill); background:rgba(0,0,0,.55); color:#fff; font-size:var(--fs-2xs); font-weight:var(--fw-x); }
-.nm-trend .tpc-rank.top { color:#CFFF40; }
+.nm-trend .tpc-rank.top { color:var(--accent, #CFFF40); }
 .nm-trend .tpc-bd { display:flex; flex-direction:column; gap:1px; margin-top:5px; min-width:0; }
 .nm-trend .tpc-cat { display:block; font-size:var(--fs-xs); font-weight:var(--fw-x); }
 .nm-trend .tsk-t { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:var(--fs-xs); line-height:1.35; word-break:break-word; }
@@ -161,7 +161,7 @@
 .nm-trend .tcard-cov.wd { aspect-ratio:16/9; border-radius:var(--r-m); }
 .nm-trend .tcard-cov img, .nm-trend .xcard-cv img { width:100%; height:100%; object-fit:cover; display:block; }
 .nm-trend .tcard-rank { position:absolute; top:6px; left:6px; z-index:2; padding:1px 6px; border-radius:var(--r-pill); background:rgba(0,0,0,.55); color:#fff; font-size:var(--fs-2xs); font-weight:var(--fw-x); }
-.nm-trend .tcard-rank.top { color:#CFFF40; }
+.nm-trend .tcard-rank.top { color:var(--accent, #CFFF40); }
 .nm-trend .xcard-h .tcard-rank { position:static; flex:none; background:none; padding:0; color:var(--mut); } .nm-trend .xcard-h .tcard-rank.top { color:var(--accent); }
 .nm-trend .tcard-t { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top:6px; min-height:calc(1.35em * 2); font-size:var(--fs-label); line-height:1.35; word-break:break-word; }
 .nm-trend .tcard-m { display:flex; flex-wrap:wrap; align-items:center; gap:2px 8px; margin-top:3px; color:var(--mut); font-size:var(--fs-xs); }
