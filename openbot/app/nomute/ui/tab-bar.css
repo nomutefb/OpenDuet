@@ -101,7 +101,7 @@
    고른 자리 = 잉크 하나(.nm-tabs-ink): 위 둥근 모서리 + 아래 양옆 오목한 어깨로 아래 판과 이어짐 · 탭은 바탕 없이 글 · 그림만
    움직임(영상을 프레임마다 잼): 옮겨 갈 때 가는 쪽 끝 140ms · 뒤쪽 끝 360ms(늘어났다 줄어듦) · 끌 때 = 손을 바로 · 놓을 때 · 옆 탭 미끄러짐 220ms
    눌림 = 저장소 기틀(scale(var(--press-l)) + 밝기 .88 · 놓으면 스프링) */
-.nm-tabs { align-items:flex-end; gap:0; --tab-ease:cubic-bezier(.2,.8,.2,1); --tab-spring:cubic-bezier(.34,1.56,.64,1); }
+.nm-tabs { align-items:flex-end; gap:0; --tab-ease:var(--e-out); --tab-spring:var(--e-spring); }
 .nm-tabs-ink { position:absolute; bottom:-1px; height:39px; left:0; right:100%; z-index:0; pointer-events:none; border-radius:13px 13px 0 0; background:var(--nm-tab-on, #121314);
   box-shadow:inset 0 1px 0 rgba(232,234,232,.16), inset 1px 0 0 rgba(232,234,232,.08), inset -1px 0 0 rgba(232,234,232,.08); transition:left .36s var(--tab-ease), right .36s var(--tab-ease), opacity .15s; }
 .nm-tabs-ink::before, .nm-tabs-ink::after { content:""; position:absolute; bottom:0; width:13px; height:13px; }
@@ -130,8 +130,8 @@
 /* 탭 「+」 메뉴 = 같은 결(판 250ms 떠오름 · 줄 하나씩 · 눌림) — 형 11-14 「메뉴들은 이렇게 부드럽게 내려오도록」 */
 @keyframes nmTabMenu { from { opacity:0; transform:translateY(-8px) scale(.985); } }
 @keyframes nmTabMenuRow { from { opacity:0; transform:translateY(-6px); } }
-.nm-tab-menu { transform-origin:100% 0; animation:nmTabMenu .25s cubic-bezier(.2,.8,.2,1) both; }
-.nm-tab-menu button { animation:nmTabMenuRow .24s cubic-bezier(.2,.8,.2,1) both; transition:scale .3s cubic-bezier(.34,1.56,.64,1), filter .12s, background-color .12s, color .12s; }
+.nm-tab-menu { transform-origin:100% 0; animation:nmTabMenu .25s var(--e-out) both; }
+.nm-tab-menu button { animation:nmTabMenuRow .24s var(--e-out) both; transition:scale .3s var(--e-spring), filter .12s, background-color .12s, color .12s; }
 .nm-tab-menu button:nth-child(1) { animation-delay:60ms; }
 .nm-tab-menu button:nth-child(2) { animation-delay:86ms; }
 .nm-tab-menu button:nth-child(3) { animation-delay:112ms; }
@@ -140,9 +140,9 @@
 .nm-tab-menu button:nth-child(6) { animation-delay:190ms; }
 .nm-tab-menu button:nth-child(7) { animation-delay:216ms; }
 .nm-tab-menu button:nth-child(8) { animation-delay:242ms; }
-.nm-tab-menu button:nth-child(9) { animation-delay:268ms; }
-.nm-tab-menu button:nth-child(10) { animation-delay:294ms; }
-.nm-tab-menu button:nth-child(11) { animation-delay:320ms; }
-.nm-tab-menu button:nth-child(12) { animation-delay:346ms; }
+.nm-tab-menu button:nth-child(9) { animation-delay:242ms; }
+.nm-tab-menu button:nth-child(10) { animation-delay:242ms; }
+.nm-tab-menu button:nth-child(11) { animation-delay:242ms; }
+.nm-tab-menu button:nth-child(12) { animation-delay:242ms; }
 .nm-tab-menu button:active { transform:none; scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.07s; }
 @media (prefers-reduced-motion: reduce) { .nm-tab-menu, .nm-tab-menu button { animation:none; } }

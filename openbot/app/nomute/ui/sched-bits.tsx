@@ -41,3 +41,7 @@ export function sumOf(sts: HealthSt[]): HealthSum {
   return s;
 }
 export const worstOf = (s: HealthSum): HealthSt => (s.miss ? "miss" : s.late ? "late" : s.unknown ? "unknown" : s.ok ? "ok" : "off");
+
+// 러너 잡 「언제」 한 줄 · 시계 종류 말(옛 ./sched-runners 에서 옮김 — 러너 목록 · 흐름 보기를 지우며 · 평의회 11-14 「옛 보기 지우기」)
+export const CLOCK_KO: Record<string, string> = { yml: "시간표", beat: "윈A 박자", phone: "폰 커밋", "runner-watch": "메우기", "cron-job": "바깥 타이머", after: "앞 일 뒤따름", launchd: "맥 예약" };
+export const whenOf = (j: { when?: string; cron_kst?: string[] }) => j.when || cronKo(j.cron_kst) || "부를 때만";
