@@ -931,7 +931,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} />
+        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} />
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}
         <div className="ybrow">

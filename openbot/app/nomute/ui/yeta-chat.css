@@ -342,6 +342,12 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 /* 11-14 형: 모든 이름 라벨 흰 글자 · 색 대비. 바탕은 nameLabelColor 공통 식의 불투명 색.
    안쪽 테는 같은 색을 밝게 섞어 다크에서도 윤곽을 보존하며, 상자 크기·얼굴 테는 바꾸지 않는다. */
 .ychat .ymsg .yname.tab { margin-left:-22px; padding:1px 8px 1px 24px; border-radius:999px; background:var(--yn-bg); color:#fff; box-shadow:inset 0 0 0 1px var(--yn-line); }
+/* PM 이름 알약 = 빛줄기가 6초에 한 번 스침(형 11-14 21:51 깃 옮김 「어 그리고 PM은 이름표에 빛지나가는 효과나게하셈」 · 서버 명부 pm:true · ./name-label.tsx)
+   형 잣대 = transform 만(그래픽카드) · 계속 안 돎(6초 중 1초만 움직임) · 움직임 줄이기 = 0 · 다른 애 이름표 손 0 */
+.ychat .ymsg .yname.tab.pm { position:relative; overflow:hidden; }
+.ychat .ymsg .yname.tab.pm::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(105deg, transparent 30%, rgba(255,255,255,.5) 50%, transparent 70%); transform:translateX(-120%); animation:ypmShine 6s ease-in-out infinite; }
+@keyframes ypmShine { 0% { transform:translateX(-120%); } 16% { transform:translateX(120%); } 100% { transform:translateX(120%); } }
+@media (prefers-reduced-motion:reduce) { .ychat .ymsg .yname.tab.pm::after { animation:none; display:none; } }
 /* 얼굴 안쪽으로 이름표가 비치지 않게 하는 기존 가림 원 */
 .ychat .ymsg .yava .nm-orb::before { content:""; position:absolute; inset:calc(var(--s) * .02 - 1.4px); border-radius:50%; background:var(--background); }
 /* 임시방 머리 = 인원을 펼쳐 얼굴 하나씩 */

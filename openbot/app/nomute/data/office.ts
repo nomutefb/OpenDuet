@@ -1,7 +1,7 @@
 // 우리 사무실 서버(/api/office/*) 읽기·쓰기 + 원본 앱 꼴로 바꾸기 — 화면 문(Cloudflare Access 쿠키) 그대로
 /** 받는 이 기억 칸(평의회 2 ⑧ · 서버 _meetfix.js memoryOf) = 백지(웹훅 깸마다 새 회차) | 이어짐 | nowake(바로 깸 길 없음) | 모름 */
 export type Memory = "백지" | "이어짐" | "nowake" | "모름";
-export type OfficePerson = { who: string; name?: string; role?: string; kind: "human" | "winter" | "bot"; face?: string; bot?: string; slug?: string; mark?: string; aka?: string[]; memory?: Memory; intro?: string; cls?: string; bubble?: string; gone?: boolean; screen?: string };   // intro = 자기소개(본인이 채움 · 프로필 카드)   // screen = 그 아이 몸 화면(noVNC · 테일넷 안 주소 · 서버가 형 요청에만 실음 · 빠르 · 형 11-08 「프로필 누르면 본인의 vm이 배선되도록」)   // gone = 없어진 봇(서버 _conf · 별 · 형 11-05 「별은 아예 빼」) = 초대·멤버 후보에서 뺌 · 옛 글 이름·얼굴은 남김(빠르 11-08)
+export type OfficePerson = { pm?: boolean; who: string; name?: string; role?: string; kind: "human" | "winter" | "bot"; face?: string; bot?: string; slug?: string; mark?: string; aka?: string[]; memory?: Memory; intro?: string; cls?: string; bubble?: string; gone?: boolean; screen?: string };   // intro = 자기소개(본인이 채움 · 프로필 카드)   // screen = 그 아이 몸 화면(noVNC · 테일넷 안 주소 · 서버가 형 요청에만 실음 · 빠르 · 형 11-08 「프로필 누르면 본인의 vm이 배선되도록」)   // gone = 없어진 봇(서버 _conf · 별 · 형 11-05 「별은 아예 빼」) = 초대·멤버 후보에서 뺌 · 옛 글 이름·얼굴은 남김(빠르 11-08)
 /** 방 카드(⑨ · GET rooms/<방>/card) — 열린 부름(open) · 형 원문(hyung) · 결정 표지(decide) · 10줄 */
 export type CardLine = { kind: "open" | "hyung" | "decide"; id: string; from?: string; to?: string; text: string };
 export type RoomCard = { room: string; lines: CardLine[]; open_n: number };
