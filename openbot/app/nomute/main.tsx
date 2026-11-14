@@ -1,4 +1,5 @@
 // 진입점 — 원본 main.tsx 보다 먼저 우리 서버 잇기(shim)를 깐다 · 동기화(pulse) · 홈 화면 앱(PWA) 서비스 워커 · 새 판 = 위에 「새로고침」 단추
+import { hardFresh } from "./ui/fresh";
 import "./shim/install";
 import "./ui/perf-switch";   // 무게 재기 ?perf= 스위치(봄 11-14 09:15 · 형 맥 뜨거움)
 import "./ui/perf-switch.css";
@@ -122,6 +123,7 @@ async function checkBuild() {
 //   → 쓰던 글·보내는 중 글이 없으면 그 자리에서 다시 읽음(한 번만 · 10초 안 되풀이 0) · 있으면 알약만(형 11-02 「강제로 화면 쌔로고침 하지말고」)
 window.addEventListener("vite:preloadError", (e) => {
   let last = 0; try { last = +(sessionStorage.getItem("nm-chunk-reload") || 0); } catch { /* 이번만 */ }
+  if (last && Date.now() - last < 120_000) { e.preventDefault(); void hardFresh().then((went) => { if (!went) showUpdate(); }); return; }   // 다시 읽어도 또 = 옛 첫 화면이 캐시에서 옴 → 캐시만 비우고 새 주소로 한 번(./ui/fresh · 형 11-14 22:10 「정원안열린다」 · 깃 #-0004)
   if (!busyTyping() && writes === 0 && Date.now() - last > 10_000) {
     e.preventDefault();
     try { sessionStorage.setItem("nm-chunk-reload", String(Date.now())); } catch { /* 이번만 */ }
