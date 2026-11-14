@@ -104,11 +104,14 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 /* 입력칸에 올린 사진 = 입력칸 안 윗줄(형 10-31 「사진 올린 썸네일은 정사각이면 돼」 · 「내 채팅이 뭔지가 보여야」 · 대화 위에 떠서 가리던 것 · shell.css 방 얼굴 띠 .nm-strip 과 이름이 겹쳐 폭 64 로 눌리던 것) */
 .nm-att-strip { position:absolute; left:0; right:0; bottom:100%; margin-bottom:8px; z-index:5; display:flex; flex-wrap:nowrap; align-items:flex-end; gap:8px; overflow-x:auto; padding:0 2px; list-style:none; scrollbar-width:none; }   /* 입력칸 바깥 위에 얹힘(형 11-01 「바깥으로 들어가야해 바깥 위에 아까 처럼 얹히는거야」 · 「지듬 첨부한게 채팅 말풍선 위에 떠잇는 느낌」) · 이름 = 방 얼굴 띠 .nm-strip 과 안 겹치게(시아) */
 .nm-att-strip:empty { display:none; }
+.nm-att-opts { position:absolute; left:2px; bottom:calc(100% + 8px + 88px + 10px); z-index:5; display:flex; gap:8px; padding:0 !important; }   /* 압축 · 프레임 알약 = 사진 줄 위 한 줄 · 사진과 10px · 둘 같은 꼴(형 11-15 05:16 · 05:44 「너무 짝 붙어서」 · 깃 #-030) · 사진 줄 밖이라 옆 밀기에 안 밀림 */
+.nm-att-opts .nm-pill-sw { padding:5px 12px; font-size:12px; line-height:16px; background:rgba(17,18,20,.72); }
 .nm-att-strip > li { flex:none; }
 .nm-att-strip img, .nm-att-strip [role="img"] { display:block; width:88px; height:88px; max-width:none; border-radius:16px; object-fit:cover; }
 .nm-att-strip button[aria-label^="Remove"] { top:5px; right:5px; width:24px; height:24px; border:0; background:rgba(0,0,0,.62); color:#fff; }
 .nm-att-size { position:absolute; left:0; right:0; bottom:0; padding:12px 0 5px; border-radius:0 0 16px 16px; background:linear-gradient(transparent, rgba(0,0,0,.62)); color:#fff; font-size:var(--fs-xs); line-height:1; text-align:center; pointer-events:none; }
-.ychat-in form:has(.nm-att-strip > li) { margin-top:100px; }   /* 미리보기 자리만큼 대화가 같이 올라감 · 마지막 글·오류 줄과 안 겹침(형 10-31 「지금 보면 겹쳐서 시아 프로필 하고 겹쳐」) */
+.ychat-in form:has(.nm-att-strip > li) { margin-top:100px; }
+.ychat-in form:has(.nm-att-opts) { margin-top:144px; }   /* 알약 줄까지 대화가 같이 올라감(#-030) */   /* 미리보기 자리만큼 대화가 같이 올라감 · 마지막 글·오류 줄과 안 겹침(형 10-31 「지금 보면 겹쳐서 시아 프로필 하고 겹쳐」) */
 .nm-zoom { --bar:calc(env(safe-area-inset-top,0px) + 56px); position:fixed; inset:0; z-index:90; display:grid; place-items:center; padding:var(--bar) 12px 12px; background:rgba(0,0,0,.92); cursor:zoom-out; }
 .nm-zoom img { max-width:100%; max-height:calc(100dvh - var(--bar) - 12px); object-fit:contain; border-radius:12px; }
 .nm-zoom-bar { position:absolute; inset:0 0 auto; height:var(--bar); display:flex; align-items:center; gap:8px; padding:env(safe-area-inset-top,0px) 12px 0 4px; color:#fff; }
