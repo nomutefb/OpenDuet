@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { actKind, actSort, actSum } from "../ui/activity-sum.ts";
+import { ACT_ORDER, actKind, actSum } from "../ui/activity-sum.ts";
 
 const rows = [
   { name: "봄", value: "일", state: "일" },
@@ -21,6 +21,6 @@ test("활동 합계 = 갈래마다 몇인지", () => {
   assert.deepEqual(actSum(rows), { lost: 1, ready: 2, work: 1, rest: 1, unknown: 1 });
 });
 
-test("활동 줄 차례 = 멈춤 → 받을 수 있음 → 일 → 쉼 → 모름 · 같은 갈래는 온 차례", () => {
-  assert.deepEqual(actSort(rows).map((r) => r.name), ["깃", "시아", "빠르", "봄", "촉", "결"]);
+test("얼굴 판 갈래 차례 = 멈춤 → 받을 수 있음 → 일 → 쉼 → 모름", () => {
+  assert.deepEqual(ACT_ORDER, ["lost", "ready", "work", "rest", "unknown"]);
 });

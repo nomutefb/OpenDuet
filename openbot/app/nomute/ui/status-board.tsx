@@ -11,7 +11,8 @@ import { type Body, bodiesOf, homeOf, machinesOf } from "../data/bodies";
 /** 몸 줄 고르기 = 그 몸 host 이름 전부 중 신선한 보고 먼저 · 없으면 마지막 보고(낡음) — 시아 PC 보고 이름 hwang → sia(11-08) 처럼 바뀌어도 칸이 안 빔(형 09:03 「오프라고 뜨는데 그래도 온도는 나와야해」) */
 const pickRow = <R extends { key: string; stale?: boolean; reported_at?: number }>(rows: R[], hosts: string[], suffix = ""): R | undefined => { const rs = hosts.map((h) => rows.find((r) => r.key === h + suffix)).filter((r): r is R => !!r); return rs.find((r) => !r.stale) ?? rs.sort((x, y) => (y.reported_at || 0) - (x.reported_at || 0))[0]; };
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
-import { ACT_KO, ACT_ORDER, actKind, actSort, actSum } from "./activity-sum";
+import { ACT_KO, ACT_ORDER, actSum } from "./activity-sum";
+import { ActivityFaces } from "./activity-faces";
 import { type HeatCell, MatrixHeat } from "./lieflat-charts";
 import "./sched-status.css";
 import "./yeta-settings.css";
@@ -462,7 +463,7 @@ export function StatusBoard() {
     </div>
   );
   function sec(c: StatusCat, i: number, cats: StatusCat[]) {
-        const act = c.id === "activity", as = act ? actSum(c.rows) : null;   // 활동 칸 = 머리에 갈래 합계 · 줄은 멈춤 → 받을 수 있음 → 일 → 쉼 → 모름(./activity-sum)
+        const act = c.id === "activity", as = act ? actSum(c.rows) : null;   // 활동 칸 = 얼굴 판(./activity-faces) · 접었을 때만 머리에 갈래 합계(펼치면 판이 같은 수를 보여 준다)
         const w = worst(c.rows), isOpen = open[c.id] ?? (c.id === "acct" || c.id === "activity" || w === "miss" || w === "late");   // 계정 상태 = 늘 펼침(형 「먼저 나오게」)
         const g = c.grp && c.grp !== cats[i - 1]?.grp ? c.grp : "", gr = g ? cats.filter((x) => x.grp === g).flatMap((x) => x.rows) : [];   // 묶음 머리(형 01:29 「카테고라이징」) · 머리 불 = 그 묶음 제일 나쁜 것
         return (
@@ -471,17 +472,17 @@ export function StatusBoard() {
           <section className="nsb-cat" data-st={w}>
             <button type="button" className="nsb-ch" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [c.id]: !isOpen }))}>
               <StatusDot st={w} /><b>{c.name}</b>
-              {as ? <span className="nsb-cnt nsb-act">{ACT_ORDER.filter((k) => as[k] || k === "lost" || k === "ready").map((k) => <span key={k} data-act={k} data-zero={!as[k] || undefined}>{ACT_KO[k]} <b>{as[k]}</b></span>)}</span>
+              {as ? isOpen ? null : <span className="nsb-cnt nsb-act">{ACT_ORDER.filter((k) => as[k] || k === "lost" || k === "ready").map((k) => <span key={k} data-act={k} data-zero={!as[k] || undefined}>{ACT_KO[k]} <b>{as[k]}</b></span>)}</span>
                 : <span className="nsb-cnt">{count(c.rows, "miss") ? <em>✕ {count(c.rows, "miss")}</em> : null}{count(c.rows, "late") ? <i>▲ {count(c.rows, "late")}</i> : null}<small>{c.rows.length}</small></span>}
             </button>
-            {isOpen ? (c.id === "acct" ? <AcctTable rows={c.rows as unknown as AcctRow[]} /> : c.id === "cli" ? <CliTable c={c} /> : c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
+            {isOpen ? (act ? <ActivityFaces rows={c.rows} pick={pick} setPick={setPick} /> : c.id === "acct" ? <AcctTable rows={c.rows as unknown as AcctRow[]} /> : c.id === "cli" ? <CliTable c={c} /> : c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
               <ul className="nsb-rows">
-                {(c.id === "collect" ? [...ZONES, ...(c.rows.some((r) => !ZONES.includes(r.zone || "")) ? ["기타"] : [])].flatMap((z) => [{ key: `zone:${z}`, name: z, st: worst(c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))), head: true } as StatusRow & { head?: boolean }, ...c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))]) : act ? actSort(c.rows) : c.rows).map((r) => {   // 구역 없는 줄 = 「기타」(뎅 시험 보고 · 안 묶여 숨던 것)
-                  const head = (r as { head?: boolean }).head, z = r.key.replace(/^zone:/, ""), ak = act ? actKind(r) : undefined;
+                {(c.id === "collect" ? [...ZONES, ...(c.rows.some((r) => !ZONES.includes(r.zone || "")) ? ["기타"] : [])].flatMap((z) => [{ key: `zone:${z}`, name: z, st: worst(c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))), head: true } as StatusRow & { head?: boolean }, ...c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))]) : c.rows).map((r) => {   // 구역 없는 줄 = 「기타」(뎅 시험 보고 · 안 묶여 숨던 것)
+                  const head = (r as { head?: boolean }).head, z = r.key.replace(/^zone:/, "");
                   return (
-                    <li key={r.key} className={head ? "nsb-zh" : undefined} data-st={r.st} data-act={ak}>
+                    <li key={r.key} className={head ? "nsb-zh" : undefined} data-st={r.st}>
                       <button type="button" className="nsb-r" onClick={() => (head ? setZone(zone === z ? "" : z) : setPick(pick === r.key ? "" : r.key))}>
-                        <StatusDot st={ak === "ready" ? "ok" : ak === "rest" || ak === "unknown" ? "unknown" : r.st} />{/* 활동 칸 = 일 라임 · 쉼 · 모름 흐린 점 · 멈춤 빨강(봄 08:04 「쉼 = 흐린 점(회색) · 멈춤 = 빨강 · 일 = 라임」) · 받을 수 있음 = 라임 테두리 점(대기 신호로 확인된 쉼 — 모름과 같은 점이면 형이 못 가른다 · status-board.css) · 합계 셈은 r.st 그대로 */}
+                        <StatusDot st={r.st} />
                         <span className="nsb-n">{r.name}{r.cron?.length ? <small>{cronKo(r.cron)}</small> : null}
                           {r.cells && !head ? <small className="nsb-cc">{Object.entries(r.cells).map(([k, x]) => <span key={k} data-st={x.st}><StatusDot st={x.st} />{k}{x.note ? ` ${x.note}` : ""}</span>)}</small> : null}</span>
                         <span className="nsb-v">{[r.value, daysKo(r.left_days), r.last_at ? agoKo(r.last_at) : "", nextKo(r.next_at)].filter(Boolean).join(" · ") || HEALTH_KO[r.st]}</span>

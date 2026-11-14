@@ -173,13 +173,41 @@
 .nsb-who td.nw select option { color:#161716; }
 .nsb-who td.nw[data-err] select { border-color:#ff5a5a; }
 
-/* 활동 칸 한눈 보기(형 11-14 「지금 쉬고있어서 일을 받을 상태가 되어있냐」 · 「신호가 끊긴게 아니냐」) — 머리 = 갈래 합계 · 받을 수 있음 = 라임 테두리 점(모름 = 흐린 테두리 점과 갈림) */
+/* 활동 칸 한눈 보기(형 11-14 「지금 쉬고있어서 일을 받을 상태가 되어있냐」 · 「신호가 끊긴게 아니냐」) — 접힌 머리 = 갈래 합계 */
 .nsb-act { flex-wrap:wrap; justify-content:flex-end; gap:2px 10px; color:var(--nsb-mut); font-variant-numeric:tabular-nums; }
 .nsb-act b { font-weight:700; color:#E7ECE7; }
 .nsb-act [data-zero] b { color:inherit; font-weight:400; }
 .nsb-act [data-act="ready"]:not([data-zero]) b { color:var(--nsb-ok); }
 .nsb-act [data-act="lost"]:not([data-zero]), .nsb-act [data-act="lost"]:not([data-zero]) b { color:var(--nsb-red); }
-.nsb-rows li[data-act="ready"] > .nsb-r > .nm-st { background:none; box-shadow:inset 0 0 0 2px var(--accent, #CFFF40); }
-.nsb-rows li[data-act="ready"] > .nsb-r > .nsb-v { color:#E7ECE7; }
-.nsb-rows li[data-act="lost"] > .nsb-r > .nsb-v { color:var(--nsb-red); }
 .nsb-acct .memo { min-width:11em; }   /* 폰 = 비고 칸이 한 글자 폭으로 눌려 줄 높이가 몇 배로 늘던 것(GPT 줄 390px) — 표는 어차피 옆으로 민다 */
+
+/* 활동 칸 = 얼굴 판(./activity-faces.tsx · 형 11-14 「솔직히 ui 개별론데」) — 갈래 한 줄 = 왼쪽 큰 수 + 얼굴들 · 받을 수 있음 = 라임 고리 · 멈춤 = 빨간 고리 · 모름 = 작고 흐림 */
+.nsb-af { padding:2px 14px 12px; }
+.nsb-af-g { display:grid; grid-template-columns:112px minmax(0, 1fr); align-items:center; gap:4px 12px; padding:8px 0; border-top:1px solid var(--nsb-line); }
+.nsb-af-g h4 { margin:0; display:flex; flex-direction:column; gap:2px; font-size:var(--fs-sm); font-weight:400; color:var(--nsb-mut); }
+.nsb-af-g h4 b { font-size:26px; line-height:1; font-weight:700; color:#E7ECE7; font-variant-numeric:tabular-nums; }
+.nsb-af-g[data-act="ready"] h4 b { color:var(--nsb-ok); }
+.nsb-af-g[data-act="lost"] h4, .nsb-af-g[data-act="lost"] h4 b { color:var(--nsb-red); }
+.nsb-af-g[data-act="unknown"] h4 b, .nsb-af-g[data-act="rest"] h4 b { color:var(--nsb-mut); font-size:20px; }
+.nsb-af-g ul { margin:0; padding:0; list-style:none; display:flex; flex-wrap:wrap; gap:6px 4px; }
+.nsb-af-f { width:68px; display:flex; flex-direction:column; align-items:center; gap:5px; padding:6px 2px; border:0; border-radius:var(--r-m, 12px); background:none; color:inherit; font:inherit; cursor:pointer; transition:background-color var(--dur-fast, .15s) var(--ease, ease), transform var(--dur-fast, .15s) var(--ease, ease); }
+.nsb-af-f:active { transform:scale(var(--press-l, .97)); }
+.nsb-af-f[aria-pressed="true"] { background:rgba(255,255,255,.06); }
+.nsb-af-f > b { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-sm); font-weight:400; color:#E7ECE7; }
+.nsb-af-f > small { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-xs); color:var(--nsb-red); }
+.nsb-af-ring { display:grid; place-items:center; padding:3px; border-radius:50%; box-shadow:inset 0 0 0 2px rgba(255,255,255,.14); }
+.nsb-af-g[data-act="ready"] .nsb-af-ring { box-shadow:inset 0 0 0 2px var(--accent, #CFFF40); }
+.nsb-af-g[data-act="lost"] .nsb-af-ring { box-shadow:inset 0 0 0 2px var(--nsb-red); }
+.nsb-af-g[data-act="work"] .nsb-af-ring { position:relative; }
+.nsb-af-g[data-act="work"] .nsb-af-ring::after { content:""; position:absolute; right:1px; bottom:1px; width:11px; height:11px; border-radius:50%; background:var(--accent, #CFFF40); box-shadow:0 0 0 2px #111; }   /* 일하는 중 = 얼굴 오른쪽 아래 꽉 찬 라임 점(작동 표 「일 = 라임」 그대로) */
+.nsb-af-g[data-act="unknown"] .nsb-af-ring, .nsb-af-g[data-act="rest"] .nsb-af-ring { padding:2px; box-shadow:none; }
+.nsb-af-g[data-act="unknown"] .nsb-af-ring > *, .nsb-af-g[data-act="rest"] .nsb-af-ring > * { filter:saturate(.2); opacity:.55; }
+.nsb-af-g[data-act="unknown"] .nsb-af-f, .nsb-af-g[data-act="rest"] .nsb-af-f { width:56px; padding:4px 2px; }
+.nsb-af-g[data-act="unknown"] .nsb-af-f > b, .nsb-af-g[data-act="rest"] .nsb-af-f > b { color:var(--nsb-mut); font-size:var(--fs-xs); }
+.nsb-af .nsb-af-why { margin:4px 0 0; padding:8px 0 0; color:var(--nsb-mut); }
+.nsb-af-why b { color:#E7ECE7; }
+@media (max-width:520px) {
+  .nsb-af-g { grid-template-columns:minmax(0, 1fr); padding:10px 0; }
+  .nsb-af-g h4 { flex-direction:row; align-items:baseline; gap:6px; }
+  .nsb-af-g h4 b { font-size:20px; }
+}
