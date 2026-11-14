@@ -20,17 +20,19 @@ const two = (n: number) => String(n).padStart(2, "0");
 const hm = (s: number) => { const d = new Date(s * 1000); return `${two(d.getHours())}:${two(d.getMinutes())}`; };
 const dur = (sec: number) => { const s = Math.max(0, sec); return s < 60 ? `${Math.floor(s)}초` : s < 3600 ? `${Math.floor(s / 60)}분 ${Math.floor(s % 60)}초` : `${Math.floor(s / 3600)}시간 ${Math.floor((s / 60) % 60)}분`; };
 
-/** 1초마다 지금(초) — 받은 때·걸린 시간 글만 움직임(자료는 30초마다). */
-function useNowS() {
+/** 지금(초) — 받은 때·걸린 시간 글만 움직임(자료는 30초마다).
+ *  도는 잡이 있을 때만 1초(걸린 시간 「3분 12초」가 초까지 보임) · 없으면 10초(「방금 · 10초 전」은 10초 단위라 눈에 같음)
+ *  = 형 11-15 러너 효율화 명세 안 5 · 형 11-14 「보기에만 똑같으면 되는데 왤 캐 비효율적으로 움직임을 만드냐는거지」 · 가만히 둔 판 다시 그리기 초당 1 → 0.1 */
+function useNowS(fast: boolean) {
   const [n, setN] = useState(() => Date.now() / 1000);
-  useEffect(() => { const t = setInterval(() => { if (!document.hidden) setN(Date.now() / 1000); }, 1000); return () => clearInterval(t); }, []);
+  useEffect(() => { setN(Date.now() / 1000); const t = setInterval(() => { if (!document.hidden) setN(Date.now() / 1000); }, fast ? 1000 : 10_000); return () => clearInterval(t); }, [fast]);
   return n;
 }
 
 export function RunnerBoard({ data: given }: { data?: RunnerData }) {
   const q = useRunner();
-  const now = useNowS();
   const data = given ?? q.data;
+  const now = useNowS(!!data && Object.values(data.rows).some((d) => runningJobs(d ?? null).length > 0));
   const [open, flip] = useOpen();
   if (!data) {
     return <p className="mt-6 text-sm text-muted-foreground" role={q.isError ? "alert" : undefined}>{q.isError ? `러너 소식을 못 받았어 — ${q.error.message}` : "러너 소식 받는 중…"}</p>;
