@@ -88,6 +88,10 @@ const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--car
 let deckT = 0;
 const deckWait = () => { const h = document.documentElement; h.setAttribute("data-deck-wait", ""); clearTimeout(deckT); deckT = window.setTimeout(deckIn, 8000); };
 const deckIn = () => { const h = document.documentElement; if (!h.hasAttribute("data-deck-wait")) return; clearTimeout(deckT); deckT = window.setTimeout(() => { h.removeAttribute("data-deck-wait"); h.setAttribute("data-deck-in", ""); window.setTimeout(() => h.removeAttribute("data-deck-in"), 1200); }, 300); };
+// 언론사 「속보」 공용 배너 거름(형 11-14 11:16 봄 옮김 「여기에 속보 이미지 안뜨게 해주세요」) — 제목이 [속보] · 【속보】 · <속보> 로 시작하는 글의 대표 그림(og:image)은
+//   기사 사진이 아니라 매체가 속보마다 붙이는 배너(파이낸셜뉴스 = 2025-07-17 그림 한 장을 계속 씀 · 실물) → 그 글 그림은 안 쓰고 묶음 다음 기사 주소로(imageAsks 행마다 3개)
+const BREAKING_TITLE = /^\s*[[［【<〈(（]\s*(?:긴급\s*)?속보\s*[\]］】>〉)）]/;
+
 export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onShown = 카드 첫 판이 품은 화면에 간 때 한 번(홈 「다 깸」 띠가 그 뒤에 뜸 · 형 11-02 23:17)
   const frame = useRef<HTMLIFrameElement>(null);
   const shownCb = useRef(onShown);
@@ -144,9 +148,10 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
               const q = titleOf.get(u) ? "&q=" + encodeURIComponent(titleOf.get(u)!) : "";
               const r = await fetch("/api/office/linkcard?url=" + encodeURIComponent(u) + q, { credentials: "same-origin", signal: ctl.signal });
               if (!r.ok) continue;
-              const v = (await r.json()) as { ok?: boolean; card?: { kind?: string; image?: string; image_src?: string; image_note?: string } };
+              const v = (await r.json()) as { ok?: boolean; card?: { kind?: string; title?: string; image?: string; image_src?: string; image_note?: string } };
               const c = v?.ok ? v.card : undefined;   // 막힌 글(봇벽)도 검색 그림(image_src search)이면 씀 · 그 표시 = image_note
-              const img = c && (c.kind === "page" || c.image_src === "search") ? (md.url ? md.url(c.image) : String(c.image || "")) : "";
+              const banner = !!c && c.image_src !== "search" && BREAKING_TITLE.test(c.title || "");   // [속보] 글 og:image = 매체 공용 배너 → 안 씀(다음 바퀴 = 그 행 다음 기사 주소)
+              const img = c && !banner && (c.kind === "page" || c.image_src === "search") ? (md.url ? md.url(c.image) : String(c.image || "")) : "";
               if (img) { linkImages[u] = img; if (c?.image_note) linkNotes[u] = c.image_note; got++; }
             } catch { /* 이 주소는 사진 없이 */ } finally { clearTimeout(t); }
           }
