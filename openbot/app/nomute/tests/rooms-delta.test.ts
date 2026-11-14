@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mergeRooms } from "../data/rooms-merge";
+import { mergeRooms } from "../data/rooms-merge.ts";
 
 // 방 목록 = 바뀐 방만 받아 합침(빠르 11-14 · 봄 「가」 ① · 형 09:16 「매번 받아오게 했다」)
 const cur = [{ id: "all", n: 1 }, { id: "guide", n: 1 }, { id: "dm-fast", n: 1 }];

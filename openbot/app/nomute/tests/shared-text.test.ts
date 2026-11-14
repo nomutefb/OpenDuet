@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { sharedText } from "../ui/news-data";
+import { sharedText } from "../ui/news-data.ts";
 
 // 3초 안 같은 주소 = 한 번만 받음(빠르 11-14 · 첫 화면 articles.json 세 번 → 한 번)
 test("같은 주소를 한꺼번에 셋이 부르면 fetch 1번 · 다른 주소는 따로", async () => {
