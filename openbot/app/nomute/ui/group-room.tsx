@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
 import { backdrop } from "./backdrop";
+import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
+import { CloseAsk, useCloseGuard } from "./save-ask";   // 쓰던 중 닫기 = 한 문장 확인(형 11-15 07:55)
 import { useDmRules } from "./dm-rule";
 import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
@@ -20,11 +22,7 @@ export function GroupRoomDialog({ room, onClose }: { room: OfficeRoom; onClose: 
   const [name, setName] = useState(room.name), [rule, setRule] = useState<string | null>(null), [busy, setBusy] = useState(false), [err, setErr] = useState("");
   const val = rule ?? baseRule;
   const dirty = name.trim() !== room.name || val.trim() !== baseRule.trim();
-  useEffect(() => {
-    const off = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", off);
-    return () => window.removeEventListener("keydown", off);
-  }, [onClose]);
+  const g = useCloseGuard(dirty && !busy, onClose);   // Esc · 바탕 · X 같은 길(쓰던 중이면 「작성 중인 내용이 사라집니다 …」 · #-042)
   const save = async () => {
     if (busy || !dirty) return false;
     if (!name.trim()) { setErr("이름을 비울 수 없어"); return false; }
@@ -42,8 +40,9 @@ export function GroupRoomDialog({ room, onClose }: { room: OfficeRoom; onClose: 
     } catch (e) { setErr(`저장 못 했어 · ${(e as Error).message}`); setBusy(false); return false; }
   };
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
       <div className="nrc" role="dialog" aria-label={`${room.name} 방 설정`} onClick={(e) => e.stopPropagation()}>
+        <DialogX onClose={g.request} />
         <div className="nrc-head"><b>방 설정</b><small>{room.name}</small></div>
         <label className="flex flex-col gap-1">
           <small className="text-xs text-muted-foreground">이름</small>
@@ -55,8 +54,9 @@ export function GroupRoomDialog({ room, onClose }: { room: OfficeRoom; onClose: 
           <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요 · 비우면 지워져요</small>
         </label>
         {err || rules.isError ? <p role="alert" className="nm-meet-err">{err || "지침을 못 읽었어"}</p> : null}
-        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button><GoButton className="nrc-ok" disabled={busy || rules.isLoading || !dirty} go={must(save)} done={onClose} busy="저장 중">저장</GoButton></div>
+        <div className="nrc-acts"><GoButton className="nrc-ok" disabled={busy || rules.isLoading || !dirty} go={must(save)} done={onClose} busy="저장 중">저장</GoButton></div>
       </div>
+      {g.ask ? <CloseAsk busy={busy} onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}
     </div>,
     document.body,
   );

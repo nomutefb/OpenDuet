@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
 import { backdrop } from "./backdrop";
+import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
+import { CloseAsk, useCloseGuard } from "./save-ask";   // 쓰던 중 닫기 = 한 문장 확인(형 11-15 07:55)
 import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 type Rule = { purpose?: string; by?: string; at?: number };
@@ -25,11 +27,7 @@ export function DmRuleDialog({ room, onClose }: { room: OfficeRoom; onClose: () 
   const base = rules.data?.[room.id]?.purpose || "";
   const [text, setText] = useState<string | null>(null), [busy, setBusy] = useState(false), [err, setErr] = useState("");
   const val = text ?? base;
-  useEffect(() => {
-    const off = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", off);
-    return () => window.removeEventListener("keydown", off);
-  }, [onClose]);
+  const g = useCloseGuard(val.trim() !== base.trim() && !busy, onClose);   // Esc · 바탕 · X 같은 길(#-042)
   const save = async () => {
     if (busy) return false;
     setBusy(true); setErr("");
@@ -40,16 +38,18 @@ export function DmRuleDialog({ room, onClose }: { room: OfficeRoom; onClose: () 
     } catch (e) { setErr(`저장 못 했어 · ${(e as Error).message}`); setBusy(false); return false; }
   };
   return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
+    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
       <div className="nrc" role="dialog" aria-label={`${room.name} 방 지침`} onClick={(e) => e.stopPropagation()}>
+        <DialogX onClose={g.request} />
         <div className="nrc-head"><b>방 지침</b><small>{room.name}</small></div>
         <label className="flex flex-col gap-1">
           <textarea value={val} maxLength={500} rows={4} disabled={rules.isLoading} onChange={(e) => setText(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
           <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요 · 비우면 지워져요</small>
         </label>
         {err || rules.isError ? <p role="alert" className="nm-meet-err">{err || "지침을 못 읽었어"}</p> : null}
-        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button><GoButton className="nrc-ok" disabled={busy || rules.isLoading || val.trim() === base.trim()} go={must(save)} done={onClose} busy="저장 중">저장</GoButton></div>
+        <div className="nrc-acts"><GoButton className="nrc-ok" disabled={busy || rules.isLoading || val.trim() === base.trim()} go={must(save)} done={onClose} busy="저장 중">저장</GoButton></div>
       </div>
+      {g.ask ? <CloseAsk busy={busy} onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}
     </div>,
     document.body,
   );

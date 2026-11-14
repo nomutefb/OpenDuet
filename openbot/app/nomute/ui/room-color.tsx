@@ -6,7 +6,8 @@ import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { draftDrop, draftGet, draftSet } from "./draft";
-import { SaveAsk, useCloseGuard } from "./save-ask";
+import { CloseAsk, useCloseGuard } from "./save-ask";   // 쓰던 중 닫기 = 한 문장 확인(#-042 · 형 11-15 07:55)
+import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
 import { PickTop } from "./color-pick";
@@ -119,16 +120,16 @@ export function RoomNamePick({ room, onClose }: { room: OfficeRoom; onClose: () 
   const save = async (raw: string) => { setNote("저장 중"); try { await send(raw); onClose(); } catch { /* 글은 send 가 남김 */ } };
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
-      <form className="nrc" role="dialog" aria-label={`${room.name} 이름 바꾸기`} onClick={(e) => e.stopPropagation()} onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 저장 단추 누름(게이지 단추가 받음) */}
+      <form className="nrc" role="dialog" aria-label={`${room.name} 이름 바꾸기`} onClick={(e) => e.stopPropagation()} onSubmit={(e) => e.preventDefault()}>
+        <DialogX onClose={g.request} />   {/* 엔터 = 저장 단추 누름(게이지 단추가 받음) */}
         <div className="nrc-head"><b>이름 바꾸기</b>{note || room.base ? <small>{note || `원래 이름 ${room.base}`}</small> : null}</div>   {/* 안내 줄 뺌 · 저장 글·원래 이름만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
         <input className="nrc-in" value={name} maxLength={20} autoFocus enterKeyHint="done" aria-label="방 이름" onChange={(e) => setName(e.target.value)} />
         <div className="nrc-acts">
           {room.base ? <button type="button" className="nrc-x" onClick={() => void save("")}>원래대로</button> : null}
-          <button type="button" className="nrc-x" onClick={g.request}>닫기</button>
           <GoButton type="submit" className="nrc-x" go={() => send(name)} done={onClose} busy="저장 중">저장</GoButton>
         </div>
       </form>
-      {g.ask ? <SaveAsk onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void save(name); }} /> : null}
+      {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={() => { draftDrop(dk); onClose(); }} /> : null}
     </div>,
     document.body,
   );

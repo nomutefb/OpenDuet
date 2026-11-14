@@ -226,10 +226,12 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
       onClose();
     } catch (e) { const m = e instanceof Error ? e.message : "저장 못 함"; setWhy(/changed|base/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); setCur(null); void q.refetch(); setBusy(false); }
   };
+  const changed = !!cur && cur.join("|") !== (d?.roomset.rooms[r.id] ?? r.members ?? []).join("|"), g = useCloseGuard(changed && !busy, onClose);   // 고른 멤버가 바뀐 채 닫기 = 한 문장 확인 · Esc · 바탕 · X 같은 길(#-042)
   return (
-    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
-      <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
+    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
+      <div className="relative flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
+        <DialogX onClose={g.request} />
+        <b className="pr-9 text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
         {!d ? <p className="text-muted-foreground">{q.isError ? readFail(q.error) : reading()}</p> : (
           <div className="flex flex-wrap gap-1.5">
             {d.candidates.filter((w) => !seatOff(list.find((p) => p.who === w))).map((w) => {
@@ -246,9 +248,9 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
           <button type="button" disabled={busy || !cur || !now.length || !d?.can_edit} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" onClick={() => void save()}>{busy ? "저장 중" : "저장"}</button>
-          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>닫기</button>
         </div>
       </div>
+      {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}
     </div>
   );
 }
@@ -270,10 +272,12 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
       onClose();
     } catch (e) { setWhy(e instanceof Error ? e.message : "저장 못 함"); setBusy(false); }
   };
+  const changed = !!cur && cur.join("|") !== (r.members ?? []).join("|"), g = useCloseGuard(changed && !busy, onClose);   // 고른 멤버가 바뀐 채 닫기 = 한 문장 확인 · Esc · 바탕 · X 같은 길(#-042)
   return (
-    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
-      <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
+    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
+      <div className="relative flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
+        <DialogX onClose={g.request} />
+        <b className="pr-9 text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
         {!q.data && !q.isError ? <p className="text-muted-foreground">읽는 중…</p> : q.isError ? <p className="text-muted-foreground">{readFail(q.error)}</p> : (
           <div className="flex flex-wrap gap-1.5">
             {cand.map((w) => {
@@ -290,9 +294,9 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
           <button type="button" disabled={busy || !cur || !now.length} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" onClick={() => void save()}>{busy ? "저장 중" : "저장"}</button>
-          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>닫기</button>
         </div>
       </div>
+      {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}
     </div>
   );
 }

@@ -4,6 +4,7 @@
 //   질문 이력 = 봄 서버 GET decisions?room=&all=1(못 받으면 칸 안 보임) · 파일 기록 = 이 기기 방 글(최근 300 + 지금 받은 판)의 첨부 · 사진은 폰 사본 7일(../data/file-cache.ts)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
+import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeMsg, type OfficeRoom, office, people } from "../data/office";
@@ -111,13 +112,14 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="nrc" role="dialog" aria-label="회의실 잠시 내보내기" onClick={(e) => e.stopPropagation()}>
+        <DialogX onClose={onClose} />
         <div className="nrc-head"><b>잠시 내보내기</b><small>{pick.size ? `${pick.size}명` : ""}</small></div>
         <div className="nm-meet-out">
           <button type="button" className="row all" aria-pressed={all} onClick={() => setPick(all ? new Set() : new Set(members))}>모두</button>
           {members.map((w) => <button key={w} type="button" className="row" aria-pressed={pick.has(w)} onClick={() => flip(w)}>{list.find((p) => p.who === w)?.name || w}</button>)}
         </div>
         {err ? <p role="alert" className="nm-meet-err">{err}</p> : null}
-        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button><GoButton className="nrc-ok" disabled={!pick.size || busy} go={must(go)} done={onClose} busy="내보내는 중">내보내기</GoButton></div>
+        <div className="nrc-acts"><GoButton className="nrc-ok" disabled={!pick.size || busy} go={must(go)} done={onClose} busy="내보내는 중">내보내기</GoButton></div>
       </div>
     </div>,
     document.body,
@@ -139,6 +141,7 @@ function AskHistory({ name, items, onClose }: { name: string; items: Ask[]; onCl
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="nrc" role="dialog" aria-label={`${name} 질문 이력`} onClick={(e) => e.stopPropagation()}>
+        <DialogX onClose={onClose} />
         <div className="nrc-head"><b>질문 이력</b><small>{list.length ? `${list.length}개` : "아직 없음"}</small></div>
         <ol className="nm-ask-hist">
           {list.map((a) => (
@@ -148,7 +151,6 @@ function AskHistory({ name, items, onClose }: { name: string; items: Ask[]; onCl
             </li>
           ))}
         </ol>
-        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button></div>
       </div>
     </div>,
     document.body,
@@ -181,12 +183,12 @@ function FileLog({ room, name, onClose }: { room: string; name: string; onClose:
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="nrc" role="dialog" aria-label={`${name} 파일 기록`} onClick={(e) => e.stopPropagation()}>
+        <DialogX onClose={onClose} />
         <div className="nrc-head"><b>파일 기록</b><small>{list ? `${list.length}개` : "찾는 중"} · 폰 사본 7일 · {Math.round(held.bytes / 1048576)}MB</small></div>
         {list && !list.length ? <p className="nm-file-empty">이 기기에 받아 둔 이 방 글(최근 300개)엔 파일이 없어.</p> : null}
         <ul className="nm-file-log">
           {(list || []).map((f) => <FileRow key={f.path} f={f} />)}
         </ul>
-        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button></div>
       </div>
     </div>,
     document.body,

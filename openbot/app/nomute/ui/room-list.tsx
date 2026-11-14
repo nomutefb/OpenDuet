@@ -11,7 +11,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { SaveAsk, useCloseGuard } from "./save-ask";
+import { CloseAsk, useCloseGuard } from "./save-ask";   // 쓰던 중 닫기 = 한 문장 확인(#-042 · 형 11-15 07:55)
+import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { createPortal } from "react-dom";
 import { DuetIcon } from "@/components/duet/icons";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
@@ -388,14 +389,14 @@ function NotifyPicPick({ name, url, save, onClose }: { name: string; url: string
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
       <div className="nrc" role="dialog" aria-label={`${name} 알림 그림`} onClick={(e) => e.stopPropagation()}>
+        <DialogX onClose={g.request} />
         <div className="nrc-head"><b>알림 그림</b></div>
         <img src={url} alt="" className="nm-npic" />
         <div className="nrc-acts">
-          <button type="button" className="nrc-x" onClick={g.request}>닫기</button>
           <GoButton className="nrc-x" go={save} done={onClose} busy="저장 중">저장</GoButton>
         </div>
       </div>
-      {g.ask ? <SaveAsk onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void save().then(onClose).catch(() => {}); }} /> : null}
+      {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}
     </div>,
     document.body,
   );

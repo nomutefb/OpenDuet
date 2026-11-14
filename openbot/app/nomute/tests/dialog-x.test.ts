@@ -18,3 +18,14 @@ test("확인 글 = 형 문장 그대로 · 단추 취소 · 닫기", () => {
 test("빈 판 = 묻지 않고 닫힘(useCloseGuard 가 dirty 아니면 바로 close)", () => {
   assert.match(rd("save-ask.tsx"), /if \(!dirty\) \{ close\(\); return; \}/);
 });
+test("#-042 이음 — 남은 「닫기」 글자 단추 창 9곳 = 창 X · 쓰던 중 CloseAsk(형 07:55 「창에 x 버튼을 통일시켜서」)", () => {
+  for (const f of ["group-room.tsx", "dm-rule.tsx", "room-color.tsx", "room-menu.tsx", "room-list.tsx", "temp-room.tsx"]) {
+    const s = rd(f);
+    assert.doesNotMatch(s, /className="nrc-x" onClick=\{(onClose|g\.request)\}>닫기<\/button>/, f);
+    assert.doesNotMatch(s, /hover:bg-foreground\/5" onClick=\{onClose\}>닫기<\/button>/, f);
+    assert.match(s, /<DialogX onClose=/, f);
+    assert.doesNotMatch(s, /<SaveAsk/, f);
+  }
+  assert.equal((rd("room-menu.tsx").match(/<DialogX onClose=\{onClose\} \/>/g) || []).length, 3);
+  for (const f of ["group-room.tsx", "dm-rule.tsx"]) assert.doesNotMatch(rd(f), /if \(e\.key === "Escape"\) onClose\(\)/, f);   // Esc = useCloseGuard 한 길
+});

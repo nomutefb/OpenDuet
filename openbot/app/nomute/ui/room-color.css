@@ -26,3 +26,6 @@
 .nm-rgrip { position:absolute; left:0; top:0; bottom:0; width:14px; z-index:3; touch-action:none; cursor:grab; }
 .nm-rgrip:active { cursor:grabbing; }
 .nm-rrow.nm-rdrag { z-index:6; box-shadow:0 8px 22px rgba(0,0,0,.45); transition:none; }
+/* 창 X(./dialog-x.tsx · #-042) 자리 = 판 오른쪽 위 · 제목 줄이 X 밑으로 안 들어가게 */
+.nrc { position:relative; }
+.nrc:has(> .nm-dx) > .nrc-head { padding-right:36px; }
