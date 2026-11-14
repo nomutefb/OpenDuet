@@ -93,7 +93,7 @@ test("화상회의 = 수락 · 거절 표기 · 열림(다 답함 · 60초 · �
   const tb = readFileSync(new URL("../ui/tab-bar.tsx", import.meta.url), "utf8");   // 들머리 둘로(형 11-13 09:21 「그냥 웹 브라우저랑, 화상 채팅방이랑 구분해주라」) = 「브라우저」(회의 0) · 「화상회의」 고정 탭 + 제 아이콘
   assert.match(tb, /<MeetIcon \/><span className="nm-tab-nm">화상회의<\/span>/); assert.match(tb, /<CobrowsePane mode="browser"/); assert.match(tb, /<CobrowsePane mode="meet"/);
   assert.match(cp, /meet = isMeet \? meet0 : null/);
-  assert.match(sh, /\{ id: "meetlog", label: "화상회의"/);
+  assert.match(sh, /\{ id: "meetlog", label: "화상 회의록"/);
   assert.match(src, /office\(`meetlog\/\$\{encodeURIComponent\(id\)\}`, \{ method: "POST"/);
 });
 
