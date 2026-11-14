@@ -12,6 +12,8 @@ import { LOOK_ONLY } from "../data/read-state";
 import { t12 } from "./when";
 import "./teams.css";
 import { MeetIcon, OfficeIcon, TeamsIcon } from "./tab-icons";
+import { createPortal } from "react-dom";
+import { useLongPress } from "./msg-menu";
 
 export const TEAMS_PREFIX = "teams:";
 export const isTeams = (room: string) => room.startsWith(TEAMS_PREFIX);
@@ -47,6 +49,31 @@ function markSeen(chat: string, at?: string) {
   seenMem = { ...seenNow(), [chat]: at }; writeJ(SEEN_KEY, seenMem); seenSubs.forEach((f) => f());
 }
 const useSeen = () => useSyncExternalStore((f) => { seenSubs.add(f); return () => seenSubs.delete(f); }, seenNow, seenNow);
+
+/* 팀즈 알림 끄기(형 11-14 11:28 dm-bom 「그리구 팀즈 위에 탭 길게누르면 알림 끄기 뜨게해줘 그러면 안읽은거 알림 안나오게」 · 봄 [도움] · 뜸)
+   = 위 탭 「팀즈」를 길게(0.5초 · 글 메뉴와 같은 useLongPress) → 「알림 끄기」 · 끈 동안 = 탭 숫자 0(폰 위 탭 · PC 위 탭 둘 다) · 탭에 작은 종 꺼짐 표시 · 다시 길게 = 「알림 켜기」
+   목록 안 굵게 · 라임 점은 그대로(들어가서 보면 어디가 새 글인지는 보임) · 이 기기에 기억(기기마다 따로) */
+const MUTE_KEY = "nm-teams-mute";
+const muteSubs = new Set<() => void>();
+const readMute = () => { try { return localStorage.getItem(MUTE_KEY) === "1"; } catch { return false; } };
+export function setTeamsMuted(on: boolean) { try { if (on) localStorage.setItem(MUTE_KEY, "1"); else localStorage.removeItem(MUTE_KEY); } catch { /* 이번만 */ } muteSubs.forEach((f) => f()); }
+export const useTeamsMuted = () => useSyncExternalStore((f) => { muteSubs.add(f); return () => muteSubs.delete(f); }, readMute, () => false);
+/** 종 꺼짐 표시(탭 이름 옆 · 작게) */
+export const MutedMark = () => <svg className="nm-tmute" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="알림 꺼짐"><path d="M13.7 21a2 2 0 0 1-3.4 0" /><path d="M18.6 13A17 17 0 0 1 18 8" /><path d="M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14" /><path d="M18 8a6 6 0 0 0-9.3-5" /><path d="m2 2 20 20" /></svg>;
+/** 팀즈 탭 길게 누름 → 알림 끄기/켜기 한 칸 메뉴(글 메뉴 판 .nm-msgm 그대로) · press.fired() = 이 눌림이 길게였나(뒤따르는 탭 바꿈을 삼킴) */
+export function useTeamsMuteMenu() {
+  const muted = useTeamsMuted(), [open, setOpen] = useState(false), veil = useRef(false);
+  const press = useLongPress(() => setOpen(true));
+  const menu = open ? createPortal(
+    <div className="nm-msgm" role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) setOpen(false); }} onContextMenu={(e) => e.preventDefault()}>
+      <div className="nm-msgm-p" role="menu" aria-label="팀즈 메뉴" onPointerDown={(e) => e.stopPropagation()}>
+        <button type="button" role="menuitem" className="nm-msgm-i" onClick={() => { setTeamsMuted(!muted); setOpen(false); }}>{muted ? "알림 켜기" : "알림 끄기"}</button>
+      </div>
+    </div>,
+    document.body,
+  ) : null;
+  return { muted, press, menu };
+}
 
 type Me = { configured?: boolean; signed_in?: boolean; user?: { id?: string; name?: string; upn?: string }; pending?: { user_code?: string; verification_uri?: string; expires_at?: number | string } | null };
 type Person = { id: string; name?: string };
@@ -86,9 +113,9 @@ const readOf = (c: Chat, seen: Record<string, string>) => { const a = seen[c.id]
 const isNew = (c: Chat, seen: Record<string, string>, me?: Me["user"]) => !!c.last?.at && readOf(c, seen) < c.last.at && !(me?.id && c.last.from_id === me.id) && !(me?.name && c.last.from === me.name);
 /** 새 글 있는 팀즈 대화 수(팀즈 탭 · 바꿈 단추) — 로그인 안 했으면 0 */
 export function useTeamsUnread() {
-  const me = useTeamsMe(false).data, seen = useSeen();
+  const me = useTeamsMe(false).data, seen = useSeen(), muted = useTeamsMuted();
   const chats = useTeamsChats(!!me?.signed_in);
-  return me?.signed_in ? (chats.data || []).filter((c) => isNew(c, seen, me.user)).length : 0;
+  return me?.signed_in && !muted ? (chats.data || []).filter((c) => isNew(c, seen, me.user)).length : 0;   // 알림 끔 = 숫자 0(위 useTeamsMuteMenu)
 }
 /** 받는 동안 = 라임 점 셋(앱 다른 칸 LazyDots 와 같은 꼴 · 형 11-13 「팀즈 때도 점 세개 로딩중 시그니처 색으로」) · slim = 그려 둔 목록 위 한 줄 */
 const Dots = ({ slim }: { slim?: boolean }) => <div className={`nm-lazy nm-tdots${slim ? " slim" : ""}`} role="status" aria-label="불러오는 중"><i /><i /><i /></div>;
@@ -149,17 +176,18 @@ const ago = (at?: string) => { const t = at ? Date.parse(at) : NaN; if (!Number.
 /** 폰 위 탭 「사무실 | 팀즈 | 회의」 = PC 위 탭 줄과 같은 폴더 탭(고른 탭이 아래 판과 한 몸 · 어깨 곡선) · 고른 탭만 이름까지 부드럽게 펼침 · 나머지 = 아이콘
  *  형 11-13 22:14 dm-sia 「근데 상단 탭 모양을 팀즈 그 아이콘 고르면 부드럽게 확장되는 느낌으로 하면 될듯」 · 참고 영상 96981.mp4(브라우저식 폴더 탭) */
 export function TeamsSwitch() {
-  const mode = useOfficeMode(), n = useTeamsUnread();
-  const tab = (m: OfficeMode, ic: ReactNode, name: string, extra?: ReactNode) => (
-    <button type="button" role="tab" aria-selected={mode === m} aria-label={name} className={`nm-ftab${mode === m ? " on" : ""}`} onClick={() => setOfficeMode(m)}>
+  const mode = useOfficeMode(), n = useTeamsUnread(), tm = useTeamsMuteMenu();
+  const tab = (m: OfficeMode, ic: ReactNode, name: string, extra?: ReactNode, hold?: typeof tm.press) => (
+    <button type="button" role="tab" aria-selected={mode === m} aria-label={name} className={`nm-ftab${mode === m ? " on" : ""}`} {...(hold?.bind || {})} onClick={() => { if (hold?.fired()) return; setOfficeMode(m); }}>
       {ic}<span className="nm-ftab-nm">{name}</span>{extra}
     </button>
   );
   return (
     <div className="nm-tswitch fold" role="tablist" aria-label="대화 판 바꾸기">
       {tab("office", <OfficeIcon />, "사무실")}
-      {tab("teams", <TeamsIcon />, "팀즈", n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null)}
+      {tab("teams", <TeamsIcon />, "팀즈", tm.muted ? <MutedMark /> : n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null, tm.press)}
       {tab("meet", <MeetIcon />, "회의")}
+      {tm.menu}
     </div>
   );
 }
