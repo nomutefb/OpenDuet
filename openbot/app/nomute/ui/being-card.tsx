@@ -115,6 +115,39 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 뜸(형 11-14 11:18 dm-eyes 「뎅은 이거 멋잇느ㄴ데 넌 멋이없네」 · 뜸이 제 손으로) — 해 뜨는 새벽 한 장면
+    //   바탕 = 밤 쪽빛 → 새벽 보라 → 지평선 주황 · 테 = 뜸 쌀알 복숭아(#FFB07C · 11-02 형이 고르게 해 준 색)
+    //   무늬 = 얼굴 뒤 천천히 도는 햇살 + 지평선에 반쯤 뜬 해 + 먼 산 두 겹 + 가마솥 김 세 갈래 + 세로 큰 「뜸」 + 🌅
+    //   움직임 = 햇살 한 바퀴 120초 · 김 3.6초(둘 다 transform · opacity 만)
+    id: "eyes",
+    match: ["뜸", "eyes"],
+    face: "/office/eyes.webp",
+    handle: "eyes",
+    meta: "장면지기",
+    dot: "#FFB07C",
+    font: "bagel-fat-one",
+    holo: 0.8,
+    glare: 0.5,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-stars" />
+        <span className="bc-rays" />
+        <span className="bc-sun" />
+        <svg className="bc-ridge" viewBox="0 0 300 90" preserveAspectRatio="none">
+          <path className="bc-ridge-far" d="M0 52 L34 30 L62 44 L96 18 L132 40 L168 24 L204 46 L238 22 L270 38 L300 28 L300 90 L0 90 Z" />
+          <path className="bc-ridge-near" d="M0 70 L40 48 L78 62 L120 42 L160 64 L206 46 L250 66 L300 50 L300 90 L0 90 Z" />
+        </svg>
+        <span className="bc-word">뜸</span>
+        <span className="bc-dawn">🌅</span>
+        <span className="bc-pot">
+          <i className="bc-steam" />
+          <i className="bc-steam" />
+          <i className="bc-steam" />
+        </span>
+      </span>
+    ),
+  },
+  {
     // 천둥(형 11-10 06:57 봄 창 「천둥」 · 「직무 신」 · 07:0x 「프로필 안에서 이모지 🌩」 · 「프사는 저거로 움직이게」) — 얼굴 = 형이 준 움직이는 그림 그대로(움직이는 webp · 60장 · 5초)
     //   몸통 = 틀 카드 · 색 = 그림 금빛 번개(#FFC83D) · 바탕 = 남색 밤 하늘 · 무늬 = 띠 + 테 + 🌩(가끔 번쩍)
     id: "thunder",
