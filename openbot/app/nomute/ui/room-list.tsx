@@ -23,6 +23,7 @@ import { RoomLookDialog } from "./room-look";   // 단톡 개요 「방 꾸미�
 import { whoName } from "./who-name";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
+import { pinTint, usePinAlpha } from "./pin-tint";
 import { TeamsList, TeamsSwitch, setOfficeMode, setTeamsMode, useOfficeMode, useTeamsMode } from "./teams";
 import { PhoneMeet } from "./phone-meet";   // 폰 「회의」 탭 = 열린 회의 이어 받기 + 뜸 화상회의 칸 그대로(형 11-13 22:05 · 22:14)
 import { RoomGlyph } from "./room-glyph";
@@ -185,7 +186,8 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
   );
 }
 export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
-  const { rooms, list, ordered, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder } = useRoomOrder();
+  const { rooms, list, ordered, hid, count, lastOf, pinned, fixed, pins, setPins, hidden, setHidden, savePinOrder } = useRoomOrder();
+  const pinA = usePinAlpha();
   // 고정 줄 끌기 = 왼쪽 라임 줄(.nm-rgrip)을 잡고 위아래로 · 놓은 자리 = 고정 방 사이 차례(PIN_ORDER) · 폰 · 마우스 같은 손 · 줄 밀기 · 길게 누르기와 안 겹침(잡는 칸이 따로)
   const drag = useRef<{ id: string; y0: number; el: HTMLElement } | null>(null);
   const startDrag = (id: string) => (e: React.PointerEvent<HTMLSpanElement>) => {
@@ -264,12 +266,13 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     const n = count(r), u = n !== 0, on = current === r.id, tall = big, size = big ? 44 : 36;
     // 단톡 = YETA 꼴(YETA-목록 · 운영자 260725 「단톡환경에서도 프로필이 겹치게」) · 얼굴 둘 겹침 · 마지막에 말한 이가 앞 · 인원 숫자만 · 누구인지 = 방 상단(형 10-31 「인원이 저기 누군지 나올 필욘 없는듯 들가면 확인할 수 잇으면 됨 방 상단에서」)
     const rc = r.with || r.id === "all" ? "" : peek?.id === r.id ? peek.hex : r.color || "";   // 회의실 = 방 색 강조 뺌(형 11-14 23:05 dm-gik 「회의실은 이제 강조 빼」 · 깃 #-013 · 뜸)
-    const pmTint = r.id === pmRoom ? (list.find((p) => p.pm)?.bubble || "").slice(0, 7) : "";   // PM 1:1 줄 = PM 고유색 20%(형 11-14 23:05 「pm은 여기에 프로필 고유색이 20% 말풍선 투명도로 나오게 해주고」)
+    const isPin = pinned(r.id) && r.id !== SUMMARY;
+    const pinBg = isPin ? pinTint(r.with ? list.find((x) => x.who === r.with)?.bubble : "", pinA) : "";   // 고정 줄 = 고유색 진하기 바탕 · 단체방 · 색 없음 = 라임(형 11-14 23:39 · ./pin-tint · 앞 판 = 왼쪽 라임 줄 · PM 20% 는 이걸로 갈음)
     const sig = r.with ? ringOf(p) || "" : rc;   // 활발한 방 이름 빛 바탕 = 그 사람 테 색 · 단톡 = 방 표지 색 · 없으면 노뮤트 연두(live-shine.css .sig · 형 11-01 14:07 「개인방도 마찬가지야」)
     const nOn = notifyOn(notify.data, r.id, !!r.with), nImg = r.with ? "" : notifyImage(notify.data, r.id);
     const crew = r.id === SUMMARY ? [] : ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
-      <li data-pinid={pinned(r.id) && r.id !== SUMMARY ? r.id : undefined} className={`nm-rrow group/row relative${r.with ? "" : " grp"}${pinned(r.id) && r.id !== SUMMARY ? " pinned" : ""}`} data-rc={rc ? "" : undefined} style={rc || pmTint ? ({ ...(rc ? { "--rc": rc } : {}), ...(/^#[0-9a-f]{6}$/i.test(pmTint) ? { background: `${pmTint}33` } : {}) } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); clearTimeout(press.current.buzz); if (press.current.hit) return; if (press.current.touch) press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」) · 손 뗄 때 오는 클릭 삼키기(hit)는 터치만 = PC 오른쪽 클릭엔 뒤따르는 클릭이 없어 메뉴 첫 누름이 먹히던 것(빠르 11-01 15:5x)
+      <li data-pinid={pinned(r.id) && r.id !== SUMMARY ? r.id : undefined} className={`nm-rrow group/row relative${r.with ? "" : " grp"}${pinned(r.id) && r.id !== SUMMARY ? " pinned" : ""}`} data-rc={rc ? "" : undefined} style={rc || pinBg ? ({ ...(rc ? { "--rc": rc } : {}), ...(pinBg ? { background: pinBg } : {}) } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); clearTimeout(press.current.buzz); if (press.current.hit) return; if (press.current.touch) press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」) · 손 뗄 때 오는 클릭 삼키기(hit)는 터치만 = PC 오른쪽 클릭엔 뒤따르는 클릭이 없어 메뉴 첫 누름이 먹히던 것(빠르 11-01 15:5x)
         onPointerDown={(e) => { press.current.touch = e.pointerType === "touch"; if (e.pointerType !== "touch") return; clearTimeout(press.current.t); press.current = { x: e.clientX, y: e.clientY, hit: false, touch: true, t: window.setTimeout(() => { press.current.hit = true; press.current.buzz = window.setTimeout(() => navigator.vibrate?.(8), 220); setMenu(r.id); }, 480) }; }}   // 진동 1회(형 11-01 22:41 「오래 누르면 진동이 2회 오거든! 1회만」) = 폰이 길게 누르기를 알아채면 제 진동 + contextmenu 를 줌 → 그 신호가 220ms 안에 오면 내 진동은 거둠 · 안 오는 폰만 내 진동
         onPointerMove={(e) => { if (Math.hypot(e.clientX - press.current.x, e.clientY - press.current.y) > 8) clearTimeout(press.current.t); }}
         onPointerUp={() => clearTimeout(press.current.t)} onPointerCancel={() => clearTimeout(press.current.t)}
