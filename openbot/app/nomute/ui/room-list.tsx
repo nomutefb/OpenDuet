@@ -35,6 +35,8 @@ export const EVERYTHING_LINE = "필요한 이들이 드나드는 방";
 const NOTICE_SEEN = "nm_notice_seen_at";
 const PINS = "nm-office-pins", HIDE = "nm-office-hidden";
 const TRAIN_ROOM = "dm-chaeng";   // 기차봇 1:1(서버 _conf 방 dm-chaeng · 이름 「기차봇」)
+const PIN_ORDER = "nm-office-pin-order";   // 고정 방끼리 끌어 바꾼 차례(이 기기 · 형 11-14 23:28 「고정된 애들끼리는 방을 끌어서 위에 배치하면 명단 순서를 고정 배치 할 수 있도록 해줘」 · 깃 #-016 덧 · 뜸)
+const readArr = (k: string): string[] => { try { const v = JSON.parse(localStorage.getItem(k) || "[]"); return Array.isArray(v) ? v.map(String) : []; } catch { return []; } };
 const readSet = (k: string): Set<string> => { try { return new Set(JSON.parse(localStorage.getItem(k) || "[]")); } catch { return new Set(); } };
 const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, JSON.stringify([...s])); } catch { /* 이 기기에만 · 못 쓰면 이번만 */ } };
 
@@ -84,6 +86,8 @@ export function useRoomOrder() {
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const seen = useQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen: Record<string, { ts: number; at?: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 }).data || {};
   const [pins, setPins] = useState(() => readSet(PINS)), [hidden, setHidden] = useState(() => readSet(HIDE));
+  const [pinOrder, setPinOrder] = useState(() => readArr(PIN_ORDER));
+  const savePinOrder = (ids: string[]) => { setPinOrder(ids); try { localStorage.setItem(PIN_ORDER, JSON.stringify(ids)); } catch { /* 이번만 */ } };
   const all = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.with !== "형" && !isPairRoom(r.id));   // 둘의 방(「봄 · 챙」) = 목록 · 띠에 따로 안 세움 · 1:1 안에서 보임(형 11-13 08:29 「둘 대화로 귀속」 · ./pair-fold.ts)
   const lastOf = (r: Room) => (r.last_talk !== undefined ? r.last_talk : r.last);
   const count = (r: Room) => {
@@ -101,10 +105,11 @@ export function useRoomOrder() {
   const recent = (a: Room, b: Room) => keyOf(b) - keyOf(a);
   const shown = all.filter((r) => !hidden.has(r.id));
   const head = (id: string) => (id === pmRoom ? 0 : id === TRAIN_ROOM ? 1 : id === SUMMARY ? 2 : 3);   // PM 1:1 → 기차봇 1:1 → 요약실 → 고정 방(최근 순) · 앞 판 = 회의실 → 요약실
-  const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => head(a.id) - head(b.id) || recent(a, b));
+  const rank = (id: string) => { const i = pinOrder.indexOf(id); return i < 0 ? 1e6 + head(id) : i; };   // 끌어 둔 차례 먼저 · 아직 안 끈 고정 방 = 앞 판 차례(PM → 작업 알림 → 고정 · 최근 순)
+  const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => rank(a.id) - rank(b.id) || head(a.id) - head(b.id) || recent(a, b));
   const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
-  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY), hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden };
+  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY), hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
 }
 
 /** 방 아이콘 = 둥근 네모(사람 = 동그라미라 한눈에 갈림) · 그림 /office/room-<방 id>.webp(뜸 그림 · 있으면 먼저) · 없으면 방 표지 색 바탕 + 방 이름의 이모지(밥상 🍚) 또는 첫 글자 */
@@ -180,7 +185,27 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
   );
 }
 export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
-  const { rooms, list, ordered, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden } = useRoomOrder();
+  const { rooms, list, ordered, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder } = useRoomOrder();
+  // 고정 줄 끌기 = 왼쪽 라임 줄(.nm-rgrip)을 잡고 위아래로 · 놓은 자리 = 고정 방 사이 차례(PIN_ORDER) · 폰 · 마우스 같은 손 · 줄 밀기 · 길게 누르기와 안 겹침(잡는 칸이 따로)
+  const drag = useRef<{ id: string; y0: number; el: HTMLElement } | null>(null);
+  const startDrag = (id: string) => (e: React.PointerEvent<HTMLSpanElement>) => {
+    e.preventDefault(); e.stopPropagation();
+    const el = e.currentTarget.closest("li") as HTMLElement | null; if (!el) return;
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* 그대로 */ }
+    drag.current = { id, y0: e.clientY, el }; el.classList.add("nm-rdrag");
+  };
+  const moveDrag = (e: React.PointerEvent<HTMLSpanElement>) => { const d = drag.current; if (d) d.el.style.transform = `translateY(${e.clientY - d.y0}px)`; };
+  const endDrag = (e: React.PointerEvent<HTMLSpanElement>) => {
+    const d = drag.current; if (!d) return; drag.current = null;
+    d.el.style.transform = ""; d.el.classList.remove("nm-rdrag");
+    if (Math.abs(e.clientY - d.y0) < 6) return;   // 거의 안 움직임 = 차례 그대로
+    const rows = Array.from(document.querySelectorAll<HTMLElement>(".nm-rgroup li[data-pinid]")), ids = rows.map((x) => x.dataset.pinid || "");
+    let to = ids.length;
+    for (let i = 0; i < rows.length; i++) { const b = rows[i].getBoundingClientRect(); if (e.clientY < b.top + b.height / 2) { to = i; break; } }
+    const from = ids.indexOf(d.id), next = ids.filter((x) => x !== d.id);
+    next.splice(Math.max(0, Math.min(to > from ? to - 1 : to, next.length)), 0, d.id);
+    savePinOrder(next);
+  };
   const teamsOn = useTeamsMode() && !slim;   // 「사무실 | 팀즈」 바꿈(PC 왼쪽 좁은 칸 = 사무실 그대로)
   const meetOn = useOfficeMode() === "meet" && !slim && !bar;   // 폰 「회의」 = 목록 자리에 화상회의(PC 반갈 = 위 탭 줄 「화상회의」가 그 자리 · 형 11-13 22:05)
   // 활발한 방 = 이름에 빛(형 11-01 「현재 활발한 방(누군가라도 활동중인 방개인포함)은 이름에 빚지나가게」) — 마지막 글이 3분 안 · 또는 1:1 에서 형 글 뒤 그 이가 일하는 중(대화 칸 점 셋과 같은 깸 표 · 같은 bots 캐시)
@@ -244,17 +269,19 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     const nOn = notifyOn(notify.data, r.id, !!r.with), nImg = r.with ? "" : notifyImage(notify.data, r.id);
     const crew = r.id === SUMMARY ? [] : ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
-      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${pinned(r.id) && r.id !== SUMMARY ? " pinned" : ""}`} data-rc={rc ? "" : undefined} style={rc || pmTint ? ({ ...(rc ? { "--rc": rc } : {}), ...(/^#[0-9a-f]{6}$/i.test(pmTint) ? { background: `${pmTint}33` } : {}) } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); clearTimeout(press.current.buzz); if (press.current.hit) return; if (press.current.touch) press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」) · 손 뗄 때 오는 클릭 삼키기(hit)는 터치만 = PC 오른쪽 클릭엔 뒤따르는 클릭이 없어 메뉴 첫 누름이 먹히던 것(빠르 11-01 15:5x)
+      <li data-pinid={pinned(r.id) && r.id !== SUMMARY ? r.id : undefined} className={`nm-rrow group/row relative${r.with ? "" : " grp"}${pinned(r.id) && r.id !== SUMMARY ? " pinned" : ""}`} data-rc={rc ? "" : undefined} style={rc || pmTint ? ({ ...(rc ? { "--rc": rc } : {}), ...(/^#[0-9a-f]{6}$/i.test(pmTint) ? { background: `${pmTint}33` } : {}) } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); clearTimeout(press.current.buzz); if (press.current.hit) return; if (press.current.touch) press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」) · 손 뗄 때 오는 클릭 삼키기(hit)는 터치만 = PC 오른쪽 클릭엔 뒤따르는 클릭이 없어 메뉴 첫 누름이 먹히던 것(빠르 11-01 15:5x)
         onPointerDown={(e) => { press.current.touch = e.pointerType === "touch"; if (e.pointerType !== "touch") return; clearTimeout(press.current.t); press.current = { x: e.clientX, y: e.clientY, hit: false, touch: true, t: window.setTimeout(() => { press.current.hit = true; press.current.buzz = window.setTimeout(() => navigator.vibrate?.(8), 220); setMenu(r.id); }, 480) }; }}   // 진동 1회(형 11-01 22:41 「오래 누르면 진동이 2회 오거든! 1회만」) = 폰이 길게 누르기를 알아채면 제 진동 + contextmenu 를 줌 → 그 신호가 220ms 안에 오면 내 진동은 거둠 · 안 오는 폰만 내 진동
         onPointerMove={(e) => { if (Math.hypot(e.clientX - press.current.x, e.clientY - press.current.y) > 8) clearTimeout(press.current.t); }}
         onPointerUp={() => clearTimeout(press.current.t)} onPointerCancel={() => clearTimeout(press.current.t)}
         onClickCapture={(e) => { if (press.current.hit) { press.current.hit = false; e.preventDefault(); e.stopPropagation(); } }}>
         {wrapTemp(r, <>
+        {pinned(r.id) && r.id !== SUMMARY ? <span className="nm-rgrip" role="button" aria-label={`${p?.name || r.name} 끌어서 차례 바꾸기`} onPointerDown={startDrag(r.id)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} /> : null}
         <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
           {r.with && !p?.nocard ? <PeerFaceTap who={r.with} name={p?.name || r.name} list={list}><span className="nm-rorb" style={{ margin: -Math.round(size / 8), marginRight: 4 - Math.round(size / 8) }}>   {/* 이름 4px 오른쪽(형 11-01 「이름을 조금만 우측으로 … 테두리가 두터워지면 좁아보여서」) */}
             <MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span></PeerFaceTap>
             : !r.with ? <RoomPhotoTap r={r}><RoomIcon r={r} size={size} color={rc} /></RoomPhotoTap>   /* 단톡 = 방 아이콘 하나(형 11-05 13:19 「이거 2개씩 보이게하지말구」 · 「구분이 안되넹 다른거랑」 · 「좀 튀어야됨..」 · 「항상위에잇을거니까;」) · 얼굴 둘 겹침(pair) 뺌 */
+            : p?.nocard ? null   /* 알림 자리(nocard · 작업 알림) = 동그라미 없이 이름 · 글만(형 11-14 23:30 dm-gik 「사무실 토큰 없이 써도 되는애들 … 그런애들은 대화방 목록에서 보일때. 프로필 동그라미 없이 나오게 해줘」 · 깃 #-016 덧 · 뜸) */
             : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">

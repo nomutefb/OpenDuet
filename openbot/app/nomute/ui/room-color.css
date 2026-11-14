@@ -22,3 +22,7 @@
 @media (pointer:coarse) { .nm-rrow { -webkit-user-select:none; user-select:none; } }
 /* 고정한 줄 = 왼쪽 라임 세로줄(형 11-14 23:07 「고정을 하면 좌측에 일자 라인 저거 라임색으로 들어가는거로 대체하고 고정 핀 보이는거는 뺄게.」 · 깃 #-013 · 뜸) — 방 색 줄(data-rc)보다 위 */
 .nm-rrow.pinned, .nm-rrow.grp.pinned[data-rc] { box-shadow:inset 3px 0 0 #CFFF40; }
+/* 고정 줄 끌개 = 왼쪽 라임 줄 자리(14px) · 잡고 위아래로 끌면 고정 방 차례 바뀜(형 11-14 23:28 · 깃 #-016 덧 · 뜸) · 끄는 줄 = 살짝 떠 보임(transform 만) */
+.nm-rgrip { position:absolute; left:0; top:0; bottom:0; width:14px; z-index:3; touch-action:none; cursor:grab; }
+.nm-rgrip:active { cursor:grabbing; }
+.nm-rrow.nm-rdrag { z-index:6; box-shadow:inset 3px 0 0 #CFFF40, 0 8px 22px rgba(0,0,0,.45); transition:none; }
