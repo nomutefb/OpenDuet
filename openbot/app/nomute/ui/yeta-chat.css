@@ -199,6 +199,11 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .ydown b { position:absolute; top:-6px; right:-6px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--accent,#CFFF40); color:#111; font-size:var(--fs-xs); line-height:18px; text-align:center; }
 .ychat .ydown:active { transform:scale(.92); background:color-mix(in srgb, var(--accent,#CFFF40) 26%, rgba(26,27,26,.56)); border-color:color-mix(in srgb, var(--accent,#CFFF40) 60%, transparent); }   /* 누를 때 = 시그니처 색(형 14:12 「누를때 시그니처 색으로 안바뀜」) */
 :root:not(.dark) .ychat .ydown:active { background:color-mix(in srgb, var(--accent,#CFFF40) 30%, rgba(255,255,255,.66)); }
+/* 「새 글 n」 풍선(./office-chat.tsx toNew · 형 11-14 19:41 깃 옮김) — 대화 칸 아래 가운데 · 「↓ 최근 글」 단추와 같은 유리 · 누를 때 시그니처 색 · 움직임 = transform 만 */
+.ychat .ynewpill { position:absolute; left:50%; bottom:14px; z-index:5; transform:translateX(-50%); padding:7px 14px; border-radius:999px; font-size:var(--fs-sm); font-weight:var(--fw-b); color:#111; background:var(--accent,#CFFF40); border:0; box-shadow:0 4px 14px rgba(0,0,0,.28); animation:ynewIn .22s cubic-bezier(.34,1.56,.64,1) both; }
+.ychat .ynewpill:active { transform:translateX(-50%) scale(.94); }
+@keyframes ynewIn { from { opacity:0; transform:translate(-50%, 8px); } to { opacity:1; transform:translateX(-50%); } }
+@media (prefers-reduced-motion:reduce) { .ychat .ynewpill { animation:none; } }
 @media (prefers-reduced-motion:reduce) { .ychat .in, .ychat .ytdots i, .ychat .yjump { animation:none; } }
 /* 프로필 카드(형 10-30 19:4x 「프사 누르면 프로필 · 대화 누르면 1:1 · 자기소개 · 프사 크게 · 직무」) = YETA #yetaProfPop 결 그대로(.yeta-pick 유리 · 가운데 큰 프사 → 이름 → 연두 직무 → 소개 → 단추) */
 .ychat .ymsg button.yava { border:0; padding:0; background:none; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform .2s var(--ease); }

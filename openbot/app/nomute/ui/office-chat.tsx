@@ -1123,6 +1123,18 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   if (stuck.current || !far) seenEnd.current = all.length;
   const newBelow = far ? Math.max(0, all.length - seenEnd.current) : 0;
   const toEnd = () => { const box = boxRef.current; if (!box) return; hold.current = 0; stuck.current = true; near.current = true; box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); setFar(false); };
+  // 「새 글 n」 풍선 = 보는 동안(맨 아래에서 떨어져 있을 때) 새로 온 글 수 · 누르면 그 첫 글이 머리 아래로 오고 풍선 사라짐(형 11-14 19:41 깃 옮김 「글구 대화에 지금 온 내용있으면 그 수 만큼 풍선 대화에 뜨게해주셈 누르면 사라지고」)
+  //   셈 = 「↓ 최근 글」 단추와 같은 newBelow(따로 안 셈) · 첫 새 글 = all[seenEnd] · 못 찾으면 맨 아래로
+  const [, bump] = useState(0);
+  const toNew = () => {
+    const box = boxRef.current, first = all[seenEnd.current];
+    seenEnd.current = all.length; bump((x) => x + 1);
+    const el = first && box?.querySelector<HTMLElement>(`[data-id="${CSS.escape(first.id)}"]`);
+    if (!box || !el) { toEnd(); return; }
+    touched.current = true; stuck.current = false; near.current = false; hold.current = Date.now() + 1500;   // 이동 중엔 맨 아래로 안 당김(「↑ 글 처음」과 같은 꼴)
+    box.scrollTo({ top: box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - HEAD - 8, behavior: document.hidden ? "auto" : "smooth" });
+    for (const t of [80, 700]) window.setTimeout(() => poke.current(), t);
+  };
   useLayoutEffect(() => {   // 위로 받은 앞 글 = 보던 자리 그대로(늘어난 높이만큼 내림) · 목록이 통째로 바뀜(잡을 때 첫 글이 없음) · 연 직후 = 맞추지 않고 맨 아래
     const box = boxRef.current, k = keepTop.current;
     if (!box || !k) return;
@@ -1393,6 +1405,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
         }}>
       {flat ? (unseen.length && unseenUsed !== room ? <button type="button" className="yjump" onClick={() => void toUnseen()} aria-label={`안 본 글 ${unseen.length}개로`}><Chev dir="up" size={13} /> 안 본 글</button> : null)
         : jump ? <button type="button" className="yjump" onClick={toStart}><Chev dir="up" size={13} /> 글 처음</button> : null}
+      {newBelow ? <button type="button" className="ynewpill" aria-label={`새 글 ${newBelow}개로`} onClick={toNew}>새 글 {newBelow > 99 ? "99+" : newBelow}</button> : null}
       {far ? <button type="button" className="ydown" aria-label={newBelow ? `최근 글로 · 새 글 ${newBelow}개` : "최근 글로"} onClick={toEnd}><Chev dir="down" size={20} />{newBelow ? <b>{newBelow > 99 ? "99+" : newBelow}</b> : null}</button> : null}
       <ScrollDate box={boxRef} />
       <div ref={boxRef} className={`flex min-h-0 flex-1 flex-col overflow-y-auto${atTop ? " nm-top0" : ""}`}>   {/* 글이 적으면 아래부터 쌓음(mt-auto · 형 16:46 「메세지 보내면 이렇게 가려져」) */}

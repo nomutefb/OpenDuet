@@ -193,6 +193,18 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const layer = web != null || issue != null;   // #/web · #/issue = 앞 모달 위 한 겹
   const modal = "modal" in where ? where.modal : layer ? under : null;
   useEffect(() => listenAppLinks(), []);
+  // 방에 들어올 때 = 바로 앞 칸이 대화 목록이 아니면 목록을 한 칸 깔고 그 위에 방(형 11-14 19:41 깃 옮김 「글구 대화에서 항상 뒤로가기하면 대화목록이 나오게 해주라.」)
+  //   = 앱 「<」 · 폰 뒤로 · 브라우저 뒤로 어느 길이든 뒤 칸이 /rooms · 아래 onPop(뒤로 뒤에 바꿔 끼움)은 상태 없는 이동(location.hash =)으로 들어온 방에선 안 걸려 홈으로 새던 것(시아 라이브 실측 = 홈 → 방 → 뒤로 = #/)
+  const prevPath = useRef("");
+  useEffect(() => {
+    const prev = prevPath.current;
+    prevPath.current = pathname;
+    if (!("pane" in where) || where.pane !== "chat" || prev === "/rooms" || /^\/(?:channels|group)\//.test(prev) && roomOf(prev) === roomOf(pathname)) return;
+    const rid = roomOf(pathname);
+    const to = pathname.startsWith("/group/") ? { to: "/group/$channelId", params: { channelId: rid } } : { to: "/channels/$channelId", params: { channelId: rid } };
+    prevPath.current = "/rooms";   // 아래 두 걸음 동안 다시 안 걸리게
+    void nav({ to: "/rooms", replace: true }).then(() => nav(to as never));
+  }, [pathname]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if ("modal" in where) setUnder(where.modal);
     else if ("pane" in where) setUnder(null);
