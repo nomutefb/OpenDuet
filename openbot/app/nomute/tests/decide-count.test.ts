@@ -16,7 +16,7 @@ test("고르면 먼저 pick 적고 그 방 pending_hyung −1 · 서랍 숫자 =
   // 서랍 「수리 접수」 메뉴 · 아래 막대 숫자 = 뺌(형 11-14 「수리접수는 이제 그냥 삭제 아예 메뉴 없애」) · 길 #/tasks 와 숫자 셈(rc)은 남음
   assert.doesNotMatch(tb, /useRepairWaiting/);
   assert.doesNotMatch(dw, /useRepairWaiting|"tasks"/);
-  assert.match(dw, /\{ name: "일", ids: \["sched", "runner", "meetlog"\] \}/);
+  assert.match(dw, /\{ name: "일", ids: \["botdesk", "sched", "runner", "meetlog"\] \}/);   // 봇 현황 = 일 묶음 맨 앞(형 11-14 「서랍에 한 공간이 보여야함」) · 수리 접수는 그대로 빠짐
   assert.match(dw, /\{ name: "뉴스", ids: \["sns", "chan", "edsensor"\] \}/, "구독 채널 = 설정으로");
   assert.match(rd("../ui/yeta-settings.tsx"), /sub\("snsacc", "globe", "구독 채널", <Suspense fallback=\{null\}><SnsAccModal \/><\/Suspense>\)/);
 });
