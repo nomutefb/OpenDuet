@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { GAP_Y, SIZE, edgePath, fitOf, railPath, rawOf, treeOf, zoomAt } from "../ui/sched-tree-core.ts";
+import { GAP_Y, SIZE, edgePath, edgeWidth, fitOf, perDay, railPath, rawOf, treeOf, zoomAt } from "../ui/sched-tree-core.ts";
 
 const job = (id: string, fork: string, extra = {}) => ({ id, name: id, file: `${id}.yml`, kind: "", fork, ...extra });
 const map = {
@@ -74,4 +74,16 @@ test("처음 배율 = 넓으면 줄임(바닥 0.45) · 배율 바꿔도 손 밑 
   assert.equal(fitOf({ w: 9000, h: 500 }, { w: 800, h: 600 }).k, 0.45);
   const v = zoomAt({ k: 1, x: 10, y: 20 }, 2, 110, 120);
   assert.equal(v.k, 1.6); assert.equal((110 - v.x) / v.k, 100); assert.equal((120 - v.y) / v.k, 100);
+});
+
+test("하루 횟수 = cron(분 × 시) · 글 · 부를 때만 0 → 선 굵기는 그 로그", () => {
+  assert.equal(perDay({ cron_kst: ["CRON_TZ=Asia/Seoul 0,30 7-23 * * *"] }), 34);
+  assert.equal(perDay({ cron_kst: ["*/10 * * * *"] }), 144);
+  assert.equal(perDay({ cron_kst: ["0 6 * * *", "0 18 * * *"] }), 2);
+  assert.equal(perDay({ when: "10분마다" }), 144);
+  assert.equal(perDay({ when: "3시간마다" }), 8);
+  assert.equal(perDay({ when: "매일 6:00" }), 1);
+  assert.equal(perDay({ when: "부를 때만" }), 0);
+  assert.equal(edgeWidth(0), 1);
+  assert.ok(edgeWidth(1) < edgeWidth(24) && edgeWidth(24) < edgeWidth(144) && edgeWidth(100000) === 3.4);
 });

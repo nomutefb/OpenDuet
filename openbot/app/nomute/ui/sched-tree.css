@@ -2,12 +2,13 @@
  *  영상 꼴 = 옅은 판 · 둥근 카드 + 가는 테 · 손 올리면 테가 진해지고 위에 사다리꼴 탭이 올라옴 · 선 = 직각 + 둥근 꺾임
  *  움직임(영상을 프레임마다 잼): 탭 = 약 180ms 동안 카드 뒤에서 위로 · 그림 단추 = 80ms 늦게 떠오름 · 테 · 꼭지 = 같이 진해짐
  *  색 = 흐름 그림(./sched-flow.css)과 같은 토큰 꼴 · 라임은 「다음 차례」 한 곳만 */
-.nm-tree { --tree-panel:rgba(22,23,22,.03); --tree-card:linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.56)); --tree-edge:rgba(22,23,22,.12); --tree-hi:rgba(255,255,255,.9); --tree-shadow:0 10px 26px -14px rgba(22,23,22,.35); --tree-glow:radial-gradient(60% 50% at 18% 12%, rgba(79,122,0,.07), transparent 70%), radial-gradient(50% 45% at 85% 80%, rgba(22,23,22,.05), transparent 70%);
+.nm-tree { --tree-panel:rgba(22,23,22,.03); --tree-card:linear-gradient(160deg, rgba(255,255,255,.86), rgba(255,255,255,.52)); --tree-edge:rgba(22,23,22,.10); --tree-hi:rgba(255,255,255,.95); --tree-shadow:0 12px 28px -16px rgba(22,23,22,.32), 0 2px 6px -2px rgba(22,23,22,.12); --tree-glow:radial-gradient(48% 42% at 14% 8%, rgba(79,122,0,.12), transparent 72%), radial-gradient(42% 40% at 90% 88%, rgba(60,90,220,.08), transparent 72%);
   --tree-fg:#161716; --tree-mut:rgba(22,23,22,.55); --tree-line:rgba(22,23,22,.24); --tree-strong:#2b2d2b; --tree-on:#fff; --tree-next:#4f7a00; --tree-soft:rgba(22,23,22,.05); --tree-spring:cubic-bezier(.34,1.56,.64,1);
   position:relative; height:calc(100svh - 236px); min-height:420px; overflow:hidden; border-radius:18px; border:1px solid var(--tree-edge); background:var(--tree-glow), var(--tree-panel); color:var(--tree-fg); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
 /* 유리(형 11-14 「안 촌스럽게 글래스 모피즘」 · 「원래 사진처럼」) = 옅게 비치는 면 + 위쪽 빛 한 줄 + 가는 테 + 부드러운 그림자 · 판 바탕엔 아주 옅은 빛 번짐 둘(멈춘 그림)
    진짜 뒤 흐림(backdrop-filter)은 안 씀: 노드가 수십 개고 판을 끌 때마다 다 다시 흐려야 해서 맥이 뜨거워진다 — 바탕이 원래 부드러운 번짐이라 눈으로는 같은 유리 */
-.dark .nm-tree { --tree-panel:rgba(255,255,255,.018); --tree-card:linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.035)); --tree-edge:rgba(255,255,255,.11); --tree-hi:rgba(255,255,255,.10); --tree-shadow:0 12px 28px -16px rgba(0,0,0,.8); --tree-glow:radial-gradient(55% 45% at 16% 10%, rgba(207,255,64,.055), transparent 70%), radial-gradient(50% 45% at 88% 85%, rgba(255,255,255,.04), transparent 70%); --tree-fg:#e8eae8; --tree-mut:rgba(232,234,232,.55); --tree-line:rgba(232,234,232,.2); --tree-strong:#e8eae8; --tree-on:#161716; --tree-next:var(--accent, #CFFF40); --tree-soft:rgba(255,255,255,.05); }
+.dark .nm-tree { --tree-panel:rgba(255,255,255,.022); --tree-card:linear-gradient(160deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,.055) 38%, rgba(255,255,255,.03) 100%); --tree-edge:rgba(255,255,255,.16); --tree-hi:rgba(255,255,255,.24); --tree-shadow:0 14px 32px -18px rgba(0,0,0,.85), 0 2px 6px -2px rgba(0,0,0,.35);
+  --tree-glow:radial-gradient(48% 42% at 14% 8%, rgba(207,255,64,.12), transparent 72%), radial-gradient(42% 40% at 90% 88%, rgba(120,150,255,.09), transparent 72%), radial-gradient(36% 34% at 62% 40%, rgba(255,255,255,.035), transparent 70%);   /* 형 「좀 더 글래스모피즘 st」 = 면 더 비침 · 위쪽 빛 진하게 · 바탕 번짐 셋 */ --tree-fg:#e8eae8; --tree-mut:rgba(232,234,232,.55); --tree-line:rgba(232,234,232,.2); --tree-strong:#e8eae8; --tree-on:#161716; --tree-next:var(--accent, #CFFF40); --tree-soft:rgba(255,255,255,.05); }
 .nm-tree:active { cursor:grabbing; }
 .nm-tree.down { height:auto; min-height:0; overflow:visible; border:0; background:none; cursor:auto; touch-action:auto; }
 .nm-tree-world { position:absolute; left:0; top:0; transform-origin:0 0; transition:transform .26s cubic-bezier(.2,.8,.2,1); }
@@ -15,8 +16,18 @@
 .nm-tree.down .nm-tree-world { position:relative; }
 .nm-tree-edges { position:absolute; left:0; top:0; overflow:visible; pointer-events:none; }
 .nm-tree-edges path { fill:none; stroke:var(--tree-line); stroke-width:1.5; transition:d .26s cubic-bezier(.2,.8,.2,1); animation:nm-tree-line .32s ease-out both; }
-.nm-tree-edges path[data-kind="calls"] { stroke-dasharray:5 4; }
-.nm-tree-edges path[data-kind="after"] { stroke:var(--tree-mut); }
+/* 선의 뜻(형 「선 자체에 색으로도 … 선 진하기로도」) = 굵기: 그 가지가 하루에 도는 횟수(코드가 px 로 줌) · 색: 놓침 빨강 · 지연 노랑 · 다음 차례로 가는 길 라임 · 꺼진 가지 = 옅은 점선 · 부름 = 긴 점선 */
+.nm-tree-edges path { stroke-linecap:round; transition:d .26s cubic-bezier(.2,.8,.2,1), stroke .2s, stroke-width .2s; }
+.nm-tree-edges path[data-kind="calls"] { stroke-dasharray:6 5; }
+.nm-tree-edges path[data-st="late"] { stroke:rgba(233,196,106,.75); }
+.nm-tree-edges path[data-st="miss"] { stroke:rgba(255,90,95,.8); }
+.nm-tree-edges path[data-next] { stroke:var(--tree-next); }
+.nm-tree-edges path[data-off] { stroke:var(--tree-line); stroke-dasharray:2 5; opacity:.6; }
+.nm-tree-key { position:absolute; left:12px; bottom:10px; z-index:6; margin:0; display:flex; flex-wrap:wrap; gap:4px 12px; font-size:10px; color:var(--tree-mut); pointer-events:none; }
+.nm-tree-key span { display:inline-flex; align-items:center; gap:5px; }
+.nm-tree-key i { width:18px; height:0; border-top:2px solid var(--tree-line); border-radius:2px; }
+.nm-tree-key i[data-k="w"] { border-top-width:3.4px; border-color:var(--tree-mut); } .nm-tree-key i[data-k="miss"] { border-color:rgba(255,90,95,.8); } .nm-tree-key i[data-k="late"] { border-color:rgba(233,196,106,.75); } .nm-tree-key i[data-k="next"] { border-color:var(--tree-next); } .nm-tree-key i[data-k="calls"] { border-top-style:dashed; border-color:var(--tree-mut); }
+.nm-tree.down .nm-tree-key { position:static; padding:0 6px 8px; }
 @keyframes nm-tree-line { from { opacity:0; } }
 
 .nm-tree-node { position:absolute; left:0; top:0; box-sizing:border-box; font:inherit; color:inherit; transition:transform .26s cubic-bezier(.2,.8,.2,1); animation:nm-tree-in .24s cubic-bezier(.2,.8,.2,1) both; animation-delay:calc(var(--i, 0) * 16ms); }
@@ -29,9 +40,9 @@
 /* 눌림 = 저장소 기틀 그대로(editor 디자인기틀 가이드북 버튼인터랙션 §3 ① :active{scale(var(--press-*)) · brightness(.88)}) · 놓으면 스프링(kinetics)으로 돌아옴 — 형 11-14 「버튼 누를때 액션 액티브 효과 다 잇어야함」 · 「이미 nomutefb github 안에 잇음」 */
 .nm-tree-node:is(.root, .group, .fork):active { scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.26s, .18s, .08s, .08s; }
 .nm-tree-t { display:flex; align-items:center; min-width:0; }
-.nm-tree-t b { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13.5px; font-weight:600; }   /* 굵기 = 한 단 연하게(형 「폰트 지금보다 볼디 더 연하게 해도됨」) */
+.nm-tree-t b { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px; font-weight:600; }   /* 굵기 = 한 단 연하게(형 「폰트 지금보다 볼디 더 연하게 해도됨」) */
 .nm-tree-node.root .nm-st { display:none; }
-.nm-tree-node > small { font-size:11px; color:var(--tree-mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; }
+.nm-tree-node > small { font-size:10px; color:var(--tree-mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; }
 .nm-tree-node > small em { font-style:normal; color:#FF5A5F; } .nm-tree-node > small i { font-style:normal; color:#E9C46A; }
 .nm-tree-chev { position:absolute; right:10px; top:50%; margin-top:-7px; opacity:.6; transition:rotate .22s cubic-bezier(.2,.8,.2,1); }
 .nm-tree-node[aria-expanded="true"] > .nm-tree-chev { rotate:90deg; }
@@ -40,18 +51,18 @@
 
 /* 잡 = 카드 + 위 탭 + 양옆 꼭지 */
 .nm-tree-node.job { cursor:default; }
-.nm-tree-card { position:relative; z-index:1; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; gap:0; padding:9px 10px 8px; border:1px solid var(--tree-edge); border-radius:14px; background:var(--tree-card); box-shadow:inset 0 1px 0 var(--tree-hi), var(--tree-shadow); color:inherit; font:inherit; text-align:left; cursor:pointer; transition:border-color .18s, scale .32s var(--tree-spring), filter .18s; }
+.nm-tree-card { position:relative; z-index:1; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; gap:0; padding:8px 10px 7px; border:1px solid var(--tree-edge); border-radius:14px; background:var(--tree-card); box-shadow:inset 0 1px 0 var(--tree-hi), var(--tree-shadow); color:inherit; font:inherit; text-align:left; cursor:pointer; transition:border-color .18s, scale .32s var(--tree-spring), filter .18s; }
 .nm-tree-card:active { scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.18s, .08s, .08s; }
 .nm-tree-node.job:hover .nm-tree-card, .nm-tree-node.job:focus-within .nm-tree-card, .nm-tree-node.job[data-hot] .nm-tree-card { border-color:var(--tree-strong); }
 .nm-tree-card:focus-visible { outline:0; }
 .nm-tree-node.job[data-next] .nm-tree-card { border-color:var(--tree-next); }
 .nm-tree-l1 { display:flex; align-items:center; gap:6px; min-width:0; }
-.nm-tree-l1 b { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13.5px; font-weight:600; }
-.nm-tree-l1 i { flex:none; padding:2px 6px; border-radius:6px; background:var(--tree-soft); font-style:normal; font-size:10.5px; color:var(--tree-mut); }
-.nm-tree-l2 { display:flex; align-items:center; gap:6px; min-width:0; font-size:11px; }
-.nm-tree-l2 small { flex:none; font-size:11px; color:var(--tree-mut); }
+.nm-tree-l1 b { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px; font-weight:600; }
+.nm-tree-l1 i { flex:none; padding:1.5px 6px; border-radius:6px; background:var(--tree-soft); font-style:normal; font-size:9.5px; color:var(--tree-mut); }
+.nm-tree-l2 { display:flex; align-items:center; gap:6px; min-width:0; font-size:10.5px; }
+.nm-tree-l2 small { flex:none; font-size:10px; color:var(--tree-mut); }
 .nm-tree-l2 span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:1px 6px; border:1px solid var(--tree-edge); border-radius:6px; font-variant-numeric:tabular-nums; }
-.nm-tree-l3 { display:flex; align-items:center; min-width:0; padding:3px 7px; border-radius:7px; background:var(--tree-soft); font-size:10.5px; color:var(--tree-mut); }
+.nm-tree-l3 { display:flex; align-items:center; min-width:0; padding:2.5px 7px; border-radius:7px; background:var(--tree-soft); font-size:9.5px; color:var(--tree-mut); }
 .nm-tree-l3 > span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-tree .nm-st[data-st="ok"] { background:rgba(95,191,106,.85); }
 .nm-tree-sw { flex:none; position:relative; width:20px; height:11px; border-radius:6px; background:rgba(139,143,138,.3); }

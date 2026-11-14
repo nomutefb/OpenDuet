@@ -9,7 +9,7 @@ import { type RunnerJob, type SchedRunners, nextShort } from "./settings-extra";
 import { CLOCK_KO, whenOf } from "./sched-runners";
 import { type Review, ReviewBadge } from "./sched-review";
 import { ghJob, modelKo } from "./sched-flow-core";
-import { type TNode, edgePath, fitOf, railPath, treeOf, zoomAt } from "./sched-tree-core";
+import { type TNode, edgePath, edgeWidth, fitOf, perDay, railPath, treeOf, zoomAt } from "./sched-tree-core";
 import { RunnerSheet } from "./runner-sheet";
 import "./sched-tree.css";
 
@@ -44,6 +44,16 @@ export function SchedTree({ map, review = {}, phone = false, can = false }: { ma
   const forkOn = useCallback((j: RunnerJob) => map.forks.find((f) => f.id === j.fork)?.on !== false, [map]);
   const soon = useMemo(() => map.jobs.filter((j) => j.on !== false && forkOn(j) && (j.health?.next_at || 0) > now).sort((a, b) => (a.health?.next_at || 0) - (b.health?.next_at || 0))[0]?.id || "", [map, forkOn, now]);
   const stJob = (j: RunnerJob) => stOf(j.health, !forkOn(j) || j.on === false);
+  const jobsUnder = (n: TNode): RunnerJob[] => {   // 그 노드 밑에 달린 잡 전부(잡이면 자기 + 밑 잡)
+    if (n.kind !== "job") return map.jobs.filter((j) => (n.kind === "root" ? true : n.kind === "group" ? map.forks.find((f) => f.id === j.fork)?.group === n.id.slice(2) : j.fork === n.id));
+    const out: RunnerJob[] = [n.job!], walk = (id: string) => { for (const c of tree.nodes) if (c.parent === id && c.job) { out.push(c.job); walk(c.id); } };
+    walk(n.id); return out;
+  };
+  // 선의 뜻 = 색(그 가지 상태) · 굵기(그 가지가 하루에 도는 횟수) · 라임(다음 차례로 가는 길)
+  const edgeOf = (to: TNode) => {
+    const js = jobsUnder(to), on = js.filter((j) => j.on !== false && forkOn(j));
+    return { st: worstOf(sumOf(js.map(stJob))), w: edgeWidth(on.reduce((a, j) => a + perDay(j), 0)), next: !!soon && js.some((j) => j.id === soon), off: !on.length };
+  };
   const stsUnder = (n: TNode) => map.jobs.filter((j) => (n.kind === "root" ? true : n.kind === "group" ? map.forks.find((f) => f.id === j.fork)?.group === n.id.slice(2) : j.fork === n.id)).map(stJob);
 
   // 판 끌기(PC) — 끄는 동안은 style 만 바꾸고 놓을 때 상태에 적음(다시 그리기 0)
@@ -98,10 +108,10 @@ export function SchedTree({ map, review = {}, phone = false, can = false }: { ma
   const closeSel = useCallback(() => setSel(null), []);
 
   return (
-    <div ref={box} className={`nm-tree${phone ? " down" : ""}`} style={phone ? { height: tree.h } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} inert={sel ? true : undefined}>
+    <div ref={box} className={`nm-tree${phone ? " down" : ""}`} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} inert={sel ? true : undefined}>
       <div ref={world} className="nm-tree-world" style={{ width: tree.w, height: tree.h, transform: `translate(${v.x}px, ${v.y}px) scale(${v.k})` }}>
         <svg className="nm-tree-edges" width={tree.w} height={tree.h} aria-hidden>
-          {tree.edges.map((e) => { const a = by.get(e.from), b = by.get(e.to); return a && b ? <path key={e.k} data-kind={e.kind} d={phone ? railPath(a, b) : edgePath(a, b)} /> : null; })}
+          {tree.edges.map((e) => { const a = by.get(e.from), b = by.get(e.to); if (!a || !b) return null; const m = edgeOf(b); return <path key={e.k} data-kind={e.kind} data-st={m.st} data-next={m.next || undefined} data-off={m.off || undefined} style={{ strokeWidth: m.w }} d={phone ? railPath(a, b) : edgePath(a, b)} />; })}
         </svg>
         {tree.nodes.map((n, i) => {
           const pos = { transform: `translate(${n.x}px, ${n.y}px)`, width: n.w, height: n.h, "--i": Math.min(i, 14) } as CSSProperties;
@@ -138,6 +148,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false }: { ma
           );
         })}
       </div>
+      <p className="nm-tree-key" aria-label="선 읽는 법"><span><i data-k="w" />굵기 = 자주 돎</span><span><i data-k="miss" />놓침</span><span><i data-k="late" />지연</span><span><i data-k="next" />다음 차례</span><span><i data-k="calls" />부름</span></p>
       {phone ? null : (
         <div className="nm-tree-zoom" role="group" aria-label="배율">
           <button type="button" aria-label="작게" onClick={() => zoom(1 / 1.2)}>−</button>

@@ -10,7 +10,7 @@ export type TKind = "root" | "group" | "fork" | "job";
 export type TNode = { id: string; kind: TKind; name: string; parent: string; depth: number; x: number; y: number; w: number; h: number; kids: number; open: boolean; via: "tree" | "after" | "calls"; job?: RunnerJob; fork?: SchedRunners["forks"][number] };
 export type TEdge = { k: string; from: string; to: string; kind: "tree" | "after" | "calls" };
 export type Tree = { nodes: TNode[]; edges: TEdge[]; w: number; h: number };
-export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 104, h: 44 }, group: { w: 148, h: 48 }, fork: { w: 204, h: 58 }, job: { w: 236, h: 86 } };
+export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 140, h: 44 }, fork: { w: 190, h: 52 }, job: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
 export const GAP_X = 64, GAP_Y = 22, PAD = 28, INDENT = 20, GAP_DOWN = 12;
 
 type Raw = { id: string; kind: TKind; name: string; via: TNode["via"]; job?: RunnerJob; fork?: SchedRunners["forks"][number]; kids: Raw[] };
@@ -98,3 +98,29 @@ export function zoomAt(v: { k: number; x: number; y: number }, to: number, px: n
   const k = Math.max(0.3, Math.min(1.6, to));
   return { k, x: px - ((px - v.x) / v.k) * k, y: py - ((py - v.y) / v.k) * k };
 }
+
+// ---- 선에 싣는 뜻(형 11-14 「선 자체에 색으로도 어떤 의미를 부여하거나, 선 진하기로도 어떤 의미를 부여할수잇을듯」) ----
+//   색 = 그 선 끝(자식 쪽 가지)의 상태 · 굵기 = 그 가지가 하루에 도는 횟수 · 라임 = 다음 차례로 가는 길
+const fieldCount = (f: string, span: number): number => {
+  let n = 0;
+  for (const part of f.split(",")) {
+    const m = /^(\*|(\d+)(?:-(\d+))?)(?:\/(\d+))?$/.exec(part.trim()); if (!m) return 1;
+    const step = m[4] ? Math.max(1, +m[4]) : 1;
+    if (m[1] === "*") n += Math.ceil(span / step);
+    else if (m[3] !== undefined) n += Math.floor((+m[3] - +m[2]) / step) + 1;
+    else n += m[4] ? Math.ceil((span - +m[2]) / step) : 1;
+  }
+  return Math.max(1, n);
+};
+/** 하루에 도는 횟수(어림) — cron 줄(분 × 시) 합 · 없으면 「N분마다」「N시간마다」 글 · 시각만 있으면 1 · 부를 때만 · 뒤따름 = 0 */
+export function perDay(j: Pick<RunnerJob, "cron_kst" | "when">): number {
+  let n = 0;
+  for (const line of j.cron_kst || []) { const c = line.replace(/^CRON_TZ=\S+\s+/, "").trim().split(/\s+/); if (c.length === 5) n += fieldCount(c[0], 60) * fieldCount(c[1], 24); }
+  if (n) return n;
+  const w = j.when || "", mi = /(\d+)\s*분마다/.exec(w), hr = /(\d+)\s*시간마다/.exec(w);
+  if (mi) return Math.round(1440 / Math.max(1, +mi[1]));
+  if (hr) return Math.round(24 / Math.max(1, +hr[1]));
+  return /\d{1,2}:\d{2}|매일|매시/.test(w) ? (/매시/.test(w) ? 24 : 1) : 0;
+}
+/** 선 굵기(px) = 하루 횟수의 로그 — 0번(부를 때만) 1 · 하루 한 번 1.3 · 한 시간마다 2.2 · 십 분마다 3 언저리 · 위는 3.4 */
+export const edgeWidth = (runs: number) => Math.round(Math.min(3.4, 1 + Math.log10(1 + Math.max(0, runs)) * 0.9) * 10) / 10;
