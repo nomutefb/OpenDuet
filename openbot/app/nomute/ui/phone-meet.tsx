@@ -34,7 +34,7 @@ function PhoneMeetBody({ onClose }: { onClose: () => void }) {
     if (mine) writeMine(null);   // PC 에서 끝낸 회의
     return (
       <div className="nm-pmeet-empty">
-        <button type="button" className="nm-meet-btn" onClick={() => setGo(true)}>새 회의</button>
+        <button type="button" className="nm-meet-start" onClick={() => setGo(true)}>새 회의 시작</button>   {/* 화면 가운데 반투명 알약 하나(형 11-15 01:23 dm-gik 「이거 어색하니까 새 회의 시작 으로 화면 중앙에 알약 하나 반투멍 하게 있는게 나을듯 누르면 켜지게」 · 깃 #-027 · 앞 판 = 맨 위 「새 회의」 글) */}
       </div>
     );
   }
