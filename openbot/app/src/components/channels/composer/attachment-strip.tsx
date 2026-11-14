@@ -119,14 +119,10 @@ export function AttachmentStrip({
      * reach when the attribute is on.
      */
     <Collapse open={occupied}>
-      <ul
-        aria-hidden={!occupied}
-        aria-label="Attachments"
-        className="flex flex-wrap items-start gap-2 pb-3"
-      >
         {(compress && hasMedia) || (dense && hasVideo) ? (
-          /* 압축 · 프레임 알약 = 사진 위 한 줄(형 11-15 05:16 dm-gik 「그리구 이 압축 알약 프레임 알약이랑 둘다 혹시 이미지 위쪽으로 배치 가능?」 · 깃 #-030 · 앞 판 = 사진 왼쪽 같은 줄) */
-          <li className="flex w-full basis-full items-center gap-2">
+          /* 압축 · 프레임 알약 = 사진 줄 밖 위 한 줄(형 11-15 05:16 dm-gik 「그리구 이 압축 알약 프레임 알약이랑 둘다 혹시 이미지 위쪽으로 배치 가능?」 · 05:44 「너무 짝 붙어서 떠서 보기안좋아」 · 깃 #-030)
+             앞 판(e37b3e5) = 목록 안 한 칸(줄 전체 폭) → nomute 첨부 줄은 한 줄 옆 밀기라 사진이 화면 밖으로 밀려 알약만 떠 보였음 */
+          <div className="nm-att-opts flex items-center gap-2 pb-2">
         {compress && hasMedia ? (
             <button
               aria-checked={on}
@@ -151,8 +147,13 @@ export function AttachmentStrip({
               프레임   {/* 형 11-12 07:25 「프레임 이라고만 나오게하고 누르면 그냥 점등 되면 on 이라고 생각할게!」 · 07:26 「켜진거는 라임 들어오게해줘 ㅎㅎ 프레임은 평소에 꺼지먼 점등 오프고 켜지면 라임」 */}
             </button>
         ) : null}
-          </li>
+          </div>
         ) : null}
+      <ul
+        aria-hidden={!occupied}
+        aria-label="Attachments"
+        className="flex flex-wrap items-start gap-2 pb-3"
+      >
         {images.map((image) => (
           <Staged key={image.id}>
             {image.loading || image.url === "" ? (
