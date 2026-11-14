@@ -194,8 +194,8 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-root .nm-split { flex:0 0 var(--nm-split-w, 50%); }
 .nm-split-root .nm-split-l { flex:1 1 auto; }
 .nm-split-grip { position:absolute; left:-5px; top:0; bottom:0; width:10px; z-index:5; cursor:col-resize; display:grid; place-items:center; }
-.nm-split-grip i { width:2px; height:44px; border-radius:2px; background:rgba(255,255,255,.12); transition:background .15s, height .15s; }
-.nm-split-grip:hover i, body.nm-dragging .nm-split-grip i { background:#CFFF40; height:64px; }
+.nm-split-grip i { width:2px; height:44px; border-radius:2px; background:rgba(255,255,255,.12); transition:background .15s, transform .15s; }   /* 길이 = height 말고 transform(배치 다시 안 셈 · 형 11-15 「60프레임 아닌것도」) */
+.nm-split-grip:hover i, body.nm-dragging .nm-split-grip i { background:#CFFF40; transform:scaleY(1.4545); }   /* 44 → 64px */
 body.nm-dragging { user-select:none; cursor:col-resize; }
 body.nm-dragging iframe { pointer-events:none; }
 /* 칸 틀 통일(시아 UI ① · 형 11-06 「ㅇㅋ」) — 오른쪽 세 칸 = 같은 유리 판 · 같은 머리줄(36 · 점 · 이름 · 오른쪽 흐린 글) · 칸 사이 8 */

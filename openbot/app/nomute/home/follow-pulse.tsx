@@ -5,6 +5,7 @@
 //   누르면 = 채널 요약(원본 «일단 홈 팔로워로» → 우리 앱은 앱 안 채널 요약 판 #/chan · 11-01 전엔 #/web?u=/?tab=chan 한 겹) · 10분마다 다시 읽음(원본과 같음) · 접수사항(CheckOne)은 이 자리에서 뺌(파일은 그대로 · 안 부름)
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pollOff } from "../data/poll-linux";
+import { DiffValue } from "../ui/state-diff";   // 값 바뀜(형 11-15 State Diff)
 import { sharedText } from "../ui/news-data";   // 3초 안 같은 주소 = 한 번만(빠르 11-14)
 
 type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null; views?: number | null };   // views = 그날 노출(조회 · insta_data.json daily_series)
@@ -115,10 +116,10 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
   return (
     <button type="button" className={`nm-pulse${fill ? " nm-pulse-fill" : ""}`} aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
       <div className="nm-pulse-row">
-        <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v">{nf.format(liveN(ig))}</b>
+        <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v"><DiffValue className="l" value={nf.format(liveN(ig))} /></b>
         <i className="nm-pulse-sep" aria-hidden />
-        <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v">{fb ? nf.format(liveN(fb)) : "–"}</b>
-        <i className="nm-pulse-sep" aria-hidden /><span className="nm-pulse-k th">TH</span><b className="nm-pulse-v">{th ? nf.format(th.profile.followers_count) : "–"}</b>   {/* PC 칸 = 스레드 총수 하나 더(형 11-08 09:11 「저기 fB 옆에구분자 하나 더 둬서 스레드도 나오게해, FB가 시안으로 표기되고 th 는 fb 색으로」 · 자료 = /api/chan?f=th → threads_data.json) */}
+        <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v"><DiffValue className="l" value={fb ? nf.format(liveN(fb)) : "–"} /></b>
+        <i className="nm-pulse-sep" aria-hidden /><span className="nm-pulse-k th">TH</span><b className="nm-pulse-v"><DiffValue className="l" value={th ? nf.format(th.profile.followers_count) : "–"} /></b>   {/* PC 칸 = 스레드 총수 하나 더(형 11-08 09:11 「저기 fB 옆에구분자 하나 더 둬서 스레드도 나오게해, FB가 시안으로 표기되고 th 는 fb 색으로」 · 자료 = /api/chan?f=th → threads_data.json) */}
         <span className="nm-pulse-at">{ago(ig.live_followers?.at || ig.generated_kst).replace(/^갱신 /, "")}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
       </div>
       <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>

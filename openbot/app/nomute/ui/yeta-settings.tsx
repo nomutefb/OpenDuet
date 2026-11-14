@@ -13,6 +13,7 @@ const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m
 const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 구독 채널 = 서랍 「뉴스」에서 설정 「알림 · 구독」으로(형 11-14 「구독채널은 설정으로 보내서 관련된거랑 가능하면 기능 합치고」 · 화면 = 그대로 ./snsacc)
 const GenOptModal = lazy(() => import("./genopt").then((m) => ({ default: m.GenOptModal })));   // AI 썸네일 옵션 = 서랍 「AI 썸네일·이미지」를 간추려 여기로(형 11-14)
 import { Pane } from "./pane";
+import { DiffValue } from "./state-diff";   // 줄 값이 바뀌는 순간 옛 값이 물러나고 새 값이 들어옴(형 11-15 State Diff)
 import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
 import { office } from "../data/office";
@@ -43,7 +44,7 @@ function Act({ ic, t, d, v, vt, mod, open, onClick }: { ic: YIcon; t: string; d?
     <button type="button" className="yset-item" aria-expanded={open} onClick={onClick}>
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO[ic] }} />
       <span className="si-lbl"><span className="si-t">{t}</span>{d ? <span className="si-d">{d}</span> : null}</span>
-      <span className="si-v">{v ? (vt ? <span className={`si-vt${mod ? " mod" : ""}`}>{v}</span> : <i className="si-vv">{v}</i>) : null}<Svg k="chev" /></span>
+      <span className="si-v">{v ? (vt ? <span className={`si-vt${mod ? " mod" : ""}`}><DiffValue value={v} /></span> : <i className="si-vv"><DiffValue value={v} /></i>) : null}<Svg k="chev" /></span>
     </button>
   );
 }
@@ -54,7 +55,7 @@ function Info({ ic, t, d, v }: { ic: YIcon; t: string; d?: string; v?: string })
     <button type="button" className="yset-item ro" aria-disabled="true">
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO[ic] }} />
       <span className="si-lbl"><span className="si-t">{t}</span>{d ? <span className="si-d">{d}</span> : null}</span>
-      <span className="si-v">{v ? <i className="si-vv">{v}</i> : null}</span>
+      <span className="si-v">{v ? <i className="si-vv"><DiffValue value={v} /></i> : null}</span>
     </button>
   );
 }

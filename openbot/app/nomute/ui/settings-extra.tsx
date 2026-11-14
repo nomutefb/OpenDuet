@@ -3,6 +3,7 @@
 //   스케줄러 연결(GET schedule/link) · 바꾸기(루틴 상태·언제·할 일 없어도 깨움 · 사건 모아서 기다림 = POST schedule/set · 먼저 dry 미리 보기 → 확인)
 //   옛 그록 대화(GET old · 봇 → 날 → 글 · 읽기만) · 맨 아래 「지금 판」(형이 새 판인지 눈으로 · 10-28 10:51 「웹앱이 자동으로 버전업이 안되네」)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { StateDiff } from "./state-diff";
 import { type ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { PageSection } from "@/components/layout/page-shell";
@@ -304,8 +305,8 @@ export function NomuteSchedule() {
     <PageSection title="스케줄러 바꾸기">
       {d && !can ? <p className="mt-1 text-xs text-muted-foreground">바꾸기 = 형 자리만</p> : null}   {/* 상태 설명 줄 뺌 · 권한 줄만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
       {ask ? (
-        <div className="sticky top-2 z-10 mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-primary/40 bg-background p-3 text-sm shadow">
-          <span className="min-w-0 flex-1">{ask.q.label} {CF_KO[ask.q.field]}: {cfVal(ask.q.field, ask.r.from)} <Chev dir="right" size={12} /> <b>{cfVal(ask.q.field, ask.r.to)}</b>
+        <div className="nm-sd-band sticky top-2 z-10 mt-3 flex flex-wrap items-center gap-2 rounded-2xl p-3 text-sm">   {/* 확인 띠 = 유리 판 + 값 바뀜 두 줄(− 옛 값 / + 새 값 · ./state-diff.tsx · 형 11-15) */}
+          <span className="min-w-0 flex-1"><StateDiff label={<>{ask.q.label} · {CF_KO[ask.q.field]}</>} from={cfVal(ask.q.field, ask.r.from)} to={cfVal(ask.q.field, ask.r.to)} />
             {ask.r.preview ? <small className="block text-xs text-muted-foreground">다음 깸 {ask.r.preview.next_at ? nextShort(ask.r.preview.next_at) : "없음"} · 하루 정해진 {ask.r.preview.day_max}번</small> : null}
           </span>
           <GoButton className={btn} disabled={go.isPending} busy="바꾸는 중" go={() => apply(ask.q)} done={(r) => { if (r.same) { setAsk(null); setMsg(`이미 ${cfVal(ask.q.field, ask.q.value)}이야 — 바꿀 것 없음`); } else changed(ask.q, r); }}>바꾸기</GoButton>

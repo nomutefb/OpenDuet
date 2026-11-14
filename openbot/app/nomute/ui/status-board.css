@@ -33,14 +33,15 @@
 .nsb-cell { height:26px; border:0; border-radius:6px; background:rgba(255,255,255,.07); cursor:pointer; transition:transform .12s; }
 .nsb-cell[data-st="ok"] { background:color-mix(in srgb, var(--nsb-ok) 55%, transparent); }
 .nsb-cell[data-st="late"] { background:color-mix(in srgb, var(--nsb-yel) 60%, transparent); }
-.nsb-cell[data-st="miss"] { background:var(--nsb-red); box-shadow:0 0 12px rgba(255,90,95,.7); animation:nsbGlow 1.6s ease-in-out infinite; }
+.nsb-cell[data-st="miss"] { position:relative; background:var(--nsb-red); box-shadow:0 0 4px rgba(255,90,95,.35); }
+.nsb-cell[data-st="miss"]::after { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; box-shadow:0 0 12px rgba(255,90,95,.7); animation:nsbGlow 1.6s ease-in-out infinite; }   /* 빛 = 그림자를 움직이지 않고 한 겹의 투명도만(형 11-15 「60프레임 아닌것도」) */
 .nsb-cell[data-st="off"] { background:rgba(255,255,255,.03); }
 .nsb-cell.on { outline:2px solid #fff; outline-offset:1px; }
 .nsb-cell.self { background:repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 4px, transparent 4px 8px); cursor:default; }
 .nsb-cell:active { transform:scale(.92); }
 .nsb-grid .nsb-why { grid-column:1 / -1; margin:6px 0 0; }
-@keyframes nsbGlow { 50% { box-shadow:0 0 4px rgba(255,90,95,.35); } }
-@media (prefers-reduced-motion: reduce) { .nsb-cell[data-st="miss"] { animation:none; } }
+@keyframes nsbGlow { 50% { opacity:0; } }
+@media (prefers-reduced-motion: reduce) { .nsb-cell[data-st="miss"]::after { animation:none; } }
 .nsb-zones { padding:0 8px 8px 22px; }
 .nsb-zone summary { cursor:pointer; padding:6px 0; font-size:var(--fs-label); }
 .nsb-zone summary small { color:var(--nsb-mut); }
