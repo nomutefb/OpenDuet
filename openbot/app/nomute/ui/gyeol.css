@@ -19,9 +19,9 @@
 .nm-gy .gy-mvt.stk .gy-mvt-cv { box-shadow:4px -4px 0 -1px color-mix(in srgb, var(--fg, #fff) 18%, transparent); }   /* 버전 2편+ = 뒤에 겹친 장 */
 .nm-gy .gy-mvt-cv img { width:100%; height:100%; object-fit:cover; display:block; }
 .nm-gy .gy-mvt-new, .nm-gy .gy-mvt-n, .nm-gy .gy-mvt-up { position:absolute; font-size:10px; font-weight:800; padding:2px 6px; border-radius:999px; background:rgba(0,0,0,.6); color:#fff; }
-.nm-gy .gy-mvt-new { left:6px; top:6px; color:var(--accent, #CFFF40); }
+.nm-gy .gy-mvt-new { left:6px; top:6px; color:var(--accent, var(--accent, #CFFF40)); }
 .nm-gy .gy-mvt-n { right:6px; top:6px; }
-.nm-gy .gy-mvt-up { left:6px; bottom:6px; color:var(--accent, #CFFF40); }
+.nm-gy .gy-mvt-up { left:6px; bottom:6px; color:var(--accent, var(--accent, #CFFF40)); }
 .nm-gy .gy-mvt-t { font-weight:800; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-gy .gy-mvt-g, .nm-gy .gy-mvt-m { font-size:11px; color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-gy .gy-more { margin-top:8px; }
@@ -43,7 +43,7 @@
 .nm-gy .gy-r:first-child { border-top:0; }
 .nm-gy .gy-r-i { color:var(--mut); font-variant-numeric:tabular-nums; font-size:11px; }
 .nm-gy .gy-r-chip, .nm-gy .gy-tag, .nm-gy .gy-mvpill { font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; border:1px solid color-mix(in srgb, var(--fg, #fff) 20%, transparent); color:var(--mut); white-space:nowrap; }
-.nm-gy .gy-mvpill.on { color:var(--accent, #CFFF40); border-color:currentColor; }
+.nm-gy .gy-mvpill.on { color:var(--accent, var(--accent, #CFFF40)); border-color:currentColor; }
 .nm-gy .gy-mvpill:not(.on) { border-style:dashed; }
 .nm-gy .gy-r-t { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-gy .gy-r-m { color:var(--mut); font-size:11px; white-space:nowrap; }

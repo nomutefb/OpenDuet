@@ -37,7 +37,7 @@
 html.dark .nm-sumc.lean { background:rgba(255,255,255,.012); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-color:rgba(255,255,255,.08); }
 .nm-sumc.lean .nm-sumc-top { font-size:11px; gap:6px; }
 .nm-sumc.lean .nm-sumc-top .cat { font-weight:800; }
-.nm-sumc.lean .nm-sumc-top > span:not(.r) b { font-weight:700; color:#CFFF40; }   /* 보도 시각 = 강조(옛 --accent) */
+.nm-sumc.lean .nm-sumc-top > span:not(.r) b { font-weight:700; color:var(--accent, #CFFF40); }   /* 보도 시각 = 강조(옛 --accent) */
 html:not(.dark) .nm-sumc.lean .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
 .nm-sumc.lean .nm-sumc-top .r b { font-weight:700; color:var(--fg); }
 .nm-sumc.lean .nm-sumc-t { font-size:15px; font-weight:700; line-height:1.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }   /* 제목 한 줄 · 넘치면 …(형 11-11 18:53 「글구 제목은 한줄로만 나오게하고 두줄되면 ...으로」) */
@@ -48,7 +48,7 @@ html:not(.dark) .nm-sumc.lean .nm-sumc-top > span:not(.r) b { color:#4f7a00; }
 .nm-sumc.lean .nm-sumc-prog span:not(.done):not(.cur):not(.fail) i { color:#BBBCBC; }   /* 회색 = 아직 칸만(끝남 · 만드는 중 · 멈춤 색은 summary-desk.css 그대로 · 앞 판 = 회색이 끝남 라임까지 덮음 11-11 13:2x 라이브 실물) */
 .nm-sumc.lean .nm-sumc-prog span:not(.done):not(.cur):not(.fail) em { background:rgba(187,188,188,.7); }
 .nm-sumc.lean.k-iss, .nm-sumc.lean.k-brk { border-color:rgba(230,195,92,.75); }
-.nm-sumc.lean.on { border-color:#CFFF40; box-shadow:0 0 0 1px #CFFF40 inset, 0 1px 16px rgba(0,0,0,.4); }
+.nm-sumc.lean.on { border-color:var(--accent, #CFFF40); box-shadow:0 0 0 1px var(--accent, #CFFF40) inset, 0 1px 16px rgba(0,0,0,.4); }
 :root:not(.dark) .nm-sumc.lean.on { border-color:#4f7a00; box-shadow:0 0 0 1px #4f7a00 inset; }
 .nm-sumc.lean .nm-sumc-top .urg { font-weight:600; }
 .nm-sumc.lean .nm-sumc-top .urg.iss { color:#e6c35c; }

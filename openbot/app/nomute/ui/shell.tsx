@@ -355,7 +355,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
  *  위 1.5/4 = 2 러너(맨 위 몸 줄 + 러너 판 게이지) · 아래 2.5/4 = 3 실시간 뉴스 카드(홈 카드 덱 그대로 · 「전송」 = 그 기사 요약 요청 · 형 13:38 「전송하면 그 아래에 요약 대기열 … 근데 거기까지 안바래」)
  *  러너 위젯(PC 바탕화면)은 내림(형 13:23 「그럼냅다치우고」 · 윈A CPU 1등) — 여기 한 창에 대화 · 러너 · 뉴스가 같이 있어 창이 따로 놀지 않음(형 13:20 「근데 창이 다 따로놀아;;ㅠㅠ」) */
 /** 눌러야 받는 칸(서랍 창 · 이슈 · 웹) 코드를 받는 동안 = 가운데 라임 점 셋(글자 0 · 형 11-07 17:20 「불러오는 중 일때 ...이 움직이거나 할수있나. 안그러면 멈춘거같아서.」 · 꼴 = ./shell.css .nm-lazy) */
-function LazyDots() { return <div className="nm-lazy" role="status" aria-label="불러오는 중"><i /><i /><i /></div>; }
+function LazyDots() { return <div className="nm-lazy" role="status" aria-label="읽는 중"><i /><i /><i /></div>; }
 
 /** 반갈 칸 울타리 — 한 칸이 깨져도 앱 전체(「Something went wrong!」)로 번지지 않게 그 칸만 한 줄로(17:2x 뉴스 요약 칸이 앱을 통째로 깨뜨린 것 뒤) */
 class PaneGuard extends Component<{ name: string; children: ReactNode }, { bad: boolean }> {

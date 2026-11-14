@@ -94,7 +94,7 @@ export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, wh
           <div className="nm-rsheet-body">
             <div className="nm-rsheet-row">
               <Breaker big on={on} label={`${job.name} 켬끔`} disabled={!can || !res?.ok || !!busy || !!pre} onFlip={() => void ask(toggleOf(state))} />
-              <span className="min-w-0 flex-1"><b>{res ? stateKo(state) : msg ? "상태 못 읽음" : "상태 읽는 중"}</b><small>{res?.state_why ? res.state_why : res?.followers?.length ? `뒤따름 ${res.followers.length} · ${res.followers.join(" · ")}` : "뒤따르는 잡 없음"}</small></span>
+              <span className="min-w-0 flex-1"><b>{res ? stateKo(state) : msg ? "상태 못 읽음" : "상태 읽는 중…"}</b><small>{res?.state_why ? res.state_why : res?.followers?.length ? `뒤따름 ${res.followers.length} · ${res.followers.join(" · ")}` : "뒤따르는 잡 없음"}</small></span>
               <button type="button" className="nm-sched-chip" disabled={!can || !res?.ok || !res.dispatch || !on || !!busy || !!pre} title={!res?.dispatch ? "손으로 못 띄움(workflow_dispatch 없음)" : !on ? "꺼져 있어 못 띄움" : "깃허브에 한 번 돌리기"} onClick={() => void ask("run")}>▶ 지금 돌리기</button>
             </div>
             {!can ? <p className="nm-rsheet-grey">바꾸기 = 형만(지금은 보기만)</p> : null}
@@ -109,7 +109,7 @@ export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, wh
                 </div>
               </div>
             ) : null}
-            {busy && busy !== "apply" ? <p className="nm-rsheet-grey">미리 보기 읽는 중</p> : null}
+            {busy && busy !== "apply" ? <p className="nm-rsheet-grey">미리 보기 읽는 중…</p> : null}
             {msg ? <p className="nm-rsheet-msg">{msg}</p> : null}
             {res?.acts?.length ? (
               <div className="nm-rsheet-acts">

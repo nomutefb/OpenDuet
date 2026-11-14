@@ -120,7 +120,7 @@ export function RunnerGauges() {
   const cols = HOSTS.length > 1 ? `minmax(0, 1fr) 12px repeat(${HOSTS.length - 1}, minmax(0, 1fr))` : "minmax(0, 1fr)";
   return (
     <div ref={panel} className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보" style={{ ["--nm-rgx-peb-dy" as string]: `${dy.peb}px`, ["--nm-rgx-run-dy" as string]: `${dy.run}px` }}>   {/* ref·줄 맞춤 변수 = 바깥 틀(공용 두 줄이 판 밖이라 · 36) */}
-      <div className="nm-card-h"><i className="live" aria-hidden /><b>Runner</b><span>{newest ? ago(now - newest) : st.data?.at ? ago(now - st.data.at) : st.isLoading ? "불러오는 중" : ""}</span></div>   {/* 칸 머리줄 = 모든 칸 같은 꼴(시아 UI ① · 형 11-06 대시보드 고급화) */}   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
+      <div className="nm-card-h"><i className="live" aria-hidden /><b>Runner</b><span>{newest ? ago(now - newest) : st.data?.at ? ago(now - st.data.at) : st.isLoading ? "읽는 중…" : ""}</span></div>   {/* 칸 머리줄 = 모든 칸 같은 꼴(시아 UI ① · 형 11-06 대시보드 고급화) */}   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
       <div className="nm-rg-panel nm-rgx-panel" style={{ ["--nm-rgx-n" as string]: Math.max(1, HOSTS.length), ["--nm-rgx-cols" as string]: cols }}>
         {HOSTS.map((h, hi) => {
           const pk = pickHost(hw, h.hosts), a = pk?.a, b = pk?.b;

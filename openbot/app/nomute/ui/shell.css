@@ -163,8 +163,8 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-l .ynav button { height:30px; font-size:var(--fs-sm); }
 .nm-split-news { margin-top:14px; }
 /* 위 메뉴 막대 픽토그램 = 시그니처 라임(형 11-05 16:57 「그리고 상단의 픽토그램 버튼들은 시그니처 색으로!」) */
-.nm-split-l .ynav button { color:#CFFF40; }
-.nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#CFFF40; background:rgba(207,255,64,.12); }
+.nm-split-l .ynav button { color:var(--accent, #CFFF40); }
+.nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:var(--accent, #CFFF40); background:rgba(var(--accent-rgb, 207,255,64),.12); }
 /* 얼굴 띠 고정 표시(우클릭 = 고정 · 형 11-05 17:03) — 왼쪽 위 작은 압정(봄 11-12 16:17 A · 앞 판 = 라임 점) */
 .nm-face-pin { position:absolute; top:-5px; left:-5px; width:17px; height:17px; display:grid; place-items:center; border-radius:50%; background:#1b1c1b; border:1px solid rgba(255,255,255,.35); color:#fff; z-index:4; pointer-events:none; }   /* z 4 = 무지개 고리(::before 2) · 안 읽음 점(3) 위(형 11-12 16:44 「핀 묻힌ㄷ」) */
 /* 고정 + 안 읽음 = 점은 왼쪽 아래로 비킴(둘 다 왼쪽 · 형 11-07 「저 불이 좌측에 있으면 됨」) */
@@ -181,8 +181,8 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 .nm-split-l .ynav button[data-tab="home"] { display:none; }
 .nm-split-l .ynav button[data-tab="rooms"] { order:-1; margin-right:auto; }
 /* 왼쪽 띠 라이브 = 라임 테(형 11-06 10:33 「좌측에 라이브하게 켜져있는 애들은 테두리에 라임 들어오게 할 수 있어? 안읽은거는 아까철럼 숫자로 표기. 그리고 고정은 지금 이미 불들어온거로 핀셋이고.」) · 사람마다 테 색(ringOf)은 이 띠에선 안 씀 · 지금 연 방 = 라임 바깥에 흰 고리 하나 더 */
-.nm-face.live, .nm-split-root .nm-face.live { border-color:#CFFF40; box-shadow:0 0 6px rgba(207,255,64,.35); }
-.nm-face.live.on, .nm-split-root .nm-face.live.on { box-shadow:0 0 0 2px rgba(232,234,232,.55), 0 0 6px rgba(207,255,64,.35); }
+.nm-face.live, .nm-split-root .nm-face.live { border-color:var(--accent, #CFFF40); box-shadow:0 0 6px rgba(var(--accent-rgb, 207,255,64),.35); }
+.nm-face.live.on, .nm-split-root .nm-face.live.on { box-shadow:0 0 0 2px rgba(232,234,232,.55), 0 0 6px rgba(var(--accent-rgb, 207,255,64),.35); }
 /* 얼굴 채도 = 형과 1:1 마지막 대화에서 지난 시간(shell.tsx FACE_SAT · 1시간 안 100 · 3시간 75 · 12시간 50 · 그 뒤 25 · 형 11-12 17:02) · 테 · 점 · 숫자 · 압정은 그대로 */
 .nm-face > img, .nm-face > span { filter:saturate(var(--face-sat, 1)); }
 /* 반갈 = 내 사진 밑 글(.ycap)·보내는 중 글도 평소 내 말풍선 꼴(검정 · 라임 글자)(형 11-06 12:49 「내가 이미지 첨부하면서 글자 쓰면 형광색으로 보여」) */
@@ -246,7 +246,7 @@ body.nm-dragging iframe { pointer-events:none; }
   border-radius:var(--r-pill); border:1px solid var(--glass-line); background:color-mix(in srgb, var(--glass) 50%, transparent);
   -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); backdrop-filter:blur(var(--blur-l)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
 .nm-split-l .ynav button { height:40px; padding:0 17px; font-size:var(--fs-xs); border-radius:var(--r-pill); color:#FFFFFF; }   /* 꺼진 픽토그램 = 흰색 · 켜진 것만 라임(형 11-12 16:41 봄 1:1 「그리고 활성화된 부분 아니면, 흰색이면 될거같애. 픽토그램들」 · 봄 옮김) */
-.nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:#CFFF40; background:rgba(207,255,64,.14); border-color:rgba(207,255,64,.38); }
+.nm-split-l .ynav button.on, .nm-split-l .ynav button[aria-current="page"] { color:var(--accent, #CFFF40); background:rgba(var(--accent-rgb, 207,255,64),.14); border-color:rgba(var(--accent-rgb, 207,255,64),.38); }
 .nm-split-l .ynav svg { width:20px; height:20px; }
 .nm-split-l .ynav button[data-tab] { display:none !important; }   /* 홈 = 오른쪽에 늘 있음 · 대화방·대화 = 왼쪽 띠 → 남는 것 = 작동 · 서랍 · 설정 */
 .nm-top-lights { position:fixed; top:0; right:16px; height:50px; z-index:59; max-width:calc(100vw - 150px); }   /* 좁아져도 안 잘리게(형 11-09 12:3x 「화면 비율이 좁아져도 짤리지 않고 보이게」 · 시아) = 옛 30vw 칸 + 숨김 뺌 · 왼쪽 탭 줄 끝(~104px) 앞까지 */
@@ -332,7 +332,7 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-l .nm-rooms-pane .nm-rooms > .nm-tswitch, .nm-split-l .nm-rooms-pane .nm-rooms > .nm-rtop { margin-left:12px; margin-right:12px; }   /* 맨 위 알약 줄(팀즈 바꿈 · 공지)은 아직 여백 그대로 — 아이콘으로 바꿀 꼴은 봄한테 먼저(②③) */
 
 /* 켜고 끄는 알약(첨부 「압축」 · 「프레임」 · 형 11-12 07:48 「버튼 켜질때 라임 들어가니까 글자가 안보이는데 / 켜짐의 의미효과를 하단 네비처럼」 「포인트를 주면 됨」) = 아래 막대 켜진 칸과 같은 꼴 · 꽉 채우지 않음(글자 늘 읽힘) */
-.nm-pill-sw.on { color:#CFFF40 !important; background:rgba(207,255,64,.14) !important; border-color:rgba(207,255,64,.38) !important; box-shadow:0 0 10px rgba(207,255,64,.22); }
+.nm-pill-sw.on { color:var(--accent, #CFFF40) !important; background:rgba(var(--accent-rgb, 207,255,64),.14) !important; border-color:rgba(var(--accent-rgb, 207,255,64),.38) !important; box-shadow:0 0 10px rgba(var(--accent-rgb, 207,255,64),.22); }
 /* PC 대화 칸 맨 위 한 줄(./room-list.tsx topBar · 형 11-12 07:5x 「맨 위에만 색이 좀 다르면 될듯. 아무래도 메뉴 영역이니까 아주 조금?」) = 옆 HOT ISSUE 머리줄과 같은 36 · 바탕 한 단만 · 아이콘 셋(공지 · 사무실↔팀즈 · 기사 요약) */
 .nm-rbar { position:sticky; top:0; z-index:3; display:flex; align-items:center; gap:4px; height:36px; padding:0 8px 0 14px; margin-bottom:4px; border-bottom:1px solid var(--glass-line); background:color-mix(in srgb, var(--duet-surface, #161716) 96%, currentColor 4%); }
 .nm-rbar > b { flex:1; min-width:0; font-size:var(--fs-label, 13px); font-weight:700; color:var(--fg-2, inherit); }
@@ -343,10 +343,10 @@ body.nm-dragging iframe { pointer-events:none; }
 /* 경계 끌기 = ⇔ 손잡이 · 자석에 붙으면 라임으로 착(형 11-14 05:07 참고 영상 · 05:15 「숫자만 빼고」 · 05:16 「차트도 나오게하자는건아님 저 느낌만」 · ./split-snap.ts) */
 .nm-split-knob { position:absolute; top:50%; left:50%; width:20px; height:20px; margin:-10px 0 0 -10px; display:grid; place-items:center; border-radius:50%; background:rgba(20,21,20,.92); border:1px solid rgba(255,255,255,.16); color:rgba(232,234,232,.7); opacity:0; transform:scale(.8); transition:opacity .15s, transform .15s, color .15s, border-color .15s; pointer-events:none; }
 .nm-split-grip:hover .nm-split-knob, body.nm-dragging .nm-split-knob { opacity:1; transform:none; }
-body.nm-dragging .nm-split-knob { color:#CFFF40; border-color:rgba(207,255,64,.55); }
+body.nm-dragging .nm-split-knob { color:var(--accent, #CFFF40); border-color:rgba(var(--accent-rgb, 207,255,64),.55); }
 html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; border-color:rgba(0,0,0,.14); color:rgba(0,0,0,.55); }
-.nm-split-grip.snap i { background:#CFFF40; height:84px; box-shadow:0 0 10px rgba(207,255,64,.55); }
-.nm-split-grip.snap .nm-split-knob { transform:scale(1.12); box-shadow:0 0 0 3px rgba(207,255,64,.18); }
+.nm-split-grip.snap i { background:#CFFF40; height:84px; box-shadow:0 0 10px rgba(var(--accent-rgb, 207,255,64),.55); }
+.nm-split-grip.snap .nm-split-knob { transform:scale(1.12); box-shadow:0 0 0 3px rgba(var(--accent-rgb, 207,255,64),.18); }
 /* 폰 뉴스 에디터 = 머리 알약 「‹ 뉴스 에디터」 뺌 · 목록이 그 자리부터(형 11-14 06:58 봄 옮김 「상단 뉴스이디터 없어도 됨」 · 아래 네비가 이름을 보여 줌 · 나가기 = 폰 뒤로 · 아래 네비) · PC 는 그대로 */
 /* 봄의 정원 = 머리 제목 없이 「‹」만 작은 알약 · 색 = 뒤 화면 맨 위 색에 흰 막 한 겹(톤온톤 · --nm-frame-top = shell.tsx FramePage 가 잼) */
 .nm-modal-h.nm-mh-play { right:auto; padding:4px; background:linear-gradient(rgba(255,255,255,.08), rgba(255,255,255,.08)), color-mix(in srgb, var(--nm-frame-top, var(--duet-surface)) 80%, transparent); border-color:rgba(255,255,255,.12); box-shadow:none; }
@@ -375,3 +375,7 @@ html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; bor
 /* 스케줄 일 창 「묶음」 = 칩 줄(./sched-desk.tsx) */
 .nm-sched-forkpick { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
 .nm-sched-forkpick > span { margin-right:2px; font-size:var(--fs-xs); color:var(--mut); }
+
+/* 「×」 닫기 = 한 꼴(형 11-15 「하네스 따로 노는 거」): 전엔 창마다 글자(× · ✕) · 크기(20 ~ 22px) · 색(흐린 글색 · 본문 색)이 달랐음 → 글자 × · 20px · 흐린 글색 · 올리면 옅은 원. 자리(오른쪽 위 · 머리 줄 끝)는 창마다 그대로 */
+button:is(.nm-rsheet-x, .ncs-x, .ypk-x, .gy-x), :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"] { border:0; border-radius:50%; background:none; color:var(--mut, #8B8F8A); font-size:20px; line-height:1; cursor:pointer; transition:background .18s var(--e-out, ease), color .18s var(--e-out, ease); }
+button:is(.nm-rsheet-x, .ncs-x, .ypk-x, .gy-x):hover, :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"]:hover { background:color-mix(in srgb, currentColor 12%, transparent); color:var(--fg, inherit); }

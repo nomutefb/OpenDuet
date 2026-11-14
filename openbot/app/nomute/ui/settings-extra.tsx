@@ -2,6 +2,7 @@
 //   지금 봇(GET bots · 다음 깸 = GET schedule) · 지정방 멤버(GET/POST roomset · 형) · 공지 설정 한 장(GET/POST noticeset · 형)
 //   스케줄러 연결(GET schedule/link) · 바꾸기(루틴 상태·언제·할 일 없어도 깨움 · 사건 모아서 기다림 = POST schedule/set · 먼저 dry 미리 보기 → 확인)
 //   옛 그록 대화(GET old · 봇 → 날 → 글 · 읽기만) · 맨 아래 「지금 판」(형이 새 판인지 눈으로 · 10-28 10:51 「웹앱이 자동으로 버전업이 안되네」)
+import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StateDiff } from "./state-diff";
 import { type ReactNode, useEffect, useState } from "react";
@@ -143,7 +144,7 @@ export function NomuteRoomset() {
   return (
     <PageSection title="지정방 멤버">
       {gone ? <RoomGoneDialog r={gone} onClose={() => setGone(null)} /> : null}
-      <p className="mt-1 text-sm text-muted-foreground">{d ? `판 ${d.roomset.ver} · ${d.roomset.by || ""}` : q.isError ? q.error.message : "읽는 중…"}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{d ? `판 ${d.roomset.ver} · ${d.roomset.by || ""}` : q.isError ? readFail(q.error) : reading()}</p>
       {d ? d.designated.map((rid) => {
         const cur = edit[rid] || d.roomset.rooms[rid] || [];
         const changed = !!edit[rid];
@@ -191,7 +192,7 @@ export function NomuteNotice() {
   const n = q.data?.notice;
   return (
     <PageSection title="공지 설정">
-      <p data-content className="mt-1 text-sm text-muted-foreground">{n ? `판 ${n.ver} · ${n.by || ""} · ${String(n.at || "").slice(5, 16).replace("T", " ")}` : q.isError ? q.error.message : "읽는 중…"}</p>
+      <p data-content className="mt-1 text-sm text-muted-foreground">{n ? `판 ${n.ver} · ${n.by || ""} · ${String(n.at || "").slice(5, 16).replace("T", " ")}` : q.isError ? readFail(q.error) : reading()}</p>
       {n ? (
         <Card>
           <div className="p-4">
@@ -224,7 +225,7 @@ export function NomuteLink() {
   const k = q.data?.link, beat = k?.clock?.beat_at ? Math.round((Date.now() - Date.parse(k.clock.beat_at)) / 1000) : null;
   return (
     <PageSection title="스케줄러 연결">
-      <p className={`mt-1 text-sm ${beat == null || beat > 130 ? "text-destructive" : "text-muted-foreground"}`}>{!q.data ? (q.isError ? q.error.message : "읽는 중…") : !k ? "아직 한 장 없음 — 윈A 지킴이가 올리면 보임" : `시계 마지막 신호 ${beat == null ? "모름" : `${beat}초 전`} · 읽은 때 ${hm(q.data.at)}`}</p>
+      <p className={`mt-1 text-sm ${beat == null || beat > 130 ? "text-destructive" : "text-muted-foreground"}`}>{!q.data ? (q.isError ? readFail(q.error) : reading()) : !k ? "아직 한 장 없음 — 윈A 지킴이가 올리면 보임" : `시계 마지막 신호 ${beat == null ? "모름" : `${beat}초 전`} · 읽은 때 ${hm(q.data.at)}`}</p>
       {k?.bots ? (
         <Card>
           <ul className="divide-y divide-border">
@@ -314,7 +315,7 @@ export function NomuteSchedule() {
         </div>
       ) : null}
       {msg ? <p className="mt-2 text-sm" role="status">{msg}</p> : null}
-      {!d ? <p className="mt-2 text-sm text-muted-foreground">{s.isError ? s.error.message : "표 읽는 중…"}</p> : (
+      {!d ? <p className="mt-2 text-sm text-muted-foreground">{s.isError ? readFail(s.error, "스케줄 표") : reading("표")}</p> : (
         <>
           <h3 className="mt-4 text-sm font-semibold">루틴 <span className="text-xs font-normal text-muted-foreground">{d.routines.length}줄</span></h3>
           <Card>
@@ -410,7 +411,7 @@ export function NomuteOld() {
         <Card>
           <div className="p-3">
             <p className="text-xs text-muted-foreground">{who} · {day} · {msgs.length}/{total}글</p>
-            {from > 0 ? <button type="button" className={`${btn} mt-2`} disabled={busy} onClick={() => void load(who, day, from)}>{busy ? "받는 중…" : "앞 글 더 보기"}</button> : null}
+            {from > 0 ? <button type="button" className={`${btn} mt-2`} disabled={busy} onClick={() => void load(who, day, from)}>{busy ? "읽는 중…" : "앞 글 더 보기"}</button> : null}
             <ol className="mt-2 flex flex-col gap-2">
               {msgs.map((m) => (
                 <li key={m.id} className="text-sm">

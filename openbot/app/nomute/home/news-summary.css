@@ -11,7 +11,7 @@
 .nm-nsum-q li.bad i { background:#ff6b5e; }
 .nm-nsum-q .tt { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .nm-nsum-q .st { color:rgba(232,234,232,.5); font-size:var(--fs-xs); }
-.nm-nsum-q li.run .st { color:#CFFF40; }
+.nm-nsum-q li.run .st { color:var(--accent, #CFFF40); }
 .nm-nsum-ol { list-style:none; margin:0; padding:2px 6px 10px; overflow-y:auto; overscroll-behavior:contain; flex:1; min-height:0; }
 .nm-nsum-ol li { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; min-height:30px; padding:0 8px; border-bottom:1px solid rgba(255,255,255,.04); }
 .nm-nsum-ol li:hover { background:rgba(255,255,255,.045); }
@@ -25,14 +25,14 @@
 .nm-nsum-ol li.c:hover { background:rgba(255,255,255,.03); }
 .nm-nsum .nm-sumc:not(.lean) { padding:14px 14px 16px; border:0; border-radius:0; background:none; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; cursor:pointer; }
 .nm-nsum .nm-sumc.pend { cursor:default; }
-.nm-nsum .nm-sumc-top .cat.q { color:#CFFF40; } .nm-nsum .nm-sumc.bad .nm-sumc-top .cat.q { color:#ff6b5e; }   /* 대기열 상태 = 라임(돎) · 실패 = 빨강 */
+.nm-nsum .nm-sumc-top .cat.q { color:var(--accent, #CFFF40); } .nm-nsum .nm-sumc.bad .nm-sumc-top .cat.q { color:#ff6b5e; }   /* 대기열 상태 = 라임(돎) · 실패 = 빨강 */
 /* 형 11-09 09:21 · 12:3x — Digest = 뉴스 요약 카드(SumCard dg) 그대로 · 제목 1줄 · 매체·편향 한 줄 가로로 얇게 · 「보도」 말 뺌 · 색 = 카드 변수(밝은 판에서도 보임) */
 .nm-nsum .nm-sumc.dg { gap:8px; padding:12px 14px 14px; }
 .nm-nsum .nm-sumc.dg .nm-sumc-t { font-size:15px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; overflow-wrap:normal; }
 .nm-nsum .nm-sumc.dg .nm-sumc-kv { display:flex; flex-wrap:nowrap; gap:14px; }
 .nm-nsum .nm-sumc.dg .nm-sumc-kv div { flex-direction:row; align-items:baseline; gap:6px; }
 .nm-nsum .nm-sumc.dg .nm-sumc-kv b { font-size:13px; }
-.nm-nsum .nm-nsum-go { all:unset; cursor:pointer; } .nm-nsum .nm-nsum-go:hover b { color:#CFFF40; } .nm-nsum .nm-nsum-go:focus-visible { outline:2px solid #CFFF40; outline-offset:2px; border-radius:4px; }   /* 머리 「Digest」 = 뉴스 에디터로 */
+.nm-nsum .nm-nsum-go { all:unset; cursor:pointer; } .nm-nsum .nm-nsum-go:hover b { color:var(--accent, #CFFF40); } .nm-nsum .nm-nsum-go:focus-visible { outline:2px solid var(--accent, #CFFF40); outline-offset:2px; border-radius:4px; }   /* 머리 「Digest」 = 뉴스 에디터로 */
 /* 홈 Digest 굵기 한 단계 뺌(형 11-09 12:5x 시아 창 「digest에 있는 타이틀, 볼디한것들 한단계 볼디함빼」 · 시아) — 홈 Digest(.nm-nsum) 안만 · 뉴스 에디터 4번 카드는 그대로
    머리 「Digest」 700 → 600 · 카드 제목 · 분야 · 매체 · 편향 600 → 500 · 보도 시각 · 스크랩 · 긴급/이슈 · 진행 글자 500 → 400 */
 .nm-nsum .nm-nsum-h b { font-weight:600; }

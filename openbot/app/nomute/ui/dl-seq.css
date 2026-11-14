@@ -4,7 +4,7 @@
 .nm-dlseq-ic svg { grid-area:1/1; width:100%; height:100%; display:block; }
 .nm-dlseq-ic .chk { opacity:0; }
 .nm-dlseq-lbl { font-size:var(--fs-xs, 12px); font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums; color:inherit; }
-.nm-dlseq.is-busy, .nm-dlseq.is-done, .nm-dlseq.is-busy .nm-dlseq-lbl, .nm-dlseq.is-done .nm-dlseq-lbl { color:#CFFF40 !important; }
+.nm-dlseq.is-busy, .nm-dlseq.is-done, .nm-dlseq.is-busy .nm-dlseq-lbl, .nm-dlseq.is-done .nm-dlseq-lbl { color:var(--accent, #CFFF40) !important; }
 .nm-dlseq.is-busy { pointer-events:none; }
 .nm-dlseq.is-done .nm-dlseq-ic .dn { opacity:0; }
 .nm-dlseq.is-done .nm-dlseq-ic .chk { opacity:1; animation:nm-dlChkPop .42s cubic-bezier(.2,.7,.3,1); }

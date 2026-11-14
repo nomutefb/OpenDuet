@@ -3,6 +3,7 @@
 //   규칙 = 원본 그대로: 올린 시각 최신 순 · 소리 나는 곡 12개씩 「더 보기」 · 가사만 곡(hypo) = 맨 아래 「가사만 N곡」 접은 칸 · 올림 꼴 틀린 것 8개까지 맨 위
 //     곡 = 제목 · git/gl · 실험 · ★ · 올림·길이·Suno·id · 음원(R2) · 뮤비(git 먼저 · 못 받으면 alt · 포스터 없으면 첫 장면) · 만드는 중 · 실패 사유 · 가사(접힘)
 //   원본과 다른 점: 곡 바로가기 = 주소 #<UUID> 대신 #/gyeol?s=<UUID>(앱 길이 해시를 씀) · 링크(Suno) = 앱 안 한 겹(./inapp.ts 가 받음)
+import { readFail } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import "./yeta-settings.css";
 import "./chan.css";
 import "./ed-pages.css";
@@ -70,7 +71,7 @@ export function GyeolModal() {
     <Pane title="결의 방">
       <div className="yeta-set mt-2 nm-ep nm-gy">
         {d ? <p className="ep-at num" aria-live="polite">기준 {hm(d.generated_kst)}</p> : null}
-        {q.isPending ? <p className="gy-empty">불러오는 중</p> : q.isError ? <p className="gy-err">{String((q.error as Error)?.message || q.error)}</p> : (
+        {q.isPending ? <p className="gy-empty">읽는 중…</p> : q.isError ? <p className="gy-err">{readFail(q.error)}</p> : (
           <>
             <div className="gy-sum"><span className="gy-big num">{songs.length}</span><small className="num">테이크 · 뮤비 {mvn} · git 곡 {room.git?.songs || 0} · 가사만 {hypo.length}{songs[0] ? " · 마지막 " + rel(songs[0].at) : ""}</small></div>
             {bad.length ? (

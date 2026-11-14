@@ -2,6 +2,7 @@
 //   맨 위 = 「[수리] 한 줄 + 명세서」 넣는 칸 하나(글 먼저 → 명세서 파일 = 서버가 그 글로 접수 줄을 만듦 · 파일 받는 이 기본 = 윈터 PM · _files.js)
 //   아래 = 접수 목록(서버 GET /api/office/repair · 먼저 접수된 게 위) — 줄마다 No · [구분] 항목 · 상태 · 신청자 · 명세서 · 이슈 #N · 줄 누름 = 처리 이력·상태 바꾸기(할 일 화면 RepairRow 그대로)
 //   대화 말풍선·얼굴 줄 0 · 종료(완료) = 보관 보기 · 명세서 = 그 신청자가 그 접수 글 뒤(2분 앞까지) 같은 방에 올린 첫 파일
+import { readFail } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useMemo, useRef, useState } from "react";
 import { type OfficeMsg, office } from "../data/office";
@@ -92,13 +93,13 @@ export function RepairDesk({ lead, tail, active = true, page = false }: { lead?:
         <div className="rounded-3xl border border-border bg-card p-3">
           <div className="flex items-baseline justify-between gap-2">
             <p className="text-sm font-semibold">접수 목록 <span className="tabular-nums text-muted-foreground">{items.length}</span></p>
-            {repair.isError || repair.isPending ? <span className="text-xs text-muted-foreground">{repair.isError ? `못 받았어 — ${repair.error.message}` : "받는 중…"}</span> : null}   {/* 안내 줄 뺌 · 오류·받는 중만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
+            {repair.isError || repair.isPending ? <span className="text-xs text-muted-foreground">{repair.isError ? `못 받았어 — ${repair.error.message}` : "읽는 중…"}</span> : null}   {/* 안내 줄 뺌 · 오류·받는 중만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           </div>
           {items.length ? <ul className="mt-1 flex flex-col divide-y divide-border">{items.map((x) => <RepairRow key={x.no} x={x} desk spec={specs.get(x.no)} />)}</ul>
             : repair.isPending ? null : <p className="mt-2 text-sm text-muted-foreground">지금 걸린 요청 없음 — 종료된 건 「보관 보기」</p>}
           <button type="button" className="mt-3 rounded-full border border-border px-3 py-1 text-xs" aria-pressed={arcOn} onClick={() => setArcOn((v) => !v)}>보관 보기</button>
           {arcOn ? (
-            archive.isPending ? <p className="mt-2 text-xs text-muted-foreground">받는 중…</p> : archive.isError ? <p className="mt-2 text-xs text-destructive">{archive.error.message}</p> : (
+            archive.isPending ? <p className="mt-2 text-xs text-muted-foreground">읽는 중…</p> : archive.isError ? <p className="mt-2 text-xs text-destructive">{readFail(archive.error)}</p> : (
               <div className="mt-2"><p className="text-xs font-semibold">보관 {archive.data?.archive || ""} · {(archive.data?.items || []).length}건</p>
                 <ul className="flex flex-col divide-y divide-border">{(archive.data?.items || []).map((x) => <RepairRow key={x.no} x={x} arc desk spec={specs.get(x.no)} />)}</ul></div>
             )

@@ -1,5 +1,6 @@
 // 임시 단톡방 만들기·고치기(형 10-31 「내가 + 눌러서 임시 단톡방 만들수있게해주라. 시간 지나면 파기되고 자동으로」 · 「누구 초대할지 고를 수 있고. 목적 쓸수있게」)
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
+import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { resetRoomArt, useRoomArtSrc } from "./room-art";
 import { useRoomPhoto } from "./room-photo";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -228,7 +229,7 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
     <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
       <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
-        {!d ? <p className="text-muted-foreground">{q.isError ? q.error.message : "읽는 중…"}</p> : (
+        {!d ? <p className="text-muted-foreground">{q.isError ? readFail(q.error) : reading()}</p> : (
           <div className="flex flex-wrap gap-1.5">
             {d.candidates.filter((w) => !seatOff(list.find((p) => p.who === w))).map((w) => {
               const on = now.includes(w);
@@ -272,7 +273,7 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
     <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
       <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
-        {!q.data && !q.isError ? <p className="text-muted-foreground">읽는 중…</p> : q.isError ? <p className="text-muted-foreground">{(q.error as Error).message}</p> : (
+        {!q.data && !q.isError ? <p className="text-muted-foreground">읽는 중…</p> : q.isError ? <p className="text-muted-foreground">{readFail(q.error)}</p> : (
           <div className="flex flex-wrap gap-1.5">
             {cand.map((w) => {
               const on = now.includes(w);

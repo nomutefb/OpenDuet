@@ -1,6 +1,7 @@
 // 할 일 맨 위 — 결정 카드(밤 요약 brief 「결정 필요」 · 답 = POST /api/office/brief/answer {key, v}) · 밤 요약 · 수리 접수 표(GET/POST /api/office/repair)
 // 원본 OpenDuet 아침 카드·승인 카드 자리를 우리 서버 자료로(옛 화면 = viewer/office.html 밤 요약 판·수리 접수 판과 같은 규칙)
 //   결정 카드 = 거절 · 이번만 허락 · (조용히) 나중에 → 「이번만 허락함 · 형 · 02:52」 확인 줄 · 1분 안 = 바꾸기 · 「늘 허락」 = 서버 can_always 가 올 때만(형 결정 대기 · 지금 0)
+import { readFail } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { DecideFab, openDecide, useDecisions } from "./decide-pop";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -179,7 +180,7 @@ export function NomuteToday({ part }: { part?: "decide" | "brief" } = {}) {
       {part === "decide" ? null : <div className="rounded-3xl border border-border bg-card p-4">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="shrink-0 text-base font-semibold">밤 요약</h2>
-          <span data-content className="truncate text-xs text-muted-foreground">{brief.isError ? "못 받았어" : b?.label || "받는 중…"}</span>
+          <span data-content className="truncate text-xs text-muted-foreground">{brief.isError ? "못 받았어" : b?.label || "읽는 중…"}</span>
         </div>
         {b ? (
           <ul className="mt-2 flex flex-col">
@@ -213,7 +214,7 @@ export function NomuteToday({ part }: { part?: "decide" | "brief" } = {}) {
       {part ? null : <div className="rounded-3xl border border-border bg-card p-4">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="shrink-0 text-base font-semibold">수리 접수</h2>
-          <span className="text-xs text-muted-foreground">{repair.isError ? "못 받았어" : repair.isPending ? "받는 중…" : groups.filter((g, i) => i < 3 || g[2].length).map((g) => `${g[0]} ${g[2].length}`).join(" · ")}</span>
+          <span className="text-xs text-muted-foreground">{repair.isError ? "못 받았어" : repair.isPending ? "읽는 중…" : groups.filter((g, i) => i < 3 || g[2].length).map((g) => `${g[0]} ${g[2].length}`).join(" · ")}</span>
         </div>
         {reps.length ? groups.filter((g) => g[2].length).map(([t, sub, l]) => (
           <div key={t} className="mt-2">
@@ -223,7 +224,7 @@ export function NomuteToday({ part }: { part?: "decide" | "brief" } = {}) {
         )) : repair.isPending ? null : <p className="mt-2 text-sm text-muted-foreground">지금 걸린 요청 없음 — 종료된 건 「보관 보기」</p>}
         <button type="button" className="mt-3 rounded-full border border-border px-3 py-1 text-xs" aria-pressed={arcOn} onClick={() => setArcOn((v) => !v)}>보관 보기</button>
         {arcOn ? (
-          archive.isPending ? <p className="mt-2 text-xs text-muted-foreground">받는 중…</p> : archive.isError ? <p className="mt-2 text-xs text-destructive">{archive.error.message}</p> : (
+          archive.isPending ? <p className="mt-2 text-xs text-muted-foreground">읽는 중…</p> : archive.isError ? <p className="mt-2 text-xs text-destructive">{readFail(archive.error)}</p> : (
             <div className="mt-2"><p className="text-xs font-semibold">보관 {ym} · {(archive.data || []).length}건</p><ul className="flex flex-col divide-y divide-border">{(archive.data || []).map((x) => <RepairRow key={x.no} x={x} arc />)}</ul></div>
           )
         ) : null}

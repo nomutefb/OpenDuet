@@ -170,7 +170,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
         <>
           <div className="nm-dec-scrim" aria-hidden onClick={close} />
           <section role="dialog" aria-modal="true" aria-label={title} className="nm-decpop">
-            <header><b>{title}</b><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
+            <header><b>{title}</b><button type="button" aria-label="닫기" onClick={close}>×</button></header>
             <ul>
               {items.filter((d) => !gone.has(d.id)).map((d) => {
                 const p = pickOf(d), name = list.find((x) => x.who === d.who)?.name || d.who;

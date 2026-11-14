@@ -23,7 +23,7 @@
 .nm-chain { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:var(--fs-label); }
 .nm-chain > span { display:inline-flex; flex-wrap:wrap; align-items:center; gap:5px; }
 .nm-chain em { padding:2px 8px; border:1px solid var(--glass-line); border-radius:999px; font-size:var(--fs-sm); font-style:normal; color:var(--fg); overflow-wrap:anywhere; }
-.nm-chain > b { padding:2px 9px; border-radius:999px; background:rgba(207,255,64,.14); color:var(--accent, #CFFF40); font-size:var(--fs-sm); }
+.nm-chain > b { padding:2px 9px; border-radius:999px; background:rgba(var(--accent-rgb, 207,255,64),.14); color:var(--accent, var(--accent, #CFFF40)); font-size:var(--fs-sm); }
 .nm-chain > svg { flex:none; color:var(--mut); }
 
 /* GPU 우선 서버(형 11-05 09:43 · 뜸 · sched-gpu.tsx) */

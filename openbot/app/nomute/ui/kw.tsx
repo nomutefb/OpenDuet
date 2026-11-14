@@ -90,7 +90,7 @@ export function KwModal() {
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-kw">
           <span className="ycd-nm yset-ttl">키워드 알림</span>
           <div className="nm-bar">
-            <button type="button" className={`nm-kw-on${on ? " on" : ""}`} aria-pressed={on} disabled={busy || q.isLoading} onClick={() => void toggle()}>{on ? "ON" : "OFF"}</button>
+            <button type="button" role="switch" aria-checked={on} aria-label="키워드 알림" className="nm-sw" disabled={busy || q.isLoading} onClick={() => void toggle()}><span className="si-sw" aria-hidden /></button>
             {on ? null : <p className="nm-kw-help">꺼져 있음</p>}   {/* 설명 뺌 · 꺼짐 상태만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
             <button type="button" className="nm-memo-plus" aria-expanded={box} onClick={() => openBox(!box)}>{box ? "닫기" : "＋ 추가"}</button>
           </div>

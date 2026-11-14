@@ -29,7 +29,7 @@ export function StoryList() {
   const all = (q.data || []).slice().sort((a, b) => b.ts - a.ts);
   const whos = [...new Set(all.map((s) => s.who))];
   const items = by ? all.filter((s) => s.who === by) : all;
-  if (q.isPending) return <p className="nm-story-empty">불러오는 중</p>;
+  if (q.isPending) return <p className="nm-story-empty">읽는 중…</p>;
   if (q.isError) return <p className="nm-story-empty">아직 이야기를 못 불러왔어</p>;
   if (!items.length) return <p className="nm-story-empty">아직 지은 이야기가 없어 — 종이 울리면 여기 쌓여</p>;
   return (
@@ -97,7 +97,7 @@ export function StoryButton({ right }: { right: number }) {
         <>
           <div className="nm-story-scrim" aria-hidden onClick={close} />
           <section role="dialog" aria-modal="true" aria-label="밥상 이야기" className="nm-story-pop">
-            <header><b>밥상 이야기</b><button type="button" aria-label="닫기" onClick={close}>✕</button></header>
+            <header><b>밥상 이야기</b><button type="button" aria-label="닫기" onClick={close}>×</button></header>
             <div className="nm-story-scroll"><StoryList /></div>
           </section>
         </>, document.body,

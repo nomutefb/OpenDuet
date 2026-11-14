@@ -242,7 +242,7 @@ export function MeetLogList() {
   const rows = list.data || [];
   return (
     <div className="nm-meetlog">
-      {list.isLoading ? <p className="nm-meetlog-empty">불러오는 중…</p> : !rows.length ? <p className="nm-meetlog-empty">아직 끝난 화상회의가 없어 — 위 「화상회의」 탭으로 열고 끝내면 대화 · 같이 본 주소 · 행위가 시각 차례로 여기 담겨</p> : null}
+      {list.isLoading ? <p className="nm-meetlog-empty">읽는 중…</p> : !rows.length ? <p className="nm-meetlog-empty">아직 끝난 화상회의가 없어 — 위 「화상회의」 탭으로 열고 끝내면 대화 · 같이 본 주소 · 행위가 시각 차례로 여기 담겨</p> : null}
       {rows.map((r) => (
         <div key={r.key} className="nm-meetlog-row">
           <button type="button" onClick={() => setOpen(open === r.key ? "" : r.key)} aria-expanded={open === r.key}>

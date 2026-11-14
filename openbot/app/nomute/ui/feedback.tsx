@@ -5,6 +5,7 @@
 //     가림 = 시스템 점수·고른 봇·통·까닭 → 처음 저장한 뒤에만(응답 reveal · 형 − 시스템) · 그때 덧붙이기(태그·이유·처음 안 시각 · addon) 열림
 //     고르면 사라짐 = 저장된 카드는 아래 「답한 카드」 무리 맨 위로 · 맨 위 띠 = 마지막 한 장 되돌리기 · 불러올 때 이미 답한 카드는 처음부터 그 무리
 //   원본과 다른 점: 덧붙이기 단추 = 공용 게이지 단추(./go-button.tsx · 형 11-01 14:12) · 카드 옮김 = 한 부모 안 key 순서(게이지·쓰던 글 그대로) · 제목 링크 = 앱 안 한 겹(./inapp.ts)
+import { readFail } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import "./yeta-settings.css";
 import "./chan.css";
 import "./ed-pages.css";
@@ -69,7 +70,7 @@ export function FeedbackModal() {
     <Pane title="피드백">
       <div className="yeta-set mt-2 nm-ep nm-fb">
         {d ? <p className="ep-at num" aria-live="polite">기준 {hm(d.at)}</p> : null}
-        {q.isPending ? <p className="fb-empty">불러오는 중</p> : q.isError ? <p className="fb-err">{String((q.error as Error)?.message || q.error)}</p> : <Board key={q.dataUpdatedAt} d={d!} />}
+        {q.isPending ? <p className="fb-empty">읽는 중…</p> : q.isError ? <p className="fb-err">{readFail(q.error)}</p> : <Board key={q.dataUpdatedAt} d={d!} />}
       </div>
     </Pane>
   );

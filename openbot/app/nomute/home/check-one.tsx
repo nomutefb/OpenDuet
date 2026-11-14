@@ -56,7 +56,7 @@ export function CheckOne() {
     <section aria-label="형이 확인할 일" className="ycd-card card-left min-h-0 gap-2 overflow-hidden !px-3.5 !py-3">
       <p className="flex min-w-0 items-baseline gap-2">
         <span className="shrink-0 text-[11px] font-semibold text-[var(--accent)]">{x ? KIND[x.kind] : "확인할 일"}</span>
-        <span data-content className="min-w-0 flex-1 truncate text-[14px] font-bold">{x ? x.title : pending ? "받는 중…" : "지금 확인할 일 없음"}</span>
+        <span data-content className="min-w-0 flex-1 truncate text-[14px] font-bold">{x ? x.title : pending ? "읽는 중…" : "지금 확인할 일 없음"}</span>
         {x ? <span className="shrink-0 text-[11px] tabular-nums text-[var(--mut)]">{`1 / ${queue.length}`}</span> : null}
       </p>
       {x ? (

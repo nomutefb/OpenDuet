@@ -61,7 +61,7 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
       onPointerDown={() => { hold.current = Date.now() + 20_000; }}>
       <div className="nm-nlist-h nm-kwb-h"><i className="live" aria-hidden /><b>Keyword</b><span>{newest ? ago(newest, now) : ""}</span></div>
       {none ? (
-        <p className="nm-kwb-none"><b>{q.isPending ? "받는 중…" : q.isError ? "키워드 순위를 못 받았어" : "지금 모인 키워드가 없어"}</b>{q.isPending ? null : <span>10분 뒤 다시 받아</span>}</p>
+        <p className="nm-kwb-none"><b>{q.isPending ? "읽는 중…" : q.isError ? "키워드 순위를 못 받았어" : "지금 모인 키워드가 없어"}</b>{q.isPending ? null : <span>10분 뒤 다시 받아</span>}</p>
       ) : (
         <>
           <div className="nm-kwb-cols" ref={box} onScroll={onScroll} key={run}>   {/* key = 뜰 때마다 줄이 차례로 다시 들어옴 */}

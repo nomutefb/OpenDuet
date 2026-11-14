@@ -1,6 +1,6 @@
 /* 요약 대기열 = 「Tasks」 판(형 11-09 05:17 「뉴스요약 진행상황은 이런식으로 표시」 · 05:18 「뉴스 요약 형태 이덧도 있음」 · 시아 05:20 한 장 · 깃 · ./feed.tsx TaskPanel·TaskCard)
    다크(기본) = 검정 → 오른쪽 아래 옅은 라임 번짐 · 체크 = 라임 / 라이트 = 옅은 회색 판 · 체크 = #161716 · 도는 호만 #4f7a00 · 「움직임 줄이기」 = 바로 */
-.nm-tasks { margin:4px 0 12px; border-radius:16px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(135deg, #0b0c0b 45%, rgba(207,255,64,.10)); overflow:hidden; }
+.nm-tasks { margin:4px 0 12px; border-radius:16px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(135deg, #0b0c0b 45%, rgba(var(--accent-rgb, 207,255,64),.10)); overflow:hidden; }
 :root:not(.dark) .nm-tasks { background:#f2f2f2; border-color:rgba(0,0,0,.06); }
 .nm-tasks-head { width:100%; display:flex; align-items:center; gap:8px; padding:10px 14px; background:none; border:0; color:var(--fg); text-align:left; cursor:pointer; font-size:13px; }
 .nm-tasks-head b { font-weight:600; }
@@ -22,7 +22,7 @@
 .nm-tk-car { font-size:10px; color:var(--mut); }
 .nm-tk-ring, .nm-tk-steps i { position:relative; flex:none; width:14px; height:14px; border-radius:50%; border:1.5px solid rgba(255,255,255,.28); box-sizing:border-box; }
 :root:not(.dark) .nm-tk-ring, :root:not(.dark) .nm-tk-steps i { border-color:rgba(0,0,0,.22); }
-.nm-tk.run .nm-tk-ring, .nm-tk-steps .run i { border-color:rgba(207,255,64,.2); border-top-color:rgb(var(--accent-rgb, 207,255,64)); animation:nmTkSpin .9s linear infinite; }
+.nm-tk.run .nm-tk-ring, .nm-tk-steps .run i { border-color:rgba(var(--accent-rgb, 207,255,64),.2); border-top-color:rgb(var(--accent-rgb, 207,255,64)); animation:nmTkSpin .9s linear infinite; }
 :root:not(.dark) .nm-tk.run .nm-tk-ring, :root:not(.dark) .nm-tk-steps .run i { border-color:rgba(79,122,0,.2); border-top-color:#4f7a00; }
 .nm-tk.done .nm-tk-ring, .nm-tk-steps .done i { border:0; background:rgb(var(--accent-rgb, 207,255,64)); }
 :root:not(.dark) .nm-tk.done .nm-tk-ring, :root:not(.dark) .nm-tk-steps .done i { background:#161716; }
@@ -73,15 +73,15 @@
 /* 요약 중 카드(./task-panel.tsx TaskCard · 형 11-12 06:17 · 06:18 본보기 「Thinking Ns」 · 07:55 · 07:56 = 폰 · PC 한 벌) — 검은 판 0 · 다른 요약 카드(.nm-sumc.lean)와 같은 테 · 조금 크게 */
 .nm-tasks2 { display:flex; flex-direction:column; gap:12px; }
 .nm-tk2 { display:flex; flex-direction:column; gap:10px; padding:18px 18px 16px; border-radius:16px; border:1px solid var(--glass-line, rgba(255,255,255,.1)); background:rgba(255,255,255,.012); font-family:'Pretendard Variable', Pretendard, system-ui, sans-serif; cursor:pointer; }
-.nm-tk2.live { border-color:rgba(207,255,64,.45); box-shadow:0 0 0 1px rgba(207,255,64,.12) inset; }
+.nm-tk2.live { border-color:rgba(var(--accent-rgb, 207,255,64),.45); box-shadow:0 0 0 1px rgba(var(--accent-rgb, 207,255,64),.12) inset; }
 .nm-tk2.fail { border-color:rgba(255,90,82,.5); cursor:default; }
 :root:not(.dark) .nm-tk2 { background:rgba(0,0,0,.015); }
 .nm-tk2-top { display:flex; align-items:center; gap:8px; min-width:0; font-size:12px; line-height:1; }
-.nm-tk2-h { font-weight:700; color:#CFFF40; font-variant-numeric:tabular-nums; }
+.nm-tk2-h { font-weight:700; color:var(--accent, #CFFF40); font-variant-numeric:tabular-nums; }
 :root:not(.dark) .nm-tk2-h { color:#4f7a00; }
 .nm-tk2.fail .nm-tk2-h { color:#ff5a52; }
 .nm-tk2-src { margin-left:auto; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:10px; color:var(--mut); }
-.nm-tk2-ring { position:relative; flex:none; width:14px; height:14px; border-radius:50%; border:1.5px solid rgba(207,255,64,.2); border-top-color:#CFFF40; box-sizing:border-box; animation:nmTkSpin .9s linear infinite; }
+.nm-tk2-ring { position:relative; flex:none; width:14px; height:14px; border-radius:50%; border:1.5px solid rgba(var(--accent-rgb, 207,255,64),.2); border-top-color:var(--accent, #CFFF40); box-sizing:border-box; animation:nmTkSpin .9s linear infinite; }
 .nm-tk2.fail .nm-tk2-ring { animation:none; border-color:#ff5a52; }
 .nm-tk2-t { margin:0; font-size:16px; font-weight:700; line-height:1.4; color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 /* 세로 진행 줄 = 지난 단계 흐림 · 작은 점 / 지금 단계 = 도는 고리 + 글자 빛 훑기 / 멈춤 = 빨강 */
@@ -90,7 +90,7 @@
 .nm-tk2-log li i { position:absolute; left:-4.5px; top:.35em; width:8px; height:8px; border-radius:50%; background:var(--mut); opacity:.5; }
 .nm-tk2-log li.done { opacity:.62; }
 .nm-tk2-log li.cur { color:var(--fg); font-weight:700; }
-.nm-tk2-log li.cur i { left:-6px; top:.2em; width:11px; height:11px; background:none; opacity:1; border:1.5px solid rgba(207,255,64,.25); border-top-color:#CFFF40; box-sizing:border-box; animation:nmTkSpin .9s linear infinite; }
+.nm-tk2-log li.cur i { left:-6px; top:.2em; width:11px; height:11px; background:none; opacity:1; border:1.5px solid rgba(var(--accent-rgb, 207,255,64),.25); border-top-color:var(--accent, #CFFF40); box-sizing:border-box; animation:nmTkSpin .9s linear infinite; }
 .nm-tk2-log li.cur span { background:linear-gradient(90deg, var(--fg) 0 40%, #CFFF40 50%, var(--fg) 60% 100%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:nmTk2Shim 1.8s linear infinite; }
 @keyframes nmTk2Shim { from { background-position:100% 0; } to { background-position:-150% 0; } }
 .nm-tk2-log li.fail { color:#ff5a52; font-weight:700; } .nm-tk2-log li.fail i { background:#ff5a52; opacity:1; }
@@ -103,7 +103,7 @@
 .nm-tk2-acts .ask { margin-right:auto; font-size:13px; font-weight:700; color:var(--fg); }
 .nm-tk2-acts button { all:unset; cursor:pointer; padding:6px 14px; border-radius:999px; font-size:12px; font-weight:700; color:var(--fg); border:1px solid var(--glass-line, rgba(255,255,255,.14)); }
 .nm-tk2-acts button.no { background:#CFFF40; color:#111; border-color:transparent; }   /* 아니오 = 라임(아침 삭제 창 꼴 · 형 11-12 06:13) */
-.nm-tk2-acts button.re.arm { border-color:#CFFF40; color:#CFFF40; }
+.nm-tk2-acts button.re.arm { border-color:var(--accent, #CFFF40); color:var(--accent, #CFFF40); }
 .nm-tk2-acts button:disabled { opacity:.5; cursor:default; }
 @media (prefers-reduced-motion: reduce) { .nm-tk2-ring, .nm-tk2-log li.cur i, .nm-tk2-log li.cur span, .nm-tk2-log li { animation:none; } .nm-tk2-log li.cur span { color:var(--fg); background:none; } }
 

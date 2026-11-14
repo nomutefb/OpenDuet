@@ -60,7 +60,7 @@ function AcctCards({ id, busy, pick }: { id: string; busy: boolean; pick: (v: st
 }
 
 export function AcctModal() {
-  const [id, setId] = useState(""), [now, setNow] = useState("러너 · 읽는 중"), [busy, setBusy] = useState(false);
+  const [id, setId] = useState(""), [now, setNow] = useState("러너 · 읽는 중…"), [busy, setBusy] = useState(false);
   const live = useRef(true), tm = useRef(0);
   const load = useCallback(async () => {   // 원본 loadAcct
     try {
