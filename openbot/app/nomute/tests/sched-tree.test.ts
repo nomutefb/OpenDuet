@@ -90,3 +90,15 @@ test("하루 횟수 = cron(분 × 시) · 글 · 부를 때만 0 → 선 굵기�
   assert.equal(edgeWidth(0), 1);
   assert.ok(edgeWidth(1) < edgeWidth(24) && edgeWidth(24) < edgeWidth(144) && edgeWidth(100000) === 3.4);
 });
+
+test("봇 가지 = 러너 갈래와 같은 층 · 봇 → 포크 → 루틴 · 빈 포크는 안 그림 · 밑에 달린 수에 루틴도", () => {
+  const bots = { forks: [{ id: "scout", name: "살피기" }, { id: "empty", name: "빈 포크" }], routines: [{ id: "chok.x", name: "X 급상승", who: "촉", bot: "chok", state: "live", fork: "scout" }, { id: "gyeol.b", name: "묶음", who: "결", bot: "gyeol", state: "off", fork: "scout" }] };
+  const t = treeOf(map, { "bf:scout": true }, 0, bots);
+  const by = Object.fromEntries(t.nodes.map((n) => [n.id, n]));
+  assert.equal(by.root.name, "스케줄러");
+  assert.equal(by["g:bot"].x, by["g:g"].x);   // 같은 층
+  assert.deepEqual(t.nodes.filter((n) => n.parent === "g:bot").map((n) => n.id), ["bf:scout"]);
+  assert.deepEqual(t.nodes.filter((n) => n.kind === "routine").map((n) => [n.id, n.parent]), [["r:chok.x", "bf:scout"], ["r:gyeol.b", "bf:scout"]]);
+  assert.equal(by["g:bot"].kids, 2); assert.equal(by.root.kids, 8);
+  assert.equal(treeOf(map, {}, 0).nodes.some((n) => n.id === "g:bot"), false);   // 봇 재료 없으면 러너만(뿌리 이름 「러너」)
+});

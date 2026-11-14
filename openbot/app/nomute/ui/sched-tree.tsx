@@ -4,12 +4,12 @@
 //   노드 = 영상 꼴: 둥근 카드 + 테 · 손 올리면(폰 = 누르면) 테가 진해지고 위에 탭이 올라옴(탭 먼저 180ms → 그림 단추 뒤따라) · 선 = 직각 + 둥근 꺾임
 //   실제 반영 = 탭의 「지금 돌리기」 · 「켬끔」 → 바꾸기 판(./runner-sheet.tsx · 서버 POST schedule/runner · 미리 보기 → 적용 · 형만) — 새 서버 길은 안 만듦
 import { type CSSProperties, type PointerEvent as RPE, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { HEALTH_KO, StatusDot, stOf, sumOf, worstOf } from "./sched-bits";
+import { HEALTH_KO, type HealthSt, StatusDot, cronKo, stOf, sumOf, worstOf } from "./sched-bits";
 import { type RunnerJob, type SchedRunners, nextShort } from "./settings-extra";
 import { CLOCK_KO, whenOf } from "./sched-runners";
 import { type Review, ReviewBadge } from "./sched-review";
 import { ghJob, modelKo } from "./sched-flow-core";
-import { type TNode, edgePath, edgeWidth, fitOf, perDay, railPath, treeOf, zoomAt } from "./sched-tree-core";
+import { type BotSide, type TNode, type TRoutine, edgePath, edgeWidth, fitOf, perDay, railPath, treeOf, zoomAt } from "./sched-tree-core";
 import { RunnerSheet } from "./runner-sheet";
 import "./sched-tree.css";
 
@@ -22,7 +22,10 @@ const I = {   // 탭 그림 단추(선 그림 · 14)
 const Ic = ({ d }: { d: keyof typeof I }) => <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{I[d]}</svg>;
 
 const HOST_KO: Record<string, string> = { mac: "맥", "win-a": "윈A", eyes: "아이즈", sia: "시아 몸", deng: "뎅 몸", fast: "빠르 몸", neo: "네오 몸" };   // 깃허브 밖 잡이 도는 몸(지도 host)
-export function SchedTree({ map, review = {}, phone = false, can = false, who }: { map: SchedRunners; review?: Record<string, Review>; phone?: boolean; can?: boolean; who?: (w: string) => string }) {
+/** 봇 가지 재료 + 화면이 아는 것(루틴 상태 점 · 켜짐 · 상태 말 · 누름) — 스케줄 화면(./sched-desk.tsx)이 넘김 */
+export type BotProp = BotSide & { st: (r: TRoutine) => HealthSt; on: (r: TRoutine) => boolean; stKo: Record<string, string>; open: (id: string) => void };
+type Leaf = { id: string; st: HealthSt; on: boolean; runs: number; next: number };   // 선 · 가지 머리 셈에 쓰는 잎 하나(잡 또는 루틴)
+export function SchedTree({ map, review = {}, phone = false, can = false, who, bots }: { map: SchedRunners; review?: Record<string, Review>; phone?: boolean; can?: boolean; who?: (w: string) => string; bots?: BotProp }) {
   const box = useRef<HTMLDivElement>(null), world = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -38,24 +41,31 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who }:
     ro.observe(el); setSize({ w: el.clientWidth, h: el.clientHeight });
     return () => ro.disconnect();
   }, []);
-  const tree = useMemo(() => treeOf(map, open, phone ? size.w : 0), [map, open, phone, size.w]);
+  const tree = useMemo(() => treeOf(map, open, phone ? size.w : 0, bots), [map, open, phone, size.w, bots]);
   const by = useMemo(() => new Map(tree.nodes.map((n) => [n.id, n])), [tree]);
   useEffect(() => { if (!phone && !view && size.w > 0) setView(fitOf(tree, size)); }, [phone, view, size, tree]);
   const v = phone ? { k: 1, x: 0, y: 0 } : view || { k: 1, x: 0, y: 0 };
   const forkOn = useCallback((j: RunnerJob) => map.forks.find((f) => f.id === j.fork)?.on !== false, [map]);
-  const soon = useMemo(() => map.jobs.filter((j) => j.on !== false && forkOn(j) && (j.health?.next_at || 0) > now).sort((a, b) => (a.health?.next_at || 0) - (b.health?.next_at || 0))[0]?.id || "", [map, forkOn, now]);
   const stJob = (j: RunnerJob) => stOf(j.health, !forkOn(j) || j.on === false);
-  const jobsUnder = (n: TNode): RunnerJob[] => {   // 그 노드 밑에 달린 잡 전부(잡이면 자기 + 밑 잡)
-    if (n.kind !== "job") return map.jobs.filter((j) => (n.kind === "root" ? true : n.kind === "group" ? map.forks.find((f) => f.id === j.fork)?.group === n.id.slice(2) : j.fork === n.id));
-    const out: RunnerJob[] = [n.job!], walk = (id: string) => { for (const c of tree.nodes) if (c.parent === id && c.job) { out.push(c.job); walk(c.id); } };
+  // 잎(잡 · 루틴) 한 벌 = 상태 · 켜짐 · 하루 횟수 · 다음 시각 — 가지 머리 점 · 선의 뜻 · 「다음 차례」가 다 여기서
+  const leafJ = (j: RunnerJob): Leaf => ({ id: j.id, st: stJob(j), on: j.on !== false && forkOn(j), runs: perDay(j), next: j.health?.next_at || 0 });
+  const leafR = (r: TRoutine): Leaf => ({ id: `r:${r.id}`, st: bots!.st(r), on: bots!.on(r), runs: perDay({ cron_kst: r.cron }), next: r.health?.next_at || 0 });
+  const leaves = useMemo(() => [...map.jobs.map(leafJ), ...(bots ? bots.routines.map(leafR) : [])], [map, bots, forkOn]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const soon = useMemo(() => leaves.filter((l) => l.on && l.next > now).sort((a, b) => a.next - b.next)[0]?.id || "", [leaves, now]);
+  const under = (n: TNode): Leaf[] => {   // 그 노드 밑에 달린 잎 전부(접혀 있어도 셈)
+    if (n.kind === "root") return leaves;
+    if (n.kind === "routine") return [leafR(n.routine!)];
+    if (n.kind === "group") return n.id === "g:bot" ? (bots ? bots.routines.map(leafR) : []) : map.jobs.filter((j) => map.forks.find((f) => f.id === j.fork)?.group === n.id.slice(2)).map(leafJ);
+    if (n.kind === "fork") return n.id.startsWith("bf:") ? (bots ? bots.routines.filter((r) => (r.fork || "") === n.id.slice(3)).map(leafR) : []) : map.jobs.filter((j) => j.fork === n.id).map(leafJ);
+    const out: Leaf[] = [leafJ(n.job!)], walk = (id: string) => { for (const c of tree.nodes) if (c.parent === id && c.job) { out.push(leafJ(c.job)); walk(c.id); } };
     walk(n.id); return out;
   };
   // 선의 뜻 = 색(그 가지 상태) · 굵기(그 가지가 하루에 도는 횟수) · 라임(다음 차례로 가는 길)
   const edgeOf = (to: TNode) => {
-    const js = jobsUnder(to), on = js.filter((j) => j.on !== false && forkOn(j));
-    return { st: worstOf(sumOf(js.map(stJob))), w: edgeWidth(on.reduce((a, j) => a + perDay(j), 0)), next: !!soon && js.some((j) => j.id === soon), off: !on.length };
+    const ls = under(to), on = ls.filter((l) => l.on);
+    return { st: worstOf(sumOf(ls.map((l) => l.st))), w: edgeWidth(on.reduce((a, l) => a + l.runs, 0)), next: !!soon && ls.some((l) => l.id === soon), off: !on.length };
   };
-  const stsUnder = (n: TNode) => map.jobs.filter((j) => (n.kind === "root" ? true : n.kind === "group" ? map.forks.find((f) => f.id === j.fork)?.group === n.id.slice(2) : j.fork === n.id)).map(stJob);
+  const stsUnder = (n: TNode) => under(n).map((l) => l.st);
 
   // 판 끌기(PC) — 끄는 동안은 style 만 바꾸고 놓을 때 상태에 적음(다시 그리기 0)
   const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null);
@@ -91,7 +101,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who }:
   const toggle = (id: string, kind: TNode["kind"]) => {   // 펼침 · 접힘 = 누른 노드는 화면 제자리(나무가 다시 놓여도 손 밑에서 안 달아남) · 펼친 자식 줄이 판 밖이면 그만큼만 당김
     const next = { ...open, [id]: !(open[id] ?? kind !== "fork") };
     if (!phone) {
-      const a = by.get(id), t2 = treeOf(map, next, 0), b = t2.nodes.find((n) => n.id === id);
+      const a = by.get(id), t2 = treeOf(map, next, 0, bots), b = t2.nodes.find((n) => n.id === id);
       if (a && b) {
         let x = v.x + (a.x - b.x) * v.k, y = v.y + (a.y - b.y) * v.k;
         const kids = t2.nodes.filter((n) => n.parent === id);
@@ -116,7 +126,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who }:
         </svg>
         {tree.nodes.map((n, i) => {
           const pos = { transform: `translate(${n.x}px, ${n.y}px)`, width: n.w, height: n.h, "--i": Math.min(i, 14) } as CSSProperties;
-          if (n.kind !== "job") {
+          if (n.kind !== "job" && n.kind !== "routine") {
             const sts = stsUnder(n), sum = sumOf(sts), w = worstOf(sum), off = n.fork ? n.fork.on === false : false;
             return (
               <button key={n.id} type="button" className={`nm-tree-node ${n.kind}`} style={pos} data-st={w} data-off={off || undefined} aria-expanded={n.open} title={n.fork?.note || n.name} onClick={() => toggle(n.id, n.kind)}>
@@ -124,6 +134,20 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who }:
                 {n.kind === "root" ? null : <small>꼬챙이 {n.kids}{sum.miss ? <em> · 놓침 {sum.miss}</em> : null}{sum.late ? <i> · 지연 {sum.late}</i> : null}</small>}
                 <svg className="nm-tree-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m9 6 6 6-6 6" /></svg>
               </button>
+            );
+          }
+          if (n.kind === "routine" && bots) {   // 봇 루틴 = 잡과 같은 카드 꼴 · 누르면 바꾸기 판(시간 · 상태 · 할 일 — 스케줄 화면의 진짜 길 그대로)
+            const r = n.routine!, st = bots.st(r), live = r.state === "live", whenTxt = r.cron?.length ? cronKo(r.cron) : r.when?.length ? r.when.join(" · ") : "부를 때만";
+            return (
+              <div key={n.id} className="nm-tree-node job routine" style={pos} data-st={st} data-next={soon === n.id || undefined} data-off={!bots.on(r) || undefined}>
+                <button type="button" className="nm-tree-card" aria-label={`${r.who} ${r.name} · ${HEALTH_KO[st]} · 바꾸기`} onClick={() => bots.open(r.id)}>
+                  <span className="nm-tree-l1"><b title={r.name}><ReviewBadge r={review[r.id]} />{r.name}</b>{live ? null : <i>{bots.stKo[r.state] || r.state}</i>}</span>
+                  <span className="nm-tree-l2"><small>언제</small><span title={whenTxt}>{whenTxt}{r.health?.next_at ? ` · 다음 ${nextShort(r.health.next_at)}` : ""}</span></span>
+                  <span className="nm-tree-l3"><StatusDot st={st} /><span>{HEALTH_KO[st]} · {who ? who(r.who) : r.who}</span><i className="nm-tree-sw" data-on={live || undefined} aria-hidden /></span>
+                  {soon === n.id ? <em className="nm-tree-next">다음</em> : null}
+                </button>
+                <i className="nm-tree-port l" aria-hidden />
+              </div>
             );
           }
           const j = n.job!, st = stJob(j), gh = ghJob(j), [c0] = j.clock || [], run = (ran[j.id] || 0) > now;

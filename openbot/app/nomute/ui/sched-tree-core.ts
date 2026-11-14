@@ -6,14 +6,17 @@
 import type { RunnerJob, SchedRunners } from "./settings-extra";
 import { stem, timeKey } from "./sched-flow-core.ts";
 
-export type TKind = "root" | "group" | "fork" | "job";
-export type TNode = { id: string; kind: TKind; name: string; parent: string; depth: number; x: number; y: number; w: number; h: number; kids: number; open: boolean; via: "tree" | "after" | "calls"; job?: RunnerJob; fork?: SchedRunners["forks"][number] };
+export type TKind = "root" | "group" | "fork" | "job" | "routine";
+/** 봇 가지 재료(스케줄 표 bot_schedule) — 포크 · 루틴(꼬챙이) */
+export type BotSide = { forks: { id: string; name: string; on?: boolean }[]; routines: TRoutine[] };
+export type TRoutine = { id: string; name: string; who: string; bot: string; when?: string[]; cron?: string[]; state: string; fork?: string; health?: { st: string; next_at?: number; last_at?: number } };
+export type TNode = { id: string; kind: TKind; name: string; parent: string; depth: number; x: number; y: number; w: number; h: number; kids: number; open: boolean; via: "tree" | "after" | "calls"; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine };
 export type TEdge = { k: string; from: string; to: string; kind: "tree" | "after" | "calls" };
 export type Tree = { nodes: TNode[]; edges: TEdge[]; w: number; h: number };
-export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 140, h: 44 }, fork: { w: 190, h: 52 }, job: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
+export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 140, h: 44 }, fork: { w: 190, h: 52 }, job: { w: 222, h: 78 }, routine: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
 export const GAP_X = 64, GAP_Y = 22, PAD = 28, INDENT = 20, GAP_DOWN = 12;
 
-type Raw = { id: string; kind: TKind; name: string; via: TNode["via"]; job?: RunnerJob; fork?: SchedRunners["forks"][number]; kids: Raw[] };
+type Raw = { id: string; kind: TKind; name: string; via: TNode["via"]; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine; kids: Raw[] };
 
 /** 한 갈래의 나무 재료(자리 셈 전) — 포크 안 잡을 뒤따름 · 부름 선으로 엮음 · 고리는 끊음 */
 export function rawOf(map: SchedRunners, group: string): Raw {
@@ -36,9 +39,16 @@ export function rawOf(map: SchedRunners, group: string): Raw {
   });
   return { id: `g:${group}`, kind: "group", name: g?.name || group, via: "tree", kids: forks };
 }
-/** 러너 전체 = 뿌리 하나 밑에 갈래들 */
-export function rawAll(map: SchedRunners): Raw {
-  return { id: "root", kind: "root", name: "러너", via: "tree", kids: map.groups.map((g) => rawOf(map, g.id)) };
+/** 봇 가지 = 「봇」 갈래 → 포크 → 루틴(표 차례 그대로) · 빈 포크는 안 그림 — 러너 갈래와 같은 층(평의회 11-14 「뿌리 하나 아래 봇 가지와 러너 가지」) */
+export function rawBots(b: BotSide): Raw {
+  const forks = b.forks.map((f): Raw => ({ id: `bf:${f.id}`, kind: "fork", name: f.name, via: "tree", fork: { id: f.id, name: f.name, group: "bot", on: f.on },
+    kids: b.routines.filter((r) => (r.fork || "") === f.id).map((r): Raw => ({ id: `r:${r.id}`, kind: "routine", name: r.name, via: "tree", routine: r, kids: [] })) })).filter((f) => f.kids.length);
+  return { id: "g:bot", kind: "group", name: "봇", via: "tree", kids: forks };
+}
+/** 스케줄러 전체 = 뿌리 하나 밑에 봇 갈래 + 러너 갈래들 */
+export function rawAll(map: SchedRunners, bots?: BotSide): Raw {
+  const b = bots && bots.routines.length ? [rawBots(bots)] : [];
+  return { id: "root", kind: "root", name: bots ? "스케줄러" : "러너", via: "tree", kids: [...b, ...map.groups.map((g) => rawOf(map, g.id))] };
 }
 /** 처음 펼침 = 포크만 접힘 */
 export const openOf = (open: Record<string, boolean>, id: string, kind: TKind) => open[id] ?? kind !== "fork";
@@ -47,13 +57,13 @@ export const openOf = (open: Record<string, boolean>, id: string, kind: TKind) =
 const xOf = (depth: number) => { let x = PAD; const ks: TKind[] = ["root", "group", "fork"]; for (let d = 0; d < depth; d++) x += SIZE[ks[d] || "job"].w + GAP_X; return x; };
 
 /** 나무 자리 셈 — 접힌 가지는 자식 안 그림(수만 kids 에) · down = 폰(판 폭) */
-export function treeOf(map: SchedRunners, open: Record<string, boolean> = {}, down = 0): Tree {
+export function treeOf(map: SchedRunners, open: Record<string, boolean> = {}, down = 0, bots?: BotSide): Tree {
   const nodes: TNode[] = [], edges: TEdge[] = [];
   let cursor = PAD, maxX = 0;
-  const count = (r: Raw): number => r.kids.reduce((a, k) => a + (k.kind === "job" ? 1 : 0) + count(k), 0);   // 밑에 달린 잡 수
+  const count = (r: Raw): number => r.kids.reduce((a, k) => a + (k.kind === "job" || k.kind === "routine" ? 1 : 0) + count(k), 0);   // 밑에 달린 잡 · 루틴 수
   const place = (r: Raw, depth: number, parent: string): TNode => {
     const s = SIZE[r.kind], isOpen = r.kids.length > 0 && openOf(open, r.id, r.kind);
-    const n: TNode = { id: r.id, kind: r.kind, name: r.name, parent, depth, x: xOf(depth), y: 0, w: s.w, h: s.h, kids: count(r), open: isOpen, via: r.via, job: r.job, fork: r.fork };
+    const n: TNode = { id: r.id, kind: r.kind, name: r.name, parent, depth, x: xOf(depth), y: 0, w: s.w, h: s.h, kids: count(r), open: isOpen, via: r.via, job: r.job, fork: r.fork, routine: r.routine };
     nodes.push(n);
     if (down) {   // 폰 = 한 줄 쌓기 · 들여쓰기
       n.x = PAD / 2 + depth * INDENT; n.w = Math.max(160, down - n.x - PAD / 2); n.y = cursor; cursor += s.h + GAP_DOWN;
@@ -68,7 +78,7 @@ export function treeOf(map: SchedRunners, open: Record<string, boolean> = {}, do
     maxX = Math.max(maxX, n.x + n.w);
     return n;
   };
-  place(rawAll(map), 0, "");
+  place(rawAll(map, bots), 0, "");
   return { nodes, edges, w: down || maxX + PAD, h: Math.max(cursor - (down ? GAP_DOWN : GAP_Y), 0) + PAD };
 }
 

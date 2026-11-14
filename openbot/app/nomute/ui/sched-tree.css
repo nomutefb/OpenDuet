@@ -102,3 +102,7 @@
 .nm-tree-node.job[data-out] .nm-tree-card { border-style:dashed; }
 /* 폰 = 카드를 한 번 누르면 바로 판(큰 단추) → 작은 탭 줄은 안 띄움 */
 .nm-tree.down .nm-tree-tab { display:none; }
+/* 루틴 바꾸기 판(나무에서 루틴을 누름 · ./sched-desk.tsx) = 목록의 그 줄을 판 안에 그대로(늘 펼침) */
+.nm-rsheet-routine { width:min(520px, calc(100% - 32px)); }
+.nm-rsheet-tine { margin:0; padding:6px 12px 14px; list-style:none; }
+.nm-rsheet-tine > .nm-sched-tine { border:0; background:none; padding:0; }
