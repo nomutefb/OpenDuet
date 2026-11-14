@@ -20,7 +20,12 @@ test("고르면 먼저 pick 적고 그 방 pending_hyung −1 · 서랍 숫자 =
   assert.match(dw, /\{ name: "뉴스", ids: \["sns", "chan"\] \}/, "구독 채널 = 설정으로 · 센서 = 서랍에서 뺌(형 11-14 「서랍중에 센서는 삭제」)");
   // 채널 · SNS = 옛 에디터 화면 한 줄씩(형 11-14 「전에 버전 … 살려서 하나의 서랍 버전으로 … 지금거는 그러면 삿제」) · 옛 「전체」 주소는 그 화면으로 · 이름 = 화상 회의록
   const sh = rd("../ui/shell.tsx");
-  assert.match(sh, /const FRAME: Partial<Record<Modal, string>> = \{ play: "\/play\/", chan: "\/\?tab=chan&inapp=1", sns: "\/\?tab=trend&inapp=1" \};/);
+  assert.match(sh, /const FRAME: Partial<Record<Modal, string>> = \{ play: "\/play\/", chan: "\/\?tab=chan&inapp=1&only=1", sns: "\/\?tab=trend&inapp=1&only=1" \};/);
+  // 빠르게 + 화면 맞춤(형 11-14 「전에 버전을 좀 더 빠르게 그리고 이 화면에 최적화 그리고 이피시 인앶에도 최적화」) = only=1 · 그려지기 전 라임 · 폰 머리 0 · PC 좌우 다 씀
+  assert.match(sh, /src\.includes\("only=1"\) \? \[fitFrame\(el\)\] : \[\]/);
+  assert.match(sh, /const SPREAD = new Set<Modal>\(\[[^\]]*"chan", "sns"\]\);/);
+  assert.match(rd("../ui/shell.css"), /\.nm-modal-h\.nm-mh-chan, \.nm-modal-h\.nm-mh-sns \{ display:none; \}/);
+  assert.match(rd("../ui/inapp.ts"), /--modern-accent:\$\{dark \? "#CFFF40" : "#4f7a00"\}!important/);
   assert.match(sh, /if \(p === "\/trend"\) return \{ modal: "sns" \};/);
   assert.match(sh, /if \(p === "\/chanfull"\) return \{ modal: "chan" \};/);
   assert.doesNotMatch(sh, /ChanModal|SnsModal|TrendModal/);
