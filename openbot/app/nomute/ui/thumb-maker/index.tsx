@@ -20,7 +20,8 @@ const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeW
 /** 머리 ⟳ = 원본 index 「입력 초기화」(그 세부 메뉴의 글자·사진 비우기 = thumb 의 window.nmTabReset) */
 function reset() { (window as Window & { nmTabReset?: () => void }).nmTabReset?.(); }
 
-export const ThumbMaker = memo(function ThumbMaker({ onBack }: { onBack?: () => void }) {   // onBack = 앱 껍데기 닫기(위 챠콜 머리 줄을 뺀 뒤 ‹ 자리 · 형 11-13 02:24)
+export const ThumbMaker = memo(function ThumbMaker({ onBack, onMin }: { onBack?: () => void; onMin?: () => void }) {   // onMin = 최소화(창 접기 · 껍데기 ../ed-keep.tsx 가 숨겨 둔 채 살려 둠 · 형 11-15)
+  const min = useRef(onMin); min.current = onMin;   // onBack = 앱 껍데기 닫기(위 챠콜 머리 줄을 뺀 뒤 ‹ 자리 · 형 11-13 02:24)
   const frame = useRef<HTMLDivElement>(null), scroller = useRef<HTMLDivElement>(null), root = useRef<HTMLDivElement>(null), body = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!frame.current || !scroller.current || !root.current || !body.current) return;
@@ -28,7 +29,11 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack }: { onBack?: () => 
     w.__nmStudioRoute = studioRoute;   // 엔진이 켜질 때 studioRouteFn 이 보도록 먼저
     const stop = startEngine(root.current, body.current, frame.current, scroller.current);
     const offRail = railIcons(root.current);
-    return () => { offRail(); if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
+    // 빠른 메뉴 위 「최소화」(#rfabMin) = 원본은 품은 창일 때만 부모 minimizeTool 을 부름 → 앱 안은 품은 창이 아니라 엔진이 숨김 · 여기서 다시 보이고 껍데기 접기로 이음(엔진 줄은 원본 그대로)
+    const rmin = min.current ? root.current.querySelector<HTMLElement>("#rfabMin") : null;
+    const doMin = (e: Event) => { e.stopPropagation(); min.current?.(); };
+    if (rmin) { rmin.style.display = ""; rmin.addEventListener("click", doMin); }
+    return () => { rmin?.removeEventListener("click", doMin); offRail(); if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
   }, []);
   useEffect(() => {   // 내용이 미리보기 도크 밑으로 들어갔나 = data-stuck(./frame.css 맨 아래 · 비침 고침)
     const s = scroller.current, r = root.current;
@@ -48,6 +53,7 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack }: { onBack?: () => 
         <button type="button" className="tm-rf" aria-label="입력 초기화" title="입력 초기화 — 글자·사진 비우기" onClick={reset}>
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5" /></svg>
         </button>
+        {onMin ? <button type="button" className="tm-min" aria-label="최소화" title="최소화 (창 접기)" onClick={onMin}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5.5 8h13L12 17.5z" /></svg></button> : null}
       </div>
       <div className="tm-frame" ref={frame}>
         <div className="tm-scroll" ref={scroller}>
