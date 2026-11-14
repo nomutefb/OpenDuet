@@ -28,6 +28,7 @@ import { useChannelEvents } from "@/lib/channels/use-channel-events";
 import { Route as SettingsIndex } from "@/routes/_authed/settings/index";
 import { HomeScreen } from "../home/home-screen";
 import { NewsList } from "../home/news-list";
+import { HotSwap } from "../home/kw-board";   // Hot Issue ↔ 키워드 순위판 번갈이(형 11-14 · 처음 10초 뒤 · 1분마다)
 import { NewsSummary } from "../home/news-summary";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));
@@ -402,7 +403,7 @@ function SplitSide() {
     <aside className="nm-split" aria-label="러너 · 뉴스">
       <SplitGrip />
       <section className="nm-split-run nm-split-top-r" aria-label="인스타 · 페북"><PaneGuard name="팔로워"><IgFbBand /></PaneGuard></section>   {/* 오른쪽 위 = 뉴스 쪽 · 높이 = 왼쪽 위 게이지 띠와 같게(--nm-top-h · 형 07:31 「기존처럼 3개 있을때의 높이」) · 러너 게이지는 왼쪽 위로(TopLeft) */}
-      <section className="nm-split-news" aria-label="뉴스"><PaneGuard name="실시간 뉴스"><NewsList /></PaneGuard></section>
+      <section className="nm-split-news" aria-label="뉴스"><PaneGuard name="실시간 뉴스"><HotSwap><NewsList /></HotSwap></PaneGuard></section>
       <section className="nm-split-sum" aria-label="뉴스 요약"><PaneGuard name="뉴스 요약"><NewsSummary /></PaneGuard></section>   {/* 우하단 = 요약 대기열 + 다 된 요약(형 11-05 16:27 「어짜피 우하단에는 뉴스 요약 부분이 나올거라서」 · 13:38 「전송하면 그 아래에 요약 대기열 올라오고, 다되면, 모달로 뉴스 요약본」) */}   {/* PC = 그림 없는 제목 목록(형 11-05 14:39 「pc판은 아예 뉴스에 아예 그림안뜨게 컴팩트하게 타이틀만」) · 폰 홈은 카드 덱 그대로 */}
     </aside>
   );

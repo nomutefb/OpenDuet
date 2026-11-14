@@ -16,12 +16,15 @@ import "./follow-pulse.css";
 import { Arrived } from "./arrived";   // 맨 아래 = 도착한 메시지 한 방(형 11-03 「거기 최근 온 메세지로 다시 변경해줘. 영상 없애구.」)
 import { FollowPulse } from "./follow-pulse";   // 1/6 = 팔로워 띠(형 10-31 09:5x 「인스타 맨 위에 뜨는거 … 웹앱 맨 상단에」 · 접수사항 CheckOne 은 안 부름 「어짜피 다른데서 볼 수 있으니까」 · 파일은 그대로)
 import { NewsFeed } from "./news-feed";
+import { HotSwap } from "./kw-board";
+import { useSplit } from "../ui/side";
 import { IntroFace, pickIntro } from "./intro";
 
 const LAG = 300, SLOW = 8000;   // 카드 첫 판 뒤 한 박자(덱이 그릴 틈) · 못 받아도 이만큼 뒤엔 다 보임
 let firstHome = true;   // 앱 처음 열 때 한 번만
 
 export function HomeScreen() {
+  const split = useSplit();   // PC 반갈 = 오른쪽 Hot Issue 칸이 키워드 순위와 번갈아 뜸 → 왼쪽 홈 카드는 그대로
   const [first] = useState(() => firstHome && performance.now() < 10_000);
   const [intro] = useState(() => pickIntro("main"));   // 앱을 다른 화면으로 열고 나중에 홈에 온 때 = 안 숨김
   const shown = useRef<() => void>(() => {});
@@ -39,7 +42,7 @@ export function HomeScreen() {
   return (
     <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))] pb-[calc(86px+env(safe-area-inset-bottom))]">
       <FollowPulse />
-      <NewsFeed onShown={() => shown.current()} />
+      {split ? <NewsFeed onShown={() => shown.current()} /> : <div className="nm-home-swap" style={{ gridRow: 2 }}><HotSwap label="뉴스"><NewsFeed onShown={() => shown.current()} /></HotSwap></div>}   {/* 폰 = 뉴스 카드 ↔ 키워드 순위(옆으로 넘기면 줄기 하나씩 · 형 11-14 「폰에서는 … 넘길때마다 차트가 나오게」) · PC 반갈 = 오른쪽 Hot Issue 칸이 번갈아 뜨니 여긴 그대로 */}
       <Arrived />
       {first ? <div className="nm-home-splash" aria-hidden style={intro.bg ? { background: intro.bg } : undefined}><IntroFace item={intro} /></div> : null}   {/* 진입 화면 = 목록 중 랜덤(./intro.tsx · 형 11-06 18:5x) */}
     </div>

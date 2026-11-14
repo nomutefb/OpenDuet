@@ -1,0 +1,92 @@
+/* 홈 키워드 순위판(./kw-board.tsx) — Hot Issue 자리에서 번갈아 뜸 · 톤 = Hot Issue 목록(./news-list.css)과 같은 결(판 없음 · 가는 구분선 · 라임은 겹친 말에만) */
+.nm-hotswap { position:relative; display:flex; flex:1 1 auto; min-height:0; min-width:0; flex-direction:column; color:#161716; }
+html.dark .nm-hotswap { color:#e8eae8; }
+.nm-hot-slot { display:flex; flex:1 1 auto; min-height:0; min-width:0; flex-direction:column; transition:opacity .26s ease, transform .36s var(--e-out,cubic-bezier(.2,.8,.2,1)), visibility 0s; }
+.nm-hot-slot > section { flex:1 1 auto; min-height:0; }
+.nm-kwb { position:absolute; inset:0; display:flex; flex-direction:column; min-height:0; container:kwb / inline-size; transition:opacity .26s ease, transform .36s var(--e-out,cubic-bezier(.2,.8,.2,1)), visibility 0s; }
+.nm-hotswap[data-view="kw"] > .nm-hot-slot { opacity:0; transform:translateY(-8px); visibility:hidden; pointer-events:none; transition:opacity .22s ease, transform .3s ease, visibility 0s .3s; }
+.nm-hotswap[data-view="hot"] > .nm-kwb { opacity:0; transform:translateY(8px); visibility:hidden; pointer-events:none; transition:opacity .22s ease, transform .3s ease, visibility 0s .3s; }
+/* Hot Issue 로 돌아올 때도 줄이 차례로(앞 12줄만 · 한 번) */
+.nm-hotswap[data-view="hot"] .nm-nlist-ol li { animation:kwbRow .32s var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
+.nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(1) { animation-delay:20ms; } .nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(2) { animation-delay:50ms; }
+.nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(3) { animation-delay:80ms; } .nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(4) { animation-delay:110ms; }
+.nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(5) { animation-delay:140ms; } .nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(6) { animation-delay:170ms; }
+.nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(7) { animation-delay:200ms; } .nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(8) { animation-delay:230ms; }
+.nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(9) { animation-delay:260ms; } .nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(10) { animation-delay:290ms; }
+.nm-hotswap[data-view="hot"] .nm-nlist-ol li:nth-child(n+11) { animation-delay:320ms; }
+
+/* 오른쪽 위 = 손으로 바꾸는 작은 알약 */
+.nm-hotswap-t { position:absolute; top:7px; right:10px; z-index:3; display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:999px; border:1px solid color-mix(in srgb, currentColor 14%, transparent);
+  background:color-mix(in srgb, currentColor 5%, transparent); color:inherit; font:inherit; font-size:11px; font-weight:560; letter-spacing:-.1px; cursor:pointer; -webkit-tap-highlight-color:transparent; opacity:.72;
+  transition:opacity var(--m-color,.14s) ease, background-color var(--m-color,.14s) ease, transform var(--m-press,.07s) ease; }
+.nm-hotswap-t:hover { opacity:1; background:color-mix(in srgb, currentColor 10%, transparent); }
+.nm-hotswap-t:active { transform:scale(var(--press-m,.9)); filter:none; }
+.nm-hotswap-t svg { transition:rotate .36s var(--e-spring,cubic-bezier(.34,1.56,.64,1)); }
+.nm-hotswap-t[aria-pressed="true"] svg { rotate:180deg; }
+
+.nm-kwb-h { flex:none; }
+.nm-hotswap .nm-nlist-h { padding-right:88px; }
+.nm-split-root .nm-hotswap .nm-nlist-h { padding-right:86px !important; }   /* PC 머리줄은 여백을 못 박아 둠(../ui/shell.css padding !important) → 같은 세기로 */
+.nm-split-root .nm-hotswap-t { top:6px; right:8px; }   /* 오른쪽 위 바꿈 알약 자리(「N분 전」 글자와 안 겹치게) */
+.nm-kwb-cols { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:0; padding:6px 6px 10px; overflow:hidden; }
+.nm-kwb-col { min-width:0; display:flex; flex-direction:column; padding:0 8px; border-left:1px solid color-mix(in srgb, currentColor 7%, transparent); }
+.nm-kwb-col:first-child { border-left:0; }
+.nm-kwb-ch { display:flex; align-items:baseline; gap:6px; height:30px; padding:0 4px; animation:kwbRow .32s var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
+.nm-kwb-ch b { font-size:11px; font-weight:600; letter-spacing:.02em; opacity:.62; white-space:nowrap; }
+.nm-kwb-ch span { font-size:10px; opacity:.42; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-kwb-col ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.nm-kwb-col li { display:grid; grid-template-columns:16px minmax(0,1fr) auto auto; align-items:center; gap:7px; min-height:31px; padding:0 4px; border-radius:8px; border-top:1px solid color-mix(in srgb, currentColor 5%, transparent);
+  animation:kwbRow .34s var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
+.nm-kwb-col li:hover { background:color-mix(in srgb, currentColor 5%, transparent); }
+.nm-kwb-col .rk { font-size:11px; text-align:right; opacity:.4; font-variant-numeric:tabular-nums; }
+.nm-kwb-col li:nth-child(-n+3) .rk { opacity:.85; font-weight:700; }
+.nm-kwb-col .q { all:unset; cursor:pointer; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; line-height:1.3; font-weight:450; letter-spacing:-.15px; }
+.nm-kwb-col .q:hover { text-decoration:underline; text-underline-offset:3px; text-decoration-color:color-mix(in srgb, currentColor 35%, transparent); }
+.nm-kwb-col .q:focus-visible { outline:1px solid currentColor; outline-offset:2px; border-radius:4px; }
+.nm-kwb-col .sub { font-size:10px; opacity:.45; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.nm-kwb-col .sub:empty { display:none; }
+.nm-kwb-col .sub.new { opacity:.8; font-weight:700; letter-spacing:.03em; }
+/* 겹친 말 = 라임(형 「중복되는 키워드는 … 라임색으로 그대로 표기」) · 셋 넘게 = 작은 숫자 */
+.nm-kwb-col li.dup .q, .nm-kwb-col li.dup .rk { color:#4f7a00; opacity:1; }
+html.dark .nm-kwb-col li.dup .q, html.dark .nm-kwb-col li.dup .rk { color:#CFFF40; }
+.nm-kwb-col li.dup .q { font-weight:600; }
+.nm-kwb-col .n { font-style:normal; font-size:9.5px; font-weight:700; line-height:15px; min-width:15px; text-align:center; border-radius:999px; color:#4f7a00; border:1px solid currentColor; font-variant-numeric:tabular-nums; }
+html.dark .nm-kwb-col .n { color:#CFFF40; }
+.nm-kwb-col[data-stale] ol { opacity:.42; }
+.nm-kwb-empty, .nm-kwb-none { margin:0; padding:10px 4px; font-size:12px; opacity:.5; }
+.nm-kwb-none { padding:16px 14px; display:flex; flex-direction:column; gap:3px; opacity:.6; }
+.nm-kwb-dots { display:none; }
+@keyframes kwbRow { from { opacity:0; transform:translateY(9px); } }
+
+/* 넓지 않은 칸(PC 오른쪽을 좁혔을 때) = 두 줄기씩 두 단 */
+@container kwb (max-width:620px) {
+  .nm-kwb-cols { grid-template-columns:repeat(2, minmax(0,1fr)); overflow-y:auto; row-gap:8px; }
+  .nm-kwb-col:nth-child(odd) { border-left:0; }
+}
+/* 폰 = 한 화면에 줄기 하나 · 옆으로 넘김(형 「넘길때마다 차트가 나오게」) · 글씨 크게 · 아래 점 넷 */
+@container kwb (max-width:460px) {
+  .nm-kwb-cols { display:flex; gap:0; padding:4px 0 0; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; scrollbar-width:none; row-gap:0; }
+  .nm-kwb-cols::-webkit-scrollbar { display:none; }
+  .nm-kwb-col { flex:0 0 100%; scroll-snap-align:start; scroll-snap-stop:always; border-left:0; padding:0 14px; }
+  .nm-kwb-ch { height:38px; }
+  .nm-kwb-ch b { font-size:14px; opacity:.9; }
+  .nm-kwb-ch span { font-size:11px; }
+  .nm-kwb-col li { grid-template-columns:24px minmax(0,1fr) auto auto; gap:10px; min-height:clamp(38px, 6.2svh, 52px); padding:0 6px; }
+  .nm-kwb-col .rk { font-size:14px; }
+  .nm-kwb-col .q { font-size:16.5px; font-weight:500; }
+  .nm-kwb-col .sub { font-size:11.5px; }
+  .nm-kwb-col .n { font-size:11px; line-height:18px; min-width:18px; }
+  .nm-kwb-dots { display:flex; flex:none; justify-content:center; gap:7px; padding:10px 0 8px; }
+  .nm-kwb-dots button { all:unset; width:6px; height:6px; border-radius:999px; background:currentColor; opacity:.22; cursor:pointer; transition:width .26s var(--e-out,cubic-bezier(.2,.8,.2,1)), opacity .2s ease; }
+  .nm-kwb-dots button[aria-selected="true"] { width:18px; opacity:.85; }
+}
+@media (prefers-reduced-motion:reduce) { .nm-kwb-col li, .nm-kwb-ch, .nm-hotswap[data-view="hot"] .nm-nlist-ol li { animation:none; } .nm-hot-slot, .nm-kwb { transition:opacity .2s ease; transform:none !important; } }
+/* 폰 홈 = 가운데 줄(뉴스 카드 자리) 통째 */
+.nm-home-swap { position:relative; display:flex; min-height:0; min-width:0; flex-direction:column; }
+.nm-home-swap .nm-kwb { border-radius:22px; background:color-mix(in srgb, currentColor 4%, transparent); border:1px solid color-mix(in srgb, currentColor 8%, transparent); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); }
+.nm-home-swap .nm-hotswap-t { top:11px; right:auto; left:50%; translate:-50% 0;   /* 폰 = 위 가운데(카드 왼쪽 위 = 점수 · 오른쪽 위 = 카드 제 단추라 비는 자리) */ background:rgba(20,22,20,.55); color:#e8eae8; border-color:rgba(255,255,255,.16); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:.9; }
+/* 폰 = 줄이 칸 키를 나눠 씀(아래가 텅 비지 않게 · 줄 하나 72px 까지) */
+@container kwb (max-width:460px) {
+  .nm-kwb-col ol { flex:1 1 auto; min-height:0; }
+  .nm-kwb-col li { flex:1 1 0; max-height:72px; }
+}
