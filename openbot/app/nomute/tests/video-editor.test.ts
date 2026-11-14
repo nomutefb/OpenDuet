@@ -52,3 +52,34 @@ test("영상 편집 하나 안에서 고름(형 11-14 「기본 영상 편집을
   assert.match(rd("../ui/news-detail.tsx"), /if \(h\[1\] === "##" && \/\^한\\s\*줄\\s\*요약\$\/\.test\(h\[2\]\.replace\(EMOJI0, ""\)\.trim\(\)\)\) continue;/, "기사 한 장 맨 위 「한줄 요약」 머리글 0(형 11-14 「뉴스 요약은 위에 요약이라는 헤더 안떠도됨」)");
   assert.match(sd, /location\.hash = u \? `#\/edys\?u=\$\{encodeURIComponent\(u\)\}` : "#\/edys";/, "카드 제작 유튜브 링크 = 영상 편집 안 유튜브");
 });
+
+test("옆 기둥 = 간격 다 같게(칸 36 · 사이 6) · 「음량」 뺌(형 11-15 「간격이 너무 좁아서 버튼 누르기가 힘든데 일정 간격 유지해 줘 볼륨은 … 없앰」)", () => {
+  const ve = rd("../ui/video-editor.tsx");
+  assert.match(ve, /#cpRailWrap \.cpv-tool,#editSpec \.gs-v\{margin:3px 0!important\}/);
+  assert.match(ve, /#cpRailWrap \.cpv-tool\{height:36px!important/);
+  assert.match(ve, /#editSpec \.gs-v\{font-size:0!important;width:36px!important;min-width:36px!important;height:36px!important;/);
+  assert.match(ve, /#editSpec \.gs-v\[data-cyc=anorm\]\{display:none!important\}/);
+  assert.doesNotMatch(ve, /data-nmv\]\{margin-bottom/, "값 글자 줄만 간격이 달라지던 덧 0");
+});
+
+test("「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 띠 · 한 번만(형 11-15 영상 「게이지 참고 60프레임」) · 이미지 · 영상 편집 같은 꼴", async () => {
+  const { BAYER4, BAR, GAP, bandCells, ditherGaugeCss } = await import("../ui/dither-gauge.ts");
+  assert.deepEqual(BAYER4, [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5], "paper-shaders bayer4x4 그대로");
+  assert.deepEqual([BAR, GAP], [3, 4], "bencho WakeSlider 눈금");
+  const on = bandCells()[0].map((_, c) => bandCells().filter((r) => r[c]).length);
+  assert.ok(on[0] >= 3, "채운 쪽 = 거의 꽉 참");
+  assert.equal(on[on.length - 1], 0, "끝 = 빔");
+  const sum = (a: number[]) => a.reduce((x, y) => x + y, 0), third = on.length / 3;
+  assert.ok(sum(on.slice(0, third)) > sum(on.slice(third, 2 * third)) && sum(on.slice(third, 2 * third)) > sum(on.slice(2 * third)), "오른쪽으로 갈수록 성김");
+  const css = ditherGaugeCss(".go.firing:not(.fy)", "#CFFF40");
+  assert.match(css, /animation:nmDgFill \.72s [^;}]* forwards/);
+  assert.doesNotMatch(css, /infinite/);
+  assert.match(css, /to\{background-size:auto,100% 100%,36px 12px,0% 100%;background-position:0 0,left,calc\(100% \+ 36px\) 0,right\}/, "다 차면 띠는 밖으로 · 눈금 0");
+  assert.match(css, /backdrop-filter:blur\(14px\) saturate\(1\.5\)/, "유리 = 뒤 흐림(형 11-15 「투명도 넣어서 글래스모피즘」)");
+  assert.match(css, /linear-gradient\(180deg,rgba\(var\(--accent-rgb\),\.46\),rgba\(var\(--accent-rgb\),\.24\)\) left\/0% 100% no-repeat/, "채운 쪽도 비침");
+  assert.match(css, /fill-opacity%3D'0\.34'/, "점 띠도 비침");
+  assert.match(css, /color:var\(--accent\)/, "비치는 판 위 글자 = 시그니처 색");
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(rd("../ui/thumb-maker/index.tsx"), /ditherGaugeCss\("\.nm-tm \.go\.firing:not\(\.fy\)", "#CFFF40", "html\.dark "\)/);
+  assert.match(rd("../ui/video-editor.tsx"), /accentCss\(dark\) \+ ditherGaugeCss\("\.go\.firing:not\(\.fy\)"/);
+});
