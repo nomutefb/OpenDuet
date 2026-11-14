@@ -232,7 +232,7 @@ export function SchedDesk() {
                 <Breaker big on={fOn} label={`${f.name} 차단기`} disabled={!can || !hasForks || go.isPending} onFlip={() => prep({ at: "fork", key: f.id, field: "on", value: !fOn, label: f.name })} />
                 <button type="button" aria-expanded={on} onClick={() => setOpenF(on ? "" : f.id)}>
                   <b>{ROOMISH[f.id] ? <em className="nm-org-tag">{ROOMISH[f.id]}</em> : null}{f.name}</b><small>꼬챙이 {rs.length} · 켠 것 {live}{(() => { const fs = sumOf(rs.map(rSt)); return `${fs.miss ? ` · 놓침 ${fs.miss}` : ""}${fs.late ? ` · 지연 ${fs.late}` : ""}`; })()}<i className="nm-org-meter" aria-hidden><i style={{ width: `${rs.length ? Math.round((live / rs.length) * 100) : 0}%` }} /></i></small>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d={on ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} /></svg>
+                  <Chev dir={on ? "up" : "down"} size={16} />
                 </button>
               </div>
               {bar(f.id)}

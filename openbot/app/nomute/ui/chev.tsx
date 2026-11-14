@@ -3,13 +3,14 @@
 //   굵기 = DuetIcon 규칙 그대로(좌상단 「<」 = 20px · 1.8 · 22px 넘으면 1.6) · 24칸 그림이라 크기를 줄이면 선도 같이 얇아짐
 import type { CSSProperties } from "react";
 
-const D = { left: "m15 18-6-6 6-6", right: "m9 18 6-6-6-6", up: "m18 15-6-6-6 6", down: "m6 9 6 6 6-6" } as const;
+// 방향이 바뀌면 그림을 갈아 끼우지 않고 돌린다(형 11-14 클라우드 세션 창 「<> 이런것도 최대한 부드럽게」 — 메뉴 영상에서 화살표가 뒤집히는 결) · 그림은 「아래」 하나 · 260ms
+const TURN = { down: "0deg", up: "180deg", left: "90deg", right: "-90deg" } as const;
 
-export function Chev({ dir, size = 16, className, style }: { dir: keyof typeof D; size?: number; className?: string; style?: CSSProperties }) {
+export function Chev({ dir, size = 16, className, style }: { dir: keyof typeof TURN; size?: number; className?: string; style?: CSSProperties }) {
   return (
     <svg aria-hidden className={className} fill="none" height={size} width={size} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
-      strokeWidth={size >= 22 ? 1.6 : 1.8} viewBox="0 0 24 24" style={{ display: "inline-block", verticalAlign: "-0.125em", flex: "none", ...style }}>
-      <path d={D[dir]} />
+      strokeWidth={size >= 22 ? 1.6 : 1.8} viewBox="0 0 24 24" style={{ display: "inline-block", verticalAlign: "-0.125em", flex: "none", rotate: TURN[dir], transition: "rotate .26s cubic-bezier(.2,.8,.2,1)", ...style }}>
+      <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }
