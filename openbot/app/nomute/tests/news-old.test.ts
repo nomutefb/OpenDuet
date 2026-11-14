@@ -125,7 +125,7 @@ test("RUNNER 게이지 = 15% 크게 · 안 글자 25% 크게 · 글자 아래로
 
 test("홈 카드 ✓ = 폰도 카드 세로 가운데 · 오른쪽 선에 반쯤 걸침(형 11-12 07:47)", () => {
   const sc = rd("../home/send-button.css"), sb = rd("../home/send-button.tsx");
-  assert.match(sc, /\.nm-send-dock\[data-fit\] \{ top:calc\(var\(--nm-card-y\) \+ var\(--nm-card-h\) \/ 2\); bottom:auto; right:max\(4px, calc\(var\(--nm-card-r\) - 22px\)\); transform:translateY\(-50%\);/);
+  assert.match(sc, /\.nm-send-dock\[data-fit\] \{ top:0; bottom:auto; right:max\(4px, calc\(var\(--nm-card-r\) - 22px\)\); transform:translateY\(calc\(var\(--nm-card-y\) \+ var\(--nm-card-h\) \/ 2 - 50%\)\);/);   // 같은 자리(카드 세로 가운데) · top 말고 transform 으로 따라감(형 11-15 「60프레임 아닌것도」)
   assert.match(sb, /--nm-card-y/);
 });
 

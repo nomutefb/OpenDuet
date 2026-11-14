@@ -2,6 +2,7 @@
 //   서버 = GET/POST wakeset(office/wake-set.json · 형만 바꿈) · 지금 닿는 곳 = 그록봇 깸 본문 · 지피티·클로드는 깸 길이 달라 안 닿음
 //   설정 판 행 하나(엔터 키 행과 같은 꼴 · 누름 = 다음 값으로 바로 바뀜·저장)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { DiffValue } from "./state-diff";   // 값 바뀜(형 11-15 State Diff)
 import { office } from "../data/office";
 import { YICO } from "./yeta-icons";
 
@@ -22,7 +23,7 @@ export function WakeDepthRow() {
     <button type="button" className="yset-item" disabled={now === undefined || go.isPending} onClick={next}>
       <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.layers }} />
       <span className="si-lbl"><span className="si-t">호출 맥락</span>{go.isError ? <span className="si-d">저장을 못 했어 · 다시 눌러 줘</span> : null}</span>   {/* 설명 줄 뺌 · 오류만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
-      <span className="si-v"><span className="si-vt">{now === undefined ? "…" : `${now}개`}</span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
+      <span className="si-v"><span className="si-vt"><DiffValue value={now === undefined ? "…" : `${now}개`} /></span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
     </button>
   );
 }
