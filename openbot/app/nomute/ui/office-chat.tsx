@@ -942,9 +942,9 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               {stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
               <BoxCard m={m} />
-              <DecideInline id={m.id} />   {/* 질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
+              <DecideInline id={m.id} />{/* 줄 끝 공백 0 = 말풍선(pre-wrap)에 빈 줄 안 생김(형 11-14 16:53 「말풍선이 한줄씩 공백이 남아」 · 뜸) ·  질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
               <Reactions m={m} c={c} mine={false} />
-              <QuickReact id={m.id} quick={c.quick} faceId={idOf(m.who, c.list)} mine={Object.entries(c.rx[m.id] || {}).filter(([, w]) => (w || []).includes("형")).map(([k]) => k)} onReact={c.onReact} />   {/* 바로 다는 반응(오른쪽 위 모서리 · 형 11-14 05:56) */}
+              <QuickReact id={m.id} quick={c.quick} faceId={idOf(m.who, c.list)} mine={Object.entries(c.rx[m.id] || {}).filter(([, w]) => (w || []).includes("형")).map(([k]) => k)} onReact={c.onReact} />{/* 바로 다는 반응(오른쪽 위 모서리 · 형 11-14 05:56) */}
             </div>}
             {pickM(m) || bundleOf(m) ? null : <LinkCard m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) */}
             {!bundleOf(m) && askPickOf(c.room, m) ? <AskPick id={m.id} {...askPickOf(c.room, m)!} /> : null}   {/* 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}
