@@ -203,7 +203,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
 export function DecideInline({ id }: { id: string }) {
   const qc = useQueryClient();
   const d = (useDecisions().data || []).find((x) => x.id === id || (x._dups || []).includes(id));
-  const [st, setSt] = useState<"" | "보내는 중" | "못 보냄">(""), [got, setGot] = useState("");
+  const [st, setSt] = useState<"" | "보내는 중" | "못 보냄">(""), [got, setGot] = useState(""), [etc, setEtc] = useState(false);   // etc = 기타 = 주관식 칸(형 11-14 10:34 봄 옮김 「기타가 왜 이미대닺함이여」 · 「주관식이없네」)
   if (got) return <p className="nm-dec-inl-ok">✓ 골랐어 · {got}</p>;
   if (!d || isVideoReq(d) || !d.choices.length) return null;
   const send = async (p: Pick, label: string) => {
@@ -220,6 +220,12 @@ export function DecideInline({ id }: { id: string }) {
   return (
     <div className="nm-dec-inl" onClick={(e) => e.stopPropagation()}>
       {d.choices.map((c, i) => <button key={i} type="button" onClick={() => void send({ i }, `${CIRC[i] || i + 1} ${c}`)}><b>{CIRC[i] || i + 1}</b>{c}</button>)}
+      {etc
+        ? <form className="etc" onSubmit={(e) => { e.preventDefault(); const t = String(new FormData(e.currentTarget).get("t") || "").trim().slice(0, 500); if (t) void send({ text: t }, `기타 · ${t}`); }}>
+            <input name="t" autoFocus placeholder="직접 입력" aria-label="기타 답" enterKeyHint="send" maxLength={500} />
+            <button type="submit">보내기</button>
+          </form>
+        : <button type="button" onClick={() => setEtc(true)}><b>{CIRC[d.choices.length] || d.choices.length + 1}</b>기타 · 직접 쓰기</button>}
       <button type="button" className="had" onClick={() => void send({ text: ALREADY }, ALREADY)}>{ALREADY}</button>
       {st === "못 보냄" ? <span className="err">못 보냈어 · 다시 눌러 줘</span> : null}
     </div>

@@ -809,6 +809,9 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .nm-dec-inl button:active { background:#CFFF40; color:#161716; }
 .nm-dec-inl button.had { opacity:.75; font-size:13px; }
 .nm-dec-inl .err { font-size:12px; color:#ff8a7a; }
+.nm-dec-inl form.etc { display:flex; gap:6px; }   /* 기타 = 주관식 칸(형 11-14 10:34 「주관식이없네」) */
+.nm-dec-inl form.etc input { flex:1; min-width:0; padding:9px 12px; border-radius:10px; border:1px solid rgba(207,255,64,.45); background:rgba(0,0,0,.22); color:inherit; font:inherit; outline:none; }
+.nm-dec-inl form.etc button { width:auto; flex:none; padding:9px 14px; background:#CFFF40; color:#161716; font-weight:700; }
 .nm-dec-inl-ok { margin:8px 0 0; font-size:13px; font-weight:700; opacity:.85; }
 
 /* 형 말풍선 왼쪽 아래 = 사진 등 첨부만 보냄 체크(위) · 안 본 봇 수(아래) · 글 말풍선 = 숫자만(형 11-13 17:55~18:12 봄 옮김 「모든 끊겨서 온 말풍선 마다 1이 있어야해 (사진 포함)」 · 「그냥 글은 무조건 1. 이미지 같은거는 체크랑 같이 1」 · 뎅) */
