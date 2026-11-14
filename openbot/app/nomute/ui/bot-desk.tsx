@@ -12,7 +12,10 @@ import { idOf, office } from "../data/office";
 import { FaceImg, usePeople } from "./faces";
 import StatusMark, { type StatusMarkStatus } from "../vendor/react-bits/StatusMark/StatusMark";   // 상태 표시 = react-bits 원본 그대로(형 「카피하지말고 가져다 써」 · 60프레임 · 줄이기 설정을 스스로 따름)
 import RubberSegment from "../vendor/react-bits/RubberSegment/RubberSegment";   // 알약 탭 = react-bits 원본 그대로
-import { type BotRow, type BotTable, GROUP_KO, agoKo, countOf, flowOf, hmKo, markOf, openText, sigOf, turnList, wireTone } from "./bot-desk-logic";
+import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰는 원본 꾸러미 그대로(대화 「생각중」 · ./live-shine.tsx 와 같은 것 · 형 11-15 「에디터에 따로 들어잇는곳 … 코드카피해서 쓰셈」)
+import { useTheme } from "@/components/theme-provider";
+import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
+import { type BotRow, type BotTable, GROUP_KO, agoKo, countOf, flowOf, hmKo, jobCount, jobLine, jobsOf, markOf, orbOf, sigOf, turnList, wireTone } from "./bot-desk-logic";
 import "./status-board.css";
 import "./bot-desk.css";
 
@@ -21,29 +24,58 @@ type Tab = "flow" | "turn" | "hands";
 const TABS: [Tab, string][] = [["flow", "흐름"], ["turn", "차례"], ["hands", "손 표"]];
 const delay = (i: number) => ({ "--i": Math.min(i, 24) } as CSSProperties);
 
+const MARK = { color: "currentColor", doneColor: "var(--nsb-ok)", errorColor: "var(--nsb-red)" } as const;
+
+/** 봇 카드 = 유리 판 · 머리(얼굴 · 이름 · 상태: 구슬 + 빛 글자) + 오늘 오더 줄(도는 표시 → 체크 + 취소선 · n/m) · 누르면 접고 폄. */
 function BotCard({ r, now, i, list }: { r: BotRow; now: number; i: number; list: ReturnType<typeof usePeople> }) {
-  const jobs = openText(r), bits = [r.last_at ? `마지막 손 ${agoKo(now - r.last_at)}` : "", sigOf(r, now) !== "–" ? sigOf(r, now) : "", r.today ? `오늘 ${r.today}건` : ""].filter(Boolean);
+  const { resolved } = useTheme();
+  const jobs = jobsOf(r), n = jobCount(jobs), orb = orbOf(r), working = r.lane === "work";
+  const [open, setOpen] = useState(() => jobs.some((j) => !j.done));   // 안 끝낸 오더가 있으면 펴 둠 · 다 끝냈으면 접어 둠
+  const bits = [r.last_at ? `마지막 손 ${agoKo(now - r.last_at)}` : "", sigOf(r, now) !== "–" ? sigOf(r, now) : ""].filter(Boolean);
+  const head = (
+    <>
+      <span className="face"><FaceImg id={idOf(r.who, list)} size={32} /></span>
+      <span className="who">
+        <span className="name"><b>{r.who}</b>{r.pm ? <span className="tag">PM</span> : null}{r.rest ? <span className="tag">쉼 지정</span> : null}</span>
+        <span className="st">
+          {orb ? <ThinkingOrb state={orb} size={20} theme={resolved} /> : <StatusMark status={markOf(r) as StatusMarkStatus} size={15} strokeWidth={2.4} {...MARK} />}
+          {working ? <LiveShine text={`${r.state}…`} /> : <span>{r.state}</span>}
+        </span>
+      </span>
+      {n.total ? <span className={`cnt${n.all ? " all" : ""}`}>{n.all ? "다 끝냄" : `${n.done}/${n.total}`}</span> : null}
+      {jobs.length ? <span className="chev" aria-hidden>{open ? "▴" : "▾"}</span> : null}
+    </>
+  );
   return (
-    <li className="nm-bd-bot" style={delay(i)}>
-      <span className="face"><FaceImg id={idOf(r.who, list)} size={30} /></span>
-      <div className="body">
-        <p className="name"><b>{r.who}</b>{r.pm ? <span className="tag">PM</span> : null}{r.rest ? <span className="tag">쉼 지정</span> : null}<span className="st"><StatusMark status={markOf(r) as StatusMarkStatus} size={15} strokeWidth={2.4} color="currentColor" doneColor="var(--nsb-ok)" errorColor="var(--nsb-red)" />{r.state}</span></p>
-        {jobs.map((x) => <p key={x} className="job">{x}</p>)}
-        {r.lane === "lost" && r.why ? <p className="why">{r.why}</p> : null}
-        {bits.length ? <p className="meta">{bits.join(" · ")}</p> : null}
-      </div>
+    <li className={`nm-bd-bot${open && jobs.length ? " open" : ""}`} style={delay(i)}>
+      {jobs.length ? <button type="button" className="head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{head}</button> : <div className="head">{head}</div>}
+      {jobs.length ? (
+        <div className="fold" aria-hidden={!open}>
+          <ul className="jobs">
+            {jobs.map((j) => { const l = jobLine(j, working, now); return (
+              <li key={j.no} className={`nm-bd-job s-${l.status}`} title={l.text}>
+                <StatusMark status={l.status} label={l.text} size={14} strokeWidth={2.4} fontSize={13} {...MARK} />
+                {l.side ? <small>{l.side}</small> : null}
+              </li>
+            ); })}
+          </ul>
+        </div>
+      ) : null}
+      {r.lane === "lost" && r.why ? <p className="why">{r.why}</p> : null}
+      {bits.length ? <p className="meta">{bits.join(" · ")}</p> : null}
     </li>
   );
 }
 
 function Flow({ t, now, pmName }: { t: BotTable; now: number; pmName: string }) {
-  const list = usePeople(), groups = flowOf(t.rows), orders = t.rows.reduce((n, r) => n + (r.open?.length || 0), 0);
+  const list = usePeople(), groups = flowOf(t.rows), orders = t.rows.reduce((n, r) => n + (r.open?.length || 0), 0), { resolved } = useTheme();
   let i = 0;
   return (
     <div className="nm-bd-flow">
       <div className="nm-bd-pm" style={delay(i++)}>
         <span className="face">{pmName ? <FaceImg id={idOf(pmName, list)} size={34} /> : null}</span>
-        <div><p className="name"><b>{pmName || "PM 없음"}</b><span className="tag">PM</span></p><p className="meta">일 나누는 자리 · 지금 맡겨 둔 오더 {orders}건</p></div>
+        <div className="who"><p className="name"><b>{pmName || "PM 없음"}</b><span className="tag">PM</span></p><p className="meta">일 나누는 자리 · 지금 맡겨 둔 오더 {orders}건</p></div>
+        {pmName ? <ThinkingOrb state="composing" size={32} theme={resolved} /> : null}
       </div>
       {(t.late || []).map((o) => <p key={o.no} className="nm-bd-late" style={delay(i++)}>{o.no} {o.who} — 부른 지 {o.min}분, 받음 없음</p>)}
       <div className="nm-bd-tree">
