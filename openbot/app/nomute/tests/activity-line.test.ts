@@ -23,5 +23,6 @@ test("설정 「지금 봇」 한 줄 = 같은 판정 · 쉼은 마지막 손 �
   assert.deepEqual(botLine({ name: "뎅", state: "멈춤", value: "멈춤 · 신호 끊김" }, ago), { kind: "lost", text: "멈춤 · 신호 끊김" });
   assert.deepEqual(botLine({ name: "누리", state: "모름" }, ago), { kind: "unknown", text: "활동 모름" });
   assert.deepEqual(botLine(undefined, ago), { kind: "none", text: "" });
-  assert.deepEqual(actCount([{ name: "a", state: "일" }, { name: "b", state: "쉼", ready: true }, { name: "c", state: "쉼" }, { name: "d", state: "일" }]), { work: 2, ready: 1 });
+  assert.deepEqual(actCount([{ name: "a", state: "일" }, { name: "b", state: "쉼", ready: true }, { name: "c", state: "쉼" }, { name: "d", state: "일" }]), { work: 2, ready: 1, total: 4 });   // total = 같은 줄 수(분자 ≤ 분모 · 형 11-15 「9/7」 버그)
+  assert.deepEqual(actCount([]), { work: 0, ready: 0, total: 0 });
 });

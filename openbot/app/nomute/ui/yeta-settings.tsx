@@ -18,7 +18,6 @@ import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
 import { office } from "../data/office";
 import { ACT_QUERY_KEY, actCount, type MiniRow } from "./activity-line";
-import { usePeople } from "./faces";
 import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { EnterKeyRow } from "./enter-key";
@@ -65,13 +64,12 @@ export function YetaSettings() {
   const { preference, setPreference } = useTheme();
   const skin = useSkin();
   const [open, setOpen] = useState("");
-  const list = usePeople();
   const health = useQuery({ queryKey: ["nomute", "health"], queryFn: () => office<Health>("health"), refetchInterval: 60_000 }).data?.counts;
   const bots = useQuery({ queryKey: ACT_QUERY_KEY, queryFn: () => office<{ rows?: MiniRow[] }>("status/activity").then((j) => j.rows || []), refetchInterval: 60_000, staleTime: 30_000 }).data;   // 「지금 봇」과 같은 활동 줄(서버 판정)
   const build = useBuildLine();
   const teamsName = useTeamsName();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
-  const nBots = list.filter((p) => p.kind === "bot").length, awake = actCount(bots || []).work;
+  const act = actCount(bots || []), nBots = act.total, awake = act.work;   // 분자 · 분모 = 같은 활동 줄에서(앞 판 = 분모만 그록 봇 수라 「9/7」 · 형 11-15 08:00)
   const modelSum = useModelSum();   // 모델 · 노력도 묶음 줄 오른쪽 한마디
   const pinA = usePinAlpha();   // 고정 줄 색 진하기 = 줄 오른쪽 값(./pin-tint)
   const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)

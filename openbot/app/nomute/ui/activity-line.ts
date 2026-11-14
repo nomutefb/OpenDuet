@@ -27,8 +27,8 @@ export function botLine(r: MiniRow | undefined, ago: (ts?: number) => string): {
 }
 
 /** 머리 셈 — 일하는 중 · 받을 수 있음 몇. */
-export function actCount(rows: MiniRow[]): { work: number; ready: number } {
+export function actCount(rows: MiniRow[]): { work: number; ready: number; total: number } {   // total = 같은 줄들의 수(분모를 다른 목록에서 세면 「9/7」처럼 어긋남 · 형 11-15 08:00 「일하는 중 9/7 이라 뜨네 버그」)
   let work = 0, ready = 0;
   for (const r of rows) { const k = actKind(r); if (k === "work") work++; else if (k === "ready") ready++; }
-  return { work, ready };
+  return { work, ready, total: rows.length };
 }
