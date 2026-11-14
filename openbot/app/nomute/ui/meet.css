@@ -32,6 +32,10 @@
 .nm-meetlog-empty { color:var(--mut, rgba(232,234,232,.5)); font-size:13px; }
 .nm-meetlog-row > button { all:unset; display:flex; flex-direction:column; gap:2px; width:100%; box-sizing:border-box; padding:10px 12px; border-radius:12px; border:1px solid var(--border, rgba(255,255,255,.1)); cursor:pointer; }
 .nm-meetlog-row b { font-size:13px; } .nm-meetlog-row small { font-size:12px; color:var(--mut, rgba(232,234,232,.55)); }
+.nm-ml-meta { list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:3px; font-size:12px; line-height:1.5; color:var(--mut, rgba(232,234,232,.55)); }
+.nm-ml-meta li { position:relative; padding-left:12px; overflow-wrap:anywhere; }
+.nm-ml-meta li::before { content:"•"; position:absolute; left:0; opacity:.7; }
+.nm-ml-meta i { font-style:normal; font-weight:600; color:var(--fg-2, rgba(232,234,232,.78)); margin-right:2px; }
 .nm-meetlog-body { padding:8px 12px; display:flex; flex-direction:column; gap:4px; font-size:13px; max-height:50vh; overflow:auto; }
 .nm-meetlog-body p { margin:0; white-space:pre-wrap; } .nm-meetlog-body p b { color:#CFFF40; margin-right:6px; }
 /* 스케치(ui/sketch.tsx · 형 11-13 06:49 「화면은 그대로인데, 그 위에 스케치」 · 우리끼리만) = 틀 위 덧그림 · 끄면 손이 화면으로 감 */

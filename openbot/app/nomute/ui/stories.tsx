@@ -12,7 +12,9 @@ import { Pane } from "./pane";
 import "./stories.css";
 
 export type Story = { id: string; ts: number; who: string; title: string; path?: string; text?: string; bell?: string };
-export const useStories = () => useQuery({ queryKey: ["nomute", "stories"], queryFn: () => office<{ items?: Story[] }>("stories").then((j) => (Array.isArray(j.items) ? j.items : [])), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false });
+/** 안 보이는 지은이 — 윈터 글 뺌(형 11-14 「윈터 관련된 글은 삭제」 · 서버 글은 그대로 두고 목록에서만) */
+const GONE = new Set(["윈터", "winter"]);
+export const useStories = () => useQuery({ queryKey: ["nomute", "stories"], queryFn: () => office<{ items?: Story[] }>("stories").then((j) => (Array.isArray(j.items) ? j.items : []).filter((s) => !GONE.has(s.who))), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false });
 
 const KST = 9 * 3600e3;
 const when = (ts: number) => { const d = new Date(ts + KST); return `${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")} ${d.getUTCHours()}시`; };
