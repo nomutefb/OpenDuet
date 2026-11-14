@@ -167,6 +167,7 @@ export function vidFileUrl(f) { return '/api/dl?u=' + encodeURIComponent(f.url) 
 export function grab(href, newTab) {   // 원본 a.click 꼴 그대로(보이지 않는 링크 한 번 누름 = 다운로드 폴더로)
   const a = document.createElement('a');
   a.href = href; a.rel = 'noopener'; if (newTab) a.target = '_blank';
+  else a.download = '';   // 받기 표시 = 앱 링크 가로채기(./inapp.ts onLink · download 있으면 건너뜀)가 같은 사이트 파일 주소를 「에디터」 웹 창으로 열지 않고 브라우저가 바로 받음(형 11-14 15:11 「다운로드를 누르면 > 대화창을 넘어가면서, 에디터가 뜨고, 창이 화면을 넘어가고, 맥에서 다운로드가 잘안되고」 · 뜸) · 이름 = 서버 content-disposition 그대로
   document.body.appendChild(a); a.click();
   setTimeout(() => { try { a.remove(); } catch {} }, 1500);
 }
