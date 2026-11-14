@@ -1,12 +1,11 @@
 // PM 방 오른쪽 위 러너맵 축소판(형 11-14 22:37 dm-gik 「그거 항상 pm으로 고정한 애 우상단에는 공지 고정처럼 애들 러너맵 ㄷ축소판뜨게해줘~」 · 깃 오더 #-008 · 뎅)
 //   = 지금 PM(서버 pm 칸)의 1:1 방에서만 · 공지 고정 띠 자리(PinBar 밑) 오른쪽 위 알약 「러너맵」 · 누르면 위 = 애들 한 줄씩(봇 현황 · 일함 · 쉼 · 멈춤 · 까닭) · 아래 = 홈 러너 칸의 조약돌 · 러너 여섯 점(기계 계기는 가림 · 깃 23:03 「기계 계기는 빼도 돼」)
 //   얼마를 먹나 = 닫힘 = 받아오기 0(PM 칸 5분 · 방 목록 10분만) · 열림 = 홈 러너 칸과 같은 자료 · 같은 캐시(status 60초 · schedule 120초 · 숨은 탭 멈춤 = react-query 기본)
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { jobBoard } from "./job-fold";
-import { office } from "../data/office";
-import { RunnerGauges } from "./runner-gauges";
-import { ACT_QUERY_KEY, miniLine, type MiniRow } from "./activity-line";
+import { faceOf, office } from "../data/office";
+import { ACT_QUERY_KEY, miniLine, type MiniLine, type MiniRow } from "./activity-line";
 import "./pm-runner-mini.css";
 
 function usePmRoom(): string | null {
@@ -15,16 +14,22 @@ function usePmRoom(): string | null {
   return pm && rooms ? rooms.find((r) => (r.kind === "dm" || r.id.startsWith("dm-")) && r.name === pm)?.id || null : null;
 }
 
-function Kids() {   // 봇 현황 = 서버 활동 판정 그대로(GET status/activity · 봇 현황 한 장 · 작동 표 활동 칸과 같은 줄 · 열렸을 때만 60초)
-  //   옛 bots 자료(깸 · 잠 · 모름)는 쉬는 그록 · 카리나를 「멈춤?」으로, 일하는 클로드를 「쉼」으로 냈음(형 11-14 23:4x 클라우드 세션 창 「멈춤? 이렇게 뜨는거 없어야 함」)
-  //   작업 알림(기차봇) = 활동 줄에 없는 자리라 안 나옴(형 「러너맵에 기차 는 나올 필요없음」)
+const NODEV = new Set(["뜸", "결", "촉", "온"]);   // 개발 제외 손(서버 손 표 editor functions/api/office/_roles.js nodev · 형 정본) = 구분선 아래(형 11-15 05:24 「애초에 개발 참여 안하는 애들은 조금 분류를 구분선 하나 그어서」)
+function Face({ b }: { b: MiniLine }) {   // 얼굴 + 이름 · 일함 = 점등(밝음) / 그 밖 = 흐림 · 상태 글 0(형 05:24 「프로필 사진 이름 나오는 거로 점등 되고 안되고로 일하는 중을 나타내면 될듯 심플하게」)
+  const src = faceOf(b.name);
+  return <li className={b.kind === "work" ? "on" : b.kind === "lost" ? "lost" : ""} title={`${b.name} · ${b.label}${b.sub ? " · " + b.sub : ""}`}>{src ? <img src={src} alt="" loading="eager" decoding="async" /> : <i aria-hidden />}<b>{b.name}</b></li>;
+}
+function Kids() {   // 봇 현황 = 서버 활동 판정 그대로(GET status/activity · 6KB · PM 방에 들어오면 미리 받아 둠 → 첫 열림 한 번에 · 열렸을 때만 60초)
+  //   앞 판 = 아이 줄(글) 밑에 홈 러너 칸(status 175KB · 7~8초) → 처음 누르면 두 번 끊겨 뜸(형 05:24 「처음 누르면 2단으로 탁탁 끊겨서 나옴」) · 러너 칸은 홈에 그대로
   const q = useQuery({ queryKey: ACT_QUERY_KEY, queryFn: () => office<{ rows?: MiniRow[] }>("status/activity").then((j) => j.rows || []), refetchInterval: 60_000, staleTime: 30_000 });
   const rows = (q.data || []).map(miniLine);
-  if (!rows.length) return null;
+  if (!rows.length) return <p className="nm-pmrun-empty">불러오는 중…</p>;
+  const dev = rows.filter((b) => !NODEV.has(b.name)), rest = rows.filter((b) => NODEV.has(b.name));
   return (
-    <ul className="nm-pmrun-kids" aria-label="애들 지금">
-      {rows.map((b) => <li key={b.name} className={`s-${b.kind}`}><b>{b.name}</b><span>{b.label}</span>{b.sub ? <small>{b.sub}</small> : null}</li>)}
-    </ul>
+    <div className="nm-pmrun-kids" aria-label="애들 지금">
+      <ul>{dev.map((b) => <Face key={b.name} b={b} />)}</ul>
+      {rest.length ? <><hr /><ul>{rest.map((b) => <Face key={b.name} b={b} />)}</ul></> : null}
+    </div>
   );
 }
 
@@ -49,6 +54,13 @@ const CHECKS = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" strok
 export function PmRunnerMini({ room }: { room: string }) {
   const pmRoom = usePmRoom();
   const [open, setOpen] = useState<"" | "run" | "job">("");
+  const qc = useQueryClient(), here = !!pmRoom && room === pmRoom;
+  useEffect(() => {   // PM 방에 들어오면 활동 판(6KB)만 미리 · 얼굴 그림도 미리 데움 → 첫 열림 = 한 번에(끊김 0) · 이미 받은 게 30초 안이면 안 받음
+    if (!here) return;
+    void qc.prefetchQuery({ queryKey: ACT_QUERY_KEY, queryFn: () => office<{ rows?: MiniRow[] }>("status/activity").then((j) => j.rows || []), staleTime: 30_000 }).then(() => {
+      for (const r of (qc.getQueryData<MiniRow[]>(ACT_QUERY_KEY) || [])) { const src = faceOf(r.name); if (src) { const im = new Image(); im.decoding = "async"; im.src = src; } }
+    });
+  }, [here, qc]);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -61,7 +73,7 @@ export function PmRunnerMini({ room }: { room: string }) {
   return (
     <div ref={box} className={`nm-pmrun${open ? " open" : ""}`}>
       <div className="nm-pmrun-row">{pill("run", "러너맵", GRID)}{pill("job", "접수 · 완료", CHECKS)}</div>
-      {open === "run" ? <div className="nm-pmrun-b"><Kids /><div className="nm-pmrun-g"><RunnerGauges /></div></div> : null}
+      {open === "run" ? <div className="nm-pmrun-b run"><Kids /></div> : null}
       {open === "job" ? <div className="nm-pmrun-b"><Jobs pmRoom={pmRoom} /></div> : null}
     </div>
   );
