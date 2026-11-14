@@ -10,9 +10,11 @@ type Entry = { file: File; packed: File | null; pending: boolean; ready: Promise
 const files = new Map<string, Entry>();
 const CACHE = "office-app-att";
 
-// ── 「압축 ON / 원본」 스위치 · 기본 = 압축 · 마지막 고른 것 기억(nm-compress)
+// ── 「압축 ON / 원본」 스위치 · 기본 = 압축 · 한 번 보내면 다시 기본(형 11-14 23:07 dm-gik 「글구 사진. 압축 풀어서 한번 보내면 다음에는 또 풀려서 보내지거든? 한번 풀더라도 다음에는 기본값으로 다시 설정되어잇게해줘 다른 것들도 마찬가지 프레임 등」 · 깃 #-015 · 뎅)
+//   앞 판 = 마지막 고른 것 기억(nm-compress · localStorage) → 기억 안 함 · 옛 기억 줄은 지움
 const KEY = "nm-compress";
-let on = (() => { try { return localStorage.getItem(KEY) !== "0"; } catch { return true; } })();
+let on = true;
+try { localStorage.removeItem(KEY); } catch { /* 없음 */ }
 let version = 0;
 const listeners = new Set<() => void>();
 const emit = () => { version++; for (const l of listeners) l(); };
@@ -20,7 +22,6 @@ export const compressOn = () => on;
 export function setCompress(next: boolean) {
   if (next === on) return;
   on = next;
-  try { localStorage.setItem(KEY, next ? "1" : "0"); } catch { /* 이번 탭만 */ }
   emit();
 }
 // ── 「움직임 자세히」(영상만 · 형만 · 평소 꺼짐 · 형 11-12 06:4x 「영상쪼개서 보내는건 사용자만 기능이 있으면 돼. 그리고 평소에는 off야」)
@@ -64,7 +65,7 @@ export async function putAttachment(f: File) {
 /** 보낼 파일(지우지 않음 · 보내기가 실패하면 입력칸 첨부 알약이 그대로 남으니 다시 보낼 수 있게)
  *  누른 순간의 스위치를 그 첨부에 적어 둠 = 줄 서서 늦게 올라가도 누른 때 고른 판으로(sendable) */
 export function peekAttachments(ids: string[]): File[] {
-  queueMicrotask(() => setDense(false));   // 「움직임 자세히」 = 한 번 보내면 다시 꺼짐(평소 꺼짐)
+  queueMicrotask(() => { setDense(false); setCompress(true); });   // 「움직임 자세히」 · 「압축 ON / 원본」 = 한 번 보내면 다시 기본(평소 꺼짐 · 압축)(형 11-14 23:07 · 깃 #-015) · 이번 글 판은 아래에서 먼저 정해짐
   return ids.map((id) => {
     const e = files.get(id);
     if (!e) return undefined;
