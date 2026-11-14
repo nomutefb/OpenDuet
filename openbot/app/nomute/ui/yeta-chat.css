@@ -829,3 +829,8 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ychat .yb-phck > .yb-ck-ph { position:absolute; right:calc(100% + 8px); bottom:9px; width:11px; height:11px; fill:none; stroke:#CFFF40; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 0 3px rgba(207,255,64,.45)); opacity:0; pointer-events:none; }
 .ychat .yb-line:has(.nm-encg.ok) .yb-ck-ph { opacity:1; }
 .ychat .yb-line:has(> .yb-st.media) .nm-encg.ok, .ychat .yb-line:has(> .yb-st.media) .nm-stk-sent.sent .nm-stk-ok { visibility:hidden; }   /* 말풍선 안 원래 체크 = 숨김(자리는 그대로 · 세로줄 체크 하나만) */
+/* 단톡 개요(./room-list.tsx RoomInfo · 형 11-14 11:52 「단체톡 설정이나 개요 내용이 떠야 맞지않나」) — 프로필 카드 .ypc 꼴 그대로 · 단추 = 두 줄까지 감김 */
+.nm-rinfo .nm-rinfo-ava { border-radius: 28px; overflow: hidden; }
+.nm-rinfo .nm-rinfo-crew { margin: 0; max-width: 32ch; font-size: var(--fs-sm); color: #B9BEB8; line-height: var(--lh-base); text-wrap: pretty; }
+.nm-rinfo .nm-rinfo-crew b { color: #E7ECE7; font-weight: var(--fw-b); }
+.nm-rinfo .nm-rinfo-acts { flex-wrap: wrap; justify-content: center; }

@@ -22,7 +22,7 @@ test("카드 애 = 카드 한 장만 · 색 원 · 설명 글 카드 안 · 화�
   assert.match(vend, /\{!actions && contactText && \(/);
   assert.match(vend, /note && <p className=\{`profile-card__note\$\{noteEmpty \? " is-empty" : ""\}`\}>/);
   assert.match(css, /\.ypc\.ypc--being \{[^}]*background: none;/);
-  assert.match(css, /\.ypc-veil:has\(> \.ypc--being\) \{ place-items: start center;/);
+  assert.match(css, /\.ypc-veil:has\(> \.ypc--being\) \{ place-items: center; align-items: safe center;[^}]*\+ 10dvh\)/);   // 가운데보다 조금 위(형 11-14 11:52 「너무 위에떠서 어색해」)
 });
 
 test("「안 닿음」 줄 0 · 애들 글 · 형 글 둘 다(형 11-11 14:35 「아 ㅋㅋ 그거는 안떠도 돼.」)", () => {

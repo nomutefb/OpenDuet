@@ -19,7 +19,9 @@ import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/off
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
 import { LiveShine } from "./live-shine";
-import { RoomGoneDialog, RoomMembersDialog, TempDeleteDialog, TempRoomDialog, TempSwipe, canGone } from "./temp-room";
+import { RoomGoneDialog, RoomMembersDialog, TempDeleteDialog, TempRoomDialog, TempSwipe, canGone, tempLeft } from "./temp-room";
+import { RoomLookDialog } from "./room-look";   // 단톡 개요 「방 꾸미기」 = 방 안 메뉴와 같은 창
+import { whoName } from "./who-name";
 import { listWhen } from "./when";
 import { NoticeDialog } from "./notice-edit";
 import { TeamsList, TeamsSwitch, setOfficeMode, setTeamsMode, useOfficeMode, useTeamsMode } from "./teams";
@@ -124,14 +126,51 @@ function PeerFaceTap({ who, name, list, children }: { who: string; name: string;
     </span>
   );
 }
-/** 방 목록 방 사진 누르기 = 방에 안 들어가고 바로 사진 바꾸기(형 11-13 06:54 「이거 방 목록이서프로필 사진쪽 클릭하면 바로 방 프로필 사진 변경으로 이동ㄷ어야하고」 · 단톡방만 · 서버가 형 문만 받음) */
+/** 방 목록 단톡 머리 그림 누르기 = 방에 안 들어가고 그 단톡 개요(이름 · 종류 · 목적 · 멤버) + 설정 단추 — 사진 바꾸기는 그 안 단추
+ *  (형 11-14 11:52 봄 옮김 「단체톡 이미지 누르면 바로 사진 고르기가 떠서 어색해 단체톡 설정이나 개요 내용이 떠야 맞지않나」 · 앞 판 = 누르면 바로 사진 고르기 · 형 11-13 06:54)
+ *  꼴 = 1:1 줄 얼굴 누름 프로필 카드(./profile-card.tsx)와 같은 유리 카드 · 단추 = 방 안 이름 목록(./room-menu.tsx)과 같은 창을 그대로 띄움 · 서버 손 0 */
 function RoomPhotoTap({ r, children }: { r: Room; children: React.ReactNode }) {
   const photo = useRoomPhoto(r);
-  const go = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); photo.pick(); };
+  const [view, setView] = useState<"" | "info" | "crew" | "look" | "temp">("");
+  const go = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); setView("info"); };
+  const stop = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
+  const close = () => setView("");
   return (
-    <span role="button" tabIndex={0} aria-label={`${r.name} 방 사진 바꾸기`} className="nm-rphoto" onClick={go} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") go(e); }}>
+    <span role="button" tabIndex={0} aria-label={`${r.name} 방 개요`} className="nm-rphoto" onClick={go} onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") go(e); }}>
       {children}{photo.sheet}
+      {view ? createPortal(<span onClick={stop}>
+        {view === "info" ? <RoomInfo r={r} onClose={close} onPhoto={() => { close(); photo.pick(); }} onView={setView} /> : null}
+        {view === "crew" ? <RoomMembersDialog r={r} onClose={close} /> : null}
+        {view === "look" ? <RoomLookDialog r={r} onClose={close} /> : null}
+        {view === "temp" ? <TempRoomDialog edit={r} onClose={close} /> : null}
+      </span>, document.body) : null}
     </span>
+  );
+}
+function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => void; onPhoto: () => void; onView: (v: "crew" | "look" | "temp") => void }) {
+  const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
+  const nav = useNavigate();
+  const names = (r.members || []).map((w) => list.find((x) => x.who === w)?.name || whoName(w)).filter(Boolean);
+  const kind = r.id === "all" ? "회의실" : r.temp ? `임시방${r.exp ? " · " + tempLeft(r.exp) : ""}` : r.designated ? "지정방" : "단톡방";
+  const crewOk = (r.id !== "all" && !!r.designated && !r.temp) || !!r.temp;   // 멤버 설정 = 방 안 메뉴와 같은 조건(./room-menu.tsx crewItems)
+  return (
+    <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
+      <div className="ypc nm-rinfo" role="dialog" aria-label={`${r.name} 개요`} onClick={(e) => e.stopPropagation()}>
+        <div className="ypc-ava nm-rinfo-ava"><RoomIcon r={r} size={104} /></div>
+        <span className="ycd-nm">{r.name}</span>
+        <span className="ycd-tag">{kind}</span>
+        {r.purpose ? <p className="ypp-desc">{r.purpose}</p> : null}
+        {names.length ? <p className="nm-rinfo-crew"><b>멤버 {names.length}</b> · {names.join(" · ")}</p> : null}
+        <div className="ypc-acts nm-rinfo-acts">
+          <button type="button" className="ypc-go" onClick={() => { onClose(); enterRoom(r.id); void nav({ to: r.id === "all" ? "/group/$channelId" : "/channels/$channelId", params: { channelId: r.id } }); }}>대화 열기</button>
+          <button type="button" className="ypc-x" onClick={onPhoto}>사진 바꾸기</button>
+          {crewOk ? <button type="button" className="ypc-x" onClick={() => onView("crew")}>멤버 설정</button> : null}
+          <button type="button" className="ypc-x" onClick={() => onView("look")}>방 꾸미기</button>
+          {r.temp ? <button type="button" className="ypc-x" onClick={() => onView("temp")}>방 설정</button> : null}
+        </div>
+      </div>
+    </div>
   );
 }
 export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)

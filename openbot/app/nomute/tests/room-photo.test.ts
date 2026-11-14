@@ -6,9 +6,11 @@ import { readFileSync } from "node:fs";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const ph = rd("../ui/room-photo.tsx"), list = rd("../ui/room-list.tsx"), look = rd("../ui/room-look.tsx"), tr = rd("../ui/temp-room.tsx");
 
-test("① 목록 방 사진 누름 = 바로 바꾸기(단톡) · 방 링크로 안 번짐", () => {
+test("① 목록 방 사진 누름 = 그 단톡 개요(형 11-14 11:52 「단체톡 설정이나 개요 내용이 떠야 맞지않나」) · 사진 바꾸기는 개요 안 단추 · 방 링크로 안 번짐", () => {
   assert.match(list, /<RoomPhotoTap r=\{r\}><RoomIcon r=\{r\} size=\{size\} color=\{rc\} \/><\/RoomPhotoTap>/);
-  assert.match(list, /e\.preventDefault\(\); e\.stopPropagation\(\); photo\.pick\(\);/);
+  assert.match(list, /e\.preventDefault\(\); e\.stopPropagation\(\); setView\("info"\);/);
+  assert.match(list, /onPhoto=\{\(\) => \{ close\(\); photo\.pick\(\); \}\}/);
+  assert.match(list, />사진 바꾸기<\/button>/);
   assert.match(ph, /onPointerDown=\{\(e\) => e\.stopPropagation\(\)\}/, "자르기 판 누름이 줄로 안 번짐");
 });
 test("② 설명글 0 · ③ 엑박 0", () => {
