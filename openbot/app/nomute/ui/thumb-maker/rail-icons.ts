@@ -34,6 +34,7 @@ export const RAIL_ICON_CSS =
   // 기둥 = 잘리지 않음(스크롤 · 흐림 끔) · 도크가 기둥 키를 품음 = 아래 칸을 안 덮음
   + `${S} .cpprev>.trailwrap{height:auto!important}${S} .trailwrap>.trail-opts{flex:none!important;overflow:visible!important;-webkit-mask-image:none!important;mask-image:none!important}`
   + `${S} .cpprev{min-height:var(--nm-railh,0px)}`
+  + `${S} .cpprev-box{height:max(min(29cqh,300px),var(--nm-railh,0px))!important}`   // 그림 상자도 기둥 키만큼(칸만 늘고 상자는 29cqh 에 묶여 미리보기가 작게 · 아래 빔 · 형 11-14 15:39 「1 미리보기가 세로 폭 맞춤이 안됨」 · 봄 [도움] · 뜸) · 비율(4:5 · 9:16)은 무대가 그대로 지킴
   + ".nm-tm-tip{position:fixed;z-index:2147483000;padding:5px 10px;border-radius:999px;background:rgba(14,15,14,.94);border:1px solid rgba(255,255,255,.16);color:#e8eae8;font:700 12px/1.2 Pretendard,system-ui,sans-serif;white-space:nowrap;pointer-events:none;transform:translate(calc(-100% - 10px),-50%)}";
 
 /** root = .nm-tm · 엔진이 판을 그린 뒤 부름 · 돌려주는 것 = 끄기 */
