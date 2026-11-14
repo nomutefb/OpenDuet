@@ -67,7 +67,9 @@ html.dark .nm-kwb-col .n { color:#CFFF40; }
 @container kwb (max-width:460px) {
   .nm-kwb-cols { display:flex; gap:0; padding:4px 0 0; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; scrollbar-width:none; row-gap:0; }
   .nm-kwb-cols::-webkit-scrollbar { display:none; }
-  .nm-kwb-col { flex:0 0 100%; scroll-snap-align:start; scroll-snap-stop:always; border-left:0; padding:0 14px; }
+  .nm-kwb-col { flex:0 0 100%; scroll-snap-align:start; scroll-snap-stop:always; border-left:0; padding:0 14px; direction:ltr; }
+  /* 넘기는 방향 = 뉴스 카드와 같게: 오른쪽으로 밀면 다음 줄기(형 11-15 「우로 넘기는게 안먹혀지게됨」 · 앞 판 = 왼쪽으로 밀어야 다음) — 줄기 차례는 그대로 · 놓이는 방향만 오른쪽 → 왼쪽 */
+  .nm-kwb-cols { direction:rtl; }
   .nm-kwb-ch { height:38px; }
   .nm-kwb-ch b { font-size:14px; opacity:.9; }
   .nm-kwb-ch span { font-size:11px; }
