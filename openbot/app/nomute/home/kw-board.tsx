@@ -8,11 +8,11 @@ import "./kw-board.css";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { firstJson } from "./news-feed";
-import { KW_EVERY_MS, KW_FIRST_MS, kwCols, kwHits, kwShowNew, type TrendsIn, type XtopIn } from "./kw-board-core";
+import { KW_EVERY_MS, KW_FIRST_MS, KW_STEP_MS, kwCols, kwHits, kwShowNew, type TrendsIn, type XtopIn } from "./kw-board-core";
 
 const ago = (iso: string, now: number) => { const t = Date.parse(iso); if (!Number.isFinite(t)) return ""; const m = Math.max(0, Math.floor((now - t) / 6e4)); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
 
-export function KwBoard({ on, run }: { on: boolean; run: number }) {
+export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?: () => void }) {
   const q = useQuery({
     queryKey: ["nomute", "kw-board"], staleTime: 300_000, refetchInterval: 600_000,
     queryFn: async () => {
@@ -32,8 +32,33 @@ export function KwBoard({ on, run }: { on: boolean; run: number }) {
   const onScroll = () => { const el = box.current; if (el && el.clientWidth) setPage(Math.max(0, Math.min(cols.length - 1, Math.round(Math.abs(el.scrollLeft) / el.clientWidth)))); };
   const jump = (i: number) => { const el = box.current; if (el) el.scrollTo({ left: (getComputedStyle(el).direction === "rtl" ? -1 : 1) * i * el.clientWidth, behavior: "smooth" }); };
   const none = cols.every((c) => !c.items.length);
+  // 줄기 넘김(깃 #-037) — 뜨면 첫 줄기부터 5초마다 다음 줄기 · 마지막 줄기 5초 뒤 = Hot Issue 로(onDone) · 넓은 칸(넷 다 보임) = 줄기 수 × 5초 보고 돌아감
+  //   만지는 중(마우스 올림 · 방금 누름 20초) · 숨은 탭 = 그 자리에서 기다림(보던 걸 뺏지 않음) · 타이머 하나 · 움직임 = 원래 스크롤(smooth) 그대로
+  const over = useRef(false), hold = useRef(0), done = useRef(onDone);
+  done.current = onDone;
+  const n = cols.length;
+  useEffect(() => {
+    if (!on) return undefined;
+    let i = 0, t = 0, live = true;
+    const el = box.current;
+    if (el) el.scrollTo({ left: 0 });
+    const narrow = () => { const b = box.current; return !!b && b.scrollWidth > b.clientWidth + 4; };
+    const step = () => {
+      if (!live) return;
+      if (document.hidden || over.current || Date.now() < hold.current) { t = window.setTimeout(step, 3000); return; }
+      i += 1;
+      if (none || i >= (narrow() ? n : 1)) { done.current?.(); return; }
+      jump(i);
+      t = window.setTimeout(step, KW_STEP_MS);
+    };
+    t = window.setTimeout(step, none || narrow() ? KW_STEP_MS : KW_STEP_MS * Math.max(1, n));
+    return () => { live = false; window.clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [on, run, n, none]);
   return (
-    <section className="nm-kwb" aria-label="키워드 순위" aria-hidden={on ? undefined : true} inert={on ? undefined : true}>
+    <section className="nm-kwb" aria-label="키워드 순위" aria-hidden={on ? undefined : true} inert={on ? undefined : true}
+      onPointerEnter={(e) => { if (e.pointerType === "mouse") over.current = true; }} onPointerLeave={() => { over.current = false; }}
+      onPointerDown={() => { hold.current = Date.now() + 20_000; }}>
       <div className="nm-nlist-h nm-kwb-h"><i className="live" aria-hidden /><b>Keyword</b><span>{newest ? ago(newest, now) : ""}</span></div>
       {none ? (
         <p className="nm-kwb-none"><b>{q.isPending ? "받는 중…" : q.isError ? "키워드 순위를 못 받았어" : "지금 모인 키워드가 없어"}</b>{q.isPending ? null : <span>10분 뒤 다시 받아</span>}</p>
@@ -79,7 +104,7 @@ export function HotSwap({ children, label = "이슈" }: { children: ReactNode; l
     const tick = () => {
       if (!live) return;
       if (document.hidden || over.current || Date.now() < hold.current) { t = window.setTimeout(tick, 3000); return; }
-      setView((v) => (v === "hot" ? "kw" : "hot"));
+      setView("kw");   // Hot Issue → 키워드 만 · 키워드 → Hot Issue 는 판이 줄기를 다 넘긴 뒤(onDone · 깃 #-037)
       t = window.setTimeout(tick, KW_EVERY_MS);
     };
     arm.current = (ms) => { window.clearTimeout(t); t = window.setTimeout(tick, ms); };
@@ -109,7 +134,7 @@ export function HotSwap({ children, label = "이슈" }: { children: ReactNode; l
       onPointerEnter={(e) => { if (e.pointerType === "mouse") over.current = true; }} onPointerLeave={() => { over.current = false; }}
       onPointerDown={(e) => { if (e.pointerType !== "mouse") hold.current = Date.now() + 20_000; }}>
       <div ref={slot} className="nm-hot-slot" aria-hidden={view === "hot" ? undefined : true} inert={view === "hot" ? undefined : true}>{children}</div>
-      <KwBoard on={view === "kw"} run={run} />
+      <KwBoard on={view === "kw"} run={run} onDone={() => { setView("hot"); arm.current(KW_EVERY_MS); }} />
       <button type="button" className="nm-hotswap-t" aria-pressed={view === "kw"} aria-label={view === "hot" ? "키워드 순위 보기" : `${label} 보기`} title="1분마다 저절로 바뀜 · 누르면 바로" onClick={flip}>
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" /></svg>
         <span>{view === "hot" ? "키워드" : label}</span>

@@ -5,6 +5,7 @@
 //   겹침 = 옛 에디터 「교차합의」(viewer/index.html _cnNorm · _cnCls)와 같은 잣대(띄어쓰기 · 대소문자 무시) + 긴 말이 짧은 말(3자 넘게)을 품으면 같은 말(「박재현」 ↔ 「박재현 홈런」)
 
 export const KW_N = 7;
+export const KW_STEP_MS = 5_000;   // 키워드 판 = 줄기마다 5초 → 다음 줄기 · 다 보이면 Hot Issue 로(형 11-15 06:10 「트렌드 창으로 전환되면 5초 뒤에 다음 트렌드로 바뀌게하구 모든 트랜드 다 보여주면 다시 뉴스 피드로」 · 깃 #-037)
 export const KW_FIRST_MS = 10_000, KW_EVERY_MS = 60_000;   // 처음 10초 = Hot Issue · 그 뒤 1분마다 번갈아
 export const KW_STALE_MIN = 180;   // 이보다 낡은 줄기 = 흐리게 · 겹침 셈에서 뺌(옛 나무위키 잣대 180분)
 
