@@ -48,4 +48,8 @@ html.dark .tm-rf { color:#8B8F8A; }
 /* 시그니처 팔레트(형 11-11 12:50~12:51 봄 1:1 「이거는 아예 여기 붙은거지?」 · 「시그니처 팔레트만 그럼 여기에 맞춰줄수잇는지? 배경 이랑」) — 색 · 배경만 정원 라임 · 자리 · 크기 · 굵기 손 0 · 원본 판(./thumb-maker.css) 손 0
    강조 = 옛 에디터 하늘색(--modern-accent #71C5E8 · 그림 아이콘 · 「생성」 · 고른 숫자 · 소머리 점) → 라임 · 「포스트」(--bias-l1 #38C6FF · 이 판에선 그 글자 하나에만 씀) → 라임
    판 속은 밝게 · 어둡게 갈래가 없어 늘 어두움 = 라임 그대로 두 모드 · 장면 받침만 위 .tm-ambient 가 밝기 따라감 */
-.nm-tm { --modern-accent:#CFFF40; --modern-accent-rgb:207,255,64; --modern-bias-l1:#CFFF40; --modern-bias-l2:#5E8C00; --bias-l1:#CFFF40; }
+/* 두 겹(.nm-tm.nm-tm) = 불러온 차례와 상관없이 이김(형 11-14 11:29 봄 옮김 「포스트랑 저기 안에 시안 같은 색들 다 라임으로 할게 라임 네온」) — 앞 판 = 한 겹이라
+   영상 편집(./video-editor.tsx 가 이 파일을 먼저 부름)을 연 뒤 카드 제작을 열면 원본 판(./thumb-maker.css .nm-tm 하늘색)이 뒤에 붙어 이겼음(실물 · 9230 · 처음부터 열면 라임) */
+.nm-tm.nm-tm { --modern-accent:#CFFF40; --modern-accent-rgb:207,255,64; --modern-bias-l1:#CFFF40; --modern-bias-l2:#5E8C00; --bias-l1:#CFFF40; }
+/* 포스트 ↔ 릴스(누르면 바뀌는 판형 글자 · 저작권 OFF→릴스→포스트 포함) = 바뀌어도 그냥 라임(형 11-14 11:30 「그리고 누르먼 전환되는 릴스 키워드도 라임으로 전환되도 그냥 라임」 · 앞 판 릴스 = 노랑 --accent-4) */
+.nm-tm.nm-tm .csec .ovfmt.reels, .nm-tm.nm-tm .csec .ovfmt.post { color:var(--modern-accent); }
