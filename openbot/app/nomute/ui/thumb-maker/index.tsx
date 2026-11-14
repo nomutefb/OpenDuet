@@ -13,6 +13,8 @@ import { THUMB_HTML } from "./markup";
 import { SceneBg } from "./scene-bg";
 import { RAIL_ICON_CSS, railIcons } from "./rail-icons";   // 옆 기둥 글자 → 그림 단추(영상 편집 꼴 · 형 11-14 11:29 · 봄 11:47 ④)
 import { studioRoute } from "../studio-handoff";   // 「영상 편집으로」·「유튜브 링크로 숏폼」 = 옛 화면을 앱 안 한 겹으로(번개 11-08)
+import { ditherGaugeCss } from "../dither-gauge";   // 「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 경계(형 11-15 영상)
+const GAUGE_CSS = ditherGaugeCss(".nm-tm .go.firing:not(.fy)", "#4f7a00") + ditherGaugeCss(".nm-tm .go.firing:not(.fy)", "#CFFF40", "html.dark ");
 
 const HTML = { __html: THUMB_HTML };
 const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 3.5l1.8 4.9 4.9 1.8-4.9 1.8L12 16.9l-1.8-4.9-4.9-1.8 4.9-1.8L12 3.5z" /><path d="M19.5 15l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8.8-2.1z" /></svg>;
@@ -45,7 +47,7 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack, onMin }: { onBack?:
   return (
     <div className="tm-stage">
       {onBack ? null : <SceneBg />}   {/* 앱 안 = 제 장면 대신 웹앱 배경이 비침(형 11-13 02:26 「뒤에 지금 인앱 배경을 깔아버리면 될듯」 · 껍데기 .nm-modal.see) */}
-      <style>{RAIL_ICON_CSS}</style>
+      <style>{RAIL_ICON_CSS + GAUGE_CSS}</style>
       <div className="tm-head">
         {onBack ? <button type="button" className="tm-back" aria-label="닫기" onClick={onBack}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 18l-6-6 6-6" /></svg></button> : null}
         <b className="tm-title">{SPARK}<span>에디터</span></b>
