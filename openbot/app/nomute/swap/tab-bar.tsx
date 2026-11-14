@@ -7,7 +7,6 @@ import { DuetIcon, type DuetIconName } from "@/components/duet/icons";
 import { MODALS, type Modal, type Pane } from "../ui/shell";
 import "../ui/yeta-chat.css";
 import "./ynav.css";
-import { useRepairWaiting } from "../ui/repair-count";
 import { MODE_LABEL, useOfficeMode } from "../ui/teams";   // 「대화」 칸 이름 = 위 탭 판(대화 · 팀즈 · 회의 · 형 11-13 22:05 「위 탭에따라 아래에 메뉴는 고정이고 이름만 변경되게」)
 
 export type ShellTab = "chat" | "tasks" | "make";
@@ -30,9 +29,7 @@ export function tabForPath(pathname: string): ShellTab | null {
 export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pane | null; modal?: Modal | null; chatTo?: string; current?: ShellTab }) {
   const mode = useOfficeMode();
   const navigate = useNavigate();
-  const waiting = useRepairWaiting();   // 서랍 숫자 = 서랍 안 「수리 접수」 숫자와 같은 값(형 결정 대기 + 접수 방 안 읽은 글 · ../ui/repair-count.ts · 형 11-14)
   const inDrawer = !!modal && modal !== "nedit" && modal !== "settings";   // 작동 표(status)는 이제 서랍 안(봄 32)   // 서랍 안 화면 = 5번 켜짐(스케줄도 이제 서랍 안 · 형 11-05)
-  const badge = (n: number) => (n > 0 ? <b aria-hidden className="nm-nav-badge">{n > 99 ? "99+" : n}</b> : null);
   return (
     <>
       <nav aria-label="큰 탭" className="ynav">
@@ -63,10 +60,9 @@ export function TabBar({ pane, modal = null, chatTo = "/group/all" }: { pane: Pa
           <DuetIcon name="page" size={20} stroke={modal === "nedit" ? 2.1 : 1.9} />
           <span>뉴스 에디터</span>
         </button>
-        <button aria-current={inDrawer ? "page" : undefined} aria-label={waiting ? `서랍, 수리 접수 ${waiting}개 기다림` : "서랍"} className={inDrawer ? "on" : undefined} onClick={() => void navigate({ to: "/drawer" })} type="button">
+        <button aria-current={inDrawer ? "page" : undefined} aria-label="서랍" className={inDrawer ? "on" : undefined} onClick={() => void navigate({ to: "/drawer" })} type="button">
           <DuetIcon name="menu" size={20} stroke={inDrawer ? 2.1 : 1.9} />
-          <span>서랍</span>
-          {badge(waiting)}
+          <span>서랍</span>   {/* 수리 접수 숫자 뺌 = 서랍에 그 메뉴가 없어짐(형 11-14 「수리접수는 이제 그냥 삭제 아예 메뉴 없애」) */}
         </button>
         <button aria-current={modal === "settings" ? "page" : undefined} aria-label="설정" className={modal === "settings" ? "on" : undefined} onClick={() => void navigate({ to: "/settings" })} type="button">
           <DuetIcon name="settings" size={20} stroke={modal === "settings" ? 2.1 : 1.9} />

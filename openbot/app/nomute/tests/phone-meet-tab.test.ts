@@ -84,6 +84,16 @@ test("폰 뉴스 에디터 머리 줄 0 · PC 그대로(형 11-14 06:58)", () =>
   assert.match(rd("../ui/shell.tsx"), /className=\{`nm-modal-h nm-mh-\$\{M\.id\}`\}/);
   assert.match(rd("../ui/shell.css"), /@media \(max-width: 767px\) \{\n  \.nm-modal-h\.nm-mh-nedit \{ display:none; \}/);
 });
+test("폰 밥상 이야기 · 화상회의 머리 줄 0 · 봄의 정원 머리 제목 0 + 뒤 색 맞춤 · 윈터 글 0 · 화상회의 참여자/내용 두 줄(형 11-14)", () => {
+  const css = rd("../ui/shell.css"), sh = rd("../ui/shell.tsx");
+  assert.match(css, /\.nm-modal-h\.nm-mh-story, \.nm-modal-h\.nm-mh-meetlog \{ display:none; \}/);
+  assert.match(sh, /\{M\.id === "play" \? null : <b>\{M\.label\}<\/b>\}/);
+  assert.match(sh, /box\.style\.setProperty\("--nm-frame-top", top\); box\.style\.background = `linear-gradient\(\$\{top\} 50%, \$\{bot\} 50%\)`;/);
+  assert.match(css, /\.nm-modal-h\.nm-mh-play \{ right:auto;/);
+  assert.match(rd("../ui/stories.tsx"), /const GONE = new Set\(\["윈터", "winter"\]\);/);
+  assert.match(rd("../ui/meet.tsx"), /<li><i>참여자 :<\/i>/);
+  assert.match(rd("../ui/meet.tsx"), /<li><i>내용 :<\/i>/);
+});
 test("폰 영상 편집 = 미리보기 폭맞춤 · 기둥 겹침 허용(형 11-14 07:06)", () => {
   assert.match(rd("../ui/video-editor.tsx"), /@media \(max-width:767px\)\{\.topdock:not\(\.fold\) #pvsec\{min-height:0!important\}#pvsec \.cpprev-box\{width:calc\(100% - 82px\)!important;/);
 });
