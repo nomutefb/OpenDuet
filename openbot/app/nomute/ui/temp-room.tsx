@@ -10,7 +10,7 @@ import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장할까?」(�
 import { useNavigate } from "@tanstack/react-router";
 import { DaySlide } from "./day-slide";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
-import { type OfficeRoom, idOf, office, peopleSync } from "../data/office";
+import { type OfficeRoom, idOf, office, peopleSync, seatOff } from "../data/office";
 import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
 import { FaceImg } from "./faces";
 import { dropSearchCache } from "./room-search";
@@ -70,8 +70,9 @@ export function RoomArtRow({ id, look }: { id: string; look?: OfficeRoom["look"]
 
 export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: () => void }) {
   const qc = useQueryClient(), nav = useNavigate();
-  const cand = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 }).data || [];
+  const candRaw = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 }).data || [];
   const list = peopleSync(), who = (n: string) => list.find((p) => p.who === n);
+  const cand = candRaw.filter((n) => !seatOff(who(n)));   // 빈 자리 1 · 2 · 3(명부 empty · 작업 알림 포함) = 초대 칸 0(형 11-14 23:40 dm-gik 「그리구 llm 아니면 사무실 키 빼버려서 지금 클라우드세션이 쓰는거 포함 자리 1 2 3 은 모두 여기 목록에 안보여야 함」 · 깃 #-016 덧 · 뜸)
   const dk = `room-${edit?.id || "new"}`, base = { name: edit?.name || "", purpose: edit?.purpose || "", picked: edit?.members || [] };
   const d0 = draftGet<typeof base>(dk) || base;   // 쓰던 글 있으면 되살림
   const [name, setName] = useState(d0.name), [purpose, setPurpose] = useState(d0.purpose), [pickedRaw, setPicked] = useState<string[]>(d0.picked);
@@ -229,7 +230,7 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
         <b className="text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
         {!d ? <p className="text-muted-foreground">{q.isError ? q.error.message : "읽는 중…"}</p> : (
           <div className="flex flex-wrap gap-1.5">
-            {d.candidates.map((w) => {
+            {d.candidates.filter((w) => !seatOff(list.find((p) => p.who === w))).map((w) => {
               const on = now.includes(w);
               return (
                 <button key={w} type="button" disabled={!d.can_edit || busy} aria-pressed={on} onClick={() => setCur(on ? now.filter((x) => x !== w) : [...now, w])}
@@ -256,7 +257,7 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
   // 캐시 꼴 = 「방 설정」(TempRoomDialog)과 같은 후보 배열 — 같은 열쇠에 꼴이 둘이면 먼저 연 창 꼴이 남아 다른 창이 비거나 깨짐(시아 11-07)
   const q = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 });
   const [cur, setCur] = useState<string[] | null>(null), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
-  const list = peopleSync(), cand = q.data || [], now = cur ?? r.members ?? [];
+  const list = peopleSync(), cand = (q.data || []).filter((w) => !seatOff(list.find((p) => p.who === w))), now = cur ?? r.members ?? [];
   const save = async () => {
     if (!now.length || busy) return;
     setBusy(true); setWhy("");
