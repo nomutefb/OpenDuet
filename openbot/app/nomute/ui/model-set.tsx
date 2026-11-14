@@ -2,15 +2,18 @@
 //   형 11-15 클라우드 세션 창 「그걸 설정에서 변경 가능하게해줄래?」 · 「그런식으로 봇박스 들어가는거 전수조사해서 설정에서 일괄 모델 하고 노력도 변경 반영이 가능하게 해주라」
 //   ① 봇 상자(클로드 일곱) = 다음 새 창이 열릴 때의 모델 · 노력도 — 서버 profile/nextwin(작동 표 「애들 × 연결」 끝 칸 둘과 같은 값 · ./next-win.tsx) · 일괄 = {all: true}
 //   ② 서버가 직접 부르는 일 = 일감 가르기 등 — 서버 modelset(office/model-set.json) · 바꾸면 다음 호출부터
+//   ③ 파이프라인(러너가 도는 뉴스 등) = 중분류 일곱 갈래 — 앱 설정 한 장(/api/settings 의 llm 칸 · ./genopt.tsx 와 같은 길) · 「기본」 = 스크립트가 원래 쓰던 값 · 다음 실행부터
 //   바꾸기 = 형만(그 밖 = 글자만) · 표에 있는 값만 · 못 읽음 · 못 바꿈 = 그 자리에 한마디(조용히 삼키지 않음)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { office } from "../data/office";
 import { useMe } from "./pins";
 import { type NextWin, NW_EFFORTS, NW_MODELS, nwDefault, useNextWin } from "./next-win";
-import { type Choice, type Pick, type Sheet, EFFORT_KO, koOf, sameOf, sumKo } from "./model-set-logic";
+import { type Choice, type Llm, type Pick, type Sheet, EFFORT_KO, PIPE_EFFORTS, PIPE_GROUPS, PIPE_TIERS, koOf, pipePatch, pipeRows, sameOf, sumKo } from "./model-set-logic";
+import { getJson } from "./news-data";
 import "./model-set.css";
 
-const KEY = ["nomute", "modelset"] as const, NW_KEY = ["nomute", "nextwin"];
+const KEY = ["nomute", "modelset"] as const, NW_KEY = ["nomute", "nextwin"], PIPE_KEY = ["nomute", "settings-llm"] as const;
+type AppSet = { llm?: Llm; settings?: AppSet; error?: string };
 const KO: Record<string, string> = { "claude-sonnet-5-5": "소넷 5.5" };   // 서버 쪽 표(shared/models.json 표기)와 같은 글자로
 const BOT_MODELS: Choice[] = NW_MODELS.map(([id, ko]) => ({ id, ko: KO[id] || ko })), BOT_EFFORTS: Choice[] = NW_EFFORTS.map((id) => ({ id, ko: EFFORT_KO[id] || id }));
 const BOTS = ["봄", "깃", "빠르", "번개", "시아", "뎅", "뜸"];   // 서버 _nextwin.js 일곱 몸(서버 답에 있는 이름만 그림)
@@ -48,6 +51,18 @@ export function ModelSetRows() {
     mutationFn: (b: { job?: string; all?: true; model?: string; effort?: string }) => office<Sheet>("modelset", { method: "POST", body: JSON.stringify(b) }),
     onSuccess: (next) => qc.setQueryData(KEY, next),
   });
+  const pipe = useQuery({ queryKey: PIPE_KEY, staleTime: 15_000, retry: false, queryFn: () => getJson<AppSet>(`/api/settings?_=${Date.now()}`) });
+  const pipeSave = useMutation({
+    mutationFn: async (llm: Llm) => {
+      const r = await fetch("/api/settings", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ patch: { llm }, base: {} }) });
+      const j = (await r.json().catch(() => ({}))) as AppSet;
+      if (!r.ok || !j.settings) throw new Error(j.error || `서버 거절(HTTP ${r.status})`);
+      if (!j.settings.llm) throw new Error("서버가 아직 이 칸을 몰라(새 판이 올라가기 전) — 저장 안 됨");   // 옛 서버 = 모르는 칸을 버림 → 저장된 척하지 않음
+      return j.settings;
+    },
+    onSuccess: (next) => qc.setQueryData(PIPE_KEY, next),
+  });
+  const pRows = pipeRows(pipe.data?.llm), pAll = PIPE_GROUPS.map((g) => g.id);
   const names = nw.data ? BOTS.filter((n) => nw.data[n]) : [], rows = names.map((n) => nw.data![n] || nwDefault(n));
   const s = ms.data, jobs = s?.jobs || [];
   return (
@@ -67,6 +82,15 @@ export function ModelSetRows() {
           {jobSave.isError ? <p className="note err">못 바꿨어 — {(jobSave.error as Error)?.message || "서버 답 없음"} · 다시 골라 줘</p> : null}
           {jobs.length > 1 ? <PickRow label="모두" pick={{ model: sameOf(jobs.map((j) => j.now), "model"), effort: sameOf(jobs.map((j) => j.now), "effort") }} models={s.models} efforts={s.efforts} can={can} busy={jobSave.isPending} onPick={(p) => jobSave.mutate({ all: true, ...p })} /> : null}
           {jobs.map((j) => <PickRow key={j.id} label={j.ko} sub={j.now.model === j.def.model && j.now.effort === j.def.effort ? "기본값" : undefined} dim={j.now.model === j.def.model && j.now.effort === j.def.effort} pick={j.now} models={s.models} efforts={s.efforts} can={can} busy={jobSave.isPending} onPick={(p) => jobSave.mutate({ job: j.id, ...p })} />)}
+        </>
+      )}
+      <h3>파이프라인 <small>다음 실행부터 · 「기본」 = 스크립트가 원래 쓰던 값</small></h3>
+      {pipe.isPending ? <p className="note">불러오는 중</p> : pipe.isError || !pipe.data ? <p className="note err">파이프라인 값을 못 읽었어 — {(pipe.error as Error)?.message || "서버 답 없음"} <button type="button" onClick={() => void pipe.refetch()}>다시</button></p> : (
+        <>
+          {pipeSave.isError ? <p className="note err">못 바꿨어 — {(pipeSave.error as Error)?.message || "서버 답 없음"}</p> : null}
+          <PickRow label="모두" pick={{ model: sameOf(pRows, "model"), effort: sameOf(pRows, "effort") }} models={PIPE_TIERS} efforts={PIPE_EFFORTS} can={can} busy={pipeSave.isPending} onPick={(p) => pipeSave.mutate(pipePatch(pAll, p))} />
+          {PIPE_GROUPS.map((g, i) => <PickRow key={g.id} label={g.ko} dim={pRows[i].model === "default" && pRows[i].effort === "default"} pick={pRows[i]} models={PIPE_TIERS} efforts={PIPE_EFFORTS} can={can} busy={pipeSave.isPending} onPick={(p) => pipeSave.mutate(pipePatch([g.id], p))} />)}
+          <p className="note">노력도는 스크립트가 「높음」으로 부르던 호출에만 먹어 — 시간이 넘쳐 스스로 한 단계 내린 호출은 그대로 둬.</p>
         </>
       )}
     </div>
