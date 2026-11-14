@@ -8,9 +8,9 @@ import { createPortal } from "react-dom";
 import { office } from "../data/office";
 import { Breaker, StatusDot, stOf } from "./sched-bits";
 import { type RunnerJob, nextShort } from "./settings-extra";
-import { whenOf } from "./sched-runners";
 import { type Review, ReviewBox } from "./sched-review";
-import { HEALTH_KO } from "./sched-bits";
+import { HEALTH_KO, whenOf } from "./sched-bits";
+import "./sched-flow.css";   // 판 껍데기 · 도는 표시(옛 흐름 보기 파일을 지우며 여기서 싣는다)
 import { ACTION_KO, type RunnerRes, ghJob, sameJob, stateKo, toggleOf } from "./sched-flow-core";
 
 const post = (file: string, action: string, dry: boolean) => office<RunnerRes>("schedule/runner", { method: "POST", body: JSON.stringify({ action, file, dry }) });
@@ -19,6 +19,7 @@ const whenKo = (ts: number) => { const d = new Date(ts); return `${String(d.getM
 export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, who }: { job: RunnerJob; can: boolean; phone: boolean; onClose: () => void; onRan: (id: string) => void; start?: "run" | "toggle"; review?: Review; who?: (w: string) => string }) {   // start = 열자마자 그 일의 미리 보기까지(노드 트리 탭 단추 · ./sched-tree.tsx)
   const gh = ghJob(job);
   const [res, setRes] = useState<RunnerRes | null>(null), [busy, setBusy] = useState(""), [msg, setMsg] = useState("");
+  const [done, setDone] = useState("");   // 적용이 먹은 직후 = 단추가 「됨 ✓」 초록으로 잠깐(확인 입력칸 영상 결 · 평의회 11-14 「적용 → 적용 중 → 됨」)
   const [pre, setPre] = useState<{ file: string; action: "run" | "on" | "off"; would: string; red: boolean } | null>(null);   // dry 미리 보기 → 「적용」 기다리는 중(file = 미리 본 그 잡 · 모루 09:32 ③)
   const cur = useRef(job.file), sheet = useRef<HTMLElement>(null);
   useEffect(() => {   // 열면 지금 상태 한 번(깃허브 잡만 · 서버 = GET 하나) · 잡이 바뀌면 앞 잡 답은 버림(모루 ③ · 늦은 답이 다른 잡 판에 들어가던 길)
@@ -69,7 +70,8 @@ export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, wh
       const r = await post(want, pre.action, false);
       if (cur.current !== want || !sameJob(want, r.file)) return;
       if (!r.ok) { setMsg(r.why || r.error || "안 됨"); return; }
-      setRes(r); setPre(null); setMsg(pre.action === "run" ? "띄웠어 — 끝은 상태 점으로" : `${ACTION_KO[pre.action]} 됐어`);
+      setRes(r); setDone(pre.action); setMsg(pre.action === "run" ? "띄웠어 — 끝은 상태 점으로" : `${ACTION_KO[pre.action]} 됐어`);
+      setTimeout(() => { if (cur.current === want) { setPre(null); setDone(""); } }, 1300);   // 「됨 ✓」 을 1.3초 보여 준 뒤 미리 보기 칸을 걷음
       if (pre.action === "run") onRan(job.id);
     } catch (e) { if (cur.current === want) setMsg(e instanceof Error ? e.message : String(e)); }
     finally { if (cur.current === want) setBusy(""); }
@@ -100,8 +102,10 @@ export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, wh
               <div className="nm-rsheet-pre" data-red={pre.red || undefined}>
                 <p>{pre.would}</p>
                 <div className="nm-rsheet-btns">
-                  <button type="button" className="nm-sched-chip" onClick={() => setPre(null)} disabled={busy === "apply"}>취소</button>
-                  <button type="button" className="nm-sched-chip nm-rsheet-go" aria-pressed="true" onClick={() => void apply()} disabled={busy === "apply"}>{busy === "apply" ? "하는 중" : `적용 · ${ACTION_KO[pre.action]}`}</button>
+                  {done ? null : <button type="button" className="nm-sched-chip" onClick={() => setPre(null)} disabled={busy === "apply"}>취소</button>}
+                  <button type="button" className="nm-sched-chip nm-rsheet-go" data-stage={done ? "done" : busy === "apply" ? "busy" : "idle"} aria-pressed="true" aria-live="polite" onClick={() => void apply()} disabled={busy === "apply" || !!done}>
+                    {done ? <><svg className="nm-rsheet-ck" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 13l4 4 10-10" /></svg>됨</> : busy === "apply" ? <><i className="nm-rsheet-spin" aria-hidden />적용 중</> : `적용 · ${ACTION_KO[pre.action]}`}
+                  </button>
                 </div>
               </div>
             ) : null}

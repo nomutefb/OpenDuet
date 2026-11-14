@@ -3,10 +3,9 @@
 //   PC = 판 위에서 끌어 옮김 · 휠 = 옮김 · Ctrl(⌘)+휠 · 단추 = 배율 / 폰 = 위→아래 한 줄 쌓기(판 끌기 없이 그냥 쓸어 내림)
 //   노드 = 영상 꼴: 둥근 카드 + 테 · 손 올리면(폰 = 누르면) 테가 진해지고 위에 탭이 올라옴(탭 먼저 180ms → 그림 단추 뒤따라) · 선 = 직각 + 둥근 꺾임
 //   실제 반영 = 탭의 「지금 돌리기」 · 「켬끔」 → 바꾸기 판(./runner-sheet.tsx · 서버 POST schedule/runner · 미리 보기 → 적용 · 형만) — 새 서버 길은 안 만듦
-import { type CSSProperties, type PointerEvent as RPE, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { HEALTH_KO, type HealthSt, StatusDot, cronKo, stOf, sumOf, worstOf } from "./sched-bits";
+import { type CSSProperties, Fragment, type PointerEvent as RPE, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { CLOCK_KO, HEALTH_KO, type HealthSt, StatusDot, cronKo, stOf, sumOf, whenOf, worstOf } from "./sched-bits";
 import { type RunnerJob, type SchedRunners, nextShort } from "./settings-extra";
-import { CLOCK_KO, whenOf } from "./sched-runners";
 import { type Review, ReviewBadge } from "./sched-review";
 import { ghJob, modelKo } from "./sched-flow-core";
 import { type BotSide, type TNode, type TRoutine, edgePath, edgeWidth, fitOf, perDay, railPath, treeOf, zoomAt } from "./sched-tree-core";
@@ -23,7 +22,7 @@ const Ic = ({ d }: { d: keyof typeof I }) => <svg viewBox="0 0 24 24" width="14"
 
 const HOST_KO: Record<string, string> = { mac: "맥", "win-a": "윈A", eyes: "아이즈", sia: "시아 몸", deng: "뎅 몸", fast: "빠르 몸", neo: "네오 몸" };   // 깃허브 밖 잡이 도는 몸(지도 host)
 /** 봇 가지 재료 + 화면이 아는 것(루틴 상태 점 · 켜짐 · 상태 말 · 누름) — 스케줄 화면(./sched-desk.tsx)이 넘김 */
-export type BotProp = BotSide & { st: (r: TRoutine) => HealthSt; on: (r: TRoutine) => boolean; stKo: Record<string, string>; open: (id: string) => void };
+export type BotProp = BotSide & { st: (r: TRoutine) => HealthSt; on: (r: TRoutine) => boolean; stKo: Record<string, string>; open: (id: string) => void; openFork: (id: string) => void; openBots: () => void };
 type Leaf = { id: string; st: HealthSt; on: boolean; runs: number; next: number };   // 선 · 가지 머리 셈에 쓰는 잎 하나(잡 또는 루틴)
 export function SchedTree({ map, review = {}, phone = false, can = false, who, bots }: { map: SchedRunners; review?: Record<string, Review>; phone?: boolean; can?: boolean; who?: (w: string) => string; bots?: BotProp }) {
   const box = useRef<HTMLDivElement>(null), world = useRef<HTMLDivElement>(null);
@@ -71,7 +70,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
   const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null);
   const paint = (nv: View) => { if (world.current) world.current.style.transform = `translate(${nv.x}px, ${nv.y}px) scale(${nv.k})`; };
   const down = (e: RPE<HTMLDivElement>) => {
-    if (phone || e.button !== 0 || (e.target as HTMLElement).closest(".nm-tree-node, .nm-tree-zoom")) return;
+    if (phone || e.button !== 0 || (e.target as HTMLElement).closest(".nm-tree-node, .nm-tree-zoom, .nm-tree-more")) return;
     drag.current = { x: e.clientX, y: e.clientY, vx: v.x, vy: v.y, moved: false };
     e.currentTarget.setPointerCapture(e.pointerId); setHot(""); e.currentTarget.dataset.drag = "1";
   };
@@ -128,12 +127,16 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
           const pos = { transform: `translate(${n.x}px, ${n.y}px)`, width: n.w, height: n.h, "--i": Math.min(i, 14) } as CSSProperties;
           if (n.kind !== "job" && n.kind !== "routine") {
             const sts = stsUnder(n), sum = sumOf(sts), w = worstOf(sum), off = n.fork ? n.fork.on === false : false;
+            const more = !bots ? null : n.id === "g:bot" ? bots.openBots : n.id.startsWith("bf:") ? () => bots.openFork(n.id.slice(3)) : null;
             return (
-              <button key={n.id} type="button" className={`nm-tree-node ${n.kind}`} style={pos} data-st={w} data-off={off || undefined} aria-expanded={n.open} title={n.fork?.note || n.name} onClick={() => toggle(n.id, n.kind)}>
+              <Fragment key={n.id}>
+              <button type="button" className={`nm-tree-node ${n.kind}`} style={pos} data-st={w} data-off={off || undefined} data-more={more ? "" : undefined} aria-expanded={n.open} title={n.fork?.note || n.name} onClick={() => toggle(n.id, n.kind)}>
                 <span className="nm-tree-t"><StatusDot st={w} /><b>{n.name}</b></span>
                 {n.kind === "root" ? null : <small>꼬챙이 {n.kids}{sum.miss ? <em> · 놓침 {sum.miss}</em> : null}{sum.late ? <i> · 지연 {sum.late}</i> : null}</small>}
                 <svg className="nm-tree-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m9 6 6 6-6 6" /></svg>
               </button>
+              {more ? <button type="button" className="nm-tree-more" style={{ transform: `translate(${n.x + n.w - 58}px, ${n.y + n.h / 2 - 14}px)` }} aria-label={`${n.name} 차단기 · 바꾸기`} title="차단기 · 바꾸기" onClick={more}><Ic d="more" /></button> : null}   {/* 봇 갈래 = 봇마다 차단기 · 봇 포크 = 포크 차단기 + 공통 내용(봇 목록 탭에 있던 것) */}
+              </Fragment>
             );
           }
           if (n.kind === "routine" && bots) {   // 봇 루틴 = 잡과 같은 카드 꼴 · 누르면 바꾸기 판(시간 · 상태 · 할 일 — 스케줄 화면의 진짜 길 그대로)
