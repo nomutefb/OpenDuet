@@ -49,7 +49,7 @@ header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradi
 
 /* 모달(서랍 항목) = YETA 시트(.ycd · index.html 1104~1106줄 「position:fixed; inset:0; z-index:6 … animation:ypickIn .3s」) 꼴 — 판 위에 덮고 닫으면 아래 판 그대로 · 네비는 모달 아래(형 12:24 PM 풀이)
    머리 = YETA 챗 머리 알약(.yeta-h · 207~214줄 · 뒤로 = .yeta-back) · 결의 방·토큰·피드백 = 에디터 원본 화면을 안에 그대로 */
-.nm-modal { position:absolute; inset:0; z-index:50; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), var(--duet-surface); }
+.nm-modal { position:absolute; inset:0; z-index:50; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), color-mix(in srgb, var(--duet-surface) var(--nm-veil, 70%), transparent); }   /* 바탕 = 앱 표면색 막(70% · --nm-veil 로 조절) 너머로 라임 3D 장면이 옅게(전 = 꽉 막힌 검정 · 형 11-15 「완전 검정이면 개 투박 · 라임 지나가는 정도는 있어야」) */
 /* 모달 들어올 때 = 바탕은 첫 장부터 불투명 · 안쪽만 떠오름(형 11-14 05:43 봄 옮김 「대화 메뉴사 4번 요약 메뉴가면 귀신 윈터나옴 … 이러면 화면이 순간 두번떠」 · 11-13 22:03 「전환시 뒤에 배경 무관한 잔상들」 = 판 전체가 .3초 투명→불투명이라 밑 대화 · 머리 얼굴이 비침) · 들여다보는 판(.see = 서랍 · 설정)은 원래 투명이라 그대로 */
 .nm-modal:not(.see) > * { animation:ypickIn .3s var(--ease) both; }
 .nm-modal.see { animation:nmSeeIn .3s var(--ease) both; }   /* 서랍 · 설정 = 옅음 → 짙음만(앞 판 ypickIn = 판 통째 0.985배 + 12px 내림 → 큰 유리 판을 매 프레임 다시 그림 · 맥 웹앱에서 덜 끝난 채 판이 작게 남음(형 11-14 13:48 사진) · 뜸) */
@@ -63,7 +63,6 @@ header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradi
 .nm-modal-b { position:relative; display:flex; min-height:0; flex:1; flex-direction:column; padding-top:calc(64px + env(safe-area-inset-top)); }
 .nm-modal-b .nm-scroll { padding-bottom:var(--duet-tab-space,86px); }   /* 네비 = 모달 위(형 「네비게이션은 유지」 · office-inapp.md) → 끝 줄이 네비에 안 가리게 */
 .nm-modal-b.frame { padding-bottom:var(--duet-tab-space,86px); }   /* 품은 화면 = 네비 위에서 끝남(남의 사이트는 안에 여백을 못 넣음) */
-.nm-wave { position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; }   /* 설정·서랍 뒤 물결(./wave-bg.tsx · 형 11-01) · 머리·판은 뒤따라 그려져서 위에 옴 */
 .nm-modal.nm-web { z-index:52; }   /* #/web = 앞 모달 위 한 겹 · 네비(60)·서랍 아래 */
 /* 이슈 한 장(./issue.tsx) — 카드 = .yeta-set .ycd-card(설정 판과 같음) · 상태 알약 = 네비 켠 칸과 같은 라임(열림) · 본문 = 대화창 마크다운 */
 .nm-issue-st { padding:2px 9px; border-radius:var(--r-pill); border:1px solid var(--glass-line); color:var(--fg-2); font-weight:var(--fw-b); }
@@ -88,7 +87,7 @@ header.nm-head:has(.nm-room-mark) .nm-top-name i { color:#fff; }
 /* 5번 서랍·6번 설정 = 판 바탕을 비워 껍데기 라임 3D 바탕(../home/home-scene.css .nm-app-ambient · 옅은 막 62%)이 그대로 보임 · 그동안 밑 화면은 숨김(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」) */
 .nm-modal.see { background:transparent; }
 .nm-see > .nm-pane { visibility:hidden; }
-.nm-cover > .nm-pane { visibility:hidden; transition:visibility 0s linear .45s; }   /* 안 비치는 판이 덮은 동안 밑 화면 그리기 끔(흐림 · 끝없이 도는 움직임이 안 보이는 데서 돌던 것) · .45s 뒤 = 판이 뜨는 동안은 밑이 그대로 보임 · 닫을 땐 바로 돌아옴(이 줄이 빠지면 늦춤도 빠짐) */
+.nm-cover > .nm-pane { visibility:hidden; }   /* 글 화면이 열린 동안 밑 화면(홈 · 대화방) 그리기 끔 — 막 너머로 비치지 않게 + 안 보이는 데서 흐림 · 움직임이 돌지 않게(.nm-see 와 같은 길) */
 /* 판 안 글 = 긴 주소·영문 한 덩이도 판 폭에서 줄 바꿈(형 11-03 15:09 사진 「그리구 이거 넘어갈 때가 있는데, 설정 창에서 글자가 안넘어가게 확인 좀 부탁해!」 = 공지 글 github 주소가 판 밖으로 나갔음) */
 .nm-modal [data-content], .nm-modal p, .nm-modal li { overflow-wrap:anywhere; }
 /* 설정·서랍 묶음 판 = 라임 3D 바탕 위에서 유리를 조금 더 두껍게(흐림 18px · 바탕 55%) — 장면 빛줄기가 글자 뒤를 지나가지 않게(형 11-03 15:17 「혹시 설정, 개선하면 더 이쁘겠다 싶은 부분있으면 한번 살펴보고 개선해줘」) */

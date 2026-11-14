@@ -36,7 +36,6 @@ const NewsEditor = lazy(() => import("./news-editor").then((m) => ({ default: m.
 import { StatusLights, SyncVersion } from "./status-line";
 import { TabBar as TopTabBar } from "./tab-bar";   // 위쪽 탭 줄 · 이름 갈림(아래 ../swap/tab-bar 의 TabBar = 아래 네비 · 같은 이름 둘 = 빌드 막힘 · 모루 #3000 · 봄)(형 11-09 05:16 · 시아 05:23 자리 · 빠르)   // 맨 아래 상태 한 줄(④ · 빠르 11-06)
 import { DrawerPage } from "./drawer-page";
-import { WaveBg } from "./wave-bg";   // 설정·서랍 뒤 물결(형 11-01)
 import { TabBar } from "../swap/tab-bar";
 import { SceneBg } from "./thumb-maker/scene-bg";
 import "../home/home-scene.css";
@@ -244,7 +243,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
     else void nav({ to: under ? MODALS.find((x) => x.id === under)!.to : paneHref(base, room) });
   };
   const M = modal ? MODALS.find((x) => x.id === modal) : undefined;
-  const cover = !!M && !SEE.has(M.id) && !isEdTool(M.id);   // 안 비치는 판(검은 바탕 · 화면 전체)이 열림 = 밑 화면(홈 · 대화방)과 뒤 3D 장면은 한 점도 안 보임 → 밑 화면 그리기 끔(shell.css .nm-cover) + 장면 쉼. 전엔 덮인 채로 대화방 흐림 90여 개 · 빛나는 이름 13개 · 장면이 계속 돌았음
+  const cover = !!M && !SEE.has(M.id) && !isEdTool(M.id);   // 글 화면(스케줄 · 회의록 … 화면 전체 판)이 열림 = 밑 화면(홈 · 대화방)은 그리기 끔(shell.css .nm-cover) · 뒤 3D 장면은 옅게 비치고 느리게 돎(바탕 한 가지 · 형 11-15)
   return (
     <ChatPresenceProvider serverWork={serverWork}>
       <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}${split && modal && SPREAD.has(modal) ? " nm-split-spread" : ""}`}>
@@ -259,7 +258,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
         <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${cover ? " nm-cover" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
-          <SceneBg className="nm-app-ambient" rest={cover} />   {/* rest = 안 비치는 판이 다 덮은 동안 장면 쉼(형 11-15 「60프레임 아니거나 과하게 구현돼서 딜레이 유발」) */}
+          <SceneBg className="nm-app-ambient" slow={cover} />   {/* slow = 글 화면(스케줄 · 회의록 …) 뒤 = 같은 장면을 옅게 · 느리게(형 11-15 「완전 검정이면 투박 · 라임 지나가는 정도는 있어야 · 고화질일 필요는 없어」) */}
           {split ? <TopLeft /> : null}   {/* 왼쪽 위 = 러너 게이지(우리 쪽 · 형 11-08 07:31 dm 「오히려 게이지바가 좌측으로가고, 인스타그램이 우측으로 가서, 우측은 아예 뉴스 관련 내용, 좌측은 너네 관련으로」 · 판들은 그 키만큼 아래로 · shell.css .nm-split-l) */}   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
           {show("rooms", <div className="nm-col"><RoomsPane /></div>)}
@@ -292,7 +291,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           <ToolRestore items={edChip(modal, edKept)} onRestore={(t) => void nav({ to: edPath.current[t] })} onCloseAll={() => setEdKept([])} />
           {M && !isEdTool(M.id) ? (
             <ModalBox close={closeModal} className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
-              {M.id === "feed" || M.id === "trend" || M.id === "legacy" || M.id === "tokens" || M.id === "gyeol" || M.id === "feedback" || M.id === "botdesk" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
+              {/* 물결 바탕(시범 11-01) 걷음 — 바탕은 이제 한 가지: 라임 3D 장면(서랍 · 설정 = 그대로 / 글 화면 = 옅게) · 형 11-15 「물결은 없어도 되는데」 */}
               {M.id === "edtool" || M.id === "edvid" ? null : (   /* 에디터 = 위 챠콜 머리 줄 통째로 뺌 · ‹ 는 판 머리 「✦ 에디터」 왼쪽(형 11-13 02:24 봄 1:1 「글자를 없애는거 말구, 그냥 위에 네비 챠콜색 저 라인을 다 없애면됨」 · 앞 판 = 글자만 뺌) */
                 <div className={`nm-modal-h nm-mh-${M.id}`}>   {/* nm-mh-<id> = 판마다 폰에서 머리 줄 끄기(뉴스 에디터 · 형 11-14 06:58 봄 옮김 「상단 뉴스이디터 없어도 됨」 · shell.css) */}
                   <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
