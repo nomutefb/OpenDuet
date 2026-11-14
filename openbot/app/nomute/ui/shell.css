@@ -364,6 +364,6 @@ html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; bor
   .nm-modal-h.nm-mh-story, .nm-modal-h.nm-mh-meetlog { display:none; }
   /* 폰 채널 · SNS(옛 에디터 화면) = 머리 알약 뺌 · 품은 화면이 맨 위부터(옛 화면 제 윗줄 = 출처 바꿈 · 실검 띠가 곧 머리 · 형 11-14 「이 화면에 최적화」) */
   .nm-modal-h.nm-mh-chan, .nm-modal-h.nm-mh-sns { display:none; }
-  .nm-modal:has(> .nm-mh-chan) .nm-modal-b.frame, .nm-modal:has(> .nm-mh-sns) .nm-modal-b.frame { padding-top:env(safe-area-inset-top); }
+  .nm-modal:has(> .nm-mh-chan) .nm-modal-b.flush > .nm-scroll, .nm-modal:has(> .nm-mh-sns) .nm-modal-b.flush > .nm-scroll { padding-top:calc(6px + env(safe-area-inset-top)); }   /* 이제 앱 안 판(./old-tabs) = 품은 화면(.frame) 아님 */
   .nm-modal:has(> .nm-mh-story) .nm-modal-b.flush > .nm-scroll, .nm-modal:has(> .nm-mh-meetlog) .nm-modal-b.flush > .nm-scroll { padding-top:calc(10px + env(safe-area-inset-top)); }
 }

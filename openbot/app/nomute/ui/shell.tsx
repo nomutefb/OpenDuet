@@ -59,6 +59,8 @@ import { AppIntro } from "../home/intro";
 import { NewsModal, newsFileOf } from "./news";
 const ThumbHist = lazy(() => import("./thumb-hist").then((m) => ({ default: m.ThumbHist })));   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 const FeedModal = lazy(() => import("./feed").then((m) => ({ default: m.FeedModal })));   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
+const ChanTab = lazy(() => import("./old-tabs").then((m) => ({ default: m.ChanTab })));   // 서랍 「채널」 · 「SNS」 = 옛 에디터 탭을 앱 안에 직접(판 · 엔진 · 옷을 떼어 옴 · iframe 0 · ./old-tabs/index.tsx)
+const SnsTab = lazy(() => import("./old-tabs").then((m) => ({ default: m.SnsTab })));
 const ScrapModal = lazy(() => import("./scrap").then((m) => ({ default: m.ScrapModal })));   // 서랍 「LEGACY」 = 에디터 수집함 탭 네이티브(전엔 FRAME 으로 품음)
 const TokensModal = lazy(() => import("./tokens").then((m) => ({ default: m.TokensModal })));   // 서랍 「토큰」·「결의 방」·「피드백」 = 에디터 페이지 네이티브(전엔 FRAME 으로 품음)
 const GyeolModal = lazy(() => import("./gyeol-room").then((m) => ({ default: m.GyeolModal })));
@@ -128,10 +130,8 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
 ];
 /** PC 반갈에서 좌우 통합(오른쪽 러너·뉴스 칸 접고 왼쪽을 다 씀) = 러너 · 서랍 · 설정(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」 · 윈터 넘김) · 오른쪽 칸은 숨김만(살려 둠 = 닫으면 다시 안 그림) */
 const SPREAD = new Set<Modal>(["runner", "botdesk", "drawer", "settings", "nedit", "chan", "sns"]);   // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
-// 채널 · SNS = 옛 에디터 화면 그대로 한 줄씩(형 11-14 「채널 요약은 전에 버전이 잇을거야 그거 살려서 혹시 하나의 서랍 버전으로」 · 「sns도 마찬가지 … 그 버전으로 다시 살려서 대체 … 지금거는 그러면 삿제」)
-//   = 옛 에디터 「채널 요약」 탭(/?tab=chan) · 「SNS」 탭(/?tab=trend · X 급상승 칸 = 지금 수집분 그대로) · inapp=1 = 옛 머리 · 시계 · 아래 독 숨김 · 앞 판(한눈 + 전체 보기 = ./chan · ./sns · ./trend)은 지움
-//   only=1 = 옛 화면이 그 탭에 안 쓰는 받아오기(기사 목록 · 뉴스 후보 · 알림 묶음)를 건너뜀 = 첫 화면이 그걸 안 기다림(editor viewer-src/20-document NM_ONLY · 형 11-14 「전에 버전을 좀 더 빠르게」)
-const FRAME: Partial<Record<Modal, string>> = { play: "/play/", chan: "/?tab=chan&inapp=1&only=1", sns: "/?tab=trend&inapp=1&only=1" };   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+// 채널 · SNS = 옛 에디터 「채널 요약」 · 「SNS」 탭 그대로 한 줄씩(형 11-14 「채널 요약은 전에 버전이 잇을거야 그거 살려서 혹시 하나의 서랍 버전으로」 · 「sns도 마찬가지」) — 11-15 부터 품지(iframe) 않고 앱 안에서 돌림(./old-tabs · 형 「아예 여기에 줕이려고」)
+const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -295,6 +295,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" || M.id === "edvid" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
+                  : M.id === "chan" ? <div className="nm-scroll"><ChanTab /></div>   // 채널 · SNS = 옛 탭 그대로 앱 안에서(./old-tabs)
+                  : M.id === "sns" ? <div className="nm-scroll"><SnsTab /></div>
                   : M.id === "tasks" ? <div className="nm-scroll"><RepairPage /></div>
                   : M.id === "meetlog" ? <div className="nm-scroll"><MeetLogList /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><StatusBoard /></div>   /* 서랍 「러너」 = 작동 표(형 11-09 08:50 「러너는 5번 서랍 안으로 … 기존거는 없애면 됨 끌고오는거 아님」 · 옛 RunnerScreen 칸 뺌 · 네비 4번 「작동」 은 33) 뉴스 에디터 판에서 바꿈 · 봄 배분 32) */

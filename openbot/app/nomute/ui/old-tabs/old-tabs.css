@@ -1,0 +1,22 @@
+/* 옛 「채널 요약」 · 「SNS」 탭을 앱 틀에 맞춘 덧줄(손으로 쓴 것 · 만든 옷 = ./old-tabs.gen.css)
+   색 = 앱 라임 톤(전엔 품은 화면에 덧씌우던 어두운 값 그대로 · ../inapp.ts yetaTone · fitCss) · 바탕 = 비움(앱 바탕이 비침) · 글꼴 = 앱 글꼴 */
+.ot { position:relative; width:100%; min-height:100%; color:var(--fg); font-family:inherit; font-size:15px; line-height:1.5; text-align:left; -webkit-text-size-adjust:100%;
+  color-scheme:dark;
+  --modern-space-bg:#161716 !important; --modern-page:transparent !important; --modern-stage:transparent !important;
+  --modern-fg:#FFFFFF !important; --modern-ink:#FFFFFF !important; --modern-mut:#8B8F8A !important; --modern-muted:#8B8F8A !important;
+  --modern-accent:#CFFF40 !important; --modern-accent-rgb:207,255,64 !important; --modern-on-accent:#161716 !important; --accent:#CFFF40 !important; --accent-rgb:207,255,64 !important;
+  --modern-line:rgba(255,255,255,.08) !important; --modern-line2:rgba(255,255,255,.06) !important; --modern-glass-edge:rgba(255,255,255,.08) !important; --modern-glass-highlight:rgba(255,255,255,.04) !important;
+  --modern-card:rgba(255,255,255,.005) !important; --modern-glass2:rgba(255,255,255,.005) !important; --modern-well:rgba(255,255,255,.04) !important; --modern-control-glass:rgba(255,255,255,.05) !important;
+  --modern-modal-head-bg:rgba(22,23,22,.85) !important; --modern-action-symbol:#fff !important; --modern-silk-glass:rgba(255,255,255,.005) !important;
+  --modern-panel-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 24px 60px rgba(0,0,0,.42) !important; }
+/* 옛 탭은 어두운 판 하나뿐(밝은 값이 없음) → 앱이 밝을 때는 이 판만 제 어두운 바탕을 깔고 그대로 보임(글이 흰 바탕에 묻히지 않게) */
+html:not(.dark) .ot { background:#161716; }
+
+/* 맨 위 = 출처 바꿈 단추만(오른쪽 · 옛 머리 줄 자리 값) · 수집 시각은 왼쪽에 작게 */
+.ot .ot-top { position:relative; display:flex; align-items:center; justify-content:flex-end; width:min(828px, 100% - 32px); height:30px; margin:0 auto 6px; }
+.ot .ot-top .vh-time { position:static; transform:none; display:block; margin-right:auto; }
+.ot .ot-top .ch-srcsw button { left:0; }
+.ot .ot-top .ch-srcsw button:active { transform:scale(var(--press-s, .96)); }
+
+/* 계속 도는 움직임 없음(형 맥이 뜨거워진 적 있음) — 실검 띠 흐름 · 로딩 그림 선 돌기 · 「분석 중」 단추 반짝임 */
+.ot .tkr-track, .ot .gpic .gpic-lt, .ot .soc-send.picking::after { animation:none !important; }
