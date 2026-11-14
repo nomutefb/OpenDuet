@@ -14,6 +14,8 @@ const ICONS: Record<string, [string, string]> = {
   gsPanFill: ["AI 채움", "<path d='M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z'/><path d='M19 16l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z'/>"],
   gsMerge: ["삽입구 합성", "<circle cx='12' cy='12' r='9'/><path d='M14.8 9.5a4 4 0 1 0 0 5'/>"],
   gsMos: ["모자이크", "<rect x='3' y='3' width='18' height='18' rx='2'/><path d='M3 9h18M3 15h18M9 3v18M15 3v18'/>"],
+  gsPanDn: ["사진 축소", "<path d='M5 12h14'/>"],   // 사진 크기 − · + (사진 넣으면 뜸 · 형 11-14 16:31 「우측에 네비 부분이 뭔가 겹치네」 = 그림 없어 통네모 · 두 칸 격자에 끼어 겹침 · 뜸)
+  gsPanUp: ["사진 확대", "<path d='M12 5v14M5 12h14'/>"],
   gsTr: ["번역", "<path d='m5 8 6 6'/><path d='m4 14 6-6 2-3'/><path d='M2 5h12'/><path d='M7 2h1'/><path d='m22 22-5-10-5 10'/><path d='M14 18h6'/>"],
 };
 const LONG_OWN = new Set(["gsAbbr"]);   // 원본이 길게 누름을 쓰는 단추
@@ -23,6 +25,9 @@ export const RAIL_ICON_CSS =
   // 단추 두 줄(기둥 폭 70 = 30 × 2 + 사이) · 가름 줄 · OPA 숨김
   `${S} #goSpec{display:grid!important;grid-template-columns:repeat(2,30px);justify-content:center;gap:2px 4px}`
   + `${S} #goSpec .gs-sep,${S} #goSpec #gsOpaOg{display:none!important}`
+  // 사진 크기 「− 100 +」 = 기둥 한 줄 통째(SIZE 글자 숨김 · 가운데 값은 숫자 그대로 · 탭 = 원래 크기) · 빈 칸은 뒤 단추가 메움(dense) · 형 11-14 16:31 · 뜸
+  + `${S} #goSpec{grid-auto-flow:row dense}${S} #goSpec #gsPanOg{grid-column:1/-1;display:flex!important;align-items:center;justify-content:center;height:30px}${S} #goSpec #gsPanOg .gs-lbl{display:none!important}${S} #goSpec #gsPanOg .opa-slot{display:flex;align-items:center}`
+  + `${S} #goSpec #gsPanDn,${S} #goSpec #gsPanUp{width:20px!important;min-width:20px!important}${S} #goSpec #gsPanV{width:28px!important;min-width:28px!important;font-size:11px!important;font-weight:700!important;font-variant-numeric:tabular-nums}${S} #goSpec #gsPanV::after{content:none}`
   + `${S} #goSpec>span:not(.gs-v){display:contents}`   // 맞춤 · AI 채움 · 삽입구 합성 · 번역 감싼 칸 = 같은 격자로
   + `${S} #goSpec .gs-v{font-size:0!important;width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;margin:0!important;display:grid!important;place-items:center;color:rgba(232,234,232,.62)!important;position:relative}`
   + `${S} #goSpec .gs-v[hidden],${S} #goSpec span[hidden]{display:none!important}`
