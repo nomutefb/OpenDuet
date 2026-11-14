@@ -124,8 +124,10 @@ export function AttachmentStrip({
         aria-label="Attachments"
         className="flex flex-wrap items-start gap-2 pb-3"
       >
+        {(compress && hasMedia) || (dense && hasVideo) ? (
+          /* 압축 · 프레임 알약 = 사진 위 한 줄(형 11-15 05:16 dm-gik 「그리구 이 압축 알약 프레임 알약이랑 둘다 혹시 이미지 위쪽으로 배치 가능?」 · 깃 #-030 · 앞 판 = 사진 왼쪽 같은 줄) */
+          <li className="flex w-full basis-full items-center gap-2">
         {compress && hasMedia ? (
-          <li className="flex shrink-0 items-center self-center">
             <button
               aria-checked={on}
               aria-label="사진·영상 압축해서 보내기"
@@ -136,10 +138,8 @@ export function AttachmentStrip({
             >
               압축   {/* 형 11-12 07:33 「압축도 그냥 ON 말고 압축에 점등 들어오는거로 유무로 할게 기능 차이는 없어 동작이랑」 = 켜짐 라임 점등 · 꺼짐 = 원본으로 보냄(동작 그대로) */}
             </button>
-          </li>
         ) : null}
         {dense && hasVideo ? (
-          <li className="flex shrink-0 items-center self-center">
             <button
               aria-checked={denseOn}
               aria-label="프레임 — 영상을 30프레임마다 쪼개 같이 보냄"
@@ -150,6 +150,7 @@ export function AttachmentStrip({
             >
               프레임   {/* 형 11-12 07:25 「프레임 이라고만 나오게하고 누르면 그냥 점등 되면 on 이라고 생각할게!」 · 07:26 「켜진거는 라임 들어오게해줘 ㅎㅎ 프레임은 평소에 꺼지먼 점등 오프고 켜지면 라임」 */}
             </button>
+        ) : null}
           </li>
         ) : null}
         {images.map((image) => (
