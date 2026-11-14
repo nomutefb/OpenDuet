@@ -70,6 +70,15 @@ export function YetaSettings() {
     <Act key={id} ic={ic} t={t} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
   ];
+  const [open2, setOpen2] = useState("");   // 묶음 안 펼침 줄(구독 기기 · 화면 잠금)
+  const sub = (id: string, ic: YIcon, t: string, body: ReactNode) => [
+    <Act key={id} ic={ic} t={t} open={open2 === id} onClick={() => setOpen2((o) => (o === id ? "" : id))} />,
+    open2 === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
+  ];
+  const group = (id: string, ic: YIcon, t: string, v: string | undefined, kids: ReactNode) => [   // 묶음 줄 = 누르면 그 아래 줄들이 펼쳐짐
+    <Act key={id} ic={ic} t={t} v={open === id ? undefined : v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
+    open === id ? <div key={id + ":open"} className="yset-open yset-kids">{kids}</div> : null,
+  ];
   return (
     <Pane title="설정">
       <div className="yeta-set mt-2">
@@ -77,22 +86,28 @@ export function YetaSettings() {
         <section className="yset-part" aria-label="화면·입력">
           <div className="yset-sec">화면·입력</div>
           <div className="yset-grp">
-            <Act ic="contrast" t="테마" v={theme.t} vt mod={theme.v !== "system"}
-              onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
-            <Act ic="screen" t="꾸밈" v={skin === "garden" ? "정원" : "지금"} vt mod={skin === "garden"}
-              onClick={() => {   // 정원 = 밝은 꾸밈이라 어둡게였으면 밝게로 같이(정원 CSS 는 :not(.dark) 에서만 먹음)
-                const next = skin === "garden" ? "now" : "garden";
-                if (next === "garden" && document.documentElement.classList.contains("dark")) setPreference("light");
-                setSkin(next);
-              }} />
-            <PushRow />
-            <ChatFontRows />
-            <EnterKeyRow />
-            <ThinkMarkRow />
-            <BlindRows />   {/* 쉴 때 화면 가림 · 지금 가리기(형 11-06 17:31 · ./idle-blind.tsx) */}
-            {row("lock", "keys", "화면 잠금", <Suspense fallback={null}><LockModal /></Suspense>)}
-            {row("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
-            <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
+            {/* 비슷한 줄끼리 한 줄로 묶고 누르면 펼침(형 11-14 「설정같은거, 예를들어 폰트면 펼쳐서 한글, 영문 이런거 묶을수잇잖아」) — 14줄 → 6줄 · 펼침 꼴 = 원래 있던 .yset-open 그대로 */}
+            {group("look", "contrast", "화면", `${theme.t} · ${skin === "garden" ? "정원" : "지금"}`, <>
+              <Act ic="contrast" t="테마" v={theme.t} vt mod={theme.v !== "system"}
+                onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
+              <Act ic="screen" t="꾸밈" v={skin === "garden" ? "정원" : "지금"} vt mod={skin === "garden"}
+                onClick={() => {   // 정원 = 밝은 꾸밈이라 어둡게였으면 밝게로 같이(정원 CSS 는 :not(.dark) 에서만 먹음)
+                  const next = skin === "garden" ? "now" : "garden";
+                  if (next === "garden" && document.documentElement.classList.contains("dark")) setPreference("light");
+                  setSkin(next);
+                }} />
+            </>)}
+            {group("font", "type", "글꼴", undefined, <ChatFontRows />)}
+            {group("input", "keys", "입력 · 표시", undefined, <><EnterKeyRow /><ThinkMarkRow /></>)}
+            {group("alert", "bell", "알림", undefined, <>
+              <PushRow />
+              {sub("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
+              <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
+            </>)}
+            {group("hide", "screen", "가림 · 잠금", undefined, <>
+              <BlindRows />   {/* 쉴 때 화면 가림 · 지금 가리기(형 11-06 17:31 · ./idle-blind.tsx) */}
+              {sub("lock", "keys", "화면 잠금", <Suspense fallback={null}><LockModal /></Suspense>)}
+            </>)}
             {row("genopt", "layers", "AI 썸네일 옵션", <Suspense fallback={null}><GenOptModal /></Suspense>)}
           </div>
         </section>

@@ -15,7 +15,7 @@ import { useRepairWaiting } from "./repair-count";   // 수리 접수 숫자 = �
 //   LEGACY · 구독 채널 = 혼자 남는 묶음이라 「뉴스」로(형이 따로 안 말한 둘 · 묶음 하나에 줄 하나는 안 둠)
 const PARTS: { name: string; ids: Modal[] }[] = [
   { name: "만들기", ids: ["ask", "edtool", "edvid"] },   // 이미지 편집 하나 · 영상 편집 하나(형 11-14 「이미지 편집 1개, 영상 편집 1개 이렇게만 잇엇거든」) — 트래킹 · 프롬프팅 · 스토리보드 · 유튜브 · 음원 · 큐영상 · 미디어 요약 = 영상 편집 안에서 고름(./video-editor.tsx MODES) · 번역카드 · 변환 · 다운로드 = 아예 지움 · AI 썸네일 = 설정 「AI 썸네일 옵션」
-  { name: "일", ids: ["tasks", "sched", "runner", "meetlog", "feedback"] },   // tasks = 「수리 접수」(옛 할 일 자리 · ./repair-page.tsx)
+  { name: "일", ids: ["tasks", "sched", "runner", "meetlog"] },   // 피드백 = 숨김(형 11-14 「피드백은 숨겨 주고」 · 길 #/feedback 은 그대로)   // tasks = 「수리 접수」(옛 할 일 자리 · ./repair-page.tsx)
   { name: "우리", ids: ["story", "play"] },
   { name: "뉴스", ids: ["sns", "chan", "edsnsacc", "edsensor"] },   // 썸네일 이력(이미지 편집 아래에 이미 있음) · 대기열 · LEGACY = 숨김(길은 그대로) · 알림 = 설정 「받은 알림」(형 11-14) → 남은 넷을 한 묶음으로
 ];

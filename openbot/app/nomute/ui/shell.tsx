@@ -119,7 +119,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "edacct", label: "계정 전환", icon: "key", to: "/edacct", desc: "관리자 · 러너 Claude 계정" },   // 에디터 ＋ 「에디터(카드 제작·영상 편집·유튜브)」 = 도구 창(에디터 /?tool=thumb 그대로 품음 · 옛 에디터 판 칸 → 서랍)
   { id: "gyeol", label: "결의 방", icon: "sparkle", to: "/gyeol" },
   { id: "story", label: "밥상 이야기", icon: "file", to: "/story" },   // 종 틈에 지은 글 모음(형 11-04 15:4x · ./stories.tsx)
-  { id: "play", label: "놀이터", icon: "sparkle", to: "/play" },   // 형 10-31 「놀이터를 … 서랍메뉴로 아예 빼줘」 · 주소 = viewer/play
+  { id: "play", label: "봄의 정원", icon: "sparkle", to: "/play" },   // 이름 = 봄의 정원(형 11-14 「놀이터 말고 봄의 정원이라고 따로 만들어줘 헤더에 놀이터 없이」 · 서랍 줄 · 머리 줄 둘 다)   // 형 10-31 「놀이터를 … 서랍메뉴로 아예 빼줘」 · 주소 = viewer/play
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
   { id: "feedback", label: "피드백", icon: "reply", to: "/feedback" },
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
