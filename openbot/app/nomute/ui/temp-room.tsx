@@ -14,9 +14,10 @@ import { DaySlide } from "./day-slide";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { type OfficeRoom, idOf, office, peopleSync, seatOff } from "../data/office";
 import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
-import { FaceImg } from "./faces";
+import { FaceImg, usePeople } from "./faces";
 import { dropSearchCache } from "./room-search";
 import { GoButton } from "./go-button";
+import "./temp-room.css";
 
 // 묶음(형 10-31 「클로드 눌러서 선택 그록 눌러서 선택 지피티 눌러서 선택」) = 서버 clsOf 분류 · 명부에 없는 이 = 클로드 칸
 const FAMS: { key: string; label: string; cls: string[] }[] = [{ key: "cl", label: "클로드", cls: ["클로드", ""] }, { key: "gk", label: "그록", cls: ["그록봇"] }, { key: "gp", label: "지피티", cls: ["닷", "부름"] }];
@@ -70,17 +71,17 @@ export function RoomArtRow({ id, look }: { id: string; look?: OfficeRoom["look"]
   );
 }
 
-export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: () => void }) {
+export function TempRoomDialog({ edit, onClose, open = true }: { edit?: OfficeRoom; onClose: () => void; open?: boolean }) {
   const qc = useQueryClient(), nav = useNavigate();
   const candRaw = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 }).data || [];
-  const list = peopleSync(), who = (n: string) => list.find((p) => p.who === n);
+  const list = usePeople(), who = (n: string) => list.find((p) => p.who === n);
   const cand = candRaw.filter((n) => !seatOff(who(n)));   // 빈 자리 1 · 2 · 3(명부 empty · 작업 알림 포함) = 초대 칸 0(형 11-14 23:40 dm-gik 「그리구 llm 아니면 사무실 키 빼버려서 지금 클라우드세션이 쓰는거 포함 자리 1 2 3 은 모두 여기 목록에 안보여야 함」 · 깃 #-016 덧 · 뜸)
   const dk = `room-${edit?.id || "new"}`, base = { name: edit?.name || "", purpose: edit?.purpose || "", picked: edit?.members || [] };
-  const d0 = draftGet<typeof base>(dk) || base;   // 쓰던 글 있으면 되살림
+  const [d0] = useState(() => edit ? draftGet<typeof base>(dk) || base : base);   // 새 방은 매번 빈 판, 기존 방 설정만 초안 복원
   const [name, setName] = useState(d0.name), [purpose, setPurpose] = useState(d0.purpose), [pickedRaw, setPicked] = useState<string[]>(d0.picked);
   const picked = livePicked(pickedRaw, cand, (n) => !!who(n)?.gone);   // 옛 초안에 남은 없어진 봇(별) = 그릴 때마다 뺌 · 서버 후보(별 없음)가 오면 그걸로 · 명부가 늦게 와도 놓치지 않게(모루 #2861 · #2864 검토 · 빠르 11-08)
   const dirty = name !== base.name || purpose !== base.purpose || picked.join("|") !== base.picked.join("|");
-  useEffect(() => { if (dirty) draftSet(dk, { name, purpose, picked }); else draftDrop(dk); }, [dk, dirty, name, purpose, picked]);
+  useEffect(() => { if (edit && dirty) draftSet(dk, { name, purpose, picked }); else draftDrop(dk); }, [dk, !!edit, dirty, name, purpose, picked]);
   const [hours, setHours] = useState<number | null>(edit ? null : 24), [fam, setFam] = useState("cl");   // 고치기 = 안 누르면 기한 그대로
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
   const toggle = (n: string) => setPicked(picked.includes(n) ? picked.filter((x) => x !== n) : [...picked, n]);
@@ -89,28 +90,44 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
   const allOn = shown.length > 0 && shown.every((n) => picked.includes(n));
   const toggleAll = () => setPicked(allOn ? picked.filter((n) => !shown.includes(n)) : [...new Set([...picked, ...shown])]);
   const ready = !saveBlock(purpose, picked, busy);
-  const make = async () => {
+  type Reply = { room: { id: string } & Partial<OfficeRoom>; members?: string[] };
+  const prepare = () => {
     const no = saveBlock(purpose, picked, busy);   // 닫기 「예」 길도 단추와 같은 조건(0명 · 목적 빈 채로 서버에 안 보냄 · 모루 #2865)
     if (no) { setWhy(no); throw new Error(no); }
     setBusy(true); setWhy("");
+    return { body: JSON.stringify({ name, purpose, members: picked, ...(hours === null ? {} : { hours }) }), reply: null as Reply | null };
+  };
+  const save = async (job: ReturnType<typeof prepare>) => {
     try {
-      const body = JSON.stringify({ name, purpose, members: picked, ...(hours === null ? {} : { hours }) });
-      const j = await office<{ room: { id: string } & Partial<OfficeRoom> }>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body });
+      const j = await office<Reply>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body: job.body });
+      if (!edit && !j?.room?.id) throw new Error("방 생성 응답을 확인하지 못했어");
       draftDrop(dk);   // 저장됨 = 보관 지움
       if (edit) patchRoom(qc, edit.id, savedRoomPart(j, edit.id, { name, purpose, members: picked }) as Partial<OfficeRoom>);
-      if (edit) void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
-      else await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 새 방 = 목록에 있어야 들어감
+      else {
+        // 성공 응답으로 새 방을 먼저 넣어 목록 재조회가 느려도 바로 들어간다.
+        await qc.cancelQueries({ queryKey: ["nomute", "rooms"] });
+        const room = { name, purpose, kind: "group", temp: true, ...savedRoomPart(j, j.room.id, { name, purpose, members: picked }) } as OfficeRoom;
+        qc.setQueryData<OfficeRoom[]>(["nomute", "rooms"], (old) => [...(old || []).filter((r) => r.id !== room.id), room]);
+      }
+      void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+      job.reply = j;
       return j;
     } catch (e) { setWhy(e instanceof Error ? e.message : "못 만들었어"); setBusy(false); throw e; }
   };
-  const g = useCloseGuard(dirty, onClose);
+  const make = async () => save(prepare());
+  // 기존 GoButton의 fill → wait → ok를 그대로 사용한다. 요청은 게이지가 찬 뒤 시작한다.
+  const begin = async () => prepare();
+  const create = async (job: ReturnType<typeof prepare>) => { await save(job); return true; };
+  const close = () => { if (!busy) onClose(); };
+  const g = useCloseGuard(dirty && !busy, close, open);
   const made = (j: { room: { id: string } }) => { onClose(); if (!edit) void nav({ to: "/channels/$channelId", params: { channelId: j.room.id } }); };   // 닫고 옮기기 = ✓ 뒤(GoButton done)
   return (
-    <div role="dialog" aria-modal="true" aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
+    <div role={open ? "dialog" : undefined} aria-modal={open || undefined} aria-hidden={!open || undefined} inert={!open} style={open ? undefined : { visibility: "hidden", pointerEvents: "none" }} aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
       <div className="relative flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <DialogX onClose={g.request} />   {/* 판 안 「닫기」 글자 단추 대신 창 X 하나(형 11-15 07:55 「닫기 버튼을 두는게 아니라. 창에 x 버튼을 통일시켜서」 · #-042) */}
+        <DialogX onClose={g.request} disabled={busy} />
         <b className="pr-9 text-base">{edit ? "방 설정" : "임시 단톡방"}</b>
         {edit ? <RoomArtRow id={edit.id} look={edit.look} /> : null}
+        <fieldset disabled={busy} inert={busy} className="contents">
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground">방 이름</span>
           <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="rounded-xl border border-border bg-transparent px-3 py-2" />
@@ -134,12 +151,15 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
           <legend className="mb-1 text-muted-foreground">유지 시간{edit ? <span className="ml-1 text-xs">· 지금 {edit.exp ? tempLeft(edit.exp) : "영구"}</span> : null}</legend>   {/* 지금 남은 기한(형 11-06 10:37 「이거 하루가 넘나? 유지기간이」) */}   {/* 라벨 옆 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           <DaySlide hours={hours} onChange={setHours} />   {/* 1시간 · 끌어서 1~7일 · 영구(형 11-14 04:56 「1시간, 그리고 이렇게 기한, 영구 3개 설정으로」 · 앞 판 = 1시간 · 하루 · 사흘 · 일주일 · 영구 다섯 단추) */}
         </fieldset>
+        </fieldset>
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
-          <GoButton disabled={!ready} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={make} done={made} away={onClose} what={edit ? "방 고치기" : "방 만들기"}>{edit ? "고치기" : "만들기"}</GoButton>
+          {/* 새 방 입장은 서버가 준 id가 필요하므로 생성은 체크까지 기다리고, 기존 방 고치기는 공통 away를 따른다. */}
+          {edit ? <GoButton disabled={!ready} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={make} done={made} away={onClose} what="방 고치기">고치기</GoButton>
+            : <GoButton disabled={!ready} className="nm-room-create rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={begin} busy="방 생성 준비 중" wait={create} waiting="생성 중 …" done={(job) => { if (job.reply) made(job.reply); }}>방 생성</GoButton>}
         </div>
       </div>
-      {g.ask ? <CloseAsk busy={busy} onKeep={() => g.setAsk(false)} onClose={() => { draftDrop(dk); onClose(); }} /> : null}   {/* 닫기 = 쓰던 글도 버림(「사라집니다」 말 그대로 · 앞 판은 이 기기에 남겨 다시 열면 되살림) */}
+      {g.ask ? <CloseAsk busy={busy} onKeep={() => g.setAsk(false)} onClose={() => { if (!busy) { draftDrop(dk); close(); } }} /> : null}
     </div>
   );
 }
