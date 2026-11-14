@@ -7,7 +7,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { livePicked, saveBlock } from "./picked";
 import { draftDrop, draftGet, draftSet } from "./draft";   // 쓰던 글 보관(형 11-07 10:56 「휘발안되고」)
-import { SaveAsk, useCloseGuard } from "./save-ask";   // 「저장할까?」(형 10:56)
+import { CloseAsk, useCloseGuard } from "./save-ask";   // 쓰던 중 닫기 = 「작성 중인 내용이 사라집니다. 창을 닫으시겠습니까?」(#-042 · 앞 판 「저장할까?」 형 11-07 10:56)
+import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { useNavigate } from "@tanstack/react-router";
 import { DaySlide } from "./day-slide";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
@@ -106,8 +107,9 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
   const made = (j: { room: { id: string } }) => { onClose(); if (!edit) void nav({ to: "/channels/$channelId", params: { channelId: j.room.id } }); };   // 닫고 옮기기 = ✓ 뒤(GoButton done)
   return (
     <div role="dialog" aria-modal="true" aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
-      <div className="flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <b className="text-base">{edit ? "방 설정" : "임시 단톡방"}</b>
+      <div className="relative flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
+        <DialogX onClose={g.request} />   {/* 판 안 「닫기」 글자 단추 대신 창 X 하나(형 11-15 07:55 「닫기 버튼을 두는게 아니라. 창에 x 버튼을 통일시켜서」 · #-042) */}
+        <b className="pr-9 text-base">{edit ? "방 설정" : "임시 단톡방"}</b>
         {edit ? <RoomArtRow id={edit.id} look={edit.look} /> : null}
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground">방 이름</span>
@@ -134,11 +136,10 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
         </fieldset>
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
-          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={g.request}>닫기</button>
           <GoButton disabled={!ready} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={make} done={made}>{edit ? "고치기" : "만들기"}</GoButton>
         </div>
       </div>
-      {g.ask ? <SaveAsk saving={busy} onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { void make().then(made).catch(() => g.setAsk(false)); }} /> : null}
+      {g.ask ? <CloseAsk busy={busy} onKeep={() => g.setAsk(false)} onClose={() => { draftDrop(dk); onClose(); }} /> : null}   {/* 닫기 = 쓰던 글도 버림(「사라집니다」 말 그대로 · 앞 판은 이 기기에 남겨 다시 열면 되살림) */}
     </div>
   );
 }
