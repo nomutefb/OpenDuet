@@ -43,3 +43,14 @@
 .nm-pmrun-kids img, .nm-pmrun-kids i { display: block; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: rgba(255, 255, 255, .08); }
 .nm-pmrun-kids b { min-width: 0; font-size: 10.5px; font-weight: 600; color: #e8eae8; white-space: nowrap; }
 .nm-pmrun-kids hr { border: 0; border-top: 1px solid rgba(255, 255, 255, .12); margin: 8px 0; }
+
+/* #-040 접수 · 완료 = 선 없는 표 · 칸 넷 고정 폭 · 머리 줄 · 줄 번갈이 옅은 음영 · 판 안 좌우 여백 같게(형 11-15 07:37 · 깃) */
+.nm-pmrun-b:has(> .nm-pmrun-jobs) { padding: 6px 0; }
+.nm-pmrun-jobs { gap: 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.nm-pmrun-jobs li { display: grid; grid-template-columns: 14px 52px minmax(0, 1fr) 72px; column-gap: 8px; align-items: center; height: 30px; padding: 0 12px; }
+.nm-pmrun-jobs li:nth-child(odd):not(.hd) { background: rgba(255, 255, 255, .035); }
+.nm-pmrun-jobs li.hd { height: 24px; font-size: 10.5px; letter-spacing: .02em; color: rgba(232, 234, 232, .42); border-bottom: 0; }
+.nm-pmrun-jobs b { font-weight: 600; }
+.nm-pmrun-jobs .tt { white-space: nowrap; }
+.nm-pmrun-jobs small { white-space: nowrap; }
+.nm-pmrun-jobs li.done small { color: rgba(207, 255, 64, .75); }

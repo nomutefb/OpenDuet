@@ -41,8 +41,9 @@ function Jobs({ pmRoom }: { pmRoom: string }) {   // 접수 · 완료 = PM 1:1 �
   if (!q.data) return <p className="nm-pmrun-empty">불러오는 중…</p>;
   if (!rows.length) return <p className="nm-pmrun-empty">접수 · 완료 없음</p>;
   return (
-    <ul className="nm-pmrun-jobs" aria-label="접수 · 완료">
-      {rows.map((j) => <li key={j.no || j.id} className={j.kind}><span className="mk" aria-hidden>{j.kind === "done" ? "✓" : "↘"}</span>{j.no ? <b>{j.no}</b> : null}<span className="tt">{j.title}</span><small>{j.kind === "done" ? "완료" : "접수"} {when(j.ts)}</small></li>)}
+    <ul className="nm-pmrun-jobs" aria-label="접수 · 완료">   {/* 선 없는 표(형 11-15 07:37 dm-gik 「선 투명인 표 처럼 일목 요연하게 정렬 … 위에 인덱싱 간단하게 있고 음영 조금」 · 깃 #-040) = 칸 넷 고정(표시 · 번호 · 일 · 상태) · 줄마다 같은 격자 */}
+      <li className="hd" aria-hidden><span /><span>번호</span><span>일</span><span>상태</span></li>
+      {rows.map((j) => <li key={j.no || j.id} className={j.kind}><span className="mk" aria-hidden>{j.kind === "done" ? "✓" : "↘"}</span><b>{j.no || "–"}</b><span className="tt" title={j.title}>{j.title}</span><small>{j.kind === "done" ? "완료" : "접수"} {when(j.ts)}</small></li>)}
     </ul>
   );
 }
