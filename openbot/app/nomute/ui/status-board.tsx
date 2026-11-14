@@ -38,17 +38,19 @@ const isWait = (r: StatusRow) => r.note === WAIT || /^이사/.test(r.note || "")
 //   클로드1~4 = 그 몸 계정 폴더 차례(.claude → spare1 → spare2 …) · R2 · GitHub · rclone = 몸 보고 tok_cli 줄(key <몸>:r2 · :gh · :rclone · 뎅·봄 붙이는 중)
 const CLI_COLS = [["c1", "클로드1"], ["c2", "클로드2"], ["c3", "클로드3"], ["c4", "클로드4"], ["gpt", "GPT"], ["r2", "R2"], ["gh", "GitHub"], ["rclone", "rclone"]].map(([id, name]) => ({ id, name }));
 // 묶음(형 11-08 01:29 「가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」)
-const GROUPS = ["계정 · 연결", "수집", "몸", "우리"];
+/** 맨 위 묶음 = 봇 현황(형 11-14 클라우드 세션 창 「봇 현황 으로 다른거랑 같이 보게하고 싶은데」 · 「ㄱ」) = 활동 · 계정 상태 · 봇 연결 · 그록봇 토큰 · CLI 연결 — 서버 read room=bots 한 장과 같은 다섯 */
+const BOTS_GRP = "봇 현황";
+const GROUPS = [BOTS_GRP, "서버", "수집", "몸", "우리"];
 /** 형이 준 분류 · 차례 · 기본 줄(보고가 오면 같은 key 줄을 덮음) */
 /** 러너 화면에 줄을 세우는 아이 = 클로드 일곱(형 11-10 07:5x · 13:15 봄 1:1 「러너에 온도 대시보드 뜨는거 갱신해주고 러너 다 갱신」 · 조약돌 ./runner-gauges.tsx PEB 와 같은 일곱) */
 const RUN_WHO = new Set(["봄", "시아", "뎅", "빠르", "번개", "뜸", "깃"]);
 const skeleton = (bs: Body[]): StatusCat[] => [
-  { grp: "계정 · 연결", id: "acct", name: "계정 상태", rows: [] },
-  { grp: "계정 · 연결", id: "activity", name: "활동", rows: [] },   // 일 · 쉼 · 멈춤(형 11-14 06:25 밥상 「쉬면 쉼으로 기록되는 활동표가 러너에 갱신될 수 있는지 봐봐 봄이 이를 보고 역할 배분에 쓰게」 · 서버 _activity.js · 번개) — 계정 상태 바로 아래 · 늘 펼침   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
-  { grp: "계정 · 연결", id: "cli", name: "CLI 연결", cols: CLI_COLS, rows: bs.filter((b) => b.being).map((b) => ({ ...waitOf(b, b.being), cells: {} })) },   // 서버 tok_claude · tok_gpt · tok_cli 줄을 한 표로(cliRows)
-  { grp: "계정 · 연결", id: "tok_grok", name: "그록봇 토큰", rows: [] },
-  { grp: "계정 · 연결", id: "bots", name: "봇 연결", rows: [] },
-  { grp: "계정 · 연결", id: "server", name: "서버 연결 상태", rows: [] },
+  { grp: BOTS_GRP, id: "activity", name: "활동", rows: [] },   // 일 · 쉼 · 멈춤(형 11-14 06:25 밥상 「쉬면 쉼으로 기록되는 활동표가 러너에 갱신될 수 있는지 봐봐 봄이 이를 보고 역할 배분에 쓰게」 · 서버 _activity.js · 번개) — 계정 상태 바로 아래 · 늘 펼침   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
+  { grp: BOTS_GRP, id: "acct", name: "계정 상태", rows: [] },
+  { grp: BOTS_GRP, id: "bots", name: "봇 연결", rows: [] },
+  { grp: BOTS_GRP, id: "tok_grok", name: "그록봇 토큰", rows: [] },
+  { grp: BOTS_GRP, id: "cli", name: "CLI 연결", cols: CLI_COLS, rows: bs.filter((b) => b.being).map((b) => ({ ...waitOf(b, b.being), cells: {} })) },   // 서버 tok_claude · tok_gpt · tok_cli 줄을 한 표로(cliRows)
+  { grp: "서버", id: "server", name: "서버 연결 상태", rows: [] },
   { grp: "수집", id: "collect", name: "수집 상태", rows: [] },
   // 수집 색인(형 11-05 12:45~13:10 「인덱싱 10개정도로 표를 만들어야될거같다」 · 「초단위로」 · 「한 표에 모든걸 다 담아」 · 「봄이랑 상의해서 메뉴 4번에」 · 정본 = 공통/문서/2026-11-05-작동-표/수집-루틴.md · 서버 cat collect_index)
   { grp: "수집", id: "collect_index", name: "수집 색인 · 40분 판", rows: [] },
@@ -447,8 +449,7 @@ export function StatusBoard() {
   const bs = bodiesOf(srv.data?.bodies).map((b) => (RUN_WHO.has(b.being) ? b : { ...b, being: "" }));   // 몸 = 서버 bodies(정본) · 없으면 사본 · 아이 = 클로드 일곱만(형 11-10 07:5x 시아 창 「시아 러너 이거 갱신. 애들 포함 해서 천둥은 그록봇이니 넣을필요는 없음.」 · 「지피티 봇은 넣을 필요는 없음.」 · 정본 윈A being 「윈터」 = 옛 클로드 윈터 → 비움)
   const cats = merge(fromLocal(sched.data, bots.data, sched.isPending), bs, srv.data?.cats);
   const [open, setOpen] = useState<Record<string, boolean>>({}), [pick, setPick] = useState(""), [zone, setZone] = useState(""), [more, setMore] = useState(false);
-  const TOP = new Set(["acct", "activity"]);   // 맨 위 = 계정 상태(형 11-07 14:43 「먼저 나오게」) + 활동(형 11-14 06:25 · 멈춤이 바로 보이게)
-  const acct = cats.filter((c) => TOP.has(c.id)), rest = cats.filter((c) => !TOP.has(c.id));   // 맨 위 = 계정 상태(형 11-07 14:43 「먼저 나오게」) → 도식 넷 → 「자세히」 = 칸 목록(손실 0)
+  const acct = cats.filter((c) => c.grp === BOTS_GRP), rest = cats.filter((c) => c.grp !== BOTS_GRP);   // 맨 위 = 봇 현황 묶음(활동이 첫 칸 · 형 11-14 「ㄱ」 · 앞 판 = 계정 상태 · 활동 둘만 위 · 봇 연결 · 토큰 · CLI 는 「자세히」 안) · 접힌 칸은 한 줄이라 키가 거의 안 늚   // 맨 위 = 계정 상태(형 11-07 14:43 「먼저 나오게」) → 도식 넷 → 「자세히」 = 칸 목록(손실 0)
   const all = cats.flatMap((c) => c.rows), red = count(all, "miss"), yellow = count(all, "late"), gray = count(all, "unknown");
   return (
     <div className="nsb mx-auto w-full max-w-6xl px-4 pb-12 pt-3">
