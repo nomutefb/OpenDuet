@@ -28,6 +28,7 @@ import { TeamsList, TeamsSwitch, setOfficeMode, setTeamsMode, useOfficeMode, use
 import { PhoneMeet } from "./phone-meet";   // 폰 「회의」 탭 = 열린 회의 이어 받기 + 뜸 화상회의 칸 그대로(형 11-13 22:05 · 22:14)
 import { RoomGlyph } from "./room-glyph";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
+import { GroupRoomDialog, groupRuleRoom } from "./group-room";   // 회의실 · 고정 단톡방 방 설정(형 11-14 17:20 「다ㄴ톡방 모두 통일해주라」 · 번개)
 import { GoButton } from "./go-button";
 import { type NotifyState, notifyImage, notifyOn, notifyState } from "../data/notify";
 
@@ -131,7 +132,7 @@ function PeerFaceTap({ who, name, list, children }: { who: string; name: string;
  *  꼴 = 1:1 줄 얼굴 누름 프로필 카드(./profile-card.tsx)와 같은 유리 카드 · 단추 = 방 안 이름 목록(./room-menu.tsx)과 같은 창을 그대로 띄움 · 서버 손 0 */
 function RoomPhotoTap({ r, children }: { r: Room; children: React.ReactNode }) {
   const photo = useRoomPhoto(r);
-  const [view, setView] = useState<"" | "info" | "crew" | "look" | "temp">("");
+  const [view, setView] = useState<"" | "info" | "crew" | "look" | "temp" | "group">("");
   const go = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); setView("info"); };
   const stop = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
   const close = () => setView("");
@@ -143,11 +144,12 @@ function RoomPhotoTap({ r, children }: { r: Room; children: React.ReactNode }) {
         {view === "crew" ? <RoomMembersDialog r={r} onClose={close} /> : null}
         {view === "look" ? <RoomLookDialog r={r} onClose={close} /> : null}
         {view === "temp" ? <TempRoomDialog edit={r} onClose={close} /> : null}
+        {view === "group" ? <GroupRoomDialog room={r} onClose={close} /> : null}
       </span>, document.body) : null}
     </span>
   );
 }
-function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => void; onPhoto: () => void; onView: (v: "crew" | "look" | "temp") => void }) {
+function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => void; onPhoto: () => void; onView: (v: "crew" | "look" | "temp" | "group") => void }) {
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
   const nav = useNavigate();
@@ -167,7 +169,7 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
           <button type="button" className="ypc-x" onClick={onPhoto}>사진 바꾸기</button>
           {crewOk ? <button type="button" className="ypc-x" onClick={() => onView("crew")}>멤버 설정</button> : null}
           <button type="button" className="ypc-x" onClick={() => onView("look")}>방 꾸미기</button>
-          {r.temp ? <button type="button" className="ypc-x" onClick={() => onView("temp")}>방 설정</button> : null}
+          {r.temp ? <button type="button" className="ypc-x" onClick={() => onView("temp")}>방 설정</button> : groupRuleRoom(r) ? <button type="button" className="ypc-x" onClick={() => onView("group")}>방 설정</button> : null}
         </div>
       </div>
     </div>
@@ -185,6 +187,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
   const [nSeen, setNSeen] = useState(() => { try { return localStorage.getItem(NOTICE_SEEN) || ""; } catch { return ""; } });   // PC 공지 아이콘 점 = 이 기기에서 본 공지 판과 다르면
   const [tinting, setTinting] = useState<Room | null>(null), [peek, setPeek] = useState<{ id: string; hex: string } | null>(null);   // 표지 색 판(./room-color.tsx) · peek = 끄는 동안 줄에 먼저 보임
   const [naming, setNaming] = useState<Room | null>(null);   // 방 이름(./room-color.tsx) · 임시방 = 「수정」 길
+  const [grouping, setGrouping] = useState<Room | null>(null);   // 회의실 · 고정 단톡방 「방 설정」(./group-room.tsx)
   const press = useRef<{ t: number; x: number; y: number; hit: boolean; touch?: boolean; buzz?: number }>({ t: 0, x: 0, y: 0, hit: false });   // 길게 누르기(형 10-31 「길게 누르면 변경 하는 거기서 수정」) = 터치만 · 오른쪽 클릭은 onContextMenu
   useEffect(() => {   // 줄 메뉴 = 밖을 누르면 닫힘(형 10-31 「다른거 클릭하면 없어져야 되는데 안없어진더」)
     if (!menu) return undefined;
@@ -272,7 +275,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
             {r.id !== "all" ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => toggle(PINS, pins, setPins, r.id)}>{pins.has(r.id) ? "고정 풀기" : "고정"}</button> : null}
             <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void markRead(r, u)}>{u ? "읽음으로" : "안 읽음으로"}</button>
             {!r.with ? <button type="button" role="menuitem" className="flex items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setTinting(r); }}><RainbowOrb />표지 색</button> : null}
-            {!r.with && !r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setNaming(r); }}>이름 바꾸기</button> : null}
+            {!r.with && !r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); if (groupRuleRoom(r)) setGrouping(r); else setNaming(r); }}>{groupRuleRoom(r) ? "방 설정" : "이름 바꾸기"}</button> : null}
             {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setEditing(r); }}>수정</button> : null}
             {r.id !== "all" && (r.designated || r.temp) ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); if (r.temp) setEditing(r); else setMembering(r); }}>멤버 넣고 빼기</button> : null}   {/* 형 11-05 「톡 목록에서 설정하게 일원화」 */}
             {canGone(r) ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" onClick={() => { setMenu(""); setGone(r); }}>방 없애기</button> : null}
@@ -318,6 +321,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
       {topBar || (slim ? null : <TeamsSwitch />)}
       {tinting ? <RoomColorPick room={tinting} onPeek={(hex) => setPeek({ id: tinting.id, hex })} onClose={() => { setTinting(null); setPeek(null); }} /> : null}
       {naming ? <RoomNamePick room={naming} onClose={() => setNaming(null)} /> : null}
+      {grouping ? <GroupRoomDialog room={grouping} onClose={() => setGrouping(null)} /> : null}
       {pendPic ? <NotifyPicPick name={(rooms.data || []).find((x) => x.id === pendPic.room)?.name || pendPic.room} url={pendPic.url} onClose={() => setPendPic(null)}
         save={() => office<Partial<NotifyState>>("notify", { method: "POST", body: JSON.stringify({ room: pendPic.room, image: pendPic.url }) }).then((j) => qc.setQueryData(["nomute", "notify"], notifyState(j)))} /> : null}
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
