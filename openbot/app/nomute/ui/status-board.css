@@ -172,3 +172,14 @@
 :root:not(.dark) .nsb-who td.nw select { border-color:rgba(0,0,0,.14); }
 .nsb-who td.nw select option { color:#161716; }
 .nsb-who td.nw[data-err] select { border-color:#ff5a5a; }
+
+/* 활동 칸 한눈 보기(형 11-14 「지금 쉬고있어서 일을 받을 상태가 되어있냐」 · 「신호가 끊긴게 아니냐」) — 머리 = 갈래 합계 · 받을 수 있음 = 라임 테두리 점(모름 = 흐린 테두리 점과 갈림) */
+.nsb-act { flex-wrap:wrap; justify-content:flex-end; gap:2px 10px; color:var(--nsb-mut); font-variant-numeric:tabular-nums; }
+.nsb-act b { font-weight:700; color:#E7ECE7; }
+.nsb-act [data-zero] b { color:inherit; font-weight:400; }
+.nsb-act [data-act="ready"]:not([data-zero]) b { color:var(--nsb-ok); }
+.nsb-act [data-act="lost"]:not([data-zero]), .nsb-act [data-act="lost"]:not([data-zero]) b { color:var(--nsb-red); }
+.nsb-rows li[data-act="ready"] > .nsb-r > .nm-st { background:none; box-shadow:inset 0 0 0 2px var(--accent, #CFFF40); }
+.nsb-rows li[data-act="ready"] > .nsb-r > .nsb-v { color:#E7ECE7; }
+.nsb-rows li[data-act="lost"] > .nsb-r > .nsb-v { color:var(--nsb-red); }
+.nsb-acct .memo { min-width:11em; }   /* 폰 = 비고 칸이 한 글자 폭으로 눌려 줄 높이가 몇 배로 늘던 것(GPT 줄 390px) — 표는 어차피 옆으로 민다 */
