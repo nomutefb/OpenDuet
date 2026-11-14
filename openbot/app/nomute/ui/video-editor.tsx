@@ -40,15 +40,18 @@ export const RAIL_CSS = "#editSpec .gs-sep{display:none!important}#optStrip,#edi
   + ".nm-tip{position:fixed;z-index:2147483000;padding:5px 10px;border-radius:999px;background:rgba(14,15,14,.94);border:1px solid rgba(255,255,255,.16);color:#e8eae8;font:700 12px/1.2 Pretendard,system-ui,sans-serif;white-space:nowrap;pointer-events:none;transform:translate(calc(-100% - 10px),-50%)}";
 
 /** 시그니처 색 = 포토 에디터와 같은 라임(형 11-13 14:06 봄 옮김 「이미지 에디터처럼 시그니처 색이 좀 일치되어야 되구」) · 옛 화면 청록(--accent #00EED2)만 덮음 · 값 = 앱 YETA 톤(./inapp yetaTone --modern-accent)과 같음 · 앱 밝게/어둡게 따라감 */
-export const accentCss = (dark: boolean) => (dark ? "" : "#editSpec .gs-v:not(.on){color:rgba(0,0,0,.5)!important}") + `:root{--accent:${dark ? "#CFFF40" : "#4f7a00"};--accent-rgb:${dark ? "207,255,64" : "79,122,0"}}`;
+//   11-14 형 「기존 시안 라인을 라임으로 덮어씌웟는데 기존 시안은 없애서 깔끔하고 빨리뜨게」 → 다 읽은 뒤 덮던 것을 그려지기 전에 넣음(seeEarly) · 옛 화면 제 :root 가 뒤에 와도 이기게 !important = 청록이 한 번도 안 비침
+export const accentCss = (dark: boolean) => (dark ? "" : "#editSpec .gs-v:not(.on){color:rgba(0,0,0,.5)!important}") + `:root{--accent:${dark ? "#CFFF40" : "#4f7a00"}!important;--accent-rgb:${dark ? "207,255,64" : "79,122,0"}!important}`;
 
 function see(el: HTMLIFrameElement) {
   let doc: Document | null = null;
   try { doc = el.contentDocument; } catch { return; }
   if (!doc?.head) return;
   let s = doc.getElementById("nm-ved-see") as HTMLStyleElement | null;
-  if (!s) { s = doc.createElement("style"); s.id = "nm-ved-see"; doc.head.appendChild(s); }
-  s.textContent = SEE_CSS + RAIL_CSS + accentCss(document.documentElement.classList.contains("dark"));
+  if (!s) { s = doc.createElement("style"); s.id = "nm-ved-see"; }
+  const css = SEE_CSS + RAIL_CSS + accentCss(document.documentElement.classList.contains("dark"));
+  if (s.textContent !== css) s.textContent = css;
+  if (doc.head.lastElementChild !== s) doc.head.appendChild(s);   // 늘 맨 끝(그려지기 전에 먼저 넣으면 옛 화면 제 스타일이 뒤에 붙음 → 다 읽은 때 다시 맨 끝으로)
   const w = doc.defaultView as (Window & { __nmStuck?: boolean; __nmRail?: boolean }) | null;
   const pv = doc.getElementById("pvsec"), rail = doc.getElementById("cpRailWrap");
   if (w && pv && rail && !w.__nmRail && "ResizeObserver" in w) {   // 기둥 키 = 칸 위끝부터 기둥 아래끝(문서마다 한 번 · 탭 · 돋보기로 기둥이 바뀌면 따라감)
@@ -60,7 +63,7 @@ function see(el: HTMLIFrameElement) {
     ro.observe(rail); for (const c of Array.from(rail.children)) ro.observe(c); fit();
   }
   const spec = doc.getElementById("editSpec");
-  if (w && spec && !(w as { __nmIcons?: boolean }).__nmIcons) {   // 그림 단추 덧(해상도 값 글자 · 길게 누름 말풍선 · 문서마다 한 번)
+  if (w && spec && rail && !(w as { __nmIcons?: boolean }).__nmIcons) {   // rail = 읽는 중(seeEarly)엔 아직 없을 수 있음 → 있을 때만   // 그림 단추 덧(해상도 값 글자 · 길게 누름 말풍선 · 문서마다 한 번)
     (w as { __nmIcons?: boolean }).__nmIcons = true;
     const d = doc;
     const val = () => spec.querySelectorAll<HTMLElement>(".gs-v[data-cyc=res]").forEach((e) => { const v = (e.textContent || "").replace(/^해상도\s*/, "").trim().slice(0, 4); if (e.getAttribute("data-nmv") !== v) e.setAttribute("data-nmv", v); });
@@ -84,6 +87,23 @@ function see(el: HTMLIFrameElement) {
     const d = doc, on = () => d.documentElement.classList.toggle("nm-stuck", (d.scrollingElement?.scrollTop || 0) > 1);
     w.addEventListener("scroll", on, { passive: true }); on();
   }
+}
+
+/** 옛 화면이 그려지기 전에 색 · 바탕을 넣음 — 다 읽은 때(load)만 넣으면 그 전까지 청록 · 옛 바탕(#121212)이 먼저 비쳤다가 바뀜.
+ *  새 문서의 머리(head)가 생긴 첫 프레임에 see() · 다 읽히면 멈춤(그 뒤는 load 손) · 못 읽어도 10초 뒤 멈춤 */
+export function seeEarly(el: HTMLIFrameElement) {
+  let raf = 0, n = 0;
+  const tick = () => {
+    raf = 0;
+    let doc: Document | null = null;
+    try { doc = el.contentDocument; } catch { return; }
+    const real = !!doc && doc.URL !== "about:blank";
+    if (real && doc!.head && !doc!.getElementById("nm-ved-see")) see(el);
+    if ((real && doc!.readyState === "complete") || ++n > 600) return;
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+  return () => { if (raf) cancelAnimationFrame(raf); };
 }
 
 /** 영상 편집 안에서 고르는 일(형 11-14 「영상 편집 안에서 트래킹이며 뭐며 그 안에서 내부에서 고르는 형태였는데, 합칠수있나 기능을? … 기본 영상 편집을 할건지, 트래킹을 할건지, 프롬프팅을 할건지 고르는거에 따라서 나오게 … 이미지 편집 1개, 영상 편집 1개 이렇게만 잇엇거든 … 옛날 버전이 github에 남아있으면 차라리 그걸 가져오는게 빠를거야」)
@@ -125,7 +145,9 @@ function ModeFrame({ src, title, on, edit, onTab }: { src: string; title: string
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => { unhook(); mo.disconnect(); el.removeEventListener("load", load); window.removeEventListener("message", msg); };
   }, [edit]);
-  return <iframe ref={ref} title={title} src={src} className="ved-if" data-on={on || undefined} aria-hidden={on ? undefined : true} tabIndex={on ? undefined : -1} allow="autoplay; clipboard-write; fullscreen; picture-in-picture" />;
+  useEffect(() => { const el = ref.current; return el ? seeEarly(el) : undefined; }, [src]);   // 주소가 바뀔 때마다(유튜브 ?u= 넘겨받음) 다시
+  // data-nm-scene="off" = 옛 화면 3D 바탕(editor viewer/nm-scene.js → three.js)을 안 읽게 — 어차피 SEE_CSS 가 가리는 것(안 보이는데 받아서 돌고 있었음)
+  return <iframe ref={ref} title={title} src={src} className="ved-if" data-on={on || undefined} data-nm-scene="off" aria-hidden={on ? undefined : true} tabIndex={on ? undefined : -1} allow="autoplay; clipboard-write; fullscreen; picture-in-picture" />;
 }
 
 export function VideoEditor({ onBack }: { onBack?: () => void }) {
