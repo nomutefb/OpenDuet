@@ -139,3 +139,8 @@
 .nm-tbell:hover, .nm-tbell.on { opacity:.85; }
 .nm-tbell:active { transform:scale(var(--press-s,.85)); }
 .nm-tbell .nm-tmute { margin:0; opacity:1; }
+
+/* 회의 탭 빈 화면 = 가운데 반투명 알약 「새 회의 시작」(./phone-meet.tsx · 깃 #-027 · 형 11-15 01:23) · 움직임 · 흐림 0 */
+.nm-pmeet-empty:has(> .nm-meet-start) { flex:1 1 auto; justify-content:center; min-height:min(60dvh, 520px); padding:0 16px; }
+.nm-meet-start { padding:10px 22px; border-radius:999px; border:1px solid rgba(207,255,64,.38); background:rgba(207,255,64,.1); color:#CFFF40; font-size:15px; font-weight:600; line-height:1.2; cursor:pointer; }
+.nm-meet-start:active { background:rgba(207,255,64,.18); }
