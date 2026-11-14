@@ -177,7 +177,7 @@ const ago = (at?: string) => { const t = at ? Date.parse(at) : NaN; if (!Number.
 /** 폰 위 탭 「사무실 | 팀즈 | 회의」 = PC 위 탭 줄과 같은 폴더 탭(고른 탭이 아래 판과 한 몸 · 어깨 곡선) · 고른 탭만 이름까지 부드럽게 펼침 · 나머지 = 아이콘
  *  형 11-13 22:14 dm-sia 「근데 상단 탭 모양을 팀즈 그 아이콘 고르면 부드럽게 확장되는 느낌으로 하면 될듯」 · 참고 영상 96981.mp4(브라우저식 폴더 탭) */
 export function TeamsSwitch() {
-  const mode = useOfficeMode(), n = useTeamsUnread(), muted = useTeamsMuted();
+  const mode = useOfficeMode(), n = useTeamsUnread();   // 꺼짐 종 = 안 띄움(형 11-15 06:28 dm-gik 「우 상단 팀즈 종은 이제 없어도 됨」 · 꺼진 동안 숫자만 0)
   const tab = (m: OfficeMode, ic: ReactNode, name: string, extra?: ReactNode) => (
     <button type="button" role="tab" aria-selected={mode === m} aria-label={name} className={`nm-ftab${mode === m ? " on" : ""}`} onClick={() => setOfficeMode(m)}>
       {ic}<span className="nm-ftab-nm">{name}</span>{extra}
@@ -186,7 +186,7 @@ export function TeamsSwitch() {
   return (
     <div className="nm-tswitch fold" role="tablist" aria-label="대화 판 바꾸기">
       {tab("office", <OfficeIcon />, "사무실")}
-      {tab("teams", <TeamsIcon />, "팀즈", muted ? <MutedMark /> : n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null)}
+      {tab("teams", <TeamsIcon />, "팀즈", n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null)}
       {tab("meet", <MeetIcon />, "회의")}
     </div>
   );
