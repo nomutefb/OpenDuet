@@ -9,11 +9,10 @@ import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/off
 import { FaceImg } from "./faces";
 import { t12 } from "./when";
 import { GoButton } from "./go-button";
+import { saveRoomRoutine, type RoomRoutineForm as Form, type RoomRoutineMode as Mode } from "./room-routine-save";
 import "./room-routine.css";
 
-type Mode = "hours" | "days" | "week";
 export type RoomTimer = { mode: Mode; every?: number; min?: number; days?: number; times?: string[]; wd?: number[]; text?: string; rule?: string; skip?: string[]; on?: boolean; next_ts?: number };
-type Form = { mode: Mode; every: number; min: number; days: number; times: string[]; wd: number[]; text: string; on: boolean };   // 루틴 「지침」 칸 = 걷음(봄 11-12 00:39 「가」 · 형 00:22 「글 하고 지침 따로 잇는데.뭐가 맞는지.봐줘 확실한 것만 남기고」 · 방 지침 = 방 설정 한 칸)
 
 const WD = ["일", "월", "화", "수", "목", "금", "토"];
 const MODES: [Mode, string][] = [["hours", "몇 시간마다"], ["days", "며칠마다"], ["week", "요일마다"]];
@@ -86,7 +85,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const crew = room.with ? [] : roomAgentIds(room, list).map((id) => { const p = list.find((y) => idOf(y.who, list) === id); return { id, who: p?.who || id, name: p?.name || p?.who || id }; });
   const [f, setF] = useState<Form>(() => formOf(timer)), [skip, setSkip] = useState<string[]>(timer?.skip || []);
-  const [sure, setSure] = useState(false), [saved, setSaved] = useState(false);
+  const [sure, setSure] = useState(false), [saved, setSaved] = useState(false), [saving, setSaving] = useState(false);
   const set = (x: Partial<Form>) => { setF((v) => ({ ...v, ...x })); setSaved(false); };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -102,10 +101,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
       if (body.off) onClose(); else setSaved(true);
     },
   });
-  const save = () => {
-    const cycle = f.mode === "hours" ? { every: f.every, min: f.min } : f.mode === "days" ? { days: f.days, times: f.times } : { wd: f.wd, times: f.times };
-    return go.mutateAsync({ mode: f.mode, ...cycle, text: f.text.trim(), skip, on: f.on });
-  };
+  const save = () => saveRoomRoutine(f, skip, go.mutateAsync, setSaving);
   const next = saved ? nextLine(timer?.next_ts) : "";
   return (
     <div className="nm-rr yeta-set" role="dialog" aria-modal="true" aria-label={`${room.name} 루틴`} onClick={(e) => e.stopPropagation()}>
@@ -114,6 +110,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
         <b>루틴 · {room.name}</b>
       </div>
       <div className="nm-rr-b">
+        <fieldset className="nm-rr-fields" disabled={saving}>
         <button type="button" role="switch" aria-checked={f.on} className={`yset-item${f.on ? " on" : ""}`} onClick={() => set({ on: !f.on })}>
           <span className="si-lbl"><span className="si-t">루틴 켜기</span>{f.on ? <span className="si-d">{cycleLine(f)}</span> : null}</span>   {/* 꺼짐 안내 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           <span className="si-sw" aria-hidden />
@@ -154,17 +151,18 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
           </>
         ) : null}
 
+        </fieldset>
         {go.error ? <p className="nm-rr-note" role="alert">못 바꿈 — {go.error instanceof Error ? go.error.message : "다시 해 줘"}</p> : null}
         {saved ? <p className="nm-rr-note" role="status">{!f.on ? "저장했어 · 꺼 둠" : next ? `저장했어 · 다음 울림 ${next}` : "저장했어"}</p> : null}
-        <GoButton className="nm-rr-save" disabled={!ready || go.isPending} go={save} busy="저장하는 중">저장</GoButton>   {/* 게이지 → ✓(./go-button.tsx · 형 11-01 14:12) */}
+        <GoButton className="nm-rr-save" disabled={!ready || go.isPending} go={save} done={onClose} busy="저장하는 중">저장</GoButton>   {/* 공통 게이지 → ✓를 끝까지 보여 준 뒤 닫음 · 실패는 창과 이유를 유지 */}
         {timer ? (
           sure ? (
             <div className="nm-rr-sure">
               <span>이 방 루틴을 지울까?</span>
               <button type="button" onClick={() => setSure(false)}>아니</button>
-              <button type="button" disabled={go.isPending} onClick={() => go.mutate({ off: true })}>지우기</button>
+              <button type="button" disabled={saving || go.isPending} onClick={() => go.mutate({ off: true })}>지우기</button>
             </div>
-          ) : <button type="button" className="nm-rr-del" onClick={() => setSure(true)}>루틴 지우기</button>
+          ) : <button type="button" className="nm-rr-del" disabled={saving} onClick={() => setSure(true)}>루틴 지우기</button>
         ) : null}
       </div>
     </div>
