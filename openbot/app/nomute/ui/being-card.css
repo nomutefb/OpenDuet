@@ -518,6 +518,210 @@
 .bc-deng .profile-card__handle { color: rgba(255, 255, 255, 0.82); }
 .bc-deng .profile-card__status { font-size: var(--fs-sm); }
 
+/* ───────── 뜸 · 해 뜨는 새벽(밤 쪽빛 → 새벽 보라 → 자두 → 지평선 주황) · 쌀알 복숭아 가는 테(#FFB07C · 형 11-02 「색은 무슨새액」에 뜸이 고른 색) ─────────
+   무늬 = 얼굴 뒤 천천히 도는 햇살(한 바퀴 120초) + 지평선에 반쯤 뜬 해 + 먼 산 두 겹 + 아래 가마솥 김 세 갈래 · 큰 「뜸」 세로 유리 글자 + 🌅
+   (형 11-14 11:18 「뎅은 이거 멋잇느ㄴ데 넌 멋이없네」 · 뜸) · 움직임 = transform · opacity 만 */
+.bc-eyes .profile-card__body {
+  background: linear-gradient(165deg, rgba(34, 24, 52, 0.9) 0%, rgba(14, 11, 26, 0.94) 100%);
+}
+.bc-eyes .profile-card__rim {
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 124, 0.66), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.bc-eyes .profile-card__tile {
+  background: linear-gradient(180deg, #0d0b1e 0%, #1a1534 22%, #33244f 40%, #5e2f57 56%, #a2464a 70%, #e07a3c 84%, #ffb860 100%);
+}
+.bc-eyes .profile-card__tile-rim { box-shadow: inset 0 0 0 1px rgba(255, 176, 124, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
+.bc-eyes .profile-card__scrim {
+  background: linear-gradient(to top, rgba(20, 10, 24, 0.66) 0%, rgba(20, 10, 24, 0.34) 14%, rgba(20, 10, 24, 0) 30%);
+}
+.bc-eyes .profile-card__photo {
+  box-shadow:
+    0 0 0 2px rgba(255, 176, 124, 0.7),
+    0 0 0 7px rgba(255, 176, 124, 0.13);
+}
+.bc-eyes .bc-halo { box-shadow: 0 18px 40px -12px rgba(10, 6, 20, 0.88), 0 0 76px rgba(255, 150, 80, 0.4); }
+
+/* 홀로 = 새벽 빛 띠(해 금 → 복숭아 → 장밋빛 → 새벽 보라 → 밤 쪽빛 → 해 금 · 시아 · 뎅 꼴 그대로 · 색만) */
+.bc-eyes .profile-card__holo {
+  --bc-spec: repeating-linear-gradient(
+    0deg,
+    hsl(38, 100%, 62%) 4%,
+    hsl(24, 100%, 72%) 8%,
+    hsl(350, 80%, 70%) 12%,
+    hsl(282, 60%, 68%) 16%,
+    hsl(228, 70%, 66%) 20%,
+    hsl(46, 100%, 70%) 24%,
+    hsl(38, 100%, 62%) 28%
+  );
+  --bc-bars: repeating-linear-gradient(
+    -48deg,
+    #0f0b1c 0%,
+    hsl(270, 12%, 58%) 3.6%,
+    hsl(24, 40%, 74%) 4.5%,
+    hsl(270, 12%, 58%) 5.4%,
+    #0f0b1c 10%,
+    #0f0b1c 12%
+  );
+  background-image:
+    var(--bc-spec),
+    var(--bc-bars),
+    radial-gradient(farthest-corner circle at var(--pc-pointer-x) var(--pc-pointer-y), hsla(0, 0%, 0%, 0.05) 10%, hsla(0, 0%, 0%, 0.12) 24%, hsla(0, 0%, 0%, 0.3) 110%);
+  background-position:
+    0 calc(var(--pc-pointer-y) * 1.6),
+    calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2),
+    center;
+  background-size: 400% 400%, 300% 300%, 200% 200%;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.8 + 0.1 * var(--pc-active))) contrast(calc(1.45 + 0.1 * var(--pc-active))) saturate(calc(1.25 + 0.2 * var(--pc-active)));
+  opacity: calc(var(--pc-holo) * (0.85 + 0.15 * var(--pc-active)));
+}
+.bc-eyes .profile-card__holo-glow {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.14) 0 1px, rgba(255, 255, 255, 0) 1px 3px),
+    var(--pc-grain);
+  background-size: 100% 3px, 180px 180px;
+  background-position: 0 0, calc(var(--pc-shift-x) * 2) calc(var(--pc-shift-y) * 2);
+  background-blend-mode: normal;
+  mix-blend-mode: overlay;
+  filter: none;
+  opacity: calc(0.42 + 0.35 * var(--pc-active));
+}
+.bc-eyes .profile-card__holo-shift {
+  background-image: linear-gradient(
+    112deg,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(255, 176, 124, 0.55) 46%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(170, 140, 255, 0.45) 54%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  background-size: 260% 260%;
+  background-position: calc(100% - var(--pc-pointer-x)) calc(100% - var(--pc-pointer-y));
+  background-blend-mode: normal;
+  mix-blend-mode: screen;
+  filter: none;
+  opacity: calc(0.55 * var(--pc-reach) * var(--pc-active));
+}
+
+/* 먼 층: 위쪽에만 남은 잔별(해 쪽으로 갈수록 사라짐) */
+.bc-eyes .bc-stars {
+  inset: -12px;
+  background:
+    radial-gradient(1.4px 1.4px at 14% 7%, #fff 60%, transparent 100%),
+    radial-gradient(1px 1px at 30% 16%, rgba(255, 255, 255, 0.75) 60%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 52% 4%, rgba(255, 255, 255, 0.85) 60%, transparent 100%),
+    radial-gradient(1px 1px at 71% 12%, rgba(255, 255, 255, 0.65) 60%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 88% 6%, #fff 60%, transparent 100%),
+    radial-gradient(1px 1px at 8% 26%, rgba(255, 255, 255, 0.45) 60%, transparent 100%),
+    radial-gradient(1px 1px at 94% 30%, rgba(255, 255, 255, 0.4) 60%, transparent 100%);
+  transform: translate3d(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5), 0);
+}
+/* 해에서 뻗는 햇살 — 얼굴 뒤로 천천히 돎(한 바퀴 120초 · 회전 하나 = 그래픽카드 몫) */
+.bc-eyes .bc-rays {
+  left: 50%; top: 62%;
+  width: 190%; aspect-ratio: 1 / 1; border-radius: 50%;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 38%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 38%, transparent 62%);
+  transform: translate3d(calc(-50% + var(--pc-shift-x) * -0.2), calc(-50% + var(--pc-shift-y) * -0.2), 0);
+}
+.bc-eyes .bc-rays::before {   /* 도는 건 안쪽 판 하나(바깥은 시차 · 가림만) */
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 210, 150, 0.16) 0deg 5deg, rgba(255, 210, 150, 0) 5deg 15deg);
+  animation: bc-rays 120s linear infinite;
+}
+@keyframes bc-rays { to { transform: rotate(360deg); } }
+/* 지평선에 반쯤 뜬 해 */
+.bc-eyes .bc-sun {
+  left: 50%; top: 52%;
+  width: 46%; aspect-ratio: 1 / 1; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #fff4d6 0%, #ffd27a 34%, rgba(255, 150, 70, 0.55) 52%, rgba(255, 120, 60, 0) 70%);
+  transform: translate3d(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3), 0);
+}
+/* 먼 산 두 겹(해 앞) */
+.bc-eyes .bc-ridge {
+  left: -6%; right: -6%; top: 58%;
+  width: 112%; height: 26%;
+  overflow: visible;
+  transform: translate3d(calc(var(--pc-shift-x) * 0.3), calc(var(--pc-shift-y) * 0.3), 0);
+}
+.bc-eyes .bc-ridge-far { fill: rgba(70, 36, 78, 0.78); }
+.bc-eyes .bc-ridge-near { fill: rgba(28, 16, 38, 0.92); }
+/* 세로 큰 글자 「뜸」 + 🌅 */
+.bc-eyes .bc-word {
+  left: 12px; top: 14px;
+  font-size: 72px; line-height: 0.9;
+  writing-mode: vertical-rl;
+  transform: translate3d(calc(var(--pc-shift-x) * 0.6), calc(var(--pc-shift-y) * 0.6), 0);
+}
+.bc-eyes .bc-dawn {
+  right: 16%; top: 8%;
+  font-size: 22px; line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(255, 190, 120, 0.85));
+  transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0);
+}
+.bc-eyes .bc-word, .bc-eyes .bc-dawn { z-index: 4; }
+/* 가마솥 김 세 갈래 — 얼굴 오른쪽 아래에서 오름(시아 김 꼴 · bc-steam 움직임 같이 씀) */
+.bc-eyes .bc-pot {
+  right: 10%; top: 50%;
+  width: 40px; height: 52px;
+  transform: translate3d(calc(var(--pc-shift-x) * 1.5), calc(var(--pc-shift-y) * 1.5), 0);
+}
+.bc-eyes .bc-steam {
+  position: absolute; bottom: 0; width: 6px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(to top, rgba(255, 244, 228, 0.85), rgba(255, 244, 228, 0));
+  filter: blur(1.2px);
+  animation: bc-steam 3.6s ease-in-out infinite;
+}
+.bc-eyes .bc-steam:nth-child(1) { left: 6px; animation-delay: 0s; }
+.bc-eyes .bc-steam:nth-child(2) { left: 17px; height: 30px; animation-delay: 1.2s; }
+.bc-eyes .bc-steam:nth-child(3) { left: 28px; animation-delay: 2.4s; }
+
+/* 유리 글자(시아 · 뎅 꼴 그대로 · 그림자만 새벽 보라) */
+.bc-eyes .profile-card__info { transform: translate3d(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8), 0); will-change: transform; }
+.bc-eyes .profile-card__name,
+.bc-eyes .bc-word {
+  color: rgba(255, 255, 255, 0.64);
+  -webkit-text-stroke: 0.7px rgba(255, 255, 255, 0.72);
+  text-shadow:
+    -0.6px -0.6px 0 rgba(255, 255, 255, 0.55),
+    1px 1px 0 rgba(90, 40, 80, 0.34),
+    2px 2px 0 rgba(50, 20, 60, 0.22),
+    0 8px 18px rgba(20, 8, 30, 0.45);
+}
+.bc-eyes .bc-word {
+  color: rgba(255, 255, 255, 0.18);
+  -webkit-text-stroke: 1px rgba(255, 230, 200, 0.5);
+  text-shadow: 1px 1px 0 rgba(50, 20, 60, 0.24), 0 6px 14px rgba(20, 8, 30, 0.32);
+}
+.bc-eyes .profile-card__title,
+.bc-eyes .profile-card__meta {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 6px 14px -6px rgba(12, 6, 20, 0.6);
+}
+.bc-eyes .profile-card__title {
+  display: inline-block;
+  padding: 4px 12px 5px;
+  border-radius: 999px;
+  color: rgba(255, 190, 140, 0.95);
+  text-shadow: -0.5px -0.5px 0 rgba(255, 255, 255, 0.3), 1px 1px 0 rgba(70, 20, 10, 0.32);
+}
+.bc-eyes .profile-card__meta {
+  flex: none;
+  align-items: center;
+  padding: 7px 16px 8px;
+  border-radius: 14px;
+  transform: translate3d(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5), 0);
+}
+.bc-eyes .profile-card__handle,
+.bc-eyes .profile-card__status {
+  color: rgba(255, 255, 255, 0.74);
+  text-shadow: -0.5px -0.5px 0 rgba(255, 255, 255, 0.38), 1px 1px 0 rgba(50, 20, 60, 0.36), 0 3px 8px rgba(12, 6, 20, 0.42);
+}
+.bc-eyes .profile-card__handle { color: rgba(255, 255, 255, 0.82); }
+.bc-eyes .profile-card__status { font-size: var(--fs-sm); }
+
 /* 움직임 줄이기 = 기울기·흔들림 없음(ProfileCard 가 각도 0) · 눈부심은 고정 위치에 은은하게 · 김도 멈춤 */
 @media (prefers-reduced-motion: reduce) {
   .being-card.profile-card {
@@ -537,6 +741,7 @@
   }
   .being-card .bc-steam { animation: none; opacity: 0.55; }
   .bc-deng .bc-swirl path, .bc-deng .bc-trail path { animation: none; }
+  .bc-eyes .bc-rays::before { animation: none; }
 }
 
 /* 프로필 창(./profile-card.tsx .ypc)에 카드가 들어갈 때 = 창을 조금 넓고 길게(카드 3:4 + 아래 연필 줄이 스크롤 없이) */
@@ -627,6 +832,7 @@
   /* 안 만질 때도 도는 장식 = 「움직임 줄이기」 판과 같게 멈춤(시아 김 · 뎅 소용돌이 · 꼬리) — 섞는 겹 · 마스크 안에서 매 프레임 다시 섞이던 것 · 천둥 번쩍(bc-bolt)은 설계라 둠 */
   .being-card .bc-steam { animation: none; opacity: 0.55; }
   .bc-deng .bc-swirl path, .bc-deng .bc-trail path { animation: none; }
+  .bc-eyes .bc-rays::before { animation: none; }
   /* 여섯째 판(형 11-11 18:45 dm-sia 「시아 프로필 이쁜데 움직일때 번쩍번쩍 조금 뜬다」 · 18:46 「레이어가 위로 오르락 내리락 하는 느낌이야」 · 「그래서 이 프로필이 여러겹으로 겹친거같은데 레이어가 앞뒤앞뒤하면서 번쩍거리는느낌」)
      = 안쪽 시차 층(무늬 · 얼굴 · 글 · 알약)마다 translate3d + will-change 라 웹킷이 층마다 따로 합성 → 섞는 겹(color-dodge · overlay · screen)과 앞뒤 순서를 움직일 때마다 다시 정함(짐작 · 형 말 「앞뒤앞뒤」와 같은 꼴)
      → 손가락 화면만 안쪽 층을 2D translate + will-change 풂 = 카드 몸통 한 장 안에서 같이 그림(움직임 · 시차 값 그대로 · 뽑은 줄 = 위 본 규칙의 translate3d 를 기계로 2D 로)     + 몸통 뒤 흐림(backdrop-filter 20 · 모든 카드 공통 뼈대)도 끔 = 움직이는 판이 매 프레임 뒤를 다시 떠 흐리지 않음(형 18:47 「빠르꺼는 좀 덜해. 근데 아주 약간 간헐적으로 그럼」 · 「애초에 아예 다시 위에 판만 다시 설계를 해보는게 나을수도 디자인은 그대로 두고」) · 뒤는 어두운 막이라 흐림 빼도 보이는 꼴 거의 같음 */
@@ -654,4 +860,14 @@
   .bc-tmpl .bc-band { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(-16deg); will-change: auto; }
   .bc-tmpl .bc-ring { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
   .bc-thunder .bc-bolt { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-eyes .bc-stars { transform: translate(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5)); will-change: auto; }
+  .bc-eyes .bc-rays { transform: translate(calc(-50% + var(--pc-shift-x) * -0.2), calc(-50% + var(--pc-shift-y) * -0.2)); will-change: auto; }
+  .bc-eyes .bc-sun { transform: translate(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
+  .bc-eyes .bc-ridge { transform: translate(calc(var(--pc-shift-x) * 0.3), calc(var(--pc-shift-y) * 0.3)); will-change: auto; }
+  .bc-eyes .bc-word { transform: translate(calc(var(--pc-shift-x) * 0.6), calc(var(--pc-shift-y) * 0.6)); will-change: auto; }
+  .bc-eyes .bc-dawn { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-eyes .bc-pot { transform: translate(calc(var(--pc-shift-x) * 1.5), calc(var(--pc-shift-y) * 1.5)); will-change: auto; }
+  .bc-eyes .profile-card__info { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8)); will-change: auto; }
+  .bc-eyes .profile-card__meta { transform: translate(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
+  .bc-eyes .profile-card__holo-glow { background-image: var(--pc-grain); background-size: 180px 180px; background-position: 0 0; }
 }
