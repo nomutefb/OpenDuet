@@ -25,7 +25,7 @@ import { ThinkMarkRow } from "./live-shine";
 import { WakeDepthRow } from "./wake-depth";
 import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { TeamsAccount, useTeamsName } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
-import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, useBuildLine } from "./settings-extra";
+import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, NomuteVault, useBuildLine } from "./settings-extra";
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
 import { setSkin, useSkin } from "./skin";   // 꾸밈 지금 / 정원(형 11-07 08:01 「지금테마랑 정원테마 고를 수 있게해줘」)
@@ -122,6 +122,7 @@ export function YetaSettings() {
             {row("notice", "speaker", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
             <WakeDepthRow />
             {row("teams", "chat", "팀즈", <TeamsAccount />, teamsName)}
+            {row("vault", "keys", "보안 서랍", <NomuteVault />)}   {/* 자리 1 · 2 · 3 열쇠 = 한 번 넣고 복사(깃 #-020 · 형 11-14 23:42) */}
           </div>
         </section>
         <section className="yset-part" aria-label="살펴보기">

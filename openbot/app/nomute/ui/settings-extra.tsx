@@ -430,3 +430,49 @@ export function NomuteBuild() {
     </p>
   );
 }
+
+/** 보안 서랍(빠르 11-15 · 깃 #-020 · 형 11-14 23:42 「자리 1 2 3을 토큰 키 처럼 각각 클립보드 복사 가능하게 설정에 만들어놓으셈」 · 23:56 ✓ ① 처음 한 번 붙여 넣기 → 그 뒤 복사만)
+ *  값은 화면에 안 그림 · 넣기 = 서버가 암호화해 둠 + 그 자리 열쇠가 맞는지 「맞음 · 틀림」 · 복사 = 누를 때만 서버에서 받아 클립보드 · 형 문만(봇 열쇠 = 403) */
+type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null };
+export function NomuteVault() {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["nomute", "seatvault"], queryFn: () => office<{ seats: VaultSeat[] }>("seatvault").then((j) => j.seats || []), staleTime: 60_000 });
+  const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({});
+  const put = useMutation({
+    mutationFn: (v: { seat: string; value: string }) => office<{ match: boolean }>("seatvault", { method: "POST", body: JSON.stringify(v) }),
+    onSuccess: (j, v) => { setDraft((d) => ({ ...d, [v.seat]: "" })); setNote((n) => ({ ...n, [v.seat]: j.match ? "넣었어 · 열쇠 맞음" : "넣었어 · 이 자리 열쇠와 안 맞아(다시 확인)" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
+    onError: (e, v) => setNote((n) => ({ ...n, [v.seat]: e instanceof Error ? e.message : "못 넣었어" })),
+  });
+  const copy = async (seat: string) => {
+    try {
+      const j = await office<{ value: string }>("seatvault/copy", { method: "POST", body: JSON.stringify({ seat }) });
+      await navigator.clipboard.writeText(j.value);
+      setNote((n) => ({ ...n, [seat]: "복사됨" }));
+    } catch (e) { setNote((n) => ({ ...n, [seat]: e instanceof Error ? e.message : "복사 못 했어" })); }
+  };
+  return (
+    <PageSection title="보안 서랍">
+      <p className="mt-1 text-sm text-muted-foreground">자리 열쇠를 처음 한 번만 붙여 넣으면, 그다음부턴 「복사」로 꺼내 써. 값은 화면에 안 보이고 서버에 암호로만 남아.</p>
+      <Card>
+        <ul className="divide-y divide-border">
+          {(q.data || []).map((s) => (
+            <li key={s.seat} className="flex flex-col gap-2 px-4 py-3">
+              <p className="flex items-center justify-between text-sm">
+                <b>{s.seat.replace("자리", "자리 ")}</b>
+                <span className={`text-xs ${s.set && s.match === false ? "text-destructive" : "text-muted-foreground"}`}>{!s.set ? "비어 있음" : s.match === false ? "넣음 · 열쇠 안 맞음" : `넣음${s.at ? ` · ${t12(s.at)}` : ""}`}</span>
+              </p>
+              <div className="flex items-center gap-2">
+                <input id={`vault-${s.seat}`} type="password" autoComplete="off" spellCheck={false} placeholder={s.set ? "바꿀 때만 붙여 넣기" : "열쇠 붙여 넣기"} value={draft[s.seat] || ""}
+                  onChange={(e) => setDraft((d) => ({ ...d, [s.seat]: e.target.value }))} className="min-w-0 flex-1 rounded-lg border border-border bg-transparent px-2.5 py-1.5 text-sm" />
+                <button type="button" disabled={!draft[s.seat]?.trim() || put.isPending} onClick={() => put.mutate({ seat: s.seat, value: draft[s.seat].trim() })} className="rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-40">넣기</button>
+                <button type="button" disabled={!s.set} onClick={() => void copy(s.seat)} className="rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-40">복사</button>
+              </div>
+              {note[s.seat] ? <p role="status" className="text-xs text-muted-foreground">{note[s.seat]}</p> : null}
+            </li>
+          ))}
+        </ul>
+      </Card>
+      {q.isError ? <p className="mt-2 text-xs text-destructive">{q.error instanceof Error ? q.error.message : "서랍을 못 열었어"}</p> : null}
+    </PageSection>
+  );
+}
