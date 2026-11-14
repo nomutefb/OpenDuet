@@ -53,10 +53,11 @@ test("팀즈 폰 목록 = 이름 굵기 한 단계 낮춤 · 홀 검정 옅게 �
   assert.match(c, /\.nm-tlist li:nth-child\(odd\) > button \{ background:rgba\(0,0,0,\.22\); \}/);
   assert.match(c, /\.nm-tlist li:nth-child\(even\) > button \{ background:rgba\(91,95,199,\.13\); \}/);
 });
-test("폰 회의 몸통 = 설명 글 0 · 「새 회의」 단추만(형 11-14 01:41)", () => {
+test("폰 회의 몸통 = 설명 글 0 · 가운데 「새 회의 시작」 알약만(형 11-14 01:41 · 11-15 01:23 #-027)", () => {
   const t = rd("../ui/phone-meet.tsx");
   assert.doesNotMatch(t, /회의 찾는 중|지금 열린 회의가 없어요/);
-  assert.match(t, />새 회의</);
+  assert.match(t, />새 회의 시작</);
+  assert.match(t, /className="nm-meet-start"/);
 });
 test("폰 명단 = 두 칸 · 초대 단추는 두 칸 다(형 11-14 01:44)", () => {
   const c = rd("../ui/teams.css");
