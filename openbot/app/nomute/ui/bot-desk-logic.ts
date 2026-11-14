@@ -51,3 +51,34 @@ export function fireChips(t: BotTable): { code: string; text: string; tone: Tone
 }
 /** 맡은 일 칸 — 「#-024 제목」 줄들(없으면 빈 목록). */
 export const openText = (r: BotRow): string[] => (r.open || []).map((o) => `${o.no}${o.title ? " " + o.title : ""}`);
+
+// ── 흐름 그림(폰에서 보기 쉽게 · 형 11-15 05:3x 사진 + 본보기 영상 셋 = 카드와 이음선 · 차례로 그려지는 흐름도 · 알약 탭) ──
+export type Group = "lost" | "work" | "idle" | "held" | "quiet";
+export const GROUP_KO: Record<Group, string> = { lost: "멈춤", work: "일하는 중", idle: "노는 손", held: "차례 밖", quiet: "조용" };
+export const GROUPS: Group[] = ["lost", "work", "idle", "held", "quiet"];
+/** 흐름 묶음 — 멈춤 · 일하는 중 · 노는 손(쉬는데 맡은 일 없음) · 차례 밖(PM · 쉼 지정) · 조용(하루 넘게 · 줄 없음). 맡은 일이 있으면 쉬어 보여도 「일하는 중」 쪽(형 「누가 놀고잇나」). */
+export function groupOf(r: BotRow): Group {
+  if (r.lane === "lost") return "lost";
+  if (r.pm || r.rest) return "held";
+  if (r.lane === "off" || r.lane === "none") return "quiet";
+  if (r.lane === "work" || (r.open && r.open.length)) return "work";
+  return "idle";
+}
+/** 묶음마다 줄(묶음 안 차례 = 손 표 그대로). */
+export function flowOf(rows: BotRow[]): { group: Group; rows: BotRow[] }[] {
+  return GROUPS.map((g) => ({ group: g, rows: rows.filter((r) => groupOf(r) === g) })).filter((x) => x.rows.length);
+}
+/** 분류 하나의 차례 줄 — 서버 turn 칸을 차례대로: [{who, n, rank, busy}] + 못 맡는 손 [{who, why}]. */
+export function turnList(rows: BotRow[], code: string): { order: { who: string; n: number; rank: number; busy: boolean }[]; out: { who: string; why: string }[] } {
+  const order: { who: string; n: number; rank: number; busy: boolean }[] = [], out: { who: string; why: string }[] = [];
+  for (const r of rows) { const t = r.turn?.[code]; if (!t) continue; if (t.x) out.push({ who: r.who, why: t.x }); else if (t.n) order.push({ who: r.who, n: t.n, rank: t.rank || 0, busy: !!t.busy }); }
+  return { order: order.sort((a, b) => a.n - b.n), out };
+}
+/** 이음선 색 갈래 — 멈춤 = 빨강 · 일하는 중 = 라임 · 그 밖 = 흐림. */
+export const wireTone = (g: Group): Tone => (g === "lost" ? "lost" : g === "work" ? "ok" : "dim");
+/** 상태 표시(react-bits StatusMark)의 꼴 — 일하는 중 = 도는 고리 · 받을 수 있음 = 체크 · 쉼 = 점선 고리 · 멈춤 = 가위표 · 차례 밖 · 조용 = 그은 고리. */
+export function markOf(r: BotRow): "pending" | "running" | "done" | "failed" | "cancelled" {
+  if (r.lane === "lost") return "failed";
+  if (r.pm || r.rest || r.lane === "off" || r.lane === "none") return "cancelled";
+  return r.lane === "work" ? "running" : r.lane === "ready" ? "done" : "pending";
+}

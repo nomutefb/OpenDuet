@@ -1,21 +1,83 @@
-/* 서랍 「봇 현황」(./bot-desk.tsx) — 틀 · 표 = 작동 표 것 그대로(./status-board.css .nsb · .nsb-top · .nsb-cat · .nsb-acct) · 여기선 칸 색 갈래와 붙박이 첫 칸만(새 색 0) */
-.nm-botdesk .nsb-acct table { min-width:0; font-variant-numeric:tabular-nums; }
-.nm-botdesk .nsb-acct tbody tr { cursor:default; }
-.nm-botdesk .nsb-acct td { white-space:nowrap; }
-.nm-botdesk .nsb-acct td.wrap { white-space:normal; min-width:22em; }   /* 비고 = 한두 줄(줄 높이가 들쭉날쭉하지 않게) */
-.nm-botdesk .nsb-acct tbody th, .nm-botdesk .nsb-acct thead th:first-child { position:sticky; left:0; z-index:1; background:#151515; }   /* 옆으로 밀어도 이름은 남음(.nsb-idx .fix 와 같은 바탕) */
-.nm-botdesk .mx td, .nm-botdesk .mx thead th:not(:first-child) { text-align:center; }
-.nm-botdesk .t-ok { color:var(--nsb-ok); font-weight:700; }
-.nm-botdesk .t-lost { color:var(--nsb-red); font-weight:700; }
+/* 서랍 「봇 현황」(./bot-desk.tsx) — 폰에서 보기 쉽게(형 11-15 · 본보기 = 카드와 이음선 · 흐름도 · 알약 탭) · 옆으로 미는 표 0
+   색 · 선 = 작동 표 것 그대로(./status-board.css .nsb 의 --nsb-ok · --nsb-red · --nsb-line · --nsb-mut · 판 바탕 rgba(18,18,18,.45)) · 새 색 0
+   움직임 = 처음 뜰 때 한 번(위치 · 투명도만) */
+.nm-botdesk { text-transform:none; letter-spacing:normal; }
+.nm-botdesk p, .nm-botdesk h3, .nm-botdesk ul, .nm-botdesk ol { margin:0; padding:0; list-style:none; }
+.nm-botdesk .t-ok { color:var(--nsb-ok); }
+.nm-botdesk .t-lost { color:var(--nsb-red); }
 .nm-botdesk .t-dim { color:var(--nsb-mut); }
-.nm-botdesk .nsb-ch { cursor:default; }
-.nm-botdesk .nsb-ch small { margin-left:auto; font-size:var(--fs-xs); color:var(--nsb-mut); }
-.nm-botdesk .legend { margin:0 14px 8px; font-size:var(--fs-xs); color:var(--nsb-mut); }
-:root:not(.dark) .nm-botdesk .nsb-acct tbody th, :root:not(.dark) .nm-botdesk .nsb-acct thead th:first-child { background:#fff; }
-.nm-botdesk .fire { display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 10px; }
-.nm-botdesk .fire span { display:inline-flex; align-items:baseline; gap:5px; padding:4px 10px; border:1px solid var(--nsb-line); border-radius:999px; font-size:var(--fs-sm); }
-.nm-botdesk .fire span b { color:var(--nsb-mut); font-weight:700; }
-.nm-botdesk .fire span.t-ok { border-color:rgba(207,255,64,.55); }   /* 불 = 지금 쉬는 특기 손(라임 테 · 설정 칩 눌림과 같은 값) */
-.nm-botdesk td.jobs { white-space:normal; min-width:14em; max-width:22em; }
-.nm-botdesk td.jobs small { display:block; white-space:normal; }
-.nm-botdesk .tag { margin-left:6px; padding:0 6px; border:1px solid var(--nsb-line); border-radius:999px; font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); }
+.nm-botdesk .tag { margin-left:6px; padding:0 7px; border:1px solid var(--nsb-line); border-radius:999px; font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); white-space:nowrap; }
+.nm-botdesk .legend { margin:10px 4px 0; font-size:var(--fs-xs); line-height:1.5; color:var(--nsb-mut); }
+.nm-botdesk .face { flex:none; display:inline-flex; border-radius:999px; overflow:hidden; }
+
+/* 맨 위 = 노는 손(형 「진짜 답답하면 보겟지 누가 놀고잇나」) */
+.nm-bd-head { padding:14px 16px; margin-bottom:10px; border-radius:16px; background:rgba(18,18,18,.55); border:1px solid var(--nsb-line); }
+.nm-bd-head .big { display:flex; align-items:baseline; gap:8px; font-size:var(--fs-h3); color:#E7ECE7; }
+.nm-bd-head .big b { font-size:22px; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
+.nm-bd-head .badge { margin-left:auto; padding:2px 9px; border:1px solid rgba(255,90,95,.45); border-radius:999px; font-size:var(--fs-xs); color:var(--nsb-red); }
+.nm-bd-head .names { margin-top:4px; font-size:var(--fs-h3); font-weight:700; color:#E7ECE7; line-height:1.4; }
+.nm-bd-head .meta { margin-top:6px; font-size:var(--fs-xs); color:var(--nsb-mut); }
+
+/* 알약 탭 */
+.nm-bd-tabs { margin:0 0 10px; }
+.nm-bd-tabs .rubber-segment { display:grid; width:100%; border:1px solid var(--nsb-line); }   /* 원본(react-bits RubberSegment)은 글 폭만큼 · 여기선 화면 폭 가득 */
+
+/* 흐름 = PM 카드 → 세로 줄 → 묶음 → 봇 카드 */
+.nm-bd-pm, .nm-bd-bot, .nm-bd-hand, .nm-bd-turn { border-radius:14px; background:rgba(18,18,18,.45); border:1px solid var(--nsb-line); }
+.nm-bd-pm { display:flex; align-items:center; gap:10px; padding:12px 14px; }
+.nm-botdesk .name { display:flex; align-items:baseline; flex-wrap:wrap; gap:0 2px; font-size:var(--fs-h3); color:#E7ECE7; }
+.nm-botdesk .name .st { margin-left:auto; padding-left:8px; display:inline-flex; align-items:center; gap:5px; font-size:var(--fs-sm); font-weight:700; color:var(--nsb-mut); white-space:nowrap; }
+.nm-botdesk .meta { font-size:var(--fs-xs); color:var(--nsb-mut); line-height:1.5; }
+.nm-bd-late { margin:8px 0 0 !important; padding:8px 12px; border:1px solid rgba(255,90,95,.45); border-radius:12px; font-size:var(--fs-sm); color:#ffb3b5; }
+.nm-bd-tree { position:relative; margin:0 0 0 16px; padding:14px 0 0 18px; border-left:1px solid var(--nsb-line); }   /* 세로 줄 = PM 카드 아래로 */
+.nm-bd-grp { position:relative; margin-bottom:14px; }
+.nm-bd-grp h3 { position:relative; display:flex; align-items:baseline; gap:6px; margin-bottom:8px; font-size:var(--fs-sm); font-weight:700; color:var(--nsb-mut); }
+.nm-bd-grp h3 span { font-variant-numeric:tabular-nums; }
+.nm-bd-grp h3 i { position:absolute; left:-23px; top:50%; width:9px; height:9px; margin-top:-4.5px; border-radius:999px; background:#151515; border:1px solid var(--nsb-mut); }   /* 줄 위 마디 */
+.nm-bd-grp.w-ok h3 { color:var(--nsb-ok); } .nm-bd-grp.w-ok h3 i { background:var(--nsb-ok); border-color:var(--nsb-ok); }
+.nm-bd-grp.w-lost h3 { color:var(--nsb-red); } .nm-bd-grp.w-lost h3 i { background:var(--nsb-red); border-color:var(--nsb-red); box-shadow:0 0 10px rgba(255,90,95,.5); }
+.nm-bd-grp ul { display:grid; gap:8px; }
+.nm-bd-bot { position:relative; display:flex; gap:10px; padding:10px 12px; }
+.nm-bd-bot::before { content:""; position:absolute; left:-19px; top:24px; width:18px; border-top:1px solid var(--nsb-line); }   /* 줄에서 카드로 잇는 가지 */
+.nm-bd-grp.w-ok .nm-bd-bot::before { border-color:rgba(207,255,64,.55); }
+.nm-bd-grp.w-lost .nm-bd-bot::before { border-color:rgba(255,90,95,.45); }
+.nm-bd-grp.w-lost .nm-bd-bot { border-color:rgba(255,90,95,.45); }
+.nm-bd-grp.w-ok .name .st { color:var(--nsb-ok); } .nm-bd-grp.w-lost .name .st { color:var(--nsb-red); }
+.nm-bd-bot .body, .nm-bd-hand .body { min-width:0; flex:1; }
+.nm-bd-bot .job { margin-top:4px; padding-left:8px; border-left:2px solid var(--nsb-line); font-size:var(--fs-sm); line-height:1.45; color:#E7ECE7; overflow-wrap:anywhere; }
+.nm-bd-grp.w-ok .nm-bd-bot .job { border-left-color:rgba(207,255,64,.55); }
+.nm-bd-bot .why { margin-top:4px; font-size:var(--fs-sm); color:#ffb3b5; overflow-wrap:anywhere; }
+.nm-bd-bot .meta { margin-top:4px; }
+
+/* 차례 = 분류마다 한 줄 · 누르면 펼침 */
+.nm-bd-turns { display:grid; gap:6px; }
+.nm-bd-turn > button { width:100%; display:flex; align-items:baseline; gap:8px; padding:12px 14px; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.nm-bd-turn .code { flex:none; min-width:1.8em; font-weight:700; color:var(--nsb-mut); }
+.nm-bd-turn .nm { min-width:0; flex:1; font-size:var(--fs-sm); color:var(--nsb-mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-bd-turn .who { flex:none; font-weight:700; font-size:var(--fs-h3); }
+.nm-bd-turn .chev { flex:none; color:var(--nsb-mut); font-size:var(--fs-xs); }
+.nm-bd-turn ol { display:grid; gap:2px; padding:0 14px 12px; }
+.nm-bd-turn ol li { display:flex; align-items:baseline; gap:8px; padding:5px 0; border-top:1px solid var(--nsb-line); font-size:var(--fs-label); }
+.nm-bd-turn ol li .n { flex:none; width:1.6em; text-align:right; font-variant-numeric:tabular-nums; color:var(--nsb-mut); }
+.nm-bd-turn ol li small { margin-left:auto; font-size:var(--fs-xs); color:var(--nsb-mut); }
+.nm-bd-turn ol li.out { display:block; font-size:var(--fs-xs); line-height:1.5; }
+
+/* 손 표 = 봇마다 카드 */
+.nm-bd-hands ul { display:grid; gap:8px; }
+.nm-bd-hand { display:flex; gap:10px; padding:10px 12px; }
+.nm-bd-hand .sk { margin-left:6px; padding:0 7px; border:1px solid var(--nsb-line); border-radius:999px; font-size:var(--fs-xs); font-weight:700; color:var(--nsb-mut); }
+.nm-bd-hand .sk.first { border-color:rgba(207,255,64,.55); color:var(--nsb-ok); }
+.nm-bd-hand .meta { margin-top:3px; }
+.nm-bd-hand .note { margin-top:3px; font-size:var(--fs-xs); line-height:1.5; color:var(--nsb-mut); overflow-wrap:anywhere; }
+
+/* 넓은 화면 = 카드 두 줄 */
+@media (min-width:900px) { .nm-bd-grp ul, .nm-bd-hands ul, .nm-bd-turns { grid-template-columns:1fr 1fr; } .nm-bd-turns .legend { grid-column:1 / -1; } }
+
+/* 처음 뜰 때 한 번 차례로(위치 · 투명도만) */
+@keyframes nmBdIn { from { opacity:0; transform:translateY(6px); } }
+.nm-bd-pm, .nm-bd-late, .nm-bd-grp h3, .nm-bd-bot, .nm-bd-turn, .nm-bd-hand { animation:nmBdIn .26s ease-out both; animation-delay:calc(var(--i, 0) * 28ms); }
+@media (prefers-reduced-motion:reduce) { .nm-bd-pm, .nm-bd-late, .nm-bd-grp h3, .nm-bd-bot, .nm-bd-turn, .nm-bd-hand { animation:none; } }
+
+:root:not(.dark) .nm-bd-head, :root:not(.dark) .nm-bd-pm, :root:not(.dark) .nm-bd-bot, :root:not(.dark) .nm-bd-hand, :root:not(.dark) .nm-bd-turn { background:rgba(255,255,255,.7); }
+:root:not(.dark) .nm-bd-head .big, :root:not(.dark) .nm-bd-head .names, :root:not(.dark) .nm-botdesk .name, :root:not(.dark) .nm-bd-bot .job { color:inherit; }
+:root:not(.dark) .nm-bd-grp h3 i { background:#fff; }
