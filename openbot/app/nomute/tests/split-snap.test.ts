@@ -24,3 +24,11 @@ test("#-007 끄는 동안 = 칸 하나 flex-basis · 한 프레임 한 번 · ht
   const mv = g.slice(g.indexOf("const move"), g.indexOf("const up"));
   assert.doesNotMatch(mv, /documentElement|set\(/);
 });
+test("#-007 대화 칸 폭 풂 = 표지 클래스(:has(.ychat) 0 · 대화 안 바뀜마다 앱 전체 꼴 다시 셈) · 띠 키는 끄는 동안 미룸", () => {
+  const css = readFileSync(new URL("../ui/shell.css", import.meta.url), "utf8"), s = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(css, /\.nm-col:has\(\.ychat\)/);
+  assert.match(css, /\.nm-split-l \.nm-col\.nm-col-chat/);
+  assert.match(s, /className="nm-col nm-col-chat"/);
+  assert.match(s, /classList\.contains\("nm-dragging"\)\) later = true/);
+  assert.match(s, /dispatchEvent\(new Event\("nm-split-end"\)\)/);
+});
