@@ -129,3 +129,8 @@
   :root:not(.dark) .nm-tlist li:nth-child(even) > button { background:rgba(91,95,199,.09); }
   :root:not(.dark) .nm-tlist li > button:hover, :root:not(.dark) .nm-tlist li > button.on { background:rgba(91,95,199,.18); }
 }
+/* 팀즈 알림 꺼짐 표시(위 탭 · ./teams.tsx MutedMark · 형 11-14 11:28) — 숫자 자리에 작은 종 꺼짐 · 옅게 */
+.nm-tmute { flex:none; margin-left:4px; opacity:.6; }
+.nm-tswitch.fold .nm-ftab .nm-tmute { position:absolute; top:3px; right:3px; margin:0; }
+.nm-tswitch.fold .nm-ftab.on .nm-tmute { position:static; margin-left:4px; }
+.nm-tswitch .nm-ftab, .nm-tab.teams { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }   /* 길게 누를 때 폰 글 고르기 · 복사 말풍선 안 뜸 */
