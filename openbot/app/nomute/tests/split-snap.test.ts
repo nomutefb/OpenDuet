@@ -16,3 +16,11 @@ test("숫자 · 차트 0 · 붙으면 snap(형 「숫자만 빼고」 · 「차�
   assert.doesNotMatch(s.slice(i, j), /nm-split-ruler|createPortal/);
   assert.match(s.slice(i, j), /nm-split-grip\$\{snap \? " snap" : ""\}/);
 });
+test("#-007 끄는 동안 = 칸 하나 flex-basis · 한 프레임 한 번 · html 변수는 놓을 때만(형 11-14 22:36 「그리고 이거 할때 너무 렉걸려」)", () => {
+  const s = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
+  const i = s.indexOf("function SplitGrip()"), j = s.indexOf("/** 왼쪽 위 러너 게이지 띠"), g = s.slice(i, j);
+  assert.match(g, /pane\.style\.flexBasis = `\$\{c\}%`/);
+  assert.match(g, /requestAnimationFrame\(at\)/);
+  const mv = g.slice(g.indexOf("const move"), g.indexOf("const up"));
+  assert.doesNotMatch(mv, /documentElement|set\(/);
+});

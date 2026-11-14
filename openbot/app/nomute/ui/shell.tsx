@@ -368,16 +368,18 @@ function useSplitW() {
   useEffect(() => { if (splitInit) return; splitInit = true; try { if (is169()) { document.documentElement.style.setProperty("--nm-split-w", "50%"); return; } const v = +(localStorage.getItem(SPLIT_KEY) || 0); if (v >= 30 && v <= 65) document.documentElement.style.setProperty("--nm-split-w", `${v}%`); } catch { /* 반반 */ } }, []);
 }
 function SplitGrip() {
+  // 넓이 = html 의 --nm-split-w(켤 때 · 놓을 때 한 번) · 끄는 동안엔 이 칸(.nm-split) flex-basis 에만 · 한 프레임 한 번(#-007 · 형 11-14 22:36 「그리고 이거 할때 너무 렉걸려, 좌우로만 바뀌면되는데」 · html 변수는 물려받는 값이라 바꿀 때마다 앱 전체 꼴 다시 셈 = 한 걸음 54ms → 칸 하나 7ms · 라이브 1600 회의실 실측)
   const set = (v: number) => { const c = clampW(v); document.documentElement.style.setProperty("--nm-split-w", `${c}%`); return c; };
   // 자석에 붙는 동안 = 손잡이 · 줄이 라임으로 착(형 11-14 05:15 「숫자만 빼고」 · 05:16 「차트도 나오게하자는건아님 저 느낌만」 = 눈금 띠 · 숫자 0)
   const [snap, setSnap] = useState(false);
   const down = (e: { currentTarget: HTMLElement; preventDefault: () => void; clientX: number }) => {
     e.preventDefault();
     const rootEl = (e.currentTarget.closest(".nm-split-root") as HTMLElement | null) || document.body, box = rootEl.getBoundingClientRect();
-    let last = 50, was = false;
-    const at = (cx: number) => { const s = snapW(((box.right - cx) / box.width) * 100); last = set(s.w); const on = s.hit >= 0; if (on !== was) { was = on; setSnap(on); } };
-    const move = (ev: PointerEvent) => at(ev.clientX);
-    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); document.body.classList.remove("nm-dragging"); setSnap(false); try { localStorage.setItem(SPLIT_KEY, String(Math.round(last * 10) / 10)); } catch { /* 이번만 */ } };
+    const pane = e.currentTarget.closest(".nm-split") as HTMLElement | null;
+    let last = NaN, was = false, cx = 0, raf = 0;
+    const at = () => { raf = 0; const s = snapW(((box.right - cx) / box.width) * 100); const c = clampW(s.w); if (c !== last) { last = c; if (pane) pane.style.flexBasis = `${c}%`; else set(c); } const on = s.hit >= 0; if (on !== was) { was = on; setSnap(on); } };
+    const move = (ev: PointerEvent) => { cx = ev.clientX; if (!raf) raf = requestAnimationFrame(at); };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); if (raf) { cancelAnimationFrame(raf); at(); } document.body.classList.remove("nm-dragging"); setSnap(false); if (Number.isNaN(last)) return; set(last); if (pane) pane.style.flexBasis = ""; try { localStorage.setItem(SPLIT_KEY, String(Math.round(last * 10) / 10)); } catch { /* 이번만 */ } };
     document.body.classList.add("nm-dragging");
     window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
   };
