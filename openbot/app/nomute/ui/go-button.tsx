@@ -10,6 +10,10 @@ type Stage = "idle" | "fill" | "ok" | "wait" | "err";
 const HOLD = 900, OK = 560, ERR = 1700;
 const later = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** 옛 꼴 저장 함수(실패하면 false 를 돌려주고 이유는 제 화면에 적음)를 게이지 단추에 물림 — false = 실패 길(빨강 · 흔들림) · 그 밖 = ✓
+ *  (형 11-15 「전송이나 저장 버튼들. 게이지 알약버튼인데 제대로 적용 안된게 인앱 안에 있는지 하네스 전반 통일」 — 화면마다 제 「저장 중…」 글자로 바꾸던 단추를 이 하나로) */
+export const must = (fn: () => Promise<boolean | void>) => async () => { if ((await fn()) === false) throw new Error(""); };
+
 export function GoButton<T>({ go, children, className = "", disabled, busy = "보내는 중", waiting = "반영 기다리는 중", wait, done, label, type = "button" }: {
   go: () => Promise<T>; children: ReactNode; className?: string; disabled?: boolean; busy?: string; waiting?: string; wait?: (res: T) => Promise<boolean>; done?: (res: T) => void; label?: string; type?: "button" | "submit";
 }) {

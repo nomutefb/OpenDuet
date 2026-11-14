@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { getJson } from "./news-data";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
+import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 type Sensor = { id: string; name?: string; keywords?: string[]; similar?: string[]; exclude?: string[]; sources?: string[]; expires?: string; on?: boolean; note?: string; by?: string; updated_at?: string; created_at?: string };
 type Data = { bots?: Record<string, Sensor[]>; bot_names?: Record<string, string>; error?: string };
@@ -71,16 +72,16 @@ export function SensorModal() {
   };
   const openBox = (v: boolean, t?: string) => { setBox(v); if (!v) { setText(""); setEdit(null); } else { setText(t ?? template()); window.setTimeout(() => inp.current?.focus(), 40); } };
   const submit = async () => {   // 원본 snAdd — 같은 봇 안 수정 = 그 자리(id·처음 만든 시각 유지) · 봇을 바꾼 수정 = 옛 칸에서 빼고 새 칸에 추가
-    if (busy) return;
-    const p = parse(text); if (typeof p === "string") { setNote(p); return; }
+    if (busy) return false;
+    const p = parse(text); if (typeof p === "string") { setNote(p); return false; }
     const mine = (b: string) => rows.filter((x) => x.bot === b).map((x) => x.s);
     let items: Sensor[];
     if (edit && edit.bot === p.bot) items = mine(p.bot).map((x) => (x.id === edit.id ? JSON.parse(JSON.stringify({ ...x, ...p.s, id: x.id, ...(p.s.note ? {} : { note: undefined }) })) : x));
     else {
       items = [...mine(p.bot), { id: "sn-" + Date.now().toString(36), ...p.s }];
-      if (edit && !(await save(edit.bot, mine(edit.bot).filter((x) => x.id !== edit.id)))) return;
+      if (edit && !(await save(edit.bot, mine(edit.bot).filter((x) => x.id !== edit.id)))) return false;
     }
-    if (await save(p.bot, items)) openBox(false);
+    return !!(await save(p.bot, items));   // 칸 닫기 = 부른 쪽(단추 = ✓ 를 보여 준 뒤 · ⌘⏎ = 바로)
   };
   const del = async (i: number) => {   // 지우기 = 두 번 누름(메모와 같음 · 원본은 한 번 = 폰 손가락이라 한 번 더 묻기)
     if (arm !== i) { setArm(i); window.setTimeout(() => setArm((a) => (a === i ? -1 : a)), 3000); return; }
@@ -99,8 +100,8 @@ export function SensorModal() {
           </div>
           {box && !cur ? (
             <div className="nm-memo-add">
-              <textarea ref={inp} value={text} rows={9} spellCheck={false} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void submit(); } }} />
-              <button type="button" className="ypc-go" disabled={busy || !text.trim()} onClick={submit}>{busy ? "저장 중…" : edit ? "고치기" : "저장"}</button>
+              <textarea ref={inp} value={text} rows={9} spellCheck={false} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void submit().then((ok) => { if (ok) openBox(false); }); } }} />
+              <GoButton className="ypc-go" disabled={busy || !text.trim()} go={must(submit)} done={() => openBox(false)} busy="저장 중">{edit ? "고치기" : "저장"}</GoButton>
             </div>
           ) : null}
           {note ? <p className="nm-chan-msg" role="status">{note}</p> : null}

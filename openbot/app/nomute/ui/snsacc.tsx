@@ -10,6 +10,7 @@ import "./memo.css";
 import "./snsacc.css";
 import { useEffect, useRef, useState } from "react";
 import { Pane } from "./pane";
+import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 type Plat = { kr: string[]; gl: string[]; off?: boolean; shorts?: string[]; aivid?: string[]; news_cat?: number; news_cats?: number[] };
 type Acc = Record<string, Plat>;
@@ -64,15 +65,15 @@ export function SnsAccModal() {
     let d = dirty, a = acc;
     if (inp.trim()) {   // 상태가 다음 그림에서야 바뀌니 여기서 한 번 더 셈
       const v = inp.trim().replace(/^@/, "");
-      if (!ACC_RX.test(v)) { setErr("형식이 안 맞아 (영문·숫자·._- 30자 이내)"); return; }
-      if ([...P.kr, ...P.gl].some((x) => x.toLowerCase() === v.toLowerCase())) { setErr("이미 있는 계정"); return; }
-      if (P.kr.length >= CAP[tab] && P.gl.length >= CAP[tab]) { setErr(`구독 최대 ${CAP[tab] * 2}개`); return; }
+      if (!ACC_RX.test(v)) { setErr("형식이 안 맞아 (영문·숫자·._- 30자 이내)"); return false; }
+      if ([...P.kr, ...P.gl].some((x) => x.toLowerCase() === v.toLowerCase())) { setErr("이미 있는 계정"); return false; }
+      if (P.kr.length >= CAP[tab] && P.gl.length >= CAP[tab]) { setErr(`구독 최대 ${CAP[tab] * 2}개`); return false; }
       const np = accPlat(a[tab]); (np.kr.length < CAP[tab] ? np.kr : np.gl).push(v);
       a = { ...a, [tab]: np }; d = new Set(d).add(tab); setAcc(a); setDirty(d); setInp("");
     }
-    if (!d.size) return;
-    if (!readOk) { setErr("목록 불러오기 실패 — 저장 잠금(덮어쓰기 방지) · 다시 열어 재시도"); return; }
-    setBusy(true); setErr(""); setNote("");
+    if (!d.size) return true;
+    if (!readOk) { setErr("목록 불러오기 실패 — 저장 잠금(덮어쓰기 방지) · 다시 열어 재시도"); return false; }
+    setBusy(true); setErr(""); setNote(""); let ok = true;
     try {
       const patch: Record<string, Plat> = {}; d.forEach((k) => { patch[k] = a[k] || accPlat(null); });
       const r = await fetch("/api/snsacc", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ patch }) });
@@ -80,8 +81,8 @@ export function SnsAccModal() {
       if (!r.ok || j.error) throw new Error(j.error || "HTTP " + r.status);
       if (j.accounts) setAcc(Object.fromEntries(TABS.map(([k]) => [k, accPlat(j.accounts[k])])));   // 서버 정규화 결과로 맞춤
       setDirty(new Set()); setNote("저장했어 · 수집은 다음 회차(30분 안)부터");
-    } catch (e) { setErr("저장 실패 — " + ((e as Error)?.message || "네트워크")); }
-    setBusy(false);
+    } catch (e) { setErr("저장 실패 — " + ((e as Error)?.message || "네트워크")); ok = false; }
+    setBusy(false); return ok;
   };
   const canSave = !busy && readOk && (dirty.size > 0 || !!inp.trim());
   return (
@@ -107,7 +108,7 @@ export function SnsAccModal() {
           {err ? <p className="nm-acc-err" role="alert">{err}</p> : note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
           <div className="nm-acc-foot">
             <label className="nm-acc-off"><input type="checkbox" checked={P.off === true} disabled={loading} onChange={(e) => edit((p) => { if (e.target.checked) p.off = true; else delete p.off; })} />구독 끄기(화면 숨김)</label>
-            <button type="button" className="nm-acc-save" disabled={!canSave} onClick={save}>{busy ? "저장 중…" : "저장"}</button>
+            <GoButton className="nm-acc-save" disabled={!canSave} go={must(save)} busy="저장 중">저장</GoButton>
           </div>
         </div>
       </div>

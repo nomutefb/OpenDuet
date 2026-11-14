@@ -10,6 +10,7 @@ import { type OfficeRoom, office } from "../data/office";
 import { GLYPHS, RoomGlyph } from "./room-glyph";
 import "./room-look.css";
 import { RoomArtRow } from "./temp-room";   // 「사진」 탭 = 임시방 방 설정의 방 사진 칸 그대로(형 11-13 05:27 봄 1:1 「단톡 표지 사진 넣는거 챙겨주면 감사」 · 회의실 · 지정방에도)
+import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 const SOLID = ["#CFFF40", "#0FFD02", "#2f6bff", "#ff6fb5", "#ffb07c", "#ffd60a", "#22d3ee", "#C9A7FF", "#FF5A5F", "#dde3ea"];
 const GRAD = ["#2f6bff,#CFFF40", "#ff6fb5,#ffb07c", "#22d3ee,#C9A7FF", "#0FFD02,#ffd60a", "#dde3ea,#4f86ff", "#ff6fb5,#4f86ff"];
@@ -29,8 +30,8 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
     try {
       await office("roomlook", { method: "POST", body: JSON.stringify({ room: r.id, icon, fg }) });
       await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
-      onClose();
-    } catch (e) { setWhy(e instanceof Error ? e.message : String(e)); }
+      return true;   // 창 닫기 = ✓ 를 보여 준 뒤(GoButton done · 「닫을까요」 물음 길은 아래에서 바로 닫음)
+    } catch (e) { setWhy(e instanceof Error ? e.message : String(e)); return false; }
     finally { setBusy(false); }
   };
   return createPortal(
@@ -63,9 +64,9 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
           </div>
         )}
         {why ? <p className="nrl-why" role="alert">{why}</p> : null}
-        <div className="nrl-ft"><button type="button" onClick={g.request}>닫기</button><button type="button" className="ok" disabled={busy} onClick={() => void save()}>{busy ? "저장 중…" : "저장"}</button></div>
+        <div className="nrl-ft"><button type="button" onClick={g.request}>닫기</button><GoButton className="ok" disabled={busy} go={must(save)} done={onClose} busy="저장 중">저장</GoButton></div>
       </div>
-      {g.ask ? <SaveAsk saving={busy} onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void save(); }} /> : null}
+      {g.ask ? <SaveAsk saving={busy} onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void save().then((ok) => { if (ok) onClose(); }); }} /> : null}
     </div>,
     document.body,
   );

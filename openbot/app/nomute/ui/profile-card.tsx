@@ -16,6 +16,7 @@ import { PcScreen } from "./pc-card";   // 「화면 보기」 주소 = 컴퓨�
 import { BeingCard, beingLook, warmFace } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import "./profile-intro.css";
+import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 const ROOMS_KEY = ["nomute", "rooms"] as const;   // office-chat.tsx officeKeys.rooms 와 같은 열쇠(받아 둔 방 목록을 그대로 씀 · 읽기 0)
 
@@ -48,8 +49,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
       const r = await office<{ ok?: boolean; error?: string }>("profile", { method: "POST", body: JSON.stringify({ who, intro: draft }) });
       if (r && r.ok === false) throw new Error(r.error || "저장 못 함");
       qc.setQueryData(["nomute", "people"], await people(true));
-      setEdit(false); draftDrop(`intro:${who}`);
-      return true;
+      return true;   // 칸 접기 = ✓ 를 보여 준 뒤(GoButton done)
     } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); return false; }
     finally { setBusy(false); }
   };
@@ -60,23 +60,22 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
       const r = await office<{ ok?: boolean; error?: string }>("profile", { method: "POST", body: JSON.stringify({ who, role: roleDraft.trim() }) });
       if (r && r.ok === false) throw new Error(r.error || "저장 못 함");
       qc.setQueryData(["nomute", "people"], await people(true));
-      setRoleEdit(false);
-      return true;
+      return true;   // 칸 접기 = ✓ 를 보여 준 뒤(GoButton done)
     } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); return false; }
     finally { setBusy(false); }
   };
   const pickFace = (f?: File | null) => { if (!f) return; void squareWebp(f).then(setFImg, () => setFNote("사진을 못 읽었어 — 다른 걸로")); };
   const saveFx = async () => {
-    if (busy) return;
+    if (busy) return false;
     const introChanged = fIntro !== (p?.intro || "");
-    if (!fImg && !introChanged) { setFx(false); return; }
+    if (!fImg && !introChanged) return true;   // 바뀐 게 없음 = 그대로 닫음(GoButton done)
     setBusy(true); setFNote("");
     try {
       const r = await office<{ ok?: boolean; error?: string; why?: string }>("profile", { method: "POST", body: JSON.stringify({ who, ...(introChanged ? { intro: fIntro } : {}), ...(fImg ? { face_b64: fImg } : {}) }) });
       if (r && r.ok === false) throw new Error(r.why || r.error || "저장 못 함");
       qc.setQueryData(["nomute", "people"], await people(true));
-      setFx(false); setFImg("");
-    } catch (e) { setFNote((e as Error)?.message || "저장 못 함 — 다시"); }
+      return true;   // 칸 닫기 = ✓ 를 보여 준 뒤(GoButton done)
+    } catch (e) { setFNote((e as Error)?.message || "저장 못 함 — 다시"); return false; }
     finally { setBusy(false); }
   };
   const fxView = fx ? (
@@ -89,7 +88,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
       <textarea value={fIntro} maxLength={300} rows={4} aria-label={`${name} 소개`} onChange={(e) => setFIntro(e.target.value)} />
       <div className="row"><small>{[...fIntro].length}/300 · 저장하면 {name} 1:1 에 [변경 안내]</small></div>
       {fNote ? <small className="err" role="alert">{fNote}</small> : null}
-      <div className="row"><button type="button" className="ypc-x" disabled={busy} onClick={() => { setFx(false); setFImg(""); setFNote(""); }}>닫기</button><button type="button" className="ypc-ok" disabled={busy} onClick={() => void saveFx()}>{busy ? "저장 중…" : "저장"}</button></div>
+      <div className="row"><button type="button" className="ypc-x" disabled={busy} onClick={() => { setFx(false); setFImg(""); setFNote(""); }}>닫기</button><GoButton className="ypc-ok" disabled={busy} go={must(saveFx)} done={() => { setFx(false); setFImg(""); }} busy="저장 중">저장</GoButton></div>
     </div>
   ) : null;
   const fxPen = p?.kind === "human" ? null : <button type="button" className="ypc-fxpen" aria-label={`${name} 사진 · 소개 고치기`} title="사진 · 소개 고치기" onClick={() => { setFIntro(p?.intro || ""); setFImg(""); setFNote(""); setFx(true); }}>✎</button>;
@@ -122,9 +121,9 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
         {look ? null : <span className="ycd-nm">{name}{p?.mark ? <span className="ypc-mark" aria-hidden>{p.mark}</span> : null}</span>}
         {roleEdit ? (
           <div className="ypc-role-edit">
-            <input value={roleDraft} maxLength={20} autoFocus placeholder="직무 · 비우면 기본으로" aria-label={`${name} 직무`} onChange={(e) => setRoleDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); void saveRole(); } }} />
+            <input value={roleDraft} maxLength={20} autoFocus placeholder="직무 · 비우면 기본으로" aria-label={`${name} 직무`} onChange={(e) => setRoleDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); void saveRole().then((ok) => { if (ok) setRoleEdit(false); }); } }} />
             <button type="button" className="ypc-x" disabled={busy} onClick={() => { setRoleEdit(false); setNote(""); }}>취소</button>
-            <button type="button" className="ypc-go" disabled={busy} onClick={() => void saveRole()}>{busy ? "저장 중…" : "저장"}</button>
+            <GoButton className="ypc-go" disabled={busy} go={must(saveRole)} done={() => setRoleEdit(false)} busy="저장 중">저장</GoButton>
           </div>
         ) : p?.kind === "human" ? (p?.role ? <span className="ycd-tag">{p.role}</span> : null) : (
           <span className="ypc-role">
@@ -137,7 +136,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
         {edit ? (
           <div className="ypc-intro-edit">
             <textarea value={draft} maxLength={300} rows={4} autoFocus placeholder="소개 · 비우면 기본으로" aria-label={`${name} 소개`} onChange={(e) => setDraft(e.target.value)} />
-            <div className="row"><small>{[...draft].length}/300</small><button type="button" className="ypc-x" disabled={busy} onClick={() => { setEdit(false); setNote(""); draftDrop(`intro:${who}`); }}>취소</button><button type="button" className="ypc-go" disabled={busy} onClick={() => void saveIntro()}>{busy ? "저장 중…" : "저장"}</button></div>
+            <div className="row"><small>{[...draft].length}/300</small><button type="button" className="ypc-x" disabled={busy} onClick={() => { setEdit(false); setNote(""); draftDrop(`intro:${who}`); }}>취소</button><GoButton className="ypc-go" disabled={busy} go={must(saveIntro)} done={() => { setEdit(false); draftDrop(`intro:${who}`); }} busy="저장 중">저장</GoButton></div>
             {note ? <small className="err" role="alert">{note}</small> : null}
           </div>
         ) : (
