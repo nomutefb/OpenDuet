@@ -32,7 +32,7 @@ test("보내는 중 움짤 + 진짜 글이 같이 있으면 하나만(형 11-12 
 });
 
 test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · 카리나(빼꼼) · 형(선글라스) · 나팔꽃(나팔) · 온(형 11-12 17:28 · 17:29 · 17:35 · 18:34 · 18:39)", () => {
-  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "번개", "시아", "깃", "챙", "카리나", "형", "나팔꽃", "소나", "촉", "온"]);   // 틈 뺌 · 소나 들임(형 11-14 06:59)
+  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "번개", "시아", "깃", "자리3", "카리나", "형", "나팔꽃", "소나", "촉", "온"]);   // 틈 뺌 · 소나 들임(형 11-14 06:59)
   const k = PACKS.find((p) => p.id === "karina")!, h = PACKS.find((p) => p.id === "hyung")!;
   assert.equal(stickerOf("[스티커 카리나 빼꼼]")?.item.id, "peek");
   assert.equal(stickerOf("[스티커 형 선글라스]")?.pack.id, "hyung");
@@ -86,7 +86,7 @@ test("단톡 표지 사진 = 방 꾸미기 「사진」 탭(회의실 · 지정�
 
 test("화상회의 = 수락 · 거절 표기 · 열림(다 답함 · 60초 · 오프라인 안 기다림 · 챙 셈 밖) · 서랍 「화상회의」(형 11-13 06:4x~06:5x · 명세)", async () => {
   const src = readFileSync(new URL("../ui/meet.tsx", import.meta.url), "utf8"), cp = readFileSync(new URL("../ui/cobrowse-pane.tsx", import.meta.url), "utf8"), sh = readFileSync(new URL("../ui/shell.tsx", import.meta.url), "utf8");
-  assert.match(src, /export const SCRIBE = "챙";/); assert.match(src, /export const MEET_WAIT = 60_000;/);
+  assert.match(src, /export const SCRIBE = "자리3";/); assert.match(src, /export const MEET_WAIT = 60_000;/);
   assert.match(src, /\/\^\\\[수락\\\]\//); assert.match(src, /\/\^\\\[거절\\\]\//);
   assert.match(cp, /<MeetDock meet=\{meet\}/); assert.match(cp, /startMeet\(\)\.then/); assert.doesNotMatch(cp, /<MeetPick/);   // 고르기 판 없음 · 카메라 누르면 바로 열림(형 11-13 11:01 「@로 호출하면 한명씩」)
   const tb = readFileSync(new URL("../ui/tab-bar.tsx", import.meta.url), "utf8");   // 들머리 둘로(형 11-13 09:21 「그냥 웹 브라우저랑, 화상 채팅방이랑 구분해주라」) = 「브라우저」(회의 0) · 「화상회의」 고정 탭 + 제 아이콘

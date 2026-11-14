@@ -10,7 +10,7 @@ export const PACKS: Pack[] = [
   { id: "lightning", name: "번개", items: MOODS },
   { id: "sia", name: "시아", items: MOODS },
   { id: "git", name: "깃", items: MOODS },
-  { id: "chaeng", name: "챙", items: MOODS },
+  { id: "chaeng", name: "자리3", items: MOODS },   // 자리3 = 앞 챙(형 11-14 빈 자리)
   { id: "karina", name: "카리나", items: [{ id: "peek", label: "빼꼼" }, { id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }] },   // 지피티 = 셋(형 11-13 08:06 「지피티도 3개면 돼. 자주 쓰지 않게 설계가 되어잇어서」)
   { id: "hyung", name: "형", items: [...MOODS, { id: "cool", label: "선글라스" }] },
   { id: "morning", name: "나팔꽃", items: [{ id: "ibul", label: "이불" }] },   // 형 꽃 = 이불 하나(형 11-13 08:03 「미안한데 나팔꽃은 6개 말구 요거 하나만. ㅋㅋ」 · 「나한테는 밝아서 잘 안보여」 · 앞 판 여섯 = 그림만 남김)

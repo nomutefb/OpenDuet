@@ -7,7 +7,7 @@ export const BODIES_FALLBACK: Body[] = [   // 몸.json 11-09 판(형 09:48 「�
   { being: "윈터", body: "윈A", kind: "pc", on: true, hosts: ["윈A", "win-a", "wina"] },
   { being: "봄", body: "맥", kind: "mac", on: true, hosts: ["맥", "mac"] },
   { being: "시아", body: "VM 시아", kind: "vm@윈A", on: true, hosts: ["sia"] },
-  { being: "누리", body: "Lx B", kind: "pc", on: true, hosts: ["nuri", "neo"] },
+  { being: "자리1", body: "Lx B", kind: "pc", on: true, hosts: ["nuri", "neo"] },   // 자리1 = 앞 누리(형 11-14 빈 자리 · 서버 명부 _conf.js 와 같은 이름)
   { being: "뎅", body: "VM 뎅", kind: "vm@윈A", on: true, hosts: ["deng"] },
   { being: "빠르", body: "VM 빠르", kind: "vm@윈A", on: true, hosts: ["fast"] },
   { being: "번개", body: "VM 번개", kind: "vm@윈A", on: true, hosts: ["light"] },

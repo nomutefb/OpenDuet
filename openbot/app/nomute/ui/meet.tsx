@@ -14,7 +14,7 @@ import "./meet.css";
 import "./update-bar.css";   // .nm-dots = 라임 점 셋(업데이트 띠 · 끊김 띠와 같은 것 · 형 19:3x 「들어오는중... 이거 표시 떠야될듯」 · 「종료하는중 ... < 이거 점세개로」)
 export const Dots = ({ bob = false }: { bob?: boolean }) => <span className={`nm-dots${bob ? " bob" : ""}`} aria-hidden><i>.</i><i>.</i><i>.</i></span>;   // bob = 점 셋 오르락내리락(형 11-14 01:42 시아 옮김 「잇는중 - 은 변경 연결 중 하고 점세개 오르락」)
 
-export const SCRIBE = "챙";   // 늘 자동 참여 · 기록관 · 「다 왔다」 셈 밖(봄 06:46)
+export const SCRIBE = "자리3";   // 자리3 = 앞 챙(형 11-14 빈 자리 · 서버 _meetlog.js SCRIBE 와 같은 이름) ·   // 늘 자동 참여 · 기록관 · 「다 왔다」 셈 밖(봄 06:46)
 export const MEET_WAIT = 60_000;   // 답 없는 이를 기다리는 시간(명세 「여는 때」 = 60초 · 봄 06:5x)
 const KEY = "nm_meet_v1";
 export type Meet = { id: string; members: string[]; t0: number };
