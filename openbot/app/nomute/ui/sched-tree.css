@@ -123,3 +123,28 @@
 .nm-rsheet-del { display:flex; align-items:center; gap:8px; margin:0 16px 14px; padding-top:10px; border-top:1px solid var(--flow-line, rgba(232,234,232,.2)); font-size:var(--fs-sm); color:var(--mut, rgba(232,234,232,.6)); }
 .nm-rsheet-delask { color:#ff8a8d; border-color:rgba(255,90,95,.35); margin-left:auto; }
 .nm-rsheet-delgo { color:#161716; background:#FF5A5F; border-color:#FF5A5F; font-weight:600; }
+
+/* ── 읽기 쉽게(형 11-14 「보기 조금 힘들어 좀 쉽게 가고싶고 원래 영상에서 보인 퀄리티」) ──
+   폰 = 글씨 한 단 크게 · 줄 사이 넉넉히 · 선 읽는 법 줄 숨김 · 뿌리는 작은 알약 / 공통 = 카드 안 칸을 영상처럼 또렷하게(이름 크게 · 언제 한 줄 · 상태 한 줄) */
+.nm-tree-key { opacity:.75; }
+.nm-tree.down .nm-tree-key { display:none; }
+.nm-tree.down .nm-tree-node.root { padding:0 30px 0 14px; }
+.nm-tree.down .nm-tree-t b { font-size:15.5px; }
+.nm-tree.down .nm-tree-node > small { font-size:12px; }
+.nm-tree.down .nm-tree-node:is(.group, .fork) { gap:4px; padding-left:14px; border-radius:16px; }
+.nm-tree.down .nm-tree-card { padding:11px 13px 10px; border-radius:16px; }
+.nm-tree.down .nm-tree-l1 b { font-size:15.5px; }
+.nm-tree.down .nm-tree-l1 i { font-size:11px; padding:2px 7px; }
+.nm-tree.down .nm-tree-l2 { font-size:13px; gap:7px; }
+.nm-tree.down .nm-tree-l2 small { font-size:12px; }
+.nm-tree.down .nm-tree-l2 span { padding:2px 8px; border-radius:8px; }
+.nm-tree.down .nm-tree-l3 { font-size:12px; padding:4px 9px; border-radius:9px; }
+.nm-tree.down .nm-tree-sw { width:26px; height:14px; border-radius:7px; }
+.nm-tree.down .nm-tree-sw::after { width:11px; height:11px; }
+.nm-tree.down .nm-tree-sw[data-on]::after { translate:12px 0; }
+.nm-tree.down .nm-tree-next { font-size:11px; top:-9px; }
+.nm-tree.down .nm-tree-edges path { stroke-width:1.5px !important; }   /* 폰 = 선 굵기 뜻은 안 씀(좁은 화면에서 굵은 선이 어지러움) · 색(놓침 · 다음 차례)만 */
+/* 줄기 둘 = 한눈에 갈리게: 봇에게 시킨 일 = 라임 기운 · 자동으로 도는 일 = 차분한 회색 */
+.nm-tree-node.group[data-trunk="bot"] { border-color:color-mix(in srgb, var(--tree-next) 45%, transparent); }
+.nm-tree-node.group[data-trunk="bot"] .nm-tree-t b { color:var(--tree-next); }
+.nm-rsheet-forkrow { all:unset; display:grid; gap:1px; cursor:pointer; } .nm-rsheet-forkrow small { color:var(--mut, rgba(232,234,232,.55)); font-size:var(--fs-xs); }

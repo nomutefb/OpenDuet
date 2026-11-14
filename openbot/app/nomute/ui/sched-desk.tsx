@@ -100,15 +100,15 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
 }
 
 /** 나무에 넘길 봇 가지 재료(포크 · 루틴 + 상태 점 · 켜짐 · 누름) */
-function botsOf(d: { forks?: SchedFork[]; routines: Routine[]; bots: { bot: string; on?: boolean }[] }, st: (r: Routine) => HealthSt, forkOn: (id?: string) => boolean, open: (id: string) => void, openFork: (id: string) => void, openBots: () => void, add?: (fork: string) => void): BotProp | undefined {
+function botsOf(d: { forks?: SchedFork[]; routines: Routine[]; bots: { bot: string; on?: boolean }[] }, st: (r: Routine) => HealthSt, forkOn: (id?: string) => boolean, open: (id: string) => void, openBots: () => void, add?: (bot: string) => void): BotProp | undefined {
   if (!d.forks?.length) return undefined;
-  return { forks: d.forks.map((f) => ({ id: f.id, name: f.name, on: f.on })), routines: d.routines, st: (r) => st(r as Routine), on: (r) => r.state === "live" && forkOn(r.fork) && d.bots.find((b) => b.bot === r.bot)?.on !== false, stKo: ST_KO, open, openFork, openBots, add };
+  return { forks: d.forks.map((f) => ({ id: f.id, name: f.name, on: f.on })), routines: d.routines, st: (r) => st(r as Routine), on: (r) => r.state === "live" && forkOn(r.fork) && d.bots.find((b) => b.bot === r.bot)?.on !== false, stKo: ST_KO, open, openBots, add };
 }
 
 export function SchedDesk() {
   const qc = useQueryClient(), s = useSched(), d = s.data, can = !!d?.can_set;
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-  const [who, setWho] = useState(""), [openF, setOpenF] = useState(""), [openR, setOpenR] = useState(""), [tab, setTab] = useState("tree"), [selR, setSelR] = useState(""), [selF, setSelF] = useState(""), [selB, setSelB] = useState(false), [addIn, setAddIn] = useState<string | null>(null), [del, setDel] = useState<{ id: string; stage: "ask" | "send"; why?: string } | null>(null);   // addIn = 일 추가 판(그 묶음 · "" = 고르기) · del = 지우기 확인   // 처음 = 나무(봇 + 러너 한 그림 · 형 11-14 「트리구조로」) · selR = 나무에서 누른 루틴(바꾸기 판)
+  const [who, setWho] = useState(""), [openF, setOpenF] = useState(""), [openR, setOpenR] = useState(""), [tab, setTab] = useState("tree"), [selR, setSelR] = useState(""), [selF, setSelF] = useState(""), [selB, setSelB] = useState(false), [addIn, setAddIn] = useState<string | null>(null), [del, setDel] = useState<{ id: string; stage: "ask" | "send"; why?: string } | null>(null);   // addIn = 일 추가 판(골라 둔 봇 · "" = 고르기) · del = 지우기 확인   // 처음 = 나무(봇 + 러너 한 그림 · 형 11-14 「트리구조로」) · selR = 나무에서 누른 루틴(바꾸기 판)
   const wide = useWide();
   const [ask, setAsk] = useState<{ q: SchedQ; r: SchedSetRes } | null>(null), [msg, setMsg] = useState("");
   // 바꾸기 진행(형 10-31 「전송 게이지 차고 체크 된 다음 버튼이 있고, 그 다음에 빙글빙글 쭉 하다가 체크 뜨면」) = 옛 에디터 .go 상태 계승 — fill 전송 · ok ✓ · wait 시계 기다림 · done ✓ · late 2분 넘음
@@ -233,7 +233,7 @@ export function SchedDesk() {
     );
   };
   const forkOnOf = (id?: string) => (d.forks || []).find((f) => f.id === id)?.on !== false;
-  const treeBots = botsOf(d, rSt, forkOnOf, setSelR, setSelF, () => setSelB(true), can ? setAddIn : undefined);
+  const treeBots = botsOf(d, rSt, forkOnOf, setSelR, () => setSelB(true), can ? setAddIn : undefined);
   const removeR = async (id: string, dry: boolean) => {   // 지우기 = 서버 POST schedule/routine {op: remove} · 먼저 dry(지울 수 있는 줄인가) → 확인 → 진짜
     setMsg(""); setDel({ id, stage: dry ? "ask" : "send" });
     try {
@@ -283,7 +283,7 @@ export function SchedDesk() {
           </div>
         ) : null}
       </>) : null}
-      {tab === "tree" && addIn !== null ? <AddRoutine bots={d.bots.map((b) => ({ bot: b.bot, name: nameOf(b), face: face(b, 26), on: b.on !== false }))} forks={(d.forks || []).filter((f) => !VIRTUAL.has(f.id)).map((f) => ({ id: f.id, name: f.name }))} fork0={addIn} sha={d.sha || ""} phone={!wide}
+      {tab === "tree" && addIn !== null ? <AddRoutine bots={d.bots.map((b) => ({ bot: b.bot, name: nameOf(b), face: face(b, 26), on: b.on !== false }))} bot0={addIn} fork={((d.forks || []).find((f) => f.id === "daily") || (d.forks || []).filter((f) => !VIRTUAL.has(f.id))[0])?.id || ""} sha={d.sha || ""} phone={!wide}
         onClose={() => setAddIn(null)} onDone={(m) => { setAddIn(null); setMsg(m); void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] }); }} /> : null}
       {tab === "tree" && fSel ? sheet(fSel.name, `묶음 · 일 ${rsOf(fSel).length}개`, () => setSelF(""), (   // 포크 = 차단기 + 공통 내용(봇 목록 탭에 있던 것)
         <div className="nm-rsheet-body">
@@ -310,6 +310,16 @@ export function SchedDesk() {
               {bar(b.bot)}
             </div>
           ))}
+          {hasForks ? <small className="nm-rsheet-grey">묶음 차단기 · 한꺼번에 멈출 때만</small> : null}   {/* 묶음 = 나무에서 뺌(형 11-14 「묶음 자체도 애초에 많다」) · 켬끔만 여기 */}
+          {hasForks ? forks.filter((f) => !VIRTUAL.has(f.id) && rsOf(f).length).map((f) => (
+            <div key={f.id}>
+              <div className="nm-rsheet-row">
+                <Breaker on={f.on !== false} label={`${f.name} 차단기`} disabled={!can || go.isPending} onFlip={() => prep({ at: "fork", key: f.id, field: "on", value: f.on === false, label: f.name })} />
+                <button type="button" className="nm-rsheet-forkrow min-w-0 flex-1" onClick={() => { setSelB(false); setSelF(f.id); }}><b>{f.name}</b><small>일 {rsOf(f).length}개 · 공통 내용 바꾸기</small></button>
+              </div>
+              {bar(f.id)}
+            </div>
+          )) : null}
         </div>
       )) : null}
       {tab === "tree" ? <Changes list={d.changes || []} got={got} labelOf={labelOf} /> : null}   {/* 최근 바뀜 = 나무 아래(봇 목록 탭을 없애며 옮김) */}

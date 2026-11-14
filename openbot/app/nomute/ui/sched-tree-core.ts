@@ -13,45 +13,52 @@ export type TRoutine = { id: string; name: string; who: string; bot: string; whe
 export type TNode = { id: string; kind: TKind; name: string; parent: string; depth: number; x: number; y: number; w: number; h: number; kids: number; open: boolean; via: "tree" | "after" | "calls"; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine };
 export type TEdge = { k: string; from: string; to: string; kind: "tree" | "after" | "calls" };
 export type Tree = { nodes: TNode[]; edges: TEdge[]; w: number; h: number };
-export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 140, h: 44 }, fork: { w: 190, h: 52 }, job: { w: 222, h: 78 }, routine: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
-export const GAP_X = 64, GAP_Y = 22, PAD = 28, INDENT = 20, GAP_DOWN = 12;
+export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 216, h: 48 }, fork: { w: 190, h: 52 }, job: { w: 222, h: 78 }, routine: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
+export const GAP_X = 64, GAP_Y = 22, PAD = 28, INDENT = 16, GAP_DOWN = 12;
+/** 폰 = 글씨를 키운 만큼 키가 큰 노드(형 11-14 「보기 조금 힘들어 좀 쉽게」) */
+export const SIZE_DOWN: Record<TKind, number> = { root: 44, group: 58, fork: 56, job: 96, routine: 96 };
 
 type Raw = { id: string; kind: TKind; name: string; via: TNode["via"]; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine; kids: Raw[] };
 
-/** 한 갈래의 나무 재료(자리 셈 전) — 포크 안 잡을 뒤따름 · 부름 선으로 엮음 · 고리는 끊음 */
+const ST_RANK: Record<string, number> = { miss: 0, late: 1 };   // 고장 난 것 먼저
+/** 한 갈래의 나무 재료 — 묶음(포크) 단계 없이 갈래 밑에 잡을 바로(형 11-14 「저 묶음 자체도 애초에 많다고 봄. 너가 애초에 줄여도 돼」)
+ *  차례 = 놓침 → 지연 → 나머지(하루 중 첫 시각 → 이름) · 같은 갈래 안에서 뒤따름 · 부름으로 이어진 잡은 앞선 잡 밑에 · 고리는 끊음 */
 export function rawOf(map: SchedRunners, group: string): Raw {
   const g = map.groups.find((x) => x.id === group);
   const byStem = new Map<string, RunnerJob>();
   for (const j of map.jobs) if (j.file && !byStem.has(stem(j.file))) byStem.set(stem(j.file), j);
-  const order = (a: RunnerJob, b: RunnerJob) => timeKey(a) - timeKey(b) || a.name.localeCompare(b.name, "ko");
-  const forks = map.forks.filter((f) => f.group === group).map((f): Raw => {
-    const jobs = map.jobs.filter((j) => j.fork === f.id).sort(order), inF = new Set(jobs.map((j) => j.id));
-    const parent = new Map<string, { p: string; via: "after" | "calls" }>();
-    const link = (from: RunnerJob | undefined, to: RunnerJob | undefined, via: "after" | "calls") => {
-      if (!from || !to || from.id === to.id || !inF.has(from.id) || !inF.has(to.id) || parent.has(to.id)) return;
-      for (let p: string | undefined = from.id, n = 0; p && n < 200; p = parent.get(p)?.p, n++) if (p === to.id) return;   // 고리 = 안 엮음
-      parent.set(to.id, { p: from.id, via });
-    };
-    for (const j of jobs) for (const a of j.in?.after || []) link(byStem.get(stem(a)), j, "after");
-    for (const j of jobs) for (const c of j.out?.calls || []) link(j, byStem.get(stem(c)), "calls");
-    const node = (j: RunnerJob): Raw => ({ id: j.id, kind: "job", name: j.name, via: parent.get(j.id)?.via || "tree", job: j, kids: jobs.filter((x) => parent.get(x.id)?.p === j.id).map(node) });
-    return { id: f.id, kind: "fork", name: f.name, via: "tree", fork: f, kids: jobs.filter((j) => !parent.has(j.id)).map(node) };
-  });
-  return { id: `g:${group}`, kind: "group", name: g?.name || group, via: "tree", kids: forks };
+  const fset = new Set(map.forks.filter((f) => f.group === group).map((f) => f.id));
+  const rank = (j: RunnerJob) => ST_RANK[String(j.health?.st)] ?? 2;
+  const order = (a: RunnerJob, b: RunnerJob) => rank(a) - rank(b) || timeKey(a) - timeKey(b) || a.name.localeCompare(b.name, "ko");
+  const jobs = map.jobs.filter((j) => fset.has(j.fork)).sort(order), inG = new Set(jobs.map((j) => j.id));
+  const parent = new Map<string, { p: string; via: "after" | "calls" }>();
+  const link = (from: RunnerJob | undefined, to: RunnerJob | undefined, via: "after" | "calls") => {
+    if (!from || !to || from.id === to.id || !inG.has(from.id) || !inG.has(to.id) || parent.has(to.id)) return;
+    for (let p: string | undefined = from.id, n = 0; p && n < 200; p = parent.get(p)?.p, n++) if (p === to.id) return;   // 고리 = 안 엮음
+    parent.set(to.id, { p: from.id, via });
+  };
+  for (const j of jobs) for (const a of j.in?.after || []) link(byStem.get(stem(a)), j, "after");
+  for (const j of jobs) for (const c of j.out?.calls || []) link(j, byStem.get(stem(c)), "calls");
+  const node = (j: RunnerJob): Raw => ({ id: j.id, kind: "job", name: j.name, via: parent.get(j.id)?.via || "tree", job: j, kids: jobs.filter((x) => parent.get(x.id)?.p === j.id).map(node) });
+  return { id: `g:${group}`, kind: "fork", name: g?.name || group, via: "tree", kids: jobs.filter((j) => !parent.has(j.id)).map(node) };
 }
-/** 봇 가지 = 「봇」 갈래 → 포크 → 루틴(표 차례 그대로) · 빈 포크는 안 그림 — 러너 갈래와 같은 층(평의회 11-14 「뿌리 하나 아래 봇 가지와 러너 가지」) */
+/** 봇 가지 = 「봇에게 시킨 일」 → 봇(일이 있는 봇만 · 표에 나온 차례) → 그 봇의 일 · 봇 없는 줄(방 루틴 · 종) = 「대화방 알림」 한 가지 */
+export const ROOMISH_RE = /^(room|bell6)\./;
 export function rawBots(b: BotSide): Raw {
-  const forks = b.forks.map((f): Raw => ({ id: `bf:${f.id}`, kind: "fork", name: f.name, via: "tree", fork: { id: f.id, name: f.name, group: "bot", on: f.on },
-    kids: b.routines.filter((r) => (r.fork || "") === f.id).map((r): Raw => ({ id: `r:${r.id}`, kind: "routine", name: r.name, via: "tree", routine: r, kids: [] })) })).filter((f) => f.kids.length);
-  return { id: "g:bot", kind: "group", name: "봇", via: "tree", kids: forks };
+  const leaf = (r: TRoutine): Raw => ({ id: `r:${r.id}`, kind: "routine", name: r.name, via: "tree", routine: r, kids: [] });
+  const mine = b.routines.filter((r) => !ROOMISH_RE.test(r.id)), room = b.routines.filter((r) => ROOMISH_RE.test(r.id));
+  const kids: Raw[] = [...new Set(mine.map((r) => r.bot))].map((bot) => { const rs = mine.filter((r) => r.bot === bot); return { id: `bb:${bot}`, kind: "fork" as const, name: rs[0].who || bot, via: "tree" as const, kids: rs.map(leaf) }; });
+  if (room.length) kids.push({ id: "bb:~room", kind: "fork", name: "대화방 알림", via: "tree", kids: room.map(leaf) });
+  return { id: "g:bot", kind: "group", name: "봇에게 시킨 일", via: "tree", kids };
 }
-/** 스케줄러 전체 = 뿌리 하나 밑에 봇 갈래 + 러너 갈래들 */
+/** 스케줄러 전체 = 뿌리 밑에 줄기 둘(봇에게 시킨 일 · 자동으로 도는 일) — 봇 재료가 없으면 러너 줄기만 */
 export function rawAll(map: SchedRunners, bots?: BotSide): Raw {
+  const run: Raw = { id: "g:run", kind: "group", name: "자동으로 도는 일", via: "tree", kids: map.groups.map((g) => rawOf(map, g.id)).filter((g) => g.kids.length) };
   const b = bots && bots.routines.length ? [rawBots(bots)] : [];
-  return { id: "root", kind: "root", name: bots ? "스케줄러" : "러너", via: "tree", kids: [...b, ...map.groups.map((g) => rawOf(map, g.id))] };
+  return { id: "root", kind: "root", name: "스케줄러", via: "tree", kids: [...b, run] };
 }
-/** 처음 펼침 = 포크만 접힘 */
-export const openOf = (open: Record<string, boolean>, id: string, kind: TKind) => open[id] ?? kind !== "fork";
+/** 처음 펼침 = 뿌리 · 「봇에게 시킨 일」 · 잡 밑 잡만 — 봇 · 갈래 · 「자동으로 도는 일」은 접힘(처음 화면에 봇 몇 개만 보이게) */
+export const openOf = (open: Record<string, boolean>, id: string, kind: TKind) => open[id] ?? (id === "root" || id === "g:bot" || kind === "job");
 
 /** 깊이마다 왼쪽 자리 = 앞 깊이들의 폭 + 틈(뿌리 → 갈래 → 포크 → 잡 → 잡 …) */
 const xOf = (depth: number) => { let x = PAD; const ks: TKind[] = ["root", "group", "fork"]; for (let d = 0; d < depth; d++) x += SIZE[ks[d] || "job"].w + GAP_X; return x; };
@@ -62,11 +69,11 @@ export function treeOf(map: SchedRunners, open: Record<string, boolean> = {}, do
   let cursor = PAD, maxX = 0;
   const count = (r: Raw): number => r.kids.reduce((a, k) => a + (k.kind === "job" || k.kind === "routine" ? 1 : 0) + count(k), 0);   // 밑에 달린 잡 · 루틴 수
   const place = (r: Raw, depth: number, parent: string): TNode => {
-    const s = SIZE[r.kind], isOpen = r.kids.length > 0 && openOf(open, r.id, r.kind);
+    const s = down ? { w: SIZE[r.kind].w, h: SIZE_DOWN[r.kind] } : SIZE[r.kind], isOpen = r.kids.length > 0 && openOf(open, r.id, r.kind);
     const n: TNode = { id: r.id, kind: r.kind, name: r.name, parent, depth, x: xOf(depth), y: 0, w: s.w, h: s.h, kids: count(r), open: isOpen, via: r.via, job: r.job, fork: r.fork, routine: r.routine };
     nodes.push(n);
     if (down) {   // 폰 = 한 줄 쌓기 · 들여쓰기
-      n.x = PAD / 2 + depth * INDENT; n.w = Math.max(160, down - n.x - PAD / 2); n.y = cursor; cursor += s.h + GAP_DOWN;
+      n.x = PAD / 2 + depth * INDENT; n.w = r.kind === "root" ? 132 : Math.max(160, down - n.x - PAD / 2); n.y = cursor; cursor += s.h + GAP_DOWN;   // 뿌리 = 작은 알약(화면 폭을 다 안 씀)
       if (isOpen) for (const k of r.kids) { const c = place(k, depth + 1, r.id); edges.push({ k: `${r.id}>${c.id}`, from: r.id, to: c.id, kind: c.via }); }
     } else if (isOpen) {
       const ks = r.kids.map((k) => place(k, depth + 1, r.id));

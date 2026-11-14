@@ -1,5 +1,5 @@
 // 일 추가 판(형 11-14 클라우드 세션 창 「추가 수정 삭제도 다 러너에 반영되게」 · 「최대한 카테고라이징해서」 — 노드 영상의 「Add block」 목록 꼴)
-//   한 판에 갈래 셋: 누구에게 · 언제(매일 한 번 / 하루 여러 번 / 직접) · 어느 묶음에 → 이름 · 할 일 → 미리 보기(다음 깸 · 하루 몇 번) → 만들기
+//   한 판에 갈래 셋: 누구에게 · 언제(매일 한 번 / 하루 여러 번 / 직접) · 무슨 일(이름 · 할 일) → 미리 보기(다음 깸 · 하루 몇 번) → 만들기
 //   서버 = POST schedule/routine {op: add}(editor _schedadd.js · 표 한 줄 한 커밋 · 시계가 1분마다 읽음) · 미리 보기는 쓰기 0
 import { type ReactNode, useState } from "react";
 import { office } from "../data/office";
@@ -16,8 +16,8 @@ export const WHEN: { grp: string; items: { id: string; name: string; cron: strin
 ];
 export const cronOf = (id: string, own: string) => KST + (WHEN.flatMap((g) => g.items).find((x) => x.id === id)?.cron || own.trim());
 
-export function AddRoutine({ bots, forks, fork0 = "", sha, phone, onClose, onDone }: { bots: AddBot[]; forks: { id: string; name: string }[]; fork0?: string; sha: string; phone: boolean; onClose: () => void; onDone: (msg: string) => void }) {
-  const [bot, setBot] = useState(""), [when, setWhen] = useState("d8"), [own, setOwn] = useState("0 9 * * *"), [fork, setFork] = useState(fork0 || forks[0]?.id || "");
+export function AddRoutine({ bots, bot0 = "", fork, sha, phone, onClose, onDone }: { bots: AddBot[]; bot0?: string; fork: string; sha: string; phone: boolean; onClose: () => void; onDone: (msg: string) => void }) {   // fork = 새 일이 들어갈 묶음(화면엔 안 보임 · 묶음을 고르게 하지 않음 — 형 11-14 「묶음 자체도 애초에 많다」)
+  const [bot, setBot] = useState(bot0), [when, setWhen] = useState("d8"), [own, setOwn] = useState("0 9 * * *");
   const [name, setName] = useState(""), [task, setTask] = useState("");
   const [stage, setStage] = useState<"edit" | "dry" | "ask" | "send" | "done">("edit"), [pre, setPre] = useState<Res | null>(null), [msg, setMsg] = useState("");
   const value = () => ({ bot, fork, name: name.trim(), when: [cronOf(when, own)], task });
@@ -52,8 +52,6 @@ export function AddRoutine({ bots, forks, fork0 = "", sha, phone, onClose, onDon
             <div className="nm-add-row"><button type="button" role="radio" aria-checked={when === "own"} disabled={lock} className="nm-add-chip" onClick={() => setWhen("own")}>직접 적기</button>
               {when === "own" ? <input className="nm-add-in" value={own} disabled={lock} onChange={(e) => setOwn(e.target.value)} aria-label="분 시 일 월 요일" placeholder="분 시 일 월 요일" /> : null}</div>
           </div>
-          <h4>어느 묶음에</h4>
-          <div className="nm-add-row" role="radiogroup" aria-label="어느 묶음에">{forks.map((f) => <button key={f.id} type="button" role="radio" aria-checked={fork === f.id} disabled={lock} className="nm-add-chip" onClick={() => setFork(f.id)}>{f.name}</button>)}</div>
           <h4>무슨 일</h4>
           <input className="nm-add-in wide" value={name} disabled={lock} maxLength={40} onChange={(e) => setName(e.target.value)} placeholder="이름 (예: 아침 점검)" aria-label="이름" />
           <textarea className="nm-add-in wide" rows={4} value={task} disabled={lock} maxLength={4000} onChange={(e) => setTask(e.target.value)} placeholder="봇이 깨어나면 읽을 할 일을 적어 줘" aria-label="할 일" />
