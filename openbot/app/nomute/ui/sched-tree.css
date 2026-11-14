@@ -117,3 +117,9 @@
 .nm-rsheet-ck { animation:nmGckPop .44s cubic-bezier(.18,1.5,.4,1) both; }
 .nm-rsheet-spin { width:12px; height:12px; border:1.6px solid currentColor; border-top-color:transparent; border-radius:50%; animation:nm-flow-spin .8s linear infinite; }
 .nm-tree.down .nm-tree-more { width:40px; height:40px; margin:-6px; }   /* 폰 = 손가락 자리 40px */
+.nm-tree-node[data-more="2"] { padding-right:92px; }
+.nm-tree-more.plus { color:var(--tree-next); }
+/* 루틴 판 아래 지우기 줄 */
+.nm-rsheet-del { display:flex; align-items:center; gap:8px; margin:0 16px 14px; padding-top:10px; border-top:1px solid var(--flow-line, rgba(232,234,232,.2)); font-size:var(--fs-sm); color:var(--mut, rgba(232,234,232,.6)); }
+.nm-rsheet-delask { color:#ff8a8d; border-color:rgba(255,90,95,.35); margin-left:auto; }
+.nm-rsheet-delgo { color:#161716; background:#FF5A5F; border-color:#FF5A5F; font-weight:600; }

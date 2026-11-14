@@ -16,13 +16,13 @@ const RUN_MS = 120_000;
 type View = { k: number; x: number; y: number };
 const I = {   // 탭 그림 단추(선 그림 · 14)
   run: <path d="M7 5.5v13l11-6.5z" />, power: <><path d="M12 4v7" /><path d="M7.5 7.2a7 7 0 1 0 9 0" /></>, copy: <><rect x="8.5" y="8.5" width="11" height="11" rx="2.5" /><path d="M5 15.5V7a2.5 2.5 0 0 1 2.5-2.5H15" /></>,
-  more: <><circle cx="6" cy="12" r="1.3" /><circle cx="12" cy="12" r="1.3" /><circle cx="18" cy="12" r="1.3" /></>, check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  plus: <path d="M12 5.5v13M5.5 12h13" />, more: <><circle cx="6" cy="12" r="1.3" /><circle cx="12" cy="12" r="1.3" /><circle cx="18" cy="12" r="1.3" /></>, check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
 };
 const Ic = ({ d }: { d: keyof typeof I }) => <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{I[d]}</svg>;
 
 const HOST_KO: Record<string, string> = { mac: "맥", "win-a": "윈A", eyes: "아이즈", sia: "시아 몸", deng: "뎅 몸", fast: "빠르 몸", neo: "네오 몸" };   // 깃허브 밖 잡이 도는 몸(지도 host)
 /** 봇 가지 재료 + 화면이 아는 것(루틴 상태 점 · 켜짐 · 상태 말 · 누름) — 스케줄 화면(./sched-desk.tsx)이 넘김 */
-export type BotProp = BotSide & { st: (r: TRoutine) => HealthSt; on: (r: TRoutine) => boolean; stKo: Record<string, string>; open: (id: string) => void; openFork: (id: string) => void; openBots: () => void };
+export type BotProp = BotSide & { st: (r: TRoutine) => HealthSt; on: (r: TRoutine) => boolean; stKo: Record<string, string>; open: (id: string) => void; openFork: (id: string) => void; openBots: () => void; add?: (fork: string) => void };
 type Leaf = { id: string; st: HealthSt; on: boolean; runs: number; next: number };   // 선 · 가지 머리 셈에 쓰는 잎 하나(잡 또는 루틴)
 export function SchedTree({ map, review = {}, phone = false, can = false, who, bots }: { map: SchedRunners; review?: Record<string, Review>; phone?: boolean; can?: boolean; who?: (w: string) => string; bots?: BotProp }) {
   const box = useRef<HTMLDivElement>(null), world = useRef<HTMLDivElement>(null);
@@ -128,14 +128,16 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
           if (n.kind !== "job" && n.kind !== "routine") {
             const sts = stsUnder(n), sum = sumOf(sts), w = worstOf(sum), off = n.fork ? n.fork.on === false : false;
             const more = !bots ? null : n.id === "g:bot" ? bots.openBots : n.id.startsWith("bf:") ? () => bots.openFork(n.id.slice(3)) : null;
+            const plus = !bots?.add ? null : n.id === "g:bot" ? () => bots.add!("") : n.id.startsWith("bf:") ? () => bots.add!(n.id.slice(3)) : null;   // 「+」 = 일 추가(그 묶음에 · 봇 갈래에선 묶음도 고름)
             return (
               <Fragment key={n.id}>
-              <button type="button" className={`nm-tree-node ${n.kind}`} style={pos} data-st={w} data-off={off || undefined} data-more={more ? "" : undefined} aria-expanded={n.open} title={n.fork?.note || n.name} onClick={() => toggle(n.id, n.kind)}>
+              <button type="button" className={`nm-tree-node ${n.kind}`} style={pos} data-st={w} data-off={off || undefined} data-more={more ? (plus ? "2" : "1") : undefined} aria-expanded={n.open} title={n.fork?.note || n.name} onClick={() => toggle(n.id, n.kind)}>
                 <span className="nm-tree-t"><StatusDot st={w} /><b>{n.name}</b></span>
-                {n.kind === "root" ? null : <small>꼬챙이 {n.kids}{sum.miss ? <em> · 놓침 {sum.miss}</em> : null}{sum.late ? <i> · 지연 {sum.late}</i> : null}</small>}
+                {n.kind === "root" ? null : <small>일 {n.kids}개{sum.miss ? <em> · 놓침 {sum.miss}</em> : null}{sum.late ? <i> · 지연 {sum.late}</i> : null}</small>}
                 <svg className="nm-tree-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m9 6 6 6-6 6" /></svg>
               </button>
-              {more ? <button type="button" className="nm-tree-more" style={{ transform: `translate(${n.x + n.w - 58}px, ${n.y + n.h / 2 - 14}px)` }} aria-label={`${n.name} 차단기 · 바꾸기`} title="차단기 · 바꾸기" onClick={more}><Ic d="more" /></button> : null}   {/* 봇 갈래 = 봇마다 차단기 · 봇 포크 = 포크 차단기 + 공통 내용(봇 목록 탭에 있던 것) */}
+              {more ? <button type="button" className="nm-tree-more" style={{ transform: `translate(${n.x + n.w - 58}px, ${n.y + n.h / 2 - 14}px)` }} aria-label={`${n.name} 차단기 · 바꾸기`} title="차단기 · 바꾸기" onClick={more}><Ic d="more" /></button> : null}
+              {plus ? <button type="button" className="nm-tree-more plus" style={{ transform: `translate(${n.x + n.w - 88}px, ${n.y + n.h / 2 - 14}px)` }} aria-label={`${n.name}에 일 추가`} title="일 추가" onClick={plus}><Ic d="plus" /></button> : null}   {/* 봇 갈래 = 봇마다 차단기 · 봇 포크 = 포크 차단기 + 공통 내용(봇 목록 탭에 있던 것) */}
               </Fragment>
             );
           }
@@ -154,7 +156,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
             );
           }
           const j = n.job!, st = stJob(j), gh = ghJob(j), [c0] = j.clock || [], run = (ran[j.id] || 0) > now;
-          const tag = j.kind === "llm" ? "LLM" : c0 ? CLOCK_KO[c0] || c0 : "";
+          const tag = j.kind === "llm" ? "AI" : c0 ? CLOCK_KO[c0] || c0 : "";
           return (
             <div key={n.id} className="nm-tree-node job" style={pos} data-st={st} data-hot={hot === n.id || undefined} data-out={!gh || undefined} data-next={soon === j.id || undefined} data-off={j.on === false || !forkOn(j) || undefined} data-run={run || undefined} data-via={n.via}>
               <div className="nm-tree-tab" role="toolbar" aria-label={`${j.name} 바꾸기`}>
@@ -167,7 +169,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
               <button type="button" className="nm-tree-card" aria-label={`${j.name} · ${HEALTH_KO[st]}`} onClick={() => setSel({ job: j })}>   {/* 폰 = 한 번 누르면 바로 판(큰 단추) · 작은 탭 단추를 두 번째로 누르게 하지 않음 */}
                 <span className="nm-tree-l1"><b title={j.name}><ReviewBadge r={review[j.id]} />{j.name}</b>{tag ? <i>{tag}</i> : null}</span>
                 <span className="nm-tree-l2"><small>언제</small><span title={whenOf(j)}>{whenOf(j)}{j.health?.next_at ? ` · 다음 ${nextShort(j.health.next_at)}` : ""}</span></span>
-                <span className="nm-tree-l3"><StatusDot st={st} /><span>{HEALTH_KO[st]} · {gh ? modelKo(j) : `${HOST_KO[j.host || ""] || j.host || "그 몸"}에서 돎 · 여기서 못 바꿈`}</span><i className="nm-tree-sw" data-on={j.on !== false || undefined} aria-hidden /></span>
+                <span className="nm-tree-l3"><StatusDot st={st} /><span>{HEALTH_KO[st]} · {gh ? modelKo(j).replace("LLM 없음", "AI 안 씀") : `${HOST_KO[j.host || ""] || j.host || "그 몸"}에서 돎 · 여기서 못 바꿈`}</span><i className="nm-tree-sw" data-on={j.on !== false || undefined} aria-hidden /></span>
                 {soon === j.id ? <em className="nm-tree-next">다음</em> : null}
               </button>
               <i className="nm-tree-port l" aria-hidden /><i className="nm-tree-port r" aria-hidden />
@@ -176,7 +178,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
           );
         })}
       </div>
-      <p className="nm-tree-key" aria-label="선 읽는 법"><span><i data-k="w" />굵기 = 자주 돎</span><span><i data-k="miss" />놓침</span><span><i data-k="late" />지연</span><span><i data-k="next" />다음 차례</span><span><i data-k="calls" />부름</span></p>
+      <p className="nm-tree-key" aria-label="선 읽는 법"><span><i data-k="w" />굵기 = 자주 돎</span><span><i data-k="miss" />놓침</span><span><i data-k="late" />지연</span><span><i data-k="next" />다음 차례</span><span><i data-k="calls" />다른 일이 부름</span></p>
       {phone ? null : (
         <div className="nm-tree-zoom" role="group" aria-label="배율">
           <button type="button" aria-label="작게" onClick={() => zoom(1 / 1.2)}>−</button>

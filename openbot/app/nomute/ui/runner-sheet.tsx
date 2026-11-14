@@ -121,7 +121,7 @@ export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, wh
           </div>
         )}
         <div className="nm-rsheet-info">   {/* 옛 목록에만 있던 칸을 판으로(평의회 11-14 「형이 왜 늦었어 · 누가 맡았어를 볼 길이 없어졌다」) = 돌 자리 · 모델 · 책임 · 확인 전 / 마지막 실제 · 얼마나 늦음 / 검토 */}
-          <small>{[(job.res || []).map((r) => `${r.at}${r.gpu ? "(GPU)" : ""}`).join(" › ") || "돌 자리 모름", job.model?.length ? job.model.join(" · ") : job.providers?.length ? job.providers.join(" · ") : "LLM 없음", `${job.owner || "책임 모름"}${job.checked ? "" : " · 확인 전"}`].join(" · ")}</small>
+          <small>{[(job.res || []).map((r) => `${r.at}${r.gpu ? "(GPU)" : ""}`).join(" › ") || "돌 자리 모름", job.model?.length ? job.model.join(" · ") : job.providers?.length ? job.providers.join(" · ") : "AI 안 씀", `${job.owner || "책임 모름"}${job.checked ? "" : " · 확인 전"}`].join(" · ")}</small>
           {job.health ? <small data-st={job.health.st}>{HEALTH_KO[job.health.st]}{job.health.last_at ? ` · 마지막 실제 ${nextShort(job.health.last_at)}` : ""}{job.health.drift_min ? ` · 예정보다 ${job.health.drift_min}분 늦음` : ""}{job.health.missed ? ` · 놓침 ${job.health.missed}` : ""}</small> : null}
           {who ? <ReviewBox id={job.id} r={review} can={can} who={who} /> : null}
         </div>
