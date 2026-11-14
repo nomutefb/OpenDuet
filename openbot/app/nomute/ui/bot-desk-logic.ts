@@ -9,7 +9,7 @@ export type BotRow = {
   open?: { no: string; title?: string; code?: string; at?: number }[]; today?: number; pm?: boolean; rest?: boolean;   // 맡은 오더(받고 안 끝낸 것) · 오늘 받은 수 · PM 자리 · 쉼 지정
   jobs?: Job[];   // 오늘 오더 줄(안 끝낸 것 먼저 + 오늘 끝낸 것 · 서버 오더 장)
 };
-export type Job = { no: string; title?: string; code?: string; recv?: number; done?: number };
+export type Job = { no: string; title?: string; code?: string; recv?: number; done?: number; ride?: number; sha?: string };   // ride = 태움 글을 올린 때(회의실 글에서 서버가 읽음 · 봇이 따로 남기는 것 0) · sha = 그 커밋
 export type First = { who: string; rank?: number; busy?: boolean };
 export type Late = { no: string; who: string; code?: string; min: number };
 export type BotTable = { codes: string[]; rows: BotRow[]; first?: Record<string, First>; late?: Late[] };
@@ -92,9 +92,10 @@ export function jobsOf(r: BotRow): Job[] {
 }
 const minKo = (ms: number) => { const m = Math.max(1, Math.round(ms / 60e3)); return m < 60 ? `${m}분` : `${Math.floor(m / 60)}시간 ${m % 60}분`; };
 /** 오더 한 줄 → 표시 꼴(done = 체크 + 취소선 · running = 도는 고리(그 손이 일하는 중) · pending = 점선(받아 두고 쉬는 중)) + 글 + 오른쪽 작은 글(걸린 시간 · 받은 지). */
-export function jobLine(j: Job, working: boolean, now: number): { status: "done" | "running" | "pending"; text: string; side: string } {
+export function jobLine(j: Job, working: boolean, now: number): { status: "done" | "running" | "pending"; text: string; side: string; ride?: true } {
   const text = `${j.no}${j.title ? " " + j.title : ""}`;
   if (j.done) return { status: "done", text, side: j.recv && j.done >= j.recv ? minKo(j.done - j.recv) : "끝" };
+  if (j.ride) return { status: "running", text, side: `태움 ${agoKo(now - j.ride)}`, ride: true };   // 만들기는 끝 · 기차(라이브) 기다림 = 손은 놓았어도 도는 고리
   return { status: working ? "running" : "pending", text, side: j.recv ? `${minKo(now - j.recv)}째` : "" };
 }
 /** 머리 셈 — 끝낸 수 / 오늘 오더 수 · all = 다 끝냄(오더가 있을 때만). */
@@ -106,4 +107,14 @@ export function jobCount(jobs: Job[]): { done: number; total: number; all: boole
 export function orbOf(r: BotRow): "working" | "listening" | "" {
   if (r.pm || r.rest || r.lane === "lost" || r.lane === "off" || r.lane === "none") return "";
   return r.lane === "work" ? "working" : r.lane === "ready" ? "listening" : "";
+}
+
+// ── 맨 위 요약 막대(형 「누가 쉰다 이런개념이 아니라 도표 느낌으루」) — 묶음마다 몇인지 한 줄 막대로(0 인 묶음은 뺌)
+export function mixOf(rows: BotRow[]): { group: Group; n: number }[] {
+  return flowOf(rows).map((g) => ({ group: g.group, n: g.rows.length }));
+}
+/** 카드 상태 줄 꼬리 — 마지막 손 · 신호(짧게 · 없으면 빈 글). */
+export function tailOf(r: BotRow, now: number): string {
+  const sig = sigOf(r, now);
+  return [r.last_at ? `손 ${agoKo(now - r.last_at)}` : "", sig !== "–" ? sig : ""].filter(Boolean).join(" · ");
 }
