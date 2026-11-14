@@ -174,3 +174,6 @@
 .nsb-who td.nw[data-err] select { border-color:#ff5a5a; }
 
 .nsb-acct .memo { color:var(--nsb-mut); font-size:var(--fs-sm); }
+.nsb-links { display:flex; gap:6px; padding:0 14px 8px; }
+.nsb-links a { text-decoration:none; }
+.nm-msgs-seg { display:flex; gap:6px; padding:10px 16px 4px; }

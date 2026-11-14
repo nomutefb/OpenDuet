@@ -6,29 +6,29 @@ import { DuetIcon } from "@/components/duet/icons";
 import { approvalInboxOptions } from "@/lib/approvals";
 import { taskListQueryOptions } from "@/lib/tasks/queries";
 import { needsInputCount } from "@/lib/tasks/groups";
-import { enterRoom } from "../data/read-state";
-import { useRoomOrder } from "./room-list";
 import { MODALS, type Modal } from "./shell";
 import { YICO } from "./yeta-icons";
 import "./yeta-settings.css";   // 설정과 같은 판(형 11-01 「톤이 맞아야되거든」 · .yset-part · .yset-grp · .yset-item)
 import { useDecideWaiting } from "./decide-count";   // 형 결정 대기 = 결정 서버 목록(형 11-13 16:19)
 
 // 묶음 = 에디터 독 차례(뉴스 → 모으기 → 만들기)를 서랍으로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘」 · 한눈 = 앱 네이티브 · 전체 = 에디터 화면 그대로라 기능이 안 빠짐)
+// 서랍 정리(형 11-14 클라우드 세션 창 「서랍중에 보면 안쓰는것들 좀 많아 … 이기회에 없앨게」 — 줄마다 형이 정함):
+//   요약 요청 → 만들기 맨 위 · AI 썸네일·이미지 → 만들기 / 피드백 → 일 · 토큰 → 러너(작동 표 계정 상태 칸) / 놀이터 → 밥상 이야기 옆
+//   SNS + SNS 전체 = 「SNS」 한 줄(한눈 안 「전체 보기」) → 뉴스 / 채널 요약 + 채널 전체 = 「채널」 한 줄 → 알림·기록 / 키워드 알림 = 알림메세지 안 탭
+//   화면 잠금 · 구독 기기 → 설정 / 계정 전환 → 작동 표 계정 상태 칸 / 메모 · 검색 · 에디터 메모 = 뺌 / 웹 = 숨김
+//   LEGACY · 구독 채널 = 혼자 남는 묶음이라 「뉴스」로(형이 따로 안 말한 둘 · 묶음 하나에 줄 하나는 안 둠)
 const PARTS: { name: string; ids: Modal[] }[] = [
-  { name: "만들기", ids: ["edtool", "edvid", "edtrack", "ednb", "edsb", "edys", "edsong", "edk", "edtr", "edvd", "edconv", "eddl"] },   // 맨 위(봄 11-08 · 형 08:49 「아침에 올린 글도, 우리 오피스 안썼어. 옛날 에디터 썼고, 포토샵썼어」 · 「ux가 예전보다 안따라와」 · 에디터 자리는 형 10-31 「에디터는 그냥 서랍 누르면 뜨면 될듯」 그대로 서랍 · 다섯째 묶음이라 내려야 보였음)
-  { name: "일", ids: ["tasks", "sched", "runner", "meetlog"] },   // 스케줄 = 네비 4번에서 서랍으로(형 11-05 「스케줄러는 메뉴5번 서랍 안으로 넣을게」)
-  { name: "우리", ids: ["story"] },   // 밥상 이야기(형 11-04 15:4x 「5번 메뉴의 한 공간으로 밥상 이야기로」)
-  { name: "뉴스", ids: ["thumbhist", "edq", "edsearch", "ask"] },   // 「뉴스 요약」(feed) = 네비 4번 뉴스 에디터로 합침(형 11-09 08:50 · 봄 33 · #/feed 주소는 그대로)   // 「요약 요청 · 에디터 판」 = 앱 「요약 요청」에 합침(빠르 11-01 · 링크 판별·초안 보존)
-  { name: "모으기", ids: ["legacy", "sns", "trend", "chan", "chanfull"] },
-  { name: "알림·기록", ids: ["edmsgs", "edkw", "edsensor", "edmemo"] },
-  { name: "에디터 설정", ids: ["edsnsacc", "edpush", "edgenopt", "edlock", "edacct"] },
-  { name: "놀기·살피기", ids: ["play", "tokens", "feedback"] },
+  { name: "만들기", ids: ["ask", "edtool", "edvid", "edtrack", "ednb", "edsb", "edys", "edsong", "edk", "edtr", "edvd", "edconv", "eddl", "edgenopt"] },
+  { name: "일", ids: ["tasks", "sched", "runner", "meetlog", "feedback"] },
+  { name: "우리", ids: ["story", "play"] },
+  { name: "뉴스", ids: ["thumbhist", "edq", "sns", "edsnsacc", "legacy"] },
+  { name: "알림·기록", ids: ["edmsgs", "edsensor", "chan"] },
 ];
+const LABEL: Partial<Record<Modal, string>> = { chan: "채널", edmsgs: "알림" };   // 합친 줄의 이름(한눈 + 전체 · 알림메세지 + 키워드 알림)
 const go = (id: Modal) => { try { sessionStorage.setItem("nm-from-drawer", id); } catch { /* 못 쓰면 「<」 = 옛 길 */ } };
 
 export function DrawerPage() {
   const nav = useNavigate(), inbox = useQuery(approvalInboxOptions()), tasks = useQuery(taskListQueryOptions());
-  const { rooms, count } = useRoomOrder(), mr = (rooms.data || []).find((x) => x.id === "memo"), memo = mr ? Math.max(0, count(mr)) : 0;   // 메모 = 사무실 방 하나(형 11-01 「해야할일 쌓아두는 서랍」 · 봇도 쌓음)
   const waiting = needsInputCount(tasks.data, inbox.data) + useDecideWaiting();
   return (
     <div className="nm-drawer-page mx-auto flex w-full max-w-3xl flex-col px-4 pb-12 pt-4"><div className="yeta-set yset-short mt-2">
@@ -36,27 +36,10 @@ export function DrawerPage() {
         <section key={p.name} className="yset-part" aria-label={p.name}>
           <div className="yset-sec">{p.name}</div>
           <div className="yset-grp">
-            {p.name === "일" ? (
-              <button type="button" className="yset-item" onClick={() => { enterRoom("memo"); void nav({ to: "/channels/$channelId", params: { channelId: "memo" } }); }}>
-                <span className="si-ic" aria-hidden><DuetIcon name="page" size={21} /></span>
-                <span className="si-lbl"><span className="si-t">메모</span></span>
-                <span className="si-v">
-                  {memo > 0 ? <b className="nm-rcount">{memo > 99 ? "99+" : memo}</b> : null}
-                  <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />
-                </span>
-              </button>
-            ) : null}
-            {p.name === "일" ? (   /* 웹 = 앱 안 브라우저(형 11-06 20:21 「대시보드 창 내부에서도 브라우저」 · #/web 빈 주소 = 주소창부터 · ./web-pane.tsx) */
-              <button type="button" className="yset-item" onClick={() => { location.hash = "#/web"; }}>
-                <span className="si-ic" aria-hidden><DuetIcon name="globe" size={21} /></span>
-                <span className="si-lbl"><span className="si-t">웹</span></span>
-                <span className="si-v"><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
-              </button>
-            ) : null}
             {p.ids.map((id) => { const m = MODALS.find((x) => x.id === id)!; return (
               <button key={id} type="button" className="yset-item" onClick={() => { go(id); void nav({ to: m.to }); }}>
                 <span className="si-ic" aria-hidden><DuetIcon name={m.icon} size={21} /></span>
-                <span className="si-lbl"><span className="si-t">{m.label}</span></span>   {/* 부제(desc) 줄 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」 · 칸 값은 shell.tsx 에 남음) */}
+                <span className="si-lbl"><span className="si-t">{LABEL[id] || m.label}</span></span>   {/* 부제(desc) 줄 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」 · 칸 값은 shell.tsx 에 남음) */}
                 <span className="si-v">
                   {id === "tasks" && waiting > 0 ? <b className="nm-rcount">{waiting > 99 ? "99+" : waiting}</b> : null}
                   <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />

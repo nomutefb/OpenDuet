@@ -66,6 +66,7 @@ const StoriesModal = lazy(() => import("./stories").then((m) => ({ default: m.St
 const FeedbackModal = lazy(() => import("./feedback").then((m) => ({ default: m.FeedbackModal })));
 const QueueModal = lazy(() => import("./queue").then((m) => ({ default: m.QueueModal })));
 const MsgsModal = lazy(() => import("./msgs").then((m) => ({ default: m.MsgsModal })));
+const MsgsKw = lazy(() => import("./msgs-kw").then((m) => ({ default: m.MsgsKw })));
 const YsModal = lazy(() => import("./ys").then((m) => ({ default: m.YsModal })));
 const SongModal = lazy(() => import("./song").then((m) => ({ default: m.SongModal })));
 const KPromptModal = lazy(() => import("./kprompt").then((m) => ({ default: m.KPromptModal })));   // 서랍 「프롬프팅」 = 옛 에디터 영상 프롬프트 창(viewer/k.html) 앱 안(봄 11-10 23:09 · 번개)
@@ -84,7 +85,6 @@ const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsA
 const DownloadModal = lazy(() => import("./dl").then((m) => ({ default: m.DownloadModal })));   // 서랍 「다운로드」 = 에디터 설정 ▸ 다운로드를 앱 안으로(봄 11-01)
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
 const SensorModal = lazy(() => import("./sensor").then((m) => ({ default: m.SensorModal })));   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
-const MemoModal = lazy(() => import("./memo").then((m) => ({ default: m.MemoModal })));   // 서랍 「메모」 = 에디터 설정 ▸ 메모를 앱 안으로(봄 11-01)   // 서랍 「알림메세지」 = 에디터 알림함을 앱 안으로(봄 11-01)   // 서랍 「대기열」 = 에디터 대기열 창을 앱 안으로(봄 11-01)
 const SnsModal = lazy(() => import("./sns").then((m) => ({ default: m.SnsModal })));
 const ThumbMaker = lazy(() => import("./thumb-maker"));   // 서랍 「에디터」 = 썸네일 생성기 앱 안(형 11-02 09:28 「이거 아예 이 디자인하고 배경 살려서 인앱 안으로 넣어줘」 · 원본 엔진·CSS 가 커서 열 때만 받음)
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
@@ -98,7 +98,7 @@ import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색
 import { selfBackNow } from "./self-back";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edsearch" | "eddl" | "edys" | "edconv" | "edsong" | "edk" | "edtr" | "edvd" | "edvid" | "edtrack" | "ednb" | "edsb" | "edmsgs" | "edmemo" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit";
+export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "eddl" | "edys" | "edconv" | "edsong" | "edk" | "edtr" | "edvd" | "edvid" | "edtrack" | "ednb" | "edsb" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edgenopt" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "할 일", icon: "tasks", to: "/tasks" },
@@ -120,7 +120,6 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "chanfull", label: "채널 전체", icon: "dashboard", to: "/chanfull", desc: "차트·게시물·결의 보드" },
   // 에디터 설정 메뉴 안 칸들(전엔 러너 톱니로만 열림) = 에디터 /?pop=<이름> 딥링크(빠르 11-01 04:23 · 이름 = 봄 안 표)
   { id: "edq", label: "대기열", icon: "tasks", to: "/edq", desc: "재시도·취소" },
-  { id: "edsearch", label: "검색", icon: "search", to: "/edsearch", desc: "뉴스 제목·요약에서 찾기" },
   { id: "eddl", label: "다운로드", icon: "box", to: "/eddl", desc: "주소 → 사진·영상·파일" },
   { id: "edys", label: "유튜브", icon: "sparkle", to: "/edys", desc: "영상 주소 → 짧은 인사이트 영상" },
   { id: "edsong", label: "음원", icon: "sparkle", to: "/edsong", desc: "이야기 → 곡 · Suno 프롬프트" },
@@ -133,7 +132,6 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "ednb", label: "미디어 요약", icon: "file", to: "/ednb", desc: "영상 · 소리 · 글 → 자료 노트" },   // 옛 에디터 미디어 요약 판 1(./nb.tsx · team-4 깃 11-10)
   { id: "edsb", label: "스토리보드", icon: "page", to: "/edsb", desc: "이야기 → 글 콘티 · 시트 · 레퍼런스" },   // 옛 에디터 콘티 판 1(./sb.tsx · team-4 깃 11-11)
   { id: "edmsgs", label: "알림메세지", icon: "bell", to: "/edmsgs", desc: "24시간 알림·조치" },
-  { id: "edmemo", label: "에디터 메모", icon: "file", to: "/edmemo", desc: "작업 기록" },
   { id: "edsensor", label: "센서", icon: "activity", to: "/edsensor", desc: "키워드 센서" },
   { id: "edkw", label: "키워드 알림", icon: "bell", to: "/edkw", desc: "키워드 켜기·목록" },
   { id: "edsnsacc", label: "구독 채널", icon: "globe", to: "/edsnsacc", desc: "X·틱톡·인스타·유튜브 계정" },
@@ -319,9 +317,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "news" ? <div className="nm-scroll"><NewsModal /></div>
                   : M.id === "thumbhist" ? <div className="nm-scroll"><ThumbHist /></div>
                   : M.id === "feed" ? <div className="nm-scroll"><FeedModal /></div>
-                  : M.id === "edsearch" ? <div className="nm-scroll"><FeedModal search /></div>   // 검색 = 뉴스 전체 검색 칸(에디터 검색 창은 피드 목록을 거르는 칸 · 봄 11-01)
                   : M.id === "edq" ? <div className="nm-scroll"><QueueModal /></div>
-                  : M.id === "edmsgs" ? <div className="nm-scroll"><MsgsModal /></div>
+                  : M.id === "edmsgs" ? <div className="nm-scroll"><MsgsKw /></div>   /* 알림 = 알림메세지 + 키워드 알림 한 화면(탭 · 형 11-14 「키워드 알림 > 알림 메세지랑 통합(기능은 유지하면서)」) */
                   : M.id === "edacct" ? <div className="nm-scroll"><AcctModal /></div>   // 계정 전환 = 앱 안(봄 11-01 · api/account · 20초 뒤 실제 값)
                   : M.id === "edgenopt" ? <div className="nm-scroll"><GenOptModal /></div>   // 생성 옵션 = 앱 안(봄 11-01 · imgProvider·imgOpt 바뀐 칸만 · AI 썸네일 켜기는 PIN 없을 때만)
                   : M.id === "edlock" ? <div className="nm-scroll"><LockModal /></div>   // 잠금 = 앱 안(봄 11-01 · 자동 잠금 분 · 켜기·PIN 은 에디터 설정 줄)
@@ -340,7 +337,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "edsb" ? <div className="nm-scroll"><SbModal /></div>   // 스토리보드 = 앱 안 판 1(깃 11-11 · 같은 길 api/sb · sb_out)   // 미디어 요약 = 앱 안 판 1(깃 11-10 · 같은 길 api/nb · nb_out · api/submit)   // 트래킹 = 앱 안 판 1(깃 11-10 · 같은 길 api/upload · api/track · track_out)   // 영상 편집 = 앱 안 판 1(깃 11-10 · 같은 길 api/upload · api/edit · ly_out)
                   : M.id === "edpush" ? <div className="nm-scroll"><PushDevsModal /></div>   // 구독 기기 = 앱 안(봄 11-01 · 같은 길 api/push list·toggle·remove)
                   : M.id === "edsensor" ? <div className="nm-scroll"><SensorModal /></div>   // 센서 = 앱 안(봄 11-01 · 같은 길 api/sensors · 형이 바꾸면 그 봇에게 알림)
-                  : M.id === "edmemo" ? <div className="nm-scroll"><MemoModal /></div>   // 메모 = 앱 안(봄 11-01 · 서버 설정 한 장 = 에디터와 같은 메모)   // 알림메세지 = 앱 안(봄 11-01)   // 대기열 = 앱 안(봄 11-01 · 재시도만 에디터 한 겹)
                   : M.id === "chan" ? <div className="nm-scroll"><ChanModal /></div>
                   : M.id === "chanfull" ? <div className="nm-scroll"><ChanModal full /></div>   // 채널 전체 = 앱 안 조각(빠르 11-01 · 나머지 칸은 맨 아래 단추로 에디터)
                   : M.id === "sns" ? <div className="nm-scroll"><SnsModal /></div>

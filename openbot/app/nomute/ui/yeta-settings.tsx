@@ -7,7 +7,9 @@
 import "./yeta-settings.css";
 import { BlindRows } from "./idle-blind";
 import { useQuery } from "@tanstack/react-query";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, Suspense, lazy, useState } from "react";
+const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModal })));   // 화면 잠금 · 구독 기기 = 서랍에서 설정으로(형 11-14 「화면 잠금 > 설정으로」 · 「구독 기기 > 설정으로」)
+const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));
 import { Pane } from "./pane";
 import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
@@ -87,6 +89,8 @@ export function YetaSettings() {
             <EnterKeyRow />
             <ThinkMarkRow />
             <BlindRows />   {/* 쉴 때 화면 가림 · 지금 가리기(형 11-06 17:31 · ./idle-blind.tsx) */}
+            {row("lock", "keys", "화면 잠금", <Suspense fallback={null}><LockModal /></Suspense>)}
+            {row("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
           </div>
         </section>
         <section className="yset-part" aria-label="사무실">
