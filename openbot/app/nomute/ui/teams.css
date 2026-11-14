@@ -134,3 +134,8 @@
 .nm-tswitch.fold .nm-ftab .nm-tmute { position:absolute; top:3px; right:3px; margin:0; }
 .nm-tswitch.fold .nm-ftab.on .nm-tmute { position:static; margin-left:4px; }
 .nm-tswitch .nm-ftab, .nm-tab.teams { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }   /* 길게 누를 때 폰 글 고르기 · 복사 말풍선 안 뜸 */
+
+/* 회의 탭 빈 화면 = 가운데 반투명 알약 「새 회의 시작」(./phone-meet.tsx · 깃 #-027 · 형 11-15 01:23) · 움직임 · 흐림 0 */
+.nm-pmeet-empty:has(> .nm-meet-start) { flex:1 1 auto; justify-content:center; min-height:min(60dvh, 520px); padding:0 16px; }
+.nm-meet-start { padding:10px 22px; border-radius:999px; border:1px solid rgba(207,255,64,.38); background:rgba(207,255,64,.1); color:#CFFF40; font-size:15px; font-weight:600; line-height:1.2; cursor:pointer; }
+.nm-meet-start:active { background:rgba(207,255,64,.18); }
