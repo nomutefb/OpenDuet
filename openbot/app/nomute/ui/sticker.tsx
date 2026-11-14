@@ -7,7 +7,9 @@ import { queryClient } from "@/query-client";
 import { office } from "../data/office";
 import "./sticker.css";
 
-import { FREQ_KEY, PACKS, STK_TMP, dropStickerTwins, freqTop, stickerOf, stickerText, stickerUrl, type Item, type Pack } from "./sticker-logic";
+import { FAV_KEY, FREQ_KEY, PACKS, RECENT_KEY, STK_TMP, allSections, dropStickerTwins, favToggle, recentPush, stickerOf, stickerText, stickerUrl, stkKey, type Item, type Pack } from "./sticker-logic";
+import { FaceImg } from "./faces";
+import { idOf, peopleSync } from "../data/office";
 import { selfBack } from "./self-back";
 export { PACKS, STK_TMP, stickerMark, stickerOf, stickerText, stickerUrl } from "./sticker-logic";
 
@@ -43,6 +45,10 @@ function useDragRail() {
 
 export function StickerButton() {
   const [open, setOpen] = useState(false), [tab, setTab] = useState("all"), [at, setAt] = useState<CSSProperties>({});
+  const readList = (k: string): string[] => { try { const v = JSON.parse(localStorage.getItem(k) || "[]"); return Array.isArray(v) ? v.map(String) : []; } catch { return []; } };
+  const [fav, setFav] = useState<string[]>(() => readList(FAV_KEY)), [recent, setRecent] = useState<string[]>(() => readList(RECENT_KEY));   // 하트 · 최근 = 이 기기(형 11-15 01:28 · 깃 #-028)
+  const keep = (k: string, v: string[]) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 이번만 */ } };
+  const heart = (p: Pack, it: Item) => setFav((f) => { const n = favToggle(f, stkKey(p, it)); keep(FAV_KEY, n); return n; });
   const btn = useRef<HTMLButtonElement>(null), rail = useDragRail();
   // 판 자리 = 누른 😊 바로 위(형 11-12 13:27 「이거 창이 이모지 누른 그 바로 그 부분에서 떠야해, 부드럽게. 지금은 멀찍이 떠버림.」 · 「모바일도 마찬가지야!」) · 화면 밖으로 안 나가게 12px 안쪽
   const place = () => { const r = btn.current?.getBoundingClientRect(); if (!r) return; const w = Math.min(420, innerWidth - 24); const left = Math.max(12, Math.min(r.left - 8, innerWidth - w - 12)); setAt({ left, bottom: innerHeight - r.top + 8, width: w, transformOrigin: `${Math.round(r.left + r.width / 2 - left)}px 100%` }); };
@@ -63,6 +69,7 @@ export function StickerButton() {
     close();
     if (!room) return;
     try { const c = JSON.parse(localStorage.getItem(FREQ_KEY) || "{}") || {}; c[`${p.id}/${it.id}`] = (c[`${p.id}/${it.id}`] || 0) + 1; localStorage.setItem(FREQ_KEY, JSON.stringify(c)); } catch { /* 이 기기에만 · 못 쓰면 셈 안 함 */ }
+    setRecent((r) => { const n = recentPush(r, stkKey(p, it)); keep(RECENT_KEY, n); return n; });
     const key = ["nomute", "msgs", room], text = stickerText(p, it), tmp = STK_TMP + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     type M = { id: string; ts: number; [k: string]: unknown };
     type P = { messages: M[]; [k: string]: unknown };
@@ -73,7 +80,8 @@ export function StickerButton() {
       .catch(() => put((ms) => ms.filter((m) => m.id !== tmp)))
       .finally(() => void queryClient.invalidateQueries({ queryKey: key }));
   };
-  const shown = tab === "all" ? PACKS : PACKS.filter((p) => p.id === tab);
+  const ppl = peopleSync();
+  const faceOf = (p: Pack) => ppl.find((x) => x.name === p.name || x.who === p.name)?.who || "";   // 묶음 이름 = 명부 이름(나팔꽃 = 없음 → 글자만)
   return (
     <>
       <button ref={btn} type="button" className="nm-stk-btn" aria-label="움짤 고르기" title="움짤" onClick={() => { if (open) close(); else { place(); setOpen(true); } }}>
@@ -85,19 +93,23 @@ export function StickerButton() {
           <div className="nm-stk" role="dialog" aria-label="움짤" style={at}>
             <div ref={rail} className="nm-stk-tabs" role="tablist">
               <button type="button" role="tab" aria-selected={tab === "all"} className={tab === "all" ? "on" : ""} onClick={() => setTab("all")}>전체</button>
-              {PACKS.map((p) => <button key={p.id} type="button" role="tab" aria-selected={tab === p.id} className={tab === p.id ? "on" : ""} onClick={() => setTab(p.id)}>{p.name}</button>)}
+              {PACKS.map((p) => { const who = faceOf(p); return <button key={p.id} type="button" role="tab" aria-selected={tab === p.id} className={tab === p.id ? "on" : ""} onClick={() => setTab(p.id)}>{who ? <FaceImg id={idOf(who, ppl)} size={18} className="nm-stk-face" /> : null}{p.name}</button>; })}   {/* 봇 칸마다 작은 얼굴(형 11-15 01:29 「여기 리스트에도 각각 얼굴 나오게 해야할듯 그라야 구분이 빠름 작게라도」) */}
             </div>
-            <div className="nm-stk-grid">
-              {tab === "all" ? freqTop((() => { try { return JSON.parse(localStorage.getItem(FREQ_KEY) || "{}") || {}; } catch { return {}; } })()).map(({ pack: p, item: it }) => (
-                <button key={"f" + p.id + it.id} type="button" className="freq" aria-label={`자주 · ${p.name} ${it.label} 보내기`} title={`자주 · ${p.name} · ${it.label}`} onClick={() => send(p, it)}>
-                  <img src={stickerUrl(p, it)} alt="" loading="lazy" draggable={false} />
-                </button>
-              )) : null}
-              {shown.map((p) => p.items.map((it) => (
-                <button key={p.id + it.id} type="button" aria-label={`${p.name} ${it.label} 보내기`} title={`${p.name} · ${it.label}`} onClick={() => send(p, it)}>
-                  <img src={stickerUrl(p, it)} alt="" loading="lazy" draggable={false} />
-                </button>
-              )))}
+            <div className="nm-stk-grid">   {/* 처음 = 15칸쯤(5 × 3 줄 · 형 01:28 「움짤은 15개 정도만 나오면 돼 ㅋㅋ 그 이상은 지금처럼 올려서 보면 됨 너무 뒤덮어서」) · 줄마다 살짝 구분(「각각 라인이 조금은 구분되야함」) */}
+              {(tab === "all" ? allSections(fav, recent) : PACKS.filter((p) => p.id === tab).map((p) => ({ key: p.id, items: p.items.map((item) => ({ pack: p, item })) }))).map((sec) => (
+                <div key={sec.key} className={`nm-stk-sec ${sec.key === "fav" || sec.key === "recent" ? sec.key : ""}`}>
+                  {sec.items.map(({ pack: p, item: it }) => { const on = fav.includes(stkKey(p, it)); return (
+                    <div key={sec.key + p.id + it.id} className="nm-stk-cell">
+                      <button type="button" className="pick" aria-label={`${p.name} ${it.label} 보내기`} title={`${p.name} · ${it.label}`} onClick={() => send(p, it)}>
+                        <img src={stickerUrl(p, it)} alt="" loading="lazy" draggable={false} />
+                      </button>
+                      <button type="button" className={`nm-stk-heart${on ? " on" : ""}`} aria-pressed={on} aria-label={`${p.name} ${it.label} 하트${on ? " 빼기" : ""}`} onClick={() => heart(p, it)}>
+                        <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden><path d="M12 20.5s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.9c0 5.4-7.5 10-7.5 10z" /></svg>
+                      </button>
+                    </div>
+                  ); })}
+                </div>
+              ))}
             </div>
           </div>
         </>, document.body) : null}

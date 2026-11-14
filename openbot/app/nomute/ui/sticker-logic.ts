@@ -50,3 +50,24 @@ export function freqTop(counts: Record<string, number>, packs: Pack[] = PACKS, n
   const all = packs.flatMap((p) => p.items.map((it) => ({ pack: p, item: it, c: counts[`${p.id}/${it.id}`] || 0 })));
   return all.filter((x) => x.c > 0).sort((a, b) => b.c - a.c).slice(0, n).map(({ pack, item }) => ({ pack, item }));
 }
+
+// 하트 · 최근(형 11-15 01:28 dm-gik 「자주쓰는 움짤 하트 눌러놓으면 최근에 쓴거보다 앞에 위치하게 하줘 5개까지 최근거는 5개면 될듯」 · 깃 #-028 · 뜸) — 이 기기 기억 · 키 = 「묶음/항목」
+export const FAV_KEY = "nm_stk_fav", RECENT_KEY = "nm_stk_recent", FAV_N = 5, RECENT_N = 5;
+export const stkKey = (p: Pack, it: Item) => `${p.id}/${it.id}`;
+/** 하트 켜고 끔 · 넘치면 가장 먼저 단 것부터 빠짐 */
+export function favToggle(list: string[], key: string, n = FAV_N): string[] {
+  return list.includes(key) ? list.filter((k) => k !== key) : [...list, key].slice(-n);
+}
+/** 최근 = 맨 앞이 방금 · 같은 건 한 번만 */
+export function recentPush(list: string[], key: string, n = RECENT_N): string[] {
+  return [key, ...list.filter((k) => k !== key)].slice(0, n);
+}
+/** 키 → 움짤(없어진 묶음 · 항목은 건너뜀) */
+export function stkOfKeys(keys: string[], packs: Pack[] = PACKS): { pack: Pack; item: Item }[] {
+  return keys.flatMap((k) => { const [pid, iid] = k.split("/"); const pack = packs.find((p) => p.id === pid); const item = pack?.items.find((x) => x.id === iid); return pack && item ? [{ pack, item }] : []; });
+}
+/** 「전체」 판 줄 = 하트(≤5) → 최근(하트 뺀 ≤5) → 묶음마다 한 줄 */
+export function allSections(fav: string[], recent: string[], packs: Pack[] = PACKS): { key: string; items: { pack: Pack; item: Item }[] }[] {
+  const f = stkOfKeys(fav, packs), r = stkOfKeys(recent.filter((k) => !fav.includes(k)), packs);
+  return [...(f.length ? [{ key: "fav", items: f }] : []), ...(r.length ? [{ key: "recent", items: r }] : []), ...packs.map((p) => ({ key: p.id, items: p.items.map((item) => ({ pack: p, item })) }))];
+}

@@ -99,13 +99,13 @@ test("화상회의 = 수락 · 거절 표기 · 열림(다 답함 · 60초 · �
   assert.match(src, /office\(`meetlog\/\$\{encodeURIComponent\(id\)\}`, \{ method: "POST"/);
 });
 
-test("움짤 = 카리나 셋 · 자주 쓰는 10개 맨 앞 · 칸 작게(형 11-13 08:06 · 08:07)", async () => {
+test("움짤 = 카리나 셋 · 자주 셈 함수(판 맨 앞은 하트 · 최근으로 갈음 · 형 11-15 01:28) · 칸 작게(형 11-13 08:06 · 08:07)", async () => {
   const k = PACKS.find((p) => p.id === "karina")!;
   assert.deepEqual(k.items.map((x) => x.id), ["peek", "joy", "thanks"]);
   const { freqTop } = await import("../ui/sticker-logic.ts");
   const top = freqTop({ "fast/joy": 3, "bom/think": 5, "eyes/rise": 1 });
   assert.deepEqual(top.map((x) => `${x.pack.id}/${x.item.id}`), ["bom/think", "fast/joy", "eyes/rise"]);
-  assert.match(readFileSync(new URL("../ui/sticker.css", import.meta.url), "utf8"), /minmax\(62px, 1fr\)/);
+  assert.match(readFileSync(new URL("../ui/sticker.css", import.meta.url), "utf8"), /\.nm-stk-sec \{ display:grid; grid-template-columns:repeat\(5, minmax\(0, 1fr\)\)/);   // 칸 = 5 열 줄마다(형 11-15 01:28 · 앞 판 minmax(62px) 자동 칸)
 });
 
 test("움짤 이름 줄 = PC 마우스 잡아끌기 · 끈 뒤 클릭 막음 · 스크롤바 · ◀▶ 뺌(형 11-13 10:20 「끌면움직이면 <> 없어도될듯」)", () => {
@@ -117,4 +117,19 @@ test("움짤 이름 줄 = PC 마우스 잡아끌기 · 끈 뒤 클릭 막음 · 
   assert.match(css, /\.nm-stk-tabs::-webkit-scrollbar \{ display:none; \}/);
   assert.match(css, /\.nm-stk-tabs \{[^}]*scrollbar-width:none/);
   assert.match(css, /\.nm-stk-tabs \{[^}]*user-select:none/);
+});
+
+test("움짤 판 = 하트 먼저(≤5) · 최근 5 · 묶음마다 한 줄(형 11-15 01:28 「자주쓰는 움짤 하트 눌러놓으면 최근에 쓴거보다 앞에 위치하게 하줘 5개까지 최근거는 5개면 될듯」)", async () => {
+  const { favToggle, recentPush, allSections, stkOfKeys } = await import("../ui/sticker-logic.ts");
+  let fav: string[] = [];
+  for (const k of ["fast/joy", "bom/joy", "eyes/joy", "deng/joy", "sia/joy", "git/joy"]) fav = favToggle(fav, k);
+  assert.deepEqual(fav, ["bom/joy", "eyes/joy", "deng/joy", "sia/joy", "git/joy"]);   // 여섯째 = 첫째 빠짐
+  assert.deepEqual(favToggle(fav, "eyes/joy"), ["bom/joy", "deng/joy", "sia/joy", "git/joy"]);
+  let r: string[] = [];
+  for (const k of ["fast/joy", "bom/joy", "fast/joy", "a/b", "eyes/rise", "deng/legs", "sia/think"]) r = recentPush(r, k);
+  assert.deepEqual(r, ["sia/think", "deng/legs", "eyes/rise", "a/b", "fast/joy"]);
+  assert.equal(stkOfKeys(["a/b", "deng/legs"]).length, 1);   // 없는 것 건너뜀
+  const s = allSections(["deng/legs"], ["deng/legs", "eyes/rise"]);
+  assert.deepEqual(s.slice(0, 3).map((x) => x.key), ["fav", "recent", "fast"]);
+  assert.deepEqual(s[1].items.map((x) => x.item.id), ["rise"]);   // 하트 단 건 최근에서 뺌
 });
