@@ -8,8 +8,8 @@
   "scope": "/office-app/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F4D2B0",
-  "theme_color": "#F4D2B0",
+  "background_color": "#040303",
+  "theme_color": "#040303",
   "share_target": {
     "action": "/office-app/share",
     "method": "POST",
