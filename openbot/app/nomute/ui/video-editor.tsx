@@ -33,12 +33,16 @@ export const RAIL_ICONS: Record<string, string> = {
   anorm: "<path d='M11 5L6 9H2v6h4l5 4V5z'/><path d='M15.54 8.46a5 5 0 0 1 0 7.07'/><path d='M19.07 4.93a10 10 0 0 1 0 14.14'/>",
   cutlv: "<circle cx='6' cy='6' r='3'/><circle cx='6' cy='18' r='3'/><path d='M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12'/>",
 };
-export const RAIL_CSS = "#editSpec .gs-sep{display:none!important}#optStrip,#editSpec{height:auto!important;min-height:0!important;flex:none!important;justify-content:flex-start!important}#editSpec{display:flex!important;flex-direction:column;align-items:center;gap:2px}#editSpec .gs-v{margin:0!important}"
-  + "#editSpec .gs-v{font-size:0!important;width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;display:grid!important;place-items:center;color:rgba(232,234,232,.62)!important;position:relative}"
+export const RAIL_CSS = "#editSpec .gs-sep{display:none!important}#optStrip,#editSpec{height:auto!important;min-height:0!important;flex:none!important;justify-content:flex-start!important}#editSpec{display:flex!important;flex-direction:column;align-items:center;gap:0}"
+  // 기둥 단추 간격 = 다 같게(형 11-15 영상 편집 사진 「우측 네비 요소 간격이 너무 좁아서 버튼 누르기가 힘든데 일정 간격 유지해 줘」) — 닿는 칸 36 + 위아래 3 = 42 간격 · 위 묶음(바꾸기 · 지우기 = .cpv-tool 22 높이)도 같은 칸 · 그림 17
+  + "#cpRailWrap .cpv-tool,#editSpec .gs-v{margin:3px 0!important}#cpRailWrap .cpv-tool{height:36px!important;min-height:36px!important}#cpRailWrap .cpv-tool svg{width:17px!important;height:17px!important}"
+  // 「음량」(소리 크기 맞춤 켬/끔) = 뺌(형 같은 글 「볼륨은 뭘 나타내는거지? 크게 필요없는 거는 없앰」) · 숨기기만 = 값은 옛 화면 기본 그대로
+  + "#editSpec .gs-v[data-cyc=anorm]{display:none!important}"
+  + "#editSpec .gs-v{font-size:0!important;width:36px!important;min-width:36px!important;height:36px!important;padding:0!important;display:grid!important;place-items:center;color:rgba(232,234,232,.62)!important;position:relative}"
   + "#editSpec .gs-v.on{color:var(--accent)!important}#editSpec .gs-v:active{transform:scale(.86)}"
   + "#editSpec .gs-v::before{content:'';width:17px;height:17px;background:currentColor;-webkit-mask:var(--nm-ic) center/contain no-repeat;mask:var(--nm-ic) center/contain no-repeat}"
   + Object.entries(RAIL_ICONS).map(([k, d]) => `#editSpec .gs-v[data-cyc=${k}]{--nm-ic:${ic(d)}}`).join("")
-  + "#editSpec .gs-v[data-nmv]{margin-bottom:8px!important}#editSpec .gs-v[data-nmv]::after{content:attr(data-nmv);position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);font-size:8px;line-height:1;font-weight:800;white-space:nowrap;letter-spacing:-.02em}"
+  + "#editSpec .gs-v[data-nmv]{padding-bottom:9px!important}#editSpec .gs-v[data-nmv]::after{content:attr(data-nmv);position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;line-height:1;font-weight:800;white-space:nowrap;letter-spacing:-.02em}"
   + ".nm-tip{position:fixed;z-index:2147483000;padding:5px 10px;border-radius:999px;background:rgba(14,15,14,.94);border:1px solid rgba(255,255,255,.16);color:#e8eae8;font:700 12px/1.2 Pretendard,system-ui,sans-serif;white-space:nowrap;pointer-events:none;transform:translate(calc(-100% - 10px),-50%)}";
 
 /** 시그니처 색 = 포토 에디터와 같은 라임(형 11-13 14:06 봄 옮김 「이미지 에디터처럼 시그니처 색이 좀 일치되어야 되구」) · 옛 화면 청록(--accent #00EED2)만 덮음 · 값 = 앱 YETA 톤(./inapp yetaTone --modern-accent)과 같음 · 앱 밝게/어둡게 따라감 */
