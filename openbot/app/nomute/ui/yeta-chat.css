@@ -824,4 +824,8 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ychat .yb-st.media { min-width:15px; height:29px; justify-content:space-between; align-items:center; }   /* 사진 · 움짤 · 스티커 = 위 체크 · 아래 숫자 한 세로줄 · 숫자가 없어져도 체크 자리 그대로(형 11-14 05:25 봄 옮김 「1위치는 혼자 독립 위치 유지구 그 위에 체크 수직 기준 유지」 · 뎅) */
 .ychat .yb-st .yb-ck { display:block; opacity:0; pointer-events:none; width:11px; height:11px; fill:none; stroke:#CFFF40; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 0 3px rgba(207,255,64,.45)); }
 .ychat .yb-line:has(.nm-encg.ok) > .yb-st .yb-ck, .ychat .yb-line:has(.nm-stk-sent.sent) > .yb-st .yb-ck { opacity:1; }   /* 켜기 = opacity(앞 판 visibility:visible 은 방을 나가 숨긴 대화 칸(visibility:hidden)도 뚫고 대화방 목록 · 홈 위에 남았음 · 형 11-14 07:07 봄 옮김 「이 체크가 대화방 까지 이어지네 ㅠㅠ」 · 크기 15 → 11 = 30% 작게 · 「1」과 같은 세로 가운데 · 「크기 30% 줄여서 1이랑 수직을 맞추고 싶은거라」 · 시아)   /* 다 닿았을 때만(말풍선 안 체크와 같은 때) */
+.ychat .yb-st.txt .yb-ck { opacity:1; }   /* 글만 있는 말풍선 = 서버에 들어간 글이면 ✓ 켬(보내는 중 글은 이 말풍선이 아님 · 형 11-14 11:19 봄 옮김 「마지막 말풍선에서도 체크가 없어」 · 천둥) */
+.ychat .yb-phck { position:relative; max-width:100%; }   /* 사진 묶음 옆 ✓ = 「1」 세로줄과 같은 자리(말풍선 쪽 · 사진 바닥선 · 11px · 형 11-14 11:19 「이거 이미지옆엔 체크가 없어」) */
+.ychat .yb-phck > .yb-ck-ph { position:absolute; right:calc(100% + 8px); bottom:9px; width:11px; height:11px; fill:none; stroke:#CFFF40; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 0 3px rgba(207,255,64,.45)); opacity:0; pointer-events:none; }
+.ychat .yb-line:has(.nm-encg.ok) .yb-ck-ph { opacity:1; }
 .ychat .yb-line:has(> .yb-st.media) .nm-encg.ok, .ychat .yb-line:has(> .yb-st.media) .nm-stk-sent.sent .nm-stk-ok { visibility:hidden; }   /* 말풍선 안 원래 체크 = 숨김(자리는 그대로 · 세로줄 체크 하나만) */
