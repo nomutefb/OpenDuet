@@ -86,7 +86,7 @@ function useRowSync(panel: { current: HTMLDivElement | null }) {
     if (right) ro.observe(right);
     const mo = right && typeof MutationObserver !== "undefined" ? new MutationObserver(soon) : null;   // SNS 그림은 자료가 와야 그려지고 1분마다 다시 그림 → 그때마다 다시 잼
     mo?.observe(right as Element, { childList: true, subtree: true, attributes: true, attributeFilter: ["y", "height", "viewBox", "class"] });
-    const t = setInterval(sync, 2000);
+    const t = setInterval(sync, 10_000);   // 뒷받침만(크기 · 그림 바뀜은 위 감시 둘이 바로 잡음) · 2초 → 10초(형 11-15 명세 안 5 · 하루 43,200 → 8,640번)
     sync();
     return () => { ro.disconnect(); mo?.disconnect(); clearInterval(t); clearTimeout(tm); };
   }, [panel]);
