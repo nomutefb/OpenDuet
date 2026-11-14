@@ -52,7 +52,8 @@ header.nm-head.absolute { padding-top:4px; height:124px; background:linear-gradi
 .nm-modal { position:absolute; inset:0; z-index:50; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), var(--duet-surface); }
 /* 모달 들어올 때 = 바탕은 첫 장부터 불투명 · 안쪽만 떠오름(형 11-14 05:43 봄 옮김 「대화 메뉴사 4번 요약 메뉴가면 귀신 윈터나옴 … 이러면 화면이 순간 두번떠」 · 11-13 22:03 「전환시 뒤에 배경 무관한 잔상들」 = 판 전체가 .3초 투명→불투명이라 밑 대화 · 머리 얼굴이 비침) · 들여다보는 판(.see = 서랍 · 설정)은 원래 투명이라 그대로 */
 .nm-modal:not(.see) > * { animation:ypickIn .3s var(--ease) both; }
-.nm-modal.see { animation:ypickIn .3s var(--ease) both; }
+.nm-modal.see { animation:nmSeeIn .3s var(--ease) both; }   /* 서랍 · 설정 = 옅음 → 짙음만(앞 판 ypickIn = 판 통째 0.985배 + 12px 내림 → 큰 유리 판을 매 프레임 다시 그림 · 맥 웹앱에서 덜 끝난 채 판이 작게 남음(형 11-14 13:48 사진) · 뜸) */
+@keyframes nmSeeIn { from { opacity:0; } }
 .nm-modal-h { position:absolute; top:calc(10px + env(safe-area-inset-top)); left:10px; right:10px; z-index:3; display:flex; align-items:center; gap:8px; padding:7px 9px;
   background:linear-gradient(var(--glass), var(--glass)), color-mix(in srgb, var(--duet-surface) 75%, transparent); border:1px solid var(--glass-line); border-radius:var(--r-pill);
   backdrop-filter:blur(var(--blur-l)) saturate(1); -webkit-backdrop-filter:blur(var(--blur-l)) saturate(1); box-shadow:inset 0 1px 0 var(--glass-line), var(--shadow-card); }
@@ -288,6 +289,11 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-spread .nm-settings-page .yeta-set > .yset-ttl { column-span:all; }
 .nm-split-spread .nm-settings-page .yset-part { break-inside:avoid; margin:0 0 18px; }
 .nm-split-spread .nm-settings-page .yset-part + .yset-part { margin-top:0; }
+/* 단 나눔 속 흐림 유리 뺌(형 11-14 13:48 dm-eyes 「뜸 이런식으로 웹앱에서 삐둟어지는거 해결좀」 · 맥 웹앱 사진 = 서랍 둘째 · 셋째 단 맨 위 묶음(일 · 알림·기록)이 빈 칸 · 판이 살짝 작게 남음 · 뜸)
+   = 크롬 계열이 columns 안 backdrop-filter 를 단이 바뀌는 첫 조각에서 엉뚱한 자리 · 잘린 채로 그리는 꼴(짐작 · 빈 칸이 꼭 「단 첫 묶음」 = 그 꼴) → 넓은 판 서랍 · 설정 묶음만 흐림 0
+   뒤 = 모달 바탕(매끈한 그라데이션)이라 흐려도 안 흐려도 눈에 같음 → 제일 싼 쪽(지침 「형 눈에 똑같으면 제일 싼 방식」) · 색 · 테두리는 그대로 */
+.nm-split-spread .nm-modal.see :is(.nm-drawer-page, .nm-settings-page) .yeta-set :is(.yset-grp, .yset-item, .ycd-card) { -webkit-backdrop-filter:none; backdrop-filter:none; }
+.nm-split-spread .nm-modal.see :is(.nm-drawer-page, .nm-settings-page) .yeta-set .yset-grp { background:color-mix(in srgb, var(--background) 92%, transparent); }   /* 흐림 뺀 몫 = 바탕 85 → 92(뒤 라임 장면 빛줄기가 글자 뒤로 안 비치게 · 아래 85 판 까닭 그대로) */
 /* 러너 = 칸 둘 나란히(max-w-5xl)를 넓게 */
 .nm-split-spread .nm-runner-page { max-width:min(1600px, 100%); padding-inline:28px; }
 /* 러너 판 = 오른쪽 끝까지 펼침 · 몸 칸(WIN A · WIN B · MAC PRO)을 위아래 → 옆으로 나란히(형 11-08 07:24 dm 「지금 러너 대시보드 바꾼거. 그거를 우측까지 펼쳐서 나오게 하고싶어.」 · 옛 = 카드 560 · 위아래) · 게이지는 너무 커지지 않게 몸 칸마다 가운데 520 */
