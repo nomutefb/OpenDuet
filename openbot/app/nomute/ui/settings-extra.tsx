@@ -443,6 +443,11 @@ export function NomuteVault() {
     onSuccess: (j, v) => { setDraft((d) => ({ ...d, [v.seat]: "" })); setNote((n) => ({ ...n, [v.seat]: j.match ? "넣었어 · 열쇠 맞음" : "넣었어 · 이 자리 열쇠와 안 맞아(다시 확인)" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
     onError: (e, v) => setNote((n) => ({ ...n, [v.seat]: e instanceof Error ? e.message : "못 넣었어" })),
   });
+  const mint = useMutation({
+    mutationFn: (seat: string) => office<{ match: boolean }>("seatvault/mint", { method: "POST", body: JSON.stringify({ seat }) }),
+    onSuccess: (_j, seat) => { setNote((n) => ({ ...n, [seat]: "새 열쇠 만들어 넣었어 · 앞 열쇠는 꺼짐 · 이제 「복사」" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
+    onError: (e, seat) => setNote((n) => ({ ...n, [seat]: e instanceof Error ? e.message : "못 만들었어" })),
+  });
   const copy = async (seat: string) => {
     try {
       const j = await office<{ value: string }>("seatvault/copy", { method: "POST", body: JSON.stringify({ seat }) });
@@ -467,6 +472,9 @@ export function NomuteVault() {
                 <button type="button" disabled={!draft[s.seat]?.trim() || put.isPending} onClick={() => put.mutate({ seat: s.seat, value: draft[s.seat].trim() })} className="rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-40">넣기</button>
                 <button type="button" disabled={!s.set} onClick={() => void copy(s.seat)} className="rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-40">복사</button>
               </div>
+              {!s.set ? (
+                <button type="button" disabled={mint.isPending} onClick={() => { if (window.confirm(`${s.seat.replace("자리", "자리 ")} 새 열쇠를 만들까? 앞 열쇠는 꺼져.`)) mint.mutate(s.seat); }} className="self-start text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40">새 열쇠 만들기</button>
+              ) : null}
               {note[s.seat] ? <p role="status" className="text-xs text-muted-foreground">{note[s.seat]}</p> : null}
             </li>
           ))}
