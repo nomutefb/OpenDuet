@@ -38,10 +38,12 @@ test("띠 얼굴 채도 = 형과 1:1 대화한 지 오래될수록 · 바닥 25%
   assert.ok(!rl.includes("--face-sat"), "폰 목록은 안 입힘");
 });
 
-test("고정 표시 = 압정 그림 한 벌(PC 띠 · 폰 목록 · 봄 11-12 16:17 A)", () => {
+test("고정 표시 = 줄 왼쪽 라임 세로줄 · 압정 그림 뺌(형 11-14 23:07 「고정을 하면 좌측에 일자 라인 저거 라임색으로 들어가는거로 대체하고 고정 핀 보이는거는 뺄게.」 · 앞 판 = 압정 한 벌 · 봄 11-12)", () => {
   const rl = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8");
-  assert.match(sh, /<PinMark className="nm-face-pin" label="고정됨" \/>/);
-  assert.match(rl, /<PinMark className="nm-pin-mark" label="고정함" \/>/);
+  const rc = readFileSync(new URL("../ui/room-color.css", import.meta.url), "utf8");
+  assert.ok(!/<PinMark /.test(sh) && !/<PinMark /.test(rl), "압정 그림 0(PC 띠 · 폰 목록)");
+  assert.match(rl, /" pinned"/);
+  assert.match(rc, /\.nm-rrow\.pinned[^{]*\{ box-shadow:inset 3px 0 0 #CFFF40; \}/);
   assert.ok(!rl.includes("📌</span>"), "폰 목록 📌 글자 걷음");
   const pm = readFileSync(new URL("../ui/pin-mark.tsx", import.meta.url), "utf8");
   assert.match(pm, /export function PinMark/);

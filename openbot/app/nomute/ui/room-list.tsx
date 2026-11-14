@@ -3,7 +3,6 @@
 //   같은 차례를 PC 얼굴 띠(ui/shell.tsx)가 씀 = useRoomOrder
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 알림 켬/끔 · (단톡) 알림 그림 · 숨기기/보이기
-import { PinMark } from "./pin-mark";
 import { isPairRoom } from "./pair-fold";
 import { useRoomArtSrc } from "./room-art";
 import { useRoomPhoto } from "./room-photo";
@@ -105,7 +104,7 @@ export function useRoomOrder() {
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => head(a.id) - head(b.id) || recent(a, b));
   const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
-  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY), hid, count, lastOf, pinned, fixed, pins, setPins, hidden, setHidden };
+  return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY), hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden };
 }
 
 /** 방 아이콘 = 둥근 네모(사람 = 동그라미라 한눈에 갈림) · 그림 /office/room-<방 id>.webp(뜸 그림 · 있으면 먼저) · 없으면 방 표지 색 바탕 + 방 이름의 이모지(밥상 🍚) 또는 첫 글자 */
@@ -181,7 +180,7 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
   );
 }
 export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
-  const { rooms, list, ordered, hid, count, lastOf, pinned, fixed, pins, setPins, hidden, setHidden } = useRoomOrder();
+  const { rooms, list, ordered, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden } = useRoomOrder();
   const teamsOn = useTeamsMode() && !slim;   // 「사무실 | 팀즈」 바꿈(PC 왼쪽 좁은 칸 = 사무실 그대로)
   const meetOn = useOfficeMode() === "meet" && !slim && !bar;   // 폰 「회의」 = 목록 자리에 화상회의(PC 반갈 = 위 탭 줄 「화상회의」가 그 자리 · 형 11-13 22:05)
   // 활발한 방 = 이름에 빛(형 11-01 「현재 활발한 방(누군가라도 활동중인 방개인포함)은 이름에 빚지나가게」) — 마지막 글이 3분 안 · 또는 1:1 에서 형 글 뒤 그 이가 일하는 중(대화 칸 점 셋과 같은 깸 표 · 같은 bots 캐시)
@@ -239,12 +238,13 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     const preview = l ? previewLine(l.text || "") : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";   // 단톡 미리보기 = 글만(형 11-01 14:06 「대화만 나오면 되 문자열만 누가 나오는지 안보여도 됨」 · 옛 「깃:」 머리 뺌)
     const n = count(r), u = n !== 0, on = current === r.id, tall = big, size = big ? 44 : 36;
     // 단톡 = YETA 꼴(YETA-목록 · 운영자 260725 「단톡환경에서도 프로필이 겹치게」) · 얼굴 둘 겹침 · 마지막에 말한 이가 앞 · 인원 숫자만 · 누구인지 = 방 상단(형 10-31 「인원이 저기 누군지 나올 필욘 없는듯 들가면 확인할 수 잇으면 됨 방 상단에서」)
-    const rc = r.with ? "" : peek?.id === r.id ? peek.hex : r.color || "";
+    const rc = r.with || r.id === "all" ? "" : peek?.id === r.id ? peek.hex : r.color || "";   // 회의실 = 방 색 강조 뺌(형 11-14 23:05 dm-gik 「회의실은 이제 강조 빼」 · 깃 #-013 · 뜸)
+    const pmTint = r.id === pmRoom ? (list.find((p) => p.pm)?.bubble || "").slice(0, 7) : "";   // PM 1:1 줄 = PM 고유색 20%(형 11-14 23:05 「pm은 여기에 프로필 고유색이 20% 말풍선 투명도로 나오게 해주고」)
     const sig = r.with ? ringOf(p) || "" : rc;   // 활발한 방 이름 빛 바탕 = 그 사람 테 색 · 단톡 = 방 표지 색 · 없으면 노뮤트 연두(live-shine.css .sig · 형 11-01 14:07 「개인방도 마찬가지야」)
     const nOn = notifyOn(notify.data, r.id, !!r.with), nImg = r.with ? "" : notifyImage(notify.data, r.id);
     const crew = r.id === SUMMARY ? [] : ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
-      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${r.id === "all" ? " meet" : ""}`} data-rc={rc ? "" : undefined} style={rc ? ({ "--rc": rc } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); clearTimeout(press.current.buzz); if (press.current.hit) return; if (press.current.touch) press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」) · 손 뗄 때 오는 클릭 삼키기(hit)는 터치만 = PC 오른쪽 클릭엔 뒤따르는 클릭이 없어 메뉴 첫 누름이 먹히던 것(빠르 11-01 15:5x)
+      <li className={`nm-rrow group/row relative${r.with ? "" : " grp"}${pinned(r.id) && r.id !== SUMMARY ? " pinned" : ""}`} data-rc={rc ? "" : undefined} style={rc || pmTint ? ({ ...(rc ? { "--rc": rc } : {}), ...(/^#[0-9a-f]{6}$/i.test(pmTint) ? { background: `${pmTint}33` } : {}) } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); clearTimeout(press.current.buzz); if (press.current.hit) return; if (press.current.touch) press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」) · 손 뗄 때 오는 클릭 삼키기(hit)는 터치만 = PC 오른쪽 클릭엔 뒤따르는 클릭이 없어 메뉴 첫 누름이 먹히던 것(빠르 11-01 15:5x)
         onPointerDown={(e) => { press.current.touch = e.pointerType === "touch"; if (e.pointerType !== "touch") return; clearTimeout(press.current.t); press.current = { x: e.clientX, y: e.clientY, hit: false, touch: true, t: window.setTimeout(() => { press.current.hit = true; press.current.buzz = window.setTimeout(() => navigator.vibrate?.(8), 220); setMenu(r.id); }, 480) }; }}   // 진동 1회(형 11-01 22:41 「오래 누르면 진동이 2회 오거든! 1회만」) = 폰이 길게 누르기를 알아채면 제 진동 + contextmenu 를 줌 → 그 신호가 220ms 안에 오면 내 진동은 거둠 · 안 오는 폰만 내 진동
         onPointerMove={(e) => { if (Math.hypot(e.clientX - press.current.x, e.clientY - press.current.y) > 8) clearTimeout(press.current.t); }}
         onPointerUp={() => clearTimeout(press.current.t)} onPointerCancel={() => clearTimeout(press.current.t)}
@@ -252,7 +252,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
         {wrapTemp(r, <>
         <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) { enterRoom(r.id); onOpen?.(); } }}   // 회의실 = #/group/all(첫 화면 "/" = 홈)
           className={`flex items-center gap-3 px-3 ${tall ? "py-3" : "py-2"} hover:bg-duet-tile ${on ? "bg-duet-tile" : ""}`}>
-          {r.with ? <PeerFaceTap who={r.with} name={p?.name || r.name} list={list}><span className="nm-rorb" style={{ margin: -Math.round(size / 8), marginRight: 4 - Math.round(size / 8) }}>   {/* 이름 4px 오른쪽(형 11-01 「이름을 조금만 우측으로 … 테두리가 두터워지면 좁아보여서」) */}
+          {r.with && !p?.nocard ? <PeerFaceTap who={r.with} name={p?.name || r.name} list={list}><span className="nm-rorb" style={{ margin: -Math.round(size / 8), marginRight: 4 - Math.round(size / 8) }}>   {/* 이름 4px 오른쪽(형 11-01 「이름을 조금만 우측으로 … 테두리가 두터워지면 좁아보여서」) */}
             <MicOrb size={Math.round(size * 1.25)} id={idOf(r.with, list)} tint={ringOf(p)} /></span></PeerFaceTap>
             : !r.with ? <RoomPhotoTap r={r}><RoomIcon r={r} size={size} color={rc} /></RoomPhotoTap>   /* 단톡 = 방 아이콘 하나(형 11-05 13:19 「이거 2개씩 보이게하지말구」 · 「구분이 안되넹 다른거랑」 · 「좀 튀어야됨..」 · 「항상위에잇을거니까;」) · 얼굴 둘 겹침(pair) 뺌 */
             : <span aria-hidden className="nm-rempty" style={{ width: size, height: size }} />}   {/* 형 10-31 「비어질때는 저 공간이 빈 테두리만」 */}
@@ -261,7 +261,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
               <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`} style={live(r) && sig ? ({ "--sig": sig } as CSSProperties) : undefined}>{live(r) ? <LiveShine text={p?.name || r.name} trunc sig /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
               {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
-              {pinned(r.id) && r.id !== SUMMARY ? <PinMark className="nm-pin-mark" label="고정함" /> : null}   {/* 고정 표시 = PC 띠와 한 벌 압정 그림(./pin-mark.tsx · 봄 11-12 16:17 A) */}
+              {null /* 고정 표시 = 줄 왼쪽 라임 세로줄로 갈음 · 압정 그림 뺌(형 11-14 23:07 dm-gik 「그리고 고정을 하면 좌측에 일자 라인 저거 라임색으로 들어가는거로 대체하고 고정 핀 보이는거는 뺄게.」) */}   {/* 고정 표시 = PC 띠와 한 벌 압정 그림(./pin-mark.tsx · 봄 11-12 16:17 A) */}
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
               <span data-content className={`block min-w-0 flex-1 truncate text-xs ${u ? "text-foreground" : "text-muted-foreground"}`}>{r.id === "all" && !ids.length ? "사용자가 없습니다" : preview}</span>

@@ -8,7 +8,6 @@
 //   누르면 앱 밖으로 나가던 링크 = #/web 판(앞 판·앞 모달 위에 한 겹 · 「<」 = 그대로 돌아감 · ./inapp.ts · 형 15:32 「모두 누르면 앱 내에서 작동되게」) · 네비 = 모달 위(형 「네비게이션은 유지」)
 import { Oops } from "./oops";   // 칸 깨짐 = 작은 에러 판(형 11-14 05:18)
 import { MeetLogList } from "./meet";   // 서랍 「화상회의」(형 11-13)
-import { PinMark } from "./pin-mark";
 import { TodoBar } from "./todo-bar";
 import { ChatHead } from "./chat-head";
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
@@ -509,7 +508,7 @@ function FaceStrip({ current }: { current: string; last: string }) {
           const n = count(r), p = r.with ? list.find((x) => x.who === r.with) : undefined, ids = roomAgentIds(r, list), hy = Number((r as { pending_hyung?: number }).pending_hyung) || 0;
           return (
             <button key={r.id} type="button" className={`nm-face ${current === r.id ? "on" : ""}${asleep(r.with) ? " zz" : ""}${live(r.with) ? " live" : ""}`} style={sat(r) < 1 ? ({ "--face-sat": sat(r) } as CSSProperties) : undefined} title={p?.name || r.name} aria-label={`${p?.name || r.name}${n !== 0 ? " · 안 읽은 글 있음" : ""}${hy > 0 ? ` · 형 결정 기다리는 글 ${hy}개` : ""}`} onPointerEnter={() => pre(r.id)} onPointerDown={() => pre(r.id)} onFocus={() => pre(r.id)} onClick={() => go(r.id)} onContextMenu={(e) => { e.preventDefault(); togglePin(r.id); }}>
-              {pins.has(r.id) ? <PinMark className="nm-face-pin" label="고정됨" /> : null}   {/* 고정 = 얼굴 왼쪽 위 작은 압정(봄 11-12 16:17 A · 형 14:06 「점으로 하지말고 좀 더 다른거로」) · 폰 목록과 한 벌 */}
+              {null /* 압정 그림 뺌(형 11-14 23:07 「고정 핀 보이는거는 뺄게」) */}   {/* 고정 = 얼굴 왼쪽 위 작은 압정(봄 11-12 16:17 A · 형 14:06 「점으로 하지말고 좀 더 다른거로」) · 폰 목록과 한 벌 */}
               {r.with ? <FaceImg id={idOf(r.with, list)} size={40} /> : <RoomIcon r={r} size={40} />}   {/* 단톡방 = 픽토그램 선만(시그니처색 50% · 바탕 투명 · 형 11-06 20:15) */}
               {n !== 0 ? <i className="nm-udot" aria-hidden /> : null}   {/* 안 읽음 = 왼쪽 위 레몬 점 하나(숫자 없음 · 형 13:20 「노란색으로」 · 형 11-07 13:15 「안읽은 글 수는 애초에 안떠두됨」 · 「라임색 접 작게 잇으면됨」 · 「저 불이 좌측에 있으면 됨.」) */}
               {hy > 0 ? <b className="nm-badge nm-badge-hy" aria-label={`형 결정 기다리는 글 ${hy}개`}>{hy > 99 ? "99+" : hy}</b> : null}   {/* 오른쪽 걸친 숫자 = 호출 수(형 결정 대기 · 형 13:15 「숫자가 우측 프로필에 걸치는거 (기존 숫자) 그거는 호출.」 · 뜸 서버 pending_hyung) */}
