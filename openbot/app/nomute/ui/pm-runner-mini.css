@@ -2,3 +2,13 @@
 .nm-pmrun { display: flex; flex-direction: column; align-items: flex-end; margin: 4px 8px 0 auto; max-width: min(100%, 380px); }
 .nm-pmrun-h { font-size: 12px; line-height: 1; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(207, 255, 64, .35); background: rgba(17, 18, 20, .55); color: #CFFF40; cursor: pointer; }
 .nm-pmrun-b { margin-top: 6px; width: 100%; border-radius: 14px; overflow: hidden; zoom: .62; }
+.nm-pmrun-b { zoom: 1; background: rgba(17, 18, 20, .72); border: 1px solid rgba(255, 255, 255, .08); padding: 8px 10px; }
+.nm-pmrun-kids { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 3px; font-size: 12px; }
+.nm-pmrun-kids li { display: flex; gap: 6px; align-items: baseline; white-space: nowrap; overflow: hidden; }
+.nm-pmrun-kids b { min-width: 3.2em; color: #e8eae8; }
+.nm-pmrun-kids span { color: rgba(232, 234, 232, .6); }
+.nm-pmrun-kids li.s-awake span { color: #CFFF40; }
+.nm-pmrun-kids li.s-unknown span { color: #ff8a7a; }
+.nm-pmrun-kids small { color: rgba(232, 234, 232, .45); overflow: hidden; text-overflow: ellipsis; }
+.nm-pmrun-g { zoom: .62; }
+.nm-pmrun-g .nm-rgx-panel { display: none; }   /* 기계 계기(WIN · MAC · LX 게이지) 가림 = 조약돌 · 러너 여섯 점만(깃 23:03) */
