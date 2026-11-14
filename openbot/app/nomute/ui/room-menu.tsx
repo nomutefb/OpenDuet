@@ -17,6 +17,7 @@ import { whoName } from "./who-name";
 import { RoomLookDialog } from "./room-look";
 import { DmRuleDialog, dmRuleRoom } from "./dm-rule";
 import { GroupRoomDialog, groupRuleRoom } from "./group-room";   // 회의실 · 고정 단톡방 방 설정(형 11-14 17:20 「다ㄴ톡방 모두 통일해주라」 · 번개)   // 1:1 방 지침(형 11-11 22:28 · 깃)
+import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 /** 방 메뉴 것(옛 우상단 ≡ 단추) = 윗줄 가운데 이름을 누른 목록 안으로(형 11-06 20:37 「애초에 그냥 방 메뉴를 저기서 나오게 해버려도 … 메뉴를 축약해서 하나로 가능한 통합시킨다음에 … 비슷한거끼리」 ·
  *  20:39 「방 설정등이 최대한 기능 응축되어있으면 굳이 별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」 · 시아 판 ①~④) — 줄 = 사람 칸(crew) · 방 칸(items) · 창(dialogs · 목록이 닫혀도 남음) */
@@ -99,13 +100,13 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
   const all = members.length > 0 && members.every((w) => pick.has(w));
   const flip = (w: string) => setPick((s) => { const n = new Set(s); if (n.has(w)) n.delete(w); else n.add(w); return n; });
   const go = async () => {
-    if (!pick.size || busy) return;
+    if (!pick.size || busy) return false;
     setBusy(true); setErr("");
     try {
       await office(MEET_OUT, { method: "POST", body: JSON.stringify({ who: all ? "all" : [...pick] }) });   // 봄 11:58 꼴 = {who: [...] | "all"} → {ok, out, members} · 멤버 표만 지움(글·기록 그대로 = 다시 들어와도 앞 대화 읽음)
       void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
-      onClose();
-    } catch (e) { setErr(`못 내보냈어 · ${(e as Error).message}`); setBusy(false); }
+      setBusy(false); return true;   // 창 닫기 = ✓ 를 보여 준 뒤(GoButton done)
+    } catch (e) { setErr(`못 내보냈어 · ${(e as Error).message}`); setBusy(false); return false; }
   };
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
@@ -116,7 +117,7 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
           {members.map((w) => <button key={w} type="button" className="row" aria-pressed={pick.has(w)} onClick={() => flip(w)}>{list.find((p) => p.who === w)?.name || w}</button>)}
         </div>
         {err ? <p role="alert" className="nm-meet-err">{err}</p> : null}
-        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button><button type="button" className="nrc-ok" disabled={!pick.size || busy} onClick={() => void go()}>내보내기</button></div>
+        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button><GoButton className="nrc-ok" disabled={!pick.size || busy} go={must(go)} done={onClose} busy="내보내는 중">내보내기</GoButton></div>
       </div>
     </div>,
     document.body,

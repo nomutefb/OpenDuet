@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { getJson } from "./news-data";
 import { Pane } from "./pane";
+import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 type Kw = { id?: string; kw: string; ts: number; hit: number; done: boolean; doneAt: number; url: string; moved: number; rearm: number };
 type Settings = { kwAlertOn?: boolean; kwItems?: Kw[]; error?: string; code?: string; settings?: Settings };
@@ -59,17 +60,17 @@ export function KwModal() {
   }, [q.data]);   // eslint-disable-line react-hooks/exhaustive-deps
   const openBox = (v: boolean, t = "") => { setBox(v); setText(t); if (!v) setEdit(-1); else window.setTimeout(() => { inp.current?.focus(); if (t) inp.current?.select(); }, 40); };
   const add = async () => {   // 원본 kwAdd — 고치기 = 그 자리(등록일 유지 · 문구가 바뀌니 발견 기록 비움) · 같은 키워드 두 번 안 됨 · 40개까지
-    const kw = text.trim().slice(0, 120); if (!kw || busy) return;
+    const kw = text.trim().slice(0, 120); if (!kw || busy) return false;
     const next = items.slice();
     if (edit >= 0 && next[edit]) {
-      if (next.some((it, j) => j !== edit && norm(it.kw) === norm(kw))) { setNote("이미 있는 키워드"); return; }
+      if (next.some((it, j) => j !== edit && norm(it.kw) === norm(kw))) { setNote("이미 있는 키워드"); return false; }
       next[edit] = { ...next[edit], kw, hit: 0, done: false, url: "" };
     } else {
-      if (next.some((it) => norm(it.kw) === norm(kw))) { setNote("이미 있는 키워드"); return; }
-      if (next.length >= KW_CAP) { setNote(`키워드는 ${KW_CAP}개까지야`); return; }
+      if (next.some((it) => norm(it.kw) === norm(kw))) { setNote("이미 있는 키워드"); return false; }
+      if (next.length >= KW_CAP) { setNote(`키워드는 ${KW_CAP}개까지야`); return false; }
       next.push({ id: crypto.randomUUID(), kw, ts: Date.now(), hit: 0, done: false, doneAt: 0, url: "", moved: 0, rearm: 0 });
     }
-    if (await saveItems(next)) openBox(false);
+    return !!(await saveItems(next));   // 칸 닫기 = 부른 쪽(단추 = ✓ 를 보여 준 뒤 · ⏎ = 바로)
   };
   const setDone = (i: number, done: boolean) => { const n = items.slice(); if (!n[i]) return; n[i] = { ...n[i], done, doneAt: done ? Date.now() : 0 }; void saveItems(n); };   // 원본 kwSetDone
   const remove = (i: number) => {   // 지움 = 두 번 누름(메모·센서와 같음 · 원본은 한 번)
@@ -96,8 +97,8 @@ export function KwModal() {
           {box ? (
             <div className="nm-kw-add">
               <input ref={inp} type="text" value={text} maxLength={120} placeholder="키워드 · 띄어쓰거나 + 로 이으면 한 글 안에 다 있어야 함" aria-label="키워드" autoComplete="off" spellCheck={false}
-                onChange={(e) => { setText(e.target.value); setNote(""); }} onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); void add(); } }} />
-              <button type="button" className="go" disabled={busy || !text.trim()} onClick={() => void add()}>{busy ? "저장 중…" : edit >= 0 ? "고치기" : "추가"}</button>
+                onChange={(e) => { setText(e.target.value); setNote(""); }} onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); void add().then((ok) => { if (ok) openBox(false); }); } }} />
+              <GoButton className="go" disabled={busy || !text.trim()} go={must(add)} done={() => openBox(false)} busy="저장 중">{edit >= 0 ? "고치기" : "추가"}</GoButton>
             </div>
           ) : null}
           {note ? <p className="nm-chan-msg" role="status">{note}</p> : null}

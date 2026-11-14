@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { type OfficeRoom, office } from "../data/office";
 import { backdrop } from "./backdrop";
 import { useDmRules } from "./dm-rule";
+import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 /** 이 창을 쓰는 방 = 임시방 아닌 단체방(공지실 뺌 · 서버 groupRule 과 같은 판정). */
 export const groupRuleRoom = (r?: OfficeRoom) => !!r && r.kind === "group" && !r.with && !r.temp && r.id !== "notice";
@@ -25,8 +26,8 @@ export function GroupRoomDialog({ room, onClose }: { room: OfficeRoom; onClose: 
     return () => window.removeEventListener("keydown", off);
   }, [onClose]);
   const save = async () => {
-    if (busy || !dirty) return;
-    if (!name.trim()) { setErr("이름을 비울 수 없어"); return; }
+    if (busy || !dirty) return false;
+    if (!name.trim()) { setErr("이름을 비울 수 없어"); return false; }
     setBusy(true); setErr("");
     try {
       if (name.trim() !== room.name) {
@@ -37,8 +38,8 @@ export function GroupRoomDialog({ room, onClose }: { room: OfficeRoom; onClose: 
         const j = await office<{ rules?: Record<string, { purpose?: string }> }>("room-rules", { method: "POST", body: JSON.stringify({ room: room.id, purpose: val.trim() }) });
         qc.setQueryData(["nomute", "room-rules"], j.rules || {});
       }
-      onClose();
-    } catch (e) { setErr(`저장 못 했어 · ${(e as Error).message}`); setBusy(false); }
+      setBusy(false); return true;   // 창 닫기 = ✓ 를 보여 준 뒤(GoButton done)
+    } catch (e) { setErr(`저장 못 했어 · ${(e as Error).message}`); setBusy(false); return false; }
   };
   return createPortal(
     <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
@@ -54,7 +55,7 @@ export function GroupRoomDialog({ room, onClose }: { room: OfficeRoom; onClose: 
           <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요 · 비우면 지워져요</small>
         </label>
         {err || rules.isError ? <p role="alert" className="nm-meet-err">{err || "지침을 못 읽었어"}</p> : null}
-        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button><button type="button" className="nrc-ok" disabled={busy || rules.isLoading || !dirty} onClick={() => void save()}>저장</button></div>
+        <div className="nrc-acts"><button type="button" className="nrc-x" onClick={onClose}>닫기</button><GoButton className="nrc-ok" disabled={busy || rules.isLoading || !dirty} go={must(save)} done={onClose} busy="저장 중">저장</GoButton></div>
       </div>
     </div>,
     document.body,
