@@ -14,7 +14,8 @@ import "./meet.css";
 import "./update-bar.css";   // .nm-dots = 라임 점 셋(업데이트 띠 · 끊김 띠와 같은 것 · 형 19:3x 「들어오는중... 이거 표시 떠야될듯」 · 「종료하는중 ... < 이거 점세개로」)
 export const Dots = ({ bob = false }: { bob?: boolean }) => <span className={`nm-dots${bob ? " bob" : ""}`} aria-hidden><i>.</i><i>.</i><i>.</i></span>;   // bob = 점 셋 오르락내리락(형 11-14 01:42 시아 옮김 「잇는중 - 은 변경 연결 중 하고 점세개 오르락」)
 
-export const SCRIBE = "자리3";   // 자리3 = 앞 챙(형 11-14 빈 자리 · 서버 _meetlog.js SCRIBE 와 같은 이름) ·   // 늘 자동 참여 · 기록관 · 「다 왔다」 셈 밖(봄 06:46)
+export const SCRIBE = "자리3";   // 옛 기록관 자리(LLM · 지금 멤버로 안 넣음) — 기록관 = 서버(회의 끝에 대화 · 같이 본 주소 · 행위 + 주제 한 줄 · LLM 0 · 빠르 11-14 · 형 「러너로 배선을 바꿀수있어? … llm이 들어갈 필요는 없을거같아」)
+export const SCRIBE_LABEL = "기록관 · 자동(서버)";   // 자리3 = 앞 챙(형 11-14 빈 자리 · 서버 _meetlog.js SCRIBE 와 같은 이름) ·   // 늘 자동 참여 · 기록관 · 「다 왔다」 셈 밖(봄 06:46)
 export const MEET_WAIT = 60_000;   // 답 없는 이를 기다리는 시간(명세 「여는 때」 = 60초 · 봄 06:5x)
 const KEY = "nm_meet_v1";
 export type Meet = { id: string; members: string[]; t0: number };
@@ -42,13 +43,13 @@ export const meetPurpose = (_members: string[] = []) =>
   `부르는 법 = 형이 이 방 대화에서 「@이름」 → 그 애가 방에 들어오며 깸(형 11-13 11:01 「아래에 @로 호출하면 한명씩 참가하는 느낌」). ` +
   `불리면 이 방에 한 줄: 들어오면 「[수락]」 · 지금 못 오면 「[거절] 까닭 한 줄」(하던 일 따라 · 형 「상황에 따라서」). ` +
   `지금 그 창 = 이 방 읽기 머리 「지금 같이 보는 창」 · 손 = send 「[화면 click] …」(한 번에 한 사람 · 쥔 이 「○○가 제어하고 있습니다」) · 짚기 = 「[스케치 rect] x,y,w,h 글」. ` +
-  `${SCRIBE} = 자동 참여 · 기록관(답 안 해도 됨).`;
+  `기록관 = 서버가 자동(회의 끝에 대화 · 같이 본 주소 · 행위를 서랍에 담고 주제 한 줄 · 사람 · 봇 깸 0).`;
 
-/** 회의 열기 = 형 + 챙(기록관)으로 임시방 하나 · 나머지는 아래 대화 「@이름」으로 한 명씩(형 11-13 11:01) */
+/** 회의 열기 = 형 혼자 임시방 하나(기록관 = 서버 · 멤버 0) · 나머지는 아래 대화 「@이름」으로 한 명씩(형 11-13 11:01) */
 export async function startMeet(): Promise<Meet> {
   const t = new Date(), name = `화상회의 ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
-  const j = await office<{ room: { id: string } }>("temprooms", { method: "POST", body: JSON.stringify({ name, purpose: meetPurpose(), members: [SCRIBE], hours: 2 }) });
-  return { id: j.room.id, members: [SCRIBE], t0: Date.now() - 2000 };
+  const j = await office<{ room: { id: string } }>("temprooms", { method: "POST", body: JSON.stringify({ name, purpose: meetPurpose(), members: [], meet: true, hours: 2 }) });
+  return { id: j.room.id, members: [], t0: Date.now() - 2000 };
 }
 
 function load(): Meet | null { try { const m = JSON.parse(localStorage.getItem(KEY) || "null"); return m && m.id ? m : null; } catch { return null; } }
@@ -68,9 +69,9 @@ export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onC
     if (!pick.length) { setWhy("한 명은 골라 줘"); return; }
     setBusy(true); setWhy("");
     try {
-      const members = [...pick, ...(cand.includes(SCRIBE) ? [SCRIBE] : [])];
+      const members = [...pick];   // 기록관 = 서버(멤버 0)
       const t = new Date(), name = `화상회의 ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
-      const j = await office<{ room: { id: string } }>("temprooms", { method: "POST", body: JSON.stringify({ name, purpose: meetPurpose(members), members, hours: 2 }) });
+      const j = await office<{ room: { id: string } }>("temprooms", { method: "POST", body: JSON.stringify({ name, purpose: meetPurpose(members), members, meet: true, hours: 2 }) });
       void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
       onStart({ id: j.room.id, members, t0: Date.now() - 2000 });
     } catch (e) { setWhy(e instanceof Error ? e.message : "못 만들었어"); setBusy(false); }
@@ -80,7 +81,7 @@ export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onC
       <b>화상회의 · 누구 부를까</b>
       <div className="nm-meet-cands">
         {list.map((n) => <button key={n} type="button" className="nm-pick" aria-pressed={pick.includes(n)} onClick={() => setPick((p) => (p.includes(n) ? p.filter((x) => x !== n) : [...p, n]))}>{nameOf(n)}</button>)}
-        {cand.includes(SCRIBE) ? <span className="nm-pick nm-meet-scribe" title="늘 자동 참여 · 기록관">{nameOf(SCRIBE)} · 기록관</span> : null}
+        <span className="nm-pick nm-meet-scribe" title="회의 끝에 서버가 대화 · 같이 본 주소를 서랍에 담음(LLM 0)">{SCRIBE_LABEL}</span>
       </div>
       {why ? <small role="alert">{why}</small> : null}
       <div className="nm-meet-ft"><button type="button" onClick={onClose}>닫기</button><button type="button" className="ok" disabled={busy || !pick.length} onClick={() => void go()}>{busy ? "부르는 중…" : `요청 보내기 · ${pick.length}명`}</button></div>
