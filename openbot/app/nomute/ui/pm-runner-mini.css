@@ -1,8 +1,8 @@
 /* PM 방 러너맵 축소판(./pm-runner-mini.tsx · 깃 #-008) — 오른쪽 위 알약 · 펼치면 홈 러너 칸을 줄여 그대로(새로 그리는 것 0 · 움직임 0) */
 .nm-pmrun { display: flex; flex-direction: column; align-items: flex-end; margin: 4px 8px 0 auto; max-width: min(100%, 380px); }
-.nm-pmrun-h { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; line-height: 1; border-radius: 999px; border: 1px solid rgba(207, 255, 64, .35); background: rgba(17, 18, 20, .55); color: #CFFF40; cursor: pointer; }
+.nm-pmrun-h { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; line-height: 1; border-radius: 999px; border: 1px solid rgba(207, 255, 64, .35); background: #141518; color: #CFFF40; cursor: pointer; }
 .nm-pmrun-b { margin-top: 6px; width: 100%; border-radius: 14px; overflow: hidden; zoom: .62; }
-.nm-pmrun-b { zoom: 1; background: rgba(17, 18, 20, .72); border: 1px solid rgba(255, 255, 255, .08); padding: 8px 10px; }
+.nm-pmrun-b { zoom: 1; background: #141518; box-shadow: 0 6px 18px rgba(0, 0, 0, .45); border: 1px solid rgba(255, 255, 255, .08); padding: 8px 10px; }
 .nm-pmrun-kids { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 3px; font-size: 12px; }
 .nm-pmrun-kids li { display: flex; gap: 6px; align-items: baseline; white-space: nowrap; overflow: hidden; }
 .nm-pmrun-kids b { min-width: 3.2em; color: #e8eae8; }
@@ -21,3 +21,9 @@
 .nm-pmrun-jobs b { color: #e8eae8; }
 .nm-pmrun-jobs .tt { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; color: rgba(232, 234, 232, .85); }
 .nm-pmrun-jobs small, .nm-pmrun-empty { color: rgba(232, 234, 232, .45); font-size: 12px; margin: 0; }
+/* 판 바탕 = 불투명(뒤 말풍선 글자가 비쳐 겹침 · 형 11-15 00:27 회의실 사진 둘 · 깃 #-019 덧 · 흐림 0) · 위에 뜨는 판이라 쌓임 맨 위 */
+.nm-pmrun { position: relative; z-index: 30; }
+/* 축소판 안 홈 러너 칸 머리줄(「Runner 불러오는 중」) 가림 = 아이 줄이 이미 위에 있음 · 러너 서버 표(status)는 7~8초 걸려 그동안 머리줄만 남던 것 */
+.nm-pmrun-g .nm-card-h { display: none; }
+/* 펼친 판 = 알약 아래 떠 있는 판(공지 펼침 .nm-chat-fold-pop 꼴) · 머리줄 높이(36px)를 안 밀고 · 뒤 글 위로 */
+.nm-pmrun-b { position: absolute; top: calc(100% + 6px); right: 0; z-index: 45; width: min(380px, calc(100vw - 24px)); max-height: min(64dvh, 560px); overflow-y: auto; overscroll-behavior: contain; margin-top: 0; }
