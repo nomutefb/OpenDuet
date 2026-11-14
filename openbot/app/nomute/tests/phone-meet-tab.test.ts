@@ -100,6 +100,8 @@ test("서랍 · 설정에서 들어간 화면 머리 알약 = 폰 · PC 다 0 ·
   assert.match(css, /\.nm-modal:has\(> \.nm-modal-h\[class\*="nm-mh-"\]\) > \.nm-modal-b\.flush > \.nm-scroll \{ padding-top:calc\(10px \+ env\(safe-area-inset-top\)\); \}/);
   assert.match(sh, /<div className="nm-modal-h">\n\s+<button type="button" className="nm-modal-back" aria-label="닫기" onClick=\{closeWeb\}>/, "이슈 겹 머리 = nm-mh- 없음 = 남음");
 });
-test("폰 영상 편집 = 미리보기 폭맞춤 · 기둥 겹침 허용(형 11-14 07:06)", () => {
-  assert.match(rd("../ui/video-editor.tsx"), /@media \(max-width:767px\)\{\.topdock:not\(\.fold\) #pvsec\{min-height:0!important\}#pvsec \.cpprev-box\{width:calc\(100% - 82px\)!important;/);
+test("폰 영상 편집 = 미리보기 폭맞춤 · 칸 키 = 기둥 키(형 11-14 07:06 폭맞춤 · 11-15 01:12 「영상 편집 라인이랑 생성 겹치는 부분 해결해줘」 = 기둥 겹침 허용은 걷음)", () => {
+  const ve = rd("../ui/video-editor.tsx");
+  assert.match(ve, /@media \(max-width:767px\)\{#pvsec \.cpprev-box\{width:calc\(100% - 82px\)!important;/);
+  assert.match(ve, /\.topdock:not\(\.fold\) #pvsec\{min-height:var\(--nm-railh,0px\)\}/);
 });
