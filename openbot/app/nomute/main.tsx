@@ -4,7 +4,7 @@ import "./ui/perf-switch";   // 무게 재기 ?perf= 스위치(봄 11-14 09:15 �
 import "./ui/perf-switch.css";
 import "./ui/calm";   // 형 손 2분 없으면 장식 움직임 쉼(11-14 형 맥 뜨거움)
 import "./ui/calm.css";
-import "./ui/slow-pulse";   // 불빛 숨쉬기 · 퍼지는 테 = 초당 12번(11-14 형 맥 뜨거움)
+import "./ui/slow-pulse";   // 불빛 숨쉬기 · 퍼지는 테 = 초당 10번(11-14 형 맥 뜨거움)
 import "./ui/pc-light.css";   // PC 블랙 톤 = 눈에 차이 없는 유리 흐림 끔(11-14 형 맥 뜨거움)
 import "./ui/err-catch";   // 오류 받기(번개 11-08 · 형 01:31 「엔터프라이즈급」) — 앱보다 먼저 실려서 처음부터 받음
 import "@/main";

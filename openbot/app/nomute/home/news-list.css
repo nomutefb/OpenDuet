@@ -20,7 +20,7 @@
 .nm-nlist-ol .sd:hover { color:#111; background:#e8eae8; border-color:transparent; }   /* 라임 0(형 14:41 「블랙 톤으로만」) */
 @media (hover:none) { .nm-nlist-ol .sd { opacity:1; } }
 /* 형 11-05 15:49 「이거 실시간 뉴스 블릿달아주고, 123위는 라임색, 제목까지 라임. n시간 전 라임.」 — 머리 앞 살아 있는 점 · 1~3위 번호·제목 라임 · 「몇 시간 전」 라임 */
-/* 퍼지는 테 = 겹친 원(::after)의 크기 · 진하기만 · 초당 12번(../ui/slow-pulse.ts 가 --live-t 0 → 1 을 적음 · 11-14 형 맥 뜨거움) · 앞 판 = box-shadow 퍼짐을 화면 주사율로 = 프레임마다 다시 칠함 · 꼴 같음: 반지름 3.5 → 10.5px(scale 3) · 진하기 .55 → 0 */
+/* 퍼지는 테 = 겹친 원(::after)의 크기 · 진하기만 · 초당 10번(../ui/slow-pulse.ts 가 --live-t 0 → 1 을 적음 · 11-14 형 맥 뜨거움) · 앞 판 = box-shadow 퍼짐을 화면 주사율로 = 프레임마다 다시 칠함 · 꼴 같음: 반지름 3.5 → 10.5px(scale 3) · 진하기 .55 → 0 */
 .nm-nlist-h .live { position:relative; width:7px; height:7px; border-radius:50%; background:#CFFF40; align-self:center; }
 .nm-nlist-h .live::after, .nm-nsum-q li.run i::after { content:""; position:absolute; inset:0; border-radius:50%; background:#CFFF40; pointer-events:none; transform:scale(calc(1 + (var(--live-ring, 3) - 1) * var(--live-t, 0))); opacity:calc(var(--live-on, 0) * .55 * (1 - var(--live-t, 0))); }   /* 쉴 때(--live-on 없음) = 테 안 그림(앞 판도 쉴 때 그림자가 점 밑에 숨음) */
 .nm-nlist-ol li.top .rk, .nm-nlist-ol li.top .tt { color:#CFFF40; }

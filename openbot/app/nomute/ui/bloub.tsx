@@ -1,6 +1,7 @@
 // 우리 조약돌 = bloub 아바타(https://github.com/jeremy-prt/bloub · MIT © Jérémy · 형 포크 nomutefb/bloub) — 사본 0 · 에디터가 이미 올린 /vendor/bloub/*.js 를 그대로 불러 씀
 //   (형 11-05 「카피하지말고 가져다가 써」 · 그리기 = editor viewer/runner.html 아래 module 스크립트 · 원본 BloubBot.vue 템플릿과 같은 꼴: 눈 = 몸 mask 구멍 · 몸 아래 바탕 판 · 뎅 = 테)
 //   모양·색 = runner.html BEING_SHAPE · BOT_INK · BOT_RIM 그대로(형 10-31 「너네 각각의 색이 그냥 부여되면 될거같아 봄은 분홍, 시아는 노뮤트색, 윈터는 흰은색, 빠르는 로얄블루네온, 뎅은 갈색+네온」 · 「걔들이 고른 형태로 해줘야행!」)
+import { beatWait } from "./beat";
 import { useEffect, useRef } from "react";
 
 export const BEING_SHAPE: Record<string, string> = { bom: "fleur", winter: "flocon", sia: "galet", deng: "galet", fast: "nuage", neo: "patate", eyes: "riz", lightning: "cercle", gik: "goutte", bit: "squircle" };   // 번개 = 배선 뒤 스스로 고를 때까지 동그라미(윈터 16:01 「모양은 번개한테 물어봐」)
@@ -25,7 +26,7 @@ const load = () => (libP ||= (async () => {
 //   ① 화면에 보이는 조약돌만 그림(IntersectionObserver · 숨은 칸 · 접힌 판 · 스크롤 밖 = 그 자리 멈춤) ② 형 손이 2분 없으면 쉼 · 손 대면 바로 다시 ③ 30 → 20fps
 type Live = { el: SVGSVGElement; eng: Engine; body: SVGPathElement; back: SVGPathElement; edge: SVGPathElement | null; eyes: SVGPathElement[]; g: SVGGElement; off: number; vis: boolean };
 const live = new Set<Live>();
-let raf = 0, last = 0;
+let raf = 0, last = 0, onBeat = false;
 const t0 = typeof performance !== "undefined" ? performance.now() : 0;
 export const BLOUB_STEP_MS = 50, BLOUB_IDLE_MS = 120_000;
 let touched = typeof performance !== "undefined" ? performance.now() : 0;
@@ -48,14 +49,14 @@ function run() {
     if (!live.size) return;
     if (bloubIdle(now, touched)) return;   // 쉼 = rAF 0(손 대면 wake())
     if (document.documentElement.classList.contains("perf-no-face")) return;   // 무게 재기 ?perf=face(./perf-switch.ts)
-    if (bloubDue(now, last, touched)) { last = now; const t = still ? 0 : (now - t0) / 1000; live.forEach((b) => { if (b.vis) draw(b, t); }); }
+    if (onBeat || bloubDue(now, last, touched)) { last = now; const t = still ? 0 : (now - t0) / 1000; live.forEach((b) => { if (b.vis) draw(b, t); }); }
+    onBeat = false;
     // 다음 박자까지 잔다(11-14) — 앞 판은 화면 주사율(60 · 120Hz)마다 깨어 「아직 아님」만 확인했음 = 20번 그리려고 초당 120번 깸 · 지금 = 그릴 때만 깸
-    if (!still && !document.hidden && [...live].some((b) => b.vis)) raf = window.setTimeout(() => { raf = requestAnimationFrame(step); }, bloubWait(performance.now(), last));
+    //   박자 = 공용 격자(./beat.ts · 50ms) — 불빛 숨쉬기(./slow-pulse.ts)와 같은 순간에 바꿔 창을 다시 그리는 횟수를 합침
+    if (!still && !document.hidden && [...live].some((b) => b.vis)) raf = window.setTimeout(() => { onBeat = true; raf = requestAnimationFrame(step); }, beatWait(performance.now(), BLOUB_STEP_MS));
   };
   raf = requestAnimationFrame(step);
 }
-/** 순수 — 다음 그릴 박자까지 잘 시간(ms · 화면 한 프레임 몫 4ms 는 rAF 가 맞춤) */
-export const bloubWait = (now: number, lastDraw: number, step = BLOUB_STEP_MS) => Math.max(0, step - (now - lastDraw) - 4);
 const wake = () => { const was = bloubIdle(performance.now(), touched); touched = performance.now(); if (was) run(); };
 if (typeof document !== "undefined") {
   document.addEventListener("visibilitychange", () => { if (!document.hidden) run(); });
