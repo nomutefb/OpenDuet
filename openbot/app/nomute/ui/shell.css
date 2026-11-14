@@ -114,6 +114,7 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 
 /* PC 블랙 톤 · 맥북 메뉴 막대(형 11-05 14:41 「라임느낌을 그리고 아예 빼버리고, 블랙 톤으로만 갈게. 사무실에서는 안튀는게 나은듯.」 · 14:42 「뒤에 배경도 그냥 다 뺌. 뉴스 나오는 카드칸도 투명하고, 블랙은 뒤에 라임 저 불빛을 검정불빛으로해버려」 · 「아니면 상단을 살짝 미니 태블릿 느낌으로 네비를 없애버리셈, 그 맥북 상단에 그 알림바잇잖아?」 · 「그 느낌으로 살려버리자」) */
 .nm-split-l .nm-app-ambient { --modern-bias-l1:#4b4d4b; --modern-bias-l2:#161716; --modern-space-hi-rgb:36,37,36; }
+.nm-split-l .nm-app-ambient { --motion:0; }   /* PC 블랙 톤 = 불빛이 검정이라 움직임이 눈에 안 보임(1분 겹쳐 봐도 바탕 변화 0) → 한 번 그리고 멈춤 · 프레임마다 창 전체를 다시 그리던 뿌리(./thumb-maker/scene.ts settings.motion) */
 .nm-split-root { padding-top:28px; }
 .nm-split-l .ynav { position:fixed; top:0; bottom:auto; left:0; right:0; width:auto; max-width:none; height:28px; margin:0; padding:0 10px; border-radius:0; justify-content:center; gap:2px;
   background:rgba(14,14,16,.62); -webkit-backdrop-filter:blur(20px) saturate(120%); backdrop-filter:blur(20px) saturate(120%); border:0; border-bottom:1px solid rgba(255,255,255,.06); box-shadow:none; }

@@ -49,10 +49,13 @@ function run() {
     if (bloubIdle(now, touched)) return;   // 쉼 = rAF 0(손 대면 wake())
     if (document.documentElement.classList.contains("perf-no-face")) return;   // 무게 재기 ?perf=face(./perf-switch.ts)
     if (bloubDue(now, last, touched)) { last = now; const t = still ? 0 : (now - t0) / 1000; live.forEach((b) => { if (b.vis) draw(b, t); }); }
-    if (!still && !document.hidden && [...live].some((b) => b.vis)) raf = requestAnimationFrame(step);
+    // 다음 박자까지 잔다(11-14) — 앞 판은 화면 주사율(60 · 120Hz)마다 깨어 「아직 아님」만 확인했음 = 20번 그리려고 초당 120번 깸 · 지금 = 그릴 때만 깸
+    if (!still && !document.hidden && [...live].some((b) => b.vis)) raf = window.setTimeout(() => { raf = requestAnimationFrame(step); }, bloubWait(performance.now(), last));
   };
   raf = requestAnimationFrame(step);
 }
+/** 순수 — 다음 그릴 박자까지 잘 시간(ms · 화면 한 프레임 몫 4ms 는 rAF 가 맞춤) */
+export const bloubWait = (now: number, lastDraw: number, step = BLOUB_STEP_MS) => Math.max(0, step - (now - lastDraw) - 4);
 const wake = () => { const was = bloubIdle(performance.now(), touched); touched = performance.now(); if (was) run(); };
 if (typeof document !== "undefined") {
   document.addEventListener("visibilitychange", () => { if (!document.hidden) run(); });

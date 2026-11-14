@@ -4,6 +4,6 @@ html.perf-no-arc .nm-arc { animation:none !important; }
 html.perf-no-rainbow .nm-face.on, html.perf-no-rainbow .nm-face.on::before, html.perf-no-rainbow .nm-face.on::after { animation:none !important; }
 html.perf-no-stripe .t-shimmer, html.perf-no-stripe [class*="prog"] em { animation:none !important; }
 html.perf-no-dots .ytdots i, html.perf-no-dots .nm-lazy i { animation:none !important; }
-html.perf-no-leds .nm-sl-led, html.perf-no-leds .live { animation:none !important; }
-html.perf-no-bg .nm-scene-canvas, html.perf-no-bg [class*="wavebg"], html.perf-no-bg [class*="WaveBg"] { animation:none !important; display:none !important; }
+html.perf-no-leds .nm-sl-led, html.perf-no-leds .live { animation:none !important; }   /* 불빛 숨쉬기 · 퍼지는 테는 ./slow-pulse.ts 가 이 표시로 멈춤 */
+html.perf-no-bg .nm-scene-canvas, html.perf-no-bg [class*="wavebg"], html.perf-no-bg [class*="WaveBg"], html.perf-no-bg .nm-app-ambient canvas, html.perf-no-bg .nm-home-ambient canvas, html.perf-no-bg .tm-ambient canvas { animation:none !important; display:none !important; }   /* 3D 바탕 canvas 는 클래스가 없어 앞 셋에 안 걸렸음(11-14) · 그리기 루프는 그대로 도니 화면 합성 몫만 빠짐 */
 html.perf-no-all *, html.perf-no-all *::before, html.perf-no-all *::after { animation:none !important; transition:none !important; }

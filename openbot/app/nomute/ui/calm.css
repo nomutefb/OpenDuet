@@ -3,5 +3,4 @@ html.nm-calm .nm-split-root .nm-face.on::before,
 html.nm-calm .nm-arc,
 html.nm-calm .t-shimmer,
 html.nm-calm .ytdots i,
-html.nm-calm .nm-lazy i,
-html.nm-calm .live { animation-play-state:paused !important; }
+html.nm-calm .nm-lazy i { animation-play-state:paused !important; }   /* 불빛 숨쉬기 · 퍼지는 테 = ./slow-pulse.ts 가 같은 표시(nm-calm)로 쉼 */

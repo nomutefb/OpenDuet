@@ -7,7 +7,7 @@
 .nm-nsum-q { list-style:none; margin:0 6px 4px; padding:4px 8px; border-radius:9px; background:rgba(255,255,255,.035); }
 .nm-nsum-q li { display:grid; grid-template-columns:10px minmax(0,1fr) auto; align-items:center; gap:8px; min-height:26px; font-size:var(--fs-sm); }
 .nm-nsum-q li i { width:6px; height:6px; border-radius:50%; background:rgba(232,234,232,.35); }
-.nm-nsum-q li.run i { background:#CFFF40; animation:nmLive 1.8s ease-out infinite; }
+.nm-nsum-q li.run i { position:relative; background:#CFFF40; --live-ring:3.34; }   /* 퍼지는 테 = ./news-list.css(겹친 원 · 6px 점이라 반지름 3 → 10px) */
 .nm-nsum-q li.bad i { background:#ff6b5e; }
 .nm-nsum-q .tt { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .nm-nsum-q .st { color:rgba(232,234,232,.5); font-size:var(--fs-xs); }
