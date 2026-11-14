@@ -3,7 +3,8 @@
 //   도는 잡(제목 · 수신 → 발신 · 걸린 시간 · 예상 대비 진행 · 큰/작은 자리 · 자리 이름 · 시작) → 디버그 세션 줄 · 맥 = 머리 + 줄 글 · 아래 = 출력 신선도·자리 감시.
 import { type ReactNode, useEffect, useState } from "react";
 import { MicOrb } from "../swap/mic-orb";
-import { TickGauge } from "./tick-gauge";   // 위젯 틱 게이지(형 11-01 17:4x 「러너 대시보드도 윈a나 맥에 깔린 모양이 들어와야해」)
+import { TickGauge } from "./tick-gauge";
+import { RunnerTable } from "./runner-table";   // 러너 여섯 표(깃 11-14 · 형 「표로 항상」)   // 위젯 틱 게이지(형 11-01 17:4x 「러너 대시보드도 윈a나 맥에 깔린 모양이 들어와야해」)
 import "./runner-board.css";   // 생각 구슬 = 등불 구슬 그대로(새 얼굴 0 · PM 11:08)
 import { Chev } from "../ui/chev";   // 꺽쇠 하나(형 11-01)
 import {
@@ -64,6 +65,7 @@ function PcCard({ name, d, why, now, open, onFlip }: { name: string; d: RunnerRo
         <TickGauge label="GPU" pct={d ? num(d.gpu) : null} lv={levelOf(d ? num(d.gpu) : null, lk.problem)} used={`${f1(d ? num(d.gpuUsed) : null)}/${f1(d ? num(d.gpuTotal) : null)}`} />
       </div>
       <Trend d={d} problem={lk.problem} />
+      <RunnerTable d={d} now={now} stale={lk.problem} />
       {!jobs.length ? (
         <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><span aria-hidden className={`size-1.5 rounded-full ${BG.off}`} />{lk.problem ? lk.note : "쉼 · 도는 잡 없음"}</p>
       ) : null}

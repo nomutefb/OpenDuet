@@ -7,6 +7,7 @@ import { useState } from "react";
 export type RunnerJob = {
   id: string; kind?: "L" | "S"; seat?: string; start?: number; workflow?: string; running?: boolean;
   expected?: number; title?: string; rx?: string; tx?: string;
+  ev?: string;   // 깨운 것(GITHUB_EVENT_NAME · 잡 훅 · 깃 11-14)
 };
 export type RunnerRow = {
   pc: string; at: number; state?: string; line?: string; note?: string; fake?: boolean;
