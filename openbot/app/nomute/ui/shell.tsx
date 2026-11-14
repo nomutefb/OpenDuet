@@ -263,7 +263,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           {show("home", <HomeScreen />)}
           {show("rooms", <div className="nm-col"><RoomsPane /></div>)}
           {show("chat", (
-            <div className="nm-col">
+            <div className="nm-col nm-col-chat">   {/* nm-col-chat = PC 대화 칸 폭 풂 표지(shell.css · 옛 판 = has(대화 자손) = 대화 안 글 하나 바뀔 때마다 앱 전체 꼴 다시 셈 · #-007) */}
               {isTeams(room) ? null : <ShellHeader floating menuOpen={false} onMenu={() => {}} />}   {/* 팀즈 대화 = 우리 얼굴 머리 0(TeamsChat 이 제 머리를 그림) */}
               {wide ? null : <button type="button" className="nm-room-back" aria-label="대화방 목록으로" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="chevronLeft" size={20} /></button>}   {/* 형 10-31 「좌상단에 좌측 꺽쇠가 있어줘야 함」 · 뒤로 버튼 없는 폰 */}
               {isTeams(room) ? null : split ? <ChatHead room={room} key={"head:" + room} /> : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}<PmRunnerMini room={room} /></PinBar>}   {/* 폰 = 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 밥상 할 일 띠 · PC = 대화창 머리줄(HOT ISSUE 줄 · 방 이름 · 공지·할 일 접는 칸 · ./chat-head.tsx · 형 11-08 08:58 「이 라인에 맞게 대화창도 조정하고」 · 「공지나 할일은 우측에 밥상이야기 처럼 접히게 할게」) */}
@@ -384,7 +384,7 @@ function SplitGrip() {
     let last = NaN, was = false, cx = 0, raf = 0;
     const at = () => { raf = 0; const s = snapW(((box.right - cx) / box.width) * 100); const c = clampW(s.w); if (c !== last) { last = c; if (pane) pane.style.flexBasis = `${c}%`; else set(c); } const on = s.hit >= 0; if (on !== was) { was = on; setSnap(on); } };
     const move = (ev: PointerEvent) => { cx = ev.clientX; if (!raf) raf = requestAnimationFrame(at); };
-    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); if (raf) { cancelAnimationFrame(raf); at(); } document.body.classList.remove("nm-dragging"); setSnap(false); if (Number.isNaN(last)) return; set(last); if (pane) pane.style.flexBasis = ""; try { localStorage.setItem(SPLIT_KEY, String(Math.round(last * 10) / 10)); } catch { /* 이번만 */ } };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); if (raf) { cancelAnimationFrame(raf); at(); } document.body.classList.remove("nm-dragging"); setSnap(false); window.dispatchEvent(new Event("nm-split-end")); if (Number.isNaN(last)) return; set(last); if (pane) pane.style.flexBasis = ""; try { localStorage.setItem(SPLIT_KEY, String(Math.round(last * 10) / 10)); } catch { /* 이번만 */ } };
     document.body.classList.add("nm-dragging");
     window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
   };
@@ -405,9 +405,14 @@ function TopLeft() {
     if (!el || typeof ResizeObserver === "undefined") return;
     const root = document.documentElement;
     // 바닥 140px = 몸 목록이 비어 게이지 띠가 작아도 오른쪽 SNS 띠가 안 잘리게(머리 36 + 틈 14 + 총수 줄 14 + 4 + 그림 64 = 132 · 모루 #2883 ② · #2886 「120px는 아직 부족해」) · --nm-top-off = 판·검색 단추가 내려갈 만큼(띠 + 위아래 틈 16 · 모루 ①)
-    const ro = new ResizeObserver(() => { const h = Math.max(140, Math.round(el.getBoundingClientRect().height)); root.style.setProperty("--nm-top-h", `${h}px`); root.style.setProperty("--nm-top-off", `${h + 16}px`); });
+    // 나눔 손잡이 끄는 동안엔 미뤘다가 놓을 때 한 번(#-007 · html 변수가 바뀔 때마다 앱 전체 꼴 다시 셈 45ms · 끄는 동안 띠 키가 23번 바뀌어 끊김 · 형 11-14 22:36 「좌우로만 바뀌면되는데」)
+    let later = false;
+    const put = () => { const h = Math.max(140, Math.round(el.getBoundingClientRect().height)); root.style.setProperty("--nm-top-h", `${h}px`); root.style.setProperty("--nm-top-off", `${h + 16}px`); };
+    const ro = new ResizeObserver(() => { if (document.body.classList.contains("nm-dragging")) later = true; else put(); });
+    const end = () => { if (later) { later = false; put(); } };
     ro.observe(el);
-    return () => { ro.disconnect(); root.style.removeProperty("--nm-top-h"); root.style.removeProperty("--nm-top-off"); };
+    window.addEventListener("nm-split-end", end);
+    return () => { ro.disconnect(); window.removeEventListener("nm-split-end", end); root.style.removeProperty("--nm-top-h"); root.style.removeProperty("--nm-top-off"); };
   }, []);
   return <section ref={ref} className="nm-split-run nm-split-top-l" aria-label="러너"><PaneGuard name="러너"><RunnerGauges /></PaneGuard></section>;
 }
