@@ -109,7 +109,7 @@ export function YetaSettings() {
               <PushRow />
               <TeamsNotiRows />   {/* 팀즈 알림 폰 · PC 따로(깃 #-032 · 폰 기본 끔) */}
               {sub("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
-              {sub("snsacc", "globe", "구독 채널", <Suspense fallback={null}><SnsAccModal /></Suspense>)}
+              {sub("snsacc", "users", "구독 채널", <Suspense fallback={null}><SnsAccModal /></Suspense>)}
               <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
             </>)}
             {group("hide", "screen", "가림 · 잠금", undefined, <>
