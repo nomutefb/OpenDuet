@@ -12,6 +12,7 @@
 //   「그리고 지금 배경보다 좀 더 패인느낌을 주려면 어떻게해야하지? 적당히해보고, ㅣ누르면 바로 반영되게, 그리고 저기에 애초에 기타를 넣어. 패스는 없어도 돼 기타로 갈음할거야. 그리고 질문시작점을 도형 변 시작점으로 해. … 질문 누르면 그냥 질문에 불이 들어온다음에 사라져도 돼. 기타를 누르면 대신 창이 흔들리지않고 입력칸이 뜨고」 ·
 //   「형 결정 > 의사 결정」 · 「옆에 설명글은 빼줘」)
 //   = 고를 줄 = 배경보다 패인 홈(안 그림자) · 모서리 살짝 · 왼쪽 정렬 · 누르면 바로 라임 형광 → 0.9초 뒤 그 질문 접혀 사라짐 · 게이지·✓·빛줄기 없음 · pass 뺌 · 기타 = 마지막 줄 · 누르면 그 줄이 같은 높이로 입력칸이 됨(창 높이 안 바뀜)
+import { DuetIcon } from "@/components/duet/icons";
 import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { tailnetUrl } from "./pc-url";
 import { type FormEvent, useEffect, useRef, useState } from "react";
@@ -170,7 +171,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
         <>
           <div className="nm-dec-scrim" aria-hidden onClick={close} />
           <section role="dialog" aria-modal="true" aria-label={title} className="nm-decpop">
-            <header><b>{title}</b><button type="button" aria-label="닫기" onClick={close}>×</button></header>
+            <header><b>{title}</b><button type="button" aria-label="닫기" onClick={close}><DuetIcon name="x" size={18} /></button></header>
             <ul>
               {items.filter((d) => !gone.has(d.id)).map((d) => {
                 const p = pickOf(d), name = list.find((x) => x.who === d.who)?.name || d.who;

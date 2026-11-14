@@ -3,6 +3,7 @@
 //   「리스트로 나오면 될듯. 누구누구가 씀.   11-02 17시 물 한잔 시아」 · 「응 근데 미러링되어야되 너네는 너네 편한대로 써야해」 · 「그래야 백업이 정상적으로되니까 분산하면안됨」)
 //   = 원본은 각자 claude-state 제 자리 그대로 · 서버(뜸)가 밥상 🔔 글의 경로를 따라 사본을 모아 GET /api/office/stories 로 줌 · 앱은 읽기만
 //   줄 = 「MM-DD HH시 · 제목 · 쓴 이」 · 누르면 그 자리에서 본문이 아래로 펼쳐짐 · 서버가 없으면(404 등) 칸·단추 0
+import { DuetIcon } from "@/components/duet/icons";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -97,7 +98,7 @@ export function StoryButton({ right }: { right: number }) {
         <>
           <div className="nm-story-scrim" aria-hidden onClick={close} />
           <section role="dialog" aria-modal="true" aria-label="밥상 이야기" className="nm-story-pop">
-            <header><b>밥상 이야기</b><button type="button" aria-label="닫기" onClick={close}>×</button></header>
+            <header><b>밥상 이야기</b><button type="button" aria-label="닫기" onClick={close}><DuetIcon name="x" size={18} /></button></header>
             <div className="nm-story-scroll"><StoryList /></div>
           </section>
         </>, document.body,

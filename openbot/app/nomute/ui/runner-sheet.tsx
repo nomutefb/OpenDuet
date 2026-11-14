@@ -2,6 +2,7 @@
 //   블록 누름 → 폰 = 아래서 올라오는 판 · PC = 가운데 판(같은 칸) · 서버 POST schedule/runner(editor #3015 · 형만 · dry 먼저)
 //   칸 = 상태(켜짐·꺼짐) · 켬끔 스위치 · 「지금 돌리기」 · 미리 보기 한 줄(끔 = 빨강 + 뒤따름 수) → 「적용」 · 최근 한 일 · 몸 안 잡 = 회색 글 + 주인 칩(스위치 없음)
 //   3단(언제 · 모델 · 복사 · 검토로)은 여기 아님
+import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -83,7 +84,7 @@ export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, wh
         <header className="nm-rsheet-h">
           <b>{job.name}</b>
           <small>{whenOf(job)}{job.health?.next_at ? ` · 다음 ${nextShort(job.health.next_at)}` : ""} · <StatusDot st={st} /><code className="nm-rsheet-file">{job.file || job.id}</code></small>
-          <button type="button" className="nm-rsheet-x" aria-label="닫기" onClick={onClose}>×</button>
+          <DialogX onClose={onClose} />
         </header>
         {!gh ? (
           <div className="nm-rsheet-body">

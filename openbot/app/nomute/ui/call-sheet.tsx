@@ -5,6 +5,7 @@
 //   PC(형 11-04 16:27 「피시 웹앱에서 골뱅이가 안먹힘」 · 16:28 「그냥 태그 하면 화면에 모달이 뜨는게 아니라 채팅에서 바로 … 이런식으로 떠서 깔끔하게」 + 사진 = 입력칸 바로 위 목록)
 //     = 마우스 판(pointer:fine · 넓은 화면)은 어둡게 덮는 판 대신 입력칸 바로 위 목록 · 줄 누름 = 바로 넣고 닫힘(Ctrl·⌘·Shift 누름 = 여럿) · ↑↓ · Enter · Esc
 //     · 한글 입력 중 「@」 = 키가 「Process」(229)로 와서 원본 launch 가 못 봄 → 글자가 들어온 뒤(input) 그 「@」 를 지우고 같은 목록을 엶(「!」 는 글 앞·띄움 뒤만 · 「고마워!」 는 그대로)
+import { DuetIcon } from "@/components/duet/icons";
 import { type RefObject, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { idOf, peopleSync } from "../data/office";
@@ -188,7 +189,7 @@ export function CallSheet() {
         <div className="ncs-h">
           <b>{urgent ? "! 바로 깨우기" : "@ 부르기"}</b>
           <span>{urgent ? "고른 이를 지금 깨움" : "고른 이를 바로 깨움"}</span>
-          <button type="button" className="ncs-x" aria-label="닫기" onClick={close}>×</button>
+          <button type="button" className="ncs-x" aria-label="닫기" onClick={close}><DuetIcon name="x" size={18} /></button>
         </div>
         <input ref={find} id="ncs-find" className="ncs-find" value={q} onChange={(e) => setQ(e.target.value)} placeholder="이름 찾기" aria-label="이름 찾기"
           onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); if (picked.length) put(); else if (list.length === 1) { setPicked([list[0].id]); } } }} />

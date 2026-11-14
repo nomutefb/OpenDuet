@@ -1,6 +1,7 @@
 // 일 추가 판(형 11-14 클라우드 세션 창 「추가 수정 삭제도 다 러너에 반영되게」 · 「최대한 카테고라이징해서」 — 노드 영상의 「Add block」 목록 꼴)
 //   한 판에 갈래 셋: 누구에게 · 언제(매일 한 번 / 하루 여러 번 / 직접) · 무슨 일(이름 · 할 일) → 미리 보기(다음 깸 · 하루 몇 번) → 만들기
 //   서버 = POST schedule/routine {op: add}(editor _schedadd.js · 표 한 줄 한 커밋 · 시계가 1분마다 읽음) · 미리 보기는 쓰기 0
+import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import { type ReactNode, useState } from "react";
 import { office } from "../data/office";
 import { nextShort } from "./settings-extra";
@@ -34,7 +35,7 @@ export function AddRoutine({ bots, bot0 = "", fork, sha, phone, onClose, onDone 
   return (
     <div className="nm-rsheet-back nm-yeta" role="presentation" onClick={onClose}>
       <section className="nm-rsheet nm-add" data-phone={phone || undefined} role="dialog" aria-modal="true" aria-label="일 추가" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
-        <header className="nm-rsheet-h"><b>일 추가</b><small>봇에게 정해진 때마다 시킬 일을 하나 만들어</small><button type="button" className="nm-rsheet-x" aria-label="닫기" onClick={onClose}>×</button></header>
+        <header className="nm-rsheet-h"><b>일 추가</b><small>봇에게 정해진 때마다 시킬 일을 하나 만들어</small><DialogX onClose={onClose} /></header>
         <div className="nm-add-body" inert={lock && stage !== "ask" ? true : undefined}>
           <h4>누구에게</h4>
           <div className="nm-add-row" role="radiogroup" aria-label="누구에게">

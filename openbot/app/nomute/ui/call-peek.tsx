@@ -6,6 +6,7 @@
 //   바탕 닫힘 = 누름·뗌 둘 다 바탕일 때만(./backdrop.ts) · Esc = 닫힘 · 엔터 = 보내기(한글 조합 중 아님) · Shift+엔터 = 줄바꿈
 //   형 13:19 「뜨고 없어지는 모션 부드럽게 해주고, 그리고 전송 누르면 순간 멎는 느낌이야. 그냥 바로 창 자연스럽게 닫히」 · 「전송 버튼이 조금 어색해 화살표 방향이 우측이여야 할듯.」
 //   = 뜰 때·닫힐 때 같은 부드러운 결(.ypk-in · .ypk-out 0.2초) · 보내기 = 서버 답 안 기다리고 바로 닫힘(못 보내면 대화창 위 빨간 줄 + 쓰던 답 남음 · 부른 쪽) · 단추 = 오른쪽 화살표
+import { DuetIcon } from "@/components/duet/icons";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { backdrop } from "./backdrop";
@@ -37,7 +38,7 @@ export function CallPeek({ p, onClose, onSend }: { p: Peek; onClose: () => void;
           <FaceImg id={p.face} size={34} />
           <b>{p.name}</b>
           {p.ts ? <i>{agoOf(p.ts)}</i> : null}
-          <button type="button" className="ypk-x" aria-label="닫기" onClick={close}>×</button>
+          <button type="button" className="ypk-x" aria-label="닫기" onClick={close}><DuetIcon name="x" size={18} /></button>
         </div>
         <div className="ypk-b">{p.body}</div>
         <div className="ypk-f">

@@ -1,6 +1,7 @@
 // 스케줄(형 10-31 「포크로 꼽아지고 그걸 차단기로 내리고 키는 개념」 · 「꼬챙이 하나하나에 루틴을 담고 시간을 설계」 · 「포크가 공통의 내용을 담을 수 있는거고」 · 「각각의 끝에는 ! 훅 이거 단 하나야」)
 //   트리 = 맨 위 봇 얼굴 줄(봇 큰 차단기 · 고르면 그 봇 꼬챙이만) → 포크 차단기 → 꼬챙이 차단기 → 끝 ! 얼굴 · 내린 위 칸 아래는 다 멈춘 것으로 보임
 //   서버 = GET schedule · POST schedule/set(형만 · dry = 미리 보기 · at routine·fork·bot) · 저장 흐름 = 설정 NomuteSchedule 과 같음 · 서버 판이 안 올라온 동안은 forks 없음 → 「아직 안 나눔」 한 포크
+import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -262,7 +263,7 @@ export function SchedDesk() {
   const sheet = (title: string, sub: string, close: () => void, body: React.ReactNode) => createPortal(   // 나무에서 누른 것의 바꾸기 판(루틴 · 포크 · 봇) = 같은 껍데기
     <div className="nm-rsheet-back" role="presentation" onClick={close}>
       <section className="nm-rsheet nm-rsheet-routine nm-sched nm-yeta" data-phone={!wide || undefined} role="dialog" aria-modal="true" aria-label={`${title} 바꾸기`} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") close(); }}>
-        <header className="nm-rsheet-h"><b>{title}</b><small>{sub}</small><button type="button" className="nm-rsheet-x" aria-label="닫기" onClick={close}>×</button></header>
+        <header className="nm-rsheet-h"><b>{title}</b><small>{sub}</small><DialogX onClose={close} /></header>
         {msg ? <p className="nm-rsheet-grey px-4 pt-2" role="status">{msg}</p> : null}
         {body}
       </section>

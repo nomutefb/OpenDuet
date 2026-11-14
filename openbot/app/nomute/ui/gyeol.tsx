@@ -3,6 +3,7 @@
 //   이 판 = 한눈에(곡 큰 숫자 · 트랙 · 뮤비 · 안 올린 곡 · 뮤비 없는 곡) + 뮤비 보드(9:16 · 같은 곡 = 한 칸 · 최신/점수/★/안 올림) + 보기 창(재생 · ▲▼ · 받기 · 글 복사 · 올림 표시 · 의도 · 결의 평)
 //   + 나머지 여섯 칸(결의 평 · 흐름 · 곡 목록 · 오늘 재료 · 게시 현황 · 최근 활동 · 아래 GyRest) → 채널 전체 맨 아래 「나머지는 에디터에서」 뺌(결과 함께가 에디터 몫의 전부였음)
 //   데이터 = 원본 chanGet('gyeol') 차례: /api/chan?f=gyeol → /gyeol_data.json · 올림 표시 = 설정 서버 gyPost(원본 gyPostToggle · 키 = 곡 트랙 id + 영상 경로 · 모든 기기 같이)
+import { DuetIcon } from "@/components/duet/icons";
 import "./gyeol.css";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
@@ -140,7 +141,7 @@ export function GyeolBoard() {
       {it ? createPortal(
         <div className="yeta-set gy-view" role="dialog" aria-modal="true" aria-label={it.t} onClick={(e) => { if (e.target === e.currentTarget) setOpen(-1); }}>
           <div className="gy-view-in">
-            <div className="gy-view-h"><b>{it.t}</b><button type="button" className="gy-x" aria-label="닫기" onClick={() => setOpen(-1)}>×</button></div>
+            <div className="gy-view-h"><b>{it.t}</b><button type="button" className="gy-x" aria-label="닫기" onClick={() => setOpen(-1)}><DuetIcon name="x" size={18} /></button></div>
             <video key={it.url} className="gy-view-v" src={it.url} poster={it.poster || undefined} controls playsInline autoPlay preload="metadata" />
             <div className="gy-view-acts">
               <button type="button" className="yset-chip" disabled={open <= 0} onClick={() => { setNote(""); setOpen((i) => Math.max(0, i - 1)); }} aria-label="앞 뮤비">▲</button>

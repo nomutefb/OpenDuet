@@ -376,6 +376,7 @@ html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; bor
 .nm-sched-forkpick { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
 .nm-sched-forkpick > span { margin-right:2px; font-size:var(--fs-xs); color:var(--mut); }
 
-/* 「×」 닫기 = 한 꼴(형 11-15 「하네스 따로 노는 거」): 전엔 창마다 글자(× · ✕) · 크기(20 ~ 22px) · 색(흐린 글색 · 본문 색)이 달랐음 → 글자 × · 20px · 흐린 글색 · 올리면 옅은 원. 자리(오른쪽 위 · 머리 줄 끝)는 창마다 그대로 */
-button:is(.nm-rsheet-x, .ncs-x, .ypk-x, .gy-x), :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"] { border:0; border-radius:50%; background:none; color:var(--mut, #8B8F8A); font-size:20px; line-height:1; cursor:pointer; transition:background .18s var(--e-out, ease), color .18s var(--e-out, ease); }
-button:is(.nm-rsheet-x, .ncs-x, .ypk-x, .gy-x):hover, :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"]:hover { background:color-mix(in srgb, currentColor 12%, transparent); color:var(--fg, inherit); }
+/* 창 닫기 = 한 꼴(형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」): 오른쪽 위에 뜨는 것 = 공용 <DialogX>(./dialog-x.tsx · .nm-dx) · 머리 줄 안에 든 것(자리 그대로) = 같은 그림(x 18) · 같은 색 · 같은 올림 꼴 */
+button:is(.ncs-x, .ypk-x, .gy-x), :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"] { display:inline-grid; place-items:center; border:0; border-radius:50%; background:none; color:var(--fg-2, currentColor); line-height:1; cursor:pointer; transition:transform .28s var(--ease), background-color .15s; }
+button:is(.ncs-x, .ypk-x, .gy-x):hover, :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"]:hover { background:rgba(127,127,127,.14); }
+button:is(.ncs-x, .ypk-x, .gy-x):active, :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"]:active { transform:scale(var(--press-m, .92)); }
