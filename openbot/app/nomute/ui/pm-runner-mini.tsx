@@ -1,5 +1,5 @@
 // PM 방 오른쪽 위 러너맵 축소판(형 11-14 22:37 dm-gik 「그거 항상 pm으로 고정한 애 우상단에는 공지 고정처럼 애들 러너맵 ㄷ축소판뜨게해줘~」 · 깃 오더 #-008 · 뎅)
-//   = 지금 PM(서버 pm 칸)의 1:1 방에서만 · 공지 고정 띠 자리(PinBar 밑) 오른쪽 위 알약 「러너맵」 · 누르면 홈 러너 칸(./runner-gauges)을 줄여 펼침
+//   = 지금 PM(서버 pm 칸)의 1:1 방에서만 · 공지 고정 띠 자리(PinBar 밑) 오른쪽 위 알약 「러너맵」 · 누르면 위 = 애들 한 줄씩(봇 현황 · 일함 · 쉼 · 멈춤 · 까닭) · 아래 = 홈 러너 칸의 조약돌 · 러너 여섯 점(기계 계기는 가림 · 깃 23:03 「기계 계기는 빼도 돼」)
 //   얼마를 먹나 = 닫힘 = 받아오기 0(PM 칸 5분 · 방 목록 10분만) · 열림 = 홈 러너 칸과 같은 자료 · 같은 캐시(status 60초 · schedule 120초 · 숨은 탭 멈춤 = react-query 기본)
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -13,6 +13,18 @@ function usePmRoom(): string | null {
   return pm && rooms ? rooms.find((r) => (r.kind === "dm" || r.id.startsWith("dm-")) && r.name === pm)?.id || null : null;
 }
 
+const ST: Record<string, string> = { awake: "일함", asleep: "쉼", unknown: "멈춤?" };   // 서버 bots state 실물 = awake · asleep · unknown(11-14 23:2x)
+function Kids() {   // 봇 현황(설정 「지금 봇」과 같은 bots 자료 · 같은 캐시 열쇠 · 열렸을 때만 60초)
+  const q = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string; why?: string }[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000, staleTime: 30_000 });
+  const rows = q.data || [];
+  if (!rows.length) return null;
+  return (
+    <ul className="nm-pmrun-kids" aria-label="애들 지금">
+      {rows.map((b) => <li key={b.who} className={`s-${b.state}`}><b>{b.who}</b><span>{ST[b.state] || b.state}</span>{b.why ? <small>{b.why}</small> : null}</li>)}
+    </ul>
+  );
+}
+
 export function PmRunnerMini({ room }: { room: string }) {
   const pmRoom = usePmRoom();
   const [open, setOpen] = useState(() => { try { return localStorage.getItem("nm-pm-runner") === "1"; } catch { return false; } });
@@ -21,7 +33,7 @@ export function PmRunnerMini({ room }: { room: string }) {
   return (
     <div className={`nm-pmrun${open ? " open" : ""}`}>
       <button type="button" className="nm-pmrun-h" onClick={toggle} aria-expanded={open}>러너맵 <span aria-hidden>{open ? "▴" : "▾"}</span></button>
-      {open ? <div className="nm-pmrun-b"><RunnerGauges /></div> : null}
+      {open ? <div className="nm-pmrun-b"><Kids /><div className="nm-pmrun-g"><RunnerGauges /></div></div> : null}
     </div>
   );
 }
