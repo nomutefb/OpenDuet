@@ -435,6 +435,12 @@ export function NomuteBuild() {
 /** 보안 서랍(빠르 11-15 · 깃 #-020 · 형 11-14 23:42 「자리 1 2 3을 토큰 키 처럼 각각 클립보드 복사 가능하게 설정에 만들어놓으셈」 · 23:56 ✓ ① 처음 한 번 붙여 넣기 → 그 뒤 복사만)
  *  값은 화면에 안 그림 · 넣기 = 서버가 암호화해 둠 + 그 자리 열쇠가 맞는지 「맞음 · 틀림」 · 복사 = 누를 때만 서버에서 받아 클립보드 · 형 문만(봇 열쇠 = 403) */
 type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null };
+/** 서랍 실패 까닭 = 입력 · 회선 · 앱 셋을 섞지 않음(하네스 §오류 3분류 · 서버 why 는 그대로) */
+const vaultWhy = (e: unknown, fall: string) => {
+  const m = e instanceof Error ? e.message : "";
+  if (/failed to fetch|network|load failed/i.test(m)) return "네트워크 오류 — 다시 눌러 줘";
+  return m || fall;
+};
 export function NomuteVault() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["nomute", "seatvault"], queryFn: () => office<{ seats: VaultSeat[] }>("seatvault").then((j) => j.seats || []), staleTime: 60_000 });
@@ -442,19 +448,19 @@ export function NomuteVault() {
   const put = useMutation({
     mutationFn: (v: { seat: string; value: string }) => office<{ match: boolean }>("seatvault", { method: "POST", body: JSON.stringify(v) }),
     onSuccess: (j, v) => { setDraft((d) => ({ ...d, [v.seat]: "" })); setNote((n) => ({ ...n, [v.seat]: j.match ? "넣었어 · 열쇠 맞음" : "넣었어 · 이 자리 열쇠와 안 맞아(다시 확인)" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
-    onError: (e, v) => setNote((n) => ({ ...n, [v.seat]: e instanceof Error ? e.message : "못 넣었어" })),
+    onError: (e, v) => setNote((n) => ({ ...n, [v.seat]: vaultWhy(e, "못 넣었어") })),
   });
   const mint = useMutation({
     mutationFn: (seat: string) => office<{ match: boolean }>("seatvault/mint", { method: "POST", body: JSON.stringify({ seat }) }),
     onSuccess: (_j, seat) => { setNote((n) => ({ ...n, [seat]: "새 열쇠 만들어 넣었어 · 앞 열쇠는 꺼짐 · 이제 「복사」" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
-    onError: (e, seat) => setNote((n) => ({ ...n, [seat]: e instanceof Error ? e.message : "못 만들었어" })),
+    onError: (e, seat) => setNote((n) => ({ ...n, [seat]: vaultWhy(e, "못 만들었어") })),
   });
   const copy = async (seat: string) => {
     try {
       const j = await office<{ value: string }>("seatvault/copy", { method: "POST", body: JSON.stringify({ seat }) });
       await navigator.clipboard.writeText(j.value);
       setDone(seat); window.setTimeout(() => setDone((d) => (d === seat ? "" : d)), 1800);   // 옛 에디터 modern-copy 체크 머무름(touchHold 1800)
-    } catch (e) { setNote((n) => ({ ...n, [seat]: e instanceof Error ? e.message : "복사 못 했어" })); }
+    } catch (e) { setNote((n) => ({ ...n, [seat]: vaultWhy(e, "복사 못 했어") })); }
   };
   return (
     <PageSection title="보안 서랍">
@@ -469,9 +475,9 @@ export function NomuteVault() {
               </p>
               <div className="flex items-center gap-2">
                 <input id={`vault-${s.seat}`} type="password" autoComplete="off" spellCheck={false} placeholder={s.set ? "바꿀 때만 붙여 넣기" : "열쇠 붙여 넣기"} value={draft[s.seat] || ""}
-                  onChange={(e) => setDraft((d) => ({ ...d, [s.seat]: e.target.value }))} className="min-w-0 flex-1 rounded-lg border border-border bg-transparent px-2.5 py-1.5 text-sm" />
-                <button type="button" disabled={!draft[s.seat]?.trim() || put.isPending} onClick={() => put.mutate({ seat: s.seat, value: draft[s.seat].trim() })} className="rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-40">넣기</button>
-                <button type="button" disabled={!s.set} aria-label={done === s.seat ? "복사됨" : "복사"} onClick={() => void copy(s.seat)} className={`relative grid rounded-lg border px-3 py-1.5 text-sm transition-colors duration-200 disabled:opacity-40 ${done === s.seat ? "border-[#CFFF40] bg-[#CFFF40]/15" : "border-border"}`}>
+                  onChange={(e) => setDraft((d) => ({ ...d, [s.seat]: e.target.value }))} className="min-h-10 min-w-0 flex-1 rounded-lg border border-border bg-transparent px-2.5 text-sm" />
+                <GoButton disabled={!draft[s.seat]?.trim() || put.isPending} go={() => put.mutateAsync({ seat: s.seat, value: draft[s.seat].trim() })} className="min-h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">넣기</GoButton>
+                <button type="button" disabled={!s.set} aria-label={done === s.seat ? "복사됨" : "복사"} onClick={() => void copy(s.seat)} className={`relative grid min-h-10 place-items-center rounded-lg border px-3 text-sm active:[transform:scale(var(--press-s,.85))] transition-[transform,background-color,border-color] duration-150 disabled:opacity-40 ${done === s.seat ? "border-[#CFFF40] bg-[#CFFF40]/15" : "border-border"}`}>
                   {/* 복사 → 체크 모션 = 옛 에디터 뉴스 요약 복사 단추(modern-copy · 그림 줄며 사라짐 133ms → 체크 133ms 뒤 142ms 로 나타남 · transform · opacity 만) */}
                   <span className={`col-start-1 row-start-1 transition-[opacity,transform] ${done === s.seat ? "scale-50 opacity-0 duration-[133ms] ease-[cubic-bezier(.25,1,.5,1)]" : "scale-100 opacity-100 duration-[138ms] delay-[125ms] ease-[cubic-bezier(.42,0,.58,1)]"}`}>복사</span>
                   <span aria-hidden className={`col-start-1 row-start-1 grid place-items-center transition-[opacity,transform] ${done === s.seat ? "scale-100 opacity-100 duration-[142ms] delay-[133ms] ease-[cubic-bezier(.42,0,.58,1)]" : "scale-50 opacity-0 duration-[121ms] ease-[cubic-bezier(.22,1,.36,1)]"}`}>
@@ -480,7 +486,7 @@ export function NomuteVault() {
                 </button>
               </div>
               {!s.set ? (
-                <button type="button" disabled={mint.isPending} onClick={() => setAsk(s.seat)} className="self-start text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40">새 열쇠 만들기</button>
+                <button type="button" disabled={mint.isPending} onClick={() => setAsk(s.seat)} className="-my-2 self-start py-3 text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40">새 열쇠 만들기</button>
               ) : null}
               {note[s.seat] ? <p role="status" className="text-xs text-muted-foreground">{note[s.seat]}</p> : null}
             </li>
@@ -492,8 +498,8 @@ export function NomuteVault() {
           <div role="alertdialog" aria-label="새 열쇠 만들기" className="w-full max-w-xs rounded-2xl border border-border bg-background p-5 text-center" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm">열쇠를 새로 만드시겠습니까?<br />앞 열쇠는 무효화됩니다.</p>
             <div className="mt-4 flex justify-center gap-2">
-              <button type="button" onClick={() => setAsk("")} className="rounded-lg border border-border px-4 py-1.5 text-sm">취소</button>
-              <button type="button" disabled={mint.isPending} onClick={() => { mint.mutate(ask); setAsk(""); }} className="rounded-lg border border-border px-4 py-1.5 text-sm font-semibold disabled:opacity-40">만들기</button>
+              <button type="button" onClick={() => setAsk("")} className="min-h-10 rounded-lg border border-border px-4 text-sm active:[transform:scale(var(--press-s,.85))] transition-[transform,background-color,border-color] duration-150">취소</button>
+              <GoButton disabled={mint.isPending} go={() => mint.mutateAsync(ask)} done={() => setAsk("")} className="min-h-10 rounded-lg border border-border px-4 text-sm font-semibold disabled:opacity-40">만들기</GoButton>
             </div>
           </div>
         </div>,
