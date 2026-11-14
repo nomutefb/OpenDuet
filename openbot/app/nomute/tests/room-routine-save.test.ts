@@ -1,46 +1,18 @@
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
 import { afterEach, beforeEach, test } from "node:test";
+import { mock } from "bun:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { build } from "esbuild";
 import { Window } from "happy-dom";
 import { act, createElement, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type { QueryClient as QueryClientType } from "@tanstack/react-query";
 
 // 실제 시트·저장 단추·서버 응답 처리를 함께 검사한다. 네트워크만 가짜 응답이다.
-const require = createRequire(import.meta.url);
-const queryModule = pathToFileURL(require.resolve("@tanstack/react-query")).href;
-const { QueryClient, QueryClientProvider } = await import(queryModule);
-const compiled = await build({
-  entryPoints: [fileURLToPath(new URL("../ui/room-routine.tsx", import.meta.url))],
-  bundle: true,
-  write: false,
-  platform: "node",
-  format: "esm",
-  jsx: "automatic",
-  loader: { ".css": "empty" },
-  plugins: [{
-    name: "same-runtime-and-decoration",
-    setup(builder) {
-      builder.onResolve({ filter: /^(?:react(?:-dom)?(?:\/.*)?|@tanstack\/react-query)$/ }, (args) => ({
-        path: pathToFileURL(require.resolve(args.path)).href,
-        external: true,
-      }));
-      builder.onResolve({ filter: /^(?:@\/components\/duet\/icons|\.\/faces)$/ }, (args) => ({
-        path: args.path,
-        namespace: "decoration",
-      }));
-      builder.onLoad({ filter: /.*/, namespace: "decoration" }, () => ({
-        contents: "export const DuetIcon = () => null; export const FaceImg = () => null;",
-      }));
-    },
-  }],
-});
-const { RoomRoutineSheet } = await import(
-  `data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString("base64")}`
-);
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// 꾸밈(아이콘 · 얼굴)만 빈 것으로 바꾸고 시트는 원본 그대로 읽음(빠르 11-14 · 앞 판 = esbuild 로 묶어 읽음 → 기차 자리에 esbuild 가 없어 이 파일이 통째로 안 떴음)
+mock.module("@/components/duet/icons", () => ({ DuetIcon: () => null }));
+mock.module("../ui/faces", () => ({ FaceImg: () => null }));
+const { RoomRoutineSheet } = await import("../ui/room-routine.tsx");
 
 const ROOM = { id: "routine-test", name: "저장 검사", kind: "group", members: ["카리나"] };
 const ORIGINAL = "이 글과 주기는 저장 실패 뒤에도 남아야 해";
