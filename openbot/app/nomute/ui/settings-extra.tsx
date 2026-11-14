@@ -14,6 +14,7 @@ import { GoButton } from "./go-button";
 import type { Review } from "./sched-review";
 import type { Health, HealthSum } from "./sched-bits";   // 상태 점 칸(뜸 서버 healthOf · 없으면 ○ 확인 안 됨)
 import { whoName } from "./who-name";
+import { ACT_QUERY_KEY, actCount, botLine, type MiniRow } from "./activity-line";   // 「지금 봇」 = 서버 활동 판정 그대로(형 11-14 「더 확대해서 유지보수해줘」)
 import { DuetIcon } from "@/components/duet/icons";
 import { RoomGoneDialog, canGone } from "./temp-room";   // 방 없애기(형 11-05 · 방 목록 🗑️ 와 같은 되묻기)
 
@@ -28,7 +29,6 @@ const ago = (ts?: number) => { if (!ts) return "활동 모름"; const m = Math.r
 const Card = ({ children }: { children: ReactNode }) => <div className="mt-3 rounded-2xl border border-border">{children}</div>;
 const btn = "rounded-full border border-border px-3 py-1 text-xs hover:bg-foreground/5 disabled:opacity-50";
 
-type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
 export type SchedBot = { bot: string; who: string; wakes: number[]; next_ts?: number; on?: boolean };
 export type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean; fork?: string; task?: string; marks?: string[];
   room?: string; health?: Health; bell6?: { n: number; of: number; today: number; cap: number; ring: string[]; stop?: { who: string; ts: number }; mirror?: boolean } };   // bell6 = 6마디 종 줄(뎅 11-01 · 서버 bell6.<방>)
@@ -44,25 +44,26 @@ export const useSched = () => useQuery({ queryKey: ["nomute", "schedule"], query
 
 export function NomuteBots() {
   const list = usePeople();
-  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 });
+  // 봇 현황 한 장 · 러너맵과 같은 활동 줄(GET status/activity) — 옛 bots 자료(지금 턴이 도는가)는 일하는 손을 「N분 전」으로, 쉬는 손을 꺼진 것처럼 냈음
+  const act = useQuery({ queryKey: ACT_QUERY_KEY, queryFn: () => office<{ rows?: MiniRow[] }>("status/activity").then((j) => j.rows || []), refetchInterval: 60_000, staleTime: 30_000 });
   const sched = useSched();
   const rows = list.filter((p) => p.kind === "bot");   // 윈터(클로드) 따로 온라인 줄 0 = 윈터 상태는 머리 등불 구슬(형 10-28 09:24)
-  const awake = (bots.data || []).filter((b) => b.state === "awake").length;
+  const n = actCount(act.data || []);
   return (
     <PageSection title="지금 봇">
-      <p className="mt-1 text-sm text-muted-foreground">온라인 {awake} / {rows.length}</p>
+      <p className="mt-1 text-sm text-muted-foreground">일하는 중 {n.work} · 받을 수 있음 {n.ready} / {rows.length}</p>
       <Card>
         <ul className="divide-y divide-border">
           {rows.map((p) => {
-            const b = (bots.data || []).find((x) => x.who === p.who), s = sched.data?.bots.find((x) => x.who === p.who);
-            const on = b?.state === "awake", work = on && b?.why !== "read";
+            const l = botLine((act.data || []).find((x) => x.name === p.who), ago), s = sched.data?.bots.find((x) => x.who === p.who);
+            const work = l.kind === "work", on = work || l.kind === "ready";   // 초록 점 = 일하는 중 · 받을 수 있음(서버가 확인한 손)
             return (
               <li key={p.who} className="flex items-center gap-3 px-4 py-2.5">
                 <span className="relative"><FaceImg id={idOf(p.who, list)} size={32} />{on ? <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-background" /> : null}</span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{p.name || p.who} {p.mark || ""}{p.role ? <span data-content className="ml-1 text-xs font-normal text-muted-foreground">{p.role}</span> : null}
                     {p.memory ? <span className="ml-1.5 rounded-full border border-border px-1.5 py-px text-[10px] font-normal text-muted-foreground" title={MEMORY_T[p.memory]}>기억 {p.memory}</span> : null}</p>
-                  <p className={`text-xs ${work ? "animate-pulse text-foreground" : "text-muted-foreground"}`}>{work ? "작업 중 · 고민하는 중…" : on ? "온라인" : ago(b?.last_turn_ts)}</p>
+                  <p className={`text-xs ${work ? "animate-pulse text-foreground" : "text-muted-foreground"}`}>{l.text || "활동 줄 없음"}</p>
                 </div>
                 {s?.next_ts ? <span className="shrink-0 text-xs tabular-nums text-muted-foreground">다음 {nextShort(s.next_ts)}</span> : null}
               </li>

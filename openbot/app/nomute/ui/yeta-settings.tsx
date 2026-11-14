@@ -15,6 +15,7 @@ import { Pane } from "./pane";
 import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
 import { office } from "../data/office";
+import { ACT_QUERY_KEY, actCount, type MiniRow } from "./activity-line";
 import { usePeople } from "./faces";
 import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
@@ -61,11 +62,11 @@ export function YetaSettings() {
   const [open, setOpen] = useState("");
   const list = usePeople();
   const health = useQuery({ queryKey: ["nomute", "health"], queryFn: () => office<Health>("health"), refetchInterval: 60_000 }).data?.counts;
-  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string }[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 }).data;
+  const bots = useQuery({ queryKey: ACT_QUERY_KEY, queryFn: () => office<{ rows?: MiniRow[] }>("status/activity").then((j) => j.rows || []), refetchInterval: 60_000, staleTime: 30_000 }).data;   // 「지금 봇」과 같은 활동 줄(서버 판정)
   const build = useBuildLine();
   const teamsName = useTeamsName();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
-  const nBots = list.filter((p) => p.kind === "bot").length, awake = (bots || []).filter((b) => b.state === "awake").length;
+  const nBots = list.filter((p) => p.kind === "bot").length, awake = actCount(bots || []).work;
   const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
     <Act key={id} ic={ic} t={t} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
@@ -126,7 +127,7 @@ export function YetaSettings() {
           <div className="yset-grp">
             {row("health", "check", "점검표", <NomuteHealth />,
               health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}
-            {row("bots", "bot", "지금 봇", <NomuteBots />, bots ? `온라인 ${awake}/${nBots}` : undefined)}
+            {row("bots", "bot", "지금 봇", <NomuteBots />, bots ? `일하는 중 ${awake}/${nBots}` : undefined)}
             {row("link", "link", "스케줄러 연결", <NomuteLink />)}
             {row("meter", "gauge", "회의실 계기판", <NomuteMeter />)}
           </div>
