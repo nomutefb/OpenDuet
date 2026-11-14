@@ -1,7 +1,7 @@
 // 서랍 「봇 현황」 칸 글 = 서버 도표를 읽기만(형 11-14 「누가 쉰다 이런개념이 아니라 도표 느낌으루」)
 import test from "node:test";
 import assert from "node:assert/strict";
-import { agoKo, countOf, fireChips, flowOf, groupOf, hmKo, jobCount, jobLine, jobsOf, laneTone, markOf, openText, orbOf, sigOf, turnCell, turnList, wireTone } from "../ui/bot-desk-logic.ts";
+import { agoKo, countOf, fireChips, flowOf, groupOf, hmKo, jobCount, jobLine, jobsOf, laneTone, markOf, mixOf, openText, orbOf, sigOf, tailOf, turnCell, turnList, wireTone } from "../ui/bot-desk-logic.ts";
 
 test("일 차례 칸 = 서버 글과 같은 꼴: 숫자 · 밖 · (괄호) · × · 빈 칸", () => {
   assert.deepEqual(turnCell({ n: 1, rank: 1, busy: false }), { text: "1", tone: "ok", title: "1특기" });
@@ -70,4 +70,19 @@ test("오늘 오더 카드 = 끝난 줄 체크(걸린 시간) · 안 끝난 줄�
   assert.deepEqual(jobsOf({ who: "뎅", lane: "work", state: "", open: [{ no: "#-2", title: "옛 서버", at: 9 }] }), [{ no: "#-2", title: "옛 서버", code: undefined, recv: 9 }]);   // 옛 서버(jobs 칸 없음) = open 칸으로
   const o = (x: object) => orbOf({ who: "a", state: "", ...x } as never);
   assert.deepEqual([o({ lane: "work" }), o({ lane: "ready" }), o({ lane: "rest" }), o({ lane: "lost" }), o({ lane: "work", pm: true }), o({ lane: "ready", rest: true })], ["working", "listening", "", "", "", ""]);
+});
+
+test("태움 올림 단계 = 안 끝난 오더에 태움 때가 있으면 손을 놓았어도 도는 고리 + 「태움 N분 전」 · 끝낸 오더는 그대로 체크", () => {
+  const NOW = Date.UTC(2026, 10, 14, 5, 2), MIN = 60e3;
+  assert.deepEqual(jobLine({ no: "#-030", title: "첨부", recv: NOW - 60 * MIN, ride: NOW - 8 * MIN, sha: "650975b" }, false, NOW), { status: "running", text: "#-030 첨부", side: "태움 8분 전", ride: true });
+  assert.deepEqual(jobLine({ no: "#-029", recv: NOW - 70 * MIN, done: NOW - 2 * MIN, ride: NOW - 9 * MIN }, true, NOW), { status: "done", text: "#-029", side: "1시간 8분" });
+});
+
+test("맨 위 요약 막대 = 묶음마다 몇인지(0 인 묶음 뺌 · 흐름과 같은 차례) · 카드 상태 줄 꼬리 = 손 · 신호 짧게", () => {
+  const NOW = 1_000_000_000_000, MIN = 60e3;
+  const rows = [{ who: "a", lane: "work", state: "" }, { who: "b", lane: "work", state: "" }, { who: "c", lane: "ready", state: "" }, { who: "d", lane: "lost", state: "" }, { who: "e", lane: "ready", state: "", rest: true }] as never[];
+  assert.deepEqual(mixOf(rows), [{ group: "lost", n: 1 }, { group: "work", n: 2 }, { group: "idle", n: 1 }, { group: "held", n: 1 }]);
+  assert.deepEqual(mixOf([]), []);
+  assert.equal(tailOf({ who: "a", lane: "work", state: "", last_at: NOW - 21 * MIN, beat_at: NOW - 3 * MIN }, NOW), "손 21분 전 · 대기 3분 전");
+  assert.equal(tailOf({ who: "a", lane: "work", state: "" }, NOW), "");
 });

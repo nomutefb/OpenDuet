@@ -15,7 +15,7 @@ import RubberSegment from "../vendor/react-bits/RubberSegment/RubberSegment";   
 import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰는 원본 꾸러미 그대로(대화 「생각중」 · ./live-shine.tsx 와 같은 것 · 형 11-15 「에디터에 따로 들어잇는곳 … 코드카피해서 쓰셈」)
 import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
-import { type BotRow, type BotTable, GROUP_KO, agoKo, countOf, flowOf, hmKo, jobCount, jobLine, jobsOf, markOf, orbOf, sigOf, turnList, wireTone } from "./bot-desk-logic";
+import { type BotRow, type BotTable, GROUP_KO, countOf, flowOf, hmKo, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, tailOf, turnList, wireTone } from "./bot-desk-logic";
 import "./status-board.css";
 import "./bot-desk.css";
 
@@ -26,43 +26,55 @@ const delay = (i: number) => ({ "--i": Math.min(i, 24) } as CSSProperties);
 
 const MARK = { color: "currentColor", doneColor: "var(--nsb-ok)", errorColor: "var(--nsb-red)" } as const;
 
-/** 봇 카드 = 유리 판 · 머리(얼굴 · 이름 · 상태: 구슬 + 빛 글자) + 오늘 오더 줄(도는 표시 → 체크 + 취소선 · n/m) · 누르면 접고 폄. */
+/** 접고 펴는 화살표 = 선 그림 하나(글자 ▾ 대신) · 펴면 반 바퀴(transform 만). */
+const Chev = () => <svg className="chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+/** 끝낸 몫 고리 = 한 바퀴 가운데 끝낸 만큼(stroke-dashoffset 만 움직임). */
+function Ring({ done, total }: { done: number; total: number }) {
+  return (
+    <svg className="ring" viewBox="0 0 20 20" width="18" height="18" aria-hidden>
+      <circle cx="10" cy="10" r="7" className="bg" />
+      <circle cx="10" cy="10" r="7" className="fg" pathLength={1} strokeDasharray="1" strokeDashoffset={total ? 1 - done / total : 1} transform="rotate(-90 10 10)" />
+    </svg>
+  );
+}
+
+/** 봇 카드 = 유리 판 · 머리(얼굴 · 이름 · 상태: 구슬 + 빛 글자 + 마지막 손) + 오늘 오더 줄(도는 표시 → 체크 + 취소선 · 끝낸 몫 고리 n/m) · 누르면 접고 폄. */
 function BotCard({ r, now, i, list }: { r: BotRow; now: number; i: number; list: ReturnType<typeof usePeople> }) {
   const { resolved } = useTheme();
-  const jobs = jobsOf(r), n = jobCount(jobs), orb = orbOf(r), working = r.lane === "work";
+  const jobs = jobsOf(r), n = jobCount(jobs), orb = orbOf(r), working = r.lane === "work", tail = tailOf(r, now);
   const [open, setOpen] = useState(() => jobs.some((j) => !j.done));   // 안 끝낸 오더가 있으면 펴 둠 · 다 끝냈으면 접어 둠
-  const bits = [r.last_at ? `마지막 손 ${agoKo(now - r.last_at)}` : "", sigOf(r, now) !== "–" ? sigOf(r, now) : ""].filter(Boolean);
   const head = (
     <>
-      <span className="face"><FaceImg id={idOf(r.who, list)} size={32} /></span>
+      <span className="face"><FaceImg id={idOf(r.who, list)} size={36} /></span>
       <span className="who">
         <span className="name"><b>{r.who}</b>{r.pm ? <span className="tag">PM</span> : null}{r.rest ? <span className="tag">쉼 지정</span> : null}</span>
         <span className="st">
-          {orb ? <ThinkingOrb state={orb} size={20} theme={resolved} /> : <StatusMark status={markOf(r) as StatusMarkStatus} size={15} strokeWidth={2.4} {...MARK} />}
-          {working ? <LiveShine text={`${r.state}…`} /> : <span>{r.state}</span>}
+          <span className="ic">{orb ? <ThinkingOrb state={orb} size={20} theme={resolved} /> : <StatusMark status={markOf(r) as StatusMarkStatus} size={15} strokeWidth={2.4} {...MARK} />}</span>
+          {working ? <LiveShine text={r.state} sig /> : <span className="word">{r.state}</span>}
+          {tail ? <span className="tail">{tail}</span> : null}
         </span>
       </span>
-      {n.total ? <span className={`cnt${n.all ? " all" : ""}`}>{n.all ? "다 끝냄" : `${n.done}/${n.total}`}</span> : null}
-      {jobs.length ? <span className="chev" aria-hidden>{open ? "▴" : "▾"}</span> : null}
+      {n.total ? <span className={`cnt${n.all ? " all" : ""}`}><Ring done={n.done} total={n.total} /><span>{n.all ? "다 끝냄" : `${n.done}/${n.total}`}</span></span> : null}
+      {jobs.length ? <Chev /> : null}
     </>
   );
   return (
-    <li className={`nm-bd-bot${open && jobs.length ? " open" : ""}`} style={delay(i)}>
+    <li className={`nm-bd-bot l-${r.lane}${open && jobs.length ? " open" : ""}`} style={delay(i)}>
       {jobs.length ? <button type="button" className="head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{head}</button> : <div className="head">{head}</div>}
+      {r.lane === "lost" && r.why ? <p className="why">{r.why}</p> : null}
       {jobs.length ? (
         <div className="fold" aria-hidden={!open}>
           <ul className="jobs">
             {jobs.map((j) => { const l = jobLine(j, working, now); return (
-              <li key={j.no} className={`nm-bd-job s-${l.status}`} title={l.text}>
-                <StatusMark status={l.status} label={l.text} size={14} strokeWidth={2.4} fontSize={13} {...MARK} />
+              <li key={j.no} className={`nm-bd-job s-${l.status}${l.ride ? " ride" : ""}`} title={l.text}>
+                <StatusMark status={l.status} label={<><span className="no">{j.no}</span>{j.title ? ` ${j.title}` : ""}</>} size={14} strokeWidth={2.4} fontSize={13} {...MARK} />
+                {j.code ? <span className="code">{j.code}</span> : null}
                 {l.side ? <small>{l.side}</small> : null}
               </li>
             ); })}
           </ul>
         </div>
       ) : null}
-      {r.lane === "lost" && r.why ? <p className="why">{r.why}</p> : null}
-      {bits.length ? <p className="meta">{bits.join(" · ")}</p> : null}
     </li>
   );
 }
@@ -73,7 +85,7 @@ function Flow({ t, now, pmName }: { t: BotTable; now: number; pmName: string }) 
   return (
     <div className="nm-bd-flow">
       <div className="nm-bd-pm" style={delay(i++)}>
-        <span className="face">{pmName ? <FaceImg id={idOf(pmName, list)} size={34} /> : null}</span>
+        <span className="face">{pmName ? <FaceImg id={idOf(pmName, list)} size={36} /> : null}</span>
         <div className="who"><p className="name"><b>{pmName || "PM 없음"}</b><span className="tag">PM</span></p><p className="meta">일 나누는 자리 · 지금 맡겨 둔 오더 {orders}건</p></div>
         {pmName ? <ThinkingOrb state="composing" size={32} theme={resolved} /> : null}
       </div>
@@ -91,24 +103,24 @@ function Flow({ t, now, pmName }: { t: BotTable; now: number; pmName: string }) 
 }
 
 function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
-  const [open, setOpen] = useState("");
+  const [open, setOpen] = useState(""), list = usePeople();
   return (
     <div className="nm-bd-turns">
       {t.codes.map((c, i) => {
-        const f = t.first?.[c], l = open === c ? turnList(t.rows, c) : null;
+        const f = t.first?.[c], l = turnList(t.rows, c), on = open === c, good = !!f && !f.busy && !!f.rank;
         return (
-          <section key={c} className={`nm-bd-turn${open === c ? " open" : ""}`} style={delay(i)}>
-            <button type="button" aria-expanded={open === c} onClick={() => setOpen((o) => (o === c ? "" : c))}>
+          <section key={c} className={`nm-bd-turn${on ? " open" : ""}`} style={delay(i)}>
+            <button type="button" aria-expanded={on} onClick={() => setOpen((o) => (o === c ? "" : c))}>
               <span className="code">{c}</span><span className="nm">{skills[c] || ""}</span>
-              <span className={`who ${!f ? "t-dim" : f.busy || !f.rank ? "t-dim" : "t-ok"}`}>{f ? `${f.who}${f.rank ? "" : " · 특기 밖"}${f.busy ? " · 일하는 중" : ""}` : "맡길 손 없음"}</span>
-              <span className="chev" aria-hidden>{open === c ? "▴" : "▾"}</span>
+              {f ? <span className={`first ${good ? "t-ok" : "t-dim"}`}><span className="face"><FaceImg id={idOf(f.who, list)} size={22} /></span><b>{f.who}</b>{!f.rank || f.busy ? <small>{[f.rank ? "" : "특기 밖", f.busy ? "일하는 중" : ""].filter(Boolean).join(" · ")}</small> : null}</span> : <span className="first t-dim">맡길 손 없음</span>}
+              <Chev />
             </button>
-            {l ? (
+            <div className="fold" aria-hidden={!on}>
               <ol>
                 {l.order.map((o) => <li key={o.who} className={o.busy || !o.rank ? "t-dim" : o.n === 1 ? "t-ok" : ""}><span className="n">{o.n}</span><b>{o.who}</b><small>{o.rank ? `${o.rank}특기` : "특기 밖"}{o.busy ? " · 일하는 중" : ""}</small></li>)}
                 {l.out.length ? <li className="out t-dim">못 맡김 — {l.out.map((o) => `${o.who}(${o.why})`).join(" · ")}</li> : null}
               </ol>
-            ) : null}
+            </div>
           </section>
         );
       })}
@@ -124,9 +136,9 @@ function Hands({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
       <ul>
         {t.rows.filter((r) => (r.skills || []).length || r.note || r.hw?.os).map((r, i) => (
           <li key={r.who} className="nm-bd-hand" style={delay(i)}>
-            <span className="face"><FaceImg id={idOf(r.who, list)} size={30} /></span>
+            <span className="face"><FaceImg id={idOf(r.who, list)} size={36} /></span>
             <div className="body">
-              <p className="name"><b>{r.who}</b>{(r.skills || []).map((c, k) => <span key={c} className={`sk${k === 0 ? " first" : ""}`} title={skills[c] || c}>{c}</span>)}</p>
+              <p className="name"><b>{r.who}</b>{(r.skills || []).map((c, k) => <span key={c} className={`sk${k === 0 ? " first" : ""}`} title={skills[c] || c}>{k === 0 && skills[c] ? `${c} ${skills[c]}` : c}</span>)}</p>
               <p className="meta">{[r.hw?.ram, r.hw?.cpu, r.hw?.gpu && r.hw.gpu !== "없음" ? `GPU ${r.hw.gpu}` : "", r.hw?.os].filter(Boolean).join(" · ") || "–"}</p>
               {r.note ? <p className="note">{r.note}</p> : null}
             </div>
@@ -143,14 +155,22 @@ export function BotDesk() {
   const [tab, setTab] = useState<Tab>(() => { try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "hands" ? v : "flow"; } catch { return "flow"; } });
   const pick = (v: Tab) => { setTab(v); try { localStorage.setItem("nm-botdesk-tab", v); } catch { /* 이번만 */ } };
   const t = q.data?.table, skills = q.data?.skills || {}, rows = t?.rows || [], now = Date.now(), n = countOf(rows);
+  const people = usePeople(), mix = mixOf(rows);
   const live = rows.some((r) => r.lane !== "none"), idle = flowOf(rows).find((g) => g.group === "idle")?.rows || [], pmName = rows.find((r) => r.pm)?.who || "";
   return (
     <div className="nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pb-12 pt-3">
       <h1 className="sr-only">봇 현황</h1>
       <div className="nm-bd-head" role="status">
-        <p className="big">{q.isPending ? <span className="t-dim">불러오는 중</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>노는 손 <b>{idle.length}</b></>}{n.lost ? <span className="badge">멈춤 {n.lost}</span> : null}</p>
-        {idle.length ? <p className="names">{idle.map((r) => r.who).join(" · ")}</p> : q.data && live ? <p className="names t-dim">다 일하는 중이거나 차례 밖</p> : null}
-        {q.data && live ? <p className="meta">일하는 중 {n.work} · 받을 수 있음 {n.ready} · 쉼 {n.rest}{q.data.at ? ` · ${hmKo(q.data.at)} 기준` : ""}{q.data.stale ? " · 묵은 것(곧 새로)" : ""}</p> : null}
+        <p className="big">{q.isPending ? <span className="t-dim">불러오는 중</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>노는 손 <b>{idle.length}</b></>}
+          <span className="side">{n.lost ? <span className="badge">멈춤 {n.lost}</span> : null}{q.data?.at ? <span className="at">{hmKo(q.data.at)}{q.data.stale ? " · 묵은 것" : ""}</span> : null}</span>
+        </p>
+        {idle.length ? <ul className="idle">{idle.map((r) => <li key={r.who}><span className="face"><FaceImg id={idOf(r.who, people)} size={22} /></span>{r.who}</li>)}</ul> : q.data && live ? <p className="names t-dim">다 일하는 중이거나 차례 밖</p> : null}
+        {q.data && live ? (
+          <>
+            <div className="mix" aria-hidden>{mix.map((m) => <i key={m.group} className={`g-${m.group}`} style={{ flexGrow: m.n }} />)}</div>
+            <p className="key">{mix.map((m) => <span key={m.group} className={`g-${m.group}`}><i aria-hidden />{GROUP_KO[m.group]} <b>{m.n}</b></span>)}</p>
+          </>
+        ) : null}
       </div>
       {q.isError ? <p className="nsb-why">봇 현황을 못 읽었어 — {(q.error as Error)?.message || "서버 답 없음"} <button type="button" className="nm-sched-chip" onClick={() => void q.refetch()}>다시</button></p> : null}
       {q.data && !t ? <p className="nsb-empty">서버가 아직 도표를 안 줘(옛 판) — 잠깐 뒤 다시 열어 줘</p> : null}

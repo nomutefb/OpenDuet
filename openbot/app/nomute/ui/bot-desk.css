@@ -13,24 +13,43 @@
 .nm-botdesk .meta { font-size:var(--fs-xs); color:var(--nsb-mut); line-height:1.5; }
 .nm-botdesk .name { display:flex; align-items:baseline; flex-wrap:wrap; gap:0 2px; font-size:var(--fs-h3); color:#E7ECE7; }
 
-/* 유리 판 한 벌 */
-.nm-bd-head, .nm-bd-pm, .nm-bd-bot, .nm-bd-hand, .nm-bd-turn { position:relative; border-radius:16px; background:var(--bd-glass); border:1px solid var(--bd-line);
-  backdrop-filter:blur(var(--bd-blur)) saturate(1); -webkit-backdrop-filter:blur(var(--bd-blur)) saturate(1); box-shadow:inset 0 1px 0 var(--bd-line); overflow:hidden; }
+/* 유리 판 한 벌 = 반투명 밑칠 + 위에서 번지는 흰 빛 한 겹 + 뒤 흐림 + 안쪽 윗선 */
+.nm-bd-head, .nm-bd-pm, .nm-bd-bot, .nm-bd-hand, .nm-bd-turn { position:relative; border-radius:18px; border:1px solid var(--bd-line);
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0) 44%), var(--bd-glass);
+  backdrop-filter:blur(var(--bd-blur)) saturate(1); -webkit-backdrop-filter:blur(var(--bd-blur)) saturate(1); box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px -18px rgba(0,0,0,.6); overflow:hidden; }
+.nm-botdesk .chev { flex:none; color:var(--nsb-mut); transition:transform .28s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+.nm-botdesk .open > button .chev, .nm-botdesk .open > .head .chev { transform:rotate(180deg); }
+.nm-botdesk button:active .chev { transform:scale(var(--press-m, .9)); }
+.nm-botdesk .open > button:active .chev, .nm-botdesk .open > .head:active .chev { transform:rotate(180deg) scale(var(--press-m, .9)); }
 
-/* 맨 위 = 노는 손(형 「진짜 답답하면 보겟지 누가 놀고잇나」) */
-.nm-bd-head { padding:14px 16px; margin-bottom:10px; }
+/* 맨 위 = 노는 손(형 「진짜 답답하면 보겟지 누가 놀고잇나」) + 묶음 막대(형 「도표 느낌으루」) */
+.nm-bd-head { padding:16px; margin-bottom:10px; }
 .nm-bd-head .big { display:flex; align-items:baseline; gap:8px; font-size:var(--fs-h3); color:#E7ECE7; }
-.nm-bd-head .big b { font-size:22px; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
-.nm-bd-head .badge { margin-left:auto; padding:2px 9px; border:1px solid rgba(255,90,95,.45); border-radius:999px; font-size:var(--fs-xs); color:var(--nsb-red); }
-.nm-bd-head .names { margin-top:4px; font-size:var(--fs-h3); font-weight:700; color:#E7ECE7; line-height:1.4; }
-.nm-bd-head .meta { margin-top:6px; }
+.nm-bd-head .big b { font-size:28px; line-height:1; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
+.nm-bd-head .side { margin-left:auto; display:inline-flex; align-items:center; gap:8px; }
+.nm-bd-head .badge { padding:2px 9px; border:1px solid rgba(255,90,95,.45); border-radius:999px; font-size:var(--fs-xs); color:var(--nsb-red); }
+.nm-bd-head .at { font-size:var(--fs-xs); font-variant-numeric:tabular-nums; color:var(--nsb-mut); }
+.nm-bd-head .names { margin-top:8px; font-size:var(--fs-sm); line-height:1.4; }
+.nm-bd-head .idle { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.nm-bd-head .idle li { display:inline-flex; align-items:center; gap:6px; padding:3px 10px 3px 3px; border:1px solid rgba(207,255,64,.35); border-radius:999px; background:rgba(207,255,64,.08); font-size:var(--fs-sm); font-weight:700; color:#E7ECE7; }
+.nm-bd-head .mix { display:flex; gap:3px; height:8px; margin-top:14px; }
+.nm-bd-head .mix i { flex:1 1 0; min-width:6px; border-radius:999px; background:rgba(255,255,255,.14); transform-origin:left center; animation:nmBdBar .5s var(--ease, cubic-bezier(.2,.7,.3,1)) both; }
+.nm-bd-head .mix .g-work { background:var(--nsb-ok); box-shadow:0 0 12px rgba(207,255,64,.35); }
+.nm-bd-head .mix .g-lost { background:var(--nsb-red); box-shadow:0 0 12px rgba(255,90,95,.4); }
+.nm-bd-head .mix .g-idle { background:#E7ECE7; }
+.nm-bd-head .key { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:8px; font-size:var(--fs-xs); color:var(--nsb-mut); }
+.nm-bd-head .key span { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+.nm-bd-head .key b { color:#E7ECE7; font-variant-numeric:tabular-nums; }
+.nm-bd-head .key i { width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,.2); }
+.nm-bd-head .key .g-work i { background:var(--nsb-ok); } .nm-bd-head .key .g-lost i { background:var(--nsb-red); } .nm-bd-head .key .g-idle i { background:#E7ECE7; }
+@keyframes nmBdBar { from { transform:scaleX(0); opacity:0; } }
 
 /* 알약 탭 = react-bits RubberSegment 원본(여기선 화면 폭 가득 · 유리 밑칠) */
 .nm-bd-tabs { margin:0 0 10px; }
 .nm-bd-tabs .rubber-segment { display:grid; width:100%; border:1px solid var(--bd-line); backdrop-filter:blur(var(--bd-blur)) saturate(1); -webkit-backdrop-filter:blur(var(--bd-blur)) saturate(1); }
 
 /* 흐름 = PM 카드 → 세로 줄 → 묶음 → 봇 카드 */
-.nm-bd-pm { display:flex; align-items:center; gap:10px; padding:12px 14px; }
+.nm-bd-pm { display:flex; align-items:center; gap:12px; padding:12px 14px; }
 .nm-bd-pm .who { min-width:0; flex:1; }
 .nm-bd-late { margin:8px 0 0 !important; padding:8px 12px; border:1px solid rgba(255,90,95,.45); border-radius:12px; font-size:var(--fs-sm); color:#ffb3b5; }
 .nm-bd-tree { position:relative; margin:0 0 0 16px; padding:14px 0 0 18px; border-left:1px solid var(--bd-line); }
@@ -40,9 +59,9 @@
 .nm-bd-grp h3 i { position:absolute; left:-23px; top:50%; width:9px; height:9px; margin-top:-4.5px; border-radius:999px; background:#151515; border:1px solid var(--nsb-mut); }
 .nm-bd-grp.w-ok h3 { color:var(--nsb-ok); } .nm-bd-grp.w-ok h3 i { background:var(--nsb-ok); border-color:var(--nsb-ok); }
 .nm-bd-grp.w-lost h3 { color:var(--nsb-red); } .nm-bd-grp.w-lost h3 i { background:var(--nsb-red); border-color:var(--nsb-red); box-shadow:0 0 10px rgba(255,90,95,.5); }
-.nm-bd-grp > ul { display:grid; gap:8px; }
+.nm-bd-grp > ul { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
 .nm-bd-bot { overflow:visible; }
-.nm-bd-bot::before { content:""; position:absolute; left:-19px; top:26px; width:18px; border-top:1px solid var(--bd-line); }   /* 줄에서 카드로 잇는 가지 */
+.nm-bd-bot::before { content:""; position:absolute; left:-19px; top:30px; width:18px; border-top:1px solid var(--bd-line); }   /* 줄에서 카드로 잇는 가지 */
 .nm-bd-grp.w-ok .nm-bd-bot::before { border-color:rgba(207,255,64,.55); }
 .nm-bd-grp.w-lost .nm-bd-bot::before { border-color:rgba(255,90,95,.45); }
 .nm-bd-grp.w-lost .nm-bd-bot { border-color:rgba(255,90,95,.45); }
@@ -51,57 +70,78 @@
 .nm-bd-grp.w-ok .nm-bd-bot::after { opacity:1; }
 .nm-bd-grp.w-lost .nm-bd-bot::after { opacity:1; background:radial-gradient(120% 140% at 100% 40%, rgba(255,90,95,.15), transparent 62%); }
 .nm-bd-bot > * { position:relative; z-index:1; }
-.nm-bd-bot .head { width:100%; display:flex; align-items:center; gap:10px; padding:10px 12px; border:0; background:none; color:inherit; font:inherit; text-align:left; }
-.nm-bd-bot button.head { cursor:pointer; }
-.nm-bd-bot .who { min-width:0; flex:1; display:flex; flex-direction:column; gap:3px; }
-.nm-bd-bot .st { display:inline-flex; align-items:center; gap:6px; min-height:20px; font-size:var(--fs-sm); font-weight:700; color:var(--nsb-mut); }
-.nm-bd-grp.w-lost .nm-bd-bot .st { color:var(--nsb-red); }
-.nm-bd-bot .cnt { flex:none; padding:2px 9px; border:1px solid var(--bd-line); border-radius:999px; font-size:var(--fs-xs); font-weight:700; font-variant-numeric:tabular-nums; color:#E7ECE7; }
-.nm-bd-bot .cnt.all { border-color:rgba(207,255,64,.55); color:var(--nsb-ok); }
-.nm-bd-bot .chev { flex:none; font-size:var(--fs-xs); color:var(--nsb-mut); }
-/* 접고 폄 = 줄 높이 0 ↔ 제 높이(한 번 누를 때만) */
-.nm-bd-bot .fold { display:grid; grid-template-rows:0fr; transition:grid-template-rows .26s cubic-bezier(.23,1,.32,1); }
-.nm-bd-bot.open .fold { grid-template-rows:1fr; }
-.nm-bd-bot .jobs { min-height:0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr); gap:0; padding:0 12px; }
+.nm-bd-grp.w-dim h3 i { border-color:var(--bd-line); }
+.nm-bd-bot.l-ready:not(:has(.tag)) { border-color:rgba(207,255,64,.28); }   /* 받을 수 있는 손 = 테만 살짝(맡길 수 있다는 뜻) */
+.nm-bd-bot .head { width:100%; min-height:60px; display:flex; align-items:center; gap:12px; padding:12px 14px; border:0; background:none; color:inherit; font:inherit; text-align:left; border-radius:inherit; }
+.nm-bd-bot button.head { cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background-color .18s ease; }
+.nm-bd-bot button.head:active { background-color:rgba(255,255,255,.05); }
+.nm-bd-bot .face { box-shadow:0 0 0 1px rgba(255,255,255,.1); }
+.nm-bd-bot .who { min-width:0; flex:1; display:flex; flex-direction:column; gap:4px; }
+.nm-bd-bot .st { min-width:0; display:flex; align-items:center; gap:6px; min-height:20px; font-size:var(--fs-sm); font-weight:700; color:var(--nsb-mut); }
+.nm-bd-bot .st .ic { flex:none; width:20px; height:20px; display:grid; place-items:center; }
+.nm-bd-bot .st .word, .nm-bd-bot .st .t-shimmer { flex:none; }
+.nm-bd-bot.l-ready:not(:has(.tag)) .st .word { color:#E7ECE7; }
+.nm-bd-bot .st .tail { min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:400; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
+.nm-bd-bot .st .tail::before { content:"·"; margin-right:6px; }
+.nm-bd-grp.w-lost .nm-bd-bot .st .word { color:var(--nsb-red); }
+.nm-bd-bot .cnt { flex:none; display:inline-flex; align-items:center; gap:5px; padding:3px 9px 3px 4px; border:1px solid var(--bd-line); border-radius:999px; font-size:var(--fs-xs); font-weight:700; font-variant-numeric:tabular-nums; color:#E7ECE7; }
+.nm-bd-bot .cnt.all { border-color:rgba(207,255,64,.45); color:var(--nsb-ok); }
+.nm-bd-bot .ring circle { fill:none; stroke-width:2.6; }
+.nm-bd-bot .ring .bg { stroke:rgba(255,255,255,.14); }
+.nm-bd-bot .ring .fg { stroke:var(--nsb-ok); stroke-linecap:round; transition:stroke-dashoffset .5s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+/* 접고 폄 = 줄 높이 0 ↔ 제 높이(한 번 누를 때만) · 안 글은 같이 흐려짐 */
+.nm-botdesk .fold { display:grid; grid-template-rows:0fr; transition:grid-template-rows .3s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+.nm-botdesk .open > .fold { grid-template-rows:1fr; }
+.nm-botdesk .fold > * { min-height:0; overflow:hidden; opacity:0; transition:opacity .22s ease; }
+.nm-botdesk .open > .fold > * { opacity:1; }
+.nm-bd-bot .jobs { display:grid; grid-template-columns:minmax(0,1fr); gap:0; margin:0 14px; }
 .nm-bd-bot.open .jobs { padding-bottom:8px; }
-.nm-bd-job { min-width:0; display:flex; align-items:center; gap:8px; padding:7px 0; border-top:1px solid var(--bd-line); color:#E7ECE7; }
+.nm-bd-job { min-width:0; display:flex; align-items:center; gap:8px; min-height:36px; padding:6px 0; border-top:1px solid var(--bd-line); color:#E7ECE7; }
 .nm-bd-job .status-mark { min-width:0; flex:1; }
 .nm-bd-job .status-mark__label { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.nm-bd-job .no { font-size:var(--fs-xs); font-weight:700; font-variant-numeric:tabular-nums; color:var(--nsb-mut); }
+.nm-bd-job .code { flex:none; min-width:20px; padding:0 5px; border:1px solid var(--bd-line); border-radius:6px; font-size:var(--fs-2xs, 10px); font-weight:700; line-height:16px; text-align:center; color:var(--nsb-mut); }
 .nm-bd-job small { flex:none; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; color:var(--nsb-mut); }
-.nm-bd-bot .why { padding:0 12px 8px; font-size:var(--fs-sm); color:#ffb3b5; overflow-wrap:anywhere; }
-.nm-bd-bot .meta { padding:0 12px 10px 54px; margin-top:-4px; }
+.nm-bd-job.ride small { color:var(--nsb-ok); }   /* 태움 올림 = 만들기는 끝 · 기차 기다림 */
+.nm-bd-bot .why { margin:-2px 14px 10px 62px; font-size:var(--fs-sm); line-height:1.45; color:#ffb3b5; overflow-wrap:anywhere; }
 
-/* 차례 = 분류마다 한 줄 · 누르면 펼침 */
-.nm-bd-turns { display:grid; gap:6px; }
-.nm-bd-turn > button { width:100%; display:flex; align-items:baseline; gap:8px; padding:12px 14px; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
-.nm-bd-turn .code { flex:none; min-width:1.8em; font-weight:700; color:var(--nsb-mut); }
+/* 차례 = 분류마다 한 줄(지금 1번 = 얼굴 + 이름) · 누르면 펼침 */
+.nm-bd-turns { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; }
+.nm-bd-turn > button { width:100%; min-height:52px; display:flex; align-items:center; gap:10px; padding:10px 14px; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background-color .18s ease; }
+.nm-bd-turn > button:active { background-color:rgba(255,255,255,.05); }
+.nm-bd-turn .code { flex:none; min-width:30px; padding:2px 0; border:1px solid var(--bd-line); border-radius:8px; text-align:center; font-size:var(--fs-sm); font-weight:700; color:#E7ECE7; }
 .nm-bd-turn .nm { min-width:0; flex:1; font-size:var(--fs-sm); color:var(--nsb-mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.nm-bd-turn .who { flex:none; font-weight:700; font-size:var(--fs-h3); }
-.nm-bd-turn .chev { flex:none; color:var(--nsb-mut); font-size:var(--fs-xs); }
-.nm-bd-turn ol { display:grid; gap:2px; padding:0 14px 12px; }
-.nm-bd-turn ol li { display:flex; align-items:baseline; gap:8px; padding:5px 0; border-top:1px solid var(--bd-line); font-size:var(--fs-label); }
+.nm-bd-turn .first { flex:none; display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-h3); }
+.nm-bd-turn .first small { font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); }
+.nm-bd-turn .first.t-dim .face { opacity:.55; }
+.nm-bd-turn ol { display:grid; gap:0; padding:0 14px; }
+.nm-bd-turn.open ol { padding-bottom:12px; }
+.nm-bd-turn ol li { display:flex; align-items:baseline; gap:8px; padding:7px 0; border-top:1px solid var(--bd-line); font-size:var(--fs-label); }
 .nm-bd-turn ol li .n { flex:none; width:1.6em; text-align:right; font-variant-numeric:tabular-nums; color:var(--nsb-mut); }
 .nm-bd-turn ol li small { margin-left:auto; font-size:var(--fs-xs); color:var(--nsb-mut); }
 .nm-bd-turn ol li.out { display:block; font-size:var(--fs-xs); line-height:1.5; }
 
 /* 손 표 = 봇마다 카드 */
-.nm-bd-hands ul { display:grid; gap:8px; }
-.nm-bd-hand { display:flex; gap:10px; padding:10px 12px; }
+.nm-bd-hands ul { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; }
+.nm-bd-hand { display:flex; gap:12px; padding:12px 14px; }
 .nm-bd-hand .body { min-width:0; flex:1; }
-.nm-bd-hand .sk { margin-left:6px; padding:0 7px; border:1px solid var(--bd-line); border-radius:999px; font-size:var(--fs-xs); font-weight:700; color:var(--nsb-mut); }
-.nm-bd-hand .sk.first { border-color:rgba(207,255,64,.55); color:var(--nsb-ok); }
-.nm-bd-hand .meta { margin-top:3px; }
+.nm-bd-hand .sk { margin-left:6px; padding:1px 8px; border:1px solid var(--bd-line); border-radius:999px; font-size:var(--fs-xs); font-weight:700; color:var(--nsb-mut); }
+.nm-bd-hand .sk.first { border-color:rgba(207,255,64,.45); background:rgba(207,255,64,.08); color:var(--nsb-ok); }
+.nm-bd-hand .meta { margin-top:4px; font-variant-numeric:tabular-nums; }
 .nm-bd-hand .note { margin-top:3px; font-size:var(--fs-xs); line-height:1.5; color:var(--nsb-mut); overflow-wrap:anywhere; }
 
 /* 넓은 화면 = 카드 두 줄 */
-@media (min-width:900px) { .nm-bd-grp > ul, .nm-bd-hands ul, .nm-bd-turns { grid-template-columns:1fr 1fr; align-items:start; } .nm-bd-turns .legend { grid-column:1 / -1; } }
+@media (min-width:900px) { .nm-bd-grp > ul, .nm-bd-hands ul, .nm-bd-turns { grid-template-columns:repeat(2, minmax(0,1fr)); align-items:start; } .nm-bd-turns .legend { grid-column:1 / -1; } }
 
 /* 처음 뜰 때 한 번 차례로(위치 · 투명도만) */
 @keyframes nmBdIn { from { opacity:0; transform:translateY(6px); } }
 .nm-bd-pm, .nm-bd-late, .nm-bd-grp h3, .nm-bd-bot, .nm-bd-turn, .nm-bd-hand { animation:nmBdIn .26s cubic-bezier(.23,1,.32,1) both; animation-delay:calc(var(--i, 0) * 28ms); }
-@media (prefers-reduced-motion:reduce) { .nm-bd-pm, .nm-bd-late, .nm-bd-grp h3, .nm-bd-bot, .nm-bd-turn, .nm-bd-hand { animation:none; } .nm-bd-bot .fold { transition:none; } }
+@media (prefers-reduced-motion:reduce) { .nm-bd-pm, .nm-bd-late, .nm-bd-grp h3, .nm-bd-bot, .nm-bd-turn, .nm-bd-hand, .nm-bd-head .mix i { animation:none; } .nm-botdesk .fold, .nm-botdesk .fold > *, .nm-botdesk .chev, .nm-bd-bot .ring .fg { transition:none; } }
 
 /* 밝은 판 */
 :root:not(.dark) .nm-botdesk { --bd-glass:var(--glass, rgba(0,0,0,.04)); --bd-line:var(--glass-line, rgba(0,0,0,.08)); }
-:root:not(.dark) .nm-bd-head .big, :root:not(.dark) .nm-bd-head .names, :root:not(.dark) .nm-botdesk .name, :root:not(.dark) .nm-bd-job, :root:not(.dark) .nm-bd-bot .cnt { color:inherit; }
+:root:not(.dark) .nm-bd-head .big, :root:not(.dark) .nm-bd-head .idle li, :root:not(.dark) .nm-bd-head .key b, :root:not(.dark) .nm-botdesk .name, :root:not(.dark) .nm-bd-job, :root:not(.dark) .nm-bd-bot .cnt, :root:not(.dark) .nm-bd-turn .code, :root:not(.dark) .nm-bd-bot.l-ready .st .word { color:inherit; }
+:root:not(.dark) .nm-bd-head .mix i, :root:not(.dark) .nm-bd-head .key i, :root:not(.dark) .nm-bd-bot .ring .bg { background-color:rgba(0,0,0,.14); stroke:rgba(0,0,0,.14); }
+:root:not(.dark) .nm-bd-head .mix .g-idle, :root:not(.dark) .nm-bd-head .key .g-idle i { background:#1b1b1b; }
+:root:not(.dark) .nm-bd-head, :root:not(.dark) .nm-bd-pm, :root:not(.dark) .nm-bd-bot, :root:not(.dark) .nm-bd-hand, :root:not(.dark) .nm-bd-turn { box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 8px 24px -18px rgba(0,0,0,.25); }
 :root:not(.dark) .nm-bd-grp h3 i { background:#fff; }
