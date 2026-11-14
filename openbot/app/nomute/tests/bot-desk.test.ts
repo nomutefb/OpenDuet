@@ -1,7 +1,7 @@
 // 서랍 「봇 현황」 칸 글 = 서버 도표를 읽기만(형 11-14 「누가 쉰다 이런개념이 아니라 도표 느낌으루」)
 import test from "node:test";
 import assert from "node:assert/strict";
-import { agoKo, countOf, fireChips, flowOf, groupOf, hmKo, laneTone, markOf, openText, sigOf, turnCell, turnList, wireTone } from "../ui/bot-desk-logic.ts";
+import { agoKo, countOf, fireChips, flowOf, groupOf, hmKo, jobCount, jobLine, jobsOf, laneTone, markOf, openText, orbOf, sigOf, turnCell, turnList, wireTone } from "../ui/bot-desk-logic.ts";
 
 test("일 차례 칸 = 서버 글과 같은 꼴: 숫자 · 밖 · (괄호) · × · 빈 칸", () => {
   assert.deepEqual(turnCell({ n: 1, rank: 1, busy: false }), { text: "1", tone: "ok", title: "1특기" });
@@ -55,4 +55,19 @@ test("분류 하나의 차례 줄 = 서버 turn 칸 차례대로 · 못 맡는 �
 test("상태 표시 꼴 = 일하는 중 running · 받을 수 있음 done · 쉼 pending · 멈춤 failed · 차례 밖 · 조용 cancelled", () => {
   const m = (x: object) => markOf({ who: "a", state: "", ...x } as never);
   assert.deepEqual([m({ lane: "work" }), m({ lane: "ready" }), m({ lane: "rest" }), m({ lane: "lost" }), m({ lane: "ready", rest: true }), m({ lane: "work", pm: true }), m({ lane: "off" })], ["running", "done", "pending", "failed", "cancelled", "cancelled", "cancelled"]);
+});
+
+test("오늘 오더 카드 = 끝난 줄 체크(걸린 시간) · 안 끝난 줄은 그 손이 일하는 중이면 도는 고리 · 아니면 점선 · 머리 n/m · 다 끝냄", () => {
+  const NOW = Date.UTC(2026, 10, 14, 5, 2), MIN = 60e3;
+  assert.deepEqual(jobLine({ no: "#-027", title: "새 회의 알약", recv: NOW - 40 * MIN, done: NOW - 28 * MIN }, true, NOW), { status: "done", text: "#-027 새 회의 알약", side: "12분" });
+  assert.deepEqual(jobLine({ no: "#-030", title: "첨부", recv: NOW - 75 * MIN }, true, NOW), { status: "running", text: "#-030 첨부", side: "1시간 15분째" });
+  assert.deepEqual(jobLine({ no: "#-031", recv: NOW - 5 * MIN }, false, NOW), { status: "pending", text: "#-031", side: "5분째" });
+  assert.deepEqual(jobLine({ no: "#-032", done: NOW }, false, NOW), { status: "done", text: "#-032", side: "끝" });
+  assert.deepEqual(jobCount([{ no: "a", done: 1 }, { no: "b" }, { no: "c", done: 2 }]), { done: 2, total: 3, all: false });
+  assert.deepEqual(jobCount([{ no: "a", done: 1 }]), { done: 1, total: 1, all: true });
+  assert.deepEqual(jobCount([]), { done: 0, total: 0, all: false });
+  assert.deepEqual(jobsOf({ who: "뎅", lane: "work", state: "", jobs: [{ no: "#-1" }] }).map((j) => j.no), ["#-1"]);
+  assert.deepEqual(jobsOf({ who: "뎅", lane: "work", state: "", open: [{ no: "#-2", title: "옛 서버", at: 9 }] }), [{ no: "#-2", title: "옛 서버", code: undefined, recv: 9 }]);   // 옛 서버(jobs 칸 없음) = open 칸으로
+  const o = (x: object) => orbOf({ who: "a", state: "", ...x } as never);
+  assert.deepEqual([o({ lane: "work" }), o({ lane: "ready" }), o({ lane: "rest" }), o({ lane: "lost" }), o({ lane: "work", pm: true }), o({ lane: "ready", rest: true })], ["working", "listening", "", "", "", ""]);
 });

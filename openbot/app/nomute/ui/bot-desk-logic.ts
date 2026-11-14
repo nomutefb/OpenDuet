@@ -7,7 +7,9 @@ export type BotRow = {
   last_at?: number; beat_at?: number; door_at?: number; ctx_pct?: number; work_min?: number; acct?: string; acct_left?: number;
   skills?: string[]; hw?: { ram?: string; cpu?: string; gpu?: string; os?: string }; note?: string; turn?: Record<string, Turn>;
   open?: { no: string; title?: string; code?: string; at?: number }[]; today?: number; pm?: boolean; rest?: boolean;   // 맡은 오더(받고 안 끝낸 것) · 오늘 받은 수 · PM 자리 · 쉼 지정
+  jobs?: Job[];   // 오늘 오더 줄(안 끝낸 것 먼저 + 오늘 끝낸 것 · 서버 오더 장)
 };
+export type Job = { no: string; title?: string; code?: string; recv?: number; done?: number };
 export type First = { who: string; rank?: number; busy?: boolean };
 export type Late = { no: string; who: string; code?: string; min: number };
 export type BotTable = { codes: string[]; rows: BotRow[]; first?: Record<string, First>; late?: Late[] };
@@ -81,4 +83,27 @@ export function markOf(r: BotRow): "pending" | "running" | "done" | "failed" | "
   if (r.lane === "lost") return "failed";
   if (r.pm || r.rest || r.lane === "off" || r.lane === "none") return "cancelled";
   return r.lane === "work" ? "running" : r.lane === "ready" ? "done" : "pending";
+}
+
+// ── 오늘 오더 카드(형 11-15 본보기 영상 「Tasks」 = 줄마다 도는 표시 → 체크 + 취소선 · 머리에 n/m · 다 끝나면 한 낱말) — 재료 = 서버 오더 장(접수 · 완료) 그대로 · 봇이 더 하는 일 0
+/** 오더 줄 — 서버 jobs 칸(없으면 옛 open 칸으로 · 다 안 끝낸 것). */
+export function jobsOf(r: BotRow): Job[] {
+  return r.jobs && r.jobs.length ? r.jobs : (r.open || []).map((o) => ({ no: o.no, title: o.title, code: o.code, recv: o.at }));
+}
+const minKo = (ms: number) => { const m = Math.max(1, Math.round(ms / 60e3)); return m < 60 ? `${m}분` : `${Math.floor(m / 60)}시간 ${m % 60}분`; };
+/** 오더 한 줄 → 표시 꼴(done = 체크 + 취소선 · running = 도는 고리(그 손이 일하는 중) · pending = 점선(받아 두고 쉬는 중)) + 글 + 오른쪽 작은 글(걸린 시간 · 받은 지). */
+export function jobLine(j: Job, working: boolean, now: number): { status: "done" | "running" | "pending"; text: string; side: string } {
+  const text = `${j.no}${j.title ? " " + j.title : ""}`;
+  if (j.done) return { status: "done", text, side: j.recv && j.done >= j.recv ? minKo(j.done - j.recv) : "끝" };
+  return { status: working ? "running" : "pending", text, side: j.recv ? `${minKo(now - j.recv)}째` : "" };
+}
+/** 머리 셈 — 끝낸 수 / 오늘 오더 수 · all = 다 끝냄(오더가 있을 때만). */
+export function jobCount(jobs: Job[]): { done: number; total: number; all: boolean } {
+  const done = jobs.filter((j) => j.done).length;
+  return { done, total: jobs.length, all: jobs.length > 0 && done === jobs.length };
+}
+/** 구슬(thinking-orbs)의 꼴 — 일하는 중 = working · 받을 수 있음 = listening(부름을 기다림) · 그 밖 = 구슬 없음(상태 표시로). */
+export function orbOf(r: BotRow): "working" | "listening" | "" {
+  if (r.pm || r.rest || r.lane === "lost" || r.lane === "off" || r.lane === "none") return "";
+  return r.lane === "work" ? "working" : r.lane === "ready" ? "listening" : "";
 }
