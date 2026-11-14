@@ -97,7 +97,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .ytok.fl { color:#6b7280; } .dark .ychat .ytok.fl, .ychat .yb.me.app .ytok.fl { color:#c3cad3; }
 .ychat .ytok.gh, .ychat .ytok.tm { color:#7560b8; } .dark .ychat .ytok.gh, .dark .ychat .ytok.tm, .ychat .yb.me.app .ytok.gh, .ychat .yb.me.app .ytok.tm { color:#b8a8ec; text-shadow:0 0 8px rgba(184,168,236,.32); }
 .ychat .yb.me:not(.app) .ytok.gh, .ychat .yb.me:not(.app) .ytok.tm { color:#4c1d95; } .ychat .yb.me:not(.app) .ytok.fl, .ychat .yb.me:not(.app) a { color:#374151; }
-.ychat .yname-c { color:#0891b2; }
+.ychat .yname-c { color:#0891b2; font-weight:700; }   /* 글 안 애들 이름 = 늘 볼드(형 11-14 22:21 「그리고 애들 이름은 항상 볼드로 나오게해줘」 · #-0005) */
 .dark .ychat .yname-c { color:#22d3ee; }
 .ychat .yb.me .yname-c { color:#155e75; }
 .ychat .yb.me.app .yname-c { color:#67e8f9; }
@@ -682,8 +682,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .yinv img, .ychat .yinv [role=img] { border-radius:50%; }
 /* 글 속 「클로드」 = 우리 일곱 색 무지개(형 11-06 13:27 「그리고 클로드 라는 단어 색 너네 색으로 바꿔줘」) · 색 = 조약돌(bloub.tsx BEING_INK) 차례 봄 → 윈터 → 시아 → 뎅 → 빠르 → 누리 → 뜸 · 뎅 갈색은 어두운 판에서 묻혀 한 단계 밝게 */
 .ychat .yname-c.cl.w, .dark .ychat .yname-c.cl.w, .ychat .yb.me .yname-c.cl.w, .nm-split-root .ychat .yb.me .yname-c.cl.w {   /* .w = 묶음 낱말만(우리 이름 = 제 색 그대로 · 형 15:56) */
-  background:linear-gradient(90deg, #ff6fb5, #0ffd02, #dde3ea, #c07a3a, #4f86ff, #ffd60a, #ffb07c); -webkit-background-clip:text; background-clip:text;
-  color:transparent !important; -webkit-text-fill-color:transparent; font-weight:700; }
+  background:none; color:inherit !important; -webkit-text-fill-color:currentColor; font-weight:700; }   /* 무지개 걷음 = 빛 · 색 없이 볼드만(형 11-14 22:21 깃 옮김 「그리고 클로드 이렇게 빛나는거 없애고 그냥 불로 해줭」 · #-0005) */
 /* 명령 안 되는 방 안내 = 라임 안내 글(형 11-02 「이거 안내 시그니처 색 앞으로 라임」) · 누르면 닫힘 */
 .ychat .ycmdnote { white-space:pre-line; margin:0 4px 6px; padding:6px 12px; border-radius:12px; font-size:var(--fs-sm); color:#CFFF40; background:rgba(207,255,64,.07); border:1px dashed rgba(207,255,64,.4); cursor:pointer; }
 .ychat .ycmdnote { display:flex; align-items:flex-start; gap:8px; cursor:default; }
