@@ -830,3 +830,16 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ychat .yb-line:has(.nm-encg.ok) .yb-ck-ph { opacity:1; }
 .ychat .yb-line:has(> .yb-st.media) .nm-encg.ok, .ychat .yb-line:has(> .yb-st.media) .nm-stk-sent.sent .nm-stk-ok { visibility:hidden; }   /* 말풍선 안 원래 체크 = 숨김(자리는 그대로 · 세로줄 체크 하나만) */
 .ychat .yb-st.media .yb-un { align-self:center; transform:translateX(-1.24px); }   /* 「1」 가로 = ✓ 꼭짓점(아래 뾰족한 곳) 세로줄(형 11-14 11:53 봄 옮김 「그리고 이거 1을 이지 체크의 꼭짓점 부근으로 이동 시켜」 · 「수직 기준을 맞추자는거」) — 앞 판 = 원본 .yb-un align-self:flex-end 가 남아 「1」이 칸 오른쪽 끝(라이브 잼 = 꼭짓점 120.75 · 「1」 가운데 127.59 = 6.84px 어긋남) → 칸 가운데 + 꼭짓점(path x 6.2/16 → 11px 판 4.26px · 가운데 5.5px)만큼 1.24px 왼쪽 · ✓ 자리 · 크기 그대로(사진 묶음 옆 ✓ 와 같은 세로줄 유지) · 천둥 셈 · 뎅 */
+
+/* ── 보내기 단추 = 글이 생기면 알약으로 차오름(형 11-14 클라우드 세션 창 「버튼들 액션도 저 영상꼴로」 — 답글 독 영상 f968ef95 를 프레임마다 봄 · 평의회 4대 1 「대화 입력칸에」) ──
+   영상: 누르고 약 70ms 뒤부터 검은 단추가 흐려지며(뒤 흐림 6px 안팎) 입력칸 끝으로 붙고 · 133~233ms 에 또렷해짐 · 270ms 쯤 자리 잡고 살짝 넘쳤다 돌아옴(스프링)
+   여기: 빈 칸 = 지금처럼 옅은 화살표(동그라미 없음 · 형 10-31) → 글이 한 자라도 생기면 강조색 알약이 흐린 채 작게 나타나 280ms 스프링으로 차오르고 화살표는 어두운 색으로 · 지우면 거꾸로
+   눌림 = 그대로(살짝 위로 · 형 10-31) · 폭 46→58 은 글칸을 조금 밀 뿐(한 줄 높이 그대로) */
+.ychat-in form button[type="submit"] { position:relative; isolation:isolate; width:46px; transition:transform .24s cubic-bezier(.3,1.7,.5,1), width .28s cubic-bezier(.34,1.56,.64,1), color .18s .05s, opacity .2s; }
+.ychat-in form button[type="submit"]::before { content:""; position:absolute; inset:5px 1px; z-index:-1; border-radius:999px; background:var(--accent); opacity:0; scale:.45; filter:blur(7px);
+  transition:scale .28s cubic-bezier(.34,1.56,.64,1), opacity .14s, filter .22s; }
+.ychat-in form button[type="submit"]:not(:disabled) { width:58px; color:#141414; }
+.ychat-in form button[type="submit"]:not(:disabled)::before { opacity:1; scale:1; filter:blur(0); transition:scale .28s cubic-bezier(.34,1.56,.64,1) .07s, opacity .16s .07s, filter .2s .07s; }
+.ychat-in form button[type="submit"] > svg { transition:scale .28s cubic-bezier(.34,1.56,.64,1) .07s; }
+.ychat-in form button[type="submit"]:not(:disabled) > svg { scale:1.12; }
+@media (prefers-reduced-motion:reduce) { .ychat-in form button[type="submit"], .ychat-in form button[type="submit"]::before, .ychat-in form button[type="submit"] > svg { transition:none; } }
