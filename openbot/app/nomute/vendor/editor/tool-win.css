@@ -1,0 +1,55 @@
+/*
+ * Vendored from the old editor (nomutefb/editor) · viewer-src/06-document.part
+ * commit 7e054bda7b5d6478089e7f83761ccfcf104d9cda (2026-11-14)
+ * © 2026. nomute (nomutefb@pm.me, github). All rights reserved. — see that repo's LICENSE.
+ *
+ * 제작 도구 창 머리 단추(최소화 − · 입력 초기화 ⟳ · 닫기 ×) + 복원 ▲ + 길게 누름 「닫기」 칩 + 여럿 접었을 때 고르는 판
+ * 값 = 원문 그대로. 바꾼 것 둘뿐: ① id → class(#toolMin → .tool-min · #toolRf → .tool-rf — 창이 둘이라 id 가 겹침) ② 원문 주석 뺌
+ * 색 · 치수 토큰(--fg · --line · --accent …)과 앱 자리(복원 ▲ 위치 · 깜박임 횟수)는 ../../ui/ed-keep.css 가 줌
+ */
+.tool-x { width:30px; height:30px; flex:none; display:grid; place-items:center; background:rgba(255,255,255,.06);
+  color:var(--fg); border:1px solid var(--line); border-radius:9px; cursor:pointer; }
+.tool-x:hover { color:var(--accent); border-color:rgba(var(--accent-rgb),.4); }
+.tool-x svg { width:15px; height:15px; stroke-width:1.8; }
+.tool-x:active { transform:rotate(180deg) scale(var(--press-m,.92)); color:var(--accent); }
+.tool-rf, .tool-rf:hover { background:none; border-color:transparent; box-shadow:none; transform:none; }
+.tool-rf:active { transform:scale(var(--press-m,.92)); }
+.tool-hbtns { display:flex; align-items:center; gap:8px; }
+.tool-min { transition:transform .1s var(--ease); }
+.tool-min:active { transform:scale(var(--press-xs,.8)); }
+.tool-x:focus-visible { outline:none; box-shadow:0 0 0 2px rgba(var(--accent-rgb),.5); }
+.tool-restore { position:fixed; right:17px; bottom:calc(132px + env(safe-area-inset-bottom)); z-index:var(--z-min);
+  margin:0; width:34px; height:34px; padding:0; overflow:visible; display:none; place-items:center; cursor:pointer;
+  border:none; background:none; color:var(--hist-accent); -webkit-tap-highlight-color:transparent; }
+.tool-restore.show { display:grid; }
+.tool-restore svg { display:block; opacity:.8; filter:drop-shadow(0 2px 5px rgba(0,0,0,.55)) drop-shadow(0 0 2px rgba(0,0,0,.5)); }
+.tool-restore:active { transform:scale(var(--press-xs,.82)); }
+.tool-restore:focus-visible { outline:2px solid #eef7f0; outline-offset:3px; border-radius:5px; }
+.tool-restore.pulsing svg { animation:triGlow 1.8s var(--ease) infinite; }
+.tool-restore.arming svg { transform:scale(1.08); }
+@keyframes triGlow { 0%,100%{ filter:drop-shadow(0 2px 5px rgba(0,0,0,.55)) drop-shadow(0 0 1px rgba(var(--hist-rgb),0)); }
+  50%{ filter:drop-shadow(0 2px 5px rgba(0,0,0,.55)) drop-shadow(0 0 7px rgba(var(--hist-rgb),.85)); } }
+.tr-shield { position:fixed; inset:0; z-index:var(--z-min-shield); background:transparent; }
+.tr-closebtn { position:fixed; z-index:var(--z-min-chip); transform:translate(-50%,-100%); margin:0; cursor:pointer; white-space:nowrap;
+  font-size:11px; font-weight:800; letter-spacing:-.2px; color:var(--mut);
+  background:rgba(18,18,18,.5); border:0; border-radius:6px; padding:4px 10px;
+  text-shadow:0 1px 5px rgba(0,0,0,.85); box-shadow:0 6px 18px rgba(0,0,0,.5);
+  animation:trChipIn .16s var(--ease); -webkit-tap-highlight-color:transparent; }
+.tr-closebtn:active { transform:translate(-50%,-100%) scale(var(--press-m,.9)); }
+.tr-closebtn.closing { animation:trChipOut .19s var(--ease) forwards; }
+@keyframes trChipIn { from{ opacity:0; transform:translate(-50%,-100%) translateY(5px) scale(.92); } }
+@keyframes trChipOut { to{ opacity:0; transform:translate(-50%,-100%) scale(.8); } }
+.tr-count { position:absolute; top:-3px; right:-3px; box-sizing:border-box; min-width:16px; height:16px; padding:0 3px; border-radius:999px;
+  display:inline-flex; align-items:center; justify-content:center; font:800 10px ui-monospace,monospace; pointer-events:none;
+  background:linear-gradient(165deg, rgba(34,36,40,.5), rgba(19,20,23,.58)); -webkit-backdrop-filter:blur(var(--blur-m)) saturate(1.1); backdrop-filter:blur(var(--blur-m)) saturate(1.1);
+  border:1px solid rgba(255,255,255,.15); box-shadow:0 2px 6px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12); color:rgba(var(--accent-rgb),.8); }
+.min-pick { position:fixed; z-index:var(--z-min-pop); display:flex; flex-direction:column; gap:4px; padding:var(--sp-1); border-radius:var(--r-l);
+  background:var(--modal-glass-anchor);
+  backdrop-filter:blur(24px) saturate(var(--anchor-sat,1.05)); -webkit-backdrop-filter:blur(24px) saturate(var(--anchor-sat,1.05));
+  animation:popInCx .16s var(--gauge-ease) both; }
+.min-pick-it { font:inherit; font-size:var(--fs-label); font-weight:700; color:var(--fg); background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:var(--r-s);
+  padding:9px 16px; cursor:pointer; white-space:nowrap; text-align:left; -webkit-tap-highlight-color:transparent; transition:transform .1s, background .15s, color .15s, border-color .15s; }
+.min-pick-it:hover { color:var(--accent); border-color:rgba(var(--accent-rgb),.4); background:rgba(var(--accent-rgb),.08); }
+.min-pick-it:active { transform:scale(var(--press-l,.96)); }
+@keyframes popInCx { from { opacity:0; transform:scale(.92) translateY(-4px);} to { opacity:1; transform:none;} }
+@media (prefers-reduced-motion:reduce){ .tool-x { transition:none; } .tool-min:active{ transform:none; } .tool-restore:active{ transform:none; } .tool-restore.pulsing svg{ animation:none; } .tr-closebtn{ animation:none; } .min-pick{ animation:none; } }

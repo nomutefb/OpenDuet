@@ -13,6 +13,7 @@ import { THUMB_HTML } from "./markup";
 import { SceneBg } from "./scene-bg";
 import { RAIL_ICON_CSS, railIcons } from "./rail-icons";   // 옆 기둥 글자 → 그림 단추(영상 편집 꼴 · 형 11-14 11:29 · 봄 11:47 ④)
 import { studioRoute } from "../studio-handoff";   // 「영상 편집으로」·「유튜브 링크로 숏폼」 = 옛 화면을 앱 안 한 겹으로(번개 11-08)
+import { ToolButtons } from "../ed-keep";   // 머리 오른쪽 단추 = 옛 에디터 것 그대로(최소화 − · 입력 초기화 ⟳ · 닫기 × · 형 11-15)
 import { ditherGaugeCss } from "../dither-gauge";   // 「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 경계(형 11-15 영상)
 const GAUGE_CSS = ditherGaugeCss(".nm-tm .go.firing:not(.fy)", "#4f7a00") + ditherGaugeCss(".nm-tm .go.firing:not(.fy)", "#CFFF40", "html.dark ");
 
@@ -49,13 +50,9 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack, onMin }: { onBack?:
       {onBack ? null : <SceneBg />}   {/* 앱 안 = 제 장면 대신 웹앱 배경이 비침(형 11-13 02:26 「뒤에 지금 인앱 배경을 깔아버리면 될듯」 · 껍데기 .nm-modal.see) */}
       <style>{RAIL_ICON_CSS + GAUGE_CSS}</style>
       <div className="tm-head">
-        {onBack ? <button type="button" className="tm-back" aria-label="닫기" onClick={onBack}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 18l-6-6 6-6" /></svg></button> : null}
         <b className="tm-title">{SPARK}<span>에디터</span></b>
         <span className="tm-menu">카드 제작<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 9L12 15L18 9" /></svg></span>
-        <button type="button" className="tm-rf" aria-label="입력 초기화" title="입력 초기화 — 글자·사진 비우기" onClick={reset}>
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5" /></svg>
-        </button>
-        {onMin ? <button type="button" className="tm-min" aria-label="최소화" title="최소화 (창 접기)" onClick={onMin}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5.5 8h13L12 17.5z" /></svg></button> : null}
+        <ToolButtons onMin={onMin} onReset={reset} onClose={onBack} />   {/* 앞 판 = 왼쪽 ‹ · ⟳ · ▽ → 옛 창 머리 꼴(− ⟳ ×) */}
       </div>
       <div className="tm-frame" ref={frame}>
         <div className="tm-scroll" ref={scroller}>

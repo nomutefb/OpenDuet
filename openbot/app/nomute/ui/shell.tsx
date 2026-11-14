@@ -76,8 +76,8 @@ const KwModal = lazy(() => import("./kw").then((m) => ({ default: m.KwModal })))
 const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 서랍 「구독 채널」 = 에디터 설정 ▸ 구독 채널을 앱 안으로(봄 11-01)
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
 const SensorModal = lazy(() => import("./sensor").then((m) => ({ default: m.SensorModal })));   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
-import { EdKeep } from "./ed-keep";   // 이미지 편집 = 접어도 살아 있는 한 겹(최소화 ▽ · 형 11-15 · 원본 엔진은 그 안에서 열 때만 받음)
-import { edAlive, edChip, edKeptNext } from "./ed-keep-logic";
+import { ThumbMaker, ToolKeep, ToolRestore } from "./ed-keep";   // 이미지 편집 · 영상 편집 = 접어도 살아 있는 창(최소화 − · 복원 ▲ = 옛 에디터 것 · 형 11-15)
+import { ED_TOOLS, type EdTool, edAlive, edChip, edKeptNext, isEdTool } from "./ed-keep-logic";
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomIcon, RoomList, useRoomOrder } from "./room-list";
 import { RoomFab } from "./room-fab";   // 대화방 우하단 단추(형 11-01)
@@ -176,8 +176,9 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const layer = web != null || issue != null;   // #/web · #/issue = 앞 모달 위 한 겹
   const modal = "modal" in where ? where.modal : layer ? under : null;
   useEffect(() => listenAppLinks(), []);
-  const [edKept, setEdKept] = useState(false);   // 이미지 편집 접어 둠(최소화 · ./ed-keep.tsx) — 주소를 벗어나도 살려 둠
-  useEffect(() => { if (modal === "edtool") setEdKept((k) => edKeptNext(k, "open")); }, [modal]);
+  const [edKept, setEdKept] = useState<EdTool[]>([]);   // 접어 둔 창(이미지 편집 · 영상 편집 · ./ed-keep.tsx) — 주소를 벗어나도 살려 둠
+  const edPath = useRef<Record<EdTool, string>>({ edtool: "/edtool", edvid: "/edvid" });   // 펼칠 때 돌아갈 주소(영상 편집 = 고르던 일 /edtrack · /edk …)
+  useEffect(() => { if (isEdTool(modal) && "modal" in where) { edPath.current[modal] = pathname; setEdKept((k) => edKeptNext(k, modal, "open")); } }, [modal, pathname]);   // eslint-disable-line react-hooks/exhaustive-deps
   // 방에 들어올 때 = 바로 앞 칸이 대화 목록이 아니면 목록을 한 칸 깔고 그 위에 방(형 11-14 19:41 깃 옮김 「글구 대화에서 항상 뒤로가기하면 대화목록이 나오게 해주라.」)
   //   = 앱 「<」 · 폰 뒤로 · 브라우저 뒤로 어느 길이든 뒤 칸이 /rooms · 아래 onPop(뒤로 뒤에 바꿔 끼움)은 상태 없는 이동(location.hash =)으로 들어온 방에선 안 걸려 홈으로 새던 것(시아 라이브 실측 = 홈 → 방 → 뒤로 = #/)
   const prevPath = useRef("");
@@ -280,10 +281,15 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             </section>
           ) : null}
           <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
-          {edAlive(modal, edKept) ? (   /* 이미지 편집 = 제 겹(접으면 숨기기만 · ▽ 로 하던 그대로 펼침 · 형 11-15) */
-            <EdKeep open={modal === "edtool"} covered={layer} onClose={() => { setEdKept((k) => edKeptNext(k, "close")); closeModal(); }} onMin={() => { setEdKept((k) => edKeptNext(k, "min")); closeModal(); }} onRestore={() => void nav({ to: "/edtool" })} />
-          ) : null}
-          {M && M.id !== "edtool" ? (
+          {ED_TOOLS.map((t) => edAlive(modal, edKept, t) ? (   /* 접을 수 있는 창 둘 = 제 겹(접으면 숨기기만 · ▲ 로 하던 그대로 펼침 · 형 11-15) */
+            <ToolKeep key={t} tool={t} open={modal === t} covered={layer} onClose={() => { setEdKept((k) => edKeptNext(k, t, "close")); closeModal(); }}>
+              {t === "edtool"
+                ? <ThumbMaker onBack={() => { setEdKept((k) => edKeptNext(k, t, "close")); closeModal(); }} onMin={() => { setEdKept((k) => edKeptNext(k, t, "min")); closeModal(); }} />
+                : <VideoEditor hold={modal !== t} onBack={() => { setEdKept((k) => edKeptNext(k, t, "close")); closeModal(); }} onMin={() => { setEdKept((k) => edKeptNext(k, t, "min")); closeModal(); }} />}
+            </ToolKeep>
+          ) : null)}
+          <ToolRestore items={edChip(modal, edKept)} onRestore={(t) => void nav({ to: edPath.current[t] })} onCloseAll={() => setEdKept([])} />
+          {M && !isEdTool(M.id) ? (
             <ModalBox close={closeModal} className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
               {M.id === "feed" || M.id === "trend" || M.id === "legacy" || M.id === "tokens" || M.id === "gyeol" || M.id === "feedback" ? <WaveBg /> : null}   {/* 뉴스 요약 뒤 물결 = 시범(형 11-01 18:0x 「시범적으로 기본에 웹에 있던 그런 배경하나 깔아봐도좋아」) */}
               {M.id === "edtool" || M.id === "edvid" ? null : (   /* 에디터 = 위 챠콜 머리 줄 통째로 뺌 · ‹ 는 판 머리 「✦ 에디터」 왼쪽(형 11-13 02:24 봄 1:1 「글자를 없애는거 말구, 그냥 위에 네비 챠콜색 저 라인을 다 없애면됨」 · 앞 판 = 글자만 뺌) */
@@ -315,7 +321,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "edlock" ? <div className="nm-scroll"><LockModal /></div>   // 잠금 = 앱 안(봄 11-01 · 자동 잠금 분 · 켜기·PIN 은 에디터 설정 줄)
                   : M.id === "edkw" ? <div className="nm-scroll"><KwModal /></div>   // 키워드 알림 = 앱 안(봄 11-01 · 설정 한 장 kwItems·kwAlertOn · 발견 판정은 에디터·서버 그대로)
                   : M.id === "edsnsacc" ? <div className="nm-scroll"><SnsAccModal /></div>   // 구독 채널 = 앱 안(봄 11-01 · 같은 길 api/snsacc · 고친 플랫폼만 저장)
-                  : M.id === "edvid" ? <VideoEditor onBack={closeModal} />
                   : M.id === "edpush" ? <div className="nm-scroll"><PushDevsModal /></div>   // 구독 기기 = 앱 안(봄 11-01 · 같은 길 api/push list·toggle·remove)
                   : M.id === "edsensor" ? <div className="nm-scroll"><SensorModal /></div>   // 센서 = 앱 안(봄 11-01 · 같은 길 api/sensors · 형이 바꾸면 그 봇에게 알림)
                   : M.id === "legacy" ? <div className="nm-scroll"><ScrapModal /></div>

@@ -1,18 +1,26 @@
-/* 이미지 편집 최소화(./ed-keep.tsx) — 접힘 = 숨김(자리 · 크기 그대로) · ▽ 단추 = 아래 막대 위 왼쪽(오른쪽 = 대화방 「+」 · 뉴스 에디터 「+」 자리)
-   움직임 = 한 번씩(접힘 .25s · 펼침 .25s · 단추 튀어나옴 .28s) · 계속 도는 것 0 */
-.nm-modal.see.nm-edkeep { animation:none; transform-origin:34px calc(100% - var(--duet-tab-space,86px) - 28px);
+/* 접을 수 있는 창(./ed-keep.tsx) — 단추 · 복원 ▲ 꼴 = 옛 에디터 그대로(../vendor/editor/tool-win.css) · 여기는 앱 자리와 색 토큰만
+   접힘 = 숨김(자리 · 크기 그대로) · 움직임 = 한 번씩(접힘 .25s · 펼침 .25s · ▲ 튀어나옴 .3s · ▲ 빛 세 번) · 계속 도는 것 0 */
+.nm-modal.see.nm-edkeep { animation:none; transform-origin:calc(100% - 37px) calc(100% - var(--duet-tab-space,86px) - 83px);   /* 접히는 쪽 = 복원 ▲ 자리 */
   transition:opacity var(--m-panel,.25s) var(--e-out,ease), transform var(--m-panel,.25s) var(--e-out,ease), visibility 0s; }
 @starting-style { .nm-modal.see.nm-edkeep { opacity:0; } }
 .nm-modal.see.nm-edkeep.min { opacity:0; transform:scale(.12); visibility:hidden; pointer-events:none;
   transition:opacity var(--m-panel,.25s) var(--e-out,ease), transform var(--m-panel,.25s) var(--e-out,ease), visibility 0s var(--m-panel,.25s); }
-.nm-edchip { position:absolute; z-index:55; left:14px; bottom:calc(var(--duet-tab-space,86px) + 8px); width:40px; height:40px; padding:0; display:grid; place-items:center;
-  border-radius:50%; border:.5px solid color-mix(in srgb, currentColor 22%, transparent); color:#4f7a00; cursor:pointer; -webkit-tap-highlight-color:transparent;
-  background:rgba(255,255,255,.62); -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
-  box-shadow:0 6px 18px rgba(0,0,0,.18); animation:nmEdChipIn .28s var(--e-spring,ease) .12s both; transition:transform .28s var(--e-spring,ease), filter .12s; }
-html.dark .nm-edchip { color:#CFFF40; background:rgba(0,0,0,.34); border-color:rgba(207,255,64,.4); box-shadow:0 8px 22px rgba(0,0,0,.45); }
-.nm-edchip:active { transform:scale(var(--press-s,.9)); filter:brightness(.9); transition-duration:.07s; }
-@keyframes nmEdChipIn { from { opacity:0; transform:scale(.4); } to { opacity:1; transform:none; } }
+/* 옛 토큰(viewer-src/06-document.part :root) — 색만 앱 시그니처(라임 · 밝게/어둡게)로 */
+.tool-hbtns, .tool-restore, .min-pick, .tr-shield, .tr-closebtn {
+  --fg:#161716; --mut:#8fa697; --line:rgba(0,0,0,.1); --accent:#4f7a00; --accent-rgb:79,122,0; --hist-accent:#4f7a00; --hist-rgb:79,122,0;
+  --ease:cubic-bezier(.2,.7,.3,1); --gauge-ease:cubic-bezier(.22,.61,.36,1); --press-xs:.82; --press-m:.9; --press-l:.96;
+  --r-l:16px; --r-s:9px; --sp-1:6px; --fs-label:13px; --blur-m:29px; --modal-glass-anchor:rgba(255,255,255,.72);
+  --z-min:58; --z-min-pop:59; --z-min-shield:205; --z-min-chip:206; }
+html.dark :is(.tool-hbtns, .tool-restore, .min-pick, .tr-shield, .tr-closebtn) { --fg:#eef7f0; --line:rgba(255,255,255,.08); --accent:#CFFF40; --accent-rgb:207,255,64; --hist-accent:#CFFF40; --hist-rgb:207,255,64; --modal-glass-anchor:rgba(17,18,20,.42); }
+html:not(.dark) .tool-hbtns .tool-x:not(.tool-rf) { background:rgba(0,0,0,.05); }
+html:not(.dark) .min-pick-it { background:rgba(0,0,0,.04); }
+.tm-head .tool-hbtns { margin-left:auto; }
+/* 복원 ▲ 자리 = 아래 막대 위 오른쪽(옛 = 우하단 고정) · 「+」(대화방 · 뉴스 에디터 · 46) 바로 위에 가운데 맞춤 */
+.tool-restore { position:absolute; right:20px; bottom:calc(var(--duet-tab-space,86px) + 66px); animation:nmTrIn .3s var(--ease) backwards; }
+.tool-restore.pulsing svg { animation-delay:.42s; animation-iteration-count:3; }   /* 옛 = 6초 뒤 스크립트가 끔 → 세 번(5.4초)만 */
+@keyframes nmTrIn { from { transform:scale(.3); opacity:0; } }
+.min-pick { position:absolute; right:8px; bottom:calc(var(--duet-tab-space,86px) + 110px); transform-origin:100% 100%; }
 @media (prefers-reduced-motion:reduce){
   .nm-modal.see.nm-edkeep, .nm-modal.see.nm-edkeep.min { transition:none; transform:none; }
-  .nm-edchip { animation:none; transition:none; }
+  .tool-restore { animation:none; }
 }
