@@ -1,0 +1,5 @@
+/* 창 X(./dialog-x.tsx · #-042) — 오른쪽 위 · 눌림 = 공용 눌림 크기 · 흐림 0 */
+.nm-dx { position:absolute; top:10px; right:10px; z-index:1; width:32px; height:32px; display:grid; place-items:center; border:0; border-radius:50%; background:none; color:var(--fg-2, currentColor); cursor:pointer; transition:transform .28s var(--ease), background-color .15s; }
+.nm-dx:hover { background:rgba(127,127,127,.14); }
+.nm-dx:active { transform:scale(var(--press-m, .92)); }
+.nm-dx:disabled { opacity:.35; cursor:default; }

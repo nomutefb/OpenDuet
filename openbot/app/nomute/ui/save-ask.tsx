@@ -49,3 +49,19 @@ export function SaveAsk({ onSave, onDiscard, onKeep, saving }: { onSave: () => v
     </div>
   );
 }
+
+/** 「작성 중인 내용이 사라집니다. 창을 닫으시겠습니까?」 — 쓰던 중에 창 X · 바탕 · Esc · 뒤로(#-042 · 형 11-15 07:55 「쓰던중에 뒤로가거나 하면 작성 중인 내용이 사라집니다. 창을 닫으시겠습니까? 정도로 닫기 내용을 통일하면 충분해」)
+ *  빈 판 = 이 물음 없이 바로 닫힘(useCloseGuard dirty=false) · 닫기 = 쓰던 글도 버림(말 그대로) · 취소 · 바깥 · Esc = 계속 쓰기 */
+export function CloseAsk({ onClose, onKeep, busy }: { onClose: () => void; onKeep: () => void; busy?: boolean }) {
+  return (
+    <div role="alertdialog" aria-modal="true" aria-label="창을 닫으시겠습니까?" className="fixed inset-0 z-[70] grid place-items-center bg-black/30 p-4" {...backdrop(onKeep)}>
+      <div className="flex max-w-sm flex-col gap-3 rounded-xl border border-border bg-popover p-4 text-sm shadow-lg">
+        <p>작성 중인 내용이 사라집니다. 창을 닫으시겠습니까?</p>
+        <div className="flex justify-end gap-2">
+          <button type="button" className="rounded-lg px-3 py-1.5 hover:bg-foreground/5" onClick={onKeep}>취소</button>
+          <button type="button" autoFocus disabled={busy} className="rounded-lg bg-foreground px-3 py-1.5 font-semibold text-background disabled:opacity-40" onClick={onClose}>닫기</button>
+        </div>
+      </div>
+    </div>
+  );
+}
