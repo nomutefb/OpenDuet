@@ -11,6 +11,7 @@ import "./video-editor.css";
 import { hookFrame, openInApp } from "./inapp";
 import { deliverStudio, EDIT } from "./studio-handoff";
 import { ditherGaugeCss } from "./dither-gauge";   // 「생성」 게이지 = 이미지 편집과 같은 꼴(형 11-15 영상)
+import { ToolButtons } from "./ed-keep";   // 머리 오른쪽 단추 = 옛 에디터 것 그대로(최소화 − · 닫기 × · 형 11-15)
 
 const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 3.5l1.8 4.9 4.9 1.8-4.9 1.8L12 16.9l-1.8-4.9-4.9-1.8 4.9-1.8L12 3.5z" /><path d="M19.5 15l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8.8-2.1z" /></svg>;
 /** 품은 옛 화면 바탕 = 투명(앱 배경이 비침) · 제 장면 그림(nm-scene) 끔 — 원본 파일은 안 고치고 품은 문서에만 덧씀 */
@@ -161,20 +162,23 @@ function ModeFrame({ src, title, on, edit, onTab }: { src: string; title: string
   return <iframe ref={ref} title={title} src={src} className="ved-if" data-on={on || undefined} data-nm-scene="off" aria-hidden={on ? undefined : true} tabIndex={on ? undefined : -1} allow="autoplay; clipboard-write; fullscreen; picture-in-picture" />;
 }
 
-export function VideoEditor({ onBack }: { onBack?: () => void }) {
+export function VideoEditor({ onBack, onMin, hold }: { onBack?: () => void; onMin?: () => void; hold?: boolean }) {   // hold = 접혀 있음(주소가 다른 화면 → 고르던 일을 그대로 붙듦)
   const nav = useNavigate();
   const loc = useRouterState({ select: (s) => ({ p: s.location.pathname, q: s.location.searchStr || "" }) });
-  const mode = modeOfPath(loc.p);
+  const held = useRef<VMode>(modeOfPath(loc.p));
+  if (!hold) held.current = modeOfPath(loc.p);
+  const mode = held.current;
   const [seen, setSeen] = useState<Partial<Record<VMode, string>>>({});   // 연 화면 = 그 주소(다시 넘겨받으면 새 번호 = 새로 읽음)
   const [menu, setMenu] = useState(false);
   const cur = MODES.find((m) => m.k === mode)!;
   useEffect(() => {   // 고른 일이 처음이면 그때 읽음 · 유튜브 = 넘겨받은 주소(?u=)째로
+    if (hold) return;
     setSeen((s) => {
       const u = mode === "ys" ? new URLSearchParams(loc.q).get("u") : null;
       const src = u ? `${cur.src}?u=${encodeURIComponent(u)}` : cur.src;
       return s[mode] && !u ? s : { ...s, [mode]: src };
     });
-  }, [mode, loc.q, cur.src]);
+  }, [mode, loc.q, cur.src, hold]);
   useEffect(() => {
     if (!menu) return;
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") setMenu(false); };
@@ -191,11 +195,11 @@ export function VideoEditor({ onBack }: { onBack?: () => void }) {
   return (
     <div className="tm-stage ved-stage">
       <div className="tm-head">
-        {onBack ? <button type="button" className="tm-back" aria-label="닫기" onClick={onBack}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 18l-6-6 6-6" /></svg></button> : null}
         <b className="tm-title">{SPARK}<span>영상 편집</span></b>
         <button type="button" className="tm-menu ved-pick" aria-haspopup="menu" aria-expanded={menu} aria-label={`지금 ${cur.t} · 눌러서 다른 일 고르기`} onClick={() => setMenu((v) => !v)}>
           {cur.t}<Chev dir={menu ? "up" : "down"} size={14} />
         </button>
+        <ToolButtons onMin={onMin} onClose={onBack} />
       </div>
       <div className="tm-frame ved-frame">
         {MODES.map((m) => seen[m.k] ? <ModeFrame key={m.k + "|" + seen[m.k]} src={seen[m.k]!} title={`영상 편집 · ${m.t}`} on={m.k === mode} edit={m.k === "edit"} onTab={onTab} /> : null)}

@@ -6,7 +6,7 @@ import test from "node:test";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 test("영상 편집 = 원본 edit.html 품음 · 포토와 같은 머리 · 챠콜 줄 0 · 웹앱 배경 · 카드 → 영상 넘김도 이 화면", () => {
   const sh = rd("../ui/shell.tsx"), ve = rd("../ui/video-editor.tsx"), sd = rd("../ui/studio-handoff.ts");
-  assert.match(sh, /: M\.id === "edvid" \? <VideoEditor onBack=\{closeModal\} \/>/);
+  assert.match(sh, /: <VideoEditor hold=\{modal !== t\} onBack=/);   // 접을 수 있는 창 겹 안(../ui/ed-keep.tsx · 형 11-15)
   assert.match(ve, /\{ k: "edit", t: "편집", [^}]*src: EDIT, path: "\/edvid" \}/);
   assert.match(sd, /export const EDIT = "\/edit\.html";/);   // /viewer/edit.html = 없는 파일 → 옛 첫 화면으로 떨어짐(라이브 실측)
   assert.match(sd, /\^\\\/\(viewer\\\/\)\?edit\(\\\.html\)\?\$/);
@@ -40,7 +40,7 @@ test("영상 편집 하나 안에서 고름(형 11-14 「기본 영상 편집을
     assert.ok(ve.includes(`{ k: "${k}", `) && ve.includes(`src: "${src}", path: "${path}" }`), `${k} = 옛 화면 ${src}`);
   assert.match(sh, /if \(\/\^\\\/\(edtrack\|edk\|edsb\|edys\|edsong\|edvd\|ednb\)\$\/\.test\(p\)\) return \{ modal: "edvid" \};/, "옛 서랍 칸 주소 = 영상 편집");
   assert.doesNotMatch(sh, /id: "edtrack"|id: "edk"|TrackModal|KPromptModal/, "따로 놀던 칸 0");
-  assert.match(dr, /\{ name: "만들기", ids: \["ask", "edtool", "edvid"\] \}/, "서랍 만들기 = 요약 요청 · 이미지 편집 · 영상 편집");
+  assert.match(dr, /\{ name: "만들기", ids: \["ask"\] \}/, "이미지 · 영상 편집 = 서랍에서 뺌(형 11-15 「대신 서랍에서는 없앰」)");
   assert.match(ve, /if \(!k\) \{ openInApp\(src\); return; \}/, "모르는 넘김 주소 = 옛대로 한 겹");
   assert.match(ve, /className="ved-if" data-on=\{on \|\| undefined\}/, "안 고른 화면 = 살려 둠");
   // 형 11-14 「기존 시안 라인을 라임으로 덮어씌웟는데 기존 시안은 없애서 깔끔하고 빨리뜨게」 = 그려지기 전에 색을 넣음 · 옛 청록보다 셈 · 안 보이는 3D 바탕은 안 읽음
@@ -74,7 +74,11 @@ test("「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 띠 · 한
   const css = ditherGaugeCss(".go.firing:not(.fy)", "#CFFF40");
   assert.match(css, /animation:nmDgFill \.72s [^;}]* forwards/);
   assert.doesNotMatch(css, /infinite/);
-  assert.match(css, /to\{background-size:100% 100%,0px 12px,auto/, "다 차면 띠 0");
+  assert.match(css, /to\{background-size:auto,100% 100%,36px 12px,0% 100%;background-position:0 0,left,calc\(100% \+ 36px\) 0,right\}/, "다 차면 띠는 밖으로 · 눈금 0");
+  assert.match(css, /backdrop-filter:blur\(14px\) saturate\(1\.5\)/, "유리 = 뒤 흐림(형 11-15 「투명도 넣어서 글래스모피즘」)");
+  assert.match(css, /linear-gradient\(180deg,rgba\(var\(--accent-rgb\),\.46\),rgba\(var\(--accent-rgb\),\.24\)\) left\/0% 100% no-repeat/, "채운 쪽도 비침");
+  assert.match(css, /fill-opacity%3D'0\.34'/, "점 띠도 비침");
+  assert.match(css, /color:var\(--accent\)/, "비치는 판 위 글자 = 시그니처 색");
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(rd("../ui/thumb-maker/index.tsx"), /ditherGaugeCss\("\.nm-tm \.go\.firing:not\(\.fy\)", "#CFFF40", "html\.dark "\)/);
   assert.match(rd("../ui/video-editor.tsx"), /accentCss\(dark\) \+ ditherGaugeCss\("\.go\.firing:not\(\.fy\)"/);

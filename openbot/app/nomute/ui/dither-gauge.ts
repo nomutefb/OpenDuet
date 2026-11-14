@@ -13,15 +13,18 @@ const COLS = 12, CELL = 3, BAND = COLS * CELL, ROWS = 4;
 export function bandCells(): boolean[][] {
   return Array.from({ length: ROWS }, (_, r) => Array.from({ length: COLS }, (_, c) => (BAYER4[r * 4 + (c % 4)] + 0.5) / 16 < 1 - (c + 0.5) / COLS));
 }
-export function bandSvg(color: string): string {
+export function bandSvg(color: string, alpha = 1): string {
   let d = "";
   bandCells().forEach((row, r) => row.forEach((on, c) => { if (on) d += `M${c * CELL} ${r * CELL}h${CELL}v${CELL}h-${CELL}z`; }));
-  return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${BAND}' height='${ROWS * CELL}' viewBox='0 0 ${BAND} ${ROWS * CELL}' preserveAspectRatio='none' shape-rendering='crispEdges'><path fill='${color}' d='${d}'/></svg>`)}")`;
+  return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${BAND}' height='${ROWS * CELL}' viewBox='0 0 ${BAND} ${ROWS * CELL}' preserveAspectRatio='none' shape-rendering='crispEdges'><path fill='${color}' fill-opacity='${alpha}' d='${d}'/></svg>`)}")`;
 }
-/** sel = 차오르는 단추(옛 .go.firing) · color = 시그니처 색(띠 그림은 CSS 변수를 못 읽어 글자로 넣음) · pre = 밝게/어둡게 가르는 앞머리 */
+/** sel = 차오르는 단추(옛 .go.firing) · color = 시그니처 색(띠 그림은 CSS 변수를 못 읽어 글자로 넣음) · pre = 밝게/어둡게 가르는 앞머리
+ *  유리 꼴(형 11-15 「뭔가 투명도 넣어서 글래스모피즘 넣어서 야르하게」) = 채운 쪽도 비치는 라임 유리(위 짙고 아래 옅음) · 위쪽 흰 윤기 한 겹 · 뒤 흐림 · 안쪽 윗선 빛 · 글자 = 시그니처 색(비치는 판 위라 어두운 글자 안 보임) */
 export function ditherGaugeCss(sel: string, color: string, pre = ""): string {
-  const s = `${pre}${sel}`, H = ROWS * CELL;
-  return `${s}{background:linear-gradient(var(--accent),var(--accent)) left/0% 100% no-repeat,${bandSvg(color)} 0% 0/${BAND}px ${H}px repeat-y,repeating-linear-gradient(90deg,rgba(var(--accent-rgb),.3) 0 ${BAR}px,transparent ${BAR}px ${BAR + GAP}px);animation:nmDgFill .72s var(--gauge-ease,cubic-bezier(.22,.61,.36,1)) forwards}`
-    + `@keyframes nmDgFill{from{background-size:0% 100%,${BAND}px ${H}px,auto;background-position:left,0% 0,0 0}to{background-size:100% 100%,0px ${H}px,auto;background-position:left,100% 0,0 0}}`
+  const s = `${pre}${sel}`, H = ROWS * CELL, A = "var(--accent-rgb)";
+  return `${s}{color:var(--accent);border-color:rgba(${A},.5);-webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.26),inset 0 -1px 0 rgba(0,0,0,.14),0 6px 20px rgba(${A},.16);`
+    + `background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(${A},.46),rgba(${A},.24)) left/0% 100% no-repeat,${bandSvg(color, 0.34)} 0% 0/${BAND}px ${H}px repeat-y,repeating-linear-gradient(90deg,rgba(${A},.16) 0 ${BAR}px,transparent ${BAR}px ${BAR + GAP}px) right/100% 100% no-repeat,rgba(${A},.05);animation:nmDgFill .72s var(--gauge-ease,cubic-bezier(.22,.61,.36,1)) forwards}`
+    // 띠 = 채운 끝에 딱 붙어 감(자리 = 폭 × 진행 · calc 로 띠 폭만큼 더 밀어 끝에선 밖으로 빠짐) · 눈금 = 남은 쪽에만(채운 유리 밑으로 안 비침 · 오른쪽에 붙여 줄어듦)
+    + `@keyframes nmDgFill{from{background-size:auto,0% 100%,${BAND}px ${H}px,100% 100%;background-position:0 0,left,calc(0% + 0px) 0,right}to{background-size:auto,100% 100%,${BAND}px ${H}px,0% 100%;background-position:0 0,left,calc(100% + ${BAND}px) 0,right}}`
     + `@media (prefers-reduced-motion:reduce){${s}{animation-duration:.2s}}`;
 }

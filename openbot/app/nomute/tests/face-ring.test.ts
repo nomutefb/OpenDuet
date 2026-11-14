@@ -61,8 +61,8 @@ test("고정 압정 = 무지개 고리 · 안 읽음 점 위(형 11-12 16:44 「
 test("에디터 = 위 챠콜 머리 줄 뺌 · ‹ 는 판 머리 · 뒤 = 웹앱 배경(형 11-13 02:24 · 02:26)", () => {
   assert.match(sh, /const SEE = new Set\(\["settings", "drawer", "edtool", "edvid"\]\)/);
   assert.match(sh, /\{M\.id === "edtool" \|\| M\.id === "edvid" \? null : \(/);
-  assert.match(readFileSync(new URL("../ui/ed-keep.tsx", import.meta.url), "utf8"), /<ThumbMaker onBack=\{onClose\} onMin=\{onMin\} \/>/);   // 이미지 편집 = 접어도 살아 있는 제 겹(../ui/ed-keep.tsx)
+  assert.match(sh, /<ToolKeep key=\{t\} tool=\{t\} open=\{modal === t\}/);   // 이미지 · 영상 편집 = 접어도 살아 있는 제 겹(../ui/ed-keep.tsx)
   const tm = readFileSync(new URL("../ui/thumb-maker/index.tsx", import.meta.url), "utf8");
   assert.match(tm, /\{onBack \? null : <SceneBg \/>\}/);
-  assert.match(tm, /className="tm-back" aria-label="닫기" onClick=\{onBack\}/);
+  assert.match(tm, /<ToolButtons onMin=\{onMin\} onReset=\{reset\} onClose=\{onBack\} \/>/);   // ‹ → 옛 창 머리 꼴(− ⟳ × · 형 11-15 「닫기버튼 최소화 버튼 그대로 가져옴」)
 });
