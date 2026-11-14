@@ -29,7 +29,7 @@ html.nm-has-syncver .nm-ver { display: none !important; }
 :root:not(.dark) .nm-sl-leds b:not(.bad) { color: inherit; }   /* 밝은 판 = 흰 글자 안 보임 → 글자색 그대로 */
 .nm-sl-leds b + .nm-sl-led { margin-left: 5px; }
 .nm-sl-led { display: inline-block; width: 6px; height: 6px; border-radius: 50%; vertical-align: middle; font-style: normal; flex: none;
-  background: var(--led); box-shadow: 0 0 5px 0 var(--led-glow), 0 0 0 1px rgba(0,0,0,.25); }   /* 숨쉬기 0 = 늘 켬(빛 테 = 가장 밝을 때 꼴) · 11-14 형 맥 뜨거움 실측(시아 · 정원 2560 · 숨쉬기 하나가 GPU 57% — 움직이는 게 있으면 프레임마다 유리 흐림을 다시 셈) · 앞 판 = nmSlLed 3.2s 숨쉬기 */
+  background: var(--led); box-shadow: 0 0 0 1px rgba(0,0,0,.25); }   /* 빛 테 · 숨쉬기 다 뺌 = 색 점만(형 11-14 09:34 dm-sia 「저 불빛 지우든지 맘대로해....」 · 「다 지워....」)   /* 숨쉬기 0 = 늘 켬(빛 테 = 가장 밝을 때 꼴) · 11-14 형 맥 뜨거움 실측(시아 · 정원 2560 · 숨쉬기 하나가 GPU 57% — 움직이는 게 있으면 프레임마다 유리 흐림을 다시 셈) · 앞 판 = nmSlLed 3.2s 숨쉬기 */
 .nm-sl-led.ok   { --led: #8BE36A; --led-glow: rgba(139,227,106,.55); }
 .nm-sl-led.warn { --led: #F2C94C; --led-glow: rgba(242,201,76,.55); animation-delay: -.8s; }
 .nm-sl-led.bad  { --led: #FF6B5E; --led-glow: rgba(255,107,94,.6); animation-delay: -1.6s; animation-duration: 2.4s; }

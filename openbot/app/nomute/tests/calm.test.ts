@@ -10,3 +10,6 @@ test("쉼 판정 · CSS · 불빛", () => {
   assert.doesNotMatch(rd("../ui/status-line.css"), /\.nm-sl-led \{[^}]*animation: nmSlLed/);
   assert.match(rd("../main.tsx"), /import "\.\/ui\/calm";/);
 });
+test("상태 점 = 빛 테 0(형 09:34 「다 지워」)", () => {
+  assert.match(rd("../ui/status-line.css"), /background: var\(--led\); box-shadow: 0 0 0 1px rgba\(0,0,0,\.25\); \}/);
+});
