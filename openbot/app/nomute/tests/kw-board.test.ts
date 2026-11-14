@@ -1,6 +1,7 @@
 // 홈 키워드 순위판 계산 줄(형 11-14 「3분할해서 한 7위까지만」 · 「x급상승도 … 총 4개로」 · 「중복되는 키워드는 … 라임색으로」 · 「10초뒤에 … 1분마다 바뀌면」)
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import { KW_N, kwCols, kwHits, kwNorm, kwPhase, kwSame, xMove } from "../home/kw-board-core.ts";
 
 const NOW = Date.parse("2026-11-14T21:40:00+09:00");
@@ -77,4 +78,12 @@ test("NEW 표 = 새 말이 절반 밑일 때만 · 화면 배선(PC Hot Issue �
   assert.match(rd("../home/home-screen.tsx"), /\{split \? <NewsFeed onShown=\{\(\) => shown\.current\(\)\} \/> : <div className="nm-home-swap"/);
   assert.match(rd("../home/kw-board.tsx"), /t = window\.setTimeout\(tick, KW_FIRST_MS\);/);
   assert.match(rd("../home/kw-board.tsx"), /if \(document\.hidden \|\| over\.current \|\| Date\.now\(\) < hold\.current\)/, "보는 중 · 숨은 탭 = 안 뺏음");
+});
+
+test("폰 키워드 판 넘김 = 뉴스 카드와 같은 방향(오른쪽으로 밀면 다음) · 카드 만지는 중엔 안 바꿈(형 11-15 「우로 넘기는게 안먹혀지게됨」)", () => {
+  const css = readFileSync(new URL("../home/kw-board.css", import.meta.url), "utf8"), tsx = readFileSync(new URL("../home/kw-board.tsx", import.meta.url), "utf8");
+  assert.match(css, /\.nm-kwb-cols \{ direction:rtl; \}/);
+  assert.match(css, /scroll-snap-stop:always; border-left:0; padding:0 14px; direction:ltr; \}/);
+  assert.match(tsx, /Math\.round\(Math\.abs\(el\.scrollLeft\) \/ el\.clientWidth\)/);
+  assert.match(tsx, /w\.addEventListener\("pointerdown", touch, \{ capture: true, passive: true \}\)/);
 });

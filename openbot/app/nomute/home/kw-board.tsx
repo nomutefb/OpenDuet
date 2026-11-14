@@ -28,8 +28,9 @@ export function KwBoard({ on, run }: { on: boolean; run: number }) {
   const cols = kwCols(q.data?.tr, q.data?.xt, now), hits = kwHits(cols);
   const newest = cols.map((c) => c.at).filter((a) => Number.isFinite(Date.parse(a))).sort().at(-1) || "";
   const box = useRef<HTMLDivElement>(null), [page, setPage] = useState(0);
-  const onScroll = () => { const el = box.current; if (el && el.clientWidth) setPage(Math.max(0, Math.min(cols.length - 1, Math.round(el.scrollLeft / el.clientWidth)))); };
-  const jump = (i: number) => { const el = box.current; if (el) el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" }); };
+  // 폰 = 뉴스 카드와 같은 방향(오른쪽으로 밀면 다음 줄기 · kw-board.css direction:rtl) → 스크롤 값이 0 → 음수로 감(abs · 부호 맞춤)
+  const onScroll = () => { const el = box.current; if (el && el.clientWidth) setPage(Math.max(0, Math.min(cols.length - 1, Math.round(Math.abs(el.scrollLeft) / el.clientWidth)))); };
+  const jump = (i: number) => { const el = box.current; if (el) el.scrollTo({ left: (getComputedStyle(el).direction === "rtl" ? -1 : 1) * i * el.clientWidth, behavior: "smooth" }); };
   const none = cols.every((c) => !c.items.length);
   return (
     <section className="nm-kwb" aria-label="키워드 순위" aria-hidden={on ? undefined : true} inert={on ? undefined : true}>
@@ -86,12 +87,28 @@ export function HotSwap({ children, label = "이슈" }: { children: ReactNode; l
     return () => { live = false; window.clearTimeout(t); };
   }, []);
   useEffect(() => { if (view === "kw") setRun((n) => n + 1); }, [view]);
+  // 뉴스 카드 = 품은 화면(iframe)이라 손가락 · 마우스 누름이 여기까지 안 올라옴 → 카드를 넘기는 중에도 때가 되면 키워드 판으로 바꿔 버렸음
+  //   (형 11-15 「이거 키워드 상기면서 우로 넘기는게 안먹혀지게됨」) → 품은 화면 안 누름 · 휠도 「방금 만짐」으로 쳐서 20초 미룸(보던 걸 뺏지 않음)
+  const slot = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const host = slot.current;
+    if (!host) return;
+    const touch = () => { hold.current = Date.now() + 20_000; };
+    const offs: (() => void)[] = [];
+    const bind = (f: HTMLIFrameElement) => {
+      const arm = () => { try { const w = f.contentWindow; if (!w) return; w.addEventListener("pointerdown", touch, { capture: true, passive: true }); w.addEventListener("wheel", touch, { capture: true, passive: true }); } catch { /* 남의 사이트 = 못 들음 */ } };
+      f.addEventListener("load", arm); arm();
+      offs.push(() => f.removeEventListener("load", arm));
+    };
+    host.querySelectorAll("iframe").forEach(bind);
+    return () => offs.forEach((f) => f());
+  }, []);
   const flip = () => { setView((v) => (v === "hot" ? "kw" : "hot")); arm.current(KW_EVERY_MS); };
   return (
     <section className="nm-hotswap" data-view={view} aria-label="Hot Issue · 키워드"
       onPointerEnter={(e) => { if (e.pointerType === "mouse") over.current = true; }} onPointerLeave={() => { over.current = false; }}
       onPointerDown={(e) => { if (e.pointerType !== "mouse") hold.current = Date.now() + 20_000; }}>
-      <div className="nm-hot-slot" aria-hidden={view === "hot" ? undefined : true} inert={view === "hot" ? undefined : true}>{children}</div>
+      <div ref={slot} className="nm-hot-slot" aria-hidden={view === "hot" ? undefined : true} inert={view === "hot" ? undefined : true}>{children}</div>
       <KwBoard on={view === "kw"} run={run} />
       <button type="button" className="nm-hotswap-t" aria-pressed={view === "kw"} aria-label={view === "hot" ? "키워드 순위 보기" : `${label} 보기`} title="1분마다 저절로 바뀜 · 누르면 바로" onClick={flip}>
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" /></svg>
