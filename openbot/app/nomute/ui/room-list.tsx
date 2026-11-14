@@ -302,9 +302,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
   const topBar = bar ? (
     <div className="nm-rbar">
       <b>{teamsOn ? "팀즈" : "대화"}</b>
-      {notice?.text ? <button type="button" className="nm-rbar-b" aria-label={`공지${noticeNew ? " · 새 공지" : ""}`} title={"공지 · " + notice.text.split("\n")[0].replace(/^공지\s*[—·:-]\s*/, "")} onClick={openNotice}><svg {...ico}><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>{noticeNew ? <i className="dot" /> : null}</button> : null}
       <button type="button" className="nm-rbar-b" aria-label={teamsOn ? "사무실로 바꾸기" : "팀즈로 바꾸기"} title={teamsOn ? "지금 팀즈 · 누르면 사무실" : "지금 사무실 · 누르면 팀즈"} onClick={() => setTeamsMode(!teamsOn)}>{teamsOn ? <b className="t">T</b> : <svg {...ico}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>}</button>
-      <Link to="/channels/$channelId" params={{ channelId: SUMMARY }} className={`nm-rbar-b${current === SUMMARY ? " on" : ""}`} aria-label="기사 요약" title="기사 요약" onClick={() => onOpen?.()}><svg {...ico}><path d="M15 18h-5" /><path d="M18 14h-8" /><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2" /><rect width="8" height="4" x="10" y="6" rx="1" /></svg></Link>
     </div>
   ) : null;
 
@@ -333,17 +331,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
       {membering ? <RoomMembersDialog r={membering} onClose={() => setMembering(null)} /> : null}
       {gone ? <RoomGoneDialog r={gone} onClose={() => setGone(null)} onGone={() => { if (current === gone.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
-      {bar ? null : <div className="nm-rtop">   {/* 맨 위 줄 = 공지(끝 둥글게 · 조금 짧게) + 오른쪽 기사 요약 동그라미(형 11-04 13:22 「요약실 우상단 우상단으로 보내주라 공지 라인 끝을 좀만 둘여서 동그랗게 처리하고 다시 원으로 저거 픽토그램」 · 앞 판 13:01 = 회의실 위 왼쪽) */}
-        {notice?.text ? (
-          <button type="button" className="nm-rnotice" aria-label="공지 보기·고치기" onClick={() => setNoticeOpen(true)}>
-            <svg aria-hidden viewBox="0 0 24 24" width="16" height="16"><path d="M12 17v5" /><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" /></svg>
-            <span data-content className="min-w-0 flex-1 truncate"><b>공지</b> · {notice.text.split("\n")[0].replace(/^공지\s*[—·:-]\s*/, "")}</span>
-          </button>
-        ) : null}
-        <Link to="/channels/$channelId" params={{ channelId: SUMMARY }} className={`nm-rnews${current === SUMMARY ? " on" : ""}`} aria-label="기사 요약" title="기사 요약" onClick={() => onOpen?.()}>
-          <svg aria-hidden viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18h-5" /><path d="M18 14h-8" /><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2" /><rect width="8" height="4" x="10" y="6" rx="1" /></svg>
-        </Link>
-      </div>}
+      {/* 목록 머리 공지 띠 · 기사 요약(신문) 동그라미 뺌 = 그 자리를 목록 줄로(형 11-14 23:27 dm-gik 「깃 대화목록 우상단에 신문 버튼 누르면 윈터얼굴에 예전 메뉴나와 저거 삭제해주라 그리구 공지 저거 설정에서 지정해도 이제 될거같아. … 설정 안으로 옮겨줘. 그리고 그 만큼 여백 확보해서 대화 목록 라인으로 활용해」 · 깃 #-016 · 뜸) · 공지 보기 · 고치기 = 설정 「공지 설정」(같은 noticeset 길) · 봇 깸 공지(read room=notice) = 서버 그대로 */}
       {noticeOpen ? <NoticeDialog onClose={() => setNoticeOpen(false)} /> : null}
       <ul className="nm-rgroup flex flex-col">
         {ordered.map((r) => <Fragment key={r.id}>{Row({ r })}</Fragment>)}
