@@ -5,6 +5,7 @@
 //   누르면 = 채널 요약(원본 «일단 홈 팔로워로» → 우리 앱은 앱 안 채널 요약 판 #/chan · 11-01 전엔 #/web?u=/?tab=chan 한 겹) · 10분마다 다시 읽음(원본과 같음) · 접수사항(CheckOne)은 이 자리에서 뺌(파일은 그대로 · 안 부름)
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pollOff } from "../data/poll-linux";
+import { sharedText } from "../ui/news-data";   // 3초 안 같은 주소 = 한 번만(빠르 11-14)
 
 type Row = { date: string; follower_net?: number | null; follows?: number | null; unfollows?: number | null; views?: number | null };   // views = 그날 노출(조회 · insta_data.json daily_series)
 type Chan = { profile: { followers_count: number }; generated_kst: string; daily_series?: Row[]; live_followers?: { count?: number; at?: string } };   // live_followers = 서버가 20분마다 바로 물어 온 팔로워 수(editor #3307 /api/chan · 형 11-11 18:48 「이거 갱신 3시간 전은 너무 늦구」 · 19:53 「저 팔로워만 갱신하는거 같은건」 = 봄이 옮김)
@@ -27,11 +28,11 @@ const NET = {
 };
 
 async function get(key: "ig" | "fb" | "th", file: string): Promise<Chan | null> {
-  for (const u of [`/api/chan?f=${key}`, `/${file}?ts=${Date.now()}`]) {
+  for (const u of [`/api/chan?f=${key}`, `/${file}`]) {   // 3초 안 같은 주소 = 한 번만(빠르 11-14)
     try {
-      const r = await fetch(u, { cache: "no-store", credentials: "same-origin" });
-      if (!r.ok) continue;
-      const t = await r.text();
+      const r = await sharedText(u);
+      if (r.status < 200 || r.status >= 300) continue;
+      const t = r.text;
       if (/^\s*</.test(t)) continue;   // 로그인 벽 HTML = 건너뜀
       const j = JSON.parse(t) as Chan;
       if (j && j.profile && typeof j.profile.followers_count === "number" && j.generated_kst) return j;

@@ -24,13 +24,28 @@ type Feed = { articles?: Art[]; count?: number; generated?: string };
 
 /** 파일 없음 — 404 또는 HTML(200 · Pages 가 없는 길을 index.html 로 돌림 = 아직 배포 전) */
 export class Miss extends Error {}
+/** 같은 주소를 3초 안에 여럿이 부르면 한 번만 받음(빠르 11-14 · 봄 「가」 ② · 형 09:16 「1k랑 20k … 그걸 그냥 넣었다」)
+ *  앞 판 = PC 첫 화면에서 오른쪽 뉴스 칸 · 홈 피드 · 사무실 칸이 articles.json(3.8MB)을 따로 받음(세 번) · candidates · 채널 숫자도 두 번씩
+ *  3초 = 한꺼번에 뜨는 칸들만 묶음(손으로 다시 읽기 · 15초 폴은 새로 받음) · 받은 글자만 나눔(값은 부른 쪽마다 따로 펴서 서로 안 건드림) */
+const SHARE_MS = 3000;
+const shared = new Map<string, { at: number; p: Promise<{ status: number; text: string }> }>();
+export function sharedText(url: string, init: RequestInit = {}): Promise<{ status: number; text: string }> {
+  const now = Date.now(), hit = shared.get(url);
+  if (hit && now - hit.at < SHARE_MS) return hit.p;
+  const p = fetch(url, { credentials: "same-origin", cache: "no-store", ...init }).then(async (r) => ({ status: r.status, text: r.ok ? await r.text() : "" }));
+  shared.set(url, { at: now, p });
+  p.catch(() => shared.delete(url));
+  if (shared.size > 40) for (const [k, v] of shared) if (now - v.at > SHARE_MS) shared.delete(k);
+  return p;
+}
+
 /** 같은 출처 JSON(쿠키 그대로) · 끊김 = Access 만료(302 → 다른 출처)거나 회선 */
 export async function getJson<T>(url: string): Promise<T> {
-  let r: Response;
-  try { r = await fetch(url, { credentials: "same-origin" }); } catch { throw new Error("연결이 끊겼거나 로그인이 끝났어 — 새로 고쳐 다시"); }
+  let r: { status: number; text: string };
+  try { r = await sharedText(url); } catch { throw new Error("연결이 끊겼거나 로그인이 끝났어 — 새로 고쳐 다시"); }
   if (r.status === 404) throw new Miss("404");
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const t = await r.text();
+  if (r.status < 200 || r.status >= 300) throw new Error(`HTTP ${r.status}`);
+  const t = r.text;
   if (/^\s*</.test(t)) throw new Miss("html");
   try { return JSON.parse(t) as T; } catch { throw new Error("받은 글이 JSON 이 아니야"); }
 }
@@ -39,7 +54,7 @@ export async function getJson<T>(url: string): Promise<T> {
 export const newsListQuery = queryOptions({
   queryKey: ["nomute", "news-list"], staleTime: 60_000, refetchInterval: 60_000,
   queryFn: async () => {
-    const j = await getJson<Feed>(`/articles.json?_=${Date.now()}`).catch((e) => { throw e instanceof Miss ? new Error("로그인이 끝났어 — 새로 고쳐 다시 로그인") : e; });
+    const j = await getJson<Feed>("/articles.json").catch((e) => { throw e instanceof Miss ? new Error("로그인이 끝났어 — 새로 고쳐 다시 로그인") : e; });
     const arts = (j.articles || []).filter((a) => a && a.file).sort((a, b) => (a.file < b.file ? 1 : a.file > b.file ? -1 : 0));
     return { arts, count: j.count || arts.length, generated: j.generated || "" };
   },
