@@ -105,3 +105,13 @@ test("보안 서랍 = 서버가 가려 준 꼴만 보임 · 설정 설명글 0(�
   assert.doesNotMatch(se, /자리 열쇠를 처음 한 번만 붙여 넣으면/);
   assert.doesNotMatch(pt, /진하기를 골라\./);
 });
+
+test("키워드 판 = 줄기마다 5초 → 다 보이면 Hot Issue 로(깃 #-037 · 형 11-15 06:10)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { KW_STEP_MS } = await import("../home/kw-board-core.ts");
+  assert.equal(KW_STEP_MS, 5000);
+  const tsx = readFileSync(new URL("../home/kw-board.tsx", import.meta.url), "utf8");
+  assert.match(tsx, /setView\("kw"\);/);   // 1분 시계 = Hot Issue → 키워드 만
+  assert.match(tsx, /onDone=\{\(\) => \{ setView\("hot"\); arm\.current\(KW_EVERY_MS\); \}\}/);   // 줄기 다 넘긴 뒤 돌아옴
+  assert.match(tsx, /if \(none \|\| i >= \(narrow\(\) \? n : 1\)\) \{ done\.current\?\.\(\); return; \}/);
+});
