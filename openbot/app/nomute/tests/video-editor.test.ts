@@ -52,3 +52,12 @@ test("영상 편집 하나 안에서 고름(형 11-14 「기본 영상 편집을
   assert.match(rd("../ui/news-detail.tsx"), /if \(h\[1\] === "##" && \/\^한\\s\*줄\\s\*요약\$\/\.test\(h\[2\]\.replace\(EMOJI0, ""\)\.trim\(\)\)\) continue;/, "기사 한 장 맨 위 「한줄 요약」 머리글 0(형 11-14 「뉴스 요약은 위에 요약이라는 헤더 안떠도됨」)");
   assert.match(sd, /location\.hash = u \? `#\/edys\?u=\$\{encodeURIComponent\(u\)\}` : "#\/edys";/, "카드 제작 유튜브 링크 = 영상 편집 안 유튜브");
 });
+
+test("옆 기둥 = 간격 다 같게(칸 36 · 사이 6) · 「음량」 뺌(형 11-15 「간격이 너무 좁아서 버튼 누르기가 힘든데 일정 간격 유지해 줘 볼륨은 … 없앰」)", () => {
+  const ve = rd("../ui/video-editor.tsx");
+  assert.match(ve, /#cpRailWrap \.cpv-tool,#editSpec \.gs-v\{margin:3px 0!important\}/);
+  assert.match(ve, /#cpRailWrap \.cpv-tool\{height:36px!important/);
+  assert.match(ve, /#editSpec \.gs-v\{font-size:0!important;width:36px!important;min-width:36px!important;height:36px!important;/);
+  assert.match(ve, /#editSpec \.gs-v\[data-cyc=anorm\]\{display:none!important\}/);
+  assert.doesNotMatch(ve, /data-nmv\]\{margin-bottom/, "값 글자 줄만 간격이 달라지던 덧 0");
+});
