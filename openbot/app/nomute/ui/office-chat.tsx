@@ -1557,7 +1557,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
           }}
         />)}
       </div>
-      <ProfileCard who={prof} list={list} onClose={() => setProf("")} />
+      <ProfileCard who={list.find((x) => x.who === prof)?.nocard ? "" : prof} list={list} onClose={() => setProf("")} />   {/* nocard = 프로필 카드 없는 자리(작업 알림 · 형 11-14 23:04 「쟤는 프로필 없애줘 그냥 카드랑 모두」) */}
       {peek ? <CallPeek key={peek.id} p={{ id: peek.id, face: idOf(peek.who, list), name: nmOf(list, peek.who), ts: Number((peek as { ts?: number }).ts) || 0, body: <div className="ymd"><Body m={peek} nre={nre} /></div> }} onClose={() => setPeek(null)} onSend={(t) => { const m = peek; void peekSend(m, t).catch((e) => { draftSet(`peek:${m.id}`, t); setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 알약 다시 누르면 쓰던 답 그대로`); }); }} /> : null}   {/* 보내기 = 창 바로 닫힘 · 서버는 뒤에서(형 13:19 「순간 멎는 느낌」) */}
     </div>
   );
