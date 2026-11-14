@@ -23,7 +23,8 @@ import { ChatFontRows } from "./chat-font";
 import { EnterKeyRow } from "./enter-key";
 import { ThinkMarkRow } from "./live-shine";
 import { WakeDepthRow } from "./wake-depth";
-import { PushRow } from "../push/push-row";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
+import { PushRow } from "../push/push-row";
+import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { TeamsAccount, useTeamsName } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
 import { PinTintSetting, usePinAlpha } from "./pin-tint";
 import { NomuteBots, NomuteLink, NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, NomuteVault, useBuildLine } from "./settings-extra";
@@ -105,6 +106,7 @@ export function YetaSettings() {
             {group("input", "keys", "입력 · 표시", undefined, <><EnterKeyRow /><ThinkMarkRow /></>)}
             {group("alert", "bell", "알림 · 구독", undefined, <>   {/* 받는 것 한 묶음 = 알림 켜기 · 받는 기기 · 받아 오는 채널 · 받은 알림 */}
               <PushRow />
+              <TeamsNotiRows />   {/* 팀즈 알림 폰 · PC 따로(깃 #-032 · 폰 기본 끔) */}
               {sub("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
               {sub("snsacc", "globe", "구독 채널", <Suspense fallback={null}><SnsAccModal /></Suspense>)}
               <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
@@ -151,3 +153,16 @@ export function YetaSettings() {
     </Pane>
   );
 }
+
+/** 팀즈 알림 두 줄(폰 · PC) — 형 11-15 05:20 「기본값이 모바일은 알람 안뜨기로 … pc랑 개별로 설정되서 토글되도록」 · 이 기기에 기억 */
+function TeamsNotiRow({ k, t }: { k: TeamsNotiKind; t: string }) {
+  const on = useTeamsNoti(k);
+  return (
+    <button type="button" className={`yset-item${on ? " on" : ""}`} aria-pressed={on} onClick={() => setTeamsNoti(k, !on)}>
+      <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.bell }} />
+      <span className="si-lbl"><span className="si-t">{t}</span></span>
+      <span className="si-sw" aria-hidden />
+    </button>
+  );
+}
+function TeamsNotiRows() { return <><TeamsNotiRow k="phone" t="팀즈 알림 · 폰" /><TeamsNotiRow k="pc" t="팀즈 알림 · PC" /></>; }

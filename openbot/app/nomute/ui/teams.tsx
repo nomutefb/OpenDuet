@@ -12,8 +12,6 @@ import { LOOK_ONLY } from "../data/read-state";
 import { t12 } from "./when";
 import "./teams.css";
 import { MeetIcon, OfficeIcon, TeamsIcon } from "./tab-icons";
-import { createPortal } from "react-dom";
-import { useLongPress } from "./msg-menu";
 
 export const TEAMS_PREFIX = "teams:";
 export const isTeams = (room: string) => room.startsWith(TEAMS_PREFIX);
@@ -50,29 +48,32 @@ function markSeen(chat: string, at?: string) {
 }
 const useSeen = () => useSyncExternalStore((f) => { seenSubs.add(f); return () => seenSubs.delete(f); }, seenNow, seenNow);
 
-/* 팀즈 알림 끄기(형 11-14 11:28 dm-bom 「그리구 팀즈 위에 탭 길게누르면 알림 끄기 뜨게해줘 그러면 안읽은거 알림 안나오게」 · 봄 [도움] · 뜸)
-   = 위 탭 「팀즈」를 길게(0.5초 · 글 메뉴와 같은 useLongPress) → 「알림 끄기」 · 끈 동안 = 탭 숫자 0(폰 위 탭 · PC 위 탭 둘 다) · 탭에 작은 종 꺼짐 표시 · 다시 길게 = 「알림 켜기」
-   목록 안 굵게 · 라임 점은 그대로(들어가서 보면 어디가 새 글인지는 보임) · 이 기기에 기억(기기마다 따로) */
-const MUTE_KEY = "nm-teams-mute";
+// 앞 판 = 팀즈 탭 길게 → 「알림 끄기」(형 11-14 11:28 · 뜸) → 11-15 폰 · PC 따로 토글로 갈음(아래)
+/* 팀즈 알림 = 폰 · PC 따로(깃 #-032 · 형 11-15 05:20 dm-gik 「그냥 기본값이 모바일은 알람 안뜨기로 할게. 설정에서 그거가 기본값인거로 pc랑 개별로 설정되서 토글되도록」 · 「pc인앱에서는 저거 팀즈에 말풍선 뜨는데 그 위에 종 토글 가능하게」)
+   폰 기본 끔 · PC 기본 켬 · 이 기기에 기억 · 지금 기기 = 손가락 화면(hover 없음 · 굵은 포인터)이면 폰 · 끈 동안 = 탭 숫자 0 · 앞 판 「탭 길게 → 알림 끄기」 메뉴는 설정 토글로 갈음(길게 누를 때 글자가 골라지던 것 0) */
+export type TeamsNotiKind = "phone" | "pc";
+const NOTI_KEY: Record<TeamsNotiKind, string> = { phone: "nm-teams-noti-phone", pc: "nm-teams-noti-pc" };
+const NOTI_DEF: Record<TeamsNotiKind, boolean> = { phone: false, pc: true };
 const muteSubs = new Set<() => void>();
-const readMute = () => { try { return localStorage.getItem(MUTE_KEY) === "1"; } catch { return false; } };
-export function setTeamsMuted(on: boolean) { try { if (on) localStorage.setItem(MUTE_KEY, "1"); else localStorage.removeItem(MUTE_KEY); } catch { /* 이번만 */ } muteSubs.forEach((f) => f()); }
-export const useTeamsMuted = () => useSyncExternalStore((f) => { muteSubs.add(f); return () => muteSubs.delete(f); }, readMute, () => false);
+const readNoti = (k: TeamsNotiKind) => { try { const v = localStorage.getItem(NOTI_KEY[k]); return v == null ? NOTI_DEF[k] : v === "1"; } catch { return NOTI_DEF[k]; } };
+export const teamsDevice = (): TeamsNotiKind => { try { return window.matchMedia("(hover: none) and (pointer: coarse)").matches ? "phone" : "pc"; } catch { return "pc"; } };
+export function setTeamsNoti(k: TeamsNotiKind, on: boolean) { try { localStorage.setItem(NOTI_KEY[k], on ? "1" : "0"); } catch { /* 이번만 */ } muteSubs.forEach((f) => f()); }
+const sub = (f: () => void) => { muteSubs.add(f); return () => muteSubs.delete(f); };
+export const useTeamsNoti = (k: TeamsNotiKind) => useSyncExternalStore(sub, () => readNoti(k), () => NOTI_DEF[k]);
+/** 지금 기기에서 팀즈 알림이 꺼져 있나 */
+export const useTeamsMuted = () => useSyncExternalStore(sub, () => !readNoti(teamsDevice()), () => false);
+const BELL_ON = <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0" />;
 /** 종 꺼짐 표시(탭 이름 옆 · 작게) */
-export const MutedMark = () => <svg className="nm-tmute" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="알림 꺼짐"><path d="M13.7 21a2 2 0 0 1-3.4 0" /><path d="M18.6 13A17 17 0 0 1 18 8" /><path d="M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14" /><path d="M18 8a6 6 0 0 0-9.3-5" /><path d="m2 2 20 20" /></svg>;
-/** 팀즈 탭 길게 누름 → 알림 끄기/켜기 한 칸 메뉴(글 메뉴 판 .nm-msgm 그대로) · press.fired() = 이 눌림이 길게였나(뒤따르는 탭 바꿈을 삼킴) */
-export function useTeamsMuteMenu() {
-  const muted = useTeamsMuted(), [open, setOpen] = useState(false), veil = useRef(false);
-  const press = useLongPress(() => setOpen(true));
-  const menu = open ? createPortal(
-    <div className="nm-msgm" role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) setOpen(false); }} onContextMenu={(e) => e.preventDefault()}>
-      <div className="nm-msgm-p" role="menu" aria-label="팀즈 메뉴" onPointerDown={(e) => e.stopPropagation()}>
-        <button type="button" role="menuitem" className="nm-msgm-i" onClick={() => { setTeamsMuted(!muted); setOpen(false); }}>{muted ? "알림 켜기" : "알림 끄기"}</button>
-      </div>
-    </div>,
-    document.body,
-  ) : null;
-  return { muted, press, menu };
+export const MutedMark = () => <svg className="nm-tmute" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="알림 꺼짐"><path d="M13.7 21a2 2 0 0 1-3.4 0" /><path d="M18.6 13.3A13.9 13.9 0 0 1 18 8a6 6 0 0 0-9.3-5" /><path d="M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14" /><path d="m2 2 20 20" /></svg>;
+/** PC 팀즈 탭 위 종 = 누르면 PC 알림 켬/끔(탭 바꿈 안 함 · 이 기기 기억만 = 버벅임 0) */
+export function TeamsBell() {
+  const on = useTeamsNoti("pc");
+  return (
+    <button type="button" className={`nm-tbell${on ? " on" : ""}`} aria-pressed={on} aria-label={on ? "팀즈 알림 끄기" : "팀즈 알림 켜기"} title={on ? "알림 켜짐 · 누르면 끔" : "알림 꺼짐 · 누르면 켬"}
+      onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setTeamsNoti("pc", !on); }}>
+      {on ? <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{BELL_ON}</svg> : <MutedMark />}
+    </button>
+  );
 }
 
 type Me = { configured?: boolean; signed_in?: boolean; user?: { id?: string; name?: string; upn?: string }; pending?: { user_code?: string; verification_uri?: string; expires_at?: number | string } | null };
@@ -176,18 +177,17 @@ const ago = (at?: string) => { const t = at ? Date.parse(at) : NaN; if (!Number.
 /** 폰 위 탭 「사무실 | 팀즈 | 회의」 = PC 위 탭 줄과 같은 폴더 탭(고른 탭이 아래 판과 한 몸 · 어깨 곡선) · 고른 탭만 이름까지 부드럽게 펼침 · 나머지 = 아이콘
  *  형 11-13 22:14 dm-sia 「근데 상단 탭 모양을 팀즈 그 아이콘 고르면 부드럽게 확장되는 느낌으로 하면 될듯」 · 참고 영상 96981.mp4(브라우저식 폴더 탭) */
 export function TeamsSwitch() {
-  const mode = useOfficeMode(), n = useTeamsUnread(), tm = useTeamsMuteMenu();
-  const tab = (m: OfficeMode, ic: ReactNode, name: string, extra?: ReactNode, hold?: typeof tm.press) => (
-    <button type="button" role="tab" aria-selected={mode === m} aria-label={name} className={`nm-ftab${mode === m ? " on" : ""}`} {...(hold?.bind || {})} onClick={() => { if (hold?.fired()) return; setOfficeMode(m); }}>
+  const mode = useOfficeMode(), n = useTeamsUnread(), muted = useTeamsMuted();
+  const tab = (m: OfficeMode, ic: ReactNode, name: string, extra?: ReactNode) => (
+    <button type="button" role="tab" aria-selected={mode === m} aria-label={name} className={`nm-ftab${mode === m ? " on" : ""}`} onClick={() => setOfficeMode(m)}>
       {ic}<span className="nm-ftab-nm">{name}</span>{extra}
     </button>
   );
   return (
     <div className="nm-tswitch fold" role="tablist" aria-label="대화 판 바꾸기">
       {tab("office", <OfficeIcon />, "사무실")}
-      {tab("teams", <TeamsIcon />, "팀즈", tm.muted ? <MutedMark /> : n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null, tm.press)}
+      {tab("teams", <TeamsIcon />, "팀즈", muted ? <MutedMark /> : n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null)}
       {tab("meet", <MeetIcon />, "회의")}
-      {tm.menu}
     </div>
   );
 }

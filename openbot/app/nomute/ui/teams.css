@@ -134,3 +134,8 @@
 .nm-tswitch.fold .nm-ftab .nm-tmute { position:absolute; top:3px; right:3px; margin:0; }
 .nm-tswitch.fold .nm-ftab.on .nm-tmute { position:static; margin-left:4px; }
 .nm-tswitch .nm-ftab, .nm-tab.teams { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }   /* 길게 누를 때 폰 글 고르기 · 복사 말풍선 안 뜸 */
+/* PC 팀즈 탭 위 종(깃 #-032) · 누름 칸 = 탭 높이 · 눌림 = --press-s 티어 */
+.nm-tbell { flex:none; display:grid; place-items:center; width:26px; height:26px; margin:0 -6px 0 0; border:0; border-radius:7px; background:transparent; color:inherit; opacity:.55; cursor:pointer; transition:opacity .15s, transform .15s; }
+.nm-tbell:hover, .nm-tbell.on { opacity:.85; }
+.nm-tbell:active { transform:scale(var(--press-s,.85)); }
+.nm-tbell .nm-tmute { margin:0; opacity:1; }

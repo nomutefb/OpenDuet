@@ -146,3 +146,6 @@
 .nm-tab-menu button:nth-child(12) { animation-delay:242ms; }
 .nm-tab-menu button:active { transform:none; scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.07s; }
 @media (prefers-reduced-motion: reduce) { .nm-tab-menu, .nm-tab-menu button { animation:none; } }
+/* 고정 탭(Browser · 화상 회의 · Teams) = 글자 길이만큼(깃 #-032 · 형 11-15 05:20 「피시인앱에서 탭 이모지로만 표시되서 … 픽토그램이랑 기본 글자까진 나오게」)
+   container-type 이 폭을 글자에서 떼어 놓아 72px 아래 = 이름 숨김에 걸렸었음 → 이 셋은 컨테이너 아님 */
+.nm-tab.browser, .nm-tab.meet, .nm-tab.teams { container-type:normal; }

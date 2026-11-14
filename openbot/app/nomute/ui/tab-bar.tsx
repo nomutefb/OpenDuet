@@ -11,7 +11,7 @@ import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, ta
 import { WebPane } from "./web-pane";
 import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:54 · 맥 72 다리)
 import { COBROWSE_EVENT } from "./cobrowse";
-import { MutedMark, TEAMS_PREFIX, TeamsList, isTeams, useTeamsMuteMenu, useTeamsUnread } from "./teams";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
+import { TEAMS_PREFIX, TeamsBell, TeamsList, isTeams, useTeamsUnread } from "./teams";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀즈 | 회의」 탭도 같이 씀(./teams.tsx TeamsSwitch · 형 11-13 22:14)
 
@@ -103,7 +103,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     return !r ? "" : r.with ? idOf(r.with, list) : roomAgentIds(r, list)[0] || "";
   };
   const nameOf = (t: Tab) => (t.k === "dash" ? GARDEN : t.k === "co" ? "같이 보기" : t.k === "web" ? webTabName(t.url) : t.k === "screen" ? `${list.find((p) => p.who === t.who)?.name || t.who} 화면` : roomOf(t.id)?.name || t.id);
-  const teamsNew = useTeamsUnread(), teamsMute = useTeamsMuteMenu();   // 팀즈 탭 길게 = 알림 끄기/켜기(형 11-14 11:28 · ./teams.tsx)
+  const teamsNew = useTeamsUnread();   // 팀즈 알림 켬/끔 = 탭 위 종(PC) · 설정 「알림 · 구독」(폰 · PC 따로 · 깃 #-032)
   const pickTeams = () => {   // 오른쪽 칸 = 팀즈 목록 · 왼쪽 대화 = 마지막 팀즈 대화(없으면 그대로 · 목록에서 고르면 왼쪽만 바뀜)
     setS((x) => ({ ...x, active: TEAMS }));
     const c = teamsLast();
@@ -163,17 +163,16 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
         <div role="tab" aria-selected={s.active === BROWSER} tabIndex={0} title="브라우저(맥 72 · 형 대신 로그인)" className={`nm-tab browser${s.active === BROWSER ? " on" : ""}`}
           onClick={() => setS((x) => ({ ...x, active: BROWSER }))} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setS((x) => ({ ...x, active: BROWSER })); } }}>
           <svg className="nm-tab-ic browser" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
-          <span className="nm-tab-nm">브라우저</span>
+          <span className="nm-tab-nm">Browser</span>
         </div>   {/* 브라우저 = 늘 있는 고정 탭 · 화면 = 같이 보기 다리 판(맥 72) · 못 닿으면 끼워 넣기 웹 칸(CobrowsePane 안) · 이제 형이 대신 로그인하는 칸(화상회의 단추 뺌) */}
         <div role="tab" aria-selected={s.active === MEET} tabIndex={0} title="화상회의(맥 72 화면 + 우리 대화)" className={`nm-tab meet${s.active === MEET ? " on" : ""}`}
           onClick={() => setS((x) => ({ ...x, active: MEET }))} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setS((x) => ({ ...x, active: MEET })); } }}>
-          <MeetIcon /><span className="nm-tab-nm">화상회의</span>
+          <MeetIcon /><span className="nm-tab-nm">화상 회의</span>
         </div>   {/* 화상회의 = 따로 선 들머리(형 11-13 09:21) · 열린 회의 없으면 바로 참여자 고르기 */}
         <div role="tab" aria-selected={s.active === TEAMS} tabIndex={0} title="팀즈" className={`nm-tab teams${s.active === TEAMS ? " on" : ""}`}
-          {...teamsMute.press.bind} onClick={() => { if (teamsMute.press.fired()) return; pickTeams(); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickTeams(); } }}>
-          <TeamsIcon /><span className="nm-tab-nm">팀즈</span>{teamsMute.muted ? <MutedMark /> : null}{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}   {/* 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」) */}
+          onClick={pickTeams} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickTeams(); } }}>
+          <TeamsIcon /><span className="nm-tab-nm">Teams</span><TeamsBell />{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}   {/* 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」) */}
         </div>   {/* 팀즈 = 늘 있는 고정 탭(닫기 · 끌기 없음) */}
-        {teamsMute.menu}   {/* 메뉴 = 탭 밖(포털 누름이 리액트 나무로 탭까지 올라가 탭을 바꾸지 않게) */}
         {s.tabs.filter((t) => t.k !== "dash").map((t) => {
           const key = tabKey(t), on = s.active === key, face = faceOf(t);
           return (
