@@ -825,7 +825,7 @@ function bootSpatial() {
     const elapsed = performance.now() - started;
     renderTimes.push(elapsed);
     if (renderTimes.length > 60) renderTimes.shift();
-    if (lastDraw && now > lastDraw) {
+    if (lastDraw && now > lastDraw && !root.dataset.nmSlow) {
       intervals.push(now - lastDraw);
       if (intervals.length > 90) intervals.shift();
     }
@@ -911,9 +911,11 @@ function bootSpatial() {
     const menuMoving = !reduced.matches && now < movingUntil;
     const urgent = dirty || settling || menuMoving || gliding || introActive;
 
-    const due = urgent || !frameCap || !lastDraw || now - lastDraw >= frameCap - 1;
+    const slowCap = +root.dataset.nmSlow || 0;   // 노뮤트: 글 화면 뒤에 옅게 깔릴 땐 느리게(형 11-15 「라임 지나가는 정도는 있어야 · 고화질일 필요는 없어」) — 값 = 그림 사이 ms
+    const cap = slowCap ? Math.max(frameCap, slowCap) : frameCap;
+    const due = urgent || !cap || !lastDraw || now - lastDraw >= cap - 1;
     if ((urgent || backgroundActive) && due) draw(now);
-    if (backgroundActive && !urgent) adapt(now);
+    if (backgroundActive && !urgent && !slowCap) adapt(now);   // 느리게 도는 동안은 「기기가 느리다」로 잘못 읽지 않게 화질 낮춤 판단을 쉼
     if (settling || menuMoving || gliding || introActive || backgroundActive) {
       host.dataset.motion = backgroundActive ? 'ambient' : 'settling';
       root.dataset.nmScene = 'running';

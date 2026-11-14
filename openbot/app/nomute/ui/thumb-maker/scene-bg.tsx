@@ -7,7 +7,7 @@ import { bootSpatialScene } from "./scene";
 const THREE_URL = "/vendor/three/three.module.js";
 type Handle = { dispose: () => void } | null;
 
-export function SceneBg({ className = "tm-ambient", rest = false }: { className?: string; rest?: boolean } = {}) {   // rest = 안 보이는 동안 쉼(장면 원본의 멈춤 깃발 modernCardMotion 을 빌림 · scene.ts 는 안 건드림)   // className = 받침 색 토큰 자리(카드 제작 = tm-ambient · 홈 = nm-home-ambient 라임)
+export function SceneBg({ className = "tm-ambient", slow = false }: { className?: string; slow?: boolean } = {}) {   // slow = 글 화면 뒤에 옅게 깔릴 때 = 초당 20장만(scene.ts nmSlow · 형 11-15 「고화질일 필요는 없어」)
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = host.current;
@@ -41,9 +41,7 @@ export function SceneBg({ className = "tm-ambient", rest = false }: { className?
   useEffect(() => {
     const el = host.current;
     if (!el) return;
-    if (rest) { el.dataset.modernCardMotion = "true"; return; }
-    delete el.dataset.modernCardMotion;
-    window.dispatchEvent(new Event("menu-transition"));   // 장면 깨움(scene.ts 가 듣는 신호 · 멈춘 틀을 다시 돌림)
-  }, [rest]);
+    if (slow) el.dataset.nmSlow = "50"; else delete el.dataset.nmSlow;
+  }, [slow]);
   return <div ref={host} className={className} aria-hidden />;
 }
