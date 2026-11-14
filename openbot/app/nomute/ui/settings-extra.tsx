@@ -438,7 +438,7 @@ type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean
 export function NomuteVault() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["nomute", "seatvault"], queryFn: () => office<{ seats: VaultSeat[] }>("seatvault").then((j) => j.seats || []), staleTime: 60_000 });
-  const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [ask, setAsk] = useState("");
+  const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [ask, setAsk] = useState(""), [done, setDone] = useState("");
   const put = useMutation({
     mutationFn: (v: { seat: string; value: string }) => office<{ match: boolean }>("seatvault", { method: "POST", body: JSON.stringify(v) }),
     onSuccess: (j, v) => { setDraft((d) => ({ ...d, [v.seat]: "" })); setNote((n) => ({ ...n, [v.seat]: j.match ? "넣었어 · 열쇠 맞음" : "넣었어 · 이 자리 열쇠와 안 맞아(다시 확인)" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
@@ -453,7 +453,7 @@ export function NomuteVault() {
     try {
       const j = await office<{ value: string }>("seatvault/copy", { method: "POST", body: JSON.stringify({ seat }) });
       await navigator.clipboard.writeText(j.value);
-      setNote((n) => ({ ...n, [seat]: "복사됨" }));
+      setDone(seat); window.setTimeout(() => setDone((d) => (d === seat ? "" : d)), 1800);   // 옛 에디터 modern-copy 체크 머무름(touchHold 1800)
     } catch (e) { setNote((n) => ({ ...n, [seat]: e instanceof Error ? e.message : "복사 못 했어" })); }
   };
   return (
@@ -471,7 +471,13 @@ export function NomuteVault() {
                 <input id={`vault-${s.seat}`} type="password" autoComplete="off" spellCheck={false} placeholder={s.set ? "바꿀 때만 붙여 넣기" : "열쇠 붙여 넣기"} value={draft[s.seat] || ""}
                   onChange={(e) => setDraft((d) => ({ ...d, [s.seat]: e.target.value }))} className="min-w-0 flex-1 rounded-lg border border-border bg-transparent px-2.5 py-1.5 text-sm" />
                 <button type="button" disabled={!draft[s.seat]?.trim() || put.isPending} onClick={() => put.mutate({ seat: s.seat, value: draft[s.seat].trim() })} className="rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-40">넣기</button>
-                <button type="button" disabled={!s.set} onClick={() => void copy(s.seat)} className="rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-40">복사</button>
+                <button type="button" disabled={!s.set} aria-label={done === s.seat ? "복사됨" : "복사"} onClick={() => void copy(s.seat)} className={`relative grid rounded-lg border px-3 py-1.5 text-sm transition-colors duration-200 disabled:opacity-40 ${done === s.seat ? "border-[#CFFF40] bg-[#CFFF40]/15" : "border-border"}`}>
+                  {/* 복사 → 체크 모션 = 옛 에디터 뉴스 요약 복사 단추(modern-copy · 그림 줄며 사라짐 133ms → 체크 133ms 뒤 142ms 로 나타남 · transform · opacity 만) */}
+                  <span className={`col-start-1 row-start-1 transition-[opacity,transform] ${done === s.seat ? "scale-50 opacity-0 duration-[133ms] ease-[cubic-bezier(.25,1,.5,1)]" : "scale-100 opacity-100 duration-[138ms] delay-[125ms] ease-[cubic-bezier(.42,0,.58,1)]"}`}>복사</span>
+                  <span aria-hidden className={`col-start-1 row-start-1 grid place-items-center transition-[opacity,transform] ${done === s.seat ? "scale-100 opacity-100 duration-[142ms] delay-[133ms] ease-[cubic-bezier(.42,0,.58,1)]" : "scale-50 opacity-0 duration-[121ms] ease-[cubic-bezier(.22,1,.36,1)]"}`}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+                  </span>
+                </button>
               </div>
               {!s.set ? (
                 <button type="button" disabled={mint.isPending} onClick={() => setAsk(s.seat)} className="self-start text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40">새 열쇠 만들기</button>
