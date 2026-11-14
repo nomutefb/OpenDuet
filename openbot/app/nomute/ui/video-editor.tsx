@@ -84,10 +84,13 @@ function see(el: HTMLIFrameElement) {
     rail.addEventListener("click", (ev) => { if (eat) { eat = false; ev.preventDefault(); ev.stopPropagation(); } }, true);
     rail.addEventListener("contextmenu", (ev) => { if ((ev.target as HTMLElement).closest(".gs-v, .cpv-tool, .trail-i")) ev.preventDefault(); });
   }   // 도크 밑으로 들어감 = html.nm-stuck(문서마다 한 번)
-  if (w && !w.__nmStuck) {
-    w.__nmStuck = true;
-    const d = doc, on = () => d.documentElement.classList.toggle("nm-stuck", (d.scrollingElement?.scrollTop || 0) > 1);
-    w.addEventListener("scroll", on, { passive: true }); on();
+  if (w && !(doc as Document & { __nmStuck?: boolean }).__nmStuck) {   // 표 = 문서에(창 표는 처음 about:blank 창이 같은 출처 첫 문서에 그대로 이어져서, 표만 남고 듣는 손은 옛 문서에 붙어 있었음 · 실측 11-15 05:3x)
+    (doc as Document & { __nmStuck?: boolean }).__nmStuck = true;
+    // 붙음 = 도크 바로 아래 칸이 도크 밑으로 들어갔나(모양으로 잼) · 스크롤 = 문서 어디서 나든 잡음(capture) — 앞 판은 창 scrollTop 만 봐서 몸(body)이 스크롤하는 폰에선 안 켜져 뒤 글이 비침(형 11-15 05:14 dm-gik 「그리구 이 미리보기 구간 뒤로 넘어가면 아예 안보여야 함」 · 깃 #-025 다시 · 뜸)
+    const d = doc; let raf = 0;
+    const on = () => { raf = 0; const dock = d.getElementById("topDock"); let nx = dock?.nextElementSibling as HTMLElement | null; while (nx && !nx.offsetHeight) nx = nx.nextElementSibling as HTMLElement | null;   /* 바로 아래 「보이는」 칸(숨은 .srcwrap 등 건너뜀) */ const top = Math.max(d.scrollingElement?.scrollTop || 0, d.body?.scrollTop || 0); const under = !!dock && !!nx && nx.getBoundingClientRect().top < dock.getBoundingClientRect().bottom - 1; d.documentElement.classList.toggle("nm-stuck", under || top > 1); };
+    const tick = () => { if (!raf) raf = w.requestAnimationFrame(on); };
+    d.addEventListener("scroll", tick, { passive: true, capture: true }); w.addEventListener("resize", tick, { passive: true }); on();
   }
 }
 
