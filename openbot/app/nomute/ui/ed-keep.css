@@ -20,6 +20,9 @@ html:not(.dark) .min-pick-it { background:rgba(0,0,0,.04); }
 .tool-restore.pulsing svg { animation-delay:.42s; animation-iteration-count:3; }   /* 옛 = 6초 뒤 스크립트가 끔 → 세 번(5.4초)만 */
 @keyframes nmTrIn { from { transform:scale(.3); opacity:0; } }
 .min-pick { position:absolute; right:8px; bottom:calc(var(--duet-tab-space,86px) + 110px); transform-origin:100% 100%; }
+/* 대화방 목록에 결정 단추(.nm-dec · 「+」 바로 위 46)가 뜬 화면 = ▲ 는 그 위로(같은 자리 안 겹치게) */
+.duet-face:has(.nm-pane.on .nm-dec) > .tool-restore { bottom:calc(var(--duet-tab-space,86px) + 122px); }
+.duet-face:has(.nm-pane.on .nm-dec) > .min-pick { bottom:calc(var(--duet-tab-space,86px) + 166px); }
 @media (prefers-reduced-motion:reduce){
   .nm-modal.see.nm-edkeep, .nm-modal.see.nm-edkeep.min { transition:none; transform:none; }
   .tool-restore { animation:none; }

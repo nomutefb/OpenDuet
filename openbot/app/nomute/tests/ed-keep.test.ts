@@ -63,5 +63,5 @@ test("옷 = 접힘은 숨기기만(크기 그대로) · 계속 도는 것 0 · �
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(tm, /querySelector<HTMLElement>\("#rfabMin"\)/);
   assert.match(tail, /parent\.minimizeTool/, "엔진 원본 줄 안 건드림");
-  assert.match(rd("../ui/drawer-page.tsx"), /\{ name: "만들기", ids: \["ask"\] \}/);
+  assert.doesNotMatch(rd("../ui/drawer-page.tsx"), /name: "만들기"|ids: \[[^\]]*"(ask|edtool|edvid)"/, "서랍 = 뉴스 요약 · 이미지 편집 · 영상 편집 0(형 11-15)");
 });
