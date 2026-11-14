@@ -28,3 +28,13 @@
 .nm-story-pop header button { border:0; background:none; color:inherit; font-size:var(--fs-body); cursor:pointer; padding:2px 6px; }
 .nm-story-scroll { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:8px; }
 .nm-story-pop .nm-story { background:none; border:0; border-radius:0; }
+
+/* 쓴 이 칩(형 11-15 05:09 「다른애들도 쓰면 구분되서」 · 깃 #-029) · 사진 · 영상 = 펼친 본문 아래 */
+.nm-story-who { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:2px 2px 10px; }
+.nm-story-who::-webkit-scrollbar { display:none; }
+.nm-story-who button { flex:none; display:inline-flex; align-items:center; gap:5px; padding:5px 11px 5px 6px; border-radius:999px; border:1px solid transparent; background:rgba(255,255,255,.05); color:var(--mut, rgba(232,234,232,.7)); font-size:var(--fs-label, 13px); font-weight:600; cursor:pointer; }
+.nm-story-who button:first-child { padding-left:11px; }
+.nm-story-who button.on { color:#CFFF40; background:rgba(207,255,64,.14); border-color:rgba(207,255,64,.38); }
+.nm-story-media { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:6px; padding:0 16px 16px; }
+.nm-story-media img, .nm-story-media video { display:block; width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; background:rgba(255,255,255,.04); }
+.nm-story-media video { grid-column:1 / -1; aspect-ratio:auto; max-height:60vh; object-fit:contain; background:#000; }
