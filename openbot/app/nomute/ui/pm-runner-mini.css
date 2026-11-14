@@ -27,3 +27,19 @@
 .nm-pmrun-g .nm-card-h { display: none; }
 /* 펼친 판 = 알약 아래 떠 있는 판(공지 펼침 .nm-chat-fold-pop 꼴) · 머리줄 높이(36px)를 안 밀고 · 뒤 글 위로 */
 .nm-pmrun-b { position: absolute; top: calc(100% + 6px); right: 0; z-index: 45; width: min(380px, calc(100vw - 24px)); max-height: min(64dvh, 560px); overflow-y: auto; overscroll-behavior: contain; margin-top: 0; }
+
+/* #-034(형 11-15 05:24 「좁게 부드럽게 촤라락 펼쳐지게 글래스모피즘 느낌으로 자연스럽게 버튼 부분을 기준으로」) — 단추 자리(오른쪽 위) 기준으로 한 번 펼침 · transform · opacity 만 · 흐림 = 이 판 하나(열렸을 때만 있음) · 가만히 두면 움직임 0 */
+.nm-pmrun-b { background: rgba(20, 21, 24, .78); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); border: 1px solid rgba(255, 255, 255, .1); transform-origin: top right; animation: nm-pmrun-in .22s cubic-bezier(.2, .8, .2, 1) both; }
+.nm-pmrun-b.run { width: auto; min-width: 0; padding: 10px 12px; }
+@keyframes nm-pmrun-in { from { opacity: 0; transform: translateY(-4px) scale(.94); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .nm-pmrun-b { animation: none; } }
+.nm-pmrun-kids { display: block; margin: 0; }
+.nm-pmrun-kids ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 46px); gap: 8px 6px; }
+.nm-pmrun-kids li { display: flex; flex-direction: column; align-items: center; gap: 3px; overflow: visible; opacity: .38; filter: grayscale(1); }
+.nm-pmrun-kids li.on { opacity: 1; filter: none; }
+.nm-pmrun-kids li.on img, .nm-pmrun-kids li.on i { box-shadow: 0 0 0 1.5px #CFFF40; }
+.nm-pmrun-kids li.lost { opacity: .6; }
+.nm-pmrun-kids li.lost img, .nm-pmrun-kids li.lost i { box-shadow: 0 0 0 1.5px #ff8a7a; }
+.nm-pmrun-kids img, .nm-pmrun-kids i { display: block; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: rgba(255, 255, 255, .08); }
+.nm-pmrun-kids b { min-width: 0; font-size: 10.5px; font-weight: 600; color: #e8eae8; white-space: nowrap; }
+.nm-pmrun-kids hr { border: 0; border-top: 1px solid rgba(255, 255, 255, .12); margin: 8px 0; }
