@@ -753,7 +753,7 @@
 .ypc--being .ypc-pop { position: absolute; top: 22px; right: 22px; left: auto; width: min(264px, calc(100% - 44px)); transform: none; transform-origin: top right; z-index: 6; animation: ypcPopIn .22s cubic-bezier(.2, .8, .3, 1) both; }
 @keyframes ypcPopIn { from { opacity: 0; transform: scale(.35); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ypc--being .ypc-pop { animation: none; } }
-.ypc-veil:has(> .ypc--being) { place-items: start center; padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }   /* 카드 창 = 창 위쪽에 붙여 뜸(형 11-11 06:40 dm-sia 「글구 모달이 좀 더 위쪽으로 뜨게해줘 창 기준」 · 앞 판 = 한가운데) */
+.ypc-veil:has(> .ypc--being) { place-items: center; align-items: safe center; padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 10dvh); overflow-y: auto; }   /* 카드 창 = 가운데보다 조금 위(아래 여백 10dvh 만큼 위로) · 키가 창보다 크면 위부터(safe) — 형 11-14 11:52 봄 옮김 「프로필 위치가 대화창에서 누르면 너무 위에떠서 어색해」 · 앞 판 = 창 맨 위에 붙임(형 11-11 06:40 「좀 더 위쪽으로 뜨게해줘 창 기준」) → 맨 위는 거두고 「가운데보다 위」만 남김 */
 
 /* 틀 카드(.bc-tmpl · 형 11-09 05:17 「시아 플필 기본 템플릿화해서 모두 게시」 · 뜸) — 시아 카드 몸통 그대로 · 색 = 그 애 말풍선 색(--bc-accent) · 무늬 = 고리 + 띠만 */
 .bc-tmpl { --bc-accent: #CFFF40; }
