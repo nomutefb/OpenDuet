@@ -14,6 +14,8 @@ import { useWide } from "./side";   // PC 인가(폰은 목록 그대로 · 시�
 import { GpuPanel } from "./sched-gpu";   // GPU 쓰는 일 · GPU 우선 서버(형 11-05 09:43 · 뜸)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { Num, Times } from "./room-routine";   // 시간 고르기 부품 = 방 「루틴 만들기」와 같은 것
+import { RangeBar } from "./range-bar";   // 「몇 시간마다」의 시작~끝 = 끌어서 정하는 기간 막대(형 11-15 영상)
+import { wdKo } from "./range-bar-core";
 import "./room-routine.css";
 import { BotPick } from "./bot-pick";   // 「어떤 봇」 = 부름 목록 꼴(형 11-02 02:24)
 import { ReviewBadge, ReviewBox } from "./sched-review";   // 폐기 → 검토(형 11-02 02:1x · 봄 #2092)
@@ -85,6 +87,9 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
   return (
     <div className="nm-sched-pick">
       <div className="nm-rr-quick">{QUICK.map((q) => <button key={q.label} type="button" className="nm-rr-chip" disabled={!can} onClick={() => set(q.set)}>{q.label}</button>)}</div>
+      <div className="nm-rr-seg nm-rr-freq" role="group" aria-label={`${r.name} 요일 묶음`}>
+        {([["매일", [0, 1, 2, 3, 4, 5, 6]], ["평일", [1, 2, 3, 4, 5]], ["주말", [0, 6]]] as [string, number[]][]).map(([t, w]) => <button key={t} type="button" aria-pressed={wdKo(k.wd) === t} disabled={!can} onClick={() => set({ wd: w })}>{t}</button>)}
+      </div>
       <div className="nm-rr-wd" role="group" aria-label={`${r.name} 요일`}>
         {WDK.map((w, i) => <button key={w} type="button" aria-pressed={k.wd.includes(i)} className={`nm-rr-chip${k.wd.includes(i) ? " on" : ""}`} disabled={!can} onClick={() => set({ wd: k.wd.includes(i) ? k.wd.filter((x) => x !== i) : [...k.wd, i] })}>{w}</button>)}
       </div>
@@ -93,7 +98,11 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
         <button type="button" aria-pressed={k.mode === "every"} disabled={!can} onClick={() => set({ mode: "every" })}>몇 시간마다</button>
       </div>
       {k.mode === "times" ? <Times times={k.times} onChange={(times) => set({ times })} />
-        : <div className="nm-rr-row"><Num label="몇 시간마다" value={k.every} lo={1} hi={12} onChange={(every) => set({ every })} /><span>시간마다 ·</span><Num label="시작 시" value={k.from} lo={0} hi={23} onChange={(from) => set({ from })} /><span>~</span><Num label="끝 시" value={k.to} lo={0} hi={23} onChange={(to) => set({ to })} /><span>시 ·</span><Num label="분" value={k.min} lo={0} hi={59} onChange={(min) => set({ min })} /><span>분</span></div>}
+        : <>
+          <div className="nm-rr-row"><Num label="몇 시간마다" value={k.every} lo={1} hi={12} onChange={(every) => set({ every })} /><span>시간마다 ·</span><Num label="분" value={k.min} lo={0} hi={59} onChange={(min) => set({ min })} /><span>분</span></div>
+          {/* 시작~끝 = 숫자 칸 둘 → 끌어서 정하는 기간 막대(형 11-15 영상 「스케줄 일정 조정을 기간을 이런식으로 조정 가응하게」) · 몸통 = 통째로 · 손잡이 = 그 끝만 · 놓으면 한 시간 단위에 붙음 · 끝 = 23시까지(cron 시 칸) */}
+          <RangeBar name={`${r.name} 시간대`} from={k.from} to={Math.max(k.to, k.from)} end={23} min={0} disabled={!can} sum={`${wdKo(k.wd)} · ${k.every}시간마다`} onChange={({ from, to }) => set({ from, to })} />
+        </>}
       {changed ? <div><small>{cronKo(next)}</small> <button type="button" className="nm-sched-go" disabled={busy || !ok || !can} onClick={() => send(next)}>미리 보기</button></div> : null}
     </div>
   );
