@@ -45,7 +45,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
-import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
+import { fitFrame, frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { deliverStudio } from "./studio-handoff";   // 카드 제작 → 영상 편집 넘김(품은 edit.html 이 뜨면 영상 넣기 · 번개 11-08)
 const WebPane = lazy(() => import("./web-pane").then((m) => ({ default: m.WebPane })));
 import { ModalBox } from "./modal-box";   // 큰 창 넷 = Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
@@ -126,10 +126,11 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 /** PC 반갈에서 좌우 통합(오른쪽 러너·뉴스 칸 접고 왼쪽을 다 씀) = 러너 · 서랍 · 설정(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」 · 윈터 넘김) · 오른쪽 칸은 숨김만(살려 둠 = 닫으면 다시 안 그림) */
-const SPREAD = new Set<Modal>(["runner", "botdesk", "drawer", "settings", "nedit"]);   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
+const SPREAD = new Set<Modal>(["runner", "botdesk", "drawer", "settings", "nedit", "chan", "sns"]);   // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
 // 채널 · SNS = 옛 에디터 화면 그대로 한 줄씩(형 11-14 「채널 요약은 전에 버전이 잇을거야 그거 살려서 혹시 하나의 서랍 버전으로」 · 「sns도 마찬가지 … 그 버전으로 다시 살려서 대체 … 지금거는 그러면 삿제」)
 //   = 옛 에디터 「채널 요약」 탭(/?tab=chan) · 「SNS」 탭(/?tab=trend · X 급상승 칸 = 지금 수집분 그대로) · inapp=1 = 옛 머리 · 시계 · 아래 독 숨김 · 앞 판(한눈 + 전체 보기 = ./chan · ./sns · ./trend)은 지움
-const FRAME: Partial<Record<Modal, string>> = { play: "/play/", chan: "/?tab=chan&inapp=1", sns: "/?tab=trend&inapp=1" };   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+//   only=1 = 옛 화면이 그 탭에 안 쓰는 받아오기(기사 목록 · 뉴스 후보 · 알림 묶음)를 건너뜀 = 첫 화면이 그걸 안 기다림(editor viewer-src/20-document NM_ONLY · 형 11-14 「전에 버전을 좀 더 빠르게」)
+const FRAME: Partial<Record<Modal, string>> = { play: "/play/", chan: "/?tab=chan&inapp=1&only=1", sns: "/?tab=trend&inapp=1&only=1" };   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -414,7 +415,7 @@ function FramePage({ src, title, onTitle }: { src: string; title: string; onTitl
   const ref = useRef<HTMLIFrameElement>(null);
   useEffect(() => {
     const el = ref.current;
-    const offs = [hookFrame(el), toneFrame(el)];
+    const offs = [hookFrame(el), toneFrame(el), ...(src.includes("only=1") ? [fitFrame(el)] : [])];   // only=1(채널 · SNS) = 그려지기 전에 라임 · 바탕 비움(./inapp fitFrame)
     const name = () => { try { const t = el?.contentDocument?.title; if (t && onTitle) onTitle(t); } catch { /* 남의 사이트 = 못 읽음 */ } };
     const dv = () => deliverStudio(el);
     // 판 바탕 = 품은 화면 바탕색(위 머리 띠 = 그 화면 맨 위 색 · 아래 네비 띠 = 맨 아래 색) — 앞 판은 머리 뒤만 검은 띠(형 11-14 봄의 정원 「톤온톤으로 뒤에 맞춰주셈」) · 화면이 바뀔 때마다 다시 잼

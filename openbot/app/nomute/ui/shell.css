@@ -350,10 +350,20 @@ html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; bor
 /* 봄의 정원 = 머리 제목 없이 「‹」만 작은 알약 · 색 = 뒤 화면 맨 위 색에 흰 막 한 겹(톤온톤 · --nm-frame-top = shell.tsx FramePage 가 잼) */
 .nm-modal-h.nm-mh-play { right:auto; padding:4px; background:linear-gradient(rgba(255,255,255,.08), rgba(255,255,255,.08)), color-mix(in srgb, var(--nm-frame-top, var(--duet-surface)) 80%, transparent); border-color:rgba(255,255,255,.12); box-shadow:none; }
 .nm-modal-h.nm-mh-play .nm-modal-back { color:rgba(255,255,255,.88); }
+/* 서랍 · 설정에서 들어간 화면의 머리 알약(「‹ 이름」) = 폰 · PC 다 뺌(형 11-15 「러너 등 도 상단에 들어갓읆대 헤더로 세부 메뉴바 잇는거는 다 없애줘」)
+   나가기 = 아래 네비(서랍 · 설정) · 폰 뒤로 · 화면은 그 자리부터 · 이슈 · 웹 겹(nm-mh- 없는 머리 = 닫기 · 밖에서 열기 단추가 거기 있음)과 에디터 제 머리(✦ 에디터 ⌄)는 그대로
+   위 폰 규칙들(뉴스 에디터 · 밥상 이야기 · 화상 회의록 · 채널 · SNS)은 이 규칙에 품김 — 그 줄은 남김(같은 값) */
+.nm-modal > .nm-modal-h[class*="nm-mh-"] { display:none; }
+.nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) > .nm-modal-b { padding-top:env(safe-area-inset-top); }
+.nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) > .nm-modal-b.flush > .nm-scroll { padding-top:calc(10px + env(safe-area-inset-top)); }
+.nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) .nm-ned-host { padding-top:calc(10px + env(safe-area-inset-top)); }
 @media (max-width: 767px) {
   .nm-modal-h.nm-mh-nedit { display:none; }
   .nm-modal:has(> .nm-mh-nedit) .nm-ned-host { padding-top:calc(10px + env(safe-area-inset-top)); }
   /* 폰 밥상 이야기 · 화상회의 = 머리 알약 뺌 · 목록이 그 자리부터(형 11-14 「이것도 헤더 없애주고」 · 「이것도 상단 헤더 삭제」 · 나가기 = 폰 뒤로 · 아래 네비 · PC 는 그대로) */
   .nm-modal-h.nm-mh-story, .nm-modal-h.nm-mh-meetlog { display:none; }
+  /* 폰 채널 · SNS(옛 에디터 화면) = 머리 알약 뺌 · 품은 화면이 맨 위부터(옛 화면 제 윗줄 = 출처 바꿈 · 실검 띠가 곧 머리 · 형 11-14 「이 화면에 최적화」) */
+  .nm-modal-h.nm-mh-chan, .nm-modal-h.nm-mh-sns { display:none; }
+  .nm-modal:has(> .nm-mh-chan) .nm-modal-b.frame, .nm-modal:has(> .nm-mh-sns) .nm-modal-b.frame { padding-top:env(safe-area-inset-top); }
   .nm-modal:has(> .nm-mh-story) .nm-modal-b.flush > .nm-scroll, .nm-modal:has(> .nm-mh-meetlog) .nm-modal-b.flush > .nm-scroll { padding-top:calc(10px + env(safe-area-inset-top)); }
 }
