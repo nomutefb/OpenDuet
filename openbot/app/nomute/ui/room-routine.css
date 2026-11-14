@@ -1,6 +1,7 @@
 /* 단체방 루틴 시트(형 10-31 「n일 몇회, 모든 주기를 효율적으로 커버가능하도록 uiux를 구성해줘.」) — 고정 이력 시트와 같은 꼴 · 방 상단 안에서 열려서 body 로 띄움 */
 .nm-rr { position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); animation:ypickIn .2s var(--ease) both; }
 .nm-rr-b { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:10px; padding:calc(70px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); }
+.nm-rr-fields { display:flex; flex-direction:column; gap:inherit; min-inline-size:0; margin:0; padding:0; border:0; }
 .nm-rr-quick, .nm-rr-times, .nm-rr-wd, .nm-rr-crew { display:flex; flex-wrap:wrap; gap:6px; }
 .nm-rr-chip { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg-2); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
 .nm-rr-chip.on { background:rgba(var(--accent-rgb),.16); border-color:rgba(var(--accent-rgb),.38); color:var(--accent); }
