@@ -10,6 +10,7 @@ import "./thumb-maker/frame.css";
 import "./video-editor.css";
 import { hookFrame, openInApp } from "./inapp";
 import { deliverStudio, EDIT } from "./studio-handoff";
+import { ditherGaugeCss } from "./dither-gauge";   // 「생성」 게이지 = 이미지 편집과 같은 꼴(형 11-15 영상)
 
 const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 3.5l1.8 4.9 4.9 1.8-4.9 1.8L12 16.9l-1.8-4.9-4.9-1.8 4.9-1.8L12 3.5z" /><path d="M19.5 15l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8.8-2.1z" /></svg>;
 /** 품은 옛 화면 바탕 = 투명(앱 배경이 비침) · 제 장면 그림(nm-scene) 끔 — 원본 파일은 안 고치고 품은 문서에만 덧씀 */
@@ -55,7 +56,8 @@ function see(el: HTMLIFrameElement) {
   if (!doc?.head) return;
   let s = doc.getElementById("nm-ved-see") as HTMLStyleElement | null;
   if (!s) { s = doc.createElement("style"); s.id = "nm-ved-see"; }
-  const css = SEE_CSS + RAIL_CSS + accentCss(document.documentElement.classList.contains("dark"));
+  const dark = document.documentElement.classList.contains("dark");
+  const css = SEE_CSS + RAIL_CSS + accentCss(dark) + ditherGaugeCss(".go.firing:not(.fy)", dark ? "#CFFF40" : "#4f7a00");
   if (s.textContent !== css) s.textContent = css;
   if (doc.head.lastElementChild !== s) doc.head.appendChild(s);   // 늘 맨 끝(그려지기 전에 먼저 넣으면 옛 화면 제 스타일이 뒤에 붙음 → 다 읽은 때 다시 맨 끝으로)
   const w = doc.defaultView as (Window & { __nmStuck?: boolean; __nmRail?: boolean }) | null;

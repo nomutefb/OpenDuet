@@ -61,3 +61,20 @@ test("옆 기둥 = 간격 다 같게(칸 36 · 사이 6) · 「음량」 뺌(형
   assert.match(ve, /#editSpec \.gs-v\[data-cyc=anorm\]\{display:none!important\}/);
   assert.doesNotMatch(ve, /data-nmv\]\{margin-bottom/, "값 글자 줄만 간격이 달라지던 덧 0");
 });
+
+test("「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 띠 · 한 번만(형 11-15 영상 「게이지 참고 60프레임」) · 이미지 · 영상 편집 같은 꼴", async () => {
+  const { BAYER4, BAR, GAP, bandCells, ditherGaugeCss } = await import("../ui/dither-gauge.ts");
+  assert.deepEqual(BAYER4, [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5], "paper-shaders bayer4x4 그대로");
+  assert.deepEqual([BAR, GAP], [3, 4], "bencho WakeSlider 눈금");
+  const on = bandCells()[0].map((_, c) => bandCells().filter((r) => r[c]).length);
+  assert.ok(on[0] >= 3, "채운 쪽 = 거의 꽉 참");
+  assert.equal(on[on.length - 1], 0, "끝 = 빔");
+  for (let c = 1; c < on.length; c++) assert.ok(on[c] <= on[c - 1], "오른쪽으로 갈수록 성김");
+  const css = ditherGaugeCss(".go.firing:not(.fy)", "#CFFF40");
+  assert.match(css, /animation:nmDgFill \.72s [^;}]* forwards/);
+  assert.doesNotMatch(css, /infinite/);
+  assert.match(css, /to\{background-size:100% 100%,0px 12px,auto/, "다 차면 띠 0");
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(rd("../ui/thumb-maker/index.tsx"), /ditherGaugeCss\("\.nm-tm \.go\.firing:not\(\.fy\)", "#CFFF40", "html\.dark "\)/);
+  assert.match(rd("../ui/video-editor.tsx"), /accentCss\(dark\) \+ ditherGaugeCss\("\.go\.firing:not\(\.fy\)"/);
+});
