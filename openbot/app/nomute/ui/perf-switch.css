@@ -1,0 +1,9 @@
+/* 무게 재기 스위치(./perf-switch.ts · 봄 11-14 09:15) — html.perf-no-<키> */
+html.perf-no-glass *, html.perf-no-glass *::before, html.perf-no-glass *::after { backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+html.perf-no-arc .nm-arc { animation:none !important; }
+html.perf-no-rainbow .nm-face.on, html.perf-no-rainbow .nm-face.on::before, html.perf-no-rainbow .nm-face.on::after { animation:none !important; }
+html.perf-no-stripe .t-shimmer, html.perf-no-stripe [class*="prog"] em { animation:none !important; }
+html.perf-no-dots .ytdots i, html.perf-no-dots .nm-lazy i { animation:none !important; }
+html.perf-no-leds .nm-sl-led, html.perf-no-leds .live { animation:none !important; }
+html.perf-no-bg .nm-scene-canvas, html.perf-no-bg [class*="wavebg"], html.perf-no-bg [class*="WaveBg"] { animation:none !important; display:none !important; }
+html.perf-no-all *, html.perf-no-all *::before, html.perf-no-all *::after { animation:none !important; transition:none !important; }

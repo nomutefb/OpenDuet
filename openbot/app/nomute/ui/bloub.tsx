@@ -47,6 +47,7 @@ function run() {
     for (const b of live) if (!b.el.isConnected) { live.delete(b); seen?.unobserve(b.el); }
     if (!live.size) return;
     if (bloubIdle(now, touched)) return;   // 쉼 = rAF 0(손 대면 wake())
+    if (document.documentElement.classList.contains("perf-no-face")) return;   // 무게 재기 ?perf=face(./perf-switch.ts)
     if (bloubDue(now, last, touched)) { last = now; const t = still ? 0 : (now - t0) / 1000; live.forEach((b) => { if (b.vis) draw(b, t); }); }
     if (!still && !document.hidden && [...live].some((b) => b.vis)) raf = requestAnimationFrame(step);
   };
