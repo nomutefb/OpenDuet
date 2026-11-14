@@ -11,6 +11,7 @@ import { memo, useEffect, useRef } from "react";
 import { startEngine } from "./engine";
 import { THUMB_HTML } from "./markup";
 import { SceneBg } from "./scene-bg";
+import { RAIL_ICON_CSS, railIcons } from "./rail-icons";   // 옆 기둥 글자 → 그림 단추(영상 편집 꼴 · 형 11-14 11:29 · 봄 11:47 ④)
 import { studioRoute } from "../studio-handoff";   // 「영상 편집으로」·「유튜브 링크로 숏폼」 = 옛 화면을 앱 안 한 겹으로(번개 11-08)
 
 const HTML = { __html: THUMB_HTML };
@@ -26,7 +27,8 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack }: { onBack?: () => 
     const w = window as Window & { __nmStudioRoute?: typeof studioRoute };
     w.__nmStudioRoute = studioRoute;   // 엔진이 켜질 때 studioRouteFn 이 보도록 먼저
     const stop = startEngine(root.current, body.current, frame.current, scroller.current);
-    return () => { if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
+    const offRail = railIcons(root.current);
+    return () => { offRail(); if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
   }, []);
   useEffect(() => {   // 내용이 미리보기 도크 밑으로 들어갔나 = data-stuck(./frame.css 맨 아래 · 비침 고침)
     const s = scroller.current, r = root.current;
@@ -38,6 +40,7 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack }: { onBack?: () => 
   return (
     <div className="tm-stage">
       {onBack ? null : <SceneBg />}   {/* 앱 안 = 제 장면 대신 웹앱 배경이 비침(형 11-13 02:26 「뒤에 지금 인앱 배경을 깔아버리면 될듯」 · 껍데기 .nm-modal.see) */}
+      <style>{RAIL_ICON_CSS}</style>
       <div className="tm-head">
         {onBack ? <button type="button" className="tm-back" aria-label="닫기" onClick={onBack}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 18l-6-6 6-6" /></svg></button> : null}
         <b className="tm-title">{SPARK}<span>에디터</span></b>
