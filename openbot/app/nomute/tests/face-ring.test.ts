@@ -38,12 +38,14 @@ test("띠 얼굴 채도 = 형과 1:1 대화한 지 오래될수록 · 바닥 25%
   assert.ok(!rl.includes("--face-sat"), "폰 목록은 안 입힘");
 });
 
-test("고정 표시 = 줄 왼쪽 라임 세로줄 · 압정 그림 뺌(형 11-14 23:07 「고정을 하면 좌측에 일자 라인 저거 라임색으로 들어가는거로 대체하고 고정 핀 보이는거는 뺄게.」 · 앞 판 = 압정 한 벌 · 봄 11-12)", () => {
+test("고정 표시 = 줄 바탕 고유색 · 단체방 라임 · 진하기 설정 · 왼쪽 줄 · 압정 0(형 11-14 23:39 「고정하면 그냥 그 프로필 고유색 20% 가 라인에 칠해지능거로 대신할게. 단체방들은 라임색20이 고정인거고. 좌측 라인은 삭제」 · 앞 판 = 왼쪽 라임 줄 23:07 · 압정 한 벌 봄 11-12)", () => {
   const rl = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8");
   const rc = readFileSync(new URL("../ui/room-color.css", import.meta.url), "utf8");
+  const pt = readFileSync(new URL("../ui/pin-tint.tsx", import.meta.url), "utf8");
   assert.ok(!/<PinMark /.test(sh) && !/<PinMark /.test(rl), "압정 그림 0(PC 띠 · 폰 목록)");
-  assert.match(rl, /" pinned"/);
-  assert.match(rc, /\.nm-rrow\.pinned[^{]*\{ box-shadow:inset 3px 0 0 #CFFF40; \}/);
+  assert.ok(!/inset 3px 0 0 #CFFF40/.test(rc), "왼쪽 라임 줄 0");
+  assert.match(rl, /pinTint\(r\.with \? list\.find/);
+  assert.match(pt, /LIME = "#CFFF40", DEF = 20/);
   assert.ok(!rl.includes("📌</span>"), "폰 목록 📌 글자 걷음");
   const pm = readFileSync(new URL("../ui/pin-mark.tsx", import.meta.url), "utf8");
   assert.match(pm, /export function PinMark/);
