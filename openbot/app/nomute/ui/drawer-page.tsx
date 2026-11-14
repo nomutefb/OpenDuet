@@ -5,7 +5,6 @@ import { DuetIcon } from "@/components/duet/icons";
 import { MODALS, type Modal } from "./shell";
 import { YICO } from "./yeta-icons";
 import "./yeta-settings.css";   // 설정과 같은 판(형 11-01 「톤이 맞아야되거든」 · .yset-part · .yset-grp · .yset-item)
-import { useRepairWaiting } from "./repair-count";   // 수리 접수 숫자 = 형 결정 대기 + 접수 방 안 읽은 글(형 11-14)
 
 // 묶음 = 에디터 독 차례(뉴스 → 모으기 → 만들기)를 서랍으로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘」 · 한눈 = 앱 네이티브 · 전체 = 에디터 화면 그대로라 기능이 안 빠짐)
 // 서랍 정리(형 11-14 클라우드 세션 창 「서랍중에 보면 안쓰는것들 좀 많아 … 이기회에 없앨게」 — 줄마다 형이 정함):
@@ -15,15 +14,15 @@ import { useRepairWaiting } from "./repair-count";   // 수리 접수 숫자 = �
 //   LEGACY · 구독 채널 = 혼자 남는 묶음이라 「뉴스」로(형이 따로 안 말한 둘 · 묶음 하나에 줄 하나는 안 둠)
 const PARTS: { name: string; ids: Modal[] }[] = [
   { name: "만들기", ids: ["ask", "edtool", "edvid"] },   // 이미지 편집 하나 · 영상 편집 하나(형 11-14 「이미지 편집 1개, 영상 편집 1개 이렇게만 잇엇거든」) — 트래킹 · 프롬프팅 · 스토리보드 · 유튜브 · 음원 · 큐영상 · 미디어 요약 = 영상 편집 안에서 고름(./video-editor.tsx MODES) · 번역카드 · 변환 · 다운로드 = 아예 지움 · AI 썸네일 = 설정 「AI 썸네일 옵션」
-  { name: "일", ids: ["tasks", "sched", "runner", "meetlog"] },   // 피드백 = 숨김(형 11-14 「피드백은 숨겨 주고」 · 길 #/feedback 은 그대로)   // tasks = 「수리 접수」(옛 할 일 자리 · ./repair-page.tsx)
+  { name: "일", ids: ["sched", "runner", "meetlog"] },   // 수리 접수 = 메뉴에서 뺌(형 11-14 「수리접수는 이제 그냥 삭제 아예 메뉴 없애」 · 길 #/tasks 는 옛 알림 링크 때문에 남김)   // 피드백 = 숨김(형 11-14 「피드백은 숨겨 주고」 · 길 #/feedback 은 그대로)   // tasks = 「수리 접수」(옛 할 일 자리 · ./repair-page.tsx)
   { name: "우리", ids: ["story", "play"] },
-  { name: "뉴스", ids: ["sns", "chan", "edsnsacc", "edsensor"] },   // 썸네일 이력(이미지 편집 아래에 이미 있음) · 대기열 · LEGACY = 숨김(길은 그대로) · 알림 = 설정 「받은 알림」(형 11-14) → 남은 넷을 한 묶음으로
+  { name: "뉴스", ids: ["sns", "chan", "edsensor"] },   // 구독 채널 = 설정 「알림 · 구독」으로(형 11-14 「구독채널은 설정으로 보내서 관련된거랑 가능하면 기능 합치고」)   // 썸네일 이력(이미지 편집 아래에 이미 있음) · 대기열 · LEGACY = 숨김(길은 그대로) · 알림 = 설정 「받은 알림」(형 11-14) → 남은 넷을 한 묶음으로
 ];
 const LABEL: Partial<Record<Modal, string>> = { chan: "채널", edtool: "이미지 편집" };   // 서랍에서만 다른 이름(한눈 + 전체 = 「채널」 · 에디터 = 「이미지 편집」)
 const go = (id: Modal) => { try { sessionStorage.setItem("nm-from-drawer", id); } catch { /* 못 쓰면 「<」 = 옛 길 */ } };
 
 export function DrawerPage() {
-  const nav = useNavigate(), waiting = useRepairWaiting();
+  const nav = useNavigate();
   return (
     <div className="nm-drawer-page mx-auto flex w-full max-w-3xl flex-col px-4 pb-12 pt-4"><div className="yeta-set yset-short mt-2">
       {PARTS.map((p) => (
@@ -35,7 +34,6 @@ export function DrawerPage() {
                 <span className="si-ic" aria-hidden><DuetIcon name={m.icon} size={21} /></span>
                 <span className="si-lbl"><span className="si-t">{LABEL[id] || m.label}</span></span>   {/* 부제(desc) 줄 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」 · 칸 값은 shell.tsx 에 남음) */}
                 <span className="si-v">
-                  {id === "tasks" && waiting > 0 ? <b className="nm-rcount">{waiting > 99 ? "99+" : waiting}</b> : null}
                   <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />
                 </span>
               </button>

@@ -279,7 +279,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               {M.id === "edtool" || M.id === "edvid" ? null : (   /* 에디터 = 위 챠콜 머리 줄 통째로 뺌 · ‹ 는 판 머리 「✦ 에디터」 왼쪽(형 11-13 02:24 봄 1:1 「글자를 없애는거 말구, 그냥 위에 네비 챠콜색 저 라인을 다 없애면됨」 · 앞 판 = 글자만 뺌) */
                 <div className={`nm-modal-h nm-mh-${M.id}`}>   {/* nm-mh-<id> = 판마다 폰에서 머리 줄 끄기(뉴스 에디터 · 형 11-14 06:58 봄 옮김 「상단 뉴스이디터 없어도 됨」 · shell.css) */}
                   <button type="button" className="nm-modal-back" aria-label="닫기" onClick={closeModal}><DuetIcon name="chevronLeft" size={20} /></button>
-                  <b>{M.label}</b>
+                  {M.id === "play" ? null : <b>{M.label}</b>}   {/* 봄의 정원 = 머리 제목 뺌(화면 안에 큰 제목이 이미 있음 · 형 11-14 「여기 헤더에 있는 타이틀은 없애줘」) */}
                 </div>
               )}
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" || M.id === "edvid" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
@@ -417,8 +417,21 @@ function FramePage({ src, title, onTitle }: { src: string; title: string; onTitl
     const offs = [hookFrame(el), toneFrame(el)];
     const name = () => { try { const t = el?.contentDocument?.title; if (t && onTitle) onTitle(t); } catch { /* 남의 사이트 = 못 읽음 */ } };
     const dv = () => deliverStudio(el);
-    el?.addEventListener("load", name); el?.addEventListener("load", dv);
-    return () => { offs.forEach((f) => f()); el?.removeEventListener("load", name); el?.removeEventListener("load", dv); };
+    // 판 바탕 = 품은 화면 바탕색(위 머리 띠 = 그 화면 맨 위 색 · 아래 네비 띠 = 맨 아래 색) — 앞 판은 머리 뒤만 검은 띠(형 11-14 봄의 정원 「톤온톤으로 뒤에 맞춰주셈」) · 화면이 바뀔 때마다 다시 잼
+    const box = el?.closest<HTMLElement>(".nm-modal") || null;
+    const tone = () => {
+      try {
+        const d = el?.contentDocument, w = d?.defaultView;
+        if (!d?.body || !w || !box) return;
+        const cs = w.getComputedStyle(d.body), stops = (cs.backgroundImage || "").match(/rgba?\([^)]+\)/g) || [];
+        const solid = (c: string) => (c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c) ? c : "");
+        const top = stops[0] || solid(cs.backgroundColor) || solid(w.getComputedStyle(d.documentElement).backgroundColor), bot = stops[stops.length - 1] || top;
+        if (!top) { box.style.removeProperty("background"); box.style.removeProperty("--nm-frame-top"); return; }
+        box.style.setProperty("--nm-frame-top", top); box.style.background = `linear-gradient(${top} 50%, ${bot} 50%)`;
+      } catch { /* 남의 사이트 = 못 읽음 → 그대로 */ }
+    };
+    el?.addEventListener("load", name); el?.addEventListener("load", dv); el?.addEventListener("load", tone);
+    return () => { offs.forEach((f) => f()); el?.removeEventListener("load", name); el?.removeEventListener("load", dv); el?.removeEventListener("load", tone); box?.style.removeProperty("background"); box?.style.removeProperty("--nm-frame-top"); };
   }, [src]);   // eslint-disable-line react-hooks/exhaustive-deps
   return <iframe ref={ref} title={title} src={src} className="nm-modal-frame" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" />;
 }

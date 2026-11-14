@@ -247,7 +247,11 @@ export function MeetLogList() {
         <div key={r.key} className="nm-meetlog-row">
           <button type="button" onClick={() => setOpen(open === r.key ? "" : r.key)} aria-expanded={open === r.key}>
             <b>{r.key.slice(0, 16)} · {r.title}</b>
-            <small>{(r.members || []).map((n) => nameOf(n)).join(" · ")}{r.topic ? ` — ${r.topic}` : ""} · 글 {r.n}</small>
+            {/* 참여자 · 내용 = 블릿 두 줄로 나눔(형 11-14 「내용에 블릿으로 참여자 : 줄바꾸고 내용 : 나와서 구분되게」 · 앞 판 = 한 줄에 이어 붙음) */}
+            <ul className="nm-ml-meta">
+              <li><i>참여자 :</i> {(r.members || []).map((n) => nameOf(n)).join(" · ") || "없음"}</li>
+              <li><i>내용 :</i> {r.topic ? `${r.topic} · ` : ""}글 {r.n}</li>
+            </ul>
           </button>
           {open === r.key ? (
             <div className="nm-meetlog-body">

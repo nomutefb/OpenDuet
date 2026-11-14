@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, Suspense, lazy, useState } from "react";
 const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModal })));   // 화면 잠금 · 구독 기기 = 서랍에서 설정으로(형 11-14 「화면 잠금 > 설정으로」 · 「구독 기기 > 설정으로」)
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));
+const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 구독 채널 = 서랍 「뉴스」에서 설정 「알림 · 구독」으로(형 11-14 「구독채널은 설정으로 보내서 관련된거랑 가능하면 기능 합치고」 · 화면 = 그대로 ./snsacc)
 const GenOptModal = lazy(() => import("./genopt").then((m) => ({ default: m.GenOptModal })));   // AI 썸네일 옵션 = 서랍 「AI 썸네일·이미지」를 간추려 여기로(형 11-14)
 import { Pane } from "./pane";
 import { useTheme } from "@/components/theme-provider";
@@ -100,9 +101,10 @@ export function YetaSettings() {
             </>)}
             {group("font", "type", "글꼴", undefined, <ChatFontRows />)}
             {group("input", "keys", "입력 · 표시", undefined, <><EnterKeyRow /><ThinkMarkRow /></>)}
-            {group("alert", "bell", "알림", undefined, <>
+            {group("alert", "bell", "알림 · 구독", undefined, <>   {/* 받는 것 한 묶음 = 알림 켜기 · 받는 기기 · 받아 오는 채널 · 받은 알림 */}
               <PushRow />
               {sub("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
+              {sub("snsacc", "globe", "구독 채널", <Suspense fallback={null}><SnsAccModal /></Suspense>)}
               <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
             </>)}
             {group("hide", "screen", "가림 · 잠금", undefined, <>
