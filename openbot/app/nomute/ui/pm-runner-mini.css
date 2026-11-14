@@ -29,7 +29,7 @@
 .nm-pmrun-b { position: absolute; top: calc(100% + 6px); right: 0; z-index: 45; width: min(380px, calc(100vw - 24px)); max-height: min(64dvh, 560px); overflow-y: auto; overscroll-behavior: contain; margin-top: 0; }
 
 /* #-034(형 11-15 05:24 「좁게 부드럽게 촤라락 펼쳐지게 글래스모피즘 느낌으로 자연스럽게 버튼 부분을 기준으로」) — 단추 자리(오른쪽 위) 기준으로 한 번 펼침 · transform · opacity 만 · 흐림 = 이 판 하나(열렸을 때만 있음) · 가만히 두면 움직임 0 */
-.nm-pmrun-b { background: rgba(20, 21, 24, .88); -webkit-backdrop-filter: blur(20px) saturate(1.2); backdrop-filter: blur(20px) saturate(1.2); border: 1px solid rgba(255, 255, 255, .1); transform-origin: top right; animation: nm-pmrun-in .22s cubic-bezier(.2, .8, .2, 1) both; }
+.nm-pmrun-b { background: rgba(20, 21, 24, .96);   /* 실물(11-15 08:08): 머리줄 쪽 쌓임 탓에 흐림이 뒤 대화를 못 잡아 .88 이면 뒤 글이 그대로 읽힘 → 거의 불투명 · 흐림 뺌(먹는 것 줄어듦) */ border: 1px solid rgba(255, 255, 255, .1); transform-origin: top right; animation: nm-pmrun-in .22s cubic-bezier(.2, .8, .2, 1) both; }
 .nm-pmrun-b.run { width: auto; min-width: 0; padding: 10px 12px; }
 @keyframes nm-pmrun-in { from { opacity: 0; transform: translateY(-4px) scale(.94); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .nm-pmrun-b { animation: none; } }
