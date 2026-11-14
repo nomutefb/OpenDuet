@@ -13,6 +13,7 @@ const pickRow = <R extends { key: string; stale?: boolean; reported_at?: number 
 import { type HealthSt, HEALTH_KO, StatusDot, agoKo, cronKo } from "./sched-bits";
 import { ACT_KO, ACT_ORDER, actSum } from "./activity-sum";
 import { ActivityFaces } from "./activity-faces";
+import type { SigStep } from "./signal-trace";
 import { type HeatCell, MatrixHeat } from "./lieflat-charts";
 import "./sched-status.css";
 import "./yeta-settings.css";
@@ -21,7 +22,7 @@ import "./status-board.css";
 import { NextWinCells } from "./next-win";   // 다음 창 모델 · 노력도(형 11-12 16:17 「짓자 거기서 변경하면 연동되게」)
 
 type Cell = { st: HealthSt; note?: string; label?: string };
-export type StatusRow = { key: string; name: string; st: HealthSt; last_at?: number; next_at?: number; left_days?: number; value?: string; note?: string; cron?: string[]; zone?: string; cells?: Record<string, Cell>; state?: string; ready?: boolean };   // state · ready = 활동 칸(서버 _activity.js)
+export type StatusRow = { key: string; name: string; st: HealthSt; last_at?: number; next_at?: number; left_days?: number; value?: string; note?: string; cron?: string[]; zone?: string; cells?: Record<string, Cell>; state?: string; ready?: boolean; step?: SigStep; door_at?: number };   // state · ready · step(그록 부름 → 받음 → 들어옴) · door_at(문 확인 때) = 활동 칸(서버 _activity.js)
 export type StatusCat = { id: string; name: string; rows: StatusRow[]; cols?: { id: string; name: string }[]; at?: number; grp?: string };
 
 // 몸 = 정본 한 장(../data/bodies · 서버 GET status bodies · claude-state 공통/정본/몸.json) — 이 파일엔 몸 이름을 따로 안 적음
@@ -469,9 +470,9 @@ export function StatusBoard() {
         return (
           <Fragment key={c.id}>
             {g && GROUPS.includes(g) ? <h3 className="nsb-grp" data-st={worst(gr)}><StatusDot st={worst(gr)} />{g}<small>● {count(gr, "ok")}{count(gr, "late") ? ` · ▲ ${count(gr, "late")}` : ""}{count(gr, "miss") ? ` · ✕ ${count(gr, "miss")}` : ""}{count(gr, "unknown") ? ` · ○ ${count(gr, "unknown")}` : ""}</small></h3> : null}
-          <section className="nsb-cat" data-st={w}>
+          <section className="nsb-cat" data-st={w} data-cat={c.id}>
             <button type="button" className="nsb-ch" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [c.id]: !isOpen }))}>
-              <StatusDot st={w} /><b>{c.name}</b>
+              <StatusDot st={as ? (as.lost ? "unknown" : "ok") : w} /><b>{c.name}</b>{/* 활동 칸 = 빨간 표 대신 빈 고리(멈춤 수는 옆 글자가 말함 · 형 11-14 「빨간색 … 안해도돼」) */}
               {as ? isOpen ? null : <span className="nsb-cnt nsb-act">{ACT_ORDER.filter((k) => as[k] || k === "lost" || k === "ready").map((k) => <span key={k} data-act={k} data-zero={!as[k] || undefined}>{ACT_KO[k]} <b>{as[k]}</b></span>)}</span>
                 : <span className="nsb-cnt">{count(c.rows, "miss") ? <em>✕ {count(c.rows, "miss")}</em> : null}{count(c.rows, "late") ? <i>▲ {count(c.rows, "late")}</i> : null}<small>{c.rows.length}</small></span>}
             </button>

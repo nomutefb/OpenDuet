@@ -3,8 +3,9 @@
 //   얼굴 누름 = 그 줄의 까닭(서버가 준 note 그대로) · 판정은 서버 것만 읽는다(./activity-sum)
 import { FaceImg } from "./faces";
 import { ACT_KO, ACT_ORDER, type ActKind, actKind } from "./activity-sum";
+import { SignalTrace, type SigStep } from "./signal-trace";   // 그록봇 = 부름 → 받음 → 들어옴 자국(끊긴 자리가 그림으로 보임 · 빨강 없이)
 
-type Row = { key: string; name: string; value?: string; state?: string; ready?: boolean; note?: string };
+type Row = { key: string; name: string; value?: string; state?: string; ready?: boolean; note?: string; step?: SigStep };
 
 /** 얼굴 밑 한 마디 = 멈춤만(까닭) · 나머지는 갈래 이름이 이미 말한다 */
 export const actSub = (r: Row, k: ActKind) => (k === "lost" ? String(r.value || "").replace(/^멈춤\s*·?\s*/, "") || "멈춤" : "");
@@ -25,6 +26,7 @@ export function ActivityFaces({ rows, pick, setPick }: { rows: Row[]; pick: stri
                 <li key={r.key}>
                   <button type="button" className="nsb-af-f" aria-pressed={pick === r.key} title={[r.value, r.note].filter(Boolean).join(" · ")} onClick={() => setPick(pick === r.key ? "" : r.key)}>
                     <span className="nsb-af-ring"><FaceImg id={r.name} size={k === "unknown" ? 30 : 44} /></span>
+                    {r.step ? <SignalTrace step={r.step} lost={k === "lost"} /> : null}
                     <b>{r.name}</b>
                     {sub ? <small>{sub}</small> : null}
                   </button>
@@ -34,6 +36,7 @@ export function ActivityFaces({ rows, pick, setPick }: { rows: Row[]; pick: stri
           </ul>
         </section>
       ))}
+      {rows.some((r) => r.step) ? <p className="nsb-af-key"><SignalTrace step={{ call: 0, got: true, in: true }} />부름 → 받음 → 들어옴 · 끊긴 자리에서 선이 끊김</p> : null}
       {on ? <p className="nsb-why nsb-af-why"><b>{on.name}</b> {[on.value, on.note].filter(Boolean).join(" · ")}</p> : null}
     </div>
   );
