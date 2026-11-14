@@ -9,11 +9,10 @@ import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/off
 import { FaceImg } from "./faces";
 import { t12 } from "./when";
 import { GoButton } from "./go-button";
+import { saveRoomRoutine, type RoomRoutineForm as Form, type RoomRoutineMode as Mode } from "./room-routine-save";
 import "./room-routine.css";
 
-type Mode = "hours" | "days" | "week";
 export type RoomTimer = { mode: Mode; every?: number; min?: number; days?: number; times?: string[]; wd?: number[]; text?: string; rule?: string; skip?: string[]; on?: boolean; next_ts?: number };
-type Form = { mode: Mode; every: number; min: number; days: number; times: string[]; wd: number[]; text: string; on: boolean };   // 루틴 「지침」 칸 = 걷음(봄 11-12 00:39 「가」 · 형 00:22 「글 하고 지침 따로 잇는데.뭐가 맞는지.봐줘 확실한 것만 남기고」 · 방 지침 = 방 설정 한 칸)
 
 const WD = ["일", "월", "화", "수", "목", "금", "토"];
 const MODES: [Mode, string][] = [["hours", "몇 시간마다"], ["days", "며칠마다"], ["week", "요일마다"]];
@@ -102,16 +101,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
       if (body.off) onClose(); else setSaved(true);
     },
   });
-  const save = async () => {
-    setSaving(true); // 응답뿐 아니라 체크가 끝나 닫힐 때까지 입력을 지킨다.
-    const cycle = f.mode === "hours" ? { every: f.every, min: f.min } : f.mode === "days" ? { days: f.days, times: f.times } : { wd: f.wd, times: f.times };
-    try {
-      return await go.mutateAsync({ mode: f.mode, ...cycle, text: f.text.trim(), skip, on: f.on });
-    } catch (error) {
-      setSaving(false);
-      throw error;
-    }
-  };
+  const save = () => saveRoomRoutine(f, skip, go.mutateAsync, setSaving);
   const next = saved ? nextLine(timer?.next_ts) : "";
   return (
     <div className="nm-rr yeta-set" role="dialog" aria-modal="true" aria-label={`${room.name} 루틴`} onClick={(e) => e.stopPropagation()}>
