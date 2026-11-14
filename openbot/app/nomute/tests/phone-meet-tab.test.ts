@@ -94,6 +94,12 @@ test("폰 밥상 이야기 · 화상회의 머리 줄 0 · 봄의 정원 머리 
   assert.match(rd("../ui/meet.tsx"), /<li><i>참여자 :<\/i>/);
   assert.match(rd("../ui/meet.tsx"), /<li><i>내용 :<\/i>/);
 });
+test("서랍 · 설정에서 들어간 화면 머리 알약 = 폰 · PC 다 0 · 이슈 · 웹 겹 머리는 그대로(형 11-15 「헤더로 세부 메뉴바 잇는거는 다 없애줘」)", () => {
+  const css = rd("../ui/shell.css"), sh = rd("../ui/shell.tsx");
+  assert.match(css, /\n\.nm-modal > \.nm-modal-h\[class\*="nm-mh-"\] \{ display:none; \}/);
+  assert.match(css, /\.nm-modal:has\(> \.nm-modal-h\[class\*="nm-mh-"\]\) > \.nm-modal-b\.flush > \.nm-scroll \{ padding-top:calc\(10px \+ env\(safe-area-inset-top\)\); \}/);
+  assert.match(sh, /<div className="nm-modal-h">\n\s+<button type="button" className="nm-modal-back" aria-label="닫기" onClick=\{closeWeb\}>/, "이슈 겹 머리 = nm-mh- 없음 = 남음");
+});
 test("폰 영상 편집 = 미리보기 폭맞춤 · 기둥 겹침 허용(형 11-14 07:06)", () => {
   assert.match(rd("../ui/video-editor.tsx"), /@media \(max-width:767px\)\{\.topdock:not\(\.fold\) #pvsec\{min-height:0!important\}#pvsec \.cpprev-box\{width:calc\(100% - 82px\)!important;/);
 });
