@@ -16,7 +16,7 @@ import { YICO } from "./yeta-icons";
 const MD_BOX = { lineNumbers: false, controls: { code: { copy: true, download: false } } } as const;   // 복사 창 = 대화창과 같은 꼴(초안 박스 복사)
 const EMOJI0 = /^\s*\p{Extended_Pictographic}️?\s*/u;
 const BIAS_SHAPES = /[🟥🟦🟩🟨🟧🟪🟫🔴🟠🟡🟢🔵🟣⬛⬜📊✅]/gu;
-/** 본문 = 첫 H1(AI 제목)은 따로 빼고 · 「썸네일」 h3 소절(제목 후보 · 위 사진 칸이 대신) 뺌 · h2/h3 머리 이모지 뺌(시사점 빼고) · 편향 색도형 뺌 — 코드 칸(```) 안은 그대로(복사 초안) */
+/** 본문 = 첫 H1(AI 제목)은 따로 빼고 · 「한줄 요약」 머리글 뺌(글은 남김) · 「썸네일」 h3 소절(제목 후보 · 위 사진 칸이 대신) 뺌 · h2/h3 머리 이모지 뺌(시사점 빼고) · 편향 색도형 뺌 — 코드 칸(```) 안은 그대로(복사 초안) */
 function shape(body: string) {
   let h1 = "", fence = false, skip = false;
   const out: string[] = [];
@@ -27,6 +27,7 @@ function shape(body: string) {
       skip = false;   // 썸네일 소절 끝 = 다음 h1~h3(에디터 decorate ①)
       if (h[1] === "#" && !h1) { h1 = h[2].replace(EMOJI0, "").trim(); continue; }
       if (h[1] === "###" && /썸네일/.test(h[2])) { skip = true; continue; }
+      if (h[1] === "##" && /^한\s*줄\s*요약$/.test(h[2].replace(EMOJI0, "").trim())) continue;   // 맨 위 「한줄 요약」 머리글 뺌 · 그 아래 한 줄은 그대로(형 11-14 「뉴스 요약은 위에 요약이라는 헤더 안떠도됨」)
       if (h[1] !== "#" && !/시사점/.test(h[2])) { out.push(`${h[1]} ${headOf(h[2].replace(EMOJI0, ""))}`); continue; }
     }
     if (edge) fence = !fence;

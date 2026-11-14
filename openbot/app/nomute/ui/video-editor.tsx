@@ -194,8 +194,7 @@ export function VideoEditor({ onBack }: { onBack?: () => void }) {
             <div className="ved-menu" role="menu" aria-label="영상 편집에서 할 일">
               {MODES.map((m, i) => (
                 <button key={m.k} type="button" role="menuitemradio" aria-checked={m.k === mode} className="ved-mi" style={{ animationDelay: `${Math.min(i, 7) * 26}ms` }} onClick={() => pick(m.k)}>
-                  <span className="ved-mi-t">{m.t}</span>
-                  <span className="ved-mi-d">{m.d}</span>
+                  <span className="ved-mi-t">{m.t}</span>   {/* 기능 설명 줄(m.d) 뺌 — 이름만(형 11-14 「영상 에디터에 설명글들 같은거 각 기능의 없어도 됨」) */}
                   <svg className="ved-mi-ok" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
                 </button>
               ))}
