@@ -3,11 +3,12 @@
 //   그림·영상 = 뜸(봄의 정원 · 정사각/16:9 · 짧은 영상 가능) → public/intro/ 에 넣고 아래 목록에 한 줄씩 더하면 끝
 //   main = 홈 인트로(home-screen 첫 열림) · app = 앱 안 진입(홈 말고 다른 화면으로 처음 열 때 · shell)
 import { useEffect, useState } from "react";
-export type IntroItem = { src: string; kind?: "img" | "video"; fit?: "icon" | "cover"; bg?: string };
+export type IntroItem = { src: string; kind?: "img" | "video"; fit?: "icon" | "cover" | "sprout"; bg?: string };
 
-const ICON: IntroItem = { src: "/office-app/icon-192.png", fit: "icon", bg: "#F4D2B0" };   // 봄 얼굴(형 11-09 13:2x 시아 창 「봄의 정원에 윈터 얼굴 안나오게하고, 봄의얼굴 테마로 바꿔」 · 앞 = 윈터 얼굴 · 남색 #08295e) · 바탕 = 봄 얼굴 노을빛
-export const INTRO_MAIN: IntroItem[] = [ICON];   // 뜸 그림 오면 예: { src: "/office-app/intro/garden-1.webp", fit: "cover" } · { src: "/office-app/intro/garden-2.mp4", kind: "video", fit: "cover" }
-export const INTRO_APP: IntroItem[] = [ICON];
+export const ICON: IntroItem = { src: "/office-app/icon-192.png", fit: "icon", bg: "#F4D2B0" };   // 봄 얼굴(형 11-09 13:2x 시아 창 「봄의 정원에 윈터 얼굴 안나오게하고, 봄의얼굴 테마로 바꿔」 · 앞 = 윈터 얼굴 · 남색 #08295e) · 바탕 = 봄 얼굴 노을빛
+export const SPROUT: IntroItem = { src: "/office-app/intro/sprout.webp", fit: "sprout", bg: "#040303" };   // 검정 가운데 라임 새싹 하나 · 살짝 돋아남(형 11-15 06:03 dm-eyes 「뜸 인앱 인트로 화면이 검정이면서 심플한게 필요한데 정원」 · 「지금거 넘 밝아서」 → 06:07 「✓ ① 새싹」 · 뜸 · 240px webp 1.6KB)
+export const INTRO_MAIN: IntroItem[] = [SPROUT];   // 홈으로 열어도 같은 검정 새싹(형 11-15 06:08 「os 인앱은 아예 검정으로 가능해? … 자연스럽게 저화면으로 전환되게 … 검은색에서 피어나거든」 · 앞 판 = ICON)   // 뜸 그림 오면 예: { src: "/office-app/intro/garden-1.webp", fit: "cover" } · { src: "/office-app/intro/garden-2.mp4", kind: "video", fit: "cover" }
+export const INTRO_APP: IntroItem[] = [SPROUT];   // 앞 판 = 봄 얼굴 노을빛(ICON · 아래 남김)
 
 /** 이 창에서 한 번 고른 장(없으면 지금 고름) */
 export function pickIntro(kind: "main" | "app"): IntroItem {
@@ -25,6 +26,7 @@ export function IntroFace({ item }: { item: IntroItem }) {
       ? <video className="nm-intro-cover" src={item.src} autoPlay muted playsInline loop />
       : <img className="nm-intro-cover" src={item.src} alt="" decoding="async" />;
   }
+  if (item.fit === "sprout") return <img className="nm-intro-sprout" src={item.src} alt="" width={120} height={120} decoding="async" />;
   return <img src={item.src} alt="" width={88} height={88} decoding="async" />;
 }
 
