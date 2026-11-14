@@ -26,3 +26,15 @@ test("seats 칸 없음(옛 tray-lite) = 표 0 줄", () => {
   assert.deepEqual(tableRows({ pc: "A", at: 1 }), []);
   assert.deepEqual(tableRows(null), []);
 });
+
+test("세션 백업 줄 = 빠짐 · 클라우드 늦음 먼저 · 까닭 · 시각", async () => {
+  const { bkLines } = await import("../runner/runner-table-rows.ts");
+  const ls = bkLines({ pc: "A", at: 1, bk: { rows: [
+    { n: "봄", ok: 900, mb: 2336, f: 1017, miss: 0, cloud: "ok" },
+    { n: "깃", ok: 100, mb: 120, f: 38, miss: 1, cloud: "ok", why: "열쇠 없음" },
+    { n: "뜸", ok: 950, mb: 617, f: 58, miss: 0, cloud: "늦음" },
+  ] } }, 1000);
+  assert.deepEqual(ls.map((l) => l.n), ["깃", "뜸", "봄"]);
+  assert.equal(ls[0].why, "열쇠 없음"); assert.equal(ls[1].cloud, "클라우드 늦음"); assert.equal(ls[2].bad, false); assert.equal(ls[2].ago, 100);
+  assert.deepEqual(bkLines({ pc: "A", at: 1 }, 1000), []);
+});

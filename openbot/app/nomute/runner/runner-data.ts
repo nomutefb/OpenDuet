@@ -18,6 +18,7 @@ export type RunnerRow = {
   seats?: { n: string; L?: number; b?: number; d?: number }[];   // 자리마다 = 큰 자리(L) · 바쁨(b) · 멈춤(d)
   cache?: { cap?: number; end?: number; gb?: (number | null)[]; clr?: string; rest?: string };   // 60분 캐시(분마다 GB · 비운 분 clr · 쉼 rest)
   trend?: { step?: number; end?: number; cpu?: (number | null)[]; ram?: (number | null)[] };
+  bk?: { at?: number; miss?: number; rows?: { n: string; ok?: number; mb?: number; f?: number; miss?: number; cloud?: string; masked?: number; why?: string }[] };   // 몸마다 세션 백업(번개 session-backup · 하루 한 번 · 깃 11-14)
 };
 /** 출력 신선도 줄(워치독 ⑪ · 정본 = editor scraper/output_watch.py) · st = alert 경보 · sus 의심 · up 윗단 멈춤 · ok 정상 · last = 상태 바뀐 때 · max = 임계 분. */
 export type OutItem = { ko?: string; path?: string; st?: string; verdict?: string; last?: string; max?: number; class?: string; why?: string[]; dup_of?: string | null; issue?: string | number };

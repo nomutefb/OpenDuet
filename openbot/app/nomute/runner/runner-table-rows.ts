@@ -20,3 +20,18 @@ export function tableRows(d: RunnerRow | null): TableRow[] {
     })
     .sort((a, b) => a.n.localeCompare(b.n, undefined, { numeric: true }));
 }
+
+export type BkLine = { n: string; ago: number | null; mb: number | null; f: number | null; bad: boolean; cloud: string; why: string };
+
+/** 몸마다 백업 줄(번개 bk 칸) — 빠짐(26시간) · 클라우드 늦음 = bad · 빠진 줄 먼저 · 그 밖 = 받은 차례 그대로. */
+export function bkLines(d: RunnerRow | null, nowS: number): BkLine[] {
+  const rows = Array.isArray(d?.bk?.rows) ? d!.bk!.rows! : [];
+  return rows
+    .filter((r) => r && r.n)
+    .map((r) => {
+      const cloud = r.cloud === "ok" ? "" : r.cloud === "늦음" ? "클라우드 늦음" : r.cloud ? "클라우드 모름" : "";
+      return { n: r.n, ago: typeof r.ok === "number" ? Math.max(0, nowS - r.ok) : null, mb: typeof r.mb === "number" ? r.mb : null, f: typeof r.f === "number" ? r.f : null,
+        bad: !!r.miss || r.cloud === "늦음", cloud, why: r.miss ? (r.why || "26시간 넘게 안 됨") : "" };
+    })
+    .sort((a, b) => Number(b.bad) - Number(a.bad));
+}
