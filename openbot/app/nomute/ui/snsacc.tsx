@@ -107,7 +107,7 @@ export function SnsAccModal() {
           </div>
           {err ? <p className="nm-acc-err" role="alert">{err}</p> : note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
           <div className="nm-acc-foot">
-            <label className="nm-acc-off"><input type="checkbox" checked={P.off === true} disabled={loading} onChange={(e) => edit((p) => { if (e.target.checked) p.off = true; else delete p.off; })} />구독 끄기(화면 숨김)</label>
+            <button type="button" role="switch" aria-checked={P.off === true} className="nm-acc-off" disabled={loading} onClick={() => edit((p) => { if (p.off === true) delete p.off; else p.off = true; })}><span className="si-sw" aria-hidden />구독 끄기(화면 숨김)</button>   {/* 네모 체크박스 → 설정 공용 스위치 꼴(.si-sw · 형 11-15 「하네스 따로 노는 거」) */}
             <GoButton className="nm-acc-save" disabled={!canSave} go={must(save)} busy="저장 중">저장</GoButton>
           </div>
         </div>

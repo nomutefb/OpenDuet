@@ -88,6 +88,7 @@ header.nm-head:has(.nm-room-mark) .nm-top-name i { color:#fff; }
 /* 5번 서랍·6번 설정 = 판 바탕을 비워 껍데기 라임 3D 바탕(../home/home-scene.css .nm-app-ambient · 옅은 막 62%)이 그대로 보임 · 그동안 밑 화면은 숨김(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」) */
 .nm-modal.see { background:transparent; }
 .nm-see > .nm-pane { visibility:hidden; }
+.nm-cover > .nm-pane { visibility:hidden; transition:visibility 0s linear .45s; }   /* 안 비치는 판이 덮은 동안 밑 화면 그리기 끔(흐림 · 끝없이 도는 움직임이 안 보이는 데서 돌던 것) · .45s 뒤 = 판이 뜨는 동안은 밑이 그대로 보임 · 닫을 땐 바로 돌아옴(이 줄이 빠지면 늦춤도 빠짐) */
 /* 판 안 글 = 긴 주소·영문 한 덩이도 판 폭에서 줄 바꿈(형 11-03 15:09 사진 「그리구 이거 넘어갈 때가 있는데, 설정 창에서 글자가 안넘어가게 확인 좀 부탁해!」 = 공지 글 github 주소가 판 밖으로 나갔음) */
 .nm-modal [data-content], .nm-modal p, .nm-modal li { overflow-wrap:anywhere; }
 /* 설정·서랍 묶음 판 = 라임 3D 바탕 위에서 유리를 조금 더 두껍게(흐림 18px · 바탕 55%) — 장면 빛줄기가 글자 뒤를 지나가지 않게(형 11-03 15:17 「혹시 설정, 개선하면 더 이쁘겠다 싶은 부분있으면 한번 살펴보고 개선해줘」) */
@@ -367,3 +368,10 @@ html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; bor
   .nm-modal:has(> .nm-mh-chan) .nm-modal-b.flush > .nm-scroll, .nm-modal:has(> .nm-mh-sns) .nm-modal-b.flush > .nm-scroll { padding-top:calc(6px + env(safe-area-inset-top)); }   /* 이제 앱 안 판(./old-tabs) = 품은 화면(.frame) 아님 */
   .nm-modal:has(> .nm-mh-story) .nm-modal-b.flush > .nm-scroll, .nm-modal:has(> .nm-mh-meetlog) .nm-modal-b.flush > .nm-scroll { padding-top:calc(10px + env(safe-area-inset-top)); }
 }
+
+/* 「… ›」 꼴 단추(.ypc-go) = 어느 화면에서든 한 줄 · 꺽쇠가 다음 줄로 안 넘어감(전엔 화면마다 따로 같은 처방 — news · feed · chan · scrap — 이라 빠진 「알림메세지」에서 두 줄로 꺾였음 · 형 11-15 「하네스 따로 노는 거」) */
+.yeta-set .ypc-go { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.yeta-set .ypc-go span svg { width:14px; height:14px; }
+/* 스케줄 일 창 「묶음」 = 칩 줄(./sched-desk.tsx) */
+.nm-sched-forkpick { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.nm-sched-forkpick > span { margin-right:2px; font-size:var(--fs-xs); color:var(--mut); }

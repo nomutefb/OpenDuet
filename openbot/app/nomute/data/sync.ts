@@ -65,10 +65,12 @@ export function startSync() {
     for (;;) {
       if (document.hidden) { await new Promise<void>((r) => document.addEventListener("visibilitychange", () => r(), { once: true })); v = ""; }
       try {
+        const t0 = Date.now();
         const j = await office<Pulse>(`pulse?${v ? `v=${encodeURIComponent(v)}&` : ""}max_s=25`);
         if (fail >= 2) setNetDown(false);   // 끊겼다 다시 붙음 = 「다시 연결됐어요」 잠깐
         fail = 0;
         if (j.v !== v) { apply(map, j.map || {}); map = j.map || {}; v = j.v; }
+        else if (Date.now() - t0 < 800) await nap(1000);   // 같은 판인데 바로 답이 옴(중간 캐시 · 서버가 안 붙잡음) = 쉬지 않고 되묻는 걸 막음(정상 = 서버가 max_s 까지 붙잡음)
       } catch {
         if (++fail >= 2) setNetDown(true);   // 두 번 잇따라 못 닿음(13초쯤) = 끊김 띠
         await nap(BACKOFF[Math.min(fail - 1, BACKOFF.length - 1)]);

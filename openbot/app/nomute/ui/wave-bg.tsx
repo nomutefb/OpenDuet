@@ -3,7 +3,7 @@
 //   WebGL2 없음·컴파일 실패 = 조용히 숨김(모달 바탕 그대로) · 안 보일 때 멈춤 · 움직임 줄이기 = 한 장만
 import { useEffect, useRef } from "react";
 
-const MAX = 10, FRAME_MS = 8;
+const MAX = 10, FRAME_MS = 33;   // 33 = 초당 30장(전 8 = 틀마다 = 120Hz 폰에선 초당 120장 · 느린 물결이라 눈엔 같고, 화면 전체 셰이더 값이 1/2 ~ 1/4 · 형 11-15 「과하게 구현돼서 딜레이 유발」)
 const VERT = `#version 300 es
 in vec2 a_position; out vec2 v_objectUV; uniform float u_scale;
 void main(){ gl_Position=vec4(a_position,0.,1.); vec2 uv=a_position*0.5; v_objectUV=uv/max(0.001,u_scale); }`;

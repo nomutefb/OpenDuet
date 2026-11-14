@@ -244,6 +244,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
     else void nav({ to: under ? MODALS.find((x) => x.id === under)!.to : paneHref(base, room) });
   };
   const M = modal ? MODALS.find((x) => x.id === modal) : undefined;
+  const cover = !!M && !SEE.has(M.id) && !isEdTool(M.id);   // 안 비치는 판(검은 바탕 · 화면 전체)이 열림 = 밑 화면(홈 · 대화방)과 뒤 3D 장면은 한 점도 안 보임 → 밑 화면 그리기 끔(shell.css .nm-cover) + 장면 쉼. 전엔 덮인 채로 대화방 흐림 90여 개 · 빛나는 이름 13개 · 장면이 계속 돌았음
   return (
     <ChatPresenceProvider serverWork={serverWork}>
       <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}${split && modal && SPREAD.has(modal) ? " nm-split-spread" : ""}`}>
@@ -257,8 +258,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         {/* 윗줄 가운데 = 시계(위 TopClock) · 옛 = 지금 페이지 이름(형 11-06 20:05) · 방 이름은 대화창 머리줄(./chat-head.tsx · 형 11-08 09:49 「그 대화창은 거기에 대화창 명칭이 뜨면 될거같아」) */}   {/* 방 = 이름 한 곳만 · 라임 · 인원 · 누르면 사람·방 메뉴(형 11-06 20:39 「방 위에는 잇을필요없어」 「중상단에 라임으로 잇으면 됨 … 방 인원은 잇어야해」) */}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
-        <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
-          <SceneBg className="nm-app-ambient" />
+        <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${cover ? " nm-cover" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
+          <SceneBg className="nm-app-ambient" rest={cover} />   {/* rest = 안 비치는 판이 다 덮은 동안 장면 쉼(형 11-15 「60프레임 아니거나 과하게 구현돼서 딜레이 유발」) */}
           {split ? <TopLeft /> : null}   {/* 왼쪽 위 = 러너 게이지(우리 쪽 · 형 11-08 07:31 dm 「오히려 게이지바가 좌측으로가고, 인스타그램이 우측으로 가서, 우측은 아예 뉴스 관련 내용, 좌측은 너네 관련으로」 · 판들은 그 키만큼 아래로 · shell.css .nm-split-l) */}   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
           {show("rooms", <div className="nm-col"><RoomsPane /></div>)}

@@ -4,7 +4,7 @@
 .nm-acc .nm-acc-tabs { display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; }
 .nm-acc .nm-acc-tabs::-webkit-scrollbar { display:none; }
 .nm-acc .nm-acc-tabs button { flex:none; border:1px solid var(--glass-line); background:none; color:var(--mut); font-size:var(--fs-xs); padding:5px 12px; border-radius:var(--r-pill); }
-.nm-acc .nm-acc-tabs button.on { color:var(--bg); background:var(--fg); border-color:var(--fg); }
+.nm-acc .nm-acc-tabs button.on { color:var(--bg); background:var(--accent); border-color:var(--accent); }   /* 고른 탭 = 흰색 → 앱 라임(다른 화면의 「골라짐」과 같게) */
 .nm-acc .nm-acc-tabs button i { font-style:normal; margin-left:3px; color:var(--accent); }
 .nm-acc .nm-acc-tabs button.on i { color:var(--bg); }
 .nm-acc .nm-acc-chips { display:flex; flex-wrap:wrap; gap:6px; }
@@ -20,6 +20,8 @@
 .nm-acc .nm-acc-save:disabled { background:none; color:var(--mut); border-color:var(--glass-line); }
 .nm-acc .nm-acc-err { margin:0; font-size:var(--fs-xs); color:#ff8a8a; }
 .nm-acc .nm-acc-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.nm-acc .nm-acc-off { display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-xs); color:var(--mut); }
-.nm-acc .nm-acc-off input { accent-color:var(--accent); }
+.nm-acc .nm-acc-off { display:inline-flex; align-items:center; gap:8px; padding:0; border:0; background:none; font:inherit; font-size:var(--fs-xs); color:var(--mut); cursor:pointer; }
+.nm-acc .nm-acc-off[aria-checked="true"] .si-sw { background:rgba(var(--accent-rgb),.9); border-color:transparent; }   /* 켜짐 꼴 = yeta-settings.css .yset-item.on .si-sw 와 같은 값 */
+.nm-acc .nm-acc-off[aria-checked="true"] .si-sw::after { transform:translateX(16px); background:var(--bg); }
+.nm-acc .nm-acc-off:disabled { opacity:.5; cursor:default; }
 .nm-acc .nm-acc-add input::placeholder { font-family:var(--app-font-text, inherit); }

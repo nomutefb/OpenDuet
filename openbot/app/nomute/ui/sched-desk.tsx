@@ -234,7 +234,7 @@ export function SchedDesk() {
               <div className="nm-sched-sel">
                 {r.marks?.includes("bot_bound") ? <div className="nm-sched-lbl">어떤 봇<b>{nameOf(b)}</b></div> : r.cron?.length ? <div className="nm-sched-lbl">어떤 봇<BotPick label="어떤 봇" value={r.bot} disabled={!can} onPick={(v) => prep({ at: "routine", key: r.id, field: "bot", value: v, label: r.name })}
                   opts={d.bots.map((x) => ({ id: x.bot, name: nameOf(x), mark: list.find((p) => p.who === x.who)?.mark, face: face(x, 24), note: x.on === false ? "차단기 내려감" : x.next_ts ? `다음 깸 ${nextShort(x.next_ts)}` : "깰 일 없음" }))} /></div> : <div className="nm-sched-lbl">어떤 봇<b>{nameOf(b)}</b></div>}
-                <label>묶음<select disabled={!can} value={r.fork} onChange={(e) => prep({ at: "routine", key: r.id, field: "fork", value: e.target.value, label: r.name })}>{d.forks!.filter((x) => !VIRTUAL.has(x.id)).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+                <div className="nm-sched-forkpick" role="group" aria-label={`${r.name} 묶음`}><span>묶음</span>{d.forks!.filter((x) => !VIRTUAL.has(x.id)).map((x) => <button key={x.id} type="button" aria-pressed={r.fork === x.id} className={`nm-rr-chip${r.fork === x.id ? " on" : ""}`} disabled={!can || go.isPending} onClick={() => { if (r.fork !== x.id) prep({ at: "routine", key: r.id, field: "fork", value: x.id, label: r.name }); }}>{x.name}</button>)}</div>   {/* 기본 고르기 상자(select) → 요일과 같은 칩 줄(형 11-15 「하네스 따로 노는 거」) */}
               </div>
             ) : null}
             {bell ? null : <div className="flex flex-wrap gap-1" role="group" aria-label={`${r.name} 상태`}>

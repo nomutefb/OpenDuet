@@ -30,5 +30,5 @@ test("고르면 먼저 pick 적고 그 방 pending_hyung −1 · 서랍 숫자 =
   assert.match(sh, /if \(p === "\/chanfull"\) return \{ modal: "chan" \};/);
   assert.doesNotMatch(sh, /ChanModal|SnsModal|TrendModal/);
   assert.match(sh, /\{ id: "meetlog", label: "화상 회의록",/);
-  assert.match(rd("../ui/yeta-settings.tsx"), /sub\("snsacc", "globe", "구독 채널", <Suspense fallback=\{null\}><SnsAccModal \/><\/Suspense>\)/);
+  assert.match(rd("../ui/yeta-settings.tsx"), /sub\("snsacc", "users", "구독 채널", <Suspense fallback=\{null\}><SnsAccModal \/><\/Suspense>\)/);
 });

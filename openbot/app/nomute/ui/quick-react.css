@@ -1,6 +1,6 @@
 /* 바로 다는 반응(./quick-react.tsx · 형 11-14 05:56) — 오른쪽 위 모서리 작은 둥근 단추(흐림 · 점등 꺼짐) · 펼치면 유리 구슬이 둥글게 · 고른 것 = 모서리에 불 켜진 채 */
 .nm-qr { position:absolute; top:-10px; right:-10px; z-index:4; width:24px; height:24px; }
-.nm-qr-btn { position:relative; z-index:2; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,.24); background:rgba(22,23,22,.82); color:rgba(232,234,232,.66); cursor:pointer; opacity:.85; transition:opacity .18s, transform .18s, background .18s;   /* 60프레임 = opacity · transform 만(폭 · 높이 움직임 0 · 형 05:57) */ backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+.nm-qr-btn { position:relative; z-index:2; width:24px; height:24px; padding:0; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,.24); background:rgba(22,23,22,.88); color:rgba(232,234,232,.66); cursor:pointer; opacity:.85; transition:opacity .18s, transform .18s, background .18s;   /* 60프레임 = opacity · transform 만(폭 · 높이 움직임 0 · 형 05:57) */ }   /* 흐림 뺌(형 11-15 「과하게 구현돼서 딜레이 유발」): 글마다 하나씩이라 글 91개 = 흐림 층 91개였음 · 바탕이 82% 로 거의 안 비쳐 모습은 같음 */
 .ychat [data-id]:hover .nm-qr-btn, .nm-qr-btn:focus-visible { opacity:1; }
 .nm-qr.lit .nm-qr-btn { opacity:1; border-color:rgba(207,255,64,.55); background:rgba(207,255,64,.14); box-shadow:0 0 8px rgba(207,255,64,.35); }
 .nm-qr-lit { font-size:13px; line-height:1; }
