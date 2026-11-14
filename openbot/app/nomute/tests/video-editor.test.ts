@@ -46,5 +46,7 @@ test("영상 편집 하나 안에서 고름(형 11-14 「기본 영상 편집을
   assert.match(ve, /--accent:\$\{dark \? "#CFFF40" : "#4f7a00"\}!important/, "라임 = 옛 화면 제 색보다 셈(먼저 넣어도 이김)");
   assert.match(ve, /if \(doc\.head\.lastElementChild !== s\) doc\.head\.appendChild\(s\)/, "다 읽은 때 다시 맨 끝으로");
   assert.match(ve, /data-nm-scene="off"/, "옛 화면 3D 바탕 안 읽음");
+  assert.doesNotMatch(ve, /ved-mi-d/, "메뉴 = 기능 이름만(설명 줄 0 · 형 11-14 「영상 에디터에 설명글들 같은거 각 기능의 없어도 됨」)");
+  assert.match(rd("../ui/news-detail.tsx"), /if \(h\[1\] === "##" && \/\^한\\s\*줄\\s\*요약\$\/\.test\(h\[2\]\.replace\(EMOJI0, ""\)\.trim\(\)\)\) continue;/, "기사 한 장 맨 위 「한줄 요약」 머리글 0(형 11-14 「뉴스 요약은 위에 요약이라는 헤더 안떠도됨」)");
   assert.match(sd, /location\.hash = u \? `#\/edys\?u=\$\{encodeURIComponent\(u\)\}` : "#\/edys";/, "카드 제작 유튜브 링크 = 영상 편집 안 유튜브");
 });
