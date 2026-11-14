@@ -23,8 +23,10 @@ html:not(.dark) :is(.nm-sd, .nm-dp, .nm-dv) { --sd-lime:#4f7a00; }
 @keyframes nmSdGlow { 0% { opacity:0; } 35% { opacity:1; } 100% { opacity:0; } }
 
 /* 확인 띠(설정 「스케줄러 바꾸기」) = 유리 */
-.nm-sd-band { border:1px solid color-mix(in srgb, currentColor 12%, transparent); background:color-mix(in srgb, var(--background, #121314) 70%, transparent);
-  -webkit-backdrop-filter:blur(18px) saturate(1.4); backdrop-filter:blur(18px) saturate(1.4); }
+.nm-sd-band { border:1px solid color-mix(in srgb, currentColor 12%, transparent); background:color-mix(in srgb, var(--background, #121314) 46%, transparent);   /* 바탕 46% = 밑 글이 흐릿하게 비침(앞 70% = 그냥 어두운 카드로 보였음 · 형 11-15 「투명도 적당히 … 모피즘 느낌인지」) */
+  -webkit-backdrop-filter:blur(22px) saturate(1.6); backdrop-filter:blur(22px) saturate(1.6);
+  box-shadow:inset 0 1px 0 color-mix(in srgb, currentColor 14%, transparent), 0 12px 32px rgba(0,0,0,.28); }   /* 위 가장자리 빛 한 줄 + 뜬 그림자(가만히 있는 그림자 · 안 움직임) */
+html:not(.dark) .nm-sd-band { background:color-mix(in srgb, var(--background, #fff) 58%, transparent); box-shadow:inset 0 1px 0 rgba(255,255,255,.7), 0 12px 32px rgba(0,0,0,.10); }
 .nm-sd-band .nm-sd { border:0; background:none; -webkit-backdrop-filter:none; backdrop-filter:none; padding:0; }
 
 /* ── 한 줄(옛 값 › 새 값) ── */
