@@ -96,3 +96,33 @@
 .nm-tab.browser, .nm-tab.meet { flex:0 0 auto; min-width:0; max-width:none; padding:0 14px; gap:7px; }
 .nm-tab-ic.browser { width:15px; height:15px; border-radius:0; }
 .nm-tab-ic.meet { width:16px; height:16px; border-radius:0; }   /* 화상회의 고정 탭(형 11-13 09:21) */
+
+/* ── 판과 한 몸인 탭(형 11-14 클라우드 세션 창 「탭구조를 이렇게 부드럽게 적용시킬거고. 모양도 이렇게」 — 탭 영상 f84dc5fc) — 위 「맥 탭 꼴」(11-09) 을 이 꼴로 바꿈 ──
+   고른 자리 = 잉크 하나(.nm-tabs-ink): 위 둥근 모서리 + 아래 양옆 오목한 어깨로 아래 판과 이어짐 · 탭은 바탕 없이 글 · 그림만
+   움직임(영상을 프레임마다 잼): 옮겨 갈 때 가는 쪽 끝 140ms · 뒤쪽 끝 360ms(늘어났다 줄어듦) · 끌 때 = 손을 바로 · 놓을 때 · 옆 탭 미끄러짐 220ms
+   눌림 = 저장소 기틀(scale(var(--press-l)) + 밝기 .88 · 놓으면 스프링) */
+.nm-tabs { align-items:flex-end; gap:0; --tab-ease:cubic-bezier(.2,.8,.2,1); --tab-spring:cubic-bezier(.34,1.56,.64,1); }
+.nm-tabs-ink { position:absolute; bottom:-1px; height:39px; left:0; right:100%; z-index:0; pointer-events:none; border-radius:13px 13px 0 0; background:var(--nm-tab-on, #121314);
+  box-shadow:inset 0 1px 0 rgba(232,234,232,.16), inset 1px 0 0 rgba(232,234,232,.08), inset -1px 0 0 rgba(232,234,232,.08); transition:left .36s var(--tab-ease), right .36s var(--tab-ease), opacity .15s; }
+.nm-tabs-ink::before, .nm-tabs-ink::after { content:""; position:absolute; bottom:0; width:13px; height:13px; }
+.nm-tabs-ink::before { left:-13px; background:radial-gradient(circle at 0 0, transparent 12.5px, var(--nm-tab-on, #121314) 13px); }
+.nm-tabs-ink::after { right:-13px; background:radial-gradient(circle at 100% 0, transparent 12.5px, var(--nm-tab-on, #121314) 13px); }
+.nm-tabs-ink[data-dir="r"] { transition-duration:.36s, .14s, .15s; }   /* 오른쪽으로 = 오른쪽 끝이 먼저 */
+.nm-tabs-ink[data-dir="l"] { transition-duration:.14s, .36s, .15s; }   /* 왼쪽으로 = 왼쪽 끝이 먼저 */
+.nm-tabs-ink[data-dir="drag"], .nm-tabs-ink[data-dir="none"] { transition:opacity .15s; }
+.nm-tabs-ink[data-dir="drop"] { transition-duration:.22s, .22s, .15s; }
+.nm-tab { z-index:1; flex:1 1 0; min-width:120px; max-width:240px; height:38px; border-radius:11px 11px 0 0; justify-content:center; padding:0 26px; background:none; box-shadow:none; color:rgba(232,234,232,.55);
+  transition:color .15s, transform .22s var(--tab-ease), scale .3s var(--tab-spring), filter .12s; }
+.nm-tab:hover { background:none; }
+.nm-tab.on { background:none; box-shadow:none; color:var(--nm-tab-on-fg, #F1F3EF); }
+.nm-tab.on::before, .nm-tab.on::after { display:none; }
+.nm-tab:not(.on)::after { content:""; display:block; position:absolute; inset:5px 3px 6px; z-index:-1; border-radius:9px; background:rgba(232,234,232,.08); opacity:0; transition:opacity .15s; }   /* 안 고른 탭에 손 = 둥근 칸(영상) */
+.nm-tab:not(.on):hover::after { opacity:1; }
+.nm-tab + .nm-tab:not(.on)::before { left:0; top:13px; bottom:13px; }
+.nm-tab:active:not([data-drag]) { scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.15s, .22s, .07s, .07s; }
+.nm-tab[data-drag] { z-index:3; transition:color .15s; cursor:grabbing; }
+.nm-tab:is(.browser, .meet, .teams) { flex:0 0 auto; min-width:0; }
+.nm-tab-plus { margin:0 0 6px 4px; transition:scale .3s var(--tab-spring), filter .12s, background-color .15s, color .15s; }
+.nm-tab-plus:active, .nm-tab-x:active { scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
+.nm-tab-x { transition:opacity .15s, scale .3s var(--tab-spring); }
+@media (prefers-reduced-motion: reduce) { .nm-tabs-ink, .nm-tab { transition:none; } }

@@ -38,7 +38,8 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [host, setHost] = useState<HTMLElement | null>(null);
   useEffect(() => { const h = paneHost(); if (h !== host) setHost(h); });   // 오른쪽 칸이 그려진 뒤 · 다시 그려지면 따라감
-  const bar = useRef<HTMLDivElement>(null), drag = useRef<{ key: string; x: number; moved: boolean } | null>(null);
+  const bar = useRef<HTMLDivElement>(null), drag = useRef<{ key: string; x: number; moved: boolean; left0: number; dx: number; el: HTMLElement } | null>(null);
+  const ink = useRef<HTMLElement>(null), inkAt = useRef<{ l: number; r: number } | null>(null), flip = useRef<Map<string, number> | null>(null);   // 고른 자리(잉크) · 끌 때 옆 탭이 미끄러질 앞자리
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 30_000 });
   const ppl = useQuery({ queryKey: ["nomute", "people-tabs"], queryFn: () => people(), staleTime: 60_000 });
   const list: OfficePerson[] = ppl.data || [];
@@ -66,6 +67,26 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     }
   };
   useLayoutEffect(place);   // 그릴 때마다
+  // 고른 자리 = 탭 줄에 하나뿐인 「잉크」(형 11-14 클라우드 세션 창 「탭구조를 이렇게 부드럽게 적용시킬거고. 모양도 이렇게」 — 탭 영상 f84dc5fc · 달 탭 영상 3162184d 를 프레임마다 봄)
+  //   옮겨 갈 때 = 가는 쪽 끝이 먼저(약 140ms) · 뒤쪽 끝이 늦게 따라옴(약 360ms) → 늘어났다 줄어드는 물 같은 움직임(./tab-bar.css data-dir)
+  //   끄는 동안 = 탭과 잉크가 손을 바로 따라옴 · 옆 탭은 자리를 바꿀 때 미끄러짐(FLIP 220ms) · 놓으면 제자리로 220ms
+  useLayoutEffect(() => {
+    const el = bar.current, k = ink.current; if (!el || !k) return;
+    const on = el.querySelector<HTMLElement>(".nm-tab.on"), d = drag.current;
+    if (d?.moved && d.el.isConnected) d.el.style.transform = `translateX(${d.left0 + d.dx - d.el.offsetLeft}px)`;   // 차례가 바뀌어 자리가 옮겨져도 손 밑 그대로
+    const f = flip.current; flip.current = null;
+    if (f) for (const t of el.querySelectorAll<HTMLElement>(".nm-tab[data-key]")) {   // 옆 탭 = 앞자리에서 새 자리로 미끄러짐
+      const was = f.get(t.dataset.key || ""); if (was === undefined || t === d?.el || was === t.offsetLeft) continue;
+      t.style.transition = "none"; t.style.transform = `translateX(${was - t.offsetLeft}px)`;
+      requestAnimationFrame(() => { t.style.transition = ""; t.style.transform = ""; });
+    }
+    if (!on) { k.style.opacity = "0"; inkAt.current = null; return; }
+    const drift = d?.moved && on === d.el ? d.left0 + d.dx - on.offsetLeft : 0;
+    const l = on.offsetLeft + drift, r = el.clientWidth - (on.offsetLeft + on.offsetWidth) - drift, was = inkAt.current;
+    k.dataset.dir = !was ? "none" : d?.moved ? "drag" : l > was.l ? "r" : l < was.l ? "l" : k.dataset.dir || "none";
+    k.style.left = `${l}px`; k.style.right = `${r}px`; k.style.opacity = "1";
+    inkAt.current = { l, r };
+  });
   useEffect(() => {   // 창 크기·탭 줄 폭이 바뀔 때도(모루 #3005 08:13 「resize 를 구독하지 않아 1600→900 이면 알약이 화면 밖」)
     const on = () => place();
     window.addEventListener("resize", on);
@@ -102,22 +123,31 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   };
   const down = (key: string) => (e: RPE<HTMLDivElement>) => {
     if (e.button !== 0 || (e.target as HTMLElement).closest(".nm-tab-x")) return;
-    drag.current = { key, x: e.clientX, moved: false };
+    drag.current = { key, x: e.clientX, moved: false, left0: e.currentTarget.offsetLeft, dx: 0, el: e.currentTarget };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const move = (e: RPE<HTMLDivElement>) => {
     const d = drag.current, el = bar.current;
     if (!d || !el) return;
     if (!d.moved && Math.abs(e.clientX - d.x) < 6) return;
-    d.moved = true;
-    const tabs = [...el.querySelectorAll<HTMLElement>(".nm-tab")];
+    d.moved = true; d.dx = e.clientX - d.x;
+    d.el.dataset.drag = "1"; d.el.style.transform = `translateX(${d.left0 + d.dx - d.el.offsetLeft}px)`;   // 탭 = 손을 바로 따라옴
+    const k = ink.current;
+    if (k && d.el.classList.contains("on")) { const l = d.left0 + d.dx; k.dataset.dir = "drag"; k.style.left = `${l}px`; k.style.right = `${el.clientWidth - l - d.el.offsetWidth}px`; inkAt.current = { l, r: el.clientWidth - l - d.el.offsetWidth }; }
+    const tabs = [...el.querySelectorAll<HTMLElement>(".nm-tab[data-key]")], me = tabs.indexOf(d.el);   // 끌 수 있는 탭만(고정 넷 뺌) · 차례 = s.tabs 에서 대시보드 다음부터 → +1
+    const mid = d.left0 + d.dx + d.el.offsetWidth / 2;   // 끄는 탭의 가운데가 옆 탭 가운데를 넘으면 자리 바꿈
     let to = tabs.length - 1;
-    for (let i = 0; i < tabs.length; i++) { const r = tabs[i].getBoundingClientRect(); if (e.clientX < r.left + r.width / 2) { to = i; break; } }
-    setS((x) => tabsMove(x, d.key, to));
+    for (let i = 0; i < tabs.length; i++) { if (i === me) continue; if (mid < tabs[i].offsetLeft + tabs[i].offsetWidth / 2) { to = i > me ? i - 1 : i; break; } }
+    if (me >= 0 && to !== me) { flip.current = new Map(tabs.map((t) => [t.dataset.key || "", t.offsetLeft])); setS((x) => tabsMove(x, d.key, to + 1)); }
   };
   const up = (t: Tab) => (e: RPE<HTMLDivElement>) => {
     const d = drag.current; drag.current = null;
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* 이미 놓음 */ }
+    if (d?.moved) {   // 놓음 = 탭 · 잉크가 제자리로 미끄러져 듦
+      const el = d.el, k = ink.current, b = bar.current;
+      delete el.dataset.drag; el.style.transform = "";
+      if (k && b && el.classList.contains("on")) { k.dataset.dir = "drop"; k.style.left = `${el.offsetLeft}px`; k.style.right = `${b.clientWidth - el.offsetLeft - el.offsetWidth}px`; inkAt.current = { l: el.offsetLeft, r: b.clientWidth - el.offsetLeft - el.offsetWidth }; }
+    }
     if (d && !d.moved) pick(t);
   };
   const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" | "co" }> => t.k === "screen" || t.k === "web" || t.k === "co");
@@ -125,6 +155,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   return (
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
+        <i ref={ink} className="nm-tabs-ink" data-dir="none" aria-hidden />   {/* 고른 자리 = 아래 판과 한 몸인 면 하나(탭마다 바탕을 갖지 않음 → 옮겨 갈 때 미끄러짐) */}
         <div role="tab" aria-selected={s.active === "dash"} tabIndex={0} title={GARDEN} className={`nm-tab dash garden${s.active === "dash" ? " on" : ""}`}
           onClick={() => pick(DASH)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(DASH); } }}>
           <span className="nm-tab-nm">{GARDEN}</span>
@@ -146,8 +177,8 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
         {s.tabs.filter((t) => t.k !== "dash").map((t) => {
           const key = tabKey(t), on = s.active === key, face = faceOf(t);
           return (
-            <div key={key} role="tab" aria-selected={on} tabIndex={0} title={nameOf(t)} className={`nm-tab${on ? " on" : ""}${t.k === "dash" ? " dash" : ""}`}
-              onPointerDown={down(key)} onPointerMove={move} onPointerUp={up(t)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(t); } }}>
+            <div key={key} data-key={key} role="tab" aria-selected={on} tabIndex={0} title={nameOf(t)} className={`nm-tab${on ? " on" : ""}${t.k === "dash" ? " dash" : ""}`}
+              onPointerDown={down(key)} onPointerMove={move} onPointerUp={up(t)} onPointerCancel={up(t)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(t); } }}>
               {t.k === "dash" ? <span className="nm-tab-ic dash" aria-hidden>▦</span> : face ? <FaceImg id={face} size={18} className="nm-tab-ic" /> : <span className="nm-tab-ic dot" aria-hidden />}
               <span className="nm-tab-nm">{nameOf(t)}</span>
               {t.k === "dash" ? null : <button type="button" className="nm-tab-x" aria-label={`${nameOf(t)} 탭 닫기`} onClick={(e) => { e.stopPropagation(); close(key); }}>×</button>}
