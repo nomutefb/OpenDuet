@@ -63,5 +63,5 @@ test("옷 = 접힘은 숨기기만(크기 그대로) · 계속 도는 것 0 · �
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(tm, /querySelector<HTMLElement>\("#rfabMin"\)/);
   assert.match(tail, /parent\.minimizeTool/, "엔진 원본 줄 안 건드림");
-  assert.match(rd("../ui/drawer-page.tsx"), /\{ name: "만들기", ids: \["ask"\] \}/);
+  assert.doesNotMatch(rd("../ui/drawer-page.tsx"), /ids: \[[^\]]*"(ask|edtool|edvid)"/);   // 만들기 묶음 통째 뺌(요약 요청도 · 깃 #-036)
 });

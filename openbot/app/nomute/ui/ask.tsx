@@ -1,6 +1,6 @@
 // 서랍 「요약 요청」(윈터 10:12 「① 요약 요청부터 판 하나씩 · 새 파일 + shell MODALS 줄 · 쓰기 있는 건 부르는 api 그대로」 · 형 「4번째 … 기능들이 다 서랍으로 나와서 바로바로」)
 //   원본 = 에디터 제작 도구 ＋ 「요약 요청」(viewer/index.html #askSend 20060~20110줄 · askPreset 17680줄) — 에디터 통째(iframe · 느림) 대신 같은 API 를 바로 부르는 작은 폼
-//   보냄 = POST /api/submit {text, link?, linkForce?, images:[dataUrl], nothumb, preset:{h24,fp,mj,og,noai,know}} → {ok, id, error}(원본 본문 그대로 · retryOf 는 안 씀)
+//   보냄 = POST /api/submit {text, link?, linkForce?, images:[dataUrl], nothumb, preset:{h24,fp,mj,og,noai}} → {ok, id, error}(원본 본문 그대로 · retryOf 는 안 씀)
 //   꼴 = YETA 설정 카드(.yeta-set .ycd-card.card-left · 행 .yset-item · 칩 .yset-chip) · 접수 뒤 = 「접수됨 · 대기열 N」(GET /api/pending items 중 processing·retry 수 · 원본 loadPending 셈)
 //   같은 출처(edit.nomute.kr) 라 쿠키 그대로 · 로그인 벽이면 HTML 이 와서 「다시 로그인」 안내
 //   에디터 판(서랍 「요약 요청 · 에디터 판」 = /?tool=ask 통째) 몫을 여기로(형 11-01 17:4x 「시아 도와가지구, 좀 더 많은게 들어올수잇게」 · 시아 2차 안):
@@ -15,11 +15,11 @@ import { isForeignUrl } from "../home/quick-send";
 import { GoButton } from "./go-button";
 import { Pane } from "./pane";
 
-type Preset = { h24: 0 | 1; fp: 0 | 1; mj: 0 | 1; og: 0 | 1; noai: 0 | 1; know: 0 | 1 };
-const DEF: Preset = { h24: 1, fp: 0, mj: 1, og: 0, noai: 1, know: 0 };   // 원본 askPreset 기본(17680줄 · 창 열 때마다 이 값으로 돌아감)
+type Preset = { h24: 0 | 1; fp: 0 | 1; mj: 0 | 1; og: 0 | 1; noai: 0 | 1 };   // know(지식형) = 걷음(형 11-15 05:56 「지식형 기능은 삿제」 · 깃 #-036)
+const DEF: Preset = { h24: 1, fp: 0, mj: 1, og: 0, noai: 1 };   // 원본 askPreset 기본(17680줄 · 창 열 때마다 이 값으로 돌아감)
 const CHIPS: { k: keyof Preset; t: string; o?: string; d: string }[] = [   // o = 옛 판 「요약 요청」 탭에 보이는 글(/?old 실측 · 11-11)   // 라벨 = 원본 PP_LBL 12056줄(24h·외신·주요·원본) · noai·know 뜻 = 원본 4463줄 title 그대로
   { k: "h24", t: "24h", o: "24시간 내", d: "최근 24시간 안 기사" }, { k: "fp", t: "외신", o: "외신 기반", d: "외신 기반(끄면 국내 기반)" }, { k: "mj", t: "주요", d: "주요 매체 위주" },
-  { k: "og", t: "원본", o: "원본 한정", d: "원본 한정" }, { k: "noai", t: "AI 썸네일 끔", o: "AI 미제작", d: "켜짐 = AI 썸네일을 만들지 않음(끄면 그 건만 평소대로 생성)" }, { k: "know", t: "지식형", o: "지식형", d: "뉴스 사건이 아니라 지식·설명 콘텐츠로 다룸(질문→핵심 답→이유→적용→주의)" },
+  { k: "og", t: "원본", o: "원본 한정", d: "원본 한정" }, { k: "noai", t: "AI 썸네일 끔", o: "AI 미제작", d: "켜짐 = AI 썸네일을 만들지 않음(끄면 그 건만 평소대로 생성)" },
 ];
 const IMG_MAX = 4, IMG_BYTES = 6 * 1024 * 1024;
 const DRAFT = "nm_ask_draft", STT_CAP = 1800, STT_FORCE_CAP = 3300;   // 전사 상한(초) = 원본 ALK_STT_CAP · ALK_STT_FORCE_CAP(news-ask.yml 사본 · 실제 문은 파이프)
@@ -141,11 +141,11 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
             <button type="button" className={`nm-ask-ic${showLink || link ? " on" : ""}`} aria-label="링크 넣기" aria-pressed={showLink || !!link} onClick={() => setShowLink((v) => !v)}>{IC_LINK}</button>
             <span className="nm-ask-sp" />
             {draft && (text || link) ? <button type="button" className="nm-ask-chip" onClick={() => { setText(""); setLink(""); setNote(null); }} disabled={busy}>초안 비우기</button> : null}
-            <GoButton className="nm-ask-go" go={send} busy="보내는 중" done={() => onClose?.()}>전송</GoButton>
           </div>
         </div>
         <div className="nm-ask-chips-o" role="group" aria-label="수집 프리셋">
           {CHIPS.filter((c) => c.k !== "mj").map((c) => <button key={c.k} type="button" className={`nm-ask-chip${preset[c.k] ? " on" : ""}`} aria-pressed={!!preset[c.k]} title={c.d} onClick={() => { if (c.k === "fp") setFpHand(true); setPreset((p) => ({ ...p, [c.k]: p[c.k] ? 0 : 1 })); }} disabled={busy}>{preset[c.k] ? "✓ " : ""}{c.o}</button>)}
+          <GoButton className={`nm-ask-go${text.trim() || link.trim() ? " filled" : ""}`} go={send} busy="보내는 중" done={() => onClose?.()}>전송</GoButton>   {/* 전송 = 칩 줄 오른쪽 끝 한 가로줄(형 11-15 05:56 「전송을 우하단에 … 자연스럽게 수평 배치로 게이지 체크」 · 깃 #-036) */}
         </div>
         {note ? <p className={`nm-ask-note ${note.kind}`} role={note.kind === "err" ? "alert" : "status"}>{note.text}</p> : null}
       </div>
