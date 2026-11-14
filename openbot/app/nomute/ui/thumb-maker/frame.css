@@ -53,3 +53,11 @@ html.dark .tm-rf { color:#8B8F8A; }
 .nm-tm.nm-tm { --modern-accent:#CFFF40; --modern-accent-rgb:207,255,64; --modern-bias-l1:#CFFF40; --modern-bias-l2:#5E8C00; --bias-l1:#CFFF40; }
 /* 포스트 ↔ 릴스(누르면 바뀌는 판형 글자 · 저작권 OFF→릴스→포스트 포함) = 바뀌어도 그냥 라임(형 11-14 11:30 「그리고 누르먼 전환되는 릴스 키워드도 라임으로 전환되도 그냥 라임」 · 앞 판 릴스 = 노랑 --accent-4) */
 .nm-tm.nm-tm .csec .ovfmt.reels, .nm-tm.nm-tm .csec .ovfmt.post { color:var(--modern-accent); }
+
+/* 영상 편집 꼴 가져옴(형 11-14 11:29 봄 옮김 「이제 비디오 에디터가 더 잘만들어져 버렷거든? 구거 참고해서 다시 보완해줘.」 · 봄 11:41 「색 + 1 · 2 · 5 를 한 판으로」 · 2(옆 기둥)는 다음 판 = 봄 · 형 고름)
+   값 = 라이브 영상 편집 실물(9230 · editor edit.html + ../video-editor.tsx 덧씀 · 11:4x 잼) · 원본 판(./thumb-maker.css) 손 0 · 차례 상관없게 !important(영상 덧씀과 같은 꼴)
+   1 미리보기 = 쉴 때 도크 바탕 투명(영상 #topDock = 투명 · 앞 판 rgba(17,18,20,.64) 회색 띠 · 밑으로 들어간 동안 유리는 위 data-stuck 그대로) · 빈 판 = 영상 빈 판과 같은 #121212(앞 판 = 흰 4% 회색 상자) */
+.nm-tm.nm-tm:not([data-stuck]) .topdock { background:transparent !important; }
+.nm-tm.nm-tm .topdock .cpprev-stage { background:#121212 !important; }
+/* 5 미리보기 밑 줄 = 라임 35%(영상 rgba(207,255,64,.35) · 앞 판 흰 8%) */
+.nm-tm.nm-tm .topdock { border-bottom:1px solid rgba(var(--modern-accent-rgb),.35) !important; }
