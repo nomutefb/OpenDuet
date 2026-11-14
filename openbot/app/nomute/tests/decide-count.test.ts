@@ -23,10 +23,9 @@ test("고르면 먼저 pick 적고 그 방 pending_hyung −1 · 서랍 숫자 =
   assert.match(sh, /const FRAME: Partial<Record<Modal, string>> = \{ play: "\/play\/" \};/);   // 11-15 부터 채널 · SNS = 품지 않고 앱 안에서(형 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」 · ./ui/old-tabs · tests/old-tabs.test.ts)
   assert.match(sh, /M\.id === "chan" \? <div className="nm-scroll"><ChanTab \/><\/div>/);
   // 빠르게 + 화면 맞춤(형 11-14 「전에 버전을 좀 더 빠르게 그리고 이 화면에 최적화 그리고 이피시 인앶에도 최적화」) = only=1 · 그려지기 전 라임 · 폰 머리 0 · PC 좌우 다 씀
-  assert.match(sh, /src\.includes\("only=1"\) \? \[fitFrame\(el\)\] : \[\]/);
   assert.match(sh, /const SPREAD = new Set<Modal>\(\[[^\]]*"chan", "sns"\]\);/);
   assert.match(rd("../ui/shell.css"), /\.nm-modal-h\.nm-mh-chan, \.nm-modal-h\.nm-mh-sns \{ display:none; \}/);
-  assert.match(rd("../ui/inapp.ts"), /--modern-accent:\$\{dark \? "#CFFF40" : "#4f7a00"\}!important/);
+  assert.doesNotMatch(sh + rd("../ui/inapp.ts"), /fitFrame|fitCss|only=1"\)/, "옛 화면을 품던 길의 덧줄 0(형 11-15 「이정도몬 전에건 없애도대」)");
   assert.match(sh, /if \(p === "\/trend"\) return \{ modal: "sns" \};/);
   assert.match(sh, /if \(p === "\/chanfull"\) return \{ modal: "chan" \};/);
   assert.doesNotMatch(sh, /ChanModal|SnsModal|TrendModal/);

@@ -92,32 +92,6 @@ export const yetaTone = (dark: boolean) => `:root{color-scheme:${dark ? "dark" :
 --modern-silk-glass:${dark ? "rgba(255,255,255,.005)" : "rgba(0,0,0,.02)"};--modern-panel-shadow:inset 0 1px 0 ${dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.09)"},0 24px 60px rgba(0,0,0,${dark ? ".42" : ".08"})}
 html,body{background:transparent!important}`;
 
-/** 옛 에디터 한 탭(채널 · SNS = ?only=1)을 품을 때 그려지기 전에 넣는 덧줄 — 강조색 = 라임(옛 화면 제 값 · PC 폭 규칙보다 셈) · 바탕 비움(앱 바탕이 비침)
- *  yetaTone 은 다 읽은 뒤(load)에 들어가 그 전까지 옛 색(하늘색 · 남색 바탕)이 먼저 비쳤음(형 11-14 「전에 버전을 좀 더 빠르게 그리고 이 화면에 최적화 그리고 이피시 인앶에도 최적화」) */
-export const fitCss = (dark: boolean) => `:root{--modern-accent:${dark ? "#CFFF40" : "#4f7a00"}!important;--modern-accent-rgb:${dark ? "207,255,64" : "79,122,0"}!important;--accent:${dark ? "#CFFF40" : "#4f7a00"}!important;--accent-rgb:${dark ? "207,255,64" : "79,122,0"}!important}
-html,body{background:transparent!important}.bgfx,#ambient{display:none!important}`;
-/** 그려지기 전에 fitCss 넣기 — 새 문서 머리가 생긴 첫 프레임 · 다 읽힌 때 한 번 더 · 앱 밝게/어둡게 바뀌면 다시 · 못 읽어도 10초 뒤 멈춤 */
-export function fitFrame(el: HTMLIFrameElement | null): () => void {
-  if (!el) return () => {};
-  const paint = () => {
-    let doc: Document | null = null;
-    try { doc = el.contentDocument; } catch { return false; }
-    if (!doc || !doc.head || doc.URL === "about:blank") return false;
-    let s = doc.getElementById("nm-frame-fit") as HTMLStyleElement | null;
-    if (!s) { s = doc.createElement("style"); s.id = "nm-frame-fit"; doc.head.appendChild(s); }
-    const css = fitCss(document.documentElement.classList.contains("dark"));
-    if (s.textContent !== css) s.textContent = css;
-    return doc.readyState === "complete";
-  };
-  let raf = 0, n = 0;
-  const tick = () => { raf = 0; if (paint() || ++n > 600) return; raf = requestAnimationFrame(tick); };
-  raf = requestAnimationFrame(tick);
-  el.addEventListener("load", paint);
-  const mo = new MutationObserver(() => { paint(); });
-  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-  return () => { if (raf) cancelAnimationFrame(raf); el.removeEventListener("load", paint); mo.disconnect(); };
-}
-
 /** 품은 화면에 톤 입힘(불러올 때마다 · 앱 어둡게·밝게 바뀌면 다시) — extra = 그 화면만의 덧줄 */
 export function toneFrame(el: HTMLIFrameElement | null, extra: string | ((dark: boolean) => string) = ""): () => void {
   if (!el) return () => {};

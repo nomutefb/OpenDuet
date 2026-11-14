@@ -45,7 +45,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
-import { fitFrame, frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
+import { frameUrl, hookFrame, listenAppLinks, toneFrame } from "./inapp";
 import { deliverStudio } from "./studio-handoff";   // 카드 제작 → 영상 편집 넘김(품은 edit.html 이 뜨면 영상 넣기 · 번개 11-08)
 const WebPane = lazy(() => import("./web-pane").then((m) => ({ default: m.WebPane })));
 import { ModalBox } from "./modal-box";   // 큰 창 넷 = Esc · Tab 가두기 · 포커스 돌려주기(빠르 11-08)
@@ -422,7 +422,7 @@ function FramePage({ src, title, onTitle }: { src: string; title: string; onTitl
   const ref = useRef<HTMLIFrameElement>(null);
   useEffect(() => {
     const el = ref.current;
-    const offs = [hookFrame(el), toneFrame(el), ...(src.includes("only=1") ? [fitFrame(el)] : [])];   // only=1(채널 · SNS) = 그려지기 전에 라임 · 바탕 비움(./inapp fitFrame)
+    const offs = [hookFrame(el), toneFrame(el)];
     const name = () => { try { const t = el?.contentDocument?.title; if (t && onTitle) onTitle(t); } catch { /* 남의 사이트 = 못 읽음 */ } };
     const dv = () => deliverStudio(el);
     // 판 바탕 = 품은 화면 바탕색(위 머리 띠 = 그 화면 맨 위 색 · 아래 네비 띠 = 맨 아래 색) — 앞 판은 머리 뒤만 검은 띠(형 11-14 봄의 정원 「톤온톤으로 뒤에 맞춰주셈」) · 화면이 바뀔 때마다 다시 잼
