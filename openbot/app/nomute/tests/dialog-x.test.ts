@@ -5,10 +5,10 @@ import test from "node:test";
 const rd = (f: string) => readFileSync(new URL(`../ui/${f}`, import.meta.url), "utf8");
 test("판 안 「닫기」 글자 단추 0 · 창 X(DialogX) = 닫기 길(g.request)", () => {
   const s = rd("temp-room.tsx"), i = s.indexOf("export function TempRoomDialog"), j = s.indexOf("export function TempDeleteDialog"), t = s.slice(i, j);
-  assert.match(t, /<DialogX onClose=\{g\.request\} \/>/);
+  assert.match(t, /<DialogX onClose=\{g\.request\} disabled=\{busy\} \/>/);
   assert.doesNotMatch(t, />닫기<\/button>/);
   assert.doesNotMatch(t, /SaveAsk/);
-  assert.match(t, /<CloseAsk.*onClose=\{\(\) => \{ draftDrop\(dk\); onClose\(\); \}\}/);
+  assert.match(t, /<CloseAsk.*onClose=\{\(\) => \{ if \(!busy\) \{ draftDrop\(dk\); close\(\); \} \}\}/);
 });
 test("확인 글 = 형 문장 그대로 · 단추 취소 · 닫기", () => {
   const s = rd("save-ask.tsx");

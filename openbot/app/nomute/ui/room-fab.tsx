@@ -5,7 +5,8 @@ import { useState } from "react";
 import { TempRoomDialog } from "./temp-room";
 
 export function RoomFab() {
-  const [making, setMaking] = useState(false);
+  const [making, setMaking] = useState(false), [session, setSession] = useState(0);
+  const close = () => { setMaking(false); setSession((n) => n + 1); };
   return (
     <>
       <div className="nm-fab">
@@ -13,7 +14,8 @@ export function RoomFab() {
           <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
         </button>
       </div>
-      {making ? <TempRoomDialog onClose={() => setMaking(false)} /> : null}
+      {/* 첫 누름 전에 판·명단을 준비하고, 닫을 때 다음 빈 판을 준비한다. */}
+      <TempRoomDialog key={session} open={making} onClose={close} />
     </>
   );
 }
