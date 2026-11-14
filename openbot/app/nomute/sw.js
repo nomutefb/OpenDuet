@@ -110,7 +110,7 @@ self.addEventListener("fetch", (e) => {
   if (req.mode === "navigate") {
     e.respondWith((async () => {
       try {
-        const res = await fetch(req);
+        const res = await fetch(req, { cache: "no-store" });   // 첫 화면 = 웹 캐시도 안 탐(옛 첫 화면이 지워진 조각을 부르던 것 · 형 11-14 22:10 · 깃 #-0004)
         if (res.ok) (await caches.open(SHELL)).put("/office-app/", res.clone());
         return res;
       } catch {
