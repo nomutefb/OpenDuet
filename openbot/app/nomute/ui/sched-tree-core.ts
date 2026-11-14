@@ -115,8 +115,12 @@ const fieldCount = (f: string, span: number): number => {
 /** 하루에 도는 횟수(어림) — cron 줄(분 × 시) 합 · 없으면 「N분마다」「N시간마다」 글 · 시각만 있으면 1 · 부를 때만 · 뒤따름 = 0 */
 export function perDay(j: Pick<RunnerJob, "cron_kst" | "when">): number {
   let n = 0;
-  for (const line of j.cron_kst || []) { const c = line.replace(/^CRON_TZ=\S+\s+/, "").trim().split(/\s+/); if (c.length === 5) n += fieldCount(c[0], 60) * fieldCount(c[1], 24); }
-  if (n) return n;
+  for (const line of j.cron_kst || []) {
+    const c = line.replace(/^CRON_TZ=\S+\s+/, "").trim().split(/\s+/); if (c.length !== 5) continue;
+    const dom = c[2] === "*" ? 1 : fieldCount(c[2], 31) / 30.4, dow = c[4] === "*" ? 1 : fieldCount(c[4], 7) / 7;   // 요일 · 날짜를 고른 잡 = 그만큼 덜 돎(주 1회 = 하루 1/7 · 평의회 11-14 「주 1회 잡이 매일로 셈해진다」)
+    n += fieldCount(c[0], 60) * fieldCount(c[1], 24) * Math.min(dom, dow);
+  }
+  if (n) return Math.round(n * 100) / 100;
   const w = j.when || "", mi = /(\d+)\s*분마다/.exec(w), hr = /(\d+)\s*시간마다/.exec(w);
   if (mi) return Math.round(1440 / Math.max(1, +mi[1]));
   if (hr) return Math.round(24 / Math.max(1, +hr[1]));

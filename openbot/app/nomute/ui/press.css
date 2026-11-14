@@ -1,6 +1,6 @@
 /* 눌림 기본값 — 따로 눌림을 안 가진 단추도 누르면 눌린다(형 11-14 클라우드 세션 창 「버튼 누를때 액션 액티브 효과 다 잇어야함」 · 「그 액티브 효과란 이미 nomutefb github 안에 잇음」)
    값 = 저장소 기틀(editor 디자인기틀 가이드북 버튼인터랙션 §3 ① :active{scale(var(--press-*)) · brightness}) · 놓으면 스프링(kinetics)으로 돌아옴
-   @layer base + :where(무게 0) → 테일윈드 유틸(utilities 층) · 앱 스타일(층 밖)이 다 이김 → 제 눌림 · 제 transform · 제 transition 을 가진 단추는 그대로(겹쳐 두 번 줄지 않음) · 꺼진 단추는 안 눌림 */
+   @layer base + :where(무게 0) → 테일윈드 유틸(utilities 층) · 앱 스타일(층 밖)이 다 이김 → 제 transform 눌림 · 제 transition 을 가진 단추는 그대로 · scale 속성으로 눌리는 새 부품(탭 · 트리 · 부름 목록)은 제 :active 에 transform:none 을 같이 적어 두 번 줄지 않게 함(평의회 11-14) · 꺼진 단추는 안 눌림 */
 @layer base {
   :where(.nm-yeta, .ncs-veil, .nm-rsheet-back, .nm-tabs, .nm-tab-menu) :where(button, [role="button"], [role="tab"], [role="switch"], [role="option"], summary):where(:not(:disabled, [aria-disabled="true"])) {
     transition:transform .28s cubic-bezier(.34,1.56,.64,1), filter .12s;

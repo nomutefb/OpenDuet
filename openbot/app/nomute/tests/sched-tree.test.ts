@@ -80,6 +80,9 @@ test("하루 횟수 = cron(분 × 시) · 글 · 부를 때만 0 → 선 굵기�
   assert.equal(perDay({ cron_kst: ["CRON_TZ=Asia/Seoul 0,30 7-23 * * *"] }), 34);
   assert.equal(perDay({ cron_kst: ["*/10 * * * *"] }), 144);
   assert.equal(perDay({ cron_kst: ["0 6 * * *", "0 18 * * *"] }), 2);
+  assert.equal(perDay({ cron_kst: ["0 9 * * 1"] }), 0.14);   // 주 1회 = 하루 1/7
+  assert.equal(perDay({ cron_kst: ["0 9 * * 1-5"] }), 0.71);
+  assert.equal(perDay({ cron_kst: ["0 9 1 * *"] }), 0.03);   // 달 1회
   assert.equal(perDay({ when: "10분마다" }), 144);
   assert.equal(perDay({ when: "3시간마다" }), 8);
   assert.equal(perDay({ when: "매일 6:00" }), 1);

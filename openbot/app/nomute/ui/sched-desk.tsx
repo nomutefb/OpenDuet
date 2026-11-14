@@ -199,7 +199,7 @@ export function SchedDesk() {
         </div>
       ) : null}
       {tab === "gpu" && d.gpu ? <GpuPanel gpu={d.gpu} open={(id) => { const j = d.runners?.jobs.find((x) => x.id === id); const g = j && d.runners?.forks.find((f) => f.id === j.fork)?.group; if (g) setTab("tree"); }} /> : null}
-      {tab === "tree" && d.runners ? <SchedTree map={d.runners} review={rv} phone={!wide} can={can} /> : null}
+      {tab === "tree" && d.runners ? <SchedTree map={d.runners} review={rv} phone={!wide} can={can} who={whoKo} /> : null}
       {runnerTab && tab !== "tree" && d.runners ? (flow ? <SchedFlow map={d.runners} group={tab} go={setTab} review={rv} phone={!wide} can={can} /> : <RunnerTree map={d.runners} group={tab} go={setTab} review={rv} can={can} who={whoKo} />) : null}
       {tab === "bot" ? <>
       <div className="nm-sched-faces" role="group" aria-label="봇 고르기">

@@ -9,12 +9,14 @@ import { office } from "../data/office";
 import { Breaker, StatusDot, stOf } from "./sched-bits";
 import { type RunnerJob, nextShort } from "./settings-extra";
 import { whenOf } from "./sched-runners";
+import { type Review, ReviewBox } from "./sched-review";
+import { HEALTH_KO } from "./sched-bits";
 import { ACTION_KO, type RunnerRes, ghJob, sameJob, stateKo, toggleOf } from "./sched-flow-core";
 
 const post = (file: string, action: string, dry: boolean) => office<RunnerRes>("schedule/runner", { method: "POST", body: JSON.stringify({ action, file, dry }) });
 const whenKo = (ts: number) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
-export function RunnerSheet({ job, can, phone, onClose, onRan, start }: { job: RunnerJob; can: boolean; phone: boolean; onClose: () => void; onRan: (id: string) => void; start?: "run" | "toggle" }) {   // start = 열자마자 그 일의 미리 보기까지(노드 트리 탭 단추 · ./sched-tree.tsx)
+export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, who }: { job: RunnerJob; can: boolean; phone: boolean; onClose: () => void; onRan: (id: string) => void; start?: "run" | "toggle"; review?: Review; who?: (w: string) => string }) {   // start = 열자마자 그 일의 미리 보기까지(노드 트리 탭 단추 · ./sched-tree.tsx)
   const gh = ghJob(job);
   const [res, setRes] = useState<RunnerRes | null>(null), [busy, setBusy] = useState(""), [msg, setMsg] = useState("");
   const [pre, setPre] = useState<{ file: string; action: "run" | "on" | "off"; would: string; red: boolean } | null>(null);   // dry 미리 보기 → 「적용」 기다리는 중(file = 미리 본 그 잡 · 모루 09:32 ③)
@@ -114,6 +116,11 @@ export function RunnerSheet({ job, can, phone, onClose, onRan, start }: { job: R
             <small className="nm-rsheet-foot">언제 · 모델 바꾸기는 다음 판(yml 고침) · 끄면 시간표 · 박자 · 수동이 다 멈추고 다시 켜면 돌아와</small>
           </div>
         )}
+        <div className="nm-rsheet-info">   {/* 옛 목록에만 있던 칸을 판으로(평의회 11-14 「형이 왜 늦었어 · 누가 맡았어를 볼 길이 없어졌다」) = 돌 자리 · 모델 · 책임 · 확인 전 / 마지막 실제 · 얼마나 늦음 / 검토 */}
+          <small>{[(job.res || []).map((r) => `${r.at}${r.gpu ? "(GPU)" : ""}`).join(" › ") || "돌 자리 모름", job.model?.length ? job.model.join(" · ") : job.providers?.length ? job.providers.join(" · ") : "LLM 없음", `${job.owner || "책임 모름"}${job.checked ? "" : " · 확인 전"}`].join(" · ")}</small>
+          {job.health ? <small data-st={job.health.st}>{HEALTH_KO[job.health.st]}{job.health.last_at ? ` · 마지막 실제 ${nextShort(job.health.last_at)}` : ""}{job.health.drift_min ? ` · 예정보다 ${job.health.drift_min}분 늦음` : ""}{job.health.missed ? ` · 놓침 ${job.health.missed}` : ""}</small> : null}
+          {who ? <ReviewBox id={job.id} r={review} can={can} who={who} /> : null}
+        </div>
       </section>
     </div>,
     document.body,

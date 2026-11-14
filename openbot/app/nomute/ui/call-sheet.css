@@ -85,5 +85,5 @@
 .ncs .ncs-list li:active { scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.12s, .12s, .07s, .07s; }
 .ncs-pop-f { animation:ncsRow .24s cubic-bezier(.2,.8,.2,1) both; }
 .ncs-pop-go, .ncs button { transition:scale .3s cubic-bezier(.34,1.56,.64,1), filter .12s; }
-.ncs-pop-go:active, .ncs button:active { scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
+.ncs-pop-go:active, .ncs button:active { transform:none; scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
 @media (prefers-reduced-motion: reduce) { .ncs.ncs-pop, .ncs .ncs-list li, .ncs-pop-f { animation:none; } }

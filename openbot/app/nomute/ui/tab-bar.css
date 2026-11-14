@@ -119,11 +119,11 @@
 .nm-tab:not(.on)::after { content:""; display:block; position:absolute; inset:5px 3px 6px; z-index:-1; border-radius:9px; background:rgba(232,234,232,.08); opacity:0; transition:opacity .15s; }   /* 안 고른 탭에 손 = 둥근 칸(영상) */
 .nm-tab:not(.on):hover::after { opacity:1; }
 .nm-tab + .nm-tab:not(.on)::before { left:0; top:13px; bottom:13px; }
-.nm-tab:active:not([data-drag]) { scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.15s, .22s, .07s, .07s; }
+.nm-tab:active:not([data-drag]) { transform:none; scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.15s, .22s, .07s, .07s; }
 .nm-tab[data-drag] { z-index:3; transition:color .15s; cursor:grabbing; }
 .nm-tab:is(.browser, .meet, .teams) { flex:0 0 auto; min-width:0; }
 .nm-tab-plus { margin:0 0 6px 4px; transition:scale .3s var(--tab-spring), filter .12s, background-color .15s, color .15s; }
-.nm-tab-plus:active, .nm-tab-x:active { scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
+.nm-tab-plus:active, .nm-tab-x:active { transform:none; scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
 .nm-tab-x { transition:opacity .15s, scale .3s var(--tab-spring); }
 @media (prefers-reduced-motion: reduce) { .nm-tabs-ink, .nm-tab { transition:none; } }
 
@@ -144,5 +144,5 @@
 .nm-tab-menu button:nth-child(10) { animation-delay:294ms; }
 .nm-tab-menu button:nth-child(11) { animation-delay:320ms; }
 .nm-tab-menu button:nth-child(12) { animation-delay:346ms; }
-.nm-tab-menu button:active { scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.07s; }
+.nm-tab-menu button:active { transform:none; scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.07s; }
 @media (prefers-reduced-motion: reduce) { .nm-tab-menu, .nm-tab-menu button { animation:none; } }

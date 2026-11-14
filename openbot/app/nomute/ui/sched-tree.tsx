@@ -21,7 +21,8 @@ const I = {   // 탭 그림 단추(선 그림 · 14)
 };
 const Ic = ({ d }: { d: keyof typeof I }) => <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{I[d]}</svg>;
 
-export function SchedTree({ map, review = {}, phone = false, can = false }: { map: SchedRunners; review?: Record<string, Review>; phone?: boolean; can?: boolean }) {
+const HOST_KO: Record<string, string> = { mac: "맥", "win-a": "윈A", eyes: "아이즈", sia: "시아 몸", deng: "뎅 몸", fast: "빠르 몸", neo: "네오 몸" };   // 깃허브 밖 잡이 도는 몸(지도 host)
+export function SchedTree({ map, review = {}, phone = false, can = false, who }: { map: SchedRunners; review?: Record<string, Review>; phone?: boolean; can?: boolean; who?: (w: string) => string }) {
   const box = useRef<HTMLDivElement>(null), world = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -128,18 +129,18 @@ export function SchedTree({ map, review = {}, phone = false, can = false }: { ma
           const j = n.job!, st = stJob(j), gh = ghJob(j), [c0] = j.clock || [], run = (ran[j.id] || 0) > now;
           const tag = j.kind === "llm" ? "LLM" : c0 ? CLOCK_KO[c0] || c0 : "";
           return (
-            <div key={n.id} className="nm-tree-node job" style={pos} data-st={st} data-hot={hot === n.id || undefined} data-next={soon === j.id || undefined} data-off={j.on === false || !forkOn(j) || undefined} data-run={run || undefined} data-via={n.via}>
+            <div key={n.id} className="nm-tree-node job" style={pos} data-st={st} data-hot={hot === n.id || undefined} data-out={!gh || undefined} data-next={soon === j.id || undefined} data-off={j.on === false || !forkOn(j) || undefined} data-run={run || undefined} data-via={n.via}>
               <div className="nm-tree-tab" role="toolbar" aria-label={`${j.name} 바꾸기`}>
                 <svg className="nm-tree-tabbg" viewBox="0 0 132 22" preserveAspectRatio="none" aria-hidden><path d="M0 22C9 22 10 0 22 0H110C122 0 123 22 132 22Z" /></svg>
-                <button type="button" title={gh ? (can ? "지금 돌리기" : "지금 돌리기(형만)") : "몸 안 잡 — 이 몸 주인에게"} disabled={!gh} onClick={() => setSel({ job: j, start: "run" })}><Ic d="run" /></button>
-                <button type="button" title={gh ? (can ? "켬 · 끔" : "켬 · 끔(형만)") : "몸 안 잡 — 이 몸 주인에게"} disabled={!gh} onClick={() => setSel({ job: j, start: "toggle" })}><Ic d="power" /></button>
+                {gh ? <button type="button" title={can ? "지금 돌리기" : "지금 돌리기(형만)"} onClick={() => setSel({ job: j, start: "run" })}><Ic d="run" /></button> : null}   {/* 깃허브 밖 잡 = 눌러도 안 되는 단추는 안 그림(평의회 11-14 「꺼진 단추는 고장처럼 보인다」) · 까닭은 카드에 글로 */}
+                {gh ? <button type="button" title={can ? "켬 · 끔" : "켬 · 끔(형만)"} onClick={() => setSel({ job: j, start: "toggle" })}><Ic d="power" /></button> : null}
                 <button type="button" title="파일 이름 복사" onClick={() => copy(j)}><Ic d={copied === j.id ? "check" : "copy"} /></button>
                 <button type="button" title="자세히" onClick={() => setSel({ job: j })}><Ic d="more" /></button>
               </div>
-              <button type="button" className="nm-tree-card" aria-label={`${j.name} · ${HEALTH_KO[st]}`} onClick={() => (phone && hot !== n.id ? setHot(n.id) : setSel({ job: j }))}>
+              <button type="button" className="nm-tree-card" aria-label={`${j.name} · ${HEALTH_KO[st]}`} onClick={() => setSel({ job: j })}>   {/* 폰 = 한 번 누르면 바로 판(큰 단추) · 작은 탭 단추를 두 번째로 누르게 하지 않음 */}
                 <span className="nm-tree-l1"><b title={j.name}><ReviewBadge r={review[j.id]} />{j.name}</b>{tag ? <i>{tag}</i> : null}</span>
                 <span className="nm-tree-l2"><small>언제</small><span title={whenOf(j)}>{whenOf(j)}{j.health?.next_at ? ` · 다음 ${nextShort(j.health.next_at)}` : ""}</span></span>
-                <span className="nm-tree-l3"><StatusDot st={st} /><span>{HEALTH_KO[st]} · {modelKo(j)}</span><i className="nm-tree-sw" data-on={j.on !== false || undefined} aria-hidden /></span>
+                <span className="nm-tree-l3"><StatusDot st={st} /><span>{HEALTH_KO[st]} · {gh ? modelKo(j) : `${HOST_KO[j.host || ""] || j.host || "그 몸"}에서 돎 · 여기서 못 바꿈`}</span><i className="nm-tree-sw" data-on={j.on !== false || undefined} aria-hidden /></span>
                 {soon === j.id ? <em className="nm-tree-next">다음</em> : null}
               </button>
               <i className="nm-tree-port l" aria-hidden /><i className="nm-tree-port r" aria-hidden />
@@ -156,7 +157,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false }: { ma
           <button type="button" aria-label="크게" onClick={() => zoom(1.2)}>+</button>
         </div>
       )}
-      {sel ? <RunnerSheet job={sel.job} start={sel.start} can={can} phone={phone} onClose={closeSel} onRan={(id) => setRan((r) => ({ ...r, [id]: Date.now() + RUN_MS }))} /> : null}
+      {sel ? <RunnerSheet job={sel.job} start={sel.start} review={review[sel.job.id]} who={who} can={can} phone={phone} onClose={closeSel} onRan={(id) => setRan((r) => ({ ...r, [id]: Date.now() + RUN_MS }))} /> : null}
     </div>
   );
 }

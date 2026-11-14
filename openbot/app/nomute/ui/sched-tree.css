@@ -52,7 +52,7 @@
 /* 잡 = 카드 + 위 탭 + 양옆 꼭지 */
 .nm-tree-node.job { cursor:default; }
 .nm-tree-card { position:relative; z-index:1; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; gap:0; padding:8px 10px 7px; border:1px solid var(--tree-edge); border-radius:14px; background:var(--tree-card); box-shadow:inset 0 1px 0 var(--tree-hi), var(--tree-shadow); color:inherit; font:inherit; text-align:left; cursor:pointer; transition:border-color .18s, scale .32s var(--tree-spring), filter .18s; }
-.nm-tree-card:active { scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.18s, .08s, .08s; }
+.nm-tree-card:active { transform:none; scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.18s, .08s, .08s; }
 .nm-tree-node.job:hover .nm-tree-card, .nm-tree-node.job:focus-within .nm-tree-card, .nm-tree-node.job[data-hot] .nm-tree-card { border-color:var(--tree-strong); }
 .nm-tree-card:focus-visible { outline:0; }
 .nm-tree-node.job[data-next] .nm-tree-card { border-color:var(--tree-next); }
@@ -80,7 +80,7 @@
   clip-path:inset(100% 0 0 0); translate:0 4px; transition:clip-path .18s cubic-bezier(.2,.8,.2,1), translate .18s cubic-bezier(.2,.8,.2,1); pointer-events:none; }
 .nm-tree-tabbg { position:absolute; inset:0; width:100%; height:100%; fill:var(--tree-strong); }
 .nm-tree-tab button { position:relative; all:unset; position:relative; width:24px; height:22px; display:grid; place-items:center; cursor:pointer; opacity:0; transition:opacity .14s .08s, scale .3s var(--tree-spring), filter .12s; }
-.nm-tree-tab button:hover { scale:1.12; } .nm-tree-tab button:active { scale:var(--press-s, .85); filter:brightness(.7); transition-duration:.14s, .07s, .07s; }
+.nm-tree-tab button:hover { scale:1.12; } .nm-tree-tab button:active { transform:none; scale:var(--press-s, .85); filter:brightness(.7); transition-duration:.14s, .07s, .07s; }
 .nm-tree-tab button[disabled] { cursor:default; opacity:0; }
 .nm-tree-node.job:hover .nm-tree-tab, .nm-tree-node.job:focus-within .nm-tree-tab, .nm-tree-node.job[data-hot] .nm-tree-tab { clip-path:inset(0 0 0 0); translate:0 0; pointer-events:auto; }
 .nm-tree-node.job:is(:hover, :focus-within, [data-hot]) .nm-tree-tab button { opacity:1; }
@@ -88,12 +88,17 @@
 .nm-tree-node.job:is(:hover, :focus-within, [data-hot]) { z-index:5; }
 /* 잡 밑 잡 접기 = 오른쪽 꼭지 자리의 작은 알 */
 .nm-tree-fold { all:unset; position:absolute; right:-9px; top:50%; z-index:3; min-width:18px; height:18px; margin-top:-9px; box-sizing:border-box; padding:0 4px; display:grid; place-items:center; border-radius:9px; background:var(--tree-strong); color:var(--tree-on); font-size:10.5px; font-weight:600; cursor:pointer; font-variant-numeric:tabular-nums; transition:scale .3s var(--tree-spring), filter .12s; }
-.nm-tree-fold:active { scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
+.nm-tree-fold:active { transform:none; scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
 .nm-tree.down .nm-tree-fold { right:8px; top:auto; bottom:-9px; margin:0; }
 /* 배율 단추 */
 .nm-tree-zoom { position:absolute; right:12px; bottom:12px; z-index:6; display:flex; align-items:center; border:1px solid var(--tree-edge); border-radius:12px; background:var(--tree-card); -webkit-backdrop-filter:blur(var(--blur-l, 11px)); backdrop-filter:blur(var(--blur-l, 11px)); box-shadow:inset 0 1px 0 var(--tree-hi), var(--tree-shadow); overflow:hidden; cursor:default; }   /* 판 위에 떠 있는 것 하나만 진짜 뒤 흐림(안 움직임) */
 .nm-tree-zoom button { all:unset; min-width:30px; height:30px; display:grid; place-items:center; font-size:14px; cursor:pointer; color:var(--tree-fg); transition:scale .3s var(--tree-spring), filter .12s; }
-.nm-tree-zoom button:active { scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
+.nm-tree-zoom button:active { transform:none; scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
 .nm-tree-zoom button.pct { min-width:46px; font-size:11px; font-variant-numeric:tabular-nums; color:var(--tree-mut); border-inline:1px solid var(--tree-edge); }
 .nm-tree-zoom button:hover { background:var(--tree-soft); }
 @media (prefers-reduced-motion: reduce) { .nm-tree-world, .nm-tree-node, .nm-tree-edges path, .nm-tree-tab, .nm-tree-tab button, .nm-tree-chev { transition:none; animation:none; } }
+
+/* 깃허브 밖 잡(맥 · 윈A · 다른 몸 안 시계) = 점선 테 + 상태 줄에 「○○에서 돎 · 여기서 못 바꿈」 · 흐리게 하지 않음(꺼진 것처럼 보임 — 평의회 11-14) */
+.nm-tree-node.job[data-out] .nm-tree-card { border-style:dashed; }
+/* 폰 = 카드를 한 번 누르면 바로 판(큰 단추) → 작은 탭 줄은 안 띄움 */
+.nm-tree.down .nm-tree-tab { display:none; }
