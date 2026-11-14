@@ -10,13 +10,13 @@ html.dark .nm-home-ambient, html.dark .nm-app-ambient { --modern-space-bg:#16171
 
 /* 앱 처음 열 때 = 카드 첫 판 뒤에 같이(형 11-03 16:48 「일단 도착한 메세지랑 우측 버튼, 네비는 나중에 나오는게 맞는거같고」 · 「상단에 그래프도 마찬가지야,」 · home-screen.tsx)
    기다림 = 안 보임·안 눌림(자리는 그대로 = 카드 안 밀림) · 들어옴 = 스르륵(네비만 한 박자 늦게) · 움직임 줄이기 = 바로 */
-html[data-home-wait] .nm-pulse, html[data-home-wait] .nm-pulse-wait, html[data-home-wait] .nm-send-dock, html[data-home-wait] .nm-arrived, html[data-home-wait] .ynav { opacity:0; pointer-events:none; }
+html[data-home-wait] .nm-pulse, html[data-home-wait] .nm-pulse-wait, html[data-home-wait] .nm-send-dock, html[data-home-wait] .nm-arrived, html[data-home-wait] .ynav, html[data-home-wait] .nm-home-swap .nm-hotswap-t { opacity:0; pointer-events:none; }
 @keyframes nmHomeIn { from { opacity:0; transform:translateY(4px); } }
 html[data-home-in] .nm-pulse, html[data-home-in] .nm-arrived, html[data-home-in] .ynav { animation:nmHomeIn .6s cubic-bezier(.2,.7,.3,1) both; }
-html[data-home-in] .nm-send-dock { animation:nmHomeInFade .6s cubic-bezier(.2,.7,.3,1) both; }   /* 단추 = 자리 transform(가운데 맞춤) 그대로 · 빛만 */
+html[data-home-in] .nm-send-dock, html[data-home-in] .nm-home-swap .nm-hotswap-t { animation:nmHomeInFade .6s cubic-bezier(.2,.7,.3,1) both; }   /* 단추 = 자리 transform(가운데 맞춤) 그대로 · 빛만 */
 @keyframes nmHomeInFade { from { opacity:0; } }
 html[data-home-in] .ynav { animation-delay:.15s; }
-@media (prefers-reduced-motion:reduce) { html[data-home-in] .nm-pulse, html[data-home-in] .nm-arrived, html[data-home-in] .ynav, html[data-home-in] .nm-send-dock { animation:none; } }
+@media (prefers-reduced-motion:reduce) { html[data-home-in] .nm-pulse, html[data-home-in] .nm-arrived, html[data-home-in] .ynav, html[data-home-in] .nm-send-dock, html[data-home-in] .nm-home-swap .nm-hotswap-t { animation:none; } }
 /* 앱 처음 열 때 덮개(형 16:48 「그 전에 아예 메인 로고 창이나 그런거로 덮는게 어떤지」) = 화면 전체(네비 위) 아이콘 뒤 바탕(11-09 봄 얼굴로 바뀜 = #F4D2B0 노을빛 · 형 13:2x 「봄의얼굴 테마로 바꿔」 · 앞 = 남색 #08295e = 윈터 icon-512 가장자리 실측 · 형 17:0x 「저 배경색을 전면으로 다 깔아주라.」 · 그림자 뺌 = 아이콘이 바탕에 녹음) + 가운데 앱 아이콘 · 카드 첫 판 뒤 스르륵 걷힘 · 걷힌 뒤 안 눌림 */
 .nm-home-splash { position:fixed; inset:0; z-index:80; display:grid; place-items:center; background:#F4D2B0; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .5s cubic-bezier(.2,.7,.3,1), visibility 0s linear .5s; }
 .nm-home-splash img { width:88px; height:88px; border-radius:24px; }
@@ -25,10 +25,11 @@ html[data-home-wait] .nm-home-splash img { animation:nmSplashBreath 2.4s ease-in
 html[data-home-wait] .nm-home-splash { opacity:1; visibility:visible; pointer-events:auto; transition:none; }
 @media (prefers-reduced-motion:reduce) { .nm-home-splash, .nm-home-splash img { transition:none; animation:none; } }
 /* 카드 판이 아직 뼈대일 때(news-feed · html[data-deck-wait]) = 도착한 메시지·전송 단추 숨김 → 첫 판이 가면 스르륵(형 11-04 13:24 「도착 메세지랑 체크 표시가 미리 뜨는데 늦게 뜰수잇게 할수잇어?」 · 다시 온 홈·덱 다시 불림 때 뼈대 위에 먼저 떴음) · 네비·그래프는 안 숨김 */
-html[data-deck-wait] .nm-send-dock, html[data-deck-wait] .nm-arrived { opacity:0; pointer-events:none; }
+/* 키워드 바꿈 알약(./kw-board.css .nm-hotswap-t)도 같이 — 카드보다 먼저 맨 위에 혼자 떴음(형 11-14 「키워드 교대 아이콘이 맨 위에 먼저 떠버리는 버그」) · 자리 맞춤이 translate 라 빛만 */
+html[data-deck-wait] .nm-send-dock, html[data-deck-wait] .nm-arrived, html[data-deck-wait] .nm-home-swap .nm-hotswap-t { opacity:0; pointer-events:none; }
 html[data-deck-in] .nm-arrived { animation:nmHomeIn .5s cubic-bezier(.2,.7,.3,1) both; }
-html[data-deck-in] .nm-send-dock { animation:nmHomeInFade .5s cubic-bezier(.2,.7,.3,1) both; }
-@media (prefers-reduced-motion:reduce) { html[data-deck-in] .nm-arrived, html[data-deck-in] .nm-send-dock { animation:none; } }
+html[data-deck-in] .nm-send-dock, html[data-deck-in] .nm-home-swap .nm-hotswap-t { animation:nmHomeInFade .5s cubic-bezier(.2,.7,.3,1) both; }
+@media (prefers-reduced-motion:reduce) { html[data-deck-in] .nm-arrived, html[data-deck-in] .nm-send-dock, html[data-deck-in] .nm-home-swap .nm-hotswap-t { animation:none; } }
 /* 진입 화면 가득 판(./intro.tsx fit cover · 뜸 그림·영상) */
 .nm-intro-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 /* 앱 안 진입 화면(./intro.tsx AppIntro) = 홈 인트로와 같은 꼴 · 0.5초 걷힘 */
