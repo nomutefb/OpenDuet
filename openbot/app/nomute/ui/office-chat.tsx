@@ -30,6 +30,7 @@ const SLASH_HELP: [string, string][] = [["/초대 이름", "하루 안 남은 �
 import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, peopleSync, roomAgentIds } from "../data/office";
+import { nameInk } from "./name-ink";   // 글 안 봇 이름 = 말풍선 색(#-044)
 import { markSent, typingPing } from "../data/typing";   // 형 치는 중(형 11-13 17:57 · 17:59 · 18:09 · 18:14)
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { peekAttachments } from "../shim/attachments";
@@ -726,7 +727,14 @@ const NAME_TONE = new Map<string, string>();   // 형 10-31 「그록봇은 시�
 /** 이름·낱말 색 칸 — 묶음 낱말(「클로드」 등)은 「w」를 더 붙여 이름과 갈림(형 11-06 15:56 「클로드 색이 무지개로 바꼇는데 이거 확인」 = 무지개가 우리 이름에도 번졌음) */
 /** 우리 이름 = 각자 제 색(조약돌 BEING_INK 와 같음)(형 11-06 17:24 「애들 이름은 그냥 제대로 나오게해줘 붉은색 말고..」) · 묶음 낱말·그록봇·형 = 원래 칸 색 */
 const WHO_KEY: Record<string, string> = { 봄: "bom", 윈터: "winter", 시아: "sia", 뎅: "deng", 빠르: "fast", 누리: "neo", 뜸: "eyes", 번개: "lightning", 챙: "chaeng" };
-const inkOfName = (n: string): string | undefined => { const k = WHO_KEY[n]; return k ? (k === "deng" ? "#d9894a" : BEING_INK[k]) : undefined; };   // 뎅 갈색은 어두운 판에서 묻혀 한 단계 밝게
+const inkOfName = (n: string): string | undefined => { const k = WHO_KEY[n]; return k ? (k === "deng" ? "#d9894a" : BEING_INK[k]) : undefined; };
+/** 글 안 봇 이름 = 그 봇 말풍선 색(투명도 0 · 다크 그 색 · 라이트 읽히게 · ./name-ink.ts · #-044 형 11-15 08:48) · 말풍선 색 없는 이름 = 옛 색(inkOfName) */
+const nameProps = (n: string): { className: string; style?: CSSProperties } => {
+  const hy = n === "형" || n === "세웅", ink = nameInk(peopleSync().find((x) => (hy ? x.who === "형" : x.who === n || x.name === n))?.bubble);
+  if (ink) return { className: " sig", style: { "--nm-ink": ink.dark, "--nm-ink-l": ink.light } as CSSProperties };
+  const c = inkOfName(n);
+  return { className: "", style: c ? { color: c } : undefined };
+};   // 뎅 갈색은 어두운 판에서 묻혀 한 단계 밝게
 const toneOf = (n: string) => { const t = NAME_TONE.get(n) || ""; return t && TONE_WORDS.some(([w]) => w === n) ? `${t} w` : t; };
 const TONE_OF: Record<string, string> = { 그록봇: "gk", 클로드: "cl", 닷: "gp", 부름: "gp" };
 const TONE_WORDS: [string, string][] = [["그록", "gk"], ["그록봇", "gk"], ["클로드", "cl"], ["클로드봇", "cl"], ["지피티", "gp"], ["지피티봇", "gp"], ["세웅", "hy"]];   // 세웅 = 명부 이름이 「형」이라 따로(형 10-31 「세웅 키워드도 노뮤트색으로 형 키워드처럼」 · 호출 !세웅·@세웅 은 그대로)
@@ -752,7 +760,7 @@ function named(text: string, nre: RegExp | null, key: string): ReactNode {
   for (const mm of text.matchAll(nre)) {
     const at = (mm.index || 0) + mm[1].length;
     if (at > last) out.push(tokened(text.slice(last, at), `${key}-s${k}`));
-    out.push(<span key={`${key}-n${k++}`} className={`yname-c ${toneOf(mm[2])}`} style={inkOfName(mm[2]) ? { color: inkOfName(mm[2]) } : undefined}>{mm[2]}</span>);
+    { const np = nameProps(mm[2]); out.push(<span key={`${key}-n${k++}`} className={`yname-c ${toneOf(mm[2])}${np.className}`} style={np.style}>{mm[2]}</span>); }
     last = at + mm[2].length;
   }
   if (!out.length) return tokened(text, key);
@@ -822,7 +830,7 @@ function calledMd(text: string, re: RegExp | null, nre: RegExp | null = null): s
 const MD_BOX = { lineNumbers: false, controls: { code: { copy: true, download: false } } } as const;   // 복사 창 = 줄 번호·받기 뺌(형 11-01 「복사가능한 창이 이리나오는데」 · 그록 앱 꼴 · 모양 = yeta-chat.css)
 const mdWithCalls = {
   ...markdownComponents,
-  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <CallChip t={p.children} /> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1).replace("-", " ")}`} style={inkOfName(String(p.children)) ? { color: inkOfName(String(p.children)) } : undefined}>{p.children}</span> : markdownComponents.a({ ...p, children: <><SiteIcon href={p.href} />{p.children}</> })),   // GitHub·Cloudflare·Suno = 글자 앞 작은 아이콘(./site-icon.tsx)
+  a: (p: ComponentProps<"a">) => (p.href === CALL_HREF ? <CallChip t={p.children} /> : p.href?.startsWith(TOK_HREF) ? <span className={`ytok ${p.href.slice(TOK_HREF.length + 1)}`}>{p.children}</span> : p.href?.startsWith(NAME_HREF) ? <span className={`yname-c ${p.href.slice(NAME_HREF.length + 1).replace("-", " ")}${nameProps(String(p.children)).className}`} style={nameProps(String(p.children)).style}>{p.children}</span> : markdownComponents.a({ ...p, children: <><SiteIcon href={p.href} />{p.children}</> })),   // GitHub·Cloudflare·Suno = 글자 앞 작은 아이콘(./site-icon.tsx)
 };
 
 /** 앱 「컴퓨터 · 조치 필요」 카드(D10 · 거울 칸 box) — 단추 = 그 봇의 그록 방(https://grok.com/bot/<agentId>)

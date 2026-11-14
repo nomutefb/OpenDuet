@@ -99,6 +99,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .yb.me:not(.app) .ytok.gh, .ychat .yb.me:not(.app) .ytok.tm { color:#4c1d95; } .ychat .yb.me:not(.app) .ytok.fl, .ychat .yb.me:not(.app) a { color:#374151; }
 .ychat .yname-c { color:#0891b2; font-weight:700; }   /* 글 안 애들 이름 = 늘 볼드(형 11-14 22:21 「그리고 애들 이름은 항상 볼드로 나오게해줘」 · #-0005) */
 .dark .ychat .yname-c { color:#22d3ee; }
+.ychat .yname-c.sig { color:var(--nm-ink-l) !important; }   /* 글 안 봇 이름 = 그 봇 말풍선 색(투명도 0) · 라이트 = 흰 바탕에 읽히게 밝기만 옮긴 판(ui/name-ink.ts · #-044 · 형 11-15 08:48 「말풍선 시그니처 색으로 나오게해줄래?」) */
+.dark .ychat .yname-c.sig { color:var(--nm-ink) !important; }
 .ychat .yb.me .yname-c { color:#155e75; }
 .ychat .yb.me.app .yname-c { color:#67e8f9; }
 /* 입력칸에 올린 사진 = 입력칸 안 윗줄(형 10-31 「사진 올린 썸네일은 정사각이면 돼」 · 「내 채팅이 뭔지가 보여야」 · 대화 위에 떠서 가리던 것 · shell.css 방 얼굴 띠 .nm-strip 과 이름이 겹쳐 폭 64 로 눌리던 것) */
