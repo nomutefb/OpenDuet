@@ -36,3 +36,8 @@
 /* 카드 세 줄 = 머리 줄(분류 · N시간 전 ………… 매체 · 편향) · 제목 한 줄 · 막대 셋(형 11-11 19:22 「매체도 우상단으로 보내버리면 더 줄일 수 있나?」 · 18:54 「… 민감 키워드는 없어도 됨 표기 안할게」 「그럼 더 많이 보일거고. 이 높이에 맞춰서」 · 앞 판 = 매체 · 편향 가로 한 줄 따로)
    이름표 「매체」 「편향」 글자 0 · 값만 · 편향 = 흐리게 · 긴 매체 이름은 … · 머리 줄 왼쪽(분류 · 시각)은 안 줄어듦 */
 /* 카드 꼴(.nm-sumc.lean) = ./summary-desk.css 로 옮김(PC DIGEST 와 한 벌 · 형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까 잘 참고해.」) */
+/* 위 탭 셋(뉴스 · SNS · 채널 · 형 11-15) = 대화방 위 폴더 탭 옷 그대로(./teams.css .nm-tswitch.fold) · 여기선 자리만 */
+.nm-ned-wrap { display:flex; min-height:0; flex:1; flex-direction:column; }
+.nm-tswitch.fold.nm-ned-tabs { flex:none; margin:0 14px 8px; }   /* 좌우 = 아래 카드 줄과 같은 여백 · 무게 = teams.css .nm-tswitch.fold(0,2,0) 위 */
+.nm-ned-wrap.wide .nm-ned-tabs .nm-ftab.on { flex:0 0 200px; }   /* PC = 고른 탭이 줄 끝까지 늘어나지 않게(폰 = 남는 폭 다 씀 · 대화방 탭과 같음) */
+.nm-ned[hidden], .nm-ned-old[hidden] { display:none; }   /* 안 고른 판 = 숨기기만(살려 둠) */

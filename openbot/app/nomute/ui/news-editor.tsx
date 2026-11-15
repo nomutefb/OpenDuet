@@ -2,17 +2,20 @@
 //   PC(넓음) = 두 칸: 왼쪽 58 목록 · 오른쪽 = 고른 기사 한 장(모달 대신 · ./news-detail.tsx 그대로) · 폰 = 한 줄 · 카드 누르면 기사 한 장이 화면 통째(「목록」 = 보던 자리로)
 //   왼쪽 위→아래: (① 「지금 뜨는 말」 띠 · ② 넣는 줄 「전송 · 픽」 = 걷음 · 11-11 형 · 요약 요청 = 오른쪽 아래 떠 있는 「요약」 단추 → #/ask · 픽 일 = ./ask.tsx 「외신 기반」 칩 저절로)
 //     ③ 요약 대기열 판(./task-panel.tsx · 「뉴스 요약」과 같은 고르기) ④ 칩 = 전체 · 이슈 · 분야 여섯 · 찾기 ⑤ 요약 카드 = 옛 에디터 「뉴스 요약」 카드(./summary-desk.tsx SumCard) · 이슈·긴급 = 금빛 테 · 고른 카드 = 라임 테 · 내리면 10장씩 더
+//   위 탭 셋(뉴스 · SNS · 채널 · ./ned-tabs.ts) = 대화방 위 탭(./teams.tsx TeamsSwitch)과 같은 폴더 탭 꼴(같은 옷 ./teams.css .nm-tswitch.fold) · 고른 탭만 이름 펼침
+//     SNS · 채널 = 서랍에서 옮겨 옴(형 11-15 「서랍의 sns와 채널 … 불러오는 개념이 아니라 저기 박혀야 하고 자연스러워야함」) — 이 화면 안 판(./old-tabs) · 한 번 연 탭은 살려 둠(숨기기만 = 스크롤 · 받은 자료 그대로) · 탭 바꿈 = 기록 안 쌓음(replace)
 //   자료 = 「뉴스 요약」(./feed.tsx)과 같은 것(/articles.json + /api/feedlive + /api/pending) · 서랍 「뉴스 요약」 칸은 여기로 합침(서랍 목록에서만 뺌 · #/feed 주소는 그대로)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./sns.css";
 import "./news.css";
 import "./summary-desk.css";
+import "./teams.css";   // 폴더 탭 옷(.nm-tswitch.fold)
 import "./news-editor.css";
 import { PlusFan } from "./plus-fan";   // 오른쪽 아래 「+」 펼침 = 한 벌(홈 PC Digest 우하단도 같은 것 · 형 11-13 02:24)
 import { useQuery } from "@tanstack/react-query";
-import { useRouterState } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useRouterState } from "@tanstack/react-router";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { type FArt, byFile, feedLiveQuery, kindOf, pendQuery, pickQ } from "./feed";
 import { newsListQuery, useGo } from "./news-data";
@@ -22,6 +25,24 @@ import { useSplit } from "./side";
 import { SumCard } from "./summary-desk";
 import { type QItem, TaskPanel } from "./task-panel";
 import { qRetry, qfSeenOne } from "./q-acts";
+import { NED_TABS, type NedTab, nedTabOf } from "./ned-tabs";
+
+const oldTabs = () => import("./old-tabs");   // SNS · 채널 판 코드(약 0.5MB) = 뉴스 에디터를 열면 뒤에서 미리 받음 → 탭을 누를 땐 이미 와 있음
+const ChanTab = lazy(() => oldTabs().then((m) => ({ default: m.ChanTab })));
+const SnsTab = lazy(() => oldTabs().then((m) => ({ default: m.SnsTab })));
+
+/** 위 탭 줄 — 대화방 「대화방 | 팀즈 | 회의」와 같은 폴더 탭 */
+function NedTabs({ tab, pick }: { tab: NedTab; pick: (t: NedTab) => void }) {
+  return (
+    <div className="nm-tswitch fold nm-ned-tabs" role="tablist" aria-label="뉴스 에디터 판 바꾸기">
+      {NED_TABS.map((t) => (
+        <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} aria-label={t.name} className={`nm-ftab${tab === t.id ? " on" : ""}`} onClick={() => pick(t.id)}>
+          <DuetIcon name={t.icon} size={20} /><span className="nm-ftab-nm">{t.name}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 const CAP = 10;
 
@@ -31,7 +52,12 @@ const CAP = 10;
 let keep: { n: number; top: number } | null = null;
 
 export function NewsEditor() {
-  const go = useGo(), wide = useSplit();
+  const go = useGo(), wide = useSplit(), router = useRouter();
+  const tab = nedTabOf(useRouterState({ select: (st) => st.location.pathname }));
+  const alive = useRef(new Set<NedTab>());   // 한 번 연 SNS · 채널 판 = 이 화면에 있는 동안 살려 둠
+  alive.current.add(tab);
+  const pick = (t: NedTab) => { if (t !== tab) router.history.replace(NED_TABS.find((x) => x.id === t)!.to); };
+  useEffect(() => { const id = window.setTimeout(() => { void oldTabs().catch(() => undefined); }, 400); return () => window.clearTimeout(id); }, []);   // 못 받으면 = 탭 누를 때 다시 받음
   const [init] = useState(() => keep || { n: CAP, top: 0 });
   const list = useQuery(newsListQuery), live = useQuery(feedLiveQuery), pend = useQuery(pendQuery);
   const [n, setN] = useState(init.n);   // 거르기(찾기 · 분야 · 이슈) 걷음(형 11-11 18:51) = 늘 전체
@@ -85,15 +111,14 @@ export function NewsEditor() {
     </div>
   );
   const fab = !wide && sel ? null : <PlusFan go={go} />;   // 오른쪽 아래 「+」 펼침(형 19:23 · 앞 판 = 「+ 요약」 알약 하나 · 형 14:36)
-  if (wide) return (
-    <div className="nm-ned wide">
+  const news = wide ? (
+    <div className="nm-ned wide" hidden={tab !== "news"}>
       {body}
       {fab}
       <div className="nm-ned-r">{cur ? <NewsDetail key={cur} file={cur} /> : <p className="nm-chan-msg">왼쪽 카드를 누르면 여기 기사 한 장이 떠</p>}</div>
     </div>
-  );
-  return (
-    <div className="nm-ned">
+  ) : (
+    <div className="nm-ned" hidden={tab !== "news"}>
       {body}
       {fab}
       {sel ? (
@@ -102,6 +127,17 @@ export function NewsEditor() {
           <NewsDetail key={sel} file={sel} />
         </div>
       ) : null}
+    </div>
+  );
+  return (
+    <div className={`nm-ned-wrap${wide ? " wide" : ""}`}>
+      {!wide && sel && tab === "news" ? null : <NedTabs tab={tab} pick={pick} />}   {/* 폰 기사 한 장 = 화면 통째 그대로(탭 줄 없이 · 「목록」으로 돌아옴) */}
+      {news}
+      {(["sns", "chan"] as const).map((k) => alive.current.has(k) ? (
+        <div key={k} className="nm-scroll nm-ned-old" hidden={tab !== k}>   {/* nm-scroll = 옛 탭 엔진이 찾는 스크롤 판(./old-tabs/engine.ts __sc) */}
+          <Suspense fallback={<div className="nm-lazy" role="status" aria-label="읽는 중"><i /><i /><i /></div>}>{k === "sns" ? <SnsTab /> : <ChanTab />}</Suspense>
+        </div>
+      ) : null)}
     </div>
   );
 }
