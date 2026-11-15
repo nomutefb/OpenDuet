@@ -34,6 +34,10 @@ let touched = typeof performance !== "undefined" ? performance.now() : 0;
 export const bloubDue = (now: number, lastDraw: number, lastTouch: number, step = BLOUB_STEP_MS, idle = BLOUB_IDLE_MS) => now - lastTouch < idle && now - lastDraw >= step;
 export const bloubIdle = (now: number, lastTouch: number, idle = BLOUB_IDLE_MS) => now - lastTouch >= idle;
 const seen = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver((es) => { for (const e of es) for (const b of live) if (b.el === e.target) b.vis = e.isIntersecting; run(); }) : null;
+// 가려진 판 안 조약돌 = 쉼(구름 11-16 · 봄 08:04 「A · B = 바로 지어(형 눈에 같음)」 · 형 기준 「형 눈에 똑같으면 제일 싼 방식」) — IntersectionObserver 는 visibility:hidden 조상을 「보임」으로 침
+//   → 폰 홈 맨 위 넘김(../home/top-swap.css)의 쉬는 판 = 인스타 판일 때 안 보이는 러너 판 조약돌 일곱이 초당 20번 그려졌음(맥 9272 폰 폭 실측 11-16: path d 554회/초 · 조약돌 · 불빛 끄면 배치 28 → 8회/초 · 메인 259 → 217ms/초)
+//   박자(타이머)는 그대로 돎 = 판이 다시 보이면 다음 박자(50ms 안)에 바로 그림 · checkVisibility 없는 옛 브라우저 = 앞 꼴 그대로
+const shown = (el: Element) => { const f = (el as Element & { checkVisibility?: (o?: object) => boolean }).checkVisibility; return typeof f !== "function" || f.call(el, { visibilityProperty: true, checkVisibilityCSS: true }); };
 function draw(b: Live, t: number) {
   const f = b.eng.sample(b.off + t);
   b.body.setAttribute("d", f.bodyPath); b.back.setAttribute("d", f.bodyPath); b.edge?.setAttribute("d", f.bodyPath);
@@ -49,7 +53,7 @@ function run() {
     if (!live.size) return;
     if (bloubIdle(now, touched)) return;   // 쉼 = rAF 0(손 대면 wake())
     if (document.documentElement.classList.contains("perf-no-face")) return;   // 무게 재기 ?perf=face(./perf-switch.ts)
-    if (onBeat || bloubDue(now, last, touched)) { last = now; const t = still ? 0 : (now - t0) / 1000; live.forEach((b) => { if (b.vis) draw(b, t); }); }
+    if (onBeat || bloubDue(now, last, touched)) { last = now; const t = still ? 0 : (now - t0) / 1000; live.forEach((b) => { if (b.vis && shown(b.el)) draw(b, t); }); }
     onBeat = false;
     // 다음 박자까지 잔다(11-14) — 앞 판은 화면 주사율(60 · 120Hz)마다 깨어 「아직 아님」만 확인했음 = 20번 그리려고 초당 120번 깸 · 지금 = 그릴 때만 깸
     //   박자 = 공용 격자(./beat.ts · 50ms) — 불빛 숨쉬기(./slow-pulse.ts)와 같은 순간에 바꿔 창을 다시 그리는 횟수를 합침
