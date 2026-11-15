@@ -71,7 +71,7 @@ export const detailQuery = (a: Art) => {
   });
 };
 
-/** 상대 경로(cards/… · thumb_out/…) = 앞에 / (앱은 /office-app/ 아래라 그대로 두면 엉뚱한 길) */
+/** 상대 경로(cards/… · thumb_out/…) = 앞에 / (앱은 /garden-app/ 아래라 그대로 두면 엉뚱한 길) */
 export const abs = (u?: string) => { const s = String(u || "").trim(); return !s ? "" : /^(https?:|data:|blob:|\/)/i.test(s) ? s : "/" + s; };
 export const imgOf = (t?: Thumb) => abs(t?.img || t?.url);
 /** 목록 썸네일 = AI 첫 장 · 없으면 검색 첫 장 */

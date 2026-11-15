@@ -25,7 +25,7 @@ test("엔진 = 이 틀 안에서만 찾고 · 끌 때 다 걷는다", () => {
   assert.ok(!/\bwindow\.addEventListener\(|\bdocument\.addEventListener\(|\bdocument\.getElementById\(/.test(body));   // 듣기 = __on(끌 때 걷힘) · 칸 찾기 = 틀 안
   assert.ok(!/\bwindow\.scrollTo\(|\bwindow\.scrollY\b/.test(body));   // 스크롤 = 앱 판
   assert.match(engine, /const \$ = \(s\) => ROOT\.querySelector\(s\);/);
-  assert.match(engine, /const fetch = \(u, o\) => window\.fetch\(__abs\(u\), o\);/);   // 상대 주소 = 사이트 맨 위 기준(앱은 /office-app/ 아래)
+  assert.match(engine, /const fetch = \(u, o\) => window\.fetch\(__abs\(u\), o\);/);   // 상대 주소 = 사이트 맨 위 기준(앱은 /garden-app/ 아래)
   assert.match(engine, /return \(\) => \{ __stop\(\); \};/);
 });
 

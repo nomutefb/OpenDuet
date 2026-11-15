@@ -1,6 +1,6 @@
 // 입력칸 첨부 — 원본 입력칸은 고르자마자 /api/channels/:id/attachments 로 올리고 /api/attachments/:id 로 미리보기를 그림.
 // 우리 서버는 「파일 + 글」을 한 번에 받는 길(POST /api/office/files)이라, 고른 파일은 보낼 때까지 화면이 들고 있고
-// 미리보기 주소(/api/attachments/:id)는 서비스 워커가 이 캐시(office-app-att)에서 꺼내 줌(public/sw.js).
+// 미리보기 주소(/api/attachments/:id)는 서비스 워커가 이 캐시(garden-app-att)에서 꺼내 줌(public/sw.js).
 // 사진 압축 = 고르는 순간 굽고 원본도 같이 들고 있음 · 보낼 때 「압축 ON / 원본」 스위치로 고름(./compress.ts)
 //   형 11-05 「첨부할때, 디폴트값은 압축인데, 압축이라고 온 켜져있는 걸 토글하면 원본 으로 바뀌뀌고, 원본으로 전달되게해줘」 · 「이거는 사진, 영상 공통이야. 다른거는 애초에 원본으로 가야하고.」
 import { packImage, shouldPack } from "./compress";
@@ -8,7 +8,7 @@ import { MEDIA_RE, waveOf } from "./wave";
 
 type Entry = { file: File; packed: File | null; pending: boolean; ready: Promise<void>; mode?: boolean; dense?: boolean; wave?: Promise<File | null> };
 const files = new Map<string, Entry>();
-const CACHE = "office-app-att";
+const CACHE = "garden-app-att";
 
 // ── 「압축 ON / 원본」 스위치 · 기본 = 압축 · 한 번 보내면 다시 기본(형 11-14 23:07 dm-gik 「글구 사진. 압축 풀어서 한번 보내면 다음에는 또 풀려서 보내지거든? 한번 풀더라도 다음에는 기본값으로 다시 설정되어잇게해줘 다른 것들도 마찬가지 프레임 등」 · 깃 #-015 · 뎅)
 //   앞 판 = 마지막 고른 것 기억(nm-compress · localStorage) → 기억 안 함 · 옛 기억 줄은 지움

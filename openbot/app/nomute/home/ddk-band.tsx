@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import "./ddk-band.css";
 
 const V = 2;
-const FILE = `/office-app/ddk.mp4?v=${V}`;
+const FILE = `/garden-app/ddk.mp4?v=${V}`;
 const LAG = 800, SLOW = 6000, LIT_MAX = 1500;
 const still = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -43,7 +43,7 @@ export function DdkBand({ show }: { show: boolean }) {
       muted
       onLoadedData={() => setLit(true)}
       playsInline
-      poster={go ? `/office-app/ddk.jpg?v=${V}` : undefined}
+      poster={go ? `/garden-app/ddk.jpg?v=${V}` : undefined}
       preload="metadata"
       ref={(v) => {   // React 는 muted 를 속성으로 안 박아서 아이폰이 자동 재생을 막음 → 손으로 박고 틂
         if (!v) return;

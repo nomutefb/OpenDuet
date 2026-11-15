@@ -91,7 +91,7 @@ export function matchMedia(q) {
   return mq;
 }
 
-/* ── 상대 주소 = 에디터 뿌리(/) 기준 — 원본 문서는 edit.nomute.kr/thumb 라 'thumb-hist.json'·'api/dl?u=…'·'comp_out/…' 가 /… 로 풀렸다 · 앱 문서(/office-app/)에선 그대로 두면 엉뚱한 곳으로 감 ── */
+/* ── 상대 주소 = 에디터 뿌리(/) 기준 — 원본 문서는 edit.nomute.kr/thumb 라 'thumb-hist.json'·'api/dl?u=…'·'comp_out/…' 가 /… 로 풀렸다 · 앱 문서(/garden-app/)에선 그대로 두면 엉뚱한 곳으로 감 ── */
 const ABS = /^([a-z][a-z0-9+.-]*:|\/|#|\?)/i;
 export const rebase = (u) => { const s = u == null ? "" : String(u); return !s || ABS.test(s) ? s : "/" + s.replace(/^\.\//, ""); };
 export function fetch(input, init) { return RW.fetch(typeof input === "string" ? rebase(input) : input, init); }

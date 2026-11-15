@@ -12,7 +12,7 @@ export async function hardFresh(): Promise<boolean> {
     sessionStorage.setItem("nm-hard-fresh", String(Date.now()));
   } catch { /* 저장 못 하면 이번만 */ }
   try { for (const r of (await navigator.serviceWorker?.getRegistrations?.()) || []) await r.unregister(); } catch { /* 없음 */ }
-  try { for (const k of await caches.keys()) if (k !== "office-app-att") await caches.delete(k); } catch { /* 없음 */ }
+  try { for (const k of await caches.keys()) if (k !== "garden-app-att") await caches.delete(k); } catch { /* 없음 */ }
   const u = new URL(location.href);
   u.searchParams.set("fresh", String(Date.now()));
   location.replace(u.toString());
