@@ -246,7 +246,7 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
     <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
       <div className="relative flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <DialogX onClose={g.request} />
-        <b className="pr-9 text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
+        <b className="pr-9 text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground" title="형 포함">{now.length + 1}명</span></b>
         {!d ? <p className="text-muted-foreground">{q.isError ? readFail(q.error) : reading()}</p> : (
           <div className="flex flex-wrap gap-1.5">
             {d.candidates.filter((w) => !seatOff(list.find((p) => p.who === w))).map((w) => {
@@ -290,7 +290,7 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
     <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
       <div className="relative flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <DialogX onClose={g.request} />
-        <b className="pr-9 text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground">{now.length}명</span></b>
+        <b className="pr-9 text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground" title="형 포함">{now.length + 1}명</span></b>
         {!q.data && !q.isError ? <p className="text-muted-foreground">읽는 중…</p> : q.isError ? <p className="text-muted-foreground">{readFail(q.error)}</p> : (
           <div className="flex flex-wrap gap-1.5">
             {cand.map((w) => {

@@ -66,7 +66,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   // 사람 칸 = 「멤버 설정」(지정방 roomset · 임시방 temprooms · 형 11-07 13:38 「초대랑 별개로」) · 회의실 「잠시 내보내기」
   const crewItems = r ? (
     <>
-      {(!r.with && r.id !== MEET && r.designated && !r.temp) || r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>멤버 설정<small>{r.members?.length || ""}</small></button> : null}
+      {(!r.with && r.id !== MEET && r.designated && !r.temp) || r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>멤버 설정<small>{r.members?.length ? r.members.length + 1 : ""}</small></button> : null}
       {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={go(() => setKick(true))}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」) */}
       {canKickAll ? <button type="button" role="menuitem" onClick={go(() => setKickAll(true))}>모두 내보내기</button> : null}   {/* 단체방 다(회의실 · 지정방 · 호실) · 형만(#-048 · 형 11-15) */}
     </>
