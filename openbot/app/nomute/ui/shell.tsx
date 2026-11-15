@@ -58,8 +58,6 @@ import { AppIntro } from "../home/intro";
 import { NewsModal, newsFileOf } from "./news";
 const ThumbHist = lazy(() => import("./thumb-hist").then((m) => ({ default: m.ThumbHist })));   // 서랍 「썸네일 이력」(형 11-01 「그 내 뉴스 에디터에서 쓰는 썸네일 … 완전히 내재화 부탁해.」)
 const FeedModal = lazy(() => import("./feed").then((m) => ({ default: m.FeedModal })));   // 서랍 「뉴스 전체」 = 에디터 피드 탭 네이티브(형 11-01 「그치 이거지. 이 느낌으로 살리면돼.」 · 「이런식으로 다 가져와주라」)
-const ChanTab = lazy(() => import("./old-tabs").then((m) => ({ default: m.ChanTab })));   // 서랍 「채널」 · 「SNS」 = 옛 에디터 탭을 앱 안에 직접(판 · 엔진 · 옷을 떼어 옴 · iframe 0 · ./old-tabs/index.tsx)
-const SnsTab = lazy(() => import("./old-tabs").then((m) => ({ default: m.SnsTab })));
 const ScrapModal = lazy(() => import("./scrap").then((m) => ({ default: m.ScrapModal })));   // 서랍 「LEGACY」 = 에디터 수집함 탭 네이티브(전엔 FRAME 으로 품음)
 const TokensModal = lazy(() => import("./tokens").then((m) => ({ default: m.TokensModal })));   // 서랍 「토큰」·「결의 방」·「피드백」 = 에디터 페이지 네이티브(전엔 FRAME 으로 품음)
 const GyeolModal = lazy(() => import("./gyeol-room").then((m) => ({ default: m.GyeolModal })));
@@ -76,6 +74,7 @@ const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsA
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
 const SensorModal = lazy(() => import("./sensor").then((m) => ({ default: m.SensorModal })));   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
 import { ThumbMaker, ToolKeep, ToolRestore } from "./ed-keep";   // 이미지 편집 · 영상 편집 = 접어도 살아 있는 창(최소화 − · 복원 ▲ = 옛 에디터 것 · 형 11-15)
+import { nedTabOf } from "./ned-tabs";
 import { ED_TOOLS, type EdTool, edAlive, edChip, edKeptNext, isEdTool } from "./ed-keep-logic";
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomIcon, RoomList, useRoomOrder } from "./room-list";
@@ -88,7 +87,7 @@ import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색
 import { selfBackNow } from "./self-back";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "chan" | "sns" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit" | "botdesk";
+export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit" | "botdesk";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "수리 접수", icon: "tasks", to: "/tasks" },   // 옛 「할 일」 자리 = 접수 창구 통째(형 11-14 「할일 안에 수리접수를 할일로 빼내고 할일을 없애줘」 · ./repair-page.tsx · 길은 그대로 #/tasks)
@@ -101,8 +100,6 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x) · 앱 안(./scrap.tsx · 전엔 /?tab=scrap 품음)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 · 링크 판별·초안 보존" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
   { id: "thumbhist", label: "썸네일 이력", icon: "layout", to: "/thumbhist", desc: "만든 썸네일 보기·저장" },   // 에디터 썸네일 「이전 제작」(thumb-hist.json · ./thumb-hist.tsx)
-  { id: "chan", label: "채널 요약", icon: "dashboard", to: "/chan", desc: "한눈" },   // 에디터 「채널 요약」 한눈(전체 보기 = #/web)
-  { id: "sns", label: "SNS", icon: "globe", to: "/sns", desc: "한눈" },   // 에디터 「SNS」 한눈(전체 보기 = #/web)
   { id: "edtool", label: "에디터", icon: "plus", to: "/edtool", desc: "카드 제작·영상 편집·유튜브" },
   // 에디터 첫 화면 탭·도구를 서랍 칸마다 바로(형 11-01 「edit.nomute.kr에 있는 기능들 모두 매우 자연스럽게 메뉴 5번으로 완전히 녹여줘 / 지금 저 기능이 완전히 유지되어야해」 · 공통/문서/2026-11-01-서랍-에디터-이식/안.md)
   { id: "news", label: "뉴스 기사", icon: "page", to: "/news", desc: "최신 목록·기사 요약" },   // 에디터 「뉴스 요약」 목록(누르면 앱 안 기사 한 장 = #/news?a=<file> · 썸네일·본문·카드 · 고치기만 에디터)
@@ -128,7 +125,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 /** PC 반갈에서 좌우 통합(오른쪽 러너·뉴스 칸 접고 왼쪽을 다 씀) = 러너 · 서랍 · 설정(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」 · 윈터 넘김) · 오른쪽 칸은 숨김만(살려 둠 = 닫으면 다시 안 그림) */
-const SPREAD = new Set<Modal>(["runner", "botdesk", "drawer", "settings", "nedit", "chan", "sns"]);   // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
+const SPREAD = new Set<Modal>(["runner", "botdesk", "drawer", "settings", "nedit"]);   // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
 // 채널 · SNS = 옛 에디터 「채널 요약」 · 「SNS」 탭 그대로 한 줄씩(형 11-14 「채널 요약은 전에 버전이 잇을거야 그거 살려서 혹시 하나의 서랍 버전으로」 · 「sns도 마찬가지」) — 11-15 부터 품지(iframe) 않고 앱 안에서 돌림(./old-tabs · 형 「아예 여기에 줕이려고」)
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
@@ -140,8 +137,7 @@ export function whereFor(pathname: string): Where {
   if (/^\/(channels|group)\/[^/]+$/.test(p)) return { pane: "chat" };   // 회의실 = #/group/all
   if (p === "/rooms") return { pane: "rooms" };
   if (p === "/editor") return { pane: "home" };
-  if (p === "/trend") return { modal: "sns" };   // 옛 「SNS 전체」 · 「채널 전체」 주소 = 한 줄로 합친 화면(알림 「안전 탭 열기」 · 옛 링크가 안 끊기게)
-  if (p === "/chanfull") return { modal: "chan" };
+  if (nedTabOf(p) !== "news") return { modal: "nedit" };   // SNS · 채널 = 뉴스 에디터 안 탭(./ned-tabs.ts · 형 11-15 「서랍의 sns와 채널 … 저기 박혀야 하고」) · 옛 「SNS 전체」 · 「채널 전체」 주소도 그 탭으로(알림 「안전 탭 열기」 · 옛 링크가 안 끊기게)
   if (p === "/askfull") return { modal: "ask" };   // 옛 「요약 요청 · 에디터 판」 주소 = 앱 요약 요청(빠르 11-01 · 합침)   // 옛 에디터 판 주소(즐겨찾기·옛 링크) = 홈으로(판 없음 · 칸은 서랍에)
   if (/^\/(edtrack|edk|edsb|edys|edsong|edvd|ednb)$/.test(p)) return { modal: "edvid" };   // 옛 서랍 칸 주소 = 영상 편집 안에서 그 일(형 11-14 「영상 편집 안에서 … 고르는 형태」 · ./video-editor.tsx MODES)
   const m = MODALS.find((x) => x.to === p);
@@ -301,8 +297,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" || M.id === "edvid" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
-                  : M.id === "chan" ? <div className="nm-scroll"><ChanTab /></div>   // 채널 · SNS = 옛 탭 그대로 앱 안에서(./old-tabs)
-                  : M.id === "sns" ? <div className="nm-scroll"><SnsTab /></div>
                   : M.id === "tasks" ? <div className="nm-scroll"><RepairPage /></div>
                   : M.id === "meetlog" ? <div className="nm-scroll"><MeetLogList /></div>
                   : M.id === "runner" ? <div className="nm-scroll"><StatusBoard /></div>   /* 서랍 「러너」 = 작동 표(형 11-09 08:50 「러너는 5번 서랍 안으로 … 기존거는 없애면 됨 끌고오는거 아님」 · 옛 RunnerScreen 칸 뺌 · 네비 4번 「작동」 은 33) 뉴스 에디터 판에서 바꿈 · 봄 배분 32) */

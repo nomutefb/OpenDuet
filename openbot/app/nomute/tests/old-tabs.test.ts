@@ -2,16 +2,17 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
-// 서랍 「채널」 · 「SNS」 = 옛 에디터 탭을 앱 안에 직접 붙임(./ui/old-tabs · 형 11-15 「로딩해서 가져오는게 아니라」)
+// 「채널」 · 「SNS」 = 옛 에디터 탭을 앱 안에 직접 붙임(./ui/old-tabs · 형 11-15 「로딩해서 가져오는게 아니라」) · 자리 = 뉴스 에디터 위 탭(형 11-15 「서랍의 sns와 채널 … 저기 박혀야 하고」 · tests/ned-tabs.test.ts)
 const read = (p: string) => fs.readFileSync(new URL("../" + p, import.meta.url), "utf8");
 const shell = read("ui/shell.tsx"), engine = read("ui/old-tabs/engine.ts"), markup = read("ui/old-tabs/markup.ts"), css = read("ui/old-tabs/old-tabs.gen.css"), fit = read("ui/old-tabs/old-tabs.css");
 
 test("채널 · SNS 는 옛 에디터 화면을 품지(iframe) 않는다", () => {
   const frame = shell.split("\n").find((l) => l.startsWith("const FRAME:"))!.split("//")[0];
   assert.ok(!/chan|sns|tab=/.test(frame), frame);
-  assert.match(shell, /M\.id === "chan" \? <div className="nm-scroll"><ChanTab \/><\/div>/);
-  assert.match(shell, /M\.id === "sns" \? <div className="nm-scroll"><SnsTab \/><\/div>/);
-  assert.match(shell, /const ChanTab = lazy\(\(\) => import\("\.\/old-tabs"\)/);   // 눌러야 받음(첫 화면 무게 0)
+  const ned = read("ui/news-editor.tsx");
+  assert.ok(!/ChanTab|SnsTab|old-tabs"/.test(shell), "껍데기는 옛 탭을 직접 안 그림(뉴스 에디터 안 탭)");
+  assert.match(ned, /const oldTabs = \(\) => import\("\.\/old-tabs"\);/);   // 따로 받는 조각(첫 화면 무게 0) · 뉴스 에디터를 열면 뒤에서 미리
+  assert.match(ned, /<div key=\{k\} className="nm-scroll nm-ned-old" hidden=\{tab !== k\}>/);   // nm-scroll = 엔진이 찾는 스크롤 판
 });
 
 test("엔진 = 옛 탭의 그리기 · 받아오기 함수가 다 들어 있다", () => {
