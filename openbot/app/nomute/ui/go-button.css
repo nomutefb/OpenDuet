@@ -31,3 +31,15 @@
 .nm-flash.out { opacity:0; transform:translate(-50%, 8px); transition:opacity .28s, transform .28s; }
 @keyframes nmFlashIn { from { opacity:0; transform:translate(-50%, 12px); } to { opacity:1; transform:translate(-50%, 0); } }
 @media (prefers-reduced-motion:reduce) { .nm-flash { animation:none; } }
+
+/* 되묻는 창(./ask-yn.tsx) — 아니오 = 라임(안전한 쪽 · 엔터 자리) · 예 = 보통 · 본 = 글 삭제 물음(.nm-msgm-yn · 형 11-12) */
+.nm-yn { display:flex; gap:10px; }
+.nm-yn > button { flex:1; min-height:44px; padding:0 16px; border-radius:14px; border:1px solid color-mix(in srgb, currentColor 18%, transparent); background:none; color:inherit; font:inherit; font-size:16px; font-weight:700; cursor:pointer; }
+.nm-yn > button.no { border-color:var(--accent, #CFFF40); background:var(--accent, #CFFF40); color:#141414; }
+.nm-yn > button:disabled { opacity:.5; }
+.nm-yn-veil { position:fixed; inset:0; z-index:70; display:grid; place-items:center; padding:16px; background:rgba(0,0,0,.4); }
+.nm-yn-box { width:min(100%, 340px); display:flex; flex-direction:column; gap:12px; padding:18px 16px 14px; border-radius:18px; border:1px solid color-mix(in srgb, currentColor 12%, transparent); background:var(--popover, #1b1c1f); color:var(--popover-foreground, #eee); box-shadow:0 18px 50px rgba(0,0,0,.45); }
+.nm-yn-q { margin:0; font-size:16px; font-weight:600; text-align:center; text-wrap:balance; }
+.nm-yn-note { margin:0; font-size:13px; opacity:.7; text-align:center; }
+/* 알림 한 줄 — 됐어(라임 테두리) */
+.nm-flash.ok { border-color:rgba(var(--accent-rgb, 207,255,64),.6); background:rgba(22,26,18,.94); }

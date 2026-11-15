@@ -59,9 +59,9 @@ export function CloseAsk({ onClose, onKeep, busy }: { onClose: () => void; onKee
     <div role="alertdialog" aria-modal="true" aria-label="창을 닫으시겠습니까?" className="fixed inset-0 z-[70] grid place-items-center bg-black/30 p-4" {...backdrop(onKeep)}>
       <div className="flex max-w-sm flex-col gap-3 rounded-xl border border-border bg-popover p-4 text-sm shadow-lg">
         <p>작성 중인 내용이 사라집니다. 창을 닫으시겠습니까?</p>
-        <div className="flex justify-end gap-2">
-          <button type="button" className="rounded-lg px-3 py-1.5 hover:bg-foreground/5" onClick={onKeep}>취소</button>
-          <button type="button" autoFocus disabled={busy} className="rounded-lg bg-foreground px-3 py-1.5 font-semibold text-background disabled:opacity-40" onClick={onClose}>닫기</button>
+        <div className="nm-yn">   {/* 아니오 = 라임 · 엔터 자리(잘못 눌러도 글이 안 사라지는 쪽 · 형 11-15 09:00) */}
+          <button type="button" className="no" autoFocus onClick={onKeep}>아니오</button>
+          <button type="button" disabled={busy} onClick={onClose}>예</button>
         </div>
       </div>
     </div>
