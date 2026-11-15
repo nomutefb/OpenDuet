@@ -9,6 +9,7 @@
 //   11-03 15:4x 형 「사무실 아래에 있는 영상 쪽 있잖아. 거기 최근 온 메세지로 다시 변경해줘. 영상 없애구.」 → 셋째 줄 = 도착한 메시지(arrived.tsx · 한 방만) 되살림 · 「다 깸」 띠 뺌(ddk-band.tsx 는 그대로).
 //   11-03 16:48 형 「일단 도착한 메세지랑 우측 버튼, 네비는 나중에 나오는게 맞는거같고」 · 「상단에 그래프도 마찬가지야,」 → 앱 처음 열 때 한 번 = 카드 첫 판이 덱에 간 뒤(news-feed onShown · 한 박자 LAG) 그래프·오른쪽 단추·도착한 메시지·네비가 같이 스르륵(html[data-home-wait] → [data-home-in] · home-scene.css) · 못 받아도 SLOW 뒤엔 나옴 · 홈 칸 다시 누를 땐 안 숨김(네비 깜빡임 0).
 //   그 다음 = 형 16:48 「차라리 로딩이 완료된 상태에서 저 창이 열리는건 어때? 그 전에 아예 메인 로고 창이나 그런거로 덮는게 어떤지.」 · 「그 다음에 내가 방금말한걸 조치해보자」 → 같은 기다림 동안 앱 아이콘(설치 아이콘 = 앱 켤 때 그림) 덮개 · 카드 첫 판 뒤 걷힘(.nm-home-splash · home-scene.css).
+//   11-16 03:08 형(폰 홈 사진) 「이거 원래 상단에 인스타만 보이게 되어있는데 그걸 고정으로 하고 좌우 스냅 스위칭하면 러너 나오게 변경」 · 「좌우에 꺽쇠만 반투명 살짝」 → 첫 줄 = 한 칸(팔로워 띠 먼저 · 옆으로 밀면 러너 띠 · 양옆 옅은 꺽쇠 · ./top-swap.tsx) · 러너 띠 + 팔로워 띠 위아래 두 단(11-15 16:1x)은 걷음.
 //   길(라우트)·네비 「홈」 칸 = 이 폴더 밖(보조 01 · claude-state assign/2026-10-28/office-home.md 「바뀜」).
 import { useLayoutEffect, useRef, useState } from "react";
 import "../ui/yeta-settings.css";
@@ -19,6 +20,7 @@ import { NewsFeed } from "./news-feed";
 import { HotSwap } from "./kw-board";
 import { useSplit } from "../ui/side";
 import { RunnerGauges } from "../ui/runner-gauges";   // 폰 홈 맨 위 = PC 왼쪽 위 러너 띠 그대로(게이지 · 온도 · 조약돌 · 러너 번호 · 형 11-15 16:1x 「모바일에도 온도 나오게」 · 「그냥 그 웹앱에 나오는 상단 내용」)
+import { TopSwap } from "./top-swap";   // 폰 홈 맨 위 = 인스타(늘 여기서 시작) ↔ 러너 띠 옆 넘김(형 11-16 03:08 「그걸 고정으로 하고 좌우 스냅 스위칭하면 러너 나오게」)
 import { IntroFace, pickIntro } from "./intro";
 
 const LAG = 300, SLOW = 8000;   // 카드 첫 판 뒤 한 박자(덱이 그릴 틈) · 못 받아도 이만큼 뒤엔 다 보임
@@ -42,7 +44,7 @@ export function HomeScreen() {
   }, [first]);
   return (
     <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))] pb-[calc(86px+env(safe-area-inset-bottom))]">
-      {split ? <FollowPulse /> : <div className="nm-home-top" style={{ gridRow: 1 }}><RunnerGauges /><FollowPulse /></div>}   {/* 폰 = 첫 줄에 러너 띠 + 팔로워 띠(줄 자리 못 박음 = 뉴스 2줄 · 새 대화 3줄 그대로) · PC 반갈 = 러너 띠는 왼쪽 위(shell TopLeft)라 여긴 팔로워 띠만 */}
+      {split ? <FollowPulse /> : <div className="nm-home-top" style={{ gridRow: 1 }}><TopSwap main={<FollowPulse grow />} side={<RunnerGauges />} mainLabel="팔로워" sideLabel="러너" /></div>}   {/* 폰 = 첫 줄 한 칸에 팔로워 띠(늘 먼저) ↔ 러너 띠 · 옆으로 밀면 바뀜(./top-swap.tsx · 형 11-16 · 앞 판 11-15 = 둘을 위아래로 다 보임) · PC 반갈 = 러너 띠는 왼쪽 위(shell TopLeft)라 여긴 팔로워 띠만 */}
       {split ? <NewsFeed onShown={() => shown.current()} /> : <div className="nm-home-swap" style={{ gridRow: 2 }}><HotSwap label="뉴스"><NewsFeed onShown={() => shown.current()} /></HotSwap></div>}   {/* 폰 = 뉴스 카드 ↔ 키워드 순위(옆으로 넘기면 줄기 하나씩 · 형 11-14 「폰에서는 … 넘길때마다 차트가 나오게」) · PC 반갈 = 오른쪽 Hot Issue 칸이 번갈아 뜨니 여긴 그대로 */}
       <Arrived />
       {first ? <div className="nm-home-splash" aria-hidden style={intro.bg ? { background: intro.bg } : undefined}><IntroFace item={intro} /></div> : null}   {/* 진입 화면 = 목록 중 랜덤(./intro.tsx · 형 11-06 18:5x) */}

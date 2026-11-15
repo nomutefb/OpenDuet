@@ -77,7 +77,7 @@ test("아래 막대 덜 비침 = 바탕 짙게 + 흐림 24(봄 14:52 · 형 「�
 
 test("홈 판(형 11-11 18:48~18:51) = 그림 세로 108 · 스레드 · 「N시간 전」 줄 안 · 카드 단추 자리 걷음 · 새 대화 = 머리 없이 보낸 이 옆 수", () => {
   const fp = rd("../home/follow-pulse.tsx"), fcss = rd("../home/follow-pulse.css"), nf = rd("../home/news-feed.tsx"), arr = rd("../home/arrived.tsx");
-  assert.match(fp, /const PH = 108;/); assert.match(fp, /H = fill \? tall : PH/);
+  assert.match(fp, /const PH = 108;/); assert.match(fp, /H = fill \? tall : grow \? Math\.max\(PH, tall\) : PH/);   // 폰 = 108 · 넘김 칸(grow · 형 11-16)만 러너 띠 키까지 길어짐(108 밑으로는 안 줄어듦)
   assert.match(fp, /get\("th", "threads_data\.json"\)\]/, "스레드 폰에도 받음");
   assert.ok(!/\{fill \? <><i className="nm-pulse-sep"/.test(fp), "TH 칸 = 폰에도");
   assert.match(fp, /<span className="nm-pulse-at">\{\(\(\) => \{ const t = Date\.parse\(String\(ig\.live_followers\?\.at \|\| ig\.generated_kst/);   // 늘 「N분 전」(형 11-15 08:54 · ../ui/ago-min)

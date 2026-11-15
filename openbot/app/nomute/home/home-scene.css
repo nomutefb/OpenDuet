@@ -42,9 +42,9 @@ html[data-deck-in] .nm-send-dock, html[data-deck-in] .nm-home-swap .nm-hotswap-t
 .nm-app-intro.out { opacity:0; pointer-events:none; }
 @media (prefers-reduced-motion:reduce) { .nm-app-intro, .nm-app-intro img { transition:none; animation:none; } }
 
-/* 폰 홈 첫 줄 = 러너 띠(PC 왼쪽 위와 같은 부품) + 팔로워 띠(형 11-15 16:1x 「모바일에도 온도 나오게」) · 틈 = 홈 칸 사이와 같은 12 · 러너 띠 옆 패딩 0(홈이 이미 16 줌) */
+/* 폰 홈 첫 줄 = 팔로워 띠 ↔ 러너 띠(PC 왼쪽 위와 같은 부품 · 형 11-15 16:1x 「모바일에도 온도 나오게」) 한 칸 · 옆으로 밀어 바꿈(./top-swap.tsx · 형 11-16 03:08) · 러너 띠 옆 패딩 0(홈이 이미 16 줌) */
 .nm-home-top { display:flex; min-width:0; flex-direction:column; gap:12px; }
-.nm-home-top > .nm-rgx { padding-left:0; padding-right:0; }
+.nm-home-top .nm-rgx { padding-left:0; padding-right:0; }   /* 넘김 판 안으로 들어가 한 겹 깊어짐(> 뺌) */
 /* 폰 홈 = 오른쪽 SNS 줄이 없어 조약돌 줄이 안 내려옴(runner-gauges useRowSync = 0) → 조약돌 위 시각 두 줄이 게이지 % 글자와 겹침(실제 값으로 띄워 잼: 시각 122~145 ↔ 게이지 77~142)
    → 조약돌 줄을 제 위 틈으로 내림(PC 는 SNS 줄에 맞춰 내려가 생기는 틈 · 폰은 그 틈을 값으로) · 띠 키는 앞 판과 거의 같음 */
 .nm-home-top .nm-rgx-line { transform:none; margin-top:36px; }   /* 게이지 밑 8 + 줄 위에 뜨는 시각 두 줄(23 + 5) = 36 · 봇 일 줄은 11-15 18:52 부터 숨김(runner-gauges.css)이라 안 셈 */
