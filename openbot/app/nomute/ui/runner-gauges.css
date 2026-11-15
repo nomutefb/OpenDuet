@@ -141,3 +141,5 @@ html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):no
 .nm-rgx .nm-rgx-botsc .bad { color:#FF8A8A; }   /* 촉 X 마지막 회차에 final.json 없음 = 빨강(깃 #-066 덧) */
 .nm-rgx .nm-rgx-botsc { flex-direction:column; align-items:flex-end; gap:2px; overflow:visible; }   /* 「촉 X」 + 「촉 n회」 두 줄로 쌓음(한 줄이면 오른쪽 끝이 잘림 · 라이브 실물 11-15 15:0x · 깃 #-066 덧) */
 .nm-rgx .nm-rgx-botsc > span { white-space:nowrap; }
+/* 봇 일 줄(「촉 X … · 촉 n회 …」) 화면에서 숨김 — 형 11-15 18:52 dm-bom 봄 옮김 「웅 우상단에 촉 x, 촉 20회 저 내용은 안보여도돼. ㅋㅋ」 · 서버 셈 · 재료는 그대로(다시 보이게 = 이 줄만 지움) */
+.nm-rgx .nm-rgx-botsc { display:none !important; }

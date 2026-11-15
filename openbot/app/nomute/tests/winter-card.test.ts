@@ -9,3 +9,7 @@ test("LOOKS 윈터 = 틀 카드 · 얼굴 /office/winter.webp · 등불 🏮 · 
   assert.match(css, /@keyframes bc-lamp \{ 0%, 100% \{ opacity: 1; \} 50% \{ opacity: 0\.72; \} \}/);
   assert.match(css, /prefers-reduced-motion: reduce\) \{ \.bc-winter \.bc-lamp \{ animation: none; \} \}/);
 });
+test("러너 띠 봇 일 줄(촉 X · 촉 n회) 숨김 · 형 18:52 「안보여도돼」", () => {
+  const rg = readFileSync(new URL("../ui/runner-gauges.css", import.meta.url), "utf8");
+  assert.match(rg, /\.nm-rgx \.nm-rgx-botsc \{ display:none !important; \}/);
+});
