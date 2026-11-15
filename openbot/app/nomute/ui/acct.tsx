@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
 import "./acct-cards.css";
 import { acctOrder } from "./acct-order";
+import { AcctPrio } from "./acct-prio";   // CLI 계정 우선순위 카드 다발(형 11-16 「내 계정 cli … 카드도 이런식으로 … 우선순위 설정하는 모듈」)
 
 const ACCTS: [string, string][] = [["CLD_01", "ems1130g"], ["CLD_02", "muteno"], ["CLD_03", "ems1130N(ems1130@naver.com) · 기본"]];   // 원본 ACCT_BTNS · title 그대로
 // 카드 다발(형 11-09 05:20 임시방 「메인 claude 계정 고르는 선택지는 이거로 계장 값은ㅇ느낌」 · 96975.mp4 · 시아 05:21 꼴 · 봄 24) · 뜸) — 앞 카드 = 지금 러너 계정 · 뒤 카드 누름/‹ › /← → = 그 계정으로(원래 pick 길 그대로)
@@ -92,6 +93,11 @@ export function AcctModal() {
             <span className="lab" aria-live="polite">{now}</span>
           </div>
           <AcctCards id={id} busy={busy} pick={(v) => void pick(v)} />
+        </div>
+        <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-gopt">
+          <span className="ycd-nm yset-ttl">CLI 계정 우선순위</span>
+          <div className="row"><span className="lab">앞 카드 = 1순위 · 계정 교대 때 이 차례로 고름</span></div>
+          <AcctPrio />
         </div>
       </div>
     </Pane>

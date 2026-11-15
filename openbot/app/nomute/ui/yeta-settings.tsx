@@ -24,6 +24,7 @@ import { EnterKeyRow } from "./enter-key";
 import { ThinkMarkRow } from "./live-shine";
 import { WakeDepthRow } from "./wake-depth";
 import { ModelSetRows, useModelSum } from "./model-set";
+import { AcctPrio, useAcctPrioSum } from "./acct-prio";   // CLI 계정 우선순위(형 11-16 · 봄 02:53 「계정이 모델 · 노력도보다 위에」)
 import { GrokNote } from "./grok-note";
 // 그록봇 지침 메모(#-060)   // 모델 · 노력도(봇 상자 + 서버가 직접 부르는 일 · 일괄 · 형 11-15)
 import { PmSet, usePmLabel } from "./pm-set";   // PM 고르기(형 11-15 「설정에서 지정」 · POST /pm)
@@ -74,6 +75,7 @@ export function YetaSettings() {
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
   const act = actCount(bots || []), nBots = act.total, awake = act.work;   // 분자 · 분모 = 같은 활동 줄에서(앞 판 = 분모만 그록 봇 수라 「9/7」 · 형 11-15 08:00)
   const modelSum = useModelSum();   // 모델 · 노력도 묶음 줄 오른쪽 한마디
+  const prioSum = useAcctPrioSum();
   const pinA = usePinAlpha();   // 고정 줄 색 진하기 = 줄 오른쪽 값(./pin-tint)
   const pmLabel = usePmLabel();   // 지금 PM 표시 이름(서버 pm 칸 · 없으면 빈 글)
   const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
@@ -131,6 +133,7 @@ export function YetaSettings() {
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
             {row("pintint", "layers", "고정 줄 색", <PinTintSetting />, `${pinA}%`)}   {/* 고정 줄 바탕 진하기(형 11-14 23:39 「설정에서 변경하게 만들어도 돼 값을 투명도」 · ./pin-tint · 뜸) */}
             {row("notice", "speaker", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
+            {row("acctprio", "layers", "계정 우선순위", <AcctPrio />, prioSum || undefined)}   {/* 모델 · 노력도보다 위 = 어느 계정부터 쓰나(형 11-16 02:52 「계정이 뭐로 설정되는지가 더 상위 레벨에」 · 03:0x 카드 다발) */}
             {row("models", "bot", "모델 · 노력도", <ModelSetRows />, modelSum || undefined)}   {/* 봇 상자(다음 새 창) + 서버가 직접 부르는 일 · 「모두」 = 일괄(형 11-15 「설정에서 일괄 모델 하고 노력도 변경」) */}
             <WakeDepthRow />
             {row("teams", "chat", "팀즈", <TeamsAccount />, teamsName)}
