@@ -121,7 +121,13 @@ const MAX_HEIGHT_PX = 220;
  * Tracks the compact `text-sm` line box so PromptArea stays vertically centered in one row.
  */
 const COMPACT_MIN_HEIGHT_PX = 19;
-const COMPACT_MAX_HEIGHT_PX = 96;
+/**
+ * Exactly four lines of the compact editor (23 px line box × 4 + 6.5 px padding top and bottom).
+ * At 96 the fourth line was cut 9 px short, so a four-line draft overflowed by a fraction of a line
+ * and the box scrolled that fraction back and forth as you typed (형 11-15 08:48 「채팅이 4줄 … 4줄일때만
+ * 그러네」 · 깃 #-045). Whole lines = a fifth line scrolls by one full line and the fourth never does.
+ */
+const COMPACT_MAX_HEIGHT_PX = 23 * 4 + 13;
 
 export type ComposerProps = {
   className?: string;
