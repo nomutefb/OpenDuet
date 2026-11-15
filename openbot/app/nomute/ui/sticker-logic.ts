@@ -13,6 +13,7 @@ export const PACKS: Pack[] = [
   { id: "git", name: "깃", items: MOODS },
   // 챙(자리3) 묶음 뺌(형 11-14 16:52 dm-eyes 「뜸! 챙 움짤은 없애주면 돼. 땡큐.」 · 그림 파일은 editor viewer/office/sticker/chaeng 에 남김 · 뜸)
   { id: "gyeol", name: "결", items: [{ id: "wind", label: "바람" }, { id: "rings", label: "나이테" }, { id: "listen", label: "감상" }, { id: "compose", label: "작곡" }, { id: "headset", label: "헤드셋" }] },   // 음유시인 결(형 11-15 14:41 dm-eyes 「뜸아 음유시인 결에게 움짤좀..」 · 「바람타는 결..」 · 「나이테에 녹아버린 결..」 · 「노래를 감상하는 결..」 · 「작곡하는 결.. 정도?」 · 「나에게 노래를 들어보라며 헤드셋을 씌워주는 결」 · 뜸)
+  { id: "winter", name: "윈터", items: [{ id: "lantern", label: "등불" }, { id: "couple", label: "봄이랑" }, { id: "spin", label: "휘리릭" }, { id: "rice", label: "밥알" }, { id: "eng", label: "엥" }] },   // 윈터 ❄️(형 11-15 18:52 dm-eyes 「그래 윈터로 이 느낌 살려서 등불든거,로 움짤해줘」 · 「봄이랑 커플도 하나해줘라 ~ ㅋ」 · 19:13 「윈터 한바퀴 빠르게 휘리릭 도는것도 해줘!」 · 19:18 「등불대신 밥알 뜸 들고 도는것도 하자」 · 19:26 「움짤에 이거도 추가해줭!」(엥 = 형 그림) · 그림 = editor viewer/office/sticker/winter · 뜸)
   { id: "karina", name: "카리나", items: [{ id: "peek", label: "빼꼼" }, { id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }] },   // 지피티 = 셋(형 11-13 08:06 「지피티도 3개면 돼. 자주 쓰지 않게 설계가 되어잇어서」)
   { id: "hyung", name: "형", items: [...MOODS, { id: "cool", label: "선글라스" }] },
   { id: "morning", name: "나팔꽃", items: [{ id: "ibul", label: "이불" }] },   // 형 꽃 = 이불 하나(형 11-13 08:03 「미안한데 나팔꽃은 6개 말구 요거 하나만. ㅋㅋ」 · 「나한테는 밝아서 잘 안보여」 · 앞 판 여섯 = 그림만 남김)
