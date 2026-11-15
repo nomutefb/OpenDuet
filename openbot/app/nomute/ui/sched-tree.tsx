@@ -3,12 +3,13 @@
 //   PC = 판 위에서 끌어 옮김 · 휠 = 옮김 · Ctrl(⌘)+휠 · 단추 = 배율 / 폰 = 위→아래 한 줄 쌓기(판 끌기 없이 그냥 쓸어 내림)
 //   노드 = 영상 꼴: 둥근 카드 + 테 · 손 올리면(폰 = 누르면) 테가 진해지고 위에 탭이 올라옴(탭 먼저 180ms → 그림 단추 뒤따라) · 선 = 직각 + 둥근 꺾임
 //   실제 반영 = 탭의 「지금 돌리기」 · 「켬끔」 → 바꾸기 판(./runner-sheet.tsx · 서버 POST schedule/runner · 미리 보기 → 적용 · 형만) — 새 서버 길은 안 만듦
-import { type CSSProperties, Fragment, type PointerEvent as RPE, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, Fragment, type JSX, type PointerEvent as RPE, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { CLOCK_KO, HEALTH_KO, type HealthSt, StatusDot, cronKo, stOf, sumOf, whenOf, worstOf } from "./sched-bits";
 import { type RunnerJob, type SchedRunners, nextShort } from "./settings-extra";
 import { type Review, ReviewBadge } from "./sched-review";
 import { ghJob, modelKo } from "./sched-flow-core";
-import { type BotSide, ROOMISH_RE, type TNode, type TRoutine, edgePath, openOf, edgeWidth, fitOf, perDay, railPath, treeOf, zoomAt } from "./sched-tree-core";
+import { type BotSide, ROOMISH_RE, type TNode, type TRoutine, edgeMid, edgePath, openOf, edgeWidth, fitOf, perDay, railPath, treeOf, zoomAt } from "./sched-tree-core";
+import { FaceImg } from "./faces";   // 봇 가지 = 그 봇 얼굴(영상의 사람 카드 꼴)
 import { RunnerSheet } from "./runner-sheet";
 import "./sched-tree.css";
 
@@ -18,6 +19,19 @@ const I = {   // 탭 그림 단추(선 그림 · 14)
   run: <path d="M7 5.5v13l11-6.5z" />, power: <><path d="M12 4v7" /><path d="M7.5 7.2a7 7 0 1 0 9 0" /></>, copy: <><rect x="8.5" y="8.5" width="11" height="11" rx="2.5" /><path d="M5 15.5V7a2.5 2.5 0 0 1 2.5-2.5H15" /></>,
   plus: <path d="M12 5.5v13M5.5 12h13" />, more: <><circle cx="6" cy="12" r="1.3" /><circle cx="12" cy="12" r="1.3" /><circle cx="18" cy="12" r="1.3" /></>, check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
 };
+/** 가지 카드 왼쪽 그림 칸(형 11-15 접근 지도 영상 = 카드마다 왼쪽에 둥근 네모 그림) — 갈래마다 한 가지 그림 · 봇 가지는 그 봇 얼굴 */
+const TILE: Record<string, JSX.Element> = {
+  bot: <><rect x="5" y="8" width="14" height="10" rx="3" /><path d="M12 8V5M9.5 12.5v1.5M14.5 12.5v1.5" /></>,
+  run: <><path d="M5.5 11a6.5 6.5 0 0 1 11.4-3.6L18.5 9" /><path d="M18.5 5v4h-4" /><path d="M18.5 13a6.5 6.5 0 0 1-11.4 3.6L5.5 15" /><path d="M5.5 19v-4h4" /></>,
+  bell: <><path d="M7 16.5V11a5 5 0 0 1 10 0v5.5" /><path d="M5.5 16.5h13M10.5 19.5h3" /></>,
+  collect: <><path d="M12 4.5v9.5M8 10.5l4 4 4-4" /><path d="M5 16.5v2h14v-2" /></>,
+  make: <><path d="M5.5 18.5 15 9" /><path d="M16 4.5v3M14.5 6h3M19 10v2.4M17.8 11.2h2.4M11 4.8v1.6" /></>,
+  guard: <path d="M12 4.5 18 7v4.6c0 3.6-2.4 6.3-6 7.9-3.6-1.6-6-4.3-6-7.9V7z" />,
+  code: <path d="m9 8-4 4 4 4M15 8l4 4-4 4" />,
+  machine: <><rect x="7.5" y="7.5" width="9" height="9" rx="2" /><path d="M10 4.5v3M14 4.5v3M10 16.5v3M14 16.5v3M4.5 10h3M4.5 14h3M16.5 10h3M16.5 14h3" /></>,
+  fork: <><circle cx="7" cy="6.5" r="2" /><circle cx="17" cy="6.5" r="2" /><circle cx="12" cy="17.5" r="2" /><path d="M7 8.5c0 3.5 5 3 5 7M17 8.5c0 3.5-5 3-5 7" /></>,
+};
+const tileOf = (n: TNode): string => (n.id === "g:bot" ? "bot" : n.id === "g:run" ? "run" : n.id === "bb:~room" ? "bell" : n.id.startsWith("bb:") ? "face" : n.id.startsWith("g:") && TILE[n.id.slice(2)] ? n.id.slice(2) : "fork");
 const Ic = ({ d }: { d: keyof typeof I }) => <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{I[d]}</svg>;
 
 const HOST_KO: Record<string, string> = { mac: "맥", "win-a": "윈A", eyes: "아이즈", sia: "시아 몸", deng: "뎅 몸", fast: "빠르 몸", neo: "네오 몸" };   // 깃허브 밖 잡이 도는 몸(지도 host)
@@ -66,13 +80,14 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
   // 선의 뜻 = 색(그 가지 상태) · 굵기(그 가지가 하루에 도는 횟수) · 라임(다음 차례로 가는 길)
   const edgeOf = (to: TNode) => {
     const ls = under(to), on = ls.filter((l) => l.on);
-    return { st: worstOf(sumOf(ls.map((l) => l.st))), w: edgeWidth(on.reduce((a, l) => a + l.runs, 0)), next: !!soon && ls.some((l) => l.id === soon), off: !on.length };
+    const runs = on.reduce((a, l) => a + l.runs, 0);
+    return { st: worstOf(sumOf(ls.map((l) => l.st))), w: edgeWidth(runs), runs, next: !!soon && ls.some((l) => l.id === soon), off: !on.length };
   };
   const stsUnder = (n: TNode) => under(n).map((l) => l.st);
 
   // 판 끌기(PC) — 끄는 동안은 style 만 바꾸고 놓을 때 상태에 적음(다시 그리기 0)
   const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null);
-  const paint = (nv: View) => { if (world.current) world.current.style.transform = `translate(${nv.x}px, ${nv.y}px) scale(${nv.k})`; };
+  const paint = (nv: View) => { if (world.current) world.current.style.transform = `translate(${nv.x}px, ${nv.y}px) scale(${nv.k})`; if (box.current) { box.current.style.setProperty("--gx", `${nv.x}px`); box.current.style.setProperty("--gy", `${nv.y}px`); } };   // 바탕 점 격자도 같이 밀림
   const down = (e: RPE<HTMLDivElement>) => {
     if (phone || e.button !== 0 || (e.target as HTMLElement).closest(".nm-tree-node, .nm-tree-zoom, .nm-tree-more")) return;
     drag.current = { x: e.clientX, y: e.clientY, vx: v.x, vy: v.y, moved: false };
@@ -121,12 +136,29 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
   const copy = (j: RunnerJob) => { void navigator.clipboard?.writeText(j.file || j.id).then(() => { setCopied(j.id); setTimeout(() => setCopied((c) => (c === j.id ? "" : c)), 1400); }).catch(() => {}); };
   const closeSel = useCallback(() => setSel(null), []);
 
+  // 선 한 벌(그릴 것 · 뜻)을 한 번만 셈 → 선 · 빛 · 선 위 알약이 같이 씀
+  const wires = tree.edges.map((e) => { const a = by.get(e.from), b = by.get(e.to); return a && b ? { e, a, b, m: edgeOf(b), i: Math.min(tree.nodes.indexOf(b), 14) } : null; }).filter((x): x is NonNullable<typeof x> => !!x);
+  const all = sumOf(leaves.map((l) => l.st)), worst = worstOf(all);
+  const soonName = soon ? (soon.startsWith("r:") ? bots?.routines.find((r) => `r:${r.id}` === soon)?.name : map.jobs.find((j) => j.id === soon)?.name) || "" : "", soonAt = leaves.find((l) => l.id === soon)?.next || 0;
+  const grid = { "--gx": `${v.x}px`, "--gy": `${v.y}px`, "--gk": v.k } as CSSProperties;
+
   return (
-    <div ref={box} className={`nm-tree${phone ? " down" : ""}`} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} inert={sel ? true : undefined}>
+    <div ref={box} style={grid} className={`nm-tree${phone ? " down" : ""}`} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} inert={sel ? true : undefined}>
       <div ref={world} className="nm-tree-world" style={{ width: tree.w, height: tree.h, transform: `translate(${v.x}px, ${v.y}px) scale(${v.k})` }}>
         <svg className="nm-tree-edges" width={tree.w} height={tree.h} aria-hidden>
-          {tree.edges.map((e) => { const a = by.get(e.from), b = by.get(e.to); if (!a || !b) return null; const m = edgeOf(b); return <path key={e.k} data-kind={e.kind} data-st={m.st} data-next={m.next || undefined} data-off={m.off || undefined} style={{ strokeWidth: m.w }} d={phone ? railPath(a, b) : edgePath(a, b)} />; })}
+          {wires.map(({ e, a, b, m, i }) => {
+            const d = phone ? railPath(a, b) : edgePath(a, b), solid = e.kind !== "calls" && !m.off, lit = solid && !phone && (m.next || m.st === "miss");   // 빛 = 다음 차례로 가는 길 · 놓친 길만(다 흐르면 어지럽고 무거움)
+            return (
+              <Fragment key={e.k}>
+                <path className="w" pathLength={solid ? 1 : undefined} data-solid={solid || undefined} data-kind={e.kind} data-st={m.st} data-next={m.next || undefined} data-off={m.off || undefined} style={{ strokeWidth: m.w, "--i": i } as CSSProperties} d={d} />
+                {lit ? <path className="glint" pathLength={1} data-st={m.st} data-next={m.next || undefined} d={d} /> : null}
+              </Fragment>
+            );
+          })}
         </svg>
+        {phone ? null : wires.map(({ e, a, b, m }) => (b.kind === "fork" || b.kind === "group") && m.runs >= 1 ? (   // 선 위 알약 = 그 가지가 하루에 도는 횟수(영상 「255 signups」 자리)
+          <span key={`l:${e.k}`} className="nm-tree-wlab" data-st={m.st} data-next={m.next || undefined} style={{ transform: `translate(${edgeMid(a, b).x}px, ${edgeMid(a, b).y}px)` }}>하루 {Math.round(m.runs).toLocaleString("ko-KR")}번</span>
+        ) : null)}
         {tree.nodes.map((n, i) => {
           const pos = { transform: `translate(${n.x}px, ${n.y}px)`, width: n.w, height: n.h, "--i": Math.min(i, 14) } as CSSProperties;
           if (n.kind !== "job" && n.kind !== "routine") {
@@ -136,8 +168,11 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
             return (
               <Fragment key={n.id}>
               <button type="button" className={`nm-tree-node ${n.kind}`} style={pos} data-st={w} data-off={off || undefined} data-trunk={n.id === "g:bot" ? "bot" : n.id === "g:run" ? "run" : undefined} data-more={more && plus ? "2" : more || plus ? "1" : undefined} aria-expanded={n.open} title={n.fork?.note || n.name} onClick={() => toggle(n.id, n.kind)}>
-                <span className="nm-tree-t"><StatusDot st={w} /><b>{n.name}</b></span>
-                {n.kind === "root" ? null : <small>일 {n.kids}개{sum.miss ? <em> · 놓침 {sum.miss}</em> : null}{sum.late ? <i> · 지연 {sum.late}</i> : null}</small>}
+                {n.kind === "root" ? null : <span className="nm-tree-ic" data-face={tileOf(n) === "face" || undefined} aria-hidden>{tileOf(n) === "face" ? <FaceImg id={n.name} size={30} /> : <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{TILE[tileOf(n)]}</svg>}</span>}
+                <span className="nm-tree-tx">
+                  <span className="nm-tree-t"><StatusDot st={w} /><b>{n.name}</b></span>
+                  {n.kind === "root" ? null : <small>일 {n.kids}개{sum.miss ? <em> · 놓침 {sum.miss}</em> : null}{sum.late ? <i> · 지연 {sum.late}</i> : null}</small>}
+                </span>
                 <svg className="nm-tree-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m9 6 6 6-6 6" /></svg>
               </button>
               {more ? <button type="button" className="nm-tree-more" style={{ transform: `translate(${n.x + n.w - 58}px, ${n.y + n.h / 2 - 14}px)` }} aria-label="봇 차단기" title="봇 차단기" onClick={more}><Ic d="more" /></button> : null}
@@ -182,6 +217,12 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
           );
         })}
       </div>
+      {phone ? null : (
+        <div className="nm-tree-head">
+          <p><b>스케줄러</b><small>일 {leaves.length}개{soonName ? ` · 다음 차례 ${soonName}${soonAt ? ` ${nextShort(soonAt)}` : ""}` : ""}</small></p>
+          <span className="nm-tree-badge" data-st={worst}>{all.miss ? `놓침 ${all.miss}` : all.late ? `지연 ${all.late}` : <><Ic d="check" />다 제때 돎</>}</span>
+        </div>
+      )}
       <p className="nm-tree-key" aria-label="선 읽는 법"><span><i data-k="w" />굵기 = 자주 돎</span><span><i data-k="miss" />놓침</span><span><i data-k="late" />지연</span><span><i data-k="next" />다음 차례</span><span><i data-k="calls" />다른 일이 부름</span></p>
       {phone ? null : (
         <div className="nm-tree-zoom" role="group" aria-label="배율">

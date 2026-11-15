@@ -13,7 +13,7 @@ export type TRoutine = { id: string; name: string; who: string; bot: string; whe
 export type TNode = { id: string; kind: TKind; name: string; parent: string; depth: number; x: number; y: number; w: number; h: number; kids: number; open: boolean; via: "tree" | "after" | "calls"; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine };
 export type TEdge = { k: string; from: string; to: string; kind: "tree" | "after" | "calls" };
 export type Tree = { nodes: TNode[]; edges: TEdge[]; w: number; h: number };
-export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 216, h: 48 }, fork: { w: 190, h: 52 }, job: { w: 222, h: 78 }, routine: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
+export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 216, h: 54 }, fork: { w: 196, h: 54 }, job: { w: 222, h: 78 }, routine: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
 export const GAP_X = 64, GAP_Y = 22, PAD = 28, INDENT = 16, GAP_DOWN = 12;
 /** 폰 = 글씨를 키운 만큼 키가 큰 노드(형 11-14 「보기 조금 힘들어 좀 쉽게」) */
 export const SIZE_DOWN: Record<TKind, number> = { root: 44, group: 58, fork: 56, job: 96, routine: 96 };
@@ -90,14 +90,14 @@ export function treeOf(map: SchedRunners, open: Record<string, boolean> = {}, do
 }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
-/** 선 하나의 길 = 부모 오른쪽 가운데 → 가운데 세로 통로 → 자식 왼쪽 가운데 · 꺾이는 곳은 둥글게(R) — 영상의 선 꼴 */
-export function edgePath(a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; h: number }, R = 10): string {
+/** PC 선 = 부드러운 S 곡선(형 11-15 접근 지도 영상 cd89ee3f — 카드 오른쪽 가운데에서 나와 다음 카드 왼쪽 가운데로 휘어 들어감 · 앞 판 = 직각 + 둥근 꺾임) · 같은 높이면 곧은 선 */
+export function edgePath(a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; h: number }): string {
   const x1 = r1(a.x + a.w), y1 = r1(a.y + a.h / 2), x2 = r1(b.x), y2 = r1(b.y + b.h / 2), mx = r1((x1 + x2) / 2);
-  const dy = y2 - y1;
-  if (Math.abs(dy) < 1) return `M${x1} ${y1} H${x2}`;
-  const r = Math.min(R, Math.abs(dy) / 2, Math.abs(mx - x1), Math.abs(x2 - mx)), s = dy > 0 ? 1 : -1;
-  return `M${x1} ${y1} H${r1(mx - r)} Q${mx} ${y1} ${mx} ${r1(y1 + s * r)} V${r1(y2 - s * r)} Q${mx} ${y2} ${r1(mx + r)} ${y2} H${x2}`;
+  if (Math.abs(y2 - y1) < 1) return `M${x1} ${y1} H${x2}`;
+  return `M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
 }
+/** 선 한가운데(선 위 알약 글 자리) — 양 끝 손잡이가 가운데 x 에 있는 S 곡선이라 t=0.5 가 꼭 두 끝의 가운데 */
+export const edgeMid = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; h: number }) => ({ x: r1((a.x + a.w + b.x) / 2), y: r1((a.y + a.h / 2 + b.y + b.h / 2) / 2) });
 
 /** 폰 선 = 부모 왼쪽 아래에서 내려와 자식 왼쪽 가운데로(둥근 꺾임 하나) */
 export function railPath(a: { x: number; y: number; h: number }, b: { x: number; y: number; h: number }, R = 8): string {

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { GAP_Y, SIZE, edgePath, edgeWidth, fitOf, perDay, railPath, rawOf, treeOf, zoomAt } from "../ui/sched-tree-core.ts";
+import { GAP_Y, SIZE, edgeMid, edgePath, edgeWidth, fitOf, perDay, railPath, rawOf, treeOf, zoomAt } from "../ui/sched-tree-core.ts";
 
 const job = (id: string, fork: string, extra = {}) => ({ id, name: id, file: `${id}.yml`, kind: "", fork, ...extra });
 const map = {
@@ -66,10 +66,11 @@ test("폰 = 위→아래 한 줄 쌓기 · 깊이만큼 들여쓰기 · 폭은 �
   assert.match(railPath(by["g:g"], by.c), /^M[\d.]+ [\d.]+ V[\d.]+ Q/);
 });
 
-test("선 = 가로 → 둥근 꺾임 → 세로 → 둥근 꺾임 → 가로 · 같은 높이면 곧은 선", () => {
+test("선 = 부드러운 S 곡선(양 끝 손잡이 = 가운데 x) · 같은 높이면 곧은 선 · 한가운데 = 두 끝의 가운데", () => {
   assert.equal(edgePath({ x: 0, y: 0, w: 100, h: 40 }, { x: 160, y: 0, h: 40 }), "M100 20 H160");
   const d = edgePath({ x: 0, y: 0, w: 100, h: 40 }, { x: 160, y: 100, h: 40 });
-  assert.match(d, /^M100 20 H120 Q130 20 130 30 V110 Q130 120 140 120 H160$/);
+  assert.equal(d, "M100 20 C130 20 130 120 160 120");
+  assert.deepEqual(edgeMid({ x: 0, y: 0, w: 100, h: 40 }, { x: 160, y: 100, h: 40 }), { x: 130, y: 70 });
 });
 
 test("처음 배율 = 넓으면 줄임(바닥 0.45) · 배율 바꿔도 손 밑 점은 제자리", () => {
