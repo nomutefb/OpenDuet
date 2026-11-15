@@ -373,7 +373,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 /* 임시방 창 = 묶음 눌러 고르기 · 얼굴·이름 표지 */
 .nm-fam { display:flex; gap:6px; }
 .nm-fam-tab { flex:1; padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:none; font-weight:600; }
-.nm-fam-tab[aria-selected="true"] { border-color:rgba(var(--accent-rgb, 207,255,64),.55); background:rgba(var(--accent-rgb, 207,255,64),.14); }
+.nm-fam-tab[aria-selected="true"] { background:rgba(var(--accent-rgb, 207,255,64),.9); border-color:transparent; color:var(--bg, #141516); font-weight:600; }   /* 골라짐 = A(라임 채움 · 검은 글) 하나로 — 형 11-15 「a로하고」 · 본 = .yset-chip.on · .nm-rr-seg */
 .nm-pick { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; background:none; }
 .nm-pick[aria-pressed="true"] { border-color:rgba(var(--accent-rgb, 207,255,64),.55); background:rgba(var(--accent-rgb, 207,255,64),.14); }
 
@@ -503,7 +503,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-sched-end { flex:none; display:flex; align-items:center; gap:2px; } .nm-sched-end i { font-style:normal; font-weight:700; color:var(--accent, var(--accent, #CFFF40)); }
 .nm-sched-rt { display:flex; flex-direction:column; gap:8px; padding:8px 0 6px 30px; }
 .nm-sched-chip { padding:4px 11px; border:1px solid var(--glass-line); border-radius:999px; background:none; color:inherit; font-size:var(--fs-sm); cursor:pointer; }
-.nm-sched-chip[aria-pressed="true"] { border-color:rgba(var(--accent-rgb, 207,255,64),.55); background:rgba(var(--accent-rgb, 207,255,64),.16); font-weight:700; }
+.nm-sched-chip[aria-pressed="true"] { background:rgba(var(--accent-rgb, 207,255,64),.9); border-color:transparent; color:var(--bg, #141516); font-weight:600; }   /* 골라짐 = A(라임 채움 · 검은 글) 하나로 — 형 11-15 「a로하고」 · 본 = .yset-chip.on · .nm-rr-seg */
 .nm-sched-chip:disabled { cursor:default; }
 .nm-sched-rt small.nm-sched-warn { color:#ffd27a; }
 .nm-sched-pick { display:flex; flex-direction:column; gap:6px; }

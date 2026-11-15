@@ -34,7 +34,7 @@
 .nm-story-who::-webkit-scrollbar { display:none; }
 .nm-story-who button { flex:none; display:inline-flex; align-items:center; gap:5px; padding:5px 11px 5px 6px; border-radius:999px; border:1px solid transparent; background:rgba(255,255,255,.05); color:var(--mut, rgba(232,234,232,.7)); font-size:var(--fs-label, 13px); font-weight:600; cursor:pointer; }
 .nm-story-who button:first-child { padding-left:11px; }
-.nm-story-who button.on { color:var(--accent, #CFFF40); background:rgba(var(--accent-rgb, 207,255,64),.14); border-color:rgba(var(--accent-rgb, 207,255,64),.38); }
+.nm-story-who button.on { background:rgba(var(--accent-rgb, 207,255,64),.9); border-color:transparent; color:var(--bg, #141516); font-weight:600; }   /* 골라짐 = A(라임 채움 · 검은 글) 하나로 — 형 11-15 「a로하고」 · 본 = .yset-chip.on · .nm-rr-seg */
 .nm-story-media { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:6px; padding:0 16px 16px; }
 .nm-story-media img, .nm-story-media video { display:block; width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; background:rgba(255,255,255,.04); }
 .nm-story-media video { grid-column:1 / -1; aspect-ratio:auto; max-height:60vh; object-fit:contain; background:#000; }
