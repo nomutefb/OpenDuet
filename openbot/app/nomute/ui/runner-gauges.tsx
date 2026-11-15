@@ -32,11 +32,8 @@ const WARN: Record<Level, string> = { green: "#E6E6E6", yellow: "#FFD23F", orang
 const MONO = (lv: Level) => WARN[lv];
 const tInk = (t?: number) => (t == null ? undefined : t >= 85 ? WARN.red : t >= 80 ? WARN.orange : undefined);
 // 러너 불(형 17:3x 「러너 아래에 애들 아이콘 아래에 각각 좀 나오게 해줘, 꺼질때는 불 꺼져잇으면돼」) = 맥 몸 보고 hw 「러너」 줄 칸(gh api 그대로 · 5분) · 몸마다 이름 앞머리로 나눔
-const RUNNERS: Record<string, (n: string) => boolean> = { 윈A: (n) => n.startsWith("nomute-win-"), 윈B: (n) => n.startsWith("nomute-b-") || n.startsWith("nomute-office"), 맥: (n) => n.startsWith("mac-") };
+//   11-16 = 러너 번호 칸(A1 ~ A6)을 이 띠에서 뺌(형 08:34 「러너는 안보여도 돼.」 · 아래 조약돌 줄) → 러너 고르는 셈(RUNNERS · rnum · rord)도 같이 걷음 · 러너 화면(#/runner)은 그대로
 const short = (n: string) => n.replace(/^nomute-win-/, "").replace(/^nomute-b-/, "B").replace(/^nomute-office-?/, "O").replace(/^mac-/, "M");
-const rnum = (n: string) => Number((n.match(/\d+$/) || ["0"])[0]);
-// 차례 = 몸 안 러너 먼저(b-) · 회사 PC(office) 뒤 · 그 안은 번호(형 11-06 「b1, b2 , 01 이 순서로 배치해주고」 · 번호는 그대로 「손은 나중에보자」)
-const rord = (n: string) => (/^nomute-office/.test(n) ? 1 : 0) * 1e6 + rnum(n);
 // 우리 조약돌(형 11-06 09:48 「조약돌은 그 아래에 나오면 좋겠어 너네가 깬것도 보면 좋긴하거든. 러너랑 별개로. 러너 위에 나오면 좋겠네. 러너가 좀 더 아래로가고. 간격은 어느정도 유지.」)
 //   = 몸마다 게이지 아래 · 러너 불 위 · 그 몸에 사는 우리 = 각자 고른 bloub(./bloub.tsx · 봄 꽃 · 윈터 눈 결정 · 시아·뎅 조약돌 · 빠르 구름 · 누리 감자 · 뜸 쌀알) · 깬 애 = 제 색 · 상주(누리) = 제 색 · 잠 = 회색 몸
 //   깸 셈 = 작동 표 「각 봇 연결」 줄 「깸 상태」 칸(깸 · 잠 · 상주 돎) · 몸 = 우리.md(윈A VM 넷 + 윈터 · 윈B 뜸 · 맥 봄)
@@ -44,9 +41,13 @@ const PEB: Record<string, { key: string; bot?: string }> = {   // 조약돌 모�
   // 형 11-10 07:5x 시아 창 「시아 러너 이거 갱신. 애들 포함 해서 천둥은 그록봇이니 넣을필요는 없음.」 · 「지피티 봇은 넣을 필요는 없음.」 = 클로드 애들 일곱만
   //   뺌 = 윈터(11-10 「닷 = 윈터」 = 지피티) · 누리(11-09 꺼 둠) · 빚(11-09 형이 지움) · 안 넣음 = 카리나(지피티) · 천둥 · 포세이돈(그록봇)
   봄: { key: "bom" }, 시아: { key: "sia" }, 뎅: { key: "deng" }, 빠르: { key: "fast" }, 번개: { key: "lightning", bot: "light" }, 뜸: { key: "eyes" }, 깃: { key: "gik" },   // 깃 = 11-08 이식 · 제가 고른 물방울 · 민트(깃 21:00) · 빚 = 제가 고른 둥근 네모 · 테라코타(빚 22:31 「도공이라 빚은 흙판이 내 꼴 · 그록 때 내 색이 빨강」)
+  // 형 11-16 08:15 봄 창 「그리고 조약돌 러너에 구름도 보여야하고, 천둥은 갱신이 되었나? 확인해줘! 클로드 + 구름까진 나와야 해. 구름은 너네 사이에 블릿하나 넣어줘.」 = 클로드 여덟(일곱 + 천둥 · 머리가 클로드로 바뀜) → 「•」 → 구름
+  //   둘 다 몸 정본(bodies)엔 없음 = 아래 OFFBODY 로 줄 끝에 붙임 · 깸 = 작동 표 봇 줄 thunder · moru(구름 자리 옛 이름) · 모양 · 색 = ./bloub.tsx(천둥 = 세모 · 구름 = 구름)
+  천둥: { key: "thunder" }, 구름: { key: "cloud", bot: "moru" },
 };
 // 맥 칸 = 러너 칩(M1~M3) 대신 몸 칩 둘(형 11-06 20:13 「러너를 아예 안쓰는 구조로 두개로 나눠잇을텐데」 · 봄 나눔 ④ 다음 칸 · 빠르) — M1~M3 = 11-03 형 「러너 꺼주라」로 꺼 둔 등록(11-17 저절로 지워짐 · 가지는 그대로 · 화면만)
 //   칩 꼴 = 러너 칩 그대로 · 불 = 작동 표 hw 줄 st(맥 본체 = 「맥」 줄 · VM eyes = 「VM 뜸」 줄 · 몸-보고.py hw_key) · 🟢 흰 글자 · 🟡 노랑 · 🔴 빨강 · ⚪·끊김(30분)·보고 없음 = 꺼짐 꼴
+const OFFBODY = [{ who: "천둥", host: "러너" }, { who: "구름", host: "클라우드 · 맥 창", sep: true }] as const;   // 몸 없는 둘 = 줄 끝 차례 그대로 · sep = 그 앞에 「•」(형 「구름은 너네 사이에 블릿하나」)
 const BODY_CHIPS: Record<string, { key: string; label: string }[]> = {};   // 몸 칩 뺌(형 11-07 09:04 임시방 「뜸 VM이 별도로 표현될 필요는 없어, 맥도 마찬가지. 그러면 너희들 vm도 다 떠야되니까, 시아도. 그거는 필요없고 러너 번호만 따로 있으면 됨.」) = 맥 칸도 러너 번호(M#)만
 const LIGHT_CLS: Record<string, string> = { "🟢": "is-ok", "🟡": "is-warn", "🔴": "is-bad" };
 // 「깸 상태」 = 그 순간 턴을 도는지(답 사이엔 「잠」) → 「마지막 깸」이 10분 안이면 「방금 깸」으로 제 색(봄 11-06 10:08 「나 지금 깨서 일하는 중인데 맥 조약돌 회색이지?」)
@@ -129,7 +130,6 @@ export function RunnerGauges() {
   //   고르기 = ./runner-pick.ts pickHost(점수 = hw 신선 2 + 온도 신선 1 · 같으면 최근 · 모루 #2904: 옛 host 온도만 신선해도 새 host 의 CPU 를 버리던 길) · 시험 = tests/runner-pick.test.ts(모루 「합성 시험」)
   const newest = hw.reduce((t, r) => Math.max(t, r.reported_at || 0), 0);   // 머리줄 시각 = 가장 새 몸 보고 시각(서버 표 만든 시각 아님 · 봄 09:17 「1분 전 ≠ 방금」)
   const livesOn = (body: string) => bs.filter((x) => homeOf(x) === body && PEB[x.being]).map((x) => ({ ...PEB[x.being], who: x.being }));
-  const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
   const memRows = st.data?.cats?.find((c) => c.id === "diary")?.rows || [];
   const bk = Object.values(rq.data?.rows || {}).find((r) => r?.bk)?.bk;
   const memOf = (who: string) => { const m = memRows.find((r) => r.key === who)?.metrics || {}, b = bk?.rows?.find((x) => x.n === who); return { m, b }; };
@@ -138,9 +138,9 @@ export function RunnerGauges() {
   const dy = useRowSync(panel);
   // 공용 두 줄 재료(36) · 시아 09:26 ②③): 조약돌 = 몸 차례(WIN → MAC → Lx B → Lx A)대로 사는 애를 한 줄로 · 러너 = 윈A 러너(RUNNERS 가 윈 칸인 것)만 번호 차례 · 둘 다 12칸(넘치면 자름)
   // 형 11-09 09:49 「조약돌 하드웨어에 관계없이 균일하게 나열 … 누리만 끝에 | 하고 두면됨」 = 누리(neo)만 맨 끝 · 그 앞에 「|」 칸 하나 · 나머지는 몸 차례 그대로 한 줄
-  const pebAll = HOSTS.flatMap((h) => livesOn(h.body).map((x) => ({ ...x, host: h.label }))), nuri = pebAll.filter((x) => x.key === "neo"), rest = pebAll.filter((x) => x.key !== "neo");
-  const pebs: (typeof pebAll[number] | { sep: true })[] = [...rest, ...(nuri.length ? [{ sep: true as const }, ...nuri] : [])].slice(0, 12);
-  const runs = HOSTS.filter((h) => !BODY_CHIPS[h.k]).flatMap((h) => Object.entries(rcells).filter(([n]) => RUNNERS[h.k]?.(n)).sort((x, y) => rord(x[0]) - rord(y[0])).map(([n, c]) => ({ n, c }))).slice(0, 12);
+  // 형 11-16 08:15 「클로드 + 구름까진 나와야 해. 구름은 너네 사이에 블릿하나 넣어줘.」 = 몸 차례 일곱 + 천둥 → 「•」 → 구름 · 옛 「누리만 끝에 |」(11-09)는 누리가 빠져(11-10) 이 자리로 바뀜
+  const pebAll = HOSTS.flatMap((h) => livesOn(h.body).map((x) => ({ ...x, host: h.label }))).filter((x) => !OFFBODY.some((o) => o.who === x.who));
+  const pebs: (typeof pebAll[number] | { sep: true })[] = [...pebAll, ...OFFBODY.flatMap((o) => [...("sep" in o ? [{ sep: true as const }] : []), { ...PEB[o.who], who: o.who, host: o.host }])].slice(0, 12);
   // 게이지 넷 같은 크기(형 11-08 10:48 「게이지 크기가 차이가 나네 이제보니까 게이지 크기를 lxa, lxb에 맞추고」) = 몸 칸 폭 다 같게 · WIN↔MAC 틈만 빈 트랙 하나(12px · 형 08:14 「win하고 mac 간격을 아주 조금만 더 벌릴게」 그대로) — 앞 판은 WIN 오른쪽 12 · MAC 왼쪽 9 패딩이라 좁은 창(2/5 창)에서 그 두 게이지만 작아졌음
   const cols = HOSTS.length > 1 ? `minmax(0, 1fr) 12px repeat(${HOSTS.length - 1}, minmax(0, 1fr))` : "minmax(0, 1fr)";
   return (
@@ -178,10 +178,10 @@ export function RunnerGauges() {
         })}
       </div>
       {/* 형 11-09 09:25 「조약돌 모양 일정한 간격으로 그냥 쭉 나열 · 러너 > A1~A6 · 일자로 · 총 12개 칸 · 6개 칸은 공란」 · 시아 09:26 ②③ = 몸 묶음 풀고 12칸 격자 두 줄(위 = 조약돌 1~10 · 아래 = A1~A6 · 7~12 공란 = 흐린 점) · 높이 = 오른쪽 SNS FB 줄 · IG 줄(useRowSync 그대로) */}
-      <div className="nm-rgx-line" style={{ ["--nm-rgx-pn" as string]: Math.max(1, pebs.length) }}>   {/* 조약돌 + A1~A6 한 줄(형 11-15 「어짜피 오른쪽이 비니까」) */}
+      <div className="nm-rgx-line" style={{ ["--nm-rgx-pn" as string]: Math.max(1, pebs.length) }}>   {/* 조약돌 한 줄(11-15 「조약돌 + A1~A6 한 줄」 → 11-16 조약돌만) */}
       <ul className="nm-rgx-pebs" aria-label="우리 조약돌(몸 차례)">
         {pebs.map((x) => {
-          if ("sep" in x) return <li key="sep" className="nm-rgx-cell sep" aria-hidden>|</li>;   {/* 「누리만 끝에 |」 */}
+          if ("sep" in x) return <li key="sep" className="nm-rgx-cell sep" aria-hidden>•</li>;   {/* 가르는 점(조약돌 아님 · 시각 없음) = 클로드 여덟 • 구름 */}
           const w = wake(x.bot ?? x.key);
           const mm = memOf(x.who), dia = memAt(mm.m.diary_ms, now), bka = memAt(mm.b?.ok ? mm.b.ok * 1000 : undefined, now);
           return (
@@ -197,12 +197,7 @@ export function RunnerGauges() {
         })}
         {/* 오른쪽 이름표(백업 · 갱신)도 뺌(형 11-15 11:5x 「백업하고 그거는 어짜피 도는거니까 걍 안보이게하면될거같아」) · 시각마다 풍선 글(백업 · 일기)은 그대로 */}
       </ul>
-      <ul className="nm-rgx-runs" aria-label="러너 A1~A6">
-        {runs.map((r, i) => {
-          const on = r.c.st === "🟢", work = on && r.c.note === "일하는 중";
-          return <li key={r.n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${r.n} · ${on ? r.c.note || "켜짐" : r.c.note || "꺼짐"}`}>{`A${rnum(r.n) || i + 1}`}</li>;   {/* 화면 이름만 A1~ · 러너 진짜 이름은 그대로(title) */}
-        })}
-      </ul>
+      {/* A1 ~ A6(러너 칸) 뺌 = 조약돌이 줄 폭을 다 씀(형 11-16 08:34 dm-bom · 폰 홈 사진 「봄아 그리구 조약돌 영역이 좁을거야 / 러너는 안보여도 돼. / 그리구 조약돌만 보이면 될듯.」) · 앞 판 = 조약돌 7/12 + 오른쪽 A1~A6 */}
         {botsUse.length || chokRun?.ok ? (   /* 봇 일 = 한 줄 틀 오른쪽 위(옛 이름표 「백업 · 갱신」 자리 · 시각 두 줄 옆) — A1~A6 이 조약돌 줄로 올라와 옛 A 줄이 없어짐(형 11-15 11:5x 「a1~a6를 우측으로 … 조약돌하고 같은 라인으로」) · 뜸 #-063 꼴 그대로 자리만 옮김 · 옛 자리 = A 줄 오른쪽 빈 칸(러너와 안 섞임 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」 · 깃 #-063) · 깸 = 오늘 지난 예약 깸 · 토큰 = 깸 × 5만 어림 · 끝 = 다음 깸 */
           <div className="nm-rgx-botsc" aria-label="봇 일 · 오늘">
             {chokRun?.ok && chokRun.last ? <span className={chokRun.final ? undefined : "bad"} title={`촉 X 직접 수집 · 마지막 회차 ${chokRun.last} · 오늘 ${chokRun.today}/${chokRun.plan} · chok_in ${chokRun.in ? "올라옴" : "없음"} · final.json ${chokRun.final ? "있음" : "없음"}`}><b>촉 X</b> {chokRun.at ? hmKst(chokRun.at) : chokRun.last.slice(-4)} · {chokRun.today}/{chokRun.plan} · {chokRun.final ? "final ✓" : chokRun.in ? "final 없음" : "in 없음"}</span> : null}

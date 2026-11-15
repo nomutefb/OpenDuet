@@ -3,8 +3,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 const s = readFileSync(new URL("../ui/runner-gauges.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/runner-gauges.css", import.meta.url), "utf8");
-test("두 줄 = 습작 · 교대 · 시각만(날짜 0) · 이름표 없음 · 조약돌 + A1~A6 한 줄", () => {
-  assert.match(s, /<div className="nm-rgx-line" style=/);   // 형 11-15 「a1~a6를 우측으로 옮기자 … 조약돌하고 같은 라인으로」
+test("두 줄 = 습작 · 교대 · 시각만(날짜 0) · 이름표 없음 · 조약돌 한 줄(11-16 A1~A6 뺌)", () => {
+  assert.match(s, /<div className="nm-rgx-line" style=/);
+  assert.doesNotMatch(s, /className="nm-rgx-runs"/);   // 형 11-16 08:34 「러너는 안보여도 돼. / 그리구 조약돌만 보이면 될듯.」
+  assert.match(s, /천둥: \{ key: "thunder" \}, 구름: \{ key: "cloud", bot: "moru" \}/);   // 형 11-16 08:15 「클로드 + 구름까진 나와야 해. 구름은 너네 사이에 블릿하나 넣어줘.」
+  assert.match(s, /className="nm-rgx-cell sep" aria-hidden>•<\/li>/);
+  assert.match(css, /\.nm-rgx-line > \.nm-rgx-pebs \{[^}]*flex:1 1 100%;/);   // 형 11-15 「a1~a6를 우측으로 옮기자 … 조약돌하고 같은 라인으로」
   assert.match(s, /const low = ig \?\? fb, me = run \?\? peb;/);   // 그 한 줄 = 오른쪽 아래 줄에 맞춤(「그만큼 확보된만큼 내려오면」)
   assert.match(s, /<div className="nm-rgx-botsc" aria-label="봇 일 · 오늘">/);   // 뜸 #-063 봇 일 = 한 줄 틀 오른쪽 위로 자리만 옮김(옛 A 줄이 없어져서)
   assert.match(s, /const MEM = \[\["sketch_ms", "습작"\], \["handoff_ms", "교대"\]\] as const/);

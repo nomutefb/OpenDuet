@@ -128,8 +128,9 @@ html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):no
 /* 조약돌 + A1~A6 = 한 줄(형 11-15 11:5x 「a1~a6를 우측으로 옮기자. 조금만 간격을 줄여서, 조약돌하고 같은 라인으로 / 어짜피 오른쪽이 비니까」 · 「그만큼 확보된만큼 내려오면 보기 편할듯」)
    조약돌 = 왼쪽(옛 12칸 걸음 그대로 = 위 시각 두 줄 간격 안 바뀜) · 러너 번호 = 같은 줄 오른쪽 끝(간격 조금 좁게) · 줄 자리 = 오른쪽 SNS 아래 줄(runner-gauges.tsx useRowSync) · 빈 칸 점 0 */
 .nm-rgx-line { display:flex; align-items:center; flex-wrap:wrap; width:100%; margin:6px 0 0; padding:0 2px; min-height:20px; transform:translateY(var(--nm-rgx-peb-dy, 0px)); }
-.nm-rgx-line > .nm-rgx-pebs { display:grid; grid-template-columns:repeat(var(--nm-rgx-pn, 7), minmax(0, 1fr)); justify-items:center; align-items:center; gap:0; flex:0 0 calc(100% * var(--nm-rgx-pn, 7) / 12); width:auto; margin:0; padding:0; transform:none; }
-.nm-rgx-line > .nm-rgx-pebs .nm-rgx-cell.sep { line-height:20px; font-size:12px; font-weight:300; color:rgba(255,255,255,.22); }
+.nm-rgx-line > .nm-rgx-pebs { display:grid; grid-template-columns:repeat(var(--nm-rgx-pn, 7), minmax(0, 1fr)); justify-items:center; align-items:center; gap:0; flex:1 1 100%; width:100%; margin:0; padding:0; transform:none; }   /* 조약돌이 줄 폭을 다 씀(형 11-16 08:34 「러너는 안보여도 돼. / 그리구 조약돌만 보이면 될듯.」 · 앞 = 7/12 + 오른쪽 A1~A6) · 칸 = 여덟 + 「•」 + 구름 */
+.nm-rgx-line > .nm-rgx-pebs .nm-rgx-cell.sep { line-height:20px; font-size:12px; font-weight:400; color:rgba(255,255,255,.34); }   /* 가르는 점 「•」(형 11-16 「구름은 너네 사이에 블릿하나」) · 앞 = 누리 앞 「|」 */
+:root:not(.dark) .nm-rgx-line > .nm-rgx-pebs .nm-rgx-cell.sep { color:rgba(22,23,22,.34); }
 .nm-rgx-line > .nm-rgx-runs { display:flex; flex:0 1 auto; width:auto; margin:0 0 0 auto; padding:0; gap:9px; justify-content:flex-end; flex-wrap:nowrap; white-space:nowrap; transform:none; }
 .nm-rgx-line > .nm-rgx-runs .nm-rgx-run { font-size:10px; line-height:14px; font-variant-numeric:tabular-nums; letter-spacing:0; }
 .nm-rgx-line > .nm-rgx-runs .nm-rgx-run + .nm-rgx-run::before { content:none; }
