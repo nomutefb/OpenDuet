@@ -58,10 +58,17 @@ html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
 .nm-kwb-dots { display:none; }
 @keyframes kwbRow { from { opacity:0; transform:translateY(9px); } }
 
-/* 넓지 않은 칸(PC 오른쪽을 좁혔을 때) = 두 줄기씩 두 단 */
-@container kwb (max-width:620px) {
-  .nm-kwb-cols { grid-template-columns:repeat(2, minmax(0,1fr)); overflow-y:auto; row-gap:8px; }
-  .nm-kwb-col:nth-child(odd) { border-left:0; }
+/* 넓지 않은 칸(PC 오른쪽을 좁혔을 때) = 네 줄기 한 단 · 좁혀서 스크롤 0(형 11-16 08:13 「스크롤 없애고 … 한번에 4개 나오면 더 베스트」 · 「좁히면 가능할지도 몰라!」 · 앞 판 = 두 줄기씩 두 단 + 세로 스크롤) */
+@container kwb (min-width:461px) and (max-width:620px) {   /* 폰(460 아래)은 아래 판 그대로 */
+  .nm-kwb-cols { padding:4px 2px 6px; }
+  .nm-kwb-col { padding:0 4px; }
+  .nm-kwb-ch { height:24px; padding:0 2px; }
+  .nm-kwb-ch b { font-size:10.5px; }
+  .nm-kwb-ch span { display:none; }
+  .nm-kwb-col li { grid-template-columns:12px minmax(0,1fr) auto; gap:4px; min-height:25px; padding:0 2px; }
+  .nm-kwb-col .rk { font-size:10px; }
+  .nm-kwb-col .q { font-size:12px; }
+  .nm-kwb-col .sub { display:none; }
 }
 /* 폰 = 한 화면에 줄기 하나 · 옆으로 넘김(형 「넘길때마다 차트가 나오게」) · 글씨 크게 · 아래 점 넷 */
 @container kwb (max-width:460px) {
