@@ -1,0 +1,50 @@
+/* CLI 계정 우선순위 카드 다발(./acct-prio.tsx) — 형 11-16 영상 962a3255 「Switching cards」 꼴: 손에 쥔 듯 아래 왼쪽을 축으로 부채처럼 겹침 · 앞 카드는 살짝 반대로 기욺
+   움직이는 것 = transform · opacity 뿐(합성 단계 = 고프레임) · 뒤 카드가 어두운 것 = 덮개 opacity · 그림자 · 색은 멈춘 그림
+   글자 = 본문 글꼴 하나 · 크기 · 여백은 카드 폭의 몇 %(위아래 한계 있음) · 한 줄씩 · 넘치면 줄임표 — 폭이 달라도 요금제 · 한도 · 갱신일 · 기한이 카드 안에 다 들어감 */
+.acp { margin-top:10px; outline:none; display:flex; flex-direction:column; align-items:center; gap:12px; -webkit-user-select:none; user-select:none; }
+.acp-stack { position:relative; width:min(320px, calc(100% - 64px)); aspect-ratio:1.586 / 1; margin:8px 46px 26px 10px; container-type:inline-size; }   /* 카드 안 글자 · 여백 = 이 폭의 몇 %(cqw) → 폭이 달라도 같은 비율로 다 들어감(형 11-16 「저 안에 내용이 다 들아와야하니 폰트는 작고 안장적으로」) */
+.acp-card { position:absolute; inset:0; z-index:calc(20 - var(--k)); box-sizing:border-box; display:flex; flex-direction:column; gap:1.5cqw; padding:4.2cqw 5cqw 6cqw; border:1px solid rgba(255,255,255,.14); border-radius:16px; overflow:hidden; color:#f2f4f1; font:inherit; font-family:var(--app-font-text, inherit); line-height:1.25; text-align:left; white-space:nowrap; font-variant-numeric:tabular-nums; cursor:pointer;
+  background:linear-gradient(140deg, color-mix(in srgb, var(--tint) 90%, #fff 10%) 0%, var(--tint) 52%, color-mix(in srgb, var(--tint) 68%, #000) 100%);
+  box-shadow:0 16px 34px -16px rgba(0,0,0,.75);
+  transform-origin:18% 135%;
+  transform:translate3d(calc(var(--k) * 11px), calc(var(--k) * 2px), 0) rotate(calc(var(--k) * 5.2deg - 1.6deg)) scale(calc(1 - var(--k) * .012));
+  transition:transform .54s cubic-bezier(.22,1,.36,1); will-change:transform; }
+.acp-card::after { content:""; position:absolute; inset:0; background:#000; opacity:calc(var(--k) * .13); transition:opacity .4s ease; pointer-events:none; }   /* 뒤 카드일수록 어둡게(덮개 opacity) */
+.acp-card.front { cursor:grab; touch-action:none; }
+.acp-card.drag { transition:none; cursor:grabbing; z-index:40; }   /* 끄는 동안 = 손을 바로 따라옴(코드가 transform 만 바꿈) */
+.acp-card.fly { transition:transform .19s cubic-bezier(.3,.1,.7,1); z-index:40; }   /* 놓으면 그 방향으로 날아감 → 맨 뒤 자리로 */
+.acp-card:not(.front):hover, .acp-card:not(.front):focus-visible { transform:translate3d(calc(var(--k) * 11px + 7px), calc(var(--k) * 2px - 3px), 0) rotate(calc(var(--k) * 5.2deg - .6deg)) scale(calc(1 - var(--k) * .012)); outline:0; }
+.acp-card:focus-visible { outline:0; }
+.acp-card.ended { background:linear-gradient(140deg, #3a3b3c, #252627 60%, #1b1c1c); }   /* 결제 끝난 계정 = 색 빠짐(교대 때 건너뜀) */
+.acp-top { display:flex; justify-content:space-between; align-items:center; min-width:0; }
+.acp-top small { font-size:clamp(8px, 2.8cqw, 9.5px); letter-spacing:.12em; opacity:.72; }
+.acp-top i { flex:none; width:clamp(18px, 6.6cqw, 22px); aspect-ratio:1; display:grid; place-items:center; border-radius:50%; box-shadow:inset 0 0 0 1px rgba(255,255,255,.45); font-style:normal; font-size:clamp(8.5px, 3cqw, 10px); font-weight:700; opacity:.85; }
+.acp-name { overflow:hidden; text-overflow:ellipsis; font-size:clamp(12.5px, 4.7cqw, 15.5px); font-weight:700; letter-spacing:-.01em; line-height:1.15; }
+.acp-plan { display:flex; align-items:center; gap:2.6cqw; min-width:0; font-size:clamp(9.5px, 3.4cqw, 11px); font-weight:600; line-height:1.2; }
+.acp-plan svg { flex:none; width:clamp(20px, 7.4cqw, 24px); height:auto; fill:rgba(255,255,255,.2); stroke:rgba(255,255,255,.5); stroke-width:1; }
+.acp-plan small, .acp-foot small { display:block; font-size:clamp(7px, 2.4cqw, 8px); font-weight:400; letter-spacing:.12em; line-height:1.3; opacity:.62; }
+.acp-mail { overflow:hidden; text-overflow:ellipsis; font-size:clamp(9px, 3.2cqw, 10.5px); letter-spacing:.05em; opacity:.8; }
+.acp-foot { margin-top:auto; display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, .7fr); gap:2.6cqw; align-items:end; font-size:clamp(9.5px, 3.4cqw, 11px); font-weight:600; line-height:1.2; }
+.acp-foot > span { min-width:0; overflow:hidden; text-overflow:ellipsis; } .acp-foot > span:last-child { text-align:right; }
+.acp-foot em { font-style:normal; font-weight:400; opacity:.75; }
+.acp-foot [data-t="low"] { color:#ffb3ad; } .acp-foot [data-t="mid"] { color:#ffd591; }
+.acp-bar { position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(0,0,0,.28); }
+.acp-bar b { display:block; height:100%; background:#cfff40; transform-origin:0 50%; transition:transform .5s cubic-bezier(.22,1,.36,1); }
+.acp-bar b[data-t="low"] { background:#ff6b5e; } .acp-bar b[data-t="mid"] { background:#ffb547; } .acp-bar b[data-t="none"] { background:transparent; }
+.acp-tag { position:absolute; right:5cqw; top:13cqw; padding:.3cqw 2.2cqw; border-radius:999px; background:rgba(255,107,94,.22); box-shadow:inset 0 0 0 1px rgba(255,107,94,.6); font-size:clamp(8px, 2.8cqw, 9.5px); line-height:1.5; }
+.acp-nav { display:flex; align-items:center; gap:8px; }
+.acp-nav button { width:40px; height:40px; display:grid; place-items:center; border-radius:50%; border:0; background:transparent; color:inherit; font-size:15px; cursor:pointer; transition:scale .3s var(--e-spring, cubic-bezier(.34,1.56,.64,1)), opacity .15s; }   /* 손가락 자리 40 · 보이는 고리는 28 */
+.acp-nav button::before { content:""; position:absolute; width:28px; height:28px; border-radius:50%; box-shadow:inset 0 0 0 1px var(--glass-line, rgba(255,255,255,.2)); }
+.acp-nav button { position:relative; }
+.acp-nav button:active { scale:var(--press-s, .85); }
+.acp-nav button:disabled { opacity:.35; cursor:default; }
+.acp-nav i { width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.3; transition:opacity .25s, scale .25s; }
+.acp-nav i.on { opacity:1; scale:1.25; }
+.acp-rank { margin:0; padding:0; list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:5px 6px; font-size:12px; }
+.acp-rank button { display:inline-flex; align-items:center; gap:6px; min-height:28px; padding:2px 10px 2px 4px; border:0; border-radius:999px; background:none; box-shadow:inset 0 0 0 1px var(--glass-line, rgba(255,255,255,.16)); color:inherit; font:inherit; font-family:var(--app-font-text, inherit); cursor:pointer; transition:scale .3s var(--e-spring, cubic-bezier(.34,1.56,.64,1)); }   /* 차례 알약 = 누르면 그 계정을 1순위로(뒤 카드의 좁은 틈을 못 누를 때) */
+.acp-rank button:active { scale:var(--press-m, .9); }
+.acp-rank button:disabled { cursor:default; }
+.acp-rank li b { width:18px; height:18px; display:grid; place-items:center; border-radius:50%; background:rgba(var(--accent-rgb, 207,255,64),.16); font-size:10.5px; font-variant-numeric:tabular-nums; }
+.acp-rank li[data-off] { opacity:.45; text-decoration:line-through; }
+.acp-note { margin:0; min-height:1.4em; font-family:var(--app-font-text, inherit); font-size:12px; opacity:.7; text-align:center; text-wrap:balance; }
+@media (prefers-reduced-motion: reduce) { .acp-card, .acp-card::after, .acp-bar b, .acp-nav i { transition:none; } }
