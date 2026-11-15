@@ -47,7 +47,7 @@ html[data-deck-in] .nm-send-dock, html[data-deck-in] .nm-home-swap .nm-hotswap-t
 .nm-home-top > .nm-rgx { padding-left:0; padding-right:0; }
 /* 폰 홈 = 오른쪽 SNS 줄이 없어 조약돌 줄이 안 내려옴(runner-gauges useRowSync = 0) → 조약돌 위 시각 두 줄이 게이지 % 글자와 겹침(실제 값으로 띄워 잼: 시각 122~145 ↔ 게이지 77~142)
    → 조약돌 줄을 제 위 틈으로 내림(PC 는 SNS 줄에 맞춰 내려가 생기는 틈 · 폰은 그 틈을 값으로) · 띠 키는 앞 판과 거의 같음 */
-.nm-home-top .nm-rgx-line { transform:none; margin-top:43px; }   /* 게이지 밑 8 + 봇 일 두 줄(30 + 5) = 43 — 줄 위에 뜨는 시각 두 줄 · 봇 일 두 줄이 게이지와 안 닿게 */
+.nm-home-top .nm-rgx-line { transform:none; margin-top:36px; }   /* 게이지 밑 8 + 줄 위에 뜨는 시각 두 줄(23 + 5) = 36 · 봇 일 줄은 11-15 18:52 부터 숨김(runner-gauges.css)이라 안 셈 */
 .nm-home-top .nm-rgx-gap { display:none; }   /* PC 용 빈 칸(오른쪽 SNS 줄 맞춤 자리) = 폰엔 없음 */
 /* 폰 홈 띠 = PC 왼쪽 위 띠와 같은 비율(형 11-15 19:1x 「화면은 같아야되는뎅」) — ui/runner-gauges.css 「.nm-split-top-l」 값 그대로: 게이지 82% · 조약돌 18 · 시각 글자 = 칸 폭에 맞춤 */
 .nm-home-top .nm-rgx-host .nm-rg-gauge { width:82%; }
