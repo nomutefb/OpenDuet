@@ -219,35 +219,7 @@ export function NomuteNotice() {
   );
 }
 
-type LinkBot = { name: string; hook01?: { enabled: boolean; last_run?: string }; hook01_why?: string; routines: { id: string; state: string; result?: string | null; ran_at?: string | null; alert?: string | null }[]; today?: { planned?: number; wakes: number; clock: number; manual: number; cap: number; lost?: number } };
-export function NomuteLink() {
-  const q = useQuery({ queryKey: ["nomute", "link"], queryFn: () => office<{ at: number; by?: string; link?: { clock?: { beat_at?: string }; bots?: Record<string, LinkBot> } }>("schedule/link"), refetchInterval: 60_000 });
-  const k = q.data?.link, beat = k?.clock?.beat_at ? Math.round((Date.now() - Date.parse(k.clock.beat_at)) / 1000) : null;
-  return (
-    <PageSection title="스케줄러 연결">
-      <p className={`mt-1 text-sm ${beat == null || beat > 130 ? "text-destructive" : "text-muted-foreground"}`}>{!q.data ? (q.isError ? readFail(q.error) : reading()) : !k ? "아직 한 장 없음 — 윈A 지킴이가 올리면 보임" : `시계 마지막 신호 ${beat == null ? "모름" : `${beat}초 전`} · 읽은 때 ${hm(q.data.at)}`}</p>
-      {k?.bots ? (
-        <Card>
-          <ul className="divide-y divide-border">
-            {Object.entries(k.bots).map(([id, x]) => {
-              const on = x.routines.filter((r) => r.state === "live" || r.state === "dry").length, ran = x.routines.filter((r) => r.result === "ran").length;
-              return (
-                <li key={id} className="px-4 py-2.5">
-                  <p className="flex items-center justify-between text-sm"><b>{x.name}</b><span className={`text-xs ${x.hook01?.enabled === false || x.hook01_why ? "text-destructive" : "text-muted-foreground"}`}>{x.hook01_why || (x.hook01?.enabled ? "호출 연결 켜짐" : "호출 연결 꺼짐")}</span></p>
-                  <p className="text-xs text-muted-foreground">
-                    {x.today ? `오늘 자동 ${x.today.clock}${x.today.planned ? `/${x.today.planned}` : ""} · 직접 ${x.today.manual}${x.today.lost ? ` · 놓침 ${x.today.lost}` : ""} · ` : ""}켠 루틴 {on} · 돎 {ran}{x.hook01?.last_run ? ` · 마지막 ${hm(x.hook01.last_run)}` : ""}
-                  </p>
-                  {x.routines.some((r) => r.alert) ? <p data-content className="text-xs text-destructive">{x.routines.filter((r) => r.alert).map((r) => `${r.id}: ${r.alert}`).join(" · ")}</p> : null}
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
-      ) : null}
-    </PageSection>
-  );
-}
-
+// 「스케줄러 연결」 칸(NomuteLink · GET schedule/link)은 뺌 — 형 11-16 02:51 dm-bom [결정] 「✓ ① 빼기 — 스케줄 탭 하나로」(같은 정보 = 스케줄 탭 · 서버 셈 · 시계 박동은 그대로)
 export const ST_KO: Record<string, string> = { shadow: "기록만", dry: "시험", live: "켬", off: "꺼짐", "grok-stay": "그록에 둠" };
 export const CF_KO: Record<string, string> = { state: "상태", when: "언제", fire_empty: "할 일 없어도 깨움", delay_max: "모아서 기다림", on: "차단기", task: "할 일", common: "공통 내용", fork: "묶음", bot: "어떤 봇", add: "새로 만듦", remove: "지움" };
 const CRON_H = "CRON_TZ=Asia/Seoul ";
