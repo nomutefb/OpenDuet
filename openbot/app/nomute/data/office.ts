@@ -34,7 +34,7 @@ const keep = (init: RequestInit) => typeof init.body === "string" && init.body.l
 export async function office<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api/office/${path}`, { credentials: "same-origin", cache: "no-store", ...(keep(init) ? { keepalive: true } : {}), ...init, headers: { ...(init.body ? { "content-type": "application/json" } : {}), ...(init.headers || {}) } });
   const j = (await res.json().catch(() => ({}))) as T & { ok?: boolean; why?: string; error?: string };
-  if (!res.ok || j.ok === false) throw new Error(j.why || j.error || `사무실 서버 ${res.status}`);
+  if (!res.ok || j.ok === false) throw new Error(j.why || j.error || `봄의 정원 서버 ${res.status}`);
   return keepOnly(path, j);
 }
 

@@ -119,8 +119,8 @@ export function YetaSettings() {
             {row("genopt", "layers", "AI 썸네일 옵션", <Suspense fallback={null}><GenOptModal /></Suspense>)}
           </div>
         </section>
-        <section className="yset-part" aria-label="사무실">
-          <div className="yset-sec">사무실</div>
+        <section className="yset-part" aria-label="봄의 정원">
+          <div className="yset-sec">봄의 정원</div>
           <div className="yset-grp">
             {row("sched", "clock", "스케줄러 바꾸기", <NomuteSchedule />)}
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}

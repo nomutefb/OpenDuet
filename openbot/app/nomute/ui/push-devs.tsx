@@ -82,7 +82,7 @@ export function PushDevsModal() {
                 return (
                   <div key={it.id} role="listitem" className={`nm-q-row nm-memo-row nm-dev-row${it.off ? " off" : ""}`}>
                     <span className="qt">{day(it.ts)}</span>
-                    <span className="qm" title={nm}><i>{nm}</i><small>{it.app === "office" ? "사무실 앱" : "에디터"}{here ? " · 이 기기" : ""}{it.off ? " · 알림 멈춤" : ""}</small></span>
+                    <span className="qm" title={nm}><i>{nm}</i><small>{it.app === "office" ? "봄의 정원" : "에디터"}{here ? " · 이 기기" : ""}{it.off ? " · 알림 멈춤" : ""}</small></span>
                     <span className="qa"><button type="button" className={`go ${it.off ? "" : "gray"}`} aria-pressed={!!it.off} aria-label={it.off ? "알림 다시 켜기 — 이 기기에도 보냄" : "알림 멈추기 — 이 기기엔 안 보냄"} disabled={busy === it.id} onClick={() => void act("toggle", it)}>{it.off ? "켜기" : "멈춤"}</button></span>
                     <span className="qa"><button type="button" className={`go ${arm === it.id ? "arm" : "gray"}`} aria-label={arm === it.id ? "한 번 더 누르면 지움" : "구독 지우기"} disabled={busy === it.id} onClick={() => del(it)}>{arm === it.id ? "지울까?" : "지움"}</button></span>
                   </div>
