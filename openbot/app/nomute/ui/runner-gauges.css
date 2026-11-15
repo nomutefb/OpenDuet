@@ -111,3 +111,13 @@
 .nm-rgx-memk small { font-size:9px; line-height:11px; font-variant-numeric:tabular-nums; color:#7A7A7A; }
 html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.sk, html:not(.dark):not([data-theme="garden"]) .nm-rgx-memk .sk { color:#0e7490; }
 html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):not([data-theme="garden"]) .nm-rgx-memk .ho { color:#4d7c0f; }
+
+/* PC 왼쪽 위 러너 띠 = 좁은 칸 숨통(형 11-15 10:5x 「여기가 좁은데, 위에 러너부분을 적절히 미관상 보기 좋게 … % 이런거는 좀 작게보여도 되니까, 여백을 좀 맞춰서 해줘. 조약돌 조금 작아지는건 괜찮음」)
+   오른쪽 SNS 줄에 맞춘 조약돌 · 러너 줄 자리(useRowSync)는 그대로 — 게이지만 조금 줄여(= % 도 같이 작아짐) 그 밑 시각 두 줄과 틈을 냄 · 조약돌 20 → 18 · 남은 이름표(백업 · 갱신)는 오른쪽 끝 맞춤 · 폰 홈은 안 바뀜 */
+.nm-split-top-l .nm-rgx-host .nm-rg-gauge { width:82%; }
+.nm-split-top-l .nm-rgx-peb { flex-basis:18px; width:18px; height:18px; }
+.nm-split-top-l .nm-rgx-pebs { container-type:inline-size; }   /* 시각 글자 크기를 칸 폭에 맞추는 잣대 */
+.nm-split-top-l .nm-rgx-memt { bottom:calc(100% + 5px); }
+.nm-split-top-l .nm-rgx-memt i { font-size:clamp(7px, calc(100cqw / 12 / 3.6), 9px); }   /* 좁은 창(860~1000)에서 옆 시각과 붙던 것 = 칸 폭(12칸)에 맞춰 줄어듦 · 넓으면 9 그대로 */
+.nm-split-top-l .nm-rgx-memk { left:auto; right:2px; padding-left:0; border-left:0; }
+

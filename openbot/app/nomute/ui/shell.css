@@ -88,6 +88,7 @@ header.nm-head:has(.nm-room-mark) .nm-top-name i { color:#fff; }
 .nm-modal.see { background:transparent; }
 .nm-see > .nm-pane { visibility:hidden; }
 .nm-cover > .nm-pane { visibility:hidden; }   /* 글 화면이 열린 동안 밑 화면(홈 · 대화방) 그리기 끔 — 막 너머로 비치지 않게 + 안 보이는 데서 흐림 · 움직임이 돌지 않게(.nm-see 와 같은 길) */
+.nm-see > .nm-split-top-l, .nm-cover > .nm-split-top-l { visibility:hidden; }   /* PC 왼쪽 위 러너 띠도 같이 끔(형 11-15 10:5x 「너가 아까 말한 문제 … 확인해줘」) — 띠는 판(.nm-pane)이 아니라 남아 있었고, 덮는 화면의 막이 옅어진 뒤로(--nm-veil) 글 뒤로 비쳤음(뉴스 에디터 탭 · 기사 한 장 뒤 「RUNNER」 · 「습작 교대 …」) · 자리(높이)는 그대로 = 오른쪽 칸 키 안 바뀜 */
 /* 판 안 글 = 긴 주소·영문 한 덩이도 판 폭에서 줄 바꿈(형 11-03 15:09 사진 「그리구 이거 넘어갈 때가 있는데, 설정 창에서 글자가 안넘어가게 확인 좀 부탁해!」 = 공지 글 github 주소가 판 밖으로 나갔음) */
 .nm-modal [data-content], .nm-modal p, .nm-modal li { overflow-wrap:anywhere; }
 /* 설정·서랍 묶음 판 = 라임 3D 바탕 위에서 유리를 조금 더 두껍게(흐림 18px · 바탕 55%) — 장면 빛줄기가 글자 뒤를 지나가지 않게(형 11-03 15:17 「혹시 설정, 개선하면 더 이쁘겠다 싶은 부분있으면 한번 살펴보고 개선해줘」) */
@@ -327,6 +328,8 @@ body.nm-dragging iframe { pointer-events:none; }
 
 /* PC 대화 목록 = 옆 HOT ISSUE 칸처럼 블록 없이 좌우 끝까지(형 11-12 06:21 봄 1:1 「웹앱은, 그냥 옆에 핫이슈처럼 블록 없이 좌우를 다써버리면 됨」 · 「일단 대화방 리스트 자체는 좌우 폭맞춤해도 될것같음」 · 깃) · 폰 꼴 그대로 */
 .nm-split-l .nm-rooms-pane { padding-left:0; padding-right:0; }
+.nm-split-l .nm-col.nm-col-rooms { max-width:none; }   /* PC 대화 목록 = 왼쪽 칸 폭 다 씀(형 11-15 10:5x 「이렇게 폭맞춤 안되는 문제도 확인해줘」 · 전 = 폰 폭 430 으로 묶여 창이 넓으면 양옆이 빔 · 대화 칸 nm-col-chat 과 같은 길) */
+.nm-rooms-pane { scrollbar-width:none; } .nm-rooms-pane::-webkit-scrollbar { display:none; }   /* 목록 옆 스크롤 줄 안 보임(형 「옆에 스크롤은 보일필요없음」 · 스크롤은 그대로 됨) */
 .nm-split-l .nm-rooms-pane .nm-rgroup { background:none; border:0; border-radius:0; }
 .nm-split-l .nm-rooms-pane .nm-rgroup > :first-child { border-top:0; }
 .nm-split-l .nm-rooms-pane .nm-rooms > .nm-tswitch, .nm-split-l .nm-rooms-pane .nm-rooms > .nm-rtop { margin-left:12px; margin-right:12px; }   /* 맨 위 알약 줄(팀즈 바꿈 · 공지)은 아직 여백 그대로 — 아이콘으로 바꿀 꼴은 봄한테 먼저(②③) */
