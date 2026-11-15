@@ -418,7 +418,7 @@ export function NomuteBuild() {
 
 /** 보안 서랍(빠르 11-15 · 깃 #-020 · 형 11-14 23:42 「자리 1 2 3을 토큰 키 처럼 각각 클립보드 복사 가능하게 설정에 만들어놓으셈」 · 23:56 ✓ ① 처음 한 번 붙여 넣기 → 그 뒤 복사만)
  *  값은 화면에 안 그림 · 넣기 = 서버가 암호화해 둠 + 그 자리 열쇠가 맞는지 「맞음 · 틀림」 · 복사 = 누를 때만 서버에서 받아 클립보드 · 형 문만(봇 열쇠 = 403) */
-type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null; hint?: string | null };   // hint = 서버가 가려서 준 꼴(앞 몇 글자 + *** + 끝 두 글자 · editor _seatvault.js maskOf) — 값 자체는 「복사」 때만
+type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null; hint?: string | null; who?: string | null; id?: string | null };   // who · id = 지금 그 자리를 쓰는 이름 · 자리 id(서버 editor #3964 · 형 11-16 07:5x)   // hint = 서버가 가려서 준 꼴(앞 몇 글자 + *** + 끝 두 글자 · editor _seatvault.js maskOf) — 값 자체는 「복사」 때만
 /** 서랍 실패 까닭 = 입력 · 회선 · 앱 셋을 섞지 않음(하네스 §오류 3분류 · 서버 why 는 그대로) */
 const vaultWhy = (e: unknown, fall: string) => {
   const m = e instanceof Error ? e.message : "";
@@ -454,7 +454,8 @@ export function NomuteVault() {
           {(q.data || []).map((s) => (
             <li key={s.seat} className="flex flex-col gap-2 px-4 py-3">
               <p className="flex items-center justify-between text-sm">
-                <span className="flex min-w-0 items-baseline gap-2"><b className="shrink-0">{s.seat.replace("자리", "자리 ")}</b>
+                <span className="flex min-w-0 items-baseline gap-2"><b className="shrink-0">{s.seat.replace(/^자리(\d)$/, "자리 0$1").replace(/^예비(\d+)$/, "예비 $1")}</b>
+                  {s.who || s.id ? <span className="shrink-0 text-xs text-muted-foreground" aria-label="지금 쓰는 이름 · 자리 id">{[s.who && s.who !== s.seat ? s.who : null, s.id].filter(Boolean).join(" · ")}</span> : null}   {/* 형 11-16 07:5x 「자리 02 - 이런거 다 옆에 현재 사용중인 이름을 써줄래? cloud 이런식으로. 구름 cloud 각각 키명, 자리 명」 */}
                   {s.set && s.hint ? <code className="min-w-0 truncate font-mono text-xs text-muted-foreground" aria-label="열쇠 앞부분만 보임">{s.hint}</code> : null}</span>   {/* 형 11-15 「암호 있는 곳 노출 가능한 부분은 보이고 나머지늠 ***로 표기」 */}
                 <span className={`text-xs ${s.set && s.match === false ? "text-destructive" : "text-muted-foreground"}`}>{!s.set ? "비어 있음" : s.match === false ? "넣음 · 열쇠 안 맞음" : `넣음${s.at ? ` · ${t12(s.at)}` : ""}`}</span>
               </p>
