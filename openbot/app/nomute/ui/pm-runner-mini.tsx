@@ -6,13 +6,14 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { jobBoard } from "./job-fold";
 import { faceOf, office } from "../data/office";
+import { pmRoomId } from "./pm-set-logic";
 import { ACT_QUERY_KEY, miniLine, type MiniLine, type MiniRow } from "./activity-line";
 import "./pm-runner-mini.css";
 
 function usePmRoom(): string | null {
   const pm = useQuery({ queryKey: ["nomute", "pm"], queryFn: () => office<{ who?: string }>("pm"), staleTime: 300_000, refetchInterval: 300_000 }).data?.who;
-  const rooms = useQuery({ queryKey: ["nomute", "rooms-lite"], queryFn: () => office<{ rooms?: { id: string; kind?: string; name?: string }[] }>("rooms"), staleTime: 600_000, enabled: !!pm }).data?.rooms;
-  return pm && rooms ? rooms.find((r) => (r.kind === "dm" || r.id.startsWith("dm-")) && r.name === pm)?.id || null : null;
+  const rooms = useQuery({ queryKey: ["nomute", "rooms-lite"], queryFn: () => office<{ rooms?: { id: string; kind?: string; name?: string; with?: string }[] }>("rooms"), staleTime: 600_000, enabled: !!pm }).data?.rooms;
+  return pm && rooms ? pmRoomId(pm, rooms) || null : null;
 }
 
 const NODEV = new Set(["뜸", "결", "촉", "온"]);   // 개발 제외 손(서버 손 표 editor functions/api/office/_roles.js nodev · 형 정본) = 구분선 아래(형 11-15 05:24 「애초에 개발 참여 안하는 애들은 조금 분류를 구분선 하나 그어서」)

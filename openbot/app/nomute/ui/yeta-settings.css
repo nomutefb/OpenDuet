@@ -89,6 +89,10 @@
 .yeta-set .yset-chip.on { background:rgba(var(--accent-rgb),.9); color:var(--bg); border-color:transparent; }
 .yeta-set .yset-chip:disabled { opacity:.45; cursor:default; }
 @media (prefers-reduced-motion: reduce) { .yeta-set .yset-chip { transition:none; } }
+/* PM 고르기(./pm-set.tsx) = 같은 알약 · 폰에서 한 번 누를 자리(40) · 얼굴 22 = 봇 현황 쉬는 손 얼굴과 같음 */
+.yeta-set .yset-pm .yset-chip { display:inline-flex; align-items:center; gap:6px; min-height:40px; }
+.yeta-set .yset-pm .yset-chip img { width:22px; height:22px; border-radius:50%; object-fit:cover; flex:none; }
+.yeta-set .yset-pm .si-d { display:block; margin:8px 0 0; white-space:normal; }
 
 /* 우리 보탬 — 형 11-03 15:17 「혹시 설정, 개선하면 더 이쁘겠다 싶은 부분있으면 한번 살펴보고 개선해줘」
    ① 고른 값 = 라임 하나로(원본 .mod 청록 = 기본에서 바꾼 표시 → 같은 라임 + 앞 작은 점) · 상태 값(.si-vv · 고칠 것·온라인)은 회색 그대로 = 고르는 값과 갈림

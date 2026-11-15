@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { faceOf, office } from "../data/office";
+import { pmRoomId } from "./pm-set-logic";
 import { TempRoomDialog } from "./temp-room";
 
 /** 「+」 바로 위 = PM 얼굴 단추 · 누르면 PM 1:1 방(형 11-15 13:0x 「대화 목록 우하단에 + 있는데 그 위에 항상 pm 픽토그램 있어서 누르면 pm 대화방 가게해줘 / 최상단이라 누르기 어려움」)
@@ -12,8 +13,8 @@ import { TempRoomDialog } from "./temp-room";
 function PmFab() {
   const nav = useNavigate();
   const pm = useQuery({ queryKey: ["nomute", "pm"], queryFn: () => office<{ who?: string }>("pm"), staleTime: 300_000, refetchInterval: 300_000 }).data?.who;
-  const rooms = useQuery({ queryKey: ["nomute", "rooms-lite"], queryFn: () => office<{ rooms?: { id: string; kind?: string; name?: string }[] }>("rooms"), staleTime: 600_000, enabled: !!pm }).data?.rooms;
-  const room = pm && rooms ? rooms.find((r) => (r.kind === "dm" || r.id.startsWith("dm-")) && r.name === pm)?.id : undefined;
+  const rooms = useQuery({ queryKey: ["nomute", "rooms-lite"], queryFn: () => office<{ rooms?: { id: string; kind?: string; name?: string; with?: string }[] }>("rooms"), staleTime: 600_000, enabled: !!pm }).data?.rooms;
+  const room = pm && rooms ? pmRoomId(pm, rooms) || undefined : undefined;
   if (!pm || !room) return null;
   const src = faceOf(pm);
   return (

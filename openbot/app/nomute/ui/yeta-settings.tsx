@@ -26,6 +26,7 @@ import { WakeDepthRow } from "./wake-depth";
 import { ModelSetRows, useModelSum } from "./model-set";
 import { GrokNote } from "./grok-note";
 import { SpellSetRow } from "./spell-set";   // 맞춤법 교정(분류용) 켬/끔(#-061)   // 그록봇 지침 메모(#-060)   // 모델 · 노력도(봇 상자 + 서버가 직접 부르는 일 · 일괄 · 형 11-15)
+import { PmSet, usePmLabel } from "./pm-set";   // PM 고르기(형 11-15 「설정에서 지정」 · POST /pm)
 import { PushRow } from "../push/push-row";
 import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { TeamsAccount, useTeamsName } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
@@ -74,6 +75,7 @@ export function YetaSettings() {
   const act = actCount(bots || []), nBots = act.total, awake = act.work;   // 분자 · 분모 = 같은 활동 줄에서(앞 판 = 분모만 그록 봇 수라 「9/7」 · 형 11-15 08:00)
   const modelSum = useModelSum();   // 모델 · 노력도 묶음 줄 오른쪽 한마디
   const pinA = usePinAlpha();   // 고정 줄 색 진하기 = 줄 오른쪽 값(./pin-tint)
+  const pmLabel = usePmLabel();   // 지금 PM 표시 이름(서버 pm 칸 · 없으면 빈 글)
   const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
     <Act key={id} ic={ic} t={t} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
@@ -124,6 +126,7 @@ export function YetaSettings() {
         <section className="yset-part" aria-label="봄의 정원">
           <div className="yset-sec">봄의 정원</div>
           <div className="yset-grp">
+            {row("pm", "users", "PM", <PmSet />, pmLabel || undefined)}
             {row("sched", "clock", "스케줄러 바꾸기", <NomuteSchedule />)}
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
             {row("pintint", "layers", "고정 줄 색", <PinTintSetting />, `${pinA}%`)}   {/* 고정 줄 바탕 진하기(형 11-14 23:39 「설정에서 변경하게 만들어도 돼 값을 투명도」 · ./pin-tint · 뜸) */}
