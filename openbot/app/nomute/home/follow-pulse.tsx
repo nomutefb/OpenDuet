@@ -74,18 +74,19 @@ const smooth = (pts: [number, number][]) => pts.map((p, i) => { if (!i) return `
 // 폰 홈 그림 높이(형 11-11 18:48 봄 1:1 「상단에 차트 좀만 더 영역 세로가 길어도 될듯 카드가 좀 더 내려와도 될거같아 길어지고」 · 옛 웹앱 홈 #home-pulse 폰 390 실측 = 선 칸 ≈ 40px · 앞 판 64 = 선 칸 ≈ 20px 이라 납작)
 //   + 스레드 총수 폰에도(형 18:48 「스레드도 나와도 될거같아. 팔로워수가 좀 적어져도. 여기 그 웹앱 뷰랑 동일하면 좋을듯」) · 「갱신」 말 뺀 「N시간 전」 = 숫자 줄 오른쪽 끝(형 18:51 「갱신 0시간전은 위치가 애매하면 그냥 0시간 전 이라는 말만 팔로워랑 수평맞춰서 우측 끝으로 더 조그마하게」 「마진은 유지」)
 const PH = 108;
-export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fill = 칸 높이를 다 씀(PC 오른쪽 위 · ../ui/igfb-band.tsx · 봄 11-08 · 형 07:31 「휴대폰 메인화면에 출력되어있던 차트를 알맞은 크기로」)
+export function FollowPulse({ fill = false, grow = false }: { fill?: boolean; grow?: boolean } = {}) {   // fill = 칸 높이를 다 씀(PC 오른쪽 위 · ../ui/igfb-band.tsx · 봄 11-08 · 형 07:31 「휴대폰 메인화면에 출력되어있던 차트를 알맞은 크기로」)
+  // grow = 폰 홈 넘김 칸(./top-swap.tsx · 형 11-16) = 꼴은 폰 그대로 · 그림만 칸 키(러너 띠 키)까지 길어짐(108 밑으로는 안 줄어듦)
   const [ig, setIg] = useState<Chan | null>(null), [fb, setFb] = useState<Chan | null>(null), [th, setTh] = useState<Chan | null>(null), [, tick] = useState(0), [tried, setTried] = useState(false);   // tried = 첫 받기 끝(그 전엔 자리만 잡음)
   // 그림 폭 = 화면 실제 폭(형 10-31 「이거 위에 찌그러지는거 좀 수정해줄래?」 · 300칸을 가로로 늘려서 글자·점이 찌그러졌음)
   const [wide, setWide] = useState(300), [tall, setTall] = useState(64), [gcy, setGcy] = useState(0), seen = useRef<ResizeObserver | null>(null);   // gcy = 왼쪽 러너 게이지 가운데 y(이 그림 위 끝에서 · PC 칸만)
   const chart = useCallback((el: SVGSVGElement | null) => {
     seen.current?.disconnect();
     if (!el) return;
-    seen.current = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height); if (w > 0) setWide(w); if (fill && h > 0) setTall(Math.max(64, h));
+    seen.current = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height); if (w > 0) setWide(w); if ((fill || grow) && h > 0) setTall(Math.max(64, h));
       // 노출 평균 선 = 러너 게이지 가운데와 한 줄(형 11-08 09:49 「게이지 위치를 차의 노출평균 선이랑 맞춤」 · 시아 10:05 「고정 숫자 말고 같은 줄에 묶어야 화면마다 맞음」) · 게이지 viewBox 0 8 132 104 · 가운데 CY 62(runner/tick-gauge.tsx)
       if (fill) { const g = document.querySelector(".nm-split-top-l .nm-rg-gauge")?.getBoundingClientRect(); if (g && g.height > 0) setGcy(Math.round(g.top + ((62 - 8) * g.height) / 104 - el.getBoundingClientRect().top)); } });
     seen.current.observe(el);
-  }, [fill]);
+  }, [fill, grow]);
   useEffect(() => {
     let live = true;
     const load = () => Promise.all([get("ig", "insta_data.json"), get("fb", "fb_data.json"), get("th", "threads_data.json")]).then(([a, b, c]) => { if (!live) return; if (a) setIg(a); setFb(b); setTh(c); }).catch(() => {}).finally(() => { if (live) setTried(true); });
@@ -95,7 +96,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
   }, [fill]);
   const view = useMemo(() => {
     if (!ig) return null;
-    const W = wide, H = fill ? tall : PH, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
+    const W = wide, H = fill ? tall : grow ? Math.max(PH, tall) : PH, P = W / DAYS, FS = 9.5, RH = FS + 6, RG = 3, LOW = H - RH, HIGH = LOW - RG - RH;
     // ± 두 줄 차례: 폰 홈 = IG 위 · FB 아래 / PC 칸(fill) = FB 위 · IG 아래(형 11-08 08:51 「인스타를 아래로 깔아. 그래야 눈에 들어올듯. 페북이 위로」 · 「차트는 그대로인데, 2행<>1행 뒤바ㅣ꾸고」)
     // PC 칸(fill) = 차트와 ± 줄 사이를 더 띄움(10 · 폰 6) · 칸 자체도 아래로 5px 늘림(igfb-band.css) = 차트는 그대로 · 줄만 내려옴(형 11-08 09:00 dm-fast 「차트는 그대로두고 2행 라인을 차트로 부터 조금만 간격을 더 둬서 아래로 내려와 … 아래로 딱 붙으면안됨」 · 「둘사이는 그대로 두고.」)
     const IGY = fill ? LOW : HIGH, FBY = fill ? HIGH : LOW, TOP = 4, BOT = HIGH - (fill ? 17 : 6);   // PC 칸 = 차트 끝 ↔ ± 줄 17(형 10:06 사진 「빨갛게 표시한 저붑부분의 간격을 좀 넓혀달라는뜻. 아래 글자 행이 좀 더 아래로 조금만」 · 칸은 +12 로 늘림 = 차트 그대로)
@@ -108,13 +109,13 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
     const vv = lines[0][1].map((p) => p.views).filter((v): v is number => v != null), vavg = vv.length ? vv.reduce((a, b) => a + b, 0) / vv.length : 0;
     const vspan = Math.max(1, ...vv.map((v) => Math.abs(v - vavg))), MID = fill && gcy > TOP + 8 && gcy < BOT - 8 ? gcy : (TOP + BOT) / 2, VY = (v: number) => MID - ((v - vavg) / vspan) * Math.min(MID - TOP, BOT - MID);   // 가운데가 게이지 줄로 옮겨져도 선이 칸 밖으로 안 나감
     return { W, H, P, FS, RH, FBY, IGY, MID, Y, VY, vv, vavg, lines };
-  }, [ig, fb, wide, tall, fill, gcy]);
+  }, [ig, fb, wide, tall, fill, grow, gcy]);
   if (!tried && !ig) return <div className="nm-pulse-wait" aria-hidden />;   // 받는 동안 = 띠 높이만큼 자리만(형 11-03 12:45 「첨에 위로 버튼이 보였다가 내려가」 = 띠가 늦게 생기며 아래 칸이 밀렸음)
   if (!ig || !view) return null;   // 못 읽으면 자리 비움(홈이 그 자리만큼 올라옴)
   const { W, H, P, FS, RH, FBY, IGY, MID, Y, VY, vv, vavg, lines } = view;
   const go = () => { window.location.hash = "#/chan"; };   // 원본 = 채널 요약로 → 앱 안 채널 요약 판(봄 11-01 · 형 「눌렀을때 웹으로 연결된 부분이 많아서 불편했어..」)
   return (
-    <button type="button" className={`nm-pulse${fill ? " nm-pulse-fill" : ""}`} aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
+    <button type="button" className={`nm-pulse${fill ? " nm-pulse-fill" : grow ? " nm-pulse-grow" : ""}`} aria-label="팔로워 — 누르면 채널 요약" onClick={go}>
       <div className="nm-pulse-row">
         <span className="nm-pulse-k ig">IG</span><b className="nm-pulse-v"><DiffValue className="l" value={nf.format(liveN(ig))} /></b>
         <i className="nm-pulse-sep" aria-hidden />

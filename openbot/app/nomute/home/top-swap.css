@@ -1,0 +1,23 @@
+/* 폰 홈 맨 위 = 인스타 ↔ 러너 옆 넘김(./top-swap.tsx · 형 11-16 03:08 「그걸 고정으로 하고 좌우 스냅 스위칭하면 러너 나오게」)
+   두 판을 한 칸(grid 1/1)에 겹쳐 둠 = 칸 키가 큰 쪽(러너 띠)으로 고정 → 넘겨도 아래 뉴스 카드가 안 밀림 · 팔로워 띠는 그 키까지 그림이 길어짐(./follow-pulse.css .nm-pulse-grow) · 모자라면 아래에 붙음
+   쉬는 판 = 안 보임 · 안 눌림 · 넘기는 동안([data-move])만 둘 다 보임 · 칸 = 화면 양끝까지(홈 옆 여백 16 을 도로 품음) = 판이 화면 끝에서 들고 남 */
+.nm-topswap { position:relative; min-width:0; margin-inline:-16px; padding-inline:16px; overflow-x:clip; touch-action:pan-y; }
+.nm-topswap-track { display:grid; grid-template-columns:minmax(0,1fr); }
+.nm-topswap-pane { grid-area:1 / 1; min-width:0; display:flex; flex-direction:column; justify-content:flex-end; }
+.nm-topswap-pane[data-on="0"] { visibility:hidden; pointer-events:none; }
+.nm-topswap[data-move] { -webkit-user-select:none; user-select:none; }
+.nm-topswap[data-move] .nm-topswap-pane { visibility:visible; will-change:transform; }
+.nm-topswap[data-move] .nm-topswap-pane > * { pointer-events:none; }
+.nm-topswap[data-move] .nm-pulse { transform:none; }   /* 넘기는 중 = 팔로워 띠 눌림 꼴(:active 줄어듦) 0 */
+/* 양옆 꺽쇠(형 「좌우에 꺽쇠만 반투명 살짝 미관상 보기 좋게」) = 옆 여백 16 안에 선만 · 옅은 흰 28% · 누를 자리는 24×44 · 누르는 동안만 진해짐 · 넘기는 동안은 더 옅게 */
+.nm-topswap-chev { position:absolute; top:50%; z-index:2; display:grid; place-items:center; width:24px; height:44px; margin:-22px 0 0; padding:0; border:0; background:none; color:var(--fg); opacity:.28; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; transition:opacity .2s ease, transform .2s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+.nm-topswap-chev.l { left:-3px; } .nm-topswap-chev.r { right:-3px; }
+.nm-topswap-chev:active { opacity:.72; transform:scale(var(--press-m, .9)); }
+.nm-topswap-chev:focus-visible { opacity:.8; outline:1px solid currentColor; outline-offset:-6px; border-radius:10px; }
+.nm-topswap[data-move] .nm-topswap-chev { opacity:.12; }
+@media (hover:hover) { .nm-topswap-chev:hover { opacity:.6; } }
+/* 앱 처음 열 때 = 팔로워 띠와 같이 나옴(./home-scene.css data-home-wait · data-home-in) */
+html[data-home-wait] .nm-topswap-chev { opacity:0; pointer-events:none; }
+html[data-home-in] .nm-topswap-chev { animation:nmHomeInFade .6s cubic-bezier(.2,.7,.3,1) both; }
+@media (prefers-reduced-motion:reduce) { .nm-topswap-chev { transition:none; } html[data-home-in] .nm-topswap-chev { animation:none; } }
