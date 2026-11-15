@@ -1,15 +1,16 @@
-// 정원 「우리 기억」 줄(형 11-15 08:5x 「백업이 돈 기록이 항상, 정원 한 구석에 우리 애들 관련된 내용쪽에 남게해줘 예쁘게~」 · 「갱신 시간이 남아야하고, 백업 시각이 각각 남아야해~ 습작 시각도~ 최근 교대시각도~」)
+// 정원 「우리 기억」(형 11-15 08:5x 「백업이 돈 기록이 항상, 정원 한 구석에 우리 애들 관련된 내용쪽에 남게해줘 예쁘게~」 · 09:31 「일자는 안보여져도 되고 24시간 표기법으로 보이면됨.(습작은 - 시안, 교대는 라임) 그리고 그러면 2행만 표현하면되고, 여백이 지금 크니까 그만큼 줄이고」)
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 const s = readFileSync(new URL("../ui/runner-gauges.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/runner-gauges.css", import.meta.url), "utf8");
-test("네 줄 = 일기 · 습작 · 교대 · 백업 · 갱신 시각 · 재료 = 일기 줄 metrics + 러너 bk", () => {
-  assert.match(s, /\["diary_ms", "일기"\], \["sketch_ms", "습작"\], \["handoff_ms", "교대"\], \["bk", "백업"\]/);
-  assert.match(s, /갱신 \{memNew/);
-  assert.match(s, /find\(\(c\) => c\.id === "diary"\)/);
-  assert.match(s, /\.find\(\(r\) => r\?\.bk\)\?\.bk/);
+test("두 줄 = 습작 · 교대 · 시각만(날짜 0) · 백업 · 갱신 = 이름표", () => {
+  assert.match(s, /const MEM = \[\["sketch_ms", "습작"\], \["handoff_ms", "교대"\]\] as const/);
+  assert.match(s, /t: full\.slice\(6\)/);
+  assert.match(s, /백업 \{bk\?\.at/); assert.match(s, /갱신 \{memNew/);
 });
-test("조약돌 줄 앞(빈 틈) · 띠 키 안 늘림 · 움직임 0", () => {
-  assert.ok(s.indexOf('className="nm-rgx-mem nm-rgx-row12"') < s.indexOf('className="nm-rgx-pebs nm-rgx-row12"'));
-  assert.doesNotMatch(css.slice(css.indexOf(".nm-rgx-mem")), /animation|transition/);
+test("조약돌 위에 띄움(띠 키 0) · 시안 · 라임 · 움직임 0", () => {
+  assert.doesNotMatch(s, /className="nm-rgx-mem nm-rgx-row12"/);
+  assert.match(css, /\.nm-rgx-memt \{ position:absolute;/);
+  assert.match(css, /\.nm-rgx-memt i\.sk, \.nm-rgx-memk \.sk \{ color:#5FD4E8; \}/);
+  assert.doesNotMatch(css.slice(css.indexOf("/* 우리 기억")), /animation|transition/);
 });
