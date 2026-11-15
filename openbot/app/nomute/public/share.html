@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- 공유 받기(안드로이드 「공유 → 사무실」 · 형 10-28 16:32 「웹앱으로 일단 해」 · 장부 claude-state assign/2026-10-28/office-webpush-share.md)
-     서비스 워커(sw.js takeShare)가 받은 글·링크·그림을 이 앱 기록 칸에 적고 여기로(GET /office-app/share) → 형이 방 고름
+     서비스 워커(sw.js takeShare)가 받은 글·링크·그림을 이 앱 기록 칸에 적고 여기로(GET /garden-app/share) → 형이 방 고름
      · 글·링크만 = 그 방 입력칸에 채우고 그 방으로(보내기는 형이 누름 · 입력칸 쓰던 글 자리 = ui/office-chat.tsx nm-draft:<방> 같은 탭)
      · 그림 있음 = 1:1 방만(단체방 첨부는 받을 봇 @ 필요 = 대화창 규칙) · 「보내기」 누르면 그 방에 올림(POST /api/office/files · 대화창과 같은 길)
      꼴 = 설정 판 YETA 값 그대로(ui/yeta-settings.css .yeta-set · 밝게/어둡게 = 앱 테마 기억 openduet-theme) -->
@@ -54,13 +54,13 @@ main { max-width: 640px; margin: 0 auto; padding: calc(16px + env(safe-area-inse
 </main>
 <script>
 (async () => {
-  const META = "office-app-meta", KEY = "/office-app/__nm-share", $ = (id) => document.getElementById(id);
-  const roomUrl = (id) => "/office-app/#" + (id === "all" ? "/group/all" : "/channels/" + encodeURIComponent(id));
+  const META = "garden-app-meta", KEY = "/garden-app/__nm-share", $ = (id) => document.getElementById(id);
+  const roomUrl = (id) => "/garden-app/#" + (id === "all" ? "/group/all" : "/channels/" + encodeURIComponent(id));
   const say = (t) => { $("msg").textContent = t; };
   let c = null, got = null, files = [];
   try { c = await caches.open(META); const r = await c.match(KEY); got = r ? await r.json() : null; } catch {}
   const clear = async () => { try { for (const k of await c.keys()) if (new URL(k.url).pathname.startsWith(KEY)) await c.delete(k); } catch {} };
-  $("no").onclick = async () => { await clear(); location.replace("/office-app/"); };
+  $("no").onclick = async () => { await clear(); location.replace("/garden-app/"); };
   if (!got) { $("got").textContent = "받은 것이 없어 — 다른 앱에서 「공유 → 봄의 정원」으로 다시 보내 줘"; $("where").hidden = true; $("rooms").replaceChildren(); return; }
   for (let i = 0; i < (got.files || 0); i++) { const r = await c.match(KEY + "/" + i); if (r) { const b = await r.blob(); files.push(new File([b], decodeURIComponent(r.headers.get("x-name") || "그림" + (i + 1)), { type: b.type })); } }
   const text = [...new Set([got.title, got.text, got.url].map((x) => String(x || "").trim()).filter(Boolean))].filter((x, _, a) => !a.some((y) => y !== x && y.includes(x))).join("\n");

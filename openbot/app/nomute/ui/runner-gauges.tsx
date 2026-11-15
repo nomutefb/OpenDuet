@@ -14,6 +14,8 @@ import { Bloub } from "./bloub";
 import { homeOf, machinesOf, useBodies } from "../data/bodies";
 import { TAIL_OF_GAUGE, tailTitle } from "./tailnet-table";   // 테일스케일 연결표(형 11-12 · 게이지 이름 손 올림만 · 게이지 밖 기기 한 줄은 걷음 = 형 16:20 「러너 메인에 테일스케일이 나올필요는없음」)
 import { pickHost } from "./runner-pick";
+import { botUse, type SchedBot, type SchedJob } from "../runner/runner-table-rows";
+const hmKst = (t: number) => { const d = new Date(t + 9 * 3600e3); return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`; };
 
 type Row = { key: string; st?: string; note?: string; stale?: boolean; reported_at?: number; metrics?: Record<string, number> };
 type Cat = { id: string; rows: Row[] };
@@ -62,7 +64,7 @@ function useNow() {
 /** 조약돌 줄 · 러너 번호 줄 = 오른쪽 SNS 칸의 FB(+1) 줄 · IG(−) 줄과 같은 높이(형 11-08 10:48 밥상 「아예 조약돌 푝디를 옆에 +1 이런거랑 수평으로 그냥 맞추고,」 · 10:49 「조약돌 이 옆에 +1 1행하고 맞을텐데, 그럼 2행에는 러너가 배치되면 딱 맞는 느낌이 날듯.」 · 봄 10:49 「옆 칸이랑 맞추는 건 고정 숫자 말고 DOM 으로 재서 묶기」)
  *  = 두 줄의 지금 가운데 y 와 SNS 두 줄(.nm-pulse-rowbg.fb · .nm-pulse-rowbg) 가운데 y 를 재서 그 차이만큼 translateY(CSS 변수) — 판 키는 안 바뀌니 오른쪽 칸 높이(--nm-top-h = 이 판 키)가 따라 움직이는 되먹임이 없음 · SNS 칸이 없으면(폰 · 펼침) 0
  *  다시 잼 = 판·오른쪽 칸 크기 바뀔 때 + 2초마다(SNS 그림은 자료가 와야 그려져 줄이 늦게 생김 · 글꼴 로딩 뒤 줄 키 바뀜) · 재는 줄 = 첫 몸의 줄(네 몸 다 같은 꼴 · 게이지 넷 같은 크기) */
-const PEB_LIFT = 6;   // 조약돌만 FB 줄보다 6px 위(형 11-12 16:34 봄 1:1 「그리고 조약돌이 조금 더 위로가게, a1 이런애들보다는」 · 봄 옮김) · 러너 번호 줄 = IG 줄 그대로
+// 옛 PEB_LIFT = 6(11-15 부터 안 씀 = 조약돌이 러너 번호와 한 줄이라 따로 올리지 않음) · 옛 뜻 = 조약돌만 FB 줄보다 6px 위(형 11-12 16:34 봄 1:1 「그리고 조약돌이 조금 더 위로가게, a1 이런애들보다는」 · 봄 옮김) · 러너 번호 줄 = IG 줄 그대로
 
 // 우리 기억 줄(형 11-15 08:5x 시아 창 「백업이 돈 기록이 항상, 정원 한 구석에 우리 애들 관련된 내용쪽에 남게해줘 예쁘게~」 · 「갱신 시간이 남아야하고, 백업 시각이 각각 남아야해~ 습작 시각도~ 최근 교대시각도~」)
 //   = 조약돌 칸 밑에 아이마다 네 줄(일기 · 습작 · 교대 · 백업) · 오른쪽 빈칸 = 이름표 + 갱신 · 재료 = 작동 표 일기 줄 metrics(diary_ms · sketch_ms · handoff_ms · 작동-일기.py) + 러너 bk(번개 백업 · 04:30)
@@ -89,7 +91,9 @@ function useRowSync(panel: { current: HTMLDivElement | null }) {
       const fb = pick([".nm-split-top-r .nm-pulse-chart g.fb text", ".nm-split-top-r .nm-pulse-rowbg.fb"]), ig = pick([".nm-split-top-r .nm-pulse-chart g.ig text", ".nm-split-top-r .nm-pulse-rowbg:not(.fb)"]);
       const peb = mid(el.querySelector(".nm-rgx-peb") ?? el.querySelector(".nm-rgx-pebs")), run = mid(el.querySelector(".nm-rgx-run") ?? el.querySelector(".nm-rgx-runs"));
       setDy((d) => {   // 잰 자리엔 지금 옮긴 값이 들어 있음 → 차이만 더함(한 번 맞으면 그대로)
-        const np = fb != null && peb != null ? clamp(d.peb + fb - PEB_LIFT - peb) : 0, nr = ig != null && run != null ? clamp(d.run + ig - run) : 0;
+        // 조약돌 · A1~A6 = 한 줄(형 11-15 11:5x 「a1~a6를 우측으로 옮기자 … 조약돌하고 같은 라인으로」 · 「그래서 그만큼 확보된만큼 내려오면 보기 편할듯」) → 그 한 줄을 아래 줄(IG · 옛 러너 번호 줄 자리)에 맞춤 = 조약돌 · 시각 두 줄이 그만큼 내려옴 · 잣대 = 러너 글자 가운데(없으면 조약돌) · 줄 하나라 값도 하나(peb)
+        const low = ig ?? fb, me = run ?? peb;
+        const np = low != null && me != null ? clamp(d.peb + low - me) : 0, nr = 0;
         return np === d.peb && nr === d.run ? d : { peb: np, run: nr };
       });
     };
@@ -109,9 +113,11 @@ function useRowSync(panel: { current: HTMLDivElement | null }) {
 
 export function RunnerGauges() {
   const st = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: Cat[]; at?: number }>("status"), refetchInterval: 60_000, staleTime: 30_000 });
-  const tail = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<{ runners?: { tailnet?: { ip?: string; online?: boolean | null }[] } }>("schedule"), staleTime: 30_000, refetchInterval: 120_000 }).data?.runners?.tailnet;   // 테일 켜짐(번개 11-12 17:00 · 설정 화면 useSched 와 같은 캐시)
+  const schedQ = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<{ bots?: SchedBot[]; runners?: { jobs?: SchedJob[]; tailnet?: { ip?: string; online?: boolean | null }[] } }>("schedule"), staleTime: 30_000, refetchInterval: 120_000 }).data;
+  const tail = schedQ?.runners?.tailnet;
   const rq = useRunner();
   const now = useNow();
+  const botsUse = botUse(schedQ?.bots, schedQ?.runners?.jobs, now);   // 봇 일 = 같은 스케줄 장(받는 것 0 더 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」 · 깃 #-063)   // 테일 켜짐(번개 11-12 17:00 · 설정 화면 useSched 와 같은 캐시)
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
   const bots = st.data?.cats?.find((c) => c.id === "bots")?.rows as (Row & { cells?: Record<string, { st: string; note?: string }> })[] | undefined;
   const wake = (k: string) => { if (!bots) return "wait" as const; const c = bots.find((r) => r.key === k)?.cells; return awakeOf(c?.["깸 상태"]?.note, c?.["마지막 깸"]?.note); };   // wait = 작동 표 첫 답 전(~12초) · 「다 잠듦」으로 안 읽히게 흐린 꼴(봄 10:08)
@@ -127,7 +133,6 @@ export function RunnerGauges() {
   const bk = Object.values(rq.data?.rows || {}).find((r) => r?.bk)?.bk;
   const memOf = (who: string) => { const m = memRows.find((r) => r.key === who)?.metrics || {}, b = bk?.rows?.find((x) => x.n === who); return { m, b }; };
   const hasMem = memRows.some((r) => r.metrics) || !!bk;
-  const memNew = memRows.reduce((t, r) => (r.metrics ? Math.max(t, r.reported_at || 0) : t), 0);   // 갱신 = 일기 줄을 실은 몸 보고 받은 때
   const panel = useRef<HTMLDivElement | null>(null);
   const dy = useRowSync(panel);
   // 공용 두 줄 재료(36) · 시아 09:26 ②③): 조약돌 = 몸 차례(WIN → MAC → Lx B → Lx A)대로 사는 애를 한 줄로 · 러너 = 윈A 러너(RUNNERS 가 윈 칸인 것)만 번호 차례 · 둘 다 12칸(넘치면 자름)
@@ -172,10 +177,9 @@ export function RunnerGauges() {
         })}
       </div>
       {/* 형 11-09 09:25 「조약돌 모양 일정한 간격으로 그냥 쭉 나열 · 러너 > A1~A6 · 일자로 · 총 12개 칸 · 6개 칸은 공란」 · 시아 09:26 ②③ = 몸 묶음 풀고 12칸 격자 두 줄(위 = 조약돌 1~10 · 아래 = A1~A6 · 7~12 공란 = 흐린 점) · 높이 = 오른쪽 SNS FB 줄 · IG 줄(useRowSync 그대로) */}
-      <ul className="nm-rgx-pebs nm-rgx-row12" aria-label="우리 조약돌(몸 차례)">
-        {Array.from({ length: 12 }, (_, i) => {
-          const x = pebs[i];
-          if (!x) return <li key={`e${i}`} className="nm-rgx-cell empty" aria-hidden />;
+      <div className="nm-rgx-line" style={{ ["--nm-rgx-pn" as string]: Math.max(1, pebs.length) }}>   {/* 조약돌 + A1~A6 한 줄(형 11-15 「어짜피 오른쪽이 비니까」) */}
+      <ul className="nm-rgx-pebs" aria-label="우리 조약돌(몸 차례)">
+        {pebs.map((x) => {
           if ("sep" in x) return <li key="sep" className="nm-rgx-cell sep" aria-hidden>|</li>;   {/* 「누리만 끝에 |」 */}
           const w = wake(x.bot ?? x.key);
           const mm = memOf(x.who), dia = memAt(mm.m.diary_ms, now), bka = memAt(mm.b?.ok ? mm.b.ok * 1000 : undefined, now);
@@ -190,21 +194,21 @@ export function RunnerGauges() {
             </li>
           );
         })}
-        {hasMem && pebs.length <= 8 ? (
-          <li className="nm-rgx-memk" aria-hidden>
-            <span className="sk">습작</span><span className="ho">교대</span>
-            <small title={`일기 · 습작 · 교대 = 몸 보고(5분) · 백업 = 윈A`}>백업 {bk?.at ? memAt(bk.at * 1000, now).t : "—"} · 갱신 {memNew ? memAt(memNew, now).t : "—"}</small>
-          </li>
-        ) : null}
+        {/* 오른쪽 이름표(백업 · 갱신)도 뺌(형 11-15 11:5x 「백업하고 그거는 어짜피 도는거니까 걍 안보이게하면될거같아」) · 시각마다 풍선 글(백업 · 일기)은 그대로 */}
       </ul>
-      <ul className="nm-rgx-runs nm-rgx-row12" aria-label="러너 A1~A6">
-        {Array.from({ length: 12 }, (_, i) => {
-          const r = runs[i];
-          if (!r) return <li key={`e${i}`} className="nm-rgx-cell empty" aria-hidden><i /></li>;
+      <ul className="nm-rgx-runs" aria-label="러너 A1~A6">
+        {runs.map((r, i) => {
           const on = r.c.st === "🟢", work = on && r.c.note === "일하는 중";
           return <li key={r.n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${r.n} · ${on ? r.c.note || "켜짐" : r.c.note || "꺼짐"}`}>{`A${rnum(r.n) || i + 1}`}</li>;   {/* 화면 이름만 A1~ · 러너 진짜 이름은 그대로(title) */}
         })}
       </ul>
+        {botsUse.length ? (   /* 봇 일 = 한 줄 틀 오른쪽 위(옛 이름표 「백업 · 갱신」 자리 · 시각 두 줄 옆) — A1~A6 이 조약돌 줄로 올라와 옛 A 줄이 없어짐(형 11-15 11:5x 「a1~a6를 우측으로 … 조약돌하고 같은 라인으로」) · 뜸 #-063 꼴 그대로 자리만 옮김 · 옛 자리 = A 줄 오른쪽 빈 칸(러너와 안 섞임 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」 · 깃 #-063) · 깸 = 오늘 지난 예약 깸 · 토큰 = 깸 × 5만 어림 · 끝 = 다음 깸 */
+          <div className="nm-rgx-botsc" aria-label="봇 일 · 오늘">
+            {botsUse.map((u) => <span key={u.bot} title={`${u.who} · 오늘 깸 ${u.done}회 · 토큰 ≈${Math.round(u.tok / 10000)}만(깸 × 5만 어림)${u.next ? ` · 다음 ${hmKst(u.next)}` : ""}${u.jobs ? ` · 맡은 일 ${u.jobs}개` : ""}`}><b>{u.who}</b> {u.done}회 · ≈{Math.round(u.tok / 10000)}만{u.next ? ` · ${hmKst(u.next)}` : ""}</span>)}
+          </div>
+        ) : null}
+      </div>
+      <i className="nm-rgx-gap" aria-hidden />   {/* 옛 러너 번호 줄 자리 = 띠 키는 그대로(오른쪽 SNS 칸 키가 이 띠를 따름) · 한 줄이 이 자리로 내려옴 */}
     </div>
   );
 }

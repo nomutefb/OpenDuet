@@ -886,7 +886,7 @@ const Gone = () => <span className="nm-gone">삭제된 글이야</span>;
 function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   const text = String(m.text || "").replace(QUOTE, "");
   if (goneOf(m)) return <Gone />;
-  if (!m.files?.length && LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">📎 사진·영상을 붙였는데 사무실로 안 넘어왔어</span>;
+  if (!m.files?.length && LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">📎 사진·영상을 붙였는데 봄의 정원으로 안 넘어왔어</span>;
   const pics = m.files?.length ? [] : textPhotos(text);
   if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;

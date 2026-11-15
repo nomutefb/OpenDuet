@@ -9,6 +9,15 @@
 .nm-ned-r { border-left:1px solid var(--glass-line, rgba(255,255,255,.08)); padding:0 12px calc(var(--duet-tab-space, 86px) + 24px); }
 .nm-ned-one { flex:1; padding:4px 10px calc(var(--duet-tab-space, 86px) + 24px); }
 .nm-ned-back { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin:2px 4px 6px; padding:6px 10px; border-radius:999px; font-size:var(--fs-sm); color:var(--fg-2); background:var(--glass, rgba(255,255,255,.05)); }
+/* 기사 한 장 = 옛 에디터 「기사 창」을 칸 안에 박음(./old-tabs/art.tsx · 형 11-15 「그때 시안을 여기에 붙일 수 있나?」) — 칸은 안 구르고 옛 창 본문(#dlgbody)만 구름(머리 줄 · 진행 막대 · 떠 있는 수정 단추가 제자리) */
+.nm-ned-r.art, .nm-ned-one.art { display:flex; flex-direction:column; overflow:hidden; padding:0; }
+.nm-ned-r.art > .nm-chan-msg { padding:12px 14px; }
+/* 폰 = 「목록」 단추가 옛 창 머리 줄(원문 → 내리면 진행 막대) 왼쪽에 얹힘 = 머리가 한 줄(옛 창의 × 자리 대신 · 늘 같은 자리) */
+.nm-ned-one.art { position:relative; }
+.nm-ned-one.art > .nm-ned-back { position:absolute; z-index:8; left:10px; top:11px; box-sizing:border-box; height:34px; margin:0; padding:0 12px 0 8px; }
+.nm-ned-one.art .oa .dlg-h { padding-left:94px; }
+.nm-ned-one.art .nm-oa-gen { padding-top:54px; }   /* 「+ AI」 창이 위에 얹힐 때 「목록」 단추 밑으로 */
+.nm-ned-one.art .nm-oa-gen ~ .oa .dlg-h { padding-left:16px; }   /* 그때 옛 창 머리 줄은 「목록」 자리를 안 비움 */
 
 
 /* 오른쪽 아래 「+」 펼침(형 11-11 19:23 「요약버튼 혹시 그 대화방에 펼침 + 로 해줄 수 있어? 펼쳐서 이미지 에디터랑 뉴스 요약 비디오 에디터 3개 나오면 됨. 그리고 최소화 가능하게」 · 앞 판 = 「+ 요약」 라임 알약 · 형 14:36)
@@ -36,3 +45,7 @@
 /* 카드 세 줄 = 머리 줄(분류 · N시간 전 ………… 매체 · 편향) · 제목 한 줄 · 막대 셋(형 11-11 19:22 「매체도 우상단으로 보내버리면 더 줄일 수 있나?」 · 18:54 「… 민감 키워드는 없어도 됨 표기 안할게」 「그럼 더 많이 보일거고. 이 높이에 맞춰서」 · 앞 판 = 매체 · 편향 가로 한 줄 따로)
    이름표 「매체」 「편향」 글자 0 · 값만 · 편향 = 흐리게 · 긴 매체 이름은 … · 머리 줄 왼쪽(분류 · 시각)은 안 줄어듦 */
 /* 카드 꼴(.nm-sumc.lean) = ./summary-desk.css 로 옮김(PC DIGEST 와 한 벌 · 형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까 잘 참고해.」) */
+/* 위 탭 셋(뉴스 · SNS · 채널 · 형 11-15) = 대화방 위 폴더 탭 옷 그대로(./teams.css .nm-tswitch.fold) · 여기선 자리만 */
+.nm-ned-wrap { display:flex; min-height:0; flex:1; flex-direction:column; }
+.nm-tswitch.fold.nm-ned-tabs { flex:none; margin:0 14px 8px; }   /* 좌우 = 아래 카드 줄과 같은 여백 · 무게 = teams.css .nm-tswitch.fold(0,2,0) 위 */
+.nm-ned[hidden], .nm-ned-old[hidden] { display:none; }   /* 안 고른 판 = 숨기기만(살려 둠) */

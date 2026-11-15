@@ -158,7 +158,7 @@ test("테일스케일 연결표 = 게이지 기기는 손 올림만 · 게이지
 
 test("러너 칸 간격 · 아래 막대 꺼진 픽토그램 흰색(형 11-12 16:34 · 16:41)", () => {
   const rg = rd("../ui/runner-gauges.tsx"), tg = rd("../runner/tick-gauge.tsx"), sh = rd("../ui/shell.css");
-  assert.match(rg, /const PEB_LIFT = 6;/); assert.match(rg, /fb - PEB_LIFT - peb/);
+  assert.match(rg, /const low = ig \?\? fb, me = run \?\? peb;/); assert.doesNotMatch(rg, /fb - PEB_LIFT - peb/);   // 11-12 「조약돌이 조금 더 위로」(PEB_LIFT 6) → 11-15 형 새 말 「a1~a6를 우측으로 … 조약돌하고 같은 라인으로」 = 한 줄 · 아래 줄에 맞춤(tests/mem-row.test.ts)
   assert.match(rg, /textScale=\{1\.25\} spread=\{3\}/);
   assert.match(tg, /y=\{TY - 18\}/);   // G 줄은 그대로(위로 안 올림)
   assert.match(tg, /y=\{TY - 6 \+ S1\}/); assert.match(tg, /y=\{TY \+ 15\.5 \+ S2\}/);
