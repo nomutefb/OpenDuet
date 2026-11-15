@@ -3,7 +3,7 @@ import test from "node:test";
 import { DONE_SHOW, ENC_T0, STT_HOLD, doneShown, encOk, encQuiet, encWanted, gaugeOf, kindOf, nextAsk } from "../ui/enc-logic.ts";
 
 // 미디어 게이지(형 11-11 08:14 「영상 00% / 파동 00% / 자막 00% / 다 공유되먼 완료」 · 「사진이면 사진」) — 서버 encstate 답 → 화면 줄
-const T = ENC_T0 + 3600e3, D = "claude/light/office_files/";
+const T = ENC_T0 + 3600e3, D = "claude/light/spring-garden_files/";   // 새 자리(옛 office_files 도 같은 꼴 · 아래 V)
 const V = D + "20261111_0900_고양이.mp4", W = D + "20261111_0900_고양이.파형.png", P = D + "20261111_0900_사진.jpg", P2 = D + "20261111_0900_사진2.png";
 const labels = (g: ReturnType<typeof gaugeOf>) => g?.lines.map((l) => (l.fail ? `${l.label} 멈춤` : `${l.label} ${l.pct}%`));
 

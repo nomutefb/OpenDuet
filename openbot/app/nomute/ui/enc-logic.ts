@@ -13,7 +13,7 @@ export type Gauge = { lines: GaugeLine[]; done: boolean; at: number };
 const VID = /\.(mp4|m4v|mov|webm)$/i, PIC = /\.(png|jpe?g|webp|gif|avif)$/i;
 export const WAVE_RE = /\.파형\.png$/;
 /** 서버가 진행을 적는 경로만(봇 자리 사본 · _enc.js ENC_PATH_RE) */
-const SEAT = /^(grokbot|claude|chatgpt)\/[^/]+\/office_files\/[^/]+$/;
+const SEAT = /^(grokbot|claude|chatgpt)\/[^/]+\/(?:spring-garden|office)_files\/[^/]+$/;   // 봄의 정원 자리(새) · 옛 office_files(깃 #-055)
 /** 서버에 진행 기록이 생긴 날(11-11 06:00 KST) — 그 앞 글은 묻지 않음(기록 없음 = 조용히) */
 export const ENC_T0 = Date.UTC(2026, 10, 10, 21, 0, 0);
 export const LABEL: Record<GaugeKind, string> = { video: "영상", wave: "파동", frames: "프레임", stt: "자막", photo: "사진" };
