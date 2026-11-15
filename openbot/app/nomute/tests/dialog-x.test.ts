@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 const rd = (f: string) => readFileSync(new URL(`../ui/${f}`, import.meta.url), "utf8");
 test("판 안 「닫기」 글자 단추 0 · 창 X(DialogX) = 닫기 길(g.request)", () => {
-  const s = rd("temp-room.tsx"), i = s.indexOf("export function TempRoomDialog"), j = s.indexOf("export function TempDeleteDialog"), t = s.slice(i, j);
+  const s = rd("temp-room.tsx"), i = s.indexOf("export function TempRoomDialog"), j = s.indexOf("const KEEP_ROOMS"), t = s.slice(i, j);   // 끝 표지 = 방 만들기 창 바로 뒤(옛 TempDeleteDialog 는 걷음 · 형 11-16 「모달로 안뜨게하구」)
   assert.match(t, /<DialogX onClose=\{g\.request\} disabled=\{busy\} \/>/);
   assert.doesNotMatch(t, />닫기<\/button>/);
   assert.doesNotMatch(t, /SaveAsk/);

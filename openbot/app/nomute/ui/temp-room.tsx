@@ -1,6 +1,5 @@
 // 임시 단톡방 만들기·고치기(형 10-31 「내가 + 눌러서 임시 단톡방 만들수있게해주라. 시간 지나면 파기되고 자동으로」 · 「누구 초대할지 고를 수 있고. 목적 쓸수있게」)
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
-import { YesNo } from "./ask-yn";   // 되묻는 창 하네스 = 아니오 라임 · 예는 뒤에서(형 11-15 09:00)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { resetRoomArt, useRoomArtSrc } from "./room-art";
 import { useRoomPhoto } from "./room-photo";
@@ -16,7 +15,6 @@ import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 
 import { type OfficeRoom, idOf, office, peopleSync, seatOff } from "../data/office";
 import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
 import { FaceImg, usePeople } from "./faces";
-import { dropSearchCache } from "./room-search";
 import { GoButton } from "./go-button";
 import "./temp-room.css";
 
@@ -165,60 +163,12 @@ export function TempRoomDialog({ edit, onClose, open = true }: { edit?: OfficeRo
   );
 }
 
-/** 지우기 되묻기(형 10-31 「삭제는 되묻기 있어야하고 이제 디비에도 잘 반영」 · 예타 yConfirm 예 왼쪽·아니오 오른쪽). */
-// onDropped = 서버가 지웠다고 답한 바로 그때(방 목록 다시 읽기 앞) — 방 안 메뉴(./room-menu.tsx)는 방이 목록에서 빠지는 순간 메뉴째 사라져 done(onGone)이 안 불림 → 여기서 목록으로 옮김(형 11-15 18:1x)
-export function TempDeleteDialog({ r, onClose, onGone, onDropped }: { r: OfficeRoom; onClose: () => void; onGone: () => void; onDropped?: () => void }) {
-  const qc = useQueryClient();
-  const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
-  const drop = async () => {
-    setBusy(true); setWhy("");
-    try {
-      await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "DELETE" });
-      onDropped?.();
-      await dropSearchCache(r.id);
-      await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 창 닫기 · 옮기기 = ✓ 를 보여 준 뒤(GoButton done)
-    } catch (e) { setWhy(e instanceof Error ? e.message : "못 지웠어"); setBusy(false); throw e; }
-  };
-  return (
-    <div role="alertdialog" aria-modal="true" aria-label="단톡방 지우기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
-      <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <b className="text-base">정말 지울까?</b>
-        <p className="text-muted-foreground">「{r.name}」 방의 글이 모두 지워지고 되돌릴 수 없어. 첨부 파일은 저장소에 남아.</p>
-        {why ? <p role="alert" className="text-destructive">{why}</p> : null}
-        <YesNo onNo={onClose} yes={drop} close={onClose} done={() => { onClose(); onGone(); }} what="방 지우기" busy="지우는 중" />
-      </div>
-    </div>
-  );
-}
-
 /** 단톡방 없애기(형 11-05 「단톡방이 지금 없애는게 없는데, 좌측으로 하면 휴지통 모양 하나 나와서 정말 없애겠냐고 뜨고 없앨수있게해줘」 · 「설정에서도 반영되어야해」)
  *  = 서버 DELETE rooms/<id>(뜸 · 형만) · 목록·설정·부름에서 빠지고 새 글 막힘 · 글은 서버에 남김(형 고름 「기록은 남김」 · 되살림 = 우리가 restore)
- *  못 없앰 = 1:1·둘의 방 · 회의실·요약실·수리 접수·메모·공지 · 밥상(형 고름 「밥상은 못 지우게」 · 「밥상을지우겟냐?」) · 임시방 = 옛 길(TempDeleteDialog · 파기) */
+ *  못 없앰 = 1:1·둘의 방 · 회의실·요약실·수리 접수·메모·공지 · 밥상(형 고름 「밥상은 못 지우게」 · 「밥상을지우겟냐?」) · 임시방 = 파기(DELETE temprooms/<id>)
+ *  되묻기 = 창(모달) 대신 그 자리 알약 둘(./morph-ask.tsx) · 서버 일은 뒤에서(./room-drop.ts · 형 11-16 03:0x 「모달로 안뜨게하구 … 백단에서 처리하게」) — 옛 되묻는 창 둘(TempDeleteDialog · RoomGoneDialog)은 걷음 */
 const KEEP_ROOMS = new Set(["all", "summary", "repair", "memo", "notice", "guide"]);
 export const canGone = (r: { id: string; with?: string; temp?: boolean }) => !r.with && !r.temp && !KEEP_ROOMS.has(r.id) && !/^(dm|pair)-/.test(r.id);
-export function RoomGoneDialog({ r, onClose, onGone, onDropped }: { r: { id: string; name: string }; onClose: () => void; onGone?: () => void; onDropped?: () => void }) {   // onDropped = 위 TempDeleteDialog 와 같은 뜻
-  const qc = useQueryClient();
-  const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
-  const drop = async () => {
-    setBusy(true); setWhy("");
-    try {
-      await office(`rooms/${encodeURIComponent(r.id)}`, { method: "DELETE" });
-      onDropped?.();
-      await dropSearchCache(r.id);
-      await Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }), qc.invalidateQueries({ queryKey: ["nomute", "roomset"] })]);
-    } catch (e) { setWhy(e instanceof Error ? e.message : "못 없앴어"); setBusy(false); throw e; }   // 창 닫기 · 옮기기 = ✓ 뒤(GoButton done)
-  };
-  return (
-    <div role="alertdialog" aria-modal="true" aria-label="단톡방 없애기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
-      <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <b className="text-base">「{r.name}」 정말 없앨까?</b>
-        <p className="text-muted-foreground">없애면 대화 목록·설정·부름에서 빠지고 이 방엔 더 못 써. 쌓인 글은 서버에 남겨 둬서 되살릴 수 있어.</p>
-        {why ? <p role="alert" className="text-destructive">{why}</p> : null}
-        <YesNo onNo={onClose} yes={drop} close={onClose} done={() => { onClose(); onGone?.(); }} what="방 없애기" busy="없애는 중" />
-      </div>
-    </div>
-  );
-}
 
 /** 방 멤버 고르기 = 대화 목록·방 메뉴 한 곳에서(형 11-05 08:35 「아예 저기서 설정할게 아니라 그냥 톡 목록에서 설정하게 일원화해야람」 · 형 11-07 13:38 「여기서도 방 멤버 설정 · 초대랑 별개」)
  *  지정방 = 서버 roomset(형만 · base 판 · 낡으면 409) · 임시방 = temprooms 후보·저장(이름·목적·기한은 「방 설정」) */

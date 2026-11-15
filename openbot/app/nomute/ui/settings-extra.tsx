@@ -19,7 +19,9 @@ import type { Health, HealthSum } from "./sched-bits";   // 상태 점 칸(뜸 �
 import { whoName } from "./who-name";
 import { ACT_QUERY_KEY, actCount, botLine, type MiniRow } from "./activity-line";   // 「지금 봇」 = 서버 활동 판정 그대로(형 11-14 「더 확대해서 유지보수해줘」)
 import { DuetIcon } from "@/components/duet/icons";
-import { RoomGoneDialog, canGone } from "./temp-room";   // 방 없애기(형 11-05 · 방 목록 🗑️ 와 같은 되묻기)
+import { canGone } from "./temp-room";   // 못 없애는 방 잣대(형 11-05)
+import { MorphAsk } from "./morph-ask";   // 방 없애기 = 그 자리 재확인(모달 0 · 형 11-16 03:0x)
+import { dropRoomAway } from "./room-drop";   // 예 = 바로 목록에서 빼고 뒤에서
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
 const hm = (ts?: number | string) => (ts ? t12(typeof ts === "string" ? Date.parse(ts) : ts) : "");   // 「3:50 PM」(형 10-28 10:22 · ./when.ts)
@@ -135,7 +137,7 @@ export function NomuteRoomset() {
   const list = usePeople();
   const q = useQuery({ queryKey: ["nomute", "roomset"], queryFn: () => office<{ roomset: { ver: number; rooms: Record<string, string[]>; at?: string; by?: string }; candidates: string[]; designated: string[]; can_edit: boolean }>("roomset") });
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: { id: string; name: string }[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 });
-  const [edit, setEdit] = useState<Record<string, string[]>>({}), [gone, setGone] = useState<{ id: string; name: string } | null>(null);   // 방 없애기(형 11-05 「설정에서도 반영되어야해」 · 방 목록 🗑️ 와 같은 되묻기)
+  const [edit, setEdit] = useState<Record<string, string[]>>({});   // 방 없애기(형 11-05 「설정에서도 반영되어야해」 · 방 목록 🗑️ 와 같은 되묻기)
   const save = useMutation({
     mutationFn: ({ room, members }: { room: string; members: string[] }) => office("roomset", { method: "POST", body: JSON.stringify({ room, members, base: q.data?.roomset.ver }) }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); },   // 고친 칸 접기 = ✓ 뒤(GoButton done)
@@ -143,7 +145,6 @@ export function NomuteRoomset() {
   const d = q.data;
   return (
     <PageSection title="지정방 멤버">
-      {gone ? <RoomGoneDialog r={gone} onClose={() => setGone(null)} /> : null}
       <p className="mt-1 text-sm text-muted-foreground">{d ? `판 ${d.roomset.ver} · ${d.roomset.by || ""}` : q.isError ? readFail(q.error) : reading()}</p>
       {d ? d.designated.map((rid) => {
         const cur = edit[rid] || d.roomset.rooms[rid] || [];
@@ -153,7 +154,7 @@ export function NomuteRoomset() {
             <div className="p-4">
               <div className="flex items-center gap-2">
                 <p className="min-w-0 flex-1 text-sm font-semibold">{rooms.data?.find((r) => r.id === rid)?.name || rid} <span className="text-xs font-normal text-muted-foreground">{cur.length}명</span></p>
-                {d.can_edit && canGone({ id: rid, temp: /^tmp-/.test(rid) }) ? <button type="button" aria-label={`${rooms.data?.find((r) => r.id === rid)?.name || rid} 없애기`} title="방 없애기" className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => setGone({ id: rid, name: rooms.data?.find((r) => r.id === rid)?.name || rid })}><DuetIcon name="trash" size={16} /></button> : null}
+                {d.can_edit && canGone({ id: rid, temp: /^tmp-/.test(rid) }) ? <MorphAsk label={`${rooms.data?.find((r) => r.id === rid)?.name || rid} 없애기`} title="방 없애기" className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" yesText="없애기" onYes={() => { qc.setQueryData<typeof d>(["nomute", "roomset"], (old) => (old ? { ...old, designated: old.designated.filter((x) => x !== rid) } : old)); dropRoomAway(qc, { id: rid, name: rooms.data?.find((r) => r.id === rid)?.name || rid }); }}><DuetIcon name="trash" size={16} /></MorphAsk> : null}
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {d.candidates.map((w) => {
