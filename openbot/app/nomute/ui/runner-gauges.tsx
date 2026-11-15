@@ -14,6 +14,8 @@ import { Bloub } from "./bloub";
 import { homeOf, machinesOf, useBodies } from "../data/bodies";
 import { TAIL_OF_GAUGE, tailTitle } from "./tailnet-table";   // 테일스케일 연결표(형 11-12 · 게이지 이름 손 올림만 · 게이지 밖 기기 한 줄은 걷음 = 형 16:20 「러너 메인에 테일스케일이 나올필요는없음」)
 import { pickHost } from "./runner-pick";
+import { botUse, type SchedBot, type SchedJob } from "../runner/runner-table-rows";
+const hmKst = (t: number) => { const d = new Date(t + 9 * 3600e3); return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`; };
 
 type Row = { key: string; st?: string; note?: string; stale?: boolean; reported_at?: number; metrics?: Record<string, number> };
 type Cat = { id: string; rows: Row[] };
@@ -109,9 +111,11 @@ function useRowSync(panel: { current: HTMLDivElement | null }) {
 
 export function RunnerGauges() {
   const st = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: Cat[]; at?: number }>("status"), refetchInterval: 60_000, staleTime: 30_000 });
-  const tail = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<{ runners?: { tailnet?: { ip?: string; online?: boolean | null }[] } }>("schedule"), staleTime: 30_000, refetchInterval: 120_000 }).data?.runners?.tailnet;   // 테일 켜짐(번개 11-12 17:00 · 설정 화면 useSched 와 같은 캐시)
+  const schedQ = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<{ bots?: SchedBot[]; runners?: { jobs?: SchedJob[]; tailnet?: { ip?: string; online?: boolean | null }[] } }>("schedule"), staleTime: 30_000, refetchInterval: 120_000 }).data;
+  const tail = schedQ?.runners?.tailnet;
   const rq = useRunner();
   const now = useNow();
+  const botsUse = botUse(schedQ?.bots, schedQ?.runners?.jobs, now);   // 봇 일 = 같은 스케줄 장(받는 것 0 더 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」 · 깃 #-063)   // 테일 켜짐(번개 11-12 17:00 · 설정 화면 useSched 와 같은 캐시)
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
   const bots = st.data?.cats?.find((c) => c.id === "bots")?.rows as (Row & { cells?: Record<string, { st: string; note?: string }> })[] | undefined;
   const wake = (k: string) => { if (!bots) return "wait" as const; const c = bots.find((r) => r.key === k)?.cells; return awakeOf(c?.["깸 상태"]?.note, c?.["마지막 깸"]?.note); };   // wait = 작동 표 첫 답 전(~12초) · 「다 잠듦」으로 안 읽히게 흐린 꼴(봄 10:08)
@@ -198,12 +202,17 @@ export function RunnerGauges() {
         ) : null}
       </ul>
       <ul className="nm-rgx-runs nm-rgx-row12" aria-label="러너 A1~A6">
-        {Array.from({ length: 12 }, (_, i) => {
+        {Array.from({ length: botsUse.length ? Math.max(6, runs.length) : 12 }, (_, i) => {   // 봇 일이 있으면 빈 칸(7~12) 자리에 봇 줄
           const r = runs[i];
           if (!r) return <li key={`e${i}`} className="nm-rgx-cell empty" aria-hidden><i /></li>;
           const on = r.c.st === "🟢", work = on && r.c.note === "일하는 중";
           return <li key={r.n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${r.n} · ${on ? r.c.note || "켜짐" : r.c.note || "꺼짐"}`}>{`A${rnum(r.n) || i + 1}`}</li>;   {/* 화면 이름만 A1~ · 러너 진짜 이름은 그대로(title) */}
         })}
+        {botsUse.length ? (   /* 봇 일 = A 줄 오른쪽 빈 칸 자리(러너와 안 섞임 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」 · 깃 #-063) · 깸 = 오늘 지난 예약 깸 · 토큰 = 깸 × 5만 어림 · 끝 = 다음 깸 */
+          <li className="nm-rgx-botsc" style={{ gridColumn: `${Math.max(6, runs.length) + 1} / -1` }} aria-label="봇 일 · 오늘">
+            {botsUse.map((u) => <span key={u.bot} title={`${u.who} · 오늘 깸 ${u.done}회 · 토큰 ≈${Math.round(u.tok / 10000)}만(깸 × 5만 어림)${u.next ? ` · 다음 ${hmKst(u.next)}` : ""}${u.jobs ? ` · 맡은 일 ${u.jobs}개` : ""}`}><b>{u.who}</b> {u.done}회 · ≈{Math.round(u.tok / 10000)}만{u.next ? ` · ${hmKst(u.next)}` : ""}</span>)}
+          </li>
+        ) : null}
       </ul>
     </div>
   );

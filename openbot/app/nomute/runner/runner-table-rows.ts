@@ -35,3 +35,23 @@ export function bkLines(d: RunnerRow | null, nowS: number): BkLine[] {
     })
     .sort((a, b) => Number(b.bad) - Number(a.bad));
 }
+
+// 봇 일(형 11-15 11:42 dm-gik 「그리고 지금 그 봇으로 매달은 애들잇잖아 촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게 하주셈」 · 깃 #-063 · 뜸)
+//   자료 = 이미 받는 GET schedule(지도 · 스테이터스 판과 같은 열쇠) 의 bots(봇마다 예약 깸 시각) + runners.jobs(주인 · 마지막 돈 때) — 새로 받아 오는 것 0
+//   토큰 = 그록봇 깸 한 번 ≈ 5만(그록봇 프로필 「깰 때마다 약 5만 이상의 토큰」) × 오늘 지난 깸 = 어림(≈)
+export type SchedBot = { bot: string; who: string; wakes?: number[]; next_ts?: number; on?: boolean };
+export type SchedJob = { id: string; name?: string; owner?: string; health?: { last_at?: number } };
+export type BotUse = { bot: string; who: string; done: number; next: number | null; jobs: number; last: number | null; tok: number };
+const KST = 9 * 3600e3, WAKE_TOK = 50_000;
+const bare = (s: string) => s.replace(/[^\p{L}\p{N}]/gu, "");
+export function botUse(bots: SchedBot[] | undefined, jobs: SchedJob[] | undefined, nowMs: number): BotUse[] {
+  const day0 = Math.floor((nowMs + KST) / 864e5) * 864e5 - KST;
+  return (bots || []).filter((b) => b.on !== false).map((b) => {
+    const w = (b.wakes || []).filter((t) => Number.isFinite(t));
+    const done = w.filter((t) => t >= day0 && t <= nowMs).length;
+    const next = w.find((t) => t > nowMs) ?? null;
+    const mine = (jobs || []).filter((j) => (j.owner && bare(j.owner) === bare(b.who)) || new RegExp(`(^|[.\\-])${b.bot}([\\-.]|$)`).test(j.id));
+    const last = mine.reduce<number | null>((a, j) => { const t = j.health?.last_at; return t && (a == null || t > a) ? t : a; }, null);
+    return { bot: b.bot, who: b.who, done, next, jobs: mine.length, last, tok: done * WAKE_TOK };
+  }).filter((u) => u.done > 0 || u.next != null);   // 예약 깸이 있는 봇만(깃 · 결처럼 깸 0 · 주인 일만 있는 자리 = 봇 일 아님 · 실물 11-15 12:1x)
+}
