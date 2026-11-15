@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { colCount, inboxOf, spanKo } from "../ui/bot-inbox-logic.ts";
+import { colCount, inboxOf, spanKo, trailSteps } from "../ui/bot-inbox-logic.ts";
 
 const NOW = 1_800_000_000_000, M = 60e3;
 const rd = (f: string) => readFileSync(new URL(`../ui/${f}`, import.meta.url), "utf8");
@@ -59,4 +59,16 @@ test("화면 = 새로 받아오는 것 0 · 움직임은 transform · opacity ·
   assert.doesNotMatch(css.replace(/grid-template-rows \.34s|padding-bottom \.34s/g, ""), /transition:[^;]*(height|width|top|left|margin)/, "배치를 세는 움직임 = 펼침 한 곳만");
   assert.match(desk, /\["board", "일감"\], \["flow", "흐름"\], \["turn", "차례"\], \["hands", "손 표"\]/);
   assert.match(desk, /tab === "board" \? \(live \? <BotInbox t=\{t\} skills=\{skills\} now=\{now\} \/>/);
+});
+
+test("작업 줄(trail · editor #3953) — 오면 지금 손이 붙은 오더 카드에 단계로 · 안 오면 앞 꼴 그대로", () => {
+  const trail = [{ at: NOW - 20 * M, text: "옛 일(받기 전)" }, { at: NOW - 5 * M, text: "Read ui/room-menu.tsx" }, { at: NOW - 3 * M, text: "Edit ui/morph-ask.tsx" }, { text: "" }, { at: NOW - M, text: "Bash: node --test" }];
+  const rows = table.rows.map((r) => (r.who === "시아" || r.who === "봄" || r.who === "번개" ? { ...r, trail } : r));
+  const by = Object.fromEntries(inboxOf({ ...table, rows }, [], NOW).map((c) => [c.key, c]));
+  assert.deepEqual(by["job:시아:#-071"].steps.map((s) => s.text), ["시아 받음", "Read ui/room-menu.tsx", "Edit ui/morph-ask.tsx", "Bash: node --test", "만드는 중"]);   // 받은 뒤(6분) 것만 · 빈 줄 뺌
+  assert.deepEqual(by["job:시아:#-066"].steps.map((s) => s.text), ["시아 받음", "태움 91131ae — 만들기 끝 · 기차에 올림", "끝"]);   // 끝난 오더엔 안 붙임
+  assert.deepEqual(by["job:번개:#-062"].steps.map((s) => s.text), ["번개 받음", "아직 손 안 댐(쉼)"]);   // 쉬는 손의 오더엔 안 붙임
+  assert.deepEqual(by["work:봄"].steps.map((s) => s.text), ["옛 일(받기 전)", "Read ui/room-menu.tsx", "Edit ui/morph-ask.tsx", "Bash: node --test", "clock 턴"]);   // 오더 밖 일 = 줄 그대로
+  assert.equal(trailSteps({ who: "x", lane: "work", state: "일", trail: Array.from({ length: 9 }, (_, i) => ({ text: "t" + i })) }).length, 6);   // 마지막 여섯 줄
+  assert.deepEqual(trailSteps({ who: "x", lane: "work", state: "일" }), []);
 });

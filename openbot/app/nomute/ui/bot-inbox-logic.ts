@@ -2,7 +2,8 @@
 //   형 11-16 03:0x(영상 = 「Agent inbox」: NEEDS YOU · RUNNING · DONE 세 칸 · 카드마다 무슨 일 · 흐른 시간 · 펼치면 단계 줄)
 //   「혹시 작업 상황 스케줄러가 자동으로 이런식으로.진행.상황이 구체화 될 수 있는지 그리고 표현이 이렇게 영상처럼 고퀄리티면.좋겠음 최대한 살려줘」
 //   재료 = 이미 있는 것만(새로 적는 것 0 · 봇이 더 하는 일 0): 서버 도표 status/bots(봇 상태 · 까닭 · 마지막 손 · 대기 신호 · 오늘 오더 줄 = 받음 · 태움 · 끝 · 늦은 오더) + 형 결정 목록(./decide-pop)
-//   단계 줄 = 서버가 실제로 아는 때만(받음 → 태움 → 끝 · 마지막 손 · 대기 신호) — 지어낸 단계 0. 「지금 무엇을 읽고 쓰는 중」처럼 더 잘게는 봇이 서버에 안 남겨서 없음.
+//   단계 줄 = 서버가 실제로 아는 때만(받음 → 태움 → 끝 · 마지막 손 · 대기 신호) — 지어낸 단계 0.
+//   「지금 무엇을 읽고 쓰는 중」 = 작업 줄(row.trail · 형 03:2x 「응」) — 몸 보고(5분)가 제 창 원문 끝에서 뽑아 실으면 그 손이 지금 도는 카드에 단계로 끼움(안 오면 앞 꼴 그대로).
 import { type BotRow, type BotTable, agoKo, hmKo, jobsOf } from "./bot-desk-logic.ts";
 
 export type Col = "need" | "run" | "done";
@@ -31,6 +32,8 @@ const chipsOf = (r: BotRow, code: string | undefined, skills: Record<string, str
   ...(typeof r.work_min === "number" && r.work_min > 0 ? [{ k: "min" as const, text: `${Math.round(r.work_min)}분`, title: `${r.who} 오늘 일한 시간` }] : []),
 ];
 const headOf = (r: BotRow) => [r.who, r.brain, r.acct].filter(Boolean).join(" · ");
+/** 작업 줄 → 단계(그 일을 받은 뒤 것만 · 마지막 여섯 줄 · 글 없는 줄 뺌). */
+export const trailSteps = (r: BotRow, after = 0): Step[] => (r.trail || []).filter((s) => s && s.text && (!s.at || s.at >= after)).slice(-6).map((s) => ({ text: s.text, ...(s.at ? { at: s.at } : {}) }));
 
 /** 도표 + 형 결정 목록 → 카드들(칸 · 차례까지). now = 지금(ms). */
 export function inboxOf(t: BotTable | undefined, decs: Dec[], now: number, skills: Record<string, string> = {}): Card[] {
@@ -46,6 +49,7 @@ export function inboxOf(t: BotTable | undefined, decs: Dec[], now: number, skill
         steps: [...(r.last_at ? [{ text: "마지막 손", at: r.last_at }] : []), ...(r.beat_at ? [{ text: "마지막 대기 신호", at: r.beat_at }] : []), ...(r.door_at ? [{ text: "문 확인", at: r.door_at }] : []), { text: [r.cause || "멈춤", r.why].filter(Boolean).join(" — "), live: true, bad: true }] });
     }
     const jobs = jobsOf(r), working = r.lane === "work";
+    const lastOpen = jobs.filter((j) => !j.done && !j.ride).sort((a, b) => (b.recv || 0) - (a.recv || 0))[0];
     let open = 0;
     for (const j of jobs) {
       const title = `${j.no}${j.title ? " " + j.title : ""}`, base = { who: r.who, title, chips: chipsOf(r, j.code, skills), head: headOf(r) };
@@ -59,11 +63,11 @@ export function inboxOf(t: BotTable | undefined, decs: Dec[], now: number, skill
       const doing = j.ride ? "만들기 끝 · 기차(라이브) 기다림" : working ? `${r.who} 일하는 중${r.last_at ? ` · 손 ${agoKo(now - r.last_at)}` : ""}` : `${r.who} 받아 둠 · ${r.state}`;
       const liveStep: Step = { text: j.ride ? "라이브 기다림" : working ? "만드는 중" : `아직 손 안 댐(${r.state})`, live: true };
       if (late) out.push({ ...base, key: `job:${r.who}:${j.no}`, col: "need", tone: "wait", desc: `늦음 ${late.min}분 · ${doing}`, since: j.recv, label: `늦음 ${late.min}분`, act: "room", order: 3e13 - late.min, steps: [...steps, liveStep] });   // 형 결정 다음 · 많이 늦은 것이 위
-      else out.push({ ...base, key: `job:${r.who}:${j.no}`, col: "run", tone: "run", desc: doing, since: j.recv, order: j.recv || now, steps: [...steps, liveStep] });
+      else out.push({ ...base, key: `job:${r.who}:${j.no}`, col: "run", tone: "run", desc: doing, since: j.recv, order: j.recv || now, steps: [...steps, ...(working && !j.ride && j === lastOpen ? trailSteps(r, j.recv) : []), liveStep] });   // 작업 줄 = 지금 손이 붙은 오더(가장 늦게 받은 안 끝낸 것) 하나에만
     }
     if (working && !open && r.lane !== "lost") {   // 오더 밖에서 도는 손(형이 직접 시킨 일 · 루틴)
       out.push({ key: `work:${r.who}`, col: "run", tone: "run", title: `${r.who}${r.pm ? "(PM)" : ""} · 오더 밖 일`, who: r.who, desc: r.why || "턴이 도는 중", label: r.last_at ? `손 ${agoKo(now - r.last_at)}` : "도는 중", chips: chipsOf(r, undefined, skills), head: headOf(r), order: now + 1,
-        steps: [...(r.last_at ? [{ text: "마지막 손", at: r.last_at }] : []), { text: r.why || "턴이 도는 중", live: true }] });
+        steps: [...(trailSteps(r).length ? trailSteps(r) : r.last_at ? [{ text: "마지막 손", at: r.last_at }] : []), { text: r.why || "턴이 도는 중", live: true }] });   // 작업 줄이 오면 그 줄들 · 없으면 마지막 손
     }
   }
   const rank: Record<Col, number> = { need: 0, run: 1, done: 2 };
