@@ -178,7 +178,7 @@ export function BotDesk() {
       {t ? (
         <>
           <div className="nm-bd-tabs" aria-label="봇 현황 보기">
-            <RubberSegment items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={(v) => pick(v as Tab)} size="lg" radius={14} trackColor="rgba(18,18,18,.55)" thumbColor="rgba(207,255,64,.16)" textColor="#E7ECE7" activeTextColor="#CFFF40" />
+            <RubberSegment items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={(v) => pick(v as Tab)} size="lg" radius={14} trackColor="rgba(18,18,18,.55)" thumbColor="rgba(207,255,64,.9)" textColor="#E7ECE7" activeTextColor="#141516" />
           </div>
           {tab === "flow" ? (live ? <Flow t={t} now={now} pmName={pmName} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : <Hands t={t} skills={skills} />}
         </>

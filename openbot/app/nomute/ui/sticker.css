@@ -11,7 +11,7 @@
 .nm-stk-tabs.atStart.atEnd { -webkit-mask-image:none; mask-image:none; }
 @media (hover:hover) and (pointer:fine) { .nm-stk-tabs { cursor:grab; } .nm-stk-tabs.grabbing, .nm-stk-tabs.grabbing button { cursor:grabbing; } }
 .nm-stk-tabs button { all:unset; flex:none; padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600; color:rgba(232,234,232,.62); border:1px solid transparent; cursor:pointer; }
-.nm-stk-tabs button.on { color:var(--accent, #CFFF40); background:rgba(var(--accent-rgb, 207,255,64),.14); border-color:rgba(var(--accent-rgb, 207,255,64),.38); }
+.nm-stk-tabs button.on { background:rgba(var(--accent-rgb, 207,255,64),.9); border-color:transparent; color:var(--bg, #141516); font-weight:600; }   /* 골라짐 = A(라임 채움 · 검은 글) 하나로 — 형 11-15 「a로하고」 · 본 = .yset-chip.on · .nm-rr-seg */
 .nm-stk-grid { display:flex; flex-direction:column; flex:0 1 auto; min-height:0; max-height:calc(var(--stk-cell) * 3 + 6px * 2 + 18px); padding:6px 10px 12px; overflow-y:auto; overscroll-behavior:contain; isolation:isolate; }   /* 처음 = 5칸 × 3 줄 = 15(형 11-15 01:28 「움짤은 15개 정도만 나오면 돼 … 그 이상은 지금처럼 올려서 보면 됨 너무 뒤덮어서」) · 더 = 위로 끌어올림(스크롤) */
 .nm-stk { container-type:inline-size; --stk-cell:calc((min(420px, 100vw - 24px) - 20px - 24px) / 5); }
 .nm-stk-sec { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:6px; flex:none; }
