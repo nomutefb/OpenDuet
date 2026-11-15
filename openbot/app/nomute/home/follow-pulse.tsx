@@ -4,6 +4,7 @@
 //   꼴 = IG · FB 총수 한 줄 + 「갱신 N분 전」 + 10일 증가율(%) 꺾은선 둘(IG 위 선 · FB 아래 선 · 0% 점선) + 날마다 ±명수 두 줄(IG 위 · FB 아래) · 색 = 오름 강조색 · 내림 금색 · 없음 회색(원본 규칙)
 //   누르면 = 채널 요약(원본 «일단 홈 팔로워로» → 우리 앱은 앱 안 채널 요약 판 #/chan · 11-01 전엔 #/web?u=/?tab=chan 한 겹) · 10분마다 다시 읽음(원본과 같음) · 접수사항(CheckOne)은 이 자리에서 뺌(파일은 그대로 · 안 부름)
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { agoMin } from "../ui/ago-min";
 import { pollOff } from "../data/poll-linux";
 import { DiffValue } from "../ui/state-diff";   // 값 바뀜(형 11-15 State Diff)
 import { sharedText } from "../ui/news-data";   // 3초 안 같은 주소 = 한 번만(빠르 11-14)
@@ -68,7 +69,6 @@ function series(j: Chan, key: "ig" | "fb"): Pt[] {
   return days.map((r, k) => ({ date: r.date, net: nets[k], count: counts[k], pct: ((counts[k] - base) / base) * 100, views: typeof r.views === "number" ? r.views : null }));
 }
 
-const ago = (iso: string) => { const t = Date.parse(iso); if (!Number.isFinite(t)) return ""; const m = Math.max(0, Math.floor((Date.now() - t) / 6e4)); return "갱신 " + (m < 1 ? "방금" : m < 60 ? `${m}분 전` : `${Math.floor(m / 60)}시간 전`); };
 const smooth = (pts: [number, number][]) => pts.map((p, i) => { if (!i) return `M${p[0].toFixed(1)} ${p[1].toFixed(1)}`; const a = pts[i - 1], m = (a[0] + p[0]) / 2; return `C${m.toFixed(1)} ${a[1].toFixed(1)} ${m.toFixed(1)} ${p[1].toFixed(1)} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`; }).join("");
 
 // 폰 홈 그림 높이(형 11-11 18:48 봄 1:1 「상단에 차트 좀만 더 영역 세로가 길어도 될듯 카드가 좀 더 내려와도 될거같아 길어지고」 · 옛 웹앱 홈 #home-pulse 폰 390 실측 = 선 칸 ≈ 40px · 앞 판 64 = 선 칸 ≈ 20px 이라 납작)
@@ -120,7 +120,7 @@ export function FollowPulse({ fill = false }: { fill?: boolean } = {}) {   // fi
         <i className="nm-pulse-sep" aria-hidden />
         <span className="nm-pulse-k fb">FB</span><b className="nm-pulse-v"><DiffValue className="l" value={fb ? nf.format(liveN(fb)) : "–"} /></b>
         <i className="nm-pulse-sep" aria-hidden /><span className="nm-pulse-k th">TH</span><b className="nm-pulse-v"><DiffValue className="l" value={th ? nf.format(th.profile.followers_count) : "–"} /></b>   {/* PC 칸 = 스레드 총수 하나 더(형 11-08 09:11 「저기 fB 옆에구분자 하나 더 둬서 스레드도 나오게해, FB가 시안으로 표기되고 th 는 fb 색으로」 · 자료 = /api/chan?f=th → threads_data.json) */}
-        <span className="nm-pulse-at">{ago(ig.live_followers?.at || ig.generated_kst).replace(/^갱신 /, "")}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
+        <span className="nm-pulse-at">{(() => { const t = Date.parse(String(ig.live_followers?.at || ig.generated_kst || "")); return Number.isFinite(t) ? agoMin(Date.now() - t) : ""; })()}</span>   {/* PC 칸(fill) = 머리줄 오른쪽 「N시간 전」(Runner 칸과 같은 말 · 같은 자리 · 형 11-08 08:18) */}
       </div>
       <svg ref={chart} className="nm-pulse-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`최근 ${DAYS}일 팔로워 증가율`}>
         <defs><linearGradient id="nm-pulse-fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopOpacity="0" /><stop offset=".25" stopOpacity="1" /><stop offset=".75" stopOpacity="1" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>

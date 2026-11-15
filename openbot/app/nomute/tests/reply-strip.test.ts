@@ -38,7 +38,7 @@ test("입력칸 위 답장 = 「누구에게 답장」 + 그 글 한 줄 + × ·
 
 test("홈 팔로워 줄 = 서버가 바로 물은 값(live_followers) 먼저 · 없으면 수집 값", () => {
   assert.match(fp, /live_followers\?: \{ count\?: number; at\?: string \}/);
-  assert.match(fp, /ago\(ig\.live_followers\?\.at \|\| ig\.generated_kst\)/);
+  assert.match(fp, /ig\.live_followers\?\.at \|\| ig\.generated_kst/);
   assert.match(fp, /nf\.format\(liveN\(ig\)\)/);
   assert.match(fp, /fb \? nf\.format\(liveN\(fb\)\)/);
 });
