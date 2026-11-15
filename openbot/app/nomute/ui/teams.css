@@ -87,6 +87,18 @@
 .nm-tswitch.fold .nm-ftab .nm-tbadge { position:absolute; top:2px; right:2px; }
 .nm-tswitch.fold .nm-ftab.on .nm-tbadge { position:static; }
 @media (prefers-reduced-motion: reduce) { .nm-tswitch.fold .nm-ftab, .nm-tswitch.fold .nm-ftab-nm { transition:none; } }
+/* 고른 탭 바탕 한 장(./fold-ink.ts · 형 11-16 02:2x 영상 「상단에 탭들 … 전환할때 부드럽게 스위칭 되게」) — 탭 제 바탕 · 어깨 곡선 대신 이 한 장이 고른 자리로 미끄러짐
+   [data-ink] = 훅이 자리를 잰 뒤에만(그 전 · 훅 없는 자리 = 위 옛 꼴 그대로) · 넓이 바뀜은 한 번에(움직임 = 바탕 · 아이콘 · 이름의 transform · opacity · filter 만) */
+.nm-fold-ink { display:none; }
+.nm-tswitch.fold[data-ink] { position:relative; }
+.nm-tswitch.fold[data-ink] > .nm-fold-ink { display:block; position:absolute; left:0; bottom:0; height:36px; border-radius:11px 11px 0 0; background:var(--nm-tab-on, rgba(255,255,255,.08)); pointer-events:none; will-change:transform; }
+.nm-tswitch.fold[data-ink] > .nm-fold-ink::before, .nm-tswitch.fold[data-ink] > .nm-fold-ink::after { content:""; position:absolute; bottom:0; width:11px; height:11px; }
+.nm-tswitch.fold[data-ink] > .nm-fold-ink::before { left:-11px; background:radial-gradient(circle at 0 0, transparent 11px, var(--nm-tab-on, rgba(255,255,255,.08)) 11.5px); }
+.nm-tswitch.fold[data-ink] > .nm-fold-ink::after { right:-11px; background:radial-gradient(circle at 100% 0, transparent 11px, var(--nm-tab-on, rgba(255,255,255,.08)) 11.5px); }
+.nm-tswitch.fold[data-ink] .nm-ftab { transition:color .2s ease; }
+.nm-tswitch.fold[data-ink] .nm-ftab.on { background:none; }
+.nm-tswitch.fold[data-ink] .nm-ftab.on::before, .nm-tswitch.fold[data-ink] .nm-ftab.on::after { content:none; }
+.nm-tswitch.fold[data-ink] .nm-ftab.on .nm-ftab-nm { transition:none; }   /* 이름 = 훅이 번지며 나타나게(옛 「0.2초 뒤 켜짐」 대신) */
 /* 폰 「회의」 판 = 목록 자리 꽉(위 탭 밑 · 아래 네비 위) */
 .nm-rooms-meet { min-height:0; flex:1 1 auto; }
 .nm-pmeet { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }

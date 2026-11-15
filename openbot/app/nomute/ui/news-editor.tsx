@@ -13,6 +13,7 @@ import "./sns.css";
 import "./news.css";
 import "./summary-desk.css";
 import "./teams.css";   // 폴더 탭 옷(.nm-tswitch.fold)
+import { useFoldInk } from "./fold-ink";   // 고른 탭 바탕이 미끄러짐(형 11-16)
 import "./news-editor.css";
 import { PlusFan } from "./plus-fan";   // 오른쪽 아래 「+」 펼침 = 한 벌(홈 PC Digest 우하단도 같은 것 · 형 11-13 02:24)
 import { useQuery } from "@tanstack/react-query";
@@ -37,8 +38,10 @@ const artWait = <div className="nm-lazy" role="status" aria-label="읽는 중"><
 
 /** 위 탭 줄 — 대화방 「대화방 | 팀즈 | 회의」와 같은 폴더 탭 */
 function NedTabs({ tab, pick }: { tab: NedTab; pick: (t: NedTab) => void }) {
+  const bar = useFoldInk("ned", tab);
   return (
-    <div className="nm-tswitch fold nm-ned-tabs" role="tablist" aria-label="뉴스 에디터 판 바꾸기">
+    <div className="nm-tswitch fold nm-ned-tabs" role="tablist" aria-label="뉴스 에디터 판 바꾸기" ref={bar}>
+      <i className="nm-fold-ink" aria-hidden />   {/* 고른 탭 바탕 한 장 = 탭을 바꾸면 미끄러짐(./fold-ink.ts · 형 11-16) */}
       {NED_TABS.map((t) => (
         <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} aria-label={t.name} className={`nm-ftab${tab === t.id ? " on" : ""}`} onClick={() => pick(t.id)}>
           <DuetIcon name={t.icon} size={20} /><span className="nm-ftab-nm">{t.name}</span>

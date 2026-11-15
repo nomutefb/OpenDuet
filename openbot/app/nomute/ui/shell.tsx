@@ -11,6 +11,7 @@ import { MeetLogList } from "./meet";   // 서랍 「화상회의」(형 11-13)
 import { TodoBar } from "./todo-bar";
 import { ChatHead } from "./chat-head";
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
+import { useFoldInk } from "./fold-ink";   // 폴더 탭 줄 = 고른 탭 바탕이 미끄러짐(형 11-16)
 import { IgFbBand } from "./igfb-band";   // PC 오른쪽 위 = 인스타·페북 팔로워 띠(봄 11-08 · 형 dm 07:30~07:31)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Component, type CSSProperties, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
@@ -357,9 +358,10 @@ export function NomuteShell({ children }: { children: ReactNode }) {
 /** 눌러야 받는 칸(서랍 창 · 이슈 · 웹) 코드를 받는 동안 = 가운데 라임 점 셋(글자 0 · 형 11-07 17:20 「불러오는 중 일때 ...이 움직이거나 할수있나. 안그러면 멈춘거같아서.」 · 꼴 = ./shell.css .nm-lazy) */
 /** 서랍 위 탭 줄 — 대화방 「대화방 | 팀즈 | 회의」 · 뉴스 에디터 「뉴스 | SNS | 채널」과 같은 폴더 탭(./teams.css .nm-tswitch.fold) · 고른 탭만 이름 펼침 · 탭 바꿈 = 기록 안 쌓음 */
 function DrawerTabs({ cur }: { cur: DrawerTab }) {
-  const nav = useNavigate();
+  const nav = useNavigate(), bar = useFoldInk("drawer", cur);
   return (
-    <div className="nm-tswitch fold nm-dtabs" role="tablist" aria-label="서랍 화면 바꾸기">
+    <div className="nm-tswitch fold nm-dtabs" role="tablist" aria-label="서랍 화면 바꾸기" ref={bar}>
+      <i className="nm-fold-ink" aria-hidden />   {/* 고른 탭 바탕 한 장 = 탭을 바꾸면 미끄러짐(./fold-ink.ts · 형 11-16) */}
       {DRAWER_TABS.map((id) => { const m = MODALS.find((x) => x.id === id)!; return (
         <button key={id} type="button" role="tab" aria-selected={cur === id} aria-label={m.label} className={`nm-ftab${cur === id ? " on" : ""}`} onClick={() => { if (cur !== id) void nav({ to: m.to, replace: true }); }}>
           <DuetIcon name={m.icon} size={20} /><span className="nm-ftab-nm">{m.label}</span>
