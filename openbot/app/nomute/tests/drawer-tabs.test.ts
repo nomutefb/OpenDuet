@@ -15,7 +15,7 @@ test("탭 여섯 · 먼저 뜨는 탭 = 러너 · 설정 · 뉴스 에디터는 
 test("껍데기 = 네비 서랍은 러너부터 · 여섯 화면 위에 탭 줄 · PC 는 여섯 다 같은 폭", () => {
   const s = rd("../ui/shell.tsx"), c = rd("../ui/shell.css");
   assert.match(s, /if \(p === "\/drawer"\) return \{ modal: DRAWER_HOME \};/);
-  assert.match(s, /\{isDrawerTab\(M\.id\) \? <DrawerTabs cur=\{M\.id\} \/> : null\}/);
+  assert.match(s, /\{isDrawerTab\(M\.id\) && !split \? <DrawerTabs cur=\{M\.id\} \/> : null\}/);   // 폰만 화면 안 탭 · PC = 메인 탭 줄
   assert.match(s, /<div className="nm-tswitch fold nm-dtabs" role="tablist"/);   // 대화방 · 뉴스 에디터 위 탭과 같은 옷
   assert.match(s, /void nav\(\{ to: m\.to, replace: true \}\)/);   // 탭 바꿈 = 기록 안 쌓음
   const spread = s.split("\n").find((l) => l.startsWith("const SPREAD"))!.split("//")[0];

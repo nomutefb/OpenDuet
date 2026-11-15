@@ -53,3 +53,9 @@
 .nm-chat-h::before { content:""; position:absolute; left:0; right:0; top:-1px; height:1px; background:rgba(255,255,255,.07); pointer-events:none; }
 :root:not(.dark) .nm-chat-h { border-bottom-color:var(--glass-line, rgba(0,0,0,.08)); }
 :root:not(.dark) .nm-chat-h::before { background:var(--glass-line, rgba(0,0,0,.08)); }
+/* PC 대화 머리 「대화내용 검색」 칸 = 조금 작게(형 11-15 11:5x 「이거 대화내용 검색, 글자 좀 작게해주고, 높이 폭을 좀만 더 작게, 너무 오버스러움」) — 키 36 → 30 · 폭 최대 136(room-search.tsx 가 박는 160 위에 덮음) · 글자 fs-sm · 폰은 그대로 */
+:root:has(.nm-split-root) .nm-find.open { height:30px; max-width:136px; margin-top:3px; border-radius:15px; }
+:root:has(.nm-split-root) .nm-find.open input { padding:0 2px 0 12px; font-size:var(--fs-sm, 12px); }
+:root:has(.nm-split-root) .nm-find.open .nm-find-btn { width:30px; }
+:root:has(.nm-split-root) .nm-find.open .nm-find-btn svg { width:16px; height:16px; }
+

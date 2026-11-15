@@ -74,7 +74,8 @@ const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsA
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));   // 서랍 「구독 기기」 = 에디터 설정 ▸ 구독 기기를 앱 안으로(봄 11-01)
 const SensorModal = lazy(() => import("./sensor").then((m) => ({ default: m.SensorModal })));   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
 import { ThumbMaker, ToolKeep, ToolRestore } from "./ed-keep";   // 이미지 편집 · 영상 편집 = 접어도 살아 있는 창(최소화 − · 복원 ▲ = 옛 에디터 것 · 형 11-15)
-import { nedTabOf } from "./ned-tabs";
+import { NED_TABS, nedTabOf } from "./ned-tabs";
+import { AreaTabs } from "./area-tabs";
 import { DRAWER_HOME, DRAWER_TABS, type DrawerTab, isDrawerTab } from "./drawer-tabs";
 import { ED_TOOLS, type EdTool, edAlive, edChip, edKeptNext, isEdTool } from "./ed-keep-logic";
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
@@ -244,11 +245,14 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const cover = !!M && !SEE.has(M.id) && !isEdTool(M.id);   // 글 화면(스케줄 · 회의록 … 화면 전체 판)이 열림 = 밑 화면(홈 · 대화방)은 그리기 끔(shell.css .nm-cover) · 뒤 3D 장면은 옅게 비치고 느리게 돎(바탕 한 가지 · 형 11-15)
   return (
     <ChatPresenceProvider serverWork={serverWork}>
-      <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}${split && modal && SPREAD.has(modal) ? " nm-split-spread" : ""}`}>
+      <div className={`duet-touch nm-yeta flex h-svh overflow-hidden bg-duet-surface${split ? " nm-split-root" : ""}${split && modal && SPREAD.has(modal) ? " nm-split-spread" : ""}${split && (modal === "nedit" || modal === "settings" || isDrawerTab(modal)) ? " nm-area-on" : ""}`}>
         <AttentionNotifier />
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
-        {split ? <TopTabBar room={room} pane={pane} /> : null}   {/* 윗줄 왼쪽 = 탭 줄(대시보드 · 방 · 몸 화면 · 「+」) */}
+        {split ? <TopTabBar room={room} pane={pane} /> : null}
+        {/* 메인 탭 줄 = 지금 네비 칸의 탭(형 11-15 「탭 1234 는 a에 귀속」 · ./area-tabs.tsx) — 뉴스 에디터 · 서랍일 땐 그 칸의 탭이 이 줄에 · 대화 칸 탭(위 TopTabBar)은 숨기기만(살려 둠 = 열어 둔 방 탭 · 화상회의 판 그대로 · shell.css .nm-area-on) · 설정 = 탭 없음 */}
+        {split && modal === "nedit" ? <AreaTabs label="뉴스 에디터 탭" items={NED_TABS} cur={nedTabOf(pathname)} pick={(id) => { const t = NED_TABS.find((x) => x.id === id); if (t && id !== nedTabOf(pathname)) void nav({ to: t.to, replace: true }); }} /> : null}
+        {split && isDrawerTab(modal) ? <AreaTabs label="서랍 탭" items={DRAWER_TABS.map((id) => { const m = MODALS.find((x) => x.id === id)!; return { id, name: m.label, icon: m.icon }; })} cur={modal} pick={(id) => { if (id !== modal) void nav({ to: MODALS.find((x) => x.id === id)!.to, replace: true }); }} /> : null}   {/* 윗줄 왼쪽 = 탭 줄(대시보드 · 방 · 몸 화면 · 「+」) */}
         {/* 윗줄 시계 = 잠시 뺌(형 11-09 09:30 회의실 「그리고 상단에 저 내용이 들어갔으니까, 이제 상단에 시각 표시는 잠시 없애보자」 · 봄 41) · 되살리면 이 줄에 <TopClock /> */}   {/* 윗줄 가운데 시계(형 11-08 09:49 밥상 「맨 위에는 시계가 나오면 될듯」 · 옛 = 위 왼쪽 11-06 20:05 · 가운데 방 이름은 대화창 머리줄로 ./chat-head.tsx) */}
         {split ? <StatusLights className="nm-top-lights" /> : null}   {/* 윗줄 오른쪽 = 정상·아닌 것(형 11-06 22:33 「시선이 분산되, 이거 상단으로 보내는게 맞는듯」 · 22:40 「스케줄러 관련된 내용은 우상단ㅇ으로」 · 부품 = 빠르 status-line.tsx) */}
         {split ? <SyncVersion className="nm-br-syncver" /> : null}   {/* 우하단 = 「동기화 00분 전 • 버전 0000000」(형 22:40 「웹앱 버전은 우하단에 위치시켜 . 동기화도 마찬가지.」) */}
@@ -297,7 +301,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 </div>
               )}
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" || M.id === "edvid" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
-                {isDrawerTab(M.id) ? <DrawerTabs cur={M.id} /> : null}   {/* 서랍 여섯 화면 맨 위 = 폴더 탭 한 줄(./drawer-tabs.ts) */}
+                {isDrawerTab(M.id) && !split ? <DrawerTabs cur={M.id} /> : null}   {/* 폰 = 서랍 여섯 화면 맨 위 폴더 탭 한 줄(./drawer-tabs.ts) · PC = 맨 위 메인 탭 줄로(./area-tabs.tsx) */}
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
                   : M.id === "tasks" ? <div className="nm-scroll"><RepairPage /></div>
