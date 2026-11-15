@@ -692,6 +692,13 @@ function bootSpatial() {
 
   let width = 0, height = 0, pixelRatio = 1;
   let raf = 0, lastTick = 0, lastDraw = 0, frames = 0, lost = false, disposed = false, ready = false;
+  // 노뮤트: 바탕만 흐를 때(손 · 메뉴 · 들어오는 움직임 없음)는 초당 60장까지만 — 120Hz 화면에서 tick 을 한 주사씩 쉼
+  //   구름 11-16 · 봄 08:04 「C = 너도 지어 … nmSlow 말고 tick 자체를 쉬게 해서 rAF 가 실제로 60 으로 내려가게」 · 형 기준 「60프레임 · 나한테 멎는 느낌을 주면안됨」
+  //   맥 9272 폰 폭 실측: 가만한 홈이 초당 120번 그리며 메인 221ms/초 · 그래픽 88ms/초 · nmSlow 33 은 rAF 가 137번 그대로 돌아 221 → 175뿐이었음
+  //   길 = 그린 뒤 타이머로 (n − ½)주사 간격을 자고 그때 rAF 를 검 → n번째 주사에 그림 · n = 16.7ms 안에 들어가는 주사 수(120 · 144Hz = 2 · 90 · 60Hz = 1 = 안 쉼 → 60 밑으로는 안 내려감)
+  //   주사 간격 = 타이머 없이 바로 이어진 tick 사이를 잼(들어오는 2.8초 · 손 따라갈 때) · 흐름 속도는 dt(시간) 기준이라 그대로 · 손 · 메뉴 · 들어오는 움직임(urgent)은 앞처럼 주사마다
+  const AMBIENT_MS = 1000 / 60, vsyncs = [];
+  let restTimer = 0, direct = false, vsync = 0;
   let menu = null, menuObserver = null;
   let targetX = 0, targetY = 0, offsetX = 0, offsetY = 0;
   let movingUntil = 0, dirty = true, menuDirty = true, shadowDirty = true;
@@ -844,6 +851,7 @@ function bootSpatial() {
   }
   function stop() {
     cancelAnimationFrame(raf); raf = 0; lastTick = 0; lastDraw = 0;
+    clearTimeout(restTimer); restTimer = 0; direct = false;   // 노뮤트: 쉬는 타이머도 같이 걷음
     host.dataset.motion = 'still';
     root.dataset.nmScene = reduced.matches ? 'static' : 'paused';
   }
@@ -890,7 +898,13 @@ function bootSpatial() {
   }
   function tick(now) {
     raf = 0;
+    if (restTimer) { clearTimeout(restTimer); restTimer = 0; }   // 노뮤트: 쉬는 사이 손이 깨웠으면 타이머는 버림(tick 줄이 둘로 안 갈리게)
     if (!available()) { stop(); return; }
+    if (direct && lastTick) {   // 노뮤트: 주사 간격 재기 = 바로 이어진 tick 사이 열두 개의 가운데 값
+      const gap = now - lastTick;
+      if (gap > 3 && gap < 40) { vsyncs.push(gap); if (vsyncs.length > 12) vsyncs.shift(); if (vsyncs.length >= 6) vsync = vsyncs.slice().sort((a, b) => a - b)[vsyncs.length >> 1]; }
+    }
+    direct = false;
     const dt = lastTick ? Math.min((now - lastTick) / 1000, .05) : 1 / 60;
     lastTick = now;
     const backgroundActive = backgroundRunning();
@@ -919,7 +933,11 @@ function bootSpatial() {
     if (settling || menuMoving || gliding || introActive || backgroundActive) {
       host.dataset.motion = backgroundActive ? 'ambient' : 'settling';
       root.dataset.nmScene = 'running';
-      raf = requestAnimationFrame(tick);
+      // 노뮤트: 바탕만 흐르는 중 + 화면이 60 보다 빠름 = 한 주사 쉬고 그림(위 AMBIENT_MS 줄) · 그 밖 = 앞처럼 다음 주사에
+      const skip = !urgent && !slowCap && vsync ? Math.floor((AMBIENT_MS + .9) / vsync) : 1;
+      const rest = skip >= 2 ? (skip - .5) * vsync - (performance.now() - now) : 0;
+      if (rest >= 1) restTimer = setTimeout(() => { restTimer = 0; if (!raf && available()) raf = requestAnimationFrame(tick); }, rest);
+      else { direct = true; raf = requestAnimationFrame(tick); }
     } else { stop(); }
   }
   function wakeRig() { if (available() && !raf) raf = requestAnimationFrame(tick); }
