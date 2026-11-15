@@ -17,6 +17,6 @@ test("보내는 글 = 옛 에디터와 같은 꼴(moreimg {file} · thumbredo {a
 });
 
 test("4화풍 다시 = 돈 → 두 번 눌러야 나감", () => {
-  assert.match(src, /armed \? void send\("redo"\) : setArmed\(true\)/);
-  assert.match(src, /armed \? "한 번 더" : "썸네일 다시"/);   // 글자 폭 = 「썸네일 다시」보다 안 넓게(머리 줄이 두 줄로 안 튐 · 돈 안내는 아래 호박색 줄)
+  assert.match(src, /\{!armed[\s\S]{0,200}\? <button [^>]*onClick=\{\(\) => setArmed\(true\)\}>썸네일 다시<\/button>/);   // 첫 누름 = 켜기만(서버 0)
+  assert.match(src, /: <GoButton [^>]*nm-thm-arm[^>]*go=\{\(\) => send\("redo"\)\}[\s\S]{0,80}>한 번 더<\/GoButton>/);   // 두 번째 누름만 나감 = 게이지 알약   // 글자 폭 = 「썸네일 다시」보다 안 넓게(머리 줄이 두 줄로 안 튐 · 돈 안내는 아래 호박색 줄)
 });

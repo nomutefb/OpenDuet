@@ -2,6 +2,7 @@
 //   맨 위 = 「[수리] 한 줄 + 명세서」 넣는 칸 하나(글 먼저 → 명세서 파일 = 서버가 그 글로 접수 줄을 만듦 · 파일 받는 이 기본 = 윈터 PM · _files.js)
 //   아래 = 접수 목록(서버 GET /api/office/repair · 먼저 접수된 게 위) — 줄마다 No · [구분] 항목 · 상태 · 신청자 · 명세서 · 이슈 #N · 줄 누름 = 처리 이력·상태 바꾸기(할 일 화면 RepairRow 그대로)
 //   대화 말풍선·얼굴 줄 0 · 종료(완료) = 보관 보기 · 명세서 = 그 신청자가 그 접수 글 뒤(2분 앞까지) 같은 방에 올린 첫 파일
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { readFail } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useMemo, useRef, useState } from "react";
@@ -51,7 +52,7 @@ export function RepairDesk({ lead, tail, active = true, page = false }: { lead?:
 
   const send = async () => {   // 글 먼저(서버가 접수 줄 · No) → 명세서 파일(「파일:」 줄 · 받는 이 = 윈터 PM)
     const raw = text.trim();
-    if (!raw) { setErr("「[구분] 항목」 한 줄을 써 줘"); return; }
+    if (!raw) { setErr("「[구분] 항목」 한 줄을 써 줘"); throw new Error("빈 글"); }
     setBusy(true); setErr("");
     try {
       const line = raw.startsWith("[수리]") ? raw : `[수리] ${raw}`;
@@ -66,7 +67,7 @@ export function RepairDesk({ lead, tail, active = true, page = false }: { lead?:
       }
       setText(""); setFile(null); if (fileRef.current) fileRef.current.value = "";
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      setErr(e instanceof Error ? e.message : String(e)); throw e;   // 실패 = 게이지 단추 빨강 · 흔들림(GoButton)
     } finally {
       setBusy(false);
       for (const k of [["nomute", "repair"], ["nomute", "repair-files"], ["nomute", "rooms"]]) void qc.invalidateQueries({ queryKey: k });
@@ -77,7 +78,7 @@ export function RepairDesk({ lead, tail, active = true, page = false }: { lead?:
     <div className={page ? "flex flex-col" : "flex min-h-0 flex-1 flex-col overflow-y-auto"}>
       <div className={`mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-8 ${page ? "pt-2" : "pt-[48px]"}`}>   {/* 위 여백 = 떠 있는 머리(사진+이름 · ui/shell.css .nm-head) */}
         {lead}
-        <form className="rounded-3xl border border-border bg-card p-3" onSubmit={(e) => { e.preventDefault(); void send(); }}>
+        <form className="rounded-3xl border border-border bg-card p-3" onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 접수 단추 누름(게이지 단추가 받음 · room-color 이름 바꾸기와 같은 길) */}
           <p className="text-sm font-semibold">수리 접수</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <input className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm" placeholder="[화면] 회의실 단추가 안 눌림" aria-label="[구분] 항목 한 줄"
@@ -86,7 +87,7 @@ export function RepairDesk({ lead, tail, active = true, page = false }: { lead?:
               <input ref={fileRef} type="file" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] || null)} disabled={busy} />
               <span className="max-w-[12rem] truncate">{file ? file.name : "명세서 고르기"}</span>
             </label>
-            <button type="submit" className="rounded-xl bg-foreground px-4 py-2 text-sm text-background disabled:opacity-50" disabled={busy || !text.trim()}>{busy ? "보내는 중…" : "접수"}</button>
+            <GoButton type="submit" className="rounded-xl bg-foreground px-4 py-2 text-sm text-background disabled:opacity-50" disabled={busy || !text.trim()} go={send}>접수</GoButton>
           </div>
           {err ? <p className="mt-2 text-xs text-destructive" role="alert">{err}</p> : null}
         </form>

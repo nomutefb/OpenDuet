@@ -98,7 +98,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
     mutationFn: (body: Record<string, unknown>) => office("room-timers", { method: "POST", body: JSON.stringify({ room: room.id, ...body }) }),
     onSuccess: async (_r, body) => {
       await qc.invalidateQueries({ queryKey: ["nomute", "room-timers"] });
-      if (body.off) onClose(); else setSaved(true);
+      if (!body.off) setSaved(true);   // 지우기 = 창 닫기는 ✓ 뒤(GoButton done)
     },
   });
   const save = () => saveRoomRoutine(f, skip, go.mutateAsync, setSaving);
@@ -160,7 +160,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
             <div className="nm-rr-sure">
               <span>이 방 루틴을 지울까?</span>
               <button type="button" onClick={() => setSure(false)}>아니</button>
-              <button type="button" disabled={saving || go.isPending} onClick={() => go.mutate({ off: true })}>지우기</button>
+              <GoButton disabled={saving || go.isPending} go={() => go.mutateAsync({ off: true })} done={onClose} busy="지우는 중">지우기</GoButton>
             </div>
           ) : <button type="button" className="nm-rr-del" disabled={saving} onClick={() => setSure(true)}>루틴 지우기</button>
         ) : null}

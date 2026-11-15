@@ -2,9 +2,9 @@
 //   누름 = 서버 길 한 번(POST · /api/snsretry · /api/chanretry?src=) → 러너가 수집 → 끝 = 읽은 판의 시각 칸(updated · generated_kst)이 바뀌면 ✓
 //   도는 동안 30초마다 다시 읽음 · 15분 안에 새 판이 안 오면 「다시」 · 도는 중 · 보내는 중엔 다시 안 눌림(겹쳐 쏘기 0)
 import { useEffect, useRef, useState } from "react";
+import { GoButton } from "./go-button";
 import { YICO } from "./yeta-icons";
 
-type St = { k: "idle" | "send" | "run" | "done" | "err"; base?: string; at?: number; msg?: string };
 const POLL_MS = 30_000, GIVE_UP_MS = 15 * 60_000;
 
 /** 서버 답 = { ok: true } · 실패 = { error } (functions/api/snsretry.js · chanretry.js) */
@@ -15,30 +15,32 @@ export async function firePost(url: string): Promise<void> {
 }
 
 export function FreshBtn({ url, upd, refetch, noun }: { url: string; upd: string; refetch: () => void; noun: string }) {
-  const [st, setSt] = useState<St>({ k: "idle" });
+  // 단추 = 게이지 알약 하나(./go-button · 형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」) — 보냄 = 게이지 · 러너 수집 기다림 = wait(빙글) · 새 판 = ✓ · 15분 넘음 = 실패 길
+  const [msg, setMsg] = useState("");
   const again = useRef(refetch); again.current = refetch;
-  useEffect(() => { if (st.k === "run" && upd && upd !== st.base) setSt({ k: "done" }); }, [upd, st]);
-  useEffect(() => {
-    if (st.k !== "run") return;
-    const t = window.setInterval(() => {
-      if (Date.now() - (st.at || 0) > GIVE_UP_MS) { setSt({ k: "err", msg: "15분 안에 새 판이 안 왔어" }); return; }
-      again.current();
-    }, POLL_MS);
-    return () => window.clearInterval(t);
-  }, [st]);
-  const click = async () => {
-    if (st.k === "send" || st.k === "run") return;
-    setSt({ k: "send" });
-    try { await firePost(url); setSt({ k: "run", base: upd, at: Date.now() }); }
-    catch (e) { setSt({ k: "err", msg: e instanceof Error ? e.message : String(e) }); }
+  const now = useRef(upd); now.current = upd;
+  const timer = useRef(0);
+  useEffect(() => () => window.clearInterval(timer.current), []);
+  const fire = async () => {
+    setMsg("");
+    try { await firePost(url); return now.current; }
+    catch (e) { setMsg(e instanceof Error ? e.message : String(e)); throw e; }
   };
-  const label = st.k === "send" ? "보내는 중…" : st.k === "run" ? `${noun} 수집 중…` : st.k === "done" ? "새로 받음 ✓" : st.k === "err" ? "못 했어 · 다시" : "새로 수집";
+  const wait = (base: string) => new Promise<boolean>((ok) => {   // 읽은 판의 시각 칸이 바뀌면 끝 · 30초마다 다시 읽음
+    const t0 = Date.now(); let last = t0;
+    window.clearInterval(timer.current);
+    timer.current = window.setInterval(() => {
+      if (now.current && now.current !== base) { window.clearInterval(timer.current); ok(true); return; }
+      if (Date.now() - t0 > GIVE_UP_MS) { window.clearInterval(timer.current); setMsg("15분 안에 새 판이 안 왔어"); ok(false); return; }
+      if (Date.now() - last >= POLL_MS) { last = Date.now(); again.current(); }
+    }, 1000);
+  });
   return (
     <>
-      <button type="button" className="ypc-go" onClick={click} disabled={st.k === "send" || st.k === "run"} aria-busy={st.k === "send" || st.k === "run"}>
-        {label} {st.k === "idle" || st.k === "err" ? <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /> : null}
-      </button>
-      {st.k === "err" && st.msg ? <p className="nm-chan-msg" role="alert">{st.msg}</p> : null}
+      <GoButton className="ypc-go" go={fire} wait={wait} waiting={`${noun} 수집 중`}>
+        {msg ? "못 했어 · 다시" : "새로 수집"} <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />
+      </GoButton>
+      {msg ? <p className="nm-chan-msg" role="alert">{msg}</p> : null}
     </>
   );
 }

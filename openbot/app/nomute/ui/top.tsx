@@ -6,6 +6,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { DuetIcon } from "@/components/duet/icons";
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { FaceImg } from "./faces";
 import { RoomRoutineSheet, routineLabel, routineRoom, useRoomTimers } from "./room-routine";
 import { useRoomMenu } from "./room-menu";
@@ -66,6 +67,12 @@ export function NomuteName({ room }: { room?: string } = {}) {
     catch (e) { setWhy(e instanceof Error ? e.message : String(e)); }
     finally { setBusy(false); setGoing(""); }
   };
+  const invite = async () => {   // 「N명 넣기」 = 게이지 알약(형 11-15 「하네스 전반 통일」) · 실패 = 이유 적고 throw · 명단 접기 · 목록 새로 읽기 = ✓ 뒤(done)
+    setBusy(true); setWhy("");
+    try { await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members: [...(r.members || []), ...pick] }) }); }
+    catch (e) { setWhy(e instanceof Error ? e.message : String(e)); throw e; }
+    finally { setBusy(false); }
+  };
   if (!ids.length && !can && !menu.items) return <span className="nm-top-name">{name}{mark}</span>;   // 목록에 넣을 게 없는 방(둘의 방 등) = 이름만
   const crewSec = ids.length > 0 || edit || !!menu.crew;
   return (   // 단톡 = 이름 옆 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」) + 방 메뉴
@@ -80,7 +87,7 @@ export function NomuteName({ room }: { room?: string } = {}) {
               <button type="button" className="nm-top-inv" aria-expanded={inv} onClick={() => setInv((v) => !v)}>{inv ? "접기" : "+ 초대"}</button>
               <span className={`nm-top-invlist${inv ? " on" : ""}`}>
                 {outside.map((x) => <label key={x.who} className="nm-top-one"><input type="checkbox" checked={pick.includes(x.who)} onChange={() => setPick((p) => (p.includes(x.who) ? p.filter((w) => w !== x.who) : [...p, x.who]))} /><FaceImg id={idOf(x.who, list)} size={22} />{x.name || x.who}</label>)}
-                {pick.length ? <button type="button" className="nm-top-invgo" disabled={busy} onClick={() => void saveMembers([...(r.members || []), ...pick]).then(() => { setPick([]); setInv(false); })}>{pick.length}명 넣기</button> : null}
+                {pick.length ? <GoButton className="nm-top-invgo" disabled={busy} go={invite} done={() => { setPick([]); setInv(false); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); }} busy="넣는 중">{`${pick.length}명 넣기`}</GoButton> : null}
               </span>
             </>
           ) : null}

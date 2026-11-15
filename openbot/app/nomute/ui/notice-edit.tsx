@@ -48,7 +48,7 @@ export function NoticeDialog({ onClose }: { onClose: () => void }) {
           <GoButton disabled={same || save.isPending} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={() => save.mutateAsync()} done={onClose} busy="고치는 중">고치기</GoButton>
         </div>
       </div>
-      {g.ask ? <SaveAsk saving={save.isPending} onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { void save.mutateAsync().then(onClose).catch(() => g.setAsk(false)); }} /> : null}
+      {g.ask ? <SaveAsk onKeep={() => g.setAsk(false)} onDiscard={onClose} go={() => save.mutateAsync().catch((e) => { g.setAsk(false); throw e; })} done={onClose} /> : null}
     </div>
   );
 }
