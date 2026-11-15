@@ -62,7 +62,7 @@ export function RoomPhotoCrop({ file, onDone, onClose }: { file: File; onDone: (
     <div className="nrp-veil" role="presentation" onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (e.target === e.currentTarget && !busy) onClose(); }}
       onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()}>   {/* 포털이라도 리액트 누름은 부른 곳(목록 줄 · 방 링크)으로 번짐 → 여기서 끊음 */}
       <div className="nrp" role="dialog" aria-label="방 사진 자리 잡기">
-        <div className="nrp-h"><button type="button" onClick={onClose} disabled={busy}>취소</button><b>방 사진</b><GoButton className="ok" go={done} done={onClose} disabled={!img || busy} busy="올리는 중">완료</GoButton></div>
+        <div className="nrp-h"><button type="button" onClick={onClose} disabled={busy}>취소</button><b>방 사진</b><GoButton className="ok" go={done} done={onClose} away={onClose} what="방 사진 올리기" disabled={!img || busy} busy="올리는 중">완료</GoButton></div>
         <div ref={box} className="nrp-frame" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={wheel}>
           {img ? <img src={url} alt="" draggable={false} style={{ width: `${w}%`, height: `${h}%`, left: `${50 + v.x * 100 - w / 2}%`, top: `${50 + v.y * 100 - h / 2}%` }} /> : bad ? <p className="nrp-bad">그림을 못 읽었어 — 다른 사진으로</p> : null}
           <i className="nrp-mask" aria-hidden />

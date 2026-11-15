@@ -154,13 +154,13 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
         </fieldset>
         {go.error ? <p className="nm-rr-note" role="alert">못 바꿈 — {go.error instanceof Error ? go.error.message : "다시 해 줘"}</p> : null}
         {saved ? <p className="nm-rr-note" role="status">{!f.on ? "저장했어 · 꺼 둠" : next ? `저장했어 · 다음 울림 ${next}` : "저장했어"}</p> : null}
-        <GoButton className="nm-rr-save" disabled={!ready || go.isPending} go={save} done={onClose} busy="저장하는 중">저장</GoButton>   {/* 공통 게이지 → ✓를 끝까지 보여 준 뒤 닫음 · 실패는 창과 이유를 유지 */}
+        <GoButton className="nm-rr-save" disabled={!ready || go.isPending} go={save} done={onClose} away={onClose} what="루틴 저장" busy="저장하는 중">저장</GoButton>   {/* 공통 게이지 → ✓를 끝까지 보여 준 뒤 닫음 · 실패는 창과 이유를 유지 */}
         {timer ? (
           sure ? (
             <div className="nm-rr-sure">
               <span>이 방 루틴을 지울까?</span>
               <button type="button" onClick={() => setSure(false)}>아니</button>
-              <GoButton disabled={saving || go.isPending} go={() => go.mutateAsync({ off: true })} done={onClose} busy="지우는 중">지우기</GoButton>
+              <GoButton disabled={saving || go.isPending} go={() => go.mutateAsync({ off: true })} done={onClose} away={onClose} what="루틴 지우기" busy="지우는 중">지우기</GoButton>
             </div>
           ) : <button type="button" className="nm-rr-del" disabled={saving} onClick={() => setSure(true)}>루틴 지우기</button>
         ) : null}

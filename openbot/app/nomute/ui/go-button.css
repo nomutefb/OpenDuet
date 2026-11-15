@@ -23,3 +23,11 @@
   .nm-go-spin { animation-duration:2s; }
 }
 .nm-go-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }   /* 「보내는 중」 = 화면엔 안 보임 · 읽어 주기만(형 11-07 13:23) */
+
+/* away 단추 = 짧은 리듬(게이지 .4초 · 창을 붙잡지 않음 · 형 11-15) */
+.nm-go[data-quick][data-stage="fill"] { animation-duration:.4s; }
+/* 화면 아래 알림 한 줄(./flash.ts) — 창이 닫힌 뒤 뒤에서 못 한 일을 알림 · 움직임 = transform · opacity 만 */
+.nm-flash { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 96px); z-index:200; max-width:min(92vw, 420px); padding:10px 14px; border-radius:14px; font-size:14px; line-height:1.4; color:#fff; background:rgba(28,22,22,.92); border:1px solid rgba(255,95,109,.55); box-shadow:0 10px 30px rgba(0,0,0,.35); transform:translate(-50%, 0); animation:nmFlashIn .28s cubic-bezier(.22,.61,.36,1) both; cursor:pointer; }
+.nm-flash.out { opacity:0; transform:translate(-50%, 8px); transition:opacity .28s, transform .28s; }
+@keyframes nmFlashIn { from { opacity:0; transform:translate(-50%, 12px); } to { opacity:1; transform:translate(-50%, 0); } }
+@media (prefers-reduced-motion:reduce) { .nm-flash { animation:none; } }

@@ -119,7 +119,7 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
           {members.map((w) => <button key={w} type="button" className="row" aria-pressed={pick.has(w)} onClick={() => flip(w)}>{list.find((p) => p.who === w)?.name || w}</button>)}
         </div>
         {err ? <p role="alert" className="nm-meet-err">{err}</p> : null}
-        <div className="nrc-acts"><GoButton className="nrc-ok" disabled={!pick.size || busy} go={must(go)} done={onClose} busy="내보내는 중">내보내기</GoButton></div>
+        <div className="nrc-acts"><GoButton className="nrc-ok" disabled={!pick.size || busy} go={must(go)} done={onClose} away={onClose} what="내보내기" busy="내보내는 중">내보내기</GoButton></div>
       </div>
     </div>,
     document.body,
