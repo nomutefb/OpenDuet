@@ -18,7 +18,7 @@ import "./feed.css";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { type MouseEvent as RME, type PointerEvent as RPE, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
-import { type Art, biasOf, catOf, getJson, inAppClick, newsListQuery, outletName, progOf, sensOf, thumbOf, useGo } from "./news-data";
+import { type Art, biasOf, catOf, getJson, inAppClick, newsListQuery, outletName, progOf, sensOf, thumbAltOf, thumbFail, thumbOf, useGo } from "./news-data";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
 
@@ -147,7 +147,7 @@ function Row({ a, go, onOpen, rt, onRetry, onNote }: { a: FArt; go: (p: string) 
               : <i key={lb} className={i < pr.done ? "done" : i === pr.done && pr.busy ? "cur" : i === pr.done && pr.fail ? "fail" : undefined}>{lb}</i>)}
           </span>
         </span>
-        {th ? <img className="nm-news-th" src={th} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.hidden = true; }} /> : null}
+        {th ? <img className="nm-news-th" src={th} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={thumbFail(thumbAltOf(a))} /> : null}
       </div>
     </li>
   );

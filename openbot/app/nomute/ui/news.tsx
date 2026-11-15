@@ -13,7 +13,7 @@ import "./news.css";
 import { useQuery } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { type Art, catOf, mediaOf, newsListQuery, thumbOf, useGo, whenOf } from "./news-data";
+import { type Art, catOf, mediaOf, newsListQuery, thumbAltOf, thumbFail, thumbOf, useGo, whenOf } from "./news-data";
 import { NewsDetail } from "./news-detail";
 import { Pane } from "./pane";
 import { YICO } from "./yeta-icons";
@@ -73,7 +73,7 @@ export function NewsModal() {
                           <span className="nm-news-t">{a.title || "(제목 없음)"}</span>
                           {a.summary ? <span className="nm-news-s">{a.summary}</span> : null}
                         </span>
-                        {th ? <img className="nm-news-th" src={th} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.hidden = true; }} /> : null}
+                        {th ? <img className="nm-news-th" src={th} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={thumbFail(thumbAltOf(a))} /> : null}
                       </button>
                     </li>
                   );
