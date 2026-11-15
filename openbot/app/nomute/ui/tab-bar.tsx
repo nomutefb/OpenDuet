@@ -13,6 +13,7 @@ import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:
 import { COBROWSE_EVENT } from "./cobrowse";
 import { TEAMS_PREFIX, TeamsBell, TeamsList, isTeams, useTeamsUnread } from "./teams";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
+import { okTabUrl, wireTitleBar } from "./title-bar";   // 탭 줄 = 창 맨 위 제목 줄(맥 앱 · 윈도우 PWA · 형 11-16 07:56)
 import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀즈 | 회의」 탭도 같이 씀(./teams.tsx TeamsSwitch · 형 11-13 22:14)
 
 // 첫 탭 = 「봄의 정원」(형 11-12 06:23 봄 1:1 「기본적으로 탭형태를 갖춰서. 봄의 정원. 이라고 나오게해줘. 그리고 거기서 +가 나오게 크롬형태를 참고하면 될거같애」
@@ -44,6 +45,12 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const ppl = useQuery({ queryKey: ["nomute", "people-tabs"], queryFn: () => people(), staleTime: 60_000 });
   const list: OfficePerson[] = ppl.data || [];
   useEffect(() => { try { localStorage.setItem(TABS_KEY, tabsSave(s)); } catch { /* 저장 못 쓰면 이번 판만 */ } }, [s]);
+  useEffect(() => wireTitleBar(), []);   // 맥 앱 빈 자리 끌기 · 두 번 = 키우기 · nm-macapp-ready(뜸 ②④)
+  useEffect(() => {   // 맥 앱 새 창 링크 → 이 탭 줄 Browser 탭(뜸 ③ · 형 07:56 「그러면 브라우저는 일단 필요없는거 같은데」) · 탭 줄이 없으면(폰) 이 줄도 없음 = 맥 앱이 기본 브라우저로
+    const w = window as unknown as { __nmOpenTab?: (u: string) => boolean };
+    w.__nmOpenTab = (u: string) => { if (!okTabUrl(u)) return false; setS((x) => tabsAdd(x, { ...webTabNew(), url: u })); return true; };
+    return () => { delete w.__nmOpenTab; };
+  }, []);
   const first = useRef(true);
   useEffect(() => {   // 방·판을 옮기면(얼굴 띠 · 목록 누름) 화면 탭은 덮개를 내리고 대시보드로 · 방 탭은 안 만듦(형 09:29)
     if (first.current) { first.current = false; return; }
@@ -154,6 +161,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const paneOn = s.active.startsWith("s:") || s.active.startsWith("w:") || s.active === "co" || s.active === MEET || s.active === TEAMS;
   return (
     <>
+      <i className="nm-tb-drag" aria-hidden />   {/* 제목 줄 끌기 띠(맥 앱 · 윈도우 PWA 에서만 보임 · ./tab-bar.css) */}
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
         <i ref={ink} className="nm-tabs-ink" data-dir="none" aria-hidden />   {/* 고른 자리 = 아래 판과 한 몸인 면 하나(탭마다 바탕을 갖지 않음 → 옮겨 갈 때 미끄러짐) */}
         <div role="tab" aria-selected={s.active === "dash"} tabIndex={0} title={GARDEN} className={`nm-tab dash garden${s.active === "dash" ? " on" : ""}`}
