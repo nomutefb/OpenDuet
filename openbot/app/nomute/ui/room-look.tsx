@@ -64,7 +64,7 @@ export function RoomLookDialog({ r, onClose }: { r: OfficeRoom; onClose: () => v
           </div>
         )}
         {why ? <p className="nrl-why" role="alert">{why}</p> : null}
-        <div className="nrl-ft"><button type="button" onClick={g.request}>닫기</button><GoButton className="ok" disabled={busy} go={must(save)} done={onClose} busy="저장 중">저장</GoButton></div>
+        <div className="nrl-ft"><button type="button" onClick={g.request}>닫기</button><GoButton className="ok" disabled={busy} go={must(save)} done={onClose} away={onClose} what="방 꾸미기 저장" busy="저장 중">저장</GoButton></div>
       </div>
       {g.ask ? <SaveAsk onKeep={() => g.setAsk(false)} onDiscard={onClose} go={async () => { if (!(await save())) { g.setAsk(false); throw new Error(""); } }} done={onClose} /> : null}
     </div>,

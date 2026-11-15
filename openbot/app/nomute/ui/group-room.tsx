@@ -54,7 +54,7 @@ export function GroupRoomDialog({ room, onClose }: { room: OfficeRoom; onClose: 
           <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요 · 비우면 지워져요</small>
         </label>
         {err || rules.isError ? <p role="alert" className="nm-meet-err">{err || "지침을 못 읽었어"}</p> : null}
-        <div className="nrc-acts"><GoButton className="nrc-ok" disabled={busy || rules.isLoading || !dirty} go={must(save)} done={onClose} busy="저장 중">저장</GoButton></div>
+        <div className="nrc-acts"><GoButton className="nrc-ok" disabled={busy || rules.isLoading || !dirty} go={must(save)} done={onClose} away={onClose} what="방 설정 저장" busy="저장 중">저장</GoButton></div>
       </div>
       {g.ask ? <CloseAsk busy={busy} onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}
     </div>,

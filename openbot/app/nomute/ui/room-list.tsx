@@ -393,7 +393,7 @@ function NotifyPicPick({ name, url, save, onClose }: { name: string; url: string
         <div className="nrc-head"><b>알림 그림</b></div>
         <img src={url} alt="" className="nm-npic" />
         <div className="nrc-acts">
-          <GoButton className="nrc-x" go={save} done={onClose} busy="저장 중">저장</GoButton>
+          <GoButton className="nrc-x" go={save} done={onClose} away={onClose} what="저장" busy="저장 중">저장</GoButton>
         </div>
       </div>
       {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}

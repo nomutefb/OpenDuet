@@ -61,7 +61,7 @@ export function AddRoutine({ bots, bot0 = "", fork, sha, phone, onClose, onDone 
           {(stage === "ask" || stage === "send") && pre ? <span className="min-w-0 flex-1">다음 깸 <b>{pre.preview?.next_at ? nextShort(pre.preview.next_at) : "없음"}</b> · 하루 <b>{pre.preview?.day_max ?? "?"}</b>번</span> : <span className="min-w-0 flex-1">{ready ? "" : "누구에게 · 이름 · 할 일을 채워 줘"}</span>}
           {stage === "ask" ? <button type="button" className="nm-sched-chip" onClick={() => { setStage("edit"); setPre(null); }}>고치기</button> : null}
           {stage === "edit" || stage === "dry" ? <GoButton key="dry" className="nm-sched-go" disabled={!ready} go={() => call(true)} done={(r) => { setPre(r); setStage("ask"); }} busy="보는 중">미리 보기</GoButton> : null}
-          {stage === "ask" || stage === "send" ? <GoButton key="add" className="nm-sched-go" go={() => call(false)} done={(r) => onDone(`「${r.name || name}」 만들었어${r.checked ? " · 표에 들어감" : ""}`)} busy="만드는 중">만들기</GoButton> : null}
+          {stage === "ask" || stage === "send" ? <GoButton key="add" className="nm-sched-go" go={() => call(false)} done={(r) => onDone(`「${r.name || name}」 만들었어${r.checked ? " · 표에 들어감" : ""}`)} away={onClose} what="일 만들기" busy="만드는 중">만들기</GoButton> : null}
         </footer>
       </section>
     </div>
