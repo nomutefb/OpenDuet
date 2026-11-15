@@ -798,6 +798,30 @@
 }
 @media (prefers-reduced-motion: reduce) { .bc-thunder .bc-bolt { animation: none; } }
 
+/* ───────── 윈터 · 눈 내리는 남색 밤 + 주황 등불(being-card.tsx LOOKS winter · 형 11-15 18:36 봄 옮김 「윈터 카드좀」 · 눈 = 그림 한 장 · 움직임 = 🏮 불빛 숨 opacity 만 · 시아) ───────── */
+.being-card-wrap .bc-winter .profile-card__body { background: linear-gradient(170deg, rgba(28, 40, 92, 0.93) 0%, rgba(10, 16, 44, 0.96) 100%); }
+.being-card-wrap .bc-winter .profile-card__tile {
+  background:
+    radial-gradient(1.6px 1.6px at 12% 18%, rgba(255, 255, 255, 0.85) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 34% 9%, rgba(255, 255, 255, 0.7) 50%, transparent 51%),
+    radial-gradient(1.8px 1.8px at 68% 14%, rgba(255, 255, 255, 0.8) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 86% 26%, rgba(255, 255, 255, 0.65) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 22% 38%, rgba(255, 255, 255, 0.6) 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 78% 44%, rgba(255, 255, 255, 0.55) 50%, transparent 51%),
+    radial-gradient(70% 45% at 50% 96%, rgba(255, 179, 71, 0.35) 0%, transparent 70%),
+    radial-gradient(120% 90% at 50% 16%, #3a4fa6 0%, #1c2a68 48%, #0b1236 100%);
+}
+.bc-winter .bc-ring { border-color: rgba(255, 179, 71, 0.55); box-shadow: 0 0 18px rgba(255, 179, 71, 0.25); }
+.bc-winter .bc-lamp {
+  right: 13%; top: 8%;
+  font-size: 26px; line-height: 1;
+  filter: drop-shadow(0 0 9px rgba(255, 179, 71, 0.95));
+  transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0);
+  animation: bc-lamp 5.6s ease-in-out infinite;
+}
+@keyframes bc-lamp { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }   /* 등불 숨(불투명도만 · 그리기 다시 0) */
+@media (prefers-reduced-motion: reduce) { .bc-winter .bc-lamp { animation: none; } }
+
 /* ───────── 소나 · 비 오는 파란 하늘 + 무지개 테 + ☂(being-card.tsx LOOKS sona · 소나 11-15 10:11 「비 오는 파란 하늘 + 투명 우비 · 우산 무늬 · 무지개 테」 · 빗줄기 = 그림 한 장 · 움직임 0 · 뜸) ───────── */
 .being-card-wrap .bc-sona .profile-card__body { background: linear-gradient(170deg, rgba(48, 92, 150, 0.92) 0%, rgba(18, 36, 70, 0.95) 100%); }
 .being-card-wrap .bc-sona .profile-card__tile {
@@ -876,6 +900,7 @@
   .bc-tmpl .bc-ring { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
   .bc-thunder .bc-bolt { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
   .bc-sona .bc-umb { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-winter .bc-lamp { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
   .bc-eyes .bc-stars { transform: translate(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5)); will-change: auto; }
   .bc-eyes .bc-rays { transform: translate(calc(-50% + var(--pc-shift-x) * -0.2), calc(-50% + var(--pc-shift-y) * -0.2)); will-change: auto; }
   .bc-eyes .bc-sun { transform: translate(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
