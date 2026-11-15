@@ -34,7 +34,7 @@ export function GoButton<T>({ go, children, className = "", disabled, busy = "�
         if (first === null) {   // 답이 늦음 = 창 먼저 닫고 뒤에서 마무리
           const name = what || (typeof children === "string" ? children : "");
           away();
-          void job.then((r) => { done?.(r); }, (e: unknown) => { const m = e instanceof Error ? e.message : ""; flash(`${name ? `「${name}」 ` : ""}못 했어 — 다시 해 줘${m ? ` (${m})` : ""}`); });
+          void job.then((r) => { done?.(r); if (name) flash(`「${name}」 됐어`, "ok"); }, (e: unknown) => { const m = e instanceof Error ? e.message : ""; flash(`${name ? `「${name}」 ` : ""}못 했어 — 다시 해 줘${m ? ` (${m})` : ""}`); });
           if (live.current) setSt("idle");
           return;
         }

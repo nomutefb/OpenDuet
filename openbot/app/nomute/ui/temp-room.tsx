@@ -1,5 +1,6 @@
 // 임시 단톡방 만들기·고치기(형 10-31 「내가 + 눌러서 임시 단톡방 만들수있게해주라. 시간 지나면 파기되고 자동으로」 · 「누구 초대할지 고를 수 있고. 목적 쓸수있게」)
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
+import { YesNo } from "./ask-yn";   // 되묻는 창 하네스 = 아니오 라임 · 예는 뒤에서(형 11-15 09:00)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { resetRoomArt, useRoomArtSrc } from "./room-art";
 import { useRoomPhoto } from "./room-photo";
@@ -162,10 +163,7 @@ export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClos
         <b className="text-base">정말 지울까?</b>
         <p className="text-muted-foreground">「{r.name}」 방의 글이 모두 지워지고 되돌릴 수 없어. 첨부 파일은 저장소에 남아.</p>
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
-        <div className="flex justify-end gap-2">
-          <GoButton className="rounded-full bg-destructive px-4 py-2 font-semibold text-white disabled:opacity-40" go={drop} done={() => { onClose(); onGone(); }} away={onClose} what="방 지우기" busy="지우는 중">예</GoButton>
-          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>아니오</button>
-        </div>
+        <YesNo onNo={onClose} yes={drop} close={onClose} done={() => { onClose(); onGone(); }} what="방 지우기" busy="지우는 중" />
       </div>
     </div>
   );
@@ -193,10 +191,7 @@ export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: 
         <b className="text-base">「{r.name}」 정말 없앨까?</b>
         <p className="text-muted-foreground">없애면 대화 목록·설정·부름에서 빠지고 이 방엔 더 못 써. 쌓인 글은 서버에 남겨 둬서 되살릴 수 있어.</p>
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
-        <div className="flex justify-end gap-2">
-          <GoButton className="rounded-full bg-destructive px-4 py-2 font-semibold text-white disabled:opacity-40" go={drop} done={() => { onClose(); onGone?.(); }} away={onClose} what="방 없애기" busy="없애는 중">없애기</GoButton>
-          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>그만두기</button>
-        </div>
+        <YesNo onNo={onClose} yes={drop} close={onClose} done={() => { onClose(); onGone?.(); }} what="방 없애기" busy="없애는 중" />
       </div>
     </div>
   );
