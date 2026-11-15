@@ -387,3 +387,9 @@ button:is(.ncs-x, .ypk-x, .gy-x):active, :is(.nm-decpop, .nm-story-pop) header >
 /* 다이제스트 기사 = 둥근 상자 걷고 기사 사이 구분선 하나(형 08:55 「기사마다 모서리 둥근 박스 안에 들어가게 되어있는데, 그냥 기사마다 구분선 하나로 퉁칠게 … 위에 기사 구분한거랑 동일한 형태야」 · ⑧ · 홈 Digest 만 · 뉴스 에디터 카드는 그대로) */
 .nm-nsum .nm-nsum-ol .nm-sumc.lean { border:0 !important; border-radius:0 !important; background:none !important; box-shadow:none !important; }
 .nm-nsum .nm-nsum-ol > li + li { border-top:1px solid rgba(255,255,255,.06); }
+
+/* 서랍 위 탭 줄(./shell.tsx DrawerTabs · 형 11-15 「설정을 제외한 모든영역을 탭처럼 구성」) = 폴더 탭 옷은 ./teams.css 그대로 · 여기선 자리만 — 줄은 스크롤 판 위에 붙박이, 판은 그 밑에서 시작 */
+.nm-tswitch.fold.nm-dtabs { flex:none; margin:10px 14px 0; }
+.nm-modal-b.flush > .nm-tswitch.fold.nm-dtabs { margin-top:calc(10px + env(safe-area-inset-top)); }
+.nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) > .nm-modal-b.flush > .nm-dtabs + .nm-scroll { padding-top:10px; }
+.nm-split-l .nm-tswitch.fold.nm-dtabs .nm-ftab.on { flex:0 0 200px; }   /* PC = 고른 탭이 줄 끝까지 늘어나지 않게(뉴스 에디터 탭과 같음) */
