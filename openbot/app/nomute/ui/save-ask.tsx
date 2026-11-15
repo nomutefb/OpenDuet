@@ -45,8 +45,10 @@ export function SaveAsk({ go, done, onDiscard, onKeep }: { go: () => Promise<unk
     <div role="alertdialog" aria-modal="true" aria-label="저장하시겠습니까?" className="fixed inset-0 z-[70] grid place-items-center bg-black/30 p-4" {...backdrop(onKeep)}>
       <div className="flex items-center gap-3 rounded-xl border border-border bg-popover py-2 pl-4 pr-2 text-sm shadow-lg">
         <span>저장하시겠습니까?</span>
-        <button type="button" className="rounded-lg px-3 py-1.5 hover:bg-foreground/5" onClick={onDiscard}>아니오</button>
-        <GoButton autoFocus className="rounded-lg bg-foreground px-3 py-1.5 font-semibold text-background disabled:opacity-40" go={go} done={done} busy="저장 중">예</GoButton>
+        <span className="nm-yn sm">   {/* 재확인 단추 한 벌(./go-button.css .nm-yn · 형 11-16) — 여기선 예(저장)가 안전한 쪽 = 앞 알약(.pick) */}
+        <button type="button" onClick={onDiscard}>아니오</button>
+        <GoButton autoFocus className="pick" go={go} done={done} busy="저장 중">예</GoButton>
+        </span>
       </div>
     </div>
   );

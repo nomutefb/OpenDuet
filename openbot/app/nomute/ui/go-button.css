@@ -41,5 +41,33 @@
 .nm-yn-box { width:min(100%, 340px); display:flex; flex-direction:column; gap:12px; padding:18px 16px 14px; border-radius:18px; border:1px solid color-mix(in srgb, currentColor 12%, transparent); background:var(--popover, #1b1c1f); color:var(--popover-foreground, #eee); box-shadow:0 18px 50px rgba(0,0,0,.45); }
 .nm-yn-q { margin:0; font-size:16px; font-weight:600; text-align:center; text-wrap:balance; }
 .nm-yn-note { margin:0; font-size:13px; opacity:.7; text-align:center; }
+/* 재확인 단추 = 붙은 알약 둘 + 번짐 전환(형 11-16 02:2x 영상 「Mark as Done → Done | Undo」 · 「재확인 버튼 … 60프레임으로 구현한 거로 다 통일할게 인엡안에.모두」)
+   꼴 = 앞 알약(라임 = 안전한 쪽 · .no / .nm-no / .pick)이 뒤 알약(보통) 왼쪽 끝을 덮음 · 글 차례가 어떻든 화면에선 앞 알약이 왼쪽
+   나타남 = 한 덩이에서 번지며 갈라짐(뒤 알약이 앞 알약 밑에서 나옴) · 「예」가 도는 동안 = 다른 알약은 번지며 사라지고 도는 알약이 가운데로
+   움직임 = transform · opacity · filter 만(합성 층 = 60fps · 배치를 다시 안 셈) · 「움직임 줄이기」 = 움직임 0
+   쓰는 자리 = ask-yn(YesNo · AskYN) · save-ask(CloseAsk · SaveAsk) · msg-menu 글 삭제 · meet 회의 종료 · room-menu 모두 내보내기 · task-panel 취소 · sched-desk 지우기 · sched-review 폐기
+   위 .nm-yn 세 줄(옛 꼴)은 그대로 두고 이 묶음이 덮음(둘 겹 클래스 = 자리마다 있던 옛 단추 줄보다 셈) */
+.nm-yn.nm-yn { display:flex; flex-wrap:nowrap; gap:0; isolation:isolate; --yn-lap:18px; --yn-pad:16px; --yn-e:cubic-bezier(.22,1,.36,1); }
+.nm-yn.nm-yn > button { appearance:none; -webkit-appearance:none; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; flex:1 1 0; width:auto; height:auto; min-width:0; min-height:44px;
+  padding:0 var(--yn-pad) 0 calc(var(--yn-pad) + var(--yn-lap)); margin:0 0 0 calc(-1 * var(--yn-lap)); border-radius:999px; border-width:1px; border-style:solid; box-shadow:none;
+  font:inherit; font-size:16px; font-weight:700; line-height:1.2; white-space:nowrap; text-align:center; text-decoration:none; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  order:1; position:relative; z-index:0; transition:transform .18s var(--yn-e), opacity .28s var(--yn-e), filter .28s var(--yn-e); }   /* 색(글 · 테 · 바탕) · 나타남은 아래 「쉬는 단추」 줄 = 게이지 단추 단계 색을 안 덮음 */
+.nm-yn.nm-yn > button:is(.no, .nm-no, .pick) { order:0; z-index:1; margin-left:0; padding-left:var(--yn-pad); }
+.nm-yn.nm-yn > button:only-child { margin-left:0; padding-left:var(--yn-pad); }
+/* 색 · 나타남 = 쉬는 단추만(게이지 단추가 도는 단계 색 · 흔들림은 go-button 몫 그대로) */
+.nm-yn.nm-yn > button:is(:not([data-stage]), [data-stage="idle"]) { color:inherit; border-color:color-mix(in srgb, currentColor 18%, transparent); background:color-mix(in srgb, currentColor 6%, transparent); animation:nmYnBack .52s var(--yn-e) backwards; }
+.nm-yn.nm-yn > button:is(.no, .nm-no, .pick):is(:not([data-stage]), [data-stage="idle"]) { border-color:var(--accent, #CFFF40); background:var(--accent, #CFFF40); color:#141414; animation:nmYnFront .4s var(--yn-e) backwards; }
+.nm-yn.nm-yn > button:active { transform:scale(.96); }
+.nm-yn.nm-yn > button:focus-visible { outline:2px solid var(--accent, #CFFF40); outline-offset:2px; }
+.nm-yn.nm-yn > button:disabled { opacity:.5; cursor:default; }
+/* 「예」가 도는 동안 = 나머지는 번지며 사라짐 · 도는 알약(뒤 알약일 때)은 글이 묶음 가운데에 오게 */
+.nm-yn.nm-yn:has(> .nm-go:is([data-stage="fill"], [data-stage="wait"], [data-stage="ok"])) > button:not(.nm-go) { opacity:0; transform:scale(.92); filter:blur(6px); pointer-events:none; }
+.nm-yn.nm-yn:not(.sm) > .nm-go:not(.pick):is([data-stage="fill"], [data-stage="wait"], [data-stage="ok"]) { transform:translateX(-50%); transition:transform .42s var(--yn-e); }
+@keyframes nmYnFront { from { opacity:0; transform:scale(.92); filter:blur(6px); } }
+@keyframes nmYnBack { 0% { opacity:0; transform:translateX(-32%) scale(.92); filter:blur(6px); } 35% { opacity:0; } }
+/* 작은 판(줄 안 물음 = 할 일 취소 · 스케줄 지우기 · 폐기 · 회의 종료 · 저장 물음) = 글 너비 알약 */
+.nm-yn.nm-yn.sm { display:inline-flex; flex:none; --yn-lap:13px; --yn-pad:13px; }
+.nm-yn.nm-yn.sm > button { flex:0 0 auto; min-height:32px; font-size:13px; }
+@media (prefers-reduced-motion:reduce) { .nm-yn.nm-yn > button { animation:none !important; transition:none; } .nm-yn.nm-yn:has(> .nm-go:is([data-stage="fill"], [data-stage="wait"], [data-stage="ok"])) > button:not(.nm-go) { filter:none; transform:none; } }
 /* 알림 한 줄 — 됐어(라임 테두리) */
 .nm-flash.ok { border-color:rgba(var(--accent-rgb, 207,255,64),.6); background:rgba(22,26,18,.94); }

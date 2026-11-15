@@ -125,7 +125,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
           <>
             {/* 형 11-12 06:13 「삭제 하시겠습니까? 아니오 예 이렇게만 나오면됨. 아니오에 라임색 이면 됨.」 — 설명 글 0 · 아니오(안 지움) = 라임 */}
             <p className="nm-msgm-ask">삭제 하시겠습니까?</p>
-            <div className="nm-msgm-yn">
+            <div className="nm-yn nm-msgm-yn">   {/* 재확인 단추 한 벌(./go-button.css .nm-yn · 형 11-16) */}
               <button type="button" className="no" disabled={busy} onClick={() => setGone(false)}>아니오</button>
               <button type="button" disabled={busy} onClick={() => { onUnsent?.(m.id); onClose(); }}>예</button>   {/* 바로 닫힘 · 서버는 office-chat 이 뒤에서(형 11-12 07:28) */}
             </div>

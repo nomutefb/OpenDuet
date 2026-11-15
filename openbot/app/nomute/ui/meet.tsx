@@ -109,7 +109,7 @@ export function EndAsk({ end }: { end: ReturnType<typeof useMeetEnd> }) {
     <div className="nm-meet-ask" role="dialog" aria-label="회의 종료">
       <b>회의를 종료하시겠습니까?</b>
       {end.why ? <small role="alert">{end.why}</small> : null}
-      <div className="nm-meet-ask-ft"><button type="button" className="no" autoFocus onClick={() => end.setAsk(false)}>아니오</button><button type="button" disabled={end.ending} onClick={() => void end.endNow()}>{end.ending ? <>종료하는 중<Dots /></> : "예"}</button></div>
+      <div className="nm-yn sm nm-meet-yn"><button type="button" className="no" autoFocus onClick={() => end.setAsk(false)}>아니오</button><button type="button" disabled={end.ending} onClick={() => void end.endNow()}>{end.ending ? <>종료하는 중<Dots /></> : "예"}</button></div>
     </div>
   );
 }

@@ -60,7 +60,7 @@ function TaskCard({ c, eta, pos, onRetry, onDismiss }: { c: QCardT; eta: Eta | n
       {fail && (canRe || onDismiss) ? (
         <div className="nm-tk2-acts" onClick={(ev) => ev.stopPropagation()}>
           {ask ? (
-            <><span className="ask">취소 하시겠습니까?</span><button type="button" className="no" onClick={() => setAsk(false)}>아니오</button><button type="button" onClick={() => { setAsk(false); onDismiss?.(it); }}>예</button></>
+            <><span className="ask">취소 하시겠습니까?</span><span className="nm-yn sm"><button type="button" className="no" onClick={() => setAsk(false)}>아니오</button><button type="button" onClick={() => { setAsk(false); onDismiss?.(it); }}>예</button></span></>   /* 재확인 단추 한 벌(./go-button.css .nm-yn · 형 11-16) */
           ) : (
             <>{canRe ? (needArm && !arm ? <button type="button" className="re" onClick={armOn}>다시</button> : <GoButton className={`re${needArm ? " arm" : ""}`} go={redo} done={() => setArm(false)}>{needArm ? "한 번 더" : "다시"}</GoButton>) : null}{onDismiss ? <button type="button" disabled={sending} onClick={() => setAsk(true)}>취소</button> : null}{err ? <span className="nm-tk-err" role="alert">{err}</span> : null}</>
           )}

@@ -28,7 +28,7 @@ export function ReviewBox({ id, r, can, who }: { id: string; r?: Review; can: bo
       <div className="nm-rv" role="alertdialog" aria-label="폐기 확인">
         <b>정말 폐기할까?</b>
         <input value={why} maxLength={300} placeholder="까닭 한 줄(안 써도 돼)" onChange={(e) => setWhy(e.target.value)} />
-        <div className="nm-rv-row">
+        <div className="nm-rv-row nm-yn sm">   {/* 재확인 단추 한 벌(./go-button.css .nm-yn · 형 11-16) — 화면에선 아니오(라임)가 왼쪽 */}
           <GoButton className="nm-sched-go" go={() => post({ act: "ask", ...(why.trim() ? { why: why.trim() } : {}) })} done={fresh}>검토 요청</GoButton>
           <button type="button" className="nm-sched-chip nm-no" onClick={() => { setSure(false); setWhy(""); }}>아니오</button>
         </div>

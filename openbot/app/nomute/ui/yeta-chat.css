@@ -404,10 +404,7 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-msgm-n.err { color:#ff8a8a; }
 /* 삭제 묻는 창(형 11-12 06:13 「삭제 하시겠습니까? 아니오 예 이렇게만 나오면됨. 아니오에 라임색 이면 됨.」 · 뎅) = 물음 한 줄 + 단추 둘 · 아니오 = 라임 */
 .nm-msgm-ask { padding:14px 26px 10px; font-size:var(--fs-body); text-align:center; }
-.nm-msgm-yn { display:flex; gap:10px; padding:6px 18px 8px; }
-.nm-msgm-yn button { flex:1; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:none; color:inherit; font-size:16px; font-weight:700; cursor:pointer; }
-.nm-msgm-yn button.no { border-color:var(--accent, #CFFF40); background:#CFFF40; color:#141414; }
-.nm-msgm-yn button:disabled { opacity:.5; }
+.nm-msgm-yn { padding:6px 18px 8px; }   /* 단추 꼴 = 재확인 단추 한 벌(./go-button.css .nm-yn · 형 11-16) — 여기엔 자리(안쪽 틈)만 */
 
 .nm-npic { display:block; width:96px; height:96px; margin:2px auto; border-radius:20px; object-fit:cover; }   /* 알림 그림 미리보기(NotifyPicPick · 192px 를 반으로) */
 /* 방 상단 = 단톡 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」) */

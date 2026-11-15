@@ -102,8 +102,8 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       {groupEdit && r ? <GroupRoomDialog room={r} onClose={() => setGroupEdit(false)} /> : null}
       {crew && r ? createPortal(<RoomMembersDialog r={r} onClose={() => setCrew(false)} />, document.body) : null}
       {dmRule && r ? <DmRuleDialog room={r} onClose={() => setDmRule(false)} /> : null}
-      {gone ? createPortal(<RoomGoneDialog r={gone} onClose={() => setGone(null)} onDropped={toList} />, document.body) : null}
-      {tempDel ? createPortal(<TempDeleteDialog r={tempDel} onClose={() => setTempDel(null)} onGone={() => {}} onDropped={toList} />, document.body) : null}
+      {gone ? createPortal(<div className="nm-yeta"><RoomGoneDialog r={gone} onClose={() => setGone(null)} onDropped={toList} /></div>, document.body) : null}   {/* .nm-yeta = 대화창 색 칸(body 로 빠지면 원본 앱 --accent 회색을 받아 「아니오」가 꺼진 것처럼 보였음 · 형 11-16 사진) */}
+      {tempDel ? createPortal(<div className="nm-yeta"><TempDeleteDialog r={tempDel} onClose={() => setTempDel(null)} onGone={() => {}} onDropped={toList} /></div>, document.body) : null}
     </>
   );
   const hasCrew = !!r && (((!r.with && r.id !== MEET && !!r.designated && !r.temp) || !!r.temp) || (r.id === MEET && (r.members?.length || 0) > 0) || canKickAll);
@@ -174,7 +174,7 @@ function KickAllAsk({ name, no, yes }: { name: string; no: () => void; yes: () =
       <div className="nrc nm-kickall" role="alertdialog" aria-modal="true" aria-label={`${name} 모두 내보내기`} onClick={(e) => e.stopPropagation()}>
         <DialogX onClose={no} />
         <p className="q">정말 내보내시겠습니까?</p>
-        <div className="nrc-acts">
+        <div className="nrc-acts nm-yn">   {/* 재확인 단추 한 벌(./go-button.css .nm-yn · 형 11-16) — 글 차례는 그대로 · 화면에선 아니오(라임)가 왼쪽 */}
           <button type="button" className="yes" onClick={yes}>예</button>
           <button type="button" className="nrc-ok no" autoFocus onClick={no}>아니오</button>
         </div>
