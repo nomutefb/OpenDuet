@@ -45,3 +45,6 @@ html[data-deck-in] .nm-send-dock, html[data-deck-in] .nm-home-swap .nm-hotswap-t
 /* 폰 홈 첫 줄 = 러너 띠(PC 왼쪽 위와 같은 부품) + 팔로워 띠(형 11-15 16:1x 「모바일에도 온도 나오게」) · 틈 = 홈 칸 사이와 같은 12 · 러너 띠 옆 패딩 0(홈이 이미 16 줌) */
 .nm-home-top { display:flex; min-width:0; flex-direction:column; gap:12px; }
 .nm-home-top > .nm-rgx { padding-left:0; padding-right:0; }
+/* 폰 홈 = 오른쪽 SNS 줄이 없어 조약돌 줄이 안 내려옴(runner-gauges useRowSync = 0) → 조약돌 위 시각 두 줄이 게이지 % 글자와 겹침(실제 값으로 띄워 잼: 시각 122~145 ↔ 게이지 77~142)
+   → PC 처럼 비워 둔 아래 칸(.nm-rgx-gap 24px)으로 한 줄을 내림 = 시각 두 줄이 게이지 밑(146~)에 놓임 · 띠 키 그대로 */
+.nm-home-top .nm-rgx-line { transform:translateY(24px); }
