@@ -18,6 +18,7 @@ import { FollowPulse } from "./follow-pulse";   // 1/6 = 팔로워 띠(형 10-31
 import { NewsFeed } from "./news-feed";
 import { HotSwap } from "./kw-board";
 import { useSplit } from "../ui/side";
+import { RunnerGauges } from "../ui/runner-gauges";   // 폰 홈 맨 위 = PC 왼쪽 위 러너 띠 그대로(게이지 · 온도 · 조약돌 · 러너 번호 · 형 11-15 16:1x 「모바일에도 온도 나오게」 · 「그냥 그 웹앱에 나오는 상단 내용」)
 import { IntroFace, pickIntro } from "./intro";
 
 const LAG = 300, SLOW = 8000;   // 카드 첫 판 뒤 한 박자(덱이 그릴 틈) · 못 받아도 이만큼 뒤엔 다 보임
@@ -41,7 +42,7 @@ export function HomeScreen() {
   }, [first]);
   return (
     <div className="yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))] pb-[calc(86px+env(safe-area-inset-bottom))]">
-      <FollowPulse />
+      {split ? <FollowPulse /> : <div className="nm-home-top" style={{ gridRow: 1 }}><RunnerGauges /><FollowPulse /></div>}   {/* 폰 = 첫 줄에 러너 띠 + 팔로워 띠(줄 자리 못 박음 = 뉴스 2줄 · 새 대화 3줄 그대로) · PC 반갈 = 러너 띠는 왼쪽 위(shell TopLeft)라 여긴 팔로워 띠만 */}
       {split ? <NewsFeed onShown={() => shown.current()} /> : <div className="nm-home-swap" style={{ gridRow: 2 }}><HotSwap label="뉴스"><NewsFeed onShown={() => shown.current()} /></HotSwap></div>}   {/* 폰 = 뉴스 카드 ↔ 키워드 순위(옆으로 넘기면 줄기 하나씩 · 형 11-14 「폰에서는 … 넘길때마다 차트가 나오게」) · PC 반갈 = 오른쪽 Hot Issue 칸이 번갈아 뜨니 여긴 그대로 */}
       <Arrived />
       {first ? <div className="nm-home-splash" aria-hidden style={intro.bg ? { background: intro.bg } : undefined}><IntroFace item={intro} /></div> : null}   {/* 진입 화면 = 목록 중 랜덤(./intro.tsx · 형 11-06 18:5x) */}
