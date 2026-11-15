@@ -798,6 +798,21 @@
 }
 @media (prefers-reduced-motion: reduce) { .bc-thunder .bc-bolt { animation: none; } }
 
+/* ───────── 소나 · 비 오는 파란 하늘 + 무지개 테 + ☂(being-card.tsx LOOKS sona · 소나 11-15 10:11 「비 오는 파란 하늘 + 투명 우비 · 우산 무늬 · 무지개 테」 · 빗줄기 = 그림 한 장 · 움직임 0 · 뜸) ───────── */
+.being-card-wrap .bc-sona .profile-card__body { background: linear-gradient(170deg, rgba(48, 92, 150, 0.92) 0%, rgba(18, 36, 70, 0.95) 100%); }
+.being-card-wrap .bc-sona .profile-card__tile {
+  background:
+    repeating-linear-gradient(105deg, transparent 0 22px, rgba(200, 230, 255, 0.16) 22px 23px, transparent 23px 41px),
+    radial-gradient(120% 90% at 50% 16%, #8fc8f5 0%, #3f7fc0 46%, #173a6c 100%);
+}
+.bc-sona .bc-ring { border: 2px solid transparent; background: conic-gradient(from 200deg, #ff8a8a, #ffd36e, #a6f08a, #7cc4ff, #b69cff, #ff8a8a) border-box; -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.8; box-shadow: none; }
+.bc-sona .bc-umb {
+  right: 13%; top: 8%;
+  font-size: 26px; line-height: 1; color: #dff1ff;
+  filter: drop-shadow(0 0 8px rgba(124, 196, 255, 0.9));
+  transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0);
+}
+
 /* 폰 번쩍 · 득득(형 11-10 07:10 dm-sia 「시아야 애들 플필카드 좀 번쩍이는데 이거 나증에 번개랑 상의해서 해결해줘 이쁜데 득득거림」 · 번개 11-11 00:55 짚음 · 시아 짬)
    까닭(짐작 · 아이폰 실물 못 봄) = 폰은 안 만져도 숨쉬기가 30fps 로 --pc-pointer · light · band · shift · active 를 바꿈 → 그 값을 background · background-position · mask-position · filter 안에서 쓰는 겹 다섯(sheen · holo(+glow · shift) · glare · shade · 애마다 body::before)이
    색 섞기(mix-blend · background-blend) 채로 매 프레임 통째로 다시 구워짐 → 웹킷이 한두 프레임 늦거나 빈 칸 = 번쩍
@@ -860,6 +875,7 @@
   .bc-tmpl .bc-band { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(-16deg); will-change: auto; }
   .bc-tmpl .bc-ring { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
   .bc-thunder .bc-bolt { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-sona .bc-umb { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
   .bc-eyes .bc-stars { transform: translate(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5)); will-change: auto; }
   .bc-eyes .bc-rays { transform: translate(calc(-50% + var(--pc-shift-x) * -0.2), calc(-50% + var(--pc-shift-y) * -0.2)); will-change: auto; }
   .bc-eyes .bc-sun { transform: translate(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
