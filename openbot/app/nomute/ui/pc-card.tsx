@@ -4,6 +4,7 @@
 //     「저기서 미리보기가 솔직히 나올 필요는없어 공간낭비고.」 = 화면 미리보기 없음 · 「제어권 가져오기」 = 이 앱 안에 그 몸 화면(noVNC)이 뜸
 //   화면 안 한글·붙여넣기·포인터 = 그 몸 noVNC 위 한 장(뜸 novnc-tteum/app/mom-screen.js · 형 09:07 「vm에서 상호간에 클립보드, 한영전환 다 되어야하고」 · 「마우스 포인터 잘 나와야하고」)
 //   완료 · 건너뛰기 = 결정 창과 같은 길(POST decisions · send = 그 몸만 깸) · 서버 목록에서 빠진 카드 = 끝난 것(단추 대신 「끝남」 · 화면은 그대로 열 수 있음)
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
@@ -25,17 +26,20 @@ export function PcCard({ id, task, url, who }: { id: string; task: string; url: 
   const d = (dec.data || []).find((x) => x.id === id || (x._dups || []).includes(id));
   const [st, setSt] = useState<St>(""), [open, setOpen] = useState("");   // open = 앱 안 화면 주소(표 붙음 · 테일넷 밖 폰에서도 · 형 11-11 19:18 「인앱에서 클립보드 컨트롤 제어권 고받고 완료신호」 · 빠르)
   const over = !!dec.data && !d && !st;   // 서버 목록에 없음 = 이미 답했거나 닫힘
-  const answer = async (label: "완료" | "건너뛰기") => {
-    if (!d || (st && st !== "못 보냄")) return;
+  const post = async (label: "완료" | "건너뛰기") => {   // 실패 = 「못 보냄」 적고 throw(카드 단추 = 게이지 알약 · ui/go-button)
+    if (!d) throw new Error("끝난 카드");
     const i = Math.max(0, d.choices.indexOf(label));
-    setSt("보내는 중");
     try {
       const picks = [{ id: d.id, room: d.room, i }, ...(d._dups || []).map((x) => ({ id: x, room: d.room, i }))];
       const j = await office<{ bad?: { id: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks, send: true }) });
       if ((j.bad || []).some((x) => x.id === d.id)) throw new Error("bad");
-      setSt(label === "완료" ? "완료" : "건너뜀");
-      void qc.invalidateQueries({ queryKey: ["nomute", "decisions"] });
-    } catch { setSt("못 보냄"); }
+    } catch (e) { setSt("못 보냄"); throw e; }
+  };
+  const sent = (label: "완료" | "건너뛰기") => { setSt(label === "완료" ? "완료" : "건너뜀"); void qc.invalidateQueries({ queryKey: ["nomute", "decisions"] }); };   // 「완료 · 알림」 글로 바뀌기 = ✓ 뒤(GoButton done)
+  const answer = async (label: "완료" | "건너뛰기") => {   // 화면 창(PcScreen)의 「완료」 = 옛 길 그대로
+    if (!d || (st && st !== "못 보냄")) return;
+    setSt("보내는 중");
+    try { await post(label); sent(label); } catch { /* 글은 post 가 남김 */ }
   };
   const said = st && st !== "못 보냄" ? (st === "보내는 중" ? "보내는 중…" : `${st} · ${who}한테 알림`) : over ? "끝남" : "";
   return (
@@ -47,10 +51,10 @@ export function PcCard({ id, task, url, who }: { id: string; task: string; url: 
       </div>
       <div className="nm-pc-act">
         {said ? <span className="nm-pc-st">{said}</span> : (
-          <>
-            <button type="button" className="nm-pc-btn" disabled={!d} onClick={(e) => { e.stopPropagation(); void answer("건너뛰기"); }}>건너뛰기</button>
-            <button type="button" className="nm-pc-btn" disabled={!d} onClick={(e) => { e.stopPropagation(); void answer("완료"); }}>완료</button>
-          </>
+          <span style={{ display: "contents" }} onClick={(e) => e.stopPropagation()}>
+            <GoButton className="nm-pc-btn" disabled={!d} go={() => { setSt(""); return post("건너뛰기"); }} done={() => sent("건너뛰기")}>건너뛰기</GoButton>
+            <GoButton className="nm-pc-btn" disabled={!d} go={() => { setSt(""); return post("완료"); }} done={() => sent("완료")}>완료</GoButton>
+          </span>
         )}
         {st === "못 보냄" ? <span className="nm-pc-st err">못 보냄 · 다시 눌러 줘</span> : null}
         <button type="button" className="nm-pc-btn go" onClick={(e) => { e.stopPropagation(); const raw = screenUrl(url); void screenTicket(raw, (b) => office<{ url?: string }>("screen/ticket", { method: "POST", body: JSON.stringify(b) })).then((u) => setOpen(u || raw)); }}>제어권 가져오기</button>

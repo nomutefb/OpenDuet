@@ -1,6 +1,7 @@
 // 할 일 맨 위 — 결정 카드(밤 요약 brief 「결정 필요」 · 답 = POST /api/office/brief/answer {key, v}) · 밤 요약 · 수리 접수 표(GET/POST /api/office/repair)
 // 원본 OpenDuet 아침 카드·승인 카드 자리를 우리 서버 자료로(옛 화면 = viewer/office.html 밤 요약 판·수리 접수 판과 같은 규칙)
 //   결정 카드 = 거절 · 이번만 허락 · (조용히) 나중에 → 「이번만 허락함 · 형 · 02:52」 확인 줄 · 1분 안 = 바꾸기 · 「늘 허락」 = 서버 can_always 가 올 때만(형 결정 대기 · 지금 0)
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { readFail } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { DecideFab, openDecide, useDecisions } from "./decide-pop";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,8 +30,8 @@ function DecisionCard({ x, can, always }: { x: BriefItem; can: boolean; always: 
   const [edit, setEdit] = useState(false), [open, setOpen] = useState(false);
   const ans = useMutation({
     mutationFn: (v: string) => office<{ brief?: Brief }>("brief/answer", { method: "POST", body: JSON.stringify({ key: x.key, v }) }),
-    onSuccess: () => { setEdit(false); void qc.invalidateQueries({ queryKey: ["nomute", "brief"] }); },
   });
+  const answered = () => { setEdit(false); void qc.invalidateQueries({ queryKey: ["nomute", "brief"] }); };   // 확인 줄로 바뀌기 = ✓ 를 보여 준 뒤(GoButton done)
   const a = x.answer;
   const fresh = a?.at ? Date.now() - Date.parse(a.at) < 60e3 : false;
   const raw = (x.raw || []).join("\n"), long = raw.length > 600 || raw.split("\n").length > 10;
@@ -65,11 +66,11 @@ function DecisionCard({ x, can, always }: { x: BriefItem; can: boolean; always: 
       ) : can ? (
         <div className="mt-3 flex flex-col gap-1.5">
           <div className="flex gap-2">
-            <button type="button" disabled={ans.isPending} className="flex-1 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-foreground/5" onClick={() => ans.mutate("no")}>거절</button>
-            <button type="button" disabled={ans.isPending} className="flex-1 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background" onClick={() => ans.mutate("yes")}>이번만 허락</button>
+            <GoButton disabled={ans.isPending} className="flex-1 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-foreground/5" go={() => ans.mutateAsync("no")} done={answered}>거절</GoButton>
+            <GoButton disabled={ans.isPending} className="flex-1 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background" go={() => ans.mutateAsync("yes")} done={answered}>이번만 허락</GoButton>
           </div>
-          {always ? <button type="button" disabled={ans.isPending} className="rounded-full border border-border px-4 py-2 text-sm" onClick={() => ans.mutate("always")}>늘 허락</button> : null}
-          <button type="button" disabled={ans.isPending} className="self-center text-xs text-muted-foreground underline" onClick={() => ans.mutate("later")}>나중에</button>
+          {always ? <GoButton disabled={ans.isPending} className="rounded-full border border-border px-4 py-2 text-sm" go={() => ans.mutateAsync("always")} done={answered}>늘 허락</GoButton> : null}
+          <GoButton disabled={ans.isPending} className="self-center rounded-full px-3 py-1 text-xs text-muted-foreground underline" go={() => ans.mutateAsync("later")} done={answered}>나중에</GoButton>
         </div>
       ) : <p className="mt-2 text-xs text-muted-foreground">답은 형만 할 수 있어</p>}
       {ans.isError ? <p className="mt-1 text-xs text-destructive" role="alert">{/locked/.test(ans.error.message) ? "1분 지나 못 바꿈 — 바꾸려면 회의실에 새 글로" : /no_item/.test(ans.error.message) ? "그 항목이 이제 결정 필요에 없음 — 요약이 바뀜" : `답 못 남김 — ${ans.error.message}`}</p> : null}
@@ -98,7 +99,7 @@ export function RepairRow({ x, arc, desk, spec }: { x: RepairItem; arc?: boolean
   const [open, setOpen] = useState(false), [why, setWhy] = useState<string | null>(null);
   const set = useMutation({
     mutationFn: ({ state, w }: { state: string; w?: string }) => office(`repair/${x.no}`, { method: "POST", body: JSON.stringify({ state, ...(w ? { why: w } : {}) }) }),
-    onSuccess: () => { setWhy(null); void qc.invalidateQueries({ queryKey: ["nomute", "repair"] }); },
+    onSuccess: (_d, v) => { if (v.w) return; setWhy(null); void qc.invalidateQueries({ queryKey: ["nomute", "repair"] }); },   // 「반려」(까닭 있음) = ✓ 뒤에 닫음(GoButton done)
   });
   return (
     <li className="py-2">
@@ -132,7 +133,7 @@ export function RepairRow({ x, arc, desk, spec }: { x: RepairItem; arc?: boolean
           {why !== null ? (
             <div className="flex gap-2">
               <input className="min-w-0 flex-1 rounded-lg border border-border bg-background px-2 py-1 text-sm" placeholder="반려 까닭(명세 규정 어디가 안 맞나)" aria-label="반려 까닭" value={why} onChange={(e) => setWhy(e.target.value)} />
-              <button type="button" className="rounded-full bg-foreground px-3 text-xs text-background" disabled={!why.trim() || set.isPending} onClick={() => set.mutate({ state: "반려", w: why.trim() })}>반려</button>
+              <GoButton className="rounded-full bg-foreground px-3 text-xs text-background" disabled={!why.trim() || set.isPending} go={() => set.mutateAsync({ state: "반려", w: why.trim() })} done={() => { setWhy(null); void qc.invalidateQueries({ queryKey: ["nomute", "repair"] }); }}>반려</GoButton>
               <button type="button" className="text-xs" onClick={() => setWhy(null)}>취소</button>
             </div>
           ) : null}

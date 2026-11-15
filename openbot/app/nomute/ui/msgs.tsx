@@ -5,6 +5,7 @@
 //   지움·읽음 = 원본과 같은 열쇠(이 기기 nomute_msg_dismissed · nomute_msg_read) ∪ 계정(/toast-seen.json md · mr 축 · 보냄 = POST /api/seen) = 폰·PC·에디터가 같이 씀 · 창을 열면 보이는 것 전부 읽음(원본 msgMarkAllRead)
 //   조치 = 다시 받아오기(sns-recollect · /api/snsretry · 러너 1~2분) · 안전 탭 열기(quake-go → 앱 「SNS 전체」) · 다시 로그인(relogin = 새로 고침) · 그 밖(옛 화면 반영 · 데이터 재시도)은 에디터 화면 몫이라 단추 없음
 //   뺀 것 = 맞춤법 검사기 상태(healthMsg · 에디터 교정기 전용) · 문제 HTML 받기(클로드 전달용 · 에디터에 그대로)
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./queue.css";
@@ -60,11 +61,12 @@ function Action({ m, go }: { m: Msg; go: (p: string) => void }) {
   const [st, setSt] = useState<"" | "busy" | "ok" | string>("");
   if (m.action === "sns-recollect") {   // 원본 snsRecollect
     const run = async () => {
-      setSt("busy");
-      try { const r = await fetch("/api/snsretry", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: "{}" }); const d = await r.json().catch(() => ({})) as { ok?: boolean; error?: string }; setSt(r.ok && d.ok ? "ok" : d.error || "요청 실패 — 잠시 뒤 다시"); }
-      catch { setSt("네트워크 오류 — 다시"); }
+      setSt("");   // 실패 = 까닭을 단추 글로 남기고 throw(GoButton 빨강 · 흔들림) · 「요청됨」 글 = ✓ 뒤(done)
+      let r: Response; try { r = await fetch("/api/snsretry", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: "{}" }); } catch (e) { setSt("네트워크 오류 — 다시"); throw e; }
+      const d = await r.json().catch(() => ({})) as { ok?: boolean; error?: string };
+      if (!(r.ok && d.ok)) { const m = d.error || "요청 실패 — 잠시 뒤 다시"; setSt(m); throw new Error(m); }
     };
-    return <button type="button" className={`ypc-go nm-msg-act${st === "ok" ? " ok" : ""}`} disabled={st === "busy" || st === "ok"} onClick={run}>{st === "busy" ? "요청 중…" : st === "ok" ? "요청됨 · 1~2분 뒤 갱신돼" : st || "다시 받아오기"}</button>;
+    return <GoButton className={`ypc-go nm-msg-act${st === "ok" ? " ok" : ""}`} disabled={st === "ok"} go={run} done={() => setSt("ok")} busy="요청 중">{st === "ok" ? "요청됨 · 1~2분 뒤 갱신돼" : st || "다시 받아오기"}</GoButton>;
   }
   if (m.action === "quake-go") return <button type="button" className="ypc-go nm-msg-act" onClick={() => go("/trend")}>안전 탭 열기</button>;   // 원본 goDisSec → 앱 「SNS 전체」(재난문자 칸)
   if (m.action === "relogin") return <button type="button" className="ypc-go nm-msg-act" onClick={() => location.reload()}>다시 로그인</button>;

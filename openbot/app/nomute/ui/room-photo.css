@@ -4,8 +4,10 @@
 .nrp-h { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; }
 .nrp-h b { font-size:15px; }
 .nrp-h button { justify-self:start; padding:6px 4px; border:0; background:none; color:rgba(232,234,232,.75); font:inherit; font-size:15px; cursor:pointer; }
-.nrp-h button.ok { justify-self:end; color:var(--accent, #CFFF40); font-weight:700; }
+.nrp-h button.ok { justify-self:end; font-weight:700; }
+.nrp-h button.ok:not(.nm-go), .nrp-h button.ok[data-stage="idle"] { color:var(--accent, #CFFF40); }   /* 누른 동안 글자색 = ui/go-button 단계 색 */
 .nrp-h button:disabled { opacity:.45; cursor:default; }
+.nrp-h button.ok.nm-go:not([data-stage="idle"]) { padding:6px 12px; border-radius:999px; }   /* 글자뿐인 단추 = 게이지 · ✓ 가 찰 알약 꼴은 누른 동안만(ui/go-button) */
 .nrp-frame { position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:4px; background:#000; touch-action:none; cursor:grab; user-select:none; }
 .nrp-frame:active { cursor:grabbing; }
 .nrp-frame img { position:absolute; max-width:none; pointer-events:none; }

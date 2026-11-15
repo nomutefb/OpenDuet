@@ -103,7 +103,7 @@
 .nm-tk2-acts .ask { margin-right:auto; font-size:13px; font-weight:700; color:var(--fg); }
 .nm-tk2-acts button { all:unset; cursor:pointer; padding:6px 14px; border-radius:999px; font-size:12px; font-weight:700; color:var(--fg); border:1px solid var(--glass-line, rgba(255,255,255,.14)); }
 .nm-tk2-acts button.no { background:#CFFF40; color:#111; border-color:transparent; }   /* 아니오 = 라임(아침 삭제 창 꼴 · 형 11-12 06:13) */
-.nm-tk2-acts button.re.arm { border-color:var(--accent, #CFFF40); color:var(--accent, #CFFF40); }
+.nm-tk2-acts button.re.arm[data-stage="idle"] { border-color:var(--accent, #CFFF40); color:var(--accent, #CFFF40); }   /* 누른 동안 = ui/go-button 단계 색 */
 .nm-tk2-acts button:disabled { opacity:.5; cursor:default; }
 @media (prefers-reduced-motion: reduce) { .nm-tk2-ring, .nm-tk2-log li.cur i, .nm-tk2-log li.cur span, .nm-tk2-log li { animation:none; } .nm-tk2-log li.cur span { color:var(--fg); background:none; } }
 

@@ -14,8 +14,8 @@ const later = (ms: number) => new Promise((r) => setTimeout(r, ms));
  *  (형 11-15 「전송이나 저장 버튼들. 게이지 알약버튼인데 제대로 적용 안된게 인앱 안에 있는지 하네스 전반 통일」 — 화면마다 제 「저장 중…」 글자로 바꾸던 단추를 이 하나로) */
 export const must = (fn: () => Promise<boolean | void>) => async () => { if ((await fn()) === false) throw new Error(""); };
 
-export function GoButton<T>({ go, children, className = "", disabled, busy = "보내는 중", waiting = "반영 기다리는 중", wait, done, label, type = "button" }: {
-  go: () => Promise<T>; children: ReactNode; className?: string; disabled?: boolean; busy?: string; waiting?: string; wait?: (res: T) => Promise<boolean>; done?: (res: T) => void; label?: string; type?: "button" | "submit";
+export function GoButton<T>({ go, children, className = "", disabled, busy = "보내는 중", waiting = "반영 기다리는 중", wait, done, label, type = "button", autoFocus, hint }: {
+  go: () => Promise<T>; children: ReactNode; className?: string; disabled?: boolean; busy?: string; waiting?: string; wait?: (res: T) => Promise<boolean>; done?: (res: T) => void; label?: string; type?: "button" | "submit"; autoFocus?: boolean; hint?: string;   // autoFocus = 확인창 「예」처럼 엔터로 바로 누르는 자리 · hint = 평소 풍선 글(실패 땐 까닭이 대신)
 }) {
   const [st, setSt] = useState<Stage>("idle"), [why, setWhy] = useState(""), live = useRef(true);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
@@ -45,7 +45,7 @@ export function GoButton<T>({ go, children, className = "", disabled, busy = "�
   };
   return (
     <button type={type} className={`nm-go ${className}`} data-stage={st} disabled={disabled && st === "idle"} aria-label={label} aria-busy={st === "fill" || st === "wait" || undefined}
-      title={st === "err" && why ? why : undefined} onClick={run}>
+      title={st === "err" && why ? why : hint} autoFocus={autoFocus} onClick={run}>
       {st === "fill" ? <><span className="nm-go-sr">{busy}</span>{children}</>   /* 형 11-07 13:23 「전송누르면 전송중 안뜨고 그냥게이지 채워지는거로 변경」 = 글자는 그대로 · 게이지만 참(busy = 읽어 주기만) */
         : st === "ok" ? <svg className="nm-go-ck" viewBox="0 0 24 24" role="img" aria-label="됐어"><path d="M5 13l4 4L19 7" /></svg>
         : st === "wait" ? <><i className="nm-go-spin" aria-hidden />{waiting}</>

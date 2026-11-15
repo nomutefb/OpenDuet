@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type OfficeMsg, type OfficePerson, office, faceOf, nameOf, people } from "../data/office";
 import { OfficeChat, officeKeys } from "./office-chat";
 import { ringOf } from "../swap/mic-orb";
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import "./meet.css";
 import "./update-bar.css";   // .nm-dots = 라임 점 셋(업데이트 띠 · 끊김 띠와 같은 것 · 형 19:3x 「들어오는중... 이거 표시 떠야될듯」 · 「종료하는중 ... < 이거 점세개로」)
 export const Dots = ({ bob = false }: { bob?: boolean }) => <span className={`nm-dots${bob ? " bob" : ""}`} aria-hidden><i>.</i><i>.</i><i>.</i></span>;   // bob = 점 셋 오르락내리락(형 11-14 01:42 시아 옮김 「잇는중 - 은 변경 연결 중 하고 점세개 오르락」)
@@ -66,15 +67,14 @@ export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onC
   const [pick, setPick] = useState<string[]>([]), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
   const list = cand.filter((n) => n !== SCRIBE && n !== "형");
   const go = async () => {
-    if (!pick.length) { setWhy("한 명은 골라 줘"); return; }
     setBusy(true); setWhy("");
     try {
       const members = [...pick];   // 기록관 = 서버(멤버 0)
       const t = new Date(), name = `화상회의 ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
       const j = await office<{ room: { id: string } }>("temprooms", { method: "POST", body: JSON.stringify({ name, purpose: meetPurpose(members), members, meet: true, hours: 2 }) });
       void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
-      onStart({ id: j.room.id, members, t0: Date.now() - 2000 });
-    } catch (e) { setWhy(e instanceof Error ? e.message : "못 만들었어"); setBusy(false); }
+      return { id: j.room.id, members, t0: Date.now() - 2000 };   // 회의 열기 = ✓ 뒤(GoButton done = onStart)
+    } catch (e) { setWhy(e instanceof Error ? e.message : "못 만들었어"); setBusy(false); throw e; }
   };
   return (
     <div className="nm-meet-pick" role="dialog" aria-label="화상회의 참여자 고르기">
@@ -84,7 +84,7 @@ export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onC
         <span className="nm-pick nm-meet-scribe" title="회의 끝에 서버가 대화 · 같이 본 주소를 서랍에 담음(LLM 0)">{SCRIBE_LABEL}</span>
       </div>
       {why ? <small role="alert">{why}</small> : null}
-      <div className="nm-meet-ft"><button type="button" onClick={onClose}>닫기</button><button type="button" className="ok" disabled={busy || !pick.length} onClick={() => void go()}>{busy ? "부르는 중…" : `요청 보내기 · ${pick.length}명`}</button></div>
+      <div className="nm-meet-ft"><button type="button" onClick={onClose}>닫기</button><GoButton className="ok" disabled={busy || !pick.length} go={go} done={onStart} busy="부르는 중">{`요청 보내기 · ${pick.length}명`}</GoButton></div>
     </div>
   );
 }

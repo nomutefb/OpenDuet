@@ -2,6 +2,7 @@
 //   올림 = 캡션 「복사」 + 사진 크게(길게 눌러 저장 · 새 탭) 펴 줌 — 인스타 올리기는 형 손(우리는 안 올림)
 //   넘김 = 한 줄로 접힘(눌러 다시 펼침) · 누른 것 = POST /api/office/hyung-pick {stem, ev, ev_at, url, act, msg}(형만 · 서버 _hyungpick.js) → 빠르가 사건 이력에 이어 가중을 형 눈에 맞춤
 //   다시 열어도 그대로 = GET hyung-pick(14일 · 글마다 마지막) · 폰 · PC 한 벌(같은 카드)
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { office } from "../data/office";
@@ -53,14 +54,16 @@ export function BundleCard({ b, id, srcs }: { b: Bundle; id: string; srcs?: Src[
   const saved = (usePicks().data || []).filter((p) => p.msg === id || (!p.msg && p.stem === b.stem)).pop();
   const [act, setAct] = useState<Act>(""), [open, setOpen] = useState(false), [err, setErr] = useState("");
   const cur: Act = act || saved?.act || "";
-  const press = async (a: "up" | "skip") => {
-    setAct(a); setOpen(a === "up"); setErr("");
+  const [pend, setPend] = useState<Act>("");   // 보내는 중인 단추 = 게이지 알약으로 남김(./go-button · 형 11-15 「하네스 전반 통일」) · 실패하면 그 단추로 다시 보낼 수 있음
+  const press = async (a: "up" | "skip") => {   // 올림 = 누른 자리에서 바로 펴 줌 · 넘김 = 접히기는 ✓ 뒤(pressed) · 실패 = 까닭 적고 throw
+    setPend(a); setErr("");
+    if (a === "up") { setAct("up"); setOpen(true); }
     try {
       const ev = b.url ? await evOf(b.url) : { ev: "", ev_at: 0 };
       await office("hyung-pick", { method: "POST", body: JSON.stringify({ act: a, stem: b.stem, msg: id, url: b.url, ...ev }) });
-      void qc.invalidateQueries({ queryKey: ["nomute", "hyung-pick"] });
-    } catch { setErr("기록 못 함 · 다시 눌러 줘"); }
+    } catch (e) { setErr("기록 못 함 · 다시 눌러 줘"); throw e; }
   };
+  const pressed = (a: "up" | "skip") => { setPend(""); setAct(a); if (a === "skip") setOpen(false); void qc.invalidateQueries({ queryKey: ["nomute", "hyung-pick"] }); };
   const [copied, setCopied] = useState("");
   const copy = (k: string, v: string) => { void navigator.clipboard?.writeText(v).then(() => { setCopied(k); setTimeout(() => setCopied((c) => (c === k ? "" : c)), 1400); }); };
   if (cur === "skip" && !open)
@@ -103,8 +106,10 @@ export function BundleCard({ b, id, srcs }: { b: Bundle; id: string; srcs?: Src[
       ) : null}
       {err ? <div className="nm-bdl-err">{err}</div> : null}
       <div className="nm-bdl-row">
-        <button type="button" className={`nm-bdl-btn${cur === "up" ? " on" : ""}`} onClick={() => (cur === "up" ? setOpen((v) => !v) : void press("up"))}>올림</button>
-        <button type="button" className={`nm-bdl-btn${cur === "skip" ? " on" : ""}`} onClick={() => (cur === "skip" ? setOpen(false) : void press("skip"))}>넘김</button>
+        {cur === "up" && pend !== "up" ? <button type="button" className="nm-bdl-btn on" onClick={() => setOpen((v) => !v)}>올림</button>
+          : <GoButton className="nm-bdl-btn" disabled={!!pend && pend !== "up"} go={() => press("up")} done={() => pressed("up")}>올림</GoButton>}
+        {cur === "skip" && pend !== "skip" ? <button type="button" className="nm-bdl-btn on" onClick={() => setOpen(false)}>넘김</button>
+          : <GoButton className="nm-bdl-btn" disabled={!!pend && pend !== "skip"} go={() => press("skip")} done={() => pressed("skip")}>넘김</GoButton>}
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ test("② 설명글 0 · ③ 엑박 0", () => {
   assert.match(tr, /onError=\{\(\) => setNoPic\(true\)\}/);
 });
 test("④ 원형 틀 + 3×3 격자 · 완료 · 자리 묶음(긴 쪽은 더 움직임)", () => {
-  assert.match(ph, /nrp-mask/); assert.match(ph, /nrp-grid/); assert.match(ph, />\{busy \? "올리는 중" : "완료"\}</);
+  assert.match(ph, /nrp-mask/); assert.match(ph, /nrp-grid/); assert.match(ph, /<GoButton className="ok" go=\{done\} done=\{onClose\}[^>]*busy="올리는 중">완료<\/GoButton>/);   // 완료 = 게이지 알약(ui/go-button)
   const m = /export function clamp\(([^)]*)\): View \{([\s\S]*?)\n\}/.exec(ph);
   assert.ok(m);
   const clamp = new Function("v", "ar", m[2].replace(/: View/g, "")) as (v: { s: number; x: number; y: number }, ar?: number) => { s: number; x: number; y: number };
