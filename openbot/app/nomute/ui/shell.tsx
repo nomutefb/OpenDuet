@@ -78,6 +78,7 @@ import { ThumbMaker, ToolKeep, ToolRestore } from "./ed-keep";   // 이미지 �
 import { NED_TABS, nedTabOf } from "./ned-tabs";
 import { AreaTabs } from "./area-tabs";
 import { DRAWER_HOME, DRAWER_TABS, type DrawerTab, isDrawerTab } from "./drawer-tabs";
+import { MenuBar, type MenuGroup } from "./menu-bar";   // 탭 줄 아래 메뉴 줄(형 11-16 08:3x 「이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」)
 import { ED_TOOLS, type EdTool, edAlive, edChip, edKeptNext, isEdTool } from "./ed-keep-logic";
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomIcon, RoomList, useRoomOrder } from "./room-list";
@@ -131,6 +132,18 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
 const SPREAD = new Set<Modal>(["runner", "botdesk", "drawer", "settings", "nedit", "sched", "meetlog", "story", "play"]);   // 서랍 탭 여섯 = PC 에서 다 같은 폭(탭 줄이 탭마다 넓어졌다 좁아졌다 하지 않게 · 형 11-15 「설정을 제외한 모든영역을 탭처럼」)     // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
 // 채널 · SNS = 옛 에디터 「채널 요약」 · 「SNS」 탭 그대로 한 줄씩(형 11-14 「채널 요약은 전에 버전이 잇을거야 그거 살려서 혹시 하나의 서랍 버전으로」 · 「sns도 마찬가지」) — 11-15 부터 품지(iframe) 않고 앱 안에서 돌림(./old-tabs · 형 「아예 여기에 줕이려고」)
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
+
+// 메뉴 줄(./menu-bar.tsx) 내용 = 지금 네비 그대로: 홈 · 대화 · 뉴스 에디터(위 탭 셋 ./ned-tabs.ts) · 서랍(위 탭 여섯 ./drawer-tabs.ts) · 설정 — 이름 · 그림 · 길은 MODALS · NED_TABS 한 곳에서(여기 따로 안 적음) · 설명 줄만 여기
+const MENU_DESC: Record<string, string> = { news: "최신 기사 · 요약 요청", sns: "섹션 전부 · 구독 채널", chan: "차트 · 게시물 · 결의 보드", runner: "몸 넷 게이지 · 러너 상태", botdesk: "봇 상태 · 일 차례 · 손 표", sched: "예약 깸 · 나무", meetlog: "끝난 회의 기록", story: "종 틈에 지은 글 모음", play: "우리 놀이터" };
+const menuOf = (chatTo: string): MenuGroup[] => [
+  { id: "home", label: "홈", to: "/" },
+  { id: "chat", label: "대화", to: chatTo },
+  { id: "ned", label: "뉴스 에디터", items: NED_TABS.map((t) => ({ id: t.id, label: t.name, icon: t.icon, to: t.to, desc: MENU_DESC[t.id] })), foot: { label: "뉴스 에디터 열기", to: "/newsed" } },
+  { id: "drawer", label: "서랍", items: DRAWER_TABS.flatMap((id) => { const m = MODALS.find((x) => x.id === id); return m ? [{ id, label: m.label, icon: m.icon, to: m.to, desc: m.desc || MENU_DESC[id] }] : []; }), foot: { label: "서랍 열기", to: "/drawer" } },
+  { id: "settings", label: "설정", to: "/settings" },
+];
+/** 순수 — 지금 화면이 메뉴 줄의 어느 칸인가(시험 가능) */
+export const menuOn = (pane: Pane | null, modal: Modal | null): string | null => (modal === "nedit" ? "ned" : modal === "settings" ? "settings" : isDrawerTab(modal) || modal === "drawer" ? "drawer" : modal ? null : pane === "home" ? "home" : pane ? "chat" : null);
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -251,6 +264,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
         {split ? <TopTabBar room={room} pane={pane} /> : null}
+        {split ? <MenuBar groups={menuOf(chatHref(room))} on={menuOn("pane" in where ? where.pane : null, modal)} /> : null}   {/* 탭 줄 바로 아래 메뉴 한 줄(형 11-16 08:3x 「이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」) · 탭 줄과 같이 PC 두 칸에서만 */}
         {/* 메인 탭 줄 = 지금 네비 칸의 탭(형 11-15 「탭 1234 는 a에 귀속」 · ./area-tabs.tsx) — 뉴스 에디터 · 서랍일 땐 그 칸의 탭이 이 줄에 · 대화 칸 탭(위 TopTabBar)은 숨기기만(살려 둠 = 열어 둔 방 탭 · 화상회의 판 그대로 · shell.css .nm-area-on) · 설정 = 탭 없음 */}
         {split && modal === "nedit" ? <AreaTabs label="뉴스 에디터 탭" items={NED_TABS} cur={nedTabOf(pathname)} pick={(id) => { const t = NED_TABS.find((x) => x.id === id); if (t && id !== nedTabOf(pathname)) void nav({ to: t.to, replace: true }); }} /> : null}
         {split && isDrawerTab(modal) ? <AreaTabs label="서랍 탭" items={DRAWER_TABS.map((id) => { const m = MODALS.find((x) => x.id === id)!; return { id, name: m.label, icon: m.icon }; })} cur={modal} pick={(id) => { if (id !== modal) void nav({ to: MODALS.find((x) => x.id === id)!.to, replace: true }); }} /> : null}   {/* 윗줄 왼쪽 = 탭 줄(대시보드 · 방 · 몸 화면 · 「+」) */}
