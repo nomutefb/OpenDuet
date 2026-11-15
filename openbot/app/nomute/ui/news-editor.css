@@ -9,6 +9,15 @@
 .nm-ned-r { border-left:1px solid var(--glass-line, rgba(255,255,255,.08)); padding:0 12px calc(var(--duet-tab-space, 86px) + 24px); }
 .nm-ned-one { flex:1; padding:4px 10px calc(var(--duet-tab-space, 86px) + 24px); }
 .nm-ned-back { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin:2px 4px 6px; padding:6px 10px; border-radius:999px; font-size:var(--fs-sm); color:var(--fg-2); background:var(--glass, rgba(255,255,255,.05)); }
+/* 기사 한 장 = 옛 에디터 「기사 창」을 칸 안에 박음(./old-tabs/art.tsx · 형 11-15 「그때 시안을 여기에 붙일 수 있나?」) — 칸은 안 구르고 옛 창 본문(#dlgbody)만 구름(머리 줄 · 진행 막대 · 떠 있는 수정 단추가 제자리) */
+.nm-ned-r.art, .nm-ned-one.art { display:flex; flex-direction:column; overflow:hidden; padding:0; }
+.nm-ned-r.art > .nm-chan-msg { padding:12px 14px; }
+/* 폰 = 「목록」 단추가 옛 창 머리 줄(원문 → 내리면 진행 막대) 왼쪽에 얹힘 = 머리가 한 줄(옛 창의 × 자리 대신 · 늘 같은 자리) */
+.nm-ned-one.art { position:relative; }
+.nm-ned-one.art > .nm-ned-back { position:absolute; z-index:8; left:10px; top:11px; box-sizing:border-box; height:34px; margin:0; padding:0 12px 0 8px; }
+.nm-ned-one.art .oa .dlg-h { padding-left:94px; }
+.nm-ned-one.art .nm-oa-gen { padding-top:54px; }   /* 「+ AI」 창이 위에 얹힐 때 「목록」 단추 밑으로 */
+.nm-ned-one.art .nm-oa-gen ~ .oa .dlg-h { padding-left:16px; }   /* 그때 옛 창 머리 줄은 「목록」 자리를 안 비움 */
 
 
 /* 오른쪽 아래 「+」 펼침(형 11-11 19:23 「요약버튼 혹시 그 대화방에 펼침 + 로 해줄 수 있어? 펼쳐서 이미지 에디터랑 뉴스 요약 비디오 에디터 3개 나오면 됨. 그리고 최소화 가능하게」 · 앞 판 = 「+ 요약」 라임 알약 · 형 14:36)
