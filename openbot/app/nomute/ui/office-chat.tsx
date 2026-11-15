@@ -312,13 +312,13 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
   if (r?.with) {
     let prev: Msg | null = null;
     for (const m of all) {
-      if (wakeM(m) || m.kind === "sent" || (m.kind === "system" && !hyungApp(m))) continue;
+      if (wakeM(m) || m.kind === "sent" || (m.kind === "system" && !hyungApp(m)) || jobOf(m)) continue;   // 작업 알림(기차봇 접수 · 완료) = 대화 아님 → 「앞 글」로 안 셈(PM 방에서 그 뒤 PM 글이 「남한테 한 답」으로 묶여 접히던 것 · 형 11-15 15:45 dm-gik 「깃 네 메세지가 가려져서 나와」 · 깃 #-071)
       if (m.who !== r.with) { prev = m; continue; }
       if (prev && prev.kind !== "human" && !hyungApp(prev) && m.ts - prev.ts < 30 * 60e3) answersOther.add(m.id);
       if (prev && (prev.kind === "human" || hyungApp(prev)) && m.ts - prev.ts < 30 * 60e3) hyAnswer.add(m.id);
     }
   }
-  const showM = (m: Msg) => r?.id === "notice" || m.kind === "human" || hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && (!toOthers(m) || hyAnswer.has(m.id)) && !answersOther.has(m.id));
+  const showM = (m: Msg) => r?.id === "notice" || !!jobOf(m) || m.kind === "human" ||   /* 작업 알림 = 제자리 한 줄 접힌 카드(JobFold · 묶음에 안 섞음 · 깃 #-071) */ hyungApp(m) || toMe(m) || m.state === "decide" || (!!r?.with && m.who === r.with && !m.reply_to && !m.origin && (!toOthers(m) || hyAnswer.has(m.id)) && !answersOther.has(m.id));
   const sysM = (m: Msg) => m.kind === "system" && !hyungApp(m) && !bubbleM(m);
   const out: Item[] = [];
   let pill: { t: "sent"; msgs: Msg[] } | null = null;
