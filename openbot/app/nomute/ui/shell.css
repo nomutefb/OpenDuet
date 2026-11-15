@@ -392,4 +392,11 @@ button:is(.ncs-x, .ypk-x, .gy-x):active, :is(.nm-decpop, .nm-story-pop) header >
 .nm-tswitch.fold.nm-dtabs { flex:none; margin:10px 14px 0; }
 .nm-modal-b.flush > .nm-tswitch.fold.nm-dtabs { margin-top:calc(10px + env(safe-area-inset-top)); }
 .nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) > .nm-modal-b.flush > .nm-dtabs + .nm-scroll { padding-top:10px; }
-.nm-split-l .nm-tswitch.fold.nm-dtabs .nm-ftab.on { flex:0 0 200px; }   /* PC = 고른 탭이 줄 끝까지 늘어나지 않게(뉴스 에디터 탭과 같음) */
+
+/* PC 메인 탭 줄 = 지금 네비 칸의 탭(./area-tabs.tsx · 형 11-15 「탭 1234 는 a에 귀속」 · 「css는 동일하게」) — 옷은 ./tab-bar.css 그대로 · 여기선 대화 칸 탭 숨김과 폭만 */
+.nm-area-on .nm-tabs:not(.nm-area) { display:none; }   /* 대화 칸 탭 = 다른 칸(뉴스 에디터 · 서랍 · 설정)에선 안 보임(살아는 있음) */
+.nm-tabs.nm-area { container-type:inline-size; }
+.nm-tabs.nm-area .nm-tab { container-type:normal; flex:0 1 auto; min-width:44px; padding:0 16px; }   /* 제 글자 폭만큼(여섯도 한 줄에) · container-type 풂 = 탭이 제 글자 폭을 갖게(메인 탭은 칸 폭 잣대라 글자 폭을 못 가짐 → 이름이 접혔음) */
+.nm-tabs.nm-area .nm-tab-ic { display:grid; place-items:center; border-radius:0; }
+@container (max-width: 540px) { .nm-tabs.nm-area[data-n="6"] .nm-tab:not(.on) .nm-tab-nm { display:none; } }   /* 좁으면 고른 탭만 이름(폰 폴더 탭과 같은 결) */
+@container (max-width: 300px) { .nm-tabs.nm-area .nm-tab:not(.on) .nm-tab-nm { display:none; } }

@@ -118,10 +118,23 @@ html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):no
 .nm-split-top-l .nm-rgx-peb { flex-basis:18px; width:18px; height:18px; }
 .nm-split-top-l .nm-rgx-pebs { container-type:inline-size; }   /* 시각 글자 크기를 칸 폭에 맞추는 잣대 */
 .nm-split-top-l .nm-rgx-memt { bottom:calc(100% + 5px); }
-.nm-split-top-l .nm-rgx-memt i { font-size:clamp(7px, calc(100cqw / 12 / 3.6), 9px); }   /* 좁은 창(860~1000)에서 옆 시각과 붙던 것 = 칸 폭(12칸)에 맞춰 줄어듦 · 넓으면 9 그대로 */
+.nm-split-top-l .nm-rgx-memt i { font-size:clamp(7px, calc(100cqw / var(--nm-rgx-pn, 7) / 3.6), 9px); }   /* 좁은 창(860~1000)에서 옆 시각과 붙던 것 = 칸 폭(12칸)에 맞춰 줄어듦 · 넓으면 9 그대로 */
 .nm-split-top-l .nm-rgx-memk { left:auto; right:2px; padding-left:0; border-left:0; }
 
 
 /* 봇 일(형 11-15 11:42 · 깃 #-063 · 뜸) = A 줄 오른쪽 빈 칸 자리 · 오른쪽 맞춤 · 작게 · 이름만 밝게 */
 .nm-rgx .nm-rgx-botsc { justify-self:end; display:flex; gap:10px; font-size:10px; line-height:14px; color:rgba(232,234,232,.5); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:4px; }
 .nm-rgx .nm-rgx-botsc b { color:#e8eae8; font-weight:600; }
+/* 조약돌 + A1~A6 = 한 줄(형 11-15 11:5x 「a1~a6를 우측으로 옮기자. 조금만 간격을 줄여서, 조약돌하고 같은 라인으로 / 어짜피 오른쪽이 비니까」 · 「그만큼 확보된만큼 내려오면 보기 편할듯」)
+   조약돌 = 왼쪽(옛 12칸 걸음 그대로 = 위 시각 두 줄 간격 안 바뀜) · 러너 번호 = 같은 줄 오른쪽 끝(간격 조금 좁게) · 줄 자리 = 오른쪽 SNS 아래 줄(runner-gauges.tsx useRowSync) · 빈 칸 점 0 */
+.nm-rgx-line { display:flex; align-items:center; flex-wrap:wrap; width:100%; margin:6px 0 0; padding:0 2px; min-height:20px; transform:translateY(var(--nm-rgx-peb-dy, 0px)); }
+.nm-rgx-line > .nm-rgx-pebs { display:grid; grid-template-columns:repeat(var(--nm-rgx-pn, 7), minmax(0, 1fr)); justify-items:center; align-items:center; gap:0; flex:0 0 calc(100% * var(--nm-rgx-pn, 7) / 12); width:auto; margin:0; padding:0; transform:none; }
+.nm-rgx-line > .nm-rgx-pebs .nm-rgx-cell.sep { line-height:20px; font-size:12px; font-weight:300; color:rgba(255,255,255,.22); }
+.nm-rgx-line > .nm-rgx-runs { display:flex; flex:0 1 auto; width:auto; margin:0 0 0 auto; padding:0; gap:9px; justify-content:flex-end; flex-wrap:nowrap; white-space:nowrap; transform:none; }
+.nm-rgx-line > .nm-rgx-runs .nm-rgx-run { font-size:10px; line-height:14px; font-variant-numeric:tabular-nums; letter-spacing:0; }
+.nm-rgx-line > .nm-rgx-runs .nm-rgx-run + .nm-rgx-run::before { content:none; }
+.nm-rgx-gap { display:block; flex:none; height:24px; }
+/* 봇 일(뜸 #-063 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」) = 한 줄 틀 오른쪽 위(옛 이름표 자리 · 시각 두 줄 옆) — 옛 A 줄이 조약돌 줄로 올라와서 자리만 옮김 · 꼴은 위 .nm-rgx-botsc 그대로 */
+.nm-rgx-line { position:relative; }
+.nm-rgx-line > .nm-rgx-botsc { position:absolute; right:2px; bottom:calc(100% + 5px); max-width:calc(100% - 100% * var(--nm-rgx-pn, 7) / 12 - 12px); padding-right:0; }
+

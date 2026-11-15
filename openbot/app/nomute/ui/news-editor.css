@@ -39,5 +39,4 @@
 /* 위 탭 셋(뉴스 · SNS · 채널 · 형 11-15) = 대화방 위 폴더 탭 옷 그대로(./teams.css .nm-tswitch.fold) · 여기선 자리만 */
 .nm-ned-wrap { display:flex; min-height:0; flex:1; flex-direction:column; }
 .nm-tswitch.fold.nm-ned-tabs { flex:none; margin:0 14px 8px; }   /* 좌우 = 아래 카드 줄과 같은 여백 · 무게 = teams.css .nm-tswitch.fold(0,2,0) 위 */
-.nm-ned-wrap.wide .nm-ned-tabs .nm-ftab.on { flex:0 0 200px; }   /* PC = 고른 탭이 줄 끝까지 늘어나지 않게(폰 = 남는 폭 다 씀 · 대화방 탭과 같음) */
 .nm-ned[hidden], .nm-ned-old[hidden] { display:none; }   /* 안 고른 판 = 숨기기만(살려 둠) */
