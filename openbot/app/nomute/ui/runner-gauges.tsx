@@ -66,7 +66,7 @@ const PEB_LIFT = 6;   // 조약돌만 FB 줄보다 6px 위(형 11-12 16:34 봄 1
 
 // 우리 기억 줄(형 11-15 08:5x 시아 창 「백업이 돈 기록이 항상, 정원 한 구석에 우리 애들 관련된 내용쪽에 남게해줘 예쁘게~」 · 「갱신 시간이 남아야하고, 백업 시각이 각각 남아야해~ 습작 시각도~ 최근 교대시각도~」)
 //   = 조약돌 칸 밑에 아이마다 네 줄(일기 · 습작 · 교대 · 백업) · 오른쪽 빈칸 = 이름표 + 갱신 · 재료 = 작동 표 일기 줄 metrics(diary_ms · sketch_ms · handoff_ms · 작동-일기.py) + 러너 bk(번개 백업 · 04:30)
-const MEM = [["diary_ms", "일기"], ["sketch_ms", "습작"], ["handoff_ms", "교대"], ["bk", "백업"]] as const;
+const MEM = [["sketch_ms", "습작"], ["handoff_ms", "교대"]] as const;   // 두 줄만(형 11-15 09:31 dm-gik 깃 옮김 「일자는 안보여져도 되고 24시간 표기법으로 보이면됨.(습작은 - 시안, 교대는 라임) 그리고 그러면 2행만 표현하면되고」) · 일기 · 백업 = 칸 title · 백업 · 갱신 = 이름표
 const two = (n: number) => String(n).padStart(2, "0");
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 /** 오늘 = 「08:50」 · 다른 날 = 「11-14」(칸이 좁아 날짜만 · 전체 시각은 title) · 신선도 = 1시간 안 fresh · 오늘 day · 그 앞 old */
@@ -74,7 +74,7 @@ function memAt(ms: number | undefined, now: number): { t: string; full: string; 
   if (!ms) return { t: "—", full: "기록 없음", tone: "none" };
   const d = new Date(ms), full = `${two(d.getMonth() + 1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`;
   const today = dayKey(d) === dayKey(new Date(now));
-  return { t: today ? full.slice(6) : full.slice(0, 5), full, tone: now - ms < 3_600_000 ? "fresh" : today ? "day" : "old" };
+  return { t: full.slice(6), full, tone: now - ms < 3_600_000 ? "fresh" : today ? "day" : "old" };   // 날짜 0 · 24시 시각만(형 09:31) · 날짜는 title
 }
 function useRowSync(panel: { current: HTMLDivElement | null }) {
   const [dy, setDy] = useState({ peb: 0, run: 0 });
@@ -126,6 +126,7 @@ export function RunnerGauges() {
   const memRows = st.data?.cats?.find((c) => c.id === "diary")?.rows || [];
   const bk = Object.values(rq.data?.rows || {}).find((r) => r?.bk)?.bk;
   const memOf = (who: string) => { const m = memRows.find((r) => r.key === who)?.metrics || {}, b = bk?.rows?.find((x) => x.n === who); return { m, b }; };
+  const hasMem = memRows.some((r) => r.metrics) || !!bk;
   const memNew = memRows.reduce((t, r) => (r.metrics ? Math.max(t, r.reported_at || 0) : t), 0);   // 갱신 = 일기 줄을 실은 몸 보고 받은 때
   const panel = useRef<HTMLDivElement | null>(null);
   const dy = useRowSync(panel);
@@ -170,28 +171,6 @@ export function RunnerGauges() {
           );
         })}
       </div>
-      {memRows.some((r) => r.metrics) || bk ? (
-        <ul className="nm-rgx-mem nm-rgx-row12" aria-label="우리 기억(일기 · 습작 · 교대 · 백업 시각)">
-          {Array.from({ length: 12 }, (_, i) => {
-            const x = pebs[i];
-            if (!x || "sep" in x) return <li key={`m${i}`} className="nm-rgx-memc empty" aria-hidden />;
-            const { m, b } = memOf(x.who);
-            return (
-              <li key={`m${x.key}`} className="nm-rgx-memc">
-                {MEM.map(([k, lab]) => {
-                  const a = memAt(k === "bk" ? (b?.ok ? b.ok * 1000 : undefined) : m[k], now);
-                  const more = k === "bk" && b ? ` · ${b.mb ?? "?"}MB · ${b.f ?? "?"}개${b.cloud ? ` · 드라이브 ${b.cloud}` : ""}${b.miss ? ` · 빠짐 ${b.miss}` : ""}` : "";
-                  return <span key={k} className={`nm-rgx-mt ${a.tone}`} title={`${x.who} ${lab} ${a.full}${more}`}>{a.t}</span>;
-                })}
-              </li>
-            );
-          })}
-          {pebs.length <= 8 ? <li className="nm-rgx-memk" aria-hidden>
-            {MEM.map(([k, lab]) => <span key={k}>{lab}</span>)}
-            <small title={`일기 · 습작 · 교대 = 몸 보고(5분) · 백업 = 윈A ${bk?.at ? memAt(bk.at * 1000, now).full : "기록 없음"}`}>갱신 {memNew ? memAt(memNew, now).t : "—"}</small>
-          </li> : null}   {/* 이름표 = 조약돌 다음 빈칸 넷(9~12) 자리 · 아이가 아홉 넘으면 뺌(칸 겹침) */}
-        </ul>
-      ) : null}
       {/* 형 11-09 09:25 「조약돌 모양 일정한 간격으로 그냥 쭉 나열 · 러너 > A1~A6 · 일자로 · 총 12개 칸 · 6개 칸은 공란」 · 시아 09:26 ②③ = 몸 묶음 풀고 12칸 격자 두 줄(위 = 조약돌 1~10 · 아래 = A1~A6 · 7~12 공란 = 흐린 점) · 높이 = 오른쪽 SNS FB 줄 · IG 줄(useRowSync 그대로) */}
       <ul className="nm-rgx-pebs nm-rgx-row12" aria-label="우리 조약돌(몸 차례)">
         {Array.from({ length: 12 }, (_, i) => {
@@ -199,8 +178,24 @@ export function RunnerGauges() {
           if (!x) return <li key={`e${i}`} className="nm-rgx-cell empty" aria-hidden />;
           if ("sep" in x) return <li key="sep" className="nm-rgx-cell sep" aria-hidden>|</li>;   {/* 「누리만 끝에 |」 */}
           const w = wake(x.bot ?? x.key);
-          return <li key={x.key} className={`nm-rgx-peb ${w}`}><Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who}(${x.host}) · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "읽는 중" : "잠"}`} /></li>;
+          const mm = memOf(x.who), dia = memAt(mm.m.diary_ms, now), bka = memAt(mm.b?.ok ? mm.b.ok * 1000 : undefined, now);
+          return (
+            <li key={x.key} className={`nm-rgx-peb ${w}`}>
+              {hasMem ? (
+                <span className="nm-rgx-memt" aria-label={`${x.who} 기억`}>   {/* 조약돌 위 빈 틈에 띄움(띠 키 0 · 형 09:31 「여백이 지금 크니까 그만큼 줄이고」) */}
+                  {MEM.map(([k, lab]) => { const a = memAt(mm.m[k], now); return <i key={k} className={`${k === "sketch_ms" ? "sk" : "ho"} ${a.tone}`} title={`${x.who} ${lab} ${a.full} · 일기 ${dia.full} · 백업 ${bka.full}${mm.b ? ` · ${mm.b.mb ?? "?"}MB · ${mm.b.f ?? "?"}개${mm.b.cloud ? ` · 드라이브 ${mm.b.cloud}` : ""}` : ""}`}>{a.t}</i>; })}
+                </span>
+              ) : null}
+              <Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who}(${x.host}) · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "읽는 중" : "잠"}`} />
+            </li>
+          );
         })}
+        {hasMem && pebs.length <= 8 ? (
+          <li className="nm-rgx-memk" aria-hidden>
+            <span className="sk">습작</span><span className="ho">교대</span>
+            <small title={`일기 · 습작 · 교대 = 몸 보고(5분) · 백업 = 윈A`}>백업 {bk?.at ? memAt(bk.at * 1000, now).t : "—"} · 갱신 {memNew ? memAt(memNew, now).t : "—"}</small>
+          </li>
+        ) : null}
       </ul>
       <ul className="nm-rgx-runs nm-rgx-row12" aria-label="러너 A1~A6">
         {Array.from({ length: 12 }, (_, i) => {

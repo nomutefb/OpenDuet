@@ -96,16 +96,18 @@
 :root:not(.dark) .nm-rgx-tail-g b { color:#4f7a00; }
 :root:not(.dark) .nm-rgx-tail-g i { border-color:rgba(0,0,0,.12); }
 
-/* 우리 기억 줄(형 11-15 08:5x 「백업이 돈 기록이 항상, 정원 한 구석에 우리 애들 관련된 내용쪽에 남게해줘 예쁘게~」) — 조약돌 칸 밑 네 줄 · 숫자 = 고정폭 · 1시간 안 = 라임 · 오늘 = 밝은 잿빛 · 그 앞 = 흐림 · 움직임 0 */
-.nm-rgx .nm-rgx-row12.nm-rgx-mem { align-items:end; margin-top:auto; padding-top:8px; }   /* 게이지와 조약돌 사이 빈 틈에 앉음(조약돌 · 러너 줄은 오른쪽 IG · FB 줄에 맞춰 내려가 있어 띠 키가 안 늘어남) · 칸 = 조약돌 칸과 같은 12칸 */
-.nm-rgx-memc { display:flex; flex-direction:column; align-items:center; gap:1px; min-width:0; }
-.nm-rgx-memc.empty { visibility:hidden; }
-.nm-rgx-mt { font-size:9px; line-height:12px; font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; color:#9A9A9A; }
-.nm-rgx-mt.fresh { color:var(--accent, #D4FF3A); }
-.nm-rgx-mt.day { color:#C9C9C9; }
-.nm-rgx-mt.old { color:#6E6E6E; }
-.nm-rgx-mt.none { color:#4A4A4A; }
-.nm-rgx-memk { grid-column:9 / 13; grid-row:1; justify-self:stretch; display:flex; flex-direction:column; align-items:flex-start; gap:1px; padding-left:10px; border-left:1px solid rgba(255,255,255,.08); }
-.nm-rgx-memk span { font-size:9px; line-height:12px; letter-spacing:.04em; color:#7A7A7A; }
-.nm-rgx-memk small { margin-top:3px; font-size:9px; line-height:12px; font-variant-numeric:tabular-nums; color:var(--accent, #D4FF3A); opacity:.8; white-space:nowrap; }
-html:not(.dark):not([data-theme="garden"]) .nm-rgx-mt.day { color:#3A3A3A; } html:not(.dark):not([data-theme="garden"]) .nm-rgx-mt { color:#666; } html:not(.dark):not([data-theme="garden"]) .nm-rgx-mt.old { color:#9A9A9A; } html:not(.dark):not([data-theme="garden"]) .nm-rgx-mt.fresh { color:#4d7c0f; }
+/* 우리 기억(형 11-15 08:5x 「백업이 돈 기록이 항상, 정원 한 구석에 우리 애들 관련된 내용쪽에 남게해줘 예쁘게~」 · 09:31 「일자는 안보여져도 되고 24시간 표기법으로 보이면됨.(습작은 - 시안, 교대는 라임) 그리고 그러면 2행만 표현하면되고, 여백이 지금 크니까 그만큼 줄이고」)
+   = 조약돌 위 빈 틈에 두 줄을 띄움(position:absolute · 띠 키 0) · 습작 = 시안 · 교대 = 라임 · 오늘 아닌 시각 = 흐리게 · 움직임 0 */
+.nm-rgx-pebs { position:relative; }
+.nm-rgx-peb { position:relative; }
+.nm-rgx-memt { position:absolute; left:50%; bottom:calc(100% + 4px); transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:auto; }
+.nm-rgx-memt i { font-style:normal; font-size:9px; line-height:11px; font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; }
+.nm-rgx-memt i.sk, .nm-rgx-memk .sk { color:#5FD4E8; }
+.nm-rgx-memt i.ho, .nm-rgx-memk .ho { color:var(--accent, #D4FF3A); }
+.nm-rgx-memt i.old { opacity:.45; }
+.nm-rgx-memt i.none { opacity:.25; }
+.nm-rgx-memk { position:absolute; left:calc(100% * 8 / 12); bottom:calc(100% + 4px); display:flex; flex-direction:row; align-items:baseline; gap:6px; padding-left:10px; border-left:1px solid rgba(255,255,255,.08); white-space:nowrap; list-style:none; }
+.nm-rgx-memk span { font-size:9px; line-height:11px; letter-spacing:.04em; }
+.nm-rgx-memk small { font-size:9px; line-height:11px; font-variant-numeric:tabular-nums; color:#7A7A7A; }
+html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.sk, html:not(.dark):not([data-theme="garden"]) .nm-rgx-memk .sk { color:#0e7490; }
+html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):not([data-theme="garden"]) .nm-rgx-memk .ho { color:#4d7c0f; }
