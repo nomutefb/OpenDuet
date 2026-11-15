@@ -76,6 +76,7 @@ export const abs = (u?: string) => { const s = String(u || "").trim(); return !s
 export const imgOf = (t?: Thumb) => abs(t?.img || t?.url);
 /** 목록 썸네일 = AI 첫 장 · 없으면 검색 첫 장 */
 export const thumbOf = (a: Art) => { const c = a.cards || {}; return imgOf((c.thumb_gen || []).find((x) => imgOf(x))) || imgOf((c.thumb_search || []).find((x) => imgOf(x))); };
+export { thumbAltOf, thumbFail } from "./thumb-alt";   // R2 넘침 앞단 ① 카드 그림 다음 길(./thumb-alt)
 
 /** 공식 매체명(형 11-06 「yna 이런거 다 매체명으로 정확히 바꿔줘 더쿠, 연합뉴스. 뭐 이런식으로 공식 매체명 다 변환되게 구조상으로.」 · 「yna 는 연합일거고, asiae 이건 아시아경제 같고, 좀 더 다듬어줄수잇어? sns.youtube는 유튜브 같고.」)
  *  출처 키(yna · editor:asiae · sns.youtube · www.hani.co.kr · https://news.kbs.co.kr/…) → 공식 이름 · 이미 한글이면 그대로 · 표에 없으면 받은 그대로 · 매체 칸·SNS 칩이 다 이걸 거침 */
