@@ -219,7 +219,7 @@ export function NomuteNotice() {
   );
 }
 
-type LinkBot = { name: string; hook01?: { enabled: boolean; last_run?: string }; hook01_why?: string; routines: { id: string; state: string; result?: string | null; ran_at?: string | null; alert?: string | null }[]; today?: { wakes: number; clock: number; manual: number; cap: number; lost?: number } };
+type LinkBot = { name: string; hook01?: { enabled: boolean; last_run?: string }; hook01_why?: string; routines: { id: string; state: string; result?: string | null; ran_at?: string | null; alert?: string | null }[]; today?: { planned?: number; wakes: number; clock: number; manual: number; cap: number; lost?: number } };
 export function NomuteLink() {
   const q = useQuery({ queryKey: ["nomute", "link"], queryFn: () => office<{ at: number; by?: string; link?: { clock?: { beat_at?: string }; bots?: Record<string, LinkBot> } }>("schedule/link"), refetchInterval: 60_000 });
   const k = q.data?.link, beat = k?.clock?.beat_at ? Math.round((Date.now() - Date.parse(k.clock.beat_at)) / 1000) : null;
@@ -235,7 +235,7 @@ export function NomuteLink() {
                 <li key={id} className="px-4 py-2.5">
                   <p className="flex items-center justify-between text-sm"><b>{x.name}</b><span className={`text-xs ${x.hook01?.enabled === false || x.hook01_why ? "text-destructive" : "text-muted-foreground"}`}>{x.hook01_why || (x.hook01?.enabled ? "호출 연결 켜짐" : "호출 연결 꺼짐")}</span></p>
                   <p className="text-xs text-muted-foreground">
-                    {x.today ? `오늘 자동 ${x.today.clock} · 직접 ${x.today.manual}${x.today.lost ? ` · 놓침 ${x.today.lost}` : ""} · ` : ""}켠 루틴 {on} · 돎 {ran}{x.hook01?.last_run ? ` · 마지막 ${hm(x.hook01.last_run)}` : ""}
+                    {x.today ? `오늘 자동 ${x.today.clock}${x.today.planned ? `/${x.today.planned}` : ""} · 직접 ${x.today.manual}${x.today.lost ? ` · 놓침 ${x.today.lost}` : ""} · ` : ""}켠 루틴 {on} · 돎 {ran}{x.hook01?.last_run ? ` · 마지막 ${hm(x.hook01.last_run)}` : ""}
                   </p>
                   {x.routines.some((r) => r.alert) ? <p data-content className="text-xs text-destructive">{x.routines.filter((r) => r.alert).map((r) => `${r.id}: ${r.alert}`).join(" · ")}</p> : null}
                 </li>
