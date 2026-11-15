@@ -145,3 +145,23 @@
 :root:not(.dark) .nm-bd-head .mix .g-idle, :root:not(.dark) .nm-bd-head .key .g-idle i { background:#1b1b1b; }
 :root:not(.dark) .nm-bd-head, :root:not(.dark) .nm-bd-pm, :root:not(.dark) .nm-bd-bot, :root:not(.dark) .nm-bd-hand, :root:not(.dark) .nm-bd-turn { box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 8px 24px -18px rgba(0,0,0,.25); }
 :root:not(.dark) .nm-bd-grp h3 i { background:#fff; }
+
+/* 맨 위 카드 손 판(./bot-desk-hands.tsx) = 활동 신호 판 그림 그대로 · 카드 폭 끝까지 · 얼굴 밑 = 1특기 */
+.nm-bd-head .nm-bd-ab { margin:14px -16px -16px; }
+.nm-bd-ab .nsb-ab-lane li { width:72px; }
+.nm-bd-ab .nsb-ab-lane[data-k="rest"] li { width:64px; }
+.nm-bd-ab .cell { display:grid; justify-items:center; gap:4px; padding:6px 2px 4px; }
+.nm-bd-ab .cell > b { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-sm); font-weight:500; color:var(--nsb-ink); }
+.nm-bd-ab .cell > small { font-size:var(--fs-xs); color:var(--nsb-mut); text-align:center; line-height:1.3; word-break:keep-all; text-wrap:balance; }
+.nm-bd-ab .cell > small.sk { padding:1px 7px; border:1px solid rgba(var(--accent-rgb, 207,255,64),.4); border-radius:999px; color:var(--nsb-ok); }   /* 노는 손 = 특기가 고를 때 보는 것 → 알약 */
+.nm-bd-ab .nsb-ab-lane[data-k="rest"] .cell > b { font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); }
+.nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell > small { color:var(--nsb-ink); opacity:.8; }
+.nm-bd-ab li[data-sure="0"] .ring, .nm-bd-ab li[data-sure="0"] .halo { opacity:0; }   /* 쉬는 손(대기 신호로 확인 안 됨) = 회색 고리만 */
+.nm-bd-ab li[data-sure="0"] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-ink); }
+/* 일하는 중 접기 = 머리를 누르면 폄 · 접힌 동안 = 작은 얼굴 한 줄(겹쳐 놓음) */
+.nm-bd-ab h4 .lane-fold { display:inherit; gap:inherit; align-items:inherit; width:100%; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.nm-bd-ab h4 .lane-fold .chev { color:var(--nsb-mut); transition:transform .28s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+.nm-bd-ab h4 .lane-fold[aria-expanded="true"] .chev { transform:rotate(180deg); }
+.nm-bd-ab h4 .lane-fold:active { transform:scale(var(--press-l, .97)); }
+.nm-bd-ab .nsb-ab-lane ul.mini { gap:0; padding:4px 0 2px 8px; cursor:pointer; }
+.nm-bd-ab .nsb-ab-lane ul.mini li { width:auto; margin-left:-7px; border-radius:50%; box-shadow:0 0 0 2px #1b1c1b; line-height:0; animation:none; }
