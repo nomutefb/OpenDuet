@@ -16,14 +16,16 @@ const post = (body: unknown) => new Promise<number>((done) => {
   x.onload = () => done(x.status); x.onerror = () => done(0);
   x.send(JSON.stringify(body));
 });
-const reg = () => navigator.serviceWorker.getRegistration("/office-app/");
+const reg = () => navigator.serviceWorker.getRegistration("/garden-app/");
+// 옛 범위(/office-app/ · 주소 옮기기 전 · 깃 #-058) 일꾼에 남은 알림 받기 = 그대로 살림(옛 일꾼이 계속 받아 띄움 · 누르면 /office-app/ → 새 주소로 넘김) · 켜짐 판정 · 끄기는 둘 다 봄 · 켜기는 새 범위에만(둘이 같이 켜져 알림 두 번 0)
+const oldSub = async () => (await navigator.serviceWorker.getRegistration("/office-app/"))?.pushManager.getSubscription().catch(() => null) ?? null;
 
 export function PushRow() {
   const [st, setSt] = useState<St>("busy"), [err, setErr] = useState("");
   const read = async () => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return setSt("none");
     if (Notification.permission === "denied") return setSt("blocked");
-    setSt((await (await reg())?.pushManager.getSubscription()) ? "on" : "off");
+    setSt((await (await reg())?.pushManager.getSubscription()) || (await oldSub()) ? "on" : "off");
   };
   useEffect(() => { void read().catch(() => setSt("none")); }, []);
   const flip = async () => {
@@ -32,10 +34,9 @@ export function PushRow() {
     try {
       const r = await reg();
       if (!r) throw new Error("앱 일꾼(서비스 워커)이 아직 안 섰어 — 새로 고친 뒤 다시");
-      const cur = await r.pushManager.getSubscription();
-      if (cur) {
-        await post({ action: "unsubscribe", subscription: cur.toJSON() });
-        await cur.unsubscribe();
+      const cur = await r.pushManager.getSubscription(), old = await oldSub();
+      if (cur || old) {
+        for (const x of [cur, old]) if (x) { await post({ action: "unsubscribe", subscription: x.toJSON() }); await x.unsubscribe(); }
       } else {
         if ((await Notification.requestPermission()) !== "granted") return void (await read());
         const sub = await r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes() });
