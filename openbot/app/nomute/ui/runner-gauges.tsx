@@ -62,6 +62,19 @@ function useNow() {
  *  = 두 줄의 지금 가운데 y 와 SNS 두 줄(.nm-pulse-rowbg.fb · .nm-pulse-rowbg) 가운데 y 를 재서 그 차이만큼 translateY(CSS 변수) — 판 키는 안 바뀌니 오른쪽 칸 높이(--nm-top-h = 이 판 키)가 따라 움직이는 되먹임이 없음 · SNS 칸이 없으면(폰 · 펼침) 0
  *  다시 잼 = 판·오른쪽 칸 크기 바뀔 때 + 2초마다(SNS 그림은 자료가 와야 그려져 줄이 늦게 생김 · 글꼴 로딩 뒤 줄 키 바뀜) · 재는 줄 = 첫 몸의 줄(네 몸 다 같은 꼴 · 게이지 넷 같은 크기) */
 const PEB_LIFT = 6;   // 조약돌만 FB 줄보다 6px 위(형 11-12 16:34 봄 1:1 「그리고 조약돌이 조금 더 위로가게, a1 이런애들보다는」 · 봄 옮김) · 러너 번호 줄 = IG 줄 그대로
+
+// 우리 기억 줄(형 11-15 08:5x 시아 창 「백업이 돈 기록이 항상, 정원 한 구석에 우리 애들 관련된 내용쪽에 남게해줘 예쁘게~」 · 「갱신 시간이 남아야하고, 백업 시각이 각각 남아야해~ 습작 시각도~ 최근 교대시각도~」)
+//   = 조약돌 칸 밑에 아이마다 네 줄(일기 · 습작 · 교대 · 백업) · 오른쪽 빈칸 = 이름표 + 갱신 · 재료 = 작동 표 일기 줄 metrics(diary_ms · sketch_ms · handoff_ms · 작동-일기.py) + 러너 bk(번개 백업 · 04:30)
+const MEM = [["diary_ms", "일기"], ["sketch_ms", "습작"], ["handoff_ms", "교대"], ["bk", "백업"]] as const;
+const two = (n: number) => String(n).padStart(2, "0");
+const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+/** 오늘 = 「08:50」 · 다른 날 = 「11-14」(칸이 좁아 날짜만 · 전체 시각은 title) · 신선도 = 1시간 안 fresh · 오늘 day · 그 앞 old */
+function memAt(ms: number | undefined, now: number): { t: string; full: string; tone: string } {
+  if (!ms) return { t: "—", full: "기록 없음", tone: "none" };
+  const d = new Date(ms), full = `${two(d.getMonth() + 1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`;
+  const today = dayKey(d) === dayKey(new Date(now));
+  return { t: today ? full.slice(6) : full.slice(0, 5), full, tone: now - ms < 3_600_000 ? "fresh" : today ? "day" : "old" };
+}
 function useRowSync(panel: { current: HTMLDivElement | null }) {
   const [dy, setDy] = useState({ peb: 0, run: 0 });
   useEffect(() => {
@@ -109,6 +122,10 @@ export function RunnerGauges() {
   const newest = hw.reduce((t, r) => Math.max(t, r.reported_at || 0), 0);   // 머리줄 시각 = 가장 새 몸 보고 시각(서버 표 만든 시각 아님 · 봄 09:17 「1분 전 ≠ 방금」)
   const livesOn = (body: string) => bs.filter((x) => homeOf(x) === body && PEB[x.being]).map((x) => ({ ...PEB[x.being], who: x.being }));
   const rcells = ((hw.find((r) => r.key === "러너") as (Row & { cells?: Record<string, { st: string; note?: string }> }) | undefined)?.cells) || {};
+  const memRows = st.data?.cats?.find((c) => c.id === "diary")?.rows || [];
+  const bk = Object.values(rq.data?.rows || {}).find((r) => r?.bk)?.bk;
+  const memOf = (who: string) => { const m = memRows.find((r) => r.key === who)?.metrics || {}, b = bk?.rows?.find((x) => x.n === who); return { m, b }; };
+  const memNew = memRows.reduce((t, r) => (r.metrics ? Math.max(t, r.reported_at || 0) : t), 0);   // 갱신 = 일기 줄을 실은 몸 보고 받은 때
   const panel = useRef<HTMLDivElement | null>(null);
   const dy = useRowSync(panel);
   // 공용 두 줄 재료(36) · 시아 09:26 ②③): 조약돌 = 몸 차례(WIN → MAC → Lx B → Lx A)대로 사는 애를 한 줄로 · 러너 = 윈A 러너(RUNNERS 가 윈 칸인 것)만 번호 차례 · 둘 다 12칸(넘치면 자름)
@@ -152,6 +169,28 @@ export function RunnerGauges() {
           );
         })}
       </div>
+      {memRows.some((r) => r.metrics) || bk ? (
+        <ul className="nm-rgx-mem nm-rgx-row12" aria-label="우리 기억(일기 · 습작 · 교대 · 백업 시각)">
+          {Array.from({ length: 12 }, (_, i) => {
+            const x = pebs[i];
+            if (!x || "sep" in x) return <li key={`m${i}`} className="nm-rgx-memc empty" aria-hidden />;
+            const { m, b } = memOf(x.who);
+            return (
+              <li key={`m${x.key}`} className="nm-rgx-memc">
+                {MEM.map(([k, lab]) => {
+                  const a = memAt(k === "bk" ? (b?.ok ? b.ok * 1000 : undefined) : m[k], now);
+                  const more = k === "bk" && b ? ` · ${b.mb ?? "?"}MB · ${b.f ?? "?"}개${b.cloud ? ` · 드라이브 ${b.cloud}` : ""}${b.miss ? ` · 빠짐 ${b.miss}` : ""}` : "";
+                  return <span key={k} className={`nm-rgx-mt ${a.tone}`} title={`${x.who} ${lab} ${a.full}${more}`}>{a.t}</span>;
+                })}
+              </li>
+            );
+          })}
+          {pebs.length <= 8 ? <li className="nm-rgx-memk" aria-hidden>
+            {MEM.map(([k, lab]) => <span key={k}>{lab}</span>)}
+            <small title={`일기 · 습작 · 교대 = 몸 보고(5분) · 백업 = 윈A ${bk?.at ? memAt(bk.at * 1000, now).full : "기록 없음"}`}>갱신 {memNew ? memAt(memNew, now).t : "—"}</small>
+          </li> : null}   {/* 이름표 = 조약돌 다음 빈칸 넷(9~12) 자리 · 아이가 아홉 넘으면 뺌(칸 겹침) */}
+        </ul>
+      ) : null}
       {/* 형 11-09 09:25 「조약돌 모양 일정한 간격으로 그냥 쭉 나열 · 러너 > A1~A6 · 일자로 · 총 12개 칸 · 6개 칸은 공란」 · 시아 09:26 ②③ = 몸 묶음 풀고 12칸 격자 두 줄(위 = 조약돌 1~10 · 아래 = A1~A6 · 7~12 공란 = 흐린 점) · 높이 = 오른쪽 SNS FB 줄 · IG 줄(useRowSync 그대로) */}
       <ul className="nm-rgx-pebs nm-rgx-row12" aria-label="우리 조약돌(몸 차례)">
         {Array.from({ length: 12 }, (_, i) => {
