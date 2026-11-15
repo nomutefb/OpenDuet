@@ -175,7 +175,7 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
   return createPortal(
     <>
       {(room === "guide" || room === "tmp-mw8seuv1") && !open ? <StoryButton right={pane.right + (document.querySelector(".nm-split-root .nm-chat-h") ? 36 : 46)} /> : null}   {/* 밥상만(새 밥상 tmp-mw8seuv1 · 옛 guide · 뜸 11-15 #-029 실측 = 새 밥상엔 단추 0 이었음) = 검색 왼쪽 「밥상 이야기」 그림 → 바로 모달(형 11-04 15:4x 「밥상 대화는 우상단에 그거 픽토그램으로 하나 뜨게 해주라, 모달로 바로 뜨게. 밥상만」) */}
-      <div ref={find} className={`nm-find${open ? " open" : ""}`} style={{ right: pane.right + 6, width: open ? Math.max(120, pane.width - 52) : 40 }}>   {/* 11-06 20:39 = 우상단 ≡ 뺌(방 메뉴 = 윗줄 가운데 이름 목록 · 형 「별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」) → 돋보기가 맨 오른쪽 · 앞 줄: 닫힘 = 햄버거 왼쪽 그림 하나 · 열림 = 「<」 와 햄버거 사이(형 08:46 「범위 높이 등 만 조정」) */}
+      <div ref={find} className={`nm-find${open ? " open" : ""}`} style={{ right: pane.right + 6, width: open ? Math.max(160, Math.round((pane.width - 52) * 0.25)) : 40 }}>   {/* 펼친 폭 = 앞 폭(대화 칸 − 52)의 25% · 오른쪽 기준 · 폰 최소 160(형 11-15 08:58 dm-gik 「한 25%크기 너비로 펼쳐지게 (지금의) 변경해주면 될듯」 · 깃 #-047) */}   {/* 11-06 20:39 = 우상단 ≡ 뺌(방 메뉴 = 윗줄 가운데 이름 목록 · 형 「별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」) → 돋보기가 맨 오른쪽 · 앞 줄: 닫힘 = 햄버거 왼쪽 그림 하나 · 열림 = 「<」 와 햄버거 사이(형 08:46 「범위 높이 등 만 조정」) */}
         {open ? <input ref={input} value={q} placeholder="대화내용 검색" aria-label="대화내용 검색" enterKeyHint="search" onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Escape") close(); if (e.key === "Enter") setIdx((i) => Math.min(i + 1, Math.max(0, hits.length - 1))); }} /> : null}
         <button type="button" className="nm-find-btn" aria-label={open ? "검색 닫기" : "대화내용 검색"} aria-expanded={open} onClick={() => (open ? close() : setOpen(true))}><SearchToX on={open} /></button>
