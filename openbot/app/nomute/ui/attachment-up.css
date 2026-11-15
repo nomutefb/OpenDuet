@@ -134,3 +134,6 @@ img.nm-encok { outline:2px solid var(--accent, var(--accent, #CFFF40)); outline-
   .nm-encrow > .nm-encg:not(.ok) { position:static; order:2; flex-direction:row; gap:12px; }
   .nm-encrow > .nm-encg:not(.ok) .ln { min-width:56px; }
 }
+/* 보낸 이(라임) 말풍선 안 파일 카드 = 글자 흰색(이름 · 크기 줄 · 받기 단추) · 카드 바탕 어두운 꼴 그대로(형 11-15 10:16 dm-gik 「이렇게 텍스트 가는 경우글자 흰색으로 나오게.」 · 깃 #-057 · 앞 = 이름이 링크 파랑 · 크기 회색이라 라임 위에서 안 읽힘) */
+.ymrow.me .nm-fcard, .ymrow.me .nm-fcard .nm-fc-t b, .ymrow.me .nm-fcard .nm-fc-dl { color:#fff !important; }
+.ymrow.me .nm-fcard .nm-fc-t small { color:rgba(255,255,255,.72) !important; }
