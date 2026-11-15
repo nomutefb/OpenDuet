@@ -25,7 +25,7 @@ import { ThinkMarkRow } from "./live-shine";
 import { WakeDepthRow } from "./wake-depth";
 import { ModelSetRows, useModelSum } from "./model-set";
 import { GrokNote } from "./grok-note";
-import { SpellSetRow } from "./spell-set";   // 맞춤법 교정(분류용) 켬/끔(#-061)   // 그록봇 지침 메모(#-060)   // 모델 · 노력도(봇 상자 + 서버가 직접 부르는 일 · 일괄 · 형 11-15)
+// 그록봇 지침 메모(#-060)   // 모델 · 노력도(봇 상자 + 서버가 직접 부르는 일 · 일괄 · 형 11-15)
 import { PmSet, usePmLabel } from "./pm-set";   // PM 고르기(형 11-15 「설정에서 지정」 · POST /pm)
 import { PushRow } from "../push/push-row";
 import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
@@ -136,7 +136,6 @@ export function YetaSettings() {
             {row("teams", "chat", "팀즈", <TeamsAccount />, teamsName)}
             {row("vault", "keys", "보안 서랍", <NomuteVault />)}
             {row("groknote", "bot", "그록봇 지침", <GrokNote />, "메모")}
-            <SpellSetRow />   {/* 형 글 맞춤법 교정본 = 분류용 · 원문 그대로 · 켬/끔(#-061 · 형 01:13 「설정에서 온오프 하는거로」 · ./spell-set) */}   {/* 메모용 · 반영 안 됨(#-060 · 형 11-15 11:25 「그거는 반영하는게 아니라, 메모용이야」 · ./grok-note) */}   {/* 자리 1 · 2 · 3 열쇠 = 한 번 넣고 복사(깃 #-020 · 형 11-14 23:42) */}
           </div>
         </section>
         <section className="yset-part" aria-label="살펴보기">
