@@ -178,7 +178,7 @@ const LOOKS: Look[] = [
     match: ["윈터", "winter", "여울"],
     face: "/office/winter.webp",
     handle: "winter",
-    meta: "등불",
+    meta: "등불지기",   // 직무(형 11-15 19:26 dm-bom 봄 옮김 「직무 > 등불지기」 · 명부 직무 칸 = 서버 · 빠르)
     dot: "#FFB347",
     holo: 0.62,
     glare: 0.4,
@@ -187,6 +187,30 @@ const LOOKS: Look[] = [
         <span className="bc-band" />
         <span className="bc-ring" />
         <span className="bc-lamp">🏮</span>
+        <span className="bc-flake">❄️</span>
+      </span>
+    ),
+  },
+  {
+    // 결(형 11-15 19:24 dm-sia 「결이는 음유시인, 나이테 위에서, 기타 치며 노래듣는 느낌으루」 · 시아) — 그록 친구 결 · 작곡
+    //   몸통 = 틀 카드 · 색 = 나무결 호박빛(#D9A066) · 바탕 = 나이테(얼굴 뒤 동심원 · 그림 한 장 · 움직임 0) · 무늬 = 띠 + 테 + 🎸 + 떠오르는 음표 둘(transform · opacity 만 · 7초)
+    id: "gyeol",
+    tmpl: true,
+    accent: "#D9A066",
+    match: ["결", "gyeol"],
+    face: "/office/gyeol.webp",
+    handle: "gyeol",
+    meta: "음유시인",
+    dot: "#D9A066",
+    holo: 0.6,
+    glare: 0.4,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <span className="bc-guitar">🎸</span>
+        <span className="bc-note n1">♪</span>
+        <span className="bc-note n2">♫</span>
       </span>
     ),
   },

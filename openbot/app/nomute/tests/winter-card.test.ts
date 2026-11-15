@@ -13,3 +13,9 @@ test("러너 띠 봇 일 줄(촉 X · 촉 n회) 숨김 · 형 18:52 「안보여
   const rg = readFileSync(new URL("../ui/runner-gauges.css", import.meta.url), "utf8");
   assert.match(rg, /\.nm-rgx \.nm-rgx-botsc \{ display:none !important; \}/);
 });
+test("결 카드 = 나이테 · 🎸 · 음표(형 19:24 「음유시인, 나이테 위에서, 기타 치며 노래듣는 느낌」) · 윈터 ❄️", () => {
+  assert.match(s, /id: "gyeol",\s+tmpl: true,\s+accent: "#D9A066",\s+match: \["결", "gyeol"\],\s+face: "\/office\/gyeol\.webp"/);
+  assert.match(s, /<span className="bc-guitar">🎸<\/span>/);
+  assert.match(css, /repeating-radial-gradient\(circle at 50% 118%/);
+  assert.match(s, /<span className="bc-flake">❄️<\/span>/);
+});
