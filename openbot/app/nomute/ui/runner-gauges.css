@@ -139,3 +139,5 @@ html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):no
 .nm-rgx-line > .nm-rgx-botsc { position:absolute; right:2px; bottom:calc(100% + 5px); max-width:calc(100% - 100% * var(--nm-rgx-pn, 7) / 12 - 12px); padding-right:0; }
 
 .nm-rgx .nm-rgx-botsc .bad { color:#FF8A8A; }   /* 촉 X 마지막 회차에 final.json 없음 = 빨강(깃 #-066 덧) */
+.nm-rgx .nm-rgx-botsc { flex-direction:column; align-items:flex-end; gap:2px; overflow:visible; }   /* 「촉 X」 + 「촉 n회」 두 줄로 쌓음(한 줄이면 오른쪽 끝이 잘림 · 라이브 실물 11-15 15:0x · 깃 #-066 덧) */
+.nm-rgx .nm-rgx-botsc > span { white-space:nowrap; }
