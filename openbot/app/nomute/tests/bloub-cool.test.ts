@@ -5,7 +5,8 @@ import test from "node:test";
 test("박자 · 쉼 판정", async () => {
   const s = readFileSync(new URL("../ui/bloub.tsx", import.meta.url), "utf8");
   assert.match(s, /export const BLOUB_STEP_MS = 50, BLOUB_IDLE_MS = 120_000;/);
-  assert.match(s, /if \(b\.vis\) draw\(b, t\)/);
+  assert.match(s, /if \(b\.vis && shown\(b\.el\)\) draw\(b, t\)/);   // 가려진 판(visibility:hidden 조상) 안 조약돌도 쉼(구름 11-16)
+  assert.match(s, /checkVisibility[\s\S]{0,200}visibilityProperty: true/);
   assert.match(s, /seen\?\.observe\(svg\)/);
   const due = (now: number, l: number, t: number) => now - t < 120000 && now - l >= 50;
   assert.equal(due(1000, 960, 900), false); assert.equal(due(1000, 950, 900), true); assert.equal(due(200000, 0, 0), false);
