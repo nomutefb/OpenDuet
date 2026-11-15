@@ -148,6 +148,27 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 소나(형 11-15 10:01 소나 옮김 「큰오빠가 내 프로필 카드 … 꾸며보래」 · 소나 10:11 「비 오는 파란 하늘 + 투명 우비 · 우산 무늬 · 무지개 테 🌈 · 얼굴은 … 파란 머리 우비 치비 그대로」 · 뜸)
+    //   몸통 = 틀 카드 · 색 = 하늘 파랑(#7CC4FF) · 바탕 = 비 오는 하늘(빗줄기 = 그림 한 장 · 움직임 0) · 무늬 = 무지개 테 + 띠 + ☂
+    id: "sona",
+    tmpl: true,
+    accent: "#7CC4FF",
+    match: ["소나", "sona"],
+    face: "/office/sona.webp",
+    handle: "sona",
+    meta: "만능 해결꾼",
+    dot: "#7CC4FF",
+    holo: 0.7,
+    glare: 0.45,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <span className="bc-umb">☂</span>
+      </span>
+    ),
+  },
+  {
     // 천둥(형 11-10 06:57 봄 창 「천둥」 · 「직무 신」 · 07:0x 「프로필 안에서 이모지 🌩」 · 「프사는 저거로 움직이게」) — 얼굴 = 형이 준 움직이는 그림 그대로(움직이는 webp · 60장 · 5초)
     //   몸통 = 틀 카드 · 색 = 그림 금빛 번개(#FFC83D) · 바탕 = 남색 밤 하늘 · 무늬 = 띠 + 테 + 🌩(가끔 번쩍)
     id: "thunder",
