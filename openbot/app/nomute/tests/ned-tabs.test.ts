@@ -25,7 +25,7 @@ test("SNS · 채널 = 이 화면 안 판 · 한 번 연 탭은 살려 둠(숨기
   assert.match(n, /alive\.current\.add\(tab\);/);
   assert.match(n, /alive\.current\.has\(k\) \? \(/);
   assert.match(n, /<div className="nm-ned" hidden=\{tab !== "news"\}>/);
-  assert.match(n, /\{!wide && sel && tab === "news" \? null : <NedTabs tab=\{tab\} pick=\{pick\} \/>\}/);
+  assert.match(n, /\{wide \|\| \(sel && tab === "news"\) \? null : <NedTabs tab=\{tab\} pick=\{pick\} \/>\}/);   // PC = 맨 위 메인 탭 줄(tests/area-tabs.test.ts)
   assert.match(c, /\.nm-ned\[hidden\], \.nm-ned-old\[hidden\] \{ display:none; \}/);
 });
 

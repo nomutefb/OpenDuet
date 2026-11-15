@@ -131,7 +131,7 @@ export function NewsEditor() {
   );
   return (
     <div className={`nm-ned-wrap${wide ? " wide" : ""}`}>
-      {!wide && sel && tab === "news" ? null : <NedTabs tab={tab} pick={pick} />}   {/* 폰 기사 한 장 = 화면 통째 그대로(탭 줄 없이 · 「목록」으로 돌아옴) */}
+      {wide || (sel && tab === "news") ? null : <NedTabs tab={tab} pick={pick} />}   {/* 폰만 = 화면 안 폴더 탭(PC 는 맨 위 메인 탭 줄 · ./area-tabs.tsx · 형 11-15 「탭이 메인탭 라인으로 가는거지」) · 폰 기사 한 장 = 화면 통째 그대로(탭 줄 없이 · 「목록」으로 돌아옴) */}
       {news}
       {(["sns", "chan"] as const).map((k) => alive.current.has(k) ? (
         <div key={k} className="nm-scroll nm-ned-old" hidden={tab !== k}>   {/* nm-scroll = 옛 탭 엔진이 찾는 스크롤 판(./old-tabs/engine.ts __sc) */}
