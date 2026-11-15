@@ -53,7 +53,7 @@ test("뉴스 에디터 = 맨 위 넣는 줄 0 · 오른쪽 아래 「요약」 �
   assert.ok(!/function SendBar\(|<SendBar\b|submitText|링크 · 글 붙여 넣기/.test(ned), "넣는 줄 걷음");
   assert.match(fan, /const items: \[string, string\]\[\] = \[\["\/ask", "뉴스 요약"\], \["\/edtool", "이미지 에디터"\], \["\/edvid", "비디오 에디터"\]\];/, "「+」 펼침 셋(형 19:23)");
   assert.match(ned, /<PlusFan go=\{go\} \/>/);
-  assert.match(ncss, /\.nm-ned-plus \{[^}]*position:absolute;[^}]*right:14px; bottom:calc\(var\(--duet-tab-space,86px\) \+ 8px\)/, "대화방 목록 「+」 자리 그대로");
+  assert.match(ncss, /\.nm-ned-plus \{[^}]*position:absolute;[^}]*right:14px; bottom:calc\(var\(--duet-tab-space,86px\) \+ 24px\)/, "대화방 목록 「+」 자리와 같음(형 11-15 08:55 16px 위로)");
   // 꼴 = 9시 → 12시로 셋 · 그림 단추 · 유리(형 11-15 「9시에서 12시로 3개가 펼쳐지게 … 픽토그램식으로 · Kinetics orbital menu … 글래스모피즘」) · 몸 = Kinetics 원문 값
   const orbit = rd("../vendor/kinetics/orbit-menu.css");
   assert.match(orbit, /\.demo-orbit-menu\.on \.demo-orbit-core \{ transform: rotate\(45deg\) scale\(\.88\); \}/);
@@ -80,7 +80,7 @@ test("홈 판(형 11-11 18:48~18:51) = 그림 세로 108 · 스레드 · 「N시
   assert.match(fp, /const PH = 108;/); assert.match(fp, /H = fill \? tall : PH/);
   assert.match(fp, /get\("th", "threads_data\.json"\)\]/, "스레드 폰에도 받음");
   assert.ok(!/\{fill \? <><i className="nm-pulse-sep"/.test(fp), "TH 칸 = 폰에도");
-  assert.match(fp, /<span className="nm-pulse-at">\{ago\(ig\.live_followers\?\.at \|\| ig\.generated_kst\)\.replace\(\/\^갱신 \/, ""\)\}<\/span>/);
+  assert.match(fp, /<span className="nm-pulse-at">\{\(\(\) => \{ const t = Date\.parse\(String\(ig\.live_followers\?\.at \|\| ig\.generated_kst/);   // 늘 「N분 전」(형 11-15 08:54 · ../ui/ago-min)
   assert.match(fcss, /\.nm-pulse:not\(\.nm-pulse-fill\) \.nm-pulse-at \{ position:static; margin-left:auto;/);
   assert.ok(!/SEND_ROOM/.test(nf.replace(/\/\/.*$/gm, "")), "카드 아래 단추 자리 걷음");
   assert.ok(!/:not\(:has\(\.article-media\)\)\{height:auto/.test(nf), "사진 없는 카드도 칸 높이");

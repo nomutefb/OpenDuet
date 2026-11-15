@@ -3,6 +3,7 @@
 //   숫자 = 작동 표 hw 줄 metrics(몸-보고.py 5분 · editor#2562 · BodyBar 와 같은 조회 = 서버 한 번) · 그게 없거나 끊기면 러너 위젯 자료(/api/runner) 숫자로 메움
 //   꼴 = 날씨 위젯 같은 잿빛 블랙 유리 카드 하나(형 14:40 「우측상단엔 그냥 시계 있는거 대신해서 날씨 위젯처럼 러너상태바.」 · 「쟂빛블랙 반투명에 살짝 글래스모피즘」) · 몸마다 F11 틱 게이지(CPU) + RAM·GPU·온도 한 줄 · 자동차 계기판 판(2e6f37b)은 형 14:40 「심플하게」로 내림 · 어두운 판 = runner-board.css nm-rg-panel · 머리 = 불 · 이름 · 온도 · 도는 잡/자리 · 받은 때
 import { useQuery } from "@tanstack/react-query";
+import { agoMin } from "./ago-min";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { office } from "../data/office";
 import { TickGauge } from "../runner/tick-gauge";   // 에디터 lieflat F11 Tick Gauge 옮긴 것(형 14:40 「심플하게 그 life 어쩌고 에디터에 잇는 것중에 하나로」)
@@ -49,7 +50,7 @@ const LIGHT_CLS: Record<string, string> = { "🟢": "is-ok", "🟡": "is-warn", 
 // 「깸 상태」 = 그 순간 턴을 도는지(답 사이엔 「잠」) → 「마지막 깸」이 10분 안이면 「방금 깸」으로 제 색(봄 11-06 10:08 「나 지금 깨서 일하는 중인데 맥 조약돌 회색이지?」)
 const minAgo = (note?: string) => { const m = String(note || "").match(/^(\d+)\s*(초|분|시간)\s*전/); return !m ? Infinity : m[2] === "초" ? 0 : m[2] === "분" ? +m[1] : +m[1] * 60; };
 const awakeOf = (note?: string, last?: string): "on" | "near" | "stay" | "off" => (/^깸/.test(note || "") ? "on" : /상주/.test(note || "") ? "stay" : minAgo(last) <= 10 ? "near" : "off");
-const ago = (ms: number) => { const s = Math.max(0, ms / 1000); return s < 60 ? "방금" : s < 5400 ? `${Math.floor(s / 60)}분 전` : s < 86400 * 2 ? `${Math.round(s / 3600)}시간 전` : `${Math.round(s / 86400)}일 전`; };   // 봄 09:17 「1분 전 ≠ 방금」 = 60초 넘으면 분(내림)
+const ago = (ms: number) => agoMin(ms);   // 머리줄 = 늘 「N분 전」(형 11-15 08:54 · ./ago-min)
 
 /** 1분마다 지금 — 「N분 전」 글만 움직임. */
 function useNow() {

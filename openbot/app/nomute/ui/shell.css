@@ -203,7 +203,7 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-root .nm-split > section.nm-split-run { padding:0 !important; }
 .nm-split-root .nm-split > section.nm-split-run .nm-rgx { padding:0 !important; }
 .nm-card-h, .nm-split-root .nm-nlist-h, .nm-split-root .nm-nsum-h { height:36px; flex:none; display:flex; align-items:center !important; gap:8px; padding:0 12px !important; border-bottom:1px solid rgba(255,255,255,.07); border-top:0 !important; margin:0; }
-.nm-card-h b, .nm-split-root .nm-nlist-h b, .nm-split-root .nm-nsum-h b { font-size:var(--fs-label); letter-spacing:.02em; color:#e8eae8; }
+.nm-card-h b, .nm-split-root .nm-nlist-h b, .nm-split-root .nm-nsum-h b { font-size:calc(var(--fs-label) * .9);   /* 칸 이름(RUNNER · SNS · KEYWORD · DIGEST) 10% 작게(형 11-15 08:54 「러너, sns, key워드 이런 글자 워딩들 10%만 글자 작게 하자」 · 깃 #-046) */ letter-spacing:.02em; color:#e8eae8; }
 .nm-card-h > span, .nm-split-root .nm-nlist-h > span, .nm-split-root .nm-nsum-h > span { margin-left:auto; color:rgba(232,234,232,.45); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
 .nm-card-h .live { width:7px; height:7px; border-radius:50%; background:#CFFF40; align-self:center; }
 .nm-split-root .nm-nsum { border-top:0 !important; }
@@ -379,3 +379,10 @@ html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; bor
 button:is(.ncs-x, .ypk-x, .gy-x), :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"] { display:inline-grid; place-items:center; border:0; border-radius:50%; background:none; color:var(--fg-2, currentColor); line-height:1; cursor:pointer; transition:transform .28s var(--ease), background-color .15s; }
 button:is(.ncs-x, .ypk-x, .gy-x):hover, :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"]:hover { background:rgba(127,127,127,.14); }
 button:is(.ncs-x, .ypk-x, .gy-x):active, :is(.nm-decpop, .nm-story-pop) header > button[aria-label="닫기"]:active { transform:scale(var(--press-m, .92)); }
+
+/* 홈 판 스크롤바 0 · 스크롤은 그대로(형 11-15 08:55 dm-gik 「그리고 스크롤 바는 안나오게 할게~」 · 깃 #-046 ⑦) */
+:is(.nm-split-root, .nm-home-swap) :is(.nm-nlist-ol, .nm-nsum-ol, .nm-kwb, .nm-kwb-col) { scrollbar-width:none; }
+:is(.nm-split-root, .nm-home-swap) :is(.nm-nlist-ol, .nm-nsum-ol, .nm-kwb, .nm-kwb-col)::-webkit-scrollbar { display:none; }
+/* 다이제스트 기사 = 둥근 상자 걷고 기사 사이 구분선 하나(형 08:55 「기사마다 모서리 둥근 박스 안에 들어가게 되어있는데, 그냥 기사마다 구분선 하나로 퉁칠게 … 위에 기사 구분한거랑 동일한 형태야」 · ⑧ · 홈 Digest 만 · 뉴스 에디터 카드는 그대로) */
+.nm-nsum .nm-nsum-ol .nm-sumc.lean { border:0 !important; border-radius:0 !important; background:none !important; box-shadow:none !important; }
+.nm-nsum .nm-nsum-ol > li + li { border-top:1px solid rgba(255,255,255,.06); }

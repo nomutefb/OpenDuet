@@ -92,3 +92,13 @@ html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
   .nm-kwb-col ol { flex:1 1 auto; min-height:0; }
   .nm-kwb-col li { flex:1 1 0; max-height:72px; }
 }
+
+/* Hot Issue ↔ 키워드 바꿈 = 알약 테 · 바탕 0(글 · 그림만) · PC = 칸 제목 바로 옆(형 11-15 08:54 「키워드 스위칭하는거 있잖아. 알약 없이 . 그리고 핫이슈 토글 타이틀 옆으로 옮기면 될거같아」 · 깃 #-046 ③④) */
+.nm-hotswap-t, .nm-home-swap .nm-hotswap-t { border-color:transparent !important; background:none !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; padding:0 4px; }
+.nm-home-swap .nm-hotswap-t { text-shadow:0 1px 6px rgba(0,0,0,.7); }
+.nm-split-root .nm-hotswap-t { top:6px; right:auto; left:var(--swap-x, 112px); }
+.nm-split-root .nm-hotswap[data-view="kw"] .nm-hotswap-t { --swap-x:104px; }
+.nm-split-root .nm-hotswap .nm-nlist-h { padding-right:12px !important; }   /* 바꿈이 제목 옆으로 갔으니 오른쪽 자리 비움 · 시각 = 다른 칸과 같은 오른쪽 끝(형 11-15 08:54 「우측 정렬」) */
+.nm-split-root .nm-hotswap .nm-nlist-h b { margin-right:var(--swap-w, 64px); }   /* 제목 뒤 바꿈 글자 자리 */
+.nm-hotswap .nm-nlist-h > span { margin-left:auto; text-align:right; font-variant-numeric:tabular-nums; }   /* 폰도 시각 = 오른쪽 끝(형 11-15 08:54 「우측 정렬」) */
+.nm-home-swap .nm-hotswap .nm-nlist-h { padding-right:14px; }

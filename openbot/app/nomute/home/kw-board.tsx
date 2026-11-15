@@ -5,12 +5,13 @@
 //   「폰에서는 … 넘길때마다 차트가 나오게」 = 좁은 칸에선 한 화면에 줄기 하나 · 옆으로 넘김(점 넷)
 //   말 누름 = 그 말 찾기 새 창(형 11-05 「링크같은거는 항상 클릭하면 새 창에서」) · 재료 = 30분마다 모이는 파일이라 10분에 한 번만 받음
 import "./kw-board.css";
+import { agoMin } from "../ui/ago-min";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { firstJson } from "./news-feed";
 import { KW_EVERY_MS, KW_FIRST_MS, KW_STEP_MS, kwCols, kwHits, kwShowNew, type TrendsIn, type XtopIn } from "./kw-board-core";
 
-const ago = (iso: string, now: number) => { const t = Date.parse(iso); if (!Number.isFinite(t)) return ""; const m = Math.max(0, Math.floor((now - t) / 6e4)); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
+const ago = (iso: string, now: number) => { const t = Date.parse(iso); return Number.isFinite(t) ? agoMin(now - t) : ""; };   // 칸 시각도 늘 「N분 전」(형 11-15 08:54)
 
 export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?: () => void }) {
   const q = useQuery({
@@ -59,7 +60,7 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
     <section className="nm-kwb" aria-label="키워드 순위" aria-hidden={on ? undefined : true} inert={on ? undefined : true}
       onPointerEnter={(e) => { if (e.pointerType === "mouse") over.current = true; }} onPointerLeave={() => { over.current = false; }}
       onPointerDown={() => { hold.current = Date.now() + 20_000; }}>
-      <div className="nm-nlist-h nm-kwb-h"><i className="live" aria-hidden /><b>Keyword</b><span>{newest ? ago(newest, now) : ""}</span></div>
+      <div className="nm-nlist-h nm-kwb-h"><i className="live" aria-hidden /><b>Keyword</b><span>{newest ? agoMin(now - Date.parse(newest)) : ""}</span></div>
       {none ? (
         <p className="nm-kwb-none"><b>{q.isPending ? "읽는 중…" : q.isError ? "키워드 순위를 못 받았어" : "지금 모인 키워드가 없어"}</b>{q.isPending ? null : <span>10분 뒤 다시 받아</span>}</p>
       ) : (

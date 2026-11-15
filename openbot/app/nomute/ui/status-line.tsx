@@ -9,6 +9,7 @@
 //   StatusLine = 둘을 맨 아래 26px 한 줄로 묶은 옛 판(번개가 자리 옮길 때까지 그대로 · 옮기면 shell.tsx 에서 빼면 됨)
 //   결 = 위 시계(흐린 흰 · 숫자 라임) · 같은 queryKey ["nomute","status"] = 작동 표·몸 줄과 한 번만 부름(60초 · 서버 20초 기억)
 import { useQuery } from "@tanstack/react-query";
+import { agoMin } from "./ago-min";
 import { useEffect, useState } from "react";
 import { office } from "../data/office";
 import "./status-line.css";
@@ -26,11 +27,7 @@ type Line = {
 
 function ago(t: number | undefined, now: number): string {
   if (!t) return "—";
-  const m = Math.max(0, Math.round((now - t) / 60000));
-  if (m < 1) return "방금";
-  if (m < 60) return `${m}분 전`;
-  const h = Math.round(m / 60);
-  return h < 24 ? `${h}시간 전` : `${Math.round(h / 24)}일 전`;
+  return agoMin(now - t);   // 늘 「N분 전」(형 11-15 08:54 · ./ago-min)
 }
 
 const N = ({ v, t }: { v?: number; t?: string }) => <b className={t}>{v ?? 0}</b>;   // t = 신호등 칸(러너 숫자 = 흰색 · 문제(빨강) 칸만 라임 · 형 11-12 17:49 봄 1:1 「저거 흰색이여도 될거같아. 빨간색만 라임이면 될듯.」 · 봄 옮김)
@@ -61,13 +58,9 @@ export function StatusLights({ className = "" }: { className?: string }) {
         <span>{q.isError ? "상태를 못 읽었어요" : q.isSuccess ? "상태 자료가 아직 없어요" : "상태 읽는 중…"}</span>
       ) : (
         <>
+          <span className="nm-sl-srv" title="서버 연결 칸의 가장 나쁜 불"><Dot t={toneOf(l.server)} /></span>   {/* 서버 불 = 맨 왼쪽 · 숫자 = 오른쪽 · 「봇 n/m」 · 「받을 수 있음」 뺌(형 11-15 08:54 dm-gik 「우상단에 봇14/15 이거 없어도 되고 … 받을 수 있음도 없어도 돼. 서버 초록색이 가장 좌측으로, 그리고 우측에 숫자들 나오면 될듯」 · 깃 #-046) */}
           <span className="nm-sl-leds" title={`작동 표 신호등 수 · 정상 ${l.ok ?? 0} · 주의 ${l.warn ?? 0} · 문제 ${l.bad ?? 0} · 꺼짐 ${l.off ?? 0}`}><Dot t="ok" /><N v={l.ok} t="ok" /> <Dot t="warn" /><N v={l.warn} t="warn" /> <Dot t="bad" /><N v={l.bad} t="bad" /> <Dot t="off" /><N v={l.off} t="off" /></span>
-          <Sep />
-          <span title="서버 연결 칸의 가장 나쁜 불">서버 <Dot t={toneOf(l.server)} /></span>
-          {/* 몸 n/m 뺌(형 11-08 09:00 dm-fast 「몸 7/9 이것도 없어도 돼.」 · 끊긴 몸은 러너 칸이 보여 줌) */}
-          <Sep />
-          <span title="봇 연결">봇 <N v={l.bots?.ok} />/{l.bots?.total ?? 0}</span>
-          {l.act ? <><Sep /><span className="nm-sl-act" title="지금 일을 받을 수 있는 아이 수(대기 신호가 5분 안에 온 아이)">받을 수 있음 <N v={l.act.ready} /></span>{l.act.lost ? <span className="nm-sl-act lost" title="신호가 끊겼거나 부름에 손이 없는 아이 수">멈춤 <N v={l.act.lost} t="bad" /></span> : null}</> : null}{/* 형 11-14 「지금 쉬고있어서 일을 받을 상태가 되어있냐」 · 「신호가 끊긴게 아니냐」 — 작동 표를 안 열어도 윗줄에서 */}
+          {l.act?.lost ? <><Sep /><span className="nm-sl-act lost" title="신호가 끊겼거나 부름에 손이 없는 아이 수">멈춤 <N v={l.act.lost} t="bad" /></span></> : null}
         </>
       )}
     </div>
@@ -78,7 +71,7 @@ export function StatusLights({ className = "" }: { className?: string }) {
 export function SyncAgo() {
   const { l } = useLine();
   const now = useNow();
-  return <span title={l?.synced_at ? `몸 보고 가장 늦은 때 ${new Date(l.synced_at).toLocaleString()}` : "몸 보고 아직 없음"}>동기화 {ago(l?.synced_at, now)}</span>;
+  return <span title={l?.synced_at ? `몸 보고 가장 늦은 때 ${new Date(l.synced_at).toLocaleString()}` : "몸 보고 아직 없음"}>{ago(l?.synced_at, now)}</span>;   // 「동기화」 글자 뺌(형 11-15 08:54 「동기화 0 분전 아니야」)
 }
 
 /** ⓑ 옛 우하단 「동기화 00분 전 • 버전 0000000」 — 이제 화면엔 안 그림(형 11-08 09:00 dm-fast 「그리고 버전 어쩌고는 메인창에서 그냥 안보이게해줘. ux에 어긋나네」 · 동기화 = SyncAgo 가 Digest 머리줄로) ·
