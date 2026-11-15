@@ -105,7 +105,10 @@ export function RepairRow({ x, arc, desk, spec }: { x: RepairItem; arc?: boolean
     <li className="py-2">
       <button type="button" className="flex w-full items-center gap-3 text-left text-sm" aria-expanded={open} disabled={arc} onClick={() => setOpen((v) => !v)}>
         <span className="shrink-0 tabular-nums text-muted-foreground">No.{x.no}</span>
-        <span data-content className="min-w-0 flex-1 truncate">{x.urgent ? "🔥 " : ""}{desk && x.kind && x.kind !== "없음" ? <b className="font-medium">[{x.kind}] </b> : null}{x.title || x.kind}<span className="text-xs text-muted-foreground"> · {nm(x.from)} · {atOf(x.at)}</span></span>
+        <span data-content className="min-w-0 flex-1">   {/* 폰 = 제목 줄 + 신청자 · 시각 줄(한 줄이면 제목이 길 때 「· 누가 · 언제」가 늘 잘려 안 보였음 · 실제 값 390px · 형 11-15 「다른 것도 야무지게 이쁘게」) · 640 부터는 앞 판 그대로 한 줄 */}
+          <span className="block truncate">{x.urgent ? "🔥 " : ""}{desk && x.kind && x.kind !== "없음" ? <b className="font-medium">[{x.kind}] </b> : null}{x.title || x.kind}<span className="hidden text-xs text-muted-foreground sm:inline"> · {nm(x.from)} · {atOf(x.at)}</span></span>
+          <span className="block truncate text-xs text-muted-foreground sm:hidden">{nm(x.from)} · {atOf(x.at)}</span>
+        </span>
         <span className={`shrink-0 text-xs font-medium ${x.state === "진행" ? "animate-pulse" : ""}`}>{rpName(x.state)}</span>
       </button>
       {desk && (spec || x.issue) ? (
