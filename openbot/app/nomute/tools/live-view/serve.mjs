@@ -24,7 +24,7 @@ http.createServer(async (req, res) => {
     if (p.startsWith('/api/office/')) {
       if (req.method !== 'GET') { done('막음(읽기만)'); res.writeHead(403, { 'content-type': 'application/json' }); return res.end('{"ok":false,"error":"read_only","why":"로컬 확인 = 읽기만"}'); }
       const rest = p.slice('/api/office/'.length);
-      if (/(^|\/)(wait|watch|beats|stream)(\/|$)/.test(rest)) { done('긴 기다림 = 빈 답'); return setTimeout(() => { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true,"messages":[],"events":[]}'); }, 25000); }
+      if (/(^|\/)(wait|watch|beats|stream|pulse)(\/|$)/.test(rest)) { done('긴 기다림 = 빈 답'); return setTimeout(() => { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true,"messages":[],"events":[]}'); }, 25000); }
       const r = await curl(`${SITE}/api/office/m/${rest}${u.search}`); done('기계 문 ' + r.code);
       let body = r.body; if (process.env.NM_AS_OWNER && rest === 'schedule' && r.code === 200) { try { const j = JSON.parse(body); j.can_set = true; if (!j.runners) j.runners = { groups: [], forks: [], jobs: [] }; body = Buffer.from(JSON.stringify(j)); } catch {} }   // 화면 확인용 = 형 자리처럼 보이게(쓰기는 여전히 막힘)
       res.writeHead(r.code, { 'content-type': r.ct, 'cache-control': 'no-store' }); return res.end(body);
