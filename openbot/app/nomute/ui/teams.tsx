@@ -186,7 +186,7 @@ export function TeamsSwitch() {
   );
   return (
     <div className="nm-tswitch fold" role="tablist" aria-label="대화 판 바꾸기">
-      {tab("office", <OfficeIcon />, "사무실")}
+      {tab("office", <OfficeIcon />, "대화방")}
       {tab("teams", <TeamsIcon />, "팀즈", n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null)}
       {tab("meet", <MeetIcon />, "회의")}
     </div>
@@ -220,7 +220,7 @@ function TeamsLogin({ me, err }: { me?: Me; err?: string }) {
       ) : (
         <>
           <b>팀즈 로그인</b>
-          <p>회사 계정으로 한 번 로그인하면 사무실 안에서 팀즈 대화를 보고 보낼 수 있어.</p>
+          <p>회사 계정으로 한 번 로그인하면 봄의 정원 안에서 팀즈 대화를 보고 보낼 수 있어.</p>
           <GoButton className="nm-tgo" disabled={busy} go={login} done={coded} busy="코드 받는 중">로그인</GoButton>
         </>
       )}
@@ -296,7 +296,7 @@ export function TeamsChat({ chat }: { chat: string }) {
     const fd = new FormData(); fd.append("chat", chat); if (t) fd.append("text", t); fd.append("file", f);
     const res = await fetch("/api/office/teams/upload", { method: "POST", credentials: "same-origin", cache: "no-store", body: fd });   // office() 는 몸이 있으면 JSON 머리를 붙여서 폼은 직접 보냄
     const j = (await res.json().catch(() => ({}))) as { ok?: boolean; why?: string; error?: string; message?: TMsg };
-    if (!res.ok || j.ok === false) throw new Error(j.why || j.error || `사무실 서버 ${res.status}`);
+    if (!res.ok || j.ok === false) throw new Error(j.why || j.error || `봄의 정원 서버 ${res.status}`);
     return j;
   };
   const send = async () => {

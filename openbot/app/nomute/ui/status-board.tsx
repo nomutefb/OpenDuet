@@ -63,7 +63,7 @@ const skeleton = (bs: Body[]): StatusCat[] => [
   { grp: "몸", id: "backup", name: "백업 · G드라이브", rows: [wait("윈A")] },   // 맥 = 윈A 가 끌어감(「윈A ← 맥」 줄) · 윈B 없음(형 01:21 사진 X)
   { grp: "우리", id: "diary", name: "일기 작동", cols: DIARY_COLS, rows: bs.filter((b) => b.being).map((b) => ({ ...wait(b.being), cells: {} })) },
   // 사무실 통신(형 11-05 08:2x 「사무실 커뮤니케이션 상태 / 열인덱싱: 클로드, 지피티, 그록봇 / 행인덱싱: …」) = 종류 × 봇 무리 격자 · 칸 = 그 무리가 그 종류를 사무실로 보내고 받는지(시험 = 빠르 · 서버 file·photo 길)
-  { grp: "우리", id: "comm", name: "사무실 커뮤니케이션", cols: ["클로드", "지피티", "그록봇"].map((x) => ({ id: x, name: x })),   // 칸 id = 서버(빠르 comm cells) 이름 그대로
+  { grp: "우리", id: "comm", name: "봄의 정원 커뮤니케이션", cols: ["클로드", "지피티", "그록봇"].map((x) => ({ id: x, name: x })),   // 칸 id = 서버(빠르 comm cells) 이름 그대로
     rows: ["텍스트", "사진 원본", "사진 압축본", "영상 원본", "영상 압축본", "영상 해석본", "음성", "음성 전사본", "링크", "파일(웹 관련)", "파일(앱 관련)", "bat 파일 등"].map((t) => ({ ...wait(t), cells: {} })) },
 ];
 
@@ -84,7 +84,7 @@ function fromLocal(s: Sched | undefined, bots: Bot[] | undefined, loading = fals
   const jobs = s?.runners?.jobs || [];
   const mach = jobs.filter((j) => /nomute-wake|neo-agent|sched-clock/.test(j.id));
   out.server = [
-    { key: "api", name: "사무실 서버", st: s ? "ok" : loading ? "unknown" : "miss", value: s ? "응답함" : loading ? "읽는 중…" : "응답 없음" },   // 처음 불러오는 사이 = 회색(형 11-06 00:30 「메뉴 4 첨 들가몀 이게 쩟다가」)
+    { key: "api", name: "봄의 정원 서버", st: s ? "ok" : loading ? "unknown" : "miss", value: s ? "응답함" : loading ? "읽는 중…" : "응답 없음" },   // 처음 불러오는 사이 = 회색(형 11-06 00:30 「메뉴 4 첨 들가몀 이게 쩟다가」)
     { key: "clock", name: "봇 시계(윈A)", st: s?.clock_got?.got ? "ok" : "unknown", last_at: s?.clock_got?.beat_at, value: s?.clock_got?.got ? "판 받음" : "" },
     ...mach.map((j) => ({ key: j.id, name: j.name, st: j.on === false ? ("off" as HealthSt) : j.health?.st || "unknown", last_at: j.health?.last_at })),
   ];
@@ -339,7 +339,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
         {grok ? <span><Dot c={grok} t={`${grok.name} · ${grok.value || ""}`} />그록봇 자동화 · 로그인</span> : null}
         <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · 칸 글자 = 계정 · 줄 누르면 까닭</small>
       </div>
-      {comm ? <div className="nsb-sub"><b>사무실 말 주고받기</b><Grid c={comm} pick={pick} setPick={setPick} /></div> : null}
+      {comm ? <div className="nsb-sub"><b>봄의 정원 말 주고받기</b><Grid c={comm} pick={pick} setPick={setPick} /></div> : null}
     </div>
   );
 }

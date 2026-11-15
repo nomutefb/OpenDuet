@@ -333,7 +333,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
   const topBar = bar ? (
     <div className="nm-rbar">
       <b>{teamsOn ? "팀즈" : "대화"}</b>
-      <button type="button" className="nm-rbar-b" aria-label={teamsOn ? "사무실로 바꾸기" : "팀즈로 바꾸기"} title={teamsOn ? "지금 팀즈 · 누르면 사무실" : "지금 사무실 · 누르면 팀즈"} onClick={() => setTeamsMode(!teamsOn)}>{teamsOn ? <b className="t">T</b> : <svg {...ico}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>}</button>
+      <button type="button" className="nm-rbar-b" aria-label={teamsOn ? "대화방으로 바꾸기" : "팀즈로 바꾸기"} title={teamsOn ? "지금 팀즈 · 누르면 대화방" : "지금 대화방 · 누르면 팀즈"} onClick={() => setTeamsMode(!teamsOn)}>{teamsOn ? <b className="t">T</b> : <svg {...ico}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>}</button>
     </div>
   ) : null;
 
