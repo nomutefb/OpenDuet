@@ -884,3 +884,10 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ychat-in form button[type="submit"] > svg { transition:scale .28s cubic-bezier(.34,1.56,.64,1) .07s; }
 .ychat-in form button[type="submit"]:not(:disabled) > svg { scale:1.12; }
 @media (prefers-reduced-motion:reduce) { .ychat-in form button[type="submit"], .ychat-in form button[type="submit"]::before, .ychat-in form button[type="submit"] > svg { transition:none; } }
+
+/* 저장 = ✓ 팝(형 11-16 06:5x 「저장했어 라는 내용도 사실 좀 투박하긴함, 전반적으로 변겨되었으면 해」 · 에디터 index .cref-dlall dlChkPop 그대로 · 뜸) */
+@keyframes nmChkPop { 0%{transform:scale(.3);opacity:0} 58%{transform:scale(1.3);opacity:1} 100%{transform:scale(1);opacity:1} }
+.nm-tick-on .nm-tick, .nm-msgm-ok .nm-tick { animation:nmChkPop .42s cubic-bezier(.2,.7,.3,1); color:var(--nm-lime, #C6F432); }
+.nm-msgm-ok { display:grid; place-items:center; }
+.nm-zoom-save.nm-tick-on { padding-left:22px; padding-right:22px; }
+@media (prefers-reduced-motion:reduce){ .nm-tick-on .nm-tick, .nm-msgm-ok .nm-tick { animation:none; } }

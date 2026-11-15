@@ -65,7 +65,7 @@ export function SensorModal() {
       const j = (await r.json().catch(() => ({}))) as Res;
       if (!r.ok || !j.ok) { setNote(j.error || "저장하지 못했어. 다시 열어서 확인해줘."); await qc.invalidateQueries({ queryKey: KEY }); return false; }
       qc.setQueryData<Data>(KEY, (d) => ({ ...(d || {}), bots: j.bots }));
-      if (j.changed) setNote(j.woke ? nm(bot) + "에게 바뀐 센서를 알렸어." : "저장했어. 봇 알림은 못 보냈어 — 다음에 깰 때 파일로 봐.");
+      if (j.changed) setNote(j.woke ? nm(bot) + "에게 바뀐 센서를 알렸어." : "✓ 저장됨 · 봇 알림은 다음에 깰 때 파일로");
       return true;
     } catch { setNote("연결이 끊겨 저장하지 못했어. 입력은 그대로 뒀어."); return false; }
     finally { setBusy(false); }

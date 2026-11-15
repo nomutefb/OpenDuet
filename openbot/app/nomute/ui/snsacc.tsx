@@ -80,7 +80,7 @@ export function SnsAccModal() {
       const j = await r.json().catch(() => ({}));
       if (!r.ok || j.error) throw new Error(j.error || "HTTP " + r.status);
       if (j.accounts) setAcc(Object.fromEntries(TABS.map(([k]) => [k, accPlat(j.accounts[k])])));   // 서버 정규화 결과로 맞춤
-      setDirty(new Set()); setNote("저장했어 · 수집은 다음 회차(30분 안)부터");
+      setDirty(new Set()); setNote("✓ 저장됨 · 다음 회차(30분 안)부터 수집");
     } catch (e) { setErr("저장 실패 — " + ((e as Error)?.message || "네트워크")); ok = false; }
     setBusy(false); return ok;
   };

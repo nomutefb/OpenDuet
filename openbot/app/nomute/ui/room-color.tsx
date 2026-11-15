@@ -73,7 +73,7 @@ export function RoomColorPick({ room, onPeek, onClose }: { room: OfficeRoom; onP
     try {
       await office("roomcolor", { method: "POST", body: JSON.stringify({ room: room.id, color }) });
       qc.setQueryData<OfficeRoom[]>(["nomute", "rooms"], (old) => old?.map((r) => (r.id === room.id ? { ...r, color: color || undefined } : r)));
-      setNote(color ? "저장했어" : "기본으로 돌렸어");
+      setNote(color ? "✓ 저장됨" : "✓ 기본 색으로");
     } catch (e) { setNote(e instanceof Error ? e.message : "저장을 못 했어"); }
   };
   const move = (e: { clientX: number; clientY: number }) => {

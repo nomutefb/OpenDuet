@@ -535,15 +535,14 @@ function zoomImage(src: string, alt = "", who = "", when = "") {
   // 길게 누름 = 아래 「사진 저장」 판(형 11-04 08:22 「이 두 화면에서 길게 누르면 사진을 다운로드」) · 그 손을 뗄 때 오는 누름은 닫기로 안 셈 · 판이 떠 있을 때 누름 = 판만 닫음
   let held = false, timer = 0, sheet: HTMLElement | null = null;
   const hush = () => { sheet?.remove(); sheet = null; };
-  const said = (t: string) => { hush(); const n = document.createElement("p"); n.className = "nm-zoom-note"; n.textContent = t; v.append(n); window.setTimeout(() => n.remove(), 1400); };
   const ask = () => {
     if (sheet) return;
     held = true; navigator.vibrate?.(8);
     sheet = document.createElement("button"); sheet.type = "button"; sheet.className = "nm-zoom-save"; sheet.innerHTML = `${DOWN_SVG}<span>사진 저장</span>`;
-    sheet.onclick = (e) => { e.stopPropagation(); savePic(src, name); said("저장했어"); };
+    sheet.onclick = (e) => { e.stopPropagation(); savePic(src, name); const s = sheet; if (s) { s.innerHTML = TICK_SVG; s.classList.add("nm-tick-on"); } window.setTimeout(hush, 650); };   // 저장 = ✓ 팝(글 0 · 형 11-16 06:5x 「저장했어 라는 내용도 사실 좀 투박하긴함」 · 썸네일 에디터 dlseq 꼴)
     v.append(sheet);
   };
-  dl.onclick = (e) => { e.stopPropagation(); said("저장했어"); };
+  dl.onclick = (e) => { e.stopPropagation(); dl.innerHTML = TICK_SVG; dl.classList.add("nm-tick-on"); window.setTimeout(() => { dl.innerHTML = DOWN_SVG; dl.classList.remove("nm-tick-on"); }, 1050); };   // ↓ → ✓ 팝 → ↓(에디터 .cref-dlall 꼴)
   i.addEventListener("pointerdown", (e) => { if (e.button) return; window.clearTimeout(timer); timer = window.setTimeout(ask, 500); });
   for (const k of ["pointerup", "pointercancel", "pointerleave"]) i.addEventListener(k, () => window.clearTimeout(timer));
   i.addEventListener("pointermove", (e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6) window.clearTimeout(timer); });
@@ -557,6 +556,7 @@ function zoomImage(src: string, alt = "", who = "", when = "") {
   history.pushState({ ...history.state, nmZoom: 1 }, "");
   document.body.append(v);
 }
+const TICK_SVG = '<svg class="nm-tick" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>';
 const DOWN_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
 /** 사진 저장 = 내려받기(사무실 파일 = dl=1 · 다른 출처 = /api/dl 프록시 · ./news-data.ts dlHref) */
 const dlOf = (src: string, name: string) => (src.startsWith("/api/office/file?") ? (src.includes("dl=1") ? src : `${src}&dl=1`) : dlHref(src, name));   // 사무실 파일 = 받기 표(dl=1 · 붙임 파일로)

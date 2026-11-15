@@ -121,7 +121,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   return createPortal(
     <div className={leaving ? "nm-msgm out" : "nm-msgm"} role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
       <div className="nm-msgm-p" role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"}>
-        {note ? <p className="nm-msgm-n" role="status">{note}</p> : gone ? (
+        {note ? <p className={note === "✓" ? "nm-msgm-n nm-msgm-ok" : "nm-msgm-n"} role="status" aria-label={note === "✓" ? "저장됨" : undefined}>{note === "✓" ? <svg className="nm-tick" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg> : note}</p> : gone ? (
           <>
             {/* 형 11-12 06:13 「삭제 하시겠습니까? 아니오 예 이렇게만 나오면됨. 아니오에 라임색 이면 됨.」 — 설명 글 0 · 아니오(안 지움) = 라임 */}
             <p className="nm-msgm-ask">삭제 하시겠습니까?</p>
@@ -150,14 +150,14 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
         ) : (
           <>
             <div className="nm-msgm-q" role="group" aria-label="반응">{quick.map((q) => <button key={q} type="button" aria-label={`반응 ${q}`} onClick={() => { onReact(q); onClose(); }}>{q}</button>)}</div>
-            {pics && onSave ? item(pics > 1 ? `사진 저장 ${pics}장` : "사진 저장", () => { onSave(); done("저장했어"); }) : null}   {/* 형 11-04 08:22 「길게 누르면 사진을 다운로드」 = 사진 든 글은 맨 위 */}
+            {pics && onSave ? item(pics > 1 ? `사진 저장 ${pics}장` : "사진 저장", () => { onSave(); done("✓"); }) : null}   {/* 형 11-04 08:22 「길게 누르면 사진을 다운로드」 = 사진 든 글은 맨 위 */}
             {item("답장", () => { onReply(); onClose(); })}
             {pins.can ? item("공지", () => { pins.pin({ id: m.id, ts: m.ts }); onClose(); }) : null}
             {item("복사", () => { void navigator.clipboard?.writeText(text); onClose(); })}   {/* 알림 없이 창만 닫힘(형 11-07 09:40 봄 1:1 「그리고 우클릭해서 복사 누르면, 복사햇어 라고 뜰 필요는 없고 그냥 ㅌ창 닫히면 됨.」) */}
             {item("확인 요청", () => setAsking(true))}
             {item("공유", () => void share())}
             {pins.can && onUnsent ? item("삭제", () => setGone(true)) : null}   {/* 형 · 봄만(형 11-11 08:57 「1하고 봄」) · 앱 = 형 화면만(봄은 열쇠로 서버 문) · pins.can = 사람 문 · 쓰기 됨 */}
-            {item("캡처", () => { setBusy(true); void captureMsg(m.id, m.ts).then((r) => (r === "saved" ? done("저장했어") : r === "none" ? done("못 구웠어") : onClose())).catch(() => setWhy("캡처 못 했어 — 다시")).finally(() => setBusy(false)); })}
+            {item("캡처", () => { setBusy(true); void captureMsg(m.id, m.ts).then((r) => (r === "saved" ? done("✓") : r === "none" ? done("못 구웠어") : onClose())).catch(() => setWhy("캡처 못 했어 — 다시")).finally(() => setBusy(false)); })}
             {rooms.length ? item("다른 방으로", () => setMoving(true)) : null}
           </>
         )}
