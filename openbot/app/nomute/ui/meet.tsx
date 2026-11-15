@@ -1,6 +1,6 @@
 // 화상회의(형 11-13 06:4x 봄 1:1 · 봄 옮김) — 「그니까 내가 거기서 화상회의 를 누르면 / 회의 참여자를 고르고, 참여자가 다 오면 그 순간에 임시방이 열리고 거기서 창 아래에서 같이 대화」 ·
 //   「같이 화면 볼수잇어야하고 72브라우저를」 · 「요청보내면, 각 애들이 수락 또는 거절할수잇고」 · 「그게 표기가 되어야돼. 수락 또는 거절이」 · 「온라인, (수락/ 거절) 오프라인」 ·
-//   「그 화면을 보면서 할수잇어야하고 동기화 0초전 이게 떠야함」 · 「챙은 항상 자동참여 기록관으로」 · 「봄은 무슨 일을 하고잇을지 모르니까 상황에 따라서」
+//   「그 화면을 보면서 할수잇어야하고 동기화 0초전 이게 떠야함」 · (옛 「챙은 항상 자동참여 기록관으로」 = 11-15 뺌 · 서버 저절로) · 「봄은 무슨 일을 하고잇을지 모르니까 상황에 따라서」
 //   = 같이 보기 칸(./cobrowse-pane.tsx) 위 「화상회의」 → 고르기 → 임시방 하나(서버가 첫 글 = 목적으로 다 바로 깨움) → 봇은 그 방에 「[수락]」 또는 「[거절] 까닭」 한 줄
 //   → 칸 아래 얼굴 줄 = 온라인(깸 표 · 띠와 같은 값) · 수락 · 거절 · 답 기다림 · 오프라인 → 다 답하면(챙 빼고) 수락한 이들로 대화가 칸 아래 열림 · 2분 지나면 온 이들로
 //   ★★ 바뀜(형 11-13 15:01 ~ 15:15 봄 옮김) = 사람 칸은 화면 왼쪽 위 세로 줄(동그라미 + 이름 이모지 + 초록/회색 불 · 이름 오른쪽 내보내기 · 맨 아래 초대하기) · 대화 = 화면 아래 넓게(우리 대화 부품 그대로 · 목적 말풍선 숨김) · 머리 = 「같이 보는 중」만 · 회의 종료 = 머리 오른쪽
@@ -15,8 +15,10 @@ import "./meet.css";
 import "./update-bar.css";   // .nm-dots = 라임 점 셋(업데이트 띠 · 끊김 띠와 같은 것 · 형 19:3x 「들어오는중... 이거 표시 떠야될듯」 · 「종료하는중 ... < 이거 점세개로」)
 export const Dots = ({ bob = false }: { bob?: boolean }) => <span className={`nm-dots${bob ? " bob" : ""}`} aria-hidden><i>.</i><i>.</i><i>.</i></span>;   // bob = 점 셋 오르락내리락(형 11-14 01:42 시아 옮김 「잇는중 - 은 변경 연결 중 하고 점세개 오르락」)
 
-export const SCRIBE = "자리3";   // 옛 기록관 자리(LLM · 지금 멤버로 안 넣음) — 기록관 = 서버(회의 끝에 대화 · 같이 본 주소 · 행위 + 주제 한 줄 · LLM 0 · 빠르 11-14 · 형 「러너로 배선을 바꿀수있어? … llm이 들어갈 필요는 없을거같아」)
-export const SCRIBE_LABEL = "기록관 · 자동(서버)";   // 자리3 = 앞 챙(형 11-14 빈 자리 · 서버 _meetlog.js SCRIBE 와 같은 이름) ·   // 늘 자동 참여 · 기록관 · 「다 왔다」 셈 밖(봄 06:46)
+// 기록관 자리 없음(형 11-15 「자리 3 기록관 나오는데 … 그냥 자동으로 회의 기록 되게하면될듯. 스크립트로 봇도 필요없을듯」 · 소나 #-043)
+//   = 회의록은 서버가 저절로(방 닫힘 · 기한 · 말 없이 20분 · 「종료」 단추 = editor _meetlog.js closeMeet · LLM 0) · 사람 칸 · 「다 왔다」 셈 · 초대 후보에 옛 기록관 이름 0
+export const NOT_PEOPLE = new Set(["자리3", "기차봇", "챙"]);   // 옛 기록관 자리(챙 → 자리3 → 기차봇 · 작업 알림) = 옛 방 멤버 · 이 기기 기억에 남아 있어도 화면에서 뺌
+const people0 = (l: string[]) => l.filter((n) => !NOT_PEOPLE.has(n));
 export const MEET_WAIT = 60_000;   // 답 없는 이를 기다리는 시간(명세 「여는 때」 = 60초 · 봄 06:5x)
 const KEY = "nm_meet_v1";
 export type Meet = { id: string; members: string[]; t0: number };
@@ -33,9 +35,9 @@ export function answersOf(msgs: Pick<OfficeMsg, "who" | "text" | "ts">[], member
   }
   return out;
 }
-/** 순수 — 열림(명세 「여는 때」) = 온라인인 이들(챙 빼고)이 다 답함 · 또는 60초 · 오프라인은 안 기다림 · 수락 0 이어도 형 + 챙으로 엶 */
+/** 순수 — 열림(명세 「여는 때」) = 온라인인 이들이 다 답함 · 또는 60초 · 오프라인은 안 기다림 · 수락 0 이어도 형 혼자 엶(옛 기록관 이름 = 셈 밖) */
 export function meetOpen(ans: Record<string, { a: "yes" | "no" }>, members: string[], t0: number, now: number, online: (n: string) => boolean = () => true) {
-  const ask = members.filter((n) => n !== SCRIBE), yes = ask.filter((n) => ans[n]?.a === "yes");
+  const ask = people0(members), yes = ask.filter((n) => ans[n]?.a === "yes");
   const all = ask.every((n) => ans[n] || !online(n));
   return { open: all || now - t0 > MEET_WAIT, allNo: all && !yes.length, yes };
 }
@@ -44,9 +46,9 @@ export const meetPurpose = (_members: string[] = []) =>
   `부르는 법 = 형이 이 방 대화에서 「@이름」 → 그 애가 방에 들어오며 깸(형 11-13 11:01 「아래에 @로 호출하면 한명씩 참가하는 느낌」). ` +
   `불리면 이 방에 한 줄: 들어오면 「[수락]」 · 지금 못 오면 「[거절] 까닭 한 줄」(하던 일 따라 · 형 「상황에 따라서」). ` +
   `지금 그 창 = 이 방 읽기 머리 「지금 같이 보는 창」 · 손 = send 「[화면 click] …」(한 번에 한 사람 · 쥔 이 「○○가 제어하고 있습니다」) · 짚기 = 「[스케치 rect] x,y,w,h 글」. ` +
-  `기록관 = 서버가 자동(회의 끝에 대화 · 같이 본 주소 · 행위를 서랍에 담고 주제 한 줄 · 사람 · 봇 깸 0).`;
+  `회의록 = 서버가 저절로(방이 닫히거나 말 없이 20분이면 대화 · 같이 본 주소 · 행위를 서랍 「화상 회의록」에 담음 · 기록하는 봇 0 · 깸 0).`;
 
-/** 회의 열기 = 형 혼자 임시방 하나(기록관 = 서버 · 멤버 0) · 나머지는 아래 대화 「@이름」으로 한 명씩(형 11-13 11:01) */
+/** 회의 열기 = 형 혼자 임시방 하나(회의록 = 서버 · 멤버 0) · 나머지는 아래 대화 「@이름」으로 한 명씩(형 11-13 11:01) */
 export async function startMeet(): Promise<Meet> {
   const t = new Date(), name = `화상회의 ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
   const j = await office<{ room: { id: string } }>("temprooms", { method: "POST", body: JSON.stringify({ name, purpose: meetPurpose(), members: [], meet: true, hours: 2 }) });
@@ -60,16 +62,16 @@ export function useMeet(): [Meet | null, (m: Meet | null) => void] {
   return [m, (x) => { save(x); setM(x); }];
 }
 
-/** 참여자 고르기(임시방 후보 그대로 · 챙 = 늘 · 고를 수 없음) */
+/** 참여자 고르기(임시방 후보 그대로 · 옛 기록관 이름 뺌) */
 export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onClose: () => void }) {
   const qc = useQueryClient();
   const cand = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 }).data || [];
   const [pick, setPick] = useState<string[]>([]), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
-  const list = cand.filter((n) => n !== SCRIBE && n !== "형");
+  const list = people0(cand).filter((n) => n !== "형");
   const go = async () => {
     setBusy(true); setWhy("");
     try {
-      const members = [...pick];   // 기록관 = 서버(멤버 0)
+      const members = [...pick];   // 회의록 = 서버(멤버 0)
       const t = new Date(), name = `화상회의 ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
       const j = await office<{ room: { id: string } }>("temprooms", { method: "POST", body: JSON.stringify({ name, purpose: meetPurpose(members), members, meet: true, hours: 2 }) });
       void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
@@ -81,7 +83,6 @@ export function MeetPick({ onStart, onClose }: { onStart: (m: Meet) => void; onC
       <b>화상회의 · 누구 부를까</b>
       <div className="nm-meet-cands">
         {list.map((n) => <button key={n} type="button" className="nm-pick" aria-pressed={pick.includes(n)} onClick={() => setPick((p) => (p.includes(n) ? p.filter((x) => x !== n) : [...p, n]))}>{nameOf(n)}</button>)}
-        <span className="nm-pick nm-meet-scribe" title="회의 끝에 서버가 대화 · 같이 본 주소를 서랍에 담음(LLM 0)">{SCRIBE_LABEL}</span>
       </div>
       {why ? <small role="alert">{why}</small> : null}
       <div className="nm-meet-ft"><button type="button" onClick={onClose}>닫기</button><GoButton className="ok" disabled={busy || !pick.length} go={go} done={onStart} busy="부르는 중">{`요청 보내기 · ${pick.length}명`}</GoButton></div>
@@ -166,7 +167,7 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
   const { live, cands, refetch } = useMeetRoom(meet.id);
   const msgs = useMeetMsgs(meet.id);
   const list = useQuery({ queryKey: officeKeys.people, queryFn: () => people(), staleTime: 60_000 }).data || [];
-  const members = live?.members?.length ? live.members : meet.members;
+  const members = people0(live?.members?.length ? live.members : meet.members);   // 옛 기록관 이름 = 사람 칸 · 명단 n/n 에 0
   const ans = useMemo(() => answersOf(msgs, members, meet.t0), [msgs, members, meet.t0]);
   const ctrl = useTogetherNow().ctrl;
   const [inv, setInv] = useState(false), [busy, setBusy] = useState(""), [why, setWhy] = useState(""), [inviting, setInviting] = useState<string[]>([]), [kicking, setKicking] = useState<string[]>([]);
@@ -185,8 +186,8 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
   const pOf = (who: string): OfficePerson | undefined => list.find((x) => x.who === who);
   const rows = ["형", ...members.filter((n) => n !== "형"), ...inviting.filter((n) => !members.includes(n))];
   type St = "on" | "coming" | "no" | "kick";
-  const stOf = (n: string): St => (kicking.includes(n) ? "kick" : n === "형" || n === SCRIBE || ans[n]?.a === "yes" ? "on" : ans[n]?.a === "no" ? "no" : "coming");   // 초대했는데 아직 [수락] 전 = 들어오는 중(회색과 다른 꼴 · 형 19:3x)
-  const inRoom = (n: string) => stOf(n) === "on";   // 들어옴 = 형 · 기록관 · 「[수락]」 한 이
+  const stOf = (n: string): St => (kicking.includes(n) ? "kick" : n === "형" || ans[n]?.a === "yes" ? "on" : ans[n]?.a === "no" ? "no" : "coming");   // 초대했는데 아직 [수락] 전 = 들어오는 중(회색과 다른 꼴 · 형 19:3x)
+  const inRoom = (n: string) => stOf(n) === "on";   // 들어옴 = 형 · 「[수락]」 한 이
   return (
     <div className={`nm-meet-ppl${open ? "" : " shut"}`} aria-label="화상회의에 들어와 있는 이" style={at ? { top: at.y + 10 } : undefined}>
       <div className="nm-mp-hrow">   {/* 머리 줄 = 「명단 2/2」 · 바로 옆 작은 「+」(초대 · 형 11-14 01:45 시아 옮김 「초대하기는 + 아이콘으로만 변경해서 2/2 옆에 컴팩트하게 들어가면 될것같아 그럼 더 깔끔」 · 「+ 는 연회색 이여도 돼 강조안되어도됨」) · 꺾쇠 = 접기(옛 에디터 .tbrief-led 아코디언 그대로) */}
@@ -200,7 +201,7 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
         return (
           <div key={n} className={`nm-mp ${st}${on ? " on" : ""}`} title={on ? "들어와 있음" : st === "no" ? `거절${ans[n]?.why ? " · " + ans[n]?.why : ""}` : st === "kick" ? "내보내는 중" : "들어오는 중(초대 · [수락] 기다림)"}>
             <span className="nm-mp-ava">{faceOf(n) ? <img src={faceOf(n)} alt="" /> : null}<i className="nm-mp-dot" /></span>
-            <span className="nm-mp-nm" style={ring ? ({ "--yn": ring } as React.CSSProperties) : undefined}><span className="nm-mp-n1">{p?.name || nameOf(n)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}{n === SCRIBE ? <span className="nm-mp-role">(기록관)</span> : null}</span>
+            <span className="nm-mp-nm" style={ring ? ({ "--yn": ring } as React.CSSProperties) : undefined}><span className="nm-mp-n1">{p?.name || nameOf(n)}{p?.mark ? <span className="ymark" aria-hidden>{p.mark}</span> : null}</span>
               {st === "coming" ? <small className="nm-mp-st">들어오는 중<Dots /></small> : st === "kick" ? <small className="nm-mp-st">내보내는 중<Dots /></small> : st === "no" ? <small className="nm-mp-st">거절{ans[n]?.why ? ` · ${ans[n]?.why}` : ""}</small> : null}</span>
             {ctrl && ctrl === n ? <span className="nm-mp-ctl" title="제어권 쥠">✋</span> : null}
             {n !== "형" ? <button type="button" className="nm-mp-x" aria-label={`${nameOf(n)} 내보내기`} title="내보내기" disabled={!!busy || members.length <= 1} onClick={() => void setMembers(members.filter((x) => x !== n), "x" + n)}>×</button> : null}
@@ -209,7 +210,7 @@ export function MeetPeople({ meet, at }: { meet: Meet; at?: { x: number; y: numb
       })}
       {inv ? (
         <div className="nm-mp-pick">
-          {cands.filter((n) => !members.includes(n)).map((n) => <button key={n} type="button" disabled={!!busy} onClick={() => { setInv(false); void setMembers([...members, n], "+" + n); }}>{nameOf(n)}{pOf(n)?.mark ? " " + pOf(n)!.mark : ""}</button>)}
+          {people0(cands).filter((n) => !members.includes(n)).map((n) => <button key={n} type="button" disabled={!!busy} onClick={() => { setInv(false); void setMembers([...members, n], "+" + n); }}>{nameOf(n)}{pOf(n)?.mark ? " " + pOf(n)!.mark : ""}</button>)}
         </div>
       ) : null}
       {why ? <small role="alert" className="nm-mp-why">{why}</small> : null}
@@ -242,7 +243,7 @@ export function MeetLogList() {
   const rows = list.data || [];
   return (
     <div className="nm-meetlog">
-      {list.isLoading ? <p className="nm-meetlog-empty">읽는 중…</p> : !rows.length ? <p className="nm-meetlog-empty">아직 끝난 화상회의가 없어 — 위 「화상회의」 탭으로 열고 끝내면 대화 · 같이 본 주소 · 행위가 시각 차례로 여기 담겨</p> : null}
+      {list.isLoading ? <p className="nm-meetlog-empty">읽는 중…</p> : !rows.length ? <p className="nm-meetlog-empty">아직 끝난 화상회의가 없어 — 위 「화상회의」 탭으로 열고 끝내면(방이 닫히거나 말 없이 20분이면 저절로) 대화 · 같이 본 주소 · 행위가 시각 차례로 여기 담겨</p> : null}
       {rows.map((r) => (
         <div key={r.key} className="nm-meetlog-row">
           <button type="button" onClick={() => setOpen(open === r.key ? "" : r.key)} aria-expanded={open === r.key}>

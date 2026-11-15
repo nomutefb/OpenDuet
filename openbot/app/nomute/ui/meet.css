@@ -4,7 +4,6 @@
 .nm-co-ctrl { position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:3; padding:4px 12px; border-radius:999px; background:rgba(14,15,14,.86); border:1px solid rgba(var(--accent-rgb, 207,255,64),.45); color:var(--accent, #CFFF40); font-size:12px; font-weight:700; pointer-events:none; }
 .nm-meet-pick { position:absolute; top:44px; right:10px; z-index:4; width:min(360px, calc(100% - 20px)); display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:16px; background:#151715; border:1px solid rgba(255,255,255,.1); box-shadow:0 16px 40px rgba(0,0,0,.5); color:#e8eae8; font-size:13px; }
 .nm-meet-cands { display:flex; flex-wrap:wrap; gap:6px; }
-.nm-meet-scribe { opacity:.75; border-style:dashed !important; }
 .nm-meet-ft { display:flex; justify-content:flex-end; gap:8px; }
 .nm-meet-ft button { border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:5px 12px; background:transparent; color:inherit; cursor:pointer; }
 .nm-meet-ft button.ok { font-weight:700; }
@@ -142,8 +141,6 @@
 .nm-sk-pill button.nm-sk-pen.on { background:#CFFF40; color:#111; box-shadow:0 0 10px rgba(var(--accent-rgb, 207,255,64),.45); }
 .nm-sk-side { display:flex; align-items:center; gap:6px; }
 .nm-sk-ctl { white-space:nowrap; height:26px; display:inline-flex; align-items:center; padding:0 10px; border-radius:999px; background:rgba(14,15,14,.86); border:1px solid rgba(255,255,255,.18); color:#e8eae8; font-size:12px; font-weight:700; }
-/* 명단 챙 = 이름 옆 연회색 「(기록관)」(형 11-14 05:21 시아 옮김 「챙 항상 ( 기록관 ) 이라고 나오게 해주고 름 옆에 연회색으로」) */
-.nm-mp-role { margin-left:4px; font-size:11px; font-weight:600; color:rgba(232,234,232,.42); }
 /* 머리 줄 도구(형 05:22 「그 버튼들 새로고침 좌측으로 다 나란히 간격 맞춰서」) = ↻ · × 와 같은 26px 동그라미 · 같은 간격 · 켜짐 = 라임 */
 .nm-co-tools { display:inline-flex; align-items:center; }
 .nm-sk-head { display:inline-flex; align-items:center; gap:6px; flex-direction:row-reverse; }
