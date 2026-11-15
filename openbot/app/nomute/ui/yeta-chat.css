@@ -269,6 +269,8 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 /* 「+」 바로 위 PM 얼굴 단추(./room-fab.tsx PmFab · 형 11-15 「그 위에 항상 pm 픽토그램 있어서 누르면 pm 대화방 가게해줘 / 최상단이라 누르기 어려움」) = 「+」와 같은 유리 동그라미 46 · 얼굴 꽉 · 결정 노트 단추(.nm-dec)는 그 위로 한 칸 */
 .nm-pmfab { position:absolute; right:14px; bottom:calc(var(--duet-tab-space,86px) + 24px + 46px + 10px); z-index:5; width:46px; height:46px; padding:0; border-radius:50%; overflow:hidden; display:grid; place-items:center; background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); box-shadow:0 6px 18px rgba(0,0,0,.28); -webkit-tap-highlight-color:transparent; cursor:pointer; }
 .nm-pmfab img { width:100%; height:100%; object-fit:cover; display:block; }
+.nm-pmfab .nm-pmorb { width:100%; height:100%; display:block; }   /* PM 구슬(./pm-orb.tsx · 형 11-16 영상) = 얼굴 자리에 그대로 */
+.nm-pmfab:has(.nm-pmorb) { background:none; border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:0 6px 18px rgba(0,0,0,.34); }   /* 구슬 = 유리 판 · 테 없이 저 혼자 떠 있음 */
 .nm-pmfab b { font-size:16px; color:var(--accent, #CFFF40); }
 .nm-pmfab:active { transform:scale(var(--press-s, .96)); }
 .nm-pmfab ~ .nm-dec { bottom:calc(var(--duet-tab-space,86px) + 24px + 46px + 10px + 46px + 10px); }

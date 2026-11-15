@@ -7,19 +7,20 @@ import { useState } from "react";
 import { faceOf, office } from "../data/office";
 import { pmRoomId } from "./pm-set-logic";
 import { TempRoomDialog } from "./temp-room";
+import { PmOrb } from "./pm-orb";   // PM 얼굴 자리 = 살아 있는 구슬(형 11-16 영상 「그 프로필을 이거로 대체해줘」)
 
 /** 「+」 바로 위 = PM 얼굴 단추 · 누르면 PM 1:1 방(형 11-15 13:0x 「대화 목록 우하단에 + 있는데 그 위에 항상 pm 픽토그램 있어서 누르면 pm 대화방 가게해줘 / 최상단이라 누르기 어려움」)
  *  PM = 서버 pm 칸 · 방 = 그 이름의 1:1 방(./pm-runner-mini.tsx usePmRoom 과 같은 셈 · 같은 캐시 열쇠 = 받아오기 0 더) · 못 찾으면 안 그림 */
 function PmFab() {
-  const nav = useNavigate();
+  const nav = useNavigate(), [orb, setOrb] = useState(true);
   const pm = useQuery({ queryKey: ["nomute", "pm"], queryFn: () => office<{ who?: string }>("pm"), staleTime: 300_000, refetchInterval: 300_000 }).data?.who;
   const rooms = useQuery({ queryKey: ["nomute", "rooms-lite"], queryFn: () => office<{ rooms?: { id: string; kind?: string; name?: string; with?: string }[] }>("rooms"), staleTime: 600_000, enabled: !!pm }).data?.rooms;
   const room = pm && rooms ? pmRoomId(pm, rooms) || undefined : undefined;
   if (!pm || !room) return null;
-  const src = faceOf(pm);
+  const src = faceOf(pm);   // 구슬을 못 그리는 기기에서만 씀(옛 얼굴)
   return (
     <button type="button" className="nm-pmfab" aria-label={`PM ${pm} 대화방`} title={`PM ${pm} 대화방`} onClick={() => void nav({ to: "/channels/$channelId", params: { channelId: room } })}>
-      {src ? <img src={src} alt="" decoding="async" /> : <b aria-hidden>{pm.slice(0, 1)}</b>}
+      {orb ? <PmOrb onFail={() => setOrb(false)} /> : src ? <img src={src} alt="" decoding="async" /> : <b aria-hidden>{pm.slice(0, 1)}</b>}
     </button>
   );
 }
