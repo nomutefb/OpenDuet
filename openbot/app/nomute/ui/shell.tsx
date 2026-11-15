@@ -75,6 +75,7 @@ const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m
 const SensorModal = lazy(() => import("./sensor").then((m) => ({ default: m.SensorModal })));   // 서랍 「센서」 = 에디터 설정 ▸ 센서를 앱 안으로(봄 11-01)
 import { ThumbMaker, ToolKeep, ToolRestore } from "./ed-keep";   // 이미지 편집 · 영상 편집 = 접어도 살아 있는 창(최소화 − · 복원 ▲ = 옛 에디터 것 · 형 11-15)
 import { nedTabOf } from "./ned-tabs";
+import { DRAWER_HOME, DRAWER_TABS, type DrawerTab, isDrawerTab } from "./drawer-tabs";
 import { ED_TOOLS, type EdTool, edAlive, edChip, edKeptNext, isEdTool } from "./ed-keep-logic";
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomIcon, RoomList, useRoomOrder } from "./room-list";
@@ -125,7 +126,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 /** PC 반갈에서 좌우 통합(오른쪽 러너·뉴스 칸 접고 왼쪽을 다 씀) = 러너 · 서랍 · 설정(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」 · 윈터 넘김) · 오른쪽 칸은 숨김만(살려 둠 = 닫으면 다시 안 그림) */
-const SPREAD = new Set<Modal>(["runner", "botdesk", "drawer", "settings", "nedit"]);   // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
+const SPREAD = new Set<Modal>(["runner", "botdesk", "drawer", "settings", "nedit", "sched", "meetlog", "story", "play"]);   // 서랍 탭 여섯 = PC 에서 다 같은 폭(탭 줄이 탭마다 넓어졌다 좁아졌다 하지 않게 · 형 11-15 「설정을 제외한 모든영역을 탭처럼」)     // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
 // 채널 · SNS = 옛 에디터 「채널 요약」 · 「SNS」 탭 그대로 한 줄씩(형 11-14 「채널 요약은 전에 버전이 잇을거야 그거 살려서 혹시 하나의 서랍 버전으로」 · 「sns도 마찬가지」) — 11-15 부터 품지(iframe) 않고 앱 안에서 돌림(./old-tabs · 형 「아예 여기에 줕이려고」)
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
@@ -137,6 +138,7 @@ export function whereFor(pathname: string): Where {
   if (/^\/(channels|group)\/[^/]+$/.test(p)) return { pane: "chat" };   // 회의실 = #/group/all
   if (p === "/rooms") return { pane: "rooms" };
   if (p === "/editor") return { pane: "home" };
+  if (p === "/drawer") return { modal: DRAWER_HOME };   // 네비 「서랍」 = 목록 화면 대신 위 탭 · 먼저 러너 현황(./drawer-tabs.ts · 형 11-15 「기본적으로 러너 현황이 나오는거를 한번 배치시켜보자」)
   if (nedTabOf(p) !== "news") return { modal: "nedit" };   // SNS · 채널 = 뉴스 에디터 안 탭(./ned-tabs.ts · 형 11-15 「서랍의 sns와 채널 … 저기 박혀야 하고」) · 옛 「SNS 전체」 · 「채널 전체」 주소도 그 탭으로(알림 「안전 탭 열기」 · 옛 링크가 안 끊기게)
   if (p === "/askfull") return { modal: "ask" };   // 옛 「요약 요청 · 에디터 판」 주소 = 앱 요약 요청(빠르 11-01 · 합침)   // 옛 에디터 판 주소(즐겨찾기·옛 링크) = 홈으로(판 없음 · 칸은 서랍에)
   if (/^\/(edtrack|edk|edsb|edys|edsong|edvd|ednb)$/.test(p)) return { modal: "edvid" };   // 옛 서랍 칸 주소 = 영상 편집 안에서 그 일(형 11-14 「영상 편집 안에서 … 고르는 형태」 · ./video-editor.tsx MODES)
@@ -295,6 +297,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                 </div>
               )}
               <div className={FRAME[M.id] ? "nm-modal-b frame" : M.id === "edtool" || M.id === "edvid" ? "nm-modal-b tm-host" : "nm-modal-b flush"}>   {/* flush = 판이 머리 알약 밑으로 지나감(윗여백 두 겹 0) */}
+                {isDrawerTab(M.id) ? <DrawerTabs cur={M.id} /> : null}   {/* 서랍 여섯 화면 맨 위 = 폴더 탭 한 줄(./drawer-tabs.ts) */}
                 <Suspense fallback={<LazyDots />}>   {/* 서랍 창 코드는 눌러야 받음(lazy · 첫 화면 무게 · 번개 11-08) · 받는 동안 점 셋 */}
                 {FRAME[M.id] ? <FramePage title={M.label} src={FRAME[M.id]!} />
                   : M.id === "tasks" ? <div className="nm-scroll"><RepairPage /></div>
@@ -348,6 +351,19 @@ export function NomuteShell({ children }: { children: ReactNode }) {
  *  위 1.5/4 = 2 러너(맨 위 몸 줄 + 러너 판 게이지) · 아래 2.5/4 = 3 실시간 뉴스 카드(홈 카드 덱 그대로 · 「전송」 = 그 기사 요약 요청 · 형 13:38 「전송하면 그 아래에 요약 대기열 … 근데 거기까지 안바래」)
  *  러너 위젯(PC 바탕화면)은 내림(형 13:23 「그럼냅다치우고」 · 윈A CPU 1등) — 여기 한 창에 대화 · 러너 · 뉴스가 같이 있어 창이 따로 놀지 않음(형 13:20 「근데 창이 다 따로놀아;;ㅠㅠ」) */
 /** 눌러야 받는 칸(서랍 창 · 이슈 · 웹) 코드를 받는 동안 = 가운데 라임 점 셋(글자 0 · 형 11-07 17:20 「불러오는 중 일때 ...이 움직이거나 할수있나. 안그러면 멈춘거같아서.」 · 꼴 = ./shell.css .nm-lazy) */
+/** 서랍 위 탭 줄 — 대화방 「대화방 | 팀즈 | 회의」 · 뉴스 에디터 「뉴스 | SNS | 채널」과 같은 폴더 탭(./teams.css .nm-tswitch.fold) · 고른 탭만 이름 펼침 · 탭 바꿈 = 기록 안 쌓음 */
+function DrawerTabs({ cur }: { cur: DrawerTab }) {
+  const nav = useNavigate();
+  return (
+    <div className="nm-tswitch fold nm-dtabs" role="tablist" aria-label="서랍 화면 바꾸기">
+      {DRAWER_TABS.map((id) => { const m = MODALS.find((x) => x.id === id)!; return (
+        <button key={id} type="button" role="tab" aria-selected={cur === id} aria-label={m.label} className={`nm-ftab${cur === id ? " on" : ""}`} onClick={() => { if (cur !== id) void nav({ to: m.to, replace: true }); }}>
+          <DuetIcon name={m.icon} size={20} /><span className="nm-ftab-nm">{m.label}</span>
+        </button>
+      ); })}
+    </div>
+  );
+}
 function LazyDots() { return <div className="nm-lazy" role="status" aria-label="읽는 중"><i /><i /><i /></div>; }
 
 /** 반갈 칸 울타리 — 한 칸이 깨져도 앱 전체(「Something went wrong!」)로 번지지 않게 그 칸만 한 줄로(17:2x 뉴스 요약 칸이 앱을 통째로 깨뜨린 것 뒤) */
