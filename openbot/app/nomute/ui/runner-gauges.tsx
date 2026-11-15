@@ -192,7 +192,7 @@ export function RunnerGauges() {
         })}
         {hasMem && pebs.length <= 8 ? (
           <li className="nm-rgx-memk" aria-hidden>
-            <span className="sk">습작</span><span className="ho">교대</span>
+            {/* 「습작」 · 「교대」 이름표 글자 뺌(형 11-15 10:5x 「습작, 교대 이 글자 자체는 안보여됨 (우측에) 인덱싱이 뭔지는 내가 아니까」) · 색(시안 = 습작 · 라임 = 교대)과 풍선 글은 그대로 */}
             <small title={`일기 · 습작 · 교대 = 몸 보고(5분) · 백업 = 윈A`}>백업 {bk?.at ? memAt(bk.at * 1000, now).t : "—"} · 갱신 {memNew ? memAt(memNew, now).t : "—"}</small>
           </li>
         ) : null}

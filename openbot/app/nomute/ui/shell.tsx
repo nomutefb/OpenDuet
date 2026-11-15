@@ -257,7 +257,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           <SceneBg className="nm-app-ambient" slow={cover} />   {/* slow = 글 화면(스케줄 · 회의록 …) 뒤 = 같은 장면을 옅게 · 느리게(형 11-15 「완전 검정이면 투박 · 라임 지나가는 정도는 있어야 · 고화질일 필요는 없어」) */}
           {split ? <TopLeft /> : null}   {/* 왼쪽 위 = 러너 게이지(우리 쪽 · 형 11-08 07:31 dm 「오히려 게이지바가 좌측으로가고, 인스타그램이 우측으로 가서, 우측은 아예 뉴스 관련 내용, 좌측은 너네 관련으로」 · 판들은 그 키만큼 아래로 · shell.css .nm-split-l) */}   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
-          {show("rooms", <div className="nm-col"><RoomsPane /></div>)}
+          {show("rooms", <div className="nm-col nm-col-rooms"><RoomsPane /></div>)}   {/* nm-col-rooms = PC 대화 목록 폭 풂 표지(shell.css · 형 11-15 「폭맞춤 안되는 문제」) */}
           {show("chat", (
             <div className="nm-col nm-col-chat">   {/* nm-col-chat = PC 대화 칸 폭 풂 표지(shell.css · 옛 판 = has(대화 자손) = 대화 안 글 하나 바뀔 때마다 앱 전체 꼴 다시 셈 · #-007) */}
               {isTeams(room) ? null : <ShellHeader floating menuOpen={false} onMenu={() => {}} />}   {/* 팀즈 대화 = 우리 얼굴 머리 0(TeamsChat 이 제 머리를 그림) */}
