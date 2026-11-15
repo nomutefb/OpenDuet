@@ -16,13 +16,14 @@ import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰
 import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
 import { type BotRow, type BotTable, GROUP_KO, countOf, flowOf, hmKo, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, tailOf, turnList, wireTone } from "./bot-desk-logic";
+import { BotInbox } from "./bot-inbox";   // 「보드」 = 일감마다 카드 · 세 칸(형 11-16 영상 「Agent inbox」)
 import { HandBoard } from "./bot-desk-hands";   // 맨 위 카드 = 활동 신호 판을 맡길 차례로(노는 손 먼저 · 1특기 · PM 뺌)
 import "./status-board.css";
 import "./bot-desk.css";
 
 type Sheet = { at?: number; stale?: boolean; table?: BotTable; skills?: Record<string, string> };
-type Tab = "flow" | "turn" | "hands";
-const TABS: [Tab, string][] = [["flow", "흐름"], ["turn", "차례"], ["hands", "손 표"]];
+type Tab = "board" | "flow" | "turn" | "hands";
+const TABS: [Tab, string][] = [["board", "일감"], ["flow", "흐름"], ["turn", "차례"], ["hands", "손 표"]];   // 일감 = 카드 세 칸(./bot-inbox · 형 11-16 영상) · 처음 여는 손 = 일감 · 그 안에서 보드 ↔ 목록
 const delay = (i: number) => ({ "--i": Math.min(i, 24) } as CSSProperties);
 
 const MARK = { color: "currentColor", doneColor: "var(--nsb-ok)", errorColor: "var(--nsb-red)" } as const;
@@ -153,7 +154,7 @@ function Hands({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
 
 export function BotDesk() {
   const q = useQuery({ queryKey: ["nomute", "bots-sheet"], queryFn: () => office<Sheet>("status/bots"), refetchInterval: (x) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), staleTime: 5_000, retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
-  const [tab, setTab] = useState<Tab>(() => { try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "hands" ? v : "flow"; } catch { return "flow"; } });
+  const [tab, setTab] = useState<Tab>(() => { try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "flow" || v === "turn" || v === "hands" ? v : "board"; } catch { return "board"; } });
   const pick = (v: Tab) => { setTab(v); try { localStorage.setItem("nm-botdesk-tab", v); } catch { /* 이번만 */ } };
   const t = q.data?.table, skills = q.data?.skills || {}, rows = t?.rows || [], now = Date.now();
   const crew = rows.filter((r) => !r.pm), n = countOf(crew);   // 맨 위 카드 = PM 뺀 손(형 11-15 「PM은 제외해서」 · PM 은 바로 밑 흐름 맨 위 카드에)
@@ -181,7 +182,7 @@ export function BotDesk() {
           <div className="nm-bd-tabs" aria-label="봇 현황 보기">
             <RubberSegment items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={(v) => pick(v as Tab)} size="lg" radius={14} trackColor="rgba(18,18,18,.55)" thumbColor="rgba(207,255,64,.9)" textColor="#E7ECE7" activeTextColor="#141516" />
           </div>
-          {tab === "flow" ? (live ? <Flow t={t} now={now} pmName={pmName} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : <Hands t={t} skills={skills} />}
+          {tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "flow" ? (live ? <Flow t={t} now={now} pmName={pmName} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : <Hands t={t} skills={skills} />}
         </>
       ) : null}
 

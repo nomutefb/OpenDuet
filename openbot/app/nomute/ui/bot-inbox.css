@@ -1,0 +1,85 @@
+/* 봇 현황 「보드」(./bot-inbox.tsx · 형 11-16 03:0x 영상 「Agent inbox」) — 세 칸(형 차례 · 도는 중 · 끝남) · 카드 = 제목 · 두 줄 설명 · 상태(고리 + 흐른 시간) · 작은 셈 · 펼치면 단계 줄
+   색 = 작동 표 것(./status-board.css .nsb 의 --nsb-ok · --nsb-red · --nsb-yel · --nsb-mut · --nsb-line) · 유리 = 봇 현황 것(--bd-glass · --bd-line) · 새 색 0
+   움직임 = transform · opacity · filter(카드 옮김 = ./flip.ts) + 펼침만 줄 높이(grid 0fr ↔ 1fr = 앱 아코디언 길) · 「움직임 줄이기」 = 0 */
+.nm-ibx { --ibx-e:cubic-bezier(.22,1,.36,1); margin-top:10px; }
+.nm-ibx .bar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 2px 8px; }
+.nm-ibx .sum { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; font-size:var(--fs-xs); color:var(--nsb-mut); }
+.nm-ibx .sum b { font-size:var(--fs-label); font-weight:700; color:#E7ECE7; }
+.nm-ibx .sum i { font-style:normal; font-variant-numeric:tabular-nums; color:#E7ECE7; }
+.nm-ibx .sum [data-col="need"] i { color:var(--nsb-yel); }
+/* 보기 바꿈(보드 | 목록) = 고른 쪽 바탕이 미끄러짐 */
+.nm-ibx .seg { position:relative; display:inline-grid; grid-template-columns:1fr 1fr; flex:none; padding:2px; border-radius:10px; background:var(--bd-glass, rgba(255,255,255,.06)); border:1px solid var(--bd-line, rgba(255,255,255,.08)); }
+.nm-ibx .seg button { all:unset; position:relative; z-index:1; box-sizing:border-box; min-width:52px; height:28px; padding:0 12px; text-align:center; font-size:var(--fs-xs); font-weight:600; color:var(--nsb-mut); cursor:pointer; transition:color .2s ease; -webkit-tap-highlight-color:transparent; }
+.nm-ibx .seg button[aria-selected="true"] { color:#E7ECE7; }
+.nm-ibx .seg .ink { position:absolute; top:2px; bottom:2px; left:2px; width:calc(50% - 2px); border-radius:8px; background:rgba(255,255,255,.12); transition:transform .34s var(--ibx-e); }
+.nm-ibx .seg[data-v="list"] .ink { transform:translateX(100%); }
+/* 칸 */
+.nm-ibx .cols { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; align-items:start; }
+.nm-ibx[data-view="list"] .cols { grid-template-columns:minmax(0, 1fr); }
+.nm-ibx .col { min-width:0; padding:8px; border-radius:16px; background:rgba(255,255,255,.035); border:1px solid var(--nsb-line); }
+.nm-ibx .col h3 { display:flex; align-items:center; gap:6px; padding:2px 4px 0; font-size:var(--fs-xs); font-weight:600; letter-spacing:.08em; color:var(--nsb-mut); }
+.nm-ibx .col h3 span { flex:1; min-width:0; }
+.nm-ibx .col h3 i { min-width:18px; padding:0 5px; border-radius:6px; background:rgba(255,255,255,.07); font-style:normal; font-variant-numeric:tabular-nums; text-align:center; letter-spacing:0; }
+.nm-ibx .col h3 .spark { color:var(--nsb-mut); }
+.nm-ibx .col[data-col="need"] h3 .spark { color:var(--nsb-yel); }
+.nm-ibx .col[data-col="run"] h3 .spark { color:var(--nsb-ok); }
+.nm-ibx .spark { flex:none; width:11px; height:11px; }
+.nm-ibx .none { padding:14px 4px 10px; text-align:center; font-size:var(--fs-xs); color:var(--nsb-mut); opacity:.7; }
+/* 카드 */
+.nm-ibx-card { margin-top:8px; border-radius:12px; background:var(--bd-glass, rgba(255,255,255,.06)); border:1px solid var(--bd-line, rgba(255,255,255,.08)); box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 6px 16px rgba(0,0,0,.18); will-change:transform; }
+.nm-ibx-card .hit { all:unset; box-sizing:border-box; display:block; width:100%; padding:10px 12px 9px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-ibx-card .hit:focus-visible { outline:2px solid var(--nsb-ok); outline-offset:2px; border-radius:12px; }
+.nm-ibx-card .ttl { display:flex; align-items:center; gap:7px; min-width:0; }
+.nm-ibx-card .ttl b { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-label); font-weight:650; color:#E7ECE7; }
+.nm-ibx-card .ttl .spark { color:var(--nsb-ok); }
+.nm-ibx-card[data-tone="wait"] .ttl .spark { color:var(--nsb-yel); }
+.nm-ibx-card[data-tone="fail"] .ttl .spark { color:var(--nsb-red); }
+.nm-ibx-card[data-tone="done"] .ttl .spark { color:var(--nsb-mut); }
+.nm-ibx-card .desc { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top:4px; font-size:var(--fs-xs); line-height:1.45; color:var(--nsb-mut); }
+.nm-ibx[data-view="list"] .nm-ibx-card .desc { -webkit-line-clamp:1; }
+.nm-ibx-card .foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; color:var(--nsb-mut); }
+.nm-ibx-card .st { display:inline-flex; align-items:center; gap:7px; min-width:0; white-space:nowrap; }
+.nm-ibx-card .dot { flex:none; box-sizing:border-box; width:10px; height:10px; border-radius:50%; }
+.nm-ibx-card[data-tone="run"] .dot { border:1.5px solid rgba(255,255,255,.2); border-top-color:var(--nsb-ok); animation:ibxSpin .9s linear infinite; }
+.nm-ibx-card[data-tone="done"] .dot { width:7px; height:7px; background:var(--nsb-ok); }
+.nm-ibx-card[data-tone="fail"] .dot { background:var(--nsb-red); box-shadow:0 0 0 3px rgba(255,90,95,.16); }
+.nm-ibx-card[data-tone="fail"] .st { color:var(--nsb-red); }
+.nm-ibx-card[data-tone="wait"] .dot { border-radius:2px; background:var(--nsb-yel); clip-path:polygon(50% 8%, 100% 92%, 0 92%); }
+.nm-ibx-card[data-tone="wait"] .st { color:var(--nsb-yel); }
+.nm-ibx-card .chips { display:inline-flex; align-items:center; gap:10px; flex:none; }
+.nm-ibx-card .chips span { display:inline-flex; align-items:center; gap:3px; }
+.nm-ibx-card .chips svg { width:12px; height:12px; }
+/* 펼침 = 단계 줄 */
+.nm-ibx-card .more { display:grid; grid-template-rows:0fr; transition:grid-template-rows .34s var(--ibx-e); }
+.nm-ibx-card[data-open] .more { grid-template-rows:1fr; }
+.nm-ibx-card .more-in { min-height:0; overflow:hidden; padding:0 12px; }
+.nm-ibx-card[data-open] .more-in { padding-bottom:10px; transition:padding-bottom .34s var(--ibx-e); }
+.nm-ibx-card .head { margin:2px 0 6px; font-size:11px; color:var(--nsb-mut); opacity:.8; }
+.nm-ibx-card .steps { display:flex; flex-direction:column; gap:5px; }
+.nm-ibx-card .steps li { position:relative; display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding-left:12px; font-size:var(--fs-xs); line-height:1.4; color:rgba(231,236,231,.82); }
+.nm-ibx-card .steps li::before { content:""; position:absolute; left:1px; top:.55em; width:4px; height:4px; border-radius:50%; background:rgba(231,236,231,.32); }
+.nm-ibx-card .steps li[data-live]::before { background:#E7ECE7; }
+.nm-ibx-card .steps li[data-bad] { color:var(--nsb-red); }
+.nm-ibx-card .steps li[data-bad]::before { background:var(--nsb-red); }
+.nm-ibx-card .steps time { flex:none; font-variant-numeric:tabular-nums; color:var(--nsb-mut); white-space:nowrap; }
+.nm-ibx-card[data-open] .steps li, .nm-ibx-card[data-open] .head, .nm-ibx-card[data-open] .acts { animation:ibxStep .38s var(--ibx-e) backwards; animation-delay:calc(var(--i, 0) * 45ms + 90ms); }
+.nm-ibx-card[data-open] .acts { animation-delay:.3s; }
+.nm-ibx-card .acts { display:flex; justify-content:flex-end; gap:6px; margin-top:9px; }
+.nm-ibx-card .acts button { all:unset; box-sizing:border-box; height:28px; padding:0 13px; border-radius:999px; font-size:var(--fs-xs); font-weight:650; line-height:28px; cursor:pointer; transition:transform .16s var(--ibx-e); -webkit-tap-highlight-color:transparent; }
+.nm-ibx-card .acts button:active { transform:scale(.96); }
+.nm-ibx-card .acts .go { background:#E7ECE7; color:#141516; }
+.nm-ibx-card .acts .ghost { border:1px solid rgba(255,255,255,.18); color:#E7ECE7; }
+.nm-ibx .foot-note { margin:10px 4px 0; font-size:var(--fs-xs); line-height:1.5; color:var(--nsb-mut); opacity:.75; }
+@keyframes ibxSpin { to { transform:rotate(360deg); } }
+@keyframes ibxStep { from { opacity:0; transform:translateY(4px); filter:blur(4px); } }
+/* 폰 「보드」 = 칸을 옆으로 넘김(한 칸씩 걸림) · 「목록」 = 위에서 아래로 */
+@media (max-width:720px) {
+  .nm-ibx[data-view="board"] .cols { grid-template-columns:none; grid-auto-flow:column; grid-auto-columns:min(84%, 320px); overflow-x:auto; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; padding-bottom:4px; scrollbar-width:none; }
+  .nm-ibx[data-view="board"] .cols::-webkit-scrollbar { display:none; }
+  .nm-ibx[data-view="board"] .col { scroll-snap-align:start; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .nm-ibx .seg .ink, .nm-ibx-card .more, .nm-ibx-card[data-open] .more-in { transition:none; }
+  .nm-ibx-card[data-tone="run"] .dot { animation-duration:2.4s; }
+  .nm-ibx-card[data-open] .steps li, .nm-ibx-card[data-open] .head, .nm-ibx-card[data-open] .acts { animation:none; }
+}
