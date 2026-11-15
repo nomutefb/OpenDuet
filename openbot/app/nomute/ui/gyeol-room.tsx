@@ -11,6 +11,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Pane } from "./pane";
+import { GONE_TEXT, archivable } from "./r2-gone";
 
 type Mv = { url?: string; poster?: string; at?: string; status?: string; by?: string; alt?: { url?: string; poster?: string } | null };
 type Song = { id: string; title?: string; at?: string; duration_s?: string | number; audio?: string; suno_url?: string; src?: string; hypo?: boolean; starred?: boolean; lyrics?: string; mv?: Mv[]; making?: { state?: string; at?: string } | null };
@@ -105,6 +106,11 @@ function SongCard({ s, hit }: { s: Song; hit: boolean }) {
   const poster = (mv && (mv.poster || (mv.alt && mv.alt.poster))) || "";
   const src = (u: string) => (poster ? u : u + "#t=0.1");
   const len = dur(s.duration_s);
+  // source 오류는 판마다 따로 옴 → 다 못 받고(n = 판 수) 그중 옮겨질 수 있는 주소가 있으면 「보관됨」(./r2-gone.ts)
+  const srcs = mv ? [mv.url, mv.alt && mv.alt.url].filter(Boolean) as string[] : [];
+  const [miss_n, setMiss] = useState(0);
+  const miss = () => setMiss((n) => n + 1);
+  const gone = srcs.length > 0 && miss_n >= srcs.length && srcs.some(archivable);
   return (
     <article id={"gy-s-" + s.id} className={"gy-card" + (s.hypo ? " hypo" : "") + (hit ? " hit" : "")}>
       <p className="gy-ttl"><span>{s.title || "(제목 없음)"}</span>{s.src === "git" ? <em className="gy-chip git num">git</em> : <em className="gy-chip num">gl</em>}{s.hypo ? <em className="gy-chip">실험</em> : null}{s.starred ? <em className="gy-chip">★</em> : null}</p>
@@ -117,11 +123,13 @@ function SongCard({ s, hit }: { s: Song; hit: boolean }) {
       {s.audio ? <audio className="gy-audio" controls preload="none" src={s.audio} /> : <p className="gy-state">음원 주소 없음(공개 https 아님)</p>}
       {mv && mv.url ? (
         <div className="gy-mv">
-          <video controls preload={poster ? "none" : "metadata"} playsInline poster={poster || undefined}>
-            <source src={src(mv.url)} type="video/mp4" />
-            {mv.alt && mv.alt.url ? <source src={src(mv.alt.url)} type="video/mp4" /> : null}
-          </video>
-          <span className="gy-state num">뮤비 {rel(mv.at)}{mv.by === "git" ? " · git" : ""}</span>
+          {gone
+            ? <p className="gy-state gy-gone num" role="status">뮤비 {GONE_TEXT}</p>   /* R2 넘침 ② · 두 판 다 못 받음 + 옮겨질 수 있는 주소 = 한 줄(되살리기 0) */
+            : <video controls preload={poster ? "none" : "metadata"} playsInline poster={poster || undefined}>
+                <source src={src(mv.url)} type="video/mp4" onError={miss} />
+                {mv.alt && mv.alt.url ? <source src={src(mv.alt.url)} type="video/mp4" onError={miss} /> : null}
+              </video>}
+          {gone ? null : <span className="gy-state num">뮤비 {rel(mv.at)}{mv.by === "git" ? " · git" : ""}</span>}
         </div>
       ) : null}
       {s.making ? <p className="gy-state on num">{s.making.state} — 요청 {hm(s.making.at)}</p> : null}

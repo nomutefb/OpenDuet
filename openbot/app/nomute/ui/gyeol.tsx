@@ -10,6 +10,7 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { getJson } from "./news-data";
 import { hookOf, postKey } from "./gyeol-data";
+import { GONE_TEXT, archivable } from "./r2-gone";
 
 import type { Mv } from "./gyeol-data";
 type Rev = { song?: string; score?: number; score_why?: string; mv?: boolean; one?: string; good?: string[]; bad?: string[]; next?: string[]; date?: string };
@@ -54,6 +55,7 @@ export function GyeolBoard() {
   const q = useQuery({ queryKey: ["nomute", "chan-gyeol"], staleTime: 300_000, refetchInterval: 300_000, queryFn: getGy });
   const sq = useQuery({ queryKey: SKEY, staleTime: 15_000, queryFn: () => getJson<Settings>(`/api/settings?_=${Date.now()}`) });
   const [sort, setSort] = useState<"new" | "score" | "star" | "todo">("new"), [more, setMore] = useState(false), [open, setOpen] = useState(-1), [note, setNote] = useState("");
+  const [gone, setGone] = useState<ReadonlySet<string>>(() => new Set());   // 이번 보기에서 R2 에 없던 영상(./r2-gone.ts)
   const g = q.data, posts = sq.data?.gyPost || [], PS = useMemo(() => new Set(posts.map((x) => x.id)), [posts]);
   const V = useMemo(() => {
     if (!g) return null;
@@ -142,11 +144,13 @@ export function GyeolBoard() {
         <div className="yeta-set gy-view" role="dialog" aria-modal="true" aria-label={it.t} onClick={(e) => { if (e.target === e.currentTarget) setOpen(-1); }}>
           <div className="gy-view-in">
             <div className="gy-view-h"><b>{it.t}</b><button type="button" className="gy-x" aria-label="닫기" onClick={() => setOpen(-1)}><DuetIcon name="x" size={18} /></button></div>
-            <video key={it.url} className="gy-view-v" src={it.url} poster={it.poster || undefined} controls playsInline autoPlay preload="metadata" />
+            {gone.has(it.url)
+              ? <p className="gy-view-v gy-gone" role="status">{GONE_TEXT}</p>   /* R2 넘침 ② · 윈A 로 옮겨진 결과물 = 한 줄(되살리기 0) */
+              : <video key={it.url} className="gy-view-v" src={it.url} poster={it.poster || undefined} controls playsInline autoPlay preload="metadata" onError={() => { if (archivable(it.url)) setGone((g) => new Set(g).add(it.url)); }} />}
             <div className="gy-view-acts">
               <button type="button" className="yset-chip" disabled={open <= 0} onClick={() => { setNote(""); setOpen((i) => Math.max(0, i - 1)); }} aria-label="앞 뮤비">▲</button>
               <button type="button" className="yset-chip" disabled={open >= V.list.length - 1} onClick={() => { setNote(""); setOpen((i) => Math.min(V.list.length - 1, i + 1)); }} aria-label="다음 뮤비">▼</button>
-              <button type="button" className="yset-chip" onClick={() => window.open(`/api/dl?u=${encodeURIComponent(it.url)}&n=${encodeURIComponent(it.fn)}`, "_blank")}>받기</button>
+              <button type="button" className="yset-chip" disabled={gone.has(it.url)} onClick={() => window.open(`/api/dl?u=${encodeURIComponent(it.url)}&n=${encodeURIComponent(it.fn)}`, "_blank")}>받기</button>
               {it.copy ? <button type="button" className="yset-chip" onClick={async () => { const ok = await copyText(it.copy); setNote(ok ? `${it.copyLab} 복사했어 — 올릴 곳에 붙여넣기` : "복사 못 했어 — 브라우저가 클립보드를 막았어"); }}>{it.copyLab} 복사</button> : null}
               <button type="button" className={`yset-chip${PS.has(it.key) ? " on" : ""}`} aria-pressed={PS.has(it.key)} onClick={() => void toggle(it.key)}>{PS.has(it.key) ? "✓ 올림" : "올림"}</button>
             </div>

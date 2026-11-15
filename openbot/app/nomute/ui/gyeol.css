@@ -31,6 +31,7 @@
 .gy-view-h b { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .gy-x { background:none; border:0; color:inherit; font-size:22px; line-height:1; cursor:pointer; padding:0 4px; }
 .gy-view-v { width:100%; aspect-ratio:9 / 16; max-height:62dvh; object-fit:contain; background:#000; border-radius:10px; }
+.gy-view-v.gy-gone { display:flex; align-items:center; justify-content:center; margin:0; color:#9aa0a6; font-weight:600; }   /* R2 넘침 ② 「보관됨」 = 영상 자리 그대로(9:16) · 한 줄 */
 .gy-view-acts { display:flex; flex-wrap:wrap; gap:6px; }
 .gy-view-st { font-size:12px; color:var(--mut); margin:0; }
 .gy-view-notes { display:flex; flex-direction:column; gap:8px; margin:0; }

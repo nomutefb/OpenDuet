@@ -9,9 +9,10 @@ import "./old-tabs.css";
 import { memo, useEffect, useRef } from "react";
 import { startOldTabs } from "./engine";
 import { CHAN_HTML, SNS_HTML } from "./markup";
+import { openMaybeGone } from "../r2-gone";
 
 const HTML = { chan: { __html: CHAN_HTML }, sns: { __html: SNS_HTML } };
-const host = { open: (u: string) => { try { window.open(u, "_blank", "noopener"); } catch { /* 못 열면 그대로 */ } } };
+const host = { open: openMaybeGone };   // 새 창 = 앞 꼴 그대로 · 윈A 로 옮겨진 영상 결과물(ly_out · vidl_res · ys_res · gyeol)만 그 창에 「보관됨」(R2 넘침 ② · ../r2-gone.ts)
 
 export const OldTab = memo(function OldTab({ which }: { which: "chan" | "sns" }) {
   const root = useRef<HTMLDivElement>(null);
