@@ -2,6 +2,7 @@
 //   「방 설정 같은 것들. 대화방 프로필 설정 · 대화방 알림 · 대화방 질문 이력 · 파일 기록」)
 //   = 방 목록 줄 메뉴(./room-list.tsx)의 방 설정 칸을 방 안에서 · 표지 색·이름 = ./room-color.tsx 판 그대로 · 알림 = 봄 서버(../data/notify.ts) 같은 열쇠
 //   질문 이력 = 봄 서버 GET decisions?room=&all=1(못 받으면 칸 안 보임) · 파일 기록 = 이 기기 방 글(최근 300 + 지금 받은 판)의 첨부 · 사진은 폰 사본 7일(../data/file-cache.ts)
+import { AskYN } from "./ask-yn";   // 되묻는 창 하네스(형 11-15 09:00)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
@@ -98,6 +99,7 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
     window.addEventListener("keydown", off);
     return () => window.removeEventListener("keydown", off);
   }, [onClose]);
+  const [sure, setSure] = useState(false);
   const all = members.length > 0 && members.every((w) => pick.has(w));
   const flip = (w: string) => setPick((s) => { const n = new Set(s); if (n.has(w)) n.delete(w); else n.add(w); return n; });
   const go = async () => {
@@ -119,7 +121,8 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
           {members.map((w) => <button key={w} type="button" className="row" aria-pressed={pick.has(w)} onClick={() => flip(w)}>{list.find((p) => p.who === w)?.name || w}</button>)}
         </div>
         {err ? <p role="alert" className="nm-meet-err">{err}</p> : null}
-        <div className="nrc-acts"><GoButton className="nrc-ok" disabled={!pick.size || busy} go={must(go)} done={onClose} busy="내보내는 중">내보내기</GoButton></div>
+        <div className="nrc-acts"><button type="button" className="nrc-ok" disabled={!pick.size || busy} onClick={() => setSure(true)}>내보내기</button></div>
+        {sure ? <AskYN q="정말 내보내시겠습니까?" note={all ? "모두" : `${pick.size}명`} onNo={() => setSure(false)} yes={must(go)} close={onClose} done={onClose} what="내보내기" busy="내보내는 중" /> : null}   {/* 형 11-15 09:00 「누르면 정말 내보내시겠습니까? 아니오 예 아니오에 라임 … 예 누르고 백단에서 진행」 */}
       </div>
     </div>,
     document.body,

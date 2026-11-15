@@ -23,3 +23,23 @@
   .nm-go-spin { animation-duration:2s; }
 }
 .nm-go-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }   /* 「보내는 중」 = 화면엔 안 보임 · 읽어 주기만(형 11-07 13:23) */
+
+/* away 단추 = 짧은 리듬(게이지 .4초 · 창을 붙잡지 않음 · 형 11-15) */
+.nm-go[data-quick][data-stage="fill"] { animation-duration:.4s; }
+/* 화면 아래 알림 한 줄(./flash.ts) — 창이 닫힌 뒤 뒤에서 못 한 일을 알림 · 움직임 = transform · opacity 만 */
+.nm-flash { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 96px); z-index:200; max-width:min(92vw, 420px); padding:10px 14px; border-radius:14px; font-size:14px; line-height:1.4; color:#fff; background:rgba(28,22,22,.92); border:1px solid rgba(255,95,109,.55); box-shadow:0 10px 30px rgba(0,0,0,.35); transform:translate(-50%, 0); animation:nmFlashIn .28s cubic-bezier(.22,.61,.36,1) both; cursor:pointer; }
+.nm-flash.out { opacity:0; transform:translate(-50%, 8px); transition:opacity .28s, transform .28s; }
+@keyframes nmFlashIn { from { opacity:0; transform:translate(-50%, 12px); } to { opacity:1; transform:translate(-50%, 0); } }
+@media (prefers-reduced-motion:reduce) { .nm-flash { animation:none; } }
+
+/* 되묻는 창(./ask-yn.tsx) — 아니오 = 라임(안전한 쪽 · 엔터 자리) · 예 = 보통 · 본 = 글 삭제 물음(.nm-msgm-yn · 형 11-12) */
+.nm-yn { display:flex; gap:10px; }
+.nm-yn > button { flex:1; min-height:44px; padding:0 16px; border-radius:14px; border:1px solid color-mix(in srgb, currentColor 18%, transparent); background:none; color:inherit; font:inherit; font-size:16px; font-weight:700; cursor:pointer; }
+.nm-yn > button.no { border-color:var(--accent, #CFFF40); background:var(--accent, #CFFF40); color:#141414; }
+.nm-yn > button:disabled { opacity:.5; }
+.nm-yn-veil { position:fixed; inset:0; z-index:70; display:grid; place-items:center; padding:16px; background:rgba(0,0,0,.4); }
+.nm-yn-box { width:min(100%, 340px); display:flex; flex-direction:column; gap:12px; padding:18px 16px 14px; border-radius:18px; border:1px solid color-mix(in srgb, currentColor 12%, transparent); background:var(--popover, #1b1c1f); color:var(--popover-foreground, #eee); box-shadow:0 18px 50px rgba(0,0,0,.45); }
+.nm-yn-q { margin:0; font-size:16px; font-weight:600; text-align:center; text-wrap:balance; }
+.nm-yn-note { margin:0; font-size:13px; opacity:.7; text-align:center; }
+/* 알림 한 줄 — 됐어(라임 테두리) */
+.nm-flash.ok { border-color:rgba(var(--accent-rgb, 207,255,64),.6); background:rgba(22,26,18,.94); }

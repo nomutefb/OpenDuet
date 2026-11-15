@@ -3,6 +3,7 @@
 //   = 대화 목록 맨 위 「사무실 | 팀즈」 바꿈 · 팀즈 = 목록(teams/chats) · 방(teams/messages · 새 글 먼저 30 · 더 앞 = next) · 보내기(teams/send) · 파일(teams/file) · 글 안 그림(teams/hosted)
 //   서버 = 윈터 _teams.js(wa/teams-graph) · 로그인 = 기기 코드(POST teams/login → 코드 크게 + microsoft.com/devicelogin · 기다리는 동안 GET teams 5초마다 = 서버가 마저 받음)
 //   방 주소 = /channels/teams:<chat id>(대화 판은 OfficeChat 이 이 앞머리를 보고 TeamsChat 으로)
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -199,10 +200,11 @@ function TeamsLogin({ me, err }: { me?: Me; err?: string }) {
   const code = me?.pending?.user_code, uri = me?.pending?.verification_uri || "https://microsoft.com/devicelogin";
   const login = async () => {
     setBusy(true); setWhy("");
-    try { const j = await office<{ user_code?: string; verification_uri?: string }>("teams/login", { method: "POST", body: "{}" }); qc.setQueryData<Me>(meKey, (o) => ({ ...(o || {}), pending: { user_code: j.user_code, verification_uri: j.verification_uri } })); void qc.invalidateQueries({ queryKey: meKey }); }
-    catch (e) { setWhy(e instanceof Error ? e.message : String(e)); }
+    try { return await office<{ user_code?: string; verification_uri?: string }>("teams/login", { method: "POST", body: "{}" }); }   // 코드 판으로 바뀌기 = ✓ 뒤(GoButton done = coded)
+    catch (e) { setWhy(e instanceof Error ? e.message : String(e)); throw e; }
     finally { setBusy(false); }
   };
+  const coded = (j: { user_code?: string; verification_uri?: string }) => { qc.setQueryData<Me>(meKey, (o) => ({ ...(o || {}), pending: { user_code: j.user_code, verification_uri: j.verification_uri } })); void qc.invalidateQueries({ queryKey: meKey }); };
   if (err) return <div className="nm-tlogin"><p>팀즈 서버에 못 닿았어 · {err}</p></div>;
   if (!me) return <Dots />;
   if (me.configured === false) return <div className="nm-tlogin"><b>팀즈 준비 중</b><p>형 회사 앱 등록이 끝나면 여기서 바로 로그인돼.</p></div>;
@@ -219,7 +221,7 @@ function TeamsLogin({ me, err }: { me?: Me; err?: string }) {
         <>
           <b>팀즈 로그인</b>
           <p>회사 계정으로 한 번 로그인하면 사무실 안에서 팀즈 대화를 보고 보낼 수 있어.</p>
-          <button type="button" className="nm-tgo" disabled={busy} onClick={() => void login()}>{busy ? "코드 받는 중…" : "로그인"}</button>
+          <GoButton className="nm-tgo" disabled={busy} go={login} done={coded} busy="코드 받는 중">로그인</GoButton>
         </>
       )}
       {why ? <p role="alert" className="nm-terr">{why}</p> : null}

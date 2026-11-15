@@ -14,6 +14,7 @@ import { Breaker, type HealthSt, ST_ORDER, HEALTH_KO, StatusDot, cronKo, lastKo,
 import { SchedTree } from "./sched-tree";   // 러너 = 노드 트리 하나(형 11-14 「스케줄러를 … 트리구조로」 · 「중첩되는 내용들은 카테고라이징해서 없애」 — 갈래 칩 다섯 · 목록 · 흐름 보기는 이 나무 하나로 합침)
 import { useWide } from "./side";   // PC 인가(폰은 목록 그대로 · 시아 05:17 ⑦)
 import { GpuPanel } from "./sched-gpu";   // GPU 쓰는 일 · GPU 우선 서버(형 11-05 09:43 · 뜸)
+import { GoButton } from "./go-button";   // 「미리 보기」 · 「이 일 지우기」 · 「정말 지우기」 = 게이지 알약(형 11-15 「하네스 전반 통일」) · bar() 의 「바꾸기」는 형 10-31 흐름 그대로
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { Num, Times } from "./room-routine";   // 시간 고르기 부품 = 방 「루틴 만들기」와 같은 것
 import { RangeBar } from "./range-bar";   // 「몇 시간마다」의 시작~끝 = 끌어서 정하는 기간 막대(형 11-15 영상)
@@ -75,7 +76,7 @@ const QUICK: { label: string; set: Partial<Pick> }[] = [
   { label: "낮 3시간마다", set: { wd: [0, 1, 2, 3, 4, 5, 6], mode: "every", every: 3, from: 9, to: 21, min: 0, mins: undefined } },
 ];
 
-function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: boolean; send: (v: string[]) => void }) {
+function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: boolean; send: (v: string[]) => Promise<unknown> }) {
   const first = useMemo(() => readPick(r.cron), [r.cron]);
   const [k, setK] = useState<Pick | null>(first), [raw, setRaw] = useState(cronShow(r.cron));
   useEffect(() => { setK(first); setRaw(cronShow(r.cron)); }, [first, r.cron]);
@@ -84,7 +85,7 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
   if (dated) return <small>{cronKo(r.cron)} 한 번</small>;
   if (!k) return (
     <label className="nm-sched-when">직접
-      <input disabled={!can} value={raw} aria-label={`${r.name} 언제`} onChange={(e) => setRaw(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(raw.split(";").map((x) => x.trim()).filter(Boolean).map((x) => CRON_H + x)); }} />
+      <input disabled={!can} value={raw} aria-label={`${r.name} 언제`} onChange={(e) => setRaw(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void send(raw.split(";").map((x) => x.trim()).filter(Boolean).map((x) => CRON_H + x)).catch(() => {}); }} />
     </label>
   );
   const set = (x: Partial<Pick>) => setK({ ...k, ...x });
@@ -110,7 +111,7 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
           {/* 시작~끝 = 숫자 칸 둘 → 끌어서 정하는 기간 막대(형 11-15 영상 「스케줄 일정 조정을 기간을 이런식으로 조정 가응하게」) · 몸통 = 통째로 · 손잡이 = 그 끝만 · 놓으면 한 시간 단위에 붙음 · 끝 = 23시까지(cron 시 칸) */}
           <RangeBar name={`${r.name} 시간대`} from={k.from} to={Math.max(k.to, k.from)} end={23} min={0} disabled={!can} sum={`${wdKo(k.wd)} · ${k.mins?.length === 2 && k.every === 1 && k.mins[1] - k.mins[0] === 30 ? "30분마다" : `${k.every}시간마다`}`} onChange={({ from, to }) => set({ from, to })} />
         </>}
-      {changed ? <div><small>{cronKo(next)}</small> <button type="button" className="nm-sched-go" disabled={busy || !ok || !can} onClick={() => send(next)}>미리 보기</button></div> : null}
+      {changed ? <div><small>{cronKo(next)}</small> <GoButton className="nm-sched-go" disabled={busy || !ok || !can} go={() => send(next)} busy="보는 중">미리 보기</GoButton></div> : null}
     </div>
   );
 }
@@ -223,7 +224,7 @@ export function SchedDesk() {
           <div className="nm-sched-rt">
             {bell || room || !r.health ? null : <small className="nm-row1-h" data-st={rSt(r)}>{HEALTH_KO[rSt(r)]}{r.health?.last_at ? ` · 마지막 실제 ${nextShort(r.health.last_at)}` : ""}{r.health?.drift_min ? ` · 예정보다 ${r.health.drift_min}분 늦음` : ""}{r.health?.missed ? ` · 놓침 ${r.health.missed}` : ""}</small>}
             {bell || room ? null
-              : <WhenPick r={r} can={can} busy={go.isPending} send={(v) => prep({ at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` })} />}
+              : <WhenPick r={r} can={can} busy={go.isPending} send={(v) => { setSave(null); return go.mutateAsync({ q: { at: "routine", key: r.id, field: "when", value: v, label: `${b?.who} ${r.name}` }, dry: true }); }} />}
             {r.marks?.includes("time_in_text") ? <small className="nm-sched-warn">할 일 글 안에도 시각이 적혀 있어. 시간을 바꾸면 글도 같이 봐 줘</small> : null}
             {r.marks?.includes("date_in_text") ? <small className="nm-sched-warn">할 일 글 안에 날짜가 있어. 지침엔 날짜를 빼 줘</small> : null}
             {bell ? null : r.task !== undefined ? (
@@ -251,14 +252,13 @@ export function SchedDesk() {
   const forkOnOf = (id?: string) => (d.forks || []).find((f) => f.id === id)?.on !== false;
   const treeBots = botsOf(d, rSt, forkOnOf, setSelR, () => setSelB(true), can ? setAddIn : undefined);
   const removeR = async (id: string, dry: boolean) => {   // 지우기 = 서버 POST schedule/routine {op: remove} · 먼저 dry(지울 수 있는 줄인가) → 확인 → 진짜
-    setMsg(""); setDel({ id, stage: dry ? "ask" : "send" });
+    setMsg(""); if (!dry) setDel({ id, stage: "send" });
     try {
       const r = await office<{ ok?: boolean; name?: string; checked?: boolean }>("schedule/routine", { method: "POST", body: JSON.stringify({ op: "remove", key: id, sha: d.sha, dry }) });
-      if (dry) return;
-      setDel(null); setSelR(""); setMsg(`「${r.name || id}」 지웠어${r.checked ? " · 표에서 빠짐" : ""}`);
-      void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] });
-    } catch (e) { const m = e instanceof Error ? e.message : String(e); setDel({ id, stage: "ask", why: /changed/.test(m) ? "다른 데서 표가 바뀌었어 — 닫고 다시 열어 줘" : m }); if (/changed/.test(m)) void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] }); }
+      return r;   // 물음 띄우기 · 판 닫기 = ✓ 뒤(GoButton done → delAsked · delDone)
+    } catch (e) { const m = e instanceof Error ? e.message : String(e); setDel({ id, stage: "ask", why: /changed/.test(m) ? "다른 데서 표가 바뀌었어 — 닫고 다시 열어 줘" : m }); if (/changed/.test(m)) void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] }); throw e; }
   };
+  const delDone = (id: string, r: { name?: string; checked?: boolean }) => { setDel(null); setSelR(""); setMsg(`「${r.name || id}」 지웠어${r.checked ? " · 표에서 빠짐" : ""}`); void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] }); };
   const fSel = selF ? forks.find((f) => f.id === selF) : undefined;
   const sheet = (title: string, sub: string, close: () => void, body: React.ReactNode) => createPortal(   // 나무에서 누른 것의 바꾸기 판(루틴 · 포크 · 봇) = 같은 껍데기
     <div className="nm-rsheet-back" role="presentation" onClick={close}>
@@ -293,9 +293,9 @@ export function SchedDesk() {
           <div className="nm-rsheet-del">
             {del?.id === rSel.id ? <>
               <span className="min-w-0 flex-1">{del.why || "지우면 이 일은 표에서 사라져. 잠깐 멈추려면 「꺼짐」으로 두면 돼."}</span>
-              <button type="button" className="nm-sched-chip" onClick={() => setDel(null)}>그만</button>
-              {del.why ? null : <button type="button" className="nm-sched-chip nm-rsheet-delgo" disabled={del.stage === "send"} onClick={() => void removeR(rSel.id, false)}>{del.stage === "send" ? "지우는 중" : "정말 지우기"}</button>}
-            </> : <button type="button" className="nm-sched-chip nm-rsheet-delask" onClick={() => void removeR(rSel.id, true)}>이 일 지우기</button>}
+              <button type="button" className="nm-sched-chip nm-no" autoFocus onClick={() => setDel(null)}>아니오</button>
+              {del.why ? null : <GoButton key="delgo" className="nm-sched-chip nm-rsheet-delgo" go={() => removeR(rSel.id, false)} done={(r) => delDone(rSel.id, r)} busy="지우는 중">정말 지우기</GoButton>}
+            </> : <GoButton key="delask" className="nm-sched-chip nm-rsheet-delask" go={() => removeR(rSel.id, true)} done={() => setDel({ id: rSel.id, stage: "ask" })} busy="지울 수 있는지 보는 중">이 일 지우기</GoButton>}
           </div>
         ) : null}
       </>) : null}

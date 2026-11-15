@@ -12,6 +12,7 @@
 //   「그리고 지금 배경보다 좀 더 패인느낌을 주려면 어떻게해야하지? 적당히해보고, ㅣ누르면 바로 반영되게, 그리고 저기에 애초에 기타를 넣어. 패스는 없어도 돼 기타로 갈음할거야. 그리고 질문시작점을 도형 변 시작점으로 해. … 질문 누르면 그냥 질문에 불이 들어온다음에 사라져도 돼. 기타를 누르면 대신 창이 흔들리지않고 입력칸이 뜨고」 ·
 //   「형 결정 > 의사 결정」 · 「옆에 설명글은 빼줘」)
 //   = 고를 줄 = 배경보다 패인 홈(안 그림자) · 모서리 살짝 · 왼쪽 정렬 · 누르면 바로 라임 형광 → 0.9초 뒤 그 질문 접혀 사라짐 · 게이지·✓·빛줄기 없음 · pass 뺌 · 기타 = 마지막 줄 · 누르면 그 줄이 같은 높이로 입력칸이 됨(창 높이 안 바뀜)
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { DuetIcon } from "@/components/duet/icons";
 import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { tailnetUrl } from "./pc-url";
@@ -205,6 +206,7 @@ export function DecideInline({ id }: { id: string }) {
   const qc = useQueryClient();
   const d = (useDecisions().data || []).find((x) => x.id === id || (x._dups || []).includes(id));
   const [st, setSt] = useState<"" | "보내는 중" | "못 보냄">(""), [got, setGot] = useState(""), [etc, setEtc] = useState(false);   // etc = 기타 = 주관식 칸(형 11-14 10:34 봄 옮김 「기타가 왜 이미대닺함이여」 · 「주관식이없네」)
+  const etcForm = useRef<HTMLFormElement>(null);
   if (got) return <p className="nm-dec-inl-ok">✓ 골랐어 · {got}</p>;
   if (!d || isVideoReq(d) || !d.choices.length) return null;
   const send = async (p: Pick, label: string) => {
@@ -217,14 +219,24 @@ export function DecideInline({ id }: { id: string }) {
       settle(qc);
     } catch { setGot(""); setSt("못 보냄"); settle(qc); }
   };
+  const sendEtc = async (form: HTMLFormElement | null) => {   // 기타 「보내기」 = 게이지 알약(./go-button) · 「✓ 골랐어」 줄로 바뀌기 · 목록 다시 읽기 = ✓ 뒤(done)
+    const t = String((form ? new FormData(form).get("t") : "") || "").trim().slice(0, 500);
+    if (!t) throw new Error("빈 글");
+    setSt("");
+    try {
+      const j = await office<{ bad?: { id: string; why?: string }[] }>("decisions", { method: "POST", body: JSON.stringify({ picks: withDups(d, { text: t }), send: true }) });
+      if ((j.bad || []).some((x) => x.id === d.id)) throw new Error("bad");
+      return t;
+    } catch (e) { setSt("못 보냄"); settle(qc); throw e; }
+  };
   const CIRC = "①②③④⑤⑥⑦⑧⑨";
   return (
     <div className="nm-dec-inl" onClick={(e) => e.stopPropagation()}>
       {d.choices.map((c, i) => <button key={i} type="button" onClick={() => void send({ i }, `${CIRC[i] || i + 1} ${c}`)}><b>{CIRC[i] || i + 1}</b>{c}</button>)}
       {etc
-        ? <form className="etc" onSubmit={(e) => { e.preventDefault(); const t = String(new FormData(e.currentTarget).get("t") || "").trim().slice(0, 500); if (t) void send({ text: t }, `기타 · ${t}`); }}>
+        ? <form className="etc" ref={etcForm} onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 보내기 단추 누름(게이지 단추가 받음) */}
             <input name="t" autoFocus placeholder="직접 입력" aria-label="기타 답" enterKeyHint="send" maxLength={500} />
-            <button type="submit">보내기</button>
+            <GoButton type="submit" go={() => sendEtc(etcForm.current)} done={(t) => { markDecided(qc, d, { text: t }); setGot(`기타 · ${t}`); settle(qc); }}>보내기</GoButton>
           </form>
         : <button type="button" onClick={() => setEtc(true)}><b>{CIRC[d.choices.length] || d.choices.length + 1}</b>기타 · 직접 쓰기</button>}
       <button type="button" className="had" onClick={() => void send({ text: ALREADY }, ALREADY)}>{ALREADY}</button>

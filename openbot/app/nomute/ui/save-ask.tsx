@@ -3,6 +3,7 @@
 //   = 작게 한 줄 [아니오] [예] · 예 = 저장하고 닫기 · 아니오 = 닫음(쓰던 글은 이 기기에 남김 · 다시 열면 되살림 · ./draft.ts) · 바깥·Esc = 물음만 닫고 계속 쓰기
 import { useCallback, useEffect, useRef, useState } from "react";
 import { backdrop } from "./backdrop";
+import { GoButton } from "./go-button";
 import { modalPush, modalTop, useOpenBack } from "./use-modal";   // 창 쌓임 한 줄(빠르 11-08) = 이 창 위에 뜬 창(색 고르기 등)이 있으면 Esc 는 그 창 몫
 
 /** dirty 면 닫기 대신 물음 · 아니면 바로 닫음 · Esc 도 같은 길 · on = 창이 떠 있을 때만 Esc 를 받음(늘 붙어 있는 창이 다른 창 Esc 를 먹지 않게) */
@@ -38,13 +39,14 @@ export function useCloseGuard(dirty: boolean, close: () => void, on = true) {
   return { ask, setAsk, request };
 }
 
-export function SaveAsk({ onSave, onDiscard, onKeep, saving }: { onSave: () => void; onDiscard: () => void; onKeep: () => void; saving?: boolean }) {
+/** 예 = 게이지 알약(./go-button · 형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」) — go = 저장(실패 = throw) · done = ✓ 를 보여 준 뒤(창 닫기) */
+export function SaveAsk({ go, done, onDiscard, onKeep }: { go: () => Promise<unknown>; done: () => void; onDiscard: () => void; onKeep: () => void }) {
   return (
     <div role="alertdialog" aria-modal="true" aria-label="저장하시겠습니까?" className="fixed inset-0 z-[70] grid place-items-center bg-black/30 p-4" {...backdrop(onKeep)}>
       <div className="flex items-center gap-3 rounded-xl border border-border bg-popover py-2 pl-4 pr-2 text-sm shadow-lg">
         <span>저장하시겠습니까?</span>
         <button type="button" className="rounded-lg px-3 py-1.5 hover:bg-foreground/5" onClick={onDiscard}>아니오</button>
-        <button type="button" autoFocus disabled={saving} className="rounded-lg bg-foreground px-3 py-1.5 font-semibold text-background disabled:opacity-40" onClick={onSave}>{saving ? "저장 중…" : "예"}</button>
+        <GoButton autoFocus className="rounded-lg bg-foreground px-3 py-1.5 font-semibold text-background disabled:opacity-40" go={go} done={done} busy="저장 중">예</GoButton>
       </div>
     </div>
   );
@@ -57,9 +59,9 @@ export function CloseAsk({ onClose, onKeep, busy }: { onClose: () => void; onKee
     <div role="alertdialog" aria-modal="true" aria-label="창을 닫으시겠습니까?" className="fixed inset-0 z-[70] grid place-items-center bg-black/30 p-4" {...backdrop(onKeep)}>
       <div className="flex max-w-sm flex-col gap-3 rounded-xl border border-border bg-popover p-4 text-sm shadow-lg">
         <p>작성 중인 내용이 사라집니다. 창을 닫으시겠습니까?</p>
-        <div className="flex justify-end gap-2">
-          <button type="button" className="rounded-lg px-3 py-1.5 hover:bg-foreground/5" onClick={onKeep}>취소</button>
-          <button type="button" autoFocus disabled={busy} className="rounded-lg bg-foreground px-3 py-1.5 font-semibold text-background disabled:opacity-40" onClick={onClose}>닫기</button>
+        <div className="nm-yn">   {/* 아니오 = 라임 · 엔터 자리(잘못 눌러도 글이 안 사라지는 쪽 · 형 11-15 09:00) */}
+          <button type="button" className="no" autoFocus onClick={onKeep}>아니오</button>
+          <button type="button" disabled={busy} onClick={onClose}>예</button>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 // 임시 단톡방 만들기·고치기(형 10-31 「내가 + 눌러서 임시 단톡방 만들수있게해주라. 시간 지나면 파기되고 자동으로」 · 「누구 초대할지 고를 수 있고. 목적 쓸수있게」)
 //   서버 = functions/api/office/_temproom.js · 목록 위 + → 창 하나 · 만들면 그 방으로 들어감 · 줄을 왼쪽으로 끌면 수정·삭제(TempSwipe)
+import { YesNo } from "./ask-yn";   // 되묻는 창 하네스 = 아니오 라임 · 예는 뒤에서(형 11-15 09:00)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { resetRoomArt, useRoomArtSrc } from "./room-art";
 import { useRoomPhoto } from "./room-photo";
@@ -136,7 +137,7 @@ export function TempRoomDialog({ edit, onClose }: { edit?: OfficeRoom; onClose: 
         </fieldset>
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
-          <GoButton disabled={!ready} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={make} done={made}>{edit ? "고치기" : "만들기"}</GoButton>
+          <GoButton disabled={!ready} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={make} done={made} away={onClose} what={edit ? "방 고치기" : "방 만들기"}>{edit ? "고치기" : "만들기"}</GoButton>
         </div>
       </div>
       {g.ask ? <CloseAsk busy={busy} onKeep={() => g.setAsk(false)} onClose={() => { draftDrop(dk); onClose(); }} /> : null}   {/* 닫기 = 쓰던 글도 버림(「사라집니다」 말 그대로 · 앞 판은 이 기기에 남겨 다시 열면 되살림) */}
@@ -153,9 +154,8 @@ export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClos
     try {
       await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "DELETE" });
       await dropSearchCache(r.id);
-      await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
-      onClose(); onGone();
-    } catch (e) { setWhy(e instanceof Error ? e.message : "못 지웠어"); setBusy(false); }
+      await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 창 닫기 · 옮기기 = ✓ 를 보여 준 뒤(GoButton done)
+    } catch (e) { setWhy(e instanceof Error ? e.message : "못 지웠어"); setBusy(false); throw e; }
   };
   return (
     <div role="alertdialog" aria-modal="true" aria-label="단톡방 지우기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
@@ -163,10 +163,7 @@ export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClos
         <b className="text-base">정말 지울까?</b>
         <p className="text-muted-foreground">「{r.name}」 방의 글이 모두 지워지고 되돌릴 수 없어. 첨부 파일은 저장소에 남아.</p>
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
-        <div className="flex justify-end gap-2">
-          <button type="button" disabled={busy} className="rounded-full bg-destructive px-4 py-2 font-semibold text-white disabled:opacity-40" onClick={() => void drop()}>{busy ? "지우는 중" : "예"}</button>
-          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>아니오</button>
-        </div>
+        <YesNo onNo={onClose} yes={drop} close={onClose} done={() => { onClose(); onGone(); }} what="방 지우기" busy="지우는 중" />
       </div>
     </div>
   );
@@ -186,8 +183,7 @@ export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: 
       await office(`rooms/${encodeURIComponent(r.id)}`, { method: "DELETE" });
       await dropSearchCache(r.id);
       await Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }), qc.invalidateQueries({ queryKey: ["nomute", "roomset"] })]);
-      onClose(); onGone?.();
-    } catch (e) { setWhy(e instanceof Error ? e.message : "못 없앴어"); setBusy(false); }
+    } catch (e) { setWhy(e instanceof Error ? e.message : "못 없앴어"); setBusy(false); throw e; }   // 창 닫기 · 옮기기 = ✓ 뒤(GoButton done)
   };
   return (
     <div role="alertdialog" aria-modal="true" aria-label="단톡방 없애기" className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(onClose)}>
@@ -195,10 +191,7 @@ export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: 
         <b className="text-base">「{r.name}」 정말 없앨까?</b>
         <p className="text-muted-foreground">없애면 대화 목록·설정·부름에서 빠지고 이 방엔 더 못 써. 쌓인 글은 서버에 남겨 둬서 되살릴 수 있어.</p>
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
-        <div className="flex justify-end gap-2">
-          <button type="button" disabled={busy} className="rounded-full bg-destructive px-4 py-2 font-semibold text-white disabled:opacity-40" onClick={() => void drop()}>{busy ? "없애는 중" : "없애기"}</button>
-          <button type="button" className="rounded-full px-4 py-2 hover:bg-foreground/5" onClick={onClose}>그만두기</button>
-        </div>
+        <YesNo onNo={onClose} yes={drop} close={onClose} done={() => { onClose(); onGone?.(); }} what="방 없애기" busy="없애는 중" />
       </div>
     </div>
   );
@@ -223,8 +216,7 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
       if (j.roomset) qc.setQueryData(["nomute", "roomset"], (old: typeof d) => (old ? { ...old, roomset: j.roomset! } : old));   // 새 판 번호(ver)까지 = 다시 연 창이 옛 base 로 안 보냄
       patchRoom(qc, r.id, { members: j.roomset?.rooms?.[r.id] ?? now });
       void Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "roomset"] }), qc.invalidateQueries({ queryKey: ["nomute", "rooms"] })]);   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
-      onClose();
-    } catch (e) { const m = e instanceof Error ? e.message : "저장 못 함"; setWhy(/changed|base/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); setCur(null); void q.refetch(); setBusy(false); }
+    } catch (e) { const m = e instanceof Error ? e.message : "저장 못 함"; setWhy(/changed|base/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); setCur(null); void q.refetch(); setBusy(false); throw e; }   // 창 닫기 = ✓ 뒤(GoButton done)
   };
   const changed = !!cur && cur.join("|") !== (d?.roomset.rooms[r.id] ?? r.members ?? []).join("|"), g = useCloseGuard(changed && !busy, onClose);   // 고른 멤버가 바뀐 채 닫기 = 한 문장 확인 · Esc · 바탕 · X 같은 길(#-042)
   return (
@@ -247,7 +239,7 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
         )}
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
-          <button type="button" disabled={busy || !cur || !now.length || !d?.can_edit} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" onClick={() => void save()}>{busy ? "저장 중" : "저장"}</button>
+          <GoButton disabled={busy || !cur || !now.length || !d?.can_edit} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" go={save} done={onClose} away={onClose} what="방 설정 저장" busy="저장 중">저장</GoButton>
         </div>
       </div>
       {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}
@@ -263,14 +255,12 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
   const [cur, setCur] = useState<string[] | null>(null), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
   const list = peopleSync(), cand = (q.data || []).filter((w) => !seatOff(list.find((p) => p.who === w))), now = cur ?? r.members ?? [];
   const save = async () => {
-    if (!now.length || busy) return;
     setBusy(true); setWhy("");
     try {
       const j = await office<{ room?: Partial<OfficeRoom> & { id: string } }>(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name || "", purpose: r.purpose || "", members: now }) });
       patchRoom(qc, r.id, savedRoomPart(j, r.id, { members: now }) as Partial<OfficeRoom>);
       void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
-      onClose();
-    } catch (e) { setWhy(e instanceof Error ? e.message : "저장 못 함"); setBusy(false); }
+    } catch (e) { setWhy(e instanceof Error ? e.message : "저장 못 함"); setBusy(false); throw e; }   // 창 닫기 = ✓ 뒤(GoButton done)
   };
   const changed = !!cur && cur.join("|") !== (r.members ?? []).join("|"), g = useCloseGuard(changed && !busy, onClose);   // 고른 멤버가 바뀐 채 닫기 = 한 문장 확인 · Esc · 바탕 · X 같은 길(#-042)
   return (
@@ -293,7 +283,7 @@ function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void 
         )}
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
-          <button type="button" disabled={busy || !cur || !now.length} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" onClick={() => void save()}>{busy ? "저장 중" : "저장"}</button>
+          <GoButton disabled={busy || !cur || !now.length} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" go={save} done={onClose} away={onClose} what="방 설정 저장" busy="저장 중">저장</GoButton>
         </div>
       </div>
       {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}

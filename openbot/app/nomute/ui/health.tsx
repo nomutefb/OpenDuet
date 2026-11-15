@@ -1,4 +1,5 @@
 // 설정 → 점검표(옛 화면 설정 판과 같은 서버 GET /api/office/health · 다시 확인 = POST health/recheck · 서버 = 보조 02 PR 1472)
+import { GoButton } from "./go-button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageSection } from "@/components/layout/page-shell";
 import { office } from "../data/office";
@@ -32,14 +33,7 @@ export function NomuteHealth() {
           </li>
         ))}
       </ul>
-      <button
-        type="button"
-        className="mt-3 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-foreground/5 disabled:opacity-50"
-        disabled={re.isPending}
-        onClick={() => re.mutate()}
-      >
-        {re.isPending ? "다시 보는 중…" : "다시 확인"}
-      </button>
+      <GoButton className="mt-3 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-foreground/5 disabled:opacity-50" disabled={re.isPending} go={() => re.mutateAsync()} busy="다시 보는 중">다시 확인</GoButton>   {/* 게이지 알약(./go-button · 형 11-15 「하네스 전반 통일」) */}
       {re.isError ? <p className="mt-2 text-sm text-destructive" role="alert">다시 확인 못 했어 — {re.error.message}</p> : null}
     </PageSection>
   );

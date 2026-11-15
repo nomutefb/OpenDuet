@@ -1,6 +1,7 @@
 // 방 표지 사진 고르기 · 자르기(뎅 11-13 · 형 06:54 봄 1:1 「이거 방 목록이서프로필 사진쪽 클릭하면 바로 방 프로필 사진 변경으로 이동ㄷ어야하고 / 사진 설정 시 설명글은 필요없움 / 사진 설정 초기에 엑박이 떠있어. 해결히야하고 / 사진 고르면 이거를 첨부3 처럼 고르면서 동시에 틀 안에 격자로 설정  가능하게 해야함 / 그리구 방 목록에 즉시 반영이 안됨」)
 //   첨부3 = 폰 사진 고르기 화면(원형 틀 + 3×3 격자 안에서 사진을 끌어 자리 · 크기 잡고 오른쪽 위 「완료」) · 앱·옛 에디터에 같은 틀이 없어 새로(찾아봄: profile-card squareWebp · room-art squareWebp = 가운데 자르기만)
 //   차례 = 사진 고름(기기 고르기 창) → 이 판(원형 틀 · 격자 · 끌기 · 두 손가락/휠/막대 = 크기) → 「완료」 = 틀 안 정사각 256 webp → 서버(형 문만) → 아이콘보다 사진 먼저(roomlook icon 비움 · 색은 그대로) → 목록 바로(rooms 다시 받음 + 이 기기 판 번호)
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import "./room-photo.css";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -49,10 +50,10 @@ export function RoomPhotoCrop({ file, onDone, onClose }: { file: File; onDone: (
   const up = (e: React.PointerEvent) => { pts.current.delete(e.pointerId); if (pts.current.size) begin(); else start.current = null; };
   const wheel = (e: React.WheelEvent) => setV((o) => clamp({ ...o, s: o.s * (e.deltaY < 0 ? 1.08 : 1 / 1.08) }, ar));
   const done = async () => {
-    if (!img || busy) return;
+    if (!img) return;
     setBusy(true); setWhy("");
-    try { await onDone(await cropWebp(img, v)); onClose(); }
-    catch (e) { setWhy(e instanceof Error ? e.message : String(e)); }
+    try { await onDone(await cropWebp(img, v)); }   // 창 닫기 = ✓ 를 보여 준 뒤(GoButton done)
+    catch (e) { setWhy(e instanceof Error ? e.message : String(e)); throw e; }
     finally { setBusy(false); }
   };
   // 그림 크기 = 짧은 변이 틀에 꼭 맞을 때 × s · 자리 = 틀 가운데 + x,y
@@ -61,7 +62,7 @@ export function RoomPhotoCrop({ file, onDone, onClose }: { file: File; onDone: (
     <div className="nrp-veil" role="presentation" onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (e.target === e.currentTarget && !busy) onClose(); }}
       onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()}>   {/* 포털이라도 리액트 누름은 부른 곳(목록 줄 · 방 링크)으로 번짐 → 여기서 끊음 */}
       <div className="nrp" role="dialog" aria-label="방 사진 자리 잡기">
-        <div className="nrp-h"><button type="button" onClick={onClose} disabled={busy}>취소</button><b>방 사진</b><button type="button" className="ok" onClick={() => void done()} disabled={!img || busy}>{busy ? "올리는 중" : "완료"}</button></div>
+        <div className="nrp-h"><button type="button" onClick={onClose} disabled={busy}>취소</button><b>방 사진</b><GoButton className="ok" go={done} done={onClose} away={onClose} what="방 사진 올리기" disabled={!img || busy} busy="올리는 중">완료</GoButton></div>
         <div ref={box} className="nrp-frame" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={wheel}>
           {img ? <img src={url} alt="" draggable={false} style={{ width: `${w}%`, height: `${h}%`, left: `${50 + v.x * 100 - w / 2}%`, top: `${50 + v.y * 100 - h / 2}%` }} /> : bad ? <p className="nrp-bad">그림을 못 읽었어 — 다른 사진으로</p> : null}
           <i className="nrp-mask" aria-hidden />

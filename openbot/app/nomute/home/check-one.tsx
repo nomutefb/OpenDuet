@@ -4,9 +4,10 @@
 //   점검표 「손봐야 함」(ui/health.tsx 와 같은 GET health) · 자료·질의 열쇠 = 그 화면들과 같음(같은 캐시 = 같은 숫자).
 //   보기(PM 12:22 짐작 · 장부 office-home.md): 결정 = 이번만 허락 · 거절(brief/answer · 늘 허락 = 형 범위 정하기 전 0) / 수리 볼 것 = 종료 · 다시 요청(repair/<No>) · 나중에 /
 //   점검표 = 고쳐 달라(윈터에게 · 수리 접수 방에 [수리] 글) · 다시 확인(health/recheck) · 나중에. 답한 것 = 이 화면에서 바로 뺌(서버가 아직 그대로여도) · 나중에 = 이번만 뒤로.
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { office } from "../data/office";
+import { GoButton } from "../ui/go-button";
 import { useBrief } from "../ui/today";
 
 type RepairItem = { no: number; id?: string; room?: string; from?: string; at?: string; kind?: string; title?: string; state: string };
@@ -47,11 +48,15 @@ export function CheckOne() {
   const open = list.filter((x) => !done.includes(x.id));
   const queue = [...open.filter((x) => !later.includes(x.id)), ...open.filter((x) => later.includes(x.id))];   // 미룬 것 = 뒤로(사라지지 않음)
   const x = queue[0];
-  const act = useMutation({
-    mutationFn: async ({ a }: { a: Act; id: string }) => { await office(a.path!, { method: "POST", body: JSON.stringify(a.body) }); return a.key!; },
-    onSuccess: (key, { id }) => { setDone((d) => [...d, id]); void qc.invalidateQueries({ queryKey: key }); },
-  });
-  const pick = (a: Act) => { if (!x) return; if (a.later) setLater((l) => [...l.filter((id) => id !== x.id), x.id]); else act.mutate({ a, id: x.id }); };
+  const [busy, setBusy] = useState(""), [err, setErr] = useState("");
+  // 서버로 가는 답 = 게이지 알약(ui/go-button · 형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」) · 다음 일로 넘기기 = ✓ 를 보여 준 뒤(done) · 「나중에」 = 서버 0 이라 그냥 단추
+  const send = async (a: Act, id: string) => {
+    setBusy(id + a.label); setErr("");
+    try { await office(a.path!, { method: "POST", body: JSON.stringify(a.body) }); }
+    catch (e) { setErr(e instanceof Error ? e.message : String(e)); throw e; }
+    finally { setBusy(""); }
+  };
+  const BTN = "min-w-0 flex-1 truncate rounded-full border border-[var(--glass-line)] px-2.5 py-1.5 text-[13px] font-semibold active:scale-95 disabled:opacity-50";
   return (
     <section aria-label="형이 확인할 일" className="ycd-card card-left min-h-0 gap-2 overflow-hidden !px-3.5 !py-3">
       <p className="flex min-w-0 items-baseline gap-2">
@@ -61,13 +66,13 @@ export function CheckOne() {
       </p>
       {x ? (
         <div className="flex min-w-0 gap-2">
-          {x.acts.slice(0, 3).map((a) => (
-            <button key={a.label} type="button" disabled={act.isPending} onClick={() => pick(a)}
-              className="min-w-0 flex-1 truncate rounded-full border border-[var(--glass-line)] px-2.5 py-1.5 text-[13px] font-semibold active:scale-95 disabled:opacity-50">{a.label}</button>
+          {x.acts.slice(0, 3).map((a) => (a.later
+            ? <button key={a.label} type="button" disabled={!!busy} className={BTN} onClick={() => setLater((l) => [...l.filter((id) => id !== x.id), x.id])}>{a.label}</button>
+            : <GoButton key={x.id + a.label} disabled={!!busy && busy !== x.id + a.label} className={BTN} go={() => send(a, x.id)} done={() => { setDone((d) => [...d, x.id]); void qc.invalidateQueries({ queryKey: a.key! }); }}>{a.label}</GoButton>
           ))}
         </div>
       ) : null}
-      {act.isError ? <p className="text-[12px] text-red-500" role="alert">못 했어 — {act.error.message}</p> : null}
+      {err ? <p className="text-[12px] text-red-500" role="alert">못 했어 — {err}</p> : null}
     </section>
   );
 }

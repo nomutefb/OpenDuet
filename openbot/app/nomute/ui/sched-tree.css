@@ -112,17 +112,16 @@
 .nm-tree-more:active { scale:var(--press-m, .9); }
 .nm-tree-node[data-more] { padding-right:62px; }
 /* 적용 단추 단계 = 적용 → 적용 중(도는 고리) → 됨 ✓(초록 · 체크가 튀어나옴) */
+.nm-sched-chip.nm-rsheet-go[data-stage="idle"] { border-color:rgba(var(--accent-rgb, 207,255,64),.55); background:rgba(var(--accent-rgb, 207,255,64),.16); font-weight:700; }   /* 「적용」 = 고른 칩 꼴(옛 aria-pressed 꼴 그대로) · 누른 동안 = ui/go-button 단계 색 */
 .nm-rsheet-go { display:inline-flex; align-items:center; gap:6px; transition:background-color .18s, border-color .18s, color .18s, scale .3s var(--e-spring); }
-.nm-rsheet-go[data-stage="done"] { border-color:rgba(95,191,106,.7); background:rgba(95,191,106,.22); color:#8fe39a; opacity:1; }
-.nm-rsheet-ck { animation:nmGckPop .44s cubic-bezier(.18,1.5,.4,1) both; }
-.nm-rsheet-spin { width:12px; height:12px; border:1.6px solid currentColor; border-top-color:transparent; border-radius:50%; animation:nm-flow-spin .8s linear infinite; }
 .nm-tree.down .nm-tree-more { width:40px; height:40px; margin:-6px; }   /* 폰 = 손가락 자리 40px */
 .nm-tree-node[data-more="2"] { padding-right:92px; }
 .nm-tree-more.plus { color:var(--tree-next); }
 /* 루틴 판 아래 지우기 줄 */
 .nm-rsheet-del { display:flex; align-items:center; gap:8px; margin:0 16px 14px; padding-top:10px; border-top:1px solid var(--flow-line, rgba(232,234,232,.2)); font-size:var(--fs-sm); color:var(--mut, rgba(232,234,232,.6)); }
 .nm-rsheet-delask { color:#ff8a8d; border-color:rgba(255,90,95,.35); margin-left:auto; }
-.nm-rsheet-delgo { color:#161716; background:#FF5A5F; border-color:#FF5A5F; font-weight:600; }
+.nm-rsheet-delgo { color:#FF8A8E; border-color:rgba(255,90,95,.5); font-weight:600; }   /* 예 쪽 = 채움 걷음(되묻는 창 잣대 = 아니오가 라임 · 형 11-15 09:00) */
+.nm-sched-chip.nm-no { color:#141414; background:var(--accent, #CFFF40); border-color:var(--accent, #CFFF40); font-weight:700; }
 
 /* ── 읽기 쉽게(형 11-14 「보기 조금 힘들어 좀 쉽게 가고싶고 원래 영상에서 보인 퀄리티」) ──
    폰 = 글씨 한 단 크게 · 줄 사이 넉넉히 · 선 읽는 법 줄 숨김 · 뿌리는 작은 알약 / 공통 = 카드 안 칸을 영상처럼 또렷하게(이름 크게 · 언제 한 줄 · 상태 한 줄) */

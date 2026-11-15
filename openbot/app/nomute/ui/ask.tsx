@@ -145,7 +145,7 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
         </div>
         <div className="nm-ask-chips-o" role="group" aria-label="수집 프리셋">
           {CHIPS.filter((c) => c.k !== "mj").map((c) => <button key={c.k} type="button" className={`nm-ask-chip${preset[c.k] ? " on" : ""}`} aria-pressed={!!preset[c.k]} title={c.d} onClick={() => { if (c.k === "fp") setFpHand(true); setPreset((p) => ({ ...p, [c.k]: p[c.k] ? 0 : 1 })); }} disabled={busy}>{preset[c.k] ? "✓ " : ""}{c.o}</button>)}
-          <GoButton className={`nm-ask-go${text.trim() || link.trim() ? " filled" : ""}`} go={send} busy="보내는 중" done={() => onClose?.()}>전송</GoButton>   {/* 전송 = 칩 줄 오른쪽 끝 한 가로줄(형 11-15 05:56 「전송을 우하단에 … 자연스럽게 수평 배치로 게이지 체크」 · 깃 #-036) */}
+          <GoButton className={`nm-ask-go${text.trim() || link.trim() ? " filled" : ""}`} go={send} busy="보내는 중" done={() => onClose?.()} away={onClose ? () => onClose() : undefined} what="요약 요청">전송</GoButton>   {/* 전송 = 칩 줄 오른쪽 끝 한 가로줄(형 11-15 05:56 「전송을 우하단에 … 자연스럽게 수평 배치로 게이지 체크」 · 깃 #-036) */}
         </div>
         {note ? <p className={`nm-ask-note ${note.kind}`} role={note.kind === "err" ? "alert" : "status"}>{note.text}</p> : null}
       </div>
