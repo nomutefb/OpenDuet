@@ -5,6 +5,8 @@ import test from "node:test";
 test("기타 = 직접 쓰기 칸 · 이미 대답함 단추 그대로", () => {
   const s = readFileSync(new URL("../ui/decide-pop.tsx", import.meta.url), "utf8");
   assert.match(s, /기타 · 직접 쓰기/);
-  assert.match(s, /void send\(\{ text: t \}, `기타 · \$\{t\}`\)/);
+  assert.match(s, /<GoButton type="submit" go=\{\(\) => sendEtc\(etcForm\.current\)\}/);   // 기타 「보내기」 = 게이지 알약(ui/go-button)
+  assert.match(s, /picks: withDups\(d, \{ text: t \}\), send: true/);
+  assert.match(s, /setGot\(`기타 · \$\{t\}`\)/);
   assert.match(s, /className="had" onClick=\{\(\) => void send\(\{ text: ALREADY \}, ALREADY\)\}/);
 });

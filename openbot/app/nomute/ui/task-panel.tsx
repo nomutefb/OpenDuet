@@ -1,4 +1,5 @@
 // 요약 대기열 판(시아 05:20 · 06:44 · 깃) — 「뉴스 요약」(./feed.tsx) · Digest(../home/news-summary.tsx) 두 곳 같은 꼴 · 상태 가르기 = ./task-state.ts
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import "./task-panel.css";   // 판 css = 판 파일에(대시보드만 열 때 feed 조각이 안 와서 꾸밈 0 · 시아 08:21)
 import { useEffect, useRef, useState } from "react";
 import { qCanRetry } from "./q-acts";
@@ -25,13 +26,15 @@ function TaskCard({ c, eta, pos, onRetry, onDismiss }: { c: QCardT; eta: Eta | n
   useEffect(() => () => clearTimeout(armT.current), []);
   const canRe = fail && !!onRetry && qCanRetry(it);
   const redo = async () => {
-    if (sending || !onRetry) return;
-    if (it.via !== "요약요청" && !arm) { setArm(true); clearTimeout(armT.current); armT.current = window.setTimeout(() => setArm(false), 3000); return; }
-    clearTimeout(armT.current); setArm(false); setSending(true); setErr("");
+    // 「다시」 = 게이지 알약(./go-button · 형 11-15 「하네스 전반 통일」) · 한 번 눌러 켜는 것(arm)은 그냥 단추 · 나가는 누름만 게이지 · 실패 = 까닭 적고 throw
+    if (sending || !onRetry) throw new Error("지금은 못 보내");
+    clearTimeout(armT.current); setSending(true); setErr("");
     const why = await onRetry(it).catch((x) => String((x as Error)?.message || x));
     setSending(false);
-    if (why) setErr(why);
+    if (why) { setErr(why); armT.current = window.setTimeout(() => setArm(false), 3000); throw new Error(why); }
   };
+  const armOn = () => { setArm(true); clearTimeout(armT.current); armT.current = window.setTimeout(() => setArm(false), 3000); };
+  const needArm = it.via !== "요약요청";
   const p = eta?.[it.via === "요약요청" ? "ask" : "url"], el = it.t ? Math.max(0, Date.now() - it.t) : 0;
   const pct = run && e === "processing" && p?.p50 ? Math.min(95, Math.floor((el / p.p50) * 100)) : 0;
   const url = linkOf(it), name = String(title || "").replace(/https?:\/\/\S+/gi, "").replace(/\s+/g, " ").trim() || hostOf(url) || "요약 요청";
@@ -59,7 +62,7 @@ function TaskCard({ c, eta, pos, onRetry, onDismiss }: { c: QCardT; eta: Eta | n
           {ask ? (
             <><span className="ask">취소 하시겠습니까?</span><button type="button" className="no" onClick={() => setAsk(false)}>아니오</button><button type="button" onClick={() => { setAsk(false); onDismiss?.(it); }}>예</button></>
           ) : (
-            <>{canRe ? <button type="button" className={`re${arm ? " arm" : ""}`} disabled={sending} onClick={() => void redo()}>{sending ? "보내는 중…" : arm ? "한 번 더" : "다시"}</button> : null}{onDismiss ? <button type="button" disabled={sending} onClick={() => setAsk(true)}>취소</button> : null}{err ? <span className="nm-tk-err" role="alert">{err}</span> : null}</>
+            <>{canRe ? (needArm && !arm ? <button type="button" className="re" onClick={armOn}>다시</button> : <GoButton className={`re${needArm ? " arm" : ""}`} go={redo} done={() => setArm(false)}>{needArm ? "한 번 더" : "다시"}</GoButton>) : null}{onDismiss ? <button type="button" disabled={sending} onClick={() => setAsk(true)}>취소</button> : null}{err ? <span className="nm-tk-err" role="alert">{err}</span> : null}</>
           )}
         </div>
       ) : null}

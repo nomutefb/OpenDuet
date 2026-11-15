@@ -675,6 +675,10 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .ychat .yev-a { all:unset; cursor:pointer; color:var(--fg-2); font-size:var(--fs-sm); text-decoration:underline; text-underline-offset:3px; text-decoration-color:color-mix(in srgb,var(--fg-2) 45%,transparent); }
 .ychat .yev-a:hover { text-decoration-color:currentColor; }
 .ychat .yev-a:disabled { cursor:default; opacity:.55; }
+.ychat .yev-a.nm-go:not([data-stage="idle"]) { padding:2px 10px; border-radius:999px; text-decoration:none; cursor:default; }   /* 초대하기 = 게이지 알약(ui/go-button) · 글자뿐인 줄이라 알약 꼴은 누른 동안만 */
+.ychat .yev-a.nm-go[data-stage="fill"] { color:#161716; background:linear-gradient(var(--accent, #CFFF40), var(--accent, #CFFF40)) left/0% 100% no-repeat, linear-gradient(rgba(207,255,64,.18), rgba(207,255,64,.18)); animation:nmGoFill .72s cubic-bezier(.22,.61,.36,1) forwards; }   /* 위 all:unset 과 같은 무게라 단계 색을 한 번 더 적음(ui/scrap.css 와 같은 처방) */
+.ychat .yev-a.nm-go[data-stage="ok"] { display:inline-grid; place-items:center; background:var(--accent, #CFFF40); color:#161716; }
+.ychat .yev-a.nm-go[data-stage="err"] { color:#ff5f6d; background:rgba(255,95,109,.1); animation:nmGoShake .32s; }
 /* 「/」 안내 줄(형 11-06 「/초대」 · 봄 아이데이션 「/ 치면 명령 목록」) — 입력칸 바로 위 · 유리 · 명령 = 라임 */
 .ychat .yslash { display:flex; flex-direction:column; gap:2px; margin:0 4px 6px; padding:6px 12px; border-radius:14px; background:var(--glass-2); border:1px solid var(--glass-line); font-size:var(--fs-sm); }
 .ychat .yslash p { display:flex; gap:10px; margin:0; }
@@ -827,7 +831,8 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .nm-dec-inl .err { font-size:12px; color:#ff8a7a; }
 .nm-dec-inl form.etc { display:flex; gap:6px; }   /* 기타 = 주관식 칸(형 11-14 10:34 「주관식이없네」) */
 .nm-dec-inl form.etc input { flex:1; min-width:0; padding:9px 12px; border-radius:10px; border:1px solid rgba(var(--accent-rgb, 207,255,64),.45); background:rgba(0,0,0,.22); color:inherit; font:inherit; outline:none; }
-.nm-dec-inl form.etc button { width:auto; flex:none; padding:9px 14px; background:#CFFF40; color:#161716; font-weight:700; }
+.nm-dec-inl form.etc button { width:auto; flex:none; padding:9px 14px; font-weight:700; }
+.nm-dec-inl form.etc button:not(.nm-go), .nm-dec-inl form.etc button[data-stage="idle"] { background:#CFFF40; color:#161716; }   /* 누른 동안(게이지 · ✓ · 실패) = ui/go-button 단계 색 */
 .nm-dec-inl-ok { margin:8px 0 0; font-size:13px; font-weight:700; opacity:.85; }
 
 /* 형 말풍선 왼쪽 아래 = 사진 등 첨부만 보냄 체크(위) · 안 본 봇 수(아래) · 글 말풍선 = 숫자만(형 11-13 17:55~18:12 봄 옮김 「모든 끊겨서 온 말풍선 마다 1이 있어야해 (사진 포함)」 · 「그냥 글은 무조건 1. 이미지 같은거는 체크랑 같이 1」 · 뎅) */
