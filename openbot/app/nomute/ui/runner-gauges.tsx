@@ -118,6 +118,7 @@ export function RunnerGauges() {
   const rq = useRunner();
   const now = useNow();
   const botsUse = botUse(schedQ?.bots, schedQ?.runners?.jobs, now);   // 봇 일 = 같은 스케줄 장(받는 것 0 더 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」 · 깃 #-063)   // 테일 켜짐(번개 11-12 17:00 · 설정 화면 useSched 와 같은 캐시)
+  const chokRun = useQuery({ queryKey: ["nomute", "chokrun"], queryFn: async () => { const r = await fetch("/api/trends?f=chokrun"); return r.ok ? (await r.json() as { ok?: boolean; last?: string; at?: number; today?: number; plan?: number; in?: boolean; final?: boolean }) : null; }, staleTime: 5 * 60_000, refetchInterval: 5 * 60_000 }).data;   // 촉 X 직접 수집 현황(형 11-15 14:34 촉 옮김 · 깃 #-066 덧 · 회차 30분 · 5분에 한 번 · 서버 가장자리 2분 기억)
   const hw = st.data?.cats?.find((c) => c.id === "hw")?.rows || [];
   const bots = st.data?.cats?.find((c) => c.id === "bots")?.rows as (Row & { cells?: Record<string, { st: string; note?: string }> })[] | undefined;
   const wake = (k: string) => { if (!bots) return "wait" as const; const c = bots.find((r) => r.key === k)?.cells; return awakeOf(c?.["깸 상태"]?.note, c?.["마지막 깸"]?.note); };   // wait = 작동 표 첫 답 전(~12초) · 「다 잠듦」으로 안 읽히게 흐린 꼴(봄 10:08)
@@ -202,8 +203,9 @@ export function RunnerGauges() {
           return <li key={r.n} className={`nm-rgx-run${on ? " on" : ""}${work ? " work" : ""}`} title={`${r.n} · ${on ? r.c.note || "켜짐" : r.c.note || "꺼짐"}`}>{`A${rnum(r.n) || i + 1}`}</li>;   {/* 화면 이름만 A1~ · 러너 진짜 이름은 그대로(title) */}
         })}
       </ul>
-        {botsUse.length ? (   /* 봇 일 = 한 줄 틀 오른쪽 위(옛 이름표 「백업 · 갱신」 자리 · 시각 두 줄 옆) — A1~A6 이 조약돌 줄로 올라와 옛 A 줄이 없어짐(형 11-15 11:5x 「a1~a6를 우측으로 … 조약돌하고 같은 라인으로」) · 뜸 #-063 꼴 그대로 자리만 옮김 · 옛 자리 = A 줄 오른쪽 빈 칸(러너와 안 섞임 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」 · 깃 #-063) · 깸 = 오늘 지난 예약 깸 · 토큰 = 깸 × 5만 어림 · 끝 = 다음 깸 */
+        {botsUse.length || chokRun?.ok ? (   /* 봇 일 = 한 줄 틀 오른쪽 위(옛 이름표 「백업 · 갱신」 자리 · 시각 두 줄 옆) — A1~A6 이 조약돌 줄로 올라와 옛 A 줄이 없어짐(형 11-15 11:5x 「a1~a6를 우측으로 … 조약돌하고 같은 라인으로」) · 뜸 #-063 꼴 그대로 자리만 옮김 · 옛 자리 = A 줄 오른쪽 빈 칸(러너와 안 섞임 · 형 11-15 11:42 「촉봇이나 그런애들은 사용량이 따로 러너칸에 찍히게」 · 깃 #-063) · 깸 = 오늘 지난 예약 깸 · 토큰 = 깸 × 5만 어림 · 끝 = 다음 깸 */
           <div className="nm-rgx-botsc" aria-label="봇 일 · 오늘">
+            {chokRun?.ok && chokRun.last ? <span className={chokRun.final ? undefined : "bad"} title={`촉 X 직접 수집 · 마지막 회차 ${chokRun.last} · 오늘 ${chokRun.today}/${chokRun.plan} · chok_in ${chokRun.in ? "올라옴" : "없음"} · final.json ${chokRun.final ? "있음" : "없음"}`}><b>촉 X</b> {chokRun.at ? hmKst(chokRun.at) : chokRun.last.slice(-4)} · {chokRun.today}/{chokRun.plan} · {chokRun.final ? "final ✓" : chokRun.in ? "final 없음" : "in 없음"}</span> : null}
             {botsUse.map((u) => <span key={u.bot} title={`${u.who} · 오늘 깸 ${u.done}회 · 토큰 ≈${Math.round(u.tok / 10000)}만(깸 × 5만 어림)${u.next ? ` · 다음 ${hmKst(u.next)}` : ""}${u.jobs ? ` · 맡은 일 ${u.jobs}개` : ""}`}><b>{u.who}</b> {u.done}회 · ≈{Math.round(u.tok / 10000)}만{u.next ? ` · ${hmKst(u.next)}` : ""}</span>)}
           </div>
         ) : null}
