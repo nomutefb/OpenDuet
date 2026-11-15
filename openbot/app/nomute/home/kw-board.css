@@ -31,7 +31,7 @@ html.dark .nm-hotswap { color:#e8eae8; }
 .nm-kwb-cols { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:0; padding:6px 6px 10px; overflow:hidden; }
 .nm-kwb-col { min-width:0; display:flex; flex-direction:column; padding:0 8px; border-left:1px solid color-mix(in srgb, currentColor 7%, transparent); }
 .nm-kwb-col:first-child { border-left:0; }
-.nm-kwb-ch { display:flex; align-items:baseline; gap:6px; height:30px; padding:0 4px; animation:kwbRow .32s var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
+.nm-kwb-ch { display:flex; align-items:center; justify-content:center; gap:6px; height:30px; padding:0 4px; animation:kwbRow .32s var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
 .nm-kwb-ch b { font-size:11px; font-weight:600; letter-spacing:.02em; opacity:.62; white-space:nowrap; }
 .nm-kwb-ch span { font-size:10px; opacity:.42; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nm-kwb-col ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
@@ -40,7 +40,7 @@ html.dark .nm-hotswap { color:#e8eae8; }
 .nm-kwb-col li:hover { background:color-mix(in srgb, currentColor 5%, transparent); }
 .nm-kwb-col .rk { font-size:11px; text-align:right; opacity:.4; font-variant-numeric:tabular-nums; }
 .nm-kwb-col li:nth-child(-n+3) .rk { opacity:.85; font-weight:700; }
-.nm-kwb-col .q { all:unset; cursor:pointer; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; line-height:1.3; font-weight:450; letter-spacing:-.15px; }
+.nm-kwb-col .q { all:unset; cursor:pointer; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:9.75px; line-height:1.3; font-weight:450; letter-spacing:-.15px; }   /* 단어 = 앞 판 13 × 0.75(형 11-16 08:35 「키워드 메인에서 보이는거 단어들 지금보다 25% 작아도 되」 · 봄 08:37 폰 · PC 둘 다) */
 .nm-kwb-col .q:hover { text-decoration:underline; text-underline-offset:3px; text-decoration-color:color-mix(in srgb, currentColor 35%, transparent); }
 .nm-kwb-col .q:focus-visible { outline:1px solid currentColor; outline-offset:2px; border-radius:4px; }
 .nm-kwb-col .sub { font-size:10px; opacity:.45; white-space:nowrap; font-variant-numeric:tabular-nums; }
@@ -67,7 +67,7 @@ html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
   .nm-kwb-ch span { display:none; }
   .nm-kwb-col li { grid-template-columns:12px minmax(0,1fr) auto; gap:4px; min-height:25px; padding:0 2px; }
   .nm-kwb-col .rk { font-size:10px; }
-  .nm-kwb-col .q { font-size:12px; }
+  .nm-kwb-col .q { font-size:9px; }   /* 12 × 0.75 */
   .nm-kwb-col .sub { display:none; }
 }
 /* 폰 = 한 화면에 줄기 하나 · 옆으로 넘김(형 「넘길때마다 차트가 나오게」) · 글씨 크게 · 아래 점 넷 */
@@ -77,12 +77,12 @@ html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
   .nm-kwb-col { flex:0 0 100%; scroll-snap-align:start; scroll-snap-stop:always; border-left:0; padding:0 14px; direction:ltr; }
   /* 넘기는 방향 = 뉴스 카드와 같게: 오른쪽으로 밀면 다음 줄기(형 11-15 「우로 넘기는게 안먹혀지게됨」 · 앞 판 = 왼쪽으로 밀어야 다음) — 줄기 차례는 그대로 · 놓이는 방향만 오른쪽 → 왼쪽 */
   .nm-kwb-cols { direction:rtl; }
-  .nm-kwb-ch { height:38px; }
+  .nm-kwb-ch { height:38px; justify-content:center; align-items:center; }   /* 플랫폼 이름 = 그 행 가운데(수직 · 수평 · 형 11-16 08:35 dm-bom 「플랫폼 이름은 그 행의 중앙 정렬해서 가운데 정렬해줘 · 중앙 정렬이 수직을 말하는거고 가운데정렬은 수평을 말하는 거임」) */
   .nm-kwb-ch b { font-size:14px; opacity:.9; }
   .nm-kwb-ch span { font-size:11px; }
   .nm-kwb-col li { grid-template-columns:24px minmax(0,1fr) auto auto; gap:10px; min-height:clamp(38px, 6.2svh, 52px); padding:0 6px; }
-  .nm-kwb-col .rk { font-size:14px; }
-  .nm-kwb-col .q { font-size:16.5px; font-weight:500; }
+  .nm-kwb-col .rk { font-size:10.5px; }
+  .nm-kwb-col .q { font-size:12.4px; font-weight:500; }   /* 단어 = 앞 판 16.5 × 0.75 · 순위 14 × 0.75(형 08:35 「키워드 메인에서 보이는거 단어들 지금보다 25% 작아도 되」) */
   .nm-kwb-col .sub { font-size:11.5px; }
   .nm-kwb-col .n { font-size:11px; line-height:18px; min-width:18px; }
   .nm-kwb-dots { display:flex; flex:none; justify-content:center; gap:7px; padding:10px 0 8px; }
