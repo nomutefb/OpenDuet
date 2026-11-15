@@ -25,3 +25,19 @@ node tools/live-view/shot.mjs '[{"name":"home","hash":"#/"},{"name":"sched","has
 - 스케줄 표(`schedule`)는 서버가 18~19초 걸린다 → 서버가 10분 기억해 둠. 첫 사진 전에 `curl localhost:8899/api/office/schedule` 한 번.
 - 이 환경은 그래픽 장치가 없어 가만히 있어도 초당 10프레임쯤 → **프레임 수는 여기서 못 잰다**(모습 · 값 · 재생 여부만).
 - 서비스 워커는 막고 찍는다(옛 판이 끼어드는 것 방지).
+
+## 덧붙은 도구 (11-15)
+| 파일 | 하는 일 | 쓰는 법 |
+|---|---|---|
+| `err.mjs` | 앱이 뜨는지 · 콘솔 오류 한 번 보기(**빌드 뒤 맨 먼저**) | `node tools/live-view/err.mjs` |
+| `perf.mjs` | 화면마다 가만히 있을 때 일 양(메인 스레드 ms/초) · 끝없이 도는 움직임 · 흐림 개수 · 그림판 · 요청 수 | `node tools/live-view/perf.mjs ",drawer,sched,chan" [너비] [높이]` (맨 앞 빈 칸 = 홈) |
+| `lshot.mjs` | 밝게/어둡게 21화면 한꺼번에 찍기(전후 비교용) | `node tools/live-view/lshot.mjs <폴더> light\|dark [길 목록]` |
+| `cover.mjs` | 판을 열고 닫을 때 밑 화면 · 3D 장면 상태 재기 | `node tools/live-view/cover.mjs` |
+| `idle_req.mjs` | 가만히 6초 동안 나가는 요청을 주소별로 세기 | `node tools/live-view/idle_req.mjs "meetlog,chan,"` |
+
+## 속지 말 것 (실제 문제가 아니라 이 도구 탓인 것)
+- `pulse` 는 서버가 25초 붙잡는 긴 요청이다. 로컬 서버가 바로 답하면 앱이 초당 수십 번 되묻는다 → `serve.mjs` 가 25초 뒤 빈 답을 준다.
+- 스케줄 표는 18~19초 걸린다. 그 전에 찍으면 「표 읽는 중…」만 나온다.
+- 그래픽 장치가 없어 3D 장면이 메인 스레드를 다 쓴다(일 ≈ 1000ms/초). 장면이 보이는 화면의 숫자는 비교용으로만.
+- 쓰기(POST)는 403. 단추를 누르면 「못 보냄」 빨강이 정상. 누름 동작은 작은 시험 화면(esbuild 로 부품 하나만 묶기)으로 본다.
+- 열쇠 자리가 봇 「자리2」라 스케줄 나무 · 바꾸기 단추는 `NM_AS_OWNER=1` 일 때만 보인다.

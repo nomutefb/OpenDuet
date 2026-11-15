@@ -1,0 +1,13 @@
+import path from 'node:path'; import { createRequire } from 'node:module'; const { chromium } = createRequire(import.meta.url)('playwright');
+const S = process.env.NM_OUT || path.join(process.env.TMPDIR || '/tmp', 'nm-live-view');
+const br = await chromium.launch(); const ctx = await br.newContext({ viewport: { width: 412, height: 892 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true, colorScheme: 'dark', serviceWorkers: 'block' });
+const pg = await ctx.newPage(); pg.on('pageerror', (e) => console.log('오류', String(e).slice(0, 200)));
+await pg.goto('http://127.0.0.1:8899/office-app/#/group/all'); await pg.waitForTimeout(8000);
+const st = () => pg.evaluate(() => { const p = document.querySelector('.nm-pane.on'); const h = document.querySelector('.nm-app-ambient'); return `밑 화면 ${p ? getComputedStyle(p).visibility : '없음'} · 장면 ${h?.dataset.nmScene || '-'}/${h?.dataset.motion || '-'} · 느리게 ${h?.dataset.nmSlow || '-'} · 스크롤 ${document.querySelector('.nm-pane.on [class*=scroll], .nm-pane.on .ychat')?.scrollTop ?? '-'}`; });
+console.log('대화방:', await st());
+await pg.evaluate(() => { location.hash = '#/meetlog'; }); await pg.waitForTimeout(150); console.log('판 뜨는 중(0.15초):', await st()); await pg.screenshot({ path: S + '/au/c_mid.png' });
+await pg.waitForTimeout(1500); console.log('판 뜬 뒤:', await st());
+await pg.goBack(); await pg.waitForTimeout(120); console.log('닫은 직후(0.12초):', await st()); await pg.screenshot({ path: S + '/au/c_back.png' });
+await pg.waitForTimeout(1500); console.log('닫은 뒤:', await st());
+await pg.evaluate(() => { location.hash = '#/drawer'; }); await pg.waitForTimeout(1500); console.log('서랍(비치는 판):', await st());
+await br.close();
