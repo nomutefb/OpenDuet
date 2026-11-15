@@ -16,6 +16,7 @@ import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰
 import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
 import { type BotRow, type BotTable, GROUP_KO, countOf, flowOf, hmKo, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, tailOf, turnList, wireTone } from "./bot-desk-logic";
+import { HandBoard } from "./bot-desk-hands";   // 맨 위 카드 = 활동 신호 판을 맡길 차례로(노는 손 먼저 · 1특기 · PM 뺌)
 import "./status-board.css";
 import "./bot-desk.css";
 
@@ -154,9 +155,10 @@ export function BotDesk() {
   const q = useQuery({ queryKey: ["nomute", "bots-sheet"], queryFn: () => office<Sheet>("status/bots"), refetchInterval: (x) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), staleTime: 5_000, retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
   const [tab, setTab] = useState<Tab>(() => { try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "hands" ? v : "flow"; } catch { return "flow"; } });
   const pick = (v: Tab) => { setTab(v); try { localStorage.setItem("nm-botdesk-tab", v); } catch { /* 이번만 */ } };
-  const t = q.data?.table, skills = q.data?.skills || {}, rows = t?.rows || [], now = Date.now(), n = countOf(rows);
-  const people = usePeople(), mix = mixOf(rows);
-  const live = rows.some((r) => r.lane !== "none"), idle = flowOf(rows).find((g) => g.group === "idle")?.rows || [], pmName = rows.find((r) => r.pm)?.who || "";
+  const t = q.data?.table, skills = q.data?.skills || {}, rows = t?.rows || [], now = Date.now();
+  const crew = rows.filter((r) => !r.pm), n = countOf(crew);   // 맨 위 카드 = PM 뺀 손(형 11-15 「PM은 제외해서」 · PM 은 바로 밑 흐름 맨 위 카드에)
+  const people = usePeople(), mix = mixOf(crew);
+  const live = rows.some((r) => r.lane !== "none"), idle = flowOf(crew).find((g) => g.group === "idle")?.rows || [], pmName = rows.find((r) => r.pm)?.who || "";
   return (
     <div className="nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pb-12 pt-3">
       <h1 className="sr-only">봇 현황</h1>
@@ -164,11 +166,10 @@ export function BotDesk() {
         <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>노는 손 <b>{idle.length}</b></>}
           <span className="side">{n.lost ? <span className="badge">멈춤 {n.lost}</span> : null}{q.data?.at ? <span className="at">{hmKo(q.data.at)}{q.data.stale ? " · 묵은 것" : ""}</span> : null}</span>
         </p>
-        {idle.length ? <ul className="idle">{idle.map((r) => <li key={r.who}><span className="face"><FaceImg id={idOf(r.who, people)} size={22} /></span>{r.who}</li>)}</ul> : q.data && live ? <p className="names t-dim">다 일하는 중이거나 차례 밖</p> : null}
         {q.data && live ? (
           <>
             <div className="mix" aria-hidden>{mix.map((m) => <i key={m.group} className={`g-${m.group}`} style={{ flexGrow: m.n }} />)}</div>
-            <p className="key">{mix.map((m) => <span key={m.group} className={`g-${m.group}`}><i aria-hidden />{GROUP_KO[m.group]} <b>{m.n}</b></span>)}</p>
+            <HandBoard rows={crew} skills={skills} people={people} />
           </>
         ) : null}
       </div>
