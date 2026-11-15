@@ -733,6 +733,7 @@ header.nm-head.absolute:has(.nm-top-crew) { z-index:120 !important; }
 .nm-top-menu button:hover, .nm-top-menu button:focus-visible { color:var(--accent, #CFFF40); }
 .nm-top-menu small { color:var(--mut, #8B8F8A); font-size:var(--fs-xs); }
 .nm-top-menu button[aria-checked="true"] small { color:var(--accent, #CFFF40); }
+.nm-top-menu button.del, .nm-top-menu button.del:hover, .nm-top-menu button.del:focus-visible { color:var(--destructive, #E04040); }   /* 방 없애기 · 방 지우기 = 목록 줄 메뉴의 text-destructive 와 같은 빨강(이 메뉴는 all:unset 이라 따로 적음 · 형 11-15 18:1x) */
 .nm-top-inv + .nm-top-invlist + .nm-top-menu, .nm-top-one + .nm-top-menu { margin-top:2px; padding-top:4px; border-top:1px solid var(--glass-line); }
 /* PC 반갈 = 방 이름은 윗줄 가운데 한 곳만(라임 · 인원 흰색) · 대화 칸 위 이름 줄은 숨김(형 20:39 「방 위에는 잇을필요없어」) */
 .nm-toptitle.nm-toptitle-room { overflow:visible; pointer-events:auto; }

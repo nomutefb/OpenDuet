@@ -8,13 +8,14 @@ import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 
 import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { type OfficeMsg, type OfficeRoom, office, people } from "../data/office";
 import { loadRoom } from "../data/room-cache";
 import { cachedFile, fileUrl, filesHeld, pruneFiles } from "../data/file-cache";
 import { type NotifyState, notifyOn, notifyState } from "../data/notify";
 import { setUnfold, useUnfold } from "./unfold";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
-import { RoomMembersDialog, TempRoomDialog } from "./temp-room";   // 방 멤버 = 방 안 메뉴에서도(형 11-05 09:37 봄 1:1 「톡방 지금 인원을 내가 톡방 설정에서 배분하고 내보내고 그걸 맘대로 하고 싶거든?」)
+import { RoomGoneDialog, RoomMembersDialog, TempDeleteDialog, TempRoomDialog, canGone } from "./temp-room";   // 방 멤버 = 방 안 메뉴에서도(형 11-05 09:37 봄 1:1 「톡방 지금 인원을 내가 톡방 설정에서 배분하고 내보내고 그걸 맘대로 하고 싶거든?」)
 import { whoName } from "./who-name";
 import { RoomLookDialog } from "./room-look";
 import { DmRuleDialog, dmRuleRoom } from "./dm-rule";
@@ -31,6 +32,12 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   const notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
   const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [tempEdit, setTempEdit] = useState(false), [look, setLook] = useState(false), [dmRule, setDmRule] = useState(false), [groupEdit, setGroupEdit] = useState(false), [kickAll, setKickAll] = useState(false);
   const me = useMe();
+  // 방 없애기 · 방 지우기 = 방 안 메뉴에서도(형 11-15 18:1x 「단체방들 지금 대화방 안에서 대화방 나가기? 대화방 삭제 그게 안되는데 그거 가능하게 변경해줘」) — 앞 판 = 방 목록 줄(끌기 🗑️ · ⋯)과 설정에만 있었음
+  //   되묻는 창 · 서버 길 = 목록과 같은 부품 그대로(단체방 RoomGoneDialog = DELETE rooms/<id> · 임시방 TempDeleteDialog = DELETE temprooms/<id>) · 못 없애는 방 = canGone 그대로
+  //   지운 뒤 = 방 목록으로(「/방파기」와 같은 길) · 옮기는 때 = 서버가 지웠다고 답한 바로 그때(onDropped) — 방이 목록에서 빠지면 이 메뉴(창 포함)가 통째로 사라져 창의 done 은 안 불림(가짜 서버 실측)
+  const nav = useNavigate();
+  const [gone, setGone] = useState<OfficeRoom | null>(null), [tempDel, setTempDel] = useState<OfficeRoom | null>(null);
+  const toList = () => { void nav({ to: "/rooms" }); };
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: !!room, staleTime: 60_000, retry: false });   // 방에 들어올 때 미리(메뉴 열 때 받으면 이 칸이 한 박자 늦게 붙어 「2차로 나뉘어서 뜸」 · 형 11-12 06:30 · 뎅) · 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
   const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: !!room, staleTime: 60_000, retry: false });   // 방에 들어올 때 미리(위와 같은 까닭 · 형 11-12 06:30) · 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
   const setBell = async (on: boolean) => {
@@ -77,6 +84,8 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       <button type="button" role="menuitem" onClick={go(() => setFiles(true))}>파일 기록</button>
       {asks.data ? <button type="button" role="menuitem" onClick={go(() => setHist(true))}>질문 이력<small>{asks.data.length}</small></button> : null}
       <button type="button" role="menuitemcheckbox" aria-checked={unfold} onClick={() => setUnfold(room, !unfold)}>긴 글 다 펼쳐 보기<small>{unfold ? "켬" : "끔"}</small></button>   {/* 켬 = 17줄 접기 풂(./unfold.ts · 형 11-04 08:08 · 기본 끔 = 접힘) */}
+      {canGone(r) ? <button type="button" role="menuitem" className="del" onClick={go(() => setGone(r))}>방 없애기</button> : null}   {/* 고정 단체방(못 없애는 방 = 회의실 · 요약실 · 수리 접수 · 메모 · 공지 · 밥상 · 1:1 · 둘의 방) */}
+      {r.temp ? <button type="button" role="menuitem" className="del" onClick={go(() => setTempDel(r))}>방 지우기</button> : null}   {/* 임시 단톡방 = 파기 */}
     </>
   ) : null;
   const dialogs = (
@@ -93,6 +102,8 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       {groupEdit && r ? <GroupRoomDialog room={r} onClose={() => setGroupEdit(false)} /> : null}
       {crew && r ? createPortal(<RoomMembersDialog r={r} onClose={() => setCrew(false)} />, document.body) : null}
       {dmRule && r ? <DmRuleDialog room={r} onClose={() => setDmRule(false)} /> : null}
+      {gone ? createPortal(<RoomGoneDialog r={gone} onClose={() => setGone(null)} onDropped={toList} />, document.body) : null}
+      {tempDel ? createPortal(<TempDeleteDialog r={tempDel} onClose={() => setTempDel(null)} onGone={() => {}} onDropped={toList} />, document.body) : null}
     </>
   );
   const hasCrew = !!r && (((!r.with && r.id !== MEET && !!r.designated && !r.temp) || !!r.temp) || (r.id === MEET && (r.members?.length || 0) > 0) || canKickAll);

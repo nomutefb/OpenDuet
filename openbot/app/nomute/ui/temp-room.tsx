@@ -166,13 +166,15 @@ export function TempRoomDialog({ edit, onClose, open = true }: { edit?: OfficeRo
 }
 
 /** 지우기 되묻기(형 10-31 「삭제는 되묻기 있어야하고 이제 디비에도 잘 반영」 · 예타 yConfirm 예 왼쪽·아니오 오른쪽). */
-export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClose: () => void; onGone: () => void }) {
+// onDropped = 서버가 지웠다고 답한 바로 그때(방 목록 다시 읽기 앞) — 방 안 메뉴(./room-menu.tsx)는 방이 목록에서 빠지는 순간 메뉴째 사라져 done(onGone)이 안 불림 → 여기서 목록으로 옮김(형 11-15 18:1x)
+export function TempDeleteDialog({ r, onClose, onGone, onDropped }: { r: OfficeRoom; onClose: () => void; onGone: () => void; onDropped?: () => void }) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
   const drop = async () => {
     setBusy(true); setWhy("");
     try {
       await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "DELETE" });
+      onDropped?.();
       await dropSearchCache(r.id);
       await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 창 닫기 · 옮기기 = ✓ 를 보여 준 뒤(GoButton done)
     } catch (e) { setWhy(e instanceof Error ? e.message : "못 지웠어"); setBusy(false); throw e; }
@@ -194,13 +196,14 @@ export function TempDeleteDialog({ r, onClose, onGone }: { r: OfficeRoom; onClos
  *  못 없앰 = 1:1·둘의 방 · 회의실·요약실·수리 접수·메모·공지 · 밥상(형 고름 「밥상은 못 지우게」 · 「밥상을지우겟냐?」) · 임시방 = 옛 길(TempDeleteDialog · 파기) */
 const KEEP_ROOMS = new Set(["all", "summary", "repair", "memo", "notice", "guide"]);
 export const canGone = (r: { id: string; with?: string; temp?: boolean }) => !r.with && !r.temp && !KEEP_ROOMS.has(r.id) && !/^(dm|pair)-/.test(r.id);
-export function RoomGoneDialog({ r, onClose, onGone }: { r: { id: string; name: string }; onClose: () => void; onGone?: () => void }) {
+export function RoomGoneDialog({ r, onClose, onGone, onDropped }: { r: { id: string; name: string }; onClose: () => void; onGone?: () => void; onDropped?: () => void }) {   // onDropped = 위 TempDeleteDialog 와 같은 뜻
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
   const drop = async () => {
     setBusy(true); setWhy("");
     try {
       await office(`rooms/${encodeURIComponent(r.id)}`, { method: "DELETE" });
+      onDropped?.();
       await dropSearchCache(r.id);
       await Promise.all([qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }), qc.invalidateQueries({ queryKey: ["nomute", "roomset"] })]);
     } catch (e) { setWhy(e instanceof Error ? e.message : "못 없앴어"); setBusy(false); throw e; }   // 창 닫기 · 옮기기 = ✓ 뒤(GoButton done)
