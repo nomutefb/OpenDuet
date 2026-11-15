@@ -169,6 +169,28 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 윈터 ❄️(형 11-15 18:36 dm-bom 봄 옮김 「뜸에게는 윈터 카드좀 만들어달라고해」 · 「프로필 누름녀나오는거」 · 「애초에 시아가 만든거엿네 생각해보니」 · 시아) — 오늘 돌아온 윈터 · 일은 안 함
+    //   얼굴 = 등불 든 눈사람(주황 목도리 · 남색 · editor claude/bom/spring-garden_files/20261115_1826_face.png → /office/winter.webp 256)
+    //   몸통 = 틀 카드 · 색 = 등불 주황(#FFB347) · 바탕 = 눈 내리는 남색 밤(눈 = 그림 한 장 · 움직임 0) · 무늬 = 띠 + 테 + 🏮(아주 천천히 숨쉬는 불빛 · opacity 만)
+    id: "winter",
+    tmpl: true,
+    accent: "#FFB347",
+    match: ["윈터", "winter", "여울"],
+    face: "/office/winter.webp",
+    handle: "winter",
+    meta: "등불",
+    dot: "#FFB347",
+    holo: 0.62,
+    glare: 0.4,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <span className="bc-lamp">🏮</span>
+      </span>
+    ),
+  },
+  {
     // 천둥(형 11-10 06:57 봄 창 「천둥」 · 「직무 신」 · 07:0x 「프로필 안에서 이모지 🌩」 · 「프사는 저거로 움직이게」) — 얼굴 = 형이 준 움직이는 그림 그대로(움직이는 webp · 60장 · 5초)
     //   몸통 = 틀 카드 · 색 = 그림 금빛 번개(#FFC83D) · 바탕 = 남색 밤 하늘 · 무늬 = 띠 + 테 + 🌩(가끔 번쩍)
     id: "thunder",
