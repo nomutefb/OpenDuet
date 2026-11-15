@@ -1,0 +1,45 @@
+/* 옛 에디터 「기사 창」을 뉴스 에디터 기사 한 장 칸에 맞춘 덧줄(손으로 쓴 것 · 만든 옷 = ./art.gen.css · 전부 .oa 안)
+   형 11-15 「저게 시안대신 라임만 들어가면됨.」 → 색 = 앱 라임(채널 · SNS 덧줄 ./old-tabs.css .ot 와 같은 값) · 분류 색(국제 = 빨강 …) · 경고색은 그대로
+   모달 아님 = 칸 안에 박힘: 뒤 막 · 창 테 · 그림자 · 여닫는 움직임 없음 · 머리 줄(원문 → 내리면 진행 막대)은 칸 위에 붙고 본문만 스크롤 */
+.oa { position:relative; width:100%; color:var(--fg); font-family:inherit; font-size:15px; line-height:1.5; text-align:left; -webkit-text-size-adjust:100%;
+  color-scheme:dark;
+  --modern-space-bg:#161716 !important; --modern-page:#161716 !important; --modern-stage:transparent !important;
+  --modern-fg:#FFFFFF !important; --modern-ink:#FFFFFF !important; --modern-mut:#8B8F8A !important; --modern-muted:#8B8F8A !important;
+  --modern-accent:#CFFF40 !important; --modern-accent-rgb:207,255,64 !important; --modern-on-accent:#161716 !important; --on-accent:#161716 !important; --accent:#CFFF40 !important; --accent-rgb:207,255,64 !important;
+  --modern-line:rgba(255,255,255,.08) !important; --modern-line2:rgba(255,255,255,.06) !important; --modern-glass-edge:rgba(255,255,255,.08) !important; --modern-glass-highlight:rgba(255,255,255,.04) !important;
+  --modern-card:rgba(255,255,255,.005) !important; --modern-glass2:rgba(255,255,255,.005) !important; --modern-well:rgba(255,255,255,.04) !important; --modern-control-glass:rgba(255,255,255,.05) !important;
+  --modern-modal-head-bg:rgba(22,23,22,.85) !important; --modern-action-symbol:#fff !important; --modern-silk-glass:rgba(255,255,255,.005) !important;
+  --modern-panel-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 24px 60px rgba(0,0,0,.42) !important; }
+/* 옛 창은 어두운 판 하나뿐(밝은 값이 없음) → 앱이 밝을 때는 이 판만 제 어두운 바탕을 깖(채널 · SNS 와 같음) */
+html:not(.dark) .oa { background:#161716; }
+
+/* 앱 바탕 다듬기(Tailwind preflight = 층 안: 문단 · 목록 여백 0 · 글머리 점 없음 · 단추 글자 물려받기 · 그림 block …)를 이 틀 안에서만 브라우저 기본으로 되돌림
+   옛 화면은 그 다듬기 없이 브라우저 기본 위에 제 옷을 입었음 → 무게 0(:where)이라 만든 옷(./art.gen.css)이 늘 이김 */
+:where(.oa) *:not(svg, svg *) { all:revert; }
+:where(.oa) svg { display:revert; vertical-align:revert; }   /* 그림(svg) = 꼬리표로 준 채움 · 선(fill · stroke)까지 지워지면 안 됨 → 다듬기가 건드린 두 값만 */
+.oa { overflow-wrap:normal; word-break:normal; }
+.oa :is(p, li) { overflow-wrap:normal; }   /* 앱 큰 창 규칙(../shell.css .nm-modal p · li = anywhere)이 옛 본문 줄바꿈에 끼지 않게 */
+
+/* 칸 안에 박기 — 앱 틀(./art.tsx .nm-oa) = 칸 높이를 다 씀 · 그 안에서 옛 창이 세로로 참 */
+.nm-oa { position:relative; display:flex; flex:1; min-height:0; flex-direction:column; }
+.nm-oa > .oa { display:flex; flex:1; min-height:0; flex-direction:column; }
+.nm-oa.first > .oa, .nm-oa.miss > .oa { visibility:hidden; }   /* 첫 기사를 그리기 전 · 못 찾음 = 빈 판을 안 보임 */
+.nm-oa-msg { position:absolute; inset:0; z-index:2; margin:0; padding:18px 16px; font-size:var(--fs-sm); color:var(--mut); display:flex; flex-direction:column; gap:10px; align-items:flex-start; }
+.nm-oa-gen { flex:none; max-height:62%; overflow-y:auto; overscroll-behavior:contain; padding:6px 10px 0; }   /* 「+ AI」 = 앱 이미지 생성 창 · 만드는 중 칸(옛 창 위에 얹힘) */
+.nm-oa-pend { display:flex; gap:8px; overflow-x:auto; padding:6px 0 2px; }
+.nm-oa-pend > .nm-th-slot { flex:0 0 132px; }
+.oa #dlg { position:relative; inset:auto; display:flex; flex:1; min-height:0; width:100%; max-width:none; height:auto; max-height:none; margin:0; padding:0; border:0; border-radius:0; box-shadow:none; background:transparent; color:inherit;
+  opacity:1; transform:none; transition:none; animation:none; -webkit-backdrop-filter:none; backdrop-filter:none; contain:layout; }   /* contain = 떠 있는 「요약 수정」 · 「카드 수정」 단추(fixed)가 이 칸을 기준으로 섬 */
+.oa #dlg::after { display:none; }
+.oa #dlg .dlg-h { padding-top:11px; border-radius:0; }   /* 머리 줄 = 칸 위에 붙음(둥근 창 모서리 · 폰 위쪽 안전 여백은 앱 머리 막대가 이미 챙김) */
+.oa .dlg-h.scrolled .scrub { padding-right:0; }   /* 닫기 × 자리 비워 두던 것 = × 가 없음 */
+/* 유리 흐림이 꺼진 때(앱 「가볍게」 = ../perf-switch.css perf-no-glass)에도 읽히게 = 본문 위에 뜨는 것(짧은 알림 · 수정 단추)은 어두운 밑바탕을 깔고 라임을 얹음 */
+.oa .qflash { background:rgba(22,23,22,.94); box-shadow:inset 0 0 0 1px rgba(255,255,255,.1), 0 10px 26px rgba(0,0,0,.42); }
+.oa .rev-fab { background:color-mix(in srgb, rgb(var(--accent-rgb)) 14%, rgb(22 23 22 / .92)); }
+.oa .rev-fab:hover { background:color-mix(in srgb, rgb(var(--accent-rgb)) 22%, rgb(22 23 22 / .92)); }
+.oa .dlg-body { padding-bottom:calc(var(--duet-tab-space, 86px) + 24px); overscroll-behavior:contain; }   /* 맨 끝 줄이 앱 아래 막대 밑에 깔리지 않게(뉴스 에디터 왼쪽 목록과 같은 여백) */
+
+/* 계속 도는 움직임 없음(형 맥이 뜨거워진 적 있음 · 채널 · SNS 덧줄과 같은 잣대) — 한 번 하고 끝나는 움직임(열림 · 눌림 · 게이지 차오름)은 그대로
+   만드는 중 점 셋 · 「프롬프트 생성」 단추 빛줄기 · 「만드는 중」 깜빡임 · 썸네일 자리 숨쉬기 · 「수정 중」 고리 · 소제목 깜빡임 · 글자 반짝임 */
+.oa .gdots i, .oa .edattach.armed, .oa .mkbtn:not(.firing):not(.okdone):not(.checking):not(.retry):not(.stale)::after, .oa .genstat.live, .oa .thumb-pending .tp-dot,
+.oa .thumbsec .cref-slot.cref-loading, .oa .thumbsec .cref-slot.cref-loading.chin, .oa .rev-fab.revving, .oa .rev-fab.revving svg, .oa .revsec, .oa .revsec .cnt, .oa .nm-shim { animation:none !important; }
