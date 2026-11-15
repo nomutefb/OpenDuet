@@ -4,6 +4,8 @@
 //   화면 폭 @media = 그대로(이 판은 좌우를 다 씀) · @keyframes 이름 = ot- 붙임 · 글꼴 파일(@font-face)은 안 가져옴(앱 글꼴)
 //   쓰는 법 = 에디터 viewer 폴더를 정적 서버로 낸 뒤(예: python3 -m http.server 8801) 앱 폴더에서 node ui/old-tabs/tools/gen-css.mjs http://127.0.0.1:8801
 //             (먼저 gen-js.mjs 를 돌려 ../engine.ts · ../markup.ts 가 있어야 함)
+//   묶음(셋째 칸) = 안 적으면 채널 · SNS(.ot → ../old-tabs.gen.css) · art = 기사 창(.oa → ../art.gen.css · 옛 화면을 /?a=<기사> 로 띄워 물어봄 · 형 11-15 「그때 시안을 여기에 붙일 수 있나?」)
+//     틀 이름을 달리 둔 까닭 = 두 옷이 같은 틀(.ot)에 함께 걸리면 한쪽에만 있는 규칙의 앞뒤 차례가 흐트러짐(같은 무게끼리 뒤엣것이 이김)
 import { createRequire } from "node:module";
 import fs from "node:fs";
 import { APP, read } from "./lib.mjs";
@@ -14,27 +16,39 @@ const { parse } = req("@babel/parser");
 const traverse = req("@babel/traverse").default;
 const { chromium } = createRequire(import.meta.url)("playwright");
 
-const BASE = process.argv[2];
-if (!BASE) { console.error("쓰는 법: node ui/old-tabs/tools/gen-css.mjs <옛 화면 주소(예 http://127.0.0.1:8801)>"); process.exit(1); }
-const ROOT = "ot";
+const BASE = process.argv[2], PACK = process.argv[3] || "tabs";
+if (!BASE) { console.error("쓰는 법: node ui/old-tabs/tools/gen-css.mjs <옛 화면 주소(예 http://127.0.0.1:8801)> [묶음: tabs(기본) | art]"); process.exit(1); }
+const ART_FILE = process.argv[4] || "261114-2048-ask-202611141148w55pe.md";   // 기사 창을 띄울 본보기 기사(뿌리 상태만 물어봄 · 어느 기사든 같음)
+const PACKS = {
+  tabs: { root: "ot", src: ["engine.ts", "markup.ts"], words: ["gy-in", "on", "open", "show", "done", "shake", "firing", "picking", "picked"], out: "old-tabs.gen.css",
+    states: [["chan", 412], ["chan", 1280], ["trend", 412], ["trend", 1280]], url: (tab) => `/?tab=${tab}&inapp=1&only=1`, ready: null,
+    head: `/* 만든 파일 — 손으로 고치지 말 것(ui/old-tabs/tools/gen-css.mjs · 옛 에디터 「채널 요약」 · 「SNS」 탭이 읽던 CSS 차례 그대로 · 두 탭이 쓰는 규칙만 .ot 안으로)\n   앱에 맞춘 덧줄(색 · 바탕 · 움직임 끔)은 ./old-tabs.css */\n` },
+  art: { root: "oa", prune: true, src: ["engine-art.ts", "markup-art.ts"], words: ["on", "open", "show", "done", "shake", "firing", "scrolled", "drag-handle"], out: "art.gen.css",
+    states: [["art", 412], ["art", 1280]], url: () => `/?a=${encodeURIComponent(ART_FILE)}`, ready: () => { const d = document.querySelector("#dlg"); return !!(d && d.open); },
+    head: `/* 만든 파일 — 손으로 고치지 말 것(ui/old-tabs/tools/gen-css.mjs art · 옛 에디터 「기사 창」(#dlg)과 그 창이 여는 작은 창들이 읽던 CSS 차례 그대로 · 쓰는 규칙만 .oa 안으로)\n   앱에 맞춘 덧줄(칸 안에 박기 · 라임 · 움직임 끔)은 ./art.css */\n` },
+};
+const PK = PACKS[PACK];
+if (!PK) { console.error("모르는 묶음: " + PACK); process.exit(1); }
+const ROOT = PK.root;
 const notes = [];
 
 // ── 낱말 모으기(엔진 글줄 · 판) ──
 const K = new Set();
 const words = (s) => { for (const m of String(s).matchAll(/[A-Za-z_][\w-]*/g)) K.add(m[0]); };
-for (const f of ["engine.ts", "markup.ts"]) {
+for (const f of PK.src) {
   const ast = parse(read(APP + "ui/old-tabs/" + f), { sourceType: "module", plugins: ["typescript"] });
   traverse(ast, { StringLiteral(p) { words(p.node.value); }, TemplateElement(p) { words(p.node.value.raw); } });
 }
-for (const w of ["gy-in", "on", "open", "show", "done", "shake", "firing", "picking", "picked"]) K.add(w);
+for (const w of PK.words) K.add(w);
 
 // ── 옛 화면 띄워 CSS 차례 · 뿌리 상태 받기 ──
-const STATES = [["chan", 412], ["chan", 1280], ["trend", 412], ["trend", 1280]];
+const STATES = PK.states, MANY = new Set(STATES.map((s) => s[0])).size > 1;   // MANY = 한 묶음에 화면이 여럿(채널 · SNS)일 때만 「한쪽에서만 맞는 뿌리」를 가름
 const b = await chromium.launch();
 const pages = [];
 for (const [tab, w] of STATES) {
   const p = await b.newPage({ viewport: { width: w, height: 900 }, colorScheme: "dark" });
-  await p.goto(`${BASE}/?tab=${tab}&inapp=1&only=1`, { waitUntil: "load" });
+  await p.goto(BASE + PK.url(tab), { waitUntil: "load" });
+  if (PK.ready) await p.waitForFunction(PK.ready, null, { timeout: 40000 });
   await p.waitForTimeout(3500);
   pages.push({ tab, w, p });
 }
@@ -74,7 +88,18 @@ await b.close();
 
 // ── 선택자 하나 바꾸기: 돌려줌 = 새 글줄 · null(버림) ──
 const ROOT_KEEP = /^(--|color$|color-scheme$|font|line-height$|letter-spacing$|word-break$|overflow-wrap$|text-rendering$|-webkit-font-smoothing$|-webkit-text-size-adjust$|text-size-adjust$|font-synthesis)/;
+/** :is(…) · :where(…) 안 갈래 가운데 이 판에 없는 낱말이 든 갈래만 뺌(전엔 한 갈래만 몰라도 규칙을 통째로 버림 → 입력칸 클립 단추 옷처럼 여러 화면이 같이 쓰는 규칙이 빠짐) · 묶음이 prune 을 켤 때만(채널 · SNS 결과는 그대로) */
+function prune(sel) {
+  let dead = false;
+  sel.walkPseudos((p) => {
+    if (!/^:(is|where)$/i.test(p.value) || !p.nodes || !p.nodes.length) return;
+    for (const alt of [...p.nodes]) { let ok = true; alt.walk((m) => { if ((m.type === "class" || m.type === "id") && !K.has(m.value)) ok = false; }); if (!ok) alt.remove(); }
+    if (!p.nodes.length) dead = true;
+  });
+  return !dead;
+}
 function xsel(sel) {
+  if (PK.prune && !prune(sel)) return null;
   const comps = compoundsOf(sel);
   const combs = []; sel.each((n) => { if (n.type === "combinator") combs.push(n.toString()); });
   let i = 0, tabs = null, spec = [0, 0, 0];
@@ -82,7 +107,7 @@ function xsel(sel) {
     const text = comps[i].map(String).join("").trim();
     if (!text) break;
     const res = askCache.get(text);
-    const hit = res ? res.map((v) => v > 0) : [false, false, false, false];
+    const hit = res ? res.map((v) => v > 0) : STATES.map(() => false);
     const named = namesRoot(comps[i]);
     if (!hit.some(Boolean)) { if (named) return null; break; }
     if (comps[i].some((n) => n.type === "pseudo" && (/^::/.test(n.value) || /^:(before|after)$/.test(n.value)))) { if (named) return null; break; }   // html · body 의 가짜 요소(바탕 그림 · 스크롤 막대) = 앱 틀 몫   // html·body 를 대놓고 불렀는데 어느 상태에서도 안 맞음 = 옛 화면에서도 죽은 규칙
@@ -102,7 +127,7 @@ function xsel(sel) {
   if (bad) return null;
   // 뿌리 몫 = .ot(+ 원래 셈 무게만큼 겹침) · 한 탭에서만 맞던 뿌리 = 그 탭 틀에서만
   let head = (spec[2] ? "div" : "") + "." + ROOT + ("." + ROOT).repeat(spec[1]) + (spec[0] ? ":is(#_,." + ROOT + ")".repeat(1) : "");
-  if (tabs && tabs.size === 1) head += "." + ROOT + "-" + ([...tabs][0] === "chan" ? "chan" : "sns");
+  if (MANY && tabs && tabs.size === 1) head += "." + ROOT + "-" + ([...tabs][0] === "chan" ? "chan" : "sns");
   if (onlyRoot) return { text: head, rootOnly: true };
   let out = head;
   rest.forEach((c, k) => { const cb = k === 0 ? (i > 0 ? combs[i - 1] : " ") : combs[i + k - 1]; out += (cb && cb.trim() ? " " + cb.trim() + " " : " ") + c.map(String).join("").trim(); });
@@ -172,7 +197,7 @@ for (const root of parsed) {
   for (let k = 0; k < 4; k++) { root.walkAtRules((a) => { if (!/keyframes$/i.test(a.name) && (!a.nodes || !a.nodes.length)) a.remove(); }); root.walkRules((r) => { if (!r.nodes.length) r.remove(); }); }
 }
 sheets.forEach((s, si) => { const t = parsed[si].toString().replace(/\n{2,}/g, "\n").trim(); if (t) all += `\n/* ── ${s.name} ── */\n` + t + "\n"; });
-const head = `/* 만든 파일 — 손으로 고치지 말 것(ui/old-tabs/tools/gen-css.mjs · 옛 에디터 「채널 요약」 · 「SNS」 탭이 읽던 CSS 차례 그대로 · 두 탭이 쓰는 규칙만 .ot 안으로)\n   앱에 맞춘 덧줄(색 · 바탕 · 움직임 끔)은 ./old-tabs.css */\n`;
-fs.writeFileSync(APP + "ui/old-tabs/old-tabs.gen.css", head + all);
+const head = PK.head;
+fs.writeFileSync(APP + "ui/old-tabs/" + PK.out, head + all);
 if (process.env.OT_REPORT) fs.writeFileSync(process.env.OT_REPORT + ".css.txt", [...new Set(notes)].join("\n") + "\n\nKF " + [...usedKF].join(" ") + "\n\nROOT\n" + [...askCache].filter(([, v]) => v.some(Boolean)).map(([k, v]) => v.join("") + " " + k).join("\n"));
 console.log("남김 " + kept + " · 버림 " + dropped + " · " + (all.length / 1024).toFixed(0) + "KB · 키프레임 " + usedKF.size + " · 적어 둔 것 " + new Set(notes).size);
