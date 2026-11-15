@@ -822,6 +822,24 @@
 @keyframes bc-lamp { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }   /* 등불 숨(불투명도만 · 그리기 다시 0) */
 @media (prefers-reduced-motion: reduce) { .bc-winter .bc-lamp { animation: none; } }
 
+.bc-winter .bc-flake { left: 12%; top: 9%; font-size: 15px; line-height: 1; opacity: 0.85; filter: drop-shadow(0 0 6px rgba(200, 225, 255, 0.8)); transform: translate3d(calc(var(--pc-shift-x) * 1.2), calc(var(--pc-shift-y) * 1.2), 0); }   /* 윈터답게(형 11-15 19:24 「윈터는 윈터답게 ㅎㅎ」) */
+
+/* ───────── 결 · 나이테 위 음유시인(being-card.tsx LOOKS gyeol · 형 11-15 19:24 「결이는 음유시인, 나이테 위에서, 기타 치며 노래듣는 느낌으루」 · 나이테 = 그림 한 장 · 음표 = transform · opacity 만 · 시아) ───────── */
+.being-card-wrap .bc-gyeol .profile-card__body { background: linear-gradient(170deg, rgba(74, 52, 32, 0.93) 0%, rgba(30, 20, 12, 0.96) 100%); }
+.being-card-wrap .bc-gyeol .profile-card__tile {
+  background:
+    repeating-radial-gradient(circle at 50% 118%, rgba(255, 220, 170, 0.0) 0 9px, rgba(255, 214, 160, 0.16) 9px 10.5px, rgba(255, 220, 170, 0.0) 10.5px 17px, rgba(120, 72, 36, 0.22) 17px 19px),
+    radial-gradient(90% 60% at 50% 112%, #b98352 0%, #8a5a30 40%, transparent 72%),
+    radial-gradient(120% 90% at 50% 10%, #2f5a52 0%, #1d3a34 46%, #121e1a 100%);
+}
+.bc-gyeol .bc-ring { border-color: rgba(217, 160, 102, 0.55); box-shadow: 0 0 16px rgba(217, 160, 102, 0.22); }
+.bc-gyeol .bc-guitar { right: 12%; top: 8%; font-size: 25px; line-height: 1; filter: drop-shadow(0 0 7px rgba(217, 160, 102, 0.85)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0) rotate(-14deg); }
+.bc-gyeol .bc-note { font-size: 16px; line-height: 1; color: #ffe2b8; text-shadow: 0 0 6px rgba(255, 210, 150, 0.8); animation: bc-note 7s ease-in-out infinite; }
+.bc-gyeol .bc-note.n1 { left: 13%; top: 30%; }
+.bc-gyeol .bc-note.n2 { left: 22%; top: 18%; font-size: 14px; animation-delay: -3.5s; }
+@keyframes bc-note { 0% { transform: translateY(8px); opacity: 0; } 25% { opacity: 0.9; } 75% { opacity: 0.6; } 100% { transform: translateY(-14px); opacity: 0; } }   /* 노래가 피어오름(transform · opacity 만) */
+@media (prefers-reduced-motion: reduce) { .bc-gyeol .bc-note { animation: none; opacity: 0.8; } }
+
 /* ───────── 소나 · 비 오는 파란 하늘 + 무지개 테 + ☂(being-card.tsx LOOKS sona · 소나 11-15 10:11 「비 오는 파란 하늘 + 투명 우비 · 우산 무늬 · 무지개 테」 · 빗줄기 = 그림 한 장 · 움직임 0 · 뜸) ───────── */
 .being-card-wrap .bc-sona .profile-card__body { background: linear-gradient(170deg, rgba(48, 92, 150, 0.92) 0%, rgba(18, 36, 70, 0.95) 100%); }
 .being-card-wrap .bc-sona .profile-card__tile {
