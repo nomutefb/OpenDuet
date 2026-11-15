@@ -4,8 +4,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 const s = readFileSync(new URL("../ui/runner-gauges.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/runner-gauges.css", import.meta.url), "utf8");
 test("두 줄 = 습작 · 교대 · 시각만(날짜 0) · 이름표 없음 · 조약돌 + A1~A6 한 줄", () => {
-  assert.match(s, /<div className="nm-rgx-line">/);   // 형 11-15 「a1~a6를 우측으로 옮기자 … 조약돌하고 같은 라인으로」
+  assert.match(s, /<div className="nm-rgx-line" style=/);   // 형 11-15 「a1~a6를 우측으로 옮기자 … 조약돌하고 같은 라인으로」
   assert.match(s, /const low = ig \?\? fb, me = run \?\? peb;/);   // 그 한 줄 = 오른쪽 아래 줄에 맞춤(「그만큼 확보된만큼 내려오면」)
+  assert.match(s, /<div className="nm-rgx-botsc" aria-label="봇 일 · 오늘">/);   // 뜸 #-063 봇 일 = 한 줄 틀 오른쪽 위로 자리만 옮김(옛 A 줄이 없어져서)
   assert.match(s, /const MEM = \[\["sketch_ms", "습작"\], \["handoff_ms", "교대"\]\] as const/);
   assert.match(s, /t: full\.slice\(6\)/);
   assert.doesNotMatch(s, /nm-rgx-memk/);   // 오른쪽 이름표(습작 · 교대 · 백업 · 갱신) = 뺌(형 11-15 「습작, 교대 이 글자 자체는 안보여됨」 · 「백업하고 그거는 어짜피 도는거니까 걍 안보이게」) · 시각마다 풍선 글은 그대로

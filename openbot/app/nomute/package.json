@@ -1,9 +1,9 @@
 {
-  "name": "nomute-office-app",
+  "name": "nomute-garden-app",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "우리 사무실(edit.nomute.kr/office-app/) 빌드 — 원본 = 이 저장소 openbot/app·shared 그대로 · 고친 곳 = 이 폴더(openbot/app/nomute) 한 곳",
+  "description": "우리 사무실(edit.nomute.kr/garden-app/) 빌드 — 원본 = 이 저장소 openbot/app·shared 그대로 · 고친 곳 = 이 폴더(openbot/app/nomute) 한 곳",
   "scripts": {
     "test": "node --test tests/*.test.ts",
     "build": "vite build"

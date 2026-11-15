@@ -1,4 +1,4 @@
-// 우리 사무실 빌드(edit.nomute.kr/office-app/) — 원본 = 이 저장소 openbot/app·openbot/shared 그대로(손대지 않음)
+// 우리 사무실 빌드(edit.nomute.kr/garden-app/) — 원본 = 이 저장소 openbot/app·openbot/shared 그대로(손대지 않음)
 // 고친 곳은 이 폴더(openbot/app/nomute) 한 곳: 바꿔 끼우기 표·글자 고치기 표 = overrides.ts · 원본 새 판(Sync fork)을 받아도 겹침 0
 // 빌드 = 이 폴더에서 `npm ci --ignore-scripts` → openbot/app/node_modules 를 이 폴더 node_modules 로 잇기(원본 파일이 의존 꾸러미를 찾는 자리) → `npx vite build` → dist/
 import { execSync } from "node:child_process";
@@ -13,7 +13,7 @@ import { manualChunks } from "./chunks";   // 꾸러미 덩어리 가르기(판 
 
 const here = (p: string) => path.resolve(__dirname, p);
 
-/** 판 번호 = 빌드한 때(같은 커밋을 캐시로 다시 쓰면 같은 번호) · 화면 안 __NM_BUILD__ 와 /office-app/version.json 이 같은 값 = 새 판 저절로 다시 읽기(main.tsx) */
+/** 판 번호 = 빌드한 때(같은 커밋을 캐시로 다시 쓰면 같은 번호) · 화면 안 __NM_BUILD__ 와 /garden-app/version.json 이 같은 값 = 새 판 저절로 다시 읽기(main.tsx) */
 const BUILD = process.env.NM_BUILD || new Date().toISOString();
 /** 커밋 짧은 번호(우상단 판 번호 · 형 11-06 13:07 「그거로 싱크를 맞춰야될거같은데?」) — 빌드 자리가 git 이면 그 HEAD · 아니면 NM_SHA · 둘 다 없으면 빈 칸(시각만 보임) */
 const SHA = (() => { if (process.env.NM_SHA) return process.env.NM_SHA.slice(0, 7); try { return execSync("git rev-parse --short=7 HEAD", { cwd: __dirname, stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); } catch { return ""; } })();
@@ -28,7 +28,7 @@ const versionFile = (): Plugin => ({
 
 export default defineConfig({
   root: here("."),
-  base: "/office-app/",
+  base: "/garden-app/",
   publicDir: here("public"),   // 앱 설명서·서비스 워커·아이콘(우리 것)
   define: { __NM_BUILD__: JSON.stringify(BUILD), __NM_SHA__: JSON.stringify(SHA) },
   plugins: [

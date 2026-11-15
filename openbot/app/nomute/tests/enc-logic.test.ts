@@ -109,3 +109,8 @@ test("형 1:1 에서 봇이 보낸 첨부만 게이지 · 테두리 0(형 11-12 
   assert.equal(encQuiet("tmp-mw8seuv1", "bot"), false);   // 단톡 = 그대로
   assert.equal(encQuiet("dm-hyung", "bot"), false);
 });
+
+test("grokbot 칸 새 이름 spring-garden_files 도 물을 경로(옛 office_files 도)", () => {
+  const N = "grokbot/sona/spring-garden_files/20261115_1200_a.mp4", O = "grokbot/sona/office_files/20261115_1200_a.mp4";
+  assert.deepEqual(encWanted([N, O, "grokbot/sona/other/20261115_1200_a.mp4"], T), [N, O]);
+});

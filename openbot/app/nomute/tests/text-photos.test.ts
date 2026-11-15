@@ -17,5 +17,5 @@ test("같은 출처 그림 주소만 사진으로(형 11-01 08:48)", () => {
   assert.deepEqual(textPhotos("썸네일 https://edit.nomute.kr/cards/a/_final.jpg 봐 줘"), ["/cards/a/_final.jpg"]);
   assert.deepEqual(textPhotos("비교(/cards/b/t1.png) 와 「/cards/b/t2.webp」"), ["/cards/b/t1.png", "/cards/b/t2.webp"]);
   assert.deepEqual(textPhotos("밖 그림 https://pbs.twimg.com/x.jpg 은 링크 그대로"), []);
-  assert.deepEqual(textPhotos("그림 아닌 주소 https://edit.nomute.kr/office-app/"), []);
+  assert.deepEqual(textPhotos("그림 아닌 주소 https://edit.nomute.kr/garden-app/"), []);
 });
