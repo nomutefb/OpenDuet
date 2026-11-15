@@ -4,6 +4,7 @@
 import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import { type ReactNode, useState } from "react";
 import { office } from "../data/office";
+import { GoButton } from "./go-button";   // 「미리 보기」 · 「만들기」 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」 — 손으로 만든 firing·okdone 걷음)
 import { nextShort } from "./settings-extra";
 import "./sched-add.css";
 
@@ -20,16 +21,14 @@ export const cronOf = (id: string, own: string) => KST + (WHEN.flatMap((g) => g.
 export function AddRoutine({ bots, bot0 = "", fork, sha, phone, onClose, onDone }: { bots: AddBot[]; bot0?: string; fork: string; sha: string; phone: boolean; onClose: () => void; onDone: (msg: string) => void }) {   // fork = 새 일이 들어갈 묶음(화면엔 안 보임 · 묶음을 고르게 하지 않음 — 형 11-14 「묶음 자체도 애초에 많다」)
   const [bot, setBot] = useState(bot0), [when, setWhen] = useState("d8"), [own, setOwn] = useState("0 9 * * *");
   const [name, setName] = useState(""), [task, setTask] = useState("");
-  const [stage, setStage] = useState<"edit" | "dry" | "ask" | "send" | "done">("edit"), [pre, setPre] = useState<Res | null>(null), [msg, setMsg] = useState("");
+  const [stage, setStage] = useState<"edit" | "dry" | "ask" | "send">("edit"), [pre, setPre] = useState<Res | null>(null), [msg, setMsg] = useState("");
   const value = () => ({ bot, fork, name: name.trim(), when: [cronOf(when, own)], task });
   const ready = !!bot && !!fork && !!name.trim() && !!task.trim();
-  const call = async (dry: boolean) => {
+  const call = async (dry: boolean) => {   // 실패 = 이유를 적고 throw(GoButton 빨강 · 흔들림) · 다음 단계로 넘기기는 ✓ 뒤(GoButton done = ✓ 가 안 잘림)
     setMsg(""); setStage(dry ? "dry" : "send");
     try {
-      const r = await office<Res>("schedule/routine", { method: "POST", body: JSON.stringify({ op: "add", sha, dry, value: value() }) });
-      if (dry) { setPre(r); setStage("ask"); return; }
-      setStage("done"); setTimeout(() => onDone(`「${r.name || name}」 만들었어${r.checked ? " · 표에 들어감" : ""}`), 1100);
-    } catch (e) { setStage(dry ? "edit" : "ask"); setMsg(/changed/.test(String(e)) ? "다른 데서 표가 바뀌었어 — 닫고 다시 열어 줘" : e instanceof Error ? e.message : String(e)); }
+      return await office<Res>("schedule/routine", { method: "POST", body: JSON.stringify({ op: "add", sha, dry, value: value() }) });
+    } catch (e) { setStage(dry ? "edit" : "ask"); setMsg(/changed/.test(String(e)) ? "다른 데서 표가 바뀌었어 — 닫고 다시 열어 줘" : e instanceof Error ? e.message : String(e)); throw e; }
   };
   const lock = stage !== "edit";
   return (
@@ -59,12 +58,10 @@ export function AddRoutine({ bots, bot0 = "", fork, sha, phone, onClose, onDone 
         </div>
         {msg ? <p className="nm-add-msg" role="status">{msg}</p> : null}
         <footer className="nm-add-foot">
-          {stage === "ask" && pre ? <span className="min-w-0 flex-1">다음 깸 <b>{pre.preview?.next_at ? nextShort(pre.preview.next_at) : "없음"}</b> · 하루 <b>{pre.preview?.day_max ?? "?"}</b>번</span> : <span className="min-w-0 flex-1">{ready ? "" : "누구에게 · 이름 · 할 일을 채워 줘"}</span>}
+          {(stage === "ask" || stage === "send") && pre ? <span className="min-w-0 flex-1">다음 깸 <b>{pre.preview?.next_at ? nextShort(pre.preview.next_at) : "없음"}</b> · 하루 <b>{pre.preview?.day_max ?? "?"}</b>번</span> : <span className="min-w-0 flex-1">{ready ? "" : "누구에게 · 이름 · 할 일을 채워 줘"}</span>}
           {stage === "ask" ? <button type="button" className="nm-sched-chip" onClick={() => { setStage("edit"); setPre(null); }}>고치기</button> : null}
-          {stage === "edit" || stage === "dry" ? <button type="button" className="nm-sched-go" disabled={!ready || stage === "dry"} onClick={() => void call(true)}>{stage === "dry" ? "보는 중" : "미리 보기"}</button> : null}
-          {stage === "ask" ? <button type="button" className="nm-sched-go" onClick={() => void call(false)}>만들기</button> : null}
-          {stage === "send" ? <span className="nm-sched-go firing">보내는 중</span> : null}
-          {stage === "done" ? <span className="nm-sched-go okdone" aria-label="만들었어"><svg className="gck" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 13l4 4 10-10" /></svg></span> : null}
+          {stage === "edit" || stage === "dry" ? <GoButton key="dry" className="nm-sched-go" disabled={!ready} go={() => call(true)} done={(r) => { setPre(r); setStage("ask"); }} busy="보는 중">미리 보기</GoButton> : null}
+          {stage === "ask" || stage === "send" ? <GoButton key="add" className="nm-sched-go" go={() => call(false)} done={(r) => onDone(`「${r.name || name}」 만들었어${r.checked ? " · 표에 들어감" : ""}`)} busy="만드는 중">만들기</GoButton> : null}
         </footer>
       </section>
     </div>

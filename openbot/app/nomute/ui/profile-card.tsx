@@ -156,7 +156,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
           <button type="button" className="ypc-x" onClick={g.request}>닫기</button>
         </div>
       </div>
-      {g.ask ? <SaveAsk saving={busy} onKeep={() => g.setAsk(false)} onDiscard={onClose} onSave={() => { g.setAsk(false); void (introDirty ? saveIntro() : saveRole()).then((ok) => { if (ok) onClose(); }); }} /> : null}
+      {g.ask ? <SaveAsk onKeep={() => g.setAsk(false)} onDiscard={onClose} go={async () => { if (!(await (introDirty ? saveIntro() : saveRole()))) { g.setAsk(false); throw new Error(""); } }} done={onClose} /> : null}
       {scrView}
     </div>
   );

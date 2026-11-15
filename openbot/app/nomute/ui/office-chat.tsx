@@ -11,6 +11,7 @@
 //   빠르게 열기(형 15:34 「프사먼저 나오고 넘 늦게 대화가 나와」 · 15:38 「캐시화 하고 뒤늦게 받아오는거로 동기화를」) = 이 기기 저장(data/room-cache.ts)을 먼저 그림 →
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
+import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { DlSeqButton } from "./dl-seq";
 import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
 import { QrRadial, QuickReact } from "./quick-react";
@@ -1061,14 +1062,15 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   useEffect(() => { if (!cmdNote) return undefined; const t = setTimeout(() => setCmdNote(""), 5_000); return () => clearTimeout(t); }, [cmdNote]);   // 「/초대」·「/방파기」 안 되는 방 안내(라임 · 누르면 닫힘)
   const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null), [inviteQ, setInviteQ] = useState<string[] | null>(null);   // inviteQ = 「/초대 …」 뒤 이미 친 이름들   // slash = 입력칸이 「/…」 한 낱말일 때 그 뒤 글자
   const invite = async (m: Msg) => {   // 형 11-06 「내가 초대하기누르면다시들어올수잇어야함」 → POST rooms/<방>/invite(봄 서버) · 답 = 「다시 불렀습니다」 줄
-    const who = evWho(m)[0]; if (!who || inviting) return;
+    const who = evWho(m)[0]; if (!who || inviting) throw new Error("지금은 못 불러");   // 단추 = 게이지 알약(./go-button) · 실패 = 까닭 적고 throw
     setInviting(m.id); setErr("");
-    try {
-      const j = await office<{ message?: Msg }>(`rooms/${enc(room)}/invite`, { method: "POST", body: JSON.stringify({ who }) });
-      if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
-      void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) }); void qc.invalidateQueries({ queryKey: officeKeys.rooms });
-    } catch (e) { setErr(`초대 못 했어 — ${e instanceof Error ? e.message : String(e)}`); }
+    try { return await office<{ message?: Msg }>(`rooms/${enc(room)}/invite`, { method: "POST", body: JSON.stringify({ who }) }); }
+    catch (e) { setErr(`초대 못 했어 — ${e instanceof Error ? e.message : String(e)}`); throw e; }
     finally { setInviting(""); }
+  };
+  const invited = (j: { message?: Msg }) => {   // 「다시 불렀습니다」 줄 붙이기(= 초대 단추가 사라짐) = ✓ 를 보여 준 뒤(GoButton done)
+    if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
+    void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) }); void qc.invalidateQueries({ queryKey: officeKeys.rooms });
   };
   const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 45분)은 시각으로 정해져서 새 글이 없어도 다시 셈
   const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
@@ -1440,7 +1442,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
                 {it.t === "ev" ? (
                   <p className="yev" title={t12(it.m.ts)}>
                     <span>{it.m.text || ""}</span>
-                    {it.m.event?.kind === "left" && inviteOn.has(it.m.id) ? <button type="button" className="yev-a" disabled={inviting === it.m.id} onClick={() => void invite(it.m)}>{inviting === it.m.id ? "초대하는 중…" : "채팅방으로 초대하기"}</button> : null}
+                    {it.m.event?.kind === "left" && inviteOn.has(it.m.id) ? <GoButton className="yev-a" disabled={!!inviting} go={() => invite(it.m)} done={invited} busy="초대하는 중">채팅방으로 초대하기</GoButton> : null}
                   </p>
                 ) : it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentGroup msgs={it.msgs} c={c} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
                   <p className="yb sys max-w-full truncate" title={it.msgs.map((y) => `${t12(y.ts)} ${whoName(y.who)} · ${(y.text || "").split("\n")[0]}`).join("\n")}>

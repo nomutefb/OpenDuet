@@ -7,7 +7,8 @@
 .nm-meet-scribe { opacity:.75; border-style:dashed !important; }
 .nm-meet-ft { display:flex; justify-content:flex-end; gap:8px; }
 .nm-meet-ft button { border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:5px 12px; background:transparent; color:inherit; cursor:pointer; }
-.nm-meet-ft button.ok { background:#CFFF40; color:#111; border-color:var(--accent, #CFFF40); font-weight:700; }
+.nm-meet-ft button.ok { font-weight:700; }
+.nm-meet-ft button.ok:not(.nm-go), .nm-meet-ft button.ok[data-stage="idle"] { background:#CFFF40; color:#111; border-color:var(--accent, #CFFF40); }   /* 누른 동안(게이지 · ✓ · 실패) = ui/go-button 단계 색이 보이게 평소 색은 쉴 때만 */
 .nm-meet-ft button:disabled { opacity:.45; cursor:default; }
 .nm-meet { flex:none; min-width:0; max-width:100%; display:flex; flex-direction:column; border-top:1px solid rgba(255,255,255,.08); background:#0e0f0e; }
 .nm-meet.open { flex:0 0 42%; min-height:220px; }
