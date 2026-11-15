@@ -54,3 +54,10 @@
 .nm-pmrun-jobs .tt { white-space: nowrap; }
 .nm-pmrun-jobs small { white-space: nowrap; }
 .nm-pmrun-jobs li.done small { color: rgba(207, 255, 64, .75); }
+
+/* #-047 리모콘 = 검색 단추 밑에 붙음(고정) · 첫 알약(러너맵) = 검색 단추 바로 아래 · 둘째 = 그 왼쪽 · 동그라미 · 바탕 · 라임 0(형 11-15 08:57 「동그라미 안에 넣지는 않을게. 둘다 그리고 라임으로 강조안할거야」) */
+.nm-pmrun.docked { position: fixed; z-index: 54; margin: 0; max-width: none; }
+.nm-pmrun.docked .nm-pmrun-row { flex-direction: row-reverse; gap: 2px; }
+.nm-pmrun-h, .nm-pmrun-h.on { width: 30px; height: 30px; border: 0 !important; background: none !important; box-shadow: none; color: rgba(232, 234, 232, .78); }
+.nm-pmrun-h.on { color: #fff; }
+.nm-pmrun-h:active { transform: scale(var(--press-s, .9)); }

@@ -69,10 +69,20 @@ export function PmRunnerMini({ room }: { room: string }) {
     document.addEventListener("pointerdown", off, true);
     return () => document.removeEventListener("pointerdown", off, true);
   }, [open]);
+  // 자리 = 대화 검색 단추(.nm-find · 화면에 고정) 바로 아래 하나 + 그 왼쪽 하나(형 11-15 08:57 dm-gik 「대화 검색 버튼 수직 아래로 1개 배치 그리고, 그바로 수평으로 좌측에 하나 배치」 · 깃 #-047) · 단추가 없으면 앞 자리(흐름 안)
+  const [at, setAt] = useState<{ top: number; right: number } | null>(null);
+  useEffect(() => {
+    if (!here) return;
+    const fit = () => { const f = document.querySelector<HTMLElement>(".nm-find"); const r = f?.getBoundingClientRect(); setAt(r && r.width ? { top: Math.round(r.bottom + 6), right: Math.round(window.innerWidth - r.right) } : null); };
+    fit();
+    const t = window.setInterval(fit, 1000);   // 검색 단추도 1초마다 제 자리를 다시 잼(room-search fit) · 같은 박자
+    window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit);
+    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); };
+  }, [here]);
   if (!pmRoom || room !== pmRoom) return null;
   const pill = (k: "run" | "job", label: string, icon: JSX.Element) => <button type="button" className={`nm-pmrun-h${open === k ? " on" : ""}`} onClick={() => setOpen((o) => (o === k ? "" : k))} aria-expanded={open === k} aria-label={label} title={label}>{icon}</button>;
   return (
-    <div ref={box} className={`nm-pmrun${open ? " open" : ""}`}>
+    <div ref={box} className={`nm-pmrun${open ? " open" : ""}${at ? " docked" : ""}`} style={at ? { top: at.top, right: at.right } : undefined}>
       <div className="nm-pmrun-row">{pill("run", "러너맵", GRID)}{pill("job", "접수 · 완료", CHECKS)}</div>
       {open === "run" ? <div className="nm-pmrun-b run"><Kids /></div> : null}
       {open === "job" ? <div className="nm-pmrun-b"><Jobs pmRoom={pmRoom} /></div> : null}
