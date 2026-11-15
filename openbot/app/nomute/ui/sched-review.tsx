@@ -30,7 +30,7 @@ export function ReviewBox({ id, r, can, who }: { id: string; r?: Review; can: bo
         <input value={why} maxLength={300} placeholder="까닭 한 줄(안 써도 돼)" onChange={(e) => setWhy(e.target.value)} />
         <div className="nm-rv-row">
           <GoButton className="nm-sched-go" go={() => post({ act: "ask", ...(why.trim() ? { why: why.trim() } : {}) })} done={fresh}>검토 요청</GoButton>
-          <button type="button" className="nm-sched-chip" onClick={() => { setSure(false); setWhy(""); }}>취소</button>
+          <button type="button" className="nm-sched-chip nm-no" onClick={() => { setSure(false); setWhy(""); }}>아니오</button>
         </div>
       </div>
     ) : <div className="nm-rv-row"><button type="button" className="nm-rv-del" onClick={() => setSure(true)}>폐기</button></div>;

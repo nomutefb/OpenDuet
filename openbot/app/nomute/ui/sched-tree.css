@@ -120,7 +120,8 @@
 /* 루틴 판 아래 지우기 줄 */
 .nm-rsheet-del { display:flex; align-items:center; gap:8px; margin:0 16px 14px; padding-top:10px; border-top:1px solid var(--flow-line, rgba(232,234,232,.2)); font-size:var(--fs-sm); color:var(--mut, rgba(232,234,232,.6)); }
 .nm-rsheet-delask { color:#ff8a8d; border-color:rgba(255,90,95,.35); margin-left:auto; }
-.nm-rsheet-delgo { color:#161716; background:#FF5A5F; border-color:#FF5A5F; font-weight:600; }
+.nm-rsheet-delgo { color:#FF8A8E; border-color:rgba(255,90,95,.5); font-weight:600; }   /* 예 쪽 = 채움 걷음(되묻는 창 잣대 = 아니오가 라임 · 형 11-15 09:00) */
+.nm-sched-chip.nm-no { color:#141414; background:var(--accent, #CFFF40); border-color:var(--accent, #CFFF40); font-weight:700; }
 
 /* ── 읽기 쉽게(형 11-14 「보기 조금 힘들어 좀 쉽게 가고싶고 원래 영상에서 보인 퀄리티」) ──
    폰 = 글씨 한 단 크게 · 줄 사이 넉넉히 · 선 읽는 법 줄 숨김 · 뿌리는 작은 알약 / 공통 = 카드 안 칸을 영상처럼 또렷하게(이름 크게 · 언제 한 줄 · 상태 한 줄) */

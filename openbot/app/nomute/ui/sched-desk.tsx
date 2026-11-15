@@ -293,7 +293,7 @@ export function SchedDesk() {
           <div className="nm-rsheet-del">
             {del?.id === rSel.id ? <>
               <span className="min-w-0 flex-1">{del.why || "지우면 이 일은 표에서 사라져. 잠깐 멈추려면 「꺼짐」으로 두면 돼."}</span>
-              <button type="button" className="nm-sched-chip" onClick={() => setDel(null)}>그만</button>
+              <button type="button" className="nm-sched-chip nm-no" autoFocus onClick={() => setDel(null)}>아니오</button>
               {del.why ? null : <GoButton key="delgo" className="nm-sched-chip nm-rsheet-delgo" go={() => removeR(rSel.id, false)} done={(r) => delDone(rSel.id, r)} busy="지우는 중">정말 지우기</GoButton>}
             </> : <GoButton key="delask" className="nm-sched-chip nm-rsheet-delask" go={() => removeR(rSel.id, true)} done={() => setDel({ id: rSel.id, stage: "ask" })} busy="지울 수 있는지 보는 중">이 일 지우기</GoButton>}
           </div>
