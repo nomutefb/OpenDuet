@@ -3,6 +3,7 @@
 //   얼마를 먹나 = 닫힘 = 받아오기 0(PM 칸 5분 · 방 목록 10분만) · 열림 = 홈 러너 칸과 같은 자료 · 같은 캐시(status 60초 · schedule 120초 · 숨은 탭 멈춤 = react-query 기본)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { jobBoard } from "./job-fold";
 import { faceOf, office } from "../data/office";
 import { ACT_QUERY_KEY, miniLine, type MiniLine, type MiniRow } from "./activity-line";
@@ -81,11 +82,12 @@ export function PmRunnerMini({ room }: { room: string }) {
   }, [here]);
   if (!pmRoom || room !== pmRoom) return null;
   const pill = (k: "run" | "job", label: string, icon: JSX.Element) => <button type="button" className={`nm-pmrun-h${open === k ? " on" : ""}`} onClick={() => setOpen((o) => (o === k ? "" : k))} aria-expanded={open === k} aria-label={label} title={label}>{icon}</button>;
-  return (
+  const node = (
     <div ref={box} className={`nm-pmrun${open ? " open" : ""}${at ? " docked" : ""}`} style={at ? { top: at.top, right: at.right } : undefined}>
       <div className="nm-pmrun-row">{pill("run", "러너맵", GRID)}{pill("job", "접수 · 완료", CHECKS)}</div>
       {open === "run" ? <div className="nm-pmrun-b run"><Kids /></div> : null}
       {open === "job" ? <div className="nm-pmrun-b"><Jobs pmRoom={pmRoom} /></div> : null}
     </div>
   );
+  return at ? createPortal(node, document.body) : node;   // 고정 자리 = body 로 그림(PC 반갈 머리 위 틀에 transform 이 있어 fixed 가 그 틀 기준이 됨 · 실물 11-15 09:2x = 알약이 화면 왼쪽 밖) · 폰은 그대로여도 같은 길
 }
