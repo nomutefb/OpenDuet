@@ -1,5 +1,5 @@
 /* 위쪽 탭 줄(빠르 11-09 · 뜸 05:16 꼴 · 시아 05:23) — 윗줄(높이 50) 안 · 얼굴 띠 옆부터 시계 왼쪽 16px 앞까지(06:3x 실물 = 시계 상자 739~861 @1600 · 옛 52px 은 「+」가 시계에 닿음) · 넘치면 크롬처럼 탭이 줄어듦(최소 = 얼굴만) */
-.nm-tabs { position:fixed; top:0; left:72px; right:calc(50% + 77px); height:50px; z-index:58; display:flex; align-items:flex-end; gap:0; padding:0 4px; overflow:visible; }
+.nm-tabs { position:fixed; top:0; left:max(72px, calc(var(--nm-tb-l, 0px) + 4px)); right:calc(50% + 77px); height:50px; z-index:58; display:flex; align-items:flex-end; gap:0; padding:0 4px; overflow:visible; }
 .nm-tab { position:relative; container-type:inline-size; flex:0 1 168px; min-width:40px; height:38px; display:flex; align-items:center; gap:7px; padding:0 8px 0 11px; border-radius:11px 11px 0 0;
   color:rgba(232,234,232,.55); font:600 12px/1 'Paperlogy', system-ui, sans-serif; cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:none; transition:color .15s; }
 .nm-tab + .nm-tab:not(.on)::before { content:""; position:absolute; left:0; top:11px; bottom:11px; width:1px; background:rgba(232,234,232,.18); }   /* 사이 세로선 1px */
@@ -149,3 +149,15 @@
 /* 고정 탭(Browser · 화상 회의 · Teams) = 글자 길이만큼(깃 #-032 · 형 11-15 05:20 「피시인앱에서 탭 이모지로만 표시되서 … 픽토그램이랑 기본 글자까진 나오게」)
    container-type 이 폭을 글자에서 떼어 놓아 72px 아래 = 이름 숨김에 걸렸었음 → 이 셋은 컨테이너 아님 */
 .nm-tab.browser, .nm-tab.meet, .nm-tab.teams { container-type:normal; }
+
+/* 탭 줄 = 창 맨 위 제목 줄(형 11-16 07:56 「탭을 저 위로 붙일수도있는거야? 그러면 지금 아래부분을 메뉴로」 · 07:58 「윈도우 화면이 맥에 맞춰지면」 · ./title-bar.ts)
+   --nm-tb-l = 왼쪽 창 단추 자리(맥 신호등) · --nm-tb-r = 오른쪽 창 단추 자리(윈도우 _ □ ×) · 보통 브라우저 = 둘 다 0 = 앞 꼴 그대로 */
+html.nm-macapp { --nm-tb-l: var(--nm-mac-left, 80px); }
+@media (display-mode: window-controls-overlay) {
+  :root { --nm-tb-l: env(titlebar-area-x, 0px); --nm-tb-r: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw)); }
+  .nm-tb-drag { display:block; -webkit-app-region: drag; app-region: drag; }
+  .nm-tabs { -webkit-app-region: drag; app-region: drag; }
+  .nm-tabs > *, .nm-top-lights, .nm-topclock, .nm-toptitle, .ynav { -webkit-app-region: no-drag; app-region: no-drag; }
+}
+.nm-tb-drag { display:none; position:fixed; top:0; left:0; right:0; height:50px; z-index:57; }   /* 끌기 띠 = 탭 줄 · 시계 아래 깔림(그 둘은 위) · 윗줄 50 안엔 다른 칸 없음(06:3x 실물) */
+html.nm-macapp .nm-tb-drag { display:block; }

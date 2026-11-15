@@ -7,6 +7,7 @@
   "start_url": "/garden-app/",
   "scope": "/garden-app/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait",
   "background_color": "#040303",
   "theme_color": "#040303",
