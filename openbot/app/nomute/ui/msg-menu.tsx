@@ -9,6 +9,8 @@ import { type OfficePerson, type OfficeRoom, idOf, office } from "../data/office
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { usePinActions } from "./pins";
 import { fileUrl } from "../data/file-cache";
+import { flash } from "./flash";
+import { attachmentSender } from "../data/attachment-state";   // 보냄 줄 = 입력칸과 같은 것(받는 방에 「전송 대기」 말풍선이 먼저 뜸 · 실패 = 그 자리 「다시 보내기」)
 import { captureMsg } from "./capture";   // 「캡처」 = 그 글 한 줄을 그림으로(뎅 11-11 · 형 08:50 「책갈피 빼고는 가져오면 됨」)
 
 const HOLD_MS = 500, SLIP = 10, ORIGIN_MAX = 2000;   // 0.5초(형 10-31 「적어도 0.5초 터치는 해야함」)
@@ -45,6 +47,8 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   const others = list.filter((p) => p.who !== "형" && p.kind !== "human");
   const targets = r?.with || !r?.members?.length ? others : r.members.map((n) => list.find((p) => p.who === n)).filter((p): p is OfficePerson => !!p);
   const done = (t: string) => { setNote(t); window.setTimeout(onClose, 900); };
+  const [leaving, setLeaving] = useState(false);
+  const closeSoft = () => { setLeaving(true); window.setTimeout(onClose, 170); };   // 바로 · 부드럽게 닫힘(투명도 · 크기만 · ./yeta-chat.css .nm-msgm.out)
   const send = (id: string, body: string) => office(`rooms/${encodeURIComponent(id)}/messages`, { method: "POST", body: JSON.stringify({ text: body }) });
   const ask = async (t: OfficePerson | null) => {
     setBusy(true); setWhy("");
@@ -78,11 +82,15 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   // 내부 공유(형 11-05 12:31 개발자 회의방 「다른 채팅창에서 그걸 채팅이나 이미지를 눌러서 내부 공유를 누르면, 우리 사무실 내부 다른 곳으로 전달되게」)
   //   = 고른 방에 그 글을 다시 올림 · 첨부는 받아서 지금 첨부 길(/files)로 그대로(original = 다시 안 줄임 · 받는 사람 폴더에도 들어감) · 머리 줄 = 어느 방 누구 글인지
   const rooms = (qc.getQueryData<OfficeRoom[]>(["nomute", "rooms"]) || []).filter((x) => x.id !== room && !x.id.startsWith("pair-") && x.id !== "notice" && x.id !== "summary");
-  const forward = async (to: OfficeRoom) => {
-    setBusy(true); setWhy("");
+  //   형 11-15 20:07 dm-bom(봄 옮김) 「내가 방 내용을 다른 방에 공유하면 화면이 멎었다가 풀려 렉때문인데 바로 창 부드럽게 꺼지고. 백단에서 공유 작업이 이루어질 수 있는지. 그 창에서는 바로 올라가야하고. 로딩으로 떠야해」
+  //   → 방을 고르는 순간 창이 닫히고, 첨부 받기 · 올리기는 보냄 줄(attachmentSender.later)에서 뒤로 · 받는 방엔 그 글이 「전송 대기」 말풍선으로 먼저 뜨고 다 되면 진짜 글
+  const forward = (to: OfficeRoom) => {
     const head = `↪ 「${r?.name || room}」 ${who}`, quiet = (raw || "").slice(0, 6000).replace(/(^|\s)([@!])(?=\S)/g, (_x, a: string, b: string) => a + (b === "@" ? "＠" : "！")), body = quiet ? `${head}\n${quiet}` : head;   // 넘긴 사본의 @·! = 전각(다른 방에서 또 깨우지 않게 · 원 글은 그대로)
-    try {
-      if (!paths.length) await send(to.id, body);
+    let ck = ""; try { ck = crypto.randomUUID().replace(/-/g, "").slice(0, 24); } catch { ck = `k${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`; }   // 다시 보내기 = 같은 열쇠(서버가 하나로)
+    const toName = to.with ? short(list.find((p) => p.who === to.with)?.name || to.with) : to.name;
+    attachmentSender.later(to.id, body, async () => {
+      try {
+      if (!paths.length) await office(`rooms/${encodeURIComponent(to.id)}/messages`, { method: "POST", body: JSON.stringify({ text: body, client_id: ck }) });
       else {
         const form = new FormData();
         (await Promise.all(paths.map(fetchFile))).forEach((f, i) => { form.append("file", f); form.append(`original_${i}`, "1"); });
@@ -90,10 +98,12 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
         const res = await fetch("/api/office/files", { method: "POST", credentials: "same-origin", body: form });
         if (!res.ok) { const j = (await res.json().catch(() => ({}))) as { why?: string; error?: string }; throw new Error(j.why || j.error || `못 보냈어 (${res.status})`); }
       }
+      } catch (e) { flash(`「${toName}」 공유를 못 했어 — 그 방에서 「다시 보내기」`); throw e; }   // 다른 방이라 못 볼 수 있음 → 한 줄 알림 · 글은 그 방 보냄 줄에 남음
+      flash(`「${toName}」에 보냈어`, "ok");
       void qc.invalidateQueries({ queryKey: ["nomute", "msgs", to.id] });
       void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
-      done(`「${to.name}」에 보냈어`);
-    } catch (e) { setBusy(false); setWhy(e instanceof Error ? e.message : "못 보냈어"); }
+    });
+    closeSoft();
   };
   const share = async () => {
     try {
@@ -109,7 +119,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   };
   const item = (label: string, on: () => void) => <button key={label} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={on}>{label}</button>;
   return createPortal(
-    <div className="nm-msgm" role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
+    <div className={leaving ? "nm-msgm out" : "nm-msgm"} role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
       <div className="nm-msgm-p" role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"}>
         {note ? <p className="nm-msgm-n" role="status">{note}</p> : gone ? (
           <>
