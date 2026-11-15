@@ -438,6 +438,13 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nrc-ok { padding:8px 16px; border:1px solid rgba(var(--accent-rgb, 207,255,64),.5); border-radius:999px; background:rgba(var(--accent-rgb, 207,255,64),.14); color:var(--accent, #CFFF40); font-size:var(--fs-label); font-weight:800; cursor:pointer; }
 .nrc-ok:disabled { opacity:.4; cursor:default; }
 :root:not(.dark) .nrc-ok { color:#3d5e00; border-color:rgba(79,122,0,.45); background:rgba(79,122,0,.08); }
+/* 모두 내보내기 확인(#-048 · 형 11-15) = 한 문장 + [예] [아니오(라임 · 기본)] · 폰 360 안 · 단추 44 높이(손가락) */
+.nm-kickall { width:min(100%,320px); }
+.nm-kickall .q { margin:4px 36px 0 2px; font-size:var(--fs-h3); font-weight:700; }
+.nm-kickall .nrc-acts button { min-width:88px; min-height:44px; font-size:var(--fs-h3); }
+.nm-kickall .yes { padding:8px 16px; border:1px solid rgba(255,255,255,.14); border-radius:999px; background:transparent; color:inherit; font-weight:600; cursor:pointer; }
+:root:not(.dark) .nm-kickall .yes { border-color:rgba(0,0,0,.18); }
+.nm-kickall .no:focus-visible { outline:2px solid var(--accent, #CFFF40); outline-offset:2px; }
 .nm-ask-hist { display:flex; flex-direction:column; gap:8px; max-height:min(60vh, 460px); margin:0; padding:0; overflow-y:auto; list-style:none; }   /* 질문 이력(./room-menu.tsx) */
 .nm-ask-hist li { padding:10px 12px; border-radius:14px; background:rgba(255,255,255,.04); }
 .nm-ask-hist .q { margin:0; font-family:var(--app-font-text, inherit); font-size:var(--fs-h3); line-height:1.4; white-space:pre-wrap; word-break:break-word; }
