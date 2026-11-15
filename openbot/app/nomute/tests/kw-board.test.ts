@@ -90,7 +90,7 @@ test("폰 키워드 판 넘김 = 뉴스 카드와 같은 방향(오른쪽으로 
 
 test("저장 · 전송 단추 = 게이지 알약(GoButton) 하나로 — 제 「저장 중…」 글자로 바꾸던 단추 0(형 11-15 「하네스 전반 통일」)", () => {
   const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
-  for (const f of ["dm-rule", "group-room", "room-look", "room-menu", "kw", "sensor", "snsacc", "profile-card"]) {
+  for (const f of ["dm-rule", "group-room", "room-look", "kw", "sensor", "snsacc", "profile-card"]) {   // room-menu = 저장 단추 없음(내보내기는 그 자리 재확인 · 뒤에서 · 형 11-16)
     const s = rd(`../ui/${f}.tsx`);
     assert.match(s, /import \{ GoButton, must \} from "\.\/go-button";/, `${f} = 게이지 단추`);
     assert.match(s, /<GoButton [^>]*go=\{must\(|<AskYN [^\n]*yes=\{must\(/, `${f} = 옛 꼴 저장 함수를 must 로 물림`);   // AskYN = 되묻는 창(그 안의 「예」가 게이지 단추 · ./ask-yn.tsx)

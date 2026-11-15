@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 const rd = (f: string) => readFileSync(new URL(`../ui/${f}`, import.meta.url), "utf8");
 
-test("재확인 단추 = 한 벌(.nm-yn) · 아홉 자리가 같은 묶음을 씀 · 움직임은 transform · opacity · filter 만", () => {
+test("재확인 단추 = 한 벌(.nm-yn) · 줄 안 물음 · 작은 창 · 그 자리 재확인이 같은 묶음을 씀 · 움직임은 transform · opacity · filter 만", () => {
   const css = rd("go-button.css");
   assert.match(css, /\.nm-yn\.nm-yn > button:is\(\.no, \.nm-no, \.pick\) \{ order:0; z-index:1;/);                 // 앞 알약 = 안전한 쪽 · 글 차례와 무관하게 왼쪽
   assert.match(css, /@keyframes nmYnFront \{ from \{ opacity:0; transform:scale\(\.92\); filter:blur\(6px\); \} \}/);
@@ -15,7 +15,6 @@ test("재확인 단추 = 한 벌(.nm-yn) · 아홉 자리가 같은 묶음을 �
   assert.doesNotMatch(body, /transition:[^;]*(width|left|margin|padding|flex)/, "배치를 다시 세는 움직임 0");
   assert.match(rd("msg-menu.tsx"), /<div className="nm-yn nm-msgm-yn">/);
   assert.match(rd("meet.tsx"), /<div className="nm-yn sm nm-meet-yn">/);
-  assert.match(rd("room-menu.tsx"), /<div className="nrc-acts nm-yn">/);
   assert.match(rd("task-panel.tsx"), /<span className="nm-yn sm"><button type="button" className="no"/);
   assert.match(rd("sched-desk.tsx"), /<span className="nm-yn sm">/);
   assert.match(rd("sched-review.tsx"), /<div className="nm-rv-row nm-yn sm">/);
@@ -24,10 +23,19 @@ test("재확인 단추 = 한 벌(.nm-yn) · 아홉 자리가 같은 묶음을 �
   assert.doesNotMatch(rd("meet.css"), /nm-meet-ask-ft/);
 });
 
-test("방 안 메뉴에서 body 로 띄운 지우기 창 = 대화창 색 칸(.nm-yeta) 안(「아니오」가 회색으로 보이던 것)", () => {
-  const m = rd("room-menu.tsx");
-  assert.match(m, /createPortal\(<div className="nm-yeta"><RoomGoneDialog r=\{gone\}/);
-  assert.match(m, /createPortal\(<div className="nm-yeta"><TempDeleteDialog r=\{tempDel\}/);
+test("방 없애기 · 지우기 · 내보내기 = 모달 0 · 그 자리 알약 둘 · 예 = 바로 닫고 목록에서 먼저 뺌 · 서버는 뒤에서(형 11-16 03:0x)", () => {
+  const menu = rd("room-menu.tsx"), list = rd("room-list.tsx"), set = rd("settings-extra.tsx"), drop = rd("room-drop.ts"), tr = rd("temp-room.tsx");
+  assert.match(menu, /const dropRoom = \(x: OfficeRoom\) => \{ close\(\); void nav\(\{ to: "\/rooms" \}\); dropRoomAway\(qc, x\); \};/);
+  assert.match(menu, /<MorphAsk role="menuitem" className="del" yesText="없애기"[^\n]*onYes=\{\(\) => dropRoom\(r\)\}>방 없애기<\/MorphAsk>/);
+  assert.match(menu, /<MorphAsk role="menuitem" className="del" yesText="지우기"[^\n]*onYes=\{\(\) => dropRoom\(r\)\}>방 지우기<\/MorphAsk>/);
+  assert.match(list, /<MorphAsk role="menuitem" startAsk=\{askDel === r\.id\}[^\n]*onYes=\{\(\) => dropRow\(r\)\}>방 없애기<\/MorphAsk>/);
+  assert.match(list, /<MorphAsk role="menuitem" startAsk=\{askDel === r\.id\}[^\n]*onYes=\{\(\) => dropRow\(r\)\}>삭제<\/MorphAsk>/);
+  assert.equal((list.match(/setSwiped\(""\); setAskDel\(r\.id\); setMenu\(r\.id\);/g) || []).length, 2);   // 줄을 밀어 휴지통(단체방 · 임시방) = 그 줄 메뉴가 묻는 꼴로
+  assert.match(set, /<MorphAsk label=[^\n]*dropRoomAway\(qc, \{ id: rid,/);
+  for (const f of [menu, list, set, tr]) assert.doesNotMatch(f, /<RoomGoneDialog|<TempDeleteDialog|function RoomGoneDialog|function TempDeleteDialog/);
+  assert.ok(drop.indexOf("qc.setQueryData<OfficeRoom[]>(ROOMS") < drop.indexOf("office(`${temp"), "목록에서 먼저 빼고 서버는 그다음");
+  assert.match(drop, /\.catch\(\(e: unknown\) => \{[\s\S]*flash\(`「\$\{r\.name\}」 방을 못[\s\S]*invalidateQueries\(\{ queryKey: ROOMS \}\)/);   // 못 했으면 알림 + 되돌림
+  assert.doesNotMatch(drop, /await office/, "기다리지 않음");
 });
 
 test("폴더 탭 줄 세 군데 = 고른 탭 바탕 한 장이 미끄러짐(./fold-ink.ts) · 이름은 번지며 나타남", () => {

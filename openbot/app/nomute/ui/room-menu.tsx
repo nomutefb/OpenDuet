@@ -2,7 +2,9 @@
 //   「방 설정 같은 것들. 대화방 프로필 설정 · 대화방 알림 · 대화방 질문 이력 · 파일 기록」)
 //   = 방 목록 줄 메뉴(./room-list.tsx)의 방 설정 칸을 방 안에서 · 표지 색·이름 = ./room-color.tsx 판 그대로 · 알림 = 봄 서버(../data/notify.ts) 같은 열쇠
 //   질문 이력 = 봄 서버 GET decisions?room=&all=1(못 받으면 칸 안 보임) · 파일 기록 = 이 기기 방 글(최근 300 + 지금 받은 판)의 첨부 · 사진은 폰 사본 7일(../data/file-cache.ts)
-import { AskYN } from "./ask-yn";   // 되묻는 창 하네스(형 11-15 09:00)
+import { MorphAsk } from "./morph-ask";   // 그 자리 재확인(모달 0 · 형 11-16 03:0x)
+import { dropRoomAway } from "./room-drop";   // 방 없애기 · 지우기 = 바로 닫고 뒤에서
+import { flash } from "./flash";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
@@ -15,14 +17,13 @@ import { cachedFile, fileUrl, filesHeld, pruneFiles } from "../data/file-cache";
 import { type NotifyState, notifyOn, notifyState } from "../data/notify";
 import { setUnfold, useUnfold } from "./unfold";
 import { RainbowOrb, RoomColorPick, RoomNamePick } from "./room-color";
-import { RoomGoneDialog, RoomMembersDialog, TempDeleteDialog, TempRoomDialog, canGone } from "./temp-room";   // 방 멤버 = 방 안 메뉴에서도(형 11-05 09:37 봄 1:1 「톡방 지금 인원을 내가 톡방 설정에서 배분하고 내보내고 그걸 맘대로 하고 싶거든?」)
+import { RoomMembersDialog, TempRoomDialog, canGone } from "./temp-room";   // 방 멤버 = 방 안 메뉴에서도(형 11-05 09:37 봄 1:1 「톡방 지금 인원을 내가 톡방 설정에서 배분하고 내보내고 그걸 맘대로 하고 싶거든?」)
 import { whoName } from "./who-name";
 import { RoomLookDialog } from "./room-look";
 import { DmRuleDialog, dmRuleRoom } from "./dm-rule";
 import { GroupRoomDialog, groupRuleRoom } from "./group-room";   // 회의실 · 고정 단톡방 방 설정(형 11-14 17:20 「다ㄴ톡방 모두 통일해주라」 · 번개)   // 1:1 방 지침(형 11-11 22:28 · 깃)
 import { isPairRoom } from "./pair-fold";
 import { useMe } from "./pins";   // 나 = 형 자리인가(me.kind === "human" · 「모두 내보내기」 문 · #-048)
-import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 /** 방 메뉴 것(옛 우상단 ≡ 단추) = 윗줄 가운데 이름을 누른 목록 안으로(형 11-06 20:37 「애초에 그냥 방 메뉴를 저기서 나오게 해버려도 … 메뉴를 축약해서 하나로 가능한 통합시킨다음에 … 비슷한거끼리」 ·
  *  20:39 「방 설정등이 최대한 기능 응축되어있으면 굳이 별도의 방 설정 메뉴가 따로 우상단에 있을필요없음」 · 시아 판 ①~④) — 줄 = 사람 칸(crew) · 방 칸(items) · 창(dialogs · 목록이 닫혀도 남음) */
@@ -30,14 +31,12 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   const qc = useQueryClient();
   const [tinting, setTinting] = useState<OfficeRoom | null>(null), [naming, setNaming] = useState<OfficeRoom | null>(null), [err, setErr] = useState("");
   const notify = useQuery({ queryKey: ["nomute", "notify"], queryFn: () => office<Partial<NotifyState>>("notify").then(notifyState), staleTime: 60_000, retry: false });
-  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [tempEdit, setTempEdit] = useState(false), [look, setLook] = useState(false), [dmRule, setDmRule] = useState(false), [groupEdit, setGroupEdit] = useState(false), [kickAll, setKickAll] = useState(false);
+  const [hist, setHist] = useState(false), [files, setFiles] = useState(false), [kick, setKick] = useState(false), [crew, setCrew] = useState(false), [tempEdit, setTempEdit] = useState(false), [look, setLook] = useState(false), [dmRule, setDmRule] = useState(false), [groupEdit, setGroupEdit] = useState(false);
   const me = useMe();
-  // 방 없애기 · 방 지우기 = 방 안 메뉴에서도(형 11-15 18:1x 「단체방들 지금 대화방 안에서 대화방 나가기? 대화방 삭제 그게 안되는데 그거 가능하게 변경해줘」) — 앞 판 = 방 목록 줄(끌기 🗑️ · ⋯)과 설정에만 있었음
-  //   되묻는 창 · 서버 길 = 목록과 같은 부품 그대로(단체방 RoomGoneDialog = DELETE rooms/<id> · 임시방 TempDeleteDialog = DELETE temprooms/<id>) · 못 없애는 방 = canGone 그대로
-  //   지운 뒤 = 방 목록으로(「/방파기」와 같은 길) · 옮기는 때 = 서버가 지웠다고 답한 바로 그때(onDropped) — 방이 목록에서 빠지면 이 메뉴(창 포함)가 통째로 사라져 창의 done 은 안 불림(가짜 서버 실측)
+  // 방 없애기 · 방 지우기 = 방 안 메뉴에서도(형 11-15 18:1x 「대화방 안에서 … 대화방 삭제 그게 안되는데 그거 가능하게 변경해줘」) · 모달 0(형 11-16 03:0x 「모달로 안뜨게하구 … 바로 부드럽게 닫히고 백단에서 처리하게」)
+  //   메뉴 줄을 누르면 그 줄이 [아니오][예] 알약으로 바뀜(./morph-ask) → 예 = 메뉴 닫고 방 목록으로 · 목록에서 먼저 빼고 서버는 뒤에서(./room-drop · 못 했으면 알림 한 줄) · 못 없애는 방 = canGone 그대로
   const nav = useNavigate();
-  const [gone, setGone] = useState<OfficeRoom | null>(null), [tempDel, setTempDel] = useState<OfficeRoom | null>(null);
-  const toList = () => { void nav({ to: "/rooms" }); };
+  const dropRoom = (x: OfficeRoom) => { close(); void nav({ to: "/rooms" }); dropRoomAway(qc, x); };
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: !!room, staleTime: 60_000, retry: false });   // 방에 들어올 때 미리(메뉴 열 때 받으면 이 칸이 한 박자 늦게 붙어 「2차로 나뉘어서 뜸」 · 형 11-12 06:30 · 뎅) · 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
   const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: !!room, staleTime: 60_000, retry: false });   // 방에 들어올 때 미리(위와 같은 까닭 · 형 11-12 06:30) · 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
   const setBell = async (on: boolean) => {
@@ -54,13 +53,13 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   };
   const nOn = notifyOn(notify.data, room, !!r?.with), unfold = useUnfold(room);
   const go = (f: () => void) => () => { close(); f(); };
-  // 모두 내보내기(#-048 · 형 11-15) = 「예」 누르면 창 바로 닫고 서버에 던짐(서버 = {ok, accepted} 곧바로 · 빼기는 뒤에서) · 실패만 메뉴 오류 줄
+  // 모두 내보내기(#-048 · 형 11-15) = 메뉴 줄이 그 자리에서 [아니오][예]로(모달 0 · 형 11-16) · 「예」 = 메뉴 바로 닫고 서버에 던짐(서버 = {ok, accepted} 곧바로 · 빼기는 뒤에서) · 실패 = 알림 한 줄
   const kickAllGo = (x: OfficeRoom) => {
-    setKickAll(false); setErr("");
+    close(); setErr("");
     qc.setQueryData<OfficeRoom[]>(["nomute", "rooms"], (old) => old?.map((y) => (y.id === x.id ? { ...y, members: [] } : y)));   // 먼저 비워 보임
     office(KICK_ALL, { method: "POST", body: JSON.stringify({ room: x.id }) })
       .then(() => { setTimeout(() => void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }), 1500); })   // 뒤에서 다 빠질 즈음 다시 읽음(인원 숫자)
-      .catch((e) => { setErr(`모두 내보내지 못했어 · ${(e as Error).message}`); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); });   // 못 했으면 비워 둔 것 되돌림
+      .catch((e) => { flash(`모두 내보내지 못했어 — 다시 해 줘 (${(e as Error).message})`); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); });   // 못 했으면 비워 둔 것 되돌림
   };
   const canKickAll = !!r && me?.kind === "human" && kickAllRoom(r) && (!r.members || r.members.some((w) => w !== "형"));   // 형만 · 단체방만 · 봇이 하나도 없으면 숨김(인원 모르면 보임)
   // 사람 칸 = 「멤버 설정」(지정방 roomset · 임시방 temprooms · 형 11-07 13:38 「초대랑 별개로」) · 회의실 「잠시 내보내기」
@@ -68,7 +67,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
     <>
       {(!r.with && r.id !== MEET && r.designated && !r.temp) || r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>멤버 설정<small>{r.members?.length ? r.members.length + 1 : ""}</small></button> : null}
       {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={go(() => setKick(true))}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」) */}
-      {canKickAll ? <button type="button" role="menuitem" onClick={go(() => setKickAll(true))}>모두 내보내기</button> : null}   {/* 단체방 다(회의실 · 지정방 · 호실) · 형만(#-048 · 형 11-15) */}
+      {canKickAll ? <MorphAsk role="menuitem" yesText="내보내기" onYes={() => kickAllGo(r)}>모두 내보내기</MorphAsk> : null}   {/* 단체방 다(회의실 · 지정방 · 호실) · 형만(#-048 · 형 11-15) */}
     </>
   ) : null;
   const items = r ? (
@@ -84,8 +83,8 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       <button type="button" role="menuitem" onClick={go(() => setFiles(true))}>파일 기록</button>
       {asks.data ? <button type="button" role="menuitem" onClick={go(() => setHist(true))}>질문 이력<small>{asks.data.length}</small></button> : null}
       <button type="button" role="menuitemcheckbox" aria-checked={unfold} onClick={() => setUnfold(room, !unfold)}>긴 글 다 펼쳐 보기<small>{unfold ? "켬" : "끔"}</small></button>   {/* 켬 = 17줄 접기 풂(./unfold.ts · 형 11-04 08:08 · 기본 끔 = 접힘) */}
-      {canGone(r) ? <button type="button" role="menuitem" className="del" onClick={go(() => setGone(r))}>방 없애기</button> : null}   {/* 고정 단체방(못 없애는 방 = 회의실 · 요약실 · 수리 접수 · 메모 · 공지 · 밥상 · 1:1 · 둘의 방) */}
-      {r.temp ? <button type="button" role="menuitem" className="del" onClick={go(() => setTempDel(r))}>방 지우기</button> : null}   {/* 임시 단톡방 = 파기 */}
+      {canGone(r) ? <MorphAsk role="menuitem" className="del" yesText="없애기" note="목록 · 부름에서 빠져 · 글은 서버에 남아" onYes={() => dropRoom(r)}>방 없애기</MorphAsk> : null}   {/* 고정 단체방(못 없애는 방 = 회의실 · 요약실 · 수리 접수 · 메모 · 공지 · 밥상 · 1:1 · 둘의 방) */}
+      {r.temp ? <MorphAsk role="menuitem" className="del" yesText="지우기" note="글이 모두 지워져 · 되돌릴 수 없어" onYes={() => dropRoom(r)}>방 지우기</MorphAsk> : null}   {/* 임시 단톡방 = 파기 */}
     </>
   ) : null;
   const dialogs = (
@@ -95,15 +94,12 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       {files && r ? <FileLog room={room} name={r.name} onClose={() => setFiles(false)} /> : null}
       {hist && r ? <AskHistory name={r.name} items={asks.data || []} onClose={() => setHist(false)} /> : null}
       {kick && r ? <MeetOut room={r} onClose={() => setKick(false)} /> : null}
-      {kickAll && r ? <KickAllAsk name={r.name} no={() => setKickAll(false)} yes={() => kickAllGo(r)} /> : null}
       {/* 창 셋 = body 로 띄움 — 방 메뉴가 머리 제목(.nm-toptitle · transform) 안에 있어 fixed 창이 제목 칸(200×50)에 갇혀 PC 에서 「방 설정」이 안 보였음(시아 11-07 라이브 실물) */}
       {look && r ? createPortal(<RoomLookDialog r={r} onClose={() => setLook(false)} />, document.body) : null}
       {tempEdit && r ? createPortal(<TempRoomDialog edit={r} onClose={() => setTempEdit(false)} />, document.body) : null}
       {groupEdit && r ? <GroupRoomDialog room={r} onClose={() => setGroupEdit(false)} /> : null}
       {crew && r ? createPortal(<RoomMembersDialog r={r} onClose={() => setCrew(false)} />, document.body) : null}
       {dmRule && r ? <DmRuleDialog room={r} onClose={() => setDmRule(false)} /> : null}
-      {gone ? createPortal(<div className="nm-yeta"><RoomGoneDialog r={gone} onClose={() => setGone(null)} onDropped={toList} /></div>, document.body) : null}   {/* .nm-yeta = 대화창 색 칸(body 로 빠지면 원본 앱 --accent 회색을 받아 「아니오」가 꺼진 것처럼 보였음 · 형 11-16 사진) */}
-      {tempDel ? createPortal(<div className="nm-yeta"><TempDeleteDialog r={tempDel} onClose={() => setTempDel(null)} onGone={() => {}} onDropped={toList} /></div>, document.body) : null}
     </>
   );
   const hasCrew = !!r && (((!r.with && r.id !== MEET && !!r.designated && !r.temp) || !!r.temp) || (r.id === MEET && (r.members?.length || 0) > 0) || canKickAll);
@@ -124,7 +120,6 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
     window.addEventListener("keydown", off);
     return () => window.removeEventListener("keydown", off);
   }, [onClose]);
-  const [sure, setSure] = useState(false);
   const all = members.length > 0 && members.every((w) => pick.has(w));
   const flip = (w: string) => setPick((s) => { const n = new Set(s); if (n.has(w)) n.delete(w); else n.add(w); return n; });
   const go = async () => {
@@ -146,8 +141,7 @@ function MeetOut({ room, onClose }: { room: OfficeRoom; onClose: () => void }) {
           {members.map((w) => <button key={w} type="button" className="row" aria-pressed={pick.has(w)} onClick={() => flip(w)}>{list.find((p) => p.who === w)?.name || w}</button>)}
         </div>
         {err ? <p role="alert" className="nm-meet-err">{err}</p> : null}
-        <div className="nrc-acts"><button type="button" className="nrc-ok" disabled={!pick.size || busy} onClick={() => setSure(true)}>내보내기</button></div>
-        {sure ? <AskYN q="정말 내보내시겠습니까?" note={all ? "모두" : `${pick.size}명`} onNo={() => setSure(false)} yes={must(go)} close={onClose} done={onClose} what="내보내기" busy="내보내는 중" /> : null}   {/* 형 11-15 09:00 「누르면 정말 내보내시겠습니까? 아니오 예 아니오에 라임 … 예 누르고 백단에서 진행」 */}
+        <div className="nrc-acts"><MorphAsk className="nrc-ok" disabled={!pick.size || busy} yesText="내보내기" note={all ? "모두" : `${pick.size}명`} onYes={() => { onClose(); void go().then((ok) => { if (!ok) flash("못 내보냈어 — 다시 해 줘"); }); }}>내보내기</MorphAsk></div>   {/* 그 자리 재확인(모달 0) · 예 = 창 바로 닫고 뒤에서(형 11-16 03:0x) */}
       </div>
     </div>,
     document.body,
@@ -158,31 +152,6 @@ const MEET_OUT = "meet/kick";   // 봄 서버 길(형 자리만 · 봇·우리 �
 const KICK_ALL = "rooms/kick-all";   // 서버 길(#-048) = {room} → {ok, accepted, room} · 403 human_only · 404 no_room · 400 not_group · 409 mirror_room
 /** 모두 내보내기 되는 방 = 서버 단체방 규칙 그대로(1:1 아님 · 둘의 방 아님 · 공지 · 고침 창구 아님) + 거울방(ideation = 409) 뺌 */
 export const kickAllRoom = (r: OfficeRoom) => !r.with && r.kind !== "dm" && !isPairRoom(r.id) && r.id !== "notice" && r.id !== "repair" && r.id !== "ideation";
-
-/** 「정말 내보내시겠습니까?」(#-048 · 형 11-15) — 기본 = 아니오(라임 · autoFocus · Enter) · Esc · 바탕 · 창 X = 아니오 · 예 = 손수 골라야만 */
-function KickAllAsk({ name, no, yes }: { name: string; no: () => void; yes: () => void }) {
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); no(); }
-      else if (e.key === "Enter" && !(document.activeElement as HTMLElement | null)?.classList.contains("yes")) { e.preventDefault(); e.stopPropagation(); no(); }   // Enter = 아니오(「예」로 손수 옮겨 간 때만 예)
-    };
-    window.addEventListener("keydown", k, true);
-    return () => window.removeEventListener("keydown", k, true);
-  }, [no]);
-  return createPortal(
-    <div className="nrc-veil nm-yeta" role="presentation" {...backdrop(no)}>
-      <div className="nrc nm-kickall" role="alertdialog" aria-modal="true" aria-label={`${name} 모두 내보내기`} onClick={(e) => e.stopPropagation()}>
-        <DialogX onClose={no} />
-        <p className="q">정말 내보내시겠습니까?</p>
-        <div className="nrc-acts nm-yn">   {/* 재확인 단추 한 벌(./go-button.css .nm-yn · 형 11-16) — 글 차례는 그대로 · 화면에선 아니오(라임)가 왼쪽 */}
-          <button type="button" className="yes" onClick={yes}>예</button>
-          <button type="button" className="nrc-ok no" autoFocus onClick={no}>아니오</button>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
 
 type Ask = { id: string; who?: string; q?: string; choices?: string[]; at?: string; ts?: number; choice?: { i?: number; label?: string; pass?: boolean; text?: string; at?: string } };
 

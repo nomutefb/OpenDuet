@@ -20,7 +20,8 @@ test("되묻는 창 = 아니오 라임(엔터 자리) · 예는 뒤에서(형 11
   const y = src("ui/ask-yn.tsx");
   assert.match(y, /<button type="button" className="no" autoFocus onClick=\{onNo\}>\{no\}<\/button>\s*\n\s*<GoButton className="yes" go=\{yes\} done=\{done\} away=\{close\}/);
   assert.match(src("ui/go-button.css"), /\.nm-yn > button\.no \{ border-color:var\(--accent, #CFFF40\); background:var\(--accent, #CFFF40\); color:#141414; \}/);
-  assert.equal((src("ui/temp-room.tsx").match(/<YesNo onNo=\{onClose\} yes=\{drop\} close=\{onClose\}/g) || []).length, 2);
-  assert.match(src("ui/room-menu.tsx"), /<AskYN q="정말 내보내시겠습니까\?"/);
+  // 방 없애기 · 지우기 · 내보내기 = 되묻는 창(모달) 대신 그 자리 알약 둘 · 예 = 바로 닫고 뒤에서(형 11-16 03:0x 「모달로 안뜨게하구 … 창이 멎게 안하고 바로 부드럽게 닫히고 백단에서 처리하게」 · tests/morph-ui.test.ts)
+  assert.doesNotMatch(src("ui/temp-room.tsx"), /TempDeleteDialog\(|RoomGoneDialog\(/);
+  assert.match(src("ui/room-menu.tsx"), /<MorphAsk className="nrc-ok" disabled=\{!pick\.size \|\| busy\} yesText="내보내기"/);
   assert.match(src("ui/save-ask.tsx"), /<button type="button" className="no" autoFocus onClick=\{onKeep\}>아니오<\/button>/);
 });

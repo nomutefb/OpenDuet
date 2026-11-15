@@ -19,7 +19,9 @@ import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/off
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
 import { LiveShine } from "./live-shine";
-import { RoomGoneDialog, RoomMembersDialog, TempDeleteDialog, TempRoomDialog, TempSwipe, canGone, tempLeft } from "./temp-room";
+import { RoomMembersDialog, TempRoomDialog, TempSwipe, canGone, tempLeft } from "./temp-room";
+import { MorphAsk } from "./morph-ask";   // 방 없애기 · 삭제 = 그 자리 재확인(모달 0 · 형 11-16 03:0x)
+import { dropRoomAway } from "./room-drop";   // 예 = 바로 목록에서 빼고 뒤에서
 import { RoomLookDialog } from "./room-look";   // 단톡 개요 「방 꾸미기」 = 방 안 메뉴와 같은 창
 import { whoName } from "./who-name";
 import { listWhen } from "./when";
@@ -249,7 +251,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     if (!f || !room) return;
     try { setPendPic({ room, url: await shrink192(f) }); } catch (e) { setNotifyErr(`사진을 못 읽었어 · ${(e as Error).message}`); }   // 바로 안 올림 = 보여 주고 「저장」(NotifyPicPick)
   };
-  const nav = useNavigate(), [swiped, setSwiped] = useState(""), [editing, setEditing] = useState<Room | null>(null), [deleting, setDeleting] = useState<Room | null>(null), [gone, setGone] = useState<Room | null>(null), [membering, setMembering] = useState<Room | null>(null);   // 임시방 줄 왼쪽 끌기 = 수정·삭제 · 단톡방 = 설정·🗑️(형 11-05)
+  const nav = useNavigate(), [swiped, setSwiped] = useState(""), [editing, setEditing] = useState<Room | null>(null), [askDel, setAskDel] = useState(""), [membering, setMembering] = useState<Room | null>(null);   // 임시방 줄 왼쪽 끌기 = 수정·삭제 · 단톡방 = 설정·🗑️(형 11-05)
 
   const toggle = (k: string, s: Set<string>, set: (s: Set<string>) => void, id: string) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); writeSet(k, n); set(n); setMenu(""); };
   const markRead = async (r: Room, read: boolean) => {
@@ -257,10 +259,12 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     try { await (read ? roomReadState.read(r.id, r.last_ts, true) : roomReadState.unread(r.id, r.last_ts)); } catch { /* 표는 되돌리고 아래 오류를 보인다. */ }
   };
 
-  const wrapTemp = (r: Room, row: ReactNode) => (r.temp ? <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} onEdit={() => { setSwiped(""); setEditing(r); }} onDelete={() => { setSwiped(""); setDeleting(r); }}>{row}</TempSwipe>
+  useEffect(() => { if (!menu) setAskDel(""); }, [menu]);   // 메뉴가 닫히면 「묻는 꼴로 열기」 표시도 지움(다음에 ⋯ 로 열 땐 보통 꼴)
+  const dropRow = (r: Room) => { setMenu(""); setAskDel(""); if (current === r.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); dropRoomAway(qc, r); };   // 보던 방을 없앴으면 회의실로(앞 판과 같음)
+  const wrapTemp = (r: Room, row: ReactNode) => (r.temp ? <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} onEdit={() => { setSwiped(""); setEditing(r); }} onDelete={() => { setSwiped(""); setAskDel(r.id); setMenu(r.id); }}>{row}</TempSwipe>
     // 다른 방 = 왼쪽으로 밀면 설정 칸 하나(형 11-02 02:20 「여기 톡방 좌측으로 밀면 설정 버튼이 뜨게 해줘 그 액션은 예타 리포지토리에 있어」 · 예타 yLrBind 끌기 · 누르면 길게 누르기·⋯ 와 같은 줄 메뉴)
     // 단톡방 = 설정 옆 🗑️(형 11-05 「좌측으로 하면 휴지통 모양 하나 나와서 정말 없애겠냐고 뜨고」 · 못 없애는 방 = canGone)
-    : <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} width={canGone(r) ? 128 : 64} acts={[{ key: "set", cls: "set", aria: "설정", label: <DuetIcon name="settings" size={20} />, on: () => { setSwiped(""); setMenu(r.id); } }, ...(canGone(r) ? [{ key: "del", cls: "del", aria: "방 없애기", label: <DuetIcon name="trash" size={20} />, on: () => { setSwiped(""); setGone(r); } }] : [])]}>{row}</TempSwipe>);
+    : <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} width={canGone(r) ? 128 : 64} acts={[{ key: "set", cls: "set", aria: "설정", label: <DuetIcon name="settings" size={20} />, on: () => { setSwiped(""); setMenu(r.id); } }, ...(canGone(r) ? [{ key: "del", cls: "del", aria: "방 없애기", label: <DuetIcon name="trash" size={20} />, on: () => { setSwiped(""); setAskDel(r.id); setMenu(r.id); } }] : [])]}>{row}</TempSwipe>);
   const Row = ({ r }: { r: Room }) => {
     const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;
     const preview = l ? previewLine(l.text || "") : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";   // 단톡 미리보기 = 글만(형 11-01 14:06 「대화만 나오면 되 문자열만 누가 나오는지 안보여도 됨」 · 옛 「깃:」 머리 뺌)
@@ -314,8 +318,9 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
             {!r.with && !r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); if (groupRuleRoom(r)) setGrouping(r); else setNaming(r); }}>{groupRuleRoom(r) ? "방 설정" : "이름 바꾸기"}</button> : null}
             {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setEditing(r); }}>수정</button> : null}
             {r.id !== "all" && (r.designated || r.temp) ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); if (r.temp) setEditing(r); else setMembering(r); }}>멤버 넣고 빼기</button> : null}   {/* 형 11-05 「톡 목록에서 설정하게 일원화」 */}
-            {canGone(r) ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" onClick={() => { setMenu(""); setGone(r); }}>방 없애기</button> : null}
-            {r.temp ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" onClick={() => { setMenu(""); setDeleting(r); }}>삭제</button> : null}
+            {/* 방 없애기 · 삭제 = 그 줄이 [아니오][예]로 바뀜(모달 0) · 예 = 메뉴 바로 닫고 목록에서 먼저 뺌 · 서버는 뒤에서(./room-drop · 형 11-16 03:0x 「모달로 안뜨게하구 … 바로 부드럽게 닫히고 백단에서 처리하게」) · 줄을 밀어 휴지통 = 이 메뉴가 묻는 꼴로 열림 */}
+            {canGone(r) ? <MorphAsk role="menuitem" startAsk={askDel === r.id} className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" boxClass="px-3 py-2" yesText="없애기" note="목록 · 부름에서 빠져 · 글은 서버에 남아" onYes={() => dropRow(r)}>방 없애기</MorphAsk> : null}
+            {r.temp ? <MorphAsk role="menuitem" startAsk={askDel === r.id} className="rounded-lg px-3 py-2 text-left text-destructive hover:bg-foreground/5" boxClass="px-3 py-2" yesText="지우기" note="글이 모두 지워져 · 되돌릴 수 없어" onYes={() => dropRow(r)}>삭제</MorphAsk> : null}
             {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void setNotify({ room: r.id, on: !nOn })}>알림<span className="text-xs text-muted-foreground">{nOn ? "켬" : "끔"}</span></button> : null}   {/* 지금 상태 = 오른쪽 켬/끔 · 누르면 바뀜 */}
             {notify.data && !r.with ? <button type="button" role="menuitem" className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => { setMenu(""); setPicking(r.id); pick.current?.click(); }}>알림 그림{nImg ? <img src={nImg} alt="" className="size-5 rounded" /> : null}</button> : null}
             {notify.data && nImg ? <button type="button" role="menuitem" className="rounded-lg px-3 py-2 text-left hover:bg-foreground/5" onClick={() => void setNotify({ room: r.id, image: "" })}>알림 그림 지우기</button> : null}
@@ -360,8 +365,6 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
         save={() => office<Partial<NotifyState>>("notify", { method: "POST", body: JSON.stringify({ room: pendPic.room, image: pendPic.url }) }).then((j) => qc.setQueryData(["nomute", "notify"], notifyState(j)))} /> : null}
       {editing ? <TempRoomDialog edit={editing} onClose={() => setEditing(null)} /> : null}
       {membering ? <RoomMembersDialog r={membering} onClose={() => setMembering(null)} /> : null}
-      {gone ? <RoomGoneDialog r={gone} onClose={() => setGone(null)} onGone={() => { if (current === gone.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
-      {deleting ? <TempDeleteDialog r={deleting} onClose={() => setDeleting(null)} onGone={() => { if (current === deleting.id) void nav({ to: "/group/$channelId", params: { channelId: "all" } }); }} /> : null}
       {/* 목록 머리 공지 띠 · 기사 요약(신문) 동그라미 뺌 = 그 자리를 목록 줄로(형 11-14 23:27 dm-gik 「깃 대화목록 우상단에 신문 버튼 누르면 윈터얼굴에 예전 메뉴나와 저거 삭제해주라 그리구 공지 저거 설정에서 지정해도 이제 될거같아. … 설정 안으로 옮겨줘. 그리고 그 만큼 여백 확보해서 대화 목록 라인으로 활용해」 · 깃 #-016 · 뜸) · 공지 보기 · 고치기 = 설정 「공지 설정」(같은 noticeset 길) · 봇 깸 공지(read room=notice) = 서버 그대로 */}
       {noticeOpen ? <NoticeDialog onClose={() => setNoticeOpen(false)} /> : null}
       <ul className="nm-rgroup flex flex-col">
