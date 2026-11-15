@@ -571,6 +571,8 @@ form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pan
 .nm-org-log ol { display:flex; flex-direction:column; gap:6px; list-style:none; margin:0; padding:0; }
 .nm-org-log li { display:flex; align-items:center; gap:10px; } .nm-org-log b { display:block; font-size:var(--fs-label); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-org-log small { display:block; font-size:var(--fs-sm); color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* 폰 = 「최근 바뀜」 값 줄을 접어 다 보임 — 한 줄 고정이면 「언제 앞 값 › …」에서 끊겨 바뀐 값 · 누가 · 언제가 안 보였음(실제 값으로 390px 에 띄워 봄 · 형 11-15 「다른 것도 야무지게 이쁘게」) · PC 는 한 줄 그대로 */
+@media (max-width:640px) { .nm-org-log small { white-space:normal; overflow:visible; text-overflow:clip; line-height:1.45; } .nm-org-log li { align-items:flex-start; } .nm-org-log em { margin-top:1px; } .nm-org-log .nm-dp:not([data-play]) :is(.nm-dp-old, .nm-dp-new) { display:inline; } }   /* 앞 값 › 새 값 = 글처럼 이어 흐름(덩이째 줄바꿈 → 「›」만 한 줄에 남던 것) · 방금 바뀐 줄(data-play)은 움직임 때문에 덩이 그대로 */
 .nm-org-log em { flex:none; padding:2px 8px; border-radius:999px; font-size:var(--fs-xs); font-style:normal; font-weight:600; border:1px solid var(--glass-line); color:var(--mut); }
 .nm-org-log em[data-k="got"], .nm-org-log em[data-k="live"], .nm-org-log em[data-k="ok"] { border-color:rgba(var(--accent-rgb, 207,255,64),.45); color:var(--accent, var(--accent, #CFFF40)); }
 .nm-org-log em[data-k="wait"] { border-color:rgba(255,210,122,.45); color:#ffd27a; }
