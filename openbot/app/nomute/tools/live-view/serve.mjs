@@ -20,7 +20,8 @@ http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x'), p = decodeURIComponent(u.pathname);
   const done = (tag) => log.write(`${req.method} ${u.pathname}${u.search} → ${tag}\n`);
   try {
-    if (p.startsWith('/office-app')) { let rel = p.slice('/office-app'.length) || '/'; if (rel === '/') rel = '/index.html'; const f = path.join(DIST, rel); done('dist'); return file(res, fs.existsSync(f) && fs.statSync(f).isFile() ? f : path.join(DIST, 'index.html')); }
+    const app = /^\/(garden-app|office-app)(?=\/|$)/.exec(p);   // 앱 자리 = garden-app(11-15 이름 바꿈) · 옛 office-app 도 같이
+    if (app) { let rel = p.slice(app[0].length) || '/'; if (rel === '/') rel = '/index.html'; const f = path.join(DIST, rel); done('dist'); return file(res, fs.existsSync(f) && fs.statSync(f).isFile() ? f : path.join(DIST, 'index.html')); }
     if (p.startsWith('/api/office/')) {
       if (req.method !== 'GET') { done('막음(읽기만)'); res.writeHead(403, { 'content-type': 'application/json' }); return res.end('{"ok":false,"error":"read_only","why":"로컬 확인 = 읽기만"}'); }
       const rest = p.slice('/api/office/'.length);

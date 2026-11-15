@@ -1,6 +1,6 @@
 import fs from 'node:fs'; import path from 'node:path';
 import { createRequire } from 'node:module'; const { chromium } = createRequire(import.meta.url)('playwright');
-const S = process.env.NM_OUT || path.join(process.env.TMPDIR || '/tmp', 'nm-live-view'); fs.mkdirSync(S, { recursive: true }); const base = 'http://127.0.0.1:8899/office-app/';
+const S = process.env.NM_OUT || path.join(process.env.TMPDIR || '/tmp', 'nm-live-view'); fs.mkdirSync(S, { recursive: true }); const base = 'http://127.0.0.1:8899/garden-app/';
 const jobs = JSON.parse(process.argv[2]);   // [{name, hash, w, h, wait, js}]
 const br = await chromium.launch();
 for (const j of jobs) {

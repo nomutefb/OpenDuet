@@ -11,7 +11,7 @@
 ## 쓰는 법
 ```bash
 cd openbot/app/nomute && npm ci --no-audit --no-fund && ln -sfn "$(readlink -f node_modules)" ../node_modules && npx vite build
-node tools/live-view/serve.mjs 8899 &          # 로컬 서버(127.0.0.1:8899)
+node tools/live-view/serve.mjs 8899 &          # 로컬 서버(127.0.0.1:8899 · 앱 자리 /garden-app/)
 node tools/live-view/shot.mjs '[{"name":"home","hash":"#/"},{"name":"sched","hash":"#/sched","wait":8000},{"name":"pc","hash":"#/chan","w":1280,"h":800}]'
 ```
 - 사진 = `$NM_OUT`(기본 `$TMPDIR/nm-live-view`)`/<name>.png` · 폰 412×892 @2x · `w` 700 넘으면 PC.
@@ -41,3 +41,17 @@ node tools/live-view/shot.mjs '[{"name":"home","hash":"#/"},{"name":"sched","has
 - 그래픽 장치가 없어 3D 장면이 메인 스레드를 다 쓴다(일 ≈ 1000ms/초). 장면이 보이는 화면의 숫자는 비교용으로만.
 - 쓰기(POST)는 403. 단추를 누르면 「못 보냄」 빨강이 정상. 누름 동작은 작은 시험 화면(esbuild 로 부품 하나만 묶기)으로 본다.
 - 열쇠 자리가 봇 「자리2」라 스케줄 나무 · 바꾸기 단추는 `NM_AS_OWNER=1` 일 때만 보인다.
+
+## 재는 도구 셋 (11-16 · 형 「이제 너가 로컬에서 하면 프레임수도 알아서 재야하고, 내가 영상 보내면 그것도 알아서 재야해 항상 60으로」 · 「샘플을 주면 최대한 이에 가깝게 구현할 수 있는 방법」)
+| 파일 | 하는 일 | 쓰는 법 |
+|---|---|---|
+| `fps.mjs` | 프레임 재기 = 크롬 안 기록(트레이스)의 프레임 장부 — 실제로 나간 프레임 간격 · 다 나감 / 반만 나감 / 빠짐 | `node tools/live-view/fps.mjs '[{"name":"홈 넘김","hash":"#/","js":"document.querySelector(\".nm-topswap-chev.r\").click()","ms":1500}]'` · 맥 실제 화면 = `NM_CDP=http://127.0.0.1:9272` |
+| `step.mjs` | 움직임을 1/60초씩 넘겨 찍기 = 프레임마다 위치 · 크기 · 투명도 표 + 사진 · 샘플 곡선(`ref`)과 프레임별 차이 | `node tools/live-view/step.mjs '[{"name":"홈넘김","hash":"#/","js":"…click()","sel":".nm-topswap-pane[data-on=\"1\"]","shots":4}]'` |
+| `vfps.mjs` | 영상 프레임 재기 = 형이 보낸 화면 녹화를 60 으로 풀어 실제로 바뀐 프레임 간격 | `node tools/live-view/vfps.mjs <영상> [w:h:x:y]` |
+
+- 셋 다 `--self` = 도구 자체 시험(실제 서버 · 열쇠 없이 돎). 잣대 = `frames.mjs` 한 곳(간격 20.8ms 안 · 움직인 프레임의 95%).
+- **프레임 수(성능)는 그래픽 장치가 있는 데서만 참** — 클라우드 상자의 `fps.mjs` 숫자는 전후 비교 · 도구 점검용 · 60 판정은 맥에 붙어서(`NM_CDP`). 그 탭이 화면에 보여야 함(가려진 탭 = 크롬이 안 그림 → 프레임 0).
+- **움직임의 꼴(곡선)은 클라우드에서도 참** — `step.mjs` 는 녹화가 아니라 시간을 손으로 넘김. 단 선언형 움직임(CSS transition · animation · element.animate)만 · 손가락 따라오는 끌기 · 그림판 · 3D 는 안 잡힘.
+- 샘플 영상에 맞추는 차례: ① 샘플을 60 으로 풀어 요소 자리를 프레임마다 뽑음(`t_ms,값` csv) ② 그 곡선에 이징 맞춤(튕김 있으면 스프링 → CSS `linear()`) ③ `step.mjs` 로 내 것을 뽑아 `ref` 로 견줌 ④ 차이가 큰 프레임 사진을 나란히. ①② 도구는 아직 없음(샘플이 오면 그때 만듦).
+- 120Hz 화면(맥 프로모션 등)에선 크롬이 120 으로 돎 → 「박자 ≈ 120Hz」로 나오고 60 잣대는 그대로 간격 20.8ms 로 봄.
+

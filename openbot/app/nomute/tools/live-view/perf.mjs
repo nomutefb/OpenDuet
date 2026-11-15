@@ -5,7 +5,7 @@ for (const r of routes) {
   const ctx = await br.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: W < 700 ? 2 : 1, hasTouch: W < 700, isMobile: W < 700, colorScheme: 'dark', serviceWorkers: 'block' });
   const pg = await ctx.newPage(); const cdp = await ctx.newCDPSession(pg); await cdp.send('Performance.enable');
   let reqs = 0; pg.on('request', () => reqs++);
-  const t0 = Date.now(); await pg.goto('http://127.0.0.1:8899/office-app/#/' + r, { waitUntil: 'load' }); await pg.waitForTimeout(7000);
+  const t0 = Date.now(); await pg.goto('http://127.0.0.1:8899/garden-app/#/' + r, { waitUntil: 'load' }); await pg.waitForTimeout(7000);
   const get = async () => Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map((m) => [m.name, m.value]));
   const a = await get(); const reqA = reqs; await pg.waitForTimeout(4000); const b = await get();
   const dom = await pg.evaluate(() => { const an = document.getAnimations().filter((x) => x.playState === 'running'); const inf = an.filter((x) => x.effect && x.effect.getComputedTiming().iterations === Infinity);
