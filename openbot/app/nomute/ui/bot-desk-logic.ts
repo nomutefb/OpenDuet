@@ -8,6 +8,7 @@ export type BotRow = {
   skills?: string[]; hw?: { ram?: string; cpu?: string; gpu?: string; os?: string }; note?: string; turn?: Record<string, Turn>;
   open?: { no: string; title?: string; code?: string; at?: number }[]; today?: number; pm?: boolean; rest?: boolean;   // 맡은 오더(받고 안 끝낸 것) · 오늘 받은 수 · PM 자리 · 쉼 지정
   jobs?: Job[];   // 오늘 오더 줄(안 끝낸 것 먼저 + 오늘 끝낸 것 · 서버 오더 장)
+  trail?: { at?: number; text: string }[];   // 작업 줄(몸 보고가 창 원문 끝에서 뽑은 것 · editor #3953 · 없으면 칸 없음) — 일감 카드 펼침(./bot-inbox-logic.ts)
 };
 export type Job = { no: string; title?: string; code?: string; recv?: number; done?: number; ride?: number; sha?: string };   // ride = 태움 글을 올린 때(회의실 글에서 서버가 읽음 · 봇이 따로 남기는 것 0) · sha = 그 커밋
 export type First = { who: string; rank?: number; busy?: boolean };
