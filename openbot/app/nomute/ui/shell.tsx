@@ -103,7 +103,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 서랍 「일」 칸(형 11-05 「스케줄러는 메뉴5번 서랍 안으로 넣을게」 · 옛 네비 4번)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
   { id: "vmstat", label: "몸 상태", icon: "box", to: "/vm" },   // 서랍 「VM 상태」 = 몸(VM)마다 램 24시간 한 장(형 11-16 16:4x 구름 맥 창 「정원에 각 vm 쓰는 애들 한테 이 자료받아서 vm 상태 그리게 할거야 공간 하나 만들어줘」 · ./vm-desk.tsx)
-  { id: "botdesk", label: "봇 현황", icon: "dashboard", to: "/botdesk" },   // 서랍 「일」 칸 = 봇 상태 · 일 차례 · 손 표 도표(형 11-14 「봇들 상태 일 우선순위 이거는 서랍에 한 공간이 보여야함」 · ./bot-desk.tsx)
+  { id: "botdesk", label: "애들", icon: "dashboard", to: "/botdesk" },   // 서랍 「일」 칸 = 봇 상태 · 일 차례 · 손 표 도표(형 11-14 「봇들 상태 일 우선순위 이거는 서랍에 한 공간이 보여야함」 · ./bot-desk.tsx)
   { id: "meetlog", label: "화상 회의록", icon: "chat", to: "/meetlog", desc: "끝난 회의 기록" },   // 이름 = 화상 회의록(형 11-14 「그리구 메뉴명칭이 화상 회의록」)   // 화상회의 기록 서랍(형 11-13 06:5x 「대화가 끝나면 그 대화는 기록되어서 한 서랍에 들어가면돼」 · ./meet.tsx · 서버 meetlog)   // 서랍 「일」 칸 = 작동 표(러너 · 형 11-09 08:50 · 옛 RunnerScreen 은 뺌)
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x) · 앱 안(./scrap.tsx · 전엔 /?tab=scrap 품음)
   { id: "ask", label: "요약 요청", icon: "chat", to: "/ask", desc: "글·링크·사진 · 링크 판별·초안 보존" },   // 에디터 ＋ 「요약 요청」 = 같은 api/submit · 서랍에서 바로
@@ -130,7 +130,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
   { id: "feedback", label: "피드백", icon: "reply", to: "/feedback" },
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
-  { id: "drawer", label: "서랍", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
+  { id: "drawer", label: "애들", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 /** PC 반갈에서 좌우 통합(오른쪽 러너·뉴스 칸 접고 왼쪽을 다 씀) = 러너 · 서랍 · 설정(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」 · 윈터 넘김) · 오른쪽 칸은 숨김만(살려 둠 = 닫으면 다시 안 그림) */
 const SPREAD = new Set<Modal>(["runner", "vmstat", "botdesk", "drawer", "settings", "nedit", "sched", "meetlog", "story", "play"]);   // 서랍 탭 여섯 = PC 에서 다 같은 폭(탭 줄이 탭마다 넓어졌다 좁아졌다 하지 않게 · 형 11-15 「설정을 제외한 모든영역을 탭처럼」)     // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
@@ -138,14 +138,20 @@ const SPREAD = new Set<Modal>(["runner", "vmstat", "botdesk", "drawer", "setting
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 // 메뉴 줄(./menu-bar.tsx) 내용 = 지금 네비 그대로: 홈 · 대화 · 뉴스 에디터(위 탭 셋 ./ned-tabs.ts) · 서랍(위 탭 여섯 ./drawer-tabs.ts) · 설정 — 이름 · 그림 · 길은 MODALS · NED_TABS 한 곳에서(여기 따로 안 적음) · 설명 줄만 여기
-const MENU_DESC: Record<string, string> = { news: "최신 기사 · 요약 요청", sns: "섹션 전부 · 구독 채널", chan: "차트 · 게시물 · 결의 보드", runner: "몸 넷 게이지 · 러너 상태", botdesk: "봇 상태 · 일감 · 작동 표", vmstat: "애들 상태 · 하드웨어 · 램 24시간", sched: "예약 깸 · 나무", meetlog: "끝난 회의 기록", story: "종 틈에 지은 글 모음", play: "우리 놀이터" };
+const MENU_DESC: Record<string, string> = { news: "최신 기사 · 요약 요청", sns: "섹션 전부 · 구독 채널", chan: "차트 · 게시물 · 결의 보드", runner: "몸 넷 게이지 · 러너 상태", botdesk: "상태 · 일감 · 특기 · 몸", vmstat: "애들 상태 · 하드웨어 · 램 24시간", sched: "예약 깸 · 나무", meetlog: "끝난 회의 기록", story: "종 틈에 지은 글 모음", play: "우리 놀이터" };
+const CREW_ROWS: NonNullable<MenuGroup["items"]> = [
+  { id: "botdesk", label: "애들", icon: "dashboard", to: "/botdesk", desc: "상태 · 일감 · 특기 · 몸" },
+  { id: "sched", label: "스케줄 배선", icon: "calendar", to: "/sched", desc: "예약 깸 · 나무" },
+  { id: "runner", label: "러너", icon: "activity", to: "/runner", desc: "몸 넷 게이지 · 작동 표" },
+];
 const menuOf = (talkTo: string): MenuGroup[] => [
   { id: "home", label: "홈", to: "/" },
   { id: "chat", label: "대화", to: talkTo },   // 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록(../swap/talk-next.ts · 아래 알약 네비 「대화」가 하던 그대로)
   { id: "ned", label: "뉴스 에디터", to: "/newsed", items: NED_TABS.map((t) => ({ id: t.id, label: t.name, icon: t.icon, to: t.to, desc: MENU_DESC[t.id] })), foot: { label: "뉴스 에디터 열기", to: "/newsed" } },
   // 「에디터」 칸 = 뉴스 ＋ 를 누르면 나오는 둘(형 11-16 11:4x 구름 맥 창 「뉴스 우측에 에디터 칸 넣어서 그 뉴스에 + 누르면 나오는 이미지랑 비디오 에디터 넣어주라」 · 11:5x 「에디터는 기본적으로 이미지 에디터」) · 이름 · 그림 = ./plus-fan.tsx 와 같게 · 길 = #/edtool · #/edvid 그대로
   { id: "editor", label: "에디터", to: "/edtool", items: [{ id: "edtool", label: "이미지 에디터", art: PLUS_ICON["/edtool"], to: "/edtool", desc: "카드 · 썸네일 만들기" }, { id: "edvid", label: "비디오 에디터", art: PLUS_ICON["/edvid"], to: "/edvid", desc: "편집 · 트래킹 · 스토리보드 · 유튜브" }], foot: { label: "에디터 열기", to: "/edtool" } },
-  { id: "drawer", label: "서랍", to: "/drawer", items: DRAWER_TABS.flatMap((id) => { const m = MODALS.find((x) => x.id === id); return m ? [{ id, label: m.label, icon: m.icon, to: m.to, desc: m.desc || MENU_DESC[id] }] : []; }), foot: { label: "서랍 열기", to: "/drawer" } },
+  // 5번 = 「애들」(형 11-16 18:2x 구름 맥 창 「1번이 메인화면, 2번이 대화, 3번이 뉴스, 4번이 에디터, 5번이 애들 상태 관련, 6번이 설정」) — 한 화면에 애들 → 스케줄 배선 → 러너가 이어짐(./bot-desk.tsx) · 판의 위 세 줄 = 그 화면의 층(누르면 그 층으로) · 아래 = 그 밖 화면(화상 회의록 · 밥상 이야기 · 봄의 정원)
+  { id: "drawer", label: "애들", to: "/drawer", items: [...CREW_ROWS, ...DRAWER_TABS.filter((id) => id !== "botdesk").flatMap((id) => { const m = MODALS.find((x) => x.id === id); return m ? [{ id, label: m.label, icon: m.icon, to: m.to, desc: m.desc || MENU_DESC[id] }] : []; })], foot: { label: "애들 열기", to: "/drawer" } },
   { id: "settings", label: "설정", to: "/settings" },
 ];
 /** 순수 — 지금 화면이 메뉴 줄의 어느 칸인가(시험 가능) */
@@ -159,7 +165,7 @@ export function whereFor(pathname: string): Where {
   if (/^\/(channels|group)\/[^/]+$/.test(p)) return { pane: "chat" };   // 회의실 = #/group/all
   if (p === "/rooms") return { pane: "rooms" };
   if (p === "/editor") return { pane: "home" };
-  if (p === "/runner") return { modal: "botdesk" };   // 옛 서랍 「러너」 길 = 봇 현황(그 안 「작동」 탭부터 · ./bot-desk.tsx · 형 11-16 17:4x 「하나로 통일하고 봇 상태를 메인으로」)
+  if (p === "/runner" || p === "/sched" || p === "/vm") return { modal: "botdesk" };   // 옛 서랍 「러너」 · 「스케줄」 · 「몸 상태」 길 = 5번 「애들」 한 화면의 그 층 · 그 탭(./bot-desk.tsx 가 주소를 보고 내려감 · 형 11-16 「하나로 통합」)
   if (p === "/drawer") return { modal: DRAWER_HOME };   // 네비 「서랍」 = 목록 화면 대신 위 탭 · 먼저 러너 현황(./drawer-tabs.ts · 형 11-15 「기본적으로 러너 현황이 나오는거를 한번 배치시켜보자」)
   if (nedTabOf(p) !== "news") return { modal: "nedit" };   // SNS · 채널 = 뉴스 에디터 안 탭(./ned-tabs.ts · 형 11-15 「서랍의 sns와 채널 … 저기 박혀야 하고」) · 옛 「SNS 전체」 · 「채널 전체」 주소도 그 탭으로(알림 「안전 탭 열기」 · 옛 링크가 안 끊기게)
   if (p === "/askfull") return { modal: "ask" };   // 옛 「요약 요청 · 에디터 판」 주소 = 앱 요약 요청(빠르 11-01 · 합침)   // 옛 에디터 판 주소(즐겨찾기·옛 링크) = 홈으로(판 없음 · 칸은 서랍에)

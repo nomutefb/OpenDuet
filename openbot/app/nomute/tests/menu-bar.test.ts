@@ -8,9 +8,9 @@ test("자리 = 위 탭 줄 바로 뒤 · PC 두 칸에서만 · 내용 = 지금 
   assert.match(shell, /\{split \? <TopTabBar room=\{room\} pane=\{pane\} \/> : null\}\n\s+\{split \? <MenuBar groups=\{menuOf\(talkNext\(/);
   assert.match(shell, /\{split \? null : <TabBar pane=/);   // 형 11-16 10:3x 「웅 빼고 츠리텐다드」 = PC 에선 아래 알약 네비 뺌(폰은 그대로)
   assert.match(css, /\.nm-menubar \{[^}]*font-family:'Pretendard Variable', Pretendard,/);
-  assert.match(shell, /items: NED_TABS\.map\(/); assert.match(shell, /items: DRAWER_TABS\.flatMap\(/);
+  assert.match(shell, /items: NED_TABS\.map\(/); assert.match(shell, /\.\.\.DRAWER_TABS\.filter\(\(id\) => id !== "botdesk"\)\.flatMap\(/);   // 5번 판 = 층 세 줄(CREW_ROWS) + 그 밖 화면(DRAWER_TABS 그대로 읽음)
   assert.match(shell, /\{ id: "editor", label: "에디터", to: "\/edtool", items: \[\{ id: "edtool", label: "이미지 에디터"/);   // 형 11-16 「뉴스 우측에 에디터 칸 넣어서 … 이미지랑 비디오 에디터」 · 「에디터는 기본적으로 이미지 에디터」
-  assert.match(shell, /\{ id: "drawer", label: "서랍", to: "\/drawer", items:/);   // 형 「서랍 > 기본적으로 러너」(#/drawer = 러너부터)
+  assert.match(shell, /\{ id: "drawer", label: "애들", to: "\/drawer", items: \[\.\.\.CREW_ROWS, /);   // 5번 = 「애들」(형 11-16 18:2x 「5번이 애들 상태 관련」) · 판 위 세 줄 = 애들 · 스케줄 배선 · 러너(한 화면의 층)   // 형 「서랍 > 기본적으로 러너」(#/drawer = 러너부터)
   assert.match(tsx, /if \(g\.to && fine\(\)\) \{ shut\(\); window\.location\.hash = g\.to; return; \}/);   // 이름 누름 = 기본 화면으로
   assert.match(css, /\n:root:has\(\.nm-menubar\) \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 형 11-16 12:3x 「상단에 탭 메뉴, 그리고 그 아래 메뉴는 계속 보이게 해줘」 · 「인앱에서는 사라져,」 = 맥 독 앱(html.nm-macapp · 점수 0,2,1)의 숨김도 · 칸 화면(.nm-area-on · 0,3,0)의 숨김도 이 한 줄(0,4,0)이 이김
   assert.doesNotMatch(css, /\.nm-area-on \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 칸 화면에서만 살리던 앞 규칙 = 걷음(맥 앱에서 칸마다 떴다 사라졌다 한 까닭)   // 형 11-16 「위에 탭 기존에 만든거는 살아잇어야햐ㅐ」 = PC 에선 위 탭 줄이 어느 칸에서나 보임

@@ -180,3 +180,18 @@
 .nm-bd-ab h4 .lane-fold:active { transform:scale(var(--press-l, .97)); }
 .nm-bd-ab .nsb-ab-lane ul.mini { gap:0; padding:4px 0 2px 8px; cursor:pointer; }
 .nm-bd-ab .nsb-ab-lane ul.mini li { width:auto; margin-left:-7px; border-radius:50%; box-shadow:0 0 0 2px #1b1c1b; line-height:0; animation:none; }
+
+/* 5번 메뉴 「애들」 한 화면(./bot-desk.tsx · 형 11-16 18:2x 「이렇게 쭉 유기적으로 연결된 느낌을 살리는게」) = ① 애들 → ② 스케줄 배선 → ③ 러너
+   층 사이 = 가운데 세로 줄기 + 마디 점(가만한 그림 · 움직임 0) · 맨 위 = 층으로 건너뛰는 알약 셋 */
+.nm-crew { padding-bottom:40px; }
+.nm-crew-jump { display:flex; flex-wrap:wrap; gap:6px; padding-top:10px; }
+.nm-crew-sec { position:relative; scroll-margin-top:8px; }
+.nm-crew-sec + .nm-crew-sec { margin-top:6px; padding-top:44px; }
+.nm-crew-sec + .nm-crew-sec::before { content:""; position:absolute; top:0; left:50%; width:1px; height:36px; background:linear-gradient(180deg, transparent, rgba(var(--accent-rgb, 207,255,64),.55)); }
+.nm-crew-sec + .nm-crew-sec::after { content:""; position:absolute; top:33px; left:50%; width:7px; height:7px; margin-left:-3px; border-radius:50%; background:var(--accent, #CFFF40); box-shadow:0 0 10px rgba(var(--accent-rgb, 207,255,64),.5); }
+.nm-crew-h { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; margin:0 auto 6px; font-size:var(--fs-h2, 18px); font-weight:700; letter-spacing:-.02em; color:#E7ECE7; text-transform:none; }
+.nm-crew-h i { display:none; }
+.nm-crew-h small { font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--nsb-mut, #8f958f); }
+:root:not(.dark) .nm-crew-h { color:#161716; }
+:root:not(.dark) .nm-crew-sec + .nm-crew-sec::before { background:linear-gradient(180deg, transparent, rgba(77,102,0,.5)); }
+:root:not(.dark) .nm-crew-sec + .nm-crew-sec::after { background:#4d6600; box-shadow:none; }

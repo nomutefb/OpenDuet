@@ -5,14 +5,14 @@ import test from "node:test";
 import { DRAWER_HOME, DRAWER_TABS, isDrawerTab } from "../ui/drawer-tabs.ts";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 
-test("탭 여섯 · 먼저 뜨는 탭 = 봇 현황 · 설정 · 뉴스 에디터는 탭이 아님", () => {
-  assert.deepEqual([...DRAWER_TABS], ["botdesk", "vmstat", "sched", "meetlog", "story", "play"]);   // 「러너」 = 봇 현황 안 「작동」 탭으로 합침(형 11-16 17:4x 「하나로 통일하고 봇 상태를 메인으로 하고싶어.」)   // 일곱째 = VM 상태(형 11-16 16:4x 「vm 상태 그리게 할거야 공간 하나 만들어줘」)
+test("탭 넷 · 먼저 뜨는 탭 = 애들(봇 현황) · 설정 · 뉴스 에디터는 탭이 아님", () => {
+  assert.deepEqual([...DRAWER_TABS], ["botdesk", "meetlog", "story", "play"]);   // 봇 현황 · 몸 상태 · 스케줄 · 러너 = 5번 「애들」 한 화면으로 합침(형 11-16 18:1x 「그 애들 관련 정보를 다 하나로 통합시키고 싶어」) · 나머지 셋 = 그 밖 화면
   assert.equal(DRAWER_HOME, "botdesk");   // 서랍 첫 화면 = 봇 현황
   for (const t of DRAWER_TABS) assert.ok(isDrawerTab(t));
   for (const x of ["settings", "nedit", "drawer", "ask", "", null, undefined]) assert.ok(!isDrawerTab(x), String(x));
 });
 
-test("껍데기 = 네비 서랍은 봇 현황부터 · 여섯 화면 위에 탭 줄 · PC 는 여섯 다 같은 폭", () => {
+test("껍데기 = 5번은 애들부터 · 그 화면들 위에 탭 줄 · PC 는 다 같은 폭", () => {
   const s = rd("../ui/shell.tsx"), c = rd("../ui/shell.css");
   assert.match(s, /if \(p === "\/drawer"\) return \{ modal: DRAWER_HOME \};/);
   assert.match(s, /\{isDrawerTab\(M\.id\) && !split \? <DrawerTabs cur=\{M\.id\} \/> : null\}/);   // 폰만 화면 안 탭 · PC = 메인 탭 줄
