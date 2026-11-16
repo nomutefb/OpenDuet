@@ -107,3 +107,16 @@ test("봇 줄기 = 봇에게 시킨 일 → 봇(일 있는 봇만) → 일 · �
   const t2 = treeOf(map, { "bb:chok": true }, 0, bots);
   assert.deepEqual(t2.nodes.filter((n) => n.kind === "routine").map((n) => [n.id, n.parent]), [["r:chok.x", "bb:chok"], ["r:chok.call", "bb:chok"]]);
 });
+
+// 폰에서 펼친 항목이 잘 나오게(형 11-16 19:1x 구름 맥 창 「스케줄 그 눌렀을때 쭉 나오는거 구거 제대로 항목들 모바일에서도 잘 나오는지 봐주라」)
+test("폰 일 카드 키 = 셋째 줄(상태 · 켬끔)까지 들어감 · 가지 자리는 눌림에 안 흔들림", async () => {
+  const { readFileSync } = await import("node:fs");
+  const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
+  const core = await import("../ui/sched-tree-core.ts");
+  assert.ok(core.SIZE_DOWN.job >= 108 && core.SIZE_DOWN.routine >= 108);   // 실물 = 줄 끝 101px(앞 96 = 잘림)
+  const tsx = rd("../ui/sched-tree.tsx"), css = rd("../ui/sched-tree.css");
+  assert.match(tsx, /const pos = \{ translate: `\$\{n\.x\}px \$\{n\.y\}px`, width: n\.w, height: n\.h,/);   // 자리 = translate 속성 → :active scale 이 자리를 안 줄임
+  assert.doesNotMatch(tsx, /className=\{`nm-tree-node[^\n]*transform: `translate/);
+  assert.match(css, /\.nm-tree-node \{[^}]*transition:translate \.26s var\(--e-out\);/);
+  assert.match(css, /\.nm-tree-world \{[^}]*transition:transform \.26s var\(--e-out\); \}/);   // 판(끌기 · 배율)은 transform 그대로
+});

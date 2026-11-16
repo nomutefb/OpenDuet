@@ -16,7 +16,7 @@ export type Tree = { nodes: TNode[]; edges: TEdge[]; w: number; h: number };
 export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 216, h: 54 }, fork: { w: 196, h: 54 }, job: { w: 222, h: 78 }, routine: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
 export const GAP_X = 64, GAP_Y = 22, PAD = 28, INDENT = 16, GAP_DOWN = 12;
 /** 폰 = 글씨를 키운 만큼 키가 큰 노드(형 11-14 「보기 조금 힘들어 좀 쉽게」) */
-export const SIZE_DOWN: Record<TKind, number> = { root: 44, group: 58, fork: 56, job: 96, routine: 96 };
+export const SIZE_DOWN: Record<TKind, number> = { root: 44, group: 58, fork: 56, job: 110, routine: 110 };   // 일 카드 = 110(앞 96 = 폰에서 셋째 줄(상태 · 켬끔)이 아래에서 4~5px 잘림 · 실물 11-16 폰 412: 줄 끝 35 · 68 · 101 → 아래 여백 9 · 형 19:1x 「스케줄 그 눌렀을때 쭉 나오는거 … 모바일에서도 잘 나오는지 봐주라」)
 
 type Raw = { id: string; kind: TKind; name: string; via: TNode["via"]; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine; kids: Raw[] };
 
