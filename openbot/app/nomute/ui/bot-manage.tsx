@@ -18,7 +18,7 @@ import { useMe } from "./pins";
 
 const NW_KEY = ["nomute", "nextwin"], REST_KEY = ["nomute", "bots-rest"], WAKE_KEY = ["nomute", "wakeset"] as const, PM_KEY = ["nomute", "pm"] as const;
 const AcctPrio = lazy(() => import("./acct-prio").then((m) => ({ default: m.AcctPrio })));   // 계정 우선순위 카드 다발(설정에서 옮김 · 펼칠 때만 받음)
-const GrokNote = lazy(() => import("./grok-note").then((m) => ({ default: m.GrokNote })));   // 그록봇 지침 메모(설정에서 옮김 · 펼칠 때만 받음)
+import { NoticeBox, useNoteMeta } from "./notice-box";   // 그록봇 공지 = 설정 「공지」와 같은 부품(형 11-17 06:56 · 앞 이름 「그록봇 지침」 메모 · 이제 그록 애들이 깰 때 받는 진짜 공지)
 const WAKE_STEPS = [5, 10, 20, 30, 50];   // 호출 맥락 = 깰 때 같이 받는 최근 글 수(./wake-depth.tsx 와 같은 값 · 서버 wakeset)
 const why = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -144,17 +144,18 @@ function PmRow({ who }: { who: string }) {
   );
 }
 
-/** 그록 쪽 애한테만 — 호출 맥락(깰 때 같이 받는 최근 글 수 · 그록 깸 공통) · 그록봇 지침 메모(공통 · 반영 0). 설정에서 옮김(형 11-16 19:36 「그록봇도 따로 설정에 나오는거로 아는데 한쪽에 몰아버리고 싳은거임」). */
+/** 그록 쪽 애한테만 — 호출 맥락(깰 때 같이 받는 최근 글 수 · 그록 깸 공통) · 그록봇 공지(공통 · 그록 애들이 깰 때 받음). 설정에서 옮김(형 11-16 19:36 「그록봇도 따로 설정에 나오는거로 아는데 한쪽에 몰아버리고 싳은거임」). */
 function GrokRows() {
   const qc = useQueryClient(), me = useMe(), can = me?.kind === "human" && me.can_write !== false;
   const q = useQuery({ queryKey: WAKE_KEY, queryFn: () => office<{ set: { recent: number } }>("wakeset").then((j) => j.set), staleTime: 60_000, retry: false });
   const go = useMutation({ mutationFn: (recent: number) => office<{ set: { recent: number } }>("wakeset", { method: "POST", body: JSON.stringify({ recent }) }).then((j) => j.set), onSuccess: (set) => qc.setQueryData(WAKE_KEY, set) });
   const now = q.data?.recent, [note, setNote] = useState(false);
+  const meta = useNoteMeta("grok");   // 「판 1 · 11-17」 = 칸 밖(줄 오른쪽)
   return (
     <>
       <Row label="호출 맥락" note={go.error ? <em className="err" role="alert">안 됨 · {why(go.error)}</em> : null}>{WAKE_STEPS.map((n) => <button key={n} type="button" className={`pc${now === n ? " on" : ""}`} aria-pressed={now === n} disabled={!can || now === undefined || go.isPending} onClick={() => { if (now !== n) go.mutate(n); }}>{n}개</button>)}</Row>
-      <Row label="그록봇 지침">{[<button key="o" type="button" className={`pc${note ? " on" : ""}`} aria-expanded={note} onClick={() => setNote((v) => !v)}>{note ? "접기" : "메모 열기"}</button>]}</Row>
-      {note ? <div className="sub"><Suspense fallback={null}><GrokNote /></Suspense></div> : null}
+      <Row label="그록봇 공지">{[...(meta ? [<b key="m" className="sval off">{meta}</b>] : []), <button key="o" type="button" className={`pc${note ? " on" : ""}`} aria-expanded={note} onClick={() => setNote((v) => !v)}>{note ? "접기" : "열기"}</button>]}</Row>
+      {note ? <div className="sub"><NoticeBox kind="grok" onClose={() => setNote(false)} /></div> : null}
     </>
   );
 }

@@ -180,43 +180,7 @@ export function NomuteRoomset() {
   );
 }
 
-export function NomuteNotice() {
-  const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["nomute", "notice"], queryFn: () => office<{ notice: { ver: number; text: string; at?: string; by?: string }; history?: { ver: number; at: string; by: string; len: number }[]; can_edit: boolean }>("noticeset") });
-  const [text, setText] = useState<string | null>(null);
-  const save = useMutation({
-    mutationFn: (t: string) => office("noticeset", { method: "POST", body: JSON.stringify({ text: t, base: q.data?.notice.ver }) }),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["nomute", "notice"] }); },   // 글 칸 접기 = ✓ 뒤(GoButton done)
-  });
-  const n = q.data?.notice;
-  return (
-    <PageSection title="공지 설정">
-      <p data-content className="mt-1 text-sm text-muted-foreground">{n ? `판 ${n.ver} · ${n.by || ""} · ${String(n.at || "").slice(5, 16).replace("T", " ")}` : q.isError ? readFail(q.error) : reading()}</p>
-      {n ? (
-        <Card>
-          <div className="p-4">
-            {text === null ? (
-              <>
-                <p data-content className="whitespace-pre-wrap text-sm">{n.text}</p>
-                {q.data?.can_edit ? <button type="button" className={`${btn} mt-3`} onClick={() => setText(n.text)}>고치기</button> : null}
-              </>
-            ) : (
-              <>
-                <textarea className="min-h-48 w-full rounded-xl border border-border bg-background p-3 text-sm" value={text} onChange={(e) => setText(e.target.value)} aria-label="공지 글" />
-                <div className="mt-2 flex gap-2">
-                  <GoButton className={btn} disabled={save.isPending || !text.trim() || text === n.text} go={() => save.mutateAsync(text)} done={() => setText(null)}>저장(새 판)</GoButton>
-                  <button type="button" className={btn} onClick={() => setText(null)}>취소</button>
-                </div>
-              </>
-            )}
-            {(q.data?.history || []).length ? <p data-content className="mt-3 text-xs text-muted-foreground">지난 판: {(q.data?.history || []).map((h) => `${h.ver}(${String(h.at).slice(5, 16).replace("T", " ")} · ${h.by})`).join(" · ")}</p> : null}
-          </div>
-        </Card>
-      ) : null}
-      {save.isError ? <p className="mt-2 text-sm text-destructive" role="alert">{/changed|base/.test(save.error.message) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 고쳐 줘" : save.error.message}</p> : null}
-    </PageSection>
-  );
-}
+// 「공지 설정」 칸(NomuteNotice)은 ./notice-box.tsx 로 갈음 — 그록봇 공지와 같은 부품(판 · 날짜는 줄 오른쪽 · 위 「수정」 · 아래 「닫기」 · 「저장」 · 형 11-17 06:56 dm-bom)
 
 // 「스케줄러 연결」 칸(NomuteLink · GET schedule/link)은 뺌 — 형 11-16 02:51 dm-bom [결정] 「✓ ① 빼기 — 스케줄 탭 하나로」(같은 정보 = 스케줄 탭 · 서버 셈 · 시계 박동은 그대로)
 export const ST_KO: Record<string, string> = { shadow: "기록만", dry: "시험", live: "켬", off: "꺼짐", "grok-stay": "그록에 둠" };

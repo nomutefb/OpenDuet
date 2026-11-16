@@ -23,7 +23,8 @@ import { PushRow } from "../push/push-row";
 import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { TeamsAccount, useTeamsName } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
 import { PinTintSetting, usePinAlpha } from "./pin-tint";
-import { NomuteNotice, NomuteOld, NomuteVault, useBuildLine } from "./settings-extra";
+import { NomuteOld, NomuteVault, useBuildLine } from "./settings-extra";
+import { NoticeBox, useNoteMeta } from "./notice-box";   // 공지 칸 = 그록봇 공지와 같은 부품(판 · 날짜는 줄 오른쪽 · 형 11-17 06:56)
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
 import { setSkin, useSkin } from "./skin";   // 꾸밈 지금 / 정원(형 11-07 08:01 「지금테마랑 정원테마 고를 수 있게해줘」)
@@ -60,6 +61,7 @@ export function YetaSettings() {
   const build = useBuildLine();
   const teamsName = useTeamsName();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
+  const noticeMeta = useNoteMeta("notice");   // 「판 24 · 11-17」 = 칸 밖(줄 오른쪽)
   const pinA = usePinAlpha();   // 고정 줄 색 진하기 = 줄 오른쪽 값(./pin-tint)
   const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
     <Act key={id} ic={ic} t={t} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
@@ -112,7 +114,7 @@ export function YetaSettings() {
           <div className="yset-sec">봄의 정원</div>
           <div className="yset-grp">
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
-            {row("notice", "speaker", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
+            {row("notice", "speaker", "공지 설정", <NoticeBox kind="notice" onClose={() => setOpen("")} />, noticeMeta || undefined)}   {/* 판 · 바뀐 날 = 줄 오른쪽(칸 밖) · 열면 읽기 → 위 「수정」 → 아래 「닫기」 · 「저장」(형 11-17 06:56 dm-bom · ./notice-box.tsx) · 원본 「공통 지시」는 우리 사무실에선 공지 판이 그 일 */}
             {/* 봇 쪽 설정(PM · 봇 상자 모델 · 노력도 · 계정 우선순위 · 호출 맥락 · 그록봇 지침 · 지금 봇) = 애들 화면 한 곳으로 옮김 → 여긴 가는 길 하나(형 11-16 19:35 dm-bom 「거기에 봇 관련된 설정은 통합시키려고해」 · 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」) */}
             <Act ic="bot" t="애들 설정 · 계기판" v="애들에서" onClick={() => { location.hash = "#/drawer"; }} />
             <Act ic="clock" t="스케줄 · 점검 · 일 모델" v="스케줄에서" onClick={() => { location.hash = "#/sched"; }} />   {/* 스케줄 화면 한 곳 = 일 모델 · 노력도(머리 · 형 11-17 02:1x 「그리고 묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」) + 점검 · 모아 깨우기 · 그림(AI 썸네일 옵션) — 형 11-17 03:24 「너가 말한거 반영하고 너 의견 따를테니 묻지말고 진행해」 · 여긴 가는 길 한 줄 */}
