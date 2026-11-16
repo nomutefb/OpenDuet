@@ -936,6 +936,31 @@
 .bc-light .bc-ring { border-color: rgba(255, 230, 6, 0.55); box-shadow: 0 0 18px rgba(255, 230, 6, 0.3); }
 .bc-light .bc-crown { position: absolute; right: 13%; top: 8%; font-size: 26px; line-height: 1; filter: drop-shadow(0 0 10px rgba(255, 230, 6, 0.95)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0); }
 
+/* ───────── 그림 통째 카드 셋에 빛깔(형 11-16 20:55 dm-deng 「온에는 빗깔맘 입혀주고」 · 20:56 「감은 너가 살릴수잇겟어? 야무지게」 · 「슈왕이는 무지개빛깔만 넣음댈듯」 · 뎅) — 그림은 그대로 · 위에 줄무늬 박만(뎅 카드 박 꼴) · 기울기 따라만 */
+.bc-on { --bc-h1: 40; --bc-h2: 20; --bc-h3: 52; }
+.bc-gam { --bc-h1: 26; --bc-h2: 215; --bc-h3: 44; }
+.bc-on .profile-card__holo, .bc-gam .profile-card__holo {
+  --bc-spec: repeating-linear-gradient(0deg, hsl(var(--bc-h1), 95%, 62%) 4%, hsl(var(--bc-h2), 90%, 66%) 8%, hsl(var(--bc-h3), 95%, 64%) 12%, hsl(54, 100%, 70%) 16%, hsl(var(--bc-h1), 95%, 62%) 20%);
+  --bc-bars: repeating-linear-gradient(-48deg, #120a04 0%, hsl(var(--bc-h1), 22%, 58%) 3.6%, hsl(var(--bc-h1), 46%, 74%) 4.5%, hsl(var(--bc-h1), 22%, 58%) 5.4%, #120a04 10%, #120a04 12%);
+}
+.bc-issueking .profile-card__holo {   /* 슈왕 = 무지개 그대로 */
+  --bc-spec: repeating-linear-gradient(0deg, hsl(0, 90%, 66%) 3%, hsl(40, 95%, 64%) 6%, hsl(80, 80%, 62%) 9%, hsl(160, 80%, 60%) 12%, hsl(200, 90%, 66%) 15%, hsl(260, 85%, 70%) 18%, hsl(310, 85%, 68%) 21%, hsl(0, 90%, 66%) 24%);
+  --bc-bars: repeating-linear-gradient(-48deg, #0a0c10 0%, hsl(200, 20%, 60%) 3.6%, hsl(200, 40%, 76%) 4.5%, hsl(200, 20%, 60%) 5.4%, #0a0c10 10%, #0a0c10 12%);
+}
+.bc-on .profile-card__holo, .bc-gam .profile-card__holo, .bc-issueking .profile-card__holo {
+  background-image: var(--bc-spec), var(--bc-bars), radial-gradient(farthest-corner circle at var(--pc-pointer-x) var(--pc-pointer-y), hsla(0, 0%, 0%, 0.05) 10%, hsla(0, 0%, 0%, 0.12) 24%, hsla(0, 0%, 0%, 0.3) 110%);
+  background-position: 0 calc(var(--pc-pointer-y) * 1.6), calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2), center;
+  background-size: 400% 400%, 300% 300%, 200% 200%;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.8 + 0.1 * var(--pc-active))) contrast(calc(1.35 + 0.1 * var(--pc-active))) saturate(calc(1.2 + 0.2 * var(--pc-active)));
+  opacity: calc(0.62 * (0.85 + 0.15 * var(--pc-active)));   /* 그림이 주인공 = 박은 조금 옅게 */
+}
+/* 감 = 야무지게: 테 · 빛을 감 주황으로 또렷하게 + 과녁 불빛 한 점 */
+.being-card-wrap .bc-gam .profile-card__rim { box-shadow: inset 0 0 0 1.5px rgba(255, 138, 43, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+.being-card-wrap .bc-gam .profile-card__body { box-shadow: 0 0 46px rgba(255, 138, 43, 0.32); }
+.bc-gam .bc-art::after { content: "🎯"; position: absolute; right: 12%; top: 7%; font-size: 22px; line-height: 1; filter: drop-shadow(0 0 8px rgba(255, 138, 43, 0.9)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0); }
+
 @media (hover: none) {
   .being-card .profile-card__tile,   /* 넷째 판(형 11-11 08:12 dm-sia 「아직 아주 조금 번쩍 ㅋㅋ」) = 타일 · @ 줄 안 전부 묶음 — 얼굴 · 무늬 · 글 시차가 섞는 겹(홀로 color-dodge …) 밑에서 따로 움직이면 웹킷이 섞기를 다시 함(짐작) → 카드는 통째로만 움직임 · 빛 · 무지개는 그대로(섞기 끄기 = 무지개가 뿌옇게 죽어서 안 함 · 웹킷 실물) */
   .being-card .profile-card__footer,
@@ -1018,4 +1043,5 @@
   .bc-karina .bc-heart { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
   .bc-light .bc-zap { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
   .bc-light .bc-crown { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-gam .bc-art::after { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
 }
