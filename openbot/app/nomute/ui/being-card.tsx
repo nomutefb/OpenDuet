@@ -386,7 +386,11 @@ const LOOKS: Look[] = [
     glare: 0.48,
     art: (
       <span className="bc-art" aria-hidden="true">
-        <span className="bc-hero" />
+        {/* 그림 → 움직이는 영상(형 11-16 21:36 dm-deng 「얘 카드는 아ㅇ예 이거에 빛으로. 화질은 좀 포기해야 원활랄듯」 · 영상 = 형 21:13 그록 서핑 5초 → 432x576 · 24fps · 끝 0.6초를 처음에 녹인 4.46초 고리 · 509KB = public/on-card.mp4 · 뎅)
+            빛 = 위 겹(홀로 · 빛깔 박) 그대로 · 영상 못 받으면 아래 그림(on-card.webp)이 그대로 보임 · muted 는 ref 로도 박음(아이폰 자동 재생) */}
+        <span className="bc-hero">
+          <video className="bc-hero-vid" src="/garden-app/on-card.mp4?v=1" poster="/garden-app/on-card-poster.webp?v=1" autoPlay muted loop playsInline preload="auto" disablePictureInPicture ref={(el) => { if (el) { el.muted = true; el.play?.().catch(() => {}); } }} />
+        </span>
       </span>
     ),
   },
