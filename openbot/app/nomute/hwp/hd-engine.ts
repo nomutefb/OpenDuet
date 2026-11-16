@@ -2,6 +2,7 @@
 //   형 11-17 「한글 파일을 구성을 할 수 있게 … 한글을 안키고도」 · 「웅 우리끼리 쓸거맞음. 그 부분으로해줘. 근데 아까 너가 찾은 부분 강점을 섞어도 좋지」 — 만들기 · 점검 = 이 엔진 / 열기 · 고치기 · 저장 = rhwp 편집기(./doc-editor.tsx)
 //   묶음 = public/hwp/hwpx-docs-0.3.0.zip(코드 + 틀 · 530KB · 싸는 법 ./pack-hwpx-docs.py) · 파이썬 = jsDelivr 의 pyodide(처음 한 번 약 13MB · 그 뒤 브라우저 캐시)
 //   일꾼(Worker) 안에서 돎 = 만드는 0.1 ~ 1초 동안 화면이 안 멈춤 · 일꾼은 처음 부를 때 뜸(문서 편집 창만 연 사람은 안 받음)
+//   일꾼 끄기 = 문서 편집 창을 닫을 때 · 3분 동안 안 부를 때(형 11-17 「한수는 진행 · 줄일수잇는 효용이 큰거는 고치장」 — 파이썬이 메모리를 붙들고 있지 않게 · 다시 부르면 캐시에서 1 ~ 3초에 뜸)
 //   부르는 꼴 = hwpx-docs 명령 줄 그대로(argv) · 파일은 /work/<이름> 으로 주고받음 · 시험(node · 브라우저) = 명령 열둘 통과(11-17)
 export const PYODIDE = "https://cdn.jsdelivr.net/npm/pyodide@314.0.8/";
 export const HD_PACK = "hwp/hwpx-docs-0.3.0.zip";
@@ -41,7 +42,7 @@ import { loadPyodide } from ${JSON.stringify(pyodide + "pyodide.mjs")};
 let ready = null;
 const boot = (pack) => (ready ??= (async () => {
   const py = await loadPyodide({ indexURL: ${JSON.stringify(pyodide)} });
-  const r = await fetch(pack);
+  const r = await fetch(pack, { cache: "force-cache" });   // 묶음 이름에 판 번호가 있음 = 한 번 받으면 다시 안 물음(우리 사이트로 가는 요청 0)
   if (!r.ok) throw new Error("문서 엔진 묶음을 못 받음(HTTP " + r.status + ")");
   py.unpackArchive(await r.arrayBuffer(), "zip", { extractDir: "/hd" });
   py.FS.mkdirTree("/work");
@@ -64,34 +65,41 @@ self.onmessage = async (e) => {
 `;
 
 const FIRST_MS = 120_000, EACH_MS = 60_000;   // 처음 = 파이썬 받는 시간 포함
-let worker: Worker | null = null, seq = 0, booted = false;
+export const IDLE_MS = 180_000;   // 이만큼 안 부르면 일꾼을 끔
+let worker: Worker | null = null, seq = 0, booted = false, blobUrl = "", idle = 0;
 const waits = new Map<number, { ok: (v: HdOut) => void; no: (e: Error) => void; timer: number }>();
 
 function drop(why: string) {   // 일꾼이 죽음 = 기다리던 것 다 실패로 · 다음 부름이 새로 띄움
-  worker?.terminate(); worker = null; booted = false;
+  clearTimeout(idle); worker?.terminate(); worker = null; booted = false;
+  if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = ""; }
   for (const w of waits.values()) { clearTimeout(w.timer); w.no(new Error(why)); }
   waits.clear();
 }
 
 function ensure(): Worker {
   if (worker) return worker;
-  const url = URL.createObjectURL(new Blob([workerSource(PYODIDE)], { type: "text/javascript" }));
+  const url = (blobUrl = URL.createObjectURL(new Blob([workerSource(PYODIDE)], { type: "text/javascript" })));
   const w = new Worker(url, { type: "module" });
   w.onmessage = (e: MessageEvent<{ id: number; code?: number; log?: string; files?: Record<string, Uint8Array>; error?: string }>) => {
     const d = e.data, at = waits.get(d.id);
     if (!at) return;
     waits.delete(d.id); clearTimeout(at.timer);
     if (d.error) at.no(new Error(d.error)); else { booted = true; at.ok({ code: d.code ?? 1, log: d.log ?? "", files: d.files ?? {} }); }
+    if (!waits.size) { clearTimeout(idle); idle = window.setTimeout(stopHd, IDLE_MS); }   // 할 일이 다 끝남 = 그때부터 셈
   };
   w.onerror = (e) => drop(`문서 엔진이 멈췄어 — ${e.message || "일꾼 오류"}`);
   worker = w;
   return w;
 }
 
+/** 일꾼 끄기 — 하던 일이 있으면 안 끔(그 일이 끝난 뒤 3분 셈이 끔) */
+export function stopHd() { if (worker && !waits.size) drop("문서 엔진을 껐어"); }
+
 /** hwpx-docs 명령 하나 — 예: hd(["md", "/work/in.md", "/work/out.hwpx"], { "in.md": 글 }, ["out.hwpx"]) */
 export function hd(argv: string[], inputs: HdIn = {}, outputs: string[] = []): Promise<HdOut> {
   return new Promise((ok, no) => {
     const id = ++seq, w = ensure();
+    clearTimeout(idle);
     const timer = window.setTimeout(() => { if (waits.has(id)) drop("문서 엔진이 너무 오래 걸려서 멈췄어 — 다시 눌러 줘"); }, booted ? EACH_MS : FIRST_MS);
     waits.set(id, { ok, no, timer });
     w.postMessage({ id, pack: new URL(import.meta.env.BASE_URL + HD_PACK, location.href).href, argv, inputs, outputs });
