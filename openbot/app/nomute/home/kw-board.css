@@ -36,7 +36,7 @@ html.dark .nm-hotswap { color:#e8eae8; }
 .nm-kwb-ch b { font-size:11px; font-weight:600; letter-spacing:.02em; opacity:.62; white-space:nowrap; }
 .nm-kwb-ch span { font-size:10px; opacity:.42; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nm-kwb-col ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-.nm-kwb-col li { display:grid; grid-template-columns:16px minmax(0,1fr) auto auto; align-items:center; gap:7px; min-height:31px; padding:0 4px; border-radius:8px; border-top:1px solid color-mix(in srgb, currentColor 5%, transparent);
+.nm-kwb-col li { display:grid; grid-template-columns:16px minmax(0,1fr) auto; align-items:center; gap:7px; min-height:31px; padding:0 4px; border-radius:8px; border-top:1px solid color-mix(in srgb, currentColor 5%, transparent);
   animation:kwbRow .34s var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
 .nm-kwb-col li:hover { background:color-mix(in srgb, currentColor 5%, transparent); }
 .nm-kwb-col .rk { font-size:11px; text-align:right; opacity:.4; font-variant-numeric:tabular-nums; }
@@ -47,12 +47,10 @@ html.dark .nm-hotswap { color:#e8eae8; }
 .nm-kwb-col .sub { font-size:10px; opacity:.45; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .nm-kwb-col .sub:empty { display:none; }
 .nm-kwb-col .sub.new { opacity:.8; font-weight:700; letter-spacing:.03em; }
-/* 겹친 말 = 라임(형 「중복되는 키워드는 … 라임색으로 그대로 표기」) · 셋 넘게 = 작은 숫자 */
+/* 겹친 말 = 라임만(형 「중복되는 키워드는 … 라임색으로 그대로 표기」 · 11-17 01:58 「겹치는 검색어는 라임 표현만 되면 되고」 → 동그라미 숫자 걷음) */
 .nm-kwb-col li.dup .q, .nm-kwb-col li.dup .rk { color:#4f7a00; opacity:1; }
 html.dark .nm-kwb-col li.dup .q, html.dark .nm-kwb-col li.dup .rk { color:var(--accent, #CFFF40); }
 .nm-kwb-col li.dup .q { font-weight:600; }
-.nm-kwb-col .n { font-style:normal; font-size:9.5px; font-weight:700; line-height:15px; min-width:15px; text-align:center; border-radius:999px; color:#4f7a00; border:1px solid currentColor; font-variant-numeric:tabular-nums; }
-html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
 .nm-kwb-col[data-stale] ol { opacity:.42; }
 .nm-kwb-empty, .nm-kwb-none { margin:0; padding:10px 4px; font-size:12px; opacity:.5; }
 .nm-kwb-none { padding:16px 14px; display:flex; flex-direction:column; gap:3px; opacity:.6; }
@@ -83,11 +81,10 @@ html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
   .nm-kwb-ch b { overflow:hidden; text-overflow:ellipsis; }   /* 반쪽보다 긴 이름 = 말줄임 */
   .nm-kwb-ch b { font-size:14px; opacity:.9; }
   .nm-kwb-ch span { font-size:11px; }
-  .nm-kwb-col li { grid-template-columns:16px minmax(0,1fr) auto auto; gap:6px; min-height:clamp(38px, 6.2svh, 52px); padding:0 4px; }   /* 반쪽 폭 = 순위 칸 · 틈 좁힘 · 긴 말 = 말줄임(.q) */
+  .nm-kwb-col li { grid-template-columns:16px minmax(0,1fr) auto; gap:6px; min-height:38px; padding:0 4px; }   /* 반쪽 폭 = 순위 칸 · 틈 좁힘 · 긴 말 = 말줄임(.q) */
   .nm-kwb-col .rk { font-size:10.5px; }
   .nm-kwb-col .q { font-size:12.4px; font-weight:500; }   /* 단어 = 앞 판 16.5 × 0.75 · 순위 14 × 0.75(형 08:35 「키워드 메인에서 보이는거 단어들 지금보다 25% 작아도 되」) */
   .nm-kwb-col .sub { font-size:11.5px; }
-  .nm-kwb-col .n { font-size:11px; line-height:18px; min-width:18px; }
   .nm-kwb-dots { display:flex; flex:none; justify-content:center; gap:7px; padding:10px 0 8px; }
   .nm-kwb-dots button { all:unset; width:6px; height:6px; border-radius:999px; background:currentColor; opacity:.22; cursor:pointer; transition:width .26s var(--e-out,cubic-bezier(.2,.8,.2,1)), opacity .2s ease; }
   .nm-kwb-dots button[aria-selected="true"] { width:18px; opacity:.85; }
@@ -97,10 +94,11 @@ html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
 .nm-home-swap { position:relative; display:flex; min-height:0; min-width:0; flex-direction:column; }
 .nm-home-swap .nm-kwb { border-radius:22px; background:color-mix(in srgb, currentColor 4%, transparent); border:1px solid color-mix(in srgb, currentColor 8%, transparent); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); }
 .nm-home-swap .nm-hotswap-t { top:11px; right:auto; left:50%; translate:-50% 0;   /* 폰 = 위 가운데(카드 왼쪽 위 = 점수 · 오른쪽 위 = 카드 제 단추라 비는 자리) */ background:rgba(20,22,20,.55); color:#e8eae8; border-color:rgba(255,255,255,.16); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:.9; }
-/* 폰 = 줄이 칸 키를 나눠 씀(아래가 텅 비지 않게 · 줄 하나 72px 까지) */
+/* 폰 = 줄 38px 촘촘히 · 카드 = 제 키만큼(위에 붙고 아래는 비움 · 칸 끝 = 홈 가운데 줄 끝을 안 넘음) → 아래 「최근 메시지」 칸 머리가 보임
+   (형 11-17 01:58 dm-bom 「그리고 인기검삭어가 늘어지는 느낌이단데」 · 「이 부분도 하단 메세지 영역은 유지」 · 앞 판 = 줄이 칸 키를 나눠 써 한 줄 55px 쯤으로 늘어짐) */
+.nm-home-swap .nm-kwb { bottom:auto; max-height:100%; }
 @container kwb (max-width:460px) {
-  .nm-kwb-col ol { flex:1 1 auto; min-height:0; }
-  .nm-kwb-col li { flex:1 1 0; max-height:72px; }
+  .nm-kwb-col li { height:38px; flex:none; }
 }
 
 /* Hot Issue ↔ 키워드 바꿈 = 알약 테 · 바탕 0(글 · 그림만) · PC = 칸 제목 바로 옆(형 11-15 08:54 「키워드 스위칭하는거 있잖아. 알약 없이 . 그리고 핫이슈 토글 타이틀 옆으로 옮기면 될거같아」 · 깃 #-046 ③④) */
