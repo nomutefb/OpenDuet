@@ -912,10 +912,3 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .nm-qpeek-h button { margin-left:8px; border:0; background:none; color:inherit; font-size:18px; line-height:1; cursor:pointer; padding:0 2px; }
 .nm-qpeek-t { margin:0; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.5; }
 .nm-qpeek-n { display:block; margin-top:6px; font-size:11px; color:rgba(232,234,232,.5); }
-
-/* 긴 말풍선이 위로 넘어가도 좌상단 얼굴 · 이름 라벨이 붙어 따라옴(형 11-16 20:39 dm-bom 「글 길어져도 좌상단에 프로필 라벨이랑 나오게 해줘」)
-   = position:sticky 만(스크롤 때 셈 0 · 그 말풍선이 끝나면 같이 올라감) · 붙는 높이 = 대화 머리 아래(1:1 얼굴 머리 ≈96 · 단톡 머리 44) */
-.ychat { --nm-stick: 100px; }
-:root:has(header.nm-head.absolute .nm-room-mark) .ychat { --nm-stick: 52px; }
-.ychat .ymsg .yava { position:sticky; top:var(--nm-stick); z-index:2; }
-.ychat .ymsg .ycol > .yname, .ychat .ymsg .ycol > .yname.tab.pm { position:sticky; top:calc(var(--nm-stick) + 4px); z-index:2; align-self:flex-start; }   /* PM 이름(.yname.tab.pm = position:relative 가 더 셈)도 sticky 로 — 앞 판은 PM 만 relative + top 104 로 글 위로 밀려 겹침 · 긴 글에선 이름만 사라짐(형 11-16 21:08 「프로필 라벨 버그 ㅠ」 · 봄 1:1) */
