@@ -22,7 +22,8 @@
 .nm-stk-heart { all:unset; position:absolute; top:2px; right:2px; width:22px; height:22px; display:grid; place-items:center; cursor:pointer; border-radius:50%; }   /* 하트 = 누르면 맨 앞 줄(≤5) */
 .nm-stk-heart svg { fill:rgba(14,15,14,.35); stroke:rgba(255,255,255,.7); stroke-width:2; filter:drop-shadow(0 0 2px rgba(0,0,0,.6)); }
 .nm-stk-heart.on svg { fill:#FF6FA0; stroke:#FF6FA0; }
-.nm-stk-face { margin:-2px 5px -2px -4px; display:inline-block; vertical-align:middle; }
+.nm-stk-face { margin:-2px 5px -2px -2px; display:inline-block; vertical-align:middle; }   /* raw-ok: 왼쪽 -4 → -2 + 아래 줄 = (얼굴 + 글자) 덩어리를 알약 가운데로 — 구름 실측(폰 412 · DPR3) 왼 9.00 / 오른 13.64 = 2.3px 왼쪽 치우침 → 왼 11.00 / 오른 11.64(형 11-16 21:04 「수평 수직수평 사분할 중심 잘 맞춰서」) · 알약 폭 그대로 */
+.nm-stk-tabs button:has(.nm-stk-face) { padding-right:10px; }
 .nm-stk-tabs button { display:inline-flex !important; align-items:center; }
 .nm-stk-cell .pick:hover { outline:2px solid rgba(var(--accent-rgb, 207,255,64),.38); }
 .nm-stk-cell img { width:100%; height:100%; object-fit:cover; display:block; }
