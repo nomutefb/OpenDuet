@@ -14,8 +14,13 @@ test("깨진 글 · 받은 때 없음 · 일주일 넘음 · 앞날 시각 = 없
   for (const raw of [null, "", "{", "null", JSON.stringify({ v: 1 }), JSON.stringify({ at: now }), lastWrite(1, now - 8 * 864e5), lastWrite(1, now + 3600e3)]) assert.equal(lastRead(raw, now), undefined, String(raw));
   assert.deepEqual(lastRead(lastWrite(1, now - 6 * 864e5), now), { v: 1, at: now - 6 * 864e5 });
 });
-test("끼운 자리 = 애들 화면 손 판(status/bots) · 스케줄 표(schedule)", () => {
-  const desk = rd("../ui/bot-desk.tsx"), set = rd("../ui/settings-extra.tsx");
-  assert.match(desk, /office<Sheet>\("status\/bots"\)\.then\(\(j\) => lastPut\("bots-sheet", j\)\)/); assert.match(desk, /\.\.\.lastSeed<Sheet>\("bots-sheet"\)/);
-  assert.match(set, /office<Sched>\("schedule"\)\.then\(\(j\) => lastPut\("schedule", j\)\)/); assert.match(set, /\.\.\.lastSeed<Sched>\("schedule"\)/);
+test("끼운 자리 = 화면과 미리 받기가 같은 꼴 한 벌(data/crew-warm.ts) · 앱이 켜질 때 한 번 · 값 없는 첫 순간은 제 자리 꼴", () => {
+  const warm = rd("../data/crew-warm.ts"), desk = rd("../ui/bot-desk.tsx"), set = rd("../ui/settings-extra.tsx"), shell = rd("../ui/shell.tsx"), sd = rd("../ui/sched-desk.tsx");
+  assert.match(warm, /office<T>\("status\/bots"\)\.then\(\(j\) => lastPut\("bots-sheet", j\)\), \.\.\.lastSeed<T>\("bots-sheet"\)/);
+  assert.match(warm, /office<T>\("schedule"\)\.then\(\(j\) => lastPut\("schedule", j\)\), \.\.\.lastSeed<T>\("schedule"\)/);
+  assert.match(warm, /qc\.prefetchQuery\(botsSheetOpts<unknown>\(\)\); void qc\.prefetchQuery\(schedOpts<unknown>\(\)\)/);
+  assert.match(desk, /\.\.\.botsSheetOpts<Sheet>\(\)/); assert.match(set, /useQuery\(\{ \.\.\.schedOpts<Sched>\(\)/);
+  assert.match(shell, /useEffect\(\(\) => warmCrew\(warmQc\), \[warmQc\]\)/);
+  assert.match(desk, /q\.isPending \? <HandGhost people=\{people\} \/> : null/); assert.doesNotMatch(desk, /읽는 중…<\/span> : q\.isError/);
+  assert.match(sd, /nm-sched-ghost/); assert.doesNotMatch(sd, /: reading\("표"\)\}<\/p>/);
 });

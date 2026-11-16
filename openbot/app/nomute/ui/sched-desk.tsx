@@ -165,7 +165,11 @@ export function SchedDesk() {
     return undefined;
   }, [save?.stage, qc]);
   useEffect(() => { if (save?.stage === "wait" && got?.got && (!save.sha || got.sha === save.sha)) setSave((s) => s && { ...s, stage: "done" }); }, [save?.stage, save?.sha, got?.got, got?.sha]);
-  if (!d) return <p className="p-6 text-sm text-muted-foreground">{s.isError ? readFail(s.error, "스케줄 표") : reading("표")}</p>;
+  if (!d) return s.isError ? <p className="p-6 text-sm text-muted-foreground">{readFail(s.error, "스케줄 표")}</p> : (   // 표가 아직 없는 첫 순간 = 글자 한 줄 대신 제 자리 꼴(요약 띠 + 가지 칸 · 투명도만 숨 쉼) — 형 11-17 「처음브터 제대로 나오게」
+    <div className="nm-sched nm-sched-ghost mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-28 pt-1" role="status" aria-label={reading("표")}>
+      <i className="band" />{Array.from({ length: 7 }, (_, i) => <i key={i} className={i === 0 || i === 6 ? "row root" : "row"} />)}
+    </div>
+  );
   const hasForks = !!d.forks?.length;
   const forks: SchedFork[] = hasForks ? d.forks! : [{ id: "", name: "아직 안 나눔", on: true }];
   const rsOf = (f: SchedFork) => d.routines.filter((r) => (hasForks ? r.fork === f.id : true) && (!who || r.bot === who));

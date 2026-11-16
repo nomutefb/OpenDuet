@@ -43,6 +43,7 @@ import { SceneBg } from "./thumb-maker/scene-bg";
 import "../home/home-scene.css";
 import "./fs-tokens.css";   // 글자 크기 기준값 한 곳(빠르 11-08 · 시아 02:14 표)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { warmCrew } from "../data/crew-warm";
 import { HYUNG_ID, idOf, office, roomAgentIds } from "../data/office";
 import { enterRoom } from "../data/read-state";
 import { FaceImg, FaceStack } from "./faces";
@@ -186,6 +187,7 @@ const paneHref = (pane: Pane, room: string) => (pane === "chat" ? chatHref(room)
 const SettingsPage = SettingsIndex.options.component as () => ReactNode;
 
 export function NomuteShell({ children }: { children: ReactNode }) {
+  const warmQc = useQueryClient(); useEffect(() => warmCrew(warmQc), [warmQc]);   // 앱이 켜지고 한가해지면 애들 화면의 두 답(손 판 · 스케줄 표)을 미리 받아 둠(../data/crew-warm.ts · 형 11-17 「처음브터 제대로 나오게」)
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const nav = useNavigate();
