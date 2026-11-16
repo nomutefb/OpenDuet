@@ -15,3 +15,7 @@
 .nm-lh .w.on { color:var(--accent, #CFFF40); font-weight:800; }
 .nm-lh .ws > :last-child.w { padding-right:0; }
 .nm-lh .err { margin:2px 0 0; font-size:12px; color:#ff8a8d; }
+/* 스케줄 화면 「머리」 전체 칸(./sched-desk.tsx · 설정과 같은 부품) — 이 칸이 얹힌 「최근 바뀜」 카드 꼴(.nm-org-log)의 글 자르기 규칙이 부품 안 이름까지 잘라서 풂 */
+.nm-sched-llm h3 small { display:inline; margin-left:6px; }
+.nm-sched-llm .nm-ms b { white-space:normal; overflow:visible; text-overflow:clip; }
+.nm-sched-llm .nm-ms small { display:inline; white-space:normal; overflow:visible; }

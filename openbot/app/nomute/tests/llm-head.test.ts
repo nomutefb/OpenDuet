@@ -16,6 +16,11 @@ const SHEET = { models: MODELS, jobs: [
 
 test("머리 갈래 = 서버 llm_group 칸 먼저 · 없으면 아는 표(일감 가르기) · 모르면 줄 없음", () => {
   assert.deepEqual(headKeyOf({ id: "wf.garden-judge", name: "정원 일감 가르기·점검" }), { kind: "ms", ids: ["sort", "audit"] });
+  // 서버 러너 지도 칸(빠르 #4092 · 라이브 11-17 02:2x 꼴 그대로)
+  assert.deepEqual(headKeyOf({ id: "wf.garden-judge", name: "정원 일감 가르기·점검", llm_group: ["modelset"], llm: ["modelset:audit·sort"] }), { kind: "ms", ids: ["audit", "sort"] });
+  assert.deepEqual(headKeyOf({ id: "wf.breaking-judge", name: "속보", llm_group: ["judge"], llm: ["BREAKING_MODEL", "GATE_MODEL"] }), { kind: "pipe", id: "judge" });
+  assert.deepEqual(headKeyOf({ id: "wf.imggen", name: "생성형 이미지", llm_group: ["create"], llm: ["FABLE_MODEL"] }), { kind: "pipe", id: "create" });
+  assert.equal(headKeyOf({ id: "wf.x", name: "x", llm_group: ["modelset"] }), null);
   assert.deepEqual(headKeyOf({ id: "wf.news-analyze", name: "뉴스 요약(PICK)", llm_group: "summary" }), { kind: "pipe", id: "summary" });
   assert.deepEqual(headKeyOf({ id: "wf.x", name: "x", llm_group: ["ms:k"] }), { kind: "ms", ids: ["k"] });
   assert.equal(headKeyOf({ id: "wf.news-analyze", name: "뉴스 요약(PICK)" }), null);   // 갈래 칸이 오기 전 = 안 그림

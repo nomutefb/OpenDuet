@@ -6,15 +6,19 @@
 import { type Choice, type Job, type Llm, type Pick, PIPE_DEF, PIPE_GROUPS, koOf, modelChoices, effortChoices, pipeChoices, pipeRows, sameOf } from "./model-set-logic.ts";
 
 export type HeadKey = { kind: "pipe"; id: string } | { kind: "ms"; ids: string[] };
-export type HeadJob = { id: string; name: string; llm_group?: string | string[] };
+export type HeadJob = { id: string; name: string; llm_group?: string | string[]; llm?: string | string[] };   // llm_group = 갈래(서버 러너 지도 · 빠르 #4092: judge · brief · create · video · modelset) · llm = 그 워크플로가 읽는 손잡이 이름(「modelset:audit·sort」 꼴이면 서버 일 id)
 /** 서버 칸이 오기 전에 아는 것 — 정원 일감 가르기 · 점검 = 서버 일 「일감 가르기」 + 「안 닫힌 오더 판독」(서버 where 글 「한 번에 처리 · 두 설정 연동」). */
 const KNOWN: Record<string, string[]> = { "wf.garden-judge": ["ms:sort", "ms:audit"] };
 const PIPE_IDS = PIPE_GROUPS.map((g) => g.id);
-/** 이 러너 일의 머리 갈래 — llm_group(글 하나 · 여럿) 먼저 · 없으면 아는 표 · 그것도 없으면 null(줄 안 그림). 「ms:<id>」 = 서버 일 · 그 밖 = 파이프라인 갈래 id. */
+const listOf = (raw: unknown): string[] => (Array.isArray(raw) ? raw : raw ? [raw] : []).map((x) => String(x).trim()).filter(Boolean);
+/** 이 러너 일의 머리 갈래 — 서버 칸 먼저: 손잡이 「modelset:<id>·<id>」 · 갈래 「ms:<id>」 = 서버 일 / 갈래 id(judge · create …) = 파이프라인 · 칸이 없으면 아는 표 · 그것도 없으면 null(줄 안 그림). */
 export function headKeyOf(job: HeadJob): HeadKey | null {
-  const raw = job.llm_group ?? KNOWN[job.id], list = (Array.isArray(raw) ? raw : raw ? [raw] : []).map((x) => String(x).trim()).filter(Boolean);
-  const ms = list.filter((x) => x.startsWith("ms:")).map((x) => x.slice(3)), pipe = list.find((x) => PIPE_IDS.includes(x));
-  return ms.length ? { kind: "ms", ids: ms } : pipe ? { kind: "pipe", id: pipe } : null;
+  const groups = listOf(job.llm_group), hands = listOf(job.llm), known = listOf(KNOWN[job.id]);
+  const ms = [...new Set([...hands.filter((h) => h.startsWith("modelset:")).flatMap((h) => h.slice(9).split(/\s*[·,]\s*/)), ...[...groups, ...(groups.length ? [] : known)].filter((x) => x.startsWith("ms:")).map((x) => x.slice(3))].filter(Boolean))];
+  if (ms.length) return { kind: "ms", ids: ms };
+  if (groups.includes("modelset")) { const k = known.filter((x) => x.startsWith("ms:")).map((x) => x.slice(3)); return k.length ? { kind: "ms", ids: k } : null; }   // 갈래는 서버 일인데 어느 일인지 손잡이가 안 옴 = 아는 표
+  const pipe = groups.find((x) => PIPE_IDS.includes(x));
+  return pipe ? { kind: "pipe", id: pipe } : null;
 }
 const sameKey = (a: HeadKey | null, b: HeadKey | null) => !!a && !!b && a.kind === b.kind && (a.kind === "pipe" ? a.id === (b as typeof a).id : a.ids.some((x) => (b as typeof a).ids.includes(x)));
 /** 같은 갈래를 읽는 러너 일 이름들(이 일 포함) — 머리를 바꾸면 같이 바뀌는 일. */
