@@ -256,7 +256,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
           <button type="button" aria-label="크게" onClick={() => zoom(1.2)}>+</button>
         </div>
       )}
-      {sel ? <RunnerSheet job={sel.job} start={sel.start} review={review[sel.job.id]} who={who} can={can} phone={phone} onClose={closeSel} onRan={(id) => setRan((r) => ({ ...r, [id]: Date.now() + RUN_MS }))} /> : null}
+      {sel ? <RunnerSheet job={sel.job} jobs={map.jobs} start={sel.start} review={review[sel.job.id]} who={who} can={can} phone={phone} onClose={closeSel} onRan={(id) => setRan((r) => ({ ...r, [id]: Date.now() + RUN_MS }))} /> : null}
     </div>
   );
 }

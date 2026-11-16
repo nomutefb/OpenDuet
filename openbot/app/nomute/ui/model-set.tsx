@@ -19,6 +19,28 @@ type AppSet = { llm?: Llm; settings?: AppSet; error?: string };
 const BOT_MODELS: Choice[] = NW_MODELS.map(([id]) => ({ id, ko: modelName(id) })), BOT_EFFORTS: Choice[] = NW_EFFORTS.map((id) => ({ id, ko: id }));
 const BOTS = ["봄", "깃", "빠르", "번개", "시아", "뎅", "뜸", "천둥", "구름"];   // 서버 _nextwin.js 일곱 몸(서버 답에 있는 이름만 그림) + 천둥 · 구름(형 11-16 09:09 dm-bom 「봄 그리고 구름까지는 프로필 누르면 사진 나오게해줘. 설정도 동일하게.」 = 클로드 여덟 + 구름 · 서버가 그 둘을 주기 시작하면 바로 뜸 · 깃한테 부탁 09:24)
 export const useModelSet = () => useQuery({ queryKey: KEY, queryFn: () => office<Sheet>("modelset"), staleTime: 60_000, retry: false });
+// 값을 읽고 쓰는 길 한 벌 — 설정 화면(아래 ModelSetRows)과 스케줄러 러너 일 판의 「머리」 줄(./llm-head.tsx)이 같은 열쇠 · 같은 길을 씀(값 주인 하나 · 형 11-11 「2개 만들면 수정할때마다 두번수정」 · 봄 11-17 02:04)
+export const usePipeLlm = () => useQuery({ queryKey: PIPE_KEY, staleTime: 15_000, retry: false, queryFn: () => getJson<AppSet>(`/api/settings?_=${Date.now()}`) });
+export function useJobSave() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (b: { job?: string; all?: true; model?: string; effort?: string }) => office<Sheet>("modelset", { method: "POST", body: JSON.stringify(b) }),
+    onSuccess: (next) => qc.setQueryData(KEY, next),
+  });
+}
+export function usePipeSave() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (llm: Llm) => {
+      const r = await fetch("/api/settings", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ patch: { llm }, base: {} }) });
+      const j = (await r.json().catch(() => ({}))) as AppSet;
+      if (!r.ok || !j.settings) throw new Error(j.error || `서버 거절(HTTP ${r.status})`);
+      if (!j.settings.llm) throw new Error("서버가 아직 이 칸을 몰라(새 판이 올라가기 전) — 저장 안 됨");   // 옛 서버 = 모르는 칸을 버림 → 저장된 척하지 않음
+      return j.settings;
+    },
+    onSuccess: (next) => qc.setQueryData(PIPE_KEY, next),
+  });
+}
 /** 설정 묶음 줄 오른쪽 한마디. */
 export function useModelSum(): string {
   const nw = useNextWin().data;
@@ -59,21 +81,7 @@ export function ModelSetRows({ bots = true }: { bots?: boolean } = {}) {   // bo
     mutationFn: (b: { who?: string; all?: true; model?: string; effort?: string }) => office<{ nextwin?: Record<string, NextWin> }>("profile/nextwin", { method: "POST", body: JSON.stringify(b) }),
     onSuccess: (j) => { if (j.nextwin) qc.setQueryData(NW_KEY, j.nextwin); else void qc.invalidateQueries({ queryKey: NW_KEY }); },
   });
-  const jobSave = useMutation({
-    mutationFn: (b: { job?: string; all?: true; model?: string; effort?: string }) => office<Sheet>("modelset", { method: "POST", body: JSON.stringify(b) }),
-    onSuccess: (next) => qc.setQueryData(KEY, next),
-  });
-  const pipe = useQuery({ queryKey: PIPE_KEY, staleTime: 15_000, retry: false, queryFn: () => getJson<AppSet>(`/api/settings?_=${Date.now()}`) });
-  const pipeSave = useMutation({
-    mutationFn: async (llm: Llm) => {
-      const r = await fetch("/api/settings", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ patch: { llm }, base: {} }) });
-      const j = (await r.json().catch(() => ({}))) as AppSet;
-      if (!r.ok || !j.settings) throw new Error(j.error || `서버 거절(HTTP ${r.status})`);
-      if (!j.settings.llm) throw new Error("서버가 아직 이 칸을 몰라(새 판이 올라가기 전) — 저장 안 됨");   // 옛 서버 = 모르는 칸을 버림 → 저장된 척하지 않음
-      return j.settings;
-    },
-    onSuccess: (next) => qc.setQueryData(PIPE_KEY, next),
-  });
+  const jobSave = useJobSave(), pipe = usePipeLlm(), pipeSave = usePipeSave();
   const names = nw.data ? BOTS.filter((n) => nw.data[n]) : [], rows = names.map((n) => nw.data![n] || nwDefault(n));
   const s = ms.data, jobs = s?.jobs || [], jobModels = modelChoices(s?.models || []), jobEfforts = effortChoices();
   const pRows = pipeRows(pipe.data?.llm), pAllIds = PIPE_GROUPS.map((g) => g.id), pAll = pipeAllChoices(jobModels);

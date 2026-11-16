@@ -1,0 +1,17 @@
+/* 러너 일 판 「머리」 칸(./llm-head.tsx) — 낱말 줄 꼴 = 옛 에디터 .srow / .sopts .pc(이름 왼쪽 · 낱말 오른쪽 · 고른 것 강조색 800) */
+.nm-lh { display:grid; gap:0; margin:0 16px 10px; padding-top:10px; border-top:1px solid rgba(232,234,232,.1); letter-spacing:0; text-transform:none; }
+.nm-lh[data-busy] { opacity:.6; }
+.nm-lh .h { display:flex; align-items:baseline; gap:8px; min-height:26px; }
+.nm-lh .h b { font-size:13px; font-weight:800; }
+.nm-lh .h small, .nm-lh .h em { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-style:normal; color:var(--mut, rgba(232,234,232,.55)); }
+.nm-lh .h em { flex:none; margin-left:auto; }
+.nm-lh .ln { display:flex; align-items:baseline; justify-content:space-between; gap:12px; min-height:32px; }
+.nm-lh .ln > span:first-child { flex:none; font-size:13px; font-weight:700; color:var(--mut, rgba(232,234,232,.55)); }
+.nm-lh .ws { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:baseline; gap:2px 0; min-width:0; }
+.nm-lh .ws > i { font-style:normal; opacity:.35; padding:0 1px; pointer-events:none; }
+.nm-lh .w { padding:6px 7px; border:0; background:none; font:inherit; font-size:13px; font-weight:700; color:var(--mut, rgba(232,234,232,.55)); white-space:nowrap; -webkit-tap-highlight-color:transparent; }
+.nm-lh button.w { cursor:pointer; transition:color .15s ease, scale .12s ease; }
+.nm-lh button.w:active { scale:.94; }
+.nm-lh .w.on { color:var(--accent, #CFFF40); font-weight:800; }
+.nm-lh .ws > :last-child.w { padding-right:0; }
+.nm-lh .err { margin:2px 0 0; font-size:12px; color:#ff8a8d; }

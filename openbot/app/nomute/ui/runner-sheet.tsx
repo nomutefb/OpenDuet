@@ -2,6 +2,8 @@
 //   블록 누름 → 폰 = 아래서 올라오는 판 · PC = 가운데 판(같은 칸) · 서버 POST schedule/runner(editor #3015 · 형만 · dry 먼저)
 //   칸 = 상태(켜짐·꺼짐) · 켬끔 스위치 · 「지금 돌리기」 · 미리 보기 한 줄(끔 = 빨강 + 뒤따름 수) → 「적용」 · 최근 한 일 · 몸 안 잡 = 회색 글 + 주인 칩(스위치 없음)
 //   3단(언제 · 모델 · 복사 · 검토로)은 여기 아님
+import { LlmHead } from "./llm-head";
+import { headKeyOf } from "./llm-head-logic";
 import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -18,7 +20,7 @@ import { ACTION_KO, type RunnerRes, ghJob, sameJob, stateKo, toggleOf } from "./
 const post = (file: string, action: string, dry: boolean) => office<RunnerRes>("schedule/runner", { method: "POST", body: JSON.stringify({ action, file, dry }) });
 const whenKo = (ts: number) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
-export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, who }: { job: RunnerJob; can: boolean; phone: boolean; onClose: () => void; onRan: (id: string) => void; start?: "run" | "toggle"; review?: Review; who?: (w: string) => string }) {   // start = 열자마자 그 일의 미리 보기까지(노드 트리 탭 단추 · ./sched-tree.tsx)
+export function RunnerSheet({ job, jobs, can, phone, onClose, onRan, start, review, who }: { job: RunnerJob; jobs?: RunnerJob[]; can: boolean; phone: boolean; onClose: () => void; onRan: (id: string) => void; start?: "run" | "toggle"; review?: Review; who?: (w: string) => string }) {   // start = 열자마자 그 일의 미리 보기까지(노드 트리 탭 단추 · ./sched-tree.tsx)
   const gh = ghJob(job);
   const [res, setRes] = useState<RunnerRes | null>(null), [busy, setBusy] = useState(""), [msg, setMsg] = useState("");
   const [pre, setPre] = useState<{ file: string; action: "run" | "on" | "off"; would: string; red: boolean } | null>(null);   // dry 미리 보기 → 「적용」 기다리는 중(file = 미리 본 그 잡 · 모루 09:32 ③)
@@ -117,9 +119,10 @@ export function RunnerSheet({ job, can, phone, onClose, onRan, start, review, wh
                 <ul>{res.acts.map((a) => <li key={a.at}>{whenKo(a.at)} · {a.who} · {ACTION_KO[a.action] || a.action}{a.from !== a.to && a.to ? ` · ${stateKo(a.from || "")} → ${stateKo(a.to)}` : ""}</li>)}</ul>
               </div>
             ) : null}
-            <small className="nm-rsheet-foot">언제 · 모델 바꾸기는 다음 판(yml 고침) · 끄면 시간표 · 박자 · 수동이 다 멈추고 다시 켜면 돌아와</small>
+            <small className="nm-rsheet-foot">{headKeyOf(job) ? "언제 바꾸기는 다음 판(yml 고침)" : "언제 · 모델 바꾸기는 다음 판(yml 고침)"} · 끄면 시간표 · 박자 · 수동이 다 멈추고 다시 켜면 돌아와</small>
           </div>
         )}
+        <LlmHead job={job} jobs={jobs || [job]} />   {/* 머리 = 이 일이 쓰는 서브 LLM(모델 · 노력도) · 갈래를 아는 일에만(형 11-17 02:0x · ./llm-head.tsx) */}
         <div className="nm-rsheet-info">   {/* 옛 목록에만 있던 칸을 판으로(평의회 11-14 「형이 왜 늦었어 · 누가 맡았어를 볼 길이 없어졌다」) = 돌 자리 · 모델 · 책임 · 확인 전 / 마지막 실제 · 얼마나 늦음 / 검토 */}
           <small>{[(job.res || []).map((r) => `${r.at}${r.gpu ? "(GPU)" : ""}`).join(" › ") || "돌 자리 모름", job.model?.length ? job.model.join(" · ") : job.providers?.length ? job.providers.join(" · ") : "AI 안 씀", `${job.owner || "책임 모름"}${job.checked ? "" : " · 확인 전"}`].join(" · ")}</small>
           {job.health ? <small data-st={job.health.st}>{HEALTH_KO[job.health.st]}{job.health.last_at ? ` · 마지막 실제 ${nextShort(job.health.last_at)}` : ""}{job.health.drift_min ? ` · 예정보다 ${job.health.drift_min}분 늦음` : ""}{job.health.missed ? ` · 놓침 ${job.health.missed}` : ""}</small> : null}
