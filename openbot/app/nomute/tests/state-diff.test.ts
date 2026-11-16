@@ -62,7 +62,8 @@ test("움직임 = transform · opacity 만 · 되풀이 0 · 움직임 줄이기
 });
 
 test("끼운 자리", () => {
-  assert.match(src("ui/settings-extra.tsx"), /nm-sd-band[^\n]*\n[^\n]*<StateDiff label=/);
+  assert.doesNotMatch(src("ui/settings-extra.tsx"), /export function NomuteSchedule/);   // 설정 「스케줄러 바꾸기」(확인 띠 = StateDiff 두 줄)는 걷음 — 같은 일은 스케줄 화면에서(형 11-17 03:24 · 모으는 시간 = ./sched-extra.tsx 낱말 줄 + 그 자리 재확인)
+  assert.match(src("ui/sched-extra.tsx"), /at: "kind", key: v\.key, field: "delay_max"/);
   assert.equal(src("ui/sched-desk.tsx").split("<DiffPair ").length - 1, 2);
   assert.match(src("ui/sched-desk.tsx"), /play=\{isFresh\(c\.at, since\)\}/);
   assert.equal(src("ui/yeta-settings.tsx").split("<DiffValue value={v} />").length - 1, 3);

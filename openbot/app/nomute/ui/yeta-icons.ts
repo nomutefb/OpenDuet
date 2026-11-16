@@ -24,6 +24,7 @@ export const YICO = {
   bot: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"8\" width=\"16\" height=\"12\" rx=\"3\"/><path d=\"M12 4v4\"/><path d=\"M9 13.5h.01M15 13.5h.01\" stroke-width=\"2.6\"/><path d=\"M2 13v3M22 13v3\"/></svg>",
   link: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1\"/></svg>",
   gauge: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4.5 18a9 9 0 1 1 15 0\"/><path d=\"M12 14l4-5\"/><circle cx=\"12\" cy=\"14\" r=\"1.2\"/></svg>",
+  lock: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"11\" width=\"14\" height=\"9\" rx=\"2\"/><path d=\"M8 11V8a4 4 0 0 1 8 0v3\"/></svg>",   // 자물쇠(보안 서랍 · 화면 잠금 · 자판 그림(keys)과 겹치던 것 · 형 11-17 「설정.부분도 보완점 없는지 넓게 보구」)
   keys: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><path d=\"M6 10h.01M10 10h.01M14 10h.01M18 10h.01\" stroke-width=\"2.4\"/><path d=\"M7 14h10\"/></svg>",
 } as const;
 export type YIcon = keyof typeof YICO;

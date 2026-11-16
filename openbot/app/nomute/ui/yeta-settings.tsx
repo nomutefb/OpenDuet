@@ -4,20 +4,17 @@
 //   테마 = YETA 「화면 어둡기」 행처럼 누를 때마다 다음 값 · 나머지 행 = 누르면 그 칸(settings-extra·health 그대로)이 행 아래 펼쳐짐(한 번에 하나)
 //   11-01 00:10 형 「6 설정을 카테고라이징 적용하고 이를 5에도 적용 톤은 그대로 글래스모피즘」 · 「도형을 구분선으로 단축」 = 묶음마다 유리 카드 하나 + 행은 구분선(.yset-part · .yset-grp · 서랍 = ./drawer-page.tsx 같은 부품)
 //   10-31 15:1x 형 「이거 설정 예전 예타 모습으롷 ㅏ고싶어」(사진 = 에디터 판의 YETA 카드: 섹션 라벨 + 행 평면) → dac3f2b 의 접힘 묶음(details.yset-grp)·고정 제목(yset-pin) 뺌 = 09:41 꼴로 되돌림 · 항목(공통 지시·단축키·정보)은 그대로
+//   11-17 03:24 형(구름 맥 창) 「설정.부분도 보완점 없는지 넓게 보구 동의할테니 진행해」 = 일이 도는 자리에 있는 것은 그 자리로(스케줄러 바꾸기 · 점검표 · AI 썸네일 옵션 → 스케줄 화면 ./sched-extra.tsx / 회의실 계기판 → 애들 화면 「계기판」 탭) · 여긴 가는 길 두 줄만 · 「살펴보기」 묶음 걷음 · 고정 줄 색 → 「화면」 묶음 안 · 자물쇠 그림
 import "./yeta-settings.css";
 import { BlindRows } from "./idle-blind";
-import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, Suspense, lazy, useState } from "react";
 const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModal })));   // 화면 잠금 · 구독 기기 = 서랍에서 설정으로(형 11-14 「화면 잠금 > 설정으로」 · 「구독 기기 > 설정으로」)
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));
 const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 구독 채널 = 서랍 「뉴스」에서 설정 「알림 · 구독」으로(형 11-14 「구독채널은 설정으로 보내서 관련된거랑 가능하면 기능 합치고」 · 화면 = 그대로 ./snsacc)
-const GenOptModal = lazy(() => import("./genopt").then((m) => ({ default: m.GenOptModal })));   // AI 썸네일 옵션 = 서랍 「AI 썸네일·이미지」를 간추려 여기로(형 11-14)
 import { Pane } from "./pane";
 import { DiffValue } from "./state-diff";   // 줄 값이 바뀌는 순간 옛 값이 물러나고 새 값이 들어옴(형 11-15 State Diff)
 import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
-import { office } from "../data/office";
-import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { EnterKeyRow } from "./enter-key";
 import { ThinkMarkRow } from "./live-shine";
@@ -26,15 +23,13 @@ import { PushRow } from "../push/push-row";
 import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { TeamsAccount, useTeamsName } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
 import { PinTintSetting, usePinAlpha } from "./pin-tint";
-import { NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, NomuteVault, useBuildLine } from "./settings-extra";
+import { NomuteNotice, NomuteOld, NomuteVault, useBuildLine } from "./settings-extra";
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
 import { setSkin, useSkin } from "./skin";   // 꾸밈 지금 / 정원(형 11-07 08:01 「지금테마랑 정원테마 고를 수 있게해줘」)
 
 const Svg = ({ k, className }: { k: YIcon; className?: string }) => <span className={className} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
 const THEME: { v: ThemePreference; t: string }[] = [{ v: "system", t: "폰 따라" }, { v: "light", t: "밝게" }, { v: "dark", t: "어둡게" }];
-
-type Health = { counts: { ready: number; unchecked: number; fix: number } };
 
 /** YETA act 행 — [픽토][제목·설명][값·꺾쇠] · 펼침 칸이 있으면 aria-expanded */
 function Act({ ic, t, d, v, vt, mod, open, onClick }: { ic: YIcon; t: string; d?: ReactNode; v?: string; vt?: boolean; mod?: boolean; open?: boolean; onClick: () => void }) {
@@ -62,7 +57,6 @@ export function YetaSettings() {
   const { preference, setPreference } = useTheme();
   const skin = useSkin();
   const [open, setOpen] = useState("");
-  const health = useQuery({ queryKey: ["nomute", "health"], queryFn: () => office<Health>("health"), refetchInterval: 60_000 }).data?.counts;
   const build = useBuildLine();
   const teamsName = useTeamsName();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
@@ -72,8 +66,8 @@ export function YetaSettings() {
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
   ];
   const [open2, setOpen2] = useState("");   // 묶음 안 펼침 줄(구독 기기 · 화면 잠금)
-  const sub = (id: string, ic: YIcon, t: string, body: ReactNode) => [
-    <Act key={id} ic={ic} t={t} open={open2 === id} onClick={() => setOpen2((o) => (o === id ? "" : id))} />,
+  const sub = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [
+    <Act key={id} ic={ic} t={t} v={v} open={open2 === id} onClick={() => setOpen2((o) => (o === id ? "" : id))} />,
     open2 === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
   ];
   const group = (id: string, ic: YIcon, t: string, v: string | undefined, kids: ReactNode) => [   // 묶음 줄 = 누르면 그 아래 줄들이 펼쳐짐
@@ -97,6 +91,7 @@ export function YetaSettings() {
                   if (next === "garden" && document.documentElement.classList.contains("dark")) setPreference("light");
                   setSkin(next);
                 }} />
+              {sub("pintint", "layers", "고정 줄 색", <PinTintSetting />, `${pinA}%`)}   {/* 고정 줄 바탕 진하기(형 11-14 23:39 「설정에서 변경하게 만들어도 돼 값을 투명도」 · ./pin-tint · 뜸) — 보이는 꼴이라 「화면」 묶음으로(11-17) */}
             </>)}
             {group("font", "type", "글꼴", undefined, <ChatFontRows />)}
             {group("input", "keys", "입력 · 표시", undefined, <><EnterKeyRow /><ThinkMarkRow /></>)}
@@ -109,31 +104,20 @@ export function YetaSettings() {
             </>)}
             {group("hide", "screen", "가림 · 잠금", undefined, <>
               <BlindRows />   {/* 쉴 때 화면 가림 · 지금 가리기(형 11-06 17:31 · ./idle-blind.tsx) */}
-              {sub("lock", "keys", "화면 잠금", <Suspense fallback={null}><LockModal /></Suspense>)}
+              {sub("lock", "lock", "화면 잠금", <Suspense fallback={null}><LockModal /></Suspense>)}
             </>)}
-            {row("genopt", "layers", "AI 썸네일 옵션", <Suspense fallback={null}><GenOptModal /></Suspense>)}
           </div>
         </section>
         <section className="yset-part" aria-label="봄의 정원">
           <div className="yset-sec">봄의 정원</div>
           <div className="yset-grp">
-            {row("sched", "clock", "스케줄러 바꾸기", <NomuteSchedule />)}
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
-            {row("pintint", "layers", "고정 줄 색", <PinTintSetting />, `${pinA}%`)}   {/* 고정 줄 바탕 진하기(형 11-14 23:39 「설정에서 변경하게 만들어도 돼 값을 투명도」 · ./pin-tint · 뜸) */}
             {row("notice", "speaker", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
             {/* 봇 쪽 설정(PM · 봇 상자 모델 · 노력도 · 계정 우선순위 · 호출 맥락 · 그록봇 지침 · 지금 봇) = 애들 화면 한 곳으로 옮김 → 여긴 가는 길 하나(형 11-16 19:35 dm-bom 「거기에 봇 관련된 설정은 통합시키려고해」 · 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」) */}
-            <Act ic="bot" t="애들 설정" v="애들에서" onClick={() => { location.hash = "#/drawer"; }} />
-            <Act ic="bot" t="일 모델 · 노력도" v="스케줄에서" onClick={() => { location.hash = "#/sched"; }} />   {/* 서브 LLM(서버가 직접 부르는 일 · 파이프라인) = 스케줄 화면으로 옮김 — 러너 일 판 「머리」 칸 + 아래 「머리」 전체 칸(형 11-17 02:1x 구름 맥 창 「그리고 묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」 · 여기엔 가는 길 한 줄만) */}
+            <Act ic="bot" t="애들 설정 · 계기판" v="애들에서" onClick={() => { location.hash = "#/drawer"; }} />
+            <Act ic="clock" t="스케줄 · 점검 · 일 모델" v="스케줄에서" onClick={() => { location.hash = "#/sched"; }} />   {/* 스케줄 화면 한 곳 = 일 모델 · 노력도(머리 · 형 11-17 02:1x 「그리고 묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」) + 점검 · 모아 깨우기 · 그림(AI 썸네일 옵션) — 형 11-17 03:24 「너가 말한거 반영하고 너 의견 따를테니 묻지말고 진행해」 · 여긴 가는 길 한 줄 */}
             {row("teams", "chat", "팀즈", <TeamsAccount />, teamsName)}
-            {row("vault", "keys", "보안 서랍", <NomuteVault />)}
-          </div>
-        </section>
-        <section className="yset-part" aria-label="살펴보기">
-          <div className="yset-sec">살펴보기</div>
-          <div className="yset-grp">
-            {row("health", "check", "점검표", <NomuteHealth />,
-              health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}
-            {row("meter", "gauge", "회의실 계기판", <NomuteMeter />)}
+            {row("vault", "lock", "보안 서랍", <NomuteVault />)}
           </div>
         </section>
         <section className="yset-part" aria-label="기록·정보">

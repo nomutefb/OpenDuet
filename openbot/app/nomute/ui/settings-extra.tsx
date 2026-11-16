@@ -4,9 +4,7 @@
 //   옛 그록 대화(GET old · 봇 → 날 → 글 · 읽기만) · 맨 아래 「지금 판」(형이 새 판인지 눈으로 · 10-28 10:51 「웹앱이 자동으로 버전업이 안되네」)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { StateDiff } from "./state-diff";
-import { type ReactNode, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { type ReactNode, useState } from "react";
 import { PageSection } from "@/components/layout/page-shell";
 import { idOf, type Meter, type MeterRow, office, people } from "../data/office";
 import type { SchedGpu } from "./sched-gpu";   // GPU 칸(형 11-05 09:43 · 뜸)
@@ -231,123 +229,7 @@ export type SchedSetRes = SetRes;
 type Q = { at: "routine" | "bot" | "kind" | "fork"; key: string; field: string; value: unknown; label: string };
 type SetRes = { same?: boolean; from?: unknown; to?: unknown; commit?: string; checked?: boolean; preview?: { next_at?: number; day_max: number } };
 
-export function NomuteSchedule() {
-  const qc = useQueryClient();
-  const s = useSched();
-  const [ask, setAsk] = useState<{ q: Q; r: SetRes } | null>(null), [msg, setMsg] = useState("");
-  const [vals, setVals] = useState<Record<string, string>>({});
-  useEffect(() => { setVals({}); }, [s.data?.sha]);
-  const setReq = (q: Q, dry: boolean) => office<SetRes>("schedule/set", { method: "POST", body: JSON.stringify({ at: q.at, key: q.key, field: q.field, value: q.value, sha: s.data?.sha, dry }) });
-  const changed = (q: Q, r: SetRes) => {
-    setAsk(null);
-    setMsg(`바뀜 · ${q.label} ${cfVal(q.field, r.from)} → ${cfVal(q.field, r.to)} · 커밋 ${String(r.commit || "").slice(0, 7)}${r.checked ? " · 다시 읽어 그대로 확인" : ""}`);
-    void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] });
-  };
-  const go = useMutation({
-    mutationFn: ({ q, dry }: { q: Q; dry: boolean }) => setReq(q, dry),
-    onSuccess: (r, { q, dry }) => {
-      if (r.same) { setAsk(null); setMsg(`이미 ${cfVal(q.field, q.value)}이야 — 바꿀 것 없음`); return; }
-      if (dry) { setAsk({ q, r }); setMsg(""); return; }
-      changed(q, r);
-    },
-    onError: (e) => {
-      setAsk(null);
-      const m = e instanceof Error ? e.message : String(e);
-      setMsg(/changed/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m);
-      if (/changed/.test(m)) void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] });
-    },
-  });
-  const prep = (q: Q) => go.mutate({ q, dry: true });
-  // 「바꾸기」 = 게이지 → ✓ 단추(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」 · 빠르 02:12 「스케줄러 바꾸기 하나만 아직 맨 단추」) — 확인 띠는 ✓ 를 보여 준 뒤 접음(done) · 실패 = 띠를 남기고 빨강
-  const apply = async (q: Q) => {
-    try { return await setReq(q, false); }
-    catch (e) { const m = e instanceof Error ? e.message : String(e); setMsg(/changed/.test(m) ? "다른 데서 바뀜 — 새 판을 다시 읽었어 · 다시 골라 줘" : m); if (/changed/.test(m)) void qc.invalidateQueries({ queryKey: ["nomute", "schedule"] }); throw e; }
-  };
-  const d = s.data, can = !!d?.can_set;
-  const num = (q: Omit<Q, "value">, cur: number | undefined, min: number, max: number) => {
-    const k = `${q.at}|${q.key}|${q.field}`;
-    return (
-      <label className="flex items-center gap-1 text-xs">
-        {CF_KO[q.field]}
-        <input type="number" min={min} max={max} disabled={!can} className="w-16 rounded-lg border border-border bg-background px-2 py-1 text-xs tabular-nums" value={vals[k] ?? String(cur ?? "")} aria-label={q.label + " " + CF_KO[q.field]}
-          onChange={(e) => setVals((v) => ({ ...v, [k]: e.target.value }))}
-          onKeyDown={(e) => { if (e.key === "Enter") prep({ ...q, value: Number(vals[k] ?? cur) }); }} onBlur={() => { if (vals[k] !== undefined && Number(vals[k]) !== cur) prep({ ...q, value: Number(vals[k]) }); }} />
-      </label>
-    );
-  };
-  return (
-    <PageSection title="스케줄러 바꾸기">
-      {d && !can ? <p className="mt-1 text-xs text-muted-foreground">바꾸기 = 형 자리만</p> : null}   {/* 상태 설명 줄 뺌 · 권한 줄만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
-      {ask ? (
-        <div className="nm-sd-band sticky top-2 z-10 mt-3 flex flex-wrap items-center gap-2 rounded-2xl p-3 text-sm">   {/* 확인 띠 = 유리 판 + 값 바뀜 두 줄(− 옛 값 / + 새 값 · ./state-diff.tsx · 형 11-15) */}
-          <span className="min-w-0 flex-1"><StateDiff label={<>{ask.q.label} · {CF_KO[ask.q.field]}</>} from={cfVal(ask.q.field, ask.r.from)} to={cfVal(ask.q.field, ask.r.to)} />
-            {ask.r.preview ? <small className="block text-xs text-muted-foreground">다음 깸 {ask.r.preview.next_at ? nextShort(ask.r.preview.next_at) : "없음"} · 하루 정해진 {ask.r.preview.day_max}번</small> : null}
-          </span>
-          <GoButton className={btn} disabled={go.isPending} busy="바꾸는 중" go={() => apply(ask.q)} done={(r) => { if (r.same) { setAsk(null); setMsg(`이미 ${cfVal(ask.q.field, ask.q.value)}이야 — 바꿀 것 없음`); } else changed(ask.q, r); }}>바꾸기</GoButton>
-          <button type="button" className={btn} onClick={() => setAsk(null)}>취소</button>
-        </div>
-      ) : null}
-      {msg ? <p className="mt-2 text-sm" role="status">{msg}</p> : null}
-      {!d ? <p className="mt-2 text-sm text-muted-foreground">{s.isError ? readFail(s.error, "스케줄 표") : reading("표")}</p> : (
-        <>
-          <h3 className="mt-4 text-sm font-semibold">루틴 <span className="text-xs font-normal text-muted-foreground">{d.routines.length}줄</span></h3>
-          <Card>
-            <ul className="divide-y divide-border">
-              {d.routines.map((r) => (
-                <li key={r.id} data-content className="flex flex-col gap-2 px-4 py-2.5">
-                  <p data-content className="text-sm"><b>{whoName(r.who)}</b> · {r.name}<small className="block text-xs text-muted-foreground">{r.id} · {r.when.length ? r.when.join(" + ") : "부를 때만"}</small></p>
-                  <div className="flex flex-wrap items-center gap-1" role="group" aria-label={`${r.name} 상태`}>
-                    {Object.keys(ST_KO).filter((k) => k !== "grok-stay" || r.state === k).map((k) => (
-                      <button key={k} type="button" disabled={!can || go.isPending} aria-pressed={r.state === k} onClick={() => prep({ at: "routine", key: r.id, field: "state", value: k, label: `${r.who} ${r.name}` })}
-                        className={`rounded-full border px-2.5 py-1 text-xs ${r.state === k ? "border-primary bg-primary/10 font-semibold" : "border-border text-muted-foreground"}`}>{ST_KO[k]}</button>
-                    ))}
-                    {typeof r.fire_empty === "boolean" && r.cron?.length ? (
-                      <button type="button" disabled={!can || go.isPending} aria-pressed={r.fire_empty} className={btn} onClick={() => prep({ at: "routine", key: r.id, field: "fire_empty", value: !r.fire_empty, label: `${r.who} ${r.name}` })}>할 일 없어도 깨움 {r.fire_empty ? "켬" : "끔"}</button>
-                    ) : null}
-                  </div>
-                  {r.cron?.length ? (
-                    <label className="flex items-center gap-2 text-xs">언제
-                      <input disabled={!can} className="min-w-0 flex-1 rounded-lg border border-border bg-background px-2 py-1 font-mono text-xs" value={vals[`routine|${r.id}|when`] ?? cronShow(r.cron)} aria-label={`${r.name} 언제(시각 규칙 · ; 로 나눔)`}
-                        onChange={(e) => setVals((v) => ({ ...v, [`routine|${r.id}|when`]: e.target.value }))}
-                        onKeyDown={(e) => { if (e.key === "Enter") prep({ at: "routine", key: r.id, field: "when", value: (vals[`routine|${r.id}|when`] ?? "").split(";").map((x) => x.trim()).filter(Boolean), label: `${r.who} ${r.name}` }); }} />
-                    </label>
-                  ) : <span className="text-xs text-muted-foreground">정한 시각 없음 · 부를 때만</span>}
-                </li>
-              ))}
-            </ul>
-          </Card>
-          <h3 className="mt-4 text-sm font-semibold">봇</h3>
-          <Card>
-            <ul className="divide-y divide-border">
-              {d.bots.map((b) => (
-                <li key={b.bot} data-content className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm">
-                  <b className="min-w-12">{whoName(b.who)}</b>
-                  <span className="flex-1 text-xs text-muted-foreground">하루 정해진 깸 {b.wakes.length}번{b.next_ts ? ` · 다음 ${nextShort(b.next_ts)}` : ""}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-          {d.kinds.length ? (
-            <>
-              <h3 className="mt-4 text-sm font-semibold">사건 모아 깨우기</h3>
-              <Card>
-                <ul className="divide-y divide-border">
-                  {d.kinds.map((x) => (
-                    <li key={x.kind} data-content className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm">
-                      <b data-content className="min-w-32 font-mono text-xs">{x.kind}</b>
-                      <span className="flex-1 text-xs text-muted-foreground">{Number.isInteger(x.delay_max) ? ((x.delay_max as number) <= 5 ? "바로" : "묶음") : ""}{Number.isFinite(x.ttl) ? ` · 기한 ${x.ttl}분` : ""}</span>
-                      {num({ at: "kind", key: x.kind, field: "delay_max", label: x.kind }, x.delay_max, 2, 240)}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            </>
-          ) : null}
-        </>
-      )}
-    </PageSection>
-  );
-}
+// 「스케줄러 바꾸기」 칸(NomuteSchedule)은 뺌 — 루틴 상태 · 언제 · 봇은 스케줄 화면 나무 · 일 판 · 봇 차단기 판에 같은 길(schedule/set)로 있고, 여기만 있던 「사건 모아 깨우기」는 스케줄 화면 「모아 깨우기」 칸(./sched-extra.tsx KindWaits)으로 옮김(형 11-17 03:24 구름 맥 창 「너가 말한거 반영하고 너 의견 따를테니 묻지말고 진행해」)
 
 type OldMsg = { id: string; who: string; to?: string; tag?: string; text: string; ts: number };
 export function NomuteOld() {
@@ -428,7 +310,7 @@ const vaultWhy = (e: unknown, fall: string) => {
 export function NomuteVault() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["nomute", "seatvault"], queryFn: () => office<{ seats: VaultSeat[] }>("seatvault").then((j) => j.seats || []), staleTime: 60_000 });
-  const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [ask, setAsk] = useState(""), [done, setDone] = useState("");
+  const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [done, setDone] = useState("");
   const put = useMutation({
     mutationFn: (v: { seat: string; value: string }) => office<{ match: boolean }>("seatvault", { method: "POST", body: JSON.stringify(v) }),
     onSuccess: (j, v) => { setDraft((d) => ({ ...d, [v.seat]: "" })); setNote((n) => ({ ...n, [v.seat]: j.match ? "넣었어 · 열쇠 맞음" : "넣었어 · 이 자리 열쇠와 안 맞아(다시 확인)" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
@@ -471,26 +353,14 @@ export function NomuteVault() {
                   </span>
                 </button>
               </div>
-              {!s.set ? (
-                <button type="button" disabled={mint.isPending} onClick={() => setAsk(s.seat)} className="-my-2 self-start py-3 text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40">새 열쇠 만들기</button>
+              {!s.set ? (   /* 새 열쇠 = 되묻는 창(모달) 대신 그 자리 재확인(형 「항상 그냥 re 토글로만」 · ./morph-ask.tsx) */
+                <MorphAsk className="-my-2 self-start py-3 text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40" disabled={mint.isPending} yesText="만들기" note="앞 열쇠는 꺼져" label={`${s.seat} 새 열쇠 만들기`} onYes={() => mint.mutate(s.seat)}>새 열쇠 만들기</MorphAsk>
               ) : null}
               {note[s.seat] ? <p role="status" className="text-xs text-muted-foreground">{note[s.seat]}</p> : null}
             </li>
           ))}
         </ul>
       </Card>
-      {ask ? createPortal(
-        <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setAsk("")}>
-          <div role="alertdialog" aria-label="새 열쇠 만들기" className="w-full max-w-xs rounded-2xl border border-border bg-background p-5 text-center" onClick={(e) => e.stopPropagation()}>
-            <p className="text-sm">열쇠를 새로 만드시겠습니까?<br />앞 열쇠는 무효화됩니다.</p>
-            <div className="mt-4 flex justify-center gap-2">
-              <button type="button" onClick={() => setAsk("")} className="min-h-10 rounded-lg border border-border px-4 text-sm active:[transform:scale(var(--press-s,.85))] transition-[transform,background-color,border-color] duration-150">취소</button>
-              <GoButton disabled={mint.isPending} go={() => mint.mutateAsync(ask)} done={() => setAsk("")} className="min-h-10 rounded-lg border border-border px-4 text-sm font-semibold disabled:opacity-40">만들기</GoButton>
-            </div>
-          </div>
-        </div>,
-        document.body,
-      ) : null}
       {q.isError ? <p className="mt-2 text-xs text-destructive">{q.error instanceof Error ? q.error.message : "서랍을 못 열었어"}</p> : null}
     </PageSection>
   );
