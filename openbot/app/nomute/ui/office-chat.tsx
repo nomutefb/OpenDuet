@@ -117,9 +117,9 @@ const winOf = (m: { mirror?: string }) => /^window:/.test(String(m.mirror || "")
 /** 봇이 제 창에서 친 글 = 그 봇 말풍선으로(이름 · 얼굴 = mirror_by · 이름 옆 「창에서」) · 형 창 글은 hyungApp 이 검정 말풍선으로 받음 */
 const asWinBot = <T extends { mirror?: string; mirror_by?: string; kind?: string; who?: string }>(m: T): T => (winOf(m) && m.mirror_by && m.mirror_by !== "형" && m.kind === "system" ? { ...m, who: m.mirror_by, kind: "bot", _win: true } : m);
 /** 답글 원글 펼침(다른 방) — 답한 이 ↔ 인용된 이 둘의 방(pair-<id>-<id> · id 가나다순)에서 그 이 글 · 첫 줄이 맞는 것 */
-type Peek = { who: string; line: string; from: string; room?: string; text?: string; ts?: number; loading?: boolean };
+type Peek = { who: string; line: string; from: string; room?: string; text?: string; ts?: number; loading?: boolean; note?: string };
 async function findQuoted(list: OfficePerson[], who: string, line: string, from: string): Promise<{ room: string; text: string; ts: number } | null> {
-  const nameOf = (n: string) => (n === "형" || n === "세웅" ? "형" : (list.find((x) => x.who === n || x.name === n || (x.aka || []).includes(n))?.who || n));
+  const nameOf = (n: string) => (n === "형" || n === "세웅" ? "형" : (list.find((x) => x.who === n || x.name === n || (x.aka || []).includes(n))?.who || list.find((x) => x.who.length > 1 && n.endsWith(x.who))?.who || n));   // 「이슈왕」 = 슈왕 꼴(앞에 붙은 말) 도 같은 이
   const a = idOf(nameOf(who), list), b = from ? idOf(nameOf(from), list) : "";
   if (!a || !b || a === b) return null;
   const room = `pair-${[a, b].sort().join("-")}`, head = line.replace(/…$/, "").trim().slice(0, 20);
@@ -132,6 +132,7 @@ function QuotedPeek({ pk, onClose }: { pk: Peek; onClose: () => void }) {
     <div className="nm-qpeek" role="dialog" aria-label="답글 원글">
       <div className="nm-qpeek-h"><b>{pk.who}</b>{pk.from ? <span> → {pk.from} · 둘의 방</span> : null}{pk.ts ? <time>{t12(pk.ts)}</time> : null}<button type="button" aria-label="닫기" onClick={onClose}>×</button></div>
       <p className="nm-qpeek-t">{pk.loading ? "원글 찾는 중…" : pk.text}</p>
+      {pk.note ? <small className="nm-qpeek-n">{pk.note}</small> : null}
     </div>
   );
 }
@@ -1381,7 +1382,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
       setQpeek({ who, line, from: fromName, loading: true });
       void findQuoted(list, who, line, from || "").catch(() => null).then((f) => {
         if (f) setQpeek({ who, line, from: fromName, room: f.room, text: f.text, ts: f.ts });
-        else { setQpeek(null); setErr("그 글이 이 방 · 둘의 방 어디에도 없어 — 위 「옛 글 더 보기」로"); }
+        else setQpeek({ who, line, from: fromName, text: line, note: "원글이 정원 안(이 방 · 둘의 방)에 없어 — 그록 앱 안에서 오간 글일 수 있어 · 인용된 줄만" });   // 알림 대신 그 자리에 펼침(형 「바로 펼쳐지게」)
       });
     },
   };

@@ -7,6 +7,7 @@ test("둘의 방 id = pair-<id>-<id> 가나다순 · 펼침 카드 · 못 찾으
   assert.match(t, /const room = `pair-\$\{\[a, b\]\.sort\(\)\.join\("-"\)\}`/);
   assert.match(t, /onJump=\{\(w, l\) => c\.onJump\(w, l, undefined, m\.who\)\}/);
   assert.match(t, /\{qpeek \? <QuotedPeek pk=\{qpeek\}/);
-  assert.match(t, /둘의 방 어디에도 없어/);
+  assert.match(t, /원글이 정원 안\(이 방 · 둘의 방\)에 없어/);
+  assert.match(t, /n\.endsWith\(x\.who\)/);
   for (const [a, b, want] of [["sona", "shuwang", "pair-shuwang-sona"], ["sia", "bom", "pair-bom-sia"], ["thunder", "sia", "pair-sia-thunder"]]) assert.equal(`pair-${[a, b].sort().join("-")}`, want);
 });

@@ -911,3 +911,4 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .nm-qpeek-h time { margin-left:auto; font-size:11px; }
 .nm-qpeek-h button { margin-left:8px; border:0; background:none; color:inherit; font-size:18px; line-height:1; cursor:pointer; padding:0 2px; }
 .nm-qpeek-t { margin:0; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.5; }
+.nm-qpeek-n { display:block; margin-top:6px; font-size:11px; color:rgba(232,234,232,.5); }
