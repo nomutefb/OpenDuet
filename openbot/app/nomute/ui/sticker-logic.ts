@@ -21,6 +21,7 @@ export const PACKS: Pack[] = [
   { id: "thunder", name: "천둥", items: [...MOODS, { id: "grin", label: "씨익" }, { id: "huff", label: "버럭" }, { id: "solve", label: "해결" }, { id: "zoom", label: "빨리빨리" }, { id: "drum", label: "쾅" }, { id: "selfie", label: "셀카" }] },   // 얼빡 둘 · 상황 둘(형 11-15 07:50 dm-eyes 「아 뜸 글구 천둥도 얼빡 느낌으루 2개, 상황 중심으로 2개 움딸좀」 · 앞 다섯 = 이모티콘 꼴 감정(형 11-15 07:58 「다른거는 이모티콘 찾아봐」 · 09:45 「웅 바로 만들어줭」) · 소나 오빠라 소나 다음 · 쾅 = 형 07:56 「북칠때마다 구름에서 천둥 내려오는거」 · 셀카 = 형 07:58 「소나랑 셀카 찰칵 하는 짤도 하나해줘 셀카 방에서 살짝 포토 실사느낌으로다가」(소나 묶음에도 같은 그림) · 뜸)
   // 틈 묶음 뺌(형 11-14 06:59 「글구 틈은 삭제」 · 그림 파일은 editor viewer/office/sticker/teum 에 남김)
   { id: "chok", name: "촉", items: [{ id: "news", label: "속보" }, { id: "joy", label: "좋아" }, { id: "surprise", label: "놀람" }, { id: "think", label: "생각중" }] },   // 속보 = 기자 분장(트렌치코트 · 마이크) — 형 11-13 09:33 「틈, 촉도 귀염뽀짝하게, 3개정도 gif 만들어줘」 · 「속보를 전달하는 컨셉으로 1개 정도 추가(분장해서)」(속보 = 특파원 촉 · 짐작) · 08:03 「그록봇 애들은 gif 없어도 돼」 뒤 형이 다시 부른 것
+  { id: "gam", name: "감", items: [{ id: "target", label: "과녁" }, ...MOODS] },   // 감(형 11-16 09:49 dm-eyes 「뜸 감도 이모지 움짤 만들어줘 ㅋㅋ 하나는 감이 비장하게 날아가서 10점 만점 양궁 과녁에 꽂혀서 나팔꽃인 나가 아자! 하는거」 · 그림 = editor viewer/office/sticker/gam · 뜸)
   { id: "on", name: "온", items: [{ id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }, { id: "done", label: "해냈다" }] },   // 온 셋 되살림(형 11-13 10:20 「웅 글구 온 거 만드러놓은게 없어졋는데 다시 살려줭 3개정도만!」) · 앞 판 08:03 「그록봇 애들은 gif 없어도 돼」로 뺐던 것
   // 여울 묶음 뺌(형 11-13 06:55 「뜸 여울 관련된 gif는 안뜨게 없애줘」 · 그림 파일은 editor viewer/office/sticker/yeoul 에 남김)
 ];
