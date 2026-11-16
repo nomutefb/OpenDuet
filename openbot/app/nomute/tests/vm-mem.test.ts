@@ -62,9 +62,19 @@ test("24시간 · 5분 칸 = 가는 선 288개가 길 넷에 다 들어감 · �
 
 test("배선 = 서랍 화면 · 길 #/vm · 자료 문 vm-mem · 그림 꼴 출처 적음", () => {
   const shell = rd("../ui/shell.tsx"), desk = rd("../ui/vm-desk.tsx"), router = rd("../router.tsx"), tabs = rd("../ui/drawer-tabs.ts");
-  assert.match(shell, /\{ id: "vmstat", label: "VM 상태", icon: "box", to: "\/vm" \}/);
+  assert.match(shell, /\{ id: "vmstat", label: "몸 상태", icon: "box", to: "\/vm" \}/);   // 이름 = 몸 상태(형 11-16 17:5x 「하드웨어애들도 다 보이게할거니까 쭈르륵 애들 다 보이게해줘」 · 앞 = VM 상태)
   assert.match(shell, /M\.id === "vmstat" \? <div className="nm-scroll"><VmDesk \/><\/div>/);
   assert.match(router, /"\/vm"/); assert.match(tabs, /"botdesk", "vmstat", "sched"/);
   assert.match(desk, /office<VmMemRes>\("vm-mem"\)/);
   assert.match(rd("../ui/vm-mem-logic.ts"), /nomutefb\/lieflat-charts F3 Hairline Area/);
+});
+
+test("몸 상태 = 애들 전부 한 줄씩(봇 현황 표 차례) · 램 기록은 이름으로 붙임 · 표에 없는 몸은 맨 아래", async () => {
+  const desk = rd("../ui/vm-desk.tsx");
+  assert.match(desk, /office<Sheet>\("status\/bots"\)/);   // 상태 · 특기 · 하드웨어 = 봇 현황 표
+  assert.match(desk, /queryKey: \["nomute", "bots-sheet"\]/);   // 봇 현황 화면과 같은 열쇠(받아 둔 표를 같이 씀)
+  assert.match(desk, /return \[\.\.\.rows\.map\(\(r\) => \(\{ who: r\.who, r, v: by\.get\(r\.who\) \}\)\), \.\.\.vms\.filter\(\(v\) => !seen\.has\(v\.who\)\)\.map\(\(v\) => \(\{ who: v\.who, v \}\)\)\];/);
+  assert.match(desk, /: v \? null : <span>램 기록 아직 없음<\/span>/);   // 아직 안 재는 몸 = 한 마디(오면 저절로)
+  assert.match(desk, /const \[ref, w\] = useWidth\(\), \[tall, setTall\] = useState\(false\);/);   // 낮은 띠로 훑고 누르면 그 줄만 키움
+  assert.match(desk, /h = tall \? 280 : 132/);
 });

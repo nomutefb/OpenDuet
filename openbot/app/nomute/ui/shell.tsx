@@ -102,7 +102,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "status", label: "작동", icon: "activity", to: "/status" },   // 네비 4번 = 작동 표(형 11-05 · ./status-board.tsx · 서랍 목록엔 안 넣음)
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 서랍 「일」 칸(형 11-05 「스케줄러는 메뉴5번 서랍 안으로 넣을게」 · 옛 네비 4번)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
-  { id: "vmstat", label: "VM 상태", icon: "box", to: "/vm" },   // 서랍 「VM 상태」 = 몸(VM)마다 램 24시간 한 장(형 11-16 16:4x 구름 맥 창 「정원에 각 vm 쓰는 애들 한테 이 자료받아서 vm 상태 그리게 할거야 공간 하나 만들어줘」 · ./vm-desk.tsx)
+  { id: "vmstat", label: "몸 상태", icon: "box", to: "/vm" },   // 서랍 「VM 상태」 = 몸(VM)마다 램 24시간 한 장(형 11-16 16:4x 구름 맥 창 「정원에 각 vm 쓰는 애들 한테 이 자료받아서 vm 상태 그리게 할거야 공간 하나 만들어줘」 · ./vm-desk.tsx)
   { id: "botdesk", label: "봇 현황", icon: "dashboard", to: "/botdesk" },   // 서랍 「일」 칸 = 봇 상태 · 일 차례 · 손 표 도표(형 11-14 「봇들 상태 일 우선순위 이거는 서랍에 한 공간이 보여야함」 · ./bot-desk.tsx)
   { id: "meetlog", label: "화상 회의록", icon: "chat", to: "/meetlog", desc: "끝난 회의 기록" },   // 이름 = 화상 회의록(형 11-14 「그리구 메뉴명칭이 화상 회의록」)   // 화상회의 기록 서랍(형 11-13 06:5x 「대화가 끝나면 그 대화는 기록되어서 한 서랍에 들어가면돼」 · ./meet.tsx · 서버 meetlog)   // 서랍 「일」 칸 = 작동 표(러너 · 형 11-09 08:50 · 옛 RunnerScreen 은 뺌)
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x) · 앱 안(./scrap.tsx · 전엔 /?tab=scrap 품음)
@@ -138,7 +138,7 @@ const SPREAD = new Set<Modal>(["runner", "vmstat", "botdesk", "drawer", "setting
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 // 메뉴 줄(./menu-bar.tsx) 내용 = 지금 네비 그대로: 홈 · 대화 · 뉴스 에디터(위 탭 셋 ./ned-tabs.ts) · 서랍(위 탭 여섯 ./drawer-tabs.ts) · 설정 — 이름 · 그림 · 길은 MODALS · NED_TABS 한 곳에서(여기 따로 안 적음) · 설명 줄만 여기
-const MENU_DESC: Record<string, string> = { news: "최신 기사 · 요약 요청", sns: "섹션 전부 · 구독 채널", chan: "차트 · 게시물 · 결의 보드", runner: "몸 넷 게이지 · 러너 상태", botdesk: "봇 상태 · 일감 · 작동 표", vmstat: "몸마다 램 24시간", sched: "예약 깸 · 나무", meetlog: "끝난 회의 기록", story: "종 틈에 지은 글 모음", play: "우리 놀이터" };
+const MENU_DESC: Record<string, string> = { news: "최신 기사 · 요약 요청", sns: "섹션 전부 · 구독 채널", chan: "차트 · 게시물 · 결의 보드", runner: "몸 넷 게이지 · 러너 상태", botdesk: "봇 상태 · 일감 · 작동 표", vmstat: "애들 상태 · 하드웨어 · 램 24시간", sched: "예약 깸 · 나무", meetlog: "끝난 회의 기록", story: "종 틈에 지은 글 모음", play: "우리 놀이터" };
 const menuOf = (talkTo: string): MenuGroup[] => [
   { id: "home", label: "홈", to: "/" },
   { id: "chat", label: "대화", to: talkTo },   // 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록(../swap/talk-next.ts · 아래 알약 네비 「대화」가 하던 그대로)

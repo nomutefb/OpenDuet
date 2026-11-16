@@ -1,30 +1,74 @@
-// 서랍 「VM 상태」(#/vm) — 몸(VM)마다 램 24시간 한 장(형 11-16 16:4x 구름 맥 창 「정원에 각 vm 쓰는 애들 한테 이 자료받아서 vm 상태 그리게 할거야 공간 하나 만들어줘」 · 「이거 github nomutefb 에 보면 life 어쩌고 차트 도구있어」 · 「그거로 만들면돼.」 · 「빠르한테 물어보면돼 깃하고」)
-//   그림 = nomutefb/lieflat-charts F3 Hairline Area 꼴(./vm-mem-logic.ts 머리말) · 색 = 그 도구의 Mono(어두운 카드 = 종이색 먹 · 밝은 테마 = 먹색) · 카드 바탕만 우리 유리
-//   자료 = GET /api/office/vm-mem(몸들이 12시간마다 올린 것을 서버가 5분 칸으로) · 5분마다 다시 읽음 · 아직 없으면 「기다리는 중」
-//   움직임 = 처음 뜰 때 한 번(가는 선 묶음 나타남 · 윤곽 한 획 · 최고점 톡) — 원본 박자(fade .9s · draw 1s · pop .5s) · 그 뒤 멈춤(가만한 화면 = 그릴 것 0) · 줄이기 설정 = 없음
+// 서랍 「몸 상태」(#/vm · 앞 이름 「VM 상태」) — 애들 전부를 한 줄씩: 상태 · 특기 · 하드웨어 · 램 24시간
+//   형 11-16 16:4x 구름 맥 창 「정원에 각 vm 쓰는 애들 한테 이 자료받아서 vm 상태 그리게 할거야 공간 하나 만들어줘」 · 「이거 github nomutefb 에 보면 life 어쩌고 차트 도구있어」 · 「그거로 만들면돼.」
+//   형 11-16 17:5x 「그리고 지금 vm들 보이는거 하드웨어애들도 다 보이게할거니까 쭈르륵 애들 다 보이게해줘. 그니까 애들 상태,하드웨어 상태, 특성 이런게 다 일목요연하게 사실 보이게 하려는거야.」
+//   줄 = 봇 현황 표(GET status/bots · 손 표 차례 그대로)의 손 하나 = 얼굴 · 이름 · 상태(멈춤 · 일하는 중 · 노는 손 · 차례 밖 · 조용) · 특기(1특기 먼저) · 하드웨어(램 · CPU · GPU · OS · 비고) · 램 24시간
+//   램 = GET vm-mem 에 그 이름으로 온 몸만(없는 손 = 「램 기록 아직 없음」 · 오면 저절로 그려짐) · 표에 없는 이름으로 온 몸(하드웨어 몸 이름 등)은 맨 아래 줄로 · 그림 = lieflat-charts F3 Hairline Area(./vm-mem-logic.ts 머리말)
+//   그래프 = 낮은 띠(132px)로 훑고 누르면 그 줄만 키움(280px) · 움직임 = 처음 한 번(원본 박자) 뒤 멈춤 · 줄이기 설정 = 없음
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { idOf, office } from "../data/office";
 import { FaceImg, usePeople } from "./faces";
 import { type VmMem, type VmMemRes, everyKo, gb, mdhm, vmClean, vmDemo, vmGeom, vmStats } from "./vm-mem-logic";
+import { type BotRow, type BotTable, type Group, GROUP_KO, groupOf } from "./bot-desk-logic";
+import { skillShort } from "./bot-desk-hands";
 import "./vm-desk.css";
 
 const isDemo = () => typeof location !== "undefined" && /[?&]vmdemo(?:[=&]|$)/.test(location.search);
 
+type Sheet = { at?: number; table?: BotTable; skills?: Record<string, string> };
+/** 줄 목록 — 봇 현황 표의 손(차례 그대로) + 그 이름의 램 기록 · 표에 없는 이름으로 온 몸은 맨 아래. */
+export function rosterOf(rows: BotRow[], vms: VmMem[]): { who: string; r?: BotRow; v?: VmMem }[] {
+  const by = new Map(vms.map((v) => [v.who, v])), seen = new Set(rows.map((r) => r.who));
+  return [...rows.map((r) => ({ who: r.who, r, v: by.get(r.who) })), ...vms.filter((v) => !seen.has(v.who)).map((v) => ({ who: v.who, v }))];
+}
+
 export function VmDesk() {
   const demo = useMemo(isDemo, []);
   const q = useQuery({ queryKey: ["nomute", "vm-mem"], queryFn: () => office<VmMemRes>("vm-mem"), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false, enabled: !demo });
+  const sheet = useQuery({ queryKey: ["nomute", "bots-sheet"], queryFn: () => office<Sheet>("status/bots"), staleTime: 5_000, refetchInterval: 60_000, retry: false });   // 봇 현황(./bot-desk.tsx)과 같은 열쇠 = 받아 둔 표를 같이 씀
   const vms = useMemo(() => (demo ? vmDemo(Date.now()) : vmClean(q.data?.vms)), [demo, q.data]);
-  const at = !demo && typeof q.data?.at === "number" ? q.data.at : 0;
+  const rows = sheet.data?.table?.rows || [], skills = sheet.data?.skills || {};
+  const list = useMemo(() => rosterOf(rows, vms), [rows, vms]);
+  const at = !demo && typeof q.data?.at === "number" ? q.data.at : 0, people = usePeople();
   return (
     <div className="nm-vmdesk">
       <header className="nm-vm-head">
-        <h2>VM 상태</h2>
-        <p>몸마다 램 24시간 · 가는 선 하나 = 한 번 잰 값{at ? ` · 자료 ${mdhm(at)} 기준` : ""}{demo ? " · 견본(진짜 자료 아님)" : ""}</p>
+        <h2>몸 상태</h2>
+        <p>애들마다 상태 · 특기 · 하드웨어 · 램 24시간{list.length ? ` · ${list.length}줄 · 램 기록 ${vms.length}` : ""}{at ? ` · 램 자료 ${mdhm(at)} 기준` : ""}{demo ? " · 램은 견본(진짜 자료 아님)" : ""}</p>
       </header>
-      {vms.length ? <div className="nm-vm-grid">{vms.map((v) => <VmCard key={v.who} v={v} />)}</div>
-        : <p className="nm-vm-empty" role="status">{q.isLoading ? "읽는 중…" : "아직 올라온 자료가 없어요. 몸마다 잰 램 기록이 올라오면 여기에 그려져요."}</p>}
+      {list.length ? <div className="nm-vm-rows">{list.map((x) => <BodyRow key={x.who} who={x.who} r={x.r} v={x.v} skills={skills} people={people} />)}</div>
+        : <p className="nm-vm-empty" role="status">{q.isLoading || sheet.isLoading ? "읽는 중…" : "아직 올라온 자료가 없어요. 봇 현황 표나 몸마다 잰 램 기록이 오면 여기에 그려져요."}</p>}
     </div>
+  );
+}
+
+const TONE: Record<Group, string> = { lost: "lost", work: "work", idle: "idle", held: "dim", quiet: "dim" };
+const hwLine = (r?: BotRow) => (r ? [r.hw?.ram && r.hw.ram !== "-" ? `램 ${r.hw.ram}` : "", r.hw?.cpu && r.hw.cpu !== "-" ? r.hw.cpu : "", r.hw?.gpu && r.hw.gpu !== "없음" ? `GPU ${r.hw.gpu}` : "", r.hw?.os].filter(Boolean).join(" · ") : "");
+
+function BodyRow({ who, r, v, skills, people }: { who: string; r?: BotRow; v?: VmMem; skills: Record<string, string>; people: ReturnType<typeof usePeople> }) {
+  const [ref, w] = useWidth(), [tall, setTall] = useState(false);
+  const s = useMemo(() => (v ? vmStats(v) : null), [v]), h = tall ? 280 : 132;
+  const g = useMemo(() => (v && w ? vmGeom(v, w, h) : null), [v, w, h]);
+  const face = idOf(who, people), grp = r ? groupOf(r) : null, hw = hwLine(r);
+  return (
+    <section className="nm-vm-row" aria-label={`${who} 몸 상태`}>
+      <div className="who">
+        <h3>{face ? <FaceImg id={face} size={30} className="nm-vm-face" /> : <i className="nm-vm-face none" aria-hidden />}<b>{who}</b>{r?.pm ? <em>PM</em> : null}{grp ? <span className={`st ${TONE[grp]}`}>{GROUP_KO[grp]}</span> : <span className="st dim">몸</span>}</h3>
+        {r?.skills?.length ? <p className="sk">{r.skills.map((c, i) => <span key={c} className={i ? undefined : "first"}>{skillShort(skills[c] || c)}</span>)}</p> : null}
+      </div>
+      <div className="hw">
+        <p>{hw || (v?.host ? v.host : "하드웨어 표 없음")}</p>
+        {r?.note ? <small>{r.note}</small> : null}
+        {s && v ? <small className="num">램 평균 {gb(s.avg)}GB · 최고 {gb(s.max)}GB{s.heldLast !== null ? ` · 쥔 램 ${gb(s.heldLast)}GB` : ""} · {everyKo(v.step_s)}</small> : null}
+      </div>
+      <div className={`plot${v ? "" : " none"}`} ref={ref} style={v ? { height: h } : undefined}>
+        {v && g && s ? (
+          <button type="button" className="grow" aria-expanded={tall} aria-label={`${who} 램 24시간 그래프 ${tall ? "줄이기" : "키우기"}`} onClick={() => setTall((t) => !t)}>
+            <VmPlot who={who} v={v} g={g} s={s} tall={tall} />
+          </button>
+        ) : v ? null : <span>램 기록 아직 없음</span>}
+      </div>
+    </section>
   );
 }
 
@@ -40,20 +84,13 @@ function useWidth() {
   return [ref, w] as const;
 }
 
-function VmCard({ v }: { v: VmMem }) {
-  const list = usePeople(), [ref, w] = useWidth();
-  const s = useMemo(() => vmStats(v), [v]), h = w && w < 560 ? 250 : 280;
-  const g = useMemo(() => (w ? vmGeom(v, w, h) : null), [v, w, h]);
-  const face = idOf(v.who, list);
+type Geom = ReturnType<typeof vmGeom>;
+/** 그래프 한 장(가는 선 면 · 쥔 램 계단 · 최고점) — 낮은 띠에선 VM 최소 · 최대 글은 뺌(선만 · 키우면 글도) */
+function VmPlot({ who, v, g, s, tall }: { who: string; v: VmMem; g: Geom; s: ReturnType<typeof vmStats>; tall: boolean }) {
   return (
-    <section className="nm-vm-card" aria-label={`${v.who} VM 램`}>
-      <h3>{face ? <FaceImg id={face} size={22} className="nm-vm-face" /> : null}<b>{v.who}</b><span>쓴 램 평균 {gb(s.avg)}GB{s.heldLast !== null ? ` · 쥔 램 ${gb(s.heldLast)}GB` : ""}</span></h3>
-      <p className="sub">{mdhm(v.t0)} ~ {mdhm(s.t1)} · {everyKo(v.step_s)} · 평균 {gb(s.avg)}GB · 최저 {gb(s.min)}GB · 최고 {gb(s.max)}GB</p>
-      <div className="plot" ref={ref} style={{ height: h }}>
-        {g ? (
-          <svg width={g.w} height={g.h} viewBox={`0 0 ${g.w} ${g.h}`} role="img" aria-label={`${v.who} 쓴 램 평균 ${gb(s.avg)}GB · 최고 ${gb(s.max)}GB`}>
+          <svg width={g.w} height={g.h} viewBox={`0 0 ${g.w} ${g.h}`} role="img" aria-label={`${who} · ${mdhm(v.t0)} ~ ${mdhm(s.t1)} · 쓴 램 평균 ${gb(s.avg)}GB · 최고 ${gb(s.max)}GB`}>
             {g.ticksY.map((t) => <g key={t.label}><line className="grid" x1={g.l} x2={g.w - g.r} y1={t.y} y2={t.y} /><text className="tick" x={g.l - 6} y={t.y + 3} textAnchor="end">{t.label}</text></g>)}
-            {g.refs.map((r) => <g key={r.label}><line className="ref" x1={g.l} x2={g.w - g.r} y1={r.y} y2={r.y} /><text className="note" x={g.l + 6} y={r.y - 5}>{r.label}</text></g>)}
+            {g.refs.map((r) => <g key={r.label}><line className="ref" x1={g.l} x2={g.w - g.r} y1={r.y} y2={r.y} />{tall ? <text className="note" x={g.l + 6} y={r.y - 5}>{r.label}</text> : null}</g>)}
             {g.marks.map((m) => <g key={m.x + m.label}><line className="mark" x1={m.x} x2={m.x} y1={g.top - 8} y2={g.base} /><text className="note" x={m.x + 4} y={g.top - 1} textAnchor={m.x > g.w - g.r - 110 ? "end" : "start"} dx={m.x > g.w - g.r - 110 ? -8 : 0}>{m.label}</text></g>)}
             <g className="vm-fade">
               <path className="hair a" d={g.hair[0]} /><path className="hair b" d={g.hair[1]} /><path className="hair c" d={g.hair[2]} />
@@ -66,10 +103,5 @@ function VmCard({ v }: { v: VmMem }) {
             {g.end.held ? <text className="end held" x={g.w - g.r + 8} y={g.end.held.y + 4}>{g.end.held.label}</text> : null}
             {g.end.used ? <text className="end" x={g.w - g.r + 8} y={g.end.used.y + 4}>{g.end.used.label}</text> : null}
           </svg>
-        ) : null}
-      </div>
-      <p className="legend"><span><i className="k held" />VM 이 쥔 램(동적){s.heldLast !== null ? ` ${gb(s.heldLast)}GB` : ""}</span><span><i className="k used" />실제 쓴 램{s.last !== null ? ` ${gb(s.last)}GB` : ""}</span></p>
-      <p className="src">HAIRLINE AREA · MONO{v.host ? ` · ${v.host}` : ""}</p>
-    </section>
   );
 }
