@@ -4,7 +4,10 @@
 /* 가운데 = 투명 봄 놀람(뜸 · 둥근 판 · 그림자 걷음) */
 .nm-oops img { width:min(176px, 44vw); height:auto; margin-bottom:6px; }
 .nm-oops b { font-size:var(--fs-h2, 20px); font-weight:700; letter-spacing:-.01em; }
-.nm-oops small { font-size:var(--fs-body, 14px); opacity:.6; }
+.nm-oops .again { font-size:var(--fs-body, 14px); color:#CFFF40; }   /* 「같이 다시 가볼까?」 = 라임 글자 · 누르면 다시 엶 */
+:root:not(.dark) .nm-oops .again { color:#3d6b00; }
+.nm-oops p button { font-weight:400; opacity:.6; color:inherit; }
+:root:not(.dark) .nm-oops p button { color:inherit; }
 .nm-oops p { margin:10px 0 0; display:flex; gap:10px; align-items:center; font-size:var(--fs-body, 14px); }
 .nm-oops p span { opacity:.35; }
 .nm-oops button { background:none; border:0; padding:4px 2px; color:var(--accent, var(--accent, #CFFF40)); font:inherit; font-weight:600; cursor:pointer; transition:transform .12s ease; }

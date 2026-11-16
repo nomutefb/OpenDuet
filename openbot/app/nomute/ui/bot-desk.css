@@ -257,6 +257,18 @@
 .nm-bd-ab.org .sub h5 { display:flex; align-items:center; gap:6px; margin:2px 0 2px 4px; font-size:var(--fs-xs); font-weight:400; line-height:1; color:var(--nsb-mut); }
 .nm-bd-ab.org .sub h5 b { font-size:var(--fs-sm); font-weight:700; font-variant-numeric:tabular-nums; color:var(--nsb-ok); }
 .nm-bd-ab.org .sub + .sub { padding-top:6px; border-top:1px dashed var(--nsb-line); }
+/* 쉬는 중 한 줄 안 고리 갈래(형 11-16 20:0x 「근데 쉼에 고리만 빠지면 됨.」 · 「연결 끊김은 쉼에 가서 고리에 빨간불로 할게」) — 얼굴 · 이름 · 직함은 다른 손과 같음 */
+.nm-bd-ab .nsb-ab-lane li[data-off="hold"] .trk, .nm-bd-ab .nsb-ab-lane li[data-off="hold"] .ring, .nm-bd-ab .nsb-ab-lane li[data-off="hold"] .halo,
+.nm-bd-ab .nsb-ab-lane li[data-off="quiet"] .trk, .nm-bd-ab .nsb-ab-lane li[data-off="quiet"] .ring, .nm-bd-ab .nsb-ab-lane li[data-off="quiet"] .halo { opacity:0; }
+.nm-bd-ab .nsb-ab-lane li[data-off="lost"] .trk { opacity:0; }
+.nm-bd-ab .nsb-ab-lane li[data-off="lost"] .ring { opacity:1; }
+.nm-bd-ab .nsb-ab-lane li[data-off="lost"] .ring u { border-color:var(--nsb-red, #ff5a5f); }
+.nm-bd-ab .nsb-ab-lane li[data-off="lost"] .halo { opacity:.22; box-shadow:0 0 18px 2px var(--nsb-red, #ff5a5f); }
+.nm-bd-ab .nsb-ab-lane li[data-off] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-ink); }
+.nm-bd-ab .nsb-ab-lane li[data-off="lost"] .cell > small.sk { border-color:rgba(255,90,95,.5); }
+/* 얼굴 사이 간격 = 직함 알약 길이와 상관없이 같게(형 20:0x 「애들간 간격 맞출거고」 · 앞 = 긴 알약이 칸을 밀어 그 얼굴만 오른쪽으로 쏠림) */
+.nm-bd-ab.org .cell { grid-template-columns:minmax(0, 1fr); }
+.nm-bd-ab.org .cell > small.sk { justify-self:center; }
 /* PM 얼굴 고리(형 11-16 19:4x 「이거 PM도 사이클 돌게해줘」) = 아래 손 판과 같은 그림 · 같은 색(일하는 중 = 라임 도는 구슬 · 바로 받음 = 흰 고리 · 쉬는 손 = 회색 고리 · 멈춤 = 점선) · 도는 것 = transform 하나 */
 .nm-bd-org-pm .nsb-ab-av { flex:none; width:44px; height:44px; transition:scale .15s ease; }
 .nm-bd-org-pm .nsb-ab-av .ring u { width:44px; height:44px; border-color:var(--nsb-ink); }
