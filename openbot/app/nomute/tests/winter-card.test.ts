@@ -22,6 +22,6 @@ test("결 카드 = 나이테 · 🎸 · 음표(형 19:24 「음유시인, 나이
 test("이슈왕 카드(형 11-16 18:16 「이거는 프로필 카드를 이거를 위주로 써줘 좌하단에서 위로 구도」) = 틀 카드 · 옥상 그림 통째 · 둥근 얼굴 숨김", () => {
   assert.match(s, /id: "issueking",\s+tmpl: true,\s+accent: "#F2B630",\s+match: \["슈왕", "이슈왕", "촉", "chok", "issueking"\],\s+face: "\/office\/issueking\.webp"/);
   assert.match(s, /<span className="bc-hero" \/>/);
-  assert.match(css, /\.bc-issueking \.bc-hero \{\s+inset: -4%;\s+background: url\(\/office\/issueking-card\.webp\)/);
+  assert.match(css, /\.bc-issueking \.bc-hero \{\s+inset: -4%;\s+background: url\(\/office\/issueking-card\.webp\?v=2\)/);
   assert.match(css, /\.bc-issueking \.profile-card__photo,\s+\.being-card-wrap \.bc-issueking \.bc-halo \{ display: none; \}/);
 });
