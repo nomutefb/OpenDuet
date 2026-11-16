@@ -16,7 +16,13 @@ const keyOf = (k: K) => (k === "latin" ? "nm_font_latin" : `yeta_font_${k}`);
 const fontGet = (k: K) => { const d = k === "latin" ? "lemonmilk" : "paperlogy"; try { return localStorage.getItem(keyOf(k)) || d; } catch { return d; } };
 const fontSet = (k: K, v: string) => { try { localStorage.setItem(keyOf(k), v); } catch { /* 이번만 */ } };
 const latinFace = () => ({ manrope: "'Manrope'", lemonmilk: "'LEMONMILK'" } as Record<string, string>)[fontGet("latin")] || null;
-const allOn = () => { try { return localStorage.getItem("nm_font_all") === "pretendard"; } catch { return false; } };
+// PC 기본 = 앱 전체 Pretendard(형 11-16 10:5x 구름 맥 창 「피시는 기본 다 프리텐다드를 기본체로 디폭트하자」) — 이 기기에서 한 번도 안 고른 PC(저장 값 없음)는 켠 꼴 · 설정에서 끄면(빈 값 저장) 그대로 꺼짐 · 폰 기본은 앞과 같음(LEMON MILK · Paperlogy)
+//   PC = 두 칸 잣대(./side.tsx SPLIT 860px 과 같은 값 · 창을 줄였다 늘리면 다시 셈)
+const PC_Q = "(min-width: 860px)";
+const pcNow = () => typeof matchMedia === "function" && matchMedia(PC_Q).matches;
+/** 순수 — 저장 값 · PC 여부 → 앱 전체 Pretendard 켬인가(시험 가능) */
+export const fontAllOn = (saved: string | null, pc: boolean) => saved === "pretendard" || (saved === null && pc);
+const allOn = () => { let v: string | null = null; try { v = localStorage.getItem("nm_font_all"); } catch { return false; } return fontAllOn(v, pcNow()); };
 const PT = ["'Pretendard Variable'", "Pretendard", "-apple-system", "system-ui", "sans-serif"];
 export function applyChatFont() {
   if (allOn()) { document.documentElement.dataset.fontAll = "pretendard"; document.documentElement.style.setProperty("--app-font", PT.join(",")); document.documentElement.style.setProperty("--app-font-text", PT.join(",")); return; }
@@ -32,6 +38,7 @@ export function applyChatFont() {
   document.documentElement.style.setProperty("--app-font-text", (fontGet("latin") === "manrope" ? [face, ...rest] : rest).join(","));
 }
 applyChatFont();   // 앱이 이 파일을 읽을 때 한 번(YETA 와 같음 · 설정 판을 안 열어도 먹음)
+if (typeof matchMedia === "function") { try { matchMedia(PC_Q).addEventListener("change", applyChatFont); } catch { /* 옛 브라우저 = 다음에 열 때 */ } }   // 창 폭이 PC ↔ 폰 잣대를 넘나들면 기본값도 따라감
 
 /** 값 라벨 + 기본값에서 벗어났나(YETA ySetVal) */
 const valOf = (k: K): [string, boolean] => (k === "latin"
