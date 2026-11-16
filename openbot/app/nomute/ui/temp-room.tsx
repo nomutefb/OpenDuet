@@ -12,6 +12,8 @@ import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { useNavigate } from "@tanstack/react-router";
 import { DaySlide } from "./day-slide";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { leftKo } from "./spawn-room";
 import { type OfficeRoom, idOf, office, peopleSync, seatOff } from "../data/office";
 import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
 import { FaceImg, usePeople } from "./faces";
@@ -21,11 +23,8 @@ import "./temp-room.css";
 // 묶음(형 10-31 「클로드 눌러서 선택 그록 눌러서 선택 지피티 눌러서 선택」) = 서버 clsOf 분류 · 명부에 없는 이 = 클로드 칸
 const FAMS: { key: string; label: string; cls: string[] }[] = [{ key: "cl", label: "클로드", cls: ["클로드", ""] }, { key: "gk", label: "그록", cls: ["그록봇"] }, { key: "gp", label: "지피티", cls: ["닷", "부름"] }];
 
-/** 남은 시간 한 마디(목록 줄 꼬리표). */
-export function tempLeft(exp: number, now = Date.now()) {
-  const h = Math.ceil((exp - now) / 3600e3);
-  return h >= 24 ? `${Math.ceil(h / 24)}일 남음` : `${Math.max(1, h)}시간 남음`;
-}
+/** 남은 시간 한 마디(목록 줄 꼬리표 · 방 머리) — 1시간 안쪽은 분(./spawn-room.ts leftKo). */
+export const tempLeft = leftKo;
 
 const short = (n: string) => n.replace(" PM", "");
 
@@ -35,14 +34,40 @@ function patchRoom(qc: ReturnType<typeof useQueryClient>, id: string, part: Part
   qc.setQueryData<OfficeRoom[]>(["nomute", "rooms"], (old) => (Array.isArray(old) ? old.map((x) => (x.id === id ? { ...x, ...part } : x)) : old));
 }
 
+/** 남은 시간을 다시 세는 시계 — 두 시간 안쪽(분이 보임)일 때만 20초마다 · 숨은 탭 = 멈춤 · 그 밖 = 시계 0. */
+function useLeftClock(exp?: number) {
+  const [now, setNow] = useState(() => Date.now());
+  const soon = !!exp && exp - now < 2 * 3600e3;
+  useEffect(() => { if (!soon) return undefined; const id = window.setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 20_000); return () => window.clearInterval(id); }, [soon]);
+  return now;
+}
+
+/** 방 이름 옆 남은 시간 표 — 늘 보임(방 머리 카드는 글이 쌓이면 위로 밀림) · 누르면 기한 바꾸기(형 11-16 20:09 「따로 설정안하면 1시간이 기본」 · 「당연히 옵션래서 변경 가능하고」). 기한 있는 임시방만. */
+export function TempLeftChip({ r }: { r: OfficeRoom }) {
+  const [edit, setEdit] = useState(false), now = useLeftClock(r.exp);
+  if (!r.temp || !r.exp) return null;
+  const left = tempLeft(r.exp, now);
+  return (
+    <>
+      <button type="button" className="nm-temp-chip" data-soon={r.exp - now < 10 * 60e3 ? "" : undefined} aria-label={`${left} · 기한 바꾸기`} onClick={() => setEdit(true)}>{left.replace(" 남음", "")}</button>
+      {edit ? createPortal(<TempRoomDialog edit={r} onClose={() => setEdit(false)} />, document.body) : null}
+    </>
+  );
+}
+
 export function TempRoomHead({ r }: { r: OfficeRoom }) {
   const members = r.members || [], heard = members.filter((n) => (r.heard || []).includes(n)), wait = members.filter((n) => !heard.includes(n));
+  const [edit, setEdit] = useState(false), now = useLeftClock(r.exp);
+  const from = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 }).data?.find((x) => x.id === r.from), fromName = from ? short(from.with || from.name || "") : "";   // 방 화면이 이미 받는 방 목록과 같은 열쇠 · 같은 길(./office-chat.tsx roomsQ) = 받아오기 0 더 · 목록이 늦게 와도 따라 그림
   return (
     <div className="mb-2 rounded-2xl border border-border px-3 py-2 text-sm">
-      <p className="whitespace-pre-wrap">{r.purpose}</p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {r.exp ? tempLeft(r.exp) : "영구"} · 지침 받음 {heard.map(short).join("·") || "아직 없음"}{wait.length ? ` · 안 온 이 ${wait.map(short).join("·")}` : ""}
+      {r.purpose ? <p className="whitespace-pre-wrap">{r.purpose}</p> : null}
+      <p className={`${r.purpose ? "mt-1 " : ""}text-xs text-muted-foreground`}>
+        {/* 남은 시간 = 누르면 기한 바꾸기(방 설정 창 「유지 시간」 · 형 11-16 20:09 「당연히 옵션래서 변경 가능하고」) */}
+        <button type="button" className="nm-temp-left font-semibold tabular-nums text-foreground underline-offset-2 hover:underline" aria-label={`${r.exp ? tempLeft(r.exp, now) : "영구"} · 기한 바꾸기`} onClick={() => setEdit(true)}>{r.exp ? tempLeft(r.exp, now) : "영구"}</button>
+        {r.spawned && fromName ? ` · ${fromName} 1:1 에서 옮겨 옴` : ""} · 지침 받음 {heard.map(short).join("·") || "아직 없음"}{wait.length ? ` · 안 온 이 ${wait.map(short).join("·")}` : ""}
       </p>
+      {edit ? createPortal(<TempRoomDialog edit={r} onClose={() => setEdit(false)} />, document.body) : null}
     </div>
   );
 }

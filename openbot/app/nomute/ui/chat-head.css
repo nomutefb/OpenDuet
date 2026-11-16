@@ -58,3 +58,11 @@
 :root .nm-find.open input { padding:0 2px 0 12px; font-size:var(--fs-sm, 12px); }
 :root .nm-find.open .nm-find-btn { width:30px; }
 :root .nm-find.open .nm-find-btn svg { width:16px; height:16px; }
+
+/* 임시방 남은 시간 표(./temp-room.tsx TempLeftChip · 형 11-16 20:09 1시간 임시방) — 이름 옆 작은 알약 · 10분 안쪽 = 빨강 */
+.nm-top-wrap:has(.nm-temp-chip) { display:inline-flex; align-items:center; gap:8px; }
+.nm-temp-chip { flex:none; padding:1px 8px; border:1px solid rgba(var(--accent-rgb, 207,255,64),.45); border-radius:999px; background:none; color:var(--accent, #CFFF40); font:inherit; font-size:var(--fs-xs); font-weight:600; line-height:18px; font-variant-numeric:tabular-nums; white-space:nowrap; cursor:pointer; pointer-events:auto; transition:scale .12s ease; }
+.nm-temp-chip:active { scale:.95; }
+.nm-temp-chip[data-soon] { border-color:rgba(255,90,95,.6); color:#ff8a8d; }
+:root:not(.dark) .nm-temp-chip { border-color:rgba(77,102,0,.5); color:#3d6b00; }
+:root:not(.dark) .nm-temp-chip[data-soon] { border-color:rgba(200,40,45,.6); color:#c0282d; }
