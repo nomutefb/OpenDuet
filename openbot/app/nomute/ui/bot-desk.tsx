@@ -39,7 +39,7 @@ type Sec = (typeof SECS)[number][0];
 const secOfHash = (h: string): Sec | "" => (/^#\/sched(?:[/?]|$)/.test(h) ? "sched" : /^#\/runner(?:[/?]|$)/.test(h) ? "run" : "");
 /** 아래 층 자리 — 첫 화면(애들 층)이 그려진 뒤 한가할 때 받아 그림(wait ms 뒤) · 그 전에 화면에 들어오면 바로 · 켜진 뒤엔 그대로 둠
  *  (화면에 가까울 때만 켜는 길은 못 씀 = 처음엔 위 층이 아직 비어 있어 아래 층이 다 화면 안에 들어와 한꺼번에 켜졌음 · 실물 11-16) */
-function Near({ children, min, wait }: { children: ReactNode; min: number; wait: number }) {
+function Near({ children, min, wait, ghost }: { children: ReactNode; min: number; wait: number; ghost?: ReactNode }) {   // ghost = 켜지기 전 · 조각을 받는 사이에 그 층 자리에 두는 꼴(글자 「읽는 중…」 대신 · 형 11-17 「처음브터 제대로 나오게」)
   const ref = useRef<HTMLDivElement>(null), [on, setOn] = useState(false);
   useEffect(() => {
     if (on) return undefined;
@@ -49,8 +49,14 @@ function Near({ children, min, wait }: { children: ReactNode; min: number; wait:
     if (el && io) io.observe(el);
     return () => { window.clearTimeout(t); io?.disconnect(); };
   }, [on, wait]);
-  return <div ref={ref} style={on ? undefined : { minHeight: min }}>{on ? <Suspense fallback={<p className="nsb-empty">읽는 중…</p>}>{children}</Suspense> : null}</div>;
+  return <div ref={ref} style={on ? undefined : { minHeight: min }}>{on ? <Suspense fallback={ghost ?? <p className="nsb-empty">읽는 중…</p>}>{children}</Suspense> : ghost ?? null}</div>;
 }
+/** 아래 층의 자리 꼴 — 요약 띠 하나 + 칸 n 개(투명도만 숨 쉼 · ./bot-desk.css .nm-sched-ghost) */
+const LayerGhost = ({ rows, wide }: { rows: number; wide?: boolean }) => (
+  <div className={`nm-sched-ghost mx-auto flex w-full ${wide ? "max-w-6xl px-4" : "max-w-2xl px-3"} flex-col gap-3 pt-1`} aria-hidden>
+    <i className="band" />{Array.from({ length: rows }, (_, i) => <i key={i} className={wide || i === 0 ? "row root" : "row"} />)}
+  </div>
+);
 const delay = (i: number) => ({ "--i": Math.min(i, 24) } as CSSProperties);
 
 const MARK = { color: "currentColor", doneColor: "var(--nsb-ok)", errorColor: "var(--nsb-red)" } as const;
@@ -211,11 +217,11 @@ export function BotDesk() {
     </section>
     <section className="nm-crew-sec" ref={(el) => { secs.current.sched = el; }} aria-label="스케줄 배선">
       <h2 className="nm-crew-h mx-auto w-full max-w-6xl px-4"><i aria-hidden />스케줄 배선</h2>
-      <Near min={420} wait={900}><SchedDesk /></Near>
+      <Near min={420} wait={900} ghost={<LayerGhost rows={6} />}><SchedDesk /></Near>
     </section>
     <section className="nm-crew-sec" ref={(el) => { secs.current.run = el; }} aria-label="러너">
       <h2 className="nm-crew-h mx-auto w-full max-w-6xl px-4"><i aria-hidden />러너</h2>
-      <Near min={420} wait={1700}><StatusBoard bare /></Near>   {/* 작동 표 = 제 폭(넓음) · 겹치는 「활동」 판만 뺌(./status-board.tsx bare) */}
+      <Near min={420} wait={1700} ghost={<LayerGhost rows={3} wide />}><StatusBoard bare /></Near>   {/* 작동 표 = 제 폭(넓음) · 겹치는 「활동」 판만 뺌(./status-board.tsx bare) */}
     </section>
     </div>
   );

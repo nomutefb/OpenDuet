@@ -19,7 +19,7 @@ test("애들 한 화면 = 위에서 아래로 애들(손 판 → 알약 탭) →
   const desk = rd("../ui/bot-desk.tsx"), sb = rd("../ui/status-board.tsx"), css = rd("../ui/bot-desk.css");
   assert.match(desk, /const SECS = \[\["crew", "애들"\], \["sched", "스케줄 배선"\], \["run", "러너"\]\] as const;/);
   const at = (x: string) => { const i = desk.indexOf(x); assert.ok(i > 0, x); return i; };
-  assert.ok(at("<HandBoard rows={crew}") < at('<div className="nm-bd-tabs"') && at('<div className="nm-bd-tabs"') < at("<Near min={420} wait={900}><SchedDesk /></Near>") && at("<Near min={420} wait={900}><SchedDesk /></Near>") < at("<Near min={420} wait={1700}><StatusBoard bare /></Near>"));
+  assert.ok(at("<HandBoard rows={crew}") < at('<div className="nm-bd-tabs"') && at('<div className="nm-bd-tabs"') < at("<Near min={420} wait={900} ghost={<LayerGhost rows={6} />}><SchedDesk /></Near>") && at("<Near min={420} wait={900} ghost={<LayerGhost rows={6} />}><SchedDesk /></Near>") < at("<Near min={420} wait={1700} ghost={<LayerGhost rows={3} wide />}><StatusBoard bare /></Near>"));
   assert.match(desk, /\["board", "일감"\], \["turn", "차례"\], \["body", "몸"\], \["meter", "계기판"\]\]/);
   // 조직 그림(형 11-16 19:2x 「손표를 몸 상태에 합치고 중첩되는건 없애자.」 · 「흐름의 조직 구성 느낌을 가장 메인에」) — 흐름 · 손 표 탭 없음 · PM → 손 판(얼굴 누름) → 고른 애 펼침 차례 · 층 머리 설명 글 없음
   assert.doesNotMatch(desk, /function Flow\(|function Hands\(|"손 표"\]|"흐름"\]/);

@@ -33,7 +33,7 @@ export function HealthLog() {
   const qc = useQueryClient();
   const h = useQuery({ queryKey: ["nomute", "health"], queryFn: () => office<Health>("health"), refetchInterval: 60_000 });
   const re = useMutation({ mutationFn: () => office<Health>("health/recheck", { method: "POST" }), onSuccess: (j) => qc.setQueryData(["nomute", "health"], j) });
-  const c = h.data?.counts, sub = h.isError ? "못 읽음" : !c ? "읽는 중" : c.fix ? `고칠 것 ${c.fix}` : c.unchecked ? `확인 안 됨 ${c.unchecked}` : "다 준비됨";
+  const c = h.data?.counts, sub = h.isError ? "못 읽음" : !c ? "" : c.fix ? `고칠 것 ${c.fix}` : c.unchecked ? `확인 안 됨 ${c.unchecked}` : "다 준비됨";
   return (
     <Fold title="점검" sub={sub} tone={h.isError || c?.fix ? "bad" : c?.unchecked ? "wait" : undefined} auto={!!c?.fix}>
       <ol>

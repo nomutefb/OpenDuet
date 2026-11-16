@@ -4,6 +4,7 @@
 //   자료 = GET status(뜸 · 몸 보고 + 서버 합침) 가 있으면 그것 · 없으면 지금 있는 GET bots · GET schedule 로 1·2·3 만 채우고 나머지는 「보고 아직 안 옴」 칸
 //   일기 = 일곱 × 8단계 격자(형 「일기 정상 작동여부도 프로세스별로 예를들어 7단계면 표를 7단계로 음영칠해. 8x8 이런식. 안되는 부분에 불들어오게」) · SSH = 몸 × 몸 격자
 import { useQuery } from "@tanstack/react-query";
+import { lastPut, lastSeed } from "../data/last-cache";   // 지난 작동 표를 먼저 그림(빈 「읽는 중…」 0 · 형 11-17 「처음브터 제대로 나오게」)
 import { Fragment, type ReactNode, useState } from "react";
 import { office } from "../data/office";
 import { leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time";
@@ -445,7 +446,7 @@ function Diagrams({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; 
 export function StatusBoard({ bare = false }: { bare?: boolean } = {}) {
   const sched = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), refetchInterval: 60_000 });
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 });
-  const srv = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: StatusCat[]; at?: number; bodies?: Body[] }>("status"), refetchInterval: 60_000, retry: false });   // 뜸 #2487 GET /api/office/status
+  const srv = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: StatusCat[]; at?: number; bodies?: Body[] }>("status").then((j) => lastPut("status", j)), ...lastSeed<{ cats: StatusCat[]; at?: number; bodies?: Body[] }>("status"), refetchInterval: 60_000, retry: false });   // 뜸 #2487 GET /api/office/status
   const loading = srv.isPending;   // 맨 위 셈 = 몸 보고(status · 6초 안팎)만 기다림 · 스케줄(12초 안팎)은 「사무실 서버」 줄만 회색 「불러오는 중」
   const bs = bodiesOf(srv.data?.bodies).map((b) => (RUN_WHO.has(b.being) ? b : { ...b, being: "" }));   // 몸 = 서버 bodies(정본) · 없으면 사본 · 아이 = 클로드 일곱만(형 11-10 07:5x 시아 창 「시아 러너 이거 갱신. 애들 포함 해서 천둥은 그록봇이니 넣을필요는 없음.」 · 「지피티 봇은 넣을 필요는 없음.」 · 정본 윈A being 「윈터」 = 옛 클로드 윈터 → 비움)
   const cats = merge(fromLocal(sched.data, bots.data, sched.isPending), bs, srv.data?.cats);

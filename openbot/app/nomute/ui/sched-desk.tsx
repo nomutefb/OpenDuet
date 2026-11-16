@@ -24,16 +24,13 @@ import { wdKo } from "./range-bar-core";
 import "./room-routine.css";
 import { BotPick } from "./bot-pick";   // 「어떤 봇」 = 부름 목록 꼴(형 11-02 02:24)
 import { ReviewBadge, ReviewBox } from "./sched-review";   // 폐기 → 검토(형 11-02 02:1x · 봄 #2092)
-import { DiffPair } from "./state-diff";
-import { isFresh } from "./state-diff-core";
-import { CF_KO, type Routine, ST_KO, type SchedChange, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
+import { CF_KO, type Routine, ST_KO, type SchedFork, type SchedQ, type SchedSetRes, cfVal, cronShow, nextShort, useSched } from "./settings-extra";
 
 // 조직도(형 11-01 17:4x 「스케줄러 있지. 그 내용이 지금 좀 투박해. 버튼 눌러도 동작하는지도 잘 모르겠구 … 엔터프라이즈급으로 동작했으면 좋겠어. 트리구조 조직도로」 · 「각 대화방하고 연동도 잘 되어야하고」)
 //   뿌리 칸(켠 것 · 다음 깸 · 시계) → 포크 칸(켠 비율 막대) → 꼬챙이(상태 점) → 끝 ! 얼굴 · 맨 아래 「최근 바뀜」 = 누른 단추가 실제로 먹었는지(표에 들어감 ✓ · 시계 받음 · 바로 먹음)
 //   대화방 포크 둘(roomtimer 방 루틴 · bell6 6마디 종) = 서버가 붙이는 가짜 포크 → 꼬챙이를 옮겨 넣는 칸에서 뺌
 const VIRTUAL = new Set(["roomtimer", "bell6"]);
 const ROOMISH: Record<string, string> = { roomtimer: "대화방", bell6: "대화방" };
-const agoKo = (ts: number) => { const m = Math.round((Date.now() - ts) / 60e3); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
 
 const CRON_H = "CRON_TZ=Asia/Seoul ";
 // 시간 고르기(형 11-02 02:23 「시간고르는게 저게 최선인가? 주기랑 시간 고르는 방식이 조금 선택 방식이 비효율이야 인터페이스가」) =
@@ -186,7 +183,6 @@ export function SchedDesk() {
   const groupSts = (g: string): HealthSt[] => (g === "bot" ? d.routines.map(rSt) : (d.runners?.jobs || []).filter((j) => d.runners!.forks.find((f) => f.id === j.fork)?.group === g).map(jSt));
   const allSum = d.health_sum || sumOf([...d.routines.map(rSt), ...(d.runners?.jobs || []).map(jSt)]);   // 검토 칸 · 요청·책임자 이름(봇 id·사람 이름 둘 다)
   const nextAll = d.bots.reduce((m, b) => (b.on !== false && b.next_ts && (!m || b.next_ts < m) ? b.next_ts : m), 0);
-  const labelOf = (c: SchedChange) => { const r = d.routines.find((x) => x.id === c.id), f = d.forks?.find((x) => x.id === c.id), b = botOf(c.id); return r ? `${r.bot ? nameOf(botOf(r.bot)) + " · " : ""}${r.name}` : f ? `포크 ${f.name}` : b ? nameOf(b) : c.id; };
   const say = (f: SchedQ["field"], v: unknown) => (f === "when" && Array.isArray(v) ? cronKo(v.map(String)) : f === "bot" ? nameOf(botOf(String(v)) || { who: String(v) }) : cfVal(f, v as never));   // 어떤 봇 = 이름(「gik」 아니라 「깃」)   // 언제 = 사람 말(cron 글자 안 보임)
   /** 바꾸기 확인·진행 = 누른 그 줄 바로 아래(형 10-31 「바로 그 창 아래에 떠야 안헷갈려가까이에」) */
   const bar = (key: string) => {
@@ -354,30 +350,8 @@ export function SchedDesk() {
         </section>
       ) : null}
       {tab === "tree" ? <><KindWaits kinds={d.kinds || []} sha={d.sha || ""} can={can} /><ThumbOptLog /></> : null}   {/* 모아 깨우기(설정 「스케줄러 바꾸기」에만 있던 칸) · 그림(설정 「AI 썸네일 옵션」) */}
-      {tab === "tree" ? <Changes list={d.changes || []} got={got} labelOf={labelOf} /> : null}   {/* 최근 바뀜 = 나무 아래(봇 목록 탭을 없애며 옮김) */}
+      {/* 「최근 바뀜」 카드 = 통째로 걷음(형 11-17 07:45 dm-bom 「글구 이거 필요없는거 없애도 되나 체크좀」 → 「아예.다.지우자」 · 12일 전 줄만 남아 있던 카드 · 서버 칸 schedule.changes 는 이제 화면이 안 읽음) */}
       {can ? null : <p className="text-xs text-muted-foreground">바꾸기는 형 자리에서만 돼.</p>}
     </div>
-  );
-}
-
-const RV_KO: Record<string, string> = { "": "없음", review: "검토 중", remove: "없애기 확정", change: "바꾼 뒤 원복", restore: "원복", done: "끝냄" };   // 검토 걸음(봄 _schedreview.js change.from·to)
-/** 최근 바뀜 = 누른 단추가 실제로 먹었는지(형 「버튼 눌러도 동작하는지도 잘 모르겠구」) — 표 커밋 ✓(서버가 쓴 뒤 다시 읽어 그 칸 확인) · 맨 위 표 바꿈은 시계 받음까지 · 방 루틴·6마디 종 = 바로 먹음 */
-function Changes({ list, got, labelOf }: { list: SchedChange[]; got?: { got?: boolean; sha?: string }; labelOf: (c: SchedChange) => string }) {
-  const [since] = useState(() => Date.now());   // 화면을 연 뒤에 생긴 줄만 값 바뀜 재생(./state-diff-core.ts isFresh)
-  if (!list.length) return null;
-  const head = list.find((c) => !c.live);
-  const v = (x: unknown) => (Array.isArray(x) ? cronKo(x.map(String)) || "없음" : typeof x === "boolean" ? (x ? "켬" : "끔") : typeof x === "string" ? (ST_KO[x] || (x.length > 24 ? x.slice(0, 24) + "…" : x)) : x == null ? "없음" : String(x));
-  return (
-    <section className="nm-org-log" aria-label="최근 바뀜">
-      <h3>최근 바뀜</h3>
-      <ol>
-        {list.slice(0, 8).map((c, i) => (
-          <li key={`${c.at}-${i}`}>
-            <span className="min-w-0 flex-1"><b>{labelOf(c)}</b><small>{c.review === "note" ? <>같이 멈추는 것 「{c.note}」</> : c.review ? <>검토 <DiffPair from={RV_KO[String(c.from ?? "")] ?? String(c.from)} to={RV_KO[String(c.to ?? "")] ?? String(c.to)} play={isFresh(c.at, since)} sep={<> <Chev dir="right" size={11} /> </>} /></> : <>{CF_KO[c.field as SchedQ["field"]] || c.field || "상태"} <DiffPair from={v(c.from)} to={v(c.to)} play={isFresh(c.at, since)} sep={<> <Chev dir="right" size={11} /> </>} /></>} · {c.who} · {agoKo(c.at)}</small></span>
-            <em data-k={c.live ? "live" : c === head ? (got?.got ? "got" : "wait") : "ok"}>{c.live ? "바로 먹음" : c === head ? (got?.got ? "시계 받음" : "시계 기다림") : "표에 들어감"}</em>
-          </li>
-        ))}
-      </ol>
-    </section>
   );
 }
