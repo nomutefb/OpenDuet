@@ -15,33 +15,56 @@
 .nm-vm-card .plot { position:relative; width:100%; overflow:hidden; }
 .nm-vm-card svg { display:block; }
 .nm-vm-card svg text { font-family:inherit; font-variant-numeric:tabular-nums; }
-.nm-vm-card .grid { stroke:var(--vm-grid); stroke-width:.8; }
-.nm-vm-card .ref { stroke:var(--vm-faint); stroke-width:.8; stroke-dasharray:2 4; }
-.nm-vm-card .mark { stroke:var(--vm-muted); stroke-width:.8; stroke-dasharray:3 3; }
-.nm-vm-card .hair { fill:none; stroke:var(--vm-muted); stroke-width:.6; }
-.nm-vm-card .hair.a { opacity:.5; } .nm-vm-card .hair.b { opacity:.72; } .nm-vm-card .hair.c { opacity:.95; }
-.nm-vm-card .hair.peak { stroke:var(--vm-ink); stroke-width:1.1; }
-.nm-vm-card .line { fill:none; stroke:var(--vm-ink); stroke-width:1.2; stroke-linejoin:round; }
-.nm-vm-card path.held { fill:none; stroke:var(--vm-held); stroke-width:1; }   /* path 만 — 끝 글(.end.held)에 선이 둘리지 않게 */
-.nm-vm-card .dot { fill:var(--vm-ink); }
-.nm-vm-card .tick { font-size:9.5px; font-weight:500; fill:var(--vm-muted); }
-.nm-vm-card .hour { font-size:9.5px; font-weight:600; fill:var(--vm-muted); letter-spacing:.04em; }
-.nm-vm-card .note { font-size:9.5px; font-weight:500; fill:var(--vm-muted); paint-order:stroke; stroke:var(--vm-halo); stroke-width:3px; }
-.nm-vm-card .peak { font-size:10.5px; font-weight:800; fill:var(--vm-ink); paint-order:stroke; stroke:var(--vm-halo); stroke-width:3px; }
-.nm-vm-card .end { font-size:11px; font-weight:700; fill:var(--vm-ink); }
-.nm-vm-card .end.held { fill:var(--vm-held); font-weight:600; }
+:is(.nm-vm-card, .nm-vm-row) .grid { stroke:var(--vm-grid); stroke-width:.8; }
+:is(.nm-vm-card, .nm-vm-row) .ref { stroke:var(--vm-faint); stroke-width:.8; stroke-dasharray:2 4; }
+:is(.nm-vm-card, .nm-vm-row) .mark { stroke:var(--vm-muted); stroke-width:.8; stroke-dasharray:3 3; }
+:is(.nm-vm-card, .nm-vm-row) .hair { fill:none; stroke:var(--vm-muted); stroke-width:.6; }
+:is(.nm-vm-card, .nm-vm-row) .hair.a { opacity:.5; } :is(.nm-vm-card, .nm-vm-row) .hair.b { opacity:.72; } :is(.nm-vm-card, .nm-vm-row) .hair.c { opacity:.95; }
+:is(.nm-vm-card, .nm-vm-row) .hair.peak { stroke:var(--vm-ink); stroke-width:1.1; }
+:is(.nm-vm-card, .nm-vm-row) .line { fill:none; stroke:var(--vm-ink); stroke-width:1.2; stroke-linejoin:round; }
+:is(.nm-vm-card, .nm-vm-row) path.held { fill:none; stroke:var(--vm-held); stroke-width:1; }   /* path 만 — 끝 글(.end.held)에 선이 둘리지 않게 */
+:is(.nm-vm-card, .nm-vm-row) .dot { fill:var(--vm-ink); }
+:is(.nm-vm-card, .nm-vm-row) .tick { font-size:9.5px; font-weight:500; fill:var(--vm-muted); }
+:is(.nm-vm-card, .nm-vm-row) .hour { font-size:9.5px; font-weight:600; fill:var(--vm-muted); letter-spacing:.04em; }
+:is(.nm-vm-card, .nm-vm-row) .note { font-size:9.5px; font-weight:500; fill:var(--vm-muted); paint-order:stroke; stroke:var(--vm-halo); stroke-width:3px; }
+:is(.nm-vm-card, .nm-vm-row) .peak { font-size:10.5px; font-weight:800; fill:var(--vm-ink); paint-order:stroke; stroke:var(--vm-halo); stroke-width:3px; }
+:is(.nm-vm-card, .nm-vm-row) .end { font-size:11px; font-weight:700; fill:var(--vm-ink); }
+:is(.nm-vm-card, .nm-vm-row) .end.held { fill:var(--vm-held); font-weight:600; }
 .nm-vm-card .legend { display:flex; flex-wrap:wrap; gap:4px 18px; margin-top:8px; font-size:11.5px; color:var(--vm-muted); font-variant-numeric:tabular-nums; }
 .nm-vm-card .legend span { display:inline-flex; align-items:center; gap:7px; }
 .nm-vm-card .legend .k { display:inline-block; width:18px; height:0; border-top:1px solid var(--vm-held); }
 .nm-vm-card .legend .k.used { border-top:1.6px solid var(--vm-ink); }
 .nm-vm-card .src { margin-top:10px; font-size:9.5px; font-weight:500; letter-spacing:.08em; color:var(--vm-faint); }
+/* 애들 한 줄씩(형 11-16 17:5x 「쭈르륵 애들 다 보이게해줘 … 애들 상태,하드웨어 상태, 특성 이런게 다 일목요연하게」) = 왼쪽 누구 · 상태 · 특기 | 하드웨어 | 램 24시간 띠 · 좁으면 위에서 아래로 */
+.nm-vm-rows { display:grid; gap:10px; }
+.nm-vm-row { display:grid; grid-template-columns:minmax(0, 220px) minmax(0, 300px) minmax(0, 1fr); gap:6px 22px; align-items:center; min-width:0; padding:14px 20px; border-radius:20px; background:var(--glass, rgba(255,255,255,.05)); border:1px solid var(--glass-line, rgba(255,255,255,.08)); }
+.nm-vm-row h3 { display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; font-size:16.5px; font-weight:700; letter-spacing:-.02em; line-height:1.3; }
+.nm-vm-row h3 em { font-style:normal; font-size:10px; font-weight:700; letter-spacing:.06em; color:var(--vm-muted); }
+.nm-vm-face.none { display:inline-block; width:30px; height:30px; background:var(--vm-grid); }
+.nm-vm-row .st { margin-left:2px; padding:1px 8px; border:1px solid var(--vm-faint); border-radius:999px; font-size:11px; font-weight:600; letter-spacing:0; color:var(--vm-ink); white-space:nowrap; }
+.nm-vm-row .st.work { border-color:rgba(var(--accent-rgb, 207,255,64),.5); color:var(--accent, #CFFF40); }
+.nm-vm-row .st.lost { border-color:rgba(255,90,95,.5); color:#ff6b6f; }
+.nm-vm-row .st.dim { color:var(--vm-muted); }
+:root:not(.dark) .nm-vm-row .st.work { color:#4d6600; border-color:rgba(77,102,0,.45); }
+.nm-vm-row .sk { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
+.nm-vm-row .sk span { padding:1px 7px; border:1px solid var(--vm-grid); border-radius:999px; font-size:11px; color:var(--vm-muted); white-space:nowrap; }
+.nm-vm-row .sk span.first { border-color:var(--vm-faint); color:var(--vm-ink); }
+.nm-vm-row .hw { min-width:0; font-variant-numeric:tabular-nums; }
+.nm-vm-row .hw p { font-size:12.5px; line-height:1.45; color:var(--vm-ink); }
+.nm-vm-row .hw small { display:block; margin-top:3px; font-size:11px; line-height:1.4; color:var(--vm-muted); }
+.nm-vm-row .plot { position:relative; min-width:0; width:100%; overflow:hidden; }   /* 키우기 = 바로 바뀜(키를 움직이면 프레임마다 자리 셈 = 버벅임 · 형 「60프레임 미만으로 어색하게 만들지마」) */
+.nm-vm-row .plot.none { display:flex; align-items:center; min-height:44px; font-size:11.5px; color:var(--vm-faint); }
+.nm-vm-row .plot .grow { display:block; width:100%; height:100%; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.nm-vm-row svg { display:block; }
+.nm-vm-row svg text { font-family:inherit; font-variant-numeric:tabular-nums; }
+@media (max-width:900px) { .nm-vm-row { grid-template-columns:minmax(0, 1fr); padding:14px 14px 10px; border-radius:18px; } }
 .nm-vm-empty { margin:40px 12px; text-align:center; font-size:var(--fs-sm, 13px); color:var(--vm-muted); }
-.nm-vm-card .vm-fade { animation:nmVmFade .9s ease both; }
-.nm-vm-card .vm-fade.late { animation-delay:1.1s; }
-.nm-vm-card .vm-draw { stroke-dasharray:1; stroke-dashoffset:1; animation:nmVmDraw 1s cubic-bezier(.4,0,.2,1) .3s both; }
-.nm-vm-card .vm-pop { transform-box:fill-box; transform-origin:center; animation:nmVmPop .5s cubic-bezier(.2,.7,.3,1.3) 1s both; }
+:is(.nm-vm-card, .nm-vm-row) .vm-fade { animation:nmVmFade .9s ease both; }
+:is(.nm-vm-card, .nm-vm-row) .vm-fade.late { animation-delay:1.1s; }
+:is(.nm-vm-card, .nm-vm-row) .vm-draw { stroke-dasharray:1; stroke-dashoffset:1; animation:nmVmDraw 1s cubic-bezier(.4,0,.2,1) .3s both; }
+:is(.nm-vm-card, .nm-vm-row) .vm-pop { transform-box:fill-box; transform-origin:center; animation:nmVmPop .5s cubic-bezier(.2,.7,.3,1.3) 1s both; }
 @keyframes nmVmFade { from { opacity:0; } }
 @keyframes nmVmDraw { to { stroke-dashoffset:0; } }
 @keyframes nmVmPop { from { transform:scale(0); } to { transform:none; } }
-@media (prefers-reduced-motion:reduce) { .nm-vm-card .vm-fade, .nm-vm-card .vm-draw, .nm-vm-card .vm-pop { animation:none; stroke-dasharray:none; stroke-dashoffset:0; } }
+@media (prefers-reduced-motion:reduce) { :is(.nm-vm-card, .nm-vm-row) .vm-fade, :is(.nm-vm-card, .nm-vm-row) .vm-draw, :is(.nm-vm-card, .nm-vm-row) .vm-pop { animation:none; stroke-dasharray:none; stroke-dashoffset:0; } }
 @media (max-width:560px) { .nm-vm-card { padding:18px 14px 14px; border-radius:20px; } }
