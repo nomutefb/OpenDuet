@@ -301,6 +301,9 @@
 @media (prefers-reduced-motion:reduce) { .nm-bd-org-one { animation:none; } .nm-bd-ab.org .cell { transition:none; } }
 :root:not(.dark) .nm-bd-head { --org-line:rgba(77,102,0,.45); }
 
+/* 얼굴 밑 직무 = 알약 걷고 글자만(형 11-16 21:06 구름 맥 창 「이거 알약 빼고 직무 나오게 할게」) — 색은 칸 꼴 그대로(작업 중 = 흐림 · 쉬는 중 = 흰 · 연결 끊김 = 붉게) */
+.nm-bd-ab .nsb-ab-lane .cell > small.sk, .nm-bd-ab .nsb-ab-lane li[data-off] .cell > small.sk, .nm-bd-org-pm .sk { padding:0; border:0; border-radius:0; font-size:11px; line-height:1.3; }
+.nm-bd-ab .nsb-ab-lane li[data-off="lost"] .cell > small.sk { color:#ff8a8d; }
 /* ── 얼굴 펼침 = 그 애 관리 칸(./bot-manage.tsx · 형 11-16 19:36 「거기서 일괄 관리 페이지가 되길」) ──
    고르는 줄 = 옛 에디터 영상 편집 줄 값 그대로(edit.html .srow · .plbl · .sopts · .sopts .pc · .ssep — 형 20:5x 「알약으로 선택하면 비효율 이니 그 영상에디터에 이미 css가 잇거든? 이거 참고해서 구현해줘」):
      줄 = flex · baseline · 양끝 · 위아래 8 / 이름표 = 13 · 700 · 흰 / 값 = 오른쪽 끝 · 틈 3 · 4 / 낱말 = 상자 없음 · 6 · 7 · 13 · 700 · 흐림 / 고른 낱말 = 강조색 · 800 / 사이 | = 흐림 .35 / 못 누름 = .32

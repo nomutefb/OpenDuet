@@ -43,19 +43,20 @@ test("손 판 색 = 머리 · 막대와 같은 말: 일하는 중 = 라임 · �
   assert.match(css, /\.nm-bd-head \.mix \.g-work \{ background:var\(--nsb-ok\);/); assert.match(css, /\.nm-bd-head \.mix \.g-idle \{ background:#E7ECE7; \}/);   // 막대 = 같은 말(라임 = 일 · 흰색 = 노는 손)
 });
 
-test("직무 표기 = 영문 직함: Developer · UX Design · PM · Dev. · PM · UXD. (형 11-16 18:4x) · 나머지도 같은 결", async () => {
+test("직무 표기 = 영문 직함 줄임: Dev. · UXD. · R&D · PM · Dev. · PM · UXD. · 줄임 없으면 그대로(형 11-16 18:4x → 21:06 「Dev. 로 줄이고 / UXD. 로 줄일게」) · 알약 없이 글자만", async () => {
   const { roleLabel, roleOf } = await import("../ui/bot-desk-logic.ts");
-  for (const who of [["D", "S", "R"], ["D", "R", "S"]]) assert.equal(roleLabel(who), "Developer");   // 천둥 · 번개 · 빠르 · 소나
-  assert.equal(roleLabel(["U"]), "UX Design"); assert.equal(roleLabel(["U", "D", "M"]), "UX Design");   // 구름 · 시아
+  for (const who of [["D", "S", "R"], ["D", "R", "S"]]) assert.equal(roleLabel(who), "Dev.");   // 천둥 · 번개 · 빠르 · 소나
+  assert.equal(roleLabel(["U"]), "UXD."); assert.equal(roleLabel(["U", "D", "M"]), "UXD.");   // 구름 · 시아
   assert.equal(roleLabel(["M", "D", "S"]), "PM · Dev.");   // 깃
   assert.equal(roleLabel(["M", "U", "S"]), "PM · UXD.");   // 봄
-  assert.equal(roleLabel(["R", "D", "S"]), "Research"); assert.equal(roleLabel(["S", "R"]), "Fixer");
+  assert.equal(roleLabel(["R", "D", "S"]), "R&D"); assert.equal(roleLabel(["S", "R"]), "Fixer");   // 리서치 = 줄임 있음(R&D) · Fixer = 줄임 없음
   assert.deepEqual(["Xa", "Xb", "Xc", "Xd"].map((c) => roleLabel([c])), ["Creator", "Musician", "Storyteller", "Scoop Hunt"]);   // 결 = Musician(형 11-16 18:5x 「결 musician」)   // 뜸 = Creator(형 11-16 18:5x 「뜸은 creator」)
   assert.equal(roleLabel(["M"]), "PM"); assert.equal(roleLabel([]), ""); assert.equal(roleLabel(undefined), ""); assert.equal(roleLabel(["Zz"]), "");   // 모르는 코드 = 빈 글(화면이 서버 한글 이름으로 떨어짐)
   assert.equal(roleOf("D", true), "Dev."); assert.equal(roleOf("U", true), "UXD."); assert.equal(roleOf("R", true), "R&D");
   const h = rd("../ui/bot-desk-hands.tsx");
   assert.equal(roleLabel(["S", "R"], "온"), "Secretary"); assert.equal(roleLabel(["Xd", "S"], "온"), "Secretary");   // 온 = 형 비서(특기 코드보다 먼저)
-  assert.equal(roleLabel(["Xd", "R"], "슈왕"), "Scoop Hunt"); assert.equal(roleLabel(["D", "R", "S"], "소나"), "Fixer · Dev.");   // 형 11-16 19:0x 「소나 Fixer · Dev / 슈왕 Scoop Hunt.」
+  assert.equal(roleLabel(["Xd", "R"], "슈왕"), "Scoop Hunt"); assert.equal(roleLabel(["D", "R", "S"], "소나"), "Fixer");   // 형 21:06 「소나는 Fixer 로만」   // 형 11-16 19:0x 「소나 Fixer · Dev / 슈왕 Scoop Hunt.」
   for (const [sk, who] of [[["Xc", "R", "D"], "뎅"], [["Xb", "M", "S"], "결"], [["Xc", "R", "S"], "윈터"]] as const) assert.equal(roleLabel([...sk], who), "Storyteller", who);   // 형 11-16 18:5x 「뎅 결 윈터는 Storyteller」   // 슈왕(옛 촉) = Scoop Hunter(형 11-16 18:5x) assert.equal(roleLabel(["D"], "번개"), "Developer");
-  assert.match(h, /skName = roleLabel\(r\.skills, r\.who\) \|\| skKo;/);   // 손 판 얼굴 밑 = 직함
+  assert.match(h, /skName = roleLabel\(r\.skills, r\.who\) \|\| skKo;/);
+  assert.match(rd("../ui/bot-desk.css"), /\.nm-bd-ab \.nsb-ab-lane \.cell > small\.sk, [^{]*\{ padding:0; border:0; border-radius:0;/);   // 알약 걷음(형 21:06 「이거 알약 빼고 직무 나오게 할게」)   // 손 판 얼굴 밑 = 직함
 });
