@@ -22,3 +22,12 @@ test("손 판 = 칸 차례 멈춤 → 일하는 중 → 노는 손 → 특수 �
   assert.match(desk, /일하는 중 <b>\{working\.length\}<\/b><span className="also">노는 손 <b>\{idle\.length\}<\/b><\/span>/);   // 머리 = 일하는 중이 큰 숫자
   assert.match(desk, /flowOf\(crew\.filter\(\(r\) => !isSpecial\(r\)\)\)/);   // 머리 숫자 = 아래 칸과 같은 셈(특수 뺌)
 });
+
+test("손 판 색 = 머리 · 막대와 같은 말: 일하는 중 = 라임 · 노는 손 = 흰색(형 11-16 18:3x 「이거 색이 정 반대로 노는 듯.」)", () => {
+  const css = rd("../ui/bot-desk.css");
+  assert.match(css, /\.nm-bd-ab \.nsb-ab-lane\[data-k="work"\] \.orb > i, \.nm-bd-ab li\[data-st="work"\] \.orb > i \{ background:conic-gradient\(transparent 0 70%, var\(--nsb-ok\) 70% 100%\); \}/);   // 일하는 손의 도는 구슬 = 라임
+  assert.match(css, /\.nm-bd-ab \.nsb-ab-lane\[data-k="work"\] h4 \.lane-fold > b \{ color:var\(--nsb-ok\); \}/);
+  assert.match(css, /\.nm-bd-ab \.nsb-ab-lane\[data-k="ready"\] \.ring u, \.nm-bd-ab li\[data-st="ready"\] \.ring u \{ border-color:var\(--nsb-ink\); \}/);   // 노는 손 고리 = 흰색
+  assert.match(css, /\.nm-bd-ab \.nsb-ab-lane\[data-k="ready"\] h4 b \{ color:var\(--nsb-ink\); \}/);
+  assert.match(css, /\.nm-bd-head \.mix \.g-work \{ background:var\(--nsb-ok\);/); assert.match(css, /\.nm-bd-head \.mix \.g-idle \{ background:#E7ECE7; \}/);   // 막대 = 같은 말(라임 = 일 · 흰색 = 노는 손)
+});
