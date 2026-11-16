@@ -226,7 +226,7 @@
 /* ── 조직 그림(형 11-16 19:2x 구름 맥 창 「흐름의 조직 구성 느낌을 가장 메인에 좀 더 붙일 수 있나?」 · 「선같은 구성 같은것만 가져오면 될듯 그 느낌? 그리고 어떤 일 하고잇는지 ?」)
    PM 한 줄 → 세로 줄기 → 칸마다 가지(둥근 모서리) · 얼굴 밑 작은 표 = 지금 맡은 일 · 얼굴 누름 = 그 애 것만 아래에 펼침
    줄은 가짜 요소 한두 개(그리는 값 0 · 움직임 0) · 펼침 = opacity + translate 만 */
-.nm-bd-head { --org-x:38px; --org-pad:56px; --org-line:rgba(var(--accent-rgb, 207,255,64),.38); }
+.nm-bd-head { --org-x:44px; --org-pad:62px; --org-line:rgba(var(--accent-rgb, 207,255,64),.38); }
 .nm-bd-org-pm { display:flex; align-items:center; gap:10px; width:100%; margin:14px 0 0; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .nm-bd-org-pm > b { font-size:var(--fs-label); font-weight:650; color:var(--nsb-ink); }
 .nm-bd-org-pm .sk, .nm-bd-org-one .more span { padding:1px 7px; border:1px solid var(--nsb-faint); border-radius:999px; font-size:var(--fs-xs); color:var(--nsb-mut); white-space:nowrap; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
@@ -270,9 +270,9 @@
 .nm-bd-ab.org .cell { grid-template-columns:minmax(0, 1fr); }
 .nm-bd-ab.org .cell > small.sk { justify-self:center; }
 /* PM 얼굴 고리(형 11-16 19:4x 「이거 PM도 사이클 돌게해줘」) = 아래 손 판과 같은 그림 · 같은 색(일하는 중 = 라임 도는 구슬 · 바로 받음 = 흰 고리 · 쉬는 손 = 회색 고리 · 멈춤 = 점선) · 도는 것 = transform 하나 */
-.nm-bd-org-pm .nsb-ab-av { flex:none; width:44px; height:44px; transition:scale .15s ease; }
-.nm-bd-org-pm .nsb-ab-av .ring u { width:44px; height:44px; border-color:var(--nsb-ink); }
-.nm-bd-org-pm .nsb-ab-av .pic img, .nm-bd-org-pm .nsb-ab-av .pic > * { max-width:34px; max-height:34px; }
+.nm-bd-org-pm .nsb-ab-av { flex:none; width:56px; height:56px; transition:scale .15s ease; }   /* 아래 애들 동그라미와 같은 크기(56 · 폰 50) */
+.nm-bd-org-pm .nsb-ab-av .ring u { width:56px; height:56px; border-color:var(--nsb-ink); }
+.nm-bd-org-pm .nsb-ab-av .pic img, .nm-bd-org-pm .nsb-ab-av .pic > * { max-width:42px; max-height:42px; }
 .nm-bd-org-pm .trk { opacity:1; }
 .nm-bd-org-pm[data-st="work"] .trk { opacity:.6; }
 .nm-bd-org-pm[data-st="work"] .orb { opacity:.9; animation-play-state:running; will-change:transform; }
@@ -288,9 +288,9 @@
 @media (prefers-reduced-motion:reduce) { .nm-bd-org-pm .orb { animation:none; } }
 @keyframes nmBdOne { from { opacity:0; translate:0 -6px; } }
 @media (max-width:640px) {
-  .nm-bd-head { --org-x:36px; --org-pad:46px; }
-  .nm-bd-org-pm .nsb-ab-av, .nm-bd-org-pm .nsb-ab-av .ring u { width:40px; height:40px; }
-  .nm-bd-org-pm .nsb-ab-av .pic img, .nm-bd-org-pm .nsb-ab-av .pic > * { max-width:30px; max-height:30px; }
+  .nm-bd-head { --org-x:41px; --org-pad:51px; }
+  .nm-bd-org-pm .nsb-ab-av, .nm-bd-org-pm .nsb-ab-av .ring u { width:50px; height:50px; }
+  .nm-bd-org-pm .nsb-ab-av .pic img, .nm-bd-org-pm .nsb-ab-av .pic > * { max-width:38px; max-height:38px; }
   .nm-bd-ab.org .nsb-ab-lane { grid-template-columns:minmax(0, 1fr); gap:2px; padding-right:10px; }   /* 폰 = 칸 이름을 얼굴 위로(가지 → 이름 → 얼굴) → 얼굴 줄이 카드 폭을 다 씀 · 직함 알약이 안 잘림 */
   .nm-bd-ab.org .nsb-ab-lane h4 { margin:8px 0 0 5px; min-height:26px; align-items:center; }   /* 숫자와 칸 이름 = 가운데 높이를 맞춤(형 11-16 19:5x 구름 맥 창 「숫자랑 옆에 내용이랑 수평 맞춰주면 땡큐!」 · 앞 = 글자 밑줄 맞춤이라 큰 숫자 옆 이름이 아래로 처져 보임) */
   .nm-bd-ab.org .nsb-ab-lane h4 b { line-height:1; }
@@ -366,3 +366,8 @@
 .nm-bd-ab.org .nsb-ab-lane h4, .nm-bd-ab.org .sub h5, .nm-bd-head .big .also { color:var(--nsb-ink); }
 .nm-bd-ab.org .subs { padding-top:4px; }
 @media (max-width:640px) { .nm-bd-ab.org .subs { padding-top:10px; } }
+/* 얼굴 줄이 두 단으로 꺾이면 단 사이에 구분선(형 11-16 22:0x 구름 맥 창 「개발 중 등도 세부에서도 2단으로 놔지면 구분선 놔줘.」)
+   얼굴마다 제 줄 위 틈에 아주 긴 점선을 긋고 목록이 넘치는 것을 자름 → 같은 단의 선은 한 줄로 겹치고 · 첫 단의 선은 목록 위로 나가 잘려 안 보임(몇 개씩 꺾이든 셈 없이 됨) */
+.nm-bd-ab.org .nsb-ab-lane ul:not(.mini) { row-gap:17px; overflow:hidden; }
+.nm-bd-ab.org .nsb-ab-lane ul:not(.mini) > li { position:relative; }
+.nm-bd-ab.org .nsb-ab-lane ul:not(.mini) > li::before { content:""; position:absolute; left:-100vw; right:-100vw; top:-9px; border-top:1px dashed var(--nsb-line); pointer-events:none; }
