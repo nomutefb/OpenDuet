@@ -29,8 +29,22 @@ export function inAppHref(raw: string, base: string = location.href): string | n
   return `/web?u=${encodeURIComponent(u.href)}`;
 }
 
+/** 맥 독 앱(봄의 정원.app · html.nm-macapp) 안 = 바깥 주소는 앱 제 탭(진짜 웹뷰 · 품기 막는 사이트 · 로그인도 됨)으로 — 맥 앱이 window.open 을 새 탭으로 받음
+ *  (형 11-16 10:2x 봄 창 「2) 웹앱에서 여는 링크가 인앱에서 안열려」 · 「2로 열려야 베스트야」 · 봄 옮김 · 뜸) */
+const macApp = () => typeof document !== "undefined" && document.documentElement.classList.contains("nm-macapp");
+function macTab(raw: string, base?: string): boolean {
+  let u: URL;
+  try { u = new URL(raw, base ?? location.href); } catch { return false; }
+  if (!/^https?:$/.test(u.protocol)) return false;
+  if (u.origin === location.origin && u.pathname.startsWith(APP)) return false;   // 앱 안 판 = 그대로 라우터
+  if (ISSUE.test(u.href)) return false;   // 이슈 = 앱 안 「< 이슈」 판 그대로
+  window.open(u.href, "_blank", "noopener");
+  return true;
+}
+
 /** 앱 안으로 엶(해시 길 = 라우터가 받음) — 못 들이면 false(부른 쪽이 원래대로) */
 export function openInApp(raw: string, base?: string): boolean {
+  if (macApp() && macTab(raw, base)) return true;
   const h = inAppHref(raw, base);
   if (h == null) return false;
   location.hash = `#${h}`;
