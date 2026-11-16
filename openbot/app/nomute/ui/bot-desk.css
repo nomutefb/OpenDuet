@@ -362,3 +362,7 @@
 /* 낱말 자리의 재확인(./morph-ask.tsx · [아니오] [예]) = 줄 안에서 작게 */
 .nm-bm .nm-mask { display:inline-flex; align-items:center; }
 .nm-bm .nm-mask .nm-yn > button { min-height:30px; font-size:13px; }
+/* 칸 이름(작업 중 · 쉬는 중 · 개발 중 · 창작 중) = 흰색 · 「개발 중」 위 숨통(형 11-16 21:5x 구름 맥 창 사진 「개발중 위에 줄간격 조금만 더 확보해주고 / 쉬는 중 작업 중 개발중 창작중 다 흰색으로.」 · 앞 = 흐린 회색 · 숫자 색은 그대로) */
+.nm-bd-ab.org .nsb-ab-lane h4, .nm-bd-ab.org .sub h5, .nm-bd-head .big .also { color:var(--nsb-ink); }
+.nm-bd-ab.org .subs { padding-top:4px; }
+@media (max-width:640px) { .nm-bd-ab.org .subs { padding-top:10px; } }
