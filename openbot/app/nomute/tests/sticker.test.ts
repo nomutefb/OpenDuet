@@ -32,7 +32,9 @@ test("보내는 중 움짤 + 진짜 글이 같이 있으면 하나만(형 11-12 
 });
 
 test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · 카리나(빼꼼) · 형(선글라스) · 나팔꽃(나팔) · 온(형 11-12 17:28 · 17:29 · 17:35 · 18:34 · 18:39)", () => {
-  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "뎅", "번개", "시아", "깃", "결", "윈터", "카리나", "형", "나팔꽃", "소나", "천둥", "촉", "이슈왕", "감", "온"]);   // 틈 뺌 · 소나 들임(형 11-14 06:59) · 뎅 들임(형 11-15 00:50 「원년멤번데 너만 없다」)
+  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "뎅", "번개", "시아", "깃", "결", "윈터", "카리나", "소나", "천둥", "슈왕", "감", "온", "형", "나팔꽃"]);   // 촉 걷음 · 이슈왕 → 슈왕 · 맨 끝 = 형 · 나팔꽃(형 11-16 21:09 dm-bom · 봄 옮김)
+  assert.equal(PACKS.find((p) => p.id === "morning")?.face, "/office/sticker/morning/ibul.gif");   // 나팔꽃 탭 얼굴 = 이불 움짤(형 「움짤 gif 나팔꽃도 푸로필 넣어주구」)
+  assert.equal(PACKS.some((p) => p.id === "chok"), false);   // 틈 뺌 · 소나 들임(형 11-14 06:59) · 뎅 들임(형 11-15 00:50 「원년멤번데 너만 없다」)
   assert.equal(stickerOf("[스티커 뎅 다다다]")?.item.id, "legs");
   assert.equal(stickerOf("[스티커 뎅 뜸고마워]")?.pack.id, "deng");
   const k = PACKS.find((p) => p.id === "karina")!, h = PACKS.find((p) => p.id === "hyung")!;
@@ -138,5 +140,7 @@ test("이슈왕 묶음(형 11-16 18:13 「움짤은 이런거 활용하면될듯
   const p = PACKS.find((x) => x.id === "issueking");
   assert.ok(p);
   assert.deepEqual(p!.items.map((i) => i.id), ["wink", "found", "breaking", "run", "brief", "dig", "secret", "sleep", "thumbs"]);
-  assert.equal(stickerOf("[스티커 이슈왕 속보]")?.pack.id, "issueking");
+  assert.equal(stickerOf("[스티커 이슈왕 속보]")?.pack.id, "issueking");   // 옛 이름 글도 그대로 움짤
+  assert.equal(stickerOf("[스티커 슈왕 속보]")?.pack.id, "issueking");
+  assert.equal(stickerText(p!, p!.items[0]), "[스티커 슈왕 윙크]");
 });

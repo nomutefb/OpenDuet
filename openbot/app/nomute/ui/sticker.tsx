@@ -93,7 +93,7 @@ export function StickerButton() {
           <div className="nm-stk" role="dialog" aria-label="움짤" style={at}>
             <div ref={rail} className="nm-stk-tabs" role="tablist">
               <button type="button" role="tab" aria-selected={tab === "all"} className={tab === "all" ? "on" : ""} onClick={() => setTab("all")}>전체</button>
-              {PACKS.map((p) => { const who = faceOf(p); return <button key={p.id} type="button" role="tab" aria-selected={tab === p.id} className={tab === p.id ? "on" : ""} onClick={() => setTab(p.id)}>{who ? <FaceImg id={idOf(who, ppl)} size={18} className="nm-stk-face" /> : null}{p.name}</button>; })}   {/* 봇 칸마다 작은 얼굴(형 11-15 01:29 「여기 리스트에도 각각 얼굴 나오게 해야할듯 그라야 구분이 빠름 작게라도」) */}
+              {PACKS.map((p) => { const who = faceOf(p); return <button key={p.id} type="button" role="tab" aria-selected={tab === p.id} className={tab === p.id ? "on" : ""} onClick={() => setTab(p.id)}>{who ? <FaceImg id={idOf(who, ppl)} size={18} className="nm-stk-face" /> : p.face ? <img src={p.face} alt="" width={18} height={18} loading="lazy" draggable={false} className="nm-stk-face block shrink-0 rounded-full object-cover" style={{ width: 18, height: 18 }} /> : null}{p.name}</button>; })}   {/* 봇 칸마다 작은 얼굴(형 11-15 01:29 「여기 리스트에도 각각 얼굴 나오게 해야할듯 그라야 구분이 빠름 작게라도」) */}
             </div>
             <div className="nm-stk-grid">   {/* 처음 = 15칸쯤(5 × 3 줄 · 형 01:28 「움짤은 15개 정도만 나오면 돼 ㅋㅋ 그 이상은 지금처럼 올려서 보면 됨 너무 뒤덮어서」) · 줄마다 살짝 구분(「각각 라인이 조금은 구분되야함」) */}
               {(tab === "all" ? allSections(fav, recent) : PACKS.filter((p) => p.id === tab).map((p) => ({ key: p.id, items: p.items.map((item) => ({ pack: p, item })) }))).map((sec) => (
