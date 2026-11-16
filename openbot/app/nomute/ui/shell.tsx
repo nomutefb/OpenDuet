@@ -32,7 +32,6 @@ import { HotSwap } from "../home/kw-board";   // Hot Issue ↔ 키워드 순위�
 import { NewsSummary } from "../home/news-summary";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));
-const VmDesk = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmDesk })));   // 서랍 「VM 상태」(눌러야 받음 · 구름 11-16)
 const BotDesk = lazy(() => import("./bot-desk").then((m) => ({ default: m.BotDesk })));   // 서랍 「봇 현황」(눌러야 받음)
 const NewsEditor = lazy(() => import("./news-editor").then((m) => ({ default: m.NewsEditor })));   // 네비 4번 「뉴스 에디터」(형 11-09 08:50 · 시아 08:54 안 · 봄 33)
 import { StatusLights, SyncVersion } from "./status-line";
@@ -342,7 +341,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "runner" ? <div className="nm-scroll"><StatusBoard /></div>   /* 서랍 「러너」 = 작동 표(형 11-09 08:50 「러너는 5번 서랍 안으로 … 기존거는 없애면 됨 끌고오는거 아님」 · 옛 RunnerScreen 칸 뺌 · 네비 4번 「작동」 은 33) 뉴스 에디터 판에서 바꿈 · 봄 배분 32) */
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
                   : M.id === "botdesk" ? <div className="nm-scroll"><BotDesk /></div>
-                  : M.id === "vmstat" ? <div className="nm-scroll"><VmDesk /></div>
                   : M.id === "status" ? <div className="nm-scroll"><StatusBoard /></div>
                   : M.id === "nedit" ? <div className="nm-ned-host"><NewsEditor /></div>
                   : M.id === "drawer" ? <div className="nm-scroll"><DrawerPage /></div>

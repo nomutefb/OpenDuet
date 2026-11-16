@@ -70,3 +70,7 @@
 .nm-vm-row.in-card { display:block; margin:10px 2px 0; padding:10px 0 0; border:0; border-top:1px solid var(--glass-line, rgba(255,255,255,.08)); border-radius:0; background:none; text-align:left; }
 .nm-vm-row.in-card .hw { margin-bottom:6px; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }   /* Debian · macOS 가 대문자 꼴로 안 그려지게 */
 .nm-vm-row.in-card .plot { margin:0; }
+/* 둘째 선 · 오른쪽 눈금 = 바쁜 스레드 수(형 11-17 08:01 「우측엔 스레드 라벨로해서 그래프 라인이 2개로」) — 램 = 흰 선 · 스레드 = 라임 가는 선 */
+:is(.nm-vm-card, .nm-vm-row) path.busy { fill:none; stroke:var(--accent, #CFFF40); stroke-width:1; stroke-linejoin:round; opacity:.9; }
+:is(.nm-vm-card, .nm-vm-row) .tick.thr { fill:var(--accent, #CFFF40); opacity:.85; }
+:root:not(.dark) :is(.nm-vm-card, .nm-vm-row) path.busy { stroke:#4d6600; } :root:not(.dark) :is(.nm-vm-card, .nm-vm-row) .tick.thr { fill:#4d6600; }

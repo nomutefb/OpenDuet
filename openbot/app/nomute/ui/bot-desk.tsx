@@ -16,12 +16,11 @@ import RubberSegment from "../vendor/react-bits/RubberSegment/RubberSegment";   
 import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰는 원본 꾸러미 그대로(대화 「생각중」 · ./live-shine.tsx 와 같은 것 · 형 11-15 「에디터에 따로 들어잇는곳 … 코드카피해서 쓰셈」)
 import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
-import { type BotRow, type BotTable, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, roleLabel, roleOf, tailOf, turnList } from "./bot-desk-logic";
+import { type BotRow, type BotTable, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, roleLabel, roleOf, stateWord, tailOf, turnList } from "./bot-desk-logic";
 import { BotInbox } from "./bot-inbox";   // 「보드」 = 일감마다 카드 · 세 칸(형 11-16 영상 「Agent inbox」)
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));   // ③ 러너 층 = 작동 표(겹치는 활동 판만 뺌 · 보일 때 받음)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));   // ② 스케줄 배선 층(보일 때 받음)
-const VmDesk = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmDesk })));
-const VmCard = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmCard })));   // 애 펼침 카드 안 몸 칸(같은 조각)   // ① 애들 층 「몸」 탭 = 애들 한 줄씩(상태 · 특기 · 하드웨어 · 램 · ./vm-desk.tsx)
+const VmCard = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmCard })));   // 애 펼침 카드 안 몸 칸(같은 조각)
 import { HandBoard, HandFace, HandGhost } from "./bot-desk-hands";
 import { BotManage, BotManageAll } from "./bot-manage";
 import { ringDeg, ringFrac } from "./activity-view";   // 맨 위 카드 = 활동 신호 판을 맡길 차례로(노는 손 먼저 · 1특기 · PM 뺌)
@@ -30,9 +29,9 @@ import "./bot-desk.css";
 
 const OLD_MS = 5 * 60_000;
 type Sheet = { at?: number; stale?: boolean; table?: BotTable; skills?: Record<string, string> };
-type Tab = "board" | "turn" | "body" | "meter";
+type Tab = "board" | "turn" | "meter";   // 「몸」 탭은 걷음 — 그래프 · 사양이 애마다 제 카드 안으로 들어감(형 11-17 dm-bom 「그렇게해서 저 탭을 없애려고 함」 · 「중첩을 최소화 하려는거」)
 const Meter = lazy(() => import("./settings-extra").then((m) => ({ default: m.NomuteMeter })));   // 「계기판」 탭 = 설정 「회의실 계기판」에서 옮김(하루 한 장 · 기억 종류별 깸 · 글 · 헛깸률 · 형 11-17 03:24 구름 맥 창 「너가 말한거 반영하고 너 의견 따를테니 묻지말고 진행해」)
-const TABS: [Tab, string][] = [["board", "일감"], ["turn", "차례"], ["body", "몸"], ["meter", "계기판"]];   // 흐름 = 맨 위 손 판이 조직 그림이 되며 걷음 · 손 표 = 몸 줄에 같은 내용이 있어 걷음(형 11-16 19:2x 구름 맥 창 「손표를 몸 상태에 합치고 중첩되는건 없애자.」 · 「흐름의 조직 구성 느낌을 가장 메인에 좀 더 붙일 수 있나? 그럼 흐름으로 따로 안 만들어도 될거같은디」) · 몸 = 옛 「몸 상태」 화면 · 옛 「작동」 탭은 맨 아래 ③ 러너 층으로
+const TABS: [Tab, string][] = [["board", "일감"], ["turn", "차례"], ["meter", "계기판"]];   // 흐름 = 맨 위 손 판이 조직 그림이 되며 걷음 · 손 표 = 몸 줄에 같은 내용이 있어 걷음(형 11-16 19:2x 구름 맥 창 「손표를 몸 상태에 합치고 중첩되는건 없애자.」 · 「흐름의 조직 구성 느낌을 가장 메인에 좀 더 붙일 수 있나? 그럼 흐름으로 따로 안 만들어도 될거같은디」) · 몸 = 옛 「몸 상태」 화면 · 옛 「작동」 탭은 맨 아래 ③ 러너 층으로
 // 5번 메뉴 「애들」 한 화면(형 18:2x 「5번이 애들 상태 관련」 · 「이렇게 쭉 유기적으로 연결된 느낌을 살리는게」) = 위에서 아래로 ① 애들 → ② 스케줄 배선 → ③ 러너 · 층 사이 = 왼쪽 세로 줄기 + 마디 점(가만한 그림)
 //   아래 두 층은 첫 화면 뒤 한가할 때 받아 그림(첫 화면 무게 · 가만한 층은 그릴 것 0) · 옛 길 #/sched · #/runner = 그 층으로 내려감 · #/vm = 「몸」 탭
 const SECS = [["crew", "애들"], ["sched", "스케줄 배선"], ["run", "러너"]] as const;
@@ -86,7 +85,7 @@ function BotCard({ r, now, i, list }: { r: BotRow; now: number; i: number; list:
         <span className="name"><b>{r.who}</b>{r.pm ? <span className="tag">PM</span> : null}{r.rest ? <span className="tag">쉼 지정</span> : null}</span>
         <span className="st">
           <span className="ic">{orb ? <ThinkingOrb state={orb} size={20} theme={resolved} /> : <StatusMark status={markOf(r) as StatusMarkStatus} size={15} strokeWidth={2.4} {...MARK} />}</span>
-          {working ? <LiveShine text={r.state} sig /> : <span className="word">{r.state}</span>}
+          {working ? <LiveShine text={r.state} sig /> : <span className="word">{stateWord(r)}</span>}
           {tail ? <span className="tail">{tail}</span> : null}
         </span>
       </span>
@@ -144,8 +143,8 @@ function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
 
 export function BotDesk() {
   const q = useQuery({ ...botsSheetOpts<Sheet>(), refetchInterval: (x: { state: { data?: Sheet } }) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
-  const [tab, setTab] = useState<Tab>(() => { if (typeof location !== "undefined" && /^#\/vm(?:[/?]|$)/.test(location.hash)) return "body";   // 옛 「몸 상태」 길로 왔으면 몸 탭부터(이번만 · 고른 탭 기억은 그대로)
-    try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "body" || v === "meter" ? v : "board"; } catch { return "board"; } });
+  const [tab, setTab] = useState<Tab>(() => {
+    try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "meter" ? v : "board"; } catch { return "board"; } });
   const secs = useRef<Partial<Record<Sec, HTMLElement | null>>>({});
   const goSec = (k: Sec, smooth = true) => { const el = secs.current[k]; if (el) el.scrollIntoView({ block: "start", behavior: smooth && !(typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) ? "smooth" : "auto" }); };
   useEffect(() => {   // 옛 길(#/sched · #/runner)로 들어오거나 메뉴 판에서 그 줄을 누르면 그 층으로 · #/vm = 몸 탭
@@ -156,7 +155,7 @@ export function BotDesk() {
       const h = location.hash, k = secOfHash(h);
       if (k && first) ts = [350, 1300, 2800, 4800].map((ms) => window.setTimeout(() => { if (!touched) goSec(k, false); }, ms));   // 처음 = 위 층이 차면서 자리가 밀리니 손이 닿기 전까지 몇 번 다시 맞춤(바로 옮김 = 미끄러짐 없음)
       else if (k) goSec(k);
-      else if (/^#\/vm(?:[/?]|$)/.test(h)) { setTab("body"); if (!first) goSec("crew"); }
+      else if (/^#\/vm(?:[/?]|$)/.test(h) && !first) goSec("crew");   // 옛 「몸 상태」 길 = 애들 층(그래프는 애 카드 안)
     };
     on(true); const hc = () => on(false); addEventListener("hashchange", hc);
     return () => { removeEventListener("hashchange", hc); evs.forEach((e) => removeEventListener(e, hand, { capture: true })); ts.forEach((t) => window.clearTimeout(t)); };
@@ -210,10 +209,9 @@ export function BotDesk() {
         <RubberSegment items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={(v) => pick(v as Tab)} size="lg" radius={14} trackColor="rgba(18,18,18,.55)" thumbColor="rgba(207,255,64,.9)" textColor="#E7ECE7" activeTextColor="#141516" />
       </div>
       {tab === "meter" ? <div className="nm-bd-meter"><Suspense fallback={<p className="nsb-empty">읽는 중…</p>}><Meter /></Suspense></div> : null}
-      {tab === "body" || tab === "meter" || !t ? null : tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} focus={sel} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : null}
+      {tab === "meter" || !t ? null : tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} focus={sel} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : null}
 
     </div>
-    {tab === "body" ? <div className="mx-auto w-full max-w-6xl"><Suspense fallback={<p className="nsb-empty">읽는 중…</p>}><VmDesk /></Suspense></div> : null}   {/* 몸 = 손 판 폭(좁음) 밖 · 제 폭(넓음)으로 — 램 띠가 넓은 화면을 다 씀 */}
     </section>
     <section className="nm-crew-sec" ref={(el) => { secs.current.sched = el; }} aria-label="스케줄 배선">
       <h2 className="nm-crew-h mx-auto w-full max-w-6xl px-4"><i aria-hidden />스케줄 배선</h2>

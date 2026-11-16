@@ -99,9 +99,12 @@ export function turnList(rows: BotRow[], code: string): { order: { who: string; 
 /** 이음선 색 갈래 — 멈춤 = 빨강 · 일하는 중 = 라임 · 그 밖 = 흐림. */
 export const wireTone = (g: Group): Tone => (g === "lost" ? "lost" : g === "work" ? "ok" : "dim");
 /** 상태 표시(react-bits StatusMark)의 꼴 — 일하는 중 = 도는 고리 · 받을 수 있음 = 체크 · 쉼 = 점선 고리 · 멈춤 = 가위표 · 차례 밖 · 조용 = 그은 고리. */
+/** 카드 머리 글 — 서버 글 그대로 · 다만 상태 줄이 없는 자리(lane none · 서버 글 「줄 없음」)는 손 판과 같이 「쉬는 중」(연결 끊김은 따로 = 부름이 실패했을 때만). */
+export const stateWord = (r: BotRow): string => (r.lane === "none" && !r.pm && !r.rest ? "쉬는 중" : r.state);
 export function markOf(r: BotRow): "pending" | "running" | "done" | "failed" | "cancelled" {
   if (r.lane === "lost") return "failed";
-  if (r.pm || r.rest || r.lane === "off" || r.lane === "none") return "cancelled";
+  if (r.pm || r.rest || r.lane === "off") return "cancelled";
+  if (r.lane === "none") return "pending";   // 상태 줄을 안 올리는 자리(윈터 창 등) = 쉬는 중으로 봄(손 판 칸과 같은 셈 · 형 11-17 07:55 「윈터도 깻으니 쉬는 중이여야 되고」)
   return r.lane === "work" ? "running" : r.lane === "ready" ? "done" : "pending";
 }
 
