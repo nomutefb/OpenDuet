@@ -44,5 +44,6 @@ test("배선 = 프로필 카드가 탭 길을 먼저 묻고(못 열면 앞 꼴) 
   assert.match(bar, /<ScreenTabPane key=\{`\$\{tabKey\(t\)\}\|\$\{t\.url\}`\} url=\{t\.url\} name=\{nameOf\(t\)\} on=\{s\.active === tabKey\(t\)\} \/>/);
   assert.doesNotMatch(bar, /<iframe key=\{tabKey\(t\)\}/);   // 저장된 주소를 그대로 틀에 넣던 앞 줄 = 없음
   assert.match(pane, /office<\{ url\?: string \}>\("screen\/ticket"/);   // 켤 때 표를 새로
+  assert.match(pane, /useEffect\(\(\) => \{ if \(on\) return; asked\.current = false; setSrc\(""\); setSt\("idle"\); \}, \[on\]\);/);   // 안 보이는 탭 = 틀 내림(그 몸이 숨은 화면을 보내지 않게) · 다시 켜면 새 표
   assert.match(pane, /if \(crd \|\| !on \|\| asked\.current\) return undefined;\n    const t = window\.setTimeout\(\(\) => \{ asked\.current = true; ask\(\); \}, 80\);\n    return \(\) => window\.clearTimeout\(t\);/);   // 안 본 탭은 표를 안 씀 · 한 번만 · 바로 다시 그려지면 앞 것은 거둠
 });

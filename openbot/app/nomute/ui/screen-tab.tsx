@@ -1,7 +1,7 @@
 // 몸 화면 탭(형 11-16 16:2x 구름 맥 창 「ㅇㅇ 해줘」 ← 「애들 vm키면, pc에서는 새 탭으로 열리게 가능해?」 · 「가능함녀 구글 데스크톱도 링크화 하던지 해서 동일하게」)
 //   들머리 = openScreenTab(프로필 카드 「몸 화면 열기」가 부름 · 탭으로 못 여는 곳이면 false = 부른 쪽이 앞 꼴 그대로)
 //   판 = ScreenTabPane(위 탭 줄의 화면 탭 안 · ./tab-bar.tsx) — 처음 켤 때 표를 새로 받아 그 주소로 끼움(표 = 2분 · 한 번 · 앱을 다시 읽어도 탭은 남고 표만 새로)
-//     · 탭을 옮겨도 틀은 그대로 둠(숨기기만 = 화면 이어짐) · 표를 못 받으면 「다시」 · 「새 창으로 열기」
+//     · 다른 탭으로 가면 틀을 내리고(그 몸이 안 보는 화면을 보내느라 일하지 않게) 돌아오면 표를 새로 받아 다시 붙음 · 표를 못 받으면 「다시」 · 「새 창으로 열기」
 //     · 구글 원격 데스크톱 = 끼워 넣기 막힘 → 탭 안엔 「화면 열기」 링크(새 창)
 import { useCallback, useEffect, useRef, useState } from "react";
 import { office } from "../data/office";
@@ -34,6 +34,7 @@ export function ScreenTabPane({ url, name, on }: { url: string; name: string; on
     const t = window.setTimeout(() => { asked.current = true; ask(); }, 80);
     return () => window.clearTimeout(t);
   }, [crd, on, ask]);
+  useEffect(() => { if (on) return; asked.current = false; setSrc(""); setSt("idle"); }, [on]);   // 안 보이는 탭 = 틀을 내림(숨은 채 화면을 계속 받으면 그 몸이 쓸데없이 일함 · 탭이 쌓이면 연결도 쌓임 · 시아 11-16 16:41) → 다시 켜면 표를 새로 받아 다시 붙음(몸 화면 자체는 그대로)
   return (
     <div className="nm-scr-tab" hidden={!on}>
       {crd ? (
