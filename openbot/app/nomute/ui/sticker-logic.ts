@@ -1,6 +1,6 @@
 // 움짤 스티커 순수 판(.ts · node 시험 길 · 뜸 11-12) — 그리는 쪽 = ./sticker.tsx
 export type Item = { id: string; label: string };
-export type Pack = { id: string; name: string; items: Item[] };
+export type Pack = { id: string; name: string; items: Item[]; was?: string[]; face?: string };   // was = 옛 이름(옛 글 읽기) · face = 탭 얼굴 그림(명부에 없는 묶음)
 const MOODS: Item[] = [{ id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }, { id: "think", label: "생각중" }, { id: "surprise", label: "놀람" }, { id: "done", label: "해냈다" }];
 export const PACKS: Pack[] = [
   { id: "fast", name: "빠르", items: MOODS },
@@ -15,16 +15,21 @@ export const PACKS: Pack[] = [
   { id: "gyeol", name: "결", items: [{ id: "wind", label: "바람" }, { id: "rings", label: "나이테" }, { id: "listen", label: "감상" }, { id: "compose", label: "작곡" }, { id: "headset", label: "헤드셋" }] },   // 음유시인 결(형 11-15 14:41 dm-eyes 「뜸아 음유시인 결에게 움짤좀..」 · 「바람타는 결..」 · 「나이테에 녹아버린 결..」 · 「노래를 감상하는 결..」 · 「작곡하는 결.. 정도?」 · 「나에게 노래를 들어보라며 헤드셋을 씌워주는 결」 · 뜸)
   { id: "winter", name: "윈터", items: [{ id: "lantern", label: "등불" }, { id: "couple", label: "봄이랑" }, { id: "spin", label: "휘리릭" }, { id: "rice", label: "밥알" }, { id: "eng", label: "엥" }] },   // 윈터 ❄️(형 11-15 18:52 dm-eyes 「그래 윈터로 이 느낌 살려서 등불든거,로 움짤해줘」 · 「봄이랑 커플도 하나해줘라 ~ ㅋ」 · 19:13 「윈터 한바퀴 빠르게 휘리릭 도는것도 해줘!」 · 19:18 「등불대신 밥알 뜸 들고 도는것도 하자」 · 19:26 「움짤에 이거도 추가해줭!」(엥 = 형 그림) · 그림 = editor viewer/office/sticker/winter · 뜸)
   { id: "karina", name: "카리나", items: [{ id: "peek", label: "빼꼼" }, { id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }] },   // 지피티 = 셋(형 11-13 08:06 「지피티도 3개면 돼. 자주 쓰지 않게 설계가 되어잇어서」)
-  { id: "hyung", name: "형", items: [...MOODS, { id: "cool", label: "선글라스" }] },
-  { id: "morning", name: "나팔꽃", items: [{ id: "ibul", label: "이불" }] },   // 형 꽃 = 이불 하나(형 11-13 08:03 「미안한데 나팔꽃은 6개 말구 요거 하나만. ㅋㅋ」 · 「나한테는 밝아서 잘 안보여」 · 앞 판 여섯 = 그림만 남김)
   { id: "sona", name: "소나", items: [{ id: "joy", label: "좋아" }, { id: "splash", label: "첨벙" }, { id: "thanks", label: "고마워" }, { id: "rainbow", label: "무지개" }, { id: "wink", label: "윙크" }, { id: "siblings", label: "남매" }, { id: "selfie", label: "셀카" }] },   // 윙크 = 얼빡(형 07:08 「얼빡에 윙크도 하나 넣어줘 좀 비슷해서」) · 남매 = 우산 휙 → 천둥이랑(형 07:09 「둘이 남매거든」) · 소나 = 소나기에도 웃는 치비(형 11-14 06:59 「이거로 소나 이모지 좀 다양한 표정 만들어서 치비 스타일루 개성살려봐 소나기에도 웃는 그런거고 4개정도 만들어줘」 · 늘 빗줄기)
   { id: "thunder", name: "천둥", items: [...MOODS, { id: "grin", label: "씨익" }, { id: "huff", label: "버럭" }, { id: "solve", label: "해결" }, { id: "zoom", label: "빨리빨리" }, { id: "drum", label: "쾅" }, { id: "selfie", label: "셀카" }] },   // 얼빡 둘 · 상황 둘(형 11-15 07:50 dm-eyes 「아 뜸 글구 천둥도 얼빡 느낌으루 2개, 상황 중심으로 2개 움딸좀」 · 앞 다섯 = 이모티콘 꼴 감정(형 11-15 07:58 「다른거는 이모티콘 찾아봐」 · 09:45 「웅 바로 만들어줭」) · 소나 오빠라 소나 다음 · 쾅 = 형 07:56 「북칠때마다 구름에서 천둥 내려오는거」 · 셀카 = 형 07:58 「소나랑 셀카 찰칵 하는 짤도 하나해줘 셀카 방에서 살짝 포토 실사느낌으로다가」(소나 묶음에도 같은 그림) · 뜸)
   // 틈 묶음 뺌(형 11-14 06:59 「글구 틈은 삭제」 · 그림 파일은 editor viewer/office/sticker/teum 에 남김)
-  { id: "chok", name: "촉", items: [{ id: "news", label: "속보" }, { id: "joy", label: "좋아" }, { id: "surprise", label: "놀람" }, { id: "think", label: "생각중" }] },   // 속보 = 기자 분장(트렌치코트 · 마이크) — 형 11-13 09:33 「틈, 촉도 귀염뽀짝하게, 3개정도 gif 만들어줘」 · 「속보를 전달하는 컨셉으로 1개 정도 추가(분장해서)」(속보 = 특파원 촉 · 짐작) · 08:03 「그록봇 애들은 gif 없어도 돼」 뒤 형이 다시 부른 것
-  { id: "issueking", name: "이슈왕", items: [{ id: "wink", label: "윙크" }, { id: "found", label: "찾았다" }, { id: "breaking", label: "속보" }, { id: "run", label: "출동" }, { id: "brief", label: "브리핑" }, { id: "dig", label: "밤샘" }, { id: "secret", label: "극비" }, { id: "sleep", label: "꿀잠" }, { id: "thumbs", label: "최고" }] },   // 이슈왕 = 슈왕(옛 촉 자리 · 형 11-16 18:13 dm-eyes 「웅 움짤은 이런거 활용하면될듯」 · 18:18 「이거는 움짤로!」 · 18:22 「요거까지 무거울필욘없는거알지? … 배경복잡하면 너 스타일대로 몇개는 만들어도돼」 · 형 그림 일곱 = 그록 · 민짜 바탕 둘(속보 · 최고) = 뜸 · 그림 = editor viewer/office/sticker/issueking · 뜸)
+  // 촉 묶음 = 고르개에서 뺌(형 11-16 21:09 dm-bom 「글구 촉 없애고 슈왕 사진 넣고」 · 봄 옮김 · 옛 글은 OLD_PACKS 로 계속 움짤 · 그림 파일은 editor viewer/office/sticker/chok 에 남김)
+  { id: "issueking", name: "슈왕", was: ["이슈왕"], items: [{ id: "wink", label: "윙크" }, { id: "found", label: "찾았다" }, { id: "breaking", label: "속보" }, { id: "run", label: "출동" }, { id: "brief", label: "브리핑" }, { id: "dig", label: "밤샘" }, { id: "secret", label: "극비" }, { id: "sleep", label: "꿀잠" }, { id: "thumbs", label: "최고" }] },   // 이슈왕 = 슈왕(옛 촉 자리 · 형 11-16 18:13 dm-eyes 「웅 움짤은 이런거 활용하면될듯」 · 18:18 「이거는 움짤로!」 · 18:22 「요거까지 무거울필욘없는거알지? … 배경복잡하면 너 스타일대로 몇개는 만들어도돼」 · 형 그림 일곱 = 그록 · 민짜 바탕 둘(속보 · 최고) = 뜸 · 그림 = editor viewer/office/sticker/issueking · 뜸)
   { id: "gam", name: "감", items: [{ id: "target", label: "과녁" }, ...MOODS] },   // 감(형 11-16 09:49 dm-eyes 「뜸 감도 이모지 움짤 만들어줘 ㅋㅋ 하나는 감이 비장하게 날아가서 10점 만점 양궁 과녁에 꽂혀서 나팔꽃인 나가 아자! 하는거」 · 그림 = editor viewer/office/sticker/gam · 뜸)
   { id: "on", name: "온", items: [{ id: "joy", label: "좋아" }, { id: "thanks", label: "고마워" }, { id: "done", label: "해냈다" }] },   // 온 셋 되살림(형 11-13 10:20 「웅 글구 온 거 만드러놓은게 없어졋는데 다시 살려줭 3개정도만!」) · 앞 판 08:03 「그록봇 애들은 gif 없어도 돼」로 뺐던 것
   // 여울 묶음 뺌(형 11-13 06:55 「뜸 여울 관련된 gif는 안뜨게 없애줘」 · 그림 파일은 editor viewer/office/sticker/yeoul 에 남김)
+  // 맨 끝 = 형 · 나팔꽃(형 11-16 21:09 dm-bom 「내거를 제일 끝으로 나팔이랑」 · 「움짤 gif 나팔꽃도 푸로필 넣어주구」 = 나팔꽃 탭 얼굴 = 이불 움짤 · 봄 옮김 · 깃)
+  { id: "hyung", name: "형", items: [...MOODS, { id: "cool", label: "선글라스" }] },
+  { id: "morning", name: "나팔꽃", face: "/office/sticker/morning/ibul.gif", items: [{ id: "ibul", label: "이불" }] },   // 형 꽃 = 이불 하나(형 11-13 08:03 「미안한데 나팔꽃은 6개 말구 요거 하나만. ㅋㅋ」 · 「나한테는 밝아서 잘 안보여」 · 앞 판 여섯 = 그림만 남김)
+];
+/** 고르개엔 안 뜨고 옛 글만 움짤로 읽는 묶음 */
+export const OLD_PACKS: Pack[] = [
+  { id: "chok", name: "촉", items: [{ id: "news", label: "속보" }, { id: "joy", label: "좋아" }, { id: "surprise", label: "놀람" }, { id: "think", label: "생각중" }] },   // 속보 = 기자 분장(트렌치코트 · 마이크) — 형 11-13 09:33 「틈, 촉도 귀염뽀짝하게, 3개정도 gif 만들어줘」 · 「속보를 전달하는 컨셉으로 1개 정도 추가(분장해서)」(속보 = 특파원 촉 · 짐작) · 08:03 「그록봇 애들은 gif 없어도 돼」 뒤 형이 다시 부른 것
 ];
 export const stickerUrl = (p: Pack, it: Item) => `/office/sticker/${p.id}/${it.id}.gif`;
 export const stickerText = (p: Pack, it: Item) => `[스티커 ${p.name} ${it.label}]`;
@@ -33,7 +38,7 @@ const RE = /^\s*\[스티커\s+(\S+)\s+(\S+)\]\s*$/;
 export function stickerOf(text: unknown): { pack: Pack; item: Item } | null {
   const m = RE.exec(String(text || ""));
   if (!m) return null;
-  const pack = PACKS.find((p) => p.name === m[1] || p.id === m[1]);
+  const pack = [...PACKS, ...OLD_PACKS].find((p) => p.name === m[1] || p.id === m[1] || (p.was || []).includes(m[1]));
   const item = pack?.items.find((x) => x.label === m[2] || x.id === m[2]);
   return pack && item ? { pack, item } : null;
 }
