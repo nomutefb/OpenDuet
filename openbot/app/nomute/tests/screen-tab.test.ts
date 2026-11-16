@@ -58,3 +58,11 @@ test("그록 애 컴퓨터(grok.com/bot/<id>) = 앱 안에 못 끼우는 화면 
   assert.equal(isGrokBot(G + "/x"), false);
   assert.equal(isOutside("https://100.64.1.2:8443/vnc.html"), false);
 });
+
+test("그록 애 = 명부 grok_url 칸을 먼저 읽음(screen 칸 noVNC 는 그대로 · 깃 93d9ffa8 · 번개 11-16 22:42)", () => {
+  const card = rd("../ui/profile-card.tsx");
+  assert.match(card, /const grok = isGrokBot\(p\?\.grok_url \|\| ""\) \? \(p\?\.grok_url as string\) : "";/);
+  assert.match(card, /const crd = grok \|\| \(isOutside\(p\?\.screen \|\| ""\) \? \(p\?\.screen as string\) : ""\);/);
+  assert.match(card, /onClick=\{grok \? openCrd : openScreen\}/);
+  assert.match(rd("../data/office.ts"), /grok_url\?: string/);
+});
