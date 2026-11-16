@@ -252,6 +252,11 @@
 .nm-bd-org-one .more { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin:8px 2px 0; }
 .nm-bd-org-one .more span.first { border-color:rgba(var(--accent-rgb, 207,255,64),.4); color:var(--nsb-ok); }
 .nm-bd-org-one .more small { flex-basis:100%; font-size:var(--fs-xs); color:var(--nsb-mut); letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+/* 작업 중 = 개발 중 · 창작 중 두 갈래(형 11-16 19:5x 「작업 중에 카테고리 두개로 / 개발 중 / 창작 중」) — 갈래 머리 = 작은 숫자 + 이름 한 줄 · 얼굴 줄은 칸과 같은 꼴 */
+.nm-bd-ab.org .subs { display:grid; gap:6px; min-width:0; }
+.nm-bd-ab.org .sub h5 { display:flex; align-items:center; gap:6px; margin:2px 0 2px 4px; font-size:var(--fs-xs); font-weight:400; line-height:1; color:var(--nsb-mut); }
+.nm-bd-ab.org .sub h5 b { font-size:var(--fs-sm); font-weight:700; font-variant-numeric:tabular-nums; color:var(--nsb-ok); }
+.nm-bd-ab.org .sub + .sub { padding-top:6px; border-top:1px dashed var(--nsb-line); }
 /* PM 얼굴 고리(형 11-16 19:4x 「이거 PM도 사이클 돌게해줘」) = 아래 손 판과 같은 그림 · 같은 색(일하는 중 = 라임 도는 구슬 · 바로 받음 = 흰 고리 · 쉬는 손 = 회색 고리 · 멈춤 = 점선) · 도는 것 = transform 하나 */
 .nm-bd-org-pm .nsb-ab-av { flex:none; width:44px; height:44px; transition:scale .15s ease; }
 .nm-bd-org-pm .nsb-ab-av .ring u { width:44px; height:44px; border-color:var(--nsb-ink); }

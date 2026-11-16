@@ -158,7 +158,7 @@ export function BotDesk() {
   const people = usePeople(), mix = mixOf(crew);
   const [sel, setSel] = useState(""), pm = rows.find((r) => r.pm), picked = sel ? rows.find((r) => r.who === sel) : undefined, orders = rows.reduce((n, r) => n + (r.open?.length || 0), 0);
   const pmSt = !pm ? "" : pm.lane === "work" ? "work" : pm.lane === "ready" ? "ready" : pm.lane === "lost" ? "lost" : "idle";   // PM 은 차례 밖이라 손 판 칸에 안 서지만 제 상태는 그대로 그림(일하는 중 = 도는 구슬 · 바로 받음 = 흰 고리 · 멈춤 = 점선)
-  const gen = flowOf(crew.filter((r) => !isSpecial(r)));   // 머리 숫자 = 특수 직군 뺀 손(아래 손 판의 「일하는 중」 · 「노는 손」 칸과 같은 셈 · 특수는 제 칸에)
+  const gen = flowOf(crew);   // 머리 숫자 = 아래 손 판 칸과 같은 셈(특수 직군도 일하면 작업 중 · 쉬면 쉬는 중에 셈 · 형 11-16 19:5x 「특수도 일하는 중으로」)
   const live = rows.some((r) => r.lane !== "none"), idle = gen.find((g) => g.group === "idle")?.rows || [], working = gen.find((g) => g.group === "work")?.rows || [];
   return (
     <div className="nm-crew">
@@ -167,8 +167,8 @@ export function BotDesk() {
     <div className="nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pt-3 pb-4">
       <h1 className="sr-only">애들</h1>
       <div className="nm-bd-head" role="status">
-        <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>일하는 중 <b>{working.length}</b><span className="also">노는 손 <b>{idle.length}</b></span></>}   {/* 일하는 중이 먼저(형 11-16 17:5x 「일하는 중이 더 우선적으로 보여야 함」 · 앞 판 = 노는 손만) */}
-          <span className="side">{n.lost ? <span className="badge">멈춤 {n.lost}</span> : null}{q.data?.at ? <span className="at">{hmKo(q.data.at)}{q.data.stale ? " · 묵은 것" : ""}</span> : null}</span>
+        <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>작업 중 <b>{working.length}</b><span className="also">쉬는 중 <b>{idle.length}</b></span></>}   {/* 일하는 중이 먼저(형 11-16 17:5x 「일하는 중이 더 우선적으로 보여야 함」 · 앞 판 = 노는 손만) */}
+          <span className="side">{n.lost ? <span className="badge">연결 끊김 {n.lost}</span> : null}{q.data?.at ? <span className="at">{hmKo(q.data.at)}{q.data.stale ? " · 묵은 것" : ""}</span> : null}</span>
         </p>
         {q.data && live ? (
           <>

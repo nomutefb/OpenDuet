@@ -60,7 +60,7 @@ export function inboxOf(t: BotTable | undefined, decs: Dec[], now: number, skill
       }
       open++;
       const late = (t?.late || []).find((l) => l.no === j.no && l.who === r.who);
-      const doing = j.ride ? "만들기 끝 · 기차(라이브) 기다림" : working ? `${r.who} 일하는 중${r.last_at ? ` · 손 ${agoKo(now - r.last_at)}` : ""}` : `${r.who} 받아 둠 · ${r.state}`;
+      const doing = j.ride ? "만들기 끝 · 기차(라이브) 기다림" : working ? `${r.who} 작업 중${r.last_at ? ` · 손 ${agoKo(now - r.last_at)}` : ""}` : `${r.who} 받아 둠 · ${r.state}`;
       const liveStep: Step = { text: j.ride ? "라이브 기다림" : working ? "만드는 중" : `아직 손 안 댐(${r.state})`, live: true };
       if (late) out.push({ ...base, key: `job:${r.who}:${j.no}`, col: "need", tone: "wait", desc: `늦음 ${late.min}분 · ${doing}`, since: j.recv, label: `늦음 ${late.min}분`, act: "room", order: 3e13 - late.min, steps: [...steps, liveStep] });   // 형 결정 다음 · 많이 늦은 것이 위
       else out.push({ ...base, key: `job:${r.who}:${j.no}`, col: "run", tone: "run", desc: doing, since: j.recv, order: j.recv || now, steps: [...steps, ...(working && !j.ride && j === lastOpen ? trailSteps(r, j.recv) : []), liveStep] });   // 작업 줄 = 지금 손이 붙은 오더(가장 늦게 받은 안 끝낸 것) 하나에만

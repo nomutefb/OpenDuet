@@ -57,7 +57,7 @@ export const openText = (r: BotRow): string[] => (r.open || []).map((o) => `${o.
 
 // ── 흐름 그림(폰에서 보기 쉽게 · 형 11-15 05:3x 사진 + 본보기 영상 셋 = 카드와 이음선 · 차례로 그려지는 흐름도 · 알약 탭) ──
 export type Group = "lost" | "work" | "idle" | "held" | "quiet";
-export const GROUP_KO: Record<Group, string> = { lost: "멈춤", work: "일하는 중", idle: "노는 손", held: "차례 밖", quiet: "조용" };
+export const GROUP_KO: Record<Group, string> = { lost: "연결 끊김", work: "작업 중", idle: "쉬는 중", held: "차례 밖", quiet: "조용" };   // 낱말 = 형 11-16 19:5x 구름 맥 창 「노는 손 은 용어 변경 / 쉬는 중」 · 「일하는 중 용어 변경 작업 중」 · 「연결 끊김은 별개로 표기되어야 함」(앞 = 멈춤 · 일하는 중 · 노는 손)
 export const GROUPS: Group[] = ["lost", "work", "idle", "held", "quiet"];
 /** 흐름 묶음 — 멈춤 · 일하는 중 · 노는 손(쉬는데 맡은 일 없음) · 차례 밖(PM · 쉼 지정) · 조용(하루 넘게 · 줄 없음). 맡은 일이 있으면 쉬어 보여도 「일하는 중」 쪽(형 「누가 놀고잇나」). */
 export function groupOf(r: BotRow): Group {

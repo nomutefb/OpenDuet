@@ -28,7 +28,7 @@ test("세 칸 — 형 차례 = 멈춘 손 · 형 결정 · 늦은 오더 / 도�
   assert.equal(by["dec:d1"].tone, "wait"); assert.equal(by["dec:d1"].act, "decide"); assert.equal(by["dec:d2"], undefined);   // 이미 고른 결정 = 안 뜸
   assert.equal(by["job:번개:#-062"].label, "늦음 37분"); assert.equal(by["job:번개:#-062"].col, "need");
   assert.deepEqual(cards.filter((c) => c.col === "run").map((c) => c.key), ["job:깃:#-070", "job:시아:#-071", "work:봄"]);   // 오래 도는 일이 위 · 오더 밖 일은 맨 아래
-  assert.equal(by["job:시아:#-071"].since, NOW - 6 * M); assert.match(by["job:시아:#-071"].desc, /시아 일하는 중 · 손 방금/);
+  assert.equal(by["job:시아:#-071"].since, NOW - 6 * M); assert.match(by["job:시아:#-071"].desc, /시아 작업 중 · 손 방금/);
   assert.match(by["job:깃:#-070"].desc, /만들기 끝 · 기차\(라이브\) 기다림/);   // 태움 뒤 = 손은 쉬어도 도는 중
   assert.equal(by["job:시아:#-066"].col, "done"); assert.equal(by["job:시아:#-066"].took, 33 * M);
   assert.equal(by["work:뎅"], undefined);   // 쉬는 손 · 맡은 일 0 = 카드 없음

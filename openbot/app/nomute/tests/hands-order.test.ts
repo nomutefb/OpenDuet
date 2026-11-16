@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { type BotRow, isSpecial } from "../ui/bot-desk-logic.ts";
+import { type BotRow, GROUP_KO, isSpecial } from "../ui/bot-desk-logic.ts";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const row = (o: Partial<BotRow>): BotRow => ({ who: "x", lane: "rest", state: "", ...o });
 
@@ -11,16 +11,19 @@ test("특수 직군 = 1특기가 특수 갈래(X · Xa ~ Xd)인 손만 · 2 · 3
   for (const s of [["D", "S", "R"], ["U"], ["M", "Xa"], [], undefined]) assert.ok(!isSpecial(row({ skills: s as string[] | undefined })), String(s));
 });
 
-test("손 판 = 칸 차례 멈춤 → 일하는 중 → 노는 손 → 특수 → 차례 밖 · 일하는 중은 펴 둠 · 특수 칸은 손마다 상태 그림", () => {
+test("손 판 = 칸 차례 연결 끊김 → 작업 중(개발 중 · 창작 중) → 쉬는 중 → 차례 밖 · 특수 칸 없음(형 11-16 19:5x 「특수도 일하는 중으로」 · 「쉬면 특수도 쉬는데 … 구분 안함」)", () => {
   const h = rd("../ui/bot-desk-hands.tsx"), css = rd("../ui/bot-desk.css"), desk = rd("../ui/bot-desk.tsx");
-  assert.match(h, /const H_LANES: HLane\[\] = \["lost", "work", "idle", "special", "out"\];/);
-  assert.match(h, /export const handLane = \(r: BotRow\): HLane => \{ const g = groupOf\(r\); return g === "lost" \? "lost" : isSpecial\(r\) \? "special" : hLane\(g\); \};/);   // 멈춤이 먼저(놓치면 안 됨) · 그다음 특수
+  assert.match(h, /const H_LANES: HLane\[\] = \["lost", "work", "idle", "out"\];/);
+  assert.match(h, /const WORK_SUB: \[string, string, \(r: BotRow\) => boolean\]\[\] = \[\["dev", "개발 중", \(r\) => !isSpecial\(r\)\], \["make", "창작 중", isSpecial\]\];/);   // 작업 중 = 두 갈래
+  assert.doesNotMatch(h, /"special"|특수 칸 안/);
+  assert.match(h, /export const handLane = \(r: BotRow\): HLane => hLane\(groupOf\(r\)\);/);   // 특수 직군도 묶음 그대로(일하면 작업 중 · 쉬면 쉬는 중)
   assert.match(h, /const \[openWork, setOpenWork\] = useState\(true\);/);   // 폰에서도 펴 둠
-  assert.match(h, /data-st=\{st \|\| undefined\}/);
-  assert.match(h, /const ST_ORDER: St\[\] = \["work", "ready", "idle", "rest"\]/);   // 특수 칸 안 차례 = 일하는 손 먼저
-  for (const st of ["work", "ready", "idle", "rest"]) assert.match(css, new RegExp(`\\.nm-bd-ab li\\[data-st="${st}"\\]`));
-  assert.match(desk, /일하는 중 <b>\{working\.length\}<\/b><span className="also">노는 손 <b>\{idle\.length\}<\/b><\/span>/);   // 머리 = 일하는 중이 큰 숫자
-  assert.match(desk, /flowOf\(crew\.filter\(\(r\) => !isSpecial\(r\)\)\)/);   // 머리 숫자 = 아래 칸과 같은 셈(특수 뺌)
+  assert.doesNotMatch(h, /data-st=/);   // 손마다 상태 그림(특수 칸용)은 걷음 — 칸 꼴이 그림을 정함
+  assert.match(h, /<div className="subs">/); assert.match(css, /\.nm-bd-ab\.org \.sub h5 \{/);
+  assert.match(desk, /작업 중 <b>\{working\.length\}<\/b><span className="also">쉬는 중 <b>\{idle\.length\}<\/b><\/span>/);   // 머리 = 일하는 중이 큰 숫자
+  assert.match(desk, /const gen = flowOf\(crew\);/);   // 머리 숫자 = 아래 칸과 같은 셈(특수 직군도 셈)
+  assert.match(desk, /<span className="badge">연결 끊김 \{n\.lost\}<\/span>/);
+  assert.deepEqual([GROUP_KO.lost, GROUP_KO.work, GROUP_KO.idle], ["연결 끊김", "작업 중", "쉬는 중"]);
 });
 
 test("손 판 색 = 머리 · 막대와 같은 말: 일하는 중 = 라임 · 노는 손 = 흰색(형 11-16 18:3x 「이거 색이 정 반대로 노는 듯.」)", () => {
@@ -47,5 +50,5 @@ test("직무 표기 = 영문 직함: Developer · UX Design · PM · Dev. · PM 
   assert.equal(roleLabel(["Xd", "R"], "슈왕"), "Scoop Hunt."); assert.equal(roleLabel(["D", "R", "S"], "소나"), "Fixer · Dev.");   // 형 11-16 19:0x 「소나 Fixer · Dev / 슈왕 Scoop Hunt.」
   for (const [sk, who] of [[["Xc", "R", "D"], "뎅"], [["Xb", "M", "S"], "결"], [["Xc", "R", "S"], "윈터"]] as const) assert.equal(roleLabel([...sk], who), "Storyteller", who);   // 형 11-16 18:5x 「뎅 결 윈터는 Storyteller」   // 슈왕(옛 촉) = Scoop Hunter(형 11-16 18:5x) assert.equal(roleLabel(["D"], "번개"), "Developer");
   assert.match(h, /skName = roleLabel\(r\.skills, r\.who\) \|\| skKo;/);   // 손 판 얼굴 밑 = 직함
-  assert.match(h, /\(k === "idle" \|\| k === "special" \|\| k === "work"\) && skName \? "sk" : undefined/);   // 어느 칸에서나 알약
+  assert.match(h, /\(k === "idle" \|\| k === "work"\) && skName \? "sk" : undefined/);   // 어느 칸에서나 알약
 });
