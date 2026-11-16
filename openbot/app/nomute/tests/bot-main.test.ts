@@ -27,6 +27,10 @@ test("애들 한 화면 = 위에서 아래로 애들(손 판 → 알약 탭) →
   assert.match(desk, /<HandBoard rows=\{crew\} skills=\{skills\} people=\{people\} sel=\{sel\} onPick=/);
   assert.doesNotMatch(desk, /nm-crew-h[^\n]*<small>/);
   { const hands = readFileSync(new URL("../ui/bot-desk-hands.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/bot-desk.css", import.meta.url), "utf8");
+    assert.match(hands, /export function HandFace\(/);   // 얼굴 + 상태 고리 한 벌 = 손 판 칸과 PM 이 같이 씀
+    assert.match(desk, /className="nm-bd-org-pm" data-st=\{pmSt\}/);   // PM 얼굴도 제 상태 고리(형 11-16 「이거 PM도 사이클 돌게해줘」)
+    assert.match(css, /\.nm-bd-org-pm\[data-st="work"\] \.orb \{[^}]*animation-play-state:running/);
+    assert.match(css, /\.nm-bd-ab\.org \.nsb-ab-lane h4 \{[^}]*align-items:center/);   // 폰: 숫자 · 칸 이름 가운데 높이 맞춤
     assert.match(hands, /export const jobChip = /);   // 얼굴 밑 작은 표 = 지금 맡은 일
     assert.match(hands, /className="nsb-ab nm-bd-ab org first"/);
     assert.match(css, /\.nm-bd-ab\.org \.nsb-ab-lane::before \{[^}]*width:1px/);   // 줄기

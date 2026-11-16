@@ -226,13 +226,10 @@
 /* ── 조직 그림(형 11-16 19:2x 구름 맥 창 「흐름의 조직 구성 느낌을 가장 메인에 좀 더 붙일 수 있나?」 · 「선같은 구성 같은것만 가져오면 될듯 그 느낌? 그리고 어떤 일 하고잇는지 ?」)
    PM 한 줄 → 세로 줄기 → 칸마다 가지(둥근 모서리) · 얼굴 밑 작은 표 = 지금 맡은 일 · 얼굴 누름 = 그 애 것만 아래에 펼침
    줄은 가짜 요소 한두 개(그리는 값 0 · 움직임 0) · 펼침 = opacity + translate 만 */
-.nm-bd-head { --org-x:34px; --org-pad:52px; --org-line:rgba(var(--accent-rgb, 207,255,64),.38); }
+.nm-bd-head { --org-x:38px; --org-pad:56px; --org-line:rgba(var(--accent-rgb, 207,255,64),.38); }
 .nm-bd-org-pm { display:flex; align-items:center; gap:10px; width:100%; margin:14px 0 0; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-.nm-bd-org-pm .face { flex:none; width:36px; height:36px; display:grid; place-items:center; border-radius:50%; box-shadow:0 0 0 1.5px var(--org-line); transition:box-shadow .15s ease; }
-.nm-bd-org-pm[aria-pressed="true"] .face { box-shadow:0 0 0 2px var(--nsb-ok); }
 .nm-bd-org-pm > b { font-size:var(--fs-label); font-weight:650; color:var(--nsb-ink); }
 .nm-bd-org-pm .sk, .nm-bd-org-one .more span { padding:1px 7px; border:1px solid var(--nsb-faint); border-radius:999px; font-size:var(--fs-xs); color:var(--nsb-mut); white-space:nowrap; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
-.nm-bd-org-pm:active .face { scale:.95; }
 .nm-bd-head .job { font-style:normal; max-width:100%; overflow:hidden; text-overflow:ellipsis; padding:0 6px; border-radius:6px; background:rgba(var(--accent-rgb, 207,255,64),.12); font-size:10.5px; line-height:1.6; font-variant-numeric:tabular-nums; white-space:nowrap; letter-spacing:0; color:var(--nsb-ok); font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
 .nm-bd-org-pm .job { margin-left:auto; }
 .nm-bd-head .nm-bd-late { position:relative; margin-left:var(--org-pad) !important; }
@@ -255,12 +252,32 @@
 .nm-bd-org-one .more { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin:8px 2px 0; }
 .nm-bd-org-one .more span.first { border-color:rgba(var(--accent-rgb, 207,255,64),.4); color:var(--nsb-ok); }
 .nm-bd-org-one .more small { flex-basis:100%; font-size:var(--fs-xs); color:var(--nsb-mut); letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+/* PM 얼굴 고리(형 11-16 19:4x 「이거 PM도 사이클 돌게해줘」) = 아래 손 판과 같은 그림 · 같은 색(일하는 중 = 라임 도는 구슬 · 바로 받음 = 흰 고리 · 쉬는 손 = 회색 고리 · 멈춤 = 점선) · 도는 것 = transform 하나 */
+.nm-bd-org-pm .nsb-ab-av { flex:none; width:44px; height:44px; transition:scale .15s ease; }
+.nm-bd-org-pm .nsb-ab-av .ring u { width:44px; height:44px; border-color:var(--nsb-ink); }
+.nm-bd-org-pm .nsb-ab-av .pic img, .nm-bd-org-pm .nsb-ab-av .pic > * { max-width:34px; max-height:34px; }
+.nm-bd-org-pm .trk { opacity:1; }
+.nm-bd-org-pm[data-st="work"] .trk { opacity:.6; }
+.nm-bd-org-pm[data-st="work"] .orb { opacity:.9; animation-play-state:running; will-change:transform; }
+.nm-bd-org-pm[data-st="work"] .orb > i { background:conic-gradient(transparent 0 70%, var(--nsb-ok) 70% 100%); }
+.nm-bd-org-pm[data-st="work"] .orb > u { background:var(--nsb-ok); }
+.nm-bd-org-pm[data-st="work"] .halo { opacity:.16; }
+.nm-bd-org-pm[data-st="ready"] .ring { opacity:1; }
+.nm-bd-org-pm[data-st="lost"] .trk { opacity:0; }
+.nm-bd-org-pm[data-st="lost"] .dash { opacity:.85; }
+.nm-bd-org-pm[data-st="lost"] .pic { filter:grayscale(1); opacity:.5; }
+.nm-bd-org-pm[aria-pressed="true"] > b { color:var(--nsb-ok); }
+.nm-bd-org-pm:active .nsb-ab-av { scale:.95; }
+@media (prefers-reduced-motion:reduce) { .nm-bd-org-pm .orb { animation:none; } }
 @keyframes nmBdOne { from { opacity:0; translate:0 -6px; } }
 @media (max-width:640px) {
-  .nm-bd-head { --org-x:31px; --org-pad:42px; }
-  .nm-bd-org-pm .face { width:30px; height:30px; }
+  .nm-bd-head { --org-x:36px; --org-pad:46px; }
+  .nm-bd-org-pm .nsb-ab-av, .nm-bd-org-pm .nsb-ab-av .ring u { width:40px; height:40px; }
+  .nm-bd-org-pm .nsb-ab-av .pic img, .nm-bd-org-pm .nsb-ab-av .pic > * { max-width:30px; max-height:30px; }
   .nm-bd-ab.org .nsb-ab-lane { grid-template-columns:minmax(0, 1fr); gap:2px; padding-right:10px; }   /* 폰 = 칸 이름을 얼굴 위로(가지 → 이름 → 얼굴) → 얼굴 줄이 카드 폭을 다 씀 · 직함 알약이 안 잘림 */
-  .nm-bd-ab.org .nsb-ab-lane h4 { margin:8px 0 0 5px; min-height:26px; }
+  .nm-bd-ab.org .nsb-ab-lane h4 { margin:8px 0 0 5px; min-height:26px; align-items:center; }   /* 숫자와 칸 이름 = 가운데 높이를 맞춤(형 11-16 19:5x 구름 맥 창 「숫자랑 옆에 내용이랑 수평 맞춰주면 땡큐!」 · 앞 = 글자 밑줄 맞춤이라 큰 숫자 옆 이름이 아래로 처져 보임) */
+  .nm-bd-ab.org .nsb-ab-lane h4 b { line-height:1; }
+  .nm-bd-ab.org .nsb-ab-lane::after { height:17px; }   /* 가지 끝 = 숫자 가운데 높이 */
   .nm-bd-ab.org h4 .lane-fold { width:auto; }
   .nm-bd-head .job { font-size:9.5px; padding:0 4px; }
 }

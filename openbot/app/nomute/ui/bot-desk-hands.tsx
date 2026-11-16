@@ -28,6 +28,18 @@ export const skillShort = (name: string) => name.replace(/\s*및\s*/g, "·");
 /** 차례 밖 · 조용 얼굴 밑 한 마디 = 까닭. */
 const outWhy = (r: BotRow) => (r.rest ? "쉼 지정" : r.lane === "none" ? "줄 없음" : r.lane === "off" ? "조용" : "");
 
+/** 얼굴 + 상태 고리 한 벌(도는 구슬 · 차오르는 고리 · 점선) — 손 판 칸과 조직 그림 맨 위 PM 이 같이 씀 · 어느 그림이 켜지나는 바깥 꼴(칸 data-k · li / PM data-st)이 정함 */
+export function HandFace({ id, deg = 180, size = 42 }: { id: string; deg?: number; size?: number }) {
+  return (
+    <span className="nsb-ab-av">
+      <span className="halo" /><span className="trk" /><span className="dash" />
+      <span className="ring"><i className="r"><u style={{ transform: `rotate(${deg}deg)` }} /></i><i className="l"><u style={{ transform: `rotate(${-deg}deg)` }} /></i></span>
+      <span className="orb"><i /><u /></span>
+      <span className="pic"><FaceImg id={id} size={size} /></span>
+    </span>
+  );
+}
+
 /** 지금 맡은 일을 작은 표로 — 「#-072」 · 여럿이면 「#-072 +2」 · 맡은 오더가 없으면 "" (형 11-16 19:2x 「그리고 어떤 일 하고잇는지 ?」 · 「화면이 복잡해지면 최대한 상징적인 요소나 클릭햇을때 나오는 요소로」) */
 export const jobChip = (r: BotRow): string => { const o = r.open || []; return o.length ? `${o[0].no}${o.length > 1 ? ` +${o.length - 1}` : ""}` : ""; };
 
@@ -58,12 +70,7 @@ export function HandBoard({ rows, skills, people, sel = "", onPick }: { rows: Bo
               return (
                 <li key={r.who} data-sure={k === "idle" ? (sure ? "1" : "0") : undefined} data-st={st || undefined} data-sel={sel === r.who || undefined} style={{ animationDelay: `${i * 40}ms` }}>
                   <div className="cell" role={onPick ? "button" : undefined} tabIndex={onPick ? 0 : undefined} aria-pressed={onPick ? sel === r.who : undefined} onClick={onPick ? () => onPick(r.who) : undefined} onKeyDown={onPick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(r.who); } } : undefined} title={[st ? ST_KO[st] : "", r.state, skKo ? `1특기 ${skKo}` : ""].filter(Boolean).join(" · ")}>
-                    <span className="nsb-ab-av">
-                      <span className="halo" /><span className="trk" /><span className="dash" />
-                      <span className="ring"><i className="r"><u style={{ transform: `rotate(${deg}deg)` }} /></i><i className="l"><u style={{ transform: `rotate(${-deg}deg)` }} /></i></span>
-                      <span className="orb"><i /><u /></span>
-                      <span className="pic"><FaceImg id={idOf(r.who, people)} size={k === "out" ? 34 : 42} /></span>
-                    </span>
+                    <HandFace id={idOf(r.who, people)} deg={deg} size={k === "out" ? 34 : 42} />
                     <b>{r.who}</b>
                     {sub ? <small className={(k === "idle" || k === "special" || k === "work") && skName ? "sk" : undefined}>{sub}</small> : null}
                     {k !== "lost" && jobChip(r) ? <em className="job" title={(r.open || []).map((o) => `${o.no}${o.title ? " " + o.title : ""}`).join(" · ")}>{jobChip(r)}</em> : null}   {/* 지금 맡은 일 = 번호 한 표(누르면 아래에 다 펼쳐짐) */}
