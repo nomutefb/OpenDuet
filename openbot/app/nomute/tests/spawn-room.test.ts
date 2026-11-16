@@ -46,8 +46,10 @@ test("배선 = 보낸 답에 새 방이 있으면 그 방으로 옮기고 이 1:
   assert.match(chat.slice(a, b), /withSpawned\(old, sp\)[\s\S]*nav\(\{ to: "\/channels\/\$channelId", params: \{ channelId: sp\.id \} \}\);\s*return;/);
   assert.match(chat, /\{moved \? <p className="ydate yfwd">여기까지 앞 방에서 옮겨 온 글<\/p> : null\}/);
   assert.match(temp, /export const tempLeft = leftKo;/);
-  assert.match(temp, /onClick=\{\(\) => setEdit\(true\)\}>\{r\.exp \? tempLeft\(r\.exp, now\) : "영구"\}<\/button>/);
-  assert.match(temp, /createPortal\(<TempRoomDialog edit=\{r\} onClose=\{\(\) => setEdit\(false\)\} \/>, document\.body\)/);
+  assert.match(temp, /onClick=\{\(\) => setEdit\(\(v\) => !v\)\}>\{r\.exp \? tempLeft\(r\.exp, now\) : "영구"\}<\/button>/);
+  assert.match(temp, /\{edit \? <TempLeftEdit r=\{r\} \/> : null\}/);   // 그 자리 막대(창 0 · 형 11-16 「모달 최소화」)
+  assert.doesNotMatch(temp.slice(temp.indexOf("function TempLeftEdit"), temp.indexOf("/** 방 설정 「방 사진」")), /TempRoomDialog/);   // 남은 시간 쪽은 방 설정 창을 안 띄움
+  assert.match(temp, /JSON\.stringify\(\{ name: r\.name \|\| "", purpose: r\.purpose \|\| "", members: r\.members \|\| \[\], hours: h \}\)/);
   assert.match(temp, /export function TempLeftChip\(\{ r \}: \{ r: OfficeRoom \}\)/);   // 이름 옆 늘 보이는 남은 시간 표
   assert.match(temp, /if \(!r\.temp \|\| !r\.exp\) return null;/);
   assert.match(rd("../ui/top.tsx"), /<\/button><TempLeftChip r=\{r\} \/>/);
