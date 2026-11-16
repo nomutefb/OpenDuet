@@ -1,0 +1,24 @@
+// 봇 현황 손 판 = 일하는 중 먼저 · 특수 직군 따로(형 11-16 17:5x 구름 맥 창 「일하는 중이 더 우선적으로 보여야 함」 · 「아예 특수 직업군은 따로 분류되고」)
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import { type BotRow, isSpecial } from "../ui/bot-desk-logic.ts";
+const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
+const row = (o: Partial<BotRow>): BotRow => ({ who: "x", lane: "rest", state: "", ...o });
+
+test("특수 직군 = 1특기가 특수 갈래(X · Xa ~ Xd)인 손만 · 2 · 3특기가 특수여도 아님", () => {
+  for (const c of ["X", "Xa", "Xb", "Xc", "Xd"]) assert.ok(isSpecial(row({ skills: [c, "R"] })), c);
+  for (const s of [["D", "S", "R"], ["U"], ["M", "Xa"], [], undefined]) assert.ok(!isSpecial(row({ skills: s as string[] | undefined })), String(s));
+});
+
+test("손 판 = 칸 차례 멈춤 → 일하는 중 → 노는 손 → 특수 → 차례 밖 · 일하는 중은 펴 둠 · 특수 칸은 손마다 상태 그림", () => {
+  const h = rd("../ui/bot-desk-hands.tsx"), css = rd("../ui/bot-desk.css"), desk = rd("../ui/bot-desk.tsx");
+  assert.match(h, /const H_LANES: HLane\[\] = \["lost", "work", "idle", "special", "out"\];/);
+  assert.match(h, /export const handLane = \(r: BotRow\): HLane => \{ const g = groupOf\(r\); return g === "lost" \? "lost" : isSpecial\(r\) \? "special" : hLane\(g\); \};/);   // 멈춤이 먼저(놓치면 안 됨) · 그다음 특수
+  assert.match(h, /const \[openWork, setOpenWork\] = useState\(true\);/);   // 폰에서도 펴 둠
+  assert.match(h, /data-st=\{st \|\| undefined\}/);
+  assert.match(h, /const ST_ORDER: St\[\] = \["work", "ready", "idle", "rest"\]/);   // 특수 칸 안 차례 = 일하는 손 먼저
+  for (const st of ["work", "ready", "idle", "rest"]) assert.match(css, new RegExp(`\\.nm-bd-ab li\\[data-st="${st}"\\]`));
+  assert.match(desk, /일하는 중 <b>\{working\.length\}<\/b><span className="also">노는 손 <b>\{idle\.length\}<\/b><\/span>/);   // 머리 = 일하는 중이 큰 숫자
+  assert.match(desk, /flowOf\(crew\.filter\(\(r\) => !isSpecial\(r\)\)\)/);   // 머리 숫자 = 아래 칸과 같은 셈(특수 뺌)
+});

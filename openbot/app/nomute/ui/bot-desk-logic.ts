@@ -67,6 +67,8 @@ export function groupOf(r: BotRow): Group {
   if (r.lane === "work" || (r.open && r.open.length)) return "work";
   return "idle";
 }
+/** 특수 직군 = 1특기가 「특수」 갈래(X · Xa 사진·영상 제작 · Xb 작곡 · Xc 글짓기 · Xd 정보 수집 · 서버 손 표 _roles.js SKILLS) — 손 판에서 따로 묶음(형 11-16 17:5x 구름 맥 창 「아예 특수 직업군은 따로 분류되고」). */
+export const isSpecial = (r: BotRow): boolean => /^X/.test(r.skills?.[0] || "");
 /** 묶음마다 줄(묶음 안 차례 = 손 표 그대로). */
 export function flowOf(rows: BotRow[]): { group: Group; rows: BotRow[] }[] {
   return GROUPS.map((g) => ({ group: g, rows: rows.filter((r) => groupOf(r) === g) })).filter((x) => x.rows.length);

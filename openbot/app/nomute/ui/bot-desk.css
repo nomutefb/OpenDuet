@@ -158,8 +158,23 @@
 .nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell > small { color:var(--nsb-ink); opacity:.8; }
 .nm-bd-ab li[data-sure="0"] .ring, .nm-bd-ab li[data-sure="0"] .halo { opacity:0; }   /* 쉬는 손(대기 신호로 확인 안 됨) = 회색 고리만 */
 .nm-bd-ab li[data-sure="0"] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-ink); }
+/* 특수 칸(data-h="special" · 형 11-16 「아예 특수 직업군은 따로 분류되고」) = 손마다 제 상태 그림(칸 꼴 대신 li data-st · 값은 ./activity-board.css 의 칸 꼴과 같게): 일하는 중 = 도는 구슬 · 바로 받음 = 라임 고리 · 쉬는 손 = 회색 고리 · 차례 밖 = 색 빠짐 */
+.nm-bd-ab .nsb-ab-lane[data-h="special"] h4 b { color:var(--nsb-ink); }
+.nm-bd-ab li[data-st="work"] .trk { opacity:.6; }
+.nm-bd-ab li[data-st="work"] .orb { opacity:.9; animation-play-state:running; will-change:transform; }
+.nm-bd-ab li[data-st="ready"] .trk, .nm-bd-ab li[data-st="ready"] .ring, .nm-bd-ab li[data-st="idle"] .trk { opacity:1; }
+.nm-bd-ab li[data-st="ready"] .halo { opacity:.16; }
+.nm-bd-ab li[data-st="rest"] .pic { filter:grayscale(.7); opacity:.6; }
+.nm-bd-ab li[data-st="rest"] .cell > b { color:var(--nsb-mut); }
+.nm-bd-ab li[data-st="work"] .cell > small.sk, .nm-bd-ab li[data-st="idle"] .cell > small.sk, .nm-bd-ab li[data-st="rest"] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-ink); }
+.nm-bd-ab li[data-st="rest"] .cell > small.sk { color:var(--nsb-mut); }
+.nm-bd-head .big .also { margin-left:6px; font-size:var(--fs-sm); color:var(--nsb-mut); }
+.nm-bd-head .big .also b { font-size:var(--fs-h3); color:#E7ECE7; }
 /* 일하는 중 접기 = 머리를 누르면 폄 · 접힌 동안 = 작은 얼굴 한 줄(겹쳐 놓음) */
 .nm-bd-ab h4 .lane-fold { display:inherit; gap:inherit; align-items:inherit; width:100%; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.nm-bd-ab h4 .lane-fold { justify-items:start; }
+.nm-bd-ab h4 .lane-fold > b { overflow:hidden; font-size:28px; line-height:1.15; font-weight:700; color:var(--nsb-ink); font-variant-numeric:tabular-nums; }   /* 일하는 중 숫자 = 다른 칸 머리 숫자와 같은 크기(앞 = 얼굴 이름 글씨 규칙에 걸려 PC 에서 작았음 · 형 11-16 「일하는 중이 더 우선적으로 보여야 함」) */
+@media (max-width:520px) { .nm-bd-ab h4 .lane-fold > b { font-size:20px; } }
 .nm-bd-ab h4 .lane-fold .chev { color:var(--nsb-mut); transition:transform .28s var(--ease, cubic-bezier(.2,.7,.3,1)); }
 .nm-bd-ab h4 .lane-fold[aria-expanded="true"] .chev { transform:rotate(180deg); }
 .nm-bd-ab h4 .lane-fold:active { transform:scale(var(--press-l, .97)); }

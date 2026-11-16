@@ -15,7 +15,7 @@ import RubberSegment from "../vendor/react-bits/RubberSegment/RubberSegment";   
 import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰는 원본 꾸러미 그대로(대화 「생각중」 · ./live-shine.tsx 와 같은 것 · 형 11-15 「에디터에 따로 들어잇는곳 … 코드카피해서 쓰셈」)
 import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
-import { type BotRow, type BotTable, GROUP_KO, countOf, flowOf, hmKo, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, tailOf, turnList, wireTone } from "./bot-desk-logic";
+import { type BotRow, type BotTable, GROUP_KO, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, tailOf, turnList, wireTone } from "./bot-desk-logic";
 import { BotInbox } from "./bot-inbox";   // 「보드」 = 일감마다 카드 · 세 칸(형 11-16 영상 「Agent inbox」)
 import { StatusBoard } from "./status-board";   // 「작동」 탭 = 서랍 「러너」에 있던 작동 표 통째(형 11-16 17:4x 「하나로 통일하고 봇 상태를 메인으로 하고싶어.」 · 겹치는 활동 판만 뺌)
 import { HandBoard } from "./bot-desk-hands";   // 맨 위 카드 = 활동 신호 판을 맡길 차례로(노는 손 먼저 · 1특기 · PM 뺌)
@@ -161,13 +161,14 @@ export function BotDesk() {
   const t = q.data?.table, skills = q.data?.skills || {}, rows = t?.rows || [], now = Date.now();
   const crew = rows.filter((r) => !r.pm), n = countOf(crew);   // 맨 위 카드 = PM 뺀 손(형 11-15 「PM은 제외해서」 · PM 은 바로 밑 흐름 맨 위 카드에)
   const people = usePeople(), mix = mixOf(crew);
-  const live = rows.some((r) => r.lane !== "none"), idle = flowOf(crew).find((g) => g.group === "idle")?.rows || [], pmName = rows.find((r) => r.pm)?.who || "";
+  const gen = flowOf(crew.filter((r) => !isSpecial(r)));   // 머리 숫자 = 특수 직군 뺀 손(아래 손 판의 「일하는 중」 · 「노는 손」 칸과 같은 셈 · 특수는 제 칸에)
+  const live = rows.some((r) => r.lane !== "none"), idle = gen.find((g) => g.group === "idle")?.rows || [], working = gen.find((g) => g.group === "work")?.rows || [], pmName = rows.find((r) => r.pm)?.who || "";
   return (
     <>
     <div className={`nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pt-3 ${tab === "run" ? "pb-2" : "pb-12"}`}>
       <h1 className="sr-only">봇 현황</h1>
       <div className="nm-bd-head" role="status">
-        <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>노는 손 <b>{idle.length}</b></>}
+        <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>일하는 중 <b>{working.length}</b><span className="also">노는 손 <b>{idle.length}</b></span></>}   {/* 일하는 중이 먼저(형 11-16 17:5x 「일하는 중이 더 우선적으로 보여야 함」 · 앞 판 = 노는 손만) */}
           <span className="side">{n.lost ? <span className="badge">멈춤 {n.lost}</span> : null}{q.data?.at ? <span className="at">{hmKo(q.data.at)}{q.data.stale ? " · 묵은 것" : ""}</span> : null}</span>
         </p>
         {q.data && live ? (

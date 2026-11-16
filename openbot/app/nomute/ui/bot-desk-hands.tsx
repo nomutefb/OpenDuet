@@ -7,14 +7,22 @@ import { useEffect, useState } from "react";
 import { idOf } from "../data/office";
 import { FaceImg, type usePeople } from "./faces";
 import { ringDeg, ringFrac } from "./activity-view";
-import { type BotRow, type Group, GROUP_KO, groupOf } from "./bot-desk-logic";
+import { type BotRow, type Group, GROUP_KO, groupOf, isSpecial } from "./bot-desk-logic";
 import "./activity-board.css";
 
-type HLane = "lost" | "idle" | "work" | "out";
-const H_LANES: HLane[] = ["lost", "idle", "work", "out"];
-const H_KO: Record<HLane, string> = { lost: GROUP_KO.lost, idle: GROUP_KO.idle, work: GROUP_KO.work, out: `${GROUP_KO.held} · ${GROUP_KO.quiet}` };
-const LOOK: Record<HLane, "lost" | "ready" | "work" | "rest"> = { lost: "lost", idle: "ready", work: "work", out: "rest" };   // 그림 꼴 = 활동 판 칸(./activity-board.css data-k)
+// 칸 차례 = 멈춤 → 일하는 중 → 노는 손 → 특수 → 차례 밖(형 11-16 17:5x 구름 맥 창 「일하는 중이 더 우선적으로 보여야 함」 · 「아예 특수 직업군은 따로 분류되고」 · 앞 판 = 노는 손 먼저 · 일하는 중은 폰에서 접힘)
+//   특수 = 1특기가 특수 갈래인 손(./bot-desk-logic.ts isSpecial) — 일하든 놀든 쉬든 이 칸에(멈춤만 맨 위 멈춤 칸 = 놓치면 안 되는 것) · 손마다 제 상태 그림(li data-st · ./bot-desk.css)
+type HLane = "lost" | "work" | "idle" | "special" | "out";
+const H_LANES: HLane[] = ["lost", "work", "idle", "special", "out"];
+const H_KO: Record<HLane, string> = { lost: GROUP_KO.lost, idle: GROUP_KO.idle, work: GROUP_KO.work, special: "특수", out: `${GROUP_KO.held} · ${GROUP_KO.quiet}` };
+const LOOK: Record<HLane, "lost" | "ready" | "work" | "rest" | "special"> = { lost: "lost", idle: "ready", work: "work", special: "special", out: "rest" };   // 그림 꼴 = 활동 판 칸(./activity-board.css data-k) · special = 칸 꼴 없음(손마다 data-st)
 const hLane = (g: Group): HLane => (g === "held" || g === "quiet" ? "out" : g);
+/** 손 하나가 들어갈 칸 — 멈춤이 먼저 · 그다음 특수 직군 · 나머지는 흐름 묶음 그대로. */
+export const handLane = (r: BotRow): HLane => { const g = groupOf(r); return g === "lost" ? "lost" : isSpecial(r) ? "special" : hLane(g); };
+type St = "work" | "ready" | "idle" | "rest";
+/** 특수 칸 안 손의 상태 그림 — 일하는 중 · 바로 받음(대기 신호 확인) · 쉬는 손 · 차례 밖/조용. */
+export const handSt = (r: BotRow): St => { const g = groupOf(r); return g === "work" ? "work" : g === "idle" ? (r.lane === "ready" ? "ready" : "idle") : "rest"; };
+const ST_ORDER: St[] = ["work", "ready", "idle", "rest"], ST_KO: Record<St, string> = { work: "일하는 중", ready: "바로 받음", idle: "쉬는 손", rest: "차례 밖" };
 /** 특기 이름 짧게(얼굴 폭에 한두 줄) — 「개발 및 검수」 → 「개발·검수」. */
 export const skillShort = (name: string) => name.replace(/\s*및\s*/g, "·");
 /** 차례 밖 · 조용 얼굴 밑 한 마디 = 까닭. */
@@ -23,9 +31,9 @@ const outWhy = (r: BotRow) => (r.rest ? "쉼 지정" : r.lane === "none" ? "줄 
 export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Record<string, string>; people: ReturnType<typeof usePeople> }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const id = setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 5000); return () => clearInterval(id); }, []);
-  // 일하는 중 = 폰 폭에선 접어 둠(카드의 주인공 = 노는 손 · 9명이 세 줄을 차지해 밑의 탭이 밀림) · 누르면 폄 · 넓은 화면은 펴 둠
-  const [openWork, setOpenWork] = useState(() => !(typeof matchMedia === "function" && matchMedia("(max-width:520px)").matches));
-  const lanes = H_LANES.map((k) => ({ k, rs: rows.filter((r) => hLane(groupOf(r)) === k).sort((a, b) => Number(b.lane === "ready") - Number(a.lane === "ready")) })).filter((g) => g.rs.length);
+  // 일하는 중 = 맨 위 · 펴 둠(형 11-16 17:5x 「일하는 중이 더 우선적으로 보여야 함」 · 앞 판 = 폰에서 접어 둠) · 머리를 누르면 접힘(얼굴만 한 줄)
+  const [openWork, setOpenWork] = useState(true);
+  const lanes = H_LANES.map((k) => ({ k, rs: rows.filter((r) => handLane(r) === k).sort((a, b) => (k === "special" ? ST_ORDER.indexOf(handSt(a)) - ST_ORDER.indexOf(handSt(b)) : Number(b.lane === "ready") - Number(a.lane === "ready"))) })).filter((g) => g.rs.length);
   return (
     <div className="nsb-ab nm-bd-ab first">
       {lanes.map(({ k, rs }) => (
@@ -40,12 +48,13 @@ export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Re
           ) : (
           <ul>
             {rs.map((r, i) => {
-              const sure = r.lane === "ready", deg = k === "idle" && sure ? ringDeg(ringFrac(r, now)) : 180;
+              const st = k === "special" ? handSt(r) : null;
+              const sure = r.lane === "ready", deg = (k === "idle" && sure) || st === "ready" ? ringDeg(ringFrac(r, now)) : 180;
               const sk = r.skills?.[0], skName = sk && skills[sk] ? skillShort(skills[sk]) : "";
               const sub = k === "lost" ? r.why || r.cause || "멈춤" : k === "out" ? outWhy(r) : skName;
               return (
-                <li key={r.who} data-sure={k === "idle" ? (sure ? "1" : "0") : undefined} style={{ animationDelay: `${i * 40}ms` }}>
-                  <div className="cell" title={[r.state, skName ? `1특기 ${skName}` : ""].filter(Boolean).join(" · ")}>
+                <li key={r.who} data-sure={k === "idle" ? (sure ? "1" : "0") : undefined} data-st={st || undefined} style={{ animationDelay: `${i * 40}ms` }}>
+                  <div className="cell" title={[st ? ST_KO[st] : "", r.state, skName ? `1특기 ${skName}` : ""].filter(Boolean).join(" · ")}>
                     <span className="nsb-ab-av">
                       <span className="halo" /><span className="trk" /><span className="dash" />
                       <span className="ring"><i className="r"><u style={{ transform: `rotate(${deg}deg)` }} /></i><i className="l"><u style={{ transform: `rotate(${-deg}deg)` }} /></i></span>
@@ -53,7 +62,7 @@ export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Re
                       <span className="pic"><FaceImg id={idOf(r.who, people)} size={k === "out" ? 34 : 42} /></span>
                     </span>
                     <b>{r.who}</b>
-                    {sub ? <small className={k === "idle" && skName ? "sk" : undefined}>{sub}</small> : null}
+                    {sub ? <small className={(k === "idle" || k === "special") && skName ? "sk" : undefined}>{sub}</small> : null}
                   </div>
                 </li>
               );
