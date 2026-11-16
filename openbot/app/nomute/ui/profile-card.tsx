@@ -17,6 +17,7 @@ import { PcScreen } from "./pc-card";   // 「화면 보기」 주소 = 컴퓨�
 import { BeingCard, beingLook, warmFace } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import "./profile-intro.css";
+import { RoomPhotoCrop } from "./room-photo";   // 사진 자리 · 크기 · 자르기 판(방 사진과 한 벌 · 형 11-16 18:32 「크기 확대 축소랑 크롭이 안되네」)
 import { GoButton, must } from "./go-button";   // 저장 · 전송 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 
 const ROOMS_KEY = ["nomute", "rooms"] as const;   // office-chat.tsx officeKeys.rooms 와 같은 열쇠(받아 둔 방 목록을 그대로 씀 · 읽기 0)
@@ -65,7 +66,9 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); return false; }
     finally { setBusy(false); }
   };
-  const pickFace = (f?: File | null) => { if (!f) return; void squareWebp(f).then(setFImg, () => setFNote("사진을 못 읽었어 — 다른 걸로")); };
+  const [cropF, setCropF] = useState<File | null>(null);   // 고른 사진 = 자르기 판(끌기 = 자리 · 두 손가락/휠/막대 = 크기 · 「완료」 = 틀 안 정사각 256 webp)
+  const pickFace = (f?: File | null) => { if (f) setCropF(f); };
+  const cropDone = async (b: Blob) => { setFImg(await blobUrl(b)); };
   const saveFx = async () => {
     if (busy) return false;
     const introChanged = fIntro !== (p?.intro || "");
@@ -84,8 +87,9 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
       <label className="ypc-fx-face">
         <img src={fImg || p?.face || ""} alt="" />
         <span>사진 바꾸기</span>
-        <input type="file" accept="image/*" onChange={(e) => pickFace(e.target.files?.[0])} hidden />
+        <input type="file" accept="image/*" onChange={(e) => { pickFace(e.target.files?.[0]); e.target.value = ""; }} hidden />
       </label>
+      {cropF ? <RoomPhotoCrop file={cropF} title="프로필 사진" onDone={cropDone} onClose={() => setCropF(null)} /> : null}
       <textarea value={fIntro} maxLength={300} rows={4} aria-label={`${name} 소개`} onChange={(e) => setFIntro(e.target.value)} />
       <div className="row"><small>{[...fIntro].length}/300 · 저장하면 {name} 1:1 에 [변경 안내]</small></div>
       {fNote ? <small className="err" role="alert">{fNote}</small> : null}
@@ -164,20 +168,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   );
 }
 
-/** 고른 사진 → 가운데 정사각 256 webp(data URL) · 서버 2MB 상한 안(방 사진과 같은 꼴) */
-function squareWebp(f: File): Promise<string> {
-  return new Promise((ok, no) => {
-    const u = URL.createObjectURL(f), im = new Image();
-    im.onload = () => {
-      const n = Math.min(im.naturalWidth, im.naturalHeight), c = document.createElement("canvas");
-      c.width = c.height = 256;
-      const x = c.getContext("2d");
-      if (!x) { URL.revokeObjectURL(u); no(new Error("no canvas")); return; }
-      x.drawImage(im, (im.naturalWidth - n) / 2, (im.naturalHeight - n) / 2, n, n, 0, 0, 256, 256);
-      URL.revokeObjectURL(u);
-      ok(c.toDataURL("image/webp", 0.9));
-    };
-    im.onerror = () => { URL.revokeObjectURL(u); no(new Error("bad image")); };
-    im.src = u;
-  });
+/** 자른 사진(webp Blob) → data URL(서버 face_b64 · 2MB 상한 안 · 256 정사각 = 방 사진과 같은 꼴) */
+function blobUrl(b: Blob): Promise<string> {
+  return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = () => no(new Error("bad image")); r.readAsDataURL(b); });
 }

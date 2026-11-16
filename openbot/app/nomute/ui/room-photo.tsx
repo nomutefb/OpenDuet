@@ -28,7 +28,7 @@ export function clamp(v: View, ar = 1): View {
   return { s, x: Math.min(lx, Math.max(-lx, v.x)), y: Math.min(ly, Math.max(-ly, v.y)) };
 }
 
-export function RoomPhotoCrop({ file, onDone, onClose }: { file: File; onDone: (b: Blob) => Promise<void>; onClose: () => void }) {
+export function RoomPhotoCrop({ file, onDone, onClose, title = "방 사진" }: { file: File; onDone: (b: Blob) => Promise<void>; onClose: () => void; title?: string }) {   // title = 프로필 사진도 이 판 하나로(형 11-16 18:32 dm-bom 「프로필 사진 변경은 되는데 크기 확대 축소랑 크롭이 안되네」 · 하네스 한 벌)
   const [url] = useState(() => URL.createObjectURL(file));
   const [img, setImg] = useState<HTMLImageElement | null>(null), [bad, setBad] = useState(false);
   const [v, setV] = useState<View>({ s: 1, x: 0, y: 0 }), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
@@ -61,8 +61,8 @@ export function RoomPhotoCrop({ file, onDone, onClose }: { file: File; onDone: (
   return createPortal(
     <div className="nrp-veil" role="presentation" onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (e.target === e.currentTarget && !busy) onClose(); }}
       onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()}>   {/* 포털이라도 리액트 누름은 부른 곳(목록 줄 · 방 링크)으로 번짐 → 여기서 끊음 */}
-      <div className="nrp" role="dialog" aria-label="방 사진 자리 잡기">
-        <div className="nrp-h"><button type="button" onClick={onClose} disabled={busy}>취소</button><b>방 사진</b><GoButton className="ok" go={done} done={onClose} away={onClose} what="방 사진 올리기" disabled={!img || busy} busy="올리는 중">완료</GoButton></div>
+      <div className="nrp" role="dialog" aria-label={`${title} 자리 잡기`}>
+        <div className="nrp-h"><button type="button" onClick={onClose} disabled={busy}>취소</button><b>{title}</b><GoButton className="ok" go={done} done={onClose} away={onClose} what={`${title} 올리기`} disabled={!img || busy} busy="올리는 중">완료</GoButton></div>
         <div ref={box} className="nrp-frame" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={wheel}>
           {img ? <img src={url} alt="" draggable={false} style={{ width: `${w}%`, height: `${h}%`, left: `${50 + v.x * 100 - w / 2}%`, top: `${50 + v.y * 100 - h / 2}%` }} /> : bad ? <p className="nrp-bad">그림을 못 읽었어 — 다른 사진으로</p> : null}
           <i className="nrp-mask" aria-hidden />
