@@ -863,7 +863,7 @@
 .being-card-wrap .bc-issueking .profile-card__scrim { background: linear-gradient(to top, rgba(8, 14, 16, 0.86) 0%, rgba(8, 14, 16, 0.5) 22%, rgba(8, 14, 16, 0) 42%); }   /* 이름 · 소개가 그림 위에서 읽히게 */
 .bc-issueking .bc-hero {
   inset: -4%;
-  background: url(/office/issueking-card.webp) 50% 0% / cover no-repeat;
+  background: url(/office/issueking-card.webp?v=2) 50% 0% / cover no-repeat;
   transform: translate3d(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6), 0);
 }
 
