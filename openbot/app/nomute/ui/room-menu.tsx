@@ -65,14 +65,14 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   // 사람 칸 = 「멤버 설정」(지정방 roomset · 임시방 temprooms · 형 11-07 13:38 「초대랑 별개로」) · 회의실 「잠시 내보내기」
   const crewItems = r ? (
     <>
-      {(!r.with && r.id !== MEET && r.designated && !r.temp) || r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>멤버 설정<small>{r.members?.length ? r.members.length + 1 : ""}</small></button> : null}
+      {!r.with && r.id !== MEET && r.designated && !r.temp ? <button type="button" role="menuitem" onClick={go(() => setCrew(true))}>멤버 설정<small>{r.members?.length ? r.members.length + 1 : ""}</small></button> : null}   {/* 임시방 = 멤버도 「방 설정」 안으로(형 11-17 00:47 「방 설정에 통합」) */}
       {r.id === MEET && (r.members?.length || 0) > 0 ? <button type="button" role="menuitem" onClick={go(() => setKick(true))}>잠시 내보내기<small>{r.members!.length}</small></button> : null}   {/* 회의실만(형 11-02 11:56 「대화 내보내기 단톡에서 그거가 잇으면 좋겠음 회의실만.」) */}
-      {canKickAll ? <MorphAsk role="menuitem" yesText="내보내기" onYes={() => kickAllGo(r)}>모두 내보내기</MorphAsk> : null}   {/* 단체방 다(회의실 · 지정방 · 호실) · 형만(#-048 · 형 11-15) */}
+      {canKickAll && !r.temp ? <MorphAsk role="menuitem" yesText="내보내기" onYes={() => kickAllGo(r)}>모두 내보내기</MorphAsk> : null}   {/* 단체방 다(회의실 · 지정방 · 호실) · 형만(#-048 · 형 11-15) */}
     </>
   ) : null;
   const items = r ? (
     <>
-      {r.temp ? <button type="button" role="menuitem" onClick={go(() => setTempEdit(true))}>방 설정<small>이름 · 방 지침 · 기한</small></button>
+      {r.temp ? <button type="button" role="menuitem" onClick={go(() => setTempEdit(true))}>방 설정<small>멤버 {r.members?.length ? r.members.length + 1 : ""} · 지침 · 기한</small></button>
         : groupRuleRoom(r) ? <button type="button" role="menuitem" onClick={go(() => setGroupEdit(true))}>방 설정<small>이름 · 방 지침</small></button> : null}   {/* 임시방과 같은 자리 · 같은 꼴(기한 = 임시방만) */}
       {dmRuleRoom(r) ? <button type="button" role="menuitem" onClick={go(() => setDmRule(true))}>방 지침<small>깰 때 읽는 글</small></button> : null}
       {!r.with ? <button type="button" role="menuitem" onClick={go(() => setLook(true))}>방 꾸미기<small>아이콘 · 색</small></button> : null}   {/* 단톡방·회의실 다(형 11-06 20:00 · 20:33 「회의실도 가능해야해.」 · 20:37 「방 아이콘 변경 저것도 저기에」) */}
@@ -96,13 +96,13 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       {kick && r ? <MeetOut room={r} onClose={() => setKick(false)} /> : null}
       {/* 창 셋 = body 로 띄움 — 방 메뉴가 머리 제목(.nm-toptitle · transform) 안에 있어 fixed 창이 제목 칸(200×50)에 갇혀 PC 에서 「방 설정」이 안 보였음(시아 11-07 라이브 실물) */}
       {look && r ? createPortal(<RoomLookDialog r={r} onClose={() => setLook(false)} />, document.body) : null}
-      {tempEdit && r ? createPortal(<TempRoomDialog edit={r} onClose={() => setTempEdit(false)} />, document.body) : null}
+      {tempEdit && r ? createPortal(<TempRoomDialog edit={r} onClose={() => setTempEdit(false)} kickAll={canKickAll ? () => kickAllGo(r) : undefined} />, document.body) : null}
       {groupEdit && r ? <GroupRoomDialog room={r} onClose={() => setGroupEdit(false)} /> : null}
       {crew && r ? createPortal(<RoomMembersDialog r={r} onClose={() => setCrew(false)} />, document.body) : null}
       {dmRule && r ? <DmRuleDialog room={r} onClose={() => setDmRule(false)} /> : null}
     </>
   );
-  const hasCrew = !!r && (((!r.with && r.id !== MEET && !!r.designated && !r.temp) || !!r.temp) || (r.id === MEET && (r.members?.length || 0) > 0) || canKickAll);
+  const hasCrew = !!r && ((!r.with && r.id !== MEET && !!r.designated && !r.temp) || (r.id === MEET && (r.members?.length || 0) > 0) || (canKickAll && !r.temp));
   return { crew: hasCrew ? crewItems : null, items, dialogs, err };
 }
 

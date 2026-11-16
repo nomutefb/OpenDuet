@@ -17,6 +17,8 @@ import { type OfficeRoom, idOf, office, peopleSync, seatOff } from "../data/offi
 import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
 import { FaceImg, usePeople } from "./faces";
 import { GoButton } from "./go-button";
+import { MorphAsk } from "./morph-ask";   // 재확인 = 그 자리 토글(형 11-16 「항상 그냥 re 토글로만」)
+import { IDLE_DEFAULT, hasTask, idleKo, idleOpts, maxBlock, maxShow, maxStep, memberCand, setBody } from "./room-set-logic";
 import "./temp-room.css";
 
 // 묶음(형 10-31 「클로드 눌러서 선택 그록 눌러서 선택 지피티 눌러서 선택」) = 서버 clsOf 분류 · 명부에 없는 이 = 클로드 칸
@@ -80,10 +82,11 @@ export function TempLeftChip({ r }: { r: OfficeRoom }) {
 
 export function TempRoomHead({ r }: { r: OfficeRoom }) {
   const members = r.members || [], heard = members.filter((n) => (r.heard || []).includes(n)), wait = members.filter((n) => !heard.includes(n));
-  const [edit, setEdit] = useState(false), now = useLeftClock(r.exp);
+  const [edit, setEdit] = useState(false), now = useLeftClock(r.exp), taskNow = useLeftClock(r.task_exp);
   const from = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 }).data?.find((x) => x.id === r.from), fromName = from ? short(from.with || from.name || "") : "";   // 방 화면이 이미 받는 방 목록과 같은 열쇠 · 같은 길(./office-chat.tsx roomsQ) = 받아오기 0 더 · 목록이 늦게 와도 따라 그림
   return (
     <div className="mb-2 rounded-2xl border border-border px-3 py-2 text-sm">
+      {r.task ? <p className="nm-temp-task"><span>지금 일</span><b>{r.task}</b>{r.task_exp ? <i>{tempLeft(r.task_exp, taskNow)}</i> : null}</p> : null}   {/* 지금 일 한 줄 + 조용하면 비워질 때까지 남은 시간(형 11-17 00:49 「지금 일 저 부분을 따로 두던지 … 얼마나 … 방에 머물게 할건지도」 · 서버 칸 = 빠르 task · task_exp) */}
       {r.purpose ? <p className="whitespace-pre-wrap">{r.purpose}</p> : null}
       <p className={`${r.purpose ? "mt-1 " : ""}text-xs text-muted-foreground`}>
         {/* 남은 시간 = 누르면 그 밑에 유지 시간 막대(형 11-16 20:09 「당연히 옵션래서 변경 가능하고」 · 21:5x 「모달 최소화」) */}
@@ -118,16 +121,20 @@ export function RoomArtRow({ id, look }: { id: string; look?: OfficeRoom["look"]
   );
 }
 
-export function TempRoomDialog({ edit, onClose, open = true }: { edit?: OfficeRoom; onClose: () => void; open?: boolean }) {
+/** 임시 단톡방 만들기 · 「방 설정」 — 고치기(edit)는 방에 딸린 설정을 이 창 하나에 모음: 사진 · 이름 · 지침 · 지금 일 · 머무는 시간 · 멤버(넣기 · 빼기 · 최대 인원 · 모두 내보내기) · 기한
+ *  (형 11-17 00:47 「멤버 인원 이랑 내보내기가 아래에 따로잇는데 방 설정에 통합」 · 「메뉴가 분산되어잇능거 생각해서 좀 모아좌」) · kickAll = 「모두 내보내기」(방 메뉴가 넘겨 줌 · 형만) */
+export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?: OfficeRoom; onClose: () => void; open?: boolean; kickAll?: () => void }) {
   const qc = useQueryClient(), nav = useNavigate();
   const candRaw = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 }).data || [];
   const list = usePeople(), who = (n: string) => list.find((p) => p.who === n);
-  const cand = candRaw.filter((n) => !seatOff(who(n)));   // 빈 자리 1 · 2 · 3(명부 empty · 작업 알림 포함) = 초대 칸 0(형 11-14 23:40 dm-gik 「그리구 llm 아니면 사무실 키 빼버려서 지금 클라우드세션이 쓰는거 포함 자리 1 2 3 은 모두 여기 목록에 안보여야 함」 · 깃 #-016 덧 · 뜸)
+  const cand = memberCand(candRaw, edit?.members || []).filter((n) => !seatOff(who(n)));   // 후보 + 지금 멤버(후보에 없는 멤버도 칩으로 · 저장할 때 말없이 안 빠지게 · ./room-set-logic.ts)   // 빈 자리 1 · 2 · 3(명부 empty · 작업 알림 포함) = 초대 칸 0(형 11-14 23:40 dm-gik 「그리구 llm 아니면 사무실 키 빼버려서 지금 클라우드세션이 쓰는거 포함 자리 1 2 3 은 모두 여기 목록에 안보여야 함」 · 깃 #-016 덧 · 뜸)
   const dk = `room-${edit?.id || "new"}`, base = { name: edit?.name || "", purpose: edit?.purpose || "", picked: edit?.members || [] };
   const [d0] = useState(() => edit ? draftGet<typeof base>(dk) || base : base);   // 새 방은 매번 빈 판, 기존 방 설정만 초안 복원
   const [name, setName] = useState(d0.name), [purpose, setPurpose] = useState(d0.purpose), [pickedRaw, setPicked] = useState<string[]>(d0.picked);
-  const picked = livePicked(pickedRaw, cand, (n) => !!who(n)?.gone);   // 옛 초안에 남은 없어진 봇(별) = 그릴 때마다 뺌 · 서버 후보(별 없음)가 오면 그걸로 · 명부가 늦게 와도 놓치지 않게(모루 #2861 · #2864 검토 · 빠르 11-08)
-  const dirty = name !== base.name || purpose !== base.purpose || picked.join("|") !== base.picked.join("|");
+  const picked = livePicked(pickedRaw, candRaw.length ? cand : [], (n) => !!who(n)?.gone);   // 옛 초안에 남은 없어진 봇(별) = 그릴 때마다 뺌 · 서버 후보(별 없음)가 오면 그걸로 · 명부가 늦게 와도 놓치지 않게(모루 #2861 · #2864 검토 · 빠르 11-08)
+  const set0 = { max: edit?.max && edit.max > 0 ? edit.max : 0, task: edit?.task || "", idle: edit?.task_idle_min && edit.task_idle_min > 0 ? edit.task_idle_min : IDLE_DEFAULT };   // 저장된 값(고치기만)
+  const [max, setMax] = useState(set0.max), [task, setTask] = useState(set0.task), [idle, setIdle] = useState(set0.idle), taskOn = hasTask(edit);
+  const dirty = name !== base.name || purpose !== base.purpose || picked.join("|") !== base.picked.join("|") || max !== set0.max || task.trim() !== set0.task || idle !== set0.idle;
   useEffect(() => { if (edit && dirty) draftSet(dk, { name, purpose, picked }); else draftDrop(dk); }, [dk, !!edit, dirty, name, purpose, picked]);
   const [hours, setHours] = useState<number | null>(edit ? null : 24), [fam, setFam] = useState("cl");   // 고치기 = 안 누르면 기한 그대로
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
@@ -136,20 +143,20 @@ export function TempRoomDialog({ edit, onClose, open = true }: { edit?: OfficeRo
   const shown = namesOf(FAMS.find((f) => f.key === fam)?.cls || []);
   const allOn = shown.length > 0 && shown.every((n) => picked.includes(n));
   const toggleAll = () => setPicked(allOn ? picked.filter((n) => !shown.includes(n)) : [...new Set([...picked, ...shown])]);
-  const ready = !saveBlock(purpose, picked, busy);
+  const over = maxBlock(picked.length, max), ready = !saveBlock(purpose, picked, busy) && !over;
   type Reply = { room: { id: string } & Partial<OfficeRoom>; members?: string[] };
   const prepare = () => {
-    const no = saveBlock(purpose, picked, busy);   // 닫기 「예」 길도 단추와 같은 조건(0명 · 목적 빈 채로 서버에 안 보냄 · 모루 #2865)
+    const no = saveBlock(purpose, picked, busy) || over;   // 닫기 「예」 길도 단추와 같은 조건(0명 · 목적 빈 채로 서버에 안 보냄 · 모루 #2865)
     if (no) { setWhy(no); throw new Error(no); }
     setBusy(true); setWhy("");
-    return { body: JSON.stringify({ name, purpose, members: picked, ...(hours === null ? {} : { hours }) }), reply: null as Reply | null };
+    return { body: JSON.stringify(setBody({ name, purpose, members: picked, hours, max, task, idle }, edit ? set0 : null)), reply: null as Reply | null };
   };
   const save = async (job: ReturnType<typeof prepare>) => {
     try {
       const j = await office<Reply>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body: job.body });
       if (!edit && !j?.room?.id) throw new Error("방 생성 응답을 확인하지 못했어");
       draftDrop(dk);   // 저장됨 = 보관 지움
-      if (edit) patchRoom(qc, edit.id, savedRoomPart(j, edit.id, { name, purpose, members: picked }) as Partial<OfficeRoom>);
+      if (edit) patchRoom(qc, edit.id, { ...(max !== set0.max ? { max } : {}), ...(task.trim() !== set0.task ? { task: task.trim() } : {}), ...(idle !== set0.idle ? { task_idle_min: idle } : {}), ...savedRoomPart(j, edit.id, { name, purpose, members: picked }) } as Partial<OfficeRoom>);   // 서버 답이 있으면 그 값이 이김
       else {
         // 성공 응답으로 새 방을 먼저 넣어 목록 재조회가 느려도 바로 들어간다.
         await qc.cancelQueries({ queryKey: ["nomute", "rooms"] });
@@ -169,7 +176,7 @@ export function TempRoomDialog({ edit, onClose, open = true }: { edit?: OfficeRo
   const g = useCloseGuard(dirty && !busy, close, open);
   const made = (j: { room: { id: string } }) => { onClose(); if (!edit) void nav({ to: "/channels/$channelId", params: { channelId: j.room.id } }); };   // 닫고 옮기기 = ✓ 뒤(GoButton done)
   return (
-    <div role={open ? "dialog" : undefined} aria-modal={open || undefined} aria-hidden={!open || undefined} inert={!open} style={open ? undefined : { visibility: "hidden", pointerEvents: "none" }} aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
+    <div role={open ? "dialog" : undefined} aria-modal={open || undefined} aria-hidden={!open || undefined} inert={!open} style={open ? undefined : { visibility: "hidden", pointerEvents: "none" }} aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-[70] grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>   {/* z 70 = PC 위 탭 줄 · 메뉴 줄(58 ~ 61)보다 위 — 칸이 늘어 창이 길어지자 제목 · X 가 그 줄 밑에 깔렸음(실물 · 1440×900) */}
       <div className="relative flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
         <DialogX onClose={g.request} disabled={busy} />
         <b className="pr-9 text-base">{edit ? "방 설정" : "임시 단톡방"}</b>
@@ -184,8 +191,18 @@ export function TempRoomDialog({ edit, onClose, open = true }: { edit?: OfficeRo
           <textarea value={purpose} maxLength={500} rows={3} onChange={(e) => setPurpose(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
           <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요</small>
         </label>
+        {edit && taskOn ? <>   {/* 지금 일 = 방 지침과 따로 한 칸 · 머무는 시간 = 조용하면 비워지는 분(형 11-17 00:49 · 서버 칸이 올 때만 뜸) */}
+          <label className="flex flex-col gap-1">
+            <span className="text-muted-foreground">지금 일</span>
+            <input value={task} maxLength={80} onChange={(e) => setTask(e.target.value)} className="rounded-xl border border-border bg-transparent px-3 py-2" />
+          </label>
+          <div className="nm-rs-row" role="group" aria-label="머무는 시간">
+            <span className="lbl">머무는 시간</span>
+            <span className="opts">{idleOpts(idle).map((m, i) => <span key={m} className="one">{i ? <i aria-hidden>|</i> : null}<button type="button" aria-pressed={idle === m} onClick={() => setIdle(m)}>{idleKo(m)}</button></span>)}</span>
+          </div>
+        </> : null}
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1 text-muted-foreground">초대할 사람 · {picked.length}명</legend>
+          <legend className="nm-rs-head mb-1 text-muted-foreground"><span>{edit ? `멤버 · ${picked.length + 1}명` : `초대할 사람 · ${picked.length}명`}</span>{edit && kickAll ? <MorphAsk className="nm-rs-kick" yesText="내보내기" onYes={() => { draftDrop(dk); onClose(); kickAll(); }}>모두 내보내기</MorphAsk> : null}</legend>   {/* 고치기 = 형을 더한 숫자(방 머리 숫자와 같은 셈 · 형 11-17 00:46 「수가 안맞네」) */}
           <div role="tablist" className="nm-fam">
             {FAMS.map((f) => { const n = namesOf(f.cls).filter((x) => picked.includes(x)).length; return <button key={f.key} type="button" role="tab" aria-selected={fam === f.key} className="nm-fam-tab" onClick={() => setFam(f.key)}>{f.label}{n ? ` ${n}` : ""}</button>; })}
           </div>
@@ -193,13 +210,26 @@ export function TempRoomDialog({ edit, onClose, open = true }: { edit?: OfficeRo
             <button type="button" aria-pressed={allOn} className="nm-pick" onClick={toggleAll}>이 묶음 다</button>
             {shown.map((n) => { const p = who(n); return <button key={n} type="button" aria-pressed={picked.includes(n)} className="nm-pick" onClick={() => toggle(n)}><FaceImg id={idOf(n, list)} size={26} />{p?.mark ? <span aria-hidden>{p.mark}</span> : null}{p?.name || short(n)}</button>; })}
           </div>
+          {edit ? (   /* 최대 인원 · 모두 내보내기 = 멤버 칸 안으로(앞 = 방 메뉴에 「멤버 설정」 · 「모두 내보내기」 두 줄이 따로) */
+            <div className="nm-rs-row" role="group" aria-label="최대 인원">
+              <span className="lbl">최대 인원</span>
+              <span className="opts">
+                <span className="one"><button type="button" aria-pressed={!max} onClick={() => setMax(0)}>제한 없음</button></span>
+                <span className="one"><i aria-hidden>|</i>
+                  <button type="button" className="st" aria-label="최대 인원 줄이기" disabled={max <= 1 && max > 0} onClick={() => setMax(maxStep(max, -1, picked.length))}>−</button>
+                  <button type="button" className="num" aria-pressed={!!max} aria-label={max ? `최대 ${maxShow(max)}명` : `지금 ${picked.length + 1}명으로 정하기`} onClick={() => setMax(maxStep(max, 0, picked.length))}>{max ? maxShow(max) : picked.length + 1}명</button>
+                  <button type="button" className="st" aria-label="최대 인원 늘리기" onClick={() => setMax(maxStep(max, 1, picked.length))}>+</button>
+                </span>
+              </span>
+            </div>
+          ) : null}
         </fieldset>
         <fieldset className="flex flex-col gap-1">
           <legend className="mb-1 text-muted-foreground">유지 시간{edit ? <span className="ml-1 text-xs">· 지금 {edit.exp ? tempLeft(edit.exp) : "영구"}</span> : null}</legend>   {/* 지금 남은 기한(형 11-06 10:37 「이거 하루가 넘나? 유지기간이」) */}   {/* 라벨 옆 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           <DaySlide hours={hours} onChange={setHours} />   {/* 1시간 · 끌어서 1~7일 · 영구(형 11-14 04:56 「1시간, 그리고 이렇게 기한, 영구 3개 설정으로」 · 앞 판 = 1시간 · 하루 · 사흘 · 일주일 · 영구 다섯 단추) */}
         </fieldset>
         </fieldset>
-        {why ? <p role="alert" className="text-destructive">{why}</p> : null}
+        {why || over ? <p role="alert" className="text-destructive">{why || over}</p> : null}   {/* over = 고른 멤버가 최대 인원을 넘음(고치기 꺼짐의 까닭) */}
         <div className="flex justify-end gap-2">
           {/* 새 방 입장은 서버가 준 id가 필요하므로 생성은 체크까지 기다리고, 기존 방 고치기는 공통 away를 따른다. */}
           {edit ? <GoButton disabled={!ready} className="rounded-full bg-foreground px-4 py-2 font-semibold text-background disabled:opacity-40" go={make} done={made} away={onClose} what="방 고치기">고치기</GoButton>
@@ -221,7 +251,7 @@ export const canGone = (r: { id: string; with?: string; temp?: boolean }) => !r.
 /** 방 멤버 고르기 = 대화 목록·방 메뉴 한 곳에서(형 11-05 08:35 「아예 저기서 설정할게 아니라 그냥 톡 목록에서 설정하게 일원화해야람」 · 형 11-07 13:38 「여기서도 방 멤버 설정 · 초대랑 별개」)
  *  지정방 = 서버 roomset(형만 · base 판 · 낡으면 409) · 임시방 = temprooms 후보·저장(이름·목적·기한은 「방 설정」) */
 export function RoomMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
-  return r.temp ? <TempMembersDialog r={r} onClose={onClose} /> : <SetMembersDialog r={r} onClose={onClose} />;   // 갈림 = 부품 둘(훅 순서가 방마다 안 바뀌게 · 시아 11-07)
+  return r.temp ? <TempRoomDialog edit={r} onClose={onClose} /> : <SetMembersDialog r={r} onClose={onClose} />;   // 임시방 = 멤버도 「방 설정」 한 창(형 11-17 00:47 「방 설정에 통합」 · 멤버만 고치던 창은 걷음)   // 갈림 = 부품 둘(훅 순서가 방마다 안 바뀌게 · 시아 11-07)
 }
 
 /** 지정방 멤버(roomset) */
@@ -261,50 +291,6 @@ function SetMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }
         {why ? <p role="alert" className="text-destructive">{why}</p> : null}
         <div className="flex justify-end gap-2">
           <GoButton disabled={busy || !cur || !now.length || !d?.can_edit} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" go={save} done={onClose} away={onClose} what="방 설정 저장" busy="저장 중">저장</GoButton>
-        </div>
-      </div>
-      {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}
-    </div>
-  );
-}
-
-/** 임시방 멤버만(형 11-07 13:38 · 봄 나눔 「임시방에도 같은 꼴」 · 초대·방 설정과 별개) */
-function TempMembersDialog({ r, onClose }: { r: OfficeRoom; onClose: () => void }) {
-  const qc = useQueryClient();
-  // 캐시 꼴 = 「방 설정」(TempRoomDialog)과 같은 후보 배열 — 같은 열쇠에 꼴이 둘이면 먼저 연 창 꼴이 남아 다른 창이 비거나 깨짐(시아 11-07)
-  const q = useQuery({ queryKey: ["nomute", "temprooms"], queryFn: () => office<{ candidates: string[] }>("temprooms").then((j) => j.candidates || []), staleTime: 60_000 });
-  const [cur, setCur] = useState<string[] | null>(null), [busy, setBusy] = useState(false), [why, setWhy] = useState("");
-  const list = peopleSync(), cand = (q.data || []).filter((w) => !seatOff(list.find((p) => p.who === w))), now = cur ?? r.members ?? [];
-  const save = async () => {
-    setBusy(true); setWhy("");
-    try {
-      const j = await office<{ room?: Partial<OfficeRoom> & { id: string } }>(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name || "", purpose: r.purpose || "", members: now }) });
-      patchRoom(qc, r.id, savedRoomPart(j, r.id, { members: now }) as Partial<OfficeRoom>);
-      void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });   // 저장 = 서버 답(1.4초쯤)에서 바로 닫힘 · 방 목록 다시 읽기(2초~)는 뒤에서(형 11-08 23:16 「방 멤버 고치기 누르면 반응없어 해결해」 · 빠르 실물 = 「저장 중」 3~15초 · 봄 배분 12)
-    } catch (e) { setWhy(e instanceof Error ? e.message : "저장 못 함"); setBusy(false); throw e; }   // 창 닫기 = ✓ 뒤(GoButton done)
-  };
-  const changed = !!cur && cur.join("|") !== (r.members ?? []).join("|"), g = useCloseGuard(changed && !busy, onClose);   // 고른 멤버가 바뀐 채 닫기 = 한 문장 확인 · Esc · 바탕 · X 같은 길(#-042)
-  return (
-    <div role="dialog" aria-modal="true" aria-label={`${r.name} 멤버`} className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>
-      <div className="relative flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <DialogX onClose={g.request} />
-        <b className="pr-9 text-base">「{r.name}」 멤버 <span className="text-xs font-normal text-muted-foreground" title="형 포함">{now.length + 1}명</span></b>
-        {!q.data && !q.isError ? <p className="text-muted-foreground">읽는 중…</p> : q.isError ? <p className="text-muted-foreground">{readFail(q.error)}</p> : (
-          <div className="flex flex-wrap gap-1.5">
-            {cand.map((w) => {
-              const on = now.includes(w);
-              return (
-                <button key={w} type="button" disabled={busy} aria-pressed={on} onClick={() => setCur(on ? now.filter((x) => x !== w) : [...now, w])}
-                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${on ? "border-primary bg-primary/10 font-semibold" : "border-border text-muted-foreground"}`}>
-                  <FaceImg id={idOf(w, list)} size={16} />{list.find((p) => p.who === w)?.name || w}
-                </button>
-              );
-            })}
-          </div>
-        )}
-        {why ? <p role="alert" className="text-destructive">{why}</p> : null}
-        <div className="flex justify-end gap-2">
-          <GoButton disabled={busy || !cur || !now.length} className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-40" go={save} done={onClose} away={onClose} what="방 설정 저장" busy="저장 중">저장</GoButton>
         </div>
       </div>
       {g.ask ? <CloseAsk onKeep={() => g.setAsk(false)} onClose={onClose} /> : null}

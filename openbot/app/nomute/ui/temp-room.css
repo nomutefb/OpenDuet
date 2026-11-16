@@ -1,3 +1,25 @@
 /* 기존 게이지·체크는 그대로. 밝은 판에서도 생성 중 글과 회전 표시가 읽히게. */
 .nm-go.nm-room-create[data-stage="wait"] { color:var(--foreground, #161716); }
 .nm-room-create[data-stage="wait"] .nm-go-spin { border-top-color:currentColor; }
+
+/* 방 설정 글자 줄(머무는 시간 · 최대 인원 · 모두 내보내기) — 알약 대신 낱말 줄(형 11-16 「알약으로 선택하면 비효율」 · 옛 에디터 .srow / .sopts .pc 꼴 · 고른 것 = 라임 글자) */
+.nm-rs-row { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:2px 0; }
+.nm-rs-row .lbl { flex:0 0 auto; color:var(--muted-foreground); white-space:nowrap; }
+.nm-rs-row .opts { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:baseline; gap:2px 0; min-width:0; }
+.nm-rs-row .one { display:inline-flex; align-items:baseline; }
+.nm-rs-row .one > i { font-style:normal; opacity:.35; padding:0 2px; pointer-events:none; }
+.nm-rs-row .one > button, .nm-rs-kick { padding:6px 7px; border:0; background:none; font:inherit; font-weight:700; color:var(--muted-foreground); white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:color .15s ease, scale .12s ease; }
+.nm-rs-row .one > button[aria-pressed="true"] { color:rgb(var(--accent-rgb, 207,255,64)); font-weight:800; }
+.nm-rs-row .one > button:active, .nm-rs-kick:active { scale:.94; }
+.nm-rs-row .one > button:disabled { opacity:.32; cursor:default; }
+.nm-rs-row .one > .st { min-width:30px; text-align:center; color:var(--foreground); }
+.nm-rs-row .one > .num { min-width:40px; text-align:center; font-variant-numeric:tabular-nums; }
+.nm-rs-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; width:100%; }   /* 멤버 칸 제목 줄 = 왼쪽 숫자 · 오른쪽 「모두 내보내기」 */
+.nm-rs-kick { padding:2px 0 2px 7px; font-size:13px; }
+
+/* 방 머리 「지금 일」 한 줄 — 낱말 · 일 · 남은 시간(조용하면 비워질 때까지) */
+.nm-temp-task { display:flex; align-items:baseline; gap:8px; margin-bottom:4px; }
+.nm-temp-task span { flex:none; font-size:12px; color:var(--muted-foreground); }
+.nm-temp-task b { min-width:0; font-weight:700; overflow-wrap:anywhere; }
+.nm-temp-task i { flex:none; margin-left:auto; font-style:normal; font-size:12px; font-variant-numeric:tabular-nums; color:var(--muted-foreground); }
+.nm-rs-head .nm-yn.nm-yn > button.no:not([data-stage]) { border-color:rgb(var(--accent-rgb, 207,255,64)); background:rgb(var(--accent-rgb, 207,255,64)); color:#141414; }   /* 이 창은 body 에 떠서 --accent 가 회색 → 「아니오」 라임이 빠짐(실물) · 묶음 탭과 같은 값으로 */

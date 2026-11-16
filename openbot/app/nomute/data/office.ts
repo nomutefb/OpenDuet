@@ -20,6 +20,7 @@ export type OfficeMsg = {
 };
 export type OfficeRoom = {
   id: string; name: string; base?: string; kind: "group" | "dm"; color?: string; with?: string; members?: string[]; designated?: boolean; heard?: string[]; temp?: boolean; purpose?: string; exp?: number; from?: string; spawned?: boolean; last_ts?: number; act_ts?: number;
+  max?: number; task?: string; task_exp?: number; task_idle_min?: number;   // max = 멤버 최대 수(깃 · 0 · 없음 = 제한 없음 · 형은 안 셈) · task = 지금 일 · task_idle_min = 조용하면 비워지는 분 · task_exp = 비워질 때(빠르 · 형 11-17 00:47 · 00:49)
   last?: { who: string; kind: string; text: string; ts: number } | null; last_talk?: { who: string; kind: string; text: string; ts: number } | null;
   look?: { icon?: string; fg?: string };   // 방 꾸미기(번개 서버 roomlook · 형만 · 아이콘 = Lucide 이름 · fg = #RRGGBB 또는 두 색)
   states?: Record<string, number>; faces?: string[];   // faces = 가장 최근 말한 이 · 그 전에 말한 이(서버 · 형 글·시스템 줄 빼고)

@@ -170,7 +170,7 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
   const nav = useNavigate();
   const names = (r.members || []).map((w) => list.find((x) => x.who === w)?.name || whoName(w)).filter(Boolean);
   const kind = r.id === "all" ? "회의실" : r.temp ? `임시방${r.exp ? " · " + tempLeft(r.exp) : ""}` : r.designated ? "지정방" : "단톡방";
-  const crewOk = (r.id !== "all" && !!r.designated && !r.temp) || !!r.temp;   // 멤버 설정 = 방 안 메뉴와 같은 조건(./room-menu.tsx crewItems)
+  const crewOk = r.id !== "all" && !!r.designated && !r.temp;   // 멤버 설정 = 방 안 메뉴와 같은 조건(./room-menu.tsx crewItems)
   return (
     <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(onClose)}>
       <div className="ypc nm-rinfo" role="dialog" aria-label={`${r.name} 개요`} onClick={(e) => e.stopPropagation()}>
