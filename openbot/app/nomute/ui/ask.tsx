@@ -95,6 +95,7 @@ export function AskModal({ onClose }: { onClose?: () => void } = {}) {
       if (!ct.includes("json")) fail(r.status === 200 ? "로그인이 끝났어 — 새로 고쳐 다시 로그인" : `서버 ${r.status}`);
       const d = (await r.json().catch(() => ({}))) as { ok?: boolean; id?: string; error?: string };
       if (r.ok && d.ok) {
+        try { localStorage.removeItem(DRAFT); } catch { /* 이 기기에만 */ }   // 보낸 초안은 바로 지움 — 답 오기 전에 창을 떠나도(상태 비우기는 안 닿음) 다시 들어오면 빈칸(형 11-17 00:45 「내가 뉴스 요약 한번 넣엇던거는 들어가면 다시 비워지게해줘」)
         setNote({ kind: "ok", text: `접수됨${d.id ? ` · ${d.id}` : ""} — 대기열에서 처리 중` });
         setText(""); setLink(""); setForce(false); setImgs([]); setPreset({ ...DEF }); setFpHand(false);
         setTimeout(() => void loadPending(), 1200); setTimeout(() => void loadPending(), 4000);   // 원본과 같은 두 번 갱신
