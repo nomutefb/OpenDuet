@@ -15,7 +15,7 @@ import RubberSegment from "../vendor/react-bits/RubberSegment/RubberSegment";   
 import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰는 원본 꾸러미 그대로(대화 「생각중」 · ./live-shine.tsx 와 같은 것 · 형 11-15 「에디터에 따로 들어잇는곳 … 코드카피해서 쓰셈」)
 import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
-import { type BotRow, type BotTable, GROUP_KO, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, tailOf, turnList, wireTone } from "./bot-desk-logic";
+import { type BotRow, type BotTable, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, roleLabel, roleOf, tailOf, turnList } from "./bot-desk-logic";
 import { BotInbox } from "./bot-inbox";   // 「보드」 = 일감마다 카드 · 세 칸(형 11-16 영상 「Agent inbox」)
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));   // ③ 러너 층 = 작동 표(겹치는 활동 판만 뺌 · 보일 때 받음)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));   // ② 스케줄 배선 층(보일 때 받음)
@@ -25,8 +25,8 @@ import "./status-board.css";
 import "./bot-desk.css";
 
 type Sheet = { at?: number; stale?: boolean; table?: BotTable; skills?: Record<string, string> };
-type Tab = "board" | "flow" | "turn" | "hands" | "body";
-const TABS: [Tab, string][] = [["board", "일감"], ["flow", "흐름"], ["turn", "차례"], ["hands", "손 표"], ["body", "몸"]];   // 몸 = 옛 서랍 「몸 상태」 화면이 이 안으로 · 옛 「작동」 탭은 맨 아래 ③ 러너 층으로 내려감(형 11-16 18:1x 구름 맥 창 「그 애들 관련 정보를 다 하나로 통합시키고 싶어 … 그 다음에 그 아래에 뜰게, 스케줄 배선이야. 그리고 그 다음에 러너.」)
+type Tab = "board" | "turn" | "body";
+const TABS: [Tab, string][] = [["board", "일감"], ["turn", "차례"], ["body", "몸"]];   // 흐름 = 맨 위 손 판이 조직 그림이 되며 걷음 · 손 표 = 몸 줄에 같은 내용이 있어 걷음(형 11-16 19:2x 구름 맥 창 「손표를 몸 상태에 합치고 중첩되는건 없애자.」 · 「흐름의 조직 구성 느낌을 가장 메인에 좀 더 붙일 수 있나? 그럼 흐름으로 따로 안 만들어도 될거같은디」) · 몸 = 옛 「몸 상태」 화면 · 옛 「작동」 탭은 맨 아래 ③ 러너 층으로
 // 5번 메뉴 「애들」 한 화면(형 18:2x 「5번이 애들 상태 관련」 · 「이렇게 쭉 유기적으로 연결된 느낌을 살리는게」) = 위에서 아래로 ① 애들 → ② 스케줄 배선 → ③ 러너 · 층 사이 = 왼쪽 세로 줄기 + 마디 점(가만한 그림)
 //   아래 두 층은 첫 화면 뒤 한가할 때 받아 그림(첫 화면 무게 · 가만한 층은 그릴 것 0) · 옛 길 #/sched · #/runner = 그 층으로 내려감 · #/vm = 「몸」 탭
 const SECS = [["crew", "애들"], ["sched", "스케줄 배선"], ["run", "러너"]] as const;
@@ -103,29 +103,6 @@ function BotCard({ r, now, i, list }: { r: BotRow; now: number; i: number; list:
   );
 }
 
-function Flow({ t, now, pmName }: { t: BotTable; now: number; pmName: string }) {
-  const list = usePeople(), groups = flowOf(t.rows), orders = t.rows.reduce((n, r) => n + (r.open?.length || 0), 0), { resolved } = useTheme();
-  let i = 0;
-  return (
-    <div className="nm-bd-flow">
-      <div className="nm-bd-pm" style={delay(i++)}>
-        <span className="face">{pmName ? <FaceImg id={idOf(pmName, list)} size={36} /> : null}</span>
-        <div className="who"><p className="name"><b>{pmName || "PM 없음"}</b><span className="tag">PM</span></p><p className="meta">일 나누는 자리 · 지금 맡겨 둔 오더 {orders}건</p></div>
-        {pmName ? <ThinkingOrb state="composing" size={32} theme={resolved} /> : null}
-      </div>
-      {(t.late || []).map((o) => <p key={o.no} className="nm-bd-late" style={delay(i++)}>{o.no} {o.who} — 부른 지 {o.min}분, 받음 없음</p>)}
-      <div className="nm-bd-tree">
-        {groups.map((g) => (
-          <section key={g.group} className={`nm-bd-grp w-${wireTone(g.group)}`} aria-label={GROUP_KO[g.group]}>
-            <h3 style={delay(i++)}><i aria-hidden />{GROUP_KO[g.group]} <span>{g.rows.length}</span></h3>
-            <ul>{g.rows.map((r) => <BotCard key={r.who} r={r} now={now} i={i++} list={list} />)}</ul>
-          </section>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
   const [open, setOpen] = useState(""), list = usePeople();
   return (
@@ -148,36 +125,17 @@ function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
           </section>
         );
       })}
-      <p className="legend">차례 = 쉬는 손 먼저 · 그 가운데 잘하는 순 · 일하는 손은 맨 뒤 · D 는 개발 일감</p>
     </div>
   );
 }
 
-function Hands({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
-  const list = usePeople();
-  return (
-    <div className="nm-bd-hands">
-      <ul>
-        {t.rows.filter((r) => (r.skills || []).length || r.note || r.hw?.os).map((r, i) => (
-          <li key={r.who} className="nm-bd-hand" style={delay(i)}>
-            <span className="face"><FaceImg id={idOf(r.who, list)} size={36} /></span>
-            <div className="body">
-              <p className="name"><b>{r.who}</b>{(r.skills || []).map((c, k) => <span key={c} className={`sk${k === 0 ? " first" : ""}`} title={skills[c] || c}>{k === 0 && skills[c] ? `${c} ${skills[c]}` : c}</span>)}</p>
-              <p className="meta">{[r.hw?.ram, r.hw?.cpu, r.hw?.gpu && r.hw.gpu !== "없음" ? `GPU ${r.hw.gpu}` : "", r.hw?.os].filter(Boolean).join(" · ") || "–"}</p>
-              {r.note ? <p className="note">{r.note}</p> : null}
-            </div>
-          </li>
-        ))}
-      </ul>
-      {Object.keys(skills).length ? <p className="legend">특기 = 잘하는 차례(왼쪽이 1특기) · {Object.entries(skills).map(([c, name]) => `${c} ${name}`).join(" · ")}</p> : null}
-    </div>
-  );
-}
+/** 몸 한 줄(램 · CPU · GPU · OS) — 고른 애 펼침 밑 */
+const hwOf = (r: BotRow) => [r.hw?.ram && r.hw.ram !== "-" ? `램 ${r.hw.ram}` : "", r.hw?.cpu && r.hw.cpu !== "-" ? r.hw.cpu : "", r.hw?.gpu && r.hw.gpu !== "없음" ? `GPU ${r.hw.gpu}` : "", r.hw?.os].filter(Boolean).join(" · ");
 
 export function BotDesk() {
   const q = useQuery({ queryKey: ["nomute", "bots-sheet"], queryFn: () => office<Sheet>("status/bots"), refetchInterval: (x) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), staleTime: 5_000, retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
   const [tab, setTab] = useState<Tab>(() => { if (typeof location !== "undefined" && /^#\/vm(?:[/?]|$)/.test(location.hash)) return "body";   // 옛 「몸 상태」 길로 왔으면 몸 탭부터(이번만 · 고른 탭 기억은 그대로)
-    try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "flow" || v === "turn" || v === "hands" || v === "body" ? v : "board"; } catch { return "board"; } });
+    try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "body" ? v : "board"; } catch { return "board"; } });
   const secs = useRef<Partial<Record<Sec, HTMLElement | null>>>({});
   const goSec = (k: Sec, smooth = true) => { const el = secs.current[k]; if (el) el.scrollIntoView({ block: "start", behavior: smooth && !(typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) ? "smooth" : "auto" }); };
   useEffect(() => {   // 옛 길(#/sched · #/runner)로 들어오거나 메뉴 판에서 그 줄을 누르면 그 층으로 · #/vm = 몸 탭
@@ -197,8 +155,9 @@ export function BotDesk() {
   const t = q.data?.table, skills = q.data?.skills || {}, rows = t?.rows || [], now = Date.now();
   const crew = rows.filter((r) => !r.pm), n = countOf(crew);   // 맨 위 카드 = PM 뺀 손(형 11-15 「PM은 제외해서」 · PM 은 바로 밑 흐름 맨 위 카드에)
   const people = usePeople(), mix = mixOf(crew);
+  const [sel, setSel] = useState(""), pm = rows.find((r) => r.pm), picked = sel ? rows.find((r) => r.who === sel) : undefined, orders = rows.reduce((n, r) => n + (r.open?.length || 0), 0);
   const gen = flowOf(crew.filter((r) => !isSpecial(r)));   // 머리 숫자 = 특수 직군 뺀 손(아래 손 판의 「일하는 중」 · 「노는 손」 칸과 같은 셈 · 특수는 제 칸에)
-  const live = rows.some((r) => r.lane !== "none"), idle = gen.find((g) => g.group === "idle")?.rows || [], working = gen.find((g) => g.group === "work")?.rows || [], pmName = rows.find((r) => r.pm)?.who || "";
+  const live = rows.some((r) => r.lane !== "none"), idle = gen.find((g) => g.group === "idle")?.rows || [], working = gen.find((g) => g.group === "work")?.rows || [];
   return (
     <div className="nm-crew">
     <nav className="nm-crew-jump mx-auto w-full max-w-3xl px-4" aria-label="이 화면의 층">{SECS.map(([k, name], i) => <button key={k} type="button" className="nm-sched-chip" onClick={() => goSec(k)}>{i + 1} {name}</button>)}</nav>
@@ -212,7 +171,20 @@ export function BotDesk() {
         {q.data && live ? (
           <>
             <div className="mix" aria-hidden>{mix.map((m) => <i key={m.group} className={`g-${m.group}`} style={{ flexGrow: m.n }} />)}</div>
-            <HandBoard rows={crew} skills={skills} people={people} />
+            {pm ? (
+              <button type="button" className="nm-bd-org-pm" aria-pressed={sel === pm.who} onClick={() => setSel((w) => (w === pm.who ? "" : pm.who))}>   {/* 조직 그림의 뿌리 = PM(누르면 PM 것 펼침) */}
+                <span className="face"><FaceImg id={idOf(pm.who, people)} size={36} /></span>
+                <b>{pm.who}</b><span className="sk">{roleLabel(pm.skills, pm.who) || "PM"}</span>{orders ? <em className="job">오더 {orders}</em> : null}
+              </button>
+            ) : null}
+            {(t?.late || []).map((o) => <p key={o.no} className="nm-bd-late">{o.no} {o.who} — 부른 지 {o.min}분, 받음 없음</p>)}
+            <HandBoard rows={crew} skills={skills} people={people} sel={sel} onPick={(w) => setSel((x) => (x === w ? "" : w))} />
+            {picked ? (
+              <div className="nm-bd-org-one" aria-label={`${picked.who} 자세히`}>   {/* 얼굴을 누르면 그 애 것만(상태 · 맡은 일 줄 = 옛 흐름 카드 · 특기 · 몸 한 줄) */}
+                <ul><BotCard key={picked.who} r={picked} now={now} i={0} list={people} /></ul>
+                <p className="more">{(picked.skills || []).map((c, k) => <span key={c} className={k ? undefined : "first"} title={skills[c] || c}>{roleOf(c, k > 0) || skills[c] || c}</span>)}{hwOf(picked) ? <small>{hwOf(picked)}</small> : null}</p>
+              </div>
+            ) : null}
           </>
         ) : null}
       </div>
@@ -222,17 +194,17 @@ export function BotDesk() {
       <div className="nm-bd-tabs" aria-label="봇 현황 보기">
         <RubberSegment items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={(v) => pick(v as Tab)} size="lg" radius={14} trackColor="rgba(18,18,18,.55)" thumbColor="rgba(207,255,64,.9)" textColor="#E7ECE7" activeTextColor="#141516" />
       </div>
-      {tab === "body" || !t ? null : tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "flow" ? (live ? <Flow t={t} now={now} pmName={pmName} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : <Hands t={t} skills={skills} />}
+      {tab === "body" || !t ? null : tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} focus={sel} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : null}
 
     </div>
     {tab === "body" ? <div className="mx-auto w-full max-w-6xl"><Suspense fallback={<p className="nsb-empty">읽는 중…</p>}><VmDesk /></Suspense></div> : null}   {/* 몸 = 손 판 폭(좁음) 밖 · 제 폭(넓음)으로 — 램 띠가 넓은 화면을 다 씀 */}
     </section>
     <section className="nm-crew-sec" ref={(el) => { secs.current.sched = el; }} aria-label="스케줄 배선">
-      <h2 className="nm-crew-h mx-auto w-full max-w-6xl px-4"><i aria-hidden />스케줄 배선<small>애들이 맡은 예약 일 · 포크 · 꼬챙이</small></h2>
+      <h2 className="nm-crew-h mx-auto w-full max-w-6xl px-4"><i aria-hidden />스케줄 배선</h2>
       <Near min={420} wait={900}><SchedDesk /></Near>
     </section>
     <section className="nm-crew-sec" ref={(el) => { secs.current.run = el; }} aria-label="러너">
-      <h2 className="nm-crew-h mx-auto w-full max-w-6xl px-4"><i aria-hidden />러너<small>그 일을 돌리는 몸 · 계정 · 연결 · 작동 표</small></h2>
+      <h2 className="nm-crew-h mx-auto w-full max-w-6xl px-4"><i aria-hidden />러너</h2>
       <Near min={420} wait={1700}><StatusBoard bare /></Near>   {/* 작동 표 = 제 폭(넓음) · 겹치는 「활동」 판만 뺌(./status-board.tsx bare) */}
     </section>
     </div>

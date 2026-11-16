@@ -38,7 +38,7 @@
 .nm-ibx-card .desc { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top:4px; font-size:var(--fs-xs); line-height:1.45; color:var(--nsb-mut); }
 .nm-ibx[data-view="list"] .nm-ibx-card .desc { -webkit-line-clamp:1; }
 .nm-ibx-card .foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; color:var(--nsb-mut); }
-.nm-ibx-card .st { display:inline-flex; align-items:center; gap:7px; min-width:0; white-space:nowrap; }
+.nm-ibx-card .st { display:flex; align-items:center; gap:7px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }   /* 좁은 카드에서 시간 글이 오른쪽 표를 덮지 않게(넘치면 …) */
 .nm-ibx-card .dot { flex:none; box-sizing:border-box; width:10px; height:10px; border-radius:50%; }
 .nm-ibx-card[data-tone="run"] .dot { border:1.5px solid rgba(255,255,255,.2); border-top-color:var(--nsb-ok); animation:ibxSpin .9s linear infinite; }
 .nm-ibx-card[data-tone="done"] .dot { width:7px; height:7px; background:var(--nsb-ok); }
@@ -83,3 +83,10 @@
   .nm-ibx-card[data-tone="run"] .dot { animation-duration:2.4s; }
   .nm-ibx-card[data-open] .steps li, .nm-ibx-card[data-open] .head, .nm-ibx-card[data-open] .acts { animation:none; }
 }
+
+/* 담당자 얼굴(형 11-16 19:2x 「담당자랑 섞여서」) · 위에서 고른 애 것만 밝게 */
+.nm-ibx-card .ttl .by { margin-left:auto; flex:none; display:inline-flex; align-items:center; gap:5px; padding-left:8px; font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); white-space:nowrap; }
+.nm-ibx-card .ttl .by img, .nm-ibx-card .ttl .by > :first-child { width:18px; height:18px; border-radius:50%; }
+.nm-ibx-card { transition:opacity .2s cubic-bezier(.22,.61,.36,1); }
+.nm-ibx-card[data-dim] { opacity:.32; }
+@media (prefers-reduced-motion:reduce) { .nm-ibx-card { transition:none; } }

@@ -3,9 +3,7 @@
 .nm-vmdesk { --vm-ink:#F0EFEB; --vm-muted:#8F8E88; --vm-faint:#55554F; --vm-grid:#2E2D29; --vm-held:#B3B0A4; --vm-halo:#141516; padding:14px 14px 28px; text-transform:none; letter-spacing:normal; color:var(--vm-ink); }
 :root:not(.dark) .nm-vmdesk { --vm-ink:#1C1C1A; --vm-muted:#8F8E88; --vm-faint:#C6C5BF; --vm-grid:#DEDDD6; --vm-held:#6A6963; --vm-halo:#F0EFEB; }
 .nm-vmdesk h2, .nm-vmdesk h3, .nm-vmdesk p { margin:0; padding:0; }
-.nm-vm-head { margin:2px 6px 14px; }
-.nm-vm-head h2 { font-size:var(--fs-h2, 18px); font-weight:700; letter-spacing:-.02em; }
-.nm-vm-head p { margin-top:4px; font-size:11.5px; color:var(--vm-muted); }
+.nm-vmdesk .nm-vm-at { margin:0 8px 8px; text-align:right; font-size:11px; font-variant-numeric:tabular-nums; color:var(--vm-muted); }
 .nm-vm-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap:14px; }
 .nm-vm-card { min-width:0; padding:24px 24px 18px; border-radius:24px; background:var(--glass, rgba(255,255,255,.05)); border:1px solid var(--glass-line, rgba(255,255,255,.08)); }
 .nm-vm-card h3 { display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; font-size:16.5px; font-weight:700; letter-spacing:-.02em; line-height:1.3; }

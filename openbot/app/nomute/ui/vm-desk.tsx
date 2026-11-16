@@ -32,10 +32,7 @@ export function VmDesk() {
   const at = !demo && typeof q.data?.at === "number" ? q.data.at : 0, people = usePeople();
   return (
     <div className="nm-vmdesk">
-      <header className="nm-vm-head">
-        <h2>몸 상태</h2>
-        <p>애들마다 상태 · 특기 · 하드웨어 · 램 24시간{list.length ? ` · ${list.length}줄 · 램 기록 ${vms.length}` : ""}{at ? ` · 램 자료 ${mdhm(at)} 기준` : ""}{demo ? " · 램은 견본(진짜 자료 아님)" : ""}</p>
-      </header>
+      {demo || at ? <p className="nm-vm-at">{at ? `램 ${mdhm(at)}` : ""}{demo ? " 견본" : ""}</p> : null}   {/* 머리 글 걷음(형 11-16 19:2x 「설명글은 가능한 없애고」) — 남긴 것 = 자료 시각 하나 */}
       {list.length ? <div className="nm-vm-rows">{list.map((x) => <BodyRow key={x.who} who={x.who} r={x.r} v={x.v} skills={skills} people={people} />)}</div>
         : <p className="nm-vm-empty" role="status">{q.isLoading || sheet.isLoading ? "읽는 중…" : "아직 올라온 자료가 없어요. 봇 현황 표나 몸마다 잰 램 기록이 오면 여기에 그려져요."}</p>}
     </div>
