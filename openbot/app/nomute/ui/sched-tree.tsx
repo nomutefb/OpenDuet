@@ -160,7 +160,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
           <span key={`l:${e.k}`} className="nm-tree-wlab" data-st={m.st} data-next={m.next || undefined} style={{ transform: `translate(${edgeMid(a, b).x}px, ${edgeMid(a, b).y}px)` }}>하루 {Math.round(m.runs).toLocaleString("ko-KR")}번</span>
         ) : null)}
         {tree.nodes.map((n, i) => {
-          const pos = { transform: `translate(${n.x}px, ${n.y}px)`, width: n.w, height: n.h, "--i": Math.min(i, 14) } as CSSProperties;
+          const pos = { translate: `${n.x}px ${n.y}px`, width: n.w, height: n.h, "--i": Math.min(i, 14) } as CSSProperties;   // 자리 = translate 속성(transform 아님) — 눌림(scale)이 자리까지 줄여 가지가 위 · 왼쪽으로 튀던 것 고침(앞 = 아래쪽 가지는 마우스로 누르면 손 밑에서 빠져나가 안 열림 · 실물 11-16 = 누름은 가지 · 뗌은 바탕)
           if (n.kind !== "job" && n.kind !== "routine") {
             const sts = stsUnder(n), sum = sumOf(sts), w = worstOf(sum), off = n.fork ? n.fork.on === false : false;
             const more = bots && n.id === "g:bot" ? bots.openBots : null;   // 봇에게 시킨 일 = 봇마다 차단기
@@ -175,8 +175,8 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
                 </span>
                 <svg className="nm-tree-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m9 6 6 6-6 6" /></svg>
               </button>
-              {more ? <button type="button" className="nm-tree-more" style={{ transform: `translate(${n.x + n.w - 58}px, ${n.y + n.h / 2 - 14}px)` }} aria-label="봇 차단기" title="봇 차단기" onClick={more}><Ic d="more" /></button> : null}
-              {plus ? <button type="button" className="nm-tree-more plus" style={{ transform: `translate(${n.x + n.w - (more ? 88 : 58)}px, ${n.y + n.h / 2 - 14}px)` }} aria-label={`${n.name}에 일 추가`} title="일 추가" onClick={plus}><Ic d="plus" /></button> : null}   {/* 봇 갈래 = 봇마다 차단기 · 봇 포크 = 포크 차단기 + 공통 내용(봇 목록 탭에 있던 것) */}
+              {more ? <button type="button" className="nm-tree-more" style={{ translate: `${n.x + n.w - 58}px ${n.y + n.h / 2 - 14}px` }} aria-label="봇 차단기" title="봇 차단기" onClick={more}><Ic d="more" /></button> : null}
+              {plus ? <button type="button" className="nm-tree-more plus" style={{ translate: `${n.x + n.w - (more ? 88 : 58)}px ${n.y + n.h / 2 - 14}px` }} aria-label={`${n.name}에 일 추가`} title="일 추가" onClick={plus}><Ic d="plus" /></button> : null}   {/* 봇 갈래 = 봇마다 차단기 · 봇 포크 = 포크 차단기 + 공통 내용(봇 목록 탭에 있던 것) */}
               </Fragment>
             );
           }
