@@ -66,6 +66,12 @@ test("두 재료 = rhwp 편집기(열기 · 고치기 · 저장) + hwpx-docs(만
   assert.match(en, /export const PYODIDE = "https:\/\/cdn\.jsdelivr\.net\/npm\/pyodide@314\.0\.8\/";/, "파이썬 판 고정");
   assert.match(en, /new Worker\(url, \{ type: "module" \}\)/, "일꾼 안에서 돎 = 화면 안 멈춤");
   assert.ok(!/fetch\(["'`]\/api\//.test(de + en), "우리 서버로 문서를 안 보냄");
+  // 부하 줄이기(형 11-17 「한수는 진행 · 줄일수잇는 효용이 큰거는 고치장」) = 창 닫으면 일꾼 끔 · 3분 안 부르면 끔 · 묶음은 한 번 받으면 다시 안 물음
+  assert.match(de, /ed\.current\?\.destroy\(\); ed\.current = null; stopHd\(\);/, "창 닫음 = 파이썬 일꾼도 내림");
+  assert.match(en, /export const IDLE_MS = 180_000;/);
+  assert.match(en, /if \(!waits\.size\) \{ clearTimeout\(idle\); idle = window\.setTimeout\(stopHd, IDLE_MS\); \}/);
+  assert.match(en, /export function stopHd\(\) \{ if \(worker && !waits\.size\) drop\(/, "하던 일이 있으면 안 끔");
+  assert.match(en, /fetch\(pack, \{ cache: "force-cache" \}\)/);
 });
 
 test("hwpx-docs 묶음 = 앱에 실림 · 작음(Pages 파일 한도 25MB 한참 아래) · 출처 · 라이선스 같이", () => {

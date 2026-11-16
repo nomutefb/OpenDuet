@@ -12,7 +12,7 @@ import { createEditor, type RhwpEditor } from "@rhwp/editor";
 import { useEffect, useRef, useState } from "react";
 import { ToolButtons } from "../ui/ed-keep";
 import { CANT_READ, OPEN_ACCEPT, SAMPLE_MD, STUDIO_URL, checkLines, hdCrashed, maskedCount, saveName } from "./doc-logic";
-import { hd, warmHd } from "./hd-engine";
+import { hd, stopHd, warmHd } from "./hd-engine";
 
 const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></svg>;
 type Side = "make" | "check" | null;
@@ -39,7 +39,7 @@ export function DocEditor({ onBack, onMin }: { onBack?: () => void; onMin?: () =
       if (!live) { e.destroy(); return; }
       ed.current = e; setReady(true);
     }).catch((e: unknown) => { if (live) setErr(`편집기 화면을 못 받았어 — ${e instanceof Error ? e.message : String(e)}`); });
-    return () => { live = false; ed.current?.destroy(); ed.current = null; };
+    return () => { live = false; ed.current?.destroy(); ed.current = null; stopHd(); };   // 창을 닫음 = 편집기 칸 + 파이썬 일꾼 둘 다 내림(메모리 돌려줌)
   }, [boot]);
 
   /** 한 가지 일 — 하는 동안 이름을 띄우고 · 끝나면 한 줄 · 실패는 빨강 한 줄(조용히 넘어가지 않음) */
