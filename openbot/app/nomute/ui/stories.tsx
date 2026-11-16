@@ -16,9 +16,12 @@ import "./stories.css";
 /** 붙은 것 하나 — 경로 글(앞 꼴 · 우리 서버 파일) 또는 주소 글(https · 지드라이브 링크) 또는 { url | path, name?, kind? } */
 export type MediaItem = string | { url?: string; path?: string; name?: string; kind?: string };
 export type Story = { id: string; ts: number; who: string; title: string; path?: string; text?: string; bell?: string; media?: MediaItem[] };
-/** 안 보이는 지은이 — 윈터 글 뺌(형 11-14 「윈터 관련된 글은 삭제」 · 서버 글은 그대로 두고 목록에서만) */
+/** 안 보이는 지은이 — 옛 윈터 글만 뺌(형 11-14 「윈터 관련된 글은 삭제」 · 서버 글은 그대로 두고 목록에서만)
+ *  = 이름 + 그 날 앞 · 11-15 18:00 KST 뒤 돌아온 윈터 글은 보임(형 11-17 02:28 「윈터 글은 윈터 정원에 들어가게해주엉」) */
 const GONE = new Set(["윈터", "winter"]);
-export const useStories = () => useQuery({ queryKey: ["nomute", "stories"], queryFn: () => office<{ items?: Story[] }>("stories").then((j) => (Array.isArray(j.items) ? j.items : []).filter((s) => !GONE.has(s.who))), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false });
+const GONE_BEFORE = Date.UTC(2026, 10, 15, 9);   // 11-15 18:00 KST
+export const shown = (s: Pick<Story, "who" | "ts">) => !(GONE.has(s.who) && !(Number(s.ts) >= GONE_BEFORE));
+export const useStories = () => useQuery({ queryKey: ["nomute", "stories"], queryFn: () => office<{ items?: Story[] }>("stories").then((j) => (Array.isArray(j.items) ? j.items : []).filter(shown)), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false });
 
 const KST = 9 * 3600e3;
 const when = (ts: number) => { const d = new Date(ts + KST); return `${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")} ${d.getUTCHours()}시`; };

@@ -92,6 +92,8 @@ test("폰 밥상 이야기 · 화상회의 머리 줄 0 · 봄의 정원 머리 
   assert.match(sh, /box\.style\.setProperty\("--nm-frame-top", top\); box\.style\.background = `linear-gradient\(\$\{top\} 50%, \$\{bot\} 50%\)`;/);
   assert.match(css, /\.nm-modal-h\.nm-mh-play \{ right:auto;/);
   assert.match(rd("../ui/stories.tsx"), /const GONE = new Set\(\["윈터", "winter"\]\);/);
+  assert.match(rd("../ui/stories.tsx"), /const GONE_BEFORE = Date\.UTC\(2026, 10, 15, 9\);/);
+  assert.match(rd("../ui/stories.tsx"), /\.filter\(shown\)/);
   assert.match(rd("../ui/meet.tsx"), /<li><i>참여자 :<\/i>/);
   assert.match(rd("../ui/meet.tsx"), /<li><i>내용 :<\/i>/);
 });
