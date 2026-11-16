@@ -19,6 +19,7 @@ test("끼운 자리 = 화면과 미리 받기가 같은 꼴 한 벌(data/crew-wa
   assert.match(warm, /office<T>\("status\/bots"\)\.then\(\(j\) => lastPut\("bots-sheet", j\)\), \.\.\.lastSeed<T>\("bots-sheet"\)/);
   assert.match(warm, /office<T>\("schedule"\)\.then\(\(j\) => lastPut\("schedule", j\)\), \.\.\.lastSeed<T>\("schedule"\)/);
   assert.match(warm, /qc\.prefetchQuery\(botsSheetOpts<unknown>\(\)\); void qc\.prefetchQuery\(schedOpts<unknown>\(\)\)/);
+  assert.match(warm, /void qc\.prefetchQuery\(vmMemOpts<unknown>\(\)\)/); assert.equal(rd("../ui/vm-desk.tsx").split("...vmMemOpts<VmMemRes>()").length - 1, 2);   // 램 기록 = 「몸」 탭 · 애 펼침 카드 둘 다 같은 꼴
   assert.match(desk, /\.\.\.botsSheetOpts<Sheet>\(\)/); assert.match(set, /useQuery\(\{ \.\.\.schedOpts<Sched>\(\)/);
   assert.match(shell, /useEffect\(\(\) => warmCrew\(warmQc\), \[warmQc\]\)/);
   assert.match(desk, /q\.isPending \? <HandGhost people=\{people\} \/> : null/); assert.doesNotMatch(desk, /읽는 중…<\/span> : q\.isError/);

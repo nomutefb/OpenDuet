@@ -8,6 +8,7 @@ import { office } from "./office";
 import { lastPut, lastSeed } from "./last-cache";
 
 export const botsSheetOpts = <T,>() => ({ queryKey: ["nomute", "bots-sheet"] as const, queryFn: () => office<T>("status/bots").then((j) => lastPut("bots-sheet", j)), ...lastSeed<T>("bots-sheet"), staleTime: 5_000 });
+export const vmMemOpts = <T,>() => ({ queryKey: ["nomute", "vm-mem"] as const, queryFn: () => office<T>("vm-mem").then((j) => lastPut("vm-mem", j)), ...lastSeed<T>("vm-mem"), staleTime: 60_000 });   // 램 24시간(애 펼침 카드의 그래프 · 「몸」 탭) — 카드를 열자마자 그래프가 그려지게 같이 받아 둠
 export const schedOpts = <T,>() => ({ queryKey: ["nomute", "schedule"] as const, queryFn: () => office<T>("schedule").then((j) => lastPut("schedule", j)), ...lastSeed<T>("schedule"), staleTime: 30_000 });
 
 let warmed = false;
@@ -15,7 +16,7 @@ let warmed = false;
 export function warmCrew(qc: QueryClient, wait = 1800): () => void {
   if (warmed || typeof window === "undefined") return () => {};
   warmed = true;
-  const go = () => { void qc.prefetchQuery(botsSheetOpts<unknown>()); void qc.prefetchQuery(schedOpts<unknown>()); };
+  const go = () => { void qc.prefetchQuery(botsSheetOpts<unknown>()); void qc.prefetchQuery(schedOpts<unknown>()); void qc.prefetchQuery(vmMemOpts<unknown>()); };
   const idle = (window as unknown as { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
   const t = window.setTimeout(() => (idle ? idle(go, { timeout: 2000 }) : go()), wait);
   return () => window.clearTimeout(t);

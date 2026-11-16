@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { HOLD_MAX, durKo, endKo, minsAt, posOf, restBody, restKo, restOn, restPos, ticksOf, untilOf } from "../ui/bot-manage-logic.ts";
+import { HOLD_MAX, acctKo, bodyNote, durKo, endKo, minsAt, posOf, restBody, restKo, restOn, restPos, stepOf, ticksOf, untilOf } from "../ui/bot-manage-logic.ts";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const kst = (s: string) => Date.parse(s + "+09:00");
 const NOW = kst("2026-11-16T20:40:00");
@@ -57,7 +57,7 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.match(ui, /office<\{ nextwin\?: Record<string, NextWin> \}>\("profile\/nextwin", \{ method: "POST"/);
   assert.match(ui, /office<\{ ok\?: boolean; rest\?: RestMap \}>\("bots\/rest", \{ method: "POST", body: JSON\.stringify\(restBody\(/);
   assert.match(ui, /\{r\.brain === "클로드" \? <NextWinRows who=\{r\.who\} \/> : null\}/);
-  assert.match(ui, /\{r\.pm \? <PmRow who=\{r\.who\} \/> : <RestRows r=\{r\} skills=\{skills\} \/>\}/);   // PM 줄 = PM 바꾸기 · 그 밖 = 임시 멈춤
+  assert.match(ui, /<AcctRestRow r=\{r\} skills=\{skills\} \/>/); assert.match(ui, /\{r\.pm \? <PmRow who=\{r\.who\} \/> : null\}/);   // 계정 줄 + 쉼 토글(형 11-17 07:53) · PM 줄 = PM 바꾸기
   assert.match(ui, /\{r\.brain === "그록" \? <GrokRows \/> : null\}/);   // 그록 쪽 애만 호출 맥락 · 그록봇 지침
   // 설정에서 옮긴 것(형 11-16 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」): 「모두」 일괄은 누르기 전 한 번 되물음 · 설정엔 가는 길 하나
   assert.match(ui, /export function BotManageAll\(\)/);
@@ -76,19 +76,26 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.match(mine, /\.nm-bm \.pc \{ height:auto; padding:6px 7px; border:0; border-radius:0; background:none;/);
   assert.match(mine, /\.nm-bm \.pc\.on \{ color:var\(--accent, #CFFF40\); font-weight:800; \}/);
   assert.match(mine, /\.nm-bm \.ssep \{[^}]*opacity:\.35;/);
-  // 막대: 끄는 동안 리액트 0(자리 = CSS 변수) · 움직이는 값 = transform 뿐 · 끄는 동안 전환 끔
-  assert.match(ui, /el\.style\.setProperty\("--p", String\(x\)\)/);
-  assert.match(mine, /\.nm-hs \.fill \{[^}]*transform:translateX\(calc\(\(var\(--p, 0\) - 1\) \* 100%\)\); \}/);
-  assert.match(mine, /\.nm-hs \.track\[data-drag\] \.fill, [^{]*\{ transition:none;/);
+  // 다시 짬(형 11-17 07:53 dm-bom): 노력도 = 좌우로 넘기는 낱말 하나 · 사양 줄 대신 그 애 몸 칸(그래프) · 기간 막대 · 「걸기」 줄은 걷음
+  assert.match(ui, /<Step key="e" label="노력도" list=\{NW_EFFORTS\} value=\{eff\} disabled=\{!can\} onPick=\{pickEff\} \/>/);
+  assert.match(ui, /role="switch" className="sw" aria-checked=\{shown\}/);
+  assert.match(ui, /restBody\(r\.who, turnOn, \[\], undefined\)/);   // 토글 = 전부 · 풀 때까지
+  assert.doesNotMatch(ui, /function HoldBar|function RestRows|걸기<\/button>/);
+  assert.match(desk, /<VmCard key=\{`v-\$\{picked\.who\}`\} r=\{picked\} \/>/); assert.doesNotMatch(desk, /hwOf\(picked\)/);
+  assert.match(css, /\.nm-bm \.sw\[aria-checked="true"\] > i \{ transform:translateX\(18px\);/);
   assert.doesNotMatch(mine, /transition:[^;]*(height|width|top|left|margin)/);
 });
 
-test("안 걸린 애의 임시 멈춤 = 「없음 | 걸기」 한 줄(걸린 꼴로 안 보이게) · 걸린 것만 라임", () => {
-  // 형 11-17 02:01 dm-bom(봄 옮김) 「글구 윈터 멈춤이 아닌데 계속 멈춤 설정되어잇어 확인 좀」 — 앞 = 고르는 칸(라임 「전부」 · 라임 막대 · 「멈춤」 단추)이 늘 떠 있었음
-  const ui = readFileSync(new URL("../ui/bot-manage.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/bot-desk.css", import.meta.url), "utf8");
-  assert.match(ui, /const \[draft, setDraft\] = useState\(false\);/);
-  assert.match(ui, /if \(!draft\) return \(\s*<div className="hold">\s*<Row label="임시 멈춤" note=\{err\}>\{\[\s*<span key="v" className="sval off">없음<\/span>,\s*<button key="go" type="button" className="pc" disabled=\{q\.isPending\} onClick=\{\(\) => setDraft\(true\)\}>걸기<\/button>/);
-  assert.match(ui, /<HoldBar draft mins=\{mins\}/);   // 고르는 중 막대 = 회색
-  assert.match(css, /\.nm-hs\[data-draft\] \.fill \{ background:rgba\(232,234,232,\.2\); \}/);
-  assert.match(css, /\.nm-hs\[data-lock\] \.fill \{ background:var\(--accent, #CFFF40\); \}/);   // 걸려 있는 것 = 지금 값 = 라임
+test("펼침 카드 셈 — 좌우 넘김 · 계정 줄 · 비고에서 몸 이야기만", () => {
+  // 형 11-17 07:53 dm-bom(봄 옮김) 「첨부2에 노력도. 비디오 에디터 같은 곳에 좌우로 왓다갓다 토글 할 수 있게 변경」 · 「계정에 ems1130g (잔여 00%)」 · 「그래프에서 나오는 상세한 설명글 … 루틴에 대한 그거는 중첩된 내용이니 없어도 되고」
+  const E = ["low", "medium", "high", "xhigh", "max"];
+  assert.equal(stepOf(E, "high", 1), "xhigh"); assert.equal(stepOf(E, "max", 1), "low"); assert.equal(stepOf(E, "low", -1), "max"); assert.equal(stepOf(E, "모름", 1), "low");
+  assert.deepEqual(acctKo("ems1130g", 82), { name: "ems1130g", left: "잔여 82%" }); assert.deepEqual(acctKo("naver", "남은 46"), { name: "naver", left: "잔여 46" }); assert.deepEqual(acctKo(undefined, null), { name: "", left: "" });
+  assert.equal(bodyNote("윈A VM · 램 동적 4~10GB"), "윈A VM · 램 동적 4~10GB");
+  assert.equal(bodyNote("화면을 빌드까지 해서 넘김"), "");
+  assert.equal(bodyNote("개발 제외 · 맥 한 대를 같이 씀(CPU · GPU 공용 · 동적) · 특기만(형 11-16)"), "맥 한 대를 같이 씀(CPU · GPU 공용 · 동적)");   // 괄호 안은 안 나눔
+  assert.equal(bodyNote("쉼 지정 · 바깥 마무리까지 · 그록 한 계정 공용 몸(상자 15GB · 빈 몫 약 11GB · 같이 돌면 나눠 씀)"), "그록 한 계정 공용 몸(상자 15GB · 빈 몫 약 11GB · 같이 돌면 나눠 씀)");
+  assert.equal(bodyNote("Lx A 를 시아와 같이 씀 · 머리 = 코덱스 ↔ 클로드"), "Lx A 를 시아와 같이 씀 · 머리 = 코덱스 ↔ 클로드");
+  assert.equal(bodyNote(undefined), "");
 });
+

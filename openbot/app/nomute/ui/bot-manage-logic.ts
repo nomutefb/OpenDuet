@@ -50,3 +50,33 @@ export function restBody(who: string, on: boolean, codes: string[], until: numbe
   if (!on) return { who, on: false };
   return { who, on: true, ...(codes.length ? { codes } : {}), ...(until ? { until } : {}) };
 }
+
+// ── 애 펼침 카드 다시 짜기(형 11-17 07:53 dm-bom · 봄 옮김 「이거 그래프를 첨부2 안에다가 넣자 / 첨부2에 노력도. 비디오 에디터 같은 곳에 좌우로 왓다갓다 토글 할 수 있게 변경 / 그러면 저기에 나온 사양은 첨부1을 넣을거니까 안나와도 되고 / 쉬게하는 버튼은 토글 형식으로해서 / 계정 라인으로 붙이고 / 계정에 ems1130g (잔여 00%) / ems1130g 랑 잔여 00% 는 라임색으로」
+//   · 「그렇게 다 각자로 넣을게. / 그리고 그래프에서 나오는 상세한 설명글 잇던데 루틴에 대한 그거는 중첩된 내용이니 없어도 되고」) ──
+/** 좌우로 넘기는 값 — 목록에서 by 칸 옆(끝에서 넘기면 반대 끝으로 돎 · 목록에 없는 값이면 첫 칸부터). */
+export function stepOf<T>(list: readonly T[], cur: T, by: number): T {
+  if (!list.length) return cur;
+  const i = list.indexOf(cur), n = list.length;
+  return list[i < 0 ? 0 : (((i + by) % n) + n) % n];
+}
+/** 계정 줄 — 이름 + 「잔여 82%」(숫자면 % · 글이면 그대로 · 없으면 빈 글). */
+export function acctKo(acct: string | undefined, left: string | number | null | undefined): { name: string; left: string } {
+  const name = String(acct || "").trim();
+  if (left === null || left === undefined || left === "") return { name, left: "" };
+  const t = String(left).trim();
+  return { name, left: /^\d+(\.\d+)?$/.test(t) ? `잔여 ${t}%` : /잔여|남은/.test(t) ? t.replace(/^남은\s*/, "잔여 ") : `잔여 ${t}` };
+}
+const BODY_RE = /VM|램|GB|맥|몸|상자|본체|Lx|세션|머리\s*=|\s창\s|코어|스레드|GPU|CPU/;
+/** 비고 글에서 몸 이야기만 — 「 · 」로 이어진 조각 가운데(괄호 안은 안 나눔) 몸 낱말이 든 것만 남김(루틴 · 맡은 일 조각은 카드의 다른 줄과 겹침). */
+export function bodyNote(note: string | undefined): string {
+  const out: string[] = []; let cur = "", depth = 0;
+  const s = String(note || "");
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === "(") depth++; else if (c === ")") depth = Math.max(0, depth - 1);
+    if (depth === 0 && s.startsWith(" · ", i)) { out.push(cur); cur = ""; i += 2; continue; }
+    cur += c;
+  }
+  out.push(cur);
+  return out.map((x) => x.trim()).filter((x) => x && BODY_RE.test(` ${x} `)).join(" · ");
+}

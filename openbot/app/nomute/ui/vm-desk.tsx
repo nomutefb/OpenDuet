@@ -11,6 +11,8 @@ import { FaceImg, usePeople } from "./faces";
 import { type VmMem, type VmMemRes, everyKo, gb, mdhm, vmClean, vmDemo, vmGeom, vmStats } from "./vm-mem-logic";
 import { type BotRow, type BotTable, type Group, GROUP_KO, groupOf, roleLabel, roleOf } from "./bot-desk-logic";
 import { skillShort } from "./bot-desk-hands";
+import { vmMemOpts } from "../data/crew-warm";   // 지난 램 기록을 먼저 그리고 · 앱이 켜질 때 미리 받아 둔 답을 그대로 씀
+import { bodyNote } from "./bot-manage-logic";   // 비고 글에서 몸 이야기만(루틴 · 맡은 일 조각은 겹침 · 형 11-17 07:53)
 import "./vm-desk.css";
 
 const isDemo = () => typeof location !== "undefined" && /[?&]vmdemo(?:[=&]|$)/.test(location.search);
@@ -24,7 +26,7 @@ export function rosterOf(rows: BotRow[], vms: VmMem[]): { who: string; r?: BotRo
 
 export function VmDesk() {
   const demo = useMemo(isDemo, []);
-  const q = useQuery({ queryKey: ["nomute", "vm-mem"], queryFn: () => office<VmMemRes>("vm-mem"), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false, enabled: !demo });
+  const q = useQuery({ ...vmMemOpts<VmMemRes>(), refetchInterval: 5 * 60_000, retry: false, enabled: !demo });
   const sheet = useQuery({ queryKey: ["nomute", "bots-sheet"], queryFn: () => office<Sheet>("status/bots"), staleTime: 5_000, refetchInterval: 60_000, retry: false });   // 봇 현황(./bot-desk.tsx)과 같은 열쇠 = 받아 둔 표를 같이 씀
   const vms = useMemo(() => (demo ? vmDemo(Date.now()) : vmClean(q.data?.vms)), [demo, q.data]);
   const rows = sheet.data?.table?.rows || [], skills = sheet.data?.skills || {};
@@ -55,7 +57,7 @@ function BodyRow({ who, r, v, skills, people }: { who: string; r?: BotRow; v?: V
       </div>
       <div className="hw">
         <p>{hw || (v?.host ? v.host : "하드웨어 표 없음")}</p>
-        {r?.note ? <small>{r.note}</small> : null}
+        {bodyNote(r?.note) ? <small>{bodyNote(r?.note)}</small> : null}
         {s && v ? <small className="num">램 평균 {gb(s.avg)}GB · 최고 {gb(s.max)}GB{s.heldLast !== null ? ` · 쥔 램 ${gb(s.heldLast)}GB` : ""} · {everyKo(v.step_s)}</small> : null}
       </div>
       <div className={`plot${v ? "" : " none"}`} ref={ref} style={v ? { height: h } : undefined}>
@@ -65,6 +67,34 @@ function BodyRow({ who, r, v, skills, people }: { who: string; r?: BotRow; v?: V
           </button>
         ) : v ? null : <span>램 기록 아직 없음</span>}
       </div>
+    </section>
+  );
+}
+
+/** 애 펼침 카드 안의 몸 한 칸 — 그 애 사양 · 몸 비고 · 램 24시간 그래프(「몸」 탭 줄과 같은 자료 · 같은 그림) · 형 11-17 07:53 「이거 그래프를 첨부2 안에다가 넣자」 · 「그렇게 다 각자로 넣을게.」 */
+export function VmCard({ r }: { r: BotRow }) {
+  const q = useQuery({ ...vmMemOpts<VmMemRes>(), refetchInterval: 5 * 60_000, retry: false });
+  const v = useMemo(() => vmClean(q.data?.vms).find((x) => x.who === r.who), [q.data, r.who]);
+  const [ref, w] = useWidth(), [tall, setTall] = useState(false);
+  const s = useMemo(() => (v ? vmStats(v) : null), [v]), h = tall ? 280 : 132;
+  const g = useMemo(() => (v && w ? vmGeom(v, w, h) : null), [v, w, h]);
+  const hw = hwLine(r), note = bodyNote(r.note);
+  return (
+    <section className="nm-vmdesk nm-vm-row in-card" aria-label={`${r.who} 몸`}>
+      <div className="hw">
+        {hw ? <p>{hw}</p> : null}
+        {note ? <small>{note}</small> : null}
+        {s && v ? <small className="num">램 평균 {gb(s.avg)}GB · 최고 {gb(s.max)}GB{s.heldLast !== null ? ` · 쥔 램 ${gb(s.heldLast)}GB` : ""} · {everyKo(v.step_s)}</small> : null}
+      </div>
+      {v || q.isPending ? (
+        <div className="plot" ref={ref} style={{ height: h }}>
+          {v && g && s ? (
+            <button type="button" className="grow" aria-expanded={tall} aria-label={`${r.who} 램 24시간 그래프 ${tall ? "줄이기" : "키우기"}`} onClick={() => setTall((t) => !t)}>
+              <VmPlot who={r.who} v={v} g={g} s={s} tall={tall} />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -6,13 +6,14 @@
 //   서버 = 이미 있는 길만: 모델 · 노력도 = profile/nextwin(./next-win.tsx) · 임시 멈춤 = bots/rest(빠르 #4053) · 계정 = 도표 줄 acct(읽기)
 //   움직임 = 끄는 동안 리액트를 안 거치고 그 막대의 transform 만 바꿈(합성 단계 · 60프레임) · 놓으면 30분 칸에 붙음
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Children, type CSSProperties, Fragment, type ReactNode, Suspense, lazy, useRef, useState } from "react";
+import { Children, Fragment, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
 import { office, people } from "../data/office";
 import { MorphAsk } from "./morph-ask";   // 그 자리 재확인(모달 0 · 누른 낱말이 [아니오(라임)] [예] 로 번지며 바뀜) — 형 11-16 21:4x 구름 맥 창 영상(Mark as Done → Done | Undo) 「항상 그냥 re 토글로만」 · 앱 하네스 그대로
 import { sameOf } from "./model-set-logic";
 import { pmCandidates } from "./pm-set-logic";
 import { type BotRow, roleOf } from "./bot-desk-logic";
-import { HOLD_MAX, HOLD_STEP, type Rest, type RestMap, durKo, endKo, minsAt, posOf, restBody, restKo, restOn, restPos, ticksOf, untilOf } from "./bot-manage-logic";
+import { type Rest, type RestMap, acctKo, restBody, restKo, restOn, stepOf } from "./bot-manage-logic";
+import { Chev } from "./chev";
 import { NW_EFFORTS, NW_MODELS, type NextWin, nwDefault, useNextWin } from "./next-win";
 import { useMe } from "./pins";
 
@@ -42,84 +43,54 @@ function NextWinRows({ who }: { who: string }) {
     onSuccess: (j) => { if (j.nextwin) qc.setQueryData(NW_KEY, j.nextwin); else void qc.invalidateQueries({ queryKey: NW_KEY }); },
   });
   const off = !can || save.isPending;
+  // 노력도 = 넘기는 동안은 화면만 먼저 바꾸고(pend) 손이 멈춘 뒤 한 번만 저장
+  const [pend, setPend] = useState<string | null>(null), timer = useRef(0), eff = pend ?? cur.effort;
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const pickEff = (x: string) => { setPend(x); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => { if (x !== cur.effort) save.mutate({ ...cur, effort: x }, { onSettled: () => setPend((p) => (p === x ? null : p)) }); else setPend(null); }, 520); };   // 그 사이 더 넘겼으면(pend 가 다른 값) 화면 값은 그대로 둠
   return (
     <>
       <Row label="모델">{NW_MODELS.map(([id, ko]) => <button key={id} type="button" className={`pc${cur.model === id ? " on" : ""}`} aria-pressed={cur.model === id} disabled={off && cur.model !== id} onClick={() => { if (can && cur.model !== id) save.mutate({ ...cur, model: id }); }}>{ko}</button>)}</Row>
-      <Row label="노력도" note={save.error ? <em className="err" role="alert">저장 안 됨 · {why(save.error)}</em> : null}>{NW_EFFORTS.map((x) => <button key={x} type="button" className={`pc${cur.effort === x ? " on" : ""}`} aria-pressed={cur.effort === x} disabled={off && cur.effort !== x} onClick={() => { if (can && cur.effort !== x) save.mutate({ ...cur, effort: x }); }}>{x}</button>)}</Row>
+      <Row label="노력도" note={save.error ? <em className="err" role="alert">저장 안 됨 · {why(save.error)}</em> : null}>{[<Step key="e" label="노력도" list={NW_EFFORTS} value={eff} disabled={!can} onPick={pickEff} />]}</Row>   {/* 다섯 낱말이 줄을 넘기던 것 → 한 줄 · 좌우로 넘기는 낱말 하나(옛 영상 편집기 「비율 | 9:16」 순환값 낱말 .cyv 꼴 + 양옆 꺽쇠 · 형 11-17 07:53) */}
     </>
   );
 }
 
-/** 기간 막대 — 길 = 지금부터 24시간 · 오른쪽 손잡이를 끌어 늘림 · 막대 안 = 걸리는 시간 · lock = 걸려 있는 멈춤(손잡이 없음). mins 0 = 풀 때까지(길 가득). */
-function HoldBar({ mins, onChange, onLive, now, lock, draft }: { mins: number; onChange: (m: number) => void; onLive?: (m: number) => void; now: number; lock?: { pos: number; text: string }; draft?: boolean }) {   // draft = 아직 안 건 고르는 중(회색 · 걸린 것처럼 안 보이게)
-  const track = useRef<HTMLDivElement>(null), dur = useRef<HTMLElement>(null), drag = useRef(false), last = useRef(mins || HOLD_MAX);
-  const p = lock ? lock.pos : mins ? posOf(mins) : 1, text = lock ? lock.text : mins ? durKo(mins) : "풀 때까지";
-  const paint = (x: number, t: string) => { const el = track.current; if (!el) return; el.style.setProperty("--p", String(x)); el.toggleAttribute("data-small", x < 0.26); if (dur.current) dur.current.textContent = t; };
-  const live = (cx: number) => { const b = track.current!.getBoundingClientRect(), raw = (cx - b.left) / b.width, m = minsAt(raw); if (m !== last.current) onLive?.(m); last.current = m; paint(Math.max(posOf(HOLD_STEP), Math.min(1, raw)), durKo(m)); };   // 끄는 동안 = 손가락을 그대로 따라감(리액트 0) · 글자만 30분 칸으로
-  const down = (e: React.PointerEvent) => { if (lock) return; drag.current = true; try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch { /* 잡기 못 해도 */ } track.current?.setAttribute("data-drag", ""); live(e.clientX); };
-  const move = (e: React.PointerEvent) => { if (drag.current) live(e.clientX); };
-  const up = () => { if (!drag.current) return; drag.current = false; track.current?.removeAttribute("data-drag"); paint(posOf(last.current), durKo(last.current)); onChange(last.current); };   // 놓으면 30분 칸에 붙음
-  const key = (e: React.KeyboardEvent) => {
-    if (lock) return;
-    const d = e.key === "ArrowRight" || e.key === "ArrowUp" ? HOLD_STEP : e.key === "ArrowLeft" || e.key === "ArrowDown" ? -HOLD_STEP : 0;
-    if (d) { e.preventDefault(); onChange(Math.max(HOLD_STEP, Math.min(HOLD_MAX, (mins || HOLD_MAX) + d))); }
-  };
+/** 좌우로 넘기는 낱말 하나 — ‹ 값 › · 낱말을 누르면 다음 값 · 꺽쇠는 앞 · 다음(끝에서 넘기면 반대 끝). */
+function Step({ label, list, value, disabled, onPick }: { label: string; list: readonly string[]; value: string; disabled?: boolean; onPick: (v: string) => void }) {
   return (
-    <div className="nm-hs" data-lock={lock ? "" : undefined} data-draft={draft && !lock ? "" : undefined}>
-      <div ref={track} className="track" role="slider" tabIndex={lock ? -1 : 0} aria-label="멈출 시간" aria-disabled={lock ? true : undefined} aria-valuemin={HOLD_STEP} aria-valuemax={HOLD_MAX} aria-valuenow={mins || HOLD_MAX} aria-valuetext={text}
-        style={{ "--p": p } as CSSProperties} data-small={p < 0.26 ? "" : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onKeyDown={key}>
-        <span className="clip" aria-hidden><i className="fill" /></span>
-        <span className="run" aria-hidden><i className="grip" /></span>
-        <span className="mid" aria-hidden><b ref={dur}>{text}</b></span>
-      </div>
-      <div className="ticks" aria-hidden><span style={{ left: 0 }}>지금</span>{ticksOf(now).map((t) => <span key={t.label + t.x} style={{ left: `${t.x * 100}%` }}>{t.label}</span>)}</div>
-    </div>
+    <span className="stp" role="group" aria-label={label}>
+      <button type="button" className="ar" aria-label={`${label} 앞 값`} disabled={disabled} onClick={() => onPick(stepOf(list, value, -1))}><Chev dir="left" size={14} /></button>
+      <button type="button" className="cyv" aria-label={`${label} ${value} · 누르면 다음 값`} disabled={disabled} onClick={() => onPick(stepOf(list, value, 1))}>{value}</button>
+      <button type="button" className="ar" aria-label={`${label} 다음 값`} disabled={disabled} onClick={() => onPick(stepOf(list, value, 1))}><Chev dir="right" size={14} /></button>
+    </span>
   );
 }
 
-/** 임시 멈춤 — 갈래(전부 · 그 애 특기) + 기간 막대 → 「멈춤」 · 걸려 있으면 잠긴 막대 + 「풀기」. 자동 배정이 그 기한까지 그 갈래에서 뺌(서버). */
-function RestRows({ r, skills }: { r: BotRow; skills: Record<string, string> }) {
-  const qc = useQueryClient(), now = Date.now();
-  const q = useQuery({ queryKey: REST_KEY, queryFn: () => office<{ rest?: RestMap }>("bots/rest").then((j) => j.rest || {}), staleTime: 30_000, refetchInterval: 60_000, retry: false });
+/** 계정 줄 + 쉼 토글 — 「계정 ems1130g (잔여 82%) …… 쉼 ◯」 · 이름과 잔여는 라임 · 토글 = 켜면 바로 쉼(전부 · 풀 때까지) · 끄면 풂(서버 bots/rest · 자동 배정이 그 애를 뺌)
+ *  앞 꼴(「임시 멈춤 없음 | 걸기」 → 갈래 · 기간 막대 → 「멈춤」)은 걷음 — 형 11-17 07:53 「쉬게하는 버튼은 토글 형식으로해서 / 계정 라인으로 붙이고」 · 다른 데서 갈래 · 기한을 걸어 둔 쉼은 토글 옆에 그대로 적음 */
+function AcctRestRow({ r, skills }: { r: BotRow; skills: Record<string, string> }) {
+  const qc = useQueryClient(), me = useMe(), can = me?.kind === "human" && me.can_write !== false, now = Date.now();
+  const a = acctKo((r as { acct?: string }).acct, (r as { acct_left?: string | number }).acct_left);
+  const q = useQuery({ queryKey: REST_KEY, queryFn: () => office<{ rest?: RestMap }>("bots/rest").then((j) => j.rest || {}), staleTime: 30_000, refetchInterval: 60_000, retry: false, enabled: !r.pm });
   const cur: Rest | undefined = q.data?.[r.who], on = restOn(cur, now);
-  const [codes, setCodes] = useState<string[]>([]), [mins, setMins] = useState(60);   // mins 0 = 풀 때까지
-  const [draft, setDraft] = useState(false);   // 안 걸린 애 = 처음엔 「없음」 한 줄만 · 「걸기」를 눌러야 고르는 칸이 열림(앞 = 고르는 칸이 늘 떠서 라임 「전부」 · 라임 막대 · 「멈춤」 단추가 걸려 있는 꼴로 보였음 · 형 11-17 02:01 dm-bom 「윈터 멈춤이 아닌데 계속 멈춤 설정되어잇어 확인 좀」)
-  const name = (c: string) => roleOf(c, true) || skills[c] || c;
   const send = useMutation({
-    mutationFn: (turnOn: boolean) => office<{ ok?: boolean; rest?: RestMap }>("bots/rest", { method: "POST", body: JSON.stringify(restBody(r.who, turnOn, codes, untilOf(mins, Date.now()))) }),
+    mutationFn: (turnOn: boolean) => office<{ ok?: boolean; rest?: RestMap }>("bots/rest", { method: "POST", body: JSON.stringify(restBody(r.who, turnOn, [], undefined)) }),
     onSuccess: (j) => { if (j.rest) qc.setQueryData(REST_KEY, j.rest); else void qc.invalidateQueries({ queryKey: REST_KEY }); void qc.invalidateQueries({ queryKey: ["nomute", "bots-sheet"] }); },
   });
-  const mine = [...new Set(r.skills || [])], pick = codes.length ? codes.map(name).join(" · ") : "전부", sum = useRef<HTMLSpanElement>(null);
-  const sumOf = (m: number) => `${pick} · ${m ? `${endKo(untilOf(m, Date.now()), Date.now())} 까지` : "풀 때까지"}`;
-  const err = send.error ? <em className="err" role="alert">안 됨 · {why(send.error)}</em> : q.isError ? <em className="err">지금 값을 못 읽었어</em> : null;
-  if (on) return (
-    <div className="hold" data-busy={send.isPending ? "" : undefined}>
-      <div className="srow"><span className="plbl">임시 멈춤</span><span className="sopts"><b className="sval on">{restKo(cur, now, name)}</b></span></div>
-      <HoldBar mins={0} onChange={() => undefined} now={now} lock={{ pos: restPos(cur, now), text: cur.until ? durKo(Math.max(1, Math.round((cur.until - now) / 60e3))) : "풀 때까지" }} />
-      <p className="foot"><span className="sum" />{err}<button type="button" className="go" disabled={send.isPending} onClick={() => send.mutate(false)}>풀기</button></p>
-    </div>
-  );
-  if (!draft) return (
-    <div className="hold">
-      <Row label="임시 멈춤" note={err}>{[
-        <span key="v" className="sval off">없음</span>,
-        <button key="go" type="button" className="pc" disabled={q.isPending} onClick={() => setDraft(true)}>걸기</button>,
-      ]}</Row>
-    </div>
-  );
+  const name = (c: string) => roleOf(c, true) || skills[c] || c, shown = send.isPending ? send.variables === true : on;   // 누른 쪽으로 먼저 움직임
+  const detail = on && cur && (cur.until || cur.codes?.length) ? restKo(cur, now, name) : "";
+  if (!a.name && r.pm) return null;
   return (
-    <div className="hold" data-busy={send.isPending ? "" : undefined}>
-      <Row label="임시 멈춤">{[
-        <button key="all" type="button" className={`pc${codes.length ? "" : " on"}`} aria-pressed={!codes.length} onClick={() => setCodes([])}>전부</button>,
-        ...mine.map((c) => <button key={c} type="button" className={`pc${codes.includes(c) ? " on" : ""}`} aria-pressed={codes.includes(c)} title={skills[c] || c} onClick={() => setCodes((xs) => (xs.includes(c) ? xs.filter((x) => x !== c) : [...xs, c]))}>{name(c)}</button>),
-      ]}</Row>
-      <HoldBar draft mins={mins} onChange={setMins} onLive={(m) => { if (sum.current) sum.current.textContent = sumOf(m); }} now={now} />   {/* 끄는 동안 밑줄 글(끝나는 때)도 같이 따라감 · 리액트 0 */}
-      <p className="foot">
-        <span className="sum" ref={sum}>{sumOf(mins)}</span>{err}
-        <button type="button" className={`pc${mins ? "" : " on"}`} aria-pressed={!mins} onClick={() => setMins((m) => (m ? 0 : 60))}>풀 때까지</button>
-        <button type="button" className="pc" onClick={() => setDraft(false)}>취소</button>
-        <button type="button" className="go" disabled={send.isPending || q.isPending} onClick={() => send.mutate(true)}>멈춤</button>
-      </p>
+    <div className="srow acct">
+      <span className="plbl">{a.name ? "계정" : "쉼"}</span>
+      {a.name ? <span className="acctv"><b>{a.name}</b>{a.left ? <> (<b>{a.left}</b>)</> : null}</span> : null}
+      {r.pm ? null : (
+        <span className="rest">
+          {send.error ? <em className="err" role="alert">안 됨 · {why(send.error)}</em> : q.isError ? <em className="err">못 읽음</em> : detail ? <em>{detail}</em> : null}
+          {a.name ? <span className="rl">쉼</span> : null}
+          <button type="button" role="switch" className="sw" aria-checked={shown} aria-label={`${r.who} 쉼`} disabled={!can || q.isPending || send.isPending} onClick={() => send.mutate(!on)}><i aria-hidden /></button>
+        </span>
+      )}
     </div>
   );
 }
@@ -181,13 +152,12 @@ export function BotManageAll() {
 }
 
 export function BotManage({ r, skills }: { r: BotRow; skills: Record<string, string> }) {
-  const acct = (r as { acct?: string }).acct, left = (r as { acct_left?: string | number }).acct_left;
   return (
     <div className="nm-bm" aria-label={`${r.who} 관리`}>
       {r.brain === "클로드" ? <NextWinRows who={r.who} /> : null}
-      {acct ? <div className="srow"><span className="plbl">계정</span><span className="sopts"><b className="sval">{acct}</b>{left != null && left !== "" ? <em>{typeof left === "number" ? `남은 ${left}` : String(left)}</em> : null}</span></div> : null}
+      <AcctRestRow r={r} skills={skills} />
       {r.brain === "그록" ? <GrokRows /> : null}
-      {r.pm ? <PmRow who={r.who} /> : <RestRows r={r} skills={skills} />}
+      {r.pm ? <PmRow who={r.who} /> : null}
     </div>
   );
 }

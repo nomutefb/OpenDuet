@@ -20,7 +20,8 @@ import { type BotRow, type BotTable, countOf, flowOf, hmKo, isSpecial, jobCount,
 import { BotInbox } from "./bot-inbox";   // 「보드」 = 일감마다 카드 · 세 칸(형 11-16 영상 「Agent inbox」)
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));   // ③ 러너 층 = 작동 표(겹치는 활동 판만 뺌 · 보일 때 받음)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));   // ② 스케줄 배선 층(보일 때 받음)
-const VmDesk = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmDesk })));   // ① 애들 층 「몸」 탭 = 애들 한 줄씩(상태 · 특기 · 하드웨어 · 램 · ./vm-desk.tsx)
+const VmDesk = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmDesk })));
+const VmCard = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmCard })));   // 애 펼침 카드 안 몸 칸(같은 조각)   // ① 애들 층 「몸」 탭 = 애들 한 줄씩(상태 · 특기 · 하드웨어 · 램 · ./vm-desk.tsx)
 import { HandBoard, HandFace, HandGhost } from "./bot-desk-hands";
 import { BotManage, BotManageAll } from "./bot-manage";
 import { ringDeg, ringFrac } from "./activity-view";   // 맨 위 카드 = 활동 신호 판을 맡길 차례로(노는 손 먼저 · 1특기 · PM 뺌)
@@ -140,8 +141,6 @@ function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
   );
 }
 
-/** 몸 한 줄(램 · CPU · GPU · OS) — 고른 애 펼침 밑 */
-const hwOf = (r: BotRow) => [r.hw?.ram && r.hw.ram !== "-" ? `램 ${r.hw.ram}` : "", r.hw?.cpu && r.hw.cpu !== "-" ? r.hw.cpu : "", r.hw?.gpu && r.hw.gpu !== "없음" ? `GPU ${r.hw.gpu}` : "", r.hw?.os].filter(Boolean).join(" · ");
 
 export function BotDesk() {
   const q = useQuery({ ...botsSheetOpts<Sheet>(), refetchInterval: (x: { state: { data?: Sheet } }) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
@@ -196,7 +195,8 @@ export function BotDesk() {
             {picked ? (
               <div className="nm-bd-org-one" aria-label={`${picked.who} 자세히`}>   {/* 얼굴을 누르면 그 애 것만(상태 · 맡은 일 줄 = 옛 흐름 카드 · 특기 · 몸 한 줄) */}
                 <ul><BotCard key={picked.who} r={picked} now={now} i={0} list={people} /></ul>
-                <p className="more">{(picked.skills || []).map((c, k) => <span key={c} className={k ? undefined : "first"} title={skills[c] || c}>{roleOf(c, k > 0) || skills[c] || c}</span>)}{hwOf(picked) ? <small>{hwOf(picked)}</small> : null}</p>
+                <p className="more">{(picked.skills || []).map((c, k) => <span key={c} className={k ? undefined : "first"} title={skills[c] || c}>{roleOf(c, k > 0) || skills[c] || c}</span>)}</p>   {/* 사양 줄은 아래 몸 칸(그래프)이 달고 옴 → 여기선 뺌(형 11-17 07:53 「저기에 나온 사양은 첨부1을 넣을거니까 안나와도 되고」) */}
+                <Suspense fallback={<div className="nm-bd-vmwait" />}><VmCard key={`v-${picked.who}`} r={picked} /></Suspense>   {/* 그 애 몸 = 사양 · 램 24시간 그래프(「몸」 탭과 같은 그림 · 형 「이거 그래프를 첨부2 안에다가 넣자」) */}
                 <BotManage key={`m-${picked.who}`} r={picked} skills={skills} />   {/* 그 애 관리 칸 = 다음 창 모델 · 노력도 · 계정 · 임시 멈춤(형 11-16 19:36 「거기서 일괄 관리 페이지가 되길」 · ./bot-manage.tsx) */}
               </div>
             ) : null}

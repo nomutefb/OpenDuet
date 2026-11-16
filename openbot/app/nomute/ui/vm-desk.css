@@ -66,3 +66,7 @@
 @keyframes nmVmPop { from { transform:scale(0); } to { transform:none; } }
 @media (prefers-reduced-motion:reduce) { :is(.nm-vm-card, .nm-vm-row) .vm-fade, :is(.nm-vm-card, .nm-vm-row) .vm-draw, :is(.nm-vm-card, .nm-vm-row) .vm-pop { animation:none; stroke-dasharray:none; stroke-dashoffset:0; } }
 @media (max-width:560px) { .nm-vm-card { padding:18px 14px 14px; border-radius:20px; } }
+/* 애 펼침 카드 안의 몸 칸(./vm-desk.tsx VmCard) — 「몸」 탭 줄의 사양 글 · 그래프를 카드 꼴 없이 한 칸으로(형 11-17 07:53 「이거 그래프를 첨부2 안에다가 넣자」) */
+.nm-vm-row.in-card { display:block; margin:10px 2px 0; padding:10px 0 0; border:0; border-top:1px solid var(--glass-line, rgba(255,255,255,.08)); border-radius:0; background:none; text-align:left; }
+.nm-vm-row.in-card .hw { margin-bottom:6px; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }   /* Debian · macOS 가 대문자 꼴로 안 그려지게 */
+.nm-vm-row.in-card .plot { margin:0; }
