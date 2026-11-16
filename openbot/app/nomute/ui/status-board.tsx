@@ -441,7 +441,8 @@ function Diagrams({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; 
   );
 }
 
-export function StatusBoard() {
+/** bare = 봇 현황 화면 안 「작동」 탭으로 들어갈 때(형 11-16 17:4x 구름 맥 창 「이거 두개 봣을때 겹치는게좀 잇어 하나로 통일하고 봇 상태를 메인으로 하고싶어.」): 겹치는 「활동」 신호 판은 안 그림(바로 위 손 판이 같은 말) · 바깥 여백은 부른 쪽 것 */
+export function StatusBoard({ bare = false }: { bare?: boolean } = {}) {
   const sched = useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), refetchInterval: 60_000 });
   const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000 });
   const srv = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats: StatusCat[]; at?: number; bodies?: Body[] }>("status"), refetchInterval: 60_000, retry: false });   // 뜸 #2487 GET /api/office/status
@@ -449,10 +450,10 @@ export function StatusBoard() {
   const bs = bodiesOf(srv.data?.bodies).map((b) => (RUN_WHO.has(b.being) ? b : { ...b, being: "" }));   // 몸 = 서버 bodies(정본) · 없으면 사본 · 아이 = 클로드 일곱만(형 11-10 07:5x 시아 창 「시아 러너 이거 갱신. 애들 포함 해서 천둥은 그록봇이니 넣을필요는 없음.」 · 「지피티 봇은 넣을 필요는 없음.」 · 정본 윈A being 「윈터」 = 옛 클로드 윈터 → 비움)
   const cats = merge(fromLocal(sched.data, bots.data, sched.isPending), bs, srv.data?.cats);
   const [open, setOpen] = useState<Record<string, boolean>>({}), [pick, setPick] = useState(""), [zone, setZone] = useState(""), [more, setMore] = useState(false);
-  const acct = cats.filter((c) => c.grp === BOTS_GRP), rest = cats.filter((c) => c.grp !== BOTS_GRP);   // 맨 위 = 봇 현황 묶음(활동이 첫 칸 · 형 11-14 「ㄱ」 · 앞 판 = 계정 상태 · 활동 둘만 위 · 봇 연결 · 토큰 · CLI 는 「자세히」 안) · 접힌 칸은 한 줄이라 키가 거의 안 늚   // 맨 위 = 계정 상태(형 11-07 14:43 「먼저 나오게」) → 도식 넷 → 「자세히」 = 칸 목록(손실 0)
+  const acct = cats.filter((c) => c.grp === BOTS_GRP && !(bare && c.id === "activity")), rest = cats.filter((c) => c.grp !== BOTS_GRP);   // 맨 위 = 봇 현황 묶음(활동이 첫 칸 · 형 11-14 「ㄱ」 · 앞 판 = 계정 상태 · 활동 둘만 위 · 봇 연결 · 토큰 · CLI 는 「자세히」 안) · 접힌 칸은 한 줄이라 키가 거의 안 늚   // 맨 위 = 계정 상태(형 11-07 14:43 「먼저 나오게」) → 도식 넷 → 「자세히」 = 칸 목록(손실 0)
   const all = cats.flatMap((c) => c.rows), red = count(all, "miss"), yellow = count(all, "late"), gray = count(all, "unknown");
   return (
-    <div className="nsb mx-auto w-full max-w-6xl px-4 pb-12 pt-3">
+    <div className={bare ? "nsb mx-auto w-full max-w-6xl px-4 pb-12" : "nsb mx-auto w-full max-w-6xl px-4 pb-12 pt-3"}>
       <div className="nsb-top" role="status">
         <b data-st={loading ? "unknown" : red ? "miss" : yellow ? "late" : "ok"}>{loading ? "읽는 중…" : red ? `안 됨 ${red}` : yellow ? `늦음 ${yellow}` : "다 정상"}</b>
         <span>● {count(all, "ok")} · ▲ {yellow} · ✕ {red} · ○ {gray}</span>

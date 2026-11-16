@@ -17,13 +17,14 @@ import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
 import { type BotRow, type BotTable, GROUP_KO, countOf, flowOf, hmKo, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, tailOf, turnList, wireTone } from "./bot-desk-logic";
 import { BotInbox } from "./bot-inbox";   // 「보드」 = 일감마다 카드 · 세 칸(형 11-16 영상 「Agent inbox」)
+import { StatusBoard } from "./status-board";   // 「작동」 탭 = 서랍 「러너」에 있던 작동 표 통째(형 11-16 17:4x 「하나로 통일하고 봇 상태를 메인으로 하고싶어.」 · 겹치는 활동 판만 뺌)
 import { HandBoard } from "./bot-desk-hands";   // 맨 위 카드 = 활동 신호 판을 맡길 차례로(노는 손 먼저 · 1특기 · PM 뺌)
 import "./status-board.css";
 import "./bot-desk.css";
 
 type Sheet = { at?: number; stale?: boolean; table?: BotTable; skills?: Record<string, string> };
-type Tab = "board" | "flow" | "turn" | "hands";
-const TABS: [Tab, string][] = [["board", "일감"], ["flow", "흐름"], ["turn", "차례"], ["hands", "손 표"]];   // 일감 = 카드 세 칸(./bot-inbox · 형 11-16 영상) · 처음 여는 손 = 일감 · 그 안에서 보드 ↔ 목록
+type Tab = "board" | "flow" | "turn" | "hands" | "run";
+const TABS: [Tab, string][] = [["board", "일감"], ["flow", "흐름"], ["turn", "차례"], ["hands", "손 표"], ["run", "작동"]];   // 작동 = 옛 서랍 「러너」 화면(작동 표)이 이 안으로(형 11-16 17:4x · 구름) · 길 #/runner 로 오면 이 탭부터   // 일감 = 카드 세 칸(./bot-inbox · 형 11-16 영상) · 처음 여는 손 = 일감 · 그 안에서 보드 ↔ 목록
 const delay = (i: number) => ({ "--i": Math.min(i, 24) } as CSSProperties);
 
 const MARK = { color: "currentColor", doneColor: "var(--nsb-ok)", errorColor: "var(--nsb-red)" } as const;
@@ -154,14 +155,16 @@ function Hands({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
 
 export function BotDesk() {
   const q = useQuery({ queryKey: ["nomute", "bots-sheet"], queryFn: () => office<Sheet>("status/bots"), refetchInterval: (x) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), staleTime: 5_000, retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
-  const [tab, setTab] = useState<Tab>(() => { try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "flow" || v === "turn" || v === "hands" ? v : "board"; } catch { return "board"; } });
+  const [tab, setTab] = useState<Tab>(() => { if (typeof location !== "undefined" && /^#\/runner(?:[/?]|$)/.test(location.hash)) return "run";   // 옛 「러너」 길로 왔으면 작동 탭부터(이번만 · 고른 탭 기억은 그대로)
+    try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "flow" || v === "turn" || v === "hands" || v === "run" ? v : "board"; } catch { return "board"; } });
   const pick = (v: Tab) => { setTab(v); try { localStorage.setItem("nm-botdesk-tab", v); } catch { /* 이번만 */ } };
   const t = q.data?.table, skills = q.data?.skills || {}, rows = t?.rows || [], now = Date.now();
   const crew = rows.filter((r) => !r.pm), n = countOf(crew);   // 맨 위 카드 = PM 뺀 손(형 11-15 「PM은 제외해서」 · PM 은 바로 밑 흐름 맨 위 카드에)
   const people = usePeople(), mix = mixOf(crew);
   const live = rows.some((r) => r.lane !== "none"), idle = flowOf(crew).find((g) => g.group === "idle")?.rows || [], pmName = rows.find((r) => r.pm)?.who || "";
   return (
-    <div className="nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pb-12 pt-3">
+    <>
+    <div className={`nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pt-3 ${tab === "run" ? "pb-2" : "pb-12"}`}>
       <h1 className="sr-only">봇 현황</h1>
       <div className="nm-bd-head" role="status">
         <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>노는 손 <b>{idle.length}</b></>}
@@ -177,19 +180,19 @@ export function BotDesk() {
       {q.isError ? <p className="nsb-why">봇 현황을 못 읽었어 — {(q.error as Error)?.message || "서버 답 없음"} <button type="button" className="nm-sched-chip" onClick={() => void q.refetch()}>다시</button></p> : null}
       {q.data && !t ? <p className="nsb-empty">서버가 아직 도표를 안 줘(옛 판) — 잠깐 뒤 다시 열어 줘</p> : null}
 
-      {t ? (
-        <>
-          <div className="nm-bd-tabs" aria-label="봇 현황 보기">
-            <RubberSegment items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={(v) => pick(v as Tab)} size="lg" radius={14} trackColor="rgba(18,18,18,.55)" thumbColor="rgba(207,255,64,.9)" textColor="#E7ECE7" activeTextColor="#141516" />
-          </div>
-          {tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "flow" ? (live ? <Flow t={t} now={now} pmName={pmName} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : <Hands t={t} skills={skills} />}
-        </>
-      ) : null}
-
-      <div className="nsb-links" aria-label="관련 화면">
-        <a className="nm-sched-chip" href="#/runner">작동 표</a>
-        <a className="nm-sched-chip" href="#/sched">스케줄</a>
+      <div className="nm-bd-tabs" aria-label="봇 현황 보기">
+        <RubberSegment items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={(v) => pick(v as Tab)} size="lg" radius={14} trackColor="rgba(18,18,18,.55)" thumbColor="rgba(207,255,64,.9)" textColor="#E7ECE7" activeTextColor="#141516" />
       </div>
+      {tab === "run" || !t ? null : tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "flow" ? (live ? <Flow t={t} now={now} pmName={pmName} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : <Hands t={t} skills={skills} />}
+
+      {tab === "run" ? null : (
+        <div className="nsb-links" aria-label="관련 화면">
+          <button type="button" className="nm-sched-chip" onClick={() => pick("run")}>작동 표</button>
+          <a className="nm-sched-chip" href="#/sched">스케줄</a>
+        </div>
+      )}
     </div>
+    {tab === "run" ? <StatusBoard bare /> : null}   {/* 작동 표 = 손 판 폭(좁음) 밖 · 제 폭(넓음)으로 — 도표 · 격자가 넓은 화면을 다 씀 */}
+    </>
   );
 }

@@ -60,11 +60,11 @@ test("24시간 · 5분 칸 = 가는 선 288개가 길 넷에 다 들어감 · �
   assert.equal(g.marks.length, 1); assert.match(g.marks[0].label, /^\d\d:\d\d 다시 켜짐$/);
 });
 
-test("배선 = 서랍 일곱째 화면 · 길 #/vm · 자료 문 vm-mem · 그림 꼴 출처 적음", () => {
+test("배선 = 서랍 화면 · 길 #/vm · 자료 문 vm-mem · 그림 꼴 출처 적음", () => {
   const shell = rd("../ui/shell.tsx"), desk = rd("../ui/vm-desk.tsx"), router = rd("../router.tsx"), tabs = rd("../ui/drawer-tabs.ts");
   assert.match(shell, /\{ id: "vmstat", label: "VM 상태", icon: "box", to: "\/vm" \}/);
   assert.match(shell, /M\.id === "vmstat" \? <div className="nm-scroll"><VmDesk \/><\/div>/);
-  assert.match(router, /"\/vm"/); assert.match(tabs, /"runner", "vmstat", "botdesk"/);
+  assert.match(router, /"\/vm"/); assert.match(tabs, /"botdesk", "vmstat", "sched"/);
   assert.match(desk, /office<VmMemRes>\("vm-mem"\)/);
   assert.match(rd("../ui/vm-mem-logic.ts"), /nomutefb\/lieflat-charts F3 Hairline Area/);
 });

@@ -138,7 +138,7 @@ const SPREAD = new Set<Modal>(["runner", "vmstat", "botdesk", "drawer", "setting
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
 // 메뉴 줄(./menu-bar.tsx) 내용 = 지금 네비 그대로: 홈 · 대화 · 뉴스 에디터(위 탭 셋 ./ned-tabs.ts) · 서랍(위 탭 여섯 ./drawer-tabs.ts) · 설정 — 이름 · 그림 · 길은 MODALS · NED_TABS 한 곳에서(여기 따로 안 적음) · 설명 줄만 여기
-const MENU_DESC: Record<string, string> = { news: "최신 기사 · 요약 요청", sns: "섹션 전부 · 구독 채널", chan: "차트 · 게시물 · 결의 보드", runner: "몸 넷 게이지 · 러너 상태", botdesk: "봇 상태 · 일 차례 · 손 표", vmstat: "몸마다 램 24시간", sched: "예약 깸 · 나무", meetlog: "끝난 회의 기록", story: "종 틈에 지은 글 모음", play: "우리 놀이터" };
+const MENU_DESC: Record<string, string> = { news: "최신 기사 · 요약 요청", sns: "섹션 전부 · 구독 채널", chan: "차트 · 게시물 · 결의 보드", runner: "몸 넷 게이지 · 러너 상태", botdesk: "봇 상태 · 일감 · 작동 표", vmstat: "몸마다 램 24시간", sched: "예약 깸 · 나무", meetlog: "끝난 회의 기록", story: "종 틈에 지은 글 모음", play: "우리 놀이터" };
 const menuOf = (talkTo: string): MenuGroup[] => [
   { id: "home", label: "홈", to: "/" },
   { id: "chat", label: "대화", to: talkTo },   // 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록(../swap/talk-next.ts · 아래 알약 네비 「대화」가 하던 그대로)
@@ -159,6 +159,7 @@ export function whereFor(pathname: string): Where {
   if (/^\/(channels|group)\/[^/]+$/.test(p)) return { pane: "chat" };   // 회의실 = #/group/all
   if (p === "/rooms") return { pane: "rooms" };
   if (p === "/editor") return { pane: "home" };
+  if (p === "/runner") return { modal: "botdesk" };   // 옛 서랍 「러너」 길 = 봇 현황(그 안 「작동」 탭부터 · ./bot-desk.tsx · 형 11-16 17:4x 「하나로 통일하고 봇 상태를 메인으로」)
   if (p === "/drawer") return { modal: DRAWER_HOME };   // 네비 「서랍」 = 목록 화면 대신 위 탭 · 먼저 러너 현황(./drawer-tabs.ts · 형 11-15 「기본적으로 러너 현황이 나오는거를 한번 배치시켜보자」)
   if (nedTabOf(p) !== "news") return { modal: "nedit" };   // SNS · 채널 = 뉴스 에디터 안 탭(./ned-tabs.ts · 형 11-15 「서랍의 sns와 채널 … 저기 박혀야 하고」) · 옛 「SNS 전체」 · 「채널 전체」 주소도 그 탭으로(알림 「안전 탭 열기」 · 옛 링크가 안 끊기게)
   if (p === "/askfull") return { modal: "ask" };   // 옛 「요약 요청 · 에디터 판」 주소 = 앱 요약 요청(빠르 11-01 · 합침)   // 옛 에디터 판 주소(즐겨찾기·옛 링크) = 홈으로(판 없음 · 칸은 서랍에)
