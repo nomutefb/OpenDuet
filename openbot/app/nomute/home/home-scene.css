@@ -55,3 +55,6 @@ html[data-deck-in] .nm-send-dock, html[data-deck-in] .nm-home-swap .nm-hotswap-t
 .nm-home-top .nm-rgx-pebs { container-type:inline-size; }
 .nm-home-top .nm-rgx-memt { bottom:calc(100% + 5px); }
 .nm-home-top .nm-rgx-memt i { font-size:clamp(7px, calc(100cqw / var(--nm-rgx-pn, 7) / 3.6), 9px); }
+/* 폰 홈 맨 위 넘김 두 판 머리 줄 한 선(형 11-17 01:57 dm-bom 봄 옮김 「이거 상단 라인 둘다 맞춰주고 맞추먼 아마 좀 더 위로 올라갈듯 함. 차트가 좀 더 늘어난 느낌 수직으로」)
+   실측 395×800 = 팔로워 판 숫자 줄 가운데 29.7 · 러너 판 머리 줄 가운데 33.5(판 위 pt-1 4px 만큼 아래) → 러너 판 위 4px 걷음 = 두 머리 줄 같은 높이 · 칸 키가 4 줄어 판 전체가 4 위로(차트는 그만큼 덜 늘어남) · PC = 이 틀 밖이라 그대로 */
+.nm-home-top .nm-rgx { padding-top:0; }
