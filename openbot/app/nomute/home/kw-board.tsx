@@ -79,7 +79,6 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
                         <li key={it.q + i} className={n >= 2 ? "dup" : undefined} style={{ animationDelay: `${ci * 70 + 60 + i * 36}ms` }}>
                           <span className="rk">{i + 1}</span>
                           <button type="button" className="q" title={n >= 2 ? `${it.q} — ${n}곳에 같이 뜸` : it.q} onClick={() => window.open(it.href, "_blank", "noopener")}>{it.q}</button>
-                          {n >= 3 ? <i className="n" aria-label={`${n}곳`}>{n}</i> : null}
                           <span className={it.fresh && showNew && !it.sub ? "sub new" : "sub"}>{it.sub || (it.fresh && showNew ? "NEW" : "")}</span>
                         </li>
                       );
