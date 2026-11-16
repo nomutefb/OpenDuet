@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { isCrd, screenTabAdd, screenTabWay } from "../ui/screen-tab-logic.ts";
+import { isCrd, isGrokBot, isOutside, screenTabAdd, screenTabWay } from "../ui/screen-tab-logic.ts";
 import { tabsLoad, tabsSave } from "../ui/tab-list.ts";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const U = "https://sia.tail46034f.ts.net/vnc.html?autoconnect=1&resize=scale&reconnect=1";
@@ -46,4 +46,15 @@ test("배선 = 프로필 카드가 탭 길을 먼저 묻고(못 열면 앞 꼴) 
   assert.match(pane, /office<\{ url\?: string \}>\("screen\/ticket"/);   // 켤 때 표를 새로
   assert.match(pane, /useEffect\(\(\) => \{ if \(on\) return; asked\.current = false; setSrc\(""\); setSt\("idle"\); \}, \[on\]\);/);   // 안 보이는 탭 = 틀 내림(그 몸이 숨은 화면을 보내지 않게) · 다시 켜면 새 표
   assert.match(pane, /if \(crd \|\| !on \|\| asked\.current\) return undefined;\n    const t = window\.setTimeout\(\(\) => \{ asked\.current = true; ask\(\); \}, 80\);\n    return \(\) => window\.clearTimeout\(t\);/);   // 안 본 탭은 표를 안 씀 · 한 번만 · 바로 다시 그려지면 앞 것은 거둠
+});
+
+test("그록 애 컴퓨터(grok.com/bot/<id>) = 앱 안에 못 끼우는 화면 · 다른 주소는 아님(형 11-16 20:16)", () => {
+  const G = "https://grok.com/bot/db0dda6b-a067-40e9-8026-dedd6eb89ae7";
+  assert.equal(isGrokBot(G), true);
+  assert.equal(isOutside(G), true);
+  assert.equal(isOutside("https://remotedesktop.google.com/access/session/0a1b2c3d-0000-4000-8000-0123456789ab"), true);
+  assert.equal(isGrokBot("https://grok.com/bot/db0dda6b"), false);
+  assert.equal(isGrokBot("https://grok.com.evil.example/bot/db0dda6b-a067-40e9-8026-dedd6eb89ae7"), false);
+  assert.equal(isGrokBot(G + "/x"), false);
+  assert.equal(isOutside("https://100.64.1.2:8443/vnc.html"), false);
 });

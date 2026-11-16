@@ -8,6 +8,10 @@ export type ScreenTabAsk = { who: string; url: string };   // url = 표 안 붙�
 
 /** 맥 몸(봄 · 챙) = 구글 원격 데스크톱(./profile-card.tsx crd 와 같은 꼴) — 구글이 끼워 넣기를 막아(X-Frame-Options) 탭 안엔 여는 링크만 */
 export const isCrd = (u: string) => /^https:\/\/remotedesktop\.google\.com\/access\/session\/[0-9a-f-]{36}$/.test(u);
+/** 그록 애 컴퓨터 = grok.com/bot/<id>(형 11-16 20:16 dm-bom 「이게 그록봇 중 온 의 컴퓨터 재어권 달라고하면 뜨는 링크야」 · 「프로필에서 누르면 들가게 해주고」) — grok.com 도 끼워 넣기 막음(X-Frame-Options DENY · 카리나 20:2x 실측) */
+export const isGrokBot = (u: string) => /^https:\/\/grok\.com\/bot\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(u);
+/** 앱 안에 못 끼우는 화면(구글 원격 데스크톱 · 그록 컴퓨터) = 탭 안엔 여는 링크 + 누름 한 번에 새 창 */
+export const isOutside = (u: string) => isCrd(u) || isGrokBot(u);
 
 /** 어디로 — "app" = 맥 독 앱 제 탭 · "web" = 위 웹 탭 줄 · "" = 탭 없음(부른 쪽이 앞 꼴 그대로) */
 export function screenTabWay(e: { pc: boolean; macApp: boolean; webTabs: boolean }): "app" | "web" | "" {
