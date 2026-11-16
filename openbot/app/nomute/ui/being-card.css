@@ -961,6 +961,37 @@
 .being-card-wrap .bc-gam .profile-card__body { box-shadow: 0 0 46px rgba(255, 138, 43, 0.32); }
 .bc-gam .bc-art::after { content: "🎯"; position: absolute; right: 12%; top: 7%; font-size: 22px; line-height: 1; filter: drop-shadow(0 0 8px rgba(255, 138, 43, 0.9)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0); }
 
+
+/* ───────── 봄 🌸 정원사(형 11-16 20:57 dm-deng 「슈퍼 봄봄 적당히 근데 또 이게 너무 안오바스러워야 멋짐. 너거처럼」 · 「유니크하게 기깔나게해줘」 · 뎅) — 숲 밤빛 + 분홍 새벽 · 덩굴 · 꽃잎 · 움직임 = 기울기 따라만(계속 도는 것 0) */
+.bc-bom { --bc-h1: 88; --bc-h2: 345; --bc-h3: 155; }
+.bc-bom .profile-card__holo {
+  --bc-spec: repeating-linear-gradient(0deg, hsl(var(--bc-h1), 55%, 60%) 4%, hsl(var(--bc-h2), 70%, 84%) 8%, hsl(var(--bc-h3), 45%, 64%) 12%, hsl(var(--bc-h2), 60%, 80%) 16%, hsl(var(--bc-h1), 55%, 60%) 20%);
+  --bc-bars: repeating-linear-gradient(-48deg, #0a120b 0%, hsl(var(--bc-h1), 20%, 56%) 3.6%, hsl(var(--bc-h1), 42%, 74%) 4.5%, hsl(var(--bc-h1), 20%, 56%) 5.4%, #0a120b 10%, #0a120b 12%);
+  background-image: var(--bc-spec), var(--bc-bars), radial-gradient(farthest-corner circle at var(--pc-pointer-x) var(--pc-pointer-y), hsla(0, 0%, 0%, 0.05) 10%, hsla(0, 0%, 0%, 0.12) 24%, hsla(0, 0%, 0%, 0.3) 110%);
+  background-position: 0 calc(var(--pc-pointer-y) * 1.6), calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2), center;
+  background-size: 400% 400%, 300% 300%, 200% 200%;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.72 + 0.08 * var(--pc-active))) contrast(calc(1.3 + 0.1 * var(--pc-active))) saturate(calc(0.95 + 0.15 * var(--pc-active)));
+  opacity: calc(var(--pc-holo) * (0.85 + 0.15 * var(--pc-active)));
+}
+.being-card-wrap .bc-bom .profile-card__body { background: linear-gradient(168deg, rgba(46, 66, 32, 0.95) 0%, rgba(18, 32, 20, 0.96) 52%, rgba(10, 16, 11, 0.97) 100%); }
+.being-card-wrap .bc-bom .profile-card__tile { background: radial-gradient(110% 78% at 50% 12%, #d9b4b6 0%, #5f7c45 30%, #1f331d 62%, #0b130c 100%); }
+.being-card-wrap .bc-bom .profile-card__photo { box-shadow: 0 0 0 2px rgba(207, 255, 64, 0.7), 0 0 0 7px rgba(255, 196, 214, 0.18); }
+.being-card-wrap .bc-bom .bc-halo { box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.85), 0 0 70px rgba(255, 190, 210, 0.32); }
+.bc-bom .bc-dawn { left: -10%; right: -10%; top: -8%; height: 46%; background: radial-gradient(60% 70% at 50% 0%, rgba(255, 206, 222, 0.42) 0%, rgba(255, 206, 222, 0) 70%); transform: translate3d(calc(var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3), 0); }
+.bc-bom .bc-ring { border-color: rgba(207, 255, 64, 0.42); box-shadow: 0 0 18px rgba(255, 196, 214, 0.26); }
+.bc-bom .bc-vine { left: 0; bottom: 0; width: 100%; height: 100%; fill: none; transform: translate3d(calc(var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.5), 0); }
+.bc-bom .bc-stem { stroke: rgba(196, 240, 120, 0.62); stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(0 0 5px rgba(207, 255, 64, 0.45)); }
+.bc-bom .bc-leaf { fill: rgba(176, 228, 96, 0.78); stroke: rgba(230, 255, 180, 0.5); stroke-width: 0.8; }
+.bc-bom .bc-petal { width: 15px; height: 11px; border-radius: 100% 0 100% 0; background: linear-gradient(135deg, #ffe3ec 0%, #ffaac6 100%); box-shadow: 0 0 10px rgba(255, 170, 198, 0.6); opacity: 0.95; }
+.bc-bom .bc-p1 { right: 18%; top: 22%; transform: translate3d(calc(var(--pc-shift-x) * 1.6), calc(var(--pc-shift-y) * 1.6), 0) rotate(20deg); }
+.bc-bom .bc-p2 { right: 9%; top: 40%; transform: translate3d(calc(var(--pc-shift-x) * 1.1), calc(var(--pc-shift-y) * 1.1), 0) rotate(-35deg) scale(0.8); }
+.bc-bom .bc-p3 { left: 14%; top: 16%; transform: translate3d(calc(var(--pc-shift-x) * 2), calc(var(--pc-shift-y) * 2), 0) rotate(60deg) scale(1.15); }
+.bc-bom .bc-p4 { right: 26%; top: 54%; transform: translate3d(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8), 0) rotate(-10deg) scale(0.65); opacity: 0.7; }
+.bc-bom .bc-p5 { left: 22%; top: 48%; transform: translate3d(calc(var(--pc-shift-x) * 1.3), calc(var(--pc-shift-y) * 1.3), 0) rotate(110deg) scale(0.75); opacity: 0.75; }
+.bc-bom .bc-sprout { right: 13%; top: 8%; font-size: 24px; line-height: 1; filter: drop-shadow(0 0 8px rgba(207, 255, 64, 0.8)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0); }
+
 @media (hover: none) {
   .being-card .profile-card__tile,   /* 넷째 판(형 11-11 08:12 dm-sia 「아직 아주 조금 번쩍 ㅋㅋ」) = 타일 · @ 줄 안 전부 묶음 — 얼굴 · 무늬 · 글 시차가 섞는 겹(홀로 color-dodge …) 밑에서 따로 움직이면 웹킷이 섞기를 다시 함(짐작) → 카드는 통째로만 움직임 · 빛 · 무지개는 그대로(섞기 끄기 = 무지개가 뿌옇게 죽어서 안 함 · 웹킷 실물) */
   .being-card .profile-card__footer,
@@ -1044,4 +1075,12 @@
   .bc-light .bc-zap { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
   .bc-light .bc-crown { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
   .bc-gam .bc-art::after { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-bom .bc-dawn { transform: translate(calc(var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
+  .bc-bom .bc-vine { transform: translate(calc(var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
+  .bc-bom .bc-p1 { transform: translate(calc(var(--pc-shift-x) * 1.6), calc(var(--pc-shift-y) * 1.6)) rotate(20deg); will-change: auto; }
+  .bc-bom .bc-p2 { transform: translate(calc(var(--pc-shift-x) * 1.1), calc(var(--pc-shift-y) * 1.1)) rotate(-35deg) scale(0.8); will-change: auto; }
+  .bc-bom .bc-p3 { transform: translate(calc(var(--pc-shift-x) * 2), calc(var(--pc-shift-y) * 2)) rotate(60deg) scale(1.15); will-change: auto; }
+  .bc-bom .bc-p4 { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8)) rotate(-10deg) scale(0.65); will-change: auto; }
+  .bc-bom .bc-p5 { transform: translate(calc(var(--pc-shift-x) * 1.3), calc(var(--pc-shift-y) * 1.3)) rotate(110deg) scale(0.75); will-change: auto; }
+  .bc-bom .bc-sprout { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
 }
