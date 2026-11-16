@@ -187,6 +187,8 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
                 <button type="button" className="nm-tree-card" aria-label={`${r.who} ${r.name} · ${HEALTH_KO[st]} · 바꾸기`} onClick={() => bots.open(r.id)}>
                   <span className="nm-tree-l1"><b title={r.name}><ReviewBadge r={review[r.id]} />{r.name}</b>{live ? null : <i>{bots.stKo[r.state] || r.state}</i>}</span>
                   <span className="nm-tree-l2"><small>언제</small><span title={whenTxt}>{whenTxt}{r.health?.next_at ? ` · 다음 ${nextShort(r.health.next_at)}` : ""}</span></span>
+                  {r.hook ? <span className="nm-tree-l2 hook"><small>열쇠</small><span title={r.hook}>{r.hook}</span></span> : null}
+                  {r.hook && r.hook_at ? <span className="nm-tree-l2 hook at"><small>자리</small><span title={r.hook_at}>{r.hook_at}</span></span> : null}   {/* 호출 열쇠 = 이름과 자리만(값 0) · 서버가 실어 줄 때만 */}
                   <span className="nm-tree-l3"><StatusDot st={st} /><span>{HEALTH_KO[st]}{n.parent === "bb:~room" && r.who ? ` · ${who ? who(r.who) : r.who}` : ""}</span><i className="nm-tree-sw" data-on={live || undefined} aria-hidden /></span>
                   {soon === n.id ? <em className="nm-tree-next">다음</em> : null}
                 </button>

@@ -16,6 +16,7 @@ export type Tree = { nodes: TNode[]; edges: TEdge[]; w: number; h: number };
 export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 216, h: 54 }, fork: { w: 196, h: 54 }, job: { w: 222, h: 78 }, routine: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
 export const GAP_X = 64, GAP_Y = 22, PAD = 28, INDENT = 16, GAP_DOWN = 12;
 /** 폰 = 글씨를 키운 만큼 키가 큰 노드(형 11-14 「보기 조금 힘들어 좀 쉽게」) */
+export const HOOK_ROW = 28, HOOK_ROW_DOWN = 33;   // PC 줄 · 폰 줄(폰은 줄이 28 + 틈 5 — 24 로는 맨 아래 상태 줄이 잘림 · 실물)   // 호출 열쇠 줄 하나의 키(형 11-16 22:0x 구름 맥 창 「호출이 있고 / 그 아래에 각각 호출 시크릿명칭 잇어야할듯 / 그 호출이 어디에 잇는건지도」)
 export const SIZE_DOWN: Record<TKind, number> = { root: 44, group: 58, fork: 56, job: 110, routine: 110 };   // 일 카드 = 110(앞 96 = 폰에서 셋째 줄(상태 · 켬끔)이 아래에서 4~5px 잘림 · 실물 11-16 폰 412: 줄 끝 35 · 68 · 101 → 아래 여백 9 · 형 19:1x 「스케줄 그 눌렀을때 쭉 나오는거 … 모바일에서도 잘 나오는지 봐주라」)
 
 type Raw = { id: string; kind: TKind; name: string; via: TNode["via"]; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine; kids: Raw[] };
@@ -69,7 +70,7 @@ export function treeOf(map: SchedRunners, open: Record<string, boolean> = {}, do
   let cursor = PAD, maxX = 0;
   const count = (r: Raw): number => r.kids.reduce((a, k) => a + (k.kind === "job" || k.kind === "routine" ? 1 : 0) + count(k), 0);   // 밑에 달린 잡 · 루틴 수
   const place = (r: Raw, depth: number, parent: string): TNode => {
-    const s = down ? { w: SIZE[r.kind].w, h: SIZE_DOWN[r.kind] } : SIZE[r.kind], isOpen = r.kids.length > 0 && openOf(open, r.id, r.kind);
+    const s0 = down ? { w: SIZE[r.kind].w, h: SIZE_DOWN[r.kind] } : SIZE[r.kind], s = r.routine?.hook ? { w: s0.w, h: s0.h + (down ? HOOK_ROW_DOWN : HOOK_ROW) * (r.routine.hook_at ? 2 : 1) } : s0, isOpen = r.kids.length > 0 && openOf(open, r.id, r.kind);   // 호출 열쇠 줄이 있는 루틴 카드 = 그 줄만큼 큼(열쇠 이름 한 줄 + 자리가 오면 한 줄 더)
     const n: TNode = { id: r.id, kind: r.kind, name: r.name, parent, depth, x: xOf(depth), y: 0, w: s.w, h: s.h, kids: count(r), open: isOpen, via: r.via, job: r.job, fork: r.fork, routine: r.routine };
     nodes.push(n);
     if (down) {   // 폰 = 한 줄 쌓기 · 들여쓰기
