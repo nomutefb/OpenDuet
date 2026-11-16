@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { idOf, office } from "../data/office";
 import { FaceImg, usePeople } from "./faces";
 import { type VmMem, type VmMemRes, everyKo, gb, mdhm, vmClean, vmDemo, vmGeom, vmStats } from "./vm-mem-logic";
-import { type BotRow, type BotTable, type Group, GROUP_KO, groupOf, roleOf } from "./bot-desk-logic";
+import { type BotRow, type BotTable, type Group, GROUP_KO, groupOf, roleLabel, roleOf } from "./bot-desk-logic";
 import { skillShort } from "./bot-desk-hands";
 import "./vm-desk.css";
 
@@ -54,7 +54,7 @@ function BodyRow({ who, r, v, skills, people }: { who: string; r?: BotRow; v?: V
     <section className="nm-vm-row" aria-label={`${who} 몸 상태`}>
       <div className="who">
         <h3>{face ? <FaceImg id={face} size={30} className="nm-vm-face" /> : <i className="nm-vm-face none" aria-hidden />}<b>{who}</b>{r?.pm ? <em>PM</em> : null}{grp ? <span className={`st ${TONE[grp]}`}>{GROUP_KO[grp]}</span> : <span className="st dim">몸</span>}</h3>
-        {r?.skills?.length ? <p className="sk">{r.skills.map((c, i) => <span key={c} className={i ? undefined : "first"} title={skills[c] ? skillShort(skills[c]) : undefined}>{roleOf(c, i > 0) || skillShort(skills[c] || c)}</span>)}</p> : null}
+        {r?.skills?.length ? <p className="sk">{r.skills.map((c, i) => <span key={c} className={i ? undefined : "first"} title={skills[c] ? skillShort(skills[c]) : undefined}>{(i ? roleOf(c, true) : roleLabel([c], who)) || skillShort(skills[c] || c)}</span>)}</p> : null}
       </div>
       <div className="hw">
         <p>{hw || (v?.host ? v.host : "하드웨어 표 없음")}</p>
