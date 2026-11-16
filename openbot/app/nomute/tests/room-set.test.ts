@@ -47,7 +47,7 @@ test("방 설정 한 창 = 멤버 · 최대 인원 · 모두 내보내기 · 지
   const t = rd("../ui/temp-room.tsx"), m = rd("../ui/room-menu.tsx"), l = rd("../ui/room-list.tsx");
   assert.match(t, /const cand = memberCand\(candRaw, edit\?\.members \|\| \[\]\)/);
   assert.match(t, /cls\.includes\(who\(n\)\?\.shelf \|\| who\(n\)\?\.cls \|\| ""\)/);   // 묶음 칸 = 명부 shelf 먼저(구름 → 클로드 칸)
-  assert.match(t, /\{edit \? `멤버 · \$\{picked\.length \+ 1\}명` : `초대할 사람 · \$\{picked\.length\}명`\}/);   // 고치기 = 형 포함 숫자(머리 숫자와 같음)
+  assert.match(t, /<span className="nm-rs-nm">\{edit \? "멤버" : "초대할 사람"\}<em>\{edit \? picked\.length \+ 1 : picked\.length\}명<\/em><\/span>/);   // 고치기 = 형 포함 숫자(머리 숫자와 같음)
   assert.match(t, /aria-label="최대 인원"/); assert.match(t, /aria-label="머무는 시간"/);
   assert.match(t, /idle: edit\?\.idle_min && edit\.idle_min > 0 \? edit\.idle_min : 0/);   // 방 자료 칸 = idle_min(서버 tempRoomOf) · 보낼 칸 = task_idle_min
   assert.match(t, /<textarea value=\{task\} maxLength=\{TASK_MAX\}/);
@@ -72,4 +72,14 @@ test("유지 시간 = 지금 값인 칸에 라임(글자 「· 지금 영구」 
   assert.match(t, /<DaySlide hours=\{hours\} now=\{edit \? stayNow\(edit\.exp, Date\.now\(\)\) : undefined\} onChange=\{setHours\} \/>/);
   assert.doesNotMatch(t, /· 지금 \{edit\.exp/);
   assert.match(d, /const hours = picked \?\? now \?\? null;/);
+});
+
+test("줄 정렬 = 이름 기둥(• + 굵은 글) 한 벌 · 값은 오른쪽 한 선(형 11-17 01:44 「각 라인 정렬해서 좀만 보기 좋게 이미지 에디터 같은거 참고하면 될듯」)", () => {
+  const t = rd("../ui/temp-room.tsx"), c = rd("../ui/temp-room.css");
+  for (const nm of ["방 이름", "방 지침", "지금 일"]) assert.match(t, new RegExp(`<span className="nm-rs-nm">${nm}</span>`));
+  for (const nm of ["방 사진", "머무는 시간", "최대 인원"]) assert.match(t, new RegExp(`<span className="lbl nm-rs-nm">${nm}</span>`));
+  assert.match(t, /<legend className="nm-rs-nm">유지 시간<\/legend>/);
+  assert.match(t, /<RoomArtRow id=\{edit\.id\} look=\{edit\.look\} line \/>/);
+  assert.doesNotMatch(t.slice(t.indexOf("export function TempRoomDialog")), /className="text-muted-foreground">(방 이름|방 지침|지금 일)/);
+  assert.match(c, /\.nm-rs-nm::before \{ content:"•"; color:rgb\(var\(--accent-rgb, 207,255,64\)\)/);
 });
