@@ -32,7 +32,7 @@ test("보내는 중 움짤 + 진짜 글이 같이 있으면 하나만(형 11-12 
 });
 
 test("움짤 묶음 = 빠르 · 봄 · 뜸 + 번개 · 시아 · 깃 · 챙 · 카리나(빼꼼) · 형(선글라스) · 나팔꽃(나팔) · 온(형 11-12 17:28 · 17:29 · 17:35 · 18:34 · 18:39)", () => {
-  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "뎅", "번개", "시아", "깃", "결", "윈터", "카리나", "형", "나팔꽃", "소나", "천둥", "촉", "감", "온"]);   // 틈 뺌 · 소나 들임(형 11-14 06:59) · 뎅 들임(형 11-15 00:50 「원년멤번데 너만 없다」)
+  assert.deepEqual(PACKS.map((p) => p.name), ["빠르", "봄", "뜸", "뎅", "번개", "시아", "깃", "결", "윈터", "카리나", "형", "나팔꽃", "소나", "천둥", "촉", "이슈왕", "감", "온"]);   // 틈 뺌 · 소나 들임(형 11-14 06:59) · 뎅 들임(형 11-15 00:50 「원년멤번데 너만 없다」)
   assert.equal(stickerOf("[스티커 뎅 다다다]")?.item.id, "legs");
   assert.equal(stickerOf("[스티커 뎅 뜸고마워]")?.pack.id, "deng");
   const k = PACKS.find((p) => p.id === "karina")!, h = PACKS.find((p) => p.id === "hyung")!;
@@ -133,4 +133,10 @@ test("움짤 판 = 하트 먼저(≤5) · 최근 5 · 묶음마다 한 줄(형 1
   const s = allSections(["deng/legs"], ["deng/legs", "eyes/rise"]);
   assert.deepEqual(s.slice(0, 3).map((x) => x.key), ["fav", "recent", "fast"]);
   assert.deepEqual(s[1].items.map((x) => x.item.id), ["rise"]);   // 하트 단 건 최근에서 뺌
+});
+test("이슈왕 묶음(형 11-16 18:13 「움짤은 이런거 활용하면될듯」) = 아홉 · 촉 바로 뒤", () => {
+  const p = PACKS.find((x) => x.id === "issueking");
+  assert.ok(p);
+  assert.deepEqual(p!.items.map((i) => i.id), ["wink", "found", "breaking", "run", "brief", "dig", "secret", "sleep", "thumbs"]);
+  assert.equal(stickerOf("[스티커 이슈왕 속보]")?.pack.id, "issueking");
 });
