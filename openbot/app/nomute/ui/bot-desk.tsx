@@ -9,6 +9,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { idOf, office } from "../data/office";
+import { lastPut, lastSeed } from "../data/last-cache";   // 열자마자 지난 손 판을 먼저 그림(「읽는 중…」 빈 칸 0 · 형 11-17 「첨에 이렇게 뜨는데 이 부분 해결해보자」)
 import { FaceImg, usePeople } from "./faces";
 import StatusMark, { type StatusMarkStatus } from "../vendor/react-bits/StatusMark/StatusMark";   // 상태 표시 = react-bits 원본 그대로(형 「카피하지말고 가져다 써」 · 60프레임 · 줄이기 설정을 스스로 따름)
 import RubberSegment from "../vendor/react-bits/RubberSegment/RubberSegment";   // 알약 탭 = react-bits 원본 그대로
@@ -26,6 +27,7 @@ import { ringDeg, ringFrac } from "./activity-view";   // 맨 위 카드 = 활�
 import "./status-board.css";
 import "./bot-desk.css";
 
+const OLD_MS = 5 * 60_000;
 type Sheet = { at?: number; stale?: boolean; table?: BotTable; skills?: Record<string, string> };
 type Tab = "board" | "turn" | "body" | "meter";
 const Meter = lazy(() => import("./settings-extra").then((m) => ({ default: m.NomuteMeter })));   // 「계기판」 탭 = 설정 「회의실 계기판」에서 옮김(하루 한 장 · 기억 종류별 깸 · 글 · 헛깸률 · 형 11-17 03:24 구름 맥 창 「너가 말한거 반영하고 너 의견 따를테니 묻지말고 진행해」)
@@ -136,7 +138,7 @@ function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
 const hwOf = (r: BotRow) => [r.hw?.ram && r.hw.ram !== "-" ? `램 ${r.hw.ram}` : "", r.hw?.cpu && r.hw.cpu !== "-" ? r.hw.cpu : "", r.hw?.gpu && r.hw.gpu !== "없음" ? `GPU ${r.hw.gpu}` : "", r.hw?.os].filter(Boolean).join(" · ");
 
 export function BotDesk() {
-  const q = useQuery({ queryKey: ["nomute", "bots-sheet"], queryFn: () => office<Sheet>("status/bots"), refetchInterval: (x) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), staleTime: 5_000, retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
+  const q = useQuery({ queryKey: ["nomute", "bots-sheet"], queryFn: () => office<Sheet>("status/bots").then((j) => lastPut("bots-sheet", j)), ...lastSeed<Sheet>("bots-sheet"), refetchInterval: (x) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), staleTime: 5_000, retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
   const [tab, setTab] = useState<Tab>(() => { if (typeof location !== "undefined" && /^#\/vm(?:[/?]|$)/.test(location.hash)) return "body";   // 옛 「몸 상태」 길로 왔으면 몸 탭부터(이번만 · 고른 탭 기억은 그대로)
     try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "body" || v === "meter" ? v : "board"; } catch { return "board"; } });
   const secs = useRef<Partial<Record<Sec, HTMLElement | null>>>({});
@@ -168,7 +170,7 @@ export function BotDesk() {
     <section className="nm-crew-sec first" ref={(el) => { secs.current.crew = el; }} aria-label="애들">
     <div className="nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pt-3 pb-4">
       <h1 className="sr-only">애들</h1>
-      <div className="nm-bd-head" role="status">
+      <div className="nm-bd-head" role="status" data-old={q.data && q.isFetching && Date.now() - q.dataUpdatedAt > OLD_MS ? "" : undefined}>   {/* 지난 값으로 먼저 그린 동안(5분 넘게 묵음 + 새로 받는 중) = 살짝 흐림 → 새 답이 오면 또렷 */}
         <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>작업 중 <b>{working.length}</b><span className="also">쉬는 중 <b>{crew.length - working.length}</b></span></>}   {/* 일하는 중이 먼저(형 11-16 17:5x 「일하는 중이 더 우선적으로 보여야 함」 · 앞 판 = 노는 손만) */}
           <span className="side"><button type="button" className="nm-bd-allbtn" aria-pressed={sel === "*"} onClick={() => setSel((w) => (w === "*" ? "" : "*"))}>모두</button>{n.lost ? <span className="badge">연결 끊김 {n.lost}</span> : null}{q.data?.at ? <span className="at">{hmKo(q.data.at)}{q.data.stale ? " · 묵은 것" : ""}</span> : null}</span>
         </p>

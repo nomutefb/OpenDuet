@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { PageSection } from "@/components/layout/page-shell";
 import { idOf, type Meter, type MeterRow, office, people } from "../data/office";
+import { lastPut, lastSeed } from "../data/last-cache";
 import type { SchedGpu } from "./sched-gpu";   // GPU 칸(형 11-05 09:43 · 뜸)
 import { FaceImg } from "./faces";
 import { t12 } from "./when";
@@ -43,7 +44,7 @@ export type SchedChange = { at: number; who: string; id: string; scope?: string;
 type Sched = { bots: SchedBot[]; routines: Routine[]; kinds: Kind[]; sha: string; can_set: boolean; forks?: SchedFork[]; clock_got?: { got?: boolean; sha?: string }; runners?: SchedRunners; gpu?: SchedGpu; changes?: SchedChange[]; review?: Record<string, Review>; health_sum?: HealthSum; at?: number };   // review = 폐기 → 검토 칸(봄 #2092 · ./sched-review.tsx)
 
 const usePeople = () => useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
-export const useSched = () => useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule"), staleTime: 30_000, refetchInterval: 120_000 });
+export const useSched = () => useQuery({ queryKey: ["nomute", "schedule"], queryFn: () => office<Sched>("schedule").then((j) => lastPut("schedule", j)), ...lastSeed<Sched>("schedule"), staleTime: 30_000, refetchInterval: 120_000 });   // 지난 표를 먼저 그리고 뒤에서 새로 받음(../data/last-cache.ts · 표가 그 사이 바뀌었으면 바꾸기는 서버가 「다른 데서 바뀜」으로 막고 새 표를 읽음)
 
 export function NomuteBots() {
   const list = usePeople();

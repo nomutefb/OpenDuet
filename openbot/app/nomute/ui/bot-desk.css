@@ -379,3 +379,7 @@
 .nm-bd-meter { letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }   /* 「형 글 id」 같은 영문이 대문자 꼴로 안 그려지게 */
 .nm-bd-meter > section { margin-top:0; }
 .nm-bd-meter > section > div:first-child:has(> h2) { display:none; }
+/* 지난 값으로 먼저 그린 동안(../data/last-cache.ts) — 묵은 값 + 새로 받는 중 = 살짝 흐림 → 새 답이 오면 또렷(투명도만) */
+.nm-bd-head, .nm-sched { transition:opacity .25s ease; }
+.nm-bd-head[data-old], .nm-sched[data-old] { opacity:.62; }
+@media (prefers-reduced-motion: reduce) { .nm-bd-head, .nm-sched { transition:none; } }

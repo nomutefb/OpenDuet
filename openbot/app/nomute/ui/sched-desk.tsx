@@ -272,7 +272,7 @@ export function SchedDesk() {
     </div>, document.body);
   const rSel = selR ? d.routines.find((r) => r.id === selR) : undefined;
   return (
-    <div className={`nm-sched nm-yeta mx-auto flex w-full ${wideFlow ? "max-w-[1180px]" : "max-w-2xl"} flex-col gap-3 px-3 pb-28 pt-1`}>
+    <div className={`nm-sched nm-yeta mx-auto flex w-full ${wideFlow ? "max-w-[1180px]" : "max-w-2xl"} flex-col gap-3 px-3 pb-28 pt-1`} data-old={s.isFetching && Date.now() - s.dataUpdatedAt > 5 * 60_000 ? "" : undefined}>   {/* 지난 표로 먼저 그린 동안 = 살짝 흐림(../data/last-cache.ts) */}
       {msg ? <p className="text-sm" role="status">{msg}</p> : null}
       <div className="nm-sum" role="status" aria-label="스케줄 상태 요약">   {/* 요약 띠(뜸 11-02 와이어 「●131 ▲6 ✕1 ○13 · 시계=새 표 받음」) · 형 「원활하게 다 미러링되는지」를 맨 위 한 줄로 */}
         <div className="nm-sum-n">{ST_ORDER.map((k) => <span key={k} title={HEALTH_KO[k]} data-st={k} data-zero={!allSum[k] || undefined}><StatusDot st={k} />{allSum[k]}</span>)}</div>
