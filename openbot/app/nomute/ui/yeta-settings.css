@@ -110,3 +110,17 @@
 .yeta-set .yset-kids > .yset-item .si-ic svg, .yeta-set .yset-kids > div:not(.yset-open) > .yset-item .si-ic svg { width:17px; height:17px; }
 .yeta-set .yset-kids > .yset-item:active, .yeta-set .yset-kids > div:not(.yset-open) > .yset-item:active { transform:none; background:var(--glass-line); }
 .yeta-set .yset-kids > .yset-open { padding:2px 14px 10px 38px; }
+/* 더 묶은 줄(형 11-17 07:09 dm-bom · 봄이 정함) — 묶음 안 작은 머리(화면 · 글꼴 · 입력) · 가는 길 둘 한 줄 · 팀즈 계정 줄 */
+.yeta-set .yset-kids > .yset-kidh { padding:10px 14px 2px 38px; font-size:var(--fs-xs); font-weight:var(--fw-b, 700); color:var(--mut); letter-spacing:.02em; }
+.yeta-set .yset-kids > .yset-kidh:first-child { padding-top:4px; }
+.yeta-set .yset-go2 { cursor:default; }
+.yeta-set .yset-go2 .si-go { flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 10px; }
+.yeta-set .yset-go2 .si-go > button { display:inline-flex; align-items:center; gap:4px; min-height:32px; padding:0; border:0; background:none; color:inherit; font:inherit; font-weight:var(--fw-b, 700); white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:scale .12s ease; }
+.yeta-set .yset-go2 .si-go > button:active { scale:.96; }
+.yeta-set .yset-go2 .si-go > button > span { display:inline-flex; width:16px; height:16px; opacity:.55; }
+.yeta-set .yset-go2 .si-go > button > span svg { width:16px; height:16px; }
+.yeta-set .yset-acct { cursor:default; }
+.yeta-set .yset-acct .si-v { min-width:0; }
+.yeta-set .yset-acct .nm-tacct { padding:0; gap:10px; font-size:calc(var(--fs-body) - 2px); color:var(--mut); }
+.yeta-set .yset-acct .nm-tacct button { padding:5px 12px; font-size:var(--fs-xs); background:none; color:var(--fg); box-shadow:inset 0 0 0 1px var(--glass-line); }   /* 줄 안 = 조용한 꼴(라임 채움은 고른 값에만) */
+.yeta-set .yset-acct .nm-tnote { margin:0; padding:0; font-size:var(--fs-xs); color:var(--mut); }
