@@ -4,14 +4,14 @@
 export type TailDev = { name: string; short: string; ip: string; ssh?: string; what: string; off?: boolean };
 /** 게이지 칸 글자(NAME_OF) → 그 본체와 안에 도는 VM */
 export const TAIL_OF_GAUGE: Record<string, TailDev[]> = {
-  WIN: [
-    { name: "win-a", short: "WIN", ip: "100.94.20.122", ssh: "hwang", what: "윈A 본체" },
+  Win: [
+    { name: "win-a", short: "Win", ip: "100.94.20.122", ssh: "hwang", what: "윈A 본체" },
     { name: "fast2", short: "빠르", ip: "100.84.18.19", ssh: "fast", what: "윈A VM · 빠르" },
     { name: "light2", short: "번개", ip: "100.83.46.3", ssh: "light", what: "윈A VM · 번개" },
     { name: "gik", short: "깃", ip: "100.69.98.88", ssh: "gik", what: "윈A VM · 깃" },
   ],
-  MAC: [
-    { name: "mac", short: "MAC", ip: "100.67.194.114", ssh: "hwang", what: "맥 · 봄" },
+  Mac: [
+    { name: "mac", short: "Mac", ip: "100.67.194.114", ssh: "hwang", what: "맥 · 봄" },
     { name: "eyes", short: "뜸", ip: "100.104.110.86", ssh: "eyes", what: "맥 VM · 뜸" },
   ],
   "Lx A": [{ name: "lxa", short: "Lx A", ip: "100.78.128.50", ssh: "sia", what: "레노버 · 시아" }],
