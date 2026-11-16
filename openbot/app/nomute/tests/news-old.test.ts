@@ -51,16 +51,18 @@ test("기사 한 장 = 옛 기사 창 글 꼴(소제목 줄임 · Pretendard · 
 test("뉴스 에디터 = 맨 위 넣는 줄 0 · 오른쪽 아래 「요약」 단추 → #/ask · 픽 일 = 요약 요청 「외신 기반」 저절로(형 11-11 14:36 「글 붙여넣기는 없어두대! 우하단에 버튼으로 요약만 잇으면 댐」)", () => {
   const ned = rd("../ui/news-editor.tsx"), ncss = rd("../ui/news-editor.css") + rd("../ui/plus-fan.css"), fan = rd("../ui/plus-fan.tsx"), ask = rd("../ui/ask.tsx");   // 「+」 펼침 = ui/plus-fan.tsx 한 벌로 뺌(홈 PC Digest 도 같은 것 · 형 11-13 02:24 · 뎅)
   assert.ok(!/function SendBar\(|<SendBar\b|submitText|링크 · 글 붙여 넣기/.test(ned), "넣는 줄 걷음");
-  assert.match(fan, /const items: \[string, string\]\[\] = \[\["\/ask", "뉴스 요약"\], \["\/edtool", "이미지 에디터"\], \["\/edvid", "비디오 에디터"\]\];/, "「+」 펼침 셋(형 19:23)");
+  assert.match(fan, /const items: \[string, string\]\[\] = \[\["\/ask", "뉴스 요약"\], \["\/edtool", "이미지 에디터"\], \["\/edvid", "비디오 에디터"\], \["\/eddoc", "문서 에디터"\]\];/, "「+」 펼침 넷(형 19:23 셋 + 11-17 문서 에디터 「최대한 넓은 범위에서 진행할게 다해줘」)");
   assert.match(ned, /<PlusFan go=\{go\} \/>/);
   assert.match(ncss, /\.nm-ned-plus \{[^}]*position:absolute;[^}]*right:14px; bottom:calc\(var\(--duet-tab-space,86px\) \+ 24px\)/, "대화방 목록 「+」 자리와 같음(형 11-15 08:55 16px 위로)");
   // 꼴 = 9시 → 12시로 셋 · 그림 단추 · 유리(형 11-15 「9시에서 12시로 3개가 펼쳐지게 … 픽토그램식으로 · Kinetics orbital menu … 글래스모피즘」) · 몸 = Kinetics 원문 값
   const orbit = rd("../vendor/kinetics/orbit-menu.css");
   assert.match(orbit, /\.demo-orbit-menu\.on \.demo-orbit-core \{ transform: rotate\(45deg\) scale\(\.88\); \}/);
   assert.match(orbit, /\.demo-orbit-action \{[^}]*opacity: 0; transition: transform \.46s var\(--spring\), opacity \.2s ease; \}/);
-  assert.match(fan, /const at = \["action-w", "action-nw", "action-n"\];/, "9시 · 10시 반 · 12시");
+  assert.match(fan, /const at = \["action-w", "action-wnw", "action-nnw", "action-n"\];/, "9시 · 10시 · 11시 · 12시");
   assert.match(fan, /className=\{`nm-ned-plus-i demo-orbit-action \$\{at\[i\]\}`\}[^>]*aria-label=\{t\} title=\{t\}/, "그림만 · 이름은 읽어 주기");
-  assert.match(ncss, /\.nm-ned-plus\.on \.action-nw \{ transform:translate\(calc\(var\(--rd\) \* -1\), calc\(var\(--rd\) \* -1\)\); opacity:1;/);
+  assert.match(ncss, /\.nm-ned-plus\.on \.action-wnw \{ transform:translate\(calc\(var\(--rx\) \* -1\), calc\(var\(--ry\) \* -1\)\); opacity:1;/);
+  assert.match(ncss, /\.nm-ned-plus\.on \.action-nnw \{ transform:translate\(calc\(var\(--ry\) \* -1\), calc\(var\(--rx\) \* -1\)\); opacity:1;/);
+  assert.match(ncss, /--r:88px; --rx:76\.21px; --ry:44px;/, "넷이 안 겹치는 반지름(이웃 사이 = 2 × 88 × sin15° − 40 = 5.6px)");
   assert.match(ncss, /\.nm-ned-plus\.on \.nm-ned-plus-i \{ pointer-events:auto; -webkit-backdrop-filter:blur\(14px\) saturate\(1\.5\)/, "유리 흐림 = 펼친 동안만");
   assert.doesNotMatch(ncss + orbit, /infinite/);
   assert.ok(!/nm-ned-send|nm-ned-btn/.test(ncss));

@@ -12,8 +12,8 @@ test("접어 둠 = 최소화만 넣음 · 닫기 · 다시 열림은 뺌 · 둘 
   assert.deepEqual(edKeptNext(["edtool", "edvid"], "edtool", "min"), ["edvid", "edtool"], "다시 접으면 맨 뒤");
   assert.deepEqual(edKeptNext(["edtool", "edvid"], "edtool", "close"), ["edvid"]);
   assert.deepEqual(edKeptNext(["edtool", "edvid"], "edvid", "open"), ["edtool"]);
-  assert.deepEqual([...ED_TOOLS], ["edtool", "edvid"]);
-  assert.ok(isEdTool("edvid") && !isEdTool("drawer") && !isEdTool(null));
+  assert.deepEqual([...ED_TOOLS], ["edtool", "edvid", "eddoc"]);   // 셋째 = 문서 편집(형 11-17 · ../hwp/doc-editor.tsx)
+  assert.ok(isEdTool("edvid") && isEdTool("eddoc") && !isEdTool("drawer") && !isEdTool(null));
 });
 
 test("살아 있음 = 열림 또는 접어 둠 · 복원 ▲ = 접어 뒀고 지금 안 열린 것들", () => {

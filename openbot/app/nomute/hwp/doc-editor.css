@@ -1,0 +1,62 @@
+/* 문서 편집 창(./doc-editor.tsx) — 겉틀 = 이미지 · 비디오 에디터 머리(../ui/thumb-maker/frame.css tm-*) · 그 아래 할 일 줄 · 몸통 = rhwp 편집기 한 장 + 옆 판(만들기 · 점검)
+   단추 누름 = 줄어듦(앱 공통 --press-l) · 옆 판 = 유리(비디오 에디터 「편집 ⌄」 판과 같은 값) · 밝게/어둡게 = html.dark */
+.hw-stage { --hw-ink:#161716; --hw-mut:#6f736e; --hw-line:rgba(0,0,0,.1); --hw-chip:rgba(0,0,0,.05); --hw-pri:#4f7a00; --hw-pri-ink:#fff; --hw-glass:rgba(255,255,255,.86); --hw-bad:#c2371f; color:var(--hw-ink); }
+html.dark .hw-stage { --hw-ink:#eef1ee; --hw-mut:#8B8F8A; --hw-line:rgba(255,255,255,.12); --hw-chip:rgba(255,255,255,.07); --hw-pri:#CFFF40; --hw-pri-ink:#161716; --hw-glass:rgba(24,26,24,.82); --hw-bad:#ff8a70; }
+.hw-stage .tm-title { color:var(--hw-ink); }
+.hw-name { min-width:0; margin-left:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; line-height:24px; color:var(--hw-mut); }
+
+/* 할 일 줄 — 좁으면 옆으로 밀어 봄(줄바꿈 0 = 편집기 키가 안 흔들림) */
+.hw-bar { position:relative; z-index:3; flex:none; display:flex; align-items:center; gap:6px; padding:8px 14px; border-bottom:.5px solid var(--hw-line); overflow-x:auto; overflow-y:visible; scrollbar-width:none; }
+.hw-bar::-webkit-scrollbar { display:none; }
+.hw-b { flex:none; height:30px; padding:0 12px; border:0; border-radius:999px; background:var(--hw-chip); color:var(--hw-ink); font:inherit; font-size:13px; font-weight:600; line-height:30px; letter-spacing:-.2px; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  transition:background-color var(--m-color,.14s) ease, transform var(--m-press,.07s) ease, opacity var(--m-color,.14s) ease; }
+.hw-b:hover { background:rgba(127,127,127,.2); }
+.hw-b:active { transform:scale(var(--press-l,.95)); }
+.hw-b:disabled { opacity:.4; cursor:default; transform:none; }
+.hw-b.pri { background:var(--hw-pri); color:var(--hw-pri-ink); }
+.hw-b.pri:hover { filter:brightness(1.06); }
+.hw-b[aria-pressed="true"] { box-shadow:0 0 0 2px var(--hw-glass), 0 0 0 3.5px var(--hw-pri); }
+.hw-sep { flex:none; width:1px; height:16px; margin:0 4px; background:var(--hw-line); }
+.hw-grow { flex:1; min-width:8px; }
+.hw-b.hw-keep { position:sticky; right:0; box-shadow:-10px 0 14px -4px rgba(0,0,0,.4); }   /* 「받기」 = 줄이 옆으로 밀려도 오른쪽 끝에 붙어 있음(폰) */
+.hw-pop { position:absolute; z-index:6; top:8px; right:12px; display:flex; flex-direction:column; gap:1px; width:232px; padding:6px; border-radius:18px; border:.5px solid var(--hw-line); background:var(--hw-glass);
+  -webkit-backdrop-filter:blur(22px) saturate(1.5); backdrop-filter:blur(22px) saturate(1.5); box-shadow:0 18px 44px rgba(0,0,0,.2); transform-origin:90% 0; animation:hwPop var(--m-panel,.25s) var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
+.hw-pi, .hw-row { display:grid; gap:1px; padding:9px 12px; border:0; border-radius:13px; background:none; color:var(--hw-ink); font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background-color var(--m-color,.14s) ease, transform var(--m-press,.07s) ease; }
+.hw-pi:hover, .hw-row:hover { background:rgba(127,127,127,.16); }
+.hw-pi:active, .hw-row:active { transform:scale(.97); }
+.hw-pi b, .hw-row b { font-size:14px; line-height:20px; font-weight:600; }
+.hw-pi i, .hw-row i { font-style:normal; font-size:12px; line-height:16px; color:var(--hw-mut); }
+.hw-row { width:100%; border:.5px solid var(--hw-line); }
+.hw-row:disabled { opacity:.4; cursor:default; }
+
+/* 몸통 — 편집기는 흰 종이 화면이라 아래 흐려짐을 뺌(글줄이 흐려지면 안 됨) */
+.tm-frame.hw-frame { -webkit-mask-image:none; mask-image:none; background:#fff; }   /* 클래스 둘 = 틀 옷(frame.css)이 나중에 실려도 이김(조각 순서에 안 기대게) */
+.hw-ed { position:absolute; inset:0; }
+.hw-ed iframe { display:block; width:100%; height:100%; border:0; }
+.hw-wait { position:absolute; inset:0; z-index:2; display:grid; place-content:center; gap:10px; justify-items:center; margin:0; padding:20px; text-align:center; font-size:14px; line-height:22px; color:#6f736e; background:#fff; }
+/* 결과 한 줄 — 몸통 아래 가운데 · 옆 판보다 위(폰은 옆 판이 통째를 덮음) */
+.hw-note { position:absolute; z-index:7; left:50%; bottom:22px; transform:translateX(-50%); width:max-content; max-width:calc(100% - 28px); margin:0; padding:9px 14px; border-radius:14px; font-size:13px; line-height:19px; text-align:center; color:#fff; background:rgba(22,23,22,.86);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); box-shadow:0 10px 28px rgba(0,0,0,.24); pointer-events:none; animation:hwHint var(--m-panel,.25s) var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
+.hw-note.bad { background:#b3301a; }
+.hw-hint { position:absolute; z-index:2; left:50%; bottom:22px; transform:translateX(-50%); width:max-content; max-width:calc(100% - 28px); margin:0; padding:9px 14px; border-radius:14px; font-size:12.5px; line-height:18px; text-align:center; color:#fff; background:rgba(22,23,22,.78);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); pointer-events:none; animation:hwPop var(--m-panel,.25s) var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
+
+/* 옆 판(만들기 · 점검) — 넓으면 왼쪽 380 · 좁으면 통째 */
+.hw-side { position:absolute; z-index:4; top:8px; bottom:8px; left:8px; width:min(380px, calc(100% - 16px)); display:flex; flex-direction:column; gap:10px; padding:14px; overflow-y:auto; overscroll-behavior:contain; border-radius:20px; border:.5px solid var(--hw-line);
+  color:var(--hw-ink); background:var(--hw-glass); -webkit-backdrop-filter:blur(22px) saturate(1.5); backdrop-filter:blur(22px) saturate(1.5); box-shadow:0 18px 44px rgba(0,0,0,.22); transform-origin:8% 0; animation:hwPop var(--m-panel,.25s) var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
+.hw-side-h { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:15px; line-height:22px; }
+.hw-side-h.sub { margin-top:6px; font-size:13px; color:var(--hw-mut); }
+.hw-side-d { margin:-4px 0 0; font-size:12.5px; line-height:18px; color:var(--hw-mut); }
+.hw-side-f { display:flex; align-items:center; gap:6px; }
+.hw-x { flex:none; width:28px; height:28px; border:0; border-radius:50%; background:var(--hw-chip); color:var(--hw-ink); font:inherit; font-size:17px; line-height:28px; cursor:pointer; transition:transform var(--m-press,.07s) ease; }
+.hw-x:active { transform:scale(.9); }
+.hw-md { flex:1; min-height:180px; resize:none; padding:11px 12px; border-radius:13px; border:.5px solid var(--hw-line); background:var(--hw-chip); color:var(--hw-ink); font:13px/20px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; outline:none; }
+.hw-md:focus { border-color:var(--hw-pri); }
+.hw-list { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; font-size:13px; line-height:19px; }
+.hw-list li { padding:8px 11px; border-radius:11px; background:var(--hw-chip); word-break:break-word; }
+.hw-list li.bad { box-shadow:inset 3px 0 0 var(--hw-bad); }
+
+@keyframes hwPop { from { opacity:0; transform:scale(.96); } }
+.hw-hint { animation-name:hwHint; }
+@keyframes hwHint { from { opacity:0; transform:translateX(-50%) translateY(6px); } }
+@media (prefers-reduced-motion:reduce) { .hw-pop, .hw-side, .hw-hint, .hw-note { animation:none; } .hw-b, .hw-pi, .hw-row, .hw-x { transition:none; } }

@@ -1,6 +1,6 @@
 /* 「+」 펼침(./plus-fan.tsx) — 몸 = Kinetics Orbital Action Menu(../vendor/kinetics/orbit-menu.css) · 여기는 앱 자리 · 각도 셋 · 유리 옷 · 색
-   펼침 = 9시 · 10시 반 · 12시(반지름 62 · 단추 40 = 손끝 칸 · 원문 = 반지름 48 · 단추 31) · 움직임 = 원문 스프링 한 번씩 · 도는 것 0 */
-.nm-ned-plus { --spring:cubic-bezier(.34,1.56,.64,1); --r:62px; --rd:43.84px;   /* --rd = 반지름 × sin45°(10시 반) */
+   펼침 = 9시 · 10시 · 11시 · 12시(넷 · 30°씩 · 반지름 88 · 단추 40 = 손끝 칸 · 이웃 사이 5.6px · 앞 판 = 셋 · 반지름 62 · 원문 = 반지름 48 · 단추 31) · 움직임 = 원문 스프링 한 번씩 · 도는 것 0 */
+.nm-ned-plus { --spring:cubic-bezier(.34,1.56,.64,1); --r:88px; --rx:76.21px; --ry:44px;   /* --rx = 반지름 × cos30° · --ry = 반지름 × sin30° */
   --amber:rgba(26,27,26,.42); --graphite:#CFFF40; --card-2:rgba(26,27,26,.42); --line:rgba(255,255,255,.18); --bone-dim:#CFFF40; }
 :root:not(.dark) .nm-ned-plus { --amber:rgba(255,255,255,.58); --graphite:#4f7a00; --card-2:rgba(255,255,255,.58); --line:rgba(0,0,0,.1); --bone-dim:#4f7a00; }
 .nm-ned-plus { position:absolute; z-index:6; right:14px; bottom:calc(var(--duet-tab-space,86px) + 24px); width:46px; height:46px; display:block; }   /* 자리 · 크기 = 대화방 목록 「+」(.nm-fab) 그대로(형 19:24 「웅 그 여기잇는거랑 같은 헝태라고 생각하면 돼 ㅋㅋ」) */
@@ -14,8 +14,9 @@
 .nm-ned-plus-i svg { width:19px; height:19px; }
 .nm-ned-plus.on .nm-ned-plus-i { pointer-events:auto; -webkit-backdrop-filter:blur(14px) saturate(1.5); backdrop-filter:blur(14px) saturate(1.5); }
 .nm-ned-plus.on .action-w { transform:translateX(calc(var(--r) * -1)); transition-delay:.02s; }
-.nm-ned-plus.on .action-nw { transform:translate(calc(var(--rd) * -1), calc(var(--rd) * -1)); opacity:1; transition-delay:.06s; }
-.nm-ned-plus.on .action-n { transform:translateY(calc(var(--r) * -1)); transition-delay:.1s; }
+.nm-ned-plus.on .action-wnw { transform:translate(calc(var(--rx) * -1), calc(var(--ry) * -1)); opacity:1; transition-delay:.05s; }   /* 10시 */
+.nm-ned-plus.on .action-nnw { transform:translate(calc(var(--ry) * -1), calc(var(--rx) * -1)); opacity:1; transition-delay:.08s; }   /* 11시 */
+.nm-ned-plus.on .action-n { transform:translateY(calc(var(--r) * -1)); transition-delay:.11s; }
 .nm-ned-plus.on .nm-ned-plus-i:active { background:rgba(var(--accent-rgb, 207,255,64),.26); scale:.9; }
 /* 펼친 동안 = 접어 둔 창 복원 ▲(./ed-keep.css · 「+」 바로 위)는 비켜 줌(12시 단추와 같은 자리) */
 .duet-face:has(.nm-ned-plus.on) > .tool-restore, .duet-face:has(.nm-ned-plus.on) > .min-pick { opacity:0; pointer-events:none; transition:opacity .15s ease; }

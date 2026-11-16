@@ -68,6 +68,7 @@ const FeedbackModal = lazy(() => import("./feedback").then((m) => ({ default: m.
 const QueueModal = lazy(() => import("./queue").then((m) => ({ default: m.QueueModal })));
 const MsgsModal = lazy(() => import("./msgs").then((m) => ({ default: m.MsgsModal })));
 const MsgsKw = lazy(() => import("./msgs-kw").then((m) => ({ default: m.MsgsKw })));
+const DocEditor = lazy(() => import("../hwp/doc-editor"));   // 4번 「에디터」 셋째 칸 「문서 에디터」 = 한글 없이 한글 문서 만들기 · 열기 · 고치기 · 저장(형 11-17 · rhwp 편집기 + hwpx-docs · 눌러야 받음)
 const VideoEditor = lazy(() => import("./video-editor"));   // 서랍 「영상 편집」 = 옛 비디오 에디터 화면 그대로(형 11-13 13:21 · 앞 판 = ./vedit.tsx 새 판 · 깃 11-10)
 const AcctModal = lazy(() => import("./acct").then((m) => ({ default: m.AcctModal })));   // 서랍 「계정 전환」 = 에디터 설정 ▸ 계정 전환을 앱 안으로(봄 11-01)
 const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModal })));   // 서랍 「잠금」 = 에디터 설정 ▸ 자동 잠금을 앱 안으로(봄 11-01)
@@ -94,7 +95,7 @@ import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색
 import { selfBackNow } from "./self-back";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit" | "botdesk" | "vmstat";
+export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "eddoc" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit" | "botdesk" | "vmstat";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "수리 접수", icon: "tasks", to: "/tasks" },   // 옛 「할 일」 자리 = 접수 창구 통째(형 11-14 「할일 안에 수리접수를 할일로 빼내고 할일을 없애줘」 · ./repair-page.tsx · 길은 그대로 #/tasks)
@@ -117,6 +118,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   // 에디터 설정 메뉴 안 칸들(전엔 러너 톱니로만 열림) = 에디터 /?pop=<이름> 딥링크(빠르 11-01 04:23 · 이름 = 봄 안 표)
   { id: "edq", label: "대기열", icon: "tasks", to: "/edq", desc: "재시도·취소" },
   { id: "edvid", label: "영상 편집", icon: "layout", to: "/edvid", desc: "편집 · 트래킹 · 프롬프팅 · 스토리보드 · 유튜브 · 음원 · 큐영상 · 미디어 요약" },   // 옛 에디터 ＋ 에디터 › 영상 편집 탭 판 1(./vedit.tsx · team-4 깃 11-10)
+  { id: "eddoc", label: "문서 편집", icon: "file", to: "/eddoc", desc: "한글 문서 만들기 · 열기 · 고치기 · 저장" },   // 4번 「에디터」 셋째 칸 = 한글 없이 한글 문서(형 11-17 「이거를 에디터 한쪽에 문서 편집기로해서. 누르면 탭이 나오도록해서. 한글 파일을 구성을 할 수 있게 … 한글을 안키고도」 · ../hwp/doc-editor.tsx · 서랍 목록엔 안 넣음)
   { id: "edmsgs", label: "알림메세지", icon: "bell", to: "/edmsgs", desc: "24시간 알림·조치" },
   { id: "edsensor", label: "센서", icon: "activity", to: "/edsensor", desc: "키워드 센서" },
   { id: "edkw", label: "키워드 알림", icon: "bell", to: "/edkw", desc: "키워드 켜기·목록" },
@@ -133,7 +135,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "애들", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 /** PC 반갈에서 좌우 통합(오른쪽 러너·뉴스 칸 접고 왼쪽을 다 씀) = 러너 · 서랍 · 설정(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」 · 윈터 넘김) · 오른쪽 칸은 숨김만(살려 둠 = 닫으면 다시 안 그림) */
-const SPREAD = new Set<Modal>(["runner", "vmstat", "botdesk", "drawer", "settings", "nedit", "sched", "meetlog", "story", "play"]);   // 서랍 탭 여섯 = PC 에서 다 같은 폭(탭 줄이 탭마다 넓어졌다 좁아졌다 하지 않게 · 형 11-15 「설정을 제외한 모든영역을 탭처럼」)     // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
+const SPREAD = new Set<Modal>(["runner", "vmstat", "botdesk", "drawer", "settings", "nedit", "sched", "meetlog", "story", "play", "eddoc"]);   // eddoc = 문서 편집 = A4 한 장 + 편집 도구 줄이라 PC 는 좌우 다 씀(구름 11-17)   // 서랍 탭 여섯 = PC 에서 다 같은 폭(탭 줄이 탭마다 넓어졌다 좁아졌다 하지 않게 · 형 11-15 「설정을 제외한 모든영역을 탭처럼」)     // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
 // 채널 · SNS = 옛 에디터 「채널 요약」 · 「SNS」 탭 그대로 한 줄씩(형 11-14 「채널 요약은 전에 버전이 잇을거야 그거 살려서 혹시 하나의 서랍 버전으로」 · 「sns도 마찬가지」) — 11-15 부터 품지(iframe) 않고 앱 안에서 돌림(./old-tabs · 형 「아예 여기에 줕이려고」)
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
@@ -149,13 +151,13 @@ const menuOf = (talkTo: string): MenuGroup[] => [
   { id: "chat", label: "대화", to: talkTo },   // 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록(../swap/talk-next.ts · 아래 알약 네비 「대화」가 하던 그대로)
   { id: "ned", label: "뉴스 에디터", to: "/newsed", items: NED_TABS.map((t) => ({ id: t.id, label: t.name, icon: t.icon, to: t.to, desc: MENU_DESC[t.id] })), foot: { label: "뉴스 에디터 열기", to: "/newsed" } },
   // 「에디터」 칸 = 뉴스 ＋ 를 누르면 나오는 둘(형 11-16 11:4x 구름 맥 창 「뉴스 우측에 에디터 칸 넣어서 그 뉴스에 + 누르면 나오는 이미지랑 비디오 에디터 넣어주라」 · 11:5x 「에디터는 기본적으로 이미지 에디터」) · 이름 · 그림 = ./plus-fan.tsx 와 같게 · 길 = #/edtool · #/edvid 그대로
-  { id: "editor", label: "에디터", to: "/edtool", items: [{ id: "edtool", label: "이미지 에디터", art: PLUS_ICON["/edtool"], to: "/edtool", desc: "카드 · 썸네일 만들기" }, { id: "edvid", label: "비디오 에디터", art: PLUS_ICON["/edvid"], to: "/edvid", desc: "편집 · 트래킹 · 스토리보드 · 유튜브" }], foot: { label: "에디터 열기", to: "/edtool" } },
+  { id: "editor", label: "에디터", to: "/edtool", items: [{ id: "edtool", label: "이미지 에디터", art: PLUS_ICON["/edtool"], to: "/edtool", desc: "카드 · 썸네일 만들기" }, { id: "edvid", label: "비디오 에디터", art: PLUS_ICON["/edvid"], to: "/edvid", desc: "편집 · 트래킹 · 스토리보드 · 유튜브" }, { id: "eddoc", label: "문서 에디터", art: PLUS_ICON["/eddoc"], to: "/eddoc", desc: "한글 문서 만들기 · 고치기 · 저장" }], foot: { label: "에디터 열기", to: "/edtool" } },
   // 5번 = 「애들」(형 11-16 18:2x 구름 맥 창 「1번이 메인화면, 2번이 대화, 3번이 뉴스, 4번이 에디터, 5번이 애들 상태 관련, 6번이 설정」) — 한 화면에 애들 → 스케줄 배선 → 러너가 이어짐(./bot-desk.tsx) · 판의 위 세 줄 = 그 화면의 층(누르면 그 층으로) · 아래 = 그 밖 화면(화상 회의록 · 밥상 이야기 · 봄의 정원)
   { id: "drawer", label: "애들", to: "/drawer", items: [...CREW_ROWS, ...DRAWER_TABS.filter((id) => id !== "botdesk").flatMap((id) => { const m = MODALS.find((x) => x.id === id); return m ? [{ id, label: m.label, icon: m.icon, to: m.to, desc: m.desc || MENU_DESC[id] }] : []; })], foot: { label: "애들 열기", to: "/drawer" } },
   { id: "settings", label: "설정", to: "/settings" },
 ];
 /** 순수 — 지금 화면이 메뉴 줄의 어느 칸인가(시험 가능) */
-export const menuOn = (pane: Pane | null, modal: Modal | null): string | null => (modal === "nedit" ? "ned" : modal === "edtool" || modal === "edvid" ? "editor" : modal === "settings" ? "settings" : isDrawerTab(modal) || modal === "drawer" ? "drawer" : modal ? null : pane === "home" ? "home" : pane ? "chat" : null);
+export const menuOn = (pane: Pane | null, modal: Modal | null): string | null => (modal === "nedit" ? "ned" : modal === "edtool" || modal === "edvid" || modal === "eddoc" ? "editor" : modal === "settings" ? "settings" : isDrawerTab(modal) || modal === "drawer" ? "drawer" : modal ? null : pane === "home" ? "home" : pane ? "chat" : null);
 
 type Where = { pane: Pane } | { modal: Modal } | { web: true } | { issue: string } | { page: true } | { bare: true };
 /** 길 → 판·모달 · page = 판 위에 덮는 원본 화면 · bare = 껍데기 없이(가입 안내 등) */
@@ -202,7 +204,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const modal = "modal" in where ? where.modal : layer ? under : null;
   useEffect(() => listenAppLinks(), []);
   const [edKept, setEdKept] = useState<EdTool[]>([]);   // 접어 둔 창(이미지 편집 · 영상 편집 · ./ed-keep.tsx) — 주소를 벗어나도 살려 둠
-  const edPath = useRef<Record<EdTool, string>>({ edtool: "/edtool", edvid: "/edvid" });   // 펼칠 때 돌아갈 주소(영상 편집 = 고르던 일 /edtrack · /edk …)
+  const edPath = useRef<Record<EdTool, string>>({ edtool: "/edtool", edvid: "/edvid", eddoc: "/eddoc" });   // 펼칠 때 돌아갈 주소(영상 편집 = 고르던 일 /edtrack · /edk …)
   useEffect(() => { if (isEdTool(modal) && "modal" in where) { edPath.current[modal] = pathname; setEdKept((k) => edKeptNext(k, modal, "open")); } }, [modal, pathname]);   // eslint-disable-line react-hooks/exhaustive-deps
   // 방에 들어올 때 = 바로 앞 칸이 대화 목록이 아니면 목록을 한 칸 깔고 그 위에 방(형 11-14 19:41 깃 옮김 「글구 대화에서 항상 뒤로가기하면 대화목록이 나오게 해주라.」)
   //   = 앱 「<」 · 폰 뒤로 · 브라우저 뒤로 어느 길이든 뒤 칸이 /rooms · 아래 onPop(뒤로 뒤에 바꿔 끼움)은 상태 없는 이동(location.hash =)으로 들어온 방에선 안 걸려 홈으로 새던 것(시아 라이브 실측 = 홈 → 방 → 뒤로 = #/)
@@ -251,7 +253,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   useTabSpace(stage);
   if ("bare" in where) return <>{children}</>;
 
-  const SEE = new Set(["settings", "drawer", "edtool", "edvid"]);   // 영상 편집도(형 11-13 13:21 「지금 포토 에디터처럼」)   // 에디터도(형 11-13 02:26 봄 1:1 「지금 수정한 에디터, 뒤에 지금 인앱 배경을 깔아버리면 될듯」)   // 바탕 비치는 판(5번 서랍 · 6번 설정)
+  const SEE = new Set(["settings", "drawer", "edtool", "edvid", "eddoc"]);   // 영상 편집도(형 11-13 13:21 「지금 포토 에디터처럼」)   // 에디터도(형 11-13 02:26 봄 1:1 「지금 수정한 에디터, 뒤에 지금 인앱 배경을 깔아버리면 될듯」)   // 바탕 비치는 판(5번 서랍 · 6번 설정)
   const show = (id: Pane, node: ReactNode) =>
     open.has(id) ? <section key={id} className={`nm-pane ${pane === id ? "on" : ""}`} aria-hidden={pane !== id} inert={pane !== id || undefined}>{node}</section> : null;
   const closeModal = () => {   // 서랍에서 연 칸의 「<」 = 서랍으로(봄 11-01 · 전엔 아래 판(홈·대화방)으로 갔음) · 표지 = drawer-page 가 누를 때 남김
@@ -315,6 +317,8 @@ export function NomuteShell({ children }: { children: ReactNode }) {
             <ToolKeep key={t} tool={t} open={modal === t} covered={layer} onClose={() => { setEdKept((k) => edKeptNext(k, t, "close")); closeModal(); }}>
               {t === "edtool"
                 ? <ThumbMaker onBack={() => { setEdKept((k) => edKeptNext(k, t, "close")); closeModal(); }} onMin={() => { setEdKept((k) => edKeptNext(k, t, "min")); closeModal(); }} />
+                : t === "eddoc"
+                ? <DocEditor onBack={() => { setEdKept((k) => edKeptNext(k, t, "close")); closeModal(); }} onMin={() => { setEdKept((k) => edKeptNext(k, t, "min")); closeModal(); }} />
                 : <VideoEditor hold={modal !== t} onBack={() => { setEdKept((k) => edKeptNext(k, t, "close")); closeModal(); }} onMin={() => { setEdKept((k) => edKeptNext(k, t, "min")); closeModal(); }} />}
             </ToolKeep>
           ) : null)}
