@@ -12,7 +12,6 @@ import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { useNavigate } from "@tanstack/react-router";
 import { DaySlide } from "./day-slide";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { leftKo } from "./spawn-room";
 import { type OfficeRoom, idOf, office, peopleSync, seatOff } from "../data/office";
 import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
@@ -42,16 +41,40 @@ function useLeftClock(exp?: number) {
   return now;
 }
 
-/** 방 이름 옆 남은 시간 표 — 늘 보임(방 머리 카드는 글이 쌓이면 위로 밀림) · 누르면 기한 바꾸기(형 11-16 20:09 「따로 설정안하면 1시간이 기본」 · 「당연히 옵션래서 변경 가능하고」). 기한 있는 임시방만. */
+/** 그 자리 기한 고치기 — 유지 시간 막대(1시간 · 끌어서 1~7일 · 영구) 하나 · 고르면 0.6초 뒤 바로 저장(창 0 · 저장 단추 0)
+ *  형 11-16 21:5x 구름 맥 창 「모달 최소화」 · 앞 = 남은 시간을 누르면 방 설정 창(모달)이 떴음. 서버 = 방 설정 창과 같은 길(POST temprooms/<id> {name, purpose, members, hours}) */
+function TempLeftEdit({ r }: { r: OfficeRoom }) {
+  const qc = useQueryClient(), [hours, setHours] = useState<number | null>(null), [why, setWhy] = useState(""), t = useRef(0);
+  const pick = (h: number) => {
+    setHours(h); setWhy(""); window.clearTimeout(t.current);
+    t.current = window.setTimeout(async () => {   // 끄는 동안 칸마다 보내지 않게 = 마지막 고름 뒤 한 번만
+      try {
+        const j = await office<{ room?: Partial<OfficeRoom> & { id: string } }>(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name || "", purpose: r.purpose || "", members: r.members || [], hours: h }) });
+        if (j?.room) patchRoom(qc, r.id, { exp: j.room.exp });
+        void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] });
+      } catch (e) { setWhy(e instanceof Error ? e.message : "못 바꿨어"); }
+    }, 600);
+  };
+  return <div className="nm-temp-edit"><DaySlide hours={hours} onChange={pick} />{why ? <p role="alert" className="nm-temp-why">못 바꿨어 — {why}</p> : null}</div>;
+}
+
+/** 방 이름 옆 남은 시간 표 — 늘 보임(방 머리 카드는 글이 쌓이면 위로 밀림) · 누르면 표 밑에 유지 시간 막대가 그 자리에서 열림(창 0 · 바깥 누름 · Esc = 닫힘). 기한 있는 임시방만. */
 export function TempLeftChip({ r }: { r: OfficeRoom }) {
-  const [edit, setEdit] = useState(false), now = useLeftClock(r.exp);
+  const [edit, setEdit] = useState(false), now = useLeftClock(r.exp), box = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!edit) return undefined;
+    const out = (e: PointerEvent) => { if (box.current && !box.current.contains(e.target as Node)) setEdit(false); };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") setEdit(false); };
+    window.addEventListener("pointerdown", out, true); window.addEventListener("keydown", key);
+    return () => { window.removeEventListener("pointerdown", out, true); window.removeEventListener("keydown", key); };
+  }, [edit]);
   if (!r.temp || !r.exp) return null;
   const left = tempLeft(r.exp, now);
   return (
-    <>
-      <button type="button" className="nm-temp-chip" data-soon={r.exp - now < 10 * 60e3 ? "" : undefined} aria-label={`${left} · 기한 바꾸기`} onClick={() => setEdit(true)}>{left.replace(" 남음", "")}</button>
-      {edit ? createPortal(<TempRoomDialog edit={r} onClose={() => setEdit(false)} />, document.body) : null}
-    </>
+    <span ref={box} className="nm-temp-wrap">
+      <button type="button" className="nm-temp-chip" data-soon={r.exp - now < 10 * 60e3 ? "" : undefined} aria-expanded={edit} aria-label={`${left} · 기한 바꾸기`} onClick={() => setEdit((v) => !v)}>{left.replace(" 남음", "")}</button>
+      {edit ? <span className="nm-temp-pop" role="group" aria-label="유지 시간"><TempLeftEdit r={r} /></span> : null}
+    </span>
   );
 }
 
@@ -63,11 +86,11 @@ export function TempRoomHead({ r }: { r: OfficeRoom }) {
     <div className="mb-2 rounded-2xl border border-border px-3 py-2 text-sm">
       {r.purpose ? <p className="whitespace-pre-wrap">{r.purpose}</p> : null}
       <p className={`${r.purpose ? "mt-1 " : ""}text-xs text-muted-foreground`}>
-        {/* 남은 시간 = 누르면 기한 바꾸기(방 설정 창 「유지 시간」 · 형 11-16 20:09 「당연히 옵션래서 변경 가능하고」) */}
-        <button type="button" className="nm-temp-left font-semibold tabular-nums text-foreground underline-offset-2 hover:underline" aria-label={`${r.exp ? tempLeft(r.exp, now) : "영구"} · 기한 바꾸기`} onClick={() => setEdit(true)}>{r.exp ? tempLeft(r.exp, now) : "영구"}</button>
+        {/* 남은 시간 = 누르면 그 밑에 유지 시간 막대(형 11-16 20:09 「당연히 옵션래서 변경 가능하고」 · 21:5x 「모달 최소화」) */}
+        <button type="button" className="nm-temp-left font-semibold tabular-nums text-foreground underline-offset-2 hover:underline" aria-expanded={edit} aria-label={`${r.exp ? tempLeft(r.exp, now) : "영구"} · 기한 바꾸기`} onClick={() => setEdit((v) => !v)}>{r.exp ? tempLeft(r.exp, now) : "영구"}</button>
         {r.spawned && fromName ? ` · ${fromName} 1:1 에서 옮겨 옴` : ""} · 지침 받음 {heard.map(short).join("·") || "아직 없음"}{wait.length ? ` · 안 온 이 ${wait.map(short).join("·")}` : ""}
       </p>
-      {edit ? createPortal(<TempRoomDialog edit={r} onClose={() => setEdit(false)} />, document.body) : null}
+      {edit ? <TempLeftEdit r={r} /> : null}   {/* 그 자리에서 열림(창 0 · 형 11-16 「모달 최소화」) */}
     </div>
   );
 }
