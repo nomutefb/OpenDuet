@@ -64,7 +64,6 @@ const ScrapModal = lazy(() => import("./scrap").then((m) => ({ default: m.ScrapM
 const TokensModal = lazy(() => import("./tokens").then((m) => ({ default: m.TokensModal })));   // 서랍 「토큰」·「결의 방」·「피드백」 = 에디터 페이지 네이티브(전엔 FRAME 으로 품음)
 const GyeolModal = lazy(() => import("./gyeol-room").then((m) => ({ default: m.GyeolModal })));
 const StoriesModal = lazy(() => import("./stories").then((m) => ({ default: m.StoriesModal })));   // 밥상 이야기(형 11-04 15:4x · 서랍 칸 · 밥상 방 오른쪽 위 그림은 ./room-search.tsx)
-const FeedbackModal = lazy(() => import("./feedback").then((m) => ({ default: m.FeedbackModal })));
 const QueueModal = lazy(() => import("./queue").then((m) => ({ default: m.QueueModal })));
 const MsgsModal = lazy(() => import("./msgs").then((m) => ({ default: m.MsgsModal })));
 const MsgsKw = lazy(() => import("./msgs-kw").then((m) => ({ default: m.MsgsKw })));
@@ -95,7 +94,7 @@ import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색
 import { selfBackNow } from "./self-back";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "eddoc" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "feedback" | "settings" | "sched" | "drawer" | "status" | "nedit" | "botdesk" | "vmstat";
+export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "eddoc" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "settings" | "sched" | "drawer" | "status" | "nedit" | "botdesk" | "vmstat";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "수리 접수", icon: "tasks", to: "/tasks" },   // 옛 「할 일」 자리 = 접수 창구 통째(형 11-14 「할일 안에 수리접수를 할일로 빼내고 할일을 없애줘」 · ./repair-page.tsx · 길은 그대로 #/tasks)
@@ -130,7 +129,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "story", label: "밥상 이야기", icon: "file", to: "/story" },   // 종 틈에 지은 글 모음(형 11-04 15:4x · ./stories.tsx)
   { id: "play", label: "봄의 정원", icon: "sparkle", to: "/play" },   // 이름 = 봄의 정원(형 11-14 「놀이터 말고 봄의 정원이라고 따로 만들어줘 헤더에 놀이터 없이」 · 서랍 줄 · 머리 줄 둘 다)   // 형 10-31 「놀이터를 … 서랍메뉴로 아예 빼줘」 · 주소 = viewer/play
   { id: "tokens", label: "토큰", icon: "bolt", to: "/tokens" },
-  { id: "feedback", label: "피드백", icon: "reply", to: "/feedback" },
+  // 「피드백」(형 감 라벨 카드 · ./feedback.tsx) = 걷음 — 형 11-17 03:1x 구름 맥 창 「카드실패랑 피드백은 이제 안하니 러너단위로 없애고 반영」 · 러너(feedback-cards · feedback · labels-in)를 걷으면 빈 화면이라 길째 뺌
   { id: "settings", label: "설정", icon: "settings", to: "/settings" },
   { id: "drawer", label: "애들", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
@@ -361,7 +360,6 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "tokens" ? <div className="nm-scroll"><TokensModal /></div>
                   : M.id === "gyeol" ? <div className="nm-scroll"><GyeolModal /></div>
                   : M.id === "story" ? <div className="nm-scroll"><StoriesModal /></div>
-                  : M.id === "feedback" ? <div className="nm-scroll"><FeedbackModal /></div>
                   : <div className="nm-scroll nm-settings-page"><Suspense fallback={null}><SettingsPage /></Suspense></div>}
                 </Suspense>
               </div>

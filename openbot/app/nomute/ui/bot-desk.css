@@ -375,3 +375,7 @@
 .nm-bd-ab.org .nsb-ab-lane ul:not(.mini) { row-gap:17px; overflow:hidden; }
 .nm-bd-ab.org .nsb-ab-lane ul:not(.mini) > li { position:relative; }
 .nm-bd-ab.org .nsb-ab-lane ul:not(.mini) > li::before { content:""; position:absolute; left:-100vw; right:-100vw; top:-9px; border-top:1px dashed var(--nsb-line); pointer-events:none; }
+/* 「계기판」 탭(설정 「회의실 계기판」에서 옮김) — 부품(PageSection)의 제 머리 줄은 탭이 맡음 */
+.nm-bd-meter { letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }   /* 「형 글 id」 같은 영문이 대문자 꼴로 안 그려지게 */
+.nm-bd-meter > section { margin-top:0; }
+.nm-bd-meter > section > div:first-child:has(> h2) { display:none; }
