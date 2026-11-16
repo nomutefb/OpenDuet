@@ -8,17 +8,17 @@
 //   줄 내용 = 부른 쪽(./shell.tsx)이 지금 네비 그대로 넘김(뉴스 에디터 위 탭 셋 ./ned-tabs.ts · 서랍 위 탭 여섯 ./drawer-tabs.ts) — 여기선 그리기만(길 · 이름을 따로 안 적음)
 //   서랍 표에 「글자 메뉴 + 아래로 열리는 판」은 없어서 새로 짬(꺽쇠 = ./chev.tsx · 아이콘 = DuetIcon · 이징 = --e-out 그대로)
 import "./menu-bar.css";
-import { type CSSProperties, type KeyboardEvent as RKE, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type KeyboardEvent as RKE, type ReactNode, useEffect, useRef, useState } from "react";
 import { DuetIcon, type DuetIconName } from "@/components/duet/icons";
 import { Chev } from "./chev";
 
-export type MenuItem = { id: string; label: string; desc?: string; icon: DuetIconName; to: string; badge?: string };
+export type MenuItem = { id: string; label: string; desc?: string; icon?: DuetIconName; art?: ReactNode; to: string; badge?: string };   // art = 제 그림(＋ 펼침과 같은 그림을 쓸 때 · 없으면 icon)
 export type MenuGroup = { id: string; label: string; to?: string; items?: MenuItem[]; foot?: { label: string; to: string } };
 
 const STAGGER_MS = 30, FIRST_MS = 20, LEAVE_MS = 180, ENTER_MS = 40;   // 줄 사이 · 첫 줄 늦춤(영상: 판이 먼저 뜨고 0.08초 뒤 첫 줄) · 판 밖으로 나가면 닫기까지 · 올려서 열기까지(스쳐 지나가면 안 열림)
 const fine = () => typeof matchMedia === "function" && matchMedia("(hover:hover) and (pointer:fine)").matches;
 
-export function MenuBar({ groups, on }: { groups: MenuGroup[]; on?: string | null }) {
+export function MenuBar({ groups, on, cur }: { groups: MenuGroup[]; on?: string | null; cur?: string | null }) {   // on = 켜진 칸 · cur = 그 칸 안에서 지금 보고 있는 줄(id)
   const [open, setOpen] = useState<string | null>(null);
   const root = useRef<HTMLElement>(null), tm = useRef(0);
   const later = (f: () => void, ms: number) => { window.clearTimeout(tm.current); tm.current = window.setTimeout(f, ms); };
@@ -53,7 +53,11 @@ export function MenuBar({ groups, on }: { groups: MenuGroup[]; on?: string | nul
         return (
           <div key={g.id} className="nm-mb-group" data-open={isOpen ? 1 : 0}>
             <button type="button" data-mb={g.id} className={`nm-mb-top has${on === g.id ? " on" : ""}`} aria-haspopup="true" aria-expanded={isOpen}
-              onClick={() => { window.clearTimeout(tm.current); setOpen(isOpen ? null : g.id); }}
+              onClick={() => {   // 이름을 누름 = 그 칸의 기본 화면으로(형 11-16 11:5x 「에디터는 기본적으로 이미지 에디터」 · 「서랍 > 기본적으로 러너」) — 마우스는 올리면 판이 이미 떠 있으니 누름 = 바로 감 · 손가락 화면(올림 없음)은 누름 = 판 열고 닫기
+                window.clearTimeout(tm.current);
+                if (g.to && fine()) { shut(); window.location.hash = g.to; return; }
+                setOpen(isOpen ? null : g.id);
+              }}
               onPointerEnter={() => { if (fine() && !isOpen) later(() => setOpen(g.id), open ? 0 : ENTER_MS); }}
               onKeyDown={(e) => { if (e.key === "ArrowDown") { e.preventDefault(); setOpen(g.id); requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(`[data-mbp="${g.id}"] a`)?.focus()); } }}>
               {g.label}<Chev dir={isOpen ? "up" : "down"} size={13} className="nm-mb-chev" />
@@ -62,9 +66,9 @@ export function MenuBar({ groups, on }: { groups: MenuGroup[]; on?: string | nul
               onPointerLeave={(e) => glide(e.currentTarget, null)}>
               <i className="nm-mb-hl" aria-hidden />
               {g.items.map((it, i) => (
-                <a key={it.id} className="nm-mb-row" href={`#${it.to}`} style={{ ["--d" as string]: `${FIRST_MS + i * STAGGER_MS}ms` } as CSSProperties} onClick={shut}
+                <a key={it.id} className={`nm-mb-row${on === g.id && cur === it.id ? " cur" : ""}`} aria-current={on === g.id && cur === it.id ? "page" : undefined} href={`#${it.to}`} style={{ ["--d" as string]: `${FIRST_MS + i * STAGGER_MS}ms` } as CSSProperties} onClick={shut}
                   onPointerEnter={(e) => glide(e.currentTarget.parentElement, e.currentTarget)} onFocus={(e) => glide(e.currentTarget.parentElement, e.currentTarget)}>
-                  <DuetIcon name={it.icon} className="nm-mb-ico" size={16} />
+                  {it.art ? <span className="nm-mb-ico art" aria-hidden>{it.art}</span> : <DuetIcon name={it.icon || "page"} className="nm-mb-ico" size={16} />}
                   <span className="nm-mb-txt"><b>{it.label}{it.badge ? <em>{it.badge}</em> : null}</b>{it.desc ? <small>{it.desc}</small> : null}</span>
                 </a>
               ))}

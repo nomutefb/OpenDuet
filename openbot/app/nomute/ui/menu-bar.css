@@ -4,6 +4,10 @@
 :root:has(.nm-menubar) { --nm-menu-h:34px; }
 :root:has(.nm-menubar) .nm-split-root { padding-top:calc(50px + var(--nm-menu-h)); }
 :root:has(.nm-menubar) .nm-tab-screen { top:calc(50px + var(--nm-menu-h)); }
+/* 위 탭 줄(봄의 정원 · Browser · 화상 회의 · Teams · +)은 어느 칸에서나 그대로(형 11-16 11:5x 구름 맥 창 「응 그리고 위에 탭 기존에 만든거는 살아잇어야햐ㅐ」 · 「봄의 정원 뜨던거, 그 안에서 웹페이지가 구를수잇어야되거든」)
+   앞: 뉴스 에디터 · 서랍 · 설정에 들어가면 그 줄이 칸 탭(./area-tabs.tsx · 러너 · 봇 현황 …)으로 바뀌어 위 탭이 숨었음(./shell.css .nm-area-on · 형 11-15 「탭 1234 는 a에 귀속」) → 메뉴 줄이 그 칸 탭 몫(서랍 ⌄ · 뉴스 에디터 ⌄ 안의 줄)을 하니 PC 에선 위 탭을 늘 보이고 칸 탭 줄은 접음 · 폰은 메뉴 줄이 없어 앞 그대로 */
+:root:has(.nm-menubar) .nm-area-on .nm-tabs:not(.nm-area) { display:flex; }
+:root:has(.nm-menubar) .nm-tabs.nm-area { display:none; }
 .nm-menubar { position:fixed; top:50px; left:64px; right:0; height:var(--nm-menu-h, 34px); z-index:59; display:flex; align-items:center; gap:0; padding:0 14px; background:var(--nm-tab-on, #121314); box-shadow:inset 0 -1px 0 rgba(232,234,232,.07);
   font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; text-transform:none;   /* 글꼴 고정 = 프리텐다드(형 11-16 10:3x 「웅 빼고 츠리텐다드」) — 설정 「글꼴」(영문 LEMON MILK · Manrope · 한글 Paperlogy)을 안 따라감 = 기기마다 같은 꼴 · 글꼴 파일은 ./font-all.css 가 이미 올림 */
   font-size:13px; line-height:1; color:rgba(232,234,232,.66); -webkit-user-select:none; user-select:none; }
@@ -32,11 +36,15 @@
 .nm-mb-group[data-open="1"] .nm-mb-row { animation:nmMbRow .26s var(--e-out, cubic-bezier(.2,.8,.2,1)) var(--d, 0ms) both; }
 @keyframes nmMbRow { from { opacity:0; transform:translate3d(0,4px,0); filter:blur(2px); } to { opacity:1; transform:none; filter:blur(0); } }   /* 흐림은 옅게(2px) = 영상과 나란히 놓고 보니 5px 는 글자가 영상보다 늦게 읽혔음 */
 .nm-mb-ico { flex:none; margin-top:1px; color:rgba(232,234,232,.86); transition:color var(--m-color, .14s); }
+.nm-mb-ico.art { display:block; width:16px; height:16px; } .nm-mb-ico.art svg { display:block; width:16px; height:16px; }   /* ＋ 펼침 그림(./plus-fan.tsx ICON)을 줄 앞 아이콘 크기로 */
 .nm-mb-txt { display:flex; flex-direction:column; gap:5px; min-width:0; }
 .nm-mb-txt b { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; line-height:16px; color:inherit; transition:color var(--m-color, .14s); }
 .nm-mb-txt em { padding:0 6px; border-radius:6px; font-style:normal; font-size:10px; font-weight:500; line-height:16px; color:var(--accent, #CFFF40); background:rgba(207,255,64,.12); }
 .nm-mb-txt small { font-size:12px; line-height:15px; color:rgba(232,234,232,.5); white-space:nowrap; }
 .nm-mb-row:hover b, .nm-mb-row:hover .nm-mb-ico, .nm-mb-row:focus-visible b, .nm-mb-row:focus-visible .nm-mb-ico { color:var(--accent, #CFFF40); }
+/* 지금 보고 있는 줄 = 제목 앞 작은 라임 점 + 제목 흰색(칸 탭 줄이 하던 「지금 어디」 표시를 판 안에서) */
+.nm-mb-row.cur b { color:#fff; } .nm-mb-row.cur b::before { content:""; flex:none; width:5px; height:5px; margin-right:-2px; border-radius:50%; background:var(--accent, #CFFF40); }
+:root:not(.dark) .nm-mb-row.cur b { color:#161716; }
 .nm-mb-row.foot { margin-top:7px; padding:13px 10px; }
 .nm-mb-row.foot::before { content:""; position:absolute; left:-6px; right:-6px; top:-4px; height:1px; background:rgba(255,255,255,.06); }
 /* 밝게 */

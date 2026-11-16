@@ -8,7 +8,12 @@ test("자리 = 위 탭 줄 바로 뒤 · PC 두 칸에서만 · 내용 = 지금 
   assert.match(shell, /\{split \? <TopTabBar room=\{room\} pane=\{pane\} \/> : null\}\n\s+\{split \? <MenuBar groups=\{menuOf\(talkNext\(/);
   assert.match(shell, /\{split \? null : <TabBar pane=/);   // 형 11-16 10:3x 「웅 빼고 츠리텐다드」 = PC 에선 아래 알약 네비 뺌(폰은 그대로)
   assert.match(css, /\.nm-menubar \{[^}]*font-family:'Pretendard Variable', Pretendard,/);
-  assert.match(shell, /items: NED_TABS\.map\(/); assert.match(shell, /items: DRAWER_TABS\.flatMap\(/);   // 뉴스 에디터 위 탭 셋 · 서랍 위 탭 여섯 = 그 정의를 그대로 읽음
+  assert.match(shell, /items: NED_TABS\.map\(/); assert.match(shell, /items: DRAWER_TABS\.flatMap\(/);
+  assert.match(shell, /\{ id: "editor", label: "에디터", to: "\/edtool", items: \[\{ id: "edtool", label: "이미지 에디터"/);   // 형 11-16 「뉴스 우측에 에디터 칸 넣어서 … 이미지랑 비디오 에디터」 · 「에디터는 기본적으로 이미지 에디터」
+  assert.match(shell, /\{ id: "drawer", label: "서랍", to: "\/drawer", items:/);   // 형 「서랍 > 기본적으로 러너」(#/drawer = 러너부터)
+  assert.match(tsx, /if \(g\.to && fine\(\)\) \{ shut\(\); window\.location\.hash = g\.to; return; \}/);   // 이름 누름 = 기본 화면으로
+  assert.match(css, /:root:has\(\.nm-menubar\) \.nm-area-on \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 형 11-16 「위에 탭 기존에 만든거는 살아잇어야햐ㅐ」 = PC 에선 위 탭 줄이 어느 칸에서나 보임
+  assert.match(css, /:root:has\(\.nm-menubar\) \.nm-tabs\.nm-area \{ display:none; \}/);   // 뉴스 에디터 위 탭 셋 · 서랍 위 탭 여섯 = 그 정의를 그대로 읽음
   assert.match(css, /:root:has\(\.nm-menubar\) \.nm-split-root \{ padding-top:calc\(50px \+ var\(--nm-menu-h\)\); \}/);   // 줄 키만큼 아래 판을 내림
 });
 test("박자 = 차례로 뜨는 꼴 그대로 · 빠르기는 줄임(판 0.16초 · 줄 사이 0.03초 · 줄 0.26초 · 닫힘 0.12초) · 유리 판 · 줄 위 밝은 판은 하나가 미끄러짐", () => {

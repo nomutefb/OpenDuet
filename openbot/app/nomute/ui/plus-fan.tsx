@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
  *  몸 = Kinetics 「Orbital Action Menu」 그대로(../vendor/kinetics/orbit-menu.css · 가운데 「+」 = 45° 돌며 .88 · 둘레 단추 = 스프링으로 튀어나옴) · 자리 셋(9시 · 10시 반 · 12시) · 유리 옷 = ./plus-fan.css
  *  평소 = 작은 「+」 하나 · 누르면 셋(뉴스 요약 = 요약 요청 · 이미지 에디터 = 카드 제작 /edtool · 비디오 에디터 = 영상 편집 /edvid) · 하나 누르면 그 화면 · 「+」 다시 또는 바깥 = 접힘 · 글자 = 읽어 주기 · 길게 올려 두면(title) */
 const P = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
-const ICON: Record<string, JSX.Element> = {
+export const ICON: Record<string, JSX.Element> = {   // 메뉴 줄 「에디터」 칸도 같은 그림을 씀(./shell.tsx menuOf · 형 11-16 「그 뉴스에 + 누르면 나오는 이미지랑 비디오 에디터」)
   "/ask": <svg {...P}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8M16 13H8M16 17H8" /></svg>,
   "/edtool": <svg {...P}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>,
   "/edvid": <svg {...P}><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" /><rect x="2" y="6" width="14" height="12" rx="2" /></svg>,

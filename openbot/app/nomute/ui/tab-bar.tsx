@@ -24,7 +24,8 @@ const teamsLast = () => { try { return localStorage.getItem(TEAMS_LAST) || ""; }
 const OFFICE_LAST = "nm-office-last";   // 마지막에 본 사무실 대화(이 기기) = 팀즈에서 정원 탭 누르면 왼쪽이 그리로(형 11-13 12:43 봄 옮김 「그리고 팀즈에서 다시 정원을 누르면 그 채팅이 뜨게 가능해?」 · 「✓ ③ 둘 다」 · 뎅)
 const officeLast = () => { try { return localStorage.getItem(OFFICE_LAST) || ""; } catch { return ""; } };
 // 웹 · 화면 탭이 덮는 자리 = 오른쪽 칸(aside.nm-split · SNS · HOT ISSUE · DIGEST)만 · 왼쪽 대화는 그대로 · 칸이 없으면(좁은 판) 옛 자리(몸 전체)
-const paneHost = (): HTMLElement | null => document.querySelector<HTMLElement>(".nm-split-root aside.nm-split");
+const sideEl = (): HTMLElement | null => document.querySelector<HTMLElement>(".nm-split-root aside.nm-split");   // 오른쪽 칸(접혀 있어도 있음)
+const paneHost = (): HTMLElement | null => { const a = sideEl(); return a && a.offsetWidth > 0 ? a : null; };   // 오른쪽 칸이 접힌 화면(서랍 · 뉴스 에디터 · 설정 = 좌우 통합)에선 없음으로 침 = 웹 · 화면 탭이 몸 전체를 덮는 판으로 뜸(구름 11-16 · 형 11:5x 「위에 탭 기존에 만든거는 살아잇어야햐ㅐ」 · 「그 안에서 웹페이지가 구를수잇어야되거든」 — 앞 = 접힌 칸 안에 그려져 Browser 탭을 눌러도 아무것도 안 보였음)
 
 const load = (): TabState => {   // 방 탭은 안 올림(형 11-09 09:29 회의실 「대화 상대가 저기 나올 필요는 없어. 웹과 관련된 내용만 저기 뜨면 될듯.」) = 옛 판에 남은 방 탭도 뺌
   let s: TabState; try { s = tabsLoad(localStorage.getItem(TABS_KEY)); } catch { s = tabsLoad(null); }
@@ -54,6 +55,8 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     if (paneHost()) return;   // 웹 · 화면 탭이 오른쪽 칸만 덮는 판(PC 두 칸) = 왼쪽 대화를 옮겨도 오른쪽 탭은 그대로(형 11-12 16:41 봄 1:1 「봄으 ㅣ정원으로 다시 탭 갔다가 오면, 방금 탭으로 와야됨. (항상 메인으로 다시 오더라)」 · 깃) · 몸 전체를 덮는 옛 판만 내림
     setS((x) => (x.active === "dash" ? x : { ...x, active: "dash" }));
   }, [room, pane]);
+  // 몸 전체를 덮은 웹 · 화면 탭(오른쪽 칸이 접힌 화면)에서 길이 바뀌면(메뉴 줄 누름 등) 덮개를 내리고 정원으로 = 누른 화면이 보이게(구름 11-16 · 앞 = 오른쪽 칸이 있던 화면에서 서랍으로 가면 웹 판이 서랍을 통째로 덮었음) · 오른쪽 칸만 덮는 판은 그대로
+  useEffect(() => { const on = () => requestAnimationFrame(() => { if (!paneHost()) setS((x) => (x.active.startsWith("s:") || x.active.startsWith("w:") || x.active === BROWSER || x.active === MEET || x.active === TEAMS ? { ...x, active: "dash" } : x)); }); addEventListener("hashchange", on); return () => removeEventListener("hashchange", on); }, []);
   useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
   useEffect(() => { try { if (isTeams(room)) localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); else if (room) localStorage.setItem(OFFICE_LAST, room); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
@@ -118,12 +121,12 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     setS((x) => ({ ...x, active: key }));
     if (t.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`);
     else if (t.k === "dash" && isTeams(room)) { const o = officeLast(); go(o ? `#/channels/${encodeURIComponent(o)}` : "#/"); }   // 팀즈 대화를 보다가 정원 = 아까 보던 사무실 대화 그대로(없으면 처음 판)
-    else if (t.k === "dash" && pane === "chat" && !paneHost()) go("#/");   // 오른쪽 칸만 덮는 판 = 왼쪽 대화는 그대로(정원 탭 = 오른쪽만 원래 판 · 형 11-12 16:41 「항상 메인으로 다시 오더라」 · 깃)
+    else if (t.k === "dash" && pane === "chat" && !sideEl()) go("#/");   // 오른쪽 칸만 덮는 판 = 왼쪽 대화는 그대로(정원 탭 = 오른쪽만 원래 판 · 형 11-12 16:41 「항상 메인으로 다시 오더라」 · 깃)
   };
   const close = (key: string) => {
     const next = tabsClose(s, key), t = next.tabs.find((x) => tabKey(x) === next.active) || DASH;
     setS(next);
-    if (next.active !== s.active) { if (t.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`); else if (t.k === "dash" && pane === "chat" && !paneHost()) go("#/"); }
+    if (next.active !== s.active) { if (t.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`); else if (t.k === "dash" && pane === "chat" && !sideEl()) go("#/"); }
   };
   const down = (key: string) => (e: RPE<HTMLDivElement>) => {
     if (e.button !== 0 || (e.target as HTMLElement).closest(".nm-tab-x")) return;
