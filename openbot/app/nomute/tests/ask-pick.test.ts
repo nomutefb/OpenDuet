@@ -15,3 +15,7 @@ test("안 다는 글 = 다른 방 · 첨부 · 잡담", () => {
   assert.equal(askPickOf("dm-chok", { text: "https://a.com/x", files: ["a.png"] }), null);
   assert.equal(askPickOf("dm-chok", { text: "응 알았어 형" }), null);
 });
+test("슈왕(issueking) 1:1 에도 「요약」(형 11-17 00:4x 「요약 이라고 누를 수 잇는게 따로 잇었어」)", () => {
+  assert.ok(askPickOf("dm-issueking", { text: "세무사 수석 합격자 AI 부정행위 https://www.yna.co.kr/view/AKR1" }));
+  assert.equal(askPickOf("dm-sona", { text: "https://www.yna.co.kr/view/AKR1" }), null);
+});
