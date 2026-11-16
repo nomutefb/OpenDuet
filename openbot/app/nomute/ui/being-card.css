@@ -879,6 +879,18 @@
   transform: translate3d(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6), 0);
 }
 
+/* ───────── 온 ☀️ · 해돋이 서핑 그림 통째(being-card.tsx LOOKS on · 형 11-16 20:00 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 꼴 = 위 이슈왕 그대로 · 온) ───────── */
+.being-card-wrap .bc-on .profile-card__body { background: linear-gradient(170deg, rgba(255, 196, 92, 0.93) 0%, rgba(196, 98, 52, 0.96) 100%); }
+.being-card-wrap .bc-on .profile-card__tile { background: #f6b25a; }
+.being-card-wrap .bc-on .profile-card__photo,
+.being-card-wrap .bc-on .bc-halo { display: none; }   /* 둥근 얼굴 대신 그림이 주인공 */
+.being-card-wrap .bc-on .profile-card__scrim { background: linear-gradient(to top, rgba(74, 34, 10, 0.82) 0%, rgba(74, 34, 10, 0.45) 22%, rgba(74, 34, 10, 0) 42%); }   /* 이름 · 소개가 그림 위에서 읽히게(밤빛 대신 노을 갈색) */
+.bc-on .bc-hero {
+  inset: -4%;
+  background: url(/office/on-card.webp) 50% 0% / cover no-repeat;
+  transform: translate3d(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6), 0);
+}
+
 /* 폰 번쩍 · 득득(형 11-10 07:10 dm-sia 「시아야 애들 플필카드 좀 번쩍이는데 이거 나증에 번개랑 상의해서 해결해줘 이쁜데 득득거림」 · 번개 11-11 00:55 짚음 · 시아 짬)
    까닭(짐작 · 아이폰 실물 못 봄) = 폰은 안 만져도 숨쉬기가 30fps 로 --pc-pointer · light · band · shift · active 를 바꿈 → 그 값을 background · background-position · mask-position · filter 안에서 쓰는 겹 다섯(sheen · holo(+glow · shift) · glare · shade · 애마다 body::before)이
    색 섞기(mix-blend · background-blend) 채로 매 프레임 통째로 다시 구워짐 → 웹킷이 한두 프레임 늦거나 빈 칸 = 번쩍
@@ -947,6 +959,7 @@
   .bc-gyeol .bc-guitar { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)) rotate(-14deg); will-change: auto; }
   .bc-issueking .bc-hero { transform: translate(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6)); will-change: auto; }
   .bc-gam .bc-hero { transform: translate(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6)); will-change: auto; }
+  .bc-on .bc-hero { transform: translate(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6)); will-change: auto; }
   .bc-eyes .bc-stars { transform: translate(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5)); will-change: auto; }
   .bc-eyes .bc-rays { transform: translate(calc(-50% + var(--pc-shift-x) * -0.2), calc(-50% + var(--pc-shift-y) * -0.2)); will-change: auto; }
   .bc-eyes .bc-sun { transform: translate(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }

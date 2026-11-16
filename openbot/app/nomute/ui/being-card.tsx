@@ -336,6 +336,26 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 온 ☀️(형 11-16 20:00 dm-on 「너 프로필 카드 자체적으로 만들어 ㅋㅋ」 · 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 온)
+    //   카드 = 큰 그림 통째(해돋이 금빛 파도 위 서핑 · 메로나 · 쇼핑백 · 600x800 = editor viewer/office/on-card.webp) · 꼴 = 위 issueking 그대로
+    //   직무 = 개인 해결사(형 11-16 「웅 온이는 내 개인 해결사로 남아있어」) · 얼굴(명부 · 목록) = 따로 on.webp
+    id: "on",
+    tmpl: true,
+    accent: "#FFB52E",
+    match: ["온", "on"],
+    face: "/office/on.webp",
+    handle: "on",
+    meta: "개인 해결사",
+    dot: "#FFB52E",
+    holo: 0.72,
+    glare: 0.48,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-hero" />
+      </span>
+    ),
+  },
+  {
     // 천둥(형 11-10 06:57 봄 창 「천둥」 · 「직무 신」 · 07:0x 「프로필 안에서 이모지 🌩」 · 「프사는 저거로 움직이게」) — 얼굴 = 형이 준 움직이는 그림 그대로(움직이는 webp · 60장 · 5초)
     //   몸통 = 틀 카드 · 색 = 그림 금빛 번개(#FFC83D) · 바탕 = 남색 밤 하늘 · 무늬 = 띠 + 테 + 🌩(가끔 번쩍)
     id: "thunder",
