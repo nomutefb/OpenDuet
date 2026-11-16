@@ -15,6 +15,19 @@ test("음악 꼴 = mp3 · m4a · wav … · 이름은 파일 이름만(앞 날�
 });
 
 test("그리기 = 영상 → 음악 → 사진 차례로 가림 · 음악은 누를 때 받음 · 받은 경로 그대로 틈", () => {
-  assert.match(src, /: AUD\.test\(p\)\n\s+\? <figure key=\{p\} className="aud"><figcaption>\{mediaName\(p\)\}<\/figcaption><audio src=\{fileUrl\(p\)\} controls preload="none" \/><\/figure>/);
-  assert.ok(src.indexOf("VID.test(p)") < src.indexOf("AUD.test(p)"));
+  assert.match(src, /: x\.kind === "audio" \? <figure key=\{x\.key\} className="aud"><figcaption>\{x\.name\}<\/figcaption><audio src=\{x\.src\} controls preload="none" \/><\/figure>/);
+  assert.match(src, /const k = kind === "video" \|\| VID\.test\(bare\) \? "video" : kind === "audio" \|\| AUD\.test\(bare\) \? "audio" :/);
+});
+
+// 지드라이브 링크로 틀기(형 11-16 18:25 「✓ ② 지드라이브로 바로 · 그 링크로 틀기」 · 실물 = 받기 주소는 video 로 못 틈 · 보기 틀은 뜸)
+test("지드라이브 = 번호만 뽑아 「보기」 틀로 · 「링크로 열기」는 늘 같이 · https 아닌 주소는 안 그림", () => {
+  const ID = "1ozLox_IH91sx9L9mW6kGetFgvx9rmPuJ";
+  const driveId = (u: string) => { const m = /^https:\/\/(?:drive|docs)\.google\.com\/(?:file\/d\/([\w-]{10,})|(?:uc|open)\?(?:[^#\s]*&)?id=([\w-]{10,}))/.exec(u); return m ? m[1] || m[2] : ""; };
+  assert.ok(src.includes('export const driveId = (u: string) => { const m = /^https:\\/\\/(?:drive|docs)\\.google\\.com\\/(?:file\\/d\\/([\\w-]{10,})|(?:uc|open)\\?(?:[^#\\s]*&)?id=([\\w-]{10,}))/.exec(u); return m ? m[1] || m[2] : ""; };'));   // 화면 파일과 같은 식
+  for (const u of [`https://drive.google.com/file/d/${ID}/preview`, `https://drive.google.com/file/d/${ID}/view?usp=sharing`, `https://drive.google.com/uc?export=download&id=${ID}`, `https://drive.google.com/open?id=${ID}`]) assert.equal(driveId(u), ID, u);
+  for (const u of ["https://evil.example.com/file/d/" + ID + "/preview", "http://drive.google.com/file/d/" + ID + "/preview", "https://drive.google.com/drive/folders/abc", "claude/뜸/x.mp4"]) assert.equal(driveId(u), "", u);
+  assert.match(src, /kind: "drive", src: `https:\/\/drive\.google\.com\/file\/d\/\$\{id\}\/preview`, open: `https:\/\/drive\.google\.com\/file\/d\/\$\{id\}\/view`/);
+  assert.match(src, /<iframe src=\{x\.src\} title=\{x\.name \|\| "지드라이브 파일"\} allow="autoplay; fullscreen" loading="lazy" \/>/);
+  assert.match(src, /<a href=\{x\.open\} target="_blank" rel="noreferrer">링크로 열기<\/a>/);
+  assert.match(src, /if \(abs && !\/\^https:\\\/\\\/\/i\.test\(raw\)\) return null;/);   // https 만
 });

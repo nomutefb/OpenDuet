@@ -13,7 +13,9 @@ import { FaceImg } from "./faces";
 import { Pane } from "./pane";
 import "./stories.css";
 
-export type Story = { id: string; ts: number; who: string; title: string; path?: string; text?: string; bell?: string; media?: string[] };
+/** 붙은 것 하나 — 경로 글(앞 꼴 · 우리 서버 파일) 또는 주소 글(https · 지드라이브 링크) 또는 { url | path, name?, kind? } */
+export type MediaItem = string | { url?: string; path?: string; name?: string; kind?: string };
+export type Story = { id: string; ts: number; who: string; title: string; path?: string; text?: string; bell?: string; media?: MediaItem[] };
 /** 안 보이는 지은이 — 윈터 글 뺌(형 11-14 「윈터 관련된 글은 삭제」 · 서버 글은 그대로 두고 목록에서만) */
 const GONE = new Set(["윈터", "winter"]);
 export const useStories = () => useQuery({ queryKey: ["nomute", "stories"], queryFn: () => office<{ items?: Story[] }>("stories").then((j) => (Array.isArray(j.items) ? j.items : []).filter((s) => !GONE.has(s.who))), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false });
@@ -67,14 +69,31 @@ const VID = /\.(mp4|mov|webm|m4v)$/i;
 export const AUD = /\.(mp3|m4a|aac|wav|ogg|oga|flac)$/i;
 /** 파일 이름만(경로 · 앞 「yyyymmdd_hhmm_」 표 뺌) */
 export const mediaName = (p: string) => { let n = p.split("/").pop() || p; try { n = decodeURIComponent(n); } catch { /* 그대로 */ } return n.replace(/^\d{8}_\d{4}_/, ""); };
-function Media({ list }: { list: string[] }) {
+/** 지드라이브 파일 번호 — 「보기」(file/d/<번호>/preview · view) · 「바로 받기」(uc?export=download&id=<번호>) 어느 꼴이든 · 아니면 "" */
+export const driveId = (u: string) => { const m = /^https:\/\/(?:drive|docs)\.google\.com\/(?:file\/d\/([\w-]{10,})|(?:uc|open)\?(?:[^#\s]*&)?id=([\w-]{10,}))/.exec(u); return m ? m[1] || m[2] : ""; };
+/** 붙은 것 하나 → 그릴 꼴 · 못 그릴 것(https 아닌 주소 등) = null */
+export function mediaOf1(m: MediaItem): { key: string; kind: "drive" | "video" | "audio" | "image" | "link"; src: string; open: string; name: string } | null {
+  const raw = typeof m === "string" ? m : m?.url || m?.path || "", given = typeof m === "string" ? "" : m?.name || "", kind = typeof m === "string" ? "" : m?.kind || "";
+  if (!raw) return null;
+  const abs = /^[a-z][a-z0-9+.-]*:/i.test(raw);
+  if (abs && !/^https:\/\//i.test(raw)) return null;   // https 만(그 밖 꼴 = 안 그림)
+  const id = abs ? driveId(raw) : "", name = given || (id ? "" : mediaName(raw.split(/[?#]/)[0]));
+  if (id) return { key: raw, kind: "drive", src: `https://drive.google.com/file/d/${id}/preview`, open: `https://drive.google.com/file/d/${id}/view`, name };
+  const src = abs ? raw : fileUrl(raw), bare = raw.split(/[?#]/)[0];
+  const k = kind === "video" || VID.test(bare) ? "video" : kind === "audio" || AUD.test(bare) ? "audio" : kind === "image" || !abs || /\.(png|jpe?g|gif|webp|avif|heic|heif)$/i.test(bare) ? "image" : "link";
+  return { key: raw, kind: k, src, open: src, name };
+}
+/** 지드라이브 = 「보기」 틀로 틈(형 11-16 18:25 「✓ ② 지드라이브로 바로 · 그 링크로 틀기」 · 실물 18:3x = 받기 주소를 video 에 넣으면 못 틈(오류 4) · 보기 틀은 로그인 없이 뜸) · 틀 안이 막히는 곳을 위해 「링크로 열기」(새 탭)를 늘 같이 */
+function Media({ list }: { list: MediaItem[] }) {
+  const items = list.map(mediaOf1).filter((x): x is NonNullable<ReturnType<typeof mediaOf1>> => !!x).slice(0, 6);
   return (
     <div className="nm-story-media">
-      {list.slice(0, 6).map((p) => VID.test(p)
-        ? <video key={p} src={fileUrl(p)} controls playsInline preload="metadata" />
-        : AUD.test(p)
-        ? <figure key={p} className="aud"><figcaption>{mediaName(p)}</figcaption><audio src={fileUrl(p)} controls preload="none" /></figure>
-        : <a key={p} href={fileUrl(p)} target="_blank" rel="noreferrer"><img src={fileUrl(p)} alt="" loading="lazy" draggable={false} /></a>)}
+      {items.map((x) => x.kind === "drive"
+        ? <figure key={x.key} className="drv"><iframe src={x.src} title={x.name || "지드라이브 파일"} allow="autoplay; fullscreen" loading="lazy" /><figcaption>{x.name ? <span>{x.name}</span> : null}<a href={x.open} target="_blank" rel="noreferrer">링크로 열기</a></figcaption></figure>
+        : x.kind === "video" ? <video key={x.key} src={x.src} controls playsInline preload="metadata" />
+        : x.kind === "audio" ? <figure key={x.key} className="aud"><figcaption>{x.name}</figcaption><audio src={x.src} controls preload="none" /></figure>
+        : x.kind === "link" ? <figure key={x.key} className="drv"><figcaption><span>{x.name}</span><a href={x.open} target="_blank" rel="noreferrer">링크로 열기</a></figcaption></figure>
+        : <a key={x.key} href={x.open} target="_blank" rel="noreferrer"><img src={x.src} alt="" loading="lazy" draggable={false} /></a>)}
     </div>
   );
 }

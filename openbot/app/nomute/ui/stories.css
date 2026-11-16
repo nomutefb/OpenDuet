@@ -41,3 +41,8 @@
 .nm-story-media .aud { grid-column:1 / -1; margin:0; display:grid; gap:6px; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.04); }   /* 음악 = 이름 한 줄 + 재생 줄(카드 폭 다 씀) */
 .nm-story-media .aud figcaption { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-sm, 13px); color:var(--fg-2, #c8ccc8); }
 .nm-story-media .aud audio { display:block; width:100%; height:36px; }
+.nm-story-media .drv { grid-column:1 / -1; margin:0; display:grid; gap:6px; }   /* 지드라이브 = 보기 틀(16:9) + 이름 · 「링크로 열기」 한 줄 */
+.nm-story-media .drv iframe { display:block; width:100%; aspect-ratio:16 / 9; max-height:60vh; border:0; border-radius:12px; background:#000; }
+.nm-story-media .drv figcaption { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; font-size:var(--fs-sm, 13px); color:var(--fg-2, #c8ccc8); }
+.nm-story-media .drv figcaption span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-story-media .drv figcaption a { flex:none; margin-left:auto; padding:3px 10px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); border-radius:999px; color:inherit; text-decoration:none; }
