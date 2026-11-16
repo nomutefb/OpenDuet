@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { office } from "../data/office";
 import { screenGoUrl, screenTicket } from "./screen-ticket";
-import { SCREEN_TAB_EVENT, type ScreenTabAsk, isCrd, screenTabWay } from "./screen-tab-logic";
+import { SCREEN_TAB_EVENT, type ScreenTabAsk, isGrokBot, isOutside, screenTabWay } from "./screen-tab-logic";
 import "./screen-tab.css";
 
 /** 몸 화면을 탭으로 — 열었으면 true */
@@ -14,7 +14,7 @@ export function openScreenTab(ask: ScreenTabAsk, w: Window = window): boolean {
   const d = w.document, bar = d.querySelector<HTMLElement>(".nm-tabs:not(.nm-area)");
   const way = screenTabWay({ pc: !!d.querySelector(".nm-split-root"), macApp: d.documentElement.classList.contains("nm-macapp"), webTabs: !!bar && w.getComputedStyle(bar).display !== "none" });
   if (!way) return false;
-  const crd = isCrd(ask.url);
+  const crd = isOutside(ask.url);   // crd = 앱 안에 못 끼우는 화면(구글 원격 데스크톱 · 그록 컴퓨터 · ./screen-tab-logic.ts)
   if (way === "app") { w.open(crd ? ask.url : new URL(screenGoUrl(ask.url), w.location.href).href, "_blank", "noopener"); return true; }   // 맥 독 앱 = window.open 을 제 탭 줄 새 탭으로 받음(./inapp.ts macTab 과 같은 길) · 표는 서버 「바로 보내기」가 붙임
   w.dispatchEvent(new CustomEvent<ScreenTabAsk>(SCREEN_TAB_EVENT, { detail: ask }));
   if (crd) w.open(ask.url, "_blank", "noopener");   // 끼워 넣기 막힌 화면 = 탭(다시 여는 링크)을 만들고 이번 누름으로 바로 새 창도(누름 한 번 = 앞과 같음)
@@ -22,7 +22,7 @@ export function openScreenTab(ask: ScreenTabAsk, w: Window = window): boolean {
 }
 
 export function ScreenTabPane({ url, name, on }: { url: string; name: string; on: boolean }) {
-  const crd = isCrd(url);
+  const crd = isOutside(url);
   const [src, setSrc] = useState(""), [st, setSt] = useState<"idle" | "wait" | "ok" | "fail">("idle");
   const asked = useRef(false);
   const ask = useCallback(() => {
@@ -38,7 +38,7 @@ export function ScreenTabPane({ url, name, on }: { url: string; name: string; on
   return (
     <div className="nm-scr-tab" hidden={!on}>
       {crd ? (
-        <div className="nm-scr-msg"><b>{name}</b><span>구글 원격 데스크톱 화면이라 탭 안에 넣을 수 없어요.</span><a className="nm-scr-btn go" href={url} target="_blank" rel="noopener noreferrer">화면 열기</a></div>
+        <div className="nm-scr-msg"><b>{name}</b><span>{isGrokBot(url) ? "그록 컴퓨터 화면이라" : "구글 원격 데스크톱 화면이라"} 탭 안에 넣을 수 없어요.</span><a className="nm-scr-btn go" href={url} target="_blank" rel="noopener noreferrer">화면 열기</a></div>
       ) : st === "ok" ? (
         <iframe src={src} title={name} allow="clipboard-read; clipboard-write; fullscreen; keyboard-map" />
       ) : st === "fail" ? (
