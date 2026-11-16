@@ -237,3 +237,4 @@
 /* 호출 열쇠 줄(이름 · 자리 · 값 0) — 「언제」 줄과 같은 꼴 · 글자만 고정폭 느낌으로 */
 .nm-tree-l2.hook span { letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
 .nm-tree-l2.hook:not(.at) span { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; }
+.nm-tree-l2.hook[data-miss] span { color:#ff8a8d; border-color:rgba(255,90,95,.45); }   /* 열쇠 없음 = 붉게(깨울 길이 없다는 뜻이라 놓치면 안 됨) */

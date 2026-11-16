@@ -35,7 +35,7 @@ const Card = ({ children }: { children: ReactNode }) => <div className="mt-3 rou
 const btn = "rounded-full border border-border px-3 py-1 text-xs hover:bg-foreground/5 disabled:opacity-50";
 
 export type SchedBot = { bot: string; who: string; wakes: number[]; next_ts?: number; on?: boolean };
-export type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean; fork?: string; task?: string; marks?: string[]; hook?: string; hook_at?: string;   /* hook = 이 일을 깨우는 호출 열쇠의 이름(값 아님 · 예 BOT_WEBHOOK_URL_ON) · hook_at = 그 열쇠가 있는 자리(예 「깃허브 시크릿 → Pages 환경」) — 서버가 실어 주면 일 카드에 한 줄(형 11-16 22:0x) */
+export type Routine = { id: string; bot: string; who: string; name: string; when: string[]; cron?: string[]; state: string; fire_empty?: boolean; fork?: string; task?: string; marks?: string[]; hook?: string; hook_at?: string; hook_ok?: boolean;   /* hook = 이 일을 깨우는 호출 열쇠의 이름(값 아님 · 예 BOT_WEBHOOK_URL_ON) · hook_at = 그 열쇠가 있는 자리(예 「깃허브 시크릿 → Pages 환경」) — hook_ok = 서버 환경에 그 주소가 있나(거짓 = 「열쇠 없음」) — 서버가 실어 주면 일 카드에 줄(형 11-16 22:0x · 칸 = 빠르 #4074) */
   room?: string; health?: Health; bell6?: { n: number; of: number; today: number; cap: number; ring: string[]; stop?: { who: string; ts: number }; mirror?: boolean } };   // bell6 = 6마디 종 줄(뎅 11-01 · 서버 bell6.<방>)
 export type SchedFork = { id: string; name: string; on?: boolean; common?: string };
 type Kind = { kind: string; delay_max?: number; ttl?: number };
