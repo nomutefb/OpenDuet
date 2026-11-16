@@ -39,7 +39,7 @@ test("직무 표기 = 영문 직함: Developer · UX Design · PM · Dev. · PM 
   assert.equal(roleLabel(["M", "D", "S"]), "PM · Dev.");   // 깃
   assert.equal(roleLabel(["M", "U", "S"]), "PM · UXD.");   // 봄
   assert.equal(roleLabel(["R", "D", "S"]), "Research"); assert.equal(roleLabel(["S", "R"]), "Fixer");
-  assert.deepEqual(["Xa", "Xb", "Xc", "Xd"].map((c) => roleLabel([c])), ["Media", "Music", "Writer", "Scout"]);
+  assert.deepEqual(["Xa", "Xb", "Xc", "Xd"].map((c) => roleLabel([c])), ["Creator", "Music", "Writer", "Scout"]);   // 뜸 = Creator(형 11-16 18:5x 「뜸은 creator」)
   assert.equal(roleLabel(["M"]), "PM"); assert.equal(roleLabel([]), ""); assert.equal(roleLabel(undefined), ""); assert.equal(roleLabel(["Zz"]), "");   // 모르는 코드 = 빈 글(화면이 서버 한글 이름으로 떨어짐)
   assert.equal(roleOf("D", true), "Dev."); assert.equal(roleOf("U", true), "UXD."); assert.equal(roleOf("R", true), "R&D");
   const h = rd("../ui/bot-desk-hands.tsx");
