@@ -21,6 +21,7 @@ const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: 
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));   // ② 스케줄 배선 층(보일 때 받음)
 const VmDesk = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmDesk })));   // ① 애들 층 「몸」 탭 = 애들 한 줄씩(상태 · 특기 · 하드웨어 · 램 · ./vm-desk.tsx)
 import { HandBoard, HandFace } from "./bot-desk-hands";
+import { BotManage } from "./bot-manage";
 import { ringDeg, ringFrac } from "./activity-view";   // 맨 위 카드 = 활동 신호 판을 맡길 차례로(노는 손 먼저 · 1특기 · PM 뺌)
 import "./status-board.css";
 import "./bot-desk.css";
@@ -185,6 +186,7 @@ export function BotDesk() {
               <div className="nm-bd-org-one" aria-label={`${picked.who} 자세히`}>   {/* 얼굴을 누르면 그 애 것만(상태 · 맡은 일 줄 = 옛 흐름 카드 · 특기 · 몸 한 줄) */}
                 <ul><BotCard key={picked.who} r={picked} now={now} i={0} list={people} /></ul>
                 <p className="more">{(picked.skills || []).map((c, k) => <span key={c} className={k ? undefined : "first"} title={skills[c] || c}>{roleOf(c, k > 0) || skills[c] || c}</span>)}{hwOf(picked) ? <small>{hwOf(picked)}</small> : null}</p>
+                <BotManage key={`m-${picked.who}`} r={picked} skills={skills} />   {/* 그 애 관리 칸 = 다음 창 모델 · 노력도 · 계정 · 임시 멈춤(형 11-16 19:36 「거기서 일괄 관리 페이지가 되길」 · ./bot-manage.tsx) */}
               </div>
             ) : null}
           </>
