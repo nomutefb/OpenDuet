@@ -40,6 +40,7 @@ import type { SendAttempt, WaitingText } from "../data/attachment-send";
 import "./attachment-up.css";
 import { AttachmentRecovery } from "./attachment-recovery";
 import { TempRoomHead } from "./temp-room";
+import { type Fwd, fwdEnd, spawnedOf, withSpawned } from "./spawn-room";
 import { AV_MIN, type AvEvent, type AvState, avInit, avStep } from "./auto-video";   // 영상 자동 재생 결정(순수 · 모루 11-09 05:33 회귀 고침)
 import { AttachSheet } from "./attach-sheet";
 import { EncGauge, encRing, useEnc } from "./enc-gauge";
@@ -136,7 +137,7 @@ function QuotedPeek({ pk, onClose }: { pk: Peek; onClose: () => void }) {
     </div>
   );
 }
-type Msg = OfficeMsg & { _win?: boolean; card?: ThumbRef; mirror_by?: string; mirror?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
+type Msg = OfficeMsg & { fwd?: Fwd; _win?: boolean; card?: ThumbRef; mirror_by?: string; mirror?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
   app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
 type Page = { messages: Msg[]; more: boolean; pending_ids?: string[] };   // pending_ids = 형 결정 대기 글(뜸 서버 · 오래된 것부터 · 없으면 화면에서 셈 = ./hyung-pills.tsx)
@@ -1472,6 +1473,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
             //   · 다른 사람도 같은 시각이면 맨 아래만(형 10-31 「대화자의 시간대가 같으면 맨 아랫사람만 시간이 나오게해줘」)
             const noTime = it.t === "msg" && !!next && next.t === "msg" && !next.m._thr && dayKey(next.m.ts) === dayKey(it.m.ts) && ((next.m.who === it.m.who && next.m.kind === it.m.kind && next.m.ts - it.m.ts < TIME_GAP) || t12(next.m.ts) === t12(it.m.ts));
             const turn = !newDay && !first._thr && !!sideOf(prev) && !!sideOf(it) && sideOf(prev) !== sideOf(it);
+            const moved = fwdEnd(it.t === "msg" || it.t === "ev" ? it.m : it.msgs[it.msgs.length - 1], !next ? undefined : next.t === "msg" || next.t === "ev" ? next.m : next.msgs[0]);   // 옮겨 온 글(앞 방의 최근 글)의 끝 = 그 밑에 금 하나
             prevTs = (it.t === "msg" || it.t === "ev" ? it.m : it.msgs[it.msgs.length - 1]).ts;
             prev = it;
             if (it.t === "msg") lastMsg = it.m;
@@ -1490,6 +1492,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
                     {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>
                   </p>
                 )}
+                {moved ? <p className="ydate yfwd">여기까지 앞 방에서 옮겨 온 글</p> : null}   {/* 새 임시방 맨 앞 20글과 이 방에서 쓴 글 사이(형 11-16 20:09 「초대한 직전 방의 20개 대화가 공유되게해줘」) */}
               </div>
             );
           })}
@@ -1582,6 +1585,13 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
                     const hrs = (() => { const m = why.match(/(\d+)\s*시간/); return m ? +m[1] : /하루/.test(why) ? 24 : 24; })();
                     const what = /^\/방파기/.test(text) ? "방파기가" : "초대가";
                     setCmdNote(/임시방|하루|시간/.test(why) ? `임시로 개설된 채팅방이 아니라 ${what} 불가합니다.\n(임시방 기준: ${hrs}시간 미만)` : why);
+                    return;
+                  }
+                  const sp = spawnedOf(j);
+                  if (sp) {   // 1:1 에서 여럿을 부름 → 서버가 임시방을 열고 이 글을 그 방에 올림(이 1:1 엔 안 남음) → 방 목록에 먼저 넣고 형 화면을 바로 그 방으로(형 11-16 20:09 「그리고 나는 바로 그 방으로 이동해야하고」 · ./spawn-room.ts)
+                    qc.setQueryData<OfficeRoom[]>(officeKeys.rooms, (old) => withSpawned(old, sp));
+                    void qc.invalidateQueries({ queryKey: officeKeys.msgs(sp.id) }); void qc.invalidateQueries({ queryKey: officeKeys.rooms });
+                    void nav({ to: "/channels/$channelId", params: { channelId: sp.id } });
                     return;
                   }
                   if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));

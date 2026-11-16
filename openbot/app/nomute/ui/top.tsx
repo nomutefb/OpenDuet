@@ -10,6 +10,7 @@ import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이
 import { FaceImg } from "./faces";
 import { RoomRoutineSheet, routineLabel, routineRoom, useRoomTimers } from "./room-routine";
 import { useRoomMenu } from "./room-menu";
+import { TempLeftChip } from "./temp-room";   // 임시방 남은 시간 표(이름 옆 · 누르면 기한 바꾸기)
 import { useQueryClient } from "@tanstack/react-query";
 
 /** 지금 대화 판의 방(주소 #/channels/<방> · #/group/<방>) · 명부 */
@@ -77,7 +78,7 @@ export function NomuteName({ room }: { room?: string } = {}) {
   const crewSec = ids.length > 0 || edit || !!menu.crew;
   return (   // 단톡 = 이름 옆 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」) + 방 메뉴
     <span className="nm-top-wrap">
-      <button type="button" className="nm-top-name nm-top-btn" style={r.color ? { color: r.color } : undefined} aria-haspopup="menu" aria-expanded={open} aria-label={ids.length ? `${name} 사람 ${roomHeadCount(r, list)}명(형 포함) · 방 메뉴` : `${name} 방 메뉴`} onClick={() => setOpen((v) => !v)}>{name}{mark}{ids.length ? <> <i>{roomHeadCount(r, list)}</i></> : null}</button>{/* 사람 수 = 멤버 + 형(형 11-15 20:21 「단톡 수. 나 포함 이여야함 숫자가 항상 하나씩 딸리네」) */}
+      <button type="button" className="nm-top-name nm-top-btn" style={r.color ? { color: r.color } : undefined} aria-haspopup="menu" aria-expanded={open} aria-label={ids.length ? `${name} 사람 ${roomHeadCount(r, list)}명(형 포함) · 방 메뉴` : `${name} 방 메뉴`} onClick={() => setOpen((v) => !v)}>{name}{mark}{ids.length ? <> <i>{roomHeadCount(r, list)}</i></> : null}</button><TempLeftChip r={r} />{/* 사람 수 = 멤버 + 형(형 11-15 20:21 「단톡 수. 나 포함 이여야함 숫자가 항상 하나씩 딸리네」) */}
       {open ? (
         <span className="nm-top-crew nm-yeta">
           {crewSec ? <span className="nm-top-sec">사람</span> : null}
