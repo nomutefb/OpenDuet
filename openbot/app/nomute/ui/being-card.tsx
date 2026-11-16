@@ -60,6 +60,13 @@ const DENG_SPIRAL = (() => {
   return `M${out.join(" L")}`;
 })();
 
+// 그림 통째 카드의 움직이는 판(형 11-16 21:36 「얘 카드는 아ㅇ예 이거에 빛으로. 화질은 좀 포기해야 원활랄듯」 · 뎅) — public/<name>.mp4(작게 줄인 고리) · 첫 장면 = <name>-poster.webp
+//   위 빛 겹(홀로 · 박)은 그대로 · 영상을 못 받으면 .bc-hero 바탕 그림이 그대로 보임 · muted 는 ref 로도 박음(아이폰 자동 재생은 muted 여야 됨)
+const HERO_V = 1;
+function HeroVid({ name }: { name: string }) {
+  return <video className="bc-hero-vid" src={`/garden-app/${name}.mp4?v=${HERO_V}`} poster={`/garden-app/${name}-poster.webp?v=${HERO_V}`} autoPlay muted loop playsInline preload="auto" disablePictureInPicture ref={(el) => { if (el) { el.muted = true; el.play?.().catch(() => {}); } }} />;
+}
+
 const LOOKS: Look[] = [
   {
     id: "sia",
@@ -231,7 +238,8 @@ const LOOKS: Look[] = [
     glare: 0.42,
     art: (
       <span className="bc-art" aria-hidden="true">
-        <span className="bc-hero" />
+        {/* 그림 → 움직이는 영상(형 11-16 21:36 dm-deng 「얘두 이거로」 · 영상 99714 5초 → 432x616 · 24fps · 4.46초 고리 · 672KB = public/issueking-card.mp4 · 뎅) */}
+        <span className="bc-hero"><HeroVid name="issueking-card" /></span>
       </span>
     ),
   },
@@ -388,9 +396,7 @@ const LOOKS: Look[] = [
       <span className="bc-art" aria-hidden="true">
         {/* 그림 → 움직이는 영상(형 11-16 21:36 dm-deng 「얘 카드는 아ㅇ예 이거에 빛으로. 화질은 좀 포기해야 원활랄듯」 · 영상 = 형 21:13 그록 서핑 5초 → 432x576 · 24fps · 끝 0.6초를 처음에 녹인 4.46초 고리 · 509KB = public/on-card.mp4 · 뎅)
             빛 = 위 겹(홀로 · 빛깔 박) 그대로 · 영상 못 받으면 아래 그림(on-card.webp)이 그대로 보임 · muted 는 ref 로도 박음(아이폰 자동 재생) */}
-        <span className="bc-hero">
-          <video className="bc-hero-vid" src="/garden-app/on-card.mp4?v=1" poster="/garden-app/on-card-poster.webp?v=1" autoPlay muted loop playsInline preload="auto" disablePictureInPicture ref={(el) => { if (el) { el.muted = true; el.play?.().catch(() => {}); } }} />
-        </span>
+        <span className="bc-hero"><HeroVid name="on-card" /></span>
       </span>
     ),
   },

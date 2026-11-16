@@ -890,7 +890,7 @@
   background: url(/office/on-card.webp) 50% 0% / cover no-repeat;
   transform: translate3d(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6), 0);
 }
-.bc-on .bc-hero-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; display: block; pointer-events: none; }   /* 온 = 움직이는 그림(형 11-16 21:36) */
+.being-card .bc-hero-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; display: block; pointer-events: none; }   /* 온 · 슈왕 = 움직이는 그림(형 11-16 21:36 · HeroVid) */
 
 /* 폰 번쩍 · 득득(형 11-10 07:10 dm-sia 「시아야 애들 플필카드 좀 번쩍이는데 이거 나증에 번개랑 상의해서 해결해줘 이쁜데 득득거림」 · 번개 11-11 00:55 짚음 · 시아 짬)
    까닭(짐작 · 아이폰 실물 못 봄) = 폰은 안 만져도 숨쉬기가 30fps 로 --pc-pointer · light · band · shift · active 를 바꿈 → 그 값을 background · background-position · mask-position · filter 안에서 쓰는 겹 다섯(sheen · holo(+glow · shift) · glare · shade · 애마다 body::before)이
