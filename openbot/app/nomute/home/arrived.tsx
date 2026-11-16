@@ -29,7 +29,7 @@ export function useArrived() {
 //   → 머리 「도착한 메시지」 · 숫자 알약 걷음 · 대화 줄이 바로 · 보낸 이(방)마다 한 장 = 이름 옆에 그 방 안 읽은 수(점만이면 작은 점) · 여러 장이면 맨 앞 한 장 온전히 + 뒤 장은 아래 가장자리만 겹쳐(최대 둘) · 없으면 칸 0(「새로 온 글 없음」 뺌 = 카드가 그만큼 내려옴) · 누르면 그 대화 · 앞 판 = git
 export function Arrived() {
   const { arrived, count, lastOf, list, pending } = useArrived();
-  if (!arrived.length) return <section aria-label="새로 온 대화" className={`nm-arrived nm-arr-none${pending ? " wait" : ""}`} style={{ gridRow: 3 }} />;   /* 받는 동안만 한 장 자리(follow-pulse.css) · 없으면 0 */
+  if (!arrived.length) return <section aria-label="새로 온 대화 없음" className={`nm-arrived nm-arr-none${pending ? " wait" : ""}`} style={{ gridRow: 3 }}><div className="yset-item nm-arr-empty" aria-hidden /></section>;   /* 새 글이 없어도 빈 틀(카드 테 · 바탕) 한 장 = 폰만(형 11-17 02:15 dm-bom 봄 옮김 「근데 말풍선 없어도 그 틀이 유지되자고 한거엿어」 · follow-pulse.css) · PC 반갈 = 틀 숨김 · 칸 0 그대로 */
   return (
     <section aria-label={`새로 온 대화 ${arrived.length}곳`} className="nm-arrived flex min-h-0 flex-col" style={{ gridRow: 3 }}>
       <ul className="flex min-h-0 flex-col">
