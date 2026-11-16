@@ -95,7 +95,7 @@ function RestRows({ r, skills }: { r: BotRow; skills: Record<string, string> }) 
     <div className="hold" data-busy={send.isPending ? "" : undefined}>
       <div className="srow"><span className="plbl">임시 멈춤</span><span className="sopts"><b className="sval on">{restKo(cur, now, name)}</b></span></div>
       <HoldBar mins={0} onChange={() => undefined} now={now} lock={{ pos: restPos(cur, now), text: cur.until ? durKo(Math.max(1, Math.round((cur.until - now) / 60e3))) : "풀 때까지" }} />
-      <p className="foot"><span className="sum">{cur.by ? `${cur.by} 지정` : ""}</span>{err}<button type="button" className="go" disabled={send.isPending} onClick={() => send.mutate(false)}>풀기</button></p>
+      <p className="foot"><span className="sum" />{err}<button type="button" className="go" disabled={send.isPending} onClick={() => send.mutate(false)}>풀기</button></p>
     </div>
   );
   return (
@@ -143,7 +143,7 @@ function GrokRows() {
   const now = q.data?.recent, [note, setNote] = useState(false);
   return (
     <>
-      <Row label="호출 맥락" note={go.error ? <em className="err" role="alert">안 됨 · {why(go.error)}</em> : <em>그록 공통</em>}>{WAKE_STEPS.map((n) => <button key={n} type="button" className={`pc${now === n ? " on" : ""}`} aria-pressed={now === n} disabled={!can || now === undefined || go.isPending} onClick={() => { if (now !== n) go.mutate(n); }}>{n}개</button>)}</Row>
+      <Row label="호출 맥락" note={go.error ? <em className="err" role="alert">안 됨 · {why(go.error)}</em> : null}>{WAKE_STEPS.map((n) => <button key={n} type="button" className={`pc${now === n ? " on" : ""}`} aria-pressed={now === n} disabled={!can || now === undefined || go.isPending} onClick={() => { if (now !== n) go.mutate(n); }}>{n}개</button>)}</Row>
       <Row label="그록봇 지침">{[<button key="o" type="button" className={`pc${note ? " on" : ""}`} aria-expanded={note} onClick={() => setNote((v) => !v)}>{note ? "접기" : "메모 열기"}</button>]}</Row>
       {note ? <div className="sub"><Suspense fallback={null}><GrokNote /></Suspense></div> : null}
     </>
@@ -166,7 +166,7 @@ export function BotManageAll() {
       <Row label="노력도" note={save.error ? <em className="err" role="alert">저장 안 됨 · {why(save.error)}</em> : null}>   {/* 애마다 값이 다르면(섞임) 고른 낱말 없음 */}{NW_EFFORTS.map((x) => <button key={x} type="button" className={`pc${effort === x ? " on" : ""}`} aria-pressed={effort === x} disabled={off && effort !== x} onClick={() => { if (can && effort !== x) setAsk({ effort: x, ko: `다음 창 노력도를 ${x}` }); }}>{x}</button>)}</Row>
       <Row label="계정 우선순위">{[<button key="o" type="button" className={`pc${prio ? " on" : ""}`} aria-expanded={prio} onClick={() => setPrio((v) => !v)}>{prio ? "접기" : "차례 보기"}</button>]}</Row>
       {prio ? <div className="sub"><Suspense fallback={null}><AcctPrio /></Suspense></div> : null}
-      {ask ? createPortal(<div className="nm-bm-pop"><AskYN q={`애들 ${n}명 모두 ${ask.ko}(으)로 바꿀까?`} note="지금 열려 있는 창은 그대로 · 다음 새 창부터" onNo={() => setAsk(null)} yes={async () => { await save.mutateAsync({ model: ask.model, effort: ask.effort }); }} done={() => setAsk(null)} /></div>, document.body) : null}
+      {ask ? createPortal(<div className="nm-bm-pop"><AskYN q={`애들 ${n}명 모두 ${ask.ko}(으)로 바꿀까?`} onNo={() => setAsk(null)} yes={async () => { await save.mutateAsync({ model: ask.model, effort: ask.effort }); }} done={() => setAsk(null)} /></div>, document.body) : null}
     </div>
   );
 }
