@@ -45,6 +45,21 @@ export function HandFace({ id, deg = 180, size = 42 }: { id: string; deg?: numbe
 /** 지금 맡은 일을 작은 표로 — 「#-072」 · 여럿이면 「#-072 +2」 · 맡은 오더가 없으면 "" (형 11-16 19:2x 「그리고 어떤 일 하고잇는지 ?」 · 「화면이 복잡해지면 최대한 상징적인 요소나 클릭햇을때 나오는 요소로」) */
 export const jobChip = (r: BotRow): string => { const o = r.open || []; return o.length ? `${o[0].no}${o.length > 1 ? ` +${o.length - 1}` : ""}` : ""; };
 
+/** 값이 아직 없는 첫 순간의 손 판 — 사람표의 애들 얼굴 · 이름을 한 칸에(상태 고리는 비움) · 사람표도 아직이면 빈 동그라미 열 개
+ *  형 11-17 07:1x 구름 맥 창 「처음브터 제대로 나오게」 — 「읽는 중…」 한 줄로 화면이 쪼그라들어 아래 층이 첫 화면에 올라오던 것 */
+export function HandGhost({ people }: { people: ReturnType<typeof usePeople> }) {
+  const bots = people.filter((p) => (p.kind as string) !== "human" && !p.pm && !p.empty && !!(p as { cls?: string }).cls);   // 형만 빼고 다(종류 = winter · being · bot) · 갈래(cls)가 있는 진짜 애들만(「뉴스 알림」 같은 알림용 이름 뺌) · PM 은 손 판에서도 따로 서니 뺌
+  return (
+    <div className="nsb-ab nm-bd-ab first ghost" aria-hidden>
+      <section className="nsb-ab-lane" data-k="ready" data-h="idle">
+        <ul>{bots.length
+          ? bots.map((p) => <li key={p.who} data-sure="0"><div className="cell"><HandFace id={idOf(p.who, people)} size={42} /><b>{p.name || p.who}</b></div></li>)
+          : Array.from({ length: 10 }, (_, i) => <li key={i}><div className="cell"><span className="nm-bd-dot" /><b>&nbsp;</b></div></li>)}</ul>
+      </section>
+    </div>
+  );
+}
+
 export function HandBoard({ rows, skills, people, sel = "", onPick }: { rows: BotRow[]; skills: Record<string, string>; people: ReturnType<typeof usePeople>; sel?: string; onPick?: (who: string) => void }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const id = setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 5000); return () => clearInterval(id); }, []);

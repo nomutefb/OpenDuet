@@ -383,3 +383,14 @@
 .nm-bd-head, .nm-sched { transition:opacity .25s ease; }
 .nm-bd-head[data-old], .nm-sched[data-old] { opacity:.62; }
 @media (prefers-reduced-motion: reduce) { .nm-bd-head, .nm-sched { transition:none; } }
+/* 값이 아직 없는 첫 순간(형 11-17 「처음브터 제대로 나오게」) — 손 판 = 애들 얼굴 · 이름 한 칸(./bot-desk-hands.tsx HandGhost) · 스케줄 = 요약 띠 + 가지 칸(./sched-desk.tsx) · 숨 쉬는 건 투명도만 */
+.nm-bd-ab.ghost { animation:nm-ghost 1.6s ease-in-out infinite; }
+.nm-bd-ab.ghost li { animation:none; opacity:1; }
+.nm-bd-ab.ghost .cell { pointer-events:none; }
+.nm-bd-dot { display:block; width:58px; height:58px; border-radius:50%; border:2px solid rgba(255,255,255,.1); }
+.nm-sched-ghost > i { display:block; border:1px solid var(--glass-line, rgba(255,255,255,.08)); border-radius:18px; background:rgba(255,255,255,.025); animation:nm-ghost 1.6s ease-in-out infinite; }
+.nm-sched-ghost > .band { height:78px; }
+.nm-sched-ghost > .row { height:64px; margin-left:28px; }
+.nm-sched-ghost > .row.root { margin-left:0; }
+@keyframes nm-ghost { 0%, 100% { opacity:.55; } 50% { opacity:.9; } }
+@media (prefers-reduced-motion: reduce) { .nm-bd-ab.ghost, .nm-sched-ghost > i { animation:none; opacity:.7; } }
