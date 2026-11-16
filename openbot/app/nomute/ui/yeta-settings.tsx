@@ -21,7 +21,7 @@ import { ThinkMarkRow } from "./live-shine";
 // 그록봇 지침 메모(#-060)   // 모델 · 노력도(봇 상자 + 서버가 직접 부르는 일 · 일괄 · 형 11-15)
 import { PushRow } from "../push/push-row";
 import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
-import { TeamsAccount, useTeamsName } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
+import { TeamsAccount } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
 import { PinTintSetting, usePinAlpha } from "./pin-tint";
 import { NomuteOld, NomuteVault, useBuildLine } from "./settings-extra";
 import { NoticeBox, useNoteMeta } from "./notice-box";   // 공지 칸 = 그록봇 공지와 같은 부품(판 · 날짜는 줄 오른쪽 · 형 11-17 06:56)
@@ -59,7 +59,6 @@ export function YetaSettings() {
   const skin = useSkin();
   const [open, setOpen] = useState("");
   const build = useBuildLine();
-  const teamsName = useTeamsName();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
   const noticeMeta = useNoteMeta("notice");   // 「판 24 · 11-17」 = 칸 밖(줄 오른쪽)
   const pinA = usePinAlpha();   // 고정 줄 색 진하기 = 줄 오른쪽 값(./pin-tint)
@@ -84,7 +83,9 @@ export function YetaSettings() {
           <div className="yset-sec">화면·입력</div>
           <div className="yset-grp">
             {/* 비슷한 줄끼리 한 줄로 묶고 누르면 펼침(형 11-14 「설정같은거, 예를들어 폰트면 펼쳐서 한글, 영문 이런거 묶을수잇잖아」) — 14줄 → 6줄 · 펼침 꼴 = 원래 있던 .yset-open 그대로 */}
-            {group("look", "contrast", "화면", `${theme.t} · ${skin === "garden" ? "정원" : "지금"}`, <>
+            {/* 한 줄로 더 묶음(형 11-17 07:09 dm-bom 「설정에 묶을 수 있거나 불필요한 내용 있는지 … 가능한 묶고」 · 봄이 정함: 화면 + 글꼴 + 입력 · 표시 = 한 줄 · 안에서 세 묶음 머리 · 칸은 그대로) */}
+            {group("look", "contrast", "화면 · 글꼴 · 입력", `${theme.t} · ${skin === "garden" ? "정원" : "지금"}`, <>
+              <div className="yset-kidh">화면</div>
               <Act ic="contrast" t="테마" v={theme.t} vt mod={theme.v !== "system"}
                 onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
               <Act ic="screen" t="꾸밈" v={skin === "garden" ? "정원" : "지금"} vt mod={skin === "garden"}
@@ -94,12 +95,16 @@ export function YetaSettings() {
                   setSkin(next);
                 }} />
               {sub("pintint", "layers", "고정 줄 색", <PinTintSetting />, `${pinA}%`)}   {/* 고정 줄 바탕 진하기(형 11-14 23:39 「설정에서 변경하게 만들어도 돼 값을 투명도」 · ./pin-tint · 뜸) — 보이는 꼴이라 「화면」 묶음으로(11-17) */}
+              <div className="yset-kidh">글꼴</div>
+              <ChatFontRows />
+              <div className="yset-kidh">입력</div>
+              <EnterKeyRow /><ThinkMarkRow />
             </>)}
-            {group("font", "type", "글꼴", undefined, <ChatFontRows />)}
-            {group("input", "keys", "입력 · 표시", undefined, <><EnterKeyRow /><ThinkMarkRow /></>)}
             {group("alert", "bell", "알림 · 구독", undefined, <>   {/* 받는 것 한 묶음 = 알림 켜기 · 받는 기기 · 받아 오는 채널 · 받은 알림 */}
               <PushRow />
-              <TeamsNotiRows />   {/* 팀즈 알림 폰 · PC 따로(깃 #-032 · 폰 기본 끔) */}
+              <TeamsNotiRows />
+              <div className="yset-item yset-acct"><span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chat }} /><span className="si-lbl"><span className="si-t">팀즈 계정</span></span><span className="si-v"><TeamsAccount /></span></div>   {/* 「팀즈」 줄(로그아웃 하나뿐)을 여기로 — 이름 · 로그아웃(봄 11-17) */}
+                {/* 팀즈 알림 폰 · PC 따로(깃 #-032 · 폰 기본 끔) */}
               {sub("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
               {sub("snsacc", "users", "구독 채널", <Suspense fallback={null}><SnsAccModal /></Suspense>)}
               <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
@@ -116,9 +121,13 @@ export function YetaSettings() {
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
             {row("notice", "speaker", "공지 설정", <NoticeBox kind="notice" onClose={() => setOpen("")} />, noticeMeta || undefined)}   {/* 판 · 바뀐 날 = 줄 오른쪽(칸 밖) · 열면 읽기 → 위 「수정」 → 아래 「닫기」 · 「저장」(형 11-17 06:56 dm-bom · ./notice-box.tsx) · 원본 「공통 지시」는 우리 사무실에선 공지 판이 그 일 */}
             {/* 봇 쪽 설정(PM · 봇 상자 모델 · 노력도 · 계정 우선순위 · 호출 맥락 · 그록봇 지침 · 지금 봇) = 애들 화면 한 곳으로 옮김 → 여긴 가는 길 하나(형 11-16 19:35 dm-bom 「거기에 봇 관련된 설정은 통합시키려고해」 · 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」) */}
-            <Act ic="bot" t="애들 설정 · 계기판" v="애들에서" onClick={() => { location.hash = "#/drawer"; }} />
-            <Act ic="clock" t="스케줄 · 점검 · 일 모델" v="스케줄에서" onClick={() => { location.hash = "#/sched"; }} />   {/* 스케줄 화면 한 곳 = 일 모델 · 노력도(머리 · 형 11-17 02:1x 「그리고 묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」) + 점검 · 모아 깨우기 · 그림(AI 썸네일 옵션) — 형 11-17 03:24 「너가 말한거 반영하고 너 의견 따를테니 묻지말고 진행해」 · 여긴 가는 길 한 줄 */}
-            {row("teams", "chat", "팀즈", <TeamsAccount />, teamsName)}
+            <div className="yset-item yset-go2" role="group" aria-label="옮겨 간 설정">   {/* 옮겨 간 자리로 가는 길 둘 = 한 줄에 나란히(봄 11-17 · 애들 화면 = 봇 설정 · 계기판 / 스케줄 화면 = 일 모델 · 노력도 · 점검 · 모아 깨우기 · 그림 — 형 11-16 「한쪽에 몰아버리고」 · 11-17 「묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」) */}
+              <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.bot }} />
+              <span className="si-go">
+                <button type="button" onClick={() => { location.hash = "#/drawer"; }}>애들 · 계기판<Svg k="chev" /></button>
+                <button type="button" onClick={() => { location.hash = "#/sched"; }}>스케줄 · 점검 · 일 모델<Svg k="chev" /></button>
+              </span>
+            </div>
             {row("vault", "lock", "보안 서랍", <NomuteVault />)}
           </div>
         </section>
