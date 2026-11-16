@@ -130,7 +130,7 @@ async function findQuoted(list: OfficePerson[], who: string, line: string, from:
 function QuotedPeek({ pk, onClose }: { pk: Peek; onClose: () => void }) {
   return (
     <div className="nm-qpeek" role="dialog" aria-label="답글 원글">
-      <div className="nm-qpeek-h"><b>{pk.who}</b>{pk.from ? <span> → {pk.from} · 둘의 방</span> : null}{pk.ts ? <time>{t12(pk.ts)}</time> : null}<button type="button" aria-label="닫기" onClick={onClose}>×</button></div>
+      <div className="nm-qpeek-h"><b>{pk.who}</b>{pk.from ? <span> → {pk.from}{pk.room ? " · 둘의 방" : ""}</span> : null}{pk.ts ? <time>{t12(pk.ts)}</time> : null}<button type="button" aria-label="닫기" onClick={onClose}>×</button></div>
       <p className="nm-qpeek-t">{pk.loading ? "원글 찾는 중…" : pk.text}</p>
       {pk.note ? <small className="nm-qpeek-n">{pk.note}</small> : null}
     </div>
