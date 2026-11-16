@@ -157,7 +157,7 @@ export function BotDesk() {
   const t = q.data?.table, skills = q.data?.skills || {}, rows = t?.rows || [], now = Date.now();
   const crew = rows.filter((r) => !r.pm), n = countOf(crew);   // 맨 위 카드 = PM 뺀 손(형 11-15 「PM은 제외해서」 · PM 은 바로 밑 흐름 맨 위 카드에)
   const people = usePeople(), mix = mixOf(crew);
-  const [sel, setSel] = useState(""), pm = rows.find((r) => r.pm), picked = sel ? rows.find((r) => r.who === sel) : undefined, orders = rows.reduce((n, r) => n + (r.open?.length || 0), 0);
+  const [sel, setSel] = useState(""), pm = rows.find((r) => r.pm), picked = sel ? rows.find((r) => r.who === sel) : undefined;
   const pmSt = !pm ? "" : pm.lane === "work" ? "work" : pm.lane === "ready" ? "ready" : pm.lane === "lost" ? "lost" : "idle";   // PM 은 차례 밖이라 손 판 칸에 안 서지만 제 상태는 그대로 그림(일하는 중 = 도는 구슬 · 바로 받음 = 흰 고리 · 멈춤 = 점선)
   const gen = flowOf(crew);   // 머리 숫자 = 아래 손 판 칸과 같은 셈(특수 직군도 일하면 작업 중 · 쉬면 쉬는 중에 셈 · 형 11-16 19:5x 「특수도 일하는 중으로」)
   const live = rows.some((r) => r.lane !== "none"), idle = gen.find((g) => g.group === "idle")?.rows || [], working = gen.find((g) => g.group === "work")?.rows || [];
@@ -176,8 +176,8 @@ export function BotDesk() {
             <div className="mix" aria-hidden>{mix.map((m) => <i key={m.group} className={`g-${m.group}`} style={{ flexGrow: m.n }} />)}</div>
             {pm ? (
               <button type="button" className="nm-bd-org-pm" data-st={pmSt} aria-pressed={sel === pm.who} onClick={() => setSel((w) => (w === pm.who ? "" : pm.who))}>   {/* 조직 그림의 뿌리 = PM(누르면 PM 것 펼침) · 얼굴 고리 = 아래 애들과 같은 그림(형 11-16 19:4x 구름 맥 창 「이거 PM도 사이클 돌게해줘」) */}
-                <HandFace id={idOf(pm.who, people)} deg={pmSt === "ready" ? ringDeg(ringFrac(pm, now)) : 180} size={34} />
-                <b>{pm.who}</b><span className="sk">{roleLabel(pm.skills, pm.who) || "PM"}</span>{orders ? <em className="job">오더 {orders}</em> : null}
+                <HandFace id={idOf(pm.who, people)} deg={pmSt === "ready" ? ringDeg(ringFrac(pm, now)) : 180} size={42} />   {/* 동그라미 = 아래 애들과 같은 크기(형 22:0x 「글구 봄도 동그라미 크기 같게해주고」) */}
+                <b>{pm.who}</b><span className="sk">{roleLabel(pm.skills, pm.who) || "PM"}</span>   {/* 오더 수 표는 뺌(형 11-16 22:0x 「오더1 이거는 안떠도됨」) */}
               </button>
             ) : null}
             {(t?.late || []).map((o) => <p key={o.no} className="nm-bd-late">{o.no} {o.who} — 부른 지 {o.min}분, 받음 없음</p>)}
