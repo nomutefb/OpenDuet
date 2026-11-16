@@ -17,6 +17,14 @@ test("자리 = 위 탭 줄 바로 뒤 · PC 두 칸에서만 · 내용 = 지금 
   assert.match(css, /:root:has\(\.nm-menubar\) \.nm-tabs\.nm-area \{ display:none; \}/);   // 뉴스 에디터 위 탭 셋 · 서랍 위 탭 여섯 = 그 정의를 그대로 읽음
   assert.match(css, /:root:has\(\.nm-menubar\) \.nm-split-root \{ padding-top:calc\(50px \+ var\(--nm-menu-h\)\); \}/);   // 줄 키만큼 아래 판을 내림
 });
+test("맥 독 앱 안 = 웹 탭 줄 숨김 · 메뉴 줄이 맨 위 띠(50px)로 · 다른 곳은 그대로", () => {   // 형 11-16 14:04 「✓ ① 앱 탭 한 줄 + 메뉴(웹 탭 숨김)」
+  const css = rd("../ui/menu-bar.css");
+  assert.match(css, /\nhtml\.nm-macapp:has\(\.nm-menubar\) \.nm-tabs:not\(\.nm-area\) \{ display:none; \}/);   // 점수 0,4,1 = 위 「늘 보임」(0,4,0)을 맥 앱에서만 이김
+  assert.match(css, /\nhtml\.nm-macapp \.nm-menubar \{ top:0; height:50px; \}/);   // 메뉴 줄 = 웹 화면 맨 위
+  assert.match(css, /\nhtml\.nm-macapp:has\(\.nm-menubar\) \{ --nm-menu-h:0px; \}/);   // 아래 판 = 50px 에서 시작(메뉴 줄 몫을 더 안 내림)
+  assert.match(css, /\nhtml\.nm-macapp:has\(\.nm-menubar\) \.nm-tab-screen \{ display:none; \}/);   // 닫을 길 없는 덮개는 안 그림
+  assert.match(css, /\n:root:has\(\.nm-menubar\) \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 보통 웹 · 윈도우 웹앱 = 늘 보임 그대로
+});
 test("박자 = 차례로 뜨는 꼴 그대로 · 빠르기는 줄임(판 0.16초 · 줄 사이 0.03초 · 줄 0.26초 · 닫힘 0.12초) · 유리 판 · 줄 위 밝은 판은 하나가 미끄러짐", () => {
   assert.match(tsx, /const STAGGER_MS = 30, FIRST_MS = 20,/);   // 형 11-16 11:0x 「메뉴 좀 빠르게 켜져야할듯!」(앞 = 영상 박자 86 · 90)
   assert.match(css, /\.nm-mb-group\[data-open="1"\] \.nm-mb-row \{ animation:nmMbRow \.26s /);
