@@ -36,7 +36,7 @@ test("깨우는 길 = 용건 · 누가 · 언제 세 칸 — 누가 = 그 용건
   // 서버 from 글(빠르 #4084 꼴 그대로) — 러너 목록의 파일과 맞으면 그 일 이름 · 기존 / 안 맞으면 신규 · 「모름」 = 빈 글 · ko = 서버 한글 먼저
   const JOBS = [{ id: "wf.breaking-judge", name: "속보", file: "breaking-judge.yml" }, { id: "wf.card-make", name: "카드 뉴스(초안)", file: "card-make.yml" }, { id: "wf.edit-make", name: "영상 편집", file: "edit-make.yml" }];
   assert.deepEqual(fromOf("러너 breaking-judge(속보 판정)", JOBS), { by: "속보", src: "runner", note: "속보 판정" });
-  assert.deepEqual(fromOf("러너 card-make · card-in(카드 실패 · 못 띄운 요청)", JOBS), { by: "카드 뉴스(초안) · card-in", src: "runner", note: "카드 실패 · 못 띄운 요청" });
+  assert.deepEqual(fromOf("러너 card-make · card-in(카드 초안 · 요청)", JOBS), { by: "카드 뉴스(초안) · card-in", src: "runner", note: "카드 초안 · 요청" });   // 여러 러너 = 아는 일은 이름 · 모르는 건 글자 그대로(카드 실패 · 라벨 마감 용건은 형 11-17 「이제 안하니」로 걷음)
   assert.deepEqual(fromOf("러너 video-in · *-make(영상 끝 · 요청한 봇)", JOBS), { by: "video-in · *-make", src: "runner", note: "영상 끝 · 요청한 봇" });   // *-make 가 목록의 card-make · edit-make 와 맞음 = 기존
   assert.deepEqual(fromOf("러너 song-seeds(곡 씨앗)", JOBS), { by: "song-seeds", src: "runner", fresh: true, note: "곡 씨앗" });   // 목록에 없는 러너 = 신규
   assert.deepEqual(fromOf("모름", JOBS), { by: "", src: "" }); assert.deepEqual(fromOf("사무실 「!이름」(형 · 봇)", JOBS), { by: "사무실 「!이름」", src: "human" });

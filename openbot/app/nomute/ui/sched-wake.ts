@@ -17,7 +17,7 @@ export const srcTag = (x: { src?: WSrc; fresh?: boolean }): string => (x.src ===
 /** 용건 이름(표의 kind → 읽는 말) — 서버 표에 한글 이름 칸이 생기면 그쪽이 먼저(ko) · 여기 없는 kind 는 글자 그대로 */
 export const KIND_KO: Record<string, string> = {
   breaking_alert: "속보", surge_alert: "급상승", fire_alert: "화재", trend_hit: "트렌드 적중", urgent_flag: "긴급 표시", data_changed: "자료 바뀜",
-  video_done: "영상 완성", mv_plan: "뮤비 기획", world_bundle: "세계관 묶음", song_seeds: "노래 씨앗", teams_day: "팀즈 하루", labels_ready: "라벨 준비", card_fail: "카드 실패",
+  video_done: "영상 완성", mv_plan: "뮤비 기획", world_bundle: "세계관 묶음", song_seeds: "노래 씨앗", teams_day: "팀즈 하루",
 };
 export const kindKo = (kind: string, ko?: Record<string, string>): string => ko?.[kind] || KIND_KO[kind] || kind;
 /** 발생 시점 말 — 표의 mode(바로 · 묶음 · 따로 · 묶음+따로) → 한 마디. */
