@@ -1,11 +1,13 @@
 // 방 유지 시간 = 「1시간 · 끌어서 1~7일 · 영구」 셋(형 11-14 04:56 dm-eyes 「지금 방 설정에 기한 정하는게 잇는데 1시간, 그리고 이렇게 기한, 영구 3개 설정으로 css 갔으면 함」 · 본보기 = 형 영상 98691 = 진한 알약이 끌려 늘고 · 끝에 손잡이 줄 · 숫자가 굴러 바뀜 · 오른쪽 끝에 최대 「7 days」)
 //   값 = 시간(hours) 하나 · 1 = 1시간 · 24·48…168 = 1~7일 · 0 = 영구 · null = 고치기에서 안 누름(기한 그대로)
+//   now = 지금 걸려 있는 값(같은 꼴) — 아직 안 눌렀을 때(hours null) 그 칸에 라임 · 가운데면 막대가 그만큼 참(형 11-17 01:16 「현재 상태인거에 라임 들어오면 될즛 / 중간에는 게이지만큼」 · 앞 = 옆에 글자 「· 지금 영구」)
 import { useRef } from "react";
 import "./day-slide.css";
 
 const MAX = 7;
-export function DaySlide({ hours, onChange }: { hours: number | null; onChange: (h: number) => void }) {
+export function DaySlide({ hours: picked, now, onChange }: { hours: number | null; now?: number; onChange: (h: number) => void }) {
   const track = useRef<HTMLDivElement>(null), drag = useRef(false);
+  const hours = picked ?? now ?? null;   // 보이는 값 = 고른 값 · 아직 안 골랐으면 지금 걸린 값
   const days = hours && hours >= 24 ? Math.min(MAX, Math.round(hours / 24)) : 0, onDays = days > 0;
   const shown = onDays ? days : 3;   // 날 칸이 안 골라졌을 땐 3일 자리에 흐리게(누르면 그 자리부터)
   const at = (x: number) => { const b = track.current!.getBoundingClientRect(); return Math.max(1, Math.min(MAX, Math.round(((x - b.left) / b.width) * MAX + 0.35))); };

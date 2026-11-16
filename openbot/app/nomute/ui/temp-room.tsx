@@ -18,7 +18,7 @@ import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, member
 import { FaceImg, usePeople } from "./faces";
 import { GoButton } from "./go-button";
 import { MorphAsk } from "./morph-ask";   // 재확인 = 그 자리 토글(형 11-16 「항상 그냥 re 토글로만」)
-import { IDLE_DEFAULT, hasTask, idleKo, idleOpts, maxBlock, maxShow, maxStep, memberCand, setBody } from "./room-set-logic";
+import { TASK_MAX, idleFor, idleKo, idleOpts, maxBlock, maxShow, maxStep, memberCand, setBody, stayNow, taskEndNote } from "./room-set-logic";
 import "./temp-room.css";
 
 // 묶음(형 10-31 「클로드 눌러서 선택 그록 눌러서 선택 지피티 눌러서 선택」) = 서버 clsOf 분류 · 명부에 없는 이 = 클로드 칸
@@ -57,7 +57,7 @@ function TempLeftEdit({ r }: { r: OfficeRoom }) {
       } catch (e) { setWhy(e instanceof Error ? e.message : "못 바꿨어"); }
     }, 600);
   };
-  return <div className="nm-temp-edit"><DaySlide hours={hours} onChange={pick} />{why ? <p role="alert" className="nm-temp-why">못 바꿨어 — {why}</p> : null}</div>;
+  return <div className="nm-temp-edit"><DaySlide hours={hours} now={stayNow(r.exp, Date.now())} onChange={pick} />{why ? <p role="alert" className="nm-temp-why">못 바꿨어 — {why}</p> : null}</div>;
 }
 
 /** 방 이름 옆 남은 시간 표 — 늘 보임(방 머리 카드는 글이 쌓이면 위로 밀림) · 누르면 표 밑에 유지 시간 막대가 그 자리에서 열림(창 0 · 바깥 누름 · Esc = 닫힘). 기한 있는 임시방만. */
@@ -132,14 +132,15 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
   const [d0] = useState(() => edit ? draftGet<typeof base>(dk) || base : base);   // 새 방은 매번 빈 판, 기존 방 설정만 초안 복원
   const [name, setName] = useState(d0.name), [purpose, setPurpose] = useState(d0.purpose), [pickedRaw, setPicked] = useState<string[]>(d0.picked);
   const picked = livePicked(pickedRaw, candRaw.length ? cand : [], (n) => !!who(n)?.gone);   // 옛 초안에 남은 없어진 봇(별) = 그릴 때마다 뺌 · 서버 후보(별 없음)가 오면 그걸로 · 명부가 늦게 와도 놓치지 않게(모루 #2861 · #2864 검토 · 빠르 11-08)
-  const set0 = { max: edit?.max && edit.max > 0 ? edit.max : 0, task: edit?.task || "", idle: edit?.task_idle_min && edit.task_idle_min > 0 ? edit.task_idle_min : IDLE_DEFAULT };   // 저장된 값(고치기만)
-  const [max, setMax] = useState(set0.max), [task, setTask] = useState(set0.task), [idle, setIdle] = useState(set0.idle), taskOn = hasTask(edit);
+  const set0 = { max: edit?.max && edit.max > 0 ? edit.max : 0, task: edit?.task || "", idle: edit?.idle_min && edit.idle_min > 0 ? edit.idle_min : 0 };   // 저장된 값(고치기만) · idle 0 = 꺼짐
+  const [max, setMax] = useState(set0.max), [task, setTaskRaw] = useState(set0.task), [idle, setIdle] = useState(set0.idle);
+  const setTask = (v: string) => { setTaskRaw(v); setIdle((m) => idleFor(v, m)); };   // 일을 적기 시작하면 꺼져 있던 머무는 시간 = 서버 기본(3시간)으로 보임
   const dirty = name !== base.name || purpose !== base.purpose || picked.join("|") !== base.picked.join("|") || max !== set0.max || task.trim() !== set0.task || idle !== set0.idle;
   useEffect(() => { if (edit && dirty) draftSet(dk, { name, purpose, picked }); else draftDrop(dk); }, [dk, !!edit, dirty, name, purpose, picked]);
   const [hours, setHours] = useState<number | null>(edit ? null : 24), [fam, setFam] = useState("cl");   // 고치기 = 안 누르면 기한 그대로
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
   const toggle = (n: string) => setPicked(picked.includes(n) ? picked.filter((x) => x !== n) : [...picked, n]);
-  const namesOf = (cls: string[]) => cand.filter((n) => cls.includes(who(n)?.cls || ""));
+  const namesOf = (cls: string[]) => cand.filter((n) => cls.includes(who(n)?.shelf || who(n)?.cls || ""));   // 묶음 = 명부 shelf 가 먼저(구름 = cls 는 「닷」이지만 shelf 「클로드」 → 클로드 칸 · 깃 df3d402b · 형 11-17 00:46 「구름이 낄꺼면 여기도 끼게」)
   const shown = namesOf(FAMS.find((f) => f.key === fam)?.cls || []);
   const allOn = shown.length > 0 && shown.every((n) => picked.includes(n));
   const toggleAll = () => setPicked(allOn ? picked.filter((n) => !shown.includes(n)) : [...new Set([...picked, ...shown])]);
@@ -156,7 +157,7 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
       const j = await office<Reply>(edit ? `temprooms/${encodeURIComponent(edit.id)}` : "temprooms", { method: "POST", body: job.body });
       if (!edit && !j?.room?.id) throw new Error("방 생성 응답을 확인하지 못했어");
       draftDrop(dk);   // 저장됨 = 보관 지움
-      if (edit) patchRoom(qc, edit.id, { ...(max !== set0.max ? { max } : {}), ...(task.trim() !== set0.task ? { task: task.trim() } : {}), ...(idle !== set0.idle ? { task_idle_min: idle } : {}), ...savedRoomPart(j, edit.id, { name, purpose, members: picked }) } as Partial<OfficeRoom>);   // 서버 답이 있으면 그 값이 이김
+      if (edit) patchRoom(qc, edit.id, { ...(max !== set0.max ? { max } : {}), ...(task.trim() !== set0.task ? { task: task.trim() } : {}), ...(idle !== set0.idle ? { idle_min: idle || undefined } : {}), ...savedRoomPart(j, edit.id, { name, purpose, members: picked }) } as Partial<OfficeRoom>);   // 서버 답이 있으면 그 값이 이김
       else {
         // 성공 응답으로 새 방을 먼저 넣어 목록 재조회가 느려도 바로 들어간다.
         await qc.cancelQueries({ queryKey: ["nomute", "rooms"] });
@@ -191,10 +192,11 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
           <textarea value={purpose} maxLength={500} rows={3} onChange={(e) => setPurpose(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
           <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요</small>
         </label>
-        {edit && taskOn ? <>   {/* 지금 일 = 방 지침과 따로 한 칸 · 머무는 시간 = 조용하면 비워지는 분(형 11-17 00:49 · 서버 칸이 올 때만 뜸) */}
+        {edit ? <>   {/* 지금 일 = 방 지침과 따로 한 칸 · 머무는 시간 = 이만큼 조용하면 일이 끝남(형 11-17 00:49 · 서버 = 빠르 #4080) */}
           <label className="flex flex-col gap-1">
             <span className="text-muted-foreground">지금 일</span>
-            <input value={task} maxLength={80} onChange={(e) => setTask(e.target.value)} className="rounded-xl border border-border bg-transparent px-3 py-2" />
+            <textarea value={task} maxLength={TASK_MAX} rows={2} onChange={(e) => setTask(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
+            {taskEndNote(set0.task, task) ? <small className="text-xs text-destructive" role="status">{taskEndNote(set0.task, task)}</small> : null}   {/* 빈 일 = 서버가 바로 끝냄(멤버 비움) → 그때만 한 줄 */}
           </label>
           <div className="nm-rs-row" role="group" aria-label="머무는 시간">
             <span className="lbl">머무는 시간</span>
@@ -225,8 +227,8 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
           ) : null}
         </fieldset>
         <fieldset className="flex flex-col gap-1">
-          <legend className="mb-1 text-muted-foreground">유지 시간{edit ? <span className="ml-1 text-xs">· 지금 {edit.exp ? tempLeft(edit.exp) : "영구"}</span> : null}</legend>   {/* 지금 남은 기한(형 11-06 10:37 「이거 하루가 넘나? 유지기간이」) */}   {/* 라벨 옆 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
-          <DaySlide hours={hours} onChange={setHours} />   {/* 1시간 · 끌어서 1~7일 · 영구(형 11-14 04:56 「1시간, 그리고 이렇게 기한, 영구 3개 설정으로」 · 앞 판 = 1시간 · 하루 · 사흘 · 일주일 · 영구 다섯 단추) */}
+          <legend className="mb-1 text-muted-foreground">유지 시간</legend>   {/* 지금 값 = 글자(「· 지금 영구」) 대신 그 칸에 라임 · 가운데면 막대가 그만큼(형 11-17 01:16 · 앞 = 형 11-06 10:37 「이거 하루가 넘나? 유지기간이」 로 붙인 글자) */}
+          <DaySlide hours={hours} now={edit ? stayNow(edit.exp, Date.now()) : undefined} onChange={setHours} />   {/* 1시간 · 끌어서 1~7일 · 영구(형 11-14 04:56) */}
         </fieldset>
         </fieldset>
         {why || over ? <p role="alert" className="text-destructive">{why || over}</p> : null}   {/* over = 고른 멤버가 최대 인원을 넘음(고치기 꺼짐의 까닭) */}
