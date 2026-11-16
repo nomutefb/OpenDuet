@@ -41,12 +41,12 @@ export const hm = (t: number) => { const d = new Date(t); return `${p2(d.getHour
 export const mdhm = (t: number) => { const d = new Date(t); return `${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${hm(t)}`; };
 export const everyKo = (s: number) => (s % 3600 === 0 ? `${s / 3600}시간마다` : s % 60 === 0 ? `${s / 60}분마다` : `${s}초마다`);
 
-/** 빈 칸 뒤에 다시 값이 온 자리 = 「다시 켜짐」(서버가 marks 를 주면 그걸 씀 · 안 주면 빈 칸에서 셈) */
+/** 「다시 켜짐」 = 서버가 marks 를 주면 그걸 씀 · 안 주면 빈 칸에서 셈: 값이 이어지다(3칸~) 비었다가 다시 이어지는(3칸~) 자리만
+ *  (진짜 자료 11-16 실물 = 옛 기록 구간은 한 칸 건너 한 칸씩 비어 있어, 「빈 칸 뒤 첫 값」으로만 세면 표가 줄줄이 찍혔음 → 듬성듬성한 구간은 끊김으로 안 침) */
 export function vmMarks(v: VmMem): { t: number; label: string }[] {
-  if (v.marks) return v.marks;
-  const out: { t: number; label: string }[] = [];
-  let seen = false;
-  v.used_gb.forEach((x, i) => { if (x === null) return; if (seen && v.used_gb[i - 1] === null) out.push({ t: v.t0 + i * v.step_s * 1000, label: "다시 켜짐" }); seen = true; });
+  if (v.marks && v.marks.length) return v.marks;   // 빈 목록 = 서버가 안 센 것으로 보고 아래에서 셈
+  const a = v.used_gb, out: { t: number; label: string }[] = [], run = (i: number, d: 1 | -1) => { let k = 0; while (a[i + k * d] != null) k++; return k; };
+  for (let i = 1; i < a.length; i++) if (a[i] !== null && a[i - 1] === null) { let p = i - 1; while (p >= 0 && a[p] === null) p--; if (p >= 0 && run(p, -1) >= 3 && run(i, 1) >= 3) out.push({ t: v.t0 + i * v.step_s * 1000, label: "다시 켜짐" }); }
   return out.slice(0, 12);
 }
 

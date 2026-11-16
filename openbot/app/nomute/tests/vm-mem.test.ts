@@ -25,10 +25,14 @@ test("셈 = 평균 · 최저 · 최고(칸) · 마지막 값 · 빈 칸은 안 �
   assert.equal(everyKo(300), "5분마다"); assert.equal(everyKo(3600), "1시간마다");
 });
 
-test("다시 켜짐 = 서버가 준 표 먼저 · 없으면 빈 칸 뒤 첫 값 자리", () => {
-  assert.deepEqual(vmMarks(vmClean([one()])[0]), [{ t: T0 + 3 * 300_000, label: "다시 켜짐" }]);
+test("다시 켜짐 = 서버가 준 표 먼저 · 없으면 값이 이어지다 비었다 다시 이어지는 자리만(듬성듬성한 구간은 끊김 아님)", () => {
+  const cut = one({ used_gb: [1, 1, 1, null, 1.7, 1.1, 1.2], held_gb: undefined });
+  assert.deepEqual(vmMarks(vmClean([cut])[0]), [{ t: T0 + 4 * 300_000, label: "다시 켜짐" }]);
   assert.deepEqual(vmMarks(vmClean([one({ marks: [{ t: T0 + 300_000, label: "다시 켜짐(스레드 10)" }, { t: "x" }] })])[0]), [{ t: T0 + 300_000, label: "다시 켜짐(스레드 10)" }]);
-  assert.deepEqual(vmMarks(vmClean([one({ used_gb: [null, null, 1, 1] })])[0]), []);   // 처음부터 비어 있던 건 「다시」가 아님
+  assert.deepEqual(vmMarks(vmClean([one({ used_gb: [null, null, 1, 1, 1, 1] })])[0]), []);   // 처음부터 비어 있던 건 「다시」가 아님
+  assert.deepEqual(vmMarks(vmClean([one({ used_gb: [1, null, 1, null, 1, null, 1, null, 1, 1, 1, 1, 1] })])[0]), []);   // 한 칸 건너 한 칸(옛 기록 구간) = 표 0 · 촘촘해지는 자리도 끊김 아님
+  assert.deepEqual(vmMarks(vmClean([one({ used_gb: [1, null, 1, null, 1, 1, 1, 1, null, null, 1, 1, 1] })])[0]), [{ t: T0 + 10 * 300_000, label: "다시 켜짐" }]);
+  assert.deepEqual(vmMarks(vmClean([one()])[0]), []);   // 앞뒤가 두 칸뿐 = 아직 모름
 });
 
 test("그림 자리 = 가는 선은 잰 값마다 하나(길 셋 + 최고 하나) · 윤곽은 빈 칸에서 끊김 · 쥔 램은 계단 · 눈금 · 끝 글", () => {
