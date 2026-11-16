@@ -158,12 +158,21 @@
 .nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell > small { color:var(--nsb-ink); opacity:.8; }
 .nm-bd-ab li[data-sure="0"] .ring, .nm-bd-ab li[data-sure="0"] .halo { opacity:0; }   /* 쉬는 손(대기 신호로 확인 안 됨) = 회색 고리만 */
 .nm-bd-ab li[data-sure="0"] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-ink); }
+/* 손 판 색 = 머리 숫자 · 막대와 같은 말로(형 11-16 18:3x 구름 맥 창 「이거 색이 정 반대로 노는 듯.」 · 앞 = 일하는 중이 회색 구슬 · 노는 손이 라임 고리라 머리 「일하는 중」 라임 · 막대 라임 = 일 · 흰색 = 노는 손과 거꾸로였음)
+   일하는 중 = 라임(도는 구슬 · 숫자) · 노는 손 = 흰색(바로 받음 = 흰 고리 · 쉬는 손 = 회색 고리 · 숫자 · 특기 알약) · 차례 밖 = 색 빠짐 그대로 — 이 손 판에서만(작동 표 활동 판 ./activity-board.css 값은 안 건드림) */
+.nm-bd-ab .nsb-ab-lane[data-k="work"] .orb > i, .nm-bd-ab li[data-st="work"] .orb > i { background:conic-gradient(transparent 0 70%, var(--nsb-ok) 70% 100%); }
+.nm-bd-ab .nsb-ab-lane[data-k="work"] .orb > u, .nm-bd-ab li[data-st="work"] .orb > u { background:var(--nsb-ok); }
+.nm-bd-ab .nsb-ab-lane[data-k="work"] .halo, .nm-bd-ab li[data-st="work"] .halo { opacity:.16; }
+.nm-bd-ab .nsb-ab-lane[data-k="work"] h4 .lane-fold > b { color:var(--nsb-ok); }
+.nm-bd-ab .nsb-ab-lane[data-k="ready"] h4 b { color:var(--nsb-ink); }
+.nm-bd-ab .nsb-ab-lane[data-k="ready"] .ring u, .nm-bd-ab li[data-st="ready"] .ring u { border-color:var(--nsb-ink); }
+.nm-bd-ab .nsb-ab-lane[data-k="ready"] .halo, .nm-bd-ab li[data-st="ready"] .halo { opacity:0; }
+.nm-bd-ab .nsb-ab-lane[data-k="ready"] .cell > small.sk, .nm-bd-ab li[data-st="ready"] .cell > small.sk { border-color:rgba(232,234,232,.4); color:var(--nsb-ink); }
 /* 특수 칸(data-h="special" · 형 11-16 「아예 특수 직업군은 따로 분류되고」) = 손마다 제 상태 그림(칸 꼴 대신 li data-st · 값은 ./activity-board.css 의 칸 꼴과 같게): 일하는 중 = 도는 구슬 · 바로 받음 = 라임 고리 · 쉬는 손 = 회색 고리 · 차례 밖 = 색 빠짐 */
 .nm-bd-ab .nsb-ab-lane[data-h="special"] h4 b { color:var(--nsb-ink); }
 .nm-bd-ab li[data-st="work"] .trk { opacity:.6; }
 .nm-bd-ab li[data-st="work"] .orb { opacity:.9; animation-play-state:running; will-change:transform; }
 .nm-bd-ab li[data-st="ready"] .trk, .nm-bd-ab li[data-st="ready"] .ring, .nm-bd-ab li[data-st="idle"] .trk { opacity:1; }
-.nm-bd-ab li[data-st="ready"] .halo { opacity:.16; }
 .nm-bd-ab li[data-st="rest"] .pic { filter:grayscale(.7); opacity:.6; }
 .nm-bd-ab li[data-st="rest"] .cell > b { color:var(--nsb-mut); }
 .nm-bd-ab li[data-st="work"] .cell > small.sk, .nm-bd-ab li[data-st="idle"] .cell > small.sk, .nm-bd-ab li[data-st="rest"] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-ink); }
