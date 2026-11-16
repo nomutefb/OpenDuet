@@ -9,7 +9,7 @@ import { type RunnerJob, type SchedRunners, nextShort } from "./settings-extra";
 import { type Review, ReviewBadge } from "./sched-review";
 import { ghJob, modelKo } from "./sched-flow-core";
 import { type BotSide, PLACE_DOWN, ROOMISH_RE, type TNode, type TRoutine, edgeMid, edgePath, openOf, edgeWidth, fitOf, perDay, railPath, treeOf, zoomAt } from "./sched-tree-core";
-import { callerName, hookPlace, wakeRows, wakeState } from "./sched-wake";   // 깨우는 길 = 용건 · 누가 · 언제(형 11-17 01:1x)
+import { callerName, hookPlace, ownerOf, srcTag, wakeRows, wakeState } from "./sched-wake";   // 깨우는 길 = 용건 · 누가 · 언제(형 11-17 01:1x)
 import { FaceImg } from "./faces";   // 봇 가지 = 그 봇 얼굴(영상의 사람 카드 꼴)
 import { RunnerSheet } from "./runner-sheet";
 import "./sched-tree.css";
@@ -187,16 +187,17 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
             const r = n.routine!, st = bots.st(r), live = r.state === "live", whenTxt = r.cron?.length ? cronKo(r.cron) : r.when?.length ? r.when.join(" · ") : "부를 때만";
             if (!ROOMISH_RE.test(r.id)) {   // 봇을 깨우는 일 = 깨우는 길 표(용건 · 누가 부르나 · 언제 따로) · 열쇠 이름 한 줄 · 자리는 화면에 한 번만(.nm-tree-place)
               const ids = bots.ids || [], rows = wakeRows(r, bots.routines, ids, { whenKo: (x) => (x.cron?.length ? cronKo(x.cron) : (x.when || []).join(" · ")), ko: bots.kindKo, jobs: map.jobs }), sched = rows.some((x) => x.sched), title = callerName(r, bots.routines, ids);
+              const own = ownerOf(r, bots.routines, ids), toWho = bots.routines.find((x) => x.bot === own && ids.includes(x.bot))?.who || r.who;   // 누굴 깨우나 = 가지 주인(X 수집 → 슈왕)
               const stTxt = wakeState(st, live && bots.on(r), sched, r.health?.last_at, now, HEALTH_KO);
               return (
                 <div key={n.id} className="nm-tree-node job routine wk" style={pos} data-st={st} data-next={soon === n.id || undefined} data-off={!bots.on(r) || undefined}>
                   <button type="button" className="nm-tree-card" aria-label={`${r.who} ${r.name} · ${stTxt} · 바꾸기`} onClick={() => bots.open(r.id)}>
-                    <span className="nm-tree-l1"><b title={r.name}><ReviewBadge r={review[r.id]} />{title}</b>{live ? null : <i>{bots.stKo[r.state] || r.state}</i>}</span>
+                    <span className="nm-tree-l1"><b title={r.name}><ReviewBadge r={review[r.id]} />{title}</b>{live ? null : <i>{bots.stKo[r.state] || r.state}</i>}<i className="to" title={`이 문이 깨우는 이 = ${toWho}`}>{toWho} 깨움</i></span>   {/* 누굴 호출 = 카드 머리에(형 11-17 01:2x 「누굴 호출」) */}
                     {r.hook ? <span className="nm-tree-l2 hook" data-miss={r.hook_ok === false || undefined}><small>열쇠</small><span title={r.hook_ok === false ? `${r.hook} · 서버 환경에 없음` : r.hook}>{r.hook}{r.hook_ok === false ? " · 없음" : ""}</span></span> : null}   {/* 열쇠 = 이 문을 여는 호출 시크릿의 이름(값 0) · hook_ok 거짓 = 서버 환경에 없음 → 붉게 */}
                     <span className="nm-tree-wk" role="table" aria-label="깨우는 길">
                       <span className="h" role="row"><small>용건</small><small>누가</small><small>언제</small></span>
                       {rows.length ? rows.map((x) => (
-                        <span key={x.k} className="r" role="row" data-sched={x.sched || undefined}><b title={x.what}>{x.what}</b><span title={x.by || "표에 없음"} data-none={!x.by || undefined}>{x.by || "모름"}</span>{x.sched ? <><i>{perDay({ cron_kst: r.cron, when: (r.when || []).join(" ") }) >= 1 ? `하루 ${Math.round(perDay({ cron_kst: r.cron, when: (r.when || []).join(" ") }))}번` : "정해진 때"}</i><em title={x.when}>{r.health?.next_at ? `다음 ${nextShort(r.health.next_at)} · ` : ""}{x.when}</em></> : <i title={x.when}>{x.when}</i>}</span>
+                        <span key={x.k} className="r" role="row" data-sched={x.sched || undefined}><b title={x.what}>{x.what}</b><span title={x.by ? `${x.by}${srcTag(x) ? ` · ${srcTag(x)}` : ""}${x.note ? ` · ${x.note}` : ""}` : "표에 없음"} data-none={!x.by || undefined} data-src={x.src || undefined} data-fresh={x.fresh || undefined}>{x.by || "모름"}{srcTag(x) ? <small>{srcTag(x)}</small> : null}</span>{x.sched ? <><i>{perDay({ cron_kst: r.cron, when: (r.when || []).join(" ") }) >= 1 ? `하루 ${Math.round(perDay({ cron_kst: r.cron, when: (r.when || []).join(" ") }))}번` : "정해진 때"}</i><em title={x.when}>{r.health?.next_at ? `다음 ${nextShort(r.health.next_at)} · ` : ""}{x.when}</em></> : <i title={x.when}>{x.when}</i>}</span>
                       )) : <span className="r" role="row"><b data-none>정해진 용건 없음</b><span /><i>부를 때만</i></span>}
                     </span>
                     <span className="nm-tree-l3">{sched || st !== "unknown" ? <StatusDot st={st} /> : null}<span>{stTxt}</span><i className="nm-tree-sw" data-on={live || undefined} aria-hidden /></span>   {/* 부를 때만 도는 일 = 「확인 안 됨」 대신 켜짐 · 꺼짐(고장처럼 읽히던 것) */}
