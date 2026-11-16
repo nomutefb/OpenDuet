@@ -50,7 +50,7 @@ export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Re
             {rs.map((r, i) => {
               const st = k === "special" ? handSt(r) : null;
               const sure = r.lane === "ready", deg = (k === "idle" && sure) || st === "ready" ? ringDeg(ringFrac(r, now)) : 180;
-              const sk = r.skills?.[0], skKo = sk && skills[sk] ? skillShort(skills[sk]) : "", skName = roleLabel(r.skills) || skKo;   // 얼굴 밑 = 영문 직함(형 11-16 18:4x 「Developer … UX Design … PM · Dev. … PM · UXD.」) · 모르는 코드면 서버 한글 이름 · 한글 이름은 풍선에
+              const sk = r.skills?.[0], skKo = sk && skills[sk] ? skillShort(skills[sk]) : "", skName = roleLabel(r.skills, r.who) || skKo;   // 얼굴 밑 = 영문 직함(형 11-16 18:4x 「Developer … UX Design … PM · Dev. … PM · UXD.」) · 모르는 코드면 서버 한글 이름 · 한글 이름은 풍선에
               const sub = k === "lost" ? r.why || r.cause || "멈춤" : k === "out" ? outWhy(r) : skName;
               return (
                 <li key={r.who} data-sure={k === "idle" ? (sure ? "1" : "0") : undefined} data-st={st || undefined} style={{ animationDelay: `${i * 40}ms` }}>

@@ -69,13 +69,16 @@ export function groupOf(r: BotRow): Group {
 }
 // ── 직무 표기(형 11-16 18:4x 구름 맥 창 「저기에서 보이는 직무 표기 알려줄게 / Developer 천둥 번개 빠르 소나 / UX Design 구름 시아 / PM · Dev. 깃 / PM · UXD. 봄」 · 「너가 한전 보고 판단해봐 dev uxd」) ──
 //   특기 코드(서버 손 표 _roles.js SKILLS) → 영문 직함 · 1특기가 관리 배분(M)이면 「PM · <2특기 줄임>」 · 그 밖 = 1특기 하나
-//   형이 준 것 = D Developer(줄임 Dev.) · U UX Design(줄임 UXD.) · M PM / 나머지는 같은 결로 내가 정함 = R Research(R&D) · S Fixer · Xb Music · Xc Writer · Xd Scout · Xa 는 형이 정함 = Creator
-const ROLE_LONG: Record<string, string> = { M: "PM", D: "Developer", U: "UX Design", R: "Research", S: "Fixer", X: "Special", Xa: "Creator", Xb: "Music", Xc: "Writer", Xd: "Scout" };   // Xa(사진·영상 제작) = Creator(형 11-16 18:5x 「뜸은 creator」 · 앞 = Media)
+//   형이 준 것 = D Developer(줄임 Dev.) · U UX Design(줄임 UXD.) · M PM / 나머지는 같은 결로 내가 정함 = R Research(R&D) · S Fixer · Xb Musician(형 「결 musician」) · Xc Storyteller(형 「뎅 결 윈터는 Storyteller」) · Xa 는 형이 정함 = Creator · Xd = Scoop Hunt.(슈왕 · 형 18:5x 구름 맥 창 「촉 이 아니라 이제 슈왕 / Scoop Hunter」 → 19:0x 「슈왕 Scoop Hunt.」)
+const ROLE_LONG: Record<string, string> = { M: "PM", D: "Developer", U: "UX Design", R: "Research", S: "Fixer", X: "Special", Xa: "Creator", Xb: "Musician", Xc: "Storyteller", Xd: "Scoop Hunt." };   // Xa(사진·영상 제작) = Creator(형 11-16 18:5x 「뜸은 creator」 · 앞 = Media)
 const ROLE_SHORT: Record<string, string> = { ...ROLE_LONG, D: "Dev.", U: "UXD.", R: "R&D" };
 /** 코드 하나 → 직함(short = 줄임) · 모르는 코드 = "" */
 export const roleOf = (code: string | undefined, short = false): string => (code ? (short ? ROLE_SHORT : ROLE_LONG)[code] || "" : "");
-/** 손 하나의 직함 한 줄 — 「Developer」 · 「UX Design」 · 「PM · Dev.」 · 「PM · UXD.」 … · 특기 없음 = "" */
-export function roleLabel(skills?: string[]): string {
+/** 사람마다 따로 정한 직함(특기 코드보다 먼저) — 온 = Secretary(형 비서 · PM 11-16 18:52 옮김 = 「Fixer 아님」) */
+const ROLE_WHO: Record<string, string> = { 온: "Secretary", 결: "Storyteller", 소나: "Fixer · Dev." };   // 소나 = Fixer · Dev.(형 11-16 19:0x 「소나 Fixer · Dev」 · 줄임 점은 「PM · Dev.」와 같은 꼴로 붙임)   // 결 = Storyteller(형 11-16 18:5x 「뎅 결 윈터는 Storyteller」 · 바로 앞 말 「결 musician」 뒤에 온 말을 따름 · 작곡 갈래 Xb 의 이름 Musician 은 표에 남김) · 뎅 · 윈터 = 글짓기 갈래 Xc = Storyteller
+/** 손 하나의 직함 한 줄 — 「Developer」 · 「UX Design」 · 「PM · Dev.」 · 「PM · UXD.」 … · 특기 없음 = "" · who 를 주면 사람마다 정한 직함 먼저 */
+export function roleLabel(skills?: string[], who?: string): string {
+  if (who && ROLE_WHO[who]) return ROLE_WHO[who];
   const a = skills?.[0], b = skills?.[1];
   if (a === "M") return roleOf(b, true) ? `PM · ${roleOf(b, true)}` : "PM";
   return roleOf(a);
