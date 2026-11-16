@@ -5,7 +5,9 @@ import test from "node:test";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const tsx = rd("../ui/menu-bar.tsx"), css = rd("../ui/menu-bar.css"), shell = rd("../ui/shell.tsx");
 test("자리 = 위 탭 줄 바로 뒤 · PC 두 칸에서만 · 내용 = 지금 네비 그대로(이름 · 길은 한 곳에서)", () => {
-  assert.match(shell, /\{split \? <TopTabBar room=\{room\} pane=\{pane\} \/> : null\}\n\s+\{split \? <MenuBar groups=\{menuOf\(chatHref\(room\)\)\} on=\{menuOn\(/);
+  assert.match(shell, /\{split \? <TopTabBar room=\{room\} pane=\{pane\} \/> : null\}\n\s+\{split \? <MenuBar groups=\{menuOf\(talkNext\(/);
+  assert.match(shell, /\{split \? null : <TabBar pane=/);   // 형 11-16 10:3x 「웅 빼고 츠리텐다드」 = PC 에선 아래 알약 네비 뺌(폰은 그대로)
+  assert.match(css, /\.nm-menubar \{[^}]*font-family:'Pretendard Variable', Pretendard,/);
   assert.match(shell, /items: NED_TABS\.map\(/); assert.match(shell, /items: DRAWER_TABS\.flatMap\(/);   // 뉴스 에디터 위 탭 셋 · 서랍 위 탭 여섯 = 그 정의를 그대로 읽음
   assert.match(css, /:root:has\(\.nm-menubar\) \.nm-split-root \{ padding-top:calc\(50px \+ var\(--nm-menu-h\)\); \}/);   // 줄 키만큼 아래 판을 내림
 });

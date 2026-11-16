@@ -78,7 +78,8 @@ import { ThumbMaker, ToolKeep, ToolRestore } from "./ed-keep";   // 이미지 �
 import { NED_TABS, nedTabOf } from "./ned-tabs";
 import { AreaTabs } from "./area-tabs";
 import { DRAWER_HOME, DRAWER_TABS, type DrawerTab, isDrawerTab } from "./drawer-tabs";
-import { MenuBar, type MenuGroup } from "./menu-bar";   // 탭 줄 아래 메뉴 줄(형 11-16 08:3x 「이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」)
+import { MenuBar, type MenuGroup } from "./menu-bar";
+import { talkNext } from "../swap/talk-next";   // 메뉴 줄 「대화」 = 아래 네비 「대화」와 같은 누름(목록 ↔ 마지막 대화창)   // 탭 줄 아래 메뉴 줄(형 11-16 08:3x 「이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」)
 import { ED_TOOLS, type EdTool, edAlive, edChip, edKeptNext, isEdTool } from "./ed-keep-logic";
 const AskModal = lazy(() => import("./ask").then((m) => ({ default: m.AskModal })));   // 서랍 「요약 요청」(에디터 넷째 탭 기능 → 서랍 네이티브 · 형 10-31 「기능들이 다 서랍으로」)
 import { RoomIcon, RoomList, useRoomOrder } from "./room-list";
@@ -135,9 +136,9 @@ const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 ·
 
 // 메뉴 줄(./menu-bar.tsx) 내용 = 지금 네비 그대로: 홈 · 대화 · 뉴스 에디터(위 탭 셋 ./ned-tabs.ts) · 서랍(위 탭 여섯 ./drawer-tabs.ts) · 설정 — 이름 · 그림 · 길은 MODALS · NED_TABS 한 곳에서(여기 따로 안 적음) · 설명 줄만 여기
 const MENU_DESC: Record<string, string> = { news: "최신 기사 · 요약 요청", sns: "섹션 전부 · 구독 채널", chan: "차트 · 게시물 · 결의 보드", runner: "몸 넷 게이지 · 러너 상태", botdesk: "봇 상태 · 일 차례 · 손 표", sched: "예약 깸 · 나무", meetlog: "끝난 회의 기록", story: "종 틈에 지은 글 모음", play: "우리 놀이터" };
-const menuOf = (chatTo: string): MenuGroup[] => [
+const menuOf = (talkTo: string): MenuGroup[] => [
   { id: "home", label: "홈", to: "/" },
-  { id: "chat", label: "대화", to: chatTo },
+  { id: "chat", label: "대화", to: talkTo },   // 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록(../swap/talk-next.ts · 아래 알약 네비 「대화」가 하던 그대로)
   { id: "ned", label: "뉴스 에디터", items: NED_TABS.map((t) => ({ id: t.id, label: t.name, icon: t.icon, to: t.to, desc: MENU_DESC[t.id] })), foot: { label: "뉴스 에디터 열기", to: "/newsed" } },
   { id: "drawer", label: "서랍", items: DRAWER_TABS.flatMap((id) => { const m = MODALS.find((x) => x.id === id); return m ? [{ id, label: m.label, icon: m.icon, to: m.to, desc: m.desc || MENU_DESC[id] }] : []; }), foot: { label: "서랍 열기", to: "/drawer" } },
   { id: "settings", label: "설정", to: "/settings" },
@@ -264,7 +265,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         <FinishedForYou />
         {split ? <IdleBlind /> : null}
         {split ? <TopTabBar room={room} pane={pane} /> : null}
-        {split ? <MenuBar groups={menuOf(chatHref(room))} on={menuOn("pane" in where ? where.pane : null, modal)} /> : null}   {/* 탭 줄 바로 아래 메뉴 한 줄(형 11-16 08:3x 「이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」) · 탭 줄과 같이 PC 두 칸에서만 */}
+        {split ? <MenuBar groups={menuOf(talkNext("pane" in where ? where.pane : null, modal, chatHref(room), "/rooms"))} on={menuOn("pane" in where ? where.pane : null, modal)} /> : null}   {/* 탭 줄 바로 아래 메뉴 한 줄(형 11-16 08:3x 「이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」) · 탭 줄과 같이 PC 두 칸에서만 */}
         {/* 메인 탭 줄 = 지금 네비 칸의 탭(형 11-15 「탭 1234 는 a에 귀속」 · ./area-tabs.tsx) — 뉴스 에디터 · 서랍일 땐 그 칸의 탭이 이 줄에 · 대화 칸 탭(위 TopTabBar)은 숨기기만(살려 둠 = 열어 둔 방 탭 · 화상회의 판 그대로 · shell.css .nm-area-on) · 설정 = 탭 없음 */}
         {split && modal === "nedit" ? <AreaTabs label="뉴스 에디터 탭" items={NED_TABS} cur={nedTabOf(pathname)} pick={(id) => { const t = NED_TABS.find((x) => x.id === id); if (t && id !== nedTabOf(pathname)) void nav({ to: t.to, replace: true }); }} /> : null}
         {split && isDrawerTab(modal) ? <AreaTabs label="서랍 탭" items={DRAWER_TABS.map((id) => { const m = MODALS.find((x) => x.id === id)!; return { id, name: m.label, icon: m.icon }; })} cur={modal} pick={(id) => { if (id !== modal) void nav({ to: MODALS.find((x) => x.id === id)!.to, replace: true }); }} /> : null}   {/* 윗줄 왼쪽 = 탭 줄(대시보드 · 방 · 몸 화면 · 「+」) */}
@@ -274,7 +275,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         {/* 윗줄 가운데 = 시계(위 TopClock) · 옛 = 지금 페이지 이름(형 11-06 20:05) · 방 이름은 대화창 머리줄(./chat-head.tsx · 형 11-08 09:49 「그 대화창은 거기에 대화창 명칭이 뜨면 될거같아」) */}   {/* 방 = 이름 한 곳만 · 라임 · 인원 · 누르면 사람·방 메뉴(형 11-06 20:39 「방 위에는 잇을필요없어」 「중상단에 라임으로 잇으면 됨 … 방 인원은 잇어야해」) */}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
-        <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink [--duet-tab-space:86px]${M && SEE.has(M.id) ? " nm-see" : ""}${cover ? " nm-cover" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
+        <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink ${split ? "[--duet-tab-space:12px]" : "[--duet-tab-space:86px]"}${M && SEE.has(M.id) ? " nm-see" : ""}${cover ? " nm-cover" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
           <SceneBg className="nm-app-ambient" slow={cover} />   {/* slow = 글 화면(스케줄 · 회의록 …) 뒤 = 같은 장면을 옅게 · 느리게(형 11-15 「완전 검정이면 투박 · 라임 지나가는 정도는 있어야 · 고화질일 필요는 없어」) */}
           {split ? <TopLeft /> : null}   {/* 왼쪽 위 = 러너 게이지(우리 쪽 · 형 11-08 07:31 dm 「오히려 게이지바가 좌측으로가고, 인스타그램이 우측으로 가서, 우측은 아예 뉴스 관련 내용, 좌측은 너네 관련으로」 · 판들은 그 키만큼 아래로 · shell.css .nm-split-l) */}   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
@@ -297,7 +298,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
               </PageChromeProvider>
             </section>
           ) : null}
-          <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />
+          {split ? null : <TabBar pane={"pane" in where ? where.pane : null} modal={modal} chatTo={chatHref(room)} />}   {/* 아래 알약 네비 = 폰만 · PC 두 칸은 위 메뉴 줄이 갈음(형 11-16 10:3x 구름 맥 창 「웅 빼고 츠리텐다드」 = 알약 네비 빼고 · 메뉴 글꼴 프리텐다드) */}
           {ED_TOOLS.map((t) => edAlive(modal, edKept, t) ? (   /* 접을 수 있는 창 둘 = 제 겹(접으면 숨기기만 · ▲ 로 하던 그대로 펼침 · 형 11-15) */
             <ToolKeep key={t} tool={t} open={modal === t} covered={layer} onClose={() => { setEdKept((k) => edKeptNext(k, t, "close")); closeModal(); }}>
               {t === "edtool"
