@@ -10,3 +10,7 @@ test("프로필 사진 고름 → RoomPhotoCrop(끌기 · 두 손가락/휠/막�
   assert.match(rp, /title = "방 사진"/);
   assert.match(rp, /onWheel=\{wheel\}/); assert.match(rp, /type="range"/);
 });
+test("자르기 판 훅 = early return 앞(얼굴 누르면 앱 깨짐 막이)", () => {
+  const pc = readFileSync(new URL("../ui/profile-card.tsx", import.meta.url), "utf8");
+  assert.ok(pc.indexOf("useState<File | null>(null)") < pc.indexOf("if (!who) return null;"), "훅이 return 뒤에 있음");
+});

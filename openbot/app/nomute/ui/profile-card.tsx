@@ -34,6 +34,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const g = useCloseGuard(introDirty || roleDirty, onClose, !!who);   // 고치던 소개·직무 있으면 닫기 대신 물음 · Esc 도 이 길(카드 떠 있을 때만)
   const [fx, setFx] = useState(false), [fImg, setFImg] = useState(""), [fIntro, setFIntro] = useState(""), [fNote, setFNote] = useState("");   // 형이 사진 · 소개 고치기(형 11-12 07:52 「내가 사진하구. 문구 수정 가능하게 해주셈」 · 한 번 저장 = 서버가 그 봇 1:1 에 [변경 안내])
   const [scr, setScr] = useState("");   // 앱 안 화면 주소(표 붙음 · 형 11-11 19:08 「브라우저로 따로 안들어가고 여기서」)   // 훅은 일찍 돌려주기(!who) 앞에(시아 11-11 22:4x · 뒤에 있으면 프사 누를 때 훅 수가 늘어 React #310 = 앱 통째 「Something went wrong」 · PC 실물)
+  const [cropF, setCropF] = useState<File | null>(null);   // 훅 = 아래 early return 앞(11-16 19:0x 라이브 「앗, 잠깐 엉켰어」 = 이 줄이 return 뒤라 얼굴 누르면 훅 수가 바뀜) · 고른 사진 = 자르기 판(끌기 = 자리 · 두 손가락/휠/막대 = 크기 · 「완료」 = 틀 안 정사각 256 webp)
   if (!who) return null;
   const p = list.find((x) => x.who === who);
   const name = p?.name || who;
@@ -66,7 +67,6 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     } catch (e) { setNote((e as Error)?.message || "저장 못 함 — 다시"); return false; }
     finally { setBusy(false); }
   };
-  const [cropF, setCropF] = useState<File | null>(null);   // 고른 사진 = 자르기 판(끌기 = 자리 · 두 손가락/휠/막대 = 크기 · 「완료」 = 틀 안 정사각 256 webp)
   const pickFace = (f?: File | null) => { if (f) setCropF(f); };
   const cropDone = async (b: Blob) => { setFImg(await blobUrl(b)); };
   const saveFx = async () => {
