@@ -898,3 +898,8 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 /* 「원문」 = 바깥(그록 앱 · 클로드 창)에서 친 형 글 말풍선 오른쪽 위(PC 만 · 폰은 바탕색으로 가름) */
 .ychat .yb-orig { display:none; }
 .nm-split-root .ychat .yb-orig { display:block; margin:0 4px 2px 0; font-size:10px; line-height:14px; letter-spacing:.02em; color:rgba(232,234,232,.5); }
+
+/* 거울로 들어온 봇 답(그록 앱 mirror · 클로드 창 window:) = 이름 옆 「원문」 — PC 만(형 11-16 10:13 dm-bom 「상대도 미러링 대답이면, 원문 표시가 되면 될듯」 · 「pc만!」) · PC 는 「창에서」 대신 「원문」 · 폰 = 앞 꼴 그대로 */
+.ychat .nm-orig-tag { display:none; }
+.nm-split-root .ychat .nm-orig-tag { display:inline-block; margin:0 0 2px 6px; font-size:10px; line-height:16px; letter-spacing:.02em; color:rgba(232,234,232,.5); vertical-align:middle; }
+.nm-split-root .ychat .nm-win-tag { display:none; }

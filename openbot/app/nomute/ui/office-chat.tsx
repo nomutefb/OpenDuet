@@ -946,7 +946,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} />{m._win ? <span className="nm-win-tag" aria-label="클로드 창에서 쓴 글">창에서</span> : null}
+        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} />{m._win ? <span className="nm-win-tag" aria-label="클로드 창에서 쓴 글">창에서</span> : null}{m.mirror ? <span className="nm-orig-tag" aria-label="거울로 들어온 원문">원문</span> : null}
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}
         <div className="ybrow">
