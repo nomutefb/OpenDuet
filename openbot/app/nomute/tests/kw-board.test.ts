@@ -80,10 +80,17 @@ test("NEW 표 = 새 말이 절반 밑일 때만 · 화면 배선(PC Hot Issue �
   assert.match(rd("../home/kw-board.tsx"), /if \(document\.hidden \|\| over\.current \|\| Date\.now\(\) < hold\.current\)/, "보는 중 · 숨은 탭 = 안 뺏음");
 });
 
-test("폰 키워드 판 넘김 = 뉴스 카드와 같은 방향(오른쪽으로 밀면 다음) · 카드 만지는 중엔 안 바꿈(형 11-15 「우로 넘기는게 안먹혀지게됨」)", () => {
+test("폰 키워드 판 = 한 장에 두 줄기 · 정방향 넘김 · 장마다 2배 · 카드 만지는 중엔 안 바꿈(형 11-17 01:25 「키워드 2플랫폼씩 보여줘 / 단 그러면 지속시간은 2배 / … 정방향으로」)", async () => {
   const css = readFileSync(new URL("../home/kw-board.css", import.meta.url), "utf8"), tsx = readFileSync(new URL("../home/kw-board.tsx", import.meta.url), "utf8");
-  assert.match(css, /\.nm-kwb-cols \{ direction:rtl; \}/);
-  assert.match(css, /scroll-snap-stop:always; border-left:0; padding:0 14px; direction:ltr; \}/);
+  const { kwPages, KW_PAGE_MS, KW_STEP_MS: S } = await import("../home/kw-board-core.ts");
+  assert.deepEqual(kwPages([1, 2, 3, 4]), [[1, 2], [3, 4]]);
+  assert.deepEqual(kwPages([1, 2, 3]), [[1, 2], [3]], "홀수 = 마지막 장 한쪽만");
+  assert.equal(KW_PAGE_MS, S * 2);
+  assert.doesNotMatch(css, /direction:rtl/, "역방향 0");
+  assert.match(css, /\.nm-kwb-pg \{ display:contents; \}/, "넓은 칸 = 네 줄기 한 단 그대로");
+  assert.match(css, /\.nm-kwb-pg \{ flex:0 0 100%; min-width:0; display:grid; grid-template-columns:repeat\(2, minmax\(0,1fr\)\);/);
+  assert.match(tsx, /el\.scrollTo\(\{ left: i \* el\.clientWidth, behavior: "smooth" \}\)/);
+  assert.match(tsx, /t = window\.setTimeout\(step, KW_PAGE_MS\);/);
   assert.match(tsx, /Math\.round\(Math\.abs\(el\.scrollLeft\) \/ el\.clientWidth\)/);
   assert.match(tsx, /w\.addEventListener\("pointerdown", touch, \{ capture: true, passive: true \}\)/);
 });
@@ -113,5 +120,5 @@ test("키워드 판 = 줄기마다 5초 → 다 보이면 Hot Issue 로(깃 #-03
   const tsx = readFileSync(new URL("../home/kw-board.tsx", import.meta.url), "utf8");
   assert.match(tsx, /setView\("kw"\);/);   // 1분 시계 = Hot Issue → 키워드 만
   assert.match(tsx, /onDone=\{\(\) => \{ setView\("hot"\); arm\.current\(KW_EVERY_MS\); \}\}/);   // 줄기 다 넘긴 뒤 돌아옴
-  assert.match(tsx, /if \(none \|\| i >= \(narrow\(\) \? n : 1\)\) \{ done\.current\?\.\(\); return; \}/);
+  assert.match(tsx, /if \(none \|\| i >= \(narrow\(\) \? np : 1\)\) \{ done\.current\?\.\(\); return; \}/);
 });

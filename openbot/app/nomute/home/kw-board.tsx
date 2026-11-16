@@ -2,14 +2,14 @@
 //   「sns 키워드들 수집되는거 … 3분할해서 한 7위까지만」 · 「x급상승도 들어가게해놔 총 4개로」 = 구글 트렌드 · 시그널 · 나무위키 · X 급상승 · 줄기마다 7위
 //   「중복되는 키워드는 … 라임색으로 그대로 표기」 = 두 줄기 넘게 뜬 말 = 라임(셋 넘으면 작은 숫자) · 잣대 = ./kw-board-core.ts kwHits
 //   「핫이슈 나오다가 10초뒤에 그거 나오고, (부드럽게 촤르륵) 그리고 1분정도 내비쳣다가 다시 전환되고 1분마다」 = HotSwap(처음 10초 · 그 뒤 1분마다 · 줄이 차례로 들어옴)
-//   「폰에서는 … 넘길때마다 차트가 나오게」 = 좁은 칸에선 한 화면에 줄기 하나 · 옆으로 넘김(점 넷)
+//   「폰에서는 … 넘길때마다 차트가 나오게」 = 좁은 칸에선 옆으로 넘김 · 형 11-17 01:25 「키워드 2플랫폼씩 보여줘 / 단 그러면 지속시간은 2배 / … 정방향으로 / 반 가르고 … 플랫폼 명만 가운데 정렬」 = 한 장에 두 줄기(반 가름 · 점 둘) · 장마다 10초 · 다음 장 = 오른쪽에서 들어옴
 //   말 누름 = 그 말 찾기 새 창(형 11-05 「링크같은거는 항상 클릭하면 새 창에서」) · 재료 = 30분마다 모이는 파일이라 10분에 한 번만 받음
 import "./kw-board.css";
 import { agoMin } from "../ui/ago-min";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { firstJson } from "./news-feed";
-import { KW_EVERY_MS, KW_FIRST_MS, KW_STEP_MS, kwCols, kwHits, kwShowNew, type TrendsIn, type XtopIn } from "./kw-board-core";
+import { KW_EVERY_MS, KW_FIRST_MS, KW_PAGE_MS, KW_STEP_MS, kwCols, kwHits, kwPages, kwShowNew, type TrendsIn, type XtopIn } from "./kw-board-core";
 
 const ago = (iso: string, now: number) => { const t = Date.parse(iso); return Number.isFinite(t) ? agoMin(now - t) : ""; };   // 칸 시각도 늘 「N분 전」(형 11-15 08:54)
 
@@ -28,16 +28,16 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
   useEffect(() => { if (on) setNow(Date.now()); }, [on, run]);
   const cols = kwCols(q.data?.tr, q.data?.xt, now), hits = kwHits(cols);
   const newest = cols.map((c) => c.at).filter((a) => Number.isFinite(Date.parse(a))).sort().at(-1) || "";
-  const box = useRef<HTMLDivElement>(null), [page, setPage] = useState(0);
-  // 폰 = 뉴스 카드와 같은 방향(오른쪽으로 밀면 다음 줄기 · kw-board.css direction:rtl) → 스크롤 값이 0 → 음수로 감(abs · 부호 맞춤)
-  const onScroll = () => { const el = box.current; if (el && el.clientWidth) setPage(Math.max(0, Math.min(cols.length - 1, Math.round(Math.abs(el.scrollLeft) / el.clientWidth)))); };
-  const jump = (i: number) => { const el = box.current; if (el) el.scrollTo({ left: (getComputedStyle(el).direction === "rtl" ? -1 : 1) * i * el.clientWidth, behavior: "smooth" }); };
+  const pages = kwPages(cols), box = useRef<HTMLDivElement>(null), [page, setPage] = useState(0);
+  // 폰 = 정방향(다음 장이 오른쪽에서 들어와 왼쪽으로 · 점 차례와 같은 쪽 · 형 11-17 01:25 「지금 역방향으로 전환되어서 어색하니 정방향으로」 · 앞 판 = 거꾸로 놓음)
+  const onScroll = () => { const el = box.current; if (el && el.clientWidth) setPage(Math.max(0, Math.min(pages.length - 1, Math.round(Math.abs(el.scrollLeft) / el.clientWidth)))); };
+  const jump = (i: number) => { const el = box.current; if (el) el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" }); };
   const none = cols.every((c) => !c.items.length);
-  // 줄기 넘김(깃 #-037) — 뜨면 첫 줄기부터 5초마다 다음 줄기 · 마지막 줄기 5초 뒤 = Hot Issue 로(onDone) · 넓은 칸(넷 다 보임) = 줄기 수 × 5초 보고 돌아감
+  // 장 넘김(깃 #-037) — 뜨면 첫 장부터 10초마다 다음 장(한 장 = 두 줄기 · 형 11-17 「지속시간은 2배」) · 마지막 장 10초 뒤 = Hot Issue 로(onDone) · 넓은 칸(넷 다 보임) = 줄기 수 × 5초 보고 돌아감
   //   만지는 중(마우스 올림 · 방금 누름 20초) · 숨은 탭 = 그 자리에서 기다림(보던 걸 뺏지 않음) · 타이머 하나 · 움직임 = 원래 스크롤(smooth) 그대로
   const over = useRef(false), hold = useRef(0), done = useRef(onDone);
   done.current = onDone;
-  const n = cols.length;
+  const n = cols.length, np = pages.length;
   useEffect(() => {
     if (!on) return undefined;
     let i = 0, t = 0, live = true;
@@ -48,14 +48,14 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
       if (!live) return;
       if (document.hidden || over.current || Date.now() < hold.current) { t = window.setTimeout(step, 3000); return; }
       i += 1;
-      if (none || i >= (narrow() ? n : 1)) { done.current?.(); return; }
+      if (none || i >= (narrow() ? np : 1)) { done.current?.(); return; }
       jump(i);
-      t = window.setTimeout(step, KW_STEP_MS);
+      t = window.setTimeout(step, KW_PAGE_MS);
     };
-    t = window.setTimeout(step, none || narrow() ? KW_STEP_MS : KW_STEP_MS * Math.max(1, n));
+    t = window.setTimeout(step, none ? KW_STEP_MS : narrow() ? KW_PAGE_MS : KW_STEP_MS * Math.max(1, n));
     return () => { live = false; window.clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, run, n, none]);
+  }, [on, run, n, np, none]);
   return (
     <section className="nm-kwb" aria-label="키워드 순위" aria-hidden={on ? undefined : true} inert={on ? undefined : true}
       onPointerEnter={(e) => { if (e.pointerType === "mouse") over.current = true; }} onPointerLeave={() => { over.current = false; }}
@@ -66,7 +66,9 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
       ) : (
         <>
           <div className="nm-kwb-cols" ref={box} onScroll={onScroll} key={run}>   {/* key = 뜰 때마다 줄이 차례로 다시 들어옴 */}
-            {cols.map((c, ci) => { const showNew = kwShowNew(c); return (
+            {pages.map((pg, pi) => (
+            <div key={pg.map((c) => c.id).join("+")} className="nm-kwb-pg" data-one={pg.length === 1 || undefined}>   {/* 폰 = 한 장 · 반 가름 · 넓은 칸 = display:contents(네 줄기 한 단 그대로) */}
+            {pg.map((c, k) => { const ci = pi * 2 + k, showNew = kwShowNew(c); return (
               <div key={c.id} className="nm-kwb-col" data-stale={c.stale || undefined} aria-label={c.name}>
                 <div className="nm-kwb-ch" style={{ animationDelay: `${ci * 70}ms` }}><b>{c.name}</b><span>{c.stale ? (c.at ? `${ago(c.at, now)} · 낡음` : "못 받음") : ""}</span></div>
                 {c.items.length ? (
@@ -86,9 +88,11 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
                 ) : <p className="nm-kwb-empty">지금 모인 말이 없어</p>}
               </div>
             ); })}
+            </div>
+            ))}
           </div>
-          <div className="nm-kwb-dots" role="tablist" aria-label="줄기 고르기">
-            {cols.map((c, i) => <button key={c.id} type="button" role="tab" aria-selected={i === page} aria-label={c.name} onClick={() => jump(i)} />)}
+          <div className="nm-kwb-dots" role="tablist" aria-label="장 고르기">
+            {pages.map((pg, i) => <button key={pg.map((c) => c.id).join("+")} type="button" role="tab" aria-selected={i === page} aria-label={pg.map((c) => c.name).join(" · ")} onClick={() => jump(i)} />)}
           </div>
         </>
       )}

@@ -6,6 +6,7 @@
 
 export const KW_N = 7;
 export const KW_STEP_MS = 5_000;   // 키워드 판 = 줄기마다 5초 → 다음 줄기 · 다 보이면 Hot Issue 로(형 11-15 06:10 「트렌드 창으로 전환되면 5초 뒤에 다음 트렌드로 바뀌게하구 모든 트랜드 다 보여주면 다시 뉴스 피드로」 · 깃 #-037)
+export const KW_PER_PAGE = 2, KW_PAGE_MS = KW_STEP_MS * 2;   // 폰 = 한 장에 두 줄기(반 가름) · 한 장 머묾 = 2배(형 11-17 01:25 dm-bom 「글구 이거 키워드 2플랫폼씩 보여줘 / 단 그러면 지속시간은 2배」)
 export const KW_FIRST_MS = 10_000, KW_EVERY_MS = 60_000;   // 처음 10초 = Hot Issue · 그 뒤 1분마다 번갈아
 export const KW_STALE_MIN = 180;   // 이보다 낡은 줄기 = 흐리게 · 겹침 셈에서 뺌(옛 나무위키 잣대 180분)
 
@@ -52,6 +53,13 @@ export function kwCols(tr: TrendsIn, xt: XtopIn, now: number): KwCol[] {
     { id: "namu", name: "나무위키", at: nmAt, stale: ageMin(nmAt, now) > KW_STALE_MIN, items: cut(tr?.namu, (g) => g.query || "", (_g, q) => ({ q, sub: "", fresh: false, href: `https://namu.wiki/Search?q=${enc(q)}`, keys: [kwNorm(q)] })) },
     { id: "x", name: "X 급상승", at: xAt, stale: ageMin(xAt, now) > KW_STALE_MIN, items: cut([...(xt?.items || [])].sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99)), (g) => g.keyword || "", (g, q) => { const mv = xMove(g.why_ko); return { q: q.replace(/[#_]/g, " ").replace(/\s+/g, " ").trim(), sub: mv === "NEW" ? "" : mv, fresh: mv === "NEW", href: `https://x.com/search?q=${enc(q)}`, keys: [...new Set([q, ...(g.aliases || [])].map(kwNorm).filter(Boolean))] }; }) },
   ];
+}
+
+/** 폰 장 묶음 — 줄기를 per 개씩(홀수면 마지막 장 = 한쪽만) */
+export function kwPages<T>(cols: T[], per = KW_PER_PAGE): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < cols.length; i += Math.max(1, per)) out.push(cols.slice(i, i + Math.max(1, per)));
+  return out;
 }
 
 /** 「NEW」 표 = 그 줄기에서 새 말이 절반 밑일 때만(다 새 말이면 표가 뜻이 없음 — 구글 트렌드는 회차마다 거의 다 새 말) */

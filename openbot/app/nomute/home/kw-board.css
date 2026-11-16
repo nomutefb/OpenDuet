@@ -29,8 +29,9 @@ html.dark .nm-hotswap { color:#e8eae8; }
 .nm-split-root .nm-hotswap .nm-nlist-h { padding-right:86px !important; }   /* PC 머리줄은 여백을 못 박아 둠(../ui/shell.css padding !important) → 같은 세기로 */
 .nm-split-root .nm-hotswap-t { top:6px; right:8px; }   /* 오른쪽 위 바꿈 알약 자리(「N분 전」 글자와 안 겹치게) */
 .nm-kwb-cols { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:0; padding:6px 6px 10px; overflow:hidden; }
+.nm-kwb-pg { display:contents; }   /* 넓은 칸 = 장 묶음 없음(네 줄기 한 단) · 폰만 한 장(아래) */
 .nm-kwb-col { min-width:0; display:flex; flex-direction:column; padding:0 8px; border-left:1px solid color-mix(in srgb, currentColor 7%, transparent); }
-.nm-kwb-col:first-child { border-left:0; }
+.nm-kwb-pg:first-child > .nm-kwb-col:first-child { border-left:0; }   /* 장 묶음(contents) 안이라 첫 장 첫 줄기만 · 나머지 셋 = 가름줄 */
 .nm-kwb-ch { display:flex; align-items:center; justify-content:center; gap:6px; height:30px; padding:0 4px; animation:kwbRow .32s var(--e-out,cubic-bezier(.2,.8,.2,1)) both; }
 .nm-kwb-ch b { font-size:11px; font-weight:600; letter-spacing:.02em; opacity:.62; white-space:nowrap; }
 .nm-kwb-ch span { font-size:10px; opacity:.42; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -70,17 +71,19 @@ html.dark .nm-kwb-col .n { color:var(--accent, #CFFF40); }
   .nm-kwb-col .q { font-size:9px; }   /* 12 × 0.75 */
   .nm-kwb-col .sub { display:none; }
 }
-/* 폰 = 한 화면에 줄기 하나 · 옆으로 넘김(형 「넘길때마다 차트가 나오게」) · 글씨 크게 · 아래 점 넷 */
+/* 폰 = 한 장에 두 줄기(반 가름) · 옆으로 넘김(형 「넘길때마다 차트가 나오게」 · 11-17 01:25 「키워드 2플랫폼씩 보여줘」 · 「반 가르고 플랫폼을 거기에 맞춰서 플랫폼 명만 가운데 정렬」) · 아래 점 = 장 수 */
 @container kwb (max-width:460px) {
   .nm-kwb-cols { display:flex; gap:0; padding:4px 0 0; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; scrollbar-width:none; row-gap:0; }
   .nm-kwb-cols::-webkit-scrollbar { display:none; }
-  .nm-kwb-col { flex:0 0 100%; scroll-snap-align:start; scroll-snap-stop:always; border-left:0; padding:0 14px; direction:ltr; }
-  /* 넘기는 방향 = 뉴스 카드와 같게: 오른쪽으로 밀면 다음 줄기(형 11-15 「우로 넘기는게 안먹혀지게됨」 · 앞 판 = 왼쪽으로 밀어야 다음) — 줄기 차례는 그대로 · 놓이는 방향만 오른쪽 → 왼쪽 */
-  .nm-kwb-cols { direction:rtl; }
-  .nm-kwb-ch { height:38px; justify-content:center; align-items:center; }   /* 플랫폼 이름 = 그 행 가운데(수직 · 수평 · 형 11-16 08:35 dm-bom 「플랫폼 이름은 그 행의 중앙 정렬해서 가운데 정렬해줘 · 중앙 정렬이 수직을 말하는거고 가운데정렬은 수평을 말하는 거임」) */
+  /* 넘기는 방향 = 정방향(다음 장이 오른쪽에서 들어와 왼쪽으로 · 점 차례와 같은 쪽 · 형 11-17 01:25 「지금 역방향으로 전환되어서 어색하니 정방향으로」 · 앞 판 = 오른쪽→왼쪽으로 놓아 거꾸로 들어옴) */
+  .nm-kwb-pg { flex:0 0 100%; min-width:0; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); scroll-snap-align:start; scroll-snap-stop:always; padding:0 4px; }   /* 홀수 마지막 장 = 왼쪽 반만 */
+  .nm-kwb-col, .nm-kwb-pg:first-child > .nm-kwb-col:first-child { min-width:0; border-left:0; padding:0 6px; }
+  .nm-kwb-pg > .nm-kwb-col + .nm-kwb-col { border-left:1px solid color-mix(in srgb, currentColor 7%, transparent); }   /* 반 가름 줄 */
+  .nm-kwb-ch { height:38px; justify-content:center; align-items:center; min-width:0; }   /* 플랫폼 이름 = 제 반쪽 가운데 · 순위 줄은 왼쪽 그대로 · 플랫폼 이름 = 그 행 가운데(수직 · 수평 · 형 11-16 08:35 dm-bom 「플랫폼 이름은 그 행의 중앙 정렬해서 가운데 정렬해줘 · 중앙 정렬이 수직을 말하는거고 가운데정렬은 수평을 말하는 거임」) */
+  .nm-kwb-ch b { overflow:hidden; text-overflow:ellipsis; }   /* 반쪽보다 긴 이름 = 말줄임 */
   .nm-kwb-ch b { font-size:14px; opacity:.9; }
   .nm-kwb-ch span { font-size:11px; }
-  .nm-kwb-col li { grid-template-columns:24px minmax(0,1fr) auto auto; gap:10px; min-height:clamp(38px, 6.2svh, 52px); padding:0 6px; }
+  .nm-kwb-col li { grid-template-columns:16px minmax(0,1fr) auto auto; gap:6px; min-height:clamp(38px, 6.2svh, 52px); padding:0 4px; }   /* 반쪽 폭 = 순위 칸 · 틈 좁힘 · 긴 말 = 말줄임(.q) */
   .nm-kwb-col .rk { font-size:10.5px; }
   .nm-kwb-col .q { font-size:12.4px; font-weight:500; }   /* 단어 = 앞 판 16.5 × 0.75 · 순위 14 × 0.75(형 08:35 「키워드 메인에서 보이는거 단어들 지금보다 25% 작아도 되」) */
   .nm-kwb-col .sub { font-size:11.5px; }
