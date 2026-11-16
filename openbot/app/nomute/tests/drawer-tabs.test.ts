@@ -6,7 +6,7 @@ import { DRAWER_HOME, DRAWER_TABS, isDrawerTab } from "../ui/drawer-tabs.ts";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 
 test("탭 넷 · 먼저 뜨는 탭 = 애들(봇 현황) · 설정 · 뉴스 에디터는 탭이 아님", () => {
-  assert.deepEqual([...DRAWER_TABS], ["botdesk", "meetlog", "story", "play"]);   // 봇 현황 · 몸 상태 · 스케줄 · 러너 = 5번 「애들」 한 화면으로 합침(형 11-16 18:1x 「그 애들 관련 정보를 다 하나로 통합시키고 싶어」) · 나머지 셋 = 그 밖 화면
+  assert.deepEqual([...DRAWER_TABS], ["botdesk", "story", "play"]);   // 「화상 회의록」 = 탭에서 빼고 화상회의 칸 한쪽 픽토그램으로(형 11-17 02:1x 「탭에서는 뺄게」)   // 봇 현황 · 몸 상태 · 스케줄 · 러너 = 5번 「애들」 한 화면으로 합침(형 11-16 18:1x 「그 애들 관련 정보를 다 하나로 통합시키고 싶어」) · 나머지 셋 = 그 밖 화면
   assert.equal(DRAWER_HOME, "botdesk");   // 서랍 첫 화면 = 봇 현황
   for (const t of DRAWER_TABS) assert.ok(isDrawerTab(t));
   for (const x of ["settings", "nedit", "drawer", "ask", "", null, undefined]) assert.ok(!isDrawerTab(x), String(x));
@@ -22,4 +22,13 @@ test("껍데기 = 5번은 애들부터 · 그 화면들 위에 탭 줄 · PC 는
   for (const t of DRAWER_TABS) assert.ok(spread.includes(`"${t}"`), t);
   for (const t of DRAWER_TABS) assert.match(s, new RegExp(`\\{ id: "${t}", label: `));   // 이름 · 그림 = MODALS 그대로
   assert.match(c, /\.nm-modal-b\.flush > \.nm-dtabs \+ \.nm-scroll \{ padding-top:10px; \}/);
+});
+
+test("회의록 = 화상회의 칸 한쪽 픽토그램에서 봄(탭 줄엔 없음 · 형 11-17 02:1x)", () => {
+  const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
+  assert.ok(!(DRAWER_TABS as readonly string[]).includes("meetlog"));
+  assert.match(rd("../ui/cobrowse-pane.tsx"), /\{isMeet \? <MeetLogPeek \/> : null\}/);   // 회의가 열려 있든 아니든 머리 줄에 늘
+  assert.match(rd("../ui/phone-meet.tsx"), /<span className="nm-mlp-corner"><MeetLogPeek \/><\/span>/);   // 폰 빈 화면에도
+  assert.match(rd("../ui/meet.tsx"), /<aside className="nm-mlp" role="region" aria-label="회의록">/);
+  assert.match(rd("../ui/shell.tsx"), /M\.id === "meetlog" \? <div className="nm-scroll"><MeetLogList \/><\/div>/);   // 옛 길 #/meetlog 는 그대로 열림
 });
