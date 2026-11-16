@@ -120,6 +120,10 @@ test("partial copy outcomes keep original preview/download and explain confirmat
   assert.doesNotMatch(view.container.textContent || "", /winter · same.png|권한 없음/);   // 받는 곳별 결과 = 화면 0 · 기록에만(형 11-12 07:27 「한문장으로」)
   assert.match(view.container.textContent || "", /원래 본문/);
   assert.equal(view.container.querySelectorAll("img").length, 1);
+  // 그림 카드 = 파일 이름 한 번도 안 겹침(형 11-16 19:43 「글구 이렇게 못 보낼때 파일명이 두번 안나와도 됨」) · 이름은 링크 aria-label 에만
+  assert.equal(view.container.querySelector("img")?.getAttribute("alt"), "");
+  assert.equal((view.container.querySelector("a[download]")?.textContent || "").trim(), "[원본 저장]");
+  assert.match(view.container.querySelector("a[download]")?.getAttribute("aria-label") || "", /원본 저장$/);
   assert.match(
     view.container.querySelector("a[download]")?.getAttribute("href") || "",
     /^blob:/,

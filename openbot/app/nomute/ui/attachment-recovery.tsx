@@ -14,12 +14,14 @@ function Original({ original }: { original: OriginalAttachment }) {
     setUrl(next);
     return () => URL.revokeObjectURL(next);
   }, [original.file]);
+  const img = !!url && original.file.type.startsWith("image/");
+  // 파일 이름 = 한 번만(형 11-16 19:43 dm-bom 「글구 이렇게 못 보낼때 파일명이 두번 안나와도 됨」) · 그림이면 그림 + [원본 저장]만(alt 빈칸 = 그림이 깨져도 이름 또 안 뜸 · 이름은 링크 aria-label) · 그림 아니면 이름 + [원본 저장]
   return (
     <li className="min-w-0">
-      {url && original.file.type.startsWith("image/") ? (
+      {img ? (
         <img
           src={url}
-          alt={original.file.name}
+          alt=""
           className="mb-1 size-16 rounded-lg object-cover"
           decoding="async"
         />
@@ -28,8 +30,9 @@ function Original({ original }: { original: OriginalAttachment }) {
         href={url || undefined}
         download={original.file.name}
         className="nar-save break-all"
+        aria-label={`${original.file.name} 원본 저장`}
       >
-        {original.file.name} <span className="nar-link">[원본 저장]</span>
+        {img ? null : <>{original.file.name} </>}<span className="nar-link">[원본 저장]</span>
       </a>
     </li>
   );
