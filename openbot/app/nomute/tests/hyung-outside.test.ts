@@ -22,5 +22,7 @@ test("바깥 형 글 = 앱 · 창 둘 다 같은 꼴 · 검정 바탕(보통 형
   assert.equal(asWinBot({ mirror: "window:1", mirror_by: "형", who: "형(창에서 씀)", kind: "system" }, winOf).who, "형(창에서 씀)", "형 창 글 = 그대로(검정 말풍선)");
   assert.equal(asWinBot({ mirror: "app123", mirror_by: "형", kind: "system" }, winOf).kind, "system", "그록 앱 거울 = 그대로");
   const css = readFileSync(new URL("../ui/yeta-chat.css", import.meta.url), "utf8");
-  assert.match(css, /\.ychat \.yb\.me\.app \{ background:#000; color:#fff; \}/);
+  assert.match(css, /\.ychat \.yb\.me\.app \{ background:#1e2023; color:#e6e9e6;/);
+  assert.match(css, /\.nm-split-root \.ychat \.yb-orig \{ display:block;/);
+  assert.match(tsx, /\{app \? <span className="yb-orig">원문<\/span> : null\}/);
 });
