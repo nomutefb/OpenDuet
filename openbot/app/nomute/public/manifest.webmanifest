@@ -30,13 +30,13 @@
   },
   "icons": [
     {
-      "src": "/garden-app/icon-192.png?v=peach1114",
+      "src": "/garden-app/icon-splash-192.png?v=sprout1116",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/garden-app/icon-512.png?v=peach1114",
+      "src": "/garden-app/icon-splash-512.png?v=sprout1116",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
