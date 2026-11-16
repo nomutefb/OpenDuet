@@ -51,3 +51,6 @@
    길어지는 건 그림뿐(숫자 줄 · 여백 · 색 = 폰 꼴 그대로 · 형 11-11 18:48 「차트 좀만 더 영역 세로가 길어도 될듯」 결) · 108 밑으로는 안 줄어듦 · 그림 셈은 잰 높이로(follow-pulse.tsx grow) */
 .nm-pulse.nm-pulse-grow { flex:1 1 auto; min-height:0; }
 .nm-pulse.nm-pulse-grow .nm-pulse-chart { flex:1 1 0; height:0; min-height:108px; }
+/* 폰 홈 아래 메시지 칸 자리 = 새 글이 없어도 한 장 자리(76) 비워 둠 — 카드 끝 선이 늘 그 위(형 11-17 01:57 dm-bom 봄 옮김 「그리고 카드 하단이 최근 메세지 표기 부분 정도는 나오게 래줘」 · 01:58 「이 부분도 하단 메세지 영역은 유지」 · 01:59 「신규 메세지가 없으면 없는대로 놔두면 됨」)
+   = 새 글이 와도 · 가도 뉴스 · 키워드 카드 키가 안 바뀜 · PC 반갈 = 그대로(없으면 0) */
+body:not(:has(.nm-split-root)) .yeta-set .nm-arrived.nm-arr-none { min-height:76px; }
