@@ -60,13 +60,20 @@ export function StoryList() {
   );
 }
 
-/** 그 글에 붙은 사진 · 영상 = 펼친 본문 아래(형 11-15 05:09 「사진하고 같이 올렷으면 영상 같은거랑 같이 나오면 좋겠어」) · 펼쳤을 때만 받음 · 영상 = 누르면 재생 */
+/** 그 글에 붙은 사진 · 영상 · 음악 = 펼친 본문 아래(형 11-15 05:09 「사진하고 같이 올렷으면 영상 같은거랑 같이 나오면 좋겠어」) · 펼쳤을 때만 받음 · 영상 = 누르면 재생
+ *  음악(mp3 · m4a · wav …) = 이름 한 줄 + 재생 줄(형 11-16 18:0x 구름 맥 창 「밥상에서 애들이 만든 영상이나 음악은 압축된채로 밥상이야기에서 볼 수 있게해줘」 · 누를 때 받음 = preload none)
+ *  트는 것 = 서버가 이야기 media 에 실어 준 경로 그대로(압축 사본을 실으면 그걸 틈 · ./stories 는 고르지 않음) */
 const VID = /\.(mp4|mov|webm|m4v)$/i;
+export const AUD = /\.(mp3|m4a|aac|wav|ogg|oga|flac)$/i;
+/** 파일 이름만(경로 · 앞 「yyyymmdd_hhmm_」 표 뺌) */
+export const mediaName = (p: string) => { let n = p.split("/").pop() || p; try { n = decodeURIComponent(n); } catch { /* 그대로 */ } return n.replace(/^\d{8}_\d{4}_/, ""); };
 function Media({ list }: { list: string[] }) {
   return (
     <div className="nm-story-media">
       {list.slice(0, 6).map((p) => VID.test(p)
         ? <video key={p} src={fileUrl(p)} controls playsInline preload="metadata" />
+        : AUD.test(p)
+        ? <figure key={p} className="aud"><figcaption>{mediaName(p)}</figcaption><audio src={fileUrl(p)} controls preload="none" /></figure>
         : <a key={p} href={fileUrl(p)} target="_blank" rel="noreferrer"><img src={fileUrl(p)} alt="" loading="lazy" draggable={false} /></a>)}
     </div>
   );
