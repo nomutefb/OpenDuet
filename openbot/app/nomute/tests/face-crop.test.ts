@@ -14,3 +14,7 @@ test("자르기 판 훅 = early return 앞(얼굴 누르면 앱 깨짐 막이)",
   const pc = readFileSync(new URL("../ui/profile-card.tsx", import.meta.url), "utf8");
   assert.ok(pc.indexOf("useState<File | null>(null)") < pc.indexOf("if (!who) return null;"), "훅이 return 뒤에 있음");
 });
+test("자르기 판 「완료」 = 라임 박음(body 포털이라 --accent 가 회색 토큰)", () => {
+  const css = readFileSync(new URL("../ui/room-photo.css", import.meta.url), "utf8");
+  assert.match(css, /\.nrp-h button\.ok\[data-stage="idle"\] \{ color:#CFFF40; \}/);
+});
