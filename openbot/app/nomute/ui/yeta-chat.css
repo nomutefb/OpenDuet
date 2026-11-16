@@ -918,4 +918,4 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .ychat { --nm-stick: 100px; }
 :root:has(header.nm-head.absolute .nm-room-mark) .ychat { --nm-stick: 52px; }
 .ychat .ymsg .yava { position:sticky; top:var(--nm-stick); z-index:2; }
-.ychat .ymsg .ycol > .yname { position:sticky; top:calc(var(--nm-stick) + 4px); z-index:2; align-self:flex-start; }
+.ychat .ymsg .ycol > .yname, .ychat .ymsg .ycol > .yname.tab.pm { position:sticky; top:calc(var(--nm-stick) + 4px); z-index:2; align-self:flex-start; }   /* PM 이름(.yname.tab.pm = position:relative 가 더 셈)도 sticky 로 — 앞 판은 PM 만 relative + top 104 로 글 위로 밀려 겹침 · 긴 글에선 이름만 사라짐(형 11-16 21:08 「프로필 라벨 버그 ㅠ」 · 봄 1:1) */
