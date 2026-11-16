@@ -111,7 +111,9 @@ export function useRoomOrder() {
   const head = (id: string) => (id === pmRoom ? 0 : id === TRAIN_ROOM ? 1 : id === SUMMARY ? 2 : 3);   // PM 1:1 → 기차봇 1:1 → 요약실 → 고정 방(최근 순) · 앞 판 = 회의실 → 요약실
   const rank = (id: string) => { const i = pinOrder.indexOf(id); return i < 0 ? 1e6 + head(id) : i; };   // 끌어 둔 차례 먼저 · 아직 안 끈 고정 방 = 앞 판 차례(PM → 작업 알림 → 고정 · 최근 순)
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => rank(a.id) - rank(b.id) || head(a.id) - head(b.id) || recent(a, b));
-  const rest = shown.filter((r) => !pinned(r.id)).sort(recent);
+  // 고정 밖 = 안 읽은 방 먼저(그 안에선 새 글 시각순) → 읽은 방(앞 판 그대로 · 마지막 대화 · 읽은 때 중 늦은 순)(형 11-16 09:17 dm-bom 「채팅 올라오면 위로 새로 올라온게 안읽은게 떠야되는데 새 채팅이 더 위로 올라와서 안읽은게 묻힌다 안읽은게 시간순으로 더 위러 가야함 우선순위정렬이」 · 봄 옮김 · 뎅) · 숫자 · 점 셈 = count 그대로
+  const unread = (r: Room) => count(r) !== 0;
+  const rest = shown.filter((r) => !pinned(r.id)).sort((a, b) => Number(unread(b)) - Number(unread(a)) || (unread(a) ? (b.last_ts || 0) - (a.last_ts || 0) : recent(a, b)));
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
   return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY && r.id !== TRAIN_ROOM)   /* 작업 알림(기차봇 1:1) = 목록에서 숨김 · 완료는 PM 방 접힌 카드 + 리모콘(형 11-14 23:34 「작업 알림은 대화방으로 취급 안하고」 · 깃 #-019) */, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
 }
