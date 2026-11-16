@@ -1,0 +1,12 @@
+// 프로필 사진 = 방 사진 자르기 판 한 벌(형 11-16 18:32 dm-bom 「프로필 사진 변경은 되는데 크기 확대 축소랑 크롭이 안되네」)
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+test("프로필 사진 고름 → RoomPhotoCrop(끌기 · 두 손가락/휠/막대) → 자른 webp", () => {
+  const pc = readFileSync(new URL("../ui/profile-card.tsx", import.meta.url), "utf8");
+  assert.match(pc, /<RoomPhotoCrop file=\{cropF\} title="프로필 사진" onDone=\{cropDone\}/);
+  assert.doesNotMatch(pc, /function squareWebp/, "가운데만 자르던 옛 길 걷음");
+  const rp = readFileSync(new URL("../ui/room-photo.tsx", import.meta.url), "utf8");
+  assert.match(rp, /title = "방 사진"/);
+  assert.match(rp, /onWheel=\{wheel\}/); assert.match(rp, /type="range"/);
+});
