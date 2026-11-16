@@ -17,7 +17,7 @@ import "./model-set.css";
 const KEY = ["nomute", "modelset"] as const, NW_KEY = ["nomute", "nextwin"], PIPE_KEY = ["nomute", "settings-llm"] as const;
 type AppSet = { llm?: Llm; settings?: AppSet; error?: string };
 const BOT_MODELS: Choice[] = NW_MODELS.map(([id]) => ({ id, ko: modelName(id) })), BOT_EFFORTS: Choice[] = NW_EFFORTS.map((id) => ({ id, ko: id }));
-const BOTS = ["봄", "깃", "빠르", "번개", "시아", "뎅", "뜸"];   // 서버 _nextwin.js 일곱 몸(서버 답에 있는 이름만 그림)
+const BOTS = ["봄", "깃", "빠르", "번개", "시아", "뎅", "뜸", "천둥", "구름"];   // 서버 _nextwin.js 일곱 몸(서버 답에 있는 이름만 그림) + 천둥 · 구름(형 11-16 09:09 dm-bom 「봄 그리고 구름까지는 프로필 누르면 사진 나오게해줘. 설정도 동일하게.」 = 클로드 여덟 + 구름 · 서버가 그 둘을 주기 시작하면 바로 뜸 · 깃한테 부탁 09:24)
 export const useModelSet = () => useQuery({ queryKey: KEY, queryFn: () => office<Sheet>("modelset"), staleTime: 60_000, retry: false });
 /** 설정 묶음 줄 오른쪽 한마디. */
 export function useModelSum(): string {
