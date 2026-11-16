@@ -21,8 +21,11 @@ test("바깥 형 글 = 앱 · 창 둘 다 같은 꼴 · 검정 바탕(보통 형
   assert.deepEqual(asWinBot({ mirror: "window:1", mirror_by: "뎅", who: "뎅(창에서)", kind: "system" }, winOf), { mirror: "window:1", mirror_by: "뎅", who: "뎅", kind: "bot", _win: true });
   assert.equal(asWinBot({ mirror: "window:1", mirror_by: "형", who: "형(창에서 씀)", kind: "system" }, winOf).who, "형(창에서 씀)", "형 창 글 = 그대로(검정 말풍선)");
   assert.equal(asWinBot({ mirror: "app123", mirror_by: "형", kind: "system" }, winOf).kind, "system", "그록 앱 거울 = 그대로");
+  assert.match(tsx, /\{m\.mirror \? <span className="nm-orig-tag"[^>]*>원문<\/span> : null\}/, "거울 봇 답 = 원문 이름표");
   const css = readFileSync(new URL("../ui/yeta-chat.css", import.meta.url), "utf8");
   assert.match(css, /\.ychat \.yb\.me\.app \{ background:#1e2023; color:#e6e9e6;/);
   assert.match(css, /\.nm-split-root \.ychat \.yb-orig \{ display:block;/);
+  assert.match(css, /\.ychat \.nm-orig-tag \{ display:none; \}/);
+  assert.match(css, /\.nm-split-root \.ychat \.nm-orig-tag \{ display:inline-block;/);
   assert.match(tsx, /\{app \? <span className="yb-orig">원문<\/span> : null\}/);
 });
