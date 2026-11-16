@@ -131,6 +131,10 @@ html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):no
 .nm-rgx-line > .nm-rgx-pebs { display:grid; grid-template-columns:repeat(var(--nm-rgx-pn, 7), minmax(0, 1fr)); justify-items:center; align-items:center; gap:0; flex:1 1 100%; width:100%; margin:0; padding:0; transform:none; }   /* 조약돌이 줄 폭을 다 씀(형 11-16 08:34 「러너는 안보여도 돼. / 그리구 조약돌만 보이면 될듯.」 · 앞 = 7/12 + 오른쪽 A1~A6) · 칸 = 여덟 + 「•」 + 구름 */
 .nm-rgx-line > .nm-rgx-pebs .nm-rgx-cell.sep { line-height:20px; font-size:12px; font-weight:400; color:rgba(255,255,255,.34); }   /* 가르는 점 「•」(형 11-16 「구름은 너네 사이에 블릿하나」) · 앞 = 누리 앞 「|」 */
 :root:not(.dark) .nm-rgx-line > .nm-rgx-pebs .nm-rgx-cell.sep { color:rgba(22,23,22,.34); }
+/* 가르는 점 = 칸을 안 먹고 두 조약돌 한가운데에(형 11-16 10:00 「구름도 바로 옆에 붙여줘! 그리고 수평 맞춰줘.」) — 구름 칸 가운데에서 반 칸 왼쪽(칸 폭 = 줄 폭 ÷ 조약돌 수) · 세로 = 조약돌 가운데 줄 */
+.nm-rgx-line > .nm-rgx-pebs { container-type:inline-size; }
+.nm-rgx-peb .nm-rgx-dot { position:absolute; left:50%; top:50%; width:4px; height:4px; margin:-2px 0 0 -2px; border-radius:50%; background:rgba(255,255,255,.34); font-size:0; line-height:0; overflow:hidden; pointer-events:none; transform:translateX(calc(-50cqw / var(--nm-rgx-pn, 9))); }
+:root:not(.dark) .nm-rgx-peb .nm-rgx-dot { background:rgba(22,23,22,.34); }
 .nm-rgx-line > .nm-rgx-runs { display:flex; flex:0 1 auto; width:auto; margin:0 0 0 auto; padding:0; gap:9px; justify-content:flex-end; flex-wrap:nowrap; white-space:nowrap; transform:none; }
 .nm-rgx-line > .nm-rgx-runs .nm-rgx-run { font-size:10px; line-height:14px; font-variant-numeric:tabular-nums; letter-spacing:0; }
 .nm-rgx-line > .nm-rgx-runs .nm-rgx-run + .nm-rgx-run::before { content:none; }

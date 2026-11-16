@@ -140,7 +140,8 @@ export function RunnerGauges() {
   // 형 11-09 09:49 「조약돌 하드웨어에 관계없이 균일하게 나열 … 누리만 끝에 | 하고 두면됨」 = 누리(neo)만 맨 끝 · 그 앞에 「|」 칸 하나 · 나머지는 몸 차례 그대로 한 줄
   // 형 11-16 08:15 「클로드 + 구름까진 나와야 해. 구름은 너네 사이에 블릿하나 넣어줘.」 = 몸 차례 일곱 + 천둥 → 「•」 → 구름 · 옛 「누리만 끝에 |」(11-09)는 누리가 빠져(11-10) 이 자리로 바뀜
   const pebAll = HOSTS.flatMap((h) => livesOn(h.body).map((x) => ({ ...x, host: h.label }))).filter((x) => !OFFBODY.some((o) => o.who === x.who));
-  const pebs: (typeof pebAll[number] | { sep: true })[] = [...pebAll, ...OFFBODY.flatMap((o) => [...("sep" in o ? [{ sep: true as const }] : []), { ...PEB[o.who], who: o.who, host: o.host }])].slice(0, 12);
+  // 「•」 = 칸을 먹지 않음(형 11-16 10:00 dm-bom · 폰 사진 「구름도 바로 옆에 붙여줘! 그리고 수평 맞춰줘. 빈공간에 대시같은건 없어도 될듯」) — 앞 판은 「•」가 한 칸을 차지해 천둥 → 빈 칸 → • → 빈 칸 → 구름으로 벌어졌음 → 구름 칸 왼쪽 가장자리(두 조약돌 한가운데)에 점만 찍음 = 아홉 칸 같은 간격
+  const pebs: (typeof pebAll[number] & { sepb?: boolean })[] = [...pebAll, ...OFFBODY.map((o) => ({ ...PEB[o.who], who: o.who, host: o.host, sepb: "sep" in o }))].slice(0, 12);
   // 게이지 넷 같은 크기(형 11-08 10:48 「게이지 크기가 차이가 나네 이제보니까 게이지 크기를 lxa, lxb에 맞추고」) = 몸 칸 폭 다 같게 · WIN↔MAC 틈만 빈 트랙 하나(12px · 형 08:14 「win하고 mac 간격을 아주 조금만 더 벌릴게」 그대로) — 앞 판은 WIN 오른쪽 12 · MAC 왼쪽 9 패딩이라 좁은 창(2/5 창)에서 그 두 게이지만 작아졌음
   const cols = HOSTS.length > 1 ? `minmax(0, 1fr) 12px repeat(${HOSTS.length - 1}, minmax(0, 1fr))` : "minmax(0, 1fr)";
   return (
@@ -181,14 +182,14 @@ export function RunnerGauges() {
       <div className="nm-rgx-line" style={{ ["--nm-rgx-pn" as string]: Math.max(1, pebs.length) }}>   {/* 조약돌 한 줄(11-15 「조약돌 + A1~A6 한 줄」 → 11-16 조약돌만) */}
       <ul className="nm-rgx-pebs" aria-label="우리 조약돌(몸 차례)">
         {pebs.map((x) => {
-          if ("sep" in x) return <li key="sep" className="nm-rgx-cell sep" aria-hidden>•</li>;   {/* 가르는 점(조약돌 아님 · 시각 없음) = 클로드 여덟 • 구름 */}
           const w = wake(x.bot ?? x.key);
           const mm = memOf(x.who), dia = memAt(mm.m.diary_ms, now), bka = memAt(mm.b?.ok ? mm.b.ok * 1000 : undefined, now);
           return (
             <li key={x.key} className={`nm-rgx-peb ${w}`}>
+              {x.sepb ? <i className="nm-rgx-dot" aria-hidden>•</i> : null}   {/* 가르는 점(조약돌 아님 · 칸 안 먹음) = 클로드 여덟 • 구름 */}
               {hasMem ? (
                 <span className="nm-rgx-memt" aria-label={`${x.who} 기억`}>   {/* 조약돌 위 빈 틈에 띄움(띠 키 0 · 형 09:31 「여백이 지금 크니까 그만큼 줄이고」) */}
-                  {MEM.map(([k, lab]) => { const a = memAt(mm.m[k], now); return <i key={k} className={`${k === "sketch_ms" ? "sk" : "ho"} ${a.tone}`} title={`${x.who} ${lab} ${a.full} · 일기 ${dia.full} · 백업 ${bka.full}${mm.b ? ` · ${mm.b.mb ?? "?"}MB · ${mm.b.f ?? "?"}개${mm.b.cloud ? ` · 드라이브 ${mm.b.cloud}` : ""}` : ""}`}>{a.t}</i>; })}
+                  {MEM.map(([k, lab]) => { const a = memAt(mm.m[k], now); return <i key={k} className={`${k === "sketch_ms" ? "sk" : "ho"} ${a.tone}`} title={`${x.who} ${lab} ${a.full} · 일기 ${dia.full} · 백업 ${bka.full}${mm.b ? ` · ${mm.b.mb ?? "?"}MB · ${mm.b.f ?? "?"}개${mm.b.cloud ? ` · 드라이브 ${mm.b.cloud}` : ""}` : ""}`}>{a.tone === "none" ? null : a.t}</i>; })}
                 </span>
               ) : null}
               <Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who}(${x.host}) · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "읽는 중" : "잠"}`} />
