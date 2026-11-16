@@ -111,8 +111,12 @@ const OPEN_PIN_MS = 4000, OPEN_PIN_MAX = 15000, AWAY_PIN_MS = 20000;   // 방을
 const nearPx = (box: HTMLElement) => Math.max(160, box.clientHeight / 4);   // 저장 없이 처음 = 최근 100(봇끼리 글은 한 줄로 접혀 40 이면 형 글이 안 들어와 위로 하루치를 한 번 더 기다렸음 · PM 17:20 · 서버 = 같은 한 장 한 번) · 위로 올림 = 하루치(그날 글이 적으면 이만큼 될 때까지 앞날도) · 화면 채우기 저절로 받기 상한
 const HEAD = 92;   // 위에 떠 있는 머리(대화 상대 동그라미 + 이름 · ui/shell.css .nm-head) 높이 — 그 아래부터 「보이는 위」
 
-const hyungApp = (m: { mirror_by?: string; mirror?: string; who?: string }) => m.mirror_by === "형" || m.mirror === "window" || /^형\((앱|창)/.test(String(m.who || ""));   // 형이 바깥에서 친 글 = 그록봇 앱(서버 mirror_by · 「형(앱에서 씀)」) · 클로드 창(빠르 mirror:'window' · 「형(창에서 씀)」) — 검정 차콜 말풍선 흰 글씨(형 10-30 「검정 말풍선 흰 글씨」 · 11-16 08:42 dm-bom 「그록봇애서 친 내 대화는 검정색 챠콜 배경으로 표기되어야하고」)
-type Msg = OfficeMsg & { card?: ThumbRef; mirror_by?: string; mirror?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
+const hyungApp = (m: { mirror_by?: string; mirror?: string; who?: string }) => m.mirror_by === "형" || /^형\((앱|창)/.test(String(m.who || ""));   // 형이 바깥에서 친 글 = 그록봇 앱(서버 mirror_by · 「형(앱에서 씀)」) · 클로드 창(빠르 mirror:'window' · 「형(창에서 씀)」) — 검정 차콜 말풍선 흰 글씨(형 10-30 「검정 말풍선 흰 글씨」 · 11-16 08:42 dm-bom 「그록봇애서 친 내 대화는 검정색 챠콜 배경으로 표기되어야하고」)
+/** 클로드 창 거울(빠르 11-16 08:58 · 서버 · mirror = 「window:<id>」 · mirror_by = 「형」 또는 봇 이름 · who = 「형(창에서 씀)」 / 「<봇>(창에서)」 · kind system) — 형 08:44 「클로드 채팅에서 얘기 한것도 미러가 안되네」 */
+const winOf = (m: { mirror?: string }) => /^window:/.test(String(m.mirror || ""));
+/** 봇이 제 창에서 친 글 = 그 봇 말풍선으로(이름 · 얼굴 = mirror_by · 이름 옆 「창에서」) · 형 창 글은 hyungApp 이 검정 말풍선으로 받음 */
+const asWinBot = <T extends { mirror?: string; mirror_by?: string; kind?: string; who?: string }>(m: T): T => (winOf(m) && m.mirror_by && m.mirror_by !== "형" && m.kind === "system" ? { ...m, who: m.mirror_by, kind: "bot", _win: true } : m);
+type Msg = OfficeMsg & { _win?: boolean; card?: ThumbRef; mirror_by?: string; mirror?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
   app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
 type Page = { messages: Msg[]; more: boolean; pending_ids?: string[] };   // pending_ids = 형 결정 대기 글(뜸 서버 · 오래된 것부터 · 없으면 화면에서 셈 = ./hyung-pills.tsx)
@@ -260,7 +264,7 @@ export function useOfficeRoom(room: string) {
   const pairId = pairOf(r, roomsQ.data || []);   // 그 이가 낀 둘의 방 글 = 이 1:1 안에(./pair-fold.ts · 형 11-13 08:29 「둘 대화로 귀속」)
   const pairQ = useQuery({ ...roomMsgsOptions(qc, pairId || "-"), enabled: !!pairId, refetchInterval: 60_000 });
   const pairMsgs = pairId ? pairQ.data?.messages : undefined;
-  const msgs = useMemo(() => (pairMsgs?.length && msgsQ.data ? { ...msgsQ, data: { ...msgsQ.data, messages: mergeTs(msgsQ.data.messages, pairMsgs.map((m) => asSent(m, pairId))) } } : msgsQ), [msgsQ, pairMsgs, pairId]);
+  const msgs = useMemo(() => { const q = pairMsgs?.length && msgsQ.data ? { ...msgsQ, data: { ...msgsQ.data, messages: mergeTs(msgsQ.data.messages, pairMsgs.map((m) => asSent(m, pairId))) } } : msgsQ; return q.data?.messages?.some(winOf) ? { ...q, data: { ...q.data, messages: q.data.messages.map(asWinBot) } } : q; }, [msgsQ, pairMsgs, pairId]);
   return { r, list: peopleQ.data || [], msgs, reads: readsQ.data, reacts: reactsQ.data, bots: botsQ.data || [], older, draft };
 }
 
@@ -930,7 +934,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
       <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
         <StatePill m={m} />
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
-          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? (m.mirror === "window" || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
         </div>
         <RouteLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -941,7 +945,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} />
+        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} />{m._win ? <span className="nm-win-tag" aria-label="클로드 창에서 쓴 글">창에서</span> : null}
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}
         <div className="ybrow">

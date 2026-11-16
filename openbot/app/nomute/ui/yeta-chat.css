@@ -891,3 +891,6 @@ body:not(:has(.nm-split-root)) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { 
 .nm-msgm-ok { display:grid; place-items:center; }
 .nm-zoom-save.nm-tick-on { padding-left:22px; padding-right:22px; }
 @media (prefers-reduced-motion:reduce){ .nm-tick-on .nm-tick, .nm-msgm-ok .nm-tick { animation:none; } }
+
+/* 봇이 제 클로드 창에서 친 글 = 이름 옆 작은 「창에서」(빠르 창 거울 11-16 · 형 08:44 「클로드 채팅에서 얘기 한것도 미러가 안되네」) */
+.ychat .nm-win-tag { display:inline-block; margin:0 0 2px 6px; padding:0 6px; border-radius:999px; font-size:10px; line-height:16px; color:rgba(232,234,232,.6); border:1px solid rgba(232,234,232,.18); vertical-align:middle; }
