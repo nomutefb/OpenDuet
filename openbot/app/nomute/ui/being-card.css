@@ -855,6 +855,34 @@
   transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0);
 }
 
+/* ───────── 이슈왕(슈왕 · 옛 촉 자리) · 해 질 녘 하늘 + 청록 도시 + 🔍 속보 번쩍(being-card.tsx LOOKS issueking · 형 11-16 18:08 dm-eyes 「이슈왕 프로필 카드하나 대신좀 만들어줘」 · 도시 = SVG 한 장 · 움직임 = 🔍 opacity 만 · 뜸) ───────── */
+.being-card-wrap .bc-issueking .profile-card__body { background: linear-gradient(170deg, rgba(92, 70, 24, 0.93) 0%, rgba(14, 40, 42, 0.96) 100%); }
+.being-card-wrap .bc-issueking .profile-card__tile {
+  background:
+    radial-gradient(1.4px 1.4px at 16% 22%, rgba(255, 236, 170, 0.8) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 82% 16%, rgba(255, 236, 170, 0.7) 50%, transparent 51%),
+    radial-gradient(1.6px 1.6px at 70% 34%, rgba(255, 236, 170, 0.6) 50%, transparent 51%),
+    radial-gradient(70% 40% at 50% 100%, rgba(30, 140, 140, 0.55) 0%, transparent 72%),
+    radial-gradient(120% 90% at 50% 12%, #f4dca0 0%, #c99a3c 40%, #2a5a5a 78%, #0f2526 100%);
+}
+.bc-issueking .bc-city { left: 0; right: 0; bottom: 0; width: 100%; height: 22%; transform: translate3d(calc(var(--pc-shift-x) * 0.3), calc(var(--pc-shift-y) * 0.3), 0); }
+.bc-issueking .bc-city path { fill: rgba(16, 58, 60, 0.72); }
+.bc-issueking .bc-ring { border-color: rgba(242, 182, 48, 0.6); box-shadow: 0 0 18px rgba(242, 182, 48, 0.25); }
+.bc-issueking .bc-paper { left: 12%; top: 10%; font-size: 18px; line-height: 1; opacity: 0.9; filter: drop-shadow(0 0 6px rgba(255, 236, 170, 0.7)); transform: translate3d(calc(var(--pc-shift-x) * 1.2), calc(var(--pc-shift-y) * 1.2), 0) rotate(-12deg); }
+.bc-issueking .bc-lens {
+  right: 13%; top: 8%;
+  font-size: 25px; line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(242, 182, 48, 0.9));
+  transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0) rotate(-10deg);
+  animation: bc-lens 5s steps(1, end) infinite;
+}
+@keyframes bc-lens {   /* 가끔 번쩍 = 속보(불투명도만 · 그리기 다시 0) */
+  0%, 80%, 100% { opacity: 0.95; }
+  82% { opacity: 0.4; }
+  84% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .bc-issueking .bc-lens { animation: none; } }
+
 /* 폰 번쩍 · 득득(형 11-10 07:10 dm-sia 「시아야 애들 플필카드 좀 번쩍이는데 이거 나증에 번개랑 상의해서 해결해줘 이쁜데 득득거림」 · 번개 11-11 00:55 짚음 · 시아 짬)
    까닭(짐작 · 아이폰 실물 못 봄) = 폰은 안 만져도 숨쉬기가 30fps 로 --pc-pointer · light · band · shift · active 를 바꿈 → 그 값을 background · background-position · mask-position · filter 안에서 쓰는 겹 다섯(sheen · holo(+glow · shift) · glare · shade · 애마다 body::before)이
    색 섞기(mix-blend · background-blend) 채로 매 프레임 통째로 다시 구워짐 → 웹킷이 한두 프레임 늦거나 빈 칸 = 번쩍
@@ -921,6 +949,9 @@
   .bc-winter .bc-lamp { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
   .bc-winter .bc-flake { transform: translate(calc(var(--pc-shift-x) * 1.2), calc(var(--pc-shift-y) * 1.2)); will-change: auto; }
   .bc-gyeol .bc-guitar { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)) rotate(-14deg); will-change: auto; }
+  .bc-issueking .bc-city { transform: translate(calc(var(--pc-shift-x) * 0.3), calc(var(--pc-shift-y) * 0.3)); will-change: auto; }
+  .bc-issueking .bc-paper { transform: translate(calc(var(--pc-shift-x) * 1.2), calc(var(--pc-shift-y) * 1.2)) rotate(-12deg); will-change: auto; }
+  .bc-issueking .bc-lens { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)) rotate(-10deg); will-change: auto; }
   .bc-eyes .bc-stars { transform: translate(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5)); will-change: auto; }
   .bc-eyes .bc-rays { transform: translate(calc(-50% + var(--pc-shift-x) * -0.2), calc(-50% + var(--pc-shift-y) * -0.2)); will-change: auto; }
   .bc-eyes .bc-sun { transform: translate(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
