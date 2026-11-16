@@ -11,6 +11,8 @@ import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, ta
 import { WebPane } from "./web-pane";
 import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:54 · 맥 72 다리)
 import { COBROWSE_EVENT } from "./cobrowse";
+import { SCREEN_TAB_EVENT, type ScreenTabAsk, ScreenTabPane } from "./screen-tab";   // 몸 화면 탭(구름 11-16 · 형 16:2x 「ㅇㅇ 해줘」 ← 「애들 vm키면, pc에서는 새 탭으로 열리게 가능해?」)
+import { screenTabAdd } from "./screen-tab-logic";
 import { TEAMS_PREFIX, TeamsBell, TeamsList, isTeams, useTeamsUnread } from "./teams";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀즈 | 회의」 탭도 같이 씀(./teams.tsx TeamsSwitch · 형 11-13 22:14)
@@ -54,6 +56,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   // 몸 전체를 덮은 웹 · 화면 탭(오른쪽 칸이 접힌 화면)에서 길이 바뀌면(메뉴 줄 누름 등) 덮개를 내리고 정원으로 = 누른 화면이 보이게(구름 11-16 · 앞 = 오른쪽 칸이 있던 화면에서 서랍으로 가면 웹 판이 서랍을 통째로 덮었음) · 오른쪽 칸만 덮는 판은 그대로
   useEffect(() => { const on = () => requestAnimationFrame(() => { if (!paneHost()) setS((x) => (x.active.startsWith("s:") || x.active.startsWith("w:") || x.active === BROWSER || x.active === MEET || x.active === TEAMS ? { ...x, active: "dash" } : x)); }); addEventListener("hashchange", on); return () => removeEventListener("hashchange", on); }, []);
   useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
+  useEffect(() => { const on = (e: Event) => { const a = (e as CustomEvent<ScreenTabAsk>).detail; if (a) setS((x) => screenTabAdd(x, a.who, a.url)); }; addEventListener(SCREEN_TAB_EVENT, on); return () => removeEventListener(SCREEN_TAB_EVENT, on); }, []);   // 들머리 = openScreenTab()(프로필 카드 「몸 화면 열기」 · PC) → 「○○ 화면」 탭을 붙이고 고름
   useEffect(() => { try { if (isTeams(room)) localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); else if (room) localStorage.setItem(OFFICE_LAST, room); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
@@ -202,7 +205,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
               <WebPane initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} />   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
             </div>
           ) : (
-            <iframe key={tabKey(t)} title={nameOf(t)} src={t.url} hidden={s.active !== tabKey(t)} allow="clipboard-read; clipboard-write; fullscreen" />
+            <ScreenTabPane key={`${tabKey(t)}|${t.url}`} url={t.url} name={nameOf(t)} on={s.active === tabKey(t)} />   /* 몸 화면 탭 = 켤 때 표를 새로 받아 끼움(앞 = 저장된 주소를 그대로 틀에 넣어 표 없는 주소가 들어갔음 · ./screen-tab.tsx · 구름 11-16) */
           ))}
         </div>, host || document.body) : null}
     </>

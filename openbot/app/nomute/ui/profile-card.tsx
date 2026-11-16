@@ -12,6 +12,7 @@ import { type OfficePerson, type OfficeRoom, idOf, office, people } from "../dat
 import { ColorPick } from "./color-pick";
 import { screenUrl, tailnetUrl } from "./pc-url";
 import { openScreenGo, screenGoUrl, screenTicket } from "./screen-ticket";
+import { openScreenTab } from "./screen-tab";   // PC = 몸 화면을 탭으로(구름 11-16 · 형 16:2x)
 import { PcScreen } from "./pc-card";   // 「화면 보기」 주소 = 컴퓨터 카드와 같은 테일넷 거르개 · 앱 안 화면 꼴(모루 #2968 · 시험 tests/profile-screen.test.ts)
 import { BeingCard, beingLook, warmFace } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -95,8 +96,9 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   const screen = tailnetUrl(p?.screen) ? screenUrl(tailnetUrl(p?.screen)) : "";   // 그 아이 몸 화면(형 11-08 빠르 창 「프로필 누르면 본인의 vm이 배선되도록」 · 주소 = 서버 명부 screen · 테일넷 안 주소만)
   const crd = /^https:\/\/remotedesktop\.google\.com\/access\/session\/[0-9a-f-]{36}$/.test(p?.screen || "") ? (p?.screen as string) : "";   // 맥 몸(봄 · 챙) = 크롬 원격 데스크톱(형 11-12 07:32 · 서버 screen-crd · 형한테만 옴) · 앱 안 끼워 넣기는 구글이 막음(X-Frame-Options) = 새 창 · 폰은 그 앱으로 넘어감(짐작)
-  const openCrd = () => { if (crd) window.open(crd, "_blank", "noopener"); };
-  const openScreen = () => { if (screen) void screenTicket(screen, (b) => office<{ url?: string }>("screen/ticket", { method: "POST", body: JSON.stringify(b) })).then((u) => (u ? setScr(u) : openScreenGo(screen))); };   // 못 받으면 = 새 창 바로 보내기
+  const openCrd = () => { if (!crd) return; if (openScreenTab({ who, url: crd })) { onClose(); return; } window.open(crd, "_blank", "noopener"); };   // PC = 탭 길 먼저(형 11-16 16:2x 「가능함녀 구글 데스크톱도 링크화 하던지 해서 동일하게」 · ./screen-tab.tsx) · 폰 = 앞 그대로 새 창
+  const openScreen = () => { if (!screen) return; if (openScreenTab({ who, url: screen })) { onClose(); return; }   // PC = 탭으로(형 11-16 14:3x 「애들 vm키면, pc에서는 새 탭으로 열리게 가능해?」 · 16:2x 「ㅇㅇ 해줘」 · 맥 독 앱 = 앱 제 탭 · 그 밖 PC = 위 탭 줄 · ./screen-tab.tsx) · 폰 = 아래 앞 꼴(화면 전체 판)
+    void screenTicket(screen, (b) => office<{ url?: string }>("screen/ticket", { method: "POST", body: JSON.stringify(b) })).then((u) => (u ? setScr(u) : openScreenGo(screen))); };   // 못 받으면 = 새 창 바로 보내기
   const scrView = scr ? <PcScreen url={scr} out={screenGoUrl(screen)} title={`${name} 몸 화면`} task="" canDone={false} onDone={() => {}} onClose={() => setScr("")} /> : null;   // 표 붙여 열기 = 테일넷 밖 폰에서도(빠르 11-11 · ./screen-ticket.ts)
   // 카드 있는 애 = 카드 한 장만(형 11-11 06:41 dm-sia 「여기 리인보우 카드 빼고 주변 다 날려도 될거같아」 · 「우상단에 색 고르는거는 카드 안에 우상단으로 넣어버리고. 딱 붙이진 말구.」 · 06:42 「화면보기 같은거는 @sia 이런 곳에 옮기자」 · 06:43 「그리고 설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯 . 좀 좁으려나? 그럼 세로를 늘리면 됑」 · 시아 「소개 글 · 직무 고치기도 같이 빼도 돼?」 → 형 「응응」)
   //   닫기 = 바깥 누름 · 뒤로 · Esc · 앞 판 = 둘레 유리 창 + 직무 · 소개 줄(연필) + 화면 보기 · 닫기 단추
