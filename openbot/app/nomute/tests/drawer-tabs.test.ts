@@ -6,7 +6,7 @@ import { DRAWER_HOME, DRAWER_TABS, isDrawerTab } from "../ui/drawer-tabs.ts";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 
 test("탭 여섯 · 먼저 뜨는 탭 = 러너 · 설정 · 뉴스 에디터는 탭이 아님", () => {
-  assert.deepEqual([...DRAWER_TABS], ["runner", "botdesk", "sched", "meetlog", "story", "play"]);
+  assert.deepEqual([...DRAWER_TABS], ["runner", "vmstat", "botdesk", "sched", "meetlog", "story", "play"]);   // 일곱째 = VM 상태(형 11-16 16:4x 「vm 상태 그리게 할거야 공간 하나 만들어줘」)
   assert.equal(DRAWER_HOME, "runner");
   for (const t of DRAWER_TABS) assert.ok(isDrawerTab(t));
   for (const x of ["settings", "nedit", "drawer", "ask", "", null, undefined]) assert.ok(!isDrawerTab(x), String(x));
