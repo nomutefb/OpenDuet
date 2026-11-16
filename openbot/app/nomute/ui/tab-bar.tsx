@@ -45,10 +45,6 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const ppl = useQuery({ queryKey: ["nomute", "people-tabs"], queryFn: () => people(), staleTime: 60_000 });
   const list: OfficePerson[] = ppl.data || [];
   useEffect(() => { try { localStorage.setItem(TABS_KEY, tabsSave(s)); } catch { /* 저장 못 쓰면 이번 판만 */ } }, [s]);
-  useEffect(() => {   // 맥 독 앱 안 = 웹 탭 줄이 안 보임(./tab-bar.css · 형 11-16 08:2x 「아래에 탭을 없앤다는뜻이엿음」) → 웹 · 화상 회의 · Teams 덮개가 열린 채 남으면 돌아올 길이 없어 늘 정원 판으로
-    const home = () => { if (document.documentElement.classList.contains("nm-macapp")) setS((x) => (x.active === "dash" ? x : { ...x, active: "dash" })); };
-    home(); addEventListener("load", home); return () => removeEventListener("load", home);
-  }, []);
   const first = useRef(true);
   useEffect(() => {   // 방·판을 옮기면(얼굴 띠 · 목록 누름) 화면 탭은 덮개를 내리고 대시보드로 · 방 탭은 안 만듦(형 09:29)
     if (first.current) { first.current = false; return; }
