@@ -38,3 +38,6 @@
 .nm-story-media { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:6px; padding:0 16px 16px; }
 .nm-story-media img, .nm-story-media video { display:block; width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; background:rgba(255,255,255,.04); }
 .nm-story-media video { grid-column:1 / -1; aspect-ratio:auto; max-height:60vh; object-fit:contain; background:#000; }
+.nm-story-media .aud { grid-column:1 / -1; margin:0; display:grid; gap:6px; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.04); }   /* 음악 = 이름 한 줄 + 재생 줄(카드 폭 다 씀) */
+.nm-story-media .aud figcaption { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-sm, 13px); color:var(--fg-2, #c8ccc8); }
+.nm-story-media .aud audio { display:block; width:100%; height:36px; }
