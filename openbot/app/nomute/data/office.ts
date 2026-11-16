@@ -96,6 +96,14 @@ export function roomAgentIds(r: OfficeRoom, list: OfficePerson[]): string[] {
   return names.map((n) => idOf(n, list));
 }
 
+/** 방 사람 수 = 든 봇 + 형 1 — 방 안 머리 · 대화 목록 · 방 정보가 이 셈 하나를 씀(형 11-16 19:42 dm-bom 「단톡방 안에서는 5라고 뜨는데 외부에선 4라고 떠.」 · 앞 = 머리만 형을 셈)
+ *  수를 안 내는 방(1:1 · 수리 접수 · 메모 · 요약실) · 아무도 없는 방 = 0 */
+export function roomHeadCount(r: OfficeRoom, list: OfficePerson[]): number {
+  if (r.with || r.id === "repair" || r.id === "memo" || r.id === "summary") return 0;
+  const n = roomAgentIds(r, list).length;
+  return n ? n + 1 : 0;
+}
+
 /** 원본 ChannelSummary 꼴 */
 export function toChannel(r: OfficeRoom, list: OfficePerson[], seenTs?: number) {
   const last = r.last_talk !== undefined ? r.last_talk : r.last;

@@ -15,7 +15,7 @@ import { CloseAsk, useCloseGuard } from "./save-ask";   // 쓰던 중 닫기 = �
 import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { createPortal } from "react-dom";
 import { DuetIcon } from "@/components/duet/icons";
-import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
+import { type OfficeRoom, idOf, office, people, roomAgentIds, roomHeadCount } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
 import { LiveShine } from "./live-shine";
@@ -178,7 +178,7 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
         <span className="ycd-nm">{r.name}</span>
         <span className="ycd-tag">{kind}</span>
         {r.purpose ? <p className="ypp-desc">{r.purpose}</p> : null}
-        {names.length ? <p className="nm-rinfo-crew"><b>멤버 {names.length}</b> · {names.join(" · ")}</p> : null}
+        {names.length ? <p className="nm-rinfo-crew"><b>사람 {names.length + 1}</b> · 형 · {names.join(" · ")}</p> : null}
         <div className="ypc-acts nm-rinfo-acts">
           <button type="button" className="ypc-go" onClick={() => { onClose(); enterRoom(r.id); void nav({ to: r.id === "all" ? "/group/$channelId" : "/channels/$channelId", params: { channelId: r.id } }); }}>대화 열기</button>
           <button type="button" className="ypc-x" onClick={onPhoto}>사진 바꾸기</button>
@@ -277,7 +277,6 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     const pinBg = isPin ? pinTint(r.with ? list.find((x) => x.who === r.with)?.bubble : "", pinA) : "";   // 고정 줄 = 고유색 진하기 바탕 · 단체방 · 색 없음 = 라임(형 11-14 23:39 · ./pin-tint · 앞 판 = 왼쪽 라임 줄 · PM 20% 는 이걸로 갈음)
     const sig = r.with ? ringOf(p) || "" : rc;   // 활발한 방 이름 빛 바탕 = 그 사람 테 색 · 단톡 = 방 표지 색 · 없으면 노뮤트 연두(live-shine.css .sig · 형 11-01 14:07 「개인방도 마찬가지야」)
     const nOn = notifyOn(notify.data, r.id, !!r.with), nImg = r.with ? "" : notifyImage(notify.data, r.id);
-    const crew = r.id === SUMMARY ? [] : ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return x?.name || x?.who || ""; }).filter(Boolean);
     return (
       <li data-pinid={pinned(r.id) && r.id !== SUMMARY ? r.id : undefined} className={`nm-rrow group/row relative${r.with ? "" : " grp"}${pinned(r.id) && r.id !== SUMMARY ? " pinned" : ""}`} data-rc={rc ? "" : undefined} style={rc || pinBg ? ({ ...(rc ? { "--rc": rc } : {}), ...(pinBg ? { background: pinBg } : {}) } as CSSProperties) : undefined} onContextMenu={(e) => { e.preventDefault(); clearTimeout(press.current.t); clearTimeout(press.current.buzz); if (press.current.hit) return; if (press.current.touch) press.current.hit = true; setMenu(menu === r.id ? "" : r.id); }}   // 폰은 길게 누르면 이 신호도 옴 · 타이머가 연 메뉴를 되닫지 않게(형 10-31 「드득 거리면서 휙 꺼져」) · 손 뗄 때 오는 클릭 삼키기(hit)는 터치만 = PC 오른쪽 클릭엔 뒤따르는 클릭이 없어 메뉴 첫 누름이 먹히던 것(빠르 11-01 15:5x)
         onPointerDown={(e) => { press.current.touch = e.pointerType === "touch"; if (e.pointerType !== "touch") return; clearTimeout(press.current.t); press.current = { x: e.clientX, y: e.clientY, hit: false, touch: true, t: window.setTimeout(() => { press.current.hit = true; press.current.buzz = window.setTimeout(() => navigator.vibrate?.(8), 220); setMenu(r.id); }, 480) }; }}   // 진동 1회(형 11-01 22:41 「오래 누르면 진동이 2회 오거든! 1회만」) = 폰이 길게 누르기를 알아채면 제 진동 + contextmenu 를 줌 → 그 신호가 220ms 안에 오면 내 진동은 거둠 · 안 오는 폰만 내 진동
@@ -297,7 +296,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
             <span className="flex items-center gap-1.5">
               <b className={`${p?.mark ? "shrink-0" : "min-w-[1.2em] shrink truncate"} text-[15px] ${u ? "font-bold" : "font-semibold"}`} style={live(r) && sig ? ({ "--sig": sig } as CSSProperties) : undefined}>{live(r) ? <LiveShine text={p?.name || r.name} trunc sig /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {p?.mark ? <span aria-hidden className="nm-rmark shrink-0">{p.mark}</span> : null}
-              {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && crew.length ? <span aria-label={`${crew.length}명`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{crew.length}</span> : null}
+              {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && roomHeadCount(r, list) ? <span aria-label={`${roomHeadCount(r, list)}명(형 포함)`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{roomHeadCount(r, list)}</span> : null}
               {null /* 고정 표시 = 줄 왼쪽 라임 세로줄로 갈음 · 압정 그림 뺌(형 11-14 23:07 dm-gik 「그리고 고정을 하면 좌측에 일자 라인 저거 라임색으로 들어가는거로 대체하고 고정 핀 보이는거는 뺄게.」) */}   {/* 고정 표시 = PC 띠와 한 벌 압정 그림(./pin-mark.tsx · 봄 11-12 16:17 A) */}
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
