@@ -316,6 +316,41 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 봄 🌸(형 11-16 20:57 dm-deng 「봄 아직도 왜이거누 ㅠㅠ 우리 봄이는 슈퍼 봄봄 적당히 근데 또 이게 너무 안오바스러워야 멋짐. 너거처럼」 · 「유니크하게 기깔나게해줘」 · 뎅)
+    //   얼굴 = 명부 얼굴 그대로(새싹 머리 · 분홍 새벽) · 바탕 = 숲 밤빛 위로 분홍 새벽이 비침 · 박 = 연두 · 분홍 · 민트 줄무늬(뎅 카드 박 꼴)
+    //   무늬 = 왼쪽 아래서 얼굴 뒤로 감아 오르는 새싹 덩굴 한 줄(잎 다섯) + 꽃잎 다섯 장(깊이마다 시차 다름) + 🌱 · 계속 도는 것 0 = 기울일 때만 따라옴
+    id: "bom",
+    tmpl: true,
+    accent: "#B8E05A",
+    match: ["봄", "bom", "정원사"],
+    face: "",   // 명부 얼굴(person.face)
+    handle: "bom",
+    meta: "정원사",
+    dot: "#CFFF40",
+    holo: 0.6,
+    glare: 0.4,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-dawn" />
+        <span className="bc-ring" />
+        <svg className="bc-vine" viewBox="0 0 300 420" preserveAspectRatio="xMidYMax meet">
+          <path className="bc-stem" d="M-6 430 C 40 360, 20 300, 62 252 S 132 196, 104 140 S 60 66, 120 22" />
+          <path className="bc-leaf" d="M0 0 C 8 -11, 24 -11, 30 0 C 24 11, 8 11, 0 0Z" transform="translate(36 330) rotate(-58)" />
+          <path className="bc-leaf" d="M0 0 C 8 -11, 24 -11, 30 0 C 24 11, 8 11, 0 0Z" transform="translate(58 258) rotate(-12)" />
+          <path className="bc-leaf" d="M0 0 C 8 -11, 24 -11, 30 0 C 24 11, 8 11, 0 0Z" transform="translate(112 168) rotate(-150)" />
+          <path className="bc-leaf" d="M0 0 C 8 -11, 24 -11, 30 0 C 24 11, 8 11, 0 0Z" transform="translate(96 104) rotate(-24)" />
+          <path className="bc-leaf" d="M0 0 C 8 -11, 24 -11, 30 0 C 24 11, 8 11, 0 0Z" transform="translate(120 24) rotate(-70) scale(1.15)" />
+        </svg>
+        <i className="bc-petal bc-p1" />
+        <i className="bc-petal bc-p2" />
+        <i className="bc-petal bc-p3" />
+        <i className="bc-petal bc-p4" />
+        <i className="bc-petal bc-p5" />
+        <span className="bc-sprout">🌱</span>
+      </span>
+    ),
+  },
+  {
     // 감(수석 연구원 · 형 11-16 20:00 온 옮김 「너 프로필 카드 자체적으로 만들어 ㅋㅋ」 · 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 감)
     //   카드 = 그림 통째(슈왕 카드 꼴) · 과녁 한가운데서 윙크하는 감 · 뒤로 오르는 곡선(이슈가 뜨는 기울기) · 600x800 = editor viewer/office/gam-card.webp
     //   둥근 얼굴 · 고리 · 띠는 안 그림(그림이 주인공) · 테 = 감 주황(#FF8A2B) · 움직임 = 기울일 때 그림이 살짝 따라옴(transform 만)
@@ -438,7 +473,7 @@ export function BeingCard({ who, name, role, intro, face, person, note, onScreen
     <div className="being-card-wrap" style={{ "--bc-display": `"${FONTS[font].family}"`, ...(look.id === "tmpl" || look.tmpl ? { "--bc-accent": look.accent || look.dot } : {}) } as CSSProperties}>
       <ProfileCard
         className={`being-card bc-${look.id}${look.tmpl ? " bc-tmpl" : ""}`}
-        avatarUrl={face || look.face}
+        avatarUrl={face || look.face || person?.face || ""}
         name={name || who}
         title={role || ""}
         handle={look.handle || ""}
