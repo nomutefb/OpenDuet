@@ -10,6 +10,11 @@ test("러너 「[촉]」 글 = 주소 없어도 단추(러너가 자료 찾음 �
   assert.deepEqual(askPickOf("dm-chok", { text: "[촉] 속보 엔비디아 칩 밀반입" }), { text: "[촉] 속보 엔비디아 칩 밀반입", url: "" });
   assert.deepEqual(askPickOf("dm-chok", { text: "**[촉보] 엔비디아 칩 밀반입**" }), { text: "**[촉보] 엔비디아 칩 밀반입**", url: "" });
 });
+test("슈왕 방(dm-issueking) = 촉 방과 같이 단추(형 11-17 00:38)", () => {
+  const t = "몰카 땐 눈감더니 이제야?\n• 링크 : https://www.yna.co.kr/view/AKR20261115020551004";
+  assert.deepEqual(askPickOf("dm-issueking", { text: t }), { text: t, url: "https://www.yna.co.kr/view/AKR20261115020551004" });
+  assert.equal(askPickOf("dm-issueking", { text: "응 알았어 형" }), null);
+});
 test("안 다는 글 = 다른 방 · 첨부 · 잡담", () => {
   assert.equal(askPickOf("dm-teum", { text: "https://a.com/x" }), null);
   assert.equal(askPickOf("dm-chok", { text: "https://a.com/x", files: ["a.png"] }), null);
