@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { usePinActions } from "./pins";
+import { RoomIcon } from "./room-list";   // 「다른 방으로」 줄 방 얼굴(대화 목록과 같은 부품)
 import { fileUrl } from "../data/file-cache";
 import { flash } from "./flash";
 import { attachmentSender } from "../data/attachment-state";   // 보냄 줄 = 입력칸과 같은 것(받는 방에 「전송 대기」 말풍선이 먼저 뜸 · 실패 = 그 자리 「다시 보내기」)
@@ -133,7 +134,13 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
         ) : moving ? (
           <>
             <p className="nm-msgm-h">보낼 방{paths.length ? ` · 첨부 ${paths.length}` : ""}</p>
-            {rooms.map((x) => <button key={x.id} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={() => void forward(x)}><span>{x.with ? short(list.find((p) => p.who === x.with)?.name || x.with) : x.name}</span></button>)}
+            {/* 줄마다 그 방 얼굴(형 11-17 01:27 dm-bom 「다른 방으로 누르면 애들 얼굴 뜨게래줘 땡큐」 · 봄 옮김) = 1:1 = 그 애 명부 얼굴(대화 목록과 같은 MicOrb · 「확인 요청할 봇」 줄과 같은 32) · 단톡 = 방 아이콘(RoomIcon) · 이미 받아 둔 그림 그대로 */}
+            {rooms.map((x) => { const p = x.with ? list.find((q) => q.who === x.with) : undefined; return (
+              <button key={x.id} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={() => void forward(x)}>
+                {x.with ? <MicOrb size={32} id={idOf(x.with, list)} tint={ringOf(p)} /> : <RoomIcon r={x} size={32} />}
+                <span>{x.with ? short(p?.name || x.with) : x.name}</span>
+              </button>
+            ); })}
             {item("그만두기", () => setMoving(false))}
           </>
         ) : asking ? (
