@@ -13,7 +13,7 @@ import { ColorPick } from "./color-pick";
 import { screenUrl, tailnetUrl } from "./pc-url";
 import { openScreenGo, screenGoUrl, screenTicket } from "./screen-ticket";
 import { openScreenTab } from "./screen-tab";   // PC = 몸 화면을 탭으로(구름 11-16 · 형 16:2x)
-import { isOutside } from "./screen-tab-logic";   // 앱 안에 못 끼우는 화면(구글 원격 데스크톱 · 그록 컴퓨터)
+import { isGrokBot, isOutside } from "./screen-tab-logic";   // 앱 안에 못 끼우는 화면(구글 원격 데스크톱 · 그록 컴퓨터)
 import { PcScreen } from "./pc-card";   // 「화면 보기」 주소 = 컴퓨터 카드와 같은 테일넷 거르개 · 앱 안 화면 꼴(모루 #2968 · 시험 tests/profile-screen.test.ts)
 import { BeingCard, beingLook, warmFace } from "./being-card";   // 애들 카드(형 11-05 「시아 너꺼부터 하나 만들어보면될듯」) · 카드 있는 애만 · 나머지는 아래 예전 꼴 그대로
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -100,7 +100,8 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
   const fxPen = p?.kind === "human" ? null : <button type="button" className="ypc-fxpen" aria-label={`${name} 사진 · 소개 고치기`} title="사진 · 소개 고치기" onClick={() => { setFIntro(p?.intro || ""); setFImg(""); setFNote(""); setFx(true); }}>✎</button>;
   const go = () => { onClose(); if (dm) window.location.hash = `#/channels/${encodeURIComponent(dm.id)}`; };
   const screen = tailnetUrl(p?.screen) ? screenUrl(tailnetUrl(p?.screen)) : "";   // 그 아이 몸 화면(형 11-08 빠르 창 「프로필 누르면 본인의 vm이 배선되도록」 · 주소 = 서버 명부 screen · 테일넷 안 주소만)
-  const crd = isOutside(p?.screen || "") ? (p?.screen as string) : "";   // 맥 몸(봄 · 챙) = 크롬 원격 데스크톱(형 11-12 07:32 · 서버 screen-crd · 형한테만 옴) · 앱 안 끼워 넣기는 구글이 막음(X-Frame-Options) = 새 창 · 폰은 그 앱으로 넘어감(짐작) · 그록 애 = grok.com/bot/<id> 컴퓨터도 같은 길(형 11-16 20:16 「프로필에서 누르면 들가게 해주고」 · 「다른 애들처럼 피시에서는 탭으로」 · grok.com 끼워 넣기 막힘 = 탭엔 링크 + 새 창)
+  const grok = isGrokBot(p?.grok_url || "") ? (p?.grok_url as string) : "";   // 그록 애 컴퓨터 = 명부 grok_url 칸(깃 93d9ffa8 · screen 칸엔 그록 상자 noVNC 가 그대로 · 번개 11-16 22:42) · 있으면 「화면」은 이걸 먼저(형 20:16 「프로필에서 누르면 들가게 해주고」)
+  const crd = grok || (isOutside(p?.screen || "") ? (p?.screen as string) : "");   // 맥 몸(봄 · 챙) = 크롬 원격 데스크톱(형 11-12 07:32 · 서버 screen-crd · 형한테만 옴) · 앱 안 끼워 넣기는 구글이 막음(X-Frame-Options) = 새 창 · 폰은 그 앱으로 넘어감(짐작) · 그록 애 = grok.com/bot/<id> 컴퓨터도 같은 길(형 11-16 20:16 「프로필에서 누르면 들가게 해주고」 · 「다른 애들처럼 피시에서는 탭으로」 · grok.com 끼워 넣기 막힘 = 탭엔 링크 + 새 창)
   const openCrd = () => { if (!crd) return; if (openScreenTab({ who, url: crd })) { onClose(); return; } window.open(crd, "_blank", "noopener"); };   // PC = 탭 길 먼저(형 11-16 16:2x 「가능함녀 구글 데스크톱도 링크화 하던지 해서 동일하게」 · ./screen-tab.tsx) · 폰 = 앞 그대로 새 창
   const openScreen = () => { if (!screen) return; if (openScreenTab({ who, url: screen })) { onClose(); return; }   // PC = 탭으로(형 11-16 14:3x 「애들 vm키면, pc에서는 새 탭으로 열리게 가능해?」 · 16:2x 「ㅇㅇ 해줘」 · 맥 독 앱 = 앱 제 탭 · 그 밖 PC = 위 탭 줄 · ./screen-tab.tsx) · 폰 = 아래 앞 꼴(화면 전체 판)
     void screenTicket(screen, (b) => office<{ url?: string }>("screen/ticket", { method: "POST", body: JSON.stringify(b) })).then((u) => (u ? setScr(u) : openScreenGo(screen))); };   // 못 받으면 = 새 창 바로 보내기
@@ -111,7 +112,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
     <div className="ypc-veil nm-yeta" role="presentation" {...backdrop(g.request)}>
       <div className="ypc ypc--being" role="dialog" aria-label={`${name} 프로필`} onClick={(e) => e.stopPropagation()}>
         <button type="button" className="ypc-orb" aria-label="말풍선 색 고르기" onClick={() => setPick((x) => !x)} />
-        <BeingCard who={who} name={name} role={p?.role} person={p} note={p?.intro || undefined} onScreen={screen ? openScreen : crd ? openCrd : undefined} onDm={dm ? go : undefined} acts />
+        <BeingCard who={who} name={name} role={p?.role} person={p} note={p?.intro || undefined} onScreen={grok ? openCrd : screen ? openScreen : crd ? openCrd : undefined} onDm={dm ? go : undefined} acts />
         {pick ? <div className="ypc-pop"><ColorPick value={p?.bubble} onSave={save} onClose={() => setPick(false)} /></div> : null}
         {fxPen}{fxView}
       </div>
@@ -155,7 +156,7 @@ export function ProfileCard({ who, list, onClose }: { who: string; list: OfficeP
           </span>
         )}
         <div className="ypc-acts">
-          {screen ? <button type="button" className="ypc-go ypc-screen" onClick={openScreen} title={`${name} 몸 화면 열기`}>
+          {grok || screen ? <button type="button" className="ypc-go ypc-screen" onClick={grok ? openCrd : openScreen} title={`${name} 몸 화면 열기`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8" /><path d="M12 17v4" /></svg>
             화면 보기
           </button> : null}
