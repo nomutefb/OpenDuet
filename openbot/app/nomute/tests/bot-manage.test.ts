@@ -80,3 +80,13 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.match(mine, /\.nm-hs \.track\[data-drag\] \.fill, [^{]*\{ transition:none;/);
   assert.doesNotMatch(mine, /transition:[^;]*(height|width|top|left|margin)/);
 });
+
+test("안 걸린 애의 임시 멈춤 = 「없음 | 걸기」 한 줄(걸린 꼴로 안 보이게) · 걸린 것만 라임", () => {
+  // 형 11-17 02:01 dm-bom(봄 옮김) 「글구 윈터 멈춤이 아닌데 계속 멈춤 설정되어잇어 확인 좀」 — 앞 = 고르는 칸(라임 「전부」 · 라임 막대 · 「멈춤」 단추)이 늘 떠 있었음
+  const ui = readFileSync(new URL("../ui/bot-manage.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/bot-desk.css", import.meta.url), "utf8");
+  assert.match(ui, /const \[draft, setDraft\] = useState\(false\);/);
+  assert.match(ui, /if \(!draft\) return \(\s*<div className="hold">\s*<Row label="임시 멈춤" note=\{err\}>\{\[\s*<span key="v" className="sval off">없음<\/span>,\s*<button key="go" type="button" className="pc" disabled=\{q\.isPending\} onClick=\{\(\) => setDraft\(true\)\}>걸기<\/button>/);
+  assert.match(ui, /<HoldBar draft mins=\{mins\}/);   // 고르는 중 막대 = 회색
+  assert.match(css, /\.nm-hs\[data-draft\] \.fill \{ background:rgba\(232,234,232,\.2\); \}/);
+  assert.match(css, /\.nm-hs\[data-lock\] \.fill \{ background:var\(--accent, #CFFF40\); \}/);   // 걸려 있는 것 = 지금 값 = 라임
+});
