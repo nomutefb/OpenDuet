@@ -22,12 +22,13 @@
 /* 판 */
 /* 유리 판(형 11-16 11:0x 「조금 너무 볼록하는낌? 글래스모피즘과는 좀 동떨어진늒미이라」) — 앞 판 = 불투명 회색(#26272a) + 둘레 1px 고리 + 짙은 그림자 18/40 = 볼록 튀어나온 꼴
    → 비치는 바탕(위가 조금 밝은 반투명) + 뒤 흐림 22px + 가는 테 하나 + 옅은 그림자 = 영상의 판(납작한 반투명 회색 · 테 고리 없음 · 그림자 옅음)과 앱 유리(--glass-line)에 맞춤 */
-.nm-mb-panel { position:absolute; top:calc(100% + 4px); left:-6px; z-index:1; min-width:268px; padding:6px; border-radius:12px; border:1px solid var(--glass-line, rgba(255,255,255,.08));
+/* 영상을 크게 다시 뽑아 맞댄 것(형 11-16 11:2x 「내가 준 영상 한번만 다시 확인 ㄱ」): 판 모서리 = 거의 각짐(12 → 8px) · 줄 사이가 더 넉넉함(줄 키 ÷ 제목 글자 = 영상 4.9 · 앞 4.15 → 줄 위아래 9 → 13px) · 판은 제자리에서 뜸(미끄러짐 없음) · 닫힘은 한두 프레임(0.12 → 0.06초) · 윗줄과 판 사이 틈 조금 더(4 → 8px) */
+.nm-mb-panel { position:absolute; top:calc(100% + 8px); left:-6px; z-index:1; min-width:268px; padding:6px; border-radius:8px; border:1px solid var(--glass-line, rgba(255,255,255,.08));
   background:linear-gradient(180deg, rgba(20,21,23,.52), rgba(10,11,12,.60)); -webkit-backdrop-filter:blur(22px) saturate(1.25); backdrop-filter:blur(22px) saturate(1.25); box-shadow:0 10px 28px -16px rgba(0,0,0,.7);   /* 더 검게(형 11-16 11:1x 「좀 더 검정인 느낌이여야 한달까?」) — 앞 = 회색 유리(54 · 36) → 검은 유리(20 · 10) · 뒤 흐림은 그대로 · 비침 조금 더(형 11:2x 「살짝 투명도를 더 주면 어캐되징?」 = 68 · 76% → 52 · 60%) */
-  opacity:0; visibility:hidden; transform:translate3d(0,-4px,0); pointer-events:none; transition:opacity .12s linear, transform .12s var(--e-out, cubic-bezier(.2,.8,.2,1)), visibility 0s linear .12s; }
-.nm-mb-group[data-open="1"] > .nm-mb-panel { opacity:1; visibility:visible; transform:none; pointer-events:auto; transition:opacity .16s linear, transform .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), visibility 0s; }
-.nm-mb-hl { position:absolute; left:6px; right:6px; top:0; height:0; border-radius:8px; background:rgba(255,255,255,.055); opacity:0; pointer-events:none; transition:transform .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), height .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), opacity .14s; }
-.nm-mb-row { position:relative; display:flex; align-items:flex-start; gap:10px; padding:9px 10px; border-radius:8px; color:rgba(232,234,232,.92); text-decoration:none; cursor:pointer; opacity:0; }
+  opacity:0; visibility:hidden; pointer-events:none; transition:opacity .06s linear, visibility 0s linear .06s; }
+.nm-mb-group[data-open="1"] > .nm-mb-panel { opacity:1; visibility:visible; pointer-events:auto; transition:opacity .16s linear, visibility 0s; }
+.nm-mb-hl { position:absolute; left:6px; right:6px; top:0; height:0; border-radius:6px; background:rgba(255,255,255,.055); opacity:0; pointer-events:none; transition:transform .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), height .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), opacity .14s; }
+.nm-mb-row { position:relative; display:flex; align-items:flex-start; gap:10px; padding:13px 10px; border-radius:6px; color:rgba(232,234,232,.92); text-decoration:none; cursor:pointer; opacity:0; }
 .nm-mb-group[data-open="1"] .nm-mb-row { animation:nmMbRow .26s var(--e-out, cubic-bezier(.2,.8,.2,1)) var(--d, 0ms) both; }
 @keyframes nmMbRow { from { opacity:0; transform:translate3d(0,4px,0); filter:blur(2px); } to { opacity:1; transform:none; filter:blur(0); } }   /* 흐림은 옅게(2px) = 영상과 나란히 놓고 보니 5px 는 글자가 영상보다 늦게 읽혔음 */
 .nm-mb-ico { flex:none; margin-top:1px; color:rgba(232,234,232,.86); transition:color var(--m-color, .14s); }
@@ -36,7 +37,7 @@
 .nm-mb-txt em { padding:0 6px; border-radius:6px; font-style:normal; font-size:10px; font-weight:500; line-height:16px; color:var(--accent, #CFFF40); background:rgba(207,255,64,.12); }
 .nm-mb-txt small { font-size:12px; line-height:15px; color:rgba(232,234,232,.5); white-space:nowrap; }
 .nm-mb-row:hover b, .nm-mb-row:hover .nm-mb-ico, .nm-mb-row:focus-visible b, .nm-mb-row:focus-visible .nm-mb-ico { color:var(--accent, #CFFF40); }
-.nm-mb-row.foot { margin-top:7px; padding:10px; }
+.nm-mb-row.foot { margin-top:7px; padding:13px 10px; }
 .nm-mb-row.foot::before { content:""; position:absolute; left:-6px; right:-6px; top:-4px; height:1px; background:rgba(255,255,255,.06); }
 /* 밝게 */
 :root:not(.dark) .nm-menubar { color:rgba(22,23,22,.62); box-shadow:inset 0 -1px 0 rgba(22,23,22,.08); }

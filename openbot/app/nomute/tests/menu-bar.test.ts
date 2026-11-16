@@ -15,7 +15,8 @@ test("박자 = 차례로 뜨는 꼴 그대로 · 빠르기는 줄임(판 0.16초
   assert.match(tsx, /const STAGGER_MS = 30, FIRST_MS = 20,/);   // 형 11-16 11:0x 「메뉴 좀 빠르게 켜져야할듯!」(앞 = 영상 박자 86 · 90)
   assert.match(css, /\.nm-mb-group\[data-open="1"\] \.nm-mb-row \{ animation:nmMbRow \.26s /);
   assert.match(css, /\.nm-mb-group\[data-open="1"\] > \.nm-mb-panel \{[^}]*transition:opacity \.16s linear/);
-  assert.match(css, /\.nm-mb-panel \{[^}]*transition:opacity \.12s linear/);
+  assert.match(css, /\.nm-mb-panel \{[^}]*transition:opacity \.06s linear/);   // 닫힘 = 영상처럼 한두 프레임(형 11:2x 「내가 준 영상 한번만 다시 확인 ㄱ」)
+  assert.match(css, /\.nm-mb-panel \{[^}]*border-radius:8px;/); assert.match(css, /gap:10px; padding:13px 10px; border-radius:6px;/);
   assert.match(css, /\.nm-mb-panel \{[^}]*backdrop-filter:blur\(22px\)/);   // 형 「조금 너무 볼록하는낌? 글래스모피즘과는 좀 동떨어진늒미이라」 = 유리 판(비치는 바탕 + 뒤 흐림 · 둘레 고리 그림자 없음)
   assert.doesNotMatch(css, /\.nm-mb-panel \{[^}]*box-shadow:0 0 0 1px/);
   assert.match(tsx, /<i className="nm-mb-hl" aria-hidden \/>/);
