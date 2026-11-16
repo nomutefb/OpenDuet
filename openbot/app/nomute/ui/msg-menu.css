@@ -1,0 +1,29 @@
+/* 글 메뉴(./msg-menu.tsx) — 가운데 판 없이 누른 말풍선 옆에 글 줄 · 나머지 화면은 막 한 장으로 흐림(말풍선 자리만 구멍)
+   움직이는 값 = 투명도 · 자리(transform)만 · 흐림 세기는 안 움직임(막이 뜨는 동안 한 번 그림) */
+.nm-mm { position:fixed; inset:0; z-index:60; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+.nm-mm.out { opacity:0; pointer-events:none; transition:opacity .16s ease; }
+.nm-mm-veil { position:absolute; inset:0; pointer-events:none; background:rgba(8,9,10,.46); -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-composite:xor; mask-composite:exclude; animation:nmMmVeil .18s ease-out both; }
+.nm-mm-l { position:fixed; display:flex; flex-direction:column; min-width:140px; max-width:min(78vw, 300px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
+.nm-mm-l::-webkit-scrollbar { display:none; }
+.nm-mm[data-align="right"] .nm-mm-l { align-items:flex-end; }
+.nm-mm[data-align="left"] .nm-mm-l { align-items:flex-start; }
+.nm-mm-i { flex:none; display:inline-flex; align-items:center; gap:10px; min-height:44px; padding:0 4px; border:0; background:none; color:#fff; font:inherit; font-size:16px; font-weight:600; white-space:nowrap; cursor:pointer; text-shadow:0 1px 10px rgba(0,0,0,.55); -webkit-tap-highlight-color:transparent; animation:nmMmRow .26s cubic-bezier(.2,.7,.3,1) both; animation-delay:calc(var(--i, 0) * 26ms); }
+.nm-mm[data-align="left"] .nm-mm-i { flex-direction:row-reverse; }
+.nm-mm-i > svg { flex:none; width:20px; height:20px; color:#CFFF40; }   /* 바깥(body)에 붙는 판이라 강조색 변수가 안 닿음 → 값으로 */
+.nm-mm-i.back { color:rgba(255,255,255,.62); font-size:14px; }
+.nm-mm-i.back > svg { color:rgba(255,255,255,.62); width:16px; height:16px; }
+.nm-mm-i:active { opacity:.55; }
+.nm-mm-i:disabled { opacity:.45; cursor:default; }
+@media (hover:hover) { .nm-mm-i:hover > span { text-decoration:underline; text-underline-offset:4px; text-decoration-color:rgba(255,255,255,.4); } }
+.nm-mm-q { flex:none; display:inline-flex; gap:2px; min-height:44px; align-items:center; animation:nmMmRow .26s cubic-bezier(.2,.7,.3,1) both; animation-delay:calc(var(--i, 0) * 26ms); }
+.nm-mm-q > button { width:38px; height:38px; padding:0; border:0; border-radius:50%; background:none; font-size:22px; line-height:1; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-mm-q > button:active { transform:scale(.86); }
+.nm-mm-n { flex:none; margin:0; min-height:44px; display:inline-flex; align-items:center; color:#fff; font-size:15px; font-weight:600; text-shadow:0 1px 10px rgba(0,0,0,.55); }
+.nm-mm-n.ok { color:#CFFF40; }
+.nm-mm-n.err { color:#ff8a8a; }
+@keyframes nmMmVeil { from { opacity:0; } }
+@keyframes nmMmRow { from { opacity:0; transform:translateY(8px); } }
+.nm-mm[data-side="below"] .nm-mm-i, .nm-mm[data-side="below"] .nm-mm-q { animation-name:nmMmRowDown; }
+@keyframes nmMmRowDown { from { opacity:0; transform:translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .nm-mm-veil, .nm-mm-i, .nm-mm-q { animation:none; } .nm-mm.out { transition:none; } }
+.nm-mm[data-over] .nm-mm-veil { background:rgba(8,9,10,.62); }   /* 줄이 글 위에 겹칠 때 = 조금 더 어둡게(줄이 읽히게) */

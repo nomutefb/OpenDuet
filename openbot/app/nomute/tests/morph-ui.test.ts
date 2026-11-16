@@ -13,7 +13,7 @@ test("재확인 단추 = 한 벌(.nm-yn) · 줄 안 물음 · 작은 창 · 그 
   assert.match(css, /@media \(prefers-reduced-motion:reduce\) \{ \.nm-yn\.nm-yn > button \{ animation:none !important; transition:none; \}/);
   const body = css.slice(css.indexOf(".nm-yn.nm-yn {"), css.indexOf("/* 알림 한 줄 — 됐어"));
   assert.doesNotMatch(body, /transition:[^;]*(width|left|margin|padding|flex)/, "배치를 다시 세는 움직임 0");
-  assert.match(rd("msg-menu.tsx"), /<div className="nm-yn nm-msgm-yn">/);
+  assert.doesNotMatch(rd("msg-menu.tsx"), /className="nm-yn nm-msgm-yn"/);   // 글 메뉴의 삭제 물음은 걷음(형 11-17 「삭제는 필요없고 복사」)
   assert.match(rd("meet.tsx"), /<div className="nm-yn sm nm-meet-yn">/);
   assert.match(rd("task-panel.tsx"), /<span className="nm-yn sm"><button type="button" className="no"/);
   assert.match(rd("sched-desk.tsx"), /<span className="nm-yn sm">/);

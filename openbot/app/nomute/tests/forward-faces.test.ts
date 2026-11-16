@@ -4,11 +4,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const src = readFileSync(new URL("../ui/msg-menu.tsx", import.meta.url), "utf8");
-const moving = src.slice(src.indexOf("보낼 방{paths.length"), src.indexOf('item("그만두기"'));
+const moving = src.slice(src.indexOf("back(`보낼 방"), src.indexOf(") : asking ? ("));
 
-test("보낼 방 줄 = 1:1 은 명부 얼굴(MicOrb 32) · 단톡은 방 아이콘(RoomIcon 32) · 이름은 그대로", () => {
+test("보낼 방 줄 = 1:1 은 명부 얼굴(MicOrb) · 단톡은 방 아이콘(RoomIcon) · 이름은 그대로(글 줄 꼴이라 28)", () => {
   assert.ok(moving.length > 100, "보낼 방 덩어리를 찾음");
-  assert.match(moving, /x\.with \? <MicOrb size=\{32\} id=\{idOf\(x\.with, list\)\} tint=\{ringOf\(p\)\} \/> : <RoomIcon r=\{x\} size=\{32\} \/>/);
+  assert.match(moving, /x\.with \? <MicOrb size=\{28\} id=\{idOf\(x\.with, list\)\} tint=\{ringOf\(p\)\} \/> : <RoomIcon r=\{x\} size=\{28\} \/>/);
   assert.match(moving, /<span>\{x\.with \? short\(p\?\.name \|\| x\.with\) : x\.name\}<\/span>/);
   assert.match(src, /import \{ RoomIcon \} from "\.\/room-list";/);
 });

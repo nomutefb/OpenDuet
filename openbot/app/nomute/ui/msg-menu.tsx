@@ -1,9 +1,15 @@
+// 글 메뉴 = 누른 말풍선 바로 옆에 글 줄로(가운데 판 · 되묻는 창 없음) — 형 11-17 08:3x 구름 맥 창(영상) 「요것두~~~ 모달 안뜨고 간단하게 하는 식으루 / 답장은 스와이프로 가능하고 / 피시에서는 안되구나 / 삭제는 필요없고 복사 / 수정은 필요없고 다른 방으로 있어야 하고 / 공지 / 확인 요청 / 이모지는 이미 말풍선 잇어서 다른 애들거엔 이제 없어도 될수도잇음 / 공유」
+//   꼴 = 나머지 화면은 흐려지고(막 한 장 · 누른 말풍선 자리만 구멍) 줄이 말풍선 쪽에서부터 차례로 뜸 · 셈(줄 차례 · 자리 · 구멍) = ./msg-menu-logic.ts · 모양 = ./msg-menu.css
+//   앞 꼴 = 가운데 검은 판(카톡 글 메뉴 톤 · 아래 10-31 말) · 삭제 줄 + 「삭제 하시겠습니까?」는 걷음
 // 글 길게 누르기(형 10-31 「톡방 내에서 특정 메세지 길게 누르면 카톡은 이렇게 뜨는데 우리는 톤 일단 맞추고」 · 「고정 복사 확인 요청 공유」)
 //   톤 = 카톡 글 메뉴(어두운 둥근 판 · 글자 줄) · PC = 오른쪽 클릭 · 말풍선을 그냥 누르면 나오는 반응·답장 줄은 그대로
 //   확인 요청 = 1:1 은 모든 봇 · 단톡은 그 방 멤버 · 한 명씩 다 뜨고 마지막에 모두(형 10-31)
 //     단톡 = 그 방에서 인용 + 「!이름」 · 1:1 = 다른 봇은 이 방에 못 불러서 그 봇 1:1 방에 원문을 넣어 바로 깨움
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, type MouseEvent, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from "react";
+import { IconCamera, IconChecks, IconChevronLeft, IconCopy, IconCornerUpLeft, IconCornerUpRight, IconDownload, IconShare2, IconSpeakerphone } from "@tabler/icons-react";
+import { type MenuKey, MENU_KO, clipBox, holeMask, menuItems, placeMenu, saveKo } from "./msg-menu-logic";
+import "./msg-menu.css";
 import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
@@ -40,10 +46,9 @@ export function useLongPress(open: () => void) {
 
 const short = (n: string) => n.replace(" PM", "");
 
-export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onUnsent, onClose }: { onUnsent?: (id: string) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
+export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose }: { onUnsent?: (id: string) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
   const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
-  const [gone, setGone] = useState(false);   // 「삭제」 → 「지울까?」 한 번(봄 08:57 · 되돌리기 어려운 손)
   const [asking, setAsking] = useState(false), [moving, setMoving] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
   const others = list.filter((p) => p.who !== "형" && p.kind !== "human");
   const targets = r?.with || !r?.members?.length ? others : r.members.map((n) => list.find((p) => p.who === n)).filter((p): p is OfficePerson => !!p);
@@ -118,57 +123,68 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
       onClose();
     } catch { onClose(); }   // 공유 창을 그냥 닫음
   };
-  const item = (label: string, on: () => void) => <button key={label} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={on}>{label}</button>;
+  // ── 자리: 누른 말풍선을 찾아 그 옆에(처음 한 번 잼 · 메뉴가 떠 있는 동안 화면은 안 움직임) ──
+  const [geo] = useState(() => {
+    const row = document.querySelector<HTMLElement>(`[data-id="${CSS.escape(m.id)}"]`), el = row?.querySelector<HTMLElement>(".yb") || row?.querySelector<HTMLElement>(".ybw") || row;
+    const q = el?.getBoundingClientRect(), mid = { top: innerHeight / 2 - 22, bottom: innerHeight / 2 + 22, left: innerWidth / 2 - 80, right: innerWidth / 2 + 80 };
+    let sc: HTMLElement | null = el?.parentElement || null; while (sc && !/(auto|scroll)/.test(getComputedStyle(sc).overflowY)) sc = sc.parentElement;   // 굴리는 칸 = 말풍선이 보이는 틀
+    const f = sc?.getBoundingClientRect(), vis = q && q.width ? clipBox({ top: q.top, bottom: q.bottom, left: q.left, right: q.right }, f ? { top: f.top, bottom: f.bottom, left: f.left, right: f.right } : null) : null;
+    return { b: vis || mid, seen: !!vis, mine: !!row && !row.classList.contains("ymsg"), rad: el ? parseFloat(getComputedStyle(el).borderTopLeftRadius) || 18 : 18 };
+  });
+  const mine = geo.mine, fine = typeof matchMedia === "function" && matchMedia("(pointer: fine)").matches;   // 마우스 화면 = 밀어서 답장이 안 됨 → 「답장」 줄을 둠
+  const keys = menuItems({ pics: pics && onSave ? pics : 0, fine, canPin: pins.can, rooms: rooms.length });
+  const rows = note ? 1 : asking ? targets.length + 2 : moving ? rooms.length + 1 : keys.length + (mine ? 1 : 0);
+  const place0 = placeMenu(geo.b, innerWidth, innerHeight, rows + (why ? 1 : 0), mine), place = geo.seen ? place0 : { ...place0, over: true }, hole = holeMask(geo.b, geo.rad);   // 말풍선을 못 찾았거나 안 보이면 구멍 없이
+  useEffect(() => { const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); onClose(); } }; window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, [onClose]);
+  const ICON: Record<MenuKey, ReactNode> = { save: <IconDownload />, reply: <IconCornerUpLeft />, copy: <IconCopy />, move: <IconCornerUpRight />, pin: <IconSpeakerphone />, ask: <IconChecks />, share: <IconShare2 />, shot: <IconCamera /> };
+  const act: Record<MenuKey, () => void> = {
+    save: () => { onSave?.(); done("✓"); },   // 형 11-04 08:22 「길게 누르면 사진을 다운로드」
+    reply: () => { onReply(); onClose(); },
+    copy: () => { void navigator.clipboard?.writeText(text); onClose(); },   // 알림 없이 닫힘(형 11-07 09:40 「복사햇어 라고 뜰 필요는 없고 그냥 ㅌ창 닫히면 됨.」)
+    move: () => setMoving(true),
+    pin: () => { pins.pin({ id: m.id, ts: m.ts }); onClose(); },
+    ask: () => setAsking(true),
+    share: () => void share(),
+    shot: () => { setBusy(true); void captureMsg(m.id, m.ts).then((x) => (x === "saved" ? done("✓") : x === "none" ? done("못 구웠어") : onClose())).catch(() => setWhy("캡처 못 했어 — 다시")).finally(() => setBusy(false)); },
+  };
+  const n = rows, at = (i: number) => ({ "--i": place.side === "above" ? n - 1 - i : i } as CSSProperties);   // 말풍선에 가까운 줄부터 차례로 뜸
+  const back = (label: string, off: () => void) => <button key="back" type="button" role="menuitem" className="nm-mm-i back" style={at(0)} disabled={busy} onClick={off}><span>{label}</span><IconChevronLeft /></button>;
+  const veilStyle = (place.over ? {} : { WebkitMaskImage: `linear-gradient(#000 0 0), ${hole.image}`, maskImage: `linear-gradient(#000 0 0), ${hole.image}`, WebkitMaskPosition: `0 0, ${hole.position}`, maskPosition: `0 0, ${hole.position}`, WebkitMaskSize: `100% 100%, ${hole.size}`, maskSize: `100% 100%, ${hole.size}` }) as CSSProperties;   // 줄이 말풍선 위에 겹칠 땐(화면만큼 긴 글) 구멍 없이 다 흐림
   return createPortal(
-    <div className={leaving ? "nm-msgm out" : "nm-msgm"} role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
-      <div className="nm-msgm-p" role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"}>
-        {note ? <p className={note === "✓" ? "nm-msgm-n nm-msgm-ok" : "nm-msgm-n"} role="status" aria-label={note === "✓" ? "저장됨" : undefined}>{note === "✓" ? <svg className="nm-tick" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg> : note}</p> : gone ? (
+    <div className={leaving ? "nm-mm out" : "nm-mm"} data-side={place.side} data-align={place.align} data-over={place.over || undefined} role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
+      <i className="nm-mm-veil" aria-hidden style={veilStyle} />
+      <div className="nm-mm-l" role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"} style={{ [place.align]: place.x, ...(place.side === "above" ? { bottom: place.y } : { top: place.y }), maxHeight: place.maxH }}>
+        {note ? <p className={note === "✓" ? "nm-mm-n ok" : "nm-mm-n"} role="status" aria-label={note === "✓" ? "저장됨" : undefined}>{note === "✓" ? <svg className="nm-tick" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg> : note}</p>
+        : moving ? (
           <>
-            {/* 형 11-12 06:13 「삭제 하시겠습니까? 아니오 예 이렇게만 나오면됨. 아니오에 라임색 이면 됨.」 — 설명 글 0 · 아니오(안 지움) = 라임 */}
-            <p className="nm-msgm-ask">삭제 하시겠습니까?</p>
-            <div className="nm-yn nm-msgm-yn">   {/* 재확인 단추 한 벌(./go-button.css .nm-yn · 형 11-16) */}
-              <button type="button" className="no" disabled={busy} onClick={() => setGone(false)}>아니오</button>
-              <button type="button" disabled={busy} onClick={() => { onUnsent?.(m.id); onClose(); }}>예</button>   {/* 바로 닫힘 · 서버는 office-chat 이 뒤에서(형 11-12 07:28) */}
-            </div>
-          </>
-        ) : moving ? (
-          <>
-            <p className="nm-msgm-h">보낼 방{paths.length ? ` · 첨부 ${paths.length}` : ""}</p>
-            {/* 줄마다 그 방 얼굴(형 11-17 01:27 dm-bom 「다른 방으로 누르면 애들 얼굴 뜨게래줘 땡큐」 · 봄 옮김) = 1:1 = 그 애 명부 얼굴(대화 목록과 같은 MicOrb · 「확인 요청할 봇」 줄과 같은 32) · 단톡 = 방 아이콘(RoomIcon) · 이미 받아 둔 그림 그대로 */}
-            {rooms.map((x) => { const p = x.with ? list.find((q) => q.who === x.with) : undefined; return (
-              <button key={x.id} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={() => void forward(x)}>
-                {x.with ? <MicOrb size={32} id={idOf(x.with, list)} tint={ringOf(p)} /> : <RoomIcon r={x} size={32} />}
+            {back(`보낼 방${paths.length ? ` · 첨부 ${paths.length}` : ""}`, () => setMoving(false))}
+            {/* 줄마다 그 방 얼굴(형 11-17 01:27 dm-bom 「다른 방으로 누르면 애들 얼굴 뜨게래줘 땡큐」) = 1:1 = 그 애 명부 얼굴(MicOrb) · 단톡 = 방 아이콘(RoomIcon) */}
+            {rooms.map((x, i) => { const p = x.with ? list.find((q) => q.who === x.with) : undefined; return (
+              <button key={x.id} type="button" role="menuitem" className="nm-mm-i face" style={at(i + 1)} disabled={busy} onClick={() => void forward(x)}>
                 <span>{x.with ? short(p?.name || x.with) : x.name}</span>
+                {x.with ? <MicOrb size={28} id={idOf(x.with, list)} tint={ringOf(p)} /> : <RoomIcon r={x} size={28} />}
               </button>
             ); })}
-            {item("그만두기", () => setMoving(false))}
           </>
         ) : asking ? (
           <>
-            <p className="nm-msgm-h">확인 요청할 봇</p>
-            {targets.map((p) => (
-              <button key={p.who} type="button" role="menuitem" className="nm-msgm-i" disabled={busy} onClick={() => void ask(p)}>
-                <MicOrb size={32} id={idOf(p.who, list)} tint={ringOf(p)} />
-                <span>{short(p.name || p.who)}</span>{p.mark ? <span aria-hidden>{p.mark}</span> : null}
+            {back("확인 요청할 봇", () => setAsking(false))}
+            {targets.map((p, i) => (
+              <button key={p.who} type="button" role="menuitem" className="nm-mm-i face" style={at(i + 1)} disabled={busy} onClick={() => void ask(p)}>
+                <span>{short(p.name || p.who)}{p.mark ? <span aria-hidden> {p.mark}</span> : null}</span>
+                <MicOrb size={28} id={idOf(p.who, list)} tint={ringOf(p)} />
               </button>
             ))}
-            {item("모두", () => void ask(null))}
+            <button type="button" role="menuitem" className="nm-mm-i" style={at(targets.length + 1)} disabled={busy} onClick={() => void ask(null)}><span>모두</span><IconChecks /></button>
           </>
         ) : (
           <>
-            <div className="nm-msgm-q" role="group" aria-label="반응">{quick.map((q) => <button key={q} type="button" aria-label={`반응 ${q}`} onClick={() => { onReact(q); onClose(); }}>{q}</button>)}</div>
-            {pics && onSave ? item(pics > 1 ? `사진 저장 ${pics}장` : "사진 저장", () => { onSave(); done("✓"); }) : null}   {/* 형 11-04 08:22 「길게 누르면 사진을 다운로드」 = 사진 든 글은 맨 위 */}
-            {item("답장", () => { onReply(); onClose(); })}
-            {pins.can ? item("공지", () => { pins.pin({ id: m.id, ts: m.ts }); onClose(); }) : null}
-            {item("복사", () => { void navigator.clipboard?.writeText(text); onClose(); })}   {/* 알림 없이 창만 닫힘(형 11-07 09:40 봄 1:1 「그리고 우클릭해서 복사 누르면, 복사햇어 라고 뜰 필요는 없고 그냥 ㅌ창 닫히면 됨.」) */}
-            {item("확인 요청", () => setAsking(true))}
-            {item("공유", () => void share())}
-            {pins.can && onUnsent ? item("삭제", () => setGone(true)) : null}   {/* 형 · 봄만(형 11-11 08:57 「1하고 봄」) · 앱 = 형 화면만(봄은 열쇠로 서버 문) · pins.can = 사람 문 · 쓰기 됨 */}
-            {item("캡처", () => { setBusy(true); void captureMsg(m.id, m.ts).then((r) => (r === "saved" ? done("✓") : r === "none" ? done("못 구웠어") : onClose())).catch(() => setWhy("캡처 못 했어 — 다시")).finally(() => setBusy(false)); })}
-            {rooms.length ? item("다른 방으로", () => setMoving(true)) : null}
+            {/* 반응 줄 = 내 글에만(남의 글엔 말풍선 모서리에 바로 다는 반응이 이미 있음 · 형 「이모지는 이미 말풍선 잇어서 다른 애들거엔 이제 없어도 될수도잇음」) */}
+            {mine ? <div className="nm-mm-q" role="group" aria-label="반응" style={at(0)}>{quick.map((q) => <button key={q} type="button" aria-label={`반응 ${q}`} onClick={() => { onReact(q); onClose(); }}>{q}</button>)}</div> : null}
+            {keys.map((k, i) => <button key={k} type="button" role="menuitem" className="nm-mm-i" style={at(i + (mine ? 1 : 0))} disabled={busy} onClick={act[k]}><span>{k === "save" ? saveKo(pics) : MENU_KO[k]}</span>{ICON[k]}</button>)}
           </>
         )}
-        {why ? <p className="nm-msgm-n err" role="alert">{why}</p> : null}
+        {why ? <p className="nm-mm-n err" role="alert">{why}</p> : null}
       </div>
     </div>,
     document.body,
