@@ -343,7 +343,11 @@
 .nm-hs .track[data-drag] .fill, .nm-hs .track[data-drag] .run, .nm-hs .track[data-drag] .mid { transition:none; will-change:transform; }
 .nm-hs[data-lock] .track { cursor:default; }
 .nm-hs[data-lock] .grip { display:none; }
-.nm-hs[data-lock] .fill { background:var(--nsb-yel, #ffd166); }
+.nm-hs[data-lock] .fill { background:var(--accent, #CFFF40); }   /* 걸려 있는 멈춤 = 지금 값이라 라임(형 11-17 01:16 「현재 상태인거에 라임 들어오면」 · 앞 = 노랑) */
+.nm-hs[data-draft] .fill { background:rgba(232,234,232,.2); }   /* 아직 안 건 고르는 중 = 회색(걸린 것처럼 안 보이게 · 형 11-17 02:01 「멈춤이 아닌데 계속 멈춤 설정되어잇어」) */
+.nm-hs[data-draft] .mid b { color:var(--nsb-ink); }
+.nm-hs[data-draft] .grip { background:var(--nsb-ink); }
+.nm-bm .sval.off { color:var(--nsb-mut); font-weight:700; }
 .nm-hs .ticks { position:relative; height:16px; margin:4px 3px 0; }
 .nm-hs .ticks span { position:absolute; top:0; transform:translateX(-50%); font-size:10px; font-variant-numeric:tabular-nums; color:var(--nsb-mut); opacity:.8; white-space:nowrap; }
 .nm-hs .ticks span:first-child { transform:none; }

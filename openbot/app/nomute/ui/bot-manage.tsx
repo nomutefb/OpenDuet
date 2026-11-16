@@ -51,7 +51,7 @@ function NextWinRows({ who }: { who: string }) {
 }
 
 /** 기간 막대 — 길 = 지금부터 24시간 · 오른쪽 손잡이를 끌어 늘림 · 막대 안 = 걸리는 시간 · lock = 걸려 있는 멈춤(손잡이 없음). mins 0 = 풀 때까지(길 가득). */
-function HoldBar({ mins, onChange, onLive, now, lock }: { mins: number; onChange: (m: number) => void; onLive?: (m: number) => void; now: number; lock?: { pos: number; text: string } }) {
+function HoldBar({ mins, onChange, onLive, now, lock, draft }: { mins: number; onChange: (m: number) => void; onLive?: (m: number) => void; now: number; lock?: { pos: number; text: string }; draft?: boolean }) {   // draft = 아직 안 건 고르는 중(회색 · 걸린 것처럼 안 보이게)
   const track = useRef<HTMLDivElement>(null), dur = useRef<HTMLElement>(null), drag = useRef(false), last = useRef(mins || HOLD_MAX);
   const p = lock ? lock.pos : mins ? posOf(mins) : 1, text = lock ? lock.text : mins ? durKo(mins) : "풀 때까지";
   const paint = (x: number, t: string) => { const el = track.current; if (!el) return; el.style.setProperty("--p", String(x)); el.toggleAttribute("data-small", x < 0.26); if (dur.current) dur.current.textContent = t; };
@@ -65,7 +65,7 @@ function HoldBar({ mins, onChange, onLive, now, lock }: { mins: number; onChange
     if (d) { e.preventDefault(); onChange(Math.max(HOLD_STEP, Math.min(HOLD_MAX, (mins || HOLD_MAX) + d))); }
   };
   return (
-    <div className="nm-hs" data-lock={lock ? "" : undefined}>
+    <div className="nm-hs" data-lock={lock ? "" : undefined} data-draft={draft && !lock ? "" : undefined}>
       <div ref={track} className="track" role="slider" tabIndex={lock ? -1 : 0} aria-label="멈출 시간" aria-disabled={lock ? true : undefined} aria-valuemin={HOLD_STEP} aria-valuemax={HOLD_MAX} aria-valuenow={mins || HOLD_MAX} aria-valuetext={text}
         style={{ "--p": p } as CSSProperties} data-small={p < 0.26 ? "" : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onKeyDown={key}>
         <span className="clip" aria-hidden><i className="fill" /></span>
@@ -83,6 +83,7 @@ function RestRows({ r, skills }: { r: BotRow; skills: Record<string, string> }) 
   const q = useQuery({ queryKey: REST_KEY, queryFn: () => office<{ rest?: RestMap }>("bots/rest").then((j) => j.rest || {}), staleTime: 30_000, refetchInterval: 60_000, retry: false });
   const cur: Rest | undefined = q.data?.[r.who], on = restOn(cur, now);
   const [codes, setCodes] = useState<string[]>([]), [mins, setMins] = useState(60);   // mins 0 = 풀 때까지
+  const [draft, setDraft] = useState(false);   // 안 걸린 애 = 처음엔 「없음」 한 줄만 · 「걸기」를 눌러야 고르는 칸이 열림(앞 = 고르는 칸이 늘 떠서 라임 「전부」 · 라임 막대 · 「멈춤」 단추가 걸려 있는 꼴로 보였음 · 형 11-17 02:01 dm-bom 「윈터 멈춤이 아닌데 계속 멈춤 설정되어잇어 확인 좀」)
   const name = (c: string) => roleOf(c, true) || skills[c] || c;
   const send = useMutation({
     mutationFn: (turnOn: boolean) => office<{ ok?: boolean; rest?: RestMap }>("bots/rest", { method: "POST", body: JSON.stringify(restBody(r.who, turnOn, codes, untilOf(mins, Date.now()))) }),
@@ -98,16 +99,25 @@ function RestRows({ r, skills }: { r: BotRow; skills: Record<string, string> }) 
       <p className="foot"><span className="sum" />{err}<button type="button" className="go" disabled={send.isPending} onClick={() => send.mutate(false)}>풀기</button></p>
     </div>
   );
+  if (!draft) return (
+    <div className="hold">
+      <Row label="임시 멈춤" note={err}>{[
+        <span key="v" className="sval off">없음</span>,
+        <button key="go" type="button" className="pc" disabled={q.isPending} onClick={() => setDraft(true)}>걸기</button>,
+      ]}</Row>
+    </div>
+  );
   return (
     <div className="hold" data-busy={send.isPending ? "" : undefined}>
       <Row label="임시 멈춤">{[
         <button key="all" type="button" className={`pc${codes.length ? "" : " on"}`} aria-pressed={!codes.length} onClick={() => setCodes([])}>전부</button>,
         ...mine.map((c) => <button key={c} type="button" className={`pc${codes.includes(c) ? " on" : ""}`} aria-pressed={codes.includes(c)} title={skills[c] || c} onClick={() => setCodes((xs) => (xs.includes(c) ? xs.filter((x) => x !== c) : [...xs, c]))}>{name(c)}</button>),
       ]}</Row>
-      <HoldBar mins={mins} onChange={setMins} onLive={(m) => { if (sum.current) sum.current.textContent = sumOf(m); }} now={now} />   {/* 끄는 동안 밑줄 글(끝나는 때)도 같이 따라감 · 리액트 0 */}
+      <HoldBar draft mins={mins} onChange={setMins} onLive={(m) => { if (sum.current) sum.current.textContent = sumOf(m); }} now={now} />   {/* 끄는 동안 밑줄 글(끝나는 때)도 같이 따라감 · 리액트 0 */}
       <p className="foot">
         <span className="sum" ref={sum}>{sumOf(mins)}</span>{err}
         <button type="button" className={`pc${mins ? "" : " on"}`} aria-pressed={!mins} onClick={() => setMins((m) => (m ? 0 : 60))}>풀 때까지</button>
+        <button type="button" className="pc" onClick={() => setDraft(false)}>취소</button>
         <button type="button" className="go" disabled={send.isPending || q.isPending} onClick={() => send.mutate(true)}>멈춤</button>
       </p>
     </div>
