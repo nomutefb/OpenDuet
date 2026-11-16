@@ -66,7 +66,7 @@ test("배선 = 서랍 화면 · 길 #/vm · 자료 문 vm-mem · 그림 꼴 출�
   assert.match(shell, /M\.id === "vmstat" \? <div className="nm-scroll"><VmDesk \/><\/div>/);
   assert.match(router, /"\/vm"/); assert.ok(!tabs.includes('"vmstat"'));   // 따로 선 탭 아님 = 5번 「애들」 화면의 「몸」 탭(길 #/vm 은 그리로)
   assert.match(shell, /if \(p === "\/runner" \|\| p === "\/sched" \|\| p === "\/vm"\) return \{ modal: "botdesk" \};/);
-  assert.match(rd("../ui/bot-desk.tsx"), /\["hands", "손 표"\], \["body", "몸"\]\]/);
+  assert.match(rd("../ui/bot-desk.tsx"), /\["turn", "차례"\], \["body", "몸"\]\]/);
   assert.match(desk, /office<VmMemRes>\("vm-mem"\)/);
   assert.match(rd("../ui/vm-mem-logic.ts"), /nomutefb\/lieflat-charts F3 Hairline Area/);
 });

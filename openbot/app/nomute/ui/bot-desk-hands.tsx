@@ -28,14 +28,17 @@ export const skillShort = (name: string) => name.replace(/\s*및\s*/g, "·");
 /** 차례 밖 · 조용 얼굴 밑 한 마디 = 까닭. */
 const outWhy = (r: BotRow) => (r.rest ? "쉼 지정" : r.lane === "none" ? "줄 없음" : r.lane === "off" ? "조용" : "");
 
-export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Record<string, string>; people: ReturnType<typeof usePeople> }) {
+/** 지금 맡은 일을 작은 표로 — 「#-072」 · 여럿이면 「#-072 +2」 · 맡은 오더가 없으면 "" (형 11-16 19:2x 「그리고 어떤 일 하고잇는지 ?」 · 「화면이 복잡해지면 최대한 상징적인 요소나 클릭햇을때 나오는 요소로」) */
+export const jobChip = (r: BotRow): string => { const o = r.open || []; return o.length ? `${o[0].no}${o.length > 1 ? ` +${o.length - 1}` : ""}` : ""; };
+
+export function HandBoard({ rows, skills, people, sel = "", onPick }: { rows: BotRow[]; skills: Record<string, string>; people: ReturnType<typeof usePeople>; sel?: string; onPick?: (who: string) => void }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const id = setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 5000); return () => clearInterval(id); }, []);
   // 일하는 중 = 맨 위 · 펴 둠(형 11-16 17:5x 「일하는 중이 더 우선적으로 보여야 함」 · 앞 판 = 폰에서 접어 둠) · 머리를 누르면 접힘(얼굴만 한 줄)
   const [openWork, setOpenWork] = useState(true);
   const lanes = H_LANES.map((k) => ({ k, rs: rows.filter((r) => handLane(r) === k).sort((a, b) => (k === "special" ? ST_ORDER.indexOf(handSt(a)) - ST_ORDER.indexOf(handSt(b)) : Number(b.lane === "ready") - Number(a.lane === "ready"))) })).filter((g) => g.rs.length);
   return (
-    <div className="nsb-ab nm-bd-ab first">
+    <div className="nsb-ab nm-bd-ab org first">   {/* org = 왼쪽 세로 줄기 + 칸마다 가지 선(조직 그림 느낌 · ./bot-desk.css) */}
       {lanes.map(({ k, rs }) => (
         <section key={k} className="nsb-ab-lane" data-k={LOOK[k]} data-h={k} aria-label={`${H_KO[k]} ${rs.length}`}>
           {k === "work" ? (
@@ -53,8 +56,8 @@ export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Re
               const sk = r.skills?.[0], skKo = sk && skills[sk] ? skillShort(skills[sk]) : "", skName = roleLabel(r.skills, r.who) || skKo;   // 얼굴 밑 = 영문 직함(형 11-16 18:4x 「Developer … UX Design … PM · Dev. … PM · UXD.」) · 모르는 코드면 서버 한글 이름 · 한글 이름은 풍선에
               const sub = k === "lost" ? r.why || r.cause || "멈춤" : k === "out" ? outWhy(r) : skName;
               return (
-                <li key={r.who} data-sure={k === "idle" ? (sure ? "1" : "0") : undefined} data-st={st || undefined} style={{ animationDelay: `${i * 40}ms` }}>
-                  <div className="cell" title={[st ? ST_KO[st] : "", r.state, skKo ? `1특기 ${skKo}` : ""].filter(Boolean).join(" · ")}>
+                <li key={r.who} data-sure={k === "idle" ? (sure ? "1" : "0") : undefined} data-st={st || undefined} data-sel={sel === r.who || undefined} style={{ animationDelay: `${i * 40}ms` }}>
+                  <div className="cell" role={onPick ? "button" : undefined} tabIndex={onPick ? 0 : undefined} aria-pressed={onPick ? sel === r.who : undefined} onClick={onPick ? () => onPick(r.who) : undefined} onKeyDown={onPick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(r.who); } } : undefined} title={[st ? ST_KO[st] : "", r.state, skKo ? `1특기 ${skKo}` : ""].filter(Boolean).join(" · ")}>
                     <span className="nsb-ab-av">
                       <span className="halo" /><span className="trk" /><span className="dash" />
                       <span className="ring"><i className="r"><u style={{ transform: `rotate(${deg}deg)` }} /></i><i className="l"><u style={{ transform: `rotate(${-deg}deg)` }} /></i></span>
@@ -62,7 +65,8 @@ export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Re
                       <span className="pic"><FaceImg id={idOf(r.who, people)} size={k === "out" ? 34 : 42} /></span>
                     </span>
                     <b>{r.who}</b>
-                    {sub ? <small className={(k === "idle" || k === "special" || k === "work") && skName ? "sk" : undefined}>{sub}</small> : null}   {/* 직함 = 어느 칸에서나 작은 알약 하나(앞 = 일하는 중만 맨글씨) */}
+                    {sub ? <small className={(k === "idle" || k === "special" || k === "work") && skName ? "sk" : undefined}>{sub}</small> : null}
+                    {k !== "lost" && jobChip(r) ? <em className="job" title={(r.open || []).map((o) => `${o.no}${o.title ? " " + o.title : ""}`).join(" · ")}>{jobChip(r)}</em> : null}   {/* 지금 맡은 일 = 번호 한 표(누르면 아래에 다 펼쳐짐) */}
                   </div>
                 </li>
               );

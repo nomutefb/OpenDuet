@@ -7,7 +7,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import type { OfficeRoom } from "../data/office";
+import { type OfficeRoom, idOf } from "../data/office";
+import { FaceImg, usePeople } from "./faces";
 import { type BotTable, agoKo } from "./bot-desk-logic";
 import { type Card, type Col, type Dec, colCount, inboxOf, spanKo } from "./bot-inbox-logic";
 import { DecideFab, openDecide, useDecisions } from "./decide-pop";
@@ -26,14 +27,14 @@ const ChipIcon = ({ k }: { k: "code" | "ctx" | "min" }) => (
   </svg>
 );
 
-function InboxCard({ c, now, open, onToggle, onAct, hasRoom }: { c: Card; now: number; open: boolean; onToggle: () => void; onAct: (c: Card) => void; hasRoom: boolean }) {
+function InboxCard({ c, now, open, onToggle, onAct, hasRoom, face, dim }: { c: Card; now: number; open: boolean; onToggle: () => void; onAct: (c: Card) => void; hasRoom: boolean; face?: string; dim?: boolean }) {
   const span = c.took != null ? spanKo(c.took) : c.since ? spanKo(now - c.since) : "";
   const status = [c.label, c.label && c.tone === "done" ? "" : span].filter(Boolean).join(" · ") || span;
   const act = c.act === "decide" ? "고르기" : c.act === "room" && hasRoom ? "대화방" : "";
   return (
-    <li className="nm-ibx-card" data-flip={c.key} data-tone={c.tone} data-open={open ? "" : undefined}>
+    <li className="nm-ibx-card" data-flip={c.key} data-tone={c.tone} data-open={open ? "" : undefined} data-dim={dim ? "" : undefined}>
       <button type="button" className="hit" aria-expanded={open} onClick={onToggle}>
-        <span className="ttl"><Spark /><b>{c.title}</b></span>
+        <span className="ttl"><Spark /><b>{c.title}</b>{c.who ? <span className="by" title={`담당 ${c.who}`}><FaceImg id={face || c.who} size={18} />{c.who}</span> : null}</span>   {/* 담당자 얼굴 = 일감과 맡은 애가 한 줄에(형 11-16 19:2x 「PM한테 보인 일이 담당자랑 섞여서 아래에 보여아하고」) */}
         <span className="desc">{c.desc}</span>
         <span className="foot">
           <span className="st"><i className="dot" aria-hidden />{status}</span>
@@ -57,8 +58,8 @@ function InboxCard({ c, now, open, onToggle, onAct, hasRoom }: { c: Card; now: n
   );
 }
 
-export function BotInbox({ t, skills, now: at }: { t: BotTable; skills: Record<string, string>; now: number }) {
-  const qc = useQueryClient(), nav = useNavigate();
+export function BotInbox({ t, skills, now: at, focus = "" }: { t: BotTable; skills: Record<string, string>; now: number; focus?: string }) {   // focus = 위 조직 그림에서 고른 애 — 그 애 일감만 밝게
+  const qc = useQueryClient(), nav = useNavigate(), people = usePeople();
   const dec = useDecisions();
   const decs = useMemo(() => ((dec.data || []) as Dec[]).filter((d) => !d.pick).map((d) => ({ ...d, who: whoName(d.who) })), [dec.data]);
   const [view, setView] = useState<View>(() => { try { const v = localStorage.getItem(VIEW_KEY); if (v === "board" || v === "list") return v; } catch { /* 이번만 */ } return typeof matchMedia === "function" && matchMedia("(min-width: 900px)").matches ? "board" : "list"; });
@@ -92,12 +93,11 @@ export function BotInbox({ t, skills, now: at }: { t: BotTable; skills: Record<s
           return (
             <section key={k} className="col" data-col={k} aria-label={name}>
               <h3><Spark /><span>{name}</span><i>{mine.length}</i></h3>
-              {mine.length ? <ul>{mine.map((c) => <InboxCard key={c.key} c={c} now={now} open={open === c.key} onToggle={() => setOpen(open === c.key ? "" : c.key)} onAct={onAct} hasRoom={!!roomOf(c.who)} />)}</ul> : <p className="none">{k === "need" ? "형이 볼 것 없음" : k === "run" ? "도는 일 없음" : "오늘 끝난 일 없음"}</p>}
+              {mine.length ? <ul>{mine.map((c) => <InboxCard key={c.key} c={c} now={now} open={open === c.key} onToggle={() => setOpen(open === c.key ? "" : c.key)} onAct={onAct} hasRoom={!!roomOf(c.who)} face={idOf(c.who, people)} dim={!!focus && c.who !== focus} />)}</ul> : <p className="none">{k === "need" ? "형이 볼 것 없음" : k === "run" ? "도는 일 없음" : "오늘 끝난 일 없음"}</p>}
             </section>
           );
         })}
       </div>
-      <p className="foot-note">카드 = 오늘 오더 · 멈춘 손 · 형 결정 · 단계 = 서버가 아는 때(받음 → 태움 → 끝) · 누르면 펼침</p>
     </section>
   );
 }
