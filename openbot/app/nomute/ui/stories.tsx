@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { idOf, office, people } from "../data/office";
 import { fileUrl } from "../data/file-cache";
 import { FaceImg } from "./faces";
+import { BellsBook, BellsShelf } from "./bells-book";
 import { Pane } from "./pane";
 import "./stories.css";
 
@@ -101,9 +102,10 @@ function Media({ list }: { list: MediaItem[] }) {
   );
 }
 
-/** 서랍 칸(네비 5번) */
+/** 서랍 칸(네비 5번) · 맨 위 = 책 「종과 종 사이」 한 권(./bells-book.tsx · 형 11-17 02:29 「너네 글방 하나 정원에 파서 거기를 책처럼 구성해~~~」) · 누르면 이 칸이 책으로 · ‹ = 목록 */
 export function StoriesModal() {
-  return <Pane title="밥상 이야기"><div className="mt-2"><StoryList /></div></Pane>;
+  const [book, setBook] = useState(false);
+  return <Pane title="밥상 이야기"><div className="mt-2">{book ? <BellsBook onClose={() => setBook(false)} /> : <><BellsShelf onOpen={() => setBook(true)} /><StoryList /></>}</div></Pane>;
 }
 
 /** 밥상 방 오른쪽 위 그림(검색 왼쪽) → 바로 모달 · 이야기가 하나도 없거나 서버가 없으면 단추 0 */

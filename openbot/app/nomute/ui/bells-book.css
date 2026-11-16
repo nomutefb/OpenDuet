@@ -1,0 +1,59 @@
+/* 「종과 종 사이」 책(./bells-book.tsx) — 넘김 = 가로 scroll-snap 만(스크롤 셈 · 도는 움직임 0) · 그림 = 늘 정사각(뜸) · 폰 = 위 그림 아래 글 · 넓은 칸(≥ 720) = 왼쪽 그림 오른쪽 글(펼친 책) */
+.nm-bk-shelf { display:flex; align-items:center; gap:12px; width:100%; margin:0 0 14px; padding:10px 12px 10px 10px; border:1px solid var(--glass-line); border-radius:var(--r-l, 16px); background:var(--glass); color:var(--fg); text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform .2s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+.nm-bk-shelf:active { transform:scale(var(--press-l, .97)); }
+.nm-bk-shelf-art { flex:none; width:52px; height:52px; border-radius:10px; overflow:hidden; background:color-mix(in srgb, var(--fg) 8%, transparent); }
+.nm-bk-shelf-art img { display:block; width:100%; height:100%; object-fit:cover; }
+.nm-bk-shelf-t { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.nm-bk-shelf-t b { font-size:15px; font-weight:700; }
+.nm-bk-shelf-t span { font-size:12px; color:var(--mut); font-variant-numeric:tabular-nums; }
+.nm-bk-shelf-chev { flex:none; width:18px; height:18px; color:var(--mut); }
+
+.nm-bk { container-type:inline-size; display:flex; flex-direction:column; height:min(80svh, 820px); min-height:420px; }
+.nm-bk-h { display:flex; align-items:center; gap:8px; padding:0 0 10px; }
+.nm-bk-h b { flex:1; min-width:0; text-align:center; font-size:15px; font-weight:700; }
+.nm-bk-h button { display:grid; place-items:center; min-width:36px; height:32px; padding:0 10px; border:0; border-radius:999px; background:color-mix(in srgb, var(--fg) 6%, transparent); color:var(--fg); font:inherit; font-size:13px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-bk-h button svg { width:18px; height:18px; }
+.nm-bk-track { flex:1; min-height:0; display:flex; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; scrollbar-width:none; border-radius:var(--r-l, 16px); outline:0; }
+.nm-bk-track::-webkit-scrollbar { display:none; }
+.nm-bk-leaf { flex:0 0 100%; min-width:0; scroll-snap-align:start; scroll-snap-stop:always; display:flex; flex-direction:column; gap:10px; padding:14px 16px 12px; border:1px solid var(--glass-line); border-radius:var(--r-l, 16px); background:var(--glass); overflow:hidden; }
+.nm-bk-chap { margin:0; font-size:12px; color:var(--mut); }
+.nm-bk-sheet { flex:1; min-height:0; display:flex; flex-direction:column; gap:12px; }
+.nm-bk-art { flex:none; margin:0; width:min(100%, 46svh); aspect-ratio:1; align-self:center; border-radius:12px; overflow:hidden; background:color-mix(in srgb, var(--fg) 7%, transparent); }
+.nm-bk-art img { display:block; width:100%; height:100%; object-fit:cover; }
+.nm-bk-text { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.nm-bk-by { display:flex; align-items:center; gap:6px; margin:0 0 6px; font-size:12px; font-weight:700; color:var(--fg-2, var(--fg)); }
+.nm-bk-text h3 { margin:0 0 8px; font-size:17px; font-weight:700; line-height:1.4; }
+.nm-bk-body { margin:0; white-space:pre-wrap; font-size:15px; line-height:1.75; }
+.nm-bk-bell { flex:none; margin:0; padding-top:8px; border-top:1px solid var(--glass-line); text-align:center; font-size:12px; color:var(--mut); }
+/* 쉰 쪽 = 얇은 쪽(글 한 줄 가운데) */
+.nm-bk-leaf.k-rest .nm-bk-sheet { justify-content:center; align-items:center; }
+.nm-bk-leaf.k-rest .nm-bk-text { flex:none; text-align:center; }
+.nm-bk-leaf.k-rest .nm-bk-by { justify-content:center; }
+.nm-bk-leaf.k-rest .nm-bk-body { color:var(--mut); }
+/* 표지 · 차례 */
+.nm-bk-cover { flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; }
+.nm-bk-cover img { width:min(78%, 52svh); aspect-ratio:1; object-fit:cover; border-radius:14px; }
+.nm-bk-cover h2 { margin:0; font-size:22px; font-weight:800; letter-spacing:.02em; }
+.nm-bk-cover p { margin:0; font-size:13px; color:var(--mut); }
+.nm-bk-toc { flex:1; min-height:0; overflow-y:auto; }
+.nm-bk-toc h3 { margin:4px 0 12px; font-size:17px; font-weight:700; }
+.nm-bk-toc ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.nm-bk-toc button { display:flex; align-items:baseline; gap:10px; width:100%; padding:10px 4px; border:0; border-bottom:1px solid var(--glass-line); background:none; color:var(--fg); font:inherit; text-align:left; cursor:pointer; }
+.nm-bk-toc .num { flex:none; font-size:13px; color:var(--mut); font-variant-numeric:tabular-nums; }
+.nm-bk-toc .t { flex:1; min-width:0; font-size:15px; }
+.nm-bk-toc .n { font-size:12px; }
+/* 장 끝 빈 쪽 = 나팔꽃 하나 + 형 한 줄 */
+.nm-bk-note { flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; }
+.nm-bk-glory { width:44px; height:44px; color:color-mix(in srgb, var(--accent, #CFFF40) 70%, var(--fg)); }
+.nm-bk-note-t { margin:0; max-width:28em; white-space:pre-wrap; font-size:15px; line-height:1.7; }
+.nm-bk-note-w { display:flex; flex-direction:column; align-items:stretch; gap:8px; width:min(100%, 360px); }
+.nm-bk-note-w textarea { resize:none; padding:10px 12px; border:1px solid var(--glass-line); border-radius:12px; background:color-mix(in srgb, var(--fg) 4%, transparent); color:var(--fg); font:inherit; font-size:15px; line-height:1.5; }
+.nm-bk-note-go { align-self:flex-end; height:34px; padding:0 16px; border:1px solid var(--accent, #CFFF40); border-radius:999px; background:none; color:var(--accent, #CFFF40); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.nm-bk-note-go:disabled { opacity:.4; cursor:default; }
+/* 넓은 칸 = 펼친 책(왼쪽 그림 · 오른쪽 글) */
+@container (min-width:720px) {
+  .nm-bk-sheet { flex-direction:row; align-items:stretch; gap:24px; }
+  .nm-bk-art { width:auto; height:min(100%, 48cqw); aspect-ratio:1; align-self:center; }   /* 정사각 그대로(뜸 「그림 = 늘 정사각」) · 칸 키와 폭 절반 중 작은 쪽 */
+  .nm-bk-text { padding-top:4px; }
+}
+@media (prefers-reduced-motion:reduce) { .nm-bk-shelf { transition:none; } }
