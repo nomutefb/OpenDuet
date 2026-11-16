@@ -19,6 +19,8 @@ test("박자 = 차례로 뜨는 꼴 그대로 · 빠르기는 줄임(판 0.16초
   assert.match(css, /\.nm-mb-panel \{[^}]*backdrop-filter:blur\(22px\)/);   // 형 「조금 너무 볼록하는낌? 글래스모피즘과는 좀 동떨어진늒미이라」 = 유리 판(비치는 바탕 + 뒤 흐림 · 둘레 고리 그림자 없음)
   assert.doesNotMatch(css, /\.nm-mb-panel \{[^}]*box-shadow:0 0 0 1px/);
   assert.match(tsx, /<i className="nm-mb-hl" aria-hidden \/>/);
+  assert.match(css, /\.nm-menubar > \* \+ \*::before \{[^}]*width:1px; height:12px;/);   // 형 11-16 11:1x 「메뉴간에 구분선도 살짜악잇고?」
+  assert.match(css, /background:linear-gradient\(180deg, rgba\(20,21,23,\.68\), rgba\(10,11,12,\.76\)\)/);   // 형 「좀 더 검정인 느낌이여야 한달까?」
   assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
 });
 test("닫힌 판 = 눌리지도 읽히지도 않음 · Esc · 밖 누름 · 길 바뀜 = 닫힘", () => {

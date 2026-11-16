@@ -4,13 +4,17 @@
 :root:has(.nm-menubar) { --nm-menu-h:34px; }
 :root:has(.nm-menubar) .nm-split-root { padding-top:calc(50px + var(--nm-menu-h)); }
 :root:has(.nm-menubar) .nm-tab-screen { top:calc(50px + var(--nm-menu-h)); }
-.nm-menubar { position:fixed; top:50px; left:64px; right:0; height:var(--nm-menu-h, 34px); z-index:59; display:flex; align-items:center; gap:2px; padding:0 14px; background:var(--nm-tab-on, #121314); box-shadow:inset 0 -1px 0 rgba(232,234,232,.07);
+.nm-menubar { position:fixed; top:50px; left:64px; right:0; height:var(--nm-menu-h, 34px); z-index:59; display:flex; align-items:center; gap:0; padding:0 14px; background:var(--nm-tab-on, #121314); box-shadow:inset 0 -1px 0 rgba(232,234,232,.07);
   font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; text-transform:none;   /* 글꼴 고정 = 프리텐다드(형 11-16 10:3x 「웅 빼고 츠리텐다드」) — 설정 「글꼴」(영문 LEMON MILK · Manrope · 한글 Paperlogy)을 안 따라감 = 기기마다 같은 꼴 · 글꼴 파일은 ./font-all.css 가 이미 올림 */
   font-size:13px; line-height:1; color:rgba(232,234,232,.66); -webkit-user-select:none; user-select:none; }
 .nm-mb-group { position:relative; display:flex; align-items:center; height:100%; }
 .nm-mb-top { display:inline-flex; align-items:center; gap:4px; height:26px; padding:0 10px; border:0; border-radius:8px; background:none; color:inherit; font:inherit; letter-spacing:-.005em; text-decoration:none; white-space:nowrap; cursor:pointer;
   transition:color var(--m-color, .14s), background var(--m-color, .14s); -webkit-tap-highlight-color:transparent; }
-.nm-mb-top + .nm-mb-top, .nm-mb-group + .nm-mb-top, .nm-mb-top + .nm-mb-group { margin-left:2px; }
+/* 칸 사이 옅은 세로 구분선(형 11-16 11:1x 「메뉴간에 구분선도 살짜악잇고?」 · 영상의 Products | Solutions | Pricing 사이 그 선) = 1px · 키 12px · 흰 14% · 칸을 먹지 않게 사이 틈 한가운데에 */
+.nm-menubar > * { position:relative; }
+.nm-menubar > * + * { margin-left:13px; }
+.nm-menubar > * + *::before { content:""; position:absolute; left:-7px; top:50%; width:1px; height:12px; margin-top:-6px; background:rgba(232,234,232,.14); pointer-events:none; }
+:root:not(.dark) .nm-menubar > * + *::before { background:rgba(22,23,22,.16); }
 .nm-mb-top:hover, .nm-mb-group[data-open="1"] > .nm-mb-top { color:#fff; }
 .nm-mb-top.on { color:#fff; }
 .nm-mb-top:focus-visible, .nm-mb-row:focus-visible { outline:2px solid var(--accent, #CFFF40); outline-offset:-2px; }
@@ -19,7 +23,7 @@
 /* 유리 판(형 11-16 11:0x 「조금 너무 볼록하는낌? 글래스모피즘과는 좀 동떨어진늒미이라」) — 앞 판 = 불투명 회색(#26272a) + 둘레 1px 고리 + 짙은 그림자 18/40 = 볼록 튀어나온 꼴
    → 비치는 바탕(위가 조금 밝은 반투명) + 뒤 흐림 22px + 가는 테 하나 + 옅은 그림자 = 영상의 판(납작한 반투명 회색 · 테 고리 없음 · 그림자 옅음)과 앱 유리(--glass-line)에 맞춤 */
 .nm-mb-panel { position:absolute; top:calc(100% + 4px); left:-6px; z-index:1; min-width:268px; padding:6px; border-radius:12px; border:1px solid var(--glass-line, rgba(255,255,255,.08));
-  background:linear-gradient(180deg, rgba(54,56,60,.56), rgba(36,37,40,.62)); -webkit-backdrop-filter:blur(22px) saturate(1.25); backdrop-filter:blur(22px) saturate(1.25); box-shadow:0 10px 28px -16px rgba(0,0,0,.6);
+  background:linear-gradient(180deg, rgba(20,21,23,.68), rgba(10,11,12,.76)); -webkit-backdrop-filter:blur(22px) saturate(1.25); backdrop-filter:blur(22px) saturate(1.25); box-shadow:0 10px 28px -16px rgba(0,0,0,.7);   /* 더 검게(형 11-16 11:1x 「좀 더 검정인 느낌이여야 한달까?」) — 앞 = 회색 유리(54 · 36) → 검은 유리(20 · 10) · 비침 · 뒤 흐림은 그대로 */
   opacity:0; visibility:hidden; transform:translate3d(0,-4px,0); pointer-events:none; transition:opacity .12s linear, transform .12s var(--e-out, cubic-bezier(.2,.8,.2,1)), visibility 0s linear .12s; }
 .nm-mb-group[data-open="1"] > .nm-mb-panel { opacity:1; visibility:visible; transform:none; pointer-events:auto; transition:opacity .16s linear, transform .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), visibility 0s; }
 .nm-mb-hl { position:absolute; left:6px; right:6px; top:0; height:0; border-radius:8px; background:rgba(255,255,255,.055); opacity:0; pointer-events:none; transition:transform .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), height .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), opacity .14s; }
