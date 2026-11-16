@@ -4,35 +4,46 @@
 //   임시 멈춤 서버 = 이미 있는 쉼 지정(빠르 #4053 · GET · POST bots/rest {who, on, codes?, until?} · 한 손에 칸 하나 · 기한 지나면 셈에서 저절로 빠짐)
 export type Rest = { at?: number; by?: string; codes?: string[]; until?: number };
 export type RestMap = Record<string, Rest>;
-export type UntilKey = "1h" | "night" | "morning" | "open";
-export const UNTIL_KO: [UntilKey, string][] = [["1h", "1시간"], ["night", "오늘 밤"], ["morning", "내일 아침"], ["open", "풀 때까지"]];
+
+// ── 끄는 막대(형 11-16 20:5x 구름 맥 창 「기간 설정은 이것도 참고해보고.」 · 본보기 영상 = 24시간 길 위 막대의 오른쪽 손잡이를 끌어 늘림 · 막대 안에 걸리는 시간 · 저장하면 잠김) ──
+//   길 = 지금부터 24시간 · 한 칸 = 30분 · 0분 = 풀 때까지
+export const HOLD_STEP = 30, HOLD_MAX = 24 * 60;
+/** 길 위 자리(0~1) → 분(30분 칸에 붙음 · 30분 ~ 24시간). */
+export const minsAt = (p: number): number => Math.max(HOLD_STEP, Math.min(HOLD_MAX, Math.round((p * HOLD_MAX) / HOLD_STEP) * HOLD_STEP));
+/** 분 → 길 위 자리(0~1). */
+export const posOf = (mins: number): number => Math.max(0, Math.min(1, mins / HOLD_MAX));
+/** 걸리는 시간 한 마디 — 「30분」 · 「3시간」 · 「3시간 30분」. */
+export const durKo = (mins: number): string => { const h = Math.floor(mins / 60), m = mins % 60; return h && m ? `${h}시간 ${m}분` : h ? `${h}시간` : `${m}분`; };
+/** 고른 분 → 끝나는 때(ms) · 0 = 풀 때까지(undefined). */
+export const untilOf = (mins: number, now: number): number | undefined => (mins > 0 ? now + mins * 60e3 : undefined);
 
 const KST = 9 * 3600e3, DAY = 864e5;
 /** 한국 시각의 그날 0시(ms). */
 const day0 = (ms: number) => Math.floor((ms + KST) / DAY) * DAY - KST;
+const p2 = (n: number) => String(n).padStart(2, "0");
 
-/** 고른 기한 → 끝나는 때(ms) · 「풀 때까지」 = undefined. 오늘 밤 = 오늘 자정 · 내일 아침 = 다음 09:00(지금이 09시 전이어도 「내일」 = 다음 날). */
-export function untilOf(k: UntilKey, now: number): number | undefined {
-  if (k === "1h") return now + 3600e3;
-  if (k === "night") return day0(now) + DAY;
-  if (k === "morning") return day0(now) + DAY + 9 * 3600e3;
-  return undefined;
+/** 길 밑 눈금 — 지금부터 24시간 안의 6시간 금(00 · 06 · 12 · 18시) → [{x: 0~1, label}]. */
+export function ticksOf(now: number): { x: number; label: string }[] {
+  const out: { x: number; label: string }[] = [];
+  for (let t = day0(now); t <= now + DAY; t += 6 * 3600e3) if (t > now) out.push({ x: (t - now) / DAY, label: `${p2(new Date(t + KST).getUTCHours())}:00` });
+  return out;
 }
 
 /** 지금 걸려 있나 — 칸이 있고 기한이 안 지남. */
 export const restOn = (r: Rest | undefined, now: number): r is Rest => !!r && (!r.until || r.until > now);
 
-const p2 = (n: number) => String(n).padStart(2, "0");
-/** 기한 한 마디 — 오늘이면 「~21:00」 · 다른 날이면 「~11-17 09:00」 · 없으면 「풀 때까지」(자정 = 「~24:00」). */
-export function untilKo(until: number | undefined, now: number): string {
+/** 끝나는 때 한 마디 — 오늘이면 「21:40」 · 내일이면 「내일 09:00」 · 그 뒤면 「11-18 09:00」 · 없으면 「풀 때까지」. */
+export function endKo(until: number | undefined, now: number): string {
   if (!until) return "풀 때까지";
-  if (until === day0(now) + DAY) return "~24:00";
-  const d = new Date(until + KST), hm = `${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`;
-  return day0(until) === day0(now) ? `~${hm}` : `~${p2(d.getUTCMonth() + 1)}-${p2(d.getUTCDate())} ${hm}`;
+  const d = new Date(until + KST), hm = `${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`, gap = Math.round((day0(until) - day0(now)) / DAY);
+  return gap <= 0 ? hm : gap === 1 ? `내일 ${hm}` : `${p2(d.getUTCMonth() + 1)}-${p2(d.getUTCDate())} ${hm}`;
 }
 
-/** 걸린 멈춤 한 줄 — 「개발 · ~21:00」 · 갈래 없으면 「전부」. name = 특기 코드 → 보이는 이름. */
-export const restKo = (r: Rest, now: number, name: (code: string) => string): string => `${r.codes?.length ? r.codes.map(name).join(" · ") : "전부"} · ${untilKo(r.until, now)}`;
+/** 걸린 멈춤 한 줄 — 「Dev. · 내일 09:00 까지」 · 갈래 없으면 「전부」 · 기한 없으면 「전부 · 풀 때까지」. name = 특기 코드 → 보이는 이름. */
+export const restKo = (r: Rest, now: number, name: (code: string) => string): string => `${r.codes?.length ? r.codes.map(name).join(" · ") : "전부"} · ${endKo(r.until, now)}${r.until ? " 까지" : ""}`;
+
+/** 걸린 멈춤의 길 위 자리(0~1) — 남은 시간 / 24시간 · 기한 없음 = 길 끝까지. */
+export const restPos = (r: Rest, now: number): number => (r.until ? Math.max(0.02, Math.min(1, (r.until - now) / DAY)) : 1);
 
 /** 서버로 보낼 몸 — 켜기 = {who, on:true, codes?, until?}(전부 · 풀 때까지면 그 칸을 안 보냄) · 풀기 = {who, on:false}. */
 export function restBody(who: string, on: boolean, codes: string[], until: number | undefined): { who: string; on: boolean; codes?: string[]; until?: number } {
