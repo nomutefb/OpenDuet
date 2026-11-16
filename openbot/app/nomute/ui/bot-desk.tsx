@@ -167,7 +167,7 @@ export function BotDesk() {
     <div className="nsb nm-botdesk mx-auto w-full max-w-3xl px-4 pt-3 pb-4">
       <h1 className="sr-only">애들</h1>
       <div className="nm-bd-head" role="status">
-        <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>작업 중 <b>{working.length}</b><span className="also">쉬는 중 <b>{idle.length}</b></span></>}   {/* 일하는 중이 먼저(형 11-16 17:5x 「일하는 중이 더 우선적으로 보여야 함」 · 앞 판 = 노는 손만) */}
+        <p className="big">{q.isPending ? <span className="t-dim">읽는 중…</span> : q.isError ? <span className="t-lost">못 읽음</span> : !live ? <span className="t-dim">지금 세는 중</span> : <>작업 중 <b>{working.length}</b><span className="also">쉬는 중 <b>{crew.length - working.length}</b></span></>}   {/* 일하는 중이 먼저(형 11-16 17:5x 「일하는 중이 더 우선적으로 보여야 함」 · 앞 판 = 노는 손만) */}
           <span className="side">{n.lost ? <span className="badge">연결 끊김 {n.lost}</span> : null}{q.data?.at ? <span className="at">{hmKo(q.data.at)}{q.data.stale ? " · 묵은 것" : ""}</span> : null}</span>
         </p>
         {q.data && live ? (

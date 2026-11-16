@@ -12,11 +12,8 @@ export function Oops({ title = "앗, 잠깐 엉켰어.", sub = "같이 다시 �
     <div className={`nm-oops${small ? " small" : ""}`} role="alert">
       <picture><source srcSet={OOPS_GIF} type="image/webp" /><img src={OOPS_PNG} alt="" width={small ? 72 : 168} height={small ? 72 : 168} /></picture>
       <b>{title}</b>
-      <small>{sub}</small>
-      <p>
-        <button type="button" onClick={() => (retry ? retry() : location.reload())}>다시 열기</button>
-        {small ? null : <><span aria-hidden>·</span><button type="button" onClick={home}>정원으로 돌아가기</button></>}
-      </p>
+      <button type="button" className="again" onClick={() => (retry ? retry() : location.reload())}>{sub}</button>   {/* 글자가 곧 다시 여는 길(형 11-16 20:0x 구름 맥 창 「다시 열기는 없애고 같이 다시가볼까 ? 에 글자에만 라임색 넣어서 클릭하게끔」) */}
+      {small ? null : <p><button type="button" onClick={home}>정원으로 돌아가기</button></p>}
     </div>
   );
 }

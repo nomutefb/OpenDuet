@@ -70,7 +70,7 @@ export function groupOf(r: BotRow): Group {
 // ── 직무 표기(형 11-16 18:4x 구름 맥 창 「저기에서 보이는 직무 표기 알려줄게 / Developer 천둥 번개 빠르 소나 / UX Design 구름 시아 / PM · Dev. 깃 / PM · UXD. 봄」 · 「너가 한전 보고 판단해봐 dev uxd」) ──
 //   특기 코드(서버 손 표 _roles.js SKILLS) → 영문 직함 · 1특기가 관리 배분(M)이면 「PM · <2특기 줄임>」 · 그 밖 = 1특기 하나
 //   형이 준 것 = D Developer(줄임 Dev.) · U UX Design(줄임 UXD.) · M PM / 나머지는 같은 결로 내가 정함 = R Research(R&D) · S Fixer · Xb Musician(형 「결 musician」) · Xc Storyteller(형 「뎅 결 윈터는 Storyteller」) · Xa 는 형이 정함 = Creator · Xd = Scoop Hunt.(슈왕 · 형 18:5x 구름 맥 창 「촉 이 아니라 이제 슈왕 / Scoop Hunter」 → 19:0x 「슈왕 Scoop Hunt.」)
-const ROLE_LONG: Record<string, string> = { M: "PM", D: "Developer", U: "UX Design", R: "Research", S: "Fixer", X: "Special", Xa: "Creator", Xb: "Musician", Xc: "Storyteller", Xd: "Scoop Hunt." };   // Xa(사진·영상 제작) = Creator(형 11-16 18:5x 「뜸은 creator」 · 앞 = Media)
+const ROLE_LONG: Record<string, string> = { M: "PM", D: "Developer", U: "UX Design", R: "Research", S: "Fixer", X: "Special", Xa: "Creator", Xb: "Musician", Xc: "Storyteller", Xd: "Scoop Hunt" };   // Xa(사진·영상 제작) = Creator(형 11-16 18:5x 「뜸은 creator」 · 앞 = Media)
 const ROLE_SHORT: Record<string, string> = { ...ROLE_LONG, D: "Dev.", U: "UXD.", R: "R&D" };
 /** 코드 하나 → 직함(short = 줄임) · 모르는 코드 = "" */
 export const roleOf = (code: string | undefined, short = false): string => (code ? (short ? ROLE_SHORT : ROLE_LONG)[code] || "" : "");

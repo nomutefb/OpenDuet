@@ -45,7 +45,7 @@ export function inboxOf(t: BotTable | undefined, decs: Dec[], now: number, skill
   }
   for (const r of rows) {
     if (r.lane === "lost") {   // 멈춘 손 = 형 차례(맨 위)
-      out.push({ key: `lost:${r.who}`, col: "need", tone: "fail", title: `${r.who} 멈춤`, who: r.who, desc: [r.cause, r.why].filter(Boolean).join(" · ") || r.state, since: r.last_at, label: "멈춤", chips: chipsOf(r, undefined, skills), head: headOf(r), act: "room", order: 0,
+      out.push({ key: `lost:${r.who}`, col: "need", tone: "fail", title: `${r.who} 연결 끊김`, who: r.who, desc: [r.cause, r.why].filter(Boolean).join(" · ") || r.state, since: r.last_at, label: "연결 끊김", chips: chipsOf(r, undefined, skills), head: headOf(r), act: "room", order: 0,
         steps: [...(r.last_at ? [{ text: "마지막 손", at: r.last_at }] : []), ...(r.beat_at ? [{ text: "마지막 대기 신호", at: r.beat_at }] : []), ...(r.door_at ? [{ text: "문 확인", at: r.door_at }] : []), { text: [r.cause || "멈춤", r.why].filter(Boolean).join(" — "), live: true, bad: true }] });
     }
     const jobs = jobsOf(r), working = r.lane === "work";
