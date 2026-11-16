@@ -942,6 +942,16 @@ function RouteLine({ m, c }: { m: Msg; c: Ctx }) {
     </p>
   );
 }
+/** 묶음 머리 = 얼굴 + 이름 한 덩이 · 묶음(.ymgrp) 끝까지 sticky · 쉬는 자리 = 첫 말풍선 얼굴 · 이름 그 좌표(그쪽 진짜는 visibility hidden · yeta-chat.css .ymgrp-head) · 가만히 둔 화면 = sticky 만(스크롤 셈 0) */
+function GroupHead({ m, c, fresh = false }: { m: Msg; c: Ctx; fresh?: boolean }) {
+  const p = c.list.find((x) => x.who === m.who);
+  return (
+    <div className={`ymsg ymgrp-head${fresh ? " in" : ""}`}>
+      <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
+      <div className="ycol"><NameLabel tint={ringOf(p)} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} /></div>
+    </div>
+  );
+}
 function Line(p: ComponentProps<typeof LineBody>) { return <LineGuard m={p.m}><LineBody {...p} /></LineGuard>; }
 function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean; noTime?: boolean }) {
   const p = c.list.find((x) => x.who === m.who), ring = ringOf(p);   // ring = 이름표 바탕(테 색 · yeta-chat.css .yname.tab)
@@ -1461,7 +1471,9 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop, first: firstRef.current }; void older(); }}>옛 글 더 보기</button>
           ) : null}
           {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">첫 대화를 시작해보세요</p> : null}
-          {items.map((it, idx) => {
+          {(() => {   /* 같은 이 연달아 = 묶음 한 덩이(.ymgrp) · 맨 위 얼굴 + 이름 머리(GroupHead)가 묶음 끝까지 sticky — 형 11-16 20:39 dm-bom 「글 길어져도 좌상단에 프로필 라벨이랑 나오게 해줘」 · 11-17 00:58 「이건 해결은 해주는게 맞음」(긴 글이 이음 말풍선이면 첫 말풍선 안 sticky 는 붙을 데가 없었음 · 1559177 되돌림 까닭) */
+          const rows: { key: string; it: Item; date: ReactNode; turn: boolean; head: boolean; join: boolean; fresh: boolean; body: ReactNode }[] = [];
+          items.forEach((it, idx) => {
             const first = it.t === "msg" || it.t === "ev" ? it.m : it.msgs[0];   // ev = 글 하나(msgs 없음 · 11-06 08:0x 이걸 빠뜨려 드나듦 줄 있는 방이 깨졌음)
             const newDay = !first._thr && (!prevTs || dayKey(prevTs) !== dayKey(first.ts));
             if (newDay || it.t === "band") lastMsg = undefined;
@@ -1478,10 +1490,10 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
             prev = it;
             if (it.t === "msg") lastMsg = it.m;
             const key = it.t === "msg" ? it.m.id : `${it.t}-${first.id}`;
-            return (
-              <div key={key} className={`flex flex-col gap-[10px]${turn ? " yturn" : ""}`}>
-                {newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null}
-                {it.t === "ev" ? (
+            const them = it.t === "msg" && !mineOf(it.m) && !it.m._thr;
+            rows.push({ key, it, turn, head: them && !cont, join: them && cont, fresh: it.t === "msg" && it.m.ts > (baseTs.current ?? Infinity),
+              date: newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null,
+              body: <>{it.t === "ev" ? (
                   <p className="yev" title={t12(it.m.ts)}>
                     <span>{it.m.text || ""}</span>
                     {it.m.event?.kind === "left" && inviteOn.has(it.m.id) ? <GoButton className="yev-a" disabled={!!inviting} go={() => invite(it.m)} done={invited} busy="초대하는 중">채팅방으로 초대하기</GoButton> : null}
@@ -1492,10 +1504,25 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
                     {it.msgs.length > 1 ? ` 외 ${it.msgs.length - 1}` : ""} · <span className="tabular-nums">{t12(it.msgs.at(-1)?.ts || 0)}</span>
                   </p>
                 )}
-                {moved ? <p className="ydate yfwd">여기까지 앞 방에서 옮겨 온 글</p> : null}   {/* 새 임시방 맨 앞 20글과 이 방에서 쓴 글 사이(형 11-16 20:09 「초대한 직전 방의 20개 대화가 공유되게해줘」) */}
-              </div>
+                {moved ? <p className="ydate yfwd">여기까지 앞 방에서 옮겨 온 글</p> : null}   {/* 새 임시방 맨 앞 20글과 이 방에서 쓴 글 사이(형 11-16 20:09 「초대한 직전 방의 20개 대화가 공유되게해줘」) */}</> });
+          });
+          const gap = (j: number) => rows[j] && (rows[j].it.t === "sys" || rows[j].it.t === "sent");   // 사이에 낀 종 · 시스템 · 보낸 흔적 알약 = 묶음이 안 끊김(cont 와 같은 셈)
+          const out: ReactNode[] = [];
+          for (let i = 0; i < rows.length; i++) {
+            const r0 = rows[i];
+            if (!r0.head) { out.push(<div key={r0.key} className={`flex flex-col gap-[10px]${r0.turn ? " yturn" : ""}`}>{r0.date}{r0.body}</div>); continue; }
+            const g = [r0];
+            for (;;) { let j = i + 1; while (gap(j)) j++; if (!rows[j]?.join) break; while (i < j) g.push(rows[++i]); }
+            out.push(
+              <div key={`g-${r0.key}`} className={`ymgrp flex flex-col gap-[10px]${r0.turn ? " yturn" : ""}`}>
+                {r0.date}
+                <GroupHead m={(r0.it as { m: Msg }).m} c={c} fresh={r0.fresh} />
+                {g.map((x) => <div key={x.key} className="flex flex-col gap-[10px]">{x === r0 ? null : x.date}{x.body}</div>)}
+              </div>,
             );
-          })}
+          }
+          return out;
+          })()}
           {draft ? (   /* 쓰는 중 초안 = YETA _yDraft 꼴(문장이 자라는 대로 그 봇 말풍선 · 끝에 점 셋 · 끝난 답 글이 오면 사라짐) */
             <div className="ymsg ytyp" aria-live="polite" role="button" tabIndex={0} aria-label={`${nmOf(list, draft.who)} 프로필`} style={{ cursor: "pointer" }} onClick={() => setProf(draft.who)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setProf(draft.who); } }}>   {/* 쓰는 중 줄도 같게 */}
               <div className="yava"><Ava who={draft.who} list={list} work /></div>
