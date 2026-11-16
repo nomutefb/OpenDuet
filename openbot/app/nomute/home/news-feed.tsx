@@ -57,6 +57,8 @@ export const homeMeta = (c: Cand) => { let d = c; while (d._disp) d = d._disp; r
 
 /** 품은 화면 톤 = YETA(ui/inapp.ts yetaTone · 결의 방·토큰·피드백과 같은 값)에 덱만의 덧줄 · 간소 = 팔로워 띠·PICK 뺌 */
 // 고른 카드(틈·촉 픽) = 얼굴 배지 · 라임 겉 테 · 번짐 빛 없음(형 11-09 08:13 임시방 「글구 이제 틈 촉 플필 모양이랑 겉면에 라인 이랑 번짐? 이거 없어도 될듯」 · 97789.jpg · 뜸) — 옛 줄 = .article-card:has(.article-pick) 라임 테·번짐
+const PHOTO_WAIT = `${location.origin}${import.meta.env.BASE_URL}photo-wait.svg`;   // 사진 기다림 바탕(public/photo-wait.svg · 회색 14% 민 판 = 어둡게 · 밝게 둘 다 카드 바탕보다 한 톤 · 글자 · 움직임 0)
+
 const DECK = (dark: boolean) => `:root{--modern-space-bg:transparent}.deck{--card-solid:${dark ? "#1b1c1b" : "#f4f5f3"}}
 .practical-main{--reader-top-gap:0px;--reader-dock-clear:0px;--menu-dock-gap:0px;--modern-menu-height:0px;--home-pulse-h:0px!important}
 #home-pulse{display:none!important}.reader-actions .pick-control{display:none!important}
@@ -102,7 +104,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
     let events: NewsEvent[] | null = null;   // 사건 묶음 점수(score100 · /api/trends?f=event · 1분마다 · 못 받으면 앞 판)
     let cands: Cand[] = [], articles: unknown[] = [], overlap: unknown = null, images: unknown = null, alpha: unknown = null, imagesAt = 0, triage: unknown = null, merges: unknown = null, picks: unknown[] = [], picksAt = 0;
     // 사진 없는 카드 채우기(형 11-03 12:46 「그리고 메인에 사진 없는 이슈는 없게 하고픈데 …」 · 뜸 에디터 홈 #2253 과 같은 꼴) = 다 그린 뒤 사진 없는 행의 기사 주소를 사무실 링크 카드(/api/office/linkcard · og:image · R2 7일)로 읽어 사진 지도에 더하고 다시 그림 · 동시 4 · 한 바퀴 24 · 물은 주소는 다시 안 물음
-    const linkImages: Record<string, string> = {}, linkTried = new Set<string>();
+    const linkImages: Record<string, string> = {}, linkTried = new Set<string>(), linkDone = new Set<string>();   // linkDone = 링크 카드 답까지 받은 주소(사진 기다림 판정)
     const linkNotes: Record<string, string> = {};   // 짐작 그림 표시(서버 image_note 「검색 그림」) · 에디터 modern-workspace.js 와 같은 꼴(빠르 #2260 · 칩 = 덱 modern-card-content articleMedia)
     let linkCount = 0, linkTask: Promise<void> | null = null, lastRows: unknown[] = [];
     const post = (type: string, detail: Record<string, unknown> = {}) => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type, ...detail }, location.origin);
@@ -128,8 +130,15 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       }
       if (ei.size) rows = byEvent(rows, (r) => hits.get(r) || null);
       lastRows = rows;
+      // 사진 기다림 = 앞 카드 셋 중 사진 없는 것 · 아직 답 안 온 주소가 남았으면 사진 자리에 가만한 바탕 한 장(글줄이 그 자리를 먼저 차지 안 함 · 도는 움직임 0) · 주소를 다 물어도 없으면 그때 글줄 꼴
+      //   (형 11-17 02:27 「사진이 우선이야 타이틀 아래에는」 · 「사진은 가급적 무조건 잇어야하거즘」 · 봄 02:39 「자리 고정으로 가」) · lastRows(사진 물을 차례)는 그대로 = 바탕 그림을 사진으로 안 셈
+      const shownRows = (rows as { urls?: string[]; meta?: { images?: unknown[] } }[]).map((r, i) => {
+        if (i >= 3 || !r || (Array.isArray(r.meta?.images) && r.meta.images.length)) return r;
+        const wait = (Array.isArray(r.urls) ? r.urls : []).filter((u) => !/youtu\.?be/.test(u)).slice(0, 3).some((u) => !linkDone.has(u));
+        return wait ? { ...r, meta: { ...(r.meta || {}), images: [{ url: PHOTO_WAIT, sourceUrl: "", alt: "" }] } } : r;
+      });
       const generated = (overlap as { generated?: string } | null)?.generated || null;
-      snap = { rows, status: { state: rows.length ? "ready" : overlap ? "empty" : "error", message: rows.length ? "" : overlap ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어.", generated, source: "live" } };
+      snap = { rows: shownRows, status: { state: rows.length ? "ready" : overlap ? "empty" : "error", message: rows.length ? "" : overlap ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어.", generated, source: "live" } };
       version++; send();
       void fillImages(md);
     };
@@ -142,6 +151,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
         if (Array.isArray(row?.meta?.images) && row.meta.images.length) continue;
         for (const u of (Array.isArray(row?.urls) ? row.urls : []).filter((x) => !/youtu\.?be/.test(x)).slice(0, 3)) if (!linkTried.has(u)) front.add(u);
       }
+      const hadFront = front.size > 0;
       const queue = [...front, ...md.imageAsks(lastRows, linkTried, 24).filter((u) => !front.has(u))];
       if (!queue.length) return null;
       const titleOf = new Map<string, string>();   // 사진 사다리 ⑥(형 11-03 「정확한 사진이 아니더라도, 그 이슈와 유사한 사진을 가져오는게 포인트야」) = 카드 제목을 q 로 → 그 글에서 못 받으면 서버가 같은 이슈 검색 그림
@@ -161,11 +171,11 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
               const banner = !!c && c.image_src !== "search" && BREAKING_TITLE.test(c.title || "");   // [속보] 글 og:image = 매체 공용 배너 → 안 씀(다음 바퀴 = 그 행 다음 기사 주소)
               const img = c && !banner && (c.kind === "page" || c.image_src === "search") ? (md.url ? md.url(c.image) : String(c.image || "")) : "";
               if (img) { linkImages[u] = img; if (c?.image_note) linkNotes[u] = c.image_note; got++; if (front.has(u) && live) { front.clear(); linkCount += got; got = 0; void rebuild(); } }   /* 앞 카드 사진 = 바로(한 번만) */
-            } catch { /* 이 주소는 사진 없이 */ } finally { clearTimeout(t); }
+            } catch { /* 이 주소는 사진 없이 */ } finally { clearTimeout(t); linkDone.add(u); }
           }
         };
         await Promise.all(Array.from({ length: 4 }, worker));
-        if (live && got) { linkCount += got; await rebuild(); }
+        if (live && (got || hadFront)) { linkCount += got; await rebuild(); }   // 앞 카드 주소가 이 바퀴에 있었으면 사진이 없어도 다시 그림 = 바탕 걷고 글줄 꼴
       })().finally(() => { linkTask = null; if (live) setTimeout(() => void fillImages(md), 0); });
       return linkTask;
     };
