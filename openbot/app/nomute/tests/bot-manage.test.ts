@@ -61,8 +61,8 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.match(ui, /\{r\.brain === "그록" \? <GrokRows \/> : null\}/);   // 그록 쪽 애만 호출 맥락 · 그록봇 지침
   // 설정에서 옮긴 것(형 11-16 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」): 「모두」 일괄은 누르기 전 한 번 되물음 · 설정엔 가는 길 하나
   assert.match(ui, /export function BotManageAll\(\)/);
-  assert.match(ui, /setAsk\(\{ model: id, ko: `다음 창 모델을 \$\{ko\}` \}\)/);
-  assert.match(ui, /\{ask \? createPortal\(<div className="nm-bm-pop"><AskYN q=\{`애들 \$\{n\}명 모두 \$\{ask\.ko\}\(으\)로 바꿀까\?`\}/);   // 되묻는 칸 = 몸통에 띄움(뒤흐림 카드 안에 갇히지 않게)
+  assert.match(ui, /<MorphAsk key=\{id\} className="pc" disabled=\{off\} label=\{`모두 모델 \$\{ko\}`\} onYes=\{\(\) => save\.mutate\(\{ model: id \}\)\}>/);   // 그 자리 재확인(모달 0 · 형 21:4x 「항상 그냥 re 토글로만」)
+  assert.doesNotMatch(ui, /AskYN|createPortal/);   // 되묻는 창(모달)은 안 씀
   assert.match(ui, /JSON\.stringify\(\{ all: true, \.\.\.v \}\)/);
   assert.match(desk, /\{sel === "\*" \? <div className="nm-bd-org-one" aria-label="모두 한 번에"><BotManageAll \/><\/div> : null\}/);
   const set = rd("../ui/yeta-settings.tsx");

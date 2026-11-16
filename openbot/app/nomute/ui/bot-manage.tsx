@@ -6,10 +6,9 @@
 //   서버 = 이미 있는 길만: 모델 · 노력도 = profile/nextwin(./next-win.tsx) · 임시 멈춤 = bots/rest(빠르 #4053) · 계정 = 도표 줄 acct(읽기)
 //   움직임 = 끄는 동안 리액트를 안 거치고 그 막대의 transform 만 바꿈(합성 단계 · 60프레임) · 놓으면 30분 칸에 붙음
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type CSSProperties, Fragment, type ReactNode, Suspense, lazy, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { Children, type CSSProperties, Fragment, type ReactNode, Suspense, lazy, useRef, useState } from "react";
 import { office, people } from "../data/office";
-import { AskYN } from "./ask-yn";   // 되묻는 칸 하네스(아니오 = 라임 · 형 11-15 09:00 잣대)
+import { MorphAsk } from "./morph-ask";   // 그 자리 재확인(모달 0 · 누른 낱말이 [아니오(라임)] [예] 로 번지며 바뀜) — 형 11-16 21:4x 구름 맥 창 영상(Mark as Done → Done | Undo) 「항상 그냥 re 토글로만」 · 앱 하네스 그대로
 import { sameOf } from "./model-set-logic";
 import { pmCandidates } from "./pm-set-logic";
 import { type BotRow, roleOf } from "./bot-desk-logic";
@@ -24,11 +23,12 @@ const WAKE_STEPS = [5, 10, 20, 30, 50];   // 호출 맥락 = 깰 때 같이 받�
 const why = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 /** 고르는 줄 하나 — 이름표 + 오른쪽 낱말들(사이 |). */
-function Row({ label, children, note }: { label: string; children: ReactNode[]; note?: ReactNode }) {
+function Row({ label, children, note }: { label: string; children: ReactNode; note?: ReactNode }) {
+  const kids = Children.toArray(children).filter((c) => typeof c !== "string" || c.trim());   // 납작하게 편 낱말들(빈칸 글 뺌) → 사이마다 |
   return (
     <div className="srow">
       <span className="plbl">{label}</span>
-      <span className="sopts">{children.map((c, i) => <Fragment key={i}>{i ? <span className="ssep" aria-hidden>|</span> : null}{c}</Fragment>)}{note}</span>
+      <span className="sopts">{kids.map((c, i) => <Fragment key={i}>{i ? <span className="ssep" aria-hidden>|</span> : null}{c}</Fragment>)}{note}</span>
     </div>
   );
 }
@@ -120,17 +120,16 @@ function PmRow({ who }: { who: string }) {
   const q = useQuery({ queryKey: PM_KEY, queryFn: () => office<{ who?: string; can_edit?: boolean }>("pm"), staleTime: 60_000 });
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const can = q.data ? q.data.can_edit !== false : me?.kind === "human", cur = q.data?.who || who;
-  const [open, setOpen] = useState(false), [ask, setAsk] = useState("");
+  const [open, setOpen] = useState(false);
   const go = useMutation({
     mutationFn: (next: string) => office<{ who?: string }>("pm", { method: "POST", body: JSON.stringify({ who: next }) }),
-    onSuccess: async () => { await qc.invalidateQueries({ queryKey: PM_KEY }); const fresh = await people(true).catch(() => null); if (fresh) { qc.setQueryData(["nomute", "people"], fresh); qc.setQueryData(["nomute", "people-tabs"], fresh); } void qc.invalidateQueries({ queryKey: ["nomute", "bots-sheet"] }); },
+    onSuccess: async () => { await qc.invalidateQueries({ queryKey: PM_KEY }); const fresh = await people(true).catch(() => null); if (fresh) { qc.setQueryData(["nomute", "people"], fresh); qc.setQueryData(["nomute", "people-tabs"], fresh); } void qc.invalidateQueries({ queryKey: ["nomute", "bots-sheet"] }); setOpen(false); },
   });
   return (
     <>
       <Row label="PM" note={go.error ? <em className="err" role="alert">안 됨 · {why(go.error)}</em> : null}>{open
-        ? pmCandidates(list).map((p) => <button key={p.who} type="button" className={`pc${p.who === cur ? " on" : ""}`} aria-pressed={p.who === cur} disabled={!can || go.isPending} onClick={() => { if (p.who !== cur) setAsk(p.who); }}>{p.name || p.who}</button>)
+        ? pmCandidates(list).map((p) => p.who === cur ? <button key={p.who} type="button" className="pc on" aria-pressed>{p.name || p.who}</button> : <MorphAsk key={p.who} className="pc" disabled={!can || go.isPending} label={`PM 을 ${p.name || p.who}(으)로`} onYes={() => go.mutate(p.who)}>{p.name || p.who}</MorphAsk>)   /* 낱말을 누르면 그 자리에서 [아니오] [예] */
         : [<b key="cur" className="sval on">{cur}</b>, <button key="chg" type="button" className="pc" disabled={!can} onClick={() => setOpen(true)}>바꾸기</button>]}</Row>
-      {ask ? createPortal(<div className="nm-bm-pop"><AskYN q={`PM 을 ${ask}(으)로 바꿀까?`} onNo={() => setAsk("")} yes={async () => { await go.mutateAsync(ask); }} done={() => { setAsk(""); setOpen(false); }} /></div>, document.body) : null}   {/* 몸통에 띄움 = 머리 카드(뒤흐림)가 고정 자리를 가두지 않게 */}
     </>
   );
 }
@@ -150,11 +149,11 @@ function GrokRows() {
   );
 }
 
-/** 「모두」 일괄 — 클로드 몸 전부의 다음 창 모델 · 노력도를 한 번에(누르기 전 한 번 되물음 · 봄 11-16 21:30 「아니오 · 예 · 아니오에 라임」) + 계정 우선순위. 설정 「모델 · 노력도」 봇 상자 「모두」 줄 · 「계정 우선순위」에서 옮김. */
+/** 「모두」 일괄 — 클로드 몸 전부의 다음 창 모델 · 노력도를 한 번에(누른 낱말이 그 자리에서 [아니오(라임)] [예] 로 바뀜 = 모달 0 · 봄 11-16 21:30 「누르기 전에 한 번 되묻는 칸」 · 형 21:4x 「항상 그냥 re 토글로만」) + 계정 우선순위. 설정 「모델 · 노력도」 봇 상자 「모두」 줄 · 「계정 우선순위」에서 옮김. */
 export function BotManageAll() {
   const q = useNextWin(), me = useMe(), qc = useQueryClient(), can = me?.kind === "human" && me.can_write !== false;
   const rows = Object.values(q.data || {}), n = rows.length;
-  const [ask, setAsk] = useState<{ model?: string; effort?: string; ko: string } | null>(null), [prio, setPrio] = useState(false);
+  const [prio, setPrio] = useState(false);
   const save = useMutation({
     mutationFn: (v: { model?: string; effort?: string }) => office<{ nextwin?: Record<string, NextWin> }>("profile/nextwin", { method: "POST", body: JSON.stringify({ all: true, ...v }) }),
     onSuccess: (j) => { if (j.nextwin) qc.setQueryData(NW_KEY, j.nextwin); else void qc.invalidateQueries({ queryKey: NW_KEY }); },
@@ -162,11 +161,10 @@ export function BotManageAll() {
   const model = sameOf(rows, "model"), effort = sameOf(rows, "effort"), off = !can || save.isPending || !n;
   return (
     <div className="nm-bm all" aria-label="모두 한 번에">
-      <Row label="모델">{NW_MODELS.map(([id, ko]) => <button key={id} type="button" className={`pc${model === id ? " on" : ""}`} aria-pressed={model === id} disabled={off && model !== id} onClick={() => { if (can && model !== id) setAsk({ model: id, ko: `다음 창 모델을 ${ko}` }); }}>{ko}</button>)}</Row>
-      <Row label="노력도" note={save.error ? <em className="err" role="alert">저장 안 됨 · {why(save.error)}</em> : null}>   {/* 애마다 값이 다르면(섞임) 고른 낱말 없음 */}{NW_EFFORTS.map((x) => <button key={x} type="button" className={`pc${effort === x ? " on" : ""}`} aria-pressed={effort === x} disabled={off && effort !== x} onClick={() => { if (can && effort !== x) setAsk({ effort: x, ko: `다음 창 노력도를 ${x}` }); }}>{x}</button>)}</Row>
+      <Row label="모델">{NW_MODELS.map(([id, ko]) => model === id ? <button key={id} type="button" className="pc on" aria-pressed>{ko}</button> : <MorphAsk key={id} className="pc" disabled={off} label={`모두 모델 ${ko}`} onYes={() => save.mutate({ model: id })}>{ko}</MorphAsk>)}</Row>
+      <Row label="노력도" note={save.error ? <em className="err" role="alert">저장 안 됨 · {why(save.error)}</em> : null}>{NW_EFFORTS.map((x) => effort === x ? <button key={x} type="button" className="pc on" aria-pressed>{x}</button> : <MorphAsk key={x} className="pc" disabled={off} label={`모두 노력도 ${x}`} onYes={() => save.mutate({ effort: x })}>{x}</MorphAsk>)}</Row>
       <Row label="계정 우선순위">{[<button key="o" type="button" className={`pc${prio ? " on" : ""}`} aria-expanded={prio} onClick={() => setPrio((v) => !v)}>{prio ? "접기" : "차례 보기"}</button>]}</Row>
       {prio ? <div className="sub"><Suspense fallback={null}><AcctPrio /></Suspense></div> : null}
-      {ask ? createPortal(<div className="nm-bm-pop"><AskYN q={`애들 ${n}명 모두 ${ask.ko}(으)로 바꿀까?`} onNo={() => setAsk(null)} yes={async () => { await save.mutateAsync({ model: ask.model, effort: ask.effort }); }} done={() => setAsk(null)} /></div>, document.body) : null}
     </div>
   );
 }

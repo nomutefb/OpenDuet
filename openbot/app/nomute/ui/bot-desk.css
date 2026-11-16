@@ -359,6 +359,6 @@
 .nm-bm.all { margin-top:0; border-top:0; }
 .nm-bm .sub { margin:2px 0 8px; padding:10px 0 2px; border-top:1px dashed var(--nsb-line); }
 :root:not(.dark) .nm-bd-allbtn[aria-pressed="true"] { color:#3d6b00; }
-/* 몸통(body)에 띄운 되묻는 칸 = 앱 색 범위 밖이라 라임 · 글꼴을 여기서 다시 검(대화창 .nm-decpop 과 같은 까닭 · 안 걸면 「아니오」가 회색 · 글자가 대문자 글꼴로 나옴) */
-.nm-bm-pop { --accent:#CFFF40; --accent-rgb:207,255,64; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
-:root:not(.dark) .nm-bm-pop { --accent:#4f7a00; --accent-rgb:79,122,0; }
+/* 낱말 자리의 재확인(./morph-ask.tsx · [아니오] [예]) = 줄 안에서 작게 */
+.nm-bm .nm-mask { display:inline-flex; align-items:center; }
+.nm-bm .nm-mask .nm-yn > button { min-height:30px; font-size:13px; }
