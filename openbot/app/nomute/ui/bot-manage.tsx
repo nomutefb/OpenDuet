@@ -6,14 +6,21 @@
 //   서버 = 이미 있는 길만: 모델 · 노력도 = profile/nextwin(./next-win.tsx) · 임시 멈춤 = bots/rest(빠르 #4053) · 계정 = 도표 줄 acct(읽기)
 //   움직임 = 끄는 동안 리액트를 안 거치고 그 막대의 transform 만 바꿈(합성 단계 · 60프레임) · 놓으면 30분 칸에 붙음
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type CSSProperties, Fragment, type ReactNode, useRef, useState } from "react";
-import { office } from "../data/office";
+import { type CSSProperties, Fragment, type ReactNode, Suspense, lazy, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { office, people } from "../data/office";
+import { AskYN } from "./ask-yn";   // 되묻는 칸 하네스(아니오 = 라임 · 형 11-15 09:00 잣대)
+import { sameOf } from "./model-set-logic";
+import { pmCandidates } from "./pm-set-logic";
 import { type BotRow, roleOf } from "./bot-desk-logic";
 import { HOLD_MAX, HOLD_STEP, type Rest, type RestMap, durKo, endKo, minsAt, posOf, restBody, restKo, restOn, restPos, ticksOf, untilOf } from "./bot-manage-logic";
 import { NW_EFFORTS, NW_MODELS, type NextWin, nwDefault, useNextWin } from "./next-win";
 import { useMe } from "./pins";
 
-const NW_KEY = ["nomute", "nextwin"], REST_KEY = ["nomute", "bots-rest"];
+const NW_KEY = ["nomute", "nextwin"], REST_KEY = ["nomute", "bots-rest"], WAKE_KEY = ["nomute", "wakeset"] as const, PM_KEY = ["nomute", "pm"] as const;
+const AcctPrio = lazy(() => import("./acct-prio").then((m) => ({ default: m.AcctPrio })));   // 계정 우선순위 카드 다발(설정에서 옮김 · 펼칠 때만 받음)
+const GrokNote = lazy(() => import("./grok-note").then((m) => ({ default: m.GrokNote })));   // 그록봇 지침 메모(설정에서 옮김 · 펼칠 때만 받음)
+const WAKE_STEPS = [5, 10, 20, 30, 50];   // 호출 맥락 = 깰 때 같이 받는 최근 글 수(./wake-depth.tsx 와 같은 값 · 서버 wakeset)
 const why = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 /** 고르는 줄 하나 — 이름표 + 오른쪽 낱말들(사이 |). */
@@ -107,13 +114,71 @@ function RestRows({ r, skills }: { r: BotRow; skills: Record<string, string> }) 
   );
 }
 
+/** PM 바꾸기 — 후보 이름을 낱말로 · 고르면 한 번 되묻고 저장(서버 POST pm · 설정 「PM」에서 옮김 · 형 11-15 「PM을 설정에서 지정할 수 있게」 → 11-16 19:36 「한쪽에 몰아버리고」). */
+function PmRow({ who }: { who: string }) {
+  const qc = useQueryClient(), me = useMe();
+  const q = useQuery({ queryKey: PM_KEY, queryFn: () => office<{ who?: string; can_edit?: boolean }>("pm"), staleTime: 60_000 });
+  const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
+  const can = q.data ? q.data.can_edit !== false : me?.kind === "human", cur = q.data?.who || who;
+  const [open, setOpen] = useState(false), [ask, setAsk] = useState("");
+  const go = useMutation({
+    mutationFn: (next: string) => office<{ who?: string }>("pm", { method: "POST", body: JSON.stringify({ who: next }) }),
+    onSuccess: async () => { await qc.invalidateQueries({ queryKey: PM_KEY }); const fresh = await people(true).catch(() => null); if (fresh) { qc.setQueryData(["nomute", "people"], fresh); qc.setQueryData(["nomute", "people-tabs"], fresh); } void qc.invalidateQueries({ queryKey: ["nomute", "bots-sheet"] }); },
+  });
+  return (
+    <>
+      <Row label="PM" note={go.error ? <em className="err" role="alert">안 됨 · {why(go.error)}</em> : null}>{open
+        ? pmCandidates(list).map((p) => <button key={p.who} type="button" className={`pc${p.who === cur ? " on" : ""}`} aria-pressed={p.who === cur} disabled={!can || go.isPending} onClick={() => { if (p.who !== cur) setAsk(p.who); }}>{p.name || p.who}</button>)
+        : [<b key="cur" className="sval on">{cur}</b>, <button key="chg" type="button" className="pc" disabled={!can} onClick={() => setOpen(true)}>바꾸기</button>]}</Row>
+      {ask ? createPortal(<div className="nm-bm-pop"><AskYN q={`PM 을 ${ask}(으)로 바꿀까?`} onNo={() => setAsk("")} yes={async () => { await go.mutateAsync(ask); }} done={() => { setAsk(""); setOpen(false); }} /></div>, document.body) : null}   {/* 몸통에 띄움 = 머리 카드(뒤흐림)가 고정 자리를 가두지 않게 */}
+    </>
+  );
+}
+
+/** 그록 쪽 애한테만 — 호출 맥락(깰 때 같이 받는 최근 글 수 · 그록 깸 공통) · 그록봇 지침 메모(공통 · 반영 0). 설정에서 옮김(형 11-16 19:36 「그록봇도 따로 설정에 나오는거로 아는데 한쪽에 몰아버리고 싳은거임」). */
+function GrokRows() {
+  const qc = useQueryClient(), me = useMe(), can = me?.kind === "human" && me.can_write !== false;
+  const q = useQuery({ queryKey: WAKE_KEY, queryFn: () => office<{ set: { recent: number } }>("wakeset").then((j) => j.set), staleTime: 60_000, retry: false });
+  const go = useMutation({ mutationFn: (recent: number) => office<{ set: { recent: number } }>("wakeset", { method: "POST", body: JSON.stringify({ recent }) }).then((j) => j.set), onSuccess: (set) => qc.setQueryData(WAKE_KEY, set) });
+  const now = q.data?.recent, [note, setNote] = useState(false);
+  return (
+    <>
+      <Row label="호출 맥락" note={go.error ? <em className="err" role="alert">안 됨 · {why(go.error)}</em> : <em>그록 공통</em>}>{WAKE_STEPS.map((n) => <button key={n} type="button" className={`pc${now === n ? " on" : ""}`} aria-pressed={now === n} disabled={!can || now === undefined || go.isPending} onClick={() => { if (now !== n) go.mutate(n); }}>{n}개</button>)}</Row>
+      <Row label="그록봇 지침">{[<button key="o" type="button" className={`pc${note ? " on" : ""}`} aria-expanded={note} onClick={() => setNote((v) => !v)}>{note ? "접기" : "메모 열기"}</button>]}</Row>
+      {note ? <div className="sub"><Suspense fallback={null}><GrokNote /></Suspense></div> : null}
+    </>
+  );
+}
+
+/** 「모두」 일괄 — 클로드 몸 전부의 다음 창 모델 · 노력도를 한 번에(누르기 전 한 번 되물음 · 봄 11-16 21:30 「아니오 · 예 · 아니오에 라임」) + 계정 우선순위. 설정 「모델 · 노력도」 봇 상자 「모두」 줄 · 「계정 우선순위」에서 옮김. */
+export function BotManageAll() {
+  const q = useNextWin(), me = useMe(), qc = useQueryClient(), can = me?.kind === "human" && me.can_write !== false;
+  const rows = Object.values(q.data || {}), n = rows.length;
+  const [ask, setAsk] = useState<{ model?: string; effort?: string; ko: string } | null>(null), [prio, setPrio] = useState(false);
+  const save = useMutation({
+    mutationFn: (v: { model?: string; effort?: string }) => office<{ nextwin?: Record<string, NextWin> }>("profile/nextwin", { method: "POST", body: JSON.stringify({ all: true, ...v }) }),
+    onSuccess: (j) => { if (j.nextwin) qc.setQueryData(NW_KEY, j.nextwin); else void qc.invalidateQueries({ queryKey: NW_KEY }); },
+  });
+  const model = sameOf(rows, "model"), effort = sameOf(rows, "effort"), off = !can || save.isPending || !n;
+  return (
+    <div className="nm-bm all" aria-label="모두 한 번에">
+      <Row label="모델">{NW_MODELS.map(([id, ko]) => <button key={id} type="button" className={`pc${model === id ? " on" : ""}`} aria-pressed={model === id} disabled={off && model !== id} onClick={() => { if (can && model !== id) setAsk({ model: id, ko: `다음 창 모델을 ${ko}` }); }}>{ko}</button>)}</Row>
+      <Row label="노력도" note={save.error ? <em className="err" role="alert">저장 안 됨 · {why(save.error)}</em> : null}>   {/* 애마다 값이 다르면(섞임) 고른 낱말 없음 */}{NW_EFFORTS.map((x) => <button key={x} type="button" className={`pc${effort === x ? " on" : ""}`} aria-pressed={effort === x} disabled={off && effort !== x} onClick={() => { if (can && effort !== x) setAsk({ effort: x, ko: `다음 창 노력도를 ${x}` }); }}>{x}</button>)}</Row>
+      <Row label="계정 우선순위">{[<button key="o" type="button" className={`pc${prio ? " on" : ""}`} aria-expanded={prio} onClick={() => setPrio((v) => !v)}>{prio ? "접기" : "차례 보기"}</button>]}</Row>
+      {prio ? <div className="sub"><Suspense fallback={null}><AcctPrio /></Suspense></div> : null}
+      {ask ? createPortal(<div className="nm-bm-pop"><AskYN q={`애들 ${n}명 모두 ${ask.ko}(으)로 바꿀까?`} note="지금 열려 있는 창은 그대로 · 다음 새 창부터" onNo={() => setAsk(null)} yes={async () => { await save.mutateAsync({ model: ask.model, effort: ask.effort }); }} done={() => setAsk(null)} /></div>, document.body) : null}
+    </div>
+  );
+}
+
 export function BotManage({ r, skills }: { r: BotRow; skills: Record<string, string> }) {
   const acct = (r as { acct?: string }).acct, left = (r as { acct_left?: string | number }).acct_left;
   return (
     <div className="nm-bm" aria-label={`${r.who} 관리`}>
       {r.brain === "클로드" ? <NextWinRows who={r.who} /> : null}
       {acct ? <div className="srow"><span className="plbl">계정</span><span className="sopts"><b className="sval">{acct}</b>{left != null && left !== "" ? <em>{typeof left === "number" ? `남은 ${left}` : String(left)}</em> : null}</span></div> : null}
-      {r.pm ? null : <RestRows r={r} skills={skills} />}
+      {r.brain === "그록" ? <GrokRows /> : null}
+      {r.pm ? <PmRow who={r.who} /> : <RestRows r={r} skills={skills} />}
     </div>
   );
 }

@@ -33,10 +33,10 @@ test("PM 1:1 방 = with 먼저 · 방 이름이 who 와 같을 때만 이름", (
   assert.equal(pmRoomId("없는애", rooms), "");
 });
 
-test("설정 화면이 PM 칩을 그리고 POST /pm 으로 씀 · 방 찾기는 같은 셈", () => {
-  const set = rd("../ui/yeta-settings.tsx");
+test("PM 고르기 = 애들 화면 PM 펼침으로 옮김(형 11-16 19:36 · 봄 21:30 「가」) · POST /pm 으로 씀 · 방 찾기는 같은 셈", () => {
+  const set = rd("../ui/bot-manage.tsx");   // 앞 = 설정 화면(yeta-settings) <PmSet /> · 지금 = 관리 칸 PmRow(같은 서버 길 · 같은 후보 셈)
   const pm = rd("../ui/pm-set.tsx");
-  assert.match(set, /<PmSet \/>/);
+  assert.match(set, /function PmRow\(\{ who \}/); assert.match(set, /office<\{ who\?: string \}>\("pm", \{ method: "POST"/); assert.match(set, /pmCandidates\(list\)/);
   assert.match(pm, /method: "POST"/);
   assert.match(pm, /office<PmBody>\("pm"/);
   assert.match(rd("../ui/room-fab.tsx"), /pmRoomId\(pm, rooms\)/);

@@ -351,3 +351,14 @@
 :root:not(.dark) .nm-hs .track { background:rgba(0,0,0,.06); }
 :root:not(.dark) .nm-bm .go { background:#161716; color:#fff; }
 @media (prefers-reduced-motion:reduce) { .nm-hs .fill, .nm-hs .run, .nm-hs .mid, .nm-bm .pc, .nm-bm .go { transition:none; } }
+
+/* 「모두」 일괄 · 펼침 안 딸린 판(./bot-manage.tsx BotManageAll · 계정 우선순위 카드 · 그록봇 지침 메모 · 설정에서 옮김) */
+.nm-bd-allbtn { padding:2px 6px; border:0; background:none; color:var(--nsb-mut); font:inherit; font-size:var(--fs-xs); font-weight:700; letter-spacing:0; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:color .15s ease, scale .12s ease; }
+.nm-bd-allbtn[aria-pressed="true"] { color:var(--accent, #CFFF40); }
+.nm-bd-allbtn:active { scale:.94; }
+.nm-bm.all { margin-top:0; border-top:0; }
+.nm-bm .sub { margin:2px 0 8px; padding:10px 0 2px; border-top:1px dashed var(--nsb-line); }
+:root:not(.dark) .nm-bd-allbtn[aria-pressed="true"] { color:#3d6b00; }
+/* 몸통(body)에 띄운 되묻는 칸 = 앱 색 범위 밖이라 라임 · 글꼴을 여기서 다시 검(대화창 .nm-decpop 과 같은 까닭 · 안 걸면 「아니오」가 회색 · 글자가 대문자 글꼴로 나옴) */
+.nm-bm-pop { --accent:#CFFF40; --accent-rgb:207,255,64; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+:root:not(.dark) .nm-bm-pop { --accent:#4f7a00; --accent-rgb:79,122,0; }

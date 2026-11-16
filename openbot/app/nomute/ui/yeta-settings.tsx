@@ -17,22 +17,17 @@ import { DiffValue } from "./state-diff";   // 줄 값이 바뀌는 순간 옛 �
 import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
 import { office } from "../data/office";
-import { ACT_QUERY_KEY, actCount, type MiniRow } from "./activity-line";
 import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { EnterKeyRow } from "./enter-key";
 import { ThinkMarkRow } from "./live-shine";
-import { WakeDepthRow } from "./wake-depth";
-import { ModelSetRows, useModelSum } from "./model-set";
-import { AcctPrio, useAcctPrioSum } from "./acct-prio";   // CLI 계정 우선순위(형 11-16 · 봄 02:53 「계정이 모델 · 노력도보다 위에」)
-import { GrokNote } from "./grok-note";
+import { ModelSetRows } from "./model-set";
 // 그록봇 지침 메모(#-060)   // 모델 · 노력도(봇 상자 + 서버가 직접 부르는 일 · 일괄 · 형 11-15)
-import { PmSet, usePmLabel } from "./pm-set";   // PM 고르기(형 11-15 「설정에서 지정」 · POST /pm)
 import { PushRow } from "../push/push-row";
 import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { TeamsAccount, useTeamsName } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
 import { PinTintSetting, usePinAlpha } from "./pin-tint";
-import { NomuteBots, NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, NomuteVault, useBuildLine } from "./settings-extra";
+import { NomuteMeter, NomuteNotice, NomuteOld, NomuteSchedule, NomuteVault, useBuildLine } from "./settings-extra";
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
 import { setSkin, useSkin } from "./skin";   // 꾸밈 지금 / 정원(형 11-07 08:01 「지금테마랑 정원테마 고를 수 있게해줘」)
@@ -69,15 +64,10 @@ export function YetaSettings() {
   const skin = useSkin();
   const [open, setOpen] = useState("");
   const health = useQuery({ queryKey: ["nomute", "health"], queryFn: () => office<Health>("health"), refetchInterval: 60_000 }).data?.counts;
-  const bots = useQuery({ queryKey: ACT_QUERY_KEY, queryFn: () => office<{ rows?: MiniRow[] }>("status/activity").then((j) => j.rows || []), refetchInterval: 60_000, staleTime: 30_000 }).data;   // 「지금 봇」과 같은 활동 줄(서버 판정)
   const build = useBuildLine();
   const teamsName = useTeamsName();
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
-  const act = actCount(bots || []), nBots = act.total, awake = act.work;   // 분자 · 분모 = 같은 활동 줄에서(앞 판 = 분모만 그록 봇 수라 「9/7」 · 형 11-15 08:00)
-  const modelSum = useModelSum();   // 모델 · 노력도 묶음 줄 오른쪽 한마디
-  const prioSum = useAcctPrioSum();
   const pinA = usePinAlpha();   // 고정 줄 색 진하기 = 줄 오른쪽 값(./pin-tint)
-  const pmLabel = usePmLabel();   // 지금 PM 표시 이름(서버 pm 칸 · 없으면 빈 글)
   const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
     <Act key={id} ic={ic} t={t} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
@@ -128,17 +118,15 @@ export function YetaSettings() {
         <section className="yset-part" aria-label="봄의 정원">
           <div className="yset-sec">봄의 정원</div>
           <div className="yset-grp">
-            {row("pm", "users", "PM", <PmSet />, pmLabel || undefined)}
             {row("sched", "clock", "스케줄러 바꾸기", <NomuteSchedule />)}
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
             {row("pintint", "layers", "고정 줄 색", <PinTintSetting />, `${pinA}%`)}   {/* 고정 줄 바탕 진하기(형 11-14 23:39 「설정에서 변경하게 만들어도 돼 값을 투명도」 · ./pin-tint · 뜸) */}
             {row("notice", "speaker", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
-            {row("acctprio", "layers", "계정 우선순위", <AcctPrio />, prioSum || undefined)}   {/* 모델 · 노력도보다 위 = 어느 계정부터 쓰나(형 11-16 02:52 「계정이 뭐로 설정되는지가 더 상위 레벨에」 · 03:0x 카드 다발) */}
-            {row("models", "bot", "모델 · 노력도", <ModelSetRows />, modelSum || undefined)}   {/* 봇 상자(다음 새 창) + 서버가 직접 부르는 일 · 「모두」 = 일괄(형 11-15 「설정에서 일괄 모델 하고 노력도 변경」) */}
-            <WakeDepthRow />
+            {/* 봇 쪽 설정(PM · 봇 상자 모델 · 노력도 · 계정 우선순위 · 호출 맥락 · 그록봇 지침 · 지금 봇) = 애들 화면 한 곳으로 옮김 → 여긴 가는 길 하나(형 11-16 19:35 dm-bom 「거기에 봇 관련된 설정은 통합시키려고해」 · 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」) */}
+            <Act ic="bot" t="애들 설정" v="애들에서" onClick={() => { location.hash = "#/drawer"; }} />
+            {row("models", "bot", "일 모델 · 노력도", <ModelSetRows bots={false} />)}   {/* 남긴 것 = 서버가 직접 부르는 일 · 파이프라인(봇이 아니라 일 쪽) */}
             {row("teams", "chat", "팀즈", <TeamsAccount />, teamsName)}
             {row("vault", "keys", "보안 서랍", <NomuteVault />)}
-            {row("groknote", "bot", "그록봇 지침", <GrokNote />, "메모")}
           </div>
         </section>
         <section className="yset-part" aria-label="살펴보기">
@@ -146,7 +134,6 @@ export function YetaSettings() {
           <div className="yset-grp">
             {row("health", "check", "점검표", <NomuteHealth />,
               health ? (health.fix ? `고칠 것 ${health.fix}` : health.unchecked ? `확인 안 됨 ${health.unchecked}` : "다 준비됨") : undefined)}
-            {row("bots", "bot", "지금 봇", <NomuteBots />, bots ? `일하는 중 ${awake}/${nBots}` : undefined)}
             {row("meter", "gauge", "회의실 계기판", <NomuteMeter />)}
           </div>
         </section>

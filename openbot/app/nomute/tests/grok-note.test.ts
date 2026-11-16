@@ -4,7 +4,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 const g = readFileSync(new URL("../ui/grok-note.tsx", import.meta.url), "utf8"), s = readFileSync(new URL("../ui/yeta-settings.tsx", import.meta.url), "utf8");
 test("설정 봄의 정원 묶음에 한 줄 · 메모용 글 · 쓰기 = can_edit(형)", () => {
-  assert.match(s, /row\("groknote", "bot", "그록봇 지침", <GrokNote \/>/);
+  assert.doesNotMatch(s, /<GrokNote \/>/);   // 설정에서 뺌 → 애들 화면 그록 쪽 애 펼침으로(형 11-16 19:36 「그록봇도 … 한쪽에 몰아버리고」)
+  assert.match(readFileSync(new URL("../ui/bot-manage.tsx", import.meta.url), "utf8"), /<Row label="그록봇 지침">[\s\S]*<GrokNote \/>/);
   assert.match(g, /메모용 · 그록봇에 반영 안 됨/);
   assert.match(g, /n\.can_edit \?/);
   assert.match(g, /office<Note>\("grok-note", \{ method: "POST"/);

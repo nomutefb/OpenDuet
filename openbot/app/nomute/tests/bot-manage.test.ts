@@ -57,7 +57,18 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.match(ui, /office<\{ nextwin\?: Record<string, NextWin> \}>\("profile\/nextwin", \{ method: "POST"/);
   assert.match(ui, /office<\{ ok\?: boolean; rest\?: RestMap \}>\("bots\/rest", \{ method: "POST", body: JSON\.stringify\(restBody\(/);
   assert.match(ui, /\{r\.brain === "클로드" \? <NextWinRows who=\{r\.who\} \/> : null\}/);
-  assert.match(ui, /\{r\.pm \? null : <RestRows r=\{r\} skills=\{skills\} \/>\}/);
+  assert.match(ui, /\{r\.pm \? <PmRow who=\{r\.who\} \/> : <RestRows r=\{r\} skills=\{skills\} \/>\}/);   // PM 줄 = PM 바꾸기 · 그 밖 = 임시 멈춤
+  assert.match(ui, /\{r\.brain === "그록" \? <GrokRows \/> : null\}/);   // 그록 쪽 애만 호출 맥락 · 그록봇 지침
+  // 설정에서 옮긴 것(형 11-16 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」): 「모두」 일괄은 누르기 전 한 번 되물음 · 설정엔 가는 길 하나
+  assert.match(ui, /export function BotManageAll\(\)/);
+  assert.match(ui, /setAsk\(\{ model: id, ko: `다음 창 모델을 \$\{ko\}` \}\)/);
+  assert.match(ui, /\{ask \? createPortal\(<div className="nm-bm-pop"><AskYN q=\{`애들 \$\{n\}명 모두 \$\{ask\.ko\}\(으\)로 바꿀까\?`\}/);   // 되묻는 칸 = 몸통에 띄움(뒤흐림 카드 안에 갇히지 않게)
+  assert.match(ui, /JSON\.stringify\(\{ all: true, \.\.\.v \}\)/);
+  assert.match(desk, /\{sel === "\*" \? <div className="nm-bd-org-one" aria-label="모두 한 번에"><BotManageAll \/><\/div> : null\}/);
+  const set = rd("../ui/yeta-settings.tsx");
+  assert.match(set, /<Act ic="bot" t="애들 설정" v="애들에서" onClick=\{\(\) => \{ location\.hash = "#\/drawer"; \}\} \/>/);
+  assert.doesNotMatch(set, /<PmSet \/>|<AcctPrio \/>|<WakeDepthRow \/>|<GrokNote \/>|<NomuteBots \/>/);
+  assert.match(set, /<ModelSetRows bots=\{false\} \/>/);
   // 옛 에디터 줄 값 그대로: 낱말 = 상자 없음 6·7 · 13 · 700 / 고른 낱말 = 강조색 800 / 사이 | = .35
   assert.match(mine, /\.nm-bm \.srow \{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:8px 0; \}/);
   assert.match(mine, /\.nm-bm \.pc \{ height:auto; padding:6px 7px; border:0; border-radius:0; background:none;/);

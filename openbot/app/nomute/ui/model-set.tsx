@@ -52,7 +52,7 @@ function PickRow({ label, sub, pick, models, efforts, can, busy, dimModel, dimEf
   );
 }
 
-export function ModelSetRows() {
+export function ModelSetRows({ bots = true }: { bots?: boolean } = {}) {   // bots=false = 봇 상자 줄은 애들 화면(./bot-manage.tsx)으로 옮겨서 설정엔 일 쪽 둘만(형 11-16 19:36)
   const qc = useQueryClient(), me = useMe(), can = me?.kind === "human" && me.can_write !== false;
   const nw = useNextWin(), ms = useModelSet();
   const botSave = useMutation({
@@ -79,6 +79,7 @@ export function ModelSetRows() {
   const pRows = pipeRows(pipe.data?.llm), pAllIds = PIPE_GROUPS.map((g) => g.id), pAll = pipeAllChoices(jobModels);
   return (
     <div className="nm-ms">
+      {bots ? (
       <section>
         <h3>봇 상자 <small>다음 새 창부터</small></h3>
         {nw.isPending ? <p className="note">불러오는 중</p> : nw.isError ? <p className="note err">봇 상자 값을 못 읽었어 — {(nw.error as Error)?.message || "서버 답 없음"} <button type="button" onClick={() => void nw.refetch()}>다시</button></p> : !names.length ? <p className="note">고를 봇 상자가 없어</p> : (
@@ -92,6 +93,7 @@ export function ModelSetRows() {
           </>
         )}
       </section>
+      ) : null}
       <section>
         <h3>서버가 직접 부르는 일 <small>다음 호출부터</small></h3>
         {ms.isPending ? <p className="note">불러오는 중</p> : ms.isError || !s ? <p className="note err">서버 쪽 값을 못 읽었어 — {(ms.error as Error)?.message || "서버 답 없음"} <button type="button" onClick={() => void ms.refetch()}>다시</button></p> : (
