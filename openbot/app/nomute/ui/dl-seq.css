@@ -15,5 +15,5 @@
 button.nm-dl.nm-dlseq { display:grid; place-items:center; }   /* 말풍선 저장 = 동그라미 그대로(attachment-up.css) */
 
 /* 사진 보기 위 막대 받기 = 누른 그 자리에서 세기(k/N) → ✓ 「완료」 를 라임 알약으로 또렷하게(형 11-16 20:23 「위에서 체크까지 잘 보이게해줘 라임으로 강조되도됨」) */
-.nm-zoom-bar button.nm-dlseq.is-busy, .nm-zoom-bar button.nm-dlseq.is-done { background:rgba(207,255,64,.16); box-shadow:inset 0 0 0 1px rgba(207,255,64,.55); border-radius:999px; }
+.nm-zoom-bar button.nm-dlseq.is-busy, .nm-zoom-bar button.nm-dlseq.is-done { background:rgba(207,255,64,.16); box-shadow:inset 0 0 0 1px rgba(207,255,64,.55); border-radius:999px; padding:0 11.5px 0 8.5px; }   /* raw-ok: 잉크 가운데 맞춤(형 11-16 21:04 「사분할 중심」) · DPR3 실측 Δx +1.50 → 좌 8.5 · 우 11.5 로 1.5 당김 · Δy −0.17 · +0.50 = 그대로 */
 .nm-zoom-bar button.nm-dlseq .nm-dlseq-lbl { font-size:14px; }
