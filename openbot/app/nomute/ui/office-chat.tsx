@@ -116,6 +116,25 @@ const hyungApp = (m: { mirror_by?: string; mirror?: string; who?: string }) => m
 const winOf = (m: { mirror?: string }) => /^window:/.test(String(m.mirror || ""));
 /** 봇이 제 창에서 친 글 = 그 봇 말풍선으로(이름 · 얼굴 = mirror_by · 이름 옆 「창에서」) · 형 창 글은 hyungApp 이 검정 말풍선으로 받음 */
 const asWinBot = <T extends { mirror?: string; mirror_by?: string; kind?: string; who?: string }>(m: T): T => (winOf(m) && m.mirror_by && m.mirror_by !== "형" && m.kind === "system" ? { ...m, who: m.mirror_by, kind: "bot", _win: true } : m);
+/** 답글 원글 펼침(다른 방) — 답한 이 ↔ 인용된 이 둘의 방(pair-<id>-<id> · id 가나다순)에서 그 이 글 · 첫 줄이 맞는 것 */
+type Peek = { who: string; line: string; from: string; room?: string; text?: string; ts?: number; loading?: boolean };
+async function findQuoted(list: OfficePerson[], who: string, line: string, from: string): Promise<{ room: string; text: string; ts: number } | null> {
+  const nameOf = (n: string) => (n === "형" || n === "세웅" ? "형" : (list.find((x) => x.who === n || x.name === n || (x.aka || []).includes(n))?.who || n));
+  const a = idOf(nameOf(who), list), b = from ? idOf(nameOf(from), list) : "";
+  if (!a || !b || a === b) return null;
+  const room = `pair-${[a, b].sort().join("-")}`, head = line.replace(/…$/, "").trim().slice(0, 20);
+  const j = await office<{ messages?: OfficeMsg[] }>(`rooms/${encodeURIComponent(room)}/messages?n=80`);
+  const hit = [...(j.messages || [])].reverse().find((x) => nameOf(x.who) === nameOf(who) && String(x.text || "").replace(/^↩ [^\n]*\n/, "").trim().startsWith(head));
+  return hit ? { room, text: String(hit.text || "").replace(/^↩ [^\n]*\n/, ""), ts: hit.ts } : null;
+}
+function QuotedPeek({ pk, onClose }: { pk: Peek; onClose: () => void }) {
+  return (
+    <div className="nm-qpeek" role="dialog" aria-label="답글 원글">
+      <div className="nm-qpeek-h"><b>{pk.who}</b>{pk.from ? <span> → {pk.from} · 둘의 방</span> : null}{pk.ts ? <time>{t12(pk.ts)}</time> : null}<button type="button" aria-label="닫기" onClick={onClose}>×</button></div>
+      <p className="nm-qpeek-t">{pk.loading ? "원글 찾는 중…" : pk.text}</p>
+    </div>
+  );
+}
 type Msg = OfficeMsg & { _win?: boolean; card?: ThumbRef; mirror_by?: string; mirror?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
   app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
@@ -343,7 +362,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
 
 type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
-  sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onSwap: (id: string, from: string, to: string, hasTo: boolean) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string) => void;
+  sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onSwap: (id: string, from: string, to: string, hasTo: boolean) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string, from?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
   unseen: (m: Msg) => number;   // 안 본 봇 수(형 글 · 말풍선마다 · unseenOf)
   loose: () => void;   // 맨 아래 붙음 풂(알약 펼칠 때 = 알약 자리 그대로 두고 아래로 펼침)
@@ -935,7 +954,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <StatePill m={m} />
         {app ? <span className="yb-orig">원문</span> : null}   {/* PC = 형 말풍선이 원래 차콜이라 바깥 글은 오른쪽 위 「원문」으로 가름(형 11-16 09:33 dm-fast 「피시에서는 라벨을 원문 이라고 달던지」 · 09:34 「우측 위에 내 글은 우측 위에달리님가」) · 폰 = 바탕색으로 가름이라 숨김 */}
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
-          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
         </div>
         <RouteLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -952,7 +971,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <div className="ybrow">
           <div className="ybw">
             {pickM(m) ? <div className="ypick-top"><LinkCard m={m} /></div> : null}
-            <ReplyStrip text={String(m.text || "")} list={c.list} onJump={c.onJump} />
+            <ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} />
             {bundleOf(m) ? <BundleCard b={bundleOf(m)!} id={m.id} srcs={c.srcs?.get(bundleOf(m)!.stem)} /> : pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
               {jobOf(m) ? <JobFold m={m}><div className="ymd"><Body m={m} nre={c.nre} /></div></JobFold> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
@@ -1038,7 +1057,8 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   const qc = useQueryClient();
   const nav = useNavigate();
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
-  const [err, setErr] = useState(""), [dropping, setDropping] = useState(false);   // dropping = 대화창에 파일 끌고 있음(형 11-05 10:45)
+  const [err, setErr] = useState(""), [dropping, setDropping] = useState(false);
+  const [qpeek, setQpeek] = useState<Peek | null>(null);   // 다른 방(둘의 방)에 있는 답글 원글 펼침(형 11-16 19:33)   // dropping = 대화창에 파일 끌고 있음(형 11-05 10:45)
   const [sel, setSel] = useState(""), [menuOf, setMenuOf] = useState<Msg | null>(null);   // 글 길게 누르기(./msg-menu.tsx)
   useMe();   // 메뉴 「고정」이 보는 나 = 방을 열 때 미리 받아 둠(첫 길게 누르기에 메뉴가 두 번 그려지던 것 · 형 11-03 10:49)
   const [prof, setProf] = useState("");   // 프로필 카드를 연 사람(who · 빈 값 = 닫힘)
@@ -1353,10 +1373,16 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onSwap: (id, from, to, hasTo) => { setSel(""); swapLock(swapBusy.current, id, () => swapRx.mutateAsync({ id, from, to, hasTo })); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); requestAnimationFrame(() => document.querySelector<HTMLElement>(".ychat-in [contenteditable=\"true\"], .ychat-in textarea")?.focus()); },   // 답장 = 바로 쓰기 칸(폰 = 자판 올라옴 · 카톡 꼴)
-    onJump: (who, line, id) => {
+    onJump: (who, line, id, from) => {
       const hit = id ? all.find((x) => x.id === id) : [...all].reverse().find((x) => nmOf(list, x.who) === who && firstLine(x).startsWith(line.replace(/…$/, "").slice(0, 20)));
-      if (hit || id) setWant(hit ? hit.id : String(id));   // 묶음 안이면 펼치고 · 안 받은 앞 글이면 받으며 찾음(위 효과)
-      else setErr("그 글이 지금 받은 글 안에 없어 — 위 「옛 글 더 보기」로");
+      if (hit || id) { setWant(hit ? hit.id : String(id)); return; }   // 묶음 안이면 펼치고 · 안 받은 앞 글이면 받으며 찾음(위 효과)
+      // 이 방에 없는 원글 = 답한 이 ↔ 인용된 이 둘의 방(형 11-16 19:33 dm-bom 「이거 답글 누르면 바로 펼쳐지게 해줘!」 · 슈왕 ↔ 소나 글을 소나가 형 1:1 에서 답함) → 받아서 그 자리에 펼침
+      const fromName = from ? nmOf(list, from) : "";
+      setQpeek({ who, line, from: fromName, loading: true });
+      void findQuoted(list, who, line, from || "").catch(() => null).then((f) => {
+        if (f) setQpeek({ who, line, from: fromName, room: f.room, text: f.text, ts: f.ts });
+        else { setQpeek(null); setErr("그 글이 이 방 · 둘의 방 어디에도 없어 — 위 「옛 글 더 보기」로"); }
+      });
     },
   };
 
@@ -1490,6 +1516,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p className="pb-2 text-sm text-destructive" role="alert" onClick={() => setErr("")}>{err}</p> : null}
+        {qpeek ? <QuotedPeek pk={qpeek} onClose={() => setQpeek(null)} /> : null}
         {cmdNote ? <p className="ycmdnote" role="status"><span>{cmdNote}</span><button type="button" aria-label="닫기" onClick={() => setCmdNote("")}>×</button></p> : null}   {/* 5초 뒤 저절로 · × = 바로(형 11-06 20:10 「한 5초뜨고 없어지면되는데 … 없앨수잇어야됨 x 버튼」) */}
         {inviteQ ? (() => {   /* 「/초대 」 뒤 = 이 방에 없는 애 얼굴 줄 · 누르면 이름이 입력칸 끝에 붙음(여럿) · 엔터 = 보내기(형 11-06 11:1x 「응 마찬가지로 되어야해」 · 봄 서버 이름 띄어 여럿) */
           const inRoom = new Set(r?.members || []), typed = new Set(inviteQ);
