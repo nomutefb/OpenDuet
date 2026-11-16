@@ -51,6 +51,8 @@
    길어지는 건 그림뿐(숫자 줄 · 여백 · 색 = 폰 꼴 그대로 · 형 11-11 18:48 「차트 좀만 더 영역 세로가 길어도 될듯」 결) · 108 밑으로는 안 줄어듦 · 그림 셈은 잰 높이로(follow-pulse.tsx grow) */
 .nm-pulse.nm-pulse-grow { flex:1 1 auto; min-height:0; }
 .nm-pulse.nm-pulse-grow .nm-pulse-chart { flex:1 1 0; height:0; min-height:108px; }
-/* 폰 홈 아래 메시지 칸 자리 = 새 글이 없어도 한 장 자리(76) 비워 둠 — 카드 끝 선이 늘 그 위(형 11-17 01:57 dm-bom 봄 옮김 「그리고 카드 하단이 최근 메세지 표기 부분 정도는 나오게 래줘」 · 01:58 「이 부분도 하단 메세지 영역은 유지」 · 01:59 「신규 메세지가 없으면 없는대로 놔두면 됨」)
+/* 폰 홈 아래 메시지 칸 자리 = 새 글이 없어도 한 장 자리(76) + 빈 틀(형 02:15 「말풍선 없어도 그 틀이 유지」) — 카드 끝 선이 늘 그 위(형 11-17 01:57 dm-bom 봄 옮김 「그리고 카드 하단이 최근 메세지 표기 부분 정도는 나오게 래줘」 · 01:58 「이 부분도 하단 메세지 영역은 유지」 · 01:59 「신규 메세지가 없으면 없는대로 놔두면 됨」)
    = 새 글이 와도 · 가도 뉴스 · 키워드 카드 키가 안 바뀜 · PC 반갈 = 그대로(없으면 0) */
-body:not(:has(.nm-split-root)) .yeta-set .nm-arrived.nm-arr-none { min-height:76px; }
+body:not(:has(.nm-split-root)) .yeta-set .nm-arrived.nm-arr-none { padding-bottom:12px; }   /* 틀 68.5 + 아래 12 = 글 한 장 있을 때와 같은 키 80.5 = 글이 오고 가도 카드 끝 선 안 움직임 */
+.yeta-set .nm-arr-empty { min-height:68.5px; pointer-events:none; }   /* 글 한 장 실측 68.5(395 · 이름 줄 + 글 한 줄) · 빈 틀 = 글자 0(형 11-11 「새로 온 글 없음」 걷음 그대로) */
+body:has(.nm-split-root) .yeta-set .nm-arr-empty { display:none; }   /* PC 반갈 = 없으면 0 그대로 */
