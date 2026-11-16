@@ -11,11 +11,13 @@ test("자리 = 위 탭 줄 바로 뒤 · PC 두 칸에서만 · 내용 = 지금 
   assert.match(shell, /items: NED_TABS\.map\(/); assert.match(shell, /items: DRAWER_TABS\.flatMap\(/);   // 뉴스 에디터 위 탭 셋 · 서랍 위 탭 여섯 = 그 정의를 그대로 읽음
   assert.match(css, /:root:has\(\.nm-menubar\) \.nm-split-root \{ padding-top:calc\(50px \+ var\(--nm-menu-h\)\); \}/);   // 줄 키만큼 아래 판을 내림
 });
-test("박자 = 영상에서 잰 값(판 0.45초 고르게 · 첫 줄 0.09초 뒤 · 줄 사이 0.086초 · 줄 0.62초 천천히-빠르게-천천히 · 닫힘 0.15초) · 줄 위 밝은 판은 하나가 미끄러짐", () => {
-  assert.match(tsx, /const STAGGER_MS = 86, FIRST_MS = 90,/);   // 형 08:59 「탭이 영상 보내준거처럼 그대로 나와?」 → 다시 재서 맞춤
-  assert.match(css, /\.nm-mb-group\[data-open="1"\] \.nm-mb-row \{ animation:nmMbRow \.62s cubic-bezier\(\.42,0,\.58,1\) /);
-  assert.match(css, /\.nm-mb-group\[data-open="1"\] > \.nm-mb-panel \{[^}]*transition:opacity \.45s linear/);
-  assert.match(css, /\.nm-mb-panel \{[^}]*transition:opacity \.15s linear/);
+test("박자 = 차례로 뜨는 꼴 그대로 · 빠르기는 줄임(판 0.16초 · 줄 사이 0.03초 · 줄 0.26초 · 닫힘 0.12초) · 유리 판 · 줄 위 밝은 판은 하나가 미끄러짐", () => {
+  assert.match(tsx, /const STAGGER_MS = 30, FIRST_MS = 20,/);   // 형 11-16 11:0x 「메뉴 좀 빠르게 켜져야할듯!」(앞 = 영상 박자 86 · 90)
+  assert.match(css, /\.nm-mb-group\[data-open="1"\] \.nm-mb-row \{ animation:nmMbRow \.26s /);
+  assert.match(css, /\.nm-mb-group\[data-open="1"\] > \.nm-mb-panel \{[^}]*transition:opacity \.16s linear/);
+  assert.match(css, /\.nm-mb-panel \{[^}]*transition:opacity \.12s linear/);
+  assert.match(css, /\.nm-mb-panel \{[^}]*backdrop-filter:blur\(22px\)/);   // 형 「조금 너무 볼록하는낌? 글래스모피즘과는 좀 동떨어진늒미이라」 = 유리 판(비치는 바탕 + 뒤 흐림 · 둘레 고리 그림자 없음)
+  assert.doesNotMatch(css, /\.nm-mb-panel \{[^}]*box-shadow:0 0 0 1px/);
   assert.match(tsx, /<i className="nm-mb-hl" aria-hidden \/>/);
   assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
 });
