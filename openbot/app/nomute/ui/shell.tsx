@@ -512,6 +512,8 @@ function FramePage({ src, title, onTitle }: { src: string; title: string; onTitl
 
 /** #/web 한 겹 — 머리 = 「< 이름」(같은 사이트 = 그 화면 제목 · 남의 사이트 = 사이트 이름) · 남의 사이트가 품기를 막아 빈 화면이면 오른쪽 지구 단추 = 밖에서 열기(그때만 쓰는 비상구) */
 //   남의 사이트·빈 주소 = 「웹」 칸(./web-pane.tsx · 빠르 부품 · 주소창 · 뒤로/앞으로 · 새로고침 · 품기 미리 재기 · 형 11-06 20:21 「대시보드 창 내부에서도 브라우저」 · 시아 11-07 끼움) · 같은 사이트 원본 화면 = 그대로 FramePage
+/** 폰 폭(767 아래 · shell.css 폰 규칙과 같은 선) */
+const phoneWide = () => typeof matchMedia === "function" && matchMedia("(max-width: 767px)").matches;
 function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
   const [title, setTitle] = useState<[string, string]>(["", ""]);
   const ext = /^https?:\/\//i.test(u);
@@ -520,11 +522,11 @@ function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
   if (ext || !u) {
     return (
       <ModalBox close={onClose} className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={host || "웹"}>
-        <div className="nm-modal-h">
+        <div className="nm-modal-h nm-web-h">   {/* 폰 = 이 머리 알약(「‹ YNA.CO.KR」) 안 그림 · 주소 줄이 맨 위 · 닫기 = 주소 줄 ←(뒤로 갈 데 없을 때) — 형 11-17 01:49 dm-bom 「이거 링크 클릭시 이렇게 나오는 부분에 헤더 안나오게해줘」 · PC 는 그대로(shell.css) */}
           <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
           <b className="min-w-0 flex-1 truncate">{host || "웹"}</b>
         </div>
-        <div className="nm-modal-b frame"><Suspense fallback={<LazyDots />}><WebPane key={u} initial={u} /></Suspense></div>
+        <div className="nm-modal-b frame"><Suspense fallback={<LazyDots />}><WebPane key={u} initial={u} backOut={phoneWide() ? onClose : undefined} /></Suspense></div>
       </ModalBox>
     );
   }

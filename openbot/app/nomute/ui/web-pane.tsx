@@ -25,7 +25,7 @@ export function toAddress(raw: string): string {
 // 빈 판 글 = 「주소나 검색어를 넣어주세요」 한 줄(형 11-12 10:00 「그냥 주소나 검색어를 넣어주세요. 정도 나오면 될듯」)
 const sameSite = (u: string) => u.startsWith("/") || u.startsWith(location.origin + "/");
 
-export function WebPane({ initial = "", className = "", onClose, onGo, blank, focus = false }: { initial?: string; className?: string; onClose?: () => void; onGo?: (url: string) => void; blank?: ReactNode; focus?: boolean }) {   // onGo = 주소 바뀜 알림(탭 이름 · 기억) · blank = 빈 화면 아래 덧(탭 「+」 = 몸 화면 바로가기) · focus = 빈 채로 열리면 주소칸에 손(빠르 11-11)
+export function WebPane({ initial = "", className = "", onClose, onGo, blank, focus = false, backOut }: { initial?: string; className?: string; onClose?: () => void; onGo?: (url: string) => void; blank?: ReactNode; focus?: boolean; backOut?: () => void }) {   // backOut = 뒤로 갈 데 없을 때 ← 가 닫기(폰 #/web 겹 = 머리 알약을 뺐으니 닫는 길 · 카리나 11-17)   // onGo = 주소 바뀜 알림(탭 이름 · 기억) · blank = 빈 화면 아래 덧(탭 「+」 = 몸 화면 바로가기) · focus = 빈 채로 열리면 주소칸에 손(빠르 11-11)
   const first = toAddress(initial);
   const [input, setInput] = useState(first);
   const [hist, setHist] = useState<string[]>(first ? [first] : []);
@@ -66,7 +66,7 @@ export function WebPane({ initial = "", className = "", onClose, onGo, blank, fo
   return (
     <section className={`nm-web-pane ${className}`.trim()} aria-label="웹">
       <form className="nm-web-bar" onSubmit={(e) => { e.preventDefault(); go(input); }}>
-        <button type="button" className="nm-web-btn" aria-label="뒤로" title="뒤로" disabled={idx <= 0} onClick={() => step(-1)}><DuetIcon name="chevronLeft" size={16} /></button>
+        <button type="button" className="nm-web-btn" aria-label={idx <= 0 && backOut ? "닫기" : "뒤로"} title={idx <= 0 && backOut ? "닫기" : "뒤로"} disabled={idx <= 0 && !backOut} onClick={() => (idx <= 0 ? backOut?.() : step(-1))}><DuetIcon name="chevronLeft" size={16} /></button>
         <button type="button" className="nm-web-btn" aria-label="앞으로" title="앞으로" disabled={idx >= hist.length - 1} onClick={() => step(1)}><DuetIcon name="chevronRight" size={16} /></button>
         <button type="button" className="nm-web-btn" aria-label="새로고침" title="새로고침" disabled={!cur} onClick={() => setNonce((n) => n + 1)}>↻</button>
         <input ref={addr} className="nm-web-addr" value={input} onChange={(e) => setInput(e.target.value)} onFocus={(e) => e.currentTarget.select()}
