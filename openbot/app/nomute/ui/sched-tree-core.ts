@@ -5,18 +5,23 @@
 //   처음 = 뿌리 · 갈래 · 잡 가지는 펼침 · 포크는 접힘(잡 118개를 한꺼번에 안 쏟음 — 포크를 누르면 그 밑이 펼쳐짐)
 import type { RunnerJob, SchedRunners } from "./settings-extra";
 import { stem, timeKey } from "./sched-flow-core.ts";
+import { type WEvent, hookPlace, ownerOf, rowUnits, wakeRows } from "./sched-wake.ts";   // 깨워지는 봇 밑으로 모으기 · 깨우는 길 줄 수(형 11-17 01:1x)
 
 export type TKind = "root" | "group" | "fork" | "job" | "routine";
 /** 봇 가지 재료(스케줄 표 bot_schedule) — 포크 · 루틴(꼬챙이) */
-export type BotSide = { forks: { id: string; name: string; on?: boolean }[]; routines: TRoutine[] };
-export type TRoutine = { id: string; name: string; who: string; bot: string; when?: string[]; cron?: string[]; state: string; fork?: string; health?: { st: string; next_at?: number; last_at?: number } };
+export type BotSide = { forks: { id: string; name: string; on?: boolean }[]; routines: TRoutine[]; ids?: string[] };   // ids = 표의 봇 id 들(가지 주인 가르기 · ./sched-wake.ts ownerOf)
+export type TRoutine = { id: string; name: string; who: string; bot: string; when?: string[]; cron?: string[]; state: string; fork?: string; events?: WEvent[]; hook?: string; hook_at?: string; hook_ok?: boolean; health?: { st: string; next_at?: number; last_at?: number } };
 export type TNode = { id: string; kind: TKind; name: string; parent: string; depth: number; x: number; y: number; w: number; h: number; kids: number; open: boolean; via: "tree" | "after" | "calls"; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine };
 export type TEdge = { k: string; from: string; to: string; kind: "tree" | "after" | "calls" };
 export type Tree = { nodes: TNode[]; edges: TEdge[]; w: number; h: number };
 export const SIZE: Record<TKind, { w: number; h: number }> = { root: { w: 92, h: 38 }, group: { w: 216, h: 54 }, fork: { w: 196, h: 54 }, job: { w: 222, h: 78 }, routine: { w: 222, h: 78 } };   // 글씨를 줄인 만큼 노드도 한 단 작게(형 11-14 「글자 크기 좀 더 작아도 됨」)
 export const GAP_X = 64, GAP_Y = 22, PAD = 28, INDENT = 16, GAP_DOWN = 12;
 /** 폰 = 글씨를 키운 만큼 키가 큰 노드(형 11-14 「보기 조금 힘들어 좀 쉽게」) */
-export const HOOK_ROW = 28, HOOK_ROW_DOWN = 33;   // PC 줄 · 폰 줄(폰은 줄이 28 + 틈 5 — 24 로는 맨 아래 상태 줄이 잘림 · 실물)   // 호출 열쇠 줄 하나의 키(형 11-16 22:0x 구름 맥 창 「호출이 있고 / 그 아래에 각각 호출 시크릿명칭 잇어야할듯 / 그 호출이 어디에 잇는건지도」)
+// 봇 일 카드(깨우는 길 표) = 제목 · 표 머리 · 상태 + 열쇠 줄(있으면) + 깨우는 길 줄 수만큼 — PC · 폰(형 11-17 01:1x 「호출이 누가 호출하냐 가 별개고 / 용건이 뭐냐 도 따로인거지 / 발생 시점도 따로인거고」)
+export const WK_BASE = 82, WK_HOOK = 19, WK_ROW = 16, WK_BASE_DOWN = 92, WK_HOOK_DOWN = 30, WK_ROW_DOWN = 24;
+/** 봇 일 카드 키 — units = 깨우는 길 줄 수(정해진 시각 줄은 둘). */
+export const PLACE_DOWN = 22;   // 폰 「봇에게 시킨 일」 가지 밑에 열쇠 자리 한 줄(카드마다 되풀이하던 줄을 여기 한 번으로)
+export const wakeCardH = (units: number, hook: boolean, down: boolean): number => (down ? WK_BASE_DOWN + (hook ? WK_HOOK_DOWN : 0) + units * WK_ROW_DOWN : WK_BASE + (hook ? WK_HOOK : 0) + units * WK_ROW);
 export const SIZE_DOWN: Record<TKind, number> = { root: 44, group: 58, fork: 56, job: 110, routine: 110 };   // 일 카드 = 110(앞 96 = 폰에서 셋째 줄(상태 · 켬끔)이 아래에서 4~5px 잘림 · 실물 11-16 폰 412: 줄 끝 35 · 68 · 101 → 아래 여백 9 · 형 19:1x 「스케줄 그 눌렀을때 쭉 나오는거 … 모바일에서도 잘 나오는지 봐주라」)
 
 type Raw = { id: string; kind: TKind; name: string; via: TNode["via"]; job?: RunnerJob; fork?: SchedRunners["forks"][number]; routine?: TRoutine; kids: Raw[] };
@@ -48,7 +53,8 @@ export const ROOMISH_RE = /^(room|bell6)\./;
 export function rawBots(b: BotSide): Raw {
   const leaf = (r: TRoutine): Raw => ({ id: `r:${r.id}`, kind: "routine", name: r.name, via: "tree", routine: r, kids: [] });
   const mine = b.routines.filter((r) => !ROOMISH_RE.test(r.id)), room = b.routines.filter((r) => ROOMISH_RE.test(r.id));
-  const kids: Raw[] = [...new Set(mine.map((r) => r.bot))].map((bot) => { const rs = mine.filter((r) => r.bot === bot); return { id: `bb:${bot}`, kind: "fork" as const, name: rs[0].who || bot, via: "tree" as const, kids: rs.map(leaf) }; });
+  const ids = b.ids || [...new Set(mine.map((r) => r.bot))], own = (r: TRoutine) => ownerOf(r, mine, ids);   // 가지 주인 = 깨워지는 봇(x 로 적힌 수집 → 그 일이 넘기는 호출의 주인 = 슈왕)
+  const kids: Raw[] = [...new Set(mine.map(own))].map((bot) => { const rs = mine.filter((r) => own(r) === bot); return { id: `bb:${bot}`, kind: "fork" as const, name: (rs.find((r) => r.bot === bot) || rs[0]).who || bot, via: "tree" as const, kids: rs.map(leaf) }; });
   if (room.length) kids.push({ id: "bb:~room", kind: "fork", name: "대화방 알림", via: "tree", kids: room.map(leaf) });
   return { id: "g:bot", kind: "group", name: "봇에게 시킨 일", via: "tree", kids };
 }
@@ -68,9 +74,12 @@ const xOf = (depth: number) => { let x = PAD; const ks: TKind[] = ["root", "grou
 export function treeOf(map: SchedRunners, open: Record<string, boolean> = {}, down = 0, bots?: BotSide): Tree {
   const nodes: TNode[] = [], edges: TEdge[] = [];
   let cursor = PAD, maxX = 0;
+  const wkPlace = bots ? hookPlace(bots.routines) : "";
+  const wkIds = bots?.ids || [...new Set((bots?.routines || []).filter((r) => !ROOMISH_RE.test(r.id)).map((r) => r.bot))];
   const count = (r: Raw): number => r.kids.reduce((a, k) => a + (k.kind === "job" || k.kind === "routine" ? 1 : 0) + count(k), 0);   // 밑에 달린 잡 · 루틴 수
   const place = (r: Raw, depth: number, parent: string): TNode => {
-    const s0 = down ? { w: SIZE[r.kind].w, h: SIZE_DOWN[r.kind] } : SIZE[r.kind], s = r.routine?.hook ? { w: s0.w, h: s0.h + (down ? HOOK_ROW_DOWN : HOOK_ROW) * (r.routine.hook_at ? 2 : 1) } : s0, isOpen = r.kids.length > 0 && openOf(open, r.id, r.kind);   // 호출 열쇠 줄이 있는 루틴 카드 = 그 줄만큼 큼(열쇠 이름 한 줄 + 자리가 오면 한 줄 더)
+    const s0 = down ? { w: SIZE[r.kind].w, h: SIZE_DOWN[r.kind] } : { ...SIZE[r.kind] }, s = r.routine && !ROOMISH_RE.test(r.routine.id) && bots ? { w: s0.w, h: wakeCardH(rowUnits(wakeRows(r.routine, bots.routines, wkIds, { whenKo: (x) => (x.cron?.length || x.when?.length ? "때" : ""), jobs: map.jobs })), !!r.routine.hook, !!down) } : { ...s0 }, isOpen = r.kids.length > 0 && openOf(open, r.id, r.kind);
+    if (down && r.id === "g:bot" && wkPlace) s.h = s0.h + PLACE_DOWN;   // 봇 일 카드 = 깨우는 길 줄 수만큼 큼(방 루틴 · 종은 앞 꼴 그대로)
     const n: TNode = { id: r.id, kind: r.kind, name: r.name, parent, depth, x: xOf(depth), y: 0, w: s.w, h: s.h, kids: count(r), open: isOpen, via: r.via, job: r.job, fork: r.fork, routine: r.routine };
     nodes.push(n);
     if (down) {   // 폰 = 한 줄 쌓기 · 들여쓰기

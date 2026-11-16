@@ -119,7 +119,7 @@ function WhenPick({ r, can, busy, send }: { r: Routine; can: boolean; busy: bool
 /** 나무에 넘길 봇 가지 재료(포크 · 루틴 + 상태 점 · 켜짐 · 누름) */
 function botsOf(d: { forks?: SchedFork[]; routines: Routine[]; bots: { bot: string; on?: boolean }[] }, st: (r: Routine) => HealthSt, forkOn: (id?: string) => boolean, open: (id: string) => void, openBots: () => void, add?: (bot: string) => void): BotProp | undefined {
   if (!d.forks?.length) return undefined;
-  return { forks: d.forks.map((f) => ({ id: f.id, name: f.name, on: f.on })), routines: d.routines, st: (r) => st(r as Routine), on: (r) => r.state === "live" && forkOn(r.fork) && d.bots.find((b) => b.bot === r.bot)?.on !== false, stKo: ST_KO, open, openBots, add };
+  return { forks: d.forks.map((f) => ({ id: f.id, name: f.name, on: f.on })), routines: d.routines, ids: d.bots.map((b) => b.bot), kindKo: Object.fromEntries(((d as { kinds?: { kind: string; ko?: string }[] }).kinds || []).filter((k) => k.ko).map((k) => [k.kind, k.ko as string])), st: (r) => st(r as Routine), on: (r) => r.state === "live" && forkOn(r.fork) && d.bots.find((b) => b.bot === r.bot)?.on !== false, stKo: ST_KO, open, openBots, add };
 }
 
 export function SchedDesk() {

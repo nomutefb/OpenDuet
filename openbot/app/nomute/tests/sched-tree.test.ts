@@ -115,9 +115,9 @@ test("폰 일 카드 키 = 셋째 줄(상태 · 켬끔)까지 들어감 · 가�
   const core = await import("../ui/sched-tree-core.ts");
   assert.ok(core.SIZE_DOWN.job >= 108 && core.SIZE_DOWN.routine >= 108);
   // 호출 열쇠 줄(형 11-16 22:0x 「호출이 있고 / 그 아래에 각각 호출 시크릿명칭 … 그 호출이 어디에 잇는건지도」) = 서버가 hook 을 줄 때만 · 그 카드만 한 줄만큼 큼 · 값은 안 다룸(이름 · 자리뿐)
-  assert.ok(core.HOOK_ROW >= 26); assert.ok(core.HOOK_ROW_DOWN >= 32);   // 폰 줄은 더 큼(24 면 상태 줄이 잘림 · 실물)
-  assert.match(rd("../ui/sched-tree-core.ts"), /s = r\.routine\?\.hook \? \{ w: s0\.w, h: s0\.h \+ \(down \? HOOK_ROW_DOWN : HOOK_ROW\) \* \(r\.routine\.hook_at \? 2 : 1\) \} : s0/);
-  assert.match(rd("../ui/sched-tree.tsx"), /\{r\.hook \? <span className="nm-tree-l2 hook" data-miss=\{r\.hook_ok === false \|\| undefined\}><small>열쇠<\/small>/);   // hook_ok 거짓 = 「없음」 붉게(빠르 #4074 칸)   // 실물 = 줄 끝 101px(앞 96 = 잘림)
+  assert.ok(core.wakeCardH(1, true, true) > core.wakeCardH(1, false, true)); assert.equal(core.wakeCardH(3, true, false) - core.wakeCardH(1, true, false), 2 * core.WK_ROW);   // 봇 일 카드 키 = 열쇠 줄 + 깨우는 길 줄 수(형 11-17 01:1x · 앞 = 열쇠 · 자리 두 줄 고정)
+  assert.match(rd("../ui/sched-tree-core.ts"), /s = r\.routine && !ROOMISH_RE\.test\(r\.routine\.id\) && bots \? \{ w: s0\.w, h: wakeCardH\(rowUnits\(wakeRows\(/);
+  assert.match(rd("../ui/sched-tree.tsx"), /\{r\.hook \? <span className="nm-tree-l2 hook" data-miss=\{r\.hook_ok === false \|\| undefined\}><small>열쇠<\/small>/);   // hook_ok 거짓 = 「없음」 붉게(빠르 #4074 칸)
   const tsx = rd("../ui/sched-tree.tsx"), css = rd("../ui/sched-tree.css");
   assert.match(tsx, /const pos = \{ translate: `\$\{n\.x\}px \$\{n\.y\}px`, width: n\.w, height: n\.h,/);   // 자리 = translate 속성 → :active scale 이 자리를 안 줄임
   assert.doesNotMatch(tsx, /className=\{`nm-tree-node[^\n]*transform: `translate/);

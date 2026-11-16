@@ -67,7 +67,7 @@
 .nm-tree .nm-st[data-st="ok"] { background:rgba(95,191,106,.85); }
 .nm-tree-sw { flex:none; position:relative; width:20px; height:11px; border-radius:6px; background:rgba(139,143,138,.3); }
 .nm-tree-sw::after { content:""; position:absolute; top:1.5px; left:1.5px; width:8px; height:8px; border-radius:50%; background:var(--tree-on); transition:translate .18s; }
-.nm-tree-sw[data-on] { background:var(--tree-mut); } .nm-tree-sw[data-on]::after { translate:9px 0; }
+.nm-tree-sw[data-on] { background:color-mix(in srgb, var(--tree-next) 72%, transparent); }   /* 켜짐 = 색(앞 = 회색이라 켜진 건지 꺼진 건지 안 읽혔음 · 형 11-17 「개선점 너가 말한거 반영해줘」) */ .nm-tree-sw[data-on]::after { translate:9px 0; }
 .nm-tree-next { position:absolute; top:-8px; left:10px; padding:1px 6px; border-radius:6px; background:var(--tree-next); color:#161716; font-style:normal; font-size:10px; font-weight:600; }
 .nm-tree-node.job[data-run] .nm-tree-l3 .nm-st { width:9px; height:9px; background:none; clip-path:none; border:1.5px solid var(--tree-next); border-top-color:transparent; border-radius:50%; animation:nm-flow-spin .9s linear infinite; }
 /* 꼭지 = 선이 닿는 자리(왼 · 오) — 평소 옅게 · 손 올리면 진하게 */
@@ -238,3 +238,20 @@
 .nm-tree-l2.hook span { letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
 .nm-tree-l2.hook:not(.at) span { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; }
 .nm-tree-l2.hook[data-miss] span { color:#ff8a8d; border-color:rgba(255,90,95,.45); }   /* 열쇠 없음 = 붉게(깨울 길이 없다는 뜻이라 놓치면 안 됨) */
+
+/* 봇 일 카드 = 깨우는 길 표(형 11-17 01:1x 「호출이 누가 호출하냐 가 별개고 / 용건이 뭐냐 도 따로인거지 / 발생 시점도 따로인거고」) — 세 칸: 용건 · 누가 · 언제 */
+.nm-tree-wk { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1fr); column-gap:8px; row-gap:0; align-items:baseline; min-width:0; font-size:10.5px; letter-spacing:0; text-transform:none; }
+.nm-tree-wk .h, .nm-tree-wk .r { display:contents; }
+.nm-tree-wk .h small { font-size:9px; line-height:13px; color:var(--tree-mut); opacity:.8; }
+.nm-tree-wk .r > * { min-width:0; height:16px; line-height:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-style:normal; font-variant-numeric:tabular-nums; }
+.nm-tree-wk .r > b { font-weight:600; }
+.nm-tree-wk .r > span { color:var(--tree-fg); opacity:.82; }
+.nm-tree-wk .r > i { color:var(--tree-mut); }
+.nm-tree-wk [data-none] { color:var(--tree-mut) !important; opacity:.6 !important; font-weight:500 !important; }
+.nm-tree-wk .r[data-sched] > em { grid-column:1 / -1; color:var(--tree-mut); }   /* 정해진 시각 = 둘째 줄에 때 글 통째(앞 = 좁은 칸에 잘렸음) */
+.nm-tree.down .nm-tree-wk { font-size:13px; column-gap:10px; }
+.nm-tree.down .nm-tree-wk .h small { font-size:11px; line-height:16px; }
+.nm-tree.down .nm-tree-wk .r > * { height:24px; line-height:24px; }
+.nm-tree-place { font-style:normal; color:var(--tree-mut); text-transform:none; letter-spacing:0; }
+.nm-tree-node[data-place] { padding-bottom:22px; }   /* 폰 「봇에게 시킨 일」 = 밑에 열쇠 자리 한 줄 */
+.nm-tree-place.under { position:absolute; left:14px; right:14px; bottom:8px; font-size:12px; line-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
