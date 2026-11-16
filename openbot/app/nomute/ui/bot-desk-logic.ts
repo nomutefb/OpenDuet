@@ -75,13 +75,13 @@ const ROLE_SHORT: Record<string, string> = { ...ROLE_LONG, D: "Dev.", U: "UXD.",
 /** 코드 하나 → 직함(short = 줄임) · 모르는 코드 = "" */
 export const roleOf = (code: string | undefined, short = false): string => (code ? (short ? ROLE_SHORT : ROLE_LONG)[code] || "" : "");
 /** 사람마다 따로 정한 직함(특기 코드보다 먼저) — 온 = Secretary(형 비서 · PM 11-16 18:52 옮김 = 「Fixer 아님」) */
-const ROLE_WHO: Record<string, string> = { 온: "Secretary", 결: "Storyteller", 소나: "Fixer · Dev." };   // 소나 = Fixer · Dev.(형 11-16 19:0x 「소나 Fixer · Dev」 · 줄임 점은 「PM · Dev.」와 같은 꼴로 붙임)   // 결 = Storyteller(형 11-16 18:5x 「뎅 결 윈터는 Storyteller」 · 바로 앞 말 「결 musician」 뒤에 온 말을 따름 · 작곡 갈래 Xb 의 이름 Musician 은 표에 남김) · 뎅 · 윈터 = 글짓기 갈래 Xc = Storyteller
+const ROLE_WHO: Record<string, string> = { 온: "Secretary", 결: "Storyteller", 소나: "Fixer" };   // 소나 = Fixer 로만(형 11-16 21:06 구름 맥 창 「소나는 Fixer 로만」 · 앞 = Fixer · Dev.)   // 소나 = Fixer · Dev.(형 11-16 19:0x 「소나 Fixer · Dev」 · 줄임 점은 「PM · Dev.」와 같은 꼴로 붙임)   // 결 = Storyteller(형 11-16 18:5x 「뎅 결 윈터는 Storyteller」 · 바로 앞 말 「결 musician」 뒤에 온 말을 따름 · 작곡 갈래 Xb 의 이름 Musician 은 표에 남김) · 뎅 · 윈터 = 글짓기 갈래 Xc = Storyteller
 /** 손 하나의 직함 한 줄 — 「Developer」 · 「UX Design」 · 「PM · Dev.」 · 「PM · UXD.」 … · 특기 없음 = "" · who 를 주면 사람마다 정한 직함 먼저 */
 export function roleLabel(skills?: string[], who?: string): string {
   if (who && ROLE_WHO[who]) return ROLE_WHO[who];
   const a = skills?.[0], b = skills?.[1];
   if (a === "M") return roleOf(b, true) ? `PM · ${roleOf(b, true)}` : "PM";
-  return roleOf(a);
+  return roleOf(a, true);   // 줄임말이 있으면 줄임(형 11-16 21:06 「그리고 Dev. 로 줄이고 / UXD. 로 줄일게. / 비서는 줄임말 없으면 그대로 가 리서치 잇으면 줄여주고」 → Dev. · UXD. · R&D · 나머지는 그대로)
 }
 
 /** 특수 직군 = 1특기가 「특수」 갈래(X · Xa 사진·영상 제작 · Xb 작곡 · Xc 글짓기 · Xd 정보 수집 · 서버 손 표 _roles.js SKILLS) — 손 판에서 따로 묶음(형 11-16 17:5x 구름 맥 창 「아예 특수 직업군은 따로 분류되고」). */
