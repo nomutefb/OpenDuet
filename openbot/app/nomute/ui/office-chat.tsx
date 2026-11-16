@@ -98,6 +98,9 @@ const floorSet = (room: string, ts: number) => { try { if (ts > floorGet(room)) 
 const loadDraft = (room: string) => { try { return sessionStorage.getItem(DRAFT(room)) || ""; } catch { return ""; } };
 const saveDraft = (room: string, t: string) => { try { if (t.trim()) sessionStorage.setItem(DRAFT(room), t); else sessionStorage.removeItem(DRAFT(room)); } catch { /* 이 탭만 · 못 쓰면 이번만 */ } };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** 기다리기 고리 바닥 — 이번 답으로 뭔가 나아갔나(마지막 글 시각이 자람 · 초안 표식이 바뀜) · 순수(시험 가능) */
+export const WATCH_FAST_MS = 800, WATCH_NAP_MS = 1000;
+export const watchMoved = (afterBefore: number, afterNow: number, deBefore: string, deNow: string): boolean => afterNow > afterBefore || deNow !== deBefore;
 const PICKUP_WAIT = 2 * 60e3;   // 점 셋 = 턴 신호가 오기 전 2분(감시 60초 + bots 조회 60초 · 형 「멍하고 기다리고」 자리)
 const CALL_FRESH = 45 * 60e3;   // 회의실 「작업 중」 = 부른 글이 45분 안일 때만(옛 화면 PR 1478 실측 · 답의 90% = 41분)
 const EMO = /^\p{Extended_Pictographic}(?:️|\p{Emoji_Modifier}|‍\p{Extended_Pictographic})*$/u;
@@ -236,7 +239,7 @@ export function useOfficeRoom(room: string) {
         if (document.hidden || !cur) { await sleep(1500); continue; }
         ctl = new AbortController();
         try {
-          const after = cur.messages.at(-1)?.ts ?? 0;
+          const after = cur.messages.at(-1)?.ts ?? 0, t0 = Date.now(), de0 = de;
           const j = await office<Page & { detag?: string; draft?: Draft | null }>(old ? `rooms/${enc(room)}/wait?after=${after}&max_s=25` : `rooms/${enc(room)}/watch?after=${after}&de=${encodeURIComponent(de)}&max_s=15`, { signal: ctl.signal });
           if (stop) break;
           if (typeof j.detag === "string") de = j.detag;
@@ -248,6 +251,9 @@ export function useOfficeRoom(room: string) {
             for (const k of [officeKeys.reads(room), officeKeys.rooms, officeKeys.bots, ["channels"], ["duet-channels"]]) void qc.invalidateQueries({ queryKey: k }, { cancelRefetch: false });   // 받는 중이면 그 받기를 그대로 씀(새로 끊고 다시 X) — 글이 잇달아 오면 방 목록 부름이 끊겼다 다시 가며 쌓였음(뜸 11-07 13:1x 잼 = 형 앱 방 목록 1분 54번 · 한 번 2초)
             if (j.messages.some((m) => /!(형|세웅)/.test(String(m.text || "")) || m.reply_to)) void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });   // !형 글·형 답장 = 대기 알약 바로 다시 셈(형 11-07 10:57 「아직 내 채팅위에 이거 안올라와서 너네가 언급해도 안보임」)
           }
+          // 바닥(구름 11-17 · 형 「클라우드플레어 부하를 줄여야 좋음」) = 새 글도 초안 바뀜도 없이 답이 바로 옴(정상 = 서버가 max_s 까지 붙잡음 · 바로 오는 건 새 글 · 초안 바뀜뿐) → 1초 쉼
+          //   까닭 = 서버가 안 붙잡는 판(중간 캐시 · 고장 · 글이 화면 목록에 안 들어가 after 가 안 자람)이면 이 고리가 쉬지 않고 되물음(흉내 서버 실측 2분 45,688번 = 초당 380) = 하루 한도를 몇 분에 다 씀 · pulse 고리(data/sync.ts)의 같은 문
+          if (!stop && Date.now() - t0 < WATCH_FAST_MS && !watchMoved(after, qc.getQueryData<Page>(officeKeys.msgs(room))?.messages.at(-1)?.ts ?? 0, de0, de)) await sleep(WATCH_NAP_MS);
         } catch (e) {
           if (!stop && !old && e instanceof Error && e.message.includes("없는 길")) { old = true; continue; }   // 서버에 watch 가 아직 없음 = 옛 wait
           if (!stop) await sleep(3000);
