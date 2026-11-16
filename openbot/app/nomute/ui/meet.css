@@ -161,3 +161,23 @@
 .nm-endm-undo { width:26px; padding:0; justify-content:center; font-size:15px; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.92); color:#111; }
 .nm-endm-go:disabled { opacity:.85; }
 @media (prefers-reduced-motion:reduce) { .nm-endm-x, .nm-endm-pair { transition:none; } }
+
+/* 회의록 픽토그램 + 그 자리 판(./meet.tsx MeetLogPeek · 형 11-17 02:1x 「화상회의 탭에서 항상 한쪽에 회의록 픽토그램 … 거기서 조회」) — 판 = 화상회의 칸 위 오른쪽(폰 = 칸 폭 다) · 움직임 = opacity · transform 뿐 */
+.nm-co.meet { position:relative; }
+.nm-mlp-btn svg { width:17px; height:17px; }
+.nm-mlp-btn[data-on] { color:var(--accent, #CFFF40); background:rgba(var(--accent-rgb, 207,255,64),.12); }
+.nm-mlp { position:absolute; top:36px; right:0; bottom:0; z-index:30; width:min(400px, 100%); display:flex; flex-direction:column; background:#121312; border-left:1px solid rgba(255,255,255,.08); text-align:left; animation:nm-mlp-in .22s cubic-bezier(.2,.8,.2,1) both; }
+.nm-mlp > header { flex:none; display:flex; align-items:center; justify-content:space-between; height:38px; padding:0 8px 0 14px; border-bottom:1px solid rgba(255,255,255,.07); }
+.nm-mlp > header b { font-size:13px; font-weight:700; color:#e8eae8; }
+.nm-mlp-body { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; }
+@keyframes nm-mlp-in { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion:reduce) { .nm-mlp { animation:none; } }
+.nm-pmeet .nm-mlp { top:46px; width:100%; border-left:0; }
+.nm-pmeet-empty { position:relative; }
+.nm-mlp-corner { display:contents; }   /* 자리 = 단추만 오른쪽 위(이 겉칸이 자리를 잡으면 판이 그 안에 갇힘 · 실물 = 판이 42×42) */
+.nm-mlp-corner .nm-mlp-btn { position:absolute; top:6px; right:6px; z-index:31; }
+.nm-mlp-corner .nm-web-btn { width:42px; height:42px; border-radius:10px; }
+.nm-mlp-corner .nm-mlp-btn svg { width:21px; height:21px; }
+.nm-pmeet-empty .nm-mlp { top:0; left:0; width:auto; }
+.nm-pmeet-empty .nm-mlp > header { height:54px; padding-right:54px; }   /* 폰 빈 화면 = 픽토그램(오른쪽 위 42)이 닫는 단추 노릇 → 머리 줄의 × 는 그 자리와 겹치지 않게 비움 */
+.nm-pmeet-empty .nm-mlp > header .nm-web-btn { display:none; }

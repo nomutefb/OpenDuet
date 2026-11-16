@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { office } from "../data/office";
 import { CobrowsePane } from "./cobrowse-pane";
 import { MEET_KEY, type MeetLike, type TempRoom, openMeetOf, stillOpen } from "./phone-meet-logic";
+import { MeetLogPeek } from "./meet";   // 회의록 픽토그램(회의가 없을 때도 한쪽에 · 형 11-17 02:1x)
 
 const readMine = (): MeetLike | null => { try { const m = JSON.parse(localStorage.getItem(MEET_KEY) || "null"); return m && m.id ? m : null; } catch { return null; } };
 const writeMine = (m: MeetLike | null) => { try { if (m) localStorage.setItem(MEET_KEY, JSON.stringify(m)); else localStorage.removeItem(MEET_KEY); } catch { /* 이번만 */ } };
@@ -34,6 +35,7 @@ function PhoneMeetBody({ onClose }: { onClose: () => void }) {
     if (mine) writeMine(null);   // PC 에서 끝낸 회의
     return (
       <div className="nm-pmeet-empty">
+        <span className="nm-mlp-corner"><MeetLogPeek /></span>   {/* 회의가 없을 때도 회의록 픽토그램은 한쪽에(형 11-17 02:1x 「항상」) */}
         <button type="button" className="nm-meet-start" onClick={() => setGo(true)}>새 회의 시작</button>   {/* 화면 가운데 반투명 알약 하나(형 11-15 01:23 dm-gik 「이거 어색하니까 새 회의 시작 으로 화면 중앙에 알약 하나 반투멍 하게 있는게 나을듯 누르면 켜지게」 · 깃 #-027 · 앞 판 = 맨 위 「새 회의」 글) */}
       </div>
     );

@@ -11,6 +11,7 @@ import { type OfficeMsg, type OfficePerson, office, faceOf, nameOf, people } fro
 import { OfficeChat, officeKeys } from "./office-chat";
 import { ringOf } from "../swap/mic-orb";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
+import { MeetLogIcon } from "./tab-icons";   // 회의록 픽토그램(화상회의 칸 한쪽 · 형 11-17 02:1x)
 import "./meet.css";
 import "./update-bar.css";   // .nm-dots = 라임 점 셋(업데이트 띠 · 끊김 띠와 같은 것 · 형 19:3x 「들어오는중... 이거 표시 떠야될듯」 · 「종료하는중 ... < 이거 점세개로」)
 export const Dots = ({ bob = false }: { bob?: boolean }) => <span className={`nm-dots${bob ? " bob" : ""}`} aria-hidden><i>.</i><i>.</i><i>.</i></span>;   // bob = 점 셋 오르락내리락(형 11-14 01:42 시아 옮김 「잇는중 - 은 변경 연결 중 하고 점세개 오르락」)
@@ -235,6 +236,24 @@ export function trailRows(log: { messages?: { who: string; ts: number; text: str
 }
 const hm = (t: number) => { const d = new Date(t); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
+/** 화상회의 칸 한쪽의 회의록 픽토그램 — 누르면 그 칸 위에 끝난 회의 기록 판이 그 자리에서 열림(창 0 · 다시 누름 · × · Esc = 닫힘)
+ *  형 11-17 02:1x 구름 맥 창 「화상 회의록 화상회의 탭에서 항상 한쪽에 회의록 픽토그램이 잇어서 거기서 조회할수잇게해주고 탭에서는 뺄게」 — 회의가 열려 있든 아니든 늘 보임 */
+export function MeetLogPeek() {
+  const [on, setOn] = useState(false);
+  useEffect(() => { if (!on) return undefined; const k = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); setOn(false); } }; window.addEventListener("keydown", k, true); return () => window.removeEventListener("keydown", k, true); }, [on]);
+  return (
+    <>
+      <button type="button" className="nm-web-btn nm-mlp-btn" aria-label="회의록" title="회의록" aria-expanded={on} data-on={on || undefined} onClick={() => setOn((v) => !v)}><MeetLogIcon /></button>
+      {on ? (
+        <aside className="nm-mlp" role="region" aria-label="회의록">
+          <header><b>회의록</b><button type="button" className="nm-web-btn" aria-label="회의록 닫기" title="닫기" onClick={() => setOn(false)}>×</button></header>
+          <div className="nm-mlp-body"><MeetLogList /></div>
+        </aside>
+      ) : null}
+    </>
+  );
+}
+
 /** 서랍 「화상회의」 = 끝난 회의 기록 목록(서버 GET meetlog · 줄 = yyyy-mm-dd hh-mm 제목 · 참여자 · 주제 · 형 11-13 06:5x) · 누르면 그 회의 대화 한 장 */
 export function MeetLogList() {
   const list = useQuery({ queryKey: ["nomute", "meetlog"], queryFn: () => office<{ logs?: { key: string; title: string; members: string[]; topic?: string; n: number }[] }>("meetlog").then((j) => j.logs || []), staleTime: 30_000 });
@@ -243,7 +262,7 @@ export function MeetLogList() {
   const rows = list.data || [];
   return (
     <div className="nm-meetlog">
-      {list.isLoading ? <p className="nm-meetlog-empty">읽는 중…</p> : !rows.length ? <p className="nm-meetlog-empty">아직 끝난 화상회의가 없어 — 위 「화상회의」 탭으로 열고 끝내면(방이 닫히거나 말 없이 20분이면 저절로) 대화 · 같이 본 주소 · 행위가 시각 차례로 여기 담겨</p> : null}
+      {list.isLoading ? <p className="nm-meetlog-empty">읽는 중…</p> : !rows.length ? <p className="nm-meetlog-empty">아직 끝난 화상회의가 없어</p> : null}
       {rows.map((r) => (
         <div key={r.key} className="nm-meetlog-row">
           <button type="button" onClick={() => setOpen(open === r.key ? "" : r.key)} aria-expanded={open === r.key}>

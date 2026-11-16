@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { office } from "../data/office";
 import { CO_ALLOW, cobrowseSrc, isVia, lnaState } from "./cobrowse";
 import { WebPane } from "./web-pane";
-import { Dots, EndMorph, MeetDock, MeetPeople, OnAir, startMeet, useMeet, useMeetEnd } from "./meet";
+import { Dots, EndMorph, MeetDock, MeetPeople, OnAir, startMeet, useMeet, useMeetEnd, MeetLogPeek } from "./meet";
 import { SketchLayer, useCoRect } from "./sketch";   // 스케치 = 화상회의 틀 위 덧그림(형 11-13 06:49 · 명세 10)   // 화상회의(형 11-13 06:4x · 봄 옮김) · 탭 줄 · 「○○가 제어하고 있습니다」 · 포인터 · 치는 중 · 「동기화 N초 전」 = 다리 판(틀 안 · 깃 다리.mjs)이 그림 = 여기서 겹쳐 안 그림
 
 export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => void; mode?: "browser" | "meet" }) {
@@ -42,6 +42,7 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
         {isMeet ? <span className="nm-co-sub" /> : null}
         {isMeet && !meet ? (opening === "busy" ? <span className="nm-co-sync">회의 여는 중<Dots /></span> : <button type="button" className="nm-meet-btn" title={opening || undefined} onClick={open}>{opening ? "다시 열기" : "새 회의"}</button>) : null}
         {meet && state === "ok" ? <span className="nm-co-tools" ref={setToolSlot} /> : null}   {/* 펜 · 커튼 · 제어권 = ↻ 왼쪽에 나란히(형 11-14 05:22 시아 옮김 「그 버튼들 새로고침 좌측으로 다 나란히 간격 맞춰서 보낼게」) · 그리는 판(SketchLayer)이 여기로 띄움 */}
+        {isMeet ? <MeetLogPeek /> : null}   {/* 회의록 = 화상회의 칸 한쪽에 늘(회의가 열려 있든 아니든) · 누르면 이 칸 위에 그 자리 판(형 11-17 02:1x 「항상 한쪽에 회의록 픽토그램이 잇어서 거기서 조회」) */}
         <button type="button" className="nm-web-btn" aria-label="다시 잇기" title="다시 잇기" onClick={() => setNonce((n) => n + 1)}>↻</button>
         {meet ? <EndMorph end={end} /> : <button type="button" className="nm-web-btn" aria-label="닫기" title="닫기" onClick={onClose}>×</button>}   {/* 화상회의 × = 회의 종료(형 16:18 「x 대신 종료」) */}
       </div>

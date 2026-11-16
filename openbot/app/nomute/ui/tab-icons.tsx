@@ -20,3 +20,10 @@ export const OfficeIcon = () => (
     <path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.4 8.4 0 1 1 21 11.5z" />
   </svg>
 );
+
+/** 회의록 픽토그램(종이 한 장 + 글 줄 셋 + 작은 카메라 점) — 화상회의 칸 한쪽에 늘 떠 있는 단추(형 11-17 02:1x 「항상 한쪽에 회의록 픽토그램이 잇어서 거기서 조회」) */
+export const MeetLogIcon = () => (
+  <svg className="nm-tab-ic meetlog" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M6.5 3.5h8l4 4v11a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z" /><path d="M14.5 3.5v4h4" /><path d="M8 12h8M8 15.2h8M8 18.4h4.5" />
+  </svg>
+);
