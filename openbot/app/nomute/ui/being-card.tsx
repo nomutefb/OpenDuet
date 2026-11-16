@@ -215,9 +215,10 @@ const LOOKS: Look[] = [
     ),
   },
   {
-    // 이슈왕 = 슈왕(옛 촉 자리 · 봇 id chok 그대로 · 형 11-16 18:08 dm-eyes 「이슈왕 프로필 카드하나 대신좀 만들어줘」 + 그림 한 장 · 뜸)
-    //   얼굴 = 형 그림(왕관 · PRESS 완장 · 돋보기 속 신문 · editor viewer/office/issueking.webp 256)
-    //   몸통 = 틀 카드 · 색 = 왕관 금빛(#F2B630) · 바탕 = 해 질 녘 크림빛 하늘 → 청록 도시(빌딩 줄 = SVG 한 장 · 움직임 0) · 무늬 = 띠 + 테 + 📰 + 🔍(가끔 번쩍 = 속보 · opacity 만)
+    // 이슈왕 = 슈왕(옛 촉 자리 · 봇 id chok 그대로 · 형 11-16 18:08 dm-eyes 「이슈왕 프로필 카드하나 대신좀 만들어줘」 · 뜸)
+    //   카드 = 옥상 그림 통째(형 18:16 「이거는 프로필 카드를 이거를 위주로 써줘 좌하단에서 위로 구도를 나가야 위압감이 생겨」 · 세로로 자른 600x800 = editor viewer/office/issueking-card.webp)
+    //   둥근 얼굴 · 고리 · 띠는 안 그림(그림이 주인공) · 테 = 왕관 금빛(#F2B630) · 움직임 = 기울일 때 그림이 살짝 따라옴(transform 만 · 계속 도는 것 0)
+    //   얼굴(명부 · 목록) = 따로 issueking.webp(형 18:08 그림)
     id: "issueking",
     tmpl: true,
     accent: "#F2B630",
@@ -230,13 +231,7 @@ const LOOKS: Look[] = [
     glare: 0.42,
     art: (
       <span className="bc-art" aria-hidden="true">
-        <svg className="bc-city" viewBox="0 0 300 70" preserveAspectRatio="none">
-          <path d="M0 70 L0 44 L14 44 L14 30 L26 30 L26 40 L40 40 L40 22 L52 22 L52 36 L66 36 L66 48 L82 48 L82 28 L96 28 L96 14 L104 14 L104 28 L118 28 L118 42 L134 42 L134 32 L150 32 L150 46 L170 46 L170 24 L184 24 L184 38 L200 38 L200 18 L210 18 L210 6 L214 6 L214 18 L224 18 L224 40 L242 40 L242 30 L258 30 L258 44 L276 44 L276 34 L300 34 L300 70 Z" />
-        </svg>
-        <span className="bc-band" />
-        <span className="bc-ring" />
-        <span className="bc-paper">📰</span>
-        <span className="bc-lens">🔍</span>
+        <span className="bc-hero" />
       </span>
     ),
   },
