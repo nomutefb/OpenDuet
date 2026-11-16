@@ -1,7 +1,8 @@
 // 탭 줄 아래 메뉴 줄(PC 두 칸 · 탭 줄과 같은 곳에서만) — 형 11-16 08:3x 구름 맥 창 · 영상(어두운 윗줄 메뉴 · 6초 · 60프레임)과 함께
 //   「그거 끝나면 이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」
 //   꼴 = 영상 그대로: 글자 메뉴 한 줄(꺽쇠 달린 것 = 누르면 바로 아래로 판) · 판 = 아이콘 + 제목 + 옅은 설명 줄들 · 가름선 · 맨 아래 「… 열기」 한 줄
-//   움직임 = 영상 프레임을 재서 맞춤(구름 11-16 · 판이 열리는 1초를 60프레임으로 줄마다 밝기): 판 바탕 0.45초 · 줄 하나 0.56초(흐릿 → 또렷 · 살짝 올라옴) · 줄 사이 0.07초씩 늦게 · 닫힘 0.15초 · 꺽쇠 뒤집힘 = ./chev.tsx 0.26초
+//   움직임 = 영상 프레임을 재서 맞춤(구름 11-16 · 판이 열리는 1초를 60프레임으로 · 줄 글자 밝기에서 판 바탕 몫을 뺀 값): 판 바탕 = 0.45초 고르게 · 줄 = 누른 뒤 0.09초에 첫 줄 시작 · 줄마다 0.086초씩 늦게 · 하나 0.62초 천천히 → 빠르게 → 천천히(절반 밝기 = 0.42 · 0.50 · 0.59 · 0.69 · 0.77초)
+//     첫 판(08:5x)은 줄을 「빨리 뜨고 천천히 멎는」 꼴로 잡아 영상보다 0.25초쯤 일찍 밝아졌음(형 08:59 「탭이 영상 보내준거처럼 그대로 나와?」 → 다시 재서 고침) · 닫힘 0.15초 · 꺽쇠 뒤집힘 = ./chev.tsx 0.26초
 //   올리면 = 그 줄만 살짝 밝은 판(줄 사이를 미끄러짐) + 제목 · 아이콘 라임 · 맨 아래 줄도 같음
 //   줄 내용 = 부른 쪽(./shell.tsx)이 지금 네비 그대로 넘김(뉴스 에디터 위 탭 셋 ./ned-tabs.ts · 서랍 위 탭 여섯 ./drawer-tabs.ts) — 여기선 그리기만(길 · 이름을 따로 안 적음)
 //   서랍 표에 「글자 메뉴 + 아래로 열리는 판」은 없어서 새로 짬(꺽쇠 = ./chev.tsx · 아이콘 = DuetIcon · 이징 = --e-out 그대로)
@@ -13,7 +14,7 @@ import { Chev } from "./chev";
 export type MenuItem = { id: string; label: string; desc?: string; icon: DuetIconName; to: string; badge?: string };
 export type MenuGroup = { id: string; label: string; to?: string; items?: MenuItem[]; foot?: { label: string; to: string } };
 
-const STAGGER_MS = 70, FIRST_MS = 80, LEAVE_MS = 180, ENTER_MS = 70;   // 줄 사이 · 첫 줄 늦춤(영상: 판이 먼저 뜨고 0.08초 뒤 첫 줄) · 판 밖으로 나가면 닫기까지 · 올려서 열기까지(스쳐 지나가면 안 열림)
+const STAGGER_MS = 86, FIRST_MS = 90, LEAVE_MS = 180, ENTER_MS = 70;   // 줄 사이 · 첫 줄 늦춤(영상: 판이 먼저 뜨고 0.08초 뒤 첫 줄) · 판 밖으로 나가면 닫기까지 · 올려서 열기까지(스쳐 지나가면 안 열림)
 const fine = () => typeof matchMedia === "function" && matchMedia("(hover:hover) and (pointer:fine)").matches;
 
 export function MenuBar({ groups, on }: { groups: MenuGroup[]; on?: string | null }) {

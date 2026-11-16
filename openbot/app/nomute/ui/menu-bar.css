@@ -1,6 +1,6 @@
 /* 탭 줄 아래 메뉴 줄(./menu-bar.tsx · 형 11-16 08:3x 「그거 끝나면 이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」 · 영상 = 어두운 윗줄 메뉴)
    자리 = 탭 줄(위 50px) 바로 아래 한 줄 · 그 키만큼 아래 판을 내림(--nm-menu-h) · 탭 줄이 없는 곳(폰)엔 이 줄도 없음
-   박자 = 영상 프레임을 재서(판이 열리는 1초 · 60프레임 · 줄마다 밝기): 판 0.45초 · 줄 0.56초 · 줄 사이 0.07초 · 닫힘 0.15초 — 움직이는 것 = 투명도 · 자리(transform) · 흐림(줄 다섯 · 0.56초만) */
+   박자 = 영상 프레임을 재서(판이 열리는 1초 · 60프레임 · 줄 글자 밝기 − 판 바탕 몫): 판 0.45초 고르게 · 줄 = 0.09초 뒤 첫 줄 · 줄 사이 0.086초 · 하나 0.62초 천천히 → 빠르게 → 천천히 · 닫힘 0.15초 — 움직이는 것 = 투명도 · 자리(transform) · 흐림(줄 다섯 · 0.56초만) */
 :root:has(.nm-menubar) { --nm-menu-h:34px; }
 :root:has(.nm-menubar) .nm-split-root { padding-top:calc(50px + var(--nm-menu-h)); }
 :root:has(.nm-menubar) .nm-tab-screen { top:calc(50px + var(--nm-menu-h)); }
@@ -17,11 +17,11 @@
 /* 판 */
 .nm-mb-panel { position:absolute; top:calc(100% + 4px); left:-6px; z-index:1; min-width:268px; padding:6px; border-radius:12px; background:#26272a; box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 18px 40px -12px rgba(0,0,0,.6);
   opacity:0; visibility:hidden; transform:translate3d(0,-4px,0); pointer-events:none; transition:opacity .15s linear, transform .15s var(--e-out, cubic-bezier(.2,.8,.2,1)), visibility 0s linear .15s; }
-.nm-mb-group[data-open="1"] > .nm-mb-panel { opacity:1; visibility:visible; transform:none; pointer-events:auto; transition:opacity .45s var(--e-out, cubic-bezier(.2,.8,.2,1)), transform .45s var(--e-out, cubic-bezier(.2,.8,.2,1)), visibility 0s; }
+.nm-mb-group[data-open="1"] > .nm-mb-panel { opacity:1; visibility:visible; transform:none; pointer-events:auto; transition:opacity .45s linear, transform .45s var(--e-out, cubic-bezier(.2,.8,.2,1)), visibility 0s; }
 .nm-mb-hl { position:absolute; left:6px; right:6px; top:0; height:0; border-radius:8px; background:rgba(255,255,255,.055); opacity:0; pointer-events:none; transition:transform .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), height .2s var(--e-out, cubic-bezier(.2,.8,.2,1)), opacity .14s; }
 .nm-mb-row { position:relative; display:flex; align-items:flex-start; gap:10px; padding:9px 10px; border-radius:8px; color:rgba(232,234,232,.92); text-decoration:none; cursor:pointer; opacity:0; }
-.nm-mb-group[data-open="1"] .nm-mb-row { animation:nmMbRow .56s var(--e-out, cubic-bezier(.2,.8,.2,1)) var(--d, 0ms) both; }
-@keyframes nmMbRow { from { opacity:0; transform:translate3d(0,6px,0); filter:blur(5px); } to { opacity:1; transform:none; filter:blur(0); } }
+.nm-mb-group[data-open="1"] .nm-mb-row { animation:nmMbRow .62s cubic-bezier(.42,0,.58,1) var(--d, 0ms) both; }
+@keyframes nmMbRow { from { opacity:0; transform:translate3d(0,4px,0); filter:blur(2px); } to { opacity:1; transform:none; filter:blur(0); } }   /* 흐림은 옅게(2px) = 영상과 나란히 놓고 보니 5px 는 글자가 영상보다 늦게 읽혔음 */
 .nm-mb-ico { flex:none; margin-top:1px; color:rgba(232,234,232,.86); transition:color var(--m-color, .14s); }
 .nm-mb-txt { display:flex; flex-direction:column; gap:5px; min-width:0; }
 .nm-mb-txt b { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; line-height:16px; color:inherit; transition:color var(--m-color, .14s); }
