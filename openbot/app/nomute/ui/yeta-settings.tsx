@@ -21,7 +21,6 @@ import { NomuteHealth } from "./health";
 import { ChatFontRows } from "./chat-font";
 import { EnterKeyRow } from "./enter-key";
 import { ThinkMarkRow } from "./live-shine";
-import { ModelSetRows } from "./model-set";
 // 그록봇 지침 메모(#-060)   // 모델 · 노력도(봇 상자 + 서버가 직접 부르는 일 · 일괄 · 형 11-15)
 import { PushRow } from "../push/push-row";
 import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
@@ -124,7 +123,7 @@ export function YetaSettings() {
             {row("notice", "speaker", "공지 설정", <NomuteNotice />)}   {/* 원본 「공통 지시」(Standing instructions)는 원본 서버 길(/api/settings/instructions)을 불러 우리 사무실에선 늘 못 읽음 → 같은 일 = 공지 판이라 줄을 하나로(형 11-02 06:58 「설정에 이렇게 뜨는 부분들 홛인해주고」 · 빠르) */}
             {/* 봇 쪽 설정(PM · 봇 상자 모델 · 노력도 · 계정 우선순위 · 호출 맥락 · 그록봇 지침 · 지금 봇) = 애들 화면 한 곳으로 옮김 → 여긴 가는 길 하나(형 11-16 19:35 dm-bom 「거기에 봇 관련된 설정은 통합시키려고해」 · 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」) */}
             <Act ic="bot" t="애들 설정" v="애들에서" onClick={() => { location.hash = "#/drawer"; }} />
-            {row("models", "bot", "일 모델 · 노력도", <ModelSetRows bots={false} />)}   {/* 남긴 것 = 서버가 직접 부르는 일 · 파이프라인(봇이 아니라 일 쪽) */}
+            <Act ic="bot" t="일 모델 · 노력도" v="스케줄에서" onClick={() => { location.hash = "#/sched"; }} />   {/* 서브 LLM(서버가 직접 부르는 일 · 파이프라인) = 스케줄 화면으로 옮김 — 러너 일 판 「머리」 칸 + 아래 「머리」 전체 칸(형 11-17 02:1x 구름 맥 창 「그리고 묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」 · 여기엔 가는 길 한 줄만) */}
             {row("teams", "chat", "팀즈", <TeamsAccount />, teamsName)}
             {row("vault", "keys", "보안 서랍", <NomuteVault />)}
           </div>

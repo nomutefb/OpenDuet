@@ -68,7 +68,9 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   const set = rd("../ui/yeta-settings.tsx");
   assert.match(set, /<Act ic="bot" t="애들 설정" v="애들에서" onClick=\{\(\) => \{ location\.hash = "#\/drawer"; \}\} \/>/);
   assert.doesNotMatch(set, /<PmSet \/>|<AcctPrio \/>|<WakeDepthRow \/>|<GrokNote \/>|<NomuteBots \/>/);
-  assert.match(set, /<ModelSetRows bots=\{false\} \/>/);
+  assert.doesNotMatch(set, /ModelSetRows/);   // 일 모델 · 노력도(서브 LLM)도 설정에서 뺌 → 스케줄 화면(형 11-17 02:1x 「녹인뒤 픽스되면 설정에서 빼주셈」)
+  assert.match(set, /<Act ic="bot" t="일 모델 · 노력도" v="스케줄에서" onClick=\{\(\) => \{ location\.hash = "#\/sched"; \}\} \/>/);
+  assert.match(readFileSync(new URL("../ui/sched-desk.tsx", import.meta.url), "utf8"), /<ModelSetRows bots=\{false\} \/>/);   // 같은 부품이 스케줄 화면에
   // 옛 에디터 줄 값 그대로: 낱말 = 상자 없음 6·7 · 13 · 700 / 고른 낱말 = 강조색 800 / 사이 | = .35
   assert.match(mine, /\.nm-bm \.srow \{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:8px 0; \}/);
   assert.match(mine, /\.nm-bm \.pc \{ height:auto; padding:6px 7px; border:0; border-radius:0; background:none;/);
