@@ -236,6 +236,26 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 감(수석 연구원 · 형 11-16 20:00 온 옮김 「너 프로필 카드 자체적으로 만들어 ㅋㅋ」 · 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 감)
+    //   카드 = 그림 통째(슈왕 카드 꼴) · 과녁 한가운데서 윙크하는 감 · 뒤로 오르는 곡선(이슈가 뜨는 기울기) · 600x800 = editor viewer/office/gam-card.webp
+    //   둥근 얼굴 · 고리 · 띠는 안 그림(그림이 주인공) · 테 = 감 주황(#FF8A2B) · 움직임 = 기울일 때 그림이 살짝 따라옴(transform 만)
+    id: "gam",
+    tmpl: true,
+    accent: "#FF8A2B",
+    match: ["감", "gam"],
+    face: "/office/gam.webp",
+    handle: "gam",
+    meta: "수석 연구원",
+    dot: "#FF8A2B",
+    holo: 0.66,
+    glare: 0.46,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-hero" />
+      </span>
+    ),
+  },
+  {
     // 천둥(형 11-10 06:57 봄 창 「천둥」 · 「직무 신」 · 07:0x 「프로필 안에서 이모지 🌩」 · 「프사는 저거로 움직이게」) — 얼굴 = 형이 준 움직이는 그림 그대로(움직이는 webp · 60장 · 5초)
     //   몸통 = 틀 카드 · 색 = 그림 금빛 번개(#FFC83D) · 바탕 = 남색 밤 하늘 · 무늬 = 띠 + 테 + 🌩(가끔 번쩍)
     id: "thunder",
