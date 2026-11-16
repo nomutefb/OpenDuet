@@ -692,14 +692,9 @@ function bootSpatial() {
 
   let width = 0, height = 0, pixelRatio = 1;
   let raf = 0, lastTick = 0, lastDraw = 0, frames = 0, lost = false, disposed = false, ready = false;
-  // 노뮤트: 바탕만 흐를 때(손 · 메뉴 · 들어오는 움직임 없음)는 초당 60장까지만 — 60 보다 빠른 화면(120 · 144Hz)에서 한 주사 걸러 그림
-  //   구름 11-16 · 봄 08:04 「C = 너도 지어」 · 형 기준 「60프레임 · 나한테 멎는 느낌을 주면안됨」 · 맥 9272 폰 폭 실측: 가만한 홈이 초당 120번 그리며 메인 221ms/초 · 그래픽 88ms/초
-  //   길 = rAF 는 주사마다 그대로 받되, 아직 한 장(16.7ms)이 안 찼으면 tick 맨 앞에서 아무것도 안 하고 돌아감(그림 · DOM 쓰기 0) → 그리는 주사가 고르게 하나 걸러 하나
-  //     앞 판(08:21 · 타이머로 자고 rAF 걸기)은 크롬이 주사 중간에 건 rAF 를 바로 돌려서(놓친 주사 메우기) 맥 실물 109번/초 · 간격 들쭉날쭉 → 버림
-  //   n = 16.7ms 안에 들어가는 주사 수(120 · 144Hz = 2 · 90 · 60Hz = 1 = 안 거름 → 60 밑으로는 안 내려감) · 주사 간격 = rAF 사이 열두 개의 가운데 값
-  //   흐름 속도는 dt(그린 tick 사이 시간) 기준이라 그대로 · 손 따라가기 · 메뉴 · 들어오는 움직임 · 다시 그려 달라는 부름(dirty)은 앞처럼 주사마다 · nmSlow(글 화면 뒤) 길은 안 건드림
-  const AMBIENT_MS = 1000 / 60, vsyncs = [];
-  let lastRaf = 0, vsync = 0, calm = false;
+  // 노뮤트: 바탕은 주사마다 그림(원본 그대로) — 11-16 08:2x ~ 08:5x 에 「바탕만 흐를 때 60장까지만」을 넣었다가 뺌(형 08:57 구름 맥 창 「고르게 나오게 만들엉」)
+  //   맥 9272 실물(120Hz): 60 으로 거르면 메인 221 → 144ms/초로 줄지만 프레임 간격이 덜 고름 = 가만히 20.8ms 넘김 0/1200 → 17/847(2.0%) · 넘김 99.4 ~ 100% → 94.8 ~ 99.4%
+  //   (60 으로 그리면 한 칸만 밀려도 25 · 33ms 라 잣대 20.8 을 넘음 · 120 이면 밀려도 16.7) → 다시 손대려면 「간격이 고른지」를 먼저 잼(도구 = 맥 창 ~/cloud-ui/도구/home-idle.mjs · home-swap.mjs)
   let menu = null, menuObserver = null;
   let targetX = 0, targetY = 0, offsetX = 0, offsetY = 0;
   let movingUntil = 0, dirty = true, menuDirty = true, shadowDirty = true;
@@ -852,7 +847,6 @@ function bootSpatial() {
   }
   function stop() {
     cancelAnimationFrame(raf); raf = 0; lastTick = 0; lastDraw = 0;
-    lastRaf = 0; calm = false;   // 노뮤트: 멈추면 주사 재기 · 거르기도 처음부터
     host.dataset.motion = 'still';
     root.dataset.nmScene = reduced.matches ? 'static' : 'paused';
   }
@@ -900,14 +894,6 @@ function bootSpatial() {
   function tick(now) {
     raf = 0;
     if (!available()) { stop(); return; }
-    if (lastRaf) {   // 노뮤트: 주사 간격 재기
-      const gap = now - lastRaf;
-      if (gap > 3 && gap < 40) { vsyncs.push(gap); if (vsyncs.length > 12) vsyncs.shift(); if (vsyncs.length >= 6) vsync = vsyncs.slice().sort((a, b) => a - b)[vsyncs.length >> 1]; }
-    }
-    lastRaf = now;
-    // 노뮤트: 바탕만 흐르는 중 + 빠른 화면 + 아직 한 장이 안 참 = 이 주사는 거름(위 AMBIENT_MS 줄) · lastTick 은 안 건드림 = 다음 그림의 dt 가 두 주사 몫
-    if (calm && !dirty && !introActive && lastDraw && vsync && now >= movingUntil && Math.floor((AMBIENT_MS + .9) / vsync) >= 2 && now - lastDraw < AMBIENT_MS - vsync / 2
-      && Math.abs(targetX - offsetX) + Math.abs(targetY - offsetY) <= .0002) { raf = requestAnimationFrame(tick); return; }
     const dt = lastTick ? Math.min((now - lastTick) / 1000, .05) : 1 / 60;
     lastTick = now;
     const backgroundActive = backgroundRunning();
@@ -936,7 +922,6 @@ function bootSpatial() {
     if (settling || menuMoving || gliding || introActive || backgroundActive) {
       host.dataset.motion = backgroundActive ? 'ambient' : 'settling';
       root.dataset.nmScene = 'running';
-      calm = backgroundActive && !urgent && !slowCap;   // 노뮤트: 다음 주사를 걸러도 되는지(손 · 메뉴 · 들어오는 움직임이 없었고 글 화면 뒤 느린 길이 아님)
       raf = requestAnimationFrame(tick);
     } else { stop(); }
   }
