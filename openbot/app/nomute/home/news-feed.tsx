@@ -135,7 +135,14 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
     };
     const fillImages = (md: Modern): Promise<void> | null => {
       if (linkTask || !md.imageAsks) return linkTask;
-      const queue = md.imageAsks(lastRows, linkTried, 24);
+      // 앞 카드 셋(사진 없는 것) = 첫 바퀴에 주소 셋까지 한꺼번에 물음 · 그 셋 중 하나라도 사진이 오면 바퀴 끝을 안 기다리고 바로 다시 그림
+      //   (형 11-17 02:27 dm-bom 봄 옮김 「웅 이리 나올때 사진이 우선이야 타이틀 아래에는」 · 「사진은 가급적 무조건 잇어야하거즘」 · 앞 판 = 행마다 한 바퀴에 주소 하나 → 첫 카드 셋째 주소가 앞 바퀴 24개를 다 기다려 사진이 15초 뒤에야 옴 · 395 실측)
+      const front = new Set<string>();
+      for (const row of (lastRows as { urls?: string[]; meta?: { images?: unknown[] } }[]).slice(0, 3)) {
+        if (Array.isArray(row?.meta?.images) && row.meta.images.length) continue;
+        for (const u of (Array.isArray(row?.urls) ? row.urls : []).filter((x) => !/youtu\.?be/.test(x)).slice(0, 3)) if (!linkTried.has(u)) front.add(u);
+      }
+      const queue = [...front, ...md.imageAsks(lastRows, linkTried, 24).filter((u) => !front.has(u))];
       if (!queue.length) return null;
       const titleOf = new Map<string, string>();   // 사진 사다리 ⑥(형 11-03 「정확한 사진이 아니더라도, 그 이슈와 유사한 사진을 가져오는게 포인트야」) = 카드 제목을 q 로 → 그 글에서 못 받으면 서버가 같은 이슈 검색 그림
       for (const row of lastRows as { urls?: string[]; title?: string }[]) for (const u of Array.isArray(row?.urls) ? row.urls : []) if (!titleOf.has(u) && row.title) titleOf.set(u, String(row.title).slice(0, 120));
@@ -153,7 +160,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
               const c = v?.ok ? v.card : undefined;   // 막힌 글(봇벽)도 검색 그림(image_src search)이면 씀 · 그 표시 = image_note
               const banner = !!c && c.image_src !== "search" && BREAKING_TITLE.test(c.title || "");   // [속보] 글 og:image = 매체 공용 배너 → 안 씀(다음 바퀴 = 그 행 다음 기사 주소)
               const img = c && !banner && (c.kind === "page" || c.image_src === "search") ? (md.url ? md.url(c.image) : String(c.image || "")) : "";
-              if (img) { linkImages[u] = img; if (c?.image_note) linkNotes[u] = c.image_note; got++; }
+              if (img) { linkImages[u] = img; if (c?.image_note) linkNotes[u] = c.image_note; got++; if (front.has(u) && live) { front.clear(); linkCount += got; got = 0; void rebuild(); } }   /* 앞 카드 사진 = 바로(한 번만) */
             } catch { /* 이 주소는 사진 없이 */ } finally { clearTimeout(t); }
           }
         };
