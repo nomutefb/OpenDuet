@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { IDLE_DEFAULT, hasTask, idleKo, idleOpts, maxBlock, maxShow, maxStep, memberCand, setBody } from "../ui/room-set-logic";
+import { IDLE_DEFAULT, TASK_MAX, idleFor, idleKo, idleOpts, maxBlock, maxShow, maxStep, memberCand, setBody, stayNow, taskEndNote } from "../ui/room-set-logic";
 
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 
@@ -22,20 +22,20 @@ test("최대 인원 = 화면은 형을 더한 숫자 · 서버 max 는 형을 �
   assert.equal(maxBlock(4, 3), "최대 4명인데 지금 5명이야");   // 둘 다 형 포함(머리 숫자와 같은 셈)
 });
 
-test("머무는 시간 = 기본 60분 · 낱말 넷 + 그 밖 값은 끼워 넣음", () => {
-  assert.equal(IDLE_DEFAULT, 60);
-  assert.deepEqual(idleOpts(60).map(idleKo), ["30분", "1시간", "2시간", "3시간"]);
-  assert.deepEqual(idleOpts(90).map(idleKo), ["30분", "1시간", "1시간 30분", "2시간", "3시간"]);
-  assert.deepEqual(idleOpts(0), [30, 60, 120, 180]);
+test("머무는 시간 = 끔 + 낱말 넷 · 그 밖 값은 끼워 넣음 · 일을 적으면 꺼져 있던 값 = 서버 기본 3시간", () => {
+  assert.equal(IDLE_DEFAULT, 180); assert.equal(TASK_MAX, 300);   // 서버 _temproom.js IDLE_DEF_MIN · TASK_MAX 와 같은 값
+  assert.deepEqual(idleOpts(0).map(idleKo), ["끔", "30분", "1시간", "3시간", "6시간"]);
+  assert.deepEqual(idleOpts(90).map(idleKo), ["끔", "30분", "1시간", "1시간 30분", "3시간", "6시간"]);
+  assert.equal(idleFor("표 고치기", 0), 180); assert.equal(idleFor("표 고치기", 60), 60); assert.equal(idleFor("  ", 0), 0);
 });
 
-test("지금 일 줄 = 서버가 칸을 줄 때만 뜸", () => {
-  assert.equal(hasTask({}), false); assert.equal(hasTask(undefined), false);
-  assert.equal(hasTask({ task: "" }), true); assert.equal(hasTask({ task_idle_min: 60 }), true); assert.equal(hasTask({ task_exp: 1 }), true);
+test("지금 일을 비우면 = 일이 끝나고 멤버가 비워짐 → 그때만 한 줄", () => {
+  assert.equal(taskEndNote("표 고치기", " "), "비우면 일이 끝나고 멤버가 비워져");
+  assert.equal(taskEndNote("표 고치기", "표"), ""); assert.equal(taskEndNote("", ""), "");
 });
 
 test("보낼 몸 = 이름 · 지침 · 멤버는 늘 · 기한은 골랐을 때만 · max · task · task_idle_min 은 바뀐 것만", () => {
-  const base = { max: 0, task: "", idle: 60 }, v = { name: "봄바람", purpose: "일", members: ["봄"], hours: null as number | null, ...base };
+  const base = { max: 0, task: "", idle: 0 }, v = { name: "봄바람", purpose: "일", members: ["봄"], hours: null as number | null, ...base };
   assert.deepEqual(setBody(v, base), { name: "봄바람", purpose: "일", members: ["봄"] });
   assert.deepEqual(setBody({ ...v, hours: 1, max: 4 }, base), { name: "봄바람", purpose: "일", members: ["봄"], hours: 1, max: 4 });
   assert.deepEqual(setBody({ ...v, max: 0 }, { ...base, max: 4 }), { name: "봄바람", purpose: "일", members: ["봄"], max: 0 });   // 풀기 = 0
@@ -46,8 +46,11 @@ test("보낼 몸 = 이름 · 지침 · 멤버는 늘 · 기한은 골랐을 때�
 test("방 설정 한 창 = 멤버 · 최대 인원 · 모두 내보내기 · 지금 일 · 머무는 시간 · 메뉴 줄은 하나", () => {
   const t = rd("../ui/temp-room.tsx"), m = rd("../ui/room-menu.tsx"), l = rd("../ui/room-list.tsx");
   assert.match(t, /const cand = memberCand\(candRaw, edit\?\.members \|\| \[\]\)/);
+  assert.match(t, /cls\.includes\(who\(n\)\?\.shelf \|\| who\(n\)\?\.cls \|\| ""\)/);   // 묶음 칸 = 명부 shelf 먼저(구름 → 클로드 칸)
   assert.match(t, /\{edit \? `멤버 · \$\{picked\.length \+ 1\}명` : `초대할 사람 · \$\{picked\.length\}명`\}/);   // 고치기 = 형 포함 숫자(머리 숫자와 같음)
   assert.match(t, /aria-label="최대 인원"/); assert.match(t, /aria-label="머무는 시간"/);
+  assert.match(t, /idle: edit\?\.idle_min && edit\.idle_min > 0 \? edit\.idle_min : 0/);   // 방 자료 칸 = idle_min(서버 tempRoomOf) · 보낼 칸 = task_idle_min
+  assert.match(t, /<textarea value=\{task\} maxLength=\{TASK_MAX\}/);
   assert.match(t, /<MorphAsk className="nm-rs-kick" yesText="내보내기"/);
   assert.match(t, /\{why \|\| over \? <p role="alert"/);   // 최대 인원을 넘으면 까닭이 보임   // 재확인 = 그 자리 토글(모달 0)
   assert.match(t, /JSON\.stringify\(setBody\(\{ name, purpose, members: picked, hours, max, task, idle \}, edit \? set0 : null\)\)/);
@@ -58,4 +61,15 @@ test("방 설정 한 창 = 멤버 · 최대 인원 · 모두 내보내기 · 지
   assert.match(m, /\{canKickAll && !r\.temp \? <MorphAsk role="menuitem"/);
   assert.match(m, /kickAll=\{canKickAll \? \(\) => kickAllGo\(r\) : undefined\}/);
   assert.match(l, /const crewOk = r\.id !== "all" && !!r\.designated && !r\.temp;/);
+});
+
+test("유지 시간 = 지금 값인 칸에 라임(글자 「· 지금 영구」 대신) · 가운데면 막대가 그만큼", () => {
+  const NOW = 1_794_846_000_000, H = 3600e3;
+  assert.equal(stayNow(undefined, NOW), 0);                // 기한 없음 = 영구 칸
+  assert.equal(stayNow(NOW + 40 * 60e3, NOW), 1); assert.equal(stayNow(NOW + 1.5 * H, NOW), 1);   // 1시간 칸
+  assert.equal(stayNow(NOW + 5 * H, NOW), 24); assert.equal(stayNow(NOW + 49 * H, NOW), 72); assert.equal(stayNow(NOW + 400 * H, NOW), 168);   // 남은 날(올림 · 7일까지)
+  const t = rd("../ui/temp-room.tsx"), d = rd("../ui/day-slide.tsx");
+  assert.match(t, /<DaySlide hours=\{hours\} now=\{edit \? stayNow\(edit\.exp, Date\.now\(\)\) : undefined\} onChange=\{setHours\} \/>/);
+  assert.doesNotMatch(t, /· 지금 \{edit\.exp/);
+  assert.match(d, /const hours = picked \?\? now \?\? null;/);
 });

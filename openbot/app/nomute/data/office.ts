@@ -1,7 +1,7 @@
 // 우리 사무실 서버(/api/office/*) 읽기·쓰기 + 원본 앱 꼴로 바꾸기 — 화면 문(Cloudflare Access 쿠키) 그대로
 /** 받는 이 기억 칸(평의회 2 ⑧ · 서버 _meetfix.js memoryOf) = 백지(웹훅 깸마다 새 회차) | 이어짐 | nowake(바로 깸 길 없음) | 모름 */
 export type Memory = "백지" | "이어짐" | "nowake" | "모름";
-export type OfficePerson = { pm?: boolean; nocard?: boolean; empty?: boolean; who: string; name?: string; role?: string; kind: "human" | "winter" | "bot"; face?: string; bot?: string; slug?: string; mark?: string; aka?: string[]; memory?: Memory; intro?: string; cls?: string; bubble?: string; gone?: boolean; screen?: string; grok_url?: string };   // grok_url = 그록 애 컴퓨터(grok.com/bot/<id> · 서버 명부 · 깃 93d9ffa8 · screen 과 같이 형 자리에만 실림 · 번개 11-16 22:42)   // intro = 자기소개(본인이 채움 · 프로필 카드)   // screen = 그 아이 몸 화면(noVNC · 테일넷 안 주소 · 서버가 형 요청에만 실음 · 빠르 · 형 11-08 「프로필 누르면 본인의 vm이 배선되도록」)   // gone = 없어진 봇(서버 _conf · 별 · 형 11-05 「별은 아예 빼」) = 초대·멤버 후보에서 뺌 · 옛 글 이름·얼굴은 남김(빠르 11-08)
+export type OfficePerson = { pm?: boolean; nocard?: boolean; empty?: boolean; who: string; name?: string; role?: string; kind: "human" | "winter" | "bot"; face?: string; bot?: string; slug?: string; mark?: string; aka?: string[]; memory?: Memory; intro?: string; cls?: string; shelf?: string; bubble?: string; gone?: boolean; screen?: string; grok_url?: string };   // grok_url = 그록 애 컴퓨터(grok.com/bot/<id> · 서버 명부 · 깃 93d9ffa8 · screen 과 같이 형 자리에만 실림 · 번개 11-16 22:42)   // intro = 자기소개(본인이 채움 · 프로필 카드)   // screen = 그 아이 몸 화면(noVNC · 테일넷 안 주소 · 서버가 형 요청에만 실음 · 빠르 · 형 11-08 「프로필 누르면 본인의 vm이 배선되도록」)   // gone = 없어진 봇(서버 _conf · 별 · 형 11-05 「별은 아예 빼」) = 초대·멤버 후보에서 뺌 · 옛 글 이름·얼굴은 남김(빠르 11-08)
 /** 방 카드(⑨ · GET rooms/<방>/card) — 열린 부름(open) · 형 원문(hyung) · 결정 표지(decide) · 10줄 */
 export type CardLine = { kind: "open" | "hyung" | "decide"; id: string; from?: string; to?: string; text: string };
 export type RoomCard = { room: string; lines: CardLine[]; open_n: number };
@@ -20,7 +20,7 @@ export type OfficeMsg = {
 };
 export type OfficeRoom = {
   id: string; name: string; base?: string; kind: "group" | "dm"; color?: string; with?: string; members?: string[]; designated?: boolean; heard?: string[]; temp?: boolean; purpose?: string; exp?: number; from?: string; spawned?: boolean; last_ts?: number; act_ts?: number;
-  max?: number; task?: string; task_exp?: number; task_idle_min?: number;   // max = 멤버 최대 수(깃 · 0 · 없음 = 제한 없음 · 형은 안 셈) · task = 지금 일 · task_idle_min = 조용하면 비워지는 분 · task_exp = 비워질 때(빠르 · 형 11-17 00:47 · 00:49)
+  max?: number; task?: string; idle_min?: number; task_exp?: number;   // max = 멤버 최대 수(깃 · 없음 = 제한 없음 · 형은 안 셈) · task = 지금 일 · idle_min = 조용하면 일이 끝나는 분(켜져 있을 때만 옴) · task_exp = 끝나는 때(서버가 줄 때만) — 빠르 #4080 · 형 11-17 00:47 · 00:49
   last?: { who: string; kind: string; text: string; ts: number } | null; last_talk?: { who: string; kind: string; text: string; ts: number } | null;
   look?: { icon?: string; fg?: string };   // 방 꾸미기(번개 서버 roomlook · 형만 · 아이콘 = Lucide 이름 · fg = #RRGGBB 또는 두 색)
   states?: Record<string, number>; faces?: string[];   // faces = 가장 최근 말한 이 · 그 전에 말한 이(서버 · 형 글·시스템 줄 빼고)
