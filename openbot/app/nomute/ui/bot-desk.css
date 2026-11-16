@@ -158,6 +158,24 @@
 .nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell > small { color:var(--nsb-ink); opacity:.8; }
 .nm-bd-ab li[data-sure="0"] .ring, .nm-bd-ab li[data-sure="0"] .halo { opacity:0; }   /* 쉬는 손(대기 신호로 확인 안 됨) = 회색 고리만 */
 .nm-bd-ab li[data-sure="0"] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-ink); }
+/* 직함 알약 = 어느 칸에서나 같은 작은 알약 · 영문 직함은 한 줄(형 11-16 18:4x 직무 표기) · 일하는 중 칸 = 테만 옅게(주인공은 라임 구슬) */
+.nm-bd-ab .cell > small.sk { white-space:nowrap; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }   /* 직함 = 프리텐다드 고정(폰 기본 글꼴 LEMON MILK 는 대문자뿐이라 「DEVELOPER」로 넓게 퍼져 알약끼리 붙었음 · 실물 11-16) */
+/* 멈춤 = 얼굴 옆에 이름 · 까닭을 가로로(앞 = 좁은 칸에 까닭이 여섯 줄로 꺾임) */
+.nm-bd-ab .nsb-ab-lane[data-k="lost"] li { width:100%; }
+.nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell { grid-template-columns:auto minmax(0, 1fr); justify-items:start; align-items:center; column-gap:10px; }
+.nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell > .nsb-ab-av { grid-row:1 / span 2; }
+.nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell > b { align-self:end; }
+.nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell > small { align-self:start; text-align:left; }
+.nm-bd-ab .nsb-ab-lane[data-k="work"] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-mut); }
+/* 폰 = 한 줄에 다섯(앞 넷) · 얼굴 조금 작게 → 스크롤이 줄어 한눈에 더 들어옴(얼굴 56 → 50 · 고리도 같이) */
+@media (max-width:520px) {
+  .nm-bd-ab .nsb-ab-lane:not([data-k="lost"]) li { width:20%; }
+  .nm-bd-ab .nsb-ab-av { width:50px; height:50px; }
+  .nm-bd-ab .nsb-ab-av .ring u { width:50px; height:50px; }
+  .nm-bd-ab .nsb-ab-av .pic img, .nm-bd-ab .nsb-ab-av .pic > * { max-width:38px; max-height:38px; }
+  .nm-bd-ab .cell { gap:3px; padding:5px 1px 3px; }
+  .nm-bd-ab .cell > small.sk { padding:1px 5px; font-size:10px; }
+}
 /* 손 판 색 = 머리 숫자 · 막대와 같은 말로(형 11-16 18:3x 구름 맥 창 「이거 색이 정 반대로 노는 듯.」 · 앞 = 일하는 중이 회색 구슬 · 노는 손이 라임 고리라 머리 「일하는 중」 라임 · 막대 라임 = 일 · 흰색 = 노는 손과 거꾸로였음)
    일하는 중 = 라임(도는 구슬 · 숫자) · 노는 손 = 흰색(바로 받음 = 흰 고리 · 쉬는 손 = 회색 고리 · 숫자 · 특기 알약) · 차례 밖 = 색 빠짐 그대로 — 이 손 판에서만(작동 표 활동 판 ./activity-board.css 값은 안 건드림) */
 .nm-bd-ab .nsb-ab-lane[data-k="work"] .orb > i, .nm-bd-ab li[data-st="work"] .orb > i { background:conic-gradient(transparent 0 70%, var(--nsb-ok) 70% 100%); }

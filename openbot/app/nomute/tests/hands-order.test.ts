@@ -31,3 +31,18 @@ test("손 판 색 = 머리 · 막대와 같은 말: 일하는 중 = 라임 · �
   assert.match(css, /\.nm-bd-ab \.nsb-ab-lane\[data-k="ready"\] h4 b \{ color:var\(--nsb-ink\); \}/);
   assert.match(css, /\.nm-bd-head \.mix \.g-work \{ background:var\(--nsb-ok\);/); assert.match(css, /\.nm-bd-head \.mix \.g-idle \{ background:#E7ECE7; \}/);   // 막대 = 같은 말(라임 = 일 · 흰색 = 노는 손)
 });
+
+test("직무 표기 = 영문 직함: Developer · UX Design · PM · Dev. · PM · UXD. (형 11-16 18:4x) · 나머지도 같은 결", async () => {
+  const { roleLabel, roleOf } = await import("../ui/bot-desk-logic.ts");
+  for (const who of [["D", "S", "R"], ["D", "R", "S"]]) assert.equal(roleLabel(who), "Developer");   // 천둥 · 번개 · 빠르 · 소나
+  assert.equal(roleLabel(["U"]), "UX Design"); assert.equal(roleLabel(["U", "D", "M"]), "UX Design");   // 구름 · 시아
+  assert.equal(roleLabel(["M", "D", "S"]), "PM · Dev.");   // 깃
+  assert.equal(roleLabel(["M", "U", "S"]), "PM · UXD.");   // 봄
+  assert.equal(roleLabel(["R", "D", "S"]), "Research"); assert.equal(roleLabel(["S", "R"]), "Fixer");
+  assert.deepEqual(["Xa", "Xb", "Xc", "Xd"].map((c) => roleLabel([c])), ["Media", "Music", "Writer", "Scout"]);
+  assert.equal(roleLabel(["M"]), "PM"); assert.equal(roleLabel([]), ""); assert.equal(roleLabel(undefined), ""); assert.equal(roleLabel(["Zz"]), "");   // 모르는 코드 = 빈 글(화면이 서버 한글 이름으로 떨어짐)
+  assert.equal(roleOf("D", true), "Dev."); assert.equal(roleOf("U", true), "UXD."); assert.equal(roleOf("R", true), "R&D");
+  const h = rd("../ui/bot-desk-hands.tsx");
+  assert.match(h, /skName = roleLabel\(r\.skills\) \|\| skKo;/);   // 손 판 얼굴 밑 = 직함
+  assert.match(h, /\(k === "idle" \|\| k === "special" \|\| k === "work"\) && skName \? "sk" : undefined/);   // 어느 칸에서나 알약
+});

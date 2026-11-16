@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { idOf } from "../data/office";
 import { FaceImg, type usePeople } from "./faces";
 import { ringDeg, ringFrac } from "./activity-view";
-import { type BotRow, type Group, GROUP_KO, groupOf, isSpecial } from "./bot-desk-logic";
+import { type BotRow, type Group, GROUP_KO, groupOf, isSpecial, roleLabel } from "./bot-desk-logic";
 import "./activity-board.css";
 
 // 칸 차례 = 멈춤 → 일하는 중 → 노는 손 → 특수 → 차례 밖(형 11-16 17:5x 구름 맥 창 「일하는 중이 더 우선적으로 보여야 함」 · 「아예 특수 직업군은 따로 분류되고」 · 앞 판 = 노는 손 먼저 · 일하는 중은 폰에서 접힘)
@@ -50,11 +50,11 @@ export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Re
             {rs.map((r, i) => {
               const st = k === "special" ? handSt(r) : null;
               const sure = r.lane === "ready", deg = (k === "idle" && sure) || st === "ready" ? ringDeg(ringFrac(r, now)) : 180;
-              const sk = r.skills?.[0], skName = sk && skills[sk] ? skillShort(skills[sk]) : "";
+              const sk = r.skills?.[0], skKo = sk && skills[sk] ? skillShort(skills[sk]) : "", skName = roleLabel(r.skills) || skKo;   // 얼굴 밑 = 영문 직함(형 11-16 18:4x 「Developer … UX Design … PM · Dev. … PM · UXD.」) · 모르는 코드면 서버 한글 이름 · 한글 이름은 풍선에
               const sub = k === "lost" ? r.why || r.cause || "멈춤" : k === "out" ? outWhy(r) : skName;
               return (
                 <li key={r.who} data-sure={k === "idle" ? (sure ? "1" : "0") : undefined} data-st={st || undefined} style={{ animationDelay: `${i * 40}ms` }}>
-                  <div className="cell" title={[st ? ST_KO[st] : "", r.state, skName ? `1특기 ${skName}` : ""].filter(Boolean).join(" · ")}>
+                  <div className="cell" title={[st ? ST_KO[st] : "", r.state, skKo ? `1특기 ${skKo}` : ""].filter(Boolean).join(" · ")}>
                     <span className="nsb-ab-av">
                       <span className="halo" /><span className="trk" /><span className="dash" />
                       <span className="ring"><i className="r"><u style={{ transform: `rotate(${deg}deg)` }} /></i><i className="l"><u style={{ transform: `rotate(${-deg}deg)` }} /></i></span>
@@ -62,7 +62,7 @@ export function HandBoard({ rows, skills, people }: { rows: BotRow[]; skills: Re
                       <span className="pic"><FaceImg id={idOf(r.who, people)} size={k === "out" ? 34 : 42} /></span>
                     </span>
                     <b>{r.who}</b>
-                    {sub ? <small className={(k === "idle" || k === "special") && skName ? "sk" : undefined}>{sub}</small> : null}
+                    {sub ? <small className={(k === "idle" || k === "special" || k === "work") && skName ? "sk" : undefined}>{sub}</small> : null}   {/* 직함 = 어느 칸에서나 작은 알약 하나(앞 = 일하는 중만 맨글씨) */}
                   </div>
                 </li>
               );
