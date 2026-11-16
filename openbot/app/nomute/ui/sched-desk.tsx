@@ -1,6 +1,7 @@
 // 스케줄(형 10-31 「포크로 꼽아지고 그걸 차단기로 내리고 키는 개념」 · 「꼬챙이 하나하나에 루틴을 담고 시간을 설계」 · 「포크가 공통의 내용을 담을 수 있는거고」 · 「각각의 끝에는 ! 훅 이거 단 하나야」)
 //   트리 = 맨 위 봇 얼굴 줄(봇 큰 차단기 · 고르면 그 봇 꼬챙이만) → 포크 차단기 → 꼬챙이 차단기 → 끝 ! 얼굴 · 내린 위 칸 아래는 다 멈춘 것으로 보임
 //   서버 = GET schedule · POST schedule/set(형만 · dry = 미리 보기 · at routine·fork·bot) · 저장 흐름 = 설정 NomuteSchedule 과 같음 · 서버 판이 안 올라온 동안은 forks 없음 → 「아직 안 나눔」 한 포크
+import { ModelSetRows } from "./model-set";   // 머리(서브 LLM) = 스케줄 화면으로(형 11-17 02:1x)
 import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -340,6 +341,12 @@ export function SchedDesk() {
           )) : null}
         </div>
       )) : null}
+      {tab === "tree" ? (   /* 머리 = 서브 LLM 갈래 전부(서버가 직접 부르는 일 · 파이프라인) — 설정 「일 모델 · 노력도」와 같은 부품 · 같은 값(형 11-17 02:1x 「묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」 · 러너 일 판의 「머리」 칸은 그 일의 갈래만 · 여기는 러너 일에 안 걸린 갈래까지 한눈에) */
+        <section className="nm-org-log nm-sched-llm" aria-label="머리(서브 LLM)">
+          <h3>머리<small> 서브 LLM · 모델 · 노력도</small></h3>
+          <ModelSetRows bots={false} />
+        </section>
+      ) : null}
       {tab === "tree" ? <Changes list={d.changes || []} got={got} labelOf={labelOf} /> : null}   {/* 최근 바뀜 = 나무 아래(봇 목록 탭을 없애며 옮김) */}
       {can ? null : <p className="text-xs text-muted-foreground">바꾸기는 형 자리에서만 돼.</p>}
     </div>
