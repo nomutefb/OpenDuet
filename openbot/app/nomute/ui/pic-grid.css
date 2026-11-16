@@ -7,7 +7,7 @@
 /* 라임 테(닿은 미디어) = 번개 .nm-encok::after(attachment-up.css · 칸 안쪽 선)가 칸에도 그대로 먹음(칸 = position:relative) */
 
 /* 크게 보기 넘김 + 아래 썸네일 줄 — 넘김 칸은 news.css .nm-zoom-g 와 같은 값(news.css 는 뉴스 화면 갈 때만 실릴 수 있어 대화창용으로 .nm-pv 범위에 둠) */
-.nm-zoom.nm-pv { padding:var(--bar) 0 calc(env(safe-area-inset-bottom, 0px) + 8px); grid-template:minmax(0, 1fr) auto / minmax(0, 1fr); place-items:stretch; cursor:default; }
+.nm-zoom.nm-pv { background:rgba(0,0,0,.97); padding:var(--bar) 0 calc(env(safe-area-inset-bottom, 0px) + 8px); grid-template:minmax(0, 1fr) auto / minmax(0, 1fr); place-items:stretch; cursor:default; }   /* 바탕 .92 → .97 = 뒤 대화창 머리 · 단추가 위 막대 밑으로 안 비침(형 11-16 20:23 「묻혀」) */
 .nm-pv .nm-zoom-track { display:flex; min-width:0; min-height:0; overflow-x:auto; overflow-y:hidden; overscroll-behavior:contain; scroll-snap-type:x mandatory; scrollbar-width:none; }
 .nm-pv .nm-zoom-track::-webkit-scrollbar { display:none; }
 .nm-pv .nm-zoom-slide { flex:0 0 100%; min-width:0; display:grid; place-items:center; padding:0 12px; scroll-snap-align:center; scroll-snap-stop:always; cursor:zoom-out; }

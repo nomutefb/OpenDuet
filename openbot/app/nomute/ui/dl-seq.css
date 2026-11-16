@@ -4,7 +4,7 @@
 .nm-dlseq-ic svg { grid-area:1/1; width:100%; height:100%; display:block; }
 .nm-dlseq-ic .chk { opacity:0; }
 .nm-dlseq-lbl { font-size:var(--fs-xs, 12px); font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums; color:inherit; }
-.nm-dlseq.is-busy, .nm-dlseq.is-done, .nm-dlseq.is-busy .nm-dlseq-lbl, .nm-dlseq.is-done .nm-dlseq-lbl { color:var(--accent, #CFFF40) !important; }
+.nm-dlseq.is-busy, .nm-dlseq.is-done, .nm-dlseq.is-busy .nm-dlseq-lbl, .nm-dlseq.is-done .nm-dlseq-lbl { color:#CFFF40 !important; }   /* 라임 박음 = 사진 보기는 body 포털이라 --accent 가 shadcn 회색(형 11-16 20:23 dm-bom 「1234 그 내용이 묻혀 … 라임으로 강조되도됨」) */
 .nm-dlseq.is-busy { pointer-events:none; }
 .nm-dlseq.is-done .nm-dlseq-ic .dn { opacity:0; }
 .nm-dlseq.is-done .nm-dlseq-ic .chk { opacity:1; animation:nm-dlChkPop .42s cubic-bezier(.2,.7,.3,1); }
@@ -13,3 +13,7 @@
 :root:not(.dark) .nm-dlseq.is-busy, :root:not(.dark) .nm-dlseq.is-done { color:#4f7a00 !important; }
 .nm-zoom-bar button.nm-dlseq { display:inline-flex; width:auto; min-width:44px; justify-content:center; padding:0 10px; }   /* 사진 보기 위 막대(yeta-chat.css .nm-zoom-bar button = 44 칸 grid) 안에서 아이콘 · 세기 글자 한 줄 */
 button.nm-dl.nm-dlseq { display:grid; place-items:center; }   /* 말풍선 저장 = 동그라미 그대로(attachment-up.css) */
+
+/* 사진 보기 위 막대 받기 = 누른 그 자리에서 세기(k/N) → ✓ 「완료」 를 라임 알약으로 또렷하게(형 11-16 20:23 「위에서 체크까지 잘 보이게해줘 라임으로 강조되도됨」) */
+.nm-zoom-bar button.nm-dlseq.is-busy, .nm-zoom-bar button.nm-dlseq.is-done { background:rgba(207,255,64,.16); box-shadow:inset 0 0 0 1px rgba(207,255,64,.55); border-radius:999px; }
+.nm-zoom-bar button.nm-dlseq .nm-dlseq-lbl { font-size:14px; }
