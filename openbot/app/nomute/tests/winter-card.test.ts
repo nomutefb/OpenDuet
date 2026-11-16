@@ -25,3 +25,8 @@ test("이슈왕 카드(형 11-16 18:16 「이거는 프로필 카드를 이거�
   assert.match(css, /\.bc-issueking \.bc-hero \{\s+inset: -4%;\s+background: url\(\/office\/issueking-card\.webp\?v=2\)/);
   assert.match(css, /\.bc-issueking \.profile-card__photo,\s+\.being-card-wrap \.bc-issueking \.bc-halo \{ display: none; \}/);
 });
+test("감 카드(형 11-16 20:00 「너 프로필 카드 자체적으로 만들어」) = 틀 카드 · 과녁 감 그림 통째 · 둥근 얼굴 숨김", () => {
+  assert.match(s, /id: "gam",\s+tmpl: true,\s+accent: "#FF8A2B",\s+match: \["감", "gam"\],\s+face: "\/office\/gam\.webp"/);
+  assert.match(css, /\.bc-gam \.bc-hero \{\s+inset: -4%;\s+background: url\(\/office\/gam-card\.webp\?v=1\)/);
+  assert.match(css, /\.bc-gam \.profile-card__photo,\s+\.being-card-wrap \.bc-gam \.bc-halo \{ display: none; \}/);
+});
