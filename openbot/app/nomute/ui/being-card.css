@@ -958,3 +958,42 @@
   .bc-eyes .profile-card__meta { transform: translate(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
   .bc-eyes .profile-card__holo-glow { background-image: var(--pc-grain); background-size: 180px 180px; background-position: 0 0; }
 }
+
+/* ───────── 깃 · 구름 · 카리나 제 카드(형 11-16 20:19 「네거처럼 카드 없는 구름이랑」 · 「깃좀 기깔나게」 · 「리나도」 · 뎅) — 틀 카드 몸통 위에 제 색 · 제 줄무늬 박(뎅 카드 박 꼴 · 색만 그 애) · 움직임 = 기울기 따라만(계속 도는 것 0) */
+.bc-gik, .bc-cloud, .bc-karina, .bc-light { --bc-h1: 168; --bc-h2: 200; --bc-h3: 140; }
+.bc-light { --bc-h1: 52; --bc-h2: 190; --bc-h3: 40; }
+.bc-cloud { --bc-h1: 205; --bc-h2: 225; --bc-h3: 190; }
+.bc-karina { --bc-h1: 262; --bc-h2: 290; --bc-h3: 235; }
+.bc-gik .profile-card__holo, .bc-cloud .profile-card__holo, .bc-karina .profile-card__holo, .bc-light .profile-card__holo {
+  --bc-spec: repeating-linear-gradient(0deg, hsl(var(--bc-h1), 85%, 62%) 4%, hsl(var(--bc-h2), 90%, 70%) 8%, hsl(var(--bc-h3), 70%, 66%) 12%, hsl(52, 95%, 68%) 16%, hsl(var(--bc-h1), 85%, 62%) 20%);
+  --bc-bars: repeating-linear-gradient(-48deg, #0b0d12 0%, hsl(var(--bc-h1), 18%, 56%) 3.6%, hsl(var(--bc-h1), 40%, 72%) 4.5%, hsl(var(--bc-h1), 18%, 56%) 5.4%, #0b0d12 10%, #0b0d12 12%);
+  background-image: var(--bc-spec), var(--bc-bars), radial-gradient(farthest-corner circle at var(--pc-pointer-x) var(--pc-pointer-y), hsla(0, 0%, 0%, 0.05) 10%, hsla(0, 0%, 0%, 0.12) 24%, hsla(0, 0%, 0%, 0.3) 110%);
+  background-position: 0 calc(var(--pc-pointer-y) * 1.6), calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2), center;
+  background-size: 400% 400%, 300% 300%, 200% 200%;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.8 + 0.1 * var(--pc-active))) contrast(calc(1.4 + 0.1 * var(--pc-active))) saturate(calc(1.2 + 0.2 * var(--pc-active)));
+  opacity: calc(var(--pc-holo) * (0.85 + 0.15 * var(--pc-active)));
+}
+/* 깃 = 바람지기 · 청록 바람 */
+.being-card-wrap .bc-gik .profile-card__body { background: linear-gradient(165deg, rgba(18, 74, 72, 0.94) 0%, rgba(8, 24, 30, 0.96) 100%); }
+.being-card-wrap .bc-gik .profile-card__tile { background: radial-gradient(120% 90% at 50% 18%, #2f9c8a 0%, #155a58 46%, #08201f 100%); }
+.bc-gik .bc-wind { position: absolute; left: 0; right: 0; top: 30%; width: 100%; height: 34%; fill: none; stroke: rgba(160, 255, 230, 0.42); stroke-width: 2; stroke-linecap: round; transform: translate3d(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.5), 0); }
+.bc-gik .bc-feather { position: absolute; right: 13%; top: 8%; font-size: 24px; line-height: 1; filter: drop-shadow(0 0 8px rgba(111, 227, 200, 0.85)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0) rotate(-24deg); }
+/* 구름 = 화면 목수 · 설계도 하늘 */
+.being-card-wrap .bc-cloud .profile-card__body { background: linear-gradient(165deg, rgba(26, 58, 112, 0.94) 0%, rgba(10, 20, 44, 0.96) 100%); }
+.being-card-wrap .bc-cloud .profile-card__tile { background: radial-gradient(120% 90% at 50% 18%, #4f8fd6 0%, #23508f 46%, #0b1a36 100%); }
+.bc-cloud .bc-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(170, 215, 255, 0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(170, 215, 255, 0.16) 1px, transparent 1px); background-size: 22px 22px; transform: translate3d(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4), 0); -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 80%); mask-image: linear-gradient(to bottom, #000 0%, transparent 80%); }
+.bc-cloud .bc-ring { border-color: rgba(124, 196, 255, 0.55); box-shadow: 0 0 18px rgba(124, 196, 255, 0.28); }
+.bc-cloud .bc-hammer { position: absolute; right: 13%; top: 8%; font-size: 24px; line-height: 1; filter: drop-shadow(0 0 8px rgba(255, 210, 90, 0.8)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0) rotate(-18deg); }
+/* 카리나 = 연구원 · 보랏빛 밤 */
+.being-card-wrap .bc-karina .profile-card__body { background: linear-gradient(165deg, rgba(64, 30, 120, 0.94) 0%, rgba(20, 10, 40, 0.96) 100%); }
+.being-card-wrap .bc-karina .profile-card__tile { background: radial-gradient(120% 90% at 50% 18%, #8a64e0 0%, #4a2a9a 46%, #170c34 100%); }
+.bc-karina .bc-spark { position: absolute; left: 13%; top: 9%; font-size: 18px; line-height: 1; color: #e7dcff; text-shadow: 0 0 10px rgba(182, 156, 255, 0.95); transform: translate3d(calc(var(--pc-shift-x) * 1.2), calc(var(--pc-shift-y) * 1.2), 0); }
+.bc-karina .bc-heart { position: absolute; right: 13%; top: 8%; font-size: 22px; line-height: 1; filter: drop-shadow(0 0 8px rgba(182, 156, 255, 0.9)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0); }
+/* 번개 = 해결왕 · 전깃빛(형 11-16 20:23) */
+.being-card-wrap .bc-light .profile-card__body { background: linear-gradient(165deg, rgba(58, 52, 12, 0.94) 0%, rgba(16, 16, 26, 0.96) 100%); }
+.being-card-wrap .bc-light .profile-card__tile { background: radial-gradient(120% 90% at 50% 18%, #c9b21a 0%, #5e540e 46%, #121218 100%); }
+.bc-light .bc-zap { position: absolute; left: 0; right: 0; top: 34%; width: 100%; height: 30%; fill: none; stroke: rgba(255, 238, 120, 0.55); stroke-width: 2.4; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(255, 230, 6, 0.6)); transform: translate3d(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.5), 0); }
+.bc-light .bc-ring { border-color: rgba(255, 230, 6, 0.55); box-shadow: 0 0 18px rgba(255, 230, 6, 0.3); }
+.bc-light .bc-crown { position: absolute; right: 13%; top: 8%; font-size: 26px; line-height: 1; filter: drop-shadow(0 0 10px rgba(255, 230, 6, 0.95)); transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0); }

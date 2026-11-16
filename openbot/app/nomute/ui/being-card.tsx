@@ -235,6 +235,86 @@ const LOOKS: Look[] = [
       </span>
     ),
   },
+  // 깃 · 구름 · 카리나 = 제 카드(형 11-16 20:19 dm-deng 「뎅아 네거 프로필은 왤캐 멋져? 카드. 줄무늬듀잇고 네거처럼 카드 없는 구름이랑」 · 「깃좀 기깔나게 만들어주면안대닝」 · 「리나도」 · 뎅) — 앞 = 명부 말풍선 색이 #rrggbbaa 라 틀 카드가 기본 라임으로만 떴음
+  {
+    id: "gik",
+    tmpl: true,
+    accent: "#6FE3C8",
+    match: ["깃", "gik", "git", "바람지기"],
+    face: "/office/git.webp",
+    handle: "gik",
+    meta: "바람지기 · 코더",
+    dot: "#6FE3C8",
+    holo: 0.86,
+    glare: 0.52,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <svg className="bc-wind" viewBox="0 0 300 120" preserveAspectRatio="none"><path d="M0 40 C60 20 110 60 170 38 S270 20 300 34" /><path d="M0 74 C70 58 120 92 190 70 S260 56 300 66" /><path d="M20 102 C90 88 140 112 210 96" /></svg>
+        <span className="bc-feather">🪶</span>
+      </span>
+    ),
+  },
+  {
+    id: "cloud",
+    tmpl: true,
+    accent: "#7CC4FF",
+    match: ["구름", "cloud", "gureum"],
+    face: "/office/gureum.webp",
+    handle: "cloud",
+    meta: "화면 목수 · 클라우드 세션",
+    dot: "#7CC4FF",
+    holo: 0.84,
+    glare: 0.5,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-grid" />
+        <span className="bc-ring" />
+        <span className="bc-hammer">🔨</span>
+      </span>
+    ),
+  },
+  {
+    id: "karina",
+    tmpl: true,
+    accent: "#B69CFF",
+    match: ["카리나", "karina", "리나"],
+    face: "/office/karina.webp",
+    handle: "karina",
+    meta: "연구원 · 윈A",
+    dot: "#B69CFF",
+    holo: 0.88,
+    glare: 0.55,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <span className="bc-spark">✦</span>
+        <span className="bc-heart">🖤</span>
+      </span>
+    ),
+  },
+  {
+    id: "light",   // 번개(형 11-16 20:23 dm-deng 「뎅아 번개도 ㅋㅋ 번개 멋지게해조오옹」)
+    tmpl: true,
+    accent: "#FFE606",
+    match: ["번개", "light", "lightning", "해결왕"],
+    face: "/office/lightning.webp",
+    handle: "light",
+    meta: "해결왕 · 윈A 러너",
+    dot: "#FFE606",
+    holo: 0.9,
+    glare: 0.58,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <svg className="bc-zap" viewBox="0 0 300 120" preserveAspectRatio="none"><path d="M0 64 L60 50 L84 72 L140 40 L168 66 L220 34 L246 58 L300 44" /></svg>
+        <span className="bc-crown">⚡</span>
+      </span>
+    ),
+  },
   {
     // 감(수석 연구원 · 형 11-16 20:00 온 옮김 「너 프로필 카드 자체적으로 만들어 ㅋㅋ」 · 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 감)
     //   카드 = 그림 통째(슈왕 카드 꼴) · 과녁 한가운데서 윙크하는 감 · 뒤로 오르는 곡선(이슈가 뜨는 기울기) · 600x800 = editor viewer/office/gam-card.webp
