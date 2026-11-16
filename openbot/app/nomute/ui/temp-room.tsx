@@ -99,12 +99,24 @@ export function TempRoomHead({ r }: { r: OfficeRoom }) {
 }
 
 /** 방 설정 「방 사진」 — 형이 사진을 골라 바꿈 · 기본으로 = 뜸 그림(정적)으로 돌아감(형 11-11 12:49 「내가 따로 첨부로도 방 사진 변경할 수 있게해줘」 · 서버가 형 문만 받음) */
-export function RoomArtRow({ id, look }: { id: string; look?: OfficeRoom["look"] }) {
+export function RoomArtRow({ id, look, line }: { id: string; look?: OfficeRoom["look"]; line?: boolean }) {
   const src = useRoomArtSrc(id), [busy, setBusy] = useState(false), [note, setNote] = useState("");
   const [noPic, setNoPic] = useState(false);   // 올린 사진도 정적 그림도 없음 = 깨진 그림(엑박) 대신 빈 칸(형 11-13 06:54 「사진 설정 초기에 엑박이 떠있어」)
   useEffect(() => setNoPic(false), [src]);
   const photo = useRoomPhoto({ id, look });   // 사진 고르기 = 원형 틀 + 격자 자르기 판(./room-photo.tsx · 형 06:54 첨부3)
   const run = async (f: () => Promise<void>, ok: string) => { setBusy(true); setNote(""); try { await f(); setNote(ok); } catch (e) { setNote((e as Error).message); } finally { setBusy(false); } };
+  if (line) return (   // 방 설정 창 = 다른 줄과 같은 꼴(왼쪽 • 이름 기둥 · 오른쪽 값 한 선 · 형 11-17 01:44 「각 라인 정렬해서 좀만 보기 좋게 이미지 에디터 같은거 참고하면 될듯」 · 본 = 옛 에디터 thumb.html .csec + .rsz-opts .ropt)
+    <div className="nm-rs-row" role="group" aria-label="방 사진">
+      <span className="lbl nm-rs-nm">방 사진</span>
+      <span className="opts">
+        <span className="one"><button type="button" disabled={busy} onClick={photo.pick}>사진 고르기</button></span>
+        <span className="one"><i aria-hidden>|</i><button type="button" disabled={busy} onClick={() => void run(() => resetRoomArt(id), "기본 그림으로")}>기본으로</button></span>
+        {noPic ? <span aria-label="방 사진 없음" className="nm-rs-thumb none" /> : <img src={src} alt="방 사진" onError={() => setNoPic(true)} className="nm-rs-thumb" />}
+      </span>
+      {note ? <small className="nm-rs-note" role="status">{note}</small> : null}
+      {photo.sheet}
+    </div>
+  );
   return (
     <div className="flex items-center gap-3">
       {noPic ? <span aria-label="방 사진 없음" className="h-14 w-14 rounded-2xl border border-dashed border-border" /> : <img src={src} alt="방 사진" onError={() => setNoPic(true)} className="h-14 w-14 rounded-2xl border border-border object-cover" />}
@@ -178,33 +190,33 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
   const made = (j: { room: { id: string } }) => { onClose(); if (!edit) void nav({ to: "/channels/$channelId", params: { channelId: j.room.id } }); };   // 닫고 옮기기 = ✓ 뒤(GoButton done)
   return (
     <div role={open ? "dialog" : undefined} aria-modal={open || undefined} aria-hidden={!open || undefined} inert={!open} style={open ? undefined : { visibility: "hidden", pointerEvents: "none" }} aria-label={edit ? "방 설정" : "임시 단톡방 만들기"} className="fixed inset-0 z-[70] grid place-items-center bg-black/50 p-4" {...backdrop(g.request)}>   {/* z 70 = PC 위 탭 줄 · 메뉴 줄(58 ~ 61)보다 위 — 칸이 늘어 창이 길어지자 제목 · X 가 그 줄 밑에 깔렸음(실물 · 1440×900) */}
-      <div className="relative flex max-h-full w-full max-w-md flex-col gap-3 overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">
+      <div className="nm-rs-card relative flex max-h-full w-full max-w-md flex-col overflow-auto rounded-2xl border border-border bg-popover p-4 text-sm shadow-lg">   {/* 줄 꼴 한 벌(.nm-rs-nm 이름 기둥 · .nm-rs-row 값 한 선 · 줄 사이 같은 틈) */}
         <DialogX onClose={g.request} disabled={busy} />
         <b className="pr-9 text-base">{edit ? "방 설정" : "임시 단톡방"}</b>
-        {edit ? <RoomArtRow id={edit.id} look={edit.look} /> : null}
+        {edit ? <RoomArtRow id={edit.id} look={edit.look} line /> : null}
         <fieldset disabled={busy} inert={busy} className="contents">
-        <label className="flex flex-col gap-1">
-          <span className="text-muted-foreground">방 이름</span>
+        <label className="flex flex-col">
+          <span className="nm-rs-nm">방 이름</span>
           <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="rounded-xl border border-border bg-transparent px-3 py-2" />
         </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-muted-foreground">방 지침</span>   {/* 옛 「목적」 = 방 지침 하나(봄 11-12 00:39 「가」 · 형이 찾는 낱말) */}
+        <label className="flex flex-col">
+          <span className="nm-rs-nm">방 지침</span>   {/* 옛 「목적」 = 방 지침 하나(봄 11-12 00:39 「가」 · 형이 찾는 낱말) */}
           <textarea value={purpose} maxLength={500} rows={3} onChange={(e) => setPurpose(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
-          <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요</small>
+          <small className="nm-rs-note">이 방에서 깨는 봇이 늘 읽어요</small>
         </label>
         {edit ? <>   {/* 지금 일 = 방 지침과 따로 한 칸 · 머무는 시간 = 이만큼 조용하면 일이 끝남(형 11-17 00:49 · 서버 = 빠르 #4080) */}
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">지금 일</span>
+          <label className="flex flex-col">
+            <span className="nm-rs-nm">지금 일</span>
             <textarea value={task} maxLength={TASK_MAX} rows={2} onChange={(e) => setTask(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
-            {taskEndNote(set0.task, task) ? <small className="text-xs text-destructive" role="status">{taskEndNote(set0.task, task)}</small> : null}   {/* 빈 일 = 서버가 바로 끝냄(멤버 비움) → 그때만 한 줄 */}
+            {taskEndNote(set0.task, task) ? <small className="nm-rs-note text-destructive" role="status">{taskEndNote(set0.task, task)}</small> : null}   {/* 빈 일 = 서버가 바로 끝냄(멤버 비움) → 그때만 한 줄 */}
           </label>
           <div className="nm-rs-row" role="group" aria-label="머무는 시간">
-            <span className="lbl">머무는 시간</span>
+            <span className="lbl nm-rs-nm">머무는 시간</span>
             <span className="opts">{idleOpts(idle).map((m, i) => <span key={m} className="one">{i ? <i aria-hidden>|</i> : null}<button type="button" aria-pressed={idle === m} onClick={() => setIdle(m)}>{idleKo(m)}</button></span>)}</span>
           </div>
         </> : null}
         <fieldset className="flex flex-col gap-2">
-          <legend className="nm-rs-head mb-1 text-muted-foreground"><span>{edit ? `멤버 · ${picked.length + 1}명` : `초대할 사람 · ${picked.length}명`}</span>{edit && kickAll ? <MorphAsk className="nm-rs-kick" yesText="내보내기" onYes={() => { draftDrop(dk); onClose(); kickAll(); }}>모두 내보내기</MorphAsk> : null}</legend>   {/* 고치기 = 형을 더한 숫자(방 머리 숫자와 같은 셈 · 형 11-17 00:46 「수가 안맞네」) */}
+          <legend className="nm-rs-head"><span className="nm-rs-nm">{edit ? "멤버" : "초대할 사람"}<em>{edit ? picked.length + 1 : picked.length}명</em></span>{edit && kickAll ? <MorphAsk className="nm-rs-kick" yesText="내보내기" onYes={() => { draftDrop(dk); onClose(); kickAll(); }}>모두 내보내기</MorphAsk> : null}</legend>   {/* 고치기 = 형을 더한 숫자(방 머리 숫자와 같은 셈 · 형 11-17 00:46 「수가 안맞네」) */}
           <div role="tablist" className="nm-fam">
             {FAMS.map((f) => { const n = namesOf(f.cls).filter((x) => picked.includes(x)).length; return <button key={f.key} type="button" role="tab" aria-selected={fam === f.key} className="nm-fam-tab" onClick={() => setFam(f.key)}>{f.label}{n ? ` ${n}` : ""}</button>; })}
           </div>
@@ -214,7 +226,7 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
           </div>
           {edit ? (   /* 최대 인원 · 모두 내보내기 = 멤버 칸 안으로(앞 = 방 메뉴에 「멤버 설정」 · 「모두 내보내기」 두 줄이 따로) */
             <div className="nm-rs-row" role="group" aria-label="최대 인원">
-              <span className="lbl">최대 인원</span>
+              <span className="lbl nm-rs-nm">최대 인원</span>
               <span className="opts">
                 <span className="one"><button type="button" aria-pressed={!max} onClick={() => setMax(0)}>제한 없음</button></span>
                 <span className="one"><i aria-hidden>|</i>
@@ -226,8 +238,8 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
             </div>
           ) : null}
         </fieldset>
-        <fieldset className="flex flex-col gap-1">
-          <legend className="mb-1 text-muted-foreground">유지 시간</legend>   {/* 지금 값 = 글자(「· 지금 영구」) 대신 그 칸에 라임 · 가운데면 막대가 그만큼(형 11-17 01:16 · 앞 = 형 11-06 10:37 「이거 하루가 넘나? 유지기간이」 로 붙인 글자) */}
+        <fieldset className="flex flex-col">
+          <legend className="nm-rs-nm">유지 시간</legend>   {/* 지금 값 = 글자(「· 지금 영구」) 대신 그 칸에 라임 · 가운데면 막대가 그만큼(형 11-17 01:16 · 앞 = 형 11-06 10:37 「이거 하루가 넘나? 유지기간이」 로 붙인 글자) */}
           <DaySlide hours={hours} now={edit ? stayNow(edit.exp, Date.now()) : undefined} onChange={setHours} />   {/* 1시간 · 끌어서 1~7일 · 영구(형 11-14 04:56) */}
         </fieldset>
         </fieldset>

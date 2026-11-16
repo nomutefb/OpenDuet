@@ -23,3 +23,23 @@
 .nm-temp-task b { min-width:0; font-weight:700; overflow-wrap:anywhere; }
 .nm-temp-task i { flex:none; margin-left:auto; font-style:normal; font-size:12px; font-variant-numeric:tabular-nums; color:var(--muted-foreground); }
 .nm-rs-head .nm-yn.nm-yn > button.no:not([data-stage]) { border-color:rgb(var(--accent-rgb, 207,255,64)); background:rgb(var(--accent-rgb, 207,255,64)); color:#141414; }   /* 이 창은 body 에 떠서 --accent 가 회색 → 「아니오」 라임이 빠짐(실물) · 묶음 탭과 같은 값으로 */
+
+/* 방 설정 줄 한 벌 — 왼쪽 이름 기둥(• + 굵은 글) · 오른쪽 값 한 선 · 줄 높이 · 틈 같게(형 11-17 01:44 dm-bom 「각 라인 정렬해서 좀만 보기 좋게 이미지 에디터 같은거 참고하면 될듯」 · 본 = 옛 에디터 thumb.html .csec(• 블릿 = 강조색 · 이름 13/800) + .rsz-opts .ropt(낱말 13/700 · 고른 것 강조색 800)) */
+.nm-rs-card { gap:8px; }
+.nm-rs-nm { display:flex; align-items:center; gap:6px; min-height:32px; margin:0; padding:0; font-size:13px; font-weight:800; line-height:1.2; color:var(--foreground); white-space:nowrap; }
+.nm-rs-nm::before { content:"•"; color:rgb(var(--accent-rgb, 207,255,64)); font-weight:700; }
+.nm-rs-nm em { margin-left:2px; font-style:normal; font-weight:700; color:var(--muted-foreground); font-variant-numeric:tabular-nums; }
+.nm-rs-card .nm-rs-row { align-items:center; flex-wrap:wrap; min-height:32px; padding:0; }
+.nm-rs-card .nm-rs-row .lbl.nm-rs-nm { color:var(--foreground); }   /* 값 줄의 이름도 다른 이름과 같은 색(앞 = 흐린 색이라 기둥이 두 가지로 보였음 · 실물) */
+.nm-rs-card .nm-rs-row .one > .st:last-child { min-width:22px; text-align:right; }
+.nm-rs-card .nm-rs-row .opts { align-items:center; }
+.nm-rs-card .nm-rs-row .one { align-items:center; }
+.nm-rs-card .nm-rs-row .one > button, .nm-rs-card .nm-rs-kick { font-size:13px; line-height:20px; }
+.nm-rs-card .nm-rs-row .one:last-of-type > button:last-child, .nm-rs-card .nm-rs-row .one > .st:last-child { padding-right:0; }   /* 오른쪽 끝 글자가 값 기둥 선에 닿게 */
+.nm-rs-card .nm-rs-head { align-items:center; min-height:32px; }
+.nm-rs-card .nm-rs-kick { padding:6px 0 6px 7px; }
+.nm-rs-card fieldset { min-width:0; margin:0; padding:0; border:0; }
+.nm-rs-card fieldset > .nm-fam { margin-bottom:8px; }
+.nm-rs-thumb { flex:none; width:30px; height:30px; margin-left:10px; border-radius:9px; border:1px solid var(--border); object-fit:cover; }
+.nm-rs-thumb.none { border-style:dashed; }
+.nm-rs-note { flex-basis:100%; margin-top:4px; font-size:12px; color:var(--muted-foreground); }
