@@ -2,6 +2,7 @@
 //   트리 = 맨 위 봇 얼굴 줄(봇 큰 차단기 · 고르면 그 봇 꼬챙이만) → 포크 차단기 → 꼬챙이 차단기 → 끝 ! 얼굴 · 내린 위 칸 아래는 다 멈춘 것으로 보임
 //   서버 = GET schedule · POST schedule/set(형만 · dry = 미리 보기 · at routine·fork·bot) · 저장 흐름 = 설정 NomuteSchedule 과 같음 · 서버 판이 안 올라온 동안은 forks 없음 → 「아직 안 나눔」 한 포크
 import { ModelSetRows } from "./model-set";   // 머리(서브 LLM) = 스케줄 화면으로(형 11-17 02:1x)
+import { HealthLog, KindWaits, ThumbOptLog } from "./sched-extra";   // 점검 · 모아 깨우기 · 그림 = 설정에서 옮김(형 11-17 03:24)
 import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -277,6 +278,7 @@ export function SchedDesk() {
         <div className="nm-sum-n">{ST_ORDER.map((k) => <span key={k} title={HEALTH_KO[k]} data-st={k} data-zero={!allSum[k] || undefined}><StatusDot st={k} />{allSum[k]}</span>)}</div>
         <small>{got ? (got.got ? "시계 = 새 표 받음" : "시계 = 새 표 기다리는 중") : "시계 = 바뀐 것 없음"}{d.health_sum?.at ? ` · ${new Date(d.health_sum.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul" })} 기준` : " · 실제 실행은 아직 안 셈"}</small>
       </div>
+      <HealthLog />   {/* 점검(그록 웹훅 · 스케줄러 시계 · 수리 감시 · 거울 일꾼 · 직접 올리기) = 설정 「점검표」에서 옮김 · 닫힌 한 줄 · 고칠 것이 있으면 열려서 뜸 */}
       {d.runners?.jobs.length ? (
         <div className="flex flex-wrap gap-1" role="group" aria-label="갈래">
           {[{ id: "tree", name: "스케줄러" }].map((g) => {
@@ -347,6 +349,7 @@ export function SchedDesk() {
           <ModelSetRows bots={false} />
         </section>
       ) : null}
+      {tab === "tree" ? <><KindWaits kinds={d.kinds || []} sha={d.sha || ""} can={can} /><ThumbOptLog /></> : null}   {/* 모아 깨우기(설정 「스케줄러 바꾸기」에만 있던 칸) · 그림(설정 「AI 썸네일 옵션」) */}
       {tab === "tree" ? <Changes list={d.changes || []} got={got} labelOf={labelOf} /> : null}   {/* 최근 바뀜 = 나무 아래(봇 목록 탭을 없애며 옮김) */}
       {can ? null : <p className="text-xs text-muted-foreground">바꾸기는 형 자리에서만 돼.</p>}
     </div>

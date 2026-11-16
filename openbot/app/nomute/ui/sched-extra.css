@@ -1,0 +1,37 @@
+/* 스케줄 화면의 접는 칸(./sched-extra.tsx) — 「최근 바뀜」 카드(.nm-org-log) 위에 머리 줄 단추 · 낱말 줄만 얹음 */
+.nm-sx h3 { margin:0; }
+.nm-sx h3 > button { display:flex; align-items:baseline; gap:8px; width:100%; min-height:28px; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-sx h3 b { display:inline; flex:none; overflow:visible; }
+.nm-sx h3 small { display:inline; flex:1; min-width:0; font-weight:500; }
+.nm-sx h3 small[data-tone="bad"] { color:#ff8a80; }
+.nm-sx h3 small[data-tone="wait"] { color:#ffd27a; }
+.nm-sx h3 svg { flex:none; align-self:center; opacity:.55; }
+.nm-sx h3 + * { margin-top:8px; }
+.nm-sx em[data-k="bad"] { border-color:rgba(255,138,128,.45); color:#ff8a80; }
+.nm-sx-go { margin-top:10px; }
+.nm-sx-msg { margin:6px 0 0; font-size:var(--fs-sm); color:#ff8a80; }
+/* 모아 깨우기 — 줄 = [이름 · 기한 ……… 지금 값] · 펼침 = 오른쪽 맞춘 낱말 줄 */
+.nm-sx-kinds { gap:0 !important; }
+.nm-sx-kinds[data-busy] { opacity:.6; }
+.nm-sx-kinds > li { display:block; }
+.nm-sx-kinds > li + li { border-top:1px solid var(--glass-line); }
+.nm-sx-kinds .k { display:flex; align-items:baseline; gap:8px; width:100%; min-height:38px; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-sx-kinds .k b { display:inline; flex:none; max-width:55%; }
+.nm-sx-kinds .k small { display:inline; flex:1; min-width:0; }
+.nm-sx-kinds .k .v { flex:none; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; }
+.nm-sx-kinds .ws { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:baseline; gap:2px 0; padding-bottom:6px; }
+.nm-sx-kinds .ws > i { font-style:normal; opacity:.35; padding:0 1px; pointer-events:none; }
+.nm-sx-kinds .w { padding:6px 7px; border:0; background:none; font:inherit; font-size:13px; font-weight:700; color:var(--mut, rgba(232,234,232,.55)); white-space:nowrap; -webkit-tap-highlight-color:transparent; }
+.nm-sx-kinds button.w { cursor:pointer; transition:color .15s ease, scale .12s ease; }
+.nm-sx-kinds button.w:active { scale:.94; }
+.nm-sx-kinds .w.on { color:var(--accent, #CFFF40); font-weight:800; }
+/* 그림 — 설정에서 쓰던 카드 꼴을 벗겨 이 카드 안에 그대로 */
+.nm-sx-gopt > .ycd-card { margin:0; padding:0; border:0; background:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+.nm-sx-gopt .nm-sw { flex:none; display:inline-flex; align-items:center; padding:0; border:0; background:none; font:inherit; color:inherit; cursor:pointer; }   /* 스위치 = 설정 것과 같은 꼴(거기 규칙은 .yeta-set 울타리 안에서만 먹음) */
+.nm-sx-gopt .si-sw { flex:none; position:relative; width:40px; height:24px; border-radius:999px; background:var(--glass, rgba(255,255,255,.06)); border:1px solid var(--glass-line); transition:background .2s ease; }
+.nm-sx-gopt .si-sw::after { content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#E7ECE7; transition:transform .2s ease, background .2s ease; }
+.nm-sx-gopt .nm-sw[aria-checked="true"] .si-sw { background:rgba(var(--accent-rgb, 207,255,64),.9); border-color:transparent; }
+.nm-sx-gopt .nm-sw[aria-checked="true"] .si-sw::after { transform:translateX(16px); background:#161716; }
+.nm-sx-gopt .nm-sw:disabled { opacity:.5; cursor:default; }
+/* 영문이 섞이는 글(repair-watch · main · GitHub) = 본문 글꼴(화면 기본 글꼴은 영문을 대문자 꼴로 그림) */
+.nm-sx ol, .nm-sx-msg { letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
