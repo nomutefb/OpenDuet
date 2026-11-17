@@ -65,9 +65,15 @@ self.addEventListener("push", (e) => {
       renotify: !!d.renotify, ...(d.vibrate ? { vibrate: d.vibrate } : {}), data: { url: d.url || "/garden-app/" }, lang: "ko" });
   })());
 });
+/* 옛 에디터 딥링크(「요약 완료」 알림 = /?a=<기사파일>&nmv=1 · 러너 ask.sh · analyze.sh → push_send.py) = 정원 기사 한 장(#/newsed?a=<파일>)으로 바꿔 옮김
+   (형 11-17 10:18 dm-bom 봄 옮김 「요약 완료를 누르면 이렇게 뜨는 경우가 있어 확인 좀. 원톤으로 통일해야함」 · 앞 판 = 서버 _root_app.js 가 ? 붙은 길을 옛 에디터로 통과 → 파란 선 · 분홍 점수 · 네비 두 겹) · 그 밖 주소 = 그대로 */
+function gardenOf(u) {
+  if (u.origin !== location.origin || u.pathname !== "/" || !u.searchParams.get("a")) return u;
+  return new URL(`/garden-app/#/newsed?a=${encodeURIComponent(u.searchParams.get("a"))}`, location.origin);
+}
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
-  const target = new URL((e.notification.data && e.notification.data.url) || "/garden-app/", location.origin).href;
+  const target = gardenOf(new URL((e.notification.data && e.notification.data.url) || "/garden-app/", location.origin)).href;
   e.waitUntil((async () => {
     const w = (await appWins())[0];
     if (w && "navigate" in w) { try { const c = await w.navigate(target); return (c || w).focus(); } catch { /* 못 옮기면 새 창 */ } }
