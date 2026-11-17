@@ -1,6 +1,7 @@
 // 앱 밖 주소 받기(공용 길 · 형 10-28 15:32 「모두 누르면 앱 내에서 작동되게해줘. 그니까 가져오는거야 거기있는거를」 · 15:33 「그대로 가져와서 여기 톤에 녹인다고」)
 //   누르면 웹으로 나가던 칸 → 앱 안: /garden-app/… = 그 판 · 그 밖(에디터 원본 화면·기사·곡) = #/web?u=<주소> 모달(껍데기 ui/shell.tsx WebLayer · 「<」 = 앞 판 그대로)
 //   이름·꼴 = claude-state assign/2026-10-28/office-inapp.md 「바뀜」 15:5x(보조 02 대화창 · 03 에디터 판이 받아 씀)
+import { WEB_TAB_EVENT } from "./tab-list";
 const APP = "/garden-app/";
 
 /** 우리 저장소 이슈·반영 요청 = 앱 안 「< 이슈 N」 판(GitHub 은 품기를 막고 저장소가 비공개 → 서버가 대신 읽음 · PM 16:09) */
@@ -42,9 +43,33 @@ function macTab(raw: string, base?: string): boolean {
   return true;
 }
 
+/** PC 웹앱(위 탭 줄이 보이는 두 칸) = 바깥 주소는 창 안 탭으로 — 형 11-17 13:0x 구름 창 「앱 내에서 웹페이지를 열면, 앱 내에서 열리도록 해줘」 · 「지금 열면 각 피시에 연결된 지정 브라우저로 열려」 · 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」
+ *  앞(라이브 13:0x 실물 PC 1440): 보통 사이트 = 왼쪽 대화 칸 위 한 겹(#/web · 탭 아님) · 네이버 · 인스타 · X · 깃허브(NO_FRAME) = 밖 새 창 → 둘 다 위 탭 줄의 웹 탭(./tab-bar.tsx · 오른쪽 칸)
+ *  품기를 막는 사이트는 탭 안에 「막아요」 안내가 뜸(브라우저가 막는 것 = 웹앱으론 못 넘음 · 진짜 화면은 「Browser」 탭(맥 72) 또는 껍데기 앱) — 그래도 누름 한 번에 밖으로 튀어 나가진 않음
+ *  우리 사이트 화면(에디터 원본 · 같은 출처) · 이슈 = 앞 길 그대로(#/web 겹 = 톤 입히는 판 · 「< 이슈」 판) · 폰(탭 줄 없음) = 앞 길 그대로 */
+const tabBarOn = () => {
+  if (typeof document === "undefined" || !document.querySelector(".nm-split-root")) return false;
+  const bar = document.querySelector<HTMLElement>(".nm-tabs:not(.nm-area)");
+  return !!bar && getComputedStyle(bar).display !== "none";
+};
+/** 순수 — 위 탭 줄 웹 탭으로 보낼 주소면 그 주소(정리된 꼴) · 아니면 null */
+export function webTabUrl(raw: string, base: string, origin: string): string | null {
+  let u: URL;
+  try { u = new URL(raw, base); } catch { return null; }
+  if (!/^https?:$/.test(u.protocol) || u.origin === origin || ISSUE.test(u.href)) return null;
+  return u.href;
+}
+function webTab(raw: string, base?: string): boolean {
+  const url = webTabUrl(raw, base ?? location.href, location.origin);
+  if (!url) return false;
+  window.dispatchEvent(new CustomEvent<{ url: string }>(WEB_TAB_EVENT, { detail: { url } }));
+  return true;
+}
+
 /** 앱 안으로 엶(해시 길 = 라우터가 받음) — 못 들이면 false(부른 쪽이 원래대로) */
 export function openInApp(raw: string, base?: string): boolean {
   if (macApp() && macTab(raw, base)) return true;
+  if (tabBarOn() && webTab(raw, base)) return true;
   const h = inAppHref(raw, base);
   if (h == null) return false;
   location.hash = `#${h}`;

@@ -7,7 +7,7 @@ import { type PointerEvent as RPE, type ReactNode, useEffect, useLayoutEffect, u
 import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg } from "./faces";
-import { DASH, ORDER_KEY, STRIP_FIXED, type Tab, type TabState, TABS_KEY, dropIndex, stripMove, stripOrder, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsSave, tabsSetUrl, webTabName, webTabNew } from "./tab-list";
+import { DASH, ORDER_KEY, STRIP_FIXED, type Tab, type TabState, TABS_KEY, dropIndex, stripMove, stripOrder, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsSave, tabsSetUrl, WEB_TAB_EVENT, webTabName, webTabNew, webTabOpen } from "./tab-list";
 import { WebPane } from "./web-pane";
 import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:54 · 맥 72 다리)
 import { COBROWSE_EVENT } from "./cobrowse";
@@ -68,6 +68,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   useEffect(() => { const on = () => requestAnimationFrame(() => { if (!paneHost()) setS((x) => (x.active.startsWith("s:") || x.active.startsWith("w:") || x.active === BROWSER || x.active === MEET || x.active === TEAMS ? { ...x, active: "dash" } : x)); }); addEventListener("hashchange", on); return () => removeEventListener("hashchange", on); }, []);
   useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
   useEffect(() => { const on = (e: Event) => { const a = (e as CustomEvent<ScreenTabAsk>).detail; if (a) setS((x) => screenTabAdd(x, a.who, a.url)); }; addEventListener(SCREEN_TAB_EVENT, on); return () => removeEventListener(SCREEN_TAB_EVENT, on); }, []);   // 들머리 = openScreenTab()(프로필 카드 「몸 화면 열기」 · PC) → 「○○ 화면」 탭을 붙이고 고름
+  useEffect(() => { const on = (e: Event) => { const u = (e as CustomEvent<{ url?: string }>).detail?.url; if (u) setS((x) => webTabOpen(x, u)); }; addEventListener(WEB_TAB_EVENT, on); return () => removeEventListener(WEB_TAB_EVENT, on); }, []);   // 들머리 = openInApp()(바깥 링크 누름 · window.open) → 그 주소의 웹 탭을 붙이고 고름(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」)
   useEffect(() => { try { if (isTeams(room)) localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); else if (room) localStorage.setItem(OFFICE_LAST, room); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
@@ -234,7 +235,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
             s.active === "co" ? <div key="co" className="nm-tab-co"><CobrowsePane onClose={() => close("co")} /></div> : null   /* 보는 동안만 붙음 = 안 보면 다리 쉼(봄 12:53 「보는 중」 신호) · 다시 고르면 새 표 */
           ) : t.k === "web" ? (
             <div key={tabKey(t)} className="nm-tab-web" hidden={s.active !== tabKey(t)}>
-              <WebPane initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} />   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
+              <WebPane initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 탭은 넘어감 */ } setS((x) => ({ ...x, active: BROWSER })); }} />   {/* 막는 사이트 = 창 안 「Browser」 탭(맥 72 진짜 브라우저)으로 · 주소는 복사해 둠(다리가 주소를 받아 여는 길은 깃 몫 · 생기면 바로 넘김) */}   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
             </div>
           ) : (
             <ScreenTabPane key={`${tabKey(t)}|${t.url}`} url={t.url} name={nameOf(t)} on={s.active === tabKey(t)} />   /* 몸 화면 탭 = 켤 때 표를 새로 받아 끼움(앞 = 저장된 주소를 그대로 틀에 넣어 표 없는 주소가 들어갔음 · ./screen-tab.tsx · 구름 11-16) */

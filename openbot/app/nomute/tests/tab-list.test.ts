@@ -1,7 +1,8 @@
 // 위쪽 탭 줄 자료(빠르 11-09 · 형 05:16 · 시아 05:23)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DASH, STRIP_FIXED, TABS_MAX, dropIndex, stripMove, stripOrder, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "../ui/tab-list.ts";
+import { DASH, STRIP_FIXED, TABS_MAX, dropIndex, stripMove, stripOrder, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave, webTabOpen } from "../ui/tab-list.ts";
+import { webTabUrl } from "../ui/inapp.ts";
 
 const S = (keys: string[]) => keys.join(" ");
 const keysOf = (s: { tabs: Parameters<typeof tabKey>[0][] }) => S(s.tabs.map(tabKey));
@@ -117,4 +118,22 @@ test("탭 줄 = 요소를 옮겨 꽂지 않고 order 값으로만 차례를 바�
   assert.doesNotMatch(step, /style\.(left|right|width)\b/); assert.match(step, /style\.transform = `translate3d\(/);   // 끄는 화면마다 = transform 만
   assert.match(tsx, /if \(!d\.raf\) d\.raf = requestAnimationFrame\(step\);/);   // 화면 한 장에 한 번
   assert.match(css, /\.nm-tab\[data-sep\]:not\(\.on\)::before/); assert.match(css, /\.nm-tab-plus \{ order:98; \}/);
+});
+
+test("바깥 링크 = 창 안 웹 탭으로(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」) · 같은 주소는 그 탭을 고름 · 우리 사이트 · 이슈 · 웹 아닌 주소는 앞 길", () => {
+  const O = "https://edit.nomute.kr", B = O + "/garden-app/#/group/all";
+  assert.equal(webTabUrl("https://www.naver.com/", B, O), "https://www.naver.com/");   // 품기를 막는 곳도 탭으로(앞 = 밖 새 창)
+  assert.equal(webTabUrl("https://example.com/a?b=1#c", B, O), "https://example.com/a?b=1#c");
+  assert.equal(webTabUrl("/news/deck", B, O), null);   // 우리 사이트 화면 = 앞 길(#/web 겹 · 톤 입히는 판)
+  assert.equal(webTabUrl("https://github.com/nomutefb/editor/issues/12", B, O), null);   // 이슈 = 앱 안 「< 이슈」 판
+  assert.equal(webTabUrl("mailto:a@b.c", B, O), null); assert.equal(webTabUrl("http://[", B, O), null);
+  let s = tabsLoad(null);
+  s = webTabOpen(s, "https://example.com/", 1000);
+  assert.deepEqual(s.tabs.map(tabKey), ["dash", "w:rs"]); assert.equal(s.active, "w:rs");
+  const again = webTabOpen({ ...s, active: "dash" }, "https://example.com/", 2000);
+  assert.deepEqual(again.tabs, s.tabs); assert.equal(again.active, "w:rs");   // 같은 주소 = 탭 안 늘고 그 탭을 고름
+  assert.equal(webTabOpen(s, "https://example.com/", 3000), s);   // 이미 그 탭을 보는 중 = 그대로(다시 안 그림)
+  const two = webTabOpen(s, "https://www.naver.com/", 1000);   // 같은 순간(id 겹침) = 다음 번호
+  assert.deepEqual(two.tabs.map(tabKey), ["dash", "w:rs", "w:rt"]); assert.equal(two.active, "w:rt");
+  assert.equal(webTabOpen(s, "javascript:alert(1)", 1), s); assert.equal(webTabOpen(s, "", 1), s);
 });

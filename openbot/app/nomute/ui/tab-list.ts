@@ -84,6 +84,17 @@ export function dropIndex(boxes: readonly (readonly [number, number])[], me: num
 }
 /** 웹 탭 새로(「+」) — id = 시각 36진 · 빈 주소 */
 export const webTabNew = (now = Date.now()): Tab => ({ k: "web", id: now.toString(36), url: "" });
+/** 바깥 주소를 위 탭 줄의 웹 탭으로(구름 11-17 · 형 13:0x 구름 창 「앱 내에서 웹페이지를 열면, 앱 내에서 열리도록 해줘」 · 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」)
+ *  들머리 = ./inapp.ts openInApp → 이 이름의 창 신호 → ./tab-bar.tsx 가 듣고 탭을 붙임 · 같은 주소 탭이 이미 있으면 그 탭을 고름(누를 때마다 쌓이지 않게) */
+export const WEB_TAB_EVENT = "nm-web-tab";
+export function webTabOpen(s: TabState, url: string, now = Date.now()): TabState {
+  if (!/^https?:\/\//.test(url)) return s;
+  const had = s.tabs.find((t) => t.k === "web" && t.url === url);
+  if (had) return s.active === tabKey(had) ? s : { ...s, active: tabKey(had) };
+  let n = now, id = n.toString(36);
+  while (s.tabs.some((t) => t.k === "web" && t.id === id)) id = (++n).toString(36);
+  return tabsAdd(s, { k: "web", id, url });
+}
 /** 웹 탭 주소 바꿈(그 탭 안에서 이동 · 다시 켜도 그 주소) · 다른 탭 = 그대로 */
 export function tabsSetUrl(s: TabState, key: string, url: string): TabState {
   let hit = false;

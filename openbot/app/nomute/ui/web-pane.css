@@ -14,3 +14,6 @@
 .nm-web-out { color: #7CC8FF; text-decoration: underline; text-underline-offset: 2px; }
 .nm-web-hint { position: absolute; left: 8px; bottom: 8px; margin: 0; padding: 4px 8px; border-radius: 6px; background: rgba(0,0,0,.6); color: rgba(232,234,232,.8); font-size: var(--fs-xs); pointer-events: none; }
 .nm-web-note > p { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+/* 막는 사이트 안내의 단추 둘(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」) = 「Browser 탭에서 열기」가 먼저 · 「밖에서 열기」는 옅게 */
+button.nm-web-out { appearance:none; border:0; background:none; padding:0; font:inherit; cursor:pointer; }
+.nm-web-out.sub { opacity:.6; }

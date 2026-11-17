@@ -66,10 +66,10 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.match(ui, /JSON\.stringify\(\{ all: true, \.\.\.v \}\)/);
   assert.match(desk, /\{sel === "\*" \? <div className="nm-bd-org-one" aria-label="모두 한 번에"><BotManageAll \/><\/div> : null\}/);
   const set = rd("../ui/yeta-settings.tsx");
-  assert.match(set, /<button type="button" onClick=\{\(\) => \{ location\.hash = "#\/drawer"; \}\}>애들 · 계기판</);   // 가는 길 둘 = 한 줄에 나란히(형 11-17 07:09 dm-bom 「가능한 묶고」 · 봄이 정함)
+  assert.doesNotMatch(set, /애들 · 계기판</);   // 설정의 가는 길 둘 = 걷음(형 11-17 12:25 dm-bom 「중간에 계기판 하고 스케줄도!」 · 13:0x 구름 창 「설정에 있는 계기판 같은거는, 이미 다른 메뉴에 있는 내용이니까, 굳이 설정에 또 있을 필요없어」 · 시아 d36c846) — 가는 길 = 폰 네비 5번 · PC 위 메뉴 「애들」
   assert.doesNotMatch(set, /<PmSet \/>|<AcctPrio \/>|<WakeDepthRow \/>|<GrokNote \/>|<NomuteBots \/>/);
   assert.doesNotMatch(set, /ModelSetRows/);   // 일 모델 · 노력도(서브 LLM)도 설정에서 뺌 → 스케줄 화면(형 11-17 02:1x 「녹인뒤 픽스되면 설정에서 빼주셈」)
-  assert.match(set, /<button type="button" onClick=\{\(\) => \{ location\.hash = "#\/sched"; \}\}>스케줄 · 점검 · 일 모델</);
+  assert.doesNotMatch(set, /스케줄 · 점검 · 일 모델</);   // 같은 때 걷음(위 줄과 한 쌍)
   assert.match(readFileSync(new URL("../ui/sched-desk.tsx", import.meta.url), "utf8"), /<ModelSetRows bots=\{false\} \/>/);   // 같은 부품이 스케줄 화면에
   // 옛 에디터 줄 값 그대로: 낱말 = 상자 없음 6·7 · 13 · 700 / 고른 낱말 = 강조색 800 / 사이 | = .35
   assert.match(mine, /\.nm-bm \.srow \{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:8px 0; \}/);

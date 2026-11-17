@@ -25,7 +25,7 @@ export function toAddress(raw: string): string {
 // 빈 판 글 = 「주소나 검색어를 넣어주세요」 한 줄(형 11-12 10:00 「그냥 주소나 검색어를 넣어주세요. 정도 나오면 될듯」)
 const sameSite = (u: string) => u.startsWith("/") || u.startsWith(location.origin + "/");
 
-export function WebPane({ initial = "", className = "", onClose, onGo, blank, focus = false, backOut }: { initial?: string; className?: string; onClose?: () => void; onGo?: (url: string) => void; blank?: ReactNode; focus?: boolean; backOut?: () => void }) {   // backOut = 뒤로 갈 데 없을 때 ← 가 닫기(폰 #/web 겹 = 머리 알약을 뺐으니 닫는 길 · 카리나 11-17)   // onGo = 주소 바뀜 알림(탭 이름 · 기억) · blank = 빈 화면 아래 덧(탭 「+」 = 몸 화면 바로가기) · focus = 빈 채로 열리면 주소칸에 손(빠르 11-11)
+export function WebPane({ initial = "", className = "", onClose, onGo, blank, focus = false, backOut, onBridge }: { initial?: string; className?: string; onClose?: () => void; onGo?: (url: string) => void; blank?: ReactNode; focus?: boolean; backOut?: () => void; onBridge?: (url: string) => void }) {   // onBridge = 품기를 막는 사이트일 때 「Browser 탭에서 열기」(위 탭 줄 안 진짜 브라우저 = 맥 72 다리 · 창 밖으로 안 나감 · 형 11-17 「내부에서 무조건 열려야해」)   // backOut = 뒤로 갈 데 없을 때 ← 가 닫기(폰 #/web 겹 = 머리 알약을 뺐으니 닫는 길 · 카리나 11-17)   // onGo = 주소 바뀜 알림(탭 이름 · 기억) · blank = 빈 화면 아래 덧(탭 「+」 = 몸 화면 바로가기) · focus = 빈 채로 열리면 주소칸에 손(빠르 11-11)
   const first = toAddress(initial);
   const [input, setInput] = useState(first);
   const [hist, setHist] = useState<string[]>(first ? [first] : []);
@@ -81,7 +81,8 @@ export function WebPane({ initial = "", className = "", onClose, onGo, blank, fo
           <div className="nm-web-note">
             <b>이 사이트는 앱 안 보기를 막아요</b>
             {check.why ? <span>{check.why}</span> : null}
-            <a data-nm-out href={cur} target="_blank" rel="noopener" className="nm-web-out">밖에서 열기</a>
+            {onBridge ? <button type="button" className="nm-web-out" onClick={() => onBridge(cur)}>Browser 탭에서 열기</button> : null}
+            <a data-nm-out href={cur} target="_blank" rel="noopener" className={onBridge ? "nm-web-out sub" : "nm-web-out"}>밖에서 열기</a>
           </div>
         ) : check.state === "checking" ? (
           <p className="nm-web-note">여는 중…</p>
