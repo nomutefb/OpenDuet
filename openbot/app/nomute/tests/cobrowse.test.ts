@@ -1,7 +1,7 @@
 // 같이 보기(봄 11-12 13:54 · 뜸)
 import assert from "node:assert/strict";
 import test from "node:test";
-import { cobrowseSrc, reachable } from "../ui/cobrowse.ts";
+import { cobrowseSrc, reachable, coNavMsg } from "../ui/cobrowse.ts";
 import { tabKey, tabsAdd, tabsLoad, tabsSave } from "../ui/tab-list.ts";
 
 test("서버 답 → 띄울 주소 = https · ts.net · 표 붙은 것만", () => {
@@ -37,4 +37,11 @@ test("로컬 네트워크 권한 — 물음 = 길게 기다림 · 못 물음 = �
   assert.equal(await lnaState({ permissions: { query: async () => { throw new TypeError("x"); } } }), "unknown");
   assert.equal(await lnaState({}), "unknown");
   assert.ok(reachWait("prompt") > reachWait("granted"));
+});
+
+test("다리 판에 「이 주소로 가」 = 부모 틀이 보내는 몸(깃 11-17 nm-co-cmd nav) · http(s) 만 · 2000자까지", () => {
+  assert.deepEqual(coNavMsg("https://www.naver.com/"), { type: "nm-co-cmd", cmd: "nav", url: "https://www.naver.com/" });
+  assert.deepEqual(coNavMsg("  http://example.com/a?b=1  "), { type: "nm-co-cmd", cmd: "nav", url: "http://example.com/a?b=1" });
+  assert.equal(coNavMsg("javascript:alert(1)"), null); assert.equal(coNavMsg(""), null); assert.equal(coNavMsg("naver.com"), null);
+  assert.equal(coNavMsg("https://a.b/" + "x".repeat(2000)), null);
 });

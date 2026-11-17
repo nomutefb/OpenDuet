@@ -42,6 +42,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const [s, setS] = useState<TabState>(load);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [host, setHost] = useState<HTMLElement | null>(null);
+  const [coNav, setCoNav] = useState("");   // 웹 탭 「Browser 탭에서 열기」가 넘긴 주소 = 다리 판이 붙으면 그 주소로(./cobrowse-pane.tsx nav)
   useEffect(() => { const h = paneHost(); if (h !== host) setHost(h); });   // 오른쪽 칸이 그려진 뒤 · 다시 그려지면 따라감
   const bar = useRef<HTMLDivElement>(null), drag = useRef<Drag | null>(null);
   const ink = useRef<HTMLElement>(null), inkAt = useRef<{ l: number; r: number } | null>(null), flip = useRef<Map<string, number> | null>(null);   // 고른 자리(잉크) · 끌 때 옆 탭이 미끄러질 앞자리(눈에 보이던 왼쪽 · 화면 좌표)
@@ -228,14 +229,14 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
       </div>
       {paneTabs.length || s.active === TEAMS || s.active === BROWSER || s.active === MEET ? createPortal(
         <div className={`nm-tab-screen${host && !full ? " in-split" : ""}${full ? " full" : ""}`} hidden={!paneOn}>   {/* 「브라우저」 = 오른쪽 칸이 아니라 메뉴 줄 바로 아래 창 전체(형 11-17 09:1x 구름 맥 창 「pc 웹앱에서 브라우저를 열면 한쪽에서만 열리는게 아니라, 창 전체를 써야해. 그러니까 메뉴 바로 아래로 다 창이 펼쳐져야 하거든?」) · 웹 탭 · 몸 화면 · 팀즈 · 화상회의는 오른쪽 칸 그대로(형 11-12 「웹 탭은 오른쪽 칸 안」) */}
-          {s.active === BROWSER ? <div className="nm-tab-co"><CobrowsePane mode="browser" onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}
+          {s.active === BROWSER ? <div className="nm-tab-co"><CobrowsePane mode="browser" nav={coNav} onNav={() => setCoNav("")} onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}
           {s.active === MEET ? <div className="nm-tab-co"><CobrowsePane mode="meet" onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}   {/* 화상회의 = 같은 맥 72 다리 판 + 아래 회의 대화 */}   {/* 보는 동안만 붙음 = 안 보면 다리 쉼 · 다시 고르면 새 표(맥 72 탭은 그대로 = 마지막 웹 화면) */}
           {s.active === TEAMS ? <div className="nm-tab-teams"><TeamsList current={room} /></div> : null}   {/* 팀즈 목록 = 오른쪽 칸 · 누르면 왼쪽 대화만 바뀜 */}
           {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "co" ? (
             s.active === "co" ? <div key="co" className="nm-tab-co"><CobrowsePane onClose={() => close("co")} /></div> : null   /* 보는 동안만 붙음 = 안 보면 다리 쉼(봄 12:53 「보는 중」 신호) · 다시 고르면 새 표 */
           ) : t.k === "web" ? (
             <div key={tabKey(t)} className="nm-tab-web" hidden={s.active !== tabKey(t)}>
-              <WebPane initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 탭은 넘어감 */ } setS((x) => ({ ...x, active: BROWSER })); }} />   {/* 막는 사이트 = 창 안 「Browser」 탭(맥 72 진짜 브라우저)으로 · 주소는 복사해 둠(다리가 주소를 받아 여는 길은 깃 몫 · 생기면 바로 넘김) */}   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
+              <WebPane initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 탭은 넘어감 */ } setCoNav(u); setS((x) => ({ ...x, active: BROWSER })); }} />   {/* 막는 사이트 = 창 안 「Browser」 탭(맥 72 진짜 브라우저)으로 넘어가고 그 탭이 그 주소로 감(깃 다리 nm-co-cmd nav · 11-17 13:20) · 주소 복사는 다리가 남 손에 있을 때 붙여 넣으라고 남김 */}   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
             </div>
           ) : (
             <ScreenTabPane key={`${tabKey(t)}|${t.url}`} url={t.url} name={nameOf(t)} on={s.active === tabKey(t)} />   /* 몸 화면 탭 = 켤 때 표를 새로 받아 끼움(앞 = 저장된 주소를 그대로 틀에 넣어 표 없는 주소가 들어갔음 · ./screen-tab.tsx · 구름 11-16) */

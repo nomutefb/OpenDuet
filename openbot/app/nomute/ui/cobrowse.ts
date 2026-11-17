@@ -11,6 +11,12 @@ export function cobrowseSrc(d: unknown): string {
   if (typeof u !== "string") return "";
   try { const x = new URL(u); return x.protocol === "https:" && /\.ts\.net$/.test(x.hostname) && x.searchParams.get("t") ? x.href : ""; } catch { return ""; }
 }
+/** 다리 판에 「이 주소로 가」(깃 11-17 13:20 · claude-state 4a057c674 — 판이 부모 틀에서 온 `{type:'nm-co-cmd', cmd:'nav', url}` 를 받음 · http(s) 만 · 2000자까지 · 남이 그 탭을 쥔 동안엔 아무 일 없음)
+ *  순수 — 보낼 몸 · 보낼 수 없는 주소면 null */
+export function coNavMsg(url: string): { type: "nm-co-cmd"; cmd: "nav"; url: string } | null {
+  const u = String(url || "").trim();
+  return /^https?:\/\//i.test(u) && u.length <= 2000 ? { type: "nm-co-cmd", cmd: "nav", url: u } : null;
+}
 /** 닿나 재기 — 문지기 origin 을 no-cors 로 한 번(표 안 씀 · 403 도 닿은 것) · 그물 끊김 · 시간 넘김 = false */
 export async function reachable(url: string, f: typeof fetch = fetch, ms = 4000): Promise<boolean> {
   let origin = ""; try { origin = new URL(url).origin; } catch { return false; }

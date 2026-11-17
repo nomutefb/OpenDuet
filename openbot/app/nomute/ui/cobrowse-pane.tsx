@@ -1,12 +1,12 @@
 // 같이 보기 칸(봄 11-12 13:54 · 깃 다리) — 보이는 동안만 iframe(안 보면 내려서 다리 「보는 중」이 끊김 · 다시 보면 새 표) · 못 닿으면 지금 웹 칸
 import { useEffect, useRef, useState } from "react";
 import { office } from "../data/office";
-import { CO_ALLOW, cobrowseSrc, isVia, lnaState } from "./cobrowse";
+import { CO_ALLOW, coNavMsg, cobrowseSrc, isVia, lnaState } from "./cobrowse";
 import { WebPane } from "./web-pane";
 import { Dots, EndMorph, MeetDock, MeetPeople, OnAir, startMeet, useMeet, useMeetEnd, MeetLogPeek } from "./meet";
 import { SketchLayer, useCoRect } from "./sketch";   // 스케치 = 화상회의 틀 위 덧그림(형 11-13 06:49 · 명세 10)   // 화상회의(형 11-13 06:4x · 봄 옮김) · 탭 줄 · 「○○가 제어하고 있습니다」 · 포인터 · 치는 중 · 「동기화 N초 전」 = 다리 판(틀 안 · 깃 다리.mjs)이 그림 = 여기서 겹쳐 안 그림
 
-export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => void; mode?: "browser" | "meet" }) {
+export function CobrowsePane({ onClose, mode = "browser", nav = "", onNav }: { onClose: () => void; mode?: "browser" | "meet"; nav?: string; onNav?: () => void }) {   // nav = 판이 붙으면 이 주소로 보냄(웹 탭 「Browser 탭에서 열기」 · 형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」) · 보낸 뒤 onNav
   const [src, setSrc] = useState(""), [state, setState] = useState<"wait" | "ok" | "off">("wait"), [nonce, setNonce] = useState(0);
   const frame = useRef<HTMLIFrameElement>(null), rect = useCoRect(frame);
   const [meet0, setMeet] = useMeet(), isMeet = mode === "meet", meet = isMeet ? meet0 : null;
@@ -17,8 +17,9 @@ export function CobrowsePane({ onClose, mode = "browser" }: { onClose: () => voi
   const [toolSlot, setToolSlot] = useState<HTMLSpanElement | null>(null);
   const meetRef = useRef(false); meetRef.current = !!meet;
   const [sync, setSync] = useState<{ ago: number; bad?: boolean; paused?: boolean; at: number; curtain?: boolean; ctrl?: string | null } | null>(null);   // curtain · ctrl = 깃 다리 신호(11-14 01:53 · 커튼 쳐짐 · 쥔 이)   // 다리 신호(깃 · 1~2초마다 {type:'nm-co-sync', ago, bad, paused})
+  const navRef = useRef(nav), onNavRef = useRef(onNav); navRef.current = nav; onNavRef.current = onNav;
   useEffect(() => {
-    const f = (e: MessageEvent) => { const d = e.data as { type?: string; ago?: number; bad?: boolean; paused?: boolean; curtain?: boolean; ctrl?: string | null }; if (d && d.type === "nm-co-sync" && e.source === frame.current?.contentWindow && Number.isFinite(d.ago)) { setSync({ ago: d.ago!, bad: !!d.bad, paused: !!d.paused, at: Date.now(), curtain: !!d.curtain, ctrl: d.ctrl ?? null }); if (meetRef.current) frame.current?.contentWindow?.postMessage({ type: "nm-co-bare", on: true }, "*"); } };   // 화상회의 = 다리 제 단추(커튼 · 제어권 · 「○○가 제어하고 있습니다」) 숨김 → 앱 세로 알약이 맡음(깃 01:53 꼴 · 다리가 다시 떠도 신호마다 다시 알림)
+    const f = (e: MessageEvent) => { const d = e.data as { type?: string; ago?: number; bad?: boolean; paused?: boolean; curtain?: boolean; ctrl?: string | null }; if (d && d.type === "nm-co-sync" && e.source === frame.current?.contentWindow && Number.isFinite(d.ago)) { const go = navRef.current ? coNavMsg(navRef.current) : null; if (go) { frame.current?.contentWindow?.postMessage(go, "*"); navRef.current = ""; onNavRef.current?.(); }   /* 다리 판이 살아 있다는 첫 신호에 맞춰 주소를 넘김(틀이 붙기 전에 보내면 받을 이가 없음) */ setSync({ ago: d.ago!, bad: !!d.bad, paused: !!d.paused, at: Date.now(), curtain: !!d.curtain, ctrl: d.ctrl ?? null }); if (meetRef.current) frame.current?.contentWindow?.postMessage({ type: "nm-co-bare", on: true }, "*"); } };   // 화상회의 = 다리 제 단추(커튼 · 제어권 · 「○○가 제어하고 있습니다」) 숨김 → 앱 세로 알약이 맡음(깃 01:53 꼴 · 다리가 다시 떠도 신호마다 다시 알림)
     window.addEventListener("message", f); return () => window.removeEventListener("message", f);
   }, []);
   useEffect(() => {
