@@ -377,7 +377,31 @@ type Ctx = {
   onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
   srcs?: Map<string, Src[]>;   // 묶음 stem → 「공식 자료」 이어 글(./bundle-src.ts)
+  gardenAns?: Set<string>;   // 형이 정원에서 건 말에 거울로 돌아온 답(「원문」 딱지 안 붙음 · gardenAnswers)
 };
+/** 거울 답인데 그 답이 형이 **정원에서** 쓴 글(거울 아님)에 대한 것 = 「원문」 딱지 뺌(형 11-17 09:47 dm-bom 봄 옮김 「그리고 이거 내가 봄의 정원에서 대화하는데 원문이 계속뜨네 그록봇하고ㄱ」)
+ *  = origin(없으면 reply_to) 글이 받은 글 안에 있고 mirror 칸이 없음 · 그림 글(mirror 「t…:img」 · origin 없음) = 같은 차례 글(앞 번호 같음)의 판정 · 짝 없으면 같은 이 바로 앞 판정 · 원글을 못 받았으면 딱지 그대로(앞 꼴)
+ *  형이 그록 앱에서 먼저 친 글(mirror 있음)과 그 답 = 진짜 앱 원문이라 딱지 그대로 */
+function gardenAnswers(all: Msg[]): Set<string> {
+  const byId = new Map(all.map((m) => [m.id, m])), out = new Set<string>(), turn = new Map<string, boolean>();
+  for (const m of all) {
+    if (!m.mirror || /^window:/.test(String(m.mirror))) continue;
+    const o = byId.get(m.origin || m.reply_to || "");
+    if (!o) continue;
+    const g = !o.mirror;
+    turn.set(String(m.mirror).replace(/:img$/, ""), g);
+    if (g) out.add(m.id);
+  }
+  const last = new Map<string, boolean>();   // 짝 글 없이 혼자 온 그림 · 파일 = 같은 이의 바로 앞 판정
+  for (const m of all) {
+    if (!m.mirror || /^window:/.test(String(m.mirror))) continue;
+    const k = String(m.mirror).replace(/:img$/, ""), who = m.mirror_by || m.who;
+    const g = /:img$/.test(String(m.mirror)) ? (turn.has(k) ? turn.get(k) : last.get(who)) : turn.get(k);
+    if (g !== undefined) last.set(who, g);
+    if (g) out.add(m.id);
+  }
+  return out;
+}
 const nmOf = (list: OfficePerson[], w: string) => list.find((x) => x.who === w)?.name || w;
 /** 이어진 보낸 흔적 = 묶음 알약 하나(형 11-03 19:3x 그림 = 「외 1 · 메시지 13개」 꼴 · 「이런식으로 보이도록 수정해주라」) — 받은 이 얼굴 겹침 · 「보낸 메시지 N개」(하나면 「이름 · 메시지 보냄」)
  *  누르면 그 자리에서 펼침 = 그 둘의 방 대화를 받아 시간 순으로 이어 그림 · 날짜 바뀌는 곳에 날짜 줄 · 왼쪽 줄(묶음 펼침 Band 꼴)(형 11-04 08:04 「새 창에서 열리거나 요약되서 나오지 않고 그 옆에 라인 쭉 나오면서 인 라인으로 … 일자별로는 조금 구분 되게. 저거 누르면 그 대화방 안에서 확 펼쳐지면 좋겠어」) */
@@ -983,7 +1007,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
     <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
-        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} />{m._win ? <span className="nm-win-tag" aria-label="클로드 창에서 쓴 글">창에서</span> : null}{m.mirror ? <span className="nm-orig-tag" aria-label="거울로 들어온 원문">원문</span> : null}
+        <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} />{m._win ? <span className="nm-win-tag" aria-label="클로드 창에서 쓴 글">창에서</span> : null}{m.mirror && !c.gardenAns?.has(m.id) ? <span className="nm-orig-tag" aria-label="거울로 들어온 원문">원문</span> : null}
         <StatePill m={m} />
         {thumbOf(m) ? <ThumbCard card={thumbOf(m)!} /> : null}
         <div className="ybrow">
@@ -1379,8 +1403,9 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   const swapBusy = useRef(new Set<string>());   // 같은 글 바꾸기는 한 번에 하나(모루 #2910 ①)
 
   const nre = useMemo(() => nameRe(list), [list]);
+  const gardenAns = useMemo(() => gardenAnswers(all), [all]);
   const c: Ctx = {
-    srcs,
+    srcs, gardenAns,
     unseen: (m) => unseenOf(m, c, all),
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     loose: () => {   // 알약 펼침 = 알약 자리 그대로 · 아래 글이 밀려 내려감(브라우저 스크롤 붙들기가 아래 글을 붙잡아 알약을 위로 243px 밀었음 = 펼치는 동안만 끔)
