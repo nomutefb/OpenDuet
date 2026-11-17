@@ -285,12 +285,9 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-split-spread .nm-drawer-page .yeta-set { columns:3 300px; column-gap:22px; }
 .nm-split-spread .nm-drawer-page .yset-part { break-inside:avoid; margin:0 0 18px; }
 .nm-split-spread .nm-drawer-page .yset-part + .yset-part { margin-top:0; }
-/* 설정 = 넓게 · YETA 설정(./yeta-settings.tsx) 묶음 넷(화면·입력 · 사무실 · 살펴보기 · 기록·정보)을 서랍처럼 단으로(시아 02:13 실물 「설정은 한 단이야」 = 앞 판이 원본 목록 nav 를 잡음) */
-.nm-split-spread .nm-settings-page .max-w-3xl { max-width:min(1180px, 100%); padding-inline:28px; }
-.nm-split-spread .nm-settings-page .yeta-set { columns:2 360px; column-gap:22px; }
-.nm-split-spread .nm-settings-page .yeta-set > .yset-ttl { column-span:all; }
-.nm-split-spread .nm-settings-page .yset-part { break-inside:avoid; margin:0 0 18px; }
-.nm-split-spread .nm-settings-page .yset-part + .yset-part { margin-top:0; }
+/* 설정 = PC 도 폰처럼 한 줄(한 단 · 위→아래)(형 11-17 19:3x dm-cloud 구름 「구름 이제, 설정 한줄로 보이게 해줄래 pc에서도 ?」) — 앞 판 = 묶음을 서랍처럼 두 단(11-08 「넓게 표현」 · 설정이 일곱 줄로 줄어 두 단이 오히려 띄엄띄엄)
+   폭 = 한 단 줄이 너무 길지 않게 가운데 720 · 묶음 사이 = 폰과 같은 기본 간격 */
+.nm-split-spread .nm-settings-page .max-w-3xl { max-width:min(720px, 100%); padding-inline:28px; }
 /* 단 나눔 속 흐림 유리 뺌(형 11-14 13:48 dm-eyes 「뜸 이런식으로 웹앱에서 삐둟어지는거 해결좀」 · 맥 웹앱 사진 = 서랍 둘째 · 셋째 단 맨 위 묶음(일 · 알림·기록)이 빈 칸 · 판이 살짝 작게 남음 · 뜸)
    = 크롬 계열이 columns 안 backdrop-filter 를 단이 바뀌는 첫 조각에서 엉뚱한 자리 · 잘린 채로 그리는 꼴(짐작 · 빈 칸이 꼭 「단 첫 묶음」 = 그 꼴) → 넓은 판 서랍 · 설정 묶음만 흐림 0
    뒤 = 모달 바탕(매끈한 그라데이션)이라 흐려도 안 흐려도 눈에 같음 → 제일 싼 쪽(지침 「형 눈에 똑같으면 제일 싼 방식」) · 색 · 테두리는 그대로 */
