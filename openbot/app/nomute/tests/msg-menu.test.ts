@@ -60,3 +60,8 @@ test("지운 글 빼기 셈 — 한 글 빼기 · 최근 통째 받은 칸 안�
   assert.deepEqual(goneInWindow(old, got, true), ["o1", "x"]);   // 방 전체를 받음 = 처음부터
   assert.deepEqual(goneInWindow(old, [], true), []);   // 빈 답 하나로 다 지우지 않음
 });
+
+test("예전 판으로 지운 글(unsent 표) = 목록에 안 넣음 → 「삭제된 글」 줄 0 · 이 기기 저장에도 0(깃 18:42 · 형 「아예 지우기」)", () => {
+  const oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
+  assert.match(oc, /\[\.\.\.m\.values\(\)\]\.filter\(\(x\) => !\(x as Msg & \{ unsent\?: unknown \}\)\.unsent\)/);
+});

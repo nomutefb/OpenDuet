@@ -171,7 +171,7 @@ const mergeWin = (old: Page | undefined, add: Msg[], whole: boolean): Page => {
 const merge = (old: Page | undefined, add: Msg[]): Page => {
   const m = new Map((old?.messages || []).map((x) => [x.id, x]));
   for (const x of add) m.set(x.id, x);
-  return { messages: dropStickerTwins([...m.values()].sort((a, b) => a.ts - b.ts)), more: old?.more ?? false, ...(old?.pending_ids ? { pending_ids: old.pending_ids } : {}) };
+  return { messages: dropStickerTwins([...m.values()].filter((x) => !(x as Msg & { unsent?: unknown }).unsent).sort((a, b) => a.ts - b.ts)), more: old?.more ?? false, ...(old?.pending_ids ? { pending_ids: old.pending_ids } : {}) };   // unsent 표가 붙은 글(예전 판으로 지운 글 · 서버에 비운 표로 남음) = 안 그림 · 이 기기 저장에도 안 남음(형 11-17 18:21 「아예 지우기」 · 깃 18:42)
 };
 
 const kst = (ts: number) => new Date(ts + 9 * 3600e3);
