@@ -69,8 +69,8 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
             {pages.map((pg, pi) => (
             <div key={pg.map((c) => c.id).join("+")} className="nm-kwb-pg" data-one={pg.length === 1 || undefined}>   {/* 폰 = 한 장 · 반 가름 · 넓은 칸 = display:contents(네 줄기 한 단 그대로) */}
             {pg.map((c, k) => { const ci = pi * 2 + k, showNew = kwShowNew(c); return (
-              <div key={c.id} className="nm-kwb-col" data-stale={c.stale || undefined} aria-label={c.name}>
-                <div className="nm-kwb-ch" style={{ animationDelay: `${ci * 70}ms` }}><b>{c.name}</b><span>{c.stale ? (c.at ? `${ago(c.at, now)} · 낡음` : "못 받음") : ""}</span></div>
+              <div key={c.id} className="nm-kwb-col" data-stale={(c.stale && c.id !== "x") || undefined} aria-label={c.name}>   {/* X 급상승 = 밤에 수집이 쉬어 낡아도 흐림 0 · 글자 0(형 11-17 09:55 dm-bom 봄 옮김 「아, 그러면 밤에만 돌아도 x는 흰색으로 나오게 해줘 어색하네.」) · 겹침 셈(라임)에서 낡은 줄기 빼는 건 그대로(kwHits) */}
+                <div className="nm-kwb-ch" style={{ animationDelay: `${ci * 70}ms` }}><b>{c.name}</b><span>{c.stale && c.id !== "x" ? (c.at ? `${ago(c.at, now)} · 낡음` : "못 받음") : ""}</span></div>
                 {c.items.length ? (
                   <ol>
                     {c.items.map((it, i) => {
