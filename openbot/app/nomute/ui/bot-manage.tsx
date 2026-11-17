@@ -154,7 +154,7 @@ export function BotManageAll() {
 export function BotManage({ r, skills }: { r: BotRow; skills: Record<string, string> }) {
   return (
     <div className="nm-bm" aria-label={`${r.who} 관리`}>
-      {r.brain === "클로드" ? <NextWinRows who={r.who} /> : null}
+      {r.brain === "클로드" || r.who === "구름" ? <NextWinRows who={r.who} /> : null}   {/* 구름 = 클라우드 세션(자리 cloud · brain 칸이 비어 옴)도 다음 창 모델 · 노력도(형 11-17 09:49 dm-bom 봄 옮김 「구름도 여는 모델을 설정에서 조정가능하게 … 러너 설정인가 ?」 · 서버 표엔 11-16 부터 구름 줄 있음) */}
       <AcctRestRow r={r} skills={skills} />
       {r.brain === "그록" ? <GrokRows /> : null}
       {r.pm ? <PmRow who={r.who} /> : null}

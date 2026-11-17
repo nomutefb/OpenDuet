@@ -10,7 +10,7 @@ export const NW_MODELS = [["claude-opus-5-5", "오퍼스 5.5"], ["claude-fable-5
 export const NW_EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
 export type NextWin = { model: string; effort: string; at?: number; by?: string; default?: boolean };   // default = 형이 아직 안 고름(서버가 기본값을 채워 줌 · 몸 손 0)
 const KEY = ["nomute", "nextwin"];
-export const nwDefault = (who: string): NextWin => (who === "봄" ? { model: "claude-fable-5-2", effort: "medium" } : { model: "claude-opus-5-5", effort: "high" });
+export const nwDefault = (who: string): NextWin => (who === "봄" ? { model: "claude-fable-5-2", effort: "medium" } : who === "구름" ? { model: "claude-fable-5-2", effort: "high" } : { model: "claude-opus-5-5", effort: "high" });   // 구름 = 늘 페이블 high(서버 _nextwin DEF_OF 와 같음)
 export const nwModelKo = (m: string) => NW_MODELS.find(([id]) => id === m)?.[1] || m;
 
 export function useNextWin() {
