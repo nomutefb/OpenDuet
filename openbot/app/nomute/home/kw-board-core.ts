@@ -4,7 +4,7 @@
 //   재료 = 이미 30분마다 모이는 것: /api/trends(sns_trends.json · gtrends · signal · namu) + /api/trends?f=xtop(촉 X 급상승 · data/x_top10/latest.json)
 //   겹침 = 옛 에디터 「교차합의」(viewer/index.html _cnNorm · _cnCls)와 같은 잣대(띄어쓰기 · 대소문자 무시) + 긴 말이 짧은 말(3자 넘게)을 품으면 같은 말(「박재현」 ↔ 「박재현 홈런」)
 
-export const KW_N = 9;   // 넓은 칸(PC) = 9줄(형 11-17 09:37 dm-bom 봄 옮김 「그러면 9개 까지로 하고, 글자를 좀 키울게」) · 폰 · 좁힌 칸 = 7줄(kw-board.css 가 8 · 9째 줄 숨김)
+export const KW_N = 10;   // PC = 10줄(형 11-17 11:08 dm-bom 봄 옮김 「10위권 보이는거. 글자는 크기가 같고, 아래는 남고. 시그널은 좀 끝에 ...로 덜 보이면 될거야」 · 앞 09:37 「9개 까지로 하고, 글자를 좀 키울게」) · 폰 = 7줄(kw-board.css 가 8째부터 숨김)
 export const KW_STEP_MS = 5_000;   // 키워드 판 = 줄기마다 5초 → 다음 줄기 · 다 보이면 Hot Issue 로(형 11-15 06:10 「트렌드 창으로 전환되면 5초 뒤에 다음 트렌드로 바뀌게하구 모든 트랜드 다 보여주면 다시 뉴스 피드로」 · 깃 #-037)
 export const KW_PER_PAGE = 2, KW_PAGE_MS = KW_STEP_MS * 2;   // 폰 = 한 장에 두 줄기(반 가름) · 한 장 머묾 = 2배(형 11-17 01:25 dm-bom 「글구 이거 키워드 2플랫폼씩 보여줘 / 단 그러면 지속시간은 2배」)
 export const KW_FIRST_MS = 10_000, KW_EVERY_MS = 60_000;   // 처음 10초 = Hot Issue · 그 뒤 1분마다 번갈아
