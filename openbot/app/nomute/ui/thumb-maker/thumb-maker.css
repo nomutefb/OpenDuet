@@ -2234,3 +2234,5 @@
   .nm-tm #rfab.open #rfab4 { transform:translate(-2.5px,-66px) scale(1); transition-delay:.12s; }
   @media (hover:hover) and (pointer:fine) { .nm-tm #rfab { display:none; } }
   @media (prefers-reduced-motion:reduce){ .nm-tm #rfab .rc,.nm-tm  #rfab .ro { transition:opacity var(--dur); } }
+/* 카드 제작 도구 기둥 = 사진 확대 · 축소(SIZE − 100 +)와 짝 「맞춤」 뺌(형 11-17 10:27 dm-bom 봄 옮김 「아 ~ 그러면 사진 확대 축소는 없어도 돼. ㅋㅋ 저기서는.」 · 「깔끔하게 가자」) · 넓은 칸(글자 꼴) · 좁은 칸(그림 기둥 · rail-icons dense 격자) 둘 다 · 사진 끌어 옮기기 · 두 번 눌러 처음 꼴은 그대로 */
+.nm-tm.nm-tm #goSpec#goSpec #gsPanOg, .nm-tm.nm-tm #goSpec#goSpec #gsPanFit, .nm-tm.nm-tm #goSpec#goSpec #gsPanWrap > .gs-sep { display:none !important; }   /* id 둘 = 기둥 그림 꼴(rail-icons · gsPanOg display:flex !important)보다 셈 */
