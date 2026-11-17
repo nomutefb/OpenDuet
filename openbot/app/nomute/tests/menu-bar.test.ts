@@ -12,18 +12,18 @@ test("자리 = 위 탭 줄 바로 뒤 · PC 두 칸에서만 · 내용 = 지금 
   assert.match(shell, /\{ id: "editor", label: "에디터", to: "\/edtool", items: \[\{ id: "edtool", label: "이미지 에디터"/);   // 형 11-16 「뉴스 우측에 에디터 칸 넣어서 … 이미지랑 비디오 에디터」 · 「에디터는 기본적으로 이미지 에디터」
   assert.match(shell, /\{ id: "drawer", label: "애들", to: "\/drawer", items: \[\.\.\.CREW_ROWS, /);   // 5번 = 「애들」(형 11-16 18:2x 「5번이 애들 상태 관련」) · 판 위 세 줄 = 애들 · 스케줄 배선 · 러너(한 화면의 층)   // 형 「서랍 > 기본적으로 러너」(#/drawer = 러너부터)
   assert.match(tsx, /if \(g\.to && fine\(\)\) \{ shut\(\); window\.location\.hash = g\.to; return; \}/);   // 이름 누름 = 기본 화면으로
-  assert.match(css, /\n:root:has\(\.nm-menubar\) \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 형 11-16 12:3x 「상단에 탭 메뉴, 그리고 그 아래 메뉴는 계속 보이게 해줘」 · 「인앱에서는 사라져,」 = 맥 독 앱(html.nm-macapp · 점수 0,2,1)의 숨김도 · 칸 화면(.nm-area-on · 0,3,0)의 숨김도 이 한 줄(0,4,0)이 이김
+  assert.match(css, /\n:root\[data-nm-menubar\] \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 형 11-16 12:3x 「상단에 탭 메뉴, 그리고 그 아래 메뉴는 계속 보이게 해줘」 · 「인앱에서는 사라져,」 = 맥 독 앱(html.nm-macapp · 점수 0,2,1)의 숨김도 · 칸 화면(.nm-area-on · 0,3,0)의 숨김도 이 한 줄(0,4,0)이 이김
   assert.doesNotMatch(css, /\.nm-area-on \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 칸 화면에서만 살리던 앞 규칙 = 걷음(맥 앱에서 칸마다 떴다 사라졌다 한 까닭)   // 형 11-16 「위에 탭 기존에 만든거는 살아잇어야햐ㅐ」 = PC 에선 위 탭 줄이 어느 칸에서나 보임
-  assert.match(css, /:root:has\(\.nm-menubar\) \.nm-tabs\.nm-area \{ display:none; \}/);   // 뉴스 에디터 위 탭 셋 · 서랍 위 탭 여섯 = 그 정의를 그대로 읽음
-  assert.match(css, /:root:has\(\.nm-menubar\) \.nm-split-root \{ padding-top:calc\(50px \+ var\(--nm-menu-h\)\); \}/);   // 줄 키만큼 아래 판을 내림
+  assert.match(css, /:root\[data-nm-menubar\] \.nm-tabs\.nm-area \{ display:none; \}/);   // 뉴스 에디터 위 탭 셋 · 서랍 위 탭 여섯 = 그 정의를 그대로 읽음
+  assert.match(css, /:root\[data-nm-menubar\] \.nm-split-root \{ padding-top:calc\(50px \+ var\(--nm-menu-h\)\); \}/);   // 줄 키만큼 아래 판을 내림
 });
 test("맥 독 앱 안 = 웹 탭 줄 숨김 · 메뉴 줄이 맨 위 띠(50px)로 · 다른 곳은 그대로", () => {   // 형 11-16 14:04 「✓ ① 앱 탭 한 줄 + 메뉴(웹 탭 숨김)」
   const css = rd("../ui/menu-bar.css");
-  assert.match(css, /\nhtml\.nm-macapp:has\(\.nm-menubar\) \.nm-tabs:not\(\.nm-area\) \{ display:none; \}/);   // 점수 0,4,1 = 위 「늘 보임」(0,4,0)을 맥 앱에서만 이김
+  assert.match(css, /\nhtml\.nm-macapp\[data-nm-menubar\] \.nm-tabs:not\(\.nm-area\) \{ display:none; \}/);   // 점수 0,4,1 = 위 「늘 보임」(0,4,0)을 맥 앱에서만 이김
   assert.match(css, /\nhtml\.nm-macapp \.nm-menubar \{ top:0; height:50px; \}/);   // 메뉴 줄 = 웹 화면 맨 위
-  assert.match(css, /\nhtml\.nm-macapp:has\(\.nm-menubar\) \{ --nm-menu-h:0px; \}/);   // 아래 판 = 50px 에서 시작(메뉴 줄 몫을 더 안 내림)
-  assert.match(css, /\nhtml\.nm-macapp:has\(\.nm-menubar\) \.nm-tab-screen \{ display:none; \}/);   // 닫을 길 없는 덮개는 안 그림
-  assert.match(css, /\n:root:has\(\.nm-menubar\) \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 보통 웹 · 윈도우 웹앱 = 늘 보임 그대로
+  assert.match(css, /\nhtml\.nm-macapp\[data-nm-menubar\] \{ --nm-menu-h:0px; \}/);   // 아래 판 = 50px 에서 시작(메뉴 줄 몫을 더 안 내림)
+  assert.match(css, /\nhtml\.nm-macapp\[data-nm-menubar\] \.nm-tab-screen \{ display:none; \}/);   // 닫을 길 없는 덮개는 안 그림
+  assert.match(css, /\n:root\[data-nm-menubar\] \.nm-tabs:not\(\.nm-area\) \{ display:flex; \}/);   // 보통 웹 · 윈도우 웹앱 = 늘 보임 그대로
 });
 test("박자 = 차례로 뜨는 꼴 그대로 · 빠르기는 줄임(판 0.16초 · 줄 사이 0.03초 · 줄 0.26초 · 닫힘 0.12초) · 유리 판 · 줄 위 밝은 판은 하나가 미끄러짐", () => {
   assert.match(tsx, /const STAGGER_MS = 30, FIRST_MS = 20,/);   // 형 11-16 11:0x 「메뉴 좀 빠르게 켜져야할듯!」(앞 = 영상 박자 86 · 90)

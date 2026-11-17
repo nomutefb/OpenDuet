@@ -8,6 +8,7 @@
 //   줄 내용 = 부른 쪽(./shell.tsx)이 지금 네비 그대로 넘김(뉴스 에디터 위 탭 셋 ./ned-tabs.ts · 서랍 위 탭 여섯 ./drawer-tabs.ts) — 여기선 그리기만(길 · 이름을 따로 안 적음)
 //   서랍 표에 「글자 메뉴 + 아래로 열리는 판」은 없어서 새로 짬(꺽쇠 = ./chev.tsx · 아이콘 = DuetIcon · 이징 = --e-out 그대로)
 import "./menu-bar.css";
+import { useRootFlag } from "./has-flags";
 import { type CSSProperties, type KeyboardEvent as RKE, type ReactNode, useEffect, useRef, useState } from "react";
 import { DuetIcon, type DuetIconName } from "@/components/duet/icons";
 import { Chev } from "./chev";
@@ -21,6 +22,7 @@ const fine = () => typeof matchMedia === "function" && matchMedia("(hover:hover)
 export function MenuBar({ groups, on, cur }: { groups: MenuGroup[]; on?: string | null; cur?: string | null }) {   // on = 켜진 칸 · cur = 그 칸 안에서 지금 보고 있는 줄(id)
   const [open, setOpen] = useState<string | null>(null);
   const root = useRef<HTMLElement>(null), tm = useRef(0);
+  useRootFlag("menubar");   // 위 메뉴 줄이 있음 = 뿌리 표시 data-nm-menubar(./has-flags.ts) — 두 칸 · 탭 줄 · 탭 화면이 한 줄 내려앉는 자리
   const later = (f: () => void, ms: number) => { window.clearTimeout(tm.current); tm.current = window.setTimeout(f, ms); };
   const shut = () => { window.clearTimeout(tm.current); setOpen(null); };
   useEffect(() => {

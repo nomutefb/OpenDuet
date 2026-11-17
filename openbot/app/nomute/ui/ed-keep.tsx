@@ -4,6 +4,7 @@
 //   손 = 옛 41-toolRfVis.part 와 같은 셈: ▲ 누름 = 하나면 바로 펼침 · 둘이면 고르는 판 · 길게(550ms) = 「닫기」 칩(4초 뒤 저절로 취소 · 칩 누르면 190ms 뒤 접어 둔 것 다 닫음)
 //   움직임 = 접힘 · 펼침 한 번씩 · ▲ 빛 = 세 번 숨 쉬고 멈춤(옛 = 6초 뒤 끔) · 옷 = ./ed-keep.css
 import "../vendor/editor/tool-win.css";
+import { useRootFlag } from "./has-flags";
 import "./ed-keep.css";
 import { type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -26,6 +27,7 @@ export function ToolButtons({ onMin, onReset, onClose }: { onMin?: () => void; o
 
 export function ToolKeep({ tool, open, covered, onClose, children }: { tool: EdTool; open: boolean; covered?: boolean; onClose: () => void; children: ReactNode }) {
   const ref = useModal<HTMLDivElement>(onClose, open);   // 열렸을 때만 Esc · Tab 가두기
+  useRootFlag("see");   // 이 창(.nm-modal.see)이 살아 있는 동안(접혀 있어도 — 앞 :has(.nm-modal.see) 와 같은 때) 뿌리 표시(./has-flags.ts)
   return (
     <div ref={ref} className={open ? "nm-modal see nm-edkeep" : "nm-modal see nm-edkeep min"} data-tool={tool} role="dialog" aria-modal={open} aria-label={ED_LABEL[tool]} aria-hidden={!open} inert={!open || covered || undefined}>
       <div className="nm-modal-b tm-host"><Suspense fallback={null}>{children}</Suspense></div>

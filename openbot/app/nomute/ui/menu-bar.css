@@ -1,21 +1,21 @@
 /* 탭 줄 아래 메뉴 줄(./menu-bar.tsx · 형 11-16 08:3x 「그거 끝나면 이거로 탭 아래 메뉴 만들어줘~ 네비게이션 들을 대체할거야」 · 영상 = 어두운 윗줄 메뉴)
    자리 = 탭 줄(위 50px) 바로 아래 한 줄 · 그 키만큼 아래 판을 내림(--nm-menu-h) · 탭 줄이 없는 곳(폰)엔 이 줄도 없음
    박자 = 차례로 뜨는 꼴은 영상 그대로 · 빠르기는 형 말대로 줄임(형 11-16 11:0x 「메뉴 좀 빠르게 켜져야할듯!」): 판 0.16초 · 첫 줄 0.02초 뒤 · 줄 사이 0.03초 · 줄 하나 0.26초 · 닫힘 0.12초 — 움직이는 것 = 투명도 · 자리(transform) · 옅은 흐림(줄) */
-:root:has(.nm-menubar) { --nm-menu-h:34px; }
-:root:has(.nm-menubar) .nm-split-root { padding-top:calc(50px + var(--nm-menu-h)); }
-:root:has(.nm-menubar) .nm-tab-screen { top:calc(50px + var(--nm-menu-h)); }
+:root[data-nm-menubar] { --nm-menu-h:34px; }
+:root[data-nm-menubar] .nm-split-root { padding-top:calc(50px + var(--nm-menu-h)); }
+:root[data-nm-menubar] .nm-tab-screen { top:calc(50px + var(--nm-menu-h)); }
 /* 위 탭 줄(봄의 정원 · Browser · 화상 회의 · Teams · +)은 어느 칸에서나 그대로(형 11-16 11:5x 구름 맥 창 「응 그리고 위에 탭 기존에 만든거는 살아잇어야햐ㅐ」 · 「봄의 정원 뜨던거, 그 안에서 웹페이지가 구를수잇어야되거든」)
    앞: 뉴스 에디터 · 서랍 · 설정에 들어가면 그 줄이 칸 탭(./area-tabs.tsx · 러너 · 봇 현황 …)으로 바뀌어 위 탭이 숨었음(./shell.css .nm-area-on · 형 11-15 「탭 1234 는 a에 귀속」) → 메뉴 줄이 그 칸 탭 몫(서랍 ⌄ · 뉴스 에디터 ⌄ 안의 줄)을 하니 PC 에선 위 탭을 늘 보이고 칸 탭 줄은 접음 · 폰은 메뉴 줄이 없어 앞 그대로
    맥 독 앱(html.nm-macapp) 안에서도 같음(형 11-16 12:3x 구름 맥 창 「상단에 탭 메뉴, 그리고 그 아래 메뉴는 계속 보이게 해줘」 · 「인앱에서는 사라져,」 · 「내가 웹에서는 잘안써, 항상 웹앱으로 macos , winos로써」)
    앞: 맥 앱은 웹 탭 줄을 숨기는데(./tab-bar.css · 형 08:2x) 위 규칙이 서랍 · 뉴스 에디터 · 설정에서만 그걸 이겨서, 그 칸에선 탭 줄이 뜨고 홈 · 대화 · 에디터에선 사라졌음 → 메뉴 줄이 있는 화면이면 어디서나 보임(보이기만 바꿈 = 움직임 · 그리기 값 0) */
-:root:has(.nm-menubar) .nm-tabs:not(.nm-area) { display:flex; }
-:root:has(.nm-menubar) .nm-tabs.nm-area { display:none; }
+:root[data-nm-menubar] .nm-tabs:not(.nm-area) { display:flex; }
+:root[data-nm-menubar] .nm-tabs.nm-area { display:none; }
 /* 맥 독 앱(html.nm-macapp · 앱이 제 탭 줄을 창 맨 위에 가짐) 안에서만 = 웹 탭 줄 숨김 · 메뉴 줄이 웹 화면 맨 위(형 11-16 14:04 dm 「✓ ① 앱 탭 한 줄 + 메뉴(웹 탭 숨김)」 · 물음 = 맥 앱에서 탭이 두 줄(앱 탭 + 웹 탭)로 보이는 것)
    = 메뉴 줄이 웹 탭 줄이 있던 맨 위 띠(50px)에 그대로 들어감 → 아래 판 자리는 메뉴 줄이 생기기 전과 같음(띠 높이에 맞춰 놓인 검색 · 신호등 · 펼친 판 자리가 안 밀림) · 오른쪽 신호등은 같은 띠 오른쪽 끝 그대로
    웹 탭 판(Browser · 화상 회의 · Teams 덮개)도 같이 안 그림 — 탭 줄이 없으면 닫을 길이 없어서(바깥 주소는 맥 앱 제 탭으로 열림 · ./inapp.ts) · 보통 웹 · 윈도우 웹앱 · 폰 = 위 규칙 그대로 */
-html.nm-macapp:has(.nm-menubar) { --nm-menu-h:0px; }
-html.nm-macapp:has(.nm-menubar) .nm-tabs:not(.nm-area) { display:none; }
-html.nm-macapp:has(.nm-menubar) .nm-tab-screen { display:none; }
+html.nm-macapp[data-nm-menubar] { --nm-menu-h:0px; }
+html.nm-macapp[data-nm-menubar] .nm-tabs:not(.nm-area) { display:none; }
+html.nm-macapp[data-nm-menubar] .nm-tab-screen { display:none; }
 html.nm-macapp .nm-menubar { top:0; height:50px; }
 .nm-menubar { position:fixed; top:50px; left:64px; right:0; height:var(--nm-menu-h, 34px); z-index:59; display:flex; align-items:center; gap:0; padding:0 14px; background:var(--nm-tab-on, #121314); box-shadow:inset 0 -1px 0 rgba(232,234,232,.07);
   font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; text-transform:none;   /* 글꼴 고정 = 프리텐다드(형 11-16 10:3x 「웅 빼고 츠리텐다드」) — 설정 「글꼴」(영문 LEMON MILK · Manrope · 한글 Paperlogy)을 안 따라감 = 기기마다 같은 꼴 · 글꼴 파일은 ./font-all.css 가 이미 올림 */
