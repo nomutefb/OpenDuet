@@ -1,13 +1,28 @@
 // 글 메뉴(말풍선 길게 누름 · 우클릭)의 셈(순수 · 시험 tests/msg-menu.test.ts) — 화면 = ./msg-menu.tsx
 //   형 11-17 08:3x 구름 맥 창(영상 = 누른 말풍선 바로 위에 글 줄이 차례로 뜨고 나머지는 흐려짐 · 가운데 판 없음)
 //   「요것두~~~ 모달 안뜨고 간단하게 하는 식으루 / 답장은 스와이프로 가능하고 / 피시에서는 안되구나 / 삭제는 필요없고 복사 / 수정은 필요없고 다른 방으로 있어야 하고 / 공지 / 확인 요청 / 이모지는 이미 말풍선 잇어서 다른 애들거엔 이제 없어도 될수도잇음 / 공유」
-export type MenuKey = "save" | "reply" | "copy" | "move" | "pin" | "ask" | "share" | "shot";
-export const MENU_KO: Record<MenuKey, string> = { save: "사진 저장", reply: "답장", copy: "복사", move: "다른 방으로", pin: "공지", ask: "확인 요청", share: "공유", shot: "캡처" };
+export type MenuKey = "save" | "reply" | "copy" | "move" | "pin" | "ask" | "share" | "shot" | "del";
+export const MENU_KO: Record<MenuKey, string> = { save: "사진 저장", reply: "답장", copy: "복사", move: "다른 방으로", pin: "공지", ask: "확인 요청", share: "공유", shot: "캡처", del: "지우기" };
 
-/** 줄 차례 — 형이 부른 차례(복사 · 다른 방으로 · 공지 · 확인 요청 · 공유) · 사진 글은 맨 위 「사진 저장」 · 답장은 밀기가 안 되는 화면(마우스)에서만 · 삭제 · 수정은 없음.
- *  pics = 그 글의 사진 수 · fine = 마우스 화면(밀어서 답장이 안 됨) · canPin = 공지를 올릴 수 있는 문 · rooms = 넘길 수 있는 다른 방 수 */
-export function menuItems(o: { pics: number; fine: boolean; canPin: boolean; rooms: number }): MenuKey[] {
-  return [o.pics > 0 ? "save" : null, o.fine ? "reply" : null, "copy", o.rooms > 0 ? "move" : null, o.canPin ? "pin" : null, "ask", "share", "shot"].filter((k): k is MenuKey => !!k);
+/** 줄 차례 — 형이 부른 차례(복사 · 다른 방으로 · 공지 · 확인 요청 · 공유) · 사진 글은 맨 위 「사진 저장」 · 답장은 밀기가 안 되는 화면(마우스)에서만 · 수정은 없음
+ *  · 맨 끝 「지우기」 = 형 화면만(canDel · 서버도 형 · 봄만 받음) · 묻기 없이 아예 지움(형 11-17 18:21 dm-gik 「그냥 지우기 누르면 아예 바로 채팅 지워지기로, 다시 물음 할 필요는없어.」 · 앞 11-17 08:3x 「삭제는 필요없고」를 갈음 — 형 비번 한 줄이 올라간 뒤)
+ *  pics = 그 글의 사진 수 · fine = 마우스 화면(밀어서 답장이 안 됨) · canPin = 공지를 올릴 수 있는 문 · rooms = 넘길 수 있는 다른 방 수 · canDel = 지울 수 있는 문(형) */
+export function menuItems(o: { pics: number; fine: boolean; canPin: boolean; rooms: number; canDel?: boolean }): MenuKey[] {
+  return [o.pics > 0 ? "save" : null, o.fine ? "reply" : null, "copy", o.rooms > 0 ? "move" : null, o.canPin ? "pin" : null, "ask", "share", "shot", o.canDel ? "del" : null].filter((k): k is MenuKey => !!k);
+}
+/** 순수 — 글 하나를 아예 뺀 판(이 탭 · 이 기기 저장 둘 다 이걸로) · 없는 id = 같은 판 */
+export function dropMsg<P extends { messages: { id: string }[] }>(p: P | undefined, id: string): P | undefined {
+  if (!p || !p.messages.some((x) => x.id === id)) return p;
+  return { ...p, messages: p.messages.filter((x) => x.id !== id) };
+}
+/** 순수 — 최근 통째로 받은 칸(받은 글의 첫 ~ 끝 시각 · 방 전체면 처음부터)은 서버가 정본 → 그 칸 안에 있는데 받은 글엔 없는 id(다른 기기 · 다른 탭에서 지운 글) = 뺄 것
+ *  받은 글이 비었으면 칸을 모르니 0(빈 답 하나로 다 지우지 않게) · 칸 밖(그 뒤 기다리기로 붙은 새 글 · 앞날 글)은 그대로 */
+export function goneInWindow(old: { id: string; ts: number }[], got: { id: string; ts: number }[], whole: boolean): string[] {
+  if (!got.length) return [];
+  let lo = Infinity, hi = -Infinity; const ids = new Set<string>();
+  for (const g of got) { ids.add(g.id); if (g.ts < lo) lo = g.ts; if (g.ts > hi) hi = g.ts; }
+  if (whole) lo = -Infinity;
+  return old.filter((x) => x.ts >= lo && x.ts <= hi && !ids.has(x.id)).map((x) => x.id);
 }
 export const saveKo = (pics: number): string => (pics > 1 ? `사진 저장 ${pics}장` : "사진 저장");
 

@@ -2,7 +2,7 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { MENU_KO, ROW_H, clipBox, holeMask, menuItems, placeMenu, saveKo } from "../ui/msg-menu-logic";
+import { MENU_KO, ROW_H, clipBox, dropMsg, goneInWindow, holeMask, menuItems, placeMenu, saveKo } from "../ui/msg-menu-logic";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 
 test("줄 차례 = 복사 · 다른 방으로 · 공지 · 확인 요청 · 공유 · 캡처 / 답장은 마우스 화면만 / 사진 글은 사진 저장 먼저 / 삭제 · 수정 없음", () => {
@@ -39,4 +39,24 @@ test("끼운 자리 = 가운데 판 · 되묻는 창 없음 · 누른 말풍선�
   assert.match(ui, /mine \? <div className="nm-mm-q"/);   // 남의 글엔 말풍선 모서리에 바로 다는 반응이 이미 있음
   assert.match(css, /backdrop-filter:blur\(/); assert.match(css, /mask-composite:exclude/); assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(css.replace(/transition:opacity[^;]*;/g, ""), /transition:[^;]*(height|width|top|left|margin|filter)/);   // 움직이는 값 = 투명도 · 자리(transform)만
+});
+
+test("지우기 = 형 화면만 맨 끝 줄 · 묻기 없이(형 11-17 18:21 「그냥 지우기 누르면 아예 바로 채팅 지워지기로, 다시 물음 할 필요는없어.」)", () => {
+  assert.deepEqual(menuItems({ pics: 0, fine: false, canPin: true, rooms: 2, canDel: true }).slice(-2), ["shot", "del"]);
+  assert.equal(menuItems({ pics: 0, fine: false, canPin: false, rooms: 2 }).includes("del"), false);   // 형 아님 = 줄 없음
+  assert.equal(MENU_KO.del, "지우기");
+  const ui = readFileSync(new URL("../ui/msg-menu.tsx", import.meta.url), "utf8"), oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
+  assert.match(ui, /del: \(\) => \{ onUnsent\?\.\(m\.id\); onClose\(\); \}/);   // 되묻는 줄 · 창 0
+  assert.match(oc, /qc\.setQueryData<Page>\(key, \(old\) => dropMsg\(old, id\)\);/);   // 말풍선 바로 빠짐(「삭제된 글」 자리 0)
+  assert.match(oc, /if \(after\) void saveRoom\(room, after\);/);   // 이 기기 저장에서도 바로
+  assert.match(oc, /office<[^>]*>\(`rooms\/\$\{enc\(room\)\}\/unsend`, \{ method: "POST", body: JSON\.stringify\(\{ id \}\) \}\)/);
+});
+test("지운 글 빼기 셈 — 한 글 빼기 · 최근 통째 받은 칸 안에서 서버에 없는 글(다른 기기에서 지움)만 뺌", () => {
+  const p = { messages: [{ id: "a" }, { id: "b" }], more: false };
+  assert.deepEqual(dropMsg(p, "a")?.messages, [{ id: "b" }]); assert.equal(dropMsg(p, "z"), p); assert.equal(dropMsg(undefined, "a"), undefined);
+  const old = [{ id: "o1", ts: 100 }, { id: "o2", ts: 200 }, { id: "x", ts: 300 }, { id: "o3", ts: 400 }, { id: "new", ts: 900 }];
+  const got = [{ id: "o2", ts: 200 }, { id: "o3", ts: 400 }];
+  assert.deepEqual(goneInWindow(old, got, false), ["x"]);   // 칸 = 200 ~ 400 · 그 밖(100 · 900)은 그대로
+  assert.deepEqual(goneInWindow(old, got, true), ["o1", "x"]);   // 방 전체를 받음 = 처음부터
+  assert.deepEqual(goneInWindow(old, [], true), []);   // 빈 답 하나로 다 지우지 않음
 });

@@ -34,6 +34,7 @@ import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, peopl
 import { nameInk } from "./name-ink";   // 글 안 봇 이름 = 말풍선 색(#-044)
 import { markSent, typingPing } from "../data/typing";   // 형 치는 중(형 11-13 17:57 · 17:59 · 18:09 · 18:14)
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
+import { dropMsg, goneInWindow } from "./msg-menu-logic";   // 지운 글 빼기(형 11-17 「아예 지우기」)
 import { peekAttachments } from "../shim/attachments";
 import { attachmentSender } from "../data/attachment-state";
 import type { SendAttempt, WaitingText } from "../data/attachment-send";
@@ -162,6 +163,11 @@ export const officeKeys = {
 const replying = new Set<string>();
 /** 글 열쇠(client_id · 24자) — 보냄 줄이 다시 보내도 같은 값 · 서버 = 같은 열쇠면 앞 글 그대로(editor _post humanTwin) */
 const sendKey = () => { try { return crypto.randomUUID().replace(/-/g, "").slice(0, 24); } catch { return `k${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`; } };
+/** 최근 통째 받기 = 그 칸 안에서 서버에 없는 글(다른 기기 · 다른 탭에서 아예 지운 글 · 형 11-17 18:21 「아예 지우기」)은 이 탭에서도 빼고 붙임 → 이 기기 저장(saveRoom)도 다음 저장 때 같이 빠짐 · whole = 방 전체를 받음(more 없음) */
+const mergeWin = (old: Page | undefined, add: Msg[], whole: boolean): Page => {
+  const gone = old ? new Set(goneInWindow(old.messages, add, whole)) : null;
+  return merge(gone?.size ? { ...old!, messages: old!.messages.filter((x) => !gone.has(x.id)) } : old, add);
+};
 const merge = (old: Page | undefined, add: Msg[]): Page => {
   const m = new Map((old?.messages || []).map((x) => [x.id, x]));
   for (const x of add) m.set(x.id, x);
@@ -193,7 +199,7 @@ export const roomMsgsOptions = (qc: QueryClient, room: string) => ({
     const last = old?.messages.at(-1)?.ts;
     if (old && last) {
       const r = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`);   // 최근 40 통째 = 새 글 + 거울이 고친 글(반응·카드)을 같이
-      if ((r.messages?.[0]?.ts ?? Infinity) <= last || !r.more) return withPend(merge(qc.getQueryData<Page>(key) || old, r.messages || []), r);   // 사이 빔 없음
+      if ((r.messages?.[0]?.ts ?? Infinity) <= last || !r.more) return withPend(mergeWin(qc.getQueryData<Page>(key) || old, r.messages || [], !r.more), r);   // 사이 빔 없음 · 그 칸에서 지운 글은 뺌
       const j = await office<Page>(`rooms/${enc(room)}/messages?since=${last}&n=100`);
       if (!j.more) return withPend(merge(qc.getQueryData<Page>(key) || old, j.messages || []), r);   // 기다리기 고리가 그새 붙인 글도 지킴
     }
@@ -274,7 +280,7 @@ export function useOfficeRoom(room: string) {
       if (stop) return;
       const cur = qc.getQueryData<Page>(officeKeys.msgs(room));
       if (!(cur?.messages || []).some((m) => m.route?.state === "pending")) return;
-      try { const j = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`); if (!stop && j.messages?.length) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, j.messages)); } catch { /* 다음 차례 */ }
+      try { const j = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`); if (!stop && j.messages?.length) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => mergeWin(old, j.messages, !j.more)); } catch { /* 다음 차례 */ }
     }, ms));
     return () => { stop = true; ts.forEach((t) => clearTimeout(t)); };
   }, [pendingIds, room, qc]);
@@ -1466,13 +1472,14 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
     <div className="flex min-h-0 flex-1 flex-col">
       <AttachSheet />
       {active ? <RoomSearch room={room} box={boxRef} /> : null}
-      {menuOf ? <MsgMenu m={menuOf} onUnsent={(id) => {   // 「예」 = 창 바로 닫힘 · 글 바로 빠짐 · 서버는 뒤에서 · 「지웠어」 알림 0 · 실패 때만 되돌리고 한 문장(형 11-12 07:28 「삭제 예.누르면 지웠어. 안떠도 돼 … 누르면 닫히고 백단에서 처리하셈」 · 뎅)
-        const key = officeKeys.msgs(room), prev = qc.getQueryData<Page>(key)?.messages.find((x) => x.id === id);
-        const put = (fn: (x: Msg) => Msg) => qc.setQueryData<Page>(key, (old) => (old ? { ...old, messages: old.messages.map((x) => (x.id === id ? fn(x) : x)) } : old));
-        put((x) => ({ ...x, text: "", files: [], file_meta: [], caption: "", mention: [], unsent: { by: "형", at: Date.now() } } as Msg));
-        void office<{ ok?: boolean; unsent?: { by: string; at: number } }>(`rooms/${enc(room)}/unsend`, { method: "POST", body: JSON.stringify({ id }) })
-          .then((j) => { if (j?.unsent) put((x) => ({ ...x, unsent: j.unsent } as Msg)); else throw new Error("no unsent"); })
-          .catch(() => { if (prev) put(() => prev); setErr("메시지를 삭제하지 못했습니다. 다시 시도해 주세요."); });
+      {menuOf ? <MsgMenu m={menuOf} onUnsent={(id) => {   // 지우기 = 묻기 없이 · 창 바로 닫힘 · 말풍선을 목록에서 바로 뺌(「삭제된 글」 자리 0) · 서버는 뒤에서 아예 지움 · 실패 때만 되살리고 한 줄(형 11-17 18:21 dm-gik 「그냥 지우기 누르면 아예 바로 채팅 지워지기로, 다시 물음 할 필요는없어.」 · 서버 = 깃 editor 82b7306 {ok, id, gone})
+        const key = officeKeys.msgs(room), before = qc.getQueryData<Page>(key), prev = before?.messages.find((x) => x.id === id);
+        qc.setQueryData<Page>(key, (old) => dropMsg(old, id));
+        const after = qc.getQueryData<Page>(key);
+        if (after) void saveRoom(room, after);   // 이 기기 저장에서도 바로(앱을 다시 열어도 안 그려지게 · 400ms 묶음 저장을 기다리지 않음)
+        void office<{ ok?: boolean; gone?: boolean; unsent?: unknown }>(`rooms/${enc(room)}/unsend`, { method: "POST", body: JSON.stringify({ id }) })
+          .then((j) => { if (!j?.ok || !(j.gone || j.unsent)) throw new Error("not gone"); })   // unsent = 옛 서버 답(배포 전) · 그래도 목록엔 안 되살림
+          .catch(() => { if (prev) qc.setQueryData<Page>(key, (old) => (old && !old.messages.some((x) => x.id === id) ? merge(old, [prev]) : old)); setErr("글을 지우지 못했어. 다시 눌러 줘."); });
       }} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
       {/* 대화창 아무 데나 끌어다 놓기 = 입력칸에 넣은 것처럼(형 11-05 10:45 「대화창 이 입력하는 칸, 말고 대충 이 대화창 안에만 드래그앤 드롭해도 대화칸에 넣는것처럼 해주면 땡큐!!」) */}
       <div className={`ychat relative flex min-h-0 flex-1 flex-col${dropping ? " ydrop" : ""}`}

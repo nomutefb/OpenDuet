@@ -7,7 +7,7 @@
 //     단톡 = 그 방에서 인용 + 「!이름」 · 1:1 = 다른 봇은 이 방에 못 불러서 그 봇 1:1 방에 원문을 넣어 바로 깨움
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from "react";
-import { IconCamera, IconChecks, IconChevronLeft, IconCopy, IconCornerUpLeft, IconCornerUpRight, IconDownload, IconShare2, IconSpeakerphone } from "@tabler/icons-react";
+import { IconCamera, IconChecks, IconChevronLeft, IconCopy, IconCornerUpLeft, IconCornerUpRight, IconDownload, IconShare2, IconSpeakerphone, IconTrash } from "@tabler/icons-react";
 import { type MenuKey, MENU_KO, clipBox, holeMask, menuItems, placeMenu, saveKo } from "./msg-menu-logic";
 import "./msg-menu.css";
 import { createPortal } from "react-dom";
@@ -46,7 +46,7 @@ export function useLongPress(open: () => void) {
 
 const short = (n: string) => n.replace(" PM", "");
 
-export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose }: { onUnsent?: (id: string) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
+export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose, onUnsent }: { onUnsent?: (id: string) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
   const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
   const [asking, setAsking] = useState(false), [moving, setMoving] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
@@ -132,11 +132,11 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
     return { b: vis || mid, seen: !!vis, mine: !!row && !row.classList.contains("ymsg"), rad: el ? parseFloat(getComputedStyle(el).borderTopLeftRadius) || 18 : 18 };
   });
   const mine = geo.mine, fine = typeof matchMedia === "function" && matchMedia("(pointer: fine)").matches;   // 마우스 화면 = 밀어서 답장이 안 됨 → 「답장」 줄을 둠
-  const keys = menuItems({ pics: pics && onSave ? pics : 0, fine, canPin: pins.can, rooms: rooms.length });
+  const keys = menuItems({ pics: pics && onSave ? pics : 0, fine, canPin: pins.can, rooms: rooms.length, canDel: pins.can && !!onUnsent });   // 지우기 = 형 화면(공지 문과 같은 「형 · 쓰기 됨」 판정)
   const rows = note ? 1 : asking ? targets.length + 2 : moving ? rooms.length + 1 : keys.length + (mine ? 1 : 0);
   const place0 = placeMenu(geo.b, innerWidth, innerHeight, rows + (why ? 1 : 0), mine), place = geo.seen ? place0 : { ...place0, over: true }, hole = holeMask(geo.b, geo.rad);   // 말풍선을 못 찾았거나 안 보이면 구멍 없이
   useEffect(() => { const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); onClose(); } }; window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, [onClose]);
-  const ICON: Record<MenuKey, ReactNode> = { save: <IconDownload />, reply: <IconCornerUpLeft />, copy: <IconCopy />, move: <IconCornerUpRight />, pin: <IconSpeakerphone />, ask: <IconChecks />, share: <IconShare2 />, shot: <IconCamera /> };
+  const ICON: Record<MenuKey, ReactNode> = { save: <IconDownload />, reply: <IconCornerUpLeft />, copy: <IconCopy />, move: <IconCornerUpRight />, pin: <IconSpeakerphone />, ask: <IconChecks />, share: <IconShare2 />, shot: <IconCamera />, del: <IconTrash /> };
   const act: Record<MenuKey, () => void> = {
     save: () => { onSave?.(); done("✓"); },   // 형 11-04 08:22 「길게 누르면 사진을 다운로드」
     reply: () => { onReply(); onClose(); },
@@ -145,6 +145,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
     pin: () => { pins.pin({ id: m.id, ts: m.ts }); onClose(); },
     ask: () => setAsking(true),
     share: () => void share(),
+    del: () => { onUnsent?.(m.id); onClose(); },   // 묻기 없이 · 창 바로 닫힘 · 말풍선 바로 빠짐 · 서버는 뒤에서(./office-chat.tsx onUnsent · 실패 = 되살리고 한 줄)
     shot: () => { setBusy(true); void captureMsg(m.id, m.ts).then((x) => (x === "saved" ? done("✓") : x === "none" ? done("못 구웠어") : onClose())).catch(() => setWhy("캡처 못 했어 — 다시")).finally(() => setBusy(false)); },
   };
   const n = rows, at = (i: number) => ({ "--i": place.side === "above" ? n - 1 - i : i } as CSSProperties);   // 말풍선에 가까운 줄부터 차례로 뜸
