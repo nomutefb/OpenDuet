@@ -6,7 +6,7 @@
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { type ClipboardEvent as RClipboardEvent, type DragEvent as RDragEvent, Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { office } from "../data/office";
 import { LOOK_ONLY } from "../data/read-state";
@@ -294,6 +294,20 @@ export function TeamsChat({ chat }: { chat: string }) {
   // 파일 보내기(형 11-06 19:27 「파일보내기? 아냐~ 채팅만되면돼 ㅋㅋ음... 아니다 있으면 좋을거같애」) = 「+」로 고름 → 입력칸 위 칩 → 「↑」를 눌러야 나감(글은 같이 · 고르기만 해선 안 나감) · 서버 teams/upload(형 OneDrive 올림 → 대화 사람 보기 권한 → 첨부 글)
   const [file, setFile] = useState<File | null>(null), pick = useRef<HTMLInputElement>(null);
   useEffect(() => { setFile(null); }, [chat]);
+  // 붙여넣기 · 끌어다 놓기(형 11-17 10:29 「팀즈로 보내기는 붙여넣기 이런게 잘 안되네」) = 「+」 와 같은 칩으로 · 글이 같이 오면(워드 복사 등) 글 붙여넣기 그대로
+  const take = (f0: File | null | undefined) => {
+    if (!f0) return false;
+    if (f0.size > 25 * 1024 * 1024) { setErr("25MB 넘는 파일은 여기서 못 보내"); return true; }
+    const d = new Date(), p2 = (n: number) => String(n).padStart(2, "0");
+    const f = /^image\.(png|jpe?g|gif|webp|bmp)$/i.test(f0.name) ? new File([f0], `사진-${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}.${f0.name.split(".").pop()}`, { type: f0.type }) : f0;
+    setFile(f); setErr(""); return true;
+  };
+  const onPaste = (e: RClipboardEvent) => {
+    const fs = e.clipboardData?.files; if (!fs || !fs.length || busy) return;
+    if ((e.clipboardData.getData("text/plain") || "").trim()) return;
+    e.preventDefault(); take(fs[0]);
+  };
+  const onDrop = (e: RDragEvent) => { const f = e.dataTransfer?.files?.[0]; if (!f || busy) return; e.preventDefault(); take(f); };
   const upload = async (t: string, f: File) => {
     const fd = new FormData(); fd.append("chat", chat); if (t) fd.append("text", t); fd.append("file", f);
     const res = await fetch("/api/office/teams/upload", { method: "POST", credentials: "same-origin", cache: "no-store", body: fd });   // office() 는 몸이 있으면 JSON 머리를 붙여서 폼은 직접 보냄
@@ -373,10 +387,10 @@ export function TeamsChat({ chat }: { chat: string }) {
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p role="alert" className="nm-terr pb-2" onClick={() => setErr("")}>{err}</p> : null}
         {file ? <p className="nm-tpick"><span className="min-w-0 truncate">📎 {file.name}</span><small>{file.size >= 1048576 ? `${(file.size / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(file.size / 1024))}KB`}</small><button type="button" aria-label="붙인 파일 빼기" disabled={busy} onClick={() => setFile(null)}>×</button></p> : null}
-        <form className="nm-tform flex items-end gap-1" onSubmit={(e) => { e.preventDefault(); void send(); }}>
-          <input ref={pick} type="file" hidden onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ""; if (f && f.size > 25 * 1024 * 1024) { setErr("25MB 넘는 파일은 여기서 못 보내"); return; } if (f) { setFile(f); setErr(""); } }} />
+        <form className="nm-tform flex items-end gap-1" onSubmit={(e) => { e.preventDefault(); void send(); }} onDragOver={(e) => { if (e.dataTransfer?.types?.includes("Files")) e.preventDefault(); }} onDrop={onDrop}>
+          <input ref={pick} type="file" hidden onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ""; take(f); }} />
           <button type="button" className="nm-tplus2" aria-label="파일 붙이기" title="파일 붙이기" disabled={busy} onClick={() => pick.current?.click()}><DuetIcon name="plus" size={20} stroke={2} /></button>
-          <textarea value={text} rows={1} placeholder={file ? "같이 보낼 말(없어도 됨)" : "팀즈로 보내기"} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} />
+          <textarea value={text} rows={1} placeholder={file ? "같이 보낼 말(없어도 됨)" : "팀즈로 보내기"} onChange={(e) => setText(e.target.value)} onPaste={onPaste} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} />
           <button type="submit" aria-label={file ? "파일 보내기" : "보내기"} disabled={busy || (!text.trim() && !file)}>{busy && file ? "…" : <DuetIcon name="arrowUp" size={20} stroke={2.4} />}</button>
         </form>
       </div>
