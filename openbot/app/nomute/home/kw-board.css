@@ -110,3 +110,14 @@ html.dark .nm-kwb-col li.dup .q, html.dark .nm-kwb-col li.dup .rk { color:var(--
 .nm-split-root .nm-hotswap .nm-nlist-h b { margin-right:var(--swap-w, 64px); }   /* 제목 뒤 바꿈 글자 자리 */
 .nm-hotswap .nm-nlist-h > span { margin-left:auto; text-align:right; font-variant-numeric:tabular-nums; }   /* 폰도 시각 = 오른쪽 끝(형 11-15 08:54 「우측 정렬」) */
 .nm-home-swap .nm-hotswap .nm-nlist-h { padding-right:14px; }
+/* 넓은 칸(PC · 700 넘음) = 9줄이 판 높이를 나눠 채움 · 글자 키움(형 11-17 09:37 dm-bom 봄 옮김 「그리고 키워드 이거 남는 공간있으니까 10개까지 나오게 그냥 할게!」 → 「그래도 좀 남을텐데 그러면 9개 까지로 하고, 글자를 좀 키울게! 그러면 아마 맞을거야. 왜냐면 글자라인도 우측이 남으니까」)
+   폰(460 아래) · 좁힌 칸(461 ~ 700) = 7줄 그대로(8 · 9째 숨김 · 폰 키워드는 안 건드림) */
+@container kwb (max-width:700px) { .nm-kwb-col li:nth-child(n+8) { display:none; } }
+@container kwb (min-width:701px) {
+  .nm-kwb-col ol { flex:1 1 auto; min-height:0; }
+  .nm-kwb-col li { flex:1 1 0; min-height:0; gap:8px; grid-template-columns:18px minmax(0,1fr) auto; }   /* 줄 키 = 판 높이 ÷ 9(최소 키 0 = 짧은 창에서도 안 넘침 · 1920×1080 실측 판 316 → 줄 ≈ 29) */
+  .nm-kwb-col .rk { font-size:12px; }
+  .nm-kwb-col .q { font-size:13.5px; font-weight:500; letter-spacing:-.2px; }
+  .nm-kwb-col .sub { font-size:11px; }
+  .nm-kwb-ch b { font-size:12.5px; }
+}
