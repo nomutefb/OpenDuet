@@ -54,6 +54,34 @@ export function tabsMove(s: TabState, key: string, to: number): TabState {
   const tabs = [...s.tabs]; tabs.splice(i, 1); tabs.splice(at, 0, t);
   return { ...s, tabs };
 }
+/** 탭 줄 차례(구름 11-17 · 형 09:2x 「그 상단에 탭, 끌어서 쓰면 순서를 전환할 수 있게 해줘」) — 고정 넷(봄의 정원 · 브라우저 · 화상 회의 · 팀즈)도 끌어 옮김 · 차례 = 키 줄(이 기기 · nm-tab-order-v1) */
+export const ORDER_KEY = "nm-tab-order-v1", STRIP_FIXED: readonly string[] = ["dash", "co", "meet", "teams"];
+/** 저장된 차례 → 지금 줄 — 없어진 탭은 빠짐 · 같은 키 두 번 = 하나 · 새 고정 탭 = 제 기본 앞 탭 바로 뒤(없으면 맨 앞) · 새 탭(「+」 · 몸 화면) = 맨 끝 · 깨진 값 = 기본 차례 */
+export function stripOrder(saved: unknown, fixed: readonly string[], dyn: readonly string[]): string[] {
+  const have = new Set<string>([...fixed, ...dyn]), out: string[] = [];
+  for (const k of Array.isArray(saved) ? saved : []) if (typeof k === "string" && have.has(k) && !out.includes(k)) out.push(k);
+  fixed.forEach((k, i) => {
+    if (out.includes(k)) return;
+    let at = 0;
+    for (let j = i - 1; j >= 0; j--) { const p = out.indexOf(fixed[j]); if (p >= 0) { at = p + 1; break; } }
+    out.splice(at, 0, k);
+  });
+  for (const k of dyn) if (!out.includes(k)) out.push(k);
+  return out;
+}
+/** 끌어 옮김 — key 를 to 번째 자리로(밖이면 끝으로 맞춤) · 없는 키 · 같은 자리 = 그대로(같은 배열) */
+export function stripMove(order: string[], key: string, to: number): string[] {
+  const i = order.indexOf(key), at = Math.max(0, Math.min(order.length - 1, Math.round(to)));
+  if (i < 0 || at === i) return order;
+  const out = [...order]; out.splice(i, 1); out.splice(at, 0, key);
+  return out;
+}
+/** 끄는 탭이 갈 자리 — 끄는 탭의 가운데(mid)가 옆 탭 가운데를 넘으면 그 자리 · boxes = 줄에 그려진 차례 그대로 [왼쪽, 폭] · me = 끄는 탭 */
+export function dropIndex(boxes: readonly (readonly [number, number])[], me: number, mid: number): number {
+  let to = boxes.length - 1;
+  for (let i = 0; i < boxes.length; i++) { if (i === me) continue; if (mid < boxes[i][0] + boxes[i][1] / 2) { to = i > me ? i - 1 : i; break; } }
+  return me >= 0 && me < boxes.length ? Math.max(0, to) : me;
+}
 /** 웹 탭 새로(「+」) — id = 시각 36진 · 빈 주소 */
 export const webTabNew = (now = Date.now()): Tab => ({ k: "web", id: now.toString(36), url: "" });
 /** 웹 탭 주소 바꿈(그 탭 안에서 이동 · 다시 켜도 그 주소) · 다른 탭 = 그대로 */

@@ -1,7 +1,7 @@
 // 위쪽 탭 줄 자료(빠르 11-09 · 형 05:16 · 시아 05:23)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DASH, TABS_MAX, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "../ui/tab-list.ts";
+import { DASH, STRIP_FIXED, TABS_MAX, dropIndex, stripMove, stripOrder, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave } from "../ui/tab-list.ts";
 
 const S = (keys: string[]) => keys.join(" ");
 const keysOf = (s: { tabs: Parameters<typeof tabKey>[0][] }) => S(s.tabs.map(tabKey));
@@ -80,4 +80,41 @@ test("웹 탭(「+」 빈 탭 · 빠르 11-11 · 형 22:10 「+ 누르면 … �
   t = m.tabsMove(t, "w:5", 2);
   assert.deepEqual(t.tabs.map(m.tabKey), ["dash", "r:all", "w:5", "s:fast"]);
   assert.deepEqual(m.tabsMove(t, "w:5", 1).tabs.map(m.tabKey), ["dash", "r:all", "w:5", "s:fast"], "방 갈래로는 못 넘어감");
+});
+
+test("줄 차례 = 고정 넷도 끌어 옮김 · 저장된 차례에서 없어진 탭은 빠지고 새 탭은 끝 · 새 고정 탭은 제 앞 탭 뒤(형 11-17 「그 상단에 탭, 끌어서 쓰면 순서를 전환할 수 있게 해줘」)", () => {
+  assert.deepEqual(STRIP_FIXED, ["dash", "co", "meet", "teams"]);
+  assert.deepEqual(stripOrder(null, STRIP_FIXED, ["w:a"]), ["dash", "co", "meet", "teams", "w:a"]);   // 처음 = 기본 차례
+  assert.deepEqual(stripOrder("깨짐", STRIP_FIXED, []), ["dash", "co", "meet", "teams"]);
+  assert.deepEqual(stripOrder(["teams", "w:a", "dash", "co", "meet"], STRIP_FIXED, ["w:a", "s:뜸"]), ["teams", "w:a", "dash", "co", "meet", "s:뜸"]);   // 옮긴 대로 · 새 탭 = 끝
+  assert.deepEqual(stripOrder(["teams", "w:gone", "teams", 7, "dash"], STRIP_FIXED, []), ["teams", "dash", "co", "meet"]);   // 닫힌 탭 · 두 번 · 글 아닌 값 = 빠짐 · 빠져 있던 고정 탭 = 제 앞 탭(dash) 뒤로
+  assert.deepEqual(stripOrder(["meet", "teams"], STRIP_FIXED, []), ["dash", "co", "meet", "teams"]);   // 앞 탭이 없으면 맨 앞부터
+  const o = ["dash", "co", "meet", "teams", "w:a"];
+  assert.deepEqual(stripMove(o, "teams", 0), ["teams", "dash", "co", "meet", "w:a"]);   // 봄의 정원 앞으로도
+  assert.deepEqual(stripMove(o, "dash", 4), ["co", "meet", "teams", "w:a", "dash"]);
+  assert.deepEqual(stripMove(o, "w:a", 1), ["dash", "w:a", "co", "meet", "teams"]);   // 연 탭이 고정 탭 사이로
+  assert.deepEqual(stripMove(o, "co", 99), ["dash", "meet", "teams", "w:a", "co"]);   // 밖 = 끝으로 맞춤
+  assert.equal(stripMove(o, "co", 1), o); assert.equal(stripMove(o, "없음", 2), o);   // 같은 자리 · 없는 키 = 그대로
+});
+test("갈 자리 = 끄는 탭의 가운데가 옆 탭 가운데를 넘을 때 · 폭이 달라도 바꾼 바로 뒤에 되돌아가지 않음", () => {
+  const boxes = [[0, 100], [100, 60], [160, 200]] as const;   // 폭이 다른 탭 셋
+  assert.equal(dropIndex(boxes, 0, 50), 0);    // 제자리
+  assert.equal(dropIndex(boxes, 0, 129), 0);   // 옆 탭 가운데(130) 전
+  assert.equal(dropIndex(boxes, 0, 131), 1);   // 넘음 = 한 칸
+  assert.equal(dropIndex(boxes, 0, 261), 2);   // 셋째 가운데(260)도 넘음 = 끝
+  assert.equal(dropIndex(boxes, 2, 129), 1); assert.equal(dropIndex(boxes, 2, 49), 0);   // 왼쪽으로
+  assert.equal(dropIndex(boxes, 1, 130), 1); assert.equal(dropIndex(boxes, 1, 9999), 2);
+  assert.equal(dropIndex([[0, 100]], 0, 500), 0);
+  // 폭 다른 둘을 바꾼 바로 뒤에 되돌아가지 않음(떨림 없음): [A200, B80] 에서 A 를 오른쪽으로 → 바뀐 뒤 [B80, A200]
+  assert.equal(dropIndex([[0, 200], [200, 80]], 0, 241), 1); assert.equal(dropIndex([[0, 80], [80, 200]], 1, 241), 1);
+});
+test("탭 줄 = 요소를 옮겨 꽂지 않고 order 값으로만 차례를 바꿈(뿌리 :has() 규칙 탓에 옮겨 꽂기 한 번 = 꼴 계산 45 ~ 70ms · 11-17 실물) · 끄는 동안 transform 만", async () => {
+  const { readFileSync } = await import("node:fs");
+  const tsx = readFileSync(new URL("../ui/tab-bar.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/tab-bar.css", import.meta.url), "utf8");
+  assert.match(tsx, /\{dom\.current\.map\(\(key\) => \{/); assert.match(tsx, /style=\{\{ order: at \}\}/);
+  assert.doesNotMatch(tsx, /\{order\.map\(\(key\) =>/);   // 줄 차례대로 그리면 React 가 요소를 옮겨 꽂음
+  const step = tsx.slice(tsx.indexOf("const step = () =>"), tsx.indexOf("const move = (e"));
+  assert.doesNotMatch(step, /style\.(left|right|width)\b/); assert.match(step, /style\.transform = `translate3d\(/);   // 끄는 화면마다 = transform 만
+  assert.match(tsx, /if \(!d\.raf\) d\.raf = requestAnimationFrame\(step\);/);   // 화면 한 장에 한 번
+  assert.match(css, /\.nm-tab\[data-sep\]:not\(\.on\)::before/); assert.match(css, /\.nm-tab-plus \{ order:98; \}/);
 });
