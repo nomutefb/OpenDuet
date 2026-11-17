@@ -3,11 +3,11 @@
 //   차례 = 「대시보드」(고정 · 누르면 두 칸 그대로) → 방 탭(지금 연 방이 붙음 · 누르면 그 방) → 화면 탭(「+」 → 몸 브레이브·VM 화면 · 명부 screen · 탭 안 iframe) → 「+」
 //   아이콘 = 우리 얼굴 · × · 끌어서 순서(같은 갈래 안) · 기기마다 기억(./tab-list.ts) · 고른 탭 바탕 = 아래 판 바탕색 + 어깨 곡선 · 새 판 알약 = 탭 줄 끝(--nm-tabs-end)
 import { useQuery } from "@tanstack/react-query";
-import { type PointerEvent as RPE, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type PointerEvent as RPE, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg } from "./faces";
-import { DASH, type Tab, type TabState, TABS_KEY, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave, tabsSetUrl, webTabName, webTabNew } from "./tab-list";
+import { DASH, ORDER_KEY, STRIP_FIXED, type Tab, type TabState, TABS_KEY, dropIndex, stripMove, stripOrder, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsSave, tabsSetUrl, webTabName, webTabNew } from "./tab-list";
 import { WebPane } from "./web-pane";
 import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:54 · 맥 72 다리)
 import { COBROWSE_EVENT } from "./cobrowse";
@@ -20,7 +20,7 @@ import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀�
 // 첫 탭 = 「봄의 정원」(형 11-12 06:23 봄 1:1 「기본적으로 탭형태를 갖춰서. 봄의 정원. 이라고 나오게해줘. 그리고 거기서 +가 나오게 크롬형태를 참고하면 될거같애」
 //   · 「일단 누르면 기본값으로 우측 sns, hotiussue, digest로 빈창이 열리게 하자 좌측은 유지되고(대화족은)」) — 지금 판 그 자체가 첫 탭 · 늘 보임
 export const GARDEN = "봄의 정원", TEAMS = "teams", BROWSER = "co", MEET = "meet";   // MEET = 고정 「화상회의」 탭(형 11-13 09:21 봄 옮김 「그냥 웹 브라우저랑, 화상 채팅방이랑 구분해주라. 아이콘은 팀즈처럼 하나 만들면될거같아.」 · 「그냥 웹 브라우저는 내가 대신 로그인하는 그런 용도면 될듯.」)
-   // BROWSER = 고정 「브라우저」 탭 키(= 옛 같이 보기 탭 · 맥 72 다리 판 · 못 닿으면 끼워 넣기 · 형 11-12 16:49 「봄의정원, 브라우저, 팀즈」 · 봄 17:01 ⓐ · 17:03 「구글 · 인스타 · 클라우드플레어 걸린 곳도 열림」)   // TEAMS = 고정 팀즈 탭 키(탭 목록 밖 · 닫기 · 끌기 없음)
+   // BROWSER = 고정 「브라우저」 탭 키(= 옛 같이 보기 탭 · 맥 72 다리 판 · 못 닿으면 끼워 넣기 · 형 11-12 16:49 「봄의정원, 브라우저, 팀즈」 · 봄 17:01 ⓐ · 17:03 「구글 · 인스타 · 클라우드플레어 걸린 곳도 열림」)   // TEAMS = 고정 팀즈 탭 키(탭 목록 밖 · 닫기 없음 · 끌어 옮기기는 됨 = 줄 차례 ./tab-list stripOrder)
 const TEAMS_LAST = "nm-teams-last";   // 마지막에 본 팀즈 대화(이 기기) = 팀즈 탭 누르면 왼쪽이 그리로
 const teamsLast = () => { try { return localStorage.getItem(TEAMS_LAST) || ""; } catch { return ""; } };
 const OFFICE_LAST = "nm-office-last";   // 마지막에 본 사무실 대화(이 기기) = 팀즈에서 정원 탭 누르면 왼쪽이 그리로(형 11-13 12:43 봄 옮김 「그리고 팀즈에서 다시 정원을 누르면 그 채팅이 뜨게 가능해?」 · 「✓ ③ 둘 다」 · 뎅)
@@ -35,14 +35,25 @@ const load = (): TabState => {   // 방 탭은 안 올림(형 11-09 09:29 회의
   return { tabs, active: s.active === TEAMS || s.active === BROWSER || s.active === MEET || tabs.some((t) => tabKey(t) === s.active) ? s.active : "dash" };
 };
 const go = (hash: string) => { if (location.hash !== hash) location.hash = hash; };
+const loadOrder = (): unknown => { try { return JSON.parse(localStorage.getItem(ORDER_KEY) || "null"); } catch { return null; } };   // 줄 차례(이 기기) · 깨지면 기본 차례
+type Drag = { key: string; pid: number; x: number; moved: boolean; left0: number; dx: number; pos: number; el: HTMLElement; raf: number };   // pos = 끄는 탭의 지금 왼쪽(줄 안 · 양 끝에서 멈춤)
 
 export function TabBar({ room, pane }: { room: string; pane: string }) {
   const [s, setS] = useState<TabState>(load);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [host, setHost] = useState<HTMLElement | null>(null);
   useEffect(() => { const h = paneHost(); if (h !== host) setHost(h); });   // 오른쪽 칸이 그려진 뒤 · 다시 그려지면 따라감
-  const bar = useRef<HTMLDivElement>(null), drag = useRef<{ key: string; x: number; moved: boolean; left0: number; dx: number; el: HTMLElement } | null>(null);
-  const ink = useRef<HTMLElement>(null), inkAt = useRef<{ l: number; r: number } | null>(null), flip = useRef<Map<string, number> | null>(null);   // 고른 자리(잉크) · 끌 때 옆 탭이 미끄러질 앞자리
+  const bar = useRef<HTMLDivElement>(null), drag = useRef<Drag | null>(null);
+  const ink = useRef<HTMLElement>(null), inkAt = useRef<{ l: number; r: number } | null>(null), flip = useRef<Map<string, number> | null>(null);   // 고른 자리(잉크) · 끌 때 옆 탭이 미끄러질 앞자리(눈에 보이던 왼쪽 · 화면 좌표)
+  const [ord, setOrd] = useState<unknown>(loadOrder);
+  const order = stripOrder(ord, STRIP_FIXED, s.tabs.filter((t) => t.k !== "dash").map(tabKey)), orderRef = useRef(order), orderSig = order.join("|");   // 줄 차례 = 고정 넷 + 연 탭(끌어 옮긴 대로 · 형 11-17 09:2x 구름 맥 창 「그 상단에 탭, 끌어서 쓰면 순서를 전환할 수 있게 해줘」)
+  orderRef.current = order;
+  // 요소는 옮겨 꽂지 않음 = 그려진 차례(dom)는 켤 때 차례 그대로 · 새 탭만 끝에 붙고 · 보이는 차례는 CSS order 값으로만
+  //   까닭(11-17 실물 · PC 1440 · 요소 11,883개): 앱 CSS 에 뿌리에 건 :has() 규칙이 있어 요소를 하나 옮겨 꽂기만 해도 꼴 계산이 통째로 다시 돎 = 45 ~ 70ms(끌다 자리 바꾸는 순간마다 멎음) · order 값 바꾸기 = 0.1ms
+  //   키보드 Tab 차례 = 켤 때 차례(다시 켜면 옮긴 차례로 맞춰짐) · 화면 판(웹 탭 iframe)도 안 옮김(옮겨 꽂으면 다시 읽힘)
+  const dom = useRef<string[]>(order);
+  dom.current = [...dom.current.filter((k) => order.includes(k)), ...order.filter((k) => !dom.current.includes(k))];
+  useEffect(() => { try { localStorage.setItem(ORDER_KEY, JSON.stringify(orderRef.current)); } catch { /* 저장 못 쓰면 이번 판만 */ } }, [orderSig]);
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 30_000 });
   const ppl = useQuery({ queryKey: ["nomute", "people-tabs"], queryFn: () => people(), staleTime: 60_000 });
   const list: OfficePerson[] = ppl.data || [];
@@ -76,22 +87,30 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   // 고른 자리 = 탭 줄에 하나뿐인 「잉크」(형 11-14 클라우드 세션 창 「탭구조를 이렇게 부드럽게 적용시킬거고. 모양도 이렇게」 — 탭 영상 f84dc5fc · 달 탭 영상 3162184d 를 프레임마다 봄)
   //   옮겨 갈 때 = 가는 쪽 끝이 먼저(약 140ms) · 뒤쪽 끝이 늦게 따라옴(약 360ms) → 늘어났다 줄어드는 물 같은 움직임(./tab-bar.css data-dir)
   //   끄는 동안 = 탭과 잉크가 손을 바로 따라옴 · 옆 탭은 자리를 바꿀 때 미끄러짐(FLIP 220ms) · 놓으면 제자리로 220ms
+  //   프레임(형 11-17 09:3x 같은 영상을 다시 주며 「이걸 최대한 프레임을 살리면돼」): 끄는 동안 = 탭 · 잉크 둘 다 transform 만(자리 계산 0 · 화면 한 장에 한 번) · 옆 탭 · 잉크가 비켜날 때도 transform(눈에 보이던 자리에서 새 자리로)
   useLayoutEffect(() => {
     const el = bar.current, k = ink.current; if (!el || !k) return;
-    const on = el.querySelector<HTMLElement>(".nm-tab.on"), d = drag.current;
-    if (d?.moved && d.el.isConnected) d.el.style.transform = `translateX(${d.left0 + d.dx - d.el.offsetLeft}px)`;   // 차례가 바뀌어 자리가 옮겨져도 손 밑 그대로
-    const f = flip.current; flip.current = null;
-    if (f) for (const t of el.querySelectorAll<HTMLElement>(".nm-tab[data-key]")) {   // 옆 탭 = 앞자리에서 새 자리로 미끄러짐
-      const was = f.get(t.dataset.key || ""); if (was === undefined || t === d?.el || was === t.offsetLeft) continue;
-      t.style.transition = "none"; t.style.transform = `translateX(${was - t.offsetLeft}px)`;
+    const on = el.querySelector<HTMLElement>(".nm-tab.on"), d = drag.current?.moved && drag.current.el.isConnected ? drag.current : null;
+    if (d) d.el.style.transform = `translate3d(${d.pos - d.el.offsetLeft}px,0,0)`;   // 차례가 바뀌어 자리가 옮겨져도 손 밑 그대로
+    const f = flip.current, x0 = f ? el.getBoundingClientRect().left : 0; flip.current = null;
+    if (f) for (const t of el.querySelectorAll<HTMLElement>(".nm-tab[data-key]")) {   // 옆 탭 = 보이던 자리에서 새 자리로 미끄러짐
+      const was = f.get(t.dataset.key || ""); if (was === undefined || t === d?.el) continue;
+      const by = Math.round(was - x0 - t.offsetLeft); if (!by) continue;
+      t.style.transition = "none"; t.style.transform = `translate3d(${by}px,0,0)`;
       requestAnimationFrame(() => { t.style.transition = ""; t.style.transform = ""; });
     }
-    if (!on) { k.style.opacity = "0"; inkAt.current = null; return; }
-    const drift = d?.moved && on === d.el ? d.left0 + d.dx - on.offsetLeft : 0;
-    const l = on.offsetLeft + drift, r = el.clientWidth - (on.offsetLeft + on.offsetWidth) - drift, was = inkAt.current;
-    k.dataset.dir = !was ? "none" : d?.moved ? "drag" : l > was.l ? "r" : l < was.l ? "l" : k.dataset.dir || "none";
-    k.style.left = `${l}px`; k.style.right = `${r}px`; k.style.opacity = "1";
-    inkAt.current = { l, r };
+    if (!on) { k.style.opacity = "0"; k.style.transform = ""; inkAt.current = null; return; }
+    const l = on.offsetLeft, r = el.clientWidth - l - on.offsetWidth, was = inkAt.current, held = !!d && on === d.el, seen0 = f?.get("__ink");
+    k.style.opacity = "1"; inkAt.current = { l, r };
+    if (held) { k.dataset.dir = "drag"; k.style.left = `${l}px`; k.style.right = `${r}px`; k.style.transform = `translate3d(${d.pos - l}px,0,0)`; return; }   // 고른 탭을 끄는 중 = 잉크도 손 밑
+    if (d && was && was.l !== l && seen0 !== undefined) {   // 다른 탭을 끌어 고른 탭이 비켜남 = 잉크도 그 탭과 같이 미끄러짐
+      k.dataset.dir = "flip"; k.style.transition = "none"; k.style.left = `${l}px`; k.style.right = `${r}px`; k.style.transform = `translate3d(${Math.round(seen0 - x0 - l)}px,0,0)`;
+      requestAnimationFrame(() => { k.style.transition = ""; k.style.transform = ""; });
+      return;
+    }
+    if (was && was.l === l && was.r === r) return;   // 자리 그대로 = 손 안 댐(놓은 뒤 미끄러지는 중일 수 있음)
+    k.dataset.dir = !was ? "none" : l > was.l ? "r" : l < was.l ? "l" : "none";
+    k.style.transform = ""; k.style.left = `${l}px`; k.style.right = `${r}px`;
   });
   useEffect(() => {   // 창 크기·탭 줄 폭이 바뀔 때도(모루 #3005 08:13 「resize 를 구독하지 않아 1600→900 이면 알약이 화면 밖」)
     const on = () => place();
@@ -123,38 +142,61 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     else if (t.k === "dash" && pane === "chat" && !sideEl()) go("#/");   // 오른쪽 칸만 덮는 판 = 왼쪽 대화는 그대로(정원 탭 = 오른쪽만 원래 판 · 형 11-12 16:41 「항상 메인으로 다시 오더라」 · 깃)
   };
   const close = (key: string) => {
-    const next = tabsClose(s, key), t = next.tabs.find((x) => tabKey(x) === next.active) || DASH;
+    const i = order.indexOf(key), closed = tabsClose(s, key), next = s.active === key ? { ...closed, active: order[i + 1] ?? order[i - 1] ?? "dash" } : closed;   // 고른 탭을 닫으면 = 눈에 보이는 오른쪽 → 왼쪽 이웃(줄 차례)
+    const t = next.tabs.find((x) => tabKey(x) === next.active);
     setS(next);
-    if (next.active !== s.active) { if (t.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`); else if (t.k === "dash" && pane === "chat" && !sideEl()) go("#/"); }
+    if (next.active !== s.active) { if (t?.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`); else if (next.active === "dash" && pane === "chat" && !sideEl()) go("#/"); }
   };
   const down = (key: string) => (e: RPE<HTMLDivElement>) => {
-    if (e.button !== 0 || (e.target as HTMLElement).closest(".nm-tab-x")) return;
-    drag.current = { key, x: e.clientX, moved: false, left0: e.currentTarget.offsetLeft, dx: 0, el: e.currentTarget };
-    e.currentTarget.setPointerCapture(e.pointerId);
+    if (e.button !== 0 || (e.target as HTMLElement).closest("button")) return;   // × · 팀즈 종 = 제 단추 일
+    const el = e.currentTarget;
+    drag.current = { key, pid: e.pointerId, x: e.clientX, moved: false, left0: el.offsetLeft, dx: 0, pos: el.offsetLeft, el, raf: 0 };
+    el.setPointerCapture(e.pointerId);
   };
-  const move = (e: RPE<HTMLDivElement>) => {
+  const step = () => {   // 화면 한 장에 한 번 — 탭 · 잉크를 손 밑으로(transform) · 가운데가 옆 탭 가운데를 넘으면 차례 바꿈
     const d = drag.current, el = bar.current;
     if (!d || !el) return;
-    if (!d.moved && Math.abs(e.clientX - d.x) < 6) return;
-    d.moved = true; d.dx = e.clientX - d.x;
-    d.el.dataset.drag = "1"; d.el.style.transform = `translateX(${d.left0 + d.dx - d.el.offsetLeft}px)`;   // 탭 = 손을 바로 따라옴
-    const k = ink.current;
-    if (k && d.el.classList.contains("on")) { const l = d.left0 + d.dx; k.dataset.dir = "drag"; k.style.left = `${l}px`; k.style.right = `${el.clientWidth - l - d.el.offsetWidth}px`; inkAt.current = { l, r: el.clientWidth - l - d.el.offsetWidth }; }
-    const tabs = [...el.querySelectorAll<HTMLElement>(".nm-tab[data-key]")], me = tabs.indexOf(d.el);   // 끌 수 있는 탭만(고정 넷 뺌) · 차례 = s.tabs 에서 대시보드 다음부터 → +1
-    const mid = d.left0 + d.dx + d.el.offsetWidth / 2;   // 끄는 탭의 가운데가 옆 탭 가운데를 넘으면 자리 바꿈
-    let to = tabs.length - 1;
-    for (let i = 0; i < tabs.length; i++) { if (i === me) continue; if (mid < tabs[i].offsetLeft + tabs[i].offsetWidth / 2) { to = i > me ? i - 1 : i; break; } }
-    if (me >= 0 && to !== me) { flip.current = new Map(tabs.map((t) => [t.dataset.key || "", t.offsetLeft])); setS((x) => tabsMove(x, d.key, to + 1)); }
+    d.raf = 0;
+    const tabs = [...el.querySelectorAll<HTMLElement>(".nm-tab[data-key]")].sort((a, b) => +a.style.order - +b.style.order), me = tabs.indexOf(d.el);   // 보이는 차례(order 값)대로
+    if (me < 0) return;
+    const end = tabs[tabs.length - 1], w = d.el.offsetWidth;
+    d.pos = Math.max(tabs[0].offsetLeft, Math.min(end.offsetLeft + end.offsetWidth - w, d.left0 + d.dx));   // 줄 양 끝에서 멈춤(영상)
+    d.el.style.transform = `translate3d(${d.pos - d.el.offsetLeft}px,0,0)`;
+    const k = ink.current, held = d.el.classList.contains("on");
+    if (k && held && inkAt.current) k.style.transform = `translate3d(${d.pos - inkAt.current.l}px,0,0)`;
+    const to = dropIndex(tabs.map((t) => [t.offsetLeft, t.offsetWidth] as const), me, d.left0 + d.dx + w / 2);   // 갈 자리 = 손 따라간 가운데(끝에서 멈춘 자리 말고 — 넓은 탭이 끝의 좁은 탭을 못 넘던 것 · 11-17 실물)
+    if (to === me) return;
+    const seen0 = new Map(tabs.map((t) => [t.dataset.key || "", t.getBoundingClientRect().left]));   // 미끄러지던 중이면 그 보이던 자리부터
+    if (k && !held) seen0.set("__ink", k.getBoundingClientRect().left);
+    flip.current = seen0;
+    const next = stripMove(orderRef.current, d.key, to);
+    setOrd(next);
   };
-  const up = (t: Tab) => (e: RPE<HTMLDivElement>) => {
+  const move = (e: RPE<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d) return;
+    if (!d.moved && Math.abs(e.clientX - d.x) < 6) return;
+    if (!d.moved) { d.moved = true; d.el.dataset.drag = "1"; if (ink.current && d.el.classList.contains("on")) ink.current.dataset.dir = "drag"; }
+    d.dx = e.clientX - d.x;
+    if (!d.raf) d.raf = requestAnimationFrame(step);   // 손 신호가 화면보다 잦아도 한 장에 한 번만 그림
+  };
+  const up = (pickIt: (() => void) | null) => (e: RPE<HTMLDivElement>) => {
     const d = drag.current; drag.current = null;
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* 이미 놓음 */ }
-    if (d?.moved) {   // 놓음 = 탭 · 잉크가 제자리로 미끄러져 듦
-      const el = d.el, k = ink.current, b = bar.current;
-      delete el.dataset.drag; el.style.transform = "";
-      if (k && b && el.classList.contains("on")) { k.dataset.dir = "drop"; k.style.left = `${el.offsetLeft}px`; k.style.right = `${b.clientWidth - el.offsetLeft - el.offsetWidth}px`; inkAt.current = { l: el.offsetLeft, r: b.clientWidth - el.offsetLeft - el.offsetWidth }; }
-    }
-    if (d && !d.moved) pick(t);
+    if (!d) return;
+    if (d.raf) cancelAnimationFrame(d.raf);
+    if (!d.moved) { pickIt?.(); return; }
+    const el = d.el, k = ink.current;   // 놓음 = 탭 · 잉크가 제자리로 미끄러져 듦(둘 다 transform 220ms)
+    delete el.dataset.drag; el.style.transform = "";
+    if (k && el.classList.contains("on")) { k.dataset.dir = "drop"; k.style.transform = ""; }
+  };
+  const pickOn = (key: string) => () => setS((x) => ({ ...x, active: key }));
+  const fixedTab: Record<string, { cls: string; title: string; pick: () => void; body: ReactNode }> = {   // 고정 넷(닫기 없음 · 끌어 옮기기는 됨)
+    dash: { cls: "dash garden", title: GARDEN, pick: () => pick(DASH), body: <span className="nm-tab-nm">{GARDEN}</span> },   // 지금 판(늘 보임) · 누르면 오른쪽이 원래 판(SNS · HOT ISSUE · DIGEST)으로
+    [BROWSER]: { cls: "browser", title: "브라우저(맥 72 · 형 대신 로그인)", pick: pickOn(BROWSER), body: (   // 화면 = 같이 보기 다리 판(맥 72) · 못 닿으면 끼워 넣기 웹 칸(CobrowsePane 안) · 형이 대신 로그인하는 칸
+      <><svg className="nm-tab-ic browser" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg><span className="nm-tab-nm">Browser</span></>) },
+    [MEET]: { cls: "meet", title: "화상회의(맥 72 화면 + 우리 대화)", pick: pickOn(MEET), body: <><MeetIcon /><span className="nm-tab-nm">화상 회의</span></> },   // 따로 선 들머리(형 11-13 09:21) · 열린 회의 없으면 바로 참여자 고르기
+    [TEAMS]: { cls: "teams", title: "팀즈", pick: pickTeams, body: <><TeamsIcon /><span className="nm-tab-nm">Teams</span><TeamsBell />{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}</> },   // 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」)
   };
   const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" | "co" }> => t.k === "screen" || t.k === "web" || t.k === "co");
   const full = s.active === BROWSER;   // 창 전체를 쓰는 탭
@@ -163,31 +205,20 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
         <i ref={ink} className="nm-tabs-ink" data-dir="none" aria-hidden />   {/* 고른 자리 = 아래 판과 한 몸인 면 하나(탭마다 바탕을 갖지 않음 → 옮겨 갈 때 미끄러짐) */}
-        <div role="tab" aria-selected={s.active === "dash"} tabIndex={0} title={GARDEN} className={`nm-tab dash garden${s.active === "dash" ? " on" : ""}`}
-          onClick={() => pick(DASH)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(DASH); } }}>
-          <span className="nm-tab-nm">{GARDEN}</span>
-        </div>   {/* 첫 탭 = 지금 판(늘 보임 · 닫기 · 끌기 없음) · 누르면 오른쪽이 원래 판(SNS · HOT ISSUE · DIGEST)으로 */}
-        <div role="tab" aria-selected={s.active === BROWSER} tabIndex={0} title="브라우저(맥 72 · 형 대신 로그인)" className={`nm-tab browser${s.active === BROWSER ? " on" : ""}`}
-          onClick={() => setS((x) => ({ ...x, active: BROWSER }))} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setS((x) => ({ ...x, active: BROWSER })); } }}>
-          <svg className="nm-tab-ic browser" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
-          <span className="nm-tab-nm">Browser</span>
-        </div>   {/* 브라우저 = 늘 있는 고정 탭 · 화면 = 같이 보기 다리 판(맥 72) · 못 닿으면 끼워 넣기 웹 칸(CobrowsePane 안) · 이제 형이 대신 로그인하는 칸(화상회의 단추 뺌) */}
-        <div role="tab" aria-selected={s.active === MEET} tabIndex={0} title="화상회의(맥 72 화면 + 우리 대화)" className={`nm-tab meet${s.active === MEET ? " on" : ""}`}
-          onClick={() => setS((x) => ({ ...x, active: MEET }))} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setS((x) => ({ ...x, active: MEET })); } }}>
-          <MeetIcon /><span className="nm-tab-nm">화상 회의</span>
-        </div>   {/* 화상회의 = 따로 선 들머리(형 11-13 09:21) · 열린 회의 없으면 바로 참여자 고르기 */}
-        <div role="tab" aria-selected={s.active === TEAMS} tabIndex={0} title="팀즈" className={`nm-tab teams${s.active === TEAMS ? " on" : ""}`}
-          onClick={pickTeams} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickTeams(); } }}>
-          <TeamsIcon /><span className="nm-tab-nm">Teams</span><TeamsBell />{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}   {/* 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」) */}
-        </div>   {/* 팀즈 = 늘 있는 고정 탭(닫기 · 끌기 없음) */}
-        {s.tabs.filter((t) => t.k !== "dash").map((t) => {
-          const key = tabKey(t), on = s.active === key, face = faceOf(t);
+        {dom.current.map((key) => {   // 고정 넷 + 연 탭이 한 줄에서 섞여 옮겨짐 · 보이는 자리 = order 값(줄 차례) · 사이 세로선 = 보이는 앞 탭 기준(data-sep)
+          const fx = fixedTab[key], t = fx ? null : s.tabs.find((x) => tabKey(x) === key);
+          if (!fx && !t) return null;
+          const at = order.indexOf(key), on = s.active === key, sep = at > 0 && !on && order[at - 1] !== s.active, name = fx ? fx.title : nameOf(t!), face = t ? faceOf(t) : "", pickIt = fx ? fx.pick : () => pick(t!);
           return (
-            <div key={key} data-key={key} role="tab" aria-selected={on} tabIndex={0} title={nameOf(t)} className={`nm-tab${on ? " on" : ""}${t.k === "dash" ? " dash" : ""}`}
-              onPointerDown={down(key)} onPointerMove={move} onPointerUp={up(t)} onPointerCancel={up(t)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(t); } }}>
-              {t.k === "dash" ? <span className="nm-tab-ic dash" aria-hidden>▦</span> : face ? <FaceImg id={face} size={18} className="nm-tab-ic" /> : <span className="nm-tab-ic dot" aria-hidden />}
-              <span className="nm-tab-nm">{nameOf(t)}</span>
-              {t.k === "dash" ? null : <button type="button" className="nm-tab-x" aria-label={`${nameOf(t)} 탭 닫기`} onClick={(e) => { e.stopPropagation(); close(key); }}>×</button>}
+            <div key={key} data-key={key} data-sep={sep ? "" : undefined} style={{ order: at }} role="tab" aria-selected={on} tabIndex={0} title={name} className={`nm-tab${fx ? ` ${fx.cls}` : ""}${on ? " on" : ""}`}
+              onPointerDown={down(key)} onPointerMove={move} onPointerUp={up(pickIt)} onPointerCancel={up(null)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickIt(); } }}>
+              {fx ? fx.body : (
+                <>
+                  {face ? <FaceImg id={face} size={18} className="nm-tab-ic" /> : <span className="nm-tab-ic dot" aria-hidden />}
+                  <span className="nm-tab-nm">{name}</span>
+                  <button type="button" className="nm-tab-x" aria-label={`${name} 탭 닫기`} onClick={(e) => { e.stopPropagation(); close(key); }}>×</button>
+                </>
+              )}
             </div>
           );
         })}

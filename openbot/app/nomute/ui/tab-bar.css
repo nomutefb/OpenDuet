@@ -109,8 +109,9 @@
 .nm-tabs-ink::after { right:-13px; background:radial-gradient(circle at 100% 0, transparent 12.5px, var(--nm-tab-on, #121314) 13px); }
 .nm-tabs-ink[data-dir="r"] { transition-duration:.36s, .14s, .15s; }   /* 오른쪽으로 = 오른쪽 끝이 먼저 */
 .nm-tabs-ink[data-dir="l"] { transition-duration:.14s, .36s, .15s; }   /* 왼쪽으로 = 왼쪽 끝이 먼저 */
-.nm-tabs-ink[data-dir="drag"], .nm-tabs-ink[data-dir="none"] { transition:opacity .15s; }
-.nm-tabs-ink[data-dir="drop"] { transition-duration:.22s, .22s, .15s; }
+.nm-tabs-ink[data-dir="drag"] { transition:opacity .15s; will-change:transform; }   /* 끄는 중 = 손 밑(transform 만 · 자리 계산 0) */
+.nm-tabs-ink[data-dir="none"] { transition:opacity .15s; }
+.nm-tabs-ink[data-dir="drop"], .nm-tabs-ink[data-dir="flip"] { transition:transform .22s var(--tab-ease), opacity .15s; }   /* 놓음 · 비켜남 = 탭 글과 같은 220ms(transform) */
 .nm-tab { z-index:1; flex:1 1 0; min-width:120px; max-width:240px; height:38px; border-radius:11px 11px 0 0; justify-content:center; padding:0 26px; background:none; box-shadow:none; color:rgba(232,234,232,.55);
   transition:color .15s, transform .22s var(--tab-ease), scale .3s var(--tab-spring), filter .12s; }
 .nm-tab:hover { background:none; }
@@ -120,7 +121,19 @@
 .nm-tab:not(.on):hover::after { opacity:1; }
 .nm-tab + .nm-tab:not(.on)::before { left:0; top:13px; bottom:13px; }
 .nm-tab:active:not([data-drag]) { transform:none; scale:var(--press-l, .95); filter:brightness(.88); transition-duration:.15s, .22s, .07s, .07s; }
-.nm-tab[data-drag] { z-index:3; transition:color .15s; cursor:grabbing; }
+.nm-tab[data-drag] { z-index:3; transition:color .15s; cursor:grabbing; will-change:transform; }
+.nm-tab[data-drag]:not(.on) { color:#F1F3EF; }
+.nm-tab[data-drag]:not(.on)::after { opacity:1; background:rgba(86,88,86,.78); }   /* 안 고른 탭을 끌 때 = 회색 둥근 칸이 손을 따라 다른 탭 위로(영상 f84dc5fc 6 ~ 8초) */
+/* 보이는 차례 = order 값(./tab-bar.tsx · 요소는 안 옮김) → 사이 세로선은 옆 요소(+)가 아니라 보이는 앞 탭 기준(data-sep) · 「+」 · 화상회의 단추는 늘 끝 */
+.nm-tab + .nm-tab:not(.on)::before { display:none; }
+.nm-tab[data-sep]:not(.on)::before { content:""; display:block; position:absolute; left:0; top:13px; bottom:13px; width:1px; background:rgba(232,234,232,.08); }
+.nm-tab[data-drag]::before { opacity:0; }   /* 끄는 탭 앞 세로선은 숨김 */
+/* 겹침 차례(영상): 고른 탭을 끌면 그 면(잉크)이 옆 탭 글을 덮고 지나감 → 끄는 · 놓는 동안만 잉크를 옆 탭 위로(2) · 고른 탭 글은 그 위(3) · 끄는 탭은 맨 위(4) */
+.nm-tabs-ink[data-dir="drag"], .nm-tabs-ink[data-dir="drop"] { z-index:2; }
+.nm-tab.on { z-index:3; }
+.nm-tab[data-drag] { z-index:4; }
+.nm-tab-plus { order:98; }
+.nm-tab-cobtn { order:99; }
 .nm-tab:is(.browser, .meet, .teams) { flex:0 0 auto; min-width:0; }
 .nm-tab-plus { margin:0 0 6px 4px; transition:scale .3s var(--tab-spring), filter .12s, background-color .15s, color .15s; }
 .nm-tab-plus:active, .nm-tab-x:active { transform:none; scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
