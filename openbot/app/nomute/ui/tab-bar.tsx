@@ -157,6 +157,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     if (d && !d.moved) pick(t);
   };
   const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" | "co" }> => t.k === "screen" || t.k === "web" || t.k === "co");
+  const full = s.active === BROWSER;   // 창 전체를 쓰는 탭
   const paneOn = s.active.startsWith("s:") || s.active.startsWith("w:") || s.active === "co" || s.active === MEET || s.active === TEAMS;
   return (
     <>
@@ -194,7 +195,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
         {room === "all" && pane === "chat" ? <button type="button" className="nm-tab-cobtn" title="맥 72 화면을 같이 보며 얘기하기" onClick={() => setS((x) => ({ ...x, active: MEET }))}>화상회의</button> : null}   {/* 들머리 = 회의실(봄 13:21 「먼저 회의실」) */}
       </div>
       {paneTabs.length || s.active === TEAMS || s.active === BROWSER || s.active === MEET ? createPortal(
-        <div className={`nm-tab-screen${host ? " in-split" : ""}`} hidden={!paneOn}>
+        <div className={`nm-tab-screen${host && !full ? " in-split" : ""}${full ? " full" : ""}`} hidden={!paneOn}>   {/* 「브라우저」 = 오른쪽 칸이 아니라 메뉴 줄 바로 아래 창 전체(형 11-17 09:1x 구름 맥 창 「pc 웹앱에서 브라우저를 열면 한쪽에서만 열리는게 아니라, 창 전체를 써야해. 그러니까 메뉴 바로 아래로 다 창이 펼쳐져야 하거든?」) · 웹 탭 · 몸 화면 · 팀즈 · 화상회의는 오른쪽 칸 그대로(형 11-12 「웹 탭은 오른쪽 칸 안」) */}
           {s.active === BROWSER ? <div className="nm-tab-co"><CobrowsePane mode="browser" onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}
           {s.active === MEET ? <div className="nm-tab-co"><CobrowsePane mode="meet" onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}   {/* 화상회의 = 같은 맥 72 다리 판 + 아래 회의 대화 */}   {/* 보는 동안만 붙음 = 안 보면 다리 쉼 · 다시 고르면 새 표(맥 72 탭은 그대로 = 마지막 웹 화면) */}
           {s.active === TEAMS ? <div className="nm-tab-teams"><TeamsList current={room} /></div> : null}   {/* 팀즈 목록 = 오른쪽 칸 · 누르면 왼쪽 대화만 바뀜 */}
@@ -207,7 +208,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
           ) : (
             <ScreenTabPane key={`${tabKey(t)}|${t.url}`} url={t.url} name={nameOf(t)} on={s.active === tabKey(t)} />   /* 몸 화면 탭 = 켤 때 표를 새로 받아 끼움(앞 = 저장된 주소를 그대로 틀에 넣어 표 없는 주소가 들어갔음 · ./screen-tab.tsx · 구름 11-16) */
           ))}
-        </div>, host || document.body) : null}
+        </div>, (full ? null : host) || document.body) : null}
     </>
   );
 }
