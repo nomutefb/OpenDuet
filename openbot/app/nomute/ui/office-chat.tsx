@@ -998,8 +998,9 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
               <Reactions m={m} c={c} mine={false} />
               <QuickReact id={m.id} quick={c.quick} faceId={idOf(m.who, c.list)} mine={Object.entries(c.rx[m.id] || {}).filter(([, w]) => (w || []).includes("형")).map(([k]) => k)} onReact={c.onReact} />{/* 바로 다는 반응(오른쪽 위 모서리 · 형 11-14 05:56) */}
             </div>}
-            {pickM(m) || bundleOf(m) ? null : <LinkCard m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) */}
-            {!bundleOf(m) && askPickOf(c.room, m) ? <AskPick id={m.id} {...askPickOf(c.room, m)!} /> : null}   {/* 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}
+            {!bundleOf(m) && askPickOf(c.room, m) ? (
+              <div className="nm-askpick-wrap">{pickM(m) ? null : <LinkCard m={m} />}<AskPick id={m.id} {...askPickOf(c.room, m)!} /></div>   /* 「요약」 = 기사 카드 오른쪽 아래 모서리 바로 옆(카드 밖 · 아랫선) · 자리 없으면 카드 아래 오른쪽 · 카드 없으면 왼쪽 아래(형 11-17 09:37 dm-bom 봄 옮김 「봄 이렇게 나올때, 기사 우측아래에 붙던지, 그게 어려우면 애초에 그냥 좌하단에 붙일게 요약을」 · 앞 판 = 말풍선 폭 오른쪽 끝이라 PC 에서 카드와 300px 떨어짐) */
+            ) : pickM(m) || bundleOf(m) ? null : <LinkCard m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) · 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}
             {time}
           </div>
         </div>

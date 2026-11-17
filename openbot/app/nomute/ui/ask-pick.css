@@ -8,4 +8,8 @@
 .nm-askpick.nm-go { justify-content:center; min-width:52px; }
 .nm-askpick.nm-go .nm-go-ck { width:16px; height:16px; margin:0; }
 .nm-askpick.ok { pointer-events:none; }
-.ybw > .nm-askpick:last-child { margin-bottom:14px; }   /* 밑에 시각 줄이 없을 때(1분 안 이어 쓴 글) = 다음 말풍선 오른쪽 위 반응 단추(QuickReact)와 안 닿게 */
+.ybw > .nm-askpick-wrap:last-child { margin-bottom:14px; }   /* 밑에 시각 줄이 없을 때(1분 안 이어 쓴 글) = 다음 말풍선 오른쪽 위 반응 단추(QuickReact)와 안 닿게 */
+/* 카드 + 단추 한 줄(형 11-17 09:37 「기사 우측아래에 붙던지」) = 폭 = 카드 폭 · 단추 = 카드 오른쪽 아랫선 옆 · 자리 없으면(폰 · 카드가 말풍선 폭) 다음 줄 오른쪽 끝(margin-left auto) · 카드 없으면 단추만 왼쪽 */
+.nm-askpick-wrap { display:flex; flex-wrap:wrap; align-items:flex-end; column-gap:8px; row-gap:4px; width:fit-content; max-width:100%; align-self:flex-start; }
+.nm-askpick-wrap > .nm-askpick { margin-left:auto; margin-top:0; }
+.nm-askpick-wrap > :not(.nm-askpick) { min-width:0; max-width:100%; }
