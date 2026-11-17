@@ -11,11 +11,13 @@ import { type Pin, PinHistory, firstLine, usePins, when } from "./pins";
 import { TodoRows, useTodos } from "./todo-bar";
 import { whoName } from "./who-name";
 import { useModal } from "./use-modal";
+import { useRootFlag } from "./has-flags";
 import "./chat-head.css";
 
 export function ChatHead({ room }: { room: string }) {
   const [hist, setHist] = useState(false);
   const head = useRef<HTMLDivElement>(null);
+  useRootFlag("chat-h");   // 대화 머리줄(.nm-chat-h)이 있음 = 뿌리 표시 data-nm-chat-h(./has-flags.ts) · 기둥 표시 data-chat-h 는 shell.tsx 가 그 자리에서 닮
   const pins = usePins(room).data;
   const jump = (p: Pin) => { setHist(false); window.dispatchEvent(new CustomEvent("nm-jump", { detail: { room, id: p.id } })); };   // 대화창(office-chat.tsx)이 받아 그 글로
   return (

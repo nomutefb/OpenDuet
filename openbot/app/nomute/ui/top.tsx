@@ -3,7 +3,8 @@
 //   원본 header.tsx 의 구슬 자리에 PATCH 로 끼움(overrides.ts) · 누르면 첫 화면(회의실) = 원본 그대로
 import { useQuery } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useColFlag } from "./has-flags";
 import { type OfficeRoom, idOf, office, people, roomAgentIds, roomHeadCount, HYUNG_ID } from "../data/office";
 import { DuetIcon } from "@/components/duet/icons";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
@@ -114,7 +115,8 @@ export function NomuteName({ room }: { room?: string } = {}) {
 }
 
 export function NomuteTop({ orb }: { size: number; orb: ReactNode }) {
-  const { r } = useTopRoom();
+  const { r } = useTopRoom(), mark = useRef<HTMLSpanElement>(null);
+  useColFlag(mark, "data-room-mark", !!r);   // 방 안 표식이 있는 기둥 = 표시(공지 칸 자리 · shell.css · 앞 = .nm-col:has(.nm-room-mark) · ./has-flags.ts)
   // 방 안 = 큰 원 없음(형 10-31 「위에를 전면 다 활용 가능하거든」) · 원은 안 움직임(형 10-31 「프로필 사진이 휙하고 내려가는데 그거 없어도 됨」) · 표식 = 머리 꼴을 CSS 가 바꾸는 자리(shell.css)
-  return r ? <span aria-hidden className="nm-room-mark" /> : <>{orb}</>;
+  return r ? <span ref={mark} aria-hidden className="nm-room-mark" /> : <>{orb}</>;
 }

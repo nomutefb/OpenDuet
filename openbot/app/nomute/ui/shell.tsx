@@ -10,6 +10,7 @@ import { Oops } from "./oops";   // 칸 깨짐 = 작은 에러 판(형 11-14 05:
 import { MeetLogList } from "./meet";   // 서랍 「화상회의」(형 11-13)
 import { TodoBar } from "./todo-bar";
 import { ChatHead } from "./chat-head";
+import { useRootFlag } from "./has-flags";
 import { RunnerGauges } from "./runner-gauges";   // PC 반갈 러너 칸(봄 11-05)
 import { useFoldInk } from "./fold-ink";   // 폴더 탭 줄 = 고른 탭 바탕이 미끄러짐(형 11-16)
 import { IgFbBand } from "./igfb-band";   // PC 오른쪽 위 = 인스타·페북 팔로워 띠(봄 11-08 · 형 dm 07:30~07:31)
@@ -193,6 +194,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const where = whereFor(pathname);
   const wide = useWide();
   const split = useSplit();   // PC 반갈(오른쪽 반 = 위 러너 · 아래 뉴스 · ./side.tsx)
+  useRootFlag("split", split);   // 뿌리 표시 data-nm-split = CSS 가 「PC 두 칸인가」를 :has(.nm-split-root) 대신 이걸로 물음(./has-flags.ts)
   const [room, setRoom] = useState(() => roomOf(pathname));
   const [base, setBase] = useState<Pane>(() => ("pane" in where ? where.pane : "chat"));   // 모달·덮는 쪽 아래에 깔린 판
   const [open, setOpen] = useState<Set<Pane>>(() => new Set(["pane" in where ? where.pane : "chat"]));
@@ -251,9 +253,10 @@ export function NomuteShell({ children }: { children: ReactNode }) {
   const serverWork = useServerWork(chat.busy, chat.threadId);
   const stage = useRef<HTMLDivElement>(null);
   useTabSpace(stage);
+  const SEE = new Set(["settings", "drawer", "edtool", "edvid", "eddoc"]);   // 영상 편집도(형 11-13 13:21 「지금 포토 에디터처럼」)   // 에디터도(형 11-13 02:26 봄 1:1 「지금 수정한 에디터, 뒤에 지금 인앱 배경을 깔아버리면 될듯」)   // 바탕 비치는 판(5번 서랍 · 6번 설정)
+  useRootFlag("see", !("bare" in where) && !!modal && !isEdTool(modal) && SEE.has(modal) && MODALS.some((x) => x.id === modal));   // 바탕 비치는 판(.nm-modal.see · 아래 ModalBox)이 떠 있음 = 뿌리 표시 data-nm-see(./has-flags.ts) · 훅이라 아래 「bare」 돌아가기보다 앞
   if ("bare" in where) return <>{children}</>;
 
-  const SEE = new Set(["settings", "drawer", "edtool", "edvid", "eddoc"]);   // 영상 편집도(형 11-13 13:21 「지금 포토 에디터처럼」)   // 에디터도(형 11-13 02:26 봄 1:1 「지금 수정한 에디터, 뒤에 지금 인앱 배경을 깔아버리면 될듯」)   // 바탕 비치는 판(5번 서랍 · 6번 설정)
   const show = (id: Pane, node: ReactNode) =>
     open.has(id) ? <section key={id} className={`nm-pane ${pane === id ? "on" : ""}`} aria-hidden={pane !== id} inert={pane !== id || undefined}>{node}</section> : null;
   const closeModal = () => {   // 서랍에서 연 칸의 「<」 = 서랍으로(봄 11-01 · 전엔 아래 판(홈·대화방)으로 갔음) · 표지 = drawer-page 가 누를 때 남김
@@ -295,7 +298,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           {show("home", <HomeScreen />)}
           {show("rooms", <div className="nm-col nm-col-rooms"><RoomsPane /></div>)}   {/* nm-col-rooms = PC 대화 목록 폭 풂 표지(shell.css · 형 11-15 「폭맞춤 안되는 문제」) */}
           {show("chat", (
-            <div className="nm-col nm-col-chat">   {/* nm-col-chat = PC 대화 칸 폭 풂 표지(shell.css · 옛 판 = has(대화 자손) = 대화 안 글 하나 바뀔 때마다 앱 전체 꼴 다시 셈 · #-007) */}
+            <div className="nm-col nm-col-chat" data-chat-h={split && !isTeams(room) ? "" : undefined}>   {/* nm-col-chat = PC 대화 칸 폭 풂 표지(shell.css · 옛 판 = has(대화 자손) = 대화 안 글 하나 바뀔 때마다 앱 전체 꼴 다시 셈 · #-007) */}
               {isTeams(room) ? null : <ShellHeader floating menuOpen={false} onMenu={() => {}} />}   {/* 팀즈 대화 = 우리 얼굴 머리 0(TeamsChat 이 제 머리를 그림) */}
               {wide ? null : <button type="button" className="nm-room-back" aria-label="대화방 목록으로" onClick={() => void nav({ to: "/rooms" })}><DuetIcon name="chevronLeft" size={20} /></button>}   {/* 형 10-31 「좌상단에 좌측 꺽쇠가 있어줘야 함」 · 뒤로 버튼 없는 폰 */}
               {isTeams(room) ? null : split ? <ChatHead room={room} key={"head:" + room} /> : <PinBar room={room} key={"pin:" + room}>{room === "guide" ? <TodoBar room={room} /> : null}<PmRunnerMini room={room} /></PinBar>}   {/* 폰 = 방마다 고정 띠(카톡 꼴 · 형 16:46 · ./pins.tsx) + 밥상 할 일 띠 · PC = 대화창 머리줄(HOT ISSUE 줄 · 방 이름 · 공지·할 일 접는 칸 · ./chat-head.tsx · 형 11-08 08:58 「이 라인에 맞게 대화창도 조정하고」 · 「공지나 할일은 우측에 밥상이야기 처럼 접히게 할게」) */}

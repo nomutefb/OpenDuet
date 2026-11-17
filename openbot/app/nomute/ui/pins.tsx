@@ -4,6 +4,7 @@
 //   자리 = 껍데기 대화 판(./shell.tsx) 머리 구슬 바로 아래에 겹쳐 띄움(대화창 파일 손 0) · 대화창(02 ui/office-chat.tsx) 몫 = 글 동작 줄 「고정」 = usePinActions(room).pin(m) 한 칸
 //   + (있으면) 「그 글로」 = PinBar onJump · 띠·판 안 링크 = 앱 안(./inapp.ts 공용 받기)
 import "./yeta-settings.css";
+import { useColFlag, useRootFlag } from "./has-flags";
 import "./pins.css";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
@@ -91,6 +92,7 @@ export function PinBar({ room, onJump, children }: { room: string; onJump?: (id:
 export function PinHistory({ room, pins, onClose, onJump }: { room: string; pins: Pins; onClose: () => void; onJump: (p: Pin) => void }) {
   const act = usePinActions(room);
   const box = useModal<HTMLDivElement>(onClose);
+  useRootFlag("pinsheet"); useColFlag(box, "data-pinsheet", true, true);   // 공지 이력 판이 떠 있음 = 뿌리 표시(돋보기 · 이야기 단추 숨김) + 바로 윗 기둥 표시(방 꺽쇠 숨김) · ./has-flags.ts
   const row = (p: Pin, now: boolean) => (
     <div key={`${p.id}-${p.pinned_at}`} className="ycd-card card-left nm-pin-card">
       <span className="flex flex-wrap items-center gap-2 text-xs" style={{ color: "var(--mut)" }}>
