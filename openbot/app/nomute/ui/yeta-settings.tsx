@@ -23,7 +23,7 @@ import { PushRow } from "../push/push-row";
 import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // 알림 줄(보조 03 · 장부 office-chat-read.md 「바뀜」 17:02)
 import { TeamsAccount } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
 import { PinTintSetting, usePinAlpha } from "./pin-tint";
-import { NomuteOld, NomuteVault, useBuildLine } from "./settings-extra";
+import { NomuteVault, useBuildLine } from "./settings-extra";   // 옛 그록 대화(NomuteOld) = 설정 줄 걷음 · 부품 · 서버 문은 그대로
 import { NoticeBox, useNoteMeta } from "./notice-box";   // 공지 칸 = 그록봇 공지와 같은 부품(판 · 날짜는 줄 오른쪽 · 형 11-17 06:56)
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
@@ -121,20 +121,14 @@ export function YetaSettings() {
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
             {row("notice", "speaker", "공지 설정", <NoticeBox kind="notice" onClose={() => setOpen("")} />, noticeMeta || undefined)}   {/* 판 · 바뀐 날 = 줄 오른쪽(칸 밖) · 열면 읽기 → 위 「수정」 → 아래 「닫기」 · 「저장」(형 11-17 06:56 dm-bom · ./notice-box.tsx) · 원본 「공통 지시」는 우리 사무실에선 공지 판이 그 일 */}
             {/* 봇 쪽 설정(PM · 봇 상자 모델 · 노력도 · 계정 우선순위 · 호출 맥락 · 그록봇 지침 · 지금 봇) = 애들 화면 한 곳으로 옮김 → 여긴 가는 길 하나(형 11-16 19:35 dm-bom 「거기에 봇 관련된 설정은 통합시키려고해」 · 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」) */}
-            <div className="yset-item yset-go2" role="group" aria-label="옮겨 간 설정">   {/* 옮겨 간 자리로 가는 길 둘 = 한 줄에 나란히(봄 11-17 · 애들 화면 = 봇 설정 · 계기판 / 스케줄 화면 = 일 모델 · 노력도 · 점검 · 모아 깨우기 · 그림 — 형 11-16 「한쪽에 몰아버리고」 · 11-17 「묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」) */}
-              <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.bot }} />
-              <span className="si-go">
-                <button type="button" onClick={() => { location.hash = "#/drawer"; }}>애들 · 계기판<Svg k="chev" /></button>
-                <button type="button" onClick={() => { location.hash = "#/sched"; }}>스케줄 · 점검 · 일 모델<Svg k="chev" /></button>
-              </span>
-            </div>
+            {/* 옮겨 간 설정 가는 길(애들 · 계기판 / 스케줄 · 점검 · 일 모델) 줄 걷음 = 폰 네비 5번 「애들」(위 탭 애들 · 스케줄 배선 · 러너 · 아래 계기판) · PC 위 메뉴 「애들」로 가는 길 그대로(형 11-17 12:25 dm-bom 봄 옮김 「중간에 계기판 하고 스케줄도!」 · 「설정이 많이 캄팩트해졌네 굿」) */}
             {row("vault", "lock", "보안 서랍", <NomuteVault />)}
           </div>
         </section>
         <section className="yset-part" aria-label="기록·정보">
           <div className="yset-sec">기록·정보</div>
           <div className="yset-grp">
-            {row("old", "chat", "옛 그록 대화", <NomuteOld />)}
+            {/* 옛 그록 대화 줄 걷음 = 조회는 서버 문(GET /api/office/old · 봇 · 형 문 그대로)으로 살림(형 11-17 12:25 dm-bom 봄 옮김 「봄 옛 그록 대화는 조회만 되면 되고 안보여도 돼」) */}
             <Info ic="info" t="지금 판" d={build.fresh ? `새 판 있음(${build.fresh})` : undefined} v={build.now} />   {/* 설명 꼬리 뺌 · 판이 저절로 안 바뀜(새 판 알약 누름) — 새 판 때만 남김(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
             {/* 원본 「키보드 단축키」 = 키보드 있는 화면(md~)만 · 읽기만(원본 그대로 · 바꿀 수 없음) */}
             <div className="hidden md:block">{HOTKEYS.map((h) => <Info key={h.id} ic="keys" t={h.label} v={formatHotkey(h.combo).join(" ")} />)}</div>
