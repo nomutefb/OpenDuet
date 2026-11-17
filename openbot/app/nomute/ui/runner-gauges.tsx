@@ -44,9 +44,13 @@ const PEB: Record<string, { key: string; bot?: string }> = {   // 조약돌 모�
   // 형 11-16 08:15 봄 창 「그리고 조약돌 러너에 구름도 보여야하고, 천둥은 갱신이 되었나? 확인해줘! 클로드 + 구름까진 나와야 해. 구름은 너네 사이에 블릿하나 넣어줘.」 = 클로드 여덟(일곱 + 천둥 · 머리가 클로드로 바뀜) → 「•」 → 구름
   //   둘 다 몸 정본(bodies)엔 없음 = 아래 OFFBODY 로 줄 끝에 붙임 · 깸 = 작동 표 봇 줄 thunder · moru(구름 자리 옛 이름) · 모양 · 색 = ./bloub.tsx(천둥 = 세모 · 구름 = 구름)
   천둥: { key: "thunder" }, 구름: { key: "cloud", bot: "moru" },
+  // 형 11-17 11:09 dm-bom(PC 홈 Runner 판 사진) 「이거 윈터 안보이니까 윈터보이게 배치하고, 간격을 좁혀야되면 그렇게하고」 = 11-10 에 뺐던 윈터를 다시 넣음(눈 결정 · ./bloub.tsx winter)
+  //   몸 정본엔 윈터 줄이 없음(윈A 본체 줄의 being 이 「윈A」) → 아래 ONBODY 로 줄 맨 앞(Win 게이지 쪽)에 붙임 · 깸 = 작동 표 봇 줄 winter
+  윈터: { key: "winter" },
 };
 // 맥 칸 = 러너 칩(M1~M3) 대신 몸 칩 둘(형 11-06 20:13 「러너를 아예 안쓰는 구조로 두개로 나눠잇을텐데」 · 봄 나눔 ④ 다음 칸 · 빠르) — M1~M3 = 11-03 형 「러너 꺼주라」로 꺼 둔 등록(11-17 저절로 지워짐 · 가지는 그대로 · 화면만)
 //   칩 꼴 = 러너 칩 그대로 · 불 = 작동 표 hw 줄 st(맥 본체 = 「맥」 줄 · VM eyes = 「VM 뜸」 줄 · 몸-보고.py hw_key) · 🟢 흰 글자 · 🟡 노랑 · 🔴 빨강 · ⚪·끊김(30분)·보고 없음 = 꺼짐 꼴
+const ONBODY = [{ who: "윈터", host: "Win" }] as const;   // 몸 표엔 없지만 그 본체에 사는 애 = 줄 맨 앞(윈터 = 윈A 본체 · Win 게이지 바로 아래쪽)
 const OFFBODY = [{ who: "천둥", host: "러너" }, { who: "구름", host: "클라우드 · 맥 창" }] as const;   // 몸 없는 둘 = 줄 끝 차례 그대로(가르는 점은 형 11-16 10:1x 에 뺌)
 const BODY_CHIPS: Record<string, { key: string; label: string }[]> = {};   // 몸 칩 뺌(형 11-07 09:04 임시방 「뜸 VM이 별도로 표현될 필요는 없어, 맥도 마찬가지. 그러면 너희들 vm도 다 떠야되니까, 시아도. 그거는 필요없고 러너 번호만 따로 있으면 됨.」) = 맥 칸도 러너 번호(M#)만
 const LIGHT_CLS: Record<string, string> = { "🟢": "is-ok", "🟡": "is-warn", "🔴": "is-bad" };
@@ -139,9 +143,9 @@ export function RunnerGauges() {
   // 공용 두 줄 재료(36) · 시아 09:26 ②③): 조약돌 = 몸 차례(WIN → MAC → Lx B → Lx A)대로 사는 애를 한 줄로 · 러너 = 윈A 러너(RUNNERS 가 윈 칸인 것)만 번호 차례 · 둘 다 12칸(넘치면 자름)
   // 형 11-09 09:49 「조약돌 하드웨어에 관계없이 균일하게 나열 … 누리만 끝에 | 하고 두면됨」 = 누리(neo)만 맨 끝 · 그 앞에 「|」 칸 하나 · 나머지는 몸 차례 그대로 한 줄
   // 형 11-16 08:15 「클로드 + 구름까진 나와야 해. 구름은 너네 사이에 블릿하나 넣어줘.」 = 몸 차례 일곱 + 천둥 → 「•」 → 구름 · 옛 「누리만 끝에 |」(11-09)는 누리가 빠져(11-10) 이 자리로 바뀜
-  const pebAll = HOSTS.flatMap((h) => livesOn(h.body).map((x) => ({ ...x, host: h.label }))).filter((x) => !OFFBODY.some((o) => o.who === x.who));
+  const pebAll = HOSTS.flatMap((h) => livesOn(h.body).map((x) => ({ ...x, host: h.label }))).filter((x) => !OFFBODY.some((o) => o.who === x.who) && !ONBODY.some((o) => o.who === x.who));
   // 가르는 점 없음 = 구름이 천둥 바로 옆(형 11-16 10:1x 구름 맥 창 「점 때고 바로 옆에 붙영!」) — 앞: 08:15 「구름은 너네 사이에 블릿하나」 → 10:00 「구름도 바로 옆에 붙여줘! … 빈공간에 대시같은건 없어도 될듯」(점을 칸에서 뺌) → 점도 뺌 · 아홉 칸 같은 간격
-  const pebs: typeof pebAll = [...pebAll, ...OFFBODY.map((o) => ({ ...PEB[o.who], who: o.who, host: o.host }))].slice(0, 12);
+  const pebs: typeof pebAll = [...ONBODY.map((o) => ({ ...PEB[o.who], who: o.who, host: o.host })), ...pebAll, ...OFFBODY.map((o) => ({ ...PEB[o.who], who: o.who, host: o.host }))].slice(0, 12);   // 윈터 + 몸 차례 일곱 + 천둥 + 구름 = 열 칸(줄 폭을 열로 나눔 = 칸 사이가 그만큼 좁아짐)
   // 게이지 넷 같은 크기(형 11-08 10:48 「게이지 크기가 차이가 나네 이제보니까 게이지 크기를 lxa, lxb에 맞추고」) = 몸 칸 폭 다 같게 · WIN↔MAC 틈만 빈 트랙 하나(12px · 형 08:14 「win하고 mac 간격을 아주 조금만 더 벌릴게」 그대로) — 앞 판은 WIN 오른쪽 12 · MAC 왼쪽 9 패딩이라 좁은 창(2/5 창)에서 그 두 게이지만 작아졌음
   const cols = HOSTS.length > 1 ? `minmax(0, 1fr) 12px repeat(${HOSTS.length - 1}, minmax(0, 1fr))` : "minmax(0, 1fr)";
   return (
