@@ -12,3 +12,5 @@
 .nm-lock .nm-lock-steps { display:flex; justify-content:space-between; padding:0 22px; }
 .nm-lock .nm-lock-steps i { font-style:normal; font-size:9px; color:var(--mut); }
 .nm-lock .nm-lock-steps i.on { color:var(--accent); font-weight:700; }
+/* 잠금이 꺼진 때 = 줄 흐림(.off) 한 번만 — 게이지의 「못 누름」 흐림(.4)과 겹쳐 두 번 흐려지지 않게 */
+.nm-lock .off .nm-rbg:has(> .nm-rbg-in:disabled) { opacity:1; }
