@@ -305,6 +305,9 @@ type Item = { t: "msg"; m: Msg } | { t: "sys"; msgs: Msg[] } | { t: "band"; msgs
 /** 방 드나듦 줄(봄 서버 event · 형 11-06 「00가 나갔습니다는 뜨게해줘. … 이느낌으로 하되, 블록으로 감쌀필요는없어」) = 묶음·알약에 안 섞고 제자리 한 줄 */
 const evM = (m: Msg) => m.kind === "system" && !!m.event?.kind;
 const evWho = (m: Msg) => { const w = m.event?.who; return Array.isArray(w) ? w : w ? [w] : []; };
+/** 문지기 안내 줄(event kind keeper · 서버 「문지기를 만들고 나가주세요.\n(현재 방 잔여 1명)」) = 첫 줄만 라임 · 괄호 줄은 가운데 줄 색 그대로
+ *  (형 11-18 21:5x 「문지기를 < 이거에 라임색만 넣어줘」 「괄호는 라임색 필요없음」 · 라임 = 안내 시그니처 색 --accent) */
+const keeperLine = (text: string) => { const [first, ...rest] = text.split("\n"); return <><i className="yev-lime">{first}</i>{rest.length ? `\n${rest.join("\n")}` : ""}</>; };
 const mineOf = (m: Msg) => m.kind === "human" || hyungApp(m);
 const sideOf = (x?: Item) => (!x || x.t === "sys" || x.t === "sent" || x.t === "ev" ? "" : x.t === "msg" && mineOf(x.m) ? "me" : "them");   // 간격 = 내 글 쪽 · 상대 글 쪽(묶음 포함) · 시스템 줄은 어느 쪽도 아님
 const MEET = "all";   // 회의실(서버 ROOMS id · 형 10-28 22:02 「회의실은 대화가 안접혀도 될거같아 그냥 최신순으로 … 내가 안본거부터 위로 보기 그 버튼만」)
@@ -1534,7 +1537,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
               date: newDay ? <p className="ydate" data-ts={first.ts}>{dateLabel(first.ts)}</p> : null,
               body: <>{it.t === "ev" ? (
                   <p className="yev" title={t12(it.m.ts)}>
-                    <span>{it.m.text || ""}</span>
+                    <span>{it.m.event?.kind === "keeper" ? keeperLine(it.m.text || "") : it.m.text || ""}</span>
                     {it.m.event?.kind === "left" && inviteOn.has(it.m.id) ? <GoButton className="yev-a" disabled={!!inviting} go={() => invite(it.m)} done={invited} busy="초대하는 중">채팅방으로 초대하기</GoButton> : null}
                   </p>
                 ) : it.t === "msg" ? <Line m={it.m} c={c} cont={cont} noTime={noTime} fresh={it.m.ts > (baseTs.current ?? Infinity)} /> : it.t === "sent" ? <SentGroup msgs={it.msgs} c={c} /> : it.t === "band" ? <Band msgs={it.msgs} c={c} /> : (
