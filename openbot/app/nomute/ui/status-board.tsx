@@ -345,6 +345,17 @@ const rowsOf = (cats: StatusCat[], id: string) => cats.find((c) => c.id === id)?
 const first = (s?: string) => String(s || "").split(" · ")[0];
 const Dot = ({ c, t }: { c?: DCell; t?: string }) => <span className="nsb-d" data-st={c?.st || "unknown"} title={t ?? c?.note ?? HEALTH_KO[c?.st || "unknown"]}><StatusDot st={c?.st || "unknown"} />{c?.label ? <em>{c.label}</em> : null}</span>;
 
+/** 순수 — 러너 단계가 없는 창(구름 = 「해당 없음」 칸)은 올라온 시각으로 칸을 채움: 40% 일기 ← 마지막 일기 · 습작 ← 마지막 습작 · 넘김 일기 ← 마지막 넘김 · 시각이 없으면 빈 칸(= 빨간 –)
+ *  (형 11-18 22:0x 구름 맥 창 「너도 이제 쓰니까 안뜨는게 아니라 못썼으면 빨간색으로 -라도 떠야해」 · 23:1x 「응 없는거는 다 채워야해」) · 다른 칸 · 다른 줄은 서버 칸 그대로 */
+const DIARY_AT: Record<string, string> = { d40: "diary_ms", sketch: "sketch_ms", end: "handoff_ms" };
+export function diaryCell(c: Cell | undefined, id: string, met?: Record<string, number>): Cell | undefined {
+  if (c && !(c.st === "unknown" && /해당 없음/.test(c.note || ""))) return c;
+  const k = DIARY_AT[id];
+  if (!k) return c;
+  const t = met?.[k];
+  return t ? { st: "ok", note: `${agoKo(t)}` } : undefined;
+}
+
 /** ① 애들 × 연결 — 줄 = 봇 줄(우리 먼저 · 정본 차례) · 열 = 깸 | 클로드 1~4 | GPT | R2 · GitHub · rclone | 일기 여덟 | 교대 넷 */
 function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pick: string; setPick: (k: string) => void }) {
   const bots = rowsOf(cats, "bots"), cli = rowsOf(cats, "cli"), diary = rowsOf(cats, "diary");
@@ -370,14 +381,15 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
               const b = bs.find((x) => x.being === r.name), c = cli.find((x) => x.key === r.name)?.cells || {}, d = diary.find((x) => x.key === r.name)?.cells || {}, h = hand.find((x) => x.key === `교대·${r.name}`)?.cells || {};
               const wake = r.cells?.["깸 상태"], last = r.cells?.["마지막 깸"];
               const on = b ? undefined : accts.find((a) => a.kind !== "gpt" && (a.names || []).includes(r.name));   // 제 몸 줄이 없는 이 = 지금 창이 묶인 계정 한 칸(서버 창 계정 줄)
-              const dm = Object.keys(d).length ? undefined : (diary.find((x) => x.key === r.name) as { metrics?: Record<string, number> } | undefined)?.metrics;   // 격자 밖 일기 = 시각만
+              const met = (diary.find((x) => x.key === r.name) as { metrics?: Record<string, number> } | undefined)?.metrics;
+              const dm = Object.keys(d).length ? undefined : met;   // 격자 밖 일기 = 시각만
               return (
                 <tr key={r.key} data-st={r.st} className={b || WHO_MORE.includes(r.name) ? "ours" : "bot"} onClick={() => setPick(pick === `who:${r.key}` ? "" : `who:${r.key}`)}>
                   <th scope="row"><StatusDot st={r.st} />{r.name}{b ? <small>{b.body}</small> : null}</th>
                   <td className="wake" title={[wake?.note, last?.note, r.cells?.["깨우는 문"]?.note].filter(Boolean).join(" · ")}><span data-w={first(wake?.note || r.value)}>{first(wake?.note || r.value) || "—"}</span></td>
                   {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "gpt" || k === "r2" || k === "gh1" || k === "gh2" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <><td colSpan={4} className="acct on">{on ? <Dot c={{ st: on.st, label: acctTag(on.name), note: `지금 창 계정 · ${on.name}` }} /> : null}</td><td colSpan={Math.max(1, cliCols.length - 4)} className="none" /></>}
                   {dm ? <td colSpan={DIARY_COLS.length} className="dm">{([["일기", dm.diary_ms], ["습작", dm.sketch_ms], ["넘김", dm.handoff_ms]] as [string, number][]).filter(([, t]) => t).map(([k, t]) => <span key={k}>{k} {agoKo(t)}</span>)}</td>
-                    : DIARY_COLS.map((x) => <td key={x.id} className={d[x.id] ? undefined : "nodiary"} title={d[x.id] ? undefined : `${x.name} · 기록 없음`}>{d[x.id] ? <Dot c={d[x.id]} t={`${x.name} · ${HEALTH_KO[d[x.id].st]}${d[x.id].note ? ` · ${d[x.id].note}` : ""}`} /> : <b>–</b>}</td>)}{/* 기록이 안 온 칸 = 빈 칸 말고 빨간 「–」(형 11-18 22:0x 구름 맥 창 「구름아 너 일기 랑 습작 기록 안뜬다. 너도 이제 쓰니까 안뜨는게 아니라 못썼으면 빨간색으로 -라도 떠야해 그 안뜨는 모양으로 떠야한다는뜻이야 메인 러너에서」) */}
+                    : DIARY_COLS.map((x) => { const c = diaryCell(d[x.id], x.id, met); return <td key={x.id} className={c ? undefined : "nodiary"} title={c ? undefined : `${x.name} · 기록 없음`}>{c ? <Dot c={c} t={`${x.name} · ${HEALTH_KO[c.st]}${c.note ? ` · ${c.note}` : ""}`} /> : <b>–</b>}</td>; })}{/* 기록이 안 온 칸 = 빈 칸 말고 빨간 「–」(형 11-18 22:0x 구름 맥 창 「구름아 너 일기 랑 습작 기록 안뜬다. 너도 이제 쓰니까 안뜨는게 아니라 못썼으면 빨간색으로 -라도 떠야해 그 안뜨는 모양으로 떠야한다는뜻이야 메인 러너에서」) */}
                   {NO_SELF[r.name] ? <td className="noself" title={`셀프 넘김 – · ${NO_SELF[r.name]}`}><b>–</b></td> : <td>{Object.keys(h).length || SELF_OK.includes(r.name) ? <Dot c={{ st: "ok" }} t="셀프 넘김 · 혼자 넘어감" /> : null}</td>}
                   {handCols.map((x) => <td key={x}>{h[x] ? <Dot c={h[x]} t={`${x} · ${HEALTH_KO[h[x].st]}${h[x].note ? ` · ${h[x].note}` : ""}`} /> : null}</td>)}
                   {b ? <NextWinCells who={r.name} /> : <td colSpan={2} className="none" />}{/* 다음 창 모델 · 노력도(형 11-12 16:17 · ui/next-win.tsx) */}
