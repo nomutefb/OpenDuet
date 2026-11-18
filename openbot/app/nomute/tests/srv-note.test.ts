@@ -25,6 +25,7 @@ test("꼴 = 가운데 · 안내 라임(새 색 아님) · 끊김 알약도 라�
   assert.match(css, /\.nm-srvnote \{[^}]*text-align:center;[^}]*color:var\(--accent, #CFFF40\); \}/);
   assert.match(css, /\.nm-netbar \{[^}]*color:var\(--accent, var\(--accent, #CFFF40\)\); \}/);
   assert.doesNotMatch(css, /\.nm-netbar \{[^}]*#ffe08a/);   // 앞 = 은은한 노랑
+  assert.match(css, /\.nm-netbar, \.nm-srvnote, \.nm-emptybox\.srv, \.nm-kwb-none\.srv \{ --accent:#CFFF40; --accent-rgb:207,255,64; \}/);   // 대화창 밖에선 --accent 가 원본 앱 회색 = 직접 박음(형 「이거 안보임」)
 });
 
 test("점검 = 화면 글에 옛 말투 「못 받았어」가 안 남음(옛 에디터에서 옮겨 온 판 · 받기 도구 글은 그 판 말투 그대로)", () => {

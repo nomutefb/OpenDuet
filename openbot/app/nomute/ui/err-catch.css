@@ -16,6 +16,10 @@
 .nm-errbar button:focus-visible { outline:2px solid var(--accent, var(--accent, #CFFF40)); outline-offset:2px; }
 @keyframes nmErrIn { from { opacity:0; transform:translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .nm-errbar { animation:none; } }
+/* 안내 라임을 이 칸들에 직접 박음 — 대화창(.ychat) 밖(body 에 붙는 알약 · 홈 · 설정 · 러너 판)에선 --accent 가 원본 앱의 회색이라 글이 어둡게 묻힘
+   (형 11-18 22:0x 「이거 안보임」 = 끊김 알약 글이 안 보임 · ./yeta-chat.css .nm-decpop 과 같은 까닭 · 밝은 판 = 있던 밝은 판 라임 #4f7a00) */
+.nm-netbar, .nm-srvnote, .nm-emptybox.srv, .nm-kwb-none.srv { --accent:#CFFF40; --accent-rgb:207,255,64; }
+html:not(.dark) :is(.nm-srvnote, .nm-emptybox.srv, .nm-kwb-none.srv) { --accent:#4f7a00; --accent-rgb:79,122,0; }
 /* 끊김 띠(net-bar.ts · 번개 11-08) — 오류 띠와 같은 알약 · 글자 = 안내 라임(형 11-18 「서버와 연결이 끊겻어요, 이것도 서버 특유색으로」 · 앞 = 은은한 노랑) · 점 셋(.nm-dots = update-bar.css) */
 .nm-netbar { bottom:calc(134px + env(safe-area-inset-bottom, 0px)); padding:0 16px; border-color:rgba(var(--accent-rgb, 207,255,64),.38); color:var(--accent, var(--accent, #CFFF40)); }
 /* 서버 안내 글 한 꼴(./srv-note.tsx · 형 11-18 「대화를 받지 못했습니다. 가운데 정렬로」 「이런것들 다 말투 통일하고 점검해줘」) = 가운데 · 안내 라임 · 글씨 = 있던 작은 글씨 */
