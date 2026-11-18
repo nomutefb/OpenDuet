@@ -250,16 +250,18 @@ const p2 = (n: number) => String(n).padStart(2, "0");
 const mdHm = (ts?: number) => { if (!ts) return ""; const d = new Date(ts); return `${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
 const tone = (p?: number) => (p === undefined ? "none" : p >= 30 ? "ok" : p >= 10 ? "low" : "out");
 function AcctTable({ rows }: { rows: AcctRow[] }) {
-  const [pick, setPick] = useState("");
+  const [pick, setPick] = useState(""), [gone, setGone] = useState(false);   // gone = 결제 끝난 계정 줄 펼침(기본 접힘 · 형 11-19 「결제 해지가 지금 되어잇는거는 그냥 접히게해줘」)
   if (!rows.length) return <p className="nsb-empty">계정 표 보고 아직 안 옴(맥 몸 보고)</p>;
   const now = Date.now();   // 남은 시간 · 하루 평균 = 그릴 때 셈(표는 몸 보고 받을 때마다 다시 그려짐)
+  const ended = (r: AcctRow) => { const t = payEndAt(r.pay_end); return !!t && t < now; };
+  const all = acctOrder(rows, now), nGone = all.filter(ended).length;
   const got = Math.max(0, ...rows.filter((r) => r.kind !== "gpt").map((r) => r.reported_at || 0));   // 받은 때 = 클로드 줄 가운데 제일 늦은 것(지피티 = 코덱스를 마지막으로 쓴 때 값이라 뺌)
   return (
     <div className="nsb-acct" role="region" aria-label="계정 상태 표" tabIndex={0}>
       {got ? <p className="nsb-acct-at">{agoKo(got)} 갱신</p> : null}
       <table>
         <thead><tr><th>계정</th><th>남은 %</th><th>다시 참</th><th>쓰는 이</th><th>요금제</th></tr></thead>
-        <tbody>{acctOrder(rows, now).flatMap((r) => {
+        <tbody>{all.filter((r) => gone || !ended(r)).flatMap((r) => {
           const cells = Object.entries(r.cells || {}).filter(([, c]) => c.left_pct !== undefined);
           const wk = weekCell(r.cells), pct = wk?.left_pct ?? r.left_pct, short = cells.find(([, c]) => c !== wk && (c.left_pct ?? 100) < 100);   // 큰 숫자 = 주간 창 · 짧은 창(5시간)은 깎였을 때만 옆에
           const reset = wk?.reset_at ?? r.next_at, left = leftKo(reset, now);
@@ -270,7 +272,7 @@ function AcctTable({ rows }: { rows: AcctRow[] }) {
           const tr = (
             <tr key={r.key} data-st={r.st} aria-expanded={pick === r.key} onClick={() => setPick(pick === r.key ? "" : r.key)} title={r.value}>
               <th scope="row"><StatusDot st={r.st} />{acctTag(r.name, r.kind)}</th>
-              <td className="pct"><b data-tone={tone(pct)}>{pct === undefined ? "—" : `${pct}%`}</b>{pct === undefined ? null : <i className="bar" data-tone={tone(pct)}><i style={{ transform: `scaleX(${Math.max(0, Math.min(100, pct)) / 100})` }} /></i>}
+              <td className="pct"><span className="top"><b data-tone={tone(pct)}>{pct === undefined ? "—" : `${pct}%`}</b>{pct === undefined ? null : <i className="bar" data-tone={tone(pct)}><i style={{ transform: `scaleX(${Math.max(0, Math.min(100, pct)) / 100})` }} /></i>}</span>
                 {short ? <small data-tone={tone(short[1].left_pct)}>{short[0]} {short[1].left_pct}%</small> : null}{r.kind === "gpt" && r.last_at && old ? <small>{agoKo(r.last_at)} 값</small> : null}
                 {outIn ? <small className="out">{outIn} 뒤 바닥</small> : null}</td>
               <td className="reset">{left ? <b>{left} 뒤</b> : "—"}{r.week_reset && left ? <small>{r.week_reset}</small> : null}</td>
@@ -289,7 +291,8 @@ function AcctTable({ rows }: { rows: AcctRow[] }) {
             r.memo || "", cells.length ? "" : r.note || HEALTH_KO[r.st], obsAt ? `${agoKo(obsAt)} 받음` : "",   // note = 창마다 % 를 글로 푼 것이라 % 가 읽힌 줄엔 안 겹쳐 씀(못 읽은 줄 = 까닭)
           ].filter(Boolean);
           return [tr, <tr key={`${r.key}:why`} className="why"><td colSpan={5}>{why.map((w) => <span key={w}>{w}</span>)}</td></tr>];
-        })}</tbody>
+        })}
+        {nGone ? <tr className="fold" aria-expanded={gone} onClick={() => setGone(!gone)}><td colSpan={5}><button type="button" aria-expanded={gone} onClick={(e) => { e.stopPropagation(); setGone(!gone); }}>결제 끝남 {nGone}<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></button></td></tr> : null}</tbody>
       </table>
     </div>
   );
@@ -407,7 +410,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
         {grok ? <span><Dot c={grok} t={`${grok.name} · ${grok.value || ""}`} />그록봇 자동화 · 로그인</span> : null}
         <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · C·N 네이버 · C·G 구글g · C·M 구글m · C·T muteno · 셀프 – = 혼자 못 넘어감 · 챙김 = 그 창을 넘겨 주는 이 · 줄 누르면 까닭</small>
       </div>
-      {comm ? <div className="nsb-sub"><b>봄의 정원 말 주고받기</b><Grid c={comm} pick={pick} setPick={setPick} /></div> : null}
+      {/* 「봄의 정원 말 주고받기」 표 = 뺌(형 11-19 「봄의 정원 말 주고받기는 사실 의미없으니 없애고」) */}
     </div>
   );
 }
@@ -518,7 +521,8 @@ export function StatusBoard({ bare = false }: { bare?: boolean } = {}) {
   const bs = bodiesOf(srv.data?.bodies).map((b) => (RUN_WHO.has(b.being) ? b : { ...b, being: "" }));   // 몸 = 서버 bodies(정본) · 없으면 사본 · 아이 = 클로드 일곱만(형 11-10 07:5x 시아 창 「시아 러너 이거 갱신. 애들 포함 해서 천둥은 그록봇이니 넣을필요는 없음.」 · 「지피티 봇은 넣을 필요는 없음.」 · 정본 윈A being 「윈터」 = 옛 클로드 윈터 → 비움)
   const cats = merge(fromLocal(sched.data, bots.data, sched.isPending), bs, srv.data?.cats);
   const [open, setOpen] = useState<Record<string, boolean>>({}), [pick, setPick] = useState(""), [zone, setZone] = useState(""), [more, setMore] = useState(false);
-  const acct = cats.filter((c) => c.grp === BOTS_GRP && !(bare && c.id === "activity")), rest = cats.filter((c) => c.grp !== BOTS_GRP);   // 맨 위 = 봇 현황 묶음(활동이 첫 칸 · 형 11-14 「ㄱ」 · 앞 판 = 계정 상태 · 활동 둘만 위 · 봇 연결 · 토큰 · CLI 는 「자세히」 안) · 접힌 칸은 한 줄이라 키가 거의 안 늚   // 맨 위 = 계정 상태(형 11-07 14:43 「먼저 나오게」) → 도식 넷 → 「자세히」 = 칸 목록(손실 0)
+  const acct = cats.filter((c) => c.id !== "bots" && c.grp === BOTS_GRP && !(bare && c.id === "activity"));   /* 「봇 연결」 칸 = 뺌(형 11-19 「맨 위에 애들 작업중인 내역 눌러서 확인할 수 있는건데, 굳이 아래에 또 안나와도될듯」 · 셈에는 그대로 듦) */
+  const rest = cats.filter((c) => c.grp !== BOTS_GRP);   // 맨 위 = 봇 현황 묶음(활동이 첫 칸 · 형 11-14 「ㄱ」 · 앞 판 = 계정 상태 · 활동 둘만 위 · 봇 연결 · 토큰 · CLI 는 「자세히」 안) · 접힌 칸은 한 줄이라 키가 거의 안 늚   // 맨 위 = 계정 상태(형 11-07 14:43 「먼저 나오게」) → 도식 넷 → 「자세히」 = 칸 목록(손실 0)
   const all = cats.flatMap((c) => c.rows), red = count(all, "miss"), yellow = count(all, "late"), gray = count(all, "unknown");
   return (
     <div className={bare ? "nsb mx-auto w-full max-w-6xl px-4 pb-12" : "nsb mx-auto w-full max-w-6xl px-4 pb-12 pt-3"}>
