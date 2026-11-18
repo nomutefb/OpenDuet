@@ -60,6 +60,8 @@ const WHO_MORE = ["윈터", "구름"];
 /** 혼자 못 넘어가는 창(셀프 넘김 「–」) — 형 11-18 20:39 dm-cloud 「오케 그러면 클라우드세션은 셀프로 못넘어가는거를 러너에 표기하게 해놔야해. 이거를 보완을 해줘야된다는 뜻이거든.」 · 20:40 「셀프 넘김에 - 표기가 따로 있어야한다는거야. 중요해. 왜냐면 누군가 서브를 안해주면 꺼진다는뜻이니까」 · 구름 = 클라우드 세션 = 계정을 혼자 못 바꿈(봄 · 깃이 넘겨 줌) */
 /** 교대 줄은 없지만 혼자 넘어가는 이(윈터 = 윈A 윈도우 갈래 · 깃 11-18 20:50 pair-cloud-gik 「윈터 = 점(혼자 넘어감 · 20:16 윈A 18번 윈도우 갈래로 g→m 실물 · 숨김 · 원격 붙음)」) */
 const SELF_OK = ["윈터"];
+/** 혼자 못 넘어가는 창을 챙기는 이(「챙김」 칸) — 형 11-19 01:09 밥상(깃이 옮김) 「자력으로 못깨니까 클라우드세션은」 「챙겨줘야하고 이거 러너에 반영하라고 21시 경에 얘기햇잖아」 「그래야 표시되서 안다고」 · 구름 = 봄이 맥 기본 칸 계정을 바꿔 새 창을 엶(형 00:32 dm-cloud 「앞으로 그거 봄이 자동 하게뜸」) · 구름 지킴의 [도움] 은 깃이 받음 */
+export const CARE: Record<string, string> = { 구름: "봄 · 깃" };
 export const NO_SELF: Record<string, string> = { 구름: "클라우드 세션 · 계정을 혼자 못 넘어감 · 누가 넘겨 줘야 함(안 해 주면 꺼짐)" };
 const skeleton = (bs: Body[]): StatusCat[] => [
   { grp: BOTS_GRP, id: "activity", name: "활동", rows: [] },   // 일 · 쉼 · 멈춤(형 11-14 06:25 밥상 「쉬면 쉼으로 기록되는 활동표가 러너에 갱신될 수 있는지 봐봐 봄이 이를 보고 역할 배분에 쓰게」 · 서버 _activity.js · 번개) — 계정 상태 바로 아래 · 늘 펼침   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
@@ -373,8 +375,8 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
       <div className="nsb-scroll" role="region" aria-label="애들 × 연결" tabIndex={0}>
         <table>
           <thead>
-            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={4}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length + 1}><span>교대</span></th><th colSpan={2}><span>다음 창</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
-            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH1</th><th>GH2</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}<th title="셀프 넘김 · 혼자 넘어가나"><i>셀프</i></th>{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}<th>모델</th><th>노력</th></tr>
+            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={4}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length + 2}><span>교대</span></th><th colSpan={2}><span>다음 창</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
+            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH1</th><th>GH2</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}<th title="셀프 넘김 · 혼자 넘어가나"><i>셀프</i></th><th title="챙김 · 혼자 못 넘어가는 창이 꺼지거나 한도로 멈추면 넘겨 주는 이"><i>챙김</i></th>{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}<th>모델</th><th>노력</th></tr>
           </thead>
           <tbody>
             {[...ours, ...rest].map((r) => {
@@ -391,6 +393,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
                   {dm ? <td colSpan={DIARY_COLS.length} className="dm">{([["일기", dm.diary_ms], ["습작", dm.sketch_ms], ["넘김", dm.handoff_ms]] as [string, number][]).filter(([, t]) => t).map(([k, t]) => <span key={k}>{k} {agoKo(t)}</span>)}</td>
                     : DIARY_COLS.map((x) => { const c = diaryCell(d[x.id], x.id, met); return <td key={x.id} className={c ? undefined : "nodiary"} title={c ? undefined : `${x.name} · 기록 없음`}>{c ? <Dot c={c} t={`${x.name} · ${HEALTH_KO[c.st]}${c.note ? ` · ${c.note}` : ""}`} /> : <b>–</b>}</td>; })}{/* 기록이 안 온 칸 = 빈 칸 말고 빨간 「–」(형 11-18 22:0x 구름 맥 창 「구름아 너 일기 랑 습작 기록 안뜬다. 너도 이제 쓰니까 안뜨는게 아니라 못썼으면 빨간색으로 -라도 떠야해 그 안뜨는 모양으로 떠야한다는뜻이야 메인 러너에서」) */}
                   {NO_SELF[r.name] ? <td className="noself" title={`셀프 넘김 – · ${NO_SELF[r.name]}`}><b>–</b></td> : <td>{Object.keys(h).length || SELF_OK.includes(r.name) ? <Dot c={{ st: "ok" }} t="셀프 넘김 · 혼자 넘어감" /> : null}</td>}
+                  {CARE[r.name] ? <td className="care" title={`챙김 · ${r.name} 창이 꺼지거나 한도로 멈추면 ${CARE[r.name]} 이(가) 넘겨 줌(안 해 주면 꺼진 채)`}><b>{CARE[r.name].replace(/ /g, "")}</b></td> : <td />}
                   {handCols.map((x) => <td key={x}>{h[x] ? <Dot c={h[x]} t={`${x} · ${HEALTH_KO[h[x].st]}${h[x].note ? ` · ${h[x].note}` : ""}`} /> : null}</td>)}
                   {b ? <NextWinCells who={r.name} /> : <td colSpan={2} className="none" />}{/* 다음 창 모델 · 노력도(형 11-12 16:17 · ui/next-win.tsx) */}
                 </tr>
@@ -399,10 +402,10 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
           </tbody>
         </table>
       </div>
-      {pick.startsWith("who:") ? (() => { const r = bots.find((x) => `who:${x.key}` === pick) || ours.find((x) => `who:${x.key}` === pick); const c = cli.find((x) => x.key === r?.name)?.cells || {}; return r ? <p className="nsb-why">{r.name} — {NO_SELF[r.name] ? `셀프 넘김 – ${NO_SELF[r.name]} · ` : ""}{Object.entries(r.cells || {}).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}{Object.keys(c).length ? ` · ${Object.entries(c).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}` : ""}</p> : null; })() : null}
+      {pick.startsWith("who:") ? (() => { const r = bots.find((x) => `who:${x.key}` === pick) || ours.find((x) => `who:${x.key}` === pick); const c = cli.find((x) => x.key === r?.name)?.cells || {}; return r ? <p className="nsb-why">{r.name} — {NO_SELF[r.name] ? `셀프 넘김 – ${NO_SELF[r.name]} · 챙김 = ${CARE[r.name] || "정해진 이 없음"} · ` : ""}{Object.entries(r.cells || {}).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}{Object.keys(c).length ? ` · ${Object.entries(c).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}` : ""}</p> : null; })() : null}
       <div className="nsb-foot">
         {grok ? <span><Dot c={grok} t={`${grok.name} · ${grok.value || ""}`} />그록봇 자동화 · 로그인</span> : null}
-        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · C·N 네이버 · C·G 구글g · C·M 구글m · C·T muteno · 셀프 – = 혼자 못 넘어감 · 줄 누르면 까닭</small>
+        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · C·N 네이버 · C·G 구글g · C·M 구글m · C·T muteno · 셀프 – = 혼자 못 넘어감 · 챙김 = 그 창을 넘겨 주는 이 · 줄 누르면 까닭</small>
       </div>
       {comm ? <div className="nsb-sub"><b>봄의 정원 말 주고받기</b><Grid c={comm} pick={pick} setPick={setPick} /></div> : null}
     </div>
