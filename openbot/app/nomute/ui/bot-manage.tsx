@@ -18,6 +18,8 @@ import { Chev } from "./chev";
 import { NW_EFFORTS, NW_MODELS, type NextWin, nwDefault, useNextWin } from "./next-win";
 import { BOT_EFFORTS, BOT_MODELS, PickRow } from "./model-set";
 import { useMe } from "./pins";
+import { HEALTH_KO, StatusDot, agoKo } from "./sched-bits";
+import { catRows, statusOpts } from "./status-q";   // 그록 애 연결 줄(웹훅 · 토큰) = 러너 층과 같은 답
 
 const NW_KEY = ["nomute", "nextwin"], REST_KEY = ["nomute", "bots-rest"], WAKE_KEY = ["nomute", "wakeset"] as const, PM_KEY = ["nomute", "pm"] as const;
 const AcctPrio = lazy(() => import("./acct-prio").then((m) => ({ default: m.AcctPrio })));   // 계정 우선순위 카드 다발(설정에서 옮김 · 펼칠 때만 받음)
@@ -139,12 +141,28 @@ export function BotManageAll() {
   );
 }
 
+/** 그록 애 연결 — 그 애 웹훅(깨우는 문) · 그록 토큰(자동화 · 로그인) · 옛 러너 층 「봇 연결」 · 「그록봇 토큰」 칸을 그 애 카드로
+ *  (형 11-19 「그록봇 토큰도 세분화해서 맨 위에 애들이랑 통합」 · 「봇 연결은 맨 위에 애들 작업중인 내역 눌러서 확인할 수 있는건데」) · 토큰 줄 = 서버가 그 애(또는 그 계정) 줄을 주면 그 줄 · 아직이면 그록 공통 한 줄 */
+function GrokLink({ who }: { who: string }) {
+  const d = useQuery(statusOpts()).data;
+  const door = catRows(d, "bots").find((x) => x.name === who)?.cells?.["깨우는 문"];
+  const toks = catRows(d, "tok_grok"), tok = toks.find((x) => x.key === who || x.name.includes(who)) || toks[0];
+  if (!door && !tok) return null;
+  const tokKo = tok ? [String(tok.value || "").replace(/^\d{4}-\d\d-\d\dT[\d:.+-]+\s*/, ""), tok.last_at ? agoKo(tok.last_at) : "", tok.st === "ok" ? "" : tok.note].filter(Boolean).join(" · ") || HEALTH_KO[tok.st] : "";
+  return (
+    <>
+      {door ? <Row label="웹훅">{[<span key="d" className="sval lk" data-st={door.st}><StatusDot st={door.st} />{door.note || HEALTH_KO[door.st]}</span>]}</Row> : null}
+      {tok ? <Row label="토큰">{[<span key="t" className="sval lk" data-st={tok.st} title={tok.name}><StatusDot st={tok.st} />{tokKo}</span>]}</Row> : null}
+    </>
+  );
+}
+
 export function BotManage({ r, skills }: { r: BotRow; skills: Record<string, string> }) {
   return (
     <div className="nm-bm" aria-label={`${r.who} 관리`}>
       {r.brain === "클로드" || r.who === "구름" ? <NextWinRows who={r.who} /> : null}   {/* 구름 = 클라우드 세션(자리 cloud · brain 칸이 비어 옴)도 다음 창 모델 · 노력도(형 11-17 09:49 dm-bom 봄 옮김 「구름도 여는 모델을 설정에서 조정가능하게 … 러너 설정인가 ?」 · 서버 표엔 11-16 부터 구름 줄 있음) */}
       <AcctRestRow r={r} skills={skills} />
-      {r.brain === "그록" ? <GrokRows /> : null}
+      {r.brain === "그록" ? <><GrokLink who={r.who} /><GrokRows /></> : null}
       {r.pm ? <PmRow who={r.who} /> : null}
     </div>
   );

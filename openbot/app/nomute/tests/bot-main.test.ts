@@ -42,6 +42,11 @@ test("애들 한 화면 = 위에서 아래로 애들(손 판 → 알약 탭) →
   assert.match(css, /\.nm-crew-sec \+ \.nm-crew-sec::before \{ content:""; position:absolute; top:0; left:50%; width:1px; height:36px;/);   // 층 사이 줄기(가만한 그림)
   assert.doesNotMatch(css, /\.nm-crew[^{]*\{[^}]*animation/);   // 줄기 · 마디 = 움직임 0
   assert.match(sb, /export function StatusBoard\(\{ bare = false \}: \{ bare\?: boolean \} = \{\}\)/);
-  assert.match(sb, /c\.grp === BOTS_GRP && !\(bare && c\.id === "activity"\)/);   // 활동 판만 빠짐
+  assert.match(sb, /\{bare \? null : card\("activity", "활동"/);   // 활동 판만 빠짐
+  // 러너 층 = 계정 상태 + 애들 × 연결 둘뿐(형 11-19 「자세히 칸 목록안에잇는거 모든거를 그냥 다 위에 다 반복안되게 귀속시켜」 · 러너 길 · 수집 → 스케줄 배선 · 몸 지도 → 애 카드)
+  assert.match(sb, /card\("acct", "계정 상태"/); assert.match(sb, /card\("crew", "애들 × 연결"/);
+  assert.doesNotMatch(sb, /function Dia(Flow|Body|Time|Who)\(|function Diagrams\(|nsb-more|CliTable/);   // 도식 넷 · 「자세히」 · CLI 표 = 걷음
+  assert.match(rd("../ui/sched-desk.tsx"), /<CollectLog \/>/);   // 수집 = 스케줄 배선으로
+  assert.match(rd("../ui/vm-desk.tsx"), /<BodyChips who=\{r\.who\} \/>/);   // 몸 지도 = 애 카드 몸 칸으로
   assert.match(rd("../ui/shell.tsx"), /M\.id === "status" \? <div className="nm-scroll"><StatusBoard \/><\/div>/);   // 옛 「작동」 화면(#/status)은 앞 꼴 그대로
 });

@@ -86,3 +86,8 @@
 .nm-vm-row .lg .k.thr { border-top-color:var(--accent, #CFFF40); }
 .nm-vm-row .lg em { margin-left:auto; font-style:normal; font-size:11px; }
 :root:not(.dark) .nm-vm-row .lg .k.thr { border-top-color:#4d6600; }
+/* 살아 있는 몸 줄(./body-chips.tsx · 옛 러너 층 「몸 지도」 · 형 11-19 「거기에 녹이면됨」) = 점 + 짧은 값 · 가만한 줄 */
+.nm-vmdesk .nm-vm-chips { display:flex; flex-wrap:wrap; gap:3px 14px; margin-top:6px; font-size:12px; font-variant-numeric:tabular-nums; color:var(--vm-muted); }
+.nm-vmdesk .nm-vm-chips span { display:inline-flex; align-items:center; gap:1px; white-space:nowrap; }
+.nm-vmdesk .nm-vm-chips span[data-st="miss"] { color:#ffb3b5; }
+.nm-vmdesk .nm-vm-chips span[data-st="late"] { color:#ffd27a; }

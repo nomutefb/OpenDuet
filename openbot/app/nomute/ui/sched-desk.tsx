@@ -2,6 +2,7 @@
 //   트리 = 맨 위 봇 얼굴 줄(봇 큰 차단기 · 고르면 그 봇 꼬챙이만) → 포크 차단기 → 꼬챙이 차단기 → 끝 ! 얼굴 · 내린 위 칸 아래는 다 멈춘 것으로 보임
 //   서버 = GET schedule · POST schedule/set(형만 · dry = 미리 보기 · at routine·fork·bot) · 저장 흐름 = 설정 NomuteSchedule 과 같음 · 서버 판이 안 올라온 동안은 forks 없음 → 「아직 안 나눔」 한 포크
 import { ModelSetRows } from "./model-set";   // 머리(서브 LLM) = 스케줄 화면으로(형 11-17 02:1x)
+import { CollectLog } from "./sched-collect";   // 수집 = 옛 러너 층 「시간축 · 수집」을 일이 도는 자리로(형 11-19 「시간축 수집도 > 스케줄러에 귀속시키면됨」)
 import { HealthLog, KindWaits, ThumbOptLog } from "./sched-extra";   // 점검 · 모아 깨우기 · 그림 = 설정에서 옮김(형 11-17 03:24)
 import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
@@ -349,7 +350,7 @@ export function SchedDesk() {
           <ModelSetRows bots={false} />
         </section>
       ) : null}
-      {tab === "tree" ? <><KindWaits kinds={d.kinds || []} sha={d.sha || ""} can={can} /><ThumbOptLog /></> : null}   {/* 모아 깨우기(설정 「스케줄러 바꾸기」에만 있던 칸) · 그림(설정 「AI 썸네일 옵션」) */}
+      {tab === "tree" ? <><CollectLog /><KindWaits kinds={d.kinds || []} sha={d.sha || ""} can={can} /><ThumbOptLog /></> : null}   {/* 모아 깨우기(설정 「스케줄러 바꾸기」에만 있던 칸) · 그림(설정 「AI 썸네일 옵션」) */}
       {/* 「최근 바뀜」 카드 = 통째로 걷음(형 11-17 07:45 dm-bom 「글구 이거 필요없는거 없애도 되나 체크좀」 → 「아예.다.지우자」 · 12일 전 줄만 남아 있던 카드 · 서버 칸 schedule.changes 는 이제 화면이 안 읽음) */}
       {can ? null : <p className="text-xs text-muted-foreground">바꾸기는 형 자리에서만 돼.</p>}
     </div>

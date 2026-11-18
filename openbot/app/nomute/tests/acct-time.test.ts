@@ -68,16 +68,14 @@ test("acctTag = 클로드 C·N · C·G · C·M · 지피티 GPT · 그 밖은 �
 });
 
 test("cliNoteItems = 몸 보고 비고를 rclone 줄들로(이름 · 종류 · 계정 또는 도메인)", async () => {
-  const { cliNoteItems } = await import("../ui/status-board.tsx").catch(() => ({ cliNoteItems: null as null | ((n?: string) => unknown[]) }));
-  if (!cliNoteItems) return;   // 화면 파일을 못 읽는 환경(css import) = 건너뜀
+  const { cliNoteItems } = await import("../ui/crew-table-logic.ts");   // 셈 파일로 옮김(화면 파일은 css 를 실어 노드가 못 읽었음 = 이 시험이 건너뛰어졌음)
   assert.deepEqual(cliNoteItems("r2(s3 · abc.r2.cloudflarestorage.com) · gdrive(drive · a@b.kr)"), [{ name: "r2", type: "s3", domain: "abc.r2.cloudflarestorage.com" }, { name: "gdrive", type: "drive", user: "a@b.kr" }]);
   assert.deepEqual(cliNoteItems(""), []);
 });
 
 test("diaryCell = 「해당 없음」 칸은 올라온 시각으로 채움 · 시각 없으면 빈 칸(빨간 –) · 서버가 잰 칸은 그대로", async () => {
-  const { diaryCell } = await import("../ui/status-board.tsx").catch(() => ({ diaryCell: null as null | ((c: unknown, id: string, m?: Record<string, number>) => { st: string } | undefined) }));
-  if (!diaryCell) return;
-  const na = { st: "unknown", note: "해당 없음 · 창 없는 상주 · 이 단계 없음" }, m = { diary_ms: Date.now() - 60000, handoff_ms: Date.now() - 3600000 };
+  const { diaryCell } = await import("../ui/crew-table-logic.ts");
+  const na = { st: "unknown" as const, note: "해당 없음 · 창 없는 상주 · 이 단계 없음" }, m = { diary_ms: Date.now() - 60000, handoff_ms: Date.now() - 3600000 };
   assert.equal(diaryCell(na, "d40", m)?.st, "ok"); assert.equal(diaryCell(na, "end", m)?.st, "ok");
   assert.equal(diaryCell(na, "sketch", m), undefined);   // 습작 시각 없음 = 빨간 –
   assert.equal(diaryCell(na, "check", m), na);   // 시각으로 못 채우는 칸 = 그대로

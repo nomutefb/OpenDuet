@@ -10,6 +10,7 @@ import { type VmMem, type VmMemRes, dayStart, gb, hm, mdhm, pctKo, vmClean, vmFa
 import type { BotRow } from "./bot-desk-logic";
 import { vmMemOpts } from "../data/crew-warm";   // 지난 램 기록을 먼저 그리고 · 앱이 켜질 때 미리 받아 둔 답을 그대로 씀
 import { bodyNote } from "./bot-manage-logic";   // 비고 글에서 몸 이야기만(루틴 · 맡은 일 조각은 겹침 · 형 11-17 07:53)
+import { BodyChips } from "./body-chips";   // 살아 있는 몸 줄(옛 러너 층 「몸 지도」를 애마다 제 카드로 · 형 11-19 「거기에 녹이면됨」)
 import "./vm-desk.css";
 
 const hwLine = (r?: BotRow) => (r ? [r.hw?.ram && r.hw.ram !== "-" ? `램 ${r.hw.ram}` : "", r.hw?.cpu && r.hw.cpu !== "-" ? r.hw.cpu : "", r.hw?.gpu && r.hw.gpu !== "없음" ? `GPU ${r.hw.gpu}` : "", r.hw?.os].filter(Boolean).join(" · ") : "");
@@ -29,6 +30,7 @@ export function VmCard({ r }: { r: BotRow }) {
         {hw ? <p>{hw}</p> : null}
         {note ? <small>{note}</small> : null}
         {s && v ? <p className="facts" aria-label={pctKo(vmPct(v, limit))}>{vmFacts(v, limit).map((f) => <span key={f.k}><i>{f.k}</i><b>{f.v}</b></span>)}</p> : null}   {/* 숫자 줄 셋 = 한도 대비 %(형 11-17 07:59 「RAM 평균(%) / 평균 가용(%) / 최대(%)」 · 가용 칸이 아직 없으면 「–」) */}
+        <BodyChips who={r.who} />
       </div>
       {v && g ? (   /* 지금 값 = 그림 밖 범례 줄(선 꼴 + 낱말 + 값 · 형 11-19 「쥔램 이런식으로 말고 좀 정확한 단어로 표기하고 잘보이게」 → 사용 · 할당 · 스레드) */
         <p className="lg">

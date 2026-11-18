@@ -15,7 +15,7 @@ import { MorphAsk } from "./morph-ask";
 import { waitKo, waitOk, waitOpts } from "./kind-wait-logic";
 const GenOptModal = lazy(() => import("./genopt").then((m) => ({ default: m.GenOptModal })));
 
-function Fold({ title, sub, tone, auto, children }: { title: string; sub?: string; tone?: "bad" | "wait"; auto?: boolean; children: ReactNode }) {
+export function Fold({ title, sub, tone, auto, children }: { title: string; sub?: string; tone?: "bad" | "wait"; auto?: boolean; children: ReactNode }) {
   const [o, setO] = useState<boolean | null>(null), open = o ?? !!auto;   // 손댄 적 없으면 auto(고칠 것 있음)를 따름
   return (
     <section className="nm-org-log nm-sx" aria-label={title}>

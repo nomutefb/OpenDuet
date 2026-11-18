@@ -58,7 +58,7 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.match(ui, /office<\{ ok\?: boolean; rest\?: RestMap \}>\("bots\/rest", \{ method: "POST", body: JSON\.stringify\(restBody\(/);
   assert.match(ui, /\{r\.brain === "클로드" \|\| r\.who === "구름" \? <NextWinRows who=\{r\.who\} \/> : null\}/);   // 구름(자리 cloud · brain 칸 빔)도 다음 창 모델 · 노력도(시아 0e2dba4 · 형 11-17 09:49)
   assert.match(ui, /<AcctRestRow r=\{r\} skills=\{skills\} \/>/); assert.match(ui, /\{r\.pm \? <PmRow who=\{r\.who\} \/> : null\}/);   // 계정 줄 + 쉼 토글(형 11-17 07:53) · PM 줄 = PM 바꾸기
-  assert.match(ui, /\{r\.brain === "그록" \? <GrokRows \/> : null\}/);   // 그록 쪽 애만 호출 맥락 · 그록봇 지침
+  assert.match(ui, /\{r\.brain === "그록" \? <><GrokLink who=\{r\.who\} \/><GrokRows \/><\/> : null\}/);   // 그록 쪽 애만 호출 맥락 · 그록봇 지침
   // 설정에서 옮긴 것(형 11-16 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」): 「모두」 일괄은 누르기 전 한 번 되물음 · 설정엔 가는 길 하나
   assert.match(ui, /export function BotManageAll\(\)/);
   assert.match(ui, /<MorphAsk key=\{id\} className="pc" disabled=\{off\} label=\{`모두 모델 \$\{ko\}`\} onYes=\{\(\) => save\.mutate\(\{ model: id \}\)\}>/);   // 그 자리 재확인(모달 0 · 형 21:4x 「항상 그냥 re 토글로만」)

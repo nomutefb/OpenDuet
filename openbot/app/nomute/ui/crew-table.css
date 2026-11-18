@@ -1,0 +1,45 @@
+/* 애들 × 연결 한 표(./crew-table.tsx · 형 11-19 「하나로. 보기 좋게 제일 깔끔하게.」 · 「행 인덱싱이 반복되도되니까」)
+   띠마다 작은 표 — 넓으면 나란히 · 좁으면 아래로(띠 안에서만 옆으로 밀림 · 이름 칸은 붙어 있음) · 가만한 표(움직임 0 · 흐림 0) */
+.nm-ct { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap:8px; align-items:start; padding:0 8px 10px; }
+.nm-ct-band { min-width:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; border-radius:12px; border:1px solid var(--nsb-line); background:rgba(255,255,255,.02); }
+.nm-ct-band::-webkit-scrollbar { display:none; }
+.nm-ct table { width:100%; border-collapse:separate; border-spacing:0; font-size:12px; line-height:1.1; font-variant-numeric:tabular-nums; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+.nm-ct th, .nm-ct td { height:26px; padding:0 4px; text-align:center; white-space:nowrap; font-weight:400; }
+/* 머리 두 줄 = 묶음 이름(왼쪽 붙음 · 밑줄) + 칸 이름 */
+.nm-ct thead th { color:var(--nsb-mut); font-size:11px; }
+.nm-ct thead tr.g th { height:30px; padding:6px 2px 0; font-weight:700; text-align:left; vertical-align:bottom; }
+.nm-ct thead tr.g th > span { display:block; margin:0 2px; padding:0 2px 4px; border-bottom:1px solid var(--nsb-line); }
+.nm-ct thead tr.g th.t { padding-left:10px; font-size:12.5px; color:#E7ECE7; vertical-align:middle; }
+.nm-ct thead tr.c th { height:24px; vertical-align:top; padding-top:4px; }
+.nm-ct thead tr.c th small { display:block; margin-top:2px; font-size:10px; font-weight:400; opacity:.75; max-width:72px; overflow:hidden; text-overflow:ellipsis; }
+.nm-ct thead th:first-child, .nm-ct tbody th { position:sticky; left:0; z-index:1; background:#161716; }
+/* 줄 */
+.nm-ct tbody tr { cursor:pointer; }
+.nm-ct tbody tr > * { box-shadow:inset 0 1px 0 rgba(255,255,255,.045); }
+.nm-ct tbody tr.sep > * { box-shadow:inset 0 1px 0 rgba(255,255,255,.16); }
+.nm-ct tbody th { text-align:left; padding:0 10px 0 10px; font-weight:600; color:#E7ECE7; }
+.nm-ct tbody th .who { display:flex; align-items:center; gap:6px; }
+.nm-ct tbody tr[data-fam="grok"] th, .nm-ct tbody tr[data-fam="gpt"] th, .nm-ct tbody tr[data-fam="etc"] th { font-weight:500; }
+@media (hover:hover) { .nm-ct tbody tr:not(.why):hover > * { background-color:#1c1d1c; } }
+.nm-ct tbody tr[aria-expanded="true"] > * { background-color:#1c1d1c; }
+/* 칸 = 점 + 꼭 필요한 글 */
+.nm-ct td em { font-style:normal; font-size:11px; margin-left:1px; vertical-align:middle; }
+.nm-ct td .nm-st { vertical-align:middle; }
+.nm-ct td[data-st="unknown"] em, .nm-ct td[data-st="off"] em { color:var(--nsb-mut); }
+.nm-ct td[data-st="miss"] em { color:#ffb3b5; }
+.nm-ct td.no b { font-weight:800; color:var(--nsb-red); }   /* 있어야 하는데 기록이 안 온 칸 = 빨간 –(형 11-18 「못썼으면 빨간색으로 -라도 떠야해」) */
+.nm-ct td.dash b { display:inline-block; min-width:18px; padding:1px 4px; border-radius:6px; font-weight:800; color:var(--nsb-yel); background:rgba(255,210,63,.16); }   /* 셀프 넘김 못 함(형 11-18 20:40) */
+.nm-ct td.tag b { display:inline-block; padding:1px 5px; border-radius:6px; font-size:11px; font-weight:700; color:var(--nsb-yel); background:rgba(255,210,63,.16); }   /* 챙김(형 11-19 01:09) */
+.nm-ct td.w { text-align:left; padding-left:8px; font-size:11px; color:var(--nsb-mut); }
+/* 누른 줄 밑 = 그 줄 까닭(글이 있는 칸만) */
+.nm-ct tr.why { cursor:default; }
+.nm-ct tr.why > td { height:auto; padding:6px 10px 8px; text-align:left; white-space:normal; font-size:11.5px; line-height:1.5; color:var(--nsb-mut); background:#1c1d1c; box-shadow:none; }
+.nm-ct tr.why dl { display:grid; grid-template-columns:max-content minmax(0, 1fr); gap:1px 10px; margin:0; }
+.nm-ct tr.why dt { font-weight:700; color:#E7ECE7; white-space:nowrap; }
+.nm-ct tr.why dd { margin:0; min-width:0; overflow-wrap:anywhere; }
+.nm-ct tr.why dd[data-st="miss"] { color:#ffb3b5; }
+.nm-ct tr.why dd[data-st="late"] { color:var(--nsb-yel); }
+:root:not(.dark) .nm-ct thead th:first-child, :root:not(.dark) .nm-ct tbody th { background:#fafafa; color:#1a1b1a; }
+:root:not(.dark) .nm-ct thead tr.g th.t, :root:not(.dark) .nm-ct tr.why dt { color:#1a1b1a; }
+:root:not(.dark) .nm-ct tbody tr[aria-expanded="true"] > *, :root:not(.dark) .nm-ct tr.why > td { background-color:#f0f0f0; }
+@media (max-width:480px) { .nm-ct { padding:0 4px 8px; } .nm-ct tbody th { padding:0 6px 0 8px; } }
