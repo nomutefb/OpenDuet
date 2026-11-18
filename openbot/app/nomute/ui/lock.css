@@ -5,9 +5,9 @@
 .nm-lock .chip.on { color:var(--bg); background:var(--accent); border-color:var(--accent); }
 .nm-lock .nm-lock-row { display:flex; justify-content:space-between; align-items:baseline; font-size:var(--fs-sm); color:var(--fg); }
 .nm-lock .nm-lock-row b { font-size:18px; font-weight:700; }
-.nm-lock .nm-lock-sld { display:flex; align-items:center; gap:10px; }
+.nm-lock .nm-lock-sld { display:flex; align-items:center; gap:16px; }   /* 손잡이가 줄 끝에서 9 나옴 → 양끝 숫자와 안 닿게 */
 .nm-lock .nm-lock-sld .cap { font-size:var(--fs-xs); color:var(--mut); }
-/* 슬라이더 꼴 = 설정 공용 .nm-range(./yeta-settings.css · 고정 줄 색과 한 벌) */
+/* 슬라이더 꼴 = 설정 게이지 하네스(./rbs-gauge.tsx · 고정 줄 색과 한 벌) */
 .nm-lock .off { opacity:.45; }
 .nm-lock .nm-lock-steps { display:flex; justify-content:space-between; padding:0 22px; }
 .nm-lock .nm-lock-steps i { font-style:normal; font-size:9px; color:var(--mut); }

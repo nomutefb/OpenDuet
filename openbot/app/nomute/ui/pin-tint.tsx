@@ -1,6 +1,7 @@
 // 고정 줄 바탕 = 그 프로필 고유색(말풍선 색) · 단체방 · 고유색 없는 줄 = 라임 · 진하기 = 설정(기본 20% · 이 기기)
 // 형 11-14 23:39 dm-gik 「그리고 그 고정 좌측 라인. 고정하면 그냥 그 프로필 고유색 20% 가 라인에 칠해지능거로 대신할게. 단체방들은 라임색20이 고정인거고. 좌측 라인은 삭제. 프로필 고유색이 없으면 라임색20이 기본 이거를 그냥 설정에서 변경하게 만들어도 돼 값을 투명도」 · 깃 #-016 덧 · 뜸
 import { useSyncExternalStore } from "react";
+import { RbsGauge } from "./rbs-gauge";   // 설정 게이지 하네스(에디터 nm-gauge.js 러버밴드 게이지)
 
 const KEY = "nm-pin-alpha", LIME = "#CFFF40", DEF = 20;
 const subs = new Set<() => void>();
@@ -17,9 +18,9 @@ export const pinTint = (hex: string | undefined, pct: number) => {
 export function PinTintSetting() {
   const a = usePinAlpha();
   return (
-    <div className="nm-pintint">   {/* 슬라이더 · 알약 = 설정 하네스(./yeta-settings.css .nm-range · .yset-chip) — 전 = 브라우저 기본 파랑 슬라이더 + 밑줄 글자(봄 11-18) */}
+    <div className="nm-pintint">   {/* 슬라이더 = 설정 게이지 하네스(./rbs-gauge.tsx · 값 = 강조색 굵게 · 두 번 누르기 = 기본값) · 알약 = .yset-chip — 전 = 브라우저 기본 파랑 슬라이더 + 밑줄 글자(봄 11-18) */}
       <div className="row">
-        <input type="range" min={5} max={100} step={5} value={a} aria-label="고정 줄 색 진하기" aria-valuetext={`${a}%`} className="nm-range" style={{ ["--p" as string]: `${((a - 5) / 95) * 100}%` }} onChange={(e) => setPinAlpha(+e.target.value)} />
+        <RbsGauge min={5} max={100} step={5} value={a} def={DEF} label="고정 줄 색 진하기" valueText={`${a}%`} onInput={setPinAlpha} />
         <b>{a}%</b>
       </div>
       <div className="sw" aria-hidden>

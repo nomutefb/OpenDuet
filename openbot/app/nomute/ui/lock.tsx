@@ -12,6 +12,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getJson } from "./news-data";
 import { Pane } from "./pane";
+import { RbsGauge } from "./rbs-gauge";   // 설정 게이지 하네스(에디터 nm-gauge.js 러버밴드 게이지 · 봄 11-18)
 import { SrvNote } from "./srv-note";   // 못 받음 = 서버 안내 한 꼴(형 11-18 22:0x)
 import { reading } from "./wait-text";   // 읽는 중 글 한 벌(형 11-15 「하네스 따로 노는 거」)
 
@@ -39,7 +40,6 @@ export function LockModal() {
     } catch { setNote("네트워크 오류 — 다시"); }
     finally { setBusy(false); setDrag(null); }
   };
-  const pct = (idx / (LK_STEPS.length - 1)) * 100;
   return (
     <Pane title="잠금">
       <div className="yeta-set mt-2">
@@ -55,9 +55,8 @@ export function LockModal() {
               <div className={`nm-lock-row${active ? "" : " off"}`}><span>자동 잠금(분)</span><b aria-live="polite">{shown}</b></div>
               <div className={`nm-lock-sld${active ? "" : " off"}`}>
                 <span className="cap">1</span>
-                <input type="range" min={0} max={LK_STEPS.length - 1} step={1} value={idx < 0 ? 1 : idx} disabled={!active || busy} className="nm-range" aria-label="자동 잠금 분" aria-valuetext={`${shown}분`}
-                  style={{ ["--p" as string]: pct + "%" }}
-                  onChange={(e) => setDrag(+e.target.value)} onPointerUp={(e) => void save(LK_STEPS[+(e.target as HTMLInputElement).value])} onKeyUp={(e) => void save(LK_STEPS[+(e.target as HTMLInputElement).value])} onBlur={() => { if (drag != null) void save(LK_STEPS[drag]); }} />
+                <RbsGauge min={0} max={LK_STEPS.length - 1} step={1} value={idx < 0 ? 1 : idx} disabled={!active || busy} label="자동 잠금 분" valueText={`${shown}분`}
+                  onInput={setDrag} onCommit={(i) => void save(LK_STEPS[i])} />   {/* 끄는 동안 = 숫자만 · 손을 뗀 뒤 한 번 저장(전 = pointerup · keyup · blur 셋으로 따로) */}
                 <span className="cap">60</span>
               </div>
               <div className="nm-lock-steps" aria-hidden>{LK_STEPS.map((s) => <i key={s} className={s === shown ? "on" : ""}>{s}</i>)}</div>
