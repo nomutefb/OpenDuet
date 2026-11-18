@@ -52,7 +52,8 @@ export type Frame = {
   dispose: () => void;
 };
 
-const BASE = `:host{all:initial;display:block;position:relative;min-width:0;min-height:0;overflow:hidden;contain:layout style;container-type:size;container-name:nd}
+// 「보임 · 누름」은 앱 것을 물려받음(all:initial 이 숨긴 판의 visibility:hidden 까지 되돌려 다른 화면 위로 비치지 않게 · 홈 덱과 같은 고침 · 형 11-19 04:5x 「이거 겹침」)
+const BASE = `:host{all:initial;visibility:inherit;pointer-events:inherit;display:block;position:relative;min-width:0;min-height:0;overflow:hidden;contain:layout style;container-type:size;container-name:nd}
 :where(nd-html){display:block;position:relative;width:100%;height:100%;overflow:auto;outline:none}
 :where(nd-body){display:block;margin:8px}
 :where(nd-head){display:none}`;

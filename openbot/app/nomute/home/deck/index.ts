@@ -26,7 +26,9 @@ export type Deck = {
 
 // 틀 = 앱 옷이 안 새어 들게 막는 자리: 물려받는 속성(줄 높이 · 자간 · 글꼴 · 정렬 …)은 다 처음 값으로(all:initial = 원본의 제 문서와 같은 바탕) ·
 //   덱이 쓰지만 스스로 안 정하는 변수(DECK_UNSET)는 비움(앱에 같은 이름이 있어도 원본처럼 「없음」) · 그 밖 변수는 덱이 .nd-html 에서 제 값으로 다시 정함
-const BASE = `:host{all:initial;${DECK_UNSET.map((v: string) => v + ":initial").join(";")};display:block;position:relative;min-width:0;min-height:0;container-type:size;container-name:nd}
+//   단 「보임 · 누름」은 앱 것을 그대로 물려받음: 앱은 안 보는 판을 visibility:hidden 으로 숨기는데(ui/shell.css .nm-pane) all:initial 이 그것까지 「보임」으로 되돌려
+//   홈 덱이 대화방 · 대화 화면 위로 비쳤음(형 11-19 04:5x 「이거 겹침」 · 옛 iframe 은 숨김을 물려받았음)
+const BASE = `:host{all:initial;visibility:inherit;pointer-events:inherit;${DECK_UNSET.map((v: string) => v + ":initial").join(";")};display:block;position:relative;min-width:0;min-height:0;container-type:size;container-name:nd}
 .nd-html{display:block;position:relative;width:100%;height:100%;overflow:hidden}
 .nd-body{display:block;min-height:100%}
 .nd-head{display:none}`;

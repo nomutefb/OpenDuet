@@ -40,3 +40,11 @@ test("홈 뉴스 덱: 덧옷(앱 톤 · 홈 덧줄)의 뿌리 · 폭 조건 · s
   assert.doesNotMatch(out, /:root|[\d.]svh|@media\s*\((max|min)-(width|height)/, "홈 덧줄에 틀 밖 것이 안 남음");
   assert.doesNotMatch(deck, /@media(?!\s*\((max|min)-(width|height):)/, "홈 덧줄의 화면 조건 = 폭 · 높이뿐(다른 꼴이 생기면 scopeTone 에 더할 것)");
 });
+
+test("홈 뉴스 덱 · 옛 화면 틀: 숨긴 판 안에서는 같이 숨음(보임 · 누름을 앱에서 물려받음)", () => {
+  // 앱은 안 보는 판을 visibility:hidden 으로 숨김(ui/shell.css .nm-pane) → 틀의 all:initial 뒤에 물려받기가 없으면 덱이 다른 화면 위로 비침(형 11-19 「이거 겹침」)
+  assert.match(rd("../ui/shell.css"), /\.nm-pane \{[^}]*visibility:hidden/);
+  for (const f of ["../home/deck/index.ts", "../ui/old-pages/frame.ts"]) {
+    assert.match(code(rd(f)), /:host\{all:initial;visibility:inherit;pointer-events:inherit;/, f + " = 틀이 숨김을 물려받음");
+  }
+});
