@@ -13,7 +13,8 @@ import { CobrowsePane } from "./cobrowse-pane";   // 같이 보기(봄 11-12 13:
 import { COBROWSE_EVENT } from "./cobrowse";
 import { SCREEN_TAB_EVENT, type ScreenTabAsk, ScreenTabPane } from "./screen-tab";   // 몸 화면 탭(구름 11-16 · 형 16:2x 「ㅇㅇ 해줘」 ← 「애들 vm키면, pc에서는 새 탭으로 열리게 가능해?」)
 import { screenTabAdd } from "./screen-tab-logic";
-import { TEAMS_PREFIX, TeamsBell, TeamsList, isTeams, useTeamsUnread } from "./teams";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
+import { TEAMS_PREFIX, TeamsList, isTeams, useTeamsUnread } from "./teams";
+import { useRootFlag } from "./has-flags";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀즈 | 회의」 탭도 같이 씀(./teams.tsx TeamsSwitch · 형 11-13 22:14)
 
@@ -42,7 +43,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const [s, setS] = useState<TabState>(load);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [host, setHost] = useState<HTMLElement | null>(null);
-  const [coNav, setCoNav] = useState("");   // 웹 탭 「Browser 탭에서 열기」가 넘긴 주소 = 다리 판이 붙으면 그 주소로(./cobrowse-pane.tsx nav)
+  const [coNav, setCoNav] = useState(""), [browserGo, setBrowserGo] = useState<{ url: string; n: number }>({ url: "", n: 0 });   // browserGo = 링크가 Browser 탭에 넘긴 주소(n = 같은 주소 다시 눌러도 다시 감)   // 웹 탭 「Browser 탭에서 열기」가 넘긴 주소 = 다리 판이 붙으면 그 주소로(./cobrowse-pane.tsx nav)
   useEffect(() => { const h = paneHost(); if (h !== host) setHost(h); });   // 오른쪽 칸이 그려진 뒤 · 다시 그려지면 따라감
   const bar = useRef<HTMLDivElement>(null), drag = useRef<Drag | null>(null);
   const ink = useRef<HTMLElement>(null), inkAt = useRef<{ l: number; r: number } | null>(null), flip = useRef<Map<string, number> | null>(null);   // 고른 자리(잉크) · 끌 때 옆 탭이 미끄러질 앞자리(눈에 보이던 왼쪽 · 화면 좌표)
@@ -70,7 +71,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   useEffect(() => { const on = () => requestAnimationFrame(() => { if (!paneHost()) setS((x) => (x.active.startsWith("s:") || x.active.startsWith("w:") || x.active === BROWSER || x.active === MEET || x.active === TEAMS ? { ...x, active: "dash" } : x)); }); addEventListener("hashchange", on); return () => removeEventListener("hashchange", on); }, []);
   useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
   useEffect(() => { const on = (e: Event) => { const a = (e as CustomEvent<ScreenTabAsk>).detail; if (a) setS((x) => screenTabAdd(x, a.who, a.url)); }; addEventListener(SCREEN_TAB_EVENT, on); return () => removeEventListener(SCREEN_TAB_EVENT, on); }, []);   // 들머리 = openScreenTab()(프로필 카드 「몸 화면 열기」 · PC) → 「○○ 화면」 탭을 붙이고 고름
-  useEffect(() => { const on = (e: Event) => { const u = (e as CustomEvent<{ url?: string }>).detail?.url; if (u) setS((x) => webTabOpen(x, u)); }; addEventListener(WEB_TAB_EVENT, on); return () => removeEventListener(WEB_TAB_EVENT, on); }, []);   // 들머리 = openInApp()(바깥 링크 누름 · window.open) → 그 주소의 웹 탭을 붙이고 고름(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」)
+  useEffect(() => { const on = (e: Event) => { const u = (e as CustomEvent<{ url?: string }>).detail?.url; if (u) { setBrowserGo((g) => ({ url: u, n: g.n + 1 })); setS((x) => ({ ...x, active: BROWSER })); } };   /* 바깥 링크 = 「Browser」 탭 안에서(따로 웹 탭 안 만듦 · 형 11-18 14:37 「그리구 상단에 클라우드 플레어 있어도 브라우저가 있음.」 · 앞 = 링크마다 웹 탭) */ addEventListener(WEB_TAB_EVENT, on); return () => removeEventListener(WEB_TAB_EVENT, on); }, []);   // 들머리 = openInApp()(바깥 링크 누름 · window.open) → 그 주소의 웹 탭을 붙이고 고름(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」)
   useEffect(() => { try { if (isTeams(room)) localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); else if (room) localStorage.setItem(OFFICE_LAST, room); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
@@ -199,9 +200,10 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     [BROWSER]: { cls: "browser", title: "브라우저(맥 72 · 형 대신 로그인)", pick: pickOn(BROWSER), body: (   // 화면 = 같이 보기 다리 판(맥 72) · 못 닿으면 끼워 넣기 웹 칸(CobrowsePane 안) · 형이 대신 로그인하는 칸
       <><svg className="nm-tab-ic browser" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg><span className="nm-tab-nm">Browser</span></>) },
     [MEET]: { cls: "meet", title: "화상회의(맥 72 화면 + 우리 대화)", pick: pickOn(MEET), body: <><MeetIcon /><span className="nm-tab-nm">화상 회의</span></> },   // 따로 선 들머리(형 11-13 09:21) · 열린 회의 없으면 바로 참여자 고르기
-    [TEAMS]: { cls: "teams", title: "팀즈", pick: pickTeams, body: <><TeamsIcon /><span className="nm-tab-nm">Teams</span><TeamsBell />{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}</> },   // 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」)
+    [TEAMS]: { cls: "teams", title: "팀즈", pick: pickTeams, body: <><TeamsIcon /><span className="nm-tab-nm">Teams</span>{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}</> },   // 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」)
   };
   const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" | "co" }> => t.k === "screen" || t.k === "web" || t.k === "co");
+  useRootFlag("teams", s.active === TEAMS);   // 팀즈를 보는 동안 = 위 러너 · SNS 판 숨김(./shell.css · 형 11-18 14:38 「그리고 위에 다른 메뉴들이 보여버림」 · 「러너랑sns 보여짐」)
   const full = s.active === BROWSER || s.active.startsWith("w:");   // 창 전체를 쓰는 탭 = 「Browser」 + 「＋」 웹 탭(형 11-18 09:3x 구름 창 「일반 새탭 열어서 보이는거랑 기본으로 떠잇는 브라우저랑 별건으로 보일 필요는 없어.」 = 둘 다 같은 꼴 · 앞 = 웹 탭만 오른쪽 칸)
   const paneOn = s.active.startsWith("s:") || s.active.startsWith("w:") || s.active === "co" || s.active === MEET || s.active === TEAMS;
   return (
@@ -230,7 +232,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
       </div>
       {paneTabs.length || s.active === TEAMS || s.active === BROWSER || s.active === MEET ? createPortal(
         <div className={`nm-tab-screen${host && !full ? " in-split" : ""}${full ? " full" : ""}`} hidden={!paneOn}>   {/* 「브라우저」 = 오른쪽 칸이 아니라 메뉴 줄 바로 아래 창 전체(형 11-17 09:1x 구름 맥 창 「pc 웹앱에서 브라우저를 열면 한쪽에서만 열리는게 아니라, 창 전체를 써야해. 그러니까 메뉴 바로 아래로 다 창이 펼쳐져야 하거든?」) · 웹 탭 · 몸 화면 · 팀즈 · 화상회의는 오른쪽 칸 그대로(형 11-12 「웹 탭은 오른쪽 칸 안」) */}
-          {s.active === BROWSER ? <BrowserPane nav={coNav} onNav={() => setCoNav("")} onClose={() => setS((x) => ({ ...x, active: "dash" }))} /> : null}   {/* 「Browser」 = 「＋」 새 탭과 같은 주소창 웹 칸(형 11-18 09:3x 「그 브라우저 여기 전면에 다른 페이지처럼 보이게해줄래?」 · 「일반 새탭 … 별건으로 보일 필요는 없어.」) · 막는 사이트만 그 자리에서 「맥 72로 열기」 = 다리 판(앞 = 늘 다리 판 · 다리 주소가 없으면 「같이 보기 주소 없음」 한 줄뿐) */}
+          {s.active === BROWSER ? <BrowserPane nav={coNav} onNav={() => setCoNav("")} go={browserGo} onClose={() => setS((x) => ({ ...x, active: "dash" }))} /> : null}   {/* 「Browser」 = 「＋」 새 탭과 같은 주소창 웹 칸(형 11-18 09:3x 「그 브라우저 여기 전면에 다른 페이지처럼 보이게해줄래?」 · 「일반 새탭 … 별건으로 보일 필요는 없어.」) · 막는 사이트만 그 자리에서 「맥 72로 열기」 = 다리 판(앞 = 늘 다리 판 · 다리 주소가 없으면 「같이 보기 주소 없음」 한 줄뿐) */}
           {s.active === MEET ? <div className="nm-tab-co"><CobrowsePane mode="meet" onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}   {/* 화상회의 = 같은 맥 72 다리 판 + 아래 회의 대화 */}   {/* 보는 동안만 붙음 = 안 보면 다리 쉼 · 다시 고르면 새 표(맥 72 탭은 그대로 = 마지막 웹 화면) */}
           {s.active === TEAMS ? <div className="nm-tab-teams"><TeamsList current={room} /></div> : null}   {/* 팀즈 목록 = 오른쪽 칸 · 누르면 왼쪽 대화만 바뀜 */}
           {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "co" ? (
@@ -251,13 +253,13 @@ const BROWSER_LAST = "nm-browser-last";   // 「Browser」 탭이 마지막으�
 const browserLast = (): string => { try { return localStorage.getItem(BROWSER_LAST) || ""; } catch { return ""; } };
 /** 「Browser」 탭 판 = 웹 칸(「＋」 새 탭과 같은 한 벌) · 막는 사이트 = 그 자리에서 다리 판(맥 72)으로 · 다리에서 닫기 = 웹 칸으로 돌아옴
  *  nav = 다른 웹 탭이 「맥 72로 열기」로 넘긴 주소(오면 바로 다리 판 · 그 주소로) */
-function BrowserPane({ nav, onNav, onClose }: { nav: string; onNav: () => void; onClose: () => void }) {
+function BrowserPane({ nav, onNav, onClose, go: open }: { nav: string; onNav: () => void; onClose: () => void; go: { url: string; n: number } }) {
   const [co, setCo] = useState(!!nav), [go, setGo] = useState(nav), last = useRef(browserLast());   // co = 다리 판을 보는 중 · go = 다리에 아직 안 보낸 주소(한 번 보내면 비움 · 앞 판 = 신호마다 다시 보냄) · last = 웹 칸이 마지막으로 연 주소(다리에서 돌아오면 그 자리)
   useEffect(() => { if (nav) { setCo(true); setGo(nav); } }, [nav]);
   if (co) return <div className="nm-tab-co"><CobrowsePane mode="browser" nav={go} onNav={() => { setGo(""); onNav(); }} onClose={() => { setCo(false); setGo(""); onNav(); }} /></div>;
   return (
     <div className="nm-tab-web">
-      <WebPane initial={last.current} focus onClose={onClose} onGo={(u) => { last.current = u; try { localStorage.setItem(BROWSER_LAST, u); } catch { /* 이번만 */ } }} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 넘어감 */ } setCo(true); setGo(u); }} />
+      <WebPane initial={open.url || last.current} goTo={open} focus onClose={onClose} onGo={(u) => { last.current = u; try { localStorage.setItem(BROWSER_LAST, u); } catch { /* 이번만 */ } }} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 넘어감 */ } setCo(true); setGo(u); }} />
     </div>
   );
 }

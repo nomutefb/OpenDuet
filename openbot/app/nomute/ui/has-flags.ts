@@ -6,7 +6,7 @@
 //   때 = 그리는 판 안(useInsertionEffect · 요소가 꽂히는 그 판 · 자리 재는 효과들보다 먼저) → 「표시 없이 한 번 그려졌다 바뀜」 0
 import { type RefObject, useInsertionEffect, useLayoutEffect } from "react";
 
-export const ROOT_FLAGS = ["split", "chat-h", "menubar", "see", "pinsheet"] as const;   // split = PC 두 칸(.nm-split-root) · chat-h = 대화 머리줄(.nm-chat-h) · menubar = 위 메뉴 줄 · see = 바탕 비치는 판(.nm-modal.see) · pinsheet = 공지 이력 판
+export const ROOT_FLAGS = ["split", "chat-h", "menubar", "see", "pinsheet", "teams"] as const;   // teams = 위 탭 줄 「Teams」를 보는 중(러너 · SNS 판 숨김 · 형 11-18 14:38 「러너랑sns 보여짐」)   // split = PC 두 칸(.nm-split-root) · chat-h = 대화 머리줄(.nm-chat-h) · menubar = 위 메뉴 줄 · see = 바탕 비치는 판(.nm-modal.see) · pinsheet = 공지 이력 판
 export type RootFlag = (typeof ROOT_FLAGS)[number];
 export const flagAttr = (name: RootFlag) => `data-nm-${name}`;
 /** 순수 — 같은 표시를 여럿이 달 수 있음(대화 머리줄은 방마다 하나씩 살아 있음) → 센 값 · 속성을 달 때(0 → 1) · 뗄 때(1 → 0)만 손댐 */

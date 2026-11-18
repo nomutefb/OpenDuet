@@ -65,6 +65,7 @@
 .nm-tab.garden { cursor:pointer; }
 .nm-tab.garden .nm-tab-nm { padding:0 4px; }
 .nm-tab-screen.in-split { position:absolute; inset:0; top:0; left:0; right:0; bottom:0; z-index:20; border-radius:inherit; }
+:root[data-nm-menubar] .nm-tab-screen.in-split { top:0; }   /* 메뉴 줄 있을 때 ./menu-bar.css 「top:50px + 메뉴 키」가 오른쪽 칸 안에서도 먹어 84px 아래에서 시작 → 위로 Keyword 머리가 드러났음(형 11-18 14:38 사진) · 칸 안에선 맨 위부터 */
 
 /* 21:9(가로/세로 ≥ 2.1) = 오른쪽 칸(웹 · 화면 탭이 덮는 자리)을 화면 가로 5분의 2 · 오른쪽 붙임 · 세로 꽉 · 탭 줄도 같은 경계(형 11-12 10:01 봄 1:1 「화면 구성비가 21:9 일 때는, 화면을 5분할 했을때, 우측 2에 항상 켜지게 하겠다는 의미임. 전에 16대 9같은경우에는 1/3 인가 반을 우측으로 사용하기로 했었어. (우측으로 정렬붙여서)」) · 16:9 = 그대로 */
 @media (min-aspect-ratio: 21/10) {

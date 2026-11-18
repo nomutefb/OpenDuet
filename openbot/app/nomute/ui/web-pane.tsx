@@ -25,7 +25,7 @@ export function toAddress(raw: string): string {
 // 빈 판 글 = 「주소나 검색어를 넣어주세요」 한 줄(형 11-12 10:00 「그냥 주소나 검색어를 넣어주세요. 정도 나오면 될듯」)
 const sameSite = (u: string) => u.startsWith("/") || u.startsWith(location.origin + "/");
 
-export function WebPane({ initial = "", className = "", onClose, onGo, blank, focus = false, backOut, onBridge }: { initial?: string; className?: string; onClose?: () => void; onGo?: (url: string) => void; blank?: ReactNode; focus?: boolean; backOut?: () => void; onBridge?: (url: string) => void }) {   // onBridge = 품기를 막는 사이트일 때 「Browser 탭에서 열기」(위 탭 줄 안 진짜 브라우저 = 맥 72 다리 · 창 밖으로 안 나감 · 형 11-17 「내부에서 무조건 열려야해」)   // backOut = 뒤로 갈 데 없을 때 ← 가 닫기(폰 #/web 겹 = 머리 알약을 뺐으니 닫는 길 · 카리나 11-17)   // onGo = 주소 바뀜 알림(탭 이름 · 기억) · blank = 빈 화면 아래 덧(탭 「+」 = 몸 화면 바로가기) · focus = 빈 채로 열리면 주소칸에 손(빠르 11-11)
+export function WebPane({ initial = "", className = "", onClose, onGo, blank, focus = false, backOut, onBridge, goTo }: { goTo?: { url: string; n: number }; initial?: string; className?: string; onClose?: () => void; onGo?: (url: string) => void; blank?: ReactNode; focus?: boolean; backOut?: () => void; onBridge?: (url: string) => void }) {   // onBridge = 품기를 막는 사이트일 때 「Browser 탭에서 열기」(위 탭 줄 안 진짜 브라우저 = 맥 72 다리 · 창 밖으로 안 나감 · 형 11-17 「내부에서 무조건 열려야해」)   // backOut = 뒤로 갈 데 없을 때 ← 가 닫기(폰 #/web 겹 = 머리 알약을 뺐으니 닫는 길 · 카리나 11-17)   // onGo = 주소 바뀜 알림(탭 이름 · 기억) · blank = 빈 화면 아래 덧(탭 「+」 = 몸 화면 바로가기) · focus = 빈 채로 열리면 주소칸에 손(빠르 11-11)
   const first = toAddress(initial);
   const [input, setInput] = useState(first);
   const [hist, setHist] = useState<string[]>(first ? [first] : []);
@@ -60,6 +60,8 @@ export function WebPane({ initial = "", className = "", onClose, onGo, blank, fo
     setHist((h) => [...h.slice(0, idx + 1), a]);
     setIdx((i) => i + 1);
   };
+  const goN = useRef(goTo?.n ?? 0);
+  useEffect(() => { if (goTo && goTo.n !== goN.current) { goN.current = goTo.n; if (goTo.url) go(goTo.url); } });   // 밖에서 「이 주소로」(링크가 Browser 탭에 넘김) = 그 탭 안에서 이동(뒤로 · 앞으로 그대로)
   const step = (d: number) => { const n = idx + d; if (n < 0 || n >= hist.length) return; setIdx(n); setInput(hist[n]); };
   const show = !!cur && (check.state === "ok" || check.state === "unknown");
 

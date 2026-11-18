@@ -21,7 +21,7 @@ test("표시 셈 = 여럿이 같은 표시를 달아도 처음 달 때 · 마지
   assert.deepEqual(flagStep(2, -1), { n: 1, touch: null });
   assert.deepEqual(flagStep(1, -1), { n: 0, touch: "off" });
   assert.deepEqual(flagStep(0, -1), { n: 0, touch: null });   // 밑으로 안 내려감
-  assert.deepEqual(ROOT_FLAGS.map(flagAttr), ["data-nm-split", "data-nm-chat-h", "data-nm-menubar", "data-nm-see", "data-nm-pinsheet"]);
+  assert.deepEqual(ROOT_FLAGS.map(flagAttr), ["data-nm-split", "data-nm-chat-h", "data-nm-menubar", "data-nm-see", "data-nm-pinsheet", "data-nm-teams"]);
 });
 
 test("우리 CSS 에 뿌리(html · body · :root) · 대화 기둥(.nm-col)에 건 :has() 0 — 다시 넣으면 요소 하나 꽂을 때마다 화면이 50ms 씩 멎음", () => {

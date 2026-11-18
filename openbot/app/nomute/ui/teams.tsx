@@ -67,6 +67,16 @@ export const useTeamsMuted = () => useSyncExternalStore(sub, () => !readNoti(tea
 const BELL_ON = <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0" />;
 /** 종 꺼짐 표시(탭 이름 옆 · 작게) */
 export const MutedMark = () => <svg className="nm-tmute" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="알림 꺼짐"><path d="M13.7 21a2 2 0 0 1-3.4 0" /><path d="M18.6 13.3A13.9 13.9 0 0 1 18 8a6 6 0 0 0-9.3-5" /><path d="M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14" /><path d="m2 2 20 20" /></svg>;
+/** 목록 위 알림 줄 = 이 기기(PC · 폰) 알림 켬/끔 스위치 · 이 기기 기억만 */
+function NotiRow() {
+  const k = teamsDevice(), on = useTeamsNoti(k);
+  return (
+    <div className="nm-tnoti">
+      <span>알림</span>
+      <button type="button" role="switch" aria-checked={on} aria-label={on ? "팀즈 알림 끄기" : "팀즈 알림 켜기"} className="sw" onClick={() => setTeamsNoti(k, !on)}><i /></button>
+    </div>
+  );
+}
 /** PC 팀즈 탭 위 종 = 누르면 PC 알림 켬/끔(탭 바꿈 안 함 · 이 기기 기억만 = 버벅임 0) */
 export function TeamsBell() {
   const on = useTeamsNoti("pc");
@@ -249,6 +259,7 @@ export function TeamsList({ current }: { current?: string }) {
       {!signed ? <TeamsLogin me={me} err={err} /> : (
         <>
           {/* 머리 줄(이름 · 로그아웃) 뺌 = 로그아웃은 설정 「팀즈」 줄(형 11-13 10:23 봄 옮김 「이거 잇을 필요없구」) */}
+          <NotiRow />   {/* 알림 켜기 · 끄기 = 목록 위(형 11-18 14:37 「팀즈 알람끄기는 저기에 표시 안하고」 · 「안에서 목록위에 끄기 켜기 설정함.」 · 앞 = 위 탭의 종) */}
           {cached && chats.isFetching ? <Dots slim /> : null}
           {!chats.data ? (chats.error ? <p className="nm-tnote">대화를 못 받았어 · {(chats.error as Error).message}</p> : <Dots />) : !chats.data.length ? <p className="nm-tnote">대화가 없어</p> : (
             <ul>

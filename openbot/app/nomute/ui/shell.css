@@ -400,3 +400,10 @@ button:is(.ncs-x, .ypk-x, .gy-x):active, :is(.nm-decpop, .nm-story-pop) header >
 .nm-tabs.nm-area .nm-tab-ic { display:grid; place-items:center; border-radius:0; }
 @container (max-width: 540px) { .nm-tabs.nm-area[data-n="6"] .nm-tab:not(.on) .nm-tab-nm { display:none; } }   /* 좁으면 고른 탭만 이름(폰 폴더 탭과 같은 결) */
 @container (max-width: 300px) { .nm-tabs.nm-area .nm-tab:not(.on) .nm-tab-nm { display:none; } }
+
+/* 팀즈를 보는 동안 = 위 러너 · SNS 판 숨김(형 11-18 14:38 「그리고 위에 다른 메뉴들이 보여버림」 · 「러너랑sns 보여짐」) · 표시 = 탭 줄이 다는 data-nm-teams(./has-flags.ts) */
+:root[data-nm-teams] .nm-split-root .nm-split-top-l, :root[data-nm-teams] .nm-split-root .nm-split-top-r { display:none; }
+:root[data-nm-teams] { --nm-top-off:0px !important; --nm-top-h:0px !important; }   /* 빈 띠 자리도 걷음 = 왼쪽 대화 판 · 찾기 단추가 맨 위부터(뿌리 inline 값을 !important 가 이김 · 정원으로 돌아오면 그대로) */
+:root[data-nm-teams][data-nm-split][data-nm-chat-h] .nm-find:not(.open) { top:calc(67px + var(--nm-menu-h, 0px)) !important; }   /* 띠 없을 때 찾기 · 이야기 단추 = 대화 머리줄 높이(띠 자리 0 이면 메뉴 줄 밑에 반쯤 숨었음) */
+:root[data-nm-teams][data-nm-split][data-nm-chat-h] .nm-find.open { top:calc(65px + var(--nm-menu-h, 0px)) !important; }
+:root[data-nm-teams][data-nm-split][data-nm-chat-h] .nm-story-btn { top:calc(63px + var(--nm-menu-h, 0px)) !important; }
