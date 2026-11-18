@@ -174,3 +174,7 @@
 .nm-tab.garden { flex:0 1 240px; min-width:80px; }
 .nm-tab:is(.browser, .meet, .teams) { flex:0 1 180px; min-width:60px; }
 .nm-tab-x { left:auto; right:6px; }
+/* 위 탭 「Teams」 새 글 수 = 흰 숫자만 · Teams 글자와 같은 선 · 같은 크기(형 11-18 16:55 dm-sia 「그냥 팀즈 글자랑 수평선에, 흰색으로 1만 들어와있으면 돼. 너무 강조될 필요없음」 · 「숫자로 표현되는데 크기를 말하는거임」)
+   앞 판 = 라임 동그라미 16px(teams.css .nm-tbadge · 팀즈 화면 안 탭 숫자는 그대로) · 고른 탭(밝은 바탕) = 탭 글자색 */
+.nm-tab .nm-tbadge { display:inline; min-width:0; height:auto; margin:0; padding:0; border-radius:0; background:none; color:#fff; font:inherit; line-height:1; vertical-align:baseline; font-variant-numeric:tabular-nums; }
+.nm-tab.on .nm-tbadge { color:inherit; }
