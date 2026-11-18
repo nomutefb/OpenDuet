@@ -2,13 +2,14 @@
 //   얼굴 둘레 고리 = 신호 나이(올 때마다 차오르고 그 사이엔 줄어듦) · 일하는 중 = 고리가 돎 · 멈춤 = 점선 고리 + 색 빠짐
 //   그록봇 = 부름 → 받음 → 들어옴 점 셋(간 데까지만 선 · 멈춘 자리는 빈 점) · 상태가 바뀌면 얼굴이 칸에서 칸으로 옮겨 감
 //   판정은 서버 것만 읽는다(./activity-view) · 계속 도는 움직임은 회전 · 위치 · 투명도만(./activity-board.css)
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FaceImg } from "./faces";
 import { agoKo } from "./sched-bits";
 import { type ActRow, type Lane, LANES, LANE_KO, causeOf, chainOf, laneOf, logOf, ringDeg, ringFrac } from "./activity-view";
 import "./activity-board.css";
 
-const still = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const still = () => lessStill();
 /** 고리 각도만 다시 셈(5초마다 · 안 보이는 탭은 쉼) */
 function useNow(ms: number) {
   const [t, setT] = useState(() => Date.now());

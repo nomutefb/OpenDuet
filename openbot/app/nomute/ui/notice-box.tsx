@@ -4,6 +4,7 @@
 //   꼴: 닫힌 줄 오른쪽(칸 밖) = 「판 N · 날짜」(useNoteMeta · 서버 ver · at) → 줄을 누르면 열림(읽기) → 위 「수정」 → 고침 상태 → 맨 아래 「닫기」 · 「저장」
 //       저장 = 게이지 알약(./go-button) → 체크 → 「저장됨」 → 부드럽게 접힘(onClose) · 쓰던 글이 있는데 닫기 = 그 자리 [아니오] [닫기](되묻는 창 0 · ./morph-ask)
 //   앞 꼴 = ./settings-extra.tsx NomuteNotice(「고치기」 · 「저장(새 판)」 · 「취소」) · ./grok-note.tsx(메모 · 되묻는 창) — 이 부품 하나로 갈음
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import "./notice-box.css";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -28,7 +29,7 @@ export function NoticeBox({ kind, onClose }: { kind: NoteKind; onClose: () => vo
   const timers = useRef<number[]>([]);
   useEffect(() => () => { timers.current.forEach((t) => window.clearTimeout(t)); }, []);
   const close = () => {   // 부드럽게 접힌 뒤 줄을 닫음(움직임 줄이기 = 바로)
-    const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const still = lessStill();
     if (still) { onClose(); return; }
     setLeave(true); timers.current.push(window.setTimeout(onClose, LEAVE_MS));
   };

@@ -14,7 +14,7 @@ test("확인 = 창(모달) 대신 그 자리 알약 둘 · 아니오 autoFocus(�
   const m = readFileSync(new URL("../ui/morph-ask.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(s, /function KickAllAsk|createPortal\(\s*<div className="nrc-veil nm-yeta" role="presentation" \{\.\.\.backdrop\(no\)\}/);
   assert.match(m, /<button type="button" className="no" autoFocus onClick=\{\(\) => \{ setAsk\(false\); setBack\(true\); \}\}>\{noText\}<\/button>/);
-  assert.match(m, /<button type="button" className="yes" onClick=\{\(\) => \{ setAsk\(false\); onYes\(\); \}\}>\{yesText\}<\/button>/);
+  assert.match(m, /<button type="button" className="yes" onClick=\{\(\) => \{ setAsk\(false\); sfx\("latch"\); onYes\(\); \}\}>\{yesText\}<\/button>/);
   assert.match(m, /e\.key === "Escape"\) \{[^}]*no\(\)/);
   assert.match(m, /HOLD_MS = 6000/);
   assert.doesNotMatch(m, /createPortal|role="alertdialog"|aria-modal/);

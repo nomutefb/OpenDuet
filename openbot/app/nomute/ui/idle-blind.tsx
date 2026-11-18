@@ -2,8 +2,8 @@
 //   = PC(마우스 · 넓은 화면)에서 10분 동안(11-13 형 「10분」) 손이 안 닿으면 85% 어둡게 덮고 큰 시계 · 아무 키·누름이면 걷힘
 //   켜고 끄기 = 설정 「쉴 때 화면 가림」(이 기기 localStorage nm-blind · 처음 = 켬) · 바로 가림 = 설정 「지금 가리기」 · Alt+L
 //   가림은 화면만 덮음(대화·동기화는 뒤에서 그대로 돎) · 쓰던 글은 그대로
+import { SwRow } from "./yset-rows";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { DiffValue } from "./state-diff";   // 값 바뀜(형 11-15 State Diff)
 import { YICO } from "./yeta-icons";
 import { idleLast0 } from "./idle-blind-logic";
 import "./idle-blind.css";
@@ -70,11 +70,7 @@ export function BlindRows() {
   const on = useOn();
   return (
     <>
-      <button type="button" className="yset-item" onClick={() => setOn(!on)}>
-        <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.screen }} />
-        <span className="si-lbl"><span className="si-t">쉴 때 화면 가림</span></span>
-        <span className="si-v"><span className={`si-vt${on ? " mod" : ""}`}><DiffValue value={on ? "10분" : "끔"} /></span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
-      </button>
+      <SwRow ic="screen" t="쉴 때 화면 가림" on={on} onFlip={setOn} v="10분" />   {/* 켜고 끄기 = 스위치(형 11-18 · 앞 = 누를 때마다 「10분 ↔ 끔」 값만 바뀜) */}
       <button type="button" className="yset-item" onClick={() => setTimeout(blindNow, 150)}>
         <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.contrast }} />
         <span className="si-lbl"><span className="si-t">지금 가리기</span></span>

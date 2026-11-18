@@ -47,7 +47,7 @@ test("폴더 탭 줄 세 군데 = 고른 탭 바탕 한 장이 미끄러짐(./fo
   }
   assert.match(h, /now\.ink\.animate\(\[\{ transform: `translateX\(\$\{was\.x\}px\)` \}, \{ transform: `translateX\(\$\{now\.snap\.x\}px\)` \}\], opt\)/);
   assert.match(h, /filter: "blur\(6px\)"/);
-  assert.match(h, /prefers-reduced-motion: reduce/);
+  assert.match(h, /lessStill\(\)/);   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(ui/less-move.ts still)
   assert.doesNotMatch(h, /setInterval|requestAnimationFrame/, "도는 고리 0(탭을 바꾼 그 한 번만)");
   assert.match(css, /\.nm-tswitch\.fold\[data-ink\] \.nm-ftab\.on \{ background:none; \}/);
   assert.match(css, /\.nm-fold-ink \{ display:none; \}/);   // 훅이 자리를 재기 전 = 옛 꼴 그대로

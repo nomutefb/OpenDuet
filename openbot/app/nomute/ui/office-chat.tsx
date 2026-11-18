@@ -11,6 +11,8 @@
 //   빠르게 열기(형 15:34 「프사먼저 나오고 넘 늦게 대화가 나와」 · 15:38 「캐시화 하고 뒤늦게 받아오는거로 동기화를」) = 이 기기 저장(data/room-cache.ts)을 먼저 그림 →
 //     since 로 새 글만 · 저장이 없으면 최근 한 화면치(FIRST_N) · 위로 올리면 하루치씩(서버 day=1 · 한 화면 이상)
 //   동기화 = 열린 방은 기다리기(wait 25초 · 옛 화면과 같은 길) · 그 밖은 pulse(data/sync.ts)
+import { lessMoveOn } from "./less-move";
+import { buzz } from "./feel";   // 진동 = 설정 스위치 하나로(./feel.ts)
 import { SrvNote } from "./srv-note";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { DlSeqButton } from "./dl-seq";
@@ -602,7 +604,7 @@ function zoomImage(src: string, alt = "", who = "", when = "") {
   const hush = () => { sheet?.remove(); sheet = null; };
   const ask = () => {
     if (sheet) return;
-    held = true; navigator.vibrate?.(8);
+    held = true; buzz(8);
     sheet = document.createElement("button"); sheet.type = "button"; sheet.className = "nm-zoom-save"; sheet.innerHTML = `${DOWN_SVG}<span>사진 저장</span>`;
     sheet.onclick = (e) => { e.stopPropagation(); savePic(src, name); const s = sheet; if (s) { s.innerHTML = TICK_SVG; s.classList.add("nm-tick-on"); } window.setTimeout(hush, 650); };   // 저장 = ✓ 팝(글 0 · 형 11-16 06:5x 「저장했어 라는 내용도 사실 좀 투박하긴함」 · 썸네일 에디터 dlseq 꼴)
     v.append(sheet);
@@ -759,7 +761,7 @@ function AutoVideo({ src, label, onError, onLoadedMetadata }: { src: string; lab
     const v = ref.current;
     if (!v || typeof IntersectionObserver === "undefined") return;
     const mq = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
-    st.current = avInit(!!mq?.matches, document.visibilityState === "hidden");
+    st.current = avInit(!!mq?.matches || lessMoveOn(), document.visibilityState === "hidden");   // 앱 스위치 「움직임 줄이기」도 저절로 재생 안 함
     v.muted = true;   // React 가 muted 속성을 첫 그림에 안 박는 일이 있어 손으로(자동 재생은 소리 꺼야 됨)
     const run = (e: AvEvent) => {
       const r = avStep(st.current, e);

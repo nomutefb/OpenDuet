@@ -1,6 +1,8 @@
 /* 서랍 「잠금」(./lock.tsx) — 원본 자동 잠금 창(자동 잠금(분) 값 + 1~60 슬라이더 · 꺼져 있으면 흐림) */
 .nm-lock { display:flex; flex-direction:column; gap:10px; }
-.nm-lock .nm-lock-state { display:flex; gap:6px; }
+.nm-lock .nm-lock-state { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:40px; }
+.nm-lock .nm-lock-state .nm-sw { min-height:40px; font-size:var(--fs-sm); font-weight:var(--fw-b); }
+.nm-lock .nm-pinc { padding:4px 0 6px; }
 .nm-lock .chip { border:1px solid var(--glass-line); color:var(--mut); font-size:var(--fs-xs); padding:3px 10px; border-radius:var(--r-pill); }
 .nm-lock .chip.on { color:var(--bg); background:var(--accent); border-color:var(--accent); }
 .nm-lock .nm-lock-row { display:flex; justify-content:space-between; align-items:baseline; font-size:var(--fs-sm); color:var(--fg); }

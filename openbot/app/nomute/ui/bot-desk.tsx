@@ -6,6 +6,7 @@
 //     · 손 표 = 봇마다 카드(특기 · 하드웨어 · 비고)
 //   자료 = GET status/bots 의 table 한 번 · 60초마다(묵은 답이면 8초 뒤 다시) · 판정 · 차례 셈은 서버 것(./bot-desk-logic.ts = 묶음 · 칸 글만)
 //   움직임 = 처음 뜰 때 한 번 차례로 떠오름(위치 · 투명도만 · 60프레임 · 줄이기 설정이면 0)
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import { useQuery } from "@tanstack/react-query";
 import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { idOf, office } from "../data/office";
@@ -146,7 +147,7 @@ export function BotDesk() {
   const [tab, setTab] = useState<Tab>(() => {
     try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "meter" ? v : "board"; } catch { return "board"; } });
   const secs = useRef<Partial<Record<Sec, HTMLElement | null>>>({});
-  const goSec = (k: Sec, smooth = true) => { const el = secs.current[k]; if (el) el.scrollIntoView({ block: "start", behavior: smooth && !(typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) ? "smooth" : "auto" }); };
+  const goSec = (k: Sec, smooth = true) => { const el = secs.current[k]; if (el) el.scrollIntoView({ block: "start", behavior: smooth && !lessStill() ? "smooth" : "auto" }); };
   useEffect(() => {   // 옛 길(#/sched · #/runner)로 들어오거나 메뉴 판에서 그 줄을 누르면 그 층으로 · #/vm = 몸 탭
     let touched = false, ts: number[] = [];
     const hand = () => { touched = true; }, evs = ["wheel", "touchstart", "pointerdown", "keydown"] as const;

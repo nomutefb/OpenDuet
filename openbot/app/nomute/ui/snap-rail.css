@@ -1,0 +1,17 @@
+/* 하나 고르기 레일(./snap-rail.tsx) — 원본 = nomutefb/editor viewer/nm-shared.css 「.nm-snap」(kinetics «Snap Rail» · 형 9-29 «선택 요소를 snap rail 로 통일»)
+   수치 그대로: 위아래 5 · 알약 = 칸 − 10(사방 5) · translateX(칸 × (100% + 10px)) · .45s cubic-bezier(.34,1.56,.64,1) · 글자 13 굵게 · 고른 글자 = 알약 위 색 800
+   바꾼 것 = 이름(.nm-srail) · 칸 폭 = 가장 긴 낱말에 맞춘 같은 폭(줄 오른쪽에 붙는 작은 레일이라 · 원본은 표면이 폭을 줌) · 색 = 그 화면 토큰(밝은 테마 포함) */
+.nm-srail { position:relative; display:inline-grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); flex:0 1 auto; min-width:0; max-width:100%; padding:5px 0; border:0; border-radius:var(--r-pill, 999px);
+  box-shadow:inset 0 0 0 1px var(--glass-line, rgba(255,255,255,.08)); outline:1px solid transparent; outline-offset:-1px; background:var(--glass, rgba(255,255,255,.03)); }
+.nm-srail::before { content:""; position:absolute; top:5px; bottom:5px; left:5px; width:calc(100% / var(--n, 1) - 10px); border-radius:var(--r-pill, 999px); background:var(--accent, #CFFF40); pointer-events:none;
+  transform:translateX(calc(var(--i, 0) * (100% + 10px))); transition:transform .45s cubic-bezier(.34,1.56,.64,1); }
+.nm-srail[data-jump]::before { transition:none; }   /* 다시 그려진 레일의 출발점(지난 칸)을 먼저 잡을 때 */
+.nm-srail > button { position:relative; z-index:1; min-width:0; height:auto; margin:0 5px; padding:6px 9px; border:0; border-radius:var(--r-pill, 999px); background:none; color:var(--mut, #8B8F8A);
+  font:inherit; font-size:var(--fs-label, 13px); font-weight:var(--fw-b, 700); line-height:1.3; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  transition:color var(--dur, .2s), transform .3s cubic-bezier(.34,1.56,.64,1); }
+.nm-srail > button[aria-checked="true"] { color:var(--bg, #032322); font-weight:var(--fw-x, 800); }
+.nm-srail > button:active { transform:scale(var(--press-m, .9)); }
+.nm-srail > button:disabled { opacity:.32; cursor:default; }
+.nm-srail > button:focus-visible { outline:2px solid rgba(var(--accent-rgb, 207,255,64),.6); outline-offset:2px; }
+@media (hover:hover) { .nm-srail > button:not([aria-checked="true"]):not(:disabled):hover { color:var(--fg, #fff); } }
+@media (prefers-reduced-motion:reduce) { .nm-srail::before, .nm-srail > button { transition:none; } }

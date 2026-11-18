@@ -1,6 +1,7 @@
 // 우리 조약돌 = bloub 아바타(https://github.com/jeremy-prt/bloub · MIT © Jérémy · 형 포크 nomutefb/bloub) — 사본 0 · 에디터가 이미 올린 /vendor/bloub/*.js 를 그대로 불러 씀
 //   (형 11-05 「카피하지말고 가져다가 써」 · 그리기 = editor viewer/runner.html 아래 module 스크립트 · 원본 BloubBot.vue 템플릿과 같은 꼴: 눈 = 몸 mask 구멍 · 몸 아래 바탕 판 · 뎅 = 테)
 //   모양·색 = runner.html BEING_SHAPE · BOT_INK · BOT_RIM 그대로(형 10-31 「너네 각각의 색이 그냥 부여되면 될거같아 봄은 분홍, 시아는 노뮤트색, 윈터는 흰은색, 빠르는 로얄블루네온, 뎅은 갈색+네온」 · 「걔들이 고른 형태로 해줘야행!」)
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import { beatWait } from "./beat";
 import { useEffect, useRef } from "react";
 
@@ -47,7 +48,7 @@ function draw(b: Live, t: number) {
 }
 function run() {
   if (raf) return;
-  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const still = lessStill();
   const step = (now: number) => {
     raf = 0;
     for (const b of live) if (!b.el.isConnected) { live.delete(b); seen?.unobserve(b.el); }

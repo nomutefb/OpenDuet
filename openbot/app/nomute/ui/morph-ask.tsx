@@ -4,6 +4,7 @@
 //   예 = onYes 를 바로 부름 — 기다리지 않음. 창 닫기 · 목록에서 먼저 빼기 · 서버 일은 부른 쪽이 뒤에서 하고, 못 했으면 화면 아래 알림 한 줄(./flash)
 //   아니오 · Esc · 딴 데 누름 · 6초 동안 손 없음 = 원래 단추로(잘못 눌러도 안전한 쪽) · 엔터 자리 = 아니오
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { sfx } from "./feel";
 
 const HOLD_MS = 6000;
 
@@ -29,7 +30,7 @@ export function MorphAsk({ children, className = "", boxClass = "", yesText = "�
     <span ref={box} className={`nm-mask ${boxClass}`} role="group" aria-label={`${label || (typeof children === "string" ? children : "")} 확인`} onClick={(e) => e.stopPropagation()}>
       <span className="nm-yn sm">
         <button type="button" className="no" autoFocus onClick={() => { setAsk(false); setBack(true); }}>{noText}</button>
-        <button type="button" className="yes" onClick={() => { setAsk(false); onYes(); }}>{yesText}</button>
+        <button type="button" className="yes" onClick={() => { setAsk(false); sfx("latch"); onYes(); }}>{yesText}</button>
       </span>
       {note ? <small className="nm-mask-note">{note}</small> : null}
     </span>

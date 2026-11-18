@@ -2,6 +2,7 @@
 //   손가락 따라 줄이 왼쪽으로 · 오른쪽 끝에 답장 화살표가 커지며 나옴 · 60px 넘기면 톡(진동) · 놓으면 답장 + 제자리로 튕김
 //   세로가 먼저면 스크롤 그대로 · 가로로 굴러가는 칸(코드·표) · 영상 · 입력칸 · 둘의 방 알약 펼침(.ysent-talk) 안에서 시작하면 안 함
 //   대화 상자 하나에 손 하나(줄마다 듣지 않음) · touchmove 는 막아야 해서 passive 아님
+import { buzz } from "./feel";   // 진동 = 설정 스위치 하나로(./feel.ts)
 import { type RefObject, useEffect, useRef } from "react";
 
 const SLOP = 8, FIRE = 60, MAX = 84;
@@ -56,7 +57,7 @@ export function useSwipeReply(box: RefObject<HTMLElement | null>, onReply: (id: 
       const k = Math.min(1, -dx / FIRE);
       if (ico) { ico.style.opacity = String(k); ico.style.transform = `scale(${0.55 + 0.45 * k})`; }
       const now = -dx >= FIRE;
-      if (now !== armed) { armed = now; ico?.classList.toggle("on", now); if (now) navigator.vibrate?.(8); }
+      if (now !== armed) { armed = now; ico?.classList.toggle("on", now); if (now) buzz(8); }
     };
     let calm = 0;
     const quiet = (e: Event) => { if (lock === "h" || Date.now() < calm) { e.preventDefault(); e.stopPropagation(); } };   // 미는 중·막 뗀 뒤 = 길게 누름 메뉴(contextmenu) 안 뜸

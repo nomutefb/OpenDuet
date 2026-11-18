@@ -67,7 +67,10 @@ test("끼운 자리", () => {
   assert.equal(src("ui/sched-desk.tsx").split("<DiffPair ").length - 1, 0);   // 「최근 바뀜」 카드는 통째로 걷음(형 11-17 07:45 dm-bom 「아예.다.지우자」)
   assert.doesNotMatch(src("ui/sched-desk.tsx"), /최근 바뀜<\/h3>|function Changes/);
   assert.equal(src("ui/yeta-settings.tsx").split("<DiffValue value={v} />").length - 1, 3);
-  for (const f of ["chat-font", "enter-key", "idle-blind", "live-shine", "wake-depth"]) assert.match(src(`ui/${f}.tsx`), /<DiffValue value=/, f);
+  for (const f of ["wake-depth"]) assert.match(src(`ui/${f}.tsx`), /<DiffValue value=/, f);
+  // 글꼴 · 엔터 키 · 생각중 표시 = 고르기 레일로(형 11-18 「좋아, 다 반영해주라」) — 값이 바뀌는 움직임은 레일 알약이 그 칸으로 미끄러지는 것이 맡음 · 쉴 때 화면 가림 = 스위치
+  for (const f of ["chat-font", "enter-key", "live-shine"]) assert.match(src(`ui/${f}.tsx`), /<PickRow /, f);
+  assert.match(src("ui/idle-blind.tsx"), /<SwRow /);
   assert.equal(src("home/follow-pulse.tsx").split("<DiffValue ").length - 1, 3);
   assert.match(src("ui/go-button.tsx"), /GoButton/);   // 저장 단추는 그대로
 });

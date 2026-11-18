@@ -3,9 +3,8 @@
 //   기본 = 영문 LEMONMILK(11-09 굵은 꼴 뺌 · Manrope 고를 수 있음) · 한글 Paperlogy(YETA 운영자 260708 「기본값으로」) · 끄면 Pretendard 스택 · 라틴 글꼴을 스택 앞에 = 라틴 글자만 그 글꼴, 한글은 다음 글꼴로
 //   적용 자리 = --app-font 를 html 에 · 대화창(.ychat · 말풍선·입력칸)만 그 스택을 씀(./yeta-chat.css) · 글꼴 파일 = YETA viewer/fonts 에서 쓰는 굵기만(./fonts · ./yeta-chat.css @font-face)
 //   앱 전체 Pretendard(형 11-04 10:40 「그것도 설정에서 선택할수잇게해줘. 하나의 옵션으루」 · 「전체 인앱에 일괄을 말하는거임」 · 에디터 카드 글꼴 = Pretendard Variable) = html[data-font-all] · 글꼴 파일 = 에디터와 같은 출처 /assets/fonts/pretendard.woff2(./font-all.css) · 저장 nm_font_all(이 기기)
+import { PickRow } from "./yset-rows";
 import { useState } from "react";
-import { DiffValue } from "./state-diff";   // 값 바뀜(형 11-15 State Diff)
-import { YICO } from "./yeta-icons";
 import "./font-all.css";
 
 type K = "latin" | "hangul";
@@ -40,35 +39,21 @@ export function applyChatFont() {
 applyChatFont();   // 앱이 이 파일을 읽을 때 한 번(YETA 와 같음 · 설정 판을 안 열어도 먹음)
 if (typeof matchMedia === "function") { try { matchMedia(PC_Q).addEventListener("change", applyChatFont); } catch { /* 옛 브라우저 = 다음에 열 때 */ } }   // 창 폭이 PC ↔ 폰 잣대를 넘나들면 기본값도 따라감
 
-/** 값 라벨 + 기본값에서 벗어났나(YETA ySetVal) */
-const valOf = (k: K): [string, boolean] => (k === "latin"
-  ? [({ manrope: "Manrope", lemonmilk: "LEMON MILK" } as Record<string, string>)[fontGet("latin")] || "Pretendard", fontGet("latin") !== "lemonmilk"]
-  : [fontGet("hangul") === "paperlogy" ? "Paperlogy" : "Pretendard", fontGet("hangul") !== "paperlogy"]);
-
-/** 설정 판 「글꼴」 칸 행 둘(YETA fontRow 꼴 · 누름 = 켜고 끄기 · 바로 적용·저장) */
+/** 설정 판 「글꼴」 칸 줄 셋 — 하나 고르기 레일(./yset-rows · 형 11-18 · 앞 = 누를 때마다 다음 글꼴로 넘어감) · 고르면 바로 적용 · 저장 */
 export function ChatFontRows() {
   const [, bump] = useState(0);
-  const row = (k: K, t: string) => {
-    const [v, mod] = valOf(k);
-    return (
-      <button key={k} type="button" className="yset-item" data-font={k}
-        onClick={() => { fontSet(k, k === "latin" ? LATIN[(Math.max(0, LATIN.indexOf(fontGet("latin") as (typeof LATIN)[number])) + 1) % LATIN.length] : (fontGet("hangul") === "paperlogy" ? "sys" : "paperlogy")); applyChatFont(); bump((x) => x + 1); }}>
-        <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k === "latin" ? "latin" : "hangul"] }} />
-        <span className="si-lbl"><span className="si-t">{t}</span></span>
-        <span className="si-v"><span className={`si-vt${mod ? " mod" : ""}`}><DiffValue value={v} /></span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
-      </button>
-    );
-  };
-  const all = allOn();
+  const all = allOn(), go = () => { applyChatFont(); bump((x) => x + 1); };
+  const latin = (LATIN as readonly string[]).includes(fontGet("latin")) ? fontGet("latin") : LATIN[0];
   return (
     <>
-      <button type="button" className="yset-item" data-font="all" aria-pressed={all}
-        onClick={() => { try { localStorage.setItem("nm_font_all", all ? "" : "pretendard"); } catch { /* 이번만 */ } applyChatFont(); bump((x) => x + 1); }}>
-        <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.type }} />
-        <span className="si-lbl"><span className="si-t">앱 전체 글꼴</span></span>
-        <span className="si-v"><span className={`si-vt${all ? " mod" : ""}`}><DiffValue value={all ? "Pretendard" : "기본"} /></span><span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></span>
-      </button>
-      {all ? null : <>{row("latin", "영문 폰트")}{row("hangul", "한글 폰트")}</>}
+      <PickRow id="font-all" ic="type" t="앱 전체 글꼴" options={[{ v: "base", t: "기본" }, { v: "pretendard", t: "Pretendard" }]} value={all ? "pretendard" : "base"}
+        onPick={(v) => { try { localStorage.setItem("nm_font_all", v === "pretendard" ? "pretendard" : ""); } catch { /* 이번만 */ } go(); }} />
+      {all ? null : <>
+        <PickRow id="font-latin" ic="latin" t="영문 폰트" options={LATIN.map((k) => ({ v: k as string, t: ({ manrope: "Manrope", lemonmilk: "LEMON MILK" } as Record<string, string>)[k] || "Pretendard" }))} value={latin}
+          onPick={(v) => { fontSet("latin", v); go(); }} />
+        <PickRow id="font-hangul" ic="hangul" t="한글 폰트" options={[{ v: "paperlogy", t: "Paperlogy" }, { v: "sys", t: "Pretendard" }]} value={fontGet("hangul") === "paperlogy" ? "paperlogy" : "sys"}
+          onPick={(v) => { fontSet("hangul", v); go(); }} />
+      </>}
     </>
   );
 }

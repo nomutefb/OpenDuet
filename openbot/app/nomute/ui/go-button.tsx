@@ -7,6 +7,7 @@
 //   wait = 보낸 뒤 실제로 먹었는지 더 볼 때(시계가 받음 등) — 그동안 빙글 · false 면 실패와 같은 길 · done = ✓ 를 보여 준 뒤(창 닫기·글자 접기는 여기서 = ✓ 가 안 잘림) · 줄임 모션 = ./go-button.css
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import "./go-button.css";
+import { buzz, sfx } from "./feel";   // 효과음 · 진동(설정에서 켠 때만 · ./feel.ts)
 import { flash } from "./flash";
 
 type Stage = "idle" | "fill" | "ok" | "wait" | "err";
@@ -51,13 +52,13 @@ export function GoButton<T>({ go, children, className = "", disabled, busy = "�
         if (!(await wait(res))) throw new Error("아직 반영 안 됨");
         if (!live.current) return;
       }
-      setSt("ok");
+      setSt("ok"); sfx("landed");
       await later(away ? QUICK_OK : OK);
       if (!live.current) return;
       setSt("idle"); done?.(res);
     } catch (e) {
       if (!live.current) return;
-      setWhy(e instanceof Error ? e.message : ""); setSt("err");
+      setWhy(e instanceof Error ? e.message : ""); setSt("err"); sfx("buzz"); buzz(12);
       await later(ERR);
       if (live.current) setSt((s) => (s === "err" ? "idle" : s));
     }

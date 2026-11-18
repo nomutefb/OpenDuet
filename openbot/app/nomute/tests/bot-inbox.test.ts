@@ -55,7 +55,7 @@ test("화면 = 새로 받아오는 것 0 · 움직임은 transform · opacity ·
   assert.match(ui, /if \(!ticking\) return undefined;/);
   assert.match(ui, /if \(!document\.hidden\) setNow\(Date\.now\(\)\)/);
   assert.match(flip, /it\.animate\(\[\{ transform: `translate\(\$\{dx\}px, \$\{dy\}px\)` \}, \{ transform: "none" \}\]/);
-  assert.match(flip, /prefers-reduced-motion: reduce/);
+  assert.match(flip, /lessStill\(\)/);   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(ui/less-move.ts still)
   assert.doesNotMatch(css.replace(/grid-template-rows \.34s|padding-bottom \.34s/g, ""), /transition:[^;]*(height|width|top|left|margin)/, "배치를 세는 움직임 = 펼침 한 곳만");
   assert.match(desk, /\["board", "일감"\], \["turn", "차례"\], \["meter", "계기판"\]\]/);
   assert.match(desk, /tab === "board" \? \(live \? <BotInbox t=\{t\} skills=\{skills\} now=\{now\} focus=\{sel\} \/>/);

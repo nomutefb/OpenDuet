@@ -1,0 +1,18 @@
+/* PIN 칸(./pin-cells.tsx) — 꼴 = nomutefb/bencho blocks/one-time-code/Otp.css(칸 36×44 · 사이 7 · 숫자가 아래서 올라와 앉음 otp-in · 숨쉬는 커서) · 가벼운 판(되풀이 틀 0 · 필터 0)
+   틀리면 줄이 흔들리고 비워짐(에디터 잠금 창 _pinShake 와 같은 뜻) · 색 = 그 화면 토큰 */
+.nm-pinc { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.nm-pinc-t { margin:0; font-size:var(--fs-sm, 14px); font-weight:var(--fw-b, 700); color:var(--fg, #fff); }
+.nm-pinc-row { position:relative; display:flex; gap:7px; height:44px; }
+.nm-pinc-cell { display:grid; place-items:center; width:36px; height:44px; border-radius:12px; background:var(--glass, rgba(255,255,255,.04)); box-shadow:inset 0 0 0 1px var(--glass-line, rgba(255,255,255,.1)); transition:box-shadow .16s ease; }
+.nm-pinc-row[data-focus] .nm-pinc-cell[data-at] { box-shadow:inset 0 0 0 1.5px rgba(var(--accent-rgb, 207,255,64),.75); }
+.nm-pinc-cell > b { width:9px; height:9px; border-radius:50%; background:var(--fg, #fff); animation:nmPinIn .3s cubic-bezier(.22,1,.36,1) both; }
+.nm-pinc-cell > i { width:2px; height:18px; border-radius:2px; background:var(--fg, #fff); animation:nmPinBreathe 1.1s ease-in-out infinite alternate; }
+.nm-pinc-row[data-shake] { animation:nmPinShake .62s cubic-bezier(.36,.07,.19,.97) both; }
+.nm-pinc-row[data-shake] .nm-pinc-cell > b { background:#e5484d; }
+.nm-pinc-in { position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0; border:0; opacity:0; font-size:16px; caret-color:transparent; cursor:text; }   /* 16px = 아이폰이 누를 때 화면을 안 키움 */
+.nm-pinc-msg { margin:0; min-height:1.3em; font-size:var(--fs-xs, 12px); color:#ff8a80; }
+.nm-pinc-foot { display:flex; gap:8px; }
+@keyframes nmPinIn { from { transform:translateY(45%) scale(.86); opacity:0; } }
+@keyframes nmPinBreathe { from { opacity:1; } to { opacity:.25; } }
+@keyframes nmPinShake { 10%, 90% { transform:translateX(-1px); } 20%, 80% { transform:translateX(3px); } 30%, 50%, 70% { transform:translateX(-5px); } 40%, 60% { transform:translateX(5px); } }
+@media (prefers-reduced-motion:reduce) { .nm-pinc-cell > b, .nm-pinc-cell > i, .nm-pinc-row[data-shake] { animation:none; } }

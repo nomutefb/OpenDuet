@@ -18,7 +18,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
   const root = document.documentElement, still = matchMedia("(prefers-reduced-motion: reduce)");
   const t0 = performance.now();
   let timer = 0, sought = -PULSE_SEEK_MS, leds: HTMLElement[] = [], rings: HTMLElement[] = [], wrote = new Set<HTMLElement>();
-  const resting = () => document.hidden || still.matches || root.classList.contains("nm-calm") || root.classList.contains("perf-no-leds");
+  const resting = () => document.hidden || still.matches || root.classList.contains("nm-lessmove") || root.classList.contains("nm-calm") || root.classList.contains("perf-no-leds");
   const wipe = () => { for (const e of wrote) { e.style.removeProperty("--led-o"); e.style.removeProperty("--live-t"); e.style.removeProperty("--live-on"); } wrote.clear(); };
   const seek = (now: number) => {
     sought = now;

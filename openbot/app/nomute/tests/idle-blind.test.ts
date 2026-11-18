@@ -10,7 +10,7 @@ test("보호기 = 10분 · 860 · 자리 그대로 이동 · isTrusted 아님 = 
   assert.match(s, /window\.innerWidth >= 860/);
   assert.match(s, /m\.screenX === px && m\.screenY === py\) return/);
   assert.match(s, /if \(!e\.isTrusted\) return;/);
-  assert.match(s, /on \? "10분" : "끔"/);
+  assert.match(s, /<SwRow ic="screen" t="쉴 때 화면 가림" on=\{on\} onFlip=\{setOn\} v="10분" \/>/);
   const side = readFileSync(new URL("../ui/side.tsx", import.meta.url), "utf8");
   assert.match(side, /SPLIT = "\(min-width: 860px\)"/, "반갈 문턱이 바뀌면 보호기 문턱도 같이");
 });

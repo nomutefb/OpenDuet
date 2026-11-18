@@ -3,12 +3,13 @@
 //   = 늘 인스타로 시작(「고정」 · 본 판을 기억하지 않음 = 홈에 다시 오면 · 앱을 1분 넘게 떠났다 오면 인스타) · 왼쪽 · 오른쪽 어느 쪽으로 밀어도 다른 판(둘뿐이라 한 바퀴) · 손가락을 따라오다 놓으면 가까운 쪽에 붙음(칸 폭 22% 넘김 · 빠른 튕김 = 넘어감)
 //   양옆 꺽쇠 = 옅은 흰(ui/chev.tsx 한 벌 · 누르면 그 방향으로 넘어감) · 두 판을 한 칸에 겹쳐 둠 = 칸 키가 큰 쪽으로 고정 → 넘겨도 아래 뉴스 카드가 안 밀림(./top-swap.css)
 //   앞 판(11-15 16:1x) = 러너 띠 + 팔로워 띠를 위아래로 다 보임 → 러너는 넘겨야 보임 · PC 반갈은 이 부품 안 씀(러너 = 왼쪽 위 · 팔로워 = 오른쪽 위 그대로)
+import { still as lessStill } from "../ui/less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import "./top-swap.css";
 import { type PointerEvent as RPE, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Chev } from "../ui/chev";
 
 const EASE = "cubic-bezier(.2,.8,.2,1)", MS = 320, START = 8, PASS = 0.22, FLING = 0.45, AWAY_MS = 60_000;   // 넘김 0.32초 · 8px 움직여야 넘김으로 봄(그 안 = 누름) · 폭 22% · 0.45px/ms · 앱을 1분 넘게 떠났다 오면 인스타
-const calm = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const calm = () => lessStill();
 type Grab = { id: number; x: number; y: number; dx: number; lock: boolean; px: number; pt: number; v: number };
 
 export function TopSwap({ main, side, mainLabel, sideLabel }: { main: ReactNode; side: ReactNode; mainLabel: string; sideLabel: string }) {

@@ -6,6 +6,7 @@
 //          ② 아이콘은 앞 자리에서 새 자리로 따라 옮김(FLIP) ③ 이름 = 옮기는 것이 아니라 번지며 나타남(재확인 단추와 같은 결 · ./go-button.css)
 //   움직임 = transform · opacity · filter 만(Web Animations · 합성 층 = 60fps · 배치는 탭을 누른 그 한 번만 셈) · 「움직임 줄이기」 = 바로
 //   탭 줄이 화면마다 새로 뜨는 자리(서랍 · 뉴스 에디터 = 길이 바뀌면 다시 그림)도 이어지게 = 마지막 자리(줄 이름마다)를 잠깐(0.6초) 기억
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import { type RefObject, useEffect, useLayoutEffect, useRef } from "react";
 
 type Snap = { on: number; x: number; ic: number[]; t: number };
@@ -31,7 +32,7 @@ export function useFoldInk(name: string, cur: string): RefObject<HTMLDivElement 
     if (!now) return;
     const kept = last.get(name), was = mine.current || (kept && Date.now() - kept.t < KEEP ? kept : null);
     mine.current = now.snap; last.set(name, now.snap);
-    const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const still = lessStill();
     if (!was || was.on === now.snap.on || was.on < 0 || now.snap.on < 0 || still || typeof now.ink.animate !== "function") return;
     const opt = { duration: MS, easing: EASE };
     now.ink.animate([{ transform: `translateX(${was.x}px)` }, { transform: `translateX(${now.snap.x}px)` }], opt);

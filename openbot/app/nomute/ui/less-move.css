@@ -1,0 +1,5 @@
+/* 움직임 줄이기(./less-move.ts · 설정 「화면 › 움직임 줄이기」) — 기기 설정(prefers-reduced-motion)과 같은 일을 앱 스위치로
+   되풀이 움직임 = 한 번만 · 길이 = 거의 0(끝 모양으로 바로 · animationend 는 그대로 옴) · 부드러운 스크롤 끔 — 정보는 남기고 움직임만 끔 */
+html.nm-lessmove *, html.nm-lessmove *::before, html.nm-lessmove *::after {
+  animation-duration:.001ms !important; animation-delay:0s !important; animation-iteration-count:1 !important;
+  transition-duration:.001ms !important; transition-delay:0s !important; scroll-behavior:auto !important; }

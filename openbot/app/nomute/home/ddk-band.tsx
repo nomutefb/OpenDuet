@@ -7,13 +7,14 @@
 //   23:17 형 「메인화면 열릴때 영상이 먼저떠서 어색한데 고쳐줘 영상이 좀 더 늦게 떠야해 로딩이 빨라.」 → 자리(640×170)는 처음부터 잡아 두되 안 보임 ·
 //   뉴스 카드 첫 판이 품은 화면에 간 뒤(news-feed onShown) 한 박자(LAG) 쉬고 나서야 영상을 받기 시작 · 첫 장면이 그려지면 스르륵(ddk-band.css .is-lit) ·
 //   카드가 끝내 안 오면 SLOW 뒤에 혼자 뜸 · 첫 장면 신호가 안 와도(아이폰 등) 받기 시작 뒤 LIT_MAX 면 포스터로 뜸.
+import { still as lessStill } from "../ui/less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import { useEffect, useState } from "react";
 import "./ddk-band.css";
 
 const V = 2;
 const FILE = `/garden-app/ddk.mp4?v=${V}`;
 const LAG = 800, SLOW = 6000, LIT_MAX = 1500;
-const still = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const still = () => lessStill();
 
 export function DdkBand({ show }: { show: boolean }) {
   const [go, setGo] = useState(false);

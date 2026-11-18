@@ -5,6 +5,7 @@
 //   못 그리는 때(WebGL 없음 · 셰이더 실패) = 그 자리에 css 진주 동그라미(.nm-pmorb-css) · 얼굴 사진으로 안 돌아감
 //   그림판을 잃음(폰이 뒤로 갔다 옴 · 다른 그림판에 밀림) = 잠깐 css 동그라미 → 브라우저가 돌려주면(webglcontextrestored) 셰이더 다시
 //   (형 11-18 18:08 dm-gik 깃 옮김 「깃아 우하단 pm 얽굴 그 기하학 동그라미로 바뀌게래놧는데 적용 풀린듯」 · 앞 판 = 잃은 그림판 한 번에 영영 얼굴 사진)
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import { useEffect, useRef, useState } from "react";
 import { PM_ORB_FRAG, PM_ORB_VERT } from "./pm-orb-shader";
 
@@ -32,7 +33,7 @@ export function PmOrb({ onFail }: { onFail?: () => void }) {
     const loc = g.getAttribLocation(prog, "p");
     g.enableVertexAttribArray(loc); g.vertexAttribPointer(loc, 2, g.FLOAT, false, 0, 0);
     const uR = g.getUniformLocation(prog, "R"), uT = g.getUniformLocation(prog, "T");
-    const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const still = lessStill();
     let raf = 0, live = true, seen = true, time = 0, last = 0, touched = Date.now();
     const fit = () => { const w = Math.max(1, Math.round(c.clientWidth * Math.min(DPR_MAX, window.devicePixelRatio || 1))); if (c.width !== w || c.height !== w) { c.width = w; c.height = w; } g.viewport(0, 0, w, w); g.uniform2f(uR, w, w); };
     const run = () => live && seen && !document.hidden && !still && Date.now() - touched < IDLE_MS;

@@ -8,5 +8,5 @@ test("안 고른 PC = 켬 · 끈 PC = 꺼짐 · 폰 기본 = 앞과 같음 · �
   const on = (saved: string | null, pc: boolean) => saved === "pretendard" || (saved === null && pc);   // .tsx 는 node 가 못 읽음 = 같은 셈을 글자로 못 박고 여기서 한 번 더
   assert.equal(on(null, true), true); assert.equal(on(null, false), false); assert.equal(on("", true), false); assert.equal(on("pretendard", false), true);
   assert.match(s, /const PC_Q = "\(min-width: 860px\)";/);   // PC 두 칸 잣대(side.tsx SPLIT)와 같은 값
-  assert.match(s, /localStorage\.setItem\("nm_font_all", all \? "" : "pretendard"\)/);   // 끄기 = 빈 값 저장(없음과 다름 = 기본으로 안 돌아감)
+  assert.match(s, /localStorage\.setItem\("nm_font_all", v === "pretendard" \? "pretendard" : ""\)/);   // 끄기 = 빈 값 저장(없음과 다름 = 기본으로 안 돌아감)
 });

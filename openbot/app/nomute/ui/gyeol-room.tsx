@@ -3,6 +3,7 @@
 //   규칙 = 원본 그대로: 올린 시각 최신 순 · 소리 나는 곡 12개씩 「더 보기」 · 가사만 곡(hypo) = 맨 아래 「가사만 N곡」 접은 칸 · 올림 꼴 틀린 것 8개까지 맨 위
 //     곡 = 제목 · git/gl · 실험 · ★ · 올림·길이·Suno·id · 음원(R2) · 뮤비(git 먼저 · 못 받으면 alt · 포스터 없으면 첫 장면) · 만드는 중 · 실패 사유 · 가사(접힘)
 //   원본과 다른 점: 곡 바로가기 = 주소 #<UUID> 대신 #/gyeol?s=<UUID>(앱 길이 해시를 씀) · 링크(Suno) = 앱 안 한 겹(./inapp.ts 가 받음)
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import { readFail } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import "./yeta-settings.css";
 import "./chan.css";
@@ -64,7 +65,7 @@ export function GyeolModal() {
   useEffect(() => {
     if (!hit) return;
     const el = document.getElementById("gy-s-" + hit);
-    el?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    el?.scrollIntoView({ behavior: lessStill() ? "auto" : "smooth", block: "start" });
   }, [hit, shown, fold]);
   const mvn = all.filter((s) => (s.mv || []).some((m) => m.status === "done")).length;
   const bad = room.bad || [];

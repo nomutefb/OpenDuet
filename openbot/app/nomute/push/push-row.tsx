@@ -52,7 +52,7 @@ export function PushRow() {
   const d = st === "blocked" ? "막힘 — 앱 아이콘 꾹 → 앱 정보 → 알림 → 허용" : st === "none" ? "이 브라우저는 알림을 못 받아" : "";   // 켜짐·꺼짐·바꾸는 중 뺌 = 토글이 말함(형 11-03 17:27 「이런곳에 꺼짐. 이런거는 있을필요없어 애초에 토글이 있으니까.」) · 형이 손댈 길(막힘)·못 받음만 남김
   return (
     <button type="button" className={`yset-item${st === "on" ? " on" : ""}`} onClick={() => void flip()} aria-pressed={st === "on"} aria-busy={st === "busy" || undefined}>
-      <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.bell }} />
+      <span className="si-ic" data-ic="bell" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.bell }} />
       <span className="si-lbl"><span className="si-t">알림</span>{err || d ? <span className="si-d" role={err ? "alert" : undefined}>{err || d}</span> : null}</span>
       <span className="si-sw" aria-hidden />
     </button>

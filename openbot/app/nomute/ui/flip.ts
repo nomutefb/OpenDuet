@@ -2,6 +2,7 @@
 //   형 11-16 03:0x 영상(「Agent inbox」 = 카드가 칸 사이를 날아 옮김 · 보드 ↔ 목록도 같은 카드가 제자리로)
 //   배치는 한 번에 끝난 뒤(뒤 값), 앞 자리와의 차이만큼 transform 으로 되돌렸다가 0 으로 — 움직임 = transform · opacity · filter 만(Web Animations · 합성 층)
 //   sig = 배치가 달라지는 때만 바뀌는 글자(카드 차례 · 칸 · 보기) — 초가 차오르는 다시 그림에는 안 돎 · 「움직임 줄이기」 = 0
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import { type RefObject, useLayoutEffect, useRef } from "react";
 
 const EASE = "cubic-bezier(.22,1,.36,1)", MS = 480;
@@ -18,7 +19,7 @@ export function useFlip(sig: string): RefObject<HTMLDivElement | null> {
     for (const it of items) { const r = it.getBoundingClientRect(); now.set(it.dataset.flip || "", { x: r.left, y: r.top + el.scrollTop }); }
     const old = was.current;
     was.current = now;
-    if (!old || (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    if (!old || lessStill()) return;
     for (const it of items) {
       if (typeof it.animate !== "function") return;
       const k = it.dataset.flip || "", a = old.get(k), b = now.get(k)!;

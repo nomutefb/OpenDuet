@@ -7,7 +7,14 @@
 //   11-17 03:24 형(구름 맥 창) 「설정.부분도 보완점 없는지 넓게 보구 동의할테니 진행해」 = 일이 도는 자리에 있는 것은 그 자리로(스케줄러 바꾸기 · 점검표 · AI 썸네일 옵션 → 스케줄 화면 ./sched-extra.tsx / 회의실 계기판 → 애들 화면 「계기판」 탭) · 여긴 가는 길 두 줄만 · 「살펴보기」 묶음 걷음 · 고정 줄 색 → 「화면」 묶음 안 · 자물쇠 그림
 import "./yeta-settings.css";
 import { BlindRows } from "./idle-blind";
-import { type ReactNode, Suspense, lazy, useState } from "react";
+import { type ReactNode, Suspense, lazy, useEffect, useState, useSyncExternalStore } from "react";
+import { UA_MAP, uaPlay, uaWarm } from "./ua-play";
+import { feelWatch, hapIsOn, setHap, setSfx, sfxIsOn } from "./feel";
+import { wipeCache } from "./cache-wipe";
+import { flash } from "./flash";
+import { lessMoveOn, lessMoveWatch, setLessMove, still } from "./less-move";
+import { MorphAsk } from "./morph-ask";
+import { PickRow, SwRow } from "./yset-rows";
 const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModal })));   // 화면 잠금 · 구독 기기 = 서랍에서 설정으로(형 11-14 「화면 잠금 > 설정으로」 · 「구독 기기 > 설정으로」)
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));
 const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 구독 채널 = 서랍 「뉴스」에서 설정 「알림 · 구독」으로(형 11-14 「구독채널은 설정으로 보내서 관련된거랑 가능하면 기능 합치고」 · 화면 = 그대로 ./snsacc)
@@ -31,14 +38,14 @@ import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「�
 import { YICO, type YIcon } from "./yeta-icons";
 import { setSkin, useSkin } from "./skin";   // 꾸밈 지금 / 정원(형 11-07 08:01 「지금테마랑 정원테마 고를 수 있게해줘」)
 
-const Svg = ({ k, className }: { k: YIcon; className?: string }) => <span className={className} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
+const Svg = ({ k, className }: { k: YIcon; className?: string }) => <span className={className} data-ic={k} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[k] }} />;
 const THEME: { v: ThemePreference; t: string }[] = [{ v: "system", t: "폰 따라" }, { v: "light", t: "밝게" }, { v: "dark", t: "어둡게" }];
 
 /** YETA act 행 — [픽토][제목·설명][값·꺾쇠] · 펼침 칸이 있으면 aria-expanded */
 function Act({ ic, t, d, v, vt, mod, open, onClick }: { ic: YIcon; t: string; d?: ReactNode; v?: string; vt?: boolean; mod?: boolean; open?: boolean; onClick: () => void }) {
   return (
     <button type="button" className="yset-item" aria-expanded={open} onClick={onClick}>
-      <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO[ic] }} />
+      <span className="si-ic" data-ic={ic} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[ic] }} />
       <span className="si-lbl"><span className="si-t">{t}</span>{d ? <span className="si-d">{d}</span> : null}</span>
       <span className="si-v">{v ? (vt ? <span className={`si-vt${mod ? " mod" : ""}`}><DiffValue value={v} /></span> : <i className="si-vv"><DiffValue value={v} /></i>) : null}<Svg k="chev" /></span>
     </button>
@@ -49,14 +56,29 @@ function Act({ ic, t, d, v, vt, mod, open, onClick }: { ic: YIcon; t: string; d?
 function Info({ ic, t, d, v }: { ic: YIcon; t: string; d?: string; v?: string }) {
   return (
     <button type="button" className="yset-item ro" aria-disabled="true">
-      <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO[ic] }} />
+      <span className="si-ic" data-ic={ic} aria-hidden dangerouslySetInnerHTML={{ __html: YICO[ic] }} />
       <span className="si-lbl"><span className="si-t">{t}</span>{d ? <span className="si-d">{d}</span> : null}</span>
       <span className="si-v">{v ? <i className="si-vv"><DiffValue value={v} /></i> : null}</span>
     </button>
   );
 }
 
+/** 누른 줄의 아이콘 한 번 재생 — 줄(.yset-item) 안 첫 픽토 · 묶음 꺾쇠(.si-v) 말고 · 짝 없으면 아무 일 없음 */
+function playIcon(e: { target: EventTarget | null }) {
+  const row = (e.target as Element | null)?.closest?.(".yset-item, .yset-ttl");
+  const ic = row?.querySelector<HTMLElement>(".si-ic[data-ic], :scope > [data-ic]") || (row?.matches(".yset-ttl") ? row.querySelector<HTMLElement>("[data-ic]") : null);
+  if (!ic) return;
+  uaPlay(ic.querySelector("svg"), UA_MAP[ic.dataset.ic as YIcon]);
+}
+
 export function YetaSettings() {
+  useEffect(() => {   // 엔진 + 자료 = 설정을 연 뒤 한가할 때 한 번(안 열면 0 · 움직임 줄이기면 안 받음)
+    if (still()) return undefined;
+    const idle = (window as unknown as { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    const t = idle ? 0 : window.setTimeout(() => void uaWarm(), 1200);
+    if (idle) idle(() => void uaWarm(), { timeout: 3000 });
+    return () => window.clearTimeout(t);
+  }, []);
   const { preference, setPreference } = useTheme();
   const skin = useSkin();
   const [open, setOpen] = useState("");
@@ -64,6 +86,8 @@ export function YetaSettings() {
   const theme = THEME.find((x) => x.v === preference) || THEME[0];
   const noticeMeta = useNoteMeta("notice");   // 「판 24 · 11-17」 = 칸 밖(줄 오른쪽)
   const pinA = usePinAlpha();   // 고정 줄 색 진하기 = 줄 오른쪽 값(./pin-tint)
+  const lessMove = useSyncExternalStore(lessMoveWatch, lessMoveOn, () => false);
+  const feelKey = useSyncExternalStore(feelWatch, () => `${sfxIsOn() ? 1 : 0}${hapIsOn() ? 1 : 0}`, () => "01"), feel = { sfx: feelKey[0] === "1", hap: feelKey[1] === "1" };
   const row = (id: string, ic: YIcon, t: string, body: ReactNode, v?: string) => [   // 줄 밑 설명 뺌(형 11-02 08:1x 「옆에 설명글은 빼줘」)
     <Act key={id} ic={ic} t={t} v={v} open={open === id} onClick={() => setOpen((o) => (o === id ? "" : id))} />,
     open === id ? <div key={id + ":open"} className="yset-open">{body}</div> : null,
@@ -79,7 +103,7 @@ export function YetaSettings() {
   ];
   return (
     <Pane title="설정">
-      <div className="yeta-set mt-2">
+      <div className="yeta-set mt-2" onClickCapture={playIcon}>   {/* 줄을 누르면 그 줄 아이콘이 한 번 움직임(./ua-play.ts · 에디터 nm-ua.js 와 같은 한 곳 위임) */}
         <span className="ycd-nm yset-ttl"><Svg k="gear" />설정</span>
         <section className="yset-part" aria-label="화면·입력">
           <div className="yset-sec">화면·입력</div>
@@ -88,14 +112,14 @@ export function YetaSettings() {
             {/* 한 줄로 더 묶음(형 11-17 07:09 dm-bom 「설정에 묶을 수 있거나 불필요한 내용 있는지 … 가능한 묶고」 · 봄이 정함: 화면 + 글꼴 + 입력 · 표시 = 한 줄 · 안에서 세 묶음 머리 · 칸은 그대로) */}
             {group("look", "contrast", "화면 · 글꼴 · 입력", `${theme.t} · ${skin === "garden" ? "정원" : "지금"}`, <>
               <div className="yset-kidh">화면</div>
-              <Act ic="contrast" t="테마" v={theme.t} vt mod={theme.v !== "system"}
-                onClick={() => setPreference(THEME[(THEME.indexOf(theme) + 1) % THEME.length].v)} />
-              <Act ic="screen" t="꾸밈" v={skin === "garden" ? "정원" : "지금"} vt mod={skin === "garden"}
-                onClick={() => {   // 정원 = 밝은 꾸밈이라 어둡게였으면 밝게로 같이(정원 CSS 는 :not(.dark) 에서만 먹음)
-                  const next = skin === "garden" ? "now" : "garden";
+              {/* 하나 고르기 = 레일(./yset-rows PickRow · 형 11-18 「좋아, 다 반영해주라」 · 앞 = 누를 때마다 다음 값) */}
+              <PickRow id="theme" ic="contrast" t="테마" options={THEME.map((x) => ({ v: x.v as string, t: x.t }))} value={theme.v} onPick={(v) => setPreference(v as ThemePreference)} />
+              <PickRow id="skin" ic="screen" t="꾸밈" options={[{ v: "now", t: "지금" }, { v: "garden", t: "정원" }]} value={skin === "garden" ? "garden" : "now"}
+                onPick={(next) => {   // 정원 = 밝은 꾸밈이라 어둡게였으면 밝게로 같이(정원 CSS 는 :not(.dark) 에서만 먹음)
                   if (next === "garden" && document.documentElement.classList.contains("dark")) setPreference("light");
-                  setSkin(next);
+                  setSkin(next as "now" | "garden");
                 }} />
+              <SwRow ic="gauge" t="움직임 줄이기" on={lessMove} onFlip={setLessMove} />   {/* 기기 설정을 안 켜도 이 앱만 조용히(./less-move.ts) */}
               {sub("pintint", "layers", "고정 줄 색", <PinTintSetting />, `${pinA}%`)}   {/* 고정 줄 바탕 진하기(형 11-14 23:39 「설정에서 변경하게 만들어도 돼 값을 투명도」 · ./pin-tint · 뜸) — 보이는 꼴이라 「화면」 묶음으로(11-17) */}
               <div className="yset-kidh">글꼴</div>
               <ChatFontRows />
@@ -103,10 +127,15 @@ export function YetaSettings() {
               <EnterKeyRow /><ThinkMarkRow />
             </>)}
             {group("alert", "bell", "알림 · 구독", undefined, <>   {/* 받는 것 한 묶음 = 알림 켜기 · 받는 기기 · 받아 오는 채널 · 받은 알림 */}
+              <div className="yset-kidh">알림</div>
               <PushRow />
               <TeamsNotiRows />
-              <div className="yset-item yset-acct"><span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chat }} /><span className="si-lbl"><span className="si-t">팀즈 계정</span></span><span className="si-v"><TeamsAccount /></span></div>   {/* 「팀즈」 줄(로그아웃 하나뿐)을 여기로 — 이름 · 로그아웃(봄 11-17) */}
+              <div className="yset-item yset-acct"><span className="si-ic" data-ic="chat" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chat }} /><span className="si-lbl"><span className="si-t">팀즈 계정</span></span><span className="si-v"><TeamsAccount /></span></div>   {/* 「팀즈」 줄(로그아웃 하나뿐)을 여기로 — 이름 · 로그아웃(봄 11-17) */}
                 {/* 팀즈 알림 폰 · PC 따로(깃 #-032 · 폰 기본 끔) */}
+              <div className="yset-kidh">소리 · 진동</div>   {/* 예타 원본 「소리 · 진동」 줄을 정원에(./feel.ts) — 효과음 = 기본 끔 · 진동 = 기본 켬 */}
+              <SwRow ic="speaker" t="효과음" on={feel.sfx} onFlip={setSfx} />
+              <SwRow ic="radio" t="진동" on={feel.hap} onFlip={setHap} />
+              <div className="yset-kidh">구독</div>
               {sub("pushdevs", "bell", "구독 기기", <Suspense fallback={WAIT}><PushDevsModal /></Suspense>)}
               {sub("snsacc", "users", "구독 채널", <Suspense fallback={WAIT}><SnsAccModal /></Suspense>)}
               <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
@@ -131,6 +160,7 @@ export function YetaSettings() {
           <div className="yset-sec">기록·정보</div>
           <div className="yset-grp">
             {/* 옛 그록 대화 줄 걷음 = 조회는 서버 문(GET /api/office/old · 봇 · 형 문 그대로)으로 살림(형 11-17 12:25 dm-bom 봄 옮김 「봄 옛 그록 대화는 조회만 되면 되고 안보여도 돼」) */}
+            <div className="yset-item yset-acct"><span className="si-ic" data-ic="data" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.data }} /><span className="si-lbl"><span className="si-t">캐시 비우기</span></span><span className="si-v"><CacheWipe /></span></div>   {/* 예타 원본 「캐시 비우기」 — 이 기기에 담아 둔 지난 화면 값 · 받아 둔 앱 조각만(설정 · 쓰던 글 · 알림 구독은 그대로) */}
             <Info ic="info" t="지금 판" d={build.fresh ? `새 판 있음(${build.fresh})` : undefined} v={build.now} />   {/* 설명 꼬리 뺌 · 판이 저절로 안 바뀜(새 판 알약 누름) — 새 판 때만 남김(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
             {/* 원본 「키보드 단축키」 = 키보드 있는 화면(md~)만 · 읽기만(원본 그대로 · 바꿀 수 없음) */}
             <div className="hidden md:block">{HOTKEYS.map((h) => <Info key={h.id} ic="keys" t={h.label} v={formatHotkey(h.combo).join(" ")} />)}</div>
@@ -144,12 +174,18 @@ export function YetaSettings() {
 /** 팀즈 알림 두 줄(폰 · PC) — 형 11-15 05:20 「기본값이 모바일은 알람 안뜨기로 … pc랑 개별로 설정되서 토글되도록」 · 이 기기에 기억 */
 function TeamsNotiRow({ k, t }: { k: TeamsNotiKind; t: string }) {
   const on = useTeamsNoti(k);
-  return (
-    <button type="button" className={`yset-item${on ? " on" : ""}`} aria-pressed={on} onClick={() => setTeamsNoti(k, !on)}>
-      <span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.bell }} />
-      <span className="si-lbl"><span className="si-t">{t}</span></span>
-      <span className="si-sw" aria-hidden />
-    </button>
-  );
+  return <SwRow ic="bell" t={t} on={on} onFlip={(v) => setTeamsNoti(k, v)} />;
+}
+
+/** 캐시 비우기 — 그 자리 재확인(./morph-ask) → ./cache-wipe.ts · 지운 뒤 새로 받음 */
+function CacheWipe() {
+  const [busy, setBusy] = useState(false);
+  const go = () => {
+    setBusy(true);
+    wipeCache(localStorage, () => (typeof caches === "undefined" ? Promise.resolve([]) : caches.keys()), (n) => caches.delete(n))
+      .then((n) => { flash(`캐시 ${n}개 비웠어 — 새로 받는 중`, "ok", 1400); window.setTimeout(() => location.reload(), 900); },
+        (e: unknown) => { setBusy(false); flash(`캐시를 못 비웠어 — 다시 눌러 줘${e instanceof Error && e.message ? ` (${e.message})` : ""}`); });
+  };
+  return <div className="nm-tacct"><MorphAsk yesText="비우기" label="캐시 비우기" disabled={busy} onYes={go}>비우기</MorphAsk></div>;
 }
 function TeamsNotiRows() { return <><TeamsNotiRow k="phone" t="팀즈 알림 · 폰" /><TeamsNotiRow k="pc" t="팀즈 알림 · PC" /></>; }

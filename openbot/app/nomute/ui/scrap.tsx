@@ -8,6 +8,7 @@
 //   이 기기 기록 = 에디터와 같은 열쇠(같은 사이트라 같이 감): nm_ratings · nomute_grade_fix · nm_merges(_ts·_pend) · nm_fail_retries · nm_fail_requeue · nomute_pickfail_seen·_resolved·_resub · nomute_q_cancelled(읽기만)
 //   원본과 다른 점: 검색칸 없음(서랍 「검색」 = 뉴스 요약) · 폰 뒤로가기 = 묶기 취소 대신 창 닫힘 · PICKED·요약된 카드 = 앱 안 기사 한 장(#/news) · 원문 = 앱 안 한 겹
 //     · AI 묶음(group_id) 숫자 풀기 = 원본은 아무것도 안 풀고 「해제했어」 → 여기선 풀 손 묶음이 없다고 말함 · 길게 누른 뒤 손 뗀 탭은 시간과 상관없이 삼킴(원본 350ms)
+import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기기 설정 또는 앱 스위치(설정 › 화면)
 import "./yeta-settings.css";
 import "./chan.css";
 import "./scrap.css";
@@ -895,7 +896,7 @@ export function ScrapModal() {
   useEffect(() => { if (merge && !CANDS.some((c) => candId(c) === merge.a)) setMerge(null); }, [B, merge]);   // 기준이 후보에서 사라짐 = 끝(원본 유령 박스 차단)
 
   const runFx = (id: string, after: () => void) => {   // 게이지 차오름 0.74초 → ✓ 0.44초 → 다음 그림(원본 sc-got firing → okdone)
-    const red = matchMedia("(prefers-reduced-motion:reduce)").matches;
+    const red = lessStill();
     setFx((m) => ({ ...m, [id]: "fill" }));
     setTimeout(() => { setFx((m) => (m[id] ? { ...m, [id]: "ok" } : m)); setTimeout(() => { setFx((m) => { const n = { ...m }; delete n[id]; return n; }); after(); }, red ? 60 : 440); }, red ? 90 : 740);
   };
