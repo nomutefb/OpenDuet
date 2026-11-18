@@ -1,0 +1,13 @@
+/* 러버밴드 게이지(./rbs-gauge.tsx) — 원본 = nomutefb/editor viewer/nm-shared.css 「.nm-rbs」 그대로(수치 = kinetics «Rubber-band Slider» 동값 · 트랙 6 · 손잡이 18 · 누름 높이 32 · 스프링 .5s)
+   바꾼 것 = 이름(.nm-rbg — 카드 제작 칸의 .nm-tm .nm-rbs 와 안 겹치게) · 트랙 바탕 = 그 화면 유리 선(밝은 테마에서도 보이게 · 없으면 원본 값) */
+.nm-rbg { position:relative; display:block; flex:1 1 auto; min-width:0; height:32px; touch-action:pan-y; cursor:pointer; -webkit-tap-highlight-color:transparent; --p:.5; }
+.nm-rbg > .nm-rbg-in { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; pointer-events:none; }
+.nm-rbg-track { position:absolute; left:0; right:0; top:50%; height:6px; margin-top:-3px; border-radius:var(--r-pill, 999px); background:var(--glass-line, rgba(255,255,255,.08)); }
+.nm-rbg-fill { position:absolute; inset:0; border-radius:inherit; background:var(--accent, #CFFF40); transform-origin:left center; transform:scaleX(var(--p)); }
+.nm-rbg-knob { position:absolute; left:0; right:0; top:50%; height:0; transform:translateX(calc((var(--p) - 1) * 100%)); pointer-events:none; }
+.nm-rbg-knob::after { content:""; position:absolute; right:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--fg, #fff); box-shadow:0 1px 4px rgba(0,0,0,.45); transition:transform var(--dur-fast, .15s) ease; }
+.nm-rbg.drag .nm-rbg-knob::after { transform:scale(var(--gauge-pop, 1.15)); }
+.nm-rbg.snap .nm-rbg-fill, .nm-rbg.snap .nm-rbg-knob { transition:transform .5s cubic-bezier(.34,1.56,.64,1); }
+.nm-rbg:not([data-ptr]):has(> .nm-rbg-in:focus-visible) { outline:2px solid rgba(var(--accent-rgb, 207,255,64),.6); outline-offset:4px; border-radius:var(--r-s, 8px); }
+.nm-rbg:has(> .nm-rbg-in:disabled) { opacity:.4; cursor:default; }
+@media (prefers-reduced-motion:reduce) { .nm-rbg.snap .nm-rbg-fill, .nm-rbg.snap .nm-rbg-knob { transition:none; } .nm-rbg.drag .nm-rbg-knob::after { transform:none; } }
