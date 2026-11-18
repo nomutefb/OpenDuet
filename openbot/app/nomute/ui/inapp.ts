@@ -76,10 +76,22 @@ export function openInApp(raw: string, base?: string): boolean {
   return true;
 }
 
-/** #/web 의 u → iframe 에 넣을 주소(퍼가기 바꿈) · 같은 출처 = 경로 그대로 */
+/** 순수 — 구글 첫 화면 · 검색(google.com · www · 경로 / · /webhp · /search)이면 igu=1 붙인 주소(구글이 끼워 보기용으로 열어 둔 꼴 = X-Frame-Options 없음 · 깃 11-18 16:59 실측) · 아니면 null(지메일 · 드라이브 등은 그대로 막힘)
+ *  형 11-18 16:57 dm-gik 「깃 이거, 구글 연결되는 방법 찾아와줘.」 */
+export function googleFrame(raw: string): string | null {
+  let u: URL;
+  try { u = new URL(raw); } catch { return null; }
+  if (!/^https?:$/.test(u.protocol) || !/^(www\.)?google\.com$/i.test(u.hostname) || !/^\/(webhp|search)?$/.test(u.pathname)) return null;
+  if (u.pathname === "/") u.pathname = "/webhp";
+  u.protocol = "https:"; u.hostname = "www.google.com";
+  u.searchParams.set("igu", "1");
+  return u.href;
+}
+
+/** #/web 의 u → iframe 에 넣을 주소(퍼가기 바꿈 · 구글 = igu=1) · 같은 출처 = 경로 그대로 */
 export function frameUrl(u: string): string {
   for (const [re, to] of EMBED) { const m = u.match(re); if (m) return to(m[1]); }
-  return u;
+  return googleFrame(u) ?? u;
 }
 
 /** 누른 링크가 앱 밖으로 나가는 꼴이면 앱 안으로(target=_blank·_top · 남의 사이트 · 앱 문서에선 /garden-app/ 밖 길) — 다른 손이 이미 막은 클릭·꾹 누름 조합·내려받기는 그대로 */
