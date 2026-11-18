@@ -265,7 +265,7 @@ export function NomuteBuild() {
 
 /** 보안 서랍(빠르 11-15 · 깃 #-020 · 형 11-14 23:42 「자리 1 2 3을 토큰 키 처럼 각각 클립보드 복사 가능하게 설정에 만들어놓으셈」 · 23:56 ✓ ① 처음 한 번 붙여 넣기 → 그 뒤 복사만)
  *  값은 화면에 안 그림 · 넣기 = 서버가 암호화해 둠 + 그 자리 열쇠가 맞는지 「맞음 · 틀림」 · 복사 = 누를 때만 서버에서 받아 클립보드 · 형 문만(봇 열쇠 = 403) */
-type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null; hint?: string | null; who?: string | null; id?: string | null };   // who · id = 지금 그 자리를 쓰는 이름 · 자리 id(서버 editor #3964 · 형 11-16 07:5x)   // hint = 서버가 가려서 준 꼴(앞 몇 글자 + *** + 끝 두 글자 · editor _seatvault.js maskOf) — 값 자체는 「복사」 때만
+type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null; hint?: string | null; who?: string | null; id?: string | null; memo?: string };   // memo = 예비 자리 이름표(계정 · 비밀값 아님 · 서버가 칸을 주는 자리만 · 빠르 editor fast/vault-memo · 형 11-18 13:32 dm-gik 「예비 02, 03에 예비 자리에는 아래에 기입해서 저장가능한 텍스트 박스 넣어주고」)   // who · id = 지금 그 자리를 쓰는 이름 · 자리 id(서버 editor #3964 · 형 11-16 07:5x)   // hint = 서버가 가려서 준 꼴(앞 몇 글자 + *** + 끝 두 글자 · editor _seatvault.js maskOf) — 값 자체는 「복사」 때만
 /** 서랍 실패 까닭 = 입력 · 회선 · 앱 셋을 섞지 않음(하네스 §오류 3분류 · 서버 why 는 그대로) */
 const vaultWhy = (e: unknown, fall: string) => {
   const m = e instanceof Error ? e.message : "";
@@ -276,6 +276,8 @@ export function NomuteVault() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["nomute", "seatvault"], queryFn: () => office<{ seats: VaultSeat[] }>("seatvault").then((j) => j.seats || []), staleTime: 60_000 });
   const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [done, setDone] = useState("");
+  const [memo, setMemo] = useState<Record<string, string>>({});   // 이름표 글칸(고치는 중) · 없으면 서버 값
+  const saveMemo = (seat: string, v: string) => office<{ ok?: boolean; memo?: string }>("seatvault/memo", { method: "POST", body: JSON.stringify({ seat, memo: v }) });
   const put = useMutation({
     mutationFn: (v: { seat: string; value: string }) => office<{ match: boolean }>("seatvault", { method: "POST", body: JSON.stringify(v) }),
     onSuccess: (j, v) => { setDraft((d) => ({ ...d, [v.seat]: "" })); setNote((n) => ({ ...n, [v.seat]: j.match ? "넣었어 · 열쇠 맞음" : "넣었어 · 이 자리 열쇠와 안 맞아(다시 확인)" })); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); },
@@ -318,6 +320,16 @@ export function NomuteVault() {
                   </span>
                 </button>
               </div>
+              {s.memo !== undefined ? (() => {   /* 이름표 = 한 줄 글칸 + 저장(형 11-18 13:32 「아래에 기입해서 저장가능한 텍스트 박스」) · 저장 → ✓(GoButton) → 다시 받기 */
+                const v = memo[s.seat] ?? s.memo ?? "", changed = v.trim() !== (s.memo || "").trim(), long = v.length > 200;
+                return (
+                  <div className="flex items-center gap-2">
+                    <input id={`vault-memo-${s.seat}`} type="text" autoComplete="off" spellCheck={false} maxLength={200} placeholder="이 자리 이름표(계정 등)" aria-label={`${s.seat} 이름표`} value={v}
+                      onChange={(e) => setMemo((m) => ({ ...m, [s.seat]: e.target.value }))} className="min-h-10 min-w-0 flex-1 rounded-lg border border-border bg-transparent px-2.5 text-sm normal-case" />
+                    <GoButton disabled={!changed || long} go={() => saveMemo(s.seat, v.trim())} done={() => { setMemo((m) => { const n = { ...m }; delete n[s.seat]; return n; }); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); }} className="min-h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">저장</GoButton>
+                  </div>
+                );
+              })() : null}
               {!s.set ? (   /* 새 열쇠 = 되묻는 창(모달) 대신 그 자리 재확인(형 「항상 그냥 re 토글로만」 · ./morph-ask.tsx) */
                 <MorphAsk className="-my-2 self-start py-3 text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40" disabled={mint.isPending} yesText="만들기" note="앞 열쇠는 꺼져" label={`${s.seat} 새 열쇠 만들기`} onYes={() => mint.mutate(s.seat)}>새 열쇠 만들기</MorphAsk>
               ) : null}
