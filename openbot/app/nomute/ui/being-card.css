@@ -879,17 +879,234 @@
   transform: translate3d(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6), 0);
 }
 
-/* ───────── 이슬 💧 · 전신 그림 통째(being-card.tsx LOOKS dew · 형 11-18 16:25 「프로필 카드는 2활용해서」 · 꼴 = 감 그대로 · 천둥) ───────── */
-.being-card-wrap .bc-dew .profile-card__body { background: linear-gradient(170deg, rgba(64, 150, 230, 0.93) 0%, rgba(20, 52, 110, 0.96) 100%); }
-.being-card-wrap .bc-dew .profile-card__tile { background: #2f86d6; }
-.being-card-wrap .bc-dew .profile-card__photo,
-.being-card-wrap .bc-dew .bc-halo { display: none; }   /* 둥근 얼굴 대신 그림이 주인공 */
-.being-card-wrap .bc-dew .profile-card__scrim { background: linear-gradient(to top, rgba(8, 20, 44, 0.86) 0%, rgba(8, 20, 44, 0.5) 22%, rgba(8, 20, 44, 0) 42%); }   /* 이름 · 소개가 그림 위에서 읽히게 */
-.bc-dew .bc-hero {
-  inset: -4%;
-  background: url(/office/dew-card.webp?v=1) 50% 0% / cover no-repeat;
-  transform: translate3d(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6), 0);
+/* ───────── 이슬 💧 · 새벽 물가(깊은 남색 → 물빛 파랑 → 맑은 하늘색 → 지평선 연분홍) · 앱 연두 가는 테 · 물결 고리 + 잎 끝에 맺혀 떨어지는 이슬 ─────────
+   형 11-19 00:19 「뜸이 이슬이 플필카드 다른 시아랑 동급으로 꾸며줘」 · 「크리에이터 아니고 만능 해결사야 플필」 · 꼴 = 시아 카드 그대로(얼굴 동그라미 · 홀로 전면 · 유리 글자 · 시차 층) · 색만 이슬 · 뜸
+   앞 판 = 전신 그림 통째(dew-card.webp · 천둥 11-18) */
+.bc-dew .profile-card__body {
+  background: linear-gradient(165deg, rgba(22, 64, 110, 0.88) 0%, rgba(10, 26, 54, 0.92) 100%);
 }
+.bc-dew .profile-card__rim {
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb, 207,255,64),0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.bc-dew .profile-card__tile {
+  background: linear-gradient(180deg, #0a1b3a 0%, #12386a 26%, #1d64a2 46%, #48a2ea 62%, #9edcf2 80%, #ffd8e6 100%);
+}
+.bc-dew .profile-card__tile-rim { box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb, 207,255,64),0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+.bc-dew .profile-card__scrim {
+  background: linear-gradient(to top, rgba(10, 30, 62, 0.62) 0%, rgba(10, 30, 62, 0.32) 14%, rgba(10, 30, 62, 0) 30%);
+}
+.bc-dew .profile-card__photo {
+  box-shadow:
+    0 0 0 2px rgba(178, 232, 255, 0.65),
+    0 0 0 7px rgba(178, 232, 255, 0.14);
+}
+.bc-dew .bc-halo { box-shadow: 0 18px 40px -12px rgba(6, 16, 40, 0.85), 0 0 70px rgba(120, 200, 255, 0.42); }
+
+/* 홀로 = 물빛 → 박하 → 연두 → 새벽 분홍 → 하늘 → 물빛(시아 꼴 그대로 · 색만) */
+.bc-dew .profile-card__holo {
+  --bc-spec: repeating-linear-gradient(
+    0deg,
+    hsl(195, 100%, 66%) 4%,
+    hsl(165, 95%, 66%) 8%,
+    hsl(75, 100%, 64%) 12%,
+    hsl(335, 95%, 76%) 16%,
+    hsl(215, 100%, 72%) 20%,
+    hsl(185, 100%, 70%) 24%,
+    hsl(195, 100%, 66%) 28%
+  );
+  --bc-bars: repeating-linear-gradient(
+    -48deg,
+    #0a1830 0%,
+    hsl(210, 14%, 58%) 3.6%,
+    hsl(205, 36%, 74%) 4.5%,
+    hsl(210, 14%, 58%) 5.4%,
+    #0a1830 10%,
+    #0a1830 12%
+  );
+  background-image:
+    var(--bc-spec),
+    var(--bc-bars),
+    radial-gradient(farthest-corner circle at var(--pc-pointer-x) var(--pc-pointer-y), hsla(0, 0%, 0%, 0.05) 10%, hsla(0, 0%, 0%, 0.12) 24%, hsla(0, 0%, 0%, 0.3) 110%);
+  background-position:
+    0 calc(var(--pc-pointer-y) * 1.6),
+    calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2),
+    center;
+  background-size: 400% 400%, 300% 300%, 200% 200%;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.8 + 0.1 * var(--pc-active))) contrast(calc(1.45 + 0.1 * var(--pc-active))) saturate(calc(1.3 + 0.2 * var(--pc-active)));
+  opacity: calc(var(--pc-holo) * (0.85 + 0.15 * var(--pc-active)));
+}
+.bc-dew .profile-card__holo-glow {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, rgba(255, 255, 255, 0) 1px 3px),
+    var(--pc-grain);
+  background-size: 100% 3px, 180px 180px;
+  background-position: 0 0, calc(var(--pc-shift-x) * 2) calc(var(--pc-shift-y) * 2);
+  background-blend-mode: normal;
+  mix-blend-mode: overlay;
+  filter: none;
+  opacity: calc(0.45 + 0.35 * var(--pc-active));
+}
+.bc-dew .profile-card__holo-shift {
+  background-image: linear-gradient(
+    112deg,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(150, 230, 255, 0.5) 46%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(255, 180, 215, 0.5) 54%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  background-size: 260% 260%;
+  background-position: calc(100% - var(--pc-pointer-x)) calc(100% - var(--pc-pointer-y));
+  background-blend-mode: normal;
+  mix-blend-mode: screen;
+  filter: none;
+  opacity: calc(0.55 * var(--pc-reach) * var(--pc-active));
+}
+
+/* 먼 층: 물 위 반짝임 */
+.bc-dew .bc-glints {
+  inset: -12px;
+  background:
+    radial-gradient(1.4px 1.4px at 14% 10%, #fff 60%, transparent 100%),
+    radial-gradient(1px 1px at 30% 22%, rgba(220, 245, 255, 0.85) 60%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 47% 6%, rgba(255, 255, 255, 0.9) 60%, transparent 100%),
+    radial-gradient(1px 1px at 66% 16%, rgba(220, 245, 255, 0.7) 60%, transparent 100%),
+    radial-gradient(1.6px 1.6px at 82% 28%, #fff 60%, transparent 100%),
+    radial-gradient(1px 1px at 92% 10%, rgba(255, 255, 255, 0.8) 60%, transparent 100%),
+    radial-gradient(1px 1px at 8% 36%, rgba(220, 245, 255, 0.6) 60%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 94% 44%, rgba(255, 255, 255, 0.6) 60%, transparent 100%);
+  transform: translate3d(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5), 0);
+}
+/* 지평선에서 막 오르는 새벽빛 */
+.bc-dew .bc-dawn {
+  left: 50%; bottom: -34%;
+  width: 120%; aspect-ratio: 1 / 1; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 240, 246, 0.9) 0%, rgba(255, 196, 222, 0.5) 30%, rgba(170, 220, 255, 0) 56%);
+  transform: translate3d(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3), 0);
+}
+/* 비스듬한 띠 두 줄(물빛 + 연두 실선) */
+.bc-dew .bc-band {
+  left: -30%; right: -30%; top: 46%; height: 70px;
+  background:
+    linear-gradient(rgba(207, 255, 64, 0.55), rgba(207, 255, 64, 0.55)) 0 0 / 100% 1px no-repeat,
+    linear-gradient(90deg, rgba(110, 200, 255, 0), rgba(110, 200, 255, 0.3) 40%, rgba(255, 170, 210, 0.22) 70%, rgba(255, 170, 210, 0));
+  transform: translate3d(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4), 0) rotate(-16deg);
+}
+/* 얼굴 뒤 물결 고리 둘(큰 고리 + 안쪽 잔물결) */
+.bc-dew .bc-ring {
+  left: 50%; top: 4%;
+  width: 78%; aspect-ratio: 1 / 1; border-radius: 50%;
+  border: 1px solid rgba(190, 236, 255, 0.4);
+  box-shadow: inset 0 0 40px rgba(120, 200, 255, 0.14), 0 0 0 14px rgba(190, 236, 255, 0.06);
+  transform: translate3d(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7), 0);
+}
+.bc-dew .bc-ripple {
+  left: 50%; top: 13%;
+  width: 60%; aspect-ratio: 1 / 1; border-radius: 50%;
+  border: 1px dashed rgba(190, 236, 255, 0.32);
+  transform: translate3d(calc(-50% + var(--pc-shift-x) * 0.9), calc(var(--pc-shift-y) * 0.9), 0);
+}
+/* 세로 큰 글자(속 빈 글씨) */
+.bc-dew .bc-word {
+  left: 10px; top: 14px;
+  font-size: 64px; font-weight: 900; line-height: 0.9; letter-spacing: -0.04em;
+  writing-mode: vertical-rl;
+  transform: translate3d(calc(var(--pc-shift-x) * 0.6), calc(var(--pc-shift-y) * 0.6), 0);
+}
+/* 가까운 층: 물방울 하나 · 잎 끝 이슬 */
+.bc-dew .bc-drop {
+  right: 16%; top: 9%;
+  font-size: 22px; line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(140, 215, 255, 0.9));
+  transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0);
+}
+.bc-dew .bc-leaf {
+  right: 6%; top: 52%;
+  width: 56px; height: 70px;
+  transform: translate3d(calc(var(--pc-shift-x) * 1.5), calc(var(--pc-shift-y) * 1.5), 0) rotate(-10deg);
+}
+.bc-dew .bc-leaf b { position: absolute; left: 0; top: 0; width: 56px; font-size: 40px; line-height: 1; text-align: center; filter: drop-shadow(0 6px 10px rgba(6, 30, 50, 0.5)); }
+.bc-dew .bc-drip {
+  position: absolute; left: 12px; top: 34px; width: 9px; height: 11px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, rgba(200, 240, 255, 0.95) 30%, rgba(90, 180, 245, 0.85) 100%);
+  box-shadow: 0 0 6px rgba(150, 220, 255, 0.8);
+  transform-origin: 50% 0%;
+  animation: bc-drip 3.6s ease-in infinite;
+}
+@keyframes bc-drip {   /* 맺힘(커짐) → 똑(떨어지며 사라짐) · transform · opacity 만 */
+  0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.3); }
+  20% { opacity: 1; }
+  62% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  100% { opacity: 0; transform: translate3d(0, 30px, 0) scale(0.85); }
+}
+
+.bc-dew .bc-word { z-index: 4; }   /* 큰 「이슬」도 박 위 유리 글자(시아 꼴) */
+.bc-dew .profile-card__body::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, hsl(195, 100%, 66%) 4%, hsl(165, 95%, 66%) 8%, hsl(75, 100%, 64%) 12%, hsl(335, 95%, 76%) 16%, hsl(215, 100%, 72%) 20%, hsl(185, 100%, 70%) 24%, hsl(195, 100%, 66%) 28%),
+    repeating-linear-gradient(-48deg, #0a1830 0%, hsl(210, 14%, 58%) 3.6%, hsl(205, 36%, 74%) 4.5%, hsl(210, 14%, 58%) 5.4%, #0a1830 10%, #0a1830 12%),
+    var(--pc-grain);
+  background-position:
+    0 calc(var(--pc-pointer-y) * 1.6),
+    calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2),
+    0 0;
+  background-size: 400% 400%, 300% 300%, 180px 180px;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.8 + 0.1 * var(--pc-active))) contrast(calc(1.45 + 0.1 * var(--pc-active))) saturate(calc(1.3 + 0.2 * var(--pc-active)));
+  opacity: calc(var(--pc-holo) * (0.85 + 0.15 * var(--pc-active)));
+}
+/* 유리 글자 · 알약(시아 꼴 · 그림자 색만 물빛 남색) */
+.bc-dew .profile-card__info { transform: translate3d(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8), 0); will-change: transform; }
+.bc-dew .profile-card__name,
+.bc-dew .bc-word {
+  color: rgba(255, 255, 255, 0.62);
+  -webkit-text-stroke: 0.7px rgba(255, 255, 255, 0.7);
+  text-shadow:
+    -0.6px -0.6px 0 rgba(255, 255, 255, 0.55),
+    1px 1px 0 rgba(30, 70, 130, 0.32),
+    2px 2px 0 rgba(16, 40, 90, 0.2),
+    0 8px 18px rgba(6, 18, 48, 0.42);
+}
+.bc-dew .bc-word {
+  color: rgba(255, 255, 255, 0.2);
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
+  text-shadow: 1px 1px 0 rgba(16, 40, 90, 0.22), 0 6px 14px rgba(6, 18, 48, 0.3);
+}
+.bc-dew .profile-card__title,
+.bc-dew .profile-card__meta {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 14px -6px rgba(4, 12, 34, 0.55);
+}
+.bc-dew .profile-card__title {
+  display: inline-block;
+  padding: 4px 12px 5px;
+  border-radius: 999px;
+  color: rgba(214, 255, 110, 0.86);
+  text-shadow: -0.5px -0.5px 0 rgba(255, 255, 255, 0.35), 1px 1px 0 rgba(30, 50, 0, 0.3);
+}
+.bc-dew .profile-card__meta {
+  flex: none;
+  align-items: center;
+  padding: 7px 16px 8px;
+  border-radius: 14px;
+  transform: translate3d(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5), 0);
+}
+.bc-dew .profile-card__handle,
+.bc-dew .profile-card__status {
+  color: rgba(255, 255, 255, 0.72);
+  text-shadow: -0.5px -0.5px 0 rgba(255, 255, 255, 0.4), 1px 1px 0 rgba(16, 40, 90, 0.35), 0 3px 8px rgba(4, 12, 34, 0.4);
+}
+.bc-dew .profile-card__handle { color: rgba(255, 255, 255, 0.8); }
+.bc-dew .profile-card__status { font-size: var(--fs-sm); }
+@media (prefers-reduced-motion: reduce) { .bc-dew .bc-drip { animation: none; opacity: 0.85; transform: none; } }
 
 /* ───────── 온 ☀️ · 해돋이 서핑 그림 통째(being-card.tsx LOOKS on · 형 11-16 20:00 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 꼴 = 위 이슈왕 그대로 · 온) ───────── */
 .being-card-wrap .bc-on .profile-card__body { background: linear-gradient(170deg, rgba(255, 196, 92, 0.93) 0%, rgba(196, 98, 52, 0.96) 100%); }
@@ -1058,6 +1275,19 @@
   .bc-deng .bc-tilde { transform: translate(calc(var(--pc-shift-x) * 1.6), calc(var(--pc-shift-y) * 1.6)); will-change: auto; }
   .bc-deng .profile-card__info { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8)); will-change: auto; }
   .bc-deng .profile-card__meta { transform: translate(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
+  /* 이슬 = 시아 꼴 그대로(11-19 · 뜸) — 결 줄 뺌 · 똑 멈춤 · 시차 층 2D */
+  .bc-dew .profile-card__holo-glow { background-image: var(--pc-grain); background-size: 180px 180px; background-position: 0 0; }
+  .bc-dew .bc-drip { animation: none; opacity: 0.85; transform: none; }
+  .bc-dew .bc-glints { transform: translate(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5)); will-change: auto; }
+  .bc-dew .bc-dawn { transform: translate(calc(-50% + var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
+  .bc-dew .bc-band { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(-16deg); will-change: auto; }
+  .bc-dew .bc-ring { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
+  .bc-dew .bc-ripple { transform: translate(calc(-50% + var(--pc-shift-x) * 0.9), calc(var(--pc-shift-y) * 0.9)); will-change: auto; }
+  .bc-dew .bc-word { transform: translate(calc(var(--pc-shift-x) * 0.6), calc(var(--pc-shift-y) * 0.6)); will-change: auto; }
+  .bc-dew .bc-drop { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-dew .bc-leaf { transform: translate(calc(var(--pc-shift-x) * 1.5), calc(var(--pc-shift-y) * 1.5)) rotate(-10deg); will-change: auto; }
+  .bc-dew .profile-card__info { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8)); will-change: auto; }
+  .bc-dew .profile-card__meta { transform: translate(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
   .bc-tmpl .bc-band { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(-16deg); will-change: auto; }
   .bc-tmpl .bc-ring { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
   .bc-thunder .bc-bolt { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }

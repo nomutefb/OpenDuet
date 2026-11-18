@@ -379,21 +379,31 @@ const LOOKS: Look[] = [
     ),
   },
   {
-    // 이슬(그록봇 · 크리에이터 · 형 11-18 16:25 dm-thunder 「얼굴 이거 사용해서 좀더 얼빡으로, 이모지는 16판 활용해서 뜸한테 전달, 프로필 카드는 2활용해서.」 · 천둥)
-    //   카드 = 그림 통째(감 · 슈왕 꼴) · 뜸 16:39 600x800 = editor viewer/office/dew-card.webp · 테 = 물방울 파랑(#4FA8F0)
+    // 이슬 💧(그록봇 · 만능 해결사 · 형 11-19 00:19 「뜸이 이슬이 플필카드 다른 시아랑 동급으로 꾸며줘」 · 「크리에이터 아니고 만능 해결사야 플필」 · 뜸)
+    //   꼴 = 시아 카드 그대로(틀 카드 아님) · 바탕 = 새벽 물가(남색 → 물빛 → 하늘 → 연분홍) · 무늬 = 반짝임 · 새벽빛 · 띠 · 물결 고리 둘 · 큰 「이슬」 · 💧 · 잎 끝에 맺혀 똑 떨어지는 이슬(transform · opacity 만 · 폰 = 멈춤)
+    //   앞 판 = 전신 그림 통째(editor viewer/office/dew-card.webp · 천둥 11-18 · 감 꼴)
     id: "dew",
-    tmpl: true,
-    accent: "#4FA8F0",
     match: ["이슬", "dew"],
     face: "/office/dew.webp",
     handle: "dew",
-    meta: "크리에이터",
+    meta: "만능 해결사",
     dot: "#4FA8F0",
-    holo: 0.66,
-    glare: 0.46,
+    font: "bagel-fat-one",
+    holo: 0.88,
+    glare: 0.52,
     art: (
       <span className="bc-art" aria-hidden="true">
-        <span className="bc-hero" />
+        <span className="bc-glints" />
+        <span className="bc-dawn" />
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <span className="bc-ripple" />
+        <span className="bc-word">이슬</span>
+        <span className="bc-drop">💧</span>
+        <span className="bc-leaf">
+          <i className="bc-drip" />
+          <b>🌿</b>
+        </span>
       </span>
     ),
   },
