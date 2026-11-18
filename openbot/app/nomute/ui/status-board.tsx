@@ -5,7 +5,7 @@
 //   일기 = 일곱 × 8단계 격자(형 「일기 정상 작동여부도 프로세스별로 예를들어 7단계면 표를 7단계로 음영칠해. 8x8 이런식. 안되는 부분에 불들어오게」) · SSH = 몸 × 몸 격자
 import { useQuery } from "@tanstack/react-query";
 import { lastPut, lastSeed } from "../data/last-cache";   // 지난 작동 표를 먼저 그림(빈 「읽는 중…」 0 · 형 11-17 「처음브터 제대로 나오게」)
-import { Fragment, type ReactNode, useState } from "react";
+import { type CSSProperties, Fragment, type ReactNode, useState } from "react";
 import { office } from "../data/office";
 import { acctOrder, acctTag, leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time";
 import { type Body, bodiesOf, homeOf, machinesOf } from "../data/bodies";
@@ -22,7 +22,8 @@ import "./trend.css";   // 수집 목록 = 옛 피드 꼴(SNS 전체와 같은 �
 import "./status-board.css";
 import { NextWinCells } from "./next-win";   // 다음 창 모델 · 노력도(형 11-12 16:17 「짓자 거기서 변경하면 연동되게」)
 
-type Cell = { st: HealthSt; note?: string; label?: string };
+type CliItem = { n?: number; name?: string; account?: string; active?: boolean; type?: string; provider?: string; user?: string; domain?: string };
+type Cell = { st: HealthSt; note?: string; label?: string; items?: CliItem[]; at?: number };
 export type StatusRow = { key: string; name: string; st: HealthSt; last_at?: number; next_at?: number; left_days?: number; value?: string; note?: string; cron?: string[]; zone?: string; cells?: Record<string, Cell>; state?: string; ready?: boolean; step?: SigStep; beat_at?: number; door_at?: number };   // state · ready · step(그록 부름 → 받음 → 들어옴) · beat_at(대기 신호 때) · door_at(문 확인 때) = 활동 칸(서버 _activity.js)
 export type StatusCat = { id: string; name: string; rows: StatusRow[]; cols?: { id: string; name: string }[]; at?: number; grp?: string };
 
@@ -37,7 +38,16 @@ const movingOf = (b: Body) => (/^이사/.test(b.moving || "") ? b.moving! : `이
 const isWait = (r: StatusRow) => r.note === WAIT || /^이사/.test(r.note || "");
 // CLI 연결 표(형 11-08 01:25 「cli 연결은 표로 나타내자. 행에 애들, 열에 cli」 · 「이런식으로 클로드는 4개, gpt는 1개.」 · 01:26 「R2, GITHUB, Rclone 까지」)
 //   클로드1~4 = 그 몸 계정 폴더 차례(.claude → spare1 → spare2 …) · R2 · GitHub · rclone = 몸 보고 tok_cli 줄(key <몸>:r2 · :gh · :rclone · 뎅·봄 붙이는 중)
-const CLI_COLS = [["c1", "클로드1"], ["c2", "클로드2"], ["c3", "클로드3"], ["c4", "클로드4"], ["gpt", "GPT"], ["r2", "R2"], ["gh", "GitHub"], ["rclone", "rclone"]].map(([id, name]) => ({ id, name }));
+/** CLI 연결 표 머리 = 영어로 통일 · GitHub 둘(형 11-18 21:2x~21:5x dm-gik · 깃 옮김 「깃허브도 1, 2 로 구분짓고」 「다 영어로 할거면 영어로 통일하고」 「애들 말고 Ego , Claude-1」) */
+const CLI_COLS = [["c1", "Claude-1"], ["c2", "Claude-2"], ["c3", "Claude-3"], ["c4", "Claude-4"], ["gpt", "GPT"], ["r2", "R2"], ["gh1", "GitHub-1"], ["gh2", "GitHub-2"], ["rclone", "rclone"]].map(([id, name]) => ({ id, name }));
+/** 칸 안 글도 영어(같은 말 「칸 안 「확인 안 됨」도 영어」) · 일부러 꺼 둔 칸 = Off */
+const cliNone = (note?: string) => (/꺼 둠/.test(note || "") ? "Off" : "Not checked");
+/** 순수 — 몸 보고 비고 「r2(s3 · 도메인) · gdrive(drive · 메일)」 → 줄들(이름 · 종류 · 계정 또는 도메인) */
+export function cliNoteItems(note?: string): CliItem[] {
+  return [...String(note || "").matchAll(/([\w.-]+)\(([^)]*)\)/g)].map((m) => { const [type, ...rest] = m[2].split(" · ").map((x) => x.trim()).filter(Boolean), who = rest.join(" · "); return { name: m[1], type, ...(who.includes("@") ? { user: who } : who ? { domain: who } : {}) }; });
+}
+const msOf = (v: unknown) => (typeof v === "number" ? v : v ? Date.parse(String(v)) || 0 : 0);
+const agoEn = (ms: number) => { const m = Math.round((Date.now() - ms) / 60e3); return m < 1 ? "just now" : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.floor(m / 60)}h ago` : `${Math.floor(m / 1440)}d ago`; };
 // 묶음(형 11-08 01:29 「가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」)
 /** 맨 위 묶음 = 봇 현황(형 11-14 클라우드 세션 창 「봇 현황 으로 다른거랑 같이 보게하고 싶은데」 · 「ㄱ」) = 활동 · 계정 상태 · 봇 연결 · 그록봇 토큰 · CLI 연결 — 서버 read room=bots 한 장과 같은 다섯 */
 const BOTS_GRP = "봇 현황";
@@ -123,10 +133,22 @@ function cliRows(bs: Body[], srv?: StatusCat[]): StatusRow[] {
     });
     const g = mine(gpt)[0];
     if (g) cells.gpt = { st: g.st, label: acctShort(g.value) || "붙음", note: [g.value, g.note].filter(Boolean).join(" · ") };
-    for (const id of ["r2", "gh", "rclone"]) {
-      const r = mine(more).find((x) => x.key.endsWith(`:${id}`));
-      cells[id] = r ? { st: r.st, label: acctShort(r.value) || HEALTH_KO[r.st], note: [r.value, r.note].filter(Boolean).join(" · ") } : { st: "unknown", label: "—", note: "재는 중(몸 보고 tok_cli · 뎅·봄)" };
+    const moreOf = (id: string) => mine(more).find((x) => x.key.endsWith(`:${id}`)) as (StatusRow & { items?: CliItem[]; checked_at?: unknown; reported_at?: unknown }) | undefined;
+    const names = (v?: unknown) => String(v ?? "").split(" · ").map((x) => x.trim()).filter(Boolean);
+    const wait: Cell = { st: "unknown", label: "—", note: "재는 중(몸 보고 tok_cli · 뎅·봄)" };
+    const r2 = moreOf("r2");
+    cells.r2 = r2 ? { st: r2.st, label: acctShort(r2.value).replace(/(\d+)\s*개/, "$1").replace(/\s+\(/, " (").trim() || cliNone(r2.note), note: [r2.value, r2.note].filter(Boolean).join(" · ") } : wait;
+    // GitHub = 계정 둘까지 칸 둘(서버 items[n · account · active] · 아직 없으면 value 「a · b」 차례)
+    const gh = moreOf("gh"), ghs = gh ? (gh.items?.length ? [...gh.items].sort((x, y) => (x.n || 0) - (y.n || 0)).map((x) => ({ name: x.account || x.name || "", active: x.active })) : names(gh.value).map((name) => ({ name, active: undefined as boolean | undefined }))) : [];
+    for (const k of [0, 1]) {
+      const a = ghs[k];
+      cells[`gh${k + 1}`] = !gh ? wait : a?.name ? { st: gh.st, label: a.name, note: [a.name, a.active ? "active" : "", gh.note].filter(Boolean).join(" · ") } : { st: "unknown", label: k === 0 ? cliNone(gh.note) : "—", note: k === 0 ? gh.note : "" };
     }
+    // rclone = 붙은 것 수 · 누르면 줄줄이(이름 · 종류 · 계정 또는 도메인) + 잰 때(형 「0개 누르면 연결된게 촤르르 나오게 하면될듯. 근데 이게 갱신되어야함!」)
+    //   새 몸 보고 = value 「N개」 + note 「이름(종류 · 계정 또는 도메인) · …」 · 옛 보고 = value 「이름 · 이름」 · items 가 오면 그것 먼저
+    const rc = moreOf("rclone"), rcN = /^(\d+)\s*개/.exec(String(rc?.value ?? ""));
+    const rcs: CliItem[] = rc ? (rc.items?.length ? rc.items : rcN ? cliNoteItems(rc.note) : names(rc.value).map((name) => ({ name }))) : [];
+    cells.rclone = !rc ? wait : rc.st === "unknown" && !rcs.length ? { st: "unknown", label: cliNone(rc.note), note: rc.note } : { st: rc.st, label: String(rcN ? Number(rcN[1]) : rcs.length), items: rcs, at: msOf(rc.checked_at) || msOf(rc.reported_at), note: [rc.value, rc.note].filter(Boolean).join(" · ") };
     for (const id of ["c1", "c2", "c3", "c4", "gpt"]) if (!cells[id]) cells[id] = { st: "unknown", label: "—", note: b.on === false && id === "c1" ? movingOf(b) : "그 칸 없음" };
     const sts = Object.values(cells).map((x) => x.st);
     const st: HealthSt = sts.includes("miss") ? "miss" : sts.includes("late") ? "late" : sts.some((x) => x === "ok") ? "ok" : "unknown";
@@ -195,14 +217,18 @@ function CliTable({ c }: { c: StatusCat }) {
   return (
     <div className="nsb-acct nsb-cli" role="region" aria-label="CLI 연결 표" tabIndex={0}>
       <table>
-        <thead><tr><th>애들</th>{cols.map((x) => <th key={x.id}>{x.name}</th>)}</tr></thead>
+        <thead><tr><th>Ego</th>{cols.map((x) => <th key={x.id}>{x.name}</th>)}</tr></thead>
         <tbody>{c.rows.flatMap((r) => {
+          const rc = r.cells?.rclone, rcKey = `${r.key}:rclone`;
           const tr = (
             <tr key={r.key} data-st={r.st} onClick={() => setPick(pick === r.key ? "" : r.key)}>
               <th scope="row"><StatusDot st={r.st} />{r.name}<small>{r.value}</small></th>
-              {cols.map((x) => { const v = r.cells?.[x.id]; return <td key={x.id} data-st={v?.st || "unknown"}>{v && v.st !== "unknown" ? <StatusDot st={v.st} /> : null}<span>{v?.label || "—"}</span></td>; })}
+              {cols.map((x) => { const v = r.cells?.[x.id];
+                if (x.id === "rclone" && v?.items) return <td key={x.id} data-st={v.st}><button type="button" className="nsb-cli-n" aria-expanded={pick === rcKey} title="linked remotes" onClick={(e) => { e.stopPropagation(); setPick(pick === rcKey ? "" : rcKey); }}><StatusDot st={v.st} /><span>{v.label}</span><i aria-hidden>▾</i></button></td>;
+                return <td key={x.id} data-st={v?.st || "unknown"} title={v?.label}>{v && v.st !== "unknown" ? <StatusDot st={v.st} /> : null}<span>{v?.label || "—"}</span></td>; })}
             </tr>
           );
+          if (pick === rcKey && rc?.items) return [tr, <tr key={rcKey} className="why rc"><td colSpan={cols.length + 1}><ul>{rc.items.map((it, i) => <li key={`${it.name}:${i}`} style={{ "--i": i } as CSSProperties}><b>{it.name}</b>{it.type ? <span>{it.type}{it.provider ? ` · ${it.provider}` : ""}</span> : null}{it.user || it.domain ? <em>{it.user || it.domain}</em> : null}</li>)}{rc.items.length ? null : <li><span>none</span></li>}</ul>{rc.at ? <small>checked {agoEn(rc.at)}</small> : null}</td></tr>];
           if (pick !== r.key) return [tr];
           const why = cols.map((x) => { const v = r.cells?.[x.id]; return v?.note ? `${x.name} ${v.note}` : ""; }).filter(Boolean);
           return [tr, <tr key={`${r.key}:why`} className="why"><td colSpan={cols.length + 1}>{why.length ? why.map((w) => <span key={w}>{w}</span>) : HEALTH_KO[r.st]}</td></tr>];
@@ -336,8 +362,8 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
       <div className="nsb-scroll" role="region" aria-label="애들 × 연결" tabIndex={0}>
         <table>
           <thead>
-            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={3}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length + 1}><span>교대</span></th><th colSpan={2}><span>다음 창</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
-            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}<th title="셀프 넘김 · 혼자 넘어가나"><i>셀프</i></th>{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}<th>모델</th><th>노력</th></tr>
+            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={4}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length + 1}><span>교대</span></th><th colSpan={2}><span>다음 창</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
+            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH1</th><th>GH2</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}<th title="셀프 넘김 · 혼자 넘어가나"><i>셀프</i></th>{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}<th>모델</th><th>노력</th></tr>
           </thead>
           <tbody>
             {[...ours, ...rest].map((r) => {
@@ -349,7 +375,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
                 <tr key={r.key} data-st={r.st} className={b || WHO_MORE.includes(r.name) ? "ours" : "bot"} onClick={() => setPick(pick === `who:${r.key}` ? "" : `who:${r.key}`)}>
                   <th scope="row"><StatusDot st={r.st} />{r.name}{b ? <small>{b.body}</small> : null}</th>
                   <td className="wake" title={[wake?.note, last?.note, r.cells?.["깨우는 문"]?.note].filter(Boolean).join(" · ")}><span data-w={first(wake?.note || r.value)}>{first(wake?.note || r.value) || "—"}</span></td>
-                  {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "gpt" || k === "r2" || k === "gh" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <><td colSpan={4} className="acct on">{on ? <Dot c={{ st: on.st, label: acctTag(on.name), note: `지금 창 계정 · ${on.name}` }} /> : null}</td><td colSpan={Math.max(1, cliCols.length - 4)} className="none" /></>}
+                  {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "gpt" || k === "r2" || k === "gh1" || k === "gh2" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <><td colSpan={4} className="acct on">{on ? <Dot c={{ st: on.st, label: acctTag(on.name), note: `지금 창 계정 · ${on.name}` }} /> : null}</td><td colSpan={Math.max(1, cliCols.length - 4)} className="none" /></>}
                   {dm ? <td colSpan={DIARY_COLS.length} className="dm">{([["일기", dm.diary_ms], ["습작", dm.sketch_ms], ["넘김", dm.handoff_ms]] as [string, number][]).filter(([, t]) => t).map(([k, t]) => <span key={k}>{k} {agoKo(t)}</span>)}</td>
                     : DIARY_COLS.map((x) => <td key={x.id}>{d[x.id] ? <Dot c={d[x.id]} t={`${x.name} · ${HEALTH_KO[d[x.id].st]}${d[x.id].note ? ` · ${d[x.id].note}` : ""}`} /> : null}</td>)}
                   {NO_SELF[r.name] ? <td className="noself" title={`셀프 넘김 – · ${NO_SELF[r.name]}`}><b>–</b></td> : <td>{Object.keys(h).length || SELF_OK.includes(r.name) ? <Dot c={{ st: "ok" }} t="셀프 넘김 · 혼자 넘어감" /> : null}</td>}

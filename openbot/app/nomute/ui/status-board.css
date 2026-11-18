@@ -105,7 +105,19 @@
 .nsb-grp small { margin-left:auto; font-size:var(--fs-xs); font-weight:400; letter-spacing:0; font-variant-numeric:tabular-nums; }
 .nsb-grp[data-st="miss"] { color:var(--nsb-red); }
 /* CLI 연결 표(형 01:25 「행에 애들, 열에 cli」) — 계정 상태 표 꼴 그대로 · 칸 = 불 + 계정 짧은 이름 */
-.nsb-cli table { min-width:720px; }
+.nsb-cli table { min-width:860px; table-layout:fixed; }   /* 칸 너비 다 같게(형 11-18 dm-gik 「그리고 이거 간격 동일하게 유지해」) = 첫 칸만 정해 두고 나머지는 똑같이 나눔 */
+.nsb-cli thead th:first-child { width:112px; }
+.nsb-cli td { overflow:hidden; text-overflow:ellipsis; }
+.nsb-cli-n { display:inline-flex; align-items:center; gap:0; padding:1px 6px 1px 0; border:0; border-radius:6px; background:none; color:inherit; font:inherit; cursor:pointer; }
+.nsb-cli-n i { margin-left:4px; font-style:normal; font-size:10px; color:var(--nsb-mut); transition:transform .16s; }
+.nsb-cli-n[aria-expanded="true"] i { transform:rotate(180deg); }
+.nsb-cli tr.rc ul { display:flex; flex-direction:column; gap:4px; margin:2px 0 4px; padding:0; list-style:none; }
+.nsb-cli tr.rc li { display:flex; align-items:baseline; gap:10px; white-space:nowrap; opacity:0; transform:translateY(-4px); animation:nsb-rc-in .22s cubic-bezier(.2,.8,.2,1) forwards; animation-delay:calc(var(--i, 0) * 35ms); }   /* 촤르르 = 줄마다 35ms 늦게 한 번(투명도 · 자리만 · 끝나면 멈춤) */
+.nsb-cli tr.rc li span { display:inline; margin:0; color:var(--nsb-mut); }
+.nsb-cli tr.rc li em { font-style:normal; color:var(--nsb-mut); }
+.nsb-cli tr.rc small { color:var(--nsb-mut); }
+@keyframes nsb-rc-in { to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .nsb-cli tr.rc li { animation:none; opacity:1; transform:none; } }
 .nsb-cli td { white-space:nowrap; font-size:var(--fs-sm); font-variant-numeric:tabular-nums; }
 .nsb-cli td .nm-st { margin-right:5px; }
 .nsb-cli td[data-st="unknown"] span { color:var(--nsb-mut); }

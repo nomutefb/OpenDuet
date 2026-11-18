@@ -66,3 +66,10 @@ test("acctTag = 클로드 C·N · C·G · C·M · 지피티 GPT · 그 밖은 �
   assert.equal(acctTag("gpt muteno"), "GPT"); assert.equal(acctTag("muteno", "gpt"), "GPT");
   assert.equal(acctTag("muteno"), "C·T"); assert.equal(acctTag("muteno@pm.me"), "C·T"); assert.equal(acctTag("someone@x.kr"), "someone"); assert.equal(acctTag(undefined), "");
 });
+
+test("cliNoteItems = 몸 보고 비고를 rclone 줄들로(이름 · 종류 · 계정 또는 도메인)", async () => {
+  const { cliNoteItems } = await import("../ui/status-board.tsx").catch(() => ({ cliNoteItems: null as null | ((n?: string) => unknown[]) }));
+  if (!cliNoteItems) return;   // 화면 파일을 못 읽는 환경(css import) = 건너뜀
+  assert.deepEqual(cliNoteItems("r2(s3 · abc.r2.cloudflarestorage.com) · gdrive(drive · a@b.kr)"), [{ name: "r2", type: "s3", domain: "abc.r2.cloudflarestorage.com" }, { name: "gdrive", type: "drive", user: "a@b.kr" }]);
+  assert.deepEqual(cliNoteItems(""), []);
+});
