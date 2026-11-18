@@ -46,3 +46,11 @@ test("배선 = 방 머리 · 목록 · 방 정보가 따로 세지 않음", () =
   assert.match(top, /\{inIds\.map\(one\)\}\s*\{outIds\.length \? <span className="nm-top-sec">나감<\/span> : null\}/);   // 나간 이 = 「나감」 아래 따로(있던 칸 글씨 그대로)
   assert.match(chat, /if \(w !== "형" && !back\.has\(w\)\) on\.add\(m\.id\)/);   // 「형이 나갔습니다.」 줄엔 「채팅방으로 초대하기」 없음
 });
+
+test("문지기 안내 줄 = 가운데 줄 두 줄 그대로(서버가 줄바꿈으로 줌 · 형 11-18 「문지기를 만들고 나가주세요.」 「(현재 방 잔여 1명)」)", () => {
+  const css = rd("../ui/yeta-chat.css"), chat = rd("../ui/office-chat.tsx");
+  assert.match(css, /\.ychat \.yev \{[^}]*text-align:center/);   // 가운데 정렬 = 있던 가운데 줄 그대로
+  assert.match(css, /\.ychat \.yev > span \{ white-space:pre-line; \}/);   // 줄바꿈이 한 칸으로 뭉개지지 않게
+  assert.match(chat, /const evM = \(m: Msg\) => m\.kind === "system" && !!m\.event\?\.kind;/);   // event kind(keeper 포함)가 있는 사무실 줄 = 가운데 줄
+  assert.match(chat, /it\.m\.event\?\.kind === "left" && inviteOn\.has\(it\.m\.id\)/);   // 초대 단추는 나감 줄에만(안내 줄엔 없음)
+});
