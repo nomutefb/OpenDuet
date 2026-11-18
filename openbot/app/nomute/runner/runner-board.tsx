@@ -1,6 +1,7 @@
 // 러너 화면 몸통(새 사무실 꼴 · 토큰·카드·점 = 이 앱 것 · 숫자·칸 = 웹판 runner.html 그대로) — 틀은 runner-screen.tsx.
 //   PC 줄마다: 머리(단계 점 · 이름 · 받은 때 · 도는 Claude · 잡/자리 · 부하 %) → 계기 셋(CPU·RAM(+캐시)·GPU · 쓴 양/전체) → 60분 추세(CPU·RAM 선) →
 //   도는 잡(제목 · 수신 → 발신 · 걸린 시간 · 예상 대비 진행 · 큰/작은 자리 · 자리 이름 · 시작) → 디버그 세션 줄 · 맥 = 머리 + 줄 글 · 아래 = 출력 신선도·자리 감시.
+import { SrvNote } from "../ui/srv-note";
 import { type ReactNode, useEffect, useState } from "react";
 import { MicOrb } from "../swap/mic-orb";
 import { TickGauge } from "./tick-gauge";   // 위젯 틱 게이지(형 11-01 17:4x 「러너 대시보드도 윈a나 맥에 깔린 모양이 들어와야해」)
@@ -35,7 +36,7 @@ export function RunnerBoard({ data: given }: { data?: RunnerData }) {
   const now = useNowS(!!data && Object.values(data.rows).some((d) => runningJobs(d ?? null).length > 0));
   const [open, flip] = useOpen();
   if (!data) {
-    return <p className="mt-6 text-sm text-muted-foreground" role={q.isError ? "alert" : undefined}>{q.isError ? `러너 소식을 못 받았어 — ${q.error.message}` : "러너 소식 받는 중…"}</p>;
+    return q.isError ? <SrvNote what="러너 소식" detail={q.error.message} /> : <p className="mt-6 text-sm text-muted-foreground">러너 소식 받는 중…</p>;
   }
   return (
     <div className="nm-rg mt-4 flex flex-col gap-4">

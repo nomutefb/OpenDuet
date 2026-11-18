@@ -3,6 +3,7 @@
 //   = 대화 목록 맨 위 「사무실 | 팀즈」 바꿈 · 팀즈 = 목록(teams/chats) · 방(teams/messages · 새 글 먼저 30 · 더 앞 = next) · 보내기(teams/send) · 파일(teams/file) · 글 안 그림(teams/hosted)
 //   서버 = 윈터 _teams.js(wa/teams-graph) · 로그인 = 기기 코드(POST teams/login → 코드 크게 + microsoft.com/devicelogin · 기다리는 동안 GET teams 5초마다 = 서버가 마저 받음)
 //   방 주소 = /channels/teams:<chat id>(대화 판은 OfficeChat 이 이 앞머리를 보고 TeamsChat 으로)
+import { SrvNote } from "./srv-note";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -261,7 +262,7 @@ export function TeamsList({ current }: { current?: string }) {
           {/* 머리 줄(이름 · 로그아웃) 뺌 = 로그아웃은 설정 「팀즈」 줄(형 11-13 10:23 봄 옮김 「이거 잇을 필요없구」) */}
           <NotiRow />   {/* 알림 켜기 · 끄기 = 목록 위(형 11-18 14:37 「팀즈 알람끄기는 저기에 표시 안하고」 · 「안에서 목록위에 끄기 켜기 설정함.」 · 앞 = 위 탭의 종) */}
           {cached && chats.isFetching ? <Dots slim /> : null}
-          {!chats.data ? (chats.error ? <p className="nm-tnote">대화를 못 받았어 · {(chats.error as Error).message}</p> : <Dots />) : !chats.data.length ? <p className="nm-tnote">대화가 없어</p> : (
+          {!chats.data ? (chats.error ? <SrvNote what="대화" detail={(chats.error as Error).message} /> : <Dots />) : !chats.data.length ? <p className="nm-tnote">대화가 없어</p> : (
             <ul>
               {chats.data.map((c) => (
                 <li key={c.id}>
@@ -369,7 +370,7 @@ export function TeamsChat({ chat }: { chat: string }) {
       <div ref={box} className="nm-tchat-b" onScroll={(e) => { const b = e.currentTarget; stick.current = b.scrollHeight - b.scrollTop - b.clientHeight < 40; keepScroll(chat, b); }}>
         <div className="ychat nm-tychat mx-auto mt-auto flex w-full max-w-2xl flex-col gap-[10px] px-3 pb-6 pt-3">
           {nextOf ? <button type="button" className="nm-tmore" disabled={moreBusy} onClick={() => void more()}>{moreBusy ? "읽는 중…" : "앞 글 더 보기"}</button> : null}
-          {page.isLoading ? <Dots /> : page.error ? <p className="nm-tnote">글을 못 받았어 · {(page.error as Error).message}</p> : null}
+          {page.isLoading ? <Dots /> : page.error ? <SrvNote what="글" detail={(page.error as Error).message} /> : null}
           {all.map((m, i) => {
             const ts = m.at ? Date.parse(m.at) : 0, prev = all[i - 1], nx = all[i + 1];
             const pts = prev?.at ? Date.parse(prev.at) : 0, nts = nx?.at ? Date.parse(nx.at) : 0;

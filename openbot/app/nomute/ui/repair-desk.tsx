@@ -94,7 +94,7 @@ export function RepairDesk({ lead, tail, active = true, page = false }: { lead?:
         <div className="rounded-3xl border border-border bg-card p-3">
           <div className="flex items-baseline justify-between gap-2">
             <p className="text-sm font-semibold">접수 목록 <span className="tabular-nums text-muted-foreground">{items.length}</span></p>
-            {repair.isError || repair.isPending ? <span className="text-xs text-muted-foreground">{repair.isError ? `못 받았어 — ${repair.error.message}` : "읽는 중…"}</span> : null}   {/* 안내 줄 뺌 · 오류·받는 중만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
+            {repair.isError || repair.isPending ? <span className="text-xs text-muted-foreground">{repair.isError ? "받지 못했습니다." : "읽는 중…"}</span> : null}   {/* 안내 줄 뺌 · 오류·받는 중만(형 11-02 08:1x 「옆에 설명글은 빼줘」) */}
           </div>
           {items.length ? <ul className="mt-1 flex flex-col divide-y divide-border">{items.map((x) => <RepairRow key={x.no} x={x} desk spec={specs.get(x.no)} />)}</ul>
             : repair.isPending ? null : <p className="mt-2 text-sm text-muted-foreground">지금 걸린 요청 없음 — 종료된 건 「보관 보기」</p>}

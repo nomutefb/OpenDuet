@@ -81,7 +81,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   const bareName = (p: string) => (p.split("/").pop() || "file").replace(/^\d{8}_\d{4}_/, "");
   const fetchFile = async (p: string) => {
     const res = await fetch(fileUrl(p), { credentials: "same-origin" });
-    if (!res.ok) throw new Error(`파일을 못 받았어 (${res.status})`);
+    if (!res.ok) throw new Error(`파일을 받지 못했습니다. (${res.status})`);
     const b = await res.blob();
     return new File([b], bareName(p), { type: b.type });
   };

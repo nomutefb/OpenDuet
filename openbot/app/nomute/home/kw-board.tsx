@@ -4,6 +4,7 @@
 //   「핫이슈 나오다가 10초뒤에 그거 나오고, (부드럽게 촤르륵) 그리고 1분정도 내비쳣다가 다시 전환되고 1분마다」 = HotSwap(처음 10초 · 그 뒤 1분마다 · 줄이 차례로 들어옴)
 //   「폰에서는 … 넘길때마다 차트가 나오게」 = 좁은 칸에선 옆으로 넘김 · 형 11-17 01:25 「키워드 2플랫폼씩 보여줘 / 단 그러면 지속시간은 2배 / … 정방향으로 / 반 가르고 … 플랫폼 명만 가운데 정렬」 = 한 장에 두 줄기(반 가름 · 점 둘) · 장마다 10초 · 다음 장 = 오른쪽에서 들어옴
 //   말 누름 = 그 말 찾기 새 창(형 11-05 「링크같은거는 항상 클릭하면 새 창에서」) · 재료 = 30분마다 모이는 파일이라 10분에 한 번만 받음
+import { notGot } from "../ui/srv-note";
 import "./kw-board.css";
 import { agoMin } from "../ui/ago-min";
 import { useQuery } from "@tanstack/react-query";
@@ -73,7 +74,7 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
       onPointerDown={() => { hold.current = Date.now() + 20_000; }}>
       <div className="nm-nlist-h nm-kwb-h"><i className="live" aria-hidden /><b>Keyword</b><span>{newest ? agoMin(now - Date.parse(newest)) : ""}</span></div>
       {none ? (
-        <p className="nm-kwb-none"><b>{q.isPending ? "읽는 중…" : q.isError ? "키워드 순위를 못 받았어" : "지금 모인 키워드가 없어"}</b>{q.isPending ? null : <span>10분 뒤 다시 받아</span>}</p>
+        <p className={`nm-kwb-none${q.isError ? " srv" : ""}`}><b>{q.isPending ? "읽는 중…" : q.isError ? notGot("키워드 순위") : "지금 모인 키워드가 없어"}</b>{q.isPending || q.isError ? null : <span>10분 뒤 다시 받아</span>}</p>
       ) : (
         <>
           <div className="nm-kwb-cols" ref={box} onScroll={onScroll} key={run}>   {/* key = 뜰 때마다 줄이 차례로 다시 들어옴 */}

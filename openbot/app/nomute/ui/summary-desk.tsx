@@ -2,6 +2,7 @@
 //   앞 판(09:28 「요약만 볼 수 있으면」) = 방 글을 카드로 → 이 판 = 같은 기사 자료(/articles.json · 서랍 「뉴스 기사」와 같은 것)를 에디터 카드 꼴로 · 말풍선·얼굴·담당자·입력칸 0
 //   카드 = 에디터 viewer 뉴스 요약 .card 꼴: 위 줄 [분류] 보도 N시간 전 … 스크랩 N시간 전 · 제목 · 매체 / 편향 · 진행 막대 셋(요약·프롬프트·카드) — 막대 색만 라임(시그니처 · 에디터는 하늘색)
 //   누름 = 앱 안 기사 한 장(#/news?a=<file> · ./news-detail.tsx) · 20장씩(더 보기)
+import { SrvNote } from "./srv-note";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { roomReadState } from "../data/read-state";
@@ -64,7 +65,7 @@ export function SummaryDesk({ lead, active = true }: { lead?: ReactNode; active?
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-3 pb-8 pt-[48px]">   {/* 위 여백 = 떠 있는 머리(ui/shell.css .nm-head) */}
         {lead}
-        {q.isError ? <p className="text-sm text-destructive" role="alert">요약을 못 받았어 — {q.error.message}</p> : null}
+        {q.isError ? <SrvNote what="요약" detail={q.error.message} /> : null}
         {q.data && !arts.length ? <p className="nm-sumc-empty">아직 요약된 기사가 없어.</p> : null}
         {arts.slice(0, n).map((a) => <SumCard key={a.file} a={a} />)}
         {arts.length > n ? <button type="button" className="nm-sumc-more" onClick={() => setN((v) => v + PAGE)}>더 보기 · {arts.length - n}</button> : null}

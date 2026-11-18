@@ -138,7 +138,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
         return wait ? { ...r, meta: { ...(r.meta || {}), images: [{ url: PHOTO_WAIT, sourceUrl: "", alt: "" }] } } : r;
       });
       const generated = (overlap as { generated?: string } | null)?.generated || null;
-      snap = { rows: shownRows, status: { state: rows.length ? "ready" : overlap ? "empty" : "error", message: rows.length ? "" : overlap ? "지금 보여 줄 기사가 없어." : "기사 순위를 못 받았어.", generated, source: "live" } };
+      snap = { rows: shownRows, status: { state: rows.length ? "ready" : overlap ? "empty" : "error", message: rows.length ? "" : overlap ? "지금 보여 줄 기사가 없어." : "기사 순위를 받지 못했습니다.", generated, source: "live" } };
       version++; send();
       void fillImages(md);
     };

@@ -184,7 +184,7 @@ export function NomuteToday({ part }: { part?: "decide" | "brief" } = {}) {
       {part === "decide" ? null : <div className="rounded-3xl border border-border bg-card p-4">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="shrink-0 text-base font-semibold">밤 요약</h2>
-          <span data-content className="truncate text-xs text-muted-foreground">{brief.isError ? "못 받았어" : b?.label || "읽는 중…"}</span>
+          <span data-content className="truncate text-xs text-muted-foreground">{brief.isError ? "받지 못했습니다." : b?.label || "읽는 중…"}</span>
         </div>
         {b ? (
           <ul className="mt-2 flex flex-col">
@@ -218,7 +218,7 @@ export function NomuteToday({ part }: { part?: "decide" | "brief" } = {}) {
       {part ? null : <div className="rounded-3xl border border-border bg-card p-4">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="shrink-0 text-base font-semibold">수리 접수</h2>
-          <span className="text-xs text-muted-foreground">{repair.isError ? "못 받았어" : repair.isPending ? "읽는 중…" : groups.filter((g, i) => i < 3 || g[2].length).map((g) => `${g[0]} ${g[2].length}`).join(" · ")}</span>
+          <span className="text-xs text-muted-foreground">{repair.isError ? "받지 못했습니다." : repair.isPending ? "읽는 중…" : groups.filter((g, i) => i < 3 || g[2].length).map((g) => `${g[0]} ${g[2].length}`).join(" · ")}</span>
         </div>
         {reps.length ? groups.filter((g) => g[2].length).map(([t, sub, l]) => (
           <div key={t} className="mt-2">

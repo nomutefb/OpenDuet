@@ -2,6 +2,7 @@
 //   지금 봇(GET bots · 다음 깸 = GET schedule) · 지정방 멤버(GET/POST roomset · 형) · 공지 설정 한 장(GET/POST noticeset · 형)
 //   스케줄러 연결(GET schedule/link) · 바꾸기(루틴 상태·언제·할 일 없어도 깨움 · 사건 모아서 기다림 = POST schedule/set · 먼저 dry 미리 보기 → 확인)
 //   옛 그록 대화(GET old · 봇 → 날 → 글 · 읽기만) · 맨 아래 「지금 판」(형이 새 판인지 눈으로 · 10-28 10:51 「웹앱이 자동으로 버전업이 안되네」)
+import { SrvNote } from "./srv-note";
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
@@ -107,7 +108,7 @@ export function NomuteMeter() {
         <span className="tabular-nums">{`${+day.slice(4, 6)}/${+day.slice(6)}`}{back ? "" : " 오늘"}</span>
         <button type="button" className={btn} disabled={!back} onClick={() => setBack((b) => Math.max(0, b - 1))} aria-label="하루 뒤"><Chev dir="right" size={16} /></button>
       </div>
-      {q.isError ? <p className="mt-3 text-sm text-destructive" role="alert">계기판을 못 받았어 — {q.error instanceof Error ? q.error.message : String(q.error)}</p>
+      {q.isError ? <SrvNote what="계기판" detail={q.error instanceof Error ? q.error.message : String(q.error)} />
         : q.isPending ? null
         : !kinds.length ? <p className="mt-3 text-sm text-muted-foreground">이날 셈 없음 — 봇 글·깸이 생기면 채워져</p>
         : kinds.map(([k, b]) => (

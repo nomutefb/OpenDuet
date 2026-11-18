@@ -38,7 +38,7 @@ export function DocEditor({ onBack, onMin }: { onBack?: () => void; onMin?: () =
     createEditor(host.current!, { studioUrl: STUDIO_URL }).then((e) => {
       if (!live) { e.destroy(); return; }
       ed.current = e; setReady(true);
-    }).catch((e: unknown) => { if (live) setErr(`편집기 화면을 못 받았어 — ${e instanceof Error ? e.message : String(e)}`); });
+    }).catch((e: unknown) => { if (live) setErr("편집기 화면을 받지 못했습니다."); });
     return () => { live = false; ed.current?.destroy(); ed.current = null; stopHd(); };   // 창을 닫음 = 편집기 칸 + 파이썬 일꾼 둘 다 내림(메모리 돌려줌)
   }, [boot]);
 

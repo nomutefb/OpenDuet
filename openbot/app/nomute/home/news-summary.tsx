@@ -1,6 +1,7 @@
 // PC 반갈 우하단 = 뉴스 요약(형 11-05 16:27 「어짜피 우하단에는 뉴스 요약 부분이 나올거라서」 · 13:38 「전송하면 그 아래에 요약 대기열 올라오고, 다되면, 모달로 뉴스 요약본 떠서. 그거 누르면 에디팅까지 가능한거.」)
 //   위 = 요약 대기열(/api/pending · 진행 중 · 다시 시도 · 실패) · 아래 = 다 된 요약(/articles.json 새것부터 · 제목 다듬기 같은 로직)
 //   다 된 요약 누름 = 앱 안 기사 한 장(#/news?a=<file> · 모달 · 고치기 = 거기서 에디터) · 판 없이 투명(형 14:42 「카드칸도 투명」) · 라임 = 새 요약 점만
+import { notGot } from "../ui/srv-note";
 import "./news-summary.css";
 import { useQuery } from "@tanstack/react-query";
 import { getJson, newsListQuery } from "../ui/news-data";
@@ -36,7 +37,7 @@ export function NewsSummary() {
       <ol className="nm-nsum-ol">
         {q.length ? <li className="c nm-nsum-tasks"><TaskPanel qs={q.map((it) => ({ it, e: it.status === "failed" || it.status === "error" ? "fail" : it.status || "", title: cleanTitle(it.title || it.alt1 || it.key) || "제목 없음" }))} eta={null} onDismiss={(it) => { qfSeenOne(it.id); setSeenN((n) => n + 1); }} /></li> : null}   {/* 요약 대기열 = 「뉴스 요약」과 같은 판(시아 06:44 ① · 깃) */}
         {done.map((a) => <li key={a.file} className="c"><SumCard a={a} lean kind={kindOf(a as FArt) || (a.issue ? "iss" : "")} />   {/* 폰 뉴스 에디터 카드 한 벌 그대로(형 11-11 22:09 「1) digest > 아까 수정한 모바일에 통일」 · 앞 판 = dg) */}</li>)}
-        {!done.length ? (list.isError ? <li className="empty nm-emptybox"><b>요약 목록을 못 받았어</b><span>조금 뒤 다시 받아</span></li>
+        {!done.length ? (list.isError ? <li className="empty nm-emptybox srv" role="alert"><b>{notGot("요약 목록")}</b></li>
           : list.isLoading ? <li className="empty"><i className="nm-skel" style={{ width: "88%" }} /><i className="nm-skel" style={{ width: "72%" }} /><i className="nm-skel" style={{ width: "80%" }} /></li>
           : <li className="empty nm-emptybox"><b>다 된 요약이 아직 없어</b><span>뉴스 줄 「전송」을 누르면 여기 쌓여</span></li>) : null}   {/* 빈 칸 · 불러오는 중 꼴 통일(시아 UI ⑤) */}
       </ol>

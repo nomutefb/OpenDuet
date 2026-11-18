@@ -16,6 +16,11 @@
 .nm-errbar button:focus-visible { outline:2px solid var(--accent, var(--accent, #CFFF40)); outline-offset:2px; }
 @keyframes nmErrIn { from { opacity:0; transform:translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .nm-errbar { animation:none; } }
-/* 끊김 띠(net-bar.ts · 번개 11-08) — 오류 띠와 같은 알약 · 글자 = 은은한 노랑 · 다시 붙음 = 라임 · 점 셋(.nm-dots = update-bar.css) */
-.nm-netbar { bottom:calc(134px + env(safe-area-inset-bottom, 0px)); padding:0 16px; border-color:rgba(255,214,102,.34); color:#ffe08a; }
+/* 끊김 띠(net-bar.ts · 번개 11-08) — 오류 띠와 같은 알약 · 글자 = 안내 라임(형 11-18 「서버와 연결이 끊겻어요, 이것도 서버 특유색으로」 · 앞 = 은은한 노랑) · 점 셋(.nm-dots = update-bar.css) */
+.nm-netbar { bottom:calc(134px + env(safe-area-inset-bottom, 0px)); padding:0 16px; border-color:rgba(var(--accent-rgb, 207,255,64),.38); color:var(--accent, var(--accent, #CFFF40)); }
+/* 서버 안내 글 한 꼴(./srv-note.tsx · 형 11-18 「대화를 받지 못했습니다. 가운데 정렬로」 「이런것들 다 말투 통일하고 점검해줘」) = 가운데 · 안내 라임 · 글씨 = 있던 작은 글씨 */
+.nm-srvnote { margin:0; padding:24px 14px; text-align:center; font-size:var(--fs-sm); line-height:1.45; color:var(--accent, #CFFF40); }
+.nm-srvnote.tight { padding:8px 12px; }
+.nm-srvnote.mid { display:flex; align-items:center; justify-content:center; min-height:60dvh; }   /* 방 한가운데(폰 = 방 머리가 위에 얹혀 맨 윗줄이 가려짐) */
+.nm-emptybox.srv b, .nm-emptybox.srv span, .nm-kwb-none.srv b, .nm-kwb-none.srv span { color:var(--accent, #CFFF40) !important; }
 .nm-netbar.ok { border-color:rgba(var(--accent-rgb, 207,255,64),.38); color:var(--accent, var(--accent, #CFFF40)); }

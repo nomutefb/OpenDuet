@@ -3,6 +3,7 @@
 //   같은 차례를 PC 얼굴 띠(ui/shell.tsx)가 씀 = useRoomOrder
 //   안 읽은 수 = 서버 rooms[].unread(형 기준 · 짝 표) · 그 칸이 아직 없으면 점(seen < last_ts)
 //   방 줄 = 얼굴 · 이름 · 꼬리표 · 마지막 글(러너 깸 줄 뺌 · 서버 last_talk) · 시각 · 줄 메뉴(⋯ · 오른쪽 클릭) = 고정/풀기 · 안 읽음으로/읽음으로 · 알림 켬/끔 · (단톡) 알림 그림 · 숨기기/보이기
+import { SrvNote } from "./srv-note";
 import { isPairRoom } from "./pair-fold";
 import { useRoomArtSrc } from "./room-art";
 import { useRoomPhoto } from "./room-photo";
@@ -372,7 +373,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
       <ul className="nm-rgroup flex flex-col">
         {ordered.map((r) => <Fragment key={r.id}>{Row({ r })}</Fragment>)}
       </ul>
-      {rooms.isError ? <p className="px-3 py-2 text-sm text-destructive" role="alert">방 목록을 못 받았어. 새로 고쳐 줘.</p> : null}
+      {rooms.isError ? <SrvNote what="방 목록" className="tight" /> : null}
       {roomReadState.error() ? <p className="px-3 py-2 text-sm text-destructive" role="alert">{roomReadState.error()}</p> : null}
       {notifyErr ? <p className="px-3 py-2 text-sm text-destructive" role="alert">{notifyErr}</p> : null}
       <input ref={pick} type="file" accept="image/*" hidden onChange={(e) => void onPick(e.target.files?.[0])} />

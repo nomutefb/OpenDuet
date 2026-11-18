@@ -42,7 +42,7 @@ export function ScreenTabPane({ url, name, on }: { url: string; name: string; on
       ) : st === "ok" ? (
         <iframe src={src} title={name} allow="clipboard-read; clipboard-write; fullscreen; keyboard-map" />
       ) : st === "fail" ? (
-        <div className="nm-scr-msg" role="alert"><b>{name}</b><span>화면 표를 못 받았어요.</span><span className="row"><button type="button" className="nm-scr-btn go" onClick={ask}>다시</button><a className="nm-scr-btn" href={screenGoUrl(url)} target="_blank" rel="noopener noreferrer">새 창으로 열기</a></span></div>
+        <div className="nm-scr-msg" role="alert"><b>{name}</b><span>화면 표를 받지 못했습니다.</span><span className="row"><button type="button" className="nm-scr-btn go" onClick={ask}>다시</button><a className="nm-scr-btn" href={screenGoUrl(url)} target="_blank" rel="noopener noreferrer">새 창으로 열기</a></span></div>
       ) : (
         <div className="nm-scr-msg" aria-live="polite"><b>{name}</b><span>여는 중…</span></div>
       )}

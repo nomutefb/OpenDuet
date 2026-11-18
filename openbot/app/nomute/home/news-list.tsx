@@ -2,6 +2,7 @@
 //   재료·거름 = 홈 카드 덱과 같음(./news-feed.tsx 의 firstJson · modernData · pickUrl · homeMeta · ./home-pool.ts homePool = 에디터 홈과 같은 후보 · 사본 0) · 사진 받기(linkcard) 0
 //   줄 = 순위 · 제목 · 출처 · 몇 분 전 · 점수 · 끝에 작은 「전송」(= 그 기사로 요약 요청 폼 · send-button.tsx 와 같은 열쇠 nm_ask_prefill → #/ask)
 //   제목 누름 = 원문 새 창(형 11-05 12:27 「링크같은거는 항상 클릭하면 새 창에서」) · 1분마다 다시 받음(보일 때만)
+import { notGot } from "../ui/srv-note";
 import "./news-list.css";
 import { agoMin } from "../ui/ago-min";
 import { pollOff } from "../data/poll-linux";
@@ -194,7 +195,7 @@ export function NewsList() {
       ) : null}
       {st !== "ready" ? (
         st === "loading" ? <div className="nm-skel-list" aria-label="받는 중">{[92, 78, 86, 70, 82, 64].map((w, i) => <i key={i} className="nm-skel" style={{ width: `${w}%` }} />)}</div>   /* 불러오는 중 = 뼈대 줄(시아 UI ⑤) */
-        : <p className="nm-nlist-empty nm-emptybox"><b>{st === "empty" ? "지금 보여 줄 기사가 없어" : "기사 순위를 못 받았어"}</b><span>{st === "empty" ? "1분마다 다시 받아" : "1분 뒤 다시 해 볼게"}</span></p>
+        : <p className={`nm-nlist-empty nm-emptybox${st === "empty" ? "" : " srv"}`}><b>{st === "empty" ? "지금 보여 줄 기사가 없어" : notGot("기사 순위")}</b>{st === "empty" ? <span>1분마다 다시 받아</span> : null}</p>
       ) : (
         <ol className={rows.some((r) => pickers(r).length) ? "nm-nlist-ol" : "nm-nlist-ol nopf"}>   {/* 얼굴 있는 줄 0 = 왼쪽 얼굴 칸째 뺌(형 11-09 12:01 「핫이슈 아직 좌측에 여백남음」 · 틈 얼굴 뺀 뒤 빈 16px) */}
           {rows.map((row, i) => (

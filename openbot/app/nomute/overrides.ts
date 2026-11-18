@@ -140,7 +140,7 @@ export const PATCH: Record<string, [string, string][]> = {
     ['aria-label="Edit channel"', 'aria-label="방 고치기"'],
     [">This channel is archived.<", ">보관한 방이야.<"],
     ["label={`${botName} is writing`", "label={`${botName} 쓰는 중`"],
-    ["Couldn't load this channel. Reload the page.", "방을 못 받았어. 새로 고쳐 줘."],
+    ["Couldn't load this channel. Reload the page.", "방을 받지 못했습니다."],
   ],
   "app/src/routes/_authed/_app/group/$channelId.tsx": [
     ['"Group"', '"단체방"'],
@@ -161,7 +161,7 @@ export const PATCH: Record<string, [string, string][]> = {
     ["      <TasksSwitch\n        onClose={() => {", "      <NomuteToday />\n      <TasksSwitch\n        onClose={() => {"],
     ["            Active\n          </SwitchTab>", "            진행\n          </SwitchTab>"],
     ["            Up next\n          </SwitchTab>", "            다음\n          </SwitchTab>"],
-    ["Couldn't load your Bots. Reload the page.", "봇 명부를 못 받았어. 새로 고쳐 줘."],
+    ["Couldn't load your Bots. Reload the page.", "봇 명부를 받지 못했습니다."],
   ],
   "app/src/components/shell/tasks-active.tsx": [
     ["Nothing active right now.", "지금 진행 중인 일 없음."],
