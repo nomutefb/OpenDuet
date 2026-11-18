@@ -1,0 +1,16 @@
+/* 러너 「CLI 연결」 표 아래 계정 귀속(./cli-bind.tsx) — 표 옷 = ./status-board.css .nsb-acct 그대로 · 색 = --nsb-* · 새 색 0 */
+.nm-clibind { margin-top:6px; }
+.nm-clibind-h { display:flex; align-items:baseline; gap:8px; margin:10px 8px 2px; font-size:var(--fs-label); font-weight:700; color:#E7ECE7; }
+.nm-clibind-h small { display:inline; font-weight:400; }
+.nm-clibind tbody tr { cursor:default; }
+.nm-clibind td { white-space:normal; min-width:140px; color:#E7ECE7; }
+.nm-clibind td small, .nm-clibind thead th small { white-space:normal; }
+.nm-clibind-n { margin:6px 8px 0; font-size:var(--fs-xs); line-height:1.5; color:var(--nsb-mut); }
+.nm-clibind-q { margin:4px 8px 0; font-size:var(--fs-xs); line-height:1.55; color:#E7ECE7; opacity:.86; }
+.nm-clibind-g { list-style:none; margin:4px 8px 6px; padding:0; display:grid; gap:0; }
+.nm-clibind-g li { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; padding:8px 0; border-bottom:1px solid var(--nsb-line); font-size:var(--fs-label); }
+.nm-clibind-g li b { color:#E7ECE7; }
+.nm-clibind-g li span { color:var(--nsb-mut); font-size:var(--fs-xs); }
+.nm-clibind-g li em { font-style:normal; color:#E7ECE7; }
+.nm-clibind-g li small { flex-basis:100%; white-space:normal; }
+:root:not(.dark) .nm-clibind-h, :root:not(.dark) .nm-clibind td, :root:not(.dark) .nm-clibind-q, :root:not(.dark) .nm-clibind-g li b, :root:not(.dark) .nm-clibind-g li em { color:inherit; }

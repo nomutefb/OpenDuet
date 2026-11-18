@@ -4,6 +4,7 @@
 //   자료 = GET status(뜸 · 몸 보고 + 서버 합침) 가 있으면 그것 · 없으면 지금 있는 GET bots · GET schedule 로 1·2·3 만 채우고 나머지는 「보고 아직 안 옴」 칸
 //   일기 = 일곱 × 8단계 격자(형 「일기 정상 작동여부도 프로세스별로 예를들어 7단계면 표를 7단계로 음영칠해. 8x8 이런식. 안되는 부분에 불들어오게」) · SSH = 몸 × 몸 격자
 import { useQuery } from "@tanstack/react-query";
+import { CliBind } from "./cli-bind";   // CLI 연결 표 아래 = R2 에 닿는 손 · 그록 계정 귀속(형 11-19 「러너에 들어가야하고 위 내용 들어가야함」)
 import { lastPut, lastSeed } from "../data/last-cache";   // 지난 작동 표를 먼저 그림(빈 「읽는 중…」 0 · 형 11-17 「처음브터 제대로 나오게」)
 import { type CSSProperties, Fragment, type ReactNode, useState } from "react";
 import { office } from "../data/office";
@@ -546,7 +547,7 @@ export function StatusBoard({ bare = false }: { bare?: boolean } = {}) {
               {as ? <span className="nsb-cnt nsb-ab-sum">{(["ready", "lost", "work"] as const).map((k) => <span key={k} data-act={k} data-zero={!as[k] || undefined}>{ACT_KO[k]} <b key={as[k]} className="nsb-ab-roll">{as[k]}</b></span>)}</span>
                 : <span className="nsb-cnt">{count(c.rows, "miss") ? <em>✕ {count(c.rows, "miss")}</em> : null}{count(c.rows, "late") ? <i>▲ {count(c.rows, "late")}</i> : null}<small>{c.rows.length}</small></span>}
             </button>
-            {isOpen ? (act ? <ActivityBoard rows={c.rows} pick={pick} setPick={setPick} /> : c.id === "acct" ? <><div className="nsb-links"><a className="nm-sched-chip" href="#/edacct">계정 전환</a><a className="nm-sched-chip" href="#/tokens">토큰</a></div><AcctTable rows={c.rows as unknown as AcctRow[]} /></>   /* 계정 전환 · 토큰 = 서랍에서 여기로(형 11-14 「계정 전환 > 그 계정 봇이랑 묶여있는 그 페이지로」 · 「토큰 > 러너 쪽으로」) */ : c.id === "cli" ? <CliTable c={c} /> : c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
+            {isOpen ? (act ? <ActivityBoard rows={c.rows} pick={pick} setPick={setPick} /> : c.id === "acct" ? <><div className="nsb-links"><a className="nm-sched-chip" href="#/edacct">계정 전환</a><a className="nm-sched-chip" href="#/tokens">토큰</a></div><AcctTable rows={c.rows as unknown as AcctRow[]} /></>   /* 계정 전환 · 토큰 = 서랍에서 여기로(형 11-14 「계정 전환 > 그 계정 봇이랑 묶여있는 그 페이지로」 · 「토큰 > 러너 쪽으로」) */ : c.id === "cli" ? <><CliTable c={c} /><CliBind /></> : c.id === "collect_index" ? <IndexTable rows={c.rows as IndexRow[]} /> : c.cols ? <Grid c={c} pick={pick} setPick={setPick} /> : (
               <ul className="nsb-rows">
                 {(c.id === "collect" ? [...ZONES, ...(c.rows.some((r) => !ZONES.includes(r.zone || "")) ? ["기타"] : [])].flatMap((z) => [{ key: `zone:${z}`, name: z, st: worst(c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))), head: true } as StatusRow & { head?: boolean }, ...c.rows.filter((r) => (z === "기타" ? !ZONES.includes(r.zone || "") : r.zone === z))]) : c.rows).map((r) => {   // 구역 없는 줄 = 「기타」(뎅 시험 보고 · 안 묶여 숨던 것)
                   const head = (r as { head?: boolean }).head, z = r.key.replace(/^zone:/, "");

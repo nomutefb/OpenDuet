@@ -9,8 +9,8 @@ import "./ops-desk.css";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Chev } from "./chev";
-import { getJson } from "./news-data";
-import { type Delta, type LensRow, type OpsData, type OpsRow, avgBefore, barGeom, hm, lensDelta, lineOver, man, md, stepRows, KINDS } from "./ops-logic";
+import { opsOpts } from "./ops-data";
+import { type Delta, type LensRow, type OpsRow, avgBefore, barGeom, hm, lensDelta, lineOver, man, md, stepRows, KINDS } from "./ops-logic";
 import { SrvNote } from "./srv-note";
 import { reading, whyOf } from "./wait-text";
 
@@ -102,7 +102,7 @@ function Lens({ name, said, counts, rows, i, k, list, extra }: { name: string; s
 }
 
 export function OpsDesk() {
-  const q = useQuery({ queryKey: ["nomute", "ops"], staleTime: 10 * 60_000, retry: false, queryFn: () => getJson<OpsData>("/ops.json") });
+  const q = useQuery(opsOpts);
   const [pick, setPick] = useState<number | null>(null);
   if (q.isPending) return <p className="nm-vmdesk nm-vm-empty">{reading("살림 장부")}</p>;
   const rows = (q.data?.rows || []).filter((r) => r && r.day), now = q.data?.now || null;
@@ -121,6 +121,10 @@ export function OpsDesk() {
         <Gauge label="R2 읽기 · 이번 달" value={r2?.b_pct != null ? `${Math.round(r2.b_pct)}%` : "—"} pct={r2?.b_pct} sub={r2?.b != null ? `${man(r2.b)}번 / 무료 1,000만` : "Cloudflare 토큰이 없어 못 읽음"} />
         <Gauge label="R2 목록·쓰기 · 이번 달" value={r2?.a_pct != null ? `${Math.round(r2.a_pct)}%` : "—"} pct={r2?.a_pct} sub={r2?.a != null ? `${man(r2.a)}번 / 무료 100만` : "Cloudflare 토큰이 없어 못 읽음"} />
         <Gauge label="R2 용량" value={r2?.gb != null ? `${r2.gb}GB` : "—"} pct={r2?.gb_pct} sub={r2?.gb != null ? "무료 10GB" : "Cloudflare 토큰이 없어 못 읽음"} />
+        {(now?.r2_more || []).flatMap((m) => (m.a_pct == null ? [<Gauge key={`${m.name}x`} label={`${m.name} R2`} value="—" sub={`못 읽음${m.err ? ` · ${m.err.slice(0, 40)}` : ""}`} />] : [
+          <Gauge key={`${m.name}b`} label={`${m.name} R2 읽기 · 이번 달`} value={`${m.b_pct}%`} pct={m.b_pct} sub={`${man(m.b || 0)}번 / 무료 1,000만`} />,
+          <Gauge key={`${m.name}a`} label={`${m.name} R2 목록·쓰기`} value={`${m.a_pct}%`} pct={m.a_pct} sub={`${man(m.a || 0)}번 / 무료 100만${m.gb != null ? ` · ${m.gb}GB` : ""}`} />,
+        ]))}
         <Gauge label="GitHub 호출 · 오늘 최대" value={gh ? `${Math.round(gh.used_max_pct)}%` : "—"} pct={gh?.used_max_pct} sub={gh ? `방금 ${gh.last_pct ?? "–"}% · 시간당 ${gh.limit.toLocaleString()}번` : "아직 본 값 없음"} />
         <Gauge label={`판독 값 · ${md(last.day)}`} value={last.judge ? `$${last.judge.usd.toFixed(2)}` : "—"} sub={last.judge && usdAvg ? `앞 7일 평균 $${usdAvg.toFixed(2)} · ${last.judge.calls}콜` : undefined} />
         <Gauge label={`러너 · ${md(last.day)}`} value={last.run ? hm(last.run.total.runner_min_est) : "—"} sub={last.run ? `회차 ${last.run.total.runs.toLocaleString()} · 건너뜀 ${last.run.total.skipped} · 실패 ${last.run.total.failed}` : undefined} />
