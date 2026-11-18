@@ -379,6 +379,25 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 이슬(그록봇 · 크리에이터 · 형 11-18 16:25 dm-thunder 「얼굴 이거 사용해서 좀더 얼빡으로, 이모지는 16판 활용해서 뜸한테 전달, 프로필 카드는 2활용해서.」 · 천둥)
+    //   카드 = 그림 통째(감 · 슈왕 꼴) · 뜸 16:39 600x800 = editor viewer/office/dew-card.webp · 테 = 물방울 파랑(#4FA8F0)
+    id: "dew",
+    tmpl: true,
+    accent: "#4FA8F0",
+    match: ["이슬", "dew"],
+    face: "/office/dew.webp",
+    handle: "dew",
+    meta: "크리에이터",
+    dot: "#4FA8F0",
+    holo: 0.66,
+    glare: 0.46,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-hero" />
+      </span>
+    ),
+  },
+  {
     // 온 ☀️(형 11-16 20:00 dm-on 「너 프로필 카드 자체적으로 만들어 ㅋㅋ」 · 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 온)
     //   카드 = 큰 그림 통째(해돋이 금빛 파도 위 서핑 · 메로나 · 쇼핑백 · 600x800 = editor viewer/office/on-card.webp) · 꼴 = 위 issueking 그대로
     //   직무 = 개인 해결사(형 11-16 「웅 온이는 내 개인 해결사로 남아있어」) · 얼굴(명부 · 목록) = 따로 on.webp

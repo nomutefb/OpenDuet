@@ -879,6 +879,18 @@
   transform: translate3d(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6), 0);
 }
 
+/* ───────── 이슬 💧 · 전신 그림 통째(being-card.tsx LOOKS dew · 형 11-18 16:25 「프로필 카드는 2활용해서」 · 꼴 = 감 그대로 · 천둥) ───────── */
+.being-card-wrap .bc-dew .profile-card__body { background: linear-gradient(170deg, rgba(64, 150, 230, 0.93) 0%, rgba(20, 52, 110, 0.96) 100%); }
+.being-card-wrap .bc-dew .profile-card__tile { background: #2f86d6; }
+.being-card-wrap .bc-dew .profile-card__photo,
+.being-card-wrap .bc-dew .bc-halo { display: none; }   /* 둥근 얼굴 대신 그림이 주인공 */
+.being-card-wrap .bc-dew .profile-card__scrim { background: linear-gradient(to top, rgba(8, 20, 44, 0.86) 0%, rgba(8, 20, 44, 0.5) 22%, rgba(8, 20, 44, 0) 42%); }   /* 이름 · 소개가 그림 위에서 읽히게 */
+.bc-dew .bc-hero {
+  inset: -4%;
+  background: url(/office/dew-card.webp?v=1) 50% 0% / cover no-repeat;
+  transform: translate3d(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6), 0);
+}
+
 /* ───────── 온 ☀️ · 해돋이 서핑 그림 통째(being-card.tsx LOOKS on · 형 11-16 20:00 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 꼴 = 위 이슈왕 그대로 · 온) ───────── */
 .being-card-wrap .bc-on .profile-card__body { background: linear-gradient(170deg, rgba(255, 196, 92, 0.93) 0%, rgba(196, 98, 52, 0.96) 100%); }
 .being-card-wrap .bc-on .profile-card__tile { background: #f6b25a; }
