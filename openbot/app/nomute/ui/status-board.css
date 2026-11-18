@@ -69,23 +69,36 @@
 
 /* 계정 상태 표(형 11-07 14:35 「계정, %, 이름, 주기, 요금제」 · 「이름에 여러칸으로 나뉘어서 (투명 획선)세로」 · ./status-board.tsx AcctTable) */
 .nsb-acct { overflow-x:auto; padding:0 6px 10px; -webkit-overflow-scrolling:touch; }
-.nsb-acct table { width:100%; min-width:560px; border-collapse:separate; border-spacing:0; font-size:var(--fs-label); }
-.nsb-acct th, .nsb-acct td { padding:8px; border-bottom:1px solid var(--nsb-line); text-align:left; vertical-align:middle; }
+.nsb-acct-at { margin:0 8px 2px; text-align:right; font-size:var(--fs-xs); color:var(--nsb-mut); font-variant-numeric:tabular-nums; }   /* 받은 때(형 11-18 「언제 갱신되는지」) */
+.nsb-acct table { width:100%; min-width:500px; border-collapse:separate; border-spacing:0; font-size:var(--fs-label); }
+.nsb-acct th, .nsb-acct td { padding:10px 8px; border-bottom:1px solid var(--nsb-line); text-align:left; vertical-align:middle; }
 .nsb-acct thead th { color:var(--nsb-mut); font-size:var(--fs-xs); font-weight:700; white-space:nowrap; }
 .nsb-acct tbody th { font-weight:700; white-space:nowrap; color:#E7ECE7; }
 .nsb-acct small { display:block; font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); white-space:nowrap; }
 .nsb-acct tbody tr { cursor:pointer; }
-.nsb-acct .pct b { font-size:16px; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
-.nsb-acct .pct b[data-tone="low"] { color:#E9C46A; }   /* 불 아님 · 숫자 색만(형 15:40 「안뜨게 혀라」) */
-.nsb-acct .pct b[data-tone="out"] { color:#E8A0A0; }
+.nsb-acct .pct { min-width:96px; }
+.nsb-acct .pct b { font-size:18px; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
 .nsb-acct .pct b[data-tone="none"] { color:var(--nsb-mut); }
-.nsb-acct small.out { color:#E8A0A0; }   /* 「이대로면 … 뒤 바닥」 = 숫자 색만(불 아님) */
-.nsb-acct small.dday { color:#E7ECE7; font-variant-numeric:tabular-nums; }   /* 디데이(형 17:18 「2일 00시간 이런식으로」) */
+.nsb-acct .bar { display:block; width:84px; height:4px; margin:5px 0 1px; border-radius:2px; background:rgba(255,255,255,.1); overflow:hidden; color:var(--nsb-ok); }   /* 남은 만큼 찬 막대 · 가만히 있는 그림(움직임 0) */
+.nsb-acct .bar i { display:block; height:100%; background:currentColor; transform-origin:left; }
+.nsb-acct .pct [data-tone="low"] { color:#E9C46A; }   /* 불 아님 · 숫자 색만(형 15:40 「안뜨게 혀라」) */
+.nsb-acct .pct [data-tone="out"] { color:#E8A0A0; }
+.nsb-acct small.out { color:#E8A0A0; }   /* 「… 뒤 바닥」 = 숫자 색만(불 아님) */
+.nsb-acct .reset b { font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }   /* 다시 찰 때까지 남은 시간(형 11-07 17:18 「2일 00시간 이런식으로」) */
 .nsb-acct .names { white-space:normal; min-width:7em; }   /* 이름 넷 넘으면 줄바꿈(폰 390 에서 오른쪽 잘림 · 봄 11-11 06:50 · 깃) */
 .nsb-acct .names span { display:inline-block; white-space:nowrap; margin:1px 0; padding:0 9px; border-left:1px solid rgba(255,255,255,.14); }   /* 투명 획선 세로(형 14:35) */
 .nsb-acct .names span:first-child { padding-left:0; border-left:0; }
-.nsb-acct .memo { color:var(--nsb-mut); font-size:var(--fs-sm); }
-.nsb-acct tr.why td { font-size:var(--fs-sm); color:var(--nsb-mut); background:rgba(255,255,255,.03); }
+.nsb-acct tr.why td { font-size:var(--fs-sm); color:var(--nsb-mut); background:rgba(255,255,255,.03); white-space:normal; }
+.nsb-acct tr.why td span { display:inline-block; margin-right:14px; }   /* 누르면 나오는 나머지(창마다 % · 하루 평균 · 요금 · 비고 · 받은 때) */
+@media (max-width:520px) {   /* 폰 = 옆으로 안 밀리게: 요금제 칸은 누르면 나오는 줄로(형 11-18 「필요한것만 명확하게」) */
+  .nsb-acct table { min-width:0; }
+  .nsb-acct th, .nsb-acct td { padding:10px 5px; }
+  .nsb-acct tr > :nth-child(5) { display:none; }
+  .nsb-acct .pct { min-width:66px; }
+  .nsb-acct .bar { width:56px; }
+  .nsb-acct .names { min-width:0; }
+  .nsb-acct .names span { padding:0 6px; }
+}
 /* 묶음 머리(형 11-08 01:29 「가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」) — 칸 위 작은 머리 · 불 = 그 묶음 제일 나쁜 것 */
 .nsb-grp { display:flex; align-items:center; gap:6px; margin:18px 4px 8px; font-size:var(--fs-sm); font-weight:800; letter-spacing:.06em; color:var(--nsb-mut); }
 .nsb-grp:first-of-type { margin-top:6px; }
@@ -133,6 +146,9 @@
 .nsb-d[data-st="miss"] em { color:#ffb3b5; }
 .nsb-d[data-st="unknown"] em { color:var(--nsb-mut); }
 .nsb-who td.acct .nsb-d em { color:inherit; }
+.nsb-who td.acct.on { text-align:left; }
+.nsb-who td.dm { text-align:left; white-space:nowrap; font-size:var(--fs-xs); color:var(--nsb-mut); }
+.nsb-who td.dm span + span::before { content:" · "; }
 .nsb-map td .nsb-d { margin:1px 6px 1px 0; }
 .nsb-map thead th { font-size:var(--fs-sm); color:inherit; }
 .nsb-map thead th small { display:block; font-weight:400; color:var(--nsb-mut); }
@@ -174,7 +190,6 @@
 .nsb-who td.nw select option { color:#161716; }
 .nsb-who td.nw[data-err] select { border-color:#ff5a5a; }
 
-.nsb-acct .memo { color:var(--nsb-mut); font-size:var(--fs-sm); }
 .nsb-links { display:flex; gap:6px; padding:0 14px 8px; }
 .nsb-links a { text-decoration:none; }
 .nm-msgs-seg { display:flex; gap:6px; padding:10px 16px 4px; }

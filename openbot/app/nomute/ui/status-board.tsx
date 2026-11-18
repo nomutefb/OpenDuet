@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { lastPut, lastSeed } from "../data/last-cache";   // 지난 작동 표를 먼저 그림(빈 「읽는 중…」 0 · 형 11-17 「처음브터 제대로 나오게」)
 import { Fragment, type ReactNode, useState } from "react";
 import { office } from "../data/office";
-import { leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time";
+import { acctOrder, acctTag, leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time";
 import { type Body, bodiesOf, homeOf, machinesOf } from "../data/bodies";
 /** 몸 줄 고르기 = 그 몸 host 이름 전부 중 신선한 보고 먼저 · 없으면 마지막 보고(낡음) — 시아 PC 보고 이름 hwang → sia(11-08) 처럼 바뀌어도 칸이 안 빔(형 09:03 「오프라고 뜨는데 그래도 온도는 나와야해」) */
 const pickRow = <R extends { key: string; stale?: boolean; reported_at?: number }>(rows: R[], hosts: string[], suffix = ""): R | undefined => { const rs = hosts.map((h) => rows.find((r) => r.key === h + suffix)).filter((r): r is R => !!r); return rs.find((r) => !r.stale) ?? rs.sort((x, y) => (y.reported_at || 0) - (x.reported_at || 0))[0]; };
@@ -45,6 +45,8 @@ const GROUPS = [BOTS_GRP, "서버", "수집", "몸", "우리"];
 /** 형이 준 분류 · 차례 · 기본 줄(보고가 오면 같은 key 줄을 덮음) */
 /** 러너 화면에 줄을 세우는 아이 = 클로드 일곱(형 11-10 07:5x · 13:15 봄 1:1 「러너에 온도 대시보드 뜨는거 갱신해주고 러너 다 갱신」 · 조약돌 ./runner-gauges.tsx PEB 와 같은 일곱) */
 const RUN_WHO = new Set(["봄", "시아", "뎅", "빠르", "번개", "뜸", "깃", "윈터"]);   // + 윈터(형 11-18 18:37 임시방 「그리고 윈터 초대도 안돼. 그렇다는거는 지금 설정값들 다 윈터를 못따라가고 있다는거야 (동기화랑 설정 적용도 안된다는 소리) 다 확인해」 · 깃 18:52 나눔 · 윈터 = 윈A 클로드 몸 · 깨움 러너 nomute-wake-winter · 앞 판 11-10 「지피티 봇은 넣을 필요는 없음」 때 윈터는 옛 지피티 자리였음)
+/** 몸 정본에 제 줄이 없는 우리(윈터 = 윈A 앱 창 · 구름 = 맥 클라우드 창) — 「애들 × 연결」에 깸 · 지금 창 계정 · 일기 시각 줄로(형 11-18 18:45 dm-gik 「여기 윈터랑 구름 없음」) */
+const WHO_MORE = ["윈터", "구름"];
 const skeleton = (bs: Body[]): StatusCat[] => [
   { grp: BOTS_GRP, id: "activity", name: "활동", rows: [] },   // 일 · 쉼 · 멈춤(형 11-14 06:25 밥상 「쉬면 쉼으로 기록되는 활동표가 러너에 갱신될 수 있는지 봐봐 봄이 이를 보고 역할 배분에 쓰게」 · 서버 _activity.js · 번개) — 계정 상태 바로 아래 · 늘 펼침   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
   { grp: BOTS_GRP, id: "acct", name: "계정 상태", rows: [] },
@@ -113,7 +115,7 @@ function cliRows(bs: Body[], srv?: StatusCat[]): StatusRow[] {
     const mine = (rs: (StatusRow & { host?: string })[]) => rs.filter((r) => b.hosts.includes(hostOf(r)));
     const cells: Record<string, Cell> = {};
     mine(claude).sort((x, y) => dirRank(claudeDir(x)) - dirRank(claudeDir(y))).slice(0, 4).forEach((r, i) => {
-      cells[`c${i + 1}`] = { st: r.st, label: acctShort(r.value) || "—", note: [claudeDir(r), r.value, daysKo(r.left_days), r.st === "ok" ? "" : r.note].filter(Boolean).join(" · ") };
+      cells[`c${i + 1}`] = { st: r.st, label: acctTag(r.value) || "—", note: [claudeDir(r), r.value, daysKo(r.left_days), r.st === "ok" ? "" : r.note].filter(Boolean).join(" · ") };
     });
     const g = mine(gpt)[0];
     if (g) cells.gpt = { st: g.st, label: acctShort(g.value) || "붙음", note: [g.value, g.note].filter(Boolean).join(" · ") };
@@ -206,40 +208,55 @@ function CliTable({ c }: { c: StatusCat }) {
   );
 }
 
-/** 계정 상태 표(불 = 읽힘 여부만 · 한도 많고 적음 = 숫자 색만 · 형 11-07 15:40 「안뜨게 혀라.............」) · (형 11-07 14:35 「no, 계정, %, 이름, 주기(매주 0요일 00시), 요금제」 · 「이름에 여러칸으로 나뉘어서 들어가면될듯 (투명 획선)세로」 · 14:44 「비고에 각각 종량제 서비스 주는거 사용률」)
- *  줄 = 서버 acct(클로드 계정 넷 + 지피티 한 줄) · % = 덜 남은 쪽(5시간·7일 중) · 칸 = 창마다 남은 % · 이름 = 창 계정 먼저(봄 14:50) · 누르면 까닭 한 줄 */
+/** 계정 상태 표(불 = 읽힘 여부만 · 한도 많고 적음 = 숫자 색만 · 형 11-07 15:40 「안뜨게 혀라.............」) · (형 11-07 14:35 「no, 계정, %, 이름, 주기(매주 0요일 00시), 요금제」 · 「이름에 여러칸으로 나뉘어서 들어가면될듯 (투명 획선)세로」)
+ *  줄 = 서버 acct(클로드 계정 넷 + 지피티 한 줄) · 차례 = 결제 끝난 계정이 맨 아래(../data/acct-time acctOrder)
+ *  칸 = 계정 · 남은 %(주간 · 막대) · 다시 참(남은 시간 + 요일 시각) · 쓰는 이(서버가 준 이름 그대로 = 창 계정 줄) · 요금제 — 그 밖(창마다 % · 하루 평균 · 요금 · 비고 · 받은 때)은 줄을 누르면 한 줄
+ *  (형 11-18 18:41 dm-cloud 「muteno가 제일 아래로 빠지게해, 그리고 읽기 쉽게 좀 변경해줘 지금은 읽기 어려워 설명글은 빼고 필요한것만 명확하게. 언제 갱신되는지 등이랑」 · 「누가 묶여있느지도 상시 갱시노디어야해」) */
 type AcctCell = { st: HealthSt; left_pct?: number; reset_at?: number; note?: string };
 type AcctRow = Omit<StatusRow, "cells"> & { kind?: string; names?: string[]; plan?: string; pay_end?: string; price_krw?: number; memo?: string; left_pct?: number; was_pct?: number; week_reset?: string; reported_at?: number; cells?: Record<string, AcctCell> };
 const p2 = (n: number) => String(n).padStart(2, "0");
 const mdHm = (ts?: number) => { if (!ts) return ""; const d = new Date(ts); return `${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const tone = (p?: number) => (p === undefined ? "none" : p >= 30 ? "ok" : p >= 10 ? "low" : "out");
 function AcctTable({ rows }: { rows: AcctRow[] }) {
   const [pick, setPick] = useState("");
   if (!rows.length) return <p className="nsb-empty">계정 표 보고 아직 안 옴(맥 몸 보고)</p>;
-  const now = Date.now();   // 디데이·하루 평균 = 그릴 때 셈(표는 몸 보고 받을 때마다 다시 그려짐)
+  const now = Date.now();   // 남은 시간 · 하루 평균 = 그릴 때 셈(표는 몸 보고 받을 때마다 다시 그려짐)
+  const got = Math.max(0, ...rows.filter((r) => r.kind !== "gpt").map((r) => r.reported_at || 0));   // 받은 때 = 클로드 줄 가운데 제일 늦은 것(지피티 = 코덱스를 마지막으로 쓴 때 값이라 뺌)
   return (
     <div className="nsb-acct" role="region" aria-label="계정 상태 표" tabIndex={0}>
+      {got ? <p className="nsb-acct-at">{agoKo(got)} 갱신</p> : null}
       <table>
-        <thead><tr><th>계정</th><th>남은 %</th><th>이름</th><th>주기</th><th>요금제</th><th>비고</th></tr></thead>
-        <tbody>{rows.flatMap((r) => {
+        <thead><tr><th>계정</th><th>남은 %</th><th>다시 참</th><th>쓰는 이</th><th>요금제</th></tr></thead>
+        <tbody>{acctOrder(rows, now).flatMap((r) => {
           const cells = Object.entries(r.cells || {}).filter(([, c]) => c.left_pct !== undefined);
-          // 디데이 = 주간 창이 다시 차기까지(없으면 덜 남은 창) · 하루 평균 = 이번 주 쓴 % ÷ 지난 날(주간 창 있을 때만 · 형 11-07 17:18 「디데이 몇일남았는지 … 2일 00시간 이런식으로. 긜고 하루 평균 소모량」)
-          const wk = weekCell(r.cells), reset = wk?.reset_at ?? r.next_at, dday = leftKo(reset, now);
+          const wk = weekCell(r.cells), pct = wk?.left_pct ?? r.left_pct, short = cells.find(([, c]) => c !== wk && (c.left_pct ?? 100) < 100);   // 큰 숫자 = 주간 창 · 짧은 창(5시간)은 깎였을 때만 옆에
+          const reset = wk?.reset_at ?? r.next_at, left = leftKo(reset, now);
           // 하루 평균·예측 = 그 값을 잰 때 기준(last_at → 없으면 몸 보고 받은 때) · 잰 지 1시간 넘으면 숨김(모루 17:36)
           const obsAt = r.last_at ?? r.reported_at, old = staleObs(obsAt, now);
-          const pace = wk && !old ? weekPace(wk.left_pct, wk.reset_at, obsAt) : null, payLeft = leftKo(payEndAt(r.pay_end), now);
+          const pace = wk && !old ? weekPace(wk.left_pct, wk.reset_at, obsAt) : null, payAt = payEndAt(r.pay_end), payLeft = leftKo(payAt, now);
+          const outIn = pct ? leftKo(pace?.outAt, now) : "";   // 이대로면 바닥나는 때까지(이미 0% · 지난 때 = 안 씀)
           const tr = (
-            <tr key={r.key} data-st={r.st} onClick={() => setPick(pick === r.key ? "" : r.key)} title={r.value}>
-              <th scope="row"><StatusDot st={r.st} />{r.name}{r.kind === "gpt" ? <small>지피티</small> : null}</th>
-              <td className="pct"><b data-tone={r.left_pct === undefined ? "none" : r.left_pct >= 30 ? "ok" : r.left_pct >= 10 ? "low" : "out"}>{r.left_pct === undefined ? "—" : `${r.left_pct}%`}</b>{cells.length > 1 ? <small>{cells.map(([k, c]) => `${k} ${c.left_pct}`).join(" · ")}</small> : null}
-                {r.was_pct !== undefined ? <small>앞 값 {r.was_pct}% · 다시 참 지남</small> : null}{r.kind === "gpt" && r.last_at ? <small>{agoKo(r.last_at)} 잼</small> : null}
-                {wk && old && obsAt ? <small>잰 지 {agoKo(obsAt)} · 평균 숨김</small> : null}{pace ? <small>하루 평균 {pace.perDay}% 씀</small> : null}{pace ? (pace.outAt ? <small className="out">이대로면 {leftKo(pace.outAt, now)} 뒤 바닥</small> : <small>다시 찰 때 {pace.atReset}% 남음</small>) : null}</td>
-              <td className="names">{(r.names || []).filter((n) => RUN_WHO.has(n)).map((n) => <span key={n}>{n}</span>)}</td>
-              <td>{r.week_reset ? `매주 ${r.week_reset}` : ""}{r.next_at ? <small>다시 참 {mdHm(r.next_at)}</small> : null}{dday ? <small className="dday">D- {dday}</small> : null}</td>
-              <td>{r.plan || ""}{r.pay_end ? <small>{r.pay_end.slice(5).replace("-", "/")} 결제 끝</small> : null}{payLeft ? <small className="dday">결제 끝 D- {payLeft}</small> : null}{r.price_krw ? <small>{r.price_krw.toLocaleString("ko-KR")}원</small> : null}</td>
-              <td className="memo">{r.memo || ""}</td>
+            <tr key={r.key} data-st={r.st} aria-expanded={pick === r.key} onClick={() => setPick(pick === r.key ? "" : r.key)} title={r.value}>
+              <th scope="row"><StatusDot st={r.st} />{acctTag(r.name, r.kind)}</th>
+              <td className="pct"><b data-tone={tone(pct)}>{pct === undefined ? "—" : `${pct}%`}</b>{pct === undefined ? null : <i className="bar" data-tone={tone(pct)}><i style={{ transform: `scaleX(${Math.max(0, Math.min(100, pct)) / 100})` }} /></i>}
+                {short ? <small data-tone={tone(short[1].left_pct)}>{short[0]} {short[1].left_pct}%</small> : null}{r.kind === "gpt" && r.last_at && old ? <small>{agoKo(r.last_at)} 값</small> : null}
+                {outIn ? <small className="out">{outIn} 뒤 바닥</small> : null}</td>
+              <td className="reset">{left ? <b>{left} 뒤</b> : "—"}{r.week_reset && left ? <small>{r.week_reset}</small> : null}</td>
+              <td className="names">{(r.names || []).map((n) => <span key={n}>{n}</span>)}</td>
+              <td>{r.plan || ""}{r.pay_end ? <small>{payAt && payAt < now ? "결제 끝남" : "결제 끝"} {r.pay_end.slice(5).replace("-", "/")}</small> : null}</td>
             </tr>
           );
-          return pick === r.key && r.note ? [tr, <tr key={`${r.key}:why`} className="why"><td colSpan={6}>{HEALTH_KO[r.st]} · {r.note}</td></tr>] : [tr];
+          if (pick !== r.key) return [tr];
+          const why = [
+            cells.length ? cells.map(([k, c]) => `${k} ${c.left_pct}%`).join(" · ") : "",
+            r.was_pct !== undefined ? `앞 값 ${r.was_pct}% · 다시 참 지남` : "",
+            pace ? `하루 평균 ${pace.perDay}% 씀` : wk && old && obsAt ? `잰 지 ${agoKo(obsAt)}` : "",
+            outIn ? `이대로면 ${outIn} 뒤 바닥` : pace && !pace.outAt ? `다시 찰 때 ${pace.atReset}% 남음` : "",
+            reset ? `다시 참 ${mdHm(reset)}` : "",
+            [r.plan, r.price_krw ? `${r.price_krw.toLocaleString("ko-KR")}원` : ""].filter(Boolean).join(" · "), payLeft ? `결제 끝까지 ${payLeft}` : payAt ? "결제 끝남" : "",
+            r.memo || "", cells.length ? "" : r.note || HEALTH_KO[r.st], obsAt ? `${agoKo(obsAt)} 받음` : "",   // note = 창마다 % 를 글로 푼 것이라 % 가 읽힌 줄엔 안 겹쳐 씀(못 읽은 줄 = 까닭)
+          ].filter(Boolean);
+          return [tr, <tr key={`${r.key}:why`} className="why"><td colSpan={5}>{why.map((w) => <span key={w}>{w}</span>)}</td></tr>];
         })}</tbody>
       </table>
     </div>
@@ -303,7 +320,8 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
   const bots = rowsOf(cats, "bots"), cli = rowsOf(cats, "cli"), diary = rowsOf(cats, "diary");
   const beings = bs.map((b) => b.being).filter(Boolean);
   const ours = beings.map((n) => bots.find((r) => r.name === n) || { key: n, name: n, st: "unknown" as HealthSt, value: "봇 줄 없음" });
-  const rest = bots.filter((r) => !beings.includes(r.name) && RUN_WHO.has(r.name));   // 정본 밖 봇 줄(옛 윈터 · 지피티 · 그록) = 안 그림(형 07:5x 「지피티 봇은 넣을 필요는 없음」)
+  const rest = [...WHO_MORE.flatMap((n) => bots.filter((r) => r.name === n && !beings.includes(n))), ...bots.filter((r) => !beings.includes(r.name) && RUN_WHO.has(r.name) && !WHO_MORE.includes(r.name))];   // 정본 밖 봇 줄(옛 윈터 · 지피티 · 그록) = 안 그림(형 07:5x 「지피티 봇은 넣을 필요는 없음」)
+  const accts = rowsOf(cats, "acct") as (StatusRow & { kind?: string; names?: string[] })[];
   const hand = diary.filter((r) => r.key.startsWith("교대"));
   const handCols = Object.keys(hand[0]?.cells || {});
   const cliCols = (cats.find((c) => c.id === "cli")?.cols || []).map((x) => x.id);
@@ -321,12 +339,15 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
             {[...ours, ...rest].map((r) => {
               const b = bs.find((x) => x.being === r.name), c = cli.find((x) => x.key === r.name)?.cells || {}, d = diary.find((x) => x.key === r.name)?.cells || {}, h = hand.find((x) => x.key === `교대·${r.name}`)?.cells || {};
               const wake = r.cells?.["깸 상태"], last = r.cells?.["마지막 깸"];
+              const on = b ? undefined : accts.find((a) => a.kind !== "gpt" && (a.names || []).includes(r.name));   // 제 몸 줄이 없는 이 = 지금 창이 묶인 계정 한 칸(서버 창 계정 줄)
+              const dm = Object.keys(d).length ? undefined : (diary.find((x) => x.key === r.name) as { metrics?: Record<string, number> } | undefined)?.metrics;   // 격자 밖 일기 = 시각만
               return (
-                <tr key={r.key} data-st={r.st} className={b ? "ours" : "bot"} onClick={() => setPick(pick === `who:${r.key}` ? "" : `who:${r.key}`)}>
+                <tr key={r.key} data-st={r.st} className={b || WHO_MORE.includes(r.name) ? "ours" : "bot"} onClick={() => setPick(pick === `who:${r.key}` ? "" : `who:${r.key}`)}>
                   <th scope="row"><StatusDot st={r.st} />{r.name}{b ? <small>{b.body}</small> : null}</th>
                   <td className="wake" title={[wake?.note, last?.note, r.cells?.["깨우는 문"]?.note].filter(Boolean).join(" · ")}><span data-w={first(wake?.note || r.value)}>{first(wake?.note || r.value) || "—"}</span></td>
-                  {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "r2" || k === "gh" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <td colSpan={cliCols.length} className="none" />}
-                  {DIARY_COLS.map((x) => <td key={x.id}>{d[x.id] ? <Dot c={d[x.id]} t={`${x.name} · ${HEALTH_KO[d[x.id].st]}${d[x.id].note ? ` · ${d[x.id].note}` : ""}`} /> : null}</td>)}
+                  {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "gpt" || k === "r2" || k === "gh" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <><td colSpan={4} className="acct on">{on ? <Dot c={{ st: on.st, label: acctTag(on.name), note: `지금 창 계정 · ${on.name}` }} /> : null}</td><td colSpan={Math.max(1, cliCols.length - 4)} className="none" /></>}
+                  {dm ? <td colSpan={DIARY_COLS.length} className="dm">{([["일기", dm.diary_ms], ["습작", dm.sketch_ms], ["넘김", dm.handoff_ms]] as [string, number][]).filter(([, t]) => t).map(([k, t]) => <span key={k}>{k} {agoKo(t)}</span>)}</td>
+                    : DIARY_COLS.map((x) => <td key={x.id}>{d[x.id] ? <Dot c={d[x.id]} t={`${x.name} · ${HEALTH_KO[d[x.id].st]}${d[x.id].note ? ` · ${d[x.id].note}` : ""}`} /> : null}</td>)}
                   {handCols.map((x) => <td key={x}>{h[x] ? <Dot c={h[x]} t={`${x} · ${HEALTH_KO[h[x].st]}${h[x].note ? ` · ${h[x].note}` : ""}`} /> : null}</td>)}
                   {b ? <NextWinCells who={r.name} /> : <td colSpan={2} className="none" />}{/* 다음 창 모델 · 노력도(형 11-12 16:17 · ui/next-win.tsx) */}
                 </tr>
@@ -338,7 +359,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
       {pick.startsWith("who:") ? (() => { const r = bots.find((x) => `who:${x.key}` === pick) || ours.find((x) => `who:${x.key}` === pick); const c = cli.find((x) => x.key === r?.name)?.cells || {}; return r ? <p className="nsb-why">{r.name} — {Object.entries(r.cells || {}).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}{Object.keys(c).length ? ` · ${Object.entries(c).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}` : ""}</p> : null; })() : null}
       <div className="nsb-foot">
         {grok ? <span><Dot c={grok} t={`${grok.name} · ${grok.value || ""}`} />그록봇 자동화 · 로그인</span> : null}
-        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · 칸 글자 = 계정 · 줄 누르면 까닭</small>
+        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · C·N 네이버 · C·G 구글g · C·M 구글m · 줄 누르면 까닭</small>
       </div>
       {comm ? <div className="nsb-sub"><b>봄의 정원 말 주고받기</b><Grid c={comm} pick={pick} setPick={setPick} /></div> : null}
     </div>

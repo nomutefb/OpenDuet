@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time.ts";
+import { acctOrder, acctTag, leftKo, payEndAt, staleObs, weekCell, weekPace } from "../data/acct-time.ts";
 
 test("같은 관측을 다음 날 그려도 평균·바닥 때가 그대로(모루 11-07 17:36)", () => {
   const reset = Date.parse("2026-11-12T19:00:00+09:00"), obs = Date.parse("2026-11-06T19:00:00+09:00");   // 주 시작 하루째에 잰 50%
@@ -50,4 +50,19 @@ test("weekPace = 이번 주 쓴 % ÷ 지난 날 · 바닥나는 때", () => {
 test("weekCell = 7일·주간 칸", () => {
   assert.deepEqual(weekCell({ "5시간": { left_pct: 100 }, "7일": { left_pct: 95, reset_at: 1 } }), { left_pct: 95, reset_at: 1 });
   assert.equal(weekCell({ "5시간": { left_pct: 1 } }), undefined);
+});
+
+test("acctOrder = 결제 끝난 계정만 맨 아래 · 나머지는 서버 차례 그대로(형 11-18 「muteno가 제일 아래로 빠지게해」)", () => {
+  const now = Date.parse("2026-11-18T18:41:00+09:00");
+  const rows = [{ key: "muteno", pay_end: "2026-11-10" }, { key: "naver" }, { key: "m" }, { key: "gpt", pay_end: "2026-12-06" }];
+  assert.deepEqual(acctOrder(rows, now).map((r) => r.key), ["naver", "m", "gpt", "muteno"]);
+  assert.deepEqual(acctOrder(rows, Date.parse("2026-11-09T00:00:00+09:00")).map((r) => r.key), ["muteno", "naver", "m", "gpt"]);   // 결제 끝 전 = 서버 차례
+});
+
+test("acctTag = 클로드 C·N · C·G · C·M · 지피티 GPT · 그 밖은 앞 이름 그대로(형 11-18 18:45)", () => {
+  assert.equal(acctTag("naver"), "C·N"); assert.equal(acctTag("ems1130@naver.com"), "C·N"); assert.equal(acctTag("ems1130n"), "C·N");
+  assert.equal(acctTag("ems1130g"), "C·G"); assert.equal(acctTag("ems1130g@gmail.com"), "C·G");
+  assert.equal(acctTag("ems1130m"), "C·M"); assert.equal(acctTag("ems1130m@gmail.com"), "C·M");
+  assert.equal(acctTag("gpt muteno"), "GPT"); assert.equal(acctTag("muteno", "gpt"), "GPT");
+  assert.equal(acctTag("muteno"), "muteno"); assert.equal(acctTag("muteno@pm.me"), "muteno"); assert.equal(acctTag(undefined), "");
 });

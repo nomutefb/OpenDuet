@@ -47,3 +47,20 @@ export function weekCell<C extends { left_pct?: number; reset_at?: number }>(cel
   const hit = Object.entries(cells || {}).find(([k]) => /7일|주간|week/i.test(k));
   return hit ? hit[1] : undefined;
 }
+
+/** 표 줄 차례 = 서버 차례 그대로 · 결제가 끝난 계정만 맨 아래(형 11-18 18:41 dm-cloud 「muteno가 제일 아래로 빠지게해」 · muteno = 11-10 결제 끝) */
+export function acctOrder<R extends { pay_end?: string }>(rows: R[], now = Date.now()): R[] {
+  const over = (r: R) => { const t = payEndAt(r.pay_end); return t !== undefined && t < now; };
+  return [...rows.filter((r) => !over(r)), ...rows.filter(over)];
+}
+
+/** 계정 짧은 표기 = 클로드 C·N(네이버) · C·G(구글 g) · C·M(구글 m) · 지피티 = GPT(계정 이름 없이) · 그 밖 = 메일 앞 이름 그대로
+ *  (형 11-18 18:45 dm-gik 「쿨로드 계정은 C·N 이런식으로 표기할게 C·G C·M 네이버 구글g 구글m 지피티는 GPT 계정명 없어도 됨」) */
+export function acctTag(v?: unknown, kind?: string): string {
+  const s = v === undefined || v === null ? "" : String(v).trim(), id = s.split("@")[0].toLowerCase();
+  if (kind === "gpt" || /^gpt\b/i.test(s)) return "GPT";
+  if (/@naver\.com$/i.test(s) || id === "naver" || id === "ems1130n") return "C·N";
+  if (id === "ems1130g") return "C·G";
+  if (id === "ems1130m") return "C·M";
+  return s.includes("@") ? s.split("@")[0] : s;
+}

@@ -46,7 +46,8 @@ test("보낼 몸 = 이름 · 지침 · 멤버는 늘 · 기한은 골랐을 때�
 test("방 설정 한 창 = 멤버 · 최대 인원 · 모두 내보내기 · 지금 일 · 머무는 시간 · 메뉴 줄은 하나", () => {
   const t = rd("../ui/temp-room.tsx"), m = rd("../ui/room-menu.tsx"), l = rd("../ui/room-list.tsx");
   assert.match(t, /const cand = memberCand\(candRaw, edit\?\.members \|\| \[\]\)/);
-  assert.match(t, /cls\.includes\(who\(n\)\?\.shelf \|\| who\(n\)\?\.cls \|\| ""\)/);   // 묶음 칸 = 명부 shelf 먼저(구름 → 클로드 칸)
+  assert.match(t, /const famOf = \(p\?: OfficePerson\) => p\?\.shelf \|\| \(p\?\.root === "claude" \? "클로드" : p\?\.cls\) \|\| ""/);   // 묶음 칸 = 명부 shelf 먼저(구름 → 클로드 칸) → 머리 claude(윈터 → 클로드 칸 · 형 11-18 18:34 「윈터 초대는 왜없어 또?」) → cls
+  assert.match(t, /cls\.includes\(famOf\(who\(n\)\)\)/);
   assert.match(t, /<span className="nm-rs-nm">\{edit \? "멤버" : "초대할 사람"\}<em>\{edit \? picked\.length \+ 1 : picked\.length\}명<\/em><\/span>/);   // 고치기 = 형 포함 숫자(머리 숫자와 같음)
   assert.match(t, /aria-label="최대 인원"/); assert.match(t, /aria-label="머무는 시간"/);
   assert.match(t, /idle: edit\?\.idle_min && edit\.idle_min > 0 \? edit\.idle_min : 0/);   // 방 자료 칸 = idle_min(서버 tempRoomOf) · 보낼 칸 = task_idle_min
