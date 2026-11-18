@@ -54,3 +54,10 @@ test("문지기 안내 줄 = 가운데 줄 두 줄 그대로(서버가 줄바꿈
   assert.match(chat, /const evM = \(m: Msg\) => m\.kind === "system" && !!m\.event\?\.kind;/);   // event kind(keeper 포함)가 있는 사무실 줄 = 가운데 줄
   assert.match(chat, /it\.m\.event\?\.kind === "left" && inviteOn\.has\(it\.m\.id\)/);   // 초대 단추는 나감 줄에만(안내 줄엔 없음)
 });
+
+test("문지기 안내 첫 줄만 라임 · 괄호 줄은 그대로(형 11-18 「문지기를 < 이거에 라임색만 넣어줘」 「괄호는 라임색 필요없음」)", () => {
+  const css = rd("../ui/yeta-chat.css"), chat = rd("../ui/office-chat.tsx");
+  assert.match(css, /\.ychat \.yev \.yev-lime \{ font-style:normal; color:var\(--accent, #CFFF40\); \}/);   // 새 색 아님 = 있던 안내 라임
+  assert.match(chat, /it\.m\.event\?\.kind === "keeper" \? keeperLine\(it\.m\.text \|\| ""\) : it\.m\.text \|\| ""/);   // 문지기 줄에만
+  assert.match(chat, /const \[first, \.\.\.rest\] = text\.split\("\\n"\); return <><i className="yev-lime">\{first\}<\/i>/);   // 첫 줄만 감쌈 · 나머지(괄호 줄)는 맨글
+});
