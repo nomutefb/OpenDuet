@@ -6,15 +6,16 @@
 //   서버 = 이미 있는 길만: 모델 · 노력도 = profile/nextwin(./next-win.tsx) · 임시 멈춤 = bots/rest(빠르 #4053) · 계정 = 도표 줄 acct(읽기)
 //   움직임 = 끄는 동안 리액트를 안 거치고 그 막대의 transform 만 바꿈(합성 단계 · 60프레임) · 놓으면 30분 칸에 붙음
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Children, Fragment, type ReactNode, Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Children, Fragment, type ReactNode, Suspense, lazy, useState } from "react";
 import { office, people } from "../data/office";
 import { MorphAsk } from "./morph-ask";   // 그 자리 재확인(모달 0 · 누른 낱말이 [아니오(라임)] [예] 로 번지며 바뀜) — 형 11-16 21:4x 구름 맥 창 영상(Mark as Done → Done | Undo) 「항상 그냥 re 토글로만」 · 앱 하네스 그대로
 import { sameOf } from "./model-set-logic";
 import { pmCandidates } from "./pm-set-logic";
 import { type BotRow, roleOf } from "./bot-desk-logic";
-import { type Rest, type RestMap, acctKo, restBody, restKo, restOn, stepOf } from "./bot-manage-logic";
+import { type Rest, type RestMap, acctKo, restBody, restKo, restOn } from "./bot-manage-logic";
 import { Chev } from "./chev";
 import { NW_EFFORTS, NW_MODELS, type NextWin, nwDefault, useNextWin } from "./next-win";
+import { BOT_EFFORTS, BOT_MODELS, PickRow } from "./model-set";
 import { useMe } from "./pins";
 
 const NW_KEY = ["nomute", "nextwin"], REST_KEY = ["nomute", "bots-rest"], WAKE_KEY = ["nomute", "wakeset"] as const, PM_KEY = ["nomute", "pm"] as const;
@@ -42,29 +43,15 @@ function NextWinRows({ who }: { who: string }) {
     mutationFn: (v: NextWin) => office<{ nextwin?: Record<string, NextWin> }>("profile/nextwin", { method: "POST", body: JSON.stringify({ who, model: v.model, effort: v.effort }) }),
     onSuccess: (j) => { if (j.nextwin) qc.setQueryData(NW_KEY, j.nextwin); else void qc.invalidateQueries({ queryKey: NW_KEY }); },
   });
-  const off = !can || save.isPending;
-  // 노력도 = 넘기는 동안은 화면만 먼저 바꾸고(pend) 손이 멈춘 뒤 한 번만 저장
-  const [pend, setPend] = useState<string | null>(null), timer = useRef(0), eff = pend ?? cur.effort;
-  useEffect(() => () => window.clearTimeout(timer.current), []);
-  const pickEff = (x: string) => { setPend(x); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => { if (x !== cur.effort) save.mutate({ ...cur, effort: x }, { onSettled: () => setPend((p) => (p === x ? null : p)) }); else setPend(null); }, 520); };   // 그 사이 더 넘겼으면(pend 가 다른 값) 화면 값은 그대로 둠
+  // 모델 · 노력도 = 「일 모델」 판과 같은 줄 · 같은 고르기 칸(./model-set.tsx PickRow · 형 11-18 19:01 dm-gik 깃 옮김 「이 형탸로 아래 너희들 모델 선택 도 하네스가 맞아야함」 · 「눌럿을때 투박하게 고르지 않게해주고 높은거부터 나오게해줘 미토스 부터」 · 앞 판 = 알약 넷 + ‹ 낱말 › 넘김)
   return (
-    <>
-      <Row label="모델">{NW_MODELS.map(([id, ko]) => <button key={id} type="button" className={`pc${cur.model === id ? " on" : ""}`} aria-pressed={cur.model === id} disabled={off && cur.model !== id} onClick={() => { if (can && cur.model !== id) save.mutate({ ...cur, model: id }); }}>{ko}</button>)}</Row>
-      <Row label="노력도" note={save.error ? <em className="err" role="alert">저장 안 됨 · {why(save.error)}</em> : null}>{[<Step key="e" label="노력도" list={NW_EFFORTS} value={eff} disabled={!can} onPick={pickEff} />]}</Row>   {/* 다섯 낱말이 줄을 넘기던 것 → 한 줄 · 좌우로 넘기는 낱말 하나(옛 영상 편집기 「비율 | 9:16」 순환값 낱말 .cyv 꼴 + 양옆 꺽쇠 · 형 11-17 07:53) */}
-    </>
+    <div className="nm-ms nm-bm-ms">
+      <PickRow label="다음 창" sub={got ? undefined : "안 고름"} dimModel={!got} dimEffort={!got} pick={{ model: cur.model, effort: cur.effort }} models={BOT_MODELS} efforts={BOT_EFFORTS} can={can} busy={save.isPending} onPick={(p) => save.mutate({ ...cur, ...p })} />
+      {save.error ? <p className="note err" role="alert">저장 안 됨 · {why(save.error)}</p> : null}
+    </div>
   );
 }
 
-/** 좌우로 넘기는 낱말 하나 — ‹ 값 › · 낱말을 누르면 다음 값 · 꺽쇠는 앞 · 다음(끝에서 넘기면 반대 끝). */
-function Step({ label, list, value, disabled, onPick }: { label: string; list: readonly string[]; value: string; disabled?: boolean; onPick: (v: string) => void }) {
-  return (
-    <span className="stp" role="group" aria-label={label}>
-      <button type="button" className="ar" aria-label={`${label} 앞 값`} disabled={disabled} onClick={() => onPick(stepOf(list, value, -1))}><Chev dir="left" size={14} /></button>
-      <button type="button" className="cyv" aria-label={`${label} ${value} · 누르면 다음 값`} disabled={disabled} onClick={() => onPick(stepOf(list, value, 1))}>{value}</button>
-      <button type="button" className="ar" aria-label={`${label} 다음 값`} disabled={disabled} onClick={() => onPick(stepOf(list, value, 1))}><Chev dir="right" size={14} /></button>
-    </span>
-  );
-}
 
 /** 계정 줄 + 쉼 토글 — 「계정 ems1130g (잔여 82%) …… 쉼 ◯」 · 이름과 잔여는 라임 · 토글 = 켜면 바로 쉼(전부 · 풀 때까지) · 끄면 풂(서버 bots/rest · 자동 배정이 그 애를 뺌)
  *  앞 꼴(「임시 멈춤 없음 | 걸기」 → 갈래 · 기간 막대 → 「멈춤」)은 걷음 — 형 11-17 07:53 「쉬게하는 버튼은 토글 형식으로해서 / 계정 라인으로 붙이고」 · 다른 데서 갈래 · 기한을 걸어 둔 쉼은 토글 옆에 그대로 적음 */

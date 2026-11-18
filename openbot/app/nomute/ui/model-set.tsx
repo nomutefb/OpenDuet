@@ -7,16 +7,19 @@
 //   칸(형 「선택된거가 기본적으로 저기에 나오고 누르면 바꾸게」) = 지금 쓰이는 값이 늘 그 자리에 보임(안 고른 칸도 실제 값 · 흐리게) · 누르면 고르는 판
 //   바꾸기 = 형만(그 밖 = 글자만) · 표에 있는 값만 · 못 읽음 · 못 바꿈 = 그 자리에 한마디(조용히 삼키지 않음)
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type CSSProperties, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { office } from "../data/office";
 import { useMe } from "./pins";
 import { type NextWin, NW_EFFORTS, NW_MODELS, nwDefault, useNextWin } from "./next-win";
-import { type Choice, type Llm, type Pick, type Sheet, PIPE_DEF, PIPE_GROUPS, effortChoices, koOf, modelChoices, modelName, pipeAllChoices, pipeChoices, pipePatch, pipeRows, sameOf, sumKo } from "./model-set-logic";
+import { type Choice, type Llm, type Pick, type Sheet, PIPE_DEF, PIPE_GROUPS, byRank, effortChoices, koOf, modelChoices, modelName, pipeAllChoices, pipeChoices, pipePatch, pipeRows, sameOf, sumKo } from "./model-set-logic";
 import { getJson } from "./news-data";
+import "./bot-pick.css";   // 고르기 목록 = 「어떤 봇」 고르기 · 입력칸 부름 목록과 같은 판(./bot-pick.tsx · 형 11-02 「하네스 유지」)
 import "./model-set.css";
 
 const KEY = ["nomute", "modelset"] as const, NW_KEY = ["nomute", "nextwin"], PIPE_KEY = ["nomute", "settings-llm"] as const;
 type AppSet = { llm?: Llm; settings?: AppSet; error?: string };
-const BOT_MODELS: Choice[] = NW_MODELS.map(([id]) => ({ id, ko: modelName(id) })), BOT_EFFORTS: Choice[] = NW_EFFORTS.map((id) => ({ id, ko: id }));
+export const BOT_MODELS: Choice[] = byRank(NW_MODELS.map(([id]) => ({ id, ko: modelName(id) }))), BOT_EFFORTS: Choice[] = NW_EFFORTS.map((id) => ({ id, ko: id }));
 const BOTS = ["봄", "깃", "빠르", "번개", "시아", "뎅", "뜸", "천둥", "구름"];   // 서버 _nextwin.js 일곱 몸(서버 답에 있는 이름만 그림) + 천둥 · 구름(형 11-16 09:09 dm-bom 「봄 그리고 구름까지는 프로필 누르면 사진 나오게해줘. 설정도 동일하게.」 = 클로드 여덟 + 구름 · 서버가 그 둘을 주기 시작하면 바로 뜸 · 깃한테 부탁 09:24)
 export const useModelSet = () => useQuery({ queryKey: KEY, queryFn: () => office<Sheet>("modelset"), staleTime: 60_000, retry: false });
 // 값을 읽고 쓰는 길 한 벌 — 설정 화면(아래 ModelSetRows)과 스케줄러 러너 일 판의 「머리」 줄(./llm-head.tsx)이 같은 열쇠 · 같은 길을 씀(값 주인 하나 · 형 11-11 「2개 만들면 수정할때마다 두번수정」 · 봄 11-17 02:04)
@@ -49,22 +52,51 @@ export function useModelSum(): string {
 
 /** 고르는 칸 하나 — 지금 값이 늘 보이고 누르면 고르는 판(형만) · mixed = 값이 빈 글(「모두」 줄에서 섞였을 때) · dim = 안 고른 값(흐리게). */
 function Cell({ what, value, list, can, busy, dim, mixed = "섞임", onPick }: { what: string; value: string; list: Choice[]; can: boolean; busy: boolean; dim?: boolean; mixed?: string; onPick: (v: string) => void }) {
+  // 누르면 = 기본 고르기(select) 대신 앱 고르기 목록(형 11-18 19:01 「눌럿을때 투박하게 고르지 않게해주고」 · ./bot-pick.tsx 와 같은 판 · 칸 바로 아래 · 아래가 모자라면 위로 · 밖 누름 · Esc = 닫힘 · 위아래 키 · Enter)
+  const [open, setOpen] = useState(false), [pos, setPos] = useState<CSSProperties>({}), [hi, setHi] = useState(0), box = useRef<HTMLDivElement>(null), lst = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    setHi(Math.max(0, list.findIndex((c) => c.id === value)));
+    // 목록 = body 에 띄움(칸을 품은 카드가 넘침을 숨겨도 안 잘림 · 애들 카드) · 자리 = 칸 오른쪽 끝에 맞춤 · 아래가 모자라면 위로 · 스크롤 · 크기 바뀜 = 닫힘
+    const b = box.current?.getBoundingClientRect(), need = Math.min(360, list.length * 40 + 16);
+    if (b) { const up = window.innerHeight - b.bottom < need + 96 && b.top > window.innerHeight - b.bottom;   // 96 = 아래 메뉴줄
+      setPos({ position: "fixed", right: Math.max(8, window.innerWidth - b.right), minWidth: Math.max(b.width, 150), ...(up ? { bottom: window.innerHeight - b.top + 6, top: "auto" } : { top: b.bottom + 6 }) }); }
+    const out = (e: PointerEvent) => { const t = e.target as Node; if (!box.current?.contains(t) && !lst.current?.contains(t)) setOpen(false); };
+    const shut = (e: Event) => { if (!lst.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("pointerdown", out); window.addEventListener("scroll", shut, true); window.addEventListener("resize", shut);
+    return () => { document.removeEventListener("pointerdown", out); window.removeEventListener("scroll", shut, true); window.removeEventListener("resize", shut); };
+  }, [open]);   // eslint-disable-line react-hooks/exhaustive-deps -- 열 때 한 번만 고른 줄로
   const text = value ? koOf(list, value) : mixed;
   dim = dim || !value;   // 섞임 = 고른 값이 아니라 상태 → 흐리게
   if (!can) return <span className={`cell${dim ? " dim" : ""}`}>{text}</span>;
+  const pick = (id: string) => { setOpen(false); if (id !== value) onPick(id); };
+  const key = (e: KeyboardEvent) => {
+    if (!open) { if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(true); } return; }
+    if (e.key === "Escape") { e.preventDefault(); setOpen(false); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); setHi((i) => (i + 1) % list.length); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setHi((i) => (i - 1 + list.length) % list.length); }
+    else if (e.key === "Enter") { e.preventDefault(); const c = list[hi]; if (c) pick(c.id); }
+  };
   return (
-    <label className={`cell pick${dim ? " dim" : ""}${busy ? " busy" : ""}`}>
-      <span className="v">{text}</span>
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      <select aria-label={what} value={value} disabled={busy} onChange={(e) => { if (e.target.value) onPick(e.target.value); }}>
-        {value ? null : <option value="">{mixed}</option>}
-        {list.map((c) => <option key={c.id} value={c.id}>{c.ko}</option>)}
-      </select>
-    </label>
+    <div className="cellw" ref={box}>
+      <button type="button" className={`cell pick${dim ? " dim" : ""}${busy ? " busy" : ""}`} aria-haspopup="listbox" aria-expanded={open} aria-label={`${what} ${text}`} disabled={busy} onClick={() => setOpen(!open)} onKeyDown={key}>
+        <span className="v">{text}</span>
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden style={{ rotate: open ? "180deg" : undefined }}><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      {open ? createPortal(
+        <div ref={lst} className="nm-bpick-list nm-mspick" role="listbox" aria-label={what} style={pos}>
+          {list.map((c, i) => (
+            <button key={c.id} type="button" role="option" aria-selected={c.id === value} data-hi={i === hi || undefined} className="nm-bpick-opt" onPointerEnter={() => setHi(i)} onClick={() => pick(c.id)}>
+              <span className="min-w-0 flex-1"><b>{c.ko}</b></span>
+            </button>
+          ))}
+        </div>, document.body
+      ) : null}
+    </div>
   );
 }
-/** 한 줄 = 이름 + 칸 둘(모델 · 노력도). */
-function PickRow({ label, sub, pick, models, efforts, can, busy, dimModel, dimEffort, onPick }: { label: string; sub?: string; pick: Pick; models: Choice[]; efforts: Choice[]; can: boolean; busy: boolean; dimModel?: boolean; dimEffort?: boolean; onPick: (p: Partial<Pick>) => void }) {
+/** 한 줄 = 이름 + 칸 둘(모델 · 노력도) · 애들 카드 「다음 창」도 이 줄(./bot-manage.tsx · 형 11-18 19:01 「이 형탸로 아래 너희들 모델 선택 도 하네스가 맞아야함」). */
+export function PickRow({ label, sub, pick, models, efforts, can, busy, dimModel, dimEffort, onPick }: { label: string; sub?: string; pick: Pick; models: Choice[]; efforts: Choice[]; can: boolean; busy: boolean; dimModel?: boolean; dimEffort?: boolean; onPick: (p: Partial<Pick>) => void }) {
   return (
     <div className="nm-ms-row">
       <span className="who"><b>{label}</b>{sub ? <small>{sub}</small> : null}</span>

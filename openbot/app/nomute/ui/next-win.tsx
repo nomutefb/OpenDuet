@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { office } from "../data/office";
 import { useMe } from "./pins";
 
-export const NW_MODELS = [["claude-opus-5-5", "오퍼스 5.5"], ["claude-fable-5-2", "페이블 5.2"], ["claude-sonnet-5-5", "소네트 5.5"], ["claude-mythos-5-2", "미토스 5.2"]] as const;   // 미토스 5.2 = 형 11-18 15:52 밥상 「정원에 미토스 5.2도 추가해주세용」 · 서버 표 = editor _nextwin.js MODELS(#4209)
+export const NW_MODELS = [["claude-mythos-5-2", "미토스 5.2"], ["claude-opus-5-5", "오퍼스 5.5"], ["claude-fable-5-2", "페이블 5.2"], ["claude-sonnet-5-5", "소네트 5.5"]] as const;   // 차례 = 높은 것부터(형 11-18 19:01 「미토스 부터」)   // 미토스 5.2 = 형 11-18 15:52 밥상 「정원에 미토스 5.2도 추가해주세용」 · 서버 표 = editor _nextwin.js MODELS(#4209)
 export const NW_EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
 export type NextWin = { model: string; effort: string; at?: number; by?: string; default?: boolean };   // default = 형이 아직 안 고름(서버가 기본값을 채워 줌 · 몸 손 0)
 const KEY = ["nomute", "nextwin"];

@@ -77,7 +77,9 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.match(mine, /\.nm-bm \.pc\.on \{ color:var\(--accent, #CFFF40\); font-weight:800; \}/);
   assert.match(mine, /\.nm-bm \.ssep \{[^}]*opacity:\.35;/);
   // 다시 짬(형 11-17 07:53 dm-bom): 노력도 = 좌우로 넘기는 낱말 하나 · 사양 줄 대신 그 애 몸 칸(그래프) · 기간 막대 · 「걸기」 줄은 걷음
-  assert.match(ui, /<Step key="e" label="노력도" list=\{NW_EFFORTS\} value=\{eff\} disabled=\{!can\} onPick=\{pickEff\} \/>/);
+  // 다시 짬(형 11-18 19:01 dm-gik 깃 옮김 「이 형탸로 아래 너희들 모델 선택 도 하네스가 맞아야함」 · 「눌럿을때 투박하게 고르지 않게해주고 높은거부터 나오게해줘 미토스 부터」): 그 애 「다음 창」 = 「일 모델」 판과 같은 줄(PickRow) · 고르기 = 앱 목록 · 「모두」 줄은 그대로 되물음(MorphAsk)
+  assert.match(ui, /<PickRow label="다음 창" [^\n]*models=\{BOT_MODELS\} efforts=\{BOT_EFFORTS\}[^\n]*onPick=\{\(p\) => save\.mutate\(\{ \.\.\.cur, \.\.\.p \}\)\} \/>/);
+  assert.doesNotMatch(ui, /<Step |function Step\(/);
   assert.match(ui, /role="switch" className="sw" aria-checked=\{shown\}/);
   assert.match(ui, /restBody\(r\.who, turnOn, \[\], undefined\)/);   // 토글 = 전부 · 풀 때까지
   assert.doesNotMatch(ui, /function HoldBar|function RestRows|걸기<\/button>/);

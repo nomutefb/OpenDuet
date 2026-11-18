@@ -13,8 +13,17 @@ export function modelName(id: string): string {
 /** 노력도 = CLI 에 뜨는 낱말 그대로(low · medium · high · xhigh · max · 형 11-15 「실제로 구분되는 그 표시되는걸로 cli에」). */
 export const EFFORTS_CLI = ["low", "medium", "high", "xhigh", "max"] as const;
 export const effortChoices = (): Choice[] => EFFORTS_CLI.map((id) => ({ id, ko: id }));
-/** 서버가 준 모델 표 → 이름을 정식 표기로 바꾼 표. */
-export const modelChoices = (list: Choice[]): Choice[] => list.map((c) => ({ id: c.id, ko: modelName(c.id) }));
+/** 모델 차례 = 높은 것부터(형 11-18 19:01 dm-gik 깃 옮김 「높은거부터 나오게해줘 미토스 부터」) — 갈래(미토스 → 오퍼스 → 페이블 → 소넷 → 하이쿠) · 같은 갈래 = 판 숫자 큰 것 먼저 · 모르는 갈래 = 맨 뒤(받은 차례 그대로). */
+const FAM = ["mythos", "opus", "fable", "sonnet", "haiku"];
+export function modelRank(id: string): [number, number] {
+  const m = /^claude-([a-z]+)-(\d+)(?:-(\d+))?$/.exec(id || "");
+  if (!m) return [FAM.length, 0];
+  const f = FAM.indexOf(m[1]);
+  return [f < 0 ? FAM.length : f, -(Number(m[2]) * 100 + Number(m[3] || 0))];
+}
+export const byRank = <T extends { id: string }>(list: T[]): T[] => list.map((c, i) => ({ c, i, r: modelRank(c.id) })).sort((a, b) => a.r[0] - b.r[0] || a.r[1] - b.r[1] || a.i - b.i).map((x) => x.c);
+/** 서버가 준 모델 표 → 이름을 정식 표기로 바꾼 표 · 높은 것부터. */
+export const modelChoices = (list: Choice[]): Choice[] => byRank(list.map((c) => ({ id: c.id, ko: modelName(c.id) })));
 /** 줄 오른쪽 글 = 「하이쿠 5.5 · 낮음」. */
 export const pickKo = (models: Choice[], efforts: Choice[], p: Pick): string => `${koOf(models, p.model)} · ${koOf(efforts, p.effort)}`;
 /** 「모두」 줄의 한 칸 값 = 다 같으면 그 값 · 섞였으면 빈 글(고르는 칸은 「섞임」을 보여 줌). */

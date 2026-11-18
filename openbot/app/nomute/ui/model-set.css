@@ -27,3 +27,12 @@
 .nm-ms-row .cell:not(.pick) { padding-left:0; padding-right:0; justify-content:flex-end; }
 @media (max-width:360px) { .nm-ms-row { grid-template-columns:minmax(0,1fr) 114px 92px; gap:6px; padding-left:12px; } .nm-ms-row .cell { padding:9px 8px 9px 10px; gap:4px; } }
 :root:not(.dark) .nm-ms-row .cell.pick:active { background:rgba(0,0,0,.05); }
+
+/* 칸 누름 = 앱 고르기 목록(./model-set.tsx Cell · bot-pick.css 판) · 칸 = 단추 · 목록 = 칸 오른쪽 끝에 맞춰 칸보다 좁지 않게(형 11-18 19:01 「투박하게 고르지 않게」) */
+.nm-ms-row .cellw { position:relative; min-width:0; }
+.nm-ms-row .cellw > .cell { width:100%; font:inherit; font-size:var(--fs-sm); color:inherit; background:none; text-align:left; }
+.nm-ms-row .cellw > .cell.dim { color:var(--mut); }
+.nm-ms-row .cellw > .cell[aria-expanded="true"] { border-color:rgba(var(--accent-rgb, 207,255,64),.55); background:rgba(var(--accent-rgb, 207,255,64),.1); }
+.nm-ms-row .cellw > .cell svg { transition:rotate .2s ease; }
+.nm-bpick-list.nm-mspick { left:auto; z-index:80; transform-origin:top right; }   /* body 에 뜬 목록(./model-set.tsx Cell · 자리 = 인라인 fixed) */
+.nm-bpick-list.nm-mspick .nm-bpick-opt { font-size:var(--fs-body); padding:8px 12px; text-transform:inherit; }
