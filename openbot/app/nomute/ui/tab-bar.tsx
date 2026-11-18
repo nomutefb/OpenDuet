@@ -201,7 +201,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     [TEAMS]: { cls: "teams", title: "팀즈", pick: pickTeams, body: <><TeamsIcon /><span className="nm-tab-nm">Teams</span><TeamsBell />{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}</> },   // 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」)
   };
   const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" | "co" }> => t.k === "screen" || t.k === "web" || t.k === "co");
-  const full = s.active === BROWSER;   // 창 전체를 쓰는 탭
+  const full = s.active === BROWSER || s.active.startsWith("w:");   // 창 전체를 쓰는 탭 = 「Browser」 + 「＋」 웹 탭(형 11-18 09:3x 구름 창 「일반 새탭 열어서 보이는거랑 기본으로 떠잇는 브라우저랑 별건으로 보일 필요는 없어.」 = 둘 다 같은 꼴 · 앞 = 웹 탭만 오른쪽 칸)
   const paneOn = s.active.startsWith("s:") || s.active.startsWith("w:") || s.active === "co" || s.active === MEET || s.active === TEAMS;
   return (
     <>
@@ -229,7 +229,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
       </div>
       {paneTabs.length || s.active === TEAMS || s.active === BROWSER || s.active === MEET ? createPortal(
         <div className={`nm-tab-screen${host && !full ? " in-split" : ""}${full ? " full" : ""}`} hidden={!paneOn}>   {/* 「브라우저」 = 오른쪽 칸이 아니라 메뉴 줄 바로 아래 창 전체(형 11-17 09:1x 구름 맥 창 「pc 웹앱에서 브라우저를 열면 한쪽에서만 열리는게 아니라, 창 전체를 써야해. 그러니까 메뉴 바로 아래로 다 창이 펼쳐져야 하거든?」) · 웹 탭 · 몸 화면 · 팀즈 · 화상회의는 오른쪽 칸 그대로(형 11-12 「웹 탭은 오른쪽 칸 안」) */}
-          {s.active === BROWSER ? <div className="nm-tab-co"><CobrowsePane mode="browser" nav={coNav} onNav={() => setCoNav("")} onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}
+          {s.active === BROWSER ? <BrowserPane nav={coNav} onNav={() => setCoNav("")} onClose={() => setS((x) => ({ ...x, active: "dash" }))} /> : null}   {/* 「Browser」 = 「＋」 새 탭과 같은 주소창 웹 칸(형 11-18 09:3x 「그 브라우저 여기 전면에 다른 페이지처럼 보이게해줄래?」 · 「일반 새탭 … 별건으로 보일 필요는 없어.」) · 막는 사이트만 그 자리에서 「맥 72로 열기」 = 다리 판(앞 = 늘 다리 판 · 다리 주소가 없으면 「같이 보기 주소 없음」 한 줄뿐) */}
           {s.active === MEET ? <div className="nm-tab-co"><CobrowsePane mode="meet" onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}   {/* 화상회의 = 같은 맥 72 다리 판 + 아래 회의 대화 */}   {/* 보는 동안만 붙음 = 안 보면 다리 쉼 · 다시 고르면 새 표(맥 72 탭은 그대로 = 마지막 웹 화면) */}
           {s.active === TEAMS ? <div className="nm-tab-teams"><TeamsList current={room} /></div> : null}   {/* 팀즈 목록 = 오른쪽 칸 · 누르면 왼쪽 대화만 바뀜 */}
           {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "co" ? (
@@ -243,5 +243,20 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
           ))}
         </div>, (full ? null : host) || document.body) : null}
     </>
+  );
+}
+
+const BROWSER_LAST = "nm-browser-last";   // 「Browser」 탭이 마지막으로 연 주소(이 기기) = 다시 누르면 그 자리
+const browserLast = (): string => { try { return localStorage.getItem(BROWSER_LAST) || ""; } catch { return ""; } };
+/** 「Browser」 탭 판 = 웹 칸(「＋」 새 탭과 같은 한 벌) · 막는 사이트 = 그 자리에서 다리 판(맥 72)으로 · 다리에서 닫기 = 웹 칸으로 돌아옴
+ *  nav = 다른 웹 탭이 「맥 72로 열기」로 넘긴 주소(오면 바로 다리 판 · 그 주소로) */
+function BrowserPane({ nav, onNav, onClose }: { nav: string; onNav: () => void; onClose: () => void }) {
+  const [co, setCo] = useState(!!nav), [go, setGo] = useState(nav), last = useRef(browserLast());   // co = 다리 판을 보는 중 · go = 다리에 아직 안 보낸 주소(한 번 보내면 비움 · 앞 판 = 신호마다 다시 보냄) · last = 웹 칸이 마지막으로 연 주소(다리에서 돌아오면 그 자리)
+  useEffect(() => { if (nav) { setCo(true); setGo(nav); } }, [nav]);
+  if (co) return <div className="nm-tab-co"><CobrowsePane mode="browser" nav={go} onNav={() => { setGo(""); onNav(); }} onClose={() => { setCo(false); setGo(""); onNav(); }} /></div>;
+  return (
+    <div className="nm-tab-web">
+      <WebPane initial={last.current} focus onClose={onClose} onGo={(u) => { last.current = u; try { localStorage.setItem(BROWSER_LAST, u); } catch { /* 이번만 */ } }} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 넘어감 */ } setCo(true); setGo(u); }} />
+    </div>
   );
 }

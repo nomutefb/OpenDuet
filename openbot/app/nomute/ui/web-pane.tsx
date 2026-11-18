@@ -81,7 +81,7 @@ export function WebPane({ initial = "", className = "", onClose, onGo, blank, fo
           <div className="nm-web-note">
             <b>이 사이트는 앱 안 보기를 막아요</b>
             {check.why ? <span>{check.why}</span> : null}
-            {onBridge ? <button type="button" className="nm-web-out" onClick={() => onBridge(cur)}>Browser 탭에서 열기</button> : null}
+            {onBridge ? <button type="button" className="nm-web-out" onClick={() => onBridge(cur)}>맥 72로 열기</button> : null}
             <a data-nm-out href={cur} target="_blank" rel="noopener" className={onBridge ? "nm-web-out sub" : "nm-web-out"}>밖에서 열기</a>
           </div>
         ) : check.state === "checking" ? (
