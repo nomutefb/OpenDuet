@@ -13,7 +13,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { DaySlide } from "./day-slide";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { leftKo } from "./spawn-room";
-import { type OfficeRoom, idOf, office, peopleSync, seatOff } from "../data/office";
+import { type OfficePerson, type OfficeRoom, idOf, office, peopleSync, seatOff } from "../data/office";
 import { savedRoomPart } from "./room-save";   // 저장 답 꼴 = {room, members}(모루 #2987)
 import { FaceImg, usePeople } from "./faces";
 import { GoButton } from "./go-button";
@@ -152,7 +152,8 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
   const [hours, setHours] = useState<number | null>(edit ? null : 24), [fam, setFam] = useState("cl");   // 고치기 = 안 누르면 기한 그대로
   const [busy, setBusy] = useState(false), [why, setWhy] = useState("");
   const toggle = (n: string) => setPicked(picked.includes(n) ? picked.filter((x) => x !== n) : [...picked, n]);
-  const namesOf = (cls: string[]) => cand.filter((n) => cls.includes(who(n)?.shelf || who(n)?.cls || ""));   // 묶음 = 명부 shelf 가 먼저(구름 = cls 는 「닷」이지만 shelf 「클로드」 → 클로드 칸 · 깃 df3d402b · 형 11-17 00:46 「구름이 낄꺼면 여기도 끼게」)
+  const famOf = (p?: OfficePerson) => p?.shelf || (p?.root === "claude" ? "클로드" : p?.cls) || "";   // 묶음 = 명부 shelf → 머리(root claude = 클로드 칸) → cls(형 11-18 18:34 「윈터 초대는 왜없어 또?」 · 윈터 = cls 「닷」(옛 지피티 자리)이라 지피티 탭에 숨어 있었음 · 머리는 claude)
+  const namesOf = (cls: string[]) => cand.filter((n) => cls.includes(famOf(who(n))));   // 묶음 = 명부 shelf 가 먼저(구름 = cls 는 「닷」이지만 shelf 「클로드」 → 클로드 칸 · 깃 df3d402b · 형 11-17 00:46 「구름이 낄꺼면 여기도 끼게」)
   const shown = namesOf(FAMS.find((f) => f.key === fam)?.cls || []);
   const allOn = shown.length > 0 && shown.every((n) => picked.includes(n));
   const toggleAll = () => setPicked(allOn ? picked.filter((n) => !shown.includes(n)) : [...new Set([...picked, ...shown])]);
