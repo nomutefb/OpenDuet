@@ -21,6 +21,7 @@ import { createPortal } from "react-dom";
 import { type OfficeRoom, idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 import { selfBack } from "./self-back";
+import { useRootFlag } from "./has-flags";   // 단추가 그려진 동안 뿌리 표시(복원 ▲ 자리 줄이 :has 대신 이걸 봄 · ./ed-keep.css)
 
 type Pick = { i?: number; pass?: boolean; text?: string };
 export type Decision = { id: string; room: string; room_name?: string; who: string; q: string; choices: string[]; ts?: number; pick?: Pick | null; kind?: string; pc?: { task?: string; url?: string }; _dups?: string[] };   // pc = 컴퓨터 · 조치 필요 카드(서버 _pcreq.js · 형 11-06 「본인이 권한이 필요하면ㅇ ㅣ렇게 요청을해.」 · 「그러면 내가 그걸 제어하는 방식이야.」)
@@ -161,6 +162,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
     if (t) void choose(d, { text: t }, "etc");
   };
 
+  useRootFlag("dec", fab && !q.isError && items.length > 0);
   if (q.isError || !items.length) return null;
   return (
     <>

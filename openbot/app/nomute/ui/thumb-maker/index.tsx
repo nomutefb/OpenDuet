@@ -12,6 +12,7 @@ import { startEngine } from "./engine";
 import { THUMB_HTML } from "./markup";
 import { SceneBg } from "./scene-bg";
 import { RAIL_ICON_CSS, railIcons } from "./rail-icons";   // 옆 기둥 글자 → 그림 단추(영상 편집 꼴 · 형 11-14 11:29 · 봄 11:47 ④)
+import { watchBare } from "./lean";   // 옷이 판 몸에 건 :has() 를 표시로(./tools/lean-rules.mjs)
 import { studioRoute } from "../studio-handoff";   // 「영상 편집으로」·「유튜브 링크로 숏폼」 = 옛 화면을 앱 안 한 겹으로(번개 11-08)
 import { ToolButtons } from "../ed-keep";   // 머리 오른쪽 단추 = 옛 에디터 것 그대로(최소화 − · 입력 초기화 ⟳ · 닫기 × · 형 11-15)
 import { ditherGaugeCss } from "../dither-gauge";   // 「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 경계(형 11-15 영상)
@@ -32,11 +33,12 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack, onMin }: { onBack?:
     w.__nmStudioRoute = studioRoute;   // 엔진이 켜질 때 studioRouteFn 이 보도록 먼저
     const stop = startEngine(root.current, body.current, frame.current, scroller.current);
     const offRail = railIcons(root.current);
+    const offBare = watchBare(root.current);
     // 빠른 메뉴 위 「최소화」(#rfabMin) = 원본은 품은 창일 때만 부모 minimizeTool 을 부름 → 앱 안은 품은 창이 아니라 엔진이 숨김 · 여기서 다시 보이고 껍데기 접기로 이음(엔진 줄은 원본 그대로)
     const rmin = min.current ? root.current.querySelector<HTMLElement>("#rfabMin") : null;
     const doMin = (e: Event) => { e.stopPropagation(); min.current?.(); };
     if (rmin) { rmin.style.display = ""; rmin.addEventListener("click", doMin); }
-    return () => { rmin?.removeEventListener("click", doMin); offRail(); if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
+    return () => { rmin?.removeEventListener("click", doMin); offRail(); offBare(); if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
   }, []);
   useEffect(() => {   // 내용이 미리보기 도크 밑으로 들어갔나 = data-stuck(./frame.css 맨 아래 · 비침 고침)
     const s = scroller.current, r = root.current;

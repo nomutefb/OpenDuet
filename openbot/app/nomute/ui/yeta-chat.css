@@ -350,8 +350,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .bg-popover[role="listbox"] [role="option"][aria-selected="true"] { background:rgba(var(--accent-rgb, 207,255,64),.14); box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb, 207,255,64),.38); }
 .bg-popover[role="listbox"] [role="option"]:hover { background:rgba(var(--accent-rgb, 207,255,64),.07); box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb, 207,255,64),.19); }
 /* 호출 목록(prompt-area = position:fixed · 화면 좌표) — 입력칸 유리(backdrop-filter)·안쪽 translate·판(transform)이 기준 상자를 뺏어서 PC 에서 입력칸과 먼 데 뜸(형 10-31 「호출하는 텍스트지점위에떠야돼」) → 목록이 떠 있는 동안만 기준을 풀어 줌 */
-form:has(.bg-popover[role="listbox"]) { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
-form:has(.bg-popover[role="listbox"]) :has(.bg-popover[role="listbox"]), .nm-pane:has(.bg-popover[role="listbox"]) { transform:none !important; translate:none !important; }
+/* ↑ 그 풀어 주던 두 줄(form:has(목록) · form:has(목록) :has(목록) · .nm-pane:has(목록))은 걷음 — 원본 목록은 11-02 부터 안 뜸(「@」·「!」 = 우리 시트 ./call-sheet.tsx · 「/」 = 명령 0 이라 안 켬 · overrides.ts triggers.ts)
+   안 뜨는 것을 위한 줄인데 값은 온 앱이 치렀음: 둘째 줄의 주인이 「:has() 만」(클래스 · 태그 없음)이라 브라우저가 :has() 무효화를 「자손 전부」로 넓힘 → :has() 가 걸린 요소(에디터 창 · 판 · 대화 기둥) 밑에서 글자 하나만 바뀌어도 그 밑 꼴 전부를 다시 따짐
+   (실측 11-18 · cpu ÷4 · 이미지 에디터 안 글자 한 번 = 배치 8.5ms → 이 줄 + group-has 꼴(../lean-has.ts)을 걷으면 3.2ms) · 원본 목록을 다시 켜게 되면 :has 말고 표시(./has-flags.ts)로 */
 /* 긴 말풍선 = 화면을 넘어가도 얼굴·이름이 머리 밑에 남음(형 10-31 「화면 넘어가면 화자가 나와야함」) */
 .ychat .ymsg .yava { position:sticky; top:var(--ytop, 84px); z-index:2; }   /* 머리 흐림 아래(형 10-31 「이게 좀 더 아래로 내랴와야해. 가려지거든? 그래서 화자가 좀 안보여.」) */
 .ychat .ymsg .yname { position:relative; z-index:1; width:fit-content; padding:0 6px 1px 2px; border-radius:8px; background:var(--background); }

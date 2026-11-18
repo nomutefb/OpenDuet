@@ -10,6 +10,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 import { DROP_ROUTES, nomuteOverrides } from "./overrides";
 import { manualChunks } from "./chunks";   // 꾸러미 덩어리 가르기(판 바뀌어도 다시 안 받게 · 번개 11-08)
+import { leanHasPlugin } from "./lean-has";   // :has() 무효화가 자손 전부로 번지던 group-has 꼴을 빌드 끝에 가벼운 꼴로(./lean-has.ts)
 
 const here = (p: string) => path.resolve(__dirname, p);
 
@@ -42,6 +43,7 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    leanHasPlugin(),
   ],
   resolve: {
     alias: [

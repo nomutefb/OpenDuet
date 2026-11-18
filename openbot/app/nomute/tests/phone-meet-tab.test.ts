@@ -100,7 +100,8 @@ test("폰 밥상 이야기 · 화상회의 머리 줄 0 · 봄의 정원 머리 
 test("서랍 · 설정에서 들어간 화면 머리 알약 = 폰 · PC 다 0 · 이슈 · 웹 겹 머리는 그대로(형 11-15 「헤더로 세부 메뉴바 잇는거는 다 없애줘」)", () => {
   const css = rd("../ui/shell.css"), sh = rd("../ui/shell.tsx");
   assert.match(css, /\n\.nm-modal > \.nm-modal-h\[class\*="nm-mh-"\] \{ display:none; \}/);
-  assert.match(css, /\.nm-modal:has\(> \.nm-modal-h\[class\*="nm-mh-"\]\) > \.nm-modal-b\.flush > \.nm-scroll \{ padding-top:calc\(10px \+ env\(safe-area-inset-top\)\); \}/);
+  assert.match(css, /\.nm-modal\[data-mh\]\[data-mh\] > \.nm-modal-b\.flush > \.nm-scroll \{ padding-top:calc\(10px \+ env\(safe-area-inset-top\)\); \}/);   // 틀이 「머리 줄을 품었나」 = 표시(data-mh · 앞 = :has(> .nm-modal-h…) · tests/lean-has.test.ts)
+  assert.match(sh, /className=\{SEE\.has\(M\.id\) \? "nm-modal see" : "nm-modal"\} data-mh=\{M\.id\} /);
   assert.match(sh, /<div className="nm-modal-h">\n\s+<button type="button" className="nm-modal-back" aria-label="닫기" onClick=\{closeWeb\}>/, "이슈 겹 머리 = nm-mh- 없음 = 남음");
 });
 test("폰 영상 편집 = 미리보기 폭맞춤 · 칸 키 = 기둥 키(형 11-14 07:06 폭맞춤 · 11-15 01:12 「영상 편집 라인이랑 생성 겹치는 부분 해결해줘」 = 기둥 겹침 허용은 걷음)", () => {

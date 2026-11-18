@@ -35,6 +35,7 @@ export function startModernUI() {
     var sheet = on ? rec.sheet : (flowing.get(dock) || {}).sheet;
     if (on) { flowing.set(dock, rec); dock.style.position = 'relative'; dock.style.top = 'auto'; dock.setAttribute('data-nm-rail-flow', ''); }
     else { flowing.delete(dock); dock.style.removeProperty('position'); dock.style.removeProperty('top'); dock.removeAttribute('data-nm-rail-flow'); }
+    root.toggleAttribute('data-nm-flow', flowing.size > 0);   // 노뮤트: 옷이 `:not(:has(.topdock[data-nm-rail-flow])) #rfab` 로 묻던 것 = 판 뿌리 표시로(../tools/lean-rules.mjs · 뿌리에 건 :has 는 판 안 글자 하나에도 판 전체를 다시 따지게 함)
     if (!sheet) return;
     if (on) sheet.kept = sheet.sets.map(function (s) { return s[0].style.getPropertyValue(s[1]); });
     sheet.sets.forEach(function (s, i) { s[0].style.setProperty(s[1], on ? s[2] : sheet.kept[i]); });

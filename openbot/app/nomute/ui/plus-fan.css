@@ -19,5 +19,5 @@
 .nm-ned-plus.on .action-n { transform:translateY(calc(var(--r) * -1)); transition-delay:.11s; }
 .nm-ned-plus.on .nm-ned-plus-i:active { background:rgba(var(--accent-rgb, 207,255,64),.26); scale:.9; }
 /* 펼친 동안 = 접어 둔 창 복원 ▲(./ed-keep.css · 「+」 바로 위)는 비켜 줌(12시 단추와 같은 자리) */
-.duet-face:has(.nm-ned-plus.on) > .tool-restore, .duet-face:has(.nm-ned-plus.on) > .min-pick { opacity:0; pointer-events:none; transition:opacity .15s ease; }
+:root[data-nm-fan] .duet-face > .tool-restore, :root[data-nm-fan] .duet-face > .min-pick {   /* 앞 = .duet-face:has(.nm-ned-plus.on) — 무대에 건 :has 를 표시로(./has-flags.ts fan · 무게 같음) */ opacity:0; pointer-events:none; transition:opacity .15s ease; }
 @media (prefers-reduced-motion:reduce) { .nm-ned-plus-main, .nm-ned-plus-i { transition:none; } }

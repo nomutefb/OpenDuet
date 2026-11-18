@@ -2,6 +2,7 @@
 import "../vendor/kinetics/orbit-menu.css";
 import "./plus-fan.css";
 import { useEffect, useRef, useState } from "react";
+import { useRootFlag } from "./has-flags";   // 펼친 동안 뿌리 표시(복원 ▲ 가 비켜 주는 줄이 :has 대신 이걸 봄 · ./plus-fan.css)
 
 /** 오른쪽 아래 「+」 펼침(형 11-11 19:23 봄 1:1 「요약버튼 혹시 그 대화방에 펼침 + 로 해줄 수 있어? 펼쳐서 이미지 에디터랑 뉴스 요약 비디오 에디터 3개 나오면 됨. 그리고 최소화 가능하게」)
  *  꼴 = 9시 → 12시로 셋이 각도대로 펼쳐지는 그림 단추(형 11-15 「뉴스 요약에서 누르면 펼쳐지는 그 모양을 9시에서 12시로 3개가 펼쳐지게 할게 각도별로 픽토그램식으로 · Kinetics orbital menu 같은거로 모양만 변형 및 글래스모피즘 투명도 적용」)
@@ -17,6 +18,7 @@ export const ICON: Record<string, JSX.Element> = {   // 메뉴 줄 「에디터�
 };
 export function PlusFan({ go }: { go: (to: string) => void }) {
   const [open, setOpen] = useState(false), box = useRef<HTMLDivElement>(null);
+  useRootFlag("fan", open);
   useEffect(() => {
     if (!open) return undefined;
     const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };

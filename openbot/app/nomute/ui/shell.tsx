@@ -292,7 +292,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
         {/* 윗줄 가운데 = 시계(위 TopClock) · 옛 = 지금 페이지 이름(형 11-06 20:05) · 방 이름은 대화창 머리줄(./chat-head.tsx · 형 11-08 09:49 「그 대화창은 거기에 대화창 명칭이 뜨면 될거같아」) */}   {/* 방 = 이름 한 곳만 · 라임 · 인원 · 누르면 사람·방 메뉴(형 11-06 20:39 「방 위에는 잇을필요없어」 「중상단에 라임으로 잇으면 됨 … 방 인원은 잇어야해」) */}   {/* 위 가운데 = 지금 페이지(형 11-06 20:05) */}
         <AppIntro home={pane === "home"} />   {/* 앱 안 진입 화면(홈 말고 다른 화면으로 처음 열 때 · ../home/intro.tsx · 형 11-06 18:5x) */}   {/* 위 가운데 시계(형 11-06 18:4x) */}   {/* 쉴 때 화면 가림(PC · 형 11-06 17:31 · ./idle-blind.tsx) */}
         {wide ? <FaceStrip current={pane === "chat" ? room : ""} last={room} /> : null}
-        <div ref={stage} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink ${split ? "[--duet-tab-space:12px]" : "[--duet-tab-space:86px]"}${M && SEE.has(M.id) ? " nm-see" : ""}${cover ? " nm-cover" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
+        <div ref={stage} data-pane={pane} className={`duet-face relative isolate min-w-0 flex-1 text-duet-ink ${split ? "[--duet-tab-space:12px]" : "[--duet-tab-space:86px]"}${M && SEE.has(M.id) ? " nm-see" : ""}${cover ? " nm-cover" : ""}${split ? " nm-split-l" : ""}`}>   {/* nm-see = 비운 판이 열린 동안 밑 화면(홈·대화방)은 숨김(판 너머로 안 비치게) */}
           <SceneBg className="nm-app-ambient" slow={cover} />   {/* slow = 글 화면(스케줄 · 회의록 …) 뒤 = 같은 장면을 옅게 · 느리게(형 11-15 「완전 검정이면 투박 · 라임 지나가는 정도는 있어야 · 고화질일 필요는 없어」) */}
           {split ? <TopLeft /> : null}   {/* 왼쪽 위 = 러너 게이지(우리 쪽 · 형 11-08 07:31 dm 「오히려 게이지바가 좌측으로가고, 인스타그램이 우측으로 가서, 우측은 아예 뉴스 관련 내용, 좌측은 너네 관련으로」 · 판들은 그 키만큼 아래로 · shell.css .nm-split-l) */}   {/* 모든 화면 뒤 = 에디터 웹 메인 3D 장면 · 라임 · 옅은 막(형 11-03 14:5x 「여기에도 다 배경 깔아줘 단 너무 강조되면안돼. 글자가 잘보여야되니까」 · home/home-scene.css) */}
           {show("home", <HomeScreen />)}
@@ -327,7 +327,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
           ) : null)}
           <ToolRestore items={edChip(modal, edKept)} onRestore={(t) => void nav({ to: edPath.current[t] })} onCloseAll={() => setEdKept([])} />
           {M && !isEdTool(M.id) ? (
-            <ModalBox close={closeModal} className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
+            <ModalBox close={closeModal} className={SEE.has(M.id) ? "nm-modal see" : "nm-modal"} data-mh={M.id} role="dialog" aria-modal="true" aria-label={M.label} inert={layer || undefined}>   {/* see = 5번 서랍·6번 설정 = 판을 비워 껍데기 라임 3D 바탕이 그대로 보임(형 11-03 15:07 「요거 5번 6번 메뉴에도 그대로 적용하자」 · 물결 받침 뺌) */}
               {/* 물결 바탕(시범 11-01) 걷음 — 바탕은 이제 한 가지: 라임 3D 장면(서랍 · 설정 = 그대로 / 글 화면 = 옅게) · 형 11-15 「물결은 없어도 되는데」 */}
               {M.id === "edtool" || M.id === "edvid" ? null : (   /* 에디터 = 위 챠콜 머리 줄 통째로 뺌 · ‹ 는 판 머리 「✦ 에디터」 왼쪽(형 11-13 02:24 봄 1:1 「글자를 없애는거 말구, 그냥 위에 네비 챠콜색 저 라인을 다 없애면됨」 · 앞 판 = 글자만 뺌) */
                 <div className={`nm-modal-h nm-mh-${M.id}`}>   {/* nm-mh-<id> = 판마다 폰에서 머리 줄 끄기(뉴스 에디터 · 형 11-14 06:58 봄 옮김 「상단 뉴스이디터 없어도 됨」 · shell.css) */}
@@ -526,7 +526,7 @@ function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
   try { host = ext ? new URL(u).hostname.replace(/^(www|m)\./, "") : ""; } catch { /* 이름 없음 */ }
   if (ext || !u) {
     return (
-      <ModalBox close={onClose} className="nm-modal nm-web" role="dialog" aria-modal="true" aria-label={host || "웹"}>
+      <ModalBox close={onClose} className="nm-modal nm-web" data-webh="" role="dialog" aria-modal="true" aria-label={host || "웹"}>
         <div className="nm-modal-h nm-web-h">   {/* 폰 = 이 머리 알약(「‹ YNA.CO.KR」) 안 그림 · 주소 줄이 맨 위 · 닫기 = 주소 줄 ←(뒤로 갈 데 없을 때) — 형 11-17 01:49 dm-bom 「이거 링크 클릭시 이렇게 나오는 부분에 헤더 안나오게해줘」 · PC 는 그대로(shell.css) */}
           <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
           <b className="min-w-0 flex-1 truncate">{host || "웹"}</b>
