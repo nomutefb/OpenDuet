@@ -72,7 +72,7 @@ test("배선 = 얼굴 펼침 안 · 서버 길은 이미 있는 것만 · 고르
   assert.doesNotMatch(set, /스케줄 · 점검 · 일 모델</);   // 같은 때 걷음(위 줄과 한 쌍)
   assert.match(readFileSync(new URL("../ui/sched-desk.tsx", import.meta.url), "utf8"), /<ModelSetRows bots=\{false\} \/>/);   // 같은 부품이 스케줄 화면에
   // 옛 에디터 줄 값 그대로: 낱말 = 상자 없음 6·7 · 13 · 700 / 고른 낱말 = 강조색 800 / 사이 | = .35
-  assert.match(mine, /\.nm-bm \.srow \{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:8px 0; \}/);
+  assert.match(mine, /\.nm-bm \.srow \{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; min-height:44px; padding:9px 0; \}/);
   assert.match(mine, /\.nm-bm \.pc \{ height:auto; padding:6px 7px; border:0; border-radius:0; background:none;/);
   assert.match(mine, /\.nm-bm \.pc\.on \{ color:var\(--accent, #CFFF40\); font-weight:800; \}/);
   assert.match(mine, /\.nm-bm \.ssep \{[^}]*opacity:\.35;/);

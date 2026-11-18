@@ -309,7 +309,7 @@
      줄 = flex · baseline · 양끝 · 위아래 8 / 이름표 = 13 · 700 · 흰 / 값 = 오른쪽 끝 · 틈 3 · 4 / 낱말 = 상자 없음 · 6 · 7 · 13 · 700 · 흐림 / 고른 낱말 = 강조색 · 800 / 사이 | = 흐림 .35 / 못 누름 = .32
    기간 막대 = 형 영상(24시간 길 · 오른쪽 손잡이 · 막대 안 시간 · 저장하면 잠김) · 움직임 = transform 뿐(끄는 동안 전환 0 · 놓으면 .32s 로 칸에 붙음) */
 .nm-bm { margin:10px 2px 2px; padding-top:4px; border-top:1px solid var(--nsb-line); letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
-.nm-bm .srow { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:8px 0; }
+.nm-bm .srow { display:flex; align-items:baseline; justify-content:space-between; gap:12px; min-height:44px; padding:9px 0; }   /* 44 = 하네스 줄 높이(./model-set.css · 형 11-19 「행을 낮춰서 깔끔하게 통일」) */
 .nm-bm .plbl { flex:0 0 auto; margin:0; font-size:13px; font-weight:700; color:var(--nsb-ink); white-space:nowrap; }
 .nm-bm .sopts { display:flex; flex-wrap:wrap; gap:3px 4px; justify-content:flex-end; min-width:0; align-items:baseline; }
 .nm-bm .pc { height:auto; padding:6px 7px; border:0; border-radius:0; background:none; color:var(--nsb-mut); font:inherit; font-size:13px; font-weight:700; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:color .15s ease, scale .12s ease; }

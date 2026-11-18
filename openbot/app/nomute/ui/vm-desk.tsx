@@ -2,10 +2,11 @@
 //   처음 = 서랍 「몸 상태」 한 화면(형 11-16 16:4x 구름 맥 창 「정원에 각 vm 쓰는 애들 한테 이 자료받아서 vm 상태 그리게 할거야 공간 하나 만들어줘」 · 「이거 github nomutefb 에 보면 life 어쩌고 차트 도구있어」 · 「그거로 만들면돼.」)
 //   → 애마다 제 카드 안으로(형 11-17 07:53 dm-bom 「이거 그래프를 첨부2 안에다가 넣자」 · 「그렇게 다 각자로 넣을게.」) · 「몸」 탭은 걷음(형 「그렇게해서 저 탭을 없애려고 함」 · 「중첩을 최소화 하려는거」)
 //   자료 = GET vm-mem 에 그 이름으로 온 몸(없으면 사양 글만) · 그림 = lieflat-charts F3 Hairline Area(./vm-mem-logic.ts 머리말) · 눈금 · 숫자 줄 규칙도 거기
+//   가로 = 마지막으로 잰 때에서 거꾸로 24시간(형 11-19 「가장 최근거가 맨 우측으로 되가지고 지금으로부터 24시간이 보이면된다는뜻이야」) · 지금 값은 그림 밖 범례 줄
 //   그래프 = 낮은 띠(132px)로 훑고 누르면 키움(280px) · 움직임 = 처음 한 번(원본 박자) 뒤 멈춤
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type VmMem, type VmMemRes, mdhm, pctKo, vmClean, vmGeom, vmLimit, vmPct, vmStats } from "./vm-mem-logic";
+import { type VmMem, type VmMemRes, dayStart, gb, hm, mdhm, pctKo, vmClean, vmFacts, vmGeom, vmLimit, vmPct, vmStats } from "./vm-mem-logic";
 import type { BotRow } from "./bot-desk-logic";
 import { vmMemOpts } from "../data/crew-warm";   // 지난 램 기록을 먼저 그리고 · 앱이 켜질 때 미리 받아 둔 답을 그대로 씀
 import { bodyNote } from "./bot-manage-logic";   // 비고 글에서 몸 이야기만(루틴 · 맡은 일 조각은 겹침 · 형 11-17 07:53)
@@ -27,8 +28,16 @@ export function VmCard({ r }: { r: BotRow }) {
       <div className="hw">
         {hw ? <p>{hw}</p> : null}
         {note ? <small>{note}</small> : null}
-        {s && v ? <small className="num">{pctKo(vmPct(v, limit))}</small> : null}   {/* 숫자 줄 셋 = 한도 대비 %(형 11-17 07:59 「RAM 평균(%) / 평균 가용(%) / 최대(%)」 · 가용 칸이 아직 없으면 「–」) */}
+        {s && v ? <p className="facts" aria-label={pctKo(vmPct(v, limit))}>{vmFacts(v, limit).map((f) => <span key={f.k}><i>{f.k}</i><b>{f.v}</b></span>)}</p> : null}   {/* 숫자 줄 셋 = 한도 대비 %(형 11-17 07:59 「RAM 평균(%) / 평균 가용(%) / 최대(%)」 · 가용 칸이 아직 없으면 「–」) */}
       </div>
+      {v && g ? (   /* 지금 값 = 그림 밖 범례 줄(선 꼴 + 낱말 + 값 · 형 11-19 「쥔램 이런식으로 말고 좀 정확한 단어로 표기하고 잘보이게」 → 사용 · 할당 · 스레드) */
+        <p className="lg">
+          {g.last.used !== null ? <span><i className="k used" />사용 <b>{gb(g.last.used)}GB</b></span> : null}
+          {g.last.held !== null ? <span><i className="k held" />할당 <b>{gb(g.last.held)}GB</b></span> : null}
+          {g.last.busy !== null && v.threads ? <span><i className="k thr" />스레드 <b>{Math.round(g.last.busy * 10) / 10}</b> / {v.threads}</span> : null}
+          <em>{(dayStart(g.t1) === dayStart(Date.now()) ? hm : mdhm)(g.t1)} 기준</em>   {/* 어제 것이면 날짜까지(몸이 오래 안 올린 것을 지금 값으로 읽지 않게) */}
+        </p>
+      ) : null}
       {v || q.isPending ? (
         <div className="plot" ref={ref} style={{ height: h }}>
           {v && g && s ? (
@@ -55,10 +64,10 @@ function useWidth() {
 }
 
 type Geom = ReturnType<typeof vmGeom>;
-/** 그래프 한 장(가는 선 면 · 쥔 램 계단 · 최고점) — 낮은 띠에선 VM 최소 · 최대 글은 뺌(선만 · 키우면 글도) */
+/** 그래프 한 장(가는 선 면 = 사용 · 계단 = 할당 · 최고점) — 낮은 띠에선 VM 최소 · 최대 글은 뺌(선만 · 키우면 글도) */
 function VmPlot({ who, v, g, s, tall }: { who: string; v: VmMem; g: Geom; s: ReturnType<typeof vmStats>; tall: boolean }) {
   return (
-          <svg width={g.w} height={g.h} viewBox={`0 0 ${g.w} ${g.h}`} role="img" aria-label={`${who} · ${mdhm(s.t1)} 까지 하루 · 램${g.busy ? " · 스레드" : ""}`}>
+          <svg width={g.w} height={g.h} viewBox={`0 0 ${g.w} ${g.h}`} role="img" aria-label={`${who} · ${mdhm(g.t1)} 까지 24시간 · 램${g.busy ? " · 스레드" : ""}`}>
             {g.ticksY.map((t) => <g key={t.label}><line className="grid" x1={g.l} x2={g.w - g.r} y1={t.y} y2={t.y} /><text className="tick" x={g.l - 6} y={t.y + 3} textAnchor="end">{t.label}</text></g>)}
             {g.ticksR.map((t) => <text key={`r${t.label}`} className="tick thr" x={g.w - g.r + 5} y={t.y + 3}>{t.label}</text>)}   {/* 오른쪽 눈금 = 스레드(값이 올 때만) */}
             {g.refs.map((r) => <g key={r.label}><line className="ref" x1={g.l} x2={g.w - g.r} y1={r.y} y2={r.y} />{tall ? <text className="note" x={g.l + 6} y={r.y - 5}>{r.label}</text> : null}</g>)}
@@ -70,10 +79,8 @@ function VmPlot({ who, v, g, s, tall }: { who: string; v: VmMem; g: Geom; s: Ret
             {g.held ? <path className="held vm-draw" d={g.held} pathLength={1} /> : null}
             {g.outline ? <path className="line vm-draw" d={g.outline} pathLength={1} /> : null}
             {g.busy ? <path className="busy vm-draw" d={g.busy} pathLength={1} /> : null}   {/* 둘째 선 = 바쁜 스레드 수(라임 가는 선) */}
-            {g.peak ? <g><circle className="dot vm-pop" cx={g.peak.x} cy={g.peak.y} r={4.2} /><text className="peak vm-fade late" x={g.peak.x} y={g.peak.y - 11} textAnchor={g.peak.x < g.l + 70 ? "start" : g.peak.x > g.w - g.r - 70 ? "end" : "middle"}>{g.peak.label}</text></g> : null}
-            {g.ticksX.map((t, i) => <text key={t.x} className="hour" x={t.x} y={g.base + 18} textAnchor={i === 0 ? "start" : i === g.ticksX.length - 1 ? "end" : "middle"}>{t.label}</text>)}
-            {g.end.held ? <text className="end held" x={g.w - g.r + 8} y={g.end.held.y + 4}>{g.end.held.label}</text> : null}
-            {g.end.used ? <text className="end" x={g.w - g.r + 8} y={g.end.used.y + 4}>{g.end.used.label}</text> : null}
+            {g.peak ? <g><circle className="dot vm-pop" cx={g.peak.x} cy={g.peak.y} r={4.2} /><text className="peak vm-fade late" x={g.peak.lx} y={g.peak.ly} textAnchor="middle">{g.peak.label}</text></g> : null}
+            {g.ticksX.map((t) => <text key={t.x} className={t.end ? "hour end" : "hour"} x={t.x} y={g.base + 18} textAnchor={t.anchor}>{t.label}</text>)}   {/* 0 · 6 · 12 · 18시 자리 + 오른쪽 끝 = 마지막으로 잰 시각 */}
           </svg>
   );
 }
