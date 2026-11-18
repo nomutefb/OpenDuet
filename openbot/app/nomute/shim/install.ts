@@ -4,7 +4,6 @@ import { route } from "./routes";
 import "./socket";
 
 const realFetch = window.fetch.bind(window);
-(window as unknown as { __nmServerFetch?: typeof fetch }).__nmServerFetch = realFetch;   // 가로채기 전 fetch — 앱 안에서 도는 옛 에디터 화면(ui/old-pages/frame.ts)이 씀: 그 화면들은 제 문서(iframe)에서 서버를 바로 불렀다(통과 목록과 무관하게 전부 서버 그대로)
 
 window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url, location.href);
