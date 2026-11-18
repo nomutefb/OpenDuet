@@ -66,8 +66,27 @@ const r1 = (x: number) => Math.round(x * 10) / 10;
 // ── 눈금 · 숫자 줄(형 11-17 07:55 ~ 08:02 dm-bom · 봄 옮김) ──
 //   「항상 자기 한도의 25 50 75 100 지점으로 라벨링을 하셈 차트는」 · 「측정 시점은 동일하면 되고 항상 0 6 12 18 24 하면 돼. 어짜피 채워지니까」
 //   「RAM 평균(%) / 평균 가용(%) / 최대(%) 이게 필요하거든%는 각 최대치에 대한 비율」 · 「램 이랑 동시에 스레드도 … 우측엔 스레드 라벨로해서 그래프 라인이 2개로 가면 더 좋음」
-const KST = 9 * 3_600_000, DAY = 86_400_000, QUART = [0.25, 0.5, 0.75, 1];
-/** 그 시각이 든 날(한국 시각)의 0시. */
+//   형 11-19 「그날그날 정보가 사라지는데, 가장 최근거가 맨 우측으로 되가지고 지금으로부터 24시간이 보이면된다는뜻이야」 · 「인덱싱 라벨들 글자 안겹치게 잘좀표기해주고」
+//   · 「스레드 평균 몇인지, 쥔램 이런식으로 말고 좀 정확한 단어로 표기하고 잘보이게」
+//   → 가로 = 마지막으로 잰 칸에서 거꾸로 24시간(날이 바뀌어도 안 비워짐) · 가로 눈금 = 그 안의 0 · 6 · 12 · 18시 자리 + 맨 오른쪽 = 마지막으로 잰 시각
+//   → 그림 안 글(최고 · 눈금)은 서로 · 선과 안 겹치는 자리를 셈으로 찾음 · 지금 값(사용 · 할당 · 스레드)은 그림 밖 범례 줄로
+const KST = 9 * 3_600_000, DAY = 86_400_000, H6 = 6 * 3_600_000, QUART = [0.25, 0.5, 0.75, 1];
+/** 그리는 창 = 마지막으로 잰 칸(i1 · t1)에서 거꾸로 24시간(t0) · i0 = 그 창에 드는 첫 칸. 줄 끝이 빈 칸으로 채워져 와도 마지막으로 잰 칸이 오른쪽 끝. */
+export function vmWin(v: VmMem): { i0: number; i1: number; t0: number; t1: number } {
+  const ms = v.step_s * 1000; let i1 = v.used_gb.length - 1; while (i1 > 0 && v.used_gb[i1] === null) i1--;
+  const t1 = v.t0 + i1 * ms, t0 = t1 - DAY;
+  return { i0: Math.max(0, Math.ceil((t0 - v.t0) / ms)), i1, t0, t1 };
+}
+/** 바쁜 스레드(그 24시간 창) — 평균 · 마지막 값 · 스레드 수 · 값이 없으면 null */
+export function vmBusy(v: VmMem): { avg: number; last: number; threads: number } | null {
+  if (!v.busy || !v.threads) return null;
+  const { i0, i1 } = vmWin(v); let n = 0, sum = 0, last = 0;
+  for (let i = i0; i <= i1; i++) { const b = v.busy[i]; if (b != null) { n++; sum += b; last = b; } }
+  return n ? { avg: sum / n, last, threads: v.threads } : null;
+}
+/** 글 너비 어림(px) — 한글 = 글자 크기 · 그 밖 = 0.6배 · 빈칸 0.3배(그림 안 글이 서로 · 선과 겹치는지 셈하는 데만 씀) */
+export const textW = (s: string, fs: number): number => { let w = 0; for (const ch of s) w += ch === " " ? fs * 0.3 : ch.charCodeAt(0) > 0x2e80 ? fs : fs * 0.6; return w; };
+/** 그 시각이 든 날(한국 시각)의 0시(시험 · 미리보기 자료가 씀). */
 export const dayStart = (t: number): number => Math.floor((t + KST) / DAY) * DAY - KST;
 const trim = (x: number) => String(Math.round(x * 10) / 10);
 /** 한도(GB) = % 의 분모 · 세로 눈금 끝 — 서버 ram_max_gb → VM 최대 → 사양 글(「10GB」) → 값에서 어림(짝수로 올림). */
@@ -83,17 +102,23 @@ export function vmPct(v: VmMem, limit: number): { avg: number | null; avail: num
 }
 export const pctKo = (p: { avg: number | null; avail: number | null; max: number | null }): string => `RAM 평균 ${p.avg === null ? "–" : p.avg + "%"} / 평균 가용 ${p.avail === null ? "–" : p.avail + "%"} / 최대 ${p.max === null ? "–" : p.max + "%"}`;
 
-export type VmGeom = { w: number; h: number; l: number; r: number; base: number; top: number; yMax: number; hair: [string, string, string]; peakHair: string; outline: string; held: string; busy: string; ticksY: { y: number; label: string }[]; ticksR: { y: number; label: string }[]; ticksX: { x: number; label: string }[]; refs: { y: number; label: string }[]; marks: { x: number; label: string }[]; peak: { x: number; y: number; label: string } | null; end: { used: { y: number; label: string } | null; held: { y: number; label: string } | null } };
-/** 그림 자리 — w × h 판 · 가로 = 마지막 잰 날의 0시 ~ 24시(눈금 0 · 6 · 12 · 18 · 24 고정 · 그날 것만 채워짐) · 세로 = 한도(눈금 = 한도의 25 · 50 · 75 · 100%)
- *  · 스레드 줄(busy)이 오면 둘째 선 + 오른쪽 눈금(스레드 수의 25 · 50 · 75 · 100%) · 넓으면(560px~) 오른쪽 끝에 마지막 값 글 자리 */
+/** 숫자 줄을 칸으로(화면 = 이름 흐리게 · 값 굵게) — RAM 평균 · 평균 가용 · 최대 + 스레드 평균(값이 올 때만 · 「1.2 / 10」) */
+export function vmFacts(v: VmMem, limit: number): { k: string; v: string }[] {
+  const p = vmPct(v, limit), pc = (x: number | null) => (x === null ? "–" : x + "%"), b = vmBusy(v);
+  return [{ k: "RAM 평균", v: pc(p.avg) }, { k: "평균 가용", v: pc(p.avail) }, { k: "최대", v: pc(p.max) }, ...(b ? [{ k: "스레드 평균", v: `${trim(b.avg)} / ${trim(b.threads)}` }] : [])];
+}
+
+export type VmGeom = { w: number; h: number; l: number; r: number; base: number; top: number; yMax: number; t1: number; hair: [string, string, string]; peakHair: string; outline: string; held: string; busy: string; ticksY: { y: number; label: string }[]; ticksR: { y: number; label: string }[]; ticksX: { x: number; label: string; anchor: "start" | "middle" | "end"; end?: true }[]; refs: { y: number; label: string }[]; marks: { x: number; label: string }[]; peak: { x: number; y: number; lx: number; ly: number; label: string } | null; last: { used: number | null; held: number | null; busy: number | null } };
+/** 그림 자리 — w × h 판 · 가로 = 마지막으로 잰 칸에서 거꾸로 24시간(가장 최근이 맨 오른쪽 · 눈금 = 그 안의 0 · 6 · 12 · 18시 + 오른쪽 끝 시각) · 세로 = 한도(눈금 = 한도의 25 · 50 · 75 · 100%)
+ *  · 스레드 줄(busy)이 오면 둘째 선 + 오른쪽 눈금(스레드 수의 25 · 50 · 75 · 100%) · 지금 값 글은 그림 밖(last → 범례 줄) · 최고 글은 선 · 다른 글과 안 겹치는 높이로 */
 export function vmGeom(v: VmMem, w: number, h: number, limit = vmLimit(v)): VmGeom {
   const n = v.used_gb.length, hasBusy = !!(v.busy && v.threads && v.busy.some((x) => x !== null));
-  const wide = w >= 560, l = 36, r = wide ? 92 : hasBusy ? 26 : 10, top = 26, base = h - 30, yMax = limit > 0 ? limit : 2;
-  let lastI = n - 1; while (lastI > 0 && v.used_gb[lastI] === null) lastI--;   // 줄 끝이 빈 칸으로 채워져 와도(아직 안 올라온 시간) 마지막으로 잰 칸의 날을 그림
-  const tAt = (i: number) => v.t0 + i * v.step_s * 1000, d0 = dayStart(tAt(lastI));
+  const l = 36, r = hasBusy ? 26 : 10, top = 26, base = h - 30, yMax = limit > 0 ? limit : 2, tall = h >= 200;
+  const { i1: lastI, t0: d0, t1 } = vmWin(v);
+  const tAt = (i: number) => v.t0 + i * v.step_s * 1000;
   const xT = (t: number) => r1(l + (Math.max(0, Math.min(DAY, t - d0)) / DAY) * (w - l - r)), x = (i: number) => xT(tAt(i)), y = (g: number) => r1(base - (Math.min(g, yMax) / yMax) * (base - top));
-  const inDay = (i: number) => tAt(i) >= d0;
-  let peakI = -1, peakV = -Infinity, lastU: number | null = null, lastH: number | null = null;
+  const inDay = (i: number) => i <= lastI && tAt(i) >= d0;
+  let peakI = -1, peakV = -Infinity, lastU: number | null = null, lastH: number | null = null, lastB: number | null = null;
   v.used_gb.forEach((g, i) => { if (g !== null && inDay(i)) { lastU = g; if (g > peakV) { peakV = g; peakI = i; } } });
   const hair: [string, string, string] = ["", "", ""];
   let outline = "", pen = false, peakHair = "";
@@ -103,19 +128,35 @@ export function vmGeom(v: VmMem, w: number, h: number, limit = vmLimit(v)): VmGe
     if (i === peakI) peakHair = `M${x(i)} ${base}V${y(g)}`; else hair[Math.min(2, Math.floor(rnd(i + 1, 7) * 3))] += `M${x(i)} ${base}V${y(g)}`;
     outline += `${pen ? "L" : "M"}${x(i)} ${y(g)}`; pen = true;
   });
-  let held = "", hp = false;
-  (v.held_gb || []).forEach((g, i) => { if (!inDay(i)) return; if (g === null) { hp = false; return; } lastH = g; held += hp ? `V${y(g)}H${x(Math.min(n - 1, i + 1))}` : `M${x(i)} ${y(g)}H${x(Math.min(n - 1, i + 1))}`; hp = true; });
+  let held = "", hp = false; const heldAt: [number, number][] = [];   // [가로, 세로] — 최고 글 자리 셈에 씀
+  (v.held_gb || []).forEach((g, i) => { if (!inDay(i)) return; if (g === null) { hp = false; return; } lastH = g; heldAt.push([x(i), y(g)]); held += hp ? `V${y(g)}H${x(Math.min(lastI, i + 1))}` : `M${x(i)} ${y(g)}H${x(Math.min(lastI, i + 1))}`; hp = true; });
   let busy = "", bp = false; const th = v.threads || 0;
-  if (hasBusy) (v.busy || []).forEach((b, i) => { if (!inDay(i)) return; if (b === null) { bp = false; return; } busy += `${bp ? "L" : "M"}${x(i)} ${r1(base - (Math.min(b, th) / th) * (base - top))}`; bp = true; });
+  if (hasBusy) (v.busy || []).forEach((b, i) => { if (!inDay(i)) return; if (b === null) { bp = false; return; } lastB = b; busy += `${bp ? "L" : "M"}${x(i)} ${r1(base - (Math.min(b, th) / th) * (base - top))}`; bp = true; });
   const ticksY = QUART.map((f) => ({ y: y(yMax * f), label: f === 1 ? `${trim(yMax)}GB` : trim(yMax * f) }));
   const ticksR = hasBusy ? QUART.map((f) => ({ y: y(yMax * f), label: trim(th * f) })) : [];
-  const ticksX = [0, 6, 12, 18, 24].map((hr) => ({ x: r1(l + (hr / 24) * (w - l - r)), label: String(hr) }));
+  // 가로 눈금 = 창 안의 0 · 6 · 12 · 18시(한국 시각) 자리 + 오른쪽 끝 = 마지막으로 잰 시각 · 끝 글과 붙는(끝 글 너비 + 틈) 시각 눈금은 글을 뺌
+  const xr = w - r, endLabel = hm(t1), endW = textW(endLabel, 9.5), ticksX: VmGeom["ticksX"] = [];
+  for (let t = Math.ceil((d0 + KST) / H6) * H6 - KST; t < t1; t += H6) {
+    const tx = xT(t), label = String(Math.round(((t + KST) % DAY) / 3_600_000)), half = textW(label, 9.5) / 2;
+    if (tx + half + 8 > xr - endW) continue;
+    ticksX.push({ x: tx, label, anchor: tx - half < l ? "start" : "middle" });
+  }
+  ticksX.push({ x: xr, label: endLabel, anchor: "end", end: true });
   const refs = [v.min_gb && v.min_gb < yMax ? { y: y(v.min_gb), label: `VM 최소 ${v.min_gb}GB` } : null].filter((a): a is { y: number; label: string } => !!a);
-  const marks = vmMarks(v).filter((m) => m.t >= d0 && m.t <= d0 + DAY).map((m) => ({ x: xT(m.t), label: `${hm(m.t)} ${m.label}` }));
-  const peak = peakI >= 0 ? { x: x(peakI), y: y(peakV), label: `최고 ${gb(peakV)}GB · ${hm(tAt(peakI))}` } : null;
-  let eu = lastU !== null ? { y: y(lastU), label: `쓴 램 ${gb(lastU)}GB` } : null, eh = lastH !== null ? { y: y(lastH), label: `쥔 램 ${gb(lastH)}GB` } : null;
-  if (eu && eh && Math.abs(eu.y - eh.y) < 13) { const mid = (eu.y + eh.y) / 2, up = eh.y <= eu.y; eh = { ...eh, y: r1(mid + (up ? -6.5 : 6.5)) }; eu = { ...eu, y: r1(mid + (up ? 6.5 : -6.5)) }; }   // 두 끝 글이 겹치면 벌림
-  return { w, h, l, r, base, top, yMax, hair, peakHair, outline, held, busy, ticksY, ticksR, ticksX, refs, marks, peak, end: { used: wide ? eu : null, held: wide ? eh : null } };
+  const marks = vmMarks(v).filter((m) => m.t >= d0 && m.t <= t1).map((m) => ({ x: xT(m.t), label: `${hm(m.t)} ${m.label}` }));
+  // 최고 글 = 점 위 · 가로는 판 안으로 당김 · 세로는 그 글 너비 안의 선(할당 계단 · VM 최소 선)과 글(다시 켜짐 · VM 최소)에 안 닿는 첫 높이까지 올림
+  let peak: VmGeom["peak"] = null;
+  if (peakI >= 0) {
+    const label = `최고 ${gb(peakV)}GB · ${hm(tAt(peakI))}`, half = textW(label, 10.5) / 2, px = x(peakI), py = y(peakV);
+    const lx = r1(Math.max(l + half + 2, Math.min(xr - half - 2, px))), x0 = lx - half - 3, x1 = lx + half + 3, bands: [number, number][] = refs.map((f) => [f.y, f.y]);
+    const hy = heldAt.filter(([hx]) => hx >= x0 - 2 && hx <= x1 + 2).map(([, yy]) => yy); if (hy.length) bands.push([Math.min(...hy), Math.max(...hy)]);
+    if (marks.some((m) => { const mw = textW(m.label, 9.5), a = m.x > xr - 110 ? m.x - 8 - mw : m.x + 4; return a < x1 && a + mw > x0; })) bands.push([top - 12, top + 3]);
+    if (tall) refs.forEach((f) => { if (l + 6 < x1 && l + 6 + textW(f.label, 9.5) > x0) bands.push([f.y - 15, f.y - 2]); });
+    const free = (yb: number) => bands.every(([a, b]) => b < yb - 11 || a > yb + 5);
+    let ly = py - 11; for (let yb = py - 11; yb >= 11; yb--) if (free(yb)) { ly = yb; break; }
+    peak = { x: px, y: py, lx, ly: r1(ly), label };
+  }
+  return { w, h, l, r, base, top, yMax, t1, hair, peakHair, outline, held, busy, ticksY, ticksR, ticksX, refs, marks, peak, last: { used: lastU, held: lastH, busy: lastB } };
 }
 
 /** 미리보기 자료(주소 꼬리표 ?vmdemo 일 때만 · 진짜 자료 아님 = 화면에 「견본」 표) — 형이 붙인 깃 그림 비슷한 꼴 넷 */

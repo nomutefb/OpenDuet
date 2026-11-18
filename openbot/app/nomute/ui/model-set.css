@@ -1,20 +1,21 @@
 /* 설정 「모델 · 노력도」(./model-set.tsx) — 줄 = 이름 + 고르는 칸 둘 · 색 = 설정 판 것(./yeta-settings.css 의 --glass · --glass-line · --mut · --accent) · 새 색 0
-   여백(형 11-15 「내부 v 마진같은거 좀 신경써줘」) = 칸 안: 글 왼쪽 12 · 글과 화살표 사이 6 · 화살표 오른쪽 10 · 위아래 9 / 줄 안: 위아래 8 · 양옆 14 · 칸 사이 8 / 줄 사이 8 · 묶음 사이 20
+   여백(형 11-15 「내부 v 마진같은거 좀 신경써줘」) = 칸 안: 글 왼쪽 12 · 글과 화살표 사이 6 · 화살표 오른쪽 10 / 줄 안: 양옆 14 · 칸 사이 8 / 줄 사이 6 · 묶음 사이 20
+   높이(형 11-19 「다음창 저것도 높이가 너무 높아. 전체적으로 하네스를 좀 행을 낮춰서 깔끔하게 통일」) = 줄 44 · 칸 32(앞 판 56 · 40) — 설정 줄(./yeta-settings.css .yset-item 44) · 애 카드 계정 줄(./bot-desk.css .srow 44)과 같은 높이
    칸 너비 = 모델 · 노력도 칸이 줄마다 같은 자리에 서게 고정(이름이 길면 이름 쪽이 두 줄로) */
 .nm-ms { display:grid; gap:20px; padding:4px 2px 8px; }
 .nm-ms section { display:grid; gap:8px; }
 .nm-ms h3 { margin:0 4px; font-size:var(--fs-sm); font-weight:var(--fw-b, 700); color:var(--mut); display:flex; align-items:baseline; gap:6px; }
 .nm-ms h3 small { font-size:var(--fs-xs); font-weight:400; }
-.nm-ms .rows { display:grid; gap:8px; }
+.nm-ms .rows { display:grid; gap:6px; }
 .nm-ms .note { margin:0 4px; font-size:var(--fs-xs); line-height:1.55; color:var(--mut); text-wrap:pretty; }
 .nm-ms .note.err { color:var(--nsb-red, #ff5a5f); }
 .nm-ms .note button { font:inherit; color:inherit; text-decoration:underline; background:none; border:0; padding:0 2px; cursor:pointer; }
-.nm-ms-row { display:grid; grid-template-columns:minmax(0,1fr) 122px 98px; align-items:center; gap:8px; min-height:56px; padding:8px 8px 8px 14px; border:1px solid var(--glass-line); border-radius:var(--r-l, 16px); background:var(--glass); }
+.nm-ms-row { display:grid; grid-template-columns:minmax(0,1fr) 122px 98px; align-items:center; gap:8px; min-height:44px; padding:5px 6px 5px 14px; border:1px solid var(--glass-line); border-radius:var(--r-l, 16px); background:var(--glass); }
 .nm-ms-row .who { min-width:0; display:flex; flex-direction:column; gap:2px; }
 .nm-ms-row .who b { font-size:var(--fs-body); line-height:1.25; overflow-wrap:anywhere; }
 .nm-ms-row .who small { font-size:var(--fs-xs); line-height:1.2; color:var(--mut); }
-/* 칸 = 지금 값 + 화살표 · 고르는 판(select)은 칸 전체를 덮어 투명하게(누르는 자리 = 칸 전체 · 40px) */
-.nm-ms-row .cell { position:relative; min-width:0; min-height:40px; display:flex; align-items:center; justify-content:space-between; gap:6px; padding:9px 10px 9px 12px; border-radius:calc(var(--r-l, 16px) - 6px); font-size:var(--fs-sm); font-weight:var(--fw-b, 700); font-variant-numeric:tabular-nums; color:var(--accent); }
+/* 칸 = 지금 값 + 화살표 · 고르는 판(select)은 칸 전체를 덮어 투명하게(누르는 자리 = 칸 전체 · 32px · 줄째로는 44px) */
+.nm-ms-row .cell { position:relative; min-width:0; min-height:32px; display:flex; align-items:center; justify-content:space-between; gap:6px; padding:5px 10px 5px 12px; border-radius:calc(var(--r-l, 16px) - 6px); font-size:var(--fs-sm); font-weight:var(--fw-b, 700); font-variant-numeric:tabular-nums; color:var(--accent); }
 .nm-ms-row .cell.pick { border:1px solid var(--glass-line); cursor:pointer; transition:background-color .18s ease, border-color .18s ease; }
 .nm-ms-row .cell.pick:active { background:rgba(255,255,255,.06); }
 .nm-ms-row .cell.pick:focus-within { border-color:var(--accent); }
@@ -25,7 +26,7 @@
 .nm-ms-row .cell.dim { color:var(--mut); font-weight:400; }   /* 안 고른 값 = 흐리게(고른 것만 색) */
 .nm-ms-row .cell.busy { opacity:.5; }
 .nm-ms-row .cell:not(.pick) { padding-left:0; padding-right:0; justify-content:flex-end; }
-@media (max-width:360px) { .nm-ms-row { grid-template-columns:minmax(0,1fr) 114px 92px; gap:6px; padding-left:12px; } .nm-ms-row .cell { padding:9px 8px 9px 10px; gap:4px; } }
+@media (max-width:360px) { .nm-ms-row { grid-template-columns:minmax(0,1fr) 114px 92px; gap:6px; padding-left:12px; } .nm-ms-row .cell { padding:5px 8px 5px 10px; gap:4px; } }
 :root:not(.dark) .nm-ms-row .cell.pick:active { background:rgba(0,0,0,.05); }
 
 /* 칸 누름 = 앱 고르기 목록(./model-set.tsx Cell · bot-pick.css 판) · 칸 = 단추 · 목록 = 칸 오른쪽 끝에 맞춰 칸보다 좁지 않게(형 11-18 19:01 「투박하게 고르지 않게」) */
