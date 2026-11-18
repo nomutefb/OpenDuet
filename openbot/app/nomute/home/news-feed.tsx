@@ -1,6 +1,7 @@
 // 홈 2~4/6 = 뉴스 피드 간소(형 10-28 11:29 「뉴스피드 간소화 (지금 이미 웹에 만든 형태 나쁘지않아) - 지금과 동일하게 넘어가는 느낌으로 톤만 예타톤으로」) —
-//   원본 = 지금 에디터 첫 화면(edit.nomute.kr/) 카드 덱 그대로: 화면·넘김 = 에디터 viewer/modern-home.html 을 품음(같은 주소 · 사본 0) ·
-//   카드 재료 = 에디터 viewer/modern-data.js project()(같은 주소에서 불러 씀 · 사본 0) 에 에디터 홈과 같은 원천(순위 api/trends?f=overlap → overlap_latest.json ·
+//   원본 = 옛 에디터 첫 화면 카드 덱 그대로: 화면·넘김 = 그 판 · 옷 · 엔진을 앱 안에서 직접 돌림(./deck · 형 11-19 00:4x 「그거 다 지금 정원으로 제대로 이식해서 가져와」 ·
+//     앞 판 = 에디터 viewer/modern-home.html 을 iframe 으로 품고 /modern-data.js 를 실행 때 불러 옴 = 옛 에디터 파일에 기댐) ·
+//   카드 재료 = 옛 에디터 modern-data.js project()(./deck/modern-data.gen.ts = 원본 그대로 묶음) 에 에디터 홈과 같은 원천(순위 api/trends?f=overlap → overlap_latest.json ·
 //   수집함 api/candidates · 요약 articles.json · 사진 api/trends?f=images → rss_images.json · 피드 알파 = 같은 기기 설정 nm_home_alpha + feed_alpha.json) ·
 //   부모 몫(에디터 modern-workspace.js 홈 부분과 같은 글 꼴 · 채널 nomute-modern-home: connect → ready → snapshot · refresh/reload = 다시 받기 · suspend = 숨으면 쉼).
 //   간소 = 팔로워 띠(IG·FB)·PICK 단추 뺌(PICK 은 에디터에서) · 톤 = YETA 토큰을 품은 화면에 덧씌움(어둡게·밝게 = 앱 따라) ·
@@ -9,7 +10,8 @@
 //   보이는 후보 = 에디터 scHomeCandidates 와 같은 거름(home-pool.ts · 서버 트리아지·병합 + 이 기기 기록 · 같은 기사 접기·자동 묶음) · PICK 상태 = 안 보임.
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { pollOff } from "../data/poll-linux";
-import { hookFrame, toneFrame } from "../ui/inapp";
+import { hookRoot, yetaTone } from "../ui/inapp";
+import { type Deck, type DeckMsg, modernDataNow, mountDeck } from "./deck";
 import { homePool } from "./home-pool";
 import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
 import { rssFirst } from "./rss-first";
@@ -26,7 +28,6 @@ const OVERLAP_EVERY = 60_000, IMAGES_EVERY = 5 * 60_000, PICKS_EVERY = 2 * 60_00
 export type Cand = { id?: string; url?: string; title?: string; title_clean?: string; title_ko?: string; title_ko_of?: string; media?: string; published?: string; hp?: string; breaking_pick?: { url?: string }; _disp?: Cand };
 type Modern = { project: (o: unknown, c: Cand[], a: unknown[], s: () => null, opt: Record<string, unknown>) => { rows: unknown[]; lookup?: Map<string, unknown> }; validOverlap: (o: unknown) => boolean;
   imageAsks?: (rows: unknown[], tried: Set<string>, limit?: number) => string[]; mergeImages?: (base: unknown, extra: Record<string, string>) => unknown; url?: (u: unknown) => string };
-declare global { interface Window { ModernData?: Modern } }
 
 export async function firstJson<T>(urls: string[], ok: (v: T) => boolean = () => true): Promise<T | null> {   // 에디터와 같은 차례(api 먼저 → 정적) · HTML 폴백(200) 거름
   for (const u of urls) {
@@ -41,14 +42,8 @@ export async function firstJson<T>(urls: string[], ok: (v: T) => boolean = () =>
   }
   return null;
 }
-let modernP: Promise<Modern | null> | null = null;
-export const modernData = () => (modernP ||= new Promise((res) => {   // 에디터 원본 /modern-data.js 를 그대로 불러 씀(한 번)
-  if (window.ModernData) return res(window.ModernData);
-  const s = document.createElement("script");
-  s.src = "/modern-data.js"; s.async = true;
-  s.onload = () => res(window.ModernData || null); s.onerror = () => res(null);
-  document.head.appendChild(s);
-}));
+/** 카드 재료 셈(옛 에디터 modern-data.js 그대로 · 앱 묶음 안 · 앞 판 = /modern-data.js 를 실행 때 불러 옴) — 부르는 쪽 꼴(기다림)은 그대로 */
+export const modernData = (): Promise<Modern | null> => { try { return Promise.resolve(modernDataNow<Modern>() || null); } catch { return Promise.resolve(null); } };
 // 에디터 scPickUrl · scHomeMetadata 와 같은 셈(viewer-src 34-checkFreshLane · 35-applyAutoGroups) — 묶음 기사(hp)는 그 픽 기사 주소·시각
 const hpOk = (c: Cand) => !!c.hp && Date.parse(c.hp) <= Date.now() + 60000;
 export const pickUrl = (c: Cand): string => (c._disp ? pickUrl(c._disp) : hpOk(c) && c.breaking_pick && /^https?:\/\//i.test(c.breaking_pick.url || "") ? c.breaking_pick.url! : c.url || "");
@@ -95,10 +90,24 @@ const deckIn = () => { const h = document.documentElement; if (!h.hasAttribute("
 //   기사 사진이 아니라 매체가 속보마다 붙이는 배너(파이낸셜뉴스 = 2025-07-17 그림 한 장을 계속 씀 · 실물) → 그 글 그림은 안 쓰고 묶음 다음 기사 주소로(imageAsks 행마다 3개)
 const BREAKING_TITLE = /^\s*[[［【<〈(（]\s*(?:긴급\s*)?속보\s*[\]］】>〉)）]/;
 
-export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onShown = 카드 첫 판이 품은 화면에 간 때 한 번(홈 「다 깸」 띠가 그 뒤에 뜸 · 형 11-02 23:17)
-  const frame = useRef<HTMLIFrameElement>(null);
+export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onShown = 카드 첫 판이 덱에 간 때 한 번(홈 「다 깸」 띠가 그 뒤에 뜸 · 형 11-02 23:17)
+  const hostEl = useRef<HTMLDivElement>(null);
+  const deck = useRef<Deck | null>(null);
+  const up = useRef<(m: DeckMsg) => void>(() => {});   // 덱 → 앱 글 받는 손(아래 자료 효과가 채움)
   const shownCb = useRef(onShown);
   shownCb.current = onShown;
+  useLayoutEffect(() => {   // 덱 붙이기(판 · 옷 · 엔진 = ./deck) + 톤(앱의 어둡게 · 밝게를 따라 덧씌움) + 카드 출처 링크 = 앱 안(ui/inapp.ts · 형 15:32)
+    if (!hostEl.current) return;
+    deckWait();
+    const d = mountDeck(hostEl.current, (m) => up.current(m));
+    deck.current = d;
+    const paint = () => { const dark = document.documentElement.classList.contains("dark"); d.tone(yetaTone(dark) + "\n" + DECK(dark)); };
+    paint();
+    const mo = new MutationObserver(paint);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    const offLinks = hookRoot(d.root);
+    return () => { mo.disconnect(); offLinks(); d.dispose(); deck.current = null; document.documentElement.removeAttribute("data-deck-wait"); };
+  }, []);
   useEffect(() => {
     let live = true, ready = false, shown = false, version = 0, snap: { rows: unknown[]; status: Record<string, unknown> } | null = null;
     let events: NewsEvent[] | null = null;   // 사건 묶음 점수(score100 · /api/trends?f=event · 1분마다 · 못 받으면 앞 판)
@@ -107,7 +116,7 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
     const linkImages: Record<string, string> = {}, linkTried = new Set<string>(), linkDone = new Set<string>();   // linkDone = 링크 카드 답까지 받은 주소(사진 기다림 판정)
     const linkNotes: Record<string, string> = {};   // 짐작 그림 표시(서버 image_note 「검색 그림」) · 에디터 modern-workspace.js 와 같은 꼴(빠르 #2260 · 칩 = 덱 modern-card-content articleMedia)
     let linkCount = 0, linkTask: Promise<void> | null = null, lastRows: unknown[] = [];
-    const post = (type: string, detail: Record<string, unknown> = {}) => frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type, ...detail }, location.origin);
+    const post = (type: string, detail: Record<string, unknown> = {}) => deck.current?.post(type, detail);
     const send = () => {
       if (!ready || !snap) return;
       post("snapshot", { version, ...snap });
@@ -199,32 +208,22 @@ export function NewsFeed({ onShown }: { onShown?: () => void } = {}) {   // onSh
       }
       await rebuild();
     };
-    const onMsg = (e: MessageEvent) => {
-      if (e.origin !== location.origin || e.source !== frame.current?.contentWindow) return;
-      const m = e.data as { channel?: string; type?: string };
-      if (!m || m.channel !== CHANNEL) return;
-      if (m.type === "ready") { ready = true; send(); post("suspend", { hidden: document.hidden }); }   // 덱이 다시 불려 와도(뼈대부터) ready 가 다시 옴 → 다음 판까지 deckWait(아래 onLoad)
+    up.current = (m) => {
+      if (!live || !m || m.channel !== CHANNEL) return;
+      if (m.type === "ready") { ready = true; send(); post("suspend", { hidden: document.hidden }); }
       else if (m.type === "refresh" || m.type === "reload") void load(true);
     };
     const onVis = () => post("suspend", { hidden: document.hidden });
-    window.addEventListener("message", onMsg);
     document.addEventListener("visibilitychange", onVis);
+    post("connect");   // 덱이 「ready」로 답함(엔진이 뜨며 보낸 첫 ready 는 이 효과보다 먼저라 못 받았을 수 있음)
     void load();
     const t1 = setInterval(() => { if (!pollOff()) void load(); }, OVERLAP_EVERY);   // 숨은 탭 · 리눅스 데스크톱 = 쉼
-    return () => { live = false; clearInterval(t1); window.removeEventListener("message", onMsg); document.removeEventListener("visibilitychange", onVis); };
+    return () => { live = false; up.current = () => {}; clearInterval(t1); document.removeEventListener("visibilitychange", onVis); };
   }, []);
-  useEffect(() => {   // 품은 화면 톤 = 앱의 어둡게·밝게를 따라 덧씌움 · 카드 출처 링크(원본 target=_blank) = 앱 안 #/web(ui/inapp.ts · 형 15:32)
-    const el = frame.current;
-    const offTone = toneFrame(el, DECK);
-    const offLinks = hookFrame(el);
-    return () => { offTone(); offLinks(); };
-  }, []);
-  const onLoad = () => { deckWait(); frame.current?.contentWindow?.postMessage({ channel: CHANNEL, type: "connect" }, location.origin); };
-  useLayoutEffect(() => { deckWait(); return () => { document.documentElement.removeAttribute("data-deck-wait"); }; }, []);
   return (
     <section aria-label="뉴스 피드" className="relative flex min-h-0 flex-col" style={{ gridRow: 2 }}>   {/* 줄 자리 못 박음 = 띠(1줄)가 늦게 생겨도 이 칸이 1줄(높이 자동)로 끌려가지 않음(형 11-03 12:45) */}
-      <iframe ref={frame} src="/modern-home.html" title="뉴스 피드" onLoad={onLoad} className="min-h-0 w-full flex-1 border-0 bg-transparent" />
-      <SendButton frame={frame} />
+      <div ref={hostEl} className="flex min-h-0 w-full flex-1 flex-col" />   {/* 덱 틀(./deck 이 그림자 뿌리 한 장을 붙임 · 앞 판 = iframe) */}
+      <SendButton deck={deck} />
     </section>
   );
 }

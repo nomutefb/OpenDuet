@@ -124,6 +124,13 @@ export function listenAppLinks(): () => void {
   return () => document.removeEventListener("click", on);
 }
 
+/** 그림자 뿌리 안 링크를 앱 안으로(홈 뉴스 덱 home/deck — 그림자 뿌리 안 클릭은 앱 문서에서 보면 틀이 눌린 것으로만 보여 listenAppLinks 가 못 받음) · base = 그 판이 원래 있던 자리(에디터 뿌리) */
+export function hookRoot(root: ShadowRoot | HTMLElement, base: string = location.origin + "/"): () => void {
+  const on = (e: Event) => onLink(e as MouseEvent, base, false);
+  root.addEventListener("click", on);
+  return () => root.removeEventListener("click", on);
+}
+
 /** 품은 화면(같은 출처 iframe) 안 링크·window.open 을 앱 안으로 — 불러올 때마다 다시 걺 · 남의 사이트 iframe 은 손댈 수 없어 그대로 */
 export function hookFrame(el: HTMLIFrameElement | null): () => void {
   if (!el) return () => {};
