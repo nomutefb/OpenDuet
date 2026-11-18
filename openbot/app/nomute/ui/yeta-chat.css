@@ -270,6 +270,12 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-pmfab { position:absolute; right:14px; bottom:calc(var(--duet-tab-space,86px) + 24px + 46px + 10px); z-index:5; width:46px; height:46px; padding:0; border-radius:50%; overflow:hidden; display:grid; place-items:center; background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); box-shadow:0 6px 18px rgba(0,0,0,.28); -webkit-tap-highlight-color:transparent; cursor:pointer; }
 .nm-pmfab img { width:100%; height:100%; object-fit:cover; display:block; }
 .nm-pmfab .nm-pmorb { width:100%; height:100%; display:block; }   /* PM 구슬(./pm-orb.tsx · 형 11-16 영상) = 얼굴 자리에 그대로 */
+.nm-pmfab .nm-pmorb[hidden] { display:none; }   /* 그림판 잃은 동안 = 캔버스 숨기고 아래 css 동그라미 */
+/* 셰이더 못 그릴 때 = 같은 결의 진주 동그라미(위 하늘빛 · 가운데 흰 띠 · 아래 주황 · 은빛 테) · 움직임 0 · 얼굴 사진 대신(형 11-18 18:08 「그 기하학 동그라미로 바뀌게래놧는데 적용 풀린듯」) */
+.nm-pmfab .nm-pmorb-css { border-radius:50%; background:
+  radial-gradient(circle at 34% 28%, rgba(255,255,255,.95) 0 9%, rgba(255,255,255,0) 26%),
+  linear-gradient(180deg, #eef5ff 0%, #2a85f2 34%, #8cf2ff 46%, #ffffff 50%, #ffa342 56%, #5c2610 78%, #08102b 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35), inset 0 -6px 12px rgba(0,0,0,.35); }
 .nm-pmfab:has(.nm-pmorb) { background:none; border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:0 6px 18px rgba(0,0,0,.34); }   /* 구슬 = 유리 판 · 테 없이 저 혼자 떠 있음 */
 .nm-pmfab b { font-size:16px; color:var(--accent, #CFFF40); }
 .nm-pmfab:active { transform:scale(var(--press-s, .96)); }
