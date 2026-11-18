@@ -52,5 +52,6 @@ export default defineConfig({
       { find: /^@\//, replacement: `${here("../src")}/` },
     ],
   },
-  build: { outDir: here("dist"), emptyOutDir: true, chunkSizeWarningLimit: 4000, rollupOptions: { output: { manualChunks } } },
+  // reportCompressedSize: false = 묶음마다 gzip 크기를 재서 찍는 단계를 뺌 — 기록에 찍는 숫자일 뿐인데 그 단계에서 배포 빌드가 메모리 한도(2GB)를 넘겨 죽었다(11-19 02:06 pages-direct 44354916032 「computing gzip size… heap out of memory」 · 앱은 지난 판 그대로 남음)
+  build: { outDir: here("dist"), emptyOutDir: true, chunkSizeWarningLimit: 4000, reportCompressedSize: false, rollupOptions: { output: { manualChunks } } },
 });

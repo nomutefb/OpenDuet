@@ -13,7 +13,7 @@ import { pollOff } from "../data/poll-linux";
 import { hookRoot, yetaTone } from "../ui/inapp";
 import { type Deck, type DeckMsg, modernDataNow, mountDeck } from "./deck";
 import { homePool } from "./home-pool";
-import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · summary-button.tsx 는 안 부름(파일 그대로)
+import { SendButton } from "./send-button";   // 「뉴스 요약」 모달 단추 → 「전송」(그 기사 요약 요청 폼 열기 · 형 10-31 12:2x) · 옛 summary-button.tsx(옛 에디터 셸 /?ui=classic 을 품던 단추)는 걷음(형 11-19 00:43)
 import { rssFirst } from "./rss-first";
 import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, shownScore } from "./event-score";   // 카드 점수 · 차례 = 뉴스 알고리즘 하나(형 11-11 08:53 봄 1:1 「글구 메인화면에서 그 점수 별로 카드 보이는거 잇지? 그거 점수마다 보여야 함 한 알고리즘 대로」 · 아래 Hot Issue 와 같은 맞추기)
 import { sharedText } from "../ui/news-data";   // 3초 안 같은 주소 = 한 번만(빠르 11-14)
