@@ -54,7 +54,8 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   //   키보드 Tab 차례 = 켤 때 차례(다시 켜면 옮긴 차례로 맞춰짐) · 화면 판(웹 탭 iframe)도 안 옮김(옮겨 꽂으면 다시 읽힘)
   const dom = useRef<string[]>(order);
   dom.current = [...dom.current.filter((k) => order.includes(k)), ...order.filter((k) => !dom.current.includes(k))];
-  useEffect(() => { try { localStorage.setItem(ORDER_KEY, JSON.stringify(orderRef.current)); } catch { /* 저장 못 쓰면 이번 판만 */ } }, [orderSig]);
+  useEffect(() => { if (!ord) return; try { localStorage.setItem(ORDER_KEY, JSON.stringify(orderRef.current)); } catch { /* 저장 못 쓰면 이번 판만 */ } }, [orderSig, ord]);   // 끌어 옮긴 뒤에만 저장(끌기 전 = 기본 차례를 그대로 따라감 · 기본이 바뀌면 바로 먹음)
+  useEffect(() => { try { localStorage.removeItem("nm-tab-order-v1"); } catch { /* 이번만 */ } }, []);   // 옛 열쇠(기본 차례가 저장돼 굳어 있던 것) 치움
   const rooms = useQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 30_000 });
   const ppl = useQuery({ queryKey: ["nomute", "people-tabs"], queryFn: () => people(), staleTime: 60_000 });
   const list: OfficePerson[] = ppl.data || [];

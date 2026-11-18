@@ -84,12 +84,12 @@ test("웹 탭(「+」 빈 탭 · 빠르 11-11 · 형 22:10 「+ 누르면 … �
 });
 
 test("줄 차례 = 고정 넷도 끌어 옮김 · 저장된 차례에서 없어진 탭은 빠지고 새 탭은 끝 · 새 고정 탭은 제 앞 탭 뒤(형 11-17 「그 상단에 탭, 끌어서 쓰면 순서를 전환할 수 있게 해줘」)", () => {
-  assert.deepEqual(STRIP_FIXED, ["dash", "co", "meet", "teams"]);
-  assert.deepEqual(stripOrder(null, STRIP_FIXED, ["w:a"]), ["dash", "co", "meet", "teams", "w:a"]);   // 처음 = 기본 차례
-  assert.deepEqual(stripOrder("깨짐", STRIP_FIXED, []), ["dash", "co", "meet", "teams"]);
+  assert.deepEqual(STRIP_FIXED, ["dash", "teams", "meet", "co"]);   // 형 11-18 「애초에 순서가 팀즈 , 화상회의, 브라우저」
+  assert.deepEqual(stripOrder(null, STRIP_FIXED, ["w:a"]), ["dash", "teams", "meet", "co", "w:a"]);   // 처음 = 기본 차례
+  assert.deepEqual(stripOrder("깨짐", STRIP_FIXED, []), ["dash", "teams", "meet", "co"]);
   assert.deepEqual(stripOrder(["teams", "w:a", "dash", "co", "meet"], STRIP_FIXED, ["w:a", "s:뜸"]), ["teams", "w:a", "dash", "co", "meet", "s:뜸"]);   // 옮긴 대로 · 새 탭 = 끝
-  assert.deepEqual(stripOrder(["teams", "w:gone", "teams", 7, "dash"], STRIP_FIXED, []), ["teams", "dash", "co", "meet"]);   // 닫힌 탭 · 두 번 · 글 아닌 값 = 빠짐 · 빠져 있던 고정 탭 = 제 앞 탭(dash) 뒤로
-  assert.deepEqual(stripOrder(["meet", "teams"], STRIP_FIXED, []), ["dash", "co", "meet", "teams"]);   // 앞 탭이 없으면 맨 앞부터
+  assert.deepEqual(stripOrder(["teams", "w:gone", "teams", 7, "dash"], STRIP_FIXED, []), ["teams", "meet", "co", "dash"]);   // 닫힌 탭 · 두 번 · 글 아닌 값 = 빠짐 · 빠져 있던 고정 탭 = 제 앞 탭(dash) 뒤로
+  assert.deepEqual(stripOrder(["meet", "teams"], STRIP_FIXED, []), ["dash", "meet", "co", "teams"]);   // 앞 탭이 없으면 맨 앞부터
   const o = ["dash", "co", "meet", "teams", "w:a"];
   assert.deepEqual(stripMove(o, "teams", 0), ["teams", "dash", "co", "meet", "w:a"]);   // 봄의 정원 앞으로도
   assert.deepEqual(stripMove(o, "dash", 4), ["co", "meet", "teams", "w:a", "dash"]);
@@ -136,4 +136,12 @@ test("바깥 링크 = 창 안 웹 탭으로(형 11-17 「내부에서 무조건 
   const two = webTabOpen(s, "https://www.naver.com/", 1000);   // 같은 순간(id 겹침) = 다음 번호
   assert.deepEqual(two.tabs.map(tabKey), ["dash", "w:rs", "w:rt"]); assert.equal(two.active, "w:rt");
   assert.equal(webTabOpen(s, "javascript:alert(1)", 1), s); assert.equal(webTabOpen(s, "", 1), s);
+});
+
+test("탭 줄 차례 저장 = 끌어 옮긴 뒤에만(기본 차례는 저장 안 함 = 기본이 바뀌면 바로 먹음) · 열쇠 v2 · 옛 v1 치움", async () => {
+  const { readFileSync } = await import("node:fs");
+  const tsx = readFileSync(new URL("../ui/tab-bar.tsx", import.meta.url), "utf8"), tl = readFileSync(new URL("../ui/tab-list.ts", import.meta.url), "utf8");
+  assert.match(tl, /ORDER_KEY = "nm-tab-order-v2"/);
+  assert.match(tsx, /useEffect\(\(\) => \{ if \(!ord\) return; try \{ localStorage\.setItem\(ORDER_KEY/);
+  assert.match(tsx, /localStorage\.removeItem\("nm-tab-order-v1"\)/);
 });
