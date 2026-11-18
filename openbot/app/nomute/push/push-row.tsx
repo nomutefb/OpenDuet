@@ -1,6 +1,6 @@
 // 설정 「알림」 줄 — 형 폰 알림 켜기·끄기(앱이 꺼져 있어도 · 형 10-28 16:32 「웹앱으로 일단 해」 · 장부 claude-state assign/2026-10-28/office-webpush-share.md)
 //   끼우는 자리 = 설정 판(ui/yeta-settings.tsx · 보조 02) 「화면」 칸 아래 <PushRow /> 한 줄 · 꼴 = YETA 설정 줄 그대로(.yset-item · .si-sw 켜짐/꺼짐)
-//   켜기 = 에디터 알림 켜기와 같은 차례(권한 → 구독 → /api/push 저장 · app office = 사무실 알림만 옴) · 끄기 = 서버에서 빼고 구독 풂
+//   켜기 = 에디터 알림 켜기와 같은 차례(권한 → 구독 → /api/push 저장 · app office = 사무실 알림 + 에디터 알림(긴급 · 이슈 · 요약 완료 · 시스템 · 급상승 · 등록어)이 다 옴 · 형 11-19 「응 1합쳐」 · 앞 판 = 사무실 알림만) · 끄기 = 서버에서 빼고 구독 풂
 //   /api/push = 원본 앱 흉내(shim · window.fetch 만 가로챔)를 안 거치게 XHR 로 서버 그대로 · 권한 막힘 = 폰 설정에서만 풀림(누를 곳 한 줄)
 import { useEffect, useState } from "react";
 import { YICO } from "../ui/yeta-icons";
