@@ -299,21 +299,22 @@ export function NomuteVault() {
   return (
     <PageSection title="보안 서랍">
       {/* 설명글 뺌(형 11-15 「설정에 설명글잇는것좀 없애주라」) */}
+      {q.isPending ? <p className="yset-wait">{reading("보안 서랍")}</p> : null}   {/* 받는 2~3초 동안 빈 줄만 보이던 자리(봄 11-18 실물) · isPending = 다시 받기를 기다리는 동안도 「읽는 중」 */}
       <Card>
-        <ul className="divide-y divide-border">
+        <ul className="nm-vault divide-y divide-border">
           {(q.data || []).map((s) => (
             <li key={s.seat} className="flex flex-col gap-2 px-4 py-3">
-              <p className="flex items-center justify-between text-sm">
-                <span className="flex min-w-0 items-baseline gap-2"><b className="shrink-0">{s.seat.replace(/^자리(\d)$/, "자리 0$1").replace(/^예비(\d+)$/, "예비 $1")}</b>
-                  {s.who || s.id ? <span className="shrink-0 text-xs normal-case text-muted-foreground" aria-label="지금 쓰는 이름 · 자리 id">{[s.who && s.who !== s.seat ? s.who : null, s.id].filter(Boolean).join(" · ")}</span> : null}   {/* 형 11-16 07:5x 「자리 02 - 이런거 다 옆에 현재 사용중인 이름을 써줄래? cloud 이런식으로. 구름 cloud 각각 키명, 자리 명」 */}
-                  {s.set && s.hint ? <code className="min-w-0 truncate font-mono text-xs text-muted-foreground" aria-label="열쇠 앞부분만 보임">{s.hint}</code> : null}</span>   {/* 형 11-15 「암호 있는 곳 노출 가능한 부분은 보이고 나머지늠 ***로 표기」 */}
-                <span className={`text-xs ${s.set && s.match === false ? "text-destructive" : "text-muted-foreground"}`}>{!s.set ? "비어 있음" : s.match === false ? "넣음 · 열쇠 안 맞음" : `넣음${s.at ? ` · ${t12(s.at)}` : ""}`}</span>
+              <p className="flex items-center justify-between gap-2 text-sm">   {/* 좁은 폭 = 이름 · 열쇠 앞부분이 줄고 오른쪽 상태는 한 줄(전 = 「넣음 · 12:38 AM」이 두 줄로 꺾이거나 열쇠 글자에 붙음 · 봄 11-18) */}
+                <span className="flex min-w-0 flex-1 items-baseline gap-2"><b className="shrink-0">{s.seat.replace(/^자리(\d)$/, "자리 0$1").replace(/^예비(\d+)$/, "예비 $1")}</b>
+                  {s.who || s.id ? <span className="min-w-0 shrink truncate text-xs normal-case text-muted-foreground" aria-label="지금 쓰는 이름 · 자리 id">{[s.who && s.who !== s.seat ? s.who : null, s.id].filter(Boolean).join(" · ")}</span> : null}   {/* 형 11-16 07:5x 「자리 02 - 이런거 다 옆에 현재 사용중인 이름을 써줄래? cloud 이런식으로. 구름 cloud 각각 키명, 자리 명」 */}
+                  {s.set && s.hint ? <code className="min-w-0 shrink-[3] truncate font-mono text-xs text-muted-foreground" aria-label="열쇠 앞부분만 보임">{s.hint}</code> : null}</span>   {/* 형 11-15 「암호 있는 곳 노출 가능한 부분은 보이고 나머지늠 ***로 표기」 */}
+                <span className={`shrink-0 whitespace-nowrap text-xs tabular-nums ${s.set && s.match === false ? "text-destructive" : "text-muted-foreground"}`}>{!s.set ? "비어 있음" : s.match === false ? "넣음 · 열쇠 안 맞음" : `넣음${s.at ? ` · ${t12(s.at)}` : ""}`}</span>
               </p>
               <div className="flex items-center gap-2">
                 <input id={`vault-${s.seat}`} type="password" autoComplete="off" spellCheck={false} placeholder={s.set ? "바꿀 때만 붙여 넣기" : "열쇠 붙여 넣기"} value={draft[s.seat] || ""}
-                  onChange={(e) => setDraft((d) => ({ ...d, [s.seat]: e.target.value }))} className="min-h-10 min-w-0 flex-1 rounded-lg border border-border bg-transparent px-2.5 text-sm" />
-                <GoButton disabled={!draft[s.seat]?.trim() || put.isPending} go={() => put.mutateAsync({ seat: s.seat, value: draft[s.seat].trim() })} className="min-h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">넣기</GoButton>
-                <button type="button" disabled={!s.set} aria-label={done === s.seat ? "복사됨" : "복사"} onClick={() => void copy(s.seat)} className={`relative grid min-h-10 place-items-center rounded-lg border px-3 text-sm active:[transform:scale(var(--press-s,.85))] transition-[transform,background-color,border-color] duration-150 disabled:opacity-40 ${done === s.seat ? "border-[#CFFF40] bg-[#CFFF40]/15" : "border-border"}`}>
+                  onChange={(e) => setDraft((d) => ({ ...d, [s.seat]: e.target.value }))} className="nm-vault-in" />
+                <GoButton disabled={!draft[s.seat]?.trim() || put.isPending} go={() => put.mutateAsync({ seat: s.seat, value: draft[s.seat].trim() })} className="nm-nb-btn nm-vault-b" busy="넣는 중">넣기</GoButton>
+                <button type="button" disabled={!s.set} aria-label={done === s.seat ? "복사됨" : "복사"} onClick={() => void copy(s.seat)} className={`nm-nb-btn nm-vault-b nm-vault-copy${done === s.seat ? " ok" : ""}`}>
                   {/* 복사 → 체크 모션 = 옛 에디터 뉴스 요약 복사 단추(modern-copy · 그림 줄며 사라짐 133ms → 체크 133ms 뒤 142ms 로 나타남 · transform · opacity 만) */}
                   <span className={`col-start-1 row-start-1 transition-[opacity,transform] ${done === s.seat ? "scale-50 opacity-0 duration-[133ms] ease-[cubic-bezier(.25,1,.5,1)]" : "scale-100 opacity-100 duration-[138ms] delay-[125ms] ease-[cubic-bezier(.42,0,.58,1)]"}`}>복사</span>
                   <span aria-hidden className={`col-start-1 row-start-1 grid place-items-center transition-[opacity,transform] ${done === s.seat ? "scale-100 opacity-100 duration-[142ms] delay-[133ms] ease-[cubic-bezier(.42,0,.58,1)]" : "scale-50 opacity-0 duration-[121ms] ease-[cubic-bezier(.22,1,.36,1)]"}`}>
@@ -326,8 +327,8 @@ export function NomuteVault() {
                 return (
                   <div className="flex items-center gap-2">
                     <input id={`vault-memo-${s.seat}`} type="text" autoComplete="off" spellCheck={false} maxLength={200} placeholder="이 자리 이름표(계정 등)" aria-label={`${s.seat} 이름표`} value={v}
-                      onChange={(e) => setMemo((m) => ({ ...m, [s.seat]: e.target.value }))} className="min-h-10 min-w-0 flex-1 rounded-lg border border-border bg-transparent px-2.5 text-sm normal-case" />
-                    <GoButton disabled={!changed || long} go={() => saveMemo(s.seat, v.trim())} done={() => { setMemo((m) => { const n = { ...m }; delete n[s.seat]; return n; }); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); }} className="min-h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">저장</GoButton>
+                      onChange={(e) => setMemo((m) => ({ ...m, [s.seat]: e.target.value }))} className="nm-vault-in normal-case" />
+                    <GoButton disabled={!changed || long} go={() => saveMemo(s.seat, v.trim())} done={() => { setMemo((m) => { const n = { ...m }; delete n[s.seat]; return n; }); void qc.invalidateQueries({ queryKey: ["nomute", "seatvault"] }); }} className="nm-nb-btn nm-vault-b" busy="저장 중">저장</GoButton>
                   </div>
                 );
               })() : null}
@@ -339,7 +340,7 @@ export function NomuteVault() {
           ))}
         </ul>
       </Card>
-      {q.isError ? <p className="mt-2 text-xs text-destructive">{q.error instanceof Error ? q.error.message : "서랍을 못 열었어"}</p> : null}
+      {q.isError ? <SrvNote what="보안 서랍" detail={q.error instanceof Error ? q.error.message : undefined} className="tight" /> : null}
     </PageSection>
   );
 }

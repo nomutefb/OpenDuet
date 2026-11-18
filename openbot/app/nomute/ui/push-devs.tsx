@@ -9,7 +9,11 @@ import "./memo.css";
 import "./push-devs.css";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { flash } from "./flash";
+import { MorphAsk } from "./morph-ask";   // 지움 = 그 자리 재확인(형 11-16 「재확인 버튼 … 다 통일할게 인엡안에.모두」 · 전 = 두 번 누름 「지울까?」)
 import { Pane } from "./pane";
+import { SrvNote } from "./srv-note";   // 못 받음 = 서버 안내 한 꼴(형 11-18 22:0x 「이런것들 다 말투 통일하고 점검해줘」)
+import { reading } from "./wait-text";
 
 type Dev = { id: string; ts?: number; ua?: string; hint?: { plat?: string; pv?: string; model?: string; br?: string } | null; off?: boolean; app?: string; host?: string };
 const KEY = ["nomute", "push-devs"] as const;
@@ -55,19 +59,20 @@ export function PushDevsModal() {
   const q = useQuery({ queryKey: KEY, staleTime: 15_000, queryFn: async () => ((await api({ action: "list" })).items || []).slice().sort((a, b) => (b.ts || 0) - (a.ts || 0)) });   // 최근 등록이 위
   const [me, setMe] = useState("");
   useEffect(() => { (async () => { try { const reg = await navigator.serviceWorker?.getRegistration(); const s = reg && (await reg.pushManager.getSubscription()); setMe(s ? String(s.endpoint).slice(-24) : ""); } catch { setMe(""); } })(); }, []);   // 이 기기 = 지금 구독 주소 꼬리
-  const [busy, setBusy] = useState(""), [note, setNote] = useState(""), [arm, setArm] = useState("");
+  const [busy, setBusy] = useState(""), [note, setNote] = useState("");
   const items = q.data || [];
-  const act = async (action: "toggle" | "remove", it: Dev) => {
+  const act = async (action: "toggle", it: Dev) => {
     setBusy(it.id); setNote("");
     try {
       await api({ action, endpoint: it.id });
-      qc.setQueryData<Dev[]>(KEY, (a) => (a || []).flatMap((x) => (x.id !== it.id ? [x] : action === "remove" ? [] : [{ ...x, off: !x.off }])));
-    } catch (e) { setNote((action === "remove" ? "지우지 못했어 — " : "바꾸지 못했어 — ") + ((e as Error).message || "연결 확인")); }
+      qc.setQueryData<Dev[]>(KEY, (a) => (a || []).map((x) => (x.id !== it.id ? x : { ...x, off: !x.off })));
+    } catch (e) { setNote("알림을 못 바꿨어 — 다시 눌러 줘" + ((e as Error).message ? ` (${(e as Error).message})` : "")); }
     finally { setBusy(""); }
   };
-  const del = (it: Dev) => {   // 지움 = 두 번 누름(메모·센서와 같음 · 원본은 한 번) · 그 기기에서 다시 켜면 새로 등록됨
-    if (arm !== it.id) { setArm(it.id); window.setTimeout(() => setArm((a) => (a === it.id ? "" : a)), 3000); return; }
-    setArm(""); void act("remove", it);
+  const del = (it: Dev) => {   // 지움 = 그 자리 [아니오] [지움](./morph-ask) → 줄부터 빼고 서버는 뒤에서 · 못 지웠으면 줄을 되돌리고 화면 아래 한 줄(./flash) · 그 기기에서 다시 켜면 새로 등록됨
+    const before = qc.getQueryData<Dev[]>(KEY);
+    qc.setQueryData<Dev[]>(KEY, (a) => (a || []).filter((x) => x.id !== it.id)); setNote("");
+    api({ action: "remove", endpoint: it.id }).catch((e: unknown) => { qc.setQueryData(KEY, before); flash(`구독 기기를 못 지웠어 — 다시 눌러 줘${e instanceof Error && e.message ? ` (${e.message})` : ""}`); });
   };
   return (
     <Pane title="구독 기기">
@@ -75,7 +80,7 @@ export function PushDevsModal() {
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-devs">
           <span className="ycd-nm yset-ttl">구독 기기</span>
           {note ? <p className="nm-chan-msg" role="status">{note}</p> : null}
-          {q.isLoading ? <p className="nm-chan-msg">읽는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">목록을 못 불러왔어 — 잠시 뒤 다시 열어 줘</p> : !items.length ? <p className="nm-chan-msg">알림을 켠 기기 없음</p> : (
+          {q.isPending ? <p className="nm-chan-msg">{reading("구독 기기")}</p> : q.isError ? <SrvNote what="구독 기기" detail={q.error instanceof Error ? q.error.message : undefined} className="tight" /> : !items.length ? <p className="nm-chan-msg">알림을 켠 기기 없음</p> : (
             <div className="nm-q-list" role="list">
               {items.map((it) => {
                 const nm = devName(it), here = !!me && it.id === me;
@@ -83,8 +88,8 @@ export function PushDevsModal() {
                   <div key={it.id} role="listitem" className={`nm-q-row nm-memo-row nm-dev-row${it.off ? " off" : ""}`}>
                     <span className="qt">{day(it.ts)}</span>
                     <span className="qm" title={nm}><i>{nm}</i><small>{it.app === "office" ? "봄의 정원" : "에디터"}{here ? " · 이 기기" : ""}{it.off ? " · 알림 멈춤" : ""}</small></span>
-                    <span className="qa"><button type="button" className={`go ${it.off ? "" : "gray"}`} aria-pressed={!!it.off} aria-label={it.off ? "알림 다시 켜기 — 이 기기에도 보냄" : "알림 멈추기 — 이 기기엔 안 보냄"} disabled={busy === it.id} onClick={() => void act("toggle", it)}>{it.off ? "켜기" : "멈춤"}</button></span>
-                    <span className="qa"><button type="button" className={`go ${arm === it.id ? "arm" : "gray"}`} aria-label={arm === it.id ? "한 번 더 누르면 지움" : "구독 지우기"} disabled={busy === it.id} onClick={() => del(it)}>{arm === it.id ? "지울까?" : "지움"}</button></span>
+                    <span className="qa sw"><button type="button" role="switch" aria-checked={!it.off} className="nm-sw" aria-label={`${nm} 알림`} title={it.off ? "알림 멈춤 — 이 기기엔 안 보냄" : "알림 켜짐"} disabled={busy === it.id} onClick={() => void act("toggle", it)}><span className="si-sw" aria-hidden /></button></span>   {/* 「멈춤 · 켜기」 글자 단추 → 설정 공용 스위치(.si-sw · 형 11-03 「토글이 말함」) */}
+                    <span className="qa"><MorphAsk className="go gray" yesText="지움" label="구독 지우기" disabled={busy === it.id} onYes={() => del(it)}>지움</MorphAsk></span>
                   </div>
                 );
               })}

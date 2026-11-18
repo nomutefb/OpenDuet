@@ -4,3 +4,8 @@
 .nm-devs .nm-dev-row .qm > * { display:block; width:100%; max-width:100%; }
 .nm-devs .nm-dev-row .qm small { font-size:var(--fs-xs); color:var(--fg-3, var(--fg-2)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nm-devs .nm-dev-row.off .qm i { opacity:.55; }
+/* 줄 끝 = 알림 스위치(설정 공용 .nm-sw) + 지움(그 자리 재확인 ./morph-ask) — 봄 11-18 · 묻는 동안엔 스위치 칸을 접어 알약 둘 자리를 냄 */
+.nm-devs .nm-dev-row { grid-template-columns:52px minmax(0, 1fr) auto auto; }
+.nm-devs .nm-dev-row .qa .nm-sw { min-height:36px; padding:0 2px; }
+.nm-devs .nm-dev-row:has(.nm-mask) .qa.sw { display:none; }
+.nm-devs .nm-dev-row .nm-mask { align-items:flex-end; }

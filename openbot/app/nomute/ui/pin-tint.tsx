@@ -17,16 +17,16 @@ export const pinTint = (hex: string | undefined, pct: number) => {
 export function PinTintSetting() {
   const a = usePinAlpha();
   return (
-    <div className="flex flex-col gap-3 p-1">
-      <div className="flex items-center gap-3">
-        <input type="range" min={5} max={100} step={5} value={a} aria-label="고정 줄 색 진하기" className="flex-1" onChange={(e) => setPinAlpha(+e.target.value)} />
-        <b className="w-12 text-right tabular-nums">{a}%</b>
+    <div className="nm-pintint">   {/* 슬라이더 · 알약 = 설정 하네스(./yeta-settings.css .nm-range · .yset-chip) — 전 = 브라우저 기본 파랑 슬라이더 + 밑줄 글자(봄 11-18) */}
+      <div className="row">
+        <input type="range" min={5} max={100} step={5} value={a} aria-label="고정 줄 색 진하기" aria-valuetext={`${a}%`} className="nm-range" style={{ ["--p" as string]: `${((a - 5) / 95) * 100}%` }} onChange={(e) => setPinAlpha(+e.target.value)} />
+        <b>{a}%</b>
       </div>
-      <div className="flex gap-2">
-        <span className="h-8 flex-1 rounded-lg" style={{ background: pinTint("#4812BD", a) }} />
-        <span className="h-8 flex-1 rounded-lg" style={{ background: pinTint("", a) }} />
+      <div className="sw" aria-hidden>
+        <i style={{ background: pinTint("#4812BD", a) }} />
+        <i style={{ background: pinTint("", a) }} />
       </div>
-      {a !== DEF ? <button type="button" className="self-start text-sm text-muted-foreground underline" onClick={() => setPinAlpha(DEF)}>기본 20%로</button> : null}
+      {a !== DEF ? <button type="button" className="yset-chip" onClick={() => setPinAlpha(DEF)}>기본 {DEF}%</button> : null}
     </div>
   );
 }

@@ -13,6 +13,8 @@ import { office } from "../data/office";
 import { LOOK_ONLY } from "../data/read-state";
 import { t12 } from "./when";
 import "./teams.css";
+import { flash } from "./flash";
+import { MorphAsk } from "./morph-ask";   // 로그아웃 = 그 자리 재확인(형 11-16 「재확인 버튼 … 다 통일할게 인엡안에.모두」)
 import { MeetIcon, OfficeIcon, TeamsIcon } from "./tab-icons";
 import { useFoldInk } from "./fold-ink";   // 고른 탭 바탕이 미끄러짐(형 11-16)
 
@@ -417,11 +419,17 @@ export function TeamsChat({ chat }: { chat: string }) {
 export function TeamsAccount() {
   const qc = useQueryClient(), meQ = useTeamsMe(false), me = meQ.data;
   const [busy, setBusy] = useState(false);
-  const logout = async () => { setBusy(true); try { await office("teams/logout", { method: "POST", body: "{}" }); } catch { /* 그대로 */ } finally { setBusy(false); } void qc.invalidateQueries({ queryKey: meKey }); };
+  const logout = async () => {   // 못 했으면 조용히 넘기지 않고 화면 아래 한 줄(하네스 §17 · 전 = catch 로 삼킴)
+    setBusy(true);
+    try { await office("teams/logout", { method: "POST", body: "{}" }); }
+    catch (e) { flash(`팀즈 로그아웃을 못 했어 — 다시 눌러 줘${e instanceof Error && e.message ? ` (${e.message})` : ""}`); }
+    finally { setBusy(false); }
+    void qc.invalidateQueries({ queryKey: meKey });
+  };
   if (!me) return <Dots />;
   if (!me.signed_in) return <p className="nm-tnote">로그인 안 됨 · 팀즈 탭에서 로그인</p>;
   return (
-    <div className="nm-tacct"><span className="min-w-0 truncate">{me.user?.name || me.user?.upn || "팀즈"}</span><button type="button" disabled={busy} onClick={() => void logout()}>{busy ? "…" : "로그아웃"}</button></div>
+    <div className="nm-tacct"><span className="min-w-0 truncate">{me.user?.name || me.user?.upn || "팀즈"}</span><MorphAsk yesText="로그아웃" label="팀즈 로그아웃" disabled={busy} onYes={() => void logout()}>로그아웃</MorphAsk></div>
   );
 }
 /** 설정 줄 오른쪽 값 = 로그인한 이름(없으면 「로그인 안 됨」) */
