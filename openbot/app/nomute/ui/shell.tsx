@@ -33,7 +33,8 @@ import { HotSwap } from "../home/kw-board";   // Hot Issue ↔ 키워드 순위�
 import { NewsSummary } from "../home/news-summary";   // PC 반갈 아래 칸 = 실시간 뉴스 제목 목록(형 11-05 14:39)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));
-const BotDesk = lazy(() => import("./bot-desk").then((m) => ({ default: m.BotDesk })));   // 서랍 「봇 현황」(눌러야 받음)
+const BotDesk = lazy(() => import("./bot-desk").then((m) => ({ default: m.BotDesk })));
+const OpsDesk = lazy(() => import("./ops-desk").then((m) => ({ default: m.OpsDesk })));   // 5번 위 탭 「살림」 = 러너 · R2 · 판독 값 · 한도 하루 장부(형 11-19 「누적되는 것들 … 차트화해서 항시 보고형태러」 · 눌러야 받음)   // 서랍 「봇 현황」(눌러야 받음)
 const NewsEditor = lazy(() => import("./news-editor").then((m) => ({ default: m.NewsEditor })));   // 네비 4번 「뉴스 에디터」(형 11-09 08:50 · 시아 08:54 안 · 봄 33)
 import { StatusLights, SyncVersion } from "./status-line";
 import { TabBar as TopTabBar } from "./tab-bar";   // 위쪽 탭 줄 · 이름 갈림(아래 ../swap/tab-bar 의 TabBar = 아래 네비 · 같은 이름 둘 = 빌드 막힘 · 모루 #3000 · 봄)(형 11-09 05:16 · 시아 05:23 자리 · 빠르)   // 맨 아래 상태 한 줄(④ · 빠르 11-06)
@@ -95,7 +96,7 @@ import "./theme-light.css";   // 밝게(정원 아님) PC 대시보드 글자색
 import { selfBackNow } from "./self-back";
 
 export type Pane = "home" | "rooms" | "chat";
-export type Modal = "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "eddoc" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "settings" | "sched" | "drawer" | "status" | "nedit" | "botdesk" | "vmstat";
+export type Modal = "ops" | "tasks" | "runner" | "meetlog" | "legacy" | "ask" | "news" | "thumbhist" | "edtool" | "feed" | "trend" | "chanfull" | "askfull" | "edq" | "edvid" | "eddoc" | "edmsgs" | "edsensor" | "edkw" | "edsnsacc" | "edpush" | "edlock" | "edacct" | "gyeol" | "story" | "play" | "tokens" | "settings" | "sched" | "drawer" | "status" | "nedit" | "botdesk" | "vmstat";
 /** 서랍 차례(형 12:25·12:26) — 이름 · 그림 · 길 */
 export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "sparkle" | "bolt" | "reply" | "settings" | "chat" | "dashboard" | "globe" | "page" | "inbox" | "plus" | "menu" | "calendar" | "search" | "box" | "bell" | "file" | "phone" | "sort" | "lock" | "key" | "layout"; to: string; desc?: string }[] = [
   { id: "tasks", label: "수리 접수", icon: "tasks", to: "/tasks" },   // 옛 「할 일」 자리 = 접수 창구 통째(형 11-14 「할일 안에 수리접수를 할일로 빼내고 할일을 없애줘」 · ./repair-page.tsx · 길은 그대로 #/tasks)
@@ -104,6 +105,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "sched", label: "스케줄", icon: "calendar", to: "/sched" },   // 서랍 「일」 칸(형 11-05 「스케줄러는 메뉴5번 서랍 안으로 넣을게」 · 옛 네비 4번)
   { id: "runner", label: "러너", icon: "activity", to: "/runner" },
   { id: "vmstat", label: "몸 상태", icon: "box", to: "/vm" },   // 서랍 「VM 상태」 = 몸(VM)마다 램 24시간 한 장(형 11-16 16:4x 구름 맥 창 「정원에 각 vm 쓰는 애들 한테 이 자료받아서 vm 상태 그리게 할거야 공간 하나 만들어줘」 · ./vm-desk.tsx)
+  { id: "ops", label: "살림", icon: "box", to: "/ops", desc: "러너 · R2 · 판독 값 · 한도 · 잣대 넷" },   // 5번 위 탭 「살림」 = 운영 지표 하루 장부(형 11-19 「애초에 이게 안보이니까 내가 뭐가 돌아가는지를 몰러」 · ./ops-desk.tsx · 자료 /ops.json)
   { id: "botdesk", label: "애들", icon: "dashboard", to: "/botdesk" },   // 서랍 「일」 칸 = 봇 상태 · 일 차례 · 손 표 도표(형 11-14 「봇들 상태 일 우선순위 이거는 서랍에 한 공간이 보여야함」 · ./bot-desk.tsx)
   { id: "meetlog", label: "화상 회의록", icon: "chat", to: "/meetlog", desc: "끝난 회의 기록" },   // 이름 = 화상 회의록(형 11-14 「그리구 메뉴명칭이 화상 회의록」)   // 화상회의 기록 서랍(형 11-13 06:5x 「대화가 끝나면 그 대화는 기록되어서 한 서랍에 들어가면돼」 · ./meet.tsx · 서버 meetlog)   // 서랍 「일」 칸 = 작동 표(러너 · 형 11-09 08:50 · 옛 RunnerScreen 은 뺌)
   { id: "legacy", label: "LEGACY", icon: "inbox", to: "/legacy", desc: "수집함 · 고르기·묶기·PICK" },   // 에디터 「LEGACY(레거시)」 = 수집함(옛 에디터 판 칸 → 서랍 · 형 10-31 15:1x) · 앱 안(./scrap.tsx · 전엔 /?tab=scrap 품음)
@@ -135,7 +137,7 @@ export const MODALS: { id: Modal; label: string; icon: "tasks" | "activity" | "s
   { id: "drawer", label: "애들", icon: "menu", to: "/drawer" },   // 네비 5번 = 한 화면(./drawer-page.tsx) · 설정 = 네비 6번
 ];
 /** PC 반갈에서 좌우 통합(오른쪽 러너·뉴스 칸 접고 왼쪽을 다 씀) = 러너 · 서랍 · 설정(형 11-08 01:29 「러너 누르면 좌우 통합해서 화면쓸게. 서랍과 설정도 좌우 통합해서 표기하도록 할게 넓게 표현. 가능한 묶을 수있는 걸 더 카테고라이징 해서 표현」 · 윈터 넘김) · 오른쪽 칸은 숨김만(살려 둠 = 닫으면 다시 안 그림) */
-const SPREAD = new Set<Modal>(["runner", "vmstat", "botdesk", "drawer", "settings", "nedit", "sched", "meetlog", "story", "play", "eddoc"]);   // eddoc = 문서 편집 = A4 한 장 + 편집 도구 줄이라 PC 는 좌우 다 씀(구름 11-17)   // 서랍 탭 여섯 = PC 에서 다 같은 폭(탭 줄이 탭마다 넓어졌다 좁아졌다 하지 않게 · 형 11-15 「설정을 제외한 모든영역을 탭처럼」)     // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
+const SPREAD = new Set<Modal>(["ops", "runner", "vmstat", "botdesk", "drawer", "settings", "nedit", "sched", "meetlog", "story", "play", "eddoc"]);   // eddoc = 문서 편집 = A4 한 장 + 편집 도구 줄이라 PC 는 좌우 다 씀(구름 11-17)   // 서랍 탭 여섯 = PC 에서 다 같은 폭(탭 줄이 탭마다 넓어졌다 좁아졌다 하지 않게 · 형 11-15 「설정을 제외한 모든영역을 탭처럼」)     // chan · sns = 옛 에디터 화면(카드 네 줄 · 넓은 글줄)이라 PC 는 좌우 다 씀(형 11-14 「피시 인앱에도 최적화」) ·   // nedit = 뉴스 에디터 두 칸(목록 · 기사 한 장)이 좌우 다 씀
 // 채널 · SNS = 옛 에디터 「채널 요약」 · 「SNS」 탭 그대로 한 줄씩(형 11-14 「채널 요약은 전에 버전이 잇을거야 그거 살려서 혹시 하나의 서랍 버전으로」 · 「sns도 마찬가지」) — 11-15 부터 품지(iframe) 않고 앱 안에서 돌림(./old-tabs · 형 「아예 여기에 줕이려고」)
 const FRAME: Partial<Record<Modal, string>> = { play: "/play/" };   // 채널 · SNS = 이제 앱 안(./old-tabs · 전엔 /?tab=chan|trend&inapp=1&only=1 품음 · 형 11-15 「아예 여기에 줕이려고. 로딩해서 가져오는게 아니라」)   // 에디터 「에디터」(edtool) 는 이제 앱 안(./thumb-maker · 전엔 /?tool=thumb&inapp=1 품음)   // 에디터 원본 화면 그대로(같은 사이트 · 탭·도구 = editor-menu/read.ts linkOf 와 같은 딥링크 문법)
 
@@ -344,6 +346,7 @@ export function NomuteShell({ children }: { children: ReactNode }) {
                   : M.id === "runner" ? <div className="nm-scroll"><StatusBoard /></div>   /* 서랍 「러너」 = 작동 표(형 11-09 08:50 「러너는 5번 서랍 안으로 … 기존거는 없애면 됨 끌고오는거 아님」 · 옛 RunnerScreen 칸 뺌 · 네비 4번 「작동」 은 33) 뉴스 에디터 판에서 바꿈 · 봄 배분 32) */
                   : M.id === "sched" ? <div className="nm-scroll"><SchedDesk /></div>
                   : M.id === "botdesk" ? <div className="nm-scroll"><BotDesk /></div>
+                  : M.id === "ops" ? <div className="nm-scroll"><OpsDesk /></div>
                   : M.id === "status" ? <div className="nm-scroll"><StatusBoard /></div>
                   : M.id === "nedit" ? <div className="nm-ned-host"><NewsEditor /></div>
                   : M.id === "drawer" ? <div className="nm-scroll"><DrawerPage /></div>
