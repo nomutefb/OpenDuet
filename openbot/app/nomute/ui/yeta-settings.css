@@ -122,5 +122,44 @@
 .yeta-set .yset-acct { cursor:default; }
 .yeta-set .yset-acct .si-v { min-width:0; }
 .yeta-set .yset-acct .nm-tacct { padding:0; gap:10px; font-size:calc(var(--fs-body) - 2px); color:var(--mut); }
-.yeta-set .yset-acct .nm-tacct button { padding:5px 12px; font-size:var(--fs-xs); background:none; color:var(--fg); box-shadow:inset 0 0 0 1px var(--glass-line); }   /* 줄 안 = 조용한 꼴(라임 채움은 고른 값에만) */
+.yeta-set .yset-acct .nm-tacct > button { padding:5px 12px; font-size:var(--fs-xs); background:none; color:var(--fg); box-shadow:inset 0 0 0 1px var(--glass-line); }   /* 줄 안 = 조용한 꼴(라임 채움은 고른 값에만) */
 .yeta-set .yset-acct .nm-tnote { margin:0; padding:0; font-size:var(--fs-xs); color:var(--mut); }
+
+/* 설정 하네스 채움(봄 11-18 · 형 「설정부분에서 하네스 어긋나는 부분을 하네스에서 최대한 채워주고」)
+   ① 줄 아래 펼친 칸에 든 옛 서랍 판(구독 기기 · 구독 채널 · 화면 잠금 = <Pane> + .ycd-card) = 카드 속 카드를 벗김 — 머리는 줄이 맡고 판은 묶음 유리 하나(형 11-17 「중첩을 최소화」) · 서랍 창으로 따로 뜰 땐(./shell.tsx) 그대로 */
+.yeta-set .yset-open > .nm-pagebox { max-width:none; padding:0; }
+.yeta-set .yset-open > .nm-pagebox > .yeta-set { margin-top:0; }
+.yeta-set .yset-open > .nm-pagebox .ycd-card { padding:4px 0 2px; background:none; border:0; border-radius:0; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+.yeta-set .yset-open > .nm-pagebox .ycd-nm.yset-ttl { display:none; }
+.yeta-set .yset-wait { margin:0; padding:6px 2px; font-size:var(--fs-xs); color:var(--mut); }   /* 판 조각 받는 동안 = 빈 칸 대신 읽는 중 한 줄(./wait-text) */
+/* ② 슬라이더 한 벌(.nm-range) — 꼴 = 자동 잠금 슬라이더(./lock.css 에서 옮김 · 라임 채움 + 흰 손잡이) · 고정 줄 색도 이 하나(전 = 브라우저 기본 파랑) · --p = 찬 만큼(%)
+      손 닿는 높이 28 = 줄(6)은 그대로 얇게 · 손잡이만 잡히던 것(하네스 §16) */
+.yeta-set input[type="range"].nm-range { flex:1; min-width:0; height:28px; margin:0; padding:0; background:none; -webkit-appearance:none; appearance:none; outline:none; cursor:pointer; touch-action:pan-y; }
+.yeta-set input[type="range"].nm-range::-webkit-slider-runnable-track { height:6px; border-radius:6px; background:linear-gradient(90deg, var(--accent) 0 var(--p, 0%), var(--glass-line) var(--p, 0%) 100%); }
+.yeta-set input[type="range"].nm-range::-moz-range-track { height:6px; border-radius:6px; background:linear-gradient(90deg, var(--accent) 0 var(--p, 0%), var(--glass-line) var(--p, 0%) 100%); }
+.yeta-set input[type="range"].nm-range::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; margin-top:-7px; border-radius:50%; background:var(--fg); border:2px solid var(--accent); transition:box-shadow .2s var(--ease); }
+.yeta-set input[type="range"].nm-range::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:var(--fg); border:2px solid var(--accent); }
+.yeta-set input[type="range"].nm-range:focus-visible::-webkit-slider-thumb { box-shadow:0 0 0 4px rgba(var(--accent-rgb),.28); }
+.yeta-set input[type="range"].nm-range:focus-visible::-moz-range-thumb { box-shadow:0 0 0 4px rgba(var(--accent-rgb),.28); }
+.yeta-set input[type="range"].nm-range:disabled { cursor:default; }
+.yeta-set .nm-pintint { display:flex; flex-direction:column; gap:10px; padding:2px 2px 4px; }
+.yeta-set .nm-pintint .row { display:flex; align-items:center; gap:10px; }
+.yeta-set .nm-pintint .row b { flex:none; min-width:44px; text-align:right; font-size:var(--fs-sm); font-variant-numeric:tabular-nums; }
+.yeta-set .nm-pintint .sw { display:flex; gap:8px; }
+.yeta-set .nm-pintint .sw > i { flex:1; height:32px; border-radius:var(--r-l); }
+.yeta-set .nm-pintint .yset-chip { align-self:flex-start; }
+/* ③ 보안 서랍 = 카드 속 카드 벗김 · 글칸 · 단추 = 설정 알약 한 벌(단추 = ./notice-box.css .nm-nb-btn · 전 = 서랍만 네모 단추) · 복사 체크 색 = 토큰 */
+.yeta-set .yset-open div:has(> ul.nm-vault) { margin-top:0; border:0; border-radius:0; }
+.yeta-set .nm-vault > li { padding-left:2px; padding-right:2px; }
+.yeta-set .nm-vault > li + li { border-color:var(--glass-line); }
+.yeta-set .nm-vault-in { flex:1; min-width:0; min-height:40px; padding:0 14px; border:1px solid var(--glass-line); border-radius:var(--r-pill); background:var(--glass); color:var(--fg); font:inherit; font-size:var(--fs-sm); outline:none; transition:border-color .2s var(--ease); }
+.yeta-set .nm-vault-in::placeholder { color:var(--mut); }
+.yeta-set .nm-vault-in:focus-visible { border-color:rgba(var(--accent-rgb),.6); }
+.yeta-set .nm-vault-b { min-height:40px; }
+.yeta-set .nm-vault-copy { display:grid; place-items:center; transition:scale .12s ease, background-color .15s ease, border-color .15s ease; }
+.yeta-set .nm-vault-copy.ok { border-color:var(--accent); background:rgba(var(--accent-rgb),.15); }
+@media (prefers-reduced-motion: reduce) { .yeta-set .nm-vault-in, .yeta-set .nm-vault-copy, .yeta-set input[type="range"].nm-range::-webkit-slider-thumb { transition:none; } }
+/* ④ 팀즈 로그아웃 = 그 자리 재확인(./morph-ask) — 묻는 동안 이름을 접어 알약 둘이 줄 안에 들어옴(좁은 폰에서 줄 밖으로 넘치던 것) */
+.yeta-set .yset-acct .si-v { max-width:none; flex:0 1 auto; }
+.yeta-set .yset-acct .nm-tacct > span:first-child { max-width:40vw; }
+.yeta-set .yset-acct .nm-tacct:has(> .nm-mask) > span:first-child { display:none; }

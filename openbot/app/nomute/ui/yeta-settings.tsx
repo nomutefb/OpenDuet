@@ -12,6 +12,8 @@ const LockModal = lazy(() => import("./lock").then((m) => ({ default: m.LockModa
 const PushDevsModal = lazy(() => import("./push-devs").then((m) => ({ default: m.PushDevsModal })));
 const SnsAccModal = lazy(() => import("./snsacc").then((m) => ({ default: m.SnsAccModal })));   // 구독 채널 = 서랍 「뉴스」에서 설정 「알림 · 구독」으로(형 11-14 「구독채널은 설정으로 보내서 관련된거랑 가능하면 기능 합치고」 · 화면 = 그대로 ./snsacc)
 import { Pane } from "./pane";
+import { reading } from "./wait-text";
+const WAIT = <p className="yset-wait">{reading()}</p>;   // 펼친 칸의 판 조각을 받는 동안 = 빈 칸 대신 한 줄(봄 11-18)
 import { DiffValue } from "./state-diff";   // 줄 값이 바뀌는 순간 옛 값이 물러나고 새 값이 들어옴(형 11-15 State Diff)
 import { useTheme } from "@/components/theme-provider";
 import type { ThemePreference } from "@/lib/theme";
@@ -105,13 +107,13 @@ export function YetaSettings() {
               <TeamsNotiRows />
               <div className="yset-item yset-acct"><span className="si-ic" aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chat }} /><span className="si-lbl"><span className="si-t">팀즈 계정</span></span><span className="si-v"><TeamsAccount /></span></div>   {/* 「팀즈」 줄(로그아웃 하나뿐)을 여기로 — 이름 · 로그아웃(봄 11-17) */}
                 {/* 팀즈 알림 폰 · PC 따로(깃 #-032 · 폰 기본 끔) */}
-              {sub("pushdevs", "bell", "구독 기기", <Suspense fallback={null}><PushDevsModal /></Suspense>)}
-              {sub("snsacc", "users", "구독 채널", <Suspense fallback={null}><SnsAccModal /></Suspense>)}
+              {sub("pushdevs", "bell", "구독 기기", <Suspense fallback={WAIT}><PushDevsModal /></Suspense>)}
+              {sub("snsacc", "users", "구독 채널", <Suspense fallback={WAIT}><SnsAccModal /></Suspense>)}
               <Act ic="bell" t="받은 알림 · 키워드" onClick={() => { location.hash = "#/edmsgs"; }} />   {/* 서랍 「알림」 → 설정(형 11-14 「알림 > 설정으로」) · 화면은 그대로(알림메세지 + 키워드 알림 탭 · ./msgs-kw.tsx) */}
             </>)}
             {group("hide", "screen", "가림 · 잠금", undefined, <>
               <BlindRows />   {/* 쉴 때 화면 가림 · 지금 가리기(형 11-06 17:31 · ./idle-blind.tsx) */}
-              {sub("lock", "lock", "화면 잠금", <Suspense fallback={null}><LockModal /></Suspense>)}
+              {sub("lock", "lock", "화면 잠금", <Suspense fallback={WAIT}><LockModal /></Suspense>)}
             </>)}
           </div>
         </section>

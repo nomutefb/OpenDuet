@@ -11,7 +11,8 @@ import { office } from "../data/office";
 import { GoButton } from "./go-button";
 import { MorphAsk } from "./morph-ask";
 import { t12 } from "./when";
-import { readFail, reading } from "./wait-text";
+import { SrvNote } from "./srv-note";   // 못 받음 = 서버 안내 한 꼴(형 11-18 22:0x)
+import { reading } from "./wait-text";
 import { NOTE_MAX, NOTE_NAME, NOTE_PATH, type Note, type NoteKind, canSave, dayKo, failKo, histKo, metaKo, readNote, saveBody } from "./notice-box-logic";
 
 const keyOf = (kind: NoteKind) => ["nomute", "note", kind] as const;
@@ -31,7 +32,7 @@ export function NoticeBox({ kind, onClose }: { kind: NoteKind; onClose: () => vo
     if (still) { onClose(); return; }
     setLeave(true); timers.current.push(window.setTimeout(onClose, LEAVE_MS));
   };
-  if (!n) return <p className="nm-nb-wait">{q.isError ? readFail(q.error) : reading()}</p>;
+  if (!n) return q.isError ? <SrvNote what={NOTE_NAME[kind]} detail={q.error instanceof Error ? q.error.message : undefined} className="tight" /> : <p className="nm-nb-wait">{reading()}</p>;
   const edit = draft !== null, dirty = edit && draft !== n.text, hist = histKo(n);
   const save = async (): Promise<Note> => {
     setWhy("");

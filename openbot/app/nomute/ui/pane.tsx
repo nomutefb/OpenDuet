@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export function Pane({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col px-4 pt-4 pb-12">
+    <div className="nm-pagebox mx-auto flex w-full max-w-3xl flex-col px-4 pt-4 pb-12">
       <h1 className="sr-only">{title}</h1>
       {children}
     </div>

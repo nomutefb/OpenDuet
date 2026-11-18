@@ -12,6 +12,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getJson } from "./news-data";
 import { Pane } from "./pane";
+import { SrvNote } from "./srv-note";   // 못 받음 = 서버 안내 한 꼴(형 11-18 22:0x)
+import { reading } from "./wait-text";   // 읽는 중 글 한 벌(형 11-15 「하네스 따로 노는 거」)
 
 type Settings = { lockOn?: boolean; lockPinHash?: string; lockMin?: number | string; error?: string; code?: string; settings?: Settings };
 const KEY = ["nomute", "settings"] as const;
@@ -43,7 +45,7 @@ export function LockModal() {
       <div className="yeta-set mt-2">
         <div className="ycd-card card-left nm-chan nm-q nm-msg nm-memo nm-lock">
           <span className="ycd-nm yset-ttl">자동 잠금</span>
-          {q.isLoading ? <p className="nm-chan-msg">읽는 중…</p> : q.isError ? <p className="nm-chan-msg" role="alert">설정을 못 읽었어 — 다시 열어 줘</p> : (
+          {q.isPending ? <p className="nm-chan-msg">{reading("잠금 설정")}</p> : q.isError ? <SrvNote what="잠금 설정" detail={q.error instanceof Error ? q.error.message : undefined} className="tight" /> : (
             <>
               <div className="nm-lock-state">
                 <span className={`chip${active ? " on" : ""}`}>{active ? "잠금 켜짐" : "잠금 꺼짐"}</span>
@@ -53,7 +55,7 @@ export function LockModal() {
               <div className={`nm-lock-row${active ? "" : " off"}`}><span>자동 잠금(분)</span><b aria-live="polite">{shown}</b></div>
               <div className={`nm-lock-sld${active ? "" : " off"}`}>
                 <span className="cap">1</span>
-                <input type="range" min={0} max={LK_STEPS.length - 1} step={1} value={idx < 0 ? 1 : idx} disabled={!active || busy} aria-label="자동 잠금 분" aria-valuetext={`${shown}분`}
+                <input type="range" min={0} max={LK_STEPS.length - 1} step={1} value={idx < 0 ? 1 : idx} disabled={!active || busy} className="nm-range" aria-label="자동 잠금 분" aria-valuetext={`${shown}분`}
                   style={{ ["--p" as string]: pct + "%" }}
                   onChange={(e) => setDrag(+e.target.value)} onPointerUp={(e) => void save(LK_STEPS[+(e.target as HTMLInputElement).value])} onKeyUp={(e) => void save(LK_STEPS[+(e.target as HTMLInputElement).value])} onBlur={() => { if (drag != null) void save(LK_STEPS[drag]); }} />
                 <span className="cap">60</span>

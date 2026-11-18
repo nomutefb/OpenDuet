@@ -10,6 +10,6 @@ test("서버가 memo 칸을 준 자리만 한 줄 글칸 + 저장 · POST seatva
   assert.match(ui, /office<[^>]*>\("seatvault\/memo", \{ method: "POST", body: JSON\.stringify\(\{ seat, memo: v \}\) \}\)/);
   assert.match(ui, /maxLength=\{200\}/);
   assert.match(ui, /disabled=\{!changed \|\| long\}/);
-  assert.match(ui, /void qc\.invalidateQueries\(\{ queryKey: \["nomute", "seatvault"\] \}\); \}\} className="min-h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-40">저장<\/GoButton>/);
+  assert.match(ui, /void qc\.invalidateQueries\(\{ queryKey: \["nomute", "seatvault"\] \}\); \}\} className="nm-nb-btn nm-vault-b" busy="저장 중">저장<\/GoButton>/);
   assert.match(ui, /type="text"[^>]*placeholder="이 자리 이름표\(계정 등\)"/);   // 이름표 = 보이는 글(열쇠 칸처럼 password 아님)
 });
