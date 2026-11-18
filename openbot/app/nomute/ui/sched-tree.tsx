@@ -4,7 +4,7 @@
 //   노드 = 영상 꼴: 둥근 카드 + 테 · 손 올리면(폰 = 누르면) 테가 진해지고 위에 탭이 올라옴(탭 먼저 180ms → 그림 단추 뒤따라) · 선 = 직각 + 둥근 꺾임
 //   실제 반영 = 탭의 「지금 돌리기」 · 「켬끔」 → 바꾸기 판(./runner-sheet.tsx · 서버 POST schedule/runner · 미리 보기 → 적용 · 형만) — 새 서버 길은 안 만듦
 import { type CSSProperties, Fragment, type JSX, type PointerEvent as RPE, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { CLOCK_KO, HEALTH_KO, type HealthSt, StatusDot, cronKo, stOf, sumOf, whenOf, worstOf } from "./sched-bits";
+import { CLOCK_KO, HEALTH_KO, type HealthSt, StatusDot, cronKo, stOf, sumOf, whenOf, worstOf, failKo } from "./sched-bits";
 import { type RunnerJob, type SchedRunners, nextShort } from "./settings-extra";
 import { type Review, ReviewBadge } from "./sched-review";
 import { ghJob, modelKo } from "./sched-flow-core";
@@ -230,10 +230,10 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
                 <button type="button" title="파일 이름 복사" onClick={() => copy(j)}><Ic d={copied === j.id ? "check" : "copy"} /></button>
                 <button type="button" title="자세히" onClick={() => setSel({ job: j })}><Ic d="more" /></button>
               </div>
-              <button type="button" className="nm-tree-card" aria-label={`${j.name} · ${HEALTH_KO[st]}`} onClick={() => setSel({ job: j })}>   {/* 폰 = 한 번 누르면 바로 판(큰 단추) · 작은 탭 단추를 두 번째로 누르게 하지 않음 */}
+              <button type="button" className="nm-tree-card" aria-label={`${j.name} · ${failKo(j.health) || HEALTH_KO[st]}`} onClick={() => setSel({ job: j })}>   {/* 폰 = 한 번 누르면 바로 판(큰 단추) · 작은 탭 단추를 두 번째로 누르게 하지 않음 */}
                 <span className="nm-tree-l1"><b title={j.name}><ReviewBadge r={review[j.id]} />{j.name}</b>{tag ? <i>{tag}</i> : null}</span>
                 <span className="nm-tree-l2"><small>언제</small><span title={whenOf(j)}>{whenOf(j)}{j.health?.next_at ? ` · 다음 ${nextShort(j.health.next_at)}` : ""}</span></span>
-                <span className="nm-tree-l3"><StatusDot st={st} /><span>{HEALTH_KO[st]} · {gh ? modelKo(j).replace("LLM 없음", "AI 안 씀") : `${HOST_KO[j.host || ""] || j.host || "그 몸"}에서 돎 · 여기서 못 바꿈`}</span><i className="nm-tree-sw" data-on={j.on !== false || undefined} aria-hidden /></span>
+                <span className="nm-tree-l3"><StatusDot st={st} /><span>{failKo(j.health) || HEALTH_KO[st]} · {gh ? modelKo(j).replace("LLM 없음", "AI 안 씀") : `${HOST_KO[j.host || ""] || j.host || "그 몸"}에서 돎 · 여기서 못 바꿈`}</span><i className="nm-tree-sw" data-on={j.on !== false || undefined} aria-hidden /></span>
                 {soon === j.id ? <em className="nm-tree-next">다음</em> : null}
               </button>
               <i className="nm-tree-port l" aria-hidden /><i className="nm-tree-port r" aria-hidden />

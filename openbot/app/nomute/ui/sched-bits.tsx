@@ -23,14 +23,16 @@ export function Breaker({ on, big, dim, label, disabled, onFlip }: { on: boolean
 // 상태 점(뜸 연구 2026-11-02 「● 정상 · ▲ 지연 · ✕ 놓침 · ○ 확인 안 됨 · – 꺼짐」 · 형 「원활하게 다 미러링되는지도 확인해봐야하고」)
 //   자료 = 서버 health(뜸 _sched.js healthOf · 줄마다 health{st, last_at, next_at, drift_min, missed} · 맨 위 health_sum) · 칸이 없으면 = ○ 확인 안 됨(보냄만 알고 돎은 모름)
 export type HealthSt = "ok" | "late" | "miss" | "unknown" | "off";
-export type Health = { st: HealthSt; last_at?: number; next_at?: number; drift_min?: number; missed?: number; src?: string };
+export type Health = { st: HealthSt; last_at?: number; next_at?: number; drift_min?: number; missed?: number; src?: string; failed?: number; last_fail_at?: number };   // failed · last_fail_at = 마지막 끝난 회차가 실패(서버 editor #4194 · 빠르 11-18 13:16 · 깃 PM 일 · 형 12:25 「근본 해결」 — 앞 = 성공만 세서 bundle-source 18연속 실패가 흰 칸)
 export type HealthSum = Record<HealthSt, number> & { at?: number };
 export const HEALTH_KO: Record<HealthSt, string> = { ok: "정상", late: "지연", miss: "놓침", unknown: "확인 안 됨", off: "꺼짐" };
 export const ST_ORDER: HealthSt[] = ["ok", "late", "miss", "unknown", "off"];
 export const stOf = (h: Health | undefined, off: boolean): HealthSt => (off ? "off" : h?.st || "unknown");
 export const agoKo = (ts: number) => { const m = Math.round((Date.now() - ts) / 60e3); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
 /** 줄 오른쪽 한마디 = 놓침 n · n분 늦음 · 마지막 실제 실행 */
-export const lastKo = (h?: Health) => (!h ? "" : h.st === "miss" ? `놓침 ${h.missed || 1}` : h.st === "late" && h.drift_min ? `${h.drift_min}분 늦음` : h.last_at ? `${h.st === "unknown" ? "마지막 " : ""}${agoKo(h.last_at)}` : "");   // ○ 줄 = 「마지막 3일 전」(사건으로만 도는 잡 · 뜸 11-02 「「안 돎 = 고장」으로 안 읽혀」)
+/** 순수 — 실패 글(「실패 N번 연속」 · N = 1 이면 「실패」) · failed 칸이 없거나 0 이면 "" */
+export const failKo = (h?: Health) => (!h?.failed ? "" : h.failed > 1 ? `실패 ${h.failed}번 연속` : "실패");
+export const lastKo = (h?: Health) => (!h ? "" : h.failed ? `${failKo(h)}${h.last_fail_at ? ` · ${agoKo(h.last_fail_at)}` : ""}` : h.st === "miss" ? `놓침 ${h.missed || 1}` : h.st === "late" && h.drift_min ? `${h.drift_min}분 늦음` : h.last_at ? `${h.st === "unknown" ? "마지막 " : ""}${agoKo(h.last_at)}` : "");   // ○ 줄 = 「마지막 3일 전」(사건으로만 도는 잡 · 뜸 11-02 「「안 돎 = 고장」으로 안 읽혀」)
 export function StatusDot({ st }: { st: HealthSt }) {
   return <i className="nm-st" data-st={st} role="img" aria-label={HEALTH_KO[st]} title={HEALTH_KO[st]} />;
 }
