@@ -121,15 +121,12 @@ export function seeEarly(el: HTMLIFrameElement) {
 /** 영상 편집 안에서 고르는 일(형 11-14 「영상 편집 안에서 트래킹이며 뭐며 그 안에서 내부에서 고르는 형태였는데, 합칠수있나 기능을? … 기본 영상 편집을 할건지, 트래킹을 할건지, 프롬프팅을 할건지 고르는거에 따라서 나오게 … 이미지 편집 1개, 영상 편집 1개 이렇게만 잇엇거든 … 옛날 버전이 github에 남아있으면 차라리 그걸 가져오는게 빠를거야」)
  *  옛 스튜디오 셸(editor viewer/index.html CAP_TABS = 편집 · 생성 · 프롬프팅 · 음원 · 큐영상 · 유튜브 + 편집 안 「트랙」 넘김)이 한 창에서 탭으로 고르던 그 화면들 = 저장소에 그대로 남아 있음 → 같은 틀 안에 그대로 품음(고친 글자 0)
  *  path = 옛 서랍 칸 주소(즐겨찾기 · 다른 화면의 링크가 안 끊기게 그대로 받음) · 한 번 연 화면은 안 버림(옛 「탭별 보존 프레임」 = 올리던 영상 · 쓰던 글이 고르는 사이에 안 날아감) */
+//   걷음(형 11-18 12:03 「!깃 ✓ ① 다 지움(의류수거함)」 · 한 달 넘게 안 쓴 앱 기능) = 트래킹(track-make) · 프롬프팅(k-make) · 큐영상(vd-make) · 미디어 요약(nb-make) · 옛 주소 /edtrack · /edk · /edvd · /ednb = 편집으로(modeOfPath)
 export const MODES = [
   { k: "edit", t: "편집", d: "자막 · 자르기 · 비율 · 소리", src: EDIT, path: "/edvid" },
-  { k: "track", t: "트래킹", d: "얼굴 따라 모자이크 · 이름표", src: "/track.html", path: "/edtrack" },
-  { k: "k", t: "프롬프팅", d: "장면 → 영상 프롬프트", src: "/k.html", path: "/edk" },
   { k: "sb", t: "스토리보드", d: "이야기 → 콘티 · 참고 그림", src: "/sb.html", path: "/edsb" },
   { k: "ys", t: "유튜브", d: "영상 주소 → 짧은 영상", src: "/ys.html", path: "/edys" },
   { k: "song", t: "음원", d: "이야기 → 곡", src: "/song.html", path: "/edsong" },
-  { k: "vd", t: "큐영상", d: "기사 골라 → 6초 세로 영상", src: "/vd.html", path: "/edvd" },
-  { k: "nb", t: "미디어 요약", d: "영상 · 소리 · 글 → 자료 노트", src: "/nb.html", path: "/ednb" },
 ] as const;
 export type VMode = (typeof MODES)[number]["k"];
 /** 주소 → 고른 일(모르는 길 = 편집) */

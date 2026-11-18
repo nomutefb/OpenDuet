@@ -6,8 +6,7 @@
 import type { QItem } from "./task-panel";
 
 const QF_KEY = "nomute_qfail_seen";
-export const qRetryUrl = (it: QItem) => (/^https?:\/\//i.test(String(it.key || it.alt1 || "")) ? String(it.key || it.alt1) : "");   // 옛 qPickRetry u = key 먼저
-export const qCanRetry = (it: QItem) => it.via === "요약요청" || !!qRetryUrl(it);   // 옛 qpCanRetry
+export const qCanRetry = (it: QItem) => it.via === "요약요청";   // 옛 qpCanRetry · 링크 「다시 분석」(api/pick · pick.yml) = 걷음(형 11-18 12:03 「다 지움(의류수거함)」)
 
 /** 실패 한 건 확인(옛 qfMarkSeenOne) — 이 기기 바로 · 계정은 보내 두고 안 기다림(옛 fail-soft) */
 /** 이 기기에서 「취소」(확인)한 실패 id 들 — Digest 처럼 pickQ 를 안 쓰는 판이 거를 때(형 11-12 07:55 「글구 이런거 실패하면.취소할수잇게해줘.」) */
@@ -32,15 +31,7 @@ export async function qRetry(it: QItem, go: (p: string) => void): Promise<string
     go("/ask");
     return "";
   }
-  const url = qRetryUrl(it);
-  if (!url) return "원문 링크가 없어서 다시 분석을 못 해";
-  try {
-    const r = await fetch("/api/pick", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ url, title: it.title || "", alt: it.alt1 && it.alt1 !== url ? [it.alt1] : [] }) });
-    const d = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
-    if (!r.ok || !d.ok) return `다시 분석 못 보냄 — ${d.error || `서버 ${r.status}`}`;
-  } catch (e) { return `다시 분석 못 보냄 — ${(e as Error).message || "연결 끊김"}`; }
-  qfSeenOne(it.id);
-  return "";
+  return "다시 분석은 걷었어 — 「요약 요청」에 링크를 붙여 다시 보내 줘";
 }
 
 /** 긴급 배지 길게 = 「긴급 아님」 신고(옛 brkNotUrgent · ./feed.tsx BrkBadge) — candId = id ∨ url ∨ 제목 · 기사엔 판단 기록이 없어 칸은 빈 값

@@ -11,12 +11,9 @@ const ICONS: Record<string, [string, string]> = {
   gsAbbr: ["축약", "<path d='m3 15 4-8 4 8'/><path d='M4 13h6'/><circle cx='18' cy='12' r='3'/><path d='M21 9v6'/>"],
   gsOvOnly: ["배경 합성", "<rect x='3' y='3' width='12' height='12' rx='2'/><rect x='9' y='9' width='12' height='12' rx='2'/>"],
   gsPanFit: ["맞춤", "<path d='M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3'/>"],
-  gsPanFill: ["AI 채움", "<path d='M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z'/><path d='M19 16l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z'/>"],
   gsMerge: ["삽입구 합성", "<circle cx='12' cy='12' r='9'/><path d='M14.8 9.5a4 4 0 1 0 0 5'/>"],
-  gsMos: ["모자이크", "<rect x='3' y='3' width='18' height='18' rx='2'/><path d='M3 9h18M3 15h18M9 3v18M15 3v18'/>"],
   gsPanDn: ["사진 축소", "<path d='M5 12h14'/>"],   // 사진 크기 − · + (사진 넣으면 뜸 · 형 11-14 16:31 「우측에 네비 부분이 뭔가 겹치네」 = 그림 없어 통네모 · 두 칸 격자에 끼어 겹침 · 뜸)
   gsPanUp: ["사진 확대", "<path d='M12 5v14M5 12h14'/>"],
-  gsTr: ["번역", "<path d='m5 8 6 6'/><path d='m4 14 6-6 2-3'/><path d='M2 5h12'/><path d='M7 2h1'/><path d='m22 22-5-10-5 10'/><path d='M14 18h6'/>"],
 };
 const LONG_OWN = new Set(["gsAbbr"]);   // 원본이 길게 누름을 쓰는 단추
 

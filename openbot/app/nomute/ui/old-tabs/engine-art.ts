@@ -1,7 +1,7 @@
 // @ts-nocheck
 /* eslint-disable */
 // 만든 파일 — 손으로 고치지 말 것(ui/old-tabs/tools/gen-js.mjs art 가 옛 에디터 viewer/index.html 에서 떼어 옴 · 대체 조각 = tools/prelude.js 앞쪽 + tools/prelude-art.js)
-//   옛 「기사 창」(#dlg · open(a))이 돌던 코드 그대로(선언 312개) · 문서 = 이 화면 틀(ROOT) · 듣기 · 타이머 = 끌 때 다 걷음
+//   옛 「기사 창」(#dlg · open(a))이 돌던 코드 그대로(선언 297개) · 문서 = 이 화면 틀(ROOT) · 듣기 · 타이머 = 끌 때 다 걷음
 export function startOldArt(ROOT, host) {
   // ── 앱 안에서 돌리기 위한 틀(원본에 없던 줄) ──
   let __dead = false;
@@ -1754,52 +1754,10 @@ function cardMaxVer(card) { let k = null; for (const v of (card && card.versions
 let _polling = false;
 const rpKey = (file, card) => file + '#' + card;
 const REVISING = new Map();
-const REV_PEND_KEY = 'nomute_rev_pending';
 const RV_COLORS = ['0,238,210', '255,225,61', '56,198,255'];
 const revColor = g => g <= 0 ? RV_COLORS[0] : RV_COLORS[1 + ((((g - 1) % 2) + 2) % 2)];
 const artRev = file => { const a = DATA.find(x => x.file === file); return a ? (Number(a.rev) || 0) : 0; };
 const isRevising = file => REVISING.has(file);
-const saveRevising = () => { try { localStorage.setItem(REV_PEND_KEY, JSON.stringify([...REVISING])); } catch {} };
-function loadRevising() {   // 부팅 복원 — 진행 중이던 수정(20분 내)만 되살려 폴 재개(reqRev 원값 보존 = 완료 오인 방지)
-  try {
-    const now = Date.now();
-    for (const [file, v] of JSON.parse(localStorage.getItem(REV_PEND_KEY) || '[]'))
-      if (v && typeof v.ts === 'number' && now - v.ts < 20 * 60000) REVISING.set(file, v);
-  } catch {}
-  if (REVISING.size) startRevisePoll();
-}
-function startRevising(file) {
-  if (!file) return;
-  REVISING.set(file, { reqRev: artRev(file), ts: Date.now() });   // 요청 시점 서버 회차 스냅(완료 = a.rev가 이보다 ↑)
-  saveRevising();
-  render();                                                  // 피드 카드 물결·잠금 반영(복원 260623)
-  if ($('#dlg').open && CUR === file) applyReviseMarks();
-  startRevisePoll();
-}
-let _revPoll = null;
-function startRevisePoll() {
-  if (_revPoll) return;
-  _revPoll = setInterval(async () => {
-    if (isComposingModalOpen()) return;   // ⚠️ 작성 모달 중엔 폴 보류(load→render가 backdrop-filter 뒤 DOM 갱신 = 깜빡임 · 다음 틱 재개 · 260627)
-    await load();                                            // DATA 갱신(articles.json = a.rev 최신)
-    let changed = false;
-    for (const [file, v] of [...REVISING]) {
-      if (artRev(file) > v.reqRev) {                         // 서버 회차 ↑ = 수정 반영 완료
-        REVISING.delete(file); changed = true;
-        if ($('#dlg').open && CUR === file) {                // 열린 본문 자동 갱신(스크롤 위치 보존)
-          const a = DATA.find(x => x.file === file);
-          if (a) { const db = $('#dlgbody'), st = db ? db.scrollTop : 0; open(a).then(() => { if (db) db.scrollTop = st; }); }
-        }
-      } else if (Date.now() - v.ts > 20 * 60000) {           // 20분 폴백 — revise 최대 15분+빌드 여유(색은 a.rev로 추후 자동 반영)
-        REVISING.delete(file); changed = true;
-        const ra = DATA.find(x => x.file === file);           // 조용히 사라지지 말고 표면화(운영자 260620): 20분 내 회차 안 오름 = 지연이거나 실패 → 다시 시도 안내(정직 = 단정 안 함)
-        qFlash('수정요청 20분째 반영 안 됨 — 지연이거나 실패. 색 안 바뀌면 다시 시도해' + (ra && ra.title ? ' (' + ra.title.slice(0, 16) + '…)' : ''), WARN_SVG);
-      }
-    }
-    if (changed) { saveRevising(); render(); if ($('#dlg').open && CUR) applyReviseMarks(); }
-    if (!REVISING.size) { clearInterval(_revPoll); _revPoll = null; }
-  }, 20000);
-}
 const CARD_FIRE = new Map();
 const CF_PEND_KEY = 'nomute_cardfire_pending';
 const cardSig = file => { const a = DATA.find(x => x.file === file), c = (a && a.cards) || {}; return (c.state || '') + '|' + (c.updated || '') + '|' + (c.rev || ''); };
@@ -2080,7 +2038,6 @@ async function makeCards(target, btn, mode) {
     return false;
   } catch (e) { if (btn) { gaugeClear(btn); btn.classList.remove('okdone', 'checking'); btn.style.pointerEvents = ''; } netMsg(e).then(m => alert('요청 실패: ' + (m || e.message))); return false; }
 }
-attachCopyPaste($('#revText'), true);
 attachCopyPaste($('#crevText'), true);
 attachCopyPaste($('#tredoText'), true);
 attachCopyPaste($('#edWish'), true);
@@ -2381,7 +2338,7 @@ function applyCrevFab() {
 function updateCrevFab() {
   const fab = $('#crevFab'); if (!fab) return;
   const dlg = $('#dlg');
-  const show = !!(dlg && dlg.open && !$('#crevdlg').open && !$('#revdlg').open && crevFabVisible());   // 팝업 열렸으면 숨김(겹침 방지)
+  const show = !!(dlg && dlg.open && !$('#crevdlg').open && !(revdlg && revdlg.open) && crevFabVisible());   // 팝업 열렸으면 숨김(겹침 방지)
   fab.classList.toggle('show', show);
   if (show) fab.style.top = Math.round(dlg.clientHeight * 0.7 - 26) + 'px';   // 요약 FAB과 동일 = 뷰포트 70% 라인 고정(구간 안 겹쳐 동시 노출 없음)
   applyCrevFab();
@@ -2573,15 +2530,6 @@ function resetRevSend() {   // 발사 버튼 원복(재확인 해제)
   btn.classList.remove('confirm');
   const lbl = btn.querySelector('span'); if (lbl) lbl.textContent = '수정';
 }
-function openRev() {
-  if (!CUR) { return; }
-  if (isRevising(CUR)) { return; }   // 수정 중 = FAB 눌러도 입력 팝업 안 열림(무반응) · 시각 표식(revving/locked·'수정 중' 힌트)은 그대로 유지 — 운영자 260626(옛 260623 '그냥 팝업 열기' 폐기: 팝업이 떠 전송 가능해 보이는 게 문제)
-  resetRevSend();
-  $('#revSend').classList.remove('firing'); $('#revSend').disabled = false;   // (revStatus 잔상 리셋 소멸 — 상태문자열 폐지·qFlash 위임 260720)
-  updateRevClip(); openComposeDlg(revdlg);   // 폰 뒤로가기 칸(입력 손실 방지·260627)
-  $('#revFab').classList.remove('show');         // 팝업 열림 → FAB 숨김(닫히면 updateRevFab가 복원)
-  setTimeout(() => $('#revText').focus(), 60);   // 열리자마자 커서 활성(askdlg 패턴)
-}
 function updateRevClip() { const t = $('#revText'); if (t) t.dispatchEvent(new Event('input', { bubbles: true })); }
 (function(){
   const src = $('#src');
@@ -2607,7 +2555,6 @@ __on(ROOT, 'click', e => {
   if (getComputedStyle(b).position === 'static') b.style.position = 'relative';
   b.appendChild(o); setTimeout(() => o.remove(), 700);
 }, true);
-$('#revFab').addEventListener('click', openRev);
 $('#crevFab').addEventListener('click', openCrev);
 const CARD_REVISING = new Map();
 const CREV_PEND_KEY = 'nomute_crev_pending';
@@ -2703,40 +2650,6 @@ $('#crevSend').addEventListener('click', async () => {
   }
 });
 loadCardRevising();
-$('#revX').addEventListener('click', () => revdlg.close());
-backdropClose(revdlg, ['#revText']);
-revdlg.addEventListener('close', () => { resetRevSend(); updateRevFab(); if (!revdlg._minimizing) draftClear('#revText', updateRevClip); });
-$('#revText').addEventListener('input', () => { resetRevSend(); });
-$('#revSend').addEventListener('click', async () => {
-  if (CUR && isRevising(CUR)) { return; }   // 진행 중 재전송 차단 — silent(표기 없음·운영자 260623)
-  const instruction = $('#revText').value.trim();
-  if (!instruction) { qFlash('수정 지시를 한 줄 적어줘'); return; }   // 전 상태문구 = qFlash 토스트(팝업 내 문자열 폐지 · 운영자 260720)
-  if (!CUR) { qFlash('대상 카드를 못 찾음'); return; }
-  const btn = $('#revSend'), lbl = btn.querySelector('span');
-  if (!btn.classList.contains('confirm')) {   // 1차 클릭 = 재확인(버튼 색·라벨로만 표시 — 안내 문구 없음)
-    btn.classList.add('confirm'); if (lbl) lbl.textContent = '재확인';
-    clearTimeout(revConfirmT); revConfirmT = setTimeout(resetRevSend, 4000);   // 4초 내 재확인 없으면 원복
-    return;
-  }
-  clearTimeout(revConfirmT);                   // 2차 클릭 = 실제 전송
-  btn.classList.remove('confirm'); if (lbl) lbl.textContent = '수정';
-  btn.disabled = true; askHideCheck(btn); gaugeStart(btn);   // 게이지 = 재확인 탭 즉시 시작·응답까지 진행(옛 'fetch 후 firing'은 fetch 동안 무반응 멈춤 · 운영자 260702) · '보내는 중' 문구 없음
-  try {
-    const r = await fetch('api/revise', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: CUR, instruction }) });
-    const d = await r.json().catch(() => ({}));
-    if (r.ok && d.ok) {
-      gaugeDone(btn);   // 게이지 현재위치→100% 급속 마무리
-      setTimeout(() => askShowCheck(btn), 300);   // 게이지 채움완료(gdone .3s)와 물려 ✓ 팝(멈칫 제거·시안2·운영자 260703)
-      startRevising(CUR);   // 완료 폴링·자동 갱신만 시작(시각 표기 없음 · 운영자 260623)
-      setTimeout(() => { revdlg.close(); gaugeClear(btn); askHideCheck(btn); btn.disabled = false;
-        $('#revText').value = ''; updateRevClip();   // ⚠️ 입력 리셋 = 닫은 뒤(게이지 도는 1.6s 동안 빈칸이 보여 '내가 쓴 게 사라졌나' 불안 차단 · askSend와 동일 표준 · 운영자 260622·260627)
-      }, 1600);   // 닫힐 때까지 disabled(중복전송 차단)
-      return;
-    }
-    qFlash(d.error || `서버 ${r.status}`);
-  } catch { qFlash('전송 실패 (백엔드 배선 전이면 예상된 동작)'); }
-  gaugeClear(btn); btn.disabled = false;
-});
 let TREDO_SID = '', TREDO_LAST = '', tredoConfirmT = null;
 function thumbBaseSid(sid) { return String(sid || '').replace(/_r\d+$/, ''); }
 function genGenCount(a, base) { return ((a && a.cards && a.cards.thumb_gen) || []).filter(g => g && g.sid && thumbBaseSid(g.sid) === base).length; }
@@ -2794,7 +2707,6 @@ $('#tredoSend').addEventListener('click', async () => {
   } catch { qFlash('전송 실패 (백엔드 배선 전이면 예상된 동작)'); }
   gaugeClear(btn); btn.disabled = false;
 });
-loadRevising();
 let _composeDlgStack = [], _composeRecovering = false;
 function openComposeDlg(dlg) {
   if (!dlg) return;

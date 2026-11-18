@@ -82,24 +82,13 @@ export function QueueModal() {
     clearTimeout(armT.current); setArm(""); setDone(id);   // ✓ 잔상 1.2초 뒤 기록·줄 회수(원본 thumb 1200 동값 · 먼저 쓰면 그 자리에서 사라짐)
     window.setTimeout(() => { lsSet("nomute_q_cancelled", [...new Set([...ls<string[]>("nomute_q_cancelled", []), id])]); setDone(""); bump((n) => n + 1); }, 1200);
   };
-  const [rarm, setRarm] = useState(""), [note, setNote] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const retry = async (it: QItem) => {   // 원본 askRetry · qPickRetry(viewer-src/33-openQueue.part)
-    const id = cxlId(it), url = /^https?:\/\//i.test(String(it.key || it.alt1 || "")) ? String(it.key || it.alt1) : "";   // 원본 qPickRetry u = key 먼저
-    if (it.via === "요약요청") {
+    if (it.via === "요약요청") {   // 링크 「다시 분석」(qPickRetry · api/pick) = 걷음(형 11-18 12:03 「다 지움(의류수거함)」)
       let text = "";
       try { const r = await fetch(`/api/askget?id=${encodeURIComponent(String(it.id || ""))}&_=${Date.now()}`, { credentials: "same-origin" }); if (r.ok) text = String(((await r.json()) as { text?: string }).text || ""); } catch { /* 복원 못 하면 빈 칸 */ }
       try { sessionStorage.setItem("nm_ask_prefill", JSON.stringify({ text, link: "", retryOf: String(it.id || "") })); } catch { /* 사생활 창 */ }
       go("/ask"); return;
     }
-    if (!url) { setNote({ kind: "err", text: "원문 링크가 없어서 다시 분석을 못 해 — 「요약 요청」에 글을 붙여 다시 보내 줘" }); return; }
-    if (rarm !== id) { setRarm(id); clearTimeout(armT.current); armT.current = window.setTimeout(() => setRarm(""), 3000); return; }
-    clearTimeout(armT.current); setRarm(""); setNote(null);
-    try {
-      const r = await fetch("/api/pick", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ url, title: it.title || "", alt: it.alt1 && it.alt1 !== url ? [it.alt1] : [] }) });
-      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
-      if (!r.ok || !d.ok) throw new Error(d.error || `서버 ${r.status}`);
-      setNote({ kind: "ok", text: "다시 분석 보냈어 — 위 줄에 새로 떠" }); void q.refetch();
-    } catch (e) { setNote({ kind: "err", text: `다시 분석 못 보냄 — ${(e as Error).message}` }); }
   };
   return (
     <Pane title="대기열">
@@ -123,7 +112,7 @@ export function QueueModal() {
                     <span className="qa">
                       {isDone ? <span className="ok">✓</span>
                         : e === "succ" && a ? <button type="button" className="go ok" onClick={() => go(`/newsed?a=${encodeURIComponent(a.file)}`)}>열기</button>
-                        : e === "fail" ? <button type="button" className="go arm" onClick={() => void retry(it)} title={it.via === "요약요청" ? "요청 내용을 복원해 「요약 요청」에 채움 — 보내기는 거기서" : rarm === id ? "한 번 더 누르면 다시 분석" : "다시 분석(대기열에 다시 넣음) — 두 번 눌러야"}>{rarm === id ? "다시?" : "재시도"}</button>
+                        : e === "fail" && it.via === "요약요청" ? <button type="button" className="go arm" onClick={() => void retry(it)} title="요청 내용을 복원해 「요약 요청」에 채움 — 보내기는 거기서">재시도</button>
                         : url ? <button type="button" className="go src" onClick={() => { const h = inAppHref(url); if (h) go(h); else window.open(url, "_blank", "noopener"); }} title={e === "lag" ? "원문 — 요약은 배포 반영 뒤 열림" : "원문"}>원문</button>
                         : <button type="button" className={`go ${armed ? "arm" : "gray"}`} onClick={() => cancel(it)} aria-label={armed ? "한 번 더 누르면 이 요청 취소" : "이 요청 취소"} title={armed ? "한 번 더 누르면 이 요청 취소" : "갈 곳 없음 · 누르면 이 요청 취소"}>{armed ? "취소?" : "—"}</button>}
                     </span>
@@ -139,7 +128,6 @@ export function QueueModal() {
               <button type="button" disabled={cur === pages - 1} onClick={() => setPage(cur + 1)} aria-label="다음 쪽">›</button>
             </div>
           ) : null}
-          {note ? <p className={`nm-q-note ${note.kind}`} role={note.kind === "err" ? "alert" : "status"}>{note.text}</p> : null}
         </div>
       </div>
     </Pane>

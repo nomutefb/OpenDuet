@@ -23,9 +23,10 @@ test("뉴스 에디터 기사 한 장 = 옛 기사 창(PC 오른쪽 칸 · 폰 �
 
 test("엔진 = 옛 기사 창의 그리기 · 고치기 · 만들기 함수가 다 들어 있다", () => {
   for (const f of ["async function open(a)", "async function ensureDetail(a)", "function paintDetErr(a)", "function decorate(root)", "function addCopyButtons(root)", "function overviewMeta(", "function thumbSec(a)", "function thumbStatic(", "function thumbPromptPanel(a)",
-    "function cardSec(", "async function makeCards(", "function feedSec(", "function setupScrub()", "function updateScrub()", "function openRev()", "function openCrev()", "function openTredo(", "function openEdit(", "function openLightbox(", "async function load()"]) assert.ok(engine.includes(f), f);
-  for (const u of ["'detail/' + encodeURIComponent(a.file)", "api/feedlive", "api/make-cards", "api/revise'", "api/revise-cards", "/api/thumbredo", "api/rate", "api/feedback"]) assert.ok(engine.includes(u), u);   // 읽기 · 쓰기 주소 = 원본 그대로
-  assert.match(engine, /\$\('#revFab'\)\.addEventListener\('click', openRev\);/);   // 떠 있는 「요약 수정」 · 「카드 수정」 단추
+    "function cardSec(", "async function makeCards(", "function feedSec(", "function setupScrub()", "function updateScrub()", "function openCrev()", "function openTredo(", "function openEdit(", "function openLightbox(", "async function load()"]) assert.ok(engine.includes(f), f);
+  for (const u of ["'detail/' + encodeURIComponent(a.file)", "api/feedlive", "api/make-cards", "api/revise-cards", "/api/thumbredo", "api/rate", "api/feedback"]) assert.ok(engine.includes(u), u);   // 읽기 · 쓰기 주소 = 원본 그대로
+  for (const u of ["api/revise'", "function openRev()", "$('#revFab').addEventListener"]) assert.ok(!engine.includes(u), "걷음: " + u);   // 요약 수정 = 걷음(형 11-18 「다 지움(의류수거함)」) · 카드 수정 = 남김(형 13:14 「카드뉴스는 놔둘게」)
+  assert.ok(!/!\$\('#revdlg'\)\.open/.test(engine), "없는 요약 수정 창을 바로 열어 보지 않음(카드 수정 단추가 안 깨짐)");
   assert.match(engine, /\$\('#crevFab'\)\.addEventListener\('click', openCrev\);/);
   assert.ok(!read("ui/old-tabs/engine.ts").includes("function thumbSec(a)"), "채널 · SNS 엔진은 그대로(기사 창 줄이 안 섞임)");
 });
@@ -46,9 +47,10 @@ test("엔진 = 이 틀 안에서만 찾고 · 끌 때 다 걷고 · 모달 · �
   assert.match(art, /return \(\) => \{ try \{ eng\.current\?\.stop\(\); \} catch \{[^}]*\} eng\.current = null; \};/);
 });
 
-test("판 = 열린 채 칸 안에 박힌 기사 창(닫기 × 없음) + 작은 창 넷", () => {
+test("판 = 열린 채 칸 안에 박힌 기사 창(닫기 × 없음) + 작은 창 셋(요약 수정 = 걷음)", () => {
+  for (const id of ["revFab", "revdlg", "revText"]) assert.ok(!markup.includes(`id="${id}"`), "걷음: " + id);
   assert.match(markup, /<dialog id="dlg" open aria-label="뉴스 요약">/);
-  for (const id of ["src", "dlgprog", "dlgbody", "ph-sum", "mdbody", "ph-card", "cardsum", "cardsec", "ph-feed", "feedsec", "revFab", "crevFab", "editdlg", "edChips", "edWish", "revdlg", "revText", "revSend", "crevdlg", "crevText", "crevSend", "tredodlg", "tredoText", "tredoSend"]) assert.ok(markup.includes(`id="${id}"`), id);
+  for (const id of ["src", "dlgprog", "dlgbody", "ph-sum", "mdbody", "ph-card", "cardsum", "cardsec", "ph-feed", "feedsec", "crevFab", "editdlg", "edChips", "edWish", "crevdlg", "crevText", "crevSend", "tredodlg", "tredoText", "tredoSend"]) assert.ok(markup.includes(`id="${id}"`), id);
   assert.ok(!/dlg-x|onclick="dlg\.close\(\)"|onclick="editdlg\.close\(\)"/.test(markup), "닫기 × · 창 전역 이름을 부르는 onclick 없음");
   assert.ok(!/id="(genidlg|askdlg|pindlg|tooldlg)"/.test(markup), "안 가져온 창(이미지 생성 · 요약 요청 · PIN · 도구)");
 });

@@ -36,8 +36,9 @@ test("한 배경(형 11-13 14:08 「원톤으로 그냥 한 배경이 쭉」) = 
 
 test("영상 편집 하나 안에서 고름(형 11-14 「기본 영상 편집을 할건지, 트래킹을 할건지, 프롬프팅을 할건지 고르는거에 따라서 나오게 … 이미지 편집 1개, 영상 편집 1개」) = 옛 화면 그대로 · 옛 주소도 이 화면", () => {
   const sh = rd("../ui/shell.tsx"), ve = rd("../ui/video-editor.tsx"), dr = rd("../ui/drawer-page.tsx"), sd = rd("../ui/studio-handoff.ts");
-  for (const [k, src, path] of [["track", "/track.html", "/edtrack"], ["k", "/k.html", "/edk"], ["sb", "/sb.html", "/edsb"], ["ys", "/ys.html", "/edys"], ["song", "/song.html", "/edsong"], ["vd", "/vd.html", "/edvd"], ["nb", "/nb.html", "/ednb"]])
+  for (const [k, src, path] of [["sb", "/sb.html", "/edsb"], ["ys", "/ys.html", "/edys"], ["song", "/song.html", "/edsong"]])
     assert.ok(ve.includes(`{ k: "${k}", `) && ve.includes(`src: "${src}", path: "${path}" }`), `${k} = 옛 화면 ${src}`);
+  for (const k of ["track", "k", "vd", "nb"]) assert.ok(!ve.includes(`{ k: "${k}", `), `${k} = 걷음(형 11-18 「다 지움(의류수거함)」)`);
   assert.match(sh, /if \(\/\^\\\/\(edtrack\|edk\|edsb\|edys\|edsong\|edvd\|ednb\)\$\/\.test\(p\)\) return \{ modal: "edvid" \};/, "옛 서랍 칸 주소 = 영상 편집");
   assert.doesNotMatch(sh, /id: "edtrack"|id: "edk"|TrackModal|KPromptModal/, "따로 놀던 칸 0");
   assert.doesNotMatch(dr, /ids: \[[^\]]*"(edtool|edvid)"/, "이미지 · 영상 편집 = 서랍에서 뺌(형 11-15 「대신 서랍에서는 없앰」)");

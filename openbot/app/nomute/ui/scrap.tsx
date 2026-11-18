@@ -305,10 +305,6 @@ let _soloU: Set<string> | null = null, _soloSrc: C[] | null = null;
 const scSoloUrls = () => (_soloSrc === CANDS && _soloU ? _soloU : ((_soloSrc = CANDS), (_soloU = new Set(CANDS.filter((x) => x.solo).map((x) => _normU(x.url))))));
 const scMembers = (c: C) => { const own = _normU(c.url), so = scSoloUrls(); return ((c.cluster_members || []) as string[]).map(_normU).filter((u) => u === own || !so.has(u)); };
 const scUrlKeys = (c: C) => [_normU(c.url), _normU(scPickUrl(c)), ...scMembers(c)];
-function pickAlt(c: C) {   // 같은 사건 다른 매체 = 대체 fetch 후보
-  const pu = _normU(scPickUrl(c)), major = c && c.breaking_pick && c.breaking_pick.url ? _normU(c.breaking_pick.url) : "";
-  return [...new Set([_normU(c.url), major, ...((c.cluster_members || []) as string[]).map(_normU)])].filter((u) => u && u !== pu);
-}
 function ratingFor(c: C) {   // 묶음 멤버가 픽됐으면 대표도 PICKED(단독 1보 url 은 승계 안 함)
   const rt = ratingsAll(), own = rt[candId(c)] || {};
   if (own.picked) return own;
@@ -369,7 +365,6 @@ const pickTimedOut = (c: C) => { if (!DATA_LOADED) return false; const r = ratin
 const pickFailedShow = (c: C) => pfailHas(c) || pickTimedOut(c);
 const FAILRETRY_KEY = "nm_fail_retries", FAILREQUEUE_KEY = "nm_fail_requeue";
 const failRetriesGet = () => lsGet<Record<string, number>>(FAILRETRY_KEY, {});
-const bumpFailRetry = (c: C) => { const m = failRetriesGet(), id = candId(c); m[id] = (m[id] || 0) + 1; lsSet(FAILRETRY_KEY, m); };
 const failCount = (c: C) => 1 + (failRetriesGet()[candId(c)] || 0);
 const failRequeuedSet = () => new Set(lsGet<string[]>(FAILREQUEUE_KEY, []));
 const failRequeued = (c: C) => failRequeuedSet().has(candId(c));
@@ -602,12 +597,11 @@ function build(fold: boolean): Built {
   return { failed: scDedup(failed), cross, nw, foldN, pruneKeys: am.pruneKeys, picking };
 }
 
-/* ── 판단 동작(원본 applyTriage · toggleAck · askGrade · brkNotUrgent · failRetry · cancelPickPrepick · doMerge · unmergeAnchor) ── */
+/* ── 판단 동작(원본 applyTriage · toggleAck · askGrade · brkNotUrgent · cancelPickPrepick · doMerge · unmergeAnchor) ── */
 const TRIAGE: Record<"pass" | "pick", { q: string; reasons: { k: string; d?: string; input?: boolean }[] }> = {
   pass: { q: "이유는?", reasons: [{ k: "스팸", d: "(0점) 기사로서 가치가 가장 없음 · 애초에 수집 필요 없는 기사" }, { k: "홍보성", d: "(1점) 지방·지자체·기업·주가 띄우기·산하 행정단체 홍보성 보도자료" }, { k: "가치없음", d: "(2점) 화제성은 있지만 콘텐츠화 시 다수 유의미한 반응 이끌기 어려움" }, { k: "직접입력", input: true }] },
   pick: { q: "이유는?", reasons: [{ k: "속보/사건", d: "빠르게 전달하면 모두가 감정적 격동을 느낄 것이라 판단" }, { k: "토픽/논란", d: "범국민적 토픽·주제라고 판단" }, { k: "대세픽", d: "국민적 인기 — 지금 다수가 주목하는 대세 흐름(트렌드·화제성)" }, { k: "지식", d: "효과적 콘텐츠면 팔로워가 유용하다고 느낄 것이라 판단" }, { k: "직접입력", input: true }] },
 };
-const pickBody = (c: C, body?: string) => ({ url: scPickUrl(c), title: c.title || "", alt: pickAlt(c).slice(0, 8), ...(body ? { body } : {}), event_key: c.event_key || "" });
 /** PASS·PICK 확정 — 원장(api/rate) · PICK = 분석 파이프라인(api/pick · 거절이면 되돌림 + 실패 알림 + 다시 시도) */
 function applyTriage(act: "pass" | "pick", c: C, reason: string, text: string, redraw: () => void) {
   const id = candId(c), memo = (text || "").trim();
@@ -616,20 +610,7 @@ function applyTriage(act: "pass" | "pick", c: C, reason: string, text: string, r
   if (act === "pick") { patch.picked = true; patch.pickedAt = Date.now(); }
   saveRating(id, patch);
   const cur = lsGet<Record<string, C>>(RKEY, {})[id] || {};
-  postRate({ id, url: c.url || "", title: c.title || "", score: cur.score || 0, picked: !!cur.picked, memo: cur.memo || memo, dismissed: !!cur.dismissed, action: act, reason });
-  if (act === "pick" && c.url) {
-    postJ("/api/pick", pickBody(c), true)
-      .then(async (r) => {
-        if (r.ok) return;
-        const why = await failWhy(r);
-        saveRating(id, { picked: false }); postRate({ id, url: c.url || "", title: c.title || "", score: cur.score || 0, picked: false }); redraw();
-        pickFailNote(pickHttpMsg(r.status, why), () => { applyTriage("pick", c, reason, memo, redraw); redraw(); });
-      }, async (e) => {
-        if ((await netMsg(e)) !== AUTH_TXT) return;   // 회선 끊김은 이미 갔을 수 있어 그대로(원본) · 만료만 되돌림
-        saveRating(id, { picked: false }); redraw(); pickFailNote(AUTH_TXT, null);
-      });
-  }
-}
+  postRate({ id, url: c.url || "", title: c.title || "", score: cur.score || 0, picked: !!cur.picked, memo: cur.memo || memo, dismissed: !!cur.dismissed, action: act, reason });}
 function toggleAck(c: C) {
   const id = candId(c), acked = !(lsGet<Record<string, C>>(RKEY, {})[id] || {}).acked;
   saveRating(id, { acked });
@@ -645,21 +626,6 @@ function setGrade(c: C, v: string) {   // 교정 = 이 기기(nomute_grade_fix) 
 function brkNotUrgent(c: C) {   // 긴급 배지 길게 = 「긴급 아님」(reason 예약키 brkno → scraper/brk_misfire.py)
   const id = candId(c) || "", cur = scRT[id] || {};
   postRate({ id, url: c.url || "", title: c.title || "", score: cur.score || 0, picked: !!cur.picked, dismissed: !!cur.dismissed, acked: !!cur.acked, action: cur.action || "", reason: "brkno" });
-}
-function failRetry(c: C, redraw: () => void) {   // Failed 탭 = 다시 분석(재시도 중 표시 = resub 11분)
-  if (!c.url) return;
-  const id = candId(c), _prev = lsGet<Record<string, C>>(RKEY, {})[id] || {};
-  saveRating(id, { picked: true, pickedAt: Date.now() }); pfAddResub(id);
-  postJ("/api/pick", pickBody(c))
-    .then(async (r) => {
-      if (r.ok) return;
-      const j = (await r.json().catch(() => ({}))) as C;
-      saveRating(id, { picked: false }); pfRemoveResub(id); redraw();
-      pickFailNote(pickHttpMsg(r.status, j.error || ""), () => { failRetry(c, redraw); redraw(); });
-    }, async (e) => {
-      if ((await netMsg(e)) !== AUTH_TXT) return;
-      saveRating(id, { picked: !!_prev.picked, pickedAt: _prev.pickedAt }); pfRemoveResub(id); redraw(); pickFailNote(AUTH_TXT, null);
-    });
 }
 function cancelPickPrepick(c: C) {   // 실패 ✓ = 픽 하기 전으로(트레이에서 빠져 칼럼 제자리 · PASS/PICK 다시)
   const id = candId(c);
@@ -708,7 +674,6 @@ const XI = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidt
 const ACK = <svg className="ackm" viewBox="0 0 24 24" fill="none" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path className="sc-dash" d="M6 12h12" /><path className="sc-chk" d="M5 13l4 4L19 7" /></svg>;
 const SEND = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4 20-7z" /></svg>;
 const DOC = <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M9 13h6M9 17h6" /></svg>;
-const PEN = <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>;
 
 /** 길게 누름(원본 claimLongPress — 10px 넘게 움직이면 취소 · 우클릭 = 바로 · 끝난 뒤 탭 = 삼킴 · stop = 카드 길게 누름(묶기) 안 겹치게) */
 function useHold(ms: number, fn: () => void, stop = false, off = false) {
@@ -828,15 +793,14 @@ function Item({ c, st, col, ps, fx, mm, onAct }: {
   let bottom: ReactNode;
   if (fx === "fill" || fx === "ok") bottom = <div className="sc-got nm-go" data-stage={fx} aria-label={fx === "ok" ? "보냄" : "보내는 중"}>{fx === "ok" ? <svg className="nm-go-ck" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg> : "전송"}</div>;
   else if (ps === "failed") bottom = <>
-    <button type="button" className={`sc-fail${pfResubActive(candId(c)) ? " picking" : ""}`} title="탭 = 재시도(다시 분석) · 길게 = 실패 사유·내용 입력 · 제목 = 원문" {...failHold}
-      onClick={(e) => { e.stopPropagation(); if (pfResubActive(candId(c))) return; onAct("retry", c); }}>{pfResubActive(candId(c)) ? <span>Picking…</span> : "Failed" + (failCount(c) >= 2 ? "(" + failCount(c) + ")" : "")}</button>
+    <button type="button" className={`sc-fail${pfResubActive(candId(c)) ? " picking" : ""}`} title="길게 = 실패 사유 · 제목 = 원문" {...failHold}
+      onClick={(e) => e.stopPropagation()}>{pfResubActive(candId(c)) ? <span>Picking…</span> : "Failed" + (failCount(c) >= 2 ? "(" + failCount(c) + ")" : "")}</button>
     <button type="button" className="sc-tg ack sc-failgo" aria-label="픽 취소 — 픽 하기 전으로" title="체크 = 픽 취소(픽 하기 전으로 되돌림 · PASS/PICK 다시 선택)" onClick={(e) => { e.stopPropagation(); onAct("unfail", c); }}>{CK}</button>
   </>;
   else if (ps === "settled" || (ps && !DATA_LOADED)) bottom = <button type="button" className="sc-got" aria-label="픽 완료" title="탭하면 피드에서 이 기사 열기" onClick={() => onAct("picked", c)}>PICKED</button>;
   else if (ps) bottom = <div className="sc-got picking" aria-label="분석 중"><span>Picking…</span></div>;
   else bottom = <>
     <button type="button" className="sc-tg pass" onClick={() => onAct("pass", c, bot.current || undefined, ref.current || undefined)}>PASS</button>
-    <button type="button" className="sc-tg pick" onClick={() => onAct("pick", c, bot.current || undefined, ref.current || undefined)}>PICK</button>
     <button type="button" className={`sc-tg ack${st.acked ? " on" : ""}`} aria-label="확인 — 봤음 표시" title="확인 — 봤다고 표시(신규와 구분·흐려짐)" onClick={() => onAct("ack", c)}>{ACK}</button>
   </>;
   return (
@@ -855,33 +819,6 @@ function Item({ c, st, col, ps, fx, mm, onAct }: {
   );
 }
 
-/** 내용 직접 입력(원본 pastedlg — 막힌 매체 = 본문을 붙여 그 내용으로 재분석 · api/pick body) */
-function PasteSheet({ c, onClose, onDone }: { c: C; onClose: () => void; onDone: () => void }) {
-  const [t, setT] = useState(""), ta = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; document.addEventListener("keydown", k); setTimeout(() => ta.current?.focus(), 60); return () => document.removeEventListener("keydown", k); }, [onClose]);
-  const send = async () => {
-    if (!c || !c.url) { NOTE({ msg: "대상 정보 없음 — 메뉴를 다시 열어줘" }); throw new Error("대상 정보 없음"); }
-    const text = t.trim();
-    if (text.length < 30) { NOTE({ msg: "기사 전문을 붙여넣어줘 (너무 짧음)" }); throw new Error("너무 짧음"); }
-    let r: Response;
-    try { r = await postJ("/api/pick", pickBody(c, text)); } catch { NOTE({ msg: "전송 실패" }); throw new Error("전송 실패"); }
-    const d = (await r.json().catch(() => ({}))) as C;
-    if (!(r.ok && d.ok)) { const m = d.error || `서버 ${r.status}`; NOTE({ msg: m }); throw new Error(m); }
-    NOTE({ msg: "재분석 시작 — 곧 Picking…으로, 완료되면 PICKED" });
-    const id = candId(c); saveRating(id, { picked: true, pickedAt: Date.now() }); pfAddResub(id); markPickFailSeen();
-  };
-  return createPortal(
-    <div className="yeta-set nm-scrap-layer nm-scrap-sheet" role="dialog" aria-label="내용 직접 입력">
-      <button type="button" className="nm-scrap-veil" aria-label="닫기" onClick={onClose} />
-      <div className="sc-paste">
-        <div className="sc-rsn-q"><b>내용 직접 입력</b><button type="button" className="sc-rsn-x" aria-label="닫기" onClick={onClose}>{XI}</button></div>
-        <div className="sc-paste-sub">{(c.title || "").slice(0, 80) || c.url || ""}</div>
-        <textarea ref={ta} rows={7} value={t} onChange={(e) => setT(e.target.value)} placeholder="막힌 매체라 자동 수집이 안 됐어 — 기사 페이지에서 본문을 전체 선택·복사해 여기 붙여넣고 전송하면 그 내용으로 재분석해(403 우회)." autoCapitalize="off" autoCorrect="off" spellCheck={false} />
-        <div className="sc-paste-bot"><GoButton className="ypc-go sc-paste-go" go={send} done={onDone}>재분석 보내기</GoButton></div>
-      </div>
-    </div>, document.body);
-}
-
 const SC_PAGE = 150;   // 칼럼마다 150장씩(바닥 600px 전 = 다음 150 · 원본 _scIO)
 let foldOpen = false;   // 검증대기 펼침 = 이 접속 동안 기억(원본 scFoldOpen)
 
@@ -891,7 +828,7 @@ export function ScrapModal() {
   const [ver, setVer] = useState(0), redraw = useCallback(() => { PASS = null; setVer((v) => v + 1); }, []);
   const [fold, setFold] = useState(foldOpen), [shown, setShown] = useState({ cross: SC_PAGE, new: SC_PAGE });
   const [merge, setMerge] = useState<{ a: string; sel: Set<string> } | null>(null), [pop, setPop] = useState<Pop | null>(null);
-  const [note, setNote] = useState<Note | null>(null), [paste, setPaste] = useState<C | null>(null), [fx, setFx] = useState<Record<string, Fx>>({});
+  const [note, setNote] = useState<Note | null>(null), [fx, setFx] = useState<Record<string, Fx>>({});
   const root = useRef<HTMLDivElement>(null), lastIn = useRef(0), anchorTop = useRef<{ cid: string; top: number } | null>(null), seenOnce = useRef(false), pruned = useRef("");
   const scroller = () => root.current?.closest(".nm-scroll") as HTMLElement | null | undefined;
 
@@ -902,7 +839,7 @@ export function ScrapModal() {
   const live = useMemo(() => ({ c: cq.data, n: nq.data, s: sq.data, b: bq.data, f: fq.data }), [cq.data, nq.data, sq.data, bq.data, fq.data]);
   const [rd, setRd] = useState(live);
   const busyRef = useRef(false);
-  busyRef.current = !!(merge || pop || paste || (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)));
+  busyRef.current = !!(merge || pop || (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)));
   useEffect(() => {
     if (rd === live) return;
     let t = 0;
@@ -978,7 +915,6 @@ export function ScrapModal() {
       case "ack": toggleAck(c); redraw(); return;
       case "brkno": brkNotUrgent(c); return;
       case "unmerge": if (el) setPop({ k: "unmerge", c, el }); return;
-      case "retry": bumpFailRetry(c); failRetry(c, redraw); runFx(id, redraw); return;
       case "failmenu": if (el) setPop({ k: "fail", c, el }); return;
       case "unfail": cancelPickPrepick(c); redraw(); return;
       case "domerge": { if (!merge || !merge.sel.size) return; const m = doMerge(merge.a, merge.sel); setMerge(null); if (m) NOTE({ msg: m }); redraw(); return; }
@@ -1051,10 +987,8 @@ export function ScrapModal() {
       {pop && pop.k === "fail" ? (
         <Floating pop={pop} onClose={() => setPop(null)} className="sc-failmenu">
           <button type="button" className="sc-failmenu-it" role="menuitem" onClick={() => { const c = pop.c; setPop(null); failDownload(c); }}>{DOC}실패 사유</button>
-          <button type="button" className="sc-failmenu-it" role="menuitem" onClick={() => { const c = pop.c; setPop(null); setPaste(c); }}>{PEN}내용 입력</button>
         </Floating>
       ) : null}
-      {paste ? <PasteSheet c={paste} onClose={() => setPaste(null)} onDone={() => { setPaste(null); redraw(); }} /> : null}
       {note ? createPortal(
         <div className="yeta-set nm-scrap-layer"><div className={`sc-note${note.fail ? " fail" : ""}`} role="status" aria-live="polite" onClick={() => setNote(null)}>
           <span>{note.fail ? <><b>{note.msg.split(" · ")[0]}</b>{" · " + note.msg.split(" · ").slice(1).join(" · ")}</> : note.msg}</span>

@@ -125,19 +125,6 @@ html:not(.dark) .nm-nd .nm-nd-md { --nm-nd-h:#4f7a00; }
 
 .nm-nd-orig { font-family:var(--app-font-text, inherit); }   /* 원문 제목 = 본문 글꼴(LEMONMILK 대문자 꼴 안 씀 · D9) */
 
-/* 기사 한 장 맨 아래 「요약 고치기」(./summary-fix.tsx · 옛 요약 창 ✏️요약 수정을 앱 안으로) — 단추 = .ypc-go · 펼침 = 카드 한 장 · 글칸 = 요약 요청(.nm-ask-ta) 결 */
-.nm-nd .nm-sfix { display:flex; flex-direction:column; gap:10px; }
-.nm-nd .nm-sfix-tog.on { background:var(--glass); color:var(--fg-2); border:1px solid var(--glass-line); }
-.nm-nd .nm-sfix-pane { display:flex; flex-direction:column; gap:8px; }
-.nm-nd .nm-sfix-why { margin:0; font-size:var(--fs-sm); line-height:1.45; color:var(--mut); }
-.nm-nd .nm-sfix-ta { width:100%; font:inherit; font-family:var(--app-font-text, inherit); font-size:var(--fs-body); line-height:var(--lh-base, 1.6); color:var(--fg); background:var(--glass); border:1px solid var(--glass-line);
-  border-radius:var(--r-l); padding:10px 13px; outline:none; resize:vertical; box-shadow:inset 0 1px 0 var(--glass-line); transition:border-color .45s var(--ease); }
-.nm-nd .nm-sfix-ta:focus { border-color:color-mix(in srgb, var(--accent) 35%, transparent); }
-.nm-nd .nm-sfix-ta::placeholder { color:var(--mut); }
-.nm-nd .nm-sfix-acts { margin-top:0; justify-content:flex-end; }
-.nm-nd .nm-sfix .ypc-go:disabled { opacity:.5; }
-.nm-nd .nm-sfix-note { margin:0; font-size:var(--fs-sm); line-height:1.45; padding:6px 10px; border-radius:var(--r-s, 9px); border:1px solid var(--glass-line); background:var(--glass); }
-.nm-nd .nm-sfix-note.ok { color:var(--accent); } html:not(.dark) .nm-nd .nm-sfix-note.ok { color:#4f7a00; } .nm-nd .nm-sfix-note.err { color:#ff8a8a; } html:not(.dark) .nm-nd .nm-sfix-note.err { color:#d23b3b; }
 /* 피드 칸 고치기 · 다시 만들기(./feed-acts.tsx · team-3 U1 · 카드뉴스 칸 안) — 칩 = .yset-chip · 글칸 = 요약 요청(.nm-ask-ta) 결 · 보내기 = .ypc-go(GoButton)
    돈 드는 길(그림 = 제미나이) = 한 번 누르면 호박색으로 바뀌고 3.5초 안에 한 번 더 눌러야 나감(옛 에디터 shoot 재확인 꼴) · 맨 아래 「에디터에서 열기」 = 이제 보조 단추(유리) */
 .nm-feed { display:flex; flex-direction:column; gap:10px; padding-top:10px; border-top:1px solid var(--glass-line); }

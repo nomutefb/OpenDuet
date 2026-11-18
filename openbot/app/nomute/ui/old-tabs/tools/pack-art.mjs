@@ -8,7 +8,7 @@ import fs from "node:fs";
 import { APP, read } from "./lib.mjs";
 
 const P = {};
-P.ROOTS = ["open", "load", "openRev", "openCrev", "openTredo", "startRevising", "startCardRevising", "backdropClose", "draftClear", "attachCopyPaste"];
+P.ROOTS = ["open", "load", "openCrev", "openTredo", "startCardRevising", "backdropClose", "draftClear", "attachCopyPaste"];   // 요약 수정(openRev · api/revise · news-revise) = 걷음(형 11-18 12:03 「!깃 ✓ ① 다 지움(의류수거함)」) · 카드 수정 = 남김(형 13:14 「응, 카드뉴스는 놔둘게.」)
 // 앱에 없는 옛 뼈대 = 끊는 자리(prelude-art.js 가 대신 섬)
 P.STOP = [
   "$", "CURTAB", "NM_SET", "SCRAP_LOADED",
@@ -21,18 +21,16 @@ P.STOP = [
 ];
 // 맨 위에서 바로 도는 줄 가운데 가져올 것(글머리로 고름)
 P.EXTRA = [
-  /^attachCopyPaste\(\$\('#revText'\), true\);$/, /^attachCopyPaste\(\$\('#crevText'\), true\);$/, /^attachCopyPaste\(\$\('#tredoText'\), true\);$/, /^attachCopyPaste\(\$\('#edWish'\), true\);$/,
+  /^attachCopyPaste\(\$\('#crevText'\), true\);$/, /^attachCopyPaste\(\$\('#tredoText'\), true\);$/, /^attachCopyPaste\(\$\('#edWish'\), true\);$/,
   /^\$\('#dlgbody'\)\.addEventListener\('scroll', updateScrub/,
   /^new ResizeObserver\(\(\) => \{ if \(\$\('#dlg'\)\.open\) updateScrub\(\); \}\)/,
   /^\(function\(\)\{\s*const src = \$\('#src'\);/,   // 원문(↗) 누름 반짝
   /^document\.addEventListener\('click', e => \{\s*if \(e\.defaultPrevented\) return;\s*\/\/ 드래그/,   // 단추 누름 그림 움직임(한 번)
   /^document\.addEventListener\('click', e => \{\s*const b = e\.target\.closest\('\.dlbtn'\)/,   // 저장 단추 누름 = 「받음」 표시 + 체크 한 번
-  /^\$\('#revFab'\)\.addEventListener\('click', openRev\);$/, /^\$\('#crevFab'\)\.addEventListener\('click', openCrev\);$/,
+  /^\$\('#crevFab'\)\.addEventListener\('click', openCrev\);$/,
   // 카드 수정 요청 창
   /^\$\('#crevX'\)\.addEventListener\('click'/, /^backdropClose\(\$\('#crevdlg'\), \['#crevText'\]\);$/, /^\$\('#crevdlg'\)\.addEventListener\('close'/, /^\$\('#crevText'\)\.addEventListener\('input'/, /^\$\('#crevSend'\)\.addEventListener\('click', async/,
-  /^loadCardRevising\(\);$/, /^loadRevising\(\);$/,   // 새로 고쳐도 「수정 중」 이어 보기
-  // 뉴스 수정 요청 창
-  /^\$\('#revX'\)\.addEventListener\('click'/, /^backdropClose\(revdlg, \['#revText'\]\);$/, /^revdlg\.addEventListener\('close'/, /^\$\('#revText'\)\.addEventListener\('input'/, /^\$\('#revSend'\)\.addEventListener\('click', async/,
+  /^loadCardRevising\(\);$/,   // 새로 고쳐도 「수정 중」 이어 보기
   // 이미지 수정 요청 창
   /^\$\('#tredoX'\)\.addEventListener\('click'/, /^\$\('#tredodlg'\)\.addEventListener\('close'/, /^backdropClose\(\$\('#tredodlg'\), \['#tredoText'\]\);$/, /^\$\('#tredoText'\)\.addEventListener\('input'/, /^\$\('#tredoSend'\)\.addEventListener\('click', async/,
   // 카드 한 장 변경 창
@@ -42,6 +40,7 @@ P.EXTRA = [
   /^window\.addEventListener\('resize', \(\) => \{ if \(\$\('#editdlg'\)\.open\) fitEditLines/, /^\$\('#editdlg'\)\.addEventListener\('click', e => \{ if \(e\.target\.id === 'editdlg'\)/,
 ];
 P.REWRITE = [
+  [/!\$\('#revdlg'\)\.open/g, "!(revdlg && revdlg.open)"],   // 요약 수정 창(revdlg) = 걷음 → 카드 수정 단추가 그 창 열림을 볼 때 빈 값이면 닫힌 것
   [/\bfetch\('articles\.json\?_=' \+ Date\.now\(\)\)/g, "__feed()"],   // 기사 목록 = 앱이 읽은 것(같은 3.9MB 를 두 번 안 받음)
   [/return 'api\/dl\?u=' \+ /g, "return '/api/dl?u=' + "],   // 저장 길(다른 출처 그림 = 서버 거쳐 받기) = 글줄로 href 에 박힘 → 맨 위 기준
   [/_dl\[_dl\.length - 1\] : document\.body;/g, "_dl[_dl.length - 1] : ROOT;"],   // 짧은 알림(qFlash) 자리 = 이 틀 안(옷이 .oa 안에만 있음)
@@ -68,8 +67,10 @@ P.markup = ({ cut, lit }) => {
   const x = /<button class="tool-x dlg-x" onclick="dlg\.close\(\)"[\s\S]*?<\/button>/;
   if (!x.test(dlg)) { console.error("판 조각 못 찾음: 기사 창 닫기 단추"); process.exit(1); }
   dlg = dlg.replace('<dialog id="dlg">', '<dialog id="dlg" open aria-label="뉴스 요약">').replace(x, "");   // 닫기 × = 칸 안이라 뺌(폰 = 앱 「목록」 단추)
+  const fab = /\s*<!-- 요약 수정 FAB[\s\S]*?<button class="rev-fab" id="revFab"[\s\S]*?<\/button>/;   // 요약 수정 = 걷음(의류수거함 11-18)
+  dlg = dlg.replace(fab, "");   // 원본(viewer)에서도 걷히면 없는 대로
   const ed = cut(/<dialog id="editdlg">[\s\S]*?<\/dialog>/, "카드 변경").replace(' onclick="editdlg.close()"', ' data-oa-x="editdlg"');   // 판 안 onclick="editdlg.close()" = 창 전역 이름 → 엔진이 틀 안에서 찾아 닫음
-  const rev = cut(/<dialog id="revdlg"[\s\S]*?<\/dialog>/, "뉴스 수정") + cut(/<dialog id="crevdlg"[\s\S]*?<\/dialog>/, "카드 수정") + cut(/<dialog id="tredodlg"[\s\S]*?<\/dialog>/, "이미지 수정");
+  const rev = cut(/<dialog id="crevdlg"[\s\S]*?<\/dialog>/, "카드 수정") + cut(/<dialog id="tredodlg"[\s\S]*?<\/dialog>/, "이미지 수정");
   fs.writeFileSync(APP + "ui/old-tabs/markup-art.ts", `// 만든 파일 — 손으로 고치지 말 것(ui/old-tabs/tools/gen-js.mjs art · 옛 에디터 viewer/index.html 의 기사 창 판 그대로)
 //   기사 창 = 열린 채 칸 안에 박힘(뒤 막 · 닫기 × 없음) · 그 창이 여는 작은 창 넷(카드 변경 · 뉴스 수정 · 카드 수정 · 이미지 수정)은 원본처럼 위에 뜸
 export const ART_HTML = ${lit(dlg + ed + rev)};

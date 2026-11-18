@@ -18,11 +18,6 @@ export const ART_HTML = `<dialog id="dlg" open aria-label="뉴스 요약">
   </details>
   </div>
   
-  <button class="rev-fab" id="revFab" type="button" aria-label="요약 수정" title="요약 수정">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-    <span class="rev-hint">수정 중</span>
-  </button>
-  
   <button class="rev-fab crev-fab" id="crevFab" type="button" aria-label="카드 수정" title="카드 수정">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>
     <span class="rev-hint">카드 수정 중</span>
@@ -39,13 +34,6 @@ export const ART_HTML = `<dialog id="dlg" open aria-label="뉴스 요약">
   <button class="dlgtop ed-top" id="edtop" type="button" aria-label="맨 위로" title="맨 위로"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"/></svg></button>
   <div class="ed-status" id="edStatus" aria-live="polite"></div>
   <div class="ed-foot"><label class="askattach edattach" id="edAttach" title="이미지 첨부 (4:5) — 첨부 후 탭하면 제거" aria-label="이미지 첨부"><svg class="edattach-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="M21 16l-5-5L5 20"></path></svg><img class="edattach-thumb" id="edAttachThumb" alt="" hidden><span class="askattach-badge" id="edAttachBadge" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span><input id="edFile" type="file" accept="image/*" hidden></label><button class="ed-go" id="edGo" type="button"><span class="ed-ic"></span><span class="ed-tx">변경</span><svg class="gck" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7"/></svg></button><div class="ed-confirm"><span class="ed-cmsg">이 카드만 다시 생성할까요?</span><button class="ed-cno" type="button">취소</button><button class="ed-cyes" type="button">확인</button></div></div>
-</dialog><dialog id="revdlg" class="askdlg revdlg">
-  <div class="askwrap">
-    <div class="askhead"><b>뉴스 수정 요청</b><div class="revhead-act"><button class="asksend revsend" id="revSend" type="button"><span>수정</span></button><button class="askx" id="revX" type="button" aria-label="닫기"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M6 6 18 18M18 6 6 18"/></svg></button></div></div>
-    <div class="asktawrap">
-      <textarea id="revText" class="askta" rows="2" placeholder="" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
-    </div>
-  </div>
 </dialog><dialog id="crevdlg" class="askdlg revdlg">
   <div class="askwrap">
     <div class="askhead"><b>카드 수정 요청</b><div class="revhead-act"><button class="asksend revsend" id="crevSend" type="button"><span>수정</span></button><button class="askx" id="crevX" type="button" aria-label="닫기"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M6 6 18 18M18 6 6 18"/></svg></button></div></div>
