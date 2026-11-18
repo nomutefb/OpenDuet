@@ -6,7 +6,7 @@
 import { type Choice, type Job, type Llm, type Pick, PIPE_DEF, PIPE_GROUPS, koOf, modelChoices, effortChoices, pipeChoices, pipeRows, sameOf } from "./model-set-logic.ts";
 
 export type HeadKey = { kind: "pipe"; id: string } | { kind: "ms"; ids: string[] };
-export type HeadJob = { id: string; name: string; llm_group?: string | string[]; llm?: string | string[] };   // llm_group = 갈래(서버 러너 지도 · 빠르 #4092: judge · brief · create · video · modelset) · llm = 그 워크플로가 읽는 손잡이 이름(「modelset:audit·sort」 꼴이면 서버 일 id)
+export type HeadJob = { id: string; name: string; file?: string; llm_group?: string | string[]; llm?: string | string[] };   // llm_group = 갈래(서버 러너 지도 · 빠르 #4092: judge · brief · create · video · modelset) · llm = 그 워크플로가 읽는 손잡이 이름(「modelset:audit·sort」 꼴이면 서버 일 id)
 /** 서버 칸이 오기 전에 아는 것 — 정원 일감 가르기 · 점검 = 서버 일 「일감 가르기」 + 「안 닫힌 오더 판독」(서버 where 글 「한 번에 처리 · 두 설정 연동」). */
 const KNOWN: Record<string, string[]> = { "wf.garden-judge": ["ms:sort", "ms:audit"] };
 const PIPE_IDS = PIPE_GROUPS.map((g) => g.id);
@@ -41,3 +41,6 @@ export function headNote(mates: string[], head: Head, key: HeadKey): string {
   const n = mates.length > 1 ? `같이 바뀌는 일 ${mates.length}` : "";
   return [n, key.kind === "ms" && key.ids.length > 1 ? `${head.title} 같이` : ""].filter(Boolean).join(" · ");
 }
+/** 러너 일 → 워크플로 이름(계측 줄의 wf 칸과 같은 꼴) — 파일 이름에서 · 없으면 일 id(wf.<이름>)에서 */
+export const wfOf = (job: HeadJob): string => { const f = String(job.file || "").split("/").pop() || ""; return /\.ya?ml$/.test(f) ? f.replace(/\.ya?ml$/, "") : job.id.startsWith("wf.") ? job.id.slice(3).split("#")[0] : ""; };
+

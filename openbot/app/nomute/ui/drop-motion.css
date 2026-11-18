@@ -1,0 +1,19 @@
+/* 펼침 움직임 한 벌 — 고르기 목록 · 접는 카드 몸통 · 누른 줄 밑 까닭이 다 같은 움직임(형 11-19 「이런 박스들 내가 누르면 자연스럽게 부드럽게 고프레임으로 리소스에는 부담없이 펼치게 모두 통일」)
+   값 = 에디터 장부 「드롭다운 등장 모션」 정본 그대로(디자인기틀/CII_컴포넌트계승인덱스.md · 형 260803 「누르면 촤르르 아래에 메뉴」 → 260804 「드롭다운 정본 ㄱ」 · 수치 창작 0):
+     PC = from{opacity:0; transform:translateY(-10px) scale(.95)} .22s cubic-bezier(.26,1.2,.5,1)(스프링 팝)
+     폰(≤768px) = from{opacity:0; clip-path:inset(0 0 100% 0)} .55s cubic-bezier(.215,.61,.355,1)(위 → 아래 촤르르)
+   싼 길 = 자리를 다시 세는 값(height · top · margin)은 안 움직임 — 자리는 한 번에 잡히고, 그 위에서 투명도 · transform · clip-path 만(그래픽카드가 그림) · 한 번 돌고 멈춤
+   참조: nomutefb/editor 디자인기틀/CII_컴포넌트계승인덱스.md 「드롭다운 등장 모션」(vd .vpop vpopDrop / vpopFold) */
+.nm-bpick-list, .nm-dropin { animation:nmDropIn .22s cubic-bezier(.26,1.2,.5,1); }
+.nm-dropin { transform-origin:top center; }
+.nm-bpick-list[data-up], .nm-dropin[data-up] { animation-name:nmDropUp; }
+@keyframes nmDropIn { from { opacity:0; transform:translateY(-10px) scale(.95); } }
+@keyframes nmDropUp { from { opacity:0; transform:translateY(10px) scale(.95); } }
+@media (max-width:768px) {
+  .nm-bpick-list, .nm-dropin { animation:nmFoldIn .55s cubic-bezier(.215,.61,.355,1); }
+  .nm-bpick-list[data-up], .nm-dropin[data-up] { animation-name:nmFoldUp; }
+}
+@keyframes nmFoldIn { from { opacity:0; clip-path:inset(0 0 100% 0); } }
+@keyframes nmFoldUp { from { opacity:0; clip-path:inset(100% 0 0 0); } }
+@media (prefers-reduced-motion:reduce) { .nm-bpick-list, .nm-dropin { animation:none; } }
+html.nm-lessmove .nm-bpick-list, html.nm-lessmove .nm-dropin { animation:none; }

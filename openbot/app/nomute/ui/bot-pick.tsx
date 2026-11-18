@@ -4,6 +4,7 @@
 import { type KeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { Chev } from "./chev";
 import "./bot-pick.css";
+import "./drop-motion.css";   // 목록이 뜨는 움직임 한 벌(에디터 「드롭다운 등장 모션」 정본)
 
 export type BotOpt = { id: string; name: string; mark?: string; face: ReactNode; note?: string };
 

@@ -3,7 +3,7 @@
 //   서버 = GET schedule · POST schedule/set(형만 · dry = 미리 보기 · at routine·fork·bot) · 저장 흐름 = 설정 NomuteSchedule 과 같음 · 서버 판이 안 올라온 동안은 forks 없음 → 「아직 안 나눔」 한 포크
 import { ModelSetRows } from "./model-set";   // 머리(서브 LLM) = 스케줄 화면으로(형 11-17 02:1x)
 import { CollectLog } from "./sched-collect";   // 수집 = 옛 러너 층 「시간축 · 수집」을 일이 도는 자리로(형 11-19 「시간축 수집도 > 스케줄러에 귀속시키면됨」)
-import { HealthLog, KindWaits, ThumbOptLog } from "./sched-extra";   // 점검 · 모아 깨우기 · 그림 = 설정에서 옮김(형 11-17 03:24)
+import { Fold, HealthLog, KindWaits, ThumbOptLog } from "./sched-extra";   // 점검 · 모아 깨우기 · 그림 = 설정에서 옮김(형 11-17 03:24)
 import { DialogX } from "./dialog-x";   // 창 X 하나(하네스 · 형 11-15 「창에 x 버튼을 통일시켜서 하네스로 맞추자」)
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -345,10 +345,7 @@ export function SchedDesk() {
         </div>
       )) : null}
       {tab === "tree" ? (   /* 머리 = 서브 LLM 갈래 전부(서버가 직접 부르는 일 · 파이프라인) — 설정 「일 모델 · 노력도」와 같은 부품 · 같은 값(형 11-17 02:1x 「묻지말고 녹인뒤 픽스되면 설정에서 빼주셈」 · 러너 일 판의 「머리」 칸은 그 일의 갈래만 · 여기는 러너 일에 안 걸린 갈래까지 한눈에) */
-        <section className="nm-org-log nm-sched-llm" aria-label="머리(서브 LLM)">
-          <h3>머리<small> 서브 LLM · 모델 · 노력도</small></h3>
-          <ModelSetRows bots={false} />
-        </section>
+        <Fold title="머리" sub="서브 LLM · 모델 · 노력도"><div className="nm-sched-llm"><ModelSetRows bots={false} /></div></Fold>   /* 접는 카드로(형 11-19 「이렇게 머리로 꺼내지는게아니라」 · 일마다 제 머리 줄은 나무의 그 일 판 안 · 여기는 갈래 → 호출 한눈에) */
       ) : null}
       {tab === "tree" ? <><CollectLog /><KindWaits kinds={d.kinds || []} sha={d.sha || ""} can={can} /><ThumbOptLog /></> : null}   {/* 모아 깨우기(설정 「스케줄러 바꾸기」에만 있던 칸) · 그림(설정 「AI 썸네일 옵션」) */}
       {/* 「최근 바뀜」 카드 = 통째로 걷음(형 11-17 07:45 dm-bom 「글구 이거 필요없는거 없애도 되나 체크좀」 → 「아예.다.지우자」 · 12일 전 줄만 남아 있던 카드 · 서버 칸 schedule.changes 는 이제 화면이 안 읽음) */}

@@ -37,3 +37,12 @@
 .nm-ms-row .cellw > .cell svg { transition:rotate .2s ease; }
 .nm-bpick-list.nm-mspick { left:auto; z-index:80; transform-origin:top right; }   /* body 에 뜬 목록(./model-set.tsx Cell · 자리 = 인라인 fixed) */
 .nm-bpick-list.nm-mspick .nm-bpick-opt { font-size:var(--fs-body); padding:8px 12px; text-transform:inherit; }
+/* 갈래 줄 밑 들여쓴 호출 줄(형 11-19 「여러값인거는 애초에 카테고라이징해서 그 안에서 분류되어야할듯, 조금 들여쓰기를 더 하든지해서」) — 갈래 이름을 누르면 펼침 · 접힘 · 줄은 한 단 낮고 옅게 */
+.nm-ms .grp { display:grid; gap:6px; }
+.nm-ms .grp .subs { display:grid; gap:4px; margin-left:16px; padding-left:10px; border-left:1px solid var(--glass-line); transform-origin:top left; }
+.nm-ms-row.sub { min-height:38px; padding-top:3px; padding-bottom:3px; background:none; border-color:transparent; }
+.nm-ms-row.sub .who { flex-direction:row; align-items:baseline; gap:8px; }
+.nm-ms-row.sub .who b { font-size:var(--fs-sm); font-weight:500; }
+.nm-ms-row .who.fold { border:0; background:none; padding:0; color:inherit; font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.nm-ms-row .who.fold b { display:inline-flex; align-items:center; gap:5px; }
+.nm-ms-row .who.fold b svg { flex:none; opacity:.55; }

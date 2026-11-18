@@ -20,6 +20,7 @@ import { type Band, type SRow, bandCount, bandDiary, bandHands, bandLink, cliNot
 import { type Cell, type CliItem, type StatusData, type StatusRow, catRows, hostOf, statusOpts, worst } from "./status-q";
 import "./sched-status.css";
 import "./yeta-settings.css";
+import "./drop-motion.css";
 import "./status-board.css";
 export { cliNoteItems, diaryCell } from "./crew-table-logic";
 export type { StatusCat, StatusRow } from "./status-q";
@@ -173,7 +174,7 @@ export function StatusBoard({ bare = false }: { bare?: boolean } = {}) {
     return (
       <section className="nsb-cat" data-st={st} data-cat={id}>
         <button type="button" className="nsb-ch" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [id]: !isOpen }))}>{head}<b>{name}</b><span className="nsb-cnt">{cnt}</span></button>
-        {isOpen ? body : null}
+        {isOpen ? <div className="nm-dropin">{body}</div> : null}   {/* 펼침 움직임 한 벌(./drop-motion.css · 형 11-19 「모두 통일」) */}
       </section>
     );
   };

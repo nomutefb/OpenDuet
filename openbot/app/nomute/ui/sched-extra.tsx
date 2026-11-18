@@ -6,6 +6,7 @@
 //   · 그림 = 설정 「AI 썸네일 옵션」(러너가 읽는 그림 설정 · ./genopt.tsx 그대로)
 //   꼴 = 「최근 바뀜」 카드(.nm-org-log) 한 벌 · 머리 줄을 누르면 펼침(닫힌 채로는 한 줄 · 고칠 것이 있으면 점검은 열려서 뜸)
 import "./sched-extra.css";
+import "./drop-motion.css";   // 카드 몸통이 펼쳐지는 움직임 한 벌(에디터 「드롭다운 등장 모션」 정본 · 형 11-19 「모두 통일」)
 import { Fragment, Suspense, lazy, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { office } from "../data/office";
@@ -20,7 +21,7 @@ export function Fold({ title, sub, tone, auto, children }: { title: string; sub?
   return (
     <section className="nm-org-log nm-sx" aria-label={title}>
       <h3><button type="button" aria-expanded={open} onClick={() => setO(!open)}><b>{title}</b>{sub ? <small data-tone={tone}>{sub}</small> : null}<Chev dir={open ? "up" : "down"} size={14} /></button></h3>
-      {open ? children : null}
+      {open ? <div className="nm-sx-body nm-dropin">{children}</div> : null}
     </section>
   );
 }

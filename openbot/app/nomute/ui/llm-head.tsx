@@ -2,12 +2,14 @@
 //   형 11-17 02:0x 구름 맥 창 「이런식으로 서브 llm들이 잇어 얘들도 아까 스케줄러 사이사이에 어떨게 녹일지 봄하고 협의해서 진행해줘」 · 「글구 지금 러너 배선에서 설정한거는 그대로 내용에 반영되개해주고」
 //   값 주인 = 설정 「일 모델 · 노력도」 하나 — 여기서도 같은 열쇠 · 같은 길(./model-set.tsx useModelSet · usePipeLlm · useJobSave · usePipeSave)로 읽고 씀(봄 02:04 (ㄱ))
 //   꼴 = 낱말 줄(지금 값 = 라임 · 형 11-17 「현재 상태인거에 라임」) · 바꾸기 = 그 자리 재확인 토글 안에 「같이 바뀌는 일 N」(봄 (ㄴ) · 갈래를 바꾸면 그 갈래 일이 다 바뀜) · 바꾸기 = 형만
+import type React from "react";
 import { Fragment } from "react";
 import { MorphAsk } from "./morph-ask";
 import { useMe } from "./pins";
-import { useJobSave, useModelSet, usePipeLlm, usePipeSave } from "./model-set";
-import { type Choice, type Pick, pipePatch } from "./model-set-logic";
-import { type HeadJob, type HeadKey, headKeyOf, headMates, headNote, headOf } from "./llm-head-logic";
+import { useJobSave, useLlmUse, useModelSet, usePipeLlm, usePipeSave } from "./model-set";
+import { type Choice, type Llm, type Pick, PIPE_GROUPS, modelChoices, modelName, pipePatch, pipePatchSrc, pipeRows, srcChoices, wfSources } from "./model-set-logic";
+import { agoKo } from "./sched-bits";
+import { type HeadJob, type HeadKey, headKeyOf, headMates, headNote, headOf, wfOf } from "./llm-head-logic";
 import "./llm-head.css";
 
 /** 낱말 줄 — 지금 값은 라임 글자 · 다른 낱말을 누르면 그 낱말이 [아니오] [바꾸기] 로(형만). */
@@ -19,8 +21,8 @@ function Line({ label, list, value, can, busy, note, onPick }: { label: string; 
         {list.map((c, i) => (
           <Fragment key={c.id}>
             {i ? <i aria-hidden>|</i> : null}
-            {c.id === value || !can ? <span className={c.id === value ? "w on" : "w"} aria-current={c.id === value || undefined}>{c.ko}</span>
-              : <MorphAsk className="w" disabled={busy} yesText="바꾸기" note={note || undefined} label={`${label} ${c.ko}`} onYes={() => onPick(c.id)}>{c.ko}</MorphAsk>}
+            {c.id === value || !can ? <span className={c.id === value ? "w on" : "w"} aria-current={c.id === value || undefined}>{c.menu || c.ko}</span>
+              : <MorphAsk className="w" disabled={busy} yesText="바꾸기" note={note || undefined} label={`${label} ${c.menu || c.ko}`} onYes={() => onPick(c.id)}>{c.menu || c.ko}</MorphAsk>}
           </Fragment>
         ))}
       </span>
@@ -47,8 +49,33 @@ function HeadIn({ job, jobs, k }: { job: HeadJob; jobs: HeadJob[]; k: HeadKey })
     </div>
   );
 }
-/** 갈래를 아는 러너 일에만 뜸(모르면 아무것도 안 그림 · 값도 안 읽음). */
+/** 이 일이 부르는 호출 하나하나의 머리 — 계측 줄에 적힌 실제 호출(워크플로가 같은 것)마다 한 칸 · 지금 값 = 마지막으로 실제 쓴 값 · 바꾸면 그 호출만 따로(서버 llm.<갈래>.src)
+ *  형 11-19 「이게 스케쥴 표 안에 들어가야한다고 봐. 이렇게 머리로 꺼내지는게아니라」 「판정 < 여러값 … 그 안에서 분류되어야할듯」 「거기서 설정한게 실제로 반영도되어야하고」 */
+function SrcHeads({ job, fallback }: { job: HeadJob; fallback: React.ReactNode }) {
+  const me = useMe(), can = me?.kind === "human" && me.can_write !== false;
+  const use = useLlmUse().data, pipe = usePipeLlm(), ms = useModelSet(), save = usePipeSave();
+  const llm = pipe.data?.llm as Llm | undefined, rows = wfSources(wfOf(job), use, llm);
+  if (!rows.length || !pipe.data) return <>{fallback}</>;
+  const groups = pipeRows(llm), models = modelChoices(ms.data?.models || []), err = save.error as Error | null;
+  return (
+    <>
+      {rows.map((r) => {
+        const g = groups[PIPE_GROUPS.findIndex((x) => x.id === r.group)] || { model: "default", effort: "default" }, c = srcChoices(r, g, models);
+        return (
+          <div key={r.id} className="nm-lh" role="group" aria-label={`${job.name} · ${r.ko} 머리(모델 · 노력도)`} data-busy={save.isPending || undefined}>
+            <div className="h"><b>머리</b><small>{r.ko}</small><em>{modelName(r.model)} · {r.effort}{r.ts ? ` · ${agoKo(r.ts)}` : ""}</em></div>
+            <Line label="모델" list={c.tiers} value={r.pick.model} can={can} busy={save.isPending} note="" onPick={(v) => save.mutate(pipePatchSrc(r.group, r.id, { model: v }))} />
+            <Line label="노력도" list={c.efforts} value={r.pick.effort} can={can} busy={save.isPending} note="" onPick={(v) => save.mutate(pipePatchSrc(r.group, r.id, { effort: v }))} />
+          </div>
+        );
+      })}
+      {err ? <p className="nm-lh err" role="alert">못 바꿨어 — {err.message || "서버 답 없음"}</p> : null}
+    </>
+  );
+}
+/** 러너 일 판의 머리 — 서버 일(일감 가르기 · 오더 판독) = 그 설정 한 칸 · 파이프라인 일 = 그 일이 부르는 호출마다 한 칸(계측 줄에 아직 없으면 갈래 한 칸) · 모델을 안 쓰는 일 = 아무것도 안 그림 */
 export function LlmHead({ job, jobs }: { job: HeadJob; jobs: HeadJob[] }) {
   const k = headKeyOf(job);
-  return k ? <HeadIn job={job} jobs={jobs} k={k} /> : null;
+  if (k?.kind === "ms") return <HeadIn job={job} jobs={jobs} k={k} />;
+  return <SrcHeads job={job} fallback={k ? <HeadIn job={job} jobs={jobs} k={k} /> : null} />;
 }

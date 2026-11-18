@@ -1,7 +1,7 @@
 // 설정 「모델 · 노력도」 논리(./model-set.tsx) — 서버가 준 꼴을 그대로 받아 글자 · 「모두」 줄 값만 정함(판정 0)
 export type Pick = { model: string; effort: string };
 export type Job = { id: string; ko: string; where?: string; def: Pick; now: Pick };
-export type Choice = { id: string; ko: string };
+export type Choice = { id: string; ko: string; menu?: string };   // menu = 고르는 목록에서만 앞에 붙는 말(「기본」) — 접힌 칸엔 ko(실제 값)만
 export type Sheet = { jobs: Job[]; models: Choice[]; efforts: Choice[] };
 
 export const koOf = (list: Choice[], id: string): string => list.find((c) => c.id === id)?.ko || id;
@@ -61,8 +61,8 @@ export function tierName(tier: string, models: Choice[]): string {
 export function pipeChoices(gid: string, models: Choice[]): { tiers: Choice[]; efforts: Choice[] } {
   const b = PIPE_BASE[gid] || { tier: "", effort: "" };
   return {
-    tiers: [{ id: PIPE_DEF, ko: b.tier ? tierName(b.tier, models) : "여러 값" }, ...PIPE_TIER_IDS.map((t) => ({ id: t, ko: tierName(t, models) }))],
-    efforts: [{ id: PIPE_DEF, ko: b.effort || "여러 값" }, ...effortChoices()],
+    tiers: [{ id: PIPE_DEF, ko: b.tier ? tierName(b.tier, models) : "여러 값", menu: "기본" }, ...PIPE_TIER_IDS.map((t) => ({ id: t, ko: tierName(t, models) }))],
+    efforts: [{ id: PIPE_DEF, ko: b.effort || "여러 값", menu: "기본" }, ...effortChoices()],
   };
 }
 /** 「모두」 줄의 고르는 칸 표(첫 칸 = 「기본」 = 일곱 갈래 다 안 고름). */
@@ -72,7 +72,7 @@ export const pipeAllChoices = (models: Choice[]): { tiers: Choice[]; efforts: Ch
 });
 const PIPE_TIERS: Choice[] = [{ id: PIPE_DEF, ko: "" }, ...PIPE_TIER_IDS.map((id) => ({ id, ko: id }))];
 const PIPE_EFFORTS: Choice[] = [{ id: PIPE_DEF, ko: "" }, ...effortChoices()];
-export type Llm = Record<string, { tier?: string; effort?: string }>;
+export type Llm = Record<string, { tier?: string; effort?: string; src?: Record<string, { tier?: string; effort?: string }> }>;   // src = 갈래 안 호출 하나만 따로(서버 settings.js · shared/llm_pick.py · 형 11-19)
 /** 서버 값 → 갈래마다 고르는 칸 값(안 고른 칸 = 「기본」 · 표 밖 값도 「기본」). */
 export function pipeRows(llm: Llm | undefined): Pick[] {
   return PIPE_GROUPS.map((g) => {
@@ -87,3 +87,60 @@ export function pipePatch(gids: string[], p: Partial<Pick>): Llm {
   if (p.effort !== undefined) row.effort = p.effort === PIPE_DEF ? "" : p.effort;
   return Object.fromEntries(gids.map((g) => [g, { ...row }]));
 }
+
+// ── 갈래 안 호출 하나하나(형 11-19 「판정 < 여러값 나와있는데, 여러값인거는 애초에 카테고라이징해서 그 안에서 분류되어야할듯, 조금 들여쓰기를 더 하든지해서, 분류해줘」)
+//   자료 = /token-usage.json 의 llm 칸(에디터 shared/token_report.py) — 갈래 표 + 호출 이름마다 마지막으로 실제 쓴 모델 · 노력도 · 때 · 워크플로
+//   「지금 값」 = 재서 적힌 실제 값(형 「거기서 설정한게 실제로 반영도되어야하고」 = 고른 뒤 다음 호출의 계측 줄로 확인됨) · 화면이 지어내는 값 0
+export type LlmLastRow = { model?: string; effort?: string; ts?: string; wf?: string; group?: string; ko?: string };
+export type LlmUse = { groups?: { id: string; ko: string; sources: string[] }[]; last?: Record<string, LlmLastRow> };
+export type SrcRow = { id: string; ko: string; model: string; effort: string; ts: number; wf: string; pick: Pick };
+export const SRC_DAYS = 30;   // 이보다 오래 안 불린 호출 = 줄을 안 세움(옛 모델 이름이 「지금 값」처럼 보이지 않게)
+/** 모델 id → 티어 낱말(opus · sonnet …) · 꼴이 다르면 빈 글 */
+export const tierOf = (model?: string): string => /^claude-([a-z]+)-/.exec(model || "")?.[1] || "";
+/** 호출 이름표 = 서버 이름표에서 끝 괄호(호출 이름)를 뗀 것 · 없으면 호출 이름 그대로 */
+const SRC_KO: Record<string, string> = {   // 서버 이름표(shared/token_report.py SRC_LABEL)에 아직 없는 호출 = 그 호출을 내는 스크립트 · 러너 일 이름에서(봄 11-19 · 서버 표에 실리면 그쪽이 이김)
+  group: "사건 묶기", "sns-sum": "SNS 요약", thumbcopy: "썸네일 문구", moreimg: "대표 이미지", genimg: "생성형 이미지", igcls: "인스타 분류", fbcls: "페북 분류", covocr: "표지 글자 읽기", askocr: "출처 글자 읽기",
+  "chan-brief": "채널 브리프", "fb-brief": "페북 브리프", "sns-brief": "SNS 브리프", bundle_source: "묶음 공식 자료", chok: "촉 판단", teum: "틈 판단",
+};
+export const srcKo = (id: string, ko?: string): string => (ko || "").replace(/\s*\([^)]*\)\s*$/, "").trim() || SRC_KO[id] || id;
+/** 한 갈래의 호출 줄 — 그 갈래에 든 호출 가운데 최근(SRC_DAYS) 불린 것 · 차례 = 갈래 표 차례 → 이름 · pick = 그 호출만 따로 고른 값(없는 칸 = 「기본」) */
+export function srcRows(gid: string, use: LlmUse | undefined, llm: Llm | undefined, now = Date.now()): SrcRow[] {
+  const last = use?.last || {}, order = use?.groups?.find((g) => g.id === gid)?.sources || [];
+  const at = (id: string) => { const i = order.findIndex((p) => p === id || (p.endsWith("*") && id.startsWith(p.slice(0, -1)))); return i < 0 ? 999 : i; };
+  const one = llm?.[gid]?.src || {};
+  return Object.entries(last).filter(([, r]) => r.group === gid && !!r.model).map(([id, r]) => ({ id, r, ts: Date.parse(r.ts || "") || 0 }))
+    .filter((x) => now - x.ts < SRC_DAYS * 86400e3)
+    .sort((a, b) => at(a.id) - at(b.id) || a.id.localeCompare(b.id))
+    .map(({ id, r, ts }) => ({ id, ko: srcKo(id, r.ko), model: r.model || "", effort: r.effort || "", ts, wf: r.wf || "",
+      pick: { model: PIPE_TIERS.some((t) => t.id === one[id]?.tier) ? (one[id]!.tier as string) : PIPE_DEF, effort: PIPE_EFFORTS.some((e) => e.id === one[id]?.effort) ? (one[id]!.effort as string) : PIPE_DEF } }));
+}
+/** 호출들의 실제 값이 여럿인가(갈래 줄의 「여러 값」 = 이때만) */
+export const mixedOf = (rows: SrcRow[], key: "model" | "effort"): boolean => new Set(rows.map((r) => r[key])).size > 1;
+/** 갈래 줄의 고르는 칸 표 — 첫 칸 「기본」 글 = 그 갈래 호출들이 실제 쓰는 값(다 같으면 그 값 · 섞였으면 「여러 값」 · 잰 호출이 없으면 전수조사 표 PIPE_BASE) */
+export function groupChoices(gid: string, rows: SrcRow[], models: Choice[]): { tiers: Choice[]; efforts: Choice[] } {
+  const base = pipeChoices(gid, models);
+  if (!rows.length) return base;
+  const m = mixedOf(rows, "model") ? "여러 값" : modelName(rows[0].model), e = mixedOf(rows, "effort") ? "여러 값" : rows[0].effort || "여러 값";
+  return { tiers: [{ id: PIPE_DEF, ko: m, menu: "기본" }, ...base.tiers.slice(1)], efforts: [{ id: PIPE_DEF, ko: e, menu: "기본" }, ...base.efforts.slice(1)] };
+}
+/** 호출 줄의 고르는 칸 표 — 첫 칸 「기본」 글 = 갈래에서 고른 값이 있으면 그 값(따라감) · 없으면 그 호출이 실제 쓴 마지막 값 */
+export function srcChoices(r: SrcRow, group: Pick, models: Choice[]): { tiers: Choice[]; efforts: Choice[] } {
+  return {
+    tiers: [{ id: PIPE_DEF, ko: group.model !== PIPE_DEF ? tierName(group.model, models) : modelName(r.model), menu: "기본" }, ...PIPE_TIER_IDS.map((t) => ({ id: t, ko: tierName(t, models) }))],
+    efforts: [{ id: PIPE_DEF, ko: group.effort !== PIPE_DEF ? group.effort : r.effort || "기본", menu: "기본" }, ...effortChoices()],
+  };
+}
+/** 호출 하나만 따로 고른 것 → 서버로 보낼 바꾸기 · 「기본」 = 빈 글(그 칸만 지움 = 갈래 값 · 스크립트 기본으로) */
+export function pipePatchSrc(gid: string, src: string, p: Partial<Pick>): Llm {
+  const row: { tier?: string; effort?: string } = {};
+  if (p.model !== undefined) row.tier = p.model === PIPE_DEF ? "" : p.model;
+  if (p.effort !== undefined) row.effort = p.effort === PIPE_DEF ? "" : p.effort;
+  return { [gid]: { src: { [src]: row } } };
+}
+/** 한 워크플로(러너 일)가 부르는 호출들 — 스케줄 나무의 그 일 판 「머리」가 이 줄들을 세움(형 11-19 「이게 스케쥴 표 안에 들어가야한다고 봐」) */
+export function wfSources(wf: string, use: LlmUse | undefined, llm: Llm | undefined, now = Date.now()): (SrcRow & { group: string })[] {
+  if (!wf) return [];
+  const gids = [...new Set(Object.values(use?.last || {}).filter((r) => r.wf === wf && r.group).map((r) => r.group as string))];
+  return gids.flatMap((g) => srcRows(g, use, llm, now).filter((r) => r.wf === wf).map((r) => ({ ...r, group: g })));
+}
+

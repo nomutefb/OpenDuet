@@ -2,6 +2,7 @@
 //   형 11-19 「cli연결하고 애들 x연결하고 통합시켜줘. 하나로. 보기 좋게 제일 깔끔하게.」 · 「행 인덱싱이 반복되도되니까」 · 「설명글을 추가할필요는없고」
 //   칸 = 점(● ▲ ✕ ○) + 꼭 필요한 글만 · 긴 글 = 줄을 누르면 그 줄 밑에 · 움직임 0(가만한 표)
 import "./crew-table.css";
+import "./drop-motion.css";   // 누른 줄 밑 까닭이 펼쳐지는 움직임 한 벌
 import { Fragment, useState } from "react";
 import { idOf } from "../data/office";
 import { FaceImg, usePeople } from "./faces";
@@ -30,7 +31,7 @@ const itemsKo = (x: CCell) => (x.items || []).map((it) => `${it.name || it.accou
 function Why({ b, r }: { b: Band; r: BRow }) {
   const list = b.cols.map((c) => ({ c, x: r.cells[c.id] })).filter((v): v is { c: Col; x: CCell } => !!v.x && (!!v.x.note || !!v.x.items?.length || v.x.st === "miss" || v.x.st === "late"));
   if (!list.length) return <span className="none">{r.wide?.text || "적힌 것 없음"}</span>;
-  return <dl>{list.map(({ c, x }) => <Fragment key={c.id}><dt>{c.title}</dt><dd data-st={x.st}>{x.items?.length ? itemsKo(x) : x.note || HEALTH_KO[x.st]}{x.items?.length && x.at ? ` · ${agoEn(x.at)}` : ""}</dd></Fragment>)}</dl>;
+  return <dl className="nm-dropin">{list.map(({ c, x }) => <Fragment key={c.id}><dt>{c.title}</dt><dd data-st={x.st}>{x.items?.length ? itemsKo(x) : x.note || HEALTH_KO[x.st]}{x.items?.length && x.at ? ` · ${agoEn(x.at)}` : ""}</dd></Fragment>)}</dl>;
 }
 
 function BandTable({ b, pick, setPick }: { b: Band; pick: string; setPick: (k: string) => void }) {
