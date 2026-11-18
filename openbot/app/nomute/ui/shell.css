@@ -355,18 +355,19 @@ html:not(.dark):not([data-theme="garden"]) .nm-split-knob { background:#fff; bor
    나가기 = 아래 네비(서랍 · 설정) · 폰 뒤로 · 화면은 그 자리부터 · 이슈 · 웹 겹(nm-mh- 없는 머리 = 닫기 · 밖에서 열기 단추가 거기 있음)과 에디터 제 머리(✦ 에디터 ⌄)는 그대로
    위 폰 규칙들(뉴스 에디터 · 밥상 이야기 · 화상 회의록 · 채널 · SNS)은 이 규칙에 품김 — 그 줄은 남김(같은 값) */
 .nm-modal > .nm-modal-h[class*="nm-mh-"] { display:none; }
-.nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) > .nm-modal-b { padding-top:env(safe-area-inset-top); }
-.nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) > .nm-modal-b.flush > .nm-scroll { padding-top:calc(10px + env(safe-area-inset-top)); }
-.nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) .nm-ned-host { padding-top:calc(10px + env(safe-area-inset-top)); }
+/* ↓ 틀(.nm-modal)이 「머리 줄을 품었나」 = 틀에 단 표시로 물음(data-mh = 그 판 id · data-webh = 웹 겹 머리 · ./shell.tsx) — 앞 = `.nm-modal:has(> .nm-modal-h…)` 였고, 틀이 :has 의 닻이면 그 밑 어디서 글자 하나만 바뀌어도 틀 밑 단추 · 입력 칸 꼴을 다시 따짐(11-18 에디터 렉 실측) */
+.nm-modal[data-mh][data-mh] > .nm-modal-b { padding-top:env(safe-area-inset-top); }
+.nm-modal[data-mh][data-mh] > .nm-modal-b.flush > .nm-scroll { padding-top:calc(10px + env(safe-area-inset-top)); }
+.nm-modal[data-mh][data-mh] .nm-ned-host { padding-top:calc(10px + env(safe-area-inset-top)); }
 @media (max-width: 767px) {
   .nm-modal-h.nm-mh-nedit { display:none; }
-  .nm-modal:has(> .nm-mh-nedit) .nm-ned-host { padding-top:calc(10px + env(safe-area-inset-top)); }
+  .nm-modal[data-mh="nedit"] .nm-ned-host { padding-top:calc(10px + env(safe-area-inset-top)); }
   /* 폰 밥상 이야기 · 화상회의 = 머리 알약 뺌 · 목록이 그 자리부터(형 11-14 「이것도 헤더 없애주고」 · 「이것도 상단 헤더 삭제」 · 나가기 = 폰 뒤로 · 아래 네비 · PC 는 그대로) */
   .nm-modal-h.nm-mh-story, .nm-modal-h.nm-mh-meetlog { display:none; }
   /* 폰 링크 웹 겹 = 머리 알약(「‹ 사이트 이름」) 뺌 · 주소 줄(← → ↻ 주소 🌐)이 맨 위 · 닫기 = 주소 줄 ←(첫 장에서) · 폰 뒤로 · PC 는 그대로(형 11-17 01:49 dm-bom 「이거 링크 클릭시 이렇게 나오는 부분에 헤더 안나오게해줘」) */
   .nm-modal-h.nm-web-h { display:none; }
-  .nm-modal:has(> .nm-web-h) > .nm-modal-b { padding-top:env(safe-area-inset-top); }
-  .nm-modal:has(> .nm-mh-story) .nm-modal-b.flush > .nm-scroll, .nm-modal:has(> .nm-mh-meetlog) .nm-modal-b.flush > .nm-scroll { padding-top:calc(10px + env(safe-area-inset-top)); }
+  .nm-modal[data-webh] > .nm-modal-b { padding-top:env(safe-area-inset-top); }
+  .nm-modal[data-mh="story"] .nm-modal-b.flush > .nm-scroll, .nm-modal[data-mh="meetlog"] .nm-modal-b.flush > .nm-scroll { padding-top:calc(10px + env(safe-area-inset-top)); }
 }
 
 /* 「… ›」 꼴 단추(.ypc-go) = 어느 화면에서든 한 줄 · 꺽쇠가 다음 줄로 안 넘어감(전엔 화면마다 따로 같은 처방 — news · feed · chan · scrap — 이라 빠진 「알림메세지」에서 두 줄로 꺾였음 · 형 11-15 「하네스 따로 노는 거」) */
@@ -391,7 +392,7 @@ button:is(.ncs-x, .ypk-x, .gy-x):active, :is(.nm-decpop, .nm-story-pop) header >
 /* 서랍 위 탭 줄(./shell.tsx DrawerTabs · 형 11-15 「설정을 제외한 모든영역을 탭처럼 구성」) = 폴더 탭 옷은 ./teams.css 그대로 · 여기선 자리만 — 줄은 스크롤 판 위에 붙박이, 판은 그 밑에서 시작 */
 .nm-tswitch.fold.nm-dtabs { flex:none; margin:10px 14px 0; }
 .nm-modal-b.flush > .nm-tswitch.fold.nm-dtabs { margin-top:calc(10px + env(safe-area-inset-top)); }
-.nm-modal:has(> .nm-modal-h[class*="nm-mh-"]) > .nm-modal-b.flush > .nm-dtabs + .nm-scroll { padding-top:10px; }
+.nm-modal[data-mh][data-mh] > .nm-modal-b.flush > .nm-dtabs + .nm-scroll { padding-top:10px; }
 
 /* PC 메인 탭 줄 = 지금 네비 칸의 탭(./area-tabs.tsx · 형 11-15 「탭 1234 는 a에 귀속」 · 「css는 동일하게」) — 옷은 ./tab-bar.css 그대로 · 여기선 대화 칸 탭 숨김과 폭만 */
 .nm-area-on .nm-tabs:not(.nm-area) { display:none; }   /* 대화 칸 탭 = 다른 칸(뉴스 에디터 · 서랍 · 설정)에선 안 보임(살아는 있음) */

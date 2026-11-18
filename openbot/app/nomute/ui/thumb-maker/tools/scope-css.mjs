@@ -5,6 +5,7 @@
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import { applyLean } from "./lean-rules.mjs";
 const APP = new URL("../../../", import.meta.url).pathname;   // openbot/app/nomute
 const req = createRequire(APP + "package.json");
 const postcss = req("postcss");
@@ -106,6 +107,7 @@ for (const s of sheets) {
   });
   all += `\n/* ── ${s.name} ── */\n` + root.toString().replace(/\n{3,}/g, "\n\n").trim() + "\n";
 }
+all = applyLean(all, true).css;   // 큰 덩어리에 건 :has() → 표시(./lean-rules.mjs · 원본 줄이 바뀌어 횟수가 안 맞으면 여기서 멈춤)
 fs.writeFileSync(OUT, all);
 console.log("키프레임", [...KF].join(" "));
 console.log(notes.slice(0, 60).join("\n"));

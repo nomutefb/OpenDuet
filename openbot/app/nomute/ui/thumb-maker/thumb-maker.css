@@ -963,8 +963,8 @@
   @media (prefers-reduced-motion:reduce) { .nm-tm .kwchip.copied { animation:none; } }
   .nm-tm .out { margin-top:18px; }
   @container tm not (min-width:900px) {
-    .nm-tm .panel:has(#reelsBox.none):has(#rOptHead.none):has(#spHead.none):not(:has(#optCards > .scard:not(.none))):not(:has(#imgeditBox:not(.none))) + .out { margin-top:16px; }
-  .nm-tm .panel:has(#reelsBox.none):has(#rOptHead.none):has(#spHead.none):not(:has(#optCards > .scard:not(.none))):not(:has(#imgeditBox:not(.none))) + .out .car-h { margin-top:0; border-top:0; padding-top:0; }
+    .nm-tm .panel[data-nm-bare] + .out { margin-top:16px; }
+  .nm-tm .panel[data-nm-bare] + .out .car-h { margin-top:0; border-top:0; padding-top:0; }
 }
   .nm-tm .status { font-size:13px; color:var(--mut); white-space:pre-wrap; }
   .nm-tm .status.err { color:var(--danger); }
@@ -1913,7 +1913,7 @@
   .nm-tm.modern-workspace #askHost .askwrap { padding-top:var(--modern-sp-2); }
 }
 .nm-tm.modern-workspace #tooldlg .genihost .geni-prev { min-height:var(--geni-rail-extent, auto); }
-.nm-tm.modern-ui-frame:not(:has(.topdock[data-nm-rail-flow])) #rfab { display:none; }
+.nm-tm.modern-ui-frame:not([data-nm-flow]) #rfab { display:none; }
 @container tm (orientation:portrait) { .nm-tm.modern-ui-frame #rfab { display:none; }
 }
 .nm-tm.modern-ui-frame #rfab { right:var(--modern-sp-3); bottom:var(--modern-sp-3); }
@@ -2140,12 +2140,12 @@
 .nm-tm.modern-workspace :is(#modern-home-frame, #viewhead, #tkrHost, .wrap) {
   transition:opacity var(--modern-dur-s) var(--modern-ease-out);
 }
-.nm-tm.modern-workspace:has(#tooldlg[data-tool-phase="closing"]) :is(#modern-home-frame, #viewhead, #tkrHost, .wrap) {
+.nm-tm.modern-workspace[data-nm-tool-closing] :is(#modern-home-frame, #viewhead, #tkrHost, .wrap) {
   opacity:0; transition:none;
 }
 @keyframes tm-modern-page-back { from { opacity:0; } to { opacity:1; } }
 @media (prefers-reduced-motion:no-preference) {
-  .nm-tm.modern-workspace:has(#tooldlg[data-tool-phase="closing"]) :is(#modern-home-frame, #viewhead, #tkrHost, .wrap) {
+  .nm-tm.modern-workspace[data-nm-tool-closing] :is(#modern-home-frame, #viewhead, #tkrHost, .wrap) {
     animation:tm-modern-page-back calc(var(--modern-dur-size) - var(--modern-dur-exit)) var(--modern-ease-out) var(--modern-dur-exit) both;
   }
 }
