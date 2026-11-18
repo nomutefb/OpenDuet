@@ -206,6 +206,11 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" | "co" }> => t.k === "screen" || t.k === "web" || t.k === "co");
   useRootFlag("teams", s.active === TEAMS);   // 팀즈를 보는 동안 = 위 러너 · SNS 판 숨김(./shell.css · 형 11-18 14:38 「그리고 위에 다른 메뉴들이 보여버림」 · 「러너랑sns 보여짐」)
   const full = s.active === BROWSER || s.active.startsWith("w:");   // 창 전체를 쓰는 탭 = 「Browser」 + 「＋」 웹 탭(형 11-18 09:3x 구름 창 「일반 새탭 열어서 보이는거랑 기본으로 떠잇는 브라우저랑 별건으로 보일 필요는 없어.」 = 둘 다 같은 꼴 · 앞 = 웹 탭만 오른쪽 칸)
+  useEffect(() => {   // 창 전체 웹 판이 떠 있는 동안 = 옆 얼굴 줄도 같은 어두운 판(형 11-18 22:0x 「저 화면으로 가면 옆에가 어색해지거든? 여기도 옆에랑 딱 맞게 어울리게 다크로 딱 바꿔줘」 · ./tab-bar.css)
+    const r = document.documentElement;
+    if (full) r.dataset.nmFullpane = "1"; else delete r.dataset.nmFullpane;
+    return () => { delete r.dataset.nmFullpane; };
+  }, [full]);
   const paneOn = s.active.startsWith("s:") || s.active.startsWith("w:") || s.active === "co" || s.active === MEET || s.active === TEAMS;
   return (
     <>

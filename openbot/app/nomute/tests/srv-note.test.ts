@@ -35,3 +35,16 @@ test("점검 = 화면 글에 옛 말투 「못 받았어」가 안 남음(옛 �
   assert.deepEqual(hit, []);
   for (const [f, re] of [["../ui/office-chat.tsx", /<SrvNote what="대화" detail=\{msgs\.error\.message\} className="mid" \/>/], ["../home/news-summary.tsx", /<b>\{notGot\("요약 목록"\)\}<\/b>/], ["../ui/room-list.tsx", /<SrvNote what="방 목록" className="tight" \/>/], ["../ui/summary-desk.tsx", /<SrvNote what="요약"/], ["../ui/teams.tsx", /<SrvNote what="글"/]] as const) assert.match(rd(f), re);
 });
+
+test("웹 칸 = 주소창은 커서만 라임(테 그대로) · 검색 = 구글 어두운 판 · 창 전체 판 옆 얼굴 줄 = 같은 어두운 색 · 위 신호등에 「서버」 글", () => {
+  // 형 11-18 22:0x: 「이거 커서만 라임색 들어오게하고, 테두리가 들어오게는 하지말아줘」 · 「기본적으로 다크모드로 하게 해주고」 · 「옆에랑 딱 맞게 어울리게 다크로」 · 「구글 검색을 기본으로」 · 「서버 들어가게 해줘, 그리고 수평맞춰주셈」
+  const wcss = rd("../ui/web-pane.css"), web = rd("../ui/web-pane.tsx"), tcss = rd("../ui/tab-bar.css"), tab = rd("../ui/tab-bar.tsx"), sl = rd("../ui/status-line.tsx"), slcss = rd("../ui/status-line.css");
+  assert.match(wcss, /\.nm-web-addr \{[^}]*caret-color: rgb\(var\(--accent-rgb, 207,255,64\)\); \}/);
+  assert.doesNotMatch(wcss, /\.nm-web-addr:focus/);   // 들어가도 테 · 번짐 안 바뀜
+  assert.match(wcss, /\.nm-web-frame \{[^}]*color-scheme: dark; \}/);
+  assert.match(web, /https:\/\/www\.google\.com\/search\?igu=1&cs=1&q=\$\{encodeURIComponent\(s\)\}/);
+  assert.match(tcss, /html\[data-nm-fullpane\] \.nm-strip \{ background:var\(--nm-tab-on, #121314\);[^}]*backdrop-filter:none;/);
+  assert.match(tab, /if \(full\) r\.dataset\.nmFullpane = "1"; else delete r\.dataset\.nmFullpane;/);
+  assert.match(sl, /<span className="nm-sl-srv" title="서버 연결 칸의 가장 나쁜 불">서버<Dot t=\{toneOf\(l\.server\)\} \/><\/span>/);
+  assert.match(slcss, /\.nm-sl-srv \{ display: inline-flex; align-items: center; gap: 5px; \}/);
+});

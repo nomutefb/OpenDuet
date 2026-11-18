@@ -4,10 +4,10 @@
 .nm-web-btn { all: unset; display: inline-grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 6px; color: rgba(232,234,232,.72); cursor: pointer; font-size: var(--fs-body); line-height: 1; }
 .nm-web-btn:hover:not(:disabled) { background: rgba(255,255,255,.08); color: #FFFFFF; }
 .nm-web-btn:disabled { opacity: .3; cursor: default; }
-.nm-web-addr { flex: 1; min-width: 0; height: 26px; padding: 0 10px; border-radius: 7px; border: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.25); color: #E8EAE8; font-size: var(--fs-label); outline: none; }
-.nm-web-addr:focus { border-color: rgba(var(--accent-rgb, 207,255,64),.55); box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 207,255,64),.15); }
+.nm-web-addr { flex: 1; min-width: 0; height: 26px; padding: 0 10px; border-radius: 7px; border: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.25); color: #E8EAE8; font-size: var(--fs-label); outline: none; caret-color: rgb(var(--accent-rgb, 207,255,64)); }   /* 이 칸은 대화창 밖 = --accent 가 원본 앱 회색 → 라임 값을 직접 */
+/* 주소창에 들어가면 = 커서만 라임 · 테는 그대로(형 11-18 22:0x 「이거 커서만 라임색 들어오게하고, 테두리가 들어오게는 하지말아줘」 · 앞 = 라임 테 + 번짐) */
 .nm-web-body { position: relative; flex: 1; min-height: 0; display: flex; }
-.nm-web-frame { flex: 1; width: 100%; height: 100%; border: 0; background: #FFFFFF; }
+.nm-web-frame { flex: 1; width: 100%; height: 100%; border: 0; background: var(--nm-tab-on, #121314); color-scheme: dark; }   /* 품은 사이트 = 기본 다크(형 11-18 「기본적으로 다크모드로 하게 해주고」 · 틀의 color-scheme 이 안쪽 사이트의 어둡게 보기 신호가 됨 · 다크 판이 없는 사이트는 제 흰 판 그대로) · 뜨기 전 바탕 = 옆 판과 같은 어두운 색(앞 = 흰 번쩍임) */
 .nm-web-note { margin: auto; max-width: 30em; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: rgba(232,234,232,.62); font-size: var(--fs-label); line-height: 1.5; }
 .nm-web-note b { color: #E8EAE8; }
 .nm-web-note span { font-size: var(--fs-sm); opacity: .85; }
