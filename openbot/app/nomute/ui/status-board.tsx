@@ -47,6 +47,8 @@ const GROUPS = [BOTS_GRP, "서버", "수집", "몸", "우리"];
 const RUN_WHO = new Set(["봄", "시아", "뎅", "빠르", "번개", "뜸", "깃", "윈터"]);   // + 윈터(형 11-18 18:37 임시방 「그리고 윈터 초대도 안돼. 그렇다는거는 지금 설정값들 다 윈터를 못따라가고 있다는거야 (동기화랑 설정 적용도 안된다는 소리) 다 확인해」 · 깃 18:52 나눔 · 윈터 = 윈A 클로드 몸 · 깨움 러너 nomute-wake-winter · 앞 판 11-10 「지피티 봇은 넣을 필요는 없음」 때 윈터는 옛 지피티 자리였음)
 /** 몸 정본에 제 줄이 없는 우리(윈터 = 윈A 앱 창 · 구름 = 맥 클라우드 창) — 「애들 × 연결」에 깸 · 지금 창 계정 · 일기 시각 줄로(형 11-18 18:45 dm-gik 「여기 윈터랑 구름 없음」) */
 const WHO_MORE = ["윈터", "구름"];
+/** 혼자 못 넘어가는 창(셀프 넘김 「–」) — 형 11-18 20:39 dm-cloud 「오케 그러면 클라우드세션은 셀프로 못넘어가는거를 러너에 표기하게 해놔야해. 이거를 보완을 해줘야된다는 뜻이거든.」 · 20:40 「셀프 넘김에 - 표기가 따로 있어야한다는거야. 중요해. 왜냐면 누군가 서브를 안해주면 꺼진다는뜻이니까」 · 구름 = 클라우드 세션 = 계정을 혼자 못 바꿈(봄 · 깃이 넘겨 줌) */
+export const NO_SELF: Record<string, string> = { 구름: "클라우드 세션 · 계정을 혼자 못 넘어감 · 누가 넘겨 줘야 함(안 해 주면 꺼짐)" };
 const skeleton = (bs: Body[]): StatusCat[] => [
   { grp: BOTS_GRP, id: "activity", name: "활동", rows: [] },   // 일 · 쉼 · 멈춤(형 11-14 06:25 밥상 「쉬면 쉼으로 기록되는 활동표가 러너에 갱신될 수 있는지 봐봐 봄이 이를 보고 역할 배분에 쓰게」 · 서버 _activity.js · 번개) — 계정 상태 바로 아래 · 늘 펼침   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
   { grp: BOTS_GRP, id: "acct", name: "계정 상태", rows: [] },
@@ -332,8 +334,8 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
       <div className="nsb-scroll" role="region" aria-label="애들 × 연결" tabIndex={0}>
         <table>
           <thead>
-            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={3}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length || 1}><span>교대</span></th><th colSpan={2}><span>다음 창</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
-            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}<th>모델</th><th>노력</th></tr>
+            <tr className="grp"><th /><th>깸</th><th colSpan={4}><span>클로드</span></th><th>GPT</th><th colSpan={3}><span>연결</span></th><th colSpan={DIARY_COLS.length}><span>일기</span></th><th colSpan={handCols.length + 1}><span>교대</span></th><th colSpan={2}><span>다음 창</span></th></tr>{/* 묶음 머리 = 묶음 왼쪽에 붙고 가로로 밀어도 「누구」 칸 옆에 따라옴(빚 11-09 10:05 폰 「작동 표 오른쪽 머리 「일기」가 잘림」 · status-board.css .nsb-who tr.grp) */}
+            <tr><th>누구</th><th /><th>1</th><th>2</th><th>3</th><th>4</th><th /><th>R2</th><th>GH</th><th>RC</th>{DIARY_COLS.map((d) => <th key={d.id} title={d.name}><i>{d.name.replace(/ 일기$/, "").replace(/^원문 /, "")}</i></th>)}<th title="셀프 넘김 · 혼자 넘어가나"><i>셀프</i></th>{handCols.map((h) => <th key={h} title={h}><i>{h.replace(/ 일기$/, "")}</i></th>)}<th>모델</th><th>노력</th></tr>
           </thead>
           <tbody>
             {[...ours, ...rest].map((r) => {
@@ -348,6 +350,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
                   {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "gpt" || k === "r2" || k === "gh" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <><td colSpan={4} className="acct on">{on ? <Dot c={{ st: on.st, label: acctTag(on.name), note: `지금 창 계정 · ${on.name}` }} /> : null}</td><td colSpan={Math.max(1, cliCols.length - 4)} className="none" /></>}
                   {dm ? <td colSpan={DIARY_COLS.length} className="dm">{([["일기", dm.diary_ms], ["습작", dm.sketch_ms], ["넘김", dm.handoff_ms]] as [string, number][]).filter(([, t]) => t).map(([k, t]) => <span key={k}>{k} {agoKo(t)}</span>)}</td>
                     : DIARY_COLS.map((x) => <td key={x.id}>{d[x.id] ? <Dot c={d[x.id]} t={`${x.name} · ${HEALTH_KO[d[x.id].st]}${d[x.id].note ? ` · ${d[x.id].note}` : ""}`} /> : null}</td>)}
+                  {NO_SELF[r.name] ? <td className="noself" title={`셀프 넘김 – · ${NO_SELF[r.name]}`}><b>–</b></td> : <td>{Object.keys(h).length ? <Dot c={{ st: "ok" }} t="셀프 넘김 · 혼자 넘어감" /> : null}</td>}
                   {handCols.map((x) => <td key={x}>{h[x] ? <Dot c={h[x]} t={`${x} · ${HEALTH_KO[h[x].st]}${h[x].note ? ` · ${h[x].note}` : ""}`} /> : null}</td>)}
                   {b ? <NextWinCells who={r.name} /> : <td colSpan={2} className="none" />}{/* 다음 창 모델 · 노력도(형 11-12 16:17 · ui/next-win.tsx) */}
                 </tr>
@@ -356,10 +359,10 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
           </tbody>
         </table>
       </div>
-      {pick.startsWith("who:") ? (() => { const r = bots.find((x) => `who:${x.key}` === pick) || ours.find((x) => `who:${x.key}` === pick); const c = cli.find((x) => x.key === r?.name)?.cells || {}; return r ? <p className="nsb-why">{r.name} — {Object.entries(r.cells || {}).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}{Object.keys(c).length ? ` · ${Object.entries(c).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}` : ""}</p> : null; })() : null}
+      {pick.startsWith("who:") ? (() => { const r = bots.find((x) => `who:${x.key}` === pick) || ours.find((x) => `who:${x.key}` === pick); const c = cli.find((x) => x.key === r?.name)?.cells || {}; return r ? <p className="nsb-why">{r.name} — {NO_SELF[r.name] ? `셀프 넘김 – ${NO_SELF[r.name]} · ` : ""}{Object.entries(r.cells || {}).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}{Object.keys(c).length ? ` · ${Object.entries(c).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}` : ""}</p> : null; })() : null}
       <div className="nsb-foot">
         {grok ? <span><Dot c={grok} t={`${grok.name} · ${grok.value || ""}`} />그록봇 자동화 · 로그인</span> : null}
-        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · C·N 네이버 · C·G 구글g · C·M 구글m · 줄 누르면 까닭</small>
+        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · C·N 네이버 · C·G 구글g · C·M 구글m · 셀프 – = 혼자 못 넘어감 · 줄 누르면 까닭</small>
       </div>
       {comm ? <div className="nsb-sub"><b>봄의 정원 말 주고받기</b><Grid c={comm} pick={pick} setPick={setPick} /></div> : null}
     </div>

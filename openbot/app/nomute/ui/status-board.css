@@ -149,6 +149,8 @@
 .nsb-who td.acct.on { text-align:left; }
 .nsb-who td.dm { text-align:left; white-space:nowrap; font-size:var(--fs-xs); color:var(--nsb-mut); }
 .nsb-who td.dm span + span::before { content:" · "; }
+.nsb-who td.noself b { display:inline-block; min-width:18px; padding:0 4px; border-radius:6px; font-weight:800; color:var(--nsb-yel); background:rgba(255,210,63,.16); }
+:root:not(.dark) .nsb-who td.noself b { color:#8a5a00; background:rgba(255,176,32,.22); }   /* 셀프 넘김 못 함 = 따로 눈에 띄는 – (형 11-18 20:40 「셀프 넘김에 - 표기가 따로 있어야한다는거야」) */
 .nsb-map td .nsb-d { margin:1px 6px 1px 0; }
 .nsb-map thead th { font-size:var(--fs-sm); color:inherit; }
 .nsb-map thead th small { display:block; font-weight:400; color:var(--nsb-mut); }
