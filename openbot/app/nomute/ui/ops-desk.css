@@ -1,0 +1,68 @@
+/* 5번 「애들」 위 탭 「살림」(./ops-desk.tsx) — 색 · 카드 · 눈금 = 「몸 상태」(./vm-desk.css 의 --vm-* · .nm-vm-card · .grid · .tick · .hour · .peak · path.busy) 그대로 · 새 색 0
+   여기엔 막대 · 한도 칸 · 단계 띠 · 잣대 줄만. 움직임 없음(가만히 둔 화면이 먹는 값 0 · 형 11-14 「보기에만 똑같으면 되는데」) */
+.nm-opsdesk { --ops-red:#ff6b6f; --ops-lime:var(--accent, #CFFF40); font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+:root:not(.dark) .nm-opsdesk { --ops-red:#c93a3e; --ops-lime:#4d6600; }
+
+/* 한도 칸 여섯 */
+.nm-ops-gauges { display:grid; grid-template-columns:repeat(auto-fit, minmax(148px, 1fr)); gap:10px; margin-bottom:8px; }
+.nm-ops-g { display:flex; flex-direction:column; gap:5px; min-width:0; padding:14px 16px 12px; border-radius:20px; background:var(--glass, rgba(255,255,255,.05)); border:1px solid var(--glass-line, rgba(255,255,255,.08)); font-variant-numeric:tabular-nums; }
+.nm-ops-g .l { font-size:11px; font-weight:600; color:var(--vm-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-ops-g b { font-size:22px; font-weight:700; letter-spacing:-.02em; line-height:1.15; color:var(--vm-ink); }
+.nm-ops-g .track { display:block; height:4px; border-radius:999px; background:var(--vm-grid); overflow:hidden; }
+.nm-ops-g .track.none { opacity:.5; }
+.nm-ops-g .track i { display:block; height:100%; border-radius:999px; background:var(--vm-ink); }
+.nm-ops-g small { font-size:10.5px; line-height:1.4; color:var(--vm-muted); }
+.nm-ops-g.warn .track i { background:var(--ops-lime); }
+.nm-ops-g.over b { color:var(--ops-red); }
+.nm-ops-g.over .track i { background:var(--ops-red); }
+
+/* 날짜별 막대 — 고른 날만 짙게 */
+.nm-opsdesk .ops-hit { cursor:pointer; }
+.nm-opsdesk .ops-pad { fill:transparent; }
+.nm-opsdesk .ops-bar { fill:var(--vm-held); opacity:.55; }
+.nm-opsdesk .ops-bar.on { fill:var(--vm-ink); opacity:1; }
+.nm-opsdesk .ops-hit:hover .ops-bar { opacity:.85; }
+.nm-opsdesk .hour.on { fill:var(--vm-ink); }
+.nm-opsdesk .nm-vm-card .legend .k.bar { width:10px; height:10px; border:0; border-radius:2px; background:var(--vm-held); opacity:.7; }
+.nm-opsdesk .nm-vm-card .legend .k.line { border-top:1.4px solid var(--ops-lime); }
+.nm-opsdesk .nm-vm-card .legend .k.seg { width:10px; height:10px; border:0; border-radius:2px; }
+
+/* 빌드 단계 띠 */
+.nm-ops-steps { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+.nm-ops-steps li { min-width:0; }
+.nm-ops-steps .h { display:flex; justify-content:space-between; gap:10px; font-size:12px; font-variant-numeric:tabular-nums; }
+.nm-ops-steps .wf { font-weight:600; color:var(--vm-ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-ops-steps .v { flex:none; color:var(--vm-muted); }
+.nm-ops-steps .bar { display:flex; height:8px; margin-top:4px; border-radius:3px; overflow:hidden; background:transparent; }
+.nm-ops-steps .bar i { display:block; height:100%; min-width:1px; }
+.nm-ops-steps small { display:block; margin-top:3px; font-size:10.5px; color:var(--vm-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-opsdesk :is(.bar i, .k.seg).ck { background:var(--vm-faint); }
+.nm-opsdesk :is(.bar i, .k.seg).su { background:var(--vm-muted); }
+.nm-opsdesk :is(.bar i, .k.seg).wk { background:var(--vm-ink); }
+.nm-opsdesk :is(.bar i, .k.seg).cm { background:var(--ops-lime); }
+.nm-opsdesk :is(.bar i, .k.seg).wt { background:var(--ops-red); }
+
+/* 날 고르기 줄 */
+.nm-ops-day { display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin:18px 4px 10px; font-variant-numeric:tabular-nums; color:var(--vm-muted); font-size:12px; }
+.nm-ops-day b { font-size:15px; font-weight:700; color:var(--vm-ink); min-width:92px; text-align:center; }
+.nm-ops-day button { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; padding:0; border-radius:999px; border:1px solid var(--glass-line, rgba(255,255,255,.08)); background:var(--glass, rgba(255,255,255,.05)); color:var(--vm-ink); cursor:pointer; }
+.nm-ops-day button:disabled { opacity:.3; cursor:default; }
+.nm-ops-day button:focus-visible { outline:2px solid var(--ops-lime); outline-offset:2px; }
+
+/* 형 잣대 넷 */
+.nm-ops-lens .said { color:var(--vm-ink); font-size:12.5px; line-height:1.55; margin-bottom:4px; }
+.nm-ops-lens .sub { margin:4px 0 0; }
+.nm-ops-lens ul { list-style:none; margin:12px 0 0; padding:0; display:grid; gap:0; }
+.nm-ops-lens li { display:grid; grid-template-columns:minmax(0, 1fr) auto auto; align-items:baseline; gap:2px 10px; padding:8px 0; border-top:1px solid var(--vm-grid); font-variant-numeric:tabular-nums; }
+.nm-ops-lens li .wf { grid-column:1 / -1; font-size:13px; font-weight:600; color:var(--vm-ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nm-ops-lens li .how { font-size:11.5px; color:var(--vm-muted); }
+.nm-ops-lens li b { font-size:14px; font-weight:700; color:var(--vm-ink); }
+.nm-ops-d { font-style:normal; font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:999px; border:1px solid var(--vm-faint); color:var(--vm-muted); white-space:nowrap; }
+.nm-ops-d.up, .nm-ops-d.new { border-color:var(--ops-red); color:var(--ops-red); }
+.nm-ops-d.down { border-color:var(--ops-lime); color:var(--ops-lime); }
+.nm-ops-lens .pairs { margin-top:10px; padding-top:8px; border-top:1px solid var(--vm-grid); }
+.nm-ops-new { margin-top:14px; }
+.nm-ops-src { margin:14px 8px 0; font-size:10.5px; line-height:1.5; color:var(--vm-faint); }
+@media (max-width:560px) { .nm-ops-gauges { grid-template-columns:repeat(2, minmax(0, 1fr)); } .nm-ops-g { padding:12px 12px 10px; border-radius:16px; } .nm-ops-g b { font-size:19px; } }
+/* PC 는 카드 둘씩(「몸 상태」 칸은 560 부터 둘 · 여기는 440 부터) — 한 화면에 차트 넷이 한눈에 */
+.nm-opsdesk .nm-vm-grid { grid-template-columns:repeat(auto-fit, minmax(min(100%, 440px), 1fr)); }
