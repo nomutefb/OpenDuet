@@ -20,10 +20,8 @@ import { inAppHref } from "./inapp";
 import { newsListQuery, useGo } from "./news-data";
 import { Pane } from "./pane";
 import { CAT_COLOR, articleCat, catBucket } from "./scrap-cat";
-import { YICO } from "./yeta-icons";
 
 type C = Record<string, any>;   // eslint-disable-line @typescript-eslint/no-explicit-any
-const ED_SCRAP = "/web?u=" + encodeURIComponent("/?tab=scrap&inapp=1");
 const HR = 36e5;
 const AUTH_TXT = "로그인이 만료됐어 — 다시 로그인해줘";   // 원본 AUTH_EXPIRED_TXT
 
@@ -669,7 +667,6 @@ function failDownload(c: C) {
 }
 
 /* ── 그림 ── */
-const Svg = ({ s, className }: { s: string; className?: string }) => <span aria-hidden className={className} dangerouslySetInnerHTML={{ __html: s }} />;
 const CK = <svg className="sc-ck" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M5 13l4 4L19 7" /></svg>;
 const XI = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6 18 18M18 6 6 18" /></svg>;
 const ACK = <svg className="ackm" viewBox="0 0 24 24" fill="none" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path className="sc-dash" d="M6 12h12" /><path className="sc-chk" d="M5 13l4 4L19 7" /></svg>;
@@ -970,7 +967,6 @@ export function ScrapModal() {
             {B.failed.length ? <div className="sc-failtray"><div className="sc-failtray-list">{B.failed.map((c) => item(c, "fail"))}</div></div> : null}
             <div className="sc-cols">{colOf("cross", B.cross)}{colOf("new", B.nw)}</div>
           </>}
-        <div className="ypc-acts nm-chan-acts nm-scrap-acts"><button type="button" className="ypc-go" onClick={() => go(ED_SCRAP)}>에디터에서 <Svg s={YICO.chev} /></button></div>
       </div>
       {pop && (pop.k === "pass" || pop.k === "pick") ? <ReasonPop key={candId(pop.c) + pop.k} pop={pop} onClose={() => setPop(null)} onApply={(reason, text, fromInput) => {
         const c = pop.c, act = pop.k, id = candId(c); setPop(null);

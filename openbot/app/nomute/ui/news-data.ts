@@ -9,8 +9,6 @@ import { inAppHref } from "./inapp";
 export const useGo = () => { const r = useRouter(); return (path: string) => r.history.push(path); };
 /** 원문·출처 링크 누름 = 앱 안 한 겹(./inapp.ts 규칙 · 품기 막는 사이트는 원래대로 새 창) */
 export const inAppClick = (go: (p: string) => void) => (e: { preventDefault: () => void; currentTarget: HTMLAnchorElement }) => { const h = inAppHref(e.currentTarget.href); if (h) { e.preventDefault(); go(h); } };
-/** 에디터 그 기사 창(딥링크 /?a=<file> · 카드 한 장 고치기 · AI 생성 · 썸네일 다시는 거기서 · 빌드 전 새 요약 · 요약 고치기 = ./news-detail.tsx · ./summary-fix.tsx · 피드 고치기 · 다시 만들기 = ./feed-acts.tsx 앱 안) */
-export const editorPath = (file: string) => "/web?u=" + encodeURIComponent(`/?a=${encodeURIComponent(file)}`);
 
 export type Thumb = { img?: string; url?: string; link?: string; label?: string; sid?: string };
 export type Cards = { state?: string; thumb_search?: Thumb[]; thumb_gen?: Thumb[]; thumb_prompts_url?: string; images?: string[]; updated?: string; rev?: number; has_md?: boolean };
