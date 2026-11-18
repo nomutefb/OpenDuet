@@ -89,7 +89,6 @@ export function MsgsModal() {
     const id = String(m.id); setGone(id);
     window.setTimeout(() => { const s = lsSet(KEY_DIS); s.add(id); lsPut(KEY_DIS, s); postSeen("md", [id]); setGone(""); bump((n) => n + 1); }, 260);
   };
-  const Chev = () => <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} />;
   const unread = list.filter((m) => m.id && !read.has(String(m.id))).length;
   return (
     <Pane title="알림메세지">
@@ -120,7 +119,6 @@ export function MsgsModal() {
               })}
             </div>
           )}
-          <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={() => go("/web?u=" + encodeURIComponent("/?pop=msgs&inapp=1"))}>에디터 알림함 <Chev /></button></div>
         </div>
       </div>
     </Pane>

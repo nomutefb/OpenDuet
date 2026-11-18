@@ -5,7 +5,7 @@
 //   쓰기 = 앱 안(team-4 4′ · 형 11-10 12:40 「에디터도 정원에 완벽하게 녹여」 · 전엔 맨 아래 「에디터에서」 한 겹이 유일한 길):
 //     · 진행 판 실패 카드 「재시도」 · 「없애기」 = 그 건만(옛 qp-redo · qp-dismiss · ./q-acts.ts) · 판 「대기열 열기」 = 앱 대기열(./queue.tsx · 취소 · 재시도)
 //     · 줄 진행 칸 「프롬프트」 실패 = 그 자리에서 프롬프트 다시(옛 retryPromptSeg · make-cards text · 돈 0 · 카드(그림) 실패는 기사 한 장 「다시 만들기」 = 돈 → 두 번)
-//     · 카드 만들기 · 고치기 = 기사 한 장(./feed-acts.tsx) · 「에디터에서」 = 비상구로 남김(스위치 때 형 문)
+//     · 카드 만들기 · 고치기 = 기사 한 장(./feed-acts.tsx) · 「에디터에서」 비상구 = 걷음(형 11-19 00:43 「옛 에디터 걷고 지워버려 이제 안쓰지? 지우자.」 · 앞 판 = 옛 에디터 /?tab=feed 를 한 겹으로)
 //     · 긴급 배지 길게(0.48초 · 우클릭) = 「긴급 아님」 신고(옛 brkClaimBadge · api/rate reason brkno → scraper/brk_misfire.py 가 제목으로 묶음 · 수집함 ./scrap.tsx 와 같은 글) · 짧게 = 기사 열기 그대로
 //   10개씩(원본 FEED_CAP · 바닥 닿으면 +10) · 원본과 다른 점: 검색·칩 중에도 10개씩(스크롤하면 다 나옴) · 분류 = category 칸만(원본 articleCat 제목 규칙 폴백 없음 · 짐작)
 import "./yeta-settings.css";
@@ -20,7 +20,6 @@ import { type MouseEvent as RME, type PointerEvent as RPE, useDeferredValue, use
 import { DuetIcon } from "@/components/duet/icons";
 import { type Art, biasOf, catOf, getJson, inAppClick, newsListQuery, outletName, progOf, sensOf, thumbAltOf, thumbFail, thumbOf, useGo } from "./news-data";
 import { Pane } from "./pane";
-import { YICO } from "./yeta-icons";
 
 export type FArt = Art & { grade?: number | null; lvt?: number; _live?: number; _hidden?: number };
 type QItem = { id?: string; t?: number; title?: string; via?: string; key?: string; alt1?: string; status?: string; tries?: number; why?: string | { cause?: string; text?: string } };
@@ -28,7 +27,6 @@ type Eta = Partial<Record<"url" | "ask", { p50?: number; p90?: number }>>;
 
 const CAP = 10;
 export const CATS = ["정치", "사회", "경제", "문화", "국제", "테크"];   // 원본 CHIP_CATS 차례
-const ED_FEED = "/web?u=" + encodeURIComponent("/?tab=feed&inapp=1");
 const ED_QUEUE = "/edq";   // 대기열 = 앱 안(./queue.tsx · 봄 11-01 · 전엔 에디터 대기열 한 겹)
 const HR = 36e5;
 /** 길게 누름(옛 claimLongPress 480 · ./scrap.tsx useHold 꼴) — 짧은 탭 = tap · 길게 = fn · 손가락 10px 넘게 움직이면 취소 */
@@ -231,7 +229,6 @@ export function FeedModal({ search = false }: { search?: boolean }) {   // searc
             <ul className="nm-feed-list">{shown.map((a) => <Row key={a.file} a={a} go={go} onOpen={open} rt={rtOn(a)} onRetry={(x) => void retryPrompt(x)} onNote={setNote} />)}</ul>
           )}
           {rows.length > shown.length ? <><div ref={sent} aria-hidden className="nm-feed-sent" /><button type="button" className="yset-chip nm-news-more" onClick={() => setN((v) => v + CAP)}>더 보기 +{Math.min(CAP, rows.length - shown.length)} · 남은 {rows.length - shown.length}건</button></> : null}
-          <div className="ypc-acts nm-chan-acts"><button type="button" className="ypc-go" onClick={() => go(ED_FEED)}>에디터에서 <span aria-hidden dangerouslySetInnerHTML={{ __html: YICO.chev }} /></button></div>
         </div>
       </div>
     </Pane>
