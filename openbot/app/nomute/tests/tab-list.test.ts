@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DASH, STRIP_FIXED, TABS_MAX, dropIndex, stripMove, stripOrder, tabColors, tabKey, tabsAdd, tabsClose, tabsLoad, tabsMove, tabsSave, webTabOpen } from "../ui/tab-list.ts";
-import { webTabUrl } from "../ui/inapp.ts";
+import { noFrameUrl, webTabUrl } from "../ui/inapp.ts";
 
 const S = (keys: string[]) => keys.join(" ");
 const keysOf = (s: { tabs: Parameters<typeof tabKey>[0][] }) => S(s.tabs.map(tabKey));
@@ -144,4 +144,13 @@ test("탭 줄 차례 저장 = 끌어 옮긴 뒤에만(기본 차례는 저장 �
   assert.match(tl, /ORDER_KEY = "nm-tab-order-v2"/);
   assert.match(tsx, /useEffect\(\(\) => \{ if \(!ord\) return; try \{ localStorage\.setItem\(ORDER_KEY/);
   assert.match(tsx, /localStorage\.removeItem\("nm-tab-order-v1"\)/);
+});
+
+test("noFrameUrl = 품기를 막는 사이트만(새 맥 앱이 제 탭으로 여는 주소) · 그 밖 · 이슈 · 메일 = null", () => {
+  const B = "https://edit.nomute.kr/garden-app/";
+  assert.equal(noFrameUrl("https://www.naver.com/", B), "https://www.naver.com/");
+  assert.equal(noFrameUrl("https://x.com/a", B), "https://x.com/a");
+  assert.equal(noFrameUrl("https://example.com/", B), null);
+  assert.equal(noFrameUrl("https://github.com/nomutefb/editor/issues/12", B), null);
+  assert.equal(noFrameUrl("mailto:a@b.kr", B), null);
 });

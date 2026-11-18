@@ -66,9 +66,20 @@ function webTab(raw: string, base?: string): boolean {
   return true;
 }
 
+/** 새 맥 앱(html.nm-shell-mac · 11-18 판 = 웹 탭 줄이 윈도우처럼 보임 · 앱 탭 줄은 진짜 웹뷰 탭이 생길 때만) 안 = 품기를 막는 사이트만 앱 제 탭(진짜 웹뷰)으로 · 나머지는 윈도우와 같은 웹 탭
+ *  (형 11-18 21:4x 구름 맥 창 「맥 버전은, 윈도우버전과 다르게 이제는 역으로 인터넷같은게 안켜지거든 팀즈도 없고?」 「윈도우 버전처럼 설계좀 해주라」) */
+const shellMac = () => typeof document !== "undefined" && document.documentElement.classList.contains("nm-shell-mac");
+/** 순수 — 품기를 막는 사이트 주소면 그 주소(정리된 꼴) · 아니면 null */
+export function noFrameUrl(raw: string, base: string): string | null {
+  let u: URL;
+  try { u = new URL(raw, base); } catch { return null; }
+  return /^https?:$/.test(u.protocol) && NO_FRAME.test(u.hostname) && !ISSUE.test(u.href) ? u.href : null;
+}
+
 /** 앱 안으로 엶(해시 길 = 라우터가 받음) — 못 들이면 false(부른 쪽이 원래대로) */
 export function openInApp(raw: string, base?: string): boolean {
   if (macApp() && macTab(raw, base)) return true;
+  if (shellMac()) { const u = noFrameUrl(raw, base ?? location.href); if (u) { window.open(u, "_blank", "noopener"); return true; } }
   if (tabBarOn() && webTab(raw, base)) return true;
   const h = inAppHref(raw, base);
   if (h == null) return false;
