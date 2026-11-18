@@ -163,3 +163,30 @@
 .yeta-set .yset-item.yset-pick .nm-srail[data-n="2"] > button { padding-left:12px; padding-right:12px; }
 .yeta-set .yset-item.yset-pick:active, .yeta-set .yset-kids > .yset-item.yset-pick:active, .yeta-set .yset-grp > .yset-item.yset-pick:active { transform:none; background:none; }
 .yeta-set .yset-item[role="switch"] .si-v { margin-right:8px; }   /* 스위치 줄의 덧글(「10분」) */
+/* 보안 서랍 맨 위 「봄의 정원 MCP server」 칸(./settings-extra.tsx GardenMcp · 형 11-19 08:07~08:16 · 그록 「Edit MCP server」 꼴 · 설명글 뺌) */
+.yeta-set .nm-mcp { margin-top:12px; padding:14px 14px 16px; display:flex; flex-direction:column; gap:10px; border:1px solid var(--glass-line); border-radius:16px; text-transform:none; letter-spacing:0; }   /* 설정 판 대문자 꼴을 풂 = spring-garden · 주소가 그록 창과 한 글자도 안 다르게 */
+.yeta-set .nm-mcp-hd { display:flex; align-items:center; gap:8px; min-height:32px; }
+.yeta-set .nm-mcp-hd h3 { flex:1; min-width:0; margin:0; font-size:var(--fs-body); font-weight:700; color:var(--fg); }
+.yeta-set .nm-mcp-link { flex:none; display:grid; place-items:center; width:36px; height:36px; margin:-2px -6px -2px 0; border-radius:var(--r-pill); color:var(--mut); transition:color .15s ease, scale .12s ease; }
+.yeta-set .nm-mcp-link svg { width:18px; height:18px; }
+.yeta-set .nm-mcp-link:hover { color:var(--fg); }
+.yeta-set .nm-mcp-link:active { scale:.92; }
+.yeta-set .nm-mcp-sec { margin:4px 0 0; font-size:var(--fs-sm); font-weight:700; color:var(--fg); }
+.yeta-set .nm-mcp-row { display:flex; flex-direction:column; gap:6px; }
+.yeta-set .nm-mcp-lb { margin:0; font-size:var(--fs-xs); color:var(--mut); }
+.yeta-set .nm-mcp-f { display:flex; align-items:center; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; cursor:default; }
+.yeta-set .nm-mcp-f, .yeta-set .nm-mcp-use .nm-vault-in { font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }   /* 값 칸 = 대소문자 갈리는 글꼴(형이 고른 앱 글꼴이 LEMONMILK 같은 대문자 글꼴이면 spring-garden 이 SPRING-GARDEN 으로 보임 · 공지 칸 .nm-nb 와 같은 줄) */
+.yeta-set .nm-mcp-k { flex:1 1 0; }
+.yeta-set .nm-mcp-v { flex:1 1 0; letter-spacing:.08em; }
+.yeta-set .nm-mcp-v.off { color:var(--mut); letter-spacing:0; }
+.yeta-set .nm-mcp-line { height:1px; margin:4px 0; background:var(--glass-line); }
+.yeta-set .nm-mcp-more { align-self:flex-start; display:inline-flex; align-items:center; gap:6px; min-height:36px; }
+.yeta-set .nm-mcp-fold { display:grid; grid-template-rows:0fr; margin-top:-10px; transition:grid-template-rows .3s var(--ease, cubic-bezier(.2,.7,.3,1)), margin-top .3s var(--ease, cubic-bezier(.2,.7,.3,1)); }
+.yeta-set .nm-mcp-fold[data-open] { grid-template-rows:1fr; margin-top:0; }
+.yeta-set .nm-mcp-fold > div { min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:10px; }
+.yeta-set .nm-mcp-use { position:relative; display:flex; }
+.yeta-set .nm-mcp-use .nm-vault-in { padding-right:36px; }
+.yeta-set .nm-mcp-ok { position:absolute; right:14px; top:50%; translate:0 -50%; color:var(--accent); opacity:0; scale:.5; transition:opacity .14s ease, scale .14s ease; pointer-events:none; }
+.yeta-set .nm-mcp-ok.on { opacity:1; scale:1; }
+.yeta-set .nm-mcp-cut { height:1px; margin:16px 2px 0; background:var(--glass-line); }
+@media (prefers-reduced-motion: reduce) { .yeta-set .nm-mcp-fold, .yeta-set .nm-mcp-ok, .yeta-set .nm-mcp-link { transition:none; } }
