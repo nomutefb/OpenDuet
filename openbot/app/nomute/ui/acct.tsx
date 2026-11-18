@@ -9,6 +9,7 @@ import "./memo.css";
 import "./genopt.css";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Pane } from "./pane";
+import { acctTag } from "../data/acct-time";   // 카드 이름 = 러너 표와 같은 글자(C·G · C·T · C·N · 형 11-18 「그렇게 해서 표기를 토잉ㄹ해줘」)
 import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
 import "./acct-cards.css";
@@ -45,8 +46,8 @@ function AcctCards({ id, busy, pick }: { id: string; busy: boolean; pick: (v: st
           const k = order.indexOf(v), now = known && k === 0, c = CARD[v], r = row(c.mail), n = r?.note || "", w7 = pct(n, "7일");
           return (
             <button key={v} type="button" role="option" aria-selected={now} disabled={busy || now} className={`acx-card${k === 0 ? " front" : ""}${now ? " now" : ""}${w7 !== null && w7 < 10 ? " low" : ""}`} style={{ "--k": k, "--tint": c.tint } as CSSProperties} onClick={() => pick(v)} title={now ? "지금 러너 계정" : `${c.name} 으로`}>
-              <span className="acx-top"><small>CLAUDE {v.slice(-2)}</small><span className="acx-ini">{c.name[0].toUpperCase()}</span></span>
-              <b className="acx-name">{c.name}</b>
+              <span className="acx-top"><small>CLAUDE {v.slice(-2)}</small><span className="acx-ini">{acctTag(c.mail).slice(-1)}</span></span>
+              <b className="acx-name" title={c.name}>{acctTag(c.mail)}</b>
               <span className="acx-bars"><Bar label="5시간" v={pct(n, "5시간")} /><Bar label="7일" v={w7} /></span>
               <span className="acx-mail">{maskMail(c.mail)}</span>
               <span className="acx-foot"><span><small>쓰는 곳</small>러너{now ? " · 지금" : ""}</span><span><small>다시 참</small>{refill(n) || "—"}</span></span>

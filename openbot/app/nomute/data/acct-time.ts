@@ -54,7 +54,7 @@ export function acctOrder<R extends { pay_end?: string }>(rows: R[], now = Date.
   return [...rows.filter((r) => !over(r)), ...rows.filter(over)];
 }
 
-/** 계정 짧은 표기 = 클로드 C·N(네이버) · C·G(구글 g) · C·M(구글 m) · 지피티 = GPT(계정 이름 없이) · 그 밖 = 메일 앞 이름 그대로
+/** 계정 짧은 표기 = 클로드 C·N(네이버) · C·G(구글 g) · C·M(구글 m) · C·T(muteno) · 지피티 = GPT(계정 이름 없이) · 그 밖 = 메일 앞 이름 그대로
  *  (형 11-18 18:45 dm-gik 「쿨로드 계정은 C·N 이런식으로 표기할게 C·G C·M 네이버 구글g 구글m 지피티는 GPT 계정명 없어도 됨」) */
 export function acctTag(v?: unknown, kind?: string): string {
   const s = v === undefined || v === null ? "" : String(v).trim(), id = s.split("@")[0].toLowerCase();
@@ -62,5 +62,6 @@ export function acctTag(v?: unknown, kind?: string): string {
   if (/@naver\.com$/i.test(s) || id === "naver" || id === "ems1130n") return "C·N";
   if (id === "ems1130g") return "C·G";
   if (id === "ems1130m") return "C·M";
+  if (id === "muteno") return "C·T";   // 형 11-18 21:4x 구름 맥 창 「그리고 muteno 계정은 C 는 유지하고 뒤에를 T 로 하면됨.」 · 「그렇게 해서 표기를 토잉ㄹ해줘」
   return s.includes("@") ? s.split("@")[0] : s;
 }

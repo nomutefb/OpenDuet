@@ -64,5 +64,5 @@ test("acctTag = 클로드 C·N · C·G · C·M · 지피티 GPT · 그 밖은 �
   assert.equal(acctTag("ems1130g"), "C·G"); assert.equal(acctTag("ems1130g@gmail.com"), "C·G");
   assert.equal(acctTag("ems1130m"), "C·M"); assert.equal(acctTag("ems1130m@gmail.com"), "C·M");
   assert.equal(acctTag("gpt muteno"), "GPT"); assert.equal(acctTag("muteno", "gpt"), "GPT");
-  assert.equal(acctTag("muteno"), "muteno"); assert.equal(acctTag("muteno@pm.me"), "muteno"); assert.equal(acctTag(undefined), "");
+  assert.equal(acctTag("muteno"), "C·T"); assert.equal(acctTag("muteno@pm.me"), "C·T"); assert.equal(acctTag("someone@x.kr"), "someone"); assert.equal(acctTag(undefined), "");
 });

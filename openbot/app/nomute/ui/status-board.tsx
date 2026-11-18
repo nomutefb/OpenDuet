@@ -364,7 +364,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
       {pick.startsWith("who:") ? (() => { const r = bots.find((x) => `who:${x.key}` === pick) || ours.find((x) => `who:${x.key}` === pick); const c = cli.find((x) => x.key === r?.name)?.cells || {}; return r ? <p className="nsb-why">{r.name} — {NO_SELF[r.name] ? `셀프 넘김 – ${NO_SELF[r.name]} · ` : ""}{Object.entries(r.cells || {}).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}{Object.keys(c).length ? ` · ${Object.entries(c).map(([k, v]) => `${k} ${v.note || HEALTH_KO[v.st]}`).join(" · ")}` : ""}</p> : null; })() : null}
       <div className="nsb-foot">
         {grok ? <span><Dot c={grok} t={`${grok.name} · ${grok.value || ""}`} />그록봇 자동화 · 로그인</span> : null}
-        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · C·N 네이버 · C·G 구글g · C·M 구글m · 셀프 – = 혼자 못 넘어감 · 줄 누르면 까닭</small>
+        <small>클로드 칸 = 그 몸 계정 폴더 차례(.claude → spare) · C·N 네이버 · C·G 구글g · C·M 구글m · C·T muteno · 셀프 – = 혼자 못 넘어감 · 줄 누르면 까닭</small>
       </div>
       {comm ? <div className="nsb-sub"><b>봄의 정원 말 주고받기</b><Grid c={comm} pick={pick} setPick={setPick} /></div> : null}
     </div>

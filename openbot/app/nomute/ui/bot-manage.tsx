@@ -12,6 +12,7 @@ import { MorphAsk } from "./morph-ask";   // 그 자리 재확인(모달 0 · �
 import { sameOf } from "./model-set-logic";
 import { pmCandidates } from "./pm-set-logic";
 import { type BotRow, roleOf } from "./bot-desk-logic";
+import { acctTag } from "../data/acct-time";   // 계정 글자 = 러너 표와 같은 꼴(C·N · C·G · C·M · C·T · 형 11-18 「그렇게 해서 표기를 토잉ㄹ해줘」)
 import { type Rest, type RestMap, acctKo, restBody, restKo, restOn } from "./bot-manage-logic";
 import { Chev } from "./chev";
 import { NW_EFFORTS, NW_MODELS, type NextWin, nwDefault, useNextWin } from "./next-win";
@@ -70,7 +71,7 @@ function AcctRestRow({ r, skills }: { r: BotRow; skills: Record<string, string> 
   return (
     <div className="srow acct">
       <span className="plbl">{a.name ? "계정" : "쉼"}</span>
-      {a.name ? <span className="acctv"><b>{a.name}</b>{a.left ? <> (<b>{a.left}</b>)</> : null}</span> : null}
+      {a.name ? <span className="acctv" title={a.name}><b>{acctTag(a.name)}</b>{a.left ? <> (<b>{a.left}</b>)</> : null}</span> : null}
       {r.pm ? null : (
         <span className="rest">
           {send.error ? <em className="err" role="alert">안 됨 · {why(send.error)}</em> : q.isError ? <em className="err">못 읽음</em> : detail ? <em>{detail}</em> : null}
