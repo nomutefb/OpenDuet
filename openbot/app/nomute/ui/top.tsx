@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useColFlag } from "./has-flags";
-import { type OfficeRoom, idOf, office, people, roomAgentIds, roomHeadCount, HYUNG_ID } from "../data/office";
+import { type OfficeRoom, idOf, office, people, roomAgentIds, roomHeadCount, roomLeftSet, hyungLeft, HYUNG_ID } from "../data/office";
 import { DuetIcon } from "@/components/duet/icons";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { FaceImg } from "./faces";
@@ -77,14 +77,21 @@ export function NomuteName({ room }: { room?: string } = {}) {
   };
   if (!ids.length && !can && !menu.items) return <span className="nm-top-name">{name}{mark}</span>;   // 목록에 넣을 게 없는 방(둘의 방 등) = 이름만
   const crewSec = ids.length > 0 || edit || !!menu.crew;
+  // 남은 사람만 셈(형 11-18 20:12 dm-gik 「나 포함 남은 사람만 세야해. … 깃이 나가면 2인거임.그다음에 봄 나가면 1, 나도 나가면 해체」) — 숫자 = 서버 count · 명단 = 남은 사람 먼저 · 「!종료」로 나간 이는 「나감」 아래 따로 · 형이 나갔으면 형 줄 없음
+  const n = roomHeadCount(r, list), gone = roomLeftSet(r), hyOut = hyungLeft(r);
+  const whoOf = (id: string) => list.find((y) => idOf(y.who, list) === id);
+  const outIds = ids.filter((id) => gone.has(whoOf(id)?.who || id)), inIds = ids.filter((id) => !outIds.includes(id));
+  const one = (id: string) => { const x = whoOf(id); return <span key={id} className={`nm-top-one${x && going === x.who ? " going" : ""}`}><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className={`nm-top-kick${arm === x.who ? " arm" : ""}`} aria-pressed={arm === x.who} aria-label={arm === x.who ? `${x.name || x.who} 내보내기 — 한 번 더 누르면 내보냄` : `${x.name || x.who} 내보내기`} title={arm === x.who ? "한 번 더 누르면 내보냄" : "내보내기"} disabled={busy} onClick={() => { if (arm !== x.who) { setArm(x.who); return; } setArm(""); setGoing(x.who); void saveMembers((r.members || []).filter((w) => w !== x.who), KICK_FILL_MS); }}><DuetIcon name="logout" size={15} /></button> : null}</span>; };
   return (   // 단톡 = 이름 옆 인원 · 누르면 누구인지(형 10-31 「들가면 확인할 수 잇으면 됨 방 상단에서」) + 방 메뉴
     <span className="nm-top-wrap">
-      <button type="button" className="nm-top-name nm-top-btn" style={r.color ? { color: r.color } : undefined} aria-haspopup="menu" aria-expanded={open} aria-label={ids.length ? `${name} 사람 ${roomHeadCount(r, list)}명(형 포함) · 방 메뉴` : `${name} 방 메뉴`} onClick={() => setOpen((v) => !v)}>{name}{mark}{ids.length ? <> <i>{roomHeadCount(r, list)}</i></> : null}</button><TempLeftChip r={r} />{/* 사람 수 = 멤버 + 형(형 11-15 20:21 「단톡 수. 나 포함 이여야함 숫자가 항상 하나씩 딸리네」) */}
+      <button type="button" className="nm-top-name nm-top-btn" style={r.color ? { color: r.color } : undefined} aria-haspopup="menu" aria-expanded={open} aria-label={n ? `${name} 사람 ${n}명${hyOut ? "" : "(형 포함)"} · 방 메뉴` : `${name} 방 메뉴`} onClick={() => setOpen((v) => !v)}>{name}{mark}{n ? <> <i>{roomHeadCount(r, list)}</i></> : null}</button><TempLeftChip r={r} />{/* 사람 수 = 멤버 + 형(형 11-15 20:21 「단톡 수. 나 포함 이여야함 숫자가 항상 하나씩 딸리네」) */}
       {open ? (
         <span className="nm-top-crew nm-yeta">
           {crewSec ? <span className="nm-top-sec">사람</span> : null}
-          {ids.length ? <span className="nm-top-one"><FaceImg id={HYUNG_ID} size={24} /><span className="nm-top-nm">형</span></span> : null}{/* 숫자에 형을 세니 명단 맨 위에도 형(내보내기 단추 0) */}
-          {ids.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return <span key={id} className={`nm-top-one${x && going === x.who ? " going" : ""}`}><FaceImg id={id} size={24} /><span className="nm-top-nm">{x?.name || x?.who || id}</span>{edit && x ? <button type="button" className={`nm-top-kick${arm === x.who ? " arm" : ""}`} aria-pressed={arm === x.who} aria-label={arm === x.who ? `${x.name || x.who} 내보내기 — 한 번 더 누르면 내보냄` : `${x.name || x.who} 내보내기`} title={arm === x.who ? "한 번 더 누르면 내보냄" : "내보내기"} disabled={busy} onClick={() => { if (arm !== x.who) { setArm(x.who); return; } setArm(""); setGoing(x.who); void saveMembers((r.members || []).filter((w) => w !== x.who), KICK_FILL_MS); }}><DuetIcon name="logout" size={15} /></button> : null}</span>; })}
+          {n && !hyOut ? <span className="nm-top-one"><FaceImg id={HYUNG_ID} size={24} /><span className="nm-top-nm">형</span></span> : null}{/* 숫자에 형을 세니 명단 맨 위에도 형(내보내기 단추 0) · 형이 「!종료」로 나갔으면 줄 없음 */}
+          {inIds.map(one)}
+          {outIds.length ? <span className="nm-top-sec">나감</span> : null}{/* 「!종료」로 나간 이 = 숫자에서 빠짐 · 명단(형이 고른 멤버)엔 남아 있어 따로 보임 · 칸 글씨 = 「사람」 · 「방」 과 같은 것 */}
+          {outIds.map(one)}
           {edit ? (   /* 초대 = 그 자리에서 명단이 부드럽게 펼쳐짐 · 방에 없는 이만 · 체크해서 한 번에(형 11-06 20:37~20:38) · 내보내기 = 사람 오른쪽 문 + 화살표 픽토그램(형 「이미 방에 있는사람 우측에 픽토그램으로」 · 22:38 「그 문 내보내기 픽토그램 그거로해야지 x는 의미가 안어울려」) */
             <>
               <button type="button" className="nm-top-inv" aria-expanded={inv} onClick={() => setInv((v) => !v)}>{inv ? "접기" : "+ 초대"}</button>

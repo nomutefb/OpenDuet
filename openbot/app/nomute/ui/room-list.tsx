@@ -15,7 +15,7 @@ import { CloseAsk, useCloseGuard } from "./save-ask";   // 쓰던 중 닫기 = �
 import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { createPortal } from "react-dom";
 import { DuetIcon } from "@/components/duet/icons";
-import { type OfficeRoom, idOf, office, people, roomAgentIds, roomHeadCount } from "../data/office";
+import { type OfficeRoom, idOf, office, people, roomAgentIds, roomHeadCount, roomLeftSet, hyungLeft } from "../data/office";
 import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
 import { LiveShine } from "./live-shine";
@@ -168,7 +168,8 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
   const nav = useNavigate();
-  const names = (r.members || []).map((w) => list.find((x) => x.who === w)?.name || whoName(w)).filter(Boolean);
+  const gone = roomLeftSet(r), crew = roomHeadCount(r, list);   // 남은 사람만(형 11-18 20:12 dm-gik 「나 포함 남은 사람만 세야해」) · 숫자 = 방 머리 · 목록과 같은 셈 · 「!종료」로 나간 이 · 나간 형은 이름에서도 뺌
+  const names = [...(hyungLeft(r) ? [] : ["형"]), ...(r.members || []).filter((w) => !gone.has(w)).map((w) => list.find((x) => x.who === w)?.name || whoName(w)).filter(Boolean)];
   const kind = r.id === "all" ? "회의실" : r.temp ? `임시방${r.exp ? " · " + tempLeft(r.exp) : ""}` : r.designated ? "지정방" : "단톡방";
   const crewOk = r.id !== "all" && !!r.designated && !r.temp;   // 멤버 설정 = 방 안 메뉴와 같은 조건(./room-menu.tsx crewItems)
   return (
@@ -178,7 +179,7 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
         <span className="ycd-nm">{r.name}</span>
         <span className="ycd-tag">{kind}</span>
         {r.purpose ? <p className="ypp-desc">{r.purpose}</p> : null}
-        {names.length ? <p className="nm-rinfo-crew"><b>사람 {names.length + 1}</b> · 형 · {names.join(" · ")}</p> : null}
+        {crew ? <p className="nm-rinfo-crew"><b>사람 {crew}</b> · {names.join(" · ")}</p> : null}
         <div className="ypc-acts nm-rinfo-acts">
           <button type="button" className="ypc-go" onClick={() => { onClose(); enterRoom(r.id); void nav({ to: r.id === "all" ? "/group/$channelId" : "/channels/$channelId", params: { channelId: r.id } }); }}>대화 열기</button>
           <button type="button" className="ypc-x" onClick={onPhoto}>사진 바꾸기</button>

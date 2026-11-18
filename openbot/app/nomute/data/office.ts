@@ -20,6 +20,7 @@ export type OfficeMsg = {
 };
 export type OfficeRoom = {
   id: string; name: string; base?: string; kind: "group" | "dm"; color?: string; with?: string; members?: string[]; designated?: boolean; heard?: string[]; temp?: boolean; purpose?: string; exp?: number; from?: string; spawned?: boolean; last_ts?: number; act_ts?: number;
+  left?: string[]; count?: number;   // left = 「!종료」로 나간 이(형이 나갔으면 「형」도) · count = 남은 사람 수(명단 − 나간 이 + 형 · 서버 셈 · 지정방 · 임시방만 옴) — 형 11-18 20:12 dm-gik 「나 포함 남은 사람만 세야해 … 깃이 나가면 2인거임」
   max?: number; task?: string; idle_min?: number; task_exp?: number;   // max = 멤버 최대 수(깃 · 없음 = 제한 없음 · 형은 안 셈) · task = 지금 일 · idle_min = 조용하면 일이 끝나는 분(켜져 있을 때만 옴) · task_exp = 끝나는 때(서버가 줄 때만) — 빠르 #4080 · 형 11-17 00:47 · 00:49
   last?: { who: string; kind: string; text: string; ts: number } | null; last_talk?: { who: string; kind: string; text: string; ts: number } | null;
   look?: { icon?: string; fg?: string };   // 방 꾸미기(번개 서버 roomlook · 형만 · 아이콘 = Lucide 이름 · fg = #RRGGBB 또는 두 색)
@@ -97,13 +98,18 @@ export function roomAgentIds(r: OfficeRoom, list: OfficePerson[]): string[] {
   return names.map((n) => idOf(n, list));
 }
 
-/** 방 사람 수 = 든 봇 + 형 1 — 방 안 머리 · 대화 목록 · 방 정보가 이 셈 하나를 씀(형 11-16 19:42 dm-bom 「단톡방 안에서는 5라고 뜨는데 외부에선 4라고 떠.」 · 앞 = 머리만 형을 셈)
- *  수를 안 내는 방(1:1 · 수리 접수 · 메모 · 요약실) · 아무도 없는 방 = 0 */
+/** 방 사람 수 — 방 안 머리 · 대화 목록 · 방 정보가 이 셈 하나를 씀(형 11-16 19:42 dm-bom 「단톡방 안에서는 5라고 뜨는데 외부에선 4라고 떠.」 · 앞 = 머리만 형을 셈)
+ *  서버가 남은 사람 수(count = 명단 − 나간 이 + 형)를 주면 그 숫자(형 11-18 20:12 dm-gik 「나 포함 남은 사람만 세야해. 예를들어, 봄, 깃, 나 이렇게 있는데, 깃이 나가면 2인거임.그다음에 봄 나가면 1, 나도 나가면 해체」)
+ *  · 안 주면 옛 셈(든 봇 + 형 1) · 수를 안 내는 방(1:1 · 수리 접수 · 메모 · 요약실) · 아무도 없는 방 = 0 */
 export function roomHeadCount(r: OfficeRoom, list: OfficePerson[]): number {
   if (r.with || r.id === "repair" || r.id === "memo" || r.id === "summary") return 0;
+  if (typeof r.count === "number" && Number.isFinite(r.count)) return Math.max(0, Math.floor(r.count));
   const n = roomAgentIds(r, list).length;
   return n ? n + 1 : 0;
 }
+/** 그 방에서 나간 이름(서버 left) · 형이 나갔나 — 방 머리 명단 · 방 개요가 남은 사람과 나간 사람을 가름 */
+export const roomLeftSet = (r: OfficeRoom): Set<string> => new Set(r.left || []);
+export const hyungLeft = (r: OfficeRoom): boolean => (r.left || []).includes("형");
 
 /** 원본 ChannelSummary 꼴 */
 export function toChannel(r: OfficeRoom, list: OfficePerson[], seenTs?: number) {
