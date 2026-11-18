@@ -1,7 +1,7 @@
-/* 옛 비디오 에디터 품기(./video-editor.tsx) — 겉틀 = 포토 에디터 머리(./thumb-maker/frame.css tm-*) · 판 = 원본 edit.html 한 장 */
+/* 옛 비디오 에디터(./video-editor.tsx) — 겉틀 = 포토 에디터 머리(./thumb-maker/frame.css tm-*) · 판 = 앱 안에서 도는 옛 화면(./old-pages) */
 .ved-frame { -webkit-mask-image:none; mask-image:none; }   /* 판 아래 흐려짐 0(원본 화면 아래 단추 줄이 흐려지지 않게) */
 .ved-if { position:absolute; inset:0; width:100%; height:100%; border:0; background:transparent; color-scheme:dark; }
-.ved-if:not([data-on]) { visibility:hidden; pointer-events:none; }   /* 안 고른 화면 = 그대로 살려 두고 안 보이게만(올리던 영상 · 쓰던 글 보존) */
+.ved-if:not([data-on]) { content-visibility:hidden; visibility:hidden; pointer-events:none; }   /* 안 고른 화면 = 그대로 살려 두고 안 보이게만(올리던 영상 · 쓰던 글 보존) · content-visibility = 화면 안 칸이 스스로 「보임」을 켜도 안 비치게(앞 판 iframe 은 통째로 가려졌다) */
 
 /* 머리 「편집 ⌄」 = 할 일 고르기(형 11-14 「영상 편집 안에서 … 내부에서 고르는 형태」) — 내려오는 꼴 = 호출 목록(./call-sheet.css)과 같은 결: 유리 판 250ms · 줄 26ms 차례 · 누름 줄어듦 */
 .tm-menu.ved-pick { border:0; background:none; cursor:pointer; font-family:inherit; border-radius:999px; padding:0 8px 0 10px; margin-left:8px; -webkit-tap-highlight-color:transparent; transition:background-color var(--m-color,.14s) ease, transform var(--m-press,.07s) ease; }

@@ -1,20 +1,22 @@
 // 서랍 「영상 편집」 · + 펼침 「비디오 에디터」 = 옛 비디오 에디터 화면 그대로(형 11-13 13:21 봄 옮김 「그 비디오 에디터, 그 화면도 예전 비디오 에디터 화면을 그대로 계승할거거든? 지금 포토 에디터처럼, 가능해?」)
-//   원본 = editor viewer/edit.html(옛 스튜디오 셸 index.html 「에디터 · 영상 편집」 탭이 품던 화면) · 같은 출처라 원본을 그대로 품음 = 올리기 · 자르기 · 내보내기 · 서버 요청 = 원본 코드 그대로(고친 글자 0)
-//   겉틀 = 포토 에디터(./thumb-maker 「✧ 에디터 · 카드 제작」)와 같은 머리 「‹ ✦ 에디터 · 영상 편집」 · 위 챠콜 줄 없음 · 뒤 = 웹앱 배경(품은 문서 바탕만 투명 · 형 11-13 02:24 · 02:26)
-//   옛 셸만 받던 손 = 「트랙」 탭 넘김(edit.html parent.postMessage nmToolTab) → 앱 안 한 겹 · 카드 제작 「영상 편집으로」 = 이 화면으로 와서 영상 넣음(./studio-handoff deliverStudio)
-//   다음 판(짐작) = 포토처럼 엔진을 앱 안으로(코드모드) — 이 판은 화면 · 움직임 · 단추가 이미 원본 그대로
+//   원본 = editor viewer/edit.html · sb.html · ys.html · song.html — 이제 앱 안에서 직접 돎(형 11-19 00:45 「그거 다 지금 정원으로 제대로 이식해서 가져와」)
+//     판 · 옷 · 엔진 = ./old-pages/<화면>.gen.ts(./old-pages/tools/gen.mjs 가 옛 에디터에서 만듦 · 원본 코드를 사람이 안 고침) · 틀 = ./old-pages/frame.ts(그림자 뿌리 한 장)
+//     앞 판 = 같은 출처 iframe 으로 원본 파일(/edit.html …)을 품음 → 옛 에디터 파일에 기댐 0 · 올리기 · 자르기 · 내보내기 · 서버 요청 = 원본 코드 그대로
+//   겉틀 = 포토 에디터(./thumb-maker 「✧ 에디터 · 카드 제작」)와 같은 머리 「‹ ✦ 에디터 · 영상 편집」 · 위 챠콜 줄 없음 · 뒤 = 웹앱 배경(화면 바탕만 투명 · 형 11-13 02:24 · 02:26)
+//   옛 셸만 받던 손 = 탭 넘김(화면의 parent.postMessage nmToolTab → 아는 일이면 그 일로 · 편집의 「트래킹」 넘김 단추는 원본에서 늘 숨김이라 닿는 길 없음 = 트래킹 화면은 안 옮김) · 카드 제작 「영상 편집으로」 = 이 화면으로 와서 영상 넣음(./studio-handoff deliverStudio)
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Chev } from "./chev";
 import "./thumb-maker/frame.css";
 import "./video-editor.css";
-import { hookFrame, openInApp } from "./inapp";
+import { hookRoot, openInApp } from "./inapp";
+import { type Frame, type PageDef, mountPage } from "./old-pages/frame";
 import { deliverStudio, EDIT } from "./studio-handoff";
 import { ditherGaugeCss } from "./dither-gauge";   // 「생성」 게이지 = 이미지 편집과 같은 꼴(형 11-15 영상)
 import { ToolButtons } from "./ed-keep";   // 머리 오른쪽 단추 = 옛 에디터 것 그대로(최소화 − · 닫기 × · 형 11-15)
 
 const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 3.5l1.8 4.9 4.9 1.8-4.9 1.8L12 16.9l-1.8-4.9-4.9-1.8 4.9-1.8L12 3.5z" /><path d="M19.5 15l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8.8-2.1z" /></svg>;
-/** 품은 옛 화면 바탕 = 투명(앱 배경이 비침) · 제 장면 그림(nm-scene) 끔 — 원본 파일은 안 고치고 품은 문서에만 덧씀 */
+/** 옛 화면 바탕 = 투명(앱 배경이 비침) · 제 장면 그림(nm-scene) 끔 — 원본은 안 고치고 덧씌우는 옷으로만(원본 문서 꼴로 씀 · 틀이 제 것으로 바꿔 넣음 = ./old-pages/scope-css.ts) */
 export const SEE_CSS = "html,html.nm-scene-ready:not(:has(#wavebg)),body{background:transparent!important}.nm-scene-canvas{display:none!important}body::before{display:none!important}"
   // 한 배경(형 11-13 14:08 봄 옮김 「배경같은것도 원톤으로 그냥 한 배경이 쭉 깔려야되」) = 미리보기 고정 도크(#topDock · 원본 #121212)도 쉴 땐 투명 · 내용이 도크 밑으로 들어간 동안만 유리(포토 에디터 ./thumb-maker/frame.css data-stuck 과 같은 꼴)
   + "#topDock{background:transparent!important;transition:background-color .2s ease}html.nm-stuck #topDock{background:rgba(17,18,20,.96)!important}"
@@ -51,71 +53,62 @@ export const RAIL_CSS = "#editSpec .gs-sep{display:none!important}#optStrip,#edi
 //   11-14 형 「기존 시안 라인을 라임으로 덮어씌웟는데 기존 시안은 없애서 깔끔하고 빨리뜨게」 → 다 읽은 뒤 덮던 것을 그려지기 전에 넣음(seeEarly) · 옛 화면 제 :root 가 뒤에 와도 이기게 !important = 청록이 한 번도 안 비침
 export const accentCss = (dark: boolean) => (dark ? "" : "#editSpec .gs-v:not(.on){color:rgba(0,0,0,.5)!important}") + `:root{--accent:${dark ? "#CFFF40" : "#4f7a00"}!important;--accent-rgb:${dark ? "207,255,64" : "79,122,0"}!important}`;
 
-function see(el: HTMLIFrameElement) {
-  let doc: Document | null = null;
-  try { doc = el.contentDocument; } catch { return; }
-  if (!doc?.head) return;
-  let s = doc.getElementById("nm-ved-see") as HTMLStyleElement | null;
-  if (!s) { s = doc.createElement("style"); s.id = "nm-ved-see"; }
+/** 덧씌우는 옷 = 바탕 · 기둥 그림 단추 · 라임 · 「생성」 게이지 — 틀이 늘 맨 끝에 둠(옛 화면 제 옷보다 뒤) · 화면이 그려지기 전에 넣음(붙이는 그 자리에서 = 청록이 한 번도 안 비침) */
+function tone(f: Frame) {
   const dark = document.documentElement.classList.contains("dark");
-  const css = SEE_CSS + RAIL_CSS + accentCss(dark) + ditherGaugeCss(".go.firing:not(.fy)", dark ? "#CFFF40" : "#4f7a00");
-  if (s.textContent !== css) s.textContent = css;
-  if (doc.head.lastElementChild !== s) doc.head.appendChild(s);   // 늘 맨 끝(그려지기 전에 먼저 넣으면 옛 화면 제 스타일이 뒤에 붙음 → 다 읽은 때 다시 맨 끝으로)
-  const w = doc.defaultView as (Window & { __nmStuck?: boolean; __nmRail?: boolean }) | null;
-  const pv = doc.getElementById("pvsec"), rail = doc.getElementById("cpRailWrap");
-  if (w && pv && rail && !w.__nmRail && "ResizeObserver" in w) {   // 기둥 키 = 칸 위끝부터 기둥 아래끝(문서마다 한 번 · 탭 · 돋보기로 기둥이 바뀌면 따라감)
-    w.__nmRail = true;
-    // 기둥 틀(offsetHeight)은 칸 키에 묶여 있어 넘친 단추 키를 못 잼 → 안 단추 아래끝으로(형 11-14 05:23 봄 옮김 · 폰 단추 줄이 「자막 설정」 「컷·구간」 위를 덮음)
-    //   틀 키 · scrollHeight 는 칸이 커지면 같이 커져 끝없이 자람 → 안 잎 요소(글자 · 그림) 아래끝(칸 위 기준)만 잼
-    const fit = () => { const top = pv.getBoundingClientRect().top; let bot = 0; for (const c of Array.from(rail.querySelectorAll<HTMLElement>("*"))) { if (c.children.length) continue; const r = c.getBoundingClientRect(); if (r.height) bot = Math.max(bot, r.bottom - top); } pv.style.setProperty("--nm-railh", `${Math.ceil(bot) + 6}px`); };
-    const ro = new (w as unknown as { ResizeObserver: typeof ResizeObserver }).ResizeObserver(fit);
-    ro.observe(rail); for (const c of Array.from(rail.children)) ro.observe(c); fit();
-  }
-  const spec = doc.getElementById("editSpec");
-  if (w && spec && rail && !(w as { __nmIcons?: boolean }).__nmIcons) {   // rail = 읽는 중(seeEarly)엔 아직 없을 수 있음 → 있을 때만   // 그림 단추 덧(해상도 값 글자 · 길게 누름 말풍선 · 문서마다 한 번)
-    (w as { __nmIcons?: boolean }).__nmIcons = true;
-    const d = doc;
-    const val = () => spec.querySelectorAll<HTMLElement>(".gs-v[data-cyc=res]").forEach((e) => { const v = (e.textContent || "").replace(/^해상도\s*/, "").trim().slice(0, 4); if (e.getAttribute("data-nmv") !== v) e.setAttribute("data-nmv", v); });
-    new (w as unknown as { MutationObserver: typeof MutationObserver }).MutationObserver(val).observe(spec, { subtree: true, childList: true, characterData: true }); val();
-    let tm = 0, tip: HTMLElement | null = null, eat = false;
-    const hide = () => { w.clearTimeout(tm); if (tip) { const t = tip; tip = null; w.setTimeout(() => t.remove(), 700); } };
-    rail.addEventListener("pointerdown", (ev) => {
-      const b = (ev.target as HTMLElement).closest<HTMLElement>(".gs-v, .cpv-tool, .trail-i"); if (!b) return;
-      w.clearTimeout(tm);
-      tm = w.setTimeout(() => {
-        const r = b.getBoundingClientRect(), nm = b.classList.contains("gs-v") ? `${b.getAttribute("aria-label") || ""}${b.dataset.cyc === "res" ? " · " + (b.getAttribute("data-nmv") || "") : b.classList.contains("on") ? " · 켬" : " · 끔"}` : b.getAttribute("aria-label") || b.title || "";
-        tip = d.createElement("div"); tip.className = "nm-tip"; tip.textContent = nm; tip.style.left = `${r.left}px`; tip.style.top = `${r.top + r.height / 2}px`; d.body.appendChild(tip); eat = true;
-      }, 450);
-    });
-    for (const k of ["pointerup", "pointercancel", "pointerleave"]) rail.addEventListener(k, hide);
-    rail.addEventListener("click", (ev) => { if (eat) { eat = false; ev.preventDefault(); ev.stopPropagation(); } }, true);
-    rail.addEventListener("contextmenu", (ev) => { if ((ev.target as HTMLElement).closest(".gs-v, .cpv-tool, .trail-i")) ev.preventDefault(); });
-  }   // 도크 밑으로 들어감 = html.nm-stuck(문서마다 한 번)
-  if (w && !(doc as Document & { __nmStuck?: boolean }).__nmStuck) {   // 표 = 문서에(창 표는 처음 about:blank 창이 같은 출처 첫 문서에 그대로 이어져서, 표만 남고 듣는 손은 옛 문서에 붙어 있었음 · 실측 11-15 05:3x)
-    (doc as Document & { __nmStuck?: boolean }).__nmStuck = true;
-    // 붙음 = 도크 바로 아래 칸이 도크 밑으로 들어갔나(모양으로 잼) · 스크롤 = 문서 어디서 나든 잡음(capture) — 앞 판은 창 scrollTop 만 봐서 몸(body)이 스크롤하는 폰에선 안 켜져 뒤 글이 비침(형 11-15 05:14 dm-gik 「그리구 이 미리보기 구간 뒤로 넘어가면 아예 안보여야 함」 · 깃 #-025 다시 · 뜸)
-    const d = doc; let raf = 0;
-    const on = () => { raf = 0; const dock = d.getElementById("topDock"); let nx = dock?.nextElementSibling as HTMLElement | null; while (nx && !nx.offsetHeight) nx = nx.nextElementSibling as HTMLElement | null;   /* 바로 아래 「보이는」 칸(숨은 .srcwrap 등 건너뜀) */ const top = Math.max(d.scrollingElement?.scrollTop || 0, d.body?.scrollTop || 0); const under = !!dock && !!nx && nx.getBoundingClientRect().top < dock.getBoundingClientRect().bottom - 1; d.documentElement.classList.toggle("nm-stuck", under || top > 1); };
-    const tick = () => { if (!raf) raf = w.requestAnimationFrame(on); };
-    d.addEventListener("scroll", tick, { passive: true, capture: true }); w.addEventListener("resize", tick, { passive: true }); on();
-  }
+  f.tone(SEE_CSS + RAIL_CSS + accentCss(dark) + ditherGaugeCss(".go.firing:not(.fy)", dark ? "#CFFF40" : "#4f7a00"));
 }
-
-/** 옛 화면이 그려지기 전에 색 · 바탕을 넣음 — 다 읽은 때(load)만 넣으면 그 전까지 청록 · 옛 바탕(#121212)이 먼저 비쳤다가 바뀜.
- *  새 문서의 머리(head)가 생긴 첫 프레임에 see() · 다 읽히면 멈춤(그 뒤는 load 손) · 못 읽어도 10초 뒤 멈춤 */
-export function seeEarly(el: HTMLIFrameElement) {
-  let raf = 0, n = 0;
-  const tick = () => {
-    raf = 0;
-    let doc: Document | null = null;
-    try { doc = el.contentDocument; } catch { return; }
-    const real = !!doc && doc.URL !== "about:blank";
-    if (real && doc!.head && !doc!.getElementById("nm-ved-see")) see(el);
-    if ((real && doc!.readyState === "complete") || ++n > 600) return;
-    raf = requestAnimationFrame(tick);
+/** 화면에 붙이는 손(화면마다 한 번) = 기둥 키 재기 · 그림 단추 덧(해상도 값 글자 · 길게 누름 말풍선) · 도크 밑으로 들어감 표시 — 걷는 손을 돌려줌 */
+function wire(f: Frame): () => void {
+  const offs: (() => void)[] = [];
+  let railOn = false, iconsOn = false, tries = 0, tm = 0;
+  const arm = () => {
+    const pv = f.root.getElementById("pvsec"), rail = f.root.getElementById("cpRailWrap"), spec = f.root.getElementById("editSpec");
+    if (pv && rail && !railOn) {   // 기둥 키 = 칸 위끝부터 기둥 아래끝(탭 · 돋보기로 기둥이 바뀌면 따라감)
+      railOn = true;
+      // 기둥 틀(offsetHeight)은 칸 키에 묶여 있어 넘친 단추 키를 못 잼 → 안 단추 아래끝으로(형 11-14 05:23 봄 옮김 · 폰 단추 줄이 「자막 설정」 「컷·구간」 위를 덮음)
+      //   틀 키 · scrollHeight 는 칸이 커지면 같이 커져 끝없이 자람 → 안 잎 요소(글자 · 그림) 아래끝(칸 위 기준)만 잼
+      const fit = () => { const top = pv.getBoundingClientRect().top; let bot = 0; for (const c of Array.from(rail.querySelectorAll<HTMLElement>("*"))) { if (c.children.length) continue; const r = c.getBoundingClientRect(); if (r.height) bot = Math.max(bot, r.bottom - top); } pv.style.setProperty("--nm-railh", `${Math.ceil(bot) + 6}px`); };
+      const ro = new ResizeObserver(fit);
+      ro.observe(rail); for (const c of Array.from(rail.children)) ro.observe(c); fit();
+      offs.push(() => ro.disconnect());
+    }
+    if (spec && rail && !iconsOn) {   // 그림 단추 덧(해상도 값 글자 · 길게 누름 말풍선)
+      iconsOn = true;
+      const val = () => spec.querySelectorAll<HTMLElement>(".gs-v[data-cyc=res]").forEach((e) => { const v = (e.textContent || "").replace(/^해상도\s*/, "").trim().slice(0, 4); if (e.getAttribute("data-nmv") !== v) e.setAttribute("data-nmv", v); });
+      const mo = new MutationObserver(val); mo.observe(spec, { subtree: true, childList: true, characterData: true }); val();
+      let tt = 0, tip: HTMLElement | null = null, eat = false;
+      const hide = () => { window.clearTimeout(tt); if (tip) { const t = tip; tip = null; window.setTimeout(() => t.remove(), 700); } };
+      const down = (ev: Event) => {
+        const b = (ev.target as HTMLElement).closest<HTMLElement>(".gs-v, .cpv-tool, .trail-i"); if (!b) return;
+        window.clearTimeout(tt);
+        tt = window.setTimeout(() => {
+          const r = b.getBoundingClientRect(), o = f.host.getBoundingClientRect(), nm = b.classList.contains("gs-v") ? `${b.getAttribute("aria-label") || ""}${b.dataset.cyc === "res" ? " · " + (b.getAttribute("data-nmv") || "") : b.classList.contains("on") ? " · 켬" : " · 끔"}` : b.getAttribute("aria-label") || b.title || "";
+          tip = document.createElement("div"); tip.className = "nm-tip"; tip.textContent = nm; tip.style.left = `${r.left - o.left}px`; tip.style.top = `${r.top - o.top + r.height / 2}px`; f.body.appendChild(tip); eat = true;   // 붙박이 자리 = 틀 왼쪽 위 기준(옛 iframe 창 기준과 같음)
+        }, 450);
+      };
+      const click = (ev: Event) => { if (eat) { eat = false; ev.preventDefault(); ev.stopPropagation(); } };
+      const ctx = (ev: Event) => { if ((ev.target as HTMLElement).closest(".gs-v, .cpv-tool, .trail-i")) ev.preventDefault(); };
+      rail.addEventListener("pointerdown", down);
+      for (const k of ["pointerup", "pointercancel", "pointerleave"]) rail.addEventListener(k, hide);
+      rail.addEventListener("click", click, true);
+      rail.addEventListener("contextmenu", ctx);
+      offs.push(() => { mo.disconnect(); window.clearTimeout(tt); rail.removeEventListener("pointerdown", down); for (const k of ["pointerup", "pointercancel", "pointerleave"]) rail.removeEventListener(k, hide); rail.removeEventListener("click", click, true); rail.removeEventListener("contextmenu", ctx); });
+    }
+    if ((!railOn || !iconsOn) && tries++ < 6) tm = window.setTimeout(arm, tries < 3 ? 60 : 400);   // 원본이 다 읽은 뒤(load)에 짓는 칸 = 조금 뒤 다시(편집 화면만 있는 칸 · 다른 화면은 여섯 번 보고 그만)
   };
-  raf = requestAnimationFrame(tick);
-  return () => { if (raf) cancelAnimationFrame(raf); };
+  arm();
+  offs.push(() => window.clearTimeout(tm));
+  {   // 도크 밑으로 들어감 = html.nm-stuck
+    // 붙음 = 도크 바로 아래 칸이 도크 밑으로 들어갔나(모양으로 잼) · 스크롤 = 화면 어디서 나든 잡음(capture) — 앞 판은 창 scrollTop 만 봐서 몸(body)이 스크롤하는 폰에선 안 켜져 뒤 글이 비침(형 11-15 05:14 dm-gik 「그리구 이 미리보기 구간 뒤로 넘어가면 아예 안보여야 함」 · 깃 #-025 다시 · 뜸)
+    let raf = 0;
+    const on = () => { raf = 0; const dock = f.root.getElementById("topDock"); let nx = dock?.nextElementSibling as HTMLElement | null; while (nx && !nx.offsetHeight) nx = nx.nextElementSibling as HTMLElement | null;   /* 바로 아래 「보이는」 칸(숨은 .srcwrap 등 건너뜀) */ const top = Math.max(f.html.scrollTop || 0, f.body.scrollTop || 0); const under = !!dock && !!nx && nx.getBoundingClientRect().top < dock.getBoundingClientRect().bottom - 1; f.html.classList.toggle("nm-stuck", under || top > 1); };
+    const tick = () => { if (!raf) raf = requestAnimationFrame(on); };
+    f.html.addEventListener("scroll", tick, { passive: true, capture: true });
+    const ro = new ResizeObserver(tick); ro.observe(f.host); on();
+    offs.push(() => { if (raf) cancelAnimationFrame(raf); f.html.removeEventListener("scroll", tick, true); ro.disconnect(); });
+  }
+  return () => { for (const x of offs) x(); };
 }
 
 /** 영상 편집 안에서 고르는 일(형 11-14 「영상 편집 안에서 트래킹이며 뭐며 그 안에서 내부에서 고르는 형태였는데, 합칠수있나 기능을? … 기본 영상 편집을 할건지, 트래킹을 할건지, 프롬프팅을 할건지 고르는거에 따라서 나오게 … 이미지 편집 1개, 영상 편집 1개 이렇게만 잇엇거든 … 옛날 버전이 github에 남아있으면 차라리 그걸 가져오는게 빠를거야」)
@@ -134,29 +127,41 @@ export const modeOfPath = (pathname: string): VMode => MODES.find((m) => m.path 
 /** 품은 화면이 부모에게 「이 화면으로 넘겨 줘」 한 주소 → 그 일(옛 셸 nmToolTab · 편집 「트랙」) */
 export const modeOfSrc = (src: string): VMode | null => MODES.find((m) => m.src === src.split("?")[0])?.k ?? null;
 
-function ModeFrame({ src, title, on, edit, onTab }: { src: string; title: string; on: boolean; edit: boolean; onTab: (src: string) => void }) {
-  const ref = useRef<HTMLIFrameElement>(null), tab = useRef(onTab);
+/** 화면 묶음 = 처음 고를 때 받음(옛 iframe 도 고를 때 읽었다) */
+const PAGES: Record<VMode, () => Promise<{ PAGE: unknown }>> = {
+  edit: () => import("./old-pages/edit.gen"), sb: () => import("./old-pages/sb.gen"), ys: () => import("./old-pages/ys.gen"), song: () => import("./old-pages/song.gen"),
+};
+/** 화면이 가려는 주소 → 앱 길: 옛 에디터 그 기사(/?a=<파일>) = 뉴스 에디터 그 기사 · 그 밖 = 앱 안 한 겹 */
+export const navOf = (url: string): string | null => { try { const u = new URL(url, location.origin + "/"); const a = u.pathname === "/" ? u.searchParams.get("a") : null; return a ? `/newsed?a=${encodeURIComponent(a)}` : null; } catch { return null; } };
+
+function ModeFrame({ k, search, on, onTab }: { k: VMode; search: string; on: boolean; onTab: (src: string) => void }) {
+  const ref = useRef<HTMLDivElement>(null), tab = useRef(onTab);
+  const [again, setAgain] = useState(0);   // 화면이 저를 다시 읽으려 함(로그인이 끊겨 다시 읽기) = 새로 붙임
   tab.current = onTab;
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const unhook = hookFrame(el);
-    const load = () => { see(el); if (edit) deliverStudio(el); };
-    el.addEventListener("load", load);
-    load();
-    const msg = (e: MessageEvent) => {   // 옛 셸 탭 넘김(edit.html 「트랙」 → /track.html) = 같은 틀 안에서 그 일로(앞 판 = #/web 한 겹)
-      if (e.source !== el.contentWindow || e.origin !== location.origin) return;
-      const d = e.data as { nm?: string; src?: string } | null;
-      if (d?.nm === "nmToolTab" && typeof d.src === "string" && d.src.startsWith("/")) tab.current(d.src);
-    };
-    window.addEventListener("message", msg);
-    const mo = new MutationObserver(() => see(el));   // 앱 밝게/어둡게 바뀌면 라임 값도 같이
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => { unhook(); mo.disconnect(); el.removeEventListener("load", load); window.removeEventListener("message", msg); };
-  }, [edit]);
-  useEffect(() => { const el = ref.current; return el ? seeEarly(el) : undefined; }, [src]);   // 주소가 바뀔 때마다(유튜브 ?u= 넘겨받음) 다시
-  // data-nm-scene="off" = 옛 화면 3D 바탕(editor viewer/nm-scene.js → three.js)을 안 읽게 — 어차피 SEE_CSS 가 가리는 것(안 보이는데 받아서 돌고 있었음)
-  return <iframe ref={ref} title={title} src={src} className="ved-if" data-on={on || undefined} data-nm-scene="off" aria-hidden={on ? undefined : true} tabIndex={on ? undefined : -1} allow="autoplay; clipboard-write; fullscreen; picture-in-picture" />;
+    const at = ref.current;
+    if (!at) return;
+    let f: Frame | null = null, gone = false, unhook = () => {}, unwire = () => {};
+    const mo = new MutationObserver(() => { if (f) tone(f); });   // 앱 밝게/어둡게 바뀌면 라임 값도 같이
+    void PAGES[k]().then((m) => {
+      if (gone) return;
+      f = mountPage(at, m.PAGE as PageDef, {
+        search,
+        onUp: (d) => { const x = d as { nm?: string; src?: string }; if (x?.nm === "nmToolTab" && typeof x.src === "string" && x.src.startsWith("/")) tab.current(x.src); },   // 옛 셸 탭 넘김
+        onNav: (u) => { const to = navOf(u); if (to) location.hash = "#" + to; else openInApp(u); },
+        onReload: () => setAgain((n) => n + 1),
+      });
+      tone(f);
+      const base = location.origin + (m.PAGE as PageDef).path;
+      f.win.open = ((u?: string | URL, t?: string, o?: string) => (u && openInApp(String(u), base) ? null : window.open(u, t, o))) as never;   // 화면이 여는 새 창 = 앱 안 한 겹(옛 hookFrame 과 같음)
+      unhook = hookRoot(f.root, base);
+      unwire = wire(f);
+      if (k === "edit") deliverStudio(f);
+      mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    });
+    return () => { gone = true; mo.disconnect(); unhook(); unwire(); f?.dispose(); };
+  }, [k, search, again]);
+  return <div ref={ref} className="ved-if" data-on={on || undefined} aria-hidden={on ? undefined : true} />;   // 안 고른 화면 = 살려 둠(올리던 영상 · 쓰던 글 보존)
 }
 
 export function VideoEditor({ onBack, onMin, hold }: { onBack?: () => void; onMin?: () => void; hold?: boolean }) {   // hold = 접혀 있음(주소가 다른 화면 → 고르던 일을 그대로 붙듦)
@@ -165,15 +170,15 @@ export function VideoEditor({ onBack, onMin, hold }: { onBack?: () => void; onMi
   const held = useRef<VMode>(modeOfPath(loc.p));
   if (!hold) held.current = modeOfPath(loc.p);
   const mode = held.current;
-  const [seen, setSeen] = useState<Partial<Record<VMode, string>>>({});   // 연 화면 = 그 주소(다시 넘겨받으면 새 번호 = 새로 읽음)
+  const [seen, setSeen] = useState<Partial<Record<VMode, string>>>({});   // 연 화면 = 그 화면이 받은 물음표(?u=… · 다시 넘겨받으면 새 번호 = 새로 붙임)
   const [menu, setMenu] = useState(false);
   const cur = MODES.find((m) => m.k === mode)!;
   useEffect(() => {   // 고른 일이 처음이면 그때 읽음 · 유튜브 = 넘겨받은 주소(?u=)째로
     if (hold) return;
     setSeen((s) => {
       const u = mode === "ys" ? new URLSearchParams(loc.q).get("u") : null;
-      const src = u ? `${cur.src}?u=${encodeURIComponent(u)}` : cur.src;
-      return s[mode] && !u ? s : { ...s, [mode]: src };
+      const q = u ? `?u=${encodeURIComponent(u)}` : "";
+      return s[mode] != null && !u ? s : { ...s, [mode]: q };
     });
   }, [mode, loc.q, cur.src, hold]);
   useEffect(() => {
@@ -184,9 +189,9 @@ export function VideoEditor({ onBack, onMin, hold }: { onBack?: () => void; onMi
   }, [menu]);
   const pick = (k: VMode) => { setMenu(false); if (k !== mode) void nav({ to: MODES.find((m) => m.k === k)!.path, replace: true }); };
   const onTab = (src: string) => {   // 품은 화면이 넘김 = 아는 일이면 그 일로(설정을 넘겨받게 새로 읽음) · 모르는 주소 = 옛대로 한 겹
-    const k = modeOfSrc(src);
+    const k = modeOfSrc(src), q = src.includes("?") ? src.slice(src.indexOf("?")) : "";
     if (!k) { openInApp(src); return; }
-    setSeen((s) => ({ ...s, [k]: `${src}${src.includes("?") ? "&" : "?"}nmk=${Date.now().toString(36)}` }));
+    setSeen((s) => ({ ...s, [k]: `${q}${q ? "&" : "?"}nmk=${Date.now().toString(36)}` }));
     void nav({ to: MODES.find((m) => m.k === k)!.path, replace: true });
   };
   return (
@@ -199,10 +204,10 @@ export function VideoEditor({ onBack, onMin, hold }: { onBack?: () => void; onMi
         <ToolButtons onMin={onMin} onClose={onBack} />
       </div>
       <div className="tm-frame ved-frame">
-        {MODES.map((m) => seen[m.k] ? <ModeFrame key={m.k + "|" + seen[m.k]} src={seen[m.k]!} title={`영상 편집 · ${m.t}`} on={m.k === mode} edit={m.k === "edit"} onTab={onTab} /> : null)}
+        {MODES.map((m) => seen[m.k] != null ? <ModeFrame key={m.k + "|" + seen[m.k]} k={m.k} search={seen[m.k]!} on={m.k === mode} onTab={onTab} /> : null)}
         {menu ? (
           <>
-            <button type="button" className="ved-veil" aria-label="닫기" tabIndex={-1} onClick={() => setMenu(false)} />   {/* 품은 화면은 바깥 누름을 못 알려 줌 → 얇은 가림막이 받음 */}
+            <button type="button" className="ved-veil" aria-label="닫기" tabIndex={-1} onClick={() => setMenu(false)} />   {/* 얇은 가림막 = 바깥 누름 받음(화면 안 단추가 같이 눌리지 않게) */}
             <div className="ved-menu" role="menu" aria-label="영상 편집에서 할 일">
               {MODES.map((m, i) => (
                 <button key={m.k} type="button" role="menuitemradio" aria-checked={m.k === mode} className="ved-mi" style={{ animationDelay: `${Math.min(i, 7) * 26}ms` }} onClick={() => pick(m.k)}>

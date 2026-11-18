@@ -14,6 +14,7 @@ const own = new Set(["office"]);   // /api/office/* = 우리 서버로 가는 �
 test("ui 가 부르는 /api 길 = 다 shim 통과", () => {
   const miss: string[] = [];
   for (const f of files(join(root, "ui"))) {
+    if (/\/ui\/old-pages\/[^/]+\.gen\.ts$/.test(f)) continue;   // 앱 안에서 도는 옛 에디터 화면 = 가로채기 전 fetch 로 서버를 바로 부름(ui/old-pages/frame.ts serverFetch · 아래 시험) → 통과 목록과 무관
     const code = readFileSync(f, "utf8").split("\n").map((l) => l.replace(/\/\/.*$/, "")).join("\n");   // 주석 속 길은 셈 안 함
     for (const m of code.matchAll(/["'`]\/api\/([a-z0-9-]+)/g)) {
       if (own.has(m[1]) || pass.test(`/api/${m[1]}`)) continue;
@@ -21,4 +22,11 @@ test("ui 가 부르는 /api 길 = 다 shim 통과", () => {
     }
   }
   assert.deepEqual([...new Set(miss)], []);
+});
+
+test("옛 에디터 화면(ui/old-pages) = 가로채기 전 fetch 로 서버를 바로 부름(통과 목록에 없는 길도 감)", () => {
+  assert.match(shim, /__nmServerFetch = realFetch;/);
+  const fr = readFileSync(join(root, "ui/old-pages/frame.ts"), "utf8");
+  assert.match(fr, /const serverFetch: typeof fetch = \(RW as unknown as \{ __nmServerFetch\?: typeof fetch \}\)\.__nmServerFetch \|\| RW\.fetch\.bind\(RW\);/);
+  assert.match(fr, /fetch: \(u: RequestInfo \| URL, o\?: RequestInit\) => serverFetch\(/);
 });

@@ -4,15 +4,17 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
-test("영상 편집 = 원본 edit.html 품음 · 포토와 같은 머리 · 챠콜 줄 0 · 웹앱 배경 · 카드 → 영상 넘김도 이 화면", () => {
+test("영상 편집 = 원본 edit 화면을 앱 안에서 돌림(iframe 0 · 형 11-19 00:45) · 포토와 같은 머리 · 챠콜 줄 0 · 웹앱 배경 · 카드 → 영상 넘김도 이 화면", () => {
   const sh = rd("../ui/shell.tsx"), ve = rd("../ui/video-editor.tsx"), sd = rd("../ui/studio-handoff.ts");
   assert.match(sh, /: <VideoEditor hold=\{modal !== t\} onBack=/);   // 접을 수 있는 창 겹 안(../ui/ed-keep.tsx · 형 11-15)
   assert.match(ve, /\{ k: "edit", t: "편집", [^}]*src: EDIT, path: "\/edvid" \}/);
-  assert.match(sd, /export const EDIT = "\/edit\.html";/);   // /viewer/edit.html = 없는 파일 → 옛 첫 화면으로 떨어짐(라이브 실측)
-  assert.match(sd, /\^\\\/\(viewer\\\/\)\?edit\(\\\.html\)\?\$/);
+  assert.match(sd, /export const EDIT = "\/edit\.html";/);   // 편집 화면의 원본 문서 길(넘김 이름 · 파일은 안 읽음)
+  assert.doesNotMatch(ve.replace(/\/\/.*$/gm, ""), /<iframe|contentWindow|contentDocument/, "품은 화면 0");
+  assert.match(ve, /edit: \(\) => import\("\.\/old-pages\/edit\.gen"\)/, "편집 화면 = 앱 묶음 안(고를 때 받음)");
+  assert.match(sd, /const apply = f\.win\.lrTiltApply/, "카드 → 영상 = 앱 안 편집 화면의 함수에 바로");
   assert.match(ve, /<b className="tm-title">\{SPARK\}<span>영상 편집<\/span><\/b>/);
   assert.match(ve, /\.nm-scene-canvas\{display:none!important\}/, "품은 문서 제 장면 끔 = 앱 배경 비침");
-  assert.match(ve, /d\?\.nm === "nmToolTab"/, "옛 셸 탭 넘김 = 앱 안");
+  assert.match(ve, /x\?\.nm === "nmToolTab"/, "옛 셸 탭 넘김 = 앱 안");
   assert.match(sd, /location\.hash = "#\/edvid";/);
 });
 
@@ -20,7 +22,7 @@ test("시그니처 색 = 라임(형 11-13 14:06 「이미지 에디터처럼 시
   const ve = rd("../ui/video-editor.tsx");
   assert.match(ve, /--accent:\$\{dark \? "#CFFF40" : "#4f7a00"\}/);
   assert.match(ve, /--accent-rgb:\$\{dark \? "207,255,64" : "79,122,0"\}/);
-  assert.match(ve, /new MutationObserver\(\(\) => see\(el\)\)/);
+  assert.match(ve, /new MutationObserver\(\(\) => \{ if \(f\) tone\(f\); \}\)/);
   const tone = rd("../ui/inapp.ts");
   assert.match(tone, /--modern-accent:\$\{dark \? "#CFFF40" : "#4f7a00"\}/, "앱 YETA 톤과 같은 값");
 });
@@ -45,10 +47,12 @@ test("영상 편집 하나 안에서 고름(형 11-14 「기본 영상 편집을
   assert.match(ve, /if \(!k\) \{ openInApp\(src\); return; \}/, "모르는 넘김 주소 = 옛대로 한 겹");
   assert.match(ve, /className="ved-if" data-on=\{on \|\| undefined\}/, "안 고른 화면 = 살려 둠");
   // 형 11-14 「기존 시안 라인을 라임으로 덮어씌웟는데 기존 시안은 없애서 깔끔하고 빨리뜨게」 = 그려지기 전에 색을 넣음 · 옛 청록보다 셈 · 안 보이는 3D 바탕은 안 읽음
-  assert.match(ve, /useEffect\(\(\) => \{ const el = ref\.current; return el \? seeEarly\(el\) : undefined; \}, \[src\]\)/, "주소가 바뀔 때마다 그려지기 전에 넣음");
+  assert.match(ve, /f = mountPage\(at, m\.PAGE as PageDef, \{[\s\S]{0,700}\}\);\n\s+tone\(f\);/, "붙이는 그 자리에서 색을 넣음(그려지기 전)");
   assert.match(ve, /--accent:\$\{dark \? "#CFFF40" : "#4f7a00"\}!important/, "라임 = 옛 화면 제 색보다 셈(먼저 넣어도 이김)");
-  assert.match(ve, /if \(doc\.head\.lastElementChild !== s\) doc\.head\.appendChild\(s\)/, "다 읽은 때 다시 맨 끝으로");
-  assert.match(ve, /data-nm-scene="off"/, "옛 화면 3D 바탕 안 읽음");
+  const fr = rd("../ui/old-pages/frame.ts");
+  assert.match(fr, /if \(head\.lastElementChild !== toneEl\) headAppend\(toneEl\)/, "덧씌운 옷 = 늘 맨 끝");
+  assert.match(fr, /if \(n !== toneEl && toneEl\.isConnected\) headAppend\(toneEl\)/, "화면이 뒤에 옷을 더 붙여도 다시 맨 끝으로");
+  assert.match(rd("../ui/old-pages/tools/gen.mjs"), /"nm-scene\.js": "[^"]*root\.dataset\.nmScene = 'inherited'/, "옛 화면 3D 바탕 안 읽음(끈 갈래만 옮김)");
   assert.doesNotMatch(ve, /ved-mi-d/, "메뉴 = 기능 이름만(설명 줄 0 · 형 11-14 「영상 에디터에 설명글들 같은거 각 기능의 없어도 됨」)");
   assert.match(rd("../ui/news-detail.tsx"), /if \(h\[1\] === "##" && \/\^한\\s\*줄\\s\*요약\$\/\.test\(h\[2\]\.replace\(EMOJI0, ""\)\.trim\(\)\)\) continue;/, "기사 한 장 맨 위 「한줄 요약」 머리글 0(형 11-14 「뉴스 요약은 위에 요약이라는 헤더 안떠도됨」)");
   assert.match(sd, /location\.hash = u \? `#\/edys\?u=\$\{encodeURIComponent\(u\)\}` : "#\/edys";/, "카드 제작 유튜브 링크 = 영상 편집 안 유튜브");
