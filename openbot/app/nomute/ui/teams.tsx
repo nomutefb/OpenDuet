@@ -305,6 +305,9 @@ export function TeamsChat({ chat }: { chat: string }) {
   // 파일 보내기(형 11-06 19:27 「파일보내기? 아냐~ 채팅만되면돼 ㅋㅋ음... 아니다 있으면 좋을거같애」) = 「+」로 고름 → 입력칸 위 칩 → 「↑」를 눌러야 나감(글은 같이 · 고르기만 해선 안 나감) · 서버 teams/upload(형 OneDrive 올림 → 대화 사람 보기 권한 → 첨부 글)
   const [file, setFile] = useState<File | null>(null), pick = useRef<HTMLInputElement>(null);
   useEffect(() => { setFile(null); }, [chat]);
+  // 붙인 사진 미리보기(형 11-18 16:25 dm-thunder 「컨트롤 v됨, 단 붙여넣을때 채팅위에서 미리보기 이미지로 떠잇지는 않음. 그랫으면 좋겠음.」) = 칩 앞에 작은 사진 · 사진 아니면 그대로 · 바뀌면 옛 주소 풂
+  const preview = useMemo(() => (file && /^image\//.test(file.type) ? URL.createObjectURL(file) : ""), [file]);
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   // 붙여넣기 · 끌어다 놓기(형 11-17 10:29 「팀즈로 보내기는 붙여넣기 이런게 잘 안되네」) = 「+」 와 같은 칩으로 · 글이 같이 오면(워드 복사 등) 글 붙여넣기 그대로
   const take = (f0: File | null | undefined) => {
     if (!f0) return false;
@@ -397,7 +400,7 @@ export function TeamsChat({ chat }: { chat: string }) {
       </div>
       <div className="ychat ychat-in mx-auto w-full max-w-2xl shrink-0 px-3 pb-[var(--duet-tab-space,16px)]">
         {err ? <p role="alert" className="nm-terr pb-2" onClick={() => setErr("")}>{err}</p> : null}
-        {file ? <p className="nm-tpick"><span className="min-w-0 truncate">📎 {file.name}</span><small>{file.size >= 1048576 ? `${(file.size / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(file.size / 1024))}KB`}</small><button type="button" aria-label="붙인 파일 빼기" disabled={busy} onClick={() => setFile(null)}>×</button></p> : null}
+        {file ? <p className="nm-tpick">{preview ? <img className="nm-tpick-img" src={preview} alt="붙인 사진 미리보기" /> : null}<span className="min-w-0 truncate">📎 {file.name}</span><small>{file.size >= 1048576 ? `${(file.size / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(file.size / 1024))}KB`}</small><button type="button" aria-label="붙인 파일 빼기" disabled={busy} onClick={() => setFile(null)}>×</button></p> : null}
         <form className="nm-tform flex items-end gap-1" onSubmit={(e) => { e.preventDefault(); void send(); }} onDragOver={(e) => { if (e.dataTransfer?.types?.includes("Files")) e.preventDefault(); }} onDrop={onDrop}>
           <input ref={pick} type="file" hidden onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ""; take(f); }} />
           <button type="button" className="nm-tplus2" aria-label="파일 붙이기" title="파일 붙이기" disabled={busy} onClick={() => pick.current?.click()}><DuetIcon name="plus" size={20} stroke={2} /></button>
