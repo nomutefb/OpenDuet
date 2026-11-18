@@ -20,9 +20,14 @@ export type OpsRow = {
 export type OpsNow = {
   day?: string; at?: string;
   gh?: { limit: number; used_max: number; used_max_pct: number; last_pct?: number; max_at?: string; samples: number };
-  r2?: { err?: string; month?: string; a?: number; b?: number; a_pct?: number; b_pct?: number; gb?: number; gb_pct?: number; objects?: number };
+  r2?: R2Now;
+  r2_more?: R2Now[];   // 둘째 Cloudflare 계정(nomute.kr · 형 11-19 「하나 더 받아봐 nomute.kr r2야」) — 시크릿이 있을 때만
 };
-export type OpsData = { rows: OpsRow[]; now: OpsNow | null };
+export type R2Now = { name?: string; err?: string; month?: string; a?: number; b?: number; a_pct?: number; b_pct?: number; gb?: number; gb_pct?: number; objects?: number };
+/** R2 에 닿는 손 · 그록 계정 귀속(에디터 metrics/ops-cli.json · 손으로 훑어 적는 표) */
+export type CliBindRow = { who: string; note?: string } & Record<string, string[] | string | undefined>;
+export type CliBindData = { at?: string; how?: string; accounts?: Record<string, string>; rows?: CliBindRow[]; grok?: { said?: string[]; accounts?: { name: string; via?: string; case?: string; note?: string }[]; todo?: string } };
+export type OpsData = { rows: OpsRow[]; now: OpsNow | null; cli?: CliBindData | null };
 
 /** 큰 수 = 만 · 억(한국어 읽기) */
 export const man = (n: number): string => {
