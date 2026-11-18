@@ -3,6 +3,8 @@
 //   길 = 썸네일 제작기(ui/thumb-maker) · 채널 탭(ui/old-tabs)과 같음: 원본 줄 그대로 · 문서와 창만 「이 화면 틀」로 바꿔 끼움. 덱은 제 문서 한 장을 통째로 쓰던 화면이라 틀 = 그림자 뿌리(../index.ts).
 //   만드는 것 = ../deck.gen.ts(DECK_CSS · DECK_HTML · runDeck) · ../modern-data.gen.ts(installModernData)
 //   쓰는 법 = 앱 폴더(openbot/app/nomute)에서: node home/deck/tools/gen.mjs <에디터 저장소의 viewer 폴더>
+//   원본 자리 = 에디터 저장소(nomutefb/editor) 깃 꼬리표 old-editor-final — 옛 화면은 11-19 에 main 에서 지웠다.
+//     꺼내는 법: git -C <에디터 사본> worktree add /tmp/old-editor old-editor-final → 위 명령에 /tmp/old-editor/viewer 를 줌.
 //   옷 바꾸는 규칙(원본 뜻 그대로):
 //     · 뿌리: `:root` · `html` → `.nd-html` / `body` → `.nd-body`(그림자 뿌리 안 두 겹 = 원본 html · body 자리)
 //     · 화면 크기 단위: svh · dvh · lvh · vh → cqh / vw → cqw / vmax → cqmax / vmin → cqmin(틀 = 크기 그릇 · 옛 iframe 창 크기와 같은 뜻)

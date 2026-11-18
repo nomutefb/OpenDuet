@@ -5,6 +5,9 @@
 //     앱 묶음(rollup) 밖에 둠 = 빌드가 이 글(1MB)을 읽고 다듬느라 메모리를 안 씀 — 묶음 안에 넣은 첫 판은 배포 빌드가 메모리 한도(2GB)를 넘겨 죽었다(11-19 02:06 pages-direct 44354916032)
 //     이름에 내용 지문 = 내용이 바뀔 때만 새 주소(캐시가 스스로 맞음) · 받는 손 = ../load.ts(고를 때 실행 중에 받음 · 옛 iframe 도 고를 때 읽었다)
 //   쓰는 법 = 앱 폴더(openbot/app/nomute)에서: node ui/old-pages/tools/gen.mjs <에디터 저장소의 viewer 폴더>
+//   원본 자리 = 에디터 저장소(nomutefb/editor) 깃 꼬리표 old-editor-final — 옛 화면은 11-19 에 main 에서 지웠다(형 「옛 에디터 걷고 지워버려」 · 「너가 직접 이식완료하고 없야」).
+//     꺼내는 법: git -C <에디터 사본> worktree add /tmp/old-editor old-editor-final → 위 명령에 /tmp/old-editor/viewer 를 줌(다 쓰면 git worktree remove /tmp/old-editor).
+//     화면을 고칠 일이 생기면 그 원본을 이 폴더 src/ 로 들여와 여기서 고치고 다시 뽑는 것이 맞다(지금은 꼬리표가 원본).
 //   옷 규칙(원본 뜻 그대로):
 //     · 뿌리: `html` → `nd-html` · `body` → `nd-body`(꼬리표 이름 = 고르개 점수 그대로) · `:root` → `.nd-root`
 //     · 화면 크기 단위(vh · svh · vw …) → 틀 크기 단위(cqh · cqw) · 화면 폭 · 높이 조건(@media) → 틀 크기 조건(@container nd) · 기기 조건(손가락 · 움직임 줄이기)은 @media 그대로
