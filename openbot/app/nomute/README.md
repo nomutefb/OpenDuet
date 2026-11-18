@@ -20,6 +20,7 @@ npx vite build                                 # → dist/
 ```
 - 올리기 = nomutefb/editor 반영 길(`.github/workflows/pages-direct.yml`)이 `config/office_app.json` 에 적힌 이 저장소 커밋을 받아 위처럼 빌드해 `edit.nomute.kr/office-app/` 에 실음. 이 폴더를 고쳐 올린 뒤 그 파일의 커밋(sha)만 바꾸면 됨.
 - 올리는 손 = 기차(11-14~ · 손으로 핀을 바꾸지 않음): 이 저장소 `ride/<몸>-<주제>` 가지에 푸시만 하면 기차(윈A · claude-state `tools/garden-app-train.py`)가 깃허브 푸시 알림으로 1초쯤 뒤에 알고 바로 라이브 판 위에 얹어 빌드 · 시험 → editor 핀 → 배포까지 함. 끝 커밋 글 앞 200자 안에 `형 HH:MM 「형 원문」`. 겹치거나 빌드 · 시험이 떨어지면 그 판만 튕겨 돌아옴 → 라이브 판 위에 다시 얹어 다시 푸시. 같은 가지를 몇 분 안에 고쳐 다시 밀 땐 앞 판이 이미 떠났을 수 있으니 새 커밋으로 덧붙임(고쳐 쓰기 · 강제 푸시는 겹침).
+- 올린 판이 라이브인지 = nomutefb/editor `config/office_app.json` 의 sha 가 내 커밋(또는 그 뒤 판)이고 그 핀을 올린 `pages-direct` 회차가 성공. 앞 기차나 다른 반영의 배포가 도는 중이어도 다음 기차는 떠남(11-19~ · 올리기 줄은 깃허브가 한 줄로 세우고 뒤 회차가 앞 핀까지 올림).
 
 ## 읽음 상태 회귀 검사
 
