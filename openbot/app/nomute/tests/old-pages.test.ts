@@ -90,3 +90,19 @@ test("알림 누름 = 옛 에디터 길도 정원 화면으로(기사 · 알림�
   assert.equal(go("/garden-app/#/channels/x"), "/garden-app/#/channels/x", "정원 길은 그대로");
   assert.equal(gardenOf(new URL("https://example.com/?a=1")).href, "https://example.com/?a=1", "남의 주소는 그대로");
 });
+
+test("옛 화면이 사이트 뿌리에서 받던 파일 = 앱 안으로(옛 에디터 파일에 기댐 0)", () => {
+  const fr = rd("../ui/old-pages/frame.ts");
+  assert.match(fr, /const LOCAL: Record<string, string> = \{ "\/marked\.min\.js": "old-pages\/vendor\/marked\.min\.js", "\/purify\.min\.js": "old-pages\/vendor\/purify\.min\.js", "\/ys-worker-guide\.html": "old-pages\/ys-worker-guide\.html" \};/);
+  for (const f of ["vendor/marked.min.js", "vendor/purify.min.js", "ys-worker-guide.html"]) assert.ok(existsSync(new URL("../public/old-pages/" + f, import.meta.url)), f);
+  assert.doesNotMatch(rd("../public/old-pages/ys-worker-guide.html"), /<(?:link|script)\b[^>]*\b(?:href|src)="(?!https?:|\/|#)/, "안내 문서 = 홀로 섬(옆 파일 안 부름)");
+  assert.match(fr, /if \(o\?\.method === "HEAD" && full\.pathname === page\.path\) return Promise\.resolve\(new Response\(null, \{ status: 200, headers: \{ etag: '"nm-old-page"' \} \}\)\);/, "제 문서 판 확인 = 늘 같은 답(앱이 올라갈 때마다 화면이 저를 다시 붙이지 않게)");
+  assert.match(fr, /if \(full\.pathname === "\/nm-sync\.js"\) return serverFetch\(RW\.location\.origin \+ BASE_URL \+ "version\.json" \+ full\.search, o\);/, "로그인 만료 확인 = 앱의 판 표지 파일로");
+  assert.match(fr, /u: localUrl, h: localHtml,/);
+});
+
+test("앱 폴더 안 따로 선 문서(.html) 링크 = 판이 아니라 앱 안 한 겹", async () => {
+  const src = rd("../ui/inapp.ts");
+  assert.match(src, /const doc = \/\\\.html\$\/i\.test\(u\.pathname\) && !\/\\\/index\\\.html\$\/i\.test\(u\.pathname\);/);
+  assert.match(src, /if \(u\.pathname\.startsWith\(APP\) && !doc\) return u\.hash\.replace\(\/\^#\/, ""\) \|\| "\/";/);
+});

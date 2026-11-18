@@ -63,6 +63,20 @@ const WIN_REAL = new Set(["focus", "blur", "online", "offline", "storage", "lang
 const DOC_REAL = new Set(["visibilitychange", "fullscreenchange", "fullscreenerror", "selectionchange", "pointerlockchange", "pointerlockerror"]);
 const DROP = new Set(["popstate", "hashchange", "error", "unhandledrejection", "rejectionhandled", "readystatechange"]);
 const BYE = new Set(["pagehide", "beforeunload", "unload"]);
+/** 옛 화면이 사이트 뿌리에서 받던 파일 → 앱 안의 같은 파일(public/old-pages/ · ./tools/gen.mjs 가 옮겨 둠) — 옛 에디터 파일에 기댐 0 */
+const LOCAL: Record<string, string> = { "/marked.min.js": "old-pages/vendor/marked.min.js", "/purify.min.js": "old-pages/vendor/purify.min.js", "/ys-worker-guide.html": "old-pages/ys-worker-guide.html" };
+const BASE_URL: string = (import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL || "/garden-app/";
+/** 뿌리 기준으로 푼 주소 → 앱 안에 있는 파일이면 그 주소로(물음표 · # 은 그대로) */
+export const localUrl = (v: unknown): unknown => {
+  const s = rootUrl(v);
+  if (typeof s !== "string" || s[0] !== "/") return s;
+  const cut = s.search(/[?#]/), path = cut < 0 ? s : s.slice(0, cut);
+  return LOCAL[path] ? BASE_URL + LOCAL[path] + (cut < 0 ? "" : s.slice(cut)) : s;
+};
+const LOCAL_ATTR = new RegExp(`((?:src|href)=["'])(${Object.keys(LOCAL).map((k) => k.replace(/[.]/g, "\\.")).join("|")})(?=["'?#])`, "g");
+/** 글자로 짠 HTML: 상대 주소는 뿌리 기준 · 앱 안에 있는 파일은 그 주소로 */
+export const localHtml = (v: unknown): unknown => { const s = rootHtml(v); return typeof s === "string" && s.includes("=") ? s.replace(LOCAL_ATTR, (_m, a: string, k: string) => a + BASE_URL + LOCAL[k]) : s; };
+
 let fontsUp = "";
 function fontsOnce(css: string) {   // 글꼴 규칙은 문서에(여러 화면이 같은 글을 올려도 한 번)
   if (!css || fontsUp.includes(css)) return;
@@ -195,7 +209,17 @@ export function mountPage(mountAt: HTMLElement, page: PageDef, hostApi: FrameHos
     MutationObserver: class extends RW.MutationObserver { constructor(cb: MutationCallback) { super(cb); obs.add(this); } },
     IntersectionObserver: class extends RW.IntersectionObserver { constructor(cb: IntersectionObserverCallback, o?: IntersectionObserverInit) { super(cb, o); obs.add(this); } },
     XMLHttpRequest: class extends RW.XMLHttpRequest { open(m: string, u: string | URL, ...r: unknown[]) { return (super.open as (...a: unknown[]) => void)(m, abs(u), ...r); } },
-    fetch: (u: RequestInfo | URL, o?: RequestInit) => serverFetch(typeof u === "string" ? (abs(u) as string) : u, o),
+    fetch: (u: RequestInfo | URL, o?: RequestInit) => {
+      if (typeof u !== "string") return serverFetch(u, o);
+      const full = new URL(abs(u) as string);
+      if (full.origin === RW.location.origin) {
+        // 제 문서의 판 확인(nm-sync ③ = 자기 문서 HEAD 의 ETag 가 바뀌면 다시 읽기) = 늘 같은 답 — 이 화면은 앱 묶음이라 앱이 새 판을 알린다(앞 판 = 지운 /edit.html 을 물어 앱 첫 화면 ETag 가 돌아옴 → 앱이 올라갈 때마다 화면이 저를 다시 붙임)
+        if (o?.method === "HEAD" && full.pathname === page.path) return Promise.resolve(new Response(null, { status: 200, headers: { etag: '"nm-old-page"' } }));
+        // 로그인 만료 확인(nm-sync ② · upload.js = Access 벽 뒤 정적 파일 HEAD) = 앱의 판 표지 파일로(옛 /nm-sync.js 에 기댐 0 · 같은 벽 뒤)
+        if (full.pathname === "/nm-sync.js") return serverFetch(RW.location.origin + BASE_URL + "version.json" + full.search, o);
+      }
+      return serverFetch(full.href, o);
+    },
     open: (u?: string | URL, t?: string, f?: string) => RW.open(u == null ? u : (abs(u) as string), t ?? "_blank", f),
     scrollTo: (x?: number | ScrollToOptions, y?: number) => (typeof x === "object" ? html.scrollTo(x) : html.scrollTo(x ?? 0, y ?? 0)),
     scrollBy: (x?: number | ScrollToOptions, y?: number) => (typeof x === "object" ? html.scrollBy(x) : html.scrollBy(x ?? 0, y ?? 0)),
@@ -227,7 +251,7 @@ export function mountPage(mountAt: HTMLElement, page: PageDef, hostApi: FrameHos
     cy: (o: { clientY?: number } | null | undefined) => (o == null ? undefined : isPtr(o) ? (o.clientY as number) - origin().top : o.clientY),
     px: (o: { pageX?: number; clientX?: number } | null | undefined) => (o == null ? undefined : isPtr(o) ? (o.clientX as number) - origin().left + html.scrollLeft : o.pageX),
     py: (o: { pageY?: number; clientY?: number } | null | undefined) => (o == null ? undefined : isPtr(o) ? (o.clientY as number) - origin().top + html.scrollTop : o.pageY),
-    u: rootUrl, h: rootHtml,
+    u: localUrl, h: localHtml,
     /** 글자로 짠 HTML 의 on…="함수(…)" 가 부르는 함수 = 앱 창에도(그런 속성은 창에서 이름을 찾는다 · 받은 칸만 만지는 함수라 화면끼리 겹쳐도 같음) */
     leak: (map: Record<string, unknown>) => { for (const k of Object.keys(map)) { (RW as unknown as Record<string, unknown>)[k] = map[k]; leaked.push([k, map[k]]); } },
     /** 맨 위에 정한 이름을 이 틀의 창 서랍에(다른 스크립트 · 앱이 window.이름 으로 읽고 쓰게) */

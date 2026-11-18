@@ -27,5 +27,6 @@ test("옛 에디터 화면(ui/old-pages) = 가로채기 전 fetch 로 서버를 
   assert.match(shim, /__nmServerFetch = realFetch;/);
   const fr = readFileSync(join(root, "ui/old-pages/frame.ts"), "utf8");
   assert.match(fr, /const serverFetch: typeof fetch = \(RW as unknown as \{ __nmServerFetch\?: typeof fetch \}\)\.__nmServerFetch \|\| RW\.fetch\.bind\(RW\);/);
-  assert.match(fr, /fetch: \(u: RequestInfo \| URL, o\?: RequestInit\) => serverFetch\(/);
+  assert.match(fr, /fetch: \(u: RequestInfo \| URL, o\?: RequestInit\) => \{/);
+  assert.match(fr, /return serverFetch\(full\.href, o\);/);
 });

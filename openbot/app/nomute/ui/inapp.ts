@@ -21,7 +21,8 @@ export function inAppHref(raw: string, base: string = location.href): string | n
   try { u = new URL(raw, base); } catch { return null; }
   if (!/^https?:$/.test(u.protocol)) return null;   // mailto·tel·blob·data = 원래대로
   if (u.origin === location.origin) {
-    if (u.pathname.startsWith(APP)) return u.hash.replace(/^#/, "") || "/";
+    const doc = /\.html$/i.test(u.pathname) && !/\/index\.html$/i.test(u.pathname);   // 앱 폴더 안의 따로 선 문서(유튜브 워커 안내 = old-pages/ys-worker-guide.html) = 판이 아니라 문서 → 아래 한 겹으로
+    if (u.pathname.startsWith(APP) && !doc) return u.hash.replace(/^#/, "") || "/";
     return `/web?u=${encodeURIComponent(u.pathname + u.search + u.hash)}`;
   }
   const iss = u.href.match(ISSUE);

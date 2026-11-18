@@ -254,6 +254,21 @@ for (const [key, file] of PAGES) {
   pages.push({ key, file, body: out, head: HEAD(file + " 화면", file + " + " + usedSheets.join(" · ") + " + " + usedLibs.join(" · ")), info: "옷 " + css.length + "장 · 스크립트 " + scripts.length + "개 · 판 " + markup.length + "자" });
 }
 copyVendor();
+// 옛 화면이 실행 때 사이트 뿌리에서 받던 것 = 앱 안으로(../frame.ts LOCAL 이 그 주소를 여기로 돌림) — 옛 에디터 파일에 기댐 0
+//   marked · purify(유튜브 화면의 보고서 꾸밈 · 누를 때 받음) · 유튜브 워커 안내 문서(그 화면의 링크 · 딸린 옷을 안에 넣어 홀로 서게)
+for (const f of ["marked.min.js", "purify.min.js"]) {
+  const from = path.join(V, f), to = path.join(VENDOR, f);
+  if (!fs.existsSync(to) || !fs.readFileSync(to).equals(fs.readFileSync(from))) { fs.mkdirSync(VENDOR, { recursive: true }); fs.copyFileSync(from, to); console.log("딸린 묶음 옮김: public/old-pages/vendor/" + f); }
+}
+{
+  let g = read("ys-worker-guide.html");
+  g = g.replace(/<link rel="stylesheet" href="([^"]+)">\s*/g, (_m, href) => "<style>\n" + read(href).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n\s*\n/g, "\n").trim() + "\n</style>\n")
+    .replace(/<script\b[^>]*\bsrc="nm-(?:wave|scene)\.js"[^>]*><\/script>\s*/g, "")   // 바탕 장면(앱 안에선 안 돎)
+    .replace(/url\((['"]?)assets\//g, "url($1/assets/");
+  if (/<(?:link|script)\b[^>]*\b(?:href|src)="(?!https?:|\/|#)/.test(g)) die("유튜브 안내 문서에 아직 옆 파일을 부르는 줄이 있음 — 규칙을 더할 것");
+  fs.writeFileSync(path.join(PUB, "ys-worker-guide.html"), g);
+  console.log("ys-worker-guide.html → public/old-pages/ys-worker-guide.html · " + g.length + "자(딸린 옷을 안에 넣음)");
+}
 const cssName = emit("css", HEAD("같이 쓰는 옷", [...sheets.keys()].join(" · ")),
   "export const SHEETS = {\n" + [...sheets].map(([k, v]) => "  " + JSON.stringify(k) + ": " + lit(v)).join(",\n") + ",\n};\nexport const FONTS = " + lit([...fonts].join("\n")) + ";\n");
 const libName = emit("lib", HEAD("같이 쓰는 스크립트", [...libs.keys()].join(" · ")),
