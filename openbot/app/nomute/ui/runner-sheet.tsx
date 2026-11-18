@@ -13,7 +13,7 @@ import { GoButton } from "./go-button";   // 「적용」 = 게이지 알약 하
 import { Breaker, StatusDot, stOf } from "./sched-bits";
 import { type RunnerJob, nextShort } from "./settings-extra";
 import { type Review, ReviewBox } from "./sched-review";
-import { HEALTH_KO, whenOf } from "./sched-bits";
+import { HEALTH_KO, failKo, whenOf } from "./sched-bits";
 import "./sched-flow.css";   // 판 껍데기 · 도는 표시(옛 흐름 보기 파일을 지우며 여기서 싣는다)
 import { ACTION_KO, type RunnerRes, ghJob, sameJob, stateKo, toggleOf } from "./sched-flow-core";
 
@@ -125,7 +125,7 @@ export function RunnerSheet({ job, jobs, can, phone, onClose, onRan, start, revi
         <LlmHead job={job} jobs={jobs || [job]} />   {/* 머리 = 이 일이 쓰는 서브 LLM(모델 · 노력도) · 갈래를 아는 일에만(형 11-17 02:0x · ./llm-head.tsx) */}
         <div className="nm-rsheet-info">   {/* 옛 목록에만 있던 칸을 판으로(평의회 11-14 「형이 왜 늦었어 · 누가 맡았어를 볼 길이 없어졌다」) = 돌 자리 · 모델 · 책임 · 확인 전 / 마지막 실제 · 얼마나 늦음 / 검토 */}
           <small>{[(job.res || []).map((r) => `${r.at}${r.gpu ? "(GPU)" : ""}`).join(" › ") || "돌 자리 모름", job.model?.length ? job.model.join(" · ") : job.providers?.length ? job.providers.join(" · ") : "AI 안 씀", `${job.owner || "책임 모름"}${job.checked ? "" : " · 확인 전"}`].join(" · ")}</small>
-          {job.health ? <small data-st={job.health.st}>{HEALTH_KO[job.health.st]}{job.health.last_at ? ` · 마지막 실제 ${nextShort(job.health.last_at)}` : ""}{job.health.drift_min ? ` · 예정보다 ${job.health.drift_min}분 늦음` : ""}{job.health.missed ? ` · 놓침 ${job.health.missed}` : ""}</small> : null}
+          {job.health ? <small data-st={job.health.st}>{job.health.failed ? `${failKo(job.health)}${job.health.last_fail_at ? ` · 마지막 실패 ${nextShort(job.health.last_fail_at)}` : ""}` : HEALTH_KO[job.health.st]}{job.health.last_at ? ` · 마지막 실제 ${nextShort(job.health.last_at)}` : ""}{job.health.drift_min ? ` · 예정보다 ${job.health.drift_min}분 늦음` : ""}{job.health.missed && !job.health.failed ? ` · 놓침 ${job.health.missed}` : ""}</small> : null}
           {who ? <ReviewBox id={job.id} r={review} can={can} who={who} /> : null}
         </div>
       </section>
