@@ -87,7 +87,7 @@ export function PushDevsModal() {
                 return (
                   <div key={it.id} role="listitem" className={`nm-q-row nm-memo-row nm-dev-row${it.off ? " off" : ""}`}>
                     <span className="qt">{day(it.ts)}</span>
-                    <span className="qm" title={nm}><i>{nm}</i><small>{it.app === "office" ? "봄의 정원" : "에디터"}{here ? " · 이 기기" : ""}{it.off ? " · 알림 멈춤" : ""}</small></span>
+                    <span className="qm" title={nm}><i>{nm}</i><small>{it.app === "office" ? "봄의 정원" : "옛 에디터 · 알림 안 감"}{here ? " · 이 기기" : ""}{it.off ? " · 알림 멈춤" : ""}</small></span>
                     <span className="qa sw"><button type="button" role="switch" aria-checked={!it.off} className="nm-sw" aria-label={`${nm} 알림`} title={it.off ? "알림 멈춤 — 이 기기엔 안 보냄" : "알림 켜짐"} disabled={busy === it.id} onClick={() => void act("toggle", it)}><span className="si-sw" aria-hidden /></button></span>   {/* 「멈춤 · 켜기」 글자 단추 → 설정 공용 스위치(.si-sw · 형 11-03 「토글이 말함」) */}
                     <span className="qa"><MorphAsk className="go gray" yesText="지움" label="구독 지우기" disabled={busy === it.id} onYes={() => del(it)}>지움</MorphAsk></span>
                   </div>

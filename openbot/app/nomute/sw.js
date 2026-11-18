@@ -54,21 +54,47 @@ async function iconData(u) {
   }
   return "/garden-app/icon-192.png";
 }
+/* 에디터 알림도 이 앱이 받음(형 11-19 08:3x 「응 1합쳐」 = 에디터 알림을 정원 앱 알림으로 · 앞 판 = 옛 에디터 서비스 워커 구독으로만 갔고 옛 에디터가 사라져 새 기기에서 켤 화면이 없었음)
+   · 종류(kind) = brk 긴급 · iss 이슈 · make 요약 · 제작 완료 · sys 시스템 · trend 급상승 · kw 등록어(보냄 = editor .github/scripts/push_send.py) · office · office_now · 없음 = 사무실 글
+   · 에디터 종류는 앱을 보고 있어도 띄움(옛 에디터와 같음 — 사무실 글만 화면에서 바로 보이니 건너뜀) · 그림 = 종류별 지구본(옛 sw.js NOTIF_ICON 그대로) · 상태바 그림 = 옛 것 그대로
+   · 긴급 · 이슈엔 PICK 단추(옛 에디터 운영자 260924 «푸시에서 바로 PICK») — 누르면 요청을 여기 맡아 두고 수집함(#/legacy · ui/scrap.tsx)이 가져가 보냄(주소만으로는 절대 안 보냄 = 밖에서 온 링크가 돈 드는 요약을 못 걸게) */
+const ED_KIND = { brk: "brk", iss: "iss", make: "make", sys: "sys", trend: "trend", kw: "kw" };
+const kindIcon = (k) => (ED_KIND[k] ? `/assets/brand/icon-notif-${ED_KIND[k]}-sig-512-260727.png` : "");
 self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : "" }; }
   e.waitUntil((async () => {
-    if ((await appWins()).some((c) => c.focused && c.visibilityState === "visible")) return;
-    // 아이콘 = 서버가 준 d.icon(단톡 알림 그림 · 없으면 보낸 이 얼굴 · 형 11-01 「애들 얼굴 붙여서 각각 오게하고 싶네」 · 봄 서버) · 없으면 앱 아이콘
-    const icon = await iconData(d.icon);   // 그림 글(data URL) — 주소 그대로면 「A」 로 그려짐(위 iconData)
+    const ed = !!ED_KIND[d.kind];
+    if (!ed && (await appWins()).some((c) => c.focused && c.visibilityState === "visible")) return;
+    // 아이콘 = 서버가 준 d.icon(단톡 알림 그림 · 없으면 보낸 이 얼굴 · 형 11-01 「애들 얼굴 붙여서 각각 오게하고 싶네」 · 봄 서버) · 에디터 종류 = 종류별 지구본 · 없으면 앱 아이콘
+    const icon = await iconData(d.icon || kindIcon(d.kind));   // 그림 글(data URL) — 주소 그대로면 「A」 로 그려짐(위 iconData)
+    const actions = Array.isArray(d.actions) ? d.actions.filter((a) => a && a.action === "pick" && typeof a.title === "string").slice(0, 1) : [];
     return self.registration.showNotification(d.title || "봄의 정원", { body: d.body || "", icon, tag: d.tag || "office",
-      renotify: !!d.renotify, ...(d.vibrate ? { vibrate: d.vibrate } : {}), data: { url: d.url || "/garden-app/" }, lang: "ko" });
+      ...(ed ? { badge: d.badge || "/assets/brand/badge-260723.png" } : {}), ...(actions.length ? { actions } : {}),
+      renotify: !!d.renotify, ...(d.vibrate ? { vibrate: d.vibrate } : {}), data: { url: d.url || "/garden-app/", kind: d.kind || "", pick: d.pick || "" }, lang: "ko" });
   })());
+});
+/* 알림 PICK 요청 맡아 두기 — 앱이 뜨는 사이 다른 알림 누름 · 새로고침에 사라지지 않게 캐시에 적고, 수집함이 가져가며 지움(두 창이 같이 보내지 않게) · 4시간 지난 것은 버림 */
+const PICK_REQ = "/garden-app/__nm-pickreq/", PICK_REQ_TTL = 4 * 3600e3;
+async function savePickReq(r) { await (await caches.open(META)).put(PICK_REQ + Date.now() + "-" + Math.random().toString(36).slice(2, 8), new Response(JSON.stringify(r))); }
+async function takePickReqs() {
+  const c = await caches.open(META), out = [];
+  for (const k of await c.keys()) {
+    if (!new URL(k.url).pathname.startsWith(PICK_REQ)) continue;
+    const res = await c.match(k);
+    if (!(await c.delete(k)) || !res) continue;
+    try { const r = await res.json(); if (r && r.brk && Date.now() - (r.ts || 0) < PICK_REQ_TTL) out.push(r); } catch { /* 깨진 줄 = 버림 */ }
+  }
+  return out;
+}
+self.addEventListener("message", (e) => {
+  const d = e.data || {};
+  if (d.type === "nm-pickreq-take") e.waitUntil(takePickReqs().then((list) => { try { e.ports[0].postMessage(list); } catch { /* 받는 쪽이 닫힘 */ } }));
 });
 /* 옛 에디터 딥링크(「요약 완료」 알림 = /?a=<기사파일>&nmv=1 · 러너 ask.sh · analyze.sh → push_send.py) = 정원 기사 한 장(#/newsed?a=<파일>)으로 바꿔 옮김
    (형 11-17 10:18 dm-bom 봄 옮김 「요약 완료를 누르면 이렇게 뜨는 경우가 있어 확인 좀. 원톤으로 통일해야함」 · 앞 판 = 서버 _root_app.js 가 ? 붙은 길을 옛 에디터로 통과 → 파란 선 · 분홍 점수 · 네비 두 겹) · 그 밖 주소 = 그대로 */
 /* 그 밖 옛 에디터 길도 정원 화면으로(형 11-19 00:43 「옛 에디터 걷고 지워버려 이제 안쓰지? 지우자.」) — 수집 실패 알림(/?msg=fail-…) · 감시 경보(/?msg=<칸>) = 알림메세지 ·
-   등록어 알림(/?tab=trend) = SNS 탭 · 카드 완료(/thumb.html?done=) = 이미지 에디터 · 모르는 옛 길(/?…) = 정원 홈. 앞 판 = 이 길들은 옛 에디터 화면이 그대로 열렸다 */
+   등록어 알림(/?tab=trend) = SNS 탭 · 카드 완료(/thumb.html?done=) = 이미지 에디터 · 긴급 · 이슈(/?brk=<키>&bl=<원문>) = 수집함 · 모르는 옛 길(/?…) = 정원 홈. 앞 판 = 이 길들은 옛 에디터 화면이 그대로 열렸다 */
 const OLD_TAB = { trend: "/sns", chan: "/chan", feed: "/feed", scrap: "/legacy" };
 function gardenOf(u) {
   if (u.origin !== location.origin) return u;
@@ -76,14 +102,30 @@ function gardenOf(u) {
   if (u.pathname === "/thumb.html" || u.pathname === "/thumb") return at("/edtool");
   if (u.pathname !== "/" || !u.search) return u;
   if (q.get("a")) return at(`/newsed?a=${encodeURIComponent(q.get("a"))}`);
+  if (q.get("brk")) return at(`/legacy?brk=${encodeURIComponent(q.get("brk"))}${q.get("bl") ? `&bl=${encodeURIComponent(q.get("bl"))}` : ""}`);   // 긴급 · 이슈 알림 = 수집함이 그 건을 찾아 요약됐으면 기사 한 장 · 아니면 원문(ui/scrap.tsx)
   if (q.get("msg") || q.get("pop") === "msgs") return at("/edmsgs");
   if (OLD_TAB[q.get("tab")]) return at(OLD_TAB[q.get("tab")]);
   return new URL("/garden-app/", location.origin);
 }
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
-  const target = gardenOf(new URL((e.notification.data && e.notification.data.url) || "/garden-app/", location.origin)).href;
+  const d0 = e.notification.data || {};
+  if (e.action === "pick") {   // PICK 단추 = 요청을 맡아 두고 수집함으로(보내는 것은 수집함 · 위 savePickReq)
+    let pt = null;
+    try { pt = new URL(d0.pick || d0.url || "", location.origin); } catch { pt = null; }
+    if (pt && pt.origin === location.origin && pt.searchParams.get("brk")) {
+      e.waitUntil((async () => {
+        await savePickReq({ brk: pt.searchParams.get("brk"), bl: pt.searchParams.get("bl") || "", kind: d0.kind || "", ts: Date.now() });
+        const to = new URL("/garden-app/#/legacy", location.origin).href, w = (await appWins())[0];
+        if (w) { try { const c = "navigate" in w && !/#\/legacy(?:[?/]|$)/.test(new URL(w.url).hash) ? (await w.navigate(to)) || w : w; c.postMessage({ type: "nm-pickreq" }); return c.focus(); } catch { /* 못 옮기면 새 창 */ } }
+        return self.clients.openWindow(to);
+      })());
+      return;
+    }
+  }
+  const tu = gardenOf(new URL(d0.url || "/garden-app/", location.origin)), target = tu.href;
   e.waitUntil((async () => {
+    if (tu.origin !== location.origin) return self.clients.openWindow(target);   // 남의 사이트(급상승 알림 = 구글 검색) = 늘 새 창 — 앱 창을 그 주소로 갈아 끼우면 앱이 사라짐(옛 sw.js 운영자 260819)
     const w = (await appWins())[0];
     if (w && "navigate" in w) { try { const c = await w.navigate(target); return (c || w).focus(); } catch { /* 못 옮기면 새 창 */ } }
     return self.clients.openWindow(target);

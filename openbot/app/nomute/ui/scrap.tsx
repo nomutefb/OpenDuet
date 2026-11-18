@@ -20,6 +20,8 @@ import { inAppHref } from "./inapp";
 import { newsListQuery, useGo } from "./news-data";
 import { Pane } from "./pane";
 import { CAT_COLOR, articleCat, catBucket } from "./scrap-cat";
+import { type PickReq, brkOfHash, findPushCand, pickReasonOf } from "./scrap-push";   // 알림에서 온 것(긴급 누름 · PICK 단추)
+import { useRouter } from "@tanstack/react-router";
 
 type C = Record<string, any>;   // eslint-disable-line @typescript-eslint/no-explicit-any
 const HR = 36e5;
@@ -928,6 +930,50 @@ export function ScrapModal() {
     const cid = card.dataset.cid || ""; if (cid === merge.a) return;
     setMerge((m) => { if (!m) return m; const sel = new Set(m.sel); if (sel.has(cid)) sel.delete(cid); else sel.add(cid); return { ...m, sel }; });
   };
+
+  /* ── 알림에서 온 것(형 11-19 08:3x 「응 1합쳐」 · 옛 에디터 openBreakingDeepLink · processPickReqs 그대로) ──
+     긴급 · 이슈 알림 본문 누름 = #/legacy?brk=<열쇠>&bl=<대표 원문>(../sw.js gardenOf) → 누른 그때 요약돼 있으면 기사 한 장 · 아니면 대표 원문(요약을 기다리지 않음)
+     알림 PICK 단추 = 서비스 워커가 맡아 둔 요청만 보냄(주소만으로는 안 보냄) · 수집함 PICK 과 같은 길(applyTriage) · 사유 = 알림 종류 */
+  const router = useRouter(), pushJob = useRef<{ brk: { key: string; bl: string } | null; picks: PickReq[]; t0: number }>({ brk: null, picks: [], t0: 0 }), [pushTick, setPushTick] = useState(0);
+  useEffect(() => {
+    const J = pushJob.current, kick = () => { J.t0 = Date.now(); setPushTick((t) => t + 1); };
+    const readHash = () => { const b = brkOfHash(location.hash); if (!b) return; J.brk = b; try { router.history.replace("/legacy"); } catch { /* 꼬리표가 남아도 한 번만 처리(J.brk) */ } kick(); };   // 꼬리표는 읽자마자 지움(새로고침 · 뒤로 가기에 다시 안 걸리게)
+    const take = () => {
+      const sw = navigator.serviceWorker?.controller; if (!sw || typeof MessageChannel === "undefined") return;
+      const ch = new MessageChannel(); ch.port1.onmessage = (e) => { if (Array.isArray(e.data) && e.data.length) { J.picks.push(...(e.data as PickReq[])); kick(); } };
+      try { sw.postMessage({ type: "nm-pickreq-take" }, [ch.port2]); } catch { /* 워커 없음 = 맡아 둔 것도 없음 */ }
+    };
+    const onMsg = (e: MessageEvent) => { if (e.data && e.data.type === "nm-pickreq") take(); };
+    readHash(); take();
+    addEventListener("hashchange", readHash); navigator.serviceWorker?.addEventListener("message", onMsg);
+    return () => { removeEventListener("hashchange", readHash); navigator.serviceWorker?.removeEventListener("message", onMsg); };
+  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {   // 후보 목록이 채워진 뒤 처리 · 못 찾으면 목록이 새로 올 때마다 다시 봄(수집이 늦는 때 · 20초까지) → 그래도 없으면 대표 원문 · 안내
+    const J = pushJob.current; if (!J.brk && !J.picks.length) return;
+    if (!rd.c?.cands.length || !rd.n || !rd.s) return;
+    const late = Date.now() - J.t0 > 20_000, find = (key: string, bl: string) => findPushCand(CANDS, key, bl, _normU, scLinkUrl);
+    const b = J.brk;
+    if (b) {
+      const c = find(b.key, b.bl);
+      if (c === "ambig") { J.brk = null; if (b.bl) openLink(b.bl); else NOTE({ msg: "같은 사건 후보가 여럿이야 — 수집함에서 골라 줘" }); }
+      else if (c) { J.brk = null; if (!openArt(c)) openLink(scLinkUrl(c) || b.bl); }
+      else if (late) { J.brk = null; if (b.bl) openLink(b.bl); else NOTE({ msg: "긴급 기사를 수집함에서 못 찾았어" }); }
+    }
+    J.picks = J.picks.filter((r) => {
+      const c = find(r.brk, r.bl || "");
+      if (c === "ambig") { NOTE({ msg: "PICK 보류 — 같은 사건 후보가 여럿이라 수집함에서 직접 골라줘" }); return false; }
+      if (!c) { if (!late) return true; NOTE({ msg: !CAND_LIVE || CAND_MISS > 0 ? "PICK 못 함 — 수집함 최신 목록이 안 왔어(접속 확인 뒤 수집함에서 PICK)" : "PICK 못 함 — 수집함에 아직 없어(수집 지연 · 잠시 뒤 수집함에서 PICK)" }); return false; }
+      if (feedMatch(c, true)) { openArt(c); return false; }   // 이미 요약됨 = 그 기사
+      const ps = pickState(c);
+      if (ps === "failed") { NOTE({ msg: "이 기사 PICK이 실패 상태야 — 수집함 카드에서 다시 시도해줘" }); return false; }
+      if (ps) { NOTE({ msg: "이미 PICK한 기사야" }); return false; }
+      applyTriage("pick", c, pickReasonOf(r.kind), "", redraw); redraw();
+      NOTE({ msg: "PICK 보내는 중…" });   // 접수 ≠ 실행 — 서버 거절 · 로그인 만료는 applyTriage 가 되돌리고 알림
+      window.setTimeout(() => root.current?.querySelector<HTMLElement>(`.sc-item[data-cid="${CSS.escape(candId(c))}"]`)?.scrollIntoView({ block: "center" }), 60);
+      return false;
+    });
+    if ((J.brk || J.picks.length) && !late) { const t = window.setTimeout(() => { cq.refetch(); setPushTick((x) => x + 1); }, 2500); return () => clearTimeout(t); }
+  }, [rd, pushTick]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const sentRefs = useRef<Record<string, HTMLDivElement | null>>({});
   useEffect(() => {   // 바닥 닿기 600px 전 = 다음 150장
