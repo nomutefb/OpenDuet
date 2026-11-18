@@ -168,3 +168,9 @@
 
 /* 「브라우저」 탭 = 메뉴 줄 바로 아래 창 전체(./tab-bar.tsx full · 형 11-17) — 자리는 맨 위 .nm-tab-screen(위 = 탭 줄 + 메뉴 줄 밑 · 왼쪽 = 얼굴 줄 옆 · 오른쪽 · 아래 끝) 그대로 · 두 칸 위에 덮임(메뉴 줄 59 · 탭 줄 58 아래) */
 .nm-tab-screen.full { z-index:57; }
+
+/* 탭 폭 = 「봄의 정원」 240 · 나머지 다 그 75%(180) 한 크기(형 11-18 15:20 dm-cloud 「응 봄의 정원의 75% 크기로 항상 다 탭 크기를 유지해줘」) — 줄이 좁아지면 줄어드는 몫이 바탕 폭에 비례(flex-shrink) = 4:3 그대로 · 닫기 = 오른쪽(형 13:56 「그리고 새탭은 닫기가 우측에 있어야 안어색해 (탭 란에서 닫기가 우측)」) */
+.nm-tab { flex:0 1 180px; min-width:60px; max-width:none; }
+.nm-tab.garden { flex:0 1 240px; min-width:80px; }
+.nm-tab:is(.browser, .meet, .teams) { flex:0 1 180px; min-width:60px; }
+.nm-tab-x { left:auto; right:6px; }

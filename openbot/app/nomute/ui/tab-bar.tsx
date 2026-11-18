@@ -43,12 +43,13 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const [s, setS] = useState<TabState>(load);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [host, setHost] = useState<HTMLElement | null>(null);
-  const [coNav, setCoNav] = useState(""), [browserGo, setBrowserGo] = useState<{ url: string; n: number }>({ url: "", n: 0 });   // browserGo = 링크가 Browser 탭에 넘긴 주소(n = 같은 주소 다시 눌러도 다시 감)   // 웹 탭 「Browser 탭에서 열기」가 넘긴 주소 = 다리 판이 붙으면 그 주소로(./cobrowse-pane.tsx nav)
+  const [coNav, setCoNav] = useState("");   // 웹 탭 「Browser 탭에서 열기」가 넘긴 주소 = 다리 판이 붙으면 그 주소로(./cobrowse-pane.tsx nav)
   useEffect(() => { const h = paneHost(); if (h !== host) setHost(h); });   // 오른쪽 칸이 그려진 뒤 · 다시 그려지면 따라감
   const bar = useRef<HTMLDivElement>(null), drag = useRef<Drag | null>(null);
   const ink = useRef<HTMLElement>(null), inkAt = useRef<{ l: number; r: number } | null>(null), flip = useRef<Map<string, number> | null>(null);   // 고른 자리(잉크) · 끌 때 옆 탭이 미끄러질 앞자리(눈에 보이던 왼쪽 · 화면 좌표)
   const [ord, setOrd] = useState<unknown>(loadOrder);
-  const order = stripOrder(ord, STRIP_FIXED, s.tabs.filter((t) => t.k !== "dash").map(tabKey)), orderRef = useRef(order), orderSig = order.join("|");   // 줄 차례 = 고정 넷 + 연 탭(끌어 옮긴 대로 · 형 11-17 09:2x 구름 맥 창 「그 상단에 탭, 끌어서 쓰면 순서를 전환할 수 있게 해줘」)
+  const hasWeb = s.tabs.some((t) => t.k === "web");   // 웹 탭이 하나라도 있으면 = 그 탭이 「Browser」를 갈음 → 고정 「Browser」는 줄에서 빠짐(형 11-18 13:57 dm-cloud 「그리고 탭이 떠있으면 브라우저라는 항목은 없어도돼. 그게 브라우저를 갈음하거든.」 · 16:35 「구름 상단에 브라우저 처리안됫어」) · 지금 Browser 를 보는 중이면(맥 72로 넘어감) 그동안만 남김
+  const order = stripOrder(ord, STRIP_FIXED, s.tabs.filter((t) => t.k !== "dash").map(tabKey)).filter((k) => !(k === BROWSER && hasWeb && s.active !== BROWSER)), orderRef = useRef(order), orderSig = order.join("|");   // 줄 차례 = 고정 넷 + 연 탭(끌어 옮긴 대로 · 형 11-17 09:2x 구름 맥 창 「그 상단에 탭, 끌어서 쓰면 순서를 전환할 수 있게 해줘」)
   orderRef.current = order;
   // 요소는 옮겨 꽂지 않음 = 그려진 차례(dom)는 켤 때 차례 그대로 · 새 탭만 끝에 붙고 · 보이는 차례는 CSS order 값으로만
   //   까닭(11-17 실물 · PC 1440 · 요소 11,883개): 앱 CSS 에 뿌리에 건 :has() 규칙이 있어 요소를 하나 옮겨 꽂기만 해도 꼴 계산이 통째로 다시 돎 = 45 ~ 70ms(끌다 자리 바꾸는 순간마다 멎음) · order 값 바꾸기 = 0.1ms
@@ -71,7 +72,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   useEffect(() => { const on = () => requestAnimationFrame(() => { if (!paneHost()) setS((x) => (x.active.startsWith("s:") || x.active.startsWith("w:") || x.active === BROWSER || x.active === MEET || x.active === TEAMS ? { ...x, active: "dash" } : x)); }); addEventListener("hashchange", on); return () => removeEventListener("hashchange", on); }, []);
   useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
   useEffect(() => { const on = (e: Event) => { const a = (e as CustomEvent<ScreenTabAsk>).detail; if (a) setS((x) => screenTabAdd(x, a.who, a.url)); }; addEventListener(SCREEN_TAB_EVENT, on); return () => removeEventListener(SCREEN_TAB_EVENT, on); }, []);   // 들머리 = openScreenTab()(프로필 카드 「몸 화면 열기」 · PC) → 「○○ 화면」 탭을 붙이고 고름
-  useEffect(() => { const on = (e: Event) => { const u = (e as CustomEvent<{ url?: string }>).detail?.url; if (u) { setBrowserGo((g) => ({ url: u, n: g.n + 1 })); setS((x) => ({ ...x, active: BROWSER })); } };   /* 바깥 링크 = 「Browser」 탭 안에서(따로 웹 탭 안 만듦 · 형 11-18 14:37 「그리구 상단에 클라우드 플레어 있어도 브라우저가 있음.」 · 앞 = 링크마다 웹 탭) */ addEventListener(WEB_TAB_EVENT, on); return () => removeEventListener(WEB_TAB_EVENT, on); }, []);   // 들머리 = openInApp()(바깥 링크 누름 · window.open) → 그 주소의 웹 탭을 붙이고 고름(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」)
+  useEffect(() => { const on = (e: Event) => { const u = (e as CustomEvent<{ url?: string }>).detail?.url; if (u) setS((x) => webTabOpen(x, u)); };   /* 바깥 링크 = 정원 안 새 탭(형 11-18 13:56 「저 열면 새탭에서 안열려(봄의 정원 내 새탭)」) · 그 탭이 생기면 「Browser」는 줄에서 빠짐(위 hasWeb) */ addEventListener(WEB_TAB_EVENT, on); return () => removeEventListener(WEB_TAB_EVENT, on); }, []);   // 들머리 = openInApp()(바깥 링크 누름 · window.open) → 그 주소의 웹 탭을 붙이고 고름(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」)
   useEffect(() => { try { if (isTeams(room)) localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); else if (room) localStorage.setItem(OFFICE_LAST, room); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
@@ -146,7 +147,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     else if (t.k === "dash" && pane === "chat" && !sideEl()) go("#/");   // 오른쪽 칸만 덮는 판 = 왼쪽 대화는 그대로(정원 탭 = 오른쪽만 원래 판 · 형 11-12 16:41 「항상 메인으로 다시 오더라」 · 깃)
   };
   const close = (key: string) => {
-    const i = order.indexOf(key), closed = tabsClose(s, key), next = s.active === key ? { ...closed, active: order[i + 1] ?? order[i - 1] ?? "dash" } : closed;   // 고른 탭을 닫으면 = 눈에 보이는 오른쪽 → 왼쪽 이웃(줄 차례)
+    const i = order.indexOf(key), nb = order[i + 1] ?? order[i - 1], closed = tabsClose(s, key), next = s.active === key ? { ...closed, active: nb && !STRIP_FIXED.includes(nb) ? nb : "dash" } : closed;   // 고른 탭을 닫으면 = 눈에 보이는 오른쪽 → 왼쪽 이웃(줄 차례) · 이웃이 고정 탭(화상 회의 등 = 고르면 회의 · 다리가 켜짐)이면 봄의 정원으로
     const t = next.tabs.find((x) => tabKey(x) === next.active);
     setS(next);
     if (next.active !== s.active) { if (t?.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`); else if (next.active === "dash" && pane === "chat" && !sideEl()) go("#/"); }
@@ -232,7 +233,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
       </div>
       {paneTabs.length || s.active === TEAMS || s.active === BROWSER || s.active === MEET ? createPortal(
         <div className={`nm-tab-screen${host && !full ? " in-split" : ""}${full ? " full" : ""}`} hidden={!paneOn}>   {/* 「브라우저」 = 오른쪽 칸이 아니라 메뉴 줄 바로 아래 창 전체(형 11-17 09:1x 구름 맥 창 「pc 웹앱에서 브라우저를 열면 한쪽에서만 열리는게 아니라, 창 전체를 써야해. 그러니까 메뉴 바로 아래로 다 창이 펼쳐져야 하거든?」) · 웹 탭 · 몸 화면 · 팀즈 · 화상회의는 오른쪽 칸 그대로(형 11-12 「웹 탭은 오른쪽 칸 안」) */}
-          {s.active === BROWSER ? <BrowserPane nav={coNav} onNav={() => setCoNav("")} go={browserGo} onClose={() => setS((x) => ({ ...x, active: "dash" }))} /> : null}   {/* 「Browser」 = 「＋」 새 탭과 같은 주소창 웹 칸(형 11-18 09:3x 「그 브라우저 여기 전면에 다른 페이지처럼 보이게해줄래?」 · 「일반 새탭 … 별건으로 보일 필요는 없어.」) · 막는 사이트만 그 자리에서 「맥 72로 열기」 = 다리 판(앞 = 늘 다리 판 · 다리 주소가 없으면 「같이 보기 주소 없음」 한 줄뿐) */}
+          {s.active === BROWSER ? <BrowserPane nav={coNav} onNav={() => setCoNav("")} onClose={() => setS((x) => ({ ...x, active: "dash" }))} /> : null}   {/* 「Browser」 = 「＋」 새 탭과 같은 주소창 웹 칸(형 11-18 09:3x 「그 브라우저 여기 전면에 다른 페이지처럼 보이게해줄래?」 · 「일반 새탭 … 별건으로 보일 필요는 없어.」) · 막는 사이트만 그 자리에서 「맥 72로 열기」 = 다리 판(앞 = 늘 다리 판 · 다리 주소가 없으면 「같이 보기 주소 없음」 한 줄뿐) */}
           {s.active === MEET ? <div className="nm-tab-co"><CobrowsePane mode="meet" onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}   {/* 화상회의 = 같은 맥 72 다리 판 + 아래 회의 대화 */}   {/* 보는 동안만 붙음 = 안 보면 다리 쉼 · 다시 고르면 새 표(맥 72 탭은 그대로 = 마지막 웹 화면) */}
           {s.active === TEAMS ? <div className="nm-tab-teams"><TeamsList current={room} /></div> : null}   {/* 팀즈 목록 = 오른쪽 칸 · 누르면 왼쪽 대화만 바뀜 */}
           {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "co" ? (
@@ -253,13 +254,13 @@ const BROWSER_LAST = "nm-browser-last";   // 「Browser」 탭이 마지막으�
 const browserLast = (): string => { try { return localStorage.getItem(BROWSER_LAST) || ""; } catch { return ""; } };
 /** 「Browser」 탭 판 = 웹 칸(「＋」 새 탭과 같은 한 벌) · 막는 사이트 = 그 자리에서 다리 판(맥 72)으로 · 다리에서 닫기 = 웹 칸으로 돌아옴
  *  nav = 다른 웹 탭이 「맥 72로 열기」로 넘긴 주소(오면 바로 다리 판 · 그 주소로) */
-function BrowserPane({ nav, onNav, onClose, go: open }: { nav: string; onNav: () => void; onClose: () => void; go: { url: string; n: number } }) {
+function BrowserPane({ nav, onNav, onClose }: { nav: string; onNav: () => void; onClose: () => void }) {
   const [co, setCo] = useState(!!nav), [go, setGo] = useState(nav), last = useRef(browserLast());   // co = 다리 판을 보는 중 · go = 다리에 아직 안 보낸 주소(한 번 보내면 비움 · 앞 판 = 신호마다 다시 보냄) · last = 웹 칸이 마지막으로 연 주소(다리에서 돌아오면 그 자리)
   useEffect(() => { if (nav) { setCo(true); setGo(nav); } }, [nav]);
   if (co) return <div className="nm-tab-co"><CobrowsePane mode="browser" nav={go} onNav={() => { setGo(""); onNav(); }} onClose={() => { setCo(false); setGo(""); onNav(); }} /></div>;
   return (
     <div className="nm-tab-web">
-      <WebPane initial={open.url || last.current} goTo={open} focus onClose={onClose} onGo={(u) => { last.current = u; try { localStorage.setItem(BROWSER_LAST, u); } catch { /* 이번만 */ } }} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 넘어감 */ } setCo(true); setGo(u); }} />
+      <WebPane initial={last.current} focus onClose={onClose} onGo={(u) => { last.current = u; try { localStorage.setItem(BROWSER_LAST, u); } catch { /* 이번만 */ } }} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 넘어감 */ } setCo(true); setGo(u); }} />
     </div>
   );
 }
