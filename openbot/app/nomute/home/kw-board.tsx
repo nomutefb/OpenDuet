@@ -9,7 +9,7 @@ import { agoMin } from "../ui/ago-min";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { firstJson } from "./news-feed";
-import { KW_EVERY_MS, KW_FIRST_MS, KW_PAGE_MS, KW_STEP_MS, kwCols, kwHits, kwPages, kwShowNew, type TrendsIn, type XtopIn } from "./kw-board-core";
+import { KW_EVERY_MS, KW_FIRST_MS, KW_N, KW_PAGE_MS, KW_STEP_MS, kwCols, kwFit, kwHits, kwPages, kwShowNew, type TrendsIn, type XtopIn } from "./kw-board-core";
 
 const ago = (iso: string, now: number) => { const t = Date.parse(iso); return Number.isFinite(t) ? agoMin(now - t) : ""; };   // 칸 시각도 늘 「N분 전」(형 11-15 08:54)
 
@@ -33,6 +33,17 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
   const onScroll = () => { const el = box.current; if (el && el.clientWidth) setPage(Math.max(0, Math.min(pages.length - 1, Math.round(Math.abs(el.scrollLeft) / el.clientWidth)))); };
   const jump = (i: number) => { const el = box.current; if (el) el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" }); };
   const none = cols.every((c) => !c.items.length);
+  // 넓은 칸(461 넘음) = 판 높이에 들어가는 줄만(형 11-18 14:37 구름 1:1 「키워드 부분 해결해줘 겹치게 안보여야해, 스크롤 이 잇길 원하진 않아」 · 앞 판 = 10줄이 판 높이를 나눠 줄 키가 글자보다 작아져 겹침 · 안드로이드 탭 두 칸)
+  //   재는 때 = 칸 크기가 바뀔 때만(ResizeObserver) · 폰(460 아래) = 7줄 그대로(css)
+  const [fit, setFit] = useState(KW_N);
+  useEffect(() => {
+    const el = box.current;
+    if (!el || typeof ResizeObserver === "undefined") return undefined;
+    const measure = () => { const ol = el.querySelector("ol"); setFit(kwFit(el.clientWidth, ol ? ol.clientHeight : 0)); };
+    const ro = new ResizeObserver(measure);
+    ro.observe(el); measure();
+    return () => ro.disconnect();
+  }, [run, none]);
   // 장 넘김(깃 #-037) — 뜨면 첫 장부터 10초마다 다음 장(한 장 = 두 줄기 · 형 11-17 「지속시간은 2배」) · 마지막 장 10초 뒤 = Hot Issue 로(onDone) · 넓은 칸(넷 다 보임) = 줄기 수 × 5초 보고 돌아감
   //   만지는 중(마우스 올림 · 방금 누름 20초) · 숨은 탭 = 그 자리에서 기다림(보던 걸 뺏지 않음) · 타이머 하나 · 움직임 = 원래 스크롤(smooth) 그대로
   const over = useRef(false), hold = useRef(0), done = useRef(onDone);
@@ -73,7 +84,7 @@ export function KwBoard({ on, run, onDone }: { on: boolean; run: number; onDone?
                 <div className="nm-kwb-ch" style={{ animationDelay: `${ci * 70}ms` }}><b>{c.name}</b><span>{c.stale && c.id !== "x" ? (c.at ? `${ago(c.at, now)} · 낡음` : "못 받음") : ""}</span></div>
                 {c.items.length ? (
                   <ol>
-                    {c.items.map((it, i) => {
+                    {c.items.slice(0, fit).map((it, i) => {
                       const n = hits.get(`${c.id}:${i}`) || 0;
                       return (
                         <li key={it.q + i} className={n >= 2 ? "dup" : undefined} style={{ animationDelay: `${ci * 70 + 60 + i * 36}ms` }}>
