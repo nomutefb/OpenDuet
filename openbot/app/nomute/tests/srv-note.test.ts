@@ -48,3 +48,10 @@ test("웹 칸 = 주소창은 커서만 라임(테 그대로) · 검색 = 구글 
   assert.match(sl, /<span className="nm-sl-srv" title="서버 연결 칸의 가장 나쁜 불">서버<Dot t=\{toneOf\(l\.server\)\} \/><\/span>/);
   assert.match(slcss, /\.nm-sl-srv \{ display: inline-flex; align-items: center; gap: 5px; \}/);
 });
+
+test("막는 사이트 = 형이 주소창으로 간 주소만 바로 맥 72 판으로 · 되살아난 주소는 단추 그대로(형 11-18 「응 만약에 막히면 그렇게 하고」)", () => {
+  const web = rd("../ui/web-pane.tsx");
+  assert.match(web, /if \(check\.state !== "blocked" \|\| !onBridge \|\| !cur \|\| wantBridge\.current !== cur\) return;\s*wantBridge\.current = "";\s*onBridge\(cur\);/);
+  assert.match(web, /const a = toAddress\(raw\);\s*if \(!a\) return;\s*wantBridge\.current = a;/);   // 주소창 이동 때만 표시
+  assert.match(web, /\{onBridge \? <button type="button" className="nm-web-out" onClick=\{\(\) => onBridge\(cur\)\}>맥 72로 열기<\/button> : null\}/);   // 단추는 남음(다리에서 돌아온 자리)
+});

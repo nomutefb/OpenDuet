@@ -52,9 +52,18 @@ export function WebPane({ initial = "", className = "", onClose, onGo, blank, fo
 
   useEffect(() => hookFrame(frame.current), [cur, nonce, check.state]);   // 같은 출처 판 = 안 링크·새 창도 앱 안(남의 사이트는 손 못 댐)
 
+  // 막는 사이트 = 단추 없이 바로 진짜 브라우저 판(맥 72)으로(형 11-18 22:3x 「응 만약에 막히면 그렇게 하고」) — 형이 방금 주소창으로 간 주소만(wantBridge)
+  //   탭을 다시 열며 되살아난 주소 · 다리에서 돌아온 자리는 안 넘김(넘기면 돌아오자마자 또 넘어가 못 빠져나옴) → 그땐 앞처럼 안내 + 「맥 72로 열기」 단추
+  const wantBridge = useRef("");
+  useEffect(() => {
+    if (check.state !== "blocked" || !onBridge || !cur || wantBridge.current !== cur) return;
+    wantBridge.current = "";
+    onBridge(cur);
+  }, [check.state, cur]);   // eslint-disable-line react-hooks/exhaustive-deps
   const go = (raw: string) => {
     const a = toAddress(raw);
     if (!a) return;
+    wantBridge.current = a;
     setInput(a);
     if (a === cur) { setNonce((n) => n + 1); return; }   // 같은 주소 다시 = 새로고침
     setHist((h) => [...h.slice(0, idx + 1), a]);
