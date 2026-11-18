@@ -71,15 +71,15 @@
 .nsb-acct { overflow-x:auto; padding:0 6px 10px; -webkit-overflow-scrolling:touch; }
 .nsb-acct-at { margin:0 8px 2px; text-align:right; font-size:var(--fs-xs); color:var(--nsb-mut); font-variant-numeric:tabular-nums; }   /* 받은 때(형 11-18 「언제 갱신되는지」) */
 .nsb-acct table { width:100%; min-width:500px; border-collapse:separate; border-spacing:0; font-size:var(--fs-label); }
-.nsb-acct th, .nsb-acct td { padding:10px 8px; border-bottom:1px solid var(--nsb-line); text-align:left; vertical-align:middle; }
+.nsb-acct th, .nsb-acct td { padding:5px 8px; border-bottom:1px solid var(--nsb-line); text-align:left; vertical-align:middle; }
 .nsb-acct thead th { color:var(--nsb-mut); font-size:var(--fs-xs); font-weight:700; white-space:nowrap; }
 .nsb-acct tbody th { font-weight:700; white-space:nowrap; color:#E7ECE7; }
 .nsb-acct small { display:block; font-size:var(--fs-xs); font-weight:400; color:var(--nsb-mut); white-space:nowrap; }
 .nsb-acct tbody tr { cursor:pointer; }
 .nsb-acct .pct { min-width:96px; }
-.nsb-acct .pct b { font-size:18px; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
+.nsb-acct .pct b { font-size:15px; min-width:2.6em; color:var(--nsb-ok); font-variant-numeric:tabular-nums; }
 .nsb-acct .pct b[data-tone="none"] { color:var(--nsb-mut); }
-.nsb-acct .bar { display:block; width:84px; height:4px; margin:5px 0 1px; border-radius:2px; background:rgba(255,255,255,.1); overflow:hidden; color:var(--nsb-ok); }   /* 남은 만큼 찬 막대 · 가만히 있는 그림(움직임 0) */
+.nsb-acct .bar { display:block; flex:none; width:84px; height:4px; margin:0; border-radius:2px; background:rgba(255,255,255,.1); overflow:hidden; color:var(--nsb-ok); }   /* 남은 만큼 찬 막대 · 가만히 있는 그림(움직임 0) */
 .nsb-acct .bar i { display:block; height:100%; background:currentColor; transform-origin:left; }
 .nsb-acct .pct [data-tone="low"] { color:#E9C46A; }   /* 불 아님 · 숫자 색만(형 15:40 「안뜨게 혀라」) */
 .nsb-acct .pct [data-tone="out"] { color:#E8A0A0; }
@@ -90,9 +90,19 @@
 .nsb-acct .names span:first-child { padding-left:0; border-left:0; }
 .nsb-acct tr.why td { font-size:var(--fs-sm); color:var(--nsb-mut); background:rgba(255,255,255,.03); white-space:normal; }
 .nsb-acct tr.why td span { display:inline-block; margin-right:14px; }   /* 누르면 나오는 나머지(창마다 % · 하루 평균 · 요금 · 비고 · 받은 때) */
+/* 줄 높이 줄임(형 11-19 「라인이 하나마다 높을필요는없음 너무 한 행 폭이 높아」) = 숫자 + 막대 한 줄 · 「다시 참」 한 줄 · 덧글은 옆으로 */
+.nsb-acct .pct .top { display:inline-flex; align-items:center; gap:8px; vertical-align:middle; }
+.nsb-acct .pct small { display:inline-block; margin-left:8px; vertical-align:middle; }
+.nsb-acct .reset small { display:inline; margin-left:8px; }
+.nsb-acct td:nth-child(5) small { display:inline; margin-left:8px; }
+/* 결제 끝난 계정 = 접힘(형 11-19) · 한 줄 단추로 펼침 */
+.nsb-acct tr.fold td { padding:3px 8px; border-bottom:0; }
+.nsb-acct tr.fold button { display:inline-flex; align-items:center; gap:5px; padding:3px 0; border:0; background:none; color:var(--nsb-mut); font-size:var(--fs-xs); cursor:pointer; }
+.nsb-acct tr.fold svg { transition:rotate .28s var(--ease, ease); }
+.nsb-acct tr.fold[aria-expanded="true"] svg { rotate:180deg; }
 @media (max-width:520px) {   /* 폰 = 옆으로 안 밀리게: 요금제 칸은 누르면 나오는 줄로(형 11-18 「필요한것만 명확하게」) */
   .nsb-acct table { min-width:0; }
-  .nsb-acct th, .nsb-acct td { padding:10px 5px; }
+  .nsb-acct th, .nsb-acct td { padding:5px 5px; }
   .nsb-acct tr > :nth-child(5) { display:none; }
   .nsb-acct .pct { min-width:66px; }
   .nsb-acct .bar { width:56px; }

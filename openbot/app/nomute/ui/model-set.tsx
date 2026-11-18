@@ -3,6 +3,7 @@
 //   ① 봇 상자(클로드 일곱) = 다음 새 창이 열릴 때의 모델 · 노력도 — 서버 profile/nextwin(작동 표 「애들 × 연결」 끝 칸 둘과 같은 값 · ./next-win.tsx) · 일괄 = {all: true}
 //   ② 서버가 직접 부르는 일 = 일감 가르기 등 — 서버 modelset(office/model-set.json) · 바꾸면 다음 호출부터
 //   ③ 파이프라인(러너가 도는 뉴스 등) = 중분류 일곱 갈래 — 앱 설정 한 장(/api/settings 의 llm 칸 · ./genopt.tsx 와 같은 길) · 안 고른 칸 = 스크립트가 원래 쓰는 값 · 다음 실행부터
+//   「모두」 줄 = 뺌(형 11-19 「그리고 모두 < 항목필요없음」 · 서버의 일괄 길 {all: true} 은 그대로 둠)
 //   글자(형 11-15 「모델명을 정확히 표기되게 … 노력도도 실제로 구분되는 그 표시되는걸로 cli에」) = 모델 = 정식 이름(Opus 5.5 · Sonnet 5.5 …) · 노력도 = CLI 낱말(low · medium · high · xhigh · max)
 //   칸(형 「선택된거가 기본적으로 저기에 나오고 누르면 바꾸게」) = 지금 쓰이는 값이 늘 그 자리에 보임(안 고른 칸도 실제 값 · 흐리게) · 누르면 고르는 판
 //   바꾸기 = 형만(그 밖 = 글자만) · 표에 있는 값만 · 못 읽음 · 못 바꿈 = 그 자리에 한마디(조용히 삼키지 않음)
@@ -126,7 +127,6 @@ export function ModelSetRows({ bots = true }: { bots?: boolean } = {}) {   // bo
           <>
             {botSave.isError ? <p className="note err">못 바꿨어 — {(botSave.error as Error)?.message || "서버 답 없음"} · 다시 골라 줘</p> : null}
             <div className="rows">
-              <PickRow label="모두" pick={{ model: sameOf(rows, "model"), effort: sameOf(rows, "effort") }} models={BOT_MODELS} efforts={BOT_EFFORTS} can={can} busy={botSave.isPending} onPick={(p) => botSave.mutate({ all: true, ...p })} />
               {names.map((n, i) => <PickRow key={n} label={n} sub={rows[i].default ? "안 고름" : undefined} dimModel={!!rows[i].default} dimEffort={!!rows[i].default} pick={rows[i]} models={BOT_MODELS} efforts={BOT_EFFORTS} can={can} busy={botSave.isPending} onPick={(p) => botSave.mutate({ who: n, ...p })} />)}
             </div>
             <p className="note">지금 열려 있는 창은 그대로야 — 창이 바뀔 때(교대 · 계정 바꿈 · 다시 켬) 이 값으로 열려. 「안 고름」인 봇은 그 상자에 적힌 값으로 열려서 여기 보이는 값과 다를 수 있어.</p>
@@ -140,7 +140,6 @@ export function ModelSetRows({ bots = true }: { bots?: boolean } = {}) {   // bo
           <>
             {jobSave.isError ? <p className="note err">못 바꿨어 — {(jobSave.error as Error)?.message || "서버 답 없음"} · 다시 골라 줘</p> : null}
             <div className="rows">
-              {jobs.length > 1 ? <PickRow label="모두" pick={{ model: sameOf(jobs.map((j) => j.now), "model"), effort: sameOf(jobs.map((j) => j.now), "effort") }} models={jobModels} efforts={jobEfforts} can={can} busy={jobSave.isPending} onPick={(p) => jobSave.mutate({ all: true, ...p })} /> : null}
               {jobs.map((j) => <PickRow key={j.id} label={j.ko} dimModel={j.now.model === j.def.model} dimEffort={j.now.effort === j.def.effort} pick={j.now} models={jobModels} efforts={jobEfforts} can={can} busy={jobSave.isPending} onPick={(p) => jobSave.mutate({ job: j.id, ...p })} />)}
             </div>
           </>
@@ -152,7 +151,6 @@ export function ModelSetRows({ bots = true }: { bots?: boolean } = {}) {   // bo
           <>
             {pipeSave.isError ? <p className="note err">못 바꿨어 — {(pipeSave.error as Error)?.message || "서버 답 없음"}</p> : null}
             <div className="rows">
-              <PickRow label="모두" pick={{ model: sameOf(pRows, "model"), effort: sameOf(pRows, "effort") }} dimModel={sameOf(pRows, "model") === PIPE_DEF} dimEffort={sameOf(pRows, "effort") === PIPE_DEF} models={pAll.tiers} efforts={pAll.efforts} can={can} busy={pipeSave.isPending} onPick={(p) => pipeSave.mutate(pipePatch(pAllIds, p))} />
               {PIPE_GROUPS.map((g, i) => { const c = pipeChoices(g.id, jobModels); return <PickRow key={g.id} label={g.ko} dimModel={pRows[i].model === PIPE_DEF} dimEffort={pRows[i].effort === PIPE_DEF} pick={pRows[i]} models={c.tiers} efforts={c.efforts} can={can} busy={pipeSave.isPending} onPick={(p) => pipeSave.mutate(pipePatch([g.id], p))} />; })}
             </div>
             <p className="note">흐린 값 = 안 고름(스크립트가 원래 쓰는 값). 노력도는 스크립트가 high 로 부르던 호출에만 먹어 — 시간이 넘쳐 스스로 한 단계 내린 호출은 그대로 둬.</p>

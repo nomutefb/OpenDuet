@@ -106,7 +106,12 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
   };
   useEffect(() => {   // 휠 = 옮김 · Ctrl(⌘)+휠 = 손 밑 점 기준 배율(passive 아님 = 페이지가 같이 안 밀림)
     const el = box.current; if (!el || phone) return undefined;
+    // 휠 = 판 안을 한 번 누른 뒤에만 판을 밂 · 안 눌렀으면 페이지가 그대로 내려감(형 11-19 「내가 안으로 스크롤을 지정하지 않으면 그냥 쭉내려가야해」) · 판 밖을 누르거나 손이 판을 떠나면 풀림 · 배율(Ctrl · ⌘ + 휠)은 늘 판 몫
+    let armed = false;
+    const arm = () => { armed = true; }, off = (e: Event) => { if (e.type === "pointerleave" || !el.contains(e.target as Node)) armed = false; };
+    el.addEventListener("pointerdown", arm); el.addEventListener("pointerleave", off); document.addEventListener("pointerdown", off);
     const wheel = (e: WheelEvent) => {
+      if (!armed && !(e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
       setView((cur) => {
         const c = cur || { k: 1, x: 0, y: 0 };
@@ -115,7 +120,7 @@ export function SchedTree({ map, review = {}, phone = false, can = false, who, b
       });
     };
     el.addEventListener("wheel", wheel, { passive: false });
-    return () => el.removeEventListener("wheel", wheel);
+    return () => { el.removeEventListener("wheel", wheel); el.removeEventListener("pointerdown", arm); el.removeEventListener("pointerleave", off); document.removeEventListener("pointerdown", off); };
   }, [phone]);
   const zoom = (f: number) => setView((c) => zoomAt(c || { k: 1, x: 0, y: 0 }, (c?.k || 1) * f, size.w / 2, size.h / 2));
   const toggle = (id: string, kind: TNode["kind"]) => {   // 펼침 · 접힘 = 누른 노드는 화면 제자리(나무가 다시 놓여도 손 밑에서 안 달아남) · 펼친 자식 줄이 판 밖이면 그만큼만 당김
