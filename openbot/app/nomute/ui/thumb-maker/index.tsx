@@ -9,10 +9,11 @@ import "./frame.css";
 import "./thin.css";   // 글자 한 단 얇게(형 11-11 06:15 「폰트는 굵기를 얇게」 · ./tools/thin-css.mjs 가 만듦 · 옛 굵기로 = 이 줄 뺌)
 import { memo, useEffect, useRef } from "react";
 import { startEngine } from "./engine";
+import { S } from "./engine/state";   // 엔진 잡 목록(읽기만 · ./lean.ts fastPoll)
 import { THUMB_HTML } from "./markup";
 import { SceneBg } from "./scene-bg";
 import { RAIL_ICON_CSS, railIcons } from "./rail-icons";   // 옆 기둥 글자 → 그림 단추(영상 편집 꼴 · 형 11-14 11:29 · 봄 11:47 ④)
-import { watchBare } from "./lean";   // 옷이 판 몸에 건 :has() 를 표시로(./tools/lean-rules.mjs)
+import { fastPoll, watchBare } from "./lean";   // 옷이 판 몸에 건 :has() 를 표시로(./tools/lean-rules.mjs)
 import { studioRoute } from "../studio-handoff";   // 「영상 편집으로」·「유튜브 링크로 숏폼」 = 옛 화면을 앱 안 한 겹으로(번개 11-08)
 import { ToolButtons } from "../ed-keep";   // 머리 오른쪽 단추 = 옛 에디터 것 그대로(최소화 − · 입력 초기화 ⟳ · 닫기 × · 형 11-15)
 import { ditherGaugeCss } from "../dither-gauge";   // 「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 경계(형 11-15 영상)
@@ -34,11 +35,12 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack, onMin }: { onBack?:
     const stop = startEngine(root.current, body.current, frame.current, scroller.current);
     const offRail = railIcons(root.current);
     const offBare = watchBare(root.current);
+    const offPoll = fastPoll(() => S.JOBS);   // 결과가 뜰 즈음(12 ~ 45초)엔 2초마다 확인(엔진 박자 5초 · ./lean.ts)
     // 빠른 메뉴 위 「최소화」(#rfabMin) = 원본은 품은 창일 때만 부모 minimizeTool 을 부름 → 앱 안은 품은 창이 아니라 엔진이 숨김 · 여기서 다시 보이고 껍데기 접기로 이음(엔진 줄은 원본 그대로)
     const rmin = min.current ? root.current.querySelector<HTMLElement>("#rfabMin") : null;
     const doMin = (e: Event) => { e.stopPropagation(); min.current?.(); };
     if (rmin) { rmin.style.display = ""; rmin.addEventListener("click", doMin); }
-    return () => { rmin?.removeEventListener("click", doMin); offRail(); offBare(); if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
+    return () => { rmin?.removeEventListener("click", doMin); offRail(); offBare(); offPoll(); if (w.__nmStudioRoute === studioRoute) delete w.__nmStudioRoute; stop?.(); };
   }, []);
   useEffect(() => {   // 내용이 미리보기 도크 밑으로 들어갔나 = data-stuck(./frame.css 맨 아래 · 비침 고침)
     const s = scroller.current, r = root.current;
@@ -53,7 +55,7 @@ export const ThumbMaker = memo(function ThumbMaker({ onBack, onMin }: { onBack?:
       <style>{RAIL_ICON_CSS + GAUGE_CSS}</style>
       <div className="tm-head">
         <b className="tm-title">{SPARK}<span>에디터</span></b>
-        <span className="tm-menu">카드 제작<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 9L12 15L18 9" /></svg></span>
+        <span className="tm-menu">카드 제작</span>   {/* 꺽쇠(⌄) 뺌 — 옛 셸에선 이 자리가 「카드 제작 · 영상 편집 · 유튜브」 고르기였지만 앱에선 누를 수 없는 글자(영상 = 비디오 에디터 창 · 기둥 「영상」「링크」 단추)라, 눌러도 아무 일 없는 꺽쇠만 남아 있었음(형 11-18 22:01 「버튼 중 비효율적으로 사용되는 부분」 · 영상 편집 머리의 「편집 ⌄」는 진짜 메뉴라 그대로) */}
         <ToolButtons onMin={onMin} onReset={reset} onClose={onBack} />   {/* 앞 판 = 왼쪽 ‹ · ⟳ · ▽ → 옛 창 머리 꼴(− ⟳ ×) */}
       </div>
       <div className="tm-frame" ref={frame}>
