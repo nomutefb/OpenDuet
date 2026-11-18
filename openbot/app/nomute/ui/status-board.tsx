@@ -48,6 +48,8 @@ const RUN_WHO = new Set(["봄", "시아", "뎅", "빠르", "번개", "뜸", "깃
 /** 몸 정본에 제 줄이 없는 우리(윈터 = 윈A 앱 창 · 구름 = 맥 클라우드 창) — 「애들 × 연결」에 깸 · 지금 창 계정 · 일기 시각 줄로(형 11-18 18:45 dm-gik 「여기 윈터랑 구름 없음」) */
 const WHO_MORE = ["윈터", "구름"];
 /** 혼자 못 넘어가는 창(셀프 넘김 「–」) — 형 11-18 20:39 dm-cloud 「오케 그러면 클라우드세션은 셀프로 못넘어가는거를 러너에 표기하게 해놔야해. 이거를 보완을 해줘야된다는 뜻이거든.」 · 20:40 「셀프 넘김에 - 표기가 따로 있어야한다는거야. 중요해. 왜냐면 누군가 서브를 안해주면 꺼진다는뜻이니까」 · 구름 = 클라우드 세션 = 계정을 혼자 못 바꿈(봄 · 깃이 넘겨 줌) */
+/** 교대 줄은 없지만 혼자 넘어가는 이(윈터 = 윈A 윈도우 갈래 · 깃 11-18 20:50 pair-cloud-gik 「윈터 = 점(혼자 넘어감 · 20:16 윈A 18번 윈도우 갈래로 g→m 실물 · 숨김 · 원격 붙음)」) */
+const SELF_OK = ["윈터"];
 export const NO_SELF: Record<string, string> = { 구름: "클라우드 세션 · 계정을 혼자 못 넘어감 · 누가 넘겨 줘야 함(안 해 주면 꺼짐)" };
 const skeleton = (bs: Body[]): StatusCat[] => [
   { grp: BOTS_GRP, id: "activity", name: "활동", rows: [] },   // 일 · 쉼 · 멈춤(형 11-14 06:25 밥상 「쉬면 쉼으로 기록되는 활동표가 러너에 갱신될 수 있는지 봐봐 봄이 이를 보고 역할 배분에 쓰게」 · 서버 _activity.js · 번개) — 계정 상태 바로 아래 · 늘 펼침   // 맨 위(형 11-07 14:43 「응 작동 위에 계정 상태 가 먼저 나오게 해줘. gpt 포함.」 · 서버 acctRows = 정본 계정 표 + 남은 % + 창 계정 · 뜸)
@@ -350,7 +352,7 @@ function DiaWho({ cats, bs, pick, setPick }: { cats: StatusCat[]; bs: Body[]; pi
                   {b ? cliCols.map((k) => <td key={k} className={k.startsWith("c") || k === "gpt" ? "acct" : "link"}>{c[k] ? <Dot c={{ ...c[k], label: k === "gpt" || k === "r2" || k === "gh" || k === "rclone" ? undefined : c[k].label }} /> : null}</td>) : <><td colSpan={4} className="acct on">{on ? <Dot c={{ st: on.st, label: acctTag(on.name), note: `지금 창 계정 · ${on.name}` }} /> : null}</td><td colSpan={Math.max(1, cliCols.length - 4)} className="none" /></>}
                   {dm ? <td colSpan={DIARY_COLS.length} className="dm">{([["일기", dm.diary_ms], ["습작", dm.sketch_ms], ["넘김", dm.handoff_ms]] as [string, number][]).filter(([, t]) => t).map(([k, t]) => <span key={k}>{k} {agoKo(t)}</span>)}</td>
                     : DIARY_COLS.map((x) => <td key={x.id}>{d[x.id] ? <Dot c={d[x.id]} t={`${x.name} · ${HEALTH_KO[d[x.id].st]}${d[x.id].note ? ` · ${d[x.id].note}` : ""}`} /> : null}</td>)}
-                  {NO_SELF[r.name] ? <td className="noself" title={`셀프 넘김 – · ${NO_SELF[r.name]}`}><b>–</b></td> : <td>{Object.keys(h).length ? <Dot c={{ st: "ok" }} t="셀프 넘김 · 혼자 넘어감" /> : null}</td>}
+                  {NO_SELF[r.name] ? <td className="noself" title={`셀프 넘김 – · ${NO_SELF[r.name]}`}><b>–</b></td> : <td>{Object.keys(h).length || SELF_OK.includes(r.name) ? <Dot c={{ st: "ok" }} t="셀프 넘김 · 혼자 넘어감" /> : null}</td>}
                   {handCols.map((x) => <td key={x}>{h[x] ? <Dot c={h[x]} t={`${x} · ${HEALTH_KO[h[x].st]}${h[x].note ? ` · ${h[x].note}` : ""}`} /> : null}</td>)}
                   {b ? <NextWinCells who={r.name} /> : <td colSpan={2} className="none" />}{/* 다음 창 모델 · 노력도(형 11-12 16:17 · ui/next-win.tsx) */}
                 </tr>
