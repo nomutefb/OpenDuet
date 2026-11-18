@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import test from "node:test";
 import { leanHas } from "../lean-has.ts";
-import { isBare } from "../ui/thumb-maker/lean.ts";
+import { FAST_EVERY_MS, FAST_FROM_S, FAST_TO_S, isBare, pollNow } from "../ui/thumb-maker/lean.ts";
 
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const walk = (dir: URL, out: URL[] = []): URL[] => {
@@ -121,4 +121,22 @@ test("빈 판 셈 = 원본 :has 다섯 조건과 같음", () => {
   assert.equal(isBare(mk(all)), true);
   for (const k of ["#reelsBox.none", "#rOptHead.none", "#spHead.none"]) assert.equal(isBare(mk({ ...all, [k]: false })), false, k);
   for (const k of ["#optCards > .scard:not(.none)", "#imgeditBox:not(.none)"]) assert.equal(isBare(mk({ ...all, [k]: true })), false, k);
+});
+
+test("결과 확인 박자 = 결과가 뜰 즈음(12 ~ 45초)에만 2초마다 · 카드 제작 잡만 · 엔진 손 0", () => {
+  const t0 = 1_000_000, tick = () => {};
+  const job = (o: object = {}) => ({ status: "run", t0, endpoint: "/api/thumb", outs: [{ path: "https://x/opa60.jpg" }], _tick: tick, ...o });
+  assert.equal(pollNow(job(), t0 + (FAST_FROM_S - 1) * 1000), false, "아직 러너가 굽는 중 = 헛물음 안 함");
+  assert.equal(pollNow(job(), t0 + FAST_FROM_S * 1000), true);
+  assert.equal(pollNow(job({ _nmPolled: t0 + 20_000 }), t0 + 20_000 + FAST_EVERY_MS - 1), false, "2초 안엔 다시 안 두드림");
+  assert.equal(pollNow(job({ _nmPolled: t0 + 20_000 }), t0 + 20_000 + FAST_EVERY_MS), true);
+  assert.equal(pollNow(job(), t0 + (FAST_TO_S + 1) * 1000), false, "그 뒤 = 엔진 박자(5초 · 12초)");
+  assert.equal(pollNow(job({ status: "done" }), t0 + 20_000), false);
+  assert.equal(pollNow(job({ outs: [] }), t0 + 20_000), false, "접수 답 전 = 두드릴 주소 없음");
+  assert.equal(pollNow(job({ endpoint: "/api/resize" }), t0 + 20_000), false, "서버 문을 묻는 잡은 엔진 박자 그대로");
+  assert.equal(pollNow(job({ endpoint: undefined, batch: [{}] }), t0 + 20_000), true, "묶음(헤더 + 자막)도");
+  assert.equal(pollNow(job({ _tick: undefined }), t0 + 20_000), false); assert.equal(pollNow(null, t0), false);
+  const ix = rd("../ui/thumb-maker/index.tsx");
+  assert.match(ix, /const offPoll = fastPoll\(\(\) => S\.JOBS\);/); assert.match(ix, /offBare\(\); offPoll\(\);/);
+  assert.match(rd("../ui/thumb-maker/engine/p07-jobs.ts"), /job\._timer = setTimeout\(tick, job\._queued \? 12000 : 5000\);\n  \};\n  job\._tick = tick;/, "엔진 박자 · 손잡이 그대로(바뀌면 이 덧도 다시 봄)");
 });

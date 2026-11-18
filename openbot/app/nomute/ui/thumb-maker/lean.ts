@@ -23,3 +23,27 @@ export function watchBare(root: HTMLElement): () => void {
   sync();
   return () => { mo.disconnect(); panel.removeAttribute("data-nm-bare"); };
 }
+
+// ── 결과 확인 박자(형 11-18 22:1x 「실제 러너가 도는 과정에서 포토 에디터 특히, 더 빠르게 할 수 있는 부분」) ──
+//   엔진(p07 pollJob)은 「생성」 뒤 5초마다 결과 그림 주소를 한 번씩 두드림 = 결과가 올라온 뒤 알아채기까지 평균 2.5초 · 길면 5초
+//   러너 기록(11-13 ~ 11-17 · 11건): 결과는 「생성」 뒤 20 ~ 30초에 뜸 → 그 앞뒤(12 ~ 45초)에만 2초마다 두드림 · 그 밖은 엔진 박자 그대로
+//   엔진 손 0 — 엔진이 열어 둔 손잡이(job._tick · 엔진도 화면으로 돌아올 때 이걸 부름)를 밖에서 당김 · 한 번 더 두드리는 값 = 없는 그림 주소 물음 하나(그림은 뜬 뒤 그 물음으로 받은 걸 그대로 씀)
+export const FAST_FROM_S = 12, FAST_TO_S = 45, FAST_EVERY_MS = 2000;
+type Job = { status?: string; t0?: number; endpoint?: string; batch?: unknown; outs?: { path?: string }[]; done?: unknown[]; _tick?: () => void; _nmPolled?: number };
+/** 이 잡을 지금 한 번 더 두드릴까(순수) — 카드 제작 잡(그림 주소를 두드리는 길)만 · 도는 중 · 12 ~ 45초 · 지난 두드림 뒤 2초 */
+export function pollNow(j: Job | null | undefined, now: number): boolean {
+  if (!j || j.status !== "run" || typeof j._tick !== "function" || typeof j.t0 !== "number") return false;
+  if (!(j.endpoint === "/api/thumb" || j.endpoint === "/api/compose" || j.batch)) return false;   // 다른 잡(서버 문을 묻는 길)은 엔진 박자 그대로
+  if (!Array.isArray(j.outs) || !j.outs.length) return false;   // 아직 접수 답을 못 받음(두드릴 주소 없음)
+  const el = (now - j.t0) / 1000;
+  return el >= FAST_FROM_S && el <= FAST_TO_S && now - (j._nmPolled || 0) >= FAST_EVERY_MS;
+}
+/** 엔진이 켜진 뒤 부름(jobs = 엔진 잡 목록을 주는 손 · ./index.tsx 가 S.JOBS 를 건넴) · 돌려주는 것 = 끄기 · 화면이 가려져 있으면 쉼(엔진도 돌아올 때 스스로 한 번 두드림) */
+export function fastPoll(jobsOf: () => unknown): () => void {
+  const iv = window.setInterval(() => {
+    if (document.hidden) return;
+    const got = jobsOf(), jobs = (Array.isArray(got) ? got : []) as Job[], now = Date.now();
+    for (const j of jobs) if (pollNow(j, now)) { j._nmPolled = now; try { j._tick!(); } catch { /* 엔진 박자가 받침 */ } }
+  }, 1000);
+  return () => window.clearInterval(iv);
+}

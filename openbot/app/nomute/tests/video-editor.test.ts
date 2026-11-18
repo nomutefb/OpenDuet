@@ -84,3 +84,11 @@ test("「생성」 게이지 = 눈금 바탕 + 점점이 녹아드는 띠 · 한
   assert.match(rd("../ui/thumb-maker/index.tsx"), /ditherGaugeCss\("\.nm-tm \.go\.firing:not\(\.fy\)", "#CFFF40", "html\.dark "\)/);
   assert.match(rd("../ui/video-editor.tsx"), /accentCss\(dark\) \+ ditherGaugeCss\("\.go\.firing:not\(\.fy\)"/);
 });
+
+test("남은 단추 정리(형 11-18 22:01 「버튼 중 비효율적으로 사용되는 부분 없는지」) = 메뉴 가름 줄 0 · 카드 제작 머리 죽은 꺽쇠 0", () => {
+  const css = readFileSync(new URL("../ui/video-editor.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  assert.doesNotMatch(css, /\.ved-mi:nth-child/, "넷뿐인 메뉴에 「앞 셋 / 그 밖」 가름 줄 0");
+  const tm = readFileSync(new URL("../ui/thumb-maker/index.tsx", import.meta.url), "utf8");
+  assert.match(tm, /<span className="tm-menu">카드 제작<\/span>/, "누를 수 없는 글자엔 꺽쇠 0(영상 편집 「편집 ⌄」 = 진짜 메뉴라 그대로)");
+  assert.match(readFileSync(new URL("../ui/video-editor.tsx", import.meta.url), "utf8"), /className="tm-menu ved-pick" aria-haspopup="menu"/);
+});
