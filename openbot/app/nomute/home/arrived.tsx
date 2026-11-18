@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { type OfficeRoom, idOf, office, people, roomAgentIds } from "../data/office";
 import { FaceImg, FaceStack } from "../ui/faces";
+import { byHyung } from "./arrived-core";
 import { listWhen } from "../ui/when";
 import { whoName } from "../ui/who-name";
 
@@ -19,9 +20,9 @@ export function useArrived() {
   const count = (r: Room) => {   // 안 읽은 수(서버) · 칸이 없으면 점 = -1 (room-list.tsx 와 같은 셈)
     if (typeof r.unread === "number") return r.unread;
     const l = lastOf(r);
-    return l && l.kind !== "human" && (seen[r.id]?.ts || 0) < (r.last_ts || 0) ? -1 : 0;
+    return l && !byHyung(l) && (seen[r.id]?.ts || 0) < (r.last_ts || 0) ? -1 : 0;
   };
-  const arrived = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.id !== "summary" && r.with !== "형" && count(r) !== 0).sort((a, b) => (b.last_ts || 0) - (a.last_ts || 0));
+  const arrived = ((rooms.data || []) as Room[]).filter((r) => r.id !== "notice" && r.id !== "summary" && r.with !== "형" && count(r) !== 0 && !byHyung(lastOf(r)))   /* 마지막 글이 형 글인 방 = 안 뜸(./arrived-core.ts) */.sort((a, b) => (b.last_ts || 0) - (a.last_ts || 0));
   return { arrived, count, lastOf, list, pending: rooms.isPending, error: rooms.isError };
 }
 
@@ -35,7 +36,7 @@ export function Arrived() {
       <ul className="flex min-h-0 flex-col">
         {arrived.slice(0, 1).map((r) => {
           const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined, n = count(r);
-          const preview = l ? `${r.with || l.kind === "human" ? "" : `${list.find((x) => x.who === l.who)?.name || whoName(l.who)}: `}${(l.text || "").split("\n")[0]}` : "";
+          const preview = l ? `${r.with || byHyung(l) ? "" : `${list.find((x) => x.who === l.who)?.name || whoName(l.who)}: `}${(l.text || "").split("\n")[0]}` : "";
           return (
             <li key={r.id} className="nm-arr-one" data-stack={Math.min(arrived.length - 1, 2) || undefined}>
               <Link to={r.id === "all" ? "/group/$channelId" : "/channels/$channelId"} params={{ channelId: r.id }} className="yset-item">
