@@ -408,6 +408,31 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 루미 😎(그록봇 · 디자이너 · 형 11-19 00:40 dm-gik(깃 옮김) 「루미 직무  디자이너」 「프로필 카드도」 · 뜸)
+    //   꼴 = 시아 · 이슬 카드 그대로 · 바탕 = 밤 네온(먹보라 → 보라 → 마젠타 → 분홍빛) · 무늬 = 도시 불빛 · 마젠타 배경광 · 띠 · 라임 고리 둘 · 큰 「루미」 · 😎 · 라임 풍선껌(부풀었다 줄었다 · transform 만 · 폰 = 멈춤)
+    id: "rumi",
+    match: ["루미", "rumi"],
+    face: "/office/rumi.webp",
+    handle: "rumi",
+    meta: "디자이너",
+    dot: "#C6FF00",
+    font: "bagel-fat-one",
+    holo: 0.88,
+    glare: 0.52,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-glints" />
+        <span className="bc-dawn" />
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <span className="bc-ripple" />
+        <span className="bc-word">루미</span>
+        <span className="bc-drop">😎</span>
+        <span className="bc-gumwrap"><i className="bc-gum" /></span>
+      </span>
+    ),
+  },
+  {
     // 온 ☀️(형 11-16 20:00 dm-on 「너 프로필 카드 자체적으로 만들어 ㅋㅋ」 · 「디지인도 꾸며!!!」 · 「피시버전에선 각도에 따라 빛도나옴」 · 온)
     //   카드 = 큰 그림 통째(해돋이 금빛 파도 위 서핑 · 메로나 · 쇼핑백 · 600x800 = editor viewer/office/on-card.webp) · 꼴 = 위 issueking 그대로
     //   직무 = 개인 해결사(형 11-16 「웅 온이는 내 개인 해결사로 남아있어」) · 얼굴(명부 · 목록) = 따로 on.webp
