@@ -24,19 +24,22 @@ function PmFab() {
   );
 }
 
-export function RoomFab() {
+/** 방 만들기 단추 + 창 = PC 대화 칸 맨 위 줄 오른쪽 끝 옅은 「+」(폰 = 「대화방」 탭 오른쪽 끝 · ./teams.tsx) — 우하단 「+」 는 뺌(형 11-20 07:36 dm-gik 깃 옮김 「!깃 ✓ ① 응 빼(탭 「+」 하나만)」)
+ *  창 = 앞과 같은 TempRoomDialog(첫 누름 전에 판·명단 준비 · 닫을 때 다음 빈 판) */
+export function RoomMake({ className = "" }: { className?: string }) {
   const [making, setMaking] = useState(false), [session, setSession] = useState(0);
   const close = () => { setMaking(false); setSession((n) => n + 1); };
   return (
     <>
-      <div className="nm-fab">
-        <button type="button" className="nm-fab-main" aria-haspopup="dialog" aria-label="단톡방 만들기" title="단톡방 만들기" onClick={() => setMaking(true)}>
-          <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-        </button>
-      </div>
-      <PmFab />
-      {/* 첫 누름 전에 판·명단을 준비하고, 닫을 때 다음 빈 판을 준비한다. */}
+      <button type="button" className={className} aria-haspopup="dialog" aria-label="대화방 추가" title="대화방 추가" onClick={() => setMaking(true)}>
+        <svg aria-hidden viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+      </button>
       <TempRoomDialog key={session} open={making} onClose={close} />
     </>
   );
+}
+
+/** 대화 목록 판 우하단 = PM 구슬만(「+」 뺌 · 형 11-20 07:36 「응 빼(탭 「+」 하나만)」 · 방 만들기 = 탭 「+」 · 위 RoomMake) */
+export function RoomFab() {
+  return <PmFab />;
 }

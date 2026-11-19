@@ -34,7 +34,7 @@ const { act, createElement: h } = await import("react");
 const { createRoot } = await import("react-dom/client");
 const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
 const compiled = await build({
-  stdin: { contents: 'export { RoomFab } from "../ui/room-fab"; export { TempRoomDialog } from "../ui/temp-room";',
+  stdin: { contents: 'export { RoomMake } from "../ui/room-fab"; export { TempRoomDialog } from "../ui/temp-room";',
     resolveDir: fileURLToPath(new URL(".", import.meta.url)), loader: "tsx" },
   bundle: true, write: false, platform: "node", format: "esm", jsx: "automatic", loader: { ".css": "empty" },
   plugins: [{ name: "test-boundaries", setup(b) {
@@ -44,7 +44,7 @@ const compiled = await build({
     b.onLoad({ filter: /.*/, namespace: "test" }, () => ({ contents: 'export const useNavigate = () => (detail) => { window.dispatchEvent(new CustomEvent("test-navigate", {detail})); };', loader: "js" }));
   } }],
 });
-const { RoomFab, TempRoomDialog } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString("base64")}`);
+const { RoomMake, TempRoomDialog } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString("base64")}`);
 const roots: ReturnType<typeof createRoot>[] = [], clients: InstanceType<typeof QueryClient>[] = [];
 let post: (body: Record<string, unknown>) => Promise<Response>;
 let posts: Record<string, unknown>[] = [], candidates = 0;
@@ -71,14 +71,14 @@ async function mount(edit?: object) {
   const host = document.createElement("div"); document.body.append(host);
   const root = createRoot(host); roots.push(root);
   let closed = 0;
-  await act(async () => { root.render(h(QueryClientProvider, { client: qc }, edit ? h(TempRoomDialog, { edit, onClose: () => closed++ }) : h(RoomFab))); });
+  await act(async () => { root.render(h(QueryClientProvider, { client: qc }, edit ? h(TempRoomDialog, { edit, onClose: () => closed++ }) : h(RoomMake))); });
   await act(async () => { await pause(20); });
   return { qc, host, closed: () => closed };
 }
 const button = (text: string) => [...document.querySelectorAll<HTMLButtonElement>("button")].find((b) => b.textContent === text || b.getAttribute("aria-label") === text)!;
 const go = () => document.querySelector<HTMLButtonElement>(".nm-go")!;
 async function click(el: HTMLElement) { assert.ok(!!el); await act(async () => { el.click(); }); }
-async function open() { await click(document.querySelector<HTMLButtonElement>('[aria-label="단톡방 만들기"]')!); }
+async function open() { await click(document.querySelector<HTMLButtonElement>('[aria-label="대화방 추가"]')!); }   // 방 만들기 = 탭 「+」(형 11-20 07:36 우하단 「+」 뺌 · RoomMake)
 async function fill(selector: string, value: string) {
   const el = document.querySelector<HTMLInputElement>(selector)!;
   const proto = el.tagName === "INPUT" ? dom.HTMLInputElement.prototype : dom.HTMLTextAreaElement.prototype;

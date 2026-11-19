@@ -410,3 +410,5 @@ button:is(.ncs-x, .ypk-x, .gy-x):active, :is(.nm-decpop, .nm-story-pop) header >
 :root[data-nm-teams][data-nm-split][data-nm-chat-h] .nm-find:not(.open) { top:calc(67px + var(--nm-menu-h, 0px)) !important; }   /* 띠 없을 때 찾기 · 이야기 단추 = 대화 머리줄 높이(띠 자리 0 이면 메뉴 줄 밑에 반쯤 숨었음) */
 :root[data-nm-teams][data-nm-split][data-nm-chat-h] .nm-find.open { top:calc(65px + var(--nm-menu-h, 0px)) !important; }
 :root[data-nm-teams][data-nm-split][data-nm-chat-h] .nm-story-btn { top:calc(63px + var(--nm-menu-h, 0px)) !important; }
+.nm-rbar-b.nm-rbar-plus { opacity:.42; }   /* 맨 위 줄 오른쪽 끝 옅은 「+」 = 방 만들기(형 11-20 07:20 「옅게 +」 · 07:36 우하단 「+」 뺌) · 폰 「대화방」 탭 「+」(teams.css .nm-tplus)와 같은 옅기 */
+.nm-rbar-b.nm-rbar-plus:hover { opacity:.8; }
