@@ -40,6 +40,9 @@ async function getCard(url: string): Promise<Card> {
   return c;
 }
 
+/** 그림 주소(끝이 .jpg · .png …) = 카드 대신 그림만 · 서버 카드 안 부름(형 11-19 16:59 dm-bom 「이거 아래 사진 이름이랑 기타 안뜨게해줘~」 · 뜸 「결과 원본」 r2 주소에 이름 「opa58.jpg」 · 주소 줄이 붙었음 · 봄 [도움] · 시아) */
+const picUrl = (u: string) => { try { return IMG_RE.test(new URL(u).pathname); } catch { return false; } };
+
 const hostPath = (u: string) => { try { const x = new URL(u); return (x.hostname.replace(/^www\./, "") + x.pathname).replace(/\/$/, ""); } catch { return u; } };
 
 function LinkIcon() {
@@ -51,12 +54,19 @@ export function LinkCard({ m }: { m: { text?: string; caption?: string; files?: 
   const url = cardUrl(String((m.files?.length ? m.caption : m.text) || ""));
   const iconOnly = !!siteIcon(url);
   const inNet = !!url && isTailnetHost(url);   // 테일넷 주소 = 서버가 못 읽음 → 카드 안 부름(400 콘솔 빨강 0 · 뎅 23:05 ⑦)   // GitHub·Cloudflare·Suno = 카드 대신 글 속 아이콘만(./site-icon.tsx · 형 11-04 08:07)
-  const q = useQuery({ queryKey: ["nomute", "linkcard", url], queryFn: () => getCard(url), enabled: !!url && !iconOnly && !inNet, staleTime: 864e5, gcTime: 864e5, retry: false, retryOnMount: false, refetchOnWindowFocus: false });
+  const pic = !!url && picUrl(url);
+  const q = useQuery({ queryKey: ["nomute", "linkcard", url], queryFn: () => getCard(url), enabled: !!url && !pic && !iconOnly && !inNet, staleTime: 864e5, gcTime: 864e5, retry: false, retryOnMount: false, refetchOnWindowFocus: false });
   const go = useGo();
   const [noImg, setNoImg] = useState(false);   // 그림 못 불러옴(핫링크 막힘 등) = 그림 칸만 숨김
   const c = q.data;
-  if (!url || !c || iconOnly || inNet) return null;
-  const open = (e: MouseEvent<HTMLAnchorElement>) => { e.stopPropagation(); if (!pc()) inAppClick(go)(e); };   // 폰 = 앱 안 한 겹(못 들이면 a 기본 새 창) · PC = 늘 a 기본 새 창(형 11-03 16:05 「링크줄때 내가 누르면 새창에서 항상 올리게 가능하니? 모바일은 아마 앱을 고르라고 ㄸ르텐데, pc에서」 · 뜸 전함)
+  if (!url || iconOnly || inNet) return null;
+  const open = (e: MouseEvent<HTMLAnchorElement>) => { e.stopPropagation(); if (!pc()) inAppClick(go)(e); };
+  if (pic) return noImg ? null : (   // 그림만 · 못 불러오면 칸째 0(글 속 링크는 그대로)
+    <a className="ylink pic" href={url} target="_blank" rel="noopener noreferrer" onClick={open} title={url}>
+      <span className="ylink-img"><img src={url} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setNoImg(true)} /></span>
+    </a>
+  );
+  if (!c) return null;   // 폰 = 앱 안 한 겹(못 들이면 a 기본 새 창) · PC = 늘 a 기본 새 창(형 11-03 16:05 「링크줄때 내가 누르면 새창에서 항상 올리게 가능하니? 모바일은 아마 앱을 고르라고 ㄸ르텐데, pc에서」 · 뜸 전함)
   const site = c.site || hostPath(url).split("/")[0];
   const yt = c.kind === "youtube";
   const img = yt ? c.yt?.thumb || c.image || (c.yt?.id ? `https://i.ytimg.com/vi/${c.yt.id}/hqdefault.jpg` : "") : c.image || "";
