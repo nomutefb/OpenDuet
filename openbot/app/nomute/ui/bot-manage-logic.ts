@@ -80,3 +80,15 @@ export function bodyNote(note: string | undefined): string {
   out.push(cur);
   return out.map((x) => x.trim()).filter((x) => x && BODY_RE.test(` ${x} `)).join(" · ");
 }
+
+// ── 그록 애 자동화 줄(그 애 카드 · 형 11-19 「그록봇 토큰도 세분화해서 맨 위에 애들이랑 통합」) — 재료 = GET bots 의 그 애 routines(서버 _bots.js 가 bot_routines.json 그대로)
+export type GrokRt = { name?: string; trigger?: string; enabled?: boolean; when?: string; last_ts?: number; status?: string };
+export type GrokRtLine = { name: string; how: string; st: "ok" | "miss" | "off" | "unknown"; at: number };
+/** 자동화 하나 → 한 줄 재료: 이름(앞 「[꼬리표]」 뗌) · 계기(웹훅 = 「웹훅」 · 그 밖 = 일정 글 · 꺼 둔 것 = 「꺼짐」) · 불(꺼짐 off · 결과가 ok 아님 miss · 돈 적 없음 unknown) · 마지막 실행 때 */
+export function rtLine(rt: GrokRt): GrokRtLine {
+  const full = String(rt.name || "").trim(), name = full.replace(/^\[[^\]]*\]\s*/, "").trim() || full || "이름 없음";
+  const off = rt.enabled === false, at = Number(rt.last_ts) || 0;
+  return { name, how: off ? "꺼짐" : rt.trigger === "webhook" ? "웹훅" : String(rt.when || "").trim(), st: off ? "off" : rt.status && rt.status !== "ok" ? "miss" : at ? "ok" : "unknown", at };
+}
+/** 그 애 자동화 셈 — 전체 · 웹훅 계기 */
+export const rtCount = (rts: GrokRt[]) => ({ n: rts.length, hook: rts.filter((r) => r.trigger === "webhook").length });

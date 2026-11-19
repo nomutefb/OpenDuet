@@ -13,7 +13,7 @@ import { sameOf } from "./model-set-logic";
 import { pmCandidates } from "./pm-set-logic";
 import { type BotRow, roleOf } from "./bot-desk-logic";
 import { acctTag } from "../data/acct-time";   // 계정 글자 = 러너 표와 같은 꼴(C·N · C·G · C·M · C·T · 형 11-18 「그렇게 해서 표기를 토잉ㄹ해줘」)
-import { type Rest, type RestMap, acctKo, restBody, restKo, restOn } from "./bot-manage-logic";
+import { type GrokRt, type Rest, type RestMap, acctKo, restBody, restKo, restOn, rtCount, rtLine } from "./bot-manage-logic";
 import { Chev } from "./chev";
 import { NW_EFFORTS, NW_MODELS, type NextWin, nwDefault, useNextWin } from "./next-win";
 import { BOT_EFFORTS, BOT_MODELS, PickRow } from "./model-set";
@@ -141,18 +141,21 @@ export function BotManageAll() {
   );
 }
 
-/** 그록 애 연결 — 그 애 웹훅(깨우는 문) · 그록 토큰(자동화 · 로그인) · 옛 러너 층 「봇 연결」 · 「그록봇 토큰」 칸을 그 애 카드로
- *  (형 11-19 「그록봇 토큰도 세분화해서 맨 위에 애들이랑 통합」 · 「봇 연결은 맨 위에 애들 작업중인 내역 눌러서 확인할 수 있는건데」) · 토큰 줄 = 서버가 그 애(또는 그 계정) 줄을 주면 그 줄 · 아직이면 그록 공통 한 줄 */
+/** 그록 애 연결 — 그 애 웹훅(깨우는 문) · 그 애 자동화(하나씩: 이름 · 계기 · 마지막 실행) · 토큰(그 목록을 읽은 그록 계정이 살아 있나 · 마지막 확인)
+ *  옛 러너 층 「봇 연결」 · 「그록봇 토큰」 칸(그록 통째 한 줄 「자동화 13 · 웹훅 7」)을 그 애 카드로 쪼갬
+ *  (형 11-19 「그록봇 토큰도 세분화해서 맨 위에 애들이랑 통합」 · 「봇 연결은 맨 위에 애들 작업중인 내역 눌러서 확인할 수 있는건데」) · 자동화 목록에 없는 애 = 그 말 한 줄(지어내지 않음) */
 function GrokLink({ who }: { who: string }) {
   const d = useQuery(statusOpts()).data;
+  const bots = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; routines?: GrokRt[] | null }[] }>("bots").then((j) => j.bots || []), staleTime: 60_000 }).data;
   const door = catRows(d, "bots").find((x) => x.name === who)?.cells?.["깨우는 문"];
-  const toks = catRows(d, "tok_grok"), tok = toks.find((x) => x.key === who || x.name.includes(who)) || toks[0];
-  if (!door && !tok) return null;
-  const tokKo = tok ? [String(tok.value || "").replace(/^\d{4}-\d\d-\d\dT[\d:.+-]+\s*/, ""), tok.last_at ? agoKo(tok.last_at) : "", tok.st === "ok" ? "" : tok.note].filter(Boolean).join(" · ") || HEALTH_KO[tok.st] : "";
+  const tok = catRows(d, "tok_grok")[0], rts = bots?.find((b) => b.who === who)?.routines || null, cnt = rts ? rtCount(rts).n : 0;
+  if (!door && !tok && !rts) return null;
+  const tokKo = !tok ? "" : !cnt ? "자동화 목록에 없음" : tok.st === "ok" ? (tok.last_at ? `확인 ${agoKo(tok.last_at)}` : HEALTH_KO.ok) : tok.note || HEALTH_KO[tok.st];   // 수는 바로 윗줄(자동화)이 하나씩 보여 줌 → 여기선 목록을 읽은 계정이 살아 있나만(되풀이 0)
   return (
     <>
       {door ? <Row label="웹훅">{[<span key="d" className="sval lk" data-st={door.st}><StatusDot st={door.st} />{door.note || HEALTH_KO[door.st]}</span>]}</Row> : null}
-      {tok ? <Row label="토큰">{[<span key="t" className="sval lk" data-st={tok.st} title={tok.name}><StatusDot st={tok.st} />{tokKo}</span>]}</Row> : null}
+      {rts?.length ? <Row label="자동화">{rts.map(rtLine).map((x, i) => <span key={i} className="sval lk" data-st={x.st}><StatusDot st={x.st} />{[x.name, x.how, x.at ? agoKo(x.at) : ""].filter(Boolean).join(" · ")}</span>)}</Row> : null}
+      {tok ? <Row label="토큰">{[<span key="t" className="sval lk" data-st={cnt ? tok.st : "unknown"} title={tok.name}><StatusDot st={cnt ? tok.st : "unknown"} />{tokKo}</span>]}</Row> : null}
     </>
   );
 }

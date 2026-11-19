@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { HOLD_MAX, acctKo, bodyNote, durKo, endKo, minsAt, posOf, restBody, restKo, restOn, restPos, stepOf, ticksOf, untilOf } from "../ui/bot-manage-logic.ts";
+import { HOLD_MAX, acctKo, bodyNote, durKo, endKo, minsAt, posOf, restBody, restKo, restOn, restPos, rtCount, rtLine, stepOf, ticksOf, untilOf } from "../ui/bot-manage-logic.ts";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const kst = (s: string) => Date.parse(s + "+09:00");
 const NOW = kst("2026-11-16T20:40:00");
@@ -101,3 +101,17 @@ test("펼침 카드 셈 — 좌우 넘김 · 계정 줄 · 비고에서 몸 이�
   assert.equal(bodyNote(undefined), "");
 });
 
+test("그록 애 자동화 줄 = 그 애 것만 · 이름 앞 꼬리표 뗌 · 웹훅 / 일정 / 꺼짐 · 결과가 ok 아니면 빨강(형 11-19 「그록봇 토큰도 세분화해서」)", () => {
+  const rts = [
+    { name: "[웹훅-소나-01] 호출", trigger: "webhook", enabled: true, when: "웹훅 올 때", last_ts: 1795038262000, status: "ok" },
+    { name: "[일기-소나-01] 하루 일기", trigger: "cron", enabled: true, when: "매일 18시", last_ts: 1794993421000, status: "ok" },
+    { name: "홈페이지 배포 확인 (1회)", trigger: "cron", enabled: false, when: "11월 15일 8:30", last_ts: 1794699585000, status: "ok" },
+    { name: "감 하루 일기", trigger: "cron", enabled: true, when: "매일 18시", last_ts: 1794992230000, status: "error" },
+    { name: "[새로 만듦]", trigger: "cron", enabled: true, when: "매일 9시" },
+  ];
+  assert.deepEqual(rts.map(rtLine).map((x) => [x.name, x.how, x.st]), [["호출", "웹훅", "ok"], ["하루 일기", "매일 18시", "ok"], ["홈페이지 배포 확인 (1회)", "꺼짐", "off"], ["감 하루 일기", "매일 18시", "miss"], ["[새로 만듦]", "매일 9시", "unknown"]]);
+  assert.equal(rtLine(rts[0]).at, 1795038262000); assert.equal(rtLine({}).name, "이름 없음");
+  assert.deepEqual(rtCount(rts), { n: 5, hook: 1 }); assert.deepEqual(rtCount([]), { n: 0, hook: 0 });
+  const ui = rd("../ui/bot-manage.tsx");
+  assert.match(ui, /rts\.map\(rtLine\)/); assert.match(ui, /자동화 목록에 없음/);   // 그 애 카드가 그 애 자동화를 하나씩 · 목록에 없는 애는 그 말만
+});
