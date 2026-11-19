@@ -17,12 +17,13 @@ import RubberSegment from "../vendor/react-bits/RubberSegment/RubberSegment";   
 import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰는 원본 꾸러미 그대로(대화 「생각중」 · ./live-shine.tsx 와 같은 것 · 형 11-15 「에디터에 따로 들어잇는곳 … 코드카피해서 쓰셈」)
 import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
-import { type BotRow, type BotTable, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, roleLabel, roleOf, stateWord, tailOf, turnList } from "./bot-desk-logic";
+import { type BotRow, type BotTable, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, roleLabel, roleOf, stateWord, tailOf } from "./bot-desk-logic";
 import { BotInbox } from "./bot-inbox";   // 「보드」 = 일감마다 카드 · 세 칸(형 11-16 영상 「Agent inbox」)
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));   // ③ 러너 층 = 작동 표(겹치는 활동 판만 뺌 · 보일 때 받음)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));   // ② 스케줄 배선 층(보일 때 받음)
 const VmCard = lazy(() => import("./vm-desk").then((m) => ({ default: m.VmCard })));   // 애 펼침 카드 안 몸 칸(같은 조각)
 import { HandBoard, HandFace, HandGhost } from "./bot-desk-hands";
+import { TurnBody } from "./turn-prio";   // 차례 탭 특기 펼침 = 순서도 둘(지금 | 일 없을 때 · 같은 특기 누구 먼저)
 import { BotManage, BotManageAll } from "./bot-manage";
 import { ringDeg, ringFrac } from "./activity-view";   // 맨 위 카드 = 활동 신호 판을 맡길 차례로(노는 손 먼저 · 1특기 · PM 뺌)
 import "./status-board.css";
@@ -120,7 +121,7 @@ function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
   return (
     <div className="nm-bd-turns">
       {t.codes.map((c, i) => {
-        const f = t.first?.[c], l = turnList(t.rows, c), on = open === c, good = !!f && !f.busy && !!f.rank;
+        const f = t.first?.[c], on = open === c, good = !!f && !f.busy && !!f.rank;
         return (
           <section key={c} className={`nm-bd-turn${on ? " open" : ""}`} style={delay(i)}>
             <button type="button" aria-expanded={on} onClick={() => setOpen((o) => (o === c ? "" : c))}>
@@ -128,11 +129,8 @@ function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
               {f ? <span className={`first ${good ? "t-ok" : "t-dim"}`}><span className="face"><FaceImg id={idOf(f.who, list)} size={22} /></span><b>{f.who}</b>{!f.rank || f.busy ? <small>{[f.rank ? "" : "특기 밖", f.busy ? "일하는 중" : ""].filter(Boolean).join(" · ")}</small> : null}</span> : <span className="first t-dim">맡길 손 없음</span>}
               <Chev />
             </button>
-            <div className="fold" aria-hidden={!on}>
-              <ol>
-                {l.order.map((o) => <li key={o.who} className={o.busy || !o.rank ? "t-dim" : o.n === 1 ? "t-ok" : ""}><span className="n">{o.n}</span><b>{o.who}</b><small>{o.rank ? `${o.rank}특기` : "특기 밖"}{o.busy ? " · 일하는 중" : ""}</small></li>)}
-                {l.out.length ? <li className="out t-dim">못 맡김 — {l.out.map((o) => `${o.who}(${o.why})`).join(" · ")}</li> : null}
-              </ol>
+            <div className="fold" aria-hidden={!on} inert={on ? undefined : true}>
+              <TurnBody code={c} rows={t.rows} />   {/* 순서도 둘 = 지금 | 일 없을 때(같은 특기 누구 먼저 · 형 11-19 10:06~10:11 · ./turn-prio.tsx) */}
             </div>
           </section>
         );

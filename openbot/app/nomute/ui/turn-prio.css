@@ -1,0 +1,36 @@
+/* 차례 탭 특기 펼침 = 순서도 둘(./turn-prio.tsx · 겉 목록 = div role=list — .nm-bd-turn ol li 꼴이 안 샘) — 「지금 | 일 없을 때」 · 같은 그림(티어 = 1특기 → 2특기 → 3특기 · 세로 줄 + 아래 화살)
+   고르는 줄 = 옛 에디터 영상 편집 줄 값(.srow · .pc · .ssep — ./bot-desk.css .nm-bm 과 같은 값) · 끄는 줄 = transform 만(끄는 동안 전환 0) · 그림자 · 색은 안 움직임 */
+.nm-tp { display:flex; flex-direction:column; gap:6px; padding:2px 14px 14px; letter-spacing:0; text-transform:none; }
+.nm-tp-note { margin:2px 0 0; font-size:12px; line-height:1.5; color:var(--nsb-mut); }
+.nm-tp-row { display:flex; align-items:baseline; justify-content:space-between; gap:12px; min-height:40px; padding:6px 0; border-top:1px solid var(--bd-line, var(--nsb-line)); }
+.nm-tp-row .lbl { flex:none; font-size:13px; font-weight:700; color:var(--nsb-ink, #E7ECE7); white-space:nowrap; }
+.nm-tp-row .ws { display:flex; flex-wrap:wrap; gap:3px 4px; justify-content:flex-end; align-items:baseline; min-width:0; }
+.nm-tp-row i { font-style:normal; font-size:13px; font-weight:700; color:var(--nsb-mut); opacity:.35; }
+.nm-tp .pc { padding:6px 7px; border:0; background:none; color:var(--nsb-mut); font:inherit; font-size:13px; font-weight:700; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:color .15s ease, scale .12s ease; }
+.nm-tp .pc.on { color:var(--accent, #CFFF40); font-weight:800; }
+.nm-tp .pc:active { scale:.94; }
+.nm-tp .pc:disabled { opacity:.32; cursor:default; }
+.nm-tp .pc.on:disabled { opacity:1; }
+.nm-tp-flow { list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:14px; }
+.nm-tp-tier { position:relative; display:grid; grid-template-columns:52px minmax(0,1fr); align-items:start; gap:8px; }
+.nm-tp-tier + .nm-tp-tier::before { content:""; position:absolute; left:20px; top:-14px; height:14px; border-left:1.5px solid var(--bd-line, var(--nsb-line)); }   /* 티어 사이 이음 줄 */
+.nm-tp-tier + .nm-tp-tier::after { content:""; position:absolute; left:16.5px; top:-6px; width:6px; height:6px; border-right:1.5px solid var(--nsb-mut); border-bottom:1.5px solid var(--nsb-mut); transform:rotate(45deg); }   /* 아래로 화살 */
+.nm-tp-rank { margin-top:8px; padding:2px 0; width:42px; text-align:center; border:1px solid var(--bd-line, var(--nsb-line)); border-radius:999px; font-size:11px; font-weight:700; color:var(--nsb-mut); }
+.nm-tp-tier > ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.nm-tp-hand { position:relative; display:flex; align-items:center; gap:8px; min-height:38px; padding:0 10px 0 2px; border:1px solid var(--bd-line, var(--nsb-line)); border-radius:12px; }
+.nm-tp-hand.still { padding-left:12px; }
+.nm-tp-flow[data-grip] .nm-tp-hand.still { padding-left:32px; }   /* 끌 수 있는 판 = 한 명뿐인 티어 줄도 손잡이 자리만큼 비워 얼굴 · 이름 줄을 맞춤 */
+.nm-tp-hand.dim > :not(.n) { opacity:.5; }
+.nm-tp-hand.on { z-index:3; background:var(--nm-bg, #1b1c1b); box-shadow:0 8px 22px rgba(0,0,0,.45); }
+.nm-tp-hand .grip { display:grid; place-items:center; width:30px; height:36px; padding:0; border:0; background:none; color:var(--nsb-mut); touch-action:none; cursor:grab; -webkit-tap-highlight-color:transparent; }
+.nm-tp-hand .grip:active { cursor:grabbing; }
+.nm-tp-hand .grip:disabled { opacity:.3; cursor:default; }
+.nm-tp-hand .n { min-width:14px; font-size:12px; font-weight:800; color:var(--accent, #CFFF40); font-variant-numeric:tabular-nums; }
+.nm-tp-hand.dim .n { color:var(--nsb-mut); }
+.nm-tp-hand .face { display:grid; place-items:center; width:22px; height:22px; border-radius:50%; overflow:hidden; flex:none; }
+.nm-tp-hand b { min-width:0; font-size:13px; font-weight:700; color:var(--nsb-ink, #E7ECE7); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-tp-hand small { margin-left:auto; font-size:11px; color:var(--nsb-mut); white-space:nowrap; }
+.nm-tp-go { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding-top:4px; }
+:root:not(.dark) .nm-tp .pc.on, :root:not(.dark) .nm-tp-hand .n { color:#3d6b00; }
+:root:not(.dark) .nm-tp-hand.on { background:#fff; box-shadow:0 8px 22px rgba(0,0,0,.18); }
+@media (prefers-reduced-motion: reduce) { .nm-tp .pc { transition:none; } }
