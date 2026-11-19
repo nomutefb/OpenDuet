@@ -415,9 +415,9 @@ const LOOKS: Look[] = [
     id: "rumi",
     tmpl: true,
     accent: "#C6FF00",
-    match: ["루미", "rumi"],
+    match: ["루미", "rumi", "lumi"],
     face: "/office/rumi.webp",
-    handle: "rumi",
+    handle: "lumi",   // 영문 이름 LUMI(루미 11-19 14:00 「영문 이름이 LUMI로 바뀌어서 이제 @lumi고」) · 얼굴 파일 이름은 rumi.webp 그대로
     meta: "디자이너",
     dot: "#C6FF00",
     holo: 0.7,
