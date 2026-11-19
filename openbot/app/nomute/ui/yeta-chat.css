@@ -663,10 +663,6 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .ysent-all { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin-top:2px; padding:8px 0 2px; border:0; border-top:1px solid color-mix(in srgb, currentColor 18%, transparent); background:none; color:var(--fg-2, inherit); font:600 13px/1.2 var(--app-font-text, Pretendard, -apple-system, system-ui, sans-serif); text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .ychat .ysent-all svg { flex:none; opacity:.7; }
 @media (prefers-reduced-motion:reduce) { .ychat .ysent-fold, .ychat .ysent-fold > .ysent-talk { transition:none; } }
-/* 형 글 아래 담당 줄(RouteLine · 형 11-04 11:15 「서버가 배분중입니다 뜨면 좋을듯 … 누가 딱 선택된걸 픽스」) = 오른쪽 · 작게 · 시각 줄 아래 */
-.ychat .yroute { display:flex; align-items:center; justify-content:flex-end; gap:5px; margin:3px 2px 0; font-size:var(--fs-xs); line-height:1.2; color:var(--mut); }
-.ychat .yroute.set b { color:var(--fg-2, var(--fg)); font-weight:600; }
-.ychat .yroute .nm-face, .ychat .yroute img { border-radius:50%; }
 /* 맨 위 줄(room-list .nm-rtop) = 공지 알약(끝 둥글게 · 남은 폭) + 오른쪽 기사 요약 동그라미(형 11-04 13:22 「우상단으로 … 공지 라인 끝을 좀만 둘여서 동그랗게 … 다시 원으로 저거 픽토그램」) · 공지 없으면 동그라미만 오른쪽 */
 .nm-rtop { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:6px; }
 .nm-rtop .nm-rnotice { flex:1; min-width:0; width:auto; height:40px; margin:0; border-radius:999px; padding:0 14px; }

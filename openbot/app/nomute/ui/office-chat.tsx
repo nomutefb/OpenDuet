@@ -82,7 +82,7 @@ import { Folded } from "./fold";   // 긴 글 접기 · 전체 보기(형 11-02 
 import { ScrollDate } from "./scroll-date";   // 글을 올려 볼 때 오른쪽 날짜(형 11-01)
 import { t12 } from "./when";
 import { RoomBoard } from "./room-board";   // 방 띠(칩·열린 제안) = 입력칸 바로 위(형 11-07 10:28 「채팅 바로 위에 쓰는곳 위에 올라와야하고, 얼굴로 있어야함」)
-import { LiveShine, ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
+import { ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
 import { bubbleM, pickM, relayAs } from "./pick-msg";
@@ -272,21 +272,7 @@ export function useOfficeRoom(room: string) {
     return () => { stop = true; ctl?.abort(); };
   }, [room, qc]);   // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 담당 고르는 중(route pending) 글 = 서버가 같은 글을 다시 써서 담당을 박음(뜸 11-04 16:55 · 밥상 고르기에 소넷 · 최대 ~10초) · watch 는 새 글만 줘서 고친 칸이 안 옴
-  //   → pending 글이 있는 동안 4·9·15·24초에 최근 글을 한 번씩 다시 읽어 id 로 합침(「서버가 배분 중」 → 담당 칩 · 형 11-04 11:15) · 다 박히면 멈춤
-  const pendingIds = (qc.getQueryData<Page>(officeKeys.msgs(room))?.messages || []).filter((m) => m.route?.state === "pending" && Date.now() - m.ts < 120_000).map((m) => m.id).join(",");
-  useEffect(() => {
-    if (!pendingIds) return undefined;
-    let stop = false;
-    const ts: number[] = [];
-    for (const ms of [4000, 9000, 15000, 24000]) ts.push(window.setTimeout(async () => {
-      if (stop) return;
-      const cur = qc.getQueryData<Page>(officeKeys.msgs(room));
-      if (!(cur?.messages || []).some((m) => m.route?.state === "pending")) return;
-      try { const j = await office<Page>(`rooms/${enc(room)}/messages?n=${RECENT_N}`); if (!stop && j.messages?.length) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => mergeWin(old, j.messages, !j.more)); } catch { /* 다음 차례 */ }
-    }, ms));
-    return () => { stop = true; ts.forEach((t) => clearTimeout(t)); };
-  }, [pendingIds, room, qc]);
+  // 담당 줄(RouteLine) · 그 다시 읽기 = 걷음(형 11-19 09:01 dm-bom 「어떤 톡방이든 마찬가지야, 누구 담당 이거 안떠도돼.」 · 봄 옮김 · 시아)
 
   const older = async () => {   // 앞 글 = 하루치(서버 day=1 · 그날이 비면 글 나올 때까지 앞날 · DAY_MIN 넘을 때까지)
     const cur = qc.getQueryData<Page>(officeKeys.msgs(room));
@@ -971,19 +957,6 @@ class LineGuard extends Component<{ m: Msg; children: ReactNode }, { bad: boolea
   render() { return this.state.bad ? <div className="ymsg" data-id={this.props.m.id}><div className="yb ai">{whoName(this.props.m.who)}: {String(this.props.m.text || "")}</div></div> : this.props.children; }
 }
 const quietRead = (m: string) => { if (m) console.warn("읽음 저장:", m); };   // 읽음 저장 실패 = 화면 0 · 기록만(형 11-03 12:11)
-/** 형 글 아래 담당 줄 — 고르는 중 「서버가 배분 중입니다…」(빛 글자) → 고른 뒤 「담당 · 얼굴 · 이름」(복수 = 얼굴 겹침 · 이름 ·) · 칸 없으면 0(1:1 방·옛 글) */
-function RouteLine({ m, c }: { m: Msg; c: Ctx }) {
-  const r = m.route;
-  if (!r?.state) return null;
-  if (r.state === "pending") return <p className="yroute" aria-live="polite"><LiveShine text="서버가 배분 중입니다…" /></p>;
-  const to = (r.to || []).filter(Boolean);
-  if (!to.length) return null;
-  return (
-    <p className="yroute set" title={r.why ? `고른 까닭 · ${r.why}` : undefined}>
-      <span>담당</span><FaceStack ids={to.slice(0, 3).map((w) => idOf(w, c.list))} size={16} /><b>{to.map((w) => nmOf(c.list, w)).join(" · ")}</b>
-    </p>
-  );
-}
 /** 묶음 머리 = 얼굴 + 이름 한 덩이 · 묶음(.ymgrp) 끝까지 sticky · 쉬는 자리 = 첫 말풍선 얼굴 · 이름 그 좌표(그쪽 진짜는 visibility hidden · yeta-chat.css .ymgrp-head) · 가만히 둔 화면 = sticky 만(스크롤 셈 0) */
 function GroupHead({ m, c, fresh = false }: { m: Msg; c: Ctx; fresh?: boolean }) {
   const p = c.list.find((x) => x.who === m.who);
@@ -1010,7 +983,6 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
           <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
         </div>
-        <RouteLine m={m} c={c} />
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
     );
