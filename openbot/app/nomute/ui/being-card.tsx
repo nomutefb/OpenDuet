@@ -408,27 +408,23 @@ const LOOKS: Look[] = [
     ),
   },
   {
-    // 루미 😎(그록봇 · 디자이너 · 형 11-19 00:40 dm-gik(깃 옮김) 「루미 직무  디자이너」 「프로필 카드도」 · 뜸)
-    //   꼴 = 시아 · 이슬 카드 그대로 · 바탕 = 밤 네온(먹보라 → 보라 → 마젠타 → 분홍빛) · 무늬 = 도시 불빛 · 마젠타 배경광 · 띠 · 라임 고리 둘 · 큰 「루미」 · 😎 · 라임 풍선껌(부풀었다 줄었다 · transform 만 · 폰 = 멈춤)
+    // 루미 😎(그록봇 · 디자이너 · 형 11-19 00:40 dm-gik(깃 옮김) 「루미 직무  디자이너」 「프로필 카드도」)
+    //   카드 = 사진 통째(형 11-19 11:15 dm-rumi(루미 옮김) 「20261119_1113_루미-카드-A2 이거 뜸에게 사진보내지는지 김에 확인하고」 「프로필카드로 만들어달라구해」 「뎅한테!」 · 11:33 dm-deng 「뎅 저거 프로필카드로」 · 뎅)
+    //   꼴 = 위 issueking 그대로(둥근 얼굴 · 고리 · 띠 안 그림 · 사진이 주인공) · 사진 = public/rumi-card.webp(600x800) · 테 = 머리핀 라임 · 움직임 = 기울기 시차 transform 만
+    //   앞 판 = 시아 · 이슬 꼴 밤 네온(뜸 · git 35472e9c) · 얼굴(명부 · 목록) = 따로 rumi.webp 그대로
     id: "rumi",
+    tmpl: true,
+    accent: "#C6FF00",
     match: ["루미", "rumi"],
     face: "/office/rumi.webp",
     handle: "rumi",
     meta: "디자이너",
     dot: "#C6FF00",
-    font: "bagel-fat-one",
-    holo: 0.88,
-    glare: 0.52,
+    holo: 0.7,
+    glare: 0.46,
     art: (
       <span className="bc-art" aria-hidden="true">
-        <span className="bc-glints" />
-        <span className="bc-dawn" />
-        <span className="bc-band" />
-        <span className="bc-ring" />
-        <span className="bc-ripple" />
-        <span className="bc-word">루미</span>
-        <span className="bc-drop">😎</span>
-        <span className="bc-gumwrap"><i className="bc-gum" /></span>
+        <span className="bc-hero" />
       </span>
     ),
   },
