@@ -25,7 +25,7 @@ type M = { cpu?: number; ram?: number; gpu?: number; cpu_temp?: number; gpu_temp
 // 몸 칸 = 정본 한 장(../data/bodies · 서버 GET status bodies) 의 본체(이사 중 빼고) · key = 그 몸 host 첫 이름(작동 표 hw 줄 key) · 이름 = 몸 이름(형 11-08 01:48 「부품 1개가 있어. 근데 이걸 참조하면 되는데 10개를 복사해서 쓰는 꼴임.」)
 const PC_OF: Record<string, string> = { 윈A: "A", 맥: "M", hwang: "H" };
 // 칸 이름(형 11-08 07:40 dm 「WIN, MAC, Lx A, Lx B 로 할게」 · 「시아는 리눅스로 곧 교체할거야.」 · 「리눅스 lx 를 나타내는거구」 · 앞 판 07:35 「WIN A, MAC PRO, 16G(SIA), 8G(nuri)」 · 봄) = 몸 host 첫 이름 → 보이는 이름 · 없으면 정본 몸 이름 그대로
-const NAME_OF: Record<string, string> = { 윈A: "Win", 맥: "Mac", hwang: "Lx A", sia: "Lx A", nuri: "Lx B" };   /* 보통 낱말 꼴(형 11-16 10:5x 「일반적인 단어로」 · 11:0x 「그렇게 맞춰!」 = WIN · MAC → Win · Mac · Lx A · Lx B 와 같은 결 · PC 기본 글꼴이 Pretendard 가 되며 대문자 꼴(LEMON MILK)이 가려 주던 섞임이 드러남 · 폰은 LEMON MILK 라 보이는 꼴 그대로) */   // 러너 위젯(/api/runner) 칸 글자 = 위젯 자리(몸 목록 아님) · hw 없거나 끊길 때 위젯 숫자로 메움(앞 판 HOSTS 의 pc 그대로 · 모루 #2871)
+const NAME_OF: Record<string, string> = { 윈A: "Win", 맥: "Mac", hwang: "Lx A", sia: "Lx A", nuri: "Lx B", 윈B: "3vq" };   // 윈B = 「3vq」(형 사무실 PC DESKTOP-3V6O57K · 형 11-20 07:38 dm-gik 깃 옮김 「3vq가 뜨게해주라, off 면  off로」 · 형 말 그대로) ·   /* 보통 낱말 꼴(형 11-16 10:5x 「일반적인 단어로」 · 11:0x 「그렇게 맞춰!」 = WIN · MAC → Win · Mac · Lx A · Lx B 와 같은 결 · PC 기본 글꼴이 Pretendard 가 되며 대문자 꼴(LEMON MILK)이 가려 주던 섞임이 드러남 · 폰은 LEMON MILK 라 보이는 꼴 그대로) */   // 러너 위젯(/api/runner) 칸 글자 = 위젯 자리(몸 목록 아님) · hw 없거나 끊길 때 위젯 숫자로 메움(앞 판 HOSTS 의 pc 그대로 · 모루 #2871)
 // 11-07 형 08:51 임시방 「대시보드에 하드웨어 바뀐거 조약돌 포함 반영해줘 윈비 제외」 · 봄 나눔 ① = 윈B 칸 빼고 「SIA PC」(시아 본체 · 테일스케일 hwang · 작동 표 hw 줄 key 「hwang」) · 차례 윈A · 맥(가운데) · SIA PC
 // 색(형 17:3x 「노란색, 주황색, 빨간색 그거는 그대로 유지할게, 평상시에는 흰색이면됨」) = 평소 흰 · 70/80/90 = 노랑·주황·빨강(위젯 단계 그대로) · 온도 80 주황 · 85 빨강
 const WARN: Record<Level, string> = { green: "#E6E6E6", yellow: "#FFD23F", orange: "#FF9F43", red: "#FF5A5F", off: "#5C5C5C" };
@@ -147,12 +147,13 @@ export function RunnerGauges() {
   // 가르는 점 없음 = 구름이 천둥 바로 옆(형 11-16 10:1x 구름 맥 창 「점 때고 바로 옆에 붙영!」) — 앞: 08:15 「구름은 너네 사이에 블릿하나」 → 10:00 「구름도 바로 옆에 붙여줘! … 빈공간에 대시같은건 없어도 될듯」(점을 칸에서 뺌) → 점도 뺌 · 아홉 칸 같은 간격
   const pebs: typeof pebAll = [...ONBODY.map((o) => ({ ...PEB[o.who], who: o.who, host: o.host })), ...pebAll, ...OFFBODY.map((o) => ({ ...PEB[o.who], who: o.who, host: o.host }))].slice(0, 12);   // 윈터 + 몸 차례 일곱 + 천둥 + 구름 = 열 칸(줄 폭을 열로 나눔 = 칸 사이가 그만큼 좁아짐)
   // 게이지 넷 같은 크기(형 11-08 10:48 「게이지 크기가 차이가 나네 이제보니까 게이지 크기를 lxa, lxb에 맞추고」) = 몸 칸 폭 다 같게 · WIN↔MAC 틈만 빈 트랙 하나(12px · 형 08:14 「win하고 mac 간격을 아주 조금만 더 벌릴게」 그대로) — 앞 판은 WIN 오른쪽 12 · MAC 왼쪽 9 패딩이라 좁은 창(2/5 창)에서 그 두 게이지만 작아졌음
-  const cols = HOSTS.length > 1 ? `minmax(0, 1fr) 12px repeat(${HOSTS.length - 1}, minmax(0, 1fr))` : "minmax(0, 1fr)";
+  // 게이지 간격 일정(형 11-20 07:38 dm-gik 깃 옮김 「그리고 게이지 간격 일정하게 해주고.」) = WIN↔MAC 12px 틈 트랙 뺌 · 몸 칸 다 같은 폭 · 같은 패딩
+  const cols = `repeat(${Math.max(1, HOSTS.length)}, minmax(0, 1fr))`;
   return (
     <div ref={panel} className="nm-rg nm-rgx flex flex-col px-2 pt-1" aria-label="러너 기본정보" style={{ ["--nm-rgx-peb-dy" as string]: `${dy.peb}px`, ["--nm-rgx-run-dy" as string]: `${dy.run}px` }}>   {/* ref·줄 맞춤 변수 = 바깥 틀(공용 두 줄이 판 밖이라 · 36) */}
       <div className="nm-card-h"><i className="live" aria-hidden /><b>Runner</b><span>{newest ? ago(now - newest) : st.data?.at ? ago(now - st.data.at) : st.isLoading ? "읽는 중…" : ""}</span></div>   {/* 칸 머리줄 = 모든 칸 같은 꼴(시아 UI ① · 형 11-06 대시보드 고급화) */}   {/* 높이 = 제 키(뎅 3437416 · 칸이 40% 안에서 계기판 키만큼) */}
       <div className="nm-rg-panel nm-rgx-panel" style={{ ["--nm-rgx-n" as string]: Math.max(1, HOSTS.length), ["--nm-rgx-cols" as string]: cols }}>
-        {HOSTS.map((h, hi) => {
+        {HOSTS.map((h) => {
           const pk = pickHost(hw, h.hosts), a = pk?.a, b = pk?.b;
           const fresh = !!(a ? !a.stale : b && !b.stale);   // 몸 보고가 살아 있음(존재가 자든 말든) · hw 줄이 있으면 그 줄 기준(온도 줄만 신선한 척 못 함)
           const m: M = { ...(a?.metrics || {}), ...(b?.metrics || {}) };   // 낡은 보고도 마지막 숫자는 보여 줌(OFF 대신 · 흐린 색)
@@ -173,11 +174,10 @@ export function RunnerGauges() {
             <Fragment key={h.k}>
             <section className="nm-rgx-host" aria-label={`${h.label} 상태`}>   {/* 위에서부터 가운데로 = 이름 · G 온도 · (틈) · 게이지 · 러너 불(형 17:3x 「각각 게이지 바로 수직 위에다가 하드웨어 이름」 · 「블릿은 없어도」 · 「그래픽카드 온도도 그대로 수직위로」 · 「게이지랑딱붙으면 안이쁘니까」) */}
               <b className="nm-rg-name nm-rgx-name" title={(TAIL_OF_GAUGE[h.label] || []).map((d) => tailTitle(d, tail)).join("\n") || undefined}>{h.label}</b>
-              <span className="nm-rgx-g">{none && a?.stale ? "보고 끊김" : "\u00a0"}</span>   {/* G 온도는 게이지 안 위 글 둘째 줄로(TickGauge top2 · 형 11-08 09:03 글자 크기 = CPU 온도와 같게 · 「WIN 이랑 간격을 좀 더 벌려줘」 = 이 줄은 빈 틈) */}
+              <span className="nm-rgx-g">{none && a?.stale ? "보고 끊김" : none && !live ? "off" : "\u00a0"}</span>   {/* 보고 0 · 위젯 0 = 「off」(윈B 3vq 꺼짐 · 형 11-20 07:38 「off 면  off로」) */}   {/* G 온도는 게이지 안 위 글 둘째 줄로(TickGauge top2 · 형 11-08 09:03 글자 크기 = CPU 온도와 같게 · 「WIN 이랑 간격을 좀 더 벌려줘」 = 이 줄은 빈 틈) */}
               <TickGauge label="" pct={cpu} lv={levelOf(cpu, false)} ink={MONO(levelOf(cpu, false))} used={!live && !none && at ? ago(now - at) : ""} top={m.cpu_temp != null ? `C ${Math.round(m.cpu_temp)}°C` : undefined} topInk={tInk(m.cpu_temp)} top2={m.gpu_temp != null ? `G ${Math.round(m.gpu_temp)}°C` : undefined} top2Ink={tInk(m.gpu_temp)} off={none} wait={none && (st.isLoading || rq.isLoading)} dyText={9} textScale={1.25} spread={3} />   {/* 안 글자 4(≈3.5px) 아래(형 11-08 11:27 밥상 「게이지 안에 글자도 조금 더 내려오고(그럼 글자는 두번내려오는 느낌이겟지)」 · 게이지 자체도 4px 아래 = runner-gauges.css) */}
               {temp ? <span className="sr-only">{temp}</span> : null}
             </section>
-            {hi === 0 && HOSTS.length > 1 ? <i className="nm-rgx-sp" aria-hidden /> : null}   {/* WIN↔MAC 틈 트랙(12px) · 다른 몸 사이는 패딩만 */}
             </Fragment>
           );
         })}
