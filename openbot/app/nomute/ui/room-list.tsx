@@ -114,11 +114,12 @@ export function useRoomOrder() {
   const rank = (id: string) => { const i = pinOrder.indexOf(id); return i < 0 ? 1e6 + head(id) : i; };   // 끌어 둔 차례 먼저 · 아직 안 끈 고정 방 = 앞 판 차례(PM → 작업 알림 → 고정 · 최근 순)
   const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => rank(a.id) - rank(b.id) || head(a.id) - head(b.id) || recent(a, b));
   // 고정 밖 = 안 읽은 방 먼저(그 안에선 새 글 시각순) → 읽은 방(앞 판 그대로 · 마지막 대화 · 읽은 때 중 늦은 순)(형 11-16 09:17 dm-bom 「채팅 올라오면 위로 새로 올라온게 안읽은게 떠야되는데 새 채팅이 더 위로 올라와서 안읽은게 묻힌다 안읽은게 시간순으로 더 위러 가야함 우선순위정렬이」 · 봄 옮김 · 뎅) · 숫자 · 점 셈 = count 그대로
-  // 고정 밖 차례 = 그 방에서 형한테 마지막으로 말한 때 새 것부터 · 읽었든 안 읽었든(형 11-19 13:27 dm-bom 봄 옮김 「그리고 나한테 최근에 말을 한 사람이 위로 올라오게해줘 고정다음으로」 · 봄 13:36 「「안 읽은 방 먼저」는 빼 줘 … 11-16 판은 이걸로 갈음」)
-  //   앞 판 = 11-16 「안읽은게 시간순으로 더 위러」(안 읽은 방 먼저) · 11-12 「가장 위에는 내가 가장 최근에 읽은 애」 = 둘 다 갈음(형이 읽은 때 · 쓴 때로는 안 올라감 · 안 읽음 표는 줄에 그대로)
-  //   열쇠 = 서버 heard_ts(머리 칸 「형한테 온 글」 고리의 마지막 시각 · 부탁함) · 없으면 마지막 글이 형 글이 아니면 그 시각 · 형 글이면 마지막 글 시각(서버 칸이 올 때까지 갈음)
-  const heard = (r: Room) => { if (r.heard_ts) return r.heard_ts; const l = lastOf(r); return l && l.kind !== "human" ? l.ts : r.last_ts || 0; };
-  const rest = shown.filter((r) => !pinned(r.id)).sort((a, b) => heard(b) - heard(a));
+  // 고정 밖 차례 = 형과 마지막으로 대화한 때 새 것부터 · 읽었든 안 읽었든 — 그 애가 형한테 말한 때 · 형이 그 방에 쓴 때 중 늦은 것(카톡처럼)
+  //   형 11-19 13:27 dm-bom 봄 옮김 「그리고 나한테 최근에 말을 한 사람이 위로 올라오게해줘 고정다음으로」 · 16:49 「그리고 가장 최근에 나랑 대화 나누는사람이 위로 안올라오는 문제 아직 해결안됨!」
+  //   · 봄 16:53 「「나랑 대화 나누는」 = 형이 쓴 글로도 올라와야 하는 걸로 정할게(카톡처럼) · 차례 = max(heard_ts, 그 방 형 마지막 글 시각)」 · 앞 판 13:3x = 그 애가 말한 때만(형이 쓴 때로는 안 올라감)을 갈음
+  //   그 애가 말한 때 = 서버 heard_ts(빠르 #4371) · 형이 쓴 때 = 마지막 글이 형 글이면 그 시각(단톡 = 형 뒤로 남들 글이 이어지면 형 시각은 모름 → 형한테 온 글만) · 형이 읽은 때로는 안 올라감 · 안 읽음 표는 줄에 그대로
+  const talk = (r: Room) => { const l = lastOf(r), mine = l && l.kind === "human" ? l.ts : 0; return Math.max(r.heard_ts || 0, mine) || (l ? l.ts : r.last_ts || 0); };
+  const rest = shown.filter((r) => !pinned(r.id)).sort((a, b) => talk(b) - talk(a));
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
   return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY && r.id !== TRAIN_ROOM)   /* 작업 알림(기차봇 1:1) = 목록에서 숨김 · 완료는 PM 방 접힌 카드 + 리모콘(형 11-14 23:34 「작업 알림은 대화방으로 취급 안하고」 · 깃 #-019) */, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
 }
