@@ -848,12 +848,21 @@ function tokened(text: string, key: string): ReactNode {
 /** 부름 칩 = 작은 얼굴 + 이름 알약(형 11-04 17:15 dm-sia 「혹시 내가 골뱅이 하면, 이거 얼굴 조그마하게 해서, 이쁘게 호출모양이 들어가게 가능해?」 + 사진 = 「보낸 메시지」 알약 꼴 축약)
  *  · 「!」 = 이름 뒤 작은 라임 「!」(바로 깸) · 얼굴 없는 이름(모두·묶음) = 글자 그대로 */
 function CallChip({ t }: { t: ReactNode }) {
+  const nav = useNavigate(), qc = useQueryClient();
   const s = typeof t === "string" ? t : Array.isArray(t) && t.every((x) => typeof x === "string") ? t.join("") : null;
   const m = s ? s.match(/^([@!])(.+)$/) : null;
   const who = m?.[2] || "", hy = who === "형" || who === "세웅", p = m ? peopleSync().find((x) => (hy ? x.who === "형" : x.who === who || x.name === who || (x.aka || []).includes(who))) : undefined;
   if (!m || !p?.face) return <span className="ycall">{t}</span>;
   // 형 부름 = 형 얼굴 칩 · 「!형」 = 파랑·라임 강조(형 11-07 11:40 「오히려 느낌표는 파랑 라임으로」 · 봄 나눔 = 「💡 제안」 표지 색 결)
-  return <span className={`ycall yface${hy ? (m[1] === "!" ? " hy-bang" : " hy-at") : ""}`} title={`${m[1]}${who}`}><FaceImg id={idOf(p.who)} size={15} /><span>{hy ? "형" : p.name || who}</span></span>;   // 「!」 표지 뺌(형 11-04 17:36 「빠르는 왜 느낌표가 있어?」 · 「느낌표가 필요없음」)
+  const cls = `ycall yface${hy ? (m[1] === "!" ? " hy-bang" : " hy-at") : ""}`, name = hy ? "형" : p.name || who;
+  const body = <><FaceImg id={idOf(p.who)} size={15} /><span>{name}</span></>;   // 「!」 표지 뺌(형 11-04 17:36 「빠르는 왜 느낌표가 있어?」 · 「느낌표가 필요없음」)
+  // 누르면 그 애와의 1:1 방으로(형 11-19 13:01 dm-bom 봄 옮김 「봄아 이런곳에서 뜸 누르면 이동하게 해줘」) — 길 = 일감 보드 · 프로필 카드와 같음(rooms 의 with → /channels/<방>) · 형 칩 · 방 없는 이름 = 그대로 글자
+  const room = hy ? "" : (qc.getQueryData<OfficeRoom[]>(["nomute", "rooms"]) || []).find((r) => r.with === p.who)?.id || "";
+  if (!room) return <span className={cls} title={`${m[1]}${who}`}>{body}</span>;
+  return (
+    <button type="button" className={`${cls} ygo`} title={`${name} 방으로`} aria-label={`${name} 방으로 가기`}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (justHeld()) return; void nav({ to: "/channels/$channelId", params: { channelId: room } }); }}>{body}</button>
+  );
 }
 function called(text: string, re: RegExp | null, key: string, nre: RegExp | null = null): ReactNode {
   if (!re) return named(text, nre, key);
