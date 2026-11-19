@@ -164,3 +164,8 @@
 .nm-tnoti .sw > i { position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#E7ECE7; transition:transform .22s cubic-bezier(.2,.7,.3,1), background-color .2s ease; }
 .nm-tnoti .sw[aria-checked="true"] { background:rgba(var(--accent-rgb, 207,255,64),.92); border-color:transparent; }
 .nm-tnoti .sw[aria-checked="true"] > i { transform:translateX(18px); background:#161716; }
+/* 고른 「대화방」 탭 오른쪽 끝 옅은 「+」 = 방 만들기(형 11-20 07:20 「여기 대화방 탭 우측 끝에 옅게 + 있으면 될듯」) · 누르는 칸 30px · 글자색 옅게 */
+.nm-tswitch.fold .nm-ftab .nm-tplus { position:absolute; right:8px; top:50%; width:30px; height:30px; margin-top:-15px; display:grid; place-items:center; border-radius:9px; color:var(--fg, #e8eae8); opacity:.42; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:opacity .15s ease, transform .12s ease; }
+.nm-tswitch.fold .nm-ftab .nm-tplus svg { width:17px; height:17px; }
+@media (hover:hover) { .nm-tswitch.fold .nm-ftab .nm-tplus:hover { opacity:.8; } }
+.nm-tswitch.fold .nm-ftab .nm-tplus:active { transform:scale(.85); opacity:.9; }

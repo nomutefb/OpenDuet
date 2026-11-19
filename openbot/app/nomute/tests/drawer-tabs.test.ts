@@ -6,7 +6,7 @@ import { DRAWER_HOME, DRAWER_TABS, isDrawerTab } from "../ui/drawer-tabs.ts";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 
 test("탭 넷 · 먼저 뜨는 탭 = 애들(봇 현황) · 설정 · 뉴스 에디터는 탭이 아님", () => {
-  assert.deepEqual([...DRAWER_TABS], ["botdesk", "ops", "story", "play"]);   // 「화상 회의록」 = 탭에서 빼고 화상회의 칸 한쪽 픽토그램으로(형 11-17 02:1x 「탭에서는 뺄게」)   // 봇 현황 · 몸 상태 · 스케줄 · 러너 = 5번 「애들」 한 화면으로 합침(형 11-16 18:1x 「그 애들 관련 정보를 다 하나로 통합시키고 싶어」) · 나머지 셋 = 그 밖 화면
+  assert.deepEqual([...DRAWER_TABS], ["botdesk", "ops", "story"]);   // 「봄의 정원」(play) 뺌(형 11-20 07:19 「메뉴 안에 봄의 정원잇는거 삭제」)   // 「화상 회의록」 = 탭에서 빼고 화상회의 칸 한쪽 픽토그램으로(형 11-17 02:1x 「탭에서는 뺄게」)   // 봇 현황 · 몸 상태 · 스케줄 · 러너 = 5번 「애들」 한 화면으로 합침(형 11-16 18:1x 「그 애들 관련 정보를 다 하나로 통합시키고 싶어」) · 나머지 셋 = 그 밖 화면
   assert.equal(DRAWER_HOME, "botdesk");   // 서랍 첫 화면 = 봇 현황
   for (const t of DRAWER_TABS) assert.ok(isDrawerTab(t));
   for (const x of ["settings", "nedit", "drawer", "ask", "", null, undefined]) assert.ok(!isDrawerTab(x), String(x));
