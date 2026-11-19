@@ -119,7 +119,10 @@ export function useRoomOrder() {
   //   · 봄 16:53 「「나랑 대화 나누는」 = 형이 쓴 글로도 올라와야 하는 걸로 정할게(카톡처럼) · 차례 = max(heard_ts, 그 방 형 마지막 글 시각)」 · 앞 판 13:3x = 그 애가 말한 때만(형이 쓴 때로는 안 올라감)을 갈음
   //   그 애가 말한 때 = 서버 heard_ts(빠르 #4371) · 형이 쓴 때 = 마지막 글이 형 글이면 그 시각(단톡 = 형 뒤로 남들 글이 이어지면 형 시각은 모름 → 형한테 온 글만) · 형이 읽은 때로는 안 올라감 · 안 읽음 표는 줄에 그대로
   const talk = (r: Room) => { const l = lastOf(r), mine = l && l.kind === "human" ? l.ts : 0; return Math.max(r.heard_ts || 0, mine) || (l ? l.ts : r.last_ts || 0); };
-  const rest = shown.filter((r) => !pinned(r.id)).sort((a, b) => talk(b) - talk(a));
+  // 안 읽은 방(단톡 포함) 먼저 → 그 안 · 나머지 = 위 talk 차례(형 11-19 21:42 dm-sia 시아 옮김 「시아 항상 고정 빼고는 단톡 포함 안 읽은 창이 가장 위에 올라오게해줘」 · 봄 13:36 「안 읽은 방 먼저 뺌」을 갈음 = 형 말이 먼저)
+  //   안 읽음 = 줄 숫자 · 점과 같은 셈(count · 서버 unread · 단톡 = 형한테 온 글만)
+  const unread = (r: Room) => count(r) !== 0;
+  const rest = shown.filter((r) => !pinned(r.id)).sort((a, b) => Number(unread(b)) - Number(unread(a)) || talk(b) - talk(a));
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
   return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY && r.id !== TRAIN_ROOM)   /* 작업 알림(기차봇 1:1) = 목록에서 숨김 · 완료는 PM 방 접힌 카드 + 리모콘(형 11-14 23:34 「작업 알림은 대화방으로 취급 안하고」 · 깃 #-019) */, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
 }
