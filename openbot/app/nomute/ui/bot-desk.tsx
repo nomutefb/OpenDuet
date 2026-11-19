@@ -17,7 +17,7 @@ import RubberSegment from "../vendor/react-bits/RubberSegment/RubberSegment";   
 import { ThinkingOrb } from "thinking-orbs";   // 점 구슬 = 앱이 이미 쓰는 원본 꾸러미 그대로(대화 「생각중」 · ./live-shine.tsx 와 같은 것 · 형 11-15 「에디터에 따로 들어잇는곳 … 코드카피해서 쓰셈」)
 import { useTheme } from "@/components/theme-provider";
 import { LiveShine } from "./live-shine";   // 빛 지나가는 글자 = 앱 것 그대로
-import { type BotRow, type BotTable, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, roleLabel, roleOf, stateWord, tailOf } from "./bot-desk-logic";
+import { type BotRow, type BotTable, countOf, flowOf, hmKo, isSpecial, jobCount, jobLine, jobsOf, markOf, mixOf, orbOf, roleLabel, skillName, workSkills, stateWord, tailOf } from "./bot-desk-logic";
 import { BotInbox } from "./bot-inbox";   // 「보드」 = 일감마다 카드 · 세 칸(형 11-16 영상 「Agent inbox」)
 const StatusBoard = lazy(() => import("./status-board").then((m) => ({ default: m.StatusBoard })));   // ③ 러너 층 = 작동 표(겹치는 활동 판만 뺌 · 보일 때 받음)
 const SchedDesk = lazy(() => import("./sched-desk").then((m) => ({ default: m.SchedDesk })));   // ② 스케줄 배선 층(보일 때 받음)
@@ -125,7 +125,7 @@ function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
         return (
           <section key={c} className={`nm-bd-turn${on ? " open" : ""}`} style={delay(i)}>
             <button type="button" aria-expanded={on} onClick={() => setOpen((o) => (o === c ? "" : c))}>
-              <span className="code">{c}</span><span className="nm">{skills[c] || ""}</span>
+              <span className="code">{c}</span><span className="nm" title={skills[c] || undefined}>{skillName(c) || skills[c] || ""}</span>
               {f ? <span className={`first ${good ? "t-ok" : "t-dim"}`}><span className="face"><FaceImg id={idOf(f.who, list)} size={22} /></span><b>{f.who}</b>{!f.rank || f.busy ? <small>{[f.rank ? "" : "특기 밖", f.busy ? "일하는 중" : ""].filter(Boolean).join(" · ")}</small> : null}</span> : <span className="first t-dim">맡길 손 없음</span>}
               <Chev />
             </button>
@@ -193,7 +193,7 @@ export function BotDesk() {
             {picked ? (
               <div className="nm-bd-org-one" aria-label={`${picked.who} 자세히`}>   {/* 얼굴을 누르면 그 애 것만(상태 · 맡은 일 줄 = 옛 흐름 카드 · 특기 · 몸 한 줄) */}
                 <ul><BotCard key={picked.who} r={picked} now={now} i={0} list={people} /></ul>
-                <p className="more">{(picked.skills || []).map((c, k) => <span key={c} className={k ? undefined : "first"} title={skills[c] || c}>{roleOf(c, k > 0) || skills[c] || c}</span>)}</p>   {/* 사양 줄은 아래 몸 칸(그래프)이 달고 옴 → 여기선 뺌(형 11-17 07:53 「저기에 나온 사양은 첨부1을 넣을거니까 안나와도 되고」) */}
+                <p className="more">{workSkills(picked.skills).map((c, k) => <span key={c} className={k ? undefined : "first"} title={skills[c] || c}>{skillName(c, picked, k > 0)}</span>)}</p>   {/* 사양 줄은 아래 몸 칸(그래프)이 달고 옴 → 여기선 뺌(형 11-17 07:53 「저기에 나온 사양은 첨부1을 넣을거니까 안나와도 되고」) */}
                 <Suspense fallback={<div className="nm-bd-vmwait" />}><VmCard key={`v-${picked.who}`} r={picked} /></Suspense>   {/* 그 애 몸 = 사양 · 램 24시간 그래프(「몸」 탭과 같은 그림 · 형 「이거 그래프를 첨부2 안에다가 넣자」) */}
                 <BotManage key={`m-${picked.who}`} r={picked} skills={skills} />   {/* 그 애 관리 칸 = 다음 창 모델 · 노력도 · 계정 · 임시 멈춤(형 11-16 19:36 「거기서 일괄 관리 페이지가 되길」 · ./bot-manage.tsx) */}
               </div>

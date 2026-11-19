@@ -11,7 +11,7 @@ import { office, people } from "../data/office";
 import { MorphAsk } from "./morph-ask";   // 그 자리 재확인(모달 0 · 누른 낱말이 [아니오(라임)] [예] 로 번지며 바뀜) — 형 11-16 21:4x 구름 맥 창 영상(Mark as Done → Done | Undo) 「항상 그냥 re 토글로만」 · 앱 하네스 그대로
 import { sameOf } from "./model-set-logic";
 import { pmCandidates } from "./pm-set-logic";
-import { type BotRow, roleOf } from "./bot-desk-logic";
+import { type BotRow, skillName } from "./bot-desk-logic";
 import { acctTag } from "../data/acct-time";   // 계정 글자 = 러너 표와 같은 꼴(C·N · C·G · C·M · C·T · 형 11-18 「그렇게 해서 표기를 토잉ㄹ해줘」)
 import { type GrokRt, type Rest, type RestMap, acctKo, restBody, restKo, restOn, rtCount, rtLine } from "./bot-manage-logic";
 import { Chev } from "./chev";
@@ -67,7 +67,7 @@ function AcctRestRow({ r, skills }: { r: BotRow; skills: Record<string, string> 
     mutationFn: (turnOn: boolean) => office<{ ok?: boolean; rest?: RestMap }>("bots/rest", { method: "POST", body: JSON.stringify(restBody(r.who, turnOn, [], undefined)) }),
     onSuccess: (j) => { if (j.rest) qc.setQueryData(REST_KEY, j.rest); else void qc.invalidateQueries({ queryKey: REST_KEY }); void qc.invalidateQueries({ queryKey: ["nomute", "bots-sheet"] }); },
   });
-  const name = (c: string) => roleOf(c, true) || skills[c] || c, shown = send.isPending ? send.variables === true : on;   // 누른 쪽으로 먼저 움직임
+  const name = (c: string) => skillName(c, r, true), shown = send.isPending ? send.variables === true : on;   // 누른 쪽으로 먼저 움직임
   const detail = on && cur && (cur.until || cur.codes?.length) ? restKo(cur, now, name) : "";
   if (!a.name && r.pm) return null;
   return (

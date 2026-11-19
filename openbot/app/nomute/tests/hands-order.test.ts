@@ -44,7 +44,11 @@ test("손 판 색 = 머리 · 막대와 같은 말: 일하는 중 = 라임 · �
 });
 
 test("직무 표기 = 영문 직함 줄임: Dev. · UXD. · R&D · PM · Dev. · PM · UXD. · 줄임 없으면 그대로(형 11-16 18:4x → 21:06 「Dev. 로 줄이고 / UXD. 로 줄일게」) · 알약 없이 글자만", async () => {
-  const { roleLabel, roleOf } = await import("../ui/bot-desk-logic.ts");
+  const { roleLabel, roleOf, skillName, workSkills } = await import("../ui/bot-desk-logic.ts");
+  // 11-20 형 「1특 2특 3특 용어 통일」 = 한 곳(skillName) · PM 은 칩에서 빠짐(특기 칩 셋까지) · 결 = 칸도 칩도 Storyteller · 온 = Secretary(한글 「비서」 0)
+  assert.deepEqual(workSkills(["M", "U", "R", "O"]), ["U", "R", "O"]); assert.deepEqual(workSkills(["D", "O", "R", "S"]), ["D", "O", "R"]);
+  assert.equal(skillName("Xb", { who: "결", skills: ["Xb"] }), "Storyteller"); assert.equal(roleLabel(["Xb"], "결"), "Storyteller");
+  assert.equal(skillName("Xe", { who: "온", skills: ["Xe"] }), "Secretary"); assert.equal(skillName("Xe"), "Secretary"); assert.equal(skillName("O", undefined, true), "Ops.");
   for (const who of [["D", "S", "R"], ["D", "R", "S"]]) assert.equal(roleLabel(who), "Dev.");   // 천둥 · 번개 · 빠르 · 소나
   assert.equal(roleLabel(["U"]), "UXD."); assert.equal(roleLabel(["U", "D", "M"]), "UXD.");   // 구름 · 시아
   assert.equal(roleLabel(["M", "D", "S"]), "PM · Dev.");   // 깃
