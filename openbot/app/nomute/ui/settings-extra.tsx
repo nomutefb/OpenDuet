@@ -5,7 +5,7 @@
 import { SrvNote } from "./srv-note";
 import { readFail, reading } from "./wait-text";   // 읽는 중 · 못 읽음 글 한 벌
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { PageSection } from "@/components/layout/page-shell";
 import { idOf, type Meter, type MeterRow, office, people } from "../data/office";
 import { schedOpts } from "../data/crew-warm";
@@ -295,11 +295,18 @@ const DOTS = "••••••••";   // 열쇠 칸 = 가린 꼴만(형 08:
  *  펼치면 Authentication 안에 예비 열쇠 줄(08:14 「그러면 아까 내가 준 그 양식을 펼치면」 「auth안에 예비가 여러개 나오게 해, 근데 그 중에 루미는 없는거야」 · 루미 = 서버가 안 줌)
  *  예비를 복사하면 그 줄 아래 사용처 글칸 → 치면 저절로 저장(08:16 「***로 표기해서 3개가 잇으면 되고 가져가면 그 아래에 내가 사용처를 적고 적으면 자동으로 저장되게하면대」 · 저장 단추 0)
  *  링크 그림 = 그록 플러그인 화면 새 탭(08:08 「링크는 항상 여기거든? url 픽토그램은 여기로」) · 펼침 = bot-desk .fold 꼴(grid 0fr → 1fr · 누를 때 한 번) */
-function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText, onUse, flush }: {
+function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText, onUse, flush, remint, minting, focusUse }: {
   top: VaultSeat; spares: VaultSeat[]; done: string; took: Record<string, true>; saved: string; memoOf: (s: VaultSeat) => string;
   copySeat: (seat: string) => void; copyText: (key: string, text: string) => void; onUse: (seat: string, v: string) => void; flush: (seat: string) => void;
+  remint: (seat: string) => void; minting: boolean; focusUse: { seat: string; n: number } | null;
 }) {
   const [open, setOpen] = useState(false);
+  // 복사 → 그 줄 사용처 칸에 바로 커서(형 11-20 03:04 dm-sia 「복사 시 자동으로 커서 아동 후 메모 한 줄 적게해줘」) · 칸이 막 그려진 뒤라 한 프레임 뒤
+  useEffect(() => {
+    if (!focusUse) return undefined;
+    const id = requestAnimationFrame(() => { const el = document.getElementById(`mcp-use-${focusUse.seat}`) as HTMLInputElement | null; if (el) { el.focus(); const n = el.value.length; el.setSelectionRange(n, n); } });
+    return () => cancelAnimationFrame(id);
+  }, [focusUse]);
   const field = (label: string, text: string, key?: string) => (
     <div className="nm-mcp-row">
       <p className="nm-mcp-lb">{label}</p>
@@ -342,10 +349,12 @@ function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText,
                       <div className="nm-vault-in nm-mcp-f nm-mcp-k" aria-readonly="true">{seatName(s.seat)}</div>
                       <div className={`nm-vault-in nm-mcp-f nm-mcp-v${s.set ? "" : " off"}`} aria-readonly="true" aria-label={s.set ? "열쇠 가림" : "비어 있음"}>{s.set ? DOTS : "비어 있음"}</div>
                       <CopyBtn ok={done === s.seat} off={!s.set} label={seatName(s.seat)} go={() => copySeat(s.seat)} />
+                      {/* 재발행 = 새 열쇠 + 앞 열쇠 파기(형 11-20 03:04 「내가 재발행 하면 키를 바꿀 수 있게 해줘 기존 건 파기」) · 그 자리 재확인(MorphAsk · 모달 0) */}
+                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" note="앞 열쇠는 파기돼" label={`${seatName(s.seat)} 재발행`} onYes={() => remint(s.seat)}>재발행</MorphAsk> : null}   {/* 빈 자리 = 아래 줄 「새 열쇠 만들기」 하나만 */}
                     </div>
                     {show ? (
                       <div className="nm-mcp-use">
-                        <input type="text" autoComplete="off" spellCheck={false} maxLength={200} placeholder="사용처" aria-label={`${seatName(s.seat)} 사용처`} value={v}
+                        <input id={`mcp-use-${s.seat}`} type="text" autoComplete="off" spellCheck={false} maxLength={200} placeholder="사용처" aria-label={`${seatName(s.seat)} 사용처`} value={v}
                           onChange={(e) => onUse(s.seat, e.target.value)} onBlur={() => flush(s.seat)} className="nm-vault-in normal-case" />
                         <svg aria-hidden className={`nm-mcp-ok${saved === s.seat ? " on" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
                       </div>
@@ -367,7 +376,8 @@ export function NomuteVault() {
   const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [done, setDone] = useState("");
   const [memo, setMemo] = useState<Record<string, string>>({});   // 이름표 글칸(고치는 중) · 없으면 서버 값
   const saveMemo = (seat: string, v: string) => office<{ ok?: boolean; memo?: string }>("seatvault/memo", { method: "POST", body: JSON.stringify({ seat, memo: v }) });
-  const [took, setTook] = useState<Record<string, true>>({}), [saved, setSaved] = useState("");   // took = 이번에 복사한 자리(사용처 칸 열림) · saved = 방금 저절로 저장된 자리(✓ 잠깐)
+  const [took, setTook] = useState<Record<string, true>>({}), [saved, setSaved] = useState("");
+  const [focusUse, setFocusUse] = useState<{ seat: string; n: number } | null>(null);   // 복사한 자리 사용처 칸으로 커서(위 GardenMcp)   // took = 이번에 복사한 자리(사용처 칸 열림) · saved = 방금 저절로 저장된 자리(✓ 잠깐)
   const waitRef = useRef<Record<string, { t: number; v: string }>>({});
   const saveUse = (seat: string, v: string) => {   // 사용처 저장 = 같은 서버 메모(seatvault/memo) · 글은 로컬에 두고 서버 값만 맞춤(치는 중 글자가 안 튐)
     const t = v.trim();
@@ -406,6 +416,7 @@ export function NomuteVault() {
       const j = await office<{ value: string }>("seatvault/copy", { method: "POST", body: JSON.stringify({ seat }) });
       await navigator.clipboard.writeText(j.value);
       setTook((t) => (t[seat] ? t : { ...t, [seat]: true }));
+      setFocusUse((f) => ({ seat, n: (f?.n || 0) + 1 }));
       setDone(seat); window.setTimeout(() => setDone((d) => (d === seat ? "" : d)), 1800);   // 옛 에디터 modern-copy 체크 머무름(touchHold 1800)
     } catch (e) { setNote((n) => ({ ...n, [seat]: vaultWhy(e, "복사 못 했어") })); }
   };
@@ -419,20 +430,21 @@ export function NomuteVault() {
         return (
           <>
             <GardenMcp top={top} spares={(q.data || []).filter((s) => !s.top)} done={done} took={took} saved={saved} memoOf={(s) => memo[s.seat] ?? s.memo ?? ""}
-              copySeat={(seat) => void copy(seat)} copyText={(k, t) => void copyText(k, t)} onUse={onUse} flush={flush} />
+              copySeat={(seat) => void copy(seat)} copyText={(k, t) => void copyText(k, t)} onUse={onUse} flush={flush}
+              remint={(seat) => mint.mutate(seat)} minting={mint.isPending} focusUse={focusUse} />
             <div className="nm-mcp-cut" aria-hidden />
           </>
         );
       })()}
-      <Card>
+      {/* 아래 목록 = 손이 필요한 칸만(비었거나 열쇠 안 맞음) — 넣은 칸은 위 「봄의 정원 MCP」 칸과 겹쳐서 안 보임(형 11-20 02:55 dm-sia 「여기 겹치는 보안 서랍 내용은 지워줘」 · 값 · 메모는 그대로 · 화면만) */}
+      {(q.data || []).some((s) => !s.set || s.match === false) ? <Card>
         <ul className="nm-vault divide-y divide-border">
-          {(q.data || []).map((s) => (
+          {(q.data || []).filter((s) => !s.set || s.match === false).map((s) => (
             <li key={s.seat} className="flex flex-col gap-2 px-4 py-3">
               <p className="flex items-center justify-between gap-2 text-sm">   {/* 좁은 폭 = 이름 · 열쇠 앞부분이 줄고 오른쪽 상태는 한 줄(전 = 「넣음 · 12:38 AM」이 두 줄로 꺾이거나 열쇠 글자에 붙음 · 봄 11-18) */}
                 <span className="flex min-w-0 flex-1 items-baseline gap-2"><b className="shrink-0">{seatName(s.seat)}</b>
-                  {s.who || s.id ? <span className="min-w-0 shrink truncate text-xs normal-case text-muted-foreground" aria-label="지금 쓰는 이름 · 자리 id">{[s.who && s.who !== s.seat ? s.who : null, s.id].filter(Boolean).join(" · ")}</span> : null}   {/* 형 11-16 07:5x 「자리 02 - 이런거 다 옆에 현재 사용중인 이름을 써줄래? cloud 이런식으로. 구름 cloud 각각 키명, 자리 명」 */}
                   {s.set && s.hint ? <code className="min-w-0 shrink-[3] truncate font-mono text-xs text-muted-foreground" aria-label="열쇠 앞부분만 보임">{s.hint}</code> : null}</span>   {/* 형 11-15 「암호 있는 곳 노출 가능한 부분은 보이고 나머지늠 ***로 표기」 */}
-                <span className={`shrink-0 whitespace-nowrap text-xs tabular-nums ${s.set && s.match === false ? "text-destructive" : "text-muted-foreground"}`}>{!s.set ? "비어 있음" : s.match === false ? "넣음 · 열쇠 안 맞음" : `넣음${s.at ? ` · ${t12(s.at)}` : ""}`}</span>
+                <span className={`shrink-0 whitespace-nowrap text-xs tabular-nums ${s.set && s.match === false ? "text-destructive" : "text-muted-foreground"}`}>{!s.set ? "비어 있음" : "열쇠 안 맞음"}</span>
               </p>
               <div className="flex items-center gap-2">
                 <input id={`vault-${s.seat}`} type="password" autoComplete="off" spellCheck={false} placeholder={s.set ? "바꿀 때만 붙여 넣기" : "열쇠 붙여 넣기"} value={draft[s.seat] || ""}
@@ -457,7 +469,7 @@ export function NomuteVault() {
             </li>
           ))}
         </ul>
-      </Card>
+      </Card> : null}
       {q.isError ? <SrvNote what="보안 서랍" detail={q.error instanceof Error ? q.error.message : undefined} className="tight" /> : null}
     </PageSection>
   );
