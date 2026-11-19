@@ -21,8 +21,8 @@ import { rssFirst } from "./rss-first";
 import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, shownScore } from "./event-score";   // 줄 점수·차례 = 뉴스 알고리즘 점수(형 11-09 12:3x 「점수대로 제대로 구현좀 되게 해주셈」)
 
 type Row = { urg?: string; score_why?: string; score_news?: boolean; picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
-type Sd = { k: "run" | "ok" | "sum" | "bad" | "done"; why?: string; id?: string; at?: number; file?: string };   // 오른쪽 칸 단추 = 차오름 · 체크 · 요약중 · 실패 · 요약됨(다른 기기 포함 · file = 그 요약)
-const OK_MS = 900, SUM_MAX_MS = 15 * 60_000, SUM_DONE = new Set(["succ", "done", "ok"]), SUM_FAIL = new Set(["failed", "error"]);
+type Sd = { k: "run" | "ok" | "sum" | "bad" | "done"; why?: string; id?: string; at?: number; file?: string; seen?: boolean };   // seen = 그 요청 id 가 대기열에 한 번 보였음(빠지면 = 끝)   // 오른쪽 칸 단추 = 차오름 · 체크 · 요약중 · 실패 · 요약됨(다른 기기 포함 · file = 그 요약)
+const OK_MS = 900, SUM_MAX_MS = 15 * 60_000, SUM_DONE = new Set(["succ", "done", "ok"]), SUM_FAIL = new Set(["fail", "failed", "error"]);   // 서버 실패 글자 = 'fail'(functions/api/pending.js)
 const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
 // 픽 얼굴(형 11-06 07:4x 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」 · 「틈도 저런식으로」) = 그 기사를 고른 봇 얼굴 · 번호 왼쪽 · 둘 다면 단톡방 겹친 얼굴 꼴(형 「그 단톡방 예전 표기처럼 중첩되게」)
@@ -166,8 +166,10 @@ export function NewsList() {
     mark(k, { k: "run" });
     quickSend(title, url).then((id) => {
       mark(k, { k: "ok" });
-      window.setTimeout(() => setSdSt((o) => (o[k]?.k === "ok" ? { ...o, [k]: { k: "sum", id, at: Date.now() } } : o)), OK_MS);   // 체크 잠깐 → 「요약중」
-      void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] });
+      window.setTimeout(() => {   // 체크 잠깐 → 「요약중」 → 그 뒤에 대기열 다시 받기(그 id 가 「보였음」으로 적히게 · 앞 판은 「요약중」 전에 받아 한 바퀴(15초) 늦게 적힘)
+        setSdSt((o) => (o[k]?.k === "ok" ? { ...o, [k]: { k: "sum", id, at: Date.now() } } : o));
+        void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] });
+      }, OK_MS);
     }).catch((err: Error) => mark(k, { k: "bad", why: err.message || "못 보냈어" }));
   };
   // 대기열 = Digest 와 같은 답 한 벌(./pending-query.ts · 15초 · 45초 · 따로 받기 0) — 이 기기 「요약중」 줄의 id 가 끝남(succ) = 지우고 Digest 다시 받기 · 실패 = 「다시」 · 대기열에 없음 = 15분 지나면 지움
@@ -191,8 +193,11 @@ export function NewsList() {
       const n = { ...o };
       for (const [k, v] of Object.entries(o)) {
         if (v.k !== "sum") continue;
+        // 끝 = 그 요청 id(/api/submit 답 = asks/<id>.json 베이스)가 대기열에 보였다가 빠짐 — 서버는 끝나면 asks/<id>.json 을 지우고 완료를 queue/ 이름(다른 id)으로 띄움
+        //   (형 11-20 03:44 「요약 완료되었다고 해서 갔는데 아직 요약중」 · 번개 · 깃 [도움] = 앞 판은 그 id 를 못 찾아 15분 뒤에야 풀었음) · 대기열을 못 받은 답(빈 배열)은 빠짐으로 안 셈
         const st = String(pend.data.find((it) => it && v.id && it.id === v.id)?.status || "");
-        if (SUM_DONE.has(st) || (!st && Date.now() - (v.at || 0) > SUM_MAX_MS)) { delete n[k]; done = true; }
+        if (st && !SUM_DONE.has(st) && !SUM_FAIL.has(st)) { if (!v.seen) n[k] = { ...v, seen: true }; continue; }
+        if (SUM_DONE.has(st) || (!st && pend.data.length > 0 && v.seen) || (!st && Date.now() - (v.at || 0) > SUM_MAX_MS)) { delete n[k]; done = true; }
         else if (SUM_FAIL.has(st)) n[k] = { k: "bad", why: "요약 실패 — 다시 누르면 다시 보내" };
       }
       return n;

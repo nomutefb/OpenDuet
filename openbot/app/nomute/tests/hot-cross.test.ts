@@ -22,3 +22,11 @@ test("Digest · Hot Issue = 대기열 한 벌(같은 열쇠 · 한 번만 받음
   assert.match(nl, /goSum\(`\/newsed\?a=\$\{encodeURIComponent\(x\.file!\)\}`\)/);
   assert.match(nc, /\.done \.sm \{ color:rgba\(232,234,232,\.7\); \}/);
 });
+
+// 형 11-20 03:44 「요약 완료되었다고 해서 갔는데 아직 요약중」(번개 · 깃 [도움]) — 서버는 끝나면 asks/<id>.json 을 지우고 완료를 queue/ 이름(다른 id)으로 띄움 = 그 id 가 보였다가 빠지면 끝
+test("이 기기 요약중 = 그 id 가 대기열에 보였다가 빠지면 바로 풂 · 서버 실패 글자 fail = 실패", () => {
+  const s = readFileSync(new URL("../home/news-list.tsx", import.meta.url), "utf8");
+  assert.match(s, /SUM_FAIL = new Set\(\["fail", "failed", "error"\]\)/);
+  assert.match(s, /if \(st && !SUM_DONE\.has\(st\) && !SUM_FAIL\.has\(st\)\) \{ if \(!v\.seen\) n\[k\] = \{ \.\.\.v, seen: true \}; continue; \}/);
+  assert.match(s, /\(!st && pend\.data\.length > 0 && v\.seen\)/);   // 빈 답(못 받음)은 빠짐으로 안 셈
+});
