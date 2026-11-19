@@ -16,24 +16,43 @@ import "./stories.css";
 
 /** 붙은 것 하나 — 경로 글(앞 꼴 · 우리 서버 파일) 또는 주소 글(https · 지드라이브 링크) 또는 { url | path, name?, kind? } */
 export type MediaItem = string | { url?: string; path?: string; name?: string; kind?: string };
-export type Story = { id: string; ts: number; who: string; title: string; path?: string; text?: string; bell?: string; media?: MediaItem[] };
+export type Story = { id: string; ts: number; who: string; title: string; path?: string; text?: string; bell?: string; media?: MediaItem[]; cut?: boolean };   // cut = 글 앞만 옴(목록 2만 자 · 옛 목록 2천 자) · 다 = stories?id=
 /** 안 보이는 지은이 — 옛 윈터 글만 뺌(형 11-14 「윈터 관련된 글은 삭제」 · 서버 글은 그대로 두고 목록에서만)
  *  = 이름 + 그 날 앞 · 11-15 18:00 KST 뒤 돌아온 윈터 글은 보임(형 11-17 02:28 「윈터 글은 윈터 정원에 들어가게해주엉」) */
 const GONE = new Set(["윈터", "winter"]);
 const GONE_BEFORE = Date.UTC(2026, 10, 15, 9);   // 11-15 18:00 KST
 export const shown = (s: Pick<Story, "who" | "ts">) => !(GONE.has(s.who) && !(Number(s.ts) >= GONE_BEFORE));
-export const useStories = () => useQuery({ queryKey: ["nomute", "stories"], queryFn: () => office<{ items?: Story[] }>("stories").then((j) => (Array.isArray(j.items) ? j.items : []).filter(shown)), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false });
+type Page = { items: Story[]; more: boolean };
+/** 첫 목록 한 장(새것부터 · more = 옛 편이 더 있음 · 천둥 #4408) — 「더 보기」는 누를 때만 stories?before= */
+const storiesQ = { queryKey: ["nomute", "stories"], queryFn: () => office<{ items?: Story[]; more?: boolean }>("stories").then((j): Page => ({ items: Array.isArray(j.items) ? j.items : [], more: !!j.more })), staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false };
+export const useStories = () => useQuery({ ...storiesQ, select: (p: Page) => p.items.filter(shown) });
 
 const KST = 9 * 3600e3;
 const when = (ts: number) => { const d = new Date(ts + KST); return `${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")} ${d.getUTCHours()}시`; };
 /** 본문 첫 「# 제목 (…)」 머리 줄은 줄 제목과 겹쳐 뺌 */
 const body = (s: Story) => String(s.text || "").replace(/^\s*#[^\n]*\n+/, "").trim();
 
+/** 옛 편 = 「더 보기」(천둥 11-20 04:20 · 서버 #4408 「첫 목록 GET stories 답에 more:true 가 오면 목록 끝에 「더 보기」 단추 · 누르면 GET stories?before=<지금 목록 맨 끝 글 id> → 그 앞 200편 · 답 more:false 면 단추 숨김」
+ *  · 형 「낭비시키진 말고」 결 = 누를 때만 읽음(첫 목록 무게 그대로) · 받은 옛 편은 이 칸이 떠 있는 동안만 둠) */
+export const oldestId = (rows: readonly Pick<Story, "id">[]) => rows.reduce((m, s) => (s?.id && (!m || String(s.id) < m) ? String(s.id) : m), "");
+export const mergeStories = (a: readonly Story[], b: readonly Story[]) => { const seen = new Set<string>(); return [...a, ...b].filter((s) => s?.id && !seen.has(s.id) && (seen.add(s.id), true)).filter(shown).sort((x, y) => y.ts - x.ts); };
+
 export function StoryList() {
-  const q = useStories();
+  const q = useQuery(storiesQ);
   const list = useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
   const [open, setOpen] = useState(""), [by, setBy] = useState("");   // by = 쓴 이 하나만(형 11-15 05:09 「다른애들도 쓰면 구분되서 들어갈 수 있어?」 · 깃 #-029)
-  const all = (q.data || []).slice().sort((a, b) => b.ts - a.ts);
+  const [older, setOlder] = useState<Story[]>([]), [olderMore, setOlderMore] = useState<boolean | null>(null), [busy, setBusy] = useState(false), [moreErr, setMoreErr] = useState(false);
+  const raw = [...(q.data?.items || []), ...older], hasMore = olderMore ?? !!q.data?.more;
+  const loadMore = async () => {
+    const last = oldestId(raw);
+    if (busy || !last) return;
+    setBusy(true); setMoreErr(false);
+    try {
+      const j = await office<{ items?: Story[]; more?: boolean }>(`stories?before=${encodeURIComponent(last)}`), got = Array.isArray(j.items) ? j.items : [];
+      setOlder((o) => [...o, ...got]); setOlderMore(!!j.more && got.length > 0);
+    } catch { setMoreErr(true); } finally { setBusy(false); }
+  };
+  const all = mergeStories(q.data?.items || [], older);
   const whos = [...new Set(all.map((s) => s.who))];
   const items = by ? all.filter((s) => s.who === by) : all;
   if (q.isPending) return <p className="nm-story-empty">읽는 중…</p>;
@@ -57,13 +76,21 @@ export function StoryList() {
               <span className="t">{s.title}</span>
               <span className="by"><FaceImg id={idOf(s.who, list)} size={20} />{name}</span>
             </button>
-            <div className="nm-story-in"><div><p className="nm-story-body" data-content>{body(s) || "(본문 사본 없음)"}</p>{on && s.media?.length ? <Media list={s.media} /> : null}</div></div>
+            <div className="nm-story-in"><div><StoryBody s={s} on={on} />{on && s.media?.length ? <Media list={s.media} /> : null}</div></div>
           </li>
         );
       })}
     </ul>
+    {hasMore ? <button type="button" className="yset-chip nm-story-more" disabled={busy} onClick={() => void loadMore()}>{busy ? "읽는 중…" : moreErr ? "못 읽었어 · 다시 더 보기" : "더 보기"}</button> : null}   {/* 누를 때만 옛 200편(천둥 #4408) */}
     </>
   );
+}
+
+/** 본문 — 앞만 온 글(cut)은 펼칠 때만 그 한 편 전부(stories?id= · 천둥 「옛 쪽 글은 앞 2천 자만 오고 cut:true 가 붙어(다 = 지금처럼 ?id=)」) · 못 받으면 앞만 */
+function StoryBody({ s, on }: { s: Story; on: boolean }) {
+  const full = useQuery({ queryKey: ["nomute", "story", s.id], queryFn: () => office<{ items?: Story[] }>(`stories?id=${encodeURIComponent(s.id)}`).then((j) => (Array.isArray(j.items) ? j.items[0] : undefined) || null), enabled: on && !!s.cut, staleTime: 10 * 60_000, retry: false });
+  const t = body(full.data?.text ? full.data : s);
+  return <p className="nm-story-body" data-content>{t ? (s.cut && !full.data?.text ? `${t}${full.isFetching ? "\n\n… 전부 읽는 중" : ""}` : t) : "(본문 사본 없음)"}</p>;
 }
 
 /** 그 글에 붙은 사진 · 영상 · 음악 = 펼친 본문 아래(형 11-15 05:09 「사진하고 같이 올렷으면 영상 같은거랑 같이 나오면 좋겠어」) · 펼쳤을 때만 받음 · 영상 = 누르면 재생

@@ -46,3 +46,7 @@
 .nm-story-media .drv figcaption { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; font-size:var(--fs-sm, 13px); color:var(--fg-2, #c8ccc8); }
 .nm-story-media .drv figcaption span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .nm-story-media .drv figcaption a { flex:none; margin-left:auto; padding:3px 10px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); border-radius:999px; color:inherit; text-decoration:none; }
+/* 옛 편 「더 보기」(천둥 #4408) — 칩 꼴 = 설정 칩(.yeta-set .yset-chip · yeta-settings.css 88) 값 그대로(그 꼴은 설정 칸 안에서만 먹어 여기 따로) */
+.nm-story-more { display:block; margin:12px auto 4px; appearance:none; border:1px solid var(--glass-line, rgba(255,255,255,.12)); background:var(--glass, rgba(26,27,26,.56)); color:var(--fg, inherit); border-radius:var(--r-pill, 999px); padding:5px 14px; font-size:var(--fs-xs, 12px); font-weight:var(--fw-b, 600); line-height:1.2; cursor:pointer; transition:transform .2s var(--ease, ease); }
+.nm-story-more:active { transform:scale(var(--press-m, .92)); }
+.nm-story-more:disabled { opacity:.6; cursor:default; }
