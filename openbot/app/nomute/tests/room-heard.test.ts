@@ -6,6 +6,6 @@ import { readFileSync } from "node:fs";
 test("고정 밖 = 안 읽은 방(단톡 포함) 먼저 → max(그 애가 형한테 말한 때 heard_ts, 형이 그 방에 쓴 때) 새 것부터 · 둘 다 없으면 마지막 글 시각", () => {
   const ui = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8"), d = readFileSync(new URL("../data/office.ts", import.meta.url), "utf8");
   assert.match(ui, /const talk = \(r: Room\) => \{ const l = lastOf\(r\), mine = l && l\.kind === "human" \? l\.ts : 0; return Math\.max\(r\.heard_ts \|\| 0, mine\) \|\| \(l \? l\.ts : r\.last_ts \|\| 0\); \};/);
-  assert.match(ui, /const rest = shown\.filter\(\(r\) => !pinned\(r\.id\)\)\.sort\(\(a, b\) => Number\(unread\(b\)\) - Number\(unread\(a\)\) \|\| talk\(b\) - talk\(a\)\);/);   // 안 읽은 방(단톡 포함) 먼저 = 되살림(형 21:42 「단톡 포함 안 읽은 창이 가장 위에」)
+  assert.match(ui, /const rest = shown\.filter\(\(r\) => !pinned\(r\.id\)\)\.sort\(\(a, b\) => Number\(guest\(a\)\) - Number\(guest\(b\)\) \|\| Number\(unread\(b\)\) - Number\(unread\(a\)\) \|\| talk\(b\) - talk\(a\)\);/);   // 안 읽은 방(단톡 포함) 먼저 = 되살림(형 21:42 「단톡 포함 안 읽은 창이 가장 위에」) · 그 앞 = 예비(손님) 창 늘 맨 아래(형 11-20 07:17)
   assert.match(d, /heard_ts\?: number;/);
 });

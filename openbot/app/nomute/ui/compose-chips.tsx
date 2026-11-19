@@ -1,7 +1,8 @@
 // 입력칸 위 테두리 오른쪽 = 이미지 에디터 글칸 단추 셋(복사 · 붙여넣기 · 입력 지우기 → 되돌리기)이 그대로 달라붙음
 //   (형 11-20 03:52 dm-gik 「글구 이 메세지 우상단 보내기 전 라인에 그 이미지 에디터에 보면 3버튼 있잖아. 그거 달라붙게 해주러」 · 깃 [도움])
 //   원본 = 에디터 thumb-maker/engine/p04-media.ts attachCopyPaste · thumb-maker.css .iobtn-edge
-//     = 26px 동그라미 · 위 테두리에 반 걸침 · 오른쪽부터 지우기 · 붙여넣기 · 복사(글 있을 때만) · 지우기 = 누르면 10초 되돌리기 · 복사 = ✓ 1.2초 · 글 없으면 지우기 흐림
+//     = 26px 동그라미 · 위 테두리에 반 걸침 · 지우기 = 누르면 10초 되돌리기 · 복사 = ✓ 1.2초
+//   빈 칸 = 붙여넣기 하나 · 글이 있으면 복사 · 지우기가 뜸 · 유리 흐림(형 11-20 07:17 dm-gik 깃 옮김 「그리고 입력창 위에는 붙여넣기만 있으면 됨 그리고 입력 된 것도 없는데 지우기가 잇을 필욘 없을듯 입력된게 잇으면 버튼 뜨게 해줘. 그리고 글라스 모피즘 적용해주고」 · 04:22 판 = 빈 칸에도 흐린 지우기)
 //   단추를 눌러도 입력칸 초점이 안 빠짐(누름 시작 preventDefault = 폰 자판 안 내려감 · 붙여넣기 = 커서 자리에)
 //   입력칸이 칠 때마다 이 부품만 「글 있음/없음」이 바뀔 때 다시 그림(office-chat 통째 다시 그리기 0)
 import { type PointerEvent, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -52,7 +53,7 @@ export function ComposeChips({ init = "" }: { init?: string }) {
     <div className="nm-cchips" role="group" aria-label="입력칸 단추">
       {has ? <button type="button" tabIndex={-1} className={`nm-cchip${ok ? " ok" : ""}`} aria-label="복사" title="복사" onPointerDown={keep} onClick={() => void copy()}><Svg s={ok ? CHECK_SVG : COPY_SVG} /></button> : null}
       <button type="button" tabIndex={-1} className="nm-cchip" aria-label="붙여넣기" title="붙여넣기" onPointerDown={keep} onClick={() => void paste()}><Svg s={PASTE_SVG} /></button>
-      <button type="button" tabIndex={-1} className={`nm-cchip${undo !== null ? " undo" : has ? "" : " off"}`} aria-label={undo !== null ? "되돌리기" : "입력 지우기"} title={undo !== null ? "되돌리기 (직전 입력 복원)" : "입력 지우기"} onPointerDown={keep} onClick={erase}><Svg s={undo !== null ? UNDO_SVG : ERASE_SVG} /></button>
+      <button type="button" tabIndex={-1} className={`nm-cchip${undo !== null ? " undo" : has ? "" : " gone"}`} aria-hidden={!has && undo === null ? true : undefined} aria-label={undo !== null ? "되돌리기" : "입력 지우기"} title={undo !== null ? "되돌리기 (직전 입력 복원)" : "입력 지우기"} onPointerDown={keep} onClick={erase}><Svg s={undo !== null ? UNDO_SVG : ERASE_SVG} /></button>   {/* 빈 칸 = 안 보임(자리만 = 첫 글자 칠 때 붙여넣기가 옆으로 안 튐) · 지운 뒤 10초 = 되돌리기 */}
     </div>
   );
 }

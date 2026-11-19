@@ -15,3 +15,13 @@ test("에디터와 같은 값 · 같은 그림 · 초점 안 뺏음 · 입력칸
   assert.match(oc, /saveDraft\(room, t\); chipText\(t\);/);
   assert.match(oc, /<div className="nm-cmp-wrap"><ComposeChips key=\{room\} init=\{loadDraft\(room\)\} \/>/);
 });
+
+// 형 11-20 07:17 「입력창 위에는 붙여넣기만 있으면 됨 그리고 입력 된 것도 없는데 지우기가 잇을 필욘 없을듯 입력된게 잇으면 버튼 뜨게 해줘. 그리고 글라스 모피즘 적용해주고」
+test("빈 칸 = 붙여넣기 하나 · 글 있으면 복사 · 지우기 · 지운 뒤 되돌리기 · 유리", () => {
+  const c = readFileSync(new URL("../ui/compose-chips.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/compose-chips.css", import.meta.url), "utf8");
+  assert.match(c, /\{has \? <button type="button" tabIndex=\{-1\} className=\{`nm-cchip\$\{ok \? " ok" : ""\}`\} aria-label="복사"/);
+  assert.match(c, /className=\{`nm-cchip\$\{undo !== null \? " undo" : has \? "" : " gone"\}`\}/);
+  assert.match(css, /\.nm-cchip\.gone \{ visibility: hidden; pointer-events: none; \}/);
+  assert.doesNotMatch(c, /" off"/);
+  assert.match(css, /backdrop-filter: blur\(var\(--blur-l, 11px\)\)/);
+});

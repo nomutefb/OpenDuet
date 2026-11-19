@@ -122,7 +122,9 @@ export function useRoomOrder() {
   // 안 읽은 방(단톡 포함) 먼저 → 그 안 · 나머지 = 위 talk 차례(형 11-19 21:42 dm-sia 시아 옮김 「시아 항상 고정 빼고는 단톡 포함 안 읽은 창이 가장 위에 올라오게해줘」 · 봄 13:36 「안 읽은 방 먼저 뺌」을 갈음 = 형 말이 먼저)
   //   안 읽음 = 줄 숫자 · 점과 같은 셈(count · 서버 unread · 단톡 = 형한테 온 글만)
   const unread = (r: Room) => count(r) !== 0;
-  const rest = shown.filter((r) => !pinned(r.id)).sort((a, b) => Number(unread(b)) - Number(unread(a)) || talk(b) - talk(a));
+  // 예비(손님 · 서버 guest:true = dm-spare01 「예비 1」 …) 창 = 늘 맨 아래(형 11-20 07:17 dm-gik 깃 옮김 「웅 예비창은 항상 제일 아래로 가게 해주라」) · 그 안 차례는 위와 같음 · 형이 고정한 건 고정 그대로
+  const guest = (r: Room) => !!(r as { guest?: boolean }).guest;
+  const rest = shown.filter((r) => !pinned(r.id)).sort((a, b) => Number(guest(a)) - Number(guest(b)) || Number(unread(b)) - Number(unread(a)) || talk(b) - talk(a));
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
   return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY && r.id !== TRAIN_ROOM)   /* 작업 알림(기차봇 1:1) = 목록에서 숨김 · 완료는 PM 방 접힌 카드 + 리모콘(형 11-14 23:34 「작업 알림은 대화방으로 취급 안하고」 · 깃 #-019) */, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
 }
