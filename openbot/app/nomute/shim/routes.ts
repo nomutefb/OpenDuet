@@ -2,6 +2,7 @@
 // 짝이 없는 길(짝 표 「안 씀」) = 서버에 안 보내고 「없음」 꼴(빈 목록·끈 스위치)로 답함 · 쓰기는 짝 있는 것만
 import { HYUNG_ID, type OfficeRoom, idOf, office, people, toAgent, toChannel } from "../data/office";
 import { putAttachment } from "./attachments";
+import { queryClient } from "@/query-client";
 
 type Fetch = typeof fetch;
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -9,25 +10,29 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 /** 우리에게 없는 기능 = 끔(원본이 이 스위치로 메뉴·단추를 숨김) */
 const CAPS = { useBots: true, teamBots: false, cloudBrowser: false, cloudComputer: false, localComputer: false, passwordManager: false, slackTeams: false };
 
+// 방 목록 · 읽음 표 = 화면이 이미 받아 둔 것(["nomute","rooms"] · ["nomute","seen"])을 같이 씀 — 낡았거나 다시 받으라 표시된 때만 서버에(받는 중이면 그 받기를 같이 기다림)
+//   앞 판 = 이 다리가 불릴 때마다 서버에서 방 목록을 통째로 또 받음: 방 하나에 글이 올 때마다 channels · duet-channels 가 한 번씩
+//   (형 11-19 「또 이런 비효율적인게 있나?」 · 실측 = 형이 대화하는 2분에 방 목록 통째 35번 · 읽음 표 33번)
+const roomsNow = () => queryClient.fetchQuery({ queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: OfficeRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000 });
 async function seenMap(): Promise<Record<string, number>> {
   try {
-    const j = await office<{ seen?: Record<string, { ts?: number }> }>("seen");
-    return Object.fromEntries(Object.entries(j.seen || {}).map(([k, v]) => [k, Number(v?.ts) || 0]));
+    const seen = await queryClient.fetchQuery({ queryKey: ["nomute", "seen"], queryFn: () => office<{ seen?: Record<string, { ts?: number }> }>("seen").then((j) => j.seen || {}), staleTime: 15_000 });
+    return Object.fromEntries(Object.entries(seen || {}).map(([k, v]) => [k, Number(v?.ts) || 0]));
   } catch { return {}; }
 }
 
 async function channels() {
-  const [list, j, seen] = await Promise.all([people(), office<{ rooms: OfficeRoom[] }>("rooms"), seenMap()]);
-  return (j.rooms || []).map((r) => toChannel(r, list, seen[r.id]));
+  const [list, rooms, seen] = await Promise.all([people(), roomsNow(), seenMap()]);
+  return (rooms || []).map((r) => toChannel(r, list, seen[r.id]));
 }
 
 /** 메뉴 방 목록(원본 DuetChannel 꼴) — 우리 메뉴(ui/menu.tsx)로 바꿔 끼웠지만 1:1 화면(channel-screen)이 같은 목록을 읽음
  *  everythingId = 없음: 원본은 그 방을 첫 화면("/")으로 돌리는데 첫 화면은 이제 대화 목록 → 회의실도 단체방 화면(/group/all)에서 엶 */
 async function duetChannels() {
-  const [list, j] = await Promise.all([people(), office<{ rooms: OfficeRoom[] }>("rooms")]);
+  const [list, rooms] = await Promise.all([people(), roomsNow()]);
   return {
     everythingId: null,
-    channels: (j.rooms || []).filter((r) => r.id !== "all").map((r, i) => ({
+    channels: (rooms || []).filter((r) => r.id !== "all").map((r, i) => ({
       ...toChannel(r, list), purpose: null, icon: r.with ? "people" : "folder", colour: "sky", dressed: true, archivedAt: null, createdAt: new Date(i).toISOString(),
     })),
   };
@@ -62,8 +67,8 @@ export async function route(url: URL, init: RequestInit, _real: Fetch): Promise<
       }
       if (p === "/api/openduet/channels") return json(await duetChannels());
       if (seg[0] === "groups" && seg.length === 2) {   // 단체방 머리(사람 단추)가 읽는 명단 · 대화록은 우리 대화창이 /api/office 로 바로 읽음
-        const [list, j] = await Promise.all([people(), office<{ rooms: OfficeRoom[] }>("rooms")]);
-        const r = (j.rooms || []).find((x) => x.id === seg[1]);
+        const [list, rooms] = await Promise.all([people(), roomsNow()]);
+        const r = (rooms || []).find((x) => x.id === seg[1]);
         if (!r) return json({ error: "그 방은 없어" }, 404);
         const bots = toChannel(r, list).agentIds.map((id) => { const x = list.find((y) => idOf(y.who, list) === id); return { id, name: x?.name || x?.who || id }; });
         return json({ bots, people: [{ userId: HYUNG_ID, email: "", name: "형", creator: true }], messages: [] });

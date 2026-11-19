@@ -1,6 +1,7 @@
 import { queryClient } from "@/query-client";
 import { type OfficeRoom, office } from "./office";
 import { createReadState, type SeenMarker } from "./read-local";
+import { touchRooms } from "./sync";
 
 /** 찍기 탭(봇이 형 자리 브라우저로 화면을 볼 때 · 주소에 ?look=1) = 형 「읽음」을 서버에 안 보냄 — 형 안 읽음 점이 우리 손으로 꺼지던 것(봄 11-12 11:04 · 뎅) · 탭 하나에만(sessionStorage) · 형이 직접 열면 지금대로 */
 export const LOOK_ONLY = (() => {
@@ -25,13 +26,14 @@ export const roomReadState = createReadState({
     queryClient.getQueryData<Record<string, SeenMarker>>(["nomute", "seen"])?.[
       room
     ]?.at || 0,
-  refresh: () => {
-    for (const queryKey of [
-      ["nomute", "seen"],
-      ["nomute", "rooms"],
-      ["duet-channels"],
-    ])
-      void queryClient.invalidateQueries({ queryKey });
+  // 읽음을 올린 뒤 = 그 방 칸만 다시 받음 · 읽음 표는 서버가 받아 준 값을 그대로 넣음(다시 받기 0)
+  //   앞 판 = 읽음 표 + 방 목록 통째 + 원본 틀 목록을 매번 다시 받음(읽은 방 하나의 안 읽은 수만 바뀌는데 · 형 11-19 「또 이런 비효율적인게 있나?」)
+  refresh: (room, accepted) => {
+    if (room && accepted && queryClient.getQueryData(["nomute", "seen"]))
+      queryClient.setQueryData<Record<string, SeenMarker>>(["nomute", "seen"], (old) => (old ? { ...old, [room]: accepted } : old));
+    else void queryClient.invalidateQueries({ queryKey: ["nomute", "seen"] });
+    if (room) touchRooms([room]);   // 끝나면 원본 틀 목록(duet-channels)도 다시 그림(sync.ts)
+    else for (const queryKey of [["nomute", "rooms"], ["duet-channels"]]) void queryClient.invalidateQueries({ queryKey });
   },
 });
 

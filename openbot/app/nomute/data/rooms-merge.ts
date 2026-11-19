@@ -9,3 +9,13 @@ export function mergeRooms<T extends RoomRow>(cur: T[], want: string[], j: { roo
   if (want.some((id) => got.has(id) !== have.has(id))) return null;
   return cur.map((r) => got.get(r.id) ?? r);
 }
+
+/** 순수 — 읽음 표(방 → {ts, at})에서 달라진 방 id(생김 · 사라짐 · ts · at 바뀜) · 읽음 표가 바뀌었을 때 그 방 칸만 다시 받으려고(sync.ts seenDelta) */
+export function seenChanged(prev: Record<string, { ts?: number; at?: number } | undefined>, next: Record<string, { ts?: number; at?: number } | undefined>): string[] {
+  const out: string[] = [];
+  for (const id of new Set([...Object.keys(prev), ...Object.keys(next)])) {
+    const a = prev[id], b = next[id];
+    if ((Number(a?.ts) || 0) !== (Number(b?.ts) || 0) || (Number(a?.at) || 0) !== (Number(b?.at) || 0)) out.push(id);
+  }
+  return out;
+}

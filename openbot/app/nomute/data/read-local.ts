@@ -3,7 +3,8 @@ export type SeenMarker = { ts: number; at: number };
 type Intent = { read: boolean; ts: number; staged?: boolean };
 type ReadTransport = {
   write: (room: string, marker: SeenMarker) => Promise<SeenMarker | undefined>;
-  refresh: () => void;
+  /** room = 방금 올린 방 · accepted = 서버가 받아 준 표(못 올렸으면 없음) — 받는 쪽이 그 방 칸만 다시 받게 */
+  refresh: (room?: string, accepted?: SeenMarker) => void;
   seenAt?: (room: string) => number;
   now?: () => number;
 };
@@ -37,6 +38,7 @@ export function createReadState(transport: ReadTransport) {
         (transport.seenAt?.(room) || 0) + 1,
       );
       const marker = { ts: intent.ts, at: clock };
+      let ok: SeenMarker | undefined;
       try {
         const accepted = await transport.write(room, marker);
         clock = Math.max(clock, accepted?.at || 0);
@@ -46,6 +48,7 @@ export function createReadState(transport: ReadTransport) {
           throw new Error("읽음 상태를 저장하지 못했어. 다시 눌러 줘.");
         }
         confirmed.set(room, intent);
+        ok = accepted;
         return true;
       } catch (cause) {
         if (current.get(room) !== intent) return false;
@@ -56,7 +59,7 @@ export function createReadState(transport: ReadTransport) {
         emit();
         throw cause;
       } finally {
-        transport.refresh();
+        transport.refresh(room, ok);
       }
     });
     tail = task.catch(() => {});
