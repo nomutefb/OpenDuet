@@ -24,6 +24,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type React from "react";
 import { Component, type ComponentProps, type CSSProperties, Fragment, type PointerEvent as RPointerEvent, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
+import { touchRooms } from "../data/sync";
 import { useRoomRead } from "../data/use-room-read";
 import { Streamdown } from "streamdown";
 import { type CommandOption, Composer, toAgentOptions } from "@/components/channels/composer";
@@ -257,7 +258,8 @@ export function useOfficeRoom(room: string) {
             const d = draftRef.current;
             if (d && j.messages.some((m) => m.who === d.who && m.ts >= d.ts - 2000)) setDraft(null);   // 끝난 답이 올라옴 = 그 쓴 이의 초안 지움
             qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, j.messages));
-            for (const k of [officeKeys.reads(room), officeKeys.rooms, officeKeys.bots, ["channels"], ["duet-channels"]]) void qc.invalidateQueries({ queryKey: k }, { cancelRefetch: false });   // 받는 중이면 그 받기를 그대로 씀(새로 끊고 다시 X) — 글이 잇달아 오면 방 목록 부름이 끊겼다 다시 가며 쌓였음(뜸 11-07 13:1x 잼 = 형 앱 방 목록 1분 54번 · 한 번 2초)
+            touchRooms([room]);   // 이 방 칸만(머리 · 안 읽은 수 · 0.3초 모음) · 원본 틀 목록은 그 뒤 다시 그림(data/sync.ts) — 앞 판 = 글이 올 때마다 방 목록 통째 + 원본 틀 목록 둘이 또 통째(형 11-19 「또 이런 비효율적인게 있나?」 · 실측 2분에 통째 35번)
+            for (const k of [officeKeys.reads(room), officeKeys.bots]) void qc.invalidateQueries({ queryKey: k }, { cancelRefetch: false });   // 받는 중이면 그 받기를 그대로 씀(새로 끊고 다시 X) — 글이 잇달아 오면 방 목록 부름이 끊겼다 다시 가며 쌓였음(뜸 11-07 13:1x 잼 = 형 앱 방 목록 1분 54번 · 한 번 2초)
             if (j.messages.some((m) => /!(형|세웅)/.test(String(m.text || "")) || m.reply_to)) void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });   // !형 글·형 답장 = 대기 알약 바로 다시 셈(형 11-07 10:57 「아직 내 채팅위에 이거 안올라와서 너네가 언급해도 안보임」)
           }
           // 바닥(구름 11-17 · 형 「클라우드플레어 부하를 줄여야 좋음」) = 새 글도 초안 바뀜도 없이 답이 바로 옴(정상 = 서버가 max_s 까지 붙잡음 · 바로 오는 건 새 글 · 초안 바뀜뿐) → 1초 쉼
@@ -1130,7 +1132,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   };
   const invited = (j: { message?: Msg }) => {   // 「다시 불렀습니다」 줄 붙이기(= 초대 단추가 사라짐) = ✓ 를 보여 준 뒤(GoButton done)
     if (j.message) qc.setQueryData<Page>(officeKeys.msgs(room), (old) => merge(old, [j.message as Msg]));
-    void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) }); void qc.invalidateQueries({ queryKey: officeKeys.rooms });
+    void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) }); touchRooms([room]);   // 이 방 칸만(앞 판 = 방 목록 통째)
   };
   const [tick, setTick] = useState(0);   // 점 셋 멈춤(2분 · 45분)은 시각으로 정해져서 새 글이 없어도 다시 셈
   const typing = useMemo(() => typingOf(all, r, bots, list).filter((n) => n !== draft?.who), [all, r, bots, list, draft?.who, tick]);   // eslint-disable-line react-hooks/exhaustive-deps   // 초안이 자라는 봇 = 점 셋 대신 초안 말풍선
@@ -1438,7 +1440,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
       draftDrop(`peek:${m.id}`);
       qc.setQueryData<Page>(officeKeys.msgs(room), (old) => { if (!old) return old; const next = j.message ? merge(old, [j.message]) : old; return { ...next, pending_ids: (next.pending_ids || []).filter((x) => x !== m.id) }; });
       void qc.invalidateQueries({ queryKey: officeKeys.msgs(room) });
-      void qc.invalidateQueries({ queryKey: officeKeys.rooms });
+      touchRooms([room]);   // 이 방 칸만(앞 판 = 방 목록 통째)
     });
   };
 
@@ -1647,7 +1649,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
               }
               setReply((current) => current === submittedReply ? null : current);
               // Composer가 보낸 부분만 비우며 onTextChange로 저장한다. 기다리는 동안 쓴 새 글은 보존한다.
-              void qc.invalidateQueries({ queryKey: officeKeys.rooms });
+              touchRooms([room]);   // 이 방 칸만(앞 판 = 방 목록 통째)
             } catch (e) {
               setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 글은 입력칸에 그대로`);
               throw e;
