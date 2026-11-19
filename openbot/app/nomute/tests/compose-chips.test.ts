@@ -23,5 +23,6 @@ test("빈 칸 = 붙여넣기 하나 · 글 있으면 복사 · 지우기 · 지�
   assert.match(c, /className=\{`nm-cchip\$\{undo !== null \? " undo" : has \? "" : " gone"\}`\}/);
   assert.match(css, /\.nm-cchip\.gone \{ visibility: hidden; pointer-events: none; \}/);
   assert.doesNotMatch(c, /" off"/);
-  assert.match(css, /backdrop-filter: blur\(var\(--blur-l, 11px\)\)/);
+  assert.match(css, /background: rgba\(26, 27, 26, \.56\); border: 1px solid rgba\(255, 255, 255, \.14\);\n  -webkit-backdrop-filter: blur\(11px\); backdrop-filter: blur\(11px\);/);   // 형이 본 유리 동그라미(옛 우하단 「+」) 값
+  assert.match(css, /\.nm-cchips \{ position: absolute; top: 0; right: 20px;/);   // 오른쪽 끝(형 08:26 「좀 더 우측으로」)
 });

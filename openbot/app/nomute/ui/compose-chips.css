@@ -1,12 +1,13 @@
 /* 입력칸 단추 셋 — 에디터 thumb-maker.css .iobtn-edge 꼴 그대로(26px 동그라미 · 위 테두리에 반 걸침 · 그림 13px · 흐림 .6 · 끔 .3 · ✓ = 라임)
    (형 11-20 03:52 「그 이미지 에디터에 보면 3버튼 있잖아. 그거 달라붙게 해주러」 · ./compose-chips.tsx) · 움직임 = 누름 scale 만(transform) */
 .nm-cmp-wrap { position: relative; }
-.nm-cchips { position: absolute; top: 0; right: 76px;   /* 보내기 단추(56px · 안쪽 9px) 비킴 = 에디터도 끝에서 안쪽(--clip-x 28%) */ z-index: 2; display: flex; gap: 6px; transform: translateY(-50%); pointer-events: none; }
+.nm-cchips { position: absolute; top: 0; right: 20px; z-index: 2; display: flex; gap: 6px; transform: translateY(-68%); pointer-events: none; }   /* 오른쪽 끝으로(형 11-20 08:26 dm-gik 깃 옮김 「그 좀 더 우측으로 겄으면 함」 · 앞 판 = 보내기 단추 비켜 76px) · 위로 조금 더 걸침(-68%) = 글 있을 때 라임 보내기 단추(안쪽 9px 위)와 안 겹침 */
 .nm-cchip { pointer-events: auto; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border-radius: 50%;
   color: var(--duet-ink, #eef7f0); -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: transform .12s ease, border-color .12s ease;
-  /* 유리(형 11-20 07:17 「글라스 모피즘 적용해주고」) = 앱 유리 값 그대로(bot-desk.css · shell.css 결): 밑칠 --glass · 선 --glass-line · 흐림 --blur-l · 안쪽 윗선 · 단추는 가만히(흐림 위 움직임 0) */
-  background: var(--glass, rgba(255, 255, 255, .06)); border: 1px solid var(--glass-line, rgba(255, 255, 255, .08));
-  -webkit-backdrop-filter: blur(var(--blur-l, 11px)); backdrop-filter: blur(var(--blur-l, 11px)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07); }
+  /* 유리(형 11-20 07:17 「글라스 모피즘 적용해주고」 · 08:26 「글래스모피즘 그댜로규」) = 형이 본 유리 동그라미(옛 우하단 「+」 .nm-fab-main · yeta-chat.css) 값 그대로: 밑칠 rgba(26,27,26,.56) · 선 .14 · 흐림 11px + 안쪽 윗선 · 단추는 가만히(흐림 위 움직임 0)
+     앞 판(밑칠 흰 .06 · 선 .08) = 어두운 입력칸 위에선 앞 불투명 판과 눈에 거의 같았음 */
+  background: rgba(26, 27, 26, .56); border: 1px solid rgba(255, 255, 255, .14);
+  -webkit-backdrop-filter: blur(11px); backdrop-filter: blur(11px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
 .nm-cchip > span { display: grid; place-items: center; }
 .nm-cchip svg { display: block; width: 13px; height: 13px; opacity: .6; }
 @media (hover: hover) { .nm-cchip:hover { border-color: rgba(255, 255, 255, .27); } .nm-cchip:hover svg { opacity: 1; } }
@@ -15,5 +16,5 @@
 .nm-cchip.ok svg { opacity: 1; }
 .nm-cchip.undo { border-color: rgba(255, 255, 255, .34); }
 .nm-cchip.undo svg { opacity: 1; }
-html:not(.dark) .nm-cchip { border-color: rgba(0, 0, 0, .1); }
+:root:not(.dark) .nm-cchip { background: rgba(255, 255, 255, .66); border-color: rgba(0, 0, 0, .1); }   /* 밝은 판 = 옛 「+」 와 같은 값 */
 .nm-cchip.gone { visibility: hidden; pointer-events: none; }   /* 빈 칸의 지우기 = 자리만(붙여넣기 자리 고정 · 형 11-20 07:17 「입력 된 것도 없는데 지우기가 잇을 필욘 없을듯」) */
