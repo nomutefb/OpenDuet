@@ -287,6 +287,8 @@ function CopyBtn({ ok, off, label, go }: { ok: boolean; off?: boolean; label: st
   );
 }
 const seatName = (seat: string) => seat.replace(/^자리(\d)$/, "자리 0$1").replace(/^예비(\d+)$/, "예비 $1");
+/** 예비 이름 = 서랍에 나온 차례(예비 1 · 2 · 3) — 서버 자리 id(예비01 · 06 …)는 화면에 안 나감(형 11-20 03:04 「예비 2 3 을 만들고」 · 03:42 「02 03은 이미 쓰고잇는 거는 배제」 = 쓰는 자리는 서버가 빼고 새 칸을 더함) */
+const spareNames = (seats: VaultSeat[]) => { const m: Record<string, string> = {}; let i = 0; for (const s of seats) m[s.seat] = s.top ? seatName(s.seat) : `예비 ${++i}`; return (seat: string) => m[seat] || seatName(seat); };
 const DOTS = "••••••••";   // 열쇠 칸 = 가린 꼴만(형 08:09 「*****로 가려져있고 복사만 가능」 · 그록 창과 같은 점)
 
 /** 맨 위 「봄의 정원 MCP server」 칸 = 그록 「Edit MCP server」 꼴을 설명글 빼고 통째로(형 11-19 08:09 「이 형식을 거의 통째로 설명 빼고 옮겨」 「참고하기좀쉽게」 ·
@@ -295,10 +297,10 @@ const DOTS = "••••••••";   // 열쇠 칸 = 가린 꼴만(형 08:
  *  펼치면 Authentication 안에 예비 열쇠 줄(08:14 「그러면 아까 내가 준 그 양식을 펼치면」 「auth안에 예비가 여러개 나오게 해, 근데 그 중에 루미는 없는거야」 · 루미 = 서버가 안 줌)
  *  예비를 복사하면 그 줄 아래 사용처 글칸 → 치면 저절로 저장(08:16 「***로 표기해서 3개가 잇으면 되고 가져가면 그 아래에 내가 사용처를 적고 적으면 자동으로 저장되게하면대」 · 저장 단추 0)
  *  링크 그림 = 그록 플러그인 화면 새 탭(08:08 「링크는 항상 여기거든? url 픽토그램은 여기로」) · 펼침 = bot-desk .fold 꼴(grid 0fr → 1fr · 누를 때 한 번) */
-function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText, onUse, flush, remint, minting, focusUse }: {
+function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText, onUse, flush, remint, minting, focusUse, nameOf }: {
   top: VaultSeat; spares: VaultSeat[]; done: string; took: Record<string, true>; saved: string; memoOf: (s: VaultSeat) => string;
   copySeat: (seat: string) => void; copyText: (key: string, text: string) => void; onUse: (seat: string, v: string) => void; flush: (seat: string) => void;
-  remint: (seat: string) => void; minting: boolean; focusUse: { seat: string; n: number } | null;
+  remint: (seat: string) => void; minting: boolean; focusUse: { seat: string; n: number } | null; nameOf: (seat: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   // 복사 → 그 줄 사용처 칸에 바로 커서(형 11-20 03:04 dm-sia 「복사 시 자동으로 커서 아동 후 메모 한 줄 적게해줘」) · 칸이 막 그려진 뒤라 한 프레임 뒤
@@ -346,15 +348,15 @@ function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText,
                 return (
                   <div key={s.seat} className="nm-mcp-row">
                     <div className="flex items-center gap-2">
-                      <div className="nm-vault-in nm-mcp-f nm-mcp-k" aria-readonly="true">{seatName(s.seat)}</div>
+                      <div className="nm-vault-in nm-mcp-f nm-mcp-k" aria-readonly="true">{nameOf(s.seat)}</div>
                       <div className={`nm-vault-in nm-mcp-f nm-mcp-v${s.set ? "" : " off"}`} aria-readonly="true" aria-label={s.set ? "열쇠 가림" : "비어 있음"}>{s.set ? DOTS : "비어 있음"}</div>
-                      <CopyBtn ok={done === s.seat} off={!s.set} label={seatName(s.seat)} go={() => copySeat(s.seat)} />
+                      <CopyBtn ok={done === s.seat} off={!s.set} label={nameOf(s.seat)} go={() => copySeat(s.seat)} />
                       {/* 재발행 = 새 열쇠 + 앞 열쇠 파기(형 11-20 03:04 「내가 재발행 하면 키를 바꿀 수 있게 해줘 기존 건 파기」) · 그 자리 재확인(MorphAsk · 모달 0) */}
-                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" note="앞 열쇠는 파기돼" label={`${seatName(s.seat)} 재발행`} onYes={() => remint(s.seat)}>재발행</MorphAsk> : null}   {/* 빈 자리 = 아래 줄 「새 열쇠 만들기」 하나만 */}
+                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" note="앞 열쇠는 파기돼" label={`${nameOf(s.seat)} 재발행`} onYes={() => remint(s.seat)}>재발행</MorphAsk> : null}   {/* 빈 자리 = 아래 줄 「새 열쇠 만들기」 하나만 */}
                     </div>
                     {show ? (
                       <div className="nm-mcp-use">
-                        <input id={`mcp-use-${s.seat}`} type="text" autoComplete="off" spellCheck={false} maxLength={200} placeholder="사용처" aria-label={`${seatName(s.seat)} 사용처`} value={v}
+                        <input id={`mcp-use-${s.seat}`} type="text" autoComplete="off" spellCheck={false} maxLength={200} placeholder="사용처" aria-label={`${nameOf(s.seat)} 사용처`} value={v}
                           onChange={(e) => onUse(s.seat, e.target.value)} onBlur={() => flush(s.seat)} className="nm-vault-in normal-case" />
                         <svg aria-hidden className={`nm-mcp-ok${saved === s.seat ? " on" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
                       </div>
@@ -373,6 +375,7 @@ function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText,
 export function NomuteVault() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["nomute", "seatvault"], queryFn: () => office<{ seats: VaultSeat[] }>("seatvault").then((j) => j.seats || []), staleTime: 60_000 });
+  const nameOf = spareNames(q.data || []);
   const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [done, setDone] = useState("");
   const [memo, setMemo] = useState<Record<string, string>>({});   // 이름표 글칸(고치는 중) · 없으면 서버 값
   const saveMemo = (seat: string, v: string) => office<{ ok?: boolean; memo?: string }>("seatvault/memo", { method: "POST", body: JSON.stringify({ seat, memo: v }) });
@@ -431,7 +434,7 @@ export function NomuteVault() {
           <>
             <GardenMcp top={top} spares={(q.data || []).filter((s) => !s.top)} done={done} took={took} saved={saved} memoOf={(s) => memo[s.seat] ?? s.memo ?? ""}
               copySeat={(seat) => void copy(seat)} copyText={(k, t) => void copyText(k, t)} onUse={onUse} flush={flush}
-              remint={(seat) => mint.mutate(seat)} minting={mint.isPending} focusUse={focusUse} />
+              remint={(seat) => mint.mutate(seat)} minting={mint.isPending} focusUse={focusUse} nameOf={nameOf} />
             <div className="nm-mcp-cut" aria-hidden />
           </>
         );
@@ -442,7 +445,7 @@ export function NomuteVault() {
           {(q.data || []).filter((s) => !s.set || s.match === false).map((s) => (
             <li key={s.seat} className="flex flex-col gap-2 px-4 py-3">
               <p className="flex items-center justify-between gap-2 text-sm">   {/* 좁은 폭 = 이름 · 열쇠 앞부분이 줄고 오른쪽 상태는 한 줄(전 = 「넣음 · 12:38 AM」이 두 줄로 꺾이거나 열쇠 글자에 붙음 · 봄 11-18) */}
-                <span className="flex min-w-0 flex-1 items-baseline gap-2"><b className="shrink-0">{seatName(s.seat)}</b>
+                <span className="flex min-w-0 flex-1 items-baseline gap-2"><b className="shrink-0">{nameOf(s.seat)}</b>
                   {s.set && s.hint ? <code className="min-w-0 shrink-[3] truncate font-mono text-xs text-muted-foreground" aria-label="열쇠 앞부분만 보임">{s.hint}</code> : null}</span>   {/* 형 11-15 「암호 있는 곳 노출 가능한 부분은 보이고 나머지늠 ***로 표기」 */}
                 <span className={`shrink-0 whitespace-nowrap text-xs tabular-nums ${s.set && s.match === false ? "text-destructive" : "text-muted-foreground"}`}>{!s.set ? "비어 있음" : "열쇠 안 맞음"}</span>
               </p>
@@ -450,7 +453,7 @@ export function NomuteVault() {
                 <input id={`vault-${s.seat}`} type="password" autoComplete="off" spellCheck={false} placeholder={s.set ? "바꿀 때만 붙여 넣기" : "열쇠 붙여 넣기"} value={draft[s.seat] || ""}
                   onChange={(e) => setDraft((d) => ({ ...d, [s.seat]: e.target.value }))} className="nm-vault-in" />
                 <GoButton disabled={!draft[s.seat]?.trim() || put.isPending} go={() => put.mutateAsync({ seat: s.seat, value: draft[s.seat].trim() })} className="nm-nb-btn nm-vault-b" busy="넣는 중">넣기</GoButton>
-                <CopyBtn ok={done === s.seat} off={!s.set} label={seatName(s.seat)} go={() => void copy(s.seat)} />
+                <CopyBtn ok={done === s.seat} off={!s.set} label={nameOf(s.seat)} go={() => void copy(s.seat)} />
               </div>
               {s.memo !== undefined ? (() => {   /* 이름표 = 한 줄 글칸 + 저장(형 11-18 13:32 「아래에 기입해서 저장가능한 텍스트 박스」) · 저장 → ✓(GoButton) → 다시 받기 */
                 const v = memo[s.seat] ?? s.memo ?? "", changed = v.trim() !== (s.memo || "").trim(), long = v.length > 200;
