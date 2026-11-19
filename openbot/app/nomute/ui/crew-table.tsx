@@ -16,7 +16,7 @@ function cellsOf(b: Band, r: BRow) {
   const out = [];
   for (let i = 0; i < b.cols.length; i++) {
     const c = b.cols[i], x = r.cells[c.id];
-    if (r.wide && r.wide.from === c.id) { out.push(<td key={c.id} colSpan={r.wide.n} className="w">{r.wide.text}</td>); i += r.wide.n - 1; continue; }
+    if (r.wide && r.wide.from === c.id) { out.push(<td key={c.id} colSpan={r.wide.n} className="w" data-st={r.wide.st}>{r.wide.text}</td>); i += r.wide.n - 1; continue; }
     if (x === undefined) out.push(<td key={c.id} />);
     else if (x === null) out.push(<td key={c.id} className="no" title={`${c.title} · 기록 없음`}><b>–</b></td>);
     else if (x.kind === "dash") out.push(<td key={c.id} className="dash" title={tip(c, x)}><b>–</b></td>);

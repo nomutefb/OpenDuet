@@ -16,7 +16,7 @@ import { ACT_KO, actSum } from "./activity-sum";
 import { ActivityBoard, ActivityDots } from "./activity-board";
 import { CrewTable } from "./crew-table";
 import { CliBind } from "./cli-bind";   // 애들 × 연결 아래 = R2 에 닿는 손 · 그록 계정 귀속(형 11-19 「러너에 들어가야하고 위 내용 들어가야함」 · 옛 「CLI 연결」 표 아래에 있던 것을 표와 같이 이 카드로)
-import { type Band, type SRow, bandCount, bandDiary, bandHands, bandLink, cliNoteItems, crewOrder } from "./crew-table-logic";
+import { type Band, type BotRoutine, type SRow, bandCount, bandDiary, bandHands, bandLink, cliNoteItems, crewOrder, grokDiaryRows } from "./crew-table-logic";
 import { type Cell, type CliItem, type StatusData, type StatusRow, catRows, hostOf, statusOpts, worst } from "./status-q";
 import "./sched-status.css";
 import "./yeta-settings.css";
@@ -37,7 +37,7 @@ const SELF_OK = ["윈터"];
 /** 혼자 못 넘어가는 창을 챙기는 이(「챙김」 칸) — 형 11-19 01:09 밥상(깃이 옮김) 「자력으로 못깨니까 클라우드세션은」 「챙겨줘야하고 이거 러너에 반영하라고 21시 경에 얘기햇잖아」 「그래야 표시되서 안다고」 · 구름 = 봄이 맥 기본 칸 계정을 바꿔 새 창을 엶(형 00:32 dm-cloud 「앞으로 그거 봄이 자동 하게뜸」) · 구름 지킴의 [도움] 은 깃이 받음 */
 export const CARE: Record<string, string> = { 구름: "봄 · 깃" };
 export const NO_SELF: Record<string, string> = { 구름: "클라우드 세션 · 계정을 혼자 못 넘어감 · 누가 넘겨 줘야 함(안 해 주면 꺼짐)" };
-type Bot = { who: string; state: string; why?: string };
+type Bot = { who: string; state: string; why?: string; routines?: BotRoutine[] };   // routines = 그록 애 자동화(이름 · 계기 · 켜짐 · 마지막 실행 · 서버 _bots.js 가 bot_routines.json 그대로)
 const botSt = (s: string): HealthSt => (s === "awake" || s === "asleep" ? "ok" : s === "dead" || s === "down" || s === "error" ? "miss" : "unknown");
 const BOT_KO: Record<string, string> = { awake: "깨어 있음", asleep: "자는 중(부르면 깸)", unknown: "모름" };
 /** 계정 짧은 이름(형 01:25 「2열 2행(ems1130g)」 · 「3영ㄹ 2행(muteno)」) · 네이버 = ems1130n(형 11-07 14:34 「윈터는 ems1130n이야」) */
@@ -148,12 +148,13 @@ function AcctTable({ rows }: { rows: AcctRow[] }) {
 }
 
 /** 띠들 = 서버 답 → 애들 × 연결(./crew-table-logic.ts) */
-function bandsOf(d: StatusData | undefined, bs: Body[], bots: StatusRow[]): Band[] {
+function bandsOf(d: StatusData | undefined, bs: Body[], bots: StatusRow[], list?: Bot[]): Band[] {
   const act = catRows(d, "activity", bs), kids = crewOrder(bots as SRow[], act as SRow[], bs.map((b) => b.being).filter(Boolean));
   const cli = cliRows([...bs, ...moreKids(d, bs)], d, bs), hands = d?.cats?.find((c) => c.id === "hands");
+  const diary = catRows(d, "diary", bs) as SRow[], routines = Object.fromEntries((list || []).filter((b) => b.routines).map((b) => [b.who, b.routines]));
   return [
     bandLink(kids, cli as SRow[], bots as SRow[], catRows(d, "acct", bs) as SRow[]),
-    bandDiary(kids, catRows(d, "diary", bs) as SRow[], { noSelf: NO_SELF, care: CARE, selfOk: SELF_OK }),
+    bandDiary(kids, [...diary, ...grokDiaryRows(kids, routines, diary)], { noSelf: NO_SELF, care: CARE, selfOk: SELF_OK }),   // 그록 애 = 하루 일기 자동화의 마지막 실행(형 11-19 「그록봇도 일기를쓰는거니까」)
     bandHands(kids, catRows(d, "hands", bs) as SRow[], hands?.cols),
   ].filter((b): b is Band => !!b);
 }
@@ -161,11 +162,11 @@ function bandsOf(d: StatusData | undefined, bs: Body[], bots: StatusRow[]): Band
 /** bare = 5번 「애들」 화면의 러너 층으로 들어갈 때(형 11-16 17:4x 구름 맥 창 「이거 두개 봣을때 겹치는게좀 잇어 하나로 통일하고 봇 상태를 메인으로 하고싶어.」): 겹치는 「활동」 신호 판은 안 그림(맨 위 손 판이 같은 말) · 바깥 여백은 부른 쪽 것 */
 export function StatusBoard({ bare = false }: { bare?: boolean } = {}) {
   const srv = useQuery(statusOpts());
-  const local = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 60_000, enabled: !srv.data });   // 작동 표 답이 있으면 안 물음(같은 이름 줄)
+  const local = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: Bot[] }>("bots").then((j) => j.bots || []), refetchInterval: 5 * 60_000, staleTime: 60_000 });   // 이름 줄 예비 + 그록 애 자동화(하루 일기 루틴 · 15분에 한 번 바뀌는 자료라 5분마다)
   const d = srv.data;
   const bs = useMemo(() => bodiesOf(d?.bodies).map((b) => (RUN_WHO.has(b.being) ? b : { ...b, being: "" })), [d]);   // 몸 = 서버 bodies(정본) · 아이 = 러너 줄을 세우는 이만
   const bots = useMemo(() => { const r = catRows(d, "bots", bs); return r.length ? r : botsLocal(local.data); }, [d, bs, local.data]);
-  const bands = useMemo(() => bandsOf(d, bs, bots), [d, bs, bots]);
+  const bands = useMemo(() => bandsOf(d, bs, bots, local.data), [d, bs, bots, local.data]);
   const acct = useMemo(() => catRows(d, "acct", bs), [d, bs]), act = useMemo(() => catRows(d, "activity", bs), [d, bs]);
   const [open, setOpen] = useState<Record<string, boolean>>({}), [pick, setPick] = useState("");
   const n = bandCount(bands), w: HealthSt = n.miss ? "miss" : n.late ? "late" : bots.length ? "ok" : "unknown", as = actSum(act);

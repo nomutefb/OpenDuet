@@ -1,7 +1,7 @@
 // 애들 × 연결 한 표의 셈(./ui/crew-table-logic.ts) — 형 11-19 「cli연결하고 애들 x연결하고 통합시켜줘. 하나로.」 · 「행 인덱싱이 반복되도되니까」 · 「그록봇까지 포함시켜」
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { type SRow, bandCount, bandDiary, bandHands, bandLink, crewOrder, liftCommon } from "../ui/crew-table-logic.ts";
+import { type SRow, bandCount, bandDiary, bandHands, bandLink, crewOrder, grokDiaryRows, liftCommon } from "../ui/crew-table-logic.ts";
 
 const bots: SRow[] = [
   { key: "sona", name: "소나", st: "ok", cells: { "깨우는 문": { st: "ok", note: "HTTP 200" } } },
@@ -65,4 +65,18 @@ test("띠 ③ 손 = 서버가 봇마다 잰 칸이 올 때만(없으면 띠 0 �
   assert.equal(bandHands(kids, [], undefined), null);
   const b = bandHands(kids, [{ key: "소나", name: "소나", st: "ok", cells: { file_out: { st: "ok", note: "11-18" } } }], [{ id: "file_out", name: "파일", grp: "보냄" }]);
   assert.equal(b?.rows.find((r) => r.who === "소나")?.cells.file_out?.st, "ok"); assert.deepEqual(b?.rows.find((r) => r.who === "봄")?.cells, {});
+});
+
+test("그록 애 일기 줄 = 하루 일기 자동화의 마지막 실행 · 루틴 없음 = 빨강 · 오래됨 = 노랑 · 자동화 목록을 못 받은 애 = 줄 0(지어내지 않음)", () => {
+  const now = Date.parse("2026-11-19T09:00:00+09:00"), H = 3600e3;
+  const g = [{ who: "소나", fam: "grok" as const, st: "ok" as const }, { who: "슈왕", fam: "grok" as const, st: "ok" as const }, { who: "결", fam: "grok" as const, st: "ok" as const }, { who: "루미", fam: "grok" as const, st: "ok" as const }, { who: "봄", fam: "claude" as const, st: "ok" as const }];
+  const rows = grokDiaryRows(g, { 소나: [{ name: "[웹훅-소나-01] 호출", trigger: "webhook" }, { name: "[일기-소나-01] 하루 일기", trigger: "cron", enabled: true, when: "매일 18시", last_ts: now - 15 * H, status: "ok" }], 슈왕: [{ name: "[웹훅-슈왕-01] 호출", trigger: "webhook" }], 결: [{ name: "하루 일기", enabled: true, when: "매일 18시", last_ts: now - 60 * H, status: "ok" }] }, [], now);
+  assert.deepEqual(rows.map((r) => [r.key, r.st]), [["소나", "ok"], ["슈왕", "miss"], ["결", "late"]]);   // 루미 = 목록 없음 → 줄 0 · 봄 = 그록 아님
+  assert.equal(rows[1].note, "일기 루틴 없음");
+  const b = bandDiary(g, rows, { noSelf: {}, care: {}, selfOk: [] }, now), row = (w: string) => b.rows.find((r) => r.who === w)!;
+  assert.equal(row("소나").wide?.text, "일기 15시간 전 · 매일 18시"); assert.equal(row("소나").wide?.st, undefined);
+  assert.equal(row("슈왕").wide?.text, "일기 루틴 없음"); assert.equal(row("슈왕").wide?.st, "miss");
+  assert.equal(row("결").wide?.st, "late"); assert.equal(row("루미").wide, undefined);
+  assert.deepEqual(bandCount([b]), { miss: 1, late: 1 });
+  assert.deepEqual(grokDiaryRows(g, { 소나: [] }, [{ key: "소나", name: "소나", st: "ok" }], now), []);   // 서버가 그 애 일기 줄을 주면 그쪽이 이김
 });

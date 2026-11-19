@@ -13,7 +13,7 @@ export type SRow = { key: string; name: string; st: St; value?: string; note?: s
 export type Fam = "claude" | "aide" | "gpt" | "grok" | "etc";
 export type Kid = { who: string; fam: Fam; st: St };
 export type Col = { id: string; name: string; grp: string; title: string; common?: string };
-export type BRow = Kid & { sep?: boolean; cells: Record<string, CCell | null | undefined>; wide?: { from: string; n: number; text: string } };
+export type BRow = Kid & { sep?: boolean; cells: Record<string, CCell | null | undefined>; wide?: { from: string; n: number; text: string; st?: St } };
 export type Band = { id: string; name: string; cols: Col[]; rows: BRow[] };
 
 const FAM_OF: Record<string, Fam> = { 클로드: "claude", 조수: "aide", 지피티: "gpt", 그록: "grok" };
@@ -98,7 +98,11 @@ export function bandDiary(kids: (Kid & { sep?: boolean })[], diary: SRow[], opt:
     const h = hand.find((x) => x.key === `교대·${k.who}`)?.cells || {};
     const cells: BRow["cells"] = {}; let wide: BRow["wide"];
     if (d) for (const [id] of DIARY_COLS) cells[id] = diaryCell(d.cells?.[id], id, met) ?? null;
-    else if (met) { const t = ([["일기", met.diary_ms], ["습작", met.sketch_ms], ["넘김", met.handoff_ms]] as [string, number][]).filter(([, v]) => v).map(([n, v]) => `${n} ${ago(v, now)}`).join(" · "); if (t) wide = { from: "raw", n: DIARY_COLS.length, text: t }; }
+    else {   // 격자 없는 줄 = 한 칸 글(시각만 온 창 · 그록 애 = 하루 일기 자동화의 마지막 실행 · 줄의 value = 덧글 · 시각도 없으면 note = 「일기 루틴 없음」)
+      const m = mine[0], t = met ? ([["일기", met.diary_ms], ["습작", met.sketch_ms], ["넘김", met.handoff_ms]] as [string, number][]).filter(([, v]) => v).map(([n, v]) => `${n} ${ago(v, now)}`).join(" · ") : "";
+      const text = [t, t ? m?.value : m?.note].filter(Boolean).join(" · ");
+      if (text) wide = { from: "raw", n: DIARY_COLS.length, text, ...(m && m.st !== "ok" && m.st !== "unknown" ? { st: m.st } : {}) };
+    }
     if (opt.noSelf[k.who]) cells.self = { st: "late", kind: "dash", note: opt.noSelf[k.who] };
     else if (Object.keys(h).length || opt.selfOk.includes(k.who)) cells.self = { st: "ok", note: "혼자 넘어감" };
     if (opt.care[k.who]) cells.care = { st: "unknown", kind: "tag", label: opt.care[k.who].replace(/ /g, ""), note: `${k.who} 창이 꺼지거나 한도로 멈추면 ${opt.care[k.who]} 이(가) 넘겨 줌` };
@@ -106,6 +110,20 @@ export function bandDiary(kids: (Kid & { sep?: boolean })[], diary: SRow[], opt:
     return { ...k, cells, ...(wide ? { wide } : {}) };
   });
   return { id: "diary", name: "일기 · 교대", cols, rows };
+}
+
+/** 그록 애 일기 줄 — 봇 목록 답(GET bots)의 그 애 자동화 가운데 「일기」 루틴(켜짐 · 마지막 실행 · 결과)으로(형 11-19 「그록봇까지 포함시켜 그록봇도 일기를쓰는거니까」)
+ *  ok = 켜져 있고 마지막 실행이 36시간 안 · 성공 / late = 그보다 오래됨 · 결과가 ok 아님 / off = 꺼 둠 / miss = 일기 루틴이 아예 없음 · 서버 일기 줄이 이미 있는 애는 안 만듦 */
+export type BotRoutine = { name?: string; trigger?: string; enabled?: boolean; when?: string; last_ts?: number; status?: string };
+export function grokDiaryRows(kids: Kid[], routines: Record<string, BotRoutine[] | undefined>, have: SRow[], now = Date.now()): SRow[] {
+  return kids.filter((k) => k.fam === "grok" && !have.some((r) => r.key === k.who)).map((k) => {
+    const rs = routines[k.who];
+    if (!rs) return null;   // 자동화 목록을 아직 못 받음 = 줄을 안 지어냄
+    const d = rs.filter((r) => /일기/.test(r.name || "")).sort((a, b) => (b.last_ts || 0) - (a.last_ts || 0))[0];
+    if (!d) return { key: k.who, name: k.who, st: "miss" as St, note: "일기 루틴 없음" };
+    const st: St = d.enabled === false ? "off" : !d.last_ts || now - d.last_ts > 36 * 3600e3 || (d.status && d.status !== "ok") ? "late" : "ok";
+    return { key: k.who, name: k.who, st, value: [d.when, d.enabled === false ? "꺼 둠" : "", d.status && d.status !== "ok" ? d.status : ""].filter(Boolean).join(" · "), ...(d.last_ts ? { metrics: { diary_ms: d.last_ts } } : { note: [d.when, "아직 안 돎"].filter(Boolean).join(" · ") }) };
+  }).filter((r): r is NonNullable<typeof r> => !!r);
 }
 
 /** 띠 ③ 손 — 서버가 봇마다 잰 「할 수 있는 일」(cat hands · 줄 = 봇 · 칸 = 서버가 준 cols 그대로) · 서버 칸이 아직 없으면 띠를 안 그림(지어내지 않음) */
@@ -117,6 +135,9 @@ export function bandHands(kids: (Kid & { sep?: boolean })[], rows: SRow[], cols?
 /** 띠들의 셈 — 안 됨(빨간 –  포함) · 늦음 수(머리 줄 숫자) */
 export function bandCount(bands: Band[]): { miss: number; late: number } {
   let miss = 0, late = 0;
-  for (const b of bands) for (const r of b.rows) for (const c of b.cols) { const x = r.cells[c.id]; if (x === null || x?.st === "miss") miss++; else if (x?.st === "late" && x.kind !== "dash") late++; }
+  for (const b of bands) for (const r of b.rows) {
+    if (r.wide?.st === "miss") miss++; else if (r.wide?.st === "late") late++;
+    for (const c of b.cols) { const x = r.cells[c.id]; if (x === null || x?.st === "miss") miss++; else if (x?.st === "late" && x.kind !== "dash") late++; }
+  }
   return { miss, late };
 }
