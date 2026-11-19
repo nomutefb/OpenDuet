@@ -4,3 +4,9 @@
 //   같은 뜻 = 「이미 대답 · 이미 응답 · 이미 답(함 · 했음 · 변)」 · 그 보기를 누르면 서버가 「✓ ③ 이미 응답」으로 묻는 이한테 줌(앱 단추와 같은 뜻)
 export const HAD_RE = /이미\s*(?:대답|응답|답)/;
 export const hasHad = (choices: readonly string[] | undefined) => (choices || []).some((c) => HAD_RE.test(String(c || "")));
+
+// 보기에 「기타 · 직접 입력 · 주관식」 줄이 이미 있으면 그 줄이 앱 「기타」 노릇(누르면 같은 자리 입력칸)을 하고 앱 「기타 · 직접 쓰기」는 안 붙임
+//   (깃 11-20 03:52 「「④ 기타」 겹침도 같은 꼴로 걷어」 · 형 03:41 「1개 더 생겨버리는데 그러지않게」 뜻 그대로 · 그냥 빼면 형이 직접 쓸 칸이 없어짐 = 형 11-14 「주관식이없네」)
+export const ETC_RE = /^\s*(?:기타|직접\s*(?:입력|쓰기)|주관식)/;
+/** 기타 노릇을 할 보기 차례(첫 하나) · 없으면 -1 */
+export const etcAt = (choices: readonly string[] | undefined) => (choices || []).findIndex((c) => ETC_RE.test(String(c || "")));
