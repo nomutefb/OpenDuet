@@ -267,7 +267,7 @@ export function NomuteBuild() {
 
 /** 보안 서랍(빠르 11-15 · 깃 #-020 · 형 11-14 23:42 「자리 1 2 3을 토큰 키 처럼 각각 클립보드 복사 가능하게 설정에 만들어놓으셈」 · 23:56 ✓ ① 처음 한 번 붙여 넣기 → 그 뒤 복사만)
  *  값은 화면에 안 그림 · 넣기 = 서버가 암호화해 둠 + 그 자리 열쇠가 맞는지 「맞음 · 틀림」 · 복사 = 누를 때만 서버에서 받아 클립보드 · 형 문만(봇 열쇠 = 403) */
-type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null; hint?: string | null; who?: string | null; id?: string | null; memo?: string;
+type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null; hint?: string | null; who?: string | null; id?: string | null; memo?: string; label?: string;
   top?: boolean; title?: string; name?: string; transport?: string; url?: string; header?: string; link?: string };   // top = 맨 위 「봄의 정원 MCP server」 칸(서버 editor _seatvault.js GARDEN_SEAT · 형 11-19 08:07~08:16 dm-bom)   // memo = 예비 자리 이름표(계정 · 비밀값 아님 · 서버가 칸을 주는 자리만 · 빠르 editor fast/vault-memo · 형 11-18 13:32 dm-gik 「예비 02, 03에 예비 자리에는 아래에 기입해서 저장가능한 텍스트 박스 넣어주고」)   // who · id = 지금 그 자리를 쓰는 이름 · 자리 id(서버 editor #3964 · 형 11-16 07:5x)   // hint = 서버가 가려서 준 꼴(앞 몇 글자 + *** + 끝 두 글자 · editor _seatvault.js maskOf) — 값 자체는 「복사」 때만
 /** 서랍 실패 까닭 = 입력 · 회선 · 앱 셋을 섞지 않음(하네스 §오류 3분류 · 서버 why 는 그대로) */
 const vaultWhy = (e: unknown, fall: string) => {
@@ -288,7 +288,7 @@ function CopyBtn({ ok, off, label, go }: { ok: boolean; off?: boolean; label: st
 }
 const seatName = (seat: string) => seat.replace(/^자리(\d)$/, "자리 0$1").replace(/^예비(\d+)$/, "예비 $1");
 /** 예비 이름 = 서랍에 나온 차례(예비 1 · 2 · 3) — 서버 자리 id(예비01 · 06 …)는 화면에 안 나감(형 11-20 03:04 「예비 2 3 을 만들고」 · 03:42 「02 03은 이미 쓰고잇는 거는 배제」 = 쓰는 자리는 서버가 빼고 새 칸을 더함) */
-const spareNames = (seats: VaultSeat[]) => { const m: Record<string, string> = {}; let i = 0; for (const s of seats) m[s.seat] = s.top ? seatName(s.seat) : `예비 ${++i}`; return (seat: string) => m[seat] || seatName(seat); };
+const spareNames = (seats: VaultSeat[]) => { const m: Record<string, string> = {}; let i = 0; for (const s of seats) { if (!s.top) i++; m[s.seat] = s.label || (s.top ? seatName(s.seat) : `예비 ${i}`); } return (seat: string) => m[seat] || seatName(seat); };   // 서버 이름표(seats[].label · 빠르 #4398) 먼저 · 없으면 차례
 const DOTS = "••••••••";   // 열쇠 칸 = 가린 꼴만(형 08:09 「*****로 가려져있고 복사만 가능」 · 그록 창과 같은 점)
 
 /** 맨 위 「봄의 정원 MCP server」 칸 = 그록 「Edit MCP server」 꼴을 설명글 빼고 통째로(형 11-19 08:09 「이 형식을 거의 통째로 설명 빼고 옮겨」 「참고하기좀쉽게」 ·
