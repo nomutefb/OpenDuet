@@ -6,7 +6,8 @@ import { notGot } from "../ui/srv-note";
 import "./news-list.css";
 import { agoMin } from "../ui/ago-min";
 import { pollOff } from "../data/poll-linux";
-import { useQueryClient } from "@tanstack/react-query";
+import { getJson } from "../ui/news-data";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { quickSend } from "./quick-send";
 import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickOrder, pickUrl } from "./news-feed";
@@ -19,6 +20,8 @@ import { rssFirst } from "./rss-first";
 import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, shownScore } from "./event-score";   // 줄 점수·차례 = 뉴스 알고리즘 점수(형 11-09 12:3x 「점수대로 제대로 구현좀 되게 해주셈」)
 
 type Row = { urg?: string; score_why?: string; score_news?: boolean; picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
+type Sd = { k: "run" | "ok" | "sum" | "bad"; why?: string; id?: string; at?: number };   // 오른쪽 칸 단추 = 차오름 · 체크 · 요약중 · 실패
+const OK_MS = 900, SUM_MAX_MS = 15 * 60_000, SUM_DONE = new Set(["succ", "done", "ok"]), SUM_FAIL = new Set(["failed", "error"]);
 const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
 // 픽 얼굴(형 11-06 07:4x 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」 · 「틈도 저런식으로」) = 그 기사를 고른 봇 얼굴 · 번호 왼쪽 · 둘 다면 단톡방 겹친 얼굴 꼴(형 「그 단톡방 예전 표기처럼 중첩되게」)
@@ -151,19 +154,51 @@ export function NewsList() {
   // 전송 · 픽 = 창 없이 바로 요약 요청(형 11-09 08:14 · 외신이면 fp 저절로 · ./quick-send.ts · 깃 29)) — 접수 한 줄 · 대기열 판 저절로 갱신
   // 「전송」 = 그 단추 안에서 차오름 → ✓ · 위 알약(「보내는 중…」 · 「요약 요청 접수」) 걷음(형 11-12 06:15 봄 1:1 「그리고 이거 전송 누르면 위에 전송 중~ 뭐 이런식으로 떠, 어색하거든? 그냥 전송 버튼에서 게이지차서 체크누르고 백단에서 이루어지면됨. 저렇게 표기될필요없음」)
   //   실패 = 그 단추가 「다시」(빨강 · 까닭은 title) 로 남음 = 조용히 삼키지 않음 · 같은 기사 두 번 막기(보내는 중 · 모루 09:43) 그대로
-  const [sdSt, setSdSt] = useState<Record<string, { k: "run" | "ok" | "bad"; why?: string }>>({});
+  // 형 11-19 10:25 dm-cloud 「그리고 여기 호버하면 우측 호버하면 (기사 제목 말고) >>> 이거 애니메이션 뜨고」 「누르면 좌에서 우로 반투명 게이지 차올라서 중앙에 체크」 「그리고 기사 우측에 요약중 이라고 나오면 될듯. 그리고 아래 digest 들어가면됨」
+  //   = 오른쪽 칸(시각 · 점수 자리)에 대면 >>>(꺽쇠 셋 차례로 · 대고 있을 때만 돎) → 누름 = 그 칸에 반투명 게이지 좌 → 우 → 가운데 체크 → 「요약중」(요약 대기열 /api/pending 에서 그 요청 id 가 끝날 때까지) → 끝나면 사라지고 아래 Digest 에 요약
+  const [sdSt, setSdSt] = useState<Record<string, Sd>>({});
   const qc = useQueryClient();
-  const mark = (k: string, v: { k: "run" | "ok" | "bad"; why?: string } | null) => setSdSt((o) => { const n = { ...o }; if (v) n[k] = v; else delete n[k]; return n; });
+  const mark = (k: string, v: Sd | null) => setSdSt((o) => { const n = { ...o }; if (v) n[k] = v; else delete n[k]; return n; });
   const go = (title: string, url: string) => {
     const k = url || title;
-    if (!k || sdSt[k]?.k === "run") return;
+    if (!k || sdSt[k]?.k === "run" || sdSt[k]?.k === "sum") return;
     mark(k, { k: "run" });
-    quickSend(title, url).then(() => { mark(k, { k: "ok" }); window.setTimeout(() => setSdSt((o) => (o[k]?.k === "ok" ? (({ [k]: _, ...r }) => r)(o) : o)), 6000); void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] }); })
-      .catch((err: Error) => mark(k, { k: "bad", why: err.message || "못 보냈어" }));
+    quickSend(title, url).then((id) => {
+      mark(k, { k: "ok" });
+      window.setTimeout(() => setSdSt((o) => (o[k]?.k === "ok" ? { ...o, [k]: { k: "sum", id, at: Date.now() } } : o)), OK_MS);   // 체크 잠깐 → 「요약중」
+      void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] });
+    }).catch((err: Error) => mark(k, { k: "bad", why: err.message || "못 보냈어" }));
   };
+  // 「요약중」 줄이 있을 때만 대기열을 봄(15초마다 · 없으면 0번) — 그 id 가 끝남(succ) = 지우고 Digest 다시 받기 · 실패 = 「다시」 · 대기열에 없음 = 15분 지나면 지움
+  const sums = Object.entries(sdSt).filter(([, v]) => v.k === "sum");
+  const pend = useQuery({ queryKey: ["nomute", "hot-sum-pending"], enabled: sums.length > 0, refetchInterval: 15_000, staleTime: 5_000,
+    queryFn: () => getJson<{ items?: { id?: string; status?: string }[] }>(`/api/pending?_=${Date.now()}`).then((d) => d.items || []) });
+  useEffect(() => {
+    if (!pend.data) return;
+    let done = false;
+    setSdSt((o) => {
+      const n = { ...o };
+      for (const [k, v] of Object.entries(o)) {
+        if (v.k !== "sum") continue;
+        const st = String(pend.data.find((it) => it && v.id && it.id === v.id)?.status || "");
+        if (SUM_DONE.has(st) || (!st && Date.now() - (v.at || 0) > SUM_MAX_MS)) { delete n[k]; done = true; }
+        else if (SUM_FAIL.has(st)) n[k] = { k: "bad", why: "요약 실패 — 다시 누르면 다시 보내" };
+      }
+      return n;
+    });
+    if (done) { void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "news-list"] }); }
+  }, [pend.data]);   // eslint-disable-line react-hooks/exhaustive-deps -- 대기열 답이 올 때만
   const sdBtn = (cls: string, k: string, onClick: () => void) => {
     const x = sdSt[k];
-    return <button type="button" className={`${cls}${x ? ` ${x.k}` : ""}`} disabled={x?.k === "run"} aria-label={x?.k === "ok" ? "요약 요청 접수됨" : x?.k === "bad" ? `못 보냄 · 다시 보내기 — ${x.why}` : "이 기사로 요약 요청"} title={x?.k === "bad" ? x.why : "이 기사로 요약 요청"} onClick={onClick}><span>{x?.k === "ok" ? "✓" : x?.k === "bad" ? "다시" : "전송"}</span></button>;
+    const label = x?.k === "ok" ? "요약 요청 접수됨" : x?.k === "sum" ? "요약 중" : x?.k === "bad" ? `못 보냄 · 다시 보내기 — ${x.why}` : "이 기사로 요약 요청";
+    return (
+      <button type="button" className={`${cls}${x ? ` ${x.k}` : ""}`} disabled={x?.k === "run" || x?.k === "sum"} aria-label={label} title={x?.k === "bad" ? x.why : label} onClick={onClick}>
+        {x?.k === "ok" ? <svg className="ck" viewBox="0 0 24 24" aria-hidden><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+          : x?.k === "sum" ? <span className="sm">요약중</span>
+          : x?.k === "bad" ? <span>다시</span>
+          : <svg className="chv" viewBox="0 0 30 12" aria-hidden><path d="m3 2 4 4-4 4" /><path d="m12 2 4 4-4 4" /><path d="m21 2 4 4-4 4" /></svg>}
+      </button>
+    );
   };
   const send = (row: Row) => go(row.title || "", row.meta?.published?.sourceUrl || row.urls?.[0] || "");
   const sendPick = (p: Pick) => go(p.title_clean || cleanTitle(p.title), (p.urls || [])[0] || p.url || "");

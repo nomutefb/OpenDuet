@@ -121,11 +121,14 @@ test("홈 차트 = 보라 노출 선 폰에도 · 「N분 전」 숫자 줄 가�
   assert.match(fcss, /\.nm-pulse-at \{ position:static; margin-left:auto; align-self:center;/);
 });
 
-test("HOT ISSUE 「전송」 = 단추 안 차오름 → ✓ · 위 알약 0(형 11-12 06:15)", () => {
+test("HOT ISSUE 오른쪽 칸 = 대면 >>> · 누르면 반투명 게이지 좌 → 우 → 가운데 체크 → 요약중 · 위 알약 0(형 11-12 06:15 · 11-19 10:25)", () => {
   const nl = rd("../home/news-list.tsx"), nc = rd("../home/news-list.css");
   assert.ok(!/nm-nlist-sent/.test(nl) && !/^\.nm-nlist-sent \{/m.test(nc), "위 알약 걷음");
-  assert.match(nl, /x\?\.k === "ok" \? "✓" : x\?\.k === "bad" \? "다시" : "전송"/);
-  assert.match(nc, /\.run::before \{ content:""; position:absolute; inset:0;/);
+  assert.match(nl, /<svg className="chv" viewBox="0 0 30 12" aria-hidden><path d="m3 2 4 4-4 4" \/><path d="m12 2 4 4-4 4" \/><path d="m21 2 4 4-4 4" \/><\/svg>/);   // >>> = 꺽쇠 셋
+  assert.match(nl, /x\?\.k === "ok" \? <svg className="ck"/); assert.match(nl, /x\?\.k === "sum" \? <span className="sm">요약중<\/span>/); assert.match(nl, /x\?\.k === "bad" \? <span>다시<\/span>/);
+  assert.match(nl, /enabled: sums\.length > 0, refetchInterval: 15_000/);   // 요약중 줄이 있을 때만 대기열을 봄
+  assert.match(nc, /:is\(:hover, :focus-visible\):not\(\.run\) \.chv path \{ animation:nmChv 1s/);   // 대고 있을 때만 돎
+  assert.match(nc, /:is\(\.run, \.ok\)::before \{ content:""; position:absolute; inset:0; background:rgba\(232,234,232,\.22\); transform-origin:left center;/);   // 반투명 게이지 좌 → 우
 });
 
 test("RUNNER 게이지 = 15% 크게 · 안 글자 25% 크게 · 글자 아래로(형 11-11 22:09 · 11-12 06:14)", () => {

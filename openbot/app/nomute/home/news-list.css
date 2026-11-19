@@ -15,10 +15,6 @@
 .nm-nlist-ol .mt { max-width:7.5em; overflow:hidden; text-overflow:ellipsis; }   /* 제목 줄 보장(형 11-07 13:22 「제목의 라인은 항상 보장을 어느정도해줘 애초에 짧은게 아니면」 · 봄 나눔 ① = 번개) = 매체 칸 폭 상한 · 넘치면 말줄임(전체 = 마우스 올리면) */
 @media (max-width:700px) { .nm-nlist-ol .mt { max-width:5.5em; } }
 .nm-nlist-ol .sc { color:rgba(232,234,232,.78); font-size:var(--fs-xs); font-weight:700; font-variant-numeric:tabular-nums; min-width:22px; text-align:right; }
-.nm-nlist-ol .sd { all:unset; cursor:pointer; font-size:var(--fs-xs); padding:3px 8px; border-radius:99px; color:rgba(232,234,232,.7); border:1px solid rgba(255,255,255,.12); opacity:0; transition:opacity .12s; }
-.nm-nlist-ol li:hover .sd, .nm-nlist-ol .sd:focus-visible { opacity:1; }
-.nm-nlist-ol .sd:hover { color:#111; background:#e8eae8; border-color:transparent; }   /* 라임 0(형 14:41 「블랙 톤으로만」) */
-@media (hover:none) { .nm-nlist-ol .sd { opacity:1; } }
 /* 형 11-05 15:49 「이거 실시간 뉴스 블릿달아주고, 123위는 라임색, 제목까지 라임. n시간 전 라임.」 — 머리 앞 살아 있는 점 · 1~3위 번호·제목 라임 · 「몇 시간 전」 라임 */
 /* 퍼지는 테 = 겹친 원(::after)의 크기 · 진하기만 · 초당 10번(../ui/slow-pulse.ts 가 --live-t 0 → 1 을 적음 · 11-14 형 맥 뜨거움) · 앞 판 = box-shadow 퍼짐을 화면 주사율로 = 프레임마다 다시 칠함 · 꼴 같음: 반지름 3.5 → 10.5px(scale 3) · 진하기 .55 → 0 */
 .nm-nlist-h .live { position:relative; width:7px; height:7px; border-radius:50%; background:#CFFF40; align-self:center; }
@@ -27,8 +23,6 @@
 .nm-nlist-ol li.top .rk { font-weight:700; }
 .nm-nlist-ol .ag { font-size:var(--fs-xs); white-space:nowrap; text-align:right; color:#e8eae8; font-variant-numeric:tabular-nums; }   /* 「N분 전」 칸 = 점수 왼쪽 · 오른쪽 맞춤 · 흰색(형 11-13 11:00 봄 옮김 「0시간전 > 이거 그냥 흰색으로 뜨면 돼」 · 앞 판 = 라임 형 15:49) */
 /* 전송 = 따로 칸 없이 점수 자리 위에 뜸(형 11-05 16:57 「그리고 여기 우측 비는거 전송라인, 굳이 남기지 말고, 점수 위에 뜨게하면됨! 저기 낭비하진말고」) · 줄 = 번호 · 제목 · 출처·시각 · 점수 */
-.nm-nlist-ol .sd { position:absolute; right:6px; top:50%; transform:translateY(-50%); background:rgba(14,14,16,.92); }
-.nm-nlist-ol li:hover .sc { visibility:hidden; }
 /* 픽 얼굴(형 11-06 「촉 틈 얼굴이 123 이런거 좌측에 떳으면 좋겠음」) — 번호 왼쪽 16px 칸 · 픽 없는 줄은 빈 칸(제목 줄 맞춤) · 둘이면 촉 = 오른쪽 앞 · 틈 = 왼쪽 뒤(형 「촉이 더 앞으로 (우측 앞)」) */
 .nm-nlist-ol .pf { display:flex; flex-direction:row-reverse; justify-content:flex-start; align-items:center; width:16px; overflow:visible; }
 .nm-nlist-ol .pf-i { flex:none; position:relative; display:block; border-radius:50%; box-shadow:0 0 0 1.5px var(--accent, #CFFF40), 0 0 0 3px rgba(14,14,16,.9); }
@@ -45,11 +39,6 @@
 .nm-nlist-pin .pk-tt:hover { text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(232,234,232,.35); }
 .nm-nlist-pin .pk-sc { grid-row:1 / span 2; grid-column:4; color:rgba(232,234,232,.78); font-size:var(--fs-xs); font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
 .nm-nlist-pin .pk-mt { grid-column:2 / span 2; color:rgba(232,234,232,.45); font-size:var(--fs-xs); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.nm-nlist-pin .pk-sd { all:unset; cursor:pointer; position:absolute; right:6px; top:50%; transform:translateY(-50%); font-size:var(--fs-xs); padding:3px 8px; border-radius:99px; color:rgba(232,234,232,.7); border:1px solid rgba(255,255,255,.12); background:rgba(14,14,16,.92); opacity:0; transition:opacity .12s; }
-.nm-nlist-pin li:hover .pk-sd, .nm-nlist-pin .pk-sd:focus-visible { opacity:1; }
-.nm-nlist-pin li:hover .pk-sc { visibility:hidden; }
-.nm-nlist-pin .pk-sd:hover { color:#111; background:#e8eae8; border-color:transparent; }
-@media (hover:none) { .nm-nlist-pin .pk-sd { opacity:1; } .nm-nlist-pin .pk-sc { visibility:hidden; } }
 /* 픽 표 글자 = 봇 색 진하게 · 앞 막대 = 둘 다 같은 강조 라임(형 11-06 20:14 「이니다 촉픽은 촉 형광 파랑, 틈은 라임색. | 은 동일. 그래도 이로간성 잇어야하니까」) */
 .nm-nlist-pin .pk-tag { font-size:var(--fs-xs); font-weight:800; white-space:nowrap; letter-spacing:.02em; color:var(--accent, #CFFF40); }
 .nm-nlist-pin li.chok .pk-tag { color:#33CCFF; text-shadow:0 0 8px rgba(51,204,255,.35); }
@@ -65,11 +54,28 @@
 .nm-nlist-ol.nopf li { grid-template-columns:18px minmax(0,1fr) auto 50px 30px; }
 .nm-nlist-ol.nopf .pf { display:none; }
 /* 「전송」 단추 안에서 차오름 → ✓(형 11-12 06:15 「… 그냥 전송 버튼에서 게이지차서 체크누르고 백단에서 이루어지면됨. 저렇게 표기될필요없음」 · 위 알약 .nm-nlist-sent 걷음) · 색 = 블랙 톤(라임 0 · 형 14:41) · 도는 중 · 끝 · 실패는 손 안 올려도 보임 */
-:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) > span { position:relative; z-index:1; }
-:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):is(.run, .ok, .bad) { opacity:1; overflow:hidden; }
-:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run { cursor:default; color:#e8eae8; }
-:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run::before { content:""; position:absolute; inset:0; background:rgba(232,234,232,.32); transform-origin:left center; transform:scaleX(0); animation:nmSdFill 1.2s cubic-bezier(.2,.7,.3,1) forwards; }
+/* 오른쪽 칸 단추(./news-list.tsx sdBtn · 형 11-19 10:25 dm-cloud 「그리고 여기 호버하면 우측 호버하면 (기사 제목 말고) >>> 이거 애니메이션 뜨고」 「누르면 좌에서 우로 반투명 게이지 차올라서 중앙에 체크」 「그리고 기사 우측에 요약중 이라고 나오면 될듯. 그리고 아래 digest 들어가면됨」)
+   = 시각 · 점수 자리를 덮는 칸(제목에 대면 안 뜸) · 대면 >>>(꺽쇠 셋이 차례로 · 대고 있을 때만 돎 · opacity · transform 뿐) · 누름 = 반투명 게이지 좌 → 우(옛 nmSdFill 그대로) → 가운데 체크(선이 그어짐 + 팝) → 「요약중」 · 실패 = 「다시」 · 블랙 톤(라임 0 · 형 11-05 14:41) */
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) { all:unset; box-sizing:border-box; position:absolute; right:2px; top:3px; bottom:3px; width:96px; display:grid; place-items:center; border-radius:8px; cursor:pointer; overflow:hidden; color:rgba(232,234,232,.86); font-size:var(--fs-xs); font-weight:700; opacity:0; transition:opacity .12s ease, background-color .12s ease; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):hover, :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):focus-visible, :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):is(.run, .ok, .sum, .bad) { opacity:1; background:#141514; }   /* 덮는 칸 = 다 막는 색(.95 면 밑 시각 · 점수가 5% 비침 · 실물) */
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) > * { grid-area:1 / 1; position:relative; z-index:1; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .chv { width:30px; height:12px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .chv path { opacity:.25; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):is(:hover, :focus-visible):not(.run) .chv path { animation:nmChv 1s ease-in-out infinite; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .chv path:nth-child(2) { animation-delay:.15s; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .chv path:nth-child(3) { animation-delay:.3s; }
+@keyframes nmChv { 0%, 100% { opacity:.25; transform:translateX(-1.5px); } 45% { opacity:1; transform:translateX(0); } }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):is(.run, .ok)::before { content:""; position:absolute; inset:0; background:rgba(232,234,232,.22); transform-origin:left center; transform:scaleX(0); animation:nmSdFill 1.2s cubic-bezier(.2,.7,.3,1) forwards; }
 @keyframes nmSdFill { to { transform:scaleX(.9); } }
-:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).ok { color:#111; background:#e8eae8; border-color:transparent; min-width:2.2em; text-align:center; }
-:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).bad { color:#ff6b5e; border-color:rgba(255,107,94,.6); }
-@media (prefers-reduced-motion:reduce) { :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run::before { animation:none; transform:scaleX(.9); } }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run { cursor:default; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).run .chv { opacity:0; transition:opacity .15s ease; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).ok::before { animation:none; transform:scaleX(1); }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .ck { width:16px; height:16px; fill:none; stroke:#e8eae8; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:24; stroke-dashoffset:24; animation:nmSdCk .32s cubic-bezier(.2,.7,.3,1) .05s forwards, nmSdPop .42s cubic-bezier(.2,.7,.3,1) both; }   /* 체크 = 그어지며 .3 → 1.15 → 1(옛 tm-dlChkPop 결) */
+@keyframes nmSdCk { to { stroke-dashoffset:0; } }
+@keyframes nmSdPop { 0% { transform:scale(.3); } 60% { transform:scale(1.15); } 100% { transform:scale(1); } }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).sum { cursor:default; }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).sum .sm { color:rgba(232,234,232,.86); animation:nmSdSum 1.6s ease-in-out infinite; }   /* 요약중 = 숨 쉬듯 진하기만(opacity) · 끝나면 칸째 사라짐 */
+@keyframes nmSdSum { 0%, 100% { opacity:.5; } 50% { opacity:1; } }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).bad { color:#ff6b5e; box-shadow:inset 0 0 0 1px rgba(255,107,94,.55); }
+@media (hover:none) { :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) { opacity:1; width:40px; background:#141514; } :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .chv path { opacity:.7; } }   /* 폰 = 대는 손 없음 → 점수 자리만 덮는 작은 칸 · 꺽쇠는 멈춰 있음 */
+@media (prefers-reduced-motion:reduce) { :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .chv path, :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .sum .sm, :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .ck { animation:none; opacity:1; stroke-dashoffset:0; } :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):is(.run, .ok)::before { animation:none; transform:scaleX(.9); } }
