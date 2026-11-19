@@ -16,12 +16,12 @@ import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이
 import { DuetIcon } from "@/components/duet/icons";
 import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { tailnetUrl } from "./pc-url";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, Fragment, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { type OfficeRoom, idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 import { selfBack } from "./self-back";
-import { hasHad } from "./decide-had";   // 보기에 「이미 대답함」 뜻이 있으면 앱 단추 0(형 11-20 03:41)
+import { etcAt, hasHad } from "./decide-had";   // 보기에 「이미 대답함」 뜻이 있으면 앱 단추 0(형 11-20 03:41)
 import { useRootFlag } from "./has-flags";   // 단추가 그려진 동안 뿌리 표시(복원 ▲ 자리 줄이 :has 대신 이걸 봄 · ./ed-keep.css)
 
 type Pick = { i?: number; pass?: boolean; text?: string };
@@ -162,6 +162,10 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
     const t = String(new FormData(e.currentTarget).get("t") || "").trim();
     if (t) void choose(d, { text: t }, "etc");
   };
+  /** 기타 줄 = 누르면 같은 자리 입력칸 · no = 번호 · label = 애들 보기 글(「④ 기타(직접 입력)」) · 없으면 「기타」 */
+  const etcRow = (d: Decision, p: Pick | null | undefined, no: number, label?: string) => etc === d.id
+    ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} fill={fillOf(d, "etc")} onSubmit={etcSubmit(d)} />
+    : <button type="button" className="nm-dec-row" aria-pressed={!!p?.text} onClick={() => setEtc(d.id)}><span className="nm-dec-no" aria-hidden>{no}</span><span className="t">{p?.text ? `기타 · ${p.text}` : label || "기타"}</span></button>;
 
   useRootFlag("dec", fab && !q.isError && items.length > 0);
   if (q.isError || !items.length) return null;
@@ -178,18 +182,16 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
             <header><b>{title}</b><button type="button" aria-label="닫기" onClick={close}><DuetIcon name="x" size={18} /></button></header>
             <ul>
               {items.filter((d) => !gone.has(d.id)).map((d) => {
-                const p = pickOf(d), name = list.find((x) => x.who === d.who)?.name || d.who;
+                const p = pickOf(d), name = list.find((x) => x.who === d.who)?.name || d.who, ei = etcAt(d.choices);
                 return (
                   <li key={d.id} className={`${done(p) ? "ok" : ""}${fx[d.id]?.st === "bye" ? " bye" : ""}`}><div className="nm-dec-in">
                     <p className="nm-dec-who"><FaceImg id={idOf(d.who, list)} size={22} /><b>{name}</b><span>{d.room_name || d.room}</span></p>
                     <p className="nm-dec-q" data-content>{d.q}</p>
                     <div className="nm-dec-ch">
                       {tailnetUrl(d.pc?.url) ? <a className="nm-dec-row nm-dec-pc" href={tailnetUrl(d.pc?.url)} target="_blank" rel="noopener noreferrer"><span className="t">제어권 가져오기</span></a> : null}   {/* 그 몸 화면(테일넷)을 새 창으로 · 미리보기 없음(형 「공간낭비고」) · 끝나면 아래 완료 */}
-                      {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} data-fill={fillOf(d, `c${i}`)} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}><span className="nm-dec-no" aria-hidden>{i + 1}</span><span className="t">{c}</span>{drawn(fillOf(d, `c${i}`)) ? <Ck /> : null}</button>)}   {/* 보기 번호 1 · 2 · 3(형 11-11 19:45 「보기 중에 고르는 방식으로 / 1234 보기 주고. 3번까지 여도되고. 기타는 4번이니까.」) */}
+                      {d.choices.map((c, i) => i === ei ? <Fragment key={i}>{etcRow(d, p, i + 1, c)}</Fragment> : <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} data-fill={fillOf(d, `c${i}`)} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}><span className="nm-dec-no" aria-hidden>{i + 1}</span><span className="t">{c}</span>{drawn(fillOf(d, `c${i}`)) ? <Ck /> : null}</button>)}   {/* 애들 보기 「기타」 줄 = 앱 기타 노릇(./decide-had.ts etcAt) */}   {/* 보기 번호 1 · 2 · 3(형 11-11 19:45 「보기 중에 고르는 방식으로 / 1234 보기 주고. 3번까지 여도되고. 기타는 4번이니까.」) */}
                       {hasHad(d.choices) ? null : <button type="button" className="nm-dec-row nm-dec-had" aria-pressed={p?.text === ALREADY} onClick={() => void choose(d, { text: ALREADY }, "had")}><span className="nm-dec-no" aria-hidden>✓</span><span className="t">{ALREADY}</span></button>}   {/* 늘 하나 더(형 11-13 09:12 「항상 보기 추가로 이미 대답함. 이 잇게해줘」) = 묻는 이한테 「✓ 기타: 이미 대답함」 */}
-                      {etc === d.id
-                        ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} fill={fillOf(d, "etc")} onSubmit={etcSubmit(d)} />
-                        : <button type="button" className="nm-dec-row" aria-pressed={!!p?.text} onClick={() => setEtc(d.id)}><span className="nm-dec-no" aria-hidden>{d.choices.length + 1}</span><span className="t">{p?.text ? `기타 · ${p.text}` : "기타"}</span></button>}
+                      {ei < 0 ? etcRow(d, p, d.choices.length + 1) : null}
                     </div>
                   </div></li>
                 );
@@ -233,17 +235,22 @@ export function DecideInline({ id }: { id: string }) {
     } catch (e) { setSt("못 보냄"); settle(qc); throw e; }
   };
   const CIRC = "①②③④⑤⑥⑦⑧⑨";
+  const ei = etcAt(d.choices);
   return (
     <div className="nm-dec-inl" onClick={(e) => e.stopPropagation()}>
-      {d.choices.map((c, i) => <button key={i} type="button" onClick={() => void send({ i }, `${CIRC[i] || i + 1} ${c}`)}><b>{CIRC[i] || i + 1}</b>{c}</button>)}
-      {etc
-        ? <form className="etc" ref={etcForm} onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 보내기 단추 누름(게이지 단추가 받음) */}
-            <input name="t" autoFocus placeholder="직접 입력" aria-label="기타 답" enterKeyHint="send" maxLength={500} />
-            <GoButton type="submit" go={() => sendEtc(etcForm.current)} done={(t) => { markDecided(qc, d, { text: t }); setGot(`기타 · ${t}`); settle(qc); }}>보내기</GoButton>
-          </form>
-        : <button type="button" onClick={() => setEtc(true)}><b>{CIRC[d.choices.length] || d.choices.length + 1}</b>기타 · 직접 쓰기</button>}
+      {d.choices.map((c, i) => i === ei ? <Fragment key={i}>{etcLine(i, c)}</Fragment> : <button key={i} type="button" onClick={() => void send({ i }, `${CIRC[i] || i + 1} ${c}`)}><b>{CIRC[i] || i + 1}</b>{c}</button>)}   {/* 애들 보기 「기타」 줄 = 직접 쓰기 칸 노릇 */}
+      {ei < 0 ? etcLine(d.choices.length) : null}
       {hasHad(d.choices) ? null : <button type="button" className="had" onClick={() => void send({ text: ALREADY }, ALREADY)}>{ALREADY}</button>}   {/* 애들 보기에 이미 있으면 0(형 11-20 03:41 「이미 대답함이 1개 더 생겨버리는데」) */}
       {st === "못 보냄" ? <span className="err">못 보냈어 · 다시 눌러 줘</span> : null}
     </div>
   );
+  function etcLine(at: number, label?: string) {   // 기타 = 누르면 같은 자리 직접 쓰기 칸 · at = 번호 자리 · label = 애들 보기 글
+    if (!d) return null;
+    return etc
+        ? <form className="etc" ref={etcForm} onSubmit={(e) => e.preventDefault()}>   {/* 엔터 = 보내기 단추 누름(게이지 단추가 받음) */}
+            <input name="t" autoFocus placeholder="직접 입력" aria-label="기타 답" enterKeyHint="send" maxLength={500} />
+            <GoButton type="submit" go={() => sendEtc(etcForm.current)} done={(t) => { markDecided(qc, d, { text: t }); setGot(`기타 · ${t}`); settle(qc); }}>보내기</GoButton>
+          </form>
+        : <button type="button" onClick={() => setEtc(true)}><b>{CIRC[at] || at + 1}</b>{label || "기타 · 직접 쓰기"}</button>;
+  }
 }
