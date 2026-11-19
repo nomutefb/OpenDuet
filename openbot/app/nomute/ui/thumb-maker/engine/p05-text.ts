@@ -121,7 +121,7 @@ export function normEmph(text) {
   flushClose();
   return out;
 }
-export const SENS_MASK = [['자살', '*살']];
+export const SENS_MASK = [];   // 가림 끔(형 11-19 13:42~13:43 dm-eyes 뜸 옮김 「오케 자살이 잘못은아니잖아 글자가?」 「에디터 수정 요청해야겟다」 「웅 그거 꺼주게 봄에게 요청해」 · 에디터 산출물 = editor #4374 shared/sens_mask.py MASK_PAIRS = [] · 앞 판 [['자살', '*살']] · 배선 sensMask 는 그대로)
 export function sensMask(s) { let o = String(s == null ? '' : s); for (const [a, b] of SENS_MASK) o = o.split(a).join(b); return o; }
 export function renderEmph2(line) {
   const segs = []; let on = false, buf = '';
