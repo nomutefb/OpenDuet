@@ -352,7 +352,9 @@ function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText,
                       <div className={`nm-vault-in nm-mcp-f nm-mcp-v${s.set ? "" : " off"}`} aria-readonly="true" aria-label={s.set ? "열쇠 가림" : "비어 있음"}>{s.set ? DOTS : "비어 있음"}</div>
                       <CopyBtn ok={done === s.seat} off={!s.set} label={nameOf(s.seat)} go={() => copySeat(s.seat)} />
                       {/* 재발행 = 새 열쇠 + 앞 열쇠 파기(형 11-20 03:04 「내가 재발행 하면 키를 바꿀 수 있게 해줘 기존 건 파기」) · 그 자리 재확인(MorphAsk · 모달 0) */}
-                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" note="앞 열쇠는 파기돼" label={`${nameOf(s.seat)} 재발행`} onYes={() => remint(s.seat)}>재발행</MorphAsk> : null}   {/* 빈 자리 = 아래 줄 「새 열쇠 만들기」 하나만 */}
+                      {/* 예비 한 자리 = 이 줄 한 곳(형 11-20 07:18 dm-gik 「그리고 이거 따로 노니까 확인해주고」 · 깃 옮김 · 앞 판 = 빈 예비가 아래 카드에도 따로 나옴) · 넣은 칸 = 재발행 · 빈 칸 = 새 열쇠 */}
+                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" note="앞 열쇠는 파기돼" label={`${nameOf(s.seat)} 재발행`} onYes={() => remint(s.seat)}>재발행</MorphAsk>
+                        : <MorphAsk className="nm-nb-btn nm-vault-b shrink-0 disabled:opacity-40" disabled={minting} yesText="만들기" note="새 열쇠가 생겨" label={`${nameOf(s.seat)} 새 열쇠`} onYes={() => remint(s.seat)}>새 열쇠</MorphAsk>}
                     </div>
                     {show ? (
                       <div className="nm-mcp-use">
@@ -440,9 +442,9 @@ export function NomuteVault() {
         );
       })()}
       {/* 아래 목록 = 손이 필요한 칸만(비었거나 열쇠 안 맞음) — 넣은 칸은 위 「봄의 정원 MCP」 칸과 겹쳐서 안 보임(형 11-20 02:55 dm-sia 「여기 겹치는 보안 서랍 내용은 지워줘」 · 값 · 메모는 그대로 · 화면만) */}
-      {(q.data || []).some((s) => !s.set || s.match === false) ? <Card>
+      {(q.data || []).some((s) => s.top && (!s.set || s.match === false)) ? <Card>   {/* 아래 카드 = 봄의 정원 칸(형이 붙여 넣는 칸)이 비었거나 안 맞을 때만 · 예비는 위 줄 한 곳(11-20 07:18) */}
         <ul className="nm-vault divide-y divide-border">
-          {(q.data || []).filter((s) => !s.set || s.match === false).map((s) => (
+          {(q.data || []).filter((s) => s.top && (!s.set || s.match === false)).map((s) => (
             <li key={s.seat} className="flex flex-col gap-2 px-4 py-3">
               <p className="flex items-center justify-between gap-2 text-sm">   {/* 좁은 폭 = 이름 · 열쇠 앞부분이 줄고 오른쪽 상태는 한 줄(전 = 「넣음 · 12:38 AM」이 두 줄로 꺾이거나 열쇠 글자에 붙음 · 봄 11-18) */}
                 <span className="flex min-w-0 flex-1 items-baseline gap-2"><b className="shrink-0">{nameOf(s.seat)}</b>

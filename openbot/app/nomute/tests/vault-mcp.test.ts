@@ -12,7 +12,8 @@ test("맨 위 칸 = 그록 꼴(Connection · Name · Transport · URL · Authent
   assert.match(ui, /\(q\.data \|\| \[\]\)\.find\(\(s\) => s\.top\)/);
   assert.match(ui, /<div className="nm-mcp-cut" aria-hidden \/>\s*<\/>\s*\);\s*\}\)\(\)\}[\s\S]{0,400}\? <Card>/);   // 칸 → 구분선 → 아래 줄들(손이 필요한 칸이 있을 때만)
   // 11-20 형 02:55 「겹치는 보안 서랍 내용은 지워줘」 · 「spare02 넣음 이런말은 필요앖음」 · 03:04 「재발행 … 기존 건 파기 복사 시 자동으로 커서 아동 후 메모 한 줄」 = 아래 = 빈 칸 · 안 맞는 칸만 · id · 「넣음 · 시각」 0 · 위 예비 줄에 재발행 · 복사 → 사용처 칸 커서
-  assert.match(ui, /\.filter\(\(s\) => !s\.set \|\| s\.match === false\)\.map\(\(s\) => \(/);
+  assert.match(ui, /\.filter\(\(s\) => s\.top && \(!s\.set \|\| s\.match === false\)\)\.map\(\(s\) => \(/);   // 11-20 07:18 「이거 따로 노니까」 = 예비는 위 줄 한 곳 · 아래 = 봄의 정원 칸만
+  assert.match(ui, /yesText="만들기" note="새 열쇠가 생겨"/);
   assert.ok(!ui.includes("aria-label=\"지금 쓰는 이름 · 자리 id\""), "자리 id 글자 0");
   assert.ok(!/`넣음\$\{s\.at/.test(ui), "넣음 · 시각 0");
   assert.match(ui, /yesText="재발행" note="앞 열쇠는 파기돼"/);
