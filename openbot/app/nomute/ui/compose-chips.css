@@ -1,13 +1,14 @@
 /* 입력칸 단추 셋 — 에디터 thumb-maker.css .iobtn-edge 꼴 그대로(26px 동그라미 · 위 테두리에 반 걸침 · 그림 13px · 흐림 .6 · 끔 .3 · ✓ = 라임)
    (형 11-20 03:52 「그 이미지 에디터에 보면 3버튼 있잖아. 그거 달라붙게 해주러」 · ./compose-chips.tsx) · 움직임 = 누름 scale 만(transform) */
 .nm-cmp-wrap { position: relative; }
-.nm-cchips { position: absolute; top: 0; right: 20px; z-index: 2; display: flex; gap: 6px; transform: translateY(-68%); pointer-events: none; }   /* 오른쪽 끝으로(형 11-20 08:26 dm-gik 깃 옮김 「그 좀 더 우측으로 겄으면 함」 · 앞 판 = 보내기 단추 비켜 76px) · 위로 조금 더 걸침(-68%) = 글 있을 때 라임 보내기 단추(안쪽 9px 위)와 안 겹침 */
+.nm-cchips { position: absolute; top: 0; right: 58px; z-index: 2; display: flex; gap: 6px; transform: translateY(-50%); pointer-events: none; }   /* 위 테두리 선에 정확히 반 걸침(형 11-20 08:38 dm-gik 깃 옮김 「이거 채팅 우상단 동그라미 좀 더내려와야해 지금 가운데선으로 동그라미 이분할이 걸친게 아닌 듯 그리고 이거 지금 공중에 떠잇다. 그 버튼들이」 · 앞 판 -68% = 떠 보임) · 맨 오른쪽 = 보내기 단추(오른쪽 7 · 폭 46) 바로 왼쪽(반 걸치면 글 칠 때 라임 단추와 겹쳐서) */
 .nm-cchip { pointer-events: auto; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border-radius: 50%;
   color: var(--duet-ink, #eef7f0); -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: transform .12s ease, border-color .12s ease;
-  /* 유리(형 11-20 07:17 「글라스 모피즘 적용해주고」 · 08:26 「글래스모피즘 그댜로규」) = 형이 본 유리 동그라미(옛 우하단 「+」 .nm-fab-main · yeta-chat.css) 값 그대로: 밑칠 rgba(26,27,26,.56) · 선 .14 · 흐림 11px + 안쪽 윗선 · 단추는 가만히(흐림 위 움직임 0)
-     앞 판(밑칠 흰 .06 · 선 .08) = 어두운 입력칸 위에선 앞 불투명 판과 눈에 거의 같았음 */
-  background: rgba(26, 27, 26, .56); border: 1px solid rgba(255, 255, 255, .14);
-  -webkit-backdrop-filter: blur(11px); backdrop-filter: blur(11px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
+  /* 입력칸 판과 한 몸(형 08:38 「공중에 떠잇다」) = 판 규칙 그대로(yeta-chat.css .ychat-in form: 바탕 --glass · 선 --glass-line · 흐림 --blur-l saturate(1) · 안쪽 윗선 / 안 쓸 때 차콜 82%) → 판에서 동그라미가 튀어나온 꼴(에디터 글칸 .iobtn-edge = 글칸 바탕 · 선 그대로와 같은 뜻)
+     앞 판 = 옛 우하단 「+」 유리(어두운 .56 · 선 .14) = 판과 다른 색이라 떠 보였음 */
+  background: var(--glass); border: 1px solid var(--glass-line);
+  -webkit-backdrop-filter: blur(var(--blur-l)) saturate(1); backdrop-filter: blur(var(--blur-l)) saturate(1); box-shadow: inset 0 1px 0 var(--glass-line); }
+.dark .nm-cmp-wrap:not(:focus-within) .nm-cchip { background: color-mix(in srgb, #3a3a3c 82%, transparent); }   /* 안 쓸 때 = 판과 같은 차콜 82%(yeta-chat.css 177 · :has 아님) */
 .nm-cchip > span { display: grid; place-items: center; }
 .nm-cchip svg { display: block; width: 13px; height: 13px; opacity: .6; }
 @media (hover: hover) { .nm-cchip:hover { border-color: rgba(255, 255, 255, .27); } .nm-cchip:hover svg { opacity: 1; } }
@@ -16,5 +17,3 @@
 .nm-cchip.ok svg { opacity: 1; }
 .nm-cchip.undo { border-color: rgba(255, 255, 255, .34); }
 .nm-cchip.undo svg { opacity: 1; }
-:root:not(.dark) .nm-cchip { background: rgba(255, 255, 255, .66); border-color: rgba(0, 0, 0, .1); }   /* 밝은 판 = 옛 「+」 와 같은 값 */
-.nm-cchip.gone { visibility: hidden; pointer-events: none; }   /* 빈 칸의 지우기 = 자리만(붙여넣기 자리 고정 · 형 11-20 07:17 「입력 된 것도 없는데 지우기가 잇을 필욘 없을듯」) */

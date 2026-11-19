@@ -52,8 +52,8 @@ export function ComposeChips({ init = "" }: { init?: string }) {
   return (
     <div className="nm-cchips" role="group" aria-label="입력칸 단추">
       {has ? <button type="button" tabIndex={-1} className={`nm-cchip${ok ? " ok" : ""}`} aria-label="복사" title="복사" onPointerDown={keep} onClick={() => void copy()}><Svg s={ok ? CHECK_SVG : COPY_SVG} /></button> : null}
-      <button type="button" tabIndex={-1} className="nm-cchip" aria-label="붙여넣기" title="붙여넣기" onPointerDown={keep} onClick={() => void paste()}><Svg s={PASTE_SVG} /></button>
-      <button type="button" tabIndex={-1} className={`nm-cchip${undo !== null ? " undo" : has ? "" : " gone"}`} aria-hidden={!has && undo === null ? true : undefined} aria-label={undo !== null ? "되돌리기" : "입력 지우기"} title={undo !== null ? "되돌리기 (직전 입력 복원)" : "입력 지우기"} onPointerDown={keep} onClick={erase}><Svg s={undo !== null ? UNDO_SVG : ERASE_SVG} /></button>   {/* 빈 칸 = 안 보임(자리만 = 첫 글자 칠 때 붙여넣기가 옆으로 안 튐) · 지운 뒤 10초 = 되돌리기 */}
+      {has || undo !== null ? <button type="button" tabIndex={-1} className={`nm-cchip${undo !== null ? " undo" : ""}`} aria-label={undo !== null ? "되돌리기" : "입력 지우기"} title={undo !== null ? "되돌리기 (직전 입력 복원)" : "입력 지우기"} onPointerDown={keep} onClick={erase}><Svg s={undo !== null ? UNDO_SVG : ERASE_SVG} /></button> : null}
+      <button type="button" tabIndex={-1} className="nm-cchip" aria-label="붙여넣기" title="붙여넣기" onPointerDown={keep} onClick={() => void paste()}><Svg s={PASTE_SVG} /></button>   {/* 붙여넣기 = 늘 맨 오른쪽(보내기 단추 바로 왼쪽 · 자리 고정 = 글 칠 때 안 튐) · 복사 · 지우기는 글 있을 때 그 왼쪽에(형 11-20 08:38) */}
     </div>
   );
 }

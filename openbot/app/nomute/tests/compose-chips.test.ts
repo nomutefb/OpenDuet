@@ -20,9 +20,10 @@ test("에디터와 같은 값 · 같은 그림 · 초점 안 뺏음 · 입력칸
 test("빈 칸 = 붙여넣기 하나 · 글 있으면 복사 · 지우기 · 지운 뒤 되돌리기 · 유리", () => {
   const c = readFileSync(new URL("../ui/compose-chips.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/compose-chips.css", import.meta.url), "utf8");
   assert.match(c, /\{has \? <button type="button" tabIndex=\{-1\} className=\{`nm-cchip\$\{ok \? " ok" : ""\}`\} aria-label="복사"/);
-  assert.match(c, /className=\{`nm-cchip\$\{undo !== null \? " undo" : has \? "" : " gone"\}`\}/);
-  assert.match(css, /\.nm-cchip\.gone \{ visibility: hidden; pointer-events: none; \}/);
+  assert.match(c, /\{has \|\| undo !== null \? <button type="button" tabIndex=\{-1\} className=\{`nm-cchip\$\{undo !== null \? " undo" : ""\}`\}/);   // 빈 칸 = 지우기 0 · 붙여넣기 = 늘 맨 오른쪽(자리 고정 · 형 11-20 08:38)
+  assert.ok(c.indexOf('aria-label="붙여넣기"') > c.indexOf('"입력 지우기"'), "붙여넣기 = 맨 오른쪽(형 11-20 08:38)");
   assert.doesNotMatch(c, /" off"/);
-  assert.match(css, /background: rgba\(26, 27, 26, \.56\); border: 1px solid rgba\(255, 255, 255, \.14\);\n  -webkit-backdrop-filter: blur\(11px\); backdrop-filter: blur\(11px\);/);   // 형이 본 유리 동그라미(옛 우하단 「+」) 값
-  assert.match(css, /\.nm-cchips \{ position: absolute; top: 0; right: 20px;/);   // 오른쪽 끝(형 08:26 「좀 더 우측으로」)
+  assert.match(css, /background: var\(--glass\); border: 1px solid var\(--glass-line\);\n  -webkit-backdrop-filter: blur\(var\(--blur-l\)\) saturate\(1\); backdrop-filter: blur\(var\(--blur-l\)\) saturate\(1\);/);   // 입력칸 판 규칙 그대로 = 판에서 튀어나온 꼴(형 08:38 「공중에 떠잇다」)
+  assert.match(css, /\.dark \.nm-cmp-wrap:not\(:focus-within\) \.nm-cchip \{ background: color-mix\(in srgb, #3a3a3c 82%, transparent\); \}/);
+  assert.match(css, /\.nm-cchips \{ position: absolute; top: 0; right: 58px; z-index: 2; display: flex; gap: 6px; transform: translateY\(-50%\);/);   // 위 테두리 선에 정확히 반 걸침 · 보내기 단추 바로 왼쪽(형 08:38)
 });
