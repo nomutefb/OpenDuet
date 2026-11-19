@@ -23,6 +23,7 @@ export type OfficeRoom = {
   left?: string[]; count?: number;   // left = 「!종료」로 나간 이(형이 나갔으면 「형」도) · count = 남은 사람 수(명단 − 나간 이 + 형 · 서버 셈 · 지정방 · 임시방만 옴) — 형 11-18 20:12 dm-gik 「나 포함 남은 사람만 세야해 … 깃이 나가면 2인거임」
   max?: number; task?: string; idle_min?: number; task_exp?: number;   // max = 멤버 최대 수(깃 · 없음 = 제한 없음 · 형은 안 셈) · task = 지금 일 · idle_min = 조용하면 일이 끝나는 분(켜져 있을 때만 옴) · task_exp = 끝나는 때(서버가 줄 때만) — 빠르 #4080 · 형 11-17 00:47 · 00:49
   last?: { who: string; kind: string; text: string; ts: number } | null; last_talk?: { who: string; kind: string; text: string; ts: number } | null;
+  heard_ts?: number;   // 그 방에서 형한테 마지막으로 말한 때(서버 · 방 목록 차례 열쇠 · 형 11-19 13:27 「나한테 최근에 말을 한 사람이 위로」 · 없으면 화면이 갈음)
   look?: { icon?: string; fg?: string };   // 방 꾸미기(번개 서버 roomlook · 형만 · 아이콘 = Lucide 이름 · fg = #RRGGBB 또는 두 색)
   states?: Record<string, number>; faces?: string[];   // faces = 가장 최근 말한 이 · 그 전에 말한 이(서버 · 형 글·시스템 줄 빼고)
 };
