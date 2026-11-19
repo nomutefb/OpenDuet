@@ -40,6 +40,7 @@ import { markSent, typingPing } from "../data/typing";   // 형 치는 중(형 1
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropMsg, goneInWindow } from "./msg-menu-logic";   // 지운 글 빼기(형 11-17 「아예 지우기」)
 import { peekAttachments } from "../shim/attachments";
+import { LONG_MAX, longText } from "./long-text";   // 8천 자 넘는 글 = .md 파일로(형 11-20 03:41)
 import { attachmentSender } from "../data/attachment-state";
 import type { SendAttempt, WaitingText } from "../data/attachment-send";
 import "./attachment-up.css";
@@ -1611,17 +1612,20 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
             const attached = draft.attachments || [];
             if (!raw && !attached.length) return;
             const submittedReply = reply;
-            const text = raw && submittedReply ? `↩ ${submittedReply.who}: ${submittedReply.line}\n${raw}` : raw;
-            if (text.length > 8000) { setErr("8,000자 넘음 — 나눠서 보내 줘"); throw new Error("too long"); }
+            const re = submittedReply ? `↩ ${submittedReply.who}: ${submittedReply.line}\n` : "";
+            const long = raw.length + re.length > LONG_MAX ? longText(raw) : null;   // 8천 자 넘음 = 막지 않고 .md 파일로 붙여 보냄(형 11-20 03:41 dm-gik · ./long-text.ts) · 글 = 첫 줄 + 몇 자
+            const text = raw ? `${re}${long ? long.body : raw}` : raw;
+            if (long && attached.length >= 10) { setErr("첨부가 10개라 긴 글 파일을 못 붙여 — 첨부를 하나 빼 줘"); throw new Error("too many"); }   // 서버 한 번에 10개(_files.js MAX_FILES)
             setErr("");
             try {
-              if (attached.length) {
+              if (attached.length || long) {
                 const originals = attached.map((attachment) => {
                   const id = (attachment.metadata as { attachmentId?: string } | undefined)?.attachmentId;
                   const file = id ? peekAttachments([id])[0] : undefined;
                   if (!id || !file) throw new Error("첨부 원본을 찾지 못했어. 파일을 다시 골라 줘.");
                   return { id, file };
                 });
+                if (long) originals.push({ id: long.id, file: long.file });   // 입력칸 첨부가 아닌 파일 = sendable 이 그 파일 그대로 · 보낸 뒤 비움(dropAttachments)도 없는 id 라 0
                 // 전송을 시작한 원본/본문은 기록이 맡는다. 일부 실패해도 새 입력과 섞지 않는다.
                 attachmentSender.start({ room, text, originals });
               } else if (text) {

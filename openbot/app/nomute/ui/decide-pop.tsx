@@ -21,6 +21,7 @@ import { createPortal } from "react-dom";
 import { type OfficeRoom, idOf, office, people } from "../data/office";
 import { FaceImg } from "./faces";
 import { selfBack } from "./self-back";
+import { hasHad } from "./decide-had";   // 보기에 「이미 대답함」 뜻이 있으면 앱 단추 0(형 11-20 03:41)
 import { useRootFlag } from "./has-flags";   // 단추가 그려진 동안 뿌리 표시(복원 ▲ 자리 줄이 :has 대신 이걸 봄 · ./ed-keep.css)
 
 type Pick = { i?: number; pass?: boolean; text?: string };
@@ -53,7 +54,7 @@ export function markDecided(qc: QueryClient, d: Decision, p: Pick | null) {
   if (p) qc.setQueryData<OfficeRoom[]>(["nomute", "rooms"], (old) => old?.map((r) => { const n = Number((r as { pending_hyung?: number }).pending_hyung) || 0; return r.id === d.room && n > 0 ? ({ ...r, pending_hyung: n - 1 } as OfficeRoom) : r; }));
 }
 const settle = (qc: QueryClient) => { for (const k of [KEY, ["nomute", "rooms"], ["nomute", "brief"]]) void qc.invalidateQueries({ queryKey: k }); };
-export const ALREADY = "이미 대답함";   // 결정 창 · 글 아래 단추 둘 다 늘 붙는 보기(형 11-13 09:12)
+export const ALREADY = "이미 대답함";   // 결정 창 · 글 아래 단추 둘 다 늘 붙는 보기(형 11-13 09:12) · 애들 보기에 같은 뜻이 있으면 0(형 11-20 03:41 · ./decide-had.ts)
 const done = (p?: Pick | null) => !!p && (typeof p.i === "number" || !!p.pass || !!p.text);
 type Fx = { k: string; st: "on0" | "run" | "done" | "ck" | "bye" };
 // 차오름 = 뉴스 요약 「프롬프트 생성」 .mkbtn.glive 그대로(editor viewer/index.html 3092~ · 답 기다리는 동안 0→90% 3.6초 gauge-ease · 답 오면 100% 0.3초 linear · ✓ = goTick .38s .04s ease)
@@ -185,7 +186,7 @@ export function DecideFab({ fab = true, where = "rooms", kind = "dec" }: { fab?:
                     <div className="nm-dec-ch">
                       {tailnetUrl(d.pc?.url) ? <a className="nm-dec-row nm-dec-pc" href={tailnetUrl(d.pc?.url)} target="_blank" rel="noopener noreferrer"><span className="t">제어권 가져오기</span></a> : null}   {/* 그 몸 화면(테일넷)을 새 창으로 · 미리보기 없음(형 「공간낭비고」) · 끝나면 아래 완료 */}
                       {d.choices.map((c, i) => <button key={i} type="button" className="nm-dec-row" data-on={isOn(d, `c${i}`) || undefined} data-fill={fillOf(d, `c${i}`)} aria-pressed={p?.i === i} onClick={() => void choose(d, { i }, `c${i}`)}><span className="nm-dec-no" aria-hidden>{i + 1}</span><span className="t">{c}</span>{drawn(fillOf(d, `c${i}`)) ? <Ck /> : null}</button>)}   {/* 보기 번호 1 · 2 · 3(형 11-11 19:45 「보기 중에 고르는 방식으로 / 1234 보기 주고. 3번까지 여도되고. 기타는 4번이니까.」) */}
-                      <button type="button" className="nm-dec-row nm-dec-had" aria-pressed={p?.text === ALREADY} onClick={() => void choose(d, { text: ALREADY }, "had")}><span className="nm-dec-no" aria-hidden>✓</span><span className="t">{ALREADY}</span></button>   {/* 늘 하나 더(형 11-13 09:12 「항상 보기 추가로 이미 대답함. 이 잇게해줘」) = 묻는 이한테 「✓ 기타: 이미 대답함」 */}
+                      {hasHad(d.choices) ? null : <button type="button" className="nm-dec-row nm-dec-had" aria-pressed={p?.text === ALREADY} onClick={() => void choose(d, { text: ALREADY }, "had")}><span className="nm-dec-no" aria-hidden>✓</span><span className="t">{ALREADY}</span></button>}   {/* 늘 하나 더(형 11-13 09:12 「항상 보기 추가로 이미 대답함. 이 잇게해줘」) = 묻는 이한테 「✓ 기타: 이미 대답함」 */}
                       {etc === d.id
                         ? <EtcRow text={p?.text || ""} on={isOn(d, "etc")} fill={fillOf(d, "etc")} onSubmit={etcSubmit(d)} />
                         : <button type="button" className="nm-dec-row" aria-pressed={!!p?.text} onClick={() => setEtc(d.id)}><span className="nm-dec-no" aria-hidden>{d.choices.length + 1}</span><span className="t">{p?.text ? `기타 · ${p.text}` : "기타"}</span></button>}
@@ -241,7 +242,7 @@ export function DecideInline({ id }: { id: string }) {
             <GoButton type="submit" go={() => sendEtc(etcForm.current)} done={(t) => { markDecided(qc, d, { text: t }); setGot(`기타 · ${t}`); settle(qc); }}>보내기</GoButton>
           </form>
         : <button type="button" onClick={() => setEtc(true)}><b>{CIRC[d.choices.length] || d.choices.length + 1}</b>기타 · 직접 쓰기</button>}
-      <button type="button" className="had" onClick={() => void send({ text: ALREADY }, ALREADY)}>{ALREADY}</button>
+      {hasHad(d.choices) ? null : <button type="button" className="had" onClick={() => void send({ text: ALREADY }, ALREADY)}>{ALREADY}</button>}   {/* 애들 보기에 이미 있으면 0(형 11-20 03:41 「이미 대답함이 1개 더 생겨버리는데」) */}
       {st === "못 보냄" ? <span className="err">못 보냈어 · 다시 눌러 줘</span> : null}
     </div>
   );
