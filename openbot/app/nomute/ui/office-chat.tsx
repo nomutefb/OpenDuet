@@ -375,6 +375,7 @@ type Ctx = {
   sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onSwap: (id: string, from: string, to: string, hasTo: boolean) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string, from?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
   unseen: (m: Msg) => number;   // 안 본 봇 수(형 글 · 말풍선마다 · unseenOf)
+  read: (m: Msg) => boolean;   // 형 글이 읽혔나(라임 → 검정 · readOf)
   loose: () => void;   // 맨 아래 붙음 풂(알약 펼칠 때 = 알약 자리 그대로 두고 아래로 펼침)
   onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
@@ -508,6 +509,17 @@ function unseenOf(m: Msg, c: Ctx, all: Msg[]) {
   if (!who.length) return 0;
   const got = c.reads?.got || {}, saw = c.reads?.seen || {}, upto = (n: string) => Math.max(c.reads?.reads?.[n] || 0, c.reads?.seen_ts?.[n] || 0);   // 봄(seen · 창에 찍힘) ∪ 가져감(got · read·wait)   // upto = 그 봇이 본 가장 늦은 글 때 → 그 위 형 글은 다 본 것(형 18:11 「1은 당연히 한번 읽으면 위에건 다 사라지는 로직이고」)
   return who.filter((n) => upto(n) < m.ts && !(got[n] || []).includes(m.id) && !(saw[n] || []).includes(m.id) && !all.some((x) => x.who === n && x.ts > m.ts)).length;
+}
+
+/** 형 글이 읽혔나 → 형 말풍선 라임 → 검정으로 꺼짐(형 11-20 08:30 dm-gik 깃 옮김 「눈 모양이 어짜피 읽으면 생기는 형태면 그냥 읽으면 내 대화 색이 형광에서 검정으로 꺼지게 바꿔줘」 · 「1」 · 👀 뜻은 논제라 손 안 댐)
+ *  읽힘 = 애들 👀(읽으면 붙는 눈)가 하나라도 있음 · 또는 받을 봇이 있는 방에서 안 본 봇 0(위 unseenOf · 하루 넘은 글 = 읽힘) · 받을 봇을 모르는 방(회의실 · 옛 방) = 👀 로만 */
+function readOf(m: Msg, c: Ctx, all: Msg[]) {
+  if (m.kind !== "human") return false;
+  if ((c.rx[m.id]?.["👀"] || []).some((w) => w !== "형")) return true;
+  if (!c.reads) return true;   // 읽음 표 오기 전 = 검정(대개 읽힌 글 · 방 처음 열 때 라임 → 검정 번쩍임 0 · 안 읽힌 새 글만 표가 오면 라임) · 색은 바로 바뀜(스르르 0)
+  const bot = (n: string) => n !== "형" && c.list.find((p) => p.who === n)?.kind !== "human";
+  const who = c.r?.with ? [c.r.with] : (c.r?.members || []).filter(bot);
+  return who.length > 0 && unseenOf(m, c, all) === 0;
 }
 
 function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
@@ -994,7 +1006,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <StatePill m={m} />
         {app ? <span className="yb-orig">원문</span> : null}   {/* PC = 형 말풍선이 원래 차콜이라 바깥 글은 오른쪽 위 「원문」으로 가름(형 11-16 09:33 dm-fast 「피시에서는 라벨을 원문 이라고 달던지」 · 09:34 「우측 위에 내 글은 우측 위에달리님가」) · 폰 = 바탕색으로 가름이라 숨김 */}
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
-          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : c.read(m) ? " rd" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
@@ -1404,6 +1416,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   const c: Ctx = {
     srcs, gardenAns,
     unseen: (m) => unseenOf(m, c, all),
+    read: (m) => readOf(m, c, all),
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     loose: () => {   // 알약 펼침 = 알약 자리 그대로 · 아래 글이 밀려 내려감(브라우저 스크롤 붙들기가 아래 글을 붙잡아 알약을 위로 243px 밀었음 = 펼치는 동안만 끔)
       stuck.current = false; near.current = false; sentPin.current = 0; touched.current = true;
