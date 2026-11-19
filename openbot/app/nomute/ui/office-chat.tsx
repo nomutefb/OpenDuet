@@ -40,7 +40,8 @@ import { markSent, typingPing } from "../data/typing";   // 형 치는 중(형 1
 import { listGet, listPut, loadRoom, saveRoom } from "../data/room-cache";
 import { dropMsg, goneInWindow } from "./msg-menu-logic";   // 지운 글 빼기(형 11-17 「아예 지우기」)
 import { peekAttachments } from "../shim/attachments";
-import { LONG_MAX, longText } from "./long-text";   // 8천 자 넘는 글 = .md 파일로(형 11-20 03:41)
+import { LONG_MAX, longText } from "./long-text";
+import { ComposeChips, chipText } from "./compose-chips";   // 입력칸 위 테두리 단추 셋(형 11-20 03:52)   // 8천 자 넘는 글 = .md 파일로(형 11-20 03:41)
 import { attachmentSender } from "../data/attachment-state";
 import type { SendAttempt, WaitingText } from "../data/attachment-send";
 import "./attachment-up.css";
@@ -1597,11 +1598,11 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
             <button type="button" aria-label="답장 그만" className="px-1" onClick={() => setReply(null)}>×</button>
           </div>
         ) : null}
-        {pairRoom ? <p className="ypair-ro">둘의 방 · 읽기만</p> : (<Composer
+        {pairRoom ? <p className="ypair-ro">둘의 방 · 읽기만</p> : (<div className="nm-cmp-wrap"><ComposeChips key={room} init={loadDraft(room)} />{/* 입력칸 위 테두리 오른쪽 = 에디터 글칸 단추 셋(형 11-20 03:52 · ./compose-chips.tsx) */}<Composer
           agents={toAgentOptions(bots4)}
           commands={OFFICE_COMMANDS}
           channelId={room}
-          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); typingPing(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); setInviteQ(/^\/초대(\s|$)/.test(t.trimStart()) ? t.trimStart().slice(3).split(/\s+/).filter(Boolean) : null); }}
+          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); chipText(t); typingPing(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); setInviteQ(/^\/초대(\s|$)/.test(t.trimStart()) ? t.trimStart().slice(3).split(/\s+/).filter(Boolean) : null); }}
           initialValue={loadDraft(room)}
           className="relative mt-auto w-full"
           commands={[]}
@@ -1668,7 +1669,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
               throw e;
             }
           }}
-        />)}
+        /></div>)}
       </div>
       <ProfileCard who={list.find((x) => x.who === prof)?.nocard ? "" : prof} list={list} onClose={() => setProf("")} />   {/* nocard = 프로필 카드 없는 자리(작업 알림 · 형 11-14 23:04 「쟤는 프로필 없애줘 그냥 카드랑 모두」) */}
       {peek ? <CallPeek key={peek.id} p={{ id: peek.id, face: idOf(peek.who, list), name: nmOf(list, peek.who), ts: Number((peek as { ts?: number }).ts) || 0, body: <div className="ymd"><Body m={peek} nre={nre} /></div> }} onClose={() => setPeek(null)} onSend={(t) => { const m = peek; void peekSend(m, t).catch((e) => { draftSet(`peek:${m.id}`, t); setErr(`못 보냈어 — ${e instanceof Error ? e.message : String(e)} · 알약 다시 누르면 쓰던 답 그대로`); }); }} /> : null}   {/* 보내기 = 창 바로 닫힘 · 서버는 뒤에서(형 13:19 「순간 멎는 느낌」) */}

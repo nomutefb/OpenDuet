@@ -1,0 +1,17 @@
+/* 입력칸 단추 셋 — 에디터 thumb-maker.css .iobtn-edge 꼴 그대로(26px 동그라미 · 위 테두리에 반 걸침 · 그림 13px · 흐림 .6 · 끔 .3 · ✓ = 라임)
+   (형 11-20 03:52 「그 이미지 에디터에 보면 3버튼 있잖아. 그거 달라붙게 해주러」 · ./compose-chips.tsx) · 움직임 = 누름 scale 만(transform) */
+.nm-cmp-wrap { position: relative; }
+.nm-cchips { position: absolute; top: 0; right: 76px;   /* 보내기 단추(56px · 안쪽 9px) 비킴 = 에디터도 끝에서 안쪽(--clip-x 28%) */ z-index: 2; display: flex; gap: 6px; transform: translateY(-50%); pointer-events: none; }
+.nm-cchip { pointer-events: auto; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border-radius: 50%;
+  color: var(--duet-ink, #eef7f0); background: var(--duet-card, #3a3a3c);
+  border: 1px solid rgba(255, 255, 255, .1); -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: transform .12s ease, border-color .12s ease; }
+.nm-cchip > span { display: grid; place-items: center; }
+.nm-cchip svg { display: block; width: 13px; height: 13px; opacity: .6; }
+@media (hover: hover) { .nm-cchip:hover { border-color: rgba(255, 255, 255, .27); } .nm-cchip:hover svg { opacity: 1; } }
+.nm-cchip:active { transform: scale(.85); }
+.nm-cchip.ok { color: #CFFF40; border-color: rgba(255, 255, 255, .17); }
+.nm-cchip.ok svg { opacity: 1; }
+.nm-cchip.undo { border-color: rgba(255, 255, 255, .34); }
+.nm-cchip.undo svg { opacity: 1; }
+.nm-cchip.off svg { opacity: .3; }
+html:not(.dark) .nm-cchip { border-color: rgba(0, 0, 0, .1); }

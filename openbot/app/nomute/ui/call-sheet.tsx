@@ -13,7 +13,7 @@ import { faceIcon, markLabel } from "./call-face";
 import "./call-sheet.css";
 import { filterAgents, onQuery } from "./call-query";
 
-type Handle = { insertChip: (chip: { trigger: string; value: string; displayText: string }) => void; focus: () => void; setCursorToEnd: () => void; getPlainText: () => string; appendText: (t: string) => void };
+type Handle = { insertChip: (chip: { trigger: string; value: string; displayText: string }) => void; focus: () => void; setCursorToEnd: () => void; getPlainText: () => string; appendText: (t: string) => void; clear: () => void; setText: (t: string) => void };   // clear · setText = 입력칸 단추 셋(./compose-chips.tsx)
 type Agent = { id: string; name: string; description?: string };
 type Open = { char: "@" | "!"; agents: readonly Agent[]; at: DOMRect | null; q: string } | null;   // q = 입력칸 「@」 뒤에 친 글(형 11-13 22:13 「유사한 단어 쓰면 … 호출자가 줄어들어야돼」)
 
@@ -24,6 +24,8 @@ const emit = () => { for (const f of subs) f(); };
 
 /** 입력칸 손잡이(composer.tsx 의 promptAreaRef) · 마지막에 그려진 입력칸이 이김 */
 export function registerComposer(ref: RefObject<Handle | null>) { composer = ref; }
+/** 지금 입력칸 손잡이(입력칸 단추 셋 · ./compose-chips.tsx) — 없으면 null */
+export const composerHandle = () => composer?.current || null;
 /** 입력칸 끝에 글 붙이기(「/초대 」 얼굴 줄 · office-chat) — 손잡이 없으면 false */
 export function appendToComposer(t: string) { const h = composer?.current; if (!h) return false; h.setCursorToEnd(); h.appendText(t); h.focus(); return true; }
 /** 「@」·「!」 를 치면 부름(triggers.ts launch) */
