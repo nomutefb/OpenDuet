@@ -6,9 +6,10 @@ import { notGot } from "../ui/srv-note";
 import "./news-list.css";
 import { agoMin } from "../ui/ago-min";
 import { pollOff } from "../data/poll-linux";
-import { getJson } from "../ui/news-data";
+import { newsListQuery, useGo } from "../ui/news-data";
+import { PEND_LIVE, pendingQuery, urlKey, urlPathKey } from "./pending-query";   // 대기열 한 벌(Digest 와 같은 답) · 기사 주소 맞춤
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { quickSend } from "./quick-send";
 import { ALPHA_EVERY, ALPHA_KEY, type Cand, firstJson, homeMeta, modernData, pickOrder, pickUrl } from "./news-feed";
 import { FaceImg } from "../ui/faces";
@@ -20,7 +21,7 @@ import { rssFirst } from "./rss-first";
 import { byEvent, eventIndex, eventOf, type EventHit, type NewsEvent, shownScore } from "./event-score";   // 줄 점수·차례 = 뉴스 알고리즘 점수(형 11-09 12:3x 「점수대로 제대로 구현좀 되게 해주셈」)
 
 type Row = { urg?: string; score_why?: string; score_news?: boolean; picks?: { by?: string }[]; key?: string; title?: string; title_clean?: string; items?: { src?: string; url?: string }[]; src?: string; at?: string; score?: number | null; rank?: number | null; urls?: string[]; meta?: { published?: { at?: string; sourceUrl?: string; sourceName?: string } } };
-type Sd = { k: "run" | "ok" | "sum" | "bad"; why?: string; id?: string; at?: number };   // 오른쪽 칸 단추 = 차오름 · 체크 · 요약중 · 실패
+type Sd = { k: "run" | "ok" | "sum" | "bad" | "done"; why?: string; id?: string; at?: number; file?: string };   // 오른쪽 칸 단추 = 차오름 · 체크 · 요약중 · 실패 · 요약됨(다른 기기 포함 · file = 그 요약)
 const OK_MS = 900, SUM_MAX_MS = 15 * 60_000, SUM_DONE = new Set(["succ", "done", "ok"]), SUM_FAIL = new Set(["failed", "error"]);
 const EVERY = 60_000, MAX = 40, FRESH_MS = 8 * 3600_000;   // 8시간 넘은 기사 = 뺌(형 11-05 15:49 「35시간전 뭐여. 8시간 전은 다 쳐내셈..」)
 
@@ -169,10 +170,20 @@ export function NewsList() {
       void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "feed-pending"] });
     }).catch((err: Error) => mark(k, { k: "bad", why: err.message || "못 보냈어" }));
   };
-  // 「요약중」 줄이 있을 때만 대기열을 봄(15초마다 · 없으면 0번) — 그 id 가 끝남(succ) = 지우고 Digest 다시 받기 · 실패 = 「다시」 · 대기열에 없음 = 15분 지나면 지움
-  const sums = Object.entries(sdSt).filter(([, v]) => v.k === "sum");
-  const pend = useQuery({ queryKey: ["nomute", "hot-sum-pending"], enabled: sums.length > 0, refetchInterval: 15_000, staleTime: 5_000,
-    queryFn: () => getJson<{ items?: { id?: string; status?: string }[] }>(`/api/pending?_=${Date.now()}`).then((d) => d.items || []) });
+  // 대기열 = Digest 와 같은 답 한 벌(./pending-query.ts · 15초 · 45초 · 따로 받기 0) — 이 기기 「요약중」 줄의 id 가 끝남(succ) = 지우고 Digest 다시 받기 · 실패 = 「다시」 · 대기열에 없음 = 15분 지나면 지움
+  const pend = useQuery(pendingQuery), arts = useQuery(newsListQuery).data?.arts;
+  // 다른 기기에서 누른 요약도 이 줄에(형 11-19 16:42~16:49 슈왕 · 깃 · 봄 옮김 「폰에서 요약눌렀는데, pc에서는 요약이 그대로 살아있어서 내가 안눌러서 저런가? 의구심이 드는게 문제야」)
+  //   = 대기열에 그 기사 주소(key · src · alt1)가 도는 중이면 「요약중」 · 다 된 요약(articles.json url)에 있으면 대면 「요약됨」(누르면 그 요약) · 주소 맞춤 = urlKey · 길에 기사 번호가 있으면 물음표 뒤 뗀 것도
+  const liveBy = useMemo(() => { const s = new Set<string>(); for (const it of pend.data || []) if (it && PEND_LIVE.has(String(it.status))) for (const u of [it.key, it.src, it.alt1]) { const k = urlKey(u), p = urlPathKey(u); if (k) s.add(k); if (p) s.add(p); } return s; }, [pend.data]);
+  const doneBy = useMemo(() => { const m = new Map<string, string>(); for (const a of arts || []) { const u = (a as { url?: string }).url, k = urlKey(u), p = urlPathKey(u); if (k && !m.has(k)) m.set(k, a.file); if (p && !m.has(p)) m.set(p, a.file); } return m; }, [arts]);
+  const extOf = (u: string): Sd | null => {
+    const k = urlKey(u), p = urlPathKey(u);
+    if (!k || !/[./]/.test(k)) return null;   // 주소가 아닌 열쇠(제목) = 맞춤 안 함
+    if (liveBy.has(k) || (p && liveBy.has(p))) return { k: "sum" };
+    const f = doneBy.get(k) || (p ? doneBy.get(p) : undefined);
+    return f ? { k: "done", file: f } : null;
+  };
+  const goSum = useGo();
   useEffect(() => {
     if (!pend.data) return;
     let done = false;
@@ -189,12 +200,14 @@ export function NewsList() {
     if (done) { void qc.invalidateQueries({ queryKey: ["nomute", "split-pending"] }); void qc.invalidateQueries({ queryKey: ["nomute", "news-list"] }); }
   }, [pend.data]);   // eslint-disable-line react-hooks/exhaustive-deps -- 대기열 답이 올 때만
   const sdBtn = (cls: string, k: string, onClick: () => void) => {
-    const x = sdSt[k];
-    const label = x?.k === "ok" ? "요약 요청 접수됨" : x?.k === "sum" ? "요약 중" : x?.k === "bad" ? `못 보냄 · 다시 보내기 — ${x.why}` : "이 기사로 요약 요청";
+    const own = sdSt[k], x = own && own.k !== "sum" ? own : extOf(k) || own;   // 이 기기에서 누르는 중 · 체크 · 실패가 먼저 → 대기열 · 다 된 요약(다른 기기 포함) → 이 기기 요약중
+    const label = x?.k === "ok" ? "요약 요청 접수됨" : x?.k === "sum" ? "요약 중" : x?.k === "done" ? "요약됨 · 누르면 그 요약" : x?.k === "bad" ? `못 보냄 · 다시 보내기 — ${x.why}` : "이 기사로 요약 요청";
+    const tap = x?.k === "done" && x.file ? () => goSum(`/newsed?a=${encodeURIComponent(x.file!)}`) : onClick;   // 요약됨 = 다시 안 보냄 · 그 요약(뉴스 에디터 · Digest 카드와 같은 길)
     return (
-      <button type="button" className={`${cls}${x ? ` ${x.k}` : ""}`} disabled={x?.k === "run" || x?.k === "sum"} aria-label={label} title={x?.k === "bad" ? x.why : label} onClick={onClick}>
+      <button type="button" className={`${cls}${x ? ` ${x.k}` : ""}`} disabled={x?.k === "run" || x?.k === "sum"} aria-label={label} title={x?.k === "bad" ? x.why : label} onClick={tap}>
         {x?.k === "ok" ? <svg className="ck" viewBox="0 0 24 24" aria-hidden><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
           : x?.k === "sum" ? <span className="sm">요약중</span>
+          : x?.k === "done" ? <span className="sm">요약됨</span>
           : x?.k === "bad" ? <span>다시</span>
           : <svg className="chv" viewBox="0 0 30 12" aria-hidden><path d="m3 2 4 4-4 4" /><path d="m12 2 4 4-4 4" /><path d="m21 2 4 4-4 4" /></svg>}
       </button>

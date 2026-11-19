@@ -4,7 +4,8 @@
 import { notGot } from "../ui/srv-note";
 import "./news-summary.css";
 import { useQuery } from "@tanstack/react-query";
-import { getJson, newsListQuery } from "../ui/news-data";
+import { newsListQuery } from "../ui/news-data";
+import { pendingQuery } from "./pending-query";
 import { SumCard } from "../ui/summary-desk";   // 에디터 「뉴스 요약」 카드 꼴(형 11-08 09:13 「digest 아까부터 말하는데 뉴스 요약처럼 바꾼고했어.」) · dg = 제목 1줄 · 매체 가로(형 11-09 09:21)
 import { useGo } from "../ui/news-data";
 import { cleanTitle } from "./title-clean";
@@ -15,22 +16,17 @@ import { useState } from "react";
 import { type FArt, kindOf } from "../ui/feed";
 import { PlusFan } from "../ui/plus-fan";   // 오른쪽 아래 「+」 펼침 = 폰 뉴스 에디터 「+」 한 벌(형 11-13 02:24 봄 1:1 「1) 에디터 요약 + 있잖아 모바일에 잇는거. 그거 인앱 메인 digest 우하단에 + 나오게 해줘」)   // 긴급 · 이슈 테 = 뉴스 에디터와 같은 셈
 
-type QItem = { id?: string; t?: number; title?: string; key?: string; alt1?: string; status?: string; tries?: number };
 const LIVE = new Set(["processing", "retry", "queued", "pending", "failed", "error"]);   // 대기열에 보일 것 = 아직 안 끝난 것 · 실패(「succ」·done 같은 끝난 것 = 뺌 · 실물 17:3x)
 const N_DONE = 12;
 
 export function NewsSummary() {
   const go = useGo();   // 머리 「Digest」 누름 = 네비 4번 뉴스 에디터(시아 08:54 안 「머리 「Digest」 누르면 4번으로」)
-  const pend = useQuery({
-    queryKey: ["nomute", "split-pending"], staleTime: 15_000,
-    refetchInterval: (q) => ((q.state.data || []).some((it) => it.status === "processing" || it.status === "retry") ? 15_000 : 45_000),
-    queryFn: () => getJson<{ items?: QItem[] }>(`/api/pending?_=${Date.now()}`).then((d) => (d.items || []).filter((it) => it && LIVE.has(String(it.status))).slice(0, 4), () => [] as QItem[]),
-  });
+  const pend = useQuery(pendingQuery);   // 대기열 날것 한 벌(./pending-query.ts · Hot Issue 오른쪽 칸과 같은 답 = 한 번만 받음) · 여기선 아직 안 끝난 것 넷만
   const list = useQuery(newsListQuery);
   // 최근 요약 다(형 11-09 12:3x 「digest에 최근거가 안올라와, 최근거 다 올라오게하고」) = 다 된 요약 새것부터(요약 만든 차례 · 파일 이름) 12장 · 시간 거름 0(앞 판 24시간 거름 = 12:3x 두 장만 남음 · 마지막 요약 요청 11-09 08:11)
   const done = (Array.isArray(list.data?.arts) ? list.data!.arts : []).slice(0, N_DONE);   // newsListQuery = { arts, count, generated }(배열 아님 · 17:2x 판에서 앱 통째로 깨짐)
   const [, setSeenN] = useState(0), seen = qfSeenSet();   // 실패 줄 「취소」 = 이 기기 확인 목록(뉴스 에디터와 같은 칸)
-  const q = (pend.data || []).filter((it) => !seen.has(String(it.id || "")));
+  const q = (pend.data || []).filter((it) => it && LIVE.has(String(it.status))).slice(0, 4).filter((it) => !seen.has(String(it.id || "")));
   return (
     <section className="nm-nsum" aria-label="뉴스 요약">
       <div className="nm-nsum-h"><button type="button" className="nm-nsum-go" title="뉴스 에디터로" onClick={() => go("/newsed")}><b>Digest</b></button><span>{q.length ? `대기열 ${q.length} · ` : ""}<SyncAgo /></span></div>

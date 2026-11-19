@@ -126,7 +126,7 @@ test("HOT ISSUE 오른쪽 칸 = 대면 >>> · 누르면 반투명 게이지 좌 
   assert.ok(!/nm-nlist-sent/.test(nl) && !/^\.nm-nlist-sent \{/m.test(nc), "위 알약 걷음");
   assert.match(nl, /<svg className="chv" viewBox="0 0 30 12" aria-hidden><path d="m3 2 4 4-4 4" \/><path d="m12 2 4 4-4 4" \/><path d="m21 2 4 4-4 4" \/><\/svg>/);   // >>> = 꺽쇠 셋
   assert.match(nl, /x\?\.k === "ok" \? <svg className="ck"/); assert.match(nl, /x\?\.k === "sum" \? <span className="sm">요약중<\/span>/); assert.match(nl, /x\?\.k === "bad" \? <span>다시<\/span>/);
-  assert.match(nl, /enabled: sums\.length > 0, refetchInterval: 15_000/);   // 요약중 줄이 있을 때만 대기열을 봄
+  assert.match(nl, /const pend = useQuery\(pendingQuery\)/);   // 대기열 = Digest 와 같은 답 한 벌(11-19 16:5x · 앞 판 = 요약중 줄 있을 때만 따로 받음)
   assert.match(nc, /:is\(:hover, :focus-visible\):not\(\.run\) \.chv path \{ animation:nmChv 1s/);   // 대고 있을 때만 돎
   assert.match(nc, /:is\(\.run, \.ok\)::before \{ content:""; position:absolute; inset:0; background:rgba\(232,234,232,\.22\); transform-origin:left center;/);   // 반투명 게이지 좌 → 우
 });

@@ -77,5 +77,6 @@
 :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).sum .sm { color:rgba(232,234,232,.86); animation:nmSdSum 1.6s ease-in-out infinite; }   /* 요약중 = 숨 쉬듯 진하기만(opacity) · 끝나면 칸째 사라짐 */
 @keyframes nmSdSum { 0%, 100% { opacity:.5; } 50% { opacity:1; } }
 :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).bad { color:#ff6b5e; box-shadow:inset 0 0 0 1px rgba(255,107,94,.55); }
+:is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd).done .sm { color:rgba(232,234,232,.7); }   /* 요약됨(다른 기기에서 누른 것 포함 · 형 11-19 16:4x 「pc에서는 요약이 그대로 살아있어서 … 의구심」) = 대면 이 글 · 누르면 그 요약 · 숨 쉼 0 */
 @media (hover:none) { :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) { opacity:1; width:40px; background:#141514; } :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .chv path { opacity:.7; } }   /* 폰 = 대는 손 없음 → 점수 자리만 덮는 작은 칸 · 꺽쇠는 멈춰 있음 */
 @media (prefers-reduced-motion:reduce) { :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .chv path, :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .sum .sm, :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd) .ck { animation:none; opacity:1; stroke-dashoffset:0; } :is(.nm-nlist-ol .sd, .nm-nlist-pin .pk-sd):is(.run, .ok)::before { animation:none; transform:scaleX(.9); } }
