@@ -45,7 +45,8 @@ test("웹 칸 = 주소창은 커서만 라임(테 그대로) · 검색 = 구글 
   assert.match(web, /https:\/\/www\.google\.com\/search\?igu=1&cs=1&q=\$\{encodeURIComponent\(s\)\}/);
   assert.match(tcss, /html\[data-nm-fullpane\] \.nm-strip \{ background:var\(--nm-tab-on, #121314\);[^}]*backdrop-filter:none;/);
   assert.match(tab, /if \(full\) r\.dataset\.nmFullpane = "1"; else delete r\.dataset\.nmFullpane;/);
-  assert.match(sl, /<span className="nm-sl-srv" title="서버 연결 칸의 가장 나쁜 불">서버<Dot t=\{toneOf\(l\.server\)\} \/><\/span>/);
+  assert.match(sl, /<span className="nm-sl-srv" title="서버 연결 칸의 가장 나쁜 불"><Dot t=\{toneOf\(l\.server\)\} \/><b>서버<\/b><\/span>/);   // 점 → 흰 「서버」(형 11-19 16:18 「서버가 우측으로 글자를 가자. 글구 서버는 흰색글자」)
+  assert.match(slcss, /\.nm-sl-srv b \{ color: #FFFFFF; font-weight: inherit; \}/);
   assert.match(slcss, /\.nm-sl-srv \{ display: inline-flex; align-items: center; gap: 5px; \}/);
 });
 

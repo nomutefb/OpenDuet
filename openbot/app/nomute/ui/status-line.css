@@ -27,7 +27,9 @@ html.nm-has-syncver .nm-ver { display: none !important; }
 .nm-sl-leds { display: inline-flex; align-items: center; gap: 3px; }
 .nm-sl-srv { display: inline-flex; align-items: center; gap: 5px; }   /* 「서버」 글 + 불 = 옆 점 · 숫자와 한 줄 높이(형 11-18 22:0x 「서버 가 원래 들어가야되는데 없어서 점 그냥 2개인거같애, 서버 들어가게 해줘, 그리고 수평맞춰주셈」 · 앞 = 글 없이 점만 · 글줄 밑선에 앉아 옆 점보다 낮았음) */
 .nm-sl-leds .nm-sl-led { margin-right: 4px; }
-.nm-sl-leds b { color: #FFFFFF; }   /* 러너 숫자 = 흰색 · 문제(빨강) 칸만 라임(형 11-12 17:49 「저거 흰색이여도 될거같아. 빨간색만 라임이면 될듯.」 · 점 색은 그대로) */
+.nm-sl-leds b { color: #FFFFFF; }
+.nm-sl-srv b { color: #FFFFFF; font-weight: inherit; }   /* 「서버」 = 흰 글자 · 점 뒤(형 11-19 16:18 「서버가 우측으로 글자를 가자. 글구 서버는 흰색글자」) · 굵기는 줄 그대로 */
+:root:not(.dark) .nm-sl-srv b { color: inherit; }   /* 밝은 판 = 흰 글자 안 보임 → 숫자 칸과 같이 글자색 그대로 */   /* 러너 숫자 = 흰색 · 문제(빨강) 칸만 라임(형 11-12 17:49 「저거 흰색이여도 될거같아. 빨간색만 라임이면 될듯.」 · 점 색은 그대로) */
 .nm-sl-leds b.bad { color: #CFFF40; }
 :root:not(.dark) .nm-sl-leds b:not(.bad) { color: inherit; }   /* 밝은 판 = 흰 글자 안 보임 → 글자색 그대로 */
 .nm-sl-leds b + .nm-sl-led { margin-left: 5px; }

@@ -58,7 +58,7 @@ export function StatusLights({ className = "" }: { className?: string }) {
         <span>{q.isError ? "상태를 읽지 못했습니다." : q.isSuccess ? "상태 자료가 아직 없어요" : "상태 읽는 중…"}</span>
       ) : (
         <>
-          <span className="nm-sl-srv" title="서버 연결 칸의 가장 나쁜 불">서버<Dot t={toneOf(l.server)} /></span>   {/* 서버 불 = 맨 왼쪽 · 숫자 = 오른쪽 · 「봇 n/m」 · 「받을 수 있음」 뺌(형 11-15 08:54 dm-gik 「우상단에 봇14/15 이거 없어도 되고 … 받을 수 있음도 없어도 돼. 서버 초록색이 가장 좌측으로, 그리고 우측에 숫자들 나오면 될듯」 · 깃 #-046) */}
+          <span className="nm-sl-srv" title="서버 연결 칸의 가장 나쁜 불"><Dot t={toneOf(l.server)} /><b>서버</b></span>   {/* 점 → 글(숫자 칸과 같은 차례) · 흰 글자(형 11-19 16:18 dm-bom 봄 옮김 「서버가 우측으로 글자를 가자. 글구 서버는 흰색글자」) */}   {/* 서버 불 = 맨 왼쪽 · 숫자 = 오른쪽 · 「봇 n/m」 · 「받을 수 있음」 뺌(형 11-15 08:54 dm-gik 「우상단에 봇14/15 이거 없어도 되고 … 받을 수 있음도 없어도 돼. 서버 초록색이 가장 좌측으로, 그리고 우측에 숫자들 나오면 될듯」 · 깃 #-046) */}
           <span className="nm-sl-leds" title={`작동 표 신호등 수 · 정상 ${l.ok ?? 0} · 주의 ${l.warn ?? 0} · 문제 ${l.bad ?? 0} · 꺼짐 ${l.off ?? 0}`}><Dot t="ok" /><N v={l.ok} t="ok" /> <Dot t="warn" /><N v={l.warn} t="warn" /> <Dot t="bad" /><N v={l.bad} t="bad" /> <Dot t="off" /><N v={l.off} t="off" /></span>
           {l.act?.lost ? <><Sep /><span className="nm-sl-act lost" title="신호가 끊겼거나 부름에 손이 없는 아이 수">멈춤 <N v={l.act.lost} t="bad" /></span></> : null}
         </>
