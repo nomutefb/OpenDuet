@@ -14,6 +14,7 @@ import "./ui/err-catch";   // 오류 받기(번개 11-08 · 형 01:31 「엔터�
 import "@/main";
 import { startSync } from "./data/sync";
 import { queryClient } from "@/query-client";
+import { PUSH_OPEN, pushOpened } from "./data/push-open";
 import { pollVisible } from "./data/poll-visible";
 import { linuxDesk, manualOnLinux } from "./data/poll-linux";   // 리눅스 데스크톱 = 저절로 조회 0 · 새로 고침만(형 11-09 10:57 「보는 것도 리눅스면 그건 수동이여야하고」 · 뜸)   // 47) 숨은 탭 = 조회 멈춤 · 다시 보이면 한 번(봄 11-09 10:59 · 깃허브 한도)
 import "./ui/update-bar.css";
@@ -145,6 +146,7 @@ window.addEventListener("focus", () => void checkBuild());
 if ("serviceWorker" in navigator) {
   // 새 서비스 워커가 켜지며 「새 판」을 알리면 = 단추만(다시 읽기는 형이 누를 때)
   navigator.serviceWorker.addEventListener("message", (e) => {
+    if ((e.data as { type?: string } | null)?.type === PUSH_OPEN) { pushOpened(queryClient); return; }   // 알림 눌러 열림 = 요약 대기열 · 기사 목록 바로 다시(번개 11-20 03:54 · ./data/push-open.ts)
     if ((e.data as { type?: string } | null)?.type !== "nm-build") return;
     if ((e.data as { build?: string }).build !== BUILD) showUpdate();
   });

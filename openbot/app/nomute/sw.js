@@ -127,7 +127,7 @@ self.addEventListener("notificationclick", (e) => {
   e.waitUntil((async () => {
     if (tu.origin !== location.origin) return self.clients.openWindow(target);   // 남의 사이트(급상승 알림 = 구글 검색) = 늘 새 창 — 앱 창을 그 주소로 갈아 끼우면 앱이 사라짐(옛 sw.js 운영자 260819)
     const w = (await appWins())[0];
-    if (w && "navigate" in w) { try { const c = await w.navigate(target); return (c || w).focus(); } catch { /* 못 옮기면 새 창 */ } }
+    if (w && "navigate" in w) { try { const c = (await w.navigate(target)) || w; try { c.postMessage({ type: "nm-push-open", kind: d0.kind || "" }); } catch { /* 창이 다시 읽히는 중 = 처음부터 받음 */ } return c.focus(); } catch { /* 못 옮기면 새 창 */ } }   // 떠 있던 창 = 요약 대기열 · 기사 목록 바로 다시(번개 11-20 03:54 「알림 = 읽힘」 · data/push-open.ts)
     return self.clients.openWindow(target);
   })());
 });
