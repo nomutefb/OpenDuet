@@ -1,7 +1,7 @@
 // 애들 × 연결 한 표의 셈(순수 · 화면 = ./crew-table.tsx · 시험 tests/crew-table.test.ts)
 //   형 11-19 「cli연결하고 애들 x연결하고 통합시켜줘. 하나로. 보기 좋게 제일 깔끔하게.」 · 「애들 x 연결이 행이 길어지면 어떻게 표를 분리해서 표기할지 생각해봐 행 인덱싱이 반복되도되니까」
 //     「그리고 저기에 그록봇까지 포함시켜 그록봇도 일기를쓰는거니까」 · 「파일 주고받기, 자막 파동 이런거 다 세분화해서, 봇 애들마다 그게 가능한지를 알 수 있는 지표가 … 애들 x 연결에 나와야 함」
-//   꼴 = 띠(계정 · 연결 / 일기 · 교대 / 손) — 띠마다 이름 줄을 되풀이(옆으로 미는 긴 표 하나 대신) · 줄 = 사무실 애들 전부(클로드 → 조수 → 지피티 → 그록)
+//   꼴 = 띠(계정 · 연결 / 일기 · 교대 / 주고받기) — 띠마다 이름 줄을 되풀이(옆으로 미는 긴 표 하나 대신) · 줄 = 사무실 애들 전부(클로드 → 조수 → 지피티 → 그록)
 //   칸 뜻: 값 있음 = 점(+ 글) · undefined = 그 애한테 없는 칸(빈 칸) · null = 있어야 하는데 기록이 안 온 칸(빨간 –)
 //   되풀이 글 = 칸 머리로(형 11-08 「반복되는 글자는 인덱스로 보내면 된다는 뜻이야」) — 한 칸의 글이 거의 다 같으면 그 글은 머리에 한 번 · 다른 줄만 제 글
 import { acctTag } from "../data/acct-time.ts";
@@ -14,7 +14,7 @@ export type Fam = "claude" | "aide" | "gpt" | "grok" | "etc";
 export type Kid = { who: string; fam: Fam; st: St };
 export type Col = { id: string; name: string; grp: string; title: string; common?: string };
 export type BRow = Kid & { sep?: boolean; cells: Record<string, CCell | null | undefined>; wide?: { from: string; n: number; text: string; st?: St } };
-export type Band = { id: string; name: string; cols: Col[]; rows: BRow[] };
+export type Band = { id: string; name: string; cols: Col[]; rows: BRow[]; none?: string };   // none = 줄을 눌렀는데 적힌 칸이 없을 때의 한마디
 
 const FAM_OF: Record<string, Fam> = { 클로드: "claude", 조수: "aide", 지피티: "gpt", 그록: "grok" };
 const FAM_RANK: Fam[] = ["claude", "aide", "gpt", "grok", "etc"];
@@ -126,10 +126,11 @@ export function grokDiaryRows(kids: Kid[], routines: Record<string, BotRoutine[]
   }).filter((r): r is NonNullable<typeof r> => !!r);
 }
 
-/** 띠 ③ 손 — 서버가 봇마다 잰 「할 수 있는 일」(cat hands · 줄 = 봇 · 칸 = 서버가 준 cols 그대로) · 서버 칸이 아직 없으면 띠를 안 그림(지어내지 않음) */
+/** 띠 ③ 주고받기 — 서버 손 장부(cat hands · 줄 = 봇 · 칸 = 서버가 준 cols 그대로 · 실제로 된 것만 점 · 빈 칸 = 아직 된 적 없음) · 서버 칸이 아직 없으면 띠를 안 그림(지어내지 않음)
+ *  이름 = 형 말 그대로(11-19 「파일 주고받기, 자막 파동 이런거 다 세분화해서, 봇 애들마다 그게 가능한지를 알 수 있는 지표」) */
 export function bandHands(kids: (Kid & { sep?: boolean })[], rows: SRow[], cols?: { id: string; name: string; grp?: string; title?: string }[]): Band | null {
   if (!rows.length || !cols?.length) return null;
-  return { id: "hands", name: "손", cols: cols.map((c) => ({ id: c.id, name: c.name, grp: c.grp || "", title: c.title || c.name })), rows: kids.map((k) => ({ ...k, cells: { ...(rows.find((r) => r.name === k.who || r.key === k.who)?.cells || {}) } })) };
+  return { id: "hands", name: "주고받기", none: "아직 된 적 없음", cols: cols.map((c) => ({ id: c.id, name: c.name, grp: c.grp || "", title: c.title || c.name })), rows: kids.map((k) => ({ ...k, cells: { ...(rows.find((r) => r.name === k.who || r.key === k.who)?.cells || {}) } })) };
 }
 
 /** 띠들의 셈 — 안 됨(빨간 –  포함) · 늦음 수(머리 줄 숫자) */

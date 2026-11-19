@@ -30,7 +30,7 @@ function cellsOf(b: Band, r: BRow) {
 const itemsKo = (x: CCell) => (x.items || []).map((it) => `${it.name || it.account || ""}${it.type ? `(${it.type})` : ""}${it.user ? ` ${it.user}` : ""}`).filter(Boolean).join(" · ");
 function Why({ b, r }: { b: Band; r: BRow }) {
   const list = b.cols.map((c) => ({ c, x: r.cells[c.id] })).filter((v): v is { c: Col; x: CCell } => !!v.x && (!!v.x.note || !!v.x.items?.length || v.x.st === "miss" || v.x.st === "late"));
-  if (!list.length) return <span className="none">{r.wide?.text || "적힌 것 없음"}</span>;
+  if (!list.length) return <span className="none">{r.wide?.text || b.none || "적힌 것 없음"}</span>;
   return <dl className="nm-dropin">{list.map(({ c, x }) => <Fragment key={c.id}><dt>{c.title}</dt><dd data-st={x.st}>{x.items?.length ? itemsKo(x) : x.note || HEALTH_KO[x.st]}{x.items?.length && x.at ? ` · ${agoEn(x.at)}` : ""}</dd></Fragment>)}</dl>;
 }
 

@@ -61,10 +61,11 @@ test("띠 ② 일기 · 교대 — 격자 줄 = 여덟 칸(빈 칸은 빨간 –
   assert.deepEqual(bandCount([b]), { miss: 1 + 1 + 6, late: 1 });   // 봄 d75 ✕ · 봄 wake – · 구름 빈 일기 칸 여섯 – · 늦음 = 이음 하나(셀프 – 는 안 셈)
 });
 
-test("띠 ③ 손 = 서버가 봇마다 잰 칸이 올 때만(없으면 띠 0 — 지어내지 않음)", () => {
+test("띠 ③ 주고받기 = 서버가 봇마다 잰 칸이 올 때만(없으면 띠 0 — 지어내지 않음)", () => {
   assert.equal(bandHands(kids, [], undefined), null);
   const b = bandHands(kids, [{ key: "소나", name: "소나", st: "ok", cells: { file_out: { st: "ok", note: "11-18" } } }], [{ id: "file_out", name: "파일", grp: "보냄" }]);
   assert.equal(b?.rows.find((r) => r.who === "소나")?.cells.file_out?.st, "ok"); assert.deepEqual(b?.rows.find((r) => r.who === "봄")?.cells, {});
+  assert.deepEqual([b?.id, b?.name, b?.none], ["hands", "주고받기", "아직 된 적 없음"]);   // 띠 이름 = 형 말(「파일 주고받기」)
 });
 
 test("그록 애 일기 줄 = 하루 일기 자동화의 마지막 실행 · 루틴 없음 = 빨강 · 오래됨 = 노랑 · 자동화 목록을 못 받은 애 = 줄 0(지어내지 않음)", () => {
