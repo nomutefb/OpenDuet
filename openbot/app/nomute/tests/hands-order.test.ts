@@ -48,6 +48,7 @@ test("직무 표기 = 영문 직함 줄임: Dev. · UXD. · R&D · PM · Dev. ·
   for (const who of [["D", "S", "R"], ["D", "R", "S"]]) assert.equal(roleLabel(who), "Dev.");   // 천둥 · 번개 · 빠르 · 소나
   assert.equal(roleLabel(["U"]), "UXD."); assert.equal(roleLabel(["U", "D", "M"]), "UXD.");   // 구름 · 시아
   assert.equal(roleLabel(["M", "D", "S"]), "PM · Dev.");   // 깃
+  assert.equal(roleLabel(["O", "D", "R"]), "Ops."); assert.equal(roleLabel(["M", "D", "O"]), "PM · Dev."); assert.equal(roleOf("O"), "Operations");   // 11-19 O = Ops(빠르 · 번개 O > D > R · 깃 M > D > O)
   assert.equal(roleLabel(["M", "U", "S"]), "PM · UXD.");   // 봄
   assert.equal(roleLabel(["R", "D", "S"]), "R&D"); assert.equal(roleLabel(["S", "R"]), "Fixer");   // 리서치 = 줄임 있음(R&D) · Fixer = 줄임 없음
   assert.deepEqual(["Xa", "Xb", "Xc", "Xd"].map((c) => roleLabel([c])), ["Creator", "Musician", "Storyteller", "Scoop Hunt"]);   // 결 = Musician(형 11-16 18:5x 「결 musician」)   // 뜸 = Creator(형 11-16 18:5x 「뜸은 creator」)
