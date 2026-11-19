@@ -121,7 +121,7 @@ export function normEmph(text) {
   flushClose();
   return out;
 }
-export const SENS_MASK = [];   // 가림 끔(형 11-19 13:42~13:43 dm-eyes 뜸 옮김 「오케 자살이 잘못은아니잖아 글자가?」 「에디터 수정 요청해야겟다」 「웅 그거 꺼주게 봄에게 요청해」 · 에디터 산출물 = editor #4374 shared/sens_mask.py MASK_PAIRS = [] · 앞 판 [['자살', '*살']] · 배선 sensMask 는 그대로)
+export const SENS_MASK = [['자살', '*살']];   // 되살림(형 11-19 14:19~14:20 dm-eyes 깃 옮김 「바로 이거 먹네」 「아냐 그건 숨진채 발견 으로 하고 넘으면 막아지게」 「바로가자」 = 「자살」 그대로 올리자 인스타가 바로 18세 미만 가림) · 13:55 판(가림 끔)을 되돌림 · 에디터 쪽 = 깃
 export function sensMask(s) { let o = String(s == null ? '' : s); for (const [a, b] of SENS_MASK) o = o.split(a).join(b); return o; }
 export function renderEmph2(line) {
   const segs = []; let on = false, buf = '';
