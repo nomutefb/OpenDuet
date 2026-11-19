@@ -3,9 +3,9 @@ import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-test("고정 밖 = 안 읽은 방 먼저 → 형한테 마지막으로 말한 때(heard_ts · 없으면 마지막 글이 형 글 아니면 그 시각) · 형이 읽은 때로 안 올라감", () => {
+test("고정 밖 = 형한테 마지막으로 말한 때 새 것부터 · 읽었든 안 읽었든(heard_ts · 없으면 마지막 글이 형 글 아니면 그 시각) · 형이 읽은 때로 안 올라감(봄 13:36 「안 읽은 방 먼저는 빼 줘」)", () => {
   const ui = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8"), d = readFileSync(new URL("../data/office.ts", import.meta.url), "utf8");
   assert.match(ui, /const heard = \(r: Room\) => \{ if \(r\.heard_ts\) return r\.heard_ts; const l = lastOf\(r\); return l && l\.kind !== "human" \? l\.ts : r\.last_ts \|\| 0; \};/);
-  assert.match(ui, /\.sort\(\(a, b\) => Number\(unread\(b\)\) - Number\(unread\(a\)\) \|\| heard\(b\) - heard\(a\)\);/);
+  assert.match(ui, /const rest = shown\.filter\(\(r\) => !pinned\(r\.id\)\)\.sort\(\(a, b\) => heard\(b\) - heard\(a\)\);/);
   assert.match(d, /heard_ts\?: number;/);
 });
