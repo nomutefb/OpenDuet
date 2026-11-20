@@ -5,13 +5,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
 export type Job = "FIXER" | "MD" | "UXD" | "DEV" | "OPS" | "PM" | "STORY" | "MUSIC" | "CREATOR" | "RND" | "SEC" | "SCOOP";
-const IMG: Record<Job, { src: string; w: number; h: number }> = {
+const IMG: Record<Job, { src: string; w: number; h: number; dy?: number }> = {   // dy = 그림 속 글자 가운데가 위아래로 쏠린 만큼 내림(px · 이름 줄과 수평)
   FIXER: { src: "/garden-app/job-fixer.webp?v=9", w: 87, h: 40 },
   MD: { src: "/garden-app/job-md.webp?v=9", w: 49, h: 40 },
   UXD: { src: "/garden-app/job-uxd.webp?v=9", w: 68, h: 21 },   // 10.5px = FIXER 폭 맞춤 13px 의 80%(형 16:47 dm-gik 깃 옮김 「uxd는 아까 80%크기로 줄이라고했는데 안됫네」 · 앞 판 14:13 「딱봐도 픽서빼고는 너무 큰데」 13px · 13:56 「uxd 80%크기로면될듯」)
   // DeV · OpS = 하늘 그림(형 13:43~13:44 dm-sia 시아 옮김 「루미말고 다른애한테 그대로 시켜」 「uxd에게 그대로 시켜서 디자인하고」 「저기에 보면 ba랑 y가 강하잖아. 그걸 활요해서 만들라고해.」 「OpS 도 그런느낌으로 하면된다고하고」 「DeV 도 마찬」)
   //   BATTLE ACADEMY 꼴 = 첫 · 끝 글자 크게(끝 글자는 더 크게 뻗음) · 가운데 작게 · 흰 글 + 검은 굵은 테 + 뒤 검은 리본 판(흰 테) · 위 색 띠(DeV 하늘 · OpS 분홍) · 20px · 원본 = claude-state beings/하늘/일/직무-라벨/label_*_하늘.png · lab-gen.mjs
-  DEV: { src: "/garden-app/job-dev.webp?v=11", w: 86, h: 28 },   // DEV = 시아 글리치 그림 · 다 대문자 판(정원 원본 · 앞 판 3aaecb6 = claude-state 옛 「DeV」 판을 잘못 씀)(형 20:19 dm-sia 시아 옮김 「DEV는 저대로 가자 다 대문자로해서 자간만 줄여서 도스창 말고 기존거로」 · 「데브 크기 65%로 줄여서 70%?」 「여튼좀 커」 = 시아 견줌 판 70% 줄 · 43×13px) · 반짝임 같이(sparkle.py)
+  DEV: { src: "/garden-app/job-dev.webp?v=11", w: 86, h: 28, dy: 1.5 },   // dy 1.5 = 아래 그림자 · 글리치 탓에 흰 글자 가운데가 1.2px 위(실측 62.5/150) · 형 20:28 dm-sia 「70% 로 수평 맞추면 될듯」 · 20:31 「데브 좀만 더 내려주면 댈듯」
+    // DEV = 시아 글리치 그림 · 다 대문자 판(정원 원본 · 앞 판 3aaecb6 = claude-state 옛 「DeV」 판을 잘못 씀)(형 20:19 dm-sia 시아 옮김 「DEV는 저대로 가자 다 대문자로해서 자간만 줄여서 도스창 말고 기존거로」 · 「데브 크기 65%로 줄여서 70%?」 「여튼좀 커」 = 시아 견줌 판 70% 줄 · 43×13px) · 반짝임 같이(sparkle.py)
   //   OpS = 아래 배틀 꼴 그대로(형 「OPS는 다른거로 새악좀해볼게 ㅋㅋㅋ」)
   OPS: { src: "/garden-app/job-ops.webp?v=9", w: 89, h: 32 },
   // 남은 직무 일곱(형 11-20 16:48 dm-gik 깃 옮김 「루미가 그릴거 아니야 ~ 그리고」 「하늘이랑 구름이 할거야」 · 나눔 = 구름 16:50 안)
@@ -40,7 +41,7 @@ export function jobOf(p?: { who: string; job?: string } | null): Job | undefined
 export function JobLabel({ job, who }: { job: Job; who?: string }) {
   if (job === "PM" && who) return <PmLabel who={who} />;
   const g = IMG[job];
-  return <img className="nm-job shrink-0" src={g.src} alt={job} width={g.w / 2} height={g.h / 2} decoding="async" draggable={false} />;
+  return <img className="nm-job shrink-0" src={g.src} alt={job} width={g.w / 2} height={g.h / 2} style={g.dy ? { transform: `translateY(${g.dy}px)` } : undefined} decoding="async" draggable={false} />;
 }
 /** 지금 PM 만 무지개 판(형 11-20 19:18 dm-haneul 「현재 PM은 레인보우로 특별하게, 무지개 빛 할수있어?」) · 나머지 PM 라인 = 라임 스티커
  *  지금 PM = 서버 pm 칸(우하단 PM 구슬 ./room-fab.tsx 와 같은 캐시 열쇠 · 받기 0 더) · 교대되면 무지개도 따라감 · 그림 = 정지(움직임 0) */
