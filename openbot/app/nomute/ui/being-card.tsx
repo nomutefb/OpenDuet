@@ -413,7 +413,7 @@ const LOOKS: Look[] = [
     //   결 = 한낮 하늘(시아 = 초저녁 · 윈터 = 밤 · 봄 = 새벽 사이 · 시아 10:05) · 무늬 = 뜬구름 · 한낮 해빛 · 띠 · 고리 · 큰 「하늘」 · 🌤️ · 붓으로 한 번 긋는 구름(transform · opacity 만 · 폰 = 멈춤)
     id: "haneul",
     match: ["하늘", "haneul"],
-    face: "/garden-app/haneul.webp?v=1",
+    face: "/garden-app/haneul.gif?v=1",   // 움짤(시아 10:44 · 160 · 6초 · 깜빡 · 갸웃 · 붓 자국 · 형 10:23 「움직이게 해줘 ㅋㅋㅋ」) · 멈춘 판 = haneul.webp
     handle: "haneul",
     meta: "UX",
     dot: "#5AB4FF",
