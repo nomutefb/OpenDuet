@@ -15,9 +15,17 @@ self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(["/garden-app/", "/garden-app/manifest.webmanifest", "/garden-app/icon-192.png"]).catch(() => {})));
 });
 
+/* assets/ 자리에 온 html = 그 묶음이 아님(배포가 바뀌는 몇 분 사이 · 없는 조각 주소에 Pages 가 첫 화면 html 을 200 으로 줌) → 담지 않음.
+   11-20 19:2x 실물 = 담아 둔 index-…js 가 html(1786바이트)이라 앱이 빈 화면 · 「한 번 받으면 그대로」라 서버가 고쳐져도 안 풀림(깃 · 하늘 19:30 [도움] · 빠르). */
+const htmlAsset = (r) => /text\/html/i.test(r.headers.get("content-type") || "");
+
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
     for (const k of await caches.keys()) if (k !== SHELL && k !== ASSETS && k !== META && k !== "garden-app-att") await caches.delete(k);
+    try {   // 앞 판이 담아 둔 html 조각 = 판이 바뀔 때 한 번 치움(빈 화면 기기가 새 판 서비스 워커만 받으면 풀림)
+      const c = await caches.open(ASSETS);
+      for (const q of await c.keys()) { const r = await c.match(q); if (r && htmlAsset(r)) await c.delete(q); }
+    } catch { /* 못 치워도 fetch 가 만날 때 버림 */ }
     try { await (await caches.open(META)).delete("/garden-app/__nm-pend"); } catch { /* 옛 「한 번 밀기 장부」 한 줄 치움 */ }
     await self.clients.claim();
     for (const c of await self.clients.matchAll({ type: "window" })) c.postMessage({ type: "nm-build", build: BUILD });   // 알리기만 · 다시 읽기는 형 단추
@@ -179,9 +187,10 @@ self.addEventListener("fetch", (e) => {
   if (url.pathname.startsWith("/garden-app/assets/")) {
     e.respondWith((async () => {
       const hit = await caches.match(req);
-      if (hit) return hit;
+      if (hit && !htmlAsset(hit)) return hit;
+      if (hit) await (await caches.open(ASSETS)).delete(req).catch(() => {});   // 앞 판이 박아 둔 html(아래) = 버리고 다시 받음
       const res = await fetch(req);
-      if (res.ok) (await caches.open(ASSETS)).put(req, res.clone());
+      if (res.ok && !htmlAsset(res)) (await caches.open(ASSETS)).put(req, res.clone());
       return res;
     })());
   }
