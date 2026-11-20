@@ -90,6 +90,9 @@ export const PATCH: Record<string, [string, string][]> = {
     ['aria-label="More message options unavailable"', 'aria-label="글 꾸미기 없음"'],
     ['aria-label="Message"', 'aria-label="글"'],
     ['aria-label="Message"', 'aria-label="글"'],
+    // 입력칸 마크다운 끔 = 치는 동안 ** · * 가 굵게 · 기울임으로 바뀌거나 「* 」가 「•」로 바뀌지 않음(prompt-area markdown 기본 켜짐 · 형 11-20 11:04 「그리고 내가 여기 채팅에 별을 쓸떼, 여러개쓰면 막 꼬여 정상적으로 그냥 쓸수잇게 조치좀, 여기서 굳이 내가 별을 써서 강조할 필요가없어」) · 입력칸 둘
+    ['<PromptArea\n                  aria-label="글"', '<PromptArea\n                  markdown={false}\n                  aria-label="글"'],
+    ['<PromptArea\n              aria-label="글"', '<PromptArea\n              markdown={false}\n              aria-label="글"'],
     // 엔터 = 줄바꿈이 기본 · 설정에서 보내기로(형 10-31 · ./ui/enter-key.tsx) · 입력칸 둘 · 앞에 줄바꿈까지 넣어 서로 안 겹침
     ['import { PromptArea, type PromptAreaHandle } from "prompt-area";', 'import { PromptArea, type PromptAreaHandle } from "prompt-area";\nimport { shiftSend, useEnterSends } from "@nomute/ui/enter-key";\nimport { registerComposer } from "@nomute/ui/call-sheet";'],
     ['  const promptAreaRef = useRef<PromptAreaHandle>(null);', '  const promptAreaRef = useRef<PromptAreaHandle>(null);\n  const enterSends = useEnterSends();\n  useEffect(() => registerComposer(promptAreaRef), []);'],   // 「@」·「!」 시트가 칩을 넣을 손잡이(./ui/call-sheet.tsx)

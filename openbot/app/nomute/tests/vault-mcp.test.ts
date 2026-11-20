@@ -13,10 +13,12 @@ test("맨 위 칸 = 그록 꼴(Connection · Name · Transport · URL · Authent
   assert.match(ui, /<div className="nm-mcp-cut" aria-hidden \/>\s*<\/>\s*\);\s*\}\)\(\)\}[\s\S]{0,400}\? <Card>/);   // 칸 → 구분선 → 아래 줄들(손이 필요한 칸이 있을 때만)
   // 11-20 형 02:55 「겹치는 보안 서랍 내용은 지워줘」 · 「spare02 넣음 이런말은 필요앖음」 · 03:04 「재발행 … 기존 건 파기 복사 시 자동으로 커서 아동 후 메모 한 줄」 = 아래 = 빈 칸 · 안 맞는 칸만 · id · 「넣음 · 시각」 0 · 위 예비 줄에 재발행 · 복사 → 사용처 칸 커서
   assert.match(ui, /\.filter\(\(s\) => s\.top && \(!s\.set \|\| s\.match === false\)\)\.map\(\(s\) => \(/);   // 11-20 07:18 「이거 따로 노니까」 = 예비는 위 줄 한 곳 · 아래 = 봄의 정원 칸만
-  assert.match(ui, /yesText="발행" note="새 열쇠가 생겨"/);   // 11-20 11:02 「새열쇠가 그냥 발행 으로」
+  assert.ok(ui.includes('yesText="발행" busy="발행 중" label={`${nameOf(s.seat)} 발행`} yesGo={() => remint(s.seat)}>'));   // 11-20 11:02 「새열쇠가 그냥 발행 으로」 · 11:22 게이지 → ✓
   assert.ok(!ui.includes("aria-label=\"지금 쓰는 이름 · 자리 id\""), "자리 id 글자 0");
   assert.ok(!/`넣음\$\{s\.at/.test(ui), "넣음 · 시각 0");
-  assert.match(ui, /yesText="재발행" note="앞 열쇠는 파기돼"/);
+  assert.ok(ui.includes('yesText="재발행" busy="재발행 중" label={`${nameOf(s.seat)} 재발행`} yesGo={() => remint(s.seat)}>'));
+  assert.ok(ui.includes("remint={(seat) => mint.mutateAsync(seat)}"));   // 서버 답 ok 에 ✓(형 11:22 「사용이 가능할때까지 … 발행 과정이 보여야해」)
+  assert.ok(!/<MorphAsk[^>]*note="/.test(ui), "토글 밑 작은 글 0(형 11-20 11:21 「이거 설명글 필요없음」)");
   assert.match(ui, /id=\{`mcp-use-\$\{s\.seat\}`\}/);
   assert.match(ui, /setFocusUse\(\(f\) => \(\{ seat, n: \(f\?\.n \|\| 0\) \+ 1 \}\)\)/);
 });
