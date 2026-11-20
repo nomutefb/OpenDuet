@@ -13,7 +13,7 @@ test("맨 위 칸 = 그록 꼴(Connection · Name · Transport · URL · Authent
   assert.match(ui, /<div className="nm-mcp-cut" aria-hidden \/>\s*<\/>\s*\);\s*\}\)\(\)\}[\s\S]{0,400}\? <Card>/);   // 칸 → 구분선 → 아래 줄들(손이 필요한 칸이 있을 때만)
   // 11-20 형 02:55 「겹치는 보안 서랍 내용은 지워줘」 · 「spare02 넣음 이런말은 필요앖음」 · 03:04 「재발행 … 기존 건 파기 복사 시 자동으로 커서 아동 후 메모 한 줄」 = 아래 = 빈 칸 · 안 맞는 칸만 · id · 「넣음 · 시각」 0 · 위 예비 줄에 재발행 · 복사 → 사용처 칸 커서
   assert.match(ui, /\.filter\(\(s\) => s\.top && \(!s\.set \|\| s\.match === false\)\)\.map\(\(s\) => \(/);   // 11-20 07:18 「이거 따로 노니까」 = 예비는 위 줄 한 곳 · 아래 = 봄의 정원 칸만
-  assert.match(ui, /yesText="만들기" note="새 열쇠가 생겨"/);
+  assert.match(ui, /yesText="발행" note="새 열쇠가 생겨"/);   // 11-20 11:02 「새열쇠가 그냥 발행 으로」
   assert.ok(!ui.includes("aria-label=\"지금 쓰는 이름 · 자리 id\""), "자리 id 글자 0");
   assert.ok(!/`넣음\$\{s\.at/.test(ui), "넣음 · 시각 0");
   assert.match(ui, /yesText="재발행" note="앞 열쇠는 파기돼"/);
@@ -29,14 +29,19 @@ test("칸은 다 고칠 수 없음 · 열쇠는 가린 점 + 복사만(서버 se
   assert.match(ui, /go=\{\(\) => copyText\(key, text\)\}/);
 });
 
-test("펼치면 Authentication 안에 예비 줄 · 복사하면 사용처 글칸 → 치기 멈춘 뒤 0.7초 · 칸 떠나면 바로 저장(같은 seatvault/memo) · 저장 단추 0", () => {
+test("펼치면 Authentication 안에 예비 줄 · 메모 칸 = 복사 왼쪽 늘 보임(50자) → 치기 멈춘 뒤 0.7초 · 칸 떠나면 바로 저장(같은 seatvault/memo) · 저장 단추 0", () => {
   assert.match(ui, /aria-expanded=\{open\}/);
   assert.match(ui, /inert=\{open \? undefined : true\}/);
-  assert.match(ui, /show = !!took\[s\.seat\] \|\| v !== ""/);
-  assert.match(ui, /placeholder="사용처"/);
+  // 11-20 11:02 「이 펼침이 예비 3 이 아니라 예비 코드 라고」 · 「누르면 라임색으로」 · 「복사 좌측에 간단한 메모 … 최대 50자」 · 「그냥 글자 버튼으로 해줘 복사도 마찬가지」 · 줄마다 칸 세로 맞춤
+  assert.match(ui, /onClick=\{\(\) => setOpen\(\(o\) => !o\)\}>예비 코드<Chev/);
+  assert.match(css, /\.nm-mcp-more\[aria-expanded="true"\] \{ color:var\(--accent\);/);
+  assert.match(ui, /maxLength=\{50\} placeholder="메모"/);
+  assert.match(ui, /<div className="nm-mcp-use">[\s\S]{0,900}<CopyBtn text ok=\{done === s\.seat\}/);   // 메모 → 복사 차례
+  assert.match(css, /\.nm-mcp-sp \{ display:grid; grid-template-columns:max-content 7\.5rem minmax\(0,1fr\) max-content max-content;/);
+  assert.match(css, /\.nm-mcp-sr \{ display:contents; \}/);
+  assert.match(css, /\.nm-mcp-tb \{ border-color:transparent;/);
   assert.match(ui, /onBlur=\{\(\) => flush\(s\.seat\)\}/);
   assert.match(ui, /saveUse\(seat, v\); \}, 700\)/);
-  assert.match(ui, /setTook\(\(t\) => \(t\[seat\] \? t : \{ \.\.\.t, \[seat\]: true \}\)\)/);
   assert.match(css, /\.nm-mcp-fold \{ display:grid; grid-template-rows:0fr;/);
   assert.match(css, /\.nm-mcp-fold\[data-open\] \{ grid-template-rows:1fr;/);
 });
