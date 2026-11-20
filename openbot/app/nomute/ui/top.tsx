@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useColFlag } from "./has-flags";
-import { type OfficeRoom, idOf, office, people, roomAgentIds, roomHeadCount, roomLeftSet, hyungLeft, HYUNG_ID } from "../data/office";
+import { type OfficeRoom, idOf, office, people, roomAgentIds, roomHeadCount, roomLeftSet, hyungLeft, HYUNG_ID, inviteCands, invitePlan } from "../data/office";
 import { DuetIcon } from "@/components/duet/icons";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { FaceImg } from "./faces";
@@ -62,7 +62,7 @@ export function NomuteName({ room }: { room?: string } = {}) {
   const can = routineRoom(r);
   // 멤버 조정(임시방만 · 고정된 방(밥상 등) 말고 · 형 11-06 20:37 「고정된 방 말고 (밥상 등)」) = 그 자리에서 내보내기·초대 → POST temprooms/<방>
   const edit = !!r.temp && !r.with;
-  const outside = list.filter((x) => x.kind !== "human" && !x.gone && !(r.members || []).includes(x.who));   // 없어진 봇(gone · 명부 한 곳 · 빠르 11-08 · 옛 = 「별」 이름 박기) = 초대 명단에서 뺌(형 11-06 11:43 「별만 초대 모록에 없으면될듯」 · /초대 얼굴 줄과 같게)
+  const outside = inviteCands(r, list);   // 방에 없는 이 = 명단 밖 + 「!종료」로 나간 이(형 11-20 13:25 dm-sia 「루미 계쏙 나감으로뜨는데 … 초대해도 나감으로떠서」 · ../data/office.ts)
   const saveMembers = async (members: string[], fill = 0) => {   // fill = 게이지가 차는 시간(ms) — 서버 답과 게이지 둘 다 끝난 뒤 목록을 새로 그림
     setBusy(true); setWhy("");
     try { await Promise.all([office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members }) }), new Promise((ok) => setTimeout(ok, fill))]); await qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); }
@@ -71,7 +71,11 @@ export function NomuteName({ room }: { room?: string } = {}) {
   };
   const invite = async () => {   // 「N명 넣기」 = 게이지 알약(형 11-15 「하네스 전반 통일」) · 실패 = 이유 적고 throw · 명단 접기 · 목록 새로 읽기 = ✓ 뒤(done)
     setBusy(true); setWhy("");
-    try { await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members: [...(r.members || []), ...pick] }) }); }
+    const { back, fresh } = invitePlan(r, pick);   // 나간 이 = 다시 부름(명단은 그대로 · 나간 표만 지움) · 명단 밖 = 멤버 더하기
+    try {
+      if (fresh.length) await office(`temprooms/${encodeURIComponent(r.id)}`, { method: "POST", body: JSON.stringify({ name: r.name, purpose: r.purpose || "", members: [...(r.members || []), ...fresh] }) });
+      for (const who of back) await office(`rooms/${encodeURIComponent(r.id)}/invite`, { method: "POST", body: JSON.stringify({ who }) });   // 대화 위 「채팅방으로 초대하기」 단추와 같은 길
+    }
     catch (e) { setWhy(e instanceof Error ? e.message : String(e)); throw e; }
     finally { setBusy(false); }
   };
@@ -96,7 +100,7 @@ export function NomuteName({ room }: { room?: string } = {}) {
             <>
               <button type="button" className="nm-top-inv" aria-expanded={inv} onClick={() => setInv((v) => !v)}>{inv ? "접기" : "+ 초대"}</button>
               <span className={`nm-top-invlist${inv ? " on" : ""}`}>
-                {outside.map((x) => <label key={x.who} className="nm-top-one"><input type="checkbox" checked={pick.includes(x.who)} onChange={() => setPick((p) => (p.includes(x.who) ? p.filter((w) => w !== x.who) : [...p, x.who]))} /><FaceImg id={idOf(x.who, list)} size={22} />{x.name || x.who}</label>)}
+                {outside.map((x) => <label key={x.who} className="nm-top-one"><input type="checkbox" checked={pick.includes(x.who)} onChange={() => setPick((p) => (p.includes(x.who) ? p.filter((w) => w !== x.who) : [...p, x.who]))} /><FaceImg id={idOf(x.who, list)} size={22} />{x.name || x.who}{gone.has(x.who) ? " (나감)" : ""}</label>)}
                 {pick.length ? <GoButton className="nm-top-invgo" disabled={busy} go={invite} done={() => { setPick([]); setInv(false); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); }} busy="넣는 중">{`${pick.length}명 넣기`}</GoButton> : null}
               </span>
             </>
