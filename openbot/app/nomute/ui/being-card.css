@@ -50,6 +50,12 @@
 }
 .being-card .profile-card__name { font-size: 40px; letter-spacing: 0; line-height: 1; }
 .being-card .profile-card__handle { font-size: 16px; letter-spacing: 0.01em; }
+/* 아래 줄(형 11-20 16:46~16:47 dm-gik 깃 옮김 「@lumi 좌측에 온라인 불이 있어야하고,」 「그 아래에 저 직무 그게 들어가야함 fixer」)
+   = @ 왼쪽 온라인 불(깨어 있음 = 초록 · 쉼 = 옅은 점 · 움직임 0) · 그 아래 = 직무 라벨 그림(./job-label.tsx · 목록과 같은 크기) · 앞 판 글 앞 점은 @ 쪽으로 옮겨 걷음 */
+.being-card .bc-on { display: inline-block; width: 7px; height: 7px; margin: 0 7px 0 1px; border-radius: 50%; vertical-align: 0.12em; background: rgba(255, 255, 255, 0.24); }
+.being-card .bc-on.on { background: var(--success, #3BE37A); box-shadow: 0 0 6px var(--success, #3BE37A); }
+.being-card .profile-card__status::before { display: none; }
+.being-card .profile-card__status.bc-job { min-height: 20px; overflow: visible; }
 .being-card .profile-card__title { margin-top: 8px; font-size: var(--fs-label); letter-spacing: 0.02em; }
 .being-card__intro { margin: 0; max-width: 34ch; font-size: var(--fs-label); line-height: 1.55; color: rgba(231, 236, 231, 0.78); text-align: center; }
 .being-card .profile-card__note {   /* 카드 안 설명 글(형 11-11 06:43 「설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯 . 좀 좁으려나? 그럼 세로를 늘리면 됑」) */

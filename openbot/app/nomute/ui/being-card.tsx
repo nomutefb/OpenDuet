@@ -5,6 +5,9 @@ import { useEffect, type CSSProperties, type ReactNode } from "react";
 import ProfileCard from "../vendor/react-bits/ProfileCard/ProfileCard";
 import "./being-card.css";
 import { useSpareOn } from "./faces";
+import { useQuery } from "@tanstack/react-query";
+import { office } from "../data/office";
+import { JobLabel, jobOf } from "./job-label";
 
 type Look = {
   id: string;           // CSS 꼬리표 → .bc-<id> (being-card.css 에 팔레트·모양)
@@ -564,6 +567,11 @@ export function BeingCard({ who, name, role, intro, face, person, note, onScreen
   const font: FontKey = look?.font && look.font in FONTS ? look.font : "bagel-fat-one";
   useDisplayFont(look ? font : null);
   const lit = useSpareOn(look?.seat);   // 예비 = 쓰는 중이면 그림 그대로 · 아니면 .bc-off(얼굴 어둡게 · being-card.css)
+  // 아래 줄(형 11-20 16:46~16:47 dm-gik 깃 옮김 「@lumi 좌측에 온라인 불이 있어야하고,」 「그 아래에 저 직무 그게 들어가야함 fixer」) = @ 왼쪽 온라인 불 · 그 아래 = 직무 라벨 그림(있는 애) · 없는 애 = 옛 글
+  //   불 = 봇 상태 awake(방 목록 · 대화와 같은 받기 · 캐시 하나) · 예비 = 켬 값(./faces.tsx)
+  const state = useQuery({ queryKey: ["nomute", "bots"], queryFn: () => office<{ bots: { who: string; state: string }[] }>("bots").then((j) => j.bots || []), staleTime: 15_000, select: (bs: { who: string; state: string }[]) => bs.find((b) => b.who === who)?.state }).data;
+  const online = look?.seat ? lit === true : state === "awake";
+  const job = jobOf({ who });
   if (!look) return null;
   return (
     <div className="being-card-wrap" style={{ "--bc-display": `"${FONTS[font].family}"`, ...(look.id === "tmpl" || look.tmpl ? { "--bc-accent": look.accent || look.dot } : {}) } as CSSProperties}>
@@ -575,6 +583,8 @@ export function BeingCard({ who, name, role, intro, face, person, note, onScreen
         handle={look.handle || ""}
         status={acts ? role || look.meta : look.meta}   // 통일 = 아래 작은 줄도 직무(앞 판 = 시아 「물어보는 자리 · Lx A」 · 뎅 「말끝지기 · Lx B」 · 천둥 「신」 · 나머지 직무)
         statusColor={look.dot || "#CFFF40"}
+        handleLead={<i className={`bc-on${online ? " on" : ""}`} role="img" aria-label={online ? "온라인" : "쉬는 중"} />}
+        statusNode={job ? <span className="profile-card__status bc-job"><JobLabel job={job} /></span> : undefined}
         contactText=""
         actions={acts || onDm || onScreen ? (
           <span className="bc-acts">

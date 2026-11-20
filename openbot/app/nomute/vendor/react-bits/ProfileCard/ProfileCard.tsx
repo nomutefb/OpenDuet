@@ -53,6 +53,8 @@ interface ProfileCardProps {
   idle?: boolean;
   noteEmpty?: boolean; /* [nomute] 소개가 비어 자리 글(옅게) */
   actions?: ReactNode; /* [nomute] 아래 줄 오른쪽 단추 묶음(있으면 contact 단추 대신) */
+  handleLead?: ReactNode; /* [nomute] @handle 왼쪽(온라인 불 · 형 11-20 16:46 「@lumi 좌측에 온라인 불이 있어야하고,」) */
+  statusNode?: ReactNode; /* [nomute] @handle 아래 줄 = 글 대신 이것(직무 라벨 그림 · 형 16:46 「그 아래에 저 직무 그게 들어가야함 fixer」) */
   note?: string; /* [nomute] 이름 · 직무 밑 설명 글(형 11-11 06:43 「설명 글을 이름이랑 직무 써진걸 좀 올리고 거기에 쓰면 될듯」) */
 }
 
@@ -156,7 +158,9 @@ const ProfileCard = ({
   idle = false,
   note,
   noteEmpty,
-  actions
+  actions,
+  handleLead,
+  statusNode
 }: ProfileCardProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<Engine | null>(null);
@@ -435,8 +439,8 @@ const ProfileCard = ({
               </span>
             )}
             <div className="profile-card__meta">
-              {handle && <span className="profile-card__handle">@{handle}</span>}
-              {status && <span className="profile-card__status">{status}</span>}
+              {handle && <span className="profile-card__handle">{handleLead}@{handle}</span>}
+              {statusNode ?? (status && <span className="profile-card__status">{status}</span>)}
             </div>
             {actions /* [nomute] */}
             {!actions && contactText && (

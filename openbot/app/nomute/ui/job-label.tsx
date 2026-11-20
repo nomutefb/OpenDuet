@@ -6,7 +6,7 @@ export type Job = "FIXER" | "MD" | "UXD" | "DEV" | "OPS";
 const IMG: Record<Job, { src: string; w: number; h: number }> = {
   FIXER: { src: "/garden-app/job-fixer.webp", w: 87, h: 40 },
   MD: { src: "/garden-app/job-md.webp", w: 49, h: 40 },
-  UXD: { src: "/garden-app/job-uxd.webp?v=3", w: 84, h: 26 },   // 13px · 폭 42 = FIXER(44)와 눈에 같은 크기(형 14:13 dm-sia 시아 옮김 「딱봐도 픽서빼고는 너무 큰데 사이즈좀맞춰줘」 · 앞 판 13:56 「uxd 80%크기로면될듯」 16px · 그 앞 루미 60% 12px)
+  UXD: { src: "/garden-app/job-uxd.webp?v=4", w: 68, h: 21 },   // 10.5px = FIXER 폭 맞춤 13px 의 80%(형 16:47 dm-gik 깃 옮김 「uxd는 아까 80%크기로 줄이라고했는데 안됫네」 · 앞 판 14:13 「딱봐도 픽서빼고는 너무 큰데」 13px · 13:56 「uxd 80%크기로면될듯」)
   // DeV · OpS = 하늘 그림(형 13:43~13:44 dm-sia 시아 옮김 「루미말고 다른애한테 그대로 시켜」 「uxd에게 그대로 시켜서 디자인하고」 「저기에 보면 ba랑 y가 강하잖아. 그걸 활요해서 만들라고해.」 「OpS 도 그런느낌으로 하면된다고하고」 「DeV 도 마찬」)
   //   BATTLE ACADEMY 꼴 = 첫 · 끝 글자 크게(끝 글자는 더 크게 뻗음) · 가운데 작게 · 흰 글 + 검은 굵은 테 + 뒤 검은 리본 판(흰 테) · 위 색 띠(DeV 하늘 · OpS 분홍) · 20px · 원본 = claude-state beings/하늘/일/직무-라벨/label_*_하늘.png · lab-gen.mjs
   DEV: { src: "/garden-app/job-dev.webp?v=3", w: 85, h: 32 },   // DeV · OpS = 16px · 폭 42 · 44(리본 판까지 = FIXER 폭 · 형 14:13 「…사이즈좀맞춰줘」)
