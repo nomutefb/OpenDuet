@@ -6,7 +6,7 @@ const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const ts = rd("../home/top-swap.tsx"), css = rd("../home/top-swap.css"), home = rd("../home/home-screen.tsx"), scene = rd("../home/home-scene.css"), fp = rd("../home/follow-pulse.tsx"), fcss = rd("../home/follow-pulse.css");
 
 test("폰 첫 줄 = 한 칸 · 팔로워 띠 먼저 · 러너 띠는 넘겨야 · PC 반갈은 그대로", () => {
-  assert.match(home, /\{split \? <FollowPulse \/> : <div className="nm-home-top" style=\{\{ gridRow: 1 \}\}><TopSwap pages=\{\[\{ node: <SnsApps \/>, label: "SNS" \}, \{ node: <FollowPulse grow \/>, label: "팔로워" \}, \{ node: <RunnerGauges \/>, label: "러너" \}\]\} \/><\/div>\}/);   // 첫 장 = SNS 큰 아이콘 셋(형 11-20 13:06 「✓ ② SNS 첫 장」)
+  assert.match(home, /\{split \? <FollowPulse \/> : <div className="nm-home-top" style=\{\{ gridRow: 1 \}\}><TopSwap pages=\{\[\{ node: <FollowPulse grow \/>, label: "팔로워" \}, \{ node: <SnsApps \/>, label: "SNS" \}, \{ node: <RunnerGauges \/>, label: "러너" \}\]\} \/><\/div>\}/);   // 첫 장 = 팔로워 차트 · SNS 둘째(형 11-21 05:02 「처음 화면은 차트 그대로 유」 「지」)
   assert.doesNotMatch(home, /<RunnerGauges \/><FollowPulse \/>/);   // 앞 판(11-15) = 위아래 두 단
   assert.match(ts, /const \[view, setView\] = useState\(0\);/);   // 늘 인스타로 시작 · 기억 안 함
   assert.doesNotMatch(ts, /localStorage|sessionStorage/);
