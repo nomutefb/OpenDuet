@@ -54,6 +54,7 @@ test("껍데기 집기 → 글 · 보낼 때 꺼냄(한 번만)", () => {
   assert.equal(pickPost({ state: "pick", id: "p3", ok: false }, "x"), null);
   assert.equal(pickPost({ state: "pick", id: "p4", ok: true, url: "javascript:alert(1)" }, "x"), null);
   assert.equal(takeSnsBlocks(["nm-sns-x-none.jpg"]), "");
+  assert.equal(pickPost({ state: "pick", id: "p5", ok: true, url: "https://www.instagram.com/" }, "threads")?.site, "instagram");   // 고른 곳(threads)보다 주소의 곳
 });
 
 test("pick.js = 껍데기가 「return (이 파일)(mode)」 로 부르는 꼴 · 주소 꼴에만 기댐", () => {
@@ -79,7 +80,8 @@ test("다리 없는 브라우저 = 맥 비춤 칸(⑤ B) · 이어지면 대화�
   assert.match(pane, /: <SnsMirror fallback=\{cur\.url\} \/>/);
   assert.match(pane, /\{send \|\| mlive \? \(/);
   assert.match(pane, /void mirror\.pick\(id\)\.then\(\(d\) => \{ const p = pickPost\(d, s\); if \(p\) stageSns\(p, d\.img\); \}\)/);
-  assert.match(pane, /mirror\.go\(goTo\.current \|\| SNS_SITES\.find/);
+  assert.match(pane, /const url = goTo\.current \|\| SNS_SITES\.find/);
+  assert.match(pane, /const tryGo = \(\) => \{ if \(mirror\.go\(url\) \|\| \+\+n > 25\) return;/);   // 데이터 줄 열릴 때까지 다시(13:0x 실물)
   assert.match(mir, /mirror\.touch\("start", p\.x, p\.y\)/);
   assert.match(mir, /useEffect\(\(\) => \(\) => \{ mirror\.close\("leave"\); \}, \[\]\);/);   // 칸 떠남 = 맥 놓아줌
 });

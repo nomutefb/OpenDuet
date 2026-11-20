@@ -18,6 +18,10 @@ const TH_POST = /^\/@([\w.]+)\/post\/([\w-]+)\/?$/;
 const X_POST = /^\/(\w+)\/status(?:es)?\/(\d+)(?:\/(?:photo|video)\/\d+)?\/?$/;
 const IG_NOT_USER = new Set(["explore", "accounts", "direct", "stories", "reels", "reel", "p", "tv"]);
 
+/** 주소 → 곳(글 주소가 아니어도 · 피드 · 첫 화면) · 모르는 곳 = null */
+export function siteOfUrl(raw: string): SnsSite | null {
+  try { const h = new URL(String(raw || "").trim()).hostname; return HOST.find(([, re]) => re.test(h))?.[0] || null; } catch { return null; }
+}
 /** 글 주소면 { site, url(꼬리 뗀 것), author? } · 아니면 null */
 export function snsPostOf(raw: string): SnsPost | null {
   let u: URL;

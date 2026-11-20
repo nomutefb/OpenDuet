@@ -33,9 +33,13 @@ export function SnsSidePane() {
   useEffect(() => (send ? undefined : mirror.on((x) => setMst(x.st))), [send]);
   const mlive = !send && mst === "live";
   useEffect(() => {   // 맥 비춤 = 곳 바꿈 · 카드에서 온 글 → 맥 탭을 그 주소로(https 만 · 중계기가 거름)
-    if (!mlive) return;
-    mirror.go(goTo.current || SNS_SITES.find((x) => x.id === site)!.url);
+    if (!mlive) return undefined;
+    const url = goTo.current || SNS_SITES.find((x) => x.id === site)!.url;
     goTo.current = "";
+    let n = 0, t = 0;
+    const tryGo = () => { if (mirror.go(url) || ++n > 25) return; t = window.setTimeout(tryGo, 200); };   // 「live」(연결) 뒤 데이터 줄이 조금 늦게 열림 = 열릴 때까지 0.2초마다 · 5초까지(13:0x 실물 = 처음 보낸 것이 버려져 맥이 인스타에 머묾)
+    tryGo();
+    return () => window.clearTimeout(t);
   }, [mlive, site]);
   const goTo = useRef<string>(first?.url || "");   // 카드에서 온 글 주소(곳을 바꾼 뒤 자리가 잡히면 보냄)
   const siteRef = useRef(site); siteRef.current = site;

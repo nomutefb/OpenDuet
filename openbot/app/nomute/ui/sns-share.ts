@@ -2,7 +2,7 @@
 //   스냅샷 = 입력칸 첨부(원래 붙여넣기 길 그대로 = 칩 · 미리보기 · 빼기 다 있음) · 주소 · @이름 · 캡션 = 이 모듈이 쥐고 있다가 보낼 때 글 끝에 두 줄(./sns-post.ts snsBlock)
 //   스냅샷이 없으면(찍기 실패) 두 줄을 입력칸 글로 바로 넣음
 import { composerHandle } from "./call-sheet";
-import { type SnsPost, shotName, snsBlock, snsPostOf } from "./sns-post";
+import { type SnsPost, shotName, siteOfUrl, snsBlock, snsPostOf } from "./sns-post";
 import type { SidePick, SnsSite } from "./sns-side";
 
 const held = new Map<string, SnsPost>();   // 스냅샷 파일 이름(확장자 뺀 것) → 글
@@ -12,7 +12,7 @@ const stem = (name: string) => String(name || "").replace(/^.*[/\\]/, "").replac
 export function pickPost(r: SidePick, site: SnsSite): SnsPost | null {
   if (!r.ok || !r.url) return null;
   const p = snsPostOf(r.url);
-  const s = (p?.site || site) as SnsSite;
+  const s = (p?.site || siteOfUrl(r.url) || site) as SnsSite;   // 글 주소가 아니어도 주소의 곳 먼저(맥 비춤 = 고른 곳과 맥 화면이 잠깐 다를 수 있음 · 13:0x 실물)
   let url = p?.url || "";
   if (!url) { try { const u = new URL(r.url); if (u.protocol !== "https:") return null; url = u.origin + u.pathname; } catch { return null; } }
   const author = p?.author || (r.author && /^[\w.]{1,40}$/.test(r.author) ? r.author : undefined);
