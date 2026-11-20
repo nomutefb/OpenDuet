@@ -196,9 +196,13 @@
 .yeta-set .nm-mcp-tb { border-color:transparent; padding:0 6px; }   /* 글자 단추 = 테두리 0(「버튼 말고, 그냥 글자 버튼으로」) · 히트 영역(40px 높이)은 그대로 */
 .yeta-set .nm-mcp-tb.ok { border-color:transparent; background:none; color:var(--accent); }
 @media (max-width:520px) {   /* 폰 = 칸을 좁혀 메모 칸이 글자 대여섯은 보이게(412 폭 실측 = 앞 판 메모 칸에 「메」 한 글자) */
-  .yeta-set .nm-mcp-sp { grid-template-columns:max-content max-content 4.75rem minmax(0,1fr) max-content max-content; column-gap:4px; }
-  .yeta-set .nm-mcp-sp .nm-mcp-sk, .yeta-set .nm-mcp-sp .nm-mcp-sv { padding:0 10px; }
-  .yeta-set .nm-mcp-sp .nm-mcp-sv { letter-spacing:.02em; }
+  /* 켜기 스위치 칸이 들어온 뒤(412 실측 = 메모 54px · 두 글자) → 별 칸 3.75rem · 글 12px · 점은 넘치면 잘라 냄(… 0) · 스위치 34×20 → 메모 80px · 별 칸 「비어 있음」 다 보임 */
+  .yeta-set .nm-mcp-sp { grid-template-columns:max-content max-content 3.75rem minmax(0,1fr) max-content max-content; column-gap:4px; }
+  .yeta-set .nm-mcp-sp .nm-mcp-sk { padding:0 8px; }
+  .yeta-set .nm-mcp-sp .nm-mcp-sv { padding:0 6px; font-size:12px; text-overflow:clip; }
+  .yeta-set .nm-mcp-on .si-sw { width:34px; height:20px; }
+  .yeta-set .nm-mcp-on .si-sw::after { width:14px; height:14px; }
+  .yeta-set .nm-mcp-on[aria-checked="true"] .si-sw::after { transform:translateX(14px); }
   .yeta-set .nm-mcp-sp .nm-mcp-use .nm-vault-in { padding:0 24px 0 10px; }
   .yeta-set .nm-mcp-sp .nm-mcp-ok { right:8px; }
   .yeta-set .nm-mcp-tb { padding:0 4px; }

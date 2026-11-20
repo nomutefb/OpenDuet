@@ -29,4 +29,8 @@ test("켜기 · 끄기 = 보안 서랍 예비 줄 맨 앞 스위치(형만) · �
   assert.match(src, /void qc\.invalidateQueries\(\{ queryKey: \["nomute", "rooms"\] \}\)/);
   assert.match(src, /\{s\.on == null \? <span \/> :/, "서버 값 오기 전 = 빈 칸(격자 그대로)");
   assert.match(css, /\.nm-mcp-sp \{ display:grid; grid-template-columns:max-content max-content 7\.5rem /);
+  // 폰 412 = 별 칸 3.75rem · 12px · 점은 잘라 냄 · 스위치 34×20 → 메모 80px(실측 · 스위치 넣고 54px 였음)
+  assert.match(css, /\.yeta-set \.nm-mcp-sp \{ grid-template-columns:max-content max-content 3\.75rem minmax\(0,1fr\) max-content max-content; column-gap:4px; \}/);
+  assert.match(css, /\.yeta-set \.nm-mcp-sp \.nm-mcp-sv \{ padding:0 6px; font-size:12px; text-overflow:clip; \}/);
+  assert.match(css, /\.yeta-set \.nm-mcp-on \.si-sw \{ width:34px; height:20px; \}/);
 });
