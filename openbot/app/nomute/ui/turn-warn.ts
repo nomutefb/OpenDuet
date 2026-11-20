@@ -7,3 +7,5 @@ export const turnMin = (turnAt: unknown, now: number): number | undefined => (ty
 /** 지속 80분 넘음 */
 export const turnWarn = (turnAt: unknown, now: number): boolean => (turnMin(turnAt, now) ?? 0) > TURN_WARN_MIN;
 
+/** 시간 경고 안 띄우는 손 = PM 셋(손 표 skills 에 M · 지금 PM 자리 · 형 11-21 08:30 dm-sia 시아 옮김 「응 글구 PM은 시간 겅고 안뜨게」 · R0090) — 목록 시각 · 애들 탭 경고색 둘 다 */
+export const timeWarnOff = (r: { pm?: boolean; skills?: string[] }): boolean => !!r.pm || (r.skills || []).includes("M");

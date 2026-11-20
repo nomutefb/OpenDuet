@@ -5,7 +5,7 @@
 //   단계 줄 = 서버가 실제로 아는 때만(받음 → 태움 → 끝 · 마지막 손 · 대기 신호) — 지어낸 단계 0.
 //   「지금 무엇을 읽고 쓰는 중」 = 작업 줄(row.trail · 형 03:2x 「응」) — 몸 보고(5분)가 제 창 원문 끝에서 뽑아 실으면 그 손이 지금 도는 카드에 단계로 끼움(안 오면 앞 꼴 그대로).
 import { type BotRow, type BotTable, agoKo, hmKo, jobsOf, sumMin } from "./bot-desk-logic.ts";
-import { turnMin, turnWarn } from "./turn-warn.ts";
+import { timeWarnOff, turnMin, turnWarn } from "./turn-warn.ts";
 
 export type Col = "need" | "run" | "done";
 export type Tone = "wait" | "fail" | "run" | "done";
@@ -82,7 +82,7 @@ export function timeRows(t: BotTable | undefined, now: number): TimeRow[] {
   const xs = (t?.rows || []).map((r, i) => ({ r, i, sum: sumMin(r) }));
   xs.sort((a, b) => (a.sum == null ? 1 : 0) - (b.sum == null ? 1 : 0) || (b.sum ?? 0) - (a.sum ?? 0) || a.i - b.i);
   return xs.map(({ r, sum }, k) => {
-    const cur = r.lane === "work" ? turnMin(r.turn_at, now) : undefined;
-    return { who: r.who, rank: sum != null ? k + 1 : undefined, sum, cur, warnSum: (sum ?? 0) > SUM_WARN, warnCur: r.lane === "work" && turnWarn(r.turn_at, now) };
+    const cur = r.lane === "work" ? turnMin(r.turn_at, now) : undefined, off = timeWarnOff(r);   // PM 셋 = 경고 0(형 08:30 「응 글구 PM은 시간 겅고 안뜨게」)
+    return { who: r.who, rank: sum != null ? k + 1 : undefined, sum, cur, warnSum: !off && (sum ?? 0) > SUM_WARN, warnCur: !off && r.lane === "work" && turnWarn(r.turn_at, now) };
   });
 }

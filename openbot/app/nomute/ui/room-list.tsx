@@ -220,7 +220,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
   const talkBy = new Map(blanks.map((r, i) => [r.id, talkQ[i]?.data || ""]));
   const pinA = usePinAlpha();
   const sheet = useQuery({ ...botsSheetOpts<{ table?: BotTable }>(), refetchInterval: 60_000 }).data;   // 애들 표(앱 켤 때 미리 받아 둔 답 · 애들 탭과 같은 캐시 · 목록이 보일 때만 1분에 한 번)
-  const hot = useMemo(() => new Set(timeRows(sheet?.table, Date.now()).filter((x) => x.warnSum || x.warnCur).map((x) => x.who)), [sheet]);   // 누적 250 · 지속 80 넘은 애
+  const hot = useMemo(() => new Set(timeRows(sheet?.table, Date.now()).filter((x) => x.warnCur).map((x) => x.who)), [sheet]);   // 지속(쉼 없이 지금 N분째) 80 넘은 애만 · PM 0(형 11-21 08:38 「…경고 등 저거 누적이 아니라 쉼 없이 를 뜻하는거야 시간에 뜨는 빨강 ㅋㅋ」 · 08:30 「PM은 시간 겅고 안뜨게」 · 앞 판 = 누적 250 도)
   // 고정 줄 끌기 = 왼쪽 라임 줄(.nm-rgrip)을 잡고 위아래로 · 놓은 자리 = 고정 방 사이 차례(PIN_ORDER) · 폰 · 마우스 같은 손 · 줄 밀기 · 길게 누르기와 안 겹침(잡는 칸이 따로)
   const drag = useRef<{ id: string; y0: number; el: HTMLElement } | null>(null);
   const startDrag = (id: string) => (e: React.PointerEvent<HTMLSpanElement>) => {
