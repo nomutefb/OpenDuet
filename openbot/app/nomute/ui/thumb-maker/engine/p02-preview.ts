@@ -11,7 +11,8 @@ import { rszJob, rszPreview, rszWait } from "./p04-media";
 import { normEmph, renderEmph2, sensMask, stripStrayStars } from "./p05-text";
 import { snapForm, studioRouteFn } from "./p06-draft";
 import { TRK, buildEmphText, estTracking, prevLetterSpace } from "./p10-cards";
-import { HDR, abbrOn, cTpl, effOvFmt, estHeaderTr, goFire, hdrFit, ovFit, ovTrkKey } from "./p11-fit";
+import { HDR, _ovCharW, abbrOn, cTpl, effOvFmt, estHeaderTr, goFire, hdrFit, ovFit, ovTrkKey } from "./p11-fit";
+import { quoteIndents } from "./quote-indent";   // 따옴표 들여쓰기 = 굽는 쪽 quote_indent.py 새 판(R0083 · R0089 ②)
 import { a2Build, errStatus } from "./p13-fire";
 
 export const CPV_WHITE = 'rgb(255,255,255)';
@@ -217,7 +218,7 @@ export function renderCpPrev() {
     const fs2 = hdrFit(csub, HDR.sub), ft2 = hdrFit(ctitle, HDR.title);
     const trS = estHeaderTr(fs2, HDR.sub).tr, trT = estHeaderTr(ft2, HDR.title).tr;
     h += `<div class="cpv" style="left:0;right:0;top:${py(270)};margin-top:${px(9)};text-align:center;color:${CPV_WHITE};font-size:${px(66)};font-weight:700;line-height:1.15;white-space:pre;letter-spacing:${(trS / 1000).toFixed(4)}em">${esc(fs2)}</div>`;
-    h += `<div class="cpv" style="left:0;right:0;top:${py(385)};margin-top:${px(15)};text-align:center;color:${CPV_GREEN};font-size:${px(90)};font-weight:800;line-height:1.15;white-space:pre;letter-spacing:${(trT / 1000).toFixed(4)}em">${esc(ft2)}</div>`;
+    h += `<div class="cpv" style="left:0;right:0;top:${py(385)};margin-top:${px(15)};text-align:center;color:${CPV_GREEN};font-size:${px(90)};font-weight:700;line-height:1.15;white-space:pre;letter-spacing:${(trT / 1000).toFixed(4)}em">${esc(ft2)}</div>`;
   } else if (cur.k === 'ov') {
     if (S.CIMG.b64 && !S.ovOnly) h += CPV_PANSLOT;
     h += `<div class="cpv-scrim ${cur.fmt === 'reels' ? 'g-reels' : 'g-post'}" style="opacity:${(((v0 => Number.isFinite(v0) ? v0 : 60)(opaHi())) / 100).toFixed(2)}"></div>`;
@@ -230,8 +231,9 @@ export function renderCpPrev() {
       const fitLines = lines.map(l => ovFit(l, ovKey));
       const trimmed = fitLines.some((l, i) => l !== lines[i]);
       const trO = estTracking(fitLines, ovKey).tr;
+      const qi = quoteIndents(fitLines, ch => _ovCharW(ch, TRK[ovKey]) + trO / 1000 * TRK[ovKey].fs);   // 줄마다 따옴표 들여쓰기(1080 기준 px · 굽는 쪽과 같은 규칙 · 폭 = 미리보기 자간 셈과 같은 글자 폭)
       const ovClip = trimmed ? 'overflow:hidden;' : '';
-      h += `<div class="cpv" style="${ovClip}left:${px(sp.lm)};right:${px(40)};top:${py(sp.ty)};margin-top:${px(cur.fmt === 'reels' ? 8 : 11)};color:${CPV_WHITE};font-size:${px(sp.fs)};font-weight:800;line-height:${(sp.lh / sp.fs).toFixed(3)};white-space:pre;letter-spacing:${(trO / 1000).toFixed(4)}em">${fitLines.map(l => { const ls = prevLetterSpace(l, trO, sp.fs, TRK[ovTrkKey()] ? TRK[ovTrkKey()].basis : 'adv'); return ls == null ? emph(l) : `<span style="letter-spacing:${px(ls)}">${emph(l)}</span>`; }).join('<br>')}</div>`;
+      h += `<div class="cpv" style="${ovClip}left:${px(sp.lm)};right:${px(40)};top:${py(sp.ty)};margin-top:${px(cur.fmt === 'reels' ? 8 : 11)};color:${CPV_WHITE};font-size:${px(sp.fs)};font-weight:700;line-height:${(sp.lh / sp.fs).toFixed(3)};white-space:pre;letter-spacing:${(trO / 1000).toFixed(4)}em">${fitLines.map((l, li) => { const ls = prevLetterSpace(l, trO, sp.fs, TRK[ovTrkKey()] ? TRK[ovTrkKey()].basis : 'adv'); const ind = qi[li] > 0 ? `<span style="display:inline-block;width:${px(qi[li])}"></span>` : ''; return ind + (ls == null ? emph(l) : `<span style="letter-spacing:${px(ls)}">${emph(l)}</span>`); }).join('<br>')}</div>`;
     }
   } else if (cur.k === 'card') {
     if (S.CIMG.b64) h += CPV_PANSLOT;

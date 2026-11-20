@@ -85,8 +85,8 @@ export function updateTrkHint(taId, hintId, fmt) {
   else { el.textContent = `· 자간 ${r.tr} 적용`; el._icon = ''; el.classList.remove('over'); el.classList.add('on'); }
 }
 export const HDR = {
-  sub:   { H: 60.72, S: 14.98, N: 38.94, fs: 66, avail: 960, floor: -45, basis: 'adv' },
-  title: { H: 82.80, S: 20.44, N: 53.09, fs: 90, avail: 960, floor: -45, basis: 'adv' },
+  sub:   { H: 60.72, S: 14.98, N: 38.94, fs: 66, avail: 960, floor: -35, basis: 'adv' },   // 릴스 헤더 자간 하한 -35(형 11-21 08:13 「자간은 저게 -45면 -35까지만 하자」 · 굽는 쪽 nomute_reels2 TR_MIN · 천둥 08:40 · 앞 판 -45)
+  title: { H: 82.80, S: 20.44, N: 53.09, fs: 90, avail: 960, floor: -35, basis: 'adv' },
 };
 export function estHeaderTr(text, cfg) {
   if (!text) return { tr: 0, over: false };
