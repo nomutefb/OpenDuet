@@ -27,6 +27,8 @@ export function registerComposer(ref: RefObject<Handle | null>) { composer = ref
 /** 지금 입력칸 손잡이(입력칸 단추 셋 · ./compose-chips.tsx) — 없으면 null */
 export const composerHandle = () => composer?.current || null;
 /** 입력칸 끝에 글 붙이기(「/초대 」 얼굴 줄 · office-chat) — 손잡이 없으면 false */
+/** 입력칸 글을 통째로 바꾸고 커서 끝(「/」 명령 추천 누름 · 스페이스로 붙임 · office-chat · 형 11-20 12:32) — 손잡이 없으면 false */
+export function setComposer(t: string) { const h = composer?.current; if (!h) return false; h.setText(t); h.setCursorToEnd(); h.focus(); return true; }
 export function appendToComposer(t: string) { const h = composer?.current; if (!h) return false; h.setCursorToEnd(); h.appendText(t); h.focus(); return true; }
 /** 「@」·「!」 를 치면 부름(triggers.ts launch) */
 let known: readonly Agent[] = [];
