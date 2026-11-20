@@ -43,6 +43,14 @@
 .nm-ms-row.sub { min-height:38px; padding-top:3px; padding-bottom:3px; background:none; border-color:transparent; }
 .nm-ms-row.sub .who { flex-direction:row; align-items:baseline; gap:8px; }
 .nm-ms-row.sub .who b { font-size:var(--fs-sm); font-weight:500; }
+/* 폰 = 서브 줄 두 단(형 11-21 05:48 dm-sia 시아 옮김 「이거 00(서브 기능) 00시간전 / 가로로 두고 그 아래에 모델 선택 둘게 좁아서 무너지니까 모바일은」)
+   윗단 = 이름 · N시간 전 가로 한 줄 · 아랫단 = 모델 · 노력도 반반 · 앞 = 들여쓰기 + 122 · 98px 두 칸에 이름 칸이 좁아 한 글자씩 세로로 꺾였음 · PC 는 그대로 */
+@media (max-width:640px) {
+  .nm-ms-row.sub { grid-template-columns:minmax(0,1fr) minmax(0,1fr); row-gap:4px; padding-left:10px; }
+  .nm-ms-row.sub .who { grid-column:1 / -1; flex-wrap:wrap; }
+  .nm-ms-row.sub .who b { overflow-wrap:normal; word-break:keep-all; }
+  .nm-ms-row.sub .who small { white-space:nowrap; }
+}
 .nm-ms-row .who.fold { border:0; background:none; padding:0; color:inherit; font:inherit; text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .nm-ms-row .who.fold b { display:inline-flex; align-items:center; gap:5px; }
 .nm-ms-row .who.fold b svg { flex:none; opacity:.55; }
