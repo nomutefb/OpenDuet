@@ -126,8 +126,12 @@ img.nm-encok { outline:2px solid var(--accent, var(--accent, #CFFF40)); outline-
 .nac-ring.stop { background:rgba(0,0,0,.55); }
 .nac-ring .nac-redo { width:20px; height:20px; }
 .nac-redo path { fill:none; stroke:#fff; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }   /* 다시 보내기 = 되돌리기 꼴 하나(형 11-12 18:09 · 앞 판 = ✕ · 글자 「다시 보내기」) */
-.nac-again .nac-redo { width:16px; height:16px; display:block; }
+.nac-again .nac-redo { width:12px; height:12px; display:block; }   /* 16 → 12 = 75%(형 11-20 14:00 「다시 보내기 크기 75%로 하고」) */
 .nac-again .nac-redo path { stroke:var(--destructive, #ff6b6b); }
+/* 안 보내진 글 = ↻ + X 나란히(형 14:00 「옆에 x도있어야할듯」) · 그림은 작아도 누르는 자리는 넉넉히(28px) · X = 옅은 글자색(지우기 · 빨강은 ↻ 하나) */
+.nac-fail { flex:none; display:inline-flex; align-items:center; gap:2px; padding-bottom:2px; }
+.nac-fail .nac-again { padding:8px; margin:-6px 0; }
+.nac-again.nac-drop .nac-redo path { stroke:var(--muted-foreground, #9a9a9a); }
 /* 폰 = 게이지를 미디어 밑 가로 한 줄로(형 11-13 22:15 dm-sia 「영상 보냇는데 영상 0% 랑 프리임 0% 부분 이 잘린다」 · 넓은 가로 영상이면 옆 빈 자리가 좁아 글자가 잘림) · 다 닿은 ✓ 는 그대로 옆 */
 @media (max-width: 640px) {
   .nm-encrow:has(> .nm-encg:not(.ok)) { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }

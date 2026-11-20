@@ -341,6 +341,13 @@ export function createAttachmentSender(transport: Transport) {
       emit();
       void inLine(item.room, job);
     },
+    /** 안 보내진 글 지우기(형 11-20 14:00 dm-sia 시아 옮김 「그리고 이렇게 한번 뜨면 다시 보내기가 안되서 삭제를 해야되네, 옆에 x도 있어야할듯.」) · 실패한 글만(보내는 중 = 그대로) */
+    dropText(id: number) {
+      if (!waiting.get(id)?.failed) return;
+      waiting.delete(id);
+      textJobs.delete(id);
+      emit();
+    },
     async retryBody(id: number) {
       const attempt = attempts.get(id);
       if (attempt?.phase !== "body-retry" || retrying.has(id)) return;

@@ -87,10 +87,14 @@ function Ring({ p, onCancel, onResume }: { p: number; onCancel?: () => void; onR
 
 /** 앞 글·사진을 기다리는 글 = 보통 내 말풍선 그대로(자르지 않음) · 「보냄 대기」 = 말풍선 왼쪽 아래 꼭지점 옆(시각 자리처럼 · 겹침 0)
  *   (형 11-02 11:36 「이거 보냄 대기 뜰거면 위에 내가 보낸 채팅 일반 채팅 처럼 뜨게 똑같이 해. 그 다음에 채팅 좌측에 보냄 대기 라고 채팅이 직사각형이면 직사각형 좌하단 꼭지점을 기준으로 우측 정렬로 보냄 대기 라고 써지면 돼」 · 앞 판 = 6줄로 잘리고 흐려진 채 아래 오른쪽에 「보냄 대기」) */
-function Waiting({ item, onRetry }: { item: WaitingText; onRetry: () => void }) {
+//   안 보내진 글 = 다시 보내기 ↻(75% 크기) + 옆 X 지우기(형 11-20 14:00 dm-sia 시아 옮김 「그리고 이렇게 한번 뜨면 다시 보내기가 안되서 삭제를 해야되네, 옆에 x도 있어야할듯. 그리고 다시 보내기 크기 75%로 하고, 옆에 x도있어야할듯.」)
+function Waiting({ item, onRetry, onDrop }: { item: WaitingText; onRetry: () => void; onDrop: () => void }) {
   return (
     <div className="nac-wrow" aria-label="보냄 대기">
-      {item.failed ? <button type="button" className="nac-again" onClick={onRetry} aria-label="못 보냈어 · 다시 보내기" title="다시 보내기"><svg className="nac-redo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg></button> : null}   {/* 글 = 「보냄 대기」 글자 뺌 · 서버가 받으면 진짜 말풍선 옆 숫자(안 본 봇 수)로 바뀜 · 못 보내면 다시 보내기만(형 11-13 18:12 봄 옮김 「이제는 글은 전송대기까진 필요없고, 전송이 완료되면 체크 대신 1로 할게」 · 뎅) */}
+      {item.failed ? <span className="nac-fail">
+        <button type="button" className="nac-again" onClick={onRetry} aria-label="못 보냈어 · 다시 보내기" title="다시 보내기"><svg className="nac-redo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg></button>
+        <button type="button" className="nac-again nac-drop" onClick={onDrop} aria-label="못 보낸 글 지우기" title="지우기"><svg className="nac-redo" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12" /><path d="M18 6L6 18" /></svg></button>
+      </span> : null}   {/* 글 = 「보냄 대기」 글자 뺌 · 서버가 받으면 진짜 말풍선 옆 숫자(안 본 봇 수)로 바뀜 · 못 보내면 다시 보내기만(형 11-13 18:12 봄 옮김 「이제는 글은 전송대기까진 필요없고, 전송이 완료되면 체크 대신 1로 할게」 · 뎅) */}
       <div className="ybw"><ReplyStrip text={item.text} /><div className="yb me nac-wb">{item.text.replace(QUOTE, "")}</div></div>   {/* 답장 글 = 띠 + 내 글만(형 11-11 20:08 사진 = 여기서 「↩ 빠르: …」 줄이 글 안에 보였음 · ./reply-strip.tsx) */}
     </div>
   );
@@ -208,7 +212,7 @@ export function AttachmentRecovery({
           {/* 아래 회색 설명 뺌(형 11-06 20:34 「하단부에 회색으로 나온 설명글은 삭제해도됨」) */}
         </section>
       ))}
-      {waits.map((item) => <Waiting key={`w${item.id}`} item={item} onRetry={() => state.retryText(item.id)} />)}
+      {waits.map((item) => <Waiting key={`w${item.id}`} item={item} onRetry={() => state.retryText(item.id)} onDrop={() => state.dropText(item.id)} />)}
     </div>
   );
 }
