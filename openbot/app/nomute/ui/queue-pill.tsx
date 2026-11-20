@@ -67,8 +67,8 @@ export function QueuePill({ room }: { room: string }) {
     const fit = () => { const f = document.querySelector<HTMLElement>(".nm-find"); const r = f?.getBoundingClientRect(); setAt(r && r.width ? { top: Math.round(r.bottom + 6), right: Math.round(window.innerWidth - r.right) } : null); };
     fit();
     const t = window.setInterval(fit, 1000);
-    window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit);
-    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); };
+    window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit); window.addEventListener("nm-find-at", fit);   // nm-find-at = 돋보기가 옮긴 그때 같이(./room-search.tsx)
+    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); window.removeEventListener("nm-find-at", fit); };
   }, [kind]);
   if (!kind) return null;
   const node = (

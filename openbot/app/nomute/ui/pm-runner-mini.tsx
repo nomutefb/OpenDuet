@@ -78,8 +78,8 @@ export function PmRunnerMini({ room }: { room: string }) {
     const fit = () => { const f = document.querySelector<HTMLElement>(".nm-find"); const r = f?.getBoundingClientRect(); setAt(r && r.width ? { top: Math.round(r.bottom + 6), right: Math.round(window.innerWidth - r.right) } : null); };
     fit();
     const t = window.setInterval(fit, 1000);   // 검색 단추도 1초마다 제 자리를 다시 잼(room-search fit) · 같은 박자
-    window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit);
-    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); };
+    window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit); window.addEventListener("nm-find-at", fit);   // nm-find-at = 돋보기가 옮긴 그때 같이(./room-search.tsx)
+    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); window.removeEventListener("nm-find-at", fit); };
   }, [here]);
   if (!pmRoom || room !== pmRoom) return null;
   const pill = (k: "run" | "job", label: string, icon: JSX.Element) => <button type="button" className={`nm-pmrun-h${open === k ? " on" : ""}`} onClick={() => setOpen((o) => (o === k ? "" : k))} aria-expanded={open === k} aria-label={label} title={label}>{icon}</button>;

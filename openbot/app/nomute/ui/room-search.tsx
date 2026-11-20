@@ -125,6 +125,8 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
         el.dataset.pinTop = v;
         if (v) { el.style.setProperty("transition", "width .32s, height .32s", "important"); el.style.setProperty("top", v, "important"); }
         else { el.style.removeProperty("top"); el.style.removeProperty("transition"); }
+        // 돋보기 아래 붙은 단추(PM 러너 · 대기열)가 같은 때 같이 옮김 = 1초 늦게 따로 따라오며 왔다 갔다 0(형 11-20 14:04 dm-sia 시아 옮김 「그리고 그 우측 위에 리스트들이 왓다갓다 해 …」)
+        if (el === find.current) window.dispatchEvent(new Event("nm-find-at"));
       };
       put(find.current, 8); put(document.querySelector<HTMLElement>(".nm-story-btn"), 4);
     };
