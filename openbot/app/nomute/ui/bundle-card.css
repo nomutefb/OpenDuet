@@ -1,5 +1,6 @@
 /* 촉 묶음 카드(./bundle-card.tsx · 봄 11-12 19:22) — 말풍선 자리 · 어두운 판 기본 · 라임 = 누른 단추 */
 .nm-bdl { display:flex; flex-direction:column; gap:8px; max-width:min(420px, 100%); padding:12px; border-radius:14px; background:#1b1c1e; border:1px solid rgba(255,255,255,.08); color:#e8eae8; }
+.nm-bdl { min-width:0; overflow-wrap:anywhere; }   /* 긴 주소 · 낱말도 칸 안에서 꺾임(형 11-21 05:07 dm-sia 시아 옮김 「넘어가는 문제해결좀」 · 공식 자료 누가 줄이 폰 412 에서 23px 넘침 실측) · 안 칸이 다 물려받음 */
 .nm-bdl.skip { opacity:.75; }
 .nm-bdl-hd { display:flex; align-items:center; gap:6px; }
 .nm-bdl-tag { font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; background:rgba(var(--accent-rgb, 207,255,64),.14); color:var(--accent, #CFFF40); }

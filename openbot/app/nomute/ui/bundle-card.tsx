@@ -1,14 +1,19 @@
 // 촉 1:1 요약 묶음 카드 + 「올림 · 넘김」(봄 11-12 19:22 · 형 19:21 「봄이 결론 반영해 믿어볼게」 · 알고리즘 회의 결론 · 글 꼴 = 깃 · 이음 = 빠르)
-//   올림 = 캡션 「복사」 + 사진 크게(길게 눌러 저장 · 새 탭) 펴 줌 — 인스타 올리기는 형 손(우리는 안 올림)
+//   뜸 공유(옛 「올림」 자리 · 형 11-21 05:08 dm-sia 시아 옮김 「이 올림 버튼 / 뜸 공유 로 변경해주고 누르면 게이지차고 체크 후 뜸방으로 창이 이동되게해주라 채팅 전송완료와 함께」
+//     · 「당연히 저 채팅 요약본하고 원문은 같이 공유되야함」) = 게이지 → 뜸 1:1 에 요약본 + 원문 글(./bundle-share.ts) → ✓ → 뜸 방으로 옮김 · 픽 기록(up)은 그대로 · 캡션 「복사」 칸도 그대로 펴 줌
+//     누른 뒤(라임) = 다시 누르면 뜸 방으로 · 같은 카드 다시 보내도 글 열쇠가 같아 뜸 방엔 한 번만
 //   넘김 = 한 줄로 접힘(눌러 다시 펼침) · 누른 것 = POST /api/office/hyung-pick {stem, ev, ev_at, url, act, msg}(형만 · 서버 _hyungpick.js) → 빠르가 사건 이력에 이어 가중을 형 눈에 맞춤
 //   다시 열어도 그대로 = GET hyung-pick(14일 · 글마다 마지막) · 폰 · PC 한 벌(같은 카드)
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { office } from "../data/office";
 import { eventKeysOfUrl, type NewsEvent } from "../home/event-score";
 import type { Bundle } from "./bundle";
 import type { Src } from "./bundle-src";
+import { DDEUM, shareKey, shareText } from "./bundle-share";
+import { pmRoomId, type PmRoom } from "./pm-set-logic";
 import "./bundle-card.css";
 
 type Pick = { msg?: string; stem?: string; act: "up" | "skip"; at?: number };
@@ -49,21 +54,32 @@ function SrcBox({ srcs }: { srcs: Src[] }) {
   );
 }
 
-export function BundleCard({ b, id, srcs }: { b: Bundle; id: string; srcs?: Src[] }) {
-  const qc = useQueryClient();
+export function BundleCard({ b, id, srcs, raw = "" }: { b: Bundle; id: string; srcs?: Src[]; raw?: string }) {
+  const qc = useQueryClient(), nav = useNavigate();
+  /** 뜸 1:1 방 id — PM 단추(./room-fab.tsx)와 같은 캐시 열쇠 · 같은 셈(with 이름 → 방) */
+  const ddeumRoom = async () => pmRoomId(DDEUM, (await qc.fetchQuery({ queryKey: ["nomute", "rooms-lite"], queryFn: () => office<{ rooms?: PmRoom[] }>("rooms"), staleTime: 600_000 })).rooms || []);
+  const goDdeum = async () => { const room = await ddeumRoom().catch(() => ""); if (room) void nav({ to: "/channels/$channelId", params: { channelId: room } }); };
   const saved = (usePicks().data || []).filter((p) => p.msg === id || (!p.msg && p.stem === b.stem)).pop();
   const [act, setAct] = useState<Act>(""), [open, setOpen] = useState(false), [err, setErr] = useState("");
   const cur: Act = act || saved?.act || "";
   const [pend, setPend] = useState<Act>("");   // 보내는 중인 단추 = 게이지 알약으로 남김(./go-button · 형 11-15 「하네스 전반 통일」) · 실패하면 그 단추로 다시 보낼 수 있음
-  const press = async (a: "up" | "skip") => {   // 올림 = 누른 자리에서 바로 펴 줌 · 넘김 = 접히기는 ✓ 뒤(pressed) · 실패 = 까닭 적고 throw
+  const press = async (a: "up" | "skip") => {   // 뜸 공유 = 누른 자리에서 캡션 칸 펴 줌 + 뜸 방에 보냄 · 넘김 = 접히기는 ✓ 뒤(pressed) · 실패 = 까닭 적고 throw
     setPend(a); setErr("");
     if (a === "up") { setAct("up"); setOpen(true); }
+    let step = "기록 못 함";
     try {
       const ev = b.url ? await evOf(b.url) : { ev: "", ev_at: 0 };
       await office("hyung-pick", { method: "POST", body: JSON.stringify({ act: a, stem: b.stem, msg: id, url: b.url, ...ev }) });
-    } catch (e) { setErr("기록 못 함 · 다시 눌러 줘"); throw e; }
+      if (a === "up") {
+        step = "뜸한테 못 보냄";
+        const room = await ddeumRoom();
+        if (!room) throw new Error("뜸 방 못 찾음");
+        await office(`rooms/${encodeURIComponent(room)}/messages`, { method: "POST", body: JSON.stringify({ text: shareText(b, raw, srcs), client_id: shareKey(id) }) });
+        void qc.invalidateQueries({ queryKey: ["nomute", "msgs", room] });
+      }
+    } catch (e) { setErr(`${step} · 다시 눌러 줘`); throw e; }
   };
-  const pressed = (a: "up" | "skip") => { setPend(""); setAct(a); if (a === "skip") setOpen(false); void qc.invalidateQueries({ queryKey: ["nomute", "hyung-pick"] }); };
+  const pressed = (a: "up" | "skip") => { setPend(""); setAct(a); if (a === "skip") setOpen(false); void qc.invalidateQueries({ queryKey: ["nomute", "hyung-pick"] }); if (a === "up") void goDdeum(); };   // ✓ 뒤 = 뜸 방으로(「채팅 전송완료와 함께」)
   const [copied, setCopied] = useState("");
   const copy = (k: string, v: string) => { void navigator.clipboard?.writeText(v).then(() => { setCopied(k); setTimeout(() => setCopied((c) => (c === k ? "" : c)), 1400); }); };
   if (cur === "skip" && !open)
@@ -74,7 +90,7 @@ export function BundleCard({ b, id, srcs }: { b: Bundle; id: string; srcs?: Src[
     );
   return (
     <div className={`nm-bdl${cur ? " " + cur : ""}`}>
-      <div className="nm-bdl-hd"><span className="nm-bdl-tag">묶음</span>{cur === "up" ? <span className="nm-bdl-st">올림</span> : cur === "skip" ? <span className="nm-bdl-st">넘김</span> : null}</div>
+      <div className="nm-bdl-hd"><span className="nm-bdl-tag">묶음</span>{cur === "up" ? <span className="nm-bdl-st">뜸 공유</span> : cur === "skip" ? <span className="nm-bdl-st">넘김</span> : null}</div>
       {b.img && !(cur === "up" && open) ? <img className="nm-bdl-img" src={b.img} alt="" loading="lazy" referrerPolicy="no-referrer" /> : null}
       <b className="nm-bdl-t">{b.title}</b>
       {b.sums.length ? <ul className="nm-bdl-sum">{b.sums.map((s, i) => <li key={i}>{s}</li>)}</ul> : null}
@@ -106,8 +122,8 @@ export function BundleCard({ b, id, srcs }: { b: Bundle; id: string; srcs?: Src[
       ) : null}
       {err ? <div className="nm-bdl-err">{err}</div> : null}
       <div className="nm-bdl-row">
-        {cur === "up" && pend !== "up" ? <button type="button" className="nm-bdl-btn on" onClick={() => setOpen((v) => !v)}>올림</button>
-          : <GoButton className="nm-bdl-btn" disabled={!!pend && pend !== "up"} go={() => press("up")} done={() => pressed("up")}>올림</GoButton>}
+        {cur === "up" && pend !== "up" ? <button type="button" className="nm-bdl-btn on" onClick={() => void goDdeum()}>뜸 공유</button>
+          : <GoButton className="nm-bdl-btn" disabled={!!pend && pend !== "up"} go={() => press("up")} done={() => pressed("up")}>뜸 공유</GoButton>}
         {cur === "skip" && pend !== "skip" ? <button type="button" className="nm-bdl-btn on" onClick={() => setOpen(false)}>넘김</button>
           : <GoButton className="nm-bdl-btn" disabled={!!pend && pend !== "skip"} go={() => press("skip")} done={() => pressed("skip")}>넘김</GoButton>}
       </div>
