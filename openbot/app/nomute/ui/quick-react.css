@@ -40,7 +40,3 @@
 .nm-qc-btn.ok { opacity:1; border-color:rgba(var(--accent-rgb, 207,255,64),.55); background:rgba(var(--accent-rgb, 207,255,64),.14); color:var(--accent, #CFFF40); }
 .nm-qc-btn:active { transform:scale(var(--press-m, .92)); }
 @media (prefers-reduced-motion:reduce){ .nm-qc-i, .nm-qc-i.b, .nm-qc-btn.ok .nm-qc-i.a, .nm-qc-btn.ok .nm-qc-i.b { transition:none; } }
-/* 공유(형 11-21 08:22 「말풍선 마다 중앙 우측에 공유 픽토그램 반투명하게」) = 말풍선 줄 세로 가운데 · 남 = 오른쪽 · 내 = 왼쪽 · 반투명 · 움직임 0 */
-.nm-qs { flex:none; align-self:center; width:28px; height:28px; padding:0; display:grid; place-items:center; border:0; border-radius:50%; background:rgba(22,23,22,.42); color:rgba(232,234,232,.75); opacity:.5; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:opacity .18s; }
-.ychat [data-id]:hover .nm-qs, .nm-qs:focus-visible { opacity:.9; }
-.nm-qs:active { transform:scale(var(--press-m, .92)); }

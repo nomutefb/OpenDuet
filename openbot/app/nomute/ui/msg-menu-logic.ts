@@ -1,6 +1,7 @@
 // 글 메뉴(말풍선 길게 누름 · 우클릭)의 셈(순수 · 시험 tests/msg-menu.test.ts) — 화면 = ./msg-menu.tsx
 //   형 11-17 08:3x 구름 맥 창(영상 = 누른 말풍선 바로 위에 글 줄이 차례로 뜨고 나머지는 흐려짐 · 가운데 판 없음)
 //   「요것두~~~ 모달 안뜨고 간단하게 하는 식으루 / 답장은 스와이프로 가능하고 / 피시에서는 안되구나 / 삭제는 필요없고 복사 / 수정은 필요없고 다른 방으로 있어야 하고 / 공지 / 확인 요청 / 이모지는 이미 말풍선 잇어서 다른 애들거엔 이제 없어도 될수도잇음 / 공유」
+import { type RestRoom, isGroup } from "./room-rest-order";   // 단톡 = 1:1 상대 없는 방(방 목록 차례와 같은 판정)
 export type MenuKey = "save" | "reply" | "copy" | "move" | "pin" | "ask" | "share" | "shot" | "del";
 export const MENU_KO: Record<MenuKey, string> = { save: "사진 저장", reply: "답장", copy: "복사", move: "다른 방으로", pin: "공지", ask: "확인 요청", share: "공유", shot: "캡처", del: "지우기" };
 
@@ -55,11 +56,13 @@ export function holeMask(b: Box, r: number): { image: string; position: string; 
 }
 
 /** 「보낼 방」 묶음(형 11-21 08:24 dm-sia 시아 옮김 「…분류를 PM·CR·SC DevOps UXD Fixer·Sec Teller 이렇게 구분선주고 시작점에 구분워딩 좀. 행 구분선은 연하게」 · 08:26 「!시아 ✓ ② DevOps 에 같이」 · 08:27 「아니 구분자 데브옵스 옃에」 「알앤디 널어달란ㅁ듯 미안」)
- *  = 맨 위 머리 없음(회의실 · 형 · 단톡 · 직무 모름) → PM·CR·SC → DevOps·R&D → UXD → Fixer·Sec → Teller · 묶음 안 = 들어온 차례 그대로 · 순수 */
+ *  = 맨 위 머리 없음(형 · 직무 모름 1:1) → PM·CR·SC → DevOps·R&D → UXD → Fixer·Sec → Teller → 단톡(회의실 · 밥상 · 임시방 = 1:1 상대 없는 방 · ./room-rest-order.ts isGroup) · 묶음 안 = 들어온 차례 그대로 · 순수
+ *  단톡 맨 아래 따로 = 형 11-21 08:44 dm-sia 시아 옮김 「글구 단톡은 맨 아래로 따로」 */
 export const MOVE_HEADS = ["PM·CR·SC", "DevOps·R&D", "UXD", "Fixer·Sec", "Teller"] as const;
 const HEAD_OF: Record<string, (typeof MOVE_HEADS)[number]> = { PM: "PM·CR·SC", CREATOR: "PM·CR·SC", SCOOP: "PM·CR·SC", DEV: "DevOps·R&D", OPS: "DevOps·R&D", RND: "DevOps·R&D", MD: "DevOps·R&D", UXD: "UXD", FIXER: "Fixer·Sec", SEC: "Fixer·Sec", SECRETARY: "Fixer·Sec", TELLER: "Teller", STORY: "Teller", MUSIC: "Teller" };
-export function moveGroups<T extends { with?: string }>(rooms: T[], roleOf: (who: string) => string | undefined): { head: string; items: T[] }[] {
-  const top: T[] = [], by = new Map<string, T[]>(MOVE_HEADS.map((h) => [h, []]));
-  for (const r of rooms) { const h = r.with ? HEAD_OF[roleOf(r.with) || ""] : undefined; (h ? by.get(h)! : top).push(r); }
-  return [{ head: "", items: top }, ...MOVE_HEADS.map((h) => ({ head: h, items: by.get(h)! }))].filter((g) => g.items.length);
+export const GROUP_HEAD = "단톡";
+export function moveGroups<T extends RestRoom>(rooms: T[], roleOf: (who: string) => string | undefined): { head: string; items: T[] }[] {
+  const top: T[] = [], group: T[] = [], by = new Map<string, T[]>(MOVE_HEADS.map((h) => [h, []]));
+  for (const r of rooms) { if (isGroup(r)) { group.push(r); continue; } const h = r.with ? HEAD_OF[roleOf(r.with) || ""] : undefined; (h ? by.get(h)! : top).push(r); }
+  return [{ head: "", items: top }, ...MOVE_HEADS.map((h) => ({ head: h as string, items: by.get(h)! })), { head: GROUP_HEAD, items: group }].filter((g) => g.items.length);
 }

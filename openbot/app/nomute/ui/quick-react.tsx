@@ -89,10 +89,3 @@ export function QuickCopy({ text }: { text: string }) {
     </div>
   );
 }
-
-// 말풍선 세로 가운데 바깥 = 반투명 공유 그림 → 누르면 바로 「보낼 방」(글 메뉴 「다른 방으로」 길 그대로 · 형 11-21 08:22 dm-sia 시아 옮김 「그리구 말풍선 마다 중앙 우측에 공유 픽토그램 반투명하게 해서 누르면 바로 다른 방 공유 나오게 해줘.」 · 시아 R0087)
-//   남 말풍선 = 오른쪽 · 내 말풍선 = 왼쪽(화면 끝이라) · 움직임 0
-const SHARE = <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" /><path d="M16 6l-4-4-4 4" /><path d="M12 2v13" /></svg>;
-export function QuickShare({ onShare }: { onShare: () => void }) {
-  return <button type="button" className="nm-qs" aria-label="다른 방에 공유" title="다른 방에 공유" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onShare(); }}>{SHARE}</button>;
-}

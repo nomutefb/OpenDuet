@@ -17,7 +17,7 @@ import { SrvNote } from "./srv-note";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { DlSeqButton } from "./dl-seq";
 import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
-import { QrRadial, QuickCopy, QuickReact, QuickShare } from "./quick-react";
+import { QrRadial, QuickCopy, QuickReact } from "./quick-react";
 import { CallSheet, appendToComposer, setComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -1031,7 +1031,6 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
         <StatePill m={m} />
         {app ? <span className="yb-orig">원문</span> : null}   {/* PC = 형 말풍선이 원래 차콜이라 바깥 글은 오른쪽 위 「원문」으로 가름(형 11-16 09:33 dm-fast 「피시에서는 라벨을 원문 이라고 달던지」 · 09:34 「우측 위에 내 글은 우측 위에달리님가」) · 폰 = 바탕색으로 가름이라 숨김 */}
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
-          {goneOf(m) ? null : <QuickShare onShare={() => c.onShare(m)} />}{/* 내 말풍선 = 세로 가운데 왼쪽 공유(형 11-21 08:22 · 오른쪽은 화면 끝) */}
           <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) || snsBare(m) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : c.read(m) ? " rd" : ""}${onlyPhotos(m) || stickerOf(m.text) || snsBare(m) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : snsBare(m) ? <SnsCard p={m._sns!} /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkOrSns m={m} />{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -1063,7 +1062,6 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
             ) : pickM(m) || bundleOf(m) ? null : <LinkOrSns m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) · 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}
             {time}
           </div>
-          {goneOf(m) ? null : <QuickShare onShare={() => c.onShare(m)} />}{/* 세로 가운데 오른쪽 = 공유(형 11-21 08:22) */}
         </div>
         {selected ? <Actions m={m} c={c} mine={false} /> : null}
       </div>
@@ -1483,7 +1481,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
       const box = boxRef.current; if (!box) return;
       box.style.overflowAnchor = "none"; window.clearTimeout(anchorT.current); anchorT.current = window.setTimeout(() => { box.style.overflowAnchor = ""; }, 2000);
     },
-    sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuMove(false); setMenuOf(m); }, onShare: (m) => { setSel(""); setMenuMove(true); setMenuOf(m); },   // 공유 그림 = 「보낼 방」 바로(형 11-21 08:22)
+    sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuMove(false); setMenuOf(m); }, onShare: (m) => { setSel(""); setMenuMove(true); setMenuOf(m); },   // 줄 오른쪽으로 밀기 = 「보낼 방」 바로(형 11-21 08:22 · 08:45 말풍선 옆 공유 그림 걷고 「우측 당기면.공유로」)
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onSwap: (id, from, to, hasTo) => { setSel(""); swapLock(swapBusy.current, id, () => swapRx.mutateAsync({ id, from, to, hasTo })); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); requestAnimationFrame(() => document.querySelector<HTMLElement>(".ychat-in [contenteditable=\"true\"], .ychat-in textarea")?.focus()); },   // 답장 = 바로 쓰기 칸(폰 = 자판 올라옴 · 카톡 꼴)
@@ -1500,7 +1498,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
     },
   };
 
-  useSwipeReply(boxRef, (id) => { const m = all.find((x) => x.id === id); if (m) c.onReply(m); }, !msgs.isPending && !pairRoom && room);   // 줄 왼쪽으로 밀기 = 답장(./swipe-reply.ts)
+  useSwipeReply(boxRef, (id) => { const m = all.find((x) => x.id === id); if (m) c.onReply(m); }, !msgs.isPending && !pairRoom && room, (id) => { const m = all.find((x) => x.id === id); if (m && !goneOf(m)) c.onShare(m); });   // 줄 왼쪽으로 밀기 = 답장 · 오른쪽 = 공유(보낼 방 · 지운 글은 0)(./swipe-reply.ts)
   const hyServer = msgs.data?.pending_ids;
   const hyItems = useMemo(() => (pairRoom ? [] : pendingOf(all, hyServer?.filter((x) => !replying.has(x)), (m) => `${nmOf(list, m.who)}: ${firstLine(m)}`).map((m) => ({ id: m.id, who: m.who, face: idOf(m.who, list), name: nmOf(list, m.who), line: firstLine(m), ts: Number((m as { ts?: number }).ts) || 0, color: ringOf(list.find((x) => x.who === m.who)) }))), [all, hyServer, list, pairRoom]);   // ts·color = 형 10:28 「얼굴로 … 분은 필요」 · 「각자의 시그니처 색」(뜸)
   const dropHy = (ids: string[]) => {   // 알약 지움 = 바로 사라짐 + 서버 장부에서 뺌(형만 · editor#2774 POST rooms/<방>/hyungwait · 뜸 11-07)
