@@ -153,7 +153,7 @@ type Msg = OfficeMsg & { fwd?: Fwd; _win?: boolean; card?: ThumbRef; mirror_by?:
 type Page = { messages: Msg[]; more: boolean; pending_ids?: string[] };   // pending_ids = 형 결정 대기 글(뜸 서버 · 오래된 것부터 · 없으면 화면에서 셈 = ./hyung-pills.tsx)
 const withPend = (p: Page, src: { pending_ids?: unknown }): Page => ({ ...p, pending_ids: Array.isArray(src.pending_ids) ? src.pending_ids.map(String) : [] });   // 서버 읽기 = 정본 · 칸 없음 = 대기 0(다 답한 알약이 남던 것 · 뜸 11-07)
 type Draft = { who: string; ts: number; text: string };   // 쓰는 중 초안(그 방에서 지금 자라는 답 · 서버 _watch.js · 거울 = 그록봇 앱 방 streaming 줄)
-type Reads = { reads?: Record<string, number>; seen?: Record<string, string[]>; seen_ts?: Record<string, number>; got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>> };
+type Reads = { reads?: Record<string, number>; seen?: Record<string, string[]>; seen_ts?: Record<string, number>; got?: Record<string, string[]>; got_at?: Record<string, Record<string, number>>; ack?: Record<string, string[]>; unseen?: Record<string, number> };   // ack = 형 글에 「확인」 낸 이 · unseen = 서버가 한 곳에서 센 「1」(번개 11-20 09:04 · main a1c058c1d8)
 type Bot = { who: string; state: string; why?: string; last_turn_ts?: number };
 
 export const officeKeys = {
@@ -375,7 +375,7 @@ type Ctx = {
   sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onSwap: (id: string, from: string, to: string, hasTo: boolean) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string, from?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
   unseen: (m: Msg) => number;   // 안 본 봇 수(형 글 · 말풍선마다 · unseenOf)
-  read: (m: Msg) => boolean;   // 형 글이 읽혔나(라임 → 검정 · readOf)
+  read: (m: Msg) => boolean;   // 형 글에 「확인」이 났나(형광 끔 · ackOf)
   loose: () => void;   // 맨 아래 붙음 풂(알약 펼칠 때 = 알약 자리 그대로 두고 아래로 펼침)
   onProfile: (who: string) => void;   // 프사 누름 = 프로필 카드
   want: string;   // 그 글로 가는 중인 글 id — 묶음(「메시지 N개」) 안이면 그 묶음을 펼침
@@ -504,6 +504,8 @@ function StatePill({ m }: { m: Msg }) {
 const UNSEEN_DAY = 24 * 3600e3;
 function unseenOf(m: Msg, c: Ctx, all: Msg[]) {
   if (m.kind !== "human" || Date.now() - m.ts > UNSEEN_DAY) return 0;
+  const srv = c.reads?.unseen?.[m.id];
+  if (typeof srv === "number") return srv;   // 서버가 한 곳에서 센 「1」 그대로(형 11-20 08:35 「코드를 잘 짜야할거같아」 · 번개 09:04 · 단톡 · 1:1 · 폰 · PC 다 같은 셈) · 칸 없으면 아래 옛 셈
   const bot = (n: string) => n !== "형" && c.list.find((p) => p.who === n)?.kind !== "human";
   const who = c.r?.with ? [c.r.with] : (c.r?.members || []).filter(bot);
   if (!who.length) return 0;
@@ -511,15 +513,10 @@ function unseenOf(m: Msg, c: Ctx, all: Msg[]) {
   return who.filter((n) => upto(n) < m.ts && !(got[n] || []).includes(m.id) && !(saw[n] || []).includes(m.id) && !all.some((x) => x.who === n && x.ts > m.ts)).length;
 }
 
-/** 형 글이 읽혔나 → 형 말풍선 라임 → 검정으로 꺼짐(형 11-20 08:30 dm-gik 깃 옮김 「눈 모양이 어짜피 읽으면 생기는 형태면 그냥 읽으면 내 대화 색이 형광에서 검정으로 꺼지게 바꿔줘」 · 「1」 · 👀 뜻은 논제라 손 안 댐)
- *  읽힘 = 애들 👀(읽으면 붙는 눈)가 하나라도 있음 · 또는 받을 봇이 있는 방에서 안 본 봇 0(위 unseenOf · 하루 넘은 글 = 읽힘) · 받을 봇을 모르는 방(회의실 · 옛 방) = 👀 로만 */
-function readOf(m: Msg, c: Ctx, all: Msg[]) {
-  if (m.kind !== "human") return false;
-  if ((c.rx[m.id]?.["👀"] || []).some((w) => w !== "형")) return true;
-  if (!c.reads) return true;   // 읽음 표 오기 전 = 검정(대개 읽힌 글 · 방 처음 열 때 라임 → 검정 번쩍임 0 · 안 읽힌 새 글만 표가 오면 라임) · 색은 바로 바뀜(스르르 0)
-  const bot = (n: string) => n !== "형" && c.list.find((p) => p.who === n)?.kind !== "human";
-  const who = c.r?.with ? [c.r.with] : (c.r?.members || []).filter(bot);
-  return who.length > 0 && unseenOf(m, c, all) === 0;
+/** 형 말풍선 불 꺼짐 = 담당이 그 형 글에 「확인」 표를 냄(서버 reads 답 ack · 누구든 하나) → 형광 바탕만 꺼지고 글자는 밝게(차콜 · .yb.me.rd)
+ *  (형 11-20 08:32~08:36 dm-gik 깃 옮김 · 08:35 「불꺼진다고 글자를 검정으로 두면 안되는거 알지? 따로 센다는거 자체가 손해아닌가? 구름은 ux니까 그런 개발은 데브옵스야」 · 확인 칸 = 번개 09:04 · 앞 판 077e1ad 「읽히면(👀 · 안 본 봇 0) 검정」 = 형이 바꿈 · 되돌림 db27554) */
+function ackOf(m: Msg, c: Ctx) {
+  return m.kind === "human" && !!c.reads?.ack?.[m.id]?.length;
 }
 
 function Reactions({ m, c, mine }: { m: Msg; c: Ctx; mine: boolean }) {
@@ -1416,7 +1413,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   const c: Ctx = {
     srcs, gardenAns,
     unseen: (m) => unseenOf(m, c, all),
-    read: (m) => readOf(m, c, all),
+    read: (m) => ackOf(m, c),
     room, r, list, nre, onProfile: setProf, reads, rx: rxOver || reacts?.reactions || {}, quick: reacts?.quick?.length ? reacts.quick : ["👍", "❤️", "😂", "🎉", "🤔", "👀"],
     loose: () => {   // 알약 펼침 = 알약 자리 그대로 · 아래 글이 밀려 내려감(브라우저 스크롤 붙들기가 아래 글을 붙잡아 알약을 위로 243px 밀었음 = 펼치는 동안만 끔)
       stuck.current = false; near.current = false; sentPin.current = 0; touched.current = true;
