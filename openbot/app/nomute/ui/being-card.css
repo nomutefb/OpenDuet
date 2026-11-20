@@ -1593,3 +1593,7 @@ html[data-font-all="pretendard"] body .ypc,
 html[data-font-all="pretendard"] body .ypc *:not(code):not(pre):not(pre *):not(kbd):not(samp) { font-family: 'Paperlogy', 'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif !important; }
 html[data-font-all="pretendard"] body .ypc, html[data-font-all="pretendard"] body .ypc * { font-weight: 600; }
 html[data-font-all="pretendard"] body .ypc .profile-card__name { font-weight: 800; }
+/* 예비 손님 셋 = 화분 색(형 11-20 11:08 dm-sia 시아 옮김 「이거 컨셉으로 하나씩 다르게 01 02 03 알수잇게」) — .bc-tmpl 의 라임 기본값을 덮음(LOOKS accent 는 바깥 틀에만 닿아 안쪽 기본값에 졌음) */
+.bc-tmpl.bc-spare01 { --bc-accent: #FF4FB0; }
+.bc-tmpl.bc-spare02 { --bc-accent: #3EE8C0; }
+.bc-tmpl.bc-spare03 { --bc-accent: #FFD83A; }
