@@ -11,16 +11,13 @@ import { PmOrb } from "./pm-orb";   // PM 얼굴 자리 = 살아 있는 구슬(�
 
 /** 「+」 바로 위 = PM 얼굴 단추 · 누르면 PM 1:1 방(형 11-15 13:0x 「대화 목록 우하단에 + 있는데 그 위에 항상 pm 픽토그램 있어서 누르면 pm 대화방 가게해줘 / 최상단이라 누르기 어려움」)
  *  PM = 서버 pm 칸 · 방 = 그 이름의 1:1 방(./pm-runner-mini.tsx usePmRoom 과 같은 셈 · 같은 캐시 열쇠 = 받아오기 0 더) · 못 찾으면 안 그림 */
-//   자리 = 「+」(대화방 만들기) 바로 옆(형 11-20 12:07 dm-bom 봄 옮김 「이거 원래 그 대화창 생성 그 버튼 위치에 있어도 돼 그 pm 원 버튼」 · 앞 = 우하단에 떠서 목록을 가림)
-//   inline = 탭 단추 안(단추 안 단추 0 = span role=button · 폰 「대화방」 탭) · 아니면 그냥 단추(PC 맨 위 줄)
-export function PmFab({ className = "nm-pmfab", inline = false }: { className?: string; inline?: boolean }) {
+//   자리 = 오른쪽 아래 옛 「+」(대화방 만들기 떠 있던 단추) 자리(형 11-20 12:30 dm-sia 시아 옮김 「지금 pm 동그라미 추상 심볼 위치 우하단 + 위치 말한거임!」 · 앞 판 = 「+」 위에 떠서 목록을 가림 · 12:1x 하늘 판 = 탭 줄 「+」 옆 = 잘못 읽음)
+function PmFab() {
   const nav = useNavigate();
   const pm = useQuery({ queryKey: ["nomute", "pm"], queryFn: () => office<{ who?: string }>("pm"), staleTime: 300_000, refetchInterval: 300_000 }).data?.who;
   const rooms = useQuery({ queryKey: ["nomute", "rooms-lite"], queryFn: () => office<{ rooms?: { id: string; kind?: string; name?: string; with?: string }[] }>("rooms"), staleTime: 600_000, enabled: !!pm }).data?.rooms;
   const room = pm && rooms ? pmRoomId(pm, rooms) || undefined : undefined;
   if (!pm || !room) return null;
-  const go = () => void nav({ to: "/channels/$channelId", params: { channelId: room } });
-  if (inline) return <span role="button" tabIndex={0} className={className} aria-label={`PM ${pm} 대화방`} title={`PM ${pm} 대화방`} onClick={(e) => { e.stopPropagation(); go(); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); go(); } }}><PmOrb /></span>;
   return (
     <button type="button" className="nm-pmfab" aria-label={`PM ${pm} 대화방`} title={`PM ${pm} 대화방`} onClick={() => void nav({ to: "/channels/$channelId", params: { channelId: room } })}>
       <PmOrb />   {/* 얼굴 사진으로 안 돌아감 = 못 그리면 css 진주 동그라미(형 11-18 18:08 「그 기하학 동그라미로 바뀌게래놧는데 적용 풀린듯」) */}
@@ -45,5 +42,5 @@ export function RoomMake({ className = "" }: { className?: string }) {
 
 /** 대화 목록 판 우하단 = PM 구슬만(「+」 뺌 · 형 11-20 07:36 「응 빼(탭 「+」 하나만)」 · 방 만들기 = 탭 「+」 · 위 RoomMake) */
 export function RoomFab() {
-  return null;   // 우하단 구슬 걷음 = 「+」 옆으로(형 11-20 12:07 「…그 대화창 생성 그 버튼 위치에 있어도 돼 그 pm 원 버튼」 · 위 PmFab · 탭 ./teams.tsx · PC ./room-list.tsx)
+  return <PmFab />;
 }

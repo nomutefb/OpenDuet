@@ -272,7 +272,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .nm-dec { --sp:cubic-bezier(.34,1.56,.64,1); position:absolute; right:14px; bottom:calc(var(--duet-tab-space,86px) + 8px + 56px); z-index:5; display:grid; place-items:center; width:46px; height:46px; border-radius:50%; background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); color:var(--accent,var(--accent, #CFFF40)); box-shadow:0 8px 20px -8px rgba(0,0,0,.6); transition:transform .3s var(--sp), opacity .2s; -webkit-tap-highlight-color:transparent; }
 :root:not(.dark) .nm-dec { background:rgba(255,255,255,.66); border-color:rgba(0,0,0,.1); color:var(--fg); }
 /* 「+」 바로 위 PM 얼굴 단추(./room-fab.tsx PmFab · 형 11-15 「그 위에 항상 pm 픽토그램 있어서 누르면 pm 대화방 가게해줘 / 최상단이라 누르기 어려움」) = 「+」와 같은 유리 동그라미 46 · 얼굴 꽉 · 결정 노트 단추(.nm-dec)는 그 위로 한 칸 */
-.nm-pmfab { position:absolute; right:14px; bottom:calc(var(--duet-tab-space,86px) + 24px + 46px + 10px); z-index:5; width:46px; height:46px; padding:0; border-radius:50%; overflow:hidden; display:grid; place-items:center; background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); box-shadow:0 6px 18px rgba(0,0,0,.28); -webkit-tap-highlight-color:transparent; cursor:pointer; }
+.nm-pmfab { position:absolute; right:14px; bottom:calc(var(--duet-tab-space,86px) + 24px); z-index:5; width:46px; height:46px; padding:0; border-radius:50%; overflow:hidden; display:grid; place-items:center; background:rgba(26,27,26,.56); border:1px solid rgba(255,255,255,.14); -webkit-backdrop-filter:blur(11px); backdrop-filter:blur(11px); box-shadow:0 6px 18px rgba(0,0,0,.28); -webkit-tap-highlight-color:transparent; cursor:pointer; }
 .nm-pmfab img { width:100%; height:100%; object-fit:cover; display:block; }
 .nm-pmfab .nm-pmorb { width:100%; height:100%; display:block; }   /* PM 구슬(./pm-orb.tsx · 형 11-16 영상) = 얼굴 자리에 그대로 */
 .nm-pmfab .nm-pmorb[hidden] { display:none; }   /* 그림판 잃은 동안 = 캔버스 숨기고 아래 css 동그라미 */
@@ -932,7 +932,3 @@ body:not([data-nm-split]) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { backg
 .nm-qpeek-h button { margin-left:8px; border:0; background:none; color:inherit; font-size:18px; line-height:1; cursor:pointer; padding:0 2px; }
 .nm-qpeek-t { margin:0; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.5; }
 .nm-qpeek-n { display:block; margin-top:6px; font-size:11px; color:rgba(232,234,232,.5); }
-/* PM 구슬 = 「+」 바로 옆 작은 동그라미(형 11-20 12:07 dm-bom 봄 옮김 「이거 원래 그 대화창 생성 그 버튼 위치에 있어도 돼 그 pm 원 버튼」 · 앞 = 우하단에 떠서 목록을 가림) */
-.nm-pmfab.nm-pmfab-tab, .nm-pmfab.nm-pmfab-bar { position:relative; right:auto; bottom:auto; z-index:auto; flex:none; width:24px; height:24px; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; cursor:pointer; }
-.nm-pmfab.nm-pmfab-tab { display:inline-grid; margin:0 2px 0 8px; vertical-align:middle; }
-.nm-pmfab.nm-pmfab-bar { margin-left:auto; }

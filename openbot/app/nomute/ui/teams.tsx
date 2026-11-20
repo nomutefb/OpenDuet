@@ -17,7 +17,6 @@ import { flash } from "./flash";
 import { MorphAsk } from "./morph-ask";   // 로그아웃 = 그 자리 재확인(형 11-16 「재확인 버튼 … 다 통일할게 인엡안에.모두」)
 import { MeetIcon, OfficeIcon, TeamsIcon } from "./tab-icons";
 import { useFoldInk } from "./fold-ink";   // 고른 탭 바탕이 미끄러짐(형 11-16)
-import { PmFab } from "./room-fab";   // PM 구슬 = 「+」 옆(형 11-20 12:07)
 import { TempRoomDialog } from "./temp-room";   // 「대화방」 탭 오른쪽 끝 옅은 「+」 = 방 만들기(형 11-20 07:20)
 
 export const TEAMS_PREFIX = "teams:";
@@ -204,7 +203,7 @@ export function TeamsSwitch() {
   return (
     <div className="nm-tswitch fold" role="tablist" aria-label="대화 판 바꾸기" ref={bar}>
       <i className="nm-fold-ink" aria-hidden />   {/* 고른 탭 바탕 한 장 = 탭을 바꾸면 미끄러짐(./fold-ink.ts · 형 11-16) */}
-      {tab("office", <OfficeIcon />, "대화방", mode === "office" ? <><PmFab inline className="nm-pmfab nm-pmfab-tab" /><span role="button" tabIndex={0} className="nm-tplus" aria-label="대화방 추가" title="대화방 추가" onClick={(e) => { e.stopPropagation(); setMaking(true); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setMaking(true); } }}><svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg></span></> : null)}   {/* PM 구슬 = 「+」 바로 옆(형 11-20 12:07 「…그 대화창 생성 그 버튼 위치에 있어도 돼 그 pm 원 버튼」 · ./room-fab PmFab) · 고른 「대화방」 탭 오른쪽 끝 옅은 「+」(형 11-20 07:20 dm-gik 깃 옮김 「여기 대화방 탭 우측 끝에 옅게 + 있으면 될듯」 · 「대화방은 이거로 대체」 「대화방 추가」) */}
+      {tab("office", <OfficeIcon />, "대화방", mode === "office" ? <span role="button" tabIndex={0} className="nm-tplus" aria-label="대화방 추가" title="대화방 추가" onClick={(e) => { e.stopPropagation(); setMaking(true); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setMaking(true); } }}><svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg></span> : null)}   {/* 고른 「대화방」 탭 오른쪽 끝 옅은 「+」(형 11-20 07:20 dm-gik 깃 옮김 「여기 대화방 탭 우측 끝에 옅게 + 있으면 될듯」 · 「대화방은 이거로 대체」 「대화방 추가」) */}
       {tab("teams", <TeamsIcon />, "팀즈", n ? <span className="nm-tbadge">{n > 99 ? "99+" : n}</span> : null)}
       {tab("meet", <MeetIcon />, "회의")}
       <TempRoomDialog key={session} open={making} onClose={() => { setMaking(false); setSession((k) => k + 1); }} />

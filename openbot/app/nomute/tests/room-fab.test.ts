@@ -8,8 +8,10 @@ test("「+」 한 번 = 단톡방 만들기 창 · 펼침 0 · 자리 그대로"
   const fab = rd("../ui/room-fab.tsx"), css = rd("../ui/yeta-chat.css"), ek = rd("../ui/ed-keep.css");
   // 우하단 「+」 = 뺌 · 방 만들기 = 탭 「+」 하나(형 11-20 07:36 dm-gik 깃 옮김 「!깃 ✓ ① 응 빼(탭 「+」 하나만)」) — 폰 「대화방」 탭(./teams.tsx) · PC 맨 위 줄(RoomMake)
   assert.doesNotMatch(fab, /nm-fab-main/);
-  assert.match(fab, /export function RoomFab\(\) \{\n  return null;/);   // 우하단 구슬도 걷음 = 「+」 옆(형 11-20 12:07 「…그 대화창 생성 그 버튼 위치에 있어도 돼 그 pm 원 버튼」)
-  assert.ok(rd("../ui/teams.tsx").includes('<PmFab inline className="nm-pmfab nm-pmfab-tab" /><span role="button" tabIndex={0} className="nm-tplus"'));
+  assert.match(fab, /export function RoomFab\(\) \{\n  return <PmFab \/>;\n\}/);
+  // PM 구슬 = 오른쪽 아래 옛 「+」 자리(형 11-20 12:30 「지금 pm 동그라미 추상 심볼 위치 우하단 + 위치 말한거임!」) · 탭 줄엔 없음
+  assert.match(css, /\.nm-pmfab \{ position:absolute; right:14px; bottom:calc\(var\(--duet-tab-space,86px\) \+ 24px\);/);
+  assert.ok(!rd("../ui/teams.tsx").includes("PmFab"));
   assert.match(fab, /aria-haspopup="dialog" aria-label="대화방 추가" title="대화방 추가" onClick=\{\(\) => setMaking\(true\)\}/);
   assert.match(fab, /<TempRoomDialog key=\{session\} open=\{making\} onClose=\{close\} \/>/);
   assert.match(rd("../ui/room-list.tsx"), /\{teamsOn \? null : <RoomMake className="nm-rbar-b nm-rbar-plus" \/>\}/);
