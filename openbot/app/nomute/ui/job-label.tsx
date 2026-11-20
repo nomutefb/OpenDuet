@@ -13,8 +13,8 @@ const IMG: Record<Job, { src: string; w: number; h: number; dy?: number }> = {  
   //   BATTLE ACADEMY 꼴 = 첫 · 끝 글자 크게(끝 글자는 더 크게 뻗음) · 가운데 작게 · 흰 글 + 검은 굵은 테 + 뒤 검은 리본 판(흰 테) · 위 색 띠(DeV 하늘 · OpS 분홍) · 20px · 원본 = claude-state beings/하늘/일/직무-라벨/label_*_하늘.png · lab-gen.mjs
   DEV: { src: "/garden-app/job-dev.webp?v=11", w: 86, h: 28, dy: 1.5 },   // dy 1.5 = 아래 그림자 · 글리치 탓에 흰 글자 가운데가 1.2px 위(실측 62.5/150) · 형 20:28 dm-sia 「70% 로 수평 맞추면 될듯」 · 20:31 「데브 좀만 더 내려주면 댈듯」
     // DEV = 시아 글리치 그림 · 다 대문자 판(정원 원본 · 앞 판 3aaecb6 = claude-state 옛 「DeV」 판을 잘못 씀)(형 20:19 dm-sia 시아 옮김 「DEV는 저대로 가자 다 대문자로해서 자간만 줄여서 도스창 말고 기존거로」 · 「데브 크기 65%로 줄여서 70%?」 「여튼좀 커」 = 시아 견줌 판 70% 줄 · 43×13px) · 반짝임 같이(sparkle.py)
-  //   OpS = 아래 배틀 꼴 그대로(형 「OPS는 다른거로 새악좀해볼게 ㅋㅋㅋ」)
-  OPS: { src: "/garden-app/job-ops.webp?v=9", w: 89, h: 32 },
+  //   OPS = 시아 렌치 그림(형 20:31 · 20:34 dm-sia 시아 옮김 「이 ok저 항목꼴로 ops에 해당하는걸 왕관 대신 붙일수잇나? 심플하면서 명확한 픽토를」 → 렌치) · 글자 높이 = DEV 글자와 같게(12px · 렌치는 위로) · dy -2 = 글자 몸통이 그림 아래쪽(가운데 0.64) → DEV 와 수평
+  OPS: { src: "/garden-app/job-ops.webp?v=11", w: 65, h: 40, dy: -2 },
   // 남은 직무 일곱(형 11-20 16:48 dm-gik 깃 옮김 「루미가 그릴거 아니야 ~ 그리고」 「하늘이랑 구름이 할거야」 · 나눔 = 구름 16:50 안)
   //   하늘 = PM · StorY · MusiC(DeV · OpS 꼴 · beings/하늘/일/직무-라벨/lab-gen2.mjs) · 구름 = Creator(형 13:42 「크리에이터 라벨은 이느낌으로 하나 만들어서 달아줘」 홀로그램 필기체) · R&D · SeC · ScooP
   //   크기 = 폭 ≈ 44px(FIXER 와 눈에 같게 · 형 14:13 「딱봐도 픽서빼고는 너무 큰데 사이즈좀맞춰줘」) · 높이 20px 안
