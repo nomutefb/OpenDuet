@@ -17,7 +17,7 @@ import { SrvNote } from "./srv-note";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { DlSeqButton } from "./dl-seq";
 import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
-import { QrRadial, QuickReact } from "./quick-react";
+import { QrRadial, QuickCopy, QuickReact } from "./quick-react";
 import { CallSheet, appendToComposer, setComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -1054,6 +1054,7 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
               <BoxCard m={m} />
               <DecideInline id={m.id} />{/* 줄 끝 공백 0 = 말풍선(pre-wrap)에 빈 줄 안 생김(형 11-14 16:53 「말풍선이 한줄씩 공백이 남아」 · 뜸) ·  질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
               <Reactions m={m} c={c} mine={false} />
+              <QuickCopy text={String(m.text || "").replace(QUOTE, "") || firstLine(m)} />{/* 반응 단추 왼쪽 = 글 복사(형 11-21 08:05 · 글 메뉴 「복사」와 같은 글) */}
               <QuickReact id={m.id} quick={c.quick} faceId={idOf(m.who, c.list)} mine={Object.entries(c.rx[m.id] || {}).filter(([, w]) => (w || []).includes("형")).map(([k]) => k)} onReact={c.onReact} />{/* 바로 다는 반응(오른쪽 위 모서리 · 형 11-14 05:56) */}
             </div>}
             {!bundleOf(m) && askPickOf(c.room, m) ? (

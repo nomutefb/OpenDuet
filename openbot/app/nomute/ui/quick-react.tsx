@@ -67,3 +67,25 @@ export function QuickReact({ id, quick, mine, faceId, onReact }: { id: string; q
     </div>
   );
 }
+
+// 반응 단추 왼쪽 = 글 복사(형 11-21 08:05 dm-sia 시아 옮김 「웅 그리구 이모지 버튼 좌측에 복사 버튼 만등어주고 누르면 액티브 효과 적용시켜줘」 · 시아 R0082)
+//   꼴 = 반응 단추와 같은 동그라미 · 누르면 그 글 몸(글 메뉴 「복사」와 같은 글) → 그림이 ✓ 로 바뀌고 라임 불(설정 복사 단추 · 하네스 askclip 과 같은 바꿈 시간 · transform · opacity 만) · 1.2초 뒤 제자리
+const COPY = <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="9" y="9" width="11" height="11" rx="2.5" /><path d="M5 15V6a2 2 0 0 1 2-2h9" /></svg>;
+const CHECK = <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 13l4 4L19 7" /></svg>;
+export function QuickCopy({ text }: { text: string }) {
+  const [ok, setOk] = useState(false);
+  const t = useRef(0);
+  useEffect(() => () => window.clearTimeout(t.current), []);
+  if (!text.trim()) return null;
+  const go = async () => {
+    try { await navigator.clipboard.writeText(text); } catch { return; }
+    setOk(true); window.clearTimeout(t.current); t.current = window.setTimeout(() => setOk(false), 1200);
+  };
+  return (
+    <div className="nm-qc" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+      <button type="button" className={`nm-qr-btn nm-qc-btn${ok ? " ok" : ""}`} aria-label={ok ? "복사됨" : "글 복사"} onClick={() => void go()}>
+        <span className="nm-qc-i a">{COPY}</span><span className="nm-qc-i b">{CHECK}</span>
+      </button>
+    </div>
+  );
+}

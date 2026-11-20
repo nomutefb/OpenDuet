@@ -31,3 +31,12 @@
 .yrx-who-p { display:inline-flex; align-items:center; gap:5px; }
 .yrx-who-p b { font-size:12.5px; font-weight:700; }
 .yrx-who-p img, .yrx-who-p .nm-face { width:18px; height:18px; border-radius:50%; }
+/* 글 복사(형 11-21 08:05 「이모지 버튼 좌측에 복사 버튼 … 누르면 액티브 효과」) = 반응 단추 바로 왼쪽(24 + 사이 6) · 같은 동그라미 · 누르면 그림 ✓ 바꿈(설정 복사 단추와 같은 시간 · 커브) + 라임 불 · transform · opacity 만 */
+.nm-qc { position:absolute; top:-10px; right:20px; z-index:4; width:24px; height:24px; }
+.nm-qc-i { grid-area:1 / 1; display:grid; place-items:center; transition:opacity .138s cubic-bezier(.42,0,.58,1) .125s, transform .138s cubic-bezier(.42,0,.58,1) .125s; }
+.nm-qc-i.b { opacity:0; transform:scale(.5); transition:opacity .121s cubic-bezier(.22,1,.36,1), transform .121s cubic-bezier(.22,1,.36,1); }
+.nm-qc-btn.ok .nm-qc-i.a { opacity:0; transform:scale(.5); transition:opacity .133s cubic-bezier(.25,1,.5,1), transform .133s cubic-bezier(.25,1,.5,1); }
+.nm-qc-btn.ok .nm-qc-i.b { opacity:1; transform:scale(1); transition:opacity .142s cubic-bezier(.42,0,.58,1) .133s, transform .142s cubic-bezier(.42,0,.58,1) .133s; }
+.nm-qc-btn.ok { opacity:1; border-color:rgba(var(--accent-rgb, 207,255,64),.55); background:rgba(var(--accent-rgb, 207,255,64),.14); color:var(--accent, #CFFF40); }
+.nm-qc-btn:active { transform:scale(var(--press-m, .92)); }
+@media (prefers-reduced-motion:reduce){ .nm-qc-i, .nm-qc-i.b, .nm-qc-btn.ok .nm-qc-i.a, .nm-qc-btn.ok .nm-qc-i.b { transition:none; } }
