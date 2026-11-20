@@ -19,3 +19,10 @@
 .nm-nb-hist { margin:0; font-size:12px; color:var(--mut, rgba(232,234,232,.55)); }
 @keyframes nm-nb-in { from { opacity:0; transform:translateY(3px); } }
 @media (prefers-reduced-motion: reduce) { .nm-nb { transition:none; } .nm-nb-saved { animation:none; } .nm-nb-btn { transition:none; } }
+/* 공지판(형 11-20 19:31) = 위 고르기 알약 둘(기본판 · 그록봇판 · 설정 칩 꼴) · 고침 상태 바닥 왼쪽 = 바이트 지금 / 한계(넘으면 빨강 · 저장 막힘) */
+.nm-nboard { display:flex; flex-direction:column; gap:10px; }
+.nm-nboard-tabs { display:flex; gap:6px; }
+.nm-nboard-tabs button { appearance:none; min-height:30px; padding:0 14px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); border-radius:999px; background:none; color:inherit; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.nm-nboard-tabs button.on { background:rgba(var(--accent-rgb, 207,255,64),.9); color:#141414; border-color:transparent; }
+.nm-nb-bytes { margin-right:auto; font-size:12px; font-variant-numeric:tabular-nums; color:var(--mut, rgba(232,234,232,.55)); }
+.nm-nb-bytes.over { color:#ff8a80; font-weight:700; }

@@ -33,7 +33,7 @@ import { type TeamsNotiKind, setTeamsNoti, useTeamsNoti } from "./teams";   // �
 import { TeamsAccount } from "./teams";   // 팀즈 로그아웃 = 여기(목록 머리 줄에서 옮김 · 형 11-13 10:23)
 import { PinTintSetting, usePinAlpha } from "./pin-tint";
 import { NomuteVault, useBuildLine } from "./settings-extra";   // 옛 그록 대화(NomuteOld) = 설정 줄 걷음 · 부품 · 서버 문은 그대로
-import { NoticeBox, useNoteMeta } from "./notice-box";   // 공지 칸 = 그록봇 공지와 같은 부품(판 · 날짜는 줄 오른쪽 · 형 11-17 06:56)
+import { NoticeBoard, useNoteMeta } from "./notice-box";   // 공지 칸 = 그록봇 공지와 같은 부품(판 · 날짜는 줄 오른쪽 · 형 11-17 06:56)
 import { formatHotkey, HOTKEYS } from "@/lib/hotkeys/hotkeys";   // 원본 「키보드 단축키」(PC 만)
 import { YICO, type YIcon } from "./yeta-icons";
 import { setSkin, useSkin } from "./skin";   // 꾸밈 지금 / 정원(형 11-07 08:01 「지금테마랑 정원테마 고를 수 있게해줘」)
@@ -150,7 +150,7 @@ export function YetaSettings() {
           <div className="yset-sec">봄의 정원</div>
           <div className="yset-grp">
             {/* 지정방 멤버 = 대화 목록 방 메뉴 「멤버」로 옮김(형 11-05 08:35 「그냥 톡 목록에서 설정하게 일원화해야람」 · 「따로노니까 문제」) */}
-            {row("notice", "speaker", "공지 설정", <NoticeBox kind="notice" onClose={() => setOpen("")} />, noticeMeta || undefined)}   {/* 판 · 바뀐 날 = 줄 오른쪽(칸 밖) · 열면 읽기 → 위 「수정」 → 아래 「닫기」 · 「저장」(형 11-17 06:56 dm-bom · ./notice-box.tsx) · 원본 「공통 지시」는 우리 사무실에선 공지 판이 그 일 */}
+            {row("notice", "speaker", "공지판", <NoticeBoard onClose={() => setOpen("")} />, noticeMeta || undefined)}   {/* 판 · 바뀐 날 = 줄 오른쪽(칸 밖) · 열면 읽기 → 위 「수정」 → 아래 「닫기」 · 「저장」(형 11-17 06:56 dm-bom · ./notice-box.tsx) · 원본 「공통 지시」는 우리 사무실에선 공지 판이 그 일 */}
             {/* 봇 쪽 설정(PM · 봇 상자 모델 · 노력도 · 계정 우선순위 · 호출 맥락 · 그록봇 지침 · 지금 봇) = 애들 화면 한 곳으로 옮김 → 여긴 가는 길 하나(형 11-16 19:35 dm-bom 「거기에 봇 관련된 설정은 통합시키려고해」 · 19:36 「한쪽에 몰아버리고 싳은거임」 · 봄 21:30 「가」) */}
             {/* 옮겨 간 설정 가는 길(애들 · 계기판 / 스케줄 · 점검 · 일 모델) 줄 걷음 = 폰 네비 5번 「애들」(위 탭 애들 · 스케줄 배선 · 러너 · 아래 계기판) · PC 위 메뉴 「애들」로 가는 길 그대로(형 11-17 12:25 dm-bom 봄 옮김 「중간에 계기판 하고 스케줄도!」 · 「설정이 많이 캄팩트해졌네 굿」) */}
             {row("vault", "lock", "보안 서랍", <NomuteVault />)}

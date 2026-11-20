@@ -14,7 +14,7 @@ import { MorphAsk } from "./morph-ask";
 import { t12 } from "./when";
 import { SrvNote } from "./srv-note";   // 못 받음 = 서버 안내 한 꼴(형 11-18 22:0x)
 import { reading } from "./wait-text";
-import { NOTE_MAX, NOTE_NAME, NOTE_PATH, type Note, type NoteKind, canSave, dayKo, failKo, histKo, metaKo, readNote, saveBody } from "./notice-box-logic";
+import { NOTE_KINDS, NOTE_MAX, NOTE_NAME, NOTE_PATH, type Note, type NoteKind, bytesKo, bytesOf, canSave, dayKo, failKo, histKo, metaKo, readNote, saveBody } from "./notice-box-logic";
 
 const keyOf = (kind: NoteKind) => ["nomute", "note", kind] as const;
 const load = (kind: NoteKind) => office<unknown>(NOTE_PATH[kind]).then((j) => { const n = readNote(j); if (!n) throw new Error("글이 없는 답"); return n; });
@@ -62,6 +62,7 @@ export function NoticeBox({ kind, onClose }: { kind: NoteKind; onClose: () => vo
           : <p data-content className="nm-nb-text">{n.text}</p>}
         {edit ? (
           <div className="nm-nb-foot">
+            <span className={`nm-nb-bytes${n.limit && bytesOf(draft ?? "") > n.limit ? " over" : ""}`} role="status">{bytesKo(bytesOf(draft ?? ""), n.limit)}</span>   {/* 칸마다 바이트 지금 / 한계 · 넘으면 빨강 + 저장 막힘(형 11-20 19:31 「거기에 각각 지침에 바이트 수 한계를 넣어주면 될 것 같아」) */}
             {saved ? <span className="nm-nb-saved" role="status">저장됨</span> : <>
               {dirty ? <MorphAsk className="nm-nb-btn" yesText="닫기" label={`${NOTE_NAME[kind]} 닫기`} onYes={close}>닫기</MorphAsk>
                 : <button type="button" className="nm-nb-btn" onClick={close}>닫기</button>}
@@ -70,6 +71,19 @@ export function NoticeBox({ kind, onClose }: { kind: NoteKind; onClose: () => vo
           </div>
         ) : hist.length ? <p className="nm-nb-hist" data-content>지난 판 {hist.join(" / ")}</p> : null}
       </div>
+    </div>
+  );
+}
+
+/** 공지판 = 설정 하나 안 두 칸(기본판 · 그록봇판 · 형 11-20 19:31 「불편하더라도 내가 두번볼께. 기본판, 그록봇판 두개로 공간 만들어주라 / 공지판 으로 하나 설정 넣어서.」) · 고르기 알약 = 판 · 날짜는 칸 밖 줄 오른쪽 그대로 */
+export function NoticeBoard({ onClose }: { onClose: () => void }) {
+  const [kind, setKind] = useState<NoteKind>("notice");
+  return (
+    <div className="nm-nboard">
+      <div className="nm-nboard-tabs" role="tablist" aria-label="공지판">
+        {NOTE_KINDS.map((k) => <button key={k} type="button" role="tab" aria-selected={k === kind} className={k === kind ? "on" : ""} onClick={() => setKind(k)}>{NOTE_NAME[k]}</button>)}
+      </div>
+      <NoticeBox key={kind} kind={kind} onClose={onClose} />
     </div>
   );
 }

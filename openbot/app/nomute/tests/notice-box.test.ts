@@ -25,10 +25,26 @@ test("보낼 몸 = 글 + 읽은 판 · 저장 = 바뀌고 비지 않을 때만 �
 });
 test("끼운 자리 = 두 칸 같은 부품 · 위 「수정」 · 아래 「닫기」 · 「저장」 · 되묻는 창 0", () => {
   const ui = rd("../ui/notice-box.tsx"), set = rd("../ui/yeta-settings.tsx"), bm = rd("../ui/bot-manage.tsx");
-  assert.match(set, /<NoticeBox kind="notice" onClose=/); assert.match(set, /useNoteMeta\("notice"\)/);
+  assert.match(set, /<NoticeBoard onClose=/); assert.match(set, /useNoteMeta\("notice"\)/);   // 설정 = 공지판(기본판 · 그록봇판 두 칸 · 형 11-20 19:31) · 안에서 같은 NoticeBox
+  assert.match(ui, /<NoticeBox key=\{kind\} kind=\{kind\} onClose=\{onClose\} \/>/);
   assert.match(bm, /<Row label="그록봇 공지">/); assert.match(bm, /<NoticeBox kind="grok" onClose=/); assert.doesNotMatch(bm, /그록봇 지침"|메모 열기/);
   assert.ok(ui.indexOf(">수정</button>") < ui.indexOf("<textarea") && ui.indexOf("<textarea") < ui.indexOf(">닫기<") && ui.indexOf(">닫기<") < ui.indexOf(">저장</GoButton>"));
   assert.match(ui, /<GoButton[^>]*go=\{save\}/); assert.match(ui, /저장됨/);   // 알약 게이지 → 체크 → 「저장됨」 → 닫힘(형 06:57)
   assert.doesNotMatch(ui, /AskYN|createPortal|role="alertdialog"/);
   assert.match(rd("../ui/notice-box.css"), /prefers-reduced-motion:\s*reduce/);
+});
+
+test("공지판 = 기본판 · 그록봇판 두 칸 · 바이트 지금/한계 · 넘으면 저장 막힘(형 11-20 19:31 「기본판, 그록봇판 두개로 공간 만들어주라 / 공지판 으로 하나 설정 넣어서.」 「거기에 각각 지침에 바이트 수 한계를 넣어주면 될 것 같아」)", async () => {
+  const m = await import("../ui/notice-box-logic");
+  assert.deepEqual(m.NOTE_KINDS.map((k) => m.NOTE_NAME[k]), ["기본판", "그록봇판"]);
+  assert.equal(m.bytesOf("가a"), 4);   // 한글 3 · 영문 1
+  assert.equal(m.bytesKo(3812, 8000), "3,812 / 8,000 바이트");
+  assert.equal(m.bytesKo(12, 0), "12 바이트");
+  assert.equal(m.readNote({ notice: { ver: 3, text: "x" }, limit_bytes: 8000 })?.limit, 8000);
+  assert.equal(m.readNote({ text: "y", ver: 1, max_bytes: 4000 })?.limit, 4000);
+  assert.equal(m.readNote({ text: "y", ver: 1 })?.limit, 0);
+  assert.equal(m.canSave("가가가", { text: "", limit: 8 }), false);   // 9 바이트 > 8
+  assert.equal(m.canSave("가가", { text: "", limit: 8 }), true);
+  const ys = readFileSync(new URL("../ui/yeta-settings.tsx", import.meta.url), "utf8");
+  assert.match(ys, /row\("notice", "speaker", "공지판", <NoticeBoard onClose=/);
 });
