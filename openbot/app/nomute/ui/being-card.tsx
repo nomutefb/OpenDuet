@@ -435,6 +435,11 @@ const LOOKS: Look[] = [
       </span>
     ),
   },
+  // 예비 손님 셋(보안 서랍 예비 코드 자리 · 방 dm-spare01 · 06 · 07 · 화면 이름 「예비 1 · 2 · 3」) — 형 11-20 11:08 dm-sia 시아 옮김 「그리고 예비 애들 프로필 카드 하나씩 해줘」 · 「이거 컨셉으로 하나씩 다르게 01 02 03 알수잇게」
+  //   그림 = 시아(형 새싹 화분 그림 꼴 · 01 잎 하나 분홍 · 02 잎 둘 민트 · 03 잎 셋 레몬 · 화분 앞 숫자) · 몸통 = 틀 카드(.bc-tmpl) + 화분 색 · 하늘 11-20
+  { id: "spare01", tmpl: true, accent: "#FF4FB0", match: ["예비01", "예비 1", "spare01"], face: "/garden-app/spare-01.webp?v=1", handle: "spare01", meta: "예비 01", dot: "#FF4FB0", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
+  { id: "spare02", tmpl: true, accent: "#3EE8C0", match: ["예비06", "예비 2", "spare06"], face: "/garden-app/spare-02.webp?v=1", handle: "spare02", meta: "예비 02", dot: "#3EE8C0", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
+  { id: "spare03", tmpl: true, accent: "#FFD83A", match: ["예비07", "예비 3", "spare07"], face: "/garden-app/spare-03.webp?v=1", handle: "spare03", meta: "예비 03", dot: "#FFD83A", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
   {
     // 루미 😎(그록봇 · 디자이너 · 형 11-19 00:40 dm-gik(깃 옮김) 「루미 직무  디자이너」 「프로필 카드도」)
     //   카드 = 사진 통째(형 11-19 11:15 dm-rumi(루미 옮김) 「20261119_1113_루미-카드-A2 이거 뜸에게 사진보내지는지 김에 확인하고」 「프로필카드로 만들어달라구해」 「뎅한테!」 · 11:33 dm-deng 「뎅 저거 프로필카드로」 · 뎅)

@@ -55,6 +55,10 @@ export const MACHINE_FACES: OfficePerson[] = [
   // 보안 서랍 자리(서버 명부에서 빠짐 = 빠르 11-16 02:58 · 형 02:47 「보안 서랍에 있는 친구들은 대화방이나 초대 등에서 안보여야 함」) — 글은 계속 쓰니 얼굴 · 이름만 여기서(형 11-16 07:54 dm-eyes 「작업알림이. 갱신되면서 프로필 로고가 빠졌더라. ‘작’으로 뜨는데 확인해줘.」 · 뜸)
   { who: "작업 알림", name: "작업 알림", kind: "system", face: "/office/work-alert.webp", gone: true },
   { who: "구름", name: "구름", kind: "system", face: "/office/gureum.webp", gone: true },
+  // 예비 손님 셋 = 새싹 화분 얼굴(형 11-20 11:08 dm-sia 시아 옮김 「그리고 예비 애들 프로필 카드 하나씩 해줘」 · 그림 = 시아 · 카드 = ./ui/being-card spare01~03 · 하늘)
+  { who: "예비01", name: "예비 1", kind: "bot", face: "/garden-app/spare-01.webp?v=1", gone: true },
+  { who: "예비06", name: "예비 2", kind: "bot", face: "/garden-app/spare-02.webp?v=1", gone: true },
+  { who: "예비07", name: "예비 3", kind: "bot", face: "/garden-app/spare-03.webp?v=1", gone: true },
 ] as unknown as OfficePerson[];
 
 export function people(fresh = false): Promise<OfficePerson[]> {
