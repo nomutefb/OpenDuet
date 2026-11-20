@@ -1,0 +1,11 @@
+/* 손가락 화면(pointer:coarse)에서만 — 눈에 보이는 꼴은 그대로 두고 누르는 자리만 넓힘
+   형 11-21 「모바일도 체크해주고 모바일 버전」 · 「전반적으로 불필요 ux도 좀 봐줘」 · 11-14 「보기에만 똑같으면」(보이는 값 0 바꿈 · 그리기 값 0)
+   잰 것(375×812 · 봄 손): 홈 키워드 줄 단추 87×16(줄 키 38) · 대화창 방 이름 61×16 · 애들 「모두」 31×21 · 층 접기 75×20 · 설정 캐시 비우기 53×27 · 홈 키워드 ↔ 뉴스 56×24 · 글 반응 달기 24×24
+   글이 잘리는 단추(overflow hidden)는 안 여백을 키우고 같은 만큼 바깥 여백을 빼서(자리 그대로) · 그 밖은 안 보이는 덧판(::after)으로 */
+@media (pointer: coarse) {
+  .nm-kwb button.q { padding-block:11px; margin-block:-11px; }                 /* 줄 키 38 을 통째로(줄 사이 겹침 0) */
+  button.nm-top-name.nm-top-btn { padding-block:12px; margin-block:-12px; }          /* 61×40 · 위아래만(옆 여백을 건드리면 가운데 줄 감싸개가 줄어 글 자리가 틀어짐) · 앞에 button = 뒤에 오는 「padding:0」 규칙을 이김(안 이기면 바깥 여백만 먹어 글이 올라감 · 로컬에서 잼) */
+  .nm-bd-allbtn, .lane-fold, .nm-mask-b { position:relative; }
+  .nm-bd-allbtn::after, .lane-fold::after, .nm-mask-b::after, .nm-hotswap-t::after { content:""; position:absolute; inset:-10px -8px; }
+  .nm-qr-btn::after { content:""; position:absolute; inset:-6px; }             /* 36×36 · 말풍선 글을 덜 가리게 조금만 */
+}
