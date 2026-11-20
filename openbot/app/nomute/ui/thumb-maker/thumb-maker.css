@@ -680,12 +680,13 @@
   .nm-tm #cpThumbSlot:empty { display:none; }
   @font-face{font-family:'Noto Sans KR';font-weight:400;font-style:normal;font-display:swap;src:url(/assets/fonts/noto-sans-kr-400.woff2) format('woff2')}
   @font-face{font-family:'Noto Sans KR';font-weight:700;font-style:normal;font-display:swap;src:url(/assets/fonts/noto-sans-kr-700.woff2) format('woff2')}
+  @font-face{font-family:'Pretendard Variable';font-weight:45 920;font-style:normal;font-display:swap;src:local('Pretendard Variable'),url(/assets/fonts/pretendard.woff2) format('woff2-variations')}   /* 미리보기 = 프리텐다드(R0083) · 앱 전체 글꼴과 같은 파일(./font-all.css 가 안 실린 판에서도 뜨게) */
   .nm-tm .cpprev { position:relative; margin:0 0 var(--sp-2); }
   .nm-tm .cpprev-box { position:relative; height:min(29cqh,300px); height:min(29cqh,300px); width:100%; background:#121212; border:1px solid var(--line); border-radius:var(--r-s); overflow:hidden; }
   .nm-tm .cpprev-box.dropping { border-color:rgba(var(--accent-rgb),.35); }
   .nm-tm .cpprev::after { content:none; }
   .nm-tm .cpprev-stage { position:absolute; top:0; bottom:0; left:50%; transform:translateX(-50%); background:#000; overflow:hidden; }
-  .nm-tm .cpprev-stage,.nm-tm  #rCombo .cf-sub,.nm-tm  #rCombo .cf-title,.nm-tm  #rCombo .covta { font-family:'Noto Sans KR','Noto Sans CJK KR',sans-serif; }
+  .nm-tm .cpprev-stage,.nm-tm  #rCombo .cf-sub,.nm-tm  #rCombo .cf-title,.nm-tm  #rCombo .covta { font-family:'Pretendard Variable','Noto Sans KR','Noto Sans CJK KR',sans-serif; }   /* 미리보기 글꼴 = 프리텐다드(형 11-21 08:12 「프리텐다드로 하고」 · R0083 · 앞 판 Noto Sans KR · 한자 등 빈 글자 = Noto 로 대신) */
   .nm-tm .cpprev-stage.post { aspect-ratio:4/5; height:100%; width:auto; }
   .nm-tm .cpprev-stage.reels { aspect-ratio:9/16; height:100%; width:auto; }
   .nm-tm .cpprev-stage .cpv { position:absolute; white-space:pre-wrap; word-break:keep-all; }

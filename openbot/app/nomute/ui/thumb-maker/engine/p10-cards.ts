@@ -297,7 +297,7 @@ export function buildEmphText() {
   }).filter(s => s !== '').join('\n');
 }
 export const TRK = {
-  post:  { H: 70, S: 17, N: 48, fs: 76, limit: 920, start: 0,  floor: -45, basis: 'adv' },
+  post:  { H: 70, S: 17, N: 48, fs: 76, limit: 940, start: 0,  floor: -35, basis: 'adv' },   // 형 11-21 08:12 「한도는 940으로 항상 박자」 · 08:13 「자간은 저게 -45면 -35까지만 하자」(dm-eyes 뜸 옮김 · R0083 · 굽는 쪽 = 천둥 editor #4598 thumb-make.yml 과 같은 수 · 앞 판 920 · -45)
   reels: { H: 72, S: 18, N: 48, fs: 78, limit: 844, start: -1, floor: -30, basis: 'adv' },
 
 };
