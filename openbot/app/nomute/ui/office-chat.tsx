@@ -18,7 +18,7 @@ import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이
 import { DlSeqButton } from "./dl-seq";
 import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
 import { QrRadial, QuickReact } from "./quick-react";
-import { CallSheet, appendToComposer } from "./call-sheet";
+import { CallSheet, appendToComposer, setComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type React from "react";
@@ -31,7 +31,28 @@ import { type CommandOption, Composer, toAgentOptions } from "@/components/chann
 // 「/」 = 우리 명령 둘(형 11-06 10:45 사진 = 「/초대」에 원본 스킬 메뉴 「No matching skills」가 떠서 엔터가 안 감 · 봄 서버 /초대·/방파기) — 고르면 그 글자가 입력칸에 들어가고 엔터 = 보내기
 //   → 원본 「/」 목록은 이 앱에서 늘 비어 「No matching skills」만 띄우고 엔터를 먹음(11-06 9222 실물) = 목록 끔(commands [] · overrides.ts) · 대신 입력칸 위 안내 줄(SLASH_HELP)
 const OFFICE_COMMANDS: CommandOption[] = [];
-const SLASH_HELP: [string, string][] = [["/초대 이름", "하루 안 남은 임시방에 부르기"], ["/방파기", "목적 달성 · 다 같이 나가기"]];
+// 「/」 명령 추천(형 11-20 12:32 dm-sia 시아 옮김 「위에 누르면 알아서 명령어 들어오게 하주라. 그리고 추가로 투명도 글자로 붙어있으면 스페이스 누르면 명령어 붙고 /이름 000」 · 「/방제 /초대 /방파기 모두」)
+//   예비 방 = /이름 · /방제(초대 이름 뺌) · 그 밖 = /방제 · /초대 · /방파기 · 명령 이름 · 쓸 수 있는 방은 서버(천둥)가 한 곳에서 주면 그걸로 갈음
+type SlashCmd = { k: string; fill: string; d: string; guest?: boolean; host?: boolean };
+const SLASH_CMDS: SlashCmd[] = [
+  { k: "/이름", fill: "/이름 ", d: "표시 이름 바꾸기", guest: true },
+  { k: "/방제", fill: "/방제 ", d: "방 이름 바꾸기", guest: true, host: true },
+  { k: "/초대 이름", fill: "/초대 ", d: "하루 안 남은 임시방에 부르기", host: true },
+  { k: "/방파기", fill: "/방파기", d: "목적 달성 · 다 같이 나가기", host: true },
+];
+/** 치는 중 이어 보이는 흐린 글(맨 앞 추천의 남은 글자) — 입력칸 글자 바로 뒤에 겹쳐 그림(입력칸 안 글은 안 건드림) */
+function SlashGhost({ typed, rest }: { typed: string; rest: string }) {
+  const [at, setAt] = useState<{ left: number; top: number; font: string } | null>(null);
+  useLayoutEffect(() => {
+    const ed = document.querySelector<HTMLElement>('.ychat-in [contenteditable="true"]'), box = ed?.closest<HTMLElement>(".ychat-in");
+    const cv = document.createElement("canvas").getContext("2d");
+    if (!ed || !box || !cv) { setAt(null); return; }
+    const cs = getComputedStyle(ed), b = ed.getBoundingClientRect(), o = box.getBoundingClientRect();
+    cv.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    setAt({ left: b.left - o.left + parseFloat(cs.paddingLeft || "0") + cv.measureText(typed).width, top: b.top - o.top + parseFloat(cs.paddingTop || "0"), font: `${cs.fontWeight} ${cs.fontSize} / ${cs.lineHeight} ${cs.fontFamily}` });
+  }, [typed, rest]);
+  return at ? <span className="yslash-ghost" aria-hidden style={{ left: at.left, top: at.top, font: at.font }}>{rest}</span> : null;
+}
 import { useReportChatPresence } from "@/components/shell/chat-presence";
 import { markdownComponents } from "@/lib/markdown";
 import { type OfficeMsg, type OfficePerson, type OfficeRoom, idOf, office, people, peopleSync, roomAgentIds } from "../data/office";
@@ -1163,7 +1184,19 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   const inviteOn = useMemo(() => { const on = new Set<string>(), back = new Set<string>(); for (let i = all.length - 1; i >= 0; i--) { const m = all[i]; if (evM(m)) { const k = m.event?.kind; if (k === "left") { for (const w of evWho(m)) if (w !== "형" && !back.has(w)) on.add(m.id); } else if (k === "back" || k === "invite") for (const w of evWho(m)) back.add(w); } else if (m.kind !== "system" && m.kind !== "sent" && m.kind !== "human") back.add(m.who); } return on; }, [all]);   // 그 애 글 = 다시 옴(우리 일곱 = kind "being" · 그록봇 = bot) · 「형이 나갔습니다.」 줄 = 단추 없음(형은 다시 쓰면 들어옴 · 형 11-18 「나도 나가면 해체」)
   const [cmdNote, setCmdNote] = useState("");
   useEffect(() => { if (!cmdNote) return undefined; const t = setTimeout(() => setCmdNote(""), 5_000); return () => clearTimeout(t); }, [cmdNote]);   // 「/초대」·「/방파기」 안 되는 방 안내(라임 · 누르면 닫힘)
-  const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null), [inviteQ, setInviteQ] = useState<string[] | null>(null);   // inviteQ = 「/초대 …」 뒤 이미 친 이름들   // slash = 입력칸이 「/…」 한 낱말일 때 그 뒤 글자
+  const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null), [inviteQ, setInviteQ] = useState<string[] | null>(null);
+  const slashHits = slash == null ? [] : SLASH_CMDS.filter((c) => (r?.guest ? c.guest : c.host) && c.k.slice(1).startsWith(slash));   // 「/」 추천(위 SLASH_CMDS)
+  const ghost = slashHits[0] ? slashHits[0].fill.slice(1 + (slash || "").length) : "";
+  useEffect(() => {   // 스페이스 = 흐린 글 붙임(형 11-20 12:32 「…스페이스 누르면 명령어 붙고 /이름 000」) · 한글 조합 중 스페이스는 그대로
+    const c = slashHits[0];
+    if (!c || !ghost.trim()) return undefined;
+    const on = (e: KeyboardEvent) => {
+      if (e.key !== " " || e.isComposing || !(e.target as Element | null)?.closest?.(".ychat-in")) return;
+      e.preventDefault(); e.stopPropagation(); setComposer(c.fill.endsWith(" ") ? c.fill : `${c.fill} `); setSlash(null);
+    };
+    window.addEventListener("keydown", on, true);
+    return () => window.removeEventListener("keydown", on, true);
+  }, [ghost]);   // eslint-disable-line react-hooks/exhaustive-deps -- 맨 앞 추천이 바뀔 때만   // inviteQ = 「/초대 …」 뒤 이미 친 이름들   // slash = 입력칸이 「/…」 한 낱말일 때 그 뒤 글자
   const invite = async (m: Msg) => {   // 형 11-06 「내가 초대하기누르면다시들어올수잇어야함」 → POST rooms/<방>/invite(봄 서버) · 답 = 「다시 불렀습니다」 줄
     const who = evWho(m)[0]; if (!who || inviting) throw new Error("지금은 못 불러");   // 단추 = 게이지 알약(./go-button) · 실패 = 까닭 적고 throw
     setInviting(m.id); setErr("");
@@ -1613,9 +1646,10 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
           const inRoom = new Set(r?.members || []), typed = new Set(inviteQ);
           const can = list.filter((x) => x.kind !== "human" && !x.gone && !inRoom.has(x.who) && !typed.has(x.who) && !typed.has(x.name || ""));
           return can.length ? <div className="yslash yinv" aria-label="부를 수 있는 이">{can.map((x) => <button key={x.who} type="button" title={x.name || x.who} onMouseDown={(e) => e.preventDefault()} onClick={() => { appendToComposer(`${/\s$/.test(loadDraft(room) || "") ? "" : " "}${x.name || x.who} `); }}><FaceImg id={idOf(x.who, list)} size={26} /><span>{x.name || x.who}</span></button>)}</div> : null;
-        })() : slash != null && SLASH_HELP.some(([k]) => k.slice(1).startsWith(slash)) ? (   /* 「/」 안내 줄 = 치는 글자에 맞는 명령만 · 엔터는 그대로 보내기 */
-          <div className="yslash" aria-live="polite">{SLASH_HELP.filter(([k]) => k.slice(1).startsWith(slash)).map(([k, d]) => <p key={k}><b>{k}</b><span>{d}</span></p>)}</div>
+        })() : slash != null && slashHits.length ? (   /* 「/」 추천 줄 = 그 방에서 쓸 수 있는 명령 중 치는 글자에 맞는 것 · 누르면 입력칸에 바로(형 11-20 12:32 「위에 누르면 알아서 명령어 들어오게 하주라」) · 엔터는 그대로 보내기 */
+          <div className="yslash" aria-live="polite">{slashHits.map((c) => <button key={c.k} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { setComposer(c.fill); setSlash(null); }}><b>{c.k}</b><span>{c.d}</span></button>)}</div>
         ) : null}
+        {slash != null && ghost.trim() ? <SlashGhost typed={`/${slash}`} rest={ghost} /> : null}   {/* 흐린 이어 글(위 SlashGhost · 스페이스로 붙음) */}
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         <CallSheet />   {/* 「@」·「!」 여러 명 고르기(./call-sheet.tsx · 형 11-02 11:34 · 11:37) */}
         <div className="nm-tray" onWheel={(e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY; }}>   {/* 알약 + 칩 = 한 줄(형 11-07 12:01 「이런식으루 나옴 2줄로」) · 일괄 × 하나 · 옆으로 밀기 */}

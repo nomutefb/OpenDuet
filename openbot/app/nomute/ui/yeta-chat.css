@@ -720,7 +720,9 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 .ychat .yev-a.nm-go[data-stage="err"] { color:#ff5f6d; background:rgba(255,95,109,.1); animation:nmGoShake .32s; }
 /* 「/」 안내 줄(형 11-06 「/초대」 · 봄 아이데이션 「/ 치면 명령 목록」) — 입력칸 바로 위 · 유리 · 명령 = 라임 */
 .ychat .yslash { display:flex; flex-direction:column; gap:2px; margin:0 4px 6px; padding:6px 12px; border-radius:14px; background:var(--glass-2); border:1px solid var(--glass-line); font-size:var(--fs-sm); }
-.ychat .yslash p { display:flex; gap:10px; margin:0; }
+.ychat .yslash p, .ychat .yslash:not(.yinv) > button { display:flex; gap:10px; margin:0; }
+.ychat .yslash:not(.yinv) > button { align-items:center; min-height:32px; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }   /* 「/」 추천 = 누르면 입력칸에 바로(형 11-20 12:32) */
+.ychat .yslash:not(.yinv) > button:active { opacity:.6; }
 .ychat .yslash b { color:var(--accent, #CFFF40); font-weight:700; min-width:76px; }
 .ychat .yslash span { color:var(--fg-2); }
 /* 「/초대 」 얼굴 줄 = 안내 줄 자리 · 가로로 흐름 · 얼굴 + 이름 */
@@ -932,3 +934,6 @@ body:not([data-nm-split]) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { backg
 .nm-qpeek-h button { margin-left:8px; border:0; background:none; color:inherit; font-size:18px; line-height:1; cursor:pointer; padding:0 2px; }
 .nm-qpeek-t { margin:0; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.5; }
 .nm-qpeek-n { display:block; margin-top:6px; font-size:11px; color:rgba(232,234,232,.5); }
+/* 「/」 치는 중 이어 보이는 흐린 글(형 11-20 12:32 「투명도 글자로 붙어있으면 스페이스 누르면 명령어 붙고」 · office-chat SlashGhost) = 입력칸 글자 바로 뒤에 겹침 · 누름 안 먹음 */
+.ychat-in { position:relative; }
+.ychat-in .yslash-ghost { position:absolute; z-index:2; pointer-events:none; white-space:pre; color:rgba(232,234,232,.34); }
