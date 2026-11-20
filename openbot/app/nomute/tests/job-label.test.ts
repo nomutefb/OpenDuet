@@ -4,11 +4,11 @@ import { readFileSync, statSync } from "node:fs";
 import test from "node:test";
 
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
-test("라벨 = 이름 뒤 · 세로 가운데 · FIXER · MD · Dev · Ops 20px · UXD 12px · 웹용 webp · 없는 애 = 옛 글 알약", () => {
+test("라벨 = 이름 뒤 · 세로 가운데 · FIXER · MD · Dev · Ops 20px · UXD 16px · 웹용 webp · 없는 애 = 옛 글 알약", () => {
   const lab = rd("../ui/job-label.tsx"), list = rd("../ui/room-list.tsx");
   assert.ok(lab.includes(`const JOB_OF: Record<string, Job> = { 구름: "UXD", 하늘: "UXD", 소나: "FIXER", 이슬: "FIXER", 루미: "FIXER", 천둥: "DEV", 빠르: "OPS", 번개: "OPS" };`));
-  // 그림 높이 = 화면의 2배(40 · 24) → 그려지는 높이 20 · 12
-  for (const [k, h] of [["FIXER", 40], ["MD", 40], ["UXD", 24], ["DEV", 40], ["OPS", 40]] as const) assert.match(lab, new RegExp(`${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp(\\?v=\\d+)?", w: \\d+, h: ${h} \\}`), k);
+  // 그림 높이 = 화면의 2배(40 · 32) → 그려지는 높이 20 · 16
+  for (const [k, h] of [["FIXER", 40], ["MD", 40], ["UXD", 32], ["DEV", 40], ["OPS", 40]] as const) assert.match(lab, new RegExp(`${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp(\\?v=\\d+)?", w: \\d+, h: ${h} \\}`), k);
   // DeV · OpS = 하늘 그림(형 13:43~13:44 「저기에 보면 ba랑 y가 강하잖아. 그걸 활요해서 만들라고해.」) · 그림 바꾸면 ?v 올림(캐시)
   assert.match(lab, /DEV: \{ src: "\/garden-app\/job-dev\.webp\?v=2", w: 106, h: 40 \}/);
   assert.match(lab, /OPS: \{ src: "\/garden-app\/job-ops\.webp\?v=2", w: 111, h: 40 \}/);
