@@ -85,11 +85,9 @@ export function WebPane({ initial = "", className = "", onClose, onGo, blank, fo
       </form>
       <div className="nm-web-body">
         {!cur ? (
-          <div className="nm-web-note"><p>주소나 검색어를 넣어주세요</p>{blank}</div>
+          <div className="nm-web-note">{blank}</div>
         ) : check.state === "blocked" ? (
           <div className="nm-web-note">
-            <b>이 사이트는 앱 안 보기를 막아요</b>
-            {check.why ? <span>{check.why}</span> : null}
             {onBridge ? <button type="button" className="nm-web-out" onClick={() => onBridge(cur)}>맥 72로 열기</button> : null}
             <a data-nm-out href={cur} target="_blank" rel="noopener" className={onBridge ? "nm-web-out sub" : "nm-web-out"}>밖에서 열기</a>
           </div>
@@ -101,7 +99,6 @@ export function WebPane({ initial = "", className = "", onClose, onGo, blank, fo
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write" referrerPolicy="strict-origin-when-cross-origin"
             {...(sameSite(cur) ? {} : { sandbox: "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals" })} />
         ) : null}
-        {show && check.state === "unknown" ? <p className="nm-web-hint">품기 판정을 못 받아서 그냥 띄워 봤어요 · 비어 보이면 「밖에서 열기」</p> : null}
       </div>
     </section>
   );

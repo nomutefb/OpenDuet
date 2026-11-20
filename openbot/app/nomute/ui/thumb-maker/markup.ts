@@ -160,7 +160,7 @@ export const THUMB_HTML = `
         <button class="carnav next" id="carNext" type="button" aria-label="다음"></button>
       </div>
     </div>
-    <div class="hist-empty" id="carEmpty">아직 제작한 게 없습니다</div>
+    <div class="hist-empty" id="carEmpty"></div>
     <div class="hist" id="hist">
       <button class="hist-h" id="histH" type="button" aria-expanded="false">
         <span class="hist-ttl"><span class="hist-bul" aria-hidden="true">•</span>이전 제작 <span class="hist-cnt" id="histCnt">(0)</span></span>
@@ -168,7 +168,7 @@ export const THUMB_HTML = `
         <svg class="hist-ar" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="hist-body" id="histBody" hidden>
-        <div class="hist-empty" id="histEmpty" hidden>아직 제작한 게 없습니다</div>
+        <div class="hist-empty" id="histEmpty" hidden></div>
         <div class="hist-tools" id="histTools"><button class="hist-clr" id="histClr" type="button">기록 지우기</button></div>
         <div class="hist-grid" id="histGrid"></div>
       </div>

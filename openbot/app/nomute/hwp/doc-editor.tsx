@@ -11,12 +11,15 @@ import "./doc-editor.css";
 import { createEditor, type RhwpEditor } from "@rhwp/editor";
 import { useEffect, useRef, useState } from "react";
 import { ToolButtons } from "../ui/ed-keep";
+import { MorphAsk } from "../ui/morph-ask";
+import { CloseAsk } from "../ui/save-ask";
 import { CANT_READ, OPEN_ACCEPT, SAMPLE_MD, STUDIO_URL, checkLines, hdCrashed, maskedCount, saveName } from "./doc-logic";
 import { hd, stopHd, warmHd } from "./hd-engine";
 
 const SPARK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></svg>;
 type Side = "make" | "check" | null;
 type Check = { lines: string[]; bad: number };
+type Ask = "" | "open" | "make" | "gong" | "close";   // 고치던 문서를 버리기 전 묻는 자리
 
 function download(bytes: Uint8Array | ArrayBuffer | string, name: string, type = "application/octet-stream") {
   const a = document.createElement("a"), url = URL.createObjectURL(new Blob([bytes as BlobPart], { type }));
@@ -29,6 +32,7 @@ export function DocEditor({ onBack, onMin }: { onBack?: () => void; onMin?: () =
   const unsaved = useRef(false), undoMask = useRef<{ bytes: Uint8Array; name: string } | null>(null);
   const [ready, setReady] = useState(false), [err, setErr] = useState(""), [busy, setBusy] = useState(""), [note, setNote] = useState("");
   const [name, setName] = useState(""), [side, setSide] = useState<Side>(null), [md, setMd] = useState(""), [check, setCheck] = useState<Check | null>(null), [save, setSave] = useState(false), [canUndo, setCanUndo] = useState(false);
+  const [ask, setAsk] = useState<Ask>("");
   useEffect(() => { if (!note) return undefined; const t = window.setTimeout(() => setNote(""), 6000); return () => clearTimeout(t); }, [note]);   // 잘 된 한 줄 = 6초 뒤 걷음(실패 줄은 안 걷음)
   const [boot, setBoot] = useState(0);   // 다시 띄우기(편집기 화면을 못 받았을 때)
 
@@ -51,7 +55,8 @@ export function DocEditor({ onBack, onMin }: { onBack?: () => void; onMin?: () =
   const editor = () => { if (!ed.current) throw new Error("편집기가 아직 안 떴어"); return ed.current; };
   /** 저장 안 한 고침이 있나 — 편집기에게 물음(getDocumentState().dirty) · 못 물으면(옛 편집기 화면) 문서가 열려 있을 때 「있다」로 침 = 묻고 지나감 */
   const isDirty = async () => { if (unsaved.current) return true; const e = ed.current; if (!e) return false; try { return (await e.getDocumentState()).dirty; } catch { return !!name; } };
-  const okToDrop = async (ask: string) => !(await isDirty()) || window.confirm(`고치던 문서가 있어. 저장 안 한 내용은 사라져 — ${ask}`);
+  // 고치던 문서가 있으면 묻기 — 단추 = 그 자리 [아니오][예](../ui/morph-ask · 형 11-16 「모달로 안뜨게」) · 닫기 = CloseAsk 한 문장(형 11-15 07:55 「…닫기 내용을 통일」) · 앞 판 = 브라우저 확인창
+  const guard = (k: Exclude<Ask, "">, go: () => void) => { void isDirty().then((d) => { if (d) setAsk(k); else go(); }); };
   const show = async (bytes: Uint8Array, as: string) => {
     const r = await editor().loadFile(bytes.slice().buffer, as);
     unsaved.current = false; setName(as);
@@ -59,16 +64,14 @@ export function DocEditor({ onBack, onMin }: { onBack?: () => void; onMin?: () =
   };
   const now = async () => new Uint8Array(await editor().exportHwpx());   // 지금 화면의 문서(고친 것 포함)를 hwpx 로
 
-  const openFile = (f: File | undefined) => { if (f) void run("여는 중", async () => { if (!(await okToDrop("이 파일로 바꿀까?"))) return; undoMask.current = null; setCanUndo(false); return `열었어 — ${await show(new Uint8Array(await f.arrayBuffer()), f.name)}`; }); };
+  const openFile = (f: File | undefined) => { if (f) void run("여는 중", async () => { undoMask.current = null; setCanUndo(false); return `열었어 — ${await show(new Uint8Array(await f.arrayBuffer()), f.name)}`; }); };
   const makeReport = () => { if (md.trim()) void run("만드는 중", async () => {
-    if (!(await okToDrop("새 문서로 바꿀까?"))) return;
     const r = await hd(["md", "/work/in.md", "/work/out.hwpx"], { "in.md": md }, ["out.hwpx"]);
     if (r.code || !r.files["out.hwpx"]) throw new Error(r.log.split("\n").pop() || "문서가 안 나왔어");
     setSide(null); undoMask.current = null; setCanUndo(false);
     return `만들었어 — ${await show(r.files["out.hwpx"], saveName(md.match(/^#\s+(.+)$/m)?.[1] ?? "", "hwpx"))}`;
   }); };
   const makeGongmun = () => void run("공문 틀 만드는 중", async () => {
-    if (!(await okToDrop("공문 틀로 바꿀까?"))) return;
     const r = await hd(["build", "/hd/templates/gongmun.json", "/work/out.hwpx"], {}, ["out.hwpx"]);
     if (r.code || !r.files["out.hwpx"]) throw new Error(r.log.split("\n").pop() || "문서가 안 나왔어");
     setSide(null); undoMask.current = null; setCanUndo(false);
@@ -115,11 +118,13 @@ export function DocEditor({ onBack, onMin }: { onBack?: () => void; onMin?: () =
       <div className="tm-head">
         <b className="tm-title">{SPARK}<span>문서 편집</span></b>
         {name ? <span className="hw-name" title={name}>{name}</span> : null}
-        <ToolButtons onMin={onMin} onClose={() => void okToDrop("닫을까?").then((ok) => { if (ok) onBack?.(); })} />
+        <ToolButtons onMin={onMin} onClose={() => guard("close", () => onBack?.())} />
       </div>
+      {ask === "close" ? <CloseAsk onKeep={() => setAsk("")} onClose={() => { setAsk(""); onBack?.(); }} /> : null}
       <div className="hw-bar" role="toolbar" aria-label="문서 할 일">
         <button type="button" className="hw-b pri" disabled={off} aria-pressed={side === "make"} onClick={() => { setSide(side === "make" ? null : "make"); warmHd(); }}>새로 만들기</button>
-        <button type="button" className="hw-b" disabled={off} onClick={() => file.current?.click()}>파일 열기</button>
+        {ask === "open" ? <MorphAsk startAsk className="hw-b" label="파일 열기" onYes={() => { setAsk(""); file.current?.click(); }}>파일 열기</MorphAsk>
+          : <button type="button" className="hw-b" disabled={off} onClick={() => guard("open", () => file.current?.click())}>파일 열기</button>}
         <span className="hw-sep" aria-hidden />
         <button type="button" className="hw-b" disabled={off} onClick={doCheck}>점검</button>
         <button type="button" className="hw-b" disabled={off} onClick={canUndo ? undo : doMask}>{canUndo ? "가리기 취소" : "개인정보 가리기"}</button>
@@ -150,10 +155,12 @@ export function DocEditor({ onBack, onMin }: { onBack?: () => void; onMin?: () =
             <div className="hw-side-f">
               <button type="button" className="hw-b" onClick={() => setMd(SAMPLE_MD)}>보기 글 넣기</button>
               <span className="hw-grow" />
-              <button type="button" className="hw-b pri" disabled={!!busy || !md.trim()} onClick={makeReport}>보고서 만들기</button>
+              {ask === "make" ? <MorphAsk startAsk className="hw-b pri" label="보고서 만들기" onYes={() => { setAsk(""); makeReport(); }}>보고서 만들기</MorphAsk>
+                : <button type="button" className="hw-b pri" disabled={!!busy || !md.trim()} onClick={() => guard("make", makeReport)}>보고서 만들기</button>}
             </div>
             <div className="hw-side-h sub"><b>틀에서 시작</b></div>
-            <button type="button" className="hw-row" disabled={!!busy} onClick={makeGongmun}><b>공문(기안문) 틀</b><i>기관명 · 수신 · 제목 · 본문 · 발신명의 자리가 잡힌 한 장</i></button>
+            {ask === "gong" ? <MorphAsk startAsk className="hw-row" label="공문(기안문) 틀" onYes={() => { setAsk(""); makeGongmun(); }}><b>공문(기안문) 틀</b></MorphAsk>
+              : <button type="button" className="hw-row" disabled={!!busy} onClick={() => guard("gong", makeGongmun)}><b>공문(기안문) 틀</b><i>기관명 · 수신 · 제목 · 본문 · 발신명의 자리가 잡힌 한 장</i></button>}
           </div>
         ) : null}
         {side === "check" && check ? (

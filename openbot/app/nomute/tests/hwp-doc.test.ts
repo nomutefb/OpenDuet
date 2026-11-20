@@ -62,7 +62,8 @@ test("두 재료 = rhwp 편집기(열기 · 고치기 · 저장) + hwpx-docs(만
   assert.match(de, /hd\(\["readability", "\/work\/d\.hwpx"\]/);
   assert.match(de, /hd\(\["pagefit", "check", "\/work\/d\.hwpx"\]/);
   assert.match(de, /setErr\(`\$\{label\} 실패 — /, "실패 = 빨강 한 줄(조용히 넘어가지 않음)");
-  assert.match(de, /okToDrop\("닫을까\?"\)/, "고치던 문서 = 닫기 전에 물음");
+  assert.match(de, /onClose=\{\(\) => guard\("close", \(\) => onBack\?\.\(\)\)\}/, "고치던 문서 = 닫기 전에 물음(CloseAsk · 형 11-15)");
+  assert.ok(!/window\.confirm\(/.test(de), "브라우저 확인창 0 = 단추는 그 자리 MorphAsk(형 11-16)");
   assert.match(en, /export const PYODIDE = "https:\/\/cdn\.jsdelivr\.net\/npm\/pyodide@314\.0\.8\/";/, "파이썬 판 고정");
   assert.match(en, /new Worker\(url, \{ type: "module" \}\)/, "일꾼 안에서 돎 = 화면 안 멈춤");
   assert.ok(!/fetch\(["'`]\/api\//.test(de + en), "우리 서버로 문서를 안 보냄");

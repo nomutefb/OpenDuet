@@ -51,7 +51,6 @@ export function GroupRoomDialog({ room, onClose }: { room: OfficeRoom; onClose: 
         <label className="flex flex-col gap-1">
           <small className="text-xs text-muted-foreground">방 지침</small>
           <textarea value={val} maxLength={500} rows={4} disabled={rules.isLoading} aria-label="방 지침" onChange={(e) => setRule(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
-          <small className="text-xs text-muted-foreground">이 방에서 깨는 봇이 늘 읽어요 · 비우면 지워져요</small>
         </label>
         {err || rules.isError ? <p role="alert" className="nm-meet-err">{err || "지침을 못 읽었어"}</p> : null}
         <div className="nrc-acts"><GoButton className="nrc-ok" disabled={busy || rules.isLoading || !dirty} go={must(save)} done={onClose} away={onClose} what="방 설정 저장" busy="저장 중">저장</GoButton></div>

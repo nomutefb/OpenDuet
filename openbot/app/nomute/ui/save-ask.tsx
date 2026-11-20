@@ -60,7 +60,7 @@ export function CloseAsk({ onClose, onKeep, busy }: { onClose: () => void; onKee
   return (
     <div role="alertdialog" aria-modal="true" aria-label="창을 닫으시겠습니까?" className="fixed inset-0 z-[70] grid place-items-center bg-black/30 p-4" {...backdrop(onKeep)}>
       <div className="flex max-w-sm flex-col gap-3 rounded-xl border border-border bg-popover p-4 text-sm shadow-lg">
-        <p>작성 중인 내용이 사라집니다. 창을 닫으시겠습니까?</p>
+        <p>작성 중인 내용이 사라집니다. 창을 닫으시겠습니까?</p>   {/* 잣대-ok: 형 11-15 07:55 원문 그대로(봄 11-20 10:23 · 설명글 0 의 예외) */}
         <div className="nm-yn">   {/* 아니오 = 라임 · 엔터 자리(잘못 눌러도 글이 안 사라지는 쪽 · 형 11-15 09:00) */}
           <button type="button" className="no" autoFocus onClick={onKeep}>아니오</button>
           <button type="button" disabled={busy} onClick={onClose}>예</button>

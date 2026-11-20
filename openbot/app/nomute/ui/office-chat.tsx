@@ -1510,7 +1510,6 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
           {msgs.data?.more && !flat ? (
             <button type="button" className="mx-auto rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-foreground/5" onClick={() => { const bx = boxRef.current; if (bx) keepTop.current = { h: bx.scrollHeight, top: bx.scrollTop, first: firstRef.current }; void older(); }}>옛 글 더 보기</button>
           ) : null}
-          {all.length === 0 ? <p className="text-center text-sm text-muted-foreground">첫 대화를 시작해보세요</p> : null}
           {(() => {   /* 같은 이 연달아 = 묶음 한 덩이(.ymgrp) · 맨 위 얼굴 + 이름 머리(GroupHead)가 묶음 끝까지 sticky — 형 11-16 20:39 dm-bom 「글 길어져도 좌상단에 프로필 라벨이랑 나오게 해줘」 · 11-17 00:58 「이건 해결은 해주는게 맞음」(긴 글이 이음 말풍선이면 첫 말풍선 안 sticky 는 붙을 데가 없었음 · 1559177 되돌림 까닭) */
           const rows: { key: string; it: Item; date: ReactNode; turn: boolean; head: boolean; join: boolean; fresh: boolean; body: ReactNode }[] = [];
           items.forEach((it, idx) => {

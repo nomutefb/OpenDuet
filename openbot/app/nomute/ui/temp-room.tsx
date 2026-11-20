@@ -203,7 +203,6 @@ export function TempRoomDialog({ edit, onClose, open = true, kickAll }: { edit?:
         <label className="flex flex-col">
           <span className="nm-rs-nm">방 지침</span>   {/* 옛 「목적」 = 방 지침 하나(봄 11-12 00:39 「가」 · 형이 찾는 낱말) */}
           <textarea value={purpose} maxLength={500} rows={3} onChange={(e) => setPurpose(e.target.value)} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2" />
-          <small className="nm-rs-note">이 방에서 깨는 봇이 늘 읽어요</small>
         </label>
         {edit ? <>   {/* 지금 일 = 방 지침과 따로 한 칸 · 머무는 시간 = 이만큼 조용하면 일이 끝남(형 11-17 00:49 · 서버 = 빠르 #4080) */}
           <label className="flex flex-col">
