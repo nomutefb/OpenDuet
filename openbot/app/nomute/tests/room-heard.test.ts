@@ -6,6 +6,6 @@ import { readFileSync } from "node:fs";
 test("고정 밖 = 안 읽은 방(단톡 포함) 먼저 → max(그 애가 형한테 말한 때 heard_ts, 형이 그 방에 쓴 때) 새 것부터 · 둘 다 없으면 마지막 글 시각", () => {
   const ui = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8"), d = readFileSync(new URL("../data/office.ts", import.meta.url), "utf8");
   assert.match(ui, /const talk = \(r: Room\) => \{ const l = lastOf\(r\), mine = l && l\.kind === "human" \? l\.ts : 0; return Math\.max\(r\.heard_ts \|\| 0, mine\) \|\| \(l \? l\.ts : r\.last_ts \|\| 0\); \};/);
-  assert.match(ui, /const rest = restOrder\(shown\.filter\(\(r\) => !pinned\(r\.id\)\), unread, talk\);/);   // 예비 맨 아래 → 안 읽은 방 먼저 → talk · 단톡끼리 차례(형 11-21 05:13) = ./room-rest-order.ts · 행동 시험 = room-order.test.ts
+  assert.match(ui, /const rest = restOrder\(shown\.filter\(\(r\) => !pinned\(r\.id\)\), unread, talk, \(r\) => r\.last_ts \|\| 0\);/);   // 개인방(안 읽음 먼저 → talk) → 단톡(시간 순) → 예비(형 11-21 05:33) = ./room-rest-order.ts · 행동 시험 = room-order.test.ts
   assert.match(d, /heard_ts\?: number;/);
 });

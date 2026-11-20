@@ -72,7 +72,7 @@ async function shrink192(f: File): Promise<string> {
 // 수리 접수 = 단톡방이 아니라 접수처(형 10-31 「회의실 개념 이 아니니까, 따로 위에 뺴줄래?」) · 방은 그대로라 애들 접수는 같음 · 화면만 목록 밖 오른쪽 위 단추
 const REPAIR = "repair";
 
-import { restOrder } from "./room-rest-order";   // 고정 밖 차례(순수 · 단톡끼리 차례)
+import { restOrder } from "./room-rest-order";   // 고정 밖 차례(순수 · 개인방 → 단톡 → 예비)
 export { blankLast, previewLine, talkPreview } from "./room-preview";   // 미리보기 한 줄 · 「메시지 보냄」 뒤 빈 칸 메움(순수 = ./room-preview.ts)
 
 /** 목록 시각 = 오늘은 24시간 「23:05」 · 다른 날은 listWhen 그대로(형 10-31 「11:34 am 목록에선 am빼서 우측 정렬으로 해서 24시간 표시로」) · 대화창 시각은 그대로 */
@@ -119,8 +119,8 @@ export function useRoomOrder() {
   //   안 읽음 = 줄 숫자 · 점과 같은 셈(count · 서버 unread · 단톡 = 형한테 온 글만)
   const unread = (r: Room) => count(r) !== 0;
   // 예비(손님 · 서버 guest:true = dm-spare01 「예비 1」 …) 창 = 늘 맨 아래(형 11-20 07:17 dm-gik 깃 옮김 「웅 예비창은 항상 제일 아래로 가게 해주라」) · 그 안 차례는 위와 같음 · 형이 고정한 건 고정 그대로
-  // 단톡끼리는 회의실 → 밥상 → 나머지 단톡 차례 그대로 · 안 읽음으로 안 뒤집힘 · 단톡이 앉은 자리만 다시 채움(형 11-21 05:13 dm-sia 시아 옮김 「단톡방끼리는 우성순위 유지. 한싹이 같은것만 별도」 「개인방이랑」 · 순수 = ./room-rest-order.ts)
-  const rest = restOrder(shown.filter((r) => !pinned(r.id)), unread, talk);   // 예비 = 서버 guest:true 그대로 읽음
+  // 칸 = 개인방(안 읽음 먼저 → talk) → 단톡(시간 순 = 목록 시각 last_ts 새 것 위 · 안 읽음으로 안 뜀) → 예비 맨 아래(형 11-21 05:33 dm-sia 시아 옮김 「✓ 기타: 개인방 아래로 가는데 단톡도 시간 순」 · 순수 = ./room-rest-order.ts)
+  const rest = restOrder(shown.filter((r) => !pinned(r.id)), unread, talk, (r) => r.last_ts || 0);   // 예비 = 서버 guest:true 그대로 읽음
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
   return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY && r.id !== TRAIN_ROOM)   /* 작업 알림(기차봇 1:1) = 목록에서 숨김 · 완료는 PM 방 접힌 카드 + 리모콘(형 11-14 23:34 「작업 알림은 대화방으로 취급 안하고」 · 깃 #-019) */, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
 }
