@@ -7,8 +7,10 @@ const IMG: Record<Job, { src: string; w: number; h: number }> = {
   FIXER: { src: "/garden-app/job-fixer.webp", w: 87, h: 40 },
   MD: { src: "/garden-app/job-md.webp", w: 49, h: 40 },
   UXD: { src: "/garden-app/job-uxd.webp", w: 77, h: 24 },
-  DEV: { src: "/garden-app/job-dev.webp", w: 77, h: 40 },   // Dev · Ops = 루미 보류 시안 그대로 · 20px(시아 13:30 「FIXER · MD 와 같은 20px 꼴」)
-  OPS: { src: "/garden-app/job-ops.webp", w: 79, h: 40 },
+  // DeV · OpS = 하늘 그림(형 13:43~13:44 dm-sia 시아 옮김 「루미말고 다른애한테 그대로 시켜」 「uxd에게 그대로 시켜서 디자인하고」 「저기에 보면 ba랑 y가 강하잖아. 그걸 활요해서 만들라고해.」 「OpS 도 그런느낌으로 하면된다고하고」 「DeV 도 마찬」)
+  //   BATTLE ACADEMY 꼴 = 첫 · 끝 글자 크게(끝 글자는 더 크게 뻗음) · 가운데 작게 · 흰 글 + 검은 굵은 테 + 뒤 검은 리본 판(흰 테) · 위 색 띠(DeV 하늘 · OpS 분홍) · 20px · 원본 = claude-state beings/하늘/일/직무-라벨/label_*_하늘.png · lab-gen.mjs
+  DEV: { src: "/garden-app/job-dev.webp?v=2", w: 106, h: 40 },
+  OPS: { src: "/garden-app/job-ops.webp?v=2", w: 111, h: 40 },
 };
 /** 직무 값 = 명부 job 칸(서버에 생기면 그것 먼저) · 없으면 이 표(형 13:28~13:29 dm-sia 시아 옮김 「응 uxd들은 다 uxd고, 픽서들은 다 픽서야. (소나-이슬-루미 라인)」 「uxd 라인 > (구름-하늘)」 · 루미 시안 「하늘·루미 = UXD」를 갈음)
  *  「pm 라인(봄-시아-깃)」 = 라벨 그림 오면 같은 꼴로 · MD 주인 = 아직 미정 */
