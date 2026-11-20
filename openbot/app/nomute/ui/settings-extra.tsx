@@ -377,7 +377,8 @@ function GardenMcp({ top, spares, done, saved, memoOf, copySeat, copyText, onUse
 }
 
 /** 봄의 정원 · 그록 열쇠로 붙은 연결 한 줄(서버 editor _keyconn.js connList · 번개 11-20) — last · first = ms */
-type VaultConn = { id: string; seat: string; first: number | null; last: number | null; n: number; org: string; asn: number; country: string; client?: string; names: { name: string; at: number }[]; blocked?: boolean; unknown?: boolean };
+type VaultConn = { id: string; seat: string; first: number | null; last: number | null; n: number; org: string; asn: number; country: string; client?: string; door?: string; names: { name: string; at: number }[]; blocked?: boolean; unknown?: boolean };   // door = 부른 도구(머리 x-office-door · 번개 11-20)
+const DOOR_NAME: Record<string, string> = { "room-door": "거울 일꾼" };   // 이름 없이 도구로 부른 줄 = 도구 이름(번개 11:58 「「거울 일꾼」(room-door) 처럼」)
 type VaultRaw = { seats?: VaultSeat[]; conns?: VaultConn[] };
 const VAULT_Q = { queryKey: ["nomute", "seatvault"] as const, queryFn: () => office<VaultRaw>("seatvault"), staleTime: 60_000 };
 const connWhen = (ms: number | null) => !ms ? "—" : Date.now() - ms < 3600e3 ? agoMin(Date.now() - ms) : listWhen(ms);   // 한 시간 안 = N분 전 · 오늘 = 3:50 PM · 그 앞 = 날짜
@@ -392,7 +393,7 @@ function GardenConns({ conns, onBlock }: { conns: VaultConn[]; onBlock: (id: str
       <p className="nm-mcp-sec">연결</p>
       <div className="nm-conn-l">
         {conns.map((c) => {
-          const who = c.names.map((x) => x.name).join(" · ") || "이름 없음", net = c.org || (c.asn ? `AS${c.asn}` : "—");
+          const who = c.names.map((x) => x.name).join(" · ") || (c.door ? DOOR_NAME[c.door] || c.door : "이름 없음"), net = c.org || (c.asn ? `AS${c.asn}` : "—");
           return (
             <div key={c.id} className={`nm-conn-r${c.blocked ? " off" : ""}${c.unknown ? " unk" : ""}`}>
               <span className="nm-conn-t">{connWhen(c.last)}</span>
