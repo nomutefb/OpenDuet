@@ -67,9 +67,10 @@ test("TELLER = 결 · 뎅 · 윈터(StorY 갈음) · 넷과 같은 수평 경향
   assert.ok(statSync(new URL("../public/job-teller.webp", import.meta.url)).size < 8_000);
 });
 
-test("비서 = 온(SeC 갈음) · 형이 손수 만든 그림 · TELLER 와 같은 키 · 같은 수평(형 11-20 22:29 dm-sia 시아 옮김 「귀」 + 투명 png)", () => {
+test("비서 = 온(SeC 갈음) · 형이 손수 만든 그림 · 93% · 같은 수평(형 11-20 22:29 dm-sia 시아 옮김 「귀」 + 투명 png · 11-21 04:45 「100퍼에서 93퍼로만 줄이자 ㅋㅋ  수평 맞추고 땡큐」)", () => {
   const lab = rd("../ui/job-label.tsx");
-  assert.match(lab, /  SECRETARY: \{ src: "\/garden-app\/job-secretary\.webp", w: 83, h: 33, dy: -2\.5, dx: -1\.5 \},/);
+  assert.match(lab, /  SECRETARY: \{ src: "\/garden-app\/job-secretary\.webp\?v=2", w: 77, h: 31, dy: -2\.25, dx: -1 \},/);
+  { const w = +(lab.match(/SECRETARY: \{[^}]*w: (\d+)/)?.[1] || 0) / 2; assert.ok(Math.abs(w - 41.5 * 0.93) <= 0.5, `비서 폭 ${w} = 앞 판 41.5 의 93%`); }
   assert.ok(lab.includes(`온: "SECRETARY"`));
   assert.ok(statSync(new URL("../public/job-secretary.webp", import.meta.url)).size < 8_000);
 });
