@@ -50,7 +50,7 @@ const PEB: Record<string, { key: string; bot?: string }> = {   // 조약돌 모�
 };
 // 맥 칸 = 러너 칩(M1~M3) 대신 몸 칩 둘(형 11-06 20:13 「러너를 아예 안쓰는 구조로 두개로 나눠잇을텐데」 · 봄 나눔 ④ 다음 칸 · 빠르) — M1~M3 = 11-03 형 「러너 꺼주라」로 꺼 둔 등록(11-17 저절로 지워짐 · 가지는 그대로 · 화면만)
 //   칩 꼴 = 러너 칩 그대로 · 불 = 작동 표 hw 줄 st(맥 본체 = 「맥」 줄 · VM eyes = 「VM 뜸」 줄 · 몸-보고.py hw_key) · 🟢 흰 글자 · 🟡 노랑 · 🔴 빨강 · ⚪·끊김(30분)·보고 없음 = 꺼짐 꼴
-const ONBODY = [{ who: "윈터", host: "Win" }] as const;   // 몸 표엔 없지만 그 본체에 사는 애 = 줄 맨 앞(윈터 = 윈A 본체 · Win 게이지 바로 아래쪽)
+const ONBODY: readonly { who: string; host: string }[] = [];   // 앞 판 = 윈터를 Win 줄 맨 앞에 박음(11-17) → 윈터 11-19 Lx B 이사 · 몸 정본(bodies)에 「윈터@Lx B」가 있어 뎅 옆에 저절로 섬(형 11-20 11:42 「하드웨어랑 실제 위치랑 안맞다는 뜻」 · 봄 12:04 · 카리나 #4469 표)
 const OFFBODY = [{ who: "천둥", host: "러너" }, { who: "구름", host: "클라우드 · 맥 창" }, { who: "하늘", host: "Win" }] as const;   // 하늘 = 윈A 본체(몸 정본엔 줄 없음 · 형 11-20 11:41)   // 몸 없는 둘 = 줄 끝 차례 그대로(가르는 점은 형 11-16 10:1x 에 뺌)
 const BODY_CHIPS: Record<string, { key: string; label: string }[]> = {};   // 몸 칩 뺌(형 11-07 09:04 임시방 「뜸 VM이 별도로 표현될 필요는 없어, 맥도 마찬가지. 그러면 너희들 vm도 다 떠야되니까, 시아도. 그거는 필요없고 러너 번호만 따로 있으면 됨.」) = 맥 칸도 러너 번호(M#)만
 const LIGHT_CLS: Record<string, string> = { "🟢": "is-ok", "🟡": "is-warn", "🔴": "is-bad" };
