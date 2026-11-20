@@ -9,7 +9,8 @@ import { isPairRoom } from "./pair-fold";
 import { useRoomArtSrc } from "./room-art";
 import { useRoomPhoto } from "./room-photo";
 import { ProfileCard } from "./profile-card";   // 1:1 줄 프사 누름 = 그 상대 프로필(형 11-14 05:49 「대화창 목록에서도 프사 쪽을 누르면 프로필이 떠야됨 대화쪽 누르면 대화로 진입하고」)   // 목록 방 사진 누름 = 바로 바꾸기(형 11-13 06:54)
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { blankLast, previewLine, talkPreview } from "./room-preview";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -71,15 +72,7 @@ async function shrink192(f: File): Promise<string> {
 // 수리 접수 = 단톡방이 아니라 접수처(형 10-31 「회의실 개념 이 아니니까, 따로 위에 뺴줄래?」) · 방은 그대로라 애들 접수는 같음 · 화면만 목록 밖 오른쪽 위 단추
 const REPAIR = "repair";
 
-/** 미리보기 한 줄 = 글꼴 기호·부름·파일 경로 뺌(형 사진 10-31 09:12 「**[정치]」 · 「파일: … → 윈터 PM (cl…」) · 원문은 대화창에 그대로 */
-export function previewLine(text: string) {
-  const first = (text || "").split("\n")[0];
-  const file = first.match(/^파일: (.+?) → /);
-  if (file) return /\.(png|jpe?g|webp|gif|heic)$/i.test(file[1]) ? "사진" : `파일 · ${file[1]}`;
-  // 여러 줄 글 = 줄바꿈을 넘어 한 줄로 이어 붙임 · 칸이 모자라면 목록 칸(truncate)이 「…」로 끝냄(형 11-13 02:48 봄 1:1 「말이 뒤에 긴데 대화목록에는 잘려서 나오는 경우가 있어. 이어지다가 ...로 끝나야랄듯」 · 앞 판 = 첫 줄만 → 「응.」 한 마디로 보임)
-  const line = (text || "").split("\n").map((x) => x.trim()).filter(Boolean).join(" ");
-  return line.replace(/^(?:[!@]\S+\s+)+/, "").replace(/\*\*|__|`/g, "").replace(/\s{2,}/g, " ").trim();
-}
+export { blankLast, previewLine, talkPreview } from "./room-preview";   // 미리보기 한 줄 · 「메시지 보냄」 뒤 빈 칸 메움(순수 = ./room-preview.ts)
 
 /** 목록 시각 = 오늘은 24시간 「23:05」 · 다른 날은 listWhen 그대로(형 10-31 「11:34 am 목록에선 am빼서 우측 정렬으로 해서 24시간 표시로」) · 대화창 시각은 그대로 */
 export function listTime(ts?: number) {
@@ -204,8 +197,25 @@ function RoomInfo({ r, onClose, onPhoto, onView }: { r: Room; onClose: () => voi
     </div>
   );
 }
+type TalkPage = { messages?: { kind?: string; text?: string; files?: unknown[]; ts?: number }[]; more?: boolean };
+/** 「메시지 보냄」 표시가 수십 줄 이어진 방(봇이 다른 방에 보낸 흔적만 쌓임 · 구름 방 = 형 글 뒤 백 줄 남짓) = 50줄씩 앞으로 넷까지 받아 그 앞 진짜 대화 한 줄 */
+async function talkBefore(room: string): Promise<string> {
+  let before = 0;
+  for (let i = 0; i < 4; i++) {
+    const j = await office<TalkPage>(`rooms/${encodeURIComponent(room)}/messages?${before ? `before=${before}&` : ""}n=50`);
+    const ms = j.messages || [], t = talkPreview(ms);
+    if (t || !ms.length || !j.more) return t;
+    before = Math.min(...ms.map((m) => m.ts || Infinity));
+    if (!Number.isFinite(before)) return "";
+  }
+  return "";
+}
+
 export function RoomList({ onOpen, big = false, slim = false, bar = false, current }: { onOpen?: () => void; big?: boolean; slim?: boolean; bar?: boolean; current?: string }) {   // bar = PC 반갈 대화 칸(맨 위 한 줄 아이콘 · 형 11-12 06:21 · 07:5x)   // slim = PC 왼쪽 좁은 칸(꼬리표 뺌 · 이름·표시·시각만)
   const { rooms, list, ordered, hid, count, lastOf, pinned, fixed, pins, setPins, hidden, setHidden, savePinOrder } = useRoomOrder();
+  const blanks = ordered.filter((r) => blankLast(lastOf(r)));   // 마지막이 「메시지 보냄」 표시인 방만(보통 몇 개) · 그 방 마지막 글 12개 = 그 앞 대화 한 줄 · 방 마지막 시각이 바뀔 때만 다시
+  const talkQ = useQueries({ queries: blanks.map((r) => ({ queryKey: ["nomute", "talk-preview", r.id, r.last_ts || 0], queryFn: () => talkBefore(r.id), staleTime: 600_000 })) });
+  const talkBy = new Map(blanks.map((r, i) => [r.id, talkQ[i]?.data || ""]));
   const pinA = usePinAlpha();
   // 고정 줄 끌기 = 왼쪽 라임 줄(.nm-rgrip)을 잡고 위아래로 · 놓은 자리 = 고정 방 사이 차례(PIN_ORDER) · 폰 · 마우스 같은 손 · 줄 밀기 · 길게 누르기와 안 겹침(잡는 칸이 따로)
   const drag = useRef<{ id: string; y0: number; el: HTMLElement } | null>(null);
@@ -283,7 +293,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     : <TempSwipe open={swiped === r.id} onOpen={() => setSwiped(r.id)} onClose={() => setSwiped("")} width={canGone(r) ? 128 : 64} acts={[{ key: "set", cls: "set", aria: "설정", label: <DuetIcon name="settings" size={20} />, on: () => { setSwiped(""); setMenu(r.id); } }, ...(canGone(r) ? [{ key: "del", cls: "del", aria: "방 없애기", label: <DuetIcon name="trash" size={20} />, on: () => { setSwiped(""); setAskDel(r.id); setMenu(r.id); } }] : [])]}>{row}</TempSwipe>);
   const Row = ({ r }: { r: Room }) => {
     const l = lastOf(r), ids = roomAgentIds(r, list), p = r.with ? list.find((x) => x.who === r.with) : undefined;
-    const preview = l ? previewLine(l.text || "") : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";   // 단톡 미리보기 = 글만(형 11-01 14:06 「대화만 나오면 되 문자열만 누가 나오는지 안보여도 됨」 · 옛 「깃:」 머리 뺌)
+    const preview = l ? (blankLast(l) ? talkBy.get(r.id) || "" : previewLine(l.text || "")) : r.id === "all" ? EVERYTHING_LINE : "아직 글 없음";   // 단톡 미리보기 = 글만(형 11-01 14:06 「대화만 나오면 되 문자열만 누가 나오는지 안보여도 됨」 · 옛 「깃:」 머리 뺌)
     const n = count(r), u = n !== 0, on = current === r.id, tall = big, size = big ? 44 : 36;
     // 단톡 = YETA 꼴(YETA-목록 · 운영자 260725 「단톡환경에서도 프로필이 겹치게」) · 얼굴 둘 겹침 · 마지막에 말한 이가 앞 · 인원 숫자만 · 누구인지 = 방 상단(형 10-31 「인원이 저기 누군지 나올 필욘 없는듯 들가면 확인할 수 잇으면 됨 방 상단에서」)
     const rc = r.with || r.id === "all" ? "" : peek?.id === r.id ? peek.hex : r.color || "";   // 회의실 = 방 색 강조 뺌(형 11-14 23:05 dm-gik 「회의실은 이제 강조 빼」 · 깃 #-013 · 뜸)

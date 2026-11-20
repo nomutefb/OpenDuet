@@ -77,7 +77,7 @@ test("받기 단추 움직임 = 에디터 「⬇ 전체」 그대로(세기 1/N 
 
 test("목록 미리보기 = 줄바꿈 넘어 한 줄로(칸 모자라면 「…」 = truncate · 형 11-13 02:48)", async () => {
   const { previewLine } = await import("../ui/room-list.tsx").catch(() => ({ previewLine: null as unknown as (t: string) => string }));
-  const src = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8");
+  const src = readFileSync(new URL("../ui/room-preview.ts", import.meta.url), "utf8");   // 미리보기 한 줄 = ./room-preview.ts 로 옮김(room-list 가 다시 내보냄 · 구름 11-20)
   assert.match(src, /split\("\\n"\)\.map\(\(x\) => x\.trim\(\)\)\.filter\(Boolean\)\.join\(" "\)/);
   if (previewLine) assert.equal(previewLine("응.\n촉은 물어오기만 하고"), "응. 촉은 물어오기만 하고");
 });
