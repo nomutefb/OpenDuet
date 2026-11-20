@@ -13,11 +13,11 @@ test("러너 띠 봇 일 줄(촉 X · 촉 n회) 숨김 · 형 18:52 「안보여
   const rg = readFileSync(new URL("../ui/runner-gauges.css", import.meta.url), "utf8");
   assert.match(rg, /\.nm-rgx \.nm-rgx-botsc \{ display:none !important; \}/);
 });
-test("결 카드 = 나이테 · 🎸 · 음표(형 19:24 「음유시인, 나이테 위에서, 기타 치며 노래듣는 느낌」) · 윈터 ❄️", () => {
+test("결 카드 = 나이테 · 🎸 · 음표(형 19:24 「음유시인, 나이테 위에서, 기타 치며 노래듣는 느낌」) · 윈터 ☃️", () => {
   assert.match(s, /id: "gyeol",\s+tmpl: true,\s+accent: "#D9A066",\s+match: \["결", "gyeol"\],\s+face: "\/office\/gyeol\.webp"/);
   assert.match(s, /<span className="bc-guitar">🎸<\/span>/);
   assert.match(css, /repeating-radial-gradient\(circle at 50% 118%/);
-  assert.match(s, /<span className="bc-flake">❄️<\/span>/);
+  assert.match(s, /<span className="bc-flake">☃️<\/span>/);   // 윈터 표지 ☃️(형 11-20 20:05 「❄️는무신!!」)
 });
 test("이슈왕 카드(형 11-16 18:16 「이거는 프로필 카드를 이거를 위주로 써줘 좌하단에서 위로 구도」) = 틀 카드 · 옥상 그림 통째 · 둥근 얼굴 숨김", () => {
   assert.match(s, /id: "issueking",\s+tmpl: true,\s+accent: "#F2B630",\s+match: \["슈왕", "이슈왕", "촉", "chok", "issueking"\],\s+face: "\/office\/issueking\.webp"/);
