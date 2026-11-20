@@ -16,7 +16,9 @@ export function useFindDock(on: boolean): Dock | null | undefined {
       if (placed && r) {
         const top = Math.round(r.bottom + 6), right = Math.round(window.innerWidth - r.right);
         setAt((p) => (p && p.top === top && p.right === right ? p : { top, right }));   // 같은 자리 = 다시 그림 0
-      } else if (Date.now() - t0 > 2500) setAt((p) => (p === undefined ? null : p));
+      } else setAt((p) => (p ? undefined : p === undefined && Date.now() - t0 > 2500 ? null : p));
+      //   돋보기가 사라짐(「애들」 같은 판이 열려 대화 칸이 내려감) = 붙어 있던 단추도 바로 숨김 · 앞 판 = 마지막 자리를 붙든 채 판 위에 떠 있었음
+      //   (형 11-20 19:41 dm-gik 깃 옮김 「여기에 이거 보인다. 확인좀 ㅋㅋ 피시임 일단은」 · 「애들」 판 구름 얼굴 위 ☰ · ▦) · 처음부터 돋보기가 없으면 2.5초 뒤 머리 줄 안(null · 앞 꼴)
     };
     fit();
     const t = window.setInterval(fit, 1000);   // 덤(창 크기 · 공지 칸이 늦게 바뀔 때) · 돋보기가 옮기는 그때는 nm-find-at 이 먼저
