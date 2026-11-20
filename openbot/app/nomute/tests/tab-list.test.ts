@@ -84,12 +84,12 @@ test("웹 탭(「+」 빈 탭 · 빠르 11-11 · 형 22:10 「+ 누르면 … �
 });
 
 test("줄 차례 = 고정 넷도 끌어 옮김 · 저장된 차례에서 없어진 탭은 빠지고 새 탭은 끝 · 새 고정 탭은 제 앞 탭 뒤(형 11-17 「그 상단에 탭, 끌어서 쓰면 순서를 전환할 수 있게 해줘」)", () => {
-  assert.deepEqual(STRIP_FIXED, ["dash", "teams", "meet", "co"]);   // 형 11-18 「애초에 순서가 팀즈 , 화상회의, 브라우저」
-  assert.deepEqual(stripOrder(null, STRIP_FIXED, ["w:a"]), ["dash", "teams", "meet", "co", "w:a"]);   // 처음 = 기본 차례
-  assert.deepEqual(stripOrder("깨짐", STRIP_FIXED, []), ["dash", "teams", "meet", "co"]);
-  assert.deepEqual(stripOrder(["teams", "w:a", "dash", "co", "meet"], STRIP_FIXED, ["w:a", "s:뜸"]), ["teams", "w:a", "dash", "co", "meet", "s:뜸"]);   // 옮긴 대로 · 새 탭 = 끝
-  assert.deepEqual(stripOrder(["teams", "w:gone", "teams", 7, "dash"], STRIP_FIXED, []), ["teams", "meet", "co", "dash"]);   // 닫힌 탭 · 두 번 · 글 아닌 값 = 빠짐 · 빠져 있던 고정 탭 = 제 앞 탭(dash) 뒤로
-  assert.deepEqual(stripOrder(["meet", "teams"], STRIP_FIXED, []), ["dash", "meet", "co", "teams"]);   // 앞 탭이 없으면 맨 앞부터
+  assert.deepEqual(STRIP_FIXED, ["dash", "teams", "meet", "co", "sns"]);   // 형 11-18 「애초에 순서가 팀즈 , 화상회의, 브라우저」 · sns = SNS 탭(형 11-20 09:20)
+  assert.deepEqual(stripOrder(null, STRIP_FIXED, ["w:a"]), ["dash", "teams", "meet", "co", "sns", "w:a"]);   // 처음 = 기본 차례
+  assert.deepEqual(stripOrder("깨짐", STRIP_FIXED, []), ["dash", "teams", "meet", "co", "sns"]);
+  assert.deepEqual(stripOrder(["teams", "w:a", "dash", "co", "meet"], STRIP_FIXED, ["w:a", "s:뜸"]), ["teams", "w:a", "dash", "co", "sns", "meet", "s:뜸"]);   // 새 고정 sns = 제 앞 고정(co) 바로 뒤   // 옮긴 대로 · 새 탭 = 끝
+  assert.deepEqual(stripOrder(["teams", "w:gone", "teams", 7, "dash"], STRIP_FIXED, []), ["teams", "meet", "co", "sns", "dash"]);   // 닫힌 탭 · 두 번 · 글 아닌 값 = 빠짐 · 빠져 있던 고정 탭 = 제 앞 탭(dash) 뒤로
+  assert.deepEqual(stripOrder(["meet", "teams"], STRIP_FIXED, []), ["dash", "meet", "co", "sns", "teams"]);   // 앞 탭이 없으면 맨 앞부터
   const o = ["dash", "co", "meet", "teams", "w:a"];
   assert.deepEqual(stripMove(o, "teams", 0), ["teams", "dash", "co", "meet", "w:a"]);   // 봄의 정원 앞으로도
   assert.deepEqual(stripMove(o, "dash", 4), ["co", "meet", "teams", "w:a", "dash"]);

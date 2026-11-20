@@ -55,7 +55,7 @@ export function tabsMove(s: TabState, key: string, to: number): TabState {
   return { ...s, tabs };
 }
 /** 탭 줄 차례(구름 11-17 · 형 09:2x 「그 상단에 탭, 끌어서 쓰면 순서를 전환할 수 있게 해줘」) — 고정 넷(봄의 정원 · 브라우저 · 화상 회의 · 팀즈)도 끌어 옮김 · 차례 = 키 줄(이 기기 · nm-tab-order-v1) */
-export const ORDER_KEY = "nm-tab-order-v2", STRIP_FIXED: readonly string[] = ["dash", "teams", "meet", "co"];   // 기본 차례 = 봄의 정원 · Teams · 화상 회의 · Browser(형 11-18 13:5x dm-cloud 「애초에 순서가 팀즈 , 화상회의, 브라우저」) · v2 = 앞 판이 끌지 않아도 기본 차례를 저장해 둬서 기본을 바꿔도 안 먹던 것 → 열쇠를 새로(끌어 옮긴 차례만 저장)
+export const ORDER_KEY = "nm-tab-order-v2", STRIP_FIXED: readonly string[] = ["dash", "teams", "meet", "co", "sns"];   // sns = SNS 탭(형 11-20 09:20 「맨 위 탭에 기본적으로 인스타그램이랑 스레드」 · 새 고정 탭 = 앞 탭 바로 뒤로 들어감 = stripOrder)   // 기본 차례 = 봄의 정원 · Teams · 화상 회의 · Browser(형 11-18 13:5x dm-cloud 「애초에 순서가 팀즈 , 화상회의, 브라우저」) · v2 = 앞 판이 끌지 않아도 기본 차례를 저장해 둬서 기본을 바꿔도 안 먹던 것 → 열쇠를 새로(끌어 옮긴 차례만 저장)
 /** 저장된 차례 → 지금 줄 — 없어진 탭은 빠짐 · 같은 키 두 번 = 하나 · 새 고정 탭 = 제 기본 앞 탭 바로 뒤(없으면 맨 앞) · 새 탭(「+」 · 몸 화면) = 맨 끝 · 깨진 값 = 기본 차례 */
 export function stripOrder(saved: unknown, fixed: readonly string[], dyn: readonly string[]): string[] {
   const have = new Set<string>([...fixed, ...dyn]), out: string[] = [];

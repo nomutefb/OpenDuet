@@ -94,9 +94,10 @@
 .nm-tab-ic.teams { width:16px; height:16px; border-radius:0; }
 .nm-tab-teams { position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden; background:var(--nm-tab-on, #121314); }
 .nm-tab-teams > .nm-tlist { flex:1; min-height:0; overflow-y:auto; }
-.nm-tab.browser, .nm-tab.meet { flex:0 0 auto; min-width:0; max-width:none; padding:0 14px; gap:7px; }
+.nm-tab.browser, .nm-tab.meet, .nm-tab.sns { flex:0 0 auto; min-width:0; max-width:none; padding:0 14px; gap:7px; }
 .nm-tab-ic.browser { width:15px; height:15px; border-radius:0; }
-.nm-tab-ic.meet { width:16px; height:16px; border-radius:0; }   /* 화상회의 고정 탭(형 11-13 09:21) */
+.nm-tab-ic.meet { width:16px; height:16px; border-radius:0; }
+.nm-tab.sns .nm-tab-ic { width:16px; height:16px; border-radius:0; }   /* SNS 고정 탭(형 11-20 09:20) = Teams · 화상 회의 · Browser 와 같은 폭 · 꼴 */   /* 화상회의 고정 탭(형 11-13 09:21) */
 
 /* ── 판과 한 몸인 탭(형 11-14 클라우드 세션 창 「탭구조를 이렇게 부드럽게 적용시킬거고. 모양도 이렇게」 — 탭 영상 f84dc5fc) — 위 「맥 탭 꼴」(11-09) 을 이 꼴로 바꿈 ──
    고른 자리 = 잉크 하나(.nm-tabs-ink): 위 둥근 모서리 + 아래 양옆 오목한 어깨로 아래 판과 이어짐 · 탭은 바탕 없이 글 · 그림만
@@ -135,7 +136,7 @@
 .nm-tab[data-drag] { z-index:4; }
 .nm-tab-plus { order:98; }
 .nm-tab-cobtn { order:99; }
-.nm-tab:is(.browser, .meet, .teams) { flex:0 0 auto; min-width:0; }
+.nm-tab:is(.browser, .meet, .teams, .sns) { flex:0 0 auto; min-width:0; }
 .nm-tab-plus { margin:0 0 6px 4px; transition:scale .3s var(--tab-spring), filter .12s, background-color .15s, color .15s; }
 .nm-tab-plus:active, .nm-tab-x:active { transform:none; scale:var(--press-m, .9); filter:brightness(.88); transition-duration:.07s; }
 .nm-tab-x { transition:opacity .15s, scale .3s var(--tab-spring); }
@@ -162,7 +163,7 @@
 @media (prefers-reduced-motion: reduce) { .nm-tab-menu, .nm-tab-menu button { animation:none; } }
 /* 고정 탭(Browser · 화상 회의 · Teams) = 글자 길이만큼(깃 #-032 · 형 11-15 05:20 「피시인앱에서 탭 이모지로만 표시되서 … 픽토그램이랑 기본 글자까진 나오게」)
    container-type 이 폭을 글자에서 떼어 놓아 72px 아래 = 이름 숨김에 걸렸었음 → 이 셋은 컨테이너 아님 */
-.nm-tab.browser, .nm-tab.meet, .nm-tab.teams { container-type:normal; }
+.nm-tab.browser, .nm-tab.meet, .nm-tab.teams, .nm-tab.sns { container-type:normal; }
 
 /* 맥 독 앱 안 탭 줄 = 다른 창과 같이 늘 보임(형 11-16 12:3x 구름 창 「상단에 탭 메뉴, 그리고 그 아래 메뉴는 계속 보이게 해줘」 · 「인앱에서는 사라져,」 · 앞 판 08:2x 「아래에 탭을 없앤다」 숨김은 걷음 · 시아) */
 
@@ -174,9 +175,20 @@ html[data-nm-fullpane] .nm-strip { background:var(--nm-tab-on, #121314); border-
 /* 탭 폭 = 「봄의 정원」 240 · 나머지 다 그 75%(180) 한 크기(형 11-18 15:20 dm-cloud 「응 봄의 정원의 75% 크기로 항상 다 탭 크기를 유지해줘」) — 줄이 좁아지면 줄어드는 몫이 바탕 폭에 비례(flex-shrink) = 4:3 그대로 · 닫기 = 오른쪽(형 13:56 「그리고 새탭은 닫기가 우측에 있어야 안어색해 (탭 란에서 닫기가 우측)」) */
 .nm-tab { flex:0 1 180px; min-width:60px; max-width:none; }
 .nm-tab.garden { flex:0 1 240px; min-width:80px; }
-.nm-tab:is(.browser, .meet, .teams) { flex:0 1 180px; min-width:60px; }
+.nm-tab:is(.browser, .meet, .teams, .sns) { flex:0 1 180px; min-width:60px; }
 .nm-tab-x { left:auto; right:6px; }
 /* 위 탭 「Teams」 새 글 수 = 흰 숫자만 · Teams 글자와 같은 선 · 같은 크기(형 11-18 16:55 dm-sia 「그냥 팀즈 글자랑 수평선에, 흰색으로 1만 들어와있으면 돼. 너무 강조될 필요없음」 · 「숫자로 표현되는데 크기를 말하는거임」)
    앞 판 = 라임 동그라미 16px(teams.css .nm-tbadge · 팀즈 화면 안 탭 숫자는 그대로) · 고른 탭(밝은 바탕) = 탭 글자색 */
 .nm-tab .nm-tbadge { display:inline; min-width:0; height:auto; margin:0; padding:0; border-radius:0; background:none; color:#fff; font:inherit; line-height:1; vertical-align:baseline; font-variant-numeric:tabular-nums; }
 .nm-tab.on .nm-tbadge { color:inherit; }
+/* SNS 탭 오른쪽 칸(./sns-side-pane.tsx · 형 11-20 09:20 「SNS 탭을 누르면 대화는 유지되고 … 우측에 인스타랑 그런거 뜨게해주라」) = 팀즈 칸과 같은 판 · 위 고르기 줄 · 아래 9:16 자리(껍데기 앱 웹뷰가 겹침) */
+.nm-tab-sns { position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden; background:var(--nm-tab-on, #121314); }
+.nm-sns-side { flex:1; min-height:0; display:flex; flex-direction:column; }
+.nm-sns-pick { flex:none; display:flex; justify-content:center; gap:6px; padding:10px 12px 8px; }
+.nm-sns-pick button { appearance:none; border:1px solid var(--glass-line, rgba(255,255,255,.12)); background:var(--glass, rgba(255,255,255,.06)); color:var(--fg-2, #c8ccc8); border-radius:999px; padding:5px 14px; font-size:var(--fs-xs, 12px); font-weight:700; cursor:pointer; }
+.nm-sns-pick button.on { background:rgba(var(--accent-rgb, 207,255,64),.9); color:var(--bg, #141516); border-color:transparent; }   /* 골라짐 = 라임 채움(설정 칩 .yset-chip.on 과 같은 값) */
+.nm-sns-stage { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:0 12px 12px; }
+.nm-sns-box { position:relative; height:100%; max-height:100%; aspect-ratio:9 / 16; max-width:100%; border-radius:14px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center; }
+.nm-sns-noapp { padding:18px; text-align:center; color:var(--fg-2, #c8ccc8); font-size:var(--fs-sm, 13px); line-height:1.5; }
+.nm-sns-noapp b { display:block; margin-bottom:6px; color:var(--fg, #e8eae8); font-size:var(--fs-h3, 15px); }
+.nm-sns-noapp a { display:inline-block; margin-top:10px; color:var(--accent, #CFFF40); }

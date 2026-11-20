@@ -14,13 +14,14 @@ import { COBROWSE_EVENT } from "./cobrowse";
 import { SCREEN_TAB_EVENT, type ScreenTabAsk, ScreenTabPane } from "./screen-tab";   // 몸 화면 탭(구름 11-16 · 형 16:2x 「ㅇㅇ 해줘」 ← 「애들 vm키면, pc에서는 새 탭으로 열리게 가능해?」)
 import { screenTabAdd } from "./screen-tab-logic";
 import { TEAMS_PREFIX, TeamsList, isTeams, useTeamsUnread } from "./teams";
+import { SnsSidePane } from "./sns-side-pane";   // SNS 탭 오른쪽 칸(형 11-20 09:20)
 import { useRootFlag } from "./has-flags";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀즈 | 회의」 탭도 같이 씀(./teams.tsx TeamsSwitch · 형 11-13 22:14)
 
 // 첫 탭 = 「봄의 정원」(형 11-12 06:23 봄 1:1 「기본적으로 탭형태를 갖춰서. 봄의 정원. 이라고 나오게해줘. 그리고 거기서 +가 나오게 크롬형태를 참고하면 될거같애」
 //   · 「일단 누르면 기본값으로 우측 sns, hotiussue, digest로 빈창이 열리게 하자 좌측은 유지되고(대화족은)」) — 지금 판 그 자체가 첫 탭 · 늘 보임
-export const GARDEN = "봄의 정원", TEAMS = "teams", BROWSER = "co", MEET = "meet";   // MEET = 고정 「화상회의」 탭(형 11-13 09:21 봄 옮김 「그냥 웹 브라우저랑, 화상 채팅방이랑 구분해주라. 아이콘은 팀즈처럼 하나 만들면될거같아.」 · 「그냥 웹 브라우저는 내가 대신 로그인하는 그런 용도면 될듯.」)
+export const GARDEN = "봄의 정원", TEAMS = "teams", BROWSER = "co", MEET = "meet", SNS = "sns";   // SNS = 고정 「SNS」 탭(형 11-20 09:20 · 오른쪽 칸 = 껍데기 앱 웹뷰 · ./sns-side-pane.tsx)   // MEET = 고정 「화상회의」 탭(형 11-13 09:21 봄 옮김 「그냥 웹 브라우저랑, 화상 채팅방이랑 구분해주라. 아이콘은 팀즈처럼 하나 만들면될거같아.」 · 「그냥 웹 브라우저는 내가 대신 로그인하는 그런 용도면 될듯.」)
    // BROWSER = 고정 「브라우저」 탭 키(= 옛 같이 보기 탭 · 맥 72 다리 판 · 못 닿으면 끼워 넣기 · 형 11-12 16:49 「봄의정원, 브라우저, 팀즈」 · 봄 17:01 ⓐ · 17:03 「구글 · 인스타 · 클라우드플레어 걸린 곳도 열림」)   // TEAMS = 고정 팀즈 탭 키(탭 목록 밖 · 닫기 없음 · 끌어 옮기기는 됨 = 줄 차례 ./tab-list stripOrder)
 const TEAMS_LAST = "nm-teams-last";   // 마지막에 본 팀즈 대화(이 기기) = 팀즈 탭 누르면 왼쪽이 그리로
 const teamsLast = () => { try { return localStorage.getItem(TEAMS_LAST) || ""; } catch { return ""; } };
@@ -33,7 +34,7 @@ const paneHost = (): HTMLElement | null => { const a = sideEl(); return a && a.o
 const load = (): TabState => {   // 방 탭은 안 올림(형 11-09 09:29 회의실 「대화 상대가 저기 나올 필요는 없어. 웹과 관련된 내용만 저기 뜨면 될듯.」) = 옛 판에 남은 방 탭도 뺌
   let s: TabState; try { s = tabsLoad(localStorage.getItem(TABS_KEY)); } catch { s = tabsLoad(null); }
   const tabs = s.tabs.filter((t) => t.k !== "room" && t.k !== "co");   // co = 이제 고정 「브라우저」 탭(목록 밖)
-  return { tabs, active: s.active === TEAMS || s.active === BROWSER || s.active === MEET || tabs.some((t) => tabKey(t) === s.active) ? s.active : "dash" };
+  return { tabs, active: s.active === TEAMS || s.active === BROWSER || s.active === MEET || s.active === SNS || tabs.some((t) => tabKey(t) === s.active) ? s.active : "dash" };
 };
 const go = (hash: string) => { if (location.hash !== hash) location.hash = hash; };
 const loadOrder = (): unknown => { try { return JSON.parse(localStorage.getItem(ORDER_KEY) || "null"); } catch { return null; } };   // 줄 차례(이 기기) · 깨지면 기본 차례
@@ -139,6 +140,11 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     const c = teamsLast();
     if (c && room !== TEAMS_PREFIX + c) go(`#/channels/${encodeURIComponent(TEAMS_PREFIX + c)}`);
   };
+  const pickSns = () => {   // 오른쪽 칸 = SNS(인스타 · 스레드 · X) · 왼쪽 = 대화 그대로(형 11-20 09:20 「SNS 탭을 누르면 대화는 유지되고, (좌측에)」) — 대화방이 아니면(홈 등) 마지막 사무실 대화로 · 팀즈 대화면 그대로
+    setS((x) => ({ ...x, active: SNS }));
+    const c = officeLast();
+    if (pane !== "chat" && c) go(`#/channels/${encodeURIComponent(c)}`);
+  };
   const pick = (t: Tab) => {
     const key = tabKey(t);
     setS((x) => ({ ...x, active: key }));
@@ -201,17 +207,18 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
     [BROWSER]: { cls: "browser", title: "브라우저(맥 72 · 형 대신 로그인)", pick: pickOn(BROWSER), body: (   // 화면 = 같이 보기 다리 판(맥 72) · 못 닿으면 끼워 넣기 웹 칸(CobrowsePane 안) · 형이 대신 로그인하는 칸
       <><svg className="nm-tab-ic browser" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg><span className="nm-tab-nm">Browser</span></>) },
     [MEET]: { cls: "meet", title: "화상회의(맥 72 화면 + 우리 대화)", pick: pickOn(MEET), body: <><MeetIcon /><span className="nm-tab-nm">화상 회의</span></> },   // 따로 선 들머리(형 11-13 09:21) · 열린 회의 없으면 바로 참여자 고르기
+    [SNS]: { cls: "sns", title: "SNS(인스타 · 스레드 · X)", pick: pickSns, body: <><svg className="nm-tab-ic" viewBox="0 0 24 24" aria-hidden><rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="12" cy="12" r="3.6" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="16.6" cy="7.4" r="1.1" fill="currentColor" /></svg><span className="nm-tab-nm">SNS</span></> },   // 대화 왼쪽 그대로 · 오른쪽 9:16 = 인스타 · 스레드 · X(형 11-20 09:20)
     [TEAMS]: { cls: "teams", title: "팀즈", pick: pickTeams, body: <><TeamsIcon /><span className="nm-tab-nm">Teams</span>{teamsNew ? <span className="nm-tbadge" aria-label={`새 글 있는 대화 ${teamsNew}`}>{teamsNew > 99 ? "99+" : teamsNew}</span> : null}</> },   // 새 글 = 숫자(형 11-13 10:23 「새로 들어온 글도 여기서 알수있으면 베스트임」)
   };
   const paneTabs = s.tabs.filter((t): t is Extract<Tab, { k: "screen" | "web" | "co" }> => t.k === "screen" || t.k === "web" || t.k === "co");
-  useRootFlag("teams", s.active === TEAMS);   // 팀즈를 보는 동안 = 위 러너 · SNS 판 숨김(./shell.css · 형 11-18 14:38 「그리고 위에 다른 메뉴들이 보여버림」 · 「러너랑sns 보여짐」)
+  useRootFlag("teams", s.active === TEAMS || s.active === SNS);   // SNS 도 같은 판(위 러너 · SNS 띠 숨김 · 오른쪽 칸 맨 위부터)   // 팀즈를 보는 동안 = 위 러너 · SNS 판 숨김(./shell.css · 형 11-18 14:38 「그리고 위에 다른 메뉴들이 보여버림」 · 「러너랑sns 보여짐」)
   const full = s.active === BROWSER || s.active.startsWith("w:");   // 창 전체를 쓰는 탭 = 「Browser」 + 「＋」 웹 탭(형 11-18 09:3x 구름 창 「일반 새탭 열어서 보이는거랑 기본으로 떠잇는 브라우저랑 별건으로 보일 필요는 없어.」 = 둘 다 같은 꼴 · 앞 = 웹 탭만 오른쪽 칸)
   useEffect(() => {   // 창 전체 웹 판이 떠 있는 동안 = 옆 얼굴 줄도 같은 어두운 판(형 11-18 22:0x 「저 화면으로 가면 옆에가 어색해지거든? 여기도 옆에랑 딱 맞게 어울리게 다크로 딱 바꿔줘」 · ./tab-bar.css)
     const r = document.documentElement;
     if (full) r.dataset.nmFullpane = "1"; else delete r.dataset.nmFullpane;
     return () => { delete r.dataset.nmFullpane; };
   }, [full]);
-  const paneOn = s.active.startsWith("s:") || s.active.startsWith("w:") || s.active === "co" || s.active === MEET || s.active === TEAMS;
+  const paneOn = s.active.startsWith("s:") || s.active.startsWith("w:") || s.active === "co" || s.active === MEET || s.active === TEAMS || s.active === SNS;
   return (
     <>
       <div ref={bar} className="nm-tabs" role="tablist" aria-label="탭 줄">
@@ -236,11 +243,12 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
         <button type="button" className="nm-tab-plus" aria-label="새 탭" title="새 탭" onClick={() => setS((x) => tabsAdd(x, webTabNew()))}>+</button>
         {room === "all" && pane === "chat" ? <button type="button" className="nm-tab-cobtn" title="맥 72 화면을 같이 보며 얘기하기" onClick={() => setS((x) => ({ ...x, active: MEET }))}>화상회의</button> : null}   {/* 들머리 = 회의실(봄 13:21 「먼저 회의실」) */}
       </div>
-      {paneTabs.length || s.active === TEAMS || s.active === BROWSER || s.active === MEET ? createPortal(
+      {paneTabs.length || s.active === TEAMS || s.active === BROWSER || s.active === MEET || s.active === SNS ? createPortal(
         <div className={`nm-tab-screen${host && !full ? " in-split" : ""}${full ? " full" : ""}`} hidden={!paneOn}>   {/* 「브라우저」 = 오른쪽 칸이 아니라 메뉴 줄 바로 아래 창 전체(형 11-17 09:1x 구름 맥 창 「pc 웹앱에서 브라우저를 열면 한쪽에서만 열리는게 아니라, 창 전체를 써야해. 그러니까 메뉴 바로 아래로 다 창이 펼쳐져야 하거든?」) · 웹 탭 · 몸 화면 · 팀즈 · 화상회의는 오른쪽 칸 그대로(형 11-12 「웹 탭은 오른쪽 칸 안」) */}
           {s.active === BROWSER ? <BrowserPane nav={coNav} onNav={() => setCoNav("")} onClose={() => setS((x) => ({ ...x, active: "dash" }))} /> : null}   {/* 「Browser」 = 「＋」 새 탭과 같은 주소창 웹 칸(형 11-18 09:3x 「그 브라우저 여기 전면에 다른 페이지처럼 보이게해줄래?」 · 「일반 새탭 … 별건으로 보일 필요는 없어.」) · 막는 사이트만 그 자리에서 「맥 72로 열기」 = 다리 판(앞 = 늘 다리 판 · 다리 주소가 없으면 「같이 보기 주소 없음」 한 줄뿐) */}
           {s.active === MEET ? <div className="nm-tab-co"><CobrowsePane mode="meet" onClose={() => setS((x) => ({ ...x, active: "dash" }))} /></div> : null}   {/* 화상회의 = 같은 맥 72 다리 판 + 아래 회의 대화 */}   {/* 보는 동안만 붙음 = 안 보면 다리 쉼 · 다시 고르면 새 표(맥 72 탭은 그대로 = 마지막 웹 화면) */}
-          {s.active === TEAMS ? <div className="nm-tab-teams"><TeamsList current={room} /></div> : null}   {/* 팀즈 목록 = 오른쪽 칸 · 누르면 왼쪽 대화만 바뀜 */}
+          {s.active === TEAMS ? <div className="nm-tab-teams"><TeamsList current={room} /></div> : null}
+          {s.active === SNS ? <div className="nm-tab-sns"><SnsSidePane /></div> : null}   {/* SNS = 오른쪽 칸 · 왼쪽 대화 그대로(형 11-20 09:20) */}   {/* 팀즈 목록 = 오른쪽 칸 · 누르면 왼쪽 대화만 바뀜 */}
           {paneTabs.filter((t) => seen.has(tabKey(t)) || s.active === tabKey(t)).map((t) => t.k === "co" ? (
             s.active === "co" ? <div key="co" className="nm-tab-co"><CobrowsePane onClose={() => close("co")} /></div> : null   /* 보는 동안만 붙음 = 안 보면 다리 쉼(봄 12:53 「보는 중」 신호) · 다시 고르면 새 표 */
           ) : t.k === "web" ? (
