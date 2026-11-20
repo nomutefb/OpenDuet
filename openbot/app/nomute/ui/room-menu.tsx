@@ -42,12 +42,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   const clearRoom = (x: OfficeRoom) => office<{ ok?: boolean; deleted?: number; left?: number }>(`rooms/${encodeURIComponent(x.id)}/clear`, { method: "POST", body: JSON.stringify({ confirm: true }) })
     .then((j) => { void qc.invalidateQueries({ queryKey: ["nomute", "msgs", x.id] }); if (j.left) flash(`남은 글 ${j.left}개`); return j; });
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: !!room, staleTime: 60_000, retry: false });   // 방에 들어올 때 미리(메뉴 열 때 받으면 이 칸이 한 박자 늦게 붙어 「2차로 나뉘어서 뜸」 · 형 11-12 06:30 · 뎅) · 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
-  const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: !!room, staleTime: 60_000, retry: false });   // 방에 들어올 때 미리(위와 같은 까닭 · 형 11-12 06:30) · 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
-  const setBell = async (on: boolean) => {
-    close(); setErr("");
-    try { const j = await office<{ on?: boolean }>("bell6", { method: "POST", body: JSON.stringify({ room, on }) }); qc.setQueryData(["nomute", "bell6", room], { ...(bell.data || {}), on: typeof j.on === "boolean" ? j.on : on }); }
-    catch (e) { setErr(`종을 못 바꿨어 · ${(e as Error).message}`); }
-  };
+  // 5마디 알림 단추 · 그 상태 받기 = 걷음(형 11-21 「아 그건 필요없어 애초에 그건 단톡이었으니까」 · 서버가 5마디를 통째로 끔 editor #4571 · 눌러도 아무 일도 안 하던 단추 · 봄 손)
   const r = room ? (qc.getQueryData<OfficeRoom[]>(["nomute", "rooms"]) || []).find((x) => x.id === room) : undefined;
   useEffect(() => { setErr(""); }, [room, open]);
   const setNotify = async (on: boolean) => {
@@ -83,7 +78,6 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       {!r.with ? <button type="button" role="menuitem" onClick={go(() => setTinting(r))}><span className="flex items-center gap-2"><RainbowOrb />표지 색</span></button> : null}
       {!r.with && !r.temp && !groupRuleRoom(r) ? <button type="button" role="menuitem" onClick={go(() => setNaming(r))}>이름 바꾸기</button> : null}   {/* 단체방 이름 = 「방 설정」 안으로(임시방과 같게) */}
       {notify.data ? <button type="button" role="menuitemcheckbox" aria-checked={nOn} onClick={() => void setNotify(!nOn)}>대화방 알림<small>{nOn ? "켬" : "끔"}</small></button> : notify.isError ? <button type="button" role="menuitem" onClick={() => void notify.refetch()}>대화방 알림<small>확인 못 함 · 다시</small></button> : null}   {/* 상태 못 읽음 = 켬/끔 짐작해서 그리지 않음(켜진 단톡이 「끔」으로 보이고 첫 누름이 거꾸로 감 · 모루 #2997 07:16) · 누르면 다시 읽기만 */}
-      {bell.data ? <button type="button" role="menuitemcheckbox" aria-checked={!!bell.data.on} onClick={() => void setBell(!bell.data?.on)}>5마디 알림<small>{bell.data.on ? "켬" : "멈춤"}</small></button> : null}   {/* 이름 = 형 11-02 23:21 「5마디 알림으로 변경해줘」(셈은 서버 bell6) */}
       <button type="button" role="menuitem" onClick={go(() => setFiles(true))}>파일 기록</button>
       {asks.data ? <button type="button" role="menuitem" onClick={go(() => setHist(true))}>질문 이력<small>{asks.data.length}</small></button> : null}
       <button type="button" role="menuitemcheckbox" aria-checked={unfold} onClick={() => setUnfold(room, !unfold)}>긴 글 다 펼쳐 보기<small>{unfold ? "켬" : "끔"}</small></button>   {/* 켬 = 17줄 접기 풂(./unfold.ts · 형 11-04 08:08 · 기본 끔 = 접힘) */}
