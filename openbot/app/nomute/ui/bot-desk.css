@@ -158,6 +158,8 @@
 .nm-bd-ab .nsb-ab-lane[data-k="lost"] .cell > small { color:var(--nsb-ink); opacity:.8; }
 .nm-bd-ab li[data-sure="0"] .ring, .nm-bd-ab li[data-sure="0"] .halo { opacity:0; }   /* 쉬는 손(대기 신호로 확인 안 됨) = 회색 고리만 */
 .nm-bd-ab li[data-sure="0"] .cell > small.sk { border-color:var(--nsb-faint); color:var(--nsb-ink); }
+/* 직함 라벨 그림(형 11-21 05:43 dm-bom 봄 옮김 「여기도 대화창 라벨 다 붙여줘」) = 대화 목록 그림 그대로(./job-label.tsx) · 알약 테 없이 이름 밑 한 줄 · 높이 20px 칸(라벨마다 키가 달라도 줄이 안 흔들림) */
+.nm-bd-ab .cell > .sk-lab, .nm-bd-org-pm .sk-lab { display:inline-flex; align-items:center; justify-content:center; height:20px; line-height:0; }
 /* 직함 알약 = 어느 칸에서나 같은 작은 알약 · 영문 직함은 한 줄(형 11-16 18:4x 직무 표기) · 일하는 중 칸 = 테만 옅게(주인공은 라임 구슬) */
 .nm-bd-ab .cell > small.sk { white-space:nowrap; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }   /* 직함 = 프리텐다드 고정(폰 기본 글꼴 LEMON MILK 는 대문자뿐이라 「DEVELOPER」로 넓게 퍼져 알약끼리 붙었음 · 실물 11-16) */
 /* 멈춤 = 얼굴 옆에 이름 · 까닭을 가로로(앞 = 좁은 칸에 까닭이 여섯 줄로 꺾임) */

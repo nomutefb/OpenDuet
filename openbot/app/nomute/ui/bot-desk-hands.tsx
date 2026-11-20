@@ -8,6 +8,7 @@ import { idOf } from "../data/office";
 import { FaceImg, type usePeople } from "./faces";
 import { ringDeg, ringFrac } from "./activity-view";
 import { type BotRow, GROUP_KO, groupOf, isSpecial, roleLabel } from "./bot-desk-logic";
+import { JobLabel, jobOf } from "./job-label";   // 얼굴 밑 직함 = 대화창 라벨 그림 그대로(형 11-21 05:43 dm-bom 봄 옮김 「여기도 대화창 라벨 다 붙여줘」)
 import "./activity-board.css";
 
 // 칸 = 작업 중(개발 중 · 창작 중) → 쉬는 중 · 둘뿐
@@ -71,12 +72,13 @@ export function HandBoard({ rows, skills, people, sel = "", onPick }: { rows: Bo
     const off = k === "idle" ? handOff(r) : "", sure = r.lane === "ready", deg = off === "lost" ? 0 : k === "idle" && sure ? ringDeg(ringFrac(r, now)) : 180;   // 0 = 꽉 찬 고리(연결 끊김 = 빨간 고리 한 바퀴) · 180 = 빈 고리
     const sk = r.skills?.[0], skKo = sk && skills[sk] ? skillShort(skills[sk]) : "", skName = roleLabel(r.skills, r.who) || skKo;   // 얼굴 밑 = 영문 직함(형 11-16 18:4x 「Developer … UX Design … PM · Dev. … PM · UXD.」) · 모르는 코드면 서버 한글 이름 · 한글 이름은 풍선에
     const sub = skName;   // 얼굴 밑 = 누구나 직함(형 20:0x 「역할군이 안나오는건 아냐.」) · 까닭은 풍선과 누른 펼침에
+    const jb = jobOf(people.find((x) => x.who === r.who) || { who: r.who });   // 대화 목록과 같은 셈(명부 job 칸 먼저 · 없으면 job-label 표)
     return (
       <li key={r.who} data-sure={k === "idle" && !off ? (sure ? "1" : "0") : undefined} data-off={off || undefined} data-sel={sel === r.who || undefined} style={{ animationDelay: `${i * 40}ms` }}>
         <div className="cell" role={onPick ? "button" : undefined} tabIndex={onPick ? 0 : undefined} aria-pressed={onPick ? sel === r.who : undefined} onClick={onPick ? () => onPick(r.who) : undefined} onKeyDown={onPick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(r.who); } } : undefined} title={[offWhy(r) || r.state, skKo ? `1특기 ${skKo}` : ""].filter(Boolean).join(" · ")}>
           <HandFace id={idOf(r.who, people)} deg={deg} size={42} />
           <b>{r.who}</b>
-          {sub ? <small className="sk">{sub}</small> : null}
+          {jb ? <span className="sk-lab" title={sub || undefined}><JobLabel job={jb} who={r.who} /></span> : sub ? <small className="sk">{sub}</small> : null}   {/* 라벨 있는 손 = 대화 목록과 같은 그림(지금 PM = 무지개) · 글 직함은 풍선 · 라벨 없는 손 = 옛 글 알약 */}
           {jobChip(r) ? <em className="job" title={(r.open || []).map((o) => `${o.no}${o.title ? " " + o.title : ""}`).join(" · ")}>{jobChip(r)}</em> : null}   {/* 지금 맡은 일 = 번호 한 표(누르면 아래에 다 펼쳐짐) */}
         </div>
       </li>

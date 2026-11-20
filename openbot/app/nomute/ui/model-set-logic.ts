@@ -42,7 +42,7 @@ export function sumKo(bots: Pick[] | undefined, models: Choice[], efforts: Choic
 // ── 파이프라인 중분류(형 11-15 「파이프라인도 설정에 묶을게, 근데 중분류로 좀 변경해줘」) — 갈래 표 = 서버 저장소 shared/llm_groups.json 과 같은 이름
 //   저장 = 앱 설정 한 장(/api/settings 의 llm 칸 {갈래: {tier?, effort?}}) · 칸이 없으면 = 그 갈래는 스크립트 기본 그대로
 export const PIPE_GROUPS: Choice[] = [
-  { id: "summary", ko: "요약 · 분석" }, { id: "card", ko: "카드" }, { id: "judge", ko: "판정" }, { id: "create", ko: "창작" },
+  { id: "summary", ko: "뉴스 요약" }, { id: "card", ko: "카드" },   // summary 이름 = 「뉴스 요약」(형 11-21 05:46 dm-sia 시아 옮김 「요약 분석 용어 뉴스 요약」 · 앞 = 요약 · 분석 · 열쇠 id 는 그대로) { id: "judge", ko: "판정" }, { id: "create", ko: "창작" },
   { id: "video", ko: "영상 초안 · 자막" }, { id: "brief", ko: "브리프" }, { id: "read", ko: "분류 · 읽기" },
 ];
 export const PIPE_DEF = "default";   // 고르는 칸의 「기본」 값(서버로는 빈 글 = 그 칸 지움)
