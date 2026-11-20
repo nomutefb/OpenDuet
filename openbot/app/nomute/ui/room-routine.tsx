@@ -12,7 +12,7 @@ import { GoButton } from "./go-button";
 import { saveRoomRoutine, type RoomRoutineForm as Form, type RoomRoutineMode as Mode } from "./room-routine-save";
 import "./room-routine.css";
 
-export type RoomTimer = { mode: Mode; every?: number; min?: number; days?: number; times?: string[]; wd?: number[]; text?: string; rule?: string; skip?: string[]; on?: boolean; next_ts?: number };
+export type RoomTimer = { mode: Mode; every?: number; min?: number; days?: number; times?: string[]; wd?: number[]; text?: string; rule?: string; skip?: string[]; only?: string[] | null; follow?: string; on?: boolean; next_ts?: number };
 
 const WD = ["일", "월", "화", "수", "목", "금", "토"];
 const MODES: [Mode, string][] = [["hours", "몇 시간마다"], ["days", "며칠마다"], ["week", "요일마다"]];
@@ -42,12 +42,14 @@ function nextLine(ts?: number) {
 function cycleLine(f: Form) {
   const times = f.times.join(" · ");
   if (f.mode === "hours") return `${f.every === 1 ? "매시간" : `${f.every}시간마다`} ${f.min}분에`;
+  if (f.mode === "follow") return `수집 따라 ${f.every % 60 ? `${f.every}분` : `${f.every / 60}시간`}마다${times ? ` · ${times}` : ""}`;
   if (f.mode === "days") return `${f.days === 1 ? "매일" : `${f.days}일마다`} 하루 ${f.times.length}번${times ? ` · ${times}` : ""}`;
   return `매주 ${f.wd.map((d) => WD[d]).join("·") || "요일 없음"} · 하루 ${f.times.length}번${times ? ` · ${times}` : ""}`;
 }
 
 function formOf(t?: RoomTimer): Form {
-  return { mode: t?.mode || "days", every: t?.every || 3, min: t?.min || 0, days: t?.days || 1, times: t?.times?.length ? t.times : ["09:00"], wd: t?.wd?.length ? t.wd : [1], text: t?.text || "", on: t ? t.on !== false : true };
+  return { mode: t?.mode || "days", every: t?.every || 3, min: t?.min || 0, days: t?.days || 1, times: t?.times?.length ? t.times : ["09:00"], wd: t?.wd?.length ? t.wd : [1], text: t?.text || "", on: t ? t.on !== false : true,
+    ...(t?.mode === "follow" && t.follow ? { follow: t.follow } : {}), ...(t?.only?.length ? { only: t.only } : {}) };   // 따라감 · 받을 이만 = 있던 그대로(저장 때 실어 보냄)
 }
 
 export function useRoomTimers(enabled = true) {
@@ -93,7 +95,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
   const left = crew.filter((c) => !skip.includes(c.who)).length;
-  const ready = !!f.text.trim() && (f.mode !== "week" || f.wd.length > 0) && (!crew.length || left > 0);
+  const ready = !!f.text.trim() && (f.mode !== "week" || f.wd.length > 0) && (f.mode !== "follow" || !!f.follow) && (!crew.length || left > 0);
   const go = useMutation({
     mutationFn: (body: Record<string, unknown>) => office("room-timers", { method: "POST", body: JSON.stringify({ room: room.id, ...body }) }),
     onSuccess: async (_r, body) => {
@@ -121,7 +123,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
           {QUICK.map((q) => <button key={q.label} type="button" className="nm-rr-chip" onClick={() => set(q.set)}>{q.label}</button>)}
         </div>
         <div className="nm-rr-seg" role="group" aria-label="주기">
-          {MODES.map(([m, label]) => <button key={m} type="button" aria-pressed={f.mode === m} onClick={() => set({ mode: m })}>{label}</button>)}
+          {(f.follow ? [...MODES, ["follow", "수집 따라"] as [Mode, string]] : MODES).map(([m, label]) => <button key={m} type="button" aria-pressed={f.mode === m} onClick={() => set({ mode: m, ...(m === "hours" && f.every > 24 ? { every: 3 } : {}) })}>{label}</button>)}   {/* 수집 따라 = 따라감 루틴만(밥상 종 · 시각은 시계가 셈 = 시각 칸 0) */}
         </div>
         {f.mode === "hours" ? (
           <div className="nm-rr-row"><Num label="몇 시간마다" value={f.every} lo={1} hi={24} onChange={(every) => set({ every })} /><span>시간마다</span><Num label="몇 분에" value={f.min} lo={0} hi={59} onChange={(min) => set({ min })} /><span>분에</span></div>
@@ -134,7 +136,7 @@ function Sheet({ room, timer, onClose }: { room: OfficeRoom; timer?: RoomTimer; 
             {WD.map((w, i) => <button key={w} type="button" aria-pressed={f.wd.includes(i)} className={`nm-rr-chip${f.wd.includes(i) ? " on" : ""}`} onClick={() => set({ wd: f.wd.includes(i) ? f.wd.filter((x) => x !== i) : [...f.wd, i].sort() })}>{w}</button>)}
           </div>
         ) : null}
-        {f.mode !== "hours" ? <Times times={f.times} onChange={(times) => set({ times })} /> : null}
+        {f.mode === "days" || f.mode === "week" ? <Times times={f.times} onChange={(times) => set({ times })} /> : null}
 
         <h2 className="yset-sec">뭐라고</h2>
         <label className="nm-rr-field"><span>글</span><textarea rows={3} maxLength={2000} value={f.text} onChange={(e) => set({ text: e.target.value })} /><small className="nm-rr-hint">울릴 때 방에 올라가요</small></label>
