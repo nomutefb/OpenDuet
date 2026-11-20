@@ -65,6 +65,8 @@ test("acctTag = 클로드 C·N · C·G · C·M · 지피티 GPT · 그 밖은 �
   assert.equal(acctTag("ems1130m"), "C·M"); assert.equal(acctTag("ems1130m@gmail.com"), "C·M");
   assert.equal(acctTag("gpt muteno"), "GPT"); assert.equal(acctTag("muteno", "gpt"), "GPT");
   assert.equal(acctTag("muteno"), "C·T"); assert.equal(acctTag("muteno@pm.me"), "C·T"); assert.equal(acctTag("someone@x.kr"), "someone"); assert.equal(acctTag(undefined), "");
+  // 그록 = 같은 꼴(형 11-21 05:44 dm-bom 봄 옮김 「그록 이슬 외 는 G 블릿 N 르미는 G 블릿 H」)
+  assert.equal(acctTag("그록 이슬 외 5"), "G·N"); assert.equal(acctTag("그록 루미"), "G·H");
 });
 
 test("cliNoteItems = 몸 보고 비고를 rclone 줄들로(이름 · 종류 · 계정 또는 도메인)", async () => {

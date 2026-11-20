@@ -43,7 +43,7 @@ test("지금 값 = 설정 화면과 같은 표 · 같은 말", () => {
   assert.equal(m.dimModel, true); assert.equal(m.dimEffort, false);   // 모델 = 기본 그대로 · 노력도 = 고친 값
   assert.equal(headOf({ kind: "ms", ids: ["없음"] }, SHEET, undefined, false), null); assert.equal(headOf({ kind: "ms", ids: ["sort"] }, undefined, undefined, false), null);
   const p = headOf({ kind: "pipe", id: "summary" }, SHEET, { summary: { tier: "sonnet", effort: "" } }, true)!;
-  assert.equal(p.title, "파이프라인 · 요약 · 분석"); assert.equal(p.model, "sonnet"); assert.equal(p.effort, "default"); assert.equal(p.dimEffort, true);
+  assert.equal(p.title, "파이프라인 · 뉴스 요약");   // 형 11-21 05:46 「요약 분석 용어 뉴스 요약」 assert.equal(p.model, "sonnet"); assert.equal(p.effort, "default"); assert.equal(p.dimEffort, true);
   assert.deepEqual(p.models.map((c) => c.ko), ["Opus 5.5", "Opus 5.5", "Sonnet 5.5"]);   // 첫 칸 = 안 고름(스크립트가 원래 쓰는 값)
   assert.equal(headOf({ kind: "pipe", id: "summary" }, SHEET, undefined, false), null);   // 설정을 아직 못 읽음 = 값 지어내지 않음
 });

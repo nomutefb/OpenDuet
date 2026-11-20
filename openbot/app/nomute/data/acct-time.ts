@@ -63,5 +63,7 @@ export function acctTag(v?: unknown, kind?: string): string {
   if (id === "ems1130g") return "C·G";
   if (id === "ems1130m") return "C·M";
   if (id === "muteno") return "C·T";   // 형 11-18 21:4x 구름 맥 창 「그리고 muteno 계정은 C 는 유지하고 뒤에를 T 로 하면됨.」 · 「그렇게 해서 표기를 토잉ㄹ해줘」
+  if (/^그록\s*이슬/.test(s)) return "G·N";   // 그록 = 클로드와 같은 꼴(형 11-21 05:44 dm-bom 봄 옮김 「그록 이슬 외 는 G 블릿 N 르미는 G 블릿 H」 · 서버 값 「그록 이슬 외 5」)
+  if (/^그록\s*루미/.test(s)) return "G·H";   // 서버 값 「그록 루미」
   return s.includes("@") ? s.split("@")[0] : s;
 }
