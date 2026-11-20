@@ -25,3 +25,9 @@ test("공유 그림 = 말풍선 줄 세로 가운데(남 오른쪽 · 내 왼쪽
   assert.match(css, /\.nm-mm-l\.move > \.nm-mm-i\.face \{ min-height:33px; gap:8px; font-size:12px; border-bottom:1px solid rgba\(255,255,255,\.07\); flex-direction:row-reverse; justify-content:flex-end; \}/);
   assert.match(qc, /\.nm-qs \{ flex:none; align-self:center;[^}]*opacity:\.5;/);
 });
+
+test("보낼 방 펼침 = 줄 .208s · 줄 사이 20.8ms(형 11-21 08:44 「20%만」) · 글 메뉴 줄은 .26s · 26ms 그대로", () => {
+  const css = rd("../ui/msg-menu.css");
+  assert.match(css, /\.nm-mm-l\.move > \.nm-mm-i, \.nm-mm-l\.move > \.nm-mm-g \{ animation-duration:\.208s; animation-delay:calc\(var\(--i, 0\) \* 20\.8ms\); \}/);
+  assert.match(css, /\.nm-mm-i \{[^}]*animation:nmMmRow \.26s cubic-bezier\(\.2,\.7,\.3,1\) both; animation-delay:calc\(var\(--i, 0\) \* 26ms\);/);
+});

@@ -37,3 +37,5 @@
 .nm-mm-g { grid-column:1 / -1; margin:6px 0 0; padding:6px 4px 2px; border-top:1px solid rgba(255,255,255,.26); color:rgba(255,255,255,.62); font-size:10.5px; font-weight:700; letter-spacing:.02em; text-shadow:0 1px 8px rgba(0,0,0,.55); animation:nmMmRow .26s cubic-bezier(.2,.7,.3,1) both; animation-delay:calc(var(--i, 0) * 26ms); }
 .nm-mm[data-side="below"] .nm-mm-g { animation-name:nmMmRowDown; }
 .nm-mm[data-align="right"] .nm-mm-g { text-align:right; }
+/* 보낼 방 펼침만 20% 빠르게(형 11-21 08:44 dm-sia 시아 옮김 「좀만 빨리 펼쳐지게 해주라.20%만」) = 줄 길이 .26s → .208s · 줄 사이 26ms → 20.8ms · 이징 · 이름(transform · opacity) 그대로 · 글 메뉴 · 막 · 닫힘은 손 0 */
+.nm-mm-l.move > .nm-mm-i, .nm-mm-l.move > .nm-mm-g { animation-duration:.208s; animation-delay:calc(var(--i, 0) * 20.8ms); }
