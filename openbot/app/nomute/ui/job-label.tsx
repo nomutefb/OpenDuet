@@ -5,8 +5,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
 export type Job = "FIXER" | "MD" | "UXD" | "DEV" | "OPS" | "PM" | "STORY" | "MUSIC" | "CREATOR" | "RND" | "SEC" | "SCOOP";
-const IMG: Record<Job, { src: string; w: number; h: number; dy?: number }> = {   // dy = 그림 속 글자 가운데가 위아래로 쏠린 만큼 내림(px · 이름 줄과 수평)
-  FIXER: { src: "/garden-app/job-fixer.webp?v=9", w: 87, h: 40 },
+const IMG: Record<Job, { src: string; w: number; h: number; dy?: number; dx?: number }> = {   // dx = 이름 쪽으로 당김(px · 음수 = 왼쪽)   // dy = 그림 속 글자 가운데가 위아래로 쏠린 만큼 내림(px · 이름 줄과 수평)
+  FIXER: { src: "/garden-app/job-fixer.webp?v=10", w: 80, h: 37, dx: -1 },   // 92%(18.5px) · 이름 쪽 1px(그림 왼쪽 빈칸 1.5px) · 형 20:53 dm-sia 시아 옮김 「FIXER 8%만 줄여서 아 아 주 조금만 이름쪽에 붙여주러 미세한 작업이라 미안」
   MD: { src: "/garden-app/job-md.webp?v=9", w: 49, h: 40 },
   UXD: { src: "/garden-app/job-uxd.webp?v=9", w: 68, h: 21 },   // 10.5px = FIXER 폭 맞춤 13px 의 80%(형 16:47 dm-gik 깃 옮김 「uxd는 아까 80%크기로 줄이라고했는데 안됫네」 · 앞 판 14:13 「딱봐도 픽서빼고는 너무 큰데」 13px · 13:56 「uxd 80%크기로면될듯」)
   // DeV · OpS = 하늘 그림(형 13:43~13:44 dm-sia 시아 옮김 「루미말고 다른애한테 그대로 시켜」 「uxd에게 그대로 시켜서 디자인하고」 「저기에 보면 ba랑 y가 강하잖아. 그걸 활요해서 만들라고해.」 「OpS 도 그런느낌으로 하면된다고하고」 「DeV 도 마찬」)
@@ -43,7 +43,7 @@ export function jobOf(p?: { who: string; job?: string } | null): Job | undefined
 export function JobLabel({ job, who }: { job: Job; who?: string }) {
   if (job === "PM" && who) return <PmLabel who={who} />;
   const g = IMG[job];
-  return <img className="nm-job shrink-0" src={g.src} alt={job} width={g.w / 2} height={g.h / 2} style={g.dy ? { transform: `translateY(${g.dy}px)` } : undefined} decoding="async" draggable={false} />;
+  return <img className="nm-job shrink-0" src={g.src} alt={job} width={g.w / 2} height={g.h / 2} style={g.dy || g.dx ? { ...(g.dy ? { transform: `translateY(${g.dy}px)` } : {}), ...(g.dx ? { marginLeft: g.dx } : {}) } : undefined} decoding="async" draggable={false} />;
 }
 /** 지금 PM 만 무지개 판(형 11-20 19:18 dm-haneul 「현재 PM은 레인보우로 특별하게, 무지개 빛 할수있어?」) · 나머지 PM 라인 = 라임 스티커
  *  지금 PM = 서버 pm 칸(우하단 PM 구슬 ./room-fab.tsx 와 같은 캐시 열쇠 · 받기 0 더) · 교대되면 무지개도 따라감 · 그림 = 정지(움직임 0) */

@@ -18,7 +18,9 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
     assert.ok(statSync(new URL(`../public/job-${k.toLowerCase()}.webp`, import.meta.url)).size < 8_000, k);
   }
   // 그림 높이 = 화면의 2배 → 그려지는 높이 FIXER · MD 20 · DeV · OpS 16(형 14:13 「딱봐도 픽서빼고는 너무 큰데 사이즈좀맞춰줘」) · UXD 10.5 = 그 80%(형 16:47 「uxd는 아까 80%크기로 줄이라고했는데 안됫네」)
-  for (const [k, h] of [["FIXER", 40], ["MD", 40], ["UXD", 21], ["DEV", 25], ["OPS", 46]] as const) assert.match(lab, new RegExp(`${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp(\\?v=\\d+)?", w: \\d+, h: ${h}(?:, dy: -?[\\d.]+)? \\}`), k);
+  for (const [k, h] of [["FIXER", 37], ["MD", 40], ["UXD", 21], ["DEV", 25], ["OPS", 46]] as const) assert.match(lab, new RegExp(`${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp(\\?v=\\d+)?", w: \\d+, h: ${h}(?:, dy: -?[\\d.]+)?(?:, dx: -?[\\d.]+)? \\}`), k);
+  // FIXER = 92%(형 20:53 「FIXER 8%만 줄여서 아 아 주 조금만 이름쪽에 붙여주러 미세한 작업이라 미안」) · 이름 쪽 1px
+  assert.match(lab, /  FIXER: \{ src: "\/garden-app\/job-fixer\.webp\?v=10", w: 80, h: 37, dx: -1 \}/);
   const uw = +(lab.match(/UXD: \{[^}]*w: (\d+)/)?.[1] || 0) / 2; assert.ok(Math.abs(uw - 43.5 * 0.8) <= 2, `UXD 폭 ${uw} = FIXER 의 80%`);
   // DEV 폭 = 형 20:38 「그대로 두고 지금의 90% 크기로」(43 → 38.5)
   { const w = +(lab.match(/DEV: \{[^}]*w: (\d+)/)?.[1] || 0) / 2; assert.ok(Math.abs(w - 43 * 0.9) <= 1, `DEV 폭 ${w}`); }
@@ -26,7 +28,7 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   // DEV = 시아 글리치 그림(형 20:19 「DEV는 저대로 가자 …」 · 「데브 크기 65%로 줄여서 70%?」 · 시아 견줌 판 70% = 43×13px)
   assert.match(lab, /DEV: \{ src: "\/garden-app\/job-dev\.webp\?v=12", w: 77, h: 25, dy: -0\.25 \}/);
   // 수평 = 그림 속 글자 가운데가 쏠린 만큼 내림(형 20:28 「70% 로 수평 맞추면 될듯」 · 20:31 「데브 좀만 더 내려주면 댈듯」) · transform 하나(다시 칠하기 0)
-  assert.match(lab, /style=\{g\.dy \? \{ transform: `translateY\(\$\{g\.dy\}px\)` \} : undefined\}/);
+  assert.match(lab, /style=\{g\.dy \|\| g\.dx \? \{ \.\.\.\(g\.dy \? \{ transform: `translateY\(\$\{g\.dy\}px\)` \} : \{\}\), \.\.\.\(g\.dx \? \{ marginLeft: g\.dx \} : \{\}\) \} : undefined\}/);
   // OPS = 시아 렌치 그림(형 20:34 「…왕관 대신 붙일수잇나? 심플하면서 명확한 픽토를」) · 글자 높이 = DEV 글자와 같게 · 렌치는 위로 · 2px 올려 DEV 와 수평
   assert.match(lab, /OPS: \{ src: "\/garden-app\/job-ops\.webp\?v=12", w: 67, h: 46, dy: -4 \}/);
   assert.match(lab, /width=\{g\.w \/ 2\} height=\{g\.h \/ 2\}/);
@@ -46,7 +48,8 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
 
 test("라벨 반짝임 = 그림 안에 그려 넣음(형 11-20 19:44 dm-haneul 「1 고고」 · 앞 물음 19:39 「애들 라벨에 살짝 반짝임? 그런 효과넣으면 과부하걸릴까?」 · 19:43 「아예 더 덜먹는방법은?」) · 움직임 0", () => {
   const lab = rd("../ui/job-label.tsx");
-  for (const k of ["fixer", "md", "uxd", "pm", "pm-now", "story", "music", "creator", "sec", "scoop"]) assert.ok(lab.includes(`/garden-app/job-${k}.webp?v=9"`), k);
+  for (const k of ["md", "uxd", "pm", "pm-now", "story", "music", "creator", "sec", "scoop"]) assert.ok(lab.includes(`/garden-app/job-${k}.webp?v=9"`), k);
+  assert.ok(lab.includes(`/garden-app/job-fixer.webp?v=10"`), "fixer = 92% + 반짝임");
   assert.ok(lab.includes(`/garden-app/job-ops.webp?v=12"`), "ops = 시아 렌치 + 반짝임");
   assert.ok(lab.includes(`/garden-app/job-dev.webp?v=12"`), "dev = 시아 글리치 + 반짝임");
   assert.doesNotMatch(lab, /animation|@keyframes|setInterval|requestAnimationFrame/);
