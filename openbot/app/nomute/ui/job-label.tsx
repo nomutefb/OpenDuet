@@ -6,23 +6,23 @@ import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
 export type Job = "FIXER" | "MD" | "UXD" | "DEV" | "OPS" | "PM" | "STORY" | "MUSIC" | "CREATOR" | "RND" | "SEC" | "SCOOP";
 const IMG: Record<Job, { src: string; w: number; h: number }> = {
-  FIXER: { src: "/garden-app/job-fixer.webp", w: 87, h: 40 },
-  MD: { src: "/garden-app/job-md.webp", w: 49, h: 40 },
-  UXD: { src: "/garden-app/job-uxd.webp?v=4", w: 68, h: 21 },   // 10.5px = FIXER 폭 맞춤 13px 의 80%(형 16:47 dm-gik 깃 옮김 「uxd는 아까 80%크기로 줄이라고했는데 안됫네」 · 앞 판 14:13 「딱봐도 픽서빼고는 너무 큰데」 13px · 13:56 「uxd 80%크기로면될듯」)
+  FIXER: { src: "/garden-app/job-fixer.webp?v=9", w: 87, h: 40 },
+  MD: { src: "/garden-app/job-md.webp?v=9", w: 49, h: 40 },
+  UXD: { src: "/garden-app/job-uxd.webp?v=9", w: 68, h: 21 },   // 10.5px = FIXER 폭 맞춤 13px 의 80%(형 16:47 dm-gik 깃 옮김 「uxd는 아까 80%크기로 줄이라고했는데 안됫네」 · 앞 판 14:13 「딱봐도 픽서빼고는 너무 큰데」 13px · 13:56 「uxd 80%크기로면될듯」)
   // DeV · OpS = 하늘 그림(형 13:43~13:44 dm-sia 시아 옮김 「루미말고 다른애한테 그대로 시켜」 「uxd에게 그대로 시켜서 디자인하고」 「저기에 보면 ba랑 y가 강하잖아. 그걸 활요해서 만들라고해.」 「OpS 도 그런느낌으로 하면된다고하고」 「DeV 도 마찬」)
   //   BATTLE ACADEMY 꼴 = 첫 · 끝 글자 크게(끝 글자는 더 크게 뻗음) · 가운데 작게 · 흰 글 + 검은 굵은 테 + 뒤 검은 리본 판(흰 테) · 위 색 띠(DeV 하늘 · OpS 분홍) · 20px · 원본 = claude-state beings/하늘/일/직무-라벨/label_*_하늘.png · lab-gen.mjs
-  DEV: { src: "/garden-app/job-dev.webp?v=3", w: 85, h: 32 },   // DeV · OpS = 16px · 폭 42 · 44(리본 판까지 = FIXER 폭 · 형 14:13 「…사이즈좀맞춰줘」)
-  OPS: { src: "/garden-app/job-ops.webp?v=3", w: 89, h: 32 },
+  DEV: { src: "/garden-app/job-dev.webp?v=9", w: 85, h: 32 },   // DeV · OpS = 16px · 폭 42 · 44(리본 판까지 = FIXER 폭 · 형 14:13 「…사이즈좀맞춰줘」)
+  OPS: { src: "/garden-app/job-ops.webp?v=9", w: 89, h: 32 },
   // 남은 직무 일곱(형 11-20 16:48 dm-gik 깃 옮김 「루미가 그릴거 아니야 ~ 그리고」 「하늘이랑 구름이 할거야」 · 나눔 = 구름 16:50 안)
   //   하늘 = PM · StorY · MusiC(DeV · OpS 꼴 · beings/하늘/일/직무-라벨/lab-gen2.mjs) · 구름 = Creator(형 13:42 「크리에이터 라벨은 이느낌으로 하나 만들어서 달아줘」 홀로그램 필기체) · R&D · SeC · ScooP
   //   크기 = 폭 ≈ 44px(FIXER 와 눈에 같게 · 형 14:13 「딱봐도 픽서빼고는 너무 큰데 사이즈좀맞춰줘」) · 높이 20px 안
-  PM: { src: "/garden-app/job-pm.webp?v=2", w: 63, h: 40 },   // PM = MD 결 스티커(형 18:51 dm-haneul 「하늘 PM」 + UXD 그림 · 「PM」 + MD 그림 · 「이 스타일이거든?」 · 라임 · 남색 입체 · 보라 테 · 체크 꼬리표) · 20px(MD 와 같은 높이)
-  STORY: { src: "/garden-app/job-story.webp", w: 88, h: 29 },
-  MUSIC: { src: "/garden-app/job-music.webp", w: 87, h: 27 },
-  CREATOR: { src: "/garden-app/job-creator.webp", w: 89, h: 37 },
-  RND: { src: "/garden-app/job-rnd.webp", w: 89, h: 33 },
-  SEC: { src: "/garden-app/job-sec.webp", w: 88, h: 32 },
-  SCOOP: { src: "/garden-app/job-scoop.webp", w: 87, h: 26 },
+  PM: { src: "/garden-app/job-pm.webp?v=9", w: 63, h: 40 },   // PM = MD 결 스티커(형 18:51 dm-haneul 「하늘 PM」 + UXD 그림 · 「PM」 + MD 그림 · 「이 스타일이거든?」 · 라임 · 남색 입체 · 보라 테 · 체크 꼬리표) · 20px(MD 와 같은 높이)
+  STORY: { src: "/garden-app/job-story.webp?v=9", w: 88, h: 29 },
+  MUSIC: { src: "/garden-app/job-music.webp?v=9", w: 87, h: 27 },
+  CREATOR: { src: "/garden-app/job-creator.webp?v=9", w: 89, h: 37 },
+  RND: { src: "/garden-app/job-rnd.webp?v=9", w: 89, h: 33 },
+  SEC: { src: "/garden-app/job-sec.webp?v=9", w: 88, h: 32 },
+  SCOOP: { src: "/garden-app/job-scoop.webp?v=9", w: 87, h: 26 },
 };
 /** 직무 값 = 명부 job 칸(서버에 생기면 그것 먼저) · 없으면 이 표(형 13:28~13:29 dm-sia 시아 옮김 「응 uxd들은 다 uxd고, 픽서들은 다 픽서야. (소나-이슬-루미 라인)」 「uxd 라인 > (구름-하늘)」 · 루미 시안 「하늘·루미 = UXD」를 갈음)
  *  「pm 라인(봄-시아-깃)」 = 라벨 그림 오면 같은 꼴로 · MD 주인 = 아직 미정 */
@@ -43,7 +43,7 @@ export function JobLabel({ job, who }: { job: Job; who?: string }) {
 }
 /** 지금 PM 만 무지개 판(형 11-20 19:18 dm-haneul 「현재 PM은 레인보우로 특별하게, 무지개 빛 할수있어?」) · 나머지 PM 라인 = 라임 스티커
  *  지금 PM = 서버 pm 칸(우하단 PM 구슬 ./room-fab.tsx 와 같은 캐시 열쇠 · 받기 0 더) · 교대되면 무지개도 따라감 · 그림 = 정지(움직임 0) */
-const PM_NOW = { src: "/garden-app/job-pm-now.webp", w: 63, h: 40 };
+const PM_NOW = { src: "/garden-app/job-pm-now.webp?v=9", w: 63, h: 40 };
 function PmLabel({ who }: { who: string }) {
   const now = useQuery({ queryKey: ["nomute", "pm"], queryFn: () => office<{ who?: string }>("pm"), staleTime: 300_000, refetchInterval: 300_000 }).data?.who;
   const g = now === who ? PM_NOW : IMG.PM;
