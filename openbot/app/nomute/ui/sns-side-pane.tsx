@@ -8,6 +8,8 @@
 import { useEffect, useRef, useState } from "react";
 import { SIDE_EVENT, type SidePick, SNS_GO_EVENT, SNS_SITE_KEY, SNS_SITES, type SnsSite, sideBridge, sideMsg, siteOf, takeGo } from "./sns-side";
 import { pickPost, stageSns } from "./sns-share";
+import { type MirrorSt, mirror } from "./mac-mirror";   // 다리 없는 브라우저 = 맥 비춤(⑤ B · 카리나 붙이개)
+import { SnsMirror } from "./sns-mirror";
 
 const loadSite = (): SnsSite => { try { return siteOf(localStorage.getItem(SNS_SITE_KEY)); } catch { return "instagram"; } };
 const PICK_JS = `${import.meta.env.BASE_URL || "/garden-app/"}sns-pick.js`;
@@ -27,6 +29,14 @@ export function SnsSidePane() {
   const [site, setSite] = useState<SnsSite>(() => (first ? first.site : loadSite())), box = useRef<HTMLDivElement>(null);
   const [send] = useState(() => sideBridge());
   const [busy, setBusy] = useState(false);
+  const [mst, setMst] = useState<MirrorSt>(() => mirror.state.st);   // 맥 비춤 상태(다리 없을 때만 씀)
+  useEffect(() => (send ? undefined : mirror.on((x) => setMst(x.st))), [send]);
+  const mlive = !send && mst === "live";
+  useEffect(() => {   // 맥 비춤 = 곳 바꿈 · 카드에서 온 글 → 맥 탭을 그 주소로(https 만 · 중계기가 거름)
+    if (!mlive) return;
+    mirror.go(goTo.current || SNS_SITES.find((x) => x.id === site)!.url);
+    goTo.current = "";
+  }, [mlive, site]);
   const goTo = useRef<string>(first?.url || "");   // 카드에서 온 글 주소(곳을 바꾼 뒤 자리가 잡히면 보냄)
   const siteRef = useRef(site); siteRef.current = site;
   useEffect(() => {
@@ -49,9 +59,13 @@ export function SnsSidePane() {
   useEffect(() => () => { send?.({ t: "nm-side", on: false }); }, [send]);   // 탭 떠남 = 껍데기 웹뷰 숨김
   const pick = useRef<() => void>(() => {});
   pick.current = () => {
-    if (!send || busy) return;
+    if ((!send && !mlive) || busy) return;
     setBusy(true);
     const id = `p${Date.now().toString(36)}`, s = siteRef.current;
+    if (!send) {   // 맥 비춤 = 붙이개가 같은 pick.js 를 맥 탭에서 돌림 → 같은 답(SidePick)
+      void mirror.pick(id).then((d) => { const p = pickPost(d, s); if (p) stageSns(p, d.img); }).finally(() => setBusy(false));
+      return;
+    }
     let t = 0;
     const done = () => { clearTimeout(t); window.removeEventListener(SIDE_EVENT, on); setBusy(false); };
     const on = (e: Event) => {
@@ -90,7 +104,7 @@ export function SnsSidePane() {
   return (
     <div className="nm-sns-side">
       <div className="nm-sns-pick" role="tablist" aria-label="SNS 고르기">
-        {send ? (
+        {send || mlive ? (
           <button type="button" className={`nm-sns-send${busy ? " busy" : ""}`} aria-label="대화로 보내기" title="대화로 보내기 (⌘⏎)" onClick={() => pick.current()} disabled={busy}>
             <svg viewBox="0 0 24 24" aria-hidden><path d="M19 12H6M11 6.5 5.5 12l5.5 5.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
@@ -99,11 +113,7 @@ export function SnsSidePane() {
       </div>
       <div className="nm-sns-stage">
         <div ref={box} className="nm-sns-box" data-site={site}>
-          {send ? <div className="nm-lazy" role="status" aria-label="여는 중"><i /><i /><i /></div> : (
-            <div className="nm-sns-noapp">
-              <a href={cur.url} target="_blank" rel="noopener noreferrer">새 창으로 열기</a>
-            </div>
-          )}
+          {send ? <div className="nm-lazy" role="status" aria-label="여는 중"><i /><i /><i /></div> : <SnsMirror fallback={cur.url} />}
         </div>
       </div>
     </div>

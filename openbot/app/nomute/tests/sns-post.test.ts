@@ -73,3 +73,13 @@ test("화면 = 단추(대화로 보내기) · 카드 · 보낼 때 두 줄(소�
   assert.match(chat, /takeSnsBlocks\(/);
   assert.match(chat, /snsBare\(m\) \? <SnsCard p=\{m\._sns!\} \/>/);
 });
+
+test("다리 없는 브라우저 = 맥 비춤 칸(⑤ B) · 이어지면 대화로 보내기 = mirror.pick · 곳 바꿈 = mirror.go", () => {
+  const pane = readFileSync(new URL("../ui/sns-side-pane.tsx", import.meta.url), "utf8"), mir = readFileSync(new URL("../ui/sns-mirror.tsx", import.meta.url), "utf8");
+  assert.match(pane, /: <SnsMirror fallback=\{cur\.url\} \/>/);
+  assert.match(pane, /\{send \|\| mlive \? \(/);
+  assert.match(pane, /void mirror\.pick\(id\)\.then\(\(d\) => \{ const p = pickPost\(d, s\); if \(p\) stageSns\(p, d\.img\); \}\)/);
+  assert.match(pane, /mirror\.go\(goTo\.current \|\| SNS_SITES\.find/);
+  assert.match(mir, /mirror\.touch\("start", p\.x, p\.y\)/);
+  assert.match(mir, /useEffect\(\(\) => \(\) => \{ mirror\.close\("leave"\); \}, \[\]\);/);   // 칸 떠남 = 맥 놓아줌
+});
