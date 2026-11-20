@@ -49,6 +49,7 @@ const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, 
 
 
 import { enterRoom, roomReadState } from "../data/read-state";
+import { JobLabel, jobOf } from "./job-label";
 import { roomMsgsOptions } from "./office-chat";   // 대화 미리 받기(방 화면과 같은 받기 꼴 · 윈터 11-07 15:50)
 const SUMMARY = "summary";   // 요약실 = 목록엔 안 보임(형 11-04 13:00 「시아야 요약을 앞에 단톡 형태로 방으로 보일 필요는 없어」 · 같은 기사 요약 = 서랍 「뉴스 기사」 · 앞 판 = 회의실 바로 아래 · 형 07:5x) · 방 = 뜸 서버 id summary · 주소로 열면 ./summary-desk.tsx
 const LIVE_MS = 3 * 60_000;   // 활발한 방 = 마지막 글(act_ts) 3분 안 · 빛 꼴 = live-shine.ts
@@ -309,7 +310,8 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
             <span className="flex items-center gap-1.5">
               <b className={`min-w-[1.2em] shrink truncate text-[15px] ${u ? "font-bold" : "font-semibold"}`} style={live(r) && sig ? ({ "--sig": sig } as CSSProperties) : undefined}>{live(r) ? <LiveShine text={p?.name || r.name} trunc sig /> : p?.name || r.name}</b>   {/* 이름 뒤 표지 = 한 글자 이름도 같은 간격(최소 폭이 틈을 벌렸음 · 형 10-31 「시아 모루 빠르 는 좀 너무 이모지가 붙어잇음.. ㅋㅋ」) */}
               {null /* 이름 뒤 애들 이모지(p.mark) = 목록에선 뺌(형 11-20 07:21 dm-gik 깃 옮김 「그리고 애들 대화방 목록에 이모지 나오게 되어있잖아. 이모지 안나오게해줘. 라벨에 있는건 유지.」 · 라벨 = 말풍선 이름 알약 .ymark 그대로) */}
-              {slim ? null : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && roomHeadCount(r, list) ? <span aria-label={`${roomHeadCount(r, list)}명(형 포함)`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{roomHeadCount(r, list)}</span> : null}
+              {slim ? null : jobOf(p) ? <JobLabel job={jobOf(p)!} />   /* 직무 라벨 그림(형 확정 11-20 13:25 · 루미 시안 · ./job-label.tsx) · 없는 애 = 옛 글 알약(보류) */
+                : p?.role ? <span data-content className="min-w-0 shrink-[99] truncate rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">{p.role}</span> : !r.with && roomHeadCount(r, list) ? <span aria-label={`${roomHeadCount(r, list)}명(형 포함)`} className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{roomHeadCount(r, list)}</span> : null}
               {null /* 고정 표시 = 줄 왼쪽 라임 세로줄로 갈음 · 압정 그림 뺌(형 11-14 23:07 dm-gik 「그리고 고정을 하면 좌측에 일자 라인 저거 라임색으로 들어가는거로 대체하고 고정 핀 보이는거는 뺄게.」) */}   {/* 고정 표시 = PC 띠와 한 벌 압정 그림(./pin-mark.tsx · 봄 11-12 16:17 A) */}
             </span>
             <span className="flex items-center gap-2 pr-6">   {/* ⋯ 자리 = 둘째 줄 · 첫 줄은 제목이 끝까지 */}
