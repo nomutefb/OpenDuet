@@ -6,7 +6,7 @@
 .nm-topswap-pane { grid-area:1 / 1; min-width:0; display:flex; flex-direction:column; justify-content:flex-end; }
 .nm-topswap-pane[data-on="0"] { visibility:hidden; pointer-events:none; }
 .nm-topswap[data-move] { -webkit-user-select:none; user-select:none; }
-.nm-topswap[data-move] .nm-topswap-pane { visibility:visible; will-change:transform; }
+.nm-topswap[data-move] .nm-topswap-pane:is([data-on="1"], [data-nx]) { visibility:visible; will-change:transform; }   /* 판이 셋이어도 넘기는 동안 보이는 건 지금 판 + 들어오는 판 둘뿐 */
 .nm-topswap[data-move] .nm-topswap-pane > * { pointer-events:none; }
 .nm-topswap[data-move] .nm-pulse { transform:none; }   /* 넘기는 중 = 팔로워 띠 눌림 꼴(:active 줄어듦) 0 */
 /* 양옆 꺽쇠(형 「좌우에 꺽쇠만 반투명 살짝 미관상 보기 좋게」) = 옆 여백 16 안에 선만 · 옅은 흰 28% · 누를 자리는 24×44 · 누르는 동안만 진해짐 · 넘기는 동안은 더 옅게 */
