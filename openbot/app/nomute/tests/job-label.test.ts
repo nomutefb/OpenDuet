@@ -8,7 +8,7 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   const lab = rd("../ui/job-label.tsx"), list = rd("../ui/room-list.tsx");
   const map = lab.slice(lab.indexOf("const JOB_OF"), lab.indexOf("};", lab.indexOf("const JOB_OF")));
   for (const [who, job] of [["구름", "UXD"], ["하늘", "UXD"], ["소나", "FIXER"], ["이슬", "FIXER"], ["루미", "FIXER"], ["천둥", "DEV"], ["빠르", "OPS"], ["번개", "OPS"],
-    ["봄", "PM"], ["시아", "PM"], ["깃", "PM"], ["뜸", "CREATOR"], ["결", "TELLER"], ["뎅", "TELLER"], ["윈터", "TELLER"], ["슈왕", "SCOOP"], ["온", "SEC"], ["카리나", "RND"], ["감", "RND"]]) assert.ok(map.includes(`${who}: "${job}"`), who);
+    ["봄", "PM"], ["시아", "PM"], ["깃", "PM"], ["뜸", "CREATOR"], ["결", "TELLER"], ["뎅", "TELLER"], ["윈터", "TELLER"], ["슈왕", "SCOOP"], ["온", "SECRETARY"], ["카리나", "RND"], ["감", "RND"]]) assert.ok(map.includes(`${who}: "${job}"`), who);
   // 남은 일곱(형 16:48 「하늘이랑 구름이 할거야」) = 폭 ≈ 44(43~45) · 높이 20 안
   // PM = MD 결 스티커(형 18:51 「이 스타일이거든?」) · MD 와 같은 20px 높이
   assert.match(lab, /  PM: \{ src: "\/garden-app\/job-pm\.webp\?v=9", w: 63, h: 40 \}/);
@@ -65,4 +65,11 @@ test("TELLER = 결 · 뎅 · 윈터(StorY 갈음) · 넷과 같은 수평 경향
   const lab = rd("../ui/job-label.tsx");
   assert.match(lab, /  TELLER: \{ src: "\/garden-app\/job-teller\.webp", w: 78, h: 40, dy: -2\.5, dx: -1\.5 \},/);
   assert.ok(statSync(new URL("../public/job-teller.webp", import.meta.url)).size < 8_000);
+});
+
+test("비서 = 온(SeC 갈음) · 형이 손수 만든 그림 · TELLER 와 같은 키 · 같은 수평(형 11-20 22:29 dm-sia 시아 옮김 「귀」 + 투명 png)", () => {
+  const lab = rd("../ui/job-label.tsx");
+  assert.match(lab, /  SECRETARY: \{ src: "\/garden-app\/job-secretary\.webp", w: 83, h: 33, dy: -2\.5, dx: -1\.5 \},/);
+  assert.ok(lab.includes(`온: "SECRETARY"`));
+  assert.ok(statSync(new URL("../public/job-secretary.webp", import.meta.url)).size < 8_000);
 });
