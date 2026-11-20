@@ -13,3 +13,12 @@ test("형광 끔 = ack 하나라도 · 「1」 = 서버 unseen 먼저 · 차콜 
   assert.match(css, /\.ychat \.yb\.me\.rd \{ background:#1e2023; color:#e6e9e6;/);   // 글자 밝게(검정 글자 0)
   assert.doesNotMatch(css, /\.ychat \.yb\.me \{ transition/);
 });
+
+test("PC 도 폰처럼 = 확인 전 형광 · 확인(.rd) · 바깥 글(.app)만 차콜(형 11-20 11:04 「그리고 pc에서도 그 모바일처럼, 읽으면 읽은 창 말풍선 불 off되는거 유지」)", () => {
+  const sh = readFileSync(new URL("../ui/shell.css", import.meta.url), "utf8");
+  assert.match(sh, /\.nm-split-root \.ychat \.yb\.me:is\(\.rd, \.app\):not\(\.ph\) \{ background:#1e2023 !important;/);
+  assert.ok(!/\.nm-split-root \.ychat \.yb\.me:not\(\.ph\) \{ background:#1e2023/.test(sh));   // 앞 판(PC 형 글 늘 차콜) 0
+  assert.ok(!/\.nm-split-root \.nac-text \{|, \.nm-split-root \.nac-text/.test(sh));   // 보내는 중 글도 폰처럼 형광
+  const up = readFileSync(new URL("../ui/attachment-up.css", import.meta.url), "utf8");
+  assert.match(up, /\.ychat \.yb\.me\.ph:is\(\.rd, \.app\) \.ycap \{ background:#1e2023;/);
+});
