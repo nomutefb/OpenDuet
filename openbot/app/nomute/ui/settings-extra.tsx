@@ -276,9 +276,9 @@ const vaultWhy = (e: unknown, fall: string) => {
   return m || fall;
 };
 /** 복사 → 체크 단추 = 옛 에디터 뉴스 요약 복사 단추(modern-copy · 그림 줄며 사라짐 133ms → 체크 133ms 뒤 142ms 로 나타남 · transform · opacity 만) · 서랍 줄 · 맨 위 칸 같이 씀 */
-function CopyBtn({ ok, off, label, go }: { ok: boolean; off?: boolean; label: string; go: () => void }) {
+function CopyBtn({ ok, off, label, go, text }: { ok: boolean; off?: boolean; label: string; go: () => void; text?: boolean }) {   // text = 글자 단추(테두리 0 · 예비 줄 · 형 11-20 11:02 「그냥 글자 버튼으로 해줘 복사도 마찬가지」) · 움직임은 그대로
   return (
-    <button type="button" disabled={off} aria-label={ok ? "복사됨" : `${label} 복사`} onClick={go} className={`nm-nb-btn nm-vault-b nm-vault-copy${ok ? " ok" : ""}`}>
+    <button type="button" disabled={off} aria-label={ok ? "복사됨" : `${label} 복사`} onClick={go} className={`nm-nb-btn nm-vault-b nm-vault-copy${text ? " nm-mcp-tb" : ""}${ok ? " ok" : ""}`}>
       <span className={`col-start-1 row-start-1 transition-[opacity,transform] ${ok ? "scale-50 opacity-0 duration-[133ms] ease-[cubic-bezier(.25,1,.5,1)]" : "scale-100 opacity-100 duration-[138ms] delay-[125ms] ease-[cubic-bezier(.42,0,.58,1)]"}`}>복사</span>
       <span aria-hidden className={`col-start-1 row-start-1 grid place-items-center transition-[opacity,transform] ${ok ? "scale-100 opacity-100 duration-[142ms] delay-[133ms] ease-[cubic-bezier(.42,0,.58,1)]" : "scale-50 opacity-0 duration-[121ms] ease-[cubic-bezier(.22,1,.36,1)]"}`}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
@@ -297,8 +297,8 @@ const DOTS = "••••••••";   // 열쇠 칸 = 가린 꼴만(형 08:
  *  펼치면 Authentication 안에 예비 열쇠 줄(08:14 「그러면 아까 내가 준 그 양식을 펼치면」 「auth안에 예비가 여러개 나오게 해, 근데 그 중에 루미는 없는거야」 · 루미 = 서버가 안 줌)
  *  예비를 복사하면 그 줄 아래 사용처 글칸 → 치면 저절로 저장(08:16 「***로 표기해서 3개가 잇으면 되고 가져가면 그 아래에 내가 사용처를 적고 적으면 자동으로 저장되게하면대」 · 저장 단추 0)
  *  링크 그림 = 그록 플러그인 화면 새 탭(08:08 「링크는 항상 여기거든? url 픽토그램은 여기로」) · 펼침 = bot-desk .fold 꼴(grid 0fr → 1fr · 누를 때 한 번) */
-function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText, onUse, flush, remint, minting, focusUse, nameOf }: {
-  top: VaultSeat; spares: VaultSeat[]; done: string; took: Record<string, true>; saved: string; memoOf: (s: VaultSeat) => string;
+function GardenMcp({ top, spares, done, saved, memoOf, copySeat, copyText, onUse, flush, remint, minting, focusUse, nameOf }: {
+  top: VaultSeat; spares: VaultSeat[]; done: string; saved: string; memoOf: (s: VaultSeat) => string;
   copySeat: (seat: string) => void; copyText: (key: string, text: string) => void; onUse: (seat: string, v: string) => void; flush: (seat: string) => void;
   remint: (seat: string) => void; minting: boolean; focusUse: { seat: string; n: number } | null; nameOf: (seat: string) => string;
 }) {
@@ -340,32 +340,33 @@ function GardenMcp({ top, spares, done, took, saved, memoOf, copySeat, copyText,
       </div>
       {spares.length ? (
         <>
-          <button type="button" className="nm-nb-btn nm-mcp-more" aria-expanded={open} onClick={() => setOpen((o) => !o)}>예비 {spares.length}<Chev dir={open ? "up" : "down"} size={14} /></button>
+          {/* 펼침 = 「예비 코드」 · 펼치면 라임(형 11-20 11:02 「이 펼침이 예비 3 이 아니라 예비 코드 라고 명칭이 되면 좋겠구, 누르면 라임색으로 들어오게 해주라」 · 색 = css aria-expanded) */}
+          <button type="button" className="nm-nb-btn nm-mcp-more" aria-expanded={open} onClick={() => setOpen((o) => !o)}>예비 코드<Chev dir={open ? "up" : "down"} size={14} /></button>
           <div className="nm-mcp-fold" data-open={open || undefined} inert={open ? undefined : true}>
             <div>
-              {spares.map((s) => {
-                const v = memoOf(s), show = !!took[s.seat] || v !== "";
-                return (
-                  <div key={s.seat} className="nm-mcp-row">
-                    <div className="flex items-center gap-2">
-                      <div className="nm-vault-in nm-mcp-f nm-mcp-k" aria-readonly="true">{nameOf(s.seat)}</div>
-                      <div className={`nm-vault-in nm-mcp-f nm-mcp-v${s.set ? "" : " off"}`} aria-readonly="true" aria-label={s.set ? "열쇠 가림" : "비어 있음"}>{s.set ? DOTS : "비어 있음"}</div>
-                      <CopyBtn ok={done === s.seat} off={!s.set} label={nameOf(s.seat)} go={() => copySeat(s.seat)} />
-                      {/* 재발행 = 새 열쇠 + 앞 열쇠 파기(형 11-20 03:04 「내가 재발행 하면 키를 바꿀 수 있게 해줘 기존 건 파기」) · 그 자리 재확인(MorphAsk · 모달 0) */}
-                      {/* 예비 한 자리 = 이 줄 한 곳(형 11-20 07:18 dm-gik 「그리고 이거 따로 노니까 확인해주고」 · 깃 옮김 · 앞 판 = 빈 예비가 아래 카드에도 따로 나옴) · 넣은 칸 = 재발행 · 빈 칸 = 새 열쇠 */}
-                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" note="앞 열쇠는 파기돼" label={`${nameOf(s.seat)} 재발행`} onYes={() => remint(s.seat)}>재발행</MorphAsk>
-                        : <MorphAsk className="nm-nb-btn nm-vault-b shrink-0 disabled:opacity-40" disabled={minting} yesText="만들기" note="새 열쇠가 생겨" label={`${nameOf(s.seat)} 새 열쇠`} onYes={() => remint(s.seat)}>새 열쇠</MorphAsk>}
-                    </div>
-                    {show ? (
+              {/* 예비 줄 = 한 격자(이름 · 별 · 메모 · 복사 · 발행 칸이 줄마다 세로로 맞음) — 형 11:02 「우측에 복사 재발행은 아래 버튼하고 라인을 맞춰서」 · 「** 는, 길이에 따라 구역이 넓어지거나 할 필요는없어」 · 「지금 예비랑 * 별이랑 간격이 되게 떨어져잇는데 그럴 필요없고」
+                  · 메모 = 복사 왼쪽 한 칸 · 늘 보임 · 50자 · 넘치면 칸 안에서 옆으로(「복사 좌측에 간단한 메모 적게끔해줘, 넘어가면 그냥 그 안에서 쭉 길어지게, 최대 50자」 · 저장 길 = 앞 판 사용처 그대로 seatvault/memo) */}
+              <div className="nm-mcp-sp">
+                {spares.map((s) => {
+                  const v = memoOf(s);
+                  return (
+                    <div key={s.seat} className="nm-mcp-sr">
+                      <div className="nm-vault-in nm-mcp-f nm-mcp-sk" aria-readonly="true">{nameOf(s.seat)}</div>
+                      <div className={`nm-vault-in nm-mcp-f nm-mcp-v nm-mcp-sv${s.set ? "" : " off"}`} aria-readonly="true" aria-label={s.set ? "열쇠 가림" : "비어 있음"}>{s.set ? DOTS : "비어 있음"}</div>
                       <div className="nm-mcp-use">
-                        <input id={`mcp-use-${s.seat}`} type="text" autoComplete="off" spellCheck={false} maxLength={200} placeholder="사용처" aria-label={`${nameOf(s.seat)} 사용처`} value={v}
+                        <input id={`mcp-use-${s.seat}`} type="text" autoComplete="off" spellCheck={false} maxLength={50} placeholder="메모" aria-label={`${nameOf(s.seat)} 메모`} value={v}
                           onChange={(e) => onUse(s.seat, e.target.value)} onBlur={() => flush(s.seat)} className="nm-vault-in normal-case" />
                         <svg aria-hidden className={`nm-mcp-ok${saved === s.seat ? " on" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
                       </div>
-                    ) : null}
-                  </div>
-                );
-              })}
+                      <CopyBtn text ok={done === s.seat} off={!s.set} label={nameOf(s.seat)} go={() => copySeat(s.seat)} />
+                      {/* 재발행 = 새 열쇠 + 앞 열쇠 파기(형 11-20 03:04 「내가 재발행 하면 키를 바꿀 수 있게 해줘 기존 건 파기」) · 그 자리 재확인(MorphAsk · 모달 0) · 빈 칸 = 발행(형 11:02 「새열쇠가 그냥 발행 으로」) · 둘 다 글자 단추 */}
+                      {/* 예비 한 자리 = 이 줄 한 곳(형 11-20 07:18 dm-gik 「그리고 이거 따로 노니까 확인해주고」 · 깃 옮김 · 앞 판 = 빈 예비가 아래 카드에도 따로 나옴) */}
+                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b nm-mcp-tb shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" note="앞 열쇠는 파기돼" label={`${nameOf(s.seat)} 재발행`} onYes={() => remint(s.seat)}>재발행</MorphAsk>
+                        : <MorphAsk className="nm-nb-btn nm-vault-b nm-mcp-tb shrink-0 disabled:opacity-40" disabled={minting} yesText="발행" note="새 열쇠가 생겨" label={`${nameOf(s.seat)} 발행`} onYes={() => remint(s.seat)}>발행</MorphAsk>}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </>
@@ -381,8 +382,8 @@ export function NomuteVault() {
   const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [done, setDone] = useState("");
   const [memo, setMemo] = useState<Record<string, string>>({});   // 이름표 글칸(고치는 중) · 없으면 서버 값
   const saveMemo = (seat: string, v: string) => office<{ ok?: boolean; memo?: string }>("seatvault/memo", { method: "POST", body: JSON.stringify({ seat, memo: v }) });
-  const [took, setTook] = useState<Record<string, true>>({}), [saved, setSaved] = useState("");
-  const [focusUse, setFocusUse] = useState<{ seat: string; n: number } | null>(null);   // 복사한 자리 사용처 칸으로 커서(위 GardenMcp)   // took = 이번에 복사한 자리(사용처 칸 열림) · saved = 방금 저절로 저장된 자리(✓ 잠깐)
+  const [saved, setSaved] = useState("");
+  const [focusUse, setFocusUse] = useState<{ seat: string; n: number } | null>(null);   // 복사한 자리 사용처 칸으로 커서(위 GardenMcp)   // saved = 방금 저절로 저장된 자리(✓ 잠깐)
   const waitRef = useRef<Record<string, { t: number; v: string }>>({});
   const saveUse = (seat: string, v: string) => {   // 사용처 저장 = 같은 서버 메모(seatvault/memo) · 글은 로컬에 두고 서버 값만 맞춤(치는 중 글자가 안 튐)
     const t = v.trim();
@@ -420,7 +421,6 @@ export function NomuteVault() {
     try {
       const j = await office<{ value: string }>("seatvault/copy", { method: "POST", body: JSON.stringify({ seat }) });
       await navigator.clipboard.writeText(j.value);
-      setTook((t) => (t[seat] ? t : { ...t, [seat]: true }));
       setFocusUse((f) => ({ seat, n: (f?.n || 0) + 1 }));
       setDone(seat); window.setTimeout(() => setDone((d) => (d === seat ? "" : d)), 1800);   // 옛 에디터 modern-copy 체크 머무름(touchHold 1800)
     } catch (e) { setNote((n) => ({ ...n, [seat]: vaultWhy(e, "복사 못 했어") })); }
@@ -434,7 +434,7 @@ export function NomuteVault() {
         if (!top) return null;
         return (
           <>
-            <GardenMcp top={top} spares={(q.data || []).filter((s) => !s.top)} done={done} took={took} saved={saved} memoOf={(s) => memo[s.seat] ?? s.memo ?? ""}
+            <GardenMcp top={top} spares={(q.data || []).filter((s) => !s.top)} done={done} saved={saved} memoOf={(s) => memo[s.seat] ?? s.memo ?? ""}
               copySeat={(seat) => void copy(seat)} copyText={(k, t) => void copyText(k, t)} onUse={onUse} flush={flush}
               remint={(seat) => mint.mutate(seat)} minting={mint.isPending} focusUse={focusUse} nameOf={nameOf} />
             <div className="nm-mcp-cut" aria-hidden />
