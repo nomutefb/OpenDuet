@@ -35,7 +35,7 @@ test("room-list.tsx 가 이 차례를 씀 · PM 1:1 늘 맨 위 · 종 · 시각
   const s = readFileSync(new URL("../ui/room-list.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/yeta-chat.css", import.meta.url), "utf8");
   assert.match(s, /const rest = restOrder\(shown\.filter\(\(r\) => !pinned\(r\.id\)\), talk, \(r\) => r\.last_ts \|\| 0\);/);
   assert.match(s, /\.sort\(\(a, b\) => Number\(b\.id === pmRoom\) - Number\(a\.id === pmRoom\) \|\| rank\(a\.id\) - rank\(b\.id\)/);
-  assert.match(s, /min-h-\[1lh\] items-center[^"]*">\{notify\.data && nOn \?/);
+  assert.match(s, /min-h-\[1lh\] items-center[^"]*">\{r\.with && turnWarn\(turnAtOf\(stat, r\.with\), Date\.now\(\)\) \?/); assert.match(s, /<\/svg> : null\}\{notify\.data && nOn \?/);   // 같은 줄 맨 앞 = 경고등(이번 턴 80분 넘음 · 형 11-21 07:49) → 종 → 시각
   assert.match(s, /<span className="nm-rtime">\{listTime\(r\.last_ts\)\}<\/span>/);
   assert.match(css, /\.nm-rtime \{ text-box:trim-both cap alphabetic; \}/);
   assert.match(css, /\.nm-rbell \{[^}]*transform:translateY\(1px\);/);

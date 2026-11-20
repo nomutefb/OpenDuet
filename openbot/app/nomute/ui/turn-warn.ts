@@ -6,3 +6,12 @@ export const TURN_WARN_MIN = 80;
 export const turnMin = (turnAt: unknown, now: number): number | undefined => (typeof turnAt === "number" && turnAt > 0 && turnAt <= now ? Math.floor((now - turnAt) / 60_000) : undefined);
 /** 지속 80분 넘음 */
 export const turnWarn = (turnAt: unknown, now: number): boolean => (turnMin(turnAt, now) ?? 0) > TURN_WARN_MIN;
+
+type StatRow = { name?: string; turn_at?: number | null };
+/** 그 애 turn_at(서버 status 줄 · activity 묶음 먼저 · 이름 = 그 애) · 없으면 null — 대화방 목록 종 옆 경고등(R0076 · 구름) · 받아오기 = 같은 status 캐시 */
+export function turnAtOf(st: { cats?: { id?: string; rows?: StatRow[] }[] } | undefined | null, who: string): number | null {
+  if (!st?.cats || !who) return null;
+  const cats = [...st.cats].sort((a, b) => Number(b.id === "activity") - Number(a.id === "activity"));
+  for (const c of cats) for (const r of c.rows || []) if (r?.name === who && typeof r.turn_at === "number" && r.turn_at > 0) return r.turn_at;
+  return null;
+}
