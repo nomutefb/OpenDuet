@@ -43,12 +43,19 @@
     url = location.origin + "/stories/" + story[1] + "/" + story[2] + "/";
   } else if (re && re.test(location.pathname)) {   // 글 화면 = 그 글 자신을 가리키는 링크(시각)에서 위로 = 「한 글만 든 가장 큰 덩이」(답글 · 추천 글은 다른 글 주소라 거기서 멈춤)
     url = location.href;
-    var self = re.exec(location.pathname)[1], mine = postLinks(D.body).filter(function (l) { return l.id === self; }), lk = mine.length ? mainLink(mine) : null;
-    for (var n0 = lk && lk.a; n0 && n0 !== D.body && n0 !== D.documentElement; n0 = n0.parentElement) {
-      var k0 = ids(postLinks(n0));
-      if (k0 > 1) break;
-      block = n0;
-      if (n0.tagName === "ARTICLE") break;
+    //   자기 링크가 여럿(머리 띠 · 「앱으로 보기」 덮개 · 사진 · 시각)이면 링크마다 올라가 본 덩이 가운데 「자기 링크를 가장 많이 품은 것」 → 같으면 큰 것
+    //   (X 로그인 없는 화면 = 맨 위 띠 390×53 · 화면 덮개 390×693 을 집던 것 · 글 덩이엔 시각 · 사진 · 숫자 링크가 여럿 · 11-20 실물)
+    var self = re.exec(location.pathname)[1], mine = postLinks(D.body).filter(function (l) { return l.id === self; }).slice(0, 16), best0 = -1, area = 0;
+    for (var q0 = 0; q0 < mine.length; q0++) {
+      var top0 = null;
+      for (var n0 = mine[q0].a; n0 && n0 !== D.body && n0 !== D.documentElement; n0 = n0.parentElement) {
+        if (ids(postLinks(n0)) > 1) break;
+        top0 = n0;
+        if (n0.tagName === "ARTICLE") break;
+      }
+      if (!top0) continue;
+      var k1 = postLinks(top0).filter(function (l) { return l.id === self; }).length, r0 = top0.getBoundingClientRect(), a0 = r0.width * r0.height;
+      if (k1 > best0 || (k1 === best0 && a0 > area)) { best0 = k1; area = a0; block = top0; }
     }
     if (!block) block = D.querySelector("article") || null;
   } else if (re) {
@@ -77,7 +84,12 @@
   }
   if (!story && found) {   // 못 찾음 = 주소 + 화면만(캡션 · 이름 0 · 설계 「못 찾으면 화면 전체 스냅샷과 현재 주소만」)
     var tt = site === "x" ? root.querySelector('[data-testid="tweetText"]') : site === "instagram" && !block ? D.querySelector("h1") : null;
-    if (tt) text = tt.innerText || "";
+    if (!tt) {   // 글 본문 = 말 표시가 붙은 칸(X = lang · 스레드 · 인스타 = dir="auto") 중 가장 긴 것(머리 띠 「앱에서 …」 같은 안내 줄은 표시가 없음 · 11-20 X 로그인 없는 화면 실물)
+      var cs = root.querySelectorAll('[lang]:not(html), [dir="auto"]'), bl = 0;
+      for (var c0 = 0; c0 < cs.length && c0 < 400; c0++) { var l0 = String(cs[c0].innerText || "").replace(/\s+/g, " ").trim().length; if (l0 > bl) { bl = l0; tt = cs[c0]; } }
+      if (bl < 8) tt = null;
+    }
+    if (tt) text = String(tt.innerText || "").replace(/\s+/g, " ").trim().replace(/\s*(번역하기|번역 보기|See translation|Translate)$/, "");   // 끝에 붙은 번역 단추 말
     else {   // 덩이 글줄 중 가장 긴 줄(이름 · 시각 · 숫자 · 단추 말 = 짧아서 빠짐)
       var lines = String(root.innerText || "").split("\n"), longest = "";
       for (var q = 0; q < lines.length; q++) { var t = lines[q].trim(); if (t.length > longest.length && t !== author && !/^[\d,.]+\s*\S{0,6}$/.test(t)) longest = t; }
