@@ -42,7 +42,7 @@ export function NoticeBox({ kind, onClose }: { kind: NoteKind; onClose: () => vo
       return got || { ...n, text: draft ?? n.text };
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e); setWhy(failKo(m));
-      if (/changed|base|conflict|409/i.test(m)) void qc.invalidateQueries({ queryKey: keyOf(kind) });   // 그 사이 바뀜 = 새 판을 읽어 둠(쓰던 글은 그대로 남음)
+      if (/changed|base|conflict|409|too_big|413/i.test(m)) void qc.invalidateQueries({ queryKey: keyOf(kind) });   // 그 사이 바뀜 · 한계 넘음 = 새 판 · 새 한계를 읽어 둠(쓰던 글은 그대로 남음 · 바닥 셈이 빨강 + 저장 막힘)
       throw e;
     }
   };

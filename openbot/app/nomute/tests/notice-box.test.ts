@@ -40,8 +40,10 @@ test("공지판 = 기본판 · 그록봇판 두 칸 · 바이트 지금/한계 �
   assert.equal(m.bytesOf("가a"), 4);   // 한글 3 · 영문 1
   assert.equal(m.bytesKo(3812, 8000), "3,812 / 8,000 바이트");
   assert.equal(m.bytesKo(12, 0), "12 바이트");
-  assert.equal(m.readNote({ notice: { ver: 3, text: "x" }, limit_bytes: 8000 })?.limit, 8000);
-  assert.equal(m.readNote({ text: "y", ver: 1, max_bytes: 4000 })?.limit, 4000);
+  assert.equal(m.readNote({ notice: { ver: 3, text: "x" }, limit_bytes: 8000 })?.limit, 8000);   // noticeset 꼴(카리나 #4535)
+  assert.equal(m.readNote({ text: "y", ver: 1, limit_bytes: 2400 })?.limit, 2400);   // grok-note 꼴
+  assert.equal(m.readNote({ text: "y", ver: 1, max_bytes: 4000 })?.limit, 0);   // 이름 하나로 줄임
+  assert.equal(m.failKo("too_big"), "바이트 한계 넘음");
   assert.equal(m.readNote({ text: "y", ver: 1 })?.limit, 0);
   assert.equal(m.canSave("가가가", { text: "", limit: 8 }), false);   // 9 바이트 > 8
   assert.equal(m.canSave("가가", { text: "", limit: 8 }), true);

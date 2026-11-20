@@ -18,7 +18,7 @@ export function readNote(j: unknown): Note | null {
   const o = (j && typeof j === "object" ? j : {}) as Record<string, unknown>, n = (o.notice && typeof o.notice === "object" ? o.notice : o) as Record<string, unknown>;
   if (typeof n.text !== "string") return null;
   const history = (Array.isArray(o.history) ? o.history : []).map((h) => { const x = (h || {}) as Record<string, unknown>; return { ver: int(x.ver), at: ms(x.at), by: String(x.by || "") }; }).filter((h) => h.ver);
-  const lim = [o.limit_bytes, n.limit_bytes, o.max_bytes, n.max_bytes, o.limit].map(int).find(Boolean) || 0;   // 서버 칸 이름이 정해지기 전 = 몇 꼴 다 받음(카리나 서버 판)
+  const lim = int(o.limit_bytes);   // 서버 한계 = 맨 위 limit_bytes 하나(카리나 editor #4535 · 기본판 8000 · 그록봇판 2400 · GET · POST 같은 자리) · 없으면 0 = 셈만
   return { ver: int(n.ver), text: n.text, at: ms(n.at) || ms(n.ts), by: String(n.by || ""), can_edit: o.can_edit === true, history, limit: lim };
 }
 /** 날짜(한국 시각) 「11-17」. */
@@ -36,4 +36,4 @@ export const bytesKo = (b: number, limit: number): string => `${b.toLocaleString
 /** 저장할 수 있나 — 바뀌었고 · 비지 않았고 · 길이 안 · 바이트 한계 안(서버가 한계를 주면). */
 export const canSave = (draft: string, n: Pick<Note, "text"> & Partial<Pick<Note, "limit">>): boolean => draft !== n.text && draft.trim().length > 0 && draft.length <= NOTE_MAX && !(n.limit && bytesOf(draft) > n.limit);
 /** 저장 실패 한마디 — 그 사이 다른 데서 바뀜(base 어긋남)은 따로. */
-export const failKo = (m: string): string => (/changed|base|conflict|409/i.test(m) ? "다른 데서 바뀌었어 — 새 판을 읽었으니 다시 봐 줘" : m || "저장 못 했어");
+export const failKo = (m: string): string => (/changed|base|conflict|409/i.test(m) ? "다른 데서 바뀌었어 — 새 판을 읽었으니 다시 봐 줘" : /too_big|413/i.test(m) ? "바이트 한계 넘음" : m || "저장 못 했어");   // too_big = 서버 413(카리나 #4535 · 한계는 새로 읽어 바닥 셈이 빨강)
