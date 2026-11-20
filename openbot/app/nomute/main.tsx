@@ -12,6 +12,7 @@ import "./ui/pc-light.css";   // PC 블랙 톤 = 눈에 차이 없는 유리 흐
 import "./ui/press.css";   // 눌림 기본값(무게 0 · 제 눌림이 있는 단추는 그대로)
 import "./ui/err-catch";   // 오류 받기(번개 11-08 · 형 01:31 「엔터프라이즈급」) — 앱보다 먼저 실려서 처음부터 받음
 import "./ui/point-pick";   // 가리키기 = ⌥ 누른 채 요소를 누르면 그 요소가 입력칸에 글로 붙음(형 11-21 · 화면에 얹는 것 0)
+import "./ui/cmd-key";   // 명령 팔레트 여는 키(⌘K · Ctrl+K) — 판은 처음 누를 때 받아 옴(형 11-21 · 11-17 「메뉴가 분산 … 좀 모아좌」)
 import "@/main";
 import { startSync } from "./data/sync";
 import { queryClient } from "@/query-client";

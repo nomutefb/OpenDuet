@@ -148,7 +148,7 @@ const CREW_ROWS: NonNullable<MenuGroup["items"]> = [
   { id: "sched", label: "스케줄 배선", icon: "calendar", to: "/sched", desc: "예약 깸 · 나무" },
   { id: "runner", label: "러너", icon: "activity", to: "/runner", desc: "몸 넷 게이지 · 작동 표" },
 ];
-const menuOf = (talkTo: string): MenuGroup[] => [
+export const menuOf = (talkTo: string): MenuGroup[] => [   // export = 명령 팔레트(./cmd-palette.tsx)도 같은 목록을 씀(이름 · 길 한 곳)
   { id: "home", label: "홈", to: "/" },
   { id: "chat", label: "대화", to: talkTo },   // 꺼져 있으면 목록 · 목록이면 마지막 대화창 · 대화창이면 목록(../swap/talk-next.ts · 아래 알약 네비 「대화」가 하던 그대로)
   { id: "ned", label: "뉴스 에디터", to: "/newsed", items: NED_TABS.map((t) => ({ id: t.id, label: t.name, icon: t.icon, to: t.to, desc: MENU_DESC[t.id] })), foot: { label: "뉴스 에디터 열기", to: "/newsed" } },
