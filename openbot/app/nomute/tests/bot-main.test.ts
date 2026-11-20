@@ -39,7 +39,8 @@ test("애들 한 화면 = 위에서 아래로 애들(손 판 → 알약 탭) →
   assert.match(desk, /const t = window\.setTimeout\(\(\) => \(idle \? idle\(\(\) => setOn\(true\), \{ timeout: 1500 \}\) : setOn\(true\)\), wait\);/);   // 아래 층 = 첫 화면 뒤 한가할 때 받아 그림
   assert.match(desk, /ts = \[350, 1300, 2800, 4800\]\.map\(\(ms\) => window\.setTimeout\(\(\) => \{ if \(!touched\) goSec\(k, false\); \}, ms\)\);/);   // 옛 길로 들어오면 손 닿기 전까지 그 층에 다시 맞춤
   assert.match(desk, /\/\^#\\\/sched\(\?:\[\/\?\]\|\$\)\/\.test\(h\) \? "sched" : \/\^#\\\/runner\(\?:\[\/\?\]\|\$\)\/\.test\(h\) \? "run"/);   // 옛 길 = 그 층으로 내려감
-  assert.match(css, /\.nm-crew-sec \+ \.nm-crew-sec::before \{ content:""; position:absolute; top:0; left:50%; width:1px; height:36px;/);   // 층 사이 줄기(가만한 그림)
+  assert.doesNotMatch(css, /\.nm-crew-sec \+ \.nm-crew-sec::(before|after)/);   // 층 사이 잉크 줄기 · 점 = 걷음(형 11-21 07:28 「이 잉크떨어지는 모양 없어도댐 낭비공간 줄이구」)
+  assert.match(css, /\.nm-crew-sec \+ \.nm-crew-sec \{ padding-top:12px; \}/); assert.match(css, /\.nm-crew-sec \.nm-sched \{ padding-bottom:0; \}/);   // 층 사이 = 카드 사이 12px · 한 화면 안 스케줄 판 아래 여백 0
   assert.doesNotMatch(css, /\.nm-crew[^{]*\{[^}]*animation/);   // 줄기 · 마디 = 움직임 0
   assert.match(sb, /export function StatusBoard\(\{ bare = false \}: \{ bare\?: boolean \} = \{\}\)/);
   assert.match(sb, /\{bare \? null : card\("activity", "활동"/);   // 활동 판만 빠짐

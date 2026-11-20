@@ -215,15 +215,14 @@
 .nm-crew { padding-bottom:40px; }
 .nm-crew-jump { display:flex; flex-wrap:wrap; gap:6px; padding-top:10px; }
 .nm-crew-sec { position:relative; scroll-margin-top:8px; }
-.nm-crew-sec + .nm-crew-sec { margin-top:6px; padding-top:44px; }
-.nm-crew-sec + .nm-crew-sec::before { content:""; position:absolute; top:0; left:50%; width:1px; height:36px; background:linear-gradient(180deg, transparent, rgba(var(--accent-rgb, 207,255,64),.55)); }
-.nm-crew-sec + .nm-crew-sec::after { content:""; position:absolute; top:33px; left:50%; width:7px; height:7px; margin-left:-3px; border-radius:50%; background:var(--accent, #CFFF40); box-shadow:0 0 10px rgba(var(--accent-rgb, 207,255,64),.5); }
+/* 층 사이 = 카드 사이와 같은 12px(스케줄 판 gap-3) · 잉크 줄기 · 점 = 걷음(형 11-21 07:28 dm-sia 시아 옮김 「이 잉크떨어지는 모양 없어도댐 낭비공간 줄이구」 · 앞 판 = 위 44px + 줄 · 점)
+   한 화면 안 스케줄 판 = 아래 여백 0(따로 연 #/sched 화면의 네비 비킴 112px 이 층 사이 빈 자리로 남았음 · 실측 그림 카드 끝 → 칸 끝 110px) */
+.nm-crew-sec + .nm-crew-sec { padding-top:12px; }
+.nm-crew-sec .nm-sched { padding-bottom:0; }
 .nm-crew-h { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; margin:0 auto 6px; font-size:var(--fs-h2, 18px); font-weight:700; letter-spacing:-.02em; color:#E7ECE7; text-transform:none; }
 .nm-crew-h i { display:none; }
 .nm-crew-h small { font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--nsb-mut, #8f958f); }
 :root:not(.dark) .nm-crew-h { color:#161716; }
-:root:not(.dark) .nm-crew-sec + .nm-crew-sec::before { background:linear-gradient(180deg, transparent, rgba(77,102,0,.5)); }
-:root:not(.dark) .nm-crew-sec + .nm-crew-sec::after { background:#4d6600; box-shadow:none; }
 
 /* ── 조직 그림(형 11-16 19:2x 구름 맥 창 「흐름의 조직 구성 느낌을 가장 메인에 좀 더 붙일 수 있나?」 · 「선같은 구성 같은것만 가져오면 될듯 그 느낌? 그리고 어떤 일 하고잇는지 ?」)
    PM 한 줄 → 세로 줄기 → 칸마다 가지(둥근 모서리) · 얼굴 밑 작은 표 = 지금 맡은 일 · 얼굴 누름 = 그 애 것만 아래에 펼침
