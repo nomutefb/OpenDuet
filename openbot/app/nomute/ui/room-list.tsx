@@ -22,7 +22,7 @@ import { MicOrb, ringOf } from "../swap/mic-orb";
 import { FaceImg } from "./faces";
 import { LiveShine } from "./live-shine";
 import { RoomMembersDialog, TempRoomDialog, TempSwipe, canGone, tempLeft } from "./temp-room";
-import { RoomMake } from "./room-fab";   // PC 맨 위 줄 오른쪽 끝 「+」 = 방 만들기(형 11-20 07:36)
+import { PmFab, RoomMake } from "./room-fab";   // PC 맨 위 줄 오른쪽 끝 「+」 = 방 만들기(형 11-20 07:36)
 import { MorphAsk } from "./morph-ask";   // 방 없애기 · 삭제 = 그 자리 재확인(모달 0 · 형 11-16 03:0x)
 import { dropRoomAway } from "./room-drop";   // 예 = 바로 목록에서 빼고 뒤에서
 import { RoomLookDialog } from "./room-look";   // 단톡 개요 「방 꾸미기」 = 방 안 메뉴와 같은 창
@@ -353,6 +353,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
     <div className="nm-rbar">
       <b>{teamsOn ? "팀즈" : "대화"}</b>
       <button type="button" className="nm-rbar-b" aria-label={teamsOn ? "대화방으로 바꾸기" : "팀즈로 바꾸기"} title={teamsOn ? "지금 팀즈 · 누르면 대화방" : "지금 대화방 · 누르면 팀즈"} onClick={() => setTeamsMode(!teamsOn)}>{teamsOn ? <b className="t">T</b> : <svg {...ico}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>}</button>
+      {teamsOn ? null : <PmFab className="nm-pmfab nm-pmfab-bar" />}   {/* PM 구슬 = 「+」 옆(형 11-20 12:07 「…그 대화창 생성 그 버튼 위치에 있어도 돼 그 pm 원 버튼」) */}
       {teamsOn ? null : <RoomMake className="nm-rbar-b nm-rbar-plus" />}   {/* 오른쪽 끝 옅은 「+」 = 방 만들기(형 11-20 07:20 「여기 대화방 탭 우측 끝에 옅게 + 있으면 될듯」 · 07:36 우하단 「+」 뺌 · 폰 = 「대화방」 탭 안) */}
     </div>
   ) : null;
