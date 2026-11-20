@@ -27,3 +27,10 @@ test("빈 칸 = 붙여넣기 하나 · 글 있으면 복사 · 지우기 · 지�
   assert.match(css, /\.dark \.nm-cmp-wrap:not\(:focus-within\) \.nm-cchip \{ background: color-mix\(in srgb, #3a3a3c 82%, transparent\); \}/);
   assert.match(css, /\.nm-cchips \{ position: absolute; top: 0; right: 58px; z-index: 2; display: flex; gap: 6px; transform: translateY\(-50%\);/);   // 위 테두리 선에 정확히 반 걸침 · 보내기 단추 바로 왼쪽(형 08:38)
 });
+
+test("단추 줄 = 입력 판(form) 위 테두리를 따라감 · 첨부 줄이 생겨도(형 11:19 「날아다님, 이미지 첨부시 파일이나」)", () => {
+  const src = readFileSync(new URL("../ui/compose-chips.tsx", import.meta.url), "utf8");
+  assert.match(src, /form\.getBoundingClientRect\(\)\.top - wrap\.getBoundingClientRect\(\)\.top/);
+  assert.match(src, /ro\.observe\(wrap\); ro\.observe\(form\)/);   // 크기 바뀔 때만 다시 잼(가만히 둔 화면 0)
+  assert.match(src, /<div ref=\{box\} className="nm-cchips"/);
+});

@@ -34,6 +34,15 @@ export function ComposeChips({ init = "" }: { init?: string }) {
   const exitUndo = () => { window.clearTimeout(timer.current); setUndo(null); };
   useEffect(() => { if (undo !== null && has) exitUndo(); }, [has, undo]);   // 지운 뒤 다시 쳐서 글이 생기면 되돌리기 끝(에디터 input → exitUndo · 비울 때 늦게 오는 「글 바뀜」은 빈 글이라 안 셈)
   useEffect(() => () => window.clearTimeout(timer.current), []);
+  const box = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {   // 단추 줄 = 입력 판(form) 위 테두리에 붙음 — 사진 · 파일 첨부 줄이 판 위에 생겨 감싸개가 커져도 판을 따라감(형 11:19 dm-bom 봄 옮김 「날아다님, 이미지 첨부시 파일이나」 · 앞 판 = 감싸개 맨 위 = 첨부 줄 위 100px 에 뜸)
+    const el = box.current, wrap = el?.parentElement, form = wrap?.querySelector("form");
+    if (!el || !wrap || !form) return undefined;
+    const put = () => { const t = Math.round(form.getBoundingClientRect().top - wrap.getBoundingClientRect().top); el.style.top = t ? `${t}px` : ""; };   // 0 = CSS 그대로(top 0)
+    put();
+    const ro = new ResizeObserver(put); ro.observe(wrap); ro.observe(form);   // 크기 바뀔 때만(첨부 붙음 · 뺌 · 여러 줄) · 가만히 둔 화면 = 0
+    return () => ro.disconnect();
+  }, []);
   const ed = () => { const a = document.activeElement as HTMLElement | null; return a?.isContentEditable && a.closest(".ychat-in") ? a : null; };
   const paste = async () => {
     const h = composerHandle(); if (!h) return;
@@ -50,7 +59,7 @@ export function ComposeChips({ init = "" }: { init?: string }) {
     window.clearTimeout(timer.current); timer.current = window.setTimeout(exitUndo, ERASE_UNDO_MS);
   };
   return (
-    <div className="nm-cchips" role="group" aria-label="입력칸 단추">
+    <div ref={box} className="nm-cchips" role="group" aria-label="입력칸 단추">
       {has ? <button type="button" tabIndex={-1} className={`nm-cchip${ok ? " ok" : ""}`} aria-label="복사" title="복사" onPointerDown={keep} onClick={() => void copy()}><Svg s={ok ? CHECK_SVG : COPY_SVG} /></button> : null}
       {has || undo !== null ? <button type="button" tabIndex={-1} className={`nm-cchip${undo !== null ? " undo" : ""}`} aria-label={undo !== null ? "되돌리기" : "입력 지우기"} title={undo !== null ? "되돌리기 (직전 입력 복원)" : "입력 지우기"} onPointerDown={keep} onClick={erase}><Svg s={undo !== null ? UNDO_SVG : ERASE_SVG} /></button> : null}
       <button type="button" tabIndex={-1} className="nm-cchip" aria-label="붙여넣기" title="붙여넣기" onPointerDown={keep} onClick={() => void paste()}><Svg s={PASTE_SVG} /></button>   {/* 붙여넣기 = 늘 맨 오른쪽(보내기 단추 바로 왼쪽 · 자리 고정 = 글 칠 때 안 튐) · 복사 · 지우기는 글 있을 때 그 왼쪽에(형 11-20 08:38) */}
