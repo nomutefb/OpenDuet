@@ -11,9 +11,9 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
     ["봄", "PM"], ["시아", "PM"], ["깃", "PM"], ["뜸", "CREATOR"], ["결", "STORY"], ["뎅", "STORY"], ["윈터", "STORY"], ["슈왕", "SCOOP"], ["온", "SEC"], ["카리나", "RND"], ["감", "RND"]]) assert.ok(map.includes(`${who}: "${job}"`), who);
   // 남은 일곱(형 16:48 「하늘이랑 구름이 할거야」) = 폭 ≈ 44(43~45) · 높이 20 안
   // PM = MD 결 스티커(형 18:51 「이 스타일이거든?」) · MD 와 같은 20px 높이
-  assert.match(lab, /  PM: \{ src: "\/garden-app\/job-pm\.webp\?v=2", w: 63, h: 40 \}/);
+  assert.match(lab, /  PM: \{ src: "\/garden-app\/job-pm\.webp\?v=9", w: 63, h: 40 \}/);
   for (const k of ["STORY", "MUSIC", "CREATOR", "RND", "SEC", "SCOOP"]) {
-    const m = lab.match(new RegExp(`  ${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp", w: (\\d+), h: (\\d+) \\}`));
+    const m = lab.match(new RegExp(`  ${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp(?:\\?v=\\d+)?", w: (\\d+), h: (\\d+) \\}`));
     assert.ok(m, k); assert.ok(Math.abs(+m![1] / 2 - 44) <= 1.5 && +m![2] <= 40, `${k} ${m![1]}×${m![2]}`);
     assert.ok(statSync(new URL(`../public/job-${k.toLowerCase()}.webp`, import.meta.url)).size < 8_000, k);
   }
@@ -23,8 +23,8 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   // 그려지는 폭(w/2) = FIXER 43.5 와 ±3 안
   for (const k of ["DEV", "OPS"]) { const w = +(lab.match(new RegExp(`${k}: \\{[^}]*w: (\\d+)`))?.[1] || 0) / 2; assert.ok(Math.abs(w - 43.5) <= 3, `${k} 폭 ${w}`); }
   // DeV · OpS = 하늘 그림(형 13:43~13:44 「저기에 보면 ba랑 y가 강하잖아. 그걸 활요해서 만들라고해.」) · 그림 바꾸면 ?v 올림(캐시)
-  assert.match(lab, /DEV: \{ src: "\/garden-app\/job-dev\.webp\?v=3", w: 85, h: 32 \}/);
-  assert.match(lab, /OPS: \{ src: "\/garden-app\/job-ops\.webp\?v=3", w: 89, h: 32 \}/);
+  assert.match(lab, /DEV: \{ src: "\/garden-app\/job-dev\.webp\?v=9", w: 85, h: 32 \}/);
+  assert.match(lab, /OPS: \{ src: "\/garden-app\/job-ops\.webp\?v=9", w: 89, h: 32 \}/);
   assert.match(lab, /width=\{g\.w \/ 2\} height=\{g\.h \/ 2\}/);
   for (const k of ["fixer", "md", "uxd", "dev", "ops"]) assert.ok(statSync(new URL(`../public/job-${k}.webp`, import.meta.url)).size < 8_000, k);
   // 자리 = 이름 바로 뒤(같은 줄 · items-center = 세로 가운데) · 라벨 있으면 글 알약 대신
@@ -38,4 +38,10 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   assert.ok(statSync(new URL("../public/job-pm-now.webp", import.meta.url)).size < 8_000);
   assert.match(rd("../ui/room-fab.tsx"), /queryKey: \["nomute", "pm"\], queryFn: \(\) => office<\{ who\?: string \}>\("pm"\), staleTime: 300_000, refetchInterval: 300_000/, "같은 열쇠 · 같은 받기");
   assert.match(list, /: p\?\.role \? <span data-content/);
+});
+
+test("라벨 반짝임 = 그림 안에 그려 넣음(형 11-20 19:44 dm-haneul 「1 고고」 · 앞 물음 19:39 「애들 라벨에 살짝 반짝임? 그런 효과넣으면 과부하걸릴까?」 · 19:43 「아예 더 덜먹는방법은?」) · 움직임 0", () => {
+  const lab = rd("../ui/job-label.tsx");
+  for (const k of ["fixer", "md", "uxd", "dev", "ops", "pm", "pm-now", "story", "music", "creator", "rnd", "sec", "scoop"]) assert.ok(lab.includes(`/garden-app/job-${k}.webp?v=9"`), k);
+  assert.doesNotMatch(lab, /animation|@keyframes|setInterval|requestAnimationFrame/);
 });
