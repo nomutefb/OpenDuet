@@ -13,7 +13,7 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   // PM = MD 결 스티커(형 18:51 「이 스타일이거든?」) · MD 와 같은 20px 높이
   assert.match(lab, /  PM: \{ src: "\/garden-app\/job-pm\.webp\?v=9", w: 63, h: 40 \}/);
   for (const k of ["STORY", "MUSIC", "CREATOR", "SEC", "SCOOP"]) {
-    const m = lab.match(new RegExp(`  ${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp(?:\\?v=\\d+)?", w: (\\d+), h: (\\d+) \\}`));
+    const m = lab.match(new RegExp(`  ${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp(?:\\?v=\\d+)?", w: (\\d+), h: (\\d+)(?:, dy: -?[\\d.]+)? \\}`));
     assert.ok(m, k); assert.ok(Math.abs(+m![1] / 2 - 44) <= 1.5 && +m![2] <= 40, `${k} ${m![1]}×${m![2]}`);
     assert.ok(statSync(new URL(`../public/job-${k.toLowerCase()}.webp`, import.meta.url)).size < 8_000, k);
   }
@@ -72,5 +72,7 @@ test("비서 = 온(SeC 갈음) · 형이 손수 만든 그림 · 93% · 같은 �
   assert.match(lab, /  SECRETARY: \{ src: "\/garden-app\/job-secretary\.webp\?v=2", w: 77, h: 31, dy: -2\.25, dx: -1 \},/);
   { const w = +(lab.match(/SECRETARY: \{[^}]*w: (\d+)/)?.[1] || 0) / 2; assert.ok(Math.abs(w - 41.5 * 0.93) <= 0.5, `비서 폭 ${w} = 앞 판 41.5 의 93%`); }
   assert.ok(lab.includes(`온: "SECRETARY"`));
+  // ScooP 1px 위(형 11-21 04:48 dm-sia 시아 옮김 「scoop 조금만 아주 조금만 위로올릴겡」 · 글자 가운데 = 이름 가운데였음 → 넷처럼 1px 위)
+  assert.match(lab, /  SCOOP: \{ src: "\/garden-app\/job-scoop\.webp\?v=9", w: 87, h: 26, dy: -1 \},/);
   assert.ok(statSync(new URL("../public/job-secretary.webp", import.meta.url)).size < 8_000);
 });

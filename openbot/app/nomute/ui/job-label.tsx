@@ -26,7 +26,7 @@ const IMG: Record<Job, { src: string; w: number; h: number; dy?: number; dx?: nu
   RND: { src: "/garden-app/job-rnd.webp?v=11", w: 75, h: 34, dy: 0 },   // 형 20:51 dm-sia 시아 옮김 「RND 조금만 올릴게」 → 1px 위(dy 1 → 0)
     // RND = 시아 홀로 비커 그림(형 20:34~20:37 dm-sia 시아 옮김 「여기 TEEL 저거로 그 비커 모형픽토까지 글자느낌 가능할까」 「너 맘대로해도잼」 · 「크기 85% 로 수평 맞춰주면댐」 = 20px 의 85% 17px) · 그림에 반짝임 이미 있음(sparkle 안 덧댐)
   SEC: { src: "/garden-app/job-sec.webp?v=9", w: 88, h: 32 },
-  SCOOP: { src: "/garden-app/job-scoop.webp?v=9", w: 87, h: 26 },
+  SCOOP: { src: "/garden-app/job-scoop.webp?v=9", w: 87, h: 26, dy: -1 },   // 1px 위 = 글자 가운데 0.5 → 넷처럼 이름 가운데보다 1px 위(형 11-21 04:48 dm-sia 시아 옮김 「scoop 조금만 아주 조금만 위로올릴겡」)
   // TELLER = 시아 「once upon a time」 그림(형 21:04~21:05 dm-sia 시아 옮김 「텔러 하까?」 「음악쟁이 글쟁이 다 스토리텔런데」 「오케이 ㄱㄱ」 「애들꺼 보고」 「경향성이 잇을거야 수평 경향성」)
   //   = 결 · 뎅 · 윈터(StorY 갈음) · 글자 높이 12px(넷과 같은 줄) · dy -2.5 = 글자 가운데 0.575 → 넷처럼 이름 가운데보다 1px 위 · dx -1.5 = 왼쪽 빈칸 · 그림에 반짝임 이미 있음
   TELLER: { src: "/garden-app/job-teller.webp", w: 78, h: 40, dy: -2.5, dx: -1.5 },
