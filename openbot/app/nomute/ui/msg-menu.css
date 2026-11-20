@@ -25,8 +25,15 @@
 @keyframes nmMmRow { from { opacity:0; transform:translateY(8px); } }
 .nm-mm[data-side="below"] .nm-mm-i, .nm-mm[data-side="below"] .nm-mm-q { animation-name:nmMmRowDown; }
 @keyframes nmMmRowDown { from { opacity:0; transform:translateY(-8px); } }
-@media (prefers-reduced-motion: reduce) { .nm-mm-veil, .nm-mm-i, .nm-mm-q { animation:none; } .nm-mm.out { transition:none; } }
+@media (prefers-reduced-motion: reduce) { .nm-mm-veil, .nm-mm-i, .nm-mm-q, .nm-mm-g { animation:none; } .nm-mm.out { transition:none; } }
 .nm-mm[data-over] .nm-mm-veil { background:rgba(8,9,10,.24); }   /* 줄이 글 위에 겹칠 때 = 조금만 더(읽히게 하는 건 아래 줄 판이 맡음)
 /* 메뉴 줄 자리만 어둡게 · 그 밖은 옅게(형 11-20 12:05 dm-bom 봄 옮김 「그리고 이렇게 어두워지는거 덜 그.메뉴 있는 부분 외로는 훨씬 덜 어두워져도 될닷」)
    = 막(veil) .46 · 흐림 7px → .18 · 2px(글 위 겹침 .62 → .24) · 줄 판 = 테 없는 어두운 판 + 번지는 그림자(가운데 판 꼴 아님 · 흐림 0 = 줄 움직임이 흐림 위에서 안 돎) */
 .nm-mm-l { padding:4px 12px; border-radius:18px; background:rgba(8,9,10,.62); box-shadow:0 0 28px 14px rgba(8,9,10,.62); }
+/* 보낼 방(형 11-21 08:24) = 75% · 2열 · 직무 묶음 머리(글자 + 위 구분선) · 줄 선 연하게 · 「보낼 방 ‹」 줄 = 두 칸 다 씀 */
+.nm-mm-l.move { display:grid; grid-template-columns:repeat(2, minmax(0, auto)); column-gap:18px; align-items:stretch; max-width:min(92vw, 360px); }
+.nm-mm-l.move > .nm-mm-i.back { grid-column:1 / -1; }
+.nm-mm-l.move > .nm-mm-i.face { min-height:33px; gap:8px; font-size:12px; border-bottom:1px solid rgba(255,255,255,.07); flex-direction:row-reverse; justify-content:flex-end; }   /* 칸마다 얼굴 → 이름 · 왼쪽부터(두 열 줄 맞춤) */
+.nm-mm-g { grid-column:1 / -1; margin:6px 0 0; padding:6px 4px 2px; border-top:1px solid rgba(255,255,255,.26); color:rgba(255,255,255,.62); font-size:10.5px; font-weight:700; letter-spacing:.02em; text-shadow:0 1px 8px rgba(0,0,0,.55); animation:nmMmRow .26s cubic-bezier(.2,.7,.3,1) both; animation-delay:calc(var(--i, 0) * 26ms); }
+.nm-mm[data-side="below"] .nm-mm-g { animation-name:nmMmRowDown; }
+.nm-mm[data-align="right"] .nm-mm-g { text-align:right; }

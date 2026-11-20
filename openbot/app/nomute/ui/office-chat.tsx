@@ -17,7 +17,7 @@ import { SrvNote } from "./srv-note";
 import { GoButton } from "./go-button";   // 보내기 · 저장 단추 = 게이지 알약 하나로(형 11-15 「전송이나 저장 버튼들 … 하네스 전반 통일」)
 import { DlSeqButton } from "./dl-seq";
 import { mergeReact, type RoomReacts, swapLock, swapReact } from "../data/react-merge";
-import { QrRadial, QuickCopy, QuickReact } from "./quick-react";
+import { QrRadial, QuickCopy, QuickReact, QuickShare } from "./quick-react";
 import { CallSheet, appendToComposer, setComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -397,7 +397,7 @@ function hyungView(list: Msg[], r: OfficeRoom | undefined): Item[] {
 
 type Ctx = {
   room: string; r?: OfficeRoom; list: OfficePerson[]; reads?: Reads; rx: Record<string, Record<string, string[]>>; quick: string[];
-  sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onReact: (id: string, e: string) => void; onSwap: (id: string, from: string, to: string, hasTo: boolean) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string, from?: string) => void;
+  sel: string; setSel: (id: string) => void; onMenu: (m: Msg) => void; onShare: (m: Msg) => void; onReact: (id: string, e: string) => void; onSwap: (id: string, from: string, to: string, hasTo: boolean) => void; onReply: (m: Msg) => void; onJump: (who: string, line: string, id?: string, from?: string) => void;
   nre: RegExp | null;   // 봇 이름(시안 · nameRe)
   unseen: (m: Msg) => number;   // 안 본 봇 수(형 글 · 말풍선마다 · unseenOf)
   read: (m: Msg) => boolean;   // 형 글에 「확인」이 났나(형광 끔 · ackOf)
@@ -1031,6 +1031,7 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
         <StatePill m={m} />
         {app ? <span className="yb-orig">원문</span> : null}   {/* PC = 형 말풍선이 원래 차콜이라 바깥 글은 오른쪽 위 「원문」으로 가름(형 11-16 09:33 dm-fast 「피시에서는 라벨을 원문 이라고 달던지」 · 09:34 「우측 위에 내 글은 우측 위에달리님가」) · 폰 = 바탕색으로 가름이라 숨김 */}
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
+          {goneOf(m) ? null : <QuickShare onShare={() => c.onShare(m)} />}{/* 내 말풍선 = 세로 가운데 왼쪽 공유(형 11-21 08:22 · 오른쪽은 화면 끝) */}
           <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) || snsBare(m) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : c.read(m) ? " rd" : ""}${onlyPhotos(m) || stickerOf(m.text) || snsBare(m) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : snsBare(m) ? <SnsCard p={m._sns!} /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkOrSns m={m} />{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
@@ -1054,7 +1055,7 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
               <BoxCard m={m} />
               <DecideInline id={m.id} />{/* 줄 끝 공백 0 = 말풍선(pre-wrap)에 빈 줄 안 생김(형 11-14 16:53 「말풍선이 한줄씩 공백이 남아」 · 뜸) ·  질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
               <Reactions m={m} c={c} mine={false} />
-              <QuickCopy text={String(m.text || "").replace(QUOTE, "") || firstLine(m)} />{/* 반응 단추 왼쪽 = 글 복사(형 11-21 08:05 · 글 메뉴 「복사」와 같은 글) */}
+              {jobOf(m) ? null : <QuickCopy text={String(m.text || "").replace(QUOTE, "") || firstLine(m)} />}{/* 반응 단추 왼쪽 = 글 복사(형 11-21 08:05 · 글 메뉴 「복사」와 같은 글) · 작업 알림엔 0(형 08:21 「작업 알림엔 복사 버튼 필요 없음」) */}
               <QuickReact id={m.id} quick={c.quick} faceId={idOf(m.who, c.list)} mine={Object.entries(c.rx[m.id] || {}).filter(([, w]) => (w || []).includes("형")).map(([k]) => k)} onReact={c.onReact} />{/* 바로 다는 반응(오른쪽 위 모서리 · 형 11-14 05:56) */}
             </div>}
             {!bundleOf(m) && askPickOf(c.room, m) ? (
@@ -1062,6 +1063,7 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
             ) : pickM(m) || bundleOf(m) ? null : <LinkOrSns m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) · 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}
             {time}
           </div>
+          {goneOf(m) ? null : <QuickShare onShare={() => c.onShare(m)} />}{/* 세로 가운데 오른쪽 = 공유(형 11-21 08:22) */}
         </div>
         {selected ? <Actions m={m} c={c} mine={false} /> : null}
       </div>
@@ -1152,7 +1154,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   const { r, list, msgs, reads, reacts, bots, older, draft } = useOfficeRoom(room);
   const [err, setErr] = useState(""), [dropping, setDropping] = useState(false);
   const [qpeek, setQpeek] = useState<Peek | null>(null);   // 다른 방(둘의 방)에 있는 답글 원글 펼침(형 11-16 19:33)   // dropping = 대화창에 파일 끌고 있음(형 11-05 10:45)
-  const [sel, setSel] = useState(""), [menuOf, setMenuOf] = useState<Msg | null>(null);   // 글 길게 누르기(./msg-menu.tsx)
+  const [sel, setSel] = useState(""), [menuOf, setMenuOf] = useState<Msg | null>(null), [menuMove, setMenuMove] = useState(false);   // 글 길게 누르기(./msg-menu.tsx)
   useMe();   // 메뉴 「고정」이 보는 나 = 방을 열 때 미리 받아 둠(첫 길게 누르기에 메뉴가 두 번 그려지던 것 · 형 11-03 10:49)
   const [prof, setProf] = useState("");   // 프로필 카드를 연 사람(who · 빈 값 = 닫힘)
   const [reply, setReply] = useState<{ id: string; who: string; line: string } | null>(null);
@@ -1481,7 +1483,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
       const box = boxRef.current; if (!box) return;
       box.style.overflowAnchor = "none"; window.clearTimeout(anchorT.current); anchorT.current = window.setTimeout(() => { box.style.overflowAnchor = ""; }, 2000);
     },
-    sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuOf(m); },
+    sel, setSel, want: want.id, onMenu: (m) => { setSel(""); setMenuMove(false); setMenuOf(m); }, onShare: (m) => { setSel(""); setMenuMove(true); setMenuOf(m); },   // 공유 그림 = 「보낼 방」 바로(형 11-21 08:22)
     onReact: (id, emoji) => { setSel(""); react.mutate({ id, emoji }); },
     onSwap: (id, from, to, hasTo) => { setSel(""); swapLock(swapBusy.current, id, () => swapRx.mutateAsync({ id, from, to, hasTo })); },
     onReply: (m) => { setSel(""); setReply({ id: m.id, who: nmOf(list, m.who), line: firstLine(m) }); requestAnimationFrame(() => document.querySelector<HTMLElement>(".ychat-in [contenteditable=\"true\"], .ychat-in textarea")?.focus()); },   // 답장 = 바로 쓰기 칸(폰 = 자판 올라옴 · 카톡 꼴)
@@ -1542,7 +1544,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
         void office<{ ok?: boolean; gone?: boolean; unsent?: unknown }>(`rooms/${enc(room)}/unsend`, { method: "POST", body: JSON.stringify({ id }) })
           .then((j) => { if (!j?.ok || !(j.gone || j.unsent)) throw new Error("not gone"); })   // unsent = 옛 서버 답(배포 전) · 그래도 목록엔 안 되살림
           .catch(() => { if (prev) qc.setQueryData<Page>(key, (old) => (old && !old.messages.some((x) => x.id === id) ? merge(old, [prev]) : old)); setErr("글을 지우지 못했어. 다시 눌러 줘."); });
-      }} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => setMenuOf(null)} /> : null}
+      }} who={nmOf(list, menuOf.who)} text={String(menuOf.text || "").replace(QUOTE, "")} line={firstLine(menuOf)} room={room} r={r} list={list} quick={c.quick} onReact={(e) => c.onReact(menuOf.id, e)} onReply={() => c.onReply(menuOf)} pics={picsOf(menuOf).length} onSave={() => picsOf(menuOf).forEach((x, k) => window.setTimeout(() => savePic(x.src, x.name), k * 250))} onClose={() => { setMenuOf(null); setMenuMove(false); }} startMove={menuMove} /> : null}
       {/* 대화창 아무 데나 끌어다 놓기 = 입력칸에 넣은 것처럼(형 11-05 10:45 「대화창 이 입력하는 칸, 말고 대충 이 대화창 안에만 드래그앤 드롭해도 대화칸에 넣는것처럼 해주면 땡큐!!」) */}
       <div className={`ychat relative flex min-h-0 flex-1 flex-col${dropping ? " ydrop" : ""}`}
         onDragOver={(e) => { if (Array.from(e.dataTransfer.types).includes("Files")) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; if (!dropping) setDropping(true); } }}

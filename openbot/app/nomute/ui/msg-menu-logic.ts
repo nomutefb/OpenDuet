@@ -53,3 +53,13 @@ export function holeMask(b: Box, r: number): { image: string; position: string; 
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='${w}' height='${h}' rx='${rr}'/></svg>`;
   return { image: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`, position: `${Math.round(b.left)}px ${Math.round(b.top)}px`, size: `${w}px ${h}px` };
 }
+
+/** 「보낼 방」 묶음(형 11-21 08:24 dm-sia 시아 옮김 「…분류를 PM·CR·SC DevOps UXD Fixer·Sec Teller 이렇게 구분선주고 시작점에 구분워딩 좀. 행 구분선은 연하게」 · 08:26 「!시아 ✓ ② DevOps 에 같이」 · 08:27 「아니 구분자 데브옵스 옃에」 「알앤디 널어달란ㅁ듯 미안」)
+ *  = 맨 위 머리 없음(회의실 · 형 · 단톡 · 직무 모름) → PM·CR·SC → DevOps·R&D → UXD → Fixer·Sec → Teller · 묶음 안 = 들어온 차례 그대로 · 순수 */
+export const MOVE_HEADS = ["PM·CR·SC", "DevOps·R&D", "UXD", "Fixer·Sec", "Teller"] as const;
+const HEAD_OF: Record<string, (typeof MOVE_HEADS)[number]> = { PM: "PM·CR·SC", CREATOR: "PM·CR·SC", SCOOP: "PM·CR·SC", DEV: "DevOps·R&D", OPS: "DevOps·R&D", RND: "DevOps·R&D", MD: "DevOps·R&D", UXD: "UXD", FIXER: "Fixer·Sec", SEC: "Fixer·Sec", SECRETARY: "Fixer·Sec", TELLER: "Teller", STORY: "Teller", MUSIC: "Teller" };
+export function moveGroups<T extends { with?: string }>(rooms: T[], roleOf: (who: string) => string | undefined): { head: string; items: T[] }[] {
+  const top: T[] = [], by = new Map<string, T[]>(MOVE_HEADS.map((h) => [h, []]));
+  for (const r of rooms) { const h = r.with ? HEAD_OF[roleOf(r.with) || ""] : undefined; (h ? by.get(h)! : top).push(r); }
+  return [{ head: "", items: top }, ...MOVE_HEADS.map((h) => ({ head: h, items: by.get(h)! }))].filter((g) => g.items.length);
+}

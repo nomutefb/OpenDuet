@@ -6,9 +6,10 @@
 //   확인 요청 = 1:1 은 모든 봇 · 단톡은 그 방 멤버 · 한 명씩 다 뜨고 마지막에 모두(형 10-31)
 //     단톡 = 그 방에서 인용 + 「!이름」 · 1:1 = 다른 봇은 이 방에 못 불러서 그 봇 1:1 방에 원문을 넣어 바로 깨움
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { IconCamera, IconChecks, IconChevronLeft, IconCopy, IconCornerUpLeft, IconCornerUpRight, IconDownload, IconShare2, IconSpeakerphone, IconTrash } from "@tabler/icons-react";
-import { type MenuKey, MENU_KO, clipBox, holeMask, menuItems, placeMenu, saveKo } from "./msg-menu-logic";
+import { type MenuKey, MENU_KO, clipBox, holeMask, menuItems, moveGroups, placeMenu, saveKo } from "./msg-menu-logic";
+import { jobOf as roleOf } from "./job-label";   // 보낼 방 묶음 = 직무 라벨 표 그대로
 import "./msg-menu.css";
 import { createPortal } from "react-dom";
 import { type OfficePerson, type OfficeRoom, idOf, office } from "../data/office";
@@ -46,10 +47,10 @@ export function useLongPress(open: () => void) {
 
 const short = (n: string) => n.replace(" PM", "");
 
-export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose, onUnsent }: { onUnsent?: (id: string) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
+export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact, onReply, pics = 0, onSave, onClose, onUnsent, startMove = false }: { startMove?: boolean; onUnsent?: (id: string) => void; quick: string[]; onReact: (e: string) => void; onReply: () => void; pics?: number; onSave?: () => void; m: { id: string; ts: number; files?: unknown[] }; who: string; text: string; line: string; room: string; r?: OfficeRoom; list: OfficePerson[]; onClose: () => void }) {
   const text = raw || line;   // 사진만 든 글 = 파일 이름 줄
   const qc = useQueryClient(), pins = usePinActions(room), veil = useRef(false);   // 판 밖을 새로 눌렀을 때만 닫음(길게 누른 손을 뗄 때 닫히지 않게)
-  const [asking, setAsking] = useState(false), [moving, setMoving] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
+  const [asking, setAsking] = useState(false), [moving, setMoving] = useState(startMove), [busy, setBusy] = useState(false), [note, setNote] = useState(""), [why, setWhy] = useState("");
   const others = list.filter((p) => p.who !== "형" && p.kind !== "human");
   const targets = r?.with || !r?.members?.length ? others : r.members.map((n) => list.find((p) => p.who === n)).filter((p): p is OfficePerson => !!p);
   const done = (t: string) => { setNote(t); window.setTimeout(onClose, 900); };
@@ -133,7 +134,8 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   });
   const mine = geo.mine, fine = typeof matchMedia === "function" && matchMedia("(pointer: fine)").matches;   // 마우스 화면 = 밀어서 답장이 안 됨 → 「답장」 줄을 둠
   const keys = menuItems({ pics: pics && onSave ? pics : 0, fine, canPin: pins.can, rooms: rooms.length, canDel: pins.can && !!onUnsent });   // 지우기 = 형 화면(공지 문과 같은 「형 · 쓰기 됨」 판정)
-  const rows = note ? 1 : asking ? targets.length + 2 : moving ? rooms.length + 1 : keys.length + (mine ? 1 : 0);
+  const groups = moving ? moveGroups(rooms, (w) => roleOf({ who: w })) : [];   // 보낼 방 = 직무 묶음 · 2열 · 75%(형 11-21 08:24)
+  const rows = note ? 1 : asking ? targets.length + 2 : moving ? 1 + Math.ceil(groups.reduce((n, g) => n + Math.ceil(g.items.length / 2) * 0.75 + (g.head ? 0.6 : 0), 0)) : keys.length + (mine ? 1 : 0);
   const place0 = placeMenu(geo.b, innerWidth, innerHeight, rows + (why ? 1 : 0), mine), place = geo.seen ? place0 : { ...place0, over: true }, hole = holeMask(geo.b, geo.rad);   // 말풍선을 못 찾았거나 안 보이면 구멍 없이
   useEffect(() => { const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); onClose(); } }; window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, [onClose]);
   const ICON: Record<MenuKey, ReactNode> = { save: <IconDownload />, reply: <IconCornerUpLeft />, copy: <IconCopy />, move: <IconCornerUpRight />, pin: <IconSpeakerphone />, ask: <IconChecks />, share: <IconShare2 />, shot: <IconCamera />, del: <IconTrash /> };
@@ -154,18 +156,24 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   return createPortal(
     <div className={leaving ? "nm-mm out" : "nm-mm"} data-side={place.side} data-align={place.align} data-over={place.over || undefined} role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
       <i className="nm-mm-veil" aria-hidden style={veilStyle} />
-      <div className="nm-mm-l" role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"} style={{ [place.align]: place.x, ...(place.side === "above" ? { bottom: place.y } : { top: place.y }), maxHeight: place.maxH }}>
+      <div className={`nm-mm-l${moving && !note ? " move" : ""}`} role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"} style={{ [place.align]: place.x, ...(place.side === "above" ? { bottom: place.y } : { top: place.y }), maxHeight: place.maxH }}>
         {note ? <p className={note === "✓" ? "nm-mm-n ok" : "nm-mm-n"} role="status" aria-label={note === "✓" ? "저장됨" : undefined}>{note === "✓" ? <svg className="nm-tick" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg> : note}</p>
         : moving ? (
           <>
             {back(`보낼 방${paths.length ? ` · 첨부 ${paths.length}` : ""}`, () => setMoving(false))}
             {/* 줄마다 그 방 얼굴(형 11-17 01:27 dm-bom 「다른 방으로 누르면 애들 얼굴 뜨게래줘 땡큐」) = 1:1 = 그 애 명부 얼굴(MicOrb) · 단톡 = 방 아이콘(RoomIcon) */}
-            {rooms.map((x, i) => { const p = x.with ? list.find((q) => q.who === x.with) : undefined; return (
-              <button key={x.id} type="button" role="menuitem" className="nm-mm-i face" style={at(i + 1)} disabled={busy} onClick={() => void forward(x)}>
-                <span>{x.with ? short(p?.name || x.with) : x.name}</span>
-                {x.with ? <MicOrb size={28} id={idOf(x.with, list)} tint={ringOf(p)} /> : <RoomIcon r={x} size={28} />}
-              </button>
-            ); })}
+            {/* 보낼 방 = 75% · 2열 · 직무 묶음 머리 + 구분선 · 줄 선 연하게(형 11-21 08:24 「이거 다른방 나타나는거 이것만 크기를 75% 로 해서 2열로 표기 가능한지 그리고 분류를 PM·CR·SC DevOps UXD Fixer·Sec Teller 이렇게 구분선주고 시작점에 구분워딩 좀. 행 구분선은 연하게」 · 08:26~27 R&D = DevOps 머리 옆) */}
+            {(() => { let k = 0; return groups.map((g) => (
+              <Fragment key={g.head || "top"}>
+                {g.head ? <p className="nm-mm-g" role="presentation" style={at(++k)}>{g.head}</p> : null}
+                {g.items.map((x) => { const p = x.with ? list.find((q) => q.who === x.with) : undefined; return (
+                  <button key={x.id} type="button" role="menuitem" className="nm-mm-i face" style={at(++k)} disabled={busy} onClick={() => void forward(x)}>
+                    <span>{x.with ? short(p?.name || x.with) : x.name}</span>
+                    {x.with ? <MicOrb size={21} id={idOf(x.with, list)} tint={ringOf(p)} /> : <RoomIcon r={x} size={21} />}
+                  </button>
+                ); })}
+              </Fragment>
+            )); })()}
           </>
         ) : asking ? (
           <>
