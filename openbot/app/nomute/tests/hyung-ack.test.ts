@@ -22,3 +22,9 @@ test("PC 도 폰처럼 = 확인 전 형광 · 확인(.rd) · 바깥 글(.app)만
   const up = readFileSync(new URL("../ui/attachment-up.css", import.meta.url), "utf8");
   assert.match(up, /\.ychat \.yb\.me\.ph:is\(\.rd, \.app\) \.ycap \{ background:#1e2023;/);
 });
+
+test("PC 우클릭 = 말풍선 밖 그 글 칸(이름표 · 시각 · 확인 표 · 줄 빈 곳)도 같은 글 메뉴(형 11-20 14:01 「pc에서는 우클릭이 안먹히는데 먹히게해주라」)", () => {
+  const oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
+  assert.match(oc, /const rowMenu = \(e: ReactMouseEvent\) => \{ if \(!e\.defaultPrevented\) press\.bind\.onContextMenu\(e\); \};/);   // 말풍선이 이미 받았으면 두 번 안 엶
+  assert.equal(oc.match(/data-id=\{m\.id\} onContextMenu=\{rowMenu\}/g)?.length, 2);   // 형 글 줄 · 애들 글 줄
+});

@@ -22,7 +22,7 @@ import { CallSheet, appendToComposer, setComposer } from "./call-sheet";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type React from "react";
-import { Component, type ComponentProps, type CSSProperties, Fragment, type PointerEvent as RPointerEvent, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Component, type ComponentProps, type CSSProperties, Fragment, type MouseEvent as ReactMouseEvent, type PointerEvent as RPointerEvent, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { roomReadState } from "../data/read-state";
 import { touchRooms } from "../data/sync";
 import { useRoomRead } from "../data/use-room-read";
@@ -1021,12 +1021,13 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
   const p = c.list.find((x) => x.who === m.who), ring = ringOf(p);   // ring = 이름표 바탕(테 색 · yeta-chat.css .yname.tab)
   const selected = c.sel === m.id;
   const press = useLongPress(() => c.onMenu(m));
+  const rowMenu = (e: ReactMouseEvent) => { if (!e.defaultPrevented) press.bind.onContextMenu(e); };   // PC 우클릭 = 말풍선 밖 그 글 칸(이름표 · 시각 · 확인 표 · 줄 빈 곳 · 둥근 모서리)도 같은 글 메뉴(형 11-20 14:01 dm-sia 시아 옮김 「pc에서는 우클릭이 안먹히는데 먹히게해주라」 · 앞 판 = 말풍선 안만 · 72 실물 = 그 밖은 브라우저 기본 메뉴)
   const toggle = () => { press.fired(); };   // PC 도 그냥 누름 = 아무 일 없음(형 11-04 17:52 「pc에서 눌렀을때 이모지가 나올필요는 없구, 우클릭했을때만 (대화를) 옵션이 나오면 됨」) · 우클릭·길게 = 글 메뉴(./msg-menu.tsx) · 폰 = 길게(형 10-31)   // 폰 = 그냥 누르면 아무 일 없음 · 길게 눌러야 메뉴(형 10-31 「터치만 해도 … 메뉴 … 생겨 적어도 0.5초」)
   const time = noTime ? null : <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
   if (mineOf(m)) {
     const app = hyungApp(m) && m.kind !== "human";   // 그록봇 앱에서 친 형 글 = 검정 말풍선 흰 글씨(형 10-30)
     return (
-      <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id}>
+      <div className={`flex flex-col items-end ${m._thr ? "pr-4" : ""}`} data-id={m.id} onContextMenu={rowMenu}>
         <StatePill m={m} />
         {app ? <span className="yb-orig">원문</span> : null}   {/* PC = 형 말풍선이 원래 차콜이라 바깥 글은 오른쪽 위 「원문」으로 가름(형 11-16 09:33 dm-fast 「피시에서는 라벨을 원문 이라고 달던지」 · 09:34 「우측 위에 내 글은 우측 위에달리님가」) · 폰 = 바탕색으로 가름이라 숨김 */}
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
@@ -1037,7 +1038,7 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
     );
   }
   return (
-    <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id}>
+    <div className={`ymsg${cont ? " cont" : ""}${fresh ? " in" : ""}${m._thr ? " pl-6" : ""}`} data-id={m.id} onContextMenu={rowMenu}>
       <button type="button" className="yava" aria-label={`${p?.name || m.who} 프로필`} onClick={(e) => { e.stopPropagation(); c.onProfile(m.who); }}><Ava who={m.who} list={c.list} /></button>
       <div className="ycol">
         <NameLabel tint={ring} text={p?.name || whoName(m.who)} mark={p?.mark} pm={!!p?.pm} />{m._win ? <span className="nm-win-tag" aria-label="클로드 창에서 쓴 글">창에서</span> : null}{m.mirror && !c.gardenAns?.has(m.id) ? <span className="nm-orig-tag" aria-label="거울로 들어온 원문">원문</span> : null}
