@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useFindDock } from "./find-dock";
 import { office } from "../data/office";
 const SumQueue = lazy(() => import("./queue-sum"));   // 요약 판 = 누를 때만 받음(뉴스 요약 조각 · 대화 화면 첫 조각에 안 실음)
 import "./pm-runner-mini.css";
@@ -61,16 +62,8 @@ export function QueuePill({ room }: { room: string }) {
     document.addEventListener("pointerdown", off, true);
     return () => document.removeEventListener("pointerdown", off, true);
   }, [open]);
-  const [at, setAt] = useState<{ top: number; right: number } | null>(null);   // 자리 = 대화 검색 단추 바로 아래(러너맵 알약과 같은 셈 · 같은 박자)
-  useEffect(() => {
-    if (!kind) return undefined;
-    const fit = () => { const f = document.querySelector<HTMLElement>(".nm-find"); const r = f?.getBoundingClientRect(); setAt(r && r.width ? { top: Math.round(r.bottom + 6), right: Math.round(window.innerWidth - r.right) } : null); };
-    fit();
-    const t = window.setInterval(fit, 1000);
-    window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit); window.addEventListener("nm-find-at", fit);   // nm-find-at = 돋보기가 옮긴 그때 같이(./room-search.tsx)
-    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); window.removeEventListener("nm-find-at", fit); };
-  }, [kind]);
-  if (!kind) return null;
+  const at = useFindDock(!!kind);   // 자리 = 대화 검색 단추 바로 아래 · 돋보기와 같은 때 옮김(./find-dock.ts · 형 11-20 14:19 「처음에는 잘못된 자리에 있다가 … 그 아래로 이동함」)
+  if (!kind || at === undefined) return null;   // 돋보기가 제 자리를 박기 전 = 안 그림(./find-dock.ts)
   const node = (
     <div ref={box} className={`nm-pmrun nm-qpill${open ? " open" : ""}${at ? " docked" : ""}`} style={at ? { top: at.top, right: at.right } : undefined}>
       <div className="nm-pmrun-row"><button type="button" className={`nm-pmrun-h${open ? " on" : ""}`} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label="대기열" title="대기열">{LIST}</button></div>

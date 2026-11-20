@@ -4,6 +4,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useFindDock } from "./find-dock";
 import { jobBoard } from "./job-fold";
 import { faceOf, office } from "../data/office";
 import { pmRoomId } from "./pm-set-logic";
@@ -72,16 +73,8 @@ export function PmRunnerMini({ room }: { room: string }) {
     return () => document.removeEventListener("pointerdown", off, true);
   }, [open]);
   // 자리 = 대화 검색 단추(.nm-find · 화면에 고정) 바로 아래 하나 + 그 왼쪽 하나(형 11-15 08:57 dm-gik 「대화 검색 버튼 수직 아래로 1개 배치 그리고, 그바로 수평으로 좌측에 하나 배치」 · 깃 #-047) · 단추가 없으면 앞 자리(흐름 안)
-  const [at, setAt] = useState<{ top: number; right: number } | null>(null);
-  useEffect(() => {
-    if (!here) return;
-    const fit = () => { const f = document.querySelector<HTMLElement>(".nm-find"); const r = f?.getBoundingClientRect(); setAt(r && r.width ? { top: Math.round(r.bottom + 6), right: Math.round(window.innerWidth - r.right) } : null); };
-    fit();
-    const t = window.setInterval(fit, 1000);   // 검색 단추도 1초마다 제 자리를 다시 잼(room-search fit) · 같은 박자
-    window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit); window.addEventListener("nm-find-at", fit);   // nm-find-at = 돋보기가 옮긴 그때 같이(./room-search.tsx)
-    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); window.removeEventListener("nm-find-at", fit); };
-  }, [here]);
-  if (!pmRoom || room !== pmRoom) return null;
+  const at = useFindDock(here);   // 자리 = 대화 검색 단추 바로 아래 · 돋보기와 같은 때 옮김(./find-dock.ts · 형 11-20 14:19 「처음에는 잘못된 자리에 있다가 … 그 아래로 이동함」)
+  if (!pmRoom || room !== pmRoom || at === undefined) return null;   // 돋보기가 제 자리를 박기 전 = 안 그림(./find-dock.ts)
   const pill = (k: "run" | "job", label: string, icon: JSX.Element) => <button type="button" className={`nm-pmrun-h${open === k ? " on" : ""}`} onClick={() => setOpen((o) => (o === k ? "" : k))} aria-expanded={open === k} aria-label={label} title={label}>{icon}</button>;
   const node = (
     <div ref={box} className={`nm-pmrun${open ? " open" : ""}${at ? " docked" : ""}`} style={at ? { top: at.top, right: at.right } : undefined}>

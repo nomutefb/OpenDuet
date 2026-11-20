@@ -131,9 +131,13 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
       put(find.current, 8); put(document.querySelector<HTMLElement>(".nm-story-btn"), 4);
     };
     fit();
+    // 첫 1.5초 = 프레임마다 다시 잼(머리 줄 · 위 러너 판이 늦게 서면 1초 기다리지 않고 바로 · 형 11-20 14:19 「처음에는 잘못된 자리에 있다가 … 그 아래로 이동함」) · 그 뒤 = 1초 덤
+    let raf = 0, n = 0, last = "";
+    const quick = () => { fit(); const v = find.current?.dataset.pinTop || ""; if (v && v === last) n += 6; last = v; if (++n < 90) raf = requestAnimationFrame(quick); };   // 같은 자리 두 번 = 곧 멈춤
+    raf = requestAnimationFrame(quick);
     const t = window.setInterval(fit, 1000);
     window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit);
-    return () => { window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); };
+    return () => { cancelAnimationFrame(raf); window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); };
   }, [room, open]);
   const key = useDeferredValue(q).trim().toLowerCase();
   const hits = useMemo(() => (key ? rows.filter((r) => r.text.toLowerCase().includes(key)).reverse() : []), [rows, key]);   // 최신 글이 1번 · 위로 = 앞 글
