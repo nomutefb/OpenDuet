@@ -72,7 +72,7 @@ async function shrink192(f: File): Promise<string> {
 // 수리 접수 = 단톡방이 아니라 접수처(형 10-31 「회의실 개념 이 아니니까, 따로 위에 뺴줄래?」) · 방은 그대로라 애들 접수는 같음 · 화면만 목록 밖 오른쪽 위 단추
 const REPAIR = "repair";
 
-import { restOrder } from "./room-rest-order";   // 고정 밖 차례(순수 · 개인방 → 단톡 → 예비)
+import { restOrder } from "./room-rest-order";   // 고정 밖 차례(순수 · 개인방 → 단톡 → 예비 · 칸 안 시간 순)
 export { blankLast, previewLine, talkPreview } from "./room-preview";   // 미리보기 한 줄 · 「메시지 보냄」 뒤 빈 칸 메움(순수 = ./room-preview.ts)
 
 /** 목록 시각 = 오늘은 24시간 「23:05」 · 다른 날은 listWhen 그대로(형 10-31 「11:34 am 목록에선 am빼서 우측 정렬으로 해서 24시간 표시로」) · 대화창 시각은 그대로 */
@@ -108,19 +108,17 @@ export function useRoomOrder() {
   const shown = all.filter((r) => !hidden.has(r.id));
   const head = (id: string) => (id === pmRoom ? 0 : id === TRAIN_ROOM ? 1 : id === SUMMARY ? 2 : 3);   // PM 1:1 → 기차봇 1:1 → 요약실 → 고정 방(최근 순) · 앞 판 = 회의실 → 요약실
   const rank = (id: string) => { const i = pinOrder.indexOf(id); return i < 0 ? 1e6 + head(id) : i; };   // 끌어 둔 차례 먼저 · 아직 안 끈 고정 방 = 앞 판 차례(PM → 작업 알림 → 고정 · 최근 순)
-  const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => rank(a.id) - rank(b.id) || head(a.id) - head(b.id) || recent(a, b));
+  // PM 1:1 = 끌어 둔 차례와 상관없이 늘 맨 위(형 11-21 05:33 dm-sia 시아 옮김 「PM 고정 개인 단톡 예비 순 이려나」) · 그 아래 고정 = 끌어 둔 차례 그대로
+  const pin = shown.filter((r) => pinned(r.id)).sort((a, b) => Number(b.id === pmRoom) - Number(a.id === pmRoom) || rank(a.id) - rank(b.id) || head(a.id) - head(b.id) || recent(a, b));
   // 고정 밖 = 안 읽은 방 먼저(그 안에선 새 글 시각순) → 읽은 방(앞 판 그대로 · 마지막 대화 · 읽은 때 중 늦은 순)(형 11-16 09:17 dm-bom 「채팅 올라오면 위로 새로 올라온게 안읽은게 떠야되는데 새 채팅이 더 위로 올라와서 안읽은게 묻힌다 안읽은게 시간순으로 더 위러 가야함 우선순위정렬이」 · 봄 옮김 · 뎅) · 숫자 · 점 셈 = count 그대로
   // 고정 밖 차례 = 형과 마지막으로 대화한 때 새 것부터 · 읽었든 안 읽었든 — 그 애가 형한테 말한 때 · 형이 그 방에 쓴 때 중 늦은 것(카톡처럼)
   //   형 11-19 13:27 dm-bom 봄 옮김 「그리고 나한테 최근에 말을 한 사람이 위로 올라오게해줘 고정다음으로」 · 16:49 「그리고 가장 최근에 나랑 대화 나누는사람이 위로 안올라오는 문제 아직 해결안됨!」
   //   · 봄 16:53 「「나랑 대화 나누는」 = 형이 쓴 글로도 올라와야 하는 걸로 정할게(카톡처럼) · 차례 = max(heard_ts, 그 방 형 마지막 글 시각)」 · 앞 판 13:3x = 그 애가 말한 때만(형이 쓴 때로는 안 올라감)을 갈음
   //   그 애가 말한 때 = 서버 heard_ts(빠르 #4371) · 형이 쓴 때 = 마지막 글이 형 글이면 그 시각(단톡 = 형 뒤로 남들 글이 이어지면 형 시각은 모름 → 형한테 온 글만) · 형이 읽은 때로는 안 올라감 · 안 읽음 표는 줄에 그대로
   const talk = (r: Room) => { const l = lastOf(r), mine = l && l.kind === "human" ? l.ts : 0; return Math.max(r.heard_ts || 0, mine) || (l ? l.ts : r.last_ts || 0); };
-  // 안 읽은 방(단톡 포함) 먼저 → 그 안 · 나머지 = 위 talk 차례(형 11-19 21:42 dm-sia 시아 옮김 「시아 항상 고정 빼고는 단톡 포함 안 읽은 창이 가장 위에 올라오게해줘」 · 봄 13:36 「안 읽은 방 먼저 뺌」을 갈음 = 형 말이 먼저)
-  //   안 읽음 = 줄 숫자 · 점과 같은 셈(count · 서버 unread · 단톡 = 형한테 온 글만)
-  const unread = (r: Room) => count(r) !== 0;
-  // 예비(손님 · 서버 guest:true = dm-spare01 「예비 1」 …) 창 = 늘 맨 아래(형 11-20 07:17 dm-gik 깃 옮김 「웅 예비창은 항상 제일 아래로 가게 해주라」) · 그 안 차례는 위와 같음 · 형이 고정한 건 고정 그대로
-  // 칸 = 개인방(안 읽음 먼저 → talk) → 단톡(시간 순 = 목록 시각 last_ts 새 것 위 · 안 읽음으로 안 뜀) → 예비 맨 아래(형 11-21 05:33 dm-sia 시아 옮김 「✓ 기타: 개인방 아래로 가는데 단톡도 시간 순」 · 순수 = ./room-rest-order.ts)
-  const rest = restOrder(shown.filter((r) => !pinned(r.id)), unread, talk, (r) => r.last_ts || 0);   // 예비 = 서버 guest:true 그대로 읽음
+  // 고정 밖 = 개인방(talk) → 단톡(목록 시각 last_ts) → 예비(서버 guest:true · talk) · 칸 안 = 시간 새 것 위 · 안 읽음은 차례에 안 씀(줄 숫자 · 점만 · count 그대로)
+  //   형 11-21 05:33 dm-sia 시아 옮김 「✓ 기타: 개인방 아래로 가는데 단톡도 시간 순」 「PM 고정 개인 단톡 예비 순 이려나」 「그다음 조건이 시간이고」 · 11-19 21:42 「단톡 포함 안 읽은 창이 가장 위에」를 갈음 · 순수 = ./room-rest-order.ts
+  const rest = restOrder(shown.filter((r) => !pinned(r.id)), talk, (r) => r.last_ts || 0);
   const hid = all.filter((r) => hidden.has(r.id)).sort(recent);
   return { rooms, list, ordered: [...pin, ...rest].filter((r) => r.id !== REPAIR && r.id !== "memo" && r.id !== SUMMARY && r.id !== TRAIN_ROOM)   /* 작업 알림(기차봇 1:1) = 목록에서 숨김 · 완료는 PM 방 접힌 카드 + 리모콘(형 11-14 23:34 「작업 알림은 대화방으로 취급 안하고」 · 깃 #-019) */, hid, count, lastOf, pinned, fixed, pmRoom, pins, setPins, hidden, setHidden, savePinOrder };
 }
@@ -330,7 +328,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
             </span>
           </span>
           <span className="nm-rside">   {/* 시각 = 오른쪽 위 · 안 읽은 수 = 그 아래(형 10-31 「저게 시간 아래로 가게 해줘」) */}
-            <span className="flex items-center gap-1 text-[11px] tabular-nums text-muted-foreground">{notify.data && nOn ? <svg aria-label="알림 켬" className="nm-rbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg> : null}{listTime(r.last_ts)}</span>   {/* 알림 켠 방 = 시각 앞 작은 종(형 11-04 08:09 「이거 켬으로 하면 목록에서 우측에 종모양이 나오면 될거같아 작게 적정한 공간에」) */}
+            <span className="flex min-h-[1lh] items-center gap-1 text-[11px] tabular-nums text-muted-foreground">{notify.data && nOn ? <svg aria-label="알림 켬" className="nm-rbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg> : null}<span className="nm-rtime">{listTime(r.last_ts)}</span></span>   {/* 종 · 시각 수평 = 시각 글자를 숫자 키(cap)로 잘라 가운데 맞춤 · 줄 높이는 1lh 그대로(형 11-21 05:34 dm-sia 시아 옮김 「응 그리고 옆에 종 모양. 그거 시간이랑 수평 맞춰주라」) */}   {/* 알림 켠 방 = 시각 앞 작은 종(형 11-04 08:09 「이거 켬으로 하면 목록에서 우측에 종모양이 나오면 될거같아 작게 적정한 공간에」) */}
             {n > 0 ? <b aria-label={`안 읽은 글 ${n}개`} className="nm-rcount">{n > 99 ? "99+" : n}</b>
               : n < 0 ? <span aria-label="안 읽음" className="nm-rdot" /> : null}
           </span>
