@@ -14,6 +14,7 @@ import { type Card, type Col, type Dec, colCount, inboxOf, spanKo, timeRows } fr
 import { DecideFab, openDecide, useDecisions } from "./decide-pop";
 import { useFlip } from "./flip";
 import { whoName } from "./who-name";
+import { JobLabel, jobOf } from "./job-label";   // 시간 줄 오른쪽 끝 = 주요 직무 라벨 그림(대화창과 같은 부품)
 import "./bot-inbox.css";
 
 type View = "board" | "list";
@@ -97,13 +98,14 @@ export function BotInbox({ t, skills, now: at, focus = "" }: { t: BotTable; skil
               {mine.length ? <ul>{mine.map((c) => <InboxCard key={c.key} c={c} now={now} open={open === c.key} onToggle={() => setOpen(open === c.key ? "" : c.key)} onAct={onAct} hasRoom={!!roomOf(c.who)} face={idOf(c.who, people)} dim={!!focus && c.who !== focus} />)}</ul> : k === "run" && times.length ? null : <p className="none">{k === "need" ? "형이 볼 것 없음" : k === "run" ? "도는 일 없음" : "오늘 끝난 일 없음"}</p>}
               {k === "run" && times.length ? (   /* 애들 시간 줄 = 가로 한 줄 「이름 · 누적 N분 · 지금 N분째」(형 11-21 07:45) · 경고색 = 누적 > 250 · 지금 > 80(형 07:46) */
                 <ul className="nm-ibx-time" aria-label="애들 시간">
-                  {times.map((x) => (
+                  {times.map((x) => { const jb = jobOf(people.find((p) => p.who === x.who) || { who: x.who }); return (
                     <li key={x.who} data-dim={focus && x.who !== focus ? "" : undefined}>
-                      <FaceImg id={idOf(x.who, people)} size={18} /><b>{x.who}</b>
-                      <span data-warn={x.warnSum || undefined}>누적 {x.sum ?? "–"}분</span>
+                      <i className="rk">{x.rank ?? ""}</i><FaceImg id={idOf(x.who, people)} size={18} /><b>{x.who}</b>   {/* 순위 = 누적 많은 순(형 07:56 「이거 누적 전 24시간 기준 순위 나오게 하고」) */}
+                      <span data-warn={x.warnSum || undefined}>누적 {x.sum != null ? `${x.sum}분` : "–"}</span>
                       {x.cur != null ? <span data-warn={x.warnCur || undefined}>지금 {x.cur}분째</span> : null}
+                      {jb ? <span className="jb"><JobLabel job={jb} who={x.who} /></span> : null}   {/* 주요 직무 = 오른쪽 끝 대화창 라벨 그림(형 07:56 「주요 직무는 우측에」) */}
                     </li>
-                  ))}
+                  ); })}
                 </ul>
               ) : null}
             </section>

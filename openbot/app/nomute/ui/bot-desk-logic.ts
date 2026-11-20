@@ -144,8 +144,13 @@ export function orbOf(r: BotRow): "working" | "listening" | "" {
 export function mixOf(rows: BotRow[]): { group: Group; n: number }[] {
   return flowOf(rows).map((g) => ({ group: g.group, n: g.rows.length }));
 }
-/** 카드 상태 줄 꼬리 — 마지막 손 · 신호(짧게 · 없으면 빈 글). */
+/** 누적 작업(분) 셈 한 곳 — 애들 시간 줄(./bot-inbox-logic.ts timeRows) · 얼굴 카드 꼬리(tailOf)가 같이 씀
+ *  형 11-21 07:54 dm-sia 시아 옮김 「24시간 직전 기준」 → 서버 24시간 칸(번개)이 오기 전 = work_min(오늘 일한 시간) · 칸이 오면 여기만 바꿈 */
+export const sumMin = (r: BotRow): number | undefined => (typeof r.work_min === "number" && r.work_min >= 0 ? Math.round(r.work_min) : undefined);
+/** 카드 상태 줄 꼬리 — 휴식 · 작업 · 누적 작업(짧게 · 없으면 빈 글)
+ *  형 11-21 07:54 dm-sia 시아 옮김 「여기 누적도 뜨게해주고 24시간 직전 기준 손 명칭 변경 작업 대기 는 휴식 누적 작업 나오게 명칭은 누적 순서는 휴식 작업 누적 작업(시)」 「아니 (분)」
+ *  = 앞 「손 N분 전 · 대기 N분 전」 → 「휴식 N분 전 · 작업 N분 전 · 누적 작업 N분」(대기 신호 = 휴식 · 마지막 손 = 작업 · 그록 「문 확인」은 그대로) */
 export function tailOf(r: BotRow, now: number): string {
-  const sig = sigOf(r, now);
-  return [r.last_at ? `손 ${agoKo(now - r.last_at)}` : "", sig !== "–" ? sig : ""].filter(Boolean).join(" · ");
+  const rest = r.beat_at ? `휴식 ${agoKo(now - r.beat_at)}` : r.door_at ? `문 확인 ${agoKo(now - r.door_at)}` : "", sum = sumMin(r);
+  return [rest, r.last_at ? `작업 ${agoKo(now - r.last_at)}` : "", sum != null ? `누적 작업 ${sum}분` : ""].filter(Boolean).join(" · ");
 }

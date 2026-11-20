@@ -75,20 +75,22 @@ test("작업 줄(trail · editor #3953) — 오면 지금 손이 붙은 오더 �
   assert.deepEqual(trailSteps({ who: "x", lane: "work", state: "일" }), []);
 });
 
-test("애들 시간 줄 = PM → 작업 중(개발) → 창작 중 → 쉬는 중 · 누적 = work_min · 지금 = turn_at(일하는 손만) · 경고 = 누적 > 250 · 지금 > 80(형 11-21 07:45 · 07:46)", () => {
+test("애들 시간 줄 = 누적 많은 순 · 순위 · 값 없는 애 맨 아래(순위 없음) · 누적 = sumMin · 지금 = turn_at(일하는 손만) · 경고 = 누적 > 250 · 지금 > 80 · 오른쪽 직무 라벨(형 11-21 07:45 · 07:46 · 07:56)", () => {
   const T0 = 1_800_000_000_000;
   const rows = [
+    { who: "빈", lane: "work", state: "일" },
     { who: "쉼", lane: "ready", state: "쉼", work_min: 300 },
     { who: "창", lane: "work", state: "일", skills: ["Xa"], work_min: 40, turn_at: T0 - 81 * 60_000 },
     { who: "개", lane: "work", state: "일", skills: ["D"], work_min: 120.4, turn_at: T0 - 5 * 60_000 },
     { who: "피", lane: "work", state: "일", pm: true, work_min: 10, turn_at: null },
   ] as BotRow[];
   const r = timeRows({ codes: [], rows }, T0);
-  assert.deepEqual(r.map((x) => x.who), ["피", "개", "창", "쉼"]);
-  assert.deepEqual(r.map((x) => [x.sum, x.cur]), [[10, undefined], [120, 5], [40, 81], [300, undefined]]);
-  assert.deepEqual(r.map((x) => [x.warnSum, x.warnCur]), [[false, false], [false, false], [false, true], [true, false]]);
+  assert.deepEqual(r.map((x) => [x.rank, x.who]), [[1, "쉼"], [2, "개"], [3, "창"], [4, "피"], [undefined, "빈"]]);
+  assert.deepEqual(r.map((x) => [x.sum, x.cur]), [[300, undefined], [120, 5], [40, 81], [10, undefined], [undefined, undefined]]);
+  assert.deepEqual(r.map((x) => [x.warnSum, x.warnCur]), [[true, false], [false, false], [false, true], [false, false], [false, false]]);
   const ui = rd("bot-inbox.tsx"), css = rd("bot-inbox.css");
-  assert.match(ui, /<span data-warn=\{x\.warnSum \|\| undefined\}>누적 \{x\.sum \?\? "–"\}분<\/span>/);
+  assert.match(ui, /<span data-warn=\{x\.warnSum \|\| undefined\}>누적 \{x\.sum != null \? `\$\{x\.sum\}분` : "–"\}<\/span>/);
+  assert.match(ui, /<i className="rk">\{x\.rank \?\? ""\}<\/i>/); assert.match(ui, /\{jb \? <span className="jb"><JobLabel job=\{jb\} who=\{x\.who\} \/><\/span> : null\}/);
   assert.match(ui, /\{x\.cur != null \? <span data-warn=\{x\.warnCur \|\| undefined\}>지금 \{x\.cur\}분째<\/span> : null\}/);
   assert.match(css, /\.nm-ibx-time li span\[data-warn\] \{ color:var\(--nsb-yel\);/);
 });

@@ -96,3 +96,6 @@
 .nm-ibx-time li b { min-width:3.2em; font-weight:600; color:var(--nsb-ink); }
 .nm-ibx-time li span[data-warn] { color:var(--nsb-yel); font-weight:700; }
 .nm-ibx-time li[data-dim] { opacity:.45; }
+/* 순위(왼쪽) · 주요 직무 라벨(오른쪽 끝) — 형 11-21 07:56 「이거 누적 전 24시간 기준 순위 나오게 하고. 주요 직무는 우측에」 */
+.nm-ibx-time li .rk { flex:none; width:1.4em; text-align:right; font-style:normal; font-weight:700; color:var(--nsb-mut); }
+.nm-ibx-time li .jb { margin-left:auto; display:inline-flex; align-items:center; height:20px; line-height:0; }

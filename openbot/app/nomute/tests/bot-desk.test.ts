@@ -83,6 +83,7 @@ test("맨 위 요약 막대 = 묶음마다 몇인지(0 인 묶음 뺌 · 흐름�
   const rows = [{ who: "a", lane: "work", state: "" }, { who: "b", lane: "work", state: "" }, { who: "c", lane: "ready", state: "" }, { who: "d", lane: "lost", state: "" }, { who: "e", lane: "ready", state: "", rest: true }] as never[];
   assert.deepEqual(mixOf(rows), [{ group: "lost", n: 1 }, { group: "work", n: 2 }, { group: "idle", n: 1 }, { group: "held", n: 1 }]);
   assert.deepEqual(mixOf([]), []);
-  assert.equal(tailOf({ who: "a", lane: "work", state: "", last_at: NOW - 21 * MIN, beat_at: NOW - 3 * MIN }, NOW), "손 21분 전 · 대기 3분 전");
+  assert.equal(tailOf({ who: "a", lane: "work", state: "", last_at: NOW - 21 * MIN, beat_at: NOW - 3 * MIN }, NOW), "휴식 3분 전 · 작업 21분 전");   // 형 11-21 07:54 「손 명칭 변경 작업 대기 는 휴식 … 순서는 휴식 작업 누적 작업」
+  assert.equal(tailOf({ who: "a", lane: "work", state: "", last_at: NOW - 21 * MIN, beat_at: NOW - 3 * MIN, work_min: 132.4 }, NOW), "휴식 3분 전 · 작업 21분 전 · 누적 작업 132분");
   assert.equal(tailOf({ who: "a", lane: "work", state: "" }, NOW), "");
 });

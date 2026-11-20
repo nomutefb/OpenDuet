@@ -4,7 +4,7 @@
 //   재료 = 이미 있는 것만(새로 적는 것 0 · 봇이 더 하는 일 0): 서버 도표 status/bots(봇 상태 · 까닭 · 마지막 손 · 대기 신호 · 오늘 오더 줄 = 받음 · 태움 · 끝 · 늦은 오더) + 형 결정 목록(./decide-pop)
 //   단계 줄 = 서버가 실제로 아는 때만(받음 → 태움 → 끝 · 마지막 손 · 대기 신호) — 지어낸 단계 0.
 //   「지금 무엇을 읽고 쓰는 중」 = 작업 줄(row.trail · 형 03:2x 「응」) — 몸 보고(5분)가 제 창 원문 끝에서 뽑아 실으면 그 손이 지금 도는 카드에 단계로 끼움(안 오면 앞 꼴 그대로).
-import { type BotRow, type BotTable, agoKo, groupOf, hmKo, isSpecial, jobsOf } from "./bot-desk-logic.ts";
+import { type BotRow, type BotTable, agoKo, hmKo, jobsOf, sumMin } from "./bot-desk-logic.ts";
 import { turnMin, turnWarn } from "./turn-warn.ts";
 
 export type Col = "need" | "run" | "done";
@@ -73,15 +73,16 @@ export function inboxOf(t: BotTable | undefined, decs: Dec[], now: number, skill
 export const colCount = (cards: Card[]): Record<Col, number> => ({ need: cards.filter((c) => c.col === "need").length, run: cards.filter((c) => c.col === "run").length, done: cards.filter((c) => c.col === "done").length });
 
 /** 애들 시간 줄(걷은 「오더 밖 일」 카드 자리 · 형 11-21 07:45 dm-sia 시아 옮김 「누적 몇분 지금 몇분째 일중 이거는 가로로 해서 나오게해줘 그게 오히려 그 자리에 애들마다 일하는 애들 먼저 잗업 창작 쉬는 중 그 순서에맞춰서」)
- *  차례 = PM → 작업 중(개발) → 창작 중 → 쉬는 중(위 조직 그림 · ./bot-desk-hands.tsx WORK_SUB 와 같은 셈) · 누적 = work_min(오늘 일한 시간) · 지금 = turn_at(이번 턴 시작 · 쉬면 없음)
+ *  차례 = 누적 많은 순 · 순위 1 · 2 · 3 …(형 07:56 「이거 누적 전 24시간 기준 순위 나오게 하고. 주요 직무는 우측에」 · 앞 판 = PM → 작업 → 창작 → 쉬는 중) · 값 없는 애 = 맨 아래 · 순위 없음
+ *  누적 = sumMin(./bot-desk-logic.ts · 24시간 칸 오기 전 = work_min) · 지금 = turn_at(이번 턴 시작 · 쉬면 없음)
  *  경고 = 누적 > 250분 · 지금 > 80분(형 07:46 「누적 250 넘어가면 경고색 지속 80 넘어가면 경고색」) */
-export type TimeRow = { who: string; sum?: number; cur?: number; warnSum: boolean; warnCur: boolean };
+export type TimeRow = { who: string; rank?: number; sum?: number; cur?: number; warnSum: boolean; warnCur: boolean };
 export const SUM_WARN = 250;   // 지속 80 = ./turn-warn.ts 한 곳(대화창 종 옆 경고등과 같은 판정)
 export function timeRows(t: BotTable | undefined, now: number): TimeRow[] {
-  const rank = (r: BotRow) => (r.pm ? 0 : groupOf(r) === "work" ? (isSpecial(r) ? 2 : 1) : 3);
-  return (t?.rows || []).map((r, i) => ({ r, i })).sort((a, b) => rank(a.r) - rank(b.r) || a.i - b.i).map(({ r }) => {
-    const sum = typeof r.work_min === "number" && r.work_min >= 0 ? Math.round(r.work_min) : undefined;
+  const xs = (t?.rows || []).map((r, i) => ({ r, i, sum: sumMin(r) }));
+  xs.sort((a, b) => (a.sum == null ? 1 : 0) - (b.sum == null ? 1 : 0) || (b.sum ?? 0) - (a.sum ?? 0) || a.i - b.i);
+  return xs.map(({ r, sum }, k) => {
     const cur = r.lane === "work" ? turnMin(r.turn_at, now) : undefined;
-    return { who: r.who, sum, cur, warnSum: (sum ?? 0) > SUM_WARN, warnCur: r.lane === "work" && turnWarn(r.turn_at, now) };
+    return { who: r.who, rank: sum != null ? k + 1 : undefined, sum, cur, warnSum: (sum ?? 0) > SUM_WARN, warnCur: r.lane === "work" && turnWarn(r.turn_at, now) };
   });
 }
