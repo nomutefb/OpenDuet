@@ -4,6 +4,7 @@
 //   공지·할 일 = 오른쪽 그림 하나 → 누르면 접힌 칸이 펼쳐짐(형 08:58 「공지나 할일은 우측에 밥상이야기 처럼 접히게 할게」 · 「다른방은 밥상이야기가 없고 저게 들어가면될듯」)
 //   검색 · 밥상 이야기 그림은 body 에 그려짐(./room-search.tsx) → 이 줄 가운데 높이에 맞춤 · 이 줄 오른쪽은 그만큼 비워 둠(.story = 그림 둘)
 import { PmRunnerMini } from "./pm-runner-mini";
+import { QueuePill } from "./queue-pill";
 import { useEffect, useRef, useState } from "react";
 import { DuetIcon } from "@/components/duet/icons";
 import { NomuteName } from "./top";
@@ -26,6 +27,7 @@ export function ChatHead({ room }: { room: string }) {
         <NomuteName room={room} />
         <NoticeFold room={room} onHist={() => setHist(true)} onJump={jump} onGone={() => head.current?.querySelector<HTMLElement>("button, [tabindex]")?.focus({ preventScroll: true })} />
         <PmRunnerMini room={room} />   {/* PM 방 러너맵 축소판(PC 반갈 머리 · 깃 #-008) */}
+        <QueuePill room={room} />   {/* 1특기 방 「대기열」(슈왕 = 요약 · 뜸 = 제작 · 형 11-20 11:33 · ./queue-pill.tsx) */}
       </div>
       {hist ? <PinHistory room={room} pins={pins || { cur: null, history: [] }} onClose={() => setHist(false)} onJump={jump} /> : null}   {/* 판 = 대화 칸(.nm-col) 전체를 덮음 */}
     </>
