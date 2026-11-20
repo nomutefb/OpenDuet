@@ -25,3 +25,9 @@ test("두 단추 = 한 갈래(useFindDock) · 자리 모를 땐 안 그림(이�
   assert.match(pm, /const at = useFindDock\(here\);/); assert.match(pm, /if \(!pmRoom \|\| room !== pmRoom \|\| at === undefined\) return null;/);
   for (const s of [qp, pm]) assert.doesNotMatch(s, /setInterval/, "제 1초 재기 0(한 갈래로)");
 });
+
+test("돋보기가 사라지면(「애들」 판 등) 붙은 단추도 바로 숨김 · 판 위에 떠 있지 않음(형 11-20 19:41 dm-gik 깃 옮김 「여기에 이거 보인다. 확인좀 ㅋㅋ 피시임 일단은」)", () => {
+  const dock = rd("../ui/find-dock.ts"), rs = rd("../ui/room-search.tsx");
+  assert.match(dock, /else setAt\(\(p\) => \(p \? undefined : p === undefined && Date\.now\(\) - t0 > 2500 \? null : p\)\);/);
+  assert.match(rs, /window\.removeEventListener\("nm-pin-h", fit\); window\.dispatchEvent\(new Event\("nm-find-at"\)\); \};/, "돋보기 내려갈 때 신호");
+});

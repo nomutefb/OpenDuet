@@ -137,7 +137,7 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
     raf = requestAnimationFrame(quick);
     const t = window.setInterval(fit, 1000);
     window.addEventListener("resize", fit); window.addEventListener("nm-pin-h", fit);
-    return () => { cancelAnimationFrame(raf); window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); };
+    return () => { cancelAnimationFrame(raf); window.clearInterval(t); window.removeEventListener("resize", fit); window.removeEventListener("nm-pin-h", fit); window.dispatchEvent(new Event("nm-find-at")); };   // 돋보기가 내려가면(판이 덮음) 붙은 단추도 그때 다시 잼 = 숨김(./find-dock.ts)
   }, [room, open]);
   const key = useDeferredValue(q).trim().toLowerCase();
   const hits = useMemo(() => (key ? rows.filter((r) => r.text.toLowerCase().includes(key)).reverse() : []), [rows, key]);   // 최신 글이 1번 · 위로 = 앞 글
