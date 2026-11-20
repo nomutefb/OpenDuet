@@ -54,6 +54,6 @@ test("라벨 반짝임 = 그림 안에 그려 넣음(형 11-20 19:44 dm-haneul �
 
 test("RND = 시아 홀로 비커 그림 · 85% 17px · 수평(형 11-20 20:34~20:37 dm-sia 시아 옮김 「여기 TEEL 저거로 그 비커 모형픽토까지 글자느낌 가능할까」 · 「크기 85% 로 수평 맞춰주면댐」)", () => {
   const lab = rd("../ui/job-label.tsx");
-  assert.match(lab, /  RND: \{ src: "\/garden-app\/job-rnd\.webp\?v=11", w: 75, h: 34, dy: 1 \}/);
+  assert.match(lab, /  RND: \{ src: "\/garden-app\/job-rnd\.webp\?v=11", w: 75, h: 34, dy: 0 \}/);
   assert.ok(statSync(new URL("../public/job-rnd.webp", import.meta.url)).size < 8_000);
 });

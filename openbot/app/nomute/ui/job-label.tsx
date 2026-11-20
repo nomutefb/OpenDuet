@@ -23,7 +23,8 @@ const IMG: Record<Job, { src: string; w: number; h: number; dy?: number }> = {  
   STORY: { src: "/garden-app/job-story.webp?v=9", w: 88, h: 29 },
   MUSIC: { src: "/garden-app/job-music.webp?v=9", w: 87, h: 27 },
   CREATOR: { src: "/garden-app/job-creator.webp?v=9", w: 89, h: 37 },
-  RND: { src: "/garden-app/job-rnd.webp?v=11", w: 75, h: 34, dy: 1 },   // RND = 시아 홀로 비커 그림(형 20:34~20:37 dm-sia 시아 옮김 「여기 TEEL 저거로 그 비커 모형픽토까지 글자느낌 가능할까」 「너 맘대로해도잼」 · 「크기 85% 로 수평 맞춰주면댐」 = 20px 의 85% 17px) · 그림에 반짝임 이미 있음(sparkle 안 덧댐)
+  RND: { src: "/garden-app/job-rnd.webp?v=11", w: 75, h: 34, dy: 0 },   // 형 20:51 dm-sia 시아 옮김 「RND 조금만 올릴게」 → 1px 위(dy 1 → 0)
+    // RND = 시아 홀로 비커 그림(형 20:34~20:37 dm-sia 시아 옮김 「여기 TEEL 저거로 그 비커 모형픽토까지 글자느낌 가능할까」 「너 맘대로해도잼」 · 「크기 85% 로 수평 맞춰주면댐」 = 20px 의 85% 17px) · 그림에 반짝임 이미 있음(sparkle 안 덧댐)
   SEC: { src: "/garden-app/job-sec.webp?v=9", w: 88, h: 32 },
   SCOOP: { src: "/garden-app/job-scoop.webp?v=9", w: 87, h: 26 },
 };
