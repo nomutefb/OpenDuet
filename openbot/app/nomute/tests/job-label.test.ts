@@ -12,7 +12,7 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   // 남은 일곱(형 16:48 「하늘이랑 구름이 할거야」) = 폭 ≈ 44(43~45) · 높이 20 안
   // PM = MD 결 스티커(형 18:51 「이 스타일이거든?」) · MD 와 같은 20px 높이
   assert.match(lab, /  PM: \{ src: "\/garden-app\/job-pm\.webp\?v=9", w: 63, h: 40 \}/);
-  for (const k of ["STORY", "MUSIC", "CREATOR", "RND", "SEC", "SCOOP"]) {
+  for (const k of ["STORY", "MUSIC", "CREATOR", "SEC", "SCOOP"]) {
     const m = lab.match(new RegExp(`  ${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp(?:\\?v=\\d+)?", w: (\\d+), h: (\\d+) \\}`));
     assert.ok(m, k); assert.ok(Math.abs(+m![1] / 2 - 44) <= 1.5 && +m![2] <= 40, `${k} ${m![1]}×${m![2]}`);
     assert.ok(statSync(new URL(`../public/job-${k.toLowerCase()}.webp`, import.meta.url)).size < 8_000, k);
@@ -24,11 +24,11 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   for (const k of ["DEV"]) { const w = +(lab.match(new RegExp(`${k}: \\{[^}]*w: (\\d+)`))?.[1] || 0) / 2; assert.ok(Math.abs(w - 43.5) <= 3, `${k} 폭 ${w}`); }
   // DeV · OpS = 하늘 그림(형 13:43~13:44 「저기에 보면 ba랑 y가 강하잖아. 그걸 활요해서 만들라고해.」) · 그림 바꾸면 ?v 올림(캐시)
   // DEV = 시아 글리치 그림(형 20:19 「DEV는 저대로 가자 …」 · 「데브 크기 65%로 줄여서 70%?」 · 시아 견줌 판 70% = 43×13px)
-  assert.match(lab, /DEV: \{ src: "\/garden-app\/job-dev\.webp\?v=11", w: 86, h: 28, dy: 1\.5 \}/);
+  assert.match(lab, /DEV: \{ src: "\/garden-app\/job-dev\.webp\?v=11", w: 86, h: 28, dy: 3 \}/);
   // 수평 = 그림 속 글자 가운데가 쏠린 만큼 내림(형 20:28 「70% 로 수평 맞추면 될듯」 · 20:31 「데브 좀만 더 내려주면 댈듯」) · transform 하나(다시 칠하기 0)
   assert.match(lab, /style=\{g\.dy \? \{ transform: `translateY\(\$\{g\.dy\}px\)` \} : undefined\}/);
   // OPS = 시아 렌치 그림(형 20:34 「…왕관 대신 붙일수잇나? 심플하면서 명확한 픽토를」) · 글자 높이 = DEV 글자와 같게 · 렌치는 위로 · 2px 올려 DEV 와 수평
-  assert.match(lab, /OPS: \{ src: "\/garden-app\/job-ops\.webp\?v=11", w: 65, h: 40, dy: -2 \}/);
+  assert.match(lab, /OPS: \{ src: "\/garden-app\/job-ops\.webp\?v=11", w: 65, h: 40, dy: -3\.5 \}/);
   assert.match(lab, /width=\{g\.w \/ 2\} height=\{g\.h \/ 2\}/);
   for (const k of ["fixer", "md", "uxd", "dev", "ops"]) assert.ok(statSync(new URL(`../public/job-${k}.webp`, import.meta.url)).size < 8_000, k);
   // 자리 = 이름 바로 뒤(같은 줄 · items-center = 세로 가운데) · 라벨 있으면 글 알약 대신
@@ -46,8 +46,14 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
 
 test("라벨 반짝임 = 그림 안에 그려 넣음(형 11-20 19:44 dm-haneul 「1 고고」 · 앞 물음 19:39 「애들 라벨에 살짝 반짝임? 그런 효과넣으면 과부하걸릴까?」 · 19:43 「아예 더 덜먹는방법은?」) · 움직임 0", () => {
   const lab = rd("../ui/job-label.tsx");
-  for (const k of ["fixer", "md", "uxd", "pm", "pm-now", "story", "music", "creator", "rnd", "sec", "scoop"]) assert.ok(lab.includes(`/garden-app/job-${k}.webp?v=9"`), k);
+  for (const k of ["fixer", "md", "uxd", "pm", "pm-now", "story", "music", "creator", "sec", "scoop"]) assert.ok(lab.includes(`/garden-app/job-${k}.webp?v=9"`), k);
   assert.ok(lab.includes(`/garden-app/job-ops.webp?v=11"`), "ops = 시아 렌치 + 반짝임");
   assert.ok(lab.includes(`/garden-app/job-dev.webp?v=11"`), "dev = 시아 글리치 + 반짝임");
   assert.doesNotMatch(lab, /animation|@keyframes|setInterval|requestAnimationFrame/);
+});
+
+test("RND = 시아 홀로 비커 그림 · 85% 17px · 수평(형 11-20 20:34~20:37 dm-sia 시아 옮김 「여기 TEEL 저거로 그 비커 모형픽토까지 글자느낌 가능할까」 · 「크기 85% 로 수평 맞춰주면댐」)", () => {
+  const lab = rd("../ui/job-label.tsx");
+  assert.match(lab, /  RND: \{ src: "\/garden-app\/job-rnd\.webp\?v=11", w: 75, h: 34, dy: 1 \}/);
+  assert.ok(statSync(new URL("../public/job-rnd.webp", import.meta.url)).size < 8_000);
 });
