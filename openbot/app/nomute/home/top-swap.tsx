@@ -17,7 +17,7 @@ type Grab = { id: number; x: number; y: number; dx: number; lock: boolean; px: n
 export type SwapPage = { node: ReactNode; label: string };
 export function TopSwap({ pages }: { pages: SwapPage[] }) {
   const n = pages.length;
-  const [view, setView] = useState(0);   // 0 = 첫 판(인스타) · 늘 여기서 시작
+  const [view, setView] = useState(0);   // 0 = 첫 판(지금 = SNS · 형 11-20 13:06 「✓ ② SNS 첫 장」 · 앞 판 = 인스타 팔로워) · 늘 여기서 시작
   const box = useRef<HTMLDivElement>(null), ps = useRef<(HTMLDivElement | null)[]>([]);
   const grab = useRef<Grab | null>(null), busy = useRef(false), ate = useRef(false);
   const pane = (i: number) => ps.current[((i % n) + n) % n] || null;

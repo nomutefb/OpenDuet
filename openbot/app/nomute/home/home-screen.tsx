@@ -20,7 +20,7 @@ import { NewsFeed } from "./news-feed";
 import { HotSwap } from "./kw-board";
 import { useSplit } from "../ui/side";
 import { RunnerGauges } from "../ui/runner-gauges";   // 폰 홈 맨 위 = PC 왼쪽 위 러너 띠 그대로(게이지 · 온도 · 조약돌 · 러너 번호 · 형 11-15 16:1x 「모바일에도 온도 나오게」 · 「그냥 그 웹앱에 나오는 상단 내용」)
-import { SnsApps } from "./sns-apps";   // 셋째 장 = SNS 큰 아이콘 셋(봄 11:41 · 미토스 ②)
+import { SnsApps } from "./sns-apps";   // 첫 장 = SNS 큰 아이콘 셋(형 11-20 13:06 「✓ ② SNS 첫 장」 · 앞 판 = 셋째 장 · 봄 11:41 · 미토스 ②)
 import { TopSwap } from "./top-swap";   // 폰 홈 맨 위 = 인스타(늘 여기서 시작) ↔ 러너 띠 옆 넘김(형 11-16 03:08 「그걸 고정으로 하고 좌우 스냅 스위칭하면 러너 나오게」)
 import { IntroFace, pickIntro } from "./intro";
 
@@ -45,7 +45,7 @@ export function HomeScreen() {
   }, [first]);
   return (
     <div className={`nm-home-grid${first && split ? " dots-wait" : ""} yeta-set mx-auto grid h-svh w-full max-w-[560px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden px-4 pt-[max(12px,env(safe-area-inset-top))] pb-[calc(86px+env(safe-area-inset-bottom))]`}>
-      {split ? <FollowPulse /> : <div className="nm-home-top" style={{ gridRow: 1 }}><TopSwap pages={[{ node: <FollowPulse grow />, label: "팔로워" }, { node: <RunnerGauges />, label: "러너" }, { node: <SnsApps />, label: "SNS" }]} /></div>}   {/* 폰 = 첫 줄 한 칸에 팔로워 띠(늘 먼저) ↔ 러너 띠 · 옆으로 밀면 바뀜(./top-swap.tsx · 형 11-16 · 앞 판 11-15 = 둘을 위아래로 다 보임) · PC 반갈 = 러너 띠는 왼쪽 위(shell TopLeft)라 여긴 팔로워 띠만 */}
+      {split ? <FollowPulse /> : <div className="nm-home-top" style={{ gridRow: 1 }}><TopSwap pages={[{ node: <SnsApps />, label: "SNS" }, { node: <FollowPulse grow />, label: "팔로워" }, { node: <RunnerGauges />, label: "러너" }]} /></div>}   {/* 폰 = 첫 줄 한 칸에 팔로워 띠(늘 먼저) ↔ 러너 띠 · 옆으로 밀면 바뀜(./top-swap.tsx · 형 11-16 · 앞 판 11-15 = 둘을 위아래로 다 보임) · PC 반갈 = 러너 띠는 왼쪽 위(shell TopLeft)라 여긴 팔로워 띠만 */}
       {split ? <NewsFeed onShown={() => shown.current()} /> : <div className="nm-home-swap" style={{ gridRow: 2 }}><HotSwap label="뉴스"><NewsFeed onShown={() => shown.current()} /></HotSwap></div>}   {/* 폰 = 뉴스 카드 ↔ 키워드 순위(옆으로 넘기면 줄기 하나씩 · 형 11-14 「폰에서는 … 넘길때마다 차트가 나오게」) · PC 반갈 = 오른쪽 Hot Issue 칸이 번갈아 뜨니 여긴 그대로 */}
       <Arrived />
       {first && split ? <div className="nm-home-splash dots" aria-hidden><div className="nm-lazy"><i /><i /><i /></div></div>   /* PC 반갈 = 검정 새싹 덮개 대신 다른 화면과 같은 점 셋(형 11-20 09:11 dm-gik 깃 옮김 「그리고 처음에 키면 항상 저 메인화면 한쪽이 안드로이드 인앱화면처럼 검정으로 뜨는데 저거 저렇지 않고, 그냥 다른 화면처럼 로딩으로 뜨게해 점세개로」 · 덮개가 왼쪽 판 안에 갇혀 그 칸만 검정이던 것 · 점 셋 = shell LazyDots 와 같은 .nm-lazy) */
