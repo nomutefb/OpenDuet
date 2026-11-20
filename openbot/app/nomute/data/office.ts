@@ -120,6 +120,17 @@ export function roomHeadCount(r: OfficeRoom, list: OfficePerson[]): number {
 /** 그 방에서 나간 이름(서버 left) · 형이 나갔나 — 방 머리 명단 · 방 개요가 남은 사람과 나간 사람을 가름 */
 export const roomLeftSet = (r: OfficeRoom): Set<string> => new Set(r.left || []);
 export const hyungLeft = (r: OfficeRoom): boolean => (r.left || []).includes("형");
+/** 방 머리 「+ 초대」 후보 = 지금 이 방에 없는 봇 — 명단 밖 + 「!종료」로 나간 이(명단엔 남아 있어 앞 판 후보에서 빠졌음 = 다시 부를 길이 대화 위 「나갔습니다」 줄 단추뿐이었음)
+ *  형 11-20 13:25 dm-sia 「그리고 루미 계쏙 나감으로뜨는데 확인좀 부탁해! 초대해도 나감으로떠서」 · 없어진 봇(gone) = 그대로 뺌 */
+export function inviteCands(r: OfficeRoom, list: OfficePerson[]): OfficePerson[] {
+  const mem = r.members || [], out = roomLeftSet(r);
+  return list.filter((x) => x.kind !== "human" && !x.gone && (!mem.includes(x.who) || out.has(x.who)));
+}
+/** 고른 이 나누기 — back = 나간 이(POST rooms/<방>/invite · 서버가 나간 표에서 지우고 「다시 초대되었습니다」 줄 + 깨움) · fresh = 명단 밖(POST temprooms/<방> 멤버 더하기) */
+export function invitePlan(r: OfficeRoom, pick: string[]): { back: string[]; fresh: string[] } {
+  const mem = r.members || [], out = roomLeftSet(r);
+  return { back: pick.filter((n) => mem.includes(n) && out.has(n)), fresh: pick.filter((n) => !mem.includes(n)) };
+}
 
 /** 원본 ChannelSummary 꼴 */
 export function toChannel(r: OfficeRoom, list: OfficePerson[], seenTs?: number) {
