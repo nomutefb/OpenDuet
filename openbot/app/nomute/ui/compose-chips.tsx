@@ -7,10 +7,10 @@
 //   입력칸이 칠 때마다 이 부품만 「글 있음/없음」이 바뀔 때 다시 그림(office-chat 통째 다시 그리기 0)
 import { type PointerEvent, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { composerHandle } from "./call-sheet";
-import { CHECK_SVG, COPY_SVG, ERASE_SVG, PASTE_SVG, UNDO_SVG } from "./thumb-maker/engine/svg";
+import { ERASE_SVG, PASTE_SVG, UNDO_SVG } from "./thumb-maker/engine/svg";
 import "./compose-chips.css";
 
-export const ERASE_UNDO_MS = 10_000, OK_MS = 1200;   // 에디터 p04-media ERASE_UNDO_MS · clipCopy 와 같은 값
+export const ERASE_UNDO_MS = 10_000;   // 에디터 p04-media ERASE_UNDO_MS 와 같은 값
 let filled = false;
 const subs = new Set<() => void>();
 /** 입력칸 글이 바뀔 때(office-chat onTextChange) — 글 있음/없음이 바뀌면 단추만 다시 그림 */
@@ -18,18 +18,13 @@ export function chipText(t: string) { const f = t.trim().length > 0; if (f !== f
 const snap = () => filled;
 const sub = (fn: () => void) => { subs.add(fn); return () => { subs.delete(fn); }; };
 
-async function copyText(t: string) {
-  try { await navigator.clipboard.writeText(t); return; } catch { /* 아래 옛 길 */ }
-  const ta = document.createElement("textarea"); ta.value = t; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
-  document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch { /* 못 함 */ } ta.remove();
-}
 const keep = (e: PointerEvent) => e.preventDefault();   // 입력칸 초점 그대로(자판 안 내려감)
 const Svg = ({ s }: { s: string }) => <span aria-hidden dangerouslySetInnerHTML={{ __html: s }} />;   // 에디터 그림 글자 그대로(우리 코드 상수)
 
 export function ComposeChips({ init = "" }: { init?: string }) {
   useLayoutEffect(() => { chipText(init); }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- 방 바뀜 = key 로 새로(쓰던 글 = 그 방 초안)
   const has = useSyncExternalStore(sub, snap, () => false);
-  const [ok, setOk] = useState(false), [undo, setUndo] = useState<string | null>(null);
+  const [undo, setUndo] = useState<string | null>(null);
   const timer = useRef(0);
   const exitUndo = () => { window.clearTimeout(timer.current); setUndo(null); };
   useEffect(() => { if (undo !== null && has) exitUndo(); }, [has, undo]);   // 지운 뒤 다시 쳐서 글이 생기면 되돌리기 끝(에디터 input → exitUndo · 비울 때 늦게 오는 「글 바뀜」은 빈 글이라 안 셈)
@@ -50,7 +45,6 @@ export function ComposeChips({ init = "" }: { init?: string }) {
     if (!t) { h.focus(); return; }
     if (ed()) document.execCommand("insertText", false, t); else { h.setCursorToEnd(); h.appendText(t); h.focus(); }
   };
-  const copy = async () => { const t = composerHandle()?.getPlainText() || ""; if (!t) return; await copyText(t); setOk(true); window.setTimeout(() => setOk(false), OK_MS); };
   const erase = () => {
     const h = composerHandle(); if (!h) return;
     if (undo !== null) { const v = undo; exitUndo(); h.setText(v); chipText(v); h.setCursorToEnd(); h.focus(); return; }
@@ -60,7 +54,7 @@ export function ComposeChips({ init = "" }: { init?: string }) {
   };
   return (
     <div ref={box} className="nm-cchips" role="group" aria-label="입력칸 단추">
-      {has ? <button type="button" tabIndex={-1} className={`nm-cchip${ok ? " ok" : ""}`} aria-label="복사" title="복사" onPointerDown={keep} onClick={() => void copy()}><Svg s={ok ? CHECK_SVG : COPY_SVG} /></button> : null}
+      {/* 복사 = 뺌(형 11-20 12:04 dm-bom 봄 옮김 「글구 채팅 칠때 복사 까지 떠버리냉」 · 아침 07:17 「입력창 위에는 붙여넣기만 있으면 됨 … 입력된게 잇으면 버튼 뜨게」 = 글 있을 때 지우기 · 붙여넣기만) */}
       {has || undo !== null ? <button type="button" tabIndex={-1} className={`nm-cchip${undo !== null ? " undo" : ""}`} aria-label={undo !== null ? "되돌리기" : "입력 지우기"} title={undo !== null ? "되돌리기 (직전 입력 복원)" : "입력 지우기"} onPointerDown={keep} onClick={erase}><Svg s={undo !== null ? UNDO_SVG : ERASE_SVG} /></button> : null}
       <button type="button" tabIndex={-1} className="nm-cchip" aria-label="붙여넣기" title="붙여넣기" onPointerDown={keep} onClick={() => void paste()}><Svg s={PASTE_SVG} /></button>   {/* 붙여넣기 = 늘 맨 오른쪽(보내기 단추 바로 왼쪽 · 자리 고정 = 글 칠 때 안 튐) · 복사 · 지우기는 글 있을 때 그 왼쪽에(형 11-20 08:38) */}
     </div>

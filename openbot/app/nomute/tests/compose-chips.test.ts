@@ -7,19 +7,19 @@ test("에디터와 같은 값 · 같은 그림 · 초점 안 뺏음 · 입력칸
   const c = readFileSync(new URL("../ui/compose-chips.tsx", import.meta.url), "utf8"), oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8");
   const ed = readFileSync(new URL("../ui/thumb-maker/engine/p04-media.ts", import.meta.url), "utf8");
   assert.match(ed, /ERASE_UNDO_MS = 10000/);
-  assert.match(c, /ERASE_UNDO_MS = 10_000, OK_MS = 1200/);   // 에디터 지우기 → 되돌리기 10초 · 복사 ✓ 1.2초
-  assert.match(c, /import \{ CHECK_SVG, COPY_SVG, ERASE_SVG, PASTE_SVG, UNDO_SVG \} from "\.\/thumb-maker\/engine\/svg"/);
+  assert.match(c, /ERASE_UNDO_MS = 10_000;/);   // 에디터 지우기 → 되돌리기 10초
+  assert.match(c, /import \{ ERASE_SVG, PASTE_SVG, UNDO_SVG \} from "\.\/thumb-maker\/engine\/svg"/);   // 복사 그림 뺌(형 11-20 12:04)
   assert.match(c, /const keep = \(e: PointerEvent\) => e\.preventDefault\(\);/);
-  assert.equal(c.match(/onPointerDown=\{keep\}/g)?.length, 3);
+  assert.equal(c.match(/onPointerDown=\{keep\}/g)?.length, 2);   // 지우기 · 붙여넣기
   assert.match(c, /h\.clear\(\); chipText\(""\);/);   // 지울 때 「글 없음」 먼저(되돌리기가 바로 끝나지 않게)
   assert.match(oc, /saveDraft\(room, t\); chipText\(t\);/);
   assert.match(oc, /<div className="nm-cmp-wrap"><ComposeChips key=\{room\} init=\{loadDraft\(room\)\} \/>/);
 });
 
 // 형 11-20 07:17 「입력창 위에는 붙여넣기만 있으면 됨 그리고 입력 된 것도 없는데 지우기가 잇을 필욘 없을듯 입력된게 잇으면 버튼 뜨게 해줘. 그리고 글라스 모피즘 적용해주고」
-test("빈 칸 = 붙여넣기 하나 · 글 있으면 복사 · 지우기 · 지운 뒤 되돌리기 · 유리", () => {
+test("빈 칸 = 붙여넣기 하나 · 글 있으면 지우기 · 붙여넣기 · 지운 뒤 되돌리기 · 유리", () => {
   const c = readFileSync(new URL("../ui/compose-chips.tsx", import.meta.url), "utf8"), css = readFileSync(new URL("../ui/compose-chips.css", import.meta.url), "utf8");
-  assert.match(c, /\{has \? <button type="button" tabIndex=\{-1\} className=\{`nm-cchip\$\{ok \? " ok" : ""\}`\} aria-label="복사"/);
+  assert.doesNotMatch(c, /aria-label="복사"/);   // 복사 뺌(형 11-20 12:04 「글구 채팅 칠때 복사 까지 떠버리냉」 = 글 있을 때 지우기 · 붙여넣기만)
   assert.match(c, /\{has \|\| undo !== null \? <button type="button" tabIndex=\{-1\} className=\{`nm-cchip\$\{undo !== null \? " undo" : ""\}`\}/);   // 빈 칸 = 지우기 0 · 붙여넣기 = 늘 맨 오른쪽(자리 고정 · 형 11-20 08:38)
   assert.ok(c.indexOf('aria-label="붙여넣기"') > c.indexOf('"입력 지우기"'), "붙여넣기 = 맨 오른쪽(형 11-20 08:38)");
   assert.doesNotMatch(c, /" off"/);
