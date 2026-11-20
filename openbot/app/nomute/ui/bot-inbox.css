@@ -90,3 +90,9 @@
 .nm-ibx-card { transition:opacity .2s cubic-bezier(.22,.61,.36,1); }
 .nm-ibx-card[data-dim] { opacity:.32; }
 @media (prefers-reduced-motion:reduce) { .nm-ibx-card { transition:none; } }
+/* 애들 시간 줄(걷은 「오더 밖 일」 카드 자리 · 형 11-21 07:45 「누적 몇분 지금 몇분째 일중 이거는 가로로 해서 나오게해줘」) — 가로 한 줄 · 숫자 고정폭 · 경고 = --nsb-yel(형 07:46 「누적 250 넘어가면 경고색 지속 80 넘어가면 경고색」 · 새 색 0) */
+.nm-ibx-time { list-style:none; margin:8px 0 0; padding:0; display:grid; gap:2px; }
+.nm-ibx-time li { display:flex; align-items:center; gap:8px; min-height:30px; padding:4px 10px; border-radius:10px; font-size:var(--fs-sm); color:var(--nsb-mut); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.nm-ibx-time li b { min-width:3.2em; font-weight:600; color:var(--nsb-ink); }
+.nm-ibx-time li span[data-warn] { color:var(--nsb-yel); font-weight:700; }
+.nm-ibx-time li[data-dim] { opacity:.45; }

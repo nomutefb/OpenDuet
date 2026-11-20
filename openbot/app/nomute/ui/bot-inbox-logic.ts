@@ -4,7 +4,8 @@
 //   재료 = 이미 있는 것만(새로 적는 것 0 · 봇이 더 하는 일 0): 서버 도표 status/bots(봇 상태 · 까닭 · 마지막 손 · 대기 신호 · 오늘 오더 줄 = 받음 · 태움 · 끝 · 늦은 오더) + 형 결정 목록(./decide-pop)
 //   단계 줄 = 서버가 실제로 아는 때만(받음 → 태움 → 끝 · 마지막 손 · 대기 신호) — 지어낸 단계 0.
 //   「지금 무엇을 읽고 쓰는 중」 = 작업 줄(row.trail · 형 03:2x 「응」) — 몸 보고(5분)가 제 창 원문 끝에서 뽑아 실으면 그 손이 지금 도는 카드에 단계로 끼움(안 오면 앞 꼴 그대로).
-import { type BotRow, type BotTable, agoKo, hmKo, jobsOf } from "./bot-desk-logic.ts";
+import { type BotRow, type BotTable, agoKo, groupOf, hmKo, isSpecial, jobsOf } from "./bot-desk-logic.ts";
+import { turnMin, turnWarn } from "./turn-warn.ts";
 
 export type Col = "need" | "run" | "done";
 export type Tone = "wait" | "fail" | "run" | "done";
@@ -50,7 +51,6 @@ export function inboxOf(t: BotTable | undefined, decs: Dec[], now: number, skill
     }
     const jobs = jobsOf(r), working = r.lane === "work";
     const lastOpen = jobs.filter((j) => !j.done && !j.ride).sort((a, b) => (b.recv || 0) - (a.recv || 0))[0];
-    let open = 0;
     for (const j of jobs) {
       const title = `${j.no}${j.title ? " " + j.title : ""}`, base = { who: r.who, title, chips: chipsOf(r, j.code, skills), head: headOf(r) };
       const steps: Step[] = [...(j.recv ? [{ text: `${r.who} 받음`, at: j.recv }] : []), ...(j.ride ? [{ text: `태움${j.sha ? " " + j.sha.slice(0, 7) : ""} — 만들기 끝 · 기차에 올림`, at: j.ride }] : [])];
@@ -58,20 +58,30 @@ export function inboxOf(t: BotTable | undefined, decs: Dec[], now: number, skill
         out.push({ ...base, key: `job:${r.who}:${j.no}`, col: "done", tone: "done", desc: `${r.who} · ${hmKo(j.done)} 끝`, took: j.recv && j.done >= j.recv ? j.done - j.recv : undefined, label: j.recv ? undefined : "끝", order: -j.done, steps: [...steps, { text: "끝", at: j.done }] });
         continue;
       }
-      open++;
       const late = (t?.late || []).find((l) => l.no === j.no && l.who === r.who);
       const doing = j.ride ? "만들기 끝 · 기차(라이브) 기다림" : working ? `${r.who} 작업 중${r.last_at ? ` · 손 ${agoKo(now - r.last_at)}` : ""}` : `${r.who} 받아 둠 · ${r.state}`;
       const liveStep: Step = { text: j.ride ? "라이브 기다림" : working ? "만드는 중" : `아직 손 안 댐(${r.state})`, live: true };
       if (late) out.push({ ...base, key: `job:${r.who}:${j.no}`, col: "need", tone: "wait", desc: `늦음 ${late.min}분 · ${doing}`, since: j.recv, label: `늦음 ${late.min}분`, act: "room", order: 3e13 - late.min, steps: [...steps, liveStep] });   // 형 결정 다음 · 많이 늦은 것이 위
       else out.push({ ...base, key: `job:${r.who}:${j.no}`, col: "run", tone: "run", desc: doing, since: j.recv, order: j.recv || now, steps: [...steps, ...(working && !j.ride && j === lastOpen ? trailSteps(r, j.recv) : []), liveStep] });   // 작업 줄 = 지금 손이 붙은 오더(가장 늦게 받은 안 끝낸 것) 하나에만
     }
-    if (working && !open && r.lane !== "lost") {   // 오더 밖에서 도는 손(형이 직접 시킨 일 · 루틴)
-      out.push({ key: `work:${r.who}`, col: "run", tone: "run", title: `${r.who}${r.pm ? "(PM)" : ""} · 오더 밖 일`, who: r.who, desc: r.why || "턴이 도는 중", label: r.last_at ? `손 ${agoKo(now - r.last_at)}` : "도는 중", chips: chipsOf(r, undefined, skills), head: headOf(r), order: now + 1,
-        steps: [...(trailSteps(r).length ? trailSteps(r) : r.last_at ? [{ text: "마지막 손", at: r.last_at }] : []), { text: r.why || "턴이 도는 중", live: true }] });   // 작업 줄이 오면 그 줄들 · 없으면 마지막 손
-    }
+    // 오더 밖 일 카드(「○○ · 오더 밖 일 · 턴이 도는 중」) = 걷음(형 11-21 07:44 dm-sia 시아 옮김 「글구 애들 먼일하는지 보이지도 않는데 없애도 될듯. 그냥」) · 도는 손은 손 판 고리 · 손 시각에 그대로
   }
   const rank: Record<Col, number> = { need: 0, run: 1, done: 2 };
   return out.sort((a, b) => rank[a.col] - rank[b.col] || a.order - b.order);
 }
 /** 칸마다 몇 장. */
 export const colCount = (cards: Card[]): Record<Col, number> => ({ need: cards.filter((c) => c.col === "need").length, run: cards.filter((c) => c.col === "run").length, done: cards.filter((c) => c.col === "done").length });
+
+/** 애들 시간 줄(걷은 「오더 밖 일」 카드 자리 · 형 11-21 07:45 dm-sia 시아 옮김 「누적 몇분 지금 몇분째 일중 이거는 가로로 해서 나오게해줘 그게 오히려 그 자리에 애들마다 일하는 애들 먼저 잗업 창작 쉬는 중 그 순서에맞춰서」)
+ *  차례 = PM → 작업 중(개발) → 창작 중 → 쉬는 중(위 조직 그림 · ./bot-desk-hands.tsx WORK_SUB 와 같은 셈) · 누적 = work_min(오늘 일한 시간) · 지금 = turn_at(이번 턴 시작 · 쉬면 없음)
+ *  경고 = 누적 > 250분 · 지금 > 80분(형 07:46 「누적 250 넘어가면 경고색 지속 80 넘어가면 경고색」) */
+export type TimeRow = { who: string; sum?: number; cur?: number; warnSum: boolean; warnCur: boolean };
+export const SUM_WARN = 250;   // 지속 80 = ./turn-warn.ts 한 곳(대화창 종 옆 경고등과 같은 판정)
+export function timeRows(t: BotTable | undefined, now: number): TimeRow[] {
+  const rank = (r: BotRow) => (r.pm ? 0 : groupOf(r) === "work" ? (isSpecial(r) ? 2 : 1) : 3);
+  return (t?.rows || []).map((r, i) => ({ r, i })).sort((a, b) => rank(a.r) - rank(b.r) || a.i - b.i).map(({ r }) => {
+    const sum = typeof r.work_min === "number" && r.work_min >= 0 ? Math.round(r.work_min) : undefined;
+    const cur = r.lane === "work" ? turnMin(r.turn_at, now) : undefined;
+    return { who: r.who, sum, cur, warnSum: (sum ?? 0) > SUM_WARN, warnCur: r.lane === "work" && turnWarn(r.turn_at, now) };
+  });
+}

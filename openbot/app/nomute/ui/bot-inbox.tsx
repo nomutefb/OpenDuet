@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { type OfficeRoom, idOf } from "../data/office";
 import { FaceImg, usePeople } from "./faces";
 import { type BotTable, agoKo } from "./bot-desk-logic";
-import { type Card, type Col, type Dec, colCount, inboxOf, spanKo } from "./bot-inbox-logic";
+import { type Card, type Col, type Dec, colCount, inboxOf, spanKo, timeRows } from "./bot-inbox-logic";
 import { DecideFab, openDecide, useDecisions } from "./decide-pop";
 import { useFlip } from "./flip";
 import { whoName } from "./who-name";
@@ -66,12 +66,13 @@ export function BotInbox({ t, skills, now: at, focus = "" }: { t: BotTable; skil
   const [open, setOpen] = useState(""), [now, setNow] = useState(at);
   const cards = useMemo(() => inboxOf(t, decs, now, skills), [t, decs, now, skills]);
   const n = colCount(cards), ticking = cards.some((c) => c.col !== "done" && c.since);
+  const times = useMemo(() => timeRows(t, now), [t, now]), minTick = times.some((x) => x.cur != null);   // 애들 시간 줄(걷은 오더 밖 일 카드 자리)
   useEffect(() => { setNow(Date.now()); }, [at]);
-  useEffect(() => {   // 초 시계 = 도는 · 기다리는 카드가 있을 때만 · 숨은 탭에선 멈춤
-    if (!ticking) return undefined;
-    const id = window.setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 1000);
+  useEffect(() => {   // 초 시계 = 도는 · 기다리는 카드가 있을 때만 · 「지금 N분째」만 있으면 30초 · 숨은 탭에선 멈춤
+    if (!ticking && !minTick) return undefined;
+    const id = window.setInterval(() => { if (!document.hidden) setNow(Date.now()); }, ticking ? 1000 : 30_000);
     return () => window.clearInterval(id);
-  }, [ticking]);
+  }, [ticking, minTick]);
   const box = useFlip(`${view}|${cards.map((c) => `${c.col}:${c.key}`).join(",")}`);
   const pick = (v: View) => { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch { /* 이번만 */ } };
   const roomOf = (who: string) => (qc.getQueryData<OfficeRoom[]>(["nomute", "rooms"]) || []).find((r) => r.with === who)?.id;
@@ -93,7 +94,18 @@ export function BotInbox({ t, skills, now: at, focus = "" }: { t: BotTable; skil
           return (
             <section key={k} className="col" data-col={k} aria-label={name}>
               <h3><Spark /><span>{name}</span><i>{mine.length}</i></h3>
-              {mine.length ? <ul>{mine.map((c) => <InboxCard key={c.key} c={c} now={now} open={open === c.key} onToggle={() => setOpen(open === c.key ? "" : c.key)} onAct={onAct} hasRoom={!!roomOf(c.who)} face={idOf(c.who, people)} dim={!!focus && c.who !== focus} />)}</ul> : <p className="none">{k === "need" ? "형이 볼 것 없음" : k === "run" ? "도는 일 없음" : "오늘 끝난 일 없음"}</p>}
+              {mine.length ? <ul>{mine.map((c) => <InboxCard key={c.key} c={c} now={now} open={open === c.key} onToggle={() => setOpen(open === c.key ? "" : c.key)} onAct={onAct} hasRoom={!!roomOf(c.who)} face={idOf(c.who, people)} dim={!!focus && c.who !== focus} />)}</ul> : k === "run" && times.length ? null : <p className="none">{k === "need" ? "형이 볼 것 없음" : k === "run" ? "도는 일 없음" : "오늘 끝난 일 없음"}</p>}
+              {k === "run" && times.length ? (   /* 애들 시간 줄 = 가로 한 줄 「이름 · 누적 N분 · 지금 N분째」(형 11-21 07:45) · 경고색 = 누적 > 250 · 지금 > 80(형 07:46) */
+                <ul className="nm-ibx-time" aria-label="애들 시간">
+                  {times.map((x) => (
+                    <li key={x.who} data-dim={focus && x.who !== focus ? "" : undefined}>
+                      <FaceImg id={idOf(x.who, people)} size={18} /><b>{x.who}</b>
+                      <span data-warn={x.warnSum || undefined}>누적 {x.sum ?? "–"}분</span>
+                      {x.cur != null ? <span data-warn={x.warnCur || undefined}>지금 {x.cur}분째</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </section>
           );
         })}

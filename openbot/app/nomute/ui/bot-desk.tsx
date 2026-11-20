@@ -32,9 +32,8 @@ import "./bot-desk.css";
 
 const OLD_MS = 5 * 60_000;
 type Sheet = { at?: number; stale?: boolean; table?: BotTable; skills?: Record<string, string> };
-type Tab = "board" | "turn" | "meter";   // 「몸」 탭은 걷음 — 그래프 · 사양이 애마다 제 카드 안으로 들어감(형 11-17 dm-bom 「그렇게해서 저 탭을 없애려고 함」 · 「중첩을 최소화 하려는거」)
-const Meter = lazy(() => import("./settings-extra").then((m) => ({ default: m.NomuteMeter })));   // 「계기판」 탭 = 설정 「회의실 계기판」에서 옮김(하루 한 장 · 기억 종류별 깸 · 글 · 헛깸률 · 형 11-17 03:24 구름 맥 창 「너가 말한거 반영하고 너 의견 따를테니 묻지말고 진행해」)
-const TABS: [Tab, string][] = [["board", "일감"], ["turn", "차례"], ["meter", "계기판"]];   // 흐름 = 맨 위 손 판이 조직 그림이 되며 걷음 · 손 표 = 몸 줄에 같은 내용이 있어 걷음(형 11-16 19:2x 구름 맥 창 「손표를 몸 상태에 합치고 중첩되는건 없애자.」 · 「흐름의 조직 구성 느낌을 가장 메인에 좀 더 붙일 수 있나? 그럼 흐름으로 따로 안 만들어도 될거같은디」) · 몸 = 옛 「몸 상태」 화면 · 옛 「작동」 탭은 맨 아래 ③ 러너 층으로
+type Tab = "board" | "turn";   // 「계기판」 탭 = 걷음(형 11-21 07:44 dm-sia 시아 옮김 「계기판도 의미없는거같고」 · 설정 「회의실 계기판」은 그대로)   // 「몸」 탭은 걷음 — 그래프 · 사양이 애마다 제 카드 안으로 들어감(형 11-17 dm-bom 「그렇게해서 저 탭을 없애려고 함」 · 「중첩을 최소화 하려는거」)
+const TABS: [Tab, string][] = [["board", "일감"], ["turn", "차례"]];   // 흐름 = 맨 위 손 판이 조직 그림이 되며 걷음 · 손 표 = 몸 줄에 같은 내용이 있어 걷음(형 11-16 19:2x 구름 맥 창 「손표를 몸 상태에 합치고 중첩되는건 없애자.」 · 「흐름의 조직 구성 느낌을 가장 메인에 좀 더 붙일 수 있나? 그럼 흐름으로 따로 안 만들어도 될거같은디」) · 몸 = 옛 「몸 상태」 화면 · 옛 「작동」 탭은 맨 아래 ③ 러너 층으로
 // 5번 메뉴 「애들」 한 화면(형 18:2x 「5번이 애들 상태 관련」 · 「이렇게 쭉 유기적으로 연결된 느낌을 살리는게」) = 위에서 아래로 ① 애들 → ② 스케줄 배선 → ③ 러너 · 층 사이 = 왼쪽 세로 줄기 + 마디 점(가만한 그림)
 //   아래 두 층은 첫 화면 뒤 한가할 때 받아 그림(첫 화면 무게 · 가만한 층은 그릴 것 0) · 옛 길 #/sched · #/runner = 그 층으로 내려감 · #/vm = 「몸」 탭
 const SECS = [["crew", "애들"], ["sched", "스케줄 배선"], ["run", "러너"]] as const;
@@ -144,7 +143,7 @@ function Turns({ t, skills }: { t: BotTable; skills: Record<string, string> }) {
 export function BotDesk() {
   const q = useQuery({ ...botsSheetOpts<Sheet>(), refetchInterval: (x: { state: { data?: Sheet } }) => (x.state.data?.stale || !(x.state.data?.table?.rows || []).some((r) => r.lane !== "none") ? 8_000 : 60_000), retry: false });   // 묵은 답 · 활동 줄을 못 읽은 답(서버가 뒤에서 세는 중)이면 8초 뒤 다시 = 곧 새 표
   const [tab, setTab] = useState<Tab>(() => {
-    try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" || v === "meter" ? v : "board"; } catch { return "board"; } });
+    try { const v = localStorage.getItem("nm-botdesk-tab"); return v === "turn" ? v : "board"; } catch { return "board"; } });
   const secs = useRef<Partial<Record<Sec, HTMLElement | null>>>({});
   const goSec = (k: Sec, smooth = true) => { const el = secs.current[k]; if (el) el.scrollIntoView({ block: "start", behavior: smooth && !lessStill() ? "smooth" : "auto" }); };
   useEffect(() => {   // 옛 길(#/sched · #/runner)로 들어오거나 메뉴 판에서 그 줄을 누르면 그 층으로 · #/vm = 몸 탭
@@ -209,8 +208,7 @@ export function BotDesk() {
       <div className="nm-bd-tabs" aria-label="봇 현황 보기">
         <RubberSegment items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={(v) => pick(v as Tab)} size="lg" radius={14} trackColor="rgba(18,18,18,.55)" thumbColor="rgba(207,255,64,.9)" textColor="#E7ECE7" activeTextColor="#141516" />
       </div>
-      {tab === "meter" ? <div className="nm-bd-meter"><Suspense fallback={<p className="nsb-empty">읽는 중…</p>}><Meter /></Suspense></div> : null}
-      {tab === "meter" || !t ? null : tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} focus={sel} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : null}
+      {!t ? null : tab === "board" ? (live ? <BotInbox t={t} skills={skills} now={now} focus={sel} /> : <p className="nsb-empty">활동 줄을 지금 못 읽었어 — 곧 다시 읽어</p>) : tab === "turn" ? (live && t.codes.length ? <Turns t={t} skills={skills} /> : <p className="nsb-empty">차례를 지금 못 셌어 — 곧 다시 읽어</p>) : null}
 
     </div>
     </section>
