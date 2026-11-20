@@ -104,7 +104,12 @@ export function tabsSetUrl(s: TabState, key: string, url: string): TabState {
 /** 탭 이름 — 웹 탭 = 주소 호스트(www. 뺌) · 빈 탭 = 「새 탭」 */
 export function webTabName(url: string): string {
   if (!url) return "새 탭";
-  try { const u = new URL(url, "https://edit.nomute.kr"); return u.hostname.replace(/^www\./, "") || "새 탭"; } catch { return "새 탭"; }
+  try {   // 웹 탭 이름 = 그 링크(주소 + 길 · 물음표 뒤 뺌 · 길면 40자 · 형 11-20 11:35 「그리고 웹은 열리면 웹의 링크가 탭에 떠야되는데 그게 안떠서 무슨 탭인지를 모르네」 · 앞 판 = 주소만)
+    const u = new URL(url, "https://edit.nomute.kr"), h = u.hostname.replace(/^www\./, "");
+    if (!h) return "새 탭";
+    const t = `${h}${decodeURIComponent(u.pathname).replace(/\/+$/, "")}`;
+    return t.length > 40 ? `${t.slice(0, 39)}…` : t;
+  } catch { return "새 탭"; }
 }
 /** 순수 — 판 바탕색 글(rgb/rgba) → 고른 탭 바탕·글자색 · 투명·못 읽음 = 테마 따라(다크 #121314/#e8eae8 · 라이트 #f6f6f8/#161716) · 밝기(상대 휘도) .45 밑 = 어두움 */
 export function tabColors(css: string, dark: boolean): { bg: string; fg: string } {

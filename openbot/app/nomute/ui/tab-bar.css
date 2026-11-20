@@ -164,6 +164,10 @@
 /* 고정 탭(Browser · 화상 회의 · Teams) = 글자 길이만큼(깃 #-032 · 형 11-15 05:20 「피시인앱에서 탭 이모지로만 표시되서 … 픽토그램이랑 기본 글자까진 나오게」)
    container-type 이 폭을 글자에서 떼어 놓아 72px 아래 = 이름 숨김에 걸렸었음 → 이 셋은 컨테이너 아님 */
 .nm-tab.browser, .nm-tab.meet, .nm-tab.teams, .nm-tab.sns { container-type:normal; }
+/* 봄의 정원 · 웹 탭도 컨테이너 아님 = 좁아도 이름이 숨지 않고 잘림(… · 고정 탭과 같음) · 웹 탭 X = 고르든 안 고르든 늘(형 11-20 11:34 「글구 여기 봄으 ㅣ정원안보임」 · 11:35 「그리고 웹은 열리면 누르든 안누르든 웹 우측에 x가있어야함」) */
+.nm-tab.garden, .nm-tab.k-web { container-type:normal; }
+.nm-tab.k-web .nm-tab-x { opacity:.7; }
+.nm-tab.garden .nm-tab-ic.dash { width:16px; height:16px; font-size:14px; line-height:1; }
 
 /* 맥 독 앱 안 탭 줄 = 다른 창과 같이 늘 보임(형 11-16 12:3x 구름 창 「상단에 탭 메뉴, 그리고 그 아래 메뉴는 계속 보이게 해줘」 · 「인앱에서는 사라져,」 · 앞 판 08:2x 「아래에 탭을 없앤다」 숨김은 걷음 · 시아) */
 

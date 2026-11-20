@@ -205,7 +205,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   };
   const pickOn = (key: string) => () => setS((x) => ({ ...x, active: key }));
   const fixedTab: Record<string, { cls: string; title: string; pick: () => void; body: ReactNode }> = {   // 고정 넷(닫기 없음 · 끌어 옮기기는 됨)
-    dash: { cls: "dash garden", title: GARDEN, pick: () => pick(DASH), body: <span className="nm-tab-nm">{GARDEN}</span> },   // 지금 판(늘 보임) · 누르면 오른쪽이 원래 판(SNS · HOT ISSUE · DIGEST)으로
+    dash: { cls: "dash garden", title: GARDEN, pick: () => pick(DASH), body: <><span className="nm-tab-ic dash" aria-hidden>🌸</span><span className="nm-tab-nm">{GARDEN}</span></> },   // 🌸 = 팀즈 그림처럼 이름 왼쪽 수평(형 11-20 11:35 「그리고 봄으 ㅣ정원은 봄 너 이모지가 팀즈 아이콘처럼 이름 좌측에 수평으로 붙이면됨」 · 11:34 「글구 여기 봄으 ㅣ정원안보임」 = 좁으면 이름이 숨어 탭이 통째 비었음)   // 지금 판(늘 보임) · 누르면 오른쪽이 원래 판(SNS · HOT ISSUE · DIGEST)으로
     [BROWSER]: { cls: "browser", title: "브라우저(맥 72 · 형 대신 로그인)", pick: pickOn(BROWSER), body: (   // 화면 = 같이 보기 다리 판(맥 72) · 못 닿으면 끼워 넣기 웹 칸(CobrowsePane 안) · 형이 대신 로그인하는 칸
       <><svg className="nm-tab-ic browser" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg><span className="nm-tab-nm">Browser</span></>) },
     [MEET]: { cls: "meet", title: "화상회의(맥 72 화면 + 우리 대화)", pick: pickOn(MEET), body: <><MeetIcon /><span className="nm-tab-nm">화상 회의</span></> },   // 따로 선 들머리(형 11-13 09:21) · 열린 회의 없으면 바로 참여자 고르기
@@ -230,11 +230,11 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
           if (!fx && !t) return null;
           const at = order.indexOf(key), on = s.active === key, sep = at > 0 && !on && order[at - 1] !== s.active, name = fx ? fx.title : nameOf(t!), face = t ? faceOf(t) : "", pickIt = fx ? fx.pick : () => pick(t!);
           return (
-            <div key={key} data-key={key} data-sep={sep ? "" : undefined} style={{ order: at }} role="tab" aria-selected={on} tabIndex={0} title={name} className={`nm-tab${fx ? ` ${fx.cls}` : ""}${on ? " on" : ""}`}
+            <div key={key} data-key={key} data-sep={sep ? "" : undefined} style={{ order: at }} role="tab" aria-selected={on} tabIndex={0} title={t?.k === "web" && t.url ? t.url : name} className={`nm-tab${fx ? ` ${fx.cls}` : ` k-${t!.k}`}${on ? " on" : ""}`}
               onPointerDown={down(key)} onPointerMove={move} onPointerUp={up(pickIt)} onPointerCancel={up(null)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickIt(); } }}>
               {fx ? fx.body : (
                 <>
-                  {face ? <FaceImg id={face} size={18} className="nm-tab-ic" /> : <span className="nm-tab-ic dot" aria-hidden />}
+                  {face ? <FaceImg id={face} size={18} className="nm-tab-ic" /> : t!.k === "web" ? <svg className="nm-tab-ic browser" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg> : <span className="nm-tab-ic dot" aria-hidden />}
                   <span className="nm-tab-nm">{name}</span>
                   <button type="button" className="nm-tab-x" aria-label={`${name} 탭 닫기`} onClick={(e) => { e.stopPropagation(); close(key); }}>×</button>
                 </>

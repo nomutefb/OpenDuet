@@ -66,7 +66,9 @@ test("웹 탭(「+」 빈 탭 · 빠르 11-11 · 형 22:10 「+ 누르면 … �
   assert.equal(m.webTabName(""), "새 탭");
   s = m.tabsSetUrl(s, s.active, "https://www.example.com/a?b=1");
   assert.equal((s.tabs[1] as { url: string }).url, "https://www.example.com/a?b=1");
-  assert.equal(m.webTabName("https://www.example.com/a"), "example.com");
+  assert.equal(m.webTabName("https://www.example.com/a"), "example.com/a");   // 링크 = 주소 + 길(형 11-20 11:35)
+  assert.equal(m.webTabName("https://news.naver.com/"), "news.naver.com");
+  assert.equal(m.webTabName("https://n.news.naver.com/mnews/article/001/0015123456?sid=100").length, 40);
   assert.equal(m.tabsSetUrl(s, "w:none", "https://x.com"), s, "없는 탭 = 그대로");
   // 저장 → 다시 읽기 = 웹 탭 그대로 · 잘못된 웹 탭(주소 꼴 · id 꼴) = 버림
   const back = m.tabsLoad(m.tabsSave(s));
