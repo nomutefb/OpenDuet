@@ -28,6 +28,12 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   assert.match(lab, /width=\{g\.w \/ 2\} height=\{g\.h \/ 2\}/);
   for (const k of ["fixer", "md", "uxd", "dev", "ops"]) assert.ok(statSync(new URL(`../public/job-${k}.webp`, import.meta.url)).size < 8_000, k);
   // 자리 = 이름 바로 뒤(같은 줄 · items-center = 세로 가운데) · 라벨 있으면 글 알약 대신
-  assert.match(list, /\{slim \? null : jobOf\(p\) \? <JobLabel job=\{jobOf\(p\)!\} \/>/);
+  assert.match(list, /\{slim \? null : jobOf\(p\) \? <JobLabel job=\{jobOf\(p\)!\} who=\{p\?\.who\} \/>/);
+  // 지금 PM 만 무지개(형 19:18 dm-haneul 「현재 PM은 레인보우로 특별하게, 무지개 빛 할수있어?」) · 서버 pm 칸 · 우하단 PM 구슬과 같은 캐시 열쇠 · 정지 그림
+  assert.match(lab, /if \(job === "PM" && who\) return <PmLabel who=\{who\} \/>;/);
+  assert.match(lab, /queryKey: \["nomute", "pm"\], queryFn: \(\) => office<\{ who\?: string \}>\("pm"\), staleTime: 300_000, refetchInterval: 300_000/);
+  assert.match(lab, /const g = now === who \? PM_NOW : IMG\.PM;/);
+  assert.ok(statSync(new URL("../public/job-pm-now.webp", import.meta.url)).size < 8_000);
+  assert.match(rd("../ui/room-fab.tsx"), /queryKey: \["nomute", "pm"\], queryFn: \(\) => office<\{ who\?: string \}>\("pm"\), staleTime: 300_000, refetchInterval: 300_000/, "같은 열쇠 · 같은 받기");
   assert.match(list, /: p\?\.role \? <span data-content/);
 });

@@ -11,7 +11,7 @@ test("@ 왼쪽 불(깨어 있음 · 예비 = 켬) · 라벨 있는 애 = 그림 
   assert.match(card, /const online = look\?\.seat \? lit === true : state === "awake";/);
   assert.match(card, /queryKey: \["nomute", "bots"\]/, "방 목록 · 대화와 같은 받기(캐시 하나)");
   assert.match(card, /handleLead=\{<i className=\{`bc-on\$\{online \? " on" : ""\}`\}/);
-  assert.match(card, /statusNode=\{job \? <span className="profile-card__status bc-job"><JobLabel job=\{job\} \/><\/span> : undefined\}/);
+  assert.match(card, /statusNode=\{job \? <span className="profile-card__status bc-job"><JobLabel job=\{job\} who=\{who\} \/><\/span> : undefined\}/);
   assert.match(css, /\.being-card \.bc-on\.on \{ background: var\(--success, #3BE37A\);/);
   assert.match(css, /\.being-card \.profile-card__status::before \{ display: none; \}/);
   assert.doesNotMatch(css.slice(css.indexOf(".being-card .bc-on")), /^\.being-card \.bc-on[^{]*\{[^}]*animation/m, "불 = 움직임 0");

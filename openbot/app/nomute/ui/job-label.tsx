@@ -2,6 +2,8 @@
 //   「▶ 규칙: 이모지 없음 · 직무 값은 따로 항목 칸에 있고, 그 값별로 라벨 이미지 하나 · 배경 투명 PNG」 · 「▶ 자리: 이름 바로 뒤, 이름 글자 세로 가운데에 맞춤(수평 맞춤)」 ·
 //   「▶ 크기: FIXER·MD 높이 약 20px 기준, UXD는 그 60%(약 12px)」 · 「▶ 디자이너 라벨은 없앰어(디자이너 = UXD)」 · 「원본은 큰 해상도라 웹용으로 줄여서 써줘」)
 //   그림 = 원본 투명 테 잘라 화면 높이 2배로 줄인 webp(public/job-*.webp · 2~5KB) · 짝 없는 애(MD · MusiC 주인 미정) = 그림 없음 → 옛 글 알약 그대로
+import { useQuery } from "@tanstack/react-query";
+import { office } from "../data/office";
 export type Job = "FIXER" | "MD" | "UXD" | "DEV" | "OPS" | "PM" | "STORY" | "MUSIC" | "CREATOR" | "RND" | "SEC" | "SCOOP";
 const IMG: Record<Job, { src: string; w: number; h: number }> = {
   FIXER: { src: "/garden-app/job-fixer.webp", w: 87, h: 40 },
@@ -34,7 +36,16 @@ export function jobOf(p?: { who: string; job?: string } | null): Job | undefined
   const j = (p.job || "").trim().toUpperCase();
   return j in IMG ? (j as Job) : JOB_OF[p.who];
 }
-export function JobLabel({ job }: { job: Job }) {
+export function JobLabel({ job, who }: { job: Job; who?: string }) {
+  if (job === "PM" && who) return <PmLabel who={who} />;
   const g = IMG[job];
   return <img className="nm-job shrink-0" src={g.src} alt={job} width={g.w / 2} height={g.h / 2} decoding="async" draggable={false} />;
+}
+/** 지금 PM 만 무지개 판(형 11-20 19:18 dm-haneul 「현재 PM은 레인보우로 특별하게, 무지개 빛 할수있어?」) · 나머지 PM 라인 = 라임 스티커
+ *  지금 PM = 서버 pm 칸(우하단 PM 구슬 ./room-fab.tsx 와 같은 캐시 열쇠 · 받기 0 더) · 교대되면 무지개도 따라감 · 그림 = 정지(움직임 0) */
+const PM_NOW = { src: "/garden-app/job-pm-now.webp", w: 63, h: 40 };
+function PmLabel({ who }: { who: string }) {
+  const now = useQuery({ queryKey: ["nomute", "pm"], queryFn: () => office<{ who?: string }>("pm"), staleTime: 300_000, refetchInterval: 300_000 }).data?.who;
+  const g = now === who ? PM_NOW : IMG.PM;
+  return <img className="nm-job shrink-0" src={g.src} alt={now === who ? "지금 PM" : "PM"} width={g.w / 2} height={g.h / 2} decoding="async" draggable={false} />;
 }

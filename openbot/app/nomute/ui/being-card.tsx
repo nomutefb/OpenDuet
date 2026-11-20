@@ -584,7 +584,7 @@ export function BeingCard({ who, name, role, intro, face, person, note, onScreen
         status={acts ? role || look.meta : look.meta}   // 통일 = 아래 작은 줄도 직무(앞 판 = 시아 「물어보는 자리 · Lx A」 · 뎅 「말끝지기 · Lx B」 · 천둥 「신」 · 나머지 직무)
         statusColor={look.dot || "#CFFF40"}
         handleLead={<i className={`bc-on${online ? " on" : ""}`} role="img" aria-label={online ? "온라인" : "쉬는 중"} />}
-        statusNode={job ? <span className="profile-card__status bc-job"><JobLabel job={job} /></span> : undefined}
+        statusNode={job ? <span className="profile-card__status bc-job"><JobLabel job={job} who={who} /></span> : undefined}
         contactText=""
         actions={acts || onDm || onScreen ? (
           <span className="bc-acts">
