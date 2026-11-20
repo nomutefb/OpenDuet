@@ -99,6 +99,7 @@ import { dropStickerTwins } from "./sticker-logic";   // 움짤 스티커 한 �
 import { ThumbCard, thumbOf, type ThumbRef } from "./thumb-card";   // 별 「[요약 완료]」 글 바로 위 썸네일 초안 그림(형 11-02 11:44 「별 요약 과 함께 요약 바로 위에 오면 됨 이미지로」)   // 글 속 첫 주소 = 말풍선 아래 미리보기 카드(형 11-02 07:13 「채팅에는 일반적인 채팅 앱처럼 보이면 됨」)
 import "./yeta-chat.css";
 import { whoName } from "./who-name";
+import { starLit } from "./star-lit";   // 형 글 별 그대로(형 11-20 11:04)
 
 const enc = encodeURIComponent;
 /** 쓰던 글 = 방마다 이 탭 안에 바로 적어 둠(sessionStorage) → 새 판으로 다시 읽혀도 글칸에 되살림(뒤에 숨어 얼어 있던 탭은 서비스 워커에 「글 있음」을 못 알려 · 10-28 11:21 실측) */
@@ -966,9 +967,10 @@ function Said({ m, nre = null }: { m: Msg; nre?: RegExp | null }) {
   if (goneOf(m)) return <Gone />;
   if (!m.files?.length && LOST_ATTACH_RE.test(text)) return <span className="text-muted-foreground text-sm">📎 사진·영상을 붙였는데 봄의 정원으로 안 넘어왔어</span>;
   const pics = m.files?.length ? [] : textPhotos(text);
-  if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(m.caption, callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
+  const lit = mineOf(m) ? starLit : (t: string) => t;   // 형 글 = 별 그대로(./star-lit · 형 11-20 11:04) · 봇 글 꾸밈은 그대로
+  if (m.files?.length) return <><Files m={m} />{m.caption ? <div className="ycap-ai"><Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(lit(m.caption), callRe(m), nre)}</Streamdown></div> : null}</>;   // 글 + 첨부 한 글(형 10-31 「말한거랑 한꺼번에 가자」)
   if (EMO.test(text.trim())) return <span className="text-4xl leading-tight">{text.trim()}</span>;
-  const said = <Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(text, callRe(m), nre)}</Streamdown>;
+  const said = <Streamdown {...MD_BOX} components={mdWithCalls}>{calledMd(lit(text), callRe(m), nre)}</Streamdown>;
   return pics.length ? <><TextPhotos urls={pics} />{said}</> : said;
 }
 
