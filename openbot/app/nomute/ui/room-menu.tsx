@@ -83,8 +83,8 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       <button type="button" role="menuitem" onClick={go(() => setFiles(true))}>파일 기록</button>
       {asks.data ? <button type="button" role="menuitem" onClick={go(() => setHist(true))}>질문 이력<small>{asks.data.length}</small></button> : null}
       <button type="button" role="menuitemcheckbox" aria-checked={unfold} onClick={() => setUnfold(room, !unfold)}>긴 글 다 펼쳐 보기<small>{unfold ? "켬" : "끔"}</small></button>   {/* 켬 = 17줄 접기 풂(./unfold.ts · 형 11-04 08:08 · 기본 끔 = 접힘) */}
-      {canGone(r) ? <MorphAsk role="menuitem" className="del" yesText="없애기" note="목록 · 부름에서 빠져 · 글은 서버에 남아" onYes={() => dropRoom(r)}>방 없애기</MorphAsk> : null}   {/* 고정 단체방(못 없애는 방 = 회의실 · 요약실 · 수리 접수 · 메모 · 공지 · 밥상 · 1:1 · 둘의 방) */}
-      {r.temp ? <MorphAsk role="menuitem" className="del" yesText="지우기" note="글이 모두 지워져 · 되돌릴 수 없어" onYes={() => dropRoom(r)}>방 지우기</MorphAsk> : null}   {/* 임시 단톡방 = 파기 */}
+      {canGone(r) ? <MorphAsk role="menuitem" className="del" yesText="없애기" onYes={() => dropRoom(r)}>방 없애기</MorphAsk> : null}   {/* 고정 단체방(못 없애는 방 = 회의실 · 요약실 · 수리 접수 · 메모 · 공지 · 밥상 · 1:1 · 둘의 방) */}
+      {r.temp ? <MorphAsk role="menuitem" className="del" yesText="지우기" onYes={() => dropRoom(r)}>방 지우기</MorphAsk> : null}   {/* 임시 단톡방 = 파기 */}
     </>
   ) : null;
   const dialogs = (

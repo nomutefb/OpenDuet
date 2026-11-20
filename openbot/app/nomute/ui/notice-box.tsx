@@ -63,7 +63,7 @@ export function NoticeBox({ kind, onClose }: { kind: NoteKind; onClose: () => vo
         {edit ? (
           <div className="nm-nb-foot">
             {saved ? <span className="nm-nb-saved" role="status">저장됨</span> : <>
-              {dirty ? <MorphAsk className="nm-nb-btn" yesText="닫기" note="쓰던 글은 사라져" label={`${NOTE_NAME[kind]} 닫기`} onYes={close}>닫기</MorphAsk>
+              {dirty ? <MorphAsk className="nm-nb-btn" yesText="닫기" label={`${NOTE_NAME[kind]} 닫기`} onYes={close}>닫기</MorphAsk>
                 : <button type="button" className="nm-nb-btn" onClick={close}>닫기</button>}
               <GoButton className="nm-nb-btn nm-nb-go" disabled={!canSave(draft, n)} go={save} done={done} busy="저장 중">저장</GoButton>
             </>}
