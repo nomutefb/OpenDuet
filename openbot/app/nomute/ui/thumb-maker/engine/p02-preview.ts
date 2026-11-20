@@ -15,8 +15,8 @@ import { HDR, abbrOn, cTpl, effOvFmt, estHeaderTr, goFire, hdrFit, ovFit, ovTrkK
 import { a2Build, errStatus } from "./p13-fire";
 
 export const CPV_WHITE = 'rgb(255,255,255)';
-export const CPV_GREEN = '#0FFD02';
-export const CP_PREV_FONT = 'Noto Sans KR';
+export const CPV_GREEN = '#6EFF66';   // 강조 초록 = 형 11-21 「✓ ② B #6EFF66」(R0083 · 굽는 쪽 shared/content_style.py GREEN 과 같은 값 · 앞 판 #0FFD02)
+export const CP_PREV_FONT = 'Pretendard Variable';   // 미리보기 글꼴 = 프리텐다드 Bold(형 11-21 08:12 「프리텐다드로 하고」 · 굽는 쪽 Pretendard-Bold.otf · 앱 /assets/fonts/pretendard.woff2 · 앞 판 Noto Sans KR)
 export function cpPrevVariants() {
   const csub = abbrOn($('#cSub').value.trim()), ctitle = abbrOn($('#cTitle').value.trim());
   const lines = normEmph(stripStrayStars($('#cLines').value)).split('\n').map(s => abbrOn(s.trim())).filter(Boolean);
