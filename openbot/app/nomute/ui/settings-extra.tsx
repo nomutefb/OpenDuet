@@ -289,7 +289,9 @@ function CopyBtn({ ok, off, label, go, text }: { ok: boolean; off?: boolean; lab
 }
 const seatName = (seat: string) => seat.replace(/^자리(\d)$/, "자리 0$1").replace(/^예비(\d+)$/, "예비 $1");
 /** 예비 이름 = 서랍에 나온 차례(예비 1 · 2 · 3) — 서버 자리 id(예비01 · 06 …)는 화면에 안 나감(형 11-20 03:04 「예비 2 3 을 만들고」 · 03:42 「02 03은 이미 쓰고잇는 거는 배제」 = 쓰는 자리는 서버가 빼고 새 칸을 더함) */
-const spareNames = (seats: VaultSeat[]) => { const m: Record<string, string> = {}; let i = 0; for (const s of seats) { if (!s.top) i++; m[s.seat] = s.label || (s.top ? seatName(s.seat) : `예비 ${i}`); } return (seat: string) => m[seat] || seatName(seat); };   // 서버 이름표(seats[].label · 빠르 #4398) 먼저 · 없으면 차례
+//   기본 이름 = 한싹이 · 두싹이 · 세싹이(형 11-20 13:58 dm-sia 시아 옮김 「응 한싹이 두싹이 세싹이 하면되고」 · 서버 이름표가 먼저 = 천둥 · 넷째부터 = 예비 N)
+const SPROUT = ["한싹이", "두싹이", "세싹이"];
+const spareNames = (seats: VaultSeat[]) => { const m: Record<string, string> = {}; let i = 0; for (const s of seats) { if (!s.top) i++; m[s.seat] = s.label || (s.top ? seatName(s.seat) : SPROUT[i - 1] || `예비 ${i}`); } return (seat: string) => m[seat] || seatName(seat); };   // 서버 이름표(seats[].label · 빠르 #4398) 먼저 · 없으면 차례
 const DOTS = "••••••••";   // 열쇠 칸 = 가린 꼴만(형 08:09 「*****로 가려져있고 복사만 가능」 · 그록 창과 같은 점)
 
 /** 맨 위 「봄의 정원 MCP server」 칸 = 그록 「Edit MCP server」 꼴을 설명글 빼고 통째로(형 11-19 08:09 「이 형식을 거의 통째로 설명 빼고 옮겨」 「참고하기좀쉽게」 ·

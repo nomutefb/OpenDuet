@@ -56,9 +56,9 @@ export const MACHINE_FACES: OfficePerson[] = [
   { who: "작업 알림", name: "작업 알림", kind: "system", face: "/office/work-alert.webp", gone: true },
   { who: "구름", name: "구름", kind: "system", face: "/office/gureum.webp", gone: true },
   // 예비 손님 셋 = 새싹 화분 얼굴(형 11-20 11:08 dm-sia 시아 옮김 「그리고 예비 애들 프로필 카드 하나씩 해줘」 · 그림 = 시아 · 카드 = ./ui/being-card spare01~03 · 하늘)
-  { who: "예비01", name: "예비 1", kind: "bot", face: "/garden-app/spare-01.webp?v=1", gone: true },
-  { who: "예비06", name: "예비 2", kind: "bot", face: "/garden-app/spare-02.webp?v=1", gone: true },
-  { who: "예비07", name: "예비 3", kind: "bot", face: "/garden-app/spare-03.webp?v=1", gone: true },
+  { who: "예비01", name: "한싹이", kind: "bot", face: "/garden-app/spare-01.webp?v=1", gone: true },
+  { who: "예비06", name: "두싹이", kind: "bot", face: "/garden-app/spare-02.webp?v=1", gone: true },
+  { who: "예비07", name: "세싹이", kind: "bot", face: "/garden-app/spare-03.webp?v=1", gone: true },
 ] as unknown as OfficePerson[];
 
 export function people(fresh = false): Promise<OfficePerson[]> {

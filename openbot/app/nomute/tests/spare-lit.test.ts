@@ -34,3 +34,13 @@ test("켜기 · 끄기 = 보안 서랍 예비 줄 맨 앞 스위치(형만) · �
   assert.match(css, /\.yeta-set \.nm-mcp-sp \.nm-mcp-sv \{ padding:0 6px; font-size:12px; text-overflow:clip; \}/);
   assert.match(css, /\.yeta-set \.nm-mcp-on \.si-sw \{ width:34px; height:20px; \}/);
 });
+
+test("예비 기본 이름 = 한싹이 · 두싹이 · 세싹이(형 11-20 13:58 「응 한싹이 두싹이 세싹이 하면되고」) · 서버 이름(방 이름 · 서랍 이름표)이 먼저", () => {
+  const office = rd("../data/office.ts"), card = rd("../ui/being-card.tsx"), src = rd("../ui/settings-extra.tsx");
+  for (const [who, nm] of [["예비01", "한싹이"], ["예비06", "두싹이"], ["예비07", "세싹이"]]) {
+    assert.ok(office.includes(`{ who: "${who}", name: "${nm}", kind: "bot"`), who);
+    assert.ok(card.includes(`"${nm}", "spare0`), nm);
+  }
+  assert.match(src, /const SPROUT = \["한싹이", "두싹이", "세싹이"\];/);
+  assert.match(src, /m\[s\.seat\] = s\.label \|\| \(s\.top \? seatName\(s\.seat\) : SPROUT\[i - 1\] \|\| `예비 \$\{i\}`\);/);
+});
