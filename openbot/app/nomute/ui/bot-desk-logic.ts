@@ -5,6 +5,7 @@ export type Lane = "lost" | "ready" | "work" | "rest" | "off" | "none";
 export type BotRow = {
   who: string; brain?: string; lane: Lane; state: string; cause?: string; why?: string;
   last_at?: number; beat_at?: number; door_at?: number; ctx_pct?: number; work_min?: number; acct?: string; acct_left?: number;
+  turn_at?: number | null;   // 이번 턴 시작(ms · 쉬면 null · 번개 서버 칸 · 시아 11-21 07:47) → 일감 시간 줄 「지금 N분째」
   skills?: string[]; hw?: { ram?: string; cpu?: string; gpu?: string; os?: string }; note?: string; turn?: Record<string, Turn>;
   open?: { no: string; title?: string; code?: string; at?: number }[]; today?: number; pm?: boolean; rest?: boolean;   // 맡은 오더(받고 안 끝낸 것) · 오늘 받은 수 · PM 자리 · 쉼 지정
   jobs?: Job[];   // 오늘 오더 줄(안 끝낸 것 먼저 + 오늘 끝낸 것 · 서버 오더 장)

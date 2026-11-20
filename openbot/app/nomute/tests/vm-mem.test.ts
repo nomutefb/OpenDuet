@@ -115,7 +115,7 @@ test("배선 = 서랍 화면 · 길 #/vm · 자료 문 vm-mem · 그림 꼴 출�
   assert.match(shell, /\{ id: "vmstat", label: "몸 상태", icon: "box", to: "\/vm" \}/);   // 이름 = 몸 상태(형 11-16 17:5x 「하드웨어애들도 다 보이게할거니까 쭈르륵 애들 다 보이게해줘」 · 앞 = VM 상태)
   assert.match(router, /"\/vm"/); assert.ok(!tabs.includes('"vmstat"'));   // 따로 선 탭 아님 = 길 #/vm 은 5번 「애들」 화면으로(그래프는 애 카드 안 · 「몸」 탭은 걷음 · 형 11-17)
   assert.match(shell, /if \(p === "\/runner" \|\| p === "\/sched" \|\| p === "\/vm"\) return \{ modal: "botdesk" \};/);
-  assert.match(rd("../ui/bot-desk.tsx"), /\["turn", "차례"\], \["meter", "계기판"\]\]/); assert.doesNotMatch(rd("../ui/bot-desk.tsx"), /"body"|<VmDesk/); assert.match(desk, /export function VmCard\(/);
+  assert.match(rd("../ui/bot-desk.tsx"), /\["turn", "차례"\]\];/); assert.doesNotMatch(rd("../ui/bot-desk.tsx"), /"body"|<VmDesk/); assert.match(desk, /export function VmCard\(/);
   assert.match(desk, /\.\.\.vmMemOpts<VmMemRes>\(\)/); assert.match(rd("../data/crew-warm.ts"), /office<T>\("vm-mem"\)/);   // 자료 문 = vm-mem(읽는 꼴은 ../data/crew-warm.ts 한 벌)
   assert.match(rd("../ui/vm-mem-logic.ts"), /nomutefb\/lieflat-charts F3 Hairline Area/);
 });
