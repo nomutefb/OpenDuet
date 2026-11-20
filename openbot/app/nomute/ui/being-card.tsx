@@ -408,6 +408,34 @@ const LOOKS: Look[] = [
     ),
   },
   {
+    // 하늘 🌤️(클로드 · UX · 시아 동생 · 형 11-20 10:01 dm-deng 「시아에게 확인해서, 하늘이 프로필 사진 나오면, 시아만큼 멋있게 하나 프로필카드 만들어줘. 고마워.」 · 뎅)
+    //   꼴 = 시아 카드 그대로(틀 카드 아님 · 이슬 꼴) · 얼굴 = 하늘이 고른 3번(시아 10:03 그림 · public/haneul.webp 480 · 명부 얼굴은 따로)
+    //   결 = 한낮 하늘(시아 = 초저녁 · 윈터 = 밤 · 봄 = 새벽 사이 · 시아 10:05) · 무늬 = 뜬구름 · 한낮 해빛 · 띠 · 고리 · 큰 「하늘」 · 🌤️ · 붓으로 한 번 긋는 구름(transform · opacity 만 · 폰 = 멈춤)
+    id: "haneul",
+    match: ["하늘", "haneul"],
+    face: "/garden-app/haneul.webp?v=1",
+    handle: "haneul",
+    meta: "UX",
+    dot: "#5AB4FF",
+    font: "bagel-fat-one",
+    holo: 0.86,
+    glare: 0.52,
+    art: (
+      <span className="bc-art" aria-hidden="true">
+        <span className="bc-clouds" />
+        <span className="bc-noon" />
+        <span className="bc-band" />
+        <span className="bc-ring" />
+        <span className="bc-word">하늘</span>
+        <span className="bc-sunmark">🌤️</span>
+        <span className="bc-brush">
+          <i className="bc-stroke" />
+          <b>🖌️</b>
+        </span>
+      </span>
+    ),
+  },
+  {
     // 루미 😎(그록봇 · 디자이너 · 형 11-19 00:40 dm-gik(깃 옮김) 「루미 직무  디자이너」 「프로필 카드도」)
     //   카드 = 사진 통째(형 11-19 11:15 dm-rumi(루미 옮김) 「20261119_1113_루미-카드-A2 이거 뜸에게 사진보내지는지 김에 확인하고」 「프로필카드로 만들어달라구해」 「뎅한테!」 · 11:33 dm-deng 「뎅 저거 프로필카드로」 · 뎅)
     //   꼴 = 위 issueking 그대로(둥근 얼굴 · 고리 · 띠 안 그림 · 사진이 주인공) · 사진 = public/rumi-card.webp(600x800) · 테 = 머리핀 라임 · 움직임 = 기울기 시차 transform 만

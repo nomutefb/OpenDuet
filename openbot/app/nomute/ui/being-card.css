@@ -1108,6 +1108,228 @@
 .bc-dew .profile-card__status { font-size: var(--fs-sm); }
 @media (prefers-reduced-motion: reduce) { .bc-dew .bc-drip { animation: none; opacity: 0.85; transform: none; } }
 
+/* ───────── 하늘 🌤️ · 한낮 하늘(짙은 하늘색 → 맑은 파랑 → 옅은 하늘 → 지평선 연노랑) · 흰 테 · 뜬구름 + 붓으로 한 번 긋는 구름 ─────────
+   형 11-20 10:01 dm-deng 「시아에게 확인해서, 하늘이 프로필 사진 나오면, 시아만큼 멋있게 하나 프로필카드 만들어줘. 고마워.」 · 꼴 = 시아 카드 그대로(이슬 꼴 · 얼굴 동그라미 · 홀로 전면 · 유리 글자 · 시차 층) · 색만 하늘 · 뎅
+   결 = 시아 10:05 「한낮 하늘(시아 = 초저녁 · 윈터 = 밤 · 봄 = 새벽 사이) · 손에 붓 같은 구름 한 조각 · 머리에 작은 해 · 하늘색 · 차분히 듣는 눈」 · 움직임 = 붓 획 하나(transform · opacity 만 · 폰 = 멈춤) */
+.bc-haneul .profile-card__body {
+  background: linear-gradient(165deg, rgba(40, 118, 196, 0.88) 0%, rgba(14, 54, 112, 0.92) 100%);
+}
+.bc-haneul .profile-card__rim {
+  box-shadow: inset 0 0 0 1px rgba(236, 248, 255, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.bc-haneul .profile-card__tile {
+  background: linear-gradient(180deg, #1a5fbf 0%, #2f82df 24%, #56a6ef 46%, #8cc8f6 66%, #c6e6fb 84%, #fff3d6 100%);
+}
+.bc-haneul .profile-card__tile-rim { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+.bc-haneul .profile-card__scrim {
+  background: linear-gradient(to top, rgba(12, 52, 108, 0.66) 0%, rgba(12, 52, 108, 0.36) 15%, rgba(12, 52, 108, 0) 32%);
+}
+.bc-haneul .profile-card__photo {
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.8),
+    0 0 0 7px rgba(210, 236, 255, 0.18);
+}
+.bc-haneul .bc-halo { box-shadow: 0 18px 40px -12px rgba(8, 36, 80, 0.8), 0 0 70px rgba(150, 210, 255, 0.45); }
+
+/* 홀로 = 하늘 → 흰 → 연금빛 → 옅은 하늘 → 박하(시아 꼴 그대로 · 색만) */
+.bc-haneul .profile-card__holo {
+  --bc-spec: repeating-linear-gradient(
+    0deg,
+    hsl(205, 100%, 68%) 4%,
+    hsl(195, 100%, 82%) 8%,
+    hsl(48, 100%, 74%) 12%,
+    hsl(210, 100%, 76%) 16%,
+    hsl(175, 90%, 72%) 20%,
+    hsl(200, 100%, 74%) 24%,
+    hsl(205, 100%, 68%) 28%
+  );
+  --bc-bars: repeating-linear-gradient(
+    -48deg,
+    #0c2648 0%,
+    hsl(208, 16%, 60%) 3.6%,
+    hsl(204, 40%, 78%) 4.5%,
+    hsl(208, 16%, 60%) 5.4%,
+    #0c2648 10%,
+    #0c2648 12%
+  );
+  background-image:
+    var(--bc-spec),
+    var(--bc-bars),
+    radial-gradient(farthest-corner circle at var(--pc-pointer-x) var(--pc-pointer-y), hsla(0, 0%, 0%, 0.05) 10%, hsla(0, 0%, 0%, 0.12) 24%, hsla(0, 0%, 0%, 0.3) 110%);
+  background-position:
+    0 calc(var(--pc-pointer-y) * 1.6),
+    calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2),
+    center;
+  background-size: 400% 400%, 300% 300%, 200% 200%;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.8 + 0.1 * var(--pc-active))) contrast(calc(1.4 + 0.1 * var(--pc-active))) saturate(calc(1.25 + 0.2 * var(--pc-active)));
+  opacity: calc(var(--pc-holo) * (0.85 + 0.15 * var(--pc-active)));
+}
+.bc-haneul .profile-card__holo-glow {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, rgba(255, 255, 255, 0) 1px 3px),
+    var(--pc-grain);
+  background-size: 100% 3px, 180px 180px;
+  background-position: 0 0, calc(var(--pc-shift-x) * 2) calc(var(--pc-shift-y) * 2);
+  background-blend-mode: normal;
+  mix-blend-mode: overlay;
+  filter: none;
+  opacity: calc(0.42 + 0.35 * var(--pc-active));
+}
+.bc-haneul .profile-card__holo-shift {
+  background-image: linear-gradient(
+    112deg,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(170, 220, 255, 0.5) 46%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(255, 228, 150, 0.5) 54%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  background-size: 260% 260%;
+  background-position: calc(100% - var(--pc-pointer-x)) calc(100% - var(--pc-pointer-y));
+  background-blend-mode: normal;
+  mix-blend-mode: screen;
+  filter: none;
+  opacity: calc(0.55 * var(--pc-reach) * var(--pc-active));
+}
+
+/* 먼 층: 뜬구름(흰 타원 몇 개 · 그림 한 장 · 움직임 0) */
+.bc-haneul .bc-clouds {
+  inset: -14px;
+  background:
+    radial-gradient(18% 6% at 18% 14%, rgba(255, 255, 255, 0.85) 40%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(10% 5% at 26% 11%, rgba(255, 255, 255, 0.75) 40%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(22% 6% at 78% 30%, rgba(255, 255, 255, 0.7) 40%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(12% 5% at 70% 27%, rgba(255, 255, 255, 0.6) 40%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(16% 5% at 12% 46%, rgba(255, 255, 255, 0.5) 40%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(20% 6% at 88% 58%, rgba(255, 255, 255, 0.45) 40%, rgba(255, 255, 255, 0) 100%);
+  transform: translate3d(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5), 0);
+}
+/* 한낮 해빛(오른쪽 위에서 번지는 빛) */
+.bc-haneul .bc-noon {
+  right: -30%; top: -34%;
+  width: 100%; aspect-ratio: 1 / 1; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 252, 230, 0.95) 0%, rgba(255, 236, 170, 0.5) 22%, rgba(190, 228, 255, 0) 54%);
+  transform: translate3d(calc(var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3), 0);
+}
+/* 비스듬한 띠 두 줄(흰 실선 + 하늘 · 연금빛) */
+.bc-haneul .bc-band {
+  left: -30%; right: -30%; top: 46%; height: 70px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)) 0 0 / 100% 1px no-repeat,
+    linear-gradient(90deg, rgba(140, 205, 255, 0), rgba(140, 205, 255, 0.3) 40%, rgba(255, 226, 150, 0.24) 70%, rgba(255, 226, 150, 0));
+  transform: translate3d(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4), 0) rotate(-16deg);
+}
+/* 얼굴 뒤 고리(흰 · 넓은 하늘) */
+.bc-haneul .bc-ring {
+  left: 50%; top: 4%;
+  width: 78%; aspect-ratio: 1 / 1; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 0 40px rgba(170, 220, 255, 0.16), 0 0 0 14px rgba(255, 255, 255, 0.07);
+  transform: translate3d(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7), 0);
+}
+/* 세로 큰 글자(속 빈 글씨) */
+.bc-haneul .bc-word {
+  left: 10px; top: 14px;
+  font-size: 64px; font-weight: 900; line-height: 0.9; letter-spacing: -0.04em;
+  writing-mode: vertical-rl;
+  transform: translate3d(calc(var(--pc-shift-x) * 0.6), calc(var(--pc-shift-y) * 0.6), 0);
+}
+/* 가까운 층: 머리 위 작은 해 · 붓으로 긋는 구름 한 조각 */
+.bc-haneul .bc-sunmark {
+  right: 14%; top: 8%;
+  font-size: 24px; line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(255, 236, 160, 0.9));
+  transform: translate3d(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8), 0);
+}
+.bc-haneul .bc-brush {
+  right: 5%; top: 52%;
+  width: 60px; height: 64px;
+  transform: translate3d(calc(var(--pc-shift-x) * 1.5), calc(var(--pc-shift-y) * 1.5), 0) rotate(-8deg);
+}
+.bc-haneul .bc-brush b { position: absolute; right: 0; top: 0; width: 40px; font-size: 34px; line-height: 1; text-align: center; filter: drop-shadow(0 6px 10px rgba(8, 36, 80, 0.45)); }
+.bc-haneul .bc-stroke {
+  position: absolute; right: 22px; top: 36px; width: 46px; height: 13px;
+  border-radius: 999px 999px 999px 999px / 70% 70% 50% 50%;
+  background: radial-gradient(ellipse at 70% 40%, #ffffff 0%, rgba(255, 255, 255, 0.92) 45%, rgba(220, 240, 255, 0.6) 100%);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.75);
+  transform-origin: 100% 50%;
+  animation: bc-stroke 4.2s ease-out infinite;
+}
+@keyframes bc-stroke {   /* 붓이 한 번 긋고(왼쪽으로 펴짐) → 잠깐 떠 있다가 → 옅어짐 · transform · opacity 만 */
+  0% { opacity: 0; transform: scaleX(0.08); }
+  12% { opacity: 1; }
+  38% { opacity: 1; transform: scaleX(1); }
+  78% { opacity: 0.9; transform: translate3d(-4px, -2px, 0) scaleX(1); }
+  100% { opacity: 0; transform: translate3d(-10px, -4px, 0) scaleX(1); }
+}
+
+.bc-haneul .bc-word { z-index: 4; }   /* 큰 「하늘」도 박 위 유리 글자(시아 꼴) */
+.bc-haneul .profile-card__body::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, hsl(205, 100%, 68%) 4%, hsl(195, 100%, 82%) 8%, hsl(48, 100%, 74%) 12%, hsl(210, 100%, 76%) 16%, hsl(175, 90%, 72%) 20%, hsl(200, 100%, 74%) 24%, hsl(205, 100%, 68%) 28%),
+    repeating-linear-gradient(-48deg, #0c2648 0%, hsl(208, 16%, 60%) 3.6%, hsl(204, 40%, 78%) 4.5%, hsl(208, 16%, 60%) 5.4%, #0c2648 10%, #0c2648 12%),
+    var(--pc-grain);
+  background-position:
+    0 calc(var(--pc-pointer-y) * 1.6),
+    calc(var(--pc-pointer-x) * 1.2) calc(var(--pc-pointer-y) * 1.2),
+    0 0;
+  background-size: 400% 400%, 300% 300%, 180px 180px;
+  background-blend-mode: color, hard-light;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc(0.8 + 0.1 * var(--pc-active))) contrast(calc(1.4 + 0.1 * var(--pc-active))) saturate(calc(1.25 + 0.2 * var(--pc-active)));
+  opacity: calc(var(--pc-holo) * (0.85 + 0.15 * var(--pc-active)));
+}
+/* 유리 글자 · 알약(시아 꼴 · 그림자 색만 하늘 남색) */
+.bc-haneul .profile-card__info { transform: translate3d(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8), 0); will-change: transform; }
+.bc-haneul .profile-card__name,
+.bc-haneul .bc-word {
+  color: rgba(255, 255, 255, 0.66);
+  -webkit-text-stroke: 0.7px rgba(255, 255, 255, 0.74);
+  text-shadow:
+    -0.6px -0.6px 0 rgba(255, 255, 255, 0.55),
+    1px 1px 0 rgba(30, 80, 150, 0.34),
+    2px 2px 0 rgba(16, 50, 110, 0.22),
+    0 8px 18px rgba(8, 30, 70, 0.42);
+}
+.bc-haneul .bc-word {
+  color: rgba(255, 255, 255, 0.22);
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
+  text-shadow: 1px 1px 0 rgba(16, 50, 110, 0.24), 0 6px 14px rgba(8, 30, 70, 0.3);
+}
+.bc-haneul .profile-card__title,
+.bc-haneul .profile-card__meta {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 6px 14px -6px rgba(6, 24, 60, 0.55);
+}
+.bc-haneul .profile-card__title {
+  display: inline-block;
+  padding: 4px 12px 5px;
+  border-radius: 999px;
+  color: rgba(255, 238, 170, 0.92);
+  text-shadow: -0.5px -0.5px 0 rgba(255, 255, 255, 0.35), 1px 1px 0 rgba(60, 40, 0, 0.3);
+}
+.bc-haneul .profile-card__meta {
+  flex: none;
+  align-items: center;
+  padding: 7px 16px 8px;
+  border-radius: 14px;
+  transform: translate3d(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5), 0);
+}
+.bc-haneul .profile-card__handle,
+.bc-haneul .profile-card__status {
+  color: rgba(255, 255, 255, 0.76);
+  text-shadow: -0.5px -0.5px 0 rgba(255, 255, 255, 0.4), 1px 1px 0 rgba(16, 50, 110, 0.36), 0 3px 8px rgba(6, 24, 60, 0.4);
+}
+.bc-haneul .profile-card__handle { color: rgba(255, 255, 255, 0.84); }
+.bc-haneul .profile-card__status { font-size: var(--fs-sm); }
+@media (prefers-reduced-motion: reduce) { .bc-haneul .bc-stroke { animation: none; opacity: 0.9; transform: none; } }
+
 /* ───────── 루미 😎 · 사진 통째(형 11-19 11:15 dm-rumi(루미 옮김) 「20261119_1113_루미-카드-A2 이거 …」 「프로필카드로 만들어달라구해」 「뎅한테!」 · 11:33 dm-deng 「뎅 저거 프로필카드로」 · 뎅) ─────────
    꼴 = 슈왕 · 온 · 감 그림 통째 그대로(둥근 얼굴 · 고리 안 그림 · 사진이 주인공) · 사진 = 아래에서 올려 본 구도 · 손끝이 앞으로 튀어나옴
    그림 = public/rumi-card.webp(600x800 · 81KB · 앱 길 /garden-app/) · 빛 = 사진 네온(보라 · 청록) 줄무늬 박 + 테 = 핀의 라임 · 움직임 = 기울기 시차 transform 만(계속 도는 것 0)
@@ -1309,6 +1531,18 @@
   .bc-dew .bc-leaf { transform: translate(calc(var(--pc-shift-x) * 1.5), calc(var(--pc-shift-y) * 1.5)) rotate(-10deg); will-change: auto; }
   .bc-dew .profile-card__info { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8)); will-change: auto; }
   .bc-dew .profile-card__meta { transform: translate(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
+  /* 하늘 = 시아 꼴 그대로(11-20 · 뎅) — 결 줄 뺌 · 붓 획 멈춤 · 시차 층 2D */
+  .bc-haneul .profile-card__holo-glow { background-image: var(--pc-grain); background-size: 180px 180px; background-position: 0 0; }
+  .bc-haneul .bc-stroke { animation: none; opacity: 0.9; transform: none; }
+  .bc-haneul .bc-clouds { transform: translate(calc(var(--pc-shift-x) * -0.5), calc(var(--pc-shift-y) * -0.5)); will-change: auto; }
+  .bc-haneul .bc-noon { transform: translate(calc(var(--pc-shift-x) * -0.3), calc(var(--pc-shift-y) * -0.3)); will-change: auto; }
+  .bc-haneul .bc-band { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(-16deg); will-change: auto; }
+  .bc-haneul .bc-ring { transform: translate(calc(-50% + var(--pc-shift-x) * 0.7), calc(var(--pc-shift-y) * 0.7)); will-change: auto; }
+  .bc-haneul .bc-word { transform: translate(calc(var(--pc-shift-x) * 0.6), calc(var(--pc-shift-y) * 0.6)); will-change: auto; }
+  .bc-haneul .bc-sunmark { transform: translate(calc(var(--pc-shift-x) * 1.8), calc(var(--pc-shift-y) * 1.8)); will-change: auto; }
+  .bc-haneul .bc-brush { transform: translate(calc(var(--pc-shift-x) * 1.5), calc(var(--pc-shift-y) * 1.5)) rotate(-8deg); will-change: auto; }
+  .bc-haneul .profile-card__info { transform: translate(calc(var(--pc-shift-x) * 0.8), calc(var(--pc-shift-y) * 0.8)); will-change: auto; }
+  .bc-haneul .profile-card__meta { transform: translate(calc(var(--pc-shift-x) * 0.5), calc(var(--pc-shift-y) * 0.5)); will-change: auto; }
   /* 루미 = 사진 통째(11-19 · 뎅) — 슈왕 · 온 · 감과 같은 2D 꼴 */
   .bc-rumi .bc-hero { transform: translate(calc(var(--pc-shift-x) * -0.6), calc(var(--pc-shift-y) * -0.6)); will-change: auto; }
   .bc-tmpl .bc-band { transform: translate(calc(var(--pc-shift-x) * 0.4), calc(var(--pc-shift-y) * 0.4)) rotate(-16deg); will-change: auto; }
