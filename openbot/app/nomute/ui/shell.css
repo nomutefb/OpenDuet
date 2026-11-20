@@ -212,6 +212,7 @@ body.nm-dragging iframe { pointer-events:none; }
 .nm-card-h .live { width:7px; height:7px; border-radius:50%; background:#CFFF40; align-self:center; }
 .nm-split-root .nm-nsum { border-top:0 !important; }
 .nm-split-root .nm-nsum-h::before { content:""; width:7px; height:7px; border-radius:50%; background:rgba(207,255,64,.55); }
+.nm-split-root .nm-nsum-h .nm-nsum-go { display:inline-flex; align-items:center; }   /* Digest 머리 「Digest」 = 단추(all:unset · 16px 줄) 안 인라인이라 16px 기준선에 붙어 1.78px 낮던 것 → 단추를 flex 로 = 글자가 제 줄 높이로 가운데(Runner · SNS · Hot Issue · Keyword 와 글자 가운데 16.72 같음 · 라이브 실측) · 형 11-20 11:04 dm-bom 「그리고 다이제스트랑, 러너 이런거 수평이 잘 안맞네, 확인좀」(봄 옮김) */
 .nm-split-root .nm-rgx .nm-rgx-panel { padding:8px 0 10px; }
 /* 불러오는 중 = 회색 뼈대 줄(흐르는 빛) · 빈 칸 = 가운데 흐린 두 줄(무엇이 · 언제 채워지는지)(시아 UI ⑤) */
 .nm-skel { display:block; height:11px; margin:10px 14px; border-radius:6px; background:linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.11), rgba(255,255,255,.05)); background-size:200% 100%; animation:nmSkel 1.4s linear infinite; }
