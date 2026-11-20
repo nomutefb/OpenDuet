@@ -101,7 +101,7 @@
 .nm-rgx-pebs { position:relative; }
 .nm-rgx-peb { position:relative; }
 .nm-rgx-memt { position:absolute; left:50%; bottom:calc(100% + 4px); transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:auto; }
-.nm-rgx-memt i { font-style:normal; font-size:9px; line-height:11px; font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; }
+.nm-rgx-memt i { font-style:normal; font-size:8px; line-height:10px; font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; }
 .nm-rgx-memt i.sk, .nm-rgx-memk .sk { color:#5FD4E8; }
 .nm-rgx-memt i.ho, .nm-rgx-memk .ho { color:var(--accent, #D4FF3A); }
 .nm-rgx-memt i.old { opacity:.45; }
@@ -118,7 +118,7 @@ html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):no
 .nm-split-top-l .nm-rgx-peb { flex-basis:18px; width:18px; height:18px; }
 .nm-split-top-l .nm-rgx-pebs { container-type:inline-size; }   /* 시각 글자 크기를 칸 폭에 맞추는 잣대 */
 .nm-split-top-l .nm-rgx-memt { bottom:calc(100% + 5px); }
-.nm-split-top-l .nm-rgx-memt i { font-size:clamp(7px, calc(100cqw / var(--nm-rgx-pn, 7) / 3.6), 9px); }   /* 좁은 창(860~1000)에서 옆 시각과 붙던 것 = 칸 폭(12칸)에 맞춰 줄어듦 · 넓으면 9 그대로 */
+.nm-split-top-l .nm-rgx-memt i { font-size:clamp(6.5px, calc(100cqw / var(--nm-rgx-pn, 7) / 3.8), 8px); }   /* 한 단계 작게(형 11-20 11:41 「조금 좁을 텐데... 글자 크기를 조금만 더 줄여보자! 그러면 간격을 줄여도 여백이 생길거야!」 · 하늘 들어와 열한 칸) · 앞 = 7~9px   /* 좁은 창(860~1000)에서 옆 시각과 붙던 것 = 칸 폭(12칸)에 맞춰 줄어듦 · 넓으면 9 그대로 */
 .nm-split-top-l .nm-rgx-memk { left:auto; right:2px; padding-left:0; border-left:0; }
 
 
@@ -145,3 +145,6 @@ html:not(.dark):not([data-theme="garden"]) .nm-rgx-memt i.ho, html:not(.dark):no
 .nm-rgx .nm-rgx-botsc > span { white-space:nowrap; }
 /* 봇 일 줄(「촉 X … · 촉 n회 …」) 화면에서 숨김 — 형 11-15 18:52 dm-bom 봄 옮김 「웅 우상단에 촉 x, 촉 20회 저 내용은 안보여도돼. ㅋㅋ」 · 서버 셈 · 재료는 그대로(다시 보이게 = 이 줄만 지움) */
 .nm-rgx .nm-rgx-botsc { display:none !important; }
+/* 얼굴 이름표 = 얼굴 바로 아래 · 올리면 바로(형 11-20 11:42 dm-bom 봄 옮김 「그리고 애들 호버했을때 하드웨어 나오는데 그게 조금 어색하네! 나오는건 좋은데, 그리고 좀 더 빠르게 나오면 좋을듯.」 · 앞 판 = svg title 네이티브 = 늦고 손끝에 뜸) */
+.nm-rgx-peb[data-tip]::after { content:attr(data-tip); position:absolute; left:50%; top:calc(100% + 4px); translate:-50% 0; z-index:6; padding:2px 8px; border:1px solid var(--glass-line, rgba(255,255,255,.14)); border-radius:999px; background:rgba(18,19,18,.94); color:var(--fg, #e8eae8); font-size:11px; line-height:16px; white-space:nowrap; opacity:0; pointer-events:none; }   /* 움직임 0(이 칸 잣대 · mem-row 시험) = 올리면 바로 · 내리면 바로 */
+.nm-rgx-peb[data-tip]:hover::after { opacity:1; }

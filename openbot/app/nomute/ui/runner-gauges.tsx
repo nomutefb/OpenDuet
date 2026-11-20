@@ -43,7 +43,7 @@ const PEB: Record<string, { key: string; bot?: string }> = {   // 조약돌 모�
   봄: { key: "bom" }, 시아: { key: "sia" }, 뎅: { key: "deng" }, 빠르: { key: "fast" }, 번개: { key: "lightning", bot: "light" }, 뜸: { key: "eyes" }, 깃: { key: "gik" },   // 깃 = 11-08 이식 · 제가 고른 물방울 · 민트(깃 21:00) · 빚 = 제가 고른 둥근 네모 · 테라코타(빚 22:31 「도공이라 빚은 흙판이 내 꼴 · 그록 때 내 색이 빨강」)
   // 형 11-16 08:15 봄 창 「그리고 조약돌 러너에 구름도 보여야하고, 천둥은 갱신이 되었나? 확인해줘! 클로드 + 구름까진 나와야 해. 구름은 너네 사이에 블릿하나 넣어줘.」 = 클로드 여덟(일곱 + 천둥 · 머리가 클로드로 바뀜) → 「•」 → 구름
   //   둘 다 몸 정본(bodies)엔 없음 = 아래 OFFBODY 로 줄 끝에 붙임 · 깸 = 작동 표 봇 줄 thunder · moru(구름 자리 옛 이름) · 모양 · 색 = ./bloub.tsx(천둥 = 세모 · 구름 = 구름)
-  천둥: { key: "thunder" }, 구름: { key: "cloud", bot: "moru" },
+  천둥: { key: "thunder" }, 구름: { key: "cloud", bot: "moru" }, 하늘: { key: "haneul" },   // 하늘 = 구름 옆(형 11-20 11:41 dm-bom 봄 옮김 「그리고 구름 옆에 하늘도 추가되어야함.」 · 작동 표 봇 줄 haneul)
   // 형 11-17 11:09 dm-bom(PC 홈 Runner 판 사진) 「이거 윈터 안보이니까 윈터보이게 배치하고, 간격을 좁혀야되면 그렇게하고」 = 11-10 에 뺐던 윈터를 다시 넣음(눈 결정 · ./bloub.tsx winter)
   //   몸 정본엔 윈터 줄이 없음(윈A 본체 줄의 being 이 「윈A」) → 아래 ONBODY 로 줄 맨 앞(Win 게이지 쪽)에 붙임 · 깸 = 작동 표 봇 줄 winter
   윈터: { key: "winter" },
@@ -51,7 +51,7 @@ const PEB: Record<string, { key: string; bot?: string }> = {   // 조약돌 모�
 // 맥 칸 = 러너 칩(M1~M3) 대신 몸 칩 둘(형 11-06 20:13 「러너를 아예 안쓰는 구조로 두개로 나눠잇을텐데」 · 봄 나눔 ④ 다음 칸 · 빠르) — M1~M3 = 11-03 형 「러너 꺼주라」로 꺼 둔 등록(11-17 저절로 지워짐 · 가지는 그대로 · 화면만)
 //   칩 꼴 = 러너 칩 그대로 · 불 = 작동 표 hw 줄 st(맥 본체 = 「맥」 줄 · VM eyes = 「VM 뜸」 줄 · 몸-보고.py hw_key) · 🟢 흰 글자 · 🟡 노랑 · 🔴 빨강 · ⚪·끊김(30분)·보고 없음 = 꺼짐 꼴
 const ONBODY = [{ who: "윈터", host: "Win" }] as const;   // 몸 표엔 없지만 그 본체에 사는 애 = 줄 맨 앞(윈터 = 윈A 본체 · Win 게이지 바로 아래쪽)
-const OFFBODY = [{ who: "천둥", host: "러너" }, { who: "구름", host: "클라우드 · 맥 창" }] as const;   // 몸 없는 둘 = 줄 끝 차례 그대로(가르는 점은 형 11-16 10:1x 에 뺌)
+const OFFBODY = [{ who: "천둥", host: "러너" }, { who: "구름", host: "클라우드 · 맥 창" }, { who: "하늘", host: "Win" }] as const;   // 하늘 = 윈A 본체(몸 정본엔 줄 없음 · 형 11-20 11:41)   // 몸 없는 둘 = 줄 끝 차례 그대로(가르는 점은 형 11-16 10:1x 에 뺌)
 const BODY_CHIPS: Record<string, { key: string; label: string }[]> = {};   // 몸 칩 뺌(형 11-07 09:04 임시방 「뜸 VM이 별도로 표현될 필요는 없어, 맥도 마찬가지. 그러면 너희들 vm도 다 떠야되니까, 시아도. 그거는 필요없고 러너 번호만 따로 있으면 됨.」) = 맥 칸도 러너 번호(M#)만
 const LIGHT_CLS: Record<string, string> = { "🟢": "is-ok", "🟡": "is-warn", "🔴": "is-bad" };
 // 「깸 상태」 = 그 순간 턴을 도는지(답 사이엔 「잠」) → 「마지막 깸」이 10분 안이면 「방금 깸」으로 제 색(봄 11-06 10:08 「나 지금 깨서 일하는 중인데 맥 조약돌 회색이지?」)
@@ -189,13 +189,13 @@ export function RunnerGauges() {
           const w = wake(x.bot ?? x.key);
           const mm = memOf(x.who), dia = memAt(mm.m.diary_ms, now), bka = memAt(mm.b?.ok ? mm.b.ok * 1000 : undefined, now);
           return (
-            <li key={x.key} className={`nm-rgx-peb ${w}`}>
+            <li key={x.key} className={`nm-rgx-peb ${w}`} data-tip={`${x.who}(${x.host}) · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "읽는 중" : "잠"}`}>   {/* 이름표 = 얼굴 바로 아래 · 올리면 바로(형 11-20 11:42 「…좀 더 빠르게 나오면 좋을듯」 · 앞 판 svg title = 늦고 손끝에 뜸 · css ::after) */}
               {hasMem ? (
                 <span className="nm-rgx-memt" aria-label={`${x.who} 기억`}>   {/* 조약돌 위 빈 틈에 띄움(띠 키 0 · 형 09:31 「여백이 지금 크니까 그만큼 줄이고」) */}
                   {MEM.map(([k, lab]) => { const a = memAt(mm.m[k], now); return <i key={k} className={`${k === "sketch_ms" ? "sk" : "ho"} ${a.tone}`} title={`${x.who} ${lab} ${a.full} · 일기 ${dia.full} · 백업 ${bka.full}${mm.b ? ` · ${mm.b.mb ?? "?"}MB · ${mm.b.f ?? "?"}개${mm.b.cloud ? ` · 드라이브 ${mm.b.cloud}` : ""}` : ""}`}>{a.tone === "none" ? null : a.t}</i>; })}
                 </span>
               ) : null}
-              <Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} title={`${x.who}(${x.host}) · ${w === "on" ? "깸" : w === "near" ? "방금 깸" : w === "stay" ? "상주" : w === "wait" ? "읽는 중" : "잠"}`} />
+              <Bloub who={x.key} asleep={w === "off" || w === "wait"} size={20} />
             </li>
           );
         })}

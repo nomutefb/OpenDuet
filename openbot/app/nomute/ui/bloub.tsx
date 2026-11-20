@@ -5,8 +5,8 @@ import { still as lessStill } from "./less-move";   // 움직임 줄이기 = 기
 import { beatWait } from "./beat";
 import { useEffect, useRef } from "react";
 
-export const BEING_SHAPE: Record<string, string> = { bom: "fleur", winter: "flocon", sia: "galet", deng: "galet", fast: "nuage", neo: "patate", eyes: "riz", lightning: "cercle", gik: "goutte", bit: "squircle", thunder: "triangle", cloud: "nuage" };   // 번개 = 배선 뒤 스스로 고를 때까지 동그라미(윈터 16:01 「모양은 번개한테 물어봐」)
-export const BEING_INK: Record<string, string> = { bom: "#ff6fb5", winter: "#0ffd02", sia: "#dde3ea", deng: "#9c5a26", fast: "#2f6bff", neo: "#ffd60a", eyes: "#ffb07c", lightning: "#FFE606", gik: "#7EDFC3", bit: "#C8643B", chaeng: "#8FC45A", thunder: "#8F7BFF", cloud: "#9AD8FF" };   // 챙 = 떡잎 연두를 글자로 읽히게 한 단계 진하게(형 11-12 07:29 「시그니처 색 정해서 참고 연두색 좋을긋」 · 챙 「내 떡잎 색이야」 · 라임 #CFFF40 · 윈터 #0FFD02 와 갈림 · 뜸)   // 번개 = 명부 말풍선 색
+export const BEING_SHAPE: Record<string, string> = { bom: "fleur", winter: "flocon", sia: "galet", deng: "galet", fast: "nuage", neo: "patate", eyes: "riz", lightning: "cercle", gik: "goutte", bit: "squircle", thunder: "triangle", cloud: "nuage", haneul: "cercle" };   // 하늘 = 한낮 해 동그라미(11-20 · 하늘 고름)   // 번개 = 배선 뒤 스스로 고를 때까지 동그라미(윈터 16:01 「모양은 번개한테 물어봐」)
+export const BEING_INK: Record<string, string> = { bom: "#ff6fb5", winter: "#0ffd02", sia: "#dde3ea", deng: "#9c5a26", fast: "#2f6bff", neo: "#ffd60a", eyes: "#ffb07c", lightning: "#FFE606", gik: "#7EDFC3", bit: "#C8643B", chaeng: "#8FC45A", thunder: "#8F7BFF", cloud: "#9AD8FF", haneul: "#5AB4FF" };   // 하늘 = 카드 점 색(한낮 하늘)   // 챙 = 떡잎 연두를 글자로 읽히게 한 단계 진하게(형 11-12 07:29 「시그니처 색 정해서 참고 연두색 좋을긋」 · 챙 「내 떡잎 색이야」 · 라임 #CFFF40 · 윈터 #0FFD02 와 갈림 · 뜸)   // 번개 = 명부 말풍선 색
 // 천둥 · 구름 = 러너 띠 조약돌 줄에 새로(형 11-16 08:15 「조약돌 러너에 구름도 보여야하고 … 클로드 + 구름까진 나와야 해」) — 천둥 = 세모 · 보라(프로필 카드 「남색 밤 하늘」 결 · 임시 = 천둥이 고르면 그걸로) · 구름 = 구름 모양 · 하늘빛(구름이 고름 · 빠르 = 같은 모양 로얄블루)
 export const BEING_RIM: Record<string, string> = { deng: "#ffb300" };
 const ASLEEP = "#4f4f4f";   // 잠듦 = 회색 몸(형 10-31 「불꺼짅채로 잠들고 있으면 되는거임」 · runner.html BOT_ASLEEP)
