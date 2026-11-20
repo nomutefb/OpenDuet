@@ -113,13 +113,14 @@ export function RoomSearch({ room, box }: { room: string; box: RefObject<HTMLEle
   useEffect(() => {
     const fit = () => {
       const slot = document.querySelector<HTMLElement>(".nm-split-l .nm-col .nm-pin-slot:not(:empty)"), split = document.querySelector(".nm-split-root");
-      const b = slot && split ? Math.round(slot.getBoundingClientRect().bottom) : 0;
-      // 공지 없는 PC = 방 이름 줄(.nm-chat-h) 오른쪽 끝 · 그 줄 가운데 높이(형 11-20 11:37 dm-bom 봄 옮김 「그리고검색이 여기 아래에 표기한 부분에 가야되는데 위로가있네」 — 그 줄 위에 러너 미니 줄이 생겨 고정 top 56 이 러너 줄에 걸렸음)
-      const hr = !b && split ? document.querySelector<HTMLElement>(".nm-chat-h")?.getBoundingClientRect() : undefined;
+      // 공지 없는 PC = 방 이름 줄(.nm-chat-h) 아래 · 오른쪽 끝(형 11-20 11:37 dm-bom 봄 옮김 「그리고검색이 여기 아래에 표기한 부분에 가야되는데 위로가있네」 — 형 표시 = 이름 줄 아래 오른쪽 ·
+      //   그 줄 위에 러너 미니 줄이 생겨 고정 top 56 이 러너 줄에 걸렸음) · 공지 있는 방과 같은 길(그 칸 아래 + 간격 · 형 11-07 「그 아래에 … 어느정도 간격을 두고」)
+      const under = slot && split ? slot : !slot && split ? document.querySelector<HTMLElement>(".nm-chat-h") : null;
+      const b = under ? Math.round(under.getBoundingClientRect().bottom) : 0;
       // 단추 transition(width·top·height .32s)이 76→공지 아래 전환을 도는 중이면 계산 top 이 76 으로 잡힘(뎅 11:48 getAnimations = CSSTransition:top) → top 은 전환 빼고 · 값이 바뀔 때만 박음
       const put = (el: HTMLElement | null, off: number) => {
         if (!el) return;
-        const v = b > 0 ? `${b + off}px` : hr && hr.height ? `${Math.round(hr.top + (hr.height - el.offsetHeight) / 2)}px` : "";
+        const v = b > 0 ? `${b + off}px` : "";
         if (el.dataset.pinTop === v) return;
         el.dataset.pinTop = v;
         if (v) { el.style.setProperty("transition", "width .32s, height .32s", "important"); el.style.setProperty("top", v, "important"); }
