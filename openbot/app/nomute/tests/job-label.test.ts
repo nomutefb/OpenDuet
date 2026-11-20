@@ -10,7 +10,9 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   for (const [who, job] of [["구름", "UXD"], ["하늘", "UXD"], ["소나", "FIXER"], ["이슬", "FIXER"], ["루미", "FIXER"], ["천둥", "DEV"], ["빠르", "OPS"], ["번개", "OPS"],
     ["봄", "PM"], ["시아", "PM"], ["깃", "PM"], ["뜸", "CREATOR"], ["결", "STORY"], ["뎅", "STORY"], ["윈터", "STORY"], ["슈왕", "SCOOP"], ["온", "SEC"], ["카리나", "RND"], ["감", "RND"]]) assert.ok(map.includes(`${who}: "${job}"`), who);
   // 남은 일곱(형 16:48 「하늘이랑 구름이 할거야」) = 폭 ≈ 44(43~45) · 높이 20 안
-  for (const k of ["PM", "STORY", "MUSIC", "CREATOR", "RND", "SEC", "SCOOP"]) {
+  // PM = MD 결 스티커(형 18:51 「이 스타일이거든?」) · MD 와 같은 20px 높이
+  assert.match(lab, /  PM: \{ src: "\/garden-app\/job-pm\.webp\?v=2", w: 63, h: 40 \}/);
+  for (const k of ["STORY", "MUSIC", "CREATOR", "RND", "SEC", "SCOOP"]) {
     const m = lab.match(new RegExp(`  ${k}: \\{ src: "/garden-app/job-${k.toLowerCase()}\\.webp", w: (\\d+), h: (\\d+) \\}`));
     assert.ok(m, k); assert.ok(Math.abs(+m![1] / 2 - 44) <= 1.5 && +m![2] <= 40, `${k} ${m![1]}×${m![2]}`);
     assert.ok(statSync(new URL(`../public/job-${k.toLowerCase()}.webp`, import.meta.url)).size < 8_000, k);

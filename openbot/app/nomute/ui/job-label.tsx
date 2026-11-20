@@ -14,7 +14,7 @@ const IMG: Record<Job, { src: string; w: number; h: number }> = {
   // 남은 직무 일곱(형 11-20 16:48 dm-gik 깃 옮김 「루미가 그릴거 아니야 ~ 그리고」 「하늘이랑 구름이 할거야」 · 나눔 = 구름 16:50 안)
   //   하늘 = PM · StorY · MusiC(DeV · OpS 꼴 · beings/하늘/일/직무-라벨/lab-gen2.mjs) · 구름 = Creator(형 13:42 「크리에이터 라벨은 이느낌으로 하나 만들어서 달아줘」 홀로그램 필기체) · R&D · SeC · ScooP
   //   크기 = 폭 ≈ 44px(FIXER 와 눈에 같게 · 형 14:13 「딱봐도 픽서빼고는 너무 큰데 사이즈좀맞춰줘」) · 높이 20px 안
-  PM: { src: "/garden-app/job-pm.webp", w: 87, h: 35 },
+  PM: { src: "/garden-app/job-pm.webp?v=2", w: 63, h: 40 },   // PM = MD 결 스티커(형 18:51 dm-haneul 「하늘 PM」 + UXD 그림 · 「PM」 + MD 그림 · 「이 스타일이거든?」 · 라임 · 남색 입체 · 보라 테 · 체크 꼬리표) · 20px(MD 와 같은 높이)
   STORY: { src: "/garden-app/job-story.webp", w: 88, h: 29 },
   MUSIC: { src: "/garden-app/job-music.webp", w: 87, h: 27 },
   CREATOR: { src: "/garden-app/job-creator.webp", w: 89, h: 37 },
