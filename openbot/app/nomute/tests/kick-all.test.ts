@@ -13,8 +13,11 @@ test("메뉴 칸 「모두 내보내기」 = 형만(me.kind human) · 단체방 
 test("확인 = 창(모달) 대신 그 자리 알약 둘 · 아니오 autoFocus(라임) · Esc · 딴 데 누름 · 6초 = 아니오(형 11-16 03:0x 「모달로 안뜨게하구」)", () => {
   const m = readFileSync(new URL("../ui/morph-ask.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(s, /function KickAllAsk|createPortal\(\s*<div className="nrc-veil nm-yeta" role="presentation" \{\.\.\.backdrop\(no\)\}/);
-  assert.match(m, /<button type="button" className="no" autoFocus onClick=\{\(\) => \{ setAsk\(false\); setBack\(true\); \}\}>\{noText\}<\/button>/);
-  assert.match(m, /<button type="button" className="yes" onClick=\{\(\) => \{ setAsk\(false\); sfx\("latch"\); onYes\(\); \}\}>\{yesText\}<\/button>/);
+  assert.match(m, /<button type="button" className="no" autoFocus disabled=\{going\} onClick=\{\(\) => \{ setAsk\(false\); setBack\(true\); \}\}>\{noText\}<\/button>/);
+  assert.match(m, /<button type="button" className="yes" onClick=\{\(\) => \{ setAsk\(false\); sfx\("latch"\); onYes\?\.\(\); \}\}>\{yesText\}<\/button>/);
+  // 예가 서버 답을 기다려야 하는 일(재발행 · 형 11-20 11:22 「체크라도 떠야할듯애니메이션으로」) = 게이지 알약 · 도는 동안 6초 · 바깥 누름으로 안 접힘
+  assert.match(m, /\{yesGo \? <GoButton className="yes" go=\{go\}/);
+  assert.match(m, /if \(!ask \|\| going\) return undefined;/);
   assert.match(m, /e\.key === "Escape"\) \{[^}]*no\(\)/);
   assert.match(m, /HOLD_MS = 6000/);
   assert.doesNotMatch(m, /createPortal|role="alertdialog"|aria-modal/);

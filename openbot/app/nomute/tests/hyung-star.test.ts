@@ -19,3 +19,8 @@ test("형 글에만 · 봇 글 꾸밈은 그대로", () => {
   assert.match(ui, /calledMd\(lit\(text\), callRe\(m\), nre\)/);
   assert.match(ui, /calledMd\(lit\(m\.caption\), callRe\(m\), nre\)/);
 });
+
+test("입력칸 = 마크다운 끔(치는 동안 ** · * 꾸밈 · 「* 」→「•」 0) · 입력칸 둘 다", () => {
+  const o = readFileSync(new URL("../overrides.ts", import.meta.url), "utf8");
+  assert.equal((o.match(/markdown=\{false\}\\n/g) || []).length, 2);   // 소스 글자 = 「markdown={false}\n」(따옴표 안 줄바꿈 표시)
+});

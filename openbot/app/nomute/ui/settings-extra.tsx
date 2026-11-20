@@ -300,7 +300,7 @@ const DOTS = "••••••••";   // 열쇠 칸 = 가린 꼴만(형 08:
 function GardenMcp({ top, spares, done, saved, memoOf, copySeat, copyText, onUse, flush, remint, minting, focusUse, nameOf }: {
   top: VaultSeat; spares: VaultSeat[]; done: string; saved: string; memoOf: (s: VaultSeat) => string;
   copySeat: (seat: string) => void; copyText: (key: string, text: string) => void; onUse: (seat: string, v: string) => void; flush: (seat: string) => void;
-  remint: (seat: string) => void; minting: boolean; focusUse: { seat: string; n: number } | null; nameOf: (seat: string) => string;
+  remint: (seat: string) => Promise<unknown>; minting: boolean; focusUse: { seat: string; n: number } | null; nameOf: (seat: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   // 복사 → 그 줄 사용처 칸에 바로 커서(형 11-20 03:04 dm-sia 「복사 시 자동으로 커서 아동 후 메모 한 줄 적게해줘」) · 칸이 막 그려진 뒤라 한 프레임 뒤
@@ -361,8 +361,8 @@ function GardenMcp({ top, spares, done, saved, memoOf, copySeat, copyText, onUse
                       <CopyBtn text ok={done === s.seat} off={!s.set} label={nameOf(s.seat)} go={() => copySeat(s.seat)} />
                       {/* 재발행 = 새 열쇠 + 앞 열쇠 파기(형 11-20 03:04 「내가 재발행 하면 키를 바꿀 수 있게 해줘 기존 건 파기」) · 그 자리 재확인(MorphAsk · 모달 0) · 빈 칸 = 발행(형 11:02 「새열쇠가 그냥 발행 으로」) · 둘 다 글자 단추 */}
                       {/* 예비 한 자리 = 이 줄 한 곳(형 11-20 07:18 dm-gik 「그리고 이거 따로 노니까 확인해주고」 · 깃 옮김 · 앞 판 = 빈 예비가 아래 카드에도 따로 나옴) */}
-                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b nm-mcp-tb shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" note="앞 열쇠는 파기돼" label={`${nameOf(s.seat)} 재발행`} onYes={() => remint(s.seat)}>재발행</MorphAsk>
-                        : <MorphAsk className="nm-nb-btn nm-vault-b nm-mcp-tb shrink-0 disabled:opacity-40" disabled={minting} yesText="발행" note="새 열쇠가 생겨" label={`${nameOf(s.seat)} 발행`} onYes={() => remint(s.seat)}>발행</MorphAsk>}
+                      {s.set ? <MorphAsk className="nm-nb-btn nm-vault-b nm-mcp-tb shrink-0 disabled:opacity-40" disabled={minting} yesText="재발행" busy="재발행 중" label={`${nameOf(s.seat)} 재발행`} yesGo={() => remint(s.seat)}>재발행</MorphAsk>
+                        : <MorphAsk className="nm-nb-btn nm-vault-b nm-mcp-tb shrink-0 disabled:opacity-40" disabled={minting} yesText="발행" busy="발행 중" label={`${nameOf(s.seat)} 발행`} yesGo={() => remint(s.seat)}>발행</MorphAsk>}
                     </div>
                   );
                 })}
@@ -436,7 +436,7 @@ export function NomuteVault() {
           <>
             <GardenMcp top={top} spares={(q.data || []).filter((s) => !s.top)} done={done} saved={saved} memoOf={(s) => memo[s.seat] ?? s.memo ?? ""}
               copySeat={(seat) => void copy(seat)} copyText={(k, t) => void copyText(k, t)} onUse={onUse} flush={flush}
-              remint={(seat) => mint.mutate(seat)} minting={mint.isPending} focusUse={focusUse} nameOf={nameOf} />
+              remint={(seat) => mint.mutateAsync(seat)} minting={mint.isPending} focusUse={focusUse} nameOf={nameOf} />
             <div className="nm-mcp-cut" aria-hidden />
           </>
         );
@@ -468,7 +468,7 @@ export function NomuteVault() {
                 );
               })() : null}
               {!s.set ? (   /* 새 열쇠 = 되묻는 창(모달) 대신 그 자리 재확인(형 「항상 그냥 re 토글로만」 · ./morph-ask.tsx) */
-                <MorphAsk className="-my-2 self-start py-3 text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40" disabled={mint.isPending} yesText="만들기" note="앞 열쇠는 꺼져" label={`${s.seat} 새 열쇠 만들기`} onYes={() => mint.mutate(s.seat)}>새 열쇠 만들기</MorphAsk>
+                <MorphAsk className="-my-2 self-start py-3 text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-40" disabled={mint.isPending} yesText="만들기" label={`${s.seat} 새 열쇠 만들기`} onYes={() => mint.mutate(s.seat)}>새 열쇠 만들기</MorphAsk>
               ) : null}
               {note[s.seat] ? <p role="status" className="text-xs text-muted-foreground">{note[s.seat]}</p> : null}
             </li>
