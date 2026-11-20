@@ -4,7 +4,7 @@
 //   그림 = 원본 투명 테 잘라 화면 높이 2배로 줄인 webp(public/job-*.webp · 2~5KB) · 짝 없는 애(MD · MusiC 주인 미정) = 그림 없음 → 옛 글 알약 그대로
 import { useQuery } from "@tanstack/react-query";
 import { office } from "../data/office";
-export type Job = "FIXER" | "MD" | "UXD" | "DEV" | "OPS" | "PM" | "STORY" | "MUSIC" | "CREATOR" | "RND" | "SEC" | "SCOOP";
+export type Job = "FIXER" | "MD" | "UXD" | "DEV" | "OPS" | "PM" | "STORY" | "MUSIC" | "CREATOR" | "RND" | "SEC" | "SCOOP" | "TELLER";
 const IMG: Record<Job, { src: string; w: number; h: number; dy?: number; dx?: number }> = {   // dx = 이름 쪽으로 당김(px · 음수 = 왼쪽)   // dy = 그림 속 글자 가운데가 위아래로 쏠린 만큼 내림(px · 이름 줄과 수평)
   FIXER: { src: "/garden-app/job-fixer.webp?v=10", w: 80, h: 37, dx: -1 },   // 92%(18.5px) · 이름 쪽 1px(그림 왼쪽 빈칸 1.5px) · 형 20:53 dm-sia 시아 옮김 「FIXER 8%만 줄여서 아 아 주 조금만 이름쪽에 붙여주러 미세한 작업이라 미안」
   MD: { src: "/garden-app/job-md.webp?v=9", w: 49, h: 40 },
@@ -27,6 +27,9 @@ const IMG: Record<Job, { src: string; w: number; h: number; dy?: number; dx?: nu
     // RND = 시아 홀로 비커 그림(형 20:34~20:37 dm-sia 시아 옮김 「여기 TEEL 저거로 그 비커 모형픽토까지 글자느낌 가능할까」 「너 맘대로해도잼」 · 「크기 85% 로 수평 맞춰주면댐」 = 20px 의 85% 17px) · 그림에 반짝임 이미 있음(sparkle 안 덧댐)
   SEC: { src: "/garden-app/job-sec.webp?v=9", w: 88, h: 32 },
   SCOOP: { src: "/garden-app/job-scoop.webp?v=9", w: 87, h: 26 },
+  // TELLER = 시아 「once upon a time」 그림(형 21:04~21:05 dm-sia 시아 옮김 「텔러 하까?」 「음악쟁이 글쟁이 다 스토리텔런데」 「오케이 ㄱㄱ」 「애들꺼 보고」 「경향성이 잇을거야 수평 경향성」)
+  //   = 결 · 뎅 · 윈터(StorY 갈음) · 글자 높이 12px(넷과 같은 줄) · dy -2.5 = 글자 가운데 0.575 → 넷처럼 이름 가운데보다 1px 위 · dx -1.5 = 왼쪽 빈칸 · 그림에 반짝임 이미 있음
+  TELLER: { src: "/garden-app/job-teller.webp", w: 78, h: 40, dy: -2.5, dx: -1.5 },
 };
 /** 직무 값 = 명부 job 칸(서버에 생기면 그것 먼저) · 없으면 이 표(형 13:28~13:29 dm-sia 시아 옮김 「응 uxd들은 다 uxd고, 픽서들은 다 픽서야. (소나-이슬-루미 라인)」 「uxd 라인 > (구름-하늘)」 · 루미 시안 「하늘·루미 = UXD」를 갈음)
  *  「pm 라인(봄-시아-깃)」 = 라벨 그림 오면 같은 꼴로 · MD 주인 = 아직 미정 */
@@ -34,7 +37,7 @@ const IMG: Record<Job, { src: string; w: number; h: number; dy?: number; dx?: nu
 //   새 일곱 짝(하늘 짐작 · 기록 근거) = PM 봄 · 시아 · 깃(형 13:29 「pm 라인(봄-시아-깃)」) · Creator 뜸(bot-desk-logic Xa) · StorY 결 · 뎅 · 윈터(형 「뎅 결 윈터는 Storyteller」 · bot-desk-logic)
 //     ScooP 슈왕(Xd) · SeC 온(형 「온은 secretary」) · R&D 카리나 · 감(손 표 첫 특기 R · 시아 13:30) · MusiC = 아직 주인 없음(그림만)
 const JOB_OF: Record<string, Job> = { 구름: "UXD", 하늘: "UXD", 소나: "FIXER", 이슬: "FIXER", 루미: "FIXER", 천둥: "DEV", 빠르: "OPS", 번개: "OPS",
-  봄: "PM", 시아: "PM", 깃: "PM", 뜸: "CREATOR", 결: "STORY", 뎅: "STORY", 윈터: "STORY", 슈왕: "SCOOP", 온: "SEC", 카리나: "RND", 감: "RND" };
+  봄: "PM", 시아: "PM", 깃: "PM", 뜸: "CREATOR", 결: "TELLER", 뎅: "TELLER", 윈터: "TELLER", 슈왕: "SCOOP", 온: "SEC", 카리나: "RND", 감: "RND" };
 export function jobOf(p?: { who: string; job?: string } | null): Job | undefined {
   if (!p) return undefined;
   const j = (p.job || "").trim().toUpperCase();
