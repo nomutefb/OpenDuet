@@ -12,7 +12,17 @@ export const SNS_SITES: readonly { id: SnsSite; name: string; url: string }[] = 
 export const SNS_SITE_KEY = "nm-sns-site";   // 마지막에 고른 곳(이 기기)
 export const siteOf = (v: unknown): SnsSite => (SNS_SITES.some((s) => s.id === v) ? (v as SnsSite) : "instagram");
 export type SideRect = { x: number; y: number; w: number; h: number };
-export type SideMsg = { t: "nm-side"; on: true; site: SnsSite; url: string; rect: SideRect; vw: number; vh: number } | { t: "nm-side"; on: false };
+export type SideMsg = { t: "nm-side"; on: true; site: SnsSite; url: string; rect: SideRect; vw: number; vh: number } | { t: "nm-side"; on: false }
+  | { t: "nm-side-go"; site: SnsSite; url: string }   // 대화 카드 누름 = 그 곳 웹뷰를 그 글로(형 11-20 10:16 · 미토스 ①)
+  | { t: "nm-side-pick"; id: string; js: string };   // 대화로 보내기 = 지금 곳 웹뷰에서 js(= /garden-app/sns-pick.js · 「(function(mode){…})」 꼴)를 mode "pick" 으로 돌리고 rect 만큼 찍어 돌려줌 → 「flash」 로 한 번 더
+/** 껍데기 → 웹 = window 이벤트 「nm-side」 detail
+ *  { state: "pick", id, ok, site, url, author, text, img: "data:image/jpeg;base64,…" } = 집은 글 · { state: "pick-key" } = 웹뷰 안에서 ⌘⏎ / Ctrl+⏎ 눌림(웹이 집기를 시작) */
+export type SidePick = { state: "pick"; id: string; ok: boolean; site?: string; url?: string; author?: string; text?: string; img?: string; why?: string };
+export const SIDE_EVENT = "nm-side";
+export const SNS_GO_EVENT = "nm-sns-go";   // 대화 카드 → SNS 탭(./tab-bar.tsx) + 그 곳 · 그 글(./sns-side-pane.tsx)
+let pendingGo: { site: SnsSite; url: string } | null = null;   // 칸이 아직 없을 때(SNS 탭이 아님) = 칸이 뜨면 가져감
+export const snsGo = (site: SnsSite, url: string) => { pendingGo = { site, url }; window.dispatchEvent(new CustomEvent(SNS_GO_EVENT, { detail: { site, url } })); };
+export const takeGo = () => { const g = pendingGo; pendingGo = null; return g; };
 /** 칸 자리 → 다리 글(정수로 · 화면 밖으로 넘친 쪽은 잘라 냄) */
 export function sideMsg(site: SnsSite, r: { left: number; top: number; width: number; height: number }, vw: number, vh: number): SideMsg {
   const x = Math.max(0, Math.round(r.left)), y = Math.max(0, Math.round(r.top));

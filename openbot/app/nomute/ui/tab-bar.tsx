@@ -15,6 +15,7 @@ import { SCREEN_TAB_EVENT, type ScreenTabAsk, ScreenTabPane } from "./screen-tab
 import { screenTabAdd } from "./screen-tab-logic";
 import { TEAMS_PREFIX, TeamsList, isTeams, useTeamsUnread } from "./teams";
 import { SnsSidePane } from "./sns-side-pane";   // SNS 탭 오른쪽 칸(형 11-20 09:20)
+import { SNS_GO_EVENT } from "./sns-side";   // 대화 카드 → SNS 탭(형 11-20 10:16)
 import { useRootFlag } from "./has-flags";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀즈 | 회의」 탭도 같이 씀(./teams.tsx TeamsSwitch · 형 11-13 22:14)
@@ -71,7 +72,8 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   }, [room, pane]);
   // 몸 전체를 덮은 웹 · 화면 탭(오른쪽 칸이 접힌 화면)에서 길이 바뀌면(메뉴 줄 누름 등) 덮개를 내리고 정원으로 = 누른 화면이 보이게(구름 11-16 · 앞 = 오른쪽 칸이 있던 화면에서 서랍으로 가면 웹 판이 서랍을 통째로 덮었음) · 오른쪽 칸만 덮는 판은 그대로
   useEffect(() => { const on = () => requestAnimationFrame(() => { if (!paneHost()) setS((x) => (x.active.startsWith("s:") || x.active.startsWith("w:") || x.active === BROWSER || x.active === MEET || x.active === TEAMS ? { ...x, active: "dash" } : x)); }); addEventListener("hashchange", on); return () => removeEventListener("hashchange", on); }, []);
-  useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);   // 들머리 = openCobrowse()
+  useEffect(() => { const on = () => setS((x) => ({ ...x, active: BROWSER })); addEventListener(COBROWSE_EVENT, on); return () => removeEventListener(COBROWSE_EVENT, on); }, []);
+  useEffect(() => { const on = () => setS((x) => (x.active === SNS ? x : { ...x, active: SNS })); addEventListener(SNS_GO_EVENT, on); return () => removeEventListener(SNS_GO_EVENT, on); }, []);   // 대화 속 SNS 카드 누름(./sns-card.tsx · 미토스 ①) = SNS 탭 · 그 글(칸이 가져감 · ./sns-side.ts takeGo)   // 들머리 = openCobrowse()
   useEffect(() => { const on = (e: Event) => { const a = (e as CustomEvent<ScreenTabAsk>).detail; if (a) setS((x) => screenTabAdd(x, a.who, a.url)); }; addEventListener(SCREEN_TAB_EVENT, on); return () => removeEventListener(SCREEN_TAB_EVENT, on); }, []);   // 들머리 = openScreenTab()(프로필 카드 「몸 화면 열기」 · PC) → 「○○ 화면」 탭을 붙이고 고름
   useEffect(() => { const on = (e: Event) => { const u = (e as CustomEvent<{ url?: string }>).detail?.url; if (u) setS((x) => webTabOpen(x, u)); };   /* 바깥 링크 = 정원 안 새 탭(형 11-18 13:56 「저 열면 새탭에서 안열려(봄의 정원 내 새탭)」) · 그 탭이 생기면 「Browser」는 줄에서 빠짐(위 hasWeb) */ addEventListener(WEB_TAB_EVENT, on); return () => removeEventListener(WEB_TAB_EVENT, on); }, []);   // 들머리 = openInApp()(바깥 링크 누름 · window.open) → 그 주소의 웹 탭을 붙이고 고름(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」)
   useEffect(() => { try { if (isTeams(room)) localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); else if (room) localStorage.setItem(OFFICE_LAST, room); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽

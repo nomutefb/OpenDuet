@@ -184,9 +184,14 @@ html[data-nm-fullpane] .nm-strip { background:var(--nm-tab-on, #121314); border-
 /* SNS 탭 오른쪽 칸(./sns-side-pane.tsx · 형 11-20 09:20 「SNS 탭을 누르면 대화는 유지되고 … 우측에 인스타랑 그런거 뜨게해주라」) = 팀즈 칸과 같은 판 · 위 고르기 줄 · 아래 9:16 자리(껍데기 앱 웹뷰가 겹침) */
 .nm-tab-sns { position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden; background:var(--nm-tab-on, #121314); }
 .nm-sns-side { flex:1; min-height:0; display:flex; flex-direction:column; }
-.nm-sns-pick { flex:none; display:flex; justify-content:center; gap:6px; padding:10px 12px 8px; }
+.nm-sns-pick { position:relative; flex:none; display:flex; justify-content:center; gap:6px; padding:10px 12px 8px; }
 .nm-sns-pick button { appearance:none; border:1px solid var(--glass-line, rgba(255,255,255,.12)); background:var(--glass, rgba(255,255,255,.06)); color:var(--fg-2, #c8ccc8); border-radius:999px; padding:5px 14px; font-size:var(--fs-xs, 12px); font-weight:700; cursor:pointer; }
 .nm-sns-pick button.on { background:rgba(var(--accent-rgb, 207,255,64),.9); color:var(--bg, #141516); border-color:transparent; }   /* 골라짐 = 라임 채움(설정 칩 .yset-chip.on 과 같은 값) */
+/* 대화로 보내기(형 11-20 10:16 · 미토스 ①) = 고르기 줄 대화 쪽(왼쪽) 끝 둥근 단추 · 고르기 알약은 가운데 그대로 · 누르는 중 = 흐림 */
+.nm-sns-pick .nm-sns-send { position:absolute; left:12px; top:50%; transform:translateY(-50%); display:grid; place-items:center; width:30px; height:30px; padding:0; border-radius:50%; color:var(--fg, #e6e9e6); transition:transform .28s var(--ease), opacity .2s; }
+.nm-sns-pick .nm-sns-send svg { width:16px; height:16px; }
+.nm-sns-pick .nm-sns-send:active { transform:translateY(-50%) scale(var(--press-l, .95)); }
+.nm-sns-pick .nm-sns-send.busy { opacity:.45; cursor:default; }
 .nm-sns-stage { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:0 12px 12px; }
 .nm-sns-box { position:relative; height:100%; max-height:100%; aspect-ratio:9 / 16; max-width:100%; border-radius:14px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center; }
 .nm-sns-noapp { padding:18px; text-align:center; color:var(--fg-2, #c8ccc8); font-size:var(--fs-sm, 13px); line-height:1.5; }

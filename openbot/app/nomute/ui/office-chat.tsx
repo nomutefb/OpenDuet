@@ -88,6 +88,9 @@ import { RoomBoard } from "./room-board";   // 방 띠(칩·열린 제안) = 입
 import { ThinkMark } from "./live-shine";   // 빛 글자 = libraries.dev/orbs 그대로(형 11-01 12:28) · 생각중 표시 = 점 셋 · 구슬(설정)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01 「화살표 같은건 모두 꺽쇠 느낌으로」)
 import { LinkCard } from "./link-card";
+import { SnsCard } from "./sns-card";   // SNS 글 카드(미토스 ① · 형 11-20 10:16)
+import { type SnsPost, SHOT_RE, snsSplit } from "./sns-post";
+import { takeSnsBlocks } from "./sns-share";
 import { bubbleM, pickM, relayAs } from "./pick-msg";
 import { JobFold, jobOf } from "./job-fold";   // 작업 알림 = 한 줄 접힌 카드(깃 #-019)
 import { asSent, mergeTs, pairOf } from "./pair-fold";   // 둘의 방 귀속(형 11-13 08:29)
@@ -147,7 +150,7 @@ function QuotedPeek({ pk, onClose }: { pk: Peek; onClose: () => void }) {
     </div>
   );
 }
-type Msg = OfficeMsg & { fwd?: Fwd; _win?: boolean; card?: ThumbRef; mirror_by?: string; mirror?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean;
+type Msg = OfficeMsg & { fwd?: Fwd; _win?: boolean; card?: ThumbRef; mirror_by?: string; mirror?: string; alias?: Record<string, string[]>; evidence?: { target?: string; result?: string; checked_at?: string }; proof?: boolean; file_meta?: { path: string; name?: string; bytes?: number }[]; _thr?: boolean; _sns?: SnsPost;
   //   거울 칸(보조 03 · mirror-all.md 맞물림 21:3x · 없으면 지금처럼): 그록 방 agentId · 앱 「컴퓨터 · 조치 필요」 카드 · 앱 반응(바뀌면 같은 글이 고쳐짐)
   app_agent?: string; box?: { request_id?: string; instruction?: string; spend_request_id?: string }; app_reactions?: { emoji: string; who: string }[] };
 type Page = { messages: Msg[]; more: boolean; pending_ids?: string[] };   // pending_ids = 형 결정 대기 글(뜸 서버 · 오래된 것부터 · 없으면 화면에서 셈 = ./hyung-pills.tsx)
@@ -990,7 +993,8 @@ function GroupHead({ m, c, fresh = false }: { m: Msg; c: Ctx; fresh?: boolean })
   );
 }
 function Line(p: ComponentProps<typeof LineBody>) { return <LineGuard m={p.m}><LineBody {...p} /></LineGuard>; }
-function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean; noTime?: boolean }) {
+function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m: Msg; c: Ctx; cont?: boolean; fresh?: boolean; noTime?: boolean }) {
+  const m = useMemo(() => snsLean(m0, c.room), [m0, c.room]);   // SNS 글 주소 = 카드(주소 줄 · 「서비스 …」 줄 · 스냅샷은 말풍선에서 뺌 · ./sns-post.ts)
   const p = c.list.find((x) => x.who === m.who), ring = ringOf(p);   // ring = 이름표 바탕(테 색 · yeta-chat.css .yname.tab)
   const selected = c.sel === m.id;
   const press = useLongPress(() => c.onMenu(m));
@@ -1003,7 +1007,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
         <StatePill m={m} />
         {app ? <span className="yb-orig">원문</span> : null}   {/* PC = 형 말풍선이 원래 차콜이라 바깥 글은 오른쪽 위 「원문」으로 가름(형 11-16 09:33 dm-fast 「피시에서는 라벨을 원문 이라고 달던지」 · 09:34 「우측 위에 내 글은 우측 위에달리님가」) · 폰 = 바탕색으로 가름이라 숨김 */}
         <div className={`ymrow me${cont ? " cont" : ""}${fresh ? " in" : ""}`}>
-          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : c.read(m) ? " rd" : ""}${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkCard m={m} />{time}</div>
+          <div className="ybw"><ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} /><div className="yb-line">{!goneOf(m) || c.unseen(m) ? <span className={`yb-st media${m.files?.length || stickerOf(m.text) || snsBare(m) ? "" : " txt"}`}>{!goneOf(m) ? <svg className="yb-ck" viewBox="0 0 16 16" aria-label="보냄"><path d="M3.2 8.6l3 3 6.6-7" /></svg> : null}{c.unseen(m) ? <b className="yb-un" title="아직 못 본 봇 수">{c.unseen(m)}</b> : null}</span> : null}<div {...press.bind} className={`yb me${app ? " app" : c.read(m) ? " rd" : ""}${onlyPhotos(m) || stickerOf(m.text) || snsBare(m) ? " ph" : ""}`} onClick={toggle} title={app ? (winOf(m) || /^형\(창/.test(String(m.who || "")) ? "클로드 창에서 쓴 글" : "그록봇 앱에서 쓴 글") : undefined}>{goneOf(m) ? <Gone /> : snsBare(m) ? <SnsCard p={m._sns!} /> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} mark={stickerMark(m.id)} /> : m.files?.length ? <>{onlyPhotos(m) && m.caption ? <div className="yb-phck"><Files m={m} /><svg className="yb-ck yb-ck-ph" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3 6.6-7" /></svg></div> : <Files m={m} />}{m.caption ? <p className="ycap">{linked(m.caption, callRe(m), c.nre)}</p> : null}</> : <Folded text={String(m.text || "").replace(QUOTE, "")} who="나" when={zoomWhen(m.ts)}>{linked(String(m.text || "").replace(QUOTE, ""), callRe(m), c.nre)}</Folded>}<Reactions m={m} c={c} mine /></div></div><LinkOrSns m={m} />{time}</div>
         </div>
         {selected ? <Actions m={m} c={c} mine /> : null}
       </div>
@@ -1020,9 +1024,9 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
           <div className="ybw">
             {pickM(m) ? <div className="ypick-top"><LinkCard m={m} /></div> : null}
             <ReplyStrip text={String(m.text || "")} list={c.list} onJump={(w, l) => c.onJump(w, l, undefined, m.who)} />
-            {bundleOf(m) ? <BundleCard b={bundleOf(m)!} id={m.id} srcs={c.srcs?.get(bundleOf(m)!.stem)} /> : pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) || stickerOf(m.text) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
+            {bundleOf(m) ? <BundleCard b={bundleOf(m)!} id={m.id} srcs={c.srcs?.get(bundleOf(m)!.stem)} /> : pcOf(m) ? <PcCard id={m.id} task={pcOf(m)!.task} url={pcOf(m)!.url} who={p?.name || whoName(m.who)} /> : <div {...press.bind} className={`yb ai${onlyPhotos(m) || stickerOf(m.text) || snsBare(m) ? " ph" : ""}`} data-ink={p?.bubble && !onlyPhotos(m) && !snsBare(m) ? (inkOn(p.bubble) === "#161716" ? "dark" : "light") : undefined} onClick={toggle} style={p?.bubble && !onlyPhotos(m) && !snsBare(m) ? { background: p.bubble, borderColor: p.bubble, color: inkOn(p.bubble) } : undefined}>
               {m.box ? <div className="ybox-h"><span aria-hidden>🖥</span>컴퓨터 · 조치 필요</div> : null}
-              {jobOf(m) ? <JobFold m={m}><div className="ymd"><Body m={m} nre={c.nre} /></div></JobFold> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
+              {snsBare(m) ? <SnsCard p={m._sns!} /> : jobOf(m) ? <JobFold m={m}><div className="ymd"><Body m={m} nre={c.nre} /></div></JobFold> : stickerOf(m.text) && !m.files?.length ? <Sticker text={m.text} /> : m.files?.length ? <div className="ymd"><Body m={m} nre={c.nre} /></div> : <Folded md text={String(m.text || "").replace(QUOTE, "")} who={p?.name || whoName(m.who)} when={zoomWhen(m.ts)}><div className="ymd"><Body m={m} nre={c.nre} /></div></Folded>}
               <BoxCard m={m} />
               <DecideInline id={m.id} />{/* 줄 끝 공백 0 = 말풍선(pre-wrap)에 빈 줄 안 생김(형 11-14 16:53 「말풍선이 한줄씩 공백이 남아」 · 뜸) ·  질문 글 바로 아래 선택지(형 11-13 09:08 · ./decide-pop.tsx) */}
               <Reactions m={m} c={c} mine={false} />
@@ -1030,7 +1034,7 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
             </div>}
             {!bundleOf(m) && askPickOf(c.room, m) ? (
               <div className="nm-askpick-wrap">{pickM(m) ? null : <LinkCard m={m} />}<AskPick id={m.id} {...askPickOf(c.room, m)!} /></div>   /* 「요약」 = 기사 카드 오른쪽 아래 모서리 바로 옆(카드 밖 · 아랫선) · 자리 없으면 카드 아래 오른쪽 · 카드 없으면 왼쪽 아래(형 11-17 09:37 dm-bom 봄 옮김 「봄 이렇게 나올때, 기사 우측아래에 붙던지, 그게 어려우면 애초에 그냥 좌하단에 붙일게 요약을」 · 앞 판 = 말풍선 폭 오른쪽 끝이라 PC 에서 카드와 300px 떨어짐) */
-            ) : pickM(m) || bundleOf(m) ? null : <LinkCard m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) · 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}
+            ) : pickM(m) || bundleOf(m) ? null : <LinkOrSns m={m} />}   {/* 묶음 카드는 제 그림 · 제목이 있어 링크 카드 겹침 뺌(시아 11-12 20:2x 진짜 묶음 실물) · 촉 글 → 형이 「요약」(./ask-pick.tsx · 형 11-13 02:45) */}
             {time}
           </div>
         </div>
@@ -1041,6 +1045,21 @@ function LineBody({ m, c, cont = false, fresh = false, noTime = false }: { m: Ms
 }
 
 /** 봇 글이 「컴퓨터 · 조치 필요」 꼴이면 카드(그록 꼴 · 테일넷 안 화면 주소만) · 그록 거울 box · 첨부 글은 그대로 */
+/** SNS 글 주소(대화로 보내기 · 붙여 넣은 링크) → 말풍선엔 한마디만 · 카드 = m._sns(./sns-post.ts · 미토스 ① · 형 11-20 10:16)
+ *  촉 · 슈왕 방(「요약」 단추) · 러너 픽 · 묶음 = 그대로(그 글들은 링크 카드 길이 따로 있음) */
+function snsLean(m: Msg, room: string): Msg {
+  if (goneOf(m) || pickM(m) || bundleOf(m) || askPickOf(room, m)) return m;
+  const files = (m.files || []).map(String), cap = files.length > 0;
+  const sp = snsSplit(String((cap ? m.caption : m.text) || ""));
+  if (!sp) return m;
+  const shot = files.find((f) => SHOT_RE.test(f));
+  const rest = files.filter((f) => f !== shot);
+  const post = shot ? { ...sp.post, shot } : sp.post;
+  return rest.length ? { ...m, caption: sp.rest, files: rest, _sns: post } : { ...m, text: sp.rest, caption: undefined, files: undefined, _sns: post };
+}
+/** 한마디 없이 보낸 SNS 글 = 말풍선 자리에 카드만 */
+const snsBare = (m: Msg) => !!m._sns && !m.files?.length && !String(m.text || "").replace(QUOTE, "").trim();
+function LinkOrSns({ m }: { m: Msg }) { return m._sns ? (snsBare(m) ? null : <SnsCard p={m._sns} />) : <LinkCard m={m} />; }
 const bundleOf = (m: Msg) => (m.files?.length ? null : parseBundle(m.text));   // 첫 줄 `[묶음 <stem>]` = 러너가 dm-chok 에 보내는 요약 묶음(깃) · 표지 줄은 카드가 숨김
 const pcOf = (m: Msg) => (m.box || m.files?.length ? null : pcOfText(m.text));
 
@@ -1636,8 +1655,9 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
                   return { id, file };
                 });
                 if (long) originals.push({ id: long.id, file: long.file });   // 입력칸 첨부가 아닌 파일 = sendable 이 그 파일 그대로 · 보낸 뒤 비움(dropAttachments)도 없는 id 라 0
+                const sns = takeSnsBlocks(attached.map((a) => String((a as { name?: string }).name || "")).concat(originals.map((o) => o.file.name)));   // 대화로 보내기 스냅샷 = 글 끝에 주소 · 「서비스 @이름 — 캡션」 두 줄(./sns-share.ts · 미토스 ①)
                 // 전송을 시작한 원본/본문은 기록이 맡는다. 일부 실패해도 새 입력과 섞지 않는다.
-                attachmentSender.start({ room, text, originals });
+                attachmentSender.start({ room, text: sns ? `${text}${text ? "\n" : ""}${sns}` : text, originals });
               } else if (text) {
                 const cmd = /^\/(?:초대|방파기)(?:\s|$)/.test(text);   // 형만 쓰는 명령(봄 서버 · 형 11-06 「/ < 명령어는 나만.」) — 안 되는 방이면 서버 why 를 그대로 보여 주고 「다시 보내기」로 안 남김
                 const ck = sendKey();   // 글 열쇠 하나 = 다시 보내기도 같은 열쇠 → 서버가 하나로(봄 11-07 16:06 · 뎅 안 · 형 16:02·16:04 같은 답장 두 번)

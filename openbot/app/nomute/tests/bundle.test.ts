@@ -34,7 +34,7 @@ test("묶음 글 = 줄 이름으로 갈라 읽음 · 캡션 = 「주소:」 앞�
 test("대화창 = 표지 글만 묶음 카드 · 형만 누름 길", () => {
   const oc = readFileSync(new URL("../ui/office-chat.tsx", import.meta.url), "utf8"), bc = readFileSync(new URL("../ui/bundle-card.tsx", import.meta.url), "utf8");
   assert.match(oc, /bundleOf\(m\) \? <BundleCard /);
-  assert.match(oc, /pickM\(m\) \|\| bundleOf\(m\) \? null : <LinkCard m=\{m\} \/>\}/);   // 「요약」 단추 글은 카드 + 단추 한 덩이(.nm-askpick-wrap · 시아 337ba72) 밖 갈래라 앞 「{」 없음
+  assert.match(oc, /pickM\(m\) \|\| bundleOf\(m\) \? null : <(?:LinkCard|LinkOrSns) m=\{m\} \/>\}/);   // LinkOrSns = 링크 카드 또는 SNS 글 카드(구름 11-20 · ./sns-card.tsx)   // 「요약」 단추 글은 카드 + 단추 한 덩이(.nm-askpick-wrap · 시아 337ba72) 밖 갈래라 앞 「{」 없음
   assert.match(bc, /office(<[^>]*>)?\("hyung-pick", \{ method: "POST"/);
   assert.match(bc, /queryKey: \["nomute", "hyung-pick"\]/);
 });
