@@ -54,7 +54,7 @@ export function styleText(s: Record<string, string>): string {
   if (s.fontSize) out.push(`${s.fontSize}/${s.fontWeight || "400"}`);
   const c = colorText(s.color || ""); if (c) out.push("글자 " + c);
   const bg = colorText(s.backgroundColor || ""); if (bg) out.push("바탕 " + bg);
-  if (!zero(s.borderTopWidth || "")) { const bc = colorText(s.borderTopColor || ""); out.push(`테 ${s.borderTopWidth}${bc ? " " + bc : ""}`); }
+  if (!zero(s.borderTopWidth || "")) { const bc = colorText(s.borderTopColor || ""); if (bc) out.push(`테 ${s.borderTopWidth} ${bc}`); }   // 투명 테 = 안 보이는 테 = 안 적음
   if (!zero(s.borderRadius || "")) out.push("모서리 " + s.borderRadius);
   if (!zero(s.padding || "")) out.push("안 여백 " + s.padding);
   if (!zero(s.gap || "")) out.push("사이 " + s.gap);

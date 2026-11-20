@@ -2,7 +2,8 @@
 //   웹은 폰 사진첩 목록을 못 읽어서 앱 안에 최근 사진 줄은 못 둠 → 사진 = 폰의 사진 고르기 화면 · 카메라 안 뜨게 capture 없음 · 거름은 screenPickedFiles 그대로(영상은 거기서 거절)
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { IconFile, IconMovie, IconPhoto } from "@tabler/icons-react";
+import { IconFile, IconMovie, IconPhoto, IconTargetArrow } from "@tabler/icons-react";
+import { armPointPick } from "./point-pick";
 
 const OPEN = "nm-attach-open";
 const IMAGES = "image/*", VIDEOS = "video/*", ANY = "*/*";   // 동영상 = 폰 영상 고르기(시아 11-02 형 02:32 「여가에 영상도 올릴 수 있게 해줘」 · 50MB 까지)
@@ -30,6 +31,7 @@ export function AttachSheet() {
         <button type="button" role="menuitem" onClick={() => pick(IMAGES)}><IconPhoto size={22} />사진</button>
         <button type="button" role="menuitem" onClick={() => pick(VIDEOS)}><IconMovie size={22} />동영상</button>
         <button type="button" role="menuitem" onClick={() => pick(ANY)}><IconFile size={22} />파일</button>
+        <button type="button" role="menuitem" onClick={() => { setInput(null); armPointPick(); }}><IconTargetArrow size={22} />가리키기</button>   {/* 화면 요소를 길게 눌러 글로 붙임(./point-pick.ts · 폰엔 ⌥ 가 없어서 여기서 켬 · 형 11-21) */}
       </div>
     </>,
     document.body,

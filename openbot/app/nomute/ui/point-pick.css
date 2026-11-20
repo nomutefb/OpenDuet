@@ -4,3 +4,8 @@
 .nm-point-box.on { opacity:1; }
 html.nm-pointing, html.nm-pointing * { cursor:crosshair !important; }
 html:not(.dark) .nm-point-box { --accent:#4f7a00; --accent-rgb:79,122,0; }
+/* 폰 「가리키기」 켜짐 = 화면 둘레 라임 테 하나(누름을 안 가로챔) · 켜진 동안 길게 눌러도 글 고르기 · 누름 메뉴가 안 뜨게 */
+.nm-point-frame { --accent:#CFFF40; position:fixed; inset:0; z-index:2147482999; pointer-events:none; box-sizing:border-box; border:2px solid var(--accent, #CFFF40); border-radius:0; opacity:0; transition:opacity .16s linear; }
+.nm-point-frame.on { opacity:1; }
+html:not(.dark) .nm-point-frame { --accent:#4f7a00; }
+html.nm-point-armed, html.nm-point-armed * { -webkit-touch-callout:none !important; -webkit-user-select:none !important; user-select:none !important; }
