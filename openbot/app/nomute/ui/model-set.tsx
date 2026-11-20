@@ -13,7 +13,7 @@ import { createPortal } from "react-dom";
 import { office } from "../data/office";
 import { useMe } from "./pins";
 import { type NextWin, NW_EFFORTS, NW_MODELS, nwDefault, useNextWin } from "./next-win";
-import { type Choice, type Llm, type LlmUse, type Pick, type Sheet, PIPE_DEF, PIPE_GROUPS, byRank, effortChoices, groupChoices, koOf, mixedOf, modelChoices, modelName, pipePatch, pipePatchSrc, pipeRows, srcChoices, srcRows, sumKo } from "./model-set-logic";
+import { type Choice, type Llm, type LlmUse, type Pick, type Sheet, PIPE_DEF, PIPE_GROUPS, byRank, effortChoices, groupChoices, koOf, mixedOf, modelChoices, modelName, pipePatch, pipePatchSrc, pipeRows, sheetKo, srcChoices, srcRows, sumKo } from "./model-set-logic";
 import { Chev } from "./chev";
 import { agoKo } from "./sched-bits";
 import { getJson } from "./news-data";
@@ -25,7 +25,7 @@ const KEY = ["nomute", "modelset"] as const, NW_KEY = ["nomute", "nextwin"], PIP
 type AppSet = { llm?: Llm; settings?: AppSet; error?: string };
 export const BOT_MODELS: Choice[] = byRank(NW_MODELS.map(([id]) => ({ id, ko: modelName(id) }))), BOT_EFFORTS: Choice[] = NW_EFFORTS.map((id) => ({ id, ko: id }));
 const BOTS = ["봄", "깃", "빠르", "번개", "시아", "뎅", "뜸", "천둥", "구름"];   // 서버 _nextwin.js 일곱 몸(서버 답에 있는 이름만 그림) + 천둥 · 구름(형 11-16 09:09 dm-bom 「봄 그리고 구름까지는 프로필 누르면 사진 나오게해줘. 설정도 동일하게.」 = 클로드 여덟 + 구름 · 서버가 그 둘을 주기 시작하면 바로 뜸 · 깃한테 부탁 09:24)
-export const useModelSet = () => useQuery({ queryKey: KEY, queryFn: () => office<Sheet>("modelset"), staleTime: 60_000, retry: false });
+export const useModelSet = () => useQuery({ queryKey: KEY, queryFn: () => office<Sheet>("modelset"), staleTime: 60_000, retry: false, select: sheetKo });   // select = 그리는 이름만 앱 이름으로(캐시 = 서버 값 그대로 · ./model-set-logic.ts JOB_KO)
 // 값을 읽고 쓰는 길 한 벌 — 설정 화면(아래 ModelSetRows)과 스케줄러 러너 일 판의 「머리」 줄(./llm-head.tsx)이 같은 열쇠 · 같은 길을 씀(값 주인 하나 · 형 11-11 「2개 만들면 수정할때마다 두번수정」 · 봄 11-17 02:04)
 export const usePipeLlm = () => useQuery({ queryKey: PIPE_KEY, staleTime: 15_000, retry: false, queryFn: () => getJson<AppSet>(`/api/settings?_=${Date.now()}`) });
 /** 호출마다 마지막 실제 모델 · 노력도 + 갈래 표(/token-usage.json 의 llm 칸 · 에디터 shared/token_report.py) — 「지금 값」을 잰 값으로 보여 주고 갈래를 호출별로 풂 · 5분 */

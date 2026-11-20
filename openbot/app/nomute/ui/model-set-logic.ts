@@ -5,6 +5,9 @@ export type Choice = { id: string; ko: string; menu?: string };   // menu = 고�
 export type Sheet = { jobs: Job[]; models: Choice[]; efforts: Choice[] };
 
 export const koOf = (list: Choice[], id: string): string => list.find((c) => c.id === id)?.ko || id;
+/** 서버 일 이름 → 앱에서 부르는 이름(형 11-21 05:44 dm-bom 봄 옮김 「일감 가르기 명칭 배분 서브」 · 열쇠 id 그대로 · 서버 표 이름은 안 고침) */
+export const JOB_KO: Record<string, string> = { sort: "배분 서브" };
+export const sheetKo = (s: Sheet): Sheet => ({ ...s, jobs: (s.jobs || []).map((j) => (JOB_KO[j.id] ? { ...j, ko: JOB_KO[j.id] } : j)) });
 /** 모델 이름 = 정식 표기 그대로(형 11-15 「모델명을 정확히 표기되게」) — ID 에서 만듦: claude-opus-5-5 → 「Opus 5.5」 · 꼴이 다르면 받은 글자 그대로. */
 export function modelName(id: string): string {
   const m = /^claude-([a-z]+)-(\d+)(?:-(\d+))?$/.exec(id || "");
