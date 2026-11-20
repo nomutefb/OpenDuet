@@ -268,7 +268,7 @@ export function NomuteBuild() {
 
 /** 보안 서랍(빠르 11-15 · 깃 #-020 · 형 11-14 23:42 「자리 1 2 3을 토큰 키 처럼 각각 클립보드 복사 가능하게 설정에 만들어놓으셈」 · 23:56 ✓ ① 처음 한 번 붙여 넣기 → 그 뒤 복사만)
  *  값은 화면에 안 그림 · 넣기 = 서버가 암호화해 둠 + 그 자리 열쇠가 맞는지 「맞음 · 틀림」 · 복사 = 누를 때만 서버에서 받아 클립보드 · 형 문만(봇 열쇠 = 403) */
-type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null; hint?: string | null; who?: string | null; id?: string | null; memo?: string; label?: string;
+type VaultSeat = { seat: string; set: boolean; at: number | null; match: boolean | null; hint?: string | null; who?: string | null; id?: string | null; memo?: string; label?: string; on?: boolean | null;
   top?: boolean; title?: string; name?: string; transport?: string; url?: string; header?: string; link?: string };   // top = 맨 위 「봄의 정원 MCP server」 칸(서버 editor _seatvault.js GARDEN_SEAT · 형 11-19 08:07~08:16 dm-bom)   // memo = 예비 자리 이름표(계정 · 비밀값 아님 · 서버가 칸을 주는 자리만 · 빠르 editor fast/vault-memo · 형 11-18 13:32 dm-gik 「예비 02, 03에 예비 자리에는 아래에 기입해서 저장가능한 텍스트 박스 넣어주고」)   // who · id = 지금 그 자리를 쓰는 이름 · 자리 id(서버 editor #3964 · 형 11-16 07:5x)   // hint = 서버가 가려서 준 꼴(앞 몇 글자 + *** + 끝 두 글자 · editor _seatvault.js maskOf) — 값 자체는 「복사」 때만
 /** 서랍 실패 까닭 = 입력 · 회선 · 앱 셋을 섞지 않음(하네스 §오류 3분류 · 서버 why 는 그대로) */
 const vaultWhy = (e: unknown, fall: string) => {
@@ -298,12 +298,13 @@ const DOTS = "••••••••";   // 열쇠 칸 = 가린 꼴만(형 08:
  *  펼치면 Authentication 안에 예비 열쇠 줄(08:14 「그러면 아까 내가 준 그 양식을 펼치면」 「auth안에 예비가 여러개 나오게 해, 근데 그 중에 루미는 없는거야」 · 루미 = 서버가 안 줌)
  *  예비를 복사하면 그 줄 아래 사용처 글칸 → 치면 저절로 저장(08:16 「***로 표기해서 3개가 잇으면 되고 가져가면 그 아래에 내가 사용처를 적고 적으면 자동으로 저장되게하면대」 · 저장 단추 0)
  *  링크 그림 = 그록 플러그인 화면 새 탭(08:08 「링크는 항상 여기거든? url 픽토그램은 여기로」) · 펼침 = bot-desk .fold 꼴(grid 0fr → 1fr · 누를 때 한 번) */
-function GardenMcp({ top, spares, done, saved, memoOf, copySeat, copyText, onUse, flush, remint, minting, focusUse, nameOf }: {
+function GardenMcp({ top, spares, done, saved, memoOf, copySeat, copyText, onUse, flush, remint, minting, focusUse, nameOf, flipOn }: {
   top: VaultSeat; spares: VaultSeat[]; done: string; saved: string; memoOf: (s: VaultSeat) => string;
   copySeat: (seat: string) => void; copyText: (key: string, text: string) => void; onUse: (seat: string, v: string) => void; flush: (seat: string) => void;
   remint: (seat: string) => Promise<unknown>; minting: boolean; focusUse: { seat: string; n: number } | null; nameOf: (seat: string) => string;
+  flipOn: (seat: string, on: boolean) => Promise<unknown>;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false), [flipping, setFlipping] = useState("");
   // 복사 → 그 줄 사용처 칸에 바로 커서(형 11-20 03:04 dm-sia 「복사 시 자동으로 커서 아동 후 메모 한 줄 적게해줘」) · 칸이 막 그려진 뒤라 한 프레임 뒤
   useEffect(() => {
     if (!focusUse) return undefined;
@@ -352,6 +353,9 @@ function GardenMcp({ top, spares, done, saved, memoOf, copySeat, copyText, onUse
                   const v = memoOf(s);
                   return (
                     <div key={s.seat} className="nm-mcp-sr">
+                      {/* 켜기 · 끄기 = 줄 맨 앞(형 13:23 「on 켜질때만 접속가능하게」) · 켜면 그 예비 얼굴 새싹 형광 · 끄면 어두운 판(./faces.tsx) · 서버 값 오기 전 = 빈 칸(격자 칸 수 그대로) */}
+                      {s.on == null ? <span /> : <button type="button" role="switch" aria-checked={s.on} aria-label={`${nameOf(s.seat)} 켜기`} className="nm-sw nm-mcp-on" disabled={flipping === s.seat}
+                        onClick={() => { setFlipping(s.seat); void flipOn(s.seat, !s.on).catch(() => undefined).finally(() => setFlipping("")); }}><span className="si-sw" aria-hidden /></button>}
                       <div className="nm-vault-in nm-mcp-f nm-mcp-sk" aria-readonly="true">{nameOf(s.seat)}</div>
                       <div className={`nm-vault-in nm-mcp-f nm-mcp-v nm-mcp-sv${s.set ? "" : " off"}`} aria-readonly="true" aria-label={s.set ? "열쇠 가림" : "비어 있음"}>{s.set ? DOTS : "비어 있음"}</div>
                       <div className="nm-mcp-use">
@@ -415,6 +419,9 @@ export function NomuteVault() {
   const conns = useQuery({ ...VAULT_Q, select: (j: VaultRaw) => j.conns || [] });   // 같은 한 번 받기(seatvault) · 연결 줄 = 형만 실림(서버 · 번개 11-20)
   const block = (id: string, on: boolean) => office<{ ok?: boolean; blocked?: boolean }>("seatvault/conn", { method: "POST", body: JSON.stringify({ id, block: on }) })
     .then((j) => { qc.setQueryData<VaultRaw>(VAULT_Q.queryKey, (old) => old && { ...old, conns: old.conns?.map((c) => (c.id === id ? { ...c, blocked: !!j.blocked } : c)) }); return j; });
+  // 예비 켜기 · 끄기(형 11-20 13:23 dm-sia 시아 옮김 「저거 활성화를 온오프가능하면 좋겠다. on 켜질때만 접속가능하게」) = 서버 seatvault/on(천둥) · 답 값으로 서랍 · 방 목록(얼굴 불) 둘 다 맞춤
+  const flipOn = (seat: string, on: boolean) => office<{ ok?: boolean; on?: boolean }>("seatvault/on", { method: "POST", body: JSON.stringify({ seat, on }) })
+    .then((j) => { const v = j.on ?? on; qc.setQueryData<VaultRaw>(VAULT_Q.queryKey, (old) => old && { ...old, seats: old.seats?.map((x) => (x.seat === seat ? { ...x, on: v } : x)) }); void qc.invalidateQueries({ queryKey: ["nomute", "rooms"] }); return j; });
   const nameOf = spareNames(q.data || []);
   const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [done, setDone] = useState("");
   const [memo, setMemo] = useState<Record<string, string>>({});   // 이름표 글칸(고치는 중) · 없으면 서버 값
@@ -473,7 +480,7 @@ export function NomuteVault() {
           <>
             <GardenMcp top={top} spares={(q.data || []).filter((s) => !s.top)} done={done} saved={saved} memoOf={(s) => memo[s.seat] ?? s.memo ?? ""}
               copySeat={(seat) => void copy(seat)} copyText={(k, t) => void copyText(k, t)} onUse={onUse} flush={flush}
-              remint={(seat) => mint.mutateAsync(seat)} minting={mint.isPending} focusUse={focusUse} nameOf={nameOf} />
+              remint={(seat) => mint.mutateAsync(seat)} minting={mint.isPending} focusUse={focusUse} nameOf={nameOf} flipOn={flipOn} />
             <GardenConns conns={conns.data || []} onBlock={block} />
             <div className="nm-mcp-cut" aria-hidden />
           </>

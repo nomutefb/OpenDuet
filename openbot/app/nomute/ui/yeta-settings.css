@@ -190,13 +190,13 @@
 .yeta-set .nm-mcp-ok { position:absolute; right:14px; top:50%; translate:0 -50%; color:var(--accent); opacity:0; scale:.5; transition:opacity .14s ease, scale .14s ease; pointer-events:none; }
 .yeta-set .nm-mcp-ok.on { opacity:1; scale:1; }
 /* 예비 줄 = 한 격자(형 11-20 11:02) — 이름(글만큼) · 별(고정 폭 · 길이 따라 안 넓어짐) · 메모(남는 폭 · 넘치면 칸 안에서 옆으로) · 복사 · 발행 칸이 줄마다 세로로 맞음 */
-.yeta-set .nm-mcp-sp { display:grid; grid-template-columns:max-content 7.5rem minmax(0,1fr) max-content max-content; gap:10px 8px; align-items:center; }
+.yeta-set .nm-mcp-sp { display:grid; grid-template-columns:max-content max-content 7.5rem minmax(0,1fr) max-content max-content; gap:10px 8px; align-items:center; }   /* 맨 앞 = 켜기 스위치(형 11-20 13:23 「on 켜질때만 접속가능하게」) */
 .yeta-set .nm-mcp-sr { display:contents; }
 .yeta-set .nm-mcp-sp .nm-mcp-use { min-width:0; }
 .yeta-set .nm-mcp-tb { border-color:transparent; padding:0 6px; }   /* 글자 단추 = 테두리 0(「버튼 말고, 그냥 글자 버튼으로」) · 히트 영역(40px 높이)은 그대로 */
 .yeta-set .nm-mcp-tb.ok { border-color:transparent; background:none; color:var(--accent); }
 @media (max-width:520px) {   /* 폰 = 칸을 좁혀 메모 칸이 글자 대여섯은 보이게(412 폭 실측 = 앞 판 메모 칸에 「메」 한 글자) */
-  .yeta-set .nm-mcp-sp { grid-template-columns:max-content 4.75rem minmax(0,1fr) max-content max-content; column-gap:4px; }
+  .yeta-set .nm-mcp-sp { grid-template-columns:max-content max-content 4.75rem minmax(0,1fr) max-content max-content; column-gap:4px; }
   .yeta-set .nm-mcp-sp .nm-mcp-sk, .yeta-set .nm-mcp-sp .nm-mcp-sv { padding:0 10px; }
   .yeta-set .nm-mcp-sp .nm-mcp-sv { letter-spacing:.02em; }
   .yeta-set .nm-mcp-sp .nm-mcp-use .nm-vault-in { padding:0 24px 0 10px; }

@@ -42,22 +42,18 @@ function useFaceBg(src: string) {
   return bg || undefined;
 }
 
-/** 예비 손님 불(형 11-20 13:07 dm-sia 시아 옮김 「예비 1,2,3 프로필 사진 누구아이디어야? 설마 활성화되면 불들어옴? 미쳤다」)
- *  켜짐 = 그 예비 열쇠가 10분 안에 서버를 부름(천둥 rooms guest 방 seen_ts · 오기 전엔 그 1:1 방 마지막 글이 예비 것일 때 그 시각) → 새싹 형광 = 그림 그대로
- *  꺼짐 = 같은 그림을 어둡게(SPARE_OFF · 그림 두 벌 안 받음) · 10분 = 하늘 짐작 · 다음 꺼질 때 한 번만 다시 그림(도는 시계 0) */
+/** 예비 손님 불(형 11-20 13:07 dm-sia 시아 옮김 「예비 1,2,3 프로필 사진 누구아이디어야? 설마 활성화되면 불들어옴? 미쳤다」 ·
+ *  13:23 「응 이꼴인데, 활성화되어있을때만 키면될듯. 그리고 혹시, 저거 활성화를 온오프가능하면 좋겠다. on 켜질때만 접속가능하게」)
+ *  켜짐 = 형이 보안 서랍 예비 줄 스위치로 켠 예비(서버 = rooms guest 방 `on` · 천둥) → 새싹 형광 = 그림 그대로
+ *  꺼짐(값 없음 포함) = 같은 그림을 어둡게(SPARE_OFF · 그림 두 벌 안 받음) · 받아오기 = 방 목록 같은 캐시 열쇠(더 0) */
 export const SPARE_OFF = "saturate(.45) brightness(.4)";
-const SPARE_ON_MS = 600_000;
 export const isSpare = (who?: string) => !!who && /^예비\d+$/.test(who);
-type GuestRoom = { guest?: boolean; with?: string; seen_ts?: number | null; last_talk?: { who?: string; ts?: number } | null };
+type GuestRoom = { guest?: boolean; with?: string; on?: boolean | null };
 export function useSpareOn(who?: string): boolean | undefined {
-  const seen = useQuery({
+  return useQuery({
     queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: GuestRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000, enabled: isSpare(who),
-    select: (rs: GuestRoom[]) => { const r = rs.find((x) => x.guest && x.with === who); return !r ? undefined : r.seen_ts !== undefined ? r.seen_ts ?? 0 : r.last_talk?.who === who ? r.last_talk.ts ?? 0 : 0; },
+    select: (rs: GuestRoom[]) => { const r = rs.find((x) => x.guest && x.with === who); return r ? r.on === true : undefined; },
   }).data;
-  const left = seen ? seen + SPARE_ON_MS - Date.now() : 0;
-  const [, tick] = useState(0);
-  useEffect(() => { if (left <= 0) return; const t = setTimeout(() => tick((n) => n + 1), left + 50); return () => clearTimeout(t); }, [seen, left > 0]);
-  return seen === undefined ? undefined : left > 0;
 }
 function SpareImg({ who, src, name, size, className }: { who: string; src: string; name: string; size: number; className: string }) {
   const on = useSpareOn(who);

@@ -39,7 +39,7 @@ test("펼치면 Authentication 안에 예비 줄 · 메모 칸 = 복사 왼쪽 �
   assert.match(css, /\.nm-mcp-more\[aria-expanded="true"\] \{ color:var\(--accent\);/);
   assert.match(ui, /maxLength=\{50\} placeholder="메모"/);
   assert.match(ui, /<div className="nm-mcp-use">[\s\S]{0,900}<CopyBtn text ok=\{done === s\.seat\}/);   // 메모 → 복사 차례
-  assert.match(css, /\.nm-mcp-sp \{ display:grid; grid-template-columns:max-content 7\.5rem minmax\(0,1fr\) max-content max-content;/);
+  assert.match(css, /\.nm-mcp-sp \{ display:grid; grid-template-columns:max-content max-content 7\.5rem minmax\(0,1fr\) max-content max-content;/);
   assert.match(css, /\.nm-mcp-sr \{ display:contents; \}/);
   assert.match(css, /\.nm-mcp-tb \{ border-color:transparent;/);
   assert.match(ui, /onBlur=\{\(\) => flush\(s\.seat\)\}/);
