@@ -2,7 +2,7 @@
    움직이는 값 = 투명도 · 자리(transform)만 · 흐림 세기는 안 움직임(막이 뜨는 동안 한 번 그림) */
 .nm-mm { position:fixed; inset:0; z-index:60; letter-spacing:0; text-transform:none; font-family:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
 .nm-mm.out { opacity:0; pointer-events:none; transition:opacity .16s ease; }
-.nm-mm-veil { position:absolute; inset:0; pointer-events:none; background:rgba(8,9,10,.46); -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-composite:xor; mask-composite:exclude; animation:nmMmVeil .18s ease-out both; }
+.nm-mm-veil { position:absolute; inset:0; pointer-events:none; background:rgba(8,9,10,.18); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-composite:xor; mask-composite:exclude; animation:nmMmVeil .18s ease-out both; }
 .nm-mm-l { position:fixed; display:flex; flex-direction:column; min-width:140px; max-width:min(78vw, 300px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
 .nm-mm-l::-webkit-scrollbar { display:none; }
 .nm-mm[data-align="right"] .nm-mm-l { align-items:flex-end; }
@@ -26,4 +26,7 @@
 .nm-mm[data-side="below"] .nm-mm-i, .nm-mm[data-side="below"] .nm-mm-q { animation-name:nmMmRowDown; }
 @keyframes nmMmRowDown { from { opacity:0; transform:translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .nm-mm-veil, .nm-mm-i, .nm-mm-q { animation:none; } .nm-mm.out { transition:none; } }
-.nm-mm[data-over] .nm-mm-veil { background:rgba(8,9,10,.62); }   /* 줄이 글 위에 겹칠 때 = 조금 더 어둡게(줄이 읽히게) */
+.nm-mm[data-over] .nm-mm-veil { background:rgba(8,9,10,.24); }   /* 줄이 글 위에 겹칠 때 = 조금만 더(읽히게 하는 건 아래 줄 판이 맡음)
+/* 메뉴 줄 자리만 어둡게 · 그 밖은 옅게(형 11-20 12:05 dm-bom 봄 옮김 「그리고 이렇게 어두워지는거 덜 그.메뉴 있는 부분 외로는 훨씬 덜 어두워져도 될닷」)
+   = 막(veil) .46 · 흐림 7px → .18 · 2px(글 위 겹침 .62 → .24) · 줄 판 = 테 없는 어두운 판 + 번지는 그림자(가운데 판 꼴 아님 · 흐림 0 = 줄 움직임이 흐림 위에서 안 돎) */
+.nm-mm-l { padding:4px 12px; border-radius:18px; background:rgba(8,9,10,.62); box-shadow:0 0 28px 14px rgba(8,9,10,.62); }
