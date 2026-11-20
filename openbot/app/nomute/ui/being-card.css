@@ -1597,3 +1597,5 @@ html[data-font-all="pretendard"] body .ypc .profile-card__name { font-weight: 80
 .bc-tmpl.bc-spare01 { --bc-accent: #FF4FB0; }
 .bc-tmpl.bc-spare02 { --bc-accent: #3EE8C0; }
 .bc-tmpl.bc-spare03 { --bc-accent: #FFD83A; }
+/* 예비 불 꺼짐(형 11-20 13:07 dm-sia 시아 옮김 「…설마 활성화되면 불들어옴? 미쳤다」) = 안 쓰는 동안 얼굴만 어둡게 · 값 = ./faces.tsx SPARE_OFF 와 같음 · 쓰는 중 = 그림 그대로(새싹 형광) */
+.being-card.bc-off .profile-card__photo { filter: saturate(.45) brightness(.4); }

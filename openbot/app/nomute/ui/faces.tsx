@@ -2,7 +2,7 @@
 // 원본의 구슬(mic-orb · OpenDuet 얼굴)은 화면에 0(형 10-28 05:04 「오픈 듀엣 구슬 얼굴등은 우리가 야무지게 만들면돼」 = 1단계 우리 얼굴 그림)
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { HYUNG_ID, WINTER_ID, idOf, people } from "../data/office";
+import { HYUNG_ID, WINTER_ID, idOf, office, people } from "../data/office";
 
 export function usePeople() {
   return useQuery({ queryKey: ["nomute", "people"], queryFn: () => people(), staleTime: 60_000 }).data || [];
@@ -42,12 +42,35 @@ function useFaceBg(src: string) {
   return bg || undefined;
 }
 
+/** 예비 손님 불(형 11-20 13:07 dm-sia 시아 옮김 「예비 1,2,3 프로필 사진 누구아이디어야? 설마 활성화되면 불들어옴? 미쳤다」)
+ *  켜짐 = 그 예비 열쇠가 10분 안에 서버를 부름(천둥 rooms guest 방 seen_ts · 오기 전엔 그 1:1 방 마지막 글이 예비 것일 때 그 시각) → 새싹 형광 = 그림 그대로
+ *  꺼짐 = 같은 그림을 어둡게(SPARE_OFF · 그림 두 벌 안 받음) · 10분 = 하늘 짐작 · 다음 꺼질 때 한 번만 다시 그림(도는 시계 0) */
+export const SPARE_OFF = "saturate(.45) brightness(.4)";
+const SPARE_ON_MS = 600_000;
+export const isSpare = (who?: string) => !!who && /^예비\d+$/.test(who);
+type GuestRoom = { guest?: boolean; with?: string; seen_ts?: number | null; last_talk?: { who?: string; ts?: number } | null };
+export function useSpareOn(who?: string): boolean | undefined {
+  const seen = useQuery({
+    queryKey: ["nomute", "rooms"], queryFn: () => office<{ rooms: GuestRoom[] }>("rooms").then((j) => j.rooms || []), staleTime: 15_000, enabled: isSpare(who),
+    select: (rs: GuestRoom[]) => { const r = rs.find((x) => x.guest && x.with === who); return !r ? undefined : r.seen_ts !== undefined ? r.seen_ts ?? 0 : r.last_talk?.who === who ? r.last_talk.ts ?? 0 : 0; },
+  }).data;
+  const left = seen ? seen + SPARE_ON_MS - Date.now() : 0;
+  const [, tick] = useState(0);
+  useEffect(() => { if (left <= 0) return; const t = setTimeout(() => tick((n) => n + 1), left + 50); return () => clearTimeout(t); }, [seen, left > 0]);
+  return seen === undefined ? undefined : left > 0;
+}
+function SpareImg({ who, src, name, size, className }: { who: string; src: string; name: string; size: number; className: string }) {
+  const on = useSpareOn(who);
+  return <img src={src} alt={name} width={size} height={size} draggable={false} className={`block shrink-0 rounded-full object-cover ${className}`} style={{ width: size, height: size, filter: on === false ? SPARE_OFF : undefined }} />;
+}
+
 export function FaceImg({ id, size = 32, className = "" }: { id: string; size?: number; className?: string }) {
   const list = usePeople();
   const p = id === HYUNG_ID ? list.find((x) => x.who === "형") : list.find((x) => idOf(x.who, list) === id || x.who === id);
   const name = p ? p.name || p.who : id;
   const src = p?.face || (id === WINTER_ID ? "/office/winter.jpg" : "");
   const bg = useFaceBg(src);
+  if (src && isSpare(p?.who)) return <SpareImg who={p!.who} src={src} name={name} size={size} className={className} />;
   return src ? (
     <img src={src} alt={name} width={size} height={size} draggable={false} className={`block shrink-0 rounded-full object-cover ${className}`} style={{ width: size, height: size, background: bg }} />
   ) : (

@@ -4,6 +4,7 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 import ProfileCard from "../vendor/react-bits/ProfileCard/ProfileCard";
 import "./being-card.css";
+import { useSpareOn } from "./faces";
 
 type Look = {
   id: string;           // CSS 꼬리표 → .bc-<id> (being-card.css 에 팔레트·모양)
@@ -18,6 +19,7 @@ type Look = {
   art: ReactNode;       // 얼굴 뒤 무늬(그림 파일 없이 CSS·이모지)
   tmpl?: boolean;       // 몸통 = 틀 카드(.bc-tmpl) 그대로 쓰고 .bc-<id> 로 덧칠만
   accent?: string;      // 틀 카드 색(--bc-accent) · 없으면 dot
+  seat?: string;        // 예비 손님 자리(예비01 …) = 쓰는 중일 때만 얼굴 불(./faces.tsx useSpareOn)
 };
 
 // 이름 글꼴 후보(형 11-05 「글자 폰트만 들어가면 지릴거같은디」) — 한글 되는 Google Fonts 셋 · 카드가 처음 뜰 때 그 글꼴 <link> 하나만 붙임
@@ -437,9 +439,9 @@ const LOOKS: Look[] = [
   },
   // 예비 손님 셋(보안 서랍 예비 코드 자리 · 방 dm-spare01 · 06 · 07 · 화면 이름 「예비 1 · 2 · 3」) — 형 11-20 11:08 dm-sia 시아 옮김 「그리고 예비 애들 프로필 카드 하나씩 해줘」 · 「이거 컨셉으로 하나씩 다르게 01 02 03 알수잇게」
   //   그림 = 시아(형 새싹 화분 그림 꼴 · 01 잎 하나 분홍 · 02 잎 둘 민트 · 03 잎 셋 레몬 · 화분 앞 숫자) · 몸통 = 틀 카드(.bc-tmpl) + 화분 색 · 하늘 11-20
-  { id: "spare01", tmpl: true, accent: "#FF4FB0", match: ["예비01", "예비 1", "spare01"], face: "/garden-app/spare-01.webp?v=1", handle: "spare01", meta: "예비 01", dot: "#FF4FB0", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
-  { id: "spare02", tmpl: true, accent: "#3EE8C0", match: ["예비06", "예비 2", "spare06"], face: "/garden-app/spare-02.webp?v=1", handle: "spare02", meta: "예비 02", dot: "#3EE8C0", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
-  { id: "spare03", tmpl: true, accent: "#FFD83A", match: ["예비07", "예비 3", "spare07"], face: "/garden-app/spare-03.webp?v=1", handle: "spare03", meta: "예비 03", dot: "#FFD83A", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
+  { id: "spare01", seat: "예비01", tmpl: true, accent: "#FF4FB0", match: ["예비01", "예비 1", "spare01"], face: "/garden-app/spare-01.webp?v=1", handle: "spare01", meta: "예비 01", dot: "#FF4FB0", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
+  { id: "spare02", seat: "예비06", tmpl: true, accent: "#3EE8C0", match: ["예비06", "예비 2", "spare06"], face: "/garden-app/spare-02.webp?v=1", handle: "spare02", meta: "예비 02", dot: "#3EE8C0", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
+  { id: "spare03", seat: "예비07", tmpl: true, accent: "#FFD83A", match: ["예비07", "예비 3", "spare07"], face: "/garden-app/spare-03.webp?v=1", handle: "spare03", meta: "예비 03", dot: "#FFD83A", holo: 0.6, glare: 0.4, art: <span className="bc-art" aria-hidden="true"><span className="bc-band" /><span className="bc-ring" /></span> },
   {
     // 루미 😎(그록봇 · 디자이너 · 형 11-19 00:40 dm-gik(깃 옮김) 「루미 직무  디자이너」 「프로필 카드도」)
     //   카드 = 사진 통째(형 11-19 11:15 dm-rumi(루미 옮김) 「20261119_1113_루미-카드-A2 이거 뜸에게 사진보내지는지 김에 확인하고」 「프로필카드로 만들어달라구해」 「뎅한테!」 · 11:33 dm-deng 「뎅 저거 프로필카드로」 · 뎅)
@@ -561,11 +563,12 @@ export function BeingCard({ who, name, role, intro, face, person, note, onScreen
   // 숨쉬기 흔들림 끔(형 11-11 06:12 dm-sia 「근데 번쩍임 아직 있긴있어 내 폰만 그럴수도 이펙트가 조금 화려해서그런가봐」) — 손가락 화면은 안 만지면 카드가 가만히 · 만지면 따라옴 · 마우스는 올리면 따라옴(앞 판 = 손가락 화면만 30fps 숨쉬기 · 번개 짚음 = 그게 카드 밑 스타일을 매 프레임 다시 셈)
   const font: FontKey = look?.font && look.font in FONTS ? look.font : "bagel-fat-one";
   useDisplayFont(look ? font : null);
+  const lit = useSpareOn(look?.seat);   // 예비 = 쓰는 중이면 그림 그대로 · 아니면 .bc-off(얼굴 어둡게 · being-card.css)
   if (!look) return null;
   return (
     <div className="being-card-wrap" style={{ "--bc-display": `"${FONTS[font].family}"`, ...(look.id === "tmpl" || look.tmpl ? { "--bc-accent": look.accent || look.dot } : {}) } as CSSProperties}>
       <ProfileCard
-        className={`being-card bc-${look.id}${look.tmpl ? " bc-tmpl" : ""}`}
+        className={`being-card bc-${look.id}${look.tmpl ? " bc-tmpl" : ""}${lit === false ? " bc-off" : ""}`}
         avatarUrl={face || look.face || person?.face || ""}
         name={name || who}
         title={role || ""}
