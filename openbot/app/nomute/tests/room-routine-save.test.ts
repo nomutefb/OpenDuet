@@ -79,3 +79,10 @@ test("실패 뒤 수정은 자동 저장하지 않고 다시 누를 때 새 입�
   assert.deepEqual(locks, [true, false, true]);
   assert.deepEqual(sent[1], { mode: "hours", every: 6, min: 15, text: "다시 고친 글", skip: [], on: true });
 });
+
+test("수집 따라(follow) 저장 = follow · every · times 그대로 · 받을 이만(only)도 있던 그대로(시아 11-21 05:53 「루틴 창이 follow 꼴을 몰라서 형이 밥상 루틴 열어 저장하면 400」)", async () => {
+  const times = ["00:00", "02:00", "04:00"];
+  const form = formOf({ mode: "follow", follow: "x.collect", every: 120, times, only: ["슈왕"] }), sent: Record<string, unknown>[] = [];
+  await saveRoomRoutine(form, [], async (body) => { sent.push(body); }, () => {});
+  assert.deepEqual(sent, [{ mode: "follow", follow: "x.collect", every: 120, times, text: "저장 실패 뒤에도 남길 글", skip: [], only: ["슈왕"], on: true }]);
+});
