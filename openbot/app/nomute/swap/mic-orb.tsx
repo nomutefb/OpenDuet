@@ -11,7 +11,7 @@ export type MicOrbState = "idle" | "listening" | "thinking" | "done" | "finished
 export const FINISH_MS = FINISH_S * 1000;
 
 // 테 색(형 10-31 「그 캐릭터 고유 색에 맞춰서 색은 내가 정해줄게」 · 「봄은 분홍, 시아는 노뮤트색, 윈터는 흰은색, 빠르는 로얄블루네온, 뎅은 갈색+네온」 → 「그리고 너가 노뮤트색을 해주고, 시아가 흰색을 해줘」) = 이름별 · 값 정본 = 봄 대시보드 #1797(뎅 = 네온 테 쪽) · 윈터 = .nm-orb 기본과 같은 값 · 없으면 말풍선 색 → 분류색
-const RING: Record<string, string> = { "윈터 PM": "#0FFD02", 봄: "#FF6FB5", 시아: "#DDE3EA", 빠르: "#2F6BFF", 뎅: "#FFB300" };
+const RING: Record<string, string> = { "윈터 PM": "#0FFD02", 봄: "#FF6FB5", 시아: "#DDE3EA", 빠르: "#2F6BFF", 뎅: "#FFB300", 하늘: "#5AB4FF" };   // 하늘 = 얼굴 줄 · 카드와 같은 하늘색(형 11-20 12:05 dm-bom 봄 옮김 「하늘 라벨색이 하늘색이 아직 안되있네」 · 앞 = 명부 말풍선 색 없어 「클로드」 주황)
 const RING_CLS: Record<string, string> = { 그록봇: "#22d3ee", 클로드: "#FFAA4D", 닷: "#C9A7FF", 부름: "#C9A7FF" };
 export const ringOf = (p?: { who: string; cls?: string; bubble?: string }) => (p ? RING[p.who] || p.bubble || RING_CLS[p.cls || ""] : undefined);
 
