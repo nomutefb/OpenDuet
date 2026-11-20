@@ -190,5 +190,4 @@ html[data-nm-fullpane] .nm-strip { background:var(--nm-tab-on, #121314); border-
 .nm-sns-stage { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:0 12px 12px; }
 .nm-sns-box { position:relative; height:100%; max-height:100%; aspect-ratio:9 / 16; max-width:100%; border-radius:14px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center; }
 .nm-sns-noapp { padding:18px; text-align:center; color:var(--fg-2, #c8ccc8); font-size:var(--fs-sm, 13px); line-height:1.5; }
-.nm-sns-noapp b { display:block; margin-bottom:6px; color:var(--fg, #e8eae8); font-size:var(--fs-h3, 15px); }
-.nm-sns-noapp a { display:inline-block; margin-top:10px; color:var(--accent, #CFFF40); }
+.nm-sns-noapp a { display:inline-block; color:var(--accent, #CFFF40); }
