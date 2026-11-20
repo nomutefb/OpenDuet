@@ -9,9 +9,21 @@ const read = (): number => { try { const v = Number(localStorage.getItem(KEY)); 
 let cur = read();
 export const setPinAlpha = (v: number) => { cur = Math.max(5, Math.min(100, Math.round(v))); try { localStorage.setItem(KEY, String(cur)); } catch { /* 이번만 */ } subs.forEach((f) => f()); };
 export const usePinAlpha = () => useSyncExternalStore((f) => { subs.add(f); return () => { subs.delete(f); }; }, () => cur, () => DEF);
-/** 고정 줄 바탕 색(#RRGGBBAA) · hex = 그 줄 고유색(없으면 라임) */
+/** 채도(HSL · 0~1) — 죽은 회색 가름 · 순수(시험) */
+export const satOf = (hex: string): number => {
+  const n = parseInt(hex.slice(1, 7), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+  return mx === mn ? 0 : (mx - mn) / (mx + mn > 255 ? 510 - mx - mn : mx + mn);
+};
+const DULL = 0.18;   // 이 아래 = 칠하면 죽은 회색(시아 #685466 = 0.11 · 다른 애들 0.4 넘음)
+/** 은빛 결(멈춘 금속 그라데이션 · 도는 반짝임 0 = 가만히 둔 화면 0) · 진하기 = 같은 설정 값 */
+export const silverOf = (pct: number) => {
+  const a = Math.min(1, pct / 100), A = (k: number) => +(Math.min(1, a * k)).toFixed(3);
+  return `linear-gradient(105deg, rgba(214,220,228,${A(1.5)}) 0%, rgba(250,252,255,${A(2.2)}) 11%, rgba(150,158,170,${A(0.8)}) 34%, rgba(120,128,140,${A(0.7)}) 62%, rgba(246,249,253,${A(2)}) 89%, rgba(190,198,208,${A(1.3)}) 100%)`;   // 양 끝 빛 띠 + 가운데(글자 자리) 어둡게 = 붓질 은 · 글자 읽힘 그대로(셋 견줌 = 사진/pm-silver-견줌.png · 로그인 없는 창)
+};
+/** 고정 줄 바탕(#RRGGBBAA 또는 은빛 결) · hex = 그 줄 고유색(없으면 라임) · 채도 낮은 색 = 은빛(형 11-21 06:05 dm-sia 시아 옮김 「시아 고정 색이 너무 죽은 회색인데.좀 멋쟁이 은색일 수 없나」) */
 export const pinTint = (hex: string | undefined, pct: number) => {
   const h = /^#[0-9a-f]{6}/i.test(hex || "") ? (hex as string).slice(0, 7) : LIME;
+  if (satOf(h) < DULL) return silverOf(pct);
   return h + Math.round((pct / 100) * 255).toString(16).padStart(2, "0");
 };
 
