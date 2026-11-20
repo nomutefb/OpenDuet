@@ -53,6 +53,7 @@ test("뉴스 에디터 = 맨 위 넣는 줄 0 · 오른쪽 아래 「요약」 �
   assert.ok(!/function SendBar\(|<SendBar\b|submitText|링크 · 글 붙여 넣기/.test(ned), "넣는 줄 걷음");
   assert.match(fan, /const items: \[string, string\]\[\] = \[\["\/ask", "뉴스 요약"\], \["\/edtool", "이미지 에디터"\], \["\/edvid", "비디오 에디터"\], \["\/eddoc", "문서 에디터"\]\];/, "「+」 펼침 넷(형 19:23 셋 + 11-17 문서 에디터 「최대한 넓은 범위에서 진행할게 다해줘」)");
   assert.match(ned, /<PlusFan go=\{go\} \/>/);
+  assert.match(ned, /const fab = wide \|\| mouse \|\| sel \? null : <PlusFan go=\{go\} \/>/);   // PC 두 칸 = 우하단 「+」 0 · 폰만(형 11-20 19:41 「글구 우하단에 요거 없앨게. 그냥 피시에서」)
   assert.match(ncss, /\.nm-ned-plus \{[^}]*position:absolute;[^}]*right:14px; bottom:calc\(var\(--duet-tab-space,86px\) \+ 24px\)/, "대화방 목록 「+」 자리와 같음(형 11-15 08:55 16px 위로)");
   // 꼴 = 9시 → 12시로 셋 · 그림 단추 · 유리(형 11-15 「9시에서 12시로 3개가 펼쳐지게 … 픽토그램식으로 · Kinetics orbital menu … 글래스모피즘」) · 몸 = Kinetics 원문 값
   const orbit = rd("../vendor/kinetics/orbit-menu.css");

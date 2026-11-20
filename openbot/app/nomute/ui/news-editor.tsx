@@ -60,6 +60,7 @@ let keep: { n: number; top: number } | null = null;
 
 export function NewsEditor() {
   const go = useGo(), wide = useSplit(), router = useRouter();
+  const [mouse] = useState(() => { try { return matchMedia("(hover: hover) and (pointer: fine)").matches; } catch { return false; } });   // 마우스 = PC(창을 좁혀도 · enter-key.tsx · link-card.tsx 와 같은 셈) → 우하단 「+」 0
   const tab = nedTabOf(useRouterState({ select: (st) => st.location.pathname }));
   const alive = useRef(new Set<NedTab>());   // 한 번 연 SNS · 채널 판 = 이 화면에 있는 동안 살려 둠
   alive.current.add(tab);
@@ -117,7 +118,7 @@ export function NewsEditor() {
       {rows.length > shown.length ? <><div ref={sent} aria-hidden className="nm-feed-sent" /><button type="button" className="nm-ned-more" onClick={() => setN((v) => v + CAP)}>더 보기 +{Math.min(CAP, rows.length - shown.length)} · 남은 {rows.length - shown.length}건</button></> : null}
     </div>
   );
-  const fab = !wide && sel ? null : <PlusFan go={go} />;   // 오른쪽 아래 「+」 펼침(형 19:23 · 앞 판 = 「+ 요약」 알약 하나 · 형 14:36)
+  const fab = wide || mouse || sel ? null : <PlusFan go={go} />;   // 오른쪽 아래 「+」 펼침 = 폰만(형 19:23 · 앞 판 = 「+ 요약」 알약 하나 · 형 14:36) · PC 두 칸 = 0(형 11-20 19:41 dm-gik 깃 옮김 「글구 우하단에 요거 없앨게. 그냥 피시에서」 · 요약 · 에디터는 메뉴 줄 그대로)
   const news = wide ? (
     <div className="nm-ned wide" hidden={tab !== "news"}>
       {body}
