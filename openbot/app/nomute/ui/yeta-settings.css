@@ -203,5 +203,17 @@
   .yeta-set .nm-mcp-sp .nm-mcp-ok { right:8px; }
   .yeta-set .nm-mcp-tb { padding:0 4px; }
 }
+/* 열쇠 연결 줄(형 11-20 11:30~11:32 · GardenConns) — 마지막 쓴 때 · 이름 · 망 주인 · X 가 줄마다 세로로 맞음 · 끊긴 줄 = 흐림 · 명부 밖 = 라임 테 */
+.yeta-set .nm-conn-l { display:grid; grid-template-columns:max-content minmax(0,1fr) minmax(0,auto) max-content; gap:6px 10px; align-items:center; }
+.yeta-set .nm-conn-r { display:contents; }
+.yeta-set .nm-conn-r > span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:var(--fs-sm); }
+.yeta-set .nm-conn-t { color:var(--mut); font-variant-numeric:tabular-nums; }
+.yeta-set .nm-conn-n { color:var(--fg); font-weight:600; }
+.yeta-set .nm-conn-o { color:var(--mut); max-width:16em; }
+.yeta-set .nm-conn-r.off > span { opacity:.4; }
+.yeta-set .nm-conn-r.unk .nm-conn-n { color:var(--accent); }
+.yeta-set .nm-conn-x { display:grid; place-items:center; width:40px; height:40px; border:0; border-radius:var(--r-pill); background:none; color:var(--mut); cursor:pointer; }
+.yeta-set .nm-conn-x:hover { color:var(--fg); }
+.yeta-set .nm-conn-x:active { scale:.92; }
 .yeta-set .nm-mcp-cut { height:1px; margin:16px 2px 0; background:var(--glass-line); }
 @media (prefers-reduced-motion: reduce) { .yeta-set .nm-mcp-fold, .yeta-set .nm-mcp-ok, .yeta-set .nm-mcp-link, .yeta-set .nm-mcp-more { transition:none; } }

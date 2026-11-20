@@ -52,3 +52,11 @@ test("링크 그림 = 서버 link(그록 플러그인) 새 탭", () => {
   assert.match(ui, /href=\{top\.link\} target="_blank" rel="noopener noreferrer"/);
   assert.match(ui, /dangerouslySetInnerHTML=\{\{ __html: YICO\.link \}\}/);
 });
+
+test("열쇠 연결 줄 = 봄의 정원 칸 바로 아래 · 같은 한 번 받기 · X = 그 자리 토글 → 게이지(seatvault/conn) · 끊긴 줄 = 다시 잇기(형 11-20 11:30~11:32)", () => {
+  assert.ok(ui.includes("<GardenConns conns={conns.data || []} onBlock={block} />"));
+  assert.ok(ui.includes('select: (j: VaultRaw) => j.conns || []'));
+  assert.ok(ui.includes('office<{ ok?: boolean; blocked?: boolean }>("seatvault/conn", { method: "POST", body: JSON.stringify({ id, block: on }) })'));
+  assert.ok(ui.includes('yesText="끊기" busy="끊는 중"') && ui.includes('yesText="잇기" busy="잇는 중"'));
+  assert.match(css, /\.nm-conn-r\.off > span \{ opacity:\.4; \}/);
+});

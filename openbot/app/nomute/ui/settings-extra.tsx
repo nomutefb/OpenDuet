@@ -11,7 +11,8 @@ import { idOf, type Meter, type MeterRow, office, people } from "../data/office"
 import { schedOpts } from "../data/crew-warm";
 import type { SchedGpu } from "./sched-gpu";   // GPU 칸(형 11-05 09:43 · 뜸)
 import { FaceImg } from "./faces";
-import { t12 } from "./when";
+import { listWhen, t12 } from "./when";
+import { agoMin } from "./ago-min";   // 연결 줄 마지막 쓴 때(한 시간 안 = N분 전)
 import { Chev } from "./chev";   // 꺽쇠 하나(형 11-01)
 import { GoButton } from "./go-button";
 import type { Review } from "./sched-review";
@@ -375,9 +376,44 @@ function GardenMcp({ top, spares, done, saved, memoOf, copySeat, copyText, onUse
   );
 }
 
+/** 봄의 정원 · 그록 열쇠로 붙은 연결 한 줄(서버 editor _keyconn.js connList · 번개 11-20) — last · first = ms */
+type VaultConn = { id: string; seat: string; first: number | null; last: number | null; n: number; org: string; asn: number; country: string; client?: string; names: { name: string; at: number }[]; blocked?: boolean; unknown?: boolean };
+type VaultRaw = { seats?: VaultSeat[]; conns?: VaultConn[] };
+const VAULT_Q = { queryKey: ["nomute", "seatvault"] as const, queryFn: () => office<VaultRaw>("seatvault"), staleTime: 60_000 };
+const connWhen = (ms: number | null) => !ms ? "—" : Date.now() - ms < 3600e3 ? agoMin(Date.now() - ms) : listWhen(ms);   // 한 시간 안 = N분 전 · 오늘 = 3:50 PM · 그 앞 = 날짜
+const X_SVG = <svg aria-hidden viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>;
+
+/** 열쇠 연결 줄(형 11-20 11:30 dm-bom 봄 옮김 「그럼 지금 혹시, 봄으 ㅣ정원 열쇠로 연결된 애들을 확인이 가능해?」 · 「계정단위로만 알아도되는데.」 · 11:32 「응 혹시 그걸 끊어낼수도있어? 내가 설정에서 x를 누르면」)
+ *  = 봄의 정원 칸 바로 아래 · 연결마다 한 줄 = 마지막 쓴 때 · 부른 이름 · 망 주인(org · 없으면 AS번호) · 오른쪽 X = 그 자리 토글 → 게이지 → ✓(seatvault/conn) · 끊긴 줄 = 흐리게 + 「다시 잇기」 · 명부 밖 = 라임 테 · 설명글 0 */
+function GardenConns({ conns, onBlock }: { conns: VaultConn[]; onBlock: (id: string, on: boolean) => Promise<unknown> }) {
+  if (!conns.length) return null;
+  return (
+    <section className="nm-mcp nm-conn" aria-label="열쇠 연결">
+      <p className="nm-mcp-sec">연결</p>
+      <div className="nm-conn-l">
+        {conns.map((c) => {
+          const who = c.names.map((x) => x.name).join(" · ") || "이름 없음", net = c.org || (c.asn ? `AS${c.asn}` : "—");
+          return (
+            <div key={c.id} className={`nm-conn-r${c.blocked ? " off" : ""}${c.unknown ? " unk" : ""}`}>
+              <span className="nm-conn-t">{connWhen(c.last)}</span>
+              <span className="nm-conn-n" title={who}>{who}</span>
+              <span className="nm-conn-o" title={net}>{net}</span>
+              {c.blocked ? <MorphAsk className="nm-nb-btn nm-vault-b nm-mcp-tb" yesText="잇기" busy="잇는 중" label={`${who} 다시 잇기`} yesGo={() => onBlock(c.id, false)}>다시 잇기</MorphAsk>
+                : <MorphAsk className="nm-conn-x" yesText="끊기" busy="끊는 중" label={`${who} 끊기`} yesGo={() => onBlock(c.id, true)}>{X_SVG}</MorphAsk>}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function NomuteVault() {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["nomute", "seatvault"], queryFn: () => office<{ seats: VaultSeat[] }>("seatvault").then((j) => j.seats || []), staleTime: 60_000 });
+  const q = useQuery({ ...VAULT_Q, select: (j: VaultRaw) => j.seats || [] });
+  const conns = useQuery({ ...VAULT_Q, select: (j: VaultRaw) => j.conns || [] });   // 같은 한 번 받기(seatvault) · 연결 줄 = 형만 실림(서버 · 번개 11-20)
+  const block = (id: string, on: boolean) => office<{ ok?: boolean; blocked?: boolean }>("seatvault/conn", { method: "POST", body: JSON.stringify({ id, block: on }) })
+    .then((j) => { qc.setQueryData<VaultRaw>(VAULT_Q.queryKey, (old) => old && { ...old, conns: old.conns?.map((c) => (c.id === id ? { ...c, blocked: !!j.blocked } : c)) }); return j; });
   const nameOf = spareNames(q.data || []);
   const [draft, setDraft] = useState<Record<string, string>>({}), [note, setNote] = useState<Record<string, string>>({}), [done, setDone] = useState("");
   const [memo, setMemo] = useState<Record<string, string>>({});   // 이름표 글칸(고치는 중) · 없으면 서버 값
@@ -389,7 +425,7 @@ export function NomuteVault() {
     const t = v.trim();
     if (t.length > 200) return;
     saveMemo(seat, t).then(() => {
-      qc.setQueryData<VaultSeat[]>(["nomute", "seatvault"], (old) => old?.map((x) => (x.seat === seat ? { ...x, memo: t } : x)));
+      qc.setQueryData<VaultRaw>(VAULT_Q.queryKey, (old) => old && { ...old, seats: old.seats?.map((x) => (x.seat === seat ? { ...x, memo: t } : x)) });
       setSaved(seat); window.setTimeout(() => setSaved((d) => (d === seat ? "" : d)), 1800);
     }).catch((e) => setNote((n) => ({ ...n, [seat]: vaultWhy(e, "사용처 저장 못 했어") })));
   };
@@ -437,6 +473,7 @@ export function NomuteVault() {
             <GardenMcp top={top} spares={(q.data || []).filter((s) => !s.top)} done={done} saved={saved} memoOf={(s) => memo[s.seat] ?? s.memo ?? ""}
               copySeat={(seat) => void copy(seat)} copyText={(k, t) => void copyText(k, t)} onUse={onUse} flush={flush}
               remint={(seat) => mint.mutateAsync(seat)} minting={mint.isPending} focusUse={focusUse} nameOf={nameOf} />
+            <GardenConns conns={conns.data || []} onBlock={block} />
             <div className="nm-mcp-cut" aria-hidden />
           </>
         );
