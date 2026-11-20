@@ -33,11 +33,11 @@ import { type CommandOption, Composer, toAgentOptions } from "@/components/chann
 const OFFICE_COMMANDS: CommandOption[] = [];
 // 「/」 명령 추천(형 11-20 12:32 dm-sia 시아 옮김 「위에 누르면 알아서 명령어 들어오게 하주라. 그리고 추가로 투명도 글자로 붙어있으면 스페이스 누르면 명령어 붙고 /이름 000」 · 「/방제 /초대 /방파기 모두」)
 //   예비 방 = /이름 · /방제(초대 이름 뺌) · 그 밖 = /방제 · /초대 · /방파기 · 명령 이름 · 쓸 수 있는 방은 서버(천둥)가 한 곳에서 주면 그걸로 갈음
-type SlashCmd = { k: string; fill: string; d: string; guest?: boolean; host?: boolean };
+type SlashCmd = { k: string; fill: string; d: string; arg?: string; guest?: boolean; host?: boolean };
 const SLASH_CMDS: SlashCmd[] = [
-  { k: "/이름", fill: "/이름 ", d: "표시 이름 바꾸기", guest: true },
-  { k: "/방제", fill: "/방제 ", d: "방 이름 바꾸기", guest: true, host: true },
-  { k: "/초대 이름", fill: "/초대 ", d: "하루 안 남은 임시방에 부르기", host: true },
+  { k: "/이름 새 이름", fill: "/이름 ", d: "표시 이름 바꾸기", arg: "새 이름", guest: true },
+  { k: "/방제 새 방 이름", fill: "/방제 ", d: "방 이름 바꾸기", arg: "새 방 이름", guest: true },
+  { k: "/초대 이름", fill: "/초대 ", d: "하루 안 남은 임시방에 부르기", arg: "이름", host: true },
   { k: "/방파기", fill: "/방파기", d: "목적 달성 · 다 같이 나가기", host: true },
 ];
 /** 치는 중 이어 보이는 흐린 글(맨 앞 추천의 남은 글자) — 입력칸 글자 바로 뒤에 겹쳐 그림(입력칸 안 글은 안 건드림) */
@@ -1185,11 +1185,16 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
   const [cmdNote, setCmdNote] = useState("");
   useEffect(() => { if (!cmdNote) return undefined; const t = setTimeout(() => setCmdNote(""), 5_000); return () => clearTimeout(t); }, [cmdNote]);   // 「/초대」·「/방파기」 안 되는 방 안내(라임 · 누르면 닫힘)
   const [inviting, setInviting] = useState(""), [slash, setSlash] = useState<string | null>(null), [inviteQ, setInviteQ] = useState<string[] | null>(null);
-  const slashHits = slash == null ? [] : SLASH_CMDS.filter((c) => (r?.guest ? c.guest : c.host) && c.k.slice(1).startsWith(slash));   // 「/」 추천(위 SLASH_CMDS)
-  const ghost = slashHits[0] ? slashHits[0].fill.slice(1 + (slash || "").length) : "";
+  const [slashRaw, setSlashRaw] = useState<string | null>(null);   // 「/」로 시작하는 입력칸 글 그대로(뒤 칸 포함 · 인자 흐린 글 셈)
+  // 이 방 · 이 자리가 쓸 수 있는 명령 = 서버 한 곳(천둥 GET cmds?room · 빈 목록 = 추천 안 띄움) · 못 읽으면 앞 판 표(위 SLASH_CMDS)
+  const cmdsQ = useQuery({ queryKey: ["nomute", "cmds", room], queryFn: () => office<{ cmds?: { cmd: string; arg?: string; desc?: string }[] }>(`cmds?room=${enc(room)}`).then((j) => j.cmds || []), staleTime: 600_000, retry: false });
+  const cmdList: SlashCmd[] = cmdsQ.data ? cmdsQ.data.map((c) => ({ k: c.arg ? `${c.cmd} ${c.arg}` : c.cmd, fill: c.arg ? `${c.cmd} ` : c.cmd, d: c.desc || "", arg: c.arg })) : cmdsQ.isError ? SLASH_CMDS.filter((c) => (r?.guest ? c.guest : c.host)) : [];
+  const slashHits = slash == null ? [] : cmdList.filter((c) => c.fill.trim().slice(1).startsWith(slash));   // 「/」 추천
+  const argCmd = slashRaw && /^\/\S+ $/.test(slashRaw) ? cmdList.find((c) => c.fill === slashRaw && c.arg) : undefined;   // 「/이름 」까지 친 때 = 인자 자리 흐린 글
+  const ghost = argCmd ? argCmd.arg || "" : slashHits[0] ? slashHits[0].fill.slice(1 + (slash || "").length) + (slashHits[0].arg && slashHits[0].fill.endsWith(" ") ? slashHits[0].arg : "") : "";
   useEffect(() => {   // 스페이스 = 흐린 글 붙임(형 11-20 12:32 「…스페이스 누르면 명령어 붙고 /이름 000」) · 한글 조합 중 스페이스는 그대로
     const c = slashHits[0];
-    if (!c || !ghost.trim()) return undefined;
+    if (!c || argCmd || !ghost.trim()) return undefined;
     const on = (e: KeyboardEvent) => {
       if (e.key !== " " || e.isComposing || !(e.target as Element | null)?.closest?.(".ychat-in")) return;
       e.preventDefault(); e.stopPropagation(); setComposer(c.fill.endsWith(" ") ? c.fill : `${c.fill} `); setSlash(null);
@@ -1649,7 +1654,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
         })() : slash != null && slashHits.length ? (   /* 「/」 추천 줄 = 그 방에서 쓸 수 있는 명령 중 치는 글자에 맞는 것 · 누르면 입력칸에 바로(형 11-20 12:32 「위에 누르면 알아서 명령어 들어오게 하주라」) · 엔터는 그대로 보내기 */
           <div className="yslash" aria-live="polite">{slashHits.map((c) => <button key={c.k} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { setComposer(c.fill); setSlash(null); }}><b>{c.k}</b><span>{c.d}</span></button>)}</div>
         ) : null}
-        {slash != null && ghost.trim() ? <SlashGhost typed={`/${slash}`} rest={ghost} /> : null}   {/* 흐린 이어 글(위 SlashGhost · 스페이스로 붙음) */}
+        {slash != null && ghost.trim() ? <SlashGhost typed={argCmd && slashRaw ? slashRaw : `/${slash}`} rest={ghost} /> : null}   {/* 흐린 이어 글(위 SlashGhost · 스페이스로 붙음) */}
         <AttachmentRecovery state={attachmentSender} room={room} landed={landed} landedText={landedText} part="records" />
         <CallSheet />   {/* 「@」·「!」 여러 명 고르기(./call-sheet.tsx · 형 11-02 11:34 · 11:37) */}
         <div className="nm-tray" onWheel={(e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY; }}>   {/* 알약 + 칩 = 한 줄(형 11-07 12:01 「이런식으루 나옴 2줄로」) · 일괄 × 하나 · 옆으로 밀기 */}
@@ -1666,7 +1671,7 @@ function OfficeChatRoom({ room, lead, active = true, hide }: { room: string; lea
           agents={toAgentOptions(bots4)}
           commands={OFFICE_COMMANDS}
           channelId={room}
-          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); chipText(t); typingPing(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); setInviteQ(/^\/초대(\s|$)/.test(t.trimStart()) ? t.trimStart().slice(3).split(/\s+/).filter(Boolean) : null); }}
+          onTextChange={(t) => { presence?.onTextChange?.(t); saveDraft(room, t); chipText(t); typingPing(room, t); setSlash(/^\/\S*$/.test(t.trim()) ? t.trim().slice(1) : null); setSlashRaw(t.startsWith("/") && t.length < 40 ? t : null); setInviteQ(/^\/초대(\s|$)/.test(t.trimStart()) ? t.trimStart().slice(3).split(/\s+/).filter(Boolean) : null); }}
           initialValue={loadDraft(room)}
           className="relative mt-auto w-full"
           commands={[]}
