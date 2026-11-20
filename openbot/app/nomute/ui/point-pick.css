@@ -1,0 +1,4 @@
+/* 가리키기(./point-pick.ts) — ⌥ 누른 동안 요소를 따라가는 테 하나 · 자리 = transform(다시 칠하기만) · 누름을 안 가로챔 */
+.nm-point-box { position:fixed; left:0; top:0; z-index:2147483000; pointer-events:none; box-sizing:border-box; opacity:0; border:1px solid var(--accent, #CFFF40); background:rgba(var(--accent-rgb, 207,255,64), .08); border-radius:3px; will-change:transform; }
+.nm-point-box.on { opacity:1; }
+html.nm-pointing, html.nm-pointing * { cursor:crosshair !important; }
