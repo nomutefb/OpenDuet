@@ -1,7 +1,14 @@
 // 맥 비춤 붙이개(⑤ B · 카리나 11-20 · 형 11-20 09:20 「SNS 탭을 누르면 대화는 유지되고, (좌측에) 우측에 인스타랑 그런거 뜨게해주라」)
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEV_KEY, devId, pointOf, replyOf, touchMsg, VIEW_H, VIEW_W } from "../ui/mac-mirror";
+import { DEV_KEY, devId, liveOf, pointOf, replyOf, touchMsg, VIEW_H, VIEW_W } from "../ui/mac-mirror";
+
+test("live = 연결 connected + 데이터 줄 open 둘 다(구름 13:08 · connected 만으로는 go 가 버려짐)", () => {
+  assert.equal(liveOf("connected", "open"), true);
+  assert.equal(liveOf("connected", "connecting"), false, "줄 아직");
+  assert.equal(liveOf("connected", undefined), false, "줄 안 옴");
+  assert.equal(liveOf("connecting", "open"), false, "연결 아직");
+});
 
 test("누른 자리 → 390×844 점 · 위아래 띠(넓은 칸) · 양옆 띠(높은 칸) 빼고 · 밖 = null", () => {
   const wide = { left: 100, top: 50, width: 800, height: 844 };   // 그림 폭 390 · 양옆 205 띠
