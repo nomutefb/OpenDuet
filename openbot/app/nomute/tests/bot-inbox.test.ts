@@ -75,14 +75,14 @@ test("작업 줄(trail · editor #3953) — 오면 지금 손이 붙은 오더 �
   assert.deepEqual(trailSteps({ who: "x", lane: "work", state: "일" }), []);
 });
 
-test("애들 시간 줄 = 누적 많은 순 · 순위 · 값 없는 애 맨 아래(순위 없음) · 누적 = sumMin · 지금 = turn_at(일하는 손만) · 경고 = 누적 > 250 · 지금 > 80 · 오른쪽 직무 라벨(형 11-21 07:45 · 07:46 · 07:56)", () => {
+test("애들 시간 줄 = 누적 많은 순 · 순위 · 값 없는 애 맨 아래(순위 없음) · 누적 = sumMin(work_24h_min) · 지금 = turn_at(일하는 손만) · 경고 = 누적 > 250 · 지금 > 80 · 오른쪽 직무 라벨(형 11-21 07:45 · 07:46 · 07:56)", () => {
   const T0 = 1_800_000_000_000;
   const rows = [
     { who: "빈", lane: "work", state: "일" },
-    { who: "쉼", lane: "ready", state: "쉼", work_min: 300 },
-    { who: "창", lane: "work", state: "일", skills: ["Xa"], work_min: 40, turn_at: T0 - 81 * 60_000 },
-    { who: "개", lane: "work", state: "일", skills: ["D"], work_min: 120.4, turn_at: T0 - 5 * 60_000 },
-    { who: "피", lane: "work", state: "일", pm: true, work_min: 10, turn_at: null },
+    { who: "쉼", lane: "ready", state: "쉼", work_24h_min: 300 },
+    { who: "창", lane: "work", state: "일", skills: ["Xa"], work_24h_min: 40, turn_at: T0 - 81 * 60_000 },
+    { who: "개", lane: "work", state: "일", skills: ["D"], work_24h_min: 120.4, turn_at: T0 - 5 * 60_000 },
+    { who: "피", lane: "work", state: "일", pm: true, work_24h_min: 10, turn_at: null },
   ] as BotRow[];
   const r = timeRows({ codes: [], rows }, T0);
   assert.deepEqual(r.map((x) => [x.rank, x.who]), [[1, "쉼"], [2, "개"], [3, "창"], [4, "피"], [undefined, "빈"]]);

@@ -6,6 +6,7 @@ export type BotRow = {
   who: string; brain?: string; lane: Lane; state: string; cause?: string; why?: string;
   last_at?: number; beat_at?: number; door_at?: number; ctx_pct?: number; work_min?: number; acct?: string; acct_left?: number;
   turn_at?: number | null;   // 이번 턴 시작(ms · 쉬면 null · 번개 서버 칸 · 시아 11-21 07:47) → 일감 시간 줄 「지금 N분째」
+  work_24h_min?: number;   // 최근 24시간 누적 분(번개 서버 칸 · 11-21 08:02) → sumMin
   skills?: string[]; hw?: { ram?: string; cpu?: string; gpu?: string; os?: string }; note?: string; turn?: Record<string, Turn>;
   open?: { no: string; title?: string; code?: string; at?: number }[]; today?: number; pm?: boolean; rest?: boolean;   // 맡은 오더(받고 안 끝낸 것) · 오늘 받은 수 · PM 자리 · 쉼 지정
   jobs?: Job[];   // 오늘 오더 줄(안 끝낸 것 먼저 + 오늘 끝낸 것 · 서버 오더 장)
@@ -145,8 +146,8 @@ export function mixOf(rows: BotRow[]): { group: Group; n: number }[] {
   return flowOf(rows).map((g) => ({ group: g.group, n: g.rows.length }));
 }
 /** 누적 작업(분) 셈 한 곳 — 애들 시간 줄(./bot-inbox-logic.ts timeRows) · 얼굴 카드 꼬리(tailOf)가 같이 씀
- *  형 11-21 07:54 dm-sia 시아 옮김 「24시간 직전 기준」 → 서버 24시간 칸(번개)이 오기 전 = work_min(오늘 일한 시간) · 칸이 오면 여기만 바꿈 */
-export const sumMin = (r: BotRow): number | undefined => (typeof r.work_min === "number" && r.work_min >= 0 ? Math.round(r.work_min) : undefined);
+ *  형 11-21 07:54 dm-sia 시아 옮김 「24시간 직전 기준」 → 서버 work_24h_min(최근 24시간 누적 분 · 번개 editor fd400efca7 · 몸 보고 없는 손 = 칸 없음 = 「–」) · work_min(오늘 0시부터)은 안 씀 */
+export const sumMin = (r: BotRow): number | undefined => (typeof r.work_24h_min === "number" && r.work_24h_min >= 0 ? Math.round(r.work_24h_min) : undefined);
 /** 카드 상태 줄 꼬리 — 휴식 · 작업 · 누적 작업(짧게 · 없으면 빈 글)
  *  형 11-21 07:54 dm-sia 시아 옮김 「여기 누적도 뜨게해주고 24시간 직전 기준 손 명칭 변경 작업 대기 는 휴식 누적 작업 나오게 명칭은 누적 순서는 휴식 작업 누적 작업(시)」 「아니 (분)」
  *  = 앞 「손 N분 전 · 대기 N분 전」 → 「휴식 N분 전 · 작업 N분 전 · 누적 작업 N분」(대기 신호 = 휴식 · 마지막 손 = 작업 · 그록 「문 확인」은 그대로) */
