@@ -932,3 +932,7 @@ body:not([data-nm-split]) .ychat .yb.me:not(.app):not(.ph) .yname-c.cl.w { backg
 .nm-qpeek-h button { margin-left:8px; border:0; background:none; color:inherit; font-size:18px; line-height:1; cursor:pointer; padding:0 2px; }
 .nm-qpeek-t { margin:0; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.5; }
 .nm-qpeek-n { display:block; margin-top:6px; font-size:11px; color:rgba(232,234,232,.5); }
+/* PM 구슬 = 「+」 바로 옆 작은 동그라미(형 11-20 12:07 dm-bom 봄 옮김 「이거 원래 그 대화창 생성 그 버튼 위치에 있어도 돼 그 pm 원 버튼」 · 앞 = 우하단에 떠서 목록을 가림) */
+.nm-pmfab.nm-pmfab-tab, .nm-pmfab.nm-pmfab-bar { position:relative; right:auto; bottom:auto; z-index:auto; flex:none; width:24px; height:24px; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; cursor:pointer; }
+.nm-pmfab.nm-pmfab-tab { display:inline-grid; margin:0 2px 0 8px; vertical-align:middle; }
+.nm-pmfab.nm-pmfab-bar { margin-left:auto; }
