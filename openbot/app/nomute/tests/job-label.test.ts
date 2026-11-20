@@ -29,6 +29,8 @@ test("라벨 = 이름 뒤 · 세로 가운데 · 넷 다 FIXER 와 눈에 같은
   for (const k of ["fixer", "md", "uxd", "dev", "ops"]) assert.ok(statSync(new URL(`../public/job-${k}.webp`, import.meta.url)).size < 8_000, k);
   // 자리 = 이름 바로 뒤(같은 줄 · items-center = 세로 가운데) · 라벨 있으면 글 알약 대신
   assert.match(list, /\{slim \? null : jobOf\(p\) \? <JobLabel job=\{jobOf\(p\)!\} who=\{p\?\.who\} \/>/);
+  // 이름 글 끝 → 라벨 = 다 6px(형 19:39 dm-haneul 「혹시 좀 더 pm애들 라벨을 좌측으로 붙일수잇어? 살짝 좌측에 여백이 있는 것 같더라고.」 · 실측 = 한 글자 이름만 최소 폭 1.2em 탓 11px)
+  assert.match(list, /className=\{`\$\{jobOf\(p\) \? "" : "min-w-\[1\.2em\] "\}shrink truncate text-\[15px\]/);
   // 지금 PM 만 무지개(형 19:18 dm-haneul 「현재 PM은 레인보우로 특별하게, 무지개 빛 할수있어?」) · 서버 pm 칸 · 우하단 PM 구슬과 같은 캐시 열쇠 · 정지 그림
   assert.match(lab, /if \(job === "PM" && who\) return <PmLabel who=\{who\} \/>;/);
   assert.match(lab, /queryKey: \["nomute", "pm"\], queryFn: \(\) => office<\{ who\?: string \}>\("pm"\), staleTime: 300_000, refetchInterval: 300_000/);
