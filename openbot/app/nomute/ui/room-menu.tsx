@@ -37,6 +37,10 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
   //   메뉴 줄을 누르면 그 줄이 [아니오][예] 알약으로 바뀜(./morph-ask) → 예 = 메뉴 닫고 방 목록으로 · 목록에서 먼저 빼고 서버는 뒤에서(./room-drop · 못 했으면 알림 한 줄) · 못 없애는 방 = canGone 그대로
   const nav = useNavigate();
   const dropRoom = (x: OfficeRoom) => { close(); void nav({ to: "/rooms" }); dropRoomAway(qc, x); };
+  // 대화 지우기 = 이 방 글 이력을 서버에서 지움(형 11-20 11:40 dm-bom 봄 옮김 「방 대화 이력 지우는거는 방 설정에서 보이면됨」 · 문 = 천둥 POST rooms/<방>/clear {confirm} · 되돌림 없음)
+  //   그 자리 토글 → 게이지 → ✓ · 공지 · 회의실 = 못 지움(서버 403) → 칸 숨김 · 지운 뒤 방은 빈 방으로 남음 · 남은 글이 있으면 그 숫자 한 줄
+  const clearRoom = (x: OfficeRoom) => office<{ ok?: boolean; deleted?: number; left?: number }>(`rooms/${encodeURIComponent(x.id)}/clear`, { method: "POST", body: JSON.stringify({ confirm: true }) })
+    .then((j) => { void qc.invalidateQueries({ queryKey: ["nomute", "msgs", x.id] }); if (j.left) flash(`남은 글 ${j.left}개`); return j; });
   const asks = useQuery({ queryKey: ["nomute", "decisions-hist", room], queryFn: () => office<{ ok?: boolean; items?: Ask[] }>(`decisions?room=${encodeURIComponent(room)}&all=1`).then((j) => (Array.isArray(j.items) ? j.items : null)), enabled: !!room, staleTime: 60_000, retry: false });   // 방에 들어올 때 미리(메뉴 열 때 받으면 이 칸이 한 박자 늦게 붙어 「2차로 나뉘어서 뜸」 · 형 11-12 06:30 · 뎅) · 질문 이력(봄 서버 ?room=&all=1 · 형 고른 것 choice 칸째) · 못 받으면 칸 안 보임
   const bell = useQuery({ queryKey: ["nomute", "bell6", room], queryFn: () => office<{ on?: boolean; n?: number; cnt?: number }>(`bell6?room=${encodeURIComponent(room)}`).then((j) => (typeof j.on === "boolean" ? j : null)), enabled: !!room, staleTime: 60_000, retry: false });   // 방에 들어올 때 미리(위와 같은 까닭 · 형 11-12 06:30) · 6마디 종(봄 서버 #2005 · 단톡방만 · 못 받으면 칸 안 보임)
   const setBell = async (on: boolean) => {
@@ -83,6 +87,7 @@ export function useRoomMenu(room: string, open: boolean, close: () => void) {
       <button type="button" role="menuitem" onClick={go(() => setFiles(true))}>파일 기록</button>
       {asks.data ? <button type="button" role="menuitem" onClick={go(() => setHist(true))}>질문 이력<small>{asks.data.length}</small></button> : null}
       <button type="button" role="menuitemcheckbox" aria-checked={unfold} onClick={() => setUnfold(room, !unfold)}>긴 글 다 펼쳐 보기<small>{unfold ? "켬" : "끔"}</small></button>   {/* 켬 = 17줄 접기 풂(./unfold.ts · 형 11-04 08:08 · 기본 끔 = 접힘) */}
+      {r.id !== MEET && r.id !== "notice" ? <MorphAsk role="menuitem" className="del" yesText="지우기" busy="지우는 중" label="대화 지우기" yesGo={() => clearRoom(r)}>대화 지우기</MorphAsk> : null}   {/* 대화 지우기(형 11-20 11:40 · 위 clearRoom) */}
       {canGone(r) ? <MorphAsk role="menuitem" className="del" yesText="없애기" onYes={() => dropRoom(r)}>방 없애기</MorphAsk> : null}   {/* 고정 단체방(못 없애는 방 = 회의실 · 요약실 · 수리 접수 · 메모 · 공지 · 밥상 · 1:1 · 둘의 방) */}
       {r.temp ? <MorphAsk role="menuitem" className="del" yesText="지우기" onYes={() => dropRoom(r)}>방 지우기</MorphAsk> : null}   {/* 임시 단톡방 = 파기 */}
     </>
