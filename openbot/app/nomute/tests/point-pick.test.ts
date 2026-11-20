@@ -49,4 +49,5 @@ test("화면 쪽 = ⌥ 누른 동안만 듣고 · 밑의 단추는 안 눌리고
   assert.match(s, /appendToComposer\(text\)/); assert.match(s, /navigator\.clipboard\.writeText\(text\)/); assert.match(s, /if \(put\) flash\(/, "알림 = 클립보드를 안 기다림");
   assert.match(s, /stopImmediatePropagation/); assert.match(s, /window\.addEventListener\("click", pick, true\)/, "누름 = 늘 들음");
   assert.match(css, /pointer-events:none/); assert.match(css, /var\(--accent, #CFFF40\)/);
+  assert.match(css, /\.nm-point-box \{ --accent:#CFFF40; --accent-rgb:207,255,64;/, "body 에 붙는 칸 = 라임 값을 제가 검(안 걸면 원본 앱 회색)");
 });
