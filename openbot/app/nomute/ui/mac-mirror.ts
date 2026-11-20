@@ -38,6 +38,11 @@ export function touchMsg(type: TouchType, x: number, y: number) {
   return { t: "touch", type, pts: type === "end" || type === "cancel" ? [] : [{ x, y }] };
 }
 
+/** 순수 — live = 연결 connected + 데이터 줄 open 둘 다(구름 11-20 13:08 「connected 때 dc 가 아직 안 열려서 바로 보낸 go 가 send=false 로 버려졌어」) */
+export function liveOf(pcSt: string | undefined, dcSt: string | undefined): boolean {
+  return pcSt === "connected" && dcSt === "open";
+}
+
 /** 순수 — 맥 답 글 → 집기 답(SidePick) · 아니면 null */
 export function replyOf(s: string): SidePick | null {
   let m: Record<string, unknown>;
@@ -143,14 +148,20 @@ async function connect(video: HTMLVideoElement, o: { take?: boolean } = {}): Pro
       const s = e.streams[0] || new MediaStream([e.track]);
       if (video.srcObject !== s) { video.srcObject = s; play(video, me); }
     };
+    const ready = () => {   // live 를 데이터 줄 열린 뒤로 → live 받자마자 보낸 go · touch · pick 이 안 버려짐
+      if (cur === me && !me.ended && state.st !== "live" && liveOf(pc.connectionState, me.dc?.readyState))
+        set({ st: "live", sid: me.sid, ...(video.muted ? { muted: true } : {}) });
+    };
     pc.ondatachannel = (e) => {
       me.dc = e.channel;
       e.channel.onmessage = (ev) => { const d = replyOf(String(ev.data)); if (d) answerPick(d); };
+      e.channel.onopen = ready;
       e.channel.onclose = () => end(me, "dc_closed", true);   // 맥이 닫음 · 10분 · 다른 기기가 넘겨받음
+      ready();   // 이미 열려 온 줄
     };
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
-      if (s === "connected" && cur === me) set({ st: "live", sid: me.sid, ...(video.muted ? { muted: true } : {}) });
+      if (s === "connected") ready();
       else if (s === "failed" || s === "closed") end(me, `rtc_${s}`, true);
     };
     await pc.setRemoteDescription({ type: "offer", sdp: n.offer });
