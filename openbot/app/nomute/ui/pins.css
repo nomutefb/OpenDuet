@@ -11,12 +11,17 @@
 .nm-pinbar-t { display:flex; min-width:0; flex-direction:column; }
 .nm-pinbar-t b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-label); font-weight:var(--fw-b); }
 .nm-pinbar-t small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-xs); color:var(--mut); }
-.nm-pinbar-fold { flex:none; width:var(--btn); height:var(--btn); display:grid; place-items:center; background:none; border:none; color:var(--fg-2); cursor:pointer; transform:rotate(90deg); transition:transform .28s var(--ease); }
-.nm-pinbar-fold:active, .nm-pin-mini:active, .nm-pinbar-main:active { transform:scale(var(--press-m)); }
-.nm-pinbar-fold:active { transform:rotate(90deg) scale(var(--press-m)); }
-.nm-pin-mini { align-self:flex-end; margin:0 12px; width:var(--btn); height:var(--btn); display:grid; place-items:center; border-radius:50%; border:1px solid var(--glass-line); color:var(--accent);
-  background:var(--duet-surface); cursor:pointer; }
-:root:not(.dark) .nm-pin-mini { color:var(--fg); }
+/* 띠 = 누를 자리 하나(글 + 꺽쇠) · 펼침 = 두 줄 + 꺽쇠 위 + 오른쪽 이력(시계) · 접힘 = 한 줄 옅게 + 꺽쇠 아래(형 11-21 05:39 「접기가 어려운데 쉽게」) · 움직임 = 꺽쇠 돌림 transition + 둘째 줄 옅게 들어옴(transform · opacity 만) */
+.nm-pinbar-main { min-height:var(--btn); }
+.nm-pinbar-chev { flex:none; margin-left:auto; width:28px; display:grid; place-items:center; color:var(--fg-2); transform:rotate(-90deg); transition:transform .28s var(--ease); }
+.nm-pinbar.fold .nm-pinbar-chev { transform:rotate(90deg); }
+.nm-pinbar.fold { padding-right:8px; }
+.nm-pinbar.fold .nm-pinbar-main { padding:0; }
+.nm-pinbar.fold .nm-pinbar-t b { font-weight:var(--fw-m, 500); color:var(--fg-2); }
+.nm-pinbar-t small { animation:nmPinLine .24s var(--ease) both; }
+@keyframes nmPinLine { from { opacity:0; transform:translateY(-3px); } }
+.nm-pinbar-hist { flex:none; width:var(--btn); height:var(--btn); display:grid; place-items:center; border-radius:50%; background:none; border:none; color:var(--fg-2); cursor:pointer; }
+.nm-pinbar-hist:active, .nm-pinbar-main:active { transform:scale(var(--press-m)); }
 .nm-pinsheet { position:absolute; inset:0; z-index:40; display:flex; flex-direction:column; background:radial-gradient(circle at 62% 12%, var(--glass), transparent 52%), var(--duet-surface); animation:ypickIn .3s var(--ease) both; }
 .nm-pinsheet-b { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:10px; padding:calc(70px + env(safe-area-inset-top)) 14px var(--duet-tab-space,86px); }
 .nm-pin-card { gap:8px; }
@@ -25,7 +30,7 @@
 .nm-pin-body { display:block; width:100%; padding:0; background:none; border:none; color:var(--fg); font-size:var(--fs-h3); line-height:1.6; text-align:left; overflow-wrap:anywhere; cursor:pointer; }
 .nm-pin-act { padding:5px 12px; border-radius:var(--r-pill); border:1px solid var(--glass-line); background:var(--glass); color:var(--fg-2); font-size:var(--fs-xs); font-weight:var(--fw-b); cursor:pointer; }
 .nm-pin-act:disabled { opacity:.5; }
-@media (prefers-reduced-motion:reduce){ .nm-pinbar, .nm-pinsheet { animation:none; } }
+@media (prefers-reduced-motion:reduce){ .nm-pinbar, .nm-pinsheet, .nm-pinbar-t small { animation:none; } .nm-pinbar-chev { transition:none; } }
 /* 공지 이력 판이 열린 동안 = 방 머리 「<」(.nm-room-back · z 54) 숨김 → 판 머리 「<」(닫기) 하나만(형 11-14 11:49 dm-bom 「공지 뒤로가기랑 창 뒤로가기랑 거기 뒤로가기 꺽쇠위치가 겹쳐서 어색해 공지 뒤로가기를 손봐야댈듯」 · 깃)
    전엔 두 꺽쇠가 비스듬히 겹치고 위에 뜬 방 꺽쇠가 누름을 먼저 받아 공지를 닫는 대신 방 목록으로 나갔음 */
 .nm-col[data-pinsheet] > .nm-room-back { display:none; }

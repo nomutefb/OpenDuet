@@ -67,22 +67,21 @@ export function PinBar({ room, onJump, children }: { room: string; onJump?: (id:
   const toggle = () => { const v = folded ? "" : cur?.id || ""; setFold(v); saveFold(room, v); };
   return (
     <>
-      {cur || children ? <div ref={slot} className="nm-pin-slot">{!cur ? null :
-        folded ? (
-          <button type="button" className="nm-pin-mini" aria-label={`공지 펼치기 — ${firstLine(cur.text)}`} onClick={toggle}><DuetIcon name="pin" size={16} /></button>
-        ) : (
-          <div className="nm-pinbar" role="region" aria-label="공지">
-            <button type="button" className="nm-pinbar-main" onClick={() => setOpen(true)} aria-label="공지 이력 보기">
-              <DuetIcon name="pin" size={16} />
-              <span className="nm-pinbar-t">
-                <b>{firstLine(cur.text) || (cur.files ? `파일 ${cur.files}개` : "(빈 글)")}</b>
-                <small>{whoName(cur.who)} · {when(cur.at)} · {whoName(cur.by)} 공지</small>
-              </span>
-            </button>
-            <button type="button" className="nm-pinbar-fold" aria-label="공지 띠 접기" onClick={toggle}><DuetIcon name="chevronRight" size={16} /></button>
-          </div>
-        )
-      }{children}</div> : null}
+      {cur || children ? <div ref={slot} className="nm-pin-slot">{!cur ? null : (
+        // 띠 아무 데나 한 번 = 접기 · 접힌 띠(한 줄) 아무 데나 한 번 = 펴기(형 11-21 05:39 dm-bom 봄 옮김 「글구 상단에 공지하면 접기가 어려운데 쉽게 좀 해줘」 · 앞 판 = 띠 누름 = 이력 · 접기 = 오른쪽 작은 꺽쇠 · 접힘 = 핀 동그라미)
+        //   이력 = 펼친 띠 오른쪽 시계 · 같은 띠 하나가 꼴만 바뀜(꺽쇠 돌림 · 둘째 줄 옅게 들어옴 = 그래픽카드 길) · 새로 고정되면 다시 펼침(그대로)
+        <div className={`nm-pinbar${folded ? " fold" : ""}`} role="region" aria-label="공지">
+          <button type="button" className="nm-pinbar-main" aria-expanded={!folded} aria-label={`공지 ${folded ? "펼치기" : "접기"} — ${firstLine(cur.text)}`} onClick={toggle}>
+            <DuetIcon name="pin" size={16} />
+            <span className="nm-pinbar-t">
+              <b>{firstLine(cur.text) || (cur.files ? `파일 ${cur.files}개` : "(빈 글)")}</b>
+              {folded ? null : <small>{whoName(cur.who)} · {when(cur.at)} · {whoName(cur.by)} 공지</small>}
+            </span>
+            <span className="nm-pinbar-chev" aria-hidden><DuetIcon name="chevronRight" size={16} /></span>
+          </button>
+          {folded ? null : <button type="button" className="nm-pinbar-hist" aria-label="공지 이력 보기" title="공지 이력" onClick={() => setOpen(true)}><DuetIcon name="clock" size={16} /></button>}
+        </div>
+      )}{children}</div> : null}
       {open ? <PinHistory room={room} pins={q.data || { cur: null, history: [] }} onClose={() => setOpen(false)} onJump={jump} /> : null}
     </>
   );
