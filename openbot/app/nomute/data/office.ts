@@ -63,7 +63,12 @@ export const MACHINE_FACES: OfficePerson[] = [
 
 export function people(fresh = false): Promise<OfficePerson[]> {
   if (!peopleP || fresh) {
-    peopleP = office<{ people: OfficePerson[] }>("people").then((j) => (peopleNow = [...(j.people || []), ...MACHINE_FACES.filter((x) => !(j.people || []).some((y) => y.who === x.who))]));
+    // 예비 손님 이름 = 그 손님 1:1 방 이름(손님 「/이름 새 이름」 = 서버가 방 이름 · guestname 장에 같이 적음 · 천둥 #4483 · 형 11-20 12:14 시아 옮김 「예비 들은 방 이름을 임의로 /이름 으로 방 이름 및 이름 지정 가능하게ㅡ해줘」)
+    //   = 말풍선 이름표 · 프로필 카드 · 목록 이름이 그 새 이름으로(빈 이름 = 서버가 「예비 N」 그대로) · 방 목록은 명부와 같은 1분에 한 번
+    peopleP = Promise.all([office<{ people: OfficePerson[] }>("people"), office<{ rooms?: { with?: string; guest?: boolean; name?: string }[] }>("rooms").catch(() => ({ rooms: [] }))]).then(([j, r]) => {
+      const guest = new Map((r.rooms || []).filter((x) => x.guest && x.with && x.name).map((x) => [x.with as string, x.name as string]));
+      return (peopleNow = [...(j.people || []), ...MACHINE_FACES.filter((x) => !(j.people || []).some((y) => y.who === x.who)).map((x) => (guest.has(x.who) ? { ...x, name: guest.get(x.who) } : x))]);
+    });
     setTimeout(() => { peopleP = null; }, 60_000);
   }
   return peopleP;
