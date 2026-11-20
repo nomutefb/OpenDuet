@@ -129,15 +129,16 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
    = 형 말풍선: 잿빛 검정 + 라임 글자 · 우리·봇 말풍선: 잿빛 검정 + 같은 밝은 회색 글자(봇마다 칠한 바탕 = 인라인 → !important) · 이름 라벨(색)은 그대로 */
 .nm-split-root .ychat .yb.ai:not(.ph) { background:#1e2023 !important; border-color:rgba(255,255,255,.07) !important; color:#e6e9e6 !important; }
 /* 형 말풍선 글자 = 라임 → 흰색(봇 말풍선과 같은 #e6e9e6 · 형 11-12 16:38 봄 1:1 「응 그리고 내 대화글도 흰색이여도 됨. 그렇게 해줘.」 · 앞 판 = 라임 글자) */
-.nm-split-root .ychat .yb.me:not(.ph) { background:#1e2023 !important; color:#e6e9e6 !important; border:1px solid rgba(255,255,255,.07); }
+/* → 형 11-20 11:04 dm-bom(봄 옮김) 「그리고 pc에서도 그 모바일처럼, 읽으면 읽은 창 말풍선 불 off되는거 유지」 = PC 도 폰과 같은 길: 확인 전 형 글 = 형광(폰 꼴 그대로) · 「확인」(.rd) 난 글 · 바깥 글(.app) = 차콜(앞 판 = PC 형 글 늘 차콜 → 꺼질 불이 없었음) */
+.nm-split-root .ychat .yb.me:is(.rd, .app):not(.ph) { background:#1e2023 !important; color:#e6e9e6 !important; border:1px solid rgba(255,255,255,.07); }
 /* 반갈 검정 말풍선 안 코드 글씨(형 11-06 10:18 번개 방 사진 「응 봄 이렇게 보이는것두」) — 말풍선은 위에서 다 검정으로 덮는데 코드 글씨는 사람 말풍선 색(data-ink · 번개 노랑 = dark)을 따라 #161716 이 돼 검정 위 검정 → 반갈에선 늘 밝은 글씨 */
 .nm-split-root .ychat .yb[data-ink] :not(pre) > code { color:#e6e9e6; background:rgba(255,255,255,.09); }
 .nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block"] { background:rgba(255,255,255,.06); }
 .nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block-body"], .nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block-body"] :is(pre, code, span) { color:#e6e9e6 !important; }
 .nm-split-root .ychat .yb[data-ink] [data-streamdown="code-block-copy-button"] { color:#e6e9e6; }
-.nm-split-root .ychat .yb.me:not(.ph) a, .nm-split-root .ychat .yb.me:not(.app) .ytok.fl { color:#c3cad3 !important; }
-.nm-split-root .ychat .yb.me:not(.app) .ytok.gh, .nm-split-root .ychat .yb.me:not(.app) .ytok.tm { color:#b8a8ec !important; }
-.nm-split-root .ychat .yb.me .yname-c { color:#67e8f9; }
+.nm-split-root .ychat .yb.me:is(.rd, .app):not(.ph) a, .nm-split-root .ychat .yb.me.rd .ytok.fl { color:#c3cad3 !important; }
+.nm-split-root .ychat .yb.me.rd .ytok.gh, .nm-split-root .ychat .yb.me.rd .ytok.tm { color:#b8a8ec !important; }
+.nm-split-root .ychat .yb.me:is(.rd, .app) .yname-c { color:#67e8f9; }
 /* PC 라벨 · 메뉴 막대 단추 자리(형 11-05 15:25 「너네 라벨이 채팅에 묻히는데 그거하나 고쳐주구.」 · 15:27 「이거 겹치는거 분리해주고」)
    = 이름 라벨은 폰과 같은 대비 보정색·흰 글자(yeta-chat.css) · 메뉴 단추 = 막대 오른쪽 끝 */
 .nm-split-root .ychat .ymsg .yname.tab { font-weight:700; box-shadow:inset 0 0 0 1px var(--yn-line), 0 1px 6px rgba(0,0,0,.45); }
@@ -189,11 +190,11 @@ header.nm-head.absolute:has(.nm-room-mark)::before { left:min(0px, calc(50% - 50
 /* 얼굴 채도 = 형과 1:1 마지막 대화에서 지난 시간(shell.tsx FACE_SAT · 1시간 안 100 · 3시간 75 · 12시간 50 · 그 뒤 25 · 형 11-12 17:02) · 테 · 점 · 숫자 · 압정은 그대로 */
 .nm-face > img, .nm-face > span { filter:saturate(var(--face-sat, 1)); }
 /* 반갈 = 내 사진 밑 글(.ycap)·보내는 중 글도 평소 내 말풍선 꼴(검정 · 라임 글자)(형 11-06 12:49 「내가 이미지 첨부하면서 글자 쓰면 형광색으로 보여」) */
-.nm-split-root .ychat .yb.me.ph .ycap, .nm-split-root .nac-text { background:#1e2023 !important; color:#e6e9e6 !important; border:1px solid rgba(255,255,255,.07); }
+.nm-split-root .ychat .yb.me.ph:is(.rd, .app) .ycap { background:#1e2023 !important; color:#e6e9e6 !important; border:1px solid rgba(255,255,255,.07); }   /* 확인 전 사진 밑 글 · 보내는 중 글 = 폰처럼 형광(형 11-20 11:04) */
 /* 반갈 = 내 말풍선이 검정이라 이름 색도 어두운 판 색으로(형 11-06 17:22 「우리 애들 내가 부를때 이름 아직, 빨갛게 나오거든? … 첨부2의 이색으로」 = 봇 말풍선 속 이름 주황 #FFAA4D) */
-.nm-split-root .ychat .yb.me:not(.app) .yname-c.cl:not(.w) { color:#FFAA4D; }
-.nm-split-root .ychat .yb.me:not(.app) .yname-c.gp { color:#C9A7FF; }
-.nm-split-root .ychat .yb.me:not(.app) .yname-c.hy { color:#0FFD02; }
+.nm-split-root .ychat .yb.me.rd .yname-c.cl:not(.w) { color:#FFAA4D; }
+.nm-split-root .ychat .yb.me.rd .yname-c.gp { color:#C9A7FF; }
+.nm-split-root .ychat .yb.me.rd .yname-c.hy { color:#0FFD02; }
 /* 대화 | 오른쪽 경계 끌기(시아 UI ②) — 오른쪽 넓이 = --nm-split-w(기본 50%) · 손잡이 = 경계 위 8px · 끄는 동안 글자 고르기 0 */
 .nm-split-root .nm-split { flex:0 0 var(--nm-split-w, 50%); }
 .nm-split-root .nm-split-l { flex:1 1 auto; }
