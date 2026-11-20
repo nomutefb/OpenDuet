@@ -13,7 +13,7 @@ import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { blankLast, previewLine, talkPreview } from "./room-preview";
 import { backdrop } from "./backdrop";   // 바탕 닫힘 = 누름·뗌 둘 다 바탕(형 11-07 10:52)
 import { Link, useNavigate } from "@tanstack/react-router";
-import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { type CSSProperties, Fragment, type ReactNode, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { CloseAsk, useCloseGuard } from "./save-ask";   // 쓰던 중 닫기 = 한 문장 확인(#-042 · 형 11-15 07:55)
 import { DialogX } from "./dialog-x";   // 창 X 하나(#-042 하네스)
 import { createPortal } from "react-dom";
@@ -52,7 +52,9 @@ const writeSet = (k: string, s: Set<string>) => { try { localStorage.setItem(k, 
 import { enterRoom, roomReadState } from "../data/read-state";
 import { JobLabel, jobOf } from "./job-label";
 import { roomMsgsOptions } from "./office-chat";   // 대화 미리 받기(방 화면과 같은 받기 꼴 · 윈터 11-07 15:50)
-import { turnAtOf, turnWarn } from "./turn-warn";   // 종 옆 경고등 = 이번 턴 80분 넘음(형 11-21 07:49 · 판정 하나 = 애들 탭과 같이)
+import { timeRows } from "./bot-inbox-logic";   // 시각 빨강 = 누적 250 · 지속 80 넘음(형 11-21 08:19 · 판정 한 곳 = 애들 시간 줄과 같은 timeRows)
+import { botsSheetOpts } from "../data/crew-warm";
+import type { BotTable } from "./bot-desk-logic";
 const SUMMARY = "summary";   // 요약실 = 목록엔 안 보임(형 11-04 13:00 「시아야 요약을 앞에 단톡 형태로 방으로 보일 필요는 없어」 · 같은 기사 요약 = 서랍 「뉴스 기사」 · 앞 판 = 회의실 바로 아래 · 형 07:5x) · 방 = 뜸 서버 id summary · 주소로 열면 ./summary-desk.tsx
 const LIVE_MS = 3 * 60_000;   // 활발한 방 = 마지막 글(act_ts) 3분 안 · 빛 꼴 = live-shine.ts
 
@@ -217,7 +219,8 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
   const talkQ = useQueries({ queries: blanks.map((r) => ({ queryKey: ["nomute", "talk-preview", r.id, r.last_ts || 0], queryFn: () => talkBefore(r.id), staleTime: 600_000 })) });
   const talkBy = new Map(blanks.map((r, i) => [r.id, talkQ[i]?.data || ""]));
   const pinA = usePinAlpha();
-  const stat = useQuery({ queryKey: ["nomute", "status"], queryFn: () => office<{ cats?: { id?: string; rows?: { name?: string; turn_at?: number | null }[] }[] }>("status"), refetchInterval: 60_000, staleTime: 30_000 }).data;   // 위 신호등 줄과 같은 캐시(받아오기 0 더)
+  const sheet = useQuery({ ...botsSheetOpts<{ table?: BotTable }>(), refetchInterval: 60_000 }).data;   // 애들 표(앱 켤 때 미리 받아 둔 답 · 애들 탭과 같은 캐시 · 목록이 보일 때만 1분에 한 번)
+  const hot = useMemo(() => new Set(timeRows(sheet?.table, Date.now()).filter((x) => x.warnSum || x.warnCur).map((x) => x.who)), [sheet]);   // 누적 250 · 지속 80 넘은 애
   // 고정 줄 끌기 = 왼쪽 라임 줄(.nm-rgrip)을 잡고 위아래로 · 놓은 자리 = 고정 방 사이 차례(PIN_ORDER) · 폰 · 마우스 같은 손 · 줄 밀기 · 길게 누르기와 안 겹침(잡는 칸이 따로)
   const drag = useRef<{ id: string; y0: number; el: HTMLElement } | null>(null);
   const startDrag = (id: string) => (e: React.PointerEvent<HTMLSpanElement>) => {
@@ -330,7 +333,7 @@ export function RoomList({ onOpen, big = false, slim = false, bar = false, curre
             </span>
           </span>
           <span className="nm-rside">   {/* 시각 = 오른쪽 위 · 안 읽은 수 = 그 아래(형 10-31 「저게 시간 아래로 가게 해줘」) */}
-            <span className="flex min-h-[1lh] items-center gap-1 text-[11px] tabular-nums text-muted-foreground">{r.with && turnWarn(turnAtOf(stat, r.with), Date.now()) ? <svg aria-label="이번 턴 오래 돎" className="nm-rwarn" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 18v-6a5 5 0 0 1 10 0v6" /><path d="M5 21a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1z" /><path d="M12 2v1M3.5 6.5l.8.8M20.5 6.5l-.8.8" /></svg> : null}{notify.data && nOn ? <svg aria-label="알림 켬" className="nm-rbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg> : null}<span className="nm-rtime">{listTime(r.last_ts)}</span></span>   {/* 종 · 시각 수평 = 시각 글자를 숫자 키(cap)로 잘라 가운데 맞춤 · 줄 높이는 1lh 그대로(형 11-21 05:34 dm-sia 시아 옮김 「응 그리고 옆에 종 모양. 그거 시간이랑 수평 맞춰주라」) */}   {/* 알림 켠 방 = 시각 앞 작은 종(형 11-04 08:09 「이거 켬으로 하면 목록에서 우측에 종모양이 나오면 될거같아 작게 적정한 공간에」) */}
+            <span className="flex min-h-[1lh] items-center gap-1 text-[11px] tabular-nums text-muted-foreground">{notify.data && nOn ? <svg aria-label="알림 켬" className="nm-rbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg> : null}<span className={`nm-rtime${r.with && hot.has(r.with) ? " hot" : ""}`}>{listTime(r.last_ts)}</span></span>   {/* 종 · 시각 수평 = 시각 글자를 숫자 키(cap)로 잘라 가운데 맞춤 · 줄 높이는 1lh 그대로(형 11-21 05:34 dm-sia 시아 옮김 「응 그리고 옆에 종 모양. 그거 시간이랑 수평 맞춰주라」) */}   {/* 알림 켠 방 = 시각 앞 작은 종(형 11-04 08:09 「이거 켬으로 하면 목록에서 우측에 종모양이 나오면 될거같아 작게 적정한 공간에」) */}
             {n > 0 ? <b aria-label={`안 읽은 글 ${n}개`} className="nm-rcount">{n > 99 ? "99+" : n}</b>
               : n < 0 ? <span aria-label="안 읽음" className="nm-rdot" /> : null}
           </span>
