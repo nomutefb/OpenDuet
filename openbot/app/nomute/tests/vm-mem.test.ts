@@ -122,7 +122,7 @@ test("배선 = 서랍 화면 · 길 #/vm · 자료 문 vm-mem · 그림 꼴 출�
 
 test("몸 칸 = 애마다 제 카드 안(사양 · 몸 비고 · 숫자 줄 · 하루 그래프) · 낮은 띠로 훑고 누르면 키움", async () => {
   const desk = rd("../ui/vm-desk.tsx"), bd = rd("../ui/bot-desk.tsx");
-  assert.match(desk, /vmClean\(q\.data\?\.vms\)\.find\(\(x\) => x\.who === r\.who\)/);   // 램 기록은 이름으로 붙임
+  assert.match(desk, /vmOf\(vmClean\(q\.data\?\.vms\), r\.who, bodiesOf\(st\)\)/);   // 램 기록은 이름으로 붙임 · 제 줄 없으면 같은 몸 줄(R0104 · ./vm-of.test.ts)
   assert.match(desk, /vmFacts\(v, limit\)\.map\(/); assert.match(desk, /vmLimit\(v, r\.hw\?\.ram\)/);
   assert.match(desk, /사용 <b>\{gb\(g\.last\.used\)\}GB<\/b>/); assert.match(desk, /할당 <b>\{gb\(g\.last\.held\)\}GB<\/b>/); assert.doesNotMatch(desk + rd("../ui/vm-mem-logic.ts").replace(/^\s*(\/\/|\*|\/\*).*$/gm, ""), /쥔 램 \$|쓴 램 \$/);   // 낱말 = 사용 · 할당
   assert.match(desk, /const \[ref, w\] = useWidth\(\), \[tall, setTall\] = useState\(false\);/);

@@ -6,11 +6,13 @@
 //   그래프 = 낮은 띠(132px)로 훑고 누르면 키움(280px) · 움직임 = 처음 한 번(원본 박자) 뒤 멈춤
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type VmMem, type VmMemRes, dayStart, gb, hm, mdhm, pctKo, vmClean, vmFacts, vmGeom, vmLimit, vmPct, vmStats } from "./vm-mem-logic";
+import { type VmMem, type VmMemRes, dayStart, gb, hm, mdhm, pctKo, vmClean, vmFacts, vmGeom, vmLimit, vmOf, vmPct, vmStats } from "./vm-mem-logic";
 import type { BotRow } from "./bot-desk-logic";
 import { vmMemOpts } from "../data/crew-warm";   // 지난 램 기록을 먼저 그리고 · 앱이 켜질 때 미리 받아 둔 답을 그대로 씀
 import { bodyNote } from "./bot-manage-logic";   // 비고 글에서 몸 이야기만(루틴 · 맡은 일 조각은 겹침 · 형 11-17 07:53)
-import { BodyChips } from "./body-chips";   // 살아 있는 몸 줄(옛 러너 층 「몸 지도」를 애마다 제 카드로 · 형 11-19 「거기에 녹이면됨」)
+import { BodyChips } from "./body-chips";
+import { statusOpts } from "./status-q";   // 몸 표(bodies) = 몸 줄(BodyChips)과 같은 조회 · 같은 열쇠(한 번만 부름)
+import { bodiesOf } from "../data/bodies";   // 살아 있는 몸 줄(옛 러너 층 「몸 지도」를 애마다 제 카드로 · 형 11-19 「거기에 녹이면됨」)
 import "./vm-desk.css";
 
 const hwLine = (r?: BotRow) => (r ? [r.hw?.ram && r.hw.ram !== "-" ? `램 ${r.hw.ram}` : "", r.hw?.cpu && r.hw.cpu !== "-" ? r.hw.cpu : "", r.hw?.gpu && r.hw.gpu !== "없음" ? `GPU ${r.hw.gpu}` : "", r.hw?.os].filter(Boolean).join(" · ") : "");
@@ -18,7 +20,8 @@ const hwLine = (r?: BotRow) => (r ? [r.hw?.ram && r.hw.ram !== "-" ? `램 ${r.hw
 /** 애 펼침 카드 안의 몸 한 칸 — 그 애 사양 · 몸 비고 · 램 24시간 그래프(「몸」 탭 줄과 같은 자료 · 같은 그림) · 형 11-17 07:53 「이거 그래프를 첨부2 안에다가 넣자」 · 「그렇게 다 각자로 넣을게.」 */
 export function VmCard({ r }: { r: BotRow }) {
   const q = useQuery({ ...vmMemOpts<VmMemRes>(), refetchInterval: 5 * 60_000, retry: false });
-  const v = useMemo(() => vmClean(q.data?.vms).find((x) => x.who === r.who), [q.data, r.who]);
+  const st = useQuery(statusOpts()).data?.bodies;
+  const v = useMemo(() => vmOf(vmClean(q.data?.vms), r.who, bodiesOf(st)), [q.data, r.who, st]);   // 제 이름 줄 없으면 같은 몸 줄(윈터 = Lx B = 뎅 몸 · R0104)
   const [ref, w] = useWidth(), [tall, setTall] = useState(false);
   const s = useMemo(() => (v ? vmStats(v) : null), [v]), h = tall ? 280 : 132;
   const limit = v ? vmLimit(v, r.hw?.ram) : 0;   // % 의 분모 · 세로 눈금 끝(서버 한도 → VM 최대 → 사양 글)

@@ -35,6 +35,17 @@ export function vmClean(raw: unknown): VmMem[] {
   }
   return out.slice(0, 16);
 }
+/** 그 애 카드에 그릴 램 기록 = 제 이름 줄 → 없으면 같은 몸 줄(제 몸 host 로 온 줄 → 같은 몸에 사는 애 줄)
+ *  R0104 · 형 11-21 17:40 dm-gik 「깃 이거 싱크 안맞는 애들이 있어. 확인 좀 부탁해~!」 「윈타가 데비안 왔는데 윈도우 서버가 그러지는 등」 — 윈터 = Lx B(뎅과 한 몸) · 서버가 옛 윈A 줄을 걷음(editor #4623) → 뎅 몸 줄(deng)로
+ *  몸 표 = GET status bodies(../data/bodies · 이사하면 표 한 장만 바뀜 · 이름 박지 않음) · 꺼진 몸(on false) = 안 셈 */
+export function vmOf(vms: VmMem[], who: string, bodies: { being: string; body: string; on?: boolean; hosts: string[] }[]): VmMem | undefined {
+  const own = vms.find((x) => x.who === who);
+  if (own) return own;
+  const me = bodies.find((b) => b.being === who && b.on !== false);
+  if (!me) return undefined;
+  const mates = bodies.filter((b) => b.body === me.body && b.being !== who && b.on !== false);
+  return vms.find((x) => !!x.host && me.hosts.includes(x.host)) ?? vms.find((x) => mates.some((b) => b.being === x.who || (!!x.host && b.hosts.includes(x.host))));
+}
 
 export type VmStats = { n: number; avg: number; min: number; max: number; peak: number; last: number | null; heldLast: number | null; t1: number };
 const lastOf = (a: (number | null)[] | undefined) => { if (a) for (let i = a.length - 1; i >= 0; i--) if (a[i] !== null) return a[i]; return null; };
