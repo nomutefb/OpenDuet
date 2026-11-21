@@ -29,8 +29,8 @@ export function modelName(id: string): string {
 /** 노력도 = CLI 에 뜨는 낱말 그대로(low · medium · high · xhigh · max · 형 11-15 「실제로 구분되는 그 표시되는걸로 cli에」). */
 export const EFFORTS_CLI = ["low", "medium", "high", "xhigh", "max"] as const;
 export const effortChoices = (): Choice[] => EFFORTS_CLI.map((id) => ({ id, ko: id }));
-/** 모델 차례 = 높은 것부터(형 11-18 19:01 dm-gik 깃 옮김 「높은거부터 나오게해줘 미토스 부터」) — 갈래(미토스 → 오퍼스 → 페이블 → 소넷 → 하이쿠) · 같은 갈래 = 판 숫자 큰 것 먼저 · 모르는 갈래 = 맨 뒤(받은 차례 그대로). */
-const FAM = ["mythos", "opus", "fable", "sonnet", "haiku"];
+/** 모델 차례 = 높은 것부터(형 11-18 19:01 dm-gik 깃 옮김 「높은거부터 나오게해줘 미토스 부터」) — 갈래(미토스 → 페이블 → 오퍼스 → 소넷 → 하이쿠 · 형 11-21 17:27 dm-eyes 뜸 → 깃 옮김 「응 미토스 5.2 페이블 5.2 오퍼스 5.5 소넷 5.5 하이쿠 5.5 이렇게 다 고를수있어야한다고 pm에게 전해줘」 · 서버 MODELS 차례와 같음 · 앞 판 = 오퍼스 → 페이블) · 같은 갈래 = 판 숫자 큰 것 먼저 · 모르는 갈래 = 맨 뒤(받은 차례 그대로). */
+const FAM = ["mythos", "fable", "opus", "sonnet", "haiku"];
 export function modelRank(id: string): [number, number] {
   const m = /^claude-([a-z]+)-(\d+)(?:-(\d+))?$/.exec(id || "");
   if (!m) return [FAM.length, 0];

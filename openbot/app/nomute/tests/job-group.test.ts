@@ -22,11 +22,11 @@ test("groups 표에 없는 묶음 = 처음 나온 차례 · 이름 = id · 서�
   assert.deepEqual(jobGroups(undefined), { plain: [], groups: [] });
 });
 
-test("sheetKo 가 묶음 칸 · groups 를 지우지 않음 · 페이블 5.2 = 「Fable 5.2」 미토스 · 오퍼스 다음", () => {
+test("sheetKo 가 묶음 칸 · groups 를 지우지 않음 · 페이블 5.2 = 「Fable 5.2」 미토스 다음 · 오퍼스 앞(형 17:27)", () => {
   const s = sheetKo({ jobs: [job("bap", "밥풀", "ddeum")], models: [], efforts: [], groups: [{ id: "ddeum", ko: "뜸 보조" }] });
   assert.equal(s.jobs[0].group, "ddeum");
   assert.deepEqual(s.groups, [{ id: "ddeum", ko: "뜸 보조" }]);
-  assert.deepEqual(modelChoices([{ id: "claude-sonnet-5-5", ko: "" }, { id: "claude-fable-5-2", ko: "" }, { id: "claude-opus-5-5", ko: "" }, { id: "claude-mythos-5-2", ko: "" }]).map((c) => c.ko), ["Mythos 5.2", "Opus 5.5", "Fable 5.2", "Sonnet 5.5"]);
+  assert.deepEqual(modelChoices([{ id: "claude-sonnet-5-5", ko: "" }, { id: "claude-fable-5-2", ko: "" }, { id: "claude-opus-5-5", ko: "" }, { id: "claude-mythos-5-2", ko: "" }]).map((c) => c.ko), ["Mythos 5.2", "Fable 5.2", "Opus 5.5", "Sonnet 5.5"]);
 });
 
 test("머리 판 = 묶음마다 제 머리 · 줄 = 이름 + 서버 where + 같은 저장 길(POST modelset {job})", () => {
