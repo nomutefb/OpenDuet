@@ -19,13 +19,17 @@ import { RoomIcon } from "./room-list";   // 「다른 방으로」 줄 방 얼�
 import { fileUrl } from "../data/file-cache";
 import { flash } from "./flash";
 import { attachmentSender } from "../data/attachment-state";   // 보냄 줄 = 입력칸과 같은 것(받는 방에 「전송 대기」 말풍선이 먼저 뜸 · 실패 = 그 자리 「다시 보내기」)
-import { captureMsg } from "./capture";   // 「캡처」 = 그 글 한 줄을 그림으로(뎅 11-11 · 형 08:50 「책갈피 빼고는 가져오면 됨」)
+import { captureMsg } from "./capture";
+import { startPick } from "./part-copy";   // 폰 「복사」 = 누른 자리부터 끌어 고르기(형 11-21 09:52 「메뉴가 뜨고 복사를 누르면 드래그 복사」)   // 「캡처」 = 그 글 한 줄을 그림으로(뎅 11-11 · 형 08:50 「책갈피 빼고는 가져오면 됨」)
 
 const HOLD_MS = 500, SLIP = 10, ORIGIN_MAX = 2000;   // 0.5초(형 10-31 「적어도 0.5초 터치는 해야함」)
 
 /** 방금 길게 누름이 터졌나 = 그 손을 뗄 때 오는 누름(PC 마우스 · 사진 크게 보기)은 안 셈 */
-let heldAt = 0;
+let heldAt = 0, heldPt: { x: number; y: number } | null = null;
 export const justHeld = () => Date.now() - heldAt < 800;
+/** 방금 글 메뉴를 연 손자리(길게 누름 · 우클릭) — 「복사」 끌어 고르기 시작 자리(형 11-21 09:51 「내가 누른 지점에서」) · 오래된 건 안 씀 */
+export const heldPoint = () => (Date.now() - heldAt < 1500 ? heldPt : null);
+const picking = (e: { target: EventTarget | null }) => !!(e.target as Element | null)?.closest?.("[data-pick]");   // 끌어 고르는 중인 말풍선 = 폰 글자 고르기가 맡음(./part-copy.ts)
 /** 길게 누르기 · 손이 움직이면 취소(스크롤) · fired() = 이 눌림이 길게였나(뒤따르는 눌림 말풍선 동작을 막음). */
 export function useLongPress(open: () => void) {
   const timer = useRef(0), long = useRef(false), at = useRef({ x: 0, y: 0 });
@@ -34,13 +38,13 @@ export function useLongPress(open: () => void) {
     fired: () => { const f = long.current; long.current = false; return f; },
     bind: {
       onPointerDown: (e: PointerEvent) => {
-        if (e.button) return;
+        if (e.button || picking(e)) return;
         long.current = false; at.current = { x: e.clientX, y: e.clientY }; stop();
-        timer.current = window.setTimeout(() => { long.current = true; timer.current = 0; heldAt = Date.now(); open(); }, HOLD_MS);
+        timer.current = window.setTimeout(() => { long.current = true; timer.current = 0; heldAt = Date.now(); heldPt = { ...at.current }; open(); }, HOLD_MS);
       },
       onPointerMove: (e: PointerEvent) => { if (timer.current && Math.hypot(e.clientX - at.current.x, e.clientY - at.current.y) > SLIP) stop(); },
       onPointerUp: stop, onPointerCancel: stop, onPointerLeave: stop,
-      onContextMenu: (e: MouseEvent) => { e.preventDefault(); stop(); if (!long.current) open(); },
+      onContextMenu: (e: MouseEvent) => { if (picking(e)) return; e.preventDefault(); stop(); if (!long.current) { heldAt = Date.now(); heldPt = { x: e.clientX, y: e.clientY }; open(); } },
     },
   };
 }
@@ -54,7 +58,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   const others = list.filter((p) => p.who !== "형" && p.kind !== "human");
   const targets = r?.with || !r?.members?.length ? others : r.members.map((n) => list.find((p) => p.who === n)).filter((p): p is OfficePerson => !!p);
   const done = (t: string) => { setNote(t); window.setTimeout(onClose, 900); };
-  const [leaving, setLeaving] = useState(false);
+  const [leaving, setLeaving] = useState(false), [pt] = useState(heldPoint), rootEl = useRef<HTMLDivElement>(null);
   const closeSoft = () => { setLeaving(true); window.setTimeout(onClose, 170); };   // 바로 · 부드럽게 닫힘(투명도 · 크기만 · ./yeta-chat.css .nm-msgm.out)
   const send = (id: string, body: string) => office(`rooms/${encodeURIComponent(id)}/messages`, { method: "POST", body: JSON.stringify({ text: body }) });
   const ask = async (t: OfficePerson | null) => {
@@ -142,7 +146,11 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   const act: Record<MenuKey, () => void> = {
     save: () => { onSave?.(); done("✓"); },   // 형 11-04 08:22 「길게 누르면 사진을 다운로드」
     reply: () => { onReply(); onClose(); },
-    copy: () => { void navigator.clipboard?.writeText(text); onClose(); },   // 알림 없이 닫힘(형 11-07 09:40 「복사햇어 라고 뜰 필요는 없고 그냥 ㅌ창 닫히면 됨.」)
+    copy: () => {   // 알림 없이 닫힘(형 11-07 09:40 「복사햇어 라고 뜰 필요는 없고 그냥 ㅌ창 닫히면 됨.」)
+      if (!fine && rootEl.current) rootEl.current.style.visibility = "hidden";   // 폰 = 판을 먼저 숨겨야 누른 자리 글자를 집음
+      if (fine || !startPick(m.id, pt)) void navigator.clipboard?.writeText(text);   // 폰 = 누른 자리 낱말부터 손잡이 둘로 끌어 고름 · 고를 글자 없는 글(사진 · 스티커만) · PC = 전체 그대로(형 11-21 09:50~09:52 R0096)
+      onClose();
+    },
     move: () => setMoving(true),
     pin: () => { pins.pin({ id: m.id, ts: m.ts }); onClose(); },
     ask: () => setAsking(true),
@@ -154,7 +162,7 @@ export function MsgMenu({ m, who, text: raw, line, room, r, list, quick, onReact
   const back = (label: string, off: () => void) => <button key="back" type="button" role="menuitem" className="nm-mm-i back" style={at(0)} disabled={busy} onClick={off}><span>{label}</span><IconChevronLeft /></button>;
   const veilStyle = (place.over ? {} : { WebkitMaskImage: `linear-gradient(#000 0 0), ${hole.image}`, maskImage: `linear-gradient(#000 0 0), ${hole.image}`, WebkitMaskPosition: `0 0, ${hole.position}`, maskPosition: `0 0, ${hole.position}`, WebkitMaskSize: `100% 100%, ${hole.size}`, maskSize: `100% 100%, ${hole.size}` }) as CSSProperties;   // 줄이 말풍선 위에 겹칠 땐(화면만큼 긴 글) 구멍 없이 다 흐림
   return createPortal(
-    <div className={leaving ? "nm-mm out" : "nm-mm"} data-side={place.side} data-align={place.align} data-over={place.over || undefined} role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
+    <div ref={rootEl} className={leaving ? "nm-mm out" : "nm-mm"} data-side={place.side} data-align={place.align} data-over={place.over || undefined} role="presentation" onPointerDown={(e) => { veil.current = e.target === e.currentTarget; }} onClick={(e) => { if (e.target === e.currentTarget && veil.current) onClose(); }} onContextMenu={(e) => e.preventDefault()}>
       <i className="nm-mm-veil" aria-hidden style={veilStyle} />
       <div className={`nm-mm-l${moving && !note ? " move" : ""}`} role="menu" aria-label={asking ? "확인 요청할 봇" : moving ? "보낼 방" : "글 메뉴"} style={{ [place.align]: place.x, ...(place.side === "above" ? { bottom: place.y } : { top: place.y }), maxHeight: place.maxH }}>
         {note ? <p className={note === "✓" ? "nm-mm-n ok" : "nm-mm-n"} role="status" aria-label={note === "✓" ? "저장됨" : undefined}>{note === "✓" ? <svg className="nm-tick" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg> : note}</p>

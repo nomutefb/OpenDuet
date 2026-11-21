@@ -408,6 +408,7 @@ body { font-family:var(--app-font, Pretendard,-apple-system,system-ui,sans-serif
 
 /* 글 길게 누르기 = 카톡 글 메뉴 톤(./msg-menu.tsx) · 터치 = 글자 고르기 대신 메뉴의 복사 */
 @media (hover:none) { .ychat .yb { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; } }
+.ychat .yb[data-pick] { -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }   /* 메뉴 「복사」 뒤 = 그 말풍선만 끌어 고르기(손잡이 둘 · ./part-copy.ts · 형 11-21 09:52 「메뉴가 뜨고 복사를 누르면 드래그 복사」) */
 .nm-msgm { position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:24px; background:rgba(0,0,0,.5); }
 .nm-msgm-p { width:min(320px,100%); max-height:80dvh; overflow-y:auto; padding:10px 0; border-radius:26px; background:#232325; color:#fff; box-shadow:0 24px 60px rgba(0,0,0,.42); }
 .nm-msgm-i { display:flex; align-items:center; gap:10px; width:100%; padding:14px 26px; border:0; background:none; color:inherit; font-size:16px; text-align:left; cursor:pointer; }

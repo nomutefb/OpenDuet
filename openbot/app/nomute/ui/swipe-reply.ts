@@ -1,6 +1,6 @@
 // 글 줄 왼쪽으로 밀기 = 답장(형 11-04 08:22 「좌측으로 채팅을 살짝 밀면 항상 회신으로 뜨면 좋을듯」 · 카톡 영상 97389 「보통 모션은 이렇게 작동해」)
 //   손가락 따라 줄이 왼쪽으로 · 오른쪽 끝에 답장 화살표가 커지며 나옴 · 60px 넘기면 톡(진동) · 놓으면 답장 + 제자리로 튕김
-//   세로가 먼저면 스크롤 그대로 · 가로로 굴러가는 칸(코드·표) · 영상 · 입력칸 · 둘의 방 알약 펼침(.ysent-talk) 안에서 시작하면 안 함
+//   세로가 먼저면 스크롤 그대로 · 가로로 굴러가는 칸(코드·표) · 영상 · 입력칸 · 둘의 방 알약 펼침(.ysent-talk) · 끌어 고르는 중인 말풍선([data-pick] · ./part-copy.ts) 안에서 시작하면 안 함
 //   대화 상자 하나에 손 하나(줄마다 듣지 않음) · touchmove 는 막아야 해서 passive 아님
 //   오른쪽으로 밀기 = 공유(「보낼 방」 바로) = 왼쪽 답장의 거울 · 같은 문턱(60) · 같은 끝(84) · 같은 튕김 · 왼쪽 끝에 공유 그림(형 11-21 08:45 dm-sia 시아 옮김 「글구 말풍선 옆에 공유버튼 미안한데 없앨게 쏘리. 대신 말풍선 좌측 당기면 답글이잖아 우측 당기면.공유로」)
 import { buzz } from "./feel";   // 진동 = 설정 스위치 하나로(./feel.ts)
@@ -39,7 +39,7 @@ export function useSwipeReply(box: RefObject<HTMLElement | null>, onReply: (id: 
       if (row) reset();
       if (e.touches.length !== 1) return;
       const t = e.target as Element, r = t.closest<HTMLElement>("[data-id]");
-      if (!r || !el.contains(r) || !r.querySelector(".yb") || r.closest(".ysent, .ysent-talk") || t.closest("video,input,textarea,.nm-msgm") || hScroll(t, r)) return;
+      if (!r || !el.contains(r) || !r.querySelector(".yb") || r.closest(".ysent, .ysent-talk") || t.closest("video,input,textarea,.nm-msgm,[data-pick]") || hScroll(t, r)) return;
       row = r; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
     };
     const move = (e: TouchEvent) => {
