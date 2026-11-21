@@ -42,7 +42,7 @@ test("웹 칸 = 주소창은 커서만 라임(테 그대로) · 검색 = 구글 
   assert.match(wcss, /\.nm-web-addr \{[^}]*caret-color: rgb\(var\(--accent-rgb, 207,255,64\)\); \}/);
   assert.doesNotMatch(wcss, /\.nm-web-addr:focus/);   // 들어가도 테 · 번짐 안 바뀜
   assert.match(wcss, /\.nm-web-frame \{[^}]*color-scheme: dark; \}/);
-  assert.match(web, /https:\/\/www\.google\.com\/search\?igu=1&cs=1&q=\$\{encodeURIComponent\(s\)\}/);
+  assert.match(rd("../ui/web-pane-addr.ts"), /https:\/\/www\.google\.com\/search\?igu=1&cs=1&q=\$\{encodeURIComponent\(s\)\}/);   // 주소 함수 = 순수 파일로 옮김(11-21)
   assert.match(tcss, /html\[data-nm-fullpane\] \.nm-strip \{ background:var\(--nm-tab-on, #121314\);[^}]*backdrop-filter:none;/);
   assert.match(tab, /if \(full\) r\.dataset\.nmFullpane = "1"; else delete r\.dataset\.nmFullpane;/);
   assert.match(sl, /<span className="nm-sl-srv" title="서버 연결 칸의 가장 나쁜 불"><Dot t=\{toneOf\(l\.server\)\} \/><b>서버<\/b><\/span>/);   // 점 → 흰 「서버」(형 11-19 16:18 「서버가 우측으로 글자를 가자. 글구 서버는 흰색글자」)
@@ -53,6 +53,6 @@ test("웹 칸 = 주소창은 커서만 라임(테 그대로) · 검색 = 구글 
 test("막는 사이트 = 형이 주소창으로 간 주소만 바로 맥 72 판으로 · 되살아난 주소는 단추 그대로(형 11-18 「응 만약에 막히면 그렇게 하고」)", () => {
   const web = rd("../ui/web-pane.tsx");
   assert.match(web, /if \(check\.state !== "blocked" \|\| !onBridge \|\| !cur \|\| wantBridge\.current !== cur\) return;\s*wantBridge\.current = "";\s*onBridge\(cur\);/);
-  assert.match(web, /const a = toAddress\(raw\);\s*if \(!a\) return;\s*wantBridge\.current = a;/);   // 주소창 이동 때만 표시
+  assert.match(web, /const a = toAddress\(raw, !!send\);\s*if \(!a\) return;\s*wantBridge\.current = a;/);   // 주소창 이동 때만 표시
   assert.match(web, /\{onBridge \? <button type="button" className="nm-web-out" onClick=\{\(\) => onBridge\(cur\)\}>맥 72로 열기<\/button> : null\}/);   // 단추는 남음(다리에서 돌아온 자리)
 });

@@ -16,3 +16,8 @@
 /* 막는 사이트 안내의 단추 둘(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」) = 「Browser 탭에서 열기」가 먼저 · 「밖에서 열기」는 옅게 */
 button.nm-web-out { appearance:none; border:0; background:none; padding:0; font:inherit; cursor:pointer; }
 .nm-web-out.sub { opacity:.6; }
+/* 진짜 웹뷰 칸(./native-web.ts) — 이 자리에 껍데기 앱이 웹뷰를 겹침 · 읽는 중 = 새로고침 글자가 돎(그릴 것 = transform 하나 · 읽는 동안만) */
+.nm-web-real { flex: 1; min-width: 0; background: var(--nm-tab-on, #121314); }
+.nm-web-btn.busy { animation: nmWebSpin .9s linear infinite; }
+@keyframes nmWebSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .nm-web-btn.busy { animation: none; opacity: .5; } }

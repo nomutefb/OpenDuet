@@ -12,7 +12,7 @@ export const SNS_SITES: readonly { id: SnsSite; name: string; url: string }[] = 
 export const SNS_SITE_KEY = "nm-sns-site";   // 마지막에 고른 곳(이 기기)
 export const siteOf = (v: unknown): SnsSite => (SNS_SITES.some((s) => s.id === v) ? (v as SnsSite) : "instagram");
 export type SideRect = { x: number; y: number; w: number; h: number };
-export type SideMsg = { t: "nm-side"; on: true; site: SnsSite; url: string; rect: SideRect; vw: number; vh: number } | { t: "nm-side"; on: false }
+export type SideMsg = { t: "nm-side"; on: true; site: SnsSite; url: string; rect: SideRect; vw: number; vh: number; holes?: (SideRect & { r?: number })[]; veil?: boolean } | { t: "nm-side"; on: false }   // holes = 이 칸 위로 떠야 하는 우리 화면 조각 자리(메뉴 판 · 알림 · 창 · ./native-web.ts · 옛 판 앱은 안 읽음)
   | { t: "nm-side-go"; site: SnsSite; url: string }   // 대화 카드 누름 = 그 곳 웹뷰를 그 글로(형 11-20 10:16 · 미토스 ①)
   | { t: "nm-side-pick"; id: string; js: string };   // 대화로 보내기 = 지금 곳 웹뷰에서 js(= /garden-app/sns-pick.js · 「(function(mode){…})」 꼴)를 mode "pick" 으로 돌리고 rect 만큼 찍어 돌려줌 → 「flash」 로 한 번 더
 /** 껍데기 → 웹 = window 이벤트 「nm-side」 detail

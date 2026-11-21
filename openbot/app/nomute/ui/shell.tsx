@@ -534,7 +534,7 @@ function WebLayer({ u, onClose }: { u: string; onClose: () => void }) {
           <button type="button" className="nm-modal-back" aria-label="닫기" onClick={onClose}><DuetIcon name="chevronLeft" size={20} /></button>
           <b className="min-w-0 flex-1 truncate">{host || "웹"}</b>
         </div>
-        <div className="nm-modal-b frame"><Suspense fallback={<LazyDots />}><WebPane key={u} initial={u} backOut={phoneWide() ? onClose : undefined} /></Suspense></div>
+        <div className="nm-modal-b frame"><Suspense fallback={<LazyDots />}><WebPane key={u} sid="layer" initial={u} backOut={phoneWide() ? onClose : undefined} /></Suspense></div>
       </ModalBox>
     );
   }

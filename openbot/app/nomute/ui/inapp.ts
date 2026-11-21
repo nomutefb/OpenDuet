@@ -2,6 +2,7 @@
 //   누르면 웹으로 나가던 칸 → 앱 안: /garden-app/… = 그 판 · 그 밖(에디터 원본 화면·기사·곡) = #/web?u=<주소> 모달(껍데기 ui/shell.tsx WebLayer · 「<」 = 앞 판 그대로)
 //   이름·꼴 = claude-state assign/2026-10-28/office-inapp.md 「바뀜」 15:5x(보조 02 대화창 · 03 에디터 판이 받아 씀)
 import { WEB_TAB_EVENT } from "./tab-list";
+import { nativeWeb } from "./native-web";   // 껍데기 앱의 웹 칸 다리(있으면 = 막는 사이트도 웹 탭 안 진짜 웹뷰로 · 형 11-21 「거기사 인터넷도 다 열리게 하고싶음 뉴스등 클릭하면」)
 const APP = "/garden-app/";
 
 /** 우리 저장소 이슈·반영 요청 = 앱 안 「< 이슈 N」 판(GitHub 은 품기를 막고 저장소가 비공개 → 서버가 대신 읽음 · PM 16:09) */
@@ -27,7 +28,7 @@ export function inAppHref(raw: string, base: string = location.href): string | n
   }
   const iss = u.href.match(ISSUE);
   if (iss) return `/issue/${iss[1]}`;
-  if (NO_FRAME.test(u.hostname)) return null;
+  if (NO_FRAME.test(u.hostname) && !nativeWeb()) return null;   // 진짜 웹뷰 칸이 있으면 막는 사이트도 품음
   return `/web?u=${encodeURIComponent(u.href)}`;
 }
 
@@ -80,6 +81,7 @@ export function noFrameUrl(raw: string, base: string): string | null {
 /** 앱 안으로 엶(해시 길 = 라우터가 받음) — 못 들이면 false(부른 쪽이 원래대로) */
 export function openInApp(raw: string, base?: string): boolean {
   if (macApp() && macTab(raw, base)) return true;
+  if (nativeWeb() && tabBarOn() && webTab(raw, base)) return true;   // 웹 칸 다리가 있는 껍데기 앱 = 어느 사이트든 위 탭 줄의 웹 탭(그 안 = 진짜 웹뷰 · 앱 제 탭 줄 안 뜸)
   if (shellMac()) { const u = noFrameUrl(raw, base ?? location.href); if (u) { window.open(u, "_blank", "noopener"); return true; } }
   if (tabBarOn() && webTab(raw, base)) return true;
   const h = inAppHref(raw, base);
