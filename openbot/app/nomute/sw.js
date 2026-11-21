@@ -25,7 +25,11 @@ self.addEventListener("activate", (e) => {
     for (const k of await caches.keys()) if (k !== SHELL && k !== ASSETS && k !== STATIC && k !== META && k !== "garden-app-att") await caches.delete(k);
     try {   // 한 달 넘게 안 쓴 담아 둔 것(옛 ?v= 그림 등) = 치움
       const c = await caches.open(STATIC), st = await loadStamps(c), now = Date.now();
-      for (const q of await c.keys()) { const k = staticKey(new URL(q.url)); if (k !== STAMPS && now - (st[k] || now) > STATIC_OLD) { await c.delete(q); delete st[k]; } }
+      for (const q of await c.keys()) {
+        const u = new URL(q.url), k = staticKey(u);
+        if (DATA_RE.test(u.pathname) && u.search) { await c.delete(q); continue; }   // 꼬리째 담긴 자료(11-21 09:35 ~ 첫 판) = 치움
+        if (k !== STAMPS && now - (st[k] || now) > STATIC_OLD) { await c.delete(q); delete st[k]; }
+      }
     } catch { /* 못 치워도 그대로 씀 */ }
     try {   // 앞 판이 담아 둔 html 조각 = 판이 바뀔 때 한 번 치움(빈 화면 기기가 새 판 서비스 워커만 받으면 풀림)
       const c = await caches.open(ASSETS);
@@ -204,10 +208,11 @@ async function staticGet(e, url) {
   return res;
 }
 async function dataGet(e, url) {
-  const c = await caches.open(STATIC), key = staticKey(url), hit = await c.match(key);
+  // 담는 이름 = 길만(물음표 뒤 뺌) — 이 자료들은 「?ts=시각」처럼 매번 다른 꼬리를 달고 불림(옛 화면의 캐시 피하기) · 꼬리째 담으면 부를 때마다 한 칸씩 쌓임 · 서버에 묻는 주소는 온 그대로
+  const c = await caches.open(STATIC), key = url.pathname, hit = await c.match(key);
   try {
     const et = keepable(hit) ? hit.headers.get("etag") : "";
-    const r = await fetch(key, { cache: "no-store", headers: et ? { "If-None-Match": et } : {} });
+    const r = await fetch(staticKey(url), { cache: "no-store", headers: et ? { "If-None-Match": et } : {} });
     if (r.status === 304 && hit) return hit;
     if (keepable(r) && r.headers.get("etag")) e.waitUntil(c.put(key, r.clone()).catch(() => {}));
     return r;
