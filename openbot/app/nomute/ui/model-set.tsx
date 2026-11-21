@@ -13,7 +13,7 @@ import { createPortal } from "react-dom";
 import { office } from "../data/office";
 import { useMe } from "./pins";
 import { type NextWin, NW_EFFORTS, NW_MODELS, nwDefault, useNextWin } from "./next-win";
-import { type Choice, type Llm, type LlmUse, type Pick, type Sheet, PIPE_DEF, PIPE_GROUPS, byRank, effortChoices, groupChoices, koOf, mixedOf, modelChoices, modelName, pipePatch, pipePatchSrc, pipeRows, sheetKo, srcChoices, srcRows, sumKo } from "./model-set-logic";
+import { type Choice, type Job, type Llm, type LlmUse, type Pick, type Sheet, PIPE_DEF, PIPE_GROUPS, byRank, effortChoices, groupChoices, jobGroups, koOf, mixedOf, modelChoices, modelName, pipePatch, pipePatchSrc, pipeRows, sheetKo, srcChoices, srcRows, sumKo } from "./model-set-logic";
 import { Chev } from "./chev";
 import { agoKo } from "./sched-bits";
 import { getJson } from "./news-data";
@@ -126,7 +126,11 @@ export function ModelSetRows({ bots = true }: { bots?: boolean } = {}) {   // bo
   const s = ms.data, jobs = s?.jobs || [], jobModels = modelChoices(s?.models || []), jobEfforts = effortChoices();
   const llm = pipe.data?.llm as Llm | undefined, pRows = pipeRows(llm), use = useLlmUse().data;
   const [openG, setOpenG] = useState<Record<string, boolean>>({});
-  const audit = jobs.find((j) => j.id === "audit"), shownJobs = jobs.filter((j) => !(j.id === "audit" && jobs.some((x) => x.id === "sort")));   // 일감 가르기 · 오더 판독 = 서버가 한 값으로 묶음(한 번에 판독) → 한 줄
+  const jg = jobGroups(s), plain = jg.plain;   // 묶음 칸이 있는 일(뜸 보조 등) = 제 머리 밑 따로 · 나머지 = 「서버가 직접 부르는 일」(형 11-21 17:25 「여기 뜸 보조 라고 해서 …」)
+  const audit = plain.find((j) => j.id === "audit"), shownJobs = plain.filter((j) => !(j.id === "audit" && plain.some((x) => x.id === "sort")));   // 일감 가르기 · 오더 판독 = 서버가 한 값으로 묶음(한 번에 판독) → 한 줄
+  const errAt = jobSave.isError ? (jobs.find((j) => j.id === jobSave.variables?.job)?.group || "") : null;   // 못 바꿨어 = 고른 줄이 있는 묶음에만(""= 서버가 직접 부르는 일)
+  const jobRow = (j: Job, label = j.ko, sub?: string) => <PickRow key={j.id} label={label} sub={sub} dimModel={j.now.model === j.def.model} dimEffort={j.now.effort === j.def.effort} pick={j.now} models={jobModels} efforts={jobEfforts} can={can} busy={jobSave.isPending} onPick={(p) => jobSave.mutate({ job: j.id, ...p })} />;
+  const jobErr = <p className="note err">못 바꿨어 — {(jobSave.error as Error)?.message || "서버 답 없음"} · 다시 골라 줘</p>;
   return (
     <div className="nm-ms">
       {bots ? (
@@ -147,13 +151,21 @@ export function ModelSetRows({ bots = true }: { bots?: boolean } = {}) {   // bo
         <h3>서버가 직접 부르는 일 <small>다음 호출부터</small></h3>
         {ms.isPending ? <p className="note">불러오는 중</p> : ms.isError || !s ? <p className="note err">서버 쪽 값을 못 읽었어 — {(ms.error as Error)?.message || "서버 답 없음"} <button type="button" onClick={() => void ms.refetch()}>다시</button></p> : (
           <>
-            {jobSave.isError ? <p className="note err">못 바꿨어 — {(jobSave.error as Error)?.message || "서버 답 없음"} · 다시 골라 줘</p> : null}
+            {errAt === "" ? jobErr : null}
             <div className="rows">
-              {shownJobs.map((j) => <PickRow key={j.id} label={j.id === "sort" && audit ? `${j.ko} · ${audit.ko}` : j.ko} dimModel={j.now.model === j.def.model} dimEffort={j.now.effort === j.def.effort} pick={j.now} models={jobModels} efforts={jobEfforts} can={can} busy={jobSave.isPending} onPick={(p) => jobSave.mutate({ job: j.id, ...p })} />)}
+              {shownJobs.map((j) => jobRow(j, j.id === "sort" && audit ? `${j.ko} · ${audit.ko}` : j.ko))}
             </div>
           </>
         )}
       </section>
+      {jg.groups.map((g) => (
+        // 묶음 머리 하나 = 그 묶음 일 줄(이름 · 한 줄 역할 = 서버 where · 모델 · 노력도) · 고르면 같은 길(POST modelset {job}) = 서버가 다음 호출부터 그 값으로
+        <section key={g.id}>
+          <h3>{g.ko} <small>다음 호출부터</small></h3>
+          {errAt === g.id ? jobErr : null}
+          <div className="rows">{g.jobs.map((j) => jobRow(j, j.ko, j.where))}</div>
+        </section>
+      ))}
       <section>
         <h3>파이프라인 <small>다음 실행부터</small></h3>
         {pipe.isPending ? <p className="note">불러오는 중</p> : pipe.isError || !pipe.data ? <p className="note err">파이프라인 값을 못 읽었어 — {(pipe.error as Error)?.message || "서버 답 없음"} <button type="button" onClick={() => void pipe.refetch()}>다시</button></p> : (

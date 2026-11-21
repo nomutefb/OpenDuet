@@ -1,10 +1,23 @@
 // 설정 「모델 · 노력도」 논리(./model-set.tsx) — 서버가 준 꼴을 그대로 받아 글자 · 「모두」 줄 값만 정함(판정 0)
 export type Pick = { model: string; effort: string };
-export type Job = { id: string; ko: string; where?: string; def: Pick; now: Pick };
+export type Job = { id: string; ko: string; where?: string; group?: string; def: Pick; now: Pick };   // group = 묶음 칸(서버 modelset · 없으면 「서버가 직접 부르는 일」)
 export type Choice = { id: string; ko: string; menu?: string };   // menu = 고르는 목록에서만 앞에 붙는 말(「기본」) — 접힌 칸엔 ko(실제 값)만
-export type Sheet = { jobs: Job[]; models: Choice[]; efforts: Choice[] };
+export type Sheet = { jobs: Job[]; models: Choice[]; efforts: Choice[]; groups?: Choice[] };
 
 export const koOf = (list: Choice[], id: string): string => list.find((c) => c.id === id)?.ko || id;
+export type JobGroup = { id: string; ko: string; jobs: Job[] };
+/** 묶음 칸(형 11-21 17:25 dm-eyes 뜸 옮김 「그리고 여기 뜸 보조 라고 해서 밥풀하고 주걱, 각각 역할 간단히 서술되고 모델 들어가고 실제로 반영도 되어야해 그리고 콘티 만드는것도 그니까 총 3개인거지.」)
+ *  group 있는 일 = 제 묶음 머리 밑 · 없는 일 = plain(「서버가 직접 부르는 일」 그대로) · 묶음 차례 = 서버 groups 차례 → 표에 없는 묶음은 처음 나온 차례 · 이름 = groups 의 ko(없으면 id 그대로) */
+export function jobGroups(s: { jobs?: Job[]; groups?: Choice[] } | undefined): { plain: Job[]; groups: JobGroup[] } {   // 이 파일의 Pick = 모델 · 노력도 한 벌(TS 의 Pick 아님) → 꼴을 따로 적음
+  const plain: Job[] = [], by = new Map<string, Job[]>(), named = s?.groups || [];
+  for (const j of s?.jobs || []) {
+    if (!j.group) { plain.push(j); continue; }
+    const g = by.get(j.group);
+    if (g) g.push(j); else by.set(j.group, [j]);
+  }
+  const order = [...named.map((g) => g.id).filter((id) => by.has(id)), ...[...by.keys()].filter((id) => !named.some((g) => g.id === id))];
+  return { plain, groups: order.map((id) => ({ id, ko: koOf(named, id), jobs: by.get(id) as Job[] })) };
+}
 /** 서버 일 이름 → 앱에서 부르는 이름(형 11-21 05:44 dm-bom 봄 옮김 「일감 가르기 명칭 배분 서브」 · 열쇠 id 그대로 · 서버 표 이름은 안 고침) */
 export const JOB_KO: Record<string, string> = { sort: "배분 서브" };
 export const sheetKo = (s: Sheet): Sheet => ({ ...s, jobs: (s.jobs || []).map((j) => (JOB_KO[j.id] ? { ...j, ko: JOB_KO[j.id] } : j)) });
