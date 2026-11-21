@@ -12,7 +12,8 @@ import { normEmph, renderEmph2, sensMask, stripStrayStars } from "./p05-text";
 import { snapForm, studioRouteFn } from "./p06-draft";
 import { TRK, buildEmphText, estTracking, prevLetterSpace } from "./p10-cards";
 import { HDR, _ovCharW, abbrOn, cTpl, effOvFmt, estHeaderTr, goFire, hdrFit, ovFit, ovTrkKey } from "./p11-fit";
-import { quoteIndents } from "./quote-indent";   // 따옴표 들여쓰기 = 굽는 쪽 quote_indent.py 새 판(R0083 · R0089 ②)
+import { quoteIndents } from "./quote-indent";
+import { CARD, baseOf, cssBaseIn, headBase, splitExtras } from "../../card-extras";   // 카드 덧줄 부제 · 출처(천둥 editor #4602 · R0083 UI 짝)   // 따옴표 들여쓰기 = 굽는 쪽 quote_indent.py 새 판(R0083 · R0089 ②)
 import { a2Build, errStatus } from "./p13-fire";
 
 export const CPV_WHITE = 'rgb(255,255,255)';
@@ -238,8 +239,13 @@ export function renderCpPrev() {
   } else if (cur.k === 'card') {
     if (S.CIMG.b64) h += CPV_PANSLOT;
     h += `<div class="cpv-scrim g-card"></div>`;
-    const cl = cur.cl || [];
-    if (cl.length) h += `<div class="cpv" style="left:${px(87)};right:${px(56)};top:${py(888)};color:${CPV_WHITE};font-size:${px(54)};font-weight:700;line-height:${(88 / 54).toFixed(3)};white-space:pre">${cl.map(emph).join('<br>')}</div>`;
+    const { head, body: cl, credit } = splitExtras(cur.cl || []);   // 첫 줄 머리표 = 부제 · 끝 줄 「자료 · …」 = 출처(굽는 쪽 card_news split_extras 와 같은 가름 · ../../card-extras.ts)
+    // 바탕선 = 굽는 쪽과 같은 자리(자막 i 줄 = 888 + 52 + 88i · 앞 판은 줄 상자 위 끝을 888 에 둬서 바탕선이 11 아래였음) · 시아 R0089 ② 「형이 보는 미리보기 = 결과」
+    const qc = quoteIndents(cl, ch => _ovCharW(ch, { fs: CARD.FS, basis: 'adv', H: CARD.FS, S: 15, N: 30 }));   // 따옴표 들여쓰기 = 굽는 쪽 card_news compute_line_offsets 새 판(줄 시작 · 한두 어절 뒤 · 자간 0)
+    if (cl.length) h += `<div class="cpv" style="left:${px(CARD.SX)};right:${px(56)};top:${py(baseOf(0) - cssBaseIn(CARD.FS, CARD.LH))};color:${CPV_WHITE};font-size:${px(CARD.FS)};font-weight:700;line-height:${(CARD.LH / CARD.FS).toFixed(3)};white-space:pre">${cl.map((l, i) => (qc[i] > 0 ? `<span style="display:inline-block;width:${px(qc[i])}"></span>` : '') + emph(l)).join('<br>')}</div>`;
+    const hfs = Math.round(CARD.FS * CARD.HEAD_SCALE);
+    if (head) h += `<div class="cpv" style="left:${px(CARD.SX)};right:${px(56)};top:${py(headBase() - cssBaseIn(hfs, hfs))};color:${CPV_WHITE};font-size:${px(hfs)};font-weight:700;line-height:1;white-space:pre">${esc(head)}</div>`;
+    if (credit) h += `<div class="cpv" style="right:${px(CARD.CREDIT_RIGHT)};top:${py(CARD.CREDIT_BASE - cssBaseIn(CARD.CREDIT_FS, CARD.CREDIT_FS))};color:rgba(255,255,255,${CARD.CREDIT_ALPHA});font-size:${px(CARD.CREDIT_FS)};font-weight:400;line-height:1;white-space:pre">${esc(credit)}</div>`;
   }
   const gfmtR = S.cpThumb !== 'off' ? S.cpThumb : (effOvFmt() === 'post' ? 'post' : 'reels');
   const showCR = (cur.k === 'cr') || (S.cpThumb !== 'off' && cpMergeOn(cur, S.cpThumb)) || (S.guideMode && cpMergeOn(cur, gfmtR));
