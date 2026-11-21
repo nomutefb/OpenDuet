@@ -7,6 +7,7 @@ import vm from "node:vm";
 
 const SRC = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 const ORIGIN = "https://edit.nomute.kr";
+const caches0 = async (sw: { stores: Map<string, Map<string, Response>> }) => { if (!sw.stores.has("garden-app-static-v1")) sw.stores.set("garden-app-static-v1", new Map()); const m = sw.stores.get("garden-app-static-v1")!; return { put: async (u: string, r: Response) => { m.set(u, r); } }; };
 const res = (body: string, type: string, status = 200, etag = "") => new Response(status === 304 ? null : body, { status, headers: { "content-type": type, ...(etag ? { etag } : {}) } });
 
 function boot(net: (u: string, inm: string) => Response) {
@@ -97,6 +98,19 @@ test("뿌리 자리 큰 자료(articles.json) = 늘 서버에 묻고 「안 바�
   assert.equal(await (await sw.get("/articles.json"))!.text(), '{"n":2}');   // 바뀌면 바로 새 것(늘 서버가 정본)
   sw.cut(true);
   assert.equal(await (await sw.get("/articles.json"))!.text(), '{"n":2}');   // 끊김 = 마지막으로 받은 것
+});
+
+test("꼬리가 매번 바뀌는 자료(?ts=시각) = 한 칸에만 담김(쌓이지 않음) · 꼬리가 달라도 「안 바뀜」이면 담아 둔 것 · 판이 바뀔 때 옛 꼬리 칸은 치움", async () => {
+  const tag = '"t1"', seenUrls: string[] = [];
+  const sw = boot((u, inm) => { seenUrls.push(u); return inm === tag ? res("", "application/json", 304, tag) : res('{"k":1}', "application/json", 200, tag); });
+  for (const ts of [1, 2, 3, 4]) assert.equal(await (await sw.get(`/sns_trends.json?t=${ts}`))!.text(), '{"k":1}');
+  const keys = () => [...(sw.stores.get("garden-app-static-v1")?.keys() || [])].map((k) => k.replace(ORIGIN, "")).filter((k) => k.includes("sns_trends"));
+  assert.deepEqual(keys(), ["/sns_trends.json"]);                                     // 한 칸
+  assert.deepEqual(seenUrls, ["/sns_trends.json?t=1", "/sns_trends.json?t=2", "/sns_trends.json?t=3", "/sns_trends.json?t=4"]);   // 서버엔 온 주소 그대로 물음
+  assert.deepEqual(sw.calls.map((c) => c.inm), ["", tag, tag, tag]);                 // 둘째부터 조건부 → 304
+  await (await caches0(sw)).put(ORIGIN + "/old.json?ts=9", res("{}", "application/json", 200, '"o"'));   // 첫 판이 꼬리째 담아 둔 칸
+  await sw.activate();
+  assert.ok(![...(sw.stores.get("garden-app-static-v1")?.keys() || [])].some((k) => k.includes("?ts=9")));
 });
 
 test("손 안 대는 것 = /api · 영상 · 판 번호 · 남의 사이트 · 구간 요청 · 화면 열기", async () => {
