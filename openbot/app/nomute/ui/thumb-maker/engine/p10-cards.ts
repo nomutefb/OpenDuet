@@ -11,6 +11,7 @@ import { CP_PREV_FONT } from "./p02-preview";
 import { ERASE_UNDO_MS, clipCopy, clipPasteText } from "./p04-media";
 import { curlyQ } from "./p05-text";
 import { _inkChars, _ovCharW } from "./p11-fit";
+import { extraAt, lineCap, splitExtras } from "../../card-extras";
 
 export const MAX_LINES = 4;
 export const EDLINE_HANGUL = 18;
@@ -39,10 +40,20 @@ export function parseEmphLines(s) {
     else cur.push({ text, on: false, em });
     i = j;
   }
-  return lines.slice(0, MAX_LINES);
+  return capLines(lines);
+}
+// 카드 덧줄(부제 = 첫 줄 머리표 · 출처 = 끝 줄 「자료 · …」 · ../../card-extras.ts · 천둥 editor #4602 R0083) = 자막 4줄 한도 · 폭 한도 밖(굽는 쪽 card_text_check 와 같은 가름)
+export const edTexts = (L = S.edLines) => L.map(l => l.map(w => w.text || '').join(' '));
+export const edExtra = (li, L = S.edLines) => extraAt(edTexts(L), li);
+export const edCap = (L = S.edLines) => lineCap(edTexts(L), MAX_LINES);
+export function capLines(lines) {   // 자막만 4줄 · 부제 · 출처는 그대로 둠(앞 판 = 통째 4줄 → 부제 + 4줄 + 출처 카드의 출처가 잘렸음)
+  const { head, credit } = splitExtras(edTexts(lines));
+  const a = head ? 1 : 0, b = credit ? lines.length - 1 : lines.length;
+  return [...lines.slice(0, a), ...lines.slice(a, b).slice(0, MAX_LINES), ...lines.slice(b)];
 }
 export function edMarkWarn() {
-  for (const line of S.edLines) {
+  for (const [li, line] of S.edLines.entries()) {
+    if (edExtra(li)) { line.forEach(wd => { wd._over = false; wd._overFrom = -1; wd._warn = false; }); continue; }   // 부제 · 출처 줄 = 폭 한도 밖
     let w = 0, hg = 0, over = false;
     line.forEach((wd, k) => {
       if (k) w += 0.5;
@@ -62,7 +73,8 @@ export function edMarkWarn() {
   }
 }
 export function edAnyOver() {
-  for (const line of S.edLines) {
+  for (const [li, line] of S.edLines.entries()) {
+    if (edExtra(li)) continue;
     let w = 0, hg = 0;
     for (let k = 0; k < line.length; k++) {
       if (k) w += 0.5;
@@ -72,17 +84,19 @@ export function edAnyOver() {
   return false;
 }
 export function lineWidthWith(li, wi, newText) {
+  if (edExtra(li)) return { w: 0, hg: 0 };
   let w = 0, hg = 0;
   S.edLines[li].forEach((wd, k) => { if (k) w += 0.5; const t = k === wi ? newText : wd.text; w += edWidth(t); hg += edHangul(t); });
   return { w, hg };
 }
-export function lineFull(line) {
+export function lineFull(line, li) {
+  if (li != null && edExtra(li)) return false;
   let w = 0, hg = 0;
   line.forEach((wd, k) => { if (k) w += 0.5; w += edWidth(wd.text); hg += edHangul(wd.text); });
   return w >= EDLINE_WIDTH || hg >= EDLINE_HANGUL;
 }
 export function clipLineOver(li) {
-  const line = S.edLines[li]; if (!line) return;
+  const line = S.edLines[li]; if (!line || edExtra(li)) return;
   let w = 0, hg = 0;
   for (let k = 0; k < line.length; k++) {
     if (k) w += 0.5;
@@ -120,7 +134,7 @@ export function renderEditChips() {
     }
   });
   edMarkWarn();
-  const full = S.edLines.length >= MAX_LINES;
+  const full = S.edLines.length >= edCap();
   S.edLines.forEach((line, li) => {
     const row = document.createElement('div'); row.className = 'ed-line'; row.dataset.li = li;
     if (line.length === 0) {
@@ -210,7 +224,7 @@ export function renderEditChips() {
         };
         row.appendChild(chip);
       });
-      if (!lineFull(line)) {
+      if (!lineFull(line, li)) {
         const addw = document.createElement('span'); addw.className = 'ed-addw'; addw.textContent = '+'; addw.title = '이 줄에 어절 추가';
         addw.onclick = () => { S.edLines[li].push({ text: '', on: false }); S.PENDING_EDIT = { li, wi: S.edLines[li].length - 1 }; renderEditChips(); };
         row.appendChild(addw);
@@ -239,7 +253,7 @@ export function renderEditChips() {
   if (S.cardIo) S.cardIo();
 }
 export function addLineAfter(li) {
-  if (S.edLines.length >= MAX_LINES) return;
+  if (S.edLines.length >= edCap()) return;
   S.edLines.splice(li + 1, 0, []);
   S.PENDING_FOCUS = li + 1;
   renderEditChips();

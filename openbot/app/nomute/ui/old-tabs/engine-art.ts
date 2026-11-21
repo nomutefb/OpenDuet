@@ -2,6 +2,10 @@
 /* eslint-disable */
 // 만든 파일 — 손으로 고치지 말 것(ui/old-tabs/tools/gen-js.mjs art 가 옛 에디터 viewer/index.html 에서 떼어 옴 · 대체 조각 = tools/prelude.js 앞쪽 + tools/prelude-art.js)
 //   옛 「기사 창」(#dlg · open(a))이 돌던 코드 그대로(선언 297개) · 문서 = 이 화면 틀(ROOT) · 듣기 · 타이머 = 끌 때 다 걷음
+//   11-21 하늘 손(R0083 UI 짝 · 천둥 editor #4602): 카드 편집 칩 줄 한도 · 폭 면제(부제 · 출처) · 덮개 그림(ovlText · 프리텐다드 · #6EFF66 · 덧줄 · 따옴표 새 규칙)
+//     — 원본(옛 에디터)은 11-19 걷혀 꼬리표 old-editor-final 로 얼어 있음 → gen-js 를 다시 돌리면 이 줄들이 빠짐(짐작) · 다시 뗄 땐 REWRITE 로 옮길 것
+import { CARD, baseOf, extraAt, headBase, lineCap, splitExtras } from "../card-extras";
+import { quoteIndents } from "../thumb-maker/engine/quote-indent";
 export function startOldArt(ROOT, host) {
   // ── 앱 안에서 돌리기 위한 틀(원본에 없던 줄) ──
   let __dead = false;
@@ -1489,13 +1493,23 @@ function parseEmphLines(s) {
     else cur.push({ text, on: false, em });   // 어절 중간 경계 → 글자맵 보존
     i = j;
   }
-  return lines.slice(0, MAX_LINES);   // 로드 시 4줄 하드캡(방어)
+  return capLines(lines);   // 로드 시 자막 4줄 하드캡(방어) · 부제 · 출처는 그대로(앞 판 = 통째 4줄 → 부제 + 4줄 + 출처 카드를 열면 출처가 잘려 저장 때 사라졌음)
+}
+// 카드 덧줄(부제 = 첫 줄 머리표 · 출처 = 끝 줄 「자료 · …」 · ../card-extras.ts · 천둥 editor #4602 R0083) = 자막 4줄 한도 · 폭 한도 밖(굽는 쪽 card_text_check 와 같은 가름)
+const edTexts = (L = edLines) => L.map(l => l.map(w => w.text || '').join(' '));
+const edExtra = (li, L = edLines) => extraAt(edTexts(L), li);
+const edCap = (L = edLines) => lineCap(edTexts(L), MAX_LINES);
+function capLines(lines) {
+  const { head, credit } = splitExtras(edTexts(lines));
+  const a = head ? 1 : 0, b = credit ? lines.length - 1 : lines.length;
+  return [...lines.slice(0, a), ...lines.slice(a, b).slice(0, MAX_LINES), ...lines.slice(b)];
 }
 const EDLINE_HANGUL = 18, EDLINE_WIDTH = 19.5, EDLINE_SOFT = 14;
 function edHangul(s) { return (s.match(/[가-힣]/g) || []).length; }
 function edWidth(s) { let w = 0; for (const ch of s) w += /[가-힣ㄱ-ㅎㅏ-ㅣ‘-‟…　-〿＀-￯]/.test(ch) ? 1 : 0.5; return w; }
 function edMarkWarn() {   // 줄별 '글자단위': 누적이 한도(가중폭19.5·한글18) 넘는 글자부터 빨강(_overFrom). 줄 길면 호박(_warn).
-  for (const line of edLines) {
+  for (const [li, line] of edLines.entries()) {
+    if (edExtra(li)) { line.forEach(wd => { wd._over = false; wd._overFrom = -1; wd._warn = false; }); continue; }   // 부제 · 출처 줄 = 폭 한도 밖
     let w = 0, hg = 0, over = false;
     line.forEach((wd, k) => {
       if (k) w += 0.5;   // 어절 사이 공백
@@ -1515,17 +1529,19 @@ function edMarkWarn() {   // 줄별 '글자단위': 누적이 한도(가중폭19
   }
 }
 function lineWidthWith(li, wi, newText) {   // li줄에서 wi어절을 newText로 본 줄 길이(편집 중 라이브 빨강 체크)
+  if (edExtra(li)) return { w: 0, hg: 0 };
   let w = 0, hg = 0;
   edLines[li].forEach((wd, k) => { if (k) w += 0.5; const t = k === wi ? newText : wd.text; w += edWidth(t); hg += edHangul(t); });
   return { w, hg };
 }
-function lineFull(line) {   // 줄이 한도(가중폭19.5·한글18)에 닿음 = 더 못 담음 → 줄끝 어절+ 숨김(item 3)
+function lineFull(line, li) {   // 줄이 한도(가중폭19.5·한글18)에 닿음 = 더 못 담음 → 줄끝 어절+ 숨김(item 3)
+  if (li != null && edExtra(li)) return false;
   let w = 0, hg = 0;
   line.forEach((wd, k) => { if (k) w += 0.5; w += edWidth(wd.text); hg += edHangul(wd.text); });
   return w >= EDLINE_WIDTH || hg >= EDLINE_HANGUL;
 }
 function clipLineOver(li) {   // 도형 이탈 시: 줄 한도 넘는 글자부터 전부 탈락(걸린 음절·뒤 어절 자동 정리) — 가나다라마 → 가나다라
-  const line = edLines[li]; if (!line) return;
+  const line = edLines[li]; if (!line || edExtra(li)) return;
   let w = 0, hg = 0;
   for (let k = 0; k < line.length; k++) {
     if (k) w += 0.5;   // 어절 사이 공백
@@ -1561,7 +1577,7 @@ function renderEditChips() {   // 어절칩 렌더 — 중첩 모델(edLines). �
     }
   });
   edMarkWarn();
-  const full = edLines.length >= MAX_LINES;
+  const full = edLines.length >= edCap();
   edLines.forEach((line, li) => {
     const row = document.createElement('div'); row.className = 'ed-line'; row.dataset.li = li;
     if (line.length === 0) {   // 빈 줄 = 입력용 placeholder 칩
@@ -1658,7 +1674,7 @@ function renderEditChips() {   // 어절칩 렌더 — 중첩 모델(edLines). �
         };
         row.appendChild(chip);
       });
-      if (!lineFull(line)) {   // 한도 닿은 줄엔 어절+ 안 보임(item 3 — 더 못 담음)
+      if (!lineFull(line, li)) {   // 한도 닿은 줄엔 어절+ 안 보임(item 3 — 더 못 담음)
         const addw = document.createElement('span'); addw.className = 'ed-addw'; addw.textContent = '+'; addw.title = '이 줄에 어절 추가';   // 줄 끝 글자 + = 어절 추가
         addw.onclick = () => { edLines[li].push({ text: '', on: false }); PENDING_EDIT = { li, wi: edLines[li].length - 1 }; renderEditChips(); };
         row.appendChild(addw);
@@ -1687,7 +1703,7 @@ function renderEditChips() {   // 어절칩 렌더 — 중첩 모델(edLines). �
   requestAnimationFrame(() => { wrap.classList.remove('ed-building'); fitEditLines(wrap); });   // 다음 프레임 = 전환 복원(탭 토글 애니 정상) + 반응형 폭 맞춤
 }
 function addLineAfter(li) {   // 그 줄 바로 아래 빈 줄 + 커서
-  if (edLines.length >= MAX_LINES) return;
+  if (edLines.length >= edCap()) return;
   edLines.splice(li + 1, 0, []);
   PENDING_FOCUS = li + 1;
   renderEditChips();
@@ -2071,18 +2087,25 @@ attachCopyPaste($('#edWish'), true);
   };
   edCardIo();
 })();
-const OVL = { W: 1080, H: 1350, FS: 54, LH: 88, SX: 87, SY: 888, HL: '#00EED2', DEF: '#ffffff' };
-const OVL_OPEN = '“‘「『«‹', OVL_CLOSE = '”’」』»›';
+const OVL = { W: 1080, H: 1350, FS: 54, LH: 88, SX: 87, SY: 888, HL: '#6EFF66', DEF: '#ffffff' };   // 강조 = #6EFF66(형 11-21 R0083 「✓ ② B #6EFF66」 · 굽는 쪽 content_style GREEN · 앞 판 #00EED2)
+const OVL_FONT = '"Pretendard Variable","Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif';   // 카드 글꼴 = 프리텐다드(형 11-21 「카드는 모두 프리텐다드」 · 굽는 쪽 Pretendard-Bold.otf = 앱 /assets/fonts/pretendard.woff2 같은 값 · 앞 판 Noto Sans KR 700)
 let _ovlFont = false;
-async function ovlLoadFont() {   // 카드 폰트(NotoSansCJK Bold) 근사 = Noto Sans KR 700
+async function ovlLoadFont() {
   if (_ovlFont) return;
-  if (!__byId('ovl-font')) {
-    const l = document.createElement('link'); l.id = 'ovl-font'; l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700&display=block';
-    document.head.appendChild(l);
-  }
-  try { await document.fonts.load('700 54px "Noto Sans KR"'); await document.fonts.ready; } catch { /* 실패 시 시스템 한글 폴백 */ }
+  try { await document.fonts.load(`700 ${OVL.FS}px ${OVL_FONT}`); await document.fonts.load(`400 ${CARD.CREDIT_FS}px ${OVL_FONT}`); await document.fonts.ready; } catch { /* 실패 시 시스템 한글 폴백 */ }
   _ovlFont = true;
+}
+function ovlText(ctx, caption) {   // 자막 + 덧줄(부제 · 출처) = 굽는 쪽 card_news render_text · render_extras 자리 그대로(바탕선 = 888 + 52 + 88i · 부제 = 한 줄 위 · 출처 = 오른쪽 아래 · ../card-extras.ts)
+  const { head, body, credit } = splitExtras((caption || '').split('\n'));
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.font = `700 ${OVL.FS}px ${OVL_FONT}`;
+  const offs = quoteIndents(body, ch => ctx.measureText(ch).width);   // 따옴표 들여쓰기 = 굽는 쪽 compute_line_offsets 새 판(줄 시작 · 한두 어절 뒤 · 앞 판 ovlOffsets = 어디서 열었든)
+  body.forEach((line, i) => {
+    let x = OVL.SX + offs[i]; const y = baseOf(i);
+    ovlSegs(line).forEach(seg => { ctx.fillStyle = seg.h ? OVL.HL : OVL.DEF; ctx.fillText(seg.text, x, y); x += ctx.measureText(seg.text).width; });
+  });
+  if (head) { ctx.font = `700 ${Math.round(OVL.FS * CARD.HEAD_SCALE)}px ${OVL_FONT}`; ctx.fillStyle = OVL.DEF; ctx.fillText(head, OVL.SX, headBase()); }
+  if (credit) { ctx.font = `400 ${CARD.CREDIT_FS}px ${OVL_FONT}`; ctx.fillStyle = `rgba(255,255,255,${CARD.CREDIT_ALPHA})`; ctx.textAlign = 'right'; ctx.fillText(credit, CARD.W - CARD.CREDIT_RIGHT, CARD.CREDIT_BASE); ctx.textAlign = 'left'; }
 }
 function ovlGradient(ctx) {   // 상단 38.6% 투명 → 하단 alpha 236 (곡선 a=1.268 b=3.217)
   const start = Math.floor(OVL.H * 0.386), a = 1.268, b = 3.217;
@@ -2099,20 +2122,6 @@ function ovlSegs(line) {   // *강조* → [{h:true|false, text}]
   line.split(/(\*[^*]+\*)/).forEach(p => { if (!p) return; (p.startsWith('*') && p.endsWith('*')) ? out.push({ h: true, text: p.slice(1, -1) }) : out.push({ h: false, text: p }); });
   return out;
 }
-function ovlOffsets(ctx, lines) {   // 여는 따옴표가 줄 넘어 닫힐 때 그 사이 줄 들여쓰기(card_news compute_line_offsets)
-  const offs = [], stack = [], ascii = { '"': false, "'": false }, mw = ch => ctx.measureText(ch).width;
-  for (const line of lines) {
-    let cur = stack.reduce((s, w) => s + w, 0);
-    for (const ch in ascii) if (ascii[ch]) cur += mw(ch);
-    offs.push(cur);
-    for (const ch of line.replace(/\*([^*]+)\*/g, '$1')) {
-      if (OVL_OPEN.includes(ch)) stack.push(mw(ch));
-      else if (OVL_CLOSE.includes(ch)) { if (stack.length) stack.pop(); }
-      else if (ch === '"' || ch === "'") ascii[ch] = !ascii[ch];
-    }
-  }
-  return offs;
-}
 async function exportOverlay(card, idx, slug) {
   const cap = ((card.versions[card.cur] || {}).caption || '').trim();
   if (!cap) { alert('이 카드는 텍스트가 없어 — 오버레이 뽑을 게 없음.'); return; }
@@ -2122,13 +2131,7 @@ async function exportOverlay(card, idx, slug) {
     const cv = document.createElement('canvas'); cv.width = OVL.W; cv.height = OVL.H;
     const ctx = cv.getContext('2d');
     ovlGradient(ctx);
-    ctx.font = `700 ${OVL.FS}px "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif`;
-    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-    const lines = cap.split('\n'), offs = ovlOffsets(ctx, lines);
-    lines.forEach((line, i) => {
-      let x = OVL.SX + offs[i]; const y = OVL.SY + i * OVL.LH;
-      ovlSegs(line).forEach(seg => { ctx.fillStyle = seg.h ? OVL.HL : OVL.DEF; ctx.fillText(seg.text, x, y); x += ctx.measureText(seg.text).width; });
-    });
+    ovlText(ctx, cap);
     // PNG 고정 = **투명 RGBA 오버레이**(자막판을 영상·사진 위에 얹는 레이어 = 알파가 산출의 본질).
     // ⚠ 260805 「투명 아닌 건 전부 JPG q90」 통일의 **운영자 지정 예외축** — JPG로 바꾸면 알파가 죽어 검은 판이 화면을 덮는다.
     cv.toBlob(blob => {
@@ -2177,13 +2180,7 @@ async function ovlPreviewTo(bgDataUrl, caption) {   // 첨부사진+오버레이
   else { sw = bg.width; sh = sw / dr; sx = 0; sy = (bg.height - sh) * 0.4; }
   ctx.drawImage(bg, sx, sy, sw, sh, 0, 0, OVL.W, OVL.H);
   ovlGradient(ctx);
-  ctx.font = `700 ${OVL.FS}px "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif`;
-  ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-  const lines = (caption || '').split('\n'), offs = ovlOffsets(ctx, lines);
-  lines.forEach((line, i) => {
-    let x = OVL.SX + offs[i]; const y = OVL.SY + i * OVL.LH;
-    ovlSegs(line).forEach(seg => { ctx.fillStyle = seg.h ? OVL.HL : OVL.DEF; ctx.fillText(seg.text, x, y); x += ctx.measureText(seg.text).width; });
-  });
+  ovlText(ctx, caption);
   return cv.toDataURL('image/jpeg', 0.9);
 }
 async function renderEditPreview() {   // editScene 있으면 합성 미리보기(_edAfterSrc)로 갱신 → 전/후 상태대로 .ed-img 적용(칩 편집 시 재호출)
