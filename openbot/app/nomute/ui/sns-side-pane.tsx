@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SIDE_EVENT, type SidePick, SNS_GO_EVENT, SNS_SITE_KEY, SNS_SITES, type SnsSite, sideBridge, sideMsg, siteOf, takeGo } from "./sns-side";
 import { pickPost, stageSns } from "./sns-share";
+import { trackSpot } from "./native-web";   // 자리 + 구멍(메뉴 판 · 알림이 웹뷰에 안 가려지게 · 형 11-21)
 import { type MirrorSt, mirror } from "./mac-mirror";   // 다리 없는 브라우저 = 맥 비춤(⑤ B · 카리나 붙이개)
 import { SnsMirror } from "./sns-mirror";
 
@@ -47,18 +48,11 @@ export function SnsSidePane() {
     try { localStorage.setItem(SNS_SITE_KEY, site); } catch { /* 이번만 */ }
     const el = box.current;
     if (!send || !el) return undefined;
-    let raf = 0, last = "";
-    const post = () => {
-      raf = 0;
-      const m = sideMsg(site, el.getBoundingClientRect(), window.innerWidth, window.innerHeight), k = JSON.stringify(m);
-      if (k !== last) { last = k; send(m); }   // 같은 자리 = 다시 안 보냄
+    return trackSpot(el, (sp) => {   // 자리 · 구멍이 바뀔 때만(같은 값 = 다시 안 보냄) · 안 보이면 숨김
+      if (!sp) { send({ t: "nm-side", on: false }); return; }
+      send({ ...sideMsg(site, { left: sp.rect.x, top: sp.rect.y, width: sp.rect.w, height: sp.rect.h }, sp.vw, sp.vh), holes: sp.holes, ...(sp.veil ? { veil: true } : {}) });
       if (goTo.current) { send({ t: "nm-side-go", site, url: goTo.current }); goTo.current = ""; }
-    };
-    const soon = () => { if (!raf) raf = requestAnimationFrame(post); };
-    post();
-    const ro = new ResizeObserver(soon); ro.observe(el);
-    window.addEventListener("resize", soon);
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener("resize", soon); };
+    });
   }, [site, send]);
   useEffect(() => () => { send?.({ t: "nm-side", on: false }); }, [send]);   // 탭 떠남 = 껍데기 웹뷰 숨김
   const pick = useRef<() => void>(() => {});

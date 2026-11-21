@@ -16,6 +16,7 @@ import { screenTabAdd } from "./screen-tab-logic";
 import { TEAMS_PREFIX, TeamsList, isTeams, useTeamsUnread } from "./teams";
 import { SnsSidePane } from "./sns-side-pane";   // SNS 탭 오른쪽 칸(형 11-20 09:20)
 import { SNS_GO_EVENT } from "./sns-side";   // 대화 카드 → SNS 탭(형 11-20 10:16)
+import { WEB_EVENT, type WebEvt, adopt, nativeWeb } from "./native-web";   // 껍데기 앱의 웹 칸 다리(웹 탭 안 = 진짜 웹뷰 · 형 11-21)
 import { useRootFlag } from "./has-flags";   // 팀즈 탭(형 11-12 16:49 봄 1:1 「그리고 팀즈 내용이 탭을 통해 전환하게 해줘. 누누르면 대화창만 바뀌면됨.」 「목록은 우측에 대화창은 좌측에 하면되겟다. 탭에 항상 팀즈가 잇고 고정으로.」 「팀즈 픽토그램으로 살려서」 · 깃)   // 웹 탭 안 = 대시보드 「웹」 칸과 같은 한 벌(형 11-11 22:11 「하네스가 참조처럼 되어야지 2개 만들면 수정할때마다 두번수정해야되니까」)
 import "./tab-bar.css";
 import { MeetIcon, TeamsIcon } from "./tab-icons";   // 폰 「사무실 | 팀즈 | 회의」 탭도 같이 씀(./teams.tsx TeamsSwitch · 형 11-13 22:14)
@@ -76,6 +77,16 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   useEffect(() => { const on = () => setS((x) => (x.active === SNS ? x : { ...x, active: SNS })); addEventListener(SNS_GO_EVENT, on); return () => removeEventListener(SNS_GO_EVENT, on); }, []);   // 대화 속 SNS 카드 누름(./sns-card.tsx · 미토스 ①) = SNS 탭 · 그 글(칸이 가져감 · ./sns-side.ts takeGo)   // 들머리 = openCobrowse()
   useEffect(() => { const on = (e: Event) => { const a = (e as CustomEvent<ScreenTabAsk>).detail; if (a) setS((x) => screenTabAdd(x, a.who, a.url)); }; addEventListener(SCREEN_TAB_EVENT, on); return () => removeEventListener(SCREEN_TAB_EVENT, on); }, []);   // 들머리 = openScreenTab()(프로필 카드 「몸 화면 열기」 · PC) → 「○○ 화면」 탭을 붙이고 고름
   useEffect(() => { const on = (e: Event) => { const u = (e as CustomEvent<{ url?: string }>).detail?.url; if (u) setS((x) => webTabOpen(x, u)); };   /* 바깥 링크 = 정원 안 새 탭(형 11-18 13:56 「저 열면 새탭에서 안열려(봄의 정원 내 새탭)」) · 그 탭이 생기면 「Browser」는 줄에서 빠짐(위 hasWeb) */ addEventListener(WEB_TAB_EVENT, on); return () => removeEventListener(WEB_TAB_EVENT, on); }, []);   // 들머리 = openInApp()(바깥 링크 누름 · window.open) → 그 주소의 웹 탭을 붙이고 고름(형 11-17 「내부에서 무조건 열려야해. 창 내부 탭(브라우저)」)
+  // 껍데기 앱 웹 칸(./native-web.ts): 이 탭 줄이 떠 있음을 알림(칸 안 새 창 · 앱 단축키를 이 줄이 받음) · 칸 안 새 창 = 웹 탭 하나 더(그 웹뷰 그대로) · 그 창이 스스로 닫힘 = 탭 닫힘 · ⌘T 새 탭 · ⌘W 탭 닫기 · ⌘L 주소칸
+  const onShell = useRef<(d: WebEvt) => void>(() => {});
+  useEffect(() => {
+    const send = nativeWeb();
+    if (!send) return undefined;
+    send({ t: "nm-web-hello" });
+    const on = (e: Event) => { const d = (e as CustomEvent<WebEvt>).detail; if (d) onShell.current(d); };
+    window.addEventListener(WEB_EVENT, on);
+    return () => { window.removeEventListener(WEB_EVENT, on); send({ t: "nm-web-bye" }); };
+  }, []);
   useEffect(() => { try { if (isTeams(room)) localStorage.setItem(TEAMS_LAST, room.slice(TEAMS_PREFIX.length)); else if (room) localStorage.setItem(OFFICE_LAST, room); } catch { /* 이번만 */ } }, [room]);   // 왼쪽에 연 팀즈 대화 = 다음 팀즈 탭의 왼쪽
   useEffect(() => { if (s.active.startsWith("s:") || s.active.startsWith("w:")) setSeen((v) => (v.has(s.active) ? v : new Set(v).add(s.active))); }, [s.active]);
   const place = () => {   // 고른 탭 바탕 = 아래 판 바탕(테마 따라) · 새 판 알약 자리 = 탭 줄 끝
@@ -157,8 +168,18 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
   const close = (key: string) => {
     const i = order.indexOf(key), nb = order[i + 1] ?? order[i - 1], closed = tabsClose(s, key), next = s.active === key ? { ...closed, active: nb && !STRIP_FIXED.includes(nb) ? nb : "dash" } : closed;   // 고른 탭을 닫으면 = 눈에 보이는 오른쪽 → 왼쪽 이웃(줄 차례) · 이웃이 고정 탭(화상 회의 등 = 고르면 회의 · 다리가 켜짐)이면 봄의 정원으로
     const t = next.tabs.find((x) => tabKey(x) === next.active);
+    if (key.startsWith("w:")) nativeWeb()?.({ t: "nm-web-cmd", id: key.slice(2), cmd: "close" });   // 껍데기 앱 = 그 탭의 웹뷰도 내림
     setS(next);
     if (next.active !== s.active) { if (t?.k === "room") go(`#/channels/${encodeURIComponent(t.id)}`); else if (next.active === "dash" && pane === "chat" && !sideEl()) go("#/"); }
+  };
+  onShell.current = (d) => {
+    if (d.state === "open" && d.id && /^[a-z0-9]{1,24}$/.test(d.id)) { const id = d.id, url = /^https?:\/\//.test(d.url || "") ? d.url! : ""; adopt(id); setS((x) => tabsAdd(x, { k: "web", id, url })); }
+    else if (d.state === "closed" && d.id) { if (s.tabs.some((t) => tabKey(t) === `w:${d.id}`)) close(`w:${d.id}`); }
+    else if (d.state === "key") {
+      const webOn = s.active.startsWith("w:") || s.active === BROWSER;
+      if (d.key === "t" || (d.key === "l" && !webOn)) setS((x) => tabsAdd(x, webTabNew()));   // ⌘L 인데 웹 탭이 아님 = 새 탭(주소칸에 손)
+      else if (d.key === "w" && (s.active.startsWith("w:") || s.active.startsWith("s:"))) close(s.active);
+    }
   };
   const down = (key: string) => (e: RPE<HTMLDivElement>) => {
     if (e.button !== 0 || (e.target as HTMLElement).closest("button")) return;   // × · 팀즈 종 = 제 단추 일
@@ -255,7 +276,7 @@ export function TabBar({ room, pane }: { room: string; pane: string }) {
             s.active === "co" ? <div key="co" className="nm-tab-co"><CobrowsePane onClose={() => close("co")} /></div> : null   /* 보는 동안만 붙음 = 안 보면 다리 쉼(봄 12:53 「보는 중」 신호) · 다시 고르면 새 표 */
           ) : t.k === "web" ? (
             <div key={tabKey(t)} className="nm-tab-web" hidden={s.active !== tabKey(t)}>
-              <WebPane initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 탭은 넘어감 */ } setCoNav(u); setS((x) => ({ ...x, active: BROWSER })); }} />   {/* 막는 사이트 = 창 안 「Browser」 탭(맥 72 진짜 브라우저)으로 넘어가고 그 탭이 그 주소로 감(깃 다리 nm-co-cmd nav · 11-17 13:20) · 주소 복사는 다리가 남 손에 있을 때 붙여 넣으라고 남김 */}   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
+              <WebPane sid={t.id} initial={t.url} focus={s.active === tabKey(t)} onClose={() => close(tabKey(t))} onGo={(u) => setS((x) => tabsSetUrl(x, tabKey(t), u))} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 탭은 넘어감 */ } setCoNav(u); setS((x) => ({ ...x, active: BROWSER })); }} />   {/* 막는 사이트 = 창 안 「Browser」 탭(맥 72 진짜 브라우저)으로 넘어가고 그 탭이 그 주소로 감(깃 다리 nm-co-cmd nav · 11-17 13:20) · 주소 복사는 다리가 남 손에 있을 때 붙여 넣으라고 남김 */}   {/* 닫기 = 주소 줄 오른쪽 끝 ×(형 11-12 10:00 「우측에 웹페이지가 열렸을때 이를 닫는게 없어」) · 빈 탭 = 「주소나 검색어를 넣어주세요」 한 줄만(형 10:00 「애들 화면 - 이거는 없어도 돼」 · 몸 화면 바로가기 걷음 · 즐겨찾기는 나중) */}
             </div>
           ) : (
             <ScreenTabPane key={`${tabKey(t)}|${t.url}`} url={t.url} name={nameOf(t)} on={s.active === tabKey(t)} />   /* 몸 화면 탭 = 켤 때 표를 새로 받아 끼움(앞 = 저장된 주소를 그대로 틀에 넣어 표 없는 주소가 들어갔음 · ./screen-tab.tsx · 구름 11-16) */
@@ -275,7 +296,7 @@ function BrowserPane({ nav, onNav, onClose }: { nav: string; onNav: () => void; 
   if (co) return <div className="nm-tab-co"><CobrowsePane mode="browser" nav={go} onNav={() => { setGo(""); onNav(); }} onClose={() => { setCo(false); setGo(""); onNav(); }} /></div>;
   return (
     <div className="nm-tab-web">
-      <WebPane initial={last.current} focus onClose={onClose} onGo={(u) => { last.current = u; try { localStorage.setItem(BROWSER_LAST, u); } catch { /* 이번만 */ } }} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 넘어감 */ } setCo(true); setGo(u); }} />
+      <WebPane sid="browser" initial={last.current} focus onClose={onClose} onGo={(u) => { last.current = u; try { localStorage.setItem(BROWSER_LAST, u); } catch { /* 이번만 */ } }} onBridge={(u) => { try { void navigator.clipboard?.writeText(u); } catch { /* 복사 못 해도 넘어감 */ } setCo(true); setGo(u); }} />
     </div>
   );
 }
