@@ -4,6 +4,7 @@
 const BUILD = "__NM_BUILD__";
 const SHELL = "garden-app-shell-v1";
 const ASSETS = "garden-app-assets-v1";
+const STATIC = "garden-app-static-v1";   // 묶음(assets/) 밖에서 그대로 쓰는 것 = 얼굴 그림 · 글꼴 · three.js · 조약돌 부품 · 뿌리 자리 큰 자료(아래 staticGet · dataGet)
 const META = "garden-app-meta";   // 공유 받기 칸(아래 takeShare)
 
 /* 새 판 = 알리기만(형 11-02 07:20 「글고 업데이트 강제로 될때내 메시지 하나씩 휘발되서 다시 써야되는 이슈가 있어. 강제로 화면 쌔로고침 하지말고. 내 ㅁㅔ세지는 정확히 가고. (확인) 새로고침은  내가특정 그 새로운 버전이 잇다는 화면에 버튼 누르면 갱신하게」)
@@ -21,7 +22,11 @@ const htmlAsset = (r) => /text\/html/i.test(r.headers.get("content-type") || "")
 
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
-    for (const k of await caches.keys()) if (k !== SHELL && k !== ASSETS && k !== META && k !== "garden-app-att") await caches.delete(k);
+    for (const k of await caches.keys()) if (k !== SHELL && k !== ASSETS && k !== STATIC && k !== META && k !== "garden-app-att") await caches.delete(k);
+    try {   // 한 달 넘게 안 쓴 담아 둔 것(옛 ?v= 그림 등) = 치움
+      const c = await caches.open(STATIC), st = await loadStamps(c), now = Date.now();
+      for (const q of await c.keys()) { const k = staticKey(new URL(q.url)); if (k !== STAMPS && now - (st[k] || now) > STATIC_OLD) { await c.delete(q); delete st[k]; } }
+    } catch { /* 못 치워도 그대로 씀 */ }
     try {   // 앞 판이 담아 둔 html 조각 = 판이 바뀔 때 한 번 치움(빈 화면 기기가 새 판 서비스 워커만 받으면 풀림)
       const c = await caches.open(ASSETS);
       for (const q of await c.keys()) { const r = await c.match(q); if (r && htmlAsset(r)) await c.delete(q); }
@@ -161,6 +166,57 @@ async function takeShare(req) {
   return Response.redirect(new URL("/garden-app/share", location.origin).href, 303);   // GET = public/share.html(Pages 가 .html 을 뗀 주소)
 }
 
+/* 얼굴 그림 · 글꼴 · 묶음 밖 부품(three.js · 조약돌) = 한 번 받으면 담아 두고 바로 줌 · 1시간 지난 것만 뒤에서 「바뀌었나」 물음(ETag · 안 바뀌면 300바이트 · 바뀌었으면 다음에 열 때 새 것)
+   까닭(11-21 실측 · 맥 앱 = 사파리 엔진 · 아이폰 홈 화면 앱도 같은 엔진): 서비스 워커가 맡은 화면에서 이 워커가 답하지 않고 흘려보낸 요청은 웹 캐시를 안 탐
+     → 앱을 열 때마다 얼굴 23장 7MB + 글꼴 0.45MB + three.js 0.42MB + 뉴스 목록 0.53MB … = 10.9MB 를 통째로 다시 받았음(같은 파일을 이 워커 밖 문서에서 받으면 「안 바뀜」 300바이트로 끝남)
+     (형 11-21 「첫 메인 화면 빌드 빠르게 하는 방법도 좀」 · 봄) · 크롬 계열 = 웹 캐시가 먹었지만 열 때마다 「바뀌었나」 48번 → 이제 1시간에 한 번
+   html 은 안 담음(없는 주소에 Pages 가 첫 화면 html 을 200 으로 줌 · 위 htmlAsset) · 화면이 스스로 고치는 길(ui/fresh.ts)은 이 통도 비움 */
+const STATIC_RE = /^\/(?:office\/[^/]+\.(?:webp|gif|png|jpe?g|svg)|garden-app\/[^/]+\.(?:webp|gif|png|jpe?g|svg)|assets\/(?:fonts|brand)\/.+\.(?:woff2?|png|webp|svg)|vendor\/.+\.(?:js|css|wasm))$/;
+const DATA_RE = /^\/[^/]+\.json$/;   // 뿌리 자리 큰 자료(articles.json 530KB 등) = 늘 서버에 묻되 「안 바뀜」이면 담아 둔 것 그대로(늘 새 것 · 받는 양만 줄어듦)
+const STATIC_STALE = 3600e3, STATIC_OLD = 30 * 24 * 3600e3, STAMPS = "/__nm-static-at";
+let stamps = null, saving = null;   // stamps = { 주소: 마지막으로 서버에 물은 때 }
+const staticKey = (url) => url.pathname + url.search;
+const keepable = (r) => !!r && r.status === 200 && !htmlAsset(r);
+async function loadStamps(c) {
+  if (!stamps) { try { const r = await c.match(STAMPS); stamps = r ? await r.json() : {}; } catch { stamps = {}; } }
+  return stamps;
+}
+function saveStamps(c) {   // 여러 건이 한꺼번에 와도 한 번만 적음
+  return saving || (saving = new Promise((ok) => setTimeout(ok, 400)).then(() => { saving = null; return c.put(STAMPS, new Response(JSON.stringify(stamps), { headers: { "content-type": "application/json" } })); }).catch(() => { saving = null; }));
+}
+async function staticRefresh(c, key, hit) {
+  try {
+    const et = hit.headers.get("etag");
+    const r = await fetch(key, { cache: "no-store", headers: et ? { "If-None-Match": et } : {} });
+    if (r.status === 304) return;
+    if (keepable(r)) await c.put(key, r);
+    else if (r.status === 404) await c.delete(key);
+  } catch { /* 끊김 = 담아 둔 것 그대로 */ }
+}
+async function staticGet(e, url) {
+  const c = await caches.open(STATIC), key = staticKey(url), hit = await c.match(key), st = await loadStamps(c), now = Date.now();
+  if (keepable(hit)) {
+    if (now - (st[key] || 0) > STATIC_STALE) { st[key] = now; e.waitUntil(staticRefresh(c, key, hit.clone()).then(() => saveStamps(c))); }
+    return hit;
+  }
+  const res = await fetch(e.request);
+  if (keepable(res)) { st[key] = now; e.waitUntil(c.put(key, res.clone()).then(() => saveStamps(c)).catch(() => {})); }
+  return res;
+}
+async function dataGet(e, url) {
+  const c = await caches.open(STATIC), key = staticKey(url), hit = await c.match(key);
+  try {
+    const et = keepable(hit) ? hit.headers.get("etag") : "";
+    const r = await fetch(key, { cache: "no-store", headers: et ? { "If-None-Match": et } : {} });
+    if (r.status === 304 && hit) return hit;
+    if (keepable(r) && r.headers.get("etag")) e.waitUntil(c.put(key, r.clone()).catch(() => {}));
+    return r;
+  } catch (err) {
+    if (keepable(hit)) return hit;   // 끊김 = 마지막으로 받은 것
+    throw err;
+  }
+}
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method === "POST" && new URL(req.url).pathname === "/garden-app/share") { e.respondWith(takeShare(req)); return; }
@@ -170,6 +226,10 @@ self.addEventListener("fetch", (e) => {
   if (url.origin === location.origin && url.pathname.startsWith("/api/attachments/")) {   // 입력칸 첨부 미리보기 = 화면이 넣어 둔 캐시(shim/attachments.ts)
     e.respondWith(caches.open("garden-app-att").then((c) => c.match(url.pathname)).then((r) => r || new Response("", { status: 404 })));
     return;
+  }
+  if (url.origin === location.origin && !req.headers.has("range")) {
+    if (STATIC_RE.test(url.pathname)) { e.respondWith(staticGet(e, url)); return; }
+    if (DATA_RE.test(url.pathname) && req.mode !== "navigate") { e.respondWith(dataGet(e, url)); return; }
   }
   if (url.origin !== location.origin || !url.pathname.startsWith("/garden-app/")) return;   // /api·다른 화면 = 손대지 않음
   if (req.mode === "navigate") {
