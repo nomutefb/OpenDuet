@@ -13,7 +13,7 @@
 .nm-ms-row { display:grid; grid-template-columns:minmax(0,1fr) 122px 98px; align-items:center; gap:8px; min-height:44px; padding:5px 6px 5px 14px; border:1px solid var(--glass-line); border-radius:var(--r-l, 16px); background:var(--glass); }
 .nm-ms-row .who { min-width:0; display:flex; flex-direction:column; gap:2px; }
 .nm-ms-row .who b { font-size:var(--fs-body); line-height:1.25; overflow-wrap:anywhere; }
-.nm-ms-row .who small { font-size:var(--fs-xs); line-height:1.2; color:var(--mut); }
+.nm-ms-row .who small { font-size:var(--fs-xs); line-height:1.2; color:var(--mut); word-break:keep-all; text-wrap:pretty; }   /* 한 줄 역할(뜸 보조 · 서버 where) = 낱말 단위로 꺾음 · 끝 글자 홀로 내려가지 않게(폰 412 주걱 「앞까 / 지」 · 형 11-21 17:25 「각각 역할 간단히 서술되고」) */
 /* 칸 = 지금 값 + 화살표 · 고르는 판(select)은 칸 전체를 덮어 투명하게(누르는 자리 = 칸 전체 · 32px · 줄째로는 44px) */
 .nm-ms-row .cell { position:relative; min-width:0; min-height:32px; display:flex; align-items:center; justify-content:space-between; gap:6px; padding:5px 10px 5px 12px; border-radius:calc(var(--r-l, 16px) - 6px); font-size:var(--fs-sm); font-weight:var(--fw-b, 700); font-variant-numeric:tabular-nums; color:var(--accent); }
 .nm-ms-row .cell.pick { border:1px solid var(--glass-line); cursor:pointer; transition:background-color .18s ease, border-color .18s ease; }
