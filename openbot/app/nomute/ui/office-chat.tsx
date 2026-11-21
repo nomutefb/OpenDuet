@@ -75,6 +75,7 @@ import { EncGauge, encRing, useEnc } from "./enc-gauge";
 import { PicGrid } from "./pic-grid";   // 사진 2장 넘음 = 카톡 꼴 묶음 · 누르면 넘겨 보기(형 11-11 08:45 「2장 이상일땐 이런식으로 크키가 줄어서 나오게 할 수 있어? 누르면 커지고」 · 뎅)   // 미디어 게이지 · 라임 테두리(형 11-11 08:14 번개 1:1 「영상 00% / 파동 00% / 자막 00% / 다 공유되먼 완료」)
 import { useCloseCallMenu } from "./call-face";
 import { justHeld, MsgMenu, useLongPress } from "./msg-menu";
+import { chipCopy } from "./part-copy";
 import { RoomSearch } from "./room-search";
 import "./chat-font";   // 대화 글꼴(--app-font · YETA 설정 그대로 · 앱 열 때 한 번 적용)
 import { FaceImg, FaceStack } from "./faces";
@@ -1022,7 +1023,7 @@ function LineBody({ m: m0, c, cont = false, fresh = false, noTime = false }: { m
   const selected = c.sel === m.id;
   const press = useLongPress(() => c.onMenu(m));
   const rowMenu = (e: ReactMouseEvent) => { if (!e.defaultPrevented) press.bind.onContextMenu(e); };   // PC 우클릭 = 말풍선 밖 그 글 칸(이름표 · 시각 · 확인 표 · 줄 빈 곳 · 둥근 모서리)도 같은 글 메뉴(형 11-20 14:01 dm-sia 시아 옮김 「pc에서는 우클릭이 안먹히는데 먹히게해주라」 · 앞 판 = 말풍선 안만 · 72 실물 = 그 밖은 브라우저 기본 메뉴)
-  const toggle = () => { press.fired(); };   // PC 도 그냥 누름 = 아무 일 없음(형 11-04 17:52 「pc에서 눌렀을때 이모지가 나올필요는 없구, 우클릭했을때만 (대화를) 옵션이 나오면 됨」) · 우클릭·길게 = 글 메뉴(./msg-menu.tsx) · 폰 = 길게(형 10-31)   // 폰 = 그냥 누르면 아무 일 없음 · 길게 눌러야 메뉴(형 10-31 「터치만 해도 … 메뉴 … 생겨 적어도 0.5초」)
+  const toggle = (e: ReactMouseEvent) => { if (press.fired()) return; chipCopy(e); };   // 코드 칩 한 번 누름 = 칩 통째 복사(형 11-21 21:49 dm-gik 「이거 복사인데 텍스트 선택이 안된다」 · R0107 · ./part-copy.ts)   // PC 도 그냥 누름 = 아무 일 없음(형 11-04 17:52 「pc에서 눌렀을때 이모지가 나올필요는 없구, 우클릭했을때만 (대화를) 옵션이 나오면 됨」) · 우클릭·길게 = 글 메뉴(./msg-menu.tsx) · 폰 = 길게(형 10-31)   // 폰 = 그냥 누르면 아무 일 없음 · 길게 눌러야 메뉴(형 10-31 「터치만 해도 … 메뉴 … 생겨 적어도 0.5초」)
   const time = noTime ? null : <time className="ytout" dateTime={new Date(m.ts).toISOString()}>{t12(m.ts)}</time>;
   if (mineOf(m)) {
     const app = hyungApp(m) && m.kind !== "human";   // 그록봇 앱에서 친 형 글 = 검정 말풍선 흰 글씨(형 10-30)

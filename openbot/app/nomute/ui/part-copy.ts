@@ -54,8 +54,10 @@ export function startPick(id: string, at: Pt | null): boolean {
   yb.setAttribute("data-pick", "");   // React 가 안 건드리는 칸(className 은 다시 그릴 때 덮일 수 있음)
   const range = document.createRange(), c = at ? caretAt(at) : null;
   const inText = !!c && c.node.nodeType === Node.TEXT_NODE && yb.contains(c.node) && !c.node.parentElement?.closest("button, .yrx, .yrxs");   // 반응 · 복사 단추 글자는 안 집음
-  const [s, e] = inText ? wordSpan(c!.node.textContent || "", c!.offset) : [0, 0];
-  if (e > s) { range.setStart(c!.node, s); range.setEnd(c!.node, e); } else range.selectNodeContents(body);
+  const chip = inText ? c!.node.parentElement?.closest<HTMLElement>(CHIP) : null;   // 코드 칩 안 = 칩 통째(「B21B-540E」 가 「B21B」 만 잡히던 것 · R0107)
+  const [s, e] = inText && !chip ? wordSpan(c!.node.textContent || "", c!.offset) : [0, 0];
+  if (chip) range.selectNodeContents(chip);
+  else if (e > s) { range.setStart(c!.node, s); range.setEnd(c!.node, e); } else range.selectNodeContents(body);
   sel.removeAllRanges(); sel.addRange(range);
   let t = 0;
   const check = () => {
@@ -67,5 +69,61 @@ export function startPick(id: string, at: Pt | null): boolean {
   };
   document.addEventListener("selectionchange", check);
   off = () => { window.clearTimeout(t); document.removeEventListener("selectionchange", check); yb.removeAttribute("data-pick"); };
+  return true;
+}
+
+// ── 코드 칩 한 번 누름 = 칩 글자 통째 복사(형 11-21 21:49 dm-gik 「이거 복사인데 텍스트 선택이 안된다」 · 깃 PM R0107) ──
+//   칩 = 봇 말풍선 마크다운 속 `…`(Streamdown 인라인 코드) · 형 말풍선은 칩을 안 그림
+//   누르면 = 칩이 잠깐 라임 불 + 칩 위 작은 「복사됨」(화면에 붙은 한 조각 · 접힌 말풍선 틀에 안 잘림) · 1.2초 뒤 제자리
+//   안 먹을 때 = 길게 눌러 메뉴가 뜬 뒤 손 뗌 · 그 칩 안에서 글자를 끌어 고르는 중(PC 마우스 끌기 · 폰 손잡이)
+export const CHIP = 'code[data-streamdown="inline-code"]';
+const HOLD = 1200;
+
+/** 누른 곳이 말풍선 속 코드 칩이면 그 칩 · 아니면 null */
+export function chipAt(t: EventTarget | null): HTMLElement | null {
+  const el = t instanceof Element ? t.closest<HTMLElement>(CHIP) : null;
+  return el?.closest(".yb") ? el : null;
+}
+
+/** 순수 — 칩 글자 → 복사할 글(앞뒤 빈칸 · 줄바꿈만 뺌 · 가운데는 그대로) */
+export const chipText = (t: string | null | undefined) => String(t || "").replace(/^\s+|\s+$/g, "");
+
+/** 그 칩 안을 끌어 고르는 중인가(고른 글자가 있고 한쪽 끝이 칩 안) */
+function picking(chip: HTMLElement) {
+  const g = window.getSelection();
+  return !!g && !g.isCollapsed && !!g.toString() && (chip.contains(g.anchorNode) || chip.contains(g.focusNode));
+}
+
+async function write(text: string) {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* http · 막힘 = 옛 길 */ }
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+  document.body.appendChild(ta); ta.select();
+  let ok = false; try { ok = document.execCommand("copy"); } catch { ok = false; }
+  ta.remove();
+  return ok;
+}
+
+let tag: HTMLElement | null = null, tagT = 0;
+function flash(chip: HTMLElement) {
+  chip.setAttribute("data-copied", "");
+  window.setTimeout(() => chip.removeAttribute("data-copied"), HOLD);
+  const r = chip.getBoundingClientRect();
+  tag?.remove(); window.clearTimeout(tagT);
+  tag = document.createElement("span");
+  tag.className = "nm-chipok"; tag.setAttribute("role", "status"); tag.textContent = "복사됨";
+  tag.style.left = `${Math.round(r.left + r.width / 2)}px`; tag.style.top = `${Math.round(r.top)}px`;
+  document.body.appendChild(tag);
+  tagT = window.setTimeout(() => { tag?.remove(); tag = null; }, HOLD);
+}
+
+/** 말풍선 누름(onClick) 앞에 둠 — 코드 칩이면 복사하고 true(부른 쪽은 거기서 멈춤) · 아니면 false */
+export function chipCopy(e: { target: EventTarget | null; stopPropagation: () => void }): boolean {
+  const chip = chipAt(e.target);
+  if (!chip || picking(chip)) return false;
+  const text = chipText(chip.textContent);
+  if (!text) return false;
+  e.stopPropagation();
+  void write(text).then((ok) => { if (ok) flash(chip); });
   return true;
 }

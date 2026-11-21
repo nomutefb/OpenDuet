@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { wordSpan } from "../ui/part-copy";
+import { CHIP, chipText, wordSpan } from "../ui/part-copy";
 const rd = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const word = (t: string, i: number) => { const [s, e] = wordSpan(t, i); return t.slice(s, e); };
 
@@ -37,4 +37,25 @@ test("끼운 자리 = 폰 「복사」만 끌어 고르기 · PC 는 전체 그�
   assert.match(pc, /yb\.setAttribute\("data-pick", ""\)/);
   assert.match(pc, /removeAttribute\("data-pick"\)/);
   assert.match(pc, /selectionchange/);
+});
+
+// 코드 칩 한 번 누름 = 칩 통째 복사(형 11-21 21:49 dm-gik 「이거 복사인데 텍스트 선택이 안된다」 · 깃 PM R0107)
+test("칩 글 = 앞뒤 빈칸만 뺌 · 가운데 「-」 · 빈칸은 그대로(「B21B-540E」 가 「B21B」 로 안 잘림)", () => {
+  assert.equal(chipText("B21B-540E"), "B21B-540E");
+  assert.equal(chipText("  B21B-540E\n"), "B21B-540E");
+  assert.equal(chipText("npm run a -- --x"), "npm run a -- --x");
+  assert.equal(chipText(null), "");
+  assert.equal(word("B21B-540E", 2), "B21B");   // 낱말 셈은 그대로(칩 밖 글) — 칩 안은 startPick 이 칩 통째
+  assert.equal(CHIP, 'code[data-streamdown="inline-code"]');   // Streamdown 인라인 코드 표지
+});
+
+test("끼운 자리 = 말풍선 누름 앞에 칩 복사 · 길게 누른 뒤 뗌은 안 먹음 · 길게 눌러 고르기도 칩 안이면 칩 통째 · 라임 불 + 「복사됨」", () => {
+  const oc = rd("../ui/office-chat.tsx"), pc = rd("../ui/part-copy.ts"), css = rd("../ui/yeta-chat.css");
+  assert.match(oc, /const toggle = \(e: ReactMouseEvent\) => \{ if \(press\.fired\(\)\) return; chipCopy\(e\); \};/);
+  assert.match(oc, /import \{ chipCopy \} from "\.\/part-copy";/);
+  assert.match(pc, /if \(chip\) range\.selectNodeContents\(chip\);/);
+  assert.match(pc, /if \(!chip \|\| picking\(chip\)\) return false;/);   // 칩 안을 끌어 고르는 중이면 그대로 둠
+  assert.match(pc, /return el\?\.closest\("\.yb"\) \? el : null;/);   // 말풍선 속 칩만
+  assert.match(css, /\[data-streamdown="inline-code"\]\[data-copied\]/);
+  assert.match(css, /\.nm-chipok \{ position:fixed;/);
 });
