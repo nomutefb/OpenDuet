@@ -48,6 +48,7 @@ test("미리보기 둘 · 칩 편집기 둘이 덧줄 가름을 씀", () => {
     assert.match(src, /if \(edExtra\(li\)\) \{ line\.forEach\(wd => \{ wd\._over = false; wd\._overFrom = -1; wd\._warn = false; \}\); continue; \}/);
     assert.match(src, /if \(!line \|\| edExtra\(li\)\) return;/);
   }
+  assert.equal((cards.match(/renderEditChips\(\); chipsChanged\(\);/g) || []).length, 3);   // 붙여넣기 · 되돌리기 · 지우기 뒤 = 칩 칸 input → 카드 미리보기 다시 그림(p03 듣는 손)
   assert.match(art, /HL: '#6EFF66'/);
   assert.doesNotMatch(art, /"Noto Sans KR"|Noto\+Sans\+KR/);   // 글꼴 줄 · 구글 글꼴 받기 0(주석의 「앞 판」 말은 둠)
   assert.match(art, /ovlGradient\(ctx\);\n\s+ovlText\(ctx, cap(tion)?\);/);

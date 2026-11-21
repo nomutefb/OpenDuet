@@ -365,16 +365,17 @@ S._edRendering = false;
     if (!eraser.classList.contains('iobtn-undo')) eraser.classList.toggle('iobtn-off', !filled);
   };
   copyB.onclick = ev => { ev.preventDefault(); clipCopy(buildEmphText(), copyB, S.cardIo); };
+  const chipsChanged = () => { const ec = $('#edChips'); if (ec) ec.dispatchEvent(new Event('input', { bubbles: true })); };   // 붙여넣기 · 지우기 · 되돌리기 = 칩 칸 밖 단추라 칩 칸 듣는 손(카드 미리보기 · p03)이 못 들었음(11-21 하늘 실물: 붙여넣어도 미리보기 그대로) → 칩 칸 input 한 번
   btn.onclick = async ev => {
     ev.preventDefault();
-    const t = await clipPasteText(); if (t) { S.edLines = parseEmphLines(t); if (!S.edLines.length) S.edLines = [[]]; renderEditChips(); } S.cardIo();
+    const t = await clipPasteText(); if (t) { S.edLines = parseEmphLines(t); if (!S.edLines.length) S.edLines = [[]]; renderEditChips(); chipsChanged(); } S.cardIo();
   };
   eraser.onclick = ev => {
     ev.preventDefault();
-    if (eraser.classList.contains('iobtn-undo')) { if (undoLines) { S.edLines = undoLines; if (!S.edLines.length) S.edLines = [[]]; renderEditChips(); } exitUndo(); return; }
+    if (eraser.classList.contains('iobtn-undo')) { if (undoLines) { S.edLines = undoLines; if (!S.edLines.length) S.edLines = [[]]; renderEditChips(); chipsChanged(); } exitUndo(); return; }
     if (buildEmphText().trim().length === 0) return;
     try { undoLines = JSON.parse(JSON.stringify(S.edLines)); } catch { undoLines = null; }
-    S.edLines = [[]]; renderEditChips();
+    S.edLines = [[]]; renderEditChips(); chipsChanged();
     eraser.classList.remove('iobtn-off'); eraser.classList.add('iobtn-undo'); eraser.innerHTML = UNDO_SVG; eraser.setAttribute('aria-label', '되돌리기'); eraser.title = '되돌리기 (직전 입력 복원)';
     if (undoTimer) clearTimeout(undoTimer); undoTimer = setTimeout(exitUndo, ERASE_UNDO_MS);
   };
