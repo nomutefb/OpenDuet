@@ -54,9 +54,15 @@ test("잠금 칸 = 막다른 안내 0 · 스위치 + PIN 단추 · 다시 친 PI
 test("캐시 비우기 = nm-cache:* 와 받아 둔 조각만 · 설정 · 쓰던 글은 그대로", async () => {
   const s = mem(); s.setItem("nm-cache:last:rooms", "x"); s.setItem("nm-cache:people", "y"); s.setItem("nm_font_all", "pretendard"); s.setItem("nm-draft:1", "쓰던 글");
   const gone: string[] = [];
-  const n = await wipeCache(s, async () => ["app-v1", "img"], async (k) => { gone.push(k); });
-  assert.equal(n, 4); assert.deepEqual(gone, ["app-v1", "img"]);
-  assert.deepEqual([...s.m.keys()].sort(), ["nm-draft:1", "nm_font_all"]);
+  // 형 11-21 「캐시 비우기에 계정 값 관련된 내용은 … (캐시 지워도 안지워지게)」 = 지우는 칸은 이름으로 못 박은 것만 · 계정 · 쓰던 것 · 모르는 칸은 그대로
+  for (const k of ["nm-lock", "nm_locked", "nm-tabs-v1", "nm-teams-mode", "nm-seat", "nm_files_idx"]) s.setItem(k, "keep");
+  const all = ["garden-app-shell-v1", "garden-app-assets-v1", "garden-app-static-v1", "office-notif-icons", "nm-files", "garden-app-att", "garden-app-meta", "some-account-store", "garden-app-shellfish"];
+  const n = await wipeCache(s, async () => all, async (k) => { gone.push(k); });
+  assert.deepEqual(gone, ["garden-app-shell-v1", "garden-app-assets-v1", "garden-app-static-v1", "office-notif-icons", "nm-files"]);
+  assert.equal(n, 7);
+  assert.deepEqual([...s.m.keys()].sort(), ["nm-draft:1", "nm-lock", "nm-seat", "nm-tabs-v1", "nm-teams-mode", "nm_font_all", "nm_locked"], "계정 · 설정 · 쓰던 글은 그대로 · 파일 표는 파일 칸과 같이");
+  const s2 = mem(); s2.setItem("nm_files_idx", "{}"); await wipeCache(s2, async () => ["garden-app-att"], async () => undefined);
+  assert.equal(s2.getItem("nm_files_idx"), "{}", "파일 칸을 안 비웠으면 표도 그대로");
   assert.equal(await wipeCache(mem(), async () => { throw new Error("x"); }, async () => undefined), 0, "캐시 저장소를 못 열어도 안 터짐");
   assert.doesNotMatch(rd("../ui/yeta-settings.tsx"), /\.unregister\(\)/, "서비스 워커 등록은 안 건드림 = 알림 안 끊김");
 });
